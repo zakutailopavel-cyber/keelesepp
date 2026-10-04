@@ -161,9 +161,11 @@ The first Factory version assembles a deterministic draft from a versioned curat
 contain focus definitions, vocabulary, controlled sentences, contexts, dialogues, optional error/translation pairs,
 productive prompts and CEFR/lesson compatibility data; they are not random word lists. Library v2 contains
 `introduction`, `basic-questions`, `olema-present`, `present-common-verbs`, `personal-info`, `numbers-dates` and the
-module-two starter `family-relations`.
+module-two packs `family-relations`, `possession-genitive`, `appearance-character` and `people-profiles` (Library v3).
+Every pack sentence contains at least one target word in its exact surface form (tested), so gap-fill and context
+choice always have an answer key; context-choice distractors come from another part of speech first.
 
-Factory selection uses stable lesson blueprints for A2-002…A2-006 and bounded keyword matching for future selected
+Factory selection uses stable lesson blueprints for A2-002…A2-010 and bounded keyword matching for future selected
 lessons. Every draft runs through the real sanitizer, `catalogReadiness()` and `planLessonActivities()`. Unsupported
 lessons return `Missing sources` instead of invented Estonian. The UI first shows a readable category/count preview;
 the existing structured editor remains available for detailed changes. A draft is local UI state until the teacher

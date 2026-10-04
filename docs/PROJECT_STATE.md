@@ -1,5 +1,27 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Worksheet generator (no API): A2 module 2 complete, A2-007…A2-010 — branch `agent/a2-factory-next`
+
+Checked `origin/main` `35d618f`. Owner: continue worksheet generation without an external API. Static ready coverage
+was A2-001…A2-006; now A2-001…A2-010 (modules 1 and 2). Content Library v3:
+- `possession-genitive` (A2-007 „Kelle oma? Genitiiv”): minu/sinu/tema/meie/teie/nende, kelle, oma, venna, õe; three
+  contexts (pere asjad, kadunud asjade kast, nimesildid), 10 sentences, dialogue, 3 error pairs, 2 translations.
+- `appearance-character` (A2-008 „Välimus ja iseloom”): 15 words/phrases incl. väga/üsna/natuke patterns, comparison.
+- `people-profiles` (A2-009 „Minu inimesed”, reading): three short profiles (Kati, Sergei, Liisa) as fact sentences.
+- A2-010 Kontroll 2 combines the four module-2 packs. Clock tasks are kept out of A2-007…A2-009 (contexts have no
+  times); A2-010 can show one because `family-relations` has times (as A2-006).
+- **Quality fixes found by reading the output:** (1) gap/choice items need a vocabulary word in the exact surface form;
+  10 sentences in older packs (A2-002…A2-006) had none, giving an empty answer key on some seeds — vocabulary
+  extended (e.g. `oleme`, `elab`, `räägime`, `kehtib`, `kell`, `sugulased`, `kolm last`); a test now checks every
+  sentence of every pack. (2) `engine/content.js` context choice took distractors from the whole word list, so
+  „___ isa töötab haiglas: tema / sinu” had two right answers; distractors now come from another part of speech first.
+- Tests: factory 9 lessons ready + 5-task bundles; A2-007…A2-010 error-free across 6 seeds; sentence-coverage for all
+  packs; one-correct-answer test over 30 seeds. CRM Vitest 126 files / 641 tests, ESLint, build OK.
+- No Firestore/rules/Functions change; nothing is saved automatically (teacher still saves a draft explicitly).
+- Known limit (engine, not changed here): „Kas lause sobib olukorraga?” marks a sentence from another context as
+  false without showing the context to the learner.
+- Exactly one next safe step: module 3 packs (A2-011…A2-015: päev, kellaaeg, sagedus, nädal, kontroll).
+
 ## 2026-10-04 — Release of #247–#251: RELEASED
 
 Owner deployed from `~/keelesepp-release` at main `234c53f` (2026-10-04): `firestore:rules` (#247; the second run

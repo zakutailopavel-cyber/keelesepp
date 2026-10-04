@@ -1,5 +1,5 @@
 export const CONTENT_LIBRARY_SCHEMA = 'keelesepp.generator-content-library/1';
-export const CONTENT_LIBRARY_VERSION = 2;
+export const CONTENT_LIBRARY_VERSION = 3;
 
 const vocabulary = (id, rows) => rows.map(([key, word, translation, lexicalType, focusId]) => ({
   id: `${id}-v-${key}`, word, translation, lexicalType, focusIds: [focusId],
@@ -83,6 +83,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['oled', 'oled', 'ты являешься', 'verb', 'olema-present'],
       ['on', 'on', 'он / она является', 'verb', 'olema-present'],
       ['ei-ole', 'ei ole', 'не является', 'verb', 'olema-present'],
+      ['oleme', 'oleme', 'мы являемся / мы находимся', 'verb', 'olema-present'],
     ]),
     contexts: [
       { id: 'verbs-profile', label: 'Minu lühike profiil', tags: ['profile'], names: ['Anna', 'Mihkel'], times: ['08:00', '13:00', '18:30'] },
@@ -110,6 +111,9 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['opin', 'õpin', 'я учусь', 'verb', 'present-common-verbs'],
       ['raagin', 'räägin', 'я говорю', 'verb', 'present-common-verbs'],
       ['armastan', 'armastan', 'я люблю', 'verb', 'present-common-verbs'],
+      ['elab', 'elab', 'он / она живёт', 'verb', 'present-common-verbs'],
+      ['tootab', 'töötab', 'он / она работает', 'verb', 'present-common-verbs'],
+      ['raagime', 'räägime', 'мы говорим', 'verb', 'present-common-verbs'],
     ]),
     contexts: [],
     sentences: sentences('present-common-verbs', [
@@ -130,7 +134,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     id: 'personal-info',
     focus: { id: 'personal-info', type: 'communication', label: 'Isikuandmed ja ankeet', patterns: ['nimi', 'aadress', 'telefon', 'e-post'], aliases: ['isikuandmed', 'ankeet'] },
     vocabulary: vocabulary('personal-info', [
-      ['nimi', 'nimi', 'имя', 'noun', 'personal-info'], ['aadress', 'aadress', 'адрес', 'noun', 'personal-info'], ['telefon', 'telefoninumber', 'номер телефона', 'noun', 'personal-info'], ['epost', 'e-posti aadress', 'электронная почта', 'noun', 'personal-info'], ['kodakondsus', 'kodakondsus', 'гражданство', 'noun', 'personal-info'], ['allkiri', 'allkiri', 'подпись', 'noun', 'personal-info'],
+      ['nimi', 'nimi', 'имя', 'noun', 'personal-info'], ['aadress', 'aadress', 'адрес', 'noun', 'personal-info'], ['telefon', 'telefoninumber', 'номер телефона', 'noun', 'personal-info'], ['epost', 'e-posti aadress', 'электронная почта', 'noun', 'personal-info'], ['kodakondsus', 'kodakondsus', 'гражданство', 'noun', 'personal-info'], ['allkiri', 'allkiri', 'подпись', 'noun', 'personal-info'], ['vastus', 'vastus', 'ответ', 'noun', 'personal-info'],
     ]),
     contexts: [
       { id: 'form-course', label: 'Keelekursuse ankeet', tags: ['form'], names: ['Anna', 'Maksim'], times: ['09:00', '13:30', '18:00'] },
@@ -150,7 +154,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     id: 'numbers-dates',
     focus: { id: 'numbers-dates', type: 'communication', label: 'Arvud, kuupäevad ja kontaktandmed', patterns: ['sünniaeg', 'kuupäev', 'telefoninumber'], aliases: ['arvud', 'kuupäevad'] },
     vocabulary: vocabulary('numbers-dates', [
-      ['sunniaeg', 'sünniaeg', 'дата рождения', 'noun', 'numbers-dates'], ['kuupaev', 'kuupäev', 'дата', 'noun', 'numbers-dates'], ['aasta', 'aasta', 'год', 'noun', 'numbers-dates'], ['kuu', 'kuu', 'месяц', 'noun', 'numbers-dates'], ['number', 'number', 'номер', 'noun', 'numbers-dates'],
+      ['sunniaeg', 'sünniaeg', 'дата рождения', 'noun', 'numbers-dates'], ['kuupaev', 'kuupäev', 'дата', 'noun', 'numbers-dates'], ['aasta', 'aasta', 'год', 'noun', 'numbers-dates'], ['kuu', 'kuu', 'месяц', 'noun', 'numbers-dates'], ['number', 'number', 'номер', 'noun', 'numbers-dates'], ['kehtib', 'kehtib', 'действителен', 'verb', 'numbers-dates'], ['kell', 'kell', 'в … часов', 'noun', 'numbers-dates'], ['oige', 'õige', 'правильный', 'adjective', 'numbers-dates'],
     ]),
     contexts: [],
     sentences: sentences('numbers-dates', [
@@ -177,6 +181,9 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['vanaema', 'vanaema', 'бабушка', 'noun', 'family-relations'],
       ['vanaisa', 'vanaisa', 'дедушка', 'noun', 'family-relations'],
       ['sugulane', 'sugulane', 'родственник', 'noun', 'family-relations'],
+      ['sugulased', 'sugulased', 'родственники', 'noun', 'family-relations'],
+      ['nimi', 'nimi', 'имя', 'noun', 'family-relations'],
+      ['kolm-last', 'kolm last', 'трое детей', 'phrase', 'family-relations'],
     ]),
     contexts: [
       { id: 'family-tree', label: 'Perekonna sugupuu', tags: ['family', 'relations'], names: ['Mari', 'Jüri', 'Katrin', 'Martin'], times: ['10:00', '14:00', '18:00'] },
@@ -218,6 +225,184 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     ]),
     successCriteria: ['Ma nimetan peresuhteid ja lisan vähemalt nelja inimese kohta ühe arusaadava detaili.'],
   },
+  'possession-genitive': {
+    id: 'possession-genitive',
+    focus: { id: 'possession-genitive', type: 'grammar', label: 'Omastav ja omamine', patterns: ['minu / sinu / tema / meie / teie / nende', 'See on Mari kott.', 'Kelle oma see on?', 'See on minu venna oma.'], aliases: ['genitiiv', 'omastav', 'kelle oma'] },
+    vocabulary: vocabulary('possession-genitive', [
+      ['minu', 'minu', 'мой', 'pronoun', 'possession-genitive'],
+      ['sinu', 'sinu', 'твой', 'pronoun', 'possession-genitive'],
+      ['tema', 'tema', 'его / её', 'pronoun', 'possession-genitive'],
+      ['meie', 'meie', 'наш', 'pronoun', 'possession-genitive'],
+      ['teie', 'teie', 'ваш', 'pronoun', 'possession-genitive'],
+      ['nende', 'nende', 'их', 'pronoun', 'possession-genitive'],
+      ['kelle', 'kelle', 'чей / чья', 'pronoun', 'possession-genitive'],
+      ['oma', 'oma', 'свой / принадлежащий', 'pronoun', 'possession-genitive'],
+      ['venna', 'venna', 'брата (vend → venna)', 'noun', 'possession-genitive'],
+      ['oe', 'õe', 'сестры (õde → õe)', 'noun', 'possession-genitive'],
+      ['kott', 'kott', 'сумка', 'noun', 'possession-genitive'],
+      ['voti', 'võti', 'ключ', 'noun', 'possession-genitive'],
+      ['korter', 'korter', 'квартира', 'noun', 'possession-genitive'],
+      ['vihik', 'vihik', 'тетрадь', 'noun', 'possession-genitive'],
+      ['opetaja', 'õpetaja', 'учителя', 'noun', 'possession-genitive'],
+    ]),
+    contexts: [
+      { id: 'possession-home', label: 'Pere asjad kodus', tags: ['family', 'home'], names: ['Mari', 'Martin', 'Katrin'], times: [] },
+      { id: 'possession-lost', label: 'Kadunud asjade kast', tags: ['things', 'questions'], names: ['Anna', 'Toomas', 'Olga'], times: [] },
+      { id: 'possession-labels', label: 'Nimesildid ja allkirjad', tags: ['labels', 'school'], names: ['Sofia', 'Jaan', 'Irina'], times: [] },
+    ],
+    sentences: sentences('possession-genitive', [
+      ['1', 'possession-genitive', 'possession-home', 'See on minu ema telefon.'],
+      ['2', 'possession-genitive', 'possession-home', 'Minu õe auto on punane.'],
+      ['3', 'possession-genitive', 'possession-home', 'Meie korter on teisel korrusel.'],
+      ['10', 'possession-genitive', 'possession-home', 'Tema isa töötab haiglas.'],
+      ['4', 'possession-genitive', 'possession-lost', 'Kelle kott see on? See on Martini kott.'],
+      ['5', 'possession-genitive', 'possession-lost', 'Kas see vihik on sinu oma? Ei, see on Anna oma.'],
+      ['6', 'possession-genitive', 'possession-lost', 'See jope on minu venna oma.'],
+      ['7', 'possession-genitive', 'possession-labels', 'Õpetaja laud on akna all.'],
+      ['8', 'possession-genitive', 'possession-labels', 'Nende lapsed käivad samas koolis.'],
+      ['9', 'possession-genitive', 'possession-labels', 'Teie võti on laual.'],
+    ]),
+    dialogues: [{ id: 'possession-genitive-d-1', focusIds: ['possession-genitive'], contextIds: ['possession-lost'], speakers: ['A', 'B'], lines: [
+      { who: 'A', text: 'Vabandust, [kelle] kott see on?' },
+      { who: 'B', text: 'See on minu [venna] kott. Ta unustas selle siia.' },
+      { who: 'A', text: 'Ja kelle prillid need on?' },
+      { who: 'B', text: 'Need on Mari [omad].' },
+    ] }],
+    errorPairs: [
+      { id: 'possession-genitive-e-1', focusIds: ['possession-genitive'], wrong: 'See on minu vend auto.', correct: 'See on minu venna auto.' },
+      { id: 'possession-genitive-e-2', focusIds: ['possession-genitive'], wrong: 'See raamat on mina oma.', correct: 'See raamat on minu oma.' },
+      { id: 'possession-genitive-e-3', focusIds: ['possession-genitive'], wrong: 'Need prillid on Anna oma.', correct: 'Need prillid on Anna omad.' },
+    ],
+    translations: [
+      { id: 'possession-genitive-t-1', focusIds: ['possession-genitive'], sourceLang: 'ru', source: 'Чья это сумка? — Это сумка моего брата.', target: 'Kelle kott see on? See on minu venna kott.', alternatives: ['Kelle kott see on? — See on minu venna kott.'] },
+      { id: 'possession-genitive-t-2', focusIds: ['possession-genitive'], sourceLang: 'ru', source: 'Наша квартира на втором этаже.', target: 'Meie korter on teisel korrusel.', alternatives: [] },
+    ],
+    speakingPrompts: prompts('possession-genitive', 'sp', [
+      ['1', 'possession-genitive', 'possession-home', 'Nimeta viis asja oma kodus ja ütle, kelle omad need on.'],
+      ['2', 'possession-genitive', 'possession-lost', 'Mängi kadunud asjade kasti: küsi „Kelle … see on?” ja vasta täislausega.'],
+    ]),
+    writingPrompts: prompts('possession-genitive', 'wp', [
+      ['1', 'possession-genitive', 'possession-home', 'Kirjuta 6–8 lauset oma pere asjadest. Kasuta vähemalt kuut omastava vormi, näiteks minu venna, Mari, meie.'],
+    ]),
+    successCriteria: ['Ma väljendan omamist ja suhteid omastavaga ning vastan küsimusele „Kelle oma see on?”.'],
+  },
+  'appearance-character': {
+    id: 'appearance-character',
+    focus: { id: 'appearance-character', type: 'vocabulary', label: 'Välimus ja iseloom', patterns: ['Ta on pikk / lühike.', 'Tal on tumedad juuksed.', 'väga / üsna / natuke'], aliases: ['välimus', 'iseloom', 'omadussõnad'] },
+    vocabulary: vocabulary('appearance-character', [
+      ['pikk', 'pikk', 'высокий', 'adjective', 'appearance-character'],
+      ['luhike', 'lühike', 'невысокий', 'adjective', 'appearance-character'],
+      ['noor', 'noor', 'молодой', 'adjective', 'appearance-character'],
+      ['vanem', 'vanem', 'старше / пожилой', 'adjective', 'appearance-character'],
+      ['heledad', 'heledad juuksed', 'светлые волосы', 'phrase', 'appearance-character'],
+      ['tumedad', 'tumedad juuksed', 'тёмные волосы', 'phrase', 'appearance-character'],
+      ['prillid', 'prillid', 'очки', 'noun', 'appearance-character'],
+      ['sobralik', 'sõbralik', 'дружелюбный', 'adjective', 'appearance-character'],
+      ['rahulik', 'rahulik', 'спокойный', 'adjective', 'appearance-character'],
+      ['aktiivne', 'aktiivne', 'активный', 'adjective', 'appearance-character'],
+      ['lobus', 'lõbus', 'весёлый', 'adjective', 'appearance-character'],
+      ['tosine', 'tõsine', 'серьёзный', 'adjective', 'appearance-character'],
+      ['abivalmis', 'abivalmis', 'готовый помочь', 'adjective', 'appearance-character'],
+      ['habelik', 'häbelik', 'стеснительный', 'adjective', 'appearance-character'],
+      ['juuksed', 'juuksed', 'волосы', 'noun', 'appearance-character'],
+    ]),
+    contexts: [
+      { id: 'looks-photo', label: 'Inimesed fotol', tags: ['description', 'photo'], names: ['Anna', 'Jüri', 'Liis'], times: [] },
+      { id: 'looks-guess', label: 'Arva ära, kes see on', tags: ['description', 'game'], names: ['Mari', 'Andrei', 'Kadri'], times: [] },
+      { id: 'looks-compare', label: 'Kaks sõpra', tags: ['description', 'comparison'], names: ['Martin', 'Jüri', 'Daria'], times: [] },
+    ],
+    sentences: sentences('appearance-character', [
+      ['1', 'appearance-character', 'looks-photo', 'Minu vend on pikk ja tal on tumedad juuksed.'],
+      ['2', 'appearance-character', 'looks-photo', 'Fotol on noor naine, kellel on heledad juuksed.'],
+      ['3', 'appearance-character', 'looks-photo', 'Anna on üsna lühike ja tal on prillid.'],
+      ['4', 'appearance-character', 'looks-guess', 'See mees on väga sõbralik ja abivalmis.'],
+      ['5', 'appearance-character', 'looks-guess', 'Ta on natuke tõsine, aga tegelikult väga lõbus.'],
+      ['6', 'appearance-character', 'looks-guess', 'Kas tal on pikad või lühikesed juuksed?'],
+      ['7', 'appearance-character', 'looks-compare', 'Mari on rahulik, aga tema õde on väga aktiivne.'],
+      ['8', 'appearance-character', 'looks-compare', 'Jüri on vanem kui Martin, aga Martin on pikem.', 2],
+      ['9', 'appearance-character', 'looks-compare', 'Daria on alguses häbelik, aga sõpradega väga lõbus.', 2],
+    ]),
+    dialogues: [{ id: 'appearance-character-d-1', focusIds: ['appearance-character'], contextIds: ['looks-guess'], speakers: ['A', 'B'], lines: [
+      { who: 'A', text: 'Kas see inimene on mees või naine?' },
+      { who: 'B', text: 'Naine. Ta on üsna [noor] ja tal on pikad heledad juuksed.' },
+      { who: 'A', text: 'Milline ta iseloomult on?' },
+      { who: 'B', text: 'Ta on väga [sõbralik] ja natuke häbelik.' },
+    ] }],
+    errorPairs: [
+      { id: 'appearance-character-e-1', focusIds: ['appearance-character'], wrong: 'Tal on pikk juuksed.', correct: 'Tal on pikad juuksed.' },
+      { id: 'appearance-character-e-2', focusIds: ['appearance-character'], wrong: 'Martin on pikk kui Jüri.', correct: 'Martin on pikem kui Jüri.' },
+    ],
+    translations: [
+      { id: 'appearance-character-t-1', focusIds: ['appearance-character'], sourceLang: 'ru', source: 'Моя сестра довольно высокая и очень дружелюбная.', target: 'Minu õde on üsna pikk ja väga sõbralik.', alternatives: [] },
+      { id: 'appearance-character-t-2', focusIds: ['appearance-character'], sourceLang: 'ru', source: 'У него тёмные волосы и очки.', target: 'Tal on tumedad juuksed ja prillid.', alternatives: [] },
+    ],
+    speakingPrompts: prompts('appearance-character', 'sp', [
+      ['1', 'appearance-character', 'looks-photo', 'Kirjelda kaht inimest fotol: välimus ja iseloom. Kasuta sõnu väga, üsna ja natuke.'],
+      ['2', 'appearance-character', 'looks-guess', 'Arvamismäng: kirjelda tuttavat inimest nime ütlemata, partner arvab, kes see on.'],
+    ]),
+    writingPrompts: prompts('appearance-character', 'wp', [
+      ['1', 'appearance-character', 'looks-compare', 'Kirjuta 6–8 lauset oma sõbrast: milline ta välja näeb ja milline ta on. Kasuta vähemalt kümmet omadussõna.'],
+    ]),
+    successCriteria: ['Ma kirjeldan inimese välimust ja iseloomu ning kasutan vähemalt kümmet omadussõna.'],
+  },
+  'people-profiles': {
+    id: 'people-profiles',
+    focus: { id: 'people-profiles', type: 'communication', label: 'Lühikesed isikukirjeldused', patterns: ['Kes ta on?', 'Kui vana ta on?', 'Kus ta elab?', 'Mida ta teeb?'], aliases: ['minu inimesed', 'profiil', 'isikukirjeldus'] },
+    vocabulary: vocabulary('people-profiles', [
+      ['kes', 'kes', 'кто', 'pronoun', 'people-profiles'],
+      ['milline', 'milline', 'какой', 'pronoun', 'people-profiles'],
+      ['vana', 'vana', 'лет (о возрасте) / старый', 'adjective', 'people-profiles'],
+      ['naaber', 'naaber', 'сосед', 'noun', 'people-profiles'],
+      ['parit', 'pärit', 'родом', 'adverb', 'people-profiles'],
+      ['elab', 'elab', 'живёт', 'verb', 'people-profiles'],
+      ['tootab', 'töötab', 'работает', 'verb', 'people-profiles'],
+      ['opib', 'õpib', 'учится', 'verb', 'people-profiles'],
+      ['apteegis', 'apteegis', 'в аптеке', 'noun', 'people-profiles'],
+      ['ulikoolis', 'ülikoolis', 'в университете', 'noun', 'people-profiles'],
+      ['uhiselamus', 'ühiselamus', 'в общежитии', 'noun', 'people-profiles'],
+      ['nadalavahetusel', 'nädalavahetusel', 'на выходных', 'adverb', 'people-profiles'],
+      ['vabal-ajal', 'vabal ajal', 'в свободное время', 'phrase', 'people-profiles'],
+    ]),
+    contexts: [
+      { id: 'profile-kati', label: 'Profiil: Kati', tags: ['profile', 'reading'], names: ['Kati'], times: [] },
+      { id: 'profile-sergei', label: 'Profiil: Sergei', tags: ['profile', 'reading'], names: ['Sergei'], times: [] },
+      { id: 'profile-liisa', label: 'Profiil: Liisa', tags: ['profile', 'reading'], names: ['Liisa'], times: [] },
+    ],
+    sentences: sentences('people-profiles', [
+      ['1', 'people-profiles', 'profile-kati', 'Kati on kakskümmend kaheksa aastat vana ja elab Pärnus.'],
+      ['2', 'people-profiles', 'profile-kati', 'Ta töötab apteegis ja käib õhtuti jooksmas.'],
+      ['3', 'people-profiles', 'profile-kati', 'Mida Kati vabal ajal teeb? Ta jookseb ja loeb raamatuid.'],
+      ['4', 'people-profiles', 'profile-sergei', 'Sergei on Kati naaber ja ta on pärit Narvast.'],
+      ['5', 'people-profiles', 'profile-sergei', 'Sergei on viiskümmend aastat vana ja töötab bussijuhina.'],
+      ['6', 'people-profiles', 'profile-sergei', 'Milline Sergei on? Ta on rahulik ja abivalmis.'],
+      ['7', 'people-profiles', 'profile-liisa', 'Liisa on Sergei tütar ja õpib ülikoolis arstiks.'],
+      ['8', 'people-profiles', 'profile-liisa', 'Liisa elab Tartus ühiselamus ja sõidab nädalavahetusel koju.'],
+      ['9', 'people-profiles', 'profile-liisa', 'Kus Liisa elab? Ta elab Tartus.'],
+      ['10', 'people-profiles', 'profile-kati', 'Kes on Kati? Kati on noor naine, kes töötab apteegis.'],
+    ]),
+    dialogues: [{ id: 'people-profiles-d-1', focusIds: ['people-profiles'], contextIds: ['profile-kati'], speakers: ['A', 'B'], lines: [
+      { who: 'A', text: 'Kes see naine on?' },
+      { who: 'B', text: 'See on Kati. Ta on minu [naaber].' },
+      { who: 'A', text: 'Mida ta teeb?' },
+      { who: 'B', text: 'Ta [töötab] apteegis ja käib õhtuti jooksmas.' },
+    ] }],
+    errorPairs: [
+      { id: 'people-profiles-e-1', focusIds: ['people-profiles'], wrong: 'Kati on kakskümmend kaheksa aastat.', correct: 'Kati on kakskümmend kaheksa aastat vana.' },
+      { id: 'people-profiles-e-2', focusIds: ['people-profiles'], wrong: 'Sergei on pärit Narva.', correct: 'Sergei on pärit Narvast.' },
+    ],
+    translations: [
+      { id: 'people-profiles-t-1', focusIds: ['people-profiles'], sourceLang: 'ru', source: 'Лиза учится в университете и живёт в Тарту.', target: 'Liisa õpib ülikoolis ja elab Tartus.', alternatives: [] },
+      { id: 'people-profiles-t-2', focusIds: ['people-profiles'], sourceLang: 'ru', source: 'Сергей родом из Нарвы.', target: 'Sergei on pärit Narvast.', alternatives: [] },
+    ],
+    speakingPrompts: prompts('people-profiles', 'sp', [
+      ['1', 'people-profiles', 'profile-sergei', 'Jutusta ühe profiili põhjal 5–6 lausega: kes see inimene on, kus ta elab ja mida ta teeb.'],
+      ['2', 'people-profiles', 'profile-liisa', 'Küsi partnerilt tema tuttava kohta: kes ta on, kui vana ta on, kus ta elab ja mida ta teeb.'],
+    ]),
+    writingPrompts: prompts('people-profiles', 'wp', [
+      ['1', 'people-profiles', 'profile-kati', 'Kirjuta 5–6 lauseline profiil ühest oma lähedasest: kes ta on, kui vana ta on, kus ta elab ja mida ta teeb.'],
+    ]),
+    successCriteria: ['Ma leian lühikesest isikukirjeldusest faktid ja jutustan selle 5–6 lausega ümber.'],
+  },
 });
 
 export const LESSON_CONTENT_BLUEPRINTS = Object.freeze({
@@ -226,4 +411,8 @@ export const LESSON_CONTENT_BLUEPRINTS = Object.freeze({
   'a2-004': { packIds: ['personal-info', 'numbers-dates'], title: 'Isikuandmed ja lihtne ankeet', lessonKind: 'writing' },
   'a2-005': { packIds: ['introduction', 'basic-questions', 'olema-present', 'present-common-verbs', 'personal-info', 'numbers-dates'], title: 'Kontroll 1 — eneseinfo', lessonKind: 'assessment' },
   'a2-006': { packIds: ['family-relations'], title: 'Pere ja lähedased', lessonKind: 'vocabulary' },
+  'a2-007': { packIds: ['possession-genitive'], title: 'Kelle oma? Genitiiv', lessonKind: 'grammar' },
+  'a2-008': { packIds: ['appearance-character'], title: 'Välimus ja iseloom', lessonKind: 'vocabulary' },
+  'a2-009': { packIds: ['people-profiles'], title: 'Minu inimesed', lessonKind: 'reading' },
+  'a2-010': { packIds: ['family-relations', 'possession-genitive', 'appearance-character', 'people-profiles'], title: 'Kontroll 2 — pere ja inimesed', lessonKind: 'assessment' },
 });

@@ -5,7 +5,7 @@ import { createContentPackDraft } from '../factory/factory.js';
 import { validateGeneratorProfile } from './authoring.js';
 
 const roadmapLessons = roadmap.modules.flatMap((module) => module.lessons);
-const curatedFactoryProfiles = ['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006'].map((lessonId) => {
+const curatedFactoryProfiles = ['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010'].map((lessonId) => {
   const lesson = roadmapLessons.find((item) => item.id === lessonId);
   return createContentPackDraft(lesson).profile;
 });
