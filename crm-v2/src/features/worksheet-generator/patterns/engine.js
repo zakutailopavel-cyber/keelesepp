@@ -19,12 +19,14 @@ function candidates(spec) {
     if (spec.anyTags && !spec.anyTags.some((tag) => entry.tags.includes(tag))) return false;
     if (PLACE_FORMS.has(spec.form) && !entry.locative) return false;
     if (spec.locative && entry.locative !== spec.locative) return false;
+    if (spec.form === 'comparative' && !entry.comparative) return false;
     return true;
   });
 }
 
 function formOf(entry, code) {
   if (PLACE_FORMS.has(code)) return placeForms(entry.lemma)?.[code] || '';
+  if (code === 'comparative') return entry.comparative || '';
   return entry.forms?.[code]?.[0] || '';
 }
 
@@ -84,6 +86,10 @@ function assemble(pattern, chosen) {
     text = text.replaceAll(`{${name}}`, value);
     gapped = gapped.replaceAll(`{${name}}`, name === pattern.target ? `[${value}]` : value);
   }
+  // a sentence that starts with the gap: the answer and its options are written as they appear there (capitalized)
+  const atStart = gapped.startsWith('[');
+  const answerText = atStart ? capitalize(answer) : answer;
+  const optionTexts = atStart ? distractors.map(capitalize) : distractors;
   const lemmas = Object.fromEntries(Object.entries(chosen).map(([name, item]) => [name, item.lemma || item.subject || item.fixed]));
   return {
     id: `${pattern.id}:${Object.values(lemmas).join('|')}`,
@@ -91,9 +97,9 @@ function assemble(pattern, chosen) {
     grammar: pattern.grammar,
     context: pattern.context || '',
     text: capitalize(text),
-    gapped: capitalize(gapped),
-    answer,
-    distractors,
+    gapped: atStart ? gapped.replace(`[${answer}]`, `[${answerText}]`) : capitalize(gapped),
+    answer: answerText,
+    distractors: optionTexts,
     lemma: chosen[pattern.target].lemma || '',
     lemmas,
   };

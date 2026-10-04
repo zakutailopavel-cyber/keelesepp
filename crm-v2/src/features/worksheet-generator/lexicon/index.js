@@ -48,13 +48,15 @@ export function inflect(lemma, code, pos = '') {
 }
 
 // Kus? Kuhu? Kust? — places take the inner (-s/-sse/-st) or the outer (-l/-le/-lt) local cases.
-// "Kuhu" prefers the short illative when the word has one (kooli, poodi, koju, Tallinna).
+// "Kuhu" prefers the short illative when the word has one (kooli, poodi, koju, Tallinna) and it differs from the base form.
 export function placeForms(lemma) {
   const entry = lexeme(lemma);
   if (!entry?.locative) return null;
   const forms = entry.forms;
   if (entry.locative === 'ad') return { where: forms['sg ad']?.[0] || '', whereTo: forms['sg all']?.[0] || '', whereFrom: forms['sg abl']?.[0] || '' };
-  return { where: forms['sg in']?.[0] || '', whereTo: forms.adt?.[0] || forms['sg ill']?.[0] || '', whereFrom: forms['sg el']?.[0] || '' };
+  // the short illative is preferred (kooli, poodi, koju), unless it looks like the base form (Tartu → Tartusse)
+  const short = forms.adt?.[0] && forms.adt[0] !== forms['sg n']?.[0] ? forms.adt[0] : '';
+  return { where: forms['sg in']?.[0] || '', whereTo: short || forms['sg ill']?.[0] || '', whereFrom: forms['sg el']?.[0] || '' };
 }
 
 export function lexemesWithTags(...tags) {

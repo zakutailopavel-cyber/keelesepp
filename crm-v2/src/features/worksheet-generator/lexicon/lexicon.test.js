@@ -56,6 +56,8 @@ describe('generator lexicon (Vabamorf forms)', () => {
     expect(placeForms('turg')).toEqual({ where: 'turul', whereTo: 'turule', whereFrom: 'turult' });
     expect(placeForms('töö')).toEqual({ where: 'tööl', whereTo: 'tööle', whereFrom: 'töölt' });
     expect(placeForms('Tallinn')).toEqual({ where: 'Tallinnas', whereTo: 'Tallinna', whereFrom: 'Tallinnast' });
+    expect(placeForms('Tartu').whereTo).toBe('Tartusse');
+    expect(placeForms('Pärnu').whereTo).toBe('Pärnusse');
     expect(placeForms('laud')).toBeNull();
   });
 

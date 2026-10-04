@@ -79,6 +79,9 @@ def build_entry(entry, problems):
     result = {'lemma': lemma, 'pos': pos, 'ru': entry['ru'], 'tags': entry.get('tags', []), 'forms': forms}
     if entry.get('locative'):
         result['locative'] = entry['locative']
+    # comparative (soojem, parem, väiksem) is irregular enough to be curated by hand in the source
+    if entry.get('comparative'):
+        result['comparative'] = entry['comparative']
     return result
 
 

@@ -88,6 +88,17 @@ and situation labels ending in „?” no longer get an extra full stop.
 Bundle: the generator pages are lazy routes, so the lexicon loads only there (main bundle 257 kB gzip, below the
 previous 300 kB; generator chunk 67 kB).
 
+## Step 4 — more grammar points (done)
+
+New points: `imperative` (mine, tule, võta, ära maga; minge), `modal-verbs` (pean + ma; võin/saan/oskan/tohin + da),
+`infinitive-want` (tahan + da, hakkan + ma, proovin + da), `meeldima` (mulle meeldib ujuda, Kadrile meeldib apelsin),
+`mul-on` (Toomasel on köha, mul valutab kõht, Maril on vaja ravimit), `past-simple` (läksin, käisin, sõitis,
+käisime, ei läinud), `future-present` (homme olen kodus, järgmisel nädalal sõidab Mari Pärnusse), `comparison`
+(soojem, parem, lühem — comparatives curated in `source.json` because they are irregular), plus `numeral-shop`.
+Engine: a gap at the start of a sentence keeps the capital letter in the answer and options; „kuhu” uses the long
+illative when the short one equals the base form (Tartusse, Pärnusse — not „Tartu”).
+27 more lessons are generated from patterns; together with the hand-written packs **50 of 100 A2 lessons** are ready.
+
 ## Next steps
 
 4. More grammar points (imperative, past tense, comparison, modal verbs, ma/da infinitive) and words, so the mapping

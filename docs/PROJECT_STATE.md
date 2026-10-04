@@ -1,5 +1,18 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Rule-based generator step 4: 8 new grammar points, 50/100 A2 lessons ready — branch `agent/generator-grammar-2`
+
+Checked `origin/main` `4ca291b` (after #256). New pattern grammar points: imperative, modal verbs, want/start +
+infinitive, meeldima, mul on / mul valutab, simple past, present for the future, comparison (+ numeral shop pattern).
+`LESSON_GRAMMAR_POINTS` now maps 35 lessons (A2-016…021, 023, 025, 026, 027, 030, 032, 033, 035, 037, 040, 042, 045,
+047, 050, 052, 055, 059, 060, 062, 064, 065, 068, 070, 072, 076, 077, 080, 081, 085); with 15 hand-written packs 50 of
+100 lessons are ready. Fixes: sentence-initial gaps keep the capital letter in answer/options (imperative lessons
+otherwise lost their answer key); „kuhu” prefers the long illative when the short one equals the base form (Tartusse).
+Comparatives are curated in `lexicon/source.json` (21 adjectives). Checks: every mapped lesson ready and error-free on
+5 seeds; 48 hand-checked pattern sentences; CRM Vitest 129 files / 807 tests; ESLint; build; `build_forms.py --check`.
+No Firestore/rules/Functions change. Details: `docs/GENERATOR_LEXICON.md`.
+Exactly one next safe step: owner reviews a few generated lessons (e.g. A2-023, A2-042, A2-059) in Õppevara.
+
 ## 2026-10-04 — Rule-based generator step 3: 8 more lessons generated from patterns — branch `agent/generator-pattern-lessons`
 
 Stacked on #255. `patterns/profileFromPatterns.js` turns grammar points into a full ready profile; `factory.js`

@@ -1856,7 +1856,8 @@
    "ru": "большой",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "suurem"
   },
   {
    "lemma": "väike",
@@ -1865,7 +1866,8 @@
    "tags": [
     "quality"
    ],
-   "gen": "väikese"
+   "gen": "väikese",
+   "comparative": "väiksem"
   },
   {
    "lemma": "ilus",
@@ -1873,7 +1875,8 @@
    "ru": "красивый",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "ilusam"
   },
   {
    "lemma": "uus",
@@ -1881,7 +1884,8 @@
    "ru": "новый",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "uuem"
   },
   {
    "lemma": "vana",
@@ -1889,7 +1893,8 @@
    "ru": "старый",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "vanem"
   },
   {
    "lemma": "noor",
@@ -1897,7 +1902,8 @@
    "ru": "молодой",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "noorem"
   },
   {
    "lemma": "pikk",
@@ -1905,7 +1911,8 @@
    "ru": "длинный / высокий",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "pikem"
   },
   {
    "lemma": "lühike",
@@ -1913,7 +1920,8 @@
    "ru": "короткий / невысокий",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "lühem"
   },
   {
    "lemma": "hea",
@@ -1921,7 +1929,8 @@
    "ru": "хороший",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "parem"
   },
   {
    "lemma": "halb",
@@ -1929,7 +1938,8 @@
    "ru": "плохой",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "halvem"
   },
   {
    "lemma": "kallis",
@@ -1937,7 +1947,8 @@
    "ru": "дорогой",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "kallim"
   },
   {
    "lemma": "odav",
@@ -1945,7 +1956,8 @@
    "ru": "дешёвый",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "odavam"
   },
   {
    "lemma": "soe",
@@ -1953,7 +1965,8 @@
    "ru": "тёплый",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "soojem"
   },
   {
    "lemma": "külm",
@@ -1961,7 +1974,8 @@
    "ru": "холодный",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "külmem"
   },
   {
    "lemma": "kuum",
@@ -1969,7 +1983,8 @@
    "ru": "горячий",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "kuumem"
   },
   {
    "lemma": "kiire",
@@ -1977,7 +1992,8 @@
    "ru": "быстрый",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "kiirem"
   },
   {
    "lemma": "aeglane",
@@ -1985,7 +2001,8 @@
    "ru": "медленный",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "aeglasem"
   },
   {
    "lemma": "värske",
@@ -2017,7 +2034,8 @@
    "ru": "чистый",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "puhtam"
   },
   {
    "lemma": "mugav",
@@ -2025,7 +2043,8 @@
    "ru": "удобный",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "mugavam"
   },
   {
    "lemma": "vaikne",
@@ -2033,7 +2052,8 @@
    "ru": "тихий",
    "tags": [
     "quality"
-   ]
+   ],
+   "comparative": "vaiksem"
   },
   {
    "lemma": "lärmakas",
@@ -2137,7 +2157,8 @@
    "ru": "умный",
    "tags": [
     "character"
-   ]
+   ],
+   "comparative": "targem"
   },
   {
    "lemma": "valge",
