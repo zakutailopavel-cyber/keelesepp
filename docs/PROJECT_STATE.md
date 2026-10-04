@@ -1,5 +1,25 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Board text: font choice and editing existing text — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `175c13b` (after #267, merged with the owner's permission). Wish-list item 3.
+- Owner: no font choice for text and written text could not be edited. Cause of the second: the double click sat on
+  the text's `foreignObject`, but the select tool captures the pointer on the svg, so the double click never reached
+  it (and with other tools nothing opened the text).
+- `boardModel.js`: `FONTS` (sans „Tavaline”, serif „Raamat”, hand „Käsikiri”, mono „Kirjutusmasin”), `fontCss`,
+  `textBox` (box grows with the text), `textAt` (topmost text/note under a point).
+- `StudentBoard.jsx`: double click anywhere on a text/note (svg level, hit test) and the text tool on an existing
+  text/note open it for editing; while a text is open, font, S/M/L/XL and colour change that text; new text uses the
+  chosen font (`fontFamily` stored only when not the default, so text keeps working before the rules deploy);
+  font buttons in the room style panel and in the page toolbar (text tool / editing). Saved text resizes its box.
+- `firestore.rules`: text elements may carry `fontFamily` in `['sans','serif','hand','mono']`.
+- Tests: board 2 new (edit via text tool + double click, font/size apply, box grows; new text font), emulator
+  „board text may carry one of the four fonts” (plain 200, hand 200, other 403); whiteboard rules 5/5.
+  CRM Vitest 133 files / 837 tests; ESLint clean; build OK.
+- **Needs the owner:** `firestore:rules` deploy (also covers #266, #267). Before it, choosing a non-default font
+  shows a save error; default text works.
+- Exactly one next safe step: deploy rules; in a lesson write a text, double-click it, change the font.
+
 ## 2026-10-04 — Lesson analysis for the teacher only; lesson rows open analysis or board — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `cb06b68` (after #266, merged with the owner's permission; its rules still need a deploy).

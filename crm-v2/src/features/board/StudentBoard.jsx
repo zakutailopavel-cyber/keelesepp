@@ -2,7 +2,7 @@ import { ArrowUpRight, ChevronDown, Circle, Eraser, FilePlus2, FileText, Hand, I
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, imageSize, fitView, movable, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, zoomAt } from './boardModel.js';
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, fontCss, imageSize, fitView, movable, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, zoomAt } from './boardModel.js';
 import './board.css';
 
 const TOOLS = [
@@ -40,6 +40,7 @@ export default function StudentBoard({
   const [color, setColor] = useState(COLORS[0]);
   const [noteColor, setNoteColor] = useState(NOTE_COLORS[0]);
   const [size, setSize] = useState('M');
+  const [font, setFont] = useState('sans');
   const [width, setWidth] = useState(SIZES.M.pen);
   const [shapesOpen, setShapesOpen] = useState(false);
   const [stylesOpen, setStylesOpen] = useState(() => !globalThis.matchMedia?.('(max-width: 760px)')?.matches);
@@ -149,7 +150,16 @@ export default function StudentBoard({
   }, [newPageTitle, pages.length, service, studentId, user]);
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage }), [insertFile, newPage, redo, undo]);
 
-  const pickSize = (key) => { setSize(key); setWidth(SIZES[key].pen); };
+  // while a text is open for editing, the font, size and colour buttons change that text
+  const editingText = () => { const element = byId.get(editing?.id); return element?.type === 'text' ? element : null; };
+  const restyle = (patch) => {
+    const element = editingText();
+    if (!element) return;
+    const next = { ...element, ...patch };
+    update(element, { ...patch, ...textBox(editing?.text ?? element.text, next.fontSize || 18, 120) }, 'Teksti ei saanud muuta.');
+  };
+  const pickSize = (key) => { setSize(key); setWidth(SIZES[key].pen); restyle({ fontSize: SIZES[key].font }); };
+  const pickFont = (key) => { setFont(key); restyle({ fontFamily: key }); };
 
   const down = (event) => {
     if (event.button !== undefined && event.button !== 0) return;
@@ -174,9 +184,11 @@ export default function StudentBoard({
     } else if (['rect', 'ellipse', 'arrow'].includes(tool)) {
       gesture.current = { kind: 'shape', start: world };
     } else if (tool === 'note' || tool === 'text') {
+      const existing = textAt(elements, world);
+      if (existing) { setEditing({ id: existing.id, text: existing.text || '' }); return; }
       const data = tool === 'note'
         ? { type: 'note', x: world.x, y: world.y, w: 180, h: 140, text: '', color: noteColor }
-        : { type: 'text', x: world.x, y: world.y, w: 260, h: Math.round(preset.font * 2.4), text: '', color, fontSize: preset.font };
+        : { type: 'text', x: world.x, y: world.y, w: 260, h: Math.round(preset.font * 2.4), text: '', color, fontSize: preset.font, ...(font !== 'sans' ? { fontFamily: font } : {}) };
       add(data, 'Elementi ei saanud lisada.').then((id) => { if (id) setEditing({ id, text: '' }); });
       setTool('select');
       return;
@@ -243,7 +255,10 @@ export default function StudentBoard({
     setEditing(null);
     if (!element) return;
     if (!text.trim()) { service.remove(studentId, pageId, element.id).catch(fail('Tühja elementi ei saanud eemaldada.')); return; }
-    if (text !== element.text) update(element, { text: text.slice(0, element.type === 'note' ? 2000 : 4000) }, 'Teksti ei saanud salvestada.');
+    if (text === element.text) return;
+    const value = text.slice(0, element.type === 'note' ? 2000 : 4000);
+    const box = element.type === 'text' ? textBox(value, element.fontSize || 18, 120) : {};
+    update(element, { text: value, ...box }, 'Teksti ei saanud salvestada.');
   };
   const pickImage = async (file) => {
     if (!file || !uploadImage) return;
@@ -272,7 +287,7 @@ export default function StudentBoard({
     if (element.type === 'note' || element.type === 'text') {
       const isNote = element.type === 'note';
       return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={element.h} onDoubleClick={() => setEditing({ id: element.id, text: element.text || '' })}>
-        <div data-element-id={element.id} className={isNote ? 'sb-note' : 'sb-text'} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18 }}>{element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
+        <div data-element-id={element.id} className={isNote ? 'sb-note' : 'sb-text'} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18, fontFamily: fontCss(element.fontFamily) }}>{element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
       </foreignObject>;
     }
     if (element.type === 'image') return <image {...common} href={element.url} x={element.x} y={element.y} width={element.w} height={element.h} preserveAspectRatio="xMidYMid meet" />;
@@ -286,7 +301,12 @@ export default function StudentBoard({
   const editingElement = editing ? byId.get(editing.id) : null;
   const palette = tool === 'note' ? NOTE_COLORS : room ? ROOM_COLORS : COLORS;
   const activeColor = tool === 'note' ? noteColor : color;
-  const chooseColor = (value) => (tool === 'note' ? setNoteColor(value) : setColor(value));
+  const chooseColor = (value) => {
+    if (tool === 'note') { setNoteColor(value); return; }
+    setColor(value);
+    restyle({ color: value });
+  };
+  const fontButtons = <div className="sb-style__fonts" role="group" aria-label="Kiri">{Object.entries(FONTS).map(([key, item]) => <button type="button" key={key} className={font === key ? 'is-active' : ''} aria-pressed={font === key} style={{ fontFamily: item.css }} onMouseDown={(event) => event.preventDefault()} onClick={() => pickFont(key)}>{item.label}</button>)}</div>;
   const toolButton = ([key, label, Icon]) => <button type="button" key={key} className={tool === key ? 'is-active' : ''} aria-pressed={tool === key} aria-label={label} title={label} onClick={() => { setTool(key); setShapesOpen(false); }}><Icon size={room ? 20 : 18} /></button>;
   const zoomControls = <>
     <button type="button" aria-label="Vähenda" onClick={() => zoom(1 / 1.2)}><Minus size={16} /></button>
@@ -296,7 +316,7 @@ export default function StudentBoard({
   </>;
 
   const stage = <div className={`sb-stage tool-${tool}`}>
-    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel}>
+    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onWheel={wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs><pattern id="sb-dots" width={24 * view.scale} height={24 * view.scale} patternUnits="userSpaceOnUse" x={view.x} y={view.y}><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>
       <rect width="100%" height="100%" fill="url(#sb-dots)" />
       <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
@@ -308,7 +328,7 @@ export default function StudentBoard({
       className="sb-editor"
       aria-label={editingElement.type === 'note' ? 'Märkmepaberi tekst' : 'Tekst'}
       autoFocus
-      style={{ left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: editingElement.w * view.scale, height: editingElement.h * view.scale, fontSize: (editingElement.type === 'note' ? 15 : editingElement.fontSize || 18) * view.scale }}
+      style={{ left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: editingElement.w * view.scale, height: editingElement.h * view.scale, fontSize: (editingElement.type === 'note' ? 15 : editingElement.fontSize || 18) * view.scale, ...(editingElement.type === 'text' ? { fontFamily: fontCss(editingElement.fontFamily), color: editingElement.color } : {}) }}
       value={editing.text}
       maxLength={editingElement.type === 'note' ? 2000 : 4000}
       onChange={(event) => setEditing({ ...editing, text: event.target.value })}
@@ -346,9 +366,10 @@ export default function StudentBoard({
           <button type="button" className={`sb-dock__more ${stylesOpen ? 'is-open' : ''}`} aria-label={stylesOpen ? 'Peida värvid' : 'Näita värve'} aria-pressed={stylesOpen} onClick={() => setStylesOpen(!stylesOpen)}><ChevronDown size={18} /></button>
         </div>
         {stylesOpen ? <div className="sb-style" aria-label="Värv ja suurus">
-          <div className="sb-style__colors">{palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} aria-pressed={activeColor === value} onClick={() => chooseColor(value)} />)}</div>
+          <div className="sb-style__colors">{palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} aria-pressed={activeColor === value} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseColor(value)} />)}</div>
           <label className="sb-style__width"><span className="sr-only">Joone paksus</span><input type="range" min="1" max="24" value={width} aria-label="Joone paksus" onChange={(event) => { setWidth(Number(event.target.value)); setSize(''); }} /></label>
-          <div className="sb-style__sizes" role="group" aria-label="Suurus">{Object.keys(SIZES).map((key) => <button type="button" key={key} className={size === key ? 'is-active' : ''} aria-pressed={size === key} onClick={() => pickSize(key)}>{key}</button>)}</div>
+          <div className="sb-style__sizes" role="group" aria-label="Suurus">{Object.keys(SIZES).map((key) => <button type="button" key={key} className={size === key ? 'is-active' : ''} aria-pressed={size === key} onMouseDown={(event) => event.preventDefault()} onClick={() => pickSize(key)}>{key}</button>)}</div>
+          {fontButtons}
           {staff ? <button type="button" className="sb-style__clear" disabled={!elements.length} onClick={clear}><Trash2 size={14} /> Tühjenda leht</button> : null}
         </div> : null}
       </div>
@@ -365,7 +386,8 @@ export default function StudentBoard({
       <div className="sb-toolbar" role="toolbar" aria-label="Tahvli tööriistad">
         {TOOLS.map(toolButton)}
         <span className="sb-sep" />
-        {palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} onClick={() => chooseColor(value)} />)}
+        {palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseColor(value)} />)}
+        {tool === 'text' || editingText() ? <><span className="sb-sep" />{fontButtons}</> : null}
         <span className="sb-sep" />
         {zoomControls}
         {staff ? <Button variant="secondary" disabled={!elements.length} onClick={clear}><Trash2 size={16} /> Tühjenda</Button> : null}

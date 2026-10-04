@@ -7,6 +7,34 @@ export const COLORS = ['#1C2B3A', '#C9882A', '#2F5D50', '#B42318', '#175CD3', '#
 export const ROOM_COLORS = ['#1C2B3A', '#98A2B3', '#E879F9', '#9333EA', '#2563EB', '#38BDF8', '#F59E0B', '#EA580C', '#0F766E', '#22C55E', '#F87171', '#DC2626'];
 // Size presets: pen width and text size.
 export const SIZES = { S: { pen: 2, font: 14 }, M: { pen: 4, font: 18 }, L: { pen: 8, font: 26 }, XL: { pen: 14, font: 36 } };
+// text fonts on the board (the key is stored on the element; the Firestore rules allow exactly these keys)
+export const FONTS = {
+  sans: { label: 'Tavaline', css: 'Inter, system-ui, -apple-system, "Segoe UI", sans-serif' },
+  serif: { label: 'Raamat', css: 'Georgia, "Times New Roman", serif' },
+  hand: { label: 'Käsikiri', css: '"Comic Sans MS", "Chalkboard SE", "Marker Felt", cursive' },
+  mono: { label: 'Kirjutusmasin', css: '"Courier New", ui-monospace, monospace' },
+};
+export const fontCss = (key) => (FONTS[key] || FONTS.sans).css;
+
+// a text box grows with what was written (lines × line height, longest line × average glyph width)
+export function textBox(text = '', fontSize = 18, minWidth = 260) {
+  const lines = String(text).split('\n');
+  const longest = Math.max(1, ...lines.map((line) => line.length));
+  return {
+    w: Math.round(Math.min(1600, Math.max(minWidth, longest * fontSize * 0.6 + 16))),
+    h: Math.round(Math.max(1, lines.length) * fontSize * 1.4 + 12),
+  };
+}
+
+// the topmost text or note under a board point (for editing with a double click or the text tool)
+export function textAt(elements = [], point) {
+  for (let index = elements.length - 1; index >= 0; index -= 1) {
+    const element = elements[index];
+    if ((element.type === 'text' || element.type === 'note')
+      && point.x >= element.x && point.x <= element.x + element.w && point.y >= element.y && point.y <= element.y + element.h) return element;
+  }
+  return null;
+}
 export const NOTE_COLORS = ['#FEF3C7', '#DCFCE7', '#DBEAFE', '#FCE7F3'];
 export const SHAPE_TOOLS = ['rect', 'ellipse', 'arrow'];
 
