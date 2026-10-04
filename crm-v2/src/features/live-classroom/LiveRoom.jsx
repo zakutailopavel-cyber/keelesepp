@@ -137,6 +137,9 @@ export default function LiveRoom({
   const [seenCount, setSeenCount] = useState(null);
   const [notice, setNotice] = useState('');
   const [now, setNow] = useState(() => Date.now());
+  // recording starts by itself with the call when the student card has consent
+  const [recState, setRecState] = useState({ recording: false, error: '' });
+  const consent = student ? student.recordingConsent === true : null;
   const startedAt = useMemo(() => timestampMillis(invitation.respondedAt) || timestampMillis(invitation.createdAt) || Date.now(), [invitation.createdAt, invitation.respondedAt]);
   const lessonDate = useMemo(() => dateLabel(new Date(startedAt)), [startedAt]);
   const subject = student?.subject || invitation.subject || (teacher ? '' : invitation.title);
@@ -210,6 +213,8 @@ export default function LiveRoom({
             <IconButton label={call.videoEnabled ? 'Lülita kaamera välja' : 'Lülita kaamera sisse'} active={!call.videoEnabled} onClick={call.toggleVideo}>{call.videoEnabled ? <Video size={18} /> : <VideoOff size={18} />}</IconButton>
             {teacher ? <IconButton label={call.screenSharing ? 'Lõpeta ekraani jagamine' : 'Jaga ekraani'} active={call.screenSharing} disabled={call.screenBusy} onClick={call.screenSharing ? call.stopScreenShare : call.startScreenShare}>{call.screenSharing ? <MonitorOff size={18} /> : <Monitor size={18} />}</IconButton> : null}
           </> : null}
+          {teacher && recState.recording ? <button type="button" className="lr-pill lr-rec" onClick={() => { setMenu(''); setPanel('record'); }} aria-label="Tundi salvestatakse — ava salvestamine"><span className="lr-rec__dot" aria-hidden="true" />Salvestan</button> : null}
+          {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
           {call.canReconnect ? <IconButton label="Taasta ühendus" disabled={call.busy} onClick={call.startTeacherCall}><RefreshCw size={18} /></IconButton> : null}
           {callButton}
         </div>
@@ -279,7 +284,7 @@ export default function LiveRoom({
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           <div className={panel === 'record' && teacher ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'record'}>
             <header><strong>Tunni salvestamine</strong><IconButton label="Sulge salvestamine" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
-            <div className="lr-drawer__body">{teacher ? <RoomRecorder invitation={invitation} user={user} streams={streams} consent={student ? student.recordingConsent === true : null} subject={subject} {...(recordingService ? { service: recordingService } : {})} /> : null}</div>
+            <div className="lr-drawer__body">{teacher ? <RoomRecorder invitation={invitation} user={user} streams={streams} consent={consent} auto onStateChange={setRecState} subject={subject} {...(recordingService ? { service: recordingService } : {})} /> : null}</div>
           </div>
         </aside>
       </div>

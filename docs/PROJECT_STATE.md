@@ -1,5 +1,28 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Live Classroom: lessons are recorded automatically — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `837e8f1` (after #261, merged by the agent with the owner's permission after green CI).
+Owner held 2 lessons today and found no recording or transcript: recording was manual (Rohkem → Tunni salvestamine →
+Alusta salvestamist), so nothing was recorded; those lessons cannot be recovered. Owner: consent always exists, the
+recordings are for analysing students.
+- `features/lesson-recording/RoomRecorder.jsx`: `auto` mode — starts when the teacher's microphone stream exists and
+  the card has `recordingConsent === true`; when the call ends it closes the files and sets `uploaded`; the next call
+  starts a new recording; a manual „Lõpeta salvestamine” is respected until the call ends; unmounting (leave room /
+  Lõpeta tund) now finishes the recording instead of leaving it `recording` for the worker's 3-hour hand-over.
+  `onStateChange` reports `{ recording, error }`.
+- `features/live-classroom/LiveRoom.jsx` + `liveRoom.css`: recorder runs in auto mode; top-bar pill „Salvestan” (red,
+  opens the recording drawer) or „Ei salvesta” when the call is on and the card has no consent.
+- Not done (blocked in the agent session as personal-data handling): automatically setting `recordingConsent` on
+  student cards. Consent is still set per student by staff (card → Õppetöö → Tunnisalvestised → „Märgi nõusolek
+  saadud”); without it nothing is recorded (rules unchanged).
+- Tests: `lessonRecording.test.jsx` +4 (auto start/stop/restart, manual stop respected, no consent → no start, unmount
+  finishes). CRM Vitest 130 files / 821 tests; ESLint clean; build OK. Client only; no rules/Functions change.
+- Transcripts still need the worker on the school Mac (`tools/lesson-transcriber`, `docs/LESSON_RECORDING.md`); no
+  record in this file that it was ever set up, nor of the `lessonRecordings` Firestore/Storage rules release.
+- Exactly one next safe step: owner marks consent on the cards of current students and checks that the rules are
+  released (a lesson shows „Salvestan” and appears under Tunnisalvestised as „uploaded”).
+
 ## 2026-10-04 — Live Classroom: automatic call recovery — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `467ceac` (after #260), no open PRs. Owner: „продолжаем развивать наш live classroom”; the owner

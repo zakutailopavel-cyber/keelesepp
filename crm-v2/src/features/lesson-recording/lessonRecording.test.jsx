@@ -52,6 +52,49 @@ describe('RoomRecorder', () => {
     expect(await screen.findByRole('button', { name: 'Alusta salvestamist' })).toBeInTheDocument();
   });
 
+  it('auto: starts with the call, closes the files when the call ends and starts again on the next call', async () => {
+    const service = { start: vi.fn(async () => ({ id: `inv-1_${service.start.mock.calls.length}` })), uploadSegment: vi.fn(async () => ({})), finish: vi.fn(async () => '') };
+    const onStateChange = vi.fn();
+    const { rerender } = render(<RoomRecorder invitation={invitation} user={user} streams={{ local: null }} consent auto onStateChange={onStateChange} service={service} />);
+    expect(screen.getByText('Salvestamine algab koos kõnega.')).toBeInTheDocument();
+    expect(service.start).not.toHaveBeenCalled();
+    rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent auto onStateChange={onStateChange} service={service} />);
+    await screen.findByText(/Salvestan/);
+    expect(service.start).toHaveBeenCalledTimes(1);
+    expect(onStateChange).toHaveBeenLastCalledWith({ recording: true, error: '' });
+    rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: null }} consent auto onStateChange={onStateChange} service={service} />);
+    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'));
+    await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith({ recording: false, error: '' }));
+    rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent auto onStateChange={onStateChange} service={service} />);
+    await waitFor(() => expect(service.start).toHaveBeenCalledTimes(2));
+  });
+
+  it('auto: a manual stop is respected for the rest of the call', async () => {
+    const service = { start: vi.fn(async () => ({ id: 'inv-1_1' })), uploadSegment: vi.fn(async () => ({})), finish: vi.fn(async () => '') };
+    const local = stream();
+    render(<RoomRecorder invitation={invitation} user={user} streams={{ local, remote: null }} consent auto service={service} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Lõpeta salvestamine/ }));
+    await waitFor(() => expect(service.finish).toHaveBeenCalled());
+    expect(await screen.findByRole('button', { name: 'Alusta salvestamist' })).toBeInTheDocument();
+    expect(service.start).toHaveBeenCalledTimes(1);
+  });
+
+  it('auto: never records without consent on the student card', async () => {
+    const service = { start: vi.fn(), uploadSegment: vi.fn(), finish: vi.fn() };
+    render(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream() }} consent={false} auto service={service} />);
+    await new Promise((resolve) => { globalThis.setTimeout(resolve, 20); });
+    expect(service.start).not.toHaveBeenCalled();
+  });
+
+  it('auto: leaving the room mid-recording hands the recording to the transcriber', async () => {
+    const service = { start: vi.fn(async () => ({ id: 'inv-1_1' })), uploadSegment: vi.fn(async () => ({})), finish: vi.fn(async () => '') };
+    const { unmount } = render(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent auto service={service} />);
+    await screen.findByText(/Salvestan/);
+    unmount();
+    await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'));
+    expect(service.uploadSegment).toHaveBeenCalledWith(expect.objectContaining({ track: 'teacher' }));
+  });
+
   it('asks to start the camera and microphone first', async () => {
     render(<RoomRecorder invitation={invitation} user={user} streams={{ local: null }} consent service={{ start: vi.fn() }} />);
     fireEvent.click(screen.getByRole('button', { name: 'Alusta salvestamist' }));

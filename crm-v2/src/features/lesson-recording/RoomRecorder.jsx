@@ -47,7 +47,12 @@ class TrackRecorder {
 }
 
 // Teacher control in the lesson room. Needs the student's consent on the student card.
-export default function RoomRecorder({ invitation, user, streams, consent, subject = '', service = lessonRecordingsService }) {
+// `auto`: recording starts by itself as soon as the teacher's microphone is on and stops (files closed) when the call
+// ends or the room is left; a manual stop is respected until the next call. Only with consent on the student card.
+export default function RoomRecorder({
+  invitation, user, streams, consent, subject = '', service = lessonRecordingsService, auto = false,
+  onStateChange,
+}) {
   const [recording, setRecording] = useState(null);
   const [elapsed, setElapsed] = useState(0);
   const [pending, setPending] = useState(0);
@@ -80,8 +85,24 @@ export default function RoomRecorder({ invitation, user, streams, consent, subje
     return () => clearInterval(t);
   }, [recording]);
 
-  // leaving the room mid-recording still closes the files
-  useEffect(() => () => { ctx.current.teacher?.stop(); ctx.current.student?.rec.stop(); }, []);
+  // leaving the room mid-recording still closes the files and hands the recording to the transcriber
+  const alive = useRef(true);
+  const closeFiles = async (c) => {
+    c.teacher?.stop(); c.student?.rec.stop();
+    c.teacher = null; c.student = null;
+    // let the last onstop events queue their uploads
+    await new Promise((r) => setTimeout(r, 300));
+    await Promise.all(c.uploads);
+    await service.finish(c.id);
+  };
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+      const c = ctx.current;
+      if (c.id && (c.teacher || c.student)) closeFiles(c).catch(() => {});
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const start = async () => {
     setError('');
@@ -102,18 +123,32 @@ export default function RoomRecorder({ invitation, user, streams, consent, subje
   const stop = async () => {
     const c = ctx.current;
     setBusy(true);
-    c.teacher?.stop(); c.student?.rec.stop();
-    c.teacher = null; c.student = null;
-    // let the last onstop events queue their uploads
-    await new Promise((r) => setTimeout(r, 300));
     try {
-      await Promise.all(c.uploads);
-      await service.finish(c.id);
-      setRecording(null);
+      await closeFiles(c);
+      if (alive.current) setRecording(null);
     } catch (err) {
-      setError(err.message || 'Salvestust ei saanud lõpetada.');
-    } finally { setBusy(false); }
+      if (alive.current) setError(err.message || 'Salvestust ei saanud lõpetada.');
+    } finally { if (alive.current) setBusy(false); }
   };
+
+  // automatic mode: one recording per call; the teacher's own stop is respected until the call ends
+  const hasLocal = Boolean(streams?.local?.getAudioTracks?.().length);
+  const manualStop = useRef(false);
+  const autoTried = useRef(false);
+  useEffect(() => {
+    if (!auto) return;
+    if (!hasLocal) {
+      manualStop.current = false;
+      autoTried.current = false;
+      if (recording && !busy) stop();
+      return;
+    }
+    if (consent !== true || recording || busy || manualStop.current || autoTried.current) return;
+    autoTried.current = true;
+    start();
+  }, [auto, hasLocal, consent, recording, busy]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { onStateChange?.({ recording: Boolean(recording), error }); }, [error, onStateChange, recording]);
 
   if (consent === false) {
     return <div className="rec-panel is-off"><Circle size={14} aria-hidden="true" /><span>Salvestamiseks on vaja õpilase nõusolekut. Märgi see õpilase kaardil („Tunni salvestamine”).</span></div>;
@@ -125,12 +160,12 @@ export default function RoomRecorder({ invitation, user, streams, consent, subje
           <span className="rec-dot" aria-hidden="true" />
           <strong>Salvestan · {clock(elapsed)}</strong>
           <span className="rec-meta">{streams?.remote ? 'õpetaja + õpilane' : 'ootan õpilase heli'}{pending ? ` · laen üles ${pending}` : ''}</span>
-          <Button variant="secondary" loading={busy} onClick={stop}><Square size={15} /> Lõpeta salvestamine</Button>
+          <Button variant="secondary" loading={busy} onClick={() => { manualStop.current = true; stop(); }}><Square size={15} /> Lõpeta salvestamine</Button>
         </>
       ) : (
         <>
           <Circle size={14} aria-hidden="true" />
-          <span className="rec-meta">Tund salvestatakse tekstiks: pärast tundi näed, mida õpilane ütles.</span>
+          <span className="rec-meta">{auto && !hasLocal ? 'Salvestamine algab koos kõnega.' : 'Tund salvestatakse tekstiks: pärast tundi näed, mida õpilane ütles.'}</span>
           <Button loading={busy} disabled={consent !== true} onClick={start}>Alusta salvestamist</Button>
         </>
       )}
