@@ -1,5 +1,15 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Skill map is staff-only — branch `agent/skillmap-staff-only`
+
+From the live diagnostics: the student-own update rule on `students` allowed `skillMap`, `skillMapUpdatedAt`,
+`skillMapLastUpdated`, so a student or parent could raise their own skills; since #299 teacher grades move the map.
+- `firestore.rules`: removed the three keys from the linked student/parent branch (contact fields stay).
+- Side effect: the old v1 student page (`haldus.html`, AI worksheets with `skillsToUpdate`) can no longer auto-raise
+  skills from the student's browser; that call is already wrapped in try/catch, the worksheet submit is unaffected.
+  Skills now move only through staff (check window „Oskused”, Live Classroom v1 lesson goals, haldus-skillmap).
+- Emulator test `functions/student-skillmap-emulator.integration.js` (in `test:emulator`) passed with the words test.
+- **Needs the owner:** `firestore:rules` deploy after merge.
 ## 2026-10-05 — Ülevaade numbers match the pages — branch `agent/dashboard-numbers`
 
 From the live diagnostics: 114 active students on Ülevaade vs 113 in Õpilased; „3 tundi täna” while the calendar had
