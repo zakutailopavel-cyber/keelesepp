@@ -3,14 +3,17 @@ import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { STUDENT_LEVELS } from './studentOptions.js';
+import { facebookContact, instagramContact } from '../../utils/socialLinks.js';
 
-const emptyForm = { name: '', parentName: '', email: '', phone: '', level: 'A1', targetLevel: 'B1', subject: 'Eesti keel', grade: '', group: '', teacher: '', active: true };
+const emptyForm = { name: '', parentName: '', email: '', phone: '', facebook: '', instagram: '', level: 'A1', targetLevel: 'B1', subject: 'Eesti keel', grade: '', group: '', teacher: '', active: true };
 
 function validate(values) {
   const errors = {};
   if (!values.name.trim()) errors.name = 'Nimi on kohustuslik.';
   if (values.email && !/^\S+@\S+\.\S+$/.test(values.email)) errors.email = 'Kontrolli e-posti aadressi.';
   if (values.phone && values.phone.replace(/\D/g, '').length < 5) errors.phone = 'Kontrolli telefoninumbrit.';
+  if (values.facebook && !facebookContact(values.facebook)) errors.facebook = 'Sisesta Facebooki kasutajanimi või profiili link.';
+  if (values.instagram && !instagramContact(values.instagram)) errors.instagram = 'Sisesta Instagrami kasutajanimi (@nimi) või profiili link.';
   return errors;
 }
 
@@ -60,6 +63,8 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
         <Input label="Lapsevanema nimi" name="parentName" value={values.parentName} onChange={change} />
         <Input label="E-post" name="email" type="email" value={values.email} onChange={change} error={errors.email} />
         <Input label="Telefon" name="phone" value={values.phone} onChange={change} error={errors.phone} />
+        {canAssignTeacher ? <Input label="Facebook (kasutajanimi või link)" name="facebook" value={values.facebook || ''} onChange={change} error={errors.facebook} /> : null}
+        {canAssignTeacher ? <Input label="Instagram (@kasutajanimi või link)" name="instagram" value={values.instagram || ''} onChange={change} error={errors.instagram} /> : null}
         <Select label="Praegune tase" name="level" value={values.level} onChange={change}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
         <Select label="Sihttase" name="targetLevel" value={values.targetLevel} onChange={change}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
         <Input label="Õppeaine" name="subject" value={values.subject} onChange={change} />

@@ -87,10 +87,18 @@
 
 .channel-filter {
   display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 10px;
-  overflow-x: auto;
-  padding-bottom: 1px;
+}
+
+/* the list is a fixed-height column: only the conversations scroll, the header, search, channel tabs and
+   „Alusta uut vestlust” keep their size (the tabs were squeezed to a sliver) */
+.conversation-list__top,
+.conversation-list .search-field,
+.new-conversation {
+  flex-shrink: 0;
 }
 
 .channel-filter button {
@@ -100,9 +108,9 @@
   color: var(--muted);
   cursor: pointer;
   flex: 0 0 auto;
-  font-size: .69rem;
+  font-size: .78rem;
   font-weight: 700;
-  padding: 6px 9px;
+  padding: 6px 12px;
 }
 
 .channel-filter button:hover {

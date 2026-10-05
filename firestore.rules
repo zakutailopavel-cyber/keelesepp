@@ -914,6 +914,8 @@ service cloud.firestore {
           teacherCanUpdate(resource.data, request.resource.data)
           && !changesStudentOwnership()
           && !changesStudentTariffSource()
+          // the student's Facebook / Instagram contact is kept by the admin
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['facebook', 'instagram'])
         )
         || (
           ownsStudent(studentId)
@@ -1000,6 +1002,8 @@ service cloud.firestore {
         && !changesLessonPackageSource()
         // Finance v2: "don't charge this no-show" is an admin decision
         && (isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['billingWaived', 'billingWaivedBy', 'billingWaivedAt']))
+        // "held and checked" is set and cleared only by an admin
+        && (isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedByUid', 'verifiedByName']))
         && (
           !changesLessonBillingBasis()
           || (
@@ -2130,6 +2134,23 @@ service cloud.firestore {
     match /worksheetVersions/{versionId} {
       allow read, create: if isStaff();
       allow update, delete: if false;
+    }
+
+    // Worksheet constructor: blocks a teacher saved as a template, shared with all staff; only the author or an admin
+    // removes one, nobody edits it in place.
+    match /worksheetBlockTemplates/{templateId} {
+      allow read: if isStaff();
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['title', 'block', 'ownerUid', 'ownerName', 'createdAt'])
+        && request.resource.data.ownerUid == uid()
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.block is map
+        && request.resource.data.ownerName is string
+        && request.resource.data.createdAt is string;
+      allow update: if false;
+      allow delete: if isAdmin() || (isStaff() && resource.data.ownerUid == uid());
     }
 
     match /exercises/{exerciseId} {

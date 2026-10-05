@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -17,14 +17,14 @@ Object.defineProperty(window, 'localStorage', {
   },
 });
 
-function renderAt(path, repository) {
+function renderAt(path, repository, templates = { list: vi.fn().mockResolvedValue([]), create: vi.fn(), remove: vi.fn() }) {
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthContext.Provider value={{ user }}>
         <Routes>
-          <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} />} />
-          <Route path="/library/lessons/:lessonId/worksheets" element={<div>lesson-engine</div>} />
+          <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} templates={templates} />} />
+          <Route path="/library/lessons/:lessonId/worksheets/discover" element={<div>lesson-engine</div>} />
           <Route path="/library" element={<div>library</div>} />
         </Routes>
       </AuthContext.Provider>
@@ -61,7 +61,150 @@ describe('WorksheetStudioPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
   });
 
-  it('redirects a roadmap lesson without a standalone worksheet to Lesson Engine', async () => {
+  it('edits the sheet title and a task title directly on the sheet', async () => {
+    const repository = repo();
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+
+    const title = container.querySelector('.ws-page .ws-title h2');
+    fireEvent.doubleClick(title);
+    expect(title).toHaveAttribute('contenteditable', 'plaintext-only');
+    title.textContent = 'Minu uus päev';
+    fireEvent.blur(title);
+
+    const heading = [...container.querySelectorAll('.ws-page .ws-card h3')].find((el) => !el.children.length);
+    const taskId = heading.closest('[data-block]').dataset.block;
+    const taskTitle = heading.textContent;
+    fireEvent.doubleClick(heading);
+    heading.textContent = 'Uus ülesanne';
+    fireEvent.keyDown(heading, { key: 'Escape' });
+    expect(container.querySelector('.ws-page .ws-card h3')).toBeTruthy();
+    const again = [...container.querySelectorAll('.ws-page .ws-card h3')].find((el) => el.closest('[data-block]').dataset.block === taskId);
+    expect(again).toHaveTextContent(taskTitle);
+    fireEvent.doubleClick(again);
+    again.textContent = 'Uus ülesanne';
+    fireEvent.keyDown(again, { key: 'Enter' });
+
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-title h2')).toHaveTextContent('Minu uus päev'));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(repository.save).toHaveBeenCalledTimes(1));
+    const saved = repository.save.mock.calls[0][0].document;
+    expect(saved.meta.title).toBe('Minu uus päev');
+    expect(saved.blocks.find((block) => block.id === taskId).data.title).toBe('Uus ülesanne');
+  });
+
+  it('works with the selected block from the toolbar on the sheet and with keys', async () => {
+    const { container } = renderAt('/library/worksheets/lesson-1', repo());
+    await screen.findByText('Töölehe konstruktor');
+    const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+    const count = cards().length;
+    fireEvent.click(cards()[1]);
+    const toolbar = await screen.findByRole('toolbar', { name: 'Ploki tööriistad' });
+    fireEvent.click(within(toolbar).getByRole('button', { name: /Kopeeri/ }));
+    await waitFor(() => expect(cards()).toHaveLength(count + 1));
+    fireEvent.keyDown(window, { key: 'd', ctrlKey: true });
+    await waitFor(() => expect(cards()).toHaveLength(count + 2));
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(cards()).toHaveLength(count + 1));
+    expect(screen.queryByRole('toolbar', { name: 'Ploki tööriistad' })).not.toBeInTheDocument();
+
+    fireEvent.click(cards()[2]);
+    const id = cards()[2].dataset.block;
+    fireEvent.keyDown(window, { key: 'ArrowUp', altKey: true });
+    await waitFor(() => expect(cards()[1].dataset.block).toBe(id));
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected').dataset.block).toBe(cards()[2].dataset.block));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected')).toBeNull());
+
+    fireEvent.click(cards()[0].querySelector('.ws-insert'));
+    expect(await screen.findByText(/lisatakse valitud ploki järele/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Õige \/ vale/ }));
+    await waitFor(() => expect(cards()[1].querySelector('h3')).toBeTruthy());
+    expect(cards()).toHaveLength(count + 2);
+  });
+
+  it('saves a draft by itself 15 seconds after the last change', async () => {
+    const repository = repo({ save: vi.fn().mockResolvedValue({ id: 'lesson-1', created: false, title: 'Minu päev', updatedAt: '2026-10-05T10:00:00.000Z', version: 2, status: 'draft' }) });
+    renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(screen.getByRole('button', { name: /Õige \/ vale/ }));
+      await act(async () => { vi.advanceTimersByTime(14000); });
+      expect(repository.save).not.toHaveBeenCalled();
+      await act(async () => { vi.advanceTimersByTime(1500); });
+      expect(repository.save).toHaveBeenCalledTimes(1);
+      expect(repository.save.mock.calls[0][0].status).toBe('draft');
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(await screen.findByText(/salvestatud \d/)).toBeInTheDocument();
+  });
+
+  it('a clicked quality issue selects its block; a task can be brought back from an old version', async () => {
+    const old = sampleDocument();
+    const repository = repo({ listVersions: vi.fn().mockResolvedValue([{ id: 'v1', version: 1, status: 'draft', worksheetDoc: old }]) });
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+    const first = cards()[1];
+    const removedId = first.dataset.block;
+    fireEvent.click(first);
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(container.querySelector(`.ws-page [data-block="${removedId}"]`)).toBeNull());
+
+    const issue = await waitFor(() => {
+      const found = [...container.querySelectorAll('.st-issue')].find((el) => /juhis puudub/.test(el.textContent));
+      if (!found) throw new Error('no block issue');
+      return found;
+    });
+    fireEvent.click(issue);
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected')).toBeTruthy());
+    expect(container.querySelector('.st-inspector')).not.toHaveTextContent('Töölehe andmed');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Versioonid ja taastamine…' }));
+    fireEvent.click(await screen.findByRole('button', { name: /v1 · mustand/ }));
+    const compare = screen.getByRole('region', { name: /Versioon 1 võrreldes praegusega/ });
+    fireEvent.click(within(compare).getAllByRole('button', { name: 'Too see ülesanne tagasi' })[0]);
+    await waitFor(() => expect(container.querySelector(`.ws-page [data-block="${removedId}"]`)).toBeTruthy());
+  });
+
+  it('saves a block as a shared template and adds templates back to the sheet', async () => {
+    const templates = {
+      list: vi.fn().mockResolvedValue([{ id: 't1', title: 'Kolleegi mall', ownerUid: 'teacher-2', block: { id: 'x', type: 'truefalse', data: { title: 'Õige või vale?', instruction: 'Vali.', statements: [] }, tone: 'white' } }]),
+      create: vi.fn().mockImplementation(async ({ title, block }) => ({ id: 't2', title, block, ownerUid: 'teacher-1' })),
+      remove: vi.fn().mockResolvedValue(undefined),
+    };
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('Minu mall');
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    try {
+      const { container } = renderAt('/library/worksheets/lesson-1', repo(), templates);
+      await screen.findByText('Töölehe konstruktor');
+      const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+      const count = cards().length;
+      expect(await screen.findByRole('button', { name: /Kolleegi mall/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Kustuta mall Kolleegi mall' })).not.toBeInTheDocument();
+
+      fireEvent.click(cards()[1]);
+      fireEvent.click(within(await screen.findByRole('toolbar', { name: 'Ploki tööriistad' })).getByRole('button', { name: /Mall/ }));
+      await waitFor(() => expect(templates.create).toHaveBeenCalledTimes(1));
+      expect(templates.create.mock.calls[0][0].title).toBe('Minu mall');
+      expect(await screen.findByRole('button', { name: 'Kustuta mall Minu mall' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Kolleegi mall/ }));
+      await waitFor(() => expect(cards()).toHaveLength(count + 1));
+      expect(cards().map((card) => card.dataset.block)).not.toContain('x');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Kustuta mall Minu mall' }));
+      await waitFor(() => expect(templates.remove).toHaveBeenCalledWith('t2'));
+    } finally {
+      promptSpy.mockRestore();
+      confirmSpy.mockRestore();
+    }
+  });
+
+  it('redirects a roadmap lesson without a standalone worksheet to its lesson constructor', async () => {
     const repository = repo({
       load: vi.fn().mockResolvedValue({
         document: sampleDocument(),
