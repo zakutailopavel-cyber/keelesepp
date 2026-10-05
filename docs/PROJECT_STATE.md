@@ -1,5 +1,15 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Readable auto-check errors in the check window — branch `agent/readable-auto-errors`
+
+From the live diagnostics: „Automaatselt tuvastatud vead” showed raw keys (`key: b_muqwusk4j:0.0 · answer: öppin`).
+- `worksheet-studio/engine/errorText.js` `describeAutoErrors(doc, errorLog)`: „Ülesanne 3 · <title> — lause 1, lünk 1”,
+  the student's answer (struck through) → the right answer (gaps/diagram `answers()`, rows/items `answer`). Works
+  without a sheet fall back to the old text.
+- Checked on the real „B1 test” (Aleksandr Smirnov, 8 %): the auto-score is correct — a conditional-mood gap task
+  answered in the present tense; speaking blocks are not scored. No scoring change.
+- Tests: `errorText.test.js`; homework/students/worksheet Vitest 150/150.
+
 ## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
 
 Checked `origin/main` `253fd50`. Owner: see the worksheets a student did and grade them so the grades move the skills
