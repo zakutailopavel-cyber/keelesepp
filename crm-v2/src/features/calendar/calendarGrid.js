@@ -48,24 +48,27 @@ export function layoutColumn(items, range = { start: GRID_START, end: GRID_END }
   const placed = [];
   let cluster = [];
   let clusterEnd = -1;
+  let clusterIndex = 0;
   const flush = () => {
     const lanes = cluster.reduce((max, entry) => Math.max(max, entry.lane + 1), 1);
     cluster.forEach((entry) => { entry.lanes = lanes; });
     cluster = [];
+    clusterIndex += 1;
   };
   for (const entry of sorted) {
     if (entry.start >= clusterEnd && cluster.length) flush();
     const used = new Set(cluster.filter((other) => other.end > entry.start).map((other) => other.lane));
     let lane = 0;
     while (used.has(lane)) lane += 1;
-    const placedEntry = { ...entry, lane, lanes: 1 };
+    const placedEntry = { ...entry, lane, lanes: 1, cluster: clusterIndex };
     cluster.push(placedEntry);
     placed.push(placedEntry);
     clusterEnd = Math.max(clusterEnd, entry.end);
   }
   if (cluster.length) flush();
-  return placed.map(({ item, start, end, lane, lanes }) => ({
+  return placed.map(({ item, start, end, lane, lanes, cluster: clusterId }) => ({
     item,
+    cluster: clusterId,
     top: Math.max(0, start - range.start),
     height: Math.max(SNAP, Math.min(end, range.end) - Math.max(start, range.start)),
     lane,

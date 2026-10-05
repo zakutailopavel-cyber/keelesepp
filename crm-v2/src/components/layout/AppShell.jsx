@@ -1,5 +1,5 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { navigation, settingsNavigation } from '../../app/navigation.js';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -9,6 +9,7 @@ import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
 import PetCompanion from '../../features/pet/PetCompanion.jsx';
+import './appShell.css';
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
@@ -41,10 +42,13 @@ export default function AppShell() {
           <IconButton className="mobile-only sidebar-close" label="Sulge menüü" onClick={() => setMenuOpen(false)}><X size={20} /></IconButton>
         </div>
         <nav aria-label="Põhinavigatsioon">
-          {visibleNavigation.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-              <Icon size={19} /><span>{label}</span>
-            </NavLink>
+          {visibleNavigation.map(({ to, label, icon: Icon, end, group }, index) => (
+            <Fragment key={to}>
+              {group && group !== visibleNavigation[index - 1]?.group ? <span className="nav-group">{group}</span> : null}
+              <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
+                <Icon size={19} /><span>{label}</span>
+              </NavLink>
+            </Fragment>
           ))}
         </nav>
         <div className="sidebar-footer">

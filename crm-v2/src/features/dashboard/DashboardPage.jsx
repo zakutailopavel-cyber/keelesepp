@@ -4,6 +4,8 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { groupStudentPeople } from '../../services/firebase/students.js';
+import { occurrencesForDates } from '../calendar/calendarView.js';
 import { ROLES } from '../../utils/roles.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
@@ -49,17 +51,24 @@ async function loadDashboardData(user, repositories) {
     invoicesPromise,
     homeworkPromise,
   ]);
+  // same counting as the pages the tiles open: people (not card records) in „Õpilased”, weekly lessons expanded like
+  // the calendar does, homework of the students in scope like „Kodutööd”
+  const activePeople = groupStudentPeople(studentsResult.items).filter((person) => person.records?.some((record) => record.active));
   const activeStudents = studentsResult.items.filter((item) => item.active);
   const current = today();
-  const upcoming = schedule
-    .filter((item) => item.status !== 'Tühistatud' && (item.date || item.startDate) === current)
-    .slice(0, 6);
+  const nowClock = new Date().toTimeString().slice(0, 5);
+  const todayLessons = occurrencesForDates(schedule, [current]);
+  const upcoming = todayLessons.filter((item) => String(item.time || '99:99') >= nowClock);
   const overdue = invoices.filter(isInvoiceOverdue);
-  const openHomework = homework.filter(isHomeworkOpen);
+  const studentIds = new Set(studentsResult.items.map((item) => item.id));
+  const openHomework = homework.filter((item) => isHomeworkOpen(item) && (!studentIds.size || studentIds.has(item.studentId)));
 
   return {
     activeStudents,
+    activePeople,
+    todayLessons,
     upcoming,
+    allTeachers: !teacherOnly,
     overdue,
     openHomework,
     balance: invoices.reduce((sum, item) => sum + invoiceBalanceCents(item), 0),
@@ -80,9 +89,9 @@ export default function DashboardPage({
   const data = state.data;
   const metrics = [
     ...(data.canViewLearning ? [
-      { label: 'Aktiivsed õpilased', value: data.activeStudents.length, meta: 'õppetöös', icon: GraduationCap, tone: 'green' },
-      { label: 'Järgmised tunnid', value: data.upcoming.length, meta: 'täna', icon: CalendarDays, tone: 'blue' },
-      { label: 'Kodutööd', value: data.openHomework.length, meta: 'ootab lõpetamist', icon: CircleAlert, tone: 'purple' },
+      { label: 'Aktiivsed õpilased', value: data.activePeople.length, meta: data.allTeachers ? 'kõik õpetajad' : 'minu õpilased', icon: GraduationCap, tone: 'green' },
+      { label: 'Tunnid täna', value: data.todayLessons.length, meta: `${data.upcoming.length} veel ees · ${data.allTeachers ? 'kõik õpetajad' : 'minu'}`, icon: CalendarDays, tone: 'blue' },
+      { label: 'Kodutööd pooleli', value: data.openHomework.length, meta: 'ootab tegemist', icon: CircleAlert, tone: 'purple' },
     ] : []),
     ...(data.canViewFinance ? [
       { label: 'Laekumata', value: money(data.balance), meta: `${data.overdue.length} tähtaja ületanud`, icon: ReceiptText, tone: 'amber' },
@@ -131,18 +140,19 @@ export default function DashboardPage({
       <section className="content-grid">
         {data.canViewLearning ? (
           <Card>
-            <div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div><Link to="/calendar">Ava kalender →</Link></div>
+            <div className="section-heading"><div><span className="eyebrow">Kalender · {data.allTeachers ? 'kõik õpetajad' : 'minu tunnid'}</span><h2>Järgmised tunnid täna</h2></div><Link to="/calendar">Ava kalender →</Link></div>
             {data.upcoming.length ? (
               <div className="agenda-list">
-                {data.upcoming.map((item) => (
-                  <div className="agenda-item" key={item.id}>
-                    <time><strong>{item.time}</strong><span>{item.date || item.startDate}</span></time>
+                {data.upcoming.slice(0, 6).map((item) => (
+                  <div className="agenda-item" key={item.occurrenceId || item.id}>
+                    <time><strong>{item.time}</strong><span>{item.occurrenceDate || item.date || item.startDate}</span></time>
                     <div><strong>{item.studentName || 'Õpilane'}</strong><span>{item.teacher || 'Õpetaja'} · {item.duration} min</span></div>
                     <Badge tone="info">{item.status}</Badge>
                   </div>
                 ))}
               </div>
-            ) : <EmptyState title="Täna tunde ei ole" description="Tänaseks ei ole ühtegi planeeritud tundi." />}
+            ) : <EmptyState title={data.todayLessons.length ? 'Tänased tunnid on läbi' : 'Täna tunde ei ole'} description={data.todayLessons.length ? `Täna oli ${data.todayLessons.length} tundi. Märgi need kalendris.` : 'Tänaseks ei ole ühtegi planeeritud tundi.'} />}
+            {data.upcoming.length > 6 ? <p className="form-hint">+ veel {data.upcoming.length - 6} tundi täna</p> : null}
           </Card>
         ) : null}
         <Card>
@@ -153,8 +163,8 @@ export default function DashboardPage({
             ) : null}
             {data.canViewLearning ? (
               <>
-                <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.openHomework.length} aktiivset kodutööd</strong><small>Kontrolli tähtaegu ja esitusi</small></div><b>→</b></Link>
-                <Link to="/students"><span className="attention-dot attention-dot--green" /><div><strong>{data.activeStudents.length} aktiivset õpilast</strong><small>Vaata profiile ja edenemist</small></div><b>→</b></Link>
+                <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.openHomework.length} kodutööd pooleli</strong><small>Kontrolli tähtaegu ja esitusi</small></div><b>→</b></Link>
+                <Link to="/students"><span className="attention-dot attention-dot--green" /><div><strong>{data.activePeople.length} aktiivset õpilast</strong><small>Vaata profiile ja edenemist</small></div><b>→</b></Link>
               </>
             ) : null}
           </div>

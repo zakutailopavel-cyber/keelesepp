@@ -1,0 +1,10 @@
+/* Grouped side menu: small group titles, slightly tighter items so everything fits a laptop screen. */
+.sidebar nav .nav-group { display: block; margin: 12px 13px 3px; color: rgba(203, 213, 225, .55); font-size: .66rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.sidebar nav .nav-group:first-of-type { margin-top: 8px; }
+.sidebar nav .nav-item { min-height: 40px; }
+@media (max-height: 760px) { .sidebar nav .nav-item { min-height: 36px; } .sidebar nav .nav-group { margin-top: 8px; } }
+@media (max-height: 760px) {
+  .sidebar nav { gap: 2px; mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent); padding-bottom: 18px; }
+  .sidebar nav .nav-item { min-height: 34px; font-size: .88rem; }
+  .sidebar nav .nav-group { margin: 8px 13px 2px; }
+}

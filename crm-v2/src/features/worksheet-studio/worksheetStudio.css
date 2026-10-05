@@ -280,3 +280,9 @@ textarea.ed-input { resize: vertical; }
 .ws-studio .st-templates ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
 .ws-studio .st-template-del { border: 0; background: transparent; color: var(--st-muted); cursor: pointer; font-size: 16px; padding: 4px 6px; border-radius: 6px; }
 .ws-studio .st-template-del:hover { color: var(--st-danger); background: #fbe9e6; }
+
+/* Focus mode: the constructor covers the CRM menu and top bar and uses the whole window. */
+.ws-studio.is-focus { position: fixed; inset: 0; z-index: 40; height: 100dvh; min-height: 0; border-radius: 0; border: 0; box-shadow: none; }
+.ws-studio .st-btn[aria-pressed] { display: inline-flex; align-items: center; gap: 5px; }
+@media (max-width: 560px) { .ws-studio .st-btn-label { display: none; } }
+@media print { .ws-studio.is-focus { position: static; height: auto; } }

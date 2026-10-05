@@ -112,6 +112,7 @@ export default function MessagesPage({ repository = messagesService, studentRepo
       title="Kommunikatsioon"
       description="KeeleSepa sisemised vestlused, Facebook ja Instagram ühes töövoos."
       actions={totalUnread ? <Badge tone="info">{totalUnread} lugemata</Badge> : null}
+      compact
     />
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
 

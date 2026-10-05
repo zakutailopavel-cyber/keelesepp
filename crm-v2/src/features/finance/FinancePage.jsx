@@ -644,6 +644,7 @@ export default function FinancePage({
   return (
     <div className="page-content finance-page" data-active-finance-section={canRegisterPayment && !section ? activeFinanceSection : undefined}>
       <PageHeader
+        compact
         eyebrow="Finantsid"
         title="Arved ja maksed"
         description="Reaalne ülevaade laekumistest, võlgadest ja prognoositavast tulust."

@@ -16,6 +16,22 @@ const nowMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.ge
  * columns: [{ key, title, subtitle, date, isToday, items }]
  * Drag a block to move it (other column allowed only if allowColumnChange), drag its bottom edge to resize.
  */
+// In the week view (several narrow columns) three or more lessons side by side become unreadable slivers.
+const CROWDED = 3;
+function crowdedIds(laid, columnCount) {
+  if (columnCount < 2) return new Set();
+  return new Set(laid.filter((entry) => !entry.outside && entry.lanes >= CROWDED).map((entry) => entry.cluster));
+}
+function crowdedClusters(laid, columnCount) {
+  const ids = crowdedIds(laid, columnCount);
+  return [...ids].map((id) => {
+    const items = laid.filter((entry) => entry.cluster === id && !entry.outside).sort((a, b) => a.top - b.top || String(a.item.studentName).localeCompare(String(b.item.studentName), 'et'));
+    const top = Math.min(...items.map((entry) => entry.top));
+    const bottom = Math.max(...items.map((entry) => entry.top + entry.height));
+    return { id, items, top, height: bottom - top };
+  });
+}
+
 export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true }) {
   const bodyRef = useRef(null);
   const columnRefs = useRef(new Map());
@@ -120,7 +136,20 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
               >
                 {HOURS.slice(1).map((hour) => <i className="tg-line" key={hour} style={{ top: (hour * 60 - GRID_START) * PX_PER_MIN }} />)}
                 {column.isToday && now >= GRID_START && now <= GRID_END ? <i className="tg-now" style={{ top: (now - GRID_START) * PX_PER_MIN }} aria-label="Praegu" /> : null}
-                {laid.filter((entry) => !entry.outside).map(({ item, top, height: blockHeight, lane, lanes }) => {
+                {crowdedClusters(laid, columns.length).map((group) => (
+                  // three or more lessons at once in a narrow week column: one card listing them, each opens its lesson
+                  <div key={`cluster-${group.id}`} className="tg-cluster" style={{ top: group.top * PX_PER_MIN, height: Math.max(44, group.height * PX_PER_MIN - 2) }} role="list" aria-label={`${group.items.length} tundi korraga`}>
+                    {group.items.map(({ item }) => {
+                      const status = statusOf(item);
+                      return (
+                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${teacherTone(item.teacherUid || item.teacher)} is-${status}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.teacher ? ` · ${item.teacher}` : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
+                          <span>{item.time}</span><strong>{item.studentName || 'Õpilane'}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+                {laid.filter((entry) => !entry.outside && !crowdedIds(laid, columns.length).has(entry.cluster)).map(({ item, top, height: blockHeight, lane, lanes }) => {
                   const status = statusOf(item);
                   const movable = canDrag(item);
                   return (
@@ -129,6 +158,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                       className={`tg-block tone-${teacherTone(item.teacherUid || item.teacher)} is-${status} ${item.isGroup ? 'is-group' : ''} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
                       style={{ top: top * PX_PER_MIN, height: Math.max(22, blockHeight * PX_PER_MIN - 2), left: `calc(${(lane / lanes) * 100}% + 2px)`, width: `calc(${100 / lanes}% - 4px)` }}
                       onPointerDown={(event) => startDrag(event, item, column, 'move')}
+                      title={`${item.time} · ${item.studentName || 'Õpilane'}${item.teacher ? ` · ${item.teacher}` : ''}`}
                     >
                       <button
                         type="button"
