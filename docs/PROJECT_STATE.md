@@ -119,7 +119,9 @@ project `keelesepp-5136b`; functions `npm test` 232/232 before the deploy.
 - CRM (Vercel `keelesepp-crm-v2`, crm.epkoolitus.ee): production is `b4bad01`.
 - Checked in the real CRM: „Uued kontod” calls `/accounts/reviews` (200), no open reviews; Polina Lysenko is in
   „Õpilased”.
-- `languageApi` (#288) deployed after the others, with `EKILEX_API_KEY` set to `none` (owner has no key yet):
+- `languageApi` (#288) deployed after the others, first with `EKILEX_API_KEY` = `none`; later the same day the owner
+  set the real Ekilex key (secret version 2) and redeployed it, so word forms are on (not yet tried in a lesson).
+  With `none` it was:
   translation (TartuNLP) works, word forms answer `available: false`. Anonymous call → 401. When the owner gets the
   key: `functions:secrets:set EKILEX_API_KEY` (in the terminal, never in the chat), then redeploy
   `functions:languageApi` so it picks up the new version.
@@ -164,7 +166,7 @@ Checked `origin/main` `1c85f49` (after #286, pet growth/outfits/visibility). Fou
 - No rules or functions change. Not tried in a real lesson.
 
 ### Pending owner actions (all merged in main)
-Released on 2026-10-05 (see the entry at the top).
+Released on 2026-10-05 (see „Release of #276–#288” above).
 
 ## 2026-10-04 — Pet: grows from words, homework and streaks; outfits for stars; teacher and parents see it — branch `claude/affectionate-ritchie-dh2x9j`
 
