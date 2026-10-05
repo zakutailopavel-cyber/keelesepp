@@ -78,8 +78,9 @@ export default function DataCleanupPanel({ user, repositories = { students: stud
     setBusy(key); setError(''); setNotice('');
     try {
       await task();
-      setNotice(done);
       await search();
+      // after the new search: it clears old messages
+      setNotice(done);
     } catch (runError) {
       setError(runError.message || 'Muudatust ei saanud teha.');
     } finally {
