@@ -200,6 +200,16 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   }, []);
 
   const items = useMemo(() => state.data ? buildLibraryItems(state.data.curriculumLessons, state.data.exercises) : [], [state.data]);
+  // „Määra õpilastele” in the worksheet constructor opens Õppevara with ?assign=<lesson id>
+  const assignId = searchParams.get('assign') || '';
+  useEffect(() => {
+    if (!assignId || !items.length) return;
+    const item = items.find((entry) => entry.sourceId === assignId && entry.kind !== 'exercise');
+    if (item) setAssigning(item);
+    const next = new globalThis.URLSearchParams(searchParams);
+    next.delete('assign');
+    setSearchParams(next, { replace: true });
+  }, [assignId, items, searchParams, setSearchParams]);
   const favFilter = onlyFav ? favorites : null;
   const mineUid = onlyMine ? user?.uid || '' : '';
   const levels = useMemo(() => levelFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
