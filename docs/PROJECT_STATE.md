@@ -1,5 +1,46 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Constructor: own templates, lesson words, free photo search — branch `agent/constructor-library`
+
+Stacked on `agent/constructor-tools` (#294). Proposals 10–12 (last of the owner's list).
+- Templates: toolbar „Mall” saves the selected block (name asked) to `worksheetBlockTemplates/{id}`
+  (`title, block, ownerUid, ownerName, createdAt`), shared with all staff; „Mallid” group at the top of the block
+  list inserts one (new id); the author or an admin removes it. Service `worksheetTemplatesService`.
+- `firestore.rules`: `worksheetBlockTemplates` read staff; create staff, own `ownerUid`, fixed keys, title 1–120;
+  no update; delete author or admin. Emulator test `functions/worksheet-templates-emulator.integration.js` (added to
+  `test:emulator`) passed locally with the worksheet studio test (Java 21).
+- Lesson strip „Tunni sõnad ▾”: „Sõnavara kast” (all active vocabulary words) or „Ühenda: sõna – tõlge” (up to 8
+  pairs) from the lesson's generator profile.
+- Photo blocks: „Otsi pilti internetist” searches Openverse (free, no key; only the search words are sent), the
+  chosen photo is downloaded (`/thumb/?full_size=true`, CORS open), uploaded to our Storage and the caption gets
+  „Foto: <author> · CC …”; full attribution and source link are stored in `data.credit` / `data.creditSource`.
+- Tests: ImageSearch (2), templates studio test, lesson words test; Vitest worksheet+library 333/333; ESLint clean;
+  build OK.
+- **Needs the owner:** `firestore:rules` deploy after merge — until then templates do not load/save (the constructor
+  works without them and says so on save).
+
+## 2026-10-05 — Constructor: clickable quality issues, restore one task from a version, assign from the constructor — branch `agent/constructor-tools`
+
+Stacked on `agent/constructor-generator-ux` (#292). Proposals 13–15.
+- Quality list items are buttons: a block issue selects that block and scrolls it into view (sheet issues open the
+  sheet data).
+- „Versioonid ja taastamine…”: a version button now opens a comparison („Muudetud / Kustutatud: <task>”) with
+  „Too see ülesanne tagasi” per task (a deleted task returns at its old place) and „Taasta kogu leht”.
+- A published, saved sheet shows „Määra õpilastele” → `/library?assign=<lesson id>`; Õppevara opens the assignment
+  dialog for that material and removes the parameter.
+- Tests: studio issue/version test, library `?assign=` test; worksheet+library Vitest 329/329; ESLint clean; build OK.
+
+## 2026-10-05 — Constructor: task variants on the sheet, per-task difficulty, „Ainult see leht” preview — branch `agent/constructor-generator-ux`
+
+Stacked on `agent/constructor-ux` (#291). Proposals 6–9.
+- „Uus variant” (toolbar above a generated task) makes 3 different variants (`regenerateTaskOptions`, `salt` +
+  `difficulty` options of `regenerateTask`); the toolbar flips them „‹ Variant 2/3 ›”, „Algne” brings the old task
+  back, a difficulty select (Support/Core/Challenge) regenerates this task only at that level.
+- Lesson strip: „Ainult see leht” generates only the open core sheet (`previewCoreSheet`) and shows it in the editor
+  unsaved (Ctrl+Z / „Võta tagasi” returns the previous one); saving stores it with its new `generation` meta (the
+  lesson constructor adapter now forwards `generation` on save).
+- Tests: worksheet Vitest 302/302 (existing regeneration test covers the variant flow); ESLint clean; build OK.
+
 ## 2026-10-05 — Constructor: block toolbar on the sheet, „+” insert, keys, autosave — branch `agent/constructor-ux`
 
 Stacked on `agent/lesson-constructor-generator` (#290, not merged yet). Owner chose to do all proposed constructor

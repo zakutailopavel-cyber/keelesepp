@@ -106,6 +106,8 @@ export function regenerateTask({
   generation = {},
   worksheetDoc,
   blockId,
+  difficulty: difficultyOverride = '',
+  salt = '',
 } = {}) {
   const diagnostics = [];
   if (!profile) return { block: null, diagnostics: [diagnostic('error', 'REGENERATION_PROFILE_MISSING', 'Selle tunni generaatoriprofiil puudub.')] };
@@ -121,14 +123,14 @@ export function regenerateTask({
     return { block: null, diagnostics: [diagnostic('error', 'REGENERATION_SOURCE_UNKNOWN', 'Ülesande didaktilist lähteaktiivsust ei saanud tuvastada.')] };
   }
 
-  const difficulty = generation?.difficulty || generation?.lessonDna?.difficulty || 'core';
+  const difficulty = difficultyOverride || generation?.difficulty || generation?.lessonDna?.difficulty || 'core';
   const focusIds = generation?.focusIds?.length
     ? generation.focusIds
     : generation?.lessonDna?.focusIds?.length
       ? generation.lessonDna.focusIds
       : (profile.focuses || []).map((item) => item.id);
   const contextId = resolveContextId(profile, generation, phase);
-  const seedRoot = `${generation?.seed || generation?.lessonDna?.seed || profile.lessonId}:task:${blockId}:${fingerprint({ type: current.type, data: current.data })}`;
+  const seedRoot = `${generation?.seed || generation?.lessonDna?.seed || profile.lessonId}:task:${blockId}:${fingerprint({ type: current.type, data: current.data })}${difficultyOverride ? `:${difficultyOverride}` : ''}${salt ? `:${salt}` : ''}`;
   const lessonKind = generation?.lessonDna?.lessonKind || profile.lessonKind || 'integrated';
 
   const plan = replacementActivityCandidates({
@@ -181,4 +183,22 @@ export function regenerateTask({
     block: null,
     diagnostics: [...diagnostics, diagnostic('error', 'REGENERATION_NO_VARIANT', 'Selle ülesande jaoks ei leitud uut kvaliteetset varianti.')],
   };
+}
+
+// Up to `count` different replacements for one task (each differs from the current block and from each other),
+// so the teacher can flip through them on the sheet and keep the best one.
+export function regenerateTaskOptions({ count = 3, ...input } = {}) {
+  const options = [];
+  const seen = new Set();
+  let last = null;
+  for (let index = 0; index < count * 3 && options.length < count; index += 1) {
+    const result = regenerateTask({ ...input, salt: index ? `v${index}` : '' });
+    last = result;
+    if (!result.block) continue;
+    const key = stableStringify({ type: result.block.type, data: result.block.data });
+    if (seen.has(key)) continue;
+    seen.add(key);
+    options.push(result);
+  }
+  return { options, diagnostics: options.length ? [] : last?.diagnostics || [] };
 }

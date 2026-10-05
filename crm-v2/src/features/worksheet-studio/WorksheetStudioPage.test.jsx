@@ -17,13 +17,13 @@ Object.defineProperty(window, 'localStorage', {
   },
 });
 
-function renderAt(path, repository) {
+function renderAt(path, repository, templates = { list: vi.fn().mockResolvedValue([]), create: vi.fn(), remove: vi.fn() }) {
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthContext.Provider value={{ user }}>
         <Routes>
-          <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} />} />
+          <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} templates={templates} />} />
           <Route path="/library/lessons/:lessonId/worksheets/discover" element={<div>lesson-engine</div>} />
           <Route path="/library" element={<div>library</div>} />
         </Routes>
@@ -140,6 +140,68 @@ describe('WorksheetStudioPage', () => {
       vi.useRealTimers();
     }
     expect(await screen.findByText(/salvestatud \d/)).toBeInTheDocument();
+  });
+
+  it('a clicked quality issue selects its block; a task can be brought back from an old version', async () => {
+    const old = sampleDocument();
+    const repository = repo({ listVersions: vi.fn().mockResolvedValue([{ id: 'v1', version: 1, status: 'draft', worksheetDoc: old }]) });
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+    const first = cards()[1];
+    const removedId = first.dataset.block;
+    fireEvent.click(first);
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(container.querySelector(`.ws-page [data-block="${removedId}"]`)).toBeNull());
+
+    const issue = await waitFor(() => {
+      const found = [...container.querySelectorAll('.st-issue')].find((el) => /juhis puudub/.test(el.textContent));
+      if (!found) throw new Error('no block issue');
+      return found;
+    });
+    fireEvent.click(issue);
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected')).toBeTruthy());
+    expect(container.querySelector('.st-inspector')).not.toHaveTextContent('Töölehe andmed');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Versioonid ja taastamine…' }));
+    fireEvent.click(await screen.findByRole('button', { name: /v1 · mustand/ }));
+    const compare = screen.getByRole('region', { name: /Versioon 1 võrreldes praegusega/ });
+    fireEvent.click(within(compare).getAllByRole('button', { name: 'Too see ülesanne tagasi' })[0]);
+    await waitFor(() => expect(container.querySelector(`.ws-page [data-block="${removedId}"]`)).toBeTruthy());
+  });
+
+  it('saves a block as a shared template and adds templates back to the sheet', async () => {
+    const templates = {
+      list: vi.fn().mockResolvedValue([{ id: 't1', title: 'Kolleegi mall', ownerUid: 'teacher-2', block: { id: 'x', type: 'truefalse', data: { title: 'Õige või vale?', instruction: 'Vali.', statements: [] }, tone: 'white' } }]),
+      create: vi.fn().mockImplementation(async ({ title, block }) => ({ id: 't2', title, block, ownerUid: 'teacher-1' })),
+      remove: vi.fn().mockResolvedValue(undefined),
+    };
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('Minu mall');
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    try {
+      const { container } = renderAt('/library/worksheets/lesson-1', repo(), templates);
+      await screen.findByText('Töölehe konstruktor');
+      const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+      const count = cards().length;
+      expect(await screen.findByRole('button', { name: /Kolleegi mall/ })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Kustuta mall Kolleegi mall' })).not.toBeInTheDocument();
+
+      fireEvent.click(cards()[1]);
+      fireEvent.click(within(await screen.findByRole('toolbar', { name: 'Ploki tööriistad' })).getByRole('button', { name: /Mall/ }));
+      await waitFor(() => expect(templates.create).toHaveBeenCalledTimes(1));
+      expect(templates.create.mock.calls[0][0].title).toBe('Minu mall');
+      expect(await screen.findByRole('button', { name: 'Kustuta mall Minu mall' })).toBeInTheDocument();
+
+      fireEvent.click(screen.getByRole('button', { name: /Kolleegi mall/ }));
+      await waitFor(() => expect(cards()).toHaveLength(count + 1));
+      expect(cards().map((card) => card.dataset.block)).not.toContain('x');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Kustuta mall Minu mall' }));
+      await waitFor(() => expect(templates.remove).toHaveBeenCalledWith('t2'));
+    } finally {
+      promptSpy.mockRestore();
+      confirmSpy.mockRestore();
+    }
   });
 
   it('redirects a roadmap lesson without a standalone worksheet to its lesson constructor', async () => {

@@ -99,3 +99,25 @@ export async function generateFocusSheet({ repository, lessonId, lesson, profile
   });
   return { worksheetId, displayLabel, variant, existed: Boolean(current) };
 }
+
+// One core sheet generated again without saving: the constructor shows it first, the teacher decides.
+export function previewCoreSheet({ lessonId, lesson, profile, sheets, levelVocabulary, difficulty, worksheetId }) {
+  const index = CORE_SHEETS.findIndex((meta) => meta.id === worksheetId);
+  if (index < 0) throw new Error('Seda lehte ei saa eraldi genereerida.');
+  const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
+  const existing = CORE_SHEETS.map(({ id }) => byId.get(id)).filter(Boolean);
+  const variant = Math.max(0, ...existing.map((sheet) => Number(sheet?.generation?.variant) || Number(sheet?.worksheetDocVersion) || 0)) + 1;
+  const result = generateLessonBundle({
+    lesson,
+    profile,
+    levelLexicon: levelVocabulary.lexicon,
+    activityHistory: existing.flatMap((sheet) => sheet?.generation?.activityIds || []),
+    difficulty,
+    variant,
+    seed: `${lessonId}:${profile.version}:${GENERATOR_VERSION}:${variant}:${worksheetId}`,
+  });
+  const sheet = result.sheets[index];
+  const blocking = result.diagnostics.filter((item) => item.severity === 'error');
+  if (blocking.length || !sheet) throw new Error(blocking.map((item) => item.message).join(' ') || 'Lehte ei saanud luua.');
+  return { worksheetDoc: sheet.worksheetDoc, generation: generationMeta(sheet, { scope: 'lesson-sheet', variant, levelVocabulary }), variant };
+}
