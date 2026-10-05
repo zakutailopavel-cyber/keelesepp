@@ -1,4 +1,4 @@
-import { CalendarRange, ChevronLeft, ChevronRight, Plus, Search, Undo2, X, XCircle } from 'lucide-react';
+import { CalendarRange, ChevronLeft, ChevronRight, Plus, Search, Undo2, UserRoundX, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -13,6 +13,7 @@ import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesFor
 import { canMove, planDelete, planMove, teacherTone, toClock } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
+import { unplannedStudents } from './unplannedStudents.js';
 import { DAY_IDS, availabilityAt, bandsOn, busyMessage, paintSlot, slotsOn } from './availabilityModel.js';
 import LessonPanel from './LessonPanel.jsx';
 import QuickAttendanceAction from './QuickAttendanceAction.jsx';
@@ -121,6 +122,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   // painting a teacher's green (free) / red (busy) windows
   const [paint, setPaint] = useState(null);
   const [paintSaving, setPaintSaving] = useState(false);
+  // students with no lesson ahead (`?unplanned=1` opens the list, e.g. from Ülevaade)
+  const [showUnplanned, setShowUnplanned] = useState(() => searchParams.get('unplanned') === '1');
+  const [pausing, setPausing] = useState('');
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !isAdmin;
   const state = useAsyncData(async () => Promise.all([
@@ -197,7 +201,16 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   };
 
   const navigatePeriod = (direction) => setAnchor((current) => view === 'month' ? shiftMonth(current, direction) : shiftDate(current, direction * (view === 'week' ? 7 : 1)));
-  const openCreate = (date = anchor, time = '09:00') => { setEditing(null); setForm({ ...blankLesson(), date, time }); setModal(true); setActionError(''); };
+  const openCreate = (date = anchor, time = '09:00', studentId = '') => { setEditing(null); setForm({ ...blankLesson(), date, time, ...(studentId ? { studentId } : {}) }); setModal(true); setActionError(''); };
+  const unplanned = unplannedStudents({ students: students.items, events, today, teacherUid: teacherOnly ? user.uid : (isAdmin && filters.teacher ? filters.teacher : '') });
+  const pauseStudent = async (student, days) => {
+    setPausing(student.id); setActionError('');
+    try {
+      const until = shiftDate(today, days);
+      await studentRepository.update(student.id, { planningPausedUntil: until });
+      await state.reload();
+    } catch (error) { setActionError(error.message || 'Pausi ei saanud salvestada.'); } finally { setPausing(''); }
+  };
   const openEdit = (item) => {
     setEditing(item);
     setForm({ studentId: item.studentId || '', teacherUid: item.teacherUid || '', date: item.recurring ? item.startDate : (item.occurrenceDate || item.date), time: item.time || '09:00', duration: item.duration || 60, recurring: Boolean(item.recurring), status: item.status || 'Planeeritud' });
@@ -456,6 +469,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       <span><strong>{occurrences.length}</strong> tundi valitud perioodil</span>
       {filters.student ? <button type="button" className="cal2-chip" onClick={() => setFilters({ ...filters, student: '' })}>Õpilane: {studentMap.get(filters.student)?.name || filters.student} <X size={13} /></button> : null}
       {hasActiveFilters ? <Button variant="secondary" onClick={() => setFilters(emptyFilters())}>Tühjenda filtrid</Button> : null}
+      {unplanned.length ? <button type="button" className={`cal2-unplanned-chip ${showUnplanned ? 'is-open' : ''}`} aria-expanded={showUnplanned} onClick={() => setShowUnplanned((value) => !value)}><UserRoundX size={15} /> {unplanned.length} {unplanned.length === 1 ? 'õpilane' : 'õpilast'} ilma tulevase tunnita</button> : null}
       <span className="cal2-hint">{narrow ? '' : 'Lohista tundi, et muuta aega · tõmba alumisest servast, et muuta kestust'}</span>
     </div>
     {paint && paintTeacher ? (
@@ -470,6 +484,26 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <Button variant="secondary" onClick={() => setPaint(null)}>Valmis</Button>
       </div>
     ) : bandTeacher && availabilityFor(bandTeacher)?.slots?.length ? <p className="cal2-legend"><i className="cal2-dot is-free" /> vaba aeg <i className="cal2-dot is-busy" /> hõivatud — sinna tundi panna ei saa</p> : null}
+    {showUnplanned && unplanned.length ? (
+      <section className="cal2-unplanned" aria-label="Õpilased ilma tulevase tunnita">
+        <div className="cal2-unplanned__head"><strong>Neil õpilastel ei ole kalendris ühtegi tulevast tundi</strong><button type="button" className="link-button" onClick={() => setShowUnplanned(false)}>Peida</button></div>
+        <ul>
+          {unplanned.map(({ student, lastLesson }) => (
+            <li key={student.id}>
+              <span><strong>{student.name}</strong><small>{[isAdmin && !teacherOnly ? (student.teacher || 'õpetaja määramata') : '', student.level, lastLesson ? `viimane tund ${lastLesson}` : 'tunde pole olnud'].filter(Boolean).join(' · ')}</small></span>
+              <Button onClick={() => openCreate(anchor, '09:00', student.id)}><Plus size={15} /> Lisa tund</Button>
+              <select aria-label={`Paus: ${student.name}`} value="" disabled={pausing === student.id} onChange={(event) => { if (event.target.value) pauseStudent(student, Number(event.target.value)); }}>
+                <option value="">Paus…</option>
+                <option value="14">2 nädalat</option>
+                <option value="30">1 kuu</option>
+                <option value="90">3 kuud</option>
+              </select>
+            </li>
+          ))}
+        </ul>
+        <p className="form-hint">Paus peidab õpilase sellest nimekirjast valitud ajaks (nt puhkus). Arhiveeritud õpilasi siin ei ole.</p>
+      </section>
+    ) : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge" onClick={() => setActionError('')}>×</button></div> : null}
 
     <div className={`cal2-main ${panelItem ? 'has-panel' : ''}`}>

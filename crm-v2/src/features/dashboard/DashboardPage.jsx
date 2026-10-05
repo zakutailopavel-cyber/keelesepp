@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, invoicesService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { groupsService, homeworkService, invoicesService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { groupCalendarEvents } from '../calendar/calendarView.js';
+import { unplannedStudents } from '../calendar/unplannedStudents.js';
 import { groupStudentPeople } from '../../services/firebase/students.js';
 import { occurrencesForDates } from '../calendar/calendarView.js';
 import { ROLES } from '../../utils/roles.js';
@@ -18,6 +20,7 @@ const defaultRepositories = {
   schedule: scheduleService,
   invoices: invoicesService,
   homework: homeworkService,
+  groups: groupsService,
 };
 
 async function loadDashboardData(user, repositories) {
@@ -45,11 +48,15 @@ async function loadDashboardData(user, repositories) {
       : repositories.homework.list())
     : Promise.resolve([]);
 
-  const [studentsResult, schedule, invoices, homework] = await Promise.all([
+  const groupsPromise = canViewLearning && repositories.groups?.list
+    ? repositories.groups.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}).catch(() => [])
+    : Promise.resolve([]);
+  const [studentsResult, schedule, invoices, homework, groups] = await Promise.all([
     studentsPromise,
     schedulePromise,
     invoicesPromise,
     homeworkPromise,
+    groupsPromise,
   ]);
   // same counting as the pages the tiles open: people (not card records) in „Õpilased”, weekly lessons expanded like
   // the calendar does, homework of the students in scope like „Kodutööd”
@@ -63,7 +70,10 @@ async function loadDashboardData(user, repositories) {
   const studentIds = new Set(studentsResult.items.map((item) => item.id));
   const openHomework = homework.filter((item) => isHomeworkOpen(item) && (!studentIds.size || studentIds.has(item.studentId)));
 
+  const unplanned = unplannedStudents({ students: studentsResult.items, events: [...schedule, ...groupCalendarEvents(groups)], today: current, teacherUid: teacherOnly ? user.uid : '' });
+
   return {
+    unplanned,
     activeStudents,
     activePeople,
     todayLessons,
@@ -164,6 +174,7 @@ export default function DashboardPage({
             {data.canViewLearning ? (
               <>
                 <Link to="/homework"><span className="attention-dot attention-dot--amber" /><div><strong>{data.openHomework.length} kodutööd pooleli</strong><small>Kontrolli tähtaegu ja esitusi</small></div><b>→</b></Link>
+                {data.unplanned.length ? <Link to="/calendar?unplanned=1"><span className="attention-dot attention-dot--amber" /><div><strong>{data.unplanned.length} õpilast ilma tulevase tunnita</strong><small>Lisa neile tund või märgi paus</small></div><b>→</b></Link> : null}
                 <Link to="/students"><span className="attention-dot attention-dot--green" /><div><strong>{data.activePeople.length} aktiivset õpilast</strong><small>Vaata profiile ja edenemist</small></div><b>→</b></Link>
               </>
             ) : null}
