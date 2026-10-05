@@ -1,5 +1,23 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Admin data cleanup in Seaded; homework „Suletud”; bell counts only new — branch `agent/data-cleanup`
+
+Owner approved cleaning: students without a teacher, „Uus tööleht” topics, old homework, test conversations and the
+30 notifications. Done as a tool so the admin sees the exact rows first and only ticked rows change.
+- Seaded (admin) → „Andmete korrastus” (`DataCleanupPanel`, logic `cleanupModel.js`, writes `maintenanceService`):
+  - active students without a teacher (record + enrollments): teacher suggested from their calendar lessons, choose
+    from staff otherwise → `studentsService.update({ teacher })` (resolves `teacherUid` as before);
+  - lessons whose topic is the placeholder „Uus tööleht” → topic emptied;
+  - open homework with a due date over 30 days ago → status „Suletud” (`closedAt`, `closedBy`);
+  - conversations with „test / smoke / outbound” in the name or a message → their `messages` deleted (admin rule).
+  Every action asks for confirmation and writes an `activityLog` entry (`maintenance.*`).
+- `features/homework/homeworkStatus.js` `isHomeworkOpen`: „Tehtud” and „Suletud” are closed — used by Ülevaade,
+  Kodutööd, student/parent dashboards and the pet.
+- Notification bell: counts only items not seen since the panel was last opened (per user, `localStorage`
+  `ks-notifications-seen:<uid>`); a grey dot when only already-seen items remain. The panel lists everything as before.
+- Tests: `DataCleanupPanel.test.jsx` (2); related suites 139/139; ESLint clean; build OK. No rules change.
+- **Needs the owner (after merge):** open Seaded → „Andmete korrastus”, review the lists, apply.
+
 ## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
 
 Checked `origin/main` `253fd50`. Owner: see the worksheets a student did and grade them so the grades move the skills

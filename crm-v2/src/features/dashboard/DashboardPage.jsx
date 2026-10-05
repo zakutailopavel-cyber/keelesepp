@@ -6,6 +6,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { ROLES } from '../../utils/roles.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
+import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
 const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -54,7 +55,7 @@ async function loadDashboardData(user, repositories) {
     .filter((item) => item.status !== 'Tühistatud' && (item.date || item.startDate) === current)
     .slice(0, 6);
   const overdue = invoices.filter(isInvoiceOverdue);
-  const openHomework = homework.filter((item) => item.status !== 'Tehtud');
+  const openHomework = homework.filter(isHomeworkOpen);
 
   return {
     activeStudents,

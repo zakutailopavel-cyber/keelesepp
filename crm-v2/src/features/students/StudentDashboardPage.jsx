@@ -14,6 +14,7 @@ import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.j
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
+import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -77,7 +78,7 @@ export default function StudentDashboardPage({
   const { students, homework, submissions, schedule, invoices, lessons } = state.data;
   const studentMap = new Map(students.map((student) => [student.id, student]));
   const upcoming = occurrencesForDates(schedule, nextDates).slice(0, 6);
-  const pendingHomework = homework.filter((item) => item.status !== 'Tehtud');
+  const pendingHomework = homework.filter(isHomeworkOpen);
   const completedLessons = lessons.filter((lesson) => lesson.status !== 'Tühistatud');
   const attendedLessons = lessons.filter(isAttended);
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);

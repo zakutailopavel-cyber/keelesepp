@@ -14,6 +14,7 @@ import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.j
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
+import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 function unique(items) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
@@ -46,7 +47,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
   const groupedByRecordId = new Map(students.flatMap((student) => (student.recordIds || [student.id]).map((id) => [id, student])));
   const studentMap = new Map(studentRecords.map((student) => [student.id, groupedByRecordId.get(student.id) || student]));
   const upcoming = occurrencesForDates(schedule, nextDates).slice(0, 6);
-  const pendingHomework = homework.filter((item) => item.status !== 'Tehtud');
+  const pendingHomework = homework.filter(isHomeworkOpen);
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
   // what was done in the last lessons: topic from Õppevara (level · theme · lesson) and the teacher's note
   const doneLessons = lessons.filter((lesson) => !lesson.status || lesson.status === 'Toimunud').sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`)).slice(0, 6);
