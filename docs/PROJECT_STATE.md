@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Calendar: students without a lesson ahead — branch `agent/unplanned-students`
+
+Owner: make it easy for teachers to see which of their students are not in the calendar, so nobody is forgotten.
+- `calendar/unplannedStudents.js`: active students (teacher's own; admin all, or the filtered teacher) with no lesson
+  ahead — no non-cancelled weekly series that has not ended, no one-off lesson today or later, no group series —
+  longest-waiting first (last past lesson date), paused ones left out.
+- Calendar: chip „N õpilast ilma tulevase tunnita” → list with „Lisa tund” (form opens with the student) and
+  „Paus…” (2 weeks / 1 month / 3 months → `students.planningPausedUntil`, new writable field). `?unplanned=1` opens it.
+- Ülevaade „Vajab tegutsemist”: „N õpilast ilma tulevase tunnita” → `/calendar?unplanned=1` (dashboard now also loads
+  groups so group students count as planned).
+- Tests: `unplannedStudents.test.js` (2), calendar list/pause/add test; build OK.
+
 ## 2026-10-05 — Contact phone +372 5434 4155 everywhere — branch `agent/contact-phone`
 
 Owner: the public contact number is now +372 5434 4155 instead of +372 5374 0753, everywhere.

@@ -302,6 +302,20 @@ describe('calendar v2', () => {
     expect(saved.slots).toEqual([expect.objectContaining({ kind: 'free', day: expect.any(String) })]);
   });
 
+  it('lists students without a lesson ahead; Lisa tund opens the form for them, Paus hides them for a while', async () => {
+    const props = renderCalendar({ events: [lesson({ studentId: 's1' })] });
+    props.studentRepository.update = vi.fn().mockResolvedValue({});
+    fireEvent.click(await screen.findByRole('button', { name: /1 õpilane ilma tulevase tunnita/ }));
+    const list = screen.getByRole('region', { name: 'Õpilased ilma tulevase tunnita' });
+    expect(within(list).getByText('Jaan Tamm')).toBeInTheDocument();
+    expect(within(list).queryByText('Mari Maas')).toBeNull();
+    fireEvent.change(within(list).getByRole('combobox', { name: 'Paus: Jaan Tamm' }), { target: { value: '30' } });
+    await waitFor(() => expect(props.studentRepository.update).toHaveBeenCalledWith('s2', { planningPausedUntil: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) }));
+    fireEvent.click(within(list).getByRole('button', { name: /Lisa tund/ }));
+    expect(screen.getByRole('heading', { name: 'Uus tund' })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: /Õpilane/ })).toHaveValue('Jaan Tamm');
+  });
+
   it('"Alusta tundi" invites the student and opens the live room for today\'s lesson', async () => {
     const props = renderCalendar({ events: [lesson()] });
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
