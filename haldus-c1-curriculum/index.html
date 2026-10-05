@@ -25,7 +25,7 @@ async function loadCurriculum(){
 }
 function payload(curriculum,module,lesson,user){
   return{
-    type:'lesson',title:lesson.title,description:module.description||'',subject:'Eesti keel',level:'C1',
+    type:'lesson',title:lesson.title,subject:'Eesti keel',level:'C1',
     topic:String(module.number).padStart(2,'0')+'. '+module.title,order:lesson.number,
     curriculumId:curriculum.id,curriculumTitle:curriculum.title,sourceKey:lesson.sourceKey,
     roadmapLessonId:lesson.id,roadmapLessonNumber:lesson.number,

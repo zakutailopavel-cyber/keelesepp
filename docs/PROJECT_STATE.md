@@ -1,5 +1,27 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Every curriculum lesson gets a lesson plan in its description — branch `agent/lesson-plan-descriptions`
+
+Checked `origin/main` `234d9cf`. Owner: check all curricula and write into each lesson's description what to do and
+what to teach, so building a lesson is easier.
+- Check of `data/`: A2 100, A2→B1 90, B1→B2 90, C1 100 lessons; numbering 1…N, no duplicate ids, no empty fields.
+  Before: A2→B1 and B1→B2 descriptions were empty, A2 and C1 carried only the module goal/description.
+- `crm-v2/src/features/curriculum/lessonPlans.js`: plan text (Russian, like the source fields) from goal, focus,
+  practice, success and the lesson type (diagnostic, assessment, grammar, vocabulary, reading, listening, writing,
+  speaking, argument, integrated; C1 theme/grammar/assessment): „Цель урока / Что учить / Ход урока (60 мин, C1
+  90 мин) with timed steps / Результат / На что обратить внимание в модуле”. Practice items are split into the drill
+  and the „use it yourself” part; diagnostics sort items into oral / understanding / writing.
+- `scripts/build-lesson-plans.mjs` → `lessonPlanData.json` (380 plans, lazy chunk ~64 kB gzip). Rebuild after editing
+  `data/` or the plan text.
+- Õppevara (admin): „Lisa tunniplaanid (N)” → `curriculumInstallerService.refreshLessonPlans` writes the plan into
+  installed lessons (`description`, `descriptionSource: 'lesson-plan-v1'`, `descriptionUpdatedAt/By`); a description a
+  teacher wrote by hand is kept (only empty ones, the old module text and earlier plans are replaced). The A2 installer
+  writes the plan directly. Lesson details show the plan with its lines; the preview header shows its first line.
+- Old installers (`haldus-a2-roadmap`, `haldus-a2-b1-roadmap`, `haldus-b1-b2-roadmap`, `haldus-c1-curriculum`) no
+  longer write `description`, so a re-install does not wipe the plans.
+- Tests: `lessonPlans.test.js` (4), library admin button test; root curriculum tests 10/10; ESLint clean; build OK.
+- **Needs the owner (after merge):** Õppevara → „Lisa tunniplaanid” once (admin).
+
 ## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
 
 Checked `origin/main` `253fd50`. Owner: see the worksheets a student did and grade them so the grades move the skills
