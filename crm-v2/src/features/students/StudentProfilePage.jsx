@@ -13,6 +13,7 @@ import { ROLES } from '../../utils/roles.js';
 import { studentValueLabel } from '../../utils/studentPrivacy.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import StudentFinancePanel from './StudentFinancePanel.jsx';
+import StudentLessonsPanel from './StudentLessonsPanel.jsx';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
@@ -25,8 +26,8 @@ import { initialAssessmentsService } from '../../services/firebase/initialAssess
 
 const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
-  { id: 'schedule', label: 'Tunniplaan' },
-  { id: 'learning', label: 'Õppetöö' },
+  { id: 'lessons', label: 'Tunnid' },
+  { id: 'learning', label: 'Areng' },
   { id: 'assessment', label: 'Esmane hindamine' },
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
@@ -120,13 +121,20 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           </div>
         ) : null}
 
-        {activeTab === 'schedule' ? (
-          <Card><h2>Tunniplaan</h2>{state.schedule.length ? <div className="simple-list">{state.schedule.slice(0, 12).map((item) => <div key={item.id}><div><strong>{item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{item.teacher || student.teacher || 'Õpetaja määramata'}</span></div><Badge tone={item.status === 'Tühistatud' ? 'neutral' : 'info'}>{item.status || 'Planeeritud'}</Badge></div>)}</div> : <EmptyState title="Tunniplaani ei ole veel lisatud" description="Uus tund lisatakse kalendri kaudu." />}</Card>
+        {activeTab === 'lessons' ? (
+          <StudentLessonsPanel
+            student={student}
+            lessons={state.lessons}
+            schedule={state.schedule}
+            canManage={canAssignTeacher}
+            lessonApi={lessonApi}
+            user={currentUser}
+            onChanged={(lessons) => setState((current) => ({ ...current, lessons }))}
+          />
         ) : null}
 
         {activeTab === 'learning' ? (
           <div className="profile-grid">
-            <Card className="profile-wide"><h2>Viimased tunnid</h2>{state.lessons.length ? <div className="simple-list">{state.lessons.slice(0, 10).map((lesson) => <div key={lesson.id}><div><strong>{lesson.date || 'Kuupäev puudub'} · {lesson.time || ''}</strong><span>{lesson.subject || student.subject}</span></div><Badge tone={lesson.status === 'Tühistatud' ? 'neutral' : 'info'}>{lesson.status || 'Toimunud'}</Badge></div>)}</div> : <EmptyState title="Tunde ei leitud" />}</Card>
             <Card className="profile-wide"><h2>Areng</h2>{progress.length ? <div className="progress-list">{progress.map(([skill, score]) => <div key={skill}><span>{skill}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <EmptyState title="Oskuste tulemusi ei ole veel salvestatud" />}</Card>
             <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} />
           </div>

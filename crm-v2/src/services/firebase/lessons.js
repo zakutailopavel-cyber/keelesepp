@@ -102,7 +102,9 @@ export const lessonsService = {
     const { db } = requireFirebaseClient();
     const now = new Date().toISOString();
     const batch = writeBatch(db);
-    batch.update(doc(db, 'lessons', record.id), { status, updatedAt: now, updatedByUid: user?.uid || '', updatedByName: user?.displayName || user?.email || '' });
+    // a checked lesson whose mark changes has to be checked again
+    const unverify = record.verified ? { verified: false, verifiedAt: now, verifiedByUid: user?.uid || '', verifiedByName: user?.displayName || user?.email || '' } : {};
+    batch.update(doc(db, 'lessons', record.id), { status, ...unverify, updatedAt: now, updatedByUid: user?.uid || '', updatedByName: user?.displayName || user?.email || '' });
     if (record.scheduleId && !scheduleRecurring) batch.set(doc(db, 'schedule', record.scheduleId), { status, updatedAtIso: now }, { merge: true });
     batch.set(doc(collection(db, 'activityLog')), {
       type: 'lesson.mark_changed', label: `${record.studentName || 'Õpilane'} tunni märge muudetud`, studentId: record.studentId || '', studentName: record.studentName || '',
@@ -110,7 +112,24 @@ export const lessonsService = {
       meta: { lessonId: record.id, scheduleId: record.scheduleId || '', from: record.status || '', to: status },
     });
     await batch.commit();
-    return { ...record, status };
+    return { ...record, status, ...(record.verified ? { verified: false } : {}) };
+  },
+  // Admin: a held lesson is marked "held and checked" (or the check is taken back). Billing is not affected.
+  async setVerified(record, verified, user) {
+    if (!record?.id) throw new Error('Tunni märget ei leitud.');
+    if (verified && record.status && record.status !== 'Toimunud') throw new Error('Kontrollituks saab märkida ainult toimunud tunni.');
+    const { db } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    const value = { verified: Boolean(verified), verifiedAt: now, verifiedByUid: user?.uid || '', verifiedByName: user?.displayName || user?.email || '' };
+    const batch = writeBatch(db);
+    batch.update(doc(db, 'lessons', record.id), value);
+    batch.set(doc(collection(db, 'activityLog')), {
+      type: verified ? 'lesson.verified' : 'lesson.unverified', label: `${record.studentName || 'Õpilane'} tund ${verified ? 'märgitud kontrollituks' : 'pole enam kontrollitud'}`,
+      studentId: record.studentId || '', studentName: record.studentName || '', byUid: user?.uid || '', byName: user?.displayName || user?.email || '',
+      byRole: user?.roles?.[0] || '', createdAt: now, date: record.date || '', meta: { lessonId: record.id },
+    });
+    await batch.commit();
+    return { ...record, ...value };
   },
   // Remove the mark: the lesson is planned again. Marks written by CRM v2 are removed here; older marks may carry
   // package/counter bookkeeping, so they go through the server journal, which reverses it.
