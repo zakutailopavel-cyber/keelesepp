@@ -10,6 +10,46 @@ From the live diagnostics: the student-own update rule on `students` allowed `sk
   Skills now move only through staff (check window „Oskused”, Live Classroom v1 lesson goals, haldus-skillmap).
 - Emulator test `functions/student-skillmap-emulator.integration.js` (in `test:emulator`) passed with the words test.
 - **Needs the owner:** `firestore:rules` deploy after merge.
+## 2026-10-05 — Ülevaade numbers match the pages — branch `agent/dashboard-numbers`
+
+From the live diagnostics: 114 active students on Ülevaade vs 113 in Õpilased; „3 tundi täna” while the calendar had
+~15; 16 homework vs 15 „pooleli” in Kodutööd.
+- Students: counted as people with `groupStudentPeople` (like Õpilased), not card records.
+- Lessons: „Tunnid täna” uses the calendar's `occurrencesForDates`, so weekly lessons count (before only one-off lessons
+  with today's date did); meta „N veel ees · kõik õpetajad / minu”, list „Järgmised tunnid täna” = the rest of today
+  (up to 6, „+ veel N”), empty state says when today's lessons are over. Group lessons are still not on Ülevaade.
+- Homework: „Kodutööd pooleli” only for students in scope (like Kodutööd), not homework of removed cards.
+- Tests: dashboard counting test (fake date); Vitest dashboard 3/3.
+## 2026-10-05 — Readable auto-check errors in the check window — branch `agent/readable-auto-errors`
+
+From the live diagnostics: „Automaatselt tuvastatud vead” showed raw keys (`key: b_muqwusk4j:0.0 · answer: öppin`).
+- `worksheet-studio/engine/errorText.js` `describeAutoErrors(doc, errorLog)`: „Ülesanne 3 · <title> — lause 1, lünk 1”,
+  the student's answer (struck through) → the right answer (gaps/diagram `answers()`, rows/items `answer`). Works
+  without a sheet fall back to the old text.
+- Checked on the real „B1 test” (Aleksandr Smirnov, 8 %): the auto-score is correct — a conditional-mood gap task
+  answered in the present tense; speaking blocks are not scored. No scoring change.
+- Tests: `errorText.test.js`; homework/students/worksheet Vitest 150/150.
+## 2026-10-05 — Every curriculum lesson gets a lesson plan in its description — branch `agent/lesson-plan-descriptions`
+
+Checked `origin/main` `234d9cf`. Owner: check all curricula and write into each lesson's description what to do and
+what to teach, so building a lesson is easier.
+- Check of `data/`: A2 100, A2→B1 90, B1→B2 90, C1 100 lessons; numbering 1…N, no duplicate ids, no empty fields.
+  Before: A2→B1 and B1→B2 descriptions were empty, A2 and C1 carried only the module goal/description.
+- `crm-v2/src/features/curriculum/lessonPlans.js`: plan text (Russian, like the source fields) from goal, focus,
+  practice, success and the lesson type (diagnostic, assessment, grammar, vocabulary, reading, listening, writing,
+  speaking, argument, integrated; C1 theme/grammar/assessment): „Цель урока / Что учить / Ход урока (60 мин, C1
+  90 мин) with timed steps / Результат / На что обратить внимание в модуле”. Practice items are split into the drill
+  and the „use it yourself” part; diagnostics sort items into oral / understanding / writing.
+- `scripts/build-lesson-plans.mjs` → `lessonPlanData.json` (380 plans, lazy chunk ~64 kB gzip). Rebuild after editing
+  `data/` or the plan text.
+- Õppevara (admin): „Lisa tunniplaanid (N)” → `curriculumInstallerService.refreshLessonPlans` writes the plan into
+  installed lessons (`description`, `descriptionSource: 'lesson-plan-v1'`, `descriptionUpdatedAt/By`); a description a
+  teacher wrote by hand is kept (only empty ones, the old module text and earlier plans are replaced). The A2 installer
+  writes the plan directly. Lesson details show the plan with its lines; the preview header shows its first line.
+- Old installers (`haldus-a2-roadmap`, `haldus-a2-b1-roadmap`, `haldus-b1-b2-roadmap`, `haldus-c1-curriculum`) no
+  longer write `description`, so a re-install does not wipe the plans.
+- Tests: `lessonPlans.test.js` (4), library admin button test; root curriculum tests 10/10; ESLint clean; build OK.
+- **Needs the owner (after merge):** Õppevara → „Lisa tunniplaanid” once (admin).
 
 ## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
 

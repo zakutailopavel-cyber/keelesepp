@@ -34,6 +34,15 @@ function renderPage(libraryData = data, path = '/library') {
 }
 
 describe('LibraryPage', () => {
+  it('lets an admin add lesson plans to curriculum lessons that do not have one', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{ id: 'a2b1-001', title: 'A2 lähtediagnostika', level: 'B1', roadmapManaged: true, description: '' }, { id: 'a2b1-002', title: 'Minu päev', level: 'B1', roadmapManaged: true, descriptionSource: 'lesson-plan-v1', description: 'Цель урока: …' }], exercises: [] }) };
+    const curriculumInstaller = { installA2: vi.fn(), refreshLessonPlans: vi.fn().mockResolvedValue({ updated: 1, kept: 0, total: 2 }) };
+    render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'a', displayName: 'Admin', roles: ['admin'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn().mockResolvedValue({ items: [] }) }} groupRepository={{ list: vi.fn().mockResolvedValue([]) }} curriculumInstaller={curriculumInstaller} /></AuthContext.Provider></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tunniplaanid \(1\)/ }));
+    expect(await screen.findByText(/Tunniplaanid lisati 1 tunnile/)).toBeInTheDocument();
+    expect(curriculumInstaller.refreshLessonPlans).toHaveBeenCalledWith({ user: expect.objectContaining({ uid: 'a' }) });
+  });
+
   it('opens the assignment of a material straight from the constructor link (?assign=)', async () => {
     renderPage(data, '/library?assign=lesson-1');
     const dialog = await screen.findByRole('dialog');

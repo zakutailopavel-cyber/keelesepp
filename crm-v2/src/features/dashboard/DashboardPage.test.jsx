@@ -64,4 +64,33 @@ describe('DashboardPage role scoping', () => {
     expect(screen.queryByRole('link', { name: /Ava tänane kalender/i })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Finantsid.*Arved, maksed ja kontroll/i })).toHaveAttribute('href', '/finance');
   });
+
+  it('counts like the pages do: people in Õpilased, weekly lessons of today, homework of known students', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-05T08:00:00'));
+    try {
+      const dataRepositories = repositories();
+      dataRepositories.students.list.mockResolvedValue({ items: [
+        { id: 's1', name: 'Mari Maas', parentEmail: 'ema@example.com', active: true },
+        { id: 's1b', name: 'Mari Maas', parentEmail: 'ema@example.com', active: true, subject: 'Inglise keel' },
+        { id: 's2', name: 'Jaan', active: true },
+      ] });
+      dataRepositories.schedule.list.mockResolvedValue([
+        { id: 'w1', recurring: true, day: 'Mon', startDate: '2026-09-07', time: '16:00', duration: 60, status: 'Planeeritud', studentName: 'Mari' },
+        { id: 'o1', date: '2026-10-05', time: '07:00', duration: 60, status: 'Planeeritud', studentName: 'Jaan' },
+        { id: 'o2', date: '2026-10-06', time: '10:00', duration: 60, status: 'Planeeritud', studentName: 'Jaan' },
+      ]);
+      dataRepositories.homework.list.mockResolvedValue([{ id: 'h1', studentId: 's1', status: 'Ootel' }, { id: 'h2', studentId: 'gone', status: 'Ootel' }, { id: 'h3', studentId: 's2', status: 'Tehtud' }]);
+      renderDashboard({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, dataRepositories);
+      const tile = (label) => screen.getByText(label).closest('article');
+      expect(await screen.findByText('Tunnid täna')).toBeInTheDocument();
+      expect(tile('Tunnid täna')).toHaveTextContent('2');
+      expect(tile('Tunnid täna')).toHaveTextContent('1 veel ees · kõik õpetajad');
+      expect(tile('Aktiivsed õpilased')).toHaveTextContent('2');
+      expect(tile('Kodutööd pooleli')).toHaveTextContent('1');
+      expect(screen.getByText('Mari')).toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

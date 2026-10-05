@@ -1,14 +1,17 @@
 import {
   ArrowRight,
+  BookCopy,
   BookOpen,
-  LayoutTemplate, Replace, BookCopy,
   ClipboardCheck,
+  ClipboardList,
   Dumbbell,
   Eye,
   FilePenLine,
   House,
+  LayoutTemplate,
   Paperclip,
   Presentation,
+  Replace,
   Search,
   Send,
   Sparkles,
@@ -161,6 +164,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const [exerciseEditing, setExerciseEditing] = useState(undefined);
   const [success, setSuccess] = useState('');
   const [installingA2, setInstallingA2] = useState(false);
+  const [refreshingPlans, setRefreshingPlans] = useState(false);
   const [installError, setInstallError] = useState('');
   const [limit, setLimit] = useState(PAGE);
   const [favorites, setFavorites] = useState(() => loadFavorites(user?.uid));
@@ -234,6 +238,23 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     }
   };
 
+  // admin: write the lesson plan into every installed curriculum lesson that does not have one yet
+  const isAdmin = user.roles.includes(ROLES.ADMIN);
+  const plansMissing = (state.data?.curriculumLessons || []).filter((lesson) => /^(a2|a2b1|b1b2)-\d{3}$|^est-c1-\d{3}$/.test(String(lesson.id || '')) && lesson.descriptionSource !== 'lesson-plan-v1').length;
+  const refreshLessonPlans = async () => {
+    setRefreshingPlans(true);
+    setInstallError('');
+    try {
+      const result = await curriculumInstaller.refreshLessonPlans({ user });
+      setSuccess(`Tunniplaanid lisati ${result.updated} tunnile${result.kept ? `; ${result.kept} õpetaja kirjutatud kirjeldust jäi alles` : ''}.`);
+      state.reload();
+    } catch (error) {
+      setInstallError(error?.message || 'Tunniplaanide lisamine ebaõnnestus.');
+    } finally {
+      setRefreshingPlans(false);
+    }
+  };
+
   const toggleFavorite = (item) => {
     const next = new Set(favorites);
     if (next.has(item.key)) next.delete(item.key); else next.add(item.key);
@@ -287,7 +308,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         eyebrow="Õppetöö"
         title="Õppevara"
         description="Otsi pealkirja, teema või sisu järgi — või vali tase ja moodul nagu õpiku sisukorrast."
-        actions={<>{!a2Complete ? <Button variant="secondary" loading={installingA2} disabled={installingA2} onClick={installA2Curriculum}><BookOpen size={17} /> Paigalda A2 õppekava</Button> : null}<Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Lisa materjal</Button></>}
+        actions={<>{isAdmin && plansMissing ? <Button variant="secondary" loading={refreshingPlans} disabled={refreshingPlans} onClick={refreshLessonPlans}><ClipboardList size={17} /> Lisa tunniplaanid ({plansMissing})</Button> : null}{!a2Complete ? <Button variant="secondary" loading={installingA2} disabled={installingA2} onClick={installA2Curriculum}><BookOpen size={17} /> Paigalda A2 õppekava</Button> : null}<Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Lisa materjal</Button></>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
       {installError ? <div className="action-error" role="alert">{installError}</div> : null}
@@ -350,7 +371,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         onClose={() => setSelected(null)}
         footer={<>{selected?.kind === 'exercise' ? <a className="button button--secondary" href={legacyUrl(`/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}`)}>Ava töövahend <ArrowRight size={16} /></a> : null}{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/lessons/${encodeURIComponent(selected.sourceId)}/worksheets/discover`)}><Sparkles size={16} /> Tunni töölehed</Button> : null}{selected?.kind !== 'exercise' && selected?.sourceId && !usesLessonEngine(selected) ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>{hasStudioDoc(selected) ? 'Muuda töölehte' : 'Loo tööleht'}</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
       >
-        {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p>{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Tase</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Moodul</dt><dd>{selected.moduleTitle || selected.curriculum || selected.topic || '—'}</dd></div>{selected.languageFocus ? <div><dt>Keelefookus</dt><dd>{selected.languageFocus}</dd></div> : null}{selected.source?.goal ? <div><dt>Eesmärk</dt><dd>{selected.source.goal}</dd></div> : null}<div><dt>Failid</dt><dd>{selected.fileCount || '—'}</dd></div><div><dt>Muudetud</dt><dd>{shortDate(selected.updatedAt) || '—'}{selected.authorName ? ` · ${selected.authorName}` : ''}</dd></div></dl></div> : null}
+        {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p className="library-detail__plan">{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Tase</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Moodul</dt><dd>{selected.moduleTitle || selected.curriculum || selected.topic || '—'}</dd></div>{selected.languageFocus ? <div><dt>Keelefookus</dt><dd>{selected.languageFocus}</dd></div> : null}{selected.source?.goal ? <div><dt>Eesmärk</dt><dd>{selected.source.goal}</dd></div> : null}<div><dt>Failid</dt><dd>{selected.fileCount || '—'}</dd></div><div><dt>Muudetud</dt><dd>{shortDate(selected.updatedAt) || '—'}{selected.authorName ? ` · ${selected.authorName}` : ''}</dd></div></dl></div> : null}
       </Modal>
       {previewing ? <MaterialPreview item={previewing} onClose={() => setPreviewing(null)} onEditWorksheet={previewing.sourceId ? openWorksheet : undefined} /> : null}
       {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onOpenWorksheet={openWorksheet} onPreview={(item) => { setEditing(undefined); setPreviewing(item); }} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
