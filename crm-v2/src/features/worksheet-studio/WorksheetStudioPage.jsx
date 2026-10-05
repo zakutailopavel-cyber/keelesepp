@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { worksheetDocsService } from '../../services/firebase/index.js';
+import { worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
+import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
 import { BLOCKS, GROUPS, checkDocument, createBlock } from './engine/registry.js';
@@ -34,7 +35,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const draftName = isNew ? 'new' : draftId || lessonId;
@@ -76,7 +77,14 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // alternatives of one generated task, flipped through on the sheet: list[0] is the task as it was
   const [variants, setVariants] = useState(null);
   const [comparing, setComparing] = useState(null);
+  const [myTemplates, setMyTemplates] = useState([]);
   useUnsavedGuard(dirty);
+  // own block templates (shared with all staff); the constructor works without them if they cannot be loaded
+  useEffect(() => {
+    let alive = true;
+    Promise.resolve().then(() => templates?.list?.()).then((list) => { if (alive) setMyTemplates(list || []); }).catch(() => {});
+    return () => { alive = false; };
+  }, [templates]);
   useEffect(() => { setVariants((current) => (current && current.blockId !== selectedId ? null : current)); }, [selectedId]);
   // Autosave: a draft is written to the database 15 s after the last change (a published sheet is saved by hand,
   // so a half-done change never replaces what students see without the teacher deciding it).
@@ -261,6 +269,42 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setBlocks(next);
     setSelectedId(b.id);
   };
+  // blocks made elsewhere (template, lesson words) go after the selected block, or to the end
+  const insertBlocks = (blocks) => {
+    if (!blocks.length) return;
+    const fresh = blocks.map((b) => ({ ...structuredClone(b), id: newId() }));
+    const at = selectedId ? doc.blocks.findIndex((x) => x.id === selectedId) + 1 : doc.blocks.length;
+    const next = [...doc.blocks];
+    next.splice(at, 0, ...fresh);
+    setBlocks(next);
+    setSelectedId(fresh[fresh.length - 1].id);
+  };
+  const saveTemplate = async (block) => {
+    const title = window.prompt('Malli nimi (näha kõigile õpetajatele):', block.data?.title || BLOCKS[block.type]?.label || 'Mall');
+    if (!title) return;
+    try {
+      const created = await templates.create({ title, block, user });
+      setMyTemplates((list) => [created, ...list]);
+      setNotice(`Mall „${created.title}” salvestati. Leiad selle vasakult „Mallid” alt.`);
+    } catch (error) {
+      setSaveError(error.message || 'Malli ei saanud salvestada.');
+    }
+  };
+  const removeTemplate = async (template) => {
+    if (!window.confirm(`Kustuta mall „${template.title}”?`)) return;
+    try {
+      await templates.remove(template.id);
+      setMyTemplates((list) => list.filter((item) => item.id !== template.id));
+    } catch (error) {
+      setSaveError(error.message || 'Malli ei saanud kustutada.');
+    }
+  };
+  const pickWebImage = async (file, credit) => {
+    const img = await repository.uploadImage(file);
+    if (!selected) return;
+    updateBlock({ ...selected, data: { ...selected.data, img, caption: selected.data.caption || credit.caption, credit: credit.credit, creditSource: credit.source } });
+    setNotice('Pilt lisati. Autor ja litsents on pildiallkirjas.');
+  };
   // joined blocks (look.js) move as one group
   const moveBlock = (id, dir) => setBlocks(moveRun(doc.blocks, id, dir));
   const dropMove = (fromId, toId) => setBlocks(dropRun(doc.blocks, fromId, toId));
@@ -371,6 +415,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <button type="button" onClick={() => showVariant(0)} disabled={!variants.index}>Algne</button>
           </>
         ) : null}
+        {templates ? <button type="button" onClick={() => saveTemplate(block)} title="Salvesta see plokk mallina"><Icons.BookmarkPlus aria-hidden="true" /> Mall</button> : null}
         <button type="button" className="is-danger" onClick={() => deleteBlock(block.id)} title="Kustuta (Delete)" aria-label="Kustuta plokk"><Icons.Trash2 aria-hidden="true" /></button>
       </>
     );
@@ -515,6 +560,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         </header>
         {renderTop ? renderTop({
           dirty,
+          insertBlocks,
           // a generated sheet shown in the editor first: nothing is saved until „Salvesta” (or autosave), Ctrl+Z undoes it
           replaceDocument: (next, nextGeneration) => {
             change({ ...next, id: doc.id });
@@ -553,7 +599,17 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button>
                 </div>
               )}
-              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{filteredPalette.map(([g, defs]) => (
+              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{myTemplates.length ? (
+                <div className="st-group st-templates">
+                  <div className="st-group-title">Mallid</div>
+                  <ul>{myTemplates.filter((t) => !paletteQuery || t.title.toLowerCase().includes(paletteQuery.toLowerCase())).map((t) => (
+                    <li key={t.id}>
+                      <button type="button" className="st-block" onClick={() => insertBlocks([t.block])} title={`Lisa mall lehele${t.ownerName ? ` · ${t.ownerName}` : ''}`}><Icons.Bookmark size={16} aria-hidden="true" /><span>{t.title}</span></button>
+                      {t.ownerUid === user?.uid || user?.roles?.includes?.('admin') ? <button type="button" className="st-template-del" onClick={() => removeTemplate(t)} aria-label={`Kustuta mall ${t.title}`}>×</button> : null}
+                    </li>
+                  ))}</ul>
+                </div>
+              ) : null}{filteredPalette.map(([g, defs]) => (
                 <div key={g} className="st-group">
                   <div className="st-group-title">{g}</div>
                   {defs.map((d) => {
@@ -588,6 +644,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                       </button>
                     </div>
                   )}
+                  {'img' in (selected.data || {}) ? <ImageSearch key={`img-${selected.id}`} onPick={pickWebImage} /> : null}
                   <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
                     onDelete={() => deleteBlock(selected.id)}
                     onDuplicate={() => duplicateBlock(selected.id)}

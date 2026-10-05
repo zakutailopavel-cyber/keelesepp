@@ -270,3 +270,13 @@ textarea.ed-input { resize: vertical; }
 .ws-studio .st-compare ul { margin: 6px 0; padding: 0; list-style: none; display: grid; gap: 4px; }
 .ws-studio .st-compare li { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .ws-studio a.st-btn { text-decoration: none; display: inline-flex; align-items: center; }
+.ws-studio .st-imgsearch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ws-studio .st-imgsearch-grid button { position: relative; padding: 0; border: 1px solid var(--st-line); border-radius: 8px; overflow: hidden; background: var(--st-field); cursor: pointer; aspect-ratio: 1; }
+.ws-studio .st-imgsearch-grid button:hover { border-color: var(--st-accent); }
+.ws-studio .st-imgsearch-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ws-studio .st-imgsearch-grid span { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(255,255,255,.8); font-weight: 700; font-size: 12px; }
+.ws-studio .st-templates li { display: flex; gap: 4px; align-items: center; }
+.ws-studio .st-templates li .st-block { flex: 1; margin-bottom: 0; }
+.ws-studio .st-templates ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.ws-studio .st-template-del { border: 0; background: transparent; color: var(--st-muted); cursor: pointer; font-size: 16px; padding: 4px 6px; border-radius: 6px; }
+.ws-studio .st-template-del:hover { color: var(--st-danger); background: #fbe9e6; }

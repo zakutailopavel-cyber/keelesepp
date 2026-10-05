@@ -36,3 +36,4 @@ export { accountApprovalsService } from './accountApprovals.js';
 export { googleCalendarService } from './googleCalendar.js';
 export { tasksService } from './tasks.js';
 export { initialAssessmentsService } from './initialAssessments.js';
+export { worksheetTemplatesService } from './worksheetTemplates.js';

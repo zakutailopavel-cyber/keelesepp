@@ -72,12 +72,13 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
       backTo="/library"
       allowCopy={false}
       draftId={`${lessonId}:${worksheetId}`}
-      renderTop={({ dirty, replaceDocument }) => (
+      renderTop={({ dirty, replaceDocument, insertBlocks }) => (
         <LessonGeneratorBar
           lessonId={lessonId}
           worksheetId={worksheetId}
           dirty={dirty}
           onPreviewSheet={replaceDocument}
+          onInsertBlocks={insertBlocks}
           onGenerated={() => setReloadKey((value) => value + 1)}
           repository={repository}
           {...(vocabularyRepository ? { vocabularyRepository } : {})}
