@@ -14,33 +14,13 @@ import InteractiveLessonPlayer from './InteractiveLessonPlayer.jsx';
 import { ASSIGNMENT_STATUS_LABEL } from './interactiveLessonModel.js';
 import './interactiveLesson.css';
 import TextAnnotationEditor from './TextAnnotationEditor.jsx';
-import { submissionWritingFields } from './annotations.js';
 import MaterialPreview from '../library/MaterialPreview.jsx';
 import { buildLibraryItems } from '../library/libraryModel.js';
 import '../common/finalReadiness.css';
+import SubmissionReviewModal from './SubmissionReviewModal.jsx';
+import { formatDate } from './submissionFormat.js';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
-const emptyReview = { teacherGrade: '', teacherFeedback: '' };
-
-function formatDate(value) {
-  if (!value) return 'Kuupäev puudub';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat('et-EE', { dateStyle: 'medium', timeStyle: 'short' }).format(date);
-}
-
-function readableValue(value) {
-  if (value == null || value === '') return '—';
-  if (typeof value === 'boolean') return value ? 'Jah' : 'Ei';
-  if (typeof value === 'string' || typeof value === 'number') return String(value);
-  if (Array.isArray(value)) return value.map(readableValue).join(', ');
-  return Object.entries(value).map(([key, item]) => `${key}: ${readableValue(item)}`).join(' · ');
-}
-
-function AnswerList({ answers }) {
-  const entries = answers && typeof answers === 'object' ? Object.entries(answers) : [];
-  if (!entries.length) return <p className="submission-empty-answer">Vastuseid ei ole salvestatud.</p>;
-  return <div className="submission-answers">{entries.map(([key, value], index) => <div key={key}><span>{index + 1}. vastus</span><strong>{readableValue(value)}</strong></div>)}</div>;
-}
 
 function SubmissionList({ items, staff, onOpen }) {
   if (!items.length) return <EmptyState title={staff ? 'Kontrollitavaid töid ei leitud' : 'Esitatud töid ei ole'} description={staff ? 'Uued õpilaste esitused ilmuvad siia automaatselt.' : 'Pärast töö esitamist näed siin tulemust ja õpetaja tagasisidet.'} />;
@@ -74,7 +54,6 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [loadingExercise, setLoadingExercise] = useState('');
   const [previewingMaterial, setPreviewingMaterial] = useState(null);
   const [loadingMaterial, setLoadingMaterial] = useState('');
-  const [review, setReview] = useState(emptyReview);
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
   const [success, setSuccess] = useState('');
@@ -153,7 +132,6 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
 
   const openReview = (submission) => {
     setReviewing(submission);
-    setReview({ teacherGrade: submission.teacherGrade ?? '', teacherFeedback: submission.teacherFeedback || '' });
     setActionError('');
   };
 
@@ -182,27 +160,6 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     } finally {
       setLoadingMaterial('');
     }
-  };
-
-  const saveReview = async () => {
-    setSaving(true);
-    setActionError('');
-    try {
-      await repository.reviewSubmission({ submission: reviewing, ...review, user });
-      setReviewing(null);
-      setSuccess('Hinne ja tagasiside saadeti õpilasele.');
-      await state.reload();
-    } catch (error) {
-      setActionError(error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const saveAnnotations = async (annotations) => {
-    const saved = await repository.saveSubmissionAnnotations({ submission: reviewing, annotations, user });
-    setReviewing((current) => current ? { ...current, annotations: saved } : current);
-    return saved;
   };
 
   return <div className="page-content">
@@ -261,17 +218,16 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       <form id="homework-form" className="form-grid" onSubmit={submit}><Select id="homework-student" className="form-grid__wide" label="Õpilane" value={form.studentId} onChange={(event) => setForm({ ...form, studentId: event.target.value })} required><option value="">Vali õpilane</option>{students.items.map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}</Select><Input id="homework-task" className="form-grid__wide" label="Ülesanne" value={form.task} onChange={(event) => setForm({ ...form, task: event.target.value })} required /><Input id="homework-due" label="Tähtaeg" type="date" value={form.due} onChange={(event) => setForm({ ...form, due: event.target.value })} required /></form>
     </Modal>
 
-    <Modal open={Boolean(reviewing)} title={reviewing?.title || 'Esitatud töö'} onClose={() => setReviewing(null)} className="modal--review" footer={staff ? <><Button variant="secondary" onClick={() => setReviewing(null)}>Sulge</Button><Button loading={saving} onClick={saveReview}><MessageSquare size={17} /> Saada tagasiside</Button></> : <Button variant="secondary" onClick={() => setReviewing(null)}>Sulge</Button>}>
-      {reviewing ? <div className="submission-review">
-        <div className="submission-review__hero"><div><span className="eyebrow">{reviewing.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{reviewing.studentName}</strong><small>Esitatud {formatDate(reviewing.completedAt)}</small></div><div>{reviewing.percentage != null ? <b>{reviewing.percentage}%</b> : <ClipboardCheck size={28} />}{reviewing.score?.total ? <small>{reviewing.score.correct}/{reviewing.score.total} õiget</small> : null}</div></div>
-        {reviewing.selfAssessment ? <section className="submission-self"><strong>Õpilase enesehinnang</strong><p>{reviewing.selfAssessment.difficulty ? `Raskus: ${reviewing.selfAssessment.difficulty}. ` : ''}{reviewing.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
-        {reviewing.submissionKind === 'worksheet' && reviewing.source?.worksheetDoc?.blocks?.length ? <section><h3>Tööleht vastustega</h3><DocWorksheetSubmissionPreview worksheetDoc={reviewing.source.worksheetDoc} answers={reviewing.answers || {}} annotations={reviewing.annotations || []} editable={staff} onAnnotationsChange={saveAnnotations} /></section> : <>{reviewing.submissionKind === 'worksheet' ? <section><h3>Tööleht vastustega</h3><VisualWorksheetSubmissionPreview files={reviewing.source?.files || []} answers={reviewing.answers || {}} /></section> : null}
-        <section><h3>Õpilase vastused</h3><AnswerList answers={reviewing.answers} /></section></>}
-        <TextAnnotationEditor fields={submissionWritingFields(reviewing)} annotations={reviewing.annotations || []} editable={staff} onChange={saveAnnotations} />
-        {Array.isArray(reviewing.errorLog) && reviewing.errorLog.length ? <section><h3>Automaatselt tuvastatud vead</h3><div className="submission-errors">{reviewing.errorLog.map((error, index) => <p key={index}>{readableValue(error)}</p>)}</div></section> : null}
-        {staff ? <section className="submission-feedback"><h3>Õpetaja tagasiside</h3><div className="submission-grade"><Select id="teacher-grade" label="Hinne 1–5" value={review.teacherGrade} onChange={(event) => setReview({ ...review, teacherGrade: event.target.value })}><option value="">Hindeta</option>{[1, 2, 3, 4, 5].map((grade) => <option key={grade} value={grade}>{grade}</option>)}</Select><Star size={21} /></div><label className="textarea-field"><span>Kommentaar õpilasele</span><textarea aria-label="Kommentaar õpilasele" rows="5" value={review.teacherFeedback} onChange={(event) => setReview({ ...review, teacherFeedback: event.target.value })} placeholder="Mis läks hästi ja mida järgmisel korral parandada?" /></label></section> : reviewing.reviewStatus === 'reviewed' ? <section className="returned-feedback"><div><MessageSquare size={20} /><strong>Õpetaja tagasiside</strong>{reviewing.teacherGrade ? <Badge tone="success">Hinne {reviewing.teacherGrade}</Badge> : null}</div><p>{reviewing.teacherFeedback || 'Õpetaja jättis tööle hinde ilma kommentaarita.'}</p><small>{reviewing.reviewedByName ? `${reviewing.reviewedByName} · ` : ''}{formatDate(reviewing.reviewedAt)}</small></section> : <section className="submission-waiting"><Clock3 size={20} /><p>Õpetaja ei ole tööle veel tagasisidet saatnud.</p></section>}
-      </div> : null}
-    </Modal>
+    {reviewing ? <SubmissionReviewModal
+      key={`${reviewing.submissionKind}-${reviewing.id}`}
+      submission={reviewing}
+      staff={staff}
+      repository={repository}
+      user={user}
+      skillMap={staff ? (students.items.find((item) => item.id === reviewing.studentId)?.skillMap || {}) : null}
+      onClose={() => setReviewing(null)}
+      onSaved={async () => { setReviewing(null); setSuccess('Hinne ja tagasiside saadeti õpilasele.'); await state.reload(); }}
+    /> : null}
     {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => setPlaying(null)} onSubmitted={state.reload} /> : null}
     {playingInteractive ? <InteractiveLessonPlayer assignmentId={playingInteractive} user={user} staff={staff} repository={interactiveRepository} onClose={() => setPlayingInteractive('')} onChanged={interactiveState.reload} /> : null}
     {playingExercise ? <ExercisePlayer exercise={playingExercise.exercise} homework={playingExercise.homework} repository={repository} user={user} onClose={() => setPlayingExercise(null)} onCompleted={state.reload} /> : null}
