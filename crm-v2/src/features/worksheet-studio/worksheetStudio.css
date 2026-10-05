@@ -208,3 +208,23 @@ textarea.ed-input { resize: vertical; }
 
 .ws-studio .st-regenerate{display:grid;gap:9px;margin:0 0 10px;padding:10px;border:1px solid rgba(47,125,76,.28);border-radius:12px;background:rgba(47,125,76,.07)}.ws-studio .st-regenerate>div{display:flex;gap:8px;align-items:flex-start;color:var(--st-accent)}.ws-studio .st-regenerate span{display:grid;gap:2px;color:var(--st-ink)}.ws-studio .st-regenerate b{font:800 13px 'Nunito',sans-serif}.ws-studio .st-regenerate small{font-size:11.5px;line-height:1.35;color:var(--st-muted)}.ws-studio .st-regenerate .ed-btn{justify-self:start}.ws-studio .st-regenerate .ed-btn:disabled{opacity:.55;cursor:default}
 .ws-studio .ed-seg--wrap { flex-wrap: wrap; }
+
+/* Lesson worksheets + generator strip (roadmap lessons), under the studio top bar. */
+.ws-studio .lgb-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 7px 14px; border-bottom: 1px solid var(--st-line); background: var(--st-bg); }
+.ws-studio .lgb-lesson { font: 800 13px 'Nunito', sans-serif; max-width: 240px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ws-studio .lgb-tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.ws-studio .lgb-tabs a { display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--st-line); background: var(--st-panel); color: var(--st-ink); font: 700 13px inherit; text-decoration: none; }
+.ws-studio .lgb-tabs a.is-empty { color: var(--st-muted); border-style: dashed; }
+.ws-studio .lgb-tabs a[aria-current="page"] { background: var(--st-navy); border-color: var(--st-navy); color: #fff; }
+.ws-studio .lgb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
+.ws-studio .lgb-actions select, .ws-studio .lgb-focus-menu select { height: 32px; border: 1px solid var(--st-line); border-radius: 999px; background: var(--st-panel); color: var(--st-ink); padding: 0 10px; font: 600 13px inherit; }
+.ws-studio .lgb-actions .st-btn { display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }
+.ws-studio .lgb-focus-menu { gap: 8px; padding: 10px; min-width: 260px; }
+.ws-studio .lgb-focus-menu label { display: grid; gap: 4px; font: 700 12px inherit; color: var(--st-muted); }
+.ws-studio .lgb-focus-menu select { border-radius: 8px; width: 100%; }
+.ws-studio .lgb-focus-menu .st-btn.primary { text-align: center; justify-content: center; }
+.ws-studio .lgb-muted { color: var(--st-muted); font-size: 12px; }
+.ws-studio .lgb-error, .ws-studio .lgb-ok { flex-basis: 100%; font-size: 13px; font-weight: 600; }
+.ws-studio .lgb-error { color: #b42318; } .ws-studio .lgb-ok { color: #087660; }
+@media (max-width: 560px) { .ws-studio .lgb-actions { margin-left: 0; } .ws-studio .lgb-lesson { max-width: 100%; } }
+@media print { .ws-studio .lgb-bar { display: none !important; } }

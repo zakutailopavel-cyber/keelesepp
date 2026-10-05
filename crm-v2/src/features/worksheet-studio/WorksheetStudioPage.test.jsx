@@ -24,7 +24,7 @@ function renderAt(path, repository) {
       <AuthContext.Provider value={{ user }}>
         <Routes>
           <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} />} />
-          <Route path="/library/lessons/:lessonId/worksheets" element={<div>lesson-engine</div>} />
+          <Route path="/library/lessons/:lessonId/worksheets/discover" element={<div>lesson-engine</div>} />
           <Route path="/library" element={<div>library</div>} />
         </Routes>
       </AuthContext.Provider>
@@ -61,7 +61,7 @@ describe('WorksheetStudioPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
   });
 
-  it('redirects a roadmap lesson without a standalone worksheet to Lesson Engine', async () => {
+  it('redirects a roadmap lesson without a standalone worksheet to its lesson constructor', async () => {
     const repository = repo({
       load: vi.fn().mockResolvedValue({
         document: sampleDocument(),

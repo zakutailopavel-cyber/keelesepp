@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — „Loo tööleht” opens the lesson constructor; the generator lives in its top strip — branch `agent/lesson-constructor-generator`
+
+Checked `origin/main` `b4bad01`. Owner: „Loo tööleht” opened the generator page (three cards + focus form); they want
+the constructor itself, with generating on top, without extra pages/tabs.
+- Roadmap lessons („Töölehed”, „Tunni töölehed”, „Loo tööleht”/„Muuda töölehte” in Õppevara, the old
+  `/library/worksheets/:id` redirect) now open `/library/lessons/:id/worksheets/discover` — the worksheet studio.
+- `LessonGeneratorBar` (strip under the studio bar): lesson title, sheet links „1 Avasta · 2 Harjuta · 3 Kasuta” and
+  the focus sheets (missing ones dashed), difficulty, „Genereeri 3 töölehte” / „Genereeri 3 lehte uuesti”,
+  „Fookuse leht ▾” (focus + stage), „Seaded” → the old generator page (content pack, coverage) which stays as is.
+  Generating asks first when the sheet has unsaved changes; after it the open sheet reloads (or opens the new sheet).
+- A core sheet that does not exist yet opens empty in the constructor; saving it stores a `source: 'manual'` sheet
+  with the right role/slot. Studio drafts in this browser are now kept per sheet (`<lessonId>:<worksheetId>`), not per
+  lesson. Back link from the lesson constructor goes to Õppevara.
+- Generation logic moved to `worksheet-generator/ui/lessonGeneration.js` (shared by the bar and the old page).
+- Tests: new lesson-constructor test (missing sheet opens, tabs, generate saves 3 drafts, reload); redirect test
+  updated. Worksheet/library Vitest 31 files / 322 tests; ESLint clean; build OK. Full CRM suite locally: 10 failures
+  in Live Classroom/calendar tests that use `localStorage` — Node 26 on this Mac, unrelated files, same on main.
+- No rules or functions change. Not tried in the real CRM yet.
+
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `12dfffd` (after #287). Owner approved the external services (free; only the word itself is

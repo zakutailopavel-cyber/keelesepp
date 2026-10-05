@@ -36,13 +36,13 @@ function generatedPracticeRecord() {
   };
 }
 
-function renderPage(repository) {
+function renderPage(repository, path = '/library/lessons/a2b1-016/worksheets/practice', vocabularyRepository = undefined) {
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
   return render(
-    <MemoryRouter initialEntries={['/library/lessons/a2b1-016/worksheets/practice']}>
+    <MemoryRouter initialEntries={[path]}>
       <AuthContext.Provider value={{ user }}>
         <Routes>
-          <Route path="/library/lessons/:lessonId/worksheets/:worksheetId" element={<LessonWorksheetStudioPage repository={repository} />} />
+          <Route path="/library/lessons/:lessonId/worksheets/:worksheetId" element={<LessonWorksheetStudioPage repository={repository} vocabularyRepository={vocabularyRepository} />} />
           <Route path="/library/lessons/:lessonId/worksheets" element={<div>worksheet-set</div>} />
         </Routes>
       </AuthContext.Provider>
@@ -86,5 +86,31 @@ describe('LessonWorksheetStudioPage task regeneration', () => {
     const replaced = saved.worksheetDoc.blocks.find((block) => block.id === original.id);
     expect(replaced).toBeTruthy();
     expect({ type: replaced.type, data: replaced.data }).not.toEqual({ type: original.type, data: original.data });
+  });
+
+  it('opens a missing core sheet in the constructor and generates the three sheets from the top strip', async () => {
+    const lesson = { id: 'a2b1-016', tag: 'Грамматика', levelStage: 'A2', title: 'Ajamäärused ja päevaplaan' };
+    const repository = {
+      load: vi.fn().mockRejectedValue(new Error('Töölehte ei leitud.')),
+      loadLesson: vi.fn().mockResolvedValue(lesson),
+      list: vi.fn().mockResolvedValue([]),
+      saveDraft: vi.fn().mockImplementation(async ({ worksheetDoc }) => ({ title: worksheetDoc.meta.title, worksheetDocUpdatedAt: '2026-10-05T10:00:00.000Z', worksheetDocVersion: 1, worksheetDocStatus: 'draft' })),
+      publish: vi.fn(),
+      listVersions: vi.fn().mockResolvedValue([]),
+    };
+    const vocabularyRepository = { load: vi.fn().mockResolvedValue({ lexicon: [], source: '', wordCount: 0 }) };
+    renderPage(repository, '/library/lessons/a2b1-016/worksheets/discover', vocabularyRepository);
+
+    await screen.findByText('Töölehe konstruktor');
+    expect(await screen.findByRole('link', { name: '1 Avasta' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '2 Harjuta' })).toHaveAttribute('href', '/library/lessons/a2b1-016/worksheets/practice');
+    const generate = screen.getByRole('button', { name: /Genereeri 3 töölehte/ });
+
+    fireEvent.click(generate);
+    await waitFor(() => expect(repository.saveDraft).toHaveBeenCalledTimes(3));
+    expect(repository.saveDraft.mock.calls.map(([input]) => input.worksheetId).sort()).toEqual(['discover', 'practice', 'transfer']);
+    expect(repository.saveDraft.mock.calls.every(([input]) => input.generation?.scope === 'lesson-bundle')).toBe(true);
+    expect(await screen.findByText(/Kolm töölehte genereeriti/)).toBeInTheDocument();
+    await waitFor(() => expect(repository.load.mock.calls.length).toBeGreaterThan(1));
   });
 });

@@ -33,9 +33,10 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, backTo = '/library', allowCopy = true }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
+  const draftName = isNew ? 'new' : draftId || lessonId;
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -87,11 +88,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       .then((res) => {
         if (!alive) return;
         if (res.source === 'new' && res.lesson?.roadmapManaged === true) {
-          navigate(`/library/lessons/${encodeURIComponent(lessonId)}/worksheets`, { replace: true });
+          navigate(`/library/lessons/${encodeURIComponent(lessonId)}/worksheets/discover`, { replace: true });
           return;
         }
         const files = originalFiles(res.lesson);
-        const local = readDraft(draftKey(lessonId));
+        const local = readDraft(draftKey(draftName));
         const restored = local?.document?.schema === res.document.schema && Number(local.savedAt || 0) > (Date.parse(res.baseUpdatedAt || 0) || 0);
         setDoc(restored ? local.document : res.document);
         setDraftRestored(restored);
@@ -106,15 +107,15 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       })
       .catch((error) => { if (alive) setLoadError(error.message || 'Töölehte ei saanud avada.'); });
     return () => { alive = false; };
-  }, [isNew, lessonId, navigate, repository]);
+  }, [isNew, lessonId, draftName, navigate, repository]);
 
   useEffect(() => {
     if (!doc || !dirty) return undefined;
     const timer = setTimeout(() => {
-      try { window.localStorage.setItem(draftKey(isNew ? 'new' : lessonId), JSON.stringify({ savedAt: Date.now(), document: doc })); } catch { /* storage may be disabled */ }
+      try { window.localStorage.setItem(draftKey(draftName), JSON.stringify({ savedAt: Date.now(), document: doc })); } catch { /* storage may be disabled */ }
     }, 700);
     return () => clearTimeout(timer);
-  }, [doc, dirty, isNew, lessonId]);
+  }, [doc, dirty, draftName]);
 
   // print styles hide the CRM shell only while the studio is open
   useEffect(() => {
@@ -293,7 +294,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       setVersion(Number(res.version) || version);
       setWorksheetStatus(res.status || nextStatus);
       setDraftRestored(false);
-      try { window.localStorage.removeItem(draftKey(isNew ? 'new' : lessonId)); } catch { /* ignore */ }
+      try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ }
       setNotice(nextStatus === 'published' ? `„${res.title}” avaldati (versioon ${res.version}).` : `„${res.title}” salvestati mustandina (versioon ${res.version}).`);
       if (res.created) navigate(`/library/worksheets/${res.id}`, { replace: true });
     } catch (error) {
@@ -354,7 +355,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     <AssetContext.Provider value={assets}>
       <div className={`ws-studio mode-${mode}`}>
         <header className="st-bar">
-          <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo === '/library' ? 'Õppevara' : 'Tunni töölehed'}</Link>
+          <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : 'Õppevara'}</Link>
           <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{dirty ? ' · salvestamata' : ''}</span></div>
           <div className="st-seg" role="tablist" aria-label="Vaade">
             {[['edit', 'Koosta'], ['interactive', 'Õpilase vaade'], ['print', 'Trükivaade']].map(([m, l]) => (
@@ -383,10 +384,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>Avalda</button>
           </div>
         </header>
+        {renderTop ? renderTop({ dirty }) : null}
         {source === 'converted' && <div className="st-banner">See tööleht teisendati vanast vormingust uude kujundusse. Kontrolli ülesandeid ja salvesta. Vana versioon jääb alles.</div>}
         {saveError && <div className="st-banner error" role="alert">{saveError}</div>}
         {notice && <div className="st-banner ok" role="status">{notice}</div>}
-        {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(isNew ? 'new' : lessonId)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
+        {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
         <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
           <summary>{quality.ready ? `✓ Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : `Kvaliteedikontroll: ${quality.errors.length} viga, ${quality.warnings.length} hoiatust`}</summary>
           {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}>{issue.text}</li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}

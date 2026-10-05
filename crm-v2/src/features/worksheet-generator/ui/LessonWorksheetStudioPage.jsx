@@ -1,20 +1,49 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { lessonWorksheetsService, worksheetDocsService } from '../../../services/firebase/index.js';
 import WorksheetStudioPage from '../../worksheet-studio/WorksheetStudioPage.jsx';
+import { newDocument } from '../../worksheet-studio/engine/schema.js';
 import { regenerateTask } from '../engine/regenerate.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
+import LessonGeneratorBar from './LessonGeneratorBar.jsx';
+import { coreSheetMeta } from './lessonGeneration.js';
 
-export default function LessonWorksheetStudioPage({ repository = lessonWorksheetsService }) {
+const MISSING = 'Töölehte ei leitud.';
+
+// Lesson constructor: one sheet of a roadmap lesson in the worksheet studio, with the lesson's sheets
+// and the generator in a strip at the top. A core sheet that does not exist yet opens empty.
+export default function LessonWorksheetStudioPage({ repository = lessonWorksheetsService, vocabularyRepository }) {
   const { lessonId, worksheetId } = useParams();
+  const [reloadKey, setReloadKey] = useState(0);
+  const exists = useRef(true);
   const adapter = useMemo(() => ({
     async load() {
-      const record = await repository.load(lessonId, worksheetId);
+      let record;
+      try {
+        record = await repository.load(lessonId, worksheetId);
+      } catch (error) {
+        const meta = coreSheetMeta(worksheetId);
+        if (!meta || error?.message !== MISSING) throw error;
+        exists.current = false;
+        const document = newDocument();
+        return { document: { ...document, meta: { ...document.meta, title: meta.label.replace(/^\d\s*/, '') } }, source: 'lesson-new', lesson: {}, baseUpdatedAt: '', version: 0, status: 'draft', generation: null };
+      }
+      exists.current = true;
       return { document: record.worksheetDoc, source: 'worksheetDoc', lesson: {}, baseUpdatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, generation: record.generation || null };
     },
     async save({ document, user, baseUpdatedAt, status }) {
       const method = status === 'published' ? 'publish' : 'saveDraft';
-      const record = await repository[method]({ lessonId, worksheetId, worksheetDoc: document, user, baseUpdatedAt });
+      const meta = coreSheetMeta(worksheetId);
+      const fresh = !exists.current;
+      const record = await repository[method]({
+        lessonId,
+        worksheetId,
+        worksheetDoc: document,
+        user,
+        baseUpdatedAt,
+        ...(fresh && meta ? { role: meta.id, slot: meta.slot, displayLabel: meta.label, source: 'manual' } : {}),
+      });
+      exists.current = true;
       return { id: worksheetId, title: record.title, updatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, created: false };
     },
     regenerateBlock({ document, blockId, generation }) {
@@ -27,6 +56,25 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
     listVersions: () => repository.listVersions(lessonId, worksheetId),
     uploadImage: (file) => worksheetDocsService.uploadImage(file),
     uploadAudio: (file) => worksheetDocsService.uploadAudio(file),
-  }), [lessonId, repository, worksheetId]);
-  return <WorksheetStudioPage repository={adapter} backTo={`/library/lessons/${encodeURIComponent(lessonId)}/worksheets`} allowCopy={false} />;
+    reloadKey,
+  }), [lessonId, repository, worksheetId, reloadKey]);
+  return (
+    <WorksheetStudioPage
+      key={worksheetId}
+      repository={adapter}
+      backTo="/library"
+      allowCopy={false}
+      draftId={`${lessonId}:${worksheetId}`}
+      renderTop={({ dirty }) => (
+        <LessonGeneratorBar
+          lessonId={lessonId}
+          worksheetId={worksheetId}
+          dirty={dirty}
+          onGenerated={() => setReloadKey((value) => value + 1)}
+          repository={repository}
+          {...(vocabularyRepository ? { vocabularyRepository } : {})}
+        />
+      )}
+    />
+  );
 }
