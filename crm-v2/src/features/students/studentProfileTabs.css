@@ -69,3 +69,16 @@
 .student-lessons__mark.tone-warning { background: #fff6e5; border-color: #f1d9a8; color: #7a5311; }
 .student-lessons__mark:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 .student-lessons__more { margin-top: 12px; }
+.student-lessons__open { display: grid; gap: 2px; min-width: 0; text-align: left; border: 0; background: transparent; padding: 4px 6px; margin: -4px -6px; border-radius: 10px; font: inherit; color: inherit; cursor: pointer; }
+.student-lessons__open:hover { background: var(--surface-soft); }
+.student-lessons__open:hover strong { color: var(--green-dark); }
+.student-lessons__open:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+.student-lessons__open span { color: var(--muted); }
+.lesson-detail__body { display: grid; gap: 16px; }
+.lesson-detail__body h3 { margin: 0 0 6px; font-size: 1rem; }
+.lesson-detail__body section { border-top: 1px solid var(--border); padding-top: 12px; }
+.lesson-detail__note { margin: 0; white-space: pre-wrap; }
+.lesson-detail__list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.lesson-detail__list li { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.lesson-detail__list small, .lesson-detail__words { color: var(--muted); }
+.lesson-detail__words { margin: 0; }

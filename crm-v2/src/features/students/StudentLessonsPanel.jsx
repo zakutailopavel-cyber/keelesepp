@@ -2,6 +2,7 @@ import { CheckCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState } from '../../components/ui/index.js';
+import LessonDetailModal from './LessonDetailModal.jsx';
 
 // Student card „Tunnid”: the timetable (planned lessons) and the lesson journal (held / absent) in one place.
 // Admins change the mark of a held lesson here, including „Toimunud ja kontrollitud”.
@@ -19,11 +20,12 @@ const markLabel = (lesson) => LESSON_MARKS.find((mark) => mark.value === markOf(
 const markTone = (mark) => (mark === 'verified' ? 'success' : mark === 'Toimunud' ? 'info' : mark === 'Tühistatud' ? 'neutral' : 'warning');
 const today = () => new Date().toISOString().slice(0, 10);
 
-export default function StudentLessonsPanel({ student, lessons, schedule, canManage = false, lessonApi, user, onChanged }) {
+export default function StudentLessonsPanel({ student, lessons, schedule, canManage = false, lessonApi, user, onChanged, detailApis = {} }) {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [opened, setOpened] = useState(null);
 
   const now = today();
   const upcoming = schedule
@@ -87,11 +89,11 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
               const mark = markOf(lesson);
               return (
                 <div key={lesson.id}>
-                  <div>
+                  <button type="button" className="student-lessons__open" onClick={() => setOpened(lesson)} aria-label={`Ava tund ${lesson.date || ''}`}>
                     <strong>{lesson.date || 'Kuupäev puudub'}{lesson.time ? ` · ${lesson.time}` : ''}</strong>
                     <span>{[lesson.subject || student.subject, lesson.topic, lesson.teacher].filter(Boolean).join(' · ')}</span>
                     {lesson.verified && lesson.verifiedByName ? <small className="student-lessons__verified"><CheckCheck size={13} aria-hidden="true" /> Kontrollis {lesson.verifiedByName}</small> : null}
-                  </div>
+                  </button>
                   {canManage ? (
                     <select
                       className={`student-lessons__mark tone-${markTone(mark)}`}
@@ -108,6 +110,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
             })}
           </div>
         ) : <EmptyState title="Toimunud tunde veel ei ole" />}
+        {opened ? <LessonDetailModal lesson={lessons.find((item) => item.id === opened.id) || opened} student={student} user={user} isAdmin={canManage} markLabel={markLabel(lessons.find((item) => item.id === opened.id) || opened)} onClose={() => setOpened(null)} {...detailApis} /> : null}
         {lessons.length > 15 ? <button type="button" className="button button--secondary student-lessons__more" onClick={() => setShowAll((value) => !value)}>{showAll ? 'Näita vähem' : `Näita kõiki (${lessons.length})`}</button> : null}
       </Card>
     </div>
