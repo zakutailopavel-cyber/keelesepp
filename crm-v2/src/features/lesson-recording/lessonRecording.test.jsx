@@ -63,7 +63,8 @@ describe('RoomRecorder', () => {
     rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent auto onStateChange={onStateChange} service={service} />);
     await screen.findByText(/Salvestan/);
     expect(service.start).toHaveBeenCalledTimes(1);
-    expect(onStateChange).toHaveBeenLastCalledWith({ recording: true, error: '' });
+    // the parent hears about the recording from an effect after the text is shown: wait for it (slow CI)
+    await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith({ recording: true, error: '' }));
     rerender(<RoomRecorder invitation={invitation} user={user} streams={{ local: null }} consent auto onStateChange={onStateChange} service={service} />);
     await waitFor(() => expect(service.finish).toHaveBeenCalledWith('inv-1_1'), { timeout: 3000 });
     await waitFor(() => expect(onStateChange).toHaveBeenLastCalledWith({ recording: false, error: '' }));
