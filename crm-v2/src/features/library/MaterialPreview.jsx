@@ -89,7 +89,7 @@ export default function MaterialPreview({ item, onClose, onEditWorksheet }) {
   return (
     <Modal open title={`Eelvaade: ${item.title}`} onClose={onClose} className="modal--preview" footer={onEditWorksheet && item.kind !== 'exercise' ? <Button variant="secondary" onClick={() => onEditWorksheet(item)}><FilePenLine size={16} /> {studioDoc || source.worksheetData?.blocks?.length ? 'Muuda töölehte' : 'Loo tööleht'}</Button> : null}>
       <article className="material-preview">
-        <header><div><Badge tone={LIBRARY_TYPES[item.type]?.tone}>{item.typeLabel}</Badge>{isUnpublishedWorksheet(source) ? <Badge tone="neutral">Mustand</Badge> : null}<h2>{source.worksheetData?.meta?.title || item.title}</h2><p>{item.description}</p></div><ImageIcon size={26} /></header>
+        <header><div><Badge tone={LIBRARY_TYPES[item.type]?.tone}>{item.typeLabel}</Badge>{isUnpublishedWorksheet(source) ? <Badge tone="neutral">Mustand</Badge> : null}<h2>{source.worksheetData?.meta?.title || item.title}</h2><p>{String(item.description || '').split('\n')[0]}</p></div><ImageIcon size={26} /></header>
         {studioDoc ? <section className="preview-studio" aria-label="Tööleht"><Suspense fallback={<LoadingState label="Laen töölehte…" />}><StudioSheetPreview doc={studioDoc} /></Suspense></section> : null}
         {blocks.length ? <div className="preview-blocks">{blocks.map((block, index) => <PreviewBlock block={block} index={index} key={block.id || `${block.type}-${index}`} />)}</div> : null}
         {files.length ? <section className="preview-files"><h2>Lisatud failid</h2>{files.map((file) => <FilePreview file={file} key={file.url} />)}</section> : null}

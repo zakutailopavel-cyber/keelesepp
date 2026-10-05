@@ -1,4 +1,5 @@
 import roadmap from './a2Roadmap.json';
+import { LESSON_PLAN_SOURCE, roadmapLessonPlan } from './lessonPlans.js';
 
 export const A2_CURRICULUM_ID = 'est-a2-curriculum-v1';
 export const A2_LESSON_COUNT = 100;
@@ -90,7 +91,8 @@ export function a2CurriculumRecords(input = roadmap) {
     id: lesson.id,
     type: 'lesson',
     title: lesson.title,
-    description: module.goal,
+    description: roadmapLessonPlan(module, lesson),
+    descriptionSource: LESSON_PLAN_SOURCE,
     subject: 'Eesti keel',
     level: 'A2',
     topic: `${String(module.number).padStart(2, '0')}. ${module.title}`,
