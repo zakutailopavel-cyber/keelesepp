@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Worksheet constructor: full-window focus mode — branch `agent/constructor-focus`
+
+From the live diagnostics: inside the CRM shell the sheet was ~330 px wide on a 1200×655 screen.
+- `WorksheetStudioPage`: focus mode (default on, remembered in `localStorage` `ks-studio-focus`) — the studio is
+  `position: fixed; inset: 0` over the CRM menu and top bar; toolbar button „Näita menüüd / Täisekraan”. Modals
+  (z-index 100) stay above it; print unaffected.
+- Tests: worksheet Vitest 307/307; ESLint clean.
+
 ## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
 
 Checked `origin/main` `253fd50`. Owner: see the worksheets a student did and grade them so the grades move the skills
