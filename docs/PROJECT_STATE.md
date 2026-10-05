@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Calendar week view: crowded hours readable — branch `agent/calendar-parallel`
+
+From the live diagnostics: 3+ parallel lessons in a week column became slivers („Ars…”, „Ge…”).
+- `layoutColumn` now returns the overlap `cluster` id. `TimeGrid`: in views with several columns, a cluster of 3+
+  lanes is drawn as one card („N tundi korraga”) with a row per lesson (time, student, done/absent mark, teacher
+  colour); a row opens the lesson panel (moving is done from there). Day view keeps side-by-side blocks. Every block
+  has a hover title „time · student · teacher”.
+- Tests: `TimeGrid.test.jsx` (2); calendar Vitest green except the known local Node 26 `localStorage` test.
 ## 2026-10-05 — Compact work-page headers and a grouped side menu — branch `agent/compact-headers-menu`
 
 From the live diagnostics: large stat banners pushed the work lists below the fold (Kodutööd, Suhtlus, Finantsid) and
