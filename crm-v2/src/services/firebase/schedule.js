@@ -36,6 +36,19 @@ function minutes(value) {
   return Number.isFinite(hours) && Number.isFinite(mins) ? hours * 60 + mins : 0;
 }
 
+// Lessons of the same teacher that overlap the candidate (parallel lessons are allowed; this is for showing them).
+export function scheduleOverlaps(items, candidate, excludeId = '') {
+  const start = minutes(candidate.time);
+  const end = start + Number(candidate.duration || 60);
+  return items.filter((item) => {
+    if (item.id === excludeId || item.status === 'Tühistatud') return false;
+    if ((item.date || item.startDate) !== candidate.date) return false;
+    if (candidate.teacherUid && item.teacherUid ? item.teacherUid !== candidate.teacherUid : item.teacher !== candidate.teacher) return false;
+    const itemStart = minutes(item.time);
+    return start < itemStart + Number(item.duration || 60) && end > itemStart;
+  });
+}
+
 export function hasScheduleConflict(items, candidate, excludeId = '') {
   const start = minutes(candidate.time);
   const end = start + Number(candidate.duration || 60);

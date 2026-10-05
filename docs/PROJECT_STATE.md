@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Calendar: several students at the same time / overlapping lessons allowed — branch `agent/calendar-overlaps`
+
+Owner: it must be possible to put several students on the same time, or let their times overlap.
+- `CalendarPage`: creating, editing and dragging a lesson no longer refuses „juba teine tund” for the same teacher.
+  The lesson form shows „Samal ajal on ka: 09:00 Mari … Tunnid toimuvad paralleelselt.” (`scheduleOverlaps` in
+  `services/firebase/schedule.js`). The teacher's red windows (#309) still block. Overlaps are drawn side by side,
+  3+ as one list card in the week view (#306).
+- Tests: calendar tests updated (move onto another lesson allowed; second student at the same time with the hint).
+
 ## 2026-10-05 — Calendar: teachers mark green (free) and red (busy) windows — branch `agent/teacher-availability`
 
 Owner: teachers mark their windows green/red so the admin plans lessons into green ones and sees that red ones are

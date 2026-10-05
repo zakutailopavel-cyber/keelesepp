@@ -173,14 +173,24 @@ describe('calendar v2', () => {
     expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ date: today, time: '10:30', recurring: false, movedFromSeriesId: 'schedule-1' }));
   });
 
-  it('refuses a move onto another lesson of the same teacher', async () => {
+  it('allows moving a lesson onto another lesson of the same teacher (parallel lessons)', async () => {
     const props = renderCalendar({ events: [lesson(), lesson({ id: 'schedule-2', studentId: 's2', studentName: 'Jaan Tamm', time: '11:00' })] });
     const block = await screen.findByRole('button', { name: /10:00 Mari Maas/ });
     fireEvent.pointerDown(block, { button: 0, clientX: 5000, clientY: 100, pointerId: 1 });
     fireEvent.pointerMove(block, { clientX: 5000, clientY: 166, pointerId: 1 });
     fireEvent.pointerUp(block, { clientX: 5000, clientY: 166, pointerId: 1 });
-    expect(await screen.findByRole('alert')).toHaveTextContent('juba teine tund');
-    expect(props.scheduleRepository.patch).not.toHaveBeenCalled();
+    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalled());
+    expect(screen.queryByText(/juba teine tund/)).toBeNull();
+  });
+
+  it('plans a second student at the same time and shows who else is there', async () => {
+    const props = renderCalendar({ events: [lesson({ time: '09:00' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
+    expect(await screen.findByText(/Samal ajal on ka: 09:00 Mari Maas/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ time: '09:00', studentId: 's1' })));
   });
 
   it('deletes a lesson added by mistake and can bring it back', async () => {
