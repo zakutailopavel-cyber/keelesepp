@@ -1,5 +1,20 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Release of #276–#288 (rules + four functions): RELEASED, except `languageApi`
+
+Checked `origin/main` `b4bad01` (after #288). Deployed from `~/keelesepp-release` with `firebase-tools@15.22.3`,
+project `keelesepp-5136b`; functions `npm test` 232/232 before the deploy.
+- `firestore:rules` released (covers #276, #277, #278, #280, #282, #286 and #288 `studentWords.forms/formItems`).
+- Functions: `syncScheduleToGoogle`, `syncAllCalendars`, `staffOperationsApi` updated; `notifyHomeworkCreated`
+  created (ACTIVE, secret `SMTP_PASS`). Real homework e-mails are sent from now on. No errors in the logs after it.
+- CRM (Vercel `keelesepp-crm-v2`, crm.epkoolitus.ee): production is `b4bad01`.
+- Checked in the real CRM: „Uued kontod” calls `/accounts/reviews` (200), no open reviews; Polina Lysenko is in
+  „Õpilased”.
+- **Not deployed on purpose:** `languageApi` (#288) — owner does not need it yet; secret `EKILEX_API_KEY` is not set
+  (deploy fails without it). Until then „Leia tõlge ja vormid” does not work; the rest of the words feature does.
+- Still for the owner: lessons deleted before the calendar deploy may have come back from Google — delete them once
+  more; one real 1:1 lesson to try pointer/follow, „Sõnad”, „Anna kodutöö”, „Lõpeta tund”, pet in the room.
+
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `12dfffd` (after #287). Owner approved the external services (free; only the word itself is
@@ -38,9 +53,7 @@ Checked `origin/main` `1c85f49` (after #286, pet growth/outfits/visibility). Fou
 - No rules or functions change. Not tried in a real lesson.
 
 ### Pending owner actions (all merged in main)
-1. `firestore:rules` deploy: #276, #277, #278, #280, #282, #286.
-2. Cloud Functions deploy: `syncScheduleToGoogle`, `syncAllCalendars` (#283), `staffOperationsApi` (#284),
-   `notifyHomeworkCreated` (#285).
+Released on 2026-10-05 (see the entry at the top).
 
 ## 2026-10-04 — Pet: grows from words, homework and streaks; outfits for stars; teacher and parents see it — branch `claude/affectionate-ritchie-dh2x9j`
 
