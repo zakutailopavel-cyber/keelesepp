@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Calendar week view: crowded hours readable — branch `agent/calendar-parallel`
+
+From the live diagnostics: 3+ parallel lessons in a week column became slivers („Ars…”, „Ge…”).
+- `layoutColumn` now returns the overlap `cluster` id. `TimeGrid`: in views with several columns, a cluster of 3+
+  lanes is drawn as one card („N tundi korraga”) with a row per lesson (time, student, done/absent mark, teacher
+  colour); a row opens the lesson panel (moving is done from there). Day view keeps side-by-side blocks. Every block
+  has a hover title „time · student · teacher”.
+- Tests: `TimeGrid.test.jsx` (2); calendar Vitest green except the known local Node 26 `localStorage` test.
+
 ## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
 
 Checked `origin/main` `253fd50`. Owner: see the worksheets a student did and grade them so the grades move the skills
