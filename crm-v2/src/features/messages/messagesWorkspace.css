@@ -41,6 +41,9 @@
 .messages-shell {
   display: grid;
   grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  /* one row as tall as the shell: without it the row grows to fit every message, the shell clips the rest and the
+     conversation never scrolls (long threads like Mariam's could not be read to the end) */
+  grid-template-rows: minmax(0, 1fr);
   min-height: 660px;
   overflow: hidden;
   padding: 0;
@@ -51,6 +54,7 @@
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  min-height: 0;
   min-width: 0;
   padding: 16px;
 }
@@ -258,6 +262,7 @@
   background: #fff;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
   min-width: 0;
 }
 
