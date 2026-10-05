@@ -1,5 +1,20 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Google Calendar: KeeleSepp → Google only — branch `agent/calendar-one-way`
+
+Owner: lessons go from the site to Google, not back.
+- `functions/index.js` `GOOGLE_IMPORT_ENABLED = false`: the hourly `syncAllCalendars`, `POST /gcal/sync` and the OAuth
+  callback no longer run `syncTeacherCalendar` (no new lessons from Google events, no deletions because an event was
+  removed in Google). Push (outbox, backfill, groups, `syncScheduleToGoogle`) is unchanged.
+- Lessons imported earlier (`source: 'gcal'`) are KeeleSepp lessons now: `importedLessonGoogleAction(…, { importEnabled:
+  false })` returns „push” when date/time/duration/repetition/student change in the CRM, so their Google event is
+  patched (then `source` becomes `keelesepp`); unchanged ones are not re-written by the backfill. Delete/cancel still
+  remove the Google event. `/gcal/disconnect` no longer deletes former Google lessons from the CRM.
+- CRM: `isGoogleOwned` → false (move/cancel/time edit allowed), label „Algselt Google Calendarist”; Seaded Google card
+  text explains the one-way sync, the „Google → KeeleSepp” row is gone.
+- Tests: functions 233/233 (new core test); google-calendar/calendar Vitest green except the known local Node 26 test.
+- **Needs the owner:** Cloud Functions deploy (`syncAllCalendars`, `gcalApi`, `syncScheduleToGoogle`) after merge.
+
 ## 2026-10-05 — Admin data cleanup in Seaded; homework „Suletud”; bell counts only new — branch `agent/data-cleanup`
 
 Owner approved cleaning: students without a teacher, „Uus tööleht” topics, old homework, test conversations and the

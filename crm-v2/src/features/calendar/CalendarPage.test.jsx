@@ -80,13 +80,12 @@ describe('calendar v2', () => {
     expect(screen.getByLabelText('Otsi kalendrist')).toHaveValue('');
   });
 
-  it('a lesson from Google Calendar is changed in Google: no move or cancel in KeeleSepp', async () => {
+  it('a lesson that once came from Google Calendar is edited in KeeleSepp (one-way sync)', async () => {
     renderCalendar({ events: [lesson({ source: 'gcal', gcalEventId: 'g1' })] });
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
     const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
-    expect(within(panel).getByText('Google Calendarist')).toBeInTheDocument();
-    expect(within(panel).queryByRole('button', { name: /Muuda aega/ })).toBeNull();
-    expect(within(panel).queryByRole('button', { name: /Tühista tund/ })).toBeNull();
+    expect(within(panel).getByText('Algselt Google Calendarist')).toBeInTheDocument();
+    expect(within(panel).getByRole('button', { name: /Muuda aega/ })).toBeInTheDocument();
     expect(within(panel).getByRole('button', { name: /Tund toimus/ })).toBeInTheDocument();
   });
 
