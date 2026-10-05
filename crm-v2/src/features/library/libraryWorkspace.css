@@ -414,3 +414,6 @@
 .material-worksheet-link__actions{display:flex;gap:8px;flex-wrap:wrap}.material-worksheet-link__actions .button{width:auto;margin-top:0;min-height:38px}
 .preview-studio{margin:6px 0 18px}.library-sheet-preview .st-canvas{min-height:0;padding:12px 0;border-radius:14px}
 @media(max-width:560px){.material-worksheet-link__actions,.material-worksheet-link__actions .button{width:100%}}
+
+/* lesson plan (what to do, what to teach, how the hour goes) keeps its lines */
+.library-detail__plan { white-space: pre-line; line-height: 1.55; max-height: 46vh; overflow: auto; }

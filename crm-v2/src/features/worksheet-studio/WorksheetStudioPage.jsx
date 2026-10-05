@@ -78,6 +78,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [variants, setVariants] = useState(null);
   const [comparing, setComparing] = useState(null);
   const [myTemplates, setMyTemplates] = useState([]);
+  // focus mode: the constructor takes the whole window (CRM menu and top bar hidden); remembered in this browser
+  const [focus, setFocus] = useState(() => { try { return window.localStorage.getItem('ks-studio-focus') !== 'off'; } catch { return true; } });
+  const toggleFocus = () => setFocus((value) => { try { window.localStorage.setItem('ks-studio-focus', value ? 'off' : 'on'); } catch { /* storage may be disabled */ } return !value; });
   useUnsavedGuard(dirty);
   // own block templates (shared with all staff); the constructor works without them if they cannot be loaded
   useEffect(() => {
@@ -526,7 +529,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
   return (
     <AssetContext.Provider value={assets}>
-      <div className={`ws-studio mode-${mode}`}>
+      <div className={`ws-studio mode-${mode} ${focus ? 'is-focus' : ''}`}>
         <header className="st-bar">
           <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : 'Õppevara'}</Link>
           <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{saving ? ' · salvestan…' : dirty ? ' · salvestamata' : savedAt ? ` · salvestatud ${new Date(savedAt).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })}` : ''}</span></div>
@@ -540,6 +543,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             {mode === 'interactive' && <button type="button" className="st-btn" onClick={() => { setAnswers({}); setResults({}); setEvidence(null); }}>Tühjenda</button>}
             {mode === 'edit' && <button type="button" className="st-btn" disabled={!history.past.length} onClick={undo} title="Võta tagasi (Ctrl+Z)" aria-label="Võta tagasi"><Icons.Undo2 size={16} /></button>}
             {mode === 'edit' && <button type="button" className="st-btn" disabled={!history.future.length} onClick={redo} title="Tee uuesti (Ctrl+Shift+Z)" aria-label="Tee uuesti"><Icons.Redo2 size={16} /></button>}
+            <button type="button" className="st-btn" onClick={toggleFocus} aria-pressed={focus} title={focus ? 'Näita CRM-i menüüd' : 'Konstruktor kogu aknas'}>{focus ? <Icons.Minimize2 size={16} aria-hidden="true" /> : <Icons.Maximize2 size={16} aria-hidden="true" />}<span className="st-btn-label">{focus ? 'Näita menüüd' : 'Täisekraan'}</span></button>
             <button type="button" className="st-btn" onClick={() => { switchMode('print'); setTimeout(() => window.print(), 300); }}>PDF / Prindi</button>
             <details className="st-more" ref={menuRef}>
               <summary className="st-btn">Fail ▾</summary>
