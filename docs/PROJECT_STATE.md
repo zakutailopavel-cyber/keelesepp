@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## 2026-10-05 — Release of #276–#288 (rules + four functions): RELEASED, except `languageApi`
+## 2026-10-05 — Release of #276–#288 (rules + five functions): RELEASED
 
 Checked `origin/main` `b4bad01` (after #288). Deployed from `~/keelesepp-release` with `firebase-tools@15.22.3`,
 project `keelesepp-5136b`; functions `npm test` 232/232 before the deploy.
@@ -10,10 +10,12 @@ project `keelesepp-5136b`; functions `npm test` 232/232 before the deploy.
 - CRM (Vercel `keelesepp-crm-v2`, crm.epkoolitus.ee): production is `b4bad01`.
 - Checked in the real CRM: „Uued kontod” calls `/accounts/reviews` (200), no open reviews; Polina Lysenko is in
   „Õpilased”.
-- **Not deployed on purpose:** `languageApi` (#288) — owner does not need it yet; secret `EKILEX_API_KEY` is not set
-  (deploy fails without it). Until then „Leia tõlge ja vormid” does not work; the rest of the words feature does.
+- `languageApi` (#288) deployed after the others, with `EKILEX_API_KEY` set to `none` (owner has no key yet):
+  translation (TartuNLP) works, word forms answer `available: false`. Anonymous call → 401. When the owner gets the
+  key: `functions:secrets:set EKILEX_API_KEY` (in the terminal, never in the chat), then redeploy
+  `functions:languageApi` so it picks up the new version.
 - Still for the owner: lessons deleted before the calendar deploy may have come back from Google — delete them once
-  more; one real 1:1 lesson to try pointer/follow, „Sõnad”, „Anna kodutöö”, „Lõpeta tund”, pet in the room.
+  more; one real 1:1 lesson to try „Leia tõlge ja vormid” on „kass”, pointer/follow, „Sõnad”, „Anna kodutöö”, „Lõpeta tund”, pet in the room.
 
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
 
