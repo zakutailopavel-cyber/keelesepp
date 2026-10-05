@@ -1,5 +1,15 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Suhtlus: long conversations scroll again — branch `agent/messages-scroll`
+
+Checked `origin/main` `b4bad01`. Owner: Mariam's conversation cannot be scrolled.
+- Cause: `.messages-shell` is a fixed-height grid with an implicit `auto` row; the chat panel's content-based minimum
+  height made the row as tall as all messages (4722 px for 40 messages vs a 658 px shell), the shell clipped it
+  (`overflow: hidden`) and `.message-stream` never got a height to scroll in. Short threads were not affected.
+- Fix (`messagesWorkspace.css`): `grid-template-rows: minmax(0, 1fr)` on the shell, `min-height: 0` on the chat panel
+  and the conversation list. Measured in headless Chrome on a model page with the real CSS: stream 487 px, scrolls.
+- No logic change; not yet seen on the live page.
+
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `12dfffd` (after #287). Owner approved the external services (free; only the word itself is
