@@ -914,6 +914,8 @@ service cloud.firestore {
           teacherCanUpdate(resource.data, request.resource.data)
           && !changesStudentOwnership()
           && !changesStudentTariffSource()
+          // the student's Facebook / Instagram contact is kept by the admin
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['facebook', 'instagram'])
         )
         || (
           ownsStudent(studentId)

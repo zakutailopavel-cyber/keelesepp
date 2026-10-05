@@ -11,6 +11,7 @@ import { studentsService } from '../../services/firebase/students.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { ROLES } from '../../utils/roles.js';
 import { studentValueLabel } from '../../utils/studentPrivacy.js';
+import { facebookContact, instagramContact } from '../../utils/socialLinks.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import StudentFinancePanel from './StudentFinancePanel.jsx';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
@@ -22,6 +23,16 @@ import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.j
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
+
+// Admin: the student's Facebook / Instagram with links to the profile and to a direct message
+function SocialRow({ label, contact }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{contact ? <span className="student-social"><a href={contact.profileUrl} target="_blank" rel="noreferrer">{contact.label}</a><a className="button button--secondary student-social__write" href={contact.messageUrl} target="_blank" rel="noreferrer">Kirjuta</a></span> : '—'}</dd>
+    </div>
+  );
+}
 
 const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
@@ -114,7 +125,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
       <div id={tabPanelId} role="tabpanel" aria-labelledby={`student-profile-tab-${activeTab}`} className="student-profile-tab-panel">
         {activeTab === 'overview' ? (
           <div className="profile-grid">
-            <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>Õpetaja</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div></dl></Card>
+            <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>Õpetaja</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
             <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{student.level || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
             <PetOverview studentIds={[student.id]} lessons={state.lessons} {...(petApi ? { repository: petApi } : {})} />
           </div>

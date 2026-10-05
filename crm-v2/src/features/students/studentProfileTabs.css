@@ -52,3 +52,6 @@
     padding-inline: 14px;
   }
 }
+.student-social { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.student-social a:not(.button) { color: var(--green-dark); font-weight: 700; }
+.student-social__write.button { min-height: 30px; padding: 4px 12px; font-size: .82rem; }
