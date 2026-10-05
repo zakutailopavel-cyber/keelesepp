@@ -180,3 +180,9 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 @media(max-width:850px){.login-intro{padding:18px 22px}.login-intro__copy{margin:14px 0 0}.login-intro h1{font-size:1.45rem;margin:6px 0 0}.login-intro__copy p,.login-intro .eyebrow{display:none}.login-card{padding:24px 22px 30px}}
 .pending-card{width:min(560px,100%);padding:36px;display:grid;gap:14px;text-align:center;justify-items:center}.pending-card__brand{color:#14243a}.pending-card__icon{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:#fff4dc;color:#a96e1a}.pending-card__icon.is-rejected{background:#fdecea;color:#b42318}.pending-card h1{font:800 1.8rem Manrope,sans-serif;letter-spacing:-.03em;margin:0;color:#14243a}.pending-card p{margin:0;color:#42536a;line-height:1.6}.pending-card__ru{font-size:.9rem;color:#667085!important}.pending-card a{color:#087e6b;font-weight:700}.pending-card__actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 .parent-home-note{display:block;margin-top:2px;color:#475467;font-size:.82rem;white-space:normal}
+
+/* compact page header (work pages) */
+.page-header.page-header--compact{margin-bottom:14px;align-items:center}
+.page-header--compact h1{font-size:clamp(1.5rem,2.4vw,2rem);margin:2px 0 2px}
+.page-header--compact p{font-size:.86rem}
+@media(max-width:700px){.page-header.page-header--compact{align-items:flex-start}}
