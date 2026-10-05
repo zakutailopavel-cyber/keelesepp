@@ -1,5 +1,15 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Ülevaade numbers match the pages — branch `agent/dashboard-numbers`
+
+From the live diagnostics: 114 active students on Ülevaade vs 113 in Õpilased; „3 tundi täna” while the calendar had
+~15; 16 homework vs 15 „pooleli” in Kodutööd.
+- Students: counted as people with `groupStudentPeople` (like Õpilased), not card records.
+- Lessons: „Tunnid täna” uses the calendar's `occurrencesForDates`, so weekly lessons count (before only one-off lessons
+  with today's date did); meta „N veel ees · kõik õpetajad / minu”, list „Järgmised tunnid täna” = the rest of today
+  (up to 6, „+ veel N”), empty state says when today's lessons are over. Group lessons are still not on Ülevaade.
+- Homework: „Kodutööd pooleli” only for students in scope (like Kodutööd), not homework of removed cards.
+- Tests: dashboard counting test (fake date); Vitest dashboard 3/3.
 ## 2026-10-05 — Readable auto-check errors in the check window — branch `agent/readable-auto-errors`
 
 From the live diagnostics: „Automaatselt tuvastatud vead” showed raw keys (`key: b_muqwusk4j:0.0 · answer: öppin`).
