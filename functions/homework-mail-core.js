@@ -53,7 +53,7 @@ function composeHomeworkEmail({ homework = {}, student = {}, to, audience = "stu
   <p>${esc(etDue)} · <span style="color:#64748b">${esc(ruDue)}</span></p>
   ${extras.map(pair => `<p style="margin:4px 0">${esc(pair[0])} · <span style="color:#64748b">${esc(pair[1])}</span></p>`).join("")}
   <p><a href="${CRM_URL}/homework" style="display:inline-block;background:#2F5D50;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:700">Ava kodutöö / Открыть</a></p>
-  <p style="font-size:12px;color:#64748b">KeeleSepp · info@epkoolitus.ee · +372 5374 0753</p>
+  <p style="font-size:12px;color:#64748b">KeeleSepp · info@epkoolitus.ee · +372 5434 4155</p>
 </div>`;
   return { to, subject, text, html };
 }
