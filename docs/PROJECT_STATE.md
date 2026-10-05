@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Student card: Facebook and Instagram contact for the admin — branch `agent/student-social`
+
+Checked `origin/main` `b4bad01`. Owner: fields for Facebook and Instagram on the student card so the admin can
+contact the student there.
+- `students.facebook`, `students.instagram` (username or pasted profile link; validated in the form). Admin-only in
+  the form („Muuda andmeid”) and on „Ülevaade → Põhiandmed”: profile link + „Kirjuta” (Facebook `m.me/<name>` or
+  `facebook.com/messages/t/<id>`, Instagram `ig.me/m/<name>`). Helpers `utils/socialLinks.js`.
+- `firestore.rules` (students update, teacher branch): a teacher cannot change `facebook` / `instagram`; students'
+  own-card edits already exclude them. Rules compile (emulator run of the student words test).
+- Not linked to Suhtlus' Facebook/Instagram threads (those are keyed by Meta ids, not by these names).
+- Tests: `socialLinks.test.js` (2), StudentProfilePage (2 new); build OK.
+- **Needs the owner:** `firestore:rules` deploy after merge (the fields work before it; the rule only stops teachers).
 ## 2026-10-05 — Student card: one „Tunnid” tab; admin changes lesson marks, „Toimunud ja kontrollitud” — branch `agent/student-lessons-tab`
 
 Checked `origin/main` `b4bad01`. Owner: merge „Tunniplaan” and „Õppetöö”, let admins change a lesson's status, add

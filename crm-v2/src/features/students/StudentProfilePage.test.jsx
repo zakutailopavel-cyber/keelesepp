@@ -130,6 +130,19 @@ describe('student profile tabs and role access', () => {
     expect(apis.invoiceApi.listByStudent).not.toHaveBeenCalled();
   });
 
+  it('shows an admin the Facebook and Instagram contact with message links; a teacher does not see them', async () => {
+    renderProfile({ student: { id: 's1', name: 'Mari Maas', teacher: 'Pavel Zakutailo', active: true, skillMap: {}, facebook: 'mari.maasikas', instagram: '@mari_m' } });
+    expect(await screen.findByRole('link', { name: 'mari.maasikas' }, { timeout: 4000 })).toHaveAttribute('href', 'https://www.facebook.com/mari.maasikas');
+    const write = screen.getAllByRole('link', { name: 'Kirjuta' });
+    expect(write.map((link) => link.getAttribute('href'))).toEqual(['https://m.me/mari.maasikas', 'https://ig.me/m/mari_m']);
+  });
+
+  it('hides the social contacts from a teacher', async () => {
+    renderProfile({ actor: { roles: ['teacher'], displayName: 'Pavel Zakutailo' }, student: { id: 's1', name: 'Mari Maas', teacher: 'Pavel Zakutailo', active: true, skillMap: {}, facebook: 'mari.maasikas' } });
+    expect(await screen.findByRole('heading', { name: 'Põhiandmed' }, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.queryByText('Facebook')).not.toBeInTheDocument();
+  });
+
   it('lets an admin mark a held lesson checked, change and remove a mark; a teacher only sees the mark', async () => {
     const lesson = { id: 'l1', date: '2026-09-04', time: '14:00', status: 'Toimunud', subject: 'Eesti keel', studentName: 'Mari Maas' };
     const apis = renderProfile({ lessons: [lesson, { id: 'l2', date: '2026-09-02', status: 'Puudus_p' }] });
