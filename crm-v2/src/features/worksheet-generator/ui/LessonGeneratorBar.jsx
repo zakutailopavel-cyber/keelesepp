@@ -6,14 +6,14 @@ import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService, levelVocabularyService } from '../../../services/firebase/index.js';
 import { FOCUS_PHASES } from '../engine/focusWorksheet.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
-import { CORE_SHEETS, generateCoreSheets, generateFocusSheet } from './lessonGeneration.js';
+import { CORE_SHEETS, generateCoreSheets, generateFocusSheet, previewCoreSheet } from './lessonGeneration.js';
 import '../generator.css';
 
 const UNSAVED = 'Töölehel on salvestamata muudatusi. Genereerimine laadib uue mustandi ja need muudatused lähevad kaotsi. Jätkata?';
 
 // Lesson worksheets and the generator in one strip at the top of the worksheet constructor:
 // switch between the lesson's sheets, pick difficulty, generate the three sheets or one focus sheet.
-export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = false, onGenerated, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
+export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = false, onGenerated, onPreviewSheet, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState('core');
@@ -63,6 +63,18 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = fals
     });
   };
 
+  const currentCore = CORE_SHEETS.find((meta) => meta.id === worksheetId);
+  // only this sheet, shown in the editor first (not saved, undoable)
+  const previewThisSheet = () => {
+    setError(''); setNotice('');
+    try {
+      const result = previewCoreSheet({ ...deps(), worksheetId });
+      onPreviewSheet(result.worksheetDoc, result.generation);
+    } catch (generationError) {
+      setError(generationError.message || 'Lehte ei saanud luua.');
+    }
+  };
+
   const generateFocus = (event) => {
     event.currentTarget.closest('details')?.removeAttribute('open');
     run('focus', async () => {
@@ -90,6 +102,7 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = fals
           <>
             <select aria-label="Töölehtede raskus" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} disabled={Boolean(busy)}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select>
             <button type="button" className="st-btn primary" onClick={generate} disabled={Boolean(busy)}><Sparkles size={15} aria-hidden="true" /> {busy === 'core' ? 'Genereerin…' : hasCore ? 'Genereeri 3 lehte uuesti' : 'Genereeri 3 töölehte'}</button>
+            {currentCore && onPreviewSheet ? <button type="button" className="st-btn" onClick={previewThisSheet} disabled={Boolean(busy)} title="Ainult see leht; enne salvestamist näed tulemust ja saad tagasi võtta"><Sparkles size={15} aria-hidden="true" /> Ainult see leht</button> : null}
             <details className="st-more lgb-focus">
               <summary className="st-btn"><Target size={15} aria-hidden="true" /> {busy === 'focus' ? 'Genereerin…' : 'Fookuse leht ▾'}</summary>
               <div className="st-menu lgb-focus-menu">

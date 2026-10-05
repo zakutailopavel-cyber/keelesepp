@@ -1,5 +1,16 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Constructor: task variants on the sheet, per-task difficulty, „Ainult see leht” preview — branch `agent/constructor-generator-ux`
+
+Stacked on `agent/constructor-ux` (#291). Proposals 6–9.
+- „Uus variant” (toolbar above a generated task) makes 3 different variants (`regenerateTaskOptions`, `salt` +
+  `difficulty` options of `regenerateTask`); the toolbar flips them „‹ Variant 2/3 ›”, „Algne” brings the old task
+  back, a difficulty select (Support/Core/Challenge) regenerates this task only at that level.
+- Lesson strip: „Ainult see leht” generates only the open core sheet (`previewCoreSheet`) and shows it in the editor
+  unsaved (Ctrl+Z / „Võta tagasi” returns the previous one); saving stores it with its new `generation` meta (the
+  lesson constructor adapter now forwards `generation` on save).
+- Tests: worksheet Vitest 302/302 (existing regeneration test covers the variant flow); ESLint clean; build OK.
+
 ## 2026-10-05 — Constructor: block toolbar on the sheet, „+” insert, keys, autosave — branch `agent/constructor-ux`
 
 Stacked on `agent/lesson-constructor-generator` (#290, not merged yet). Owner chose to do all proposed constructor

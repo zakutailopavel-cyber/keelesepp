@@ -340,3 +340,6 @@
 .mode-edit .ws-card:hover > .ws-insert, .mode-edit .ws-card.selected > .ws-insert, .ws-insert:focus-visible { opacity: 1; }
 .ws-insert:hover { transform: translate(-50%, 55%) scale(1.12); }
 @media print { .ws-toolbar, .ws-insert { display: none !important; } }
+.ws-toolbar-count { color: #fff; font: 700 12px 'DM Sans', system-ui, sans-serif; padding: 0 6px; align-self: center; white-space: nowrap; }
+.ws-toolbar select { border: 0; border-radius: 7px; background: rgba(255,255,255,.14); color: #fff; font: 700 12px 'DM Sans', system-ui, sans-serif; padding: 4px 6px; }
+.ws-toolbar select option { color: #17253a; }

@@ -73,7 +73,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const searchRef = useRef(null);
   const saveRef = useRef(null);
   const [savedAt, setSavedAt] = useState(0);
+  // alternatives of one generated task, flipped through on the sheet: list[0] is the task as it was
+  const [variants, setVariants] = useState(null);
   useUnsavedGuard(dirty);
+  useEffect(() => { setVariants((current) => (current && current.blockId !== selectedId ? null : current)); }, [selectedId]);
   // Autosave: a draft is written to the database 15 s after the last change (a published sheet is saved by hand,
   // so a half-done change never replaces what students see without the teacher deciding it).
   useEffect(() => {
@@ -201,8 +204,26 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     BLOCKS[selected.type]?.task &&
     /^gen_(discover|practice|transfer)_\d+$/.test(String(selected.id || '')),
   );
-  const regenerateSelected = async () => {
+  const regenerateSelected = async (difficulty = '') => {
     if (!canRegenerateSelected || regenerating) return;
+    if (typeof repository.regenerateBlockOptions === 'function') {
+      setRegenerating(true);
+      setSaveError('');
+      try {
+        const original = variants?.blockId === selected.id ? variants.list[0] : selected;
+        const document = { ...doc, blocks: doc.blocks.map((b) => (b.id === original.id ? original : b)) };
+        const options = await repository.regenerateBlockOptions({ document, blockId: original.id, generation, difficulty });
+        const list = [original, ...options];
+        setVariants({ blockId: original.id, list, index: 1, difficulty });
+        updateBlock(list[1]);
+        setNotice(`Valmis ${options.length} uut varianti. Sirvi neid ploki kohal nooltega; „Algne” toob vana tagasi.`);
+      } catch (error) {
+        setSaveError(error.message || 'Ülesande uuesti genereerimine ebaõnnestus.');
+      } finally {
+        setRegenerating(false);
+      }
+      return;
+    }
     setRegenerating(true);
     setSaveError('');
     try {
@@ -292,14 +313,30 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setNotice('Vali vasakult plokk – see lisatakse valitud ploki järele.');
     globalThis.setTimeout(() => searchRef.current?.focus(), 0);
   };
+  const showVariant = (index) => {
+    if (!variants) return;
+    setVariants({ ...variants, index });
+    updateBlock(variants.list[index]);
+  };
   const renderToolbar = (block) => {
     const index = doc.blocks.findIndex((b) => b.id === block.id);
+    const flipping = variants?.blockId === block.id;
+    const canRegenerate = canRegenerateSelected && selected?.id === block.id;
     return (
       <>
         <button type="button" onClick={() => moveBlock(block.id, -1)} disabled={index <= 0} title="Üles (Alt+↑)" aria-label="Liiguta üles"><Icons.ArrowUp aria-hidden="true" /></button>
         <button type="button" onClick={() => moveBlock(block.id, 1)} disabled={index >= doc.blocks.length - 1} title="Alla (Alt+↓)" aria-label="Liiguta alla"><Icons.ArrowDown aria-hidden="true" /></button>
         <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)"><Icons.Copy aria-hidden="true" /> Kopeeri</button>
-        {canRegenerateSelected && selected?.id === block.id ? <button type="button" onClick={regenerateSelected} disabled={regenerating} title="Sama fookus ja raskus, uus sisu"><Icons.Sparkles aria-hidden="true" /> {regenerating ? 'Genereerin…' : 'Uus variant'}</button> : null}
+        {canRegenerate && !flipping ? <button type="button" onClick={() => regenerateSelected()} disabled={regenerating} title="Sama fookus ja raskus, kolm uut varianti"><Icons.Sparkles aria-hidden="true" /> {regenerating ? 'Genereerin…' : 'Uus variant'}</button> : null}
+        {canRegenerate && flipping ? (
+          <>
+            <button type="button" onClick={() => showVariant(variants.index - 1)} disabled={variants.index <= 0} aria-label="Eelmine variant"><Icons.ChevronLeft aria-hidden="true" /></button>
+            <span className="ws-toolbar-count" aria-live="polite">{variants.index ? `Variant ${variants.index}/${variants.list.length - 1}` : 'Algne'}</span>
+            <button type="button" onClick={() => showVariant(variants.index + 1)} disabled={variants.index >= variants.list.length - 1} aria-label="Järgmine variant"><Icons.ChevronRight aria-hidden="true" /></button>
+            <select aria-label="Selle ülesande raskus" value={variants.difficulty || generation?.difficulty || 'core'} disabled={regenerating} onChange={(e) => regenerateSelected(e.target.value)}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select>
+            <button type="button" onClick={() => showVariant(0)} disabled={!variants.index}>Algne</button>
+          </>
+        ) : null}
         <button type="button" className="is-danger" onClick={() => deleteBlock(block.id)} title="Kustuta (Delete)" aria-label="Kustuta plokk"><Icons.Trash2 aria-hidden="true" /></button>
       </>
     );
@@ -342,7 +379,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setSaving(true);
     setSaveError('');
     try {
-      const res = await repository.save({ lessonId: isNew ? '' : lessonId, document: doc, user, baseUpdatedAt, status: nextStatus });
+      const res = await repository.save({ lessonId: isNew ? '' : lessonId, document: doc, user, baseUpdatedAt, status: nextStatus, ...(generation ? { generation } : {}) });
       setDirty(false);
       setSource('worksheetDoc');
       setBaseUpdatedAt(res.updatedAt || '');
@@ -441,7 +478,17 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>Avalda</button>
           </div>
         </header>
-        {renderTop ? renderTop({ dirty }) : null}
+        {renderTop ? renderTop({
+          dirty,
+          // a generated sheet shown in the editor first: nothing is saved until „Salvesta” (or autosave), Ctrl+Z undoes it
+          replaceDocument: (next, nextGeneration) => {
+            change({ ...next, id: doc.id });
+            if (nextGeneration) setGeneration(nextGeneration);
+            setSelectedId(null);
+            setVariants(null);
+            setNotice('Uus variant on lehel. Kui meeldib, salvesta; kui ei, „Võta tagasi” (Ctrl+Z) toob eelmise tagasi.');
+          },
+        }) : null}
         {source === 'converted' && <div className="st-banner">See tööleht teisendati vanast vormingust uude kujundusse. Kontrolli ülesandeid ja salvesta. Vana versioon jääb alles.</div>}
         {saveError && <div className="st-banner error" role="alert">{saveError}</div>}
         {notice && <div className="st-banner ok" role="status">{notice}</div>}
@@ -491,7 +538,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   {canRegenerateSelected && (
                     <div className="st-regenerate">
                       <div><Icons.Sparkles size={16} aria-hidden="true" /><span><b>Genereeritud ülesanne</b><small>Sama fookus ja raskus; võimalusel teine ülesandetüüp, alati uus sisu.</small></span></div>
-                      <button type="button" className="ed-btn" onClick={regenerateSelected} disabled={regenerating}>
+                      <button type="button" className="ed-btn" onClick={() => regenerateSelected()} disabled={regenerating}>
                         {regenerating ? 'Genereerin…' : 'Genereeri uus variant'}
                       </button>
                     </div>
