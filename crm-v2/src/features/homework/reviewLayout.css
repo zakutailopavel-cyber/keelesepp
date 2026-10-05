@@ -28,3 +28,8 @@
   .review-layout__work, .review-layout__side { overflow: visible; }
   .review-layout__side { border-left: 0; border-top: 1px solid var(--border, #dfe5ec); }
 }
+.auto-errors { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+.auto-errors li { display: grid; gap: 2px; padding: 8px 10px; border-radius: 10px; background: #fff6f5; border: 1px solid #f5d5d1; font-size: .86rem; }
+.auto-errors strong { font-size: .8rem; color: var(--muted, #627087); font-weight: 700; }
+.auto-errors s { color: #b42318; text-decoration-thickness: 1px; }
+.auto-errors b { color: var(--green-dark, #056454); }

@@ -7,6 +7,7 @@ import TextAnnotationEditor from './TextAnnotationEditor.jsx';
 import { submissionWritingFields } from './annotations.js';
 import { GRADE_LABEL, skillList, suggestedSkills } from './skillGrades.js';
 import { formatDate, readableValue } from './submissionFormat.js';
+import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';
 import './reviewLayout.css';
 
 function AnswerList({ answers }) {
@@ -60,7 +61,14 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
         <aside className="review-layout__side">
           <div className="submission-review__hero"><div><span className="eyebrow">{current.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{current.studentName}</strong><small>Esitatud {formatDate(current.completedAt)}</small></div><div>{current.percentage != null ? <b>{current.percentage}%</b> : <ClipboardCheck size={28} />}{current.score?.total ? <small>{current.score.correct}/{current.score.total} õiget</small> : null}</div></div>
           {current.selfAssessment ? <section className="submission-self"><strong>Õpilase enesehinnang</strong><p>{current.selfAssessment.difficulty ? `Raskus: ${current.selfAssessment.difficulty}. ` : ''}{current.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
-          {Array.isArray(current.errorLog) && current.errorLog.length ? <section><h3>Automaatselt tuvastatud vead</h3><div className="submission-errors">{current.errorLog.map((item, index) => <p key={index}>{readableValue(item)}</p>)}</div></section> : null}
+          {Array.isArray(current.errorLog) && current.errorLog.length ? (
+            <section>
+              <h3>Automaatselt tuvastatud vead ({current.errorLog.length})</h3>
+              {worksheetDoc?.blocks?.length
+                ? <ul className="auto-errors">{describeAutoErrors(worksheetDoc, current.errorLog).map((item, index) => <li key={index}><strong>{item.task}{item.where ? ` — ${item.where}` : ''}</strong><span><s>{item.answer || 'vastus puudub'}</s>{item.expected ? <> → <b>{item.expected}</b></> : null}</span></li>)}</ul>
+                : <div className="submission-errors">{current.errorLog.map((item, index) => <p key={index}>{readableValue(item)}</p>)}</div>}
+            </section>
+          ) : null}
           {staff ? (
             <>
               <section className="submission-feedback">
