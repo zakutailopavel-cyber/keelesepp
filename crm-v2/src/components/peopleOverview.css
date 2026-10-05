@@ -5,3 +5,15 @@
 .people-overview__metrics i{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:11px;color:#9ae8cb;background:rgba(98,218,173,.12)}.people-overview__metrics span{display:grid;gap:2px;min-width:0}.people-overview__metrics small{color:rgba(255,255,255,.66);font-size:.66rem}.people-overview__metrics strong{font:750 1.22rem/1 Manrope,sans-serif}.people-overview__metrics em{overflow:hidden;color:rgba(255,255,255,.5);font-size:.6rem;font-style:normal;text-overflow:ellipsis;white-space:nowrap}
 .people-directory-toolbar{border-radius:16px;background:rgba(255,255,255,.88);box-shadow:0 10px 28px rgba(16,47,66,.06)}.group-card,.teacher-card-link .teacher-card,.parent-card{border-radius:18px;box-shadow:0 10px 30px rgba(16,47,66,.055)}.group-card,.parent-card{content-visibility:auto;contain-intrinsic-size:430px}.teacher-card-link:focus-visible{outline:3px solid rgba(32,128,97,.24);outline-offset:3px;border-radius:20px}
 @media(max-width:1050px){.people-overview{grid-template-columns:1fr;gap:18px}}@media(max-width:700px){.people-overview{padding:20px}.people-overview__metrics{grid-template-columns:repeat(2,1fr)}}@media(max-width:420px){.people-overview__metrics{grid-template-columns:1fr}.people-overview__metrics>div{min-height:60px}}
+
+/* Compact overview: one light row of numbers instead of a large dark banner, so the work list starts right below. */
+.people-overview{display:block;margin-bottom:16px;padding:0;border:0;border-radius:0;color:inherit;background:none;box-shadow:none;overflow:visible}
+.people-overview::after{display:none}
+.people-overview__intro{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.people-overview__metrics{display:flex;flex-wrap:wrap;gap:8px}
+.people-overview__metrics>div{min-height:0;padding:8px 14px 8px 10px;border:1px solid var(--border);border-radius:14px;background:#fff;backdrop-filter:none;box-shadow:var(--shadow-sm)}
+.people-overview__metrics i{flex-basis:30px;width:30px;height:30px;border-radius:9px;color:var(--green);background:var(--green-soft)}
+.people-overview__metrics small{color:var(--muted);font-size:.7rem}
+.people-overview__metrics strong{color:var(--ink);font-size:1.05rem}
+.people-overview__metrics em{color:var(--muted);font-size:.66rem}
+@media(max-width:420px){.people-overview__metrics>div{flex:1 1 calc(50% - 8px)}}

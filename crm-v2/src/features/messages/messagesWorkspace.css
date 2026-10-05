@@ -7,17 +7,20 @@
 }
 
 .message-metric-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
-.message-metric {
-  display: grid;
-  gap: 5px;
-  min-height: 116px;
-  padding: 16px 18px;
+/* compact number chips: the inbox starts right under them */
+.message-metric.card {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-height: 0;
+  padding: 8px 14px;
+  border-radius: 14px;
 }
 
 .message-metric span {
@@ -29,8 +32,9 @@
 .message-metric strong {
   color: var(--navy);
   font-family: Manrope, sans-serif;
-  font-size: 1.85rem;
+  font-size: 1.15rem;
   line-height: 1;
+  order: -1;
 }
 
 .message-metric small {

@@ -27,7 +27,8 @@ test('roadmap is integrated into the existing B2 curriculum instead of a separat
   assert.equal(manifest.level,'B2');
   const html=fs.readFileSync(path.join(root,'haldus-b1-b2-roadmap/index.html'),'utf8');
   assert.match(html,/level:'B2'/);
-  assert.match(html,/description:''/);
+  // the installer leaves the description alone: it holds the lesson plan written from Õppevara
+  assert.doesNotMatch(html,/description:/);
   assert.match(html,/collection\('curriculumLessons'\)/);
   assert.match(html,/worksheetPrompt:prompt\(m,l\)/);
   assert.match(html,/location\.replace\('\/haldus-exercises\//);
