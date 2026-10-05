@@ -49,7 +49,7 @@ export function syncResultMessage(result = {}) {
 export function lessonSyncState(item) {
   if (!item || item.isGroup) return null;
   if (item.source === 'gcal') {
-    return { tone: 'neutral', label: 'Google Calendarist', hint: 'See tund tuli Google Calendarist. Aega muuda Google Calendaris, muidu kirjutab järgmine sünkroonimine selle üle.' };
+    return { tone: 'neutral', label: 'Algselt Google Calendarist', hint: 'Muuda tundi KeeleSepas: muudatus saadetakse Google Calendarisse. Google’is tehtud muudatused KeeleSeppa ei jõua.' };
   }
   switch (item.gcalSyncStatus) {
     case 'synced': return { tone: 'success', label: 'Google Calendaris', hint: '' };
@@ -60,7 +60,8 @@ export function lessonSyncState(item) {
   }
 }
 
-/** Google owns imported lessons: moving them in KeeleSepp would be undone by the next import. */
-export function isGoogleOwned(item) {
-  return Boolean(item) && !item.isGroup && item.source === 'gcal';
+/** Lessons go from KeeleSepp to Google only (owner decision 2026-10-05): no lesson is owned by Google any more,
+ *  lessons that once came from Google are edited in KeeleSepp like the others. */
+export function isGoogleOwned() {
+  return false;
 }

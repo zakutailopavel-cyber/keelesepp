@@ -47,9 +47,9 @@ describe('Google Calendar model', () => {
     expect(lessonSyncState({ isGroup: true })).toBeNull();
     expect(lessonSyncState({ gcalSyncStatus: 'synced' }).label).toBe('Google Calendaris');
     expect(lessonSyncState({ gcalSyncStatus: 'error', gcalSyncError: 'Forbidden' })).toMatchObject({ tone: 'danger', hint: 'Forbidden' });
-    expect(lessonSyncState({ source: 'gcal', gcalSyncStatus: 'synced' }).label).toBe('Google Calendarist');
+    expect(lessonSyncState({ source: 'gcal', gcalSyncStatus: 'synced' }).label).toBe('Algselt Google Calendarist');
     expect(lessonSyncState({})).toBeNull();
-    expect(isGoogleOwned({ source: 'gcal' })).toBe(true);
+    expect(isGoogleOwned({ source: 'gcal' })).toBe(false);
     expect(isGoogleOwned({ source: 'keelesepp-crm-v2' })).toBe(false);
   });
 });
@@ -87,7 +87,7 @@ describe('GoogleCalendarCard', () => {
     expect(repo.disconnect).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: /Kinnita: katkesta ühendus/ }));
     await waitFor(() => expect(repo.disconnect).toHaveBeenCalledWith('teacher-1'));
-    expect(await screen.findByRole('status')).toHaveTextContent('toimunud tunnid (7) jäid alles');
+    expect(await screen.findByRole('status')).toHaveTextContent('Tunnid jäid KeeleSeppa alles');
   });
 
   it('asks for write access when the connection is import-only', async () => {

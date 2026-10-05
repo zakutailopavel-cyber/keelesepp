@@ -429,3 +429,14 @@ test("importedLessonGoogleAction: deleting or cancelling an imported lesson goes
   assert.equal(importedLessonGoogleAction(null, { source: "gcal", status: "Tühistatud", gcalImportSuppressed: true }), "skip");
   assert.equal(importedLessonGoogleAction(null, { source: "gcal", status: "Planeeritud", gcalImportSuppressed: true }), "push");
 });
+
+test("importedLessonGoogleAction: with the Google import off, a changed imported lesson is pushed, an unchanged one is not", () => {
+  const { importedLessonGoogleAction } = require("./calendar-sync-core");
+  const before = { source: "gcal", gcalEventId: "ev1", date: "2026-10-06", time: "16:00", duration: 60, studentName: "Mari" };
+  const moved = { ...before, time: "17:00" };
+  assert.equal(importedLessonGoogleAction(before, moved, { importEnabled: false }), "push");
+  assert.equal(importedLessonGoogleAction(before, { ...before, notes: "x" }, { importEnabled: false }), "skip");
+  assert.equal(importedLessonGoogleAction(before, moved), "skip", "with the import on Google stays the source");
+  assert.equal(importedLessonGoogleAction(before, { ...moved, status: "Tühistatud" }, { importEnabled: false }), "cancel");
+  assert.equal(importedLessonGoogleAction(before, null, { importEnabled: false }), "delete");
+});
