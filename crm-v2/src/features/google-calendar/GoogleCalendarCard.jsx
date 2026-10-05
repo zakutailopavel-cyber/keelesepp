@@ -72,9 +72,9 @@ export default function GoogleCalendarCard({ user, repository = googleCalendarSe
     if (!disconnectArmed) { setDisconnectArmed(true); return; }
     setDisconnectArmed(false);
     run('disconnect', async () => {
-      const result = await repository.disconnect(user.uid);
+      await repository.disconnect(user.uid);
       await refresh();
-      setNotice({ tone: 'success', text: `Ühendus katkestati. Google'ist tulnud tulevased tunnid eemaldati KeeleSepast (${result.removed ?? 0}); toimunud tunnid (${result.kept ?? 0}) jäid alles.` });
+      setNotice({ tone: 'success', text: 'Ühendus katkestati. Tunnid jäid KeeleSeppa alles; Google Calendarisse saadetud sündmused jäävad sinu Google’i kalendrisse.' });
     });
   };
 
@@ -97,12 +97,11 @@ export default function GoogleCalendarCard({ user, repository = googleCalendarSe
       {status?.connected ? (
         <>
           <div className="integration-row"><div><strong>Olek</strong><span>{summary.label === 'Kahesuunaline' ? 'KeeleSepp ↔ Google' : summary.label}</span></div><Badge tone={summary.tone}>{summary.label}</Badge></div>
-          <div className="integration-row"><div><strong>Google → KeeleSepp</strong><span>{formatSyncTime(status.lastSyncAt)}{status.lastSyncCount ? ` · ${status.lastSyncCount} tundi` : ''}{status.lastSyncSkipped ? ` · ${status.lastSyncSkipped} sündmust ilma õpilaseta` : ''}</span></div></div>
           {status.writeEnabled ? <div className="integration-row"><div><strong>KeeleSepp → Google</strong><span>{formatSyncTime(status.lastPushAt)}</span></div></div> : null}
           {summary.error ? <p className="form-error" role="alert">{summary.error}</p> : null}
           {status.requiresWriteConsent ? (
             <div className="gcal-consent">
-              <p className="settings-copy">Praegu tulevad tunnid ainult Google'ist KeeleSeppa. Luba KeeleSepal oma tunde Google Calendarisse kirjutada.</p>
+              <p className="settings-copy">Luba KeeleSepal oma tunde Google Calendarisse kirjutada — muidu tunnid sinna ei jõua.</p>
               <Button loading={busy === 'connect'} onClick={connect}>Luba kirjutamine</Button>
             </div>
           ) : null}
@@ -112,12 +111,12 @@ export default function GoogleCalendarCard({ user, repository = googleCalendarSe
               <span>Näita minu grupitunde Google Calendaris</span>
             </label>
           ) : null}
-          <p className="settings-copy">Google'is lisatud sündmus seotakse õpilasega nime järgi pealkirjas (nt „Tund — Mari Tamm”). Tunnid, mis tulid Google'ist, muuda Google Calendaris.</p>
+          <p className="settings-copy">Tunnid liiguvad ainult KeeleSepast Google Calendarisse. Lisa ja muuda tunde KeeleSepas; Google’is tehtud muudatused ja uued sündmused KeeleSeppa ei tule.</p>
           <div className="gcal-actions">
             <Button variant="secondary" loading={busy === 'sync'} disabled={Boolean(busy) && busy !== 'sync'} onClick={syncNow}><RefreshCw size={16} /> Sünkrooni kohe</Button>
             <Button variant="danger" loading={busy === 'disconnect'} disabled={Boolean(busy) && busy !== 'disconnect'} onClick={disconnect}><Unplug size={16} /> {disconnectArmed ? 'Kinnita: katkesta ühendus' : 'Katkesta ühendus'}</Button>
           </div>
-          {disconnectArmed ? <p className="form-hint">Google'ist tulnud tulevased tunnid kaovad KeeleSepast, toimunud tunnid jäävad. Sinu Google'i kalendrisse jäävad sündmused alles. <button type="button" className="link-button" onClick={() => setDisconnectArmed(false)}>Loobu</button></p> : null}
+          {disconnectArmed ? <p className="form-hint">Tunnid jäävad KeeleSeppa alles. Sinu Google’i kalendrisse jäävad sündmused alles, kuid neid enam ei uuendata. <button type="button" className="link-button" onClick={() => setDisconnectArmed(false)}>Loobu</button></p> : null}
         </>
       ) : null}
     </Card>

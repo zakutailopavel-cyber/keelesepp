@@ -8521,8 +8521,8 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         lastPushAt: null,
         lastPushError: "",
       });
-      // Trigger initial sync
-      await syncTeacherCalendar(uid, connection);
+      // Trigger initial sync (KeeleSepp → Google only; Google events are not imported)
+      if (GOOGLE_IMPORT_ENABLED) await syncTeacherCalendar(uid, connection);
       await flushCalendarSyncOutbox(uid, connection);
       await backfillScheduleToGoogle(uid, connection);
       await syncTeacherGroupsToGoogle(uid, connection);
@@ -8555,8 +8555,11 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
         ? await backfillScheduleToGoogle(uid, connection, { force, retryErrors: true })
         : { synced: 0, skipped: 0, failed: 0 };
       const groups = await syncTeacherGroupsToGoogle(uid, connection);
-      const result = await syncTeacherCalendar(uid, connection);
+      const result = GOOGLE_IMPORT_ENABLED
+        ? await syncTeacherCalendar(uid, connection)
+        : { synced: 0, skipped: 0, removed: 0, cancelled: 0, exceptions: 0 };
       res.json({
+        importEnabled: GOOGLE_IMPORT_ENABLED,
         success: true,
         synced: result.synced,
         skipped: result.skipped,
@@ -8598,32 +8601,36 @@ exports.gcalApi = functions.https.onRequest(async (req, res) => {
       await db.collection("users").doc(uid).update({
         gcal: FieldValue.delete(),
       });
-      // Remove synced events from schedule
-      const teacherName = (profile.displayName || "").split(" ")[0] || profile.displayName || "";
-      const byUidSnap = await db.collection("schedule")
-        .where("source", "==", "gcal")
-        .where("teacherUid", "==", uid)
-        .get();
-      const byNameSnap = teacherName
-        ? await db.collection("schedule").where("source", "==", "gcal").where("teacher", "==", teacherName).get()
-        : { docs: [] };
-      // Imported lessons that already took place stay as history; only today's and future ones go.
-      const today = localDate(new Date(), APP_TIME_ZONE);
-      const batch = db.batch();
-      const seen = new Set();
-      let removed = 0;
-      let kept = 0;
-      [...byUidSnap.docs, ...byNameSnap.docs].forEach(d => {
-        if (seen.has(d.id)) return;
-        seen.add(d.id);
-        const data = d.data() || {};
-        const date = String(data.date || data.startDate || "");
-        if (!data.recurring && date && date < today) { kept++; return; }
-        batch.delete(d.ref);
-        removed++;
-      });
-      await batch.commit();
-      res.json({ success: true, removed, kept });
+      // With the Google import off, lessons that once came from Google are KeeleSepp lessons: they stay.
+      if (GOOGLE_IMPORT_ENABLED) {
+        const teacherName = (profile.displayName || "").split(" ")[0] || profile.displayName || "";
+        const byUidSnap = await db.collection("schedule")
+          .where("source", "==", "gcal")
+          .where("teacherUid", "==", uid)
+          .get();
+        const byNameSnap = teacherName
+          ? await db.collection("schedule").where("source", "==", "gcal").where("teacher", "==", teacherName).get()
+          : { docs: [] };
+        // Imported lessons that already took place stay as history; only today's and future ones go.
+        const today = localDate(new Date(), APP_TIME_ZONE);
+        const batch = db.batch();
+        const seen = new Set();
+        let removed = 0;
+        let kept = 0;
+        [...byUidSnap.docs, ...byNameSnap.docs].forEach(d => {
+          if (seen.has(d.id)) return;
+          seen.add(d.id);
+          const data = d.data() || {};
+          const date = String(data.date || data.startDate || "");
+          if (!data.recurring && date && date < today) { kept++; return; }
+          batch.delete(d.ref);
+          removed++;
+        });
+        await batch.commit();
+        res.json({ success: true, removed, kept });
+        return;
+      }
+      res.json({ success: true, removed: 0, kept: 0, importEnabled: false });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -9228,6 +9235,11 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
   return { deleted, failed };
 }
 
+// Owner decision 2026-10-05: lessons go from KeeleSepp to Google Calendar only. Google events are no longer imported
+// (no new lessons from Google, no deletions because an event was removed in Google). Lessons imported earlier are
+// now ordinary KeeleSepp lessons: a change in the CRM updates their Google event.
+const GOOGLE_IMPORT_ENABLED = false;
+
 async function syncScheduleRecordToGoogle(
   scheduleId,
   before,
@@ -9236,7 +9248,7 @@ async function syncScheduleRecordToGoogle(
 ) {
   const schedule = after || before;
   // lessons imported from Google: only deletion/cancellation (and a later re-planning) go back to Google
-  const importedAction = importedLessonGoogleAction(before, after);
+  const importedAction = importedLessonGoogleAction(before, after, { importEnabled: GOOGLE_IMPORT_ENABLED });
   if (!schedule || schedule.isGroup || importedAction === "skip") {
     return { skipped: "external_or_group" };
   }
@@ -9859,7 +9871,7 @@ exports.syncAllCalendars = functions.pubsub
           await backfillScheduleToGoogle(uid, connection, { retryErrors: true });
         }
         await syncTeacherGroupsToGoogle(uid, connection);
-        await syncTeacherCalendar(uid, connection);
+        if (GOOGLE_IMPORT_ENABLED) await syncTeacherCalendar(uid, connection);
       } catch (e) {
         console.error(`Sync failed for ${uid}:`, e.message);
         const message = String(e.message || "Sync failed").slice(0, 500);

@@ -400,14 +400,19 @@ const RRULE_TO_OFFSET = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
 //   "cancel"  – an imported lesson was cancelled: delete its Google event, keep the CRM record (import suppressed)
 //   "push"    – a cancelled/restored imported lesson is planned again: KeeleSepp now manages it (new Google event)
 //   "skip"    – nothing to do (imported lesson unchanged, or the cancellation was already handled)
-function importedLessonGoogleAction(before, after) {
+//   With the import switched off (importEnabled: false) KeeleSepp is the only source: an imported lesson that is
+//   changed in the CRM (time, date, length, repetition, student) is pushed to its Google event like any other lesson.
+const IMPORTED_LESSON_FIELDS = ["date", "time", "duration", "day", "startDate", "endDate", "recurring", "excludedDates", "studentId", "studentName"];
+function importedLessonGoogleAction(before, after, { importEnabled = true } = {}) {
   const schedule = after || before;
   if (!schedule || schedule.source !== "gcal") return "managed";
   if (!after) return before?.gcalEventId ? "delete" : "skip";
   if (after.status === "Tühistatud") {
     return after.gcalEventId && after.gcalSyncStatus !== "cancelled" ? "cancel" : "skip";
   }
-  return after.gcalImportSuppressed ? "push" : "skip";
+  if (after.gcalImportSuppressed) return "push";
+  if (!importEnabled && before && IMPORTED_LESSON_FIELDS.some((key) => JSON.stringify(before[key] ?? null) !== JSON.stringify(after[key] ?? null))) return "push";
+  return "skip";
 }
 
 function isIsoDate(value) {
