@@ -1,4 +1,5 @@
-import { Settings2, Sparkles, Target } from 'lucide-react';
+import { BookA, Settings2, Sparkles, Target } from 'lucide-react';
+import { createBlock } from '../../worksheet-studio/engine/registry.js';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
@@ -13,7 +14,7 @@ const UNSAVED = 'Töölehel on salvestamata muudatusi. Genereerimine laadib uue 
 
 // Lesson worksheets and the generator in one strip at the top of the worksheet constructor:
 // switch between the lesson's sheets, pick difficulty, generate the three sheets or one focus sheet.
-export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = false, onGenerated, onPreviewSheet, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
+export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = false, onGenerated, onPreviewSheet, onInsertBlocks, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState('core');
@@ -75,6 +76,22 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = fals
     }
   };
 
+  // the lesson's active vocabulary straight onto the sheet
+  const words = (profile?.activeVocabulary || []).filter((item) => item?.word);
+  const insertWords = (kind, event) => {
+    event.currentTarget.closest('details')?.removeAttribute('open');
+    if (kind === 'vocab') {
+      const block = createBlock('vocab');
+      block.data = { ...block.data, title: 'Tunni sõnad', words: words.map((item) => item.word).join(', ') };
+      onInsertBlocks([block]);
+    } else {
+      const block = createBlock('match');
+      block.data = { ...block.data, title: 'Ühenda sõna ja tõlge.', instruction: 'Leia igale sõnale tõlge.', pairs: words.filter((item) => item.translation).slice(0, 8).map((item) => ({ left: item.word, right: item.translation })) };
+      onInsertBlocks([block]);
+    }
+    setNotice(kind === 'vocab' ? `Lehele lisati ${words.length} tunni sõna.` : 'Lehele lisati sõnade ja tõlgete paarid.');
+  };
+
   const generateFocus = (event) => {
     event.currentTarget.closest('details')?.removeAttribute('open');
     run('focus', async () => {
@@ -113,6 +130,15 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = fals
             </details>
           </>
         ) : <span className="lgb-muted">Generaator pole selle tunni jaoks valmis</span>}
+        {words.length && onInsertBlocks ? (
+          <details className="st-more lgb-focus">
+            <summary className="st-btn"><BookA size={15} aria-hidden="true" /> Tunni sõnad ▾</summary>
+            <div className="st-menu">
+              <button type="button" onClick={(event) => insertWords('vocab', event)}>Sõnavara kast ({words.length} sõna)</button>
+              {words.some((item) => item.translation) ? <button type="button" onClick={(event) => insertWords('match', event)}>Ühenda: sõna – tõlge</button> : null}
+            </div>
+          </details>
+        ) : null}
         <Link className="st-btn" to={`/library/lessons/${encodeURIComponent(lessonId)}/worksheets`} title="Generaatori sisu ja katvus"><Settings2 size={15} aria-hidden="true" /> Seaded</Link>
       </div>
       {error ? <span className="lgb-error" role="alert">{error}</span> : null}

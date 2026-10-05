@@ -113,4 +113,27 @@ describe('LessonWorksheetStudioPage task regeneration', () => {
     expect(await screen.findByText(/Kolm töölehte genereeriti/)).toBeInTheDocument();
     await waitFor(() => expect(repository.load.mock.calls.length).toBeGreaterThan(1));
   });
+
+  it('puts the lesson words on the sheet from the lesson strip', async () => {
+    const lesson = { id: 'a2b1-016', tag: 'Грамматика', levelStage: 'A2', title: 'Ajamäärused ja päevaplaan' };
+    const record = generatedPracticeRecord();
+    const repository = {
+      load: vi.fn().mockResolvedValue(record),
+      loadLesson: vi.fn().mockResolvedValue(lesson),
+      list: vi.fn().mockResolvedValue([]),
+      saveDraft: vi.fn(),
+      publish: vi.fn(),
+      listVersions: vi.fn().mockResolvedValue([]),
+    };
+    const vocabularyRepository = { load: vi.fn().mockResolvedValue({ lexicon: [], source: '', wordCount: 0 }) };
+    const { container } = renderPage(repository, '/library/lessons/a2b1-016/worksheets/practice', vocabularyRepository);
+    await screen.findByText('Töölehe konstruktor');
+    const count = container.querySelectorAll('.ws-page .ws-card').length;
+    fireEvent.click(await screen.findByRole('button', { name: /Sõnavara kast/ }));
+    await waitFor(() => expect(container.querySelectorAll('.ws-page .ws-card')).toHaveLength(count + 1));
+    expect(container.querySelector('.ws-page')).toHaveTextContent('hommikul');
+    fireEvent.click(screen.getByRole('button', { name: 'Ühenda: sõna – tõlge' }));
+    await waitFor(() => expect(container.querySelectorAll('.ws-page .ws-card')).toHaveLength(count + 2));
+    expect(container.querySelector('.ws-page')).toHaveTextContent('утром');
+  });
 });
