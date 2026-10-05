@@ -1,5 +1,13 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Contact phone +372 5434 4155 everywhere — branch `agent/contact-phone`
+
+Owner: the public contact number is now +372 5434 4155 instead of +372 5374 0753, everywhere.
+- Replaced in `index.html`, `ru/index.html` (JSON-LD `telephone`, FAQ, contact block, footer, WhatsApp `wa.me/37254344155`),
+  `kutse`, `kutse.html`, `tingimused.html`, `haldus-calendar-v3.html`, CRM `PendingApprovalPage`, e-mail footers in
+  `functions/account-approval-core.js` and `functions/homework-mail-core.js`. No other occurrence left.
+- Functions with those e-mails redeployed (`notifyHomeworkCreated`, `notifyPendingAccount`, `staffOperationsApi`).
+
 ## 2026-10-05 — Calendar: several students at the same time / overlapping lessons allowed — branch `agent/calendar-overlaps`
 
 Owner: it must be possible to put several students on the same time, or let their times overlap.
