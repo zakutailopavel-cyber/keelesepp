@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Calendar: teachers mark green (free) and red (busy) windows — branch `agent/teacher-availability`
+
+Owner: teachers mark their windows green/red so the admin plans lessons into green ones and sees that red ones are
+impossible.
+- Data `teacherAvailability/{teacherUid}`: `teacherUid, teacherName, slots[{ id, kind: 'free'|'busy', day: Mon…Sun |
+  date: YYYY-MM-DD, start, end }] (≤ 200), updatedAt, updatedBy`. Service `teacherAvailabilityService`.
+- `firestore.rules`: read staff; write admin, or the teacher for their own doc; fixed keys; `updatedBy == uid`.
+  Emulator test `functions/teacher-availability-emulator.integration.js` (in `test:emulator`).
+- `calendar/availabilityModel.js`: `availabilityAt` → busy / free / open (red wins), `bandsOn`, `paintSlot` (a new window
+  replaces overlapping ones of the same weekday or date).
+- Calendar: „Minu ajad” (teacher) / „Õpetaja ajad” (admin, with a teacher chosen in the filter) opens a bar: Vaba /
+  Hõivatud, „Kordub iga nädal” (off = only that date), drag in the grid to paint, click a window to remove it. The
+  teacher's windows are drawn behind the lessons (green hatched / red striped, one-day windows with a dashed edge),
+  with a legend. Admin day view without a filter: teachers with windows that day get their own column.
+- Rule: creating or moving a lesson into the teacher's red window is refused („<teacher> ei ole … saadaval (punane
+  aeg)”); green and unmarked time are allowed. Existing lessons inside red stay as they are.
+- Tests: `availabilityModel.test.js` (2), calendar page tests for the red-window block and painting; checked in
+  headless Chrome. Calendar Vitest green except the known local Node 26 test.
+- **Needs the owner:** `firestore:rules` deploy after merge.
 ## 2026-10-05 — Google Calendar: KeeleSepp → Google only — branch `agent/calendar-one-way`
 
 Owner: lessons go from the site to Google, not back.

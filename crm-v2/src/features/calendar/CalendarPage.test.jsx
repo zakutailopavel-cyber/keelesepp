@@ -20,8 +20,9 @@ const curriculum = [
   { id: 'b1-2', title: 'Sagedus', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 2 },
 ];
 
-function repositories({ events = [], records = [], groups = [] } = {}) {
+function repositories({ events = [], records = [], groups = [], windows = [] } = {}) {
   return {
+    availabilityRepository: { list: vi.fn().mockResolvedValue(windows), save: vi.fn().mockResolvedValue({}) },
     scheduleRepository: {
       list: vi.fn().mockResolvedValue(events),
       create: vi.fn().mockResolvedValue({ id: 'created-1' }),
@@ -261,6 +262,34 @@ describe('calendar v2', () => {
     fireEvent.change(await screen.findByLabelText('Õpetaja'), { target: { value: 't2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', teacher: 'Jelena', teacherUid: 't2' })));
+  });
+
+  it('a lesson cannot be planned into a teacher\'s red window', async () => {
+    const props = renderCalendar({ windows: [{ teacherUid: 't2', teacherName: 'Jelena', slots: [{ id: 'x', kind: 'busy', day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()], start: '08:00', end: '12:00' }] }] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
+    fireEvent.change(await screen.findByLabelText('Õpetaja'), { target: { value: 't2' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    expect((await screen.findAllByText(/Jelena ei ole .* saadaval \(punane aeg\)/)).length).toBeGreaterThan(0);
+    expect(props.scheduleRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('the admin marks a teacher\'s green window by dragging in the week grid', async () => {
+    const props = renderCalendar({ events: [lesson()] });
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    fireEvent.change(screen.getByLabelText('Filtreeri õpetaja järgi'), { target: { value: 't1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Õpetaja ajad/ }));
+    expect(screen.getByRole('region', { name: 'Õpetaja ajad' })).toBeInTheDocument();
+    const column = document.querySelector('.tg-col');
+    const body = document.querySelector('.tg-body');
+    fireEvent.pointerDown(column, { button: 0, clientY: 0 });
+    fireEvent.pointerMove(body, { clientY: 240 });
+    fireEvent.pointerUp(body);
+    await waitFor(() => expect(props.availabilityRepository.save).toHaveBeenCalledTimes(1));
+    const saved = props.availabilityRepository.save.mock.calls[0][0];
+    expect(saved).toMatchObject({ teacherUid: 't1', teacherName: 'Pavel' });
+    expect(saved.slots).toEqual([expect.objectContaining({ kind: 'free', day: expect.any(String) })]);
   });
 
   it('"Alusta tundi" invites the student and opens the live room for today\'s lesson', async () => {

@@ -32,10 +32,14 @@ function crowdedClusters(laid, columnCount) {
   });
 }
 
-export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true }) {
+// bands(column) → [{ id, kind: 'free' | 'busy', start, end }] in minutes: a teacher's green/red windows behind the lessons.
+// paint: { kind } turns on painting windows: drag in a column → onPaint(column, startMinutes, endMinutes); a click on a
+// window → onBandClick(column, band).
+export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true, bands = null, paint = null, onPaint, onBandClick }) {
   const bodyRef = useRef(null);
   const columnRefs = useRef(new Map());
   const [drag, setDrag] = useState(null);
+  const [painting, setPainting] = useState(null);
   const [now, setNow] = useState(nowMinutes);
   const { start: GRID_START, end: GRID_END } = gridRange(columns.flatMap((column) => column.items));
   const HOURS = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, index) => GRID_START / 60 + index);
@@ -99,8 +103,41 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
     return () => globalThis.removeEventListener('keydown', onKey);
   }, [drag]);
 
+  const minutesAt = (element, clientY) => {
+    const rect = element.getBoundingClientRect();
+    return Math.max(GRID_START, Math.min(GRID_END, GRID_START + snapMinutes((clientY - rect.top) / PX_PER_MIN, 30)));
+  };
+  const startPaint = (event, column) => {
+    if (!paint || event.button !== 0) return;
+    const element = columnRefs.current.get(column.key);
+    if (!element) return;
+    event.preventDefault();
+    const at = minutesAt(element, event.clientY);
+    const band = event.target.closest?.('.tg-band');
+    setPainting({ column, from: at, to: Math.min(GRID_END, at + 30), y: event.clientY, moved: false, bandId: band?.dataset.band || '' });
+  };
+  const movePaint = (event) => {
+    if (!painting) return;
+    const element = columnRefs.current.get(painting.column.key);
+    const at = minutesAt(element, event.clientY);
+    const moved = painting.moved || Math.abs(event.clientY - painting.y) > 6;
+    setPainting({ ...painting, moved, to: at === painting.from ? Math.min(GRID_END, at + 30) : at });
+  };
+  const endPaint = () => {
+    if (!painting) return;
+    const current = painting;
+    setPainting(null);
+    if (!current.moved && current.bandId) {
+      const band = (bands?.(current.column) || []).find((entry) => String(entry.id) === current.bandId);
+      if (band) { onBandClick?.(current.column, band); return; }
+    }
+    const start = Math.min(current.from, current.to);
+    const end = Math.max(current.from, current.to);
+    if (end > start) onPaint?.(current.column, start, end);
+  };
+
   const slotClick = (event, column) => {
-    if (drag || event.target !== event.currentTarget) return;
+    if (paint || drag || event.target !== event.currentTarget) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const minutes = GRID_START + snapMinutes((event.clientY - rect.top) / PX_PER_MIN, 30);
     onSlot(column, toClock(Math.min(minutes, GRID_END - 30)));
@@ -108,7 +145,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
 
   const height = (GRID_END - GRID_START) * PX_PER_MIN;
   return (
-    <div className="tg" style={{ '--tg-cols': columns.length }}>
+    <div className={`tg ${paint ? `is-painting paint-${paint.kind}` : ''}`} style={{ '--tg-cols': columns.length }}>
       <div className="tg-head" aria-hidden="false">
         <div className="tg-gutter" />
         {columns.map((column) => (
@@ -117,7 +154,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
           </div>
         ))}
       </div>
-      <div className="tg-body" ref={bodyRef} onPointerMove={moveDrag} onPointerUp={endDrag} onPointerCancel={() => setDrag(null)}>
+      <div className="tg-body" ref={bodyRef} onPointerMove={(event) => { moveDrag(event); movePaint(event); }} onPointerUp={() => { endDrag(); endPaint(); }} onPointerCancel={() => { setDrag(null); setPainting(null); }}>
         <div className="tg-inner" style={{ height }}>
           <div className="tg-hours" aria-hidden="true">
             {HOURS.map((hour) => <span key={hour} style={{ top: (hour * 60 - GRID_START) * PX_PER_MIN }}>{String(hour).padStart(2, '0')}:00</span>)}
@@ -131,9 +168,16 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                 key={column.key}
                 ref={(element) => { if (element) columnRefs.current.set(column.key, element); else columnRefs.current.delete(column.key); }}
                 onClick={(event) => slotClick(event, column)}
+                onPointerDown={(event) => startPaint(event, column)}
                 role="group"
                 aria-label={`${column.subtitle} ${column.title}`}
               >
+                {(bands?.(column) || []).filter((band) => band.end > GRID_START && band.start < GRID_END).map((band) => {
+                  const top = Math.max(band.start, GRID_START) - GRID_START;
+                  const bottom = Math.min(band.end, GRID_END) - GRID_START;
+                  return <div key={band.id} data-band={band.id} className={`tg-band is-${band.kind}${band.date ? ' is-dated' : ''}`} style={{ top: top * PX_PER_MIN, height: (bottom - top) * PX_PER_MIN }} title={`${band.kind === 'busy' ? 'Hõivatud' : 'Vaba'} ${toClock(band.start)}–${toClock(band.end)}${band.date ? ' (ainult see päev)' : ' (iga nädal)'}`} />;
+                })}
+                {painting && painting.column.key === column.key ? <div className={`tg-band is-${paint.kind} is-preview`} style={{ top: (Math.min(painting.from, painting.to) - GRID_START) * PX_PER_MIN, height: Math.abs(painting.to - painting.from) * PX_PER_MIN }} /> : null}
                 {HOURS.slice(1).map((hour) => <i className="tg-line" key={hour} style={{ top: (hour * 60 - GRID_START) * PX_PER_MIN }} />)}
                 {column.isToday && now >= GRID_START && now <= GRID_END ? <i className="tg-now" style={{ top: (now - GRID_START) * PX_PER_MIN }} aria-label="Praegu" /> : null}
                 {crowdedClusters(laid, columns.length).map((group) => (
