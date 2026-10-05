@@ -20,6 +20,7 @@ import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
+import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
 import { formalLetterDocument } from './engine/templates.js';
@@ -177,6 +178,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const setBlocks = (blocks) => change({ ...doc, blocks });
   const selected = doc.blocks.find((b) => b.id === selectedId);
   const updateBlock = (nb) => setBlocks(doc.blocks.map((b) => (b.id === nb.id ? nb : b)));
+  // text changed directly on the sheet: a block field, or the sheet header when blockId is null
+  const editText = (blockId, path, text) => {
+    if (!blockId) { change({ ...doc, meta: setPath(doc.meta, path, text) }); return; }
+    const block = doc.blocks.find((b) => b.id === blockId);
+    if (block) { updateBlock({ ...block, data: setPath(block.data, path, text) }); setSelectedId(blockId); }
+  };
   const canRegenerateSelected = Boolean(
     selected &&
     generation &&
@@ -404,7 +411,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button>
                 </div>
               )}
-              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div>{filteredPalette.map(([g, defs]) => (
+              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti saad muuta ka otse lehel: tee sellel topeltklõps.</p>{filteredPalette.map(([g, defs]) => (
                 <div key={g} className="st-group">
                   <div className="st-group-title">{g}</div>
                   {defs.map((d) => {
@@ -422,7 +429,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
           <main className="st-canvas" ref={canvasRef}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onResize={resizeBlock} onAddItem={addItemTo} />
+              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onResize={resizeBlock} onAddItem={addItemTo} onEditText={editText} />
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>

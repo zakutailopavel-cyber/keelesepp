@@ -61,6 +61,38 @@ describe('WorksheetStudioPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
   });
 
+  it('edits the sheet title and a task title directly on the sheet', async () => {
+    const repository = repo();
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+
+    const title = container.querySelector('.ws-page .ws-title h2');
+    fireEvent.doubleClick(title);
+    expect(title).toHaveAttribute('contenteditable', 'plaintext-only');
+    title.textContent = 'Minu uus päev';
+    fireEvent.blur(title);
+
+    const heading = [...container.querySelectorAll('.ws-page .ws-card h3')].find((el) => !el.children.length);
+    const taskId = heading.closest('[data-block]').dataset.block;
+    const taskTitle = heading.textContent;
+    fireEvent.doubleClick(heading);
+    heading.textContent = 'Uus ülesanne';
+    fireEvent.keyDown(heading, { key: 'Escape' });
+    expect(container.querySelector('.ws-page .ws-card h3')).toBeTruthy();
+    const again = [...container.querySelectorAll('.ws-page .ws-card h3')].find((el) => el.closest('[data-block]').dataset.block === taskId);
+    expect(again).toHaveTextContent(taskTitle);
+    fireEvent.doubleClick(again);
+    again.textContent = 'Uus ülesanne';
+    fireEvent.keyDown(again, { key: 'Enter' });
+
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-title h2')).toHaveTextContent('Minu uus päev'));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(repository.save).toHaveBeenCalledTimes(1));
+    const saved = repository.save.mock.calls[0][0].document;
+    expect(saved.meta.title).toBe('Minu uus päev');
+    expect(saved.blocks.find((block) => block.id === taskId).data.title).toBe('Uus ülesanne');
+  });
+
   it('redirects a roadmap lesson without a standalone worksheet to its lesson constructor', async () => {
     const repository = repo({
       load: vi.fn().mockResolvedValue({

@@ -5,6 +5,7 @@ import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
 import { addItemLabel } from './addItem.js';
+import { findEditable } from './inlineEdit.js';
 import { BookOpen, CheckCircle2, Clock3, Headphones, Lightbulb, MessageCircle, PenLine, Star } from 'lucide-react';
 
 // Renders a worksheet document as real A4 pages (270 mm design canvas, zoomed to A4 when printed).
@@ -135,7 +136,9 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, onAddItem, startPage, onPageCount, focusId, onPick }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, onAddItem, onEditText, startPage, onPageCount, focusId, onPick }) {
+  // bumped after an inline edit so React redraws the text the browser changed in place
+  const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
   const [focus, setFocusState] = useState({});
   const interactive = mode === 'interactive';
@@ -195,14 +198,56 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   useLayoutEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
 
+  // Edit mode: double-click a text on the sheet to change it in place (Enter or click away saves, Esc cancels).
+  const editInline = (event) => {
+    if (mode !== 'edit' || !onEditText) return;
+    const card = event.target.closest?.('[data-block]');
+    const head = card ? null : event.target.closest?.('.ws-hdr, .ws-title');
+    const block = card ? doc.blocks.find((b) => b.id === card.dataset.block) : null;
+    if (!block && !head) return;
+    const hit = findEditable(event.target, card || head.parentElement, block ? block.data : doc.meta);
+    if (!hit) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const { el, path, text } = hit;
+    const draggable = el.closest('[draggable="true"]');
+    if (draggable) draggable.draggable = false;
+    el.setAttribute('contenteditable', 'plaintext-only');
+    el.classList.add('ws-inline-editing');
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const selection = globalThis.getSelection?.();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    let cancelled = false;
+    const onKey = (e) => {
+      e.stopPropagation();
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); el.blur(); }
+      if (e.key === 'Escape') { cancelled = true; el.blur(); }
+    };
+    const finish = () => {
+      el.removeEventListener('keydown', onKey);
+      el.removeEventListener('blur', finish);
+      el.removeAttribute('contenteditable');
+      el.classList.remove('ws-inline-editing');
+      if (draggable) draggable.draggable = true;
+      const next = el.textContent.replace(/\s+/g, ' ').trim();
+      setRev((value) => value + 1);
+      if (!cancelled && next && next !== text) onEditText(block ? block.id : null, path, next);
+    };
+    el.addEventListener('keydown', onKey);
+    el.addEventListener('blur', finish);
+  };
+
   const rowView = (row, key) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => <Card key={b.id} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
+      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
     </div>
   );
 
   return (
-    <div className={`ws-root mode-${mode}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined}>
+    <div className={`ws-root mode-${mode}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
       {/* hidden measuring layer, same width and styles as a page */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true">
         <div className="ws-measure-head"><Header meta={doc.meta} /></div>
@@ -210,7 +255,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       </div>
       {pages.map((idxs, p) => (
         <div className="ws-page" key={p}>
-          {p === 0 ? <Header meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
+          {p === 0 ? <Header key={`head:${rev}`} meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
           <div className="ws-flow">{idxs.map((i) => rows[i] && rowView(rows[i], i))}</div>
           {mode === 'edit' && idxs.length === 0 && <div className="ws-empty">Lisa vasakult esimene plokk.</div>}
           <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} />

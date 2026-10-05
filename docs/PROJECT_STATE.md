@@ -17,7 +17,15 @@ the constructor itself, with generating on top, without extra pages/tabs.
 - Tests: new lesson-constructor test (missing sheet opens, tabs, generate saves 3 drafts, reload); redirect test
   updated. Worksheet/library Vitest 31 files / 322 tests; ESLint clean; build OK. Full CRM suite locally: 10 failures
   in Live Classroom/calendar tests that use `localStorage` — Node 26 on this Mac (`localStorage` undefined); files not touched here.
-- No rules or functions change. Not tried in the real CRM yet.
+- No rules or functions change. Owner liked the preview layout.
+- Follow-up after the owner's preview (same PR): constructor restyled to the CRM look (white panels, soft grey canvas,
+  green `#087e6b` accent, DM Sans/Manrope, focus rings; the beige 2000s palette is gone; the printed sheet is unchanged).
+  Text can be edited on the sheet: double-click a text → edit in place, Enter/click away saves, Esc cancels
+  (`engine/inlineEdit.js` maps the text back to the one data string it came from; ambiguous or formatted text stays
+  inspector-only). Suhtlus: channel tabs „Kõik · KeeleSepp · Facebook · Instagram” were squeezed to a sliver in the
+  fixed-height list — header, search, tabs and „Alusta uut vestlust” no longer shrink, tabs wrap.
+- Tests: `inlineEdit.test.js` (2), studio inline edit test (title + task title, Esc cancels, Enter saves). Full CRM
+  Vitest 888/898 locally (same 10 Node 26 `localStorage` failures); ESLint clean; build OK.
 
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
 
