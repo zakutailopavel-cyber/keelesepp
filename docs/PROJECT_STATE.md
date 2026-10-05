@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
+
+Checked `origin/main` `253fd50`. Owner: see the worksheets a student did and grade them so the grades move the skills
+and the development map; in „Kodutööd” the work was hard to see (sheet cut off in a small modal).
+- `SubmissionReviewModal` (used by „Kodutööd” and the student card): window up to 1440 px × 94vh, the student's sheet
+  with answers on the left fitted to the width (annotations as before), on the right score, self-assessment, auto-found
+  errors, grade 1–5, **Oskused** (Lugemine, Kuulamine, Kirjutamine, Rääkimine, Grammatika, Sõnavara + skills the map
+  already has; skills the sheet's block types train are highlighted), comment. Phone: one column.
+- Skill grades (`features/homework/skillGrades.js`): grade → percent (1→20 … 5→95) → the methodology rule of
+  `skillmap-updater.js` (+5/+3/+1/0/−3); a skill the student does not have starts at that percent. Stored on the work
+  (`skillGrades`, `skillDeltas`, `skillCreated`); `homeworkService.reviewSubmission({ …, skillGrades })` writes the
+  work and `students.skillMap` (+ `skillMapUpdatedAt`) in one transaction; a re-check first takes back the previous
+  check of the same work (skills it created are removed). „Areng” shows up to 12 skills.
+- Student card tab **Tööd** (`StudentWorksPanel`): the student's handed-in worksheets and exercises (pending first
+  count), grade and skill grades in the row, click → the check window; saving updates „Areng” at once.
+- No rules change (staff already update works and their students' cards). Tests: `skillGrades.test.js` (3),
+  Kodutööd review test with a skill grade, student card works test; homework+students Vitest 76/76; ESLint clean;
+  build OK. Layout checked in headless Chrome at 1440 px and ~500 px with a sample sheet.
+
 ## 2026-10-05 — Student card „Tunnid”: every held lesson opens on its own — branch `agent/student-lesson-detail`
 
 Checked `origin/main` `a32e73f`. Owner: in the lesson list each lesson should open separately.

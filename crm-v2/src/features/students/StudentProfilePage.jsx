@@ -15,6 +15,8 @@ import { facebookContact, instagramContact } from '../../utils/socialLinks.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import StudentFinancePanel from './StudentFinancePanel.jsx';
 import StudentLessonsPanel from './StudentLessonsPanel.jsx';
+import StudentWorksPanel from './StudentWorksPanel.jsx';
+import { homeworkService } from '../../services/firebase/homework.js';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
@@ -38,12 +40,13 @@ function SocialRow({ label, contact }) {
 const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
   { id: 'lessons', label: 'Tunnid' },
+  { id: 'works', label: 'Tööd' },
   { id: 'learning', label: 'Areng' },
   { id: 'assessment', label: 'Esmane hindamine' },
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, petApi, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, petApi, actor }) {
   const { studentId } = useParams();
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
@@ -84,7 +87,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
     if (!canViewFinance && activeTab === 'finance') setActiveTab('overview');
   }, [activeTab, canViewFinance]);
 
-  const progress = useMemo(() => Object.entries(state.student?.skillMap || {}).sort((a, b) => b[1] - a[1]).slice(0, 8), [state.student]);
+  const progress = useMemo(() => Object.entries(state.student?.skillMap || {}).sort((a, b) => b[1] - a[1]).slice(0, 12), [state.student]);
   const visibleTabs = PROFILE_TABS.filter((tab) => !tab.financeOnly || canViewFinance);
 
   if (state.loading) return <div className="page-content"><Card><LoadingState label="Laen õpilase profiili…" /></Card></div>;
@@ -142,6 +145,12 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
             user={currentUser}
             onChanged={(lessons) => setState((current) => ({ ...current, lessons }))}
           />
+        ) : null}
+
+        {activeTab === 'works' ? (
+          <div className="profile-grid">
+            <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
+          </div>
         ) : null}
 
         {activeTab === 'learning' ? (

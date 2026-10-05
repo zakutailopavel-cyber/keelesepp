@@ -60,6 +60,7 @@ describe('HomeworkPage', () => {
     expect(dialog).toHaveTextContent('Minu ema nimi on Mari.');
     fireEvent.change(within(dialog).getByLabelText('Hinne 1–5'), { target: { value: '5' } });
     fireEvent.change(within(dialog).getByLabelText('Kommentaar õpilasele'), { target: { value: 'Väga hea töö!' } });
+    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Oskus Grammatika' }), { target: { value: '4' } });
     fireEvent.click(within(dialog).getByRole('button', { name: /Saada tagasiside/ }));
 
     await waitFor(() => expect(data.repository.reviewSubmission).toHaveBeenCalledWith({
@@ -67,6 +68,7 @@ describe('HomeworkPage', () => {
       teacherGrade: '5',
       teacherFeedback: 'Väga hea töö!',
       user,
+      skillGrades: { Grammatika: 4 },
     }));
     expect(await screen.findByRole('status')).toHaveTextContent('saadeti õpilasele');
     expect(data.studentRepository.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacherUid: 'teacher-1' }));

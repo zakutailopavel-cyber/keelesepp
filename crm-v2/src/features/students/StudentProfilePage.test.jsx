@@ -178,4 +178,30 @@ describe('student profile tabs and role access', () => {
     expect(await screen.findByText('Toimunud ja kontrollitud')).toBeInTheDocument();
     expect(screen.queryByRole('combobox', { name: /staatus/ })).not.toBeInTheDocument();
   });
+
+  it('lists the student\'s works; checking one with skill grades updates the skill map in Areng', async () => {
+    const work = { id: 'w1', submissionKind: 'worksheet', studentId: 's1', studentName: 'Mari Maas', title: 'Pere tööleht', completedAt: '2026-09-20T10:00:00.000Z', percentage: 80, score: { correct: 4, total: 5 }, answers: { a: 'ema' }, reviewStatus: 'pending', skillGrades: {}, source: {} };
+    const homeworkApi = {
+      listSubmissionsByStudentIds: vi.fn().mockResolvedValue([work]),
+      saveSubmissionAnnotations: vi.fn(),
+      reviewSubmission: vi.fn().mockImplementation(async ({ submission, skillGrades }) => ({ ...submission, reviewStatus: 'reviewed', skillGrades, skillMap: { Lugemine: 82, Grammatika: 80 } })),
+    };
+    render(
+      <MemoryRouter initialEntries={['/students/s1']}>
+        <Routes><Route path="/students/:studentId" element={<StudentProfilePage studentApi={{ getById: vi.fn().mockResolvedValue({ id: 's1', name: 'Mari Maas', teacher: 'Pavel', active: true, skillMap: { Lugemine: 82 } }) }} lessonApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} invoiceApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} scheduleApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} homeworkApi={homeworkApi} actor={{ uid: 'a', roles: ['admin'], displayName: 'Admin' }} />} /></Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole('tab', { name: 'Tööd' }, { timeout: 4000 }));
+    fireEvent.click(await screen.findByRole('button', { name: /Pere tööleht/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Pere tööleht' });
+    expect(within(dialog).getByText('Lugemine')).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByRole('combobox', { name: 'Oskus Grammatika' }), { target: { value: '4' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: /Saada tagasiside/ }));
+    expect(await screen.findByText(/Oskuste hinnang on arengukaardil/)).toBeInTheDocument();
+    expect(homeworkApi.reviewSubmission).toHaveBeenCalledWith(expect.objectContaining({ skillGrades: { Grammatika: 4 } }));
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Areng' }));
+    expect(screen.getByText('Grammatika')).toBeInTheDocument();
+    expect(screen.getByText('80%')).toBeInTheDocument();
+  });
 });

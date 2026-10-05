@@ -1,6 +1,7 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
+import { applySkillGrades } from '../../features/homework/skillGrades.js';
 
 function chunksOfTen(values = []) {
   return Array.from({ length: Math.ceil(values.length / 10) }, (_, index) => values.slice(index * 10, index * 10 + 10));
@@ -71,6 +72,8 @@ export function normalizeSubmission(id, data = {}, submissionKind) {
     reviewedAt: timestampValue(data.reviewedAt),
     reviewedByName: data.reviewedByName || '',
     annotations: Array.isArray(data.annotations) ? data.annotations : [],
+    skillGrades: data.skillGrades && typeof data.skillGrades === 'object' ? data.skillGrades : {},
+    skillDeltas: data.skillDeltas && typeof data.skillDeltas === 'object' ? data.skillDeltas : {},
     source: data,
   };
 }
@@ -225,13 +228,14 @@ export const homeworkService = {
     const { db } = requireFirebaseClient();
     await deleteDoc(doc(db, 'homework', id));
   },
-  async reviewSubmission({ submission, teacherGrade, teacherFeedback, user }) {
+  async reviewSubmission({ submission, teacherGrade, teacherFeedback, user, skillGrades = null }) {
     const collectionName = submission?.submissionKind === 'worksheet' ? 'worksheetAssignments' : 'exerciseResults';
     const grade = teacherGrade === '' || teacherGrade == null ? null : Number(teacherGrade);
     const feedback = String(teacherFeedback || '').trim();
     if (!submission?.id || !['worksheet', 'exercise'].includes(submission.submissionKind)) throw new Error('Kontrollitavat tööd ei leitud.');
     if (grade !== null && (!Number.isInteger(grade) || grade < 1 || grade > 5)) throw new Error('Hinne peab olema vahemikus 1–5.');
-    if (grade === null && !feedback) throw new Error('Lisa hinne või tagasiside.');
+    const grades = Object.fromEntries(Object.entries(skillGrades || {}).filter(([skill, value]) => skill && [1, 2, 3, 4, 5].includes(Number(value))).map(([skill, value]) => [skill, Number(value)]));
+    if (grade === null && !feedback && !Object.keys(grades).length) throw new Error('Lisa hinne või tagasiside.');
 
     const { db } = requireFirebaseClient();
     const reviewedAt = new Date().toISOString();
@@ -245,6 +249,34 @@ export const homeworkService = {
       seenByTeacher: true,
       updatedAt: reviewedAt,
     };
+    // skill grades move the student's skill map; done together with the review so a check never counts twice
+    if (skillGrades && submission.studentId) {
+      const submissionRef = doc(db, collectionName, submission.id);
+      const studentRef = doc(db, 'students', submission.studentId);
+      const applied = await runTransaction(db, async (transaction) => {
+        const [current, student] = await Promise.all([transaction.get(submissionRef), transaction.get(studentRef)]);
+        if (!student.exists()) throw new Error('Õpilase kaarti ei leitud.');
+        const before = current.exists() ? current.data() : {};
+        const skillMap = { ...(student.data().skillMap || {}) };
+        const result = applySkillGrades(skillMap, grades, { deltas: before.skillDeltas || {}, created: before.skillCreated || [] });
+        for (const [skill, value] of Object.entries(result.values)) {
+          if (value === null) delete skillMap[skill]; else skillMap[skill] = value;
+        }
+        transaction.set(submissionRef, { ...payload, skillGrades: grades, skillDeltas: result.deltas, skillCreated: result.created }, { merge: true });
+        transaction.set(studentRef, { skillMap, skillMapUpdatedAt: reviewedAt }, { merge: true });
+        return { skillMap, deltas: result.deltas };
+      });
+      await addDoc(collection(db, 'activityLog'), {
+        type: 'homework.reviewed',
+        label: `${submission.title || 'Õpilase töö'} kontrollitud`,
+        byUid: user.uid,
+        byName: user.displayName || user.email || 'Õpetaja',
+        createdAt: reviewedAt,
+        date: reviewedAt.slice(0, 10),
+        meta: { submissionId: submission.id, submissionKind: submission.submissionKind, studentId: submission.studentId || '', teacherGrade: grade, skillGrades: grades },
+      });
+      return { ...submission, ...payload, skillGrades: grades, skillDeltas: applied.deltas, skillMap: applied.skillMap };
+    }
     const batch = writeBatch(db);
     batch.set(doc(db, collectionName, submission.id), payload, { merge: true });
     batch.set(doc(collection(db, 'activityLog')), {
