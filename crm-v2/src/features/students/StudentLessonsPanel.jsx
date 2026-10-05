@@ -6,7 +6,7 @@ import { Badge, Card, EmptyState } from '../../components/ui/index.js';
 // Student card „Tunnid”: the timetable (planned lessons) and the lesson journal (held / absent) in one place.
 // Admins change the mark of a held lesson here, including „Toimunud ja kontrollitud”.
 
-export const LESSON_MARKS = [
+const LESSON_MARKS = [
   { value: 'Toimunud', label: 'Toimunud' },
   { value: 'verified', label: 'Toimunud ja kontrollitud' },
   { value: 'Puudus_p', label: 'Puudus (teatas ette)' },
@@ -14,7 +14,7 @@ export const LESSON_MARKS = [
   { value: 'remove', label: 'Eemalda märge (jälle planeeritud)' },
 ];
 
-export const markOf = (lesson) => (lesson.status === 'Toimunud' || !lesson.status ? (lesson.verified ? 'verified' : 'Toimunud') : lesson.status);
+const markOf = (lesson) => (lesson.status === 'Toimunud' || !lesson.status ? (lesson.verified ? 'verified' : 'Toimunud') : lesson.status);
 const markLabel = (lesson) => LESSON_MARKS.find((mark) => mark.value === markOf(lesson))?.label || lesson.status || 'Toimunud';
 const markTone = (mark) => (mark === 'verified' ? 'success' : mark === 'Toimunud' ? 'info' : mark === 'Tühistatud' ? 'neutral' : 'warning');
 const today = () => new Date().toISOString().slice(0, 10);
