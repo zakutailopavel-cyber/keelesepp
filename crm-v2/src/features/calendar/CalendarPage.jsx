@@ -1,18 +1,19 @@
-import { ChevronLeft, ChevronRight, Plus, Search, Undo2, X, XCircle } from 'lucide-react';
+import { CalendarRange, ChevronLeft, ChevronRight, Plus, Search, Undo2, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, rememberLessonLink } from '../live-classroom/lessonLink.js';
 import { hasScheduleConflict } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, shiftDate, toIsoDate } from './calendarView.js';
-import { canMove, planDelete, planMove, teacherTone } from './calendarGrid.js';
+import { canMove, planDelete, planMove, teacherTone, toClock } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
+import { DAY_IDS, availabilityAt, bandsOn, busyMessage, paintSlot, slotsOn } from './availabilityModel.js';
 import LessonPanel from './LessonPanel.jsx';
 import QuickAttendanceAction from './QuickAttendanceAction.jsx';
 import CalendarGoogleChip from '../google-calendar/CalendarGoogleChip.jsx';
@@ -93,7 +94,7 @@ function LessonButton({ item, compact = false, onClick, onComplete, completing }
 }
 
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -117,6 +118,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [deleteAsk, setDeleteAsk] = useState(null);
   const [undo, setUndo] = useState(null);
   const [quickCompleting, setQuickCompleting] = useState('');
+  // painting a teacher's green (free) / red (busy) windows
+  const [paint, setPaint] = useState(null);
+  const [paintSaving, setPaintSaving] = useState(false);
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !isAdmin;
   const state = useAsyncData(async () => Promise.all([
@@ -127,6 +131,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   ]), [groupRepository, lessonRepository, scheduleRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
   // Admin can give a lesson to another teacher (substitution); teachers always plan their own lessons.
   const teacherState = useAsyncData(() => (isAdmin && teacherRepository?.list ? teacherRepository.list() : Promise.resolve([])), [isAdmin, teacherRepository]);
+  const availabilityState = useAsyncData(() => (availabilityRepository?.list ? availabilityRepository.list().catch(() => []) : Promise.resolve([])), [availabilityRepository]);
   const libraryState = useAsyncData(() => (libraryRepository?.list ? libraryRepository.list() : Promise.resolve(null)), [libraryRepository]);
   const catalog = useMemo(() => (libraryState.data ? buildTopicCatalog(libraryState.data.curriculumLessons) : null), [libraryState.data]);
   const dates = useMemo(() => datesForView(anchor, view), [anchor, view]);
@@ -156,6 +161,41 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const panelItem = panelKey ? occurrencesForDates(events, [panelKey.split('|')[1]]).map(withRecord).find((item) => item.occurrenceId === panelKey.split('|')[0]) || null : null;
   const panelGroup = panelItem?.isGroup ? groups.find((group) => group.id === panelItem.groupId) : null;
 
+  // ── teacher windows ──────────────────────────────────────────
+  const availabilityList = availabilityState.data || [];
+  const availabilityFor = (key) => availabilityList.find((entry) => entry.teacherUid === key) || availabilityList.find((entry) => key && entry.teacherName === key) || null;
+  const bandTeacher = teacherOnly ? user.uid : filters.teacher;
+  const bandsFor = (column) => {
+    const key = column.key.startsWith('t:') ? column.key.slice(2) : bandTeacher;
+    return key ? bandsOn(availabilityFor(key), column.date) : [];
+  };
+  const paintTeacher = teacherOnly
+    ? { uid: user.uid, name: user.displayName }
+    : isAdmin && filters.teacher ? { uid: filters.teacher, name: teachers.find((teacher) => teacher.id === filters.teacher)?.name || '' } : null;
+  const saveWindows = async (slots) => {
+    if (!paintTeacher) return;
+    setPaintSaving(true); setActionError('');
+    try {
+      await availabilityRepository.save({ teacherUid: paintTeacher.uid, teacherName: paintTeacher.name, slots, user });
+      await availabilityState.reload();
+    } catch (error) { setActionError(error.message || 'Aegu ei saanud salvestada.'); } finally { setPaintSaving(false); }
+  };
+  const onPaint = (column, start, end) => {
+    if (!paintTeacher || !paint) return;
+    const slot = { id: `w${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, kind: paint.kind, start: toClock(start), end: toClock(end), ...(paint.weekly ? { day: DAY_IDS[new Date(`${column.date}T12:00:00`).getDay()] } : { date: column.date }) };
+    saveWindows(paintSlot(availabilityFor(paintTeacher.uid)?.slots || [], slot));
+  };
+  const onBandClick = (column, band) => {
+    if (!paintTeacher) return;
+    if (!globalThis.confirm(`Eemaldan ${band.kind === 'busy' ? 'punase' : 'rohelise'} aja ${toClock(band.start)}–${toClock(band.end)}${band.date ? '' : ' (iga nädal)'}?`)) return;
+    saveWindows((availabilityFor(paintTeacher.uid)?.slots || []).filter((slot) => slot.id !== band.id));
+  };
+  // a lesson can never go into a teacher's red window
+  const assertTeacherWindow = ({ teacherUid, teacher, date, time, duration }) => {
+    const windows = availabilityFor(teacherUid) || availabilityFor(teacher);
+    if (availabilityAt(windows, { date, time, duration }) === 'busy') throw new Error(busyMessage(teacher, { date, time }));
+  };
+
   const navigatePeriod = (direction) => setAnchor((current) => view === 'month' ? shiftMonth(current, direction) : shiftDate(current, direction * (view === 'week' ? 7 : 1)));
   const openCreate = (date = anchor, time = '09:00') => { setEditing(null); setForm({ ...blankLesson(), date, time }); setModal(true); setActionError(''); };
   const openEdit = (item) => {
@@ -178,6 +218,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       const candidate = { ...form, studentName: student.name, ...teacherFields };
       const conflictEvents = occurrencesForDates(events, [candidate.date]).map((item) => ({ ...item, date: item.occurrenceDate }));
       if (hasScheduleConflict(conflictEvents, candidate, editing?.id)) throw new Error('Sellel õpetajal on valitud ajal juba teine tund.');
+      assertTeacherWindow(candidate);
       if (editing) await scheduleRepository.update(editing.id, candidate, editing);
       else await scheduleRepository.create(candidate);
       setModal(false); setEditing(null); await state.reload();
@@ -235,6 +276,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     const candidate = { date: toDate, time, duration, teacher: item.teacher, teacherUid: item.teacherUid };
     const sameDay = occurrencesForDates(events, [toDate]).filter((entry) => entry.occurrenceId !== item.occurrenceId).map((entry) => ({ ...entry, date: entry.occurrenceDate }));
     if (hasScheduleConflict(sameDay, candidate, item.id)) { setActionError(`${item.teacher || 'Õpetajal'} on sel ajal juba teine tund.`); return; }
+    try { assertTeacherWindow(candidate); } catch (error) { setActionError(error.message); return; }
     const move = { item, toDate, time, duration };
     if (item.recurring) setMoveAsk(move);
     else executeMove(move, 'single');
@@ -364,6 +406,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!isAdmin || filters.teacher) return [{ key: anchor, date: anchor, today, isToday: anchor === today, title: new Date(`${anchor}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'long' }), subtitle: new Date(`${anchor}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long' }), items: daily }];
     const byTeacher = new Map();
     daily.forEach((item) => { const key = item.teacherUid || item.teacher || '—'; if (!byTeacher.has(key)) byTeacher.set(key, { name: item.teacher || 'Õpetaja määramata', items: [] }); byTeacher.get(key).items.push(item); });
+    // teachers with marked windows today get a column too, so the admin sees where a lesson can still go
+    availabilityList.filter((entry) => slotsOn(entry, anchor).length && !byTeacher.has(entry.teacherUid)).forEach((entry) => byTeacher.set(entry.teacherUid, { name: entry.teacherName || 'Õpetaja', items: [] }));
     const list = [...byTeacher.entries()].sort((a, b) => a[1].name.localeCompare(b[1].name, 'et'));
     return (list.length ? list : [['—', { name: 'Tunde pole', items: [] }]]).map(([key, entry]) => ({ key: `t:${key}`, date: anchor, today, isToday: anchor === today, title: entry.name, subtitle: `${entry.items.length} ${entry.items.length === 1 ? "tund" : "tundi"}`, items: entry.items }));
   })();
@@ -395,6 +439,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       <div className="cal2-tools">
         <label className="cal2-search"><Search size={16} /><input aria-label="Otsi kalendrist" placeholder="Otsi õpilast või õpetajat" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></label>
         {teacherOnly ? null : <select className="cal2-select" aria-label="Filtreeri õpetaja järgi" value={filters.teacher} onChange={(event) => setFilters({ ...filters, teacher: event.target.value })}><option value="">Kõik õpetajad</option>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</select>}
+        {teacherOnly || isAdmin ? <Button variant={paint ? 'primary' : 'secondary'} onClick={() => { if (paint) { setPaint(null); return; } if (!paintTeacher) { setActionError('Vali enne õpetaja, kelle aegu soovid märkida.'); return; } setPaint({ kind: 'free', weekly: true }); }}><CalendarRange size={17} /> {teacherOnly ? 'Minu ajad' : 'Õpetaja ajad'}</Button> : null}
         <CalendarGoogleChip user={user} onSynced={state.reload} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} />
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
       </div>
@@ -405,6 +450,18 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {hasActiveFilters ? <Button variant="secondary" onClick={() => setFilters(emptyFilters())}>Tühjenda filtrid</Button> : null}
       <span className="cal2-hint">{narrow ? '' : 'Lohista tundi, et muuta aega · tõmba alumisest servast, et muuta kestust'}</span>
     </div>
+    {paint && paintTeacher ? (
+      <div className="cal2-paint" role="region" aria-label="Õpetaja ajad">
+        <strong>{teacherOnly ? 'Minu ajad' : `${paintTeacher.name} — ajad`}</strong>
+        <div className="view-switcher" role="group" aria-label="Aja liik">
+          <button type="button" aria-pressed={paint.kind === 'free'} className={paint.kind === 'free' ? 'active' : ''} onClick={() => setPaint({ ...paint, kind: 'free' })}><i className="cal2-dot is-free" /> Vaba (tunde võib panna)</button>
+          <button type="button" aria-pressed={paint.kind === 'busy'} className={paint.kind === 'busy' ? 'active' : ''} onClick={() => setPaint({ ...paint, kind: 'busy' })}><i className="cal2-dot is-busy" /> Hõivatud (tunde ei saa panna)</button>
+        </div>
+        <label className="checkbox-field"><input type="checkbox" checked={paint.weekly} onChange={(event) => setPaint({ ...paint, weekly: event.target.checked })} /> <span>Kordub iga nädal</span></label>
+        <span className="cal2-paint__hint">{paintSaving ? 'Salvestan…' : 'Lohista kalendris üle aja, et see märkida. Klõps märgitud alal eemaldab selle.'}</span>
+        <Button variant="secondary" onClick={() => setPaint(null)}>Valmis</Button>
+      </div>
+    ) : bandTeacher && availabilityFor(bandTeacher)?.slots?.length ? <p className="cal2-legend"><i className="cal2-dot is-free" /> vaba aeg <i className="cal2-dot is-busy" /> hõivatud — sinna tundi panna ei saa</p> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge" onClick={() => setActionError('')}>×</button></div> : null}
 
     <div className={`cal2-main ${panelItem ? 'has-panel' : ''}`}>
@@ -421,6 +478,10 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
                 onOpen={openPanel}
                 onQuickDone={quickDone}
                 onMove={onMove}
+                bands={bandsFor}
+                paint={paint && paintTeacher ? paint : null}
+                onPaint={onPaint}
+                onBandClick={onBandClick}
               />
               {!occurrences.length ? <p className="cal2-empty">{hasActiveFilters ? <>Filtritele vastavaid tunde ei leitud · <button type="button" className="link-button" onClick={() => setFilters(emptyFilters())}>Tühjenda filtrid</button></> : 'Valitud perioodil tunde ei ole — klõpsa kalendris vabal ajal, et lisada tund.'}</p> : null}
             </>}

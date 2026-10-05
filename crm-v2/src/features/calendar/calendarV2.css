@@ -149,3 +149,23 @@
 .tg-cluster-item:hover { filter: brightness(.97); }
 .tg-cluster-item:focus-visible { outline: 2px solid #087e6b; outline-offset: 1px; }
 .tg-cluster-item.is-done strong { text-decoration: none; opacity: .75; }
+
+/* Teacher windows behind the lessons: green = free for lessons, red = no lessons possible. */
+.tg-band { position: absolute; left: 0; right: 0; z-index: 0; pointer-events: none; border-left: 3px solid transparent; }
+.tg-band.is-free { background: repeating-linear-gradient(0deg, rgba(8, 126, 107, .10), rgba(8, 126, 107, .10) 6px, rgba(8, 126, 107, .14) 6px, rgba(8, 126, 107, .14) 7px); border-left-color: #0f8a73; }
+.tg-band.is-busy { background: repeating-linear-gradient(135deg, rgba(180, 35, 24, .10), rgba(180, 35, 24, .10) 6px, rgba(180, 35, 24, .18) 6px, rgba(180, 35, 24, .18) 12px); border-left-color: #b42318; }
+.tg-band.is-dated { border-left-style: dashed; }
+.tg-band.is-preview { opacity: .8; outline: 2px dashed currentColor; }
+.tg.is-painting .tg-col { cursor: crosshair; }
+.tg.is-painting .tg-band { pointer-events: auto; cursor: pointer; }
+.tg.is-painting .tg-block, .tg.is-painting .tg-cluster { pointer-events: none; opacity: .45; }
+
+/* painting bar and legend for teacher windows */
+.cal2-paint { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 12px; padding: 10px 14px; border: 1px solid #cfeae2; border-radius: 14px; background: #f3fbf8; }
+.cal2-paint .view-switcher button { display: inline-flex; align-items: center; gap: 6px; }
+.cal2-paint__hint { color: #627087; font-size: .84rem; flex: 1 1 220px; }
+.cal2-legend { display: flex; align-items: center; gap: 6px; margin: 0 0 10px; color: #627087; font-size: .82rem; }
+.cal2-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.cal2-dot.is-free { background: rgba(8, 126, 107, .35); border: 1px solid #0f8a73; }
+.cal2-dot.is-busy { background: rgba(180, 35, 24, .3); border: 1px solid #b42318; margin-left: 8px; }
+.cal2-paint .cal2-dot.is-busy { margin-left: 0; }

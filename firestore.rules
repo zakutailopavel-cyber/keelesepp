@@ -2134,6 +2134,18 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // Calendar: a teacher's green (free) and red (busy) windows. Staff read them (the admin plans lessons by them);
+    // the teacher edits their own, the admin anyone's.
+    match /teacherAvailability/{teacherUid} {
+      allow read: if isStaff();
+      allow write: if (isAdmin() || (isStaff() && teacherUid == uid()))
+        && request.resource.data.keys().hasOnly(['teacherUid', 'teacherName', 'slots', 'updatedAt', 'updatedBy'])
+        && request.resource.data.teacherUid == teacherUid
+        && request.resource.data.updatedBy == uid()
+        && request.resource.data.slots is list
+        && request.resource.data.slots.size() <= 200;
+    }
+
     // Worksheet constructor: blocks a teacher saved as a template, shared with all staff; only the author or an admin
     // removes one, nobody edits it in place.
     match /worksheetBlockTemplates/{templateId} {
