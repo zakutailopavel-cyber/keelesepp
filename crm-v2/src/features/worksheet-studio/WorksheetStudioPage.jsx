@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { worksheetDocsService } from '../../services/firebase/index.js';
+import { worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
+import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
 import { BLOCKS, GROUPS, checkDocument, createBlock } from './engine/registry.js';
@@ -34,7 +35,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const draftName = isNew ? 'new' : draftId || lessonId;
@@ -75,7 +76,15 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [savedAt, setSavedAt] = useState(0);
   // alternatives of one generated task, flipped through on the sheet: list[0] is the task as it was
   const [variants, setVariants] = useState(null);
+  const [comparing, setComparing] = useState(null);
+  const [myTemplates, setMyTemplates] = useState([]);
   useUnsavedGuard(dirty);
+  // own block templates (shared with all staff); the constructor works without them if they cannot be loaded
+  useEffect(() => {
+    let alive = true;
+    Promise.resolve().then(() => templates?.list?.()).then((list) => { if (alive) setMyTemplates(list || []); }).catch(() => {});
+    return () => { alive = false; };
+  }, [templates]);
   useEffect(() => { setVariants((current) => (current && current.blockId !== selectedId ? null : current)); }, [selectedId]);
   // Autosave: a draft is written to the database 15 s after the last change (a published sheet is saved by hand,
   // so a half-done change never replaces what students see without the teacher deciding it).
@@ -260,6 +269,42 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setBlocks(next);
     setSelectedId(b.id);
   };
+  // blocks made elsewhere (template, lesson words) go after the selected block, or to the end
+  const insertBlocks = (blocks) => {
+    if (!blocks.length) return;
+    const fresh = blocks.map((b) => ({ ...structuredClone(b), id: newId() }));
+    const at = selectedId ? doc.blocks.findIndex((x) => x.id === selectedId) + 1 : doc.blocks.length;
+    const next = [...doc.blocks];
+    next.splice(at, 0, ...fresh);
+    setBlocks(next);
+    setSelectedId(fresh[fresh.length - 1].id);
+  };
+  const saveTemplate = async (block) => {
+    const title = window.prompt('Malli nimi (näha kõigile õpetajatele):', block.data?.title || BLOCKS[block.type]?.label || 'Mall');
+    if (!title) return;
+    try {
+      const created = await templates.create({ title, block, user });
+      setMyTemplates((list) => [created, ...list]);
+      setNotice(`Mall „${created.title}” salvestati. Leiad selle vasakult „Mallid” alt.`);
+    } catch (error) {
+      setSaveError(error.message || 'Malli ei saanud salvestada.');
+    }
+  };
+  const removeTemplate = async (template) => {
+    if (!window.confirm(`Kustuta mall „${template.title}”?`)) return;
+    try {
+      await templates.remove(template.id);
+      setMyTemplates((list) => list.filter((item) => item.id !== template.id));
+    } catch (error) {
+      setSaveError(error.message || 'Malli ei saanud kustutada.');
+    }
+  };
+  const pickWebImage = async (file, credit) => {
+    const img = await repository.uploadImage(file);
+    if (!selected) return;
+    updateBlock({ ...selected, data: { ...selected.data, img, caption: selected.data.caption || credit.caption, credit: credit.credit, creditSource: credit.source } });
+    setNotice('Pilt lisati. Autor ja litsents on pildiallkirjas.');
+  };
   // joined blocks (look.js) move as one group
   const moveBlock = (id, dir) => setBlocks(moveRun(doc.blocks, id, dir));
   const dropMove = (fromId, toId) => setBlocks(dropRun(doc.blocks, fromId, toId));
@@ -313,6 +358,39 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setNotice('Vali vasakult plokk – see lisatakse valitud ploki järele.');
     globalThis.setTimeout(() => searchRef.current?.focus(), 0);
   };
+  // a quality issue clicked: select its block (or the sheet data) and bring it into view
+  const showIssue = (issue) => {
+    const blockId = String(issue.code || '').split(':')[0];
+    const block = doc.blocks.find((b) => b.id === blockId);
+    if (mode !== 'edit') switchMode('edit');
+    setSelectedId(block ? block.id : null);
+    globalThis.setTimeout(() => {
+      const el = block ? document.querySelector(`.ws-page [data-block="${globalThis.CSS?.escape ? globalThis.CSS.escape(block.id) : block.id}"]`) : document.querySelector('.ws-page .ws-title');
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }, 0);
+  };
+  // versions: compare a saved version with the sheet and bring back one task or the whole sheet
+  const versionDiff = (entry) => {
+    const old = entry.worksheetDoc?.blocks || [];
+    const now = new Map(doc.blocks.map((b) => [b.id, b]));
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    return old.map((block) => ({ block, state: !now.has(block.id) ? 'removed' : same(now.get(block.id), block) ? 'same' : 'changed' }))
+      .filter((row) => row.state !== 'same');
+  };
+  const restoreTask = (block) => {
+    const exists = doc.blocks.some((b) => b.id === block.id);
+    if (exists) updateBlock(structuredClone(block));
+    else {
+      const old = comparing.worksheetDoc.blocks;
+      const before = old.slice(0, old.findIndex((b) => b.id === block.id)).reverse().find((b) => doc.blocks.some((x) => x.id === b.id));
+      const at = before ? doc.blocks.findIndex((b) => b.id === before.id) + 1 : 0;
+      const next = [...doc.blocks];
+      next.splice(at, 0, structuredClone(block));
+      setBlocks(next);
+    }
+    setSelectedId(block.id);
+    setNotice(`Ülesanne „${block.data?.title || BLOCKS[block.type]?.label || 'plokk'}” toodi tagasi versioonist ${comparing.version}. Salvesta, et see jääks.`);
+  };
   const showVariant = (index) => {
     if (!variants) return;
     setVariants({ ...variants, index });
@@ -337,6 +415,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <button type="button" onClick={() => showVariant(0)} disabled={!variants.index}>Algne</button>
           </>
         ) : null}
+        {templates ? <button type="button" onClick={() => saveTemplate(block)} title="Salvesta see plokk mallina"><Icons.BookmarkPlus aria-hidden="true" /> Mall</button> : null}
         <button type="button" className="is-danger" onClick={() => deleteBlock(block.id)} title="Kustuta (Delete)" aria-label="Kustuta plokk"><Icons.Trash2 aria-hidden="true" /></button>
       </>
     );
@@ -475,11 +554,13 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             </details>
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
             <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
+            {!isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}`}>Määra õpilastele</Link> : null}
             <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>Avalda</button>
           </div>
         </header>
         {renderTop ? renderTop({
           dirty,
+          insertBlocks,
           // a generated sheet shown in the editor first: nothing is saved until „Salvesta” (or autosave), Ctrl+Z undoes it
           replaceDocument: (next, nextGeneration) => {
             change({ ...next, id: doc.id });
@@ -495,9 +576,19 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
         <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
           <summary>{quality.ready ? `✓ Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : `Kvaliteedikontroll: ${quality.errors.length} viga, ${quality.warnings.length} hoiatust`}</summary>
-          {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}>{issue.text}</li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
+          {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
         </details>
-        {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className="st-btn" key={entry.id} onClick={() => { if (window.confirm(`Taasta versioon ${entry.version} uue mustandina?`)) { change({ ...structuredClone(entry.worksheetDoc), id: doc.id }); setVersions([]); setNotice(`Versioon ${entry.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)}</div>}
+        {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className={`st-btn ${comparing?.id === entry.id ? 'primary' : ''}`} key={entry.id} onClick={() => setComparing(comparing?.id === entry.id ? null : entry)}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)} <button type="button" className="st-btn" onClick={() => { setVersions([]); setComparing(null); }}>Sulge</button></div>}
+        {comparing && (() => {
+          const rows = versionDiff(comparing);
+          return (
+            <div className="st-banner st-compare" role="region" aria-label={`Versioon ${comparing.version} võrreldes praegusega`}>
+              <strong>Versioon {comparing.version} võrreldes praegusega:</strong>
+              {rows.length ? <ul>{rows.map(({ block, state }) => <li key={block.id}><span>{state === 'removed' ? 'Kustutatud' : 'Muudetud'}: {block.data?.title || BLOCKS[block.type]?.label || 'plokk'}</span> <button type="button" className="st-btn" onClick={() => restoreTask(block)}>Too see ülesanne tagasi</button></li>)}</ul> : <span> ülesanded on samad.</span>}
+              <button type="button" className="st-btn" onClick={() => { if (window.confirm(`Taasta kogu versioon ${comparing.version} uue mustandina?`)) { change({ ...structuredClone(comparing.worksheetDoc), id: doc.id }); setVersions([]); setComparing(null); setNotice(`Versioon ${comparing.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>Taasta kogu leht</button>
+            </div>
+          );
+        })()}
 
         <div className="st-body">
           {mode === 'edit' && (
@@ -508,7 +599,17 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button>
                 </div>
               )}
-              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{filteredPalette.map(([g, defs]) => (
+              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{myTemplates.length ? (
+                <div className="st-group st-templates">
+                  <div className="st-group-title">Mallid</div>
+                  <ul>{myTemplates.filter((t) => !paletteQuery || t.title.toLowerCase().includes(paletteQuery.toLowerCase())).map((t) => (
+                    <li key={t.id}>
+                      <button type="button" className="st-block" onClick={() => insertBlocks([t.block])} title={`Lisa mall lehele${t.ownerName ? ` · ${t.ownerName}` : ''}`}><Icons.Bookmark size={16} aria-hidden="true" /><span>{t.title}</span></button>
+                      {t.ownerUid === user?.uid || user?.roles?.includes?.('admin') ? <button type="button" className="st-template-del" onClick={() => removeTemplate(t)} aria-label={`Kustuta mall ${t.title}`}>×</button> : null}
+                    </li>
+                  ))}</ul>
+                </div>
+              ) : null}{filteredPalette.map(([g, defs]) => (
                 <div key={g} className="st-group">
                   <div className="st-group-title">{g}</div>
                   {defs.map((d) => {
@@ -543,6 +644,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                       </button>
                     </div>
                   )}
+                  {'img' in (selected.data || {}) ? <ImageSearch key={`img-${selected.id}`} onPick={pickWebImage} /> : null}
                   <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
                     onDelete={() => deleteBlock(selected.id)}
                     onDuplicate={() => duplicateBlock(selected.id)}

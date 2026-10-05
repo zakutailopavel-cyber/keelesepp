@@ -17,7 +17,7 @@ const data = {
   ],
 };
 
-function renderPage(libraryData = data) {
+function renderPage(libraryData = data, path = '/library') {
   const repository = {
     list: vi.fn().mockResolvedValue(libraryData),
     assign: vi.fn().mockResolvedValue({ count: 1 }),
@@ -29,11 +29,17 @@ function renderPage(libraryData = data) {
   const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', group: 'A1 õhturühm', active: true }, { id: 'student-2', name: 'Jaan', subject: 'Eesti keel', level: 'A1', group: 'A1 õhturühm', active: true }] }) };
   const groupRepository = { list: vi.fn().mockResolvedValue([{ id: 'group-1', name: 'A1 õhturühm', students: ['student-1', 'student-2'] }]) };
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
-  render(<MemoryRouter><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} /></AuthContext.Provider></MemoryRouter>);
+  render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} /></AuthContext.Provider></MemoryRouter>);
   return { repository, studentRepository, groupRepository, user };
 }
 
 describe('LibraryPage', () => {
+  it('opens the assignment of a material straight from the constructor link (?assign=)', async () => {
+    renderPage(data, '/library?assign=lesson-1');
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('Pere tunnikava');
+  });
+
   it('shows a never-published worksheet as Tööleht, labels its preview Mustand and offers publishing from assignment', async () => {
     const { repository } = renderPage({ curriculumLessons: [{ id: 'draft-1', title: 'Mustandi leht', worksheetDoc: sampleDocument(), worksheetDocStatus: 'draft' }], exercises: [] });
     const row = await screen.findByRole('button', { name: /^Mustandi leht/ });
