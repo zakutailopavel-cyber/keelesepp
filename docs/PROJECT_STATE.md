@@ -16,7 +16,7 @@ the constructor itself, with generating on top, without extra pages/tabs.
 - Generation logic moved to `worksheet-generator/ui/lessonGeneration.js` (shared by the bar and the old page).
 - Tests: new lesson-constructor test (missing sheet opens, tabs, generate saves 3 drafts, reload); redirect test
   updated. Worksheet/library Vitest 31 files / 322 tests; ESLint clean; build OK. Full CRM suite locally: 10 failures
-  in Live Classroom/calendar tests that use `localStorage` — Node 26 on this Mac, unrelated files, same on main.
+  in Live Classroom/calendar tests that use `localStorage` — Node 26 on this Mac (`localStorage` undefined); files not touched here.
 - No rules or functions change. Not tried in the real CRM yet.
 
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
