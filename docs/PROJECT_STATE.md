@@ -30,6 +30,85 @@ Checked `origin/main` `b4bad01`. Owner: merge „Tunniplaan” and „Õppetöö
 - Tests: StudentProfilePage (8, 2 new); ESLint clean; build OK.
 - **Needs the owner:** `firestore:rules` deploy after merge (until then an admin can still mark — admins pass the rule
   already; the new rule only stops teachers).
+## 2026-10-05 — Constructor: own templates, lesson words, free photo search — branch `agent/constructor-library`
+
+Stacked on `agent/constructor-tools` (#294). Proposals 10–12 (last of the owner's list).
+- Templates: toolbar „Mall” saves the selected block (name asked) to `worksheetBlockTemplates/{id}`
+  (`title, block, ownerUid, ownerName, createdAt`), shared with all staff; „Mallid” group at the top of the block
+  list inserts one (new id); the author or an admin removes it. Service `worksheetTemplatesService`.
+- `firestore.rules`: `worksheetBlockTemplates` read staff; create staff, own `ownerUid`, fixed keys, title 1–120;
+  no update; delete author or admin. Emulator test `functions/worksheet-templates-emulator.integration.js` (added to
+  `test:emulator`) passed locally with the worksheet studio test (Java 21).
+- Lesson strip „Tunni sõnad ▾”: „Sõnavara kast” (all active vocabulary words) or „Ühenda: sõna – tõlge” (up to 8
+  pairs) from the lesson's generator profile.
+- Photo blocks: „Otsi pilti internetist” searches Openverse (free, no key; only the search words are sent), the
+  chosen photo is downloaded (`/thumb/?full_size=true`, CORS open), uploaded to our Storage and the caption gets
+  „Foto: <author> · CC …”; full attribution and source link are stored in `data.credit` / `data.creditSource`.
+- Tests: ImageSearch (2), templates studio test, lesson words test; Vitest worksheet+library 333/333; ESLint clean;
+  build OK.
+- **Needs the owner:** `firestore:rules` deploy after merge — until then templates do not load/save (the constructor
+  works without them and says so on save).
+
+## 2026-10-05 — Constructor: clickable quality issues, restore one task from a version, assign from the constructor — branch `agent/constructor-tools`
+
+Stacked on `agent/constructor-generator-ux` (#292). Proposals 13–15.
+- Quality list items are buttons: a block issue selects that block and scrolls it into view (sheet issues open the
+  sheet data).
+- „Versioonid ja taastamine…”: a version button now opens a comparison („Muudetud / Kustutatud: <task>”) with
+  „Too see ülesanne tagasi” per task (a deleted task returns at its old place) and „Taasta kogu leht”.
+- A published, saved sheet shows „Määra õpilastele” → `/library?assign=<lesson id>`; Õppevara opens the assignment
+  dialog for that material and removes the parameter.
+- Tests: studio issue/version test, library `?assign=` test; worksheet+library Vitest 329/329; ESLint clean; build OK.
+
+## 2026-10-05 — Constructor: task variants on the sheet, per-task difficulty, „Ainult see leht” preview — branch `agent/constructor-generator-ux`
+
+Stacked on `agent/constructor-ux` (#291). Proposals 6–9.
+- „Uus variant” (toolbar above a generated task) makes 3 different variants (`regenerateTaskOptions`, `salt` +
+  `difficulty` options of `regenerateTask`); the toolbar flips them „‹ Variant 2/3 ›”, „Algne” brings the old task
+  back, a difficulty select (Support/Core/Challenge) regenerates this task only at that level.
+- Lesson strip: „Ainult see leht” generates only the open core sheet (`previewCoreSheet`) and shows it in the editor
+  unsaved (Ctrl+Z / „Võta tagasi” returns the previous one); saving stores it with its new `generation` meta (the
+  lesson constructor adapter now forwards `generation` on save).
+- Tests: worksheet Vitest 302/302 (existing regeneration test covers the variant flow); ESLint clean; build OK.
+
+## 2026-10-05 — Constructor: block toolbar on the sheet, „+” insert, keys, autosave — branch `agent/constructor-ux`
+
+Stacked on `agent/lesson-constructor-generator` (#290, not merged yet). Owner chose to do all proposed constructor
+improvements; this is the first batch (proposals 1–5).
+- Selected block shows a dark toolbar above it on the sheet: ↑ ↓, „Kopeeri”, „Uus variant” (generated tasks),
+  delete. A round „+” under each block selects it and focuses the block search; the chosen block goes right after it.
+- Keys (outside text fields): Ctrl/Cmd+S save, Ctrl/Cmd+D copy, Alt+↑/↓ move, ↑/↓ select previous/next, Delete,
+  Esc deselect (plus the old Ctrl+Z / Ctrl+Shift+Z). Listed under the block search.
+- Autosave: a draft sheet (not a published one) is saved to the database 15 s after the last change; the title line
+  shows „salvestan… / salvestamata / salvestatud 10:42”. A failed autosave keeps the browser draft and says so.
+- Tests: studio toolbar/keys/insert test and autosave test (fake timers); worksheet Vitest 30 files / 302 tests.
+
+## 2026-10-05 — „Loo tööleht” opens the lesson constructor; the generator lives in its top strip — branch `agent/lesson-constructor-generator`
+
+Checked `origin/main` `b4bad01`. Owner: „Loo tööleht” opened the generator page (three cards + focus form); they want
+the constructor itself, with generating on top, without extra pages/tabs.
+- Roadmap lessons („Töölehed”, „Tunni töölehed”, „Loo tööleht”/„Muuda töölehte” in Õppevara, the old
+  `/library/worksheets/:id` redirect) now open `/library/lessons/:id/worksheets/discover` — the worksheet studio.
+- `LessonGeneratorBar` (strip under the studio bar): lesson title, sheet links „1 Avasta · 2 Harjuta · 3 Kasuta” and
+  the focus sheets (missing ones dashed), difficulty, „Genereeri 3 töölehte” / „Genereeri 3 lehte uuesti”,
+  „Fookuse leht ▾” (focus + stage), „Seaded” → the old generator page (content pack, coverage) which stays as is.
+  Generating asks first when the sheet has unsaved changes; after it the open sheet reloads (or opens the new sheet).
+- A core sheet that does not exist yet opens empty in the constructor; saving it stores a `source: 'manual'` sheet
+  with the right role/slot. Studio drafts in this browser are now kept per sheet (`<lessonId>:<worksheetId>`), not per
+  lesson. Back link from the lesson constructor goes to Õppevara.
+- Generation logic moved to `worksheet-generator/ui/lessonGeneration.js` (shared by the bar and the old page).
+- Tests: new lesson-constructor test (missing sheet opens, tabs, generate saves 3 drafts, reload); redirect test
+  updated. Worksheet/library Vitest 31 files / 322 tests; ESLint clean; build OK. Full CRM suite locally: 10 failures
+  in Live Classroom/calendar tests that use `localStorage` — Node 26 on this Mac (`localStorage` undefined); files not touched here.
+- No rules or functions change. Owner liked the preview layout.
+- Follow-up after the owner's preview (same PR): constructor restyled to the CRM look (white panels, soft grey canvas,
+  green `#087e6b` accent, DM Sans/Manrope, focus rings; the beige 2000s palette is gone; the printed sheet is unchanged).
+  Text can be edited on the sheet: double-click a text → edit in place, Enter/click away saves, Esc cancels
+  (`engine/inlineEdit.js` maps the text back to the one data string it came from; ambiguous or formatted text stays
+  inspector-only). Suhtlus: channel tabs „Kõik · KeeleSepp · Facebook · Instagram” were squeezed to a sliver in the
+  fixed-height list — header, search, tabs and „Alusta uut vestlust” no longer shrink, tabs wrap.
+- Tests: `inlineEdit.test.js` (2), studio inline edit test (title + task title, Esc cancels, Enter saves). Full CRM
+  Vitest 888/898 locally (same 10 Node 26 `localStorage` failures); ESLint clean; build OK.
 
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
 

@@ -5,42 +5,17 @@ import { useAuth } from '../../../app/AuthContext.jsx';
 import { Badge, Button, Card, ErrorState, LoadingState, PageHeader } from '../../../components/ui/index.js';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService, levelVocabularyService } from '../../../services/firebase/index.js';
-import { ACTIVITY_CATALOG_VERSION, generateFocusWorksheet, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
-import { FOCUS_PHASES, focusPhaseLabel, focusWorksheetId } from '../engine/focusWorksheet.js';
+import { FOCUS_PHASES, focusWorksheetId } from '../engine/focusWorksheet.js';
+import { CORE_SHEETS, generateCoreSheets, generateFocusSheet } from './lessonGeneration.js';
 import { canCreateContentPackDraft, createContentPackDraft } from '../factory/factory.js';
 import { generatorProfileForLesson, profileDraftForLesson, resolveGeneratorProfile } from '../profiles/index.js';
 import ContentPackFactoryPanel from './ContentPackFactoryPanel.jsx';
 import GeneratorProfileEditor from './GeneratorProfileEditor.jsx';
 import '../generator.css';
 
-const CORE = [
-  { id: 'discover', label: '1 Avasta', slot: 1 },
-  { id: 'practice', label: '2 Harjuta', slot: 2 },
-  { id: 'transfer', label: '3 Kasuta', slot: 3 },
-];
+const CORE = CORE_SHEETS;
 
 const shortDate = (value) => value ? new Intl.DateTimeFormat('et-EE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value)) : '—';
-
-function generationMeta(sheet, { scope, variant, size = 'standard', levelVocabulary = null }) {
-  return {
-    generatorVersion: sheet.generatorVersion,
-    recipeId: sheet.recipeId,
-    seed: sheet.seed,
-    scope,
-    phase: sheet.phase,
-    focusIds: sheet.focusIds,
-    contextId: sheet.contextId,
-    profileVersion: sheet.profileVersion,
-    size,
-    activityIds: sheet.activityIds,
-    activityCatalogVersion: ACTIVITY_CATALOG_VERSION,
-    didacticPlanVersion: 1,
-    difficulty: sheet.difficulty,
-    lessonDna: sheet.lessonDna,
-    variant,
-    levelVocabulary: levelVocabulary?.source ? { source: levelVocabulary.source, wordCount: levelVocabulary.wordCount || 0 } : null,
-  };
-}
 
 export default function LessonWorksheetSet({ repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
   const { lessonId } = useParams();
@@ -127,34 +102,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
     if (existing.length && !globalThis.confirm(`Tunnil on juba ${existing.length} põhitöölehte. Genereerimine loob neist uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?`)) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const previousActivityIds = existing.flatMap((sheet) => sheet?.generation?.activityIds || []);
-      const variant = Math.max(0, ...existing.map((sheet) => Number(sheet?.generation?.variant) || Number(sheet?.worksheetDocVersion) || 0)) + 1;
-      const result = generateLessonBundle({
-        lesson,
-        profile,
-        levelLexicon: levelVocabulary.lexicon,
-        activityHistory: previousActivityIds,
-        difficulty,
-        variant,
-        seed: `${lessonId}:${profile.version}:${GENERATOR_VERSION}:${variant}`,
-      });
-      const blocking = result.diagnostics.filter((item) => item.severity === 'error');
-      if (blocking.length || result.sheets.length !== 3) throw new Error(blocking.map((item) => item.message).join(' ') || 'Kolme töölehte ei saanud luua.');
-      await Promise.all(result.sheets.map((sheet, index) => {
-        const meta = CORE[index];
-        const current = byId.get(meta.id);
-        return repository.saveDraft({
-          lessonId,
-          worksheetId: meta.id,
-          role: meta.id,
-          slot: meta.slot,
-          displayLabel: meta.label,
-          worksheetDoc: sheet.worksheetDoc,
-          user,
-          baseUpdatedAt: current?.worksheetDocUpdatedAt || '',
-          generation: generationMeta(sheet, { scope: 'lesson-bundle', variant, levelVocabulary }),
-        });
-      }));
+      const { variant } = await generateCoreSheets({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user });
       setNotice(`Kolm erinevat töölehte salvestati mustandina (variant ${variant}). Ava need kontrollimiseks ja avalda ükshaaval.`);
       state.reload();
     } catch (generationError) {
@@ -177,33 +125,7 @@ export default function LessonWorksheetSet({ repository = lessonWorksheetsServic
 
     setFocusBusy(true); setError(''); setNotice('');
     try {
-      const variant = Math.max(0, Number(current?.generation?.variant) || Number(current?.worksheetDocVersion) || 0) + 1;
-      const result = generateFocusWorksheet({
-        lesson,
-        profile,
-        levelLexicon: levelVocabulary.lexicon,
-        focusIds: [selectedFocusId],
-        phase: focusPhase,
-        difficulty,
-        variant,
-        activityHistory: current?.generation?.activityIds || [],
-        seed: `${lessonId}:${profile.version}:${GENERATOR_VERSION}:focus:${selectedFocusId}:${focusPhase}:${variant}`,
-      });
-      const blocking = result.diagnostics.filter((item) => item.severity === 'error');
-      if (blocking.length || !result.sheet) throw new Error(blocking.map((item) => item.message).join(' ') || 'Fookuse töölehte ei saanud luua.');
-      const sheet = result.sheet;
-      const displayLabel = `${focus.label} · ${focusPhaseLabel(focusPhase)}`;
-      await repository.saveDraft({
-        lessonId,
-        worksheetId,
-        role: 'focus',
-        slot: null,
-        displayLabel,
-        worksheetDoc: sheet.worksheetDoc,
-        user,
-        baseUpdatedAt: current?.worksheetDocUpdatedAt || '',
-        generation: generationMeta(sheet, { scope: 'focus', variant, levelVocabulary }),
-      });
+      const { displayLabel, variant } = await generateFocusSheet({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, focusId: selectedFocusId, phase: focusPhase, user });
       setNotice(`Fookuse tööleht „${displayLabel}” salvestati mustandina (variant ${variant}).`);
       state.reload();
     } catch (generationError) {
