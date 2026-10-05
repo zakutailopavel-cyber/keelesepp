@@ -1,5 +1,14 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Student card „Tunnid”: every held lesson opens on its own — branch `agent/student-lesson-detail`
+
+Checked `origin/main` `a32e73f`. Owner: in the lesson list each lesson should open separately.
+- A held lesson row in „Tunnid” is a button → `LessonDetailModal` „Tund <date> · <time>”: mark (incl. „kontrollis …”),
+  teacher, subject, duration, topic, notes, and from the same day: lesson summary, homework (`date` or `createdAt`),
+  new words, and the Live Classroom recording/analysis + board page rows (`LessonsCard` filtered to that day).
+  Nothing found → one line says so. The admin status select stays in the list.
+- Read-only; no rules or data change. Tests: `LessonDetailModal.test.jsx` (2); ESLint clean; build OK.
+
 ## 2026-10-05 — Suhtlus: long conversations scroll again — branch `agent/messages-scroll`
 
 Checked `origin/main` `b4bad01`. Owner: Mariam's conversation cannot be scrolled.
