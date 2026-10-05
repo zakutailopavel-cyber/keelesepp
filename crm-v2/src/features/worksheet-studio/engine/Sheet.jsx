@@ -34,7 +34,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize, onAddItem, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
+function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize, onAddItem, toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
@@ -83,6 +83,8 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
       <div className="ws-body"><def.View data={d} ctx={blockCtx} id={block.id} /></div>
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {mode === 'edit' && selected && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
+      {mode === 'edit' && selected && toolbar ? <div className="ws-toolbar" role="toolbar" aria-label="Ploki tööriistad" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
+      {mode === 'edit' && onInsertAfter ? <button type="button" className="ws-insert" title="Lisa plokk selle järele" aria-label="Lisa plokk selle järele" onClick={(e) => { e.stopPropagation(); onInsertAfter(block.id); }}>+</button> : null}
     </section>
   );
 }
@@ -136,7 +138,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, onAddItem, onEditText, startPage, onPageCount, focusId, onPick }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, onAddItem, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -242,7 +244,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
+      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} toolbar={selectedId === b.id && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
     </div>
   );
 

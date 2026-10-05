@@ -70,7 +70,17 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const canvasRef = useRef(null);
   const fileRef = useRef(null);
   const menuRef = useRef(null);
+  const searchRef = useRef(null);
+  const saveRef = useRef(null);
+  const [savedAt, setSavedAt] = useState(0);
   useUnsavedGuard(dirty);
+  // Autosave: a draft is written to the database 15 s after the last change (a published sheet is saved by hand,
+  // so a half-done change never replaces what students see without the teacher deciding it).
+  useEffect(() => {
+    if (isNew || !dirty || mode !== 'edit' || worksheetStatus === 'published') return undefined;
+    const timer = setTimeout(() => saveRef.current?.('draft', { auto: true }), 15000);
+    return () => clearTimeout(timer);
+  }, [doc, dirty, isNew, mode, worksheetStatus]);
 
   useEffect(() => {
     let alive = true;
@@ -266,12 +276,50 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setSelectedId(null);
     setNotice(`Plokk „${BLOCKS[block.type]?.label || 'plokk'}” kustutati. Tagasi saad selle nupuga „Võta tagasi” või Ctrl+Z.`);
   };
+  const duplicateBlock = (id) => {
+    const block = doc.blocks.find((b) => b.id === id);
+    if (!block) return;
+    const copy = { ...structuredClone(block), id: newId() };
+    const i = doc.blocks.findIndex((b) => b.id === id);
+    const next = [...doc.blocks];
+    next.splice(i + 1, 0, copy);
+    setBlocks(next);
+    setSelectedId(copy.id);
+  };
+  // „+” under a block: the next block chosen on the left is added right after it
+  const insertAfter = (id) => {
+    setSelectedId(id);
+    setNotice('Vali vasakult plokk – see lisatakse valitud ploki järele.');
+    globalThis.setTimeout(() => searchRef.current?.focus(), 0);
+  };
+  const renderToolbar = (block) => {
+    const index = doc.blocks.findIndex((b) => b.id === block.id);
+    return (
+      <>
+        <button type="button" onClick={() => moveBlock(block.id, -1)} disabled={index <= 0} title="Üles (Alt+↑)" aria-label="Liiguta üles"><Icons.ArrowUp aria-hidden="true" /></button>
+        <button type="button" onClick={() => moveBlock(block.id, 1)} disabled={index >= doc.blocks.length - 1} title="Alla (Alt+↓)" aria-label="Liiguta alla"><Icons.ArrowDown aria-hidden="true" /></button>
+        <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)"><Icons.Copy aria-hidden="true" /> Kopeeri</button>
+        {canRegenerateSelected && selected?.id === block.id ? <button type="button" onClick={regenerateSelected} disabled={regenerating} title="Sama fookus ja raskus, uus sisu"><Icons.Sparkles aria-hidden="true" /> {regenerating ? 'Genereerin…' : 'Uus variant'}</button> : null}
+        <button type="button" className="is-danger" onClick={() => deleteBlock(block.id)} title="Kustuta (Delete)" aria-label="Kustuta plokk"><Icons.Trash2 aria-hidden="true" /></button>
+      </>
+    );
+  };
   keysRef.current = (event) => {
-    if (mode !== 'edit' || isTextTarget(event.target)) return;
     const key = String(event.key || '').toLowerCase();
+    if (mode === 'edit' && (event.ctrlKey || event.metaKey) && key === 's') { event.preventDefault(); if (dirty || isNew) save('draft'); return; }
+    if (mode !== 'edit' || isTextTarget(event.target)) return;
     if ((event.ctrlKey || event.metaKey) && key === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
     if ((event.ctrlKey || event.metaKey) && key === 'y') { event.preventDefault(); redo(); return; }
-    if ((key === 'delete' || key === 'backspace') && selectedId) { event.preventDefault(); deleteBlock(selectedId); }
+    if ((key === 'delete' || key === 'backspace') && selectedId) { event.preventDefault(); deleteBlock(selectedId); return; }
+    if ((event.ctrlKey || event.metaKey) && key === 'd' && selectedId) { event.preventDefault(); duplicateBlock(selectedId); return; }
+    if (event.altKey && (key === 'arrowup' || key === 'arrowdown') && selectedId) { event.preventDefault(); moveBlock(selectedId, key === 'arrowup' ? -1 : 1); return; }
+    if (!event.altKey && !event.ctrlKey && !event.metaKey && (key === 'arrowup' || key === 'arrowdown') && selectedId) {
+      const i = doc.blocks.findIndex((b) => b.id === selectedId);
+      const next = doc.blocks[i + (key === 'arrowup' ? -1 : 1)];
+      if (next) { event.preventDefault(); setSelectedId(next.id); }
+      return;
+    }
+    if (key === 'escape' && selectedId) setSelectedId(null);
   };
   const switchMode = (m) => { setMode(m); setEvidence(null); setResults({}); if (m !== 'edit') setSelectedId(null); };
 
@@ -281,7 +329,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setEvidence(res);
   };
 
-  const save = async (nextStatus = 'draft') => {
+  const save = async (nextStatus = 'draft', { auto = false } = {}) => {
     if (isNew && doc.meta.title.trim() === DEFAULT_TITLE) {
       setSelectedId(null);
       setSaveError('Anna töölehele pealkiri (paremal „Töölehe andmed” → Pealkiri), siis salvesta.');
@@ -302,14 +350,16 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       setWorksheetStatus(res.status || nextStatus);
       setDraftRestored(false);
       try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ }
-      setNotice(nextStatus === 'published' ? `„${res.title}” avaldati (versioon ${res.version}).` : `„${res.title}” salvestati mustandina (versioon ${res.version}).`);
+      setSavedAt(Date.now());
+      if (!auto) setNotice(nextStatus === 'published' ? `„${res.title}” avaldati (versioon ${res.version}).` : `„${res.title}” salvestati mustandina (versioon ${res.version}).`);
       if (res.created) navigate(`/library/worksheets/${res.id}`, { replace: true });
     } catch (error) {
-      setSaveError(error.message || 'Salvestamine ebaõnnestus.');
+      setSaveError(auto ? `Automaatne salvestamine ebaõnnestus: ${error.message || 'tundmatu viga'}. Muudatused on selles brauseris alles.` : error.message || 'Salvestamine ebaõnnestus.');
     } finally {
       setSaving(false);
     }
   };
+  saveRef.current = save;
 
   const saveCopy = async () => {
     closeMenu(); setSaving(true); setSaveError('');
@@ -363,7 +413,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       <div className={`ws-studio mode-${mode}`}>
         <header className="st-bar">
           <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : 'Õppevara'}</Link>
-          <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{dirty ? ' · salvestamata' : ''}</span></div>
+          <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{saving ? ' · salvestan…' : dirty ? ' · salvestamata' : savedAt ? ` · salvestatud ${new Date(savedAt).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })}` : ''}</span></div>
           <div className="st-seg" role="tablist" aria-label="Vaade">
             {[['edit', 'Koosta'], ['interactive', 'Õpilase vaade'], ['print', 'Trükivaade']].map(([m, l]) => (
               <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => switchMode(m)}>{l}</button>
@@ -411,7 +461,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button>
                 </div>
               )}
-              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti saad muuta ka otse lehel: tee sellel topeltklõps.</p>{filteredPalette.map(([g, defs]) => (
+              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{filteredPalette.map(([g, defs]) => (
                 <div key={g} className="st-group">
                   <div className="st-group-title">{g}</div>
                   {defs.map((d) => {
@@ -429,7 +479,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
           <main className="st-canvas" ref={canvasRef}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onResize={resizeBlock} onAddItem={addItemTo} onEditText={editText} />
+              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onResize={resizeBlock} onAddItem={addItemTo} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
@@ -448,7 +498,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   )}
                   <BlockInspector key={selected.id} block={selected} doc={doc} update={updateBlock}
                     onDelete={() => deleteBlock(selected.id)}
-                    onDuplicate={() => { const copy = { ...structuredClone(selected), id: newId() }; const i = doc.blocks.findIndex((b) => b.id === selected.id); const next = [...doc.blocks]; next.splice(i + 1, 0, copy); setBlocks(next); setSelectedId(copy.id); }}
+                    onDuplicate={() => duplicateBlock(selected.id)}
                     onMove={(dir) => moveBlock(selected.id, dir)} />
                 </>
               ) : (

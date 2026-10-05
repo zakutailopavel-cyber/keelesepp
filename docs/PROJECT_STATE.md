@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Constructor: block toolbar on the sheet, „+” insert, keys, autosave — branch `agent/constructor-ux`
+
+Stacked on `agent/lesson-constructor-generator` (#290, not merged yet). Owner chose to do all proposed constructor
+improvements; this is the first batch (proposals 1–5).
+- Selected block shows a dark toolbar above it on the sheet: ↑ ↓, „Kopeeri”, „Uus variant” (generated tasks),
+  delete. A round „+” under each block selects it and focuses the block search; the chosen block goes right after it.
+- Keys (outside text fields): Ctrl/Cmd+S save, Ctrl/Cmd+D copy, Alt+↑/↓ move, ↑/↓ select previous/next, Delete,
+  Esc deselect (plus the old Ctrl+Z / Ctrl+Shift+Z). Listed under the block search.
+- Autosave: a draft sheet (not a published one) is saved to the database 15 s after the last change; the title line
+  shows „salvestan… / salvestamata / salvestatud 10:42”. A failed autosave keeps the browser draft and says so.
+- Tests: studio toolbar/keys/insert test and autosave test (fake timers); worksheet Vitest 30 files / 302 tests.
+
 ## 2026-10-05 — „Loo tööleht” opens the lesson constructor; the generator lives in its top strip — branch `agent/lesson-constructor-generator`
 
 Checked `origin/main` `b4bad01`. Owner: „Loo tööleht” opened the generator page (three cards + focus form); they want

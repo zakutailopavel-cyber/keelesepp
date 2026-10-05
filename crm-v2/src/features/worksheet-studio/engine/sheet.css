@@ -328,3 +328,15 @@
 /* inline editing on the sheet (edit mode, double-click a text) */
 .mode-edit .ws-card .ws-body, .mode-edit .ws-card h3, .mode-edit .ws-card .ws-ch p, .mode-edit .ws-title, .mode-edit .ws-hdr { cursor: text; }
 .ws-inline-editing { outline: 2px solid var(--ks-green-2, #087e6b); outline-offset: 2px; border-radius: 4px; background: rgba(8,126,107,.06); cursor: text; user-select: text; -webkit-user-select: text; }
+
+/* edit mode: tools above the selected block, „+” to insert a block after it */
+.ws-toolbar { position: absolute; top: 0; right: 2mm; transform: translateY(calc(-100% - 2mm)); z-index: 6; display: flex; gap: 1px; padding: 3px; background: #132238; border-radius: 10px; box-shadow: 0 8px 22px rgba(16,35,57,.22); cursor: default; }
+.ws-toolbar button { border: 0; background: transparent; color: #fff; font: 700 12px 'DM Sans', system-ui, sans-serif; padding: 5px 8px; border-radius: 7px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.ws-toolbar button:hover:not(:disabled) { background: rgba(255,255,255,.14); }
+.ws-toolbar button:disabled { opacity: .45; cursor: default; }
+.ws-toolbar button.is-danger:hover { background: #b42318; }
+.ws-toolbar svg { width: 14px; height: 14px; }
+.ws-insert { position: absolute; left: 50%; bottom: 0; transform: translate(-50%, 55%); z-index: 5; width: 22px; height: 22px; border-radius: 50%; border: 0; background: #087e6b; color: #fff; font: 800 15px/22px 'DM Sans', system-ui, sans-serif; padding: 0; cursor: pointer; opacity: 0; transition: opacity .15s, transform .15s; box-shadow: 0 3px 10px rgba(8,126,107,.35); }
+.mode-edit .ws-card:hover > .ws-insert, .mode-edit .ws-card.selected > .ws-insert, .ws-insert:focus-visible { opacity: 1; }
+.ws-insert:hover { transform: translate(-50%, 55%) scale(1.12); }
+@media print { .ws-toolbar, .ws-insert { display: none !important; } }

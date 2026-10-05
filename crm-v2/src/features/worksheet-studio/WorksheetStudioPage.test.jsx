@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -91,6 +91,55 @@ describe('WorksheetStudioPage', () => {
     const saved = repository.save.mock.calls[0][0].document;
     expect(saved.meta.title).toBe('Minu uus päev');
     expect(saved.blocks.find((block) => block.id === taskId).data.title).toBe('Uus ülesanne');
+  });
+
+  it('works with the selected block from the toolbar on the sheet and with keys', async () => {
+    const { container } = renderAt('/library/worksheets/lesson-1', repo());
+    await screen.findByText('Töölehe konstruktor');
+    const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+    const count = cards().length;
+    fireEvent.click(cards()[1]);
+    const toolbar = await screen.findByRole('toolbar', { name: 'Ploki tööriistad' });
+    fireEvent.click(within(toolbar).getByRole('button', { name: /Kopeeri/ }));
+    await waitFor(() => expect(cards()).toHaveLength(count + 1));
+    fireEvent.keyDown(window, { key: 'd', ctrlKey: true });
+    await waitFor(() => expect(cards()).toHaveLength(count + 2));
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(cards()).toHaveLength(count + 1));
+    expect(screen.queryByRole('toolbar', { name: 'Ploki tööriistad' })).not.toBeInTheDocument();
+
+    fireEvent.click(cards()[2]);
+    const id = cards()[2].dataset.block;
+    fireEvent.keyDown(window, { key: 'ArrowUp', altKey: true });
+    await waitFor(() => expect(cards()[1].dataset.block).toBe(id));
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected').dataset.block).toBe(cards()[2].dataset.block));
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected')).toBeNull());
+
+    fireEvent.click(cards()[0].querySelector('.ws-insert'));
+    expect(await screen.findByText(/lisatakse valitud ploki järele/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Õige \/ vale/ }));
+    await waitFor(() => expect(cards()[1].querySelector('h3')).toBeTruthy());
+    expect(cards()).toHaveLength(count + 2);
+  });
+
+  it('saves a draft by itself 15 seconds after the last change', async () => {
+    const repository = repo({ save: vi.fn().mockResolvedValue({ id: 'lesson-1', created: false, title: 'Minu päev', updatedAt: '2026-10-05T10:00:00.000Z', version: 2, status: 'draft' }) });
+    renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    vi.useFakeTimers();
+    try {
+      fireEvent.click(screen.getByRole('button', { name: /Õige \/ vale/ }));
+      await act(async () => { vi.advanceTimersByTime(14000); });
+      expect(repository.save).not.toHaveBeenCalled();
+      await act(async () => { vi.advanceTimersByTime(1500); });
+      expect(repository.save).toHaveBeenCalledTimes(1);
+      expect(repository.save.mock.calls[0][0].status).toBe('draft');
+    } finally {
+      vi.useRealTimers();
+    }
+    expect(await screen.findByText(/salvestatud \d/)).toBeInTheDocument();
   });
 
   it('redirects a roadmap lesson without a standalone worksheet to its lesson constructor', async () => {
