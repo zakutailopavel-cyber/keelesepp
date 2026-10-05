@@ -58,6 +58,11 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     ...homeworkNotifications(sources.data?.submissions || []),
     ...invoiceNotifications(sources.data?.invoices || []),
   ]), [sources.data, staff, tasks, user]);
+  // the bell counts only what is new since the panel was last opened (remembered per user in this browser);
+  // the panel itself still lists everything that needs attention
+  const seenKey = `ks-notifications-seen:${user.uid}`;
+  const [seen, setSeen] = useState(() => { try { return new Set(JSON.parse(window.localStorage.getItem(seenKey) || '[]')); } catch { return new Set(); } });
+  const fresh = items.filter((item) => !seen.has(item.id));
   const counts = useMemo(() => items.reduce((all, item) => ({ ...all, [item.category]: (all[item.category] || 0) + 1 }), {}), [items]);
   const visible = category === 'all' ? items : items.filter((item) => item.category === category);
 
@@ -71,16 +76,21 @@ export default function NotificationCenter({ user, repositories = defaultReposit
   }, [open]);
 
   const toggle = () => {
-    if (!open) setRefreshKey((key) => key + 1);
+    if (!open) {
+      setRefreshKey((key) => key + 1);
+      const ids = items.map((item) => item.id);
+      setSeen(new Set(ids));
+      try { window.localStorage.setItem(seenKey, JSON.stringify(ids.slice(0, 500))); } catch { /* storage may be disabled */ }
+    }
     setOpen(!open);
   };
   const go = (item) => { setOpen(false); navigate(item.to); };
 
   return (
     <div className="nc" ref={rootRef}>
-      <IconButton label={items.length ? `Teavitused, ${items.length} uut` : 'Teavitused'} className="nc-bell" aria-expanded={open} aria-haspopup="dialog" onClick={toggle}>
+      <IconButton label={fresh.length ? `Teavitused, ${fresh.length} uut` : items.length ? `Teavitused, ${items.length} avatud` : 'Teavitused'} className={`nc-bell ${items.length && !fresh.length ? 'has-seen' : ''}`} aria-expanded={open} aria-haspopup="dialog" onClick={toggle}>
         <Bell size={19} />
-        {items.length ? <span className="nc-count" aria-hidden="true">{items.length > 99 ? '99+' : items.length}</span> : null}
+        {fresh.length ? <span className="nc-count" aria-hidden="true">{fresh.length > 99 ? '99+' : fresh.length}</span> : items.length ? <span className="nc-dot" aria-hidden="true" /> : null}
       </IconButton>
       {open ? (
         <section className="nc-panel" role="dialog" aria-label="Teavituskeskus">

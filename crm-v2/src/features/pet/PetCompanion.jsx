@@ -9,6 +9,7 @@ import { petSvg } from './petArt.js';
 import { PAGE_HINTS, TOUR_STEPS, celebrationHint, companionHint } from './companionModel.js';
 import { PET_CELEBRATE_EVENT, PET_EVENT, PET_QUIET_EVENT } from './petEvents.js';
 import './pet.css';
+import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 const SIZE = 92;
 const store = {
@@ -154,7 +155,7 @@ export default function PetCompanion({
       const today = toIsoDate();
       const lessons = occurrencesForDates(scheduleLists.flat(), [today]);
       const open = [
-        ...hw.filter((h) => h.status !== 'Tehtud').map((h) => h.due),
+        ...hw.filter(isHomeworkOpen).map((h) => h.due),
         ...sheets.filter((w) => w.status !== 'done').map((w) => w.dueDate),
       ].filter(Boolean);
       if (alive) setInfo({ lessons, dueToday: open.filter((d) => d === today).length, overdue: open.filter((d) => d < today).length, lang: /inglise|english/i.test(mine[0]?.subject || '') ? 'en' : 'et' });

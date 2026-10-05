@@ -8,6 +8,7 @@ import { groupStudentPeople } from '../../services/firebase/students.js';
 import { occurrencesForDates } from '../calendar/calendarView.js';
 import { ROLES } from '../../utils/roles.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
+import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
 const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -60,7 +61,7 @@ async function loadDashboardData(user, repositories) {
   const upcoming = todayLessons.filter((item) => String(item.time || '99:99') >= nowClock);
   const overdue = invoices.filter(isInvoiceOverdue);
   const studentIds = new Set(studentsResult.items.map((item) => item.id));
-  const openHomework = homework.filter((item) => item.status !== 'Tehtud' && (!studentIds.size || studentIds.has(item.studentId)));
+  const openHomework = homework.filter((item) => isHomeworkOpen(item) && (!studentIds.size || studentIds.has(item.studentId)));
 
   return {
     activeStudents,

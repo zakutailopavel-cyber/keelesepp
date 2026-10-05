@@ -19,6 +19,7 @@ import { buildLibraryItems } from '../library/libraryModel.js';
 import '../common/finalReadiness.css';
 import SubmissionReviewModal from './SubmissionReviewModal.jsx';
 import { formatDate } from './submissionFormat.js';
+import { isHomeworkOpen } from './homeworkStatus.js';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
 
@@ -87,7 +88,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
 
   const filtered = useMemo(() => (state.data?.homework || []).filter((item) => (
     `${item.studentName || ''} ${item.task || ''}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
-    && (status === 'all' || (status === 'done' ? item.status === 'Tehtud' : item.status !== 'Tehtud'))
+    && (status === 'all' || (status === 'done' ? !isHomeworkOpen(item) : isHomeworkOpen(item)))
   )), [state.data, query, status]);
   const submissions = useMemo(() => (state.data?.submissions || []).filter((item) => (
     `${item.studentName} ${item.title}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
@@ -103,7 +104,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   if (state.error && !state.data) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const { students } = state.data;
   const today = new Date().toISOString().slice(0, 10);
-  const openHomework = state.data.homework.filter((item) => item.status !== 'Tehtud');
+  const openHomework = state.data.homework.filter(isHomeworkOpen);
   const overdueHomework = openHomework.filter((item) => item.due && item.due < today);
   const pendingReviews = state.data.submissions.filter((item) => item.reviewStatus !== 'reviewed');
   // Worksheets count as tasks too.

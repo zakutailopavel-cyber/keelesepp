@@ -25,3 +25,5 @@
 @media (max-width: 560px) {
   .nc-panel { position: fixed; top: 70px; right: 16px; left: 16px; width: auto; }
 }
+/* everything already seen: a quiet dot instead of a red number */
+.nc-dot { position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #98a2b3; }

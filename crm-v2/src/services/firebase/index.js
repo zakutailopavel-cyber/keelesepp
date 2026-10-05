@@ -37,3 +37,4 @@ export { googleCalendarService } from './googleCalendar.js';
 export { tasksService } from './tasks.js';
 export { initialAssessmentsService } from './initialAssessments.js';
 export { worksheetTemplatesService } from './worksheetTemplates.js';
+export { maintenanceService } from './maintenance.js';
