@@ -142,6 +142,34 @@ describe('WorksheetStudioPage', () => {
     expect(await screen.findByText(/salvestatud \d/)).toBeInTheDocument();
   });
 
+  it('a clicked quality issue selects its block; a task can be brought back from an old version', async () => {
+    const old = sampleDocument();
+    const repository = repo({ listVersions: vi.fn().mockResolvedValue([{ id: 'v1', version: 1, status: 'draft', worksheetDoc: old }]) });
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+    const first = cards()[1];
+    const removedId = first.dataset.block;
+    fireEvent.click(first);
+    fireEvent.keyDown(window, { key: 'Delete' });
+    await waitFor(() => expect(container.querySelector(`.ws-page [data-block="${removedId}"]`)).toBeNull());
+
+    const issue = await waitFor(() => {
+      const found = [...container.querySelectorAll('.st-issue')].find((el) => /juhis puudub/.test(el.textContent));
+      if (!found) throw new Error('no block issue');
+      return found;
+    });
+    fireEvent.click(issue);
+    await waitFor(() => expect(container.querySelector('.ws-page .ws-card.selected')).toBeTruthy());
+    expect(container.querySelector('.st-inspector')).not.toHaveTextContent('Töölehe andmed');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Versioonid ja taastamine…' }));
+    fireEvent.click(await screen.findByRole('button', { name: /v1 · mustand/ }));
+    const compare = screen.getByRole('region', { name: /Versioon 1 võrreldes praegusega/ });
+    fireEvent.click(within(compare).getAllByRole('button', { name: 'Too see ülesanne tagasi' })[0]);
+    await waitFor(() => expect(container.querySelector(`.ws-page [data-block="${removedId}"]`)).toBeTruthy());
+  });
+
   it('redirects a roadmap lesson without a standalone worksheet to its lesson constructor', async () => {
     const repository = repo({
       load: vi.fn().mockResolvedValue({

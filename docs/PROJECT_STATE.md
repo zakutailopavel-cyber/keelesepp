@@ -1,5 +1,16 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Constructor: clickable quality issues, restore one task from a version, assign from the constructor — branch `agent/constructor-tools`
+
+Stacked on `agent/constructor-generator-ux` (#292). Proposals 13–15.
+- Quality list items are buttons: a block issue selects that block and scrolls it into view (sheet issues open the
+  sheet data).
+- „Versioonid ja taastamine…”: a version button now opens a comparison („Muudetud / Kustutatud: <task>”) with
+  „Too see ülesanne tagasi” per task (a deleted task returns at its old place) and „Taasta kogu leht”.
+- A published, saved sheet shows „Määra õpilastele” → `/library?assign=<lesson id>`; Õppevara opens the assignment
+  dialog for that material and removes the parameter.
+- Tests: studio issue/version test, library `?assign=` test; worksheet+library Vitest 329/329; ESLint clean; build OK.
+
 ## 2026-10-05 — Constructor: task variants on the sheet, per-task difficulty, „Ainult see leht” preview — branch `agent/constructor-generator-ux`
 
 Stacked on `agent/constructor-ux` (#291). Proposals 6–9.

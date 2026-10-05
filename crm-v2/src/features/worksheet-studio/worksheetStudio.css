@@ -265,3 +265,8 @@ textarea.ed-input { resize: vertical; }
 .ws-studio .lgb-tabs a:hover { border-color: var(--st-accent); color: var(--st-accent); }
 .ws-studio .lgb-tabs a[aria-current="page"] { background: var(--st-accent); border-color: var(--st-accent); color: #fff; }
 .ws-studio .st-palette-hint { margin: 2px 4px 10px; font-size: 11.5px; color: var(--st-muted); line-height: 1.4; }
+.ws-studio .st-issue { border: 0; background: transparent; color: inherit; font: inherit; text-align: left; padding: 1px 0; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+.ws-studio .st-issue:hover { text-decoration-style: solid; }
+.ws-studio .st-compare ul { margin: 6px 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.ws-studio .st-compare li { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.ws-studio a.st-btn { text-decoration: none; display: inline-flex; align-items: center; }

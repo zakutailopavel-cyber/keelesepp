@@ -75,6 +75,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [savedAt, setSavedAt] = useState(0);
   // alternatives of one generated task, flipped through on the sheet: list[0] is the task as it was
   const [variants, setVariants] = useState(null);
+  const [comparing, setComparing] = useState(null);
   useUnsavedGuard(dirty);
   useEffect(() => { setVariants((current) => (current && current.blockId !== selectedId ? null : current)); }, [selectedId]);
   // Autosave: a draft is written to the database 15 s after the last change (a published sheet is saved by hand,
@@ -313,6 +314,39 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setNotice('Vali vasakult plokk – see lisatakse valitud ploki järele.');
     globalThis.setTimeout(() => searchRef.current?.focus(), 0);
   };
+  // a quality issue clicked: select its block (or the sheet data) and bring it into view
+  const showIssue = (issue) => {
+    const blockId = String(issue.code || '').split(':')[0];
+    const block = doc.blocks.find((b) => b.id === blockId);
+    if (mode !== 'edit') switchMode('edit');
+    setSelectedId(block ? block.id : null);
+    globalThis.setTimeout(() => {
+      const el = block ? document.querySelector(`.ws-page [data-block="${globalThis.CSS?.escape ? globalThis.CSS.escape(block.id) : block.id}"]`) : document.querySelector('.ws-page .ws-title');
+      el?.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
+    }, 0);
+  };
+  // versions: compare a saved version with the sheet and bring back one task or the whole sheet
+  const versionDiff = (entry) => {
+    const old = entry.worksheetDoc?.blocks || [];
+    const now = new Map(doc.blocks.map((b) => [b.id, b]));
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    return old.map((block) => ({ block, state: !now.has(block.id) ? 'removed' : same(now.get(block.id), block) ? 'same' : 'changed' }))
+      .filter((row) => row.state !== 'same');
+  };
+  const restoreTask = (block) => {
+    const exists = doc.blocks.some((b) => b.id === block.id);
+    if (exists) updateBlock(structuredClone(block));
+    else {
+      const old = comparing.worksheetDoc.blocks;
+      const before = old.slice(0, old.findIndex((b) => b.id === block.id)).reverse().find((b) => doc.blocks.some((x) => x.id === b.id));
+      const at = before ? doc.blocks.findIndex((b) => b.id === before.id) + 1 : 0;
+      const next = [...doc.blocks];
+      next.splice(at, 0, structuredClone(block));
+      setBlocks(next);
+    }
+    setSelectedId(block.id);
+    setNotice(`Ülesanne „${block.data?.title || BLOCKS[block.type]?.label || 'plokk'}” toodi tagasi versioonist ${comparing.version}. Salvesta, et see jääks.`);
+  };
   const showVariant = (index) => {
     if (!variants) return;
     setVariants({ ...variants, index });
@@ -475,6 +509,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             </details>
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
             <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
+            {!isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}`}>Määra õpilastele</Link> : null}
             <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>Avalda</button>
           </div>
         </header>
@@ -495,9 +530,19 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
         <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
           <summary>{quality.ready ? `✓ Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : `Kvaliteedikontroll: ${quality.errors.length} viga, ${quality.warnings.length} hoiatust`}</summary>
-          {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}>{issue.text}</li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
+          {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
         </details>
-        {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className="st-btn" key={entry.id} onClick={() => { if (window.confirm(`Taasta versioon ${entry.version} uue mustandina?`)) { change({ ...structuredClone(entry.worksheetDoc), id: doc.id }); setVersions([]); setNotice(`Versioon ${entry.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)}</div>}
+        {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className={`st-btn ${comparing?.id === entry.id ? 'primary' : ''}`} key={entry.id} onClick={() => setComparing(comparing?.id === entry.id ? null : entry)}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)} <button type="button" className="st-btn" onClick={() => { setVersions([]); setComparing(null); }}>Sulge</button></div>}
+        {comparing && (() => {
+          const rows = versionDiff(comparing);
+          return (
+            <div className="st-banner st-compare" role="region" aria-label={`Versioon ${comparing.version} võrreldes praegusega`}>
+              <strong>Versioon {comparing.version} võrreldes praegusega:</strong>
+              {rows.length ? <ul>{rows.map(({ block, state }) => <li key={block.id}><span>{state === 'removed' ? 'Kustutatud' : 'Muudetud'}: {block.data?.title || BLOCKS[block.type]?.label || 'plokk'}</span> <button type="button" className="st-btn" onClick={() => restoreTask(block)}>Too see ülesanne tagasi</button></li>)}</ul> : <span> ülesanded on samad.</span>}
+              <button type="button" className="st-btn" onClick={() => { if (window.confirm(`Taasta kogu versioon ${comparing.version} uue mustandina?`)) { change({ ...structuredClone(comparing.worksheetDoc), id: doc.id }); setVersions([]); setComparing(null); setNotice(`Versioon ${comparing.version} laaditi redigeerimiseks. Salvesta see uue versioonina.`); } }}>Taasta kogu leht</button>
+            </div>
+          );
+        })()}
 
         <div className="st-body">
           {mode === 'edit' && (
