@@ -48,7 +48,7 @@ function composeApprovedEmail(profile = {}) {
   <p>Tere${name ? `, ${esc(name)}` : ""}!<br>Teie KeeleSeppi konto on kinnitatud.</p>
   <p>Здравствуйте${name ? `, ${esc(name)}` : ""}!<br>Ваш аккаунт KeeleSepp подтверждён.</p>
   <p><a href="${CRM_URL}/login" style="display:inline-block;background:#2F5D50;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:700">Logi sisse / Войти</a></p>
-  <p style="font-size:12px;color:#64748b">KeeleSepp · info@epkoolitus.ee · +372 5374 0753</p>
+  <p style="font-size:12px;color:#64748b">KeeleSepp · info@epkoolitus.ee · +372 5434 4155</p>
 </div>`;
   return { to: profile.email, subject, text, html };
 }

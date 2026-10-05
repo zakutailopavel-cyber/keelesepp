@@ -28,8 +28,8 @@ export default function PendingApprovalPage() {
         {rejected ? (
           <>
             <h1>Konto ei ole kinnitatud</h1>
-            <p>Administraator ei kinnitanud seda kontot. Kui arvad, et see on viga, kirjuta <a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a> või helista +372 5374 0753.</p>
-            <p lang="ru" className="pending-card__ru">Аккаунт не подтверждён администратором. Если это ошибка, напишите на info@epkoolitus.ee или позвоните +372 5374 0753.</p>
+            <p>Administraator ei kinnitanud seda kontot. Kui arvad, et see on viga, kirjuta <a href="mailto:info@epkoolitus.ee">info@epkoolitus.ee</a> või helista +372 5434 4155.</p>
+            <p lang="ru" className="pending-card__ru">Аккаунт не подтверждён администратором. Если это ошибка, напишите на info@epkoolitus.ee или позвоните +372 5434 4155.</p>
           </>
         ) : (
           <>
