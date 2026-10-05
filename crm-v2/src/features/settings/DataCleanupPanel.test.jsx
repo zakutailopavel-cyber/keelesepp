@@ -46,6 +46,7 @@ describe('admin data cleanup', () => {
       fireEvent.click(screen.getByRole('button', { name: /Otsi korrastamist/ }));
       fireEvent.click(await screen.findByRole('button', { name: 'Määra õpetaja (1)' }));
       await waitFor(() => expect(repositories.students.update).toHaveBeenCalledWith('s1', { teacher: 'Pavel Zakutailo' }));
+      expect(await screen.findByText('Õpetaja määrati 1 õpilasele.')).toBeInTheDocument();
       expect(repositories.students.update).toHaveBeenCalledTimes(1);
 
       fireEvent.click(await screen.findByRole('button', { name: 'Sulge (1)' }));
