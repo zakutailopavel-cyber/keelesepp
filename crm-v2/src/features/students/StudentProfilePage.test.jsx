@@ -31,26 +31,27 @@ function renderProfile({
 }
 
 describe('student profile tabs and role access', () => {
-  it('shows a concise overview first and switches to the schedule tab', async () => {
+  it('shows a concise overview first and switches to the lessons tab with planned and unmarked lessons', async () => {
     renderProfile({
-      schedule: [{ id: 'sc1', date: '2026-08-10', time: '15:00', teacher: 'Pavel' }],
+      schedule: [{ id: 'sc1', date: '2026-10-10', time: '15:00', teacher: 'Pavel' }, { id: 'sc0', date: '2026-08-10', time: '15:00', teacher: 'Pavel', status: 'Planeeritud' }],
     });
 
     expect(await screen.findByRole('tab', { name: 'Ülevaade' }, { timeout: 4000 })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { name: 'Mari Maas' })).toBeInTheDocument();
     expect(screen.getByText('MM')).toBeInTheDocument();
-    expect(screen.getByText('1', { selector: '.student-profile-hero__stats strong' })).toBeInTheDocument();
+    expect(screen.getByText('2', { selector: '.student-profile-hero__stats strong' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Põhiandmed' })).toBeInTheDocument();
-    expect(screen.queryByText('2026-08-10 · 15:00')).not.toBeInTheDocument();
+    expect(screen.queryByText('2026-10-10 · 15:00')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Tunniplaan' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
 
-    expect(screen.getByRole('tab', { name: 'Tunniplaan' })).toHaveAttribute('aria-selected', 'true');
-    expect(await screen.findByText('2026-08-10 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Tunnid' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByText('2026-10-10 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByText(/1 möödunud tundi on märkimata \(2026-08-10\)/)).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Põhiandmed' })).not.toBeInTheDocument();
   });
 
-  it('shows lessons and progress only inside the learning tab', async () => {
+  it('shows held lessons in Tunnid and progress in Areng', async () => {
     renderProfile({
       student: {
         id: 's1',
@@ -62,12 +63,13 @@ describe('student profile tabs and role access', () => {
       lessons: [{ id: 'l1', date: '2026-08-04', time: '14:00', status: 'Toimunud', subject: 'Eesti keel' }],
     });
 
-    await screen.findByRole('tab', { name: 'Õppetöö' }, { timeout: 4000 });
+    await screen.findByRole('tab', { name: 'Tunnid' }, { timeout: 4000 });
     expect(screen.queryByText('2026-08-04 · 14:00')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('tab', { name: 'Õppetöö' }));
-
+    fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
     expect(await screen.findByText('2026-08-04 · 14:00', {}, { timeout: 4000 })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Areng' }));
     expect(screen.getByText('Lugemine')).toBeInTheDocument();
     expect(screen.getByText('82%')).toBeInTheDocument();
   });
@@ -123,8 +125,57 @@ describe('student profile tabs and role access', () => {
 
     expect(await screen.findByText('Mari Maas')).toBeInTheDocument();
     expect(screen.queryByRole('tab', { name: 'Finantsid' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('tab', { name: 'Tunniplaan' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
     expect(await screen.findByText('Iganädalane · Mon · 12:00', {}, { timeout: 4000 })).toBeInTheDocument();
     expect(apis.invoiceApi.listByStudent).not.toHaveBeenCalled();
+  });
+
+  it('shows an admin the Facebook and Instagram contact with message links; a teacher does not see them', async () => {
+    renderProfile({ student: { id: 's1', name: 'Mari Maas', teacher: 'Pavel Zakutailo', active: true, skillMap: {}, facebook: 'mari.maasikas', instagram: '@mari_m' } });
+    expect(await screen.findByRole('link', { name: 'mari.maasikas' }, { timeout: 4000 })).toHaveAttribute('href', 'https://www.facebook.com/mari.maasikas');
+    const write = screen.getAllByRole('link', { name: 'Kirjuta' });
+    expect(write.map((link) => link.getAttribute('href'))).toEqual(['https://m.me/mari.maasikas', 'https://ig.me/m/mari_m']);
+  });
+
+  it('hides the social contacts from a teacher', async () => {
+    renderProfile({ actor: { roles: ['teacher'], displayName: 'Pavel Zakutailo' }, student: { id: 's1', name: 'Mari Maas', teacher: 'Pavel Zakutailo', active: true, skillMap: {}, facebook: 'mari.maasikas' } });
+    expect(await screen.findByRole('heading', { name: 'Põhiandmed' }, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.queryByText('Facebook')).not.toBeInTheDocument();
+  });
+
+  it('lets an admin mark a held lesson checked, change and remove a mark; a teacher only sees the mark', async () => {
+    const lesson = { id: 'l1', date: '2026-09-04', time: '14:00', status: 'Toimunud', subject: 'Eesti keel', studentName: 'Mari Maas' };
+    const apis = renderProfile({ lessons: [lesson, { id: 'l2', date: '2026-09-02', status: 'Puudus_p' }] });
+    apis.lessonApi.setVerified = vi.fn().mockImplementation(async (record, verified) => ({ ...record, verified, verifiedByName: 'Admin' }));
+    apis.lessonApi.changeMark = vi.fn().mockImplementation(async (record, status) => ({ ...record, status, verified: false }));
+    apis.lessonApi.removeMark = vi.fn().mockResolvedValue(undefined);
+    fireEvent.click(await screen.findByRole('tab', { name: 'Tunnid' }, { timeout: 4000 }));
+
+    const mark = await screen.findByRole('combobox', { name: 'Tunni 2026-09-04 staatus' });
+    expect(mark).toHaveValue('Toimunud');
+    fireEvent.change(mark, { target: { value: 'verified' } });
+    expect(await screen.findByText(/Kontrollis Admin/)).toBeInTheDocument();
+    expect(apis.lessonApi.setVerified).toHaveBeenCalledWith(expect.objectContaining({ id: 'l1' }), true, expect.anything());
+    expect(screen.getByRole('combobox', { name: 'Tunni 2026-09-04 staatus' })).toHaveValue('verified');
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tunni 2026-09-04 staatus' }), { target: { value: 'Puudus_eta' } });
+    expect(await screen.findByText(/Puudus \(ei teatanud\)\./)).toBeInTheDocument();
+    expect(apis.lessonApi.changeMark).toHaveBeenCalledWith(expect.objectContaining({ id: 'l1' }), 'Puudus_eta', expect.anything(), { scheduleRecurring: true });
+
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Tunni 2026-09-02 staatus' }), { target: { value: 'remove' } });
+    expect(await screen.findByText(/Märge eemaldati/)).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: 'Tunni 2026-09-02 staatus' })).not.toBeInTheDocument();
+    confirm.mockRestore();
+  });
+
+  it('shows a teacher the marks without the status control', async () => {
+    renderProfile({
+      actor: { roles: ['teacher'], displayName: 'Pavel Zakutailo' },
+      lessons: [{ id: 'l1', date: '2026-09-04', status: 'Toimunud', verified: true, verifiedByName: 'Admin' }],
+    });
+    fireEvent.click(await screen.findByRole('tab', { name: 'Tunnid' }, { timeout: 4000 }));
+    expect(await screen.findByText('Toimunud ja kontrollitud')).toBeInTheDocument();
+    expect(screen.queryByRole('combobox', { name: /staatus/ })).not.toBeInTheDocument();
   });
 });

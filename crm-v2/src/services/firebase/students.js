@@ -20,7 +20,7 @@ const PAGE_SIZE = 50;
 const writableFields = [
   'name', 'parentName', 'parentEmail', 'email', 'phone', 'level', 'targetLevel',
   'subject', 'grade', 'group', 'teacher', 'active', 'contactStatus', 'contactOwner',
-  'contactLastAt', 'contactNotes', 'enrollments', 'personId', 'teacherUids',
+  'contactLastAt', 'contactNotes', 'enrollments', 'personId', 'teacherUids', 'facebook', 'instagram',
 ];
 
 function cleanText(value) { return String(value ?? '').trim(); }

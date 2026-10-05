@@ -1,5 +1,35 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Student card: Facebook and Instagram contact for the admin — branch `agent/student-social`
+
+Checked `origin/main` `b4bad01`. Owner: fields for Facebook and Instagram on the student card so the admin can
+contact the student there.
+- `students.facebook`, `students.instagram` (username or pasted profile link; validated in the form). Admin-only in
+  the form („Muuda andmeid”) and on „Ülevaade → Põhiandmed”: profile link + „Kirjuta” (Facebook `m.me/<name>` or
+  `facebook.com/messages/t/<id>`, Instagram `ig.me/m/<name>`). Helpers `utils/socialLinks.js`.
+- `firestore.rules` (students update, teacher branch): a teacher cannot change `facebook` / `instagram`; students'
+  own-card edits already exclude them. Rules compile (emulator run of the student words test).
+- Not linked to Suhtlus' Facebook/Instagram threads (those are keyed by Meta ids, not by these names).
+- Tests: `socialLinks.test.js` (2), StudentProfilePage (2 new); build OK.
+- **Needs the owner:** `firestore:rules` deploy after merge (the fields work before it; the rule only stops teachers).
+## 2026-10-05 — Student card: one „Tunnid” tab; admin changes lesson marks, „Toimunud ja kontrollitud” — branch `agent/student-lessons-tab`
+
+Checked `origin/main` `b4bad01`. Owner: merge „Tunniplaan” and „Õppetöö”, let admins change a lesson's status, add
+„проведён и проверен”.
+- Tabs: Ülevaade · **Tunnid** (`StudentLessonsPanel`: upcoming planned lessons + a note how many past one-off lessons
+  are unmarked, and the held/absent journal) · **Areng** (skills + recordings, was „Õppetöö”) · Esmane hindamine ·
+  Finantsid.
+- Admin: each held lesson has a status select: Toimunud / Toimunud ja kontrollitud / Puudus (teatas ette) / Puudus
+  (ei teatanud) / Eemalda märge. Uses the calendar's `changeMark` / `removeMark` (invoiced lessons are refused there:
+  „paranda Finantsides”) and new `lessonsService.setVerified`. Teachers see the marks read-only.
+- „Kontrollitud” is a flag, not a new status: `lessons.verified, verifiedAt, verifiedByUid, verifiedByName`; the status
+  stays „Toimunud”, so billing, payroll, reports and the pet count it exactly as before. A changed mark clears the
+  flag. activityLog `lesson.verified` / `lesson.unverified`.
+- `firestore.rules` (lessons update): only an admin changes the verified fields. Emulator test
+  `functions/lessons-verified-emulator.integration.js` (in `test:emulator`) passed locally.
+- Tests: StudentProfilePage (8, 2 new); ESLint clean; build OK.
+- **Needs the owner:** `firestore:rules` deploy after merge (until then an admin can still mark — admins pass the rule
+  already; the new rule only stops teachers).
 ## 2026-10-05 — Constructor: own templates, lesson words, free photo search — branch `agent/constructor-library`
 
 Stacked on `agent/constructor-tools` (#294). Proposals 10–12 (last of the owner's list).

@@ -914,6 +914,8 @@ service cloud.firestore {
           teacherCanUpdate(resource.data, request.resource.data)
           && !changesStudentOwnership()
           && !changesStudentTariffSource()
+          // the student's Facebook / Instagram contact is kept by the admin
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['facebook', 'instagram'])
         )
         || (
           ownsStudent(studentId)
@@ -1000,6 +1002,8 @@ service cloud.firestore {
         && !changesLessonPackageSource()
         // Finance v2: "don't charge this no-show" is an admin decision
         && (isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['billingWaived', 'billingWaivedBy', 'billingWaivedAt']))
+        // "held and checked" is set and cleared only by an admin
+        && (isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['verified', 'verifiedAt', 'verifiedByUid', 'verifiedByName']))
         && (
           !changesLessonBillingBasis()
           || (
