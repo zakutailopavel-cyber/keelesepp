@@ -1,5 +1,19 @@
 # KeeleSepp Project State
 
+## 2026-10-05 — Compact work-page headers and a grouped side menu — branch `agent/compact-headers-menu`
+
+From the live diagnostics: large stat banners pushed the work lists below the fold (Kodutööd, Suhtlus, Finantsid) and
+the 15-item menu hid „Õpetajad” behind „Seaded” on a 1200×655 screen.
+- `PeopleOverview` (Kodutööd, Grupid, Õpetajad, Lapsevanemad, Seaded, parent/student dashboards): one light row of
+  number chips instead of the dark banner (intro text kept for screen readers).
+- `PageHeader compact` (smaller title) on Kodutööd, Suhtlus, Finantsid; Suhtlus' four tiles became chips.
+- Menu (`app/navigation.js` `group`, `AppShell` group titles, `appShell.css`): Ülevaade / own pages, then „Õppetöö”
+  (Kalender, Live Classroom, Kodutööd, Õppevara, Tahvel, Ülesanded), „Inimesed” (Õpilased, Lapsevanemad, Grupid,
+  Õpetajad, Uued kontod), „Suhtlus ja raha” (Suhtlus, Päringud, Finantsid); tighter items and a fade at the bottom on
+  screens under 760 px high so it is clear the menu scrolls.
+- Checked in headless Chrome at 1200×655 and 1440×900 with the real shell. Tests: components/app/messages/homework/
+  finance/dashboard Vitest 142/142; build OK.
+
 ## 2026-10-05 — Checking works: large check window, skill grades → skill map; student card „Tööd” — branch `agent/work-review-skills`
 
 Checked `origin/main` `253fd50`. Owner: see the worksheets a student did and grade them so the grades move the skills

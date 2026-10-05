@@ -163,7 +163,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   };
 
   return <div className="page-content">
-    <PageHeader eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
+    <PageHeader compact eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
     <PeopleOverview label="Kodutööde kokkuvõte" eyebrow={staff ? 'Õppetöö ülevaade' : 'Minu töölaud'} title={staff ? 'Ülesanded ja tagasiside' : 'Minu kodutööd'} description={staff ? 'Pooleliolevad tööd, tähtajad ja kontrollimist ootavad esitused.' : 'Ülesanded, tähtajad ja õpetaja tagasiside ühes vaates.'} metrics={[
       { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length + allAssignments.length, hint: staff ? `${students.items.length} õpilast` : `${allAssignments.length} töölehte` },
       { icon: Clock3, label: 'Pooleli', value: openHomework.length + openAssignments.length, hint: 'ootab tegemist' },
