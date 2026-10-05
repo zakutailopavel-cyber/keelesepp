@@ -926,11 +926,9 @@ service cloud.firestore {
             'parentEmail',
             'contactEmail',
             'guardianEmail',
-            'updatedAt',
-            'skillMap',
-            'skillMapUpdatedAt',
-            'skillMapLastUpdated'
+            'updatedAt'
           ])
+          // the skill map is the teacher's assessment (checked works, lessons): a student or parent cannot change it
         )
         // lesson recording consent: the student (or the linked parent) answers once on first login, signed with
         // their own uid; they can change it later. Staff keep setting it from the student card.
