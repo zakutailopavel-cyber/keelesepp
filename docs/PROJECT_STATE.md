@@ -118,6 +118,24 @@ the constructor itself, with generating on top, without extra pages/tabs.
   fixed-height list — header, search, tabs and „Alusta uut vestlust” no longer shrink, tabs wrap.
 - Tests: `inlineEdit.test.js` (2), studio inline edit test (title + task title, Esc cancels, Enter saves). Full CRM
   Vitest 888/898 locally (same 10 Node 26 `localStorage` failures); ESLint clean; build OK.
+## 2026-10-05 — Release of #276–#288 (rules + five functions): RELEASED
+
+Checked `origin/main` `b4bad01` (after #288). Deployed from `~/keelesepp-release` with `firebase-tools@15.22.3`,
+project `keelesepp-5136b`; functions `npm test` 232/232 before the deploy.
+- `firestore:rules` released (covers #276, #277, #278, #280, #282, #286 and #288 `studentWords.forms/formItems`).
+- Functions: `syncScheduleToGoogle`, `syncAllCalendars`, `staffOperationsApi` updated; `notifyHomeworkCreated`
+  created (ACTIVE, secret `SMTP_PASS`). Real homework e-mails are sent from now on. No errors in the logs after it.
+- CRM (Vercel `keelesepp-crm-v2`, crm.epkoolitus.ee): production is `b4bad01`.
+- Checked in the real CRM: „Uued kontod” calls `/accounts/reviews` (200), no open reviews; Polina Lysenko is in
+  „Õpilased”.
+- `languageApi` (#288) deployed after the others, first with `EKILEX_API_KEY` = `none`; later the same day the owner
+  set the real Ekilex key (secret version 2) and redeployed it, so word forms are on (not yet tried in a lesson).
+  With `none` it was:
+  translation (TartuNLP) works, word forms answer `available: false`. Anonymous call → 401. When the owner gets the
+  key: `functions:secrets:set EKILEX_API_KEY` (in the terminal, never in the chat), then redeploy
+  `functions:languageApi` so it picks up the new version.
+- Still for the owner: lessons deleted before the calendar deploy may have come back from Google — delete them once
+  more; one real 1:1 lesson to try „Leia tõlge ja vormid” on „kass”, pointer/follow, „Sõnad”, „Anna kodutöö”, „Lõpeta tund”, pet in the room.
 
 ## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
 
@@ -157,9 +175,7 @@ Checked `origin/main` `1c85f49` (after #286, pet growth/outfits/visibility). Fou
 - No rules or functions change. Not tried in a real lesson.
 
 ### Pending owner actions (all merged in main)
-1. `firestore:rules` deploy: #276, #277, #278, #280, #282, #286.
-2. Cloud Functions deploy: `syncScheduleToGoogle`, `syncAllCalendars` (#283), `staffOperationsApi` (#284),
-   `notifyHomeworkCreated` (#285).
+Released on 2026-10-05 (see „Release of #276–#288” above).
 
 ## 2026-10-04 — Pet: grows from words, homework and streaks; outfits for stars; teacher and parents see it — branch `claude/affectionate-ritchie-dh2x9j`
 
