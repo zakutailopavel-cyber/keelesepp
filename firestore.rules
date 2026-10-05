@@ -1390,13 +1390,15 @@ service cloud.firestore {
     function studentWordTextValid(data) {
       return data.word is string && data.word.size() > 0 && data.word.size() <= 120
         && data.get('translation', '') is string && data.get('translation', '').size() <= 200
-        && data.get('example', '') is string && data.get('example', '').size() <= 400;
+        && data.get('example', '') is string && data.get('example', '').size() <= 400
+        && data.get('forms', '') is string && data.get('forms', '').size() <= 200
+        && data.get('formItems', []) is list && data.get('formItems', []).size() <= 8;
     }
     match /studentWords/{wordId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
       allow create: if isStaff()
         && request.resource.data.keys().hasOnly(['studentId', 'invitationId', 'word', 'translation', 'example',
-          'createdByUid', 'createdByName', 'createdAt', 'updatedAt', 'box', 'dueAt'])
+          'forms', 'formItems', 'createdByUid', 'createdByName', 'createdAt', 'updatedAt', 'box', 'dueAt'])
         && request.resource.data.keys().hasAll(['studentId', 'word', 'createdByUid', 'createdAt', 'box'])
         && request.resource.data.createdByUid == uid()
         && request.resource.data.get('createdByName', '') is string
@@ -1407,7 +1409,7 @@ service cloud.firestore {
         && studentWordTextValid(request.resource.data)
         && exists(studentPath(request.resource.data.studentId));
       allow update: if (isStaff()
-          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['word', 'translation', 'example', 'updatedAt'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['word', 'translation', 'example', 'forms', 'formItems', 'updatedAt'])
           && studentWordTextValid(request.resource.data))
         || (ownsStudent(resource.data.studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['box', 'dueAt', 'reviewedAt', 'reviews'])

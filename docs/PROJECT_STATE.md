@@ -1,5 +1,32 @@
 # KeeleSepp Project State
 
+## 2026-10-04 — Word tools: translation (TartuNLP) and Estonian word forms (EKI Ekilex) — branch `claude/affectionate-ritchie-dh2x9j`
+
+Checked `origin/main` `12dfffd` (after #287). Owner approved the external services (free; only the word itself is
+sent, no student data).
+- Cloud Function `languageApi` (staff only, secret `EKILEX_API_KEY`): `/translate` (TartuNLP Neurotõlge
+  `POST https://api.tartunlp.ai/translation/v2`, `x-api-key: public`), `/forms` (Ekilex `GET /api/word/search/{word}/eki`
+  → `GET /api/paradigm/details/{wordId}`, header `ekilex-api-key`), `/word` (both; each may fail alone). 8 s timeout,
+  clean 502 on failure, answers cached in the server-only collection `languageCache` (no client rule → denied).
+  Without a valid 32-hex key the forms answer `available: false` and nothing is called.
+- Pure helpers `functions/language-core.js`: request validation, key forms (SgN, SgG, SgP, PlP; Sup, Inf, IndPrSg3,
+  IndIpfSg3) with Estonian labels, headword pick, cache keys.
+- CRM: `services/firebase/languageTools.js`; „Sõnad” drawer: „Leia tõlge ja vormid” (also on leaving the word field
+  when translation/forms are empty), editable „Vormid” field, notice when the key is missing; English lessons
+  translate only. Words store `forms` (line ≤ 200) and `formItems` (≤ 8). Flashcards: every other review of a word
+  with forms asks one form („kass — ainsuse omastav?”, typed answer, listed variants accepted). Forms shown in the
+  word lists and lesson summaries.
+- `firestore.rules`: `studentWords` allow `forms`, `formItems` (staff create/edit only; students still only practice
+  fields).
+- Tests: functions `language-core.test.js` (3), `language-api.test.js` (3, fake fetch + cache); emulator
+  `student-words-emulator.integration.js` extended (forms allowed, > 8 forms 403, student cannot edit forms) 1/1;
+  vocabulary tests (4 new). CRM Vitest 142 files / 894 tests; ESLint clean; build OK; functions `npm test` 232/232.
+- The real services were not called from here (the sandbox network blocks them); request shapes follow their public
+  docs/clients. First real check: after deploy, „Leia tõlge ja vormid” on „kass”.
+- **Needs the owner:** 1) Ekilex API key from the Ekilex user profile page (ekilex.ee), then
+  `firebase functions:secrets:set EKILEX_API_KEY` (paste the key in the terminal prompt, never in the chat; type
+  `none` to start with translation only); 2) deploy `functions:languageApi` and `firestore:rules`.
+
 ## 2026-10-04 — The student's pet in the lesson room — branch `claude/affectionate-ritchie-dh2x9j`
 
 Checked `origin/main` `1c85f49` (after #286, pet growth/outfits/visibility). Fourth of the owner's pet wishes.
