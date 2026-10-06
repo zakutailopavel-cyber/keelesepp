@@ -243,21 +243,34 @@ describe('LibraryPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');
   });
 
-  it('routes a roadmap lesson without a standalone worksheet to Lesson Engine', async () => {
-    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{
-      id: 'a2-001',
-      title: 'A2 lähtediagnostika',
-      subject: 'Eesti keel',
-      level: 'A2',
-      topic: '01. A2 lähtepunkt ja eneseinfo',
-      roadmapManaged: true,
-      roadmapLessonNumber: 1,
-    }], exercises: [] }) };
-    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}</output>; }
+  it('shows Avasta / Harjuta / Kasuta on the lesson card, filters by them and opens a published sheet in the student view', async () => {
+    const lesson = (id, number, title, worksheetPhases) => ({ id, title, subject: 'Eesti keel', level: 'B1', topic: '01. A2 lähtepunkt', roadmapManaged: true, roadmapLessonNumber: number, ...(worksheetPhases ? { worksheetPhases } : {}) });
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [
+      lesson('a2b1-001', 1, 'A2 lähtediagnostika', {
+        discover: { title: 'Avasta: minu eesti keel', status: 'published', version: 5, publishedVersion: 5, updatedAt: '2026-10-05T10:00:00.000Z' },
+        practice: { title: 'Harjuta: kordus', status: 'draft', version: 1, publishedVersion: 0, updatedAt: '2026-10-05T11:00:00.000Z' },
+      }),
+      lesson('a2b1-002', 2, 'Minu päev ja kellaaeg'),
+    ], exercises: [] }) };
+    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}{location.search}</output>; }
     render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Töölehed: A2 lähtediagnostika' }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/library/lessons/a2-001/worksheets');
+    const phases = within(await screen.findByRole('group', { name: 'Töölehed: A2 lähtediagnostika' }));
+    expect(phases.getByRole('link', { name: /Avasta: «Avasta: minu eesti keel» · Avaldatud · versioon 5/ })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/discover?vaade=opilane');
+    expect(phases.getByRole('link', { name: /Harjuta: «Harjuta: kordus» · Mustand · versioon 1/ })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/practice');
+    expect(phases.getByRole('link', { name: /Kasuta: lehte pole veel/ })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/transfer');
+    expect(phases.getByText('1/3 valmis')).toBeInTheDocument();
+    expect(screen.getByText('Avasta 1/2 · Harjuta 0/2 · Kasuta 0/2')).toBeInTheDocument();
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Töölehtede olek' }), { target: { value: 'none' } });
+    expect(screen.queryByRole('group', { name: 'Töölehed: A2 lähtediagnostika' })).not.toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Töölehed: Minu päev ja kellaaeg' })).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Töölehtede olek' }), { target: { value: 'drafts' } });
+    expect(screen.getByRole('group', { name: 'Töölehed: A2 lähtediagnostika' })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Töölehed: Minu päev ja kellaaeg' })).not.toBeInTheDocument();
+
+    fireEvent.click(within(screen.getByRole('group', { name: 'Töölehed: A2 lähtediagnostika' })).getByRole('link', { name: /Avasta:/ }));
+    expect(screen.getByTestId('location')).toHaveTextContent('/library/lessons/a2b1-001/worksheets/discover?vaade=opilane');
   });
 
   it('the material editor of a lesson plan without a worksheet has Loo tööleht', async () => {

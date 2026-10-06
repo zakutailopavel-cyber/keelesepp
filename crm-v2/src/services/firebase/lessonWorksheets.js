@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, runTransaction, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, runTransaction, setDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { validateWorksheetDoc } from './worksheetDocs.js';
 
@@ -19,6 +19,18 @@ function normalizeRole(role, worksheetId) {
   if (!ROLES.has(normalized)) throw new Error('Töölehe roll on vigane.');
   if (CORE_IDS.has(worksheetId) && normalized !== worksheetId) throw new Error('Põhitöölehe ID ja roll ei ühti.');
   return normalized;
+}
+
+// Short state of the three core sheets on the lesson itself, so Õppevara shows Avasta / Harjuta / Kasuta without
+// reading every lesson's worksheets.
+export function phaseSummary(record) {
+  return {
+    title: String(record?.title || record?.worksheetDoc?.meta?.title || '').trim(),
+    status: record?.worksheetDocStatus === 'published' ? 'published' : 'draft',
+    version: Number(record?.worksheetDocVersion) || 0,
+    publishedVersion: Number(record?.publishedWorksheetDocVersion) || 0,
+    updatedAt: String(record?.worksheetDocUpdatedAt || record?.updatedAt || ''),
+  };
 }
 
 function userName(user) {
@@ -135,6 +147,7 @@ async function persist({
       createdByName: userName(user),
       source: 'lesson-worksheet-v1',
     });
+    if (CORE_IDS.has(worksheetId)) transaction.set(lesson, { worksheetPhases: { [worksheetId]: phaseSummary(record) } }, { merge: true });
     return { ...record, created: !current };
   });
 }
@@ -213,6 +226,25 @@ export const lessonWorksheetsService = {
       .map((entry) => ({ id: entry.id, ...entry.data() }))
       .filter((entry) => entry.schema === LESSON_WORKSHEET_SCHEMA)
       .sort((a, b) => (Number(a.slot) || 99) - (Number(b.slot) || 99) || String(a.title).localeCompare(String(b.title), 'et'));
+  },
+
+  // admin: write the Avasta / Harjuta / Kasuta summary onto lessons whose sheets were saved before the summary existed
+  async syncPhases(lessons) {
+    const { db } = requireFirebaseClient();
+    let updated = 0;
+    for (const lesson of lessons) {
+      if (!ID_PATTERN.test(String(lesson?.id || ''))) continue;
+      const snapshot = await getDocs(collection(db, 'curriculumLessons', lesson.id, 'worksheets'));
+      const phases = {};
+      for (const entry of snapshot.docs) {
+        const data = entry.data();
+        if (data.schema === LESSON_WORKSHEET_SCHEMA && CORE_IDS.has(entry.id)) phases[entry.id] = phaseSummary(data);
+      }
+      if (!Object.keys(phases).length || JSON.stringify(phases) === JSON.stringify(lesson.worksheetPhases || {})) continue;
+      await setDoc(doc(db, 'curriculumLessons', lesson.id), { worksheetPhases: phases }, { merge: true });
+      updated += 1;
+    }
+    return { updated };
   },
 
   saveDraft(input) {

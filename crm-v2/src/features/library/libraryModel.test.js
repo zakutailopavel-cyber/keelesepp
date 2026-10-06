@@ -89,3 +89,20 @@ describe('library search and table of contents', () => {
     expect(sortLibrary(searchLibrary(items, { level: 'B1' }), 'recent')[0].item.sourceId).toBe('b1-1');
   });
 });
+
+describe('lesson phases', () => {
+  it('reads the summary, treats a newer draft of a published sheet as published with a draft and filters', async () => {
+    const { lessonPhases, matchesPhaseFilter, phasesDone } = await import('./libraryModel.js');
+    const phases = lessonPhases({ worksheetPhases: {
+      discover: { title: 'Avasta', status: 'draft', version: 6, publishedVersion: 5 },
+      practice: { title: 'Harjuta', status: 'draft', version: 1, publishedVersion: 0 },
+    } });
+    expect(phases.map((phase) => phase.state)).toEqual(['published', 'draft', 'none']);
+    expect(phases[0].newerDraft).toBe(true);
+    expect(phasesDone(phases)).toBe(1);
+    expect(matchesPhaseFilter(phases, 'partial')).toBe(true);
+    expect(matchesPhaseFilter(phases, 'drafts')).toBe(true);
+    expect(matchesPhaseFilter(phases, 'ready')).toBe(false);
+    expect(matchesPhaseFilter(lessonPhases({}), 'none')).toBe(true);
+  });
+});

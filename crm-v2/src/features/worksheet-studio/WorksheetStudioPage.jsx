@@ -35,7 +35,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null, initialMode = 'edit' }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const draftName = isNew ? 'new' : draftId || lessonId;
@@ -51,7 +51,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [generation, setGeneration] = useState(null);
   const [notice, setNotice] = useState('');
   const [saveError, setSaveError] = useState('');
-  const [mode, setMode] = useState('edit');
+  const [mode, setMode] = useState(initialMode);
   const [selectedId, setSelectedId] = useState(null);
   const [answers, setAnswers] = useState({});
   const [results, setResults] = useState({});

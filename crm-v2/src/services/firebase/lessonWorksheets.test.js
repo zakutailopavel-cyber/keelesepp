@@ -8,6 +8,7 @@ const firestore = vi.hoisted(() => ({
   query: vi.fn((ref) => ref),
   where: vi.fn(),
   runTransaction: vi.fn(),
+  setDoc: vi.fn(),
 }));
 
 vi.mock('firebase/firestore', () => firestore);
@@ -41,13 +42,17 @@ describe('lessonWorksheetsService', () => {
     ['discover', 1],
     ['practice', 2],
     ['transfer', 3],
-  ])('creates the %s core draft without writing the legacy lesson root', async (worksheetId, slot) => {
+  ])('creates the %s core draft and writes only its phase summary on the lesson root', async (worksheetId, slot) => {
     const set = transactionWith();
     const result = await lessonWorksheetsService.saveDraft({ lessonId: 'lesson-1', worksheetId, role: worksheetId, slot, displayLabel: worksheetId, worksheetDoc: sampleDocument(), user });
     expect(result).toMatchObject({ lessonId: 'lesson-1', worksheetId, role: worksheetId, slot, worksheetDocStatus: 'draft', worksheetDocVersion: 1, created: true });
     expect(set.mock.calls[0][0].path).toBe(`curriculumLessons/lesson-1/worksheets/${worksheetId}`);
-    expect(set.mock.calls.some(([ref]) => ref.path === 'curriculumLessons/lesson-1')).toBe(false);
     expect(set.mock.calls[1][0].path).toBe(`worksheetVersions/lesson-1_${worksheetId}_studio_v1`);
+    const root = set.mock.calls.filter(([ref]) => ref.path === 'curriculumLessons/lesson-1');
+    expect(root).toHaveLength(1);
+    expect(Object.keys(root[0][1])).toEqual(['worksheetPhases']);
+    expect(root[0][1].worksheetPhases[worksheetId]).toMatchObject({ status: 'draft', version: 1, publishedVersion: 0 });
+    expect(root[0][2]).toEqual({ merge: true });
   });
 
   it('increments a matching draft and snapshots generation metadata in its immutable version', async () => {

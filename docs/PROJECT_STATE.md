@@ -1,5 +1,26 @@
 # KeeleSepp Project State
 
+## 2026-10-06 — Õppevara: Avasta / Harjuta / Kasuta on the lesson card — branch `agent/library-phases`
+
+Checked `origin/main` `da425fe`. Owner/handoff: teachers could not see which lesson sheets exist, which are published
+and what they are called; the sheets were behind „Töölehed”.
+- Data: `lessonWorksheetsService.persist` now also writes `curriculumLessons/{id}.worksheetPhases.{discover|practice|transfer}`
+  = `{ title, status, version, publishedVersion, updatedAt }` (merge, same transaction; focus sheets are not
+  summarised). `syncPhases(lessons)` (admin button „Uuenda töölehtede olek”) fills it for sheets saved earlier. No
+  rules change (staff already write `curriculumLessons`).
+- UI (`LibraryPage`, `libraryModel`): roadmap lessons show three chips — green ✓ published, yellow ● draft, grey +
+  missing — with the sheet title; tooltip/aria „«title» · Avaldatud · versioon N”. Published opens
+  `/library/lessons/:id/worksheets/:phase?vaade=opilane` (student view via new `initialMode` of
+  `WorksheetStudioPage`), draft/missing opens the constructor. „N/3 valmis” per lesson, module heading
+  „Avasta x/n · Harjuta x/n · Kasuta x/n”, filter „Töölehed” (`?lehed=none|drafts|partial|ready`). The separate
+  „Töölehed” button on those rows is gone (Vaata / Muuda / Määra stay); „Viimati muudetud” also counts sheet edits.
+- Checks: library tests 28/28 (new card/filter test, model test); `lessonWorksheets` service 9/9; studio+generator
+  308/308 with `--maxWorkers=2`; full suite 931 passed, 15 failed = 10 known Node 26 `localStorage` + 5 studio tests
+  that time out only under full parallel load (pass alone); `npx eslint .` clean; build OK.
+- Manual gate after deploy: an admin clicks „Uuenda töölehtede olek” once in Õppevara (writes the summary for the 15
+  existing B1 Avasta sheets), then checks B1 filter, statuses and the student view.
+- Next safe step: owner merges the draft PR.
+
 ## 2026-10-06 — Live Classroom on phones: camera/mic fallback and tap-to-play — branch `agent/mobile-call`
 
 Checked `origin/main` `19ae77c`. Teacher bug: a student on a phone could not share camera/mic and did not see/hear the

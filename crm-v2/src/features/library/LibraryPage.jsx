@@ -1,5 +1,8 @@
 import {
   ArrowRight,
+  Check,
+  Circle,
+  Plus,
   BookCopy,
   BookOpen,
   ClipboardCheck,
@@ -23,7 +26,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { curriculumInstallerService, groupsService, libraryService, studentsService } from '../../services/firebase/index.js';
+import { curriculumInstallerService, groupsService, lessonWorksheetsService, libraryService, studentsService } from '../../services/firebase/index.js';
 import { legacyUrl } from '../../utils/legacyUrls.js';
 import { ROLES } from '../../utils/roles.js';
 import { A2_LESSON_COUNT, a2InstalledCount } from '../curriculum/a2Curriculum.js';
@@ -31,6 +34,10 @@ import {
   buildLibraryItems,
   isUnpublishedWorksheet,
   LIBRARY_TYPES,
+  matchesPhaseFilter,
+  modulePhaseProgress,
+  PHASE_FILTERS,
+  phasesDone,
   levelFacets,
   moduleFacets,
   searchLibrary,
@@ -153,7 +160,7 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
   );
 }
 
-export default function LibraryPage({ repository = defaultRepository, studentRepository = defaultStudentRepository, groupRepository = defaultGroupRepository, curriculumInstaller = defaultCurriculumInstaller }) {
+export default function LibraryPage({ repository = defaultRepository, studentRepository = defaultStudentRepository, groupRepository = defaultGroupRepository, curriculumInstaller = defaultCurriculumInstaller, worksheetRepository = lessonWorksheetsService }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -165,6 +172,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const [success, setSuccess] = useState('');
   const [installingA2, setInstallingA2] = useState(false);
   const [refreshingPlans, setRefreshingPlans] = useState(false);
+  const [syncingPhases, setSyncingPhases] = useState(false);
   const [installError, setInstallError] = useState('');
   const [limit, setLimit] = useState(PAGE);
   const [favorites, setFavorites] = useState(() => loadFavorites(user?.uid));
@@ -180,6 +188,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const onlyFav = searchParams.get('lemmikud') === '1';
   const onlyMine = searchParams.get('minu') === '1';
   const sort = searchParams.get('jarjestus') || (q.trim() ? 'relevance' : 'toc');
+  const phaseFilter = PHASE_FILTERS[searchParams.get('lehed')] ? searchParams.get('lehed') : '';
 
   const setParam = (changes, { replace = false } = {}) => {
     const next = new globalThis.URLSearchParams(searchParams);
@@ -203,7 +212,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     return () => globalThis.removeEventListener('keydown', onKey);
   }, []);
 
-  const items = useMemo(() => state.data ? buildLibraryItems(state.data.curriculumLessons, state.data.exercises) : [], [state.data]);
+  const items = useMemo(() => state.data ? buildLibraryItems(state.data.curriculumLessons, state.data.exercises).map((item) => ({ ...item, withPhases: usesLessonEngine(item) })) : [], [state.data]);
   // „Määra õpilastele” in the worksheet constructor opens Õppevara with ?assign=<lesson id>
   const assignId = searchParams.get('assign') || '';
   useEffect(() => {
@@ -219,7 +228,13 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const levels = useMemo(() => levelFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
   const modules = useMemo(() => moduleFacets(searchLibrary(items, { query: q, level, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, level, type, favFilter, mineUid]);
   const types = useMemo(() => typeFacets(searchLibrary(items, { query: q, level, module, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, level, module, favFilter, mineUid]);
-  const results = useMemo(() => sortLibrary(searchLibrary(items, { query: q, level, module, type, favorites: favFilter, mineUid }), sort), [items, q, level, module, type, sort, favFilter, mineUid]);
+  const results = useMemo(() => sortLibrary(searchLibrary(items, { query: q, level, module, type, favorites: favFilter, mineUid })
+    .filter(({ item }) => !phaseFilter || (item.withPhases && matchesPhaseFilter(item.phases, phaseFilter))), sort), [items, q, level, module, type, sort, favFilter, mineUid, phaseFilter]);
+  const moduleProgress = useMemo(() => {
+    const byModule = new Map();
+    for (const { item } of results) byModule.set(item.moduleKey, [...(byModule.get(item.moduleKey) || []), item]);
+    return new Map([...byModule].map(([key, list]) => [key, modulePhaseProgress(list)]));
+  }, [results]);
 
   if (state.loading) return <LoadingState label="Laen õppevara…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
@@ -255,6 +270,22 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     }
   };
 
+  // admin: sheets saved before the lesson kept the Avasta / Harjuta / Kasuta summary
+  const syncPhases = async () => {
+    setSyncingPhases(true);
+    setInstallError('');
+    try {
+      const lessons = (state.data?.curriculumLessons || []).filter((lesson) => lesson.roadmapManaged === true);
+      const result = await worksheetRepository.syncPhases(lessons);
+      setSuccess(result.updated ? `Töölehtede olek uuendati ${result.updated} tunnil.` : 'Töölehtede olek oli juba ajakohane.');
+      if (result.updated) state.reload();
+    } catch (error) {
+      setInstallError(error?.message || 'Töölehtede olekut ei saanud uuendada.');
+    } finally {
+      setSyncingPhases(false);
+    }
+  };
+
   const toggleFavorite = (item) => {
     const next = new Set(favorites);
     if (next.has(item.key)) next.delete(item.key); else next.add(item.key);
@@ -276,7 +307,12 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     : `/library/worksheets/${encodeURIComponent(item.sourceId)}`);
   const shown = results.slice(0, limit);
   const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
-  const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine);
+  const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine || phaseFilter);
+  const sheetPath = (item, phase) => `/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets/${phase.id}${phase.state === 'published' ? '?vaade=opilane' : ''}`;
+  const phaseHint = (phase) => (phase.state === 'none'
+    ? `${phase.label}: lehte pole veel — ava konstruktoris`
+    : `${phase.label}: «${phase.title || 'pealkirjata'}» · ${phase.state === 'published' ? `Avaldatud · versioon ${phase.publishedVersion}${phase.newerDraft ? ` (uuem mustand v${phase.version})` : ''}` : `Mustand · versioon ${phase.version}`}${phase.updatedAt ? ` · ${shortDate(phase.updatedAt)}` : ''}`);
+  const phaseIcon = { published: Check, draft: Circle, none: Plus };
 
   const row = ({ item, snippet }) => {
     const Icon = typeIcons[item.type] || BookOpen;
@@ -291,10 +327,23 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
           <small>{[meta.label, item.level || item.ageGroup, sort !== 'toc' ? item.moduleTitle : '', item.languageFocus].filter(Boolean).join(' · ')}</small>
           {snippet ? <em className="lib2-snippet"><b>{snippet.label}:</b> {snippet.text}</em> : null}
         </button>
+        {item.withPhases ? (
+          <span className="lib2-phases" role="group" aria-label={`Töölehed: ${item.title}`}>
+            {item.phases.map((phase) => {
+              const PhaseIcon = phaseIcon[phase.state];
+              const hint = phaseHint(phase);
+              return (
+                <Link key={phase.id} to={sheetPath(item, phase)} className={`lib2-phase is-${phase.state}`} title={hint} aria-label={hint}>
+                  <PhaseIcon size={13} aria-hidden="true" /> {phase.label}{phase.title ? <small>{phase.title}</small> : null}
+                </Link>
+              );
+            })}
+            <em className="lib2-phase-count">{phasesDone(item.phases)}/3 valmis</em>
+          </span>
+        ) : null}
         <span className="lib2-meta">{item.fileCount ? <span title={`${item.fileCount} faili`}><Paperclip size={14} />{item.fileCount}</span> : null}{shortDate(item.updatedAt) ? <time dateTime={item.updatedAt}>{shortDate(item.updatedAt)}</time> : null}</span>
         <span className="lib2-actions">
           <Button variant="secondary" aria-label={`Vaata: ${item.title}`} onClick={() => open(item)}><Eye size={15} /> Vaata</Button>
-          {usesLessonEngine(item) ? <Button variant="secondary" aria-label={`Töölehed: ${item.title}`} onClick={() => openWorksheet(item)}><Sparkles size={15} /> Töölehed</Button> : null}
           <Button variant="secondary" aria-label={`Muuda: ${item.title}`} onClick={() => edit(item)}><FilePenLine size={15} /> Muuda</Button>
           <Button onClick={() => setAssigning(item)}><Send size={15} /> Määra</Button>
         </span>
@@ -308,7 +357,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         eyebrow="Õppetöö"
         title="Õppevara"
         description="Otsi pealkirja, teema või sisu järgi — või vali tase ja moodul nagu õpiku sisukorrast."
-        actions={<>{isAdmin && plansMissing ? <Button variant="secondary" loading={refreshingPlans} disabled={refreshingPlans} onClick={refreshLessonPlans}><ClipboardList size={17} /> Lisa tunniplaanid ({plansMissing})</Button> : null}{!a2Complete ? <Button variant="secondary" loading={installingA2} disabled={installingA2} onClick={installA2Curriculum}><BookOpen size={17} /> Paigalda A2 õppekava</Button> : null}<Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Lisa materjal</Button></>}
+        actions={<>{isAdmin ? <Button variant="secondary" loading={syncingPhases} disabled={syncingPhases} onClick={syncPhases} title="Loeb iga tunni Avasta / Harjuta / Kasuta lehed ja kirjutab nende oleku tunnile">Uuenda töölehtede olek</Button> : null}{isAdmin && plansMissing ? <Button variant="secondary" loading={refreshingPlans} disabled={refreshingPlans} onClick={refreshLessonPlans}><ClipboardList size={17} /> Lisa tunniplaanid ({plansMissing})</Button> : null}{!a2Complete ? <Button variant="secondary" loading={installingA2} disabled={installingA2} onClick={installA2Curriculum}><BookOpen size={17} /> Paigalda A2 õppekava</Button> : null}<Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Lisa materjal</Button></>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
       {installError ? <div className="action-error" role="alert">{installError}</div> : null}
@@ -347,6 +396,12 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
               <button type="button" className={onlyFav ? 'is-active' : ''} aria-pressed={onlyFav} onClick={() => setParam({ lemmikud: onlyFav ? '' : '1' })}><Star size={14} /> Lemmikud</button>
               <button type="button" className={onlyMine ? 'is-active' : ''} aria-pressed={onlyMine} onClick={() => setParam({ minu: onlyMine ? '' : '1' })}>Minu loodud</button>
             </div>
+            <label className="lib2-sort"><span>Töölehed</span>
+              <select aria-label="Töölehtede olek" value={phaseFilter} onChange={(event) => setParam({ lehed: event.target.value })}>
+                <option value="">Kõik</option>
+                {Object.entries(PHASE_FILTERS).map(([key, label]) => <option value={key} key={key}>{label}</option>)}
+              </select>
+            </label>
             <label className="lib2-sort"><span>Järjestus</span>
               <select value={sort} onChange={(event) => setParam({ jarjestus: event.target.value })}>
                 {Object.entries(SORTS).filter(([key]) => key !== 'relevance' || q.trim()).map(([key, label]) => <option value={key} key={key}>{label}</option>)}
@@ -357,7 +412,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
           {results.length ? sections.map((section) => (
             <div className="lib2-section" key={section.key}>
-              {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small></h3> : null}
+              {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small>{moduleProgress.get(section.key) ? <em className="lib2-module-progress">{moduleProgress.get(section.key)}</em> : null}</h3> : null}
               <ul className="lib2-list">{section.results.map(row)}</ul>
             </div>
           )) : <Card><EmptyState title="Midagi ei leitud" description={onlyFav ? 'Lemmikuid pole veel — märgi materjal tärniga.' : 'Proovi teist sõna või tühjenda filtrid.'} /></Card>}
