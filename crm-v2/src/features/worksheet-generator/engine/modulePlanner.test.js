@@ -37,4 +37,12 @@ describe('module diversity planner', () => {
     expect(report.noNextReturn).toEqual([]);
     expect(entries.every((entry) => entry.recycleLessonIds.includes('a2-006'))).toBe(true);
   });
+
+  it('distributes a 16-word core set as 8 + 5 + 3 introductions across the first three lessons', () => {
+    const core = Array.from({ length: 16 }, (_, i) => ({ id: `v${i + 1}`, lemma: `word${i + 1}` }));
+    const entries = planLexicalRecycling(core, ['a2-001','a2-002','a2-003','a2-004','a2-005'], ['a2-006']);
+    const counts = entries.reduce((acc, entry) => ({ ...acc, [entry.activeFromLessonId]: (acc[entry.activeFromLessonId] || 0) + 1 }), {});
+    expect(counts).toEqual({ 'a2-001': 8, 'a2-002': 5, 'a2-003': 3 });
+    expect(lexicalCoverageReport(entries, ['a2-001','a2-002','a2-003','a2-004','a2-005'], ['a2-006']).ready).toBe(true);
+  });
 });
