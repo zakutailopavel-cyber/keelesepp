@@ -2,7 +2,7 @@ import roadmap from '../../curriculum/a2Roadmap.json';
 import { createGrammarTarget } from '../../curriculum/grammarProgression.js';
 import { createVocabularyEntry } from '../../curriculum/textbookVocabulary.js';
 import { generateLessonBundle } from '../engine/generator.js';
-import { lexicalCoverageReport, planLexicalRecycling, planModuleActivities } from '../engine/modulePlanner.js';
+import { lexicalCoverageReport, planLexicalRecycling, planModuleActivities, scheduledVocabularyForLesson } from '../engine/modulePlanner.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
 
 export const A2_MODULE_01_ID = 'a2-module-01';
@@ -83,11 +83,22 @@ export const A2_MODULE_01_GRAMMAR = Object.freeze([
   }),
 ]);
 
-function enrichProfile(profile, plannedVocabulary) {
+function enrichProfile(profile, plannedVocabulary, lessonId) {
   if (!profile) return null;
+  const focusIds = (profile.focuses || []).map((item) => item.id);
+  const scheduled = scheduledVocabularyForLesson(plannedVocabulary, lessonId, focusIds);
+  const seen = new Set();
+  const activeVocabulary = [...scheduled, ...(profile.activeVocabulary || [])].filter((item) => {
+    const key = String(item.word || '').toLocaleLowerCase('et');
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   return {
     ...profile,
     module: moduleData?.title || 'A2 lähtepunkt ja eneseinfo',
+    activeVocabulary,
+    recycledVocabularyIds: scheduled.filter((item) => plannedVocabulary.find((entry) => entry.id === item.id)?.activeFromLessonId !== lessonId).map((item) => item.id),
     grammarTargets: A2_MODULE_01_GRAMMAR,
     textbookVocabulary: plannedVocabulary,
     currentModuleLessonIds: lessonIds,
@@ -121,7 +132,7 @@ export function generateA2Module01({
     message: 'Mooduli põhisõnavara kordusplaan ei vasta õpiku standardile.',
   });
 
-  const profiles = baseProfiles.map((profile) => enrichProfile(profile, plannedVocabulary));
+  const profiles = baseProfiles.map((profile, index) => enrichProfile(profile, plannedVocabulary, lessons[index]?.id));
   const modulePlan = planModuleActivities({ lessons, profiles, seed, difficulty, countPerPhase: 5 });
   diagnostics.push(...modulePlan.diagnostics);
 
