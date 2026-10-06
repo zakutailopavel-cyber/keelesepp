@@ -1,3 +1,13 @@
+## 2026-10-06 — Textbook lesson-system schemas — branch `agent/textbook-lesson-system`
+
+Checked `origin/main` `c9cdb16` after owner merged PR #323. Owner priority remains: finish all lesson content A2 → B1 → B2 → C1 first; assemble the final Õpik only after lesson completion.
+- Added `grammarProgression.js`: stable grammar target contract with first introduction, controlled lessons, retrieval lessons, mastery level, prerequisites, Russian-speaker error notes, explanation/contrast fields, and per-lesson state `new / recycled / assumed`.
+- Added `textbookVocabulary.js`: textbook lexical-entry contract layered on the existing generated lexicon; requires three learner forms + Russian translation, level/topic metadata, collocations, government, first active lesson and scheduled recycle lessons; classifies encounters as new/current-module/previous-module/long-gap.
+- Added focused tests in `textbookLessonSystem.test.js` for grammar lifecycle, incomplete target rejection, three-form vocabulary, minimum lexical encounters and retrieval-state classification.
+- No Firestore writes, migrations, published worksheet changes, production deploy or Õpik UI changes.
+- Existing `forms.json` remains the morphology source; the new textbook vocabulary layer adds pedagogical progression metadata instead of duplicating inflection data.
+- Next safe step: run focused tests/CI, then wire these contracts into the generator planner and add the first missing high-value activity families before producing the next lesson batch.
+
 ## 2026-10-06 — A2→C1 digital textbook foundation — branch `agent/a2-c1-textbook-core`
 
 Checked `origin/main` `9990e8e`. Owner: turn the existing KeeleSepp A2, B1, B2 and C1 curricula plus Worksheet Studio into one coherent digital textbook system rather than a collection of unrelated worksheets.
