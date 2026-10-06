@@ -34,9 +34,13 @@ export function Line({ value, onChange, interactive, state, width, label, classN
 }
 
 export function Md({ text }) {
-  // tiny inline markdown: *italic*
-  const parts = String(text || '').split(/(\*[^*]+\*)/g);
-  return parts.map((p, i) => (p.startsWith('*') && p.endsWith('*') ? <em key={i}>{p.slice(1, -1)}</em> : <span key={i}>{p}</span>));
+  // Learner-safe inline emphasis. {{term}} = curriculum keyword highlight; *term* keeps legacy italic support.
+  const parts = String(text || '').split(/(\{\{[^{}]+\}\}|\*[^*]+\*)/g);
+  return parts.map((p, i) => {
+    if (p.startsWith('{{') && p.endsWith('}}')) return <strong className="ws-keyword" key={i}>{p.slice(2, -2)}</strong>;
+    if (p.startsWith('*') && p.endsWith('*')) return <em key={i}>{p.slice(1, -1)}</em>;
+    return <span key={i}>{p}</span>;
+  });
 }
 
 export function Clock({ time = '07:00' }) {
