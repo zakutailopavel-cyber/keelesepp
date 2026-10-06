@@ -1,3 +1,15 @@
+## 2026-10-06 — A2 module 01 textbook production — branch `agent/a2-module-01-production`
+
+Stacked on `agent/module-diversity-planner` / PR #326. Owner priority: stop expanding generic architecture and begin serial lesson production A2 → B1 → B2 → C1.
+- Added `production/a2Module01.js` for the first five A2 lessons: `a2-001…a2-005` / “A2 lähtepunkt ja eneseinfo”.
+- Production uses the existing authoritative A2 roadmap and existing curated generator profiles; it does not create duplicate lesson IDs or a competing curriculum.
+- The module is planned as five complete lesson bundles, each with Avasta + Harjuta + Kasuta, using the module-level activity plan from #326. `generateLessonBundle` now accepts an optional preplanned activity plan so module-level diversity rules actually control the generated sheets.
+- Added a 16-item core lexical syllabus for the module with three learner forms + Russian translation. The recycling planner introduces it 8 + 5 + 3 across lessons 001–003, introduces no new core vocabulary in 004/005, requires at least three current-module encounters and schedules a return in `a2-006`.
+- Added module grammar spine: personal pronouns + `olema`, common present-tense verbs, and basic question forms. Grammar/vocabulary progression is carried into Lesson DNA for all three phases.
+- Added focused tests for 5 × 3 = 15 valid worksheet documents, module diversity thresholds, lexical 8+5+3 distribution, no new vocabulary in the assessment lesson, next-module return, progression metadata and raw-markdown leakage.
+- No Firestore writes, publishing, production deployment or Õpik changes. This branch produces deterministic lesson content in code only.
+- Next gate: CI. If the module planner/content banks expose a concrete failure, fix that concrete gap; otherwise merge the stacked PRs and move immediately to A2 module 02.
+
 ## 2026-10-06 — Module diversity + lexical recycling planner — branch `agent/module-diversity-planner`
 
 Checked `origin/main` `c7ec04c` after PR #325 merged. Owner priority: finish lesson content A2 → B1 → B2 → C1 before final Õpik assembly.
