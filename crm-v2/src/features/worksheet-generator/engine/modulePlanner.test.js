@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { lexicalCoverageReport, moduleDiversityReport, planLexicalRecycling } from './modulePlanner.js';
+import { lexicalCoverageReport, moduleDiversityReport, planLexicalRecycling, scheduledVocabularyForLesson } from './modulePlanner.js';
 
 const lesson = (discover, practice, transfer) => ({ phases: { discover, practice, transfer } });
 
@@ -38,11 +38,17 @@ describe('module diversity planner', () => {
     expect(entries.every((entry) => entry.recycleLessonIds.includes('a2-006'))).toBe(true);
   });
 
-  it('distributes a 16-word core set as 8 + 5 + 3 introductions across the first three lessons', () => {
-    const core = Array.from({ length: 16 }, (_, i) => ({ id: `v${i + 1}`, lemma: `word${i + 1}` }));
-    const entries = planLexicalRecycling(core, ['a2-001','a2-002','a2-003','a2-004','a2-005'], ['a2-006']);
-    const counts = entries.reduce((acc, entry) => ({ ...acc, [entry.activeFromLessonId]: (acc[entry.activeFromLessonId] || 0) + 1 }), {});
-    expect(counts).toEqual({ 'a2-001': 8, 'a2-002': 5, 'a2-003': 3 });
-    expect(lexicalCoverageReport(entries, ['a2-001','a2-002','a2-003','a2-004','a2-005'], ['a2-006']).ready).toBe(true);
+  it('distributes a 16-word core set as 8 + 5 + 3 introductions and next-module returns', () => {
+    const core = Array.from({ length: 16 }, (_, i) => ({ id: `v${i + 1}`, lemma: `word${i + 1}`, translationRu: `перевод ${i + 1}`, partOfSpeech: 'noun' }));
+    const entries = planLexicalRecycling(core, ['a2-001','a2-002','a2-003','a2-004','a2-005'], ['a2-006','a2-007','a2-008','a2-009','a2-010']);
+    const introductions = entries.reduce((acc, entry) => ({ ...acc, [entry.activeFromLessonId]: (acc[entry.activeFromLessonId] || 0) + 1 }), {});
+    expect(introductions).toEqual({ 'a2-001': 8, 'a2-002': 5, 'a2-003': 3 });
+    const returns = entries.reduce((acc, entry) => {
+      const id = entry.recycleLessonIds.find((lessonId) => ['a2-006','a2-007','a2-008'].includes(lessonId));
+      return { ...acc, [id]: (acc[id] || 0) + 1 };
+    }, {});
+    expect(returns).toEqual({ 'a2-006': 8, 'a2-007': 5, 'a2-008': 3 });
+    expect(lexicalCoverageReport(entries, ['a2-001','a2-002','a2-003','a2-004','a2-005'], ['a2-006','a2-007','a2-008','a2-009','a2-010']).ready).toBe(true);
+    expect(scheduledVocabularyForLesson(entries, 'a2-006', ['focus']).every((item) => item.focusIds.includes('focus'))).toBe(true);
   });
 });
