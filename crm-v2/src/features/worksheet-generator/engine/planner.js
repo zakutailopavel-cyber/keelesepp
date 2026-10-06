@@ -39,6 +39,7 @@ function requirementAvailable(profile, requirement) {
     case 'transformations': return countBank(profile, 'transformations') >= 2;
     case 'dialogues': return countBank(profile, 'dialogues') >= 1;
     case 'listeningScripts': return countBank(profile, 'listeningScripts') >= 1;
+    case 'readingDocuments': return countBank(profile, 'readingDocuments') >= 1;
     case 'speakingOrSuccess': return countBank(profile, 'speakingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingOrSuccess': return countBank(profile, 'writingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingPrompts': return countBank(profile, 'writingPrompts') >= 1;
@@ -179,6 +180,9 @@ export function planLessonActivities({
   }
   if (normalizedKind === 'writing') {
     phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'writing' });
+  }
+  if (normalizedKind === 'reading') {
+    phases.practice = ensureLessonKindSkill({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, skill: 'reading' });
   }
   if (normalizedKind === 'communication') {
     phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'speaking' });
