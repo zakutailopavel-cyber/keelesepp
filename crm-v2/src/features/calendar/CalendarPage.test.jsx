@@ -285,6 +285,19 @@ describe('calendar v2', () => {
     expect(props.scheduleRepository.create).not.toHaveBeenCalled();
   });
 
+  it('a yellow window takes only an online lesson', async () => {
+    const props = renderCalendar({ windows: [{ teacherUid: 't1', teacherName: 'Pavel', slots: [{ id: 'y', kind: 'online', day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()], start: '08:00', end: '12:00' }] }] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    expect((await screen.findAllByText(/ainult veebitunde \(kollane aeg\)/)).length).toBeGreaterThan(0);
+    expect(props.scheduleRepository.create).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Veebitund (online)' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ online: true, time: '09:00' })));
+  });
+
   it('the admin marks a teacher\'s green window by dragging in the week grid', async () => {
     const props = renderCalendar({ events: [lesson()] });
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });
