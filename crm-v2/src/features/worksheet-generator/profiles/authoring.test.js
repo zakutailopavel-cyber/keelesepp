@@ -169,6 +169,31 @@ describe('generator profile authoring', () => {
     expect(profile.banks.listeningScripts).toEqual([expect.objectContaining({ id: 'ls1', transcript: 'Kodu on poe kõrval.' })]);
   });
 
+  it('sanitizes controlled functional reading documents', () => {
+    const profile = sanitizeGeneratorProfile({
+      lessonId: 'lesson-reading',
+      level: 'A2',
+      lessonKind: 'reading',
+      title: 'Lugemine',
+      focuses: [{ id: 'f1', type: 'reading', label: 'Praktiline info' }],
+      activeVocabulary: [
+        { id: 'v1', word: 'avatud', translation: 'открыто', focusIds: ['f1'] },
+        { id: 'v2', word: 'suletud', translation: 'закрыто', focusIds: ['f1'] },
+        { id: 'v3', word: 'peatus', translation: 'остановка', focusIds: ['f1'] },
+      ],
+      contexts: [{ id: 'c1', label: 'Teade' }, { id: 'c2', label: 'Silt' }, { id: 'c3', label: 'Graafik' }],
+      banks: {
+        sentences: Array.from({ length: 5 }, (_, i) => ({ id: `s${i}`, focusIds: ['f1'], contextIds: ['c1'], text: 'Peatus on avatud.' })),
+        errorPairs: [], translations: [], transformations: [], dialogues: [], listeningScripts: [],
+        readingDocuments: [{ id: 'rd1', focusIds: ['f1'], contextIds: ['c1'], title: 'Teade', passage: 'Pühapäeval on suletud.', questions: 'Kas pühapäeval saab sisse? [ei]\nMillal tuleb valida teine päev? [pühapäeval]\nMida tähendab suletud? [ei ole avatud]\nKas teade on praktiline info? [jah]\nMida inimene peab enne minekut kontrollima? [lahtiolekuaega]' }],
+        speakingPrompts: [], writingPrompts: [],
+      },
+      successCriteria: ['Ma leian vajaliku info.'],
+    }, { lessonId: 'lesson-reading' });
+    expect(profile.banks.readingDocuments).toEqual([expect.objectContaining({ id: 'rd1', title: 'Teade' })]);
+    expect(profile.banks.readingDocuments[0].questions.split('\n')).toHaveLength(5);
+  });
+
   it('round-trips reference content without losing slots, aliases or dialogue bank', () => {
     const fields = profileToEditorFields(referenceProfile, referenceLesson);
     const parsed = editorFieldsToProfile(fields, { lesson: referenceLesson, baseProfile: referenceProfile });
