@@ -25,6 +25,10 @@ const PACK_KEYWORDS = Object.freeze({
   'clock-time': ['kellaaeg', 'ajaväljend'],
   frequency: ['kui tihti', 'sagedus', 'частотн'],
   'week-plan': ['minu nädal', 'nädalaplaan'],
+  'home-rooms': ['minu kodu', 'ruum', 'mööbel', 'квартир', 'дом'],
+  'inner-local-cases': ['kus kuhu kust', 'sisekoh', '-sse', 'kodusse', 'poodi'],
+  'outer-local-cases': ['väliskoh', '-le', 'tööle', 'lauale'],
+  neighbourhood: ['naabruskond', 'korter ja naabruskond', 'asub', 'lähedal', 'район'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
