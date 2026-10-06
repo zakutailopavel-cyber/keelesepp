@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -125,6 +125,30 @@ describe('Content Pack Factory v1', () => {
       const profile = createContentPackDraft(lessons.find((item) => item.id === lessonId)).profile;
       expect(profile.contexts.every((context) => context.times.length === 0)).toBe(true);
     }
+  });
+
+  it('module 4 uses curated home/local-case sources, transformations and real listening input', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-016')).toEqual(['home-rooms']);
+    expect(pick('a2-017')).toEqual(['inner-local-cases']);
+    expect(pick('a2-018')).toEqual(['outer-local-cases']);
+    expect(pick('a2-019')).toEqual(['neighbourhood']);
+    expect(pick('a2-020')).toEqual(['home-rooms', 'inner-local-cases', 'outer-local-cases', 'neighbourhood']);
+
+    const inner = createContentPackDraft(lessons.find((item) => item.id === 'a2-017')).profile;
+    const outer = createContentPackDraft(lessons.find((item) => item.id === 'a2-018')).profile;
+    const listening = createContentPackDraft(lessons.find((item) => item.id === 'a2-019')).profile;
+    expect(inner.banks.transformations.length).toBeGreaterThanOrEqual(2);
+    expect(outer.banks.transformations.length).toBeGreaterThanOrEqual(2);
+    expect(listening.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+
+    const generated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-019'),
+      profile: listening,
+      seed: 'a2-019:listening-required',
+    });
+    const practiceTypes = generated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type);
+    expect(practiceTypes).toContain('listening');
   });
 
   it('translation hints never reveal an accepted answer', () => {
