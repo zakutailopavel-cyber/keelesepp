@@ -2,7 +2,7 @@ import { CalendarClock, Check, History, Pencil, RotateCcw, Search, Trash2, UserR
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
-import { INDIVIDUAL_TOPIC, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
+import { INDIVIDUAL_TOPIC, pickFromRecord, suggestTopic, topicFromPick, topicLine } from './lessonTopic.js';
 import { isGoogleOwned, lessonSyncState } from '../google-calendar/googleCalendarModel.js';
 import '../google-calendar/googleCalendar.css';
 
@@ -62,7 +62,7 @@ function readDraft(item) {
   try { return JSON.parse(window.localStorage.getItem(draftKey(item)) || 'null'); } catch { return null; }
 }
 
-export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateNotes, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
+export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
   const done = Boolean(item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
   const [draft] = useState(() => readDraft(item));
@@ -70,7 +70,8 @@ export default function LessonPanel({ item, history = [], catalog, library, load
   const [notes, setNotes] = useState(draft?.notes || '');
   const [homework, setHomework] = useState(draft?.homework || null);
   const [fixing, setFixing] = useState(false);
-  const [editingNotes, setEditingNotes] = useState(null);
+  // editing the topic and the note of a marked lesson: { pick, notes } or null
+  const [editing, setEditing] = useState(null);
   useEffect(() => {
     if (!item?.occurrenceId) return;
     try {
@@ -88,8 +89,8 @@ export default function LessonPanel({ item, history = [], catalog, library, load
   const record = item.record;
   const save = async (status) => {
     const ok = await (status === 'Toimunud'
-      ? onDone({ status, ...topicFields(chosen, notes), homework })
-      : onDone({ status, ...topicFields(null, notes), topic: '', homework: null }));
+      ? onDone({ status, ...topicFromPick(catalog, topic, notes), homework })
+      : onDone({ status, ...topicFromPick(null, {}, notes), topic: '', homework: null }));
     if (ok) { try { window.localStorage.removeItem(draftKey(item)); } catch { /* storage may be disabled */ } }
   };
   const googleOwned = isGoogleOwned(item);
@@ -128,12 +129,14 @@ export default function LessonPanel({ item, history = [], catalog, library, load
       {!item.isGroup && done ? (
         <section className="lp-done">
           <Badge tone={absent ? 'danger' : 'success'}>{STATUS_LABEL[record?.status || item.status] || 'Arvestatud'}</Badge>
-          {record ? <><strong>{topicLine(record) || INDIVIDUAL_TOPIC}</strong>{editingNotes === null && record.notes ? <p>{record.notes}</p> : null}</> : null}
-          {record && onUpdateNotes && editingNotes === null ? <button type="button" className="link-button" onClick={() => setEditingNotes(record.notes || '')}><Pencil size={13} /> {record.notes ? 'Muuda märkust' : 'Lisa märkus'}</button> : null}
-          {record && editingNotes !== null ? (
-            <div className="lp-notes-edit">
-              <label className="lp-notes"><span>Märkus (näeb ka õpilane ja lapsevanem)</span><textarea rows={3} maxLength={1000} value={editingNotes} onChange={(event) => setEditingNotes(event.target.value)} /></label>
-              <div className="lp-actions"><Button loading={saving} onClick={async () => { if (await onUpdateNotes(editingNotes)) setEditingNotes(null); }}>Salvesta märkus</Button><Button variant="secondary" disabled={saving} onClick={() => setEditingNotes(null)}>Loobu</Button></div>
+          {record && !editing ? <><strong>{topicLine(record) || INDIVIDUAL_TOPIC}</strong>{record.notes ? <p>{record.notes}</p> : null}</> : null}
+          {record && onUpdateDetails && !editing ? <button type="button" className="link-button" onClick={() => setEditing({ pick: pickFromRecord(catalog, record), notes: record.notes || '' })}><Pencil size={13} /> Muuda teemat või märkust</button> : null}
+          {record && editing ? (
+            <div className="lp-notes-edit" role="group" aria-label="Muuda teemat või märkust">
+              {catalog ? <TopicPicker catalog={catalog} value={editing.pick} onChange={(pick) => setEditing({ ...editing, pick })} /> : <p className="lp-hint">{loadingLibrary ? 'Laen Õppevara teemasid…' : 'Teemad pole saadaval.'}</p>}
+              <p className="lp-hint">Õpilane ja lapsevanem näevad: <b>{topicLine(topicFromPick(catalog, editing.pick)) || INDIVIDUAL_TOPIC}</b></p>
+              <label className="lp-notes"><span>Märkus (näeb ka õpilane ja lapsevanem)</span><textarea rows={3} maxLength={1000} value={editing.notes} onChange={(event) => setEditing({ ...editing, notes: event.target.value })} /></label>
+              <div className="lp-actions"><Button loading={saving} onClick={async () => { if (await onUpdateDetails(topicFromPick(catalog, editing.pick, editing.notes))) setEditing(null); }}>Salvesta</Button><Button variant="secondary" disabled={saving} onClick={() => setEditing(null)}>Loobu</Button></div>
             </div>
           ) : null}
           {record && onChangeMark && !fixing ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
@@ -156,7 +159,7 @@ export default function LessonPanel({ item, history = [], catalog, library, load
           {!catalog ? <p className="lp-hint">{loadingLibrary ? 'Laen Õppevara teemasid…' : 'Teemad pole saadaval.'}</p> : (
             <>
               <TopicPicker catalog={catalog} value={topic} onChange={setPicked} />
-              <p className="lp-hint">{chosen ? <>Õpilane ja lapsevanem näevad: <b>{topicLine(topicFields(chosen))}</b></> : <>Teemata tund salvestub kui <b>„{INDIVIDUAL_TOPIC}”</b>.</>}{chosen || topic.level ? <> · <button type="button" className="link-button" onClick={() => setPicked({ level: '', module: '', lessonId: '' })}>Ilma teemata</button></> : null}</p>
+              <p className="lp-hint">{chosen || topic.module ? <>Õpilane ja lapsevanem näevad: <b>{topicLine(topicFromPick(catalog, topic))}</b></> : <>Teemata tund salvestub kui <b>„{INDIVIDUAL_TOPIC}”</b>.</>}{chosen || topic.level ? <> · <button type="button" className="link-button" onClick={() => setPicked({ level: '', module: '', lessonId: '' })}>Ilma teemata</button></> : null}</p>
             </>
           )}
           <label className="lp-notes"><span>Märkus (näeb ka õpilane ja lapsevanem)</span><textarea rows={2} maxLength={1000} placeholder="Nt: harjutasime partitiivi, kooli kodutöö matemaatikas…" value={notes} onChange={(event) => setNotes(event.target.value)} /></label>

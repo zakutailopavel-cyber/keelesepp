@@ -350,16 +350,21 @@ describe('calendar v2', () => {
     }
   });
 
-  it('the note of a marked lesson can be corrected later', async () => {
-    const record = { id: 'rec-1', scheduleId: 'schedule-1', date: today, status: 'Toimunud', notes: 'Vana märkus', studentId: 's1' };
+  it('the teacher changes the topic (module only, or a lesson) and the note of a marked lesson', async () => {
+    const record = { id: 'rec-1', scheduleId: 'schedule-1', date: today, status: 'Toimunud', notes: 'Vana märkus', studentId: 's1', topic: 'Individuaalne tund' };
     const props = renderCalendar({ events: [lesson()], records: [record] });
-    props.lessonRepository.updateNotes = vi.fn().mockResolvedValue({});
+    props.lessonRepository.updateDetails = vi.fn().mockResolvedValue({});
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
     const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
-    fireEvent.click(within(panel).getByRole('button', { name: /Muuda märkust/ }));
-    fireEvent.change(within(panel).getByLabelText(/Märkus/), { target: { value: 'Uus märkus' } });
-    fireEvent.click(within(panel).getByRole('button', { name: 'Salvesta märkus' }));
-    await waitFor(() => expect(props.lessonRepository.updateNotes).toHaveBeenCalledWith(expect.objectContaining({ id: 'rec-1' }), 'Uus märkus', expect.anything()));
+    fireEvent.click(await within(panel).findByRole('button', { name: /Muuda teemat või märkust/ }));
+    const editor = within(panel).getByRole('group', { name: 'Muuda teemat või märkust' });
+    const [level, module] = within(editor).getAllByRole('combobox');
+    fireEvent.change(level, { target: { value: 'B1' } });
+    fireEvent.change(module, { target: { value: within(module).getAllByRole('option')[1].value } });
+    fireEvent.change(within(editor).getByLabelText(/Märkus/), { target: { value: 'Uus märkus' } });
+    expect(within(editor).getByText(/B1 · .*Igapäevaelu/)).toBeInTheDocument();
+    fireEvent.click(within(editor).getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(props.lessonRepository.updateDetails).toHaveBeenCalledWith(expect.objectContaining({ id: 'rec-1' }), expect.objectContaining({ topicLevel: 'B1', topicLessonId: '', notes: 'Uus märkus' }), expect.anything()));
   });
 
   it('"Alusta tundi" invites the student and opens the live room for today\'s lesson', async () => {

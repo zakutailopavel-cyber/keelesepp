@@ -1,35 +1,26 @@
-import { buildTopicCatalog, INDIVIDUAL_TOPIC, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
+import { buildTopicCatalog, pickFromRecord, topicFromPick } from './lessonTopic.js';
 
-const lessons = [
-  { id: 'b1-m1-1', title: 'Minu päev', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 1 },
-  { id: 'b1-m1-2', title: 'Sagedus', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 2 },
-  { id: 'b1-m2-1', title: 'Menüü', level: 'B1', roadmapModuleTitle: 'Toit', roadmapModuleNumber: 2, roadmapLessonNumber: 1 },
-  { id: 'b1-test', title: 'Kontroll 1', level: 'B1', type: 'test', roadmapModuleTitle: 'Toit', roadmapModuleNumber: 2 },
-  { id: 'a2-1', title: 'Tere', level: 'A2', roadmapModuleTitle: 'Algus', roadmapModuleNumber: 1, roadmapLessonNumber: 1 },
-];
-const catalog = buildTopicCatalog(lessons);
+const catalog = buildTopicCatalog([
+  { id: 'b1-1', title: 'Minu päev', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 1 },
+  { id: 'b1-2', title: 'Sagedus', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 2 },
+]);
 
-describe('lesson topic from Õppevara', () => {
-  it('builds level → theme → lesson in curriculum order, without tests', () => {
-    expect(catalog.levels.map((level) => level.key)).toEqual(['A2', 'B1']);
-    const b1 = catalog.levels.find((level) => level.key === 'B1');
-    expect(b1.modules.map((module) => [module.label, module.lessons.map((lesson) => lesson.id)])).toEqual([
-      ['Igapäevaelu', ['b1-m1-1', 'b1-m1-2']],
-      ['Toit', ['b1-m2-1']],
-    ]);
+describe('lesson topic picked by the teacher', () => {
+  it('a lesson, a module only, or nothing', () => {
+    const module = catalog.levels[0].modules[0];
+    expect(topicFromPick(catalog, { level: 'B1', module: module.key, lessonId: 'b1-2' }, 'x')).toMatchObject({ topic: 'Sagedus', topicLessonId: 'b1-2', notes: 'x' });
+    expect(topicFromPick(catalog, { level: 'B1', module: module.key, lessonId: '' })).toMatchObject({ topic: module.label, topicModule: module.label, topicLessonId: '' });
+    expect(topicFromPick(catalog, {})).toMatchObject({ topic: 'Individuaalne tund', topicLessonId: '' });
   });
 
-  it('suggests the next lesson after the last one, crossing into the next theme', () => {
-    expect(suggestTopic(catalog, { history: [{ topicLessonId: 'b1-m1-1' }] }).id).toBe('b1-m1-2');
-    expect(suggestTopic(catalog, { history: [{ topicLessonId: 'b1-m1-2' }, { topicLessonId: 'b1-m1-1' }] }).id).toBe('b1-m2-1');
-    expect(suggestTopic(catalog, { history: [{ topic: 'Individuaalne tund' }], studentLevel: 'B1' }).id).toBe('b1-m1-1');
-    expect(suggestTopic(catalog, { studentLevel: 'A2' }).id).toBe('a2-1');
+  it('reads a stored record back into the picker', () => {
+    const module = catalog.levels[0].modules[0];
+    expect(pickFromRecord(catalog, { topicLessonId: 'b1-1' })).toEqual({ level: 'B1', module: module.key, lessonId: 'b1-1' });
+    expect(pickFromRecord(catalog, { topicLevel: 'B1', topicModule: module.label })).toEqual({ level: 'B1', module: module.key, lessonId: '' });
   });
 
-  it('writes the chosen topic, or "Individuaalne tund" when nothing is chosen', () => {
-    const picked = catalog.byId.get('b1-m2-1');
-    expect(topicFields(picked, ' partitiivi harjutused ')).toEqual({ topic: 'Menüü', topicLevel: 'B1', topicModule: 'Toit', topicLessonId: 'b1-m2-1', notes: 'partitiivi harjutused' });
-    expect(topicFields(null, 'kooli kodutöö').topic).toBe(INDIVIDUAL_TOPIC);
-    expect(topicLine({ topic: 'Menüü', topicLevel: 'B1', topicModule: 'Toit' })).toBe('B1 · Toit · Menüü');
+  it('shows a module-only topic once', async () => {
+    const { topicLine } = await import('./lessonTopic.js');
+    expect(topicLine({ topic: 'Igapäevaelu', topicLevel: 'B1', topicModule: 'Igapäevaelu' })).toBe('B1 · Igapäevaelu');
   });
 });
