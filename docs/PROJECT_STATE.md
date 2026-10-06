@@ -1,3 +1,15 @@
+## 2026-10-07 — A2 module 07 textbook production — branch `agent/a2-module-07-production`
+
+Stacked on A2 module 06 / PR #332. Serial lesson production continues.
+- Added curated Content Library v8 sources for `a2-031…a2-035` / “Pood, raha ja ostud”: `shopping-goods`, `shopping-prices`, `fitting-compare`, `receipt-return`.
+- A2-032 now combines prices, sizes, numbers and quantities with controlled transformations plus two listening scripts. Because the lesson is grammar with authored listening input, Harjuta keeps an actual listening-comprehension block instead of relying only on visual number drills.
+- A2-033 practices fitting and comparison through size/color changes, comparison forms, repair and interaction; Kasuta makes the learner adapt to changed size, color or price conditions.
+- A2-034 uses two practical reading documents: a receipt/promotion and return conditions. Each has six questions mixing factual retrieval, inference, conditions, exceptions and action decisions rather than direct sentence copying.
+- Added `production/a2Module07.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 031–033, module-06 return across 031–033, distributed return to 036–038, no new core vocabulary in Kontroll 7, and grammar/function spine for prices/quantities, comparison, shopping-service functions and practical return reading.
+- Tests cover five curated profiles, real A2-032 listening, A2-034 functional reading with 5+ questions, 15 worksheet documents, cross-module lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue to A2 module 08 “Teenused ja asjaajamine”.
+
 ## 2026-10-07 — A2 module 06 textbook production — branch `agent/a2-module-06-production`
 
 Stacked on A2 module 05 / PR #331. Serial lesson production continues.
