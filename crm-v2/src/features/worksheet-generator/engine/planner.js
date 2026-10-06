@@ -175,7 +175,7 @@ export function planLessonActivities({
   });
 
   const normalizedKind = normalizeLessonKind(lessonKind);
-  if (normalizedKind === 'listening') {
+  if (normalizedKind === 'listening' || (normalizedKind === 'grammar' && countBank(profile, 'listeningScripts') > 0)) {
     phases.practice = ensureLessonKindSkill({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, skill: 'listening' });
   }
   if (normalizedKind === 'writing') {
