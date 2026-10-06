@@ -1722,7 +1722,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['4', 'appointment-booking', 'booking-service', 'Broneering on tehtud nimele Anna Petrova.'],
       ['5', 'appointment-booking', 'booking-service', 'Teenus kestab umbes nelikümmend minutit.'],
       ['6', 'appointment-booking', 'booking-service', 'Kellaaeg sobib mulle hästi.'],
-      ['7', 'appointment-booking', 'booking-change', 'Soovin aega muuta.'],
+      ['7', 'appointment-booking', 'booking-change', 'Aeg ei sobi; soovin seda muuta.'],
       ['8', 'appointment-booking', 'booking-change', 'Kas on võimalik tulla varem?'],
       ['9', 'appointment-booking', 'booking-change', 'Kui varem ei saa, sobib mulle hiljem.'],
     ]),
