@@ -1,5 +1,18 @@
 # KeeleSepp Project State
 
+## 2026-10-06 — Student card „Tööd”: worksheets given but not handed in, live — branch `agent/student-works-live`
+
+Checked `origin/main` `a4ef5b2`. Owner: a worksheet given to a student must be visible in the student's profile in its
+current state, also before it is handed in.
+- `StudentWorksPanel` also loads `listWorksheetAssignmentsByStudentIds`; section „Määratud, veel esitamata” lists
+  assignments not `done` and not reviewed: title, given date, due date, „Alustamata / Pooleli · X/Y vastust”
+  (`answerProgress`), „hilinenud” after the due date. A click opens „<title> · praegune seis” with the existing
+  `LiveWorksheetView` (live subscription to the assignment: answers as the student's player autosaves them, marks only on
+  answered fields, the teacher can point at a task and add notes). Handed-in works stay below and open the check window.
+- No rules or data change (staff already read `worksheetAssignments`).
+- Tests: StudentProfilePage (new live test) 47/47 students; ESLint clean; build OK.
+- Next safe step: owner merges the draft PR (Vercel deploys the CRM).
+
 ## 2026-10-05 — Calendar: students without a lesson ahead — branch `agent/unplanned-students`
 
 Owner: make it easy for teachers to see which of their students are not in the calendar, so nobody is forgotten.

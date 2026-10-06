@@ -3,6 +3,8 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterAll, beforeAll, vi } from 'vitest';
 import StudentProfilePage from './StudentProfilePage.jsx';
 
+globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
+
 // Invoice fixtures are dated October 2026: pin the clock (Date only) so "partly paid" does not turn into "overdue".
 beforeAll(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-01T09:00:00Z')); });
 afterAll(() => { vi.useRealTimers(); });
@@ -203,5 +205,28 @@ describe('student profile tabs and role access', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Areng' }));
     expect(screen.getByText('Grammatika')).toBeInTheDocument();
     expect(screen.getByText('80%')).toBeInTheDocument();
+  });
+
+  it('shows a worksheet that is given but not handed in, live with the answers as they are now', async () => {
+    const doc = { schema: 'keelesepp.worksheet/1', meta: { title: 'Pere tööleht', level: 'A2', goals: {} }, blocks: [{ id: 'b1', type: 'gaps', data: { title: 'Täida', sentences: 'Minu [ema] nimi on Mari.' } }] };
+    const assignment = { id: 'a1', studentId: 's1', title: 'Pere tööleht', status: 'new', assignedAt: '2026-10-01T10:00:00.000Z', dueDate: '2099-10-08', answers: { 'b1:0.0': 'ema' }, worksheetDoc: doc };
+    const homeworkApi = {
+      listSubmissionsByStudentIds: vi.fn().mockResolvedValue([]),
+      listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([assignment, { ...assignment, id: 'a2', title: 'Valmis', status: 'done' }]),
+      subscribeWorksheetAssignment: vi.fn((id, onData) => { onData(assignment); return () => {}; }),
+    };
+    render(
+      <MemoryRouter initialEntries={['/students/s1']}>
+        <Routes><Route path="/students/:studentId" element={<StudentProfilePage studentApi={{ getById: vi.fn().mockResolvedValue({ id: 's1', name: 'Mari Maas', teacher: 'Pavel', active: true, skillMap: {} }) }} lessonApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} invoiceApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} scheduleApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} homeworkApi={homeworkApi} actor={{ uid: 'a', roles: ['admin'], displayName: 'Admin' }} />} /></Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole('tab', { name: 'Tööd' }, { timeout: 4000 }));
+    const open = await screen.findByRole('region', { name: 'Määratud, veel esitamata' });
+    expect(within(open).getByText('Pooleli · 1/1 vastust')).toBeInTheDocument();
+    expect(within(open).queryByText('Valmis')).toBeNull();
+    fireEvent.click(within(open).getByRole('button', { name: /Pere tööleht/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Pere tööleht · praegune seis' });
+    expect(dialog).toHaveTextContent('ei ole tööd veel esitanud');
+    expect(homeworkApi.subscribeWorksheetAssignment).toHaveBeenCalledWith('a1', expect.any(Function), expect.any(Function));
   });
 });

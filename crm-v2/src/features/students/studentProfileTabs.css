@@ -82,3 +82,6 @@
 .lesson-detail__list li { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .lesson-detail__list small, .lesson-detail__words { color: var(--muted); }
 .lesson-detail__words { margin: 0; }
+.student-works__open { display: grid; gap: 8px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.student-works__open h3, .student-works__subhead { margin: 0 0 4px; font-size: 1rem; }
+.review-layout--single { grid-template-columns: minmax(0, 1fr); }

@@ -1,22 +1,42 @@
-import { ClipboardCheck, FileText } from 'lucide-react';
+import { ClipboardCheck, Eye, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Badge, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
+import { Badge, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
+import LiveWorksheetView from '../worksheet-studio/LiveWorksheetView.jsx';
+import { answerProgress } from '../worksheet-studio/engine/registry.js';
+import '../homework/reviewLayout.css';
 import SubmissionReviewModal from '../homework/SubmissionReviewModal.jsx';
 import { formatDate } from '../homework/submissionFormat.js';
 
-// Student card „Tööd”: every worksheet and exercise the student handed in, opened in the large check window where the
-// teacher grades it and grades the skills it showed (that moves the skill map in „Areng”).
+// Student card „Tööd”: worksheets given but not handed in yet (open live: the teacher sees the answers as they are now,
+// autosaved by the student's player) and every worksheet and exercise the student handed in, opened in the large
+// check window where the teacher grades it and grades the skills it showed (that moves the skill map in „Areng”).
+const today = () => new Date().toISOString().slice(0, 10);
+function openState(assignment) {
+  const doc = assignment.worksheetDoc;
+  const progress = doc?.blocks?.length ? answerProgress(doc, assignment.answers || {}) : null;
+  const answered = progress ? progress.answered : Object.keys(assignment.answers || {}).length;
+  const overdue = assignment.dueDate && assignment.dueDate < today();
+  return {
+    label: answered ? (progress ? `Pooleli · ${progress.answered}/${progress.total} vastust` : `Pooleli · ${answered} vastust`) : 'Alustamata',
+    tone: overdue ? 'danger' : answered ? 'info' : 'neutral',
+    overdue,
+  };
+}
 export default function StudentWorksPanel({ student, user, homeworkApi, onSkillMap }) {
-  const [state, setState] = useState({ loading: true, error: '', items: [] });
+  const [state, setState] = useState({ loading: true, error: '', items: [], open: [] });
+  const [watching, setWatching] = useState(null);
   const [opened, setOpened] = useState(null);
   const [notice, setNotice] = useState('');
 
   const [version, setVersion] = useState(0);
   useEffect(() => {
     let alive = true;
-    Promise.resolve().then(() => homeworkApi.listSubmissionsByStudentIds([student.id]))
-      .then((items) => { if (alive) setState({ loading: false, error: '', items: items || [] }); })
-      .catch((error) => { if (alive) setState({ loading: false, error: error.message || 'Töid ei saanud laadida.', items: [] }); });
+    Promise.resolve().then(() => Promise.all([
+      homeworkApi.listSubmissionsByStudentIds([student.id]),
+      homeworkApi.listWorksheetAssignmentsByStudentIds ? homeworkApi.listWorksheetAssignmentsByStudentIds([student.id]) : [],
+    ]))
+      .then(([items, assignments]) => { if (alive) setState({ loading: false, error: '', items: items || [], open: (assignments || []).filter((item) => item.status !== 'done' && item.reviewStatus !== 'reviewed') }); })
+      .catch((error) => { if (alive) setState({ loading: false, error: error.message || 'Töid ei saanud laadida.', items: [], open: [] }); });
     return () => { alive = false; };
   }, [homeworkApi, student.id, version]);
   const load = () => { setState((current) => ({ ...current, loading: true, error: '' })); setVersion((value) => value + 1); };
@@ -25,8 +45,27 @@ export default function StudentWorksPanel({ student, user, homeworkApi, onSkillM
 
   return (
     <Card className="profile-wide student-works">
-      <div className="section-heading"><div><span className="eyebrow">Õpilase tööd</span><h2>Esitatud tööd</h2></div>{pending ? <Badge tone="info">{pending} ootab kontrolli</Badge> : null}</div>
+      <div className="section-heading"><div><span className="eyebrow">Õpilase tööd</span><h2>Töölehed ja harjutused</h2></div>{pending ? <Badge tone="info">{pending} ootab kontrolli</Badge> : null}</div>
       {notice ? <div className="success-notice" role="status">{notice}<button type="button" onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
+      {!state.loading && !state.error && state.open.length ? (
+        <section className="student-works__open" aria-label="Määratud, veel esitamata">
+          <h3>Määratud, veel esitamata ({state.open.length})</h3>
+          <div className="submission-list">
+            {state.open.map((assignment) => {
+              const info = openState(assignment);
+              return (
+                <button type="button" className="submission-row" key={assignment.id} onClick={() => setWatching(assignment)}>
+                  <i><FileText size={20} /></i>
+                  <span className="submission-row__main"><strong>{assignment.title}</strong><small>{[assignment.assignedAt ? `määratud ${formatDate(assignment.assignedAt)}` : '', assignment.dueDate ? `tähtaeg ${assignment.dueDate}` : ''].filter(Boolean).join(' · ')}</small></span>
+                  <Badge tone={info.tone}>{info.overdue ? `${info.label} · hilinenud` : info.label}</Badge>
+                  <Eye size={18} aria-hidden="true" />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+      {!state.loading && !state.error && state.open.length ? <h3 className="student-works__subhead">Esitatud tööd</h3> : null}
       {state.loading ? <LoadingState label="Laen töid…" /> : state.error ? <ErrorState message={state.error} onRetry={load} /> : state.items.length ? (
         <div className="submission-list">
           {state.items.map((item) => {
@@ -43,6 +82,16 @@ export default function StudentWorksPanel({ student, user, homeworkApi, onSkillM
           })}
         </div>
       ) : <EmptyState title="Esitatud töid veel ei ole" description="Kui õpilane esitab töölehe või harjutuse, ilmub see siia." />}
+      {watching ? (
+        <Modal open title={`${watching.title} · praegune seis`} onClose={() => { setWatching(null); load(); }} className="modal--review">
+          <div className="review-layout review-layout--single">
+            <div className="review-layout__work">
+              <p className="form-hint">Õpilane ei ole tööd veel esitanud. Näed tema vastuseid nii, nagu need praegu on — uued vastused ilmuvad kohe.</p>
+              <LiveWorksheetView assignmentId={watching.id} repository={homeworkApi} embedded />
+            </div>
+          </div>
+        </Modal>
+      ) : null}
       {opened ? (
         <SubmissionReviewModal
           key={`${opened.submissionKind}-${opened.id}`}
