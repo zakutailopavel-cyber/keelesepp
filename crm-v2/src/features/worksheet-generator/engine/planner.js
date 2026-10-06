@@ -38,6 +38,7 @@ function requirementAvailable(profile, requirement) {
     case 'translations': return countBank(profile, 'translations') >= 2;
     case 'transformations': return countBank(profile, 'transformations') >= 2;
     case 'dialogues': return countBank(profile, 'dialogues') >= 1;
+    case 'listeningScripts': return countBank(profile, 'listeningScripts') >= 1;
     case 'speakingOrSuccess': return countBank(profile, 'speakingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingOrSuccess': return countBank(profile, 'writingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingPrompts': return countBank(profile, 'writingPrompts') >= 1;
