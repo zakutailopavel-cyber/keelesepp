@@ -77,7 +77,8 @@ export function planLexicalRecycling(coreEntries = [], lessonIds = [], nextModul
     const intro = entry.activeFromLessonId || lexicalIntroductionLesson(index, coreEntries.length, ids);
     const actualIntroIndex = Math.max(0, ids.indexOf(intro));
     const later = ids.filter((_, i) => i > actualIntroIndex);
-    const desired = uniq([later[0], later[1], ids[ids.length - 1], nextIds[0]]).filter(Boolean);
+    const nextReturn = nextIds.length ? lexicalIntroductionLesson(index, coreEntries.length, nextIds) : '';
+    const desired = uniq([later[0], later[1], ids[ids.length - 1], nextReturn]).filter(Boolean);
     return {
       ...entry,
       activeFromLessonId: intro,
