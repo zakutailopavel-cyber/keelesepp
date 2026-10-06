@@ -393,11 +393,22 @@
 .lib2-meta{display:flex;gap:10px;align-items:center;color:#98a2b3;font-size:.78rem;white-space:nowrap}
 .lib2-meta span{display:inline-flex;align-items:center;gap:3px}
 .lib2-actions{display:flex;gap:6px}
+/* Avasta / Harjuta / Kasuta on the lesson card: green = published, yellow = draft, grey = not made yet */
+.lib2-phases{grid-column:3 / -1;grid-row:2;display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:-4px}
+.lib2-phase{display:inline-flex;align-items:center;gap:5px;max-width:260px;padding:3px 10px;border-radius:999px;border:1px solid #d0d5dd;background:#f9fafb;color:#667085;font-size:.8rem;font-weight:700;text-decoration:none}
+.lib2-phase small{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:170px;opacity:.85}
+.lib2-phase.is-published{background:#e7f5f1;border-color:#9fd8c8;color:#0b5c4d}
+.lib2-phase.is-draft{background:#fff8e1;border-color:#f3d37a;color:#8a5a00}
+.lib2-phase.is-draft svg{fill:currentColor}
+.lib2-phase:hover{filter:brightness(.96)}
+.lib2-phase:focus-visible{outline:2px solid #0b5c4d;outline-offset:2px}
+.lib2-phase-count{font-style:normal;color:#98a2b3;font-size:.78rem;margin-left:4px}
+.lib2-module-progress{margin-left:auto;font-style:normal;font-size:.78rem;font-weight:600;color:#667085}
 .lib2-actions .button{min-height:34px;padding:0 12px;font-size:.84rem}
 .lib2-more{display:flex;justify-content:center;margin-top:16px}
 @media(max-width:1100px){.lib2-meta time{display:none}}
 @media(max-width:900px){.lib2-body{grid-template-columns:1fr}.lib2-toc{position:static;max-height:none;padding:0;border:0;background:transparent}.lib2-toc ul{display:none}.lib2-toc-select{display:grid;gap:4px;font-size:.8rem;color:#667085;font-weight:700}.lib2-toc-select select{width:100%}}
-@media(max-width:640px){.lib2-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"star main main" "star actions actions"}.lib2-row .lib2-icon,.lib2-row .lib2-meta{display:none}.lib2-star{grid-area:star}.lib2-main{grid-area:main}.lib2-actions{grid-area:actions}.lib2-actions .button{flex:1}.lib2-levels button{padding:8px 14px}}
+@media(max-width:640px){.lib2-row{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"star main main" "star phases phases" "star actions actions"}.lib2-phases{grid-area:phases}.lib2-row .lib2-icon,.lib2-row .lib2-meta{display:none}.lib2-star{grid-area:star}.lib2-main{grid-area:main}.lib2-actions{grid-area:actions}.lib2-actions .button{flex:1}.lib2-levels button{padding:8px 14px}}
 .lib2-search input::-webkit-search-cancel-button,.lib2-search input::-webkit-search-decoration{-webkit-appearance:none;appearance:none;display:none}
 @media(max-width:640px){
   .lib2 .page-header__actions{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;padding-bottom:4px;scrollbar-width:none}

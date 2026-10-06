@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { lessonWorksheetsService, worksheetDocsService } from '../../../services/firebase/index.js';
 import WorksheetStudioPage from '../../worksheet-studio/WorksheetStudioPage.jsx';
 import { newDocument } from '../../worksheet-studio/engine/schema.js';
@@ -14,6 +14,8 @@ const MISSING = 'Töölehte ei leitud.';
 // and the generator in a strip at the top. A core sheet that does not exist yet opens empty.
 export default function LessonWorksheetStudioPage({ repository = lessonWorksheetsService, vocabularyRepository }) {
   const { lessonId, worksheetId } = useParams();
+  // „?vaade=opilane” from Õppevara: a published sheet opens in the student view
+  const [searchParams] = useSearchParams();
   const [reloadKey, setReloadKey] = useState(0);
   const exists = useRef(true);
   const adapter = useMemo(() => ({
@@ -71,6 +73,7 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
       repository={adapter}
       backTo="/library"
       allowCopy={false}
+      initialMode={searchParams.get('vaade') === 'opilane' ? 'interactive' : 'edit'}
       draftId={`${lessonId}:${worksheetId}`}
       renderTop={({ dirty, replaceDocument, insertBlocks }) => (
         <LessonGeneratorBar

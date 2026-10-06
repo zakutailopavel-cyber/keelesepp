@@ -16,6 +16,59 @@ const normalize = (value) => String(value || '')
   .replace(/[\u0300-\u036f]/g, '')
   .trim();
 
+// The three core sheets of a curriculum lesson, from the summary the worksheet service keeps on the lesson.
+export const LESSON_PHASES = Object.freeze([
+  { id: 'discover', label: 'Avasta' },
+  { id: 'practice', label: 'Harjuta' },
+  { id: 'transfer', label: 'Kasuta' },
+]);
+
+export const PHASE_FILTERS = Object.freeze({
+  none: 'Lehti pole',
+  drafts: 'On mustandeid',
+  partial: 'Osaliselt valmis',
+  ready: 'Kõik valmis',
+});
+
+export function lessonPhases(source) {
+  const summary = source?.worksheetPhases || {};
+  return LESSON_PHASES.map(({ id, label }) => {
+    const entry = summary[id];
+    if (!entry) return { id, label, state: 'none', title: '', version: 0, publishedVersion: 0, updatedAt: '', newerDraft: false };
+    const publishedVersion = Number(entry.publishedVersion) || 0;
+    const version = Number(entry.version) || 0;
+    return {
+      id,
+      label,
+      state: publishedVersion ? 'published' : 'draft',
+      title: String(entry.title || ''),
+      version,
+      publishedVersion,
+      updatedAt: String(entry.updatedAt || ''),
+      newerDraft: Boolean(publishedVersion) && entry.status !== 'published' && version > publishedVersion,
+    };
+  });
+}
+
+export const phasesDone = (phases) => phases.filter((phase) => phase.state === 'published').length;
+
+export function matchesPhaseFilter(phases, filter) {
+  if (!filter) return true;
+  const done = phasesDone(phases);
+  if (filter === 'none') return phases.every((phase) => phase.state === 'none');
+  if (filter === 'drafts') return phases.some((phase) => phase.state === 'draft' || phase.newerDraft);
+  if (filter === 'partial') return done > 0 && done < phases.length;
+  if (filter === 'ready') return done === phases.length;
+  return true;
+}
+
+// module heading: „Avasta 5/5 · Harjuta 0/5 · Kasuta 0/5” over the lessons that have the three phases
+export function modulePhaseProgress(items) {
+  const lessons = items.filter((item) => item.withPhases);
+  if (!lessons.length) return '';
+  return LESSON_PHASES.map(({ id, label }) => `${label} ${lessons.filter((item) => item.phases.find((phase) => phase.id === id)?.state === 'published').length}/${lessons.length}`).join(' · ');
+}
+
 export function publishedWorksheetDoc(record) {
   if (record?.worksheetDocStatus === 'draft') return record?.publishedWorksheetDoc?.blocks?.length ? record.publishedWorksheetDoc : null;
   return record?.publishedWorksheetDoc?.blocks?.length ? record.publishedWorksheetDoc : record?.worksheetDoc;
@@ -84,7 +137,8 @@ function libraryItem(kind, source) {
   else if (item.moduleKey.endsWith('|__other__')) item.moduleNumber = 950;
   else if (!item.moduleNumber) item.moduleNumber = 800;
   item.lessonNumber = Number(source.roadmapLessonNumber) || Number(source.order) || 0;
-  item.updatedAt = String(source.worksheetDocUpdatedAt || source.updatedAt || source.createdAt || '');
+  item.phases = lessonPhases(source);
+  item.updatedAt = [String(source.worksheetDocUpdatedAt || source.updatedAt || source.createdAt || ''), ...item.phases.map((phase) => phase.updatedAt)].sort().at(-1);
   item.authorUid = source.authorUid || '';
   item.authorName = source.authorName || '';
   item.fileCount = (source.files || []).length;
