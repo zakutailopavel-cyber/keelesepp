@@ -147,3 +147,20 @@ export function planModuleActivities({
     ready: !diagnostics.some((item) => item.severity === 'error'),
   };
 }
+
+export function scheduledVocabularyForLesson(entries = [], lessonId = '', focusIds = []) {
+  const id = String(lessonId || '');
+  if (!id) return [];
+  const focuses = (focusIds || []).filter(Boolean);
+  return (entries || [])
+    .filter((entry) => entry?.activeFromLessonId === id || (entry?.recycleLessonIds || []).includes(id))
+    .map((entry) => ({
+      id: entry.id,
+      word: entry.lemma,
+      translation: entry.translationRu,
+      lexicalType: entry.partOfSpeech || 'other',
+      focusIds: focuses,
+      textbookForms: entry.forms || [],
+    }))
+    .filter((entry) => entry.word && entry.translation);
+}
