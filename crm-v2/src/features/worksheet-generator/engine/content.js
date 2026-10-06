@@ -293,6 +293,25 @@ function clockData(profile, contextId, seed, spec) {
   };
 }
 
+function listeningData(profile, focusIds, contextId, state, seed) {
+  const candidates = (profile.banks?.listeningScripts || []).filter((item) =>
+    hasFocus(item, focusIds) &&
+    contextMatches(item, contextId) &&
+    !state.usedListeningIds.has(item.id));
+  const fallback = (profile.banks?.listeningScripts || []).filter((item) =>
+    hasFocus(item, focusIds) && !state.usedListeningIds.has(item.id));
+  const item = shuffleSeeded(candidates.length ? candidates : fallback, seed)[0];
+  if (!item) return null;
+  state.usedListeningIds.add(item.id);
+  return {
+    title: item.title || 'Kuula ja täida.',
+    instruction: 'Kuula õpetajat või helifaili ja täida puuduvad sõnad.',
+    audio: null,
+    sentences: item.sentences,
+    transcript: item.transcript,
+  };
+}
+
 function dictationData(profile, focusIds, contextId, state, seed) {
   const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
   return {
@@ -439,6 +458,9 @@ function materializeActivity({ activityId, profile, focusIds, contextId, seed, s
     case 'practice-focus-categorize':
       data = categorizeData(profile, focusIds);
       break;
+    case 'practice-listening-comprehension':
+      data = listeningData(profile, focusIds, contextId, state, seed);
+      break;
     case 'practice-dictation':
       data = dictationData(profile, focusIds, contextId, state, seed);
       break;
@@ -488,6 +510,7 @@ export function createDiversityState() {
     usedRenderedSentences: new Set(),
     usedQuestionIds: new Set(),
     usedDialogueIds: new Set(),
+    usedListeningIds: new Set(),
     usedContextIds: new Set(),
     usedTranslationIds: new Set(),
     usedActivityIds: new Set(),
