@@ -1,12 +1,12 @@
-## 2026-10-06 — B1 Avasta 001–005 quality upgrade — branch `agent/avasta-b1-module1`
+## 2026-10-06 — B1 Avasta 001–015 quality upgrade — branch `agent/avasta-b1-module1`
 
-Checked `origin/main` `0b5ae77`. Owner: expand the existing B1 `Avasta` sheets without duplicating lessons or touching `Harjuta` / `Kasuta`.
-- Scope: only `curriculumLessons/a2b1-001…005/worksheets/discover`. The upgrade reads the existing published/manual sheet first, preserves its blocks, and adds only missing didactic stages: contextual vocabulary, general comprehension, language noticing and first controlled use. It refuses to exceed 9 blocks or continue after a stale-editor conflict.
+Checked `origin/main` `0b5ae77`. Owner: expand the existing B1 `Avasta` sheets 001–015 without duplicating lessons or touching `Harjuta` / `Kasuta`.
+- Scope: only `curriculumLessons/a2b1-001…015/worksheets/discover`, grouped as modules 001–005, 006–010 and 011–015. The upgrade reads the existing published/manual sheet first, preserves its blocks, and adds only missing didactic stages: contextual vocabulary, general comprehension, language noticing and first controlled use. It refuses to exceed 9 blocks or continue after a stale-editor conflict.
 - Metadata: each upgraded sheet is normalised to `Tase: B1`, module `A2 lähtepunkt ja igapäevaelu`, a concrete `Ma oskan…` statement and four measurable goals. New checkable blocks carry answer keys through existing Worksheet Studio block contracts.
-- UI: admin-only maintenance page `/library/worksheet-generator/avasta-module-1` previews before/after block counts for all five sheets and publishes only after explicit confirmation. Õppevara shows an admin action `Avasta 001–005 kvaliteet`.
+- UI: admin-only maintenance page `/library/worksheet-generator/avasta-module-1` previews before/after block counts for all 15 sheets, grouped by module, and publishes each module only after explicit confirmation. Õppevara shows an admin action `Avasta 001–015 kvaliteet`.
 - Safety: no new Firestore collection/rules/function. Existing `lessonWorksheetsService.publish` performs the versioned transaction and updates `worksheetPhases.discover`; `Harjuta`, `Kasuta`, assignments and curriculum source data are untouched. Production data has NOT been changed by this branch.
-- Checks added: `avastaModule1.test.js` verifies 5→9 block augmentation, preservation of existing blocks, self-check last, B1/module metadata, idempotence and fail-closed behaviour for overlong sheets.
-- Known gate: after merge/deploy, admin must open the maintenance page, review the real 001–005 preview, click publish, then open each published `Õpilase vaade` and visually check page breaks. Only then can module 1 be reported complete.
+- Checks added: module-specific tests for 001–005, 006–010 and 011–015 verify 5→9 block augmentation, preservation of existing blocks, self-check last, B1/module metadata and idempotence; module 1 also verifies fail-closed behaviour for an overlong sheet.
+- Known gate: after merge/deploy, admin must open the maintenance page, review the real 001–015 previews, publish modules one by one, then open every published `Õpilase vaade` and visually check page breaks. A module is reported complete only after that visual gate.
 - Next safe step: CI on the draft PR; owner merges after review, then run the admin preview/publish gate in production.
 
 # KeeleSepp Project State
