@@ -141,6 +141,14 @@ export function planPhaseActivities({
   return { activityIds: selected.slice(0, count), diagnostics };
 }
 
+function ensureLessonKindSkill({ phase, activityIds, profile, lessonKind, skill }) {
+  if (!skill || activityIds.some((id) => (activityById(id)?.skills || []).includes(skill))) return activityIds;
+  const candidate = eligibleActivities({ phase, profile, lessonKind })
+    .find((activity) => (activity.skills || []).includes(skill) && !activityIds.includes(activity.id));
+  if (!candidate) return activityIds;
+  return [...activityIds.slice(0, Math.max(0, activityIds.length - 1)), candidate.id];
+}
+
 export function planLessonActivities({
   profile = {},
   lessonKind = 'integrated',
@@ -164,6 +172,17 @@ export function planLessonActivities({
     phases[phase] = plan.activityIds;
     diagnostics.push(...plan.diagnostics);
   });
+
+  const normalizedKind = normalizeLessonKind(lessonKind);
+  if (normalizedKind === 'listening') {
+    phases.practice = ensureLessonKindSkill({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, skill: 'listening' });
+  }
+  if (normalizedKind === 'writing') {
+    phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'writing' });
+  }
+  if (normalizedKind === 'communication') {
+    phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'speaking' });
+  }
   return { phases, diagnostics };
 }
 
