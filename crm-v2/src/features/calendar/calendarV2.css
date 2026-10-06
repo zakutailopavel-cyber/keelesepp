@@ -182,3 +182,9 @@
 .cal2-unplanned li select { height: 34px; border: 1px solid #dfe5ec; border-radius: 999px; padding: 0 10px; font: inherit; font-size: .84rem; background: #fff; }
 .cal2-unplanned .form-hint { margin: 0; }
 @media (max-width: 640px) { .cal2-unplanned li { grid-template-columns: 1fr; } }
+
+/* yellow window: only online lessons */
+.tg-band.is-online { background: repeating-linear-gradient(0deg, rgba(217, 138, 28, .12), rgba(217, 138, 28, .12) 6px, rgba(217, 138, 28, .18) 6px, rgba(217, 138, 28, .18) 7px); border-left-color: #d98a1c; }
+.cal2-dot.is-online { background: rgba(217, 138, 28, .4); border: 1px solid #d98a1c; margin-left: 8px; }
+.cal2-paint .cal2-dot.is-online { margin-left: 0; }
+.tg-online { color: #9a5b00; font-weight: 700; font-size: .72rem; }

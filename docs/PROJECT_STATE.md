@@ -12,6 +12,20 @@ current state, also before it is handed in.
 - No rules or data change (staff already read `worksheetAssignments`).
 - Tests: StudentProfilePage (new live test) 47/47 students; ESLint clean; build OK.
 - Next safe step: owner merges the draft PR (Vercel deploys the CRM).
+## 2026-10-06 — Calendar: yellow windows for online lessons only — branch `agent/online-windows`
+
+Checked `origin/main` `a4ef5b2` (after #313). Owner: green windows can also be made yellow — for online lessons only.
+- `teacherAvailability` slots get a third `kind: 'online'` (yellow). `availabilityAt` → busy / online / free / open
+  (red wins over yellow, yellow over green); `windowProblem(windows, lesson, teacher)` explains why a lesson cannot go
+  there (red: never; yellow: only when `lesson.online`).
+- Lessons get `online: true|false` (`schedule.online`; form checkbox „Veebitund (online)”, kept on edit; „· veeb” on the
+  block). Creating, editing or dragging a non-online lesson into a yellow window is refused with a message; online
+  lessons are allowed. Paint bar: Vaba / Ainult veebitunnid / Hõivatud; legend shows all three.
+- No rules change (`slots` is a list ≤ 200; kinds are not checked by the rules). Existing lessons have no `online` flag
+  (treated as not online) — mark them online when needed.
+- Tests: availability model (yellow), calendar test (yellow refuses a normal lesson, takes an online one); calendar
+  Vitest green except the known local Node 26 test; ESLint clean; build OK.
+- Next safe step: owner merges the draft PR; the CRM deploys through Vercel (no Firebase deploy needed).
 
 ## 2026-10-05 — Calendar: students without a lesson ahead — branch `agent/unplanned-students`
 

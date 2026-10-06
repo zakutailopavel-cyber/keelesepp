@@ -1,4 +1,4 @@
-import { availabilityAt, bandsOn, paintSlot } from './availabilityModel.js';
+import { availabilityAt, bandsOn, paintSlot, windowProblem } from './availabilityModel.js';
 
 const monday = '2026-10-05';
 const windows = { slots: [
@@ -21,5 +21,16 @@ describe('teacher windows', () => {
     expect(bandsOn(windows, monday).map((band) => [band.kind, band.start, band.end])).toEqual([['free', 840, 1080], ['busy', 1080, 1200]]);
     const next = paintSlot(windows.slots, { id: 'd', kind: 'busy', day: 'Mon', start: '16:00', end: '17:00' });
     expect(next.map((slot) => slot.id).sort()).toEqual(['b', 'c', 'd']);
+  });
+
+  it('yellow windows take online lessons only; red still wins', () => {
+    const yellow = { slots: [
+      { id: 'y', kind: 'online', day: 'Mon', start: '19:00', end: '21:00' },
+      { id: 'r', kind: 'busy', day: 'Mon', start: '20:30', end: '21:00' },
+    ] };
+    expect(availabilityAt(yellow, { date: monday, time: '19:00', duration: 60 })).toBe('online');
+    expect(windowProblem(yellow, { date: monday, time: '19:00', duration: 60 }, 'Pavel')).toMatch(/ainult veebitunde/);
+    expect(windowProblem(yellow, { date: monday, time: '19:00', duration: 60, online: true }, 'Pavel')).toBe('');
+    expect(windowProblem(yellow, { date: monday, time: '20:00', duration: 60, online: true }, 'Pavel')).toMatch(/punane aeg/);
   });
 });

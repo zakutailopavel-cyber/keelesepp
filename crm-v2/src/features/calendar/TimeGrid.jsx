@@ -175,7 +175,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                 {(bands?.(column) || []).filter((band) => band.end > GRID_START && band.start < GRID_END).map((band) => {
                   const top = Math.max(band.start, GRID_START) - GRID_START;
                   const bottom = Math.min(band.end, GRID_END) - GRID_START;
-                  return <div key={band.id} data-band={band.id} className={`tg-band is-${band.kind}${band.date ? ' is-dated' : ''}`} style={{ top: top * PX_PER_MIN, height: (bottom - top) * PX_PER_MIN }} title={`${band.kind === 'busy' ? 'Hõivatud' : 'Vaba'} ${toClock(band.start)}–${toClock(band.end)}${band.date ? ' (ainult see päev)' : ' (iga nädal)'}`} />;
+                  return <div key={band.id} data-band={band.id} className={`tg-band is-${band.kind}${band.date ? ' is-dated' : ''}`} style={{ top: top * PX_PER_MIN, height: (bottom - top) * PX_PER_MIN }} title={`${band.kind === 'busy' ? 'Hõivatud' : band.kind === 'online' ? 'Ainult veebitunnid' : 'Vaba'} ${toClock(band.start)}–${toClock(band.end)}${band.date ? ' (ainult see päev)' : ' (iga nädal)'}`} />;
                 })}
                 {painting && painting.column.key === column.key ? <div className={`tg-band is-${paint.kind} is-preview`} style={{ top: (Math.min(painting.from, painting.to) - GRID_START) * PX_PER_MIN, height: Math.abs(painting.to - painting.from) * PX_PER_MIN }} /> : null}
                 {HOURS.slice(1).map((hour) => <i className="tg-line" key={hour} style={{ top: (hour * 60 - GRID_START) * PX_PER_MIN }} />)}
@@ -211,7 +211,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                         onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}
                       >
                         <span className="tg-time">{item.time}{status === 'done' ? <Check size={12} /> : status === 'absent' ? <X size={12} /> : null}</span>
-                        <strong>{item.studentName || 'Õpilane'}</strong>
+                        <strong>{item.studentName || 'Õpilane'}{item.online ? <span className="tg-online" title="Veebitund"> · veeb</span> : null}</strong>
                         {item.recordTopic ? <small className="tg-topic">{item.recordTopic}</small> : showTeacher ? <small>{item.teacher}</small> : null}
                       </button>
                       {onQuickDone && status === 'planned' && !item.isGroup && item.occurrenceDate <= column.today ? (
