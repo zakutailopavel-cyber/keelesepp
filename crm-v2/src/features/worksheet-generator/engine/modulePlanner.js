@@ -1,4 +1,6 @@
 import { activityById } from './activityCatalog.js';
+import { normalizeLessonKind } from './lessonKind.js';
+import { planLessonActivities } from './planner.js';
 
 export const MODULE_PLANNER_SCHEMA = 'keelesepp.module-planner/1';
 const PHASES = ['discover', 'practice', 'transfer'];
@@ -91,4 +93,46 @@ export function lexicalCoverageReport(entries = [], lessonIds = [], nextModuleLe
   const insufficient = rows.filter((row) => row.introducedInModule && row.currentModuleCount < 3);
   const noNextReturn = rows.filter((row) => row.introducedInModule && row.nextModuleEncounters.length === 0);
   return { rows, insufficient, noNextReturn, ready: insufficient.length === 0 };
+}
+
+export function planModuleActivities({
+  lessons = [],
+  profiles = [],
+  seed = 'module',
+  difficulty = 'core',
+  countPerPhase = 5,
+} = {}) {
+  const diagnostics = [];
+  const plans = [];
+  const history = [];
+
+  lessons.forEach((lesson, index) => {
+    const profile = profiles[index];
+    if (!profile) {
+      diagnostics.push({ severity: 'error', code: 'MODULE_PROFILE_MISSING', lessonIndex: index, message: 'Tunni generaatoriprofiil puudub.' });
+      return;
+    }
+    const lessonKind = normalizeLessonKind(profile.lessonKind || lesson?.tag || lesson?.kind);
+    const planned = planLessonActivities({
+      profile,
+      lessonKind,
+      seed: `${seed}:${profile.lessonId || lesson?.id || index}`,
+      activityHistory: history,
+      difficulty,
+      countPerPhase,
+    });
+    diagnostics.push(...planned.diagnostics.map((item) => ({ ...item, lessonIndex: index })));
+    plans.push({ lessonId: profile.lessonId || lesson?.id || '', phases: planned.phases });
+    history.push(...PHASES.flatMap((phase) => planned.phases[phase] || []));
+  });
+
+  const diversity = moduleDiversityReport(plans);
+  diagnostics.push(...diversity.diagnostics);
+  return {
+    schema: MODULE_PLANNER_SCHEMA,
+    plans,
+    diversity,
+    diagnostics,
+    ready: !diagnostics.some((item) => item.severity === 'error'),
+  };
 }
