@@ -16,7 +16,7 @@ KeeleSepp already has four curriculum manifests. The textbook must reuse them in
 
 Total: **380 managed lessons**.
 
-The textbook layer is a contract over these curricula. Stable lesson IDs, curriculum history and existing published worksheet versions are preserved.
+The textbook layer is a contract over these curricula. Stable lesson IDs, curriculum history and existing published worksheet versions are preserved. The existing `/library/worksheets/book` Õpik assembler remains the textbook output surface; this project extends it instead of creating a separate book application.
 
 ## 2. Definition of a complete module
 
@@ -216,6 +216,8 @@ Each source stores:
 - optional teacher-read fallback.
 
 ## 8. Visual/functional source layer
+
+Visual art direction is defined in `docs/TEXTBOOK_VISUAL_STYLE.md` and `crm-v2/src/features/curriculum/textbookVisualStyle.js`: one KeeleSepp system with three controlled modes — Photo, Editorial illustration and Infographic / schematic.
 
 Images are instructional sources, not decoration.
 
