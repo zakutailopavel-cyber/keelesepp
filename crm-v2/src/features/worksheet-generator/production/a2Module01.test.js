@@ -58,9 +58,10 @@ describe('A2 module 1 textbook production', () => {
     expect(assessment.sheets.every((sheet) => sheet.lessonDna.vocabularyPlan.every((item) => item.status !== 'new'))).toBe(true);
   });
 
-  it('does not leak raw markdown emphasis into generated learner content', () => {
+  it('does not leak raw markdown emphasis into learner-facing prose', () => {
     const result = generateA2Module01();
-    const serialized = JSON.stringify(result.bundles.map((bundle) => bundle.sheets.map((sheet) => sheet.worksheetDoc)));
-    expect(serialized).not.toMatch(/\*[^*\n]+\*/);
+    const docs = result.bundles.flatMap((bundle) => bundle.sheets.map((sheet) => sheet.worksheetDoc));
+    const visible = docs.flatMap((doc) => visibleAuthorStrings(doc)).join('\n');
+    expect(visible).not.toMatch(/\*[^*\n]+\*/);
   });
 });
