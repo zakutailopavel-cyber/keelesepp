@@ -9,6 +9,7 @@ import { AVASTA_MODULE3_IDS, upgradeAvastaModule3Document } from '../admin/avast
 import { AVASTA_MODULE4_IDS, upgradeAvastaModule4Document } from '../admin/avastaModule4.js';
 import { AVASTA_MODULE5_IDS, upgradeAvastaModule5Document } from '../admin/avastaModule5.js';
 import { AVASTA_MODULE6_IDS, upgradeAvastaModule6Document } from '../admin/avastaModule6.js';
+import { AVASTA_MODULE7_IDS, upgradeAvastaModule7Document } from '../admin/avastaModule7.js';
 
 const MISSING = 'Töölehte ei leitud.';
 const MODULES = [
@@ -18,6 +19,7 @@ const MODULES = [
   { id: 'm4', title: 'Aeg, plaanid ja kohustused', ids: AVASTA_MODULE4_IDS, upgrade: upgradeAvastaModule4Document, allowCreate: true },
   { id: 'm5', title: 'Lihtminevik ja kogemused', ids: AVASTA_MODULE5_IDS, upgrade: upgradeAvastaModule5Document, allowCreate: true },
   { id: 'm6', title: 'Toit ja teenindus', ids: AVASTA_MODULE6_IDS, upgrade: upgradeAvastaModule6Document, allowCreate: true },
+  { id: 'm7', title: 'Tervis ja enesetunne', ids: AVASTA_MODULE7_IDS, upgrade: upgradeAvastaModule7Document, allowCreate: true },
 ];
 
 export default function AvastaUpgradePage({ repository = lessonWorksheetsService }) {
@@ -112,8 +114,8 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
     <div className="page-stack">
       <PageHeader
         eyebrow="Õppevara · B1"
-        title="Avasta kvaliteeditäiendus · 001–030"
-        description="001–015 täiendatakse olemasolevat sisu säilitades. 016–030 puhul täiendatakse olemasolevat Avasta lehte või luuakse puuduv leht täielikult. Harjuta ja Kasuta jäävad puutumata."
+        title="Avasta kvaliteeditäiendus · 001–035"
+        description="001–015 täiendatakse olemasolevat sisu säilitades. 016–035 puhul täiendatakse olemasolevat Avasta lehte või luuakse puuduv leht täielikult. Harjuta ja Kasuta jäävad puutumata."
       />
       {error ? <ErrorState title="Avaldamine peatus" message={error} /> : null}
       {grouped.map((module) => {
