@@ -149,6 +149,7 @@ export function createContentPackDraft(lesson = {}, { packIds = suggestReusableP
       dialogues: uniqueById(arrays(packs, 'dialogues')),
       errorPairs: uniqueById(arrays(packs, 'errorPairs')),
       translations: uniqueById(arrays(packs, 'translations')),
+      transformations: uniqueById(arrays(packs, 'transformations')),
       speakingPrompts: uniqueById(arrays(packs, 'speakingPrompts')),
       writingPrompts: uniqueById(arrays(packs, 'writingPrompts')),
     },
