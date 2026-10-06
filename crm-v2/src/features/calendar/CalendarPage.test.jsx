@@ -298,6 +298,17 @@ describe('calendar v2', () => {
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ online: true, time: '09:00' })));
   });
 
+  it('the admin can choose a new teacher who has no lessons yet', async () => {
+    const props = repositories({ events: [lesson()] });
+    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't9', name: 'Jegor' }, { id: 't8', name: 'Vana', disabled: true }]) };
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    const filter = screen.getByLabelText('Filtreeri õpetaja järgi');
+    await waitFor(() => expect(within(filter).getByRole('option', { name: 'Jegor' })).toHaveValue('t9'));
+    expect(within(filter).queryByRole('option', { name: 'Vana' })).not.toBeInTheDocument();
+    expect(within(filter).getAllByRole('option', { name: 'Pavel' })).toHaveLength(1);
+  });
+
   it('the admin marks a teacher\'s green window by dragging in the week grid', async () => {
     const props = renderCalendar({ events: [lesson()] });
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });

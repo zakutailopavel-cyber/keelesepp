@@ -1,6 +1,6 @@
 # KeeleSepp Project State
 
-## 2026-10-06 — Student teacher choice lists real staff accounts — branch `agent/teacher-options`
+## 2026-10-06 — Student and calendar teacher choice lists real staff accounts — branch `agent/teacher-options`
 
 Checked `origin/main` `0fa3afe`. Owner: the new teacher (Jegor) is missing from „Õpetaja” in „Muuda õpilast”.
 - Cause: student pages offered only the hard-coded `LEGACY_TEACHERS` (4 names) plus names already on students.
@@ -8,7 +8,12 @@ Checked `origin/main` `0fa3afe`. Owner: the new teacher (Jegor) is missing from 
   disabled left out; admins only) and `teacherChoices` merges them with the legacy names (canonical, deduped, sorted).
   Used in `StudentsPage` (form, enrollments, filter) and `StudentProfilePage` (edit form). Groups/parents already used
   the staff list. No data or rules change.
-- Checks: students tests 49/49 (new hook test); `npx eslint .` clean; build OK.
+- Calendar: the admin's „Filtreeri õpetaja järgi” listed only teachers who already had lessons; it now also lists
+  active staff accounts (deduped by uid/canonical name), so a new teacher's calendar and green/yellow/red windows
+  can be opened. The „Uus tund” teacher select already used the staff list; a student assigned to the teacher gets
+  `teacherUid` by name (`resolveTeacherUid`), so planned lessons go to that teacher.
+- Checks: students tests 49/49 (new hook test); calendar tests: new „new teacher without lessons” test passes, only
+  the known Node 26 `localStorage` failure („Alusta tundi”); `npx eslint .` clean; build OK.
 - Note: a teacher appears only after the account is approved with role „teacher” (Uued kontod / Õpetajad).
 - Next safe step: owner merges the draft PR.
 

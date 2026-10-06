@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
+import { isSameTeacher } from '../../utils/teachers.js';
 import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, rememberLessonLink } from '../live-classroom/lessonLink.js';
@@ -158,7 +159,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     return record ? { ...item, status: record.status || 'Toimunud', lessonRecordId: record.id, record, recordTopic: topicLine(record) || record.topic || '' } : item;
   };
   const occurrences = occurrencesForDates(filteredEvents, dates).map(withRecord);
-  const teachers = [...new Map(events.filter((item) => item.teacher).map((item) => [item.teacherUid || item.teacher, { id: item.teacherUid || item.teacher, name: item.teacher }])).values()].sort((a, b) => a.name.localeCompare(b.name, 'et'));
+  // teachers of the lessons plus (admin) every active staff account, so a new teacher without lessons can be chosen
+  const lessonTeachers = [...new Map(events.filter((item) => item.teacher).map((item) => [item.teacherUid || item.teacher, { id: item.teacherUid || item.teacher, name: item.teacher }])).values()];
+  const teachers = [
+    ...lessonTeachers,
+    ...(teacherState.data || []).filter((staff) => !staff.disabled && !lessonTeachers.some((teacher) => teacher.id === staff.id || isSameTeacher(teacher.name, staff.name))).map((staff) => ({ id: staff.id, name: staff.name })),
+  ].sort((a, b) => a.name.localeCompare(b.name, 'et'));
   const hasActiveFilters = Boolean(filters.search || filters.teacher || filters.student);
   const today = toIsoDate();
   const historyOf = (studentId) => lessonRecords.filter((lesson) => lesson.studentId === studentId && ['Toimunud', undefined, ''].includes(lesson.status)).sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`));
