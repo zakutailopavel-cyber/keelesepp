@@ -1,0 +1,94 @@
+import { activityById } from './activityCatalog.js';
+
+export const MODULE_PLANNER_SCHEMA = 'keelesepp.module-planner/1';
+const PHASES = ['discover', 'practice', 'transfer'];
+const uniq = (items) => [...new Set((items || []).filter(Boolean))];
+const familyOf = (id) => activityById(id)?.family || '';
+
+function familyPattern(phases = {}) {
+  return PHASES.map((phase) => (phases[phase] || []).map(familyOf).filter(Boolean).join('>')).join('|');
+}
+
+export function moduleDiversityReport(lessonPlans = []) {
+  const diagnostics = [];
+  const phaseFamilies = Object.fromEntries(PHASES.map((phase) => [phase, new Set()]));
+  const patterns = new Map();
+
+  lessonPlans.forEach((lesson, lessonIndex) => {
+    PHASES.forEach((phase) => (lesson?.phases?.[phase] || []).forEach((id) => {
+      const family = familyOf(id);
+      if (family) phaseFamilies[phase].add(family);
+    }));
+    const pattern = familyPattern(lesson?.phases);
+    patterns.set(pattern, (patterns.get(pattern) || 0) + 1);
+    const allIds = PHASES.flatMap((phase) => lesson?.phases?.[phase] || []);
+    if (new Set(allIds).size !== allIds.length) diagnostics.push({
+      severity: 'warning', code: 'MODULE_ACTIVITY_REPEAT_WITHIN_LESSON', lessonIndex,
+      message: 'Samas tunnis kordub sama tegevus mitmes kohas.',
+    });
+  });
+
+  const repeated = [...patterns.entries()].filter(([, count]) => count >= 3);
+  if (repeated.length) diagnostics.push({
+    severity: 'error', code: 'MODULE_FAMILY_REPETITION',
+    message: 'Vähemalt kolm tundi kasutavad sama ülesandeperekondade mustrit.',
+    patterns: repeated.map(([pattern, count]) => ({ pattern, count })),
+  });
+  if (lessonPlans.length >= 5 && phaseFamilies.practice.size < 4) diagnostics.push({
+    severity: 'error', code: 'MODULE_PRACTICE_VARIETY_LOW',
+    message: `Harjuta kasutab moodulis ainult ${phaseFamilies.practice.size} ülesandeperekonda; vaja vähemalt 4.`,
+  });
+  if (lessonPlans.length >= 5 && phaseFamilies.transfer.size < 3) diagnostics.push({
+    severity: 'error', code: 'MODULE_TRANSFER_VARIETY_LOW',
+    message: `Kasuta kasutab moodulis ainult ${phaseFamilies.transfer.size} ülesandeperekonda; vaja vähemalt 3.`,
+  });
+  if (lessonPlans.length >= 5 && phaseFamilies.discover.size < 3) diagnostics.push({
+    severity: 'warning', code: 'MODULE_DISCOVER_VARIETY_LOW',
+    message: `Avasta kasutab moodulis ainult ${phaseFamilies.discover.size} ülesandeperekonda; soovitus vähemalt 3.`,
+  });
+
+  return {
+    schema: MODULE_PLANNER_SCHEMA,
+    lessonCount: lessonPlans.length,
+    phaseFamilies: Object.fromEntries(PHASES.map((phase) => [phase, [...phaseFamilies[phase]]])),
+    diagnostics,
+    ready: !diagnostics.some((item) => item.severity === 'error'),
+  };
+}
+
+export function planLexicalRecycling(coreEntries = [], lessonIds = [], nextModuleLessonIds = []) {
+  const ids = (lessonIds || []).filter(Boolean);
+  const nextIds = (nextModuleLessonIds || []).filter(Boolean);
+  if (!ids.length) return [];
+  return (coreEntries || []).map((entry, index) => {
+    const introIndex = Math.min(index % Math.max(1, ids.length - 1), ids.length - 1);
+    const intro = entry.activeFromLessonId || ids[introIndex];
+    const actualIntroIndex = Math.max(0, ids.indexOf(intro));
+    const later = ids.filter((_, i) => i > actualIntroIndex);
+    const desired = uniq([later[0], later[1], ids[ids.length - 1], nextIds[0]]).filter(Boolean);
+    return {
+      ...entry,
+      activeFromLessonId: intro,
+      recycleLessonIds: uniq([...(entry.recycleLessonIds || []), ...desired]).filter((id) => id !== intro),
+    };
+  });
+}
+
+export function lexicalCoverageReport(entries = [], lessonIds = [], nextModuleLessonIds = []) {
+  const current = new Set(lessonIds || []);
+  const next = new Set(nextModuleLessonIds || []);
+  const rows = (entries || []).map((entry) => {
+    const all = uniq([entry.activeFromLessonId, ...(entry.recycleLessonIds || [])]);
+    const inModule = all.filter((id) => current.has(id));
+    const inNext = all.filter((id) => next.has(id));
+    return {
+      id: entry.id, lemma: entry.lemma,
+      currentModuleEncounters: inModule, currentModuleCount: inModule.length,
+      nextModuleEncounters: inNext,
+      introducedInModule: current.has(entry.activeFromLessonId),
+    };
+  });
+  const insufficient = rows.filter((row) => row.introducedInModule && row.currentModuleCount < 3);
+  const noNextReturn = rows.filter((row) => row.introducedInModule && row.nextModuleEncounters.length === 0);
+  return { rows, insufficient, noNextReturn, ready: insufficient.length === 0 };
+}
