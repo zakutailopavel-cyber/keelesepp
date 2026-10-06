@@ -119,6 +119,7 @@ export function generateLessonBundle({
   seed,
   generatorVersion = GENERATOR_VERSION,
   activityHistory = [],
+  activityPlan = null,
   difficulty = 'core',
   durationMinutes,
   variant = 0,
@@ -146,14 +147,16 @@ export function generateLessonBundle({
   if (contexts.length < 3) diagnostics.push(diagnostic('error', 'BANK_INSUFFICIENT', 'Kolme töölehe jaoks on vaja vähemalt kolme konteksti.'));
 
   const lessonKind = normalizeLessonKind(profile.lessonKind || lesson?.tag || lesson?.kind);
-  const plan = planLessonActivities({
-    profile,
-    lessonKind,
-    seed: bundleSeed,
-    activityHistory,
-    difficulty: normalizedDifficulty,
-    countPerPhase: 5,
-  });
+  const plan = activityPlan
+    ? { phases: activityPlan, diagnostics: [] }
+    : planLessonActivities({
+      profile,
+      lessonKind,
+      seed: bundleSeed,
+      activityHistory,
+      difficulty: normalizedDifficulty,
+      countPerPhase: 5,
+    });
   diagnostics.push(...plan.diagnostics);
 
   const state = createDiversityState();
