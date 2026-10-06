@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import roadmap from '../../curriculum/a2Roadmap.json';
 import { generateLessonBundle } from '../engine/generator.js';
-import { createContentPackDraft, LESSON_GRAMMAR_POINTS, suggestReusablePackIds } from '../factory/factory.js';
+import { createContentPackDraft, lessonGrammarPoints, LESSON_GRAMMAR_POINTS, suggestReusablePackIds } from '../factory/factory.js';
 import { generatorProfileReadiness } from '../profiles/index.js';
 
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 const lessonOf = (id) => lessons.find((item) => item.id === id);
-const PATTERN_LESSONS = Object.keys(LESSON_GRAMMAR_POINTS);
+const PATTERN_LESSONS = Object.keys(LESSON_GRAMMAR_POINTS).filter((id) => lessonGrammarPoints(lessonOf(id)).length);
 const blocksOf = (generated) => generated.sheets.flatMap((sheet) => sheet.worksheetDoc.blocks);
 
 describe('lessons generated from grammar patterns (no hand-written pack)', () => {
@@ -75,17 +75,20 @@ describe('lessons generated from grammar patterns (no hand-written pack)', () =>
     }
   });
 
-  it('teaches the lesson focus: "sees" uses inner cases only, "peal" uses surfaces', () => {
-    const inner = createContentPackDraft(lessonOf('a2-017')).profile.banks.sentences;
-    expect(inner.every((item) => !/(turul|turule|turult|tööl|tööle|töölt|staadionil|saarel|maal|Venemaal|Saksamaal)\b/.test(item.text))).toBe(true);
-    const surface = createContentPackDraft(lessonOf('a2-018')).profile.banks.sentences;
-    expect(surface.every((item) => /(l|le|lt)$/.test(item.answer))).toBe(true);
+  it('curated local-case packs keep inner and outer case series separate', () => {
+    const inner = createContentPackDraft(lessonOf('a2-017')).profile;
+    const outer = createContentPackDraft(lessonOf('a2-018')).profile;
+    expect(inner.focuses.map((item) => item.id)).toEqual(['inner-local-cases']);
+    expect(outer.focuses.map((item) => item.id)).toEqual(['outer-local-cases']);
+    expect(inner.banks.sentences.every((item) => !/(turul|turule|turult|tööl|tööle|töölt|arstil|arstile|arstilt)\b/.test(item.text))).toBe(true);
+    expect(outer.banks.sentences.some((item) => /\b(tööl|tööle|töölt)\b/.test(item.text))).toBe(true);
+    expect(outer.banks.transformations.map((item) => item.answer)).toEqual(expect.arrayContaining(['Ma lähen tööle.', 'Panen telefoni lauale.', 'Ta tuleb arstilt.']));
   });
 
   it('hand-written packs keep precedence and keyword guessing no longer hijacks pattern lessons', () => {
     expect(createContentPackDraft(lessonOf('a2-007')).source).toBeUndefined();
     expect(createContentPackDraft(lessonOf('a2-007')).selectedPackIds).toEqual(['possession-genitive']);
-    expect(suggestReusablePackIds(lessonOf('a2-018'))).toEqual([]);
+    expect(suggestReusablePackIds(lessonOf('a2-018'))).toEqual(['outer-local-cases']);
     expect(createContentPackDraft(lessonOf('a2-099')).status).toBe('missing-sources');
   });
 });
