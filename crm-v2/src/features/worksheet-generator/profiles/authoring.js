@@ -11,6 +11,7 @@ const LIMITS = Object.freeze({
   contexts: 16,
   sentences: 160,
   dialogues: 30,
+  listeningScripts: 30,
   errorPairs: 100,
   translations: 100,
   transformations: 100,
@@ -131,6 +132,15 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
     })).filter((line) => line.text),
   })).filter((item) => item.lines.length);
 
+  const listeningScripts = boundedArray(input.banks?.listeningScripts, LIMITS.listeningScripts).map((item, index) => ({
+    id: safeId(item?.id, `ls${index + 1}`),
+    focusIds: refs(item?.focusIds, focusIds),
+    contextIds: refs(item?.contextIds, contextIds),
+    title: clean(item?.title, 240),
+    transcript: clean(item?.transcript, 2400),
+    sentences: clean(item?.sentences, 1600),
+  })).filter((item) => item.transcript && item.sentences);
+
   const promptBank = (name, prefix) => boundedArray(input.banks?.[name], LIMITS.prompts).map((item, index) => ({
     id: safeId(item?.id, `${prefix}${index + 1}`),
     focusIds: refs(item?.focusIds, focusIds),
@@ -154,6 +164,7 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
       translations,
       transformations,
       dialogues,
+      listeningScripts,
       speakingPrompts: promptBank('speakingPrompts', 'sp'),
       writingPrompts: promptBank('writingPrompts', 'w'),
     },
@@ -174,7 +185,7 @@ export function scaffoldGeneratorProfile(lesson = {}) {
     focuses: focusText ? [{ id: 'lesson-focus', type: 'communication', label: focusText }] : [],
     activeVocabulary: [],
     contexts: [],
-    banks: { sentences: [], errorPairs: [], translations: [], transformations: [], dialogues: [], speakingPrompts: [], writingPrompts: [] },
+    banks: { sentences: [], errorPairs: [], translations: [], transformations: [], dialogues: [], listeningScripts: [], speakingPrompts: [], writingPrompts: [] },
     successCriteria: criterion ? [criterion] : [],
   }, { lessonId, lesson });
 }
@@ -217,6 +228,7 @@ export function validateGeneratorProfile(input, { lessonId = '', lesson = {} } =
       contexts: profile.contexts.length,
       sentences: profile.banks.sentences.length,
       dialogues: profile.banks.dialogues.length,
+      listeningScripts: profile.banks.listeningScripts.length,
       errorPairs: profile.banks.errorPairs.length,
       translations: profile.banks.translations.length,
       transformations: profile.banks.transformations.length,
