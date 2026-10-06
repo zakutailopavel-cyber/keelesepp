@@ -654,7 +654,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['4', 'home-rooms', 'home-room', 'Elutoas on diivan, laud ja neli tooli.'],
       ['5', 'home-rooms', 'home-room', 'Magamistoas on voodi ja suur kapp.'],
       ['6', 'home-rooms', 'home-room', 'Köögis on väike laud ja kaks tooli.'],
-      ['7', 'home-rooms', 'home-compare', 'Anna korter on väike, aga väga valgusküllane.'],
+      ['7', 'home-rooms', 'home-compare', 'Anna elutuba on väike, aga väga valgusküllane.'],
       ['8', 'home-rooms', 'home-compare', 'Martini majas on kolm magamistuba ja suur elutuba.'],
       ['9', 'home-rooms', 'home-compare', 'Mõlemas kodus on rõdu, aga ainult ühes on eraldi köök.'],
     ]),
