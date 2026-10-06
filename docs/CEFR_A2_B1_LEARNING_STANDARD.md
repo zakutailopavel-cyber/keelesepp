@@ -382,3 +382,156 @@ A completed lesson means:
 5. student view checked for density, readability, answer space and no raw markup.
 
 A module is complete only when all five lessons have all three phases and the assessment lesson verifies the recycled targets.
+
+## 12. Variation standard — no repeated template
+
+The three-phase architecture is stable, but the **exercise template must not be mechanically repeated** across lessons.
+
+### 12.1 Principle
+
+A module must feel coherent in goals and vocabulary, but not visually or didactically identical from lesson to lesson.
+
+The generator/author must vary:
+- task type;
+- visual composition;
+- interaction pattern;
+- text genre;
+- question format;
+- support type;
+- productive task format;
+- order of secondary blocks.
+
+The sequence **Avasta → Harjuta → Kasuta** remains constant, but the internal route through each phase must vary.
+
+### 12.2 Forbidden repetition
+
+Do not use the same sequence in every lesson, for example:
+
+1. choice warm-up;
+2. vocabulary box;
+3. reading;
+4. five questions;
+5. notice box;
+6. gaps;
+7. speaking;
+8. self-check.
+
+This may appear occasionally, but not as the default template for all lessons.
+
+Do not repeat the same:
+- question wording;
+- same number and layout of answer options;
+- same block widths;
+- same "read + answer 5 literal questions" structure;
+- same speaking prompt structure;
+- same controlled exercise type;
+- same support box type;
+- same page composition.
+
+### 12.3 Required diversity inside one 5-lesson module
+
+Across five lessons, use at least:
+- **4 different controlled-practice formats**;
+- **3 different reading/listening comprehension formats**;
+- **3 different productive speaking formats**;
+- **2 different writing/mediation formats** where writing is appropriate;
+- **3 different support types** such as Reegel, Näide, Vihje, 3 vormi + tõlge, mini-schema, timeline, contrast table;
+- **2 different page compositions** per phase.
+
+No single activity type should dominate more than roughly one third of the module unless the grammar target specifically requires it.
+
+### 12.4 Recommended activity pool
+
+**Avasta**
+- visual prediction;
+- mini-situation;
+- dialogue reconstruction;
+- short article;
+- message thread;
+- timetable/menu/ad/notice;
+- classify examples;
+- notice-the-pattern;
+- compare two versions;
+- sequence events;
+- choose best summary;
+- infer likely next step;
+- micro role-play.
+
+**Harjuta**
+- sentence transformation;
+- error correction;
+- form sorting;
+- guided rewriting;
+- sentence combining;
+- contrast pairs;
+- information gap;
+- mini dictation / reconstruction;
+- complete a dialogue;
+- choose + justify;
+- build from prompts;
+- grammar maze / decision path;
+- replace the wrong form;
+- rephrase with target structure.
+
+**Kasuta**
+- role-play;
+- problem-solving scenario;
+- compare two options;
+- mini consultation;
+- voice-note style monologue;
+- message/email;
+- complaint/request;
+- planning task;
+- interview;
+- negotiation;
+- story continuation;
+- explain a choice;
+- mediation from a table/ad/timetable;
+- unexpected-condition task.
+
+### 12.5 Variation does not mean randomness
+
+Variation must still serve the same:
+- lesson goal;
+- module grammar spine;
+- lexical cycle;
+- CEFR stage.
+
+The author must not introduce novelty only for entertainment. Every format choice must have a didactic reason.
+
+### 12.6 Module-level pattern
+
+Within one 5-lesson module:
+
+- Lesson 1: discovery-heavy, more support.
+- Lesson 2: form contrast + guided practice.
+- Lesson 3: transformation + mixed retrieval.
+- Lesson 4: problem solving / freer interaction.
+- Lesson 5: assessment with mixed formats and minimal support.
+
+This gives learners repetition of content **without repetition of the same worksheet template**.
+
+### 12.7 Visual variation
+
+Across lessons rotate:
+- full-width vs paired half-width blocks;
+- text + support sidebar;
+- two balanced task cards;
+- table / timeline / dialogue layout;
+- scenario card + response area;
+- vocabulary panel integrated next to the task instead of always as a separate full-width list.
+
+Large empty areas are still forbidden. Visual variation must improve learning density, not create decorative whitespace.
+
+### 12.8 Quality check before publication
+
+Before publishing a module, compare all five lessons side by side.
+
+Reject the module if:
+- three or more lessons share almost the same block order;
+- the same exercise type appears in the same position repeatedly;
+- the same page composition is reused mechanically;
+- productive tasks differ only by topic nouns;
+- the student could predict the whole worksheet layout after seeing one lesson.
+
+A module passes only if it has **content continuity + format diversity**.
