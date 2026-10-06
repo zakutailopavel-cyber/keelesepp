@@ -1,3 +1,16 @@
+## 2026-10-06 — Module diversity + lexical recycling planner — branch `agent/module-diversity-planner`
+
+Checked `origin/main` `c7ec04c` after PR #325 merged. Owner priority: finish lesson content A2 → B1 → B2 → C1 before final Õpik assembly.
+- Added `modulePlanner.js` as a deterministic module-level planner over the existing lesson planner.
+- Diversity gate checks the whole 5-lesson module, not one sheet in isolation: at least 4 Harjuta activity families, at least 3 Kasuta families, warns when Avasta has fewer than 3 families, and rejects a family-pattern template repeated in 3+ lessons. It also warns when the same activity id is reused inside one lesson.
+- `planModuleActivities` plans lessons sequentially with prior activity history, so later lessons prefer cooled-down activity types instead of mechanically repeating the same pattern.
+- Lexical planner assigns a 12–16 word core set to the first three lessons with the textbook target distribution (up to 8 new in lesson 1, up to 5 in lesson 2, remainder in lesson 3), schedules at least two later current-module encounters plus the module assessment/final lesson, and schedules a first return in the next module when one is supplied.
+- `lexicalCoverageReport` rejects core items with fewer than 3 encounters inside their introduction module and, when a next module exists, items with no next-module return.
+- Generator exports the module planner APIs; deterministic-source audit now includes `modulePlanner.js`.
+- Tests cover a varied five-lesson module, repeated-template rejection, current/next-module lexical coverage, and the 8+5+3 introduction distribution for a 16-word core set.
+- No Firestore writes, migrations, production worksheet changes, publishing, deploy, or Õpik UI changes.
+- Next safe step: CI on the draft PR. After merge, stop adding generic architecture unless a concrete lesson batch exposes a gap; begin serial lesson/module production.
+
 ## 2026-10-06 — Textbook generator wiring — branch `agent/textbook-generator-wiring`
 
 Checked `origin/main` `7c3f764` after owner merged PR #324. Owner priority remains: finish lesson content A2 → B1 → B2 → C1 before final Õpik assembly.
