@@ -36,7 +36,12 @@ describe('A2 module 1 textbook production', () => {
     expect(result.lexicalCoverage.ready).toBe(true);
     expect(result.lexicalCoverage.insufficient).toEqual([]);
     expect(result.lexicalCoverage.noNextReturn).toEqual([]);
-    expect(result.plannedVocabulary.every((entry) => entry.recycleLessonIds.includes('a2-006'))).toBe(true);
+    const returned = result.plannedVocabulary.reduce((acc, entry) => {
+      const id = entry.recycleLessonIds.find((lessonId) => ['a2-006', 'a2-007', 'a2-008'].includes(lessonId));
+      acc[id] = (acc[id] || 0) + 1;
+      return acc;
+    }, {});
+    expect(returned).toEqual({ 'a2-006': 8, 'a2-007': 5, 'a2-008': 3 });
   });
 
   it('carries grammar and vocabulary progression into every lesson DNA', () => {
