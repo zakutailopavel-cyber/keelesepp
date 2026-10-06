@@ -1247,11 +1247,11 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['1', 'quantity-partitive', 'quantity-shop', 'Palun üks kilo leiba.'],
       ['2', 'quantity-partitive', 'quantity-shop', 'Mul on vaja kaks liitrit piima.'],
       ['3', 'quantity-partitive', 'quantity-shop', 'Ostan ühe pudeli vett ja vähe mahla.'],
-      ['4', 'quantity-partitive', 'quantity-recipe', 'Retseptis on kakssada grammi juustu.'],
+      ['4', 'quantity-partitive', 'quantity-recipe', 'Gramm on väike kogus, aga retseptis on kakssada grammi juustu.'],
       ['5', 'quantity-partitive', 'quantity-recipe', 'Salatis on palju köögivilja.'],
       ['6', 'quantity-partitive', 'quantity-recipe', 'Supis on vähe soola.'],
       ['7', 'quantity-partitive', 'quantity-cafe', 'Palun üks tass kohvi.'],
-      ['8', 'quantity-partitive', 'quantity-cafe', 'Ma soovin klaasi vett.'],
+      ['8', 'quantity-partitive', 'quantity-cafe', 'Klaas vett maksab üks euro.'],
       ['9', 'quantity-partitive', 'quantity-cafe', 'Ta joob õhtul tassi teed.'],
     ]),
     dialogues: [{ id: 'quantity-partitive-d-1', focusIds: ['quantity-partitive'], contextIds: ['quantity-shop'], speakers: ['Klient', 'Müüja'], lines: [
@@ -1372,7 +1372,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     ],
     sentences: sentences('order-bill', [
       ['1', 'order-bill', 'bill-simple', 'Supi hind on kuus eurot.'],
-      ['2', 'order-bill', 'bill-simple', 'Kohv maksab kaks eurot ja viiskümmend senti.'],
+      ['2', 'order-bill', 'bill-simple', 'Kohvi hind on kaks eurot ja viiskümmend senti.'],
       ['3', 'order-bill', 'bill-simple', 'Kokku on arve kaksteist eurot.'],
       ['4', 'order-bill', 'bill-change', 'Klient soovib veel ühe tee.'],
       ['5', 'order-bill', 'bill-change', 'Salat tuleb ilma sibulata.'],
