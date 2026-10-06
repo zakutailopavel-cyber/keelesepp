@@ -205,7 +205,7 @@ const SPECS = {
         title: 'Loe lugu ja märka vorme.',
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Päev, mis läks teisiti',
-        passage: 'Eile oli Rainil vaba päev. Hommikul läks ta turule ja nägi seal juhuslikult vana koolikaaslast. Nad rääkisid natuke ja jõid kohvikus kohvi. Rain sai teada, et sõber elab nüüd samas linnaosas. Nad leppisid kokku, et kohtuvad järgmisel nädalal uuesti ja lähevad koos jalutama. Pärast kohtumist läks Rain koju ja tegi lõunasööki. Ta sõi suppi ning jõi klaasi vett. Pärast sööki jäi ta mõneks ajaks diivanile raamatut lugema. Õhtul tuli tema õde külla ja nad vaatasid koos vanu fotosid. Rain nägi piltidel palju inimesi, keda polnud aastaid kohanud. Õhtu oli rahulik, aga päev tõi talle mitu ootamatut kohtumist ja mälestust.',
+        passage: 'Eile oli Rainil vaba päev. Hommikul läks ta turule ja nägi seal juhuslikult vana koolikaaslast. Nad rääkisid natuke ja jõid kohvikus kohvi. Rain sai teada, et sõber elab nüüd samas linnaosas. Nad leppisid kokku, et kohtuvad järgmisel nädalal uuesti ja lähevad koos pikemalt jalutama. Pärast kohtumist läks Rain koju ja tegi lõunasööki. Ta sõi suppi ning jõi klaasi vett. Pärast sööki jäi ta mõneks ajaks diivanile raamatut lugema. Õhtul tuli tema õde külla ja nad vaatasid koos vanu fotosid. Rain nägi piltidel palju inimesi, keda polnud aastaid kohanud. Õhtu oli rahulik, aga päev tõi talle mitu ootamatut kohtumist ja mälestust.',
         questions: 'Kuhu Rain hommikul läks? [turule]\nKeda ta turul nägi? [vana koolikaaslast|koolikaaslast]\nMida nad kohvikus jõid? [kohvi]\nMida Rain lõunaks tegi? [lõunasööki|suppi]\nKes tuli õhtul külla? [tema õde|õde]',
         lineWidth: 'wide',
       }, 'full'),
