@@ -6,11 +6,14 @@ import { ROLES } from '../../../utils/roles.js';
 import { AVASTA_MODULE1_IDS, upgradeAvastaModule1Document } from '../admin/avastaModule1.js';
 import { AVASTA_MODULE2_IDS, upgradeAvastaModule2Document } from '../admin/avastaModule2.js';
 import { AVASTA_MODULE3_IDS, upgradeAvastaModule3Document } from '../admin/avastaModule3.js';
+import { AVASTA_MODULE4_IDS, upgradeAvastaModule4Document } from '../admin/avastaModule4.js';
 
+const MISSING = 'Töölehte ei leitud.';
 const MODULES = [
-  { id: 'm1', title: 'A2 lähtepunkt ja igapäevaelu', ids: AVASTA_MODULE1_IDS, upgrade: upgradeAvastaModule1Document },
-  { id: 'm2', title: 'Mina, pere ja suhted', ids: AVASTA_MODULE2_IDS, upgrade: upgradeAvastaModule2Document },
-  { id: 'm3', title: 'Kodu, kohad ja linn', ids: AVASTA_MODULE3_IDS, upgrade: upgradeAvastaModule3Document },
+  { id: 'm1', title: 'A2 lähtepunkt ja igapäevaelu', ids: AVASTA_MODULE1_IDS, upgrade: upgradeAvastaModule1Document, allowCreate: false },
+  { id: 'm2', title: 'Mina, pere ja suhted', ids: AVASTA_MODULE2_IDS, upgrade: upgradeAvastaModule2Document, allowCreate: false },
+  { id: 'm3', title: 'Kodu, kohad ja linn', ids: AVASTA_MODULE3_IDS, upgrade: upgradeAvastaModule3Document, allowCreate: false },
+  { id: 'm4', title: 'Aeg, plaanid ja kohustused', ids: AVASTA_MODULE4_IDS, upgrade: upgradeAvastaModule4Document, allowCreate: true },
 ];
 
 export default function AvastaUpgradePage({ repository = lessonWorksheetsService }) {
@@ -33,7 +36,12 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
             const preview = module.upgrade(lessonId, record.worksheetDoc);
             records.push({ lessonId, moduleId: module.id, moduleTitle: module.title, record, preview, state: 'ready', message: '' });
           } catch (cause) {
-            records.push({ lessonId, moduleId: module.id, moduleTitle: module.title, record: null, preview: null, state: 'blocked', message: cause?.message || String(cause) });
+            if (module.allowCreate && cause?.message === MISSING) {
+              const preview = module.upgrade(lessonId, null);
+              records.push({ lessonId, moduleId: module.id, moduleTitle: module.title, record: null, preview, state: 'ready', message: 'Uus Avasta' });
+            } else {
+              records.push({ lessonId, moduleId: module.id, moduleTitle: module.title, record: null, preview: null, state: 'blocked', message: cause?.message || String(cause) });
+            }
           }
         }
       }
@@ -54,7 +62,7 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
     const moduleRows = rows.filter((row) => row.moduleId === module.id);
     const blocked = moduleRows.filter((row) => row.state === 'blocked');
     if (moduleRows.length !== module.ids.length || blocked.length || applyingModule) return;
-    if (!window.confirm(`Avaldada täiendatud Avasta töölehed ${module.ids[0]}–${module.ids.at(-1)}? Olemasolevad plokid säilivad ja Harjuta/Kasuta ei muutu.`)) return;
+    if (!window.confirm(`Avaldada Avasta töölehed ${module.ids[0]}–${module.ids.at(-1)}? Olemasolevad head plokid säilivad, puuduvad Avasta lehed luuakse. Harjuta/Kasuta ei muutu.`)) return;
     setApplyingModule(module.id);
     setError('');
     const next = [...rows];
@@ -64,14 +72,21 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
         next[index] = { ...target, state: 'saving', message: 'Avaldan…' };
         setRows([...next]);
         try {
+          const fresh = !target.record;
           const saved = await repository.publish({
             lessonId: target.lessonId,
             worksheetId: 'discover',
             worksheetDoc: target.preview.document,
             user,
-            baseUpdatedAt: target.record.worksheetDocUpdatedAt,
+            baseUpdatedAt: target.record?.worksheetDocUpdatedAt || '',
+            ...(fresh ? { role: 'discover', slot: 1, displayLabel: '1 Avasta', source: 'manual' } : {}),
           });
-          next[index] = { ...target, state: 'published', message: `Avaldatud · v${saved.worksheetDocVersion} · ${target.preview.after} plokki`, record: saved };
+          next[index] = {
+            ...target,
+            state: 'published',
+            message: `Avaldatud · v${saved.worksheetDocVersion} · ${target.preview.after} plokki`,
+            record: saved,
+          };
         } catch (cause) {
           next[index] = { ...target, state: 'blocked', message: cause?.message || String(cause) };
           setRows([...next]);
@@ -93,8 +108,8 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
     <div className="page-stack">
       <PageHeader
         eyebrow="Õppevara · B1"
-        title="Avasta kvaliteeditäiendus · 001–015"
-        description="Täiendab olemasolevaid Avasta töölehti moodulite kaupa. Säilitab kvaliteetsed plokid, lisab ainult puuduvad etapid ja kasutab sama discover-töölehte. Harjuta ja Kasuta jäävad puutumata."
+        title="Avasta kvaliteeditäiendus · 001–020"
+        description="001–015 täiendatakse olemasolevat sisu säilitades. 016–020 puhul täiendatakse olemasolevat Avasta lehte või luuakse puuduv leht täielikult. Harjuta ja Kasuta jäävad puutumata."
       />
       {error ? <ErrorState title="Avaldamine peatus" message={error} /> : null}
       {grouped.map((module) => {
@@ -106,7 +121,7 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
                 <div>
                   <h3 style={{ margin: 0 }}>{module.title}</h3>
-                  <div className="form-hint">{module.ids[0]}–{module.ids.at(-1)}</div>
+                  <div className="form-hint">{module.ids[0]}–{module.ids.at(-1)}{module.allowCreate ? ' · loob puuduva Avasta' : ''}</div>
                 </div>
                 <Button onClick={() => applyModule(module)} disabled={!ready || Boolean(applyingModule)} loading={applyingModule === module.id}>
                   Rakenda ja avalda
@@ -119,7 +134,7 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
                     {row.preview ? (
                       <>
                         <div><b>{row.preview.document.meta.title}</b> · {row.preview.before} → {row.preview.after} plokki</div>
-                        <div className="form-hint">Lisatakse: {row.preview.added.length ? row.preview.added.join(', ') : 'midagi — nõuded on juba kaetud'} · B1 · {row.preview.document.meta.module}</div>
+                        <div className="form-hint">{row.preview.created ? 'Luuakse uus Avasta' : `Lisatakse: ${row.preview.added.length ? row.preview.added.join(', ') : 'midagi — nõuded on juba kaetud'}`} · B1 · {row.preview.document.meta.module}</div>
                       </>
                     ) : <div>{row.message}</div>}
                   </div>
@@ -132,7 +147,7 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
       })}
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <Button variant="secondary" onClick={load} disabled={Boolean(applyingModule)}>Kontrolli uuesti</Button>
-        <span className="form-hint">Iga moodul avaldatakse eraldi. Avaldamine peatub kohe, kui mõni leht puudub, on vahepeal muutunud või ületaks 9 plokki.</span>
+        <span className="form-hint">Iga moodul avaldatakse eraldi. Avaldamine peatub kohe, kui leht on vahepeal muutunud või kvaliteedireeglid ei läbi kontrolli.</span>
       </div>
     </div>
   );
