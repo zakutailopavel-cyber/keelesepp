@@ -142,6 +142,13 @@ export function planPhaseActivities({
   return { activityIds: selected.slice(0, count), diagnostics };
 }
 
+function ensurePhaseActivity({ phase, activityIds, profile, lessonKind, activityId }) {
+  if (!activityId || activityIds.includes(activityId)) return activityIds;
+  const candidate = eligibleActivities({ phase, profile, lessonKind }).find((activity) => activity.id === activityId);
+  if (!candidate) return activityIds;
+  return [...activityIds.slice(0, Math.max(0, activityIds.length - 1)), candidate.id];
+}
+
 function ensureLessonKindSkill({ phase, activityIds, profile, lessonKind, skill }) {
   if (!skill || activityIds.some((id) => (activityById(id)?.skills || []).includes(skill))) return activityIds;
   const candidate = eligibleActivities({ phase, profile, lessonKind })
@@ -176,13 +183,13 @@ export function planLessonActivities({
 
   const normalizedKind = normalizeLessonKind(lessonKind);
   if (normalizedKind === 'listening' || (normalizedKind === 'grammar' && countBank(profile, 'listeningScripts') > 0)) {
-    phases.practice = ensureLessonKindSkill({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, skill: 'listening' });
+    phases.practice = ensurePhaseActivity({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, activityId: 'practice-listening-comprehension' });
   }
   if (normalizedKind === 'writing') {
     phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'writing' });
   }
   if (normalizedKind === 'reading') {
-    phases.practice = ensureLessonKindSkill({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, skill: 'reading' });
+    phases.practice = ensurePhaseActivity({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, activityId: 'practice-functional-reading' });
   }
   if (normalizedKind === 'communication') {
     phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'speaking' });
