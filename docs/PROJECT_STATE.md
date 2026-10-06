@@ -1,3 +1,16 @@
+## 2026-10-07 — A2 module 05 textbook production — branch `agent/a2-module-05-production`
+
+Stacked on A2 module 04 / PR #330. Serial lesson production continues.
+- Added curated Content Library v6 sources for `a2-021…a2-025` / “Linn, kohad ja tee”: `city-places`, `directions`, `route-imperative`, `city-practical-info`.
+- Added a structured functional-reading source contract: `banks.readingDocuments` stores a practical text plus at least five comprehension/mediation questions. New `practice-functional-reading` materializes the existing Worksheet Studio reading block. Reading lessons are guaranteed a reading activity in Harjuta when a controlled reading document is available.
+- Reading questions in the new city-info pack deliberately mix practical inference, paraphrase and action decisions instead of copying answer strings directly from the passage. The two initial documents cover library opening information and a temporary bus-stop notice.
+- Grammar lessons that intentionally contain authored `listeningScripts` now keep one listening activity in Harjuta; this makes A2-023 “Käskiv kõneviis igapäevaselt” include real instruction listening rather than grammar-only drilling.
+- Added `production/a2Module05.js`: 16 core lexical items with three forms + Russian translation, 8+5+3 introduction across 021–023, module-04 lexical return across 021–023, distributed return to 026–028, no new core vocabulary in Kontroll 5, and grammar/function spine for city local cases, route questions, imperative instructions and practical city reading.
+- Updated old module-04 regressions exposed by CI: one home sentence now contains an actual target word; pattern-only tests now exclude lessons intentionally replaced by curated packs; the short-next-module lexical test now expects distributed returns instead of every word in one lesson.
+- Tests cover all five curated module-05 profiles, functional reading bank sanitization, imperative listening, lesson-024 reading with 5+ questions, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue immediately to A2 module 06 “Söök, jook ja kohvik”.
+
 ## 2026-10-06 — A2 module 04 textbook production — branch `agent/a2-module-04-production`
 
 Stacked on A2 module 03 / PR #329. Serial lesson production continues while Vercel preview builds are rate-limited.
