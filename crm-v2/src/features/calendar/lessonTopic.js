@@ -51,7 +51,28 @@ export function topicFields(lesson, note = '') {
   return { topic: lesson.title, topicLevel: lesson.level, topicModule: lesson.moduleTitle, topicLessonId: lesson.id, notes: cleanNote };
 }
 
+// What the teacher picked (level → module → lesson) as record fields; a module without a lesson is a valid topic too.
+export function topicFromPick(catalog, pick = {}, note = '') {
+  const lesson = pick.lessonId ? catalog?.byId.get(pick.lessonId) || null : null;
+  if (lesson) return topicFields(lesson, note);
+  const module = pick.module ? catalog?.levels.find((entry) => entry.key === pick.level)?.modules.find((entry) => entry.key === pick.module) : null;
+  if (!module) return topicFields(null, note);
+  return { topic: module.label, topicLevel: pick.level, topicModule: module.label, topicLessonId: '', notes: String(note || '').trim().slice(0, 1000) };
+}
+
+// The picker value for a stored record (so its topic can be changed later)
+export function pickFromRecord(catalog, record = {}) {
+  if (record.topicLessonId && catalog?.byId.has(record.topicLessonId)) {
+    const lesson = catalog.byId.get(record.topicLessonId);
+    return { level: lesson.level, module: lesson.moduleKey, lessonId: lesson.id };
+  }
+  const level = catalog?.levels.find((entry) => entry.key === record.topicLevel);
+  const module = level?.modules.find((entry) => entry.label === record.topicModule);
+  return { level: level?.key || '', module: module?.key || '', lessonId: '' };
+}
+
 export function topicLine(record = {}) {
   if (!record.topic) return '';
-  return [record.topicLevel, record.topicModule, record.topic].filter(Boolean).join(' · ');
+  // a module-only topic has the module as its topic: show it once
+  return [record.topicLevel, record.topicModule, record.topic === record.topicModule ? '' : record.topic].filter(Boolean).join(' · ');
 }

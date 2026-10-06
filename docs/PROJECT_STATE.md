@@ -1,5 +1,18 @@
 # KeeleSepp Project State
 
+## 2026-10-06 — Calendar lesson panel: the teacher chooses the module and/or lesson, also after marking — branch `agent/lesson-topic-edit`
+
+Checked `origin/main` `19ae77c`. Owner: in the lesson panel the teacher must be able to choose the module and/or the
+lesson that was done.
+- `lessonTopic.js`: `topicFromPick(catalog, { level, module, lessonId }, note)` — a lesson, or a module only
+  (`topic` = module title, `topicLessonId` ''), or nothing („Individuaalne tund”); `pickFromRecord` reads a stored record
+  back into the picker; `topicLine` shows a module-only topic once.
+- `LessonPanel`: before marking, a module without a lesson is accepted; a marked lesson has „Muuda teemat või märkust”
+  (Tase → Teema → Tund + Märkus, preview of what the student/parent see) → `lessonsService.updateDetails` (replaces
+  `updateNotes` from #316; writes topic, topicLevel, topicModule, topicLessonId, notes, updatedAt/By; no billing field).
+- Tests: `lessonTopic.test.js` (3), calendar test for changing a marked lesson to a module-only topic with a note.
+- Next safe step: owner merges the draft PR (Vercel deploys the CRM).
+
 ## 2026-10-06 — Calendar lesson panel: the note is no longer lost — branch `agent/lesson-notes-draft`
 
 Checked `origin/main` `42d96fb`. Teacher report (Oleksiy Skoryk): „Märkus” in the lesson panel („Mida tunnis tehti?”)
