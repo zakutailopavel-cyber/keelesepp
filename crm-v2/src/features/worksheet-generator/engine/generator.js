@@ -5,6 +5,7 @@ import { createLessonDna } from './lessonDna.js';
 import { normalizeFocusSelection } from './focus.js';
 import { normalizeLessonKind } from './lessonKind.js';
 import { planLessonActivities, planPhaseActivities } from './planner.js';
+import { lexicalCoverageReport, moduleDiversityReport, planLexicalRecycling, planModuleActivities } from './modulePlanner.js';
 import { PHASES, recipeFor } from './recipes.js';
 import { shuffleSeeded } from './seed.js';
 import { inspectGeneratedSheet } from './quality.js';
@@ -274,5 +275,6 @@ export { createLessonDna, lessonDnaFingerprint, LESSON_DNA_SCHEMA } from './less
 export { normalizeLessonKind } from './lessonKind.js';
 export { catalogReadiness, planLessonActivities, planPhaseActivities } from './planner.js';
 export { ACTIVITY_CATALOG, ACTIVITY_CATALOG_VERSION } from './activityCatalog.js';
+export { lexicalCoverageReport, moduleDiversityReport, planLexicalRecycling, planModuleActivities } from './modulePlanner.js';
 export { createSeededRandom, sampleSeeded, shuffleSeeded } from './seed.js';
 export { inspectVocabularyLevel, normalizeLevel, normalizeLevelLexicon, selectVocabulary } from './vocabulary.js';
