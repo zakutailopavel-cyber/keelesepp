@@ -322,7 +322,18 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       if (homework && student) await libraryRepository.assign({ item: homework, students: [student], dueDate: '', note: fields.topic ? `Tund: ${fields.topic}` : '', user });
       setPanelKey('');
       await state.reload();
-    } catch (error) { setPanelError(error.message || 'Salvestamine ebaõnnestus.'); } finally { setPanelSaving(false); }
+      return true;
+    } catch (error) { setPanelError(error.message || 'Salvestamine ebaõnnestus.'); return false; } finally { setPanelSaving(false); }
+  };
+  // the note of an already marked lesson can be corrected later
+  const updateNotes = async (notes) => {
+    if (!panelItem?.record) return false;
+    setPanelSaving(true); setPanelError('');
+    try {
+      await lessonRepository.updateNotes(panelItem.record, notes, user);
+      await state.reload();
+      return true;
+    } catch (error) { setPanelError(error.message || 'Märkust ei saanud salvestada.'); return false; } finally { setPanelSaving(false); }
   };
   const quickDone = async (item) => {
     if (quickCompleting) return;
@@ -543,6 +554,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           error={panelError}
           onClose={() => setPanelKey('')}
           onDone={markDone}
+          onUpdateNotes={lessonRepository.updateNotes ? updateNotes : undefined}
           onEdit={() => openEdit(panelItem)}
           onCancelLesson={cancelOccurrence}
           onDeleteLesson={() => setDeleteAsk(panelItem)}

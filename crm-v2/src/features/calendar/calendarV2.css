@@ -188,3 +188,5 @@
 .cal2-dot.is-online { background: rgba(217, 138, 28, .4); border: 1px solid #d98a1c; margin-left: 8px; }
 .cal2-paint .cal2-dot.is-online { margin-left: 0; }
 .tg-online { color: #9a5b00; font-weight: 700; font-size: .72rem; }
+.lp-draft { color: #087e6b; }
+.lp-notes-edit { display: grid; gap: 8px; margin-top: 6px; }

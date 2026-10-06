@@ -114,6 +114,14 @@ export const lessonsService = {
     await batch.commit();
     return { ...record, status, ...(record.verified ? { verified: false } : {}) };
   },
+  // The teacher corrects the note of a marked lesson (the student and the parent see it); billing is not affected.
+  async updateNotes(record, notes, user) {
+    if (!record?.id) throw new Error('Tunni märget ei leitud.');
+    const { db } = requireFirebaseClient();
+    const value = { notes: String(notes || '').trim().slice(0, 1000), updatedAt: new Date().toISOString(), updatedByUid: user?.uid || '', updatedByName: user?.displayName || user?.email || '' };
+    await updateDoc(doc(db, 'lessons', record.id), value);
+    return { ...record, ...value };
+  },
   // Admin: a held lesson is marked "held and checked" (or the check is taken back). Billing is not affected.
   async setVerified(record, verified, user) {
     if (!record?.id) throw new Error('Tunni märget ei leitud.');

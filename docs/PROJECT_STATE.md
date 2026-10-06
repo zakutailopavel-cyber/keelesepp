@@ -1,5 +1,19 @@
 # KeeleSepp Project State
 
+## 2026-10-06 — Calendar lesson panel: the note is no longer lost — branch `agent/lesson-notes-draft`
+
+Checked `origin/main` `42d96fb`. Teacher report (Oleksiy Skoryk): „Märkus” in the lesson panel („Mida tunnis tehti?”)
+disappears when the panel/tab is closed.
+- Cause: `LessonPanel` kept note, topic and homework only in component state; they were written only by „Tund toimus”
+  / „Puudus”. Closing the panel (or switching lesson) dropped them. A marked lesson's note could not be edited at all.
+- Fix: draft per lesson occurrence in `localStorage` (`ks-lesson-draft:<occurrenceId>`: notes, picked topic, homework),
+  restored when the panel opens again, removed after a successful mark (`markDone` now returns true/false); hint
+  „Mustand on selles brauseris alles…”. Marked lessons: „Muuda märkust / Lisa märkus” → `lessonsService.updateNotes`
+  (notes ≤ 1000, `updatedAt/By`; not a billing field, existing rules allow the lesson's teacher and admins).
+- Limit: the draft lives in the teacher's browser (another device does not see it until the lesson is marked).
+- Tests: calendar tests for the draft (close/reopen/send/cleared) and for editing a marked lesson's note.
+- Next safe step: owner merges the draft PR (Vercel deploys the CRM).
+
 ## 2026-10-06 — Student card „Tööd”: worksheets given but not handed in, live — branch `agent/student-works-live`
 
 Checked `origin/main` `a4ef5b2`. Owner: a worksheet given to a student must be visible in the student's profile in its
