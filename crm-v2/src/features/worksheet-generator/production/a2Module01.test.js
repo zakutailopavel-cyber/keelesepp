@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { validateWorksheetDoc } from '../../../services/firebase/worksheetDocs.js';
 import { generateA2Module01 } from './a2Module01.js';
 
+function visibleAuthorStrings(value, key = '') {
+  if (typeof value === 'string') return key === 'options' ? [] : [value];
+  if (Array.isArray(value)) return value.flatMap((item) => visibleAuthorStrings(item, key));
+  if (!value || typeof value !== 'object') return [];
+  return Object.entries(value).flatMap(([childKey, child]) => visibleAuthorStrings(child, childKey));
+}
+
 describe('A2 module 1 textbook production', () => {
   it('builds five complete Avasta-Harjuta-Kasuta lesson bundles', () => {
     const result = generateA2Module01();
