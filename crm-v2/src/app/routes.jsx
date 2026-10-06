@@ -38,6 +38,7 @@ const GeneratorCoveragePage = lazy(() => import('../features/worksheet-generator
 const LessonWorksheetSet = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetSet.jsx'));
 const LessonWorksheetStudioPage = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx'));
 const AvastaUpgradePage = lazy(() => import('../features/worksheet-generator/ui/AvastaUpgradePage.jsx'));
+const Module1ThreePhasePage = lazy(() => import('../features/worksheet-generator/ui/Module1ThreePhasePage.jsx'));
 const generatorPage = (element) => <Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense>;
 
 export default function AppRoutes() {
@@ -63,6 +64,7 @@ export default function AppRoutes() {
             <Route path="library/worksheets/live/:assignmentId" element={<LiveWorksheetPage />} />
             <Route path="library/worksheet-generator" element={generatorPage(<GeneratorCoveragePage />)} />
             <Route path="library/worksheet-generator/avasta-module-1" element={generatorPage(<AvastaUpgradePage />)} />
+            <Route path="library/worksheet-generator/module-1-three-phase" element={generatorPage(<Module1ThreePhasePage />)} />
             <Route path="library/lessons/:lessonId/worksheets" element={generatorPage(<LessonWorksheetSet />)} />
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={<WorksheetStudioPage />} />
