@@ -1,3 +1,14 @@
+## 2026-10-06 — Textbook generator wiring — branch `agent/textbook-generator-wiring`
+
+Checked `origin/main` `7c3f764` after owner merged PR #324. Owner priority remains: finish lesson content A2 → B1 → B2 → C1 before final Õpik assembly.
+- Generator DNA now carries pedagogical progression metadata when a lesson profile provides it: grammar targets are classified `new / recycled / assumed`, and textbook vocabulary is classified `new / current-module / previous-module / long-gap`. These states are included in the DNA fingerprint so a changed progression plan produces a distinct deterministic generation identity.
+- Worksheet Studio gets a first-class `transformation` block (Muuda lauset): source sentence + transformation instruction + accepted answer, interactive input, scoring, example mode and editor support.
+- Generator catalog gets `practice-sentence-transformation` (A2–C1) backed by an explicit `banks.transformations` source; planner refuses to invent transformations when the bank is absent.
+- Generator catalog also gets `transfer-problem-solving` (A2–C1), materialized with the existing planning block: identify the problem, compare at least two solutions, choose/justify, then react to a changed condition.
+- Focused test `textbookWiring.test.js` checks the new block/activity registrations and that grammar/vocabulary progression reaches Lesson DNA.
+- No Firestore writes, migrations, published worksheet changes, production deploy or Õpik UI changes in this branch.
+- Next safe step: CI; after merge, add module-level diversity/recycling planning and begin the next lesson batch using transformation/problem-solving where source banks support them.
+
 ## 2026-10-06 — Textbook lesson-system schemas — branch `agent/textbook-lesson-system`
 
 Checked `origin/main` `c9cdb16` after owner merged PR #323. Owner priority remains: finish all lesson content A2 → B1 → B2 → C1 first; assemble the final Õpik only after lesson completion.
