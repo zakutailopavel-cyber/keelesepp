@@ -1,5 +1,5 @@
 import { CalendarClock, Check, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
 import { INDIVIDUAL_TOPIC, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
@@ -54,13 +54,30 @@ function HomeworkPicker({ library, value, onChange }) {
  * Side panel for one lesson occurrence: last time, "Toimus" with topic (level → theme → lesson), note, homework,
  * absence, edit time and cancel. Groups show the attendance sheet instead (children).
  */
-export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
+// The note, topic and homework typed before the lesson is marked are a draft in this browser: closing the panel (or
+// the tab) does not lose them; they are sent with „Tund toimus” / „Puudus” and the draft is then removed.
+const draftKey = (item) => `ks-lesson-draft:${item?.occurrenceId || ''}`;
+function readDraft(item) {
+  if (!item?.occurrenceId) return null;
+  try { return JSON.parse(window.localStorage.getItem(draftKey(item)) || 'null'); } catch { return null; }
+}
+
+export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateNotes, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
   const done = Boolean(item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
-  const [picked, setPicked] = useState(null);
-  const [notes, setNotes] = useState('');
-  const [homework, setHomework] = useState(null);
+  const [draft] = useState(() => readDraft(item));
+  const [picked, setPicked] = useState(draft?.picked || null);
+  const [notes, setNotes] = useState(draft?.notes || '');
+  const [homework, setHomework] = useState(draft?.homework || null);
   const [fixing, setFixing] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(null);
+  useEffect(() => {
+    if (!item?.occurrenceId) return;
+    try {
+      if (notes.trim() || picked || homework) window.localStorage.setItem(draftKey(item), JSON.stringify({ notes, picked, homework, savedAt: Date.now() }));
+      else window.localStorage.removeItem(draftKey(item));
+    } catch { /* storage may be disabled */ }
+  }, [item, notes, picked, homework]);
   if (!item) return null;
   // A lesson can be marked held only on its day or later; an absence announced in advance can be marked any time.
   const future = Boolean(today && item.occurrenceDate > today);
@@ -69,9 +86,12 @@ export default function LessonPanel({ item, history = [], catalog, library, load
   // "Last time" is the lesson before this one, never this lesson's own mark.
   const last = history.find((lesson) => lesson.id !== item.lessonRecordId && (lesson.date < item.occurrenceDate || (lesson.date === item.occurrenceDate && !item.lessonRecordId)));
   const record = item.record;
-  const save = (status) => (status === 'Toimunud'
-    ? onDone({ status, ...topicFields(chosen, notes), homework })
-    : onDone({ status, ...topicFields(null, notes), topic: '', homework: null }));
+  const save = async (status) => {
+    const ok = await (status === 'Toimunud'
+      ? onDone({ status, ...topicFields(chosen, notes), homework })
+      : onDone({ status, ...topicFields(null, notes), topic: '', homework: null }));
+    if (ok) { try { window.localStorage.removeItem(draftKey(item)); } catch { /* storage may be disabled */ } }
+  };
   const googleOwned = isGoogleOwned(item);
   const sync = lessonSyncState(item);
   const absent = item.status === 'Puudus_eta' || item.status === 'Puudus_p' || ['Puudus_eta', 'Puudus_p'].includes(record?.status);
@@ -108,7 +128,14 @@ export default function LessonPanel({ item, history = [], catalog, library, load
       {!item.isGroup && done ? (
         <section className="lp-done">
           <Badge tone={absent ? 'danger' : 'success'}>{STATUS_LABEL[record?.status || item.status] || 'Arvestatud'}</Badge>
-          {record ? <><strong>{topicLine(record) || INDIVIDUAL_TOPIC}</strong>{record.notes ? <p>{record.notes}</p> : null}</> : null}
+          {record ? <><strong>{topicLine(record) || INDIVIDUAL_TOPIC}</strong>{editingNotes === null && record.notes ? <p>{record.notes}</p> : null}</> : null}
+          {record && onUpdateNotes && editingNotes === null ? <button type="button" className="link-button" onClick={() => setEditingNotes(record.notes || '')}><Pencil size={13} /> {record.notes ? 'Muuda märkust' : 'Lisa märkus'}</button> : null}
+          {record && editingNotes !== null ? (
+            <div className="lp-notes-edit">
+              <label className="lp-notes"><span>Märkus (näeb ka õpilane ja lapsevanem)</span><textarea rows={3} maxLength={1000} value={editingNotes} onChange={(event) => setEditingNotes(event.target.value)} /></label>
+              <div className="lp-actions"><Button loading={saving} onClick={async () => { if (await onUpdateNotes(editingNotes)) setEditingNotes(null); }}>Salvesta märkus</Button><Button variant="secondary" disabled={saving} onClick={() => setEditingNotes(null)}>Loobu</Button></div>
+            </div>
+          ) : null}
           {record && onChangeMark && !fixing ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
           {record && fixing ? (
             <div className="lp-fix" role="group" aria-label="Paranda märge">
@@ -133,6 +160,7 @@ export default function LessonPanel({ item, history = [], catalog, library, load
             </>
           )}
           <label className="lp-notes"><span>Märkus (näeb ka õpilane ja lapsevanem)</span><textarea rows={2} maxLength={1000} placeholder="Nt: harjutasime partitiivi, kooli kodutöö matemaatikas…" value={notes} onChange={(event) => setNotes(event.target.value)} /></label>
+          {notes.trim() || picked || homework ? <p className="lp-hint lp-draft">Mustand on selles brauseris alles ka akna sulgemisel. Õpilane näeb märkust pärast „Tund toimus”.</p> : null}
           <HomeworkPicker library={library} value={homework} onChange={setHomework} />
           </>}
           <div className="lp-actions">

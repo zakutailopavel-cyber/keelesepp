@@ -329,6 +329,39 @@ describe('calendar v2', () => {
     expect(screen.getByRole('combobox', { name: /Õpilane/ })).toHaveValue('Jaan Tamm');
   });
 
+  it('keeps the lesson note as a draft when the panel is closed and sends it with „Tund toimus”', async () => {
+    const memory = new Map();
+    vi.stubGlobal('localStorage', { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, String(v)), removeItem: (k) => memory.delete(k) });
+    try {
+      const props = renderCalendar({ events: [lesson()] });
+      fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+      let panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+      fireEvent.change(within(panel).getByLabelText(/Märkus/), { target: { value: 'Harjutasime partitiivi' } });
+      expect(within(panel).getByText(/Mustand on selles brauseris alles/)).toBeInTheDocument();
+      fireEvent.click(within(panel).getByRole('button', { name: 'Sulge' }));
+      fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+      panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+      expect(within(panel).getByLabelText(/Märkus/)).toHaveValue('Harjutasime partitiivi');
+      fireEvent.click(within(panel).getByRole('button', { name: /Tund toimus/ }));
+      await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ notes: 'Harjutasime partitiivi' })));
+      await waitFor(() => expect([...memory.keys()].some((key) => key.startsWith('ks-lesson-draft:'))).toBe(false));
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('the note of a marked lesson can be corrected later', async () => {
+    const record = { id: 'rec-1', scheduleId: 'schedule-1', date: today, status: 'Toimunud', notes: 'Vana märkus', studentId: 's1' };
+    const props = renderCalendar({ events: [lesson()], records: [record] });
+    props.lessonRepository.updateNotes = vi.fn().mockResolvedValue({});
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    fireEvent.click(within(panel).getByRole('button', { name: /Muuda märkust/ }));
+    fireEvent.change(within(panel).getByLabelText(/Märkus/), { target: { value: 'Uus märkus' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Salvesta märkus' }));
+    await waitFor(() => expect(props.lessonRepository.updateNotes).toHaveBeenCalledWith(expect.objectContaining({ id: 'rec-1' }), 'Uus märkus', expect.anything()));
+  });
+
   it('"Alusta tundi" invites the student and opens the live room for today\'s lesson', async () => {
     const props = renderCalendar({ events: [lesson()] });
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
