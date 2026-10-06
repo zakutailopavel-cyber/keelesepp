@@ -1,3 +1,15 @@
+## 2026-10-07 — A2 module 06 textbook production — branch `agent/a2-module-06-production`
+
+Stacked on A2 module 05 / PR #331. Serial lesson production continues.
+- Added curated Content Library v7 sources for `a2-026…a2-030` / “Söök, jook ja kohvik”: `food-drink`, `quantity-partitive`, `cafe-order`, `order-bill`.
+- A2-027 now has controlled quantity/partitive transformations instead of isolated word-bank insertion. The content bank explicitly contrasts quantity phrases such as `kilo leiba`, `liiter piima`, `tass kohvi` and fixes common nominative-after-quantity errors.
+- A2-028 is a functional cafe interaction lesson: polite ordering, unavailable item, composition clarification, `ilma + -ta`, and bill request are practiced through dialogue, repair, transformation and free interaction.
+- A2-029 has two authored listening scripts with 5 keyed details each: a lunch order with prices and an order change. The existing listening guarantee places real listening in Harjuta for the listening lesson.
+- Added `production/a2Module06.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 026–028, module-05 lexical return across 026–028, distributed return to 031–033, no new core vocabulary in Kontroll 6, and grammar/function spine for quantity + partitive, polite cafe requests, `ilma + -ta`, and price/order listening.
+- Tests cover all five curated profiles, partitive transformations, real A2-029 listening, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue immediately to A2 module 07 “Pood, raha ja ostud”.
+
 ## 2026-10-07 — A2 module 05 textbook production — branch `agent/a2-module-05-production`
 
 Stacked on A2 module 04 / PR #330. Serial lesson production continues.
