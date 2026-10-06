@@ -194,6 +194,25 @@ function errorFixData(profile, focusIds, state, seed, spec) {
   return { title: 'Leia ja paranda viga.', instruction: 'Kirjuta lause õigesti.', rows };
 }
 
+function transformationData(profile, focusIds, state, seed, spec) {
+  const candidates = (profile.banks?.transformations || []).filter((item) =>
+    hasFocus(item, focusIds) && !state.usedRenderedSentences.has(clean(item.answer || item.to)));
+  const selected = sampleSeeded(candidates, spec.closedItemCount, seed);
+  selected.forEach((item) => {
+    const answer = clean(item.answer || item.to);
+    if (answer) state.usedRenderedSentences.add(answer);
+  });
+  return {
+    title: 'Muuda lauseid.',
+    instruction: 'Kirjuta uus lause juhise järgi.',
+    rows: selected.map((item) => ({
+      from: item.from || item.source || '',
+      prompt: item.prompt || item.instruction || 'Muuda lauset.',
+      answer: item.answer || item.to || '',
+    })),
+  };
+}
+
 function translationData(profile, focusIds, state, seed, spec) {
   const candidates = (profile.banks?.translations || []).filter((item) => hasFocus(item, focusIds) && !state.usedTranslationIds.has(item.id));
   const selected = sampleSeeded(candidates, spec.closedItemCount, seed);
@@ -329,6 +348,14 @@ function transferData(activityId, profile, focusIds, contextId, seed, spec) {
       lines: spec.planningLines,
     };
   }
+  if (activityId === 'transfer-problem-solving') {
+    return {
+      title: 'Lahenda olukord.',
+      instruction: context.label ? `Olukord: ${withStop(context.label)} Mõtle läbi vähemalt kaks võimalust ja vali parem lahendus.` : 'Mõtle läbi vähemalt kaks võimalust ja vali parem lahendus.',
+      prompts: 'Mis on probleem?\nMillised on vähemalt kaks võimalikku lahendust?\nMis on kummagi lahenduse pluss ja miinus?\nMillise lahenduse valid ja miks?\nMida teed, kui olukord muutub?',
+      lines: Math.max(2, spec.planningLines),
+    };
+  }
   if (activityId === 'transfer-writing') {
     return {
       title: 'Kirjuta iseseisev tekst.',
@@ -394,6 +421,9 @@ function materializeActivity({ activityId, profile, focusIds, contextId, seed, s
     case 'practice-context-choice':
       data = contextChoiceData(profile, focusIds, contextId, state, seed, spec);
       break;
+    case 'practice-sentence-transformation':
+      data = transformationData(profile, focusIds, state, seed, spec);
+      break;
     case 'practice-error-repair':
       data = errorFixData(profile, focusIds, state, seed, spec);
       break;
@@ -415,6 +445,7 @@ function materializeActivity({ activityId, profile, focusIds, contextId, seed, s
     case 'transfer-rolecards':
     case 'transfer-speaking':
     case 'transfer-planning':
+    case 'transfer-problem-solving':
     case 'transfer-writing':
     case 'transfer-guided-letter':
     case 'transfer-rubric':
