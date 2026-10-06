@@ -37,6 +37,10 @@ const PACK_KEYWORDS = Object.freeze({
   'quantity-partitive': ['kui palju', 'partitiiv', 'kilo', 'liiter', 'klaas'],
   'cafe-order': ['kohvikus', 'ma soovin', 'arve', 'tellimus'],
   'order-bill': ['tellimus ja arve', 'hind', 'euro', 'sent', 'kokku'],
+  'shopping-goods': ['poes ja kaubad', 'riided', 'jalanõud', 'suurus', 'värv'],
+  'shopping-prices': ['arvud, hinnad ja kogused', 'hinnad', 'suurus', 'eurot', 'senti'],
+  'fitting-compare': ['proovimine ja valimine', 'suuremat', 'väiksemat', 'odavam', 'kallim'],
+  'receipt-return': ['kviitung', 'kampaania', 'tagastus', 'allahindlus', 'vahetus'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
