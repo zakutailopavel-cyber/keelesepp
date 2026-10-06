@@ -166,3 +166,8 @@
 .lw-group__list span { display: grid; }
 .lw-group__list small { color: #6b7091; }
 .lg-side .lr-tile--self { width: 100%; align-self: stretch; }
+
+/* phones: the other side's picture and sound start only after a tap */
+.lr-tap-play { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; gap: 2px; border: 0; background: rgba(20, 24, 50, .55); color: #fff; font: inherit; font-weight: 800; font-size: .9rem; cursor: pointer; text-align: center; padding: 6px; }
+.lr-tap-play span { font-weight: 600; font-size: .72rem; opacity: .85; }
+@media (max-width: 760px) { .lr-tap-play { font-size: .7rem; } .lr-tap-play span { font-size: .6rem; } }

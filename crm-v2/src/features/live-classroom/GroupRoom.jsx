@@ -14,9 +14,18 @@ import './liveRoom.css';
 
 function RemoteTile({ tile }) {
   const ref = useRef(null);
-  useEffect(() => { if (ref.current) ref.current.srcObject = tile.stream || null; }, [tile.stream]);
+  // phones block a video with sound until a tap: then the tile offers one
+  const [needsPlay, setNeedsPlay] = useState(false);
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    video.srcObject = tile.stream || null;
+    const played = tile.stream ? video.play?.() : null;
+    if (played?.catch) played.then(() => setNeedsPlay(false)).catch((error) => { if (error?.name === 'NotAllowedError') setNeedsPlay(true); });
+  }, [tile.stream]);
   return <figure className={`lr-tile lg-tile ${tile.stream ? 'is-live' : ''}`}>
     <video ref={ref} autoPlay playsInline />
+    {needsPlay ? <button type="button" className="lr-tap-play" onClick={() => ref.current?.play?.().then(() => setNeedsPlay(false)).catch(() => {})}>▶ Puuduta<span>Нажмите</span></button> : null}
     {!tile.stream ? <span className="lr-tile__avatar" aria-hidden="true">{String(tile.name || '?').charAt(0).toUpperCase()}</span> : null}
     <figcaption><span>{tile.name}</span><small>{tile.stream ? '' : tile.online ? ' · võrgus' : ' · pole võrgus'}</small></figcaption>
   </figure>;

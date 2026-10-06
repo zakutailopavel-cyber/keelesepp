@@ -3,6 +3,7 @@ import { liveGroupRoomsService } from '../../services/firebase/liveGroupRooms.js
 import { presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
 import { liveTurnService } from '../../services/firebase/liveTurn.js';
 import { callIceServers, mediaConstraints } from './useLiveCall.js';
+import { openMedia } from './mobileMedia.js';
 
 // Group lesson call (owner, 2026-10-04: up to 4 students, no paid video server): a WebRTC mesh — one
 // RTCPeerConnection per pair of participants. For every pair the participant with the smaller uid makes the offer, so
@@ -174,8 +175,8 @@ export function useGroupCall({
     setBusy(true);
     setError('');
     try {
-      if (!mediaDevices?.getUserMedia) throw new Error('Kaamera ja mikrofoni kasutamine pole selles brauseris saadaval.');
-      const stream = await mediaDevices.getUserMedia(mediaConstraints());
+      // phones: a camera that cannot be opened as asked falls back to a plain camera, then to the microphone only
+      const { stream } = await openMedia(mediaDevices, mediaConstraints());
       localRef.current = stream;
       if (localVideoRef.current) localVideoRef.current.srcObject = stream;
       setLocalStream(stream);

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { liveLessonCallSignalsService } from '../../services/firebase/liveLessonCallSignals.js';
 import { liveLessonPresenceService, presenceIsFresh } from '../../services/firebase/liveLessonPresence.js';
 import { liveTurnService } from '../../services/firebase/liveTurn.js';
+import { openMedia } from './mobileMedia.js';
 
 export const STUN_SERVERS = Object.freeze([
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
@@ -122,6 +123,10 @@ export function useLiveCall({
   const [screenBusy, setScreenBusy] = useState(false);
   const [error, setError] = useState('');
   const [hasLocalMedia, setHasLocalMedia] = useState(false);
+  // phones block a video with sound until the user taps: then the call shows a „tap to start” button
+  const [needsPlay, setNeedsPlay] = useState(false);
+  const [audioOnly, setAudioOnly] = useState(false);
+  const remoteStreamRef = useRef(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [screenSharing, setScreenSharing] = useState(false);
@@ -194,6 +199,8 @@ export function useLiveCall({
 
   const closePeer = useCallback(() => {
     clearRecovery();
+    remoteStreamRef.current = null;
+    setNeedsPlay(false);
     const channel = channelRef.current;
     channelRef.current = null;
     if (channel) {
@@ -271,9 +278,21 @@ export function useLiveCall({
     }
     peer.ondatachannel = (event) => { if (event.channel?.label === 'room') wireChannel(event.channel); };
     peer.ontrack = (event) => {
-      const remoteStream = event.streams?.[0];
-      if (remoteVideoRef.current && remoteStream) remoteVideoRef.current.srcObject = remoteStream;
-      if (remoteStream) reportStreams({ remote: remoteStream });
+      // some mobile browsers send tracks without a stream: collect them into one
+      let remoteStream = event.streams?.[0];
+      if (!remoteStream && event.track && typeof globalThis.MediaStream === 'function') {
+        remoteStream = remoteStreamRef.current || new globalThis.MediaStream();
+        if (!remoteStream.getTracks().includes(event.track)) remoteStream.addTrack(event.track);
+      }
+      if (!remoteStream) return;
+      remoteStreamRef.current = remoteStream;
+      const video = remoteVideoRef.current;
+      if (video) {
+        if (video.srcObject !== remoteStream) video.srcObject = remoteStream;
+        const played = video.play?.();
+        if (played?.catch) played.then(() => setNeedsPlay(false)).catch((playError) => { if (playError?.name === 'NotAllowedError') setNeedsPlay(true); });
+      }
+      reportStreams({ remote: remoteStream });
     };
     peer.onicecandidate = (event) => {
       if (!event.candidate) return;
@@ -315,12 +334,13 @@ export function useLiveCall({
 
   const ensureLocalMedia = useCallback(async () => {
     if (localStreamRef.current) return localStreamRef.current;
-    if (!mediaDevices?.getUserMedia) throw new Error('Kaamera ja mikrofoni kasutamine pole selles brauseris saadaval.');
-    // camera permission and TURN credentials in parallel: the first peer then already has the relay
-    const [stream] = await Promise.all([
-      mediaDevices.getUserMedia(mediaConstraints(selected)),
+    // camera permission and TURN credentials in parallel: the first peer then already has the relay; on a phone a
+    // camera that cannot be opened as asked falls back to a plain camera, then to the microphone only
+    const [{ stream, audioOnly: onlyAudio }] = await Promise.all([
+      openMedia(mediaDevices, mediaConstraints(selected)),
       waitForTurn(),
     ]);
+    setAudioOnly(onlyAudio);
     localStreamRef.current = stream;
     attachLocalStream(stream);
     reportStreams({ local: stream });
@@ -655,7 +675,16 @@ export function useLiveCall({
   const connected = status === 'connected';
   const canReconnect = role === 'teacher' && hasLocalMedia && ['failed', 'reconnecting'].includes(status);
 
+  // a tap on „Puuduta…” is the user gesture phones need to start the other side's picture and sound
+  const resumePlayback = () => {
+    const video = remoteVideoRef.current;
+    const played = video?.play?.();
+    if (played?.then) played.then(() => setNeedsPlay(false)).catch(() => setNeedsPlay(true));
+    else setNeedsPlay(false);
+  };
+
   return {
+    needsPlay, resumePlayback, audioOnly,
     status, statusLabel: statusText(status, role, teacherReady), busy, screenBusy, error, setError, hasLocalMedia,
     audioEnabled, videoEnabled, screenSharing, teacherReady, peerOnline, peerName, connected, canReconnect,
     localVideoRef, remoteVideoRef, startTeacherCall, joinStudentCall, hangUp, toggleAudio, toggleVideo,

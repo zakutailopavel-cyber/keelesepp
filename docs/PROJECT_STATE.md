@@ -1,5 +1,24 @@
 # KeeleSepp Project State
 
+## 2026-10-06 — Live Classroom on phones: camera/mic fallback and tap-to-play — branch `agent/mobile-call`
+
+Checked `origin/main` `19ae77c`. Teacher bug: a student on a phone could not share camera/mic and did not see/hear the
+teacher.
+- Likely causes (not reproducible here, no device test): in-app browsers (Telegram, Instagram, Facebook, WhatsApp,
+  Android WebView) without `mediaDevices`; mobile autoplay blocks remote video with sound until a tap; strict
+  constraints failed with no fallback; `ontrack` without `streams` left the remote video empty.
+- Fix: new `live-classroom/mobileMedia.js` (`inAppBrowser`, `mediaErrorMessage`, `openMedia`: preferred constraints →
+  plain camera+mic → microphone only; a refused permission is not retried). `useLiveCall` and `useGroupCall` use it;
+  `useLiveCall` builds a `MediaStream` from `event.track` when needed, returns `needsPlay`, `resumePlayback`,
+  `audioOnly`. LiveRoom, LiveLessonCallPanel and GroupRoom show „▶ Puuduta, et näha ja kuulda / Нажмите…” when the
+  browser blocked playback; own caption says „ainult heli” when only the mic opened. Error texts (ET + RU) tell
+  in-app browser users to open the link in Chrome/Safari.
+- Checks: `mobileMedia.test.js` 3/3; live-classroom suite 54 passed, 9 failed = known Node 26 `localStorage`
+  failures (lessonLink, LiveClassroomPage, useLiveCall.channel/devices); `npx eslint .` clean; `npm run build` OK.
+- Limit: not verified on a real phone. Manual gate: owner/teacher tests a lesson link on iPhone Safari and Android
+  Chrome after deploy.
+- Next safe step: owner merges the draft PR, then tests on a phone.
+
 ## 2026-10-06 — Calendar lesson panel: the note is no longer lost — branch `agent/lesson-notes-draft`
 
 Checked `origin/main` `42d96fb`. Teacher report (Oleksiy Skoryk): „Märkus” in the lesson panel („Mida tunnis tehti?”)
