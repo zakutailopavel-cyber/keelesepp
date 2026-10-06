@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -149,6 +149,38 @@ describe('Content Pack Factory v1', () => {
     });
     const practiceTypes = generated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type);
     expect(practiceTypes).toContain('listening');
+  });
+
+  it('module 5 uses curated city, route, imperative and practical-reading sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-021')).toEqual(['city-places']);
+    expect(pick('a2-022')).toEqual(['directions']);
+    expect(pick('a2-023')).toEqual(['route-imperative']);
+    expect(pick('a2-024')).toEqual(['city-practical-info']);
+    expect(pick('a2-025')).toEqual(['city-places', 'directions', 'route-imperative', 'city-practical-info']);
+
+    const imperative = createContentPackDraft(lessons.find((item) => item.id === 'a2-023')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-024')).profile;
+    expect(imperative.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+    expect(imperative.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+
+    const imperativeGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-023'),
+      profile: imperative,
+      seed: 'a2-023:listening-required',
+    });
+    expect(imperativeGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('listening');
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-024'),
+      profile: reading,
+      seed: 'a2-024:reading-required',
+    });
+    const readingBlocks = readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.filter((block) => block.type === 'reading');
+    expect(readingBlocks).toHaveLength(1);
+    expect(readingBlocks[0].data.questions.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
   });
 
   it('translation hints never reveal an accepted answer', () => {
