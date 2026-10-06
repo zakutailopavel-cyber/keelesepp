@@ -5,7 +5,6 @@ import { createLessonDna } from './lessonDna.js';
 import { normalizeFocusSelection } from './focus.js';
 import { normalizeLessonKind } from './lessonKind.js';
 import { planLessonActivities, planPhaseActivities } from './planner.js';
-import { lexicalCoverageReport, moduleDiversityReport, planLexicalRecycling, planModuleActivities } from './modulePlanner.js';
 import { PHASES, recipeFor } from './recipes.js';
 import { shuffleSeeded } from './seed.js';
 import { inspectGeneratedSheet } from './quality.js';
