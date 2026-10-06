@@ -372,35 +372,45 @@ It must never silently rewrite the curriculum sequence or historical lesson evid
 
 ## 15. Delivery phases
 
+Owner decision: **first finish the lesson content across the curriculum; only after that assemble the final textbook in Õpik.** The book UI is not the current production priority.
+
 ### Phase 1 — contract and consistency
 - one A2→C1 textbook contract;
 - vocabulary schema;
 - grammar progression schema;
 - diversity rules;
-- module/lesson completeness rules.
+- lesson completeness rules;
+- visual style contract.
 
-### Phase 2 — A2 exemplar
-- convert one complete A2 module to textbook quality;
-- module opener + 5 × three phases + Korda + Kontroll + Projekt;
-- teacher notes and keys;
-- visual QA.
-
-### Phase 3 — generator capabilities
-- add missing high-value activity blocks;
+### Phase 2 — lesson production system
+- add the missing high-value activity blocks;
 - module-level variation planner;
 - lexical spaced-return planner;
-- grammar new/recycled/assumed state.
+- grammar new/recycled/assumed state;
+- teacher notes and answer-key contracts.
 
-### Phase 4 — content production
-- A2 modules;
-- B1 modules;
-- B2 modules;
-- C1 modules.
+### Phase 3 — produce all lessons
+Production order:
+1. finish A2 lesson bundles;
+2. finish B1 lesson bundles;
+3. finish B2 lesson bundles;
+4. finish C1 lesson bundles.
 
-### Phase 5 — listening + source bank
-- structured audio;
+Each lesson is completed as **Avasta + Harjuta + Kasuta**, with the agreed vocabulary recycling, grammar focus, varied task formats and visual QA. A level is not called complete while required lesson bundles are missing.
+
+### Phase 4 — enrichment while producing lessons
+- structured listening/audio;
 - visual/functional source library;
+- module revision and project content where required;
 - rights/provenance metadata.
+
+### Phase 5 — assemble the textbook
+Only after lesson content is complete:
+- use the existing `/library/worksheets/book` Õpik feature;
+- group lessons by level and module;
+- add module opener / Korda / Kontroll / Projekt projections;
+- generate contents, covers and running pages;
+- produce Student Book / Workbook / Complete / Teacher Book projections as needed.
 
 ### Phase 6 — adaptive layer
 - learner evidence;
@@ -409,13 +419,10 @@ It must never silently rewrite the curriculum sequence or historical lesson evid
 
 ## 16. Immediate build order
 
-The safest next build order is:
+1. finish the core content contracts needed to make lessons consistently;
+2. complete the missing activity families and generator rules;
+3. produce lessons in order A2 → B1 → B2 → C1;
+4. visually and pedagogically QA each module as it is completed;
+5. only after all lessons are ready, assemble the final books through the existing Õpik feature.
 
-1. textbook contract in code + tests;
-2. vocabulary and grammar progression schemas;
-3. one full exemplar module;
-4. missing activity blocks;
-5. module-level generator;
-6. scale content only after the exemplar passes visual and teaching review.
-
-Do not mass-generate 380 × 3 sheets before the exemplar and schemas are stable.
+Do not spend the current phase redesigning the book assembler. The current priority is lesson completeness and quality.
