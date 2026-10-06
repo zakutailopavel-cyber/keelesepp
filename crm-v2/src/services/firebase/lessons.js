@@ -114,11 +114,22 @@ export const lessonsService = {
     await batch.commit();
     return { ...record, status, ...(record.verified ? { verified: false } : {}) };
   },
-  // The teacher corrects the note of a marked lesson (the student and the parent see it); billing is not affected.
-  async updateNotes(record, notes, user) {
+  // The teacher changes the topic (level / module / lesson) or the note of a marked lesson; the student and the parent
+  // see it. Billing is not affected (status, date and length stay).
+  async updateDetails(record, details = {}, user) {
     if (!record?.id) throw new Error('Tunni märget ei leitud.');
     const { db } = requireFirebaseClient();
-    const value = { notes: String(notes || '').trim().slice(0, 1000), updatedAt: new Date().toISOString(), updatedByUid: user?.uid || '', updatedByName: user?.displayName || user?.email || '' };
+    const clean = (value, max) => String(value ?? '').trim().slice(0, max);
+    const value = {
+      topic: clean(details.topic, 300),
+      topicLevel: clean(details.topicLevel, 40),
+      topicModule: clean(details.topicModule, 300),
+      topicLessonId: clean(details.topicLessonId, 160),
+      notes: clean(details.notes, 1000),
+      updatedAt: new Date().toISOString(),
+      updatedByUid: user?.uid || '',
+      updatedByName: user?.displayName || user?.email || '',
+    };
     await updateDoc(doc(db, 'lessons', record.id), value);
     return { ...record, ...value };
   },
