@@ -1,3 +1,14 @@
+## 2026-10-06 — A2 module 03 textbook production — branch `agent/a2-module-03-production`
+
+Stacked on A2 module 02 / PR #328. Serial lesson production continues while Vercel is rate-limited.
+- Added `production/a2Module03.js` for `a2-011…a2-015` / “Päev, kell ja harjumused”: five complete Avasta + Harjuta + Kasuta bundles using the existing daily-routine, clock-time, frequency and week-plan content packs.
+- Added a 16-item module core lexicon with three learner forms + Russian translation. New words are introduced 8 + 5 + 3 in lessons 011–013; lessons 014 and Kontroll 3 introduce no new core vocabulary; return is scheduled across 016–018.
+- Added grammar spine for time adverbials/simple word order, clock/time ranges, frequency adverbs and sequence connectors.
+- Module 02 vocabulary is actively recycled across 011–013 through scheduled lesson vocabulary and appears as `previous-module` in Lesson DNA.
+- Tests cover 15 valid worksheet documents, module diversity thresholds, lexical progression, cross-module recycling and zero new core vocabulary in the assessment lesson.
+- No Firestore writes, publishing, production deploy or Õpik changes.
+- Next gate: CI; if green, continue to A2 module 04.
+
 ## 2026-10-06 — A2 module 02 textbook production — branch `agent/a2-module-02-production`
 
 Stacked on A2 module 01 / PR #327. Owner asked to keep producing lessons while deployment limits are active and combine/merge the PR stack later.
