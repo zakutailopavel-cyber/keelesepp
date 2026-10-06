@@ -1,3 +1,15 @@
+## 2026-10-06 — A2 module 04 textbook production — branch `agent/a2-module-04-production`
+
+Stacked on A2 module 03 / PR #329. Serial lesson production continues while Vercel preview builds are rate-limited.
+- Added curated Content Library v5 sources for `a2-016…a2-020` / “Kodu ja ümbrus”: `home-rooms`, `inner-local-cases`, `outer-local-cases`, `neighbourhood`. This replaces the old generic pattern-only fallback for these lessons with topic-grounded contexts, vocabulary, controlled sentences, dialogues, error repair, translation, transformations and productive prompts.
+- Generator profiles/content-pack factory now preserve explicit `transformations` banks. The transformation block added in #325 can therefore be fed with authored source → instruction → accepted-answer pairs instead of remaining unavailable in most real lessons.
+- Added first structured listening-source contract used by the generator: `banks.listeningScripts` stores title, transcript and controlled gap sentences. New `practice-listening-comprehension` activity materializes the existing Worksheet Studio listening block with teacher-readable transcript and future audio attachment support. Listening lessons are guaranteed at least one listening activity in Harjuta when a controlled script is available.
+- The neighbourhood pack includes two A2 listening scripts; no external TTS/audio is required for lesson production because the teacher-read transcript is a supported fallback.
+- Added `production/a2Module04.js`: 16 core lexical items with three forms + Russian translation, 8+5+3 introduction across 016–018, module-03 vocabulary return, no new core vocabulary in Kontroll 4, and grammar spine for inner/outer local cases, case-series choice and spatial relations.
+- Tests cover five curated profiles, transformation/listening bank preservation, 15 valid worksheets, diversity thresholds, local-case transformation practice, an actual listening block in A2-019, cross-module lexical recycling and the no-new-vocabulary assessment rule.
+- No Firestore writes, worksheet publishing, production deployment or Õpik changes.
+- Next gate: CI. If green, continue to A2 module 05; only concrete gaps exposed by lesson production should add infrastructure.
+
 ## 2026-10-06 — A2 module 03 textbook production — branch `agent/a2-module-03-production`
 
 Stacked on A2 module 02 / PR #328. Serial lesson production continues while Vercel is rate-limited.
