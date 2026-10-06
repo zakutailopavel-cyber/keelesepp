@@ -25,6 +25,22 @@ export const errorfix = {
   Editor: ({ data, set }) => <Rows label="Laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ wrong: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Vigane lause" value={row.wrong} onChange={(wrong) => patch({ wrong })} /><Text label="Õige lause" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
 };
 
+export const transformation = {
+  type: 'transformation', label: 'Muuda lauset', group: 'Grammatika ja sõnavara', icon: 'RefreshCw', task: true, width: 'half', tone: 'blue',
+  create: () => ({
+    title: 'Muuda lauseid.',
+    instruction: 'Kirjuta uus lause juhise järgi. Säilita algne tähendus, kui juhis seda nõuab.',
+    rows: [
+      { from: 'Ma lähen täna tööle.', prompt: 'Muuda lause eitavaks.', answer: 'Ma ei lähe täna tööle.' },
+      { from: 'Mari elab Tallinnas.', prompt: 'Alusta sõnaga „Tallinnas”.', answer: 'Tallinnas elab Mari.' },
+    ],
+  }),
+  View: ({ data, ctx }) => <ol className="ws-fix">{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt"><b>{row.from}</b><br /><small>{row.prompt}</small></span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Muudetud lause ${i + 1}`} /></li>)}</ol>,
+  score: (data, get) => scoreRows(data.rows, get),
+  example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
+  Editor: ({ data, set }) => <Rows label="Muudatavad laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ from: '', prompt: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Alglause" value={row.from} onChange={(from) => patch({ from })} /><Text label="Juhis" value={row.prompt} onChange={(prompt) => patch({ prompt })} /><Text label="Õige vastus (variandid komaga)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
+};
+
 export const dictation = {
   type: 'dictation', label: 'Etteütlus', group: 'Tekst ja heli', icon: 'AudioLines', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Etteütlus.', instruction: 'Kuula õpetajat või helifaili ja kirjuta laused.', sentences: 'Hommikul lähen ma tööle.\nÕhtul loen raamatut.', lines: 6 }),
@@ -100,4 +116,4 @@ export const rubric = {
   Editor: ({ data, set }) => <Area label="Kontrollpunktid" rows={7} value={data.items} onChange={(items) => set({ items })} />,
 };
 
-export const advancedBlocks = { wordforms, errorfix, dictation, translation, wordsearch, crossword, rolecards, planning, phrasebank, guidedletter, rubric };
+export const advancedBlocks = { wordforms, errorfix, transformation, dictation, translation, wordsearch, crossword, rolecards, planning, phrasebank, guidedletter, rubric };
