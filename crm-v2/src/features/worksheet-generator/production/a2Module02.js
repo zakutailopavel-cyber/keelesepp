@@ -2,8 +2,9 @@ import roadmap from '../../curriculum/a2Roadmap.json';
 import { createGrammarTarget } from '../../curriculum/grammarProgression.js';
 import { createVocabularyEntry } from '../../curriculum/textbookVocabulary.js';
 import { generateLessonBundle } from '../engine/generator.js';
-import { lexicalCoverageReport, planLexicalRecycling, planModuleActivities } from '../engine/modulePlanner.js';
+import { lexicalCoverageReport, planLexicalRecycling, planModuleActivities, scheduledVocabularyForLesson } from '../engine/modulePlanner.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
+import { A2_MODULE_01_CORE_VOCABULARY } from './a2Module01.js';
 
 export const A2_MODULE_02_ID = 'a2-module-02';
 export const A2_MODULE_02_VERSION = 1;
@@ -84,13 +85,25 @@ export const A2_MODULE_02_GRAMMAR = Object.freeze([
   }),
 ]);
 
-function enrichProfile(profile, plannedVocabulary) {
+function enrichProfile(profile, plannedVocabulary, previousVocabulary, lessonId) {
   if (!profile) return null;
+  const focusIds = (profile.focuses || []).map((item) => item.id);
+  const allVocabulary = [...previousVocabulary, ...plannedVocabulary];
+  const scheduled = scheduledVocabularyForLesson(allVocabulary, lessonId, focusIds);
+  const seen = new Set();
+  const activeVocabulary = [...scheduled, ...(profile.activeVocabulary || [])].filter((item) => {
+    const key = String(item.word || '').toLocaleLowerCase('et');
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   return {
     ...profile,
     module: moduleData?.title || 'Pere, inimesed ja kirjeldamine',
+    activeVocabulary,
+    recycledVocabularyIds: scheduled.filter((item) => previousVocabulary.some((entry) => entry.id === item.id)).map((item) => item.id),
     grammarTargets: A2_MODULE_02_GRAMMAR,
-    textbookVocabulary: plannedVocabulary,
+    textbookVocabulary: allVocabulary,
     currentModuleLessonIds: lessonIds,
     previousModuleLessonIds,
   };
@@ -114,6 +127,7 @@ export function generateA2Module02({
     });
   });
 
+  const previousVocabulary = planLexicalRecycling(A2_MODULE_01_CORE_VOCABULARY, previousModuleLessonIds, lessonIds);
   const plannedVocabulary = planLexicalRecycling(A2_MODULE_02_CORE_VOCABULARY, lessonIds, nextModuleLessonIds);
   const lexicalCoverage = lexicalCoverageReport(plannedVocabulary, lessonIds, nextModuleLessonIds);
   if (!lexicalCoverage.ready) diagnostics.push({
@@ -122,7 +136,7 @@ export function generateA2Module02({
     message: 'Mooduli põhisõnavara kordusplaan ei vasta õpiku standardile.',
   });
 
-  const profiles = baseProfiles.map((profile) => enrichProfile(profile, plannedVocabulary));
+  const profiles = baseProfiles.map((profile, index) => enrichProfile(profile, plannedVocabulary, previousVocabulary, lessons[index]?.id));
   const modulePlan = planModuleActivities({ lessons, profiles, seed, difficulty, countPerPhase: 5 });
   diagnostics.push(...modulePlan.diagnostics);
 
@@ -156,6 +170,7 @@ export function generateA2Module02({
     moduleTitle: moduleData?.title || '',
     version: A2_MODULE_02_VERSION,
     lessonIds,
+    previousVocabulary,
     plannedVocabulary,
     lexicalCoverage,
     grammarTargets: A2_MODULE_02_GRAMMAR,
