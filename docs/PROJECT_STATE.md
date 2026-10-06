@@ -1,3 +1,16 @@
+## 2026-10-06 — A2 module 02 textbook production — branch `agent/a2-module-02-production`
+
+Stacked on A2 module 01 / PR #327. Owner asked to keep producing lessons while deployment limits are active and combine/merge the PR stack later.
+- Added `production/a2Module02.js` for `a2-006…a2-010` / “Pere, inimesed ja kirjeldamine”: five complete Avasta + Harjuta + Kasuta bundles from the existing authoritative A2 roadmap/content packs.
+- Added a 16-item module core lexicon with three learner forms + Russian translation and an A2 grammar spine for possession/genitive, `tal on` description and person-description questions.
+- Improved lexical recycling from a paper plan into lesson input: `scheduledVocabularyForLesson` maps due textbook entries into generator vocabulary, so scheduled new/recycled words can appear in recognition/choice/categorisation/speaking support instead of living only in metadata.
+- Module 01 production is updated on this stacked branch to materialize its scheduled vocabulary in each lesson profile.
+- Cross-module recycling is now real in module 02: the 16 core entries from module 01 are scheduled back across lessons 006–008 and are marked as `previous-module` in Lesson DNA. Fixed status precedence so previous-module returns are not mislabeled current-module.
+- Next-module returns are distributed 8 + 5 + 3 across the first three lessons of the following module instead of dumping all 16 words into its first lesson.
+- Added tests for module 02 15-sheet completeness, 8+5+3 new vocabulary, module-03 returns, module-01 recycling, previous-module status and no new core vocabulary in the assessment lesson. Planner/schema tests cover distributed next-module returns.
+- No Firestore writes, worksheet publishing, production deployment or Õpik changes.
+- Next gate: CI. If green, continue directly to A2 module 03 while the PR stack remains open.
+
 ## 2026-10-06 — A2 module 01 textbook production — branch `agent/a2-module-01-production`
 
 Stacked on `agent/module-diversity-planner` / PR #326. Owner priority: stop expanding generic architecture and begin serial lesson production A2 → B1 → B2 → C1.
