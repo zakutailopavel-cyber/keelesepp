@@ -650,7 +650,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     sentences: sentences('home-rooms', [
       ['1', 'home-rooms', 'home-plan', 'Minu korteris on kaks tuba ja väike köök.'],
       ['2', 'home-rooms', 'home-plan', 'Vannituba asub esiku kõrval.'],
-      ['3', 'home-rooms', 'home-plan', 'Elutoast saab minna rõdule.'],
+      ['3', 'home-rooms', 'home-plan', 'Rõdu on elutoa kõrval ja sinna saab minna elutoast.'],
       ['4', 'home-rooms', 'home-room', 'Elutoas on diivan, laud ja neli tooli.'],
       ['5', 'home-rooms', 'home-room', 'Magamistoas on voodi ja suur kapp.'],
       ['6', 'home-rooms', 'home-room', 'Köögis on väike laud ja kaks tooli.'],
@@ -840,8 +840,8 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['4', 'neighbourhood', 'neighbourhood-map', 'Apteek asub poe kõrval.'],
       ['5', 'neighbourhood', 'neighbourhood-map', 'Bussipeatus on maja vastas.'],
       ['6', 'neighbourhood', 'neighbourhood-map', 'Park on kodu lähedal.'],
-      ['7', 'neighbourhood', 'neighbourhood-route', 'Kodust bussipeatusesse lähen umbes kolm minutit.'],
-      ['8', 'neighbourhood', 'neighbourhood-route', 'Bussipeatusest tööle sõidan kakskümmend minutit.'],
+      ['7', 'neighbourhood', 'neighbourhood-route', 'Bussipeatus on kodust umbes kolme minuti kaugusel.'],
+      ['8', 'neighbourhood', 'neighbourhood-route', 'Bussipeatus asub maja vastas ja sealt sõidan tööle kakskümmend minutit.'],
       ['9', 'neighbourhood', 'neighbourhood-route', 'Nädalavahetusel jalutan tavaliselt kodu lähedal pargis.'],
     ]),
     dialogues: [{ id: 'neighbourhood-d-1', focusIds: ['neighbourhood'], contextIds: ['neighbourhood-map'], speakers: ['A', 'B'], lines: [
