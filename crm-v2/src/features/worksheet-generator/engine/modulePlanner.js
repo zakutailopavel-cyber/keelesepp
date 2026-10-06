@@ -58,13 +58,23 @@ export function moduleDiversityReport(lessonPlans = []) {
   };
 }
 
+function lexicalIntroductionLesson(index, total, lessonIds) {
+  const ids = (lessonIds || []).filter(Boolean);
+  if (!ids.length) return '';
+  if (ids.length < 3) return ids[Math.min(index, ids.length - 1)];
+  const firstCount = Math.min(8, total);
+  const secondCount = Math.min(5, Math.max(0, total - firstCount));
+  if (index < firstCount) return ids[0];
+  if (index < firstCount + secondCount) return ids[1];
+  return ids[2];
+}
+
 export function planLexicalRecycling(coreEntries = [], lessonIds = [], nextModuleLessonIds = []) {
   const ids = (lessonIds || []).filter(Boolean);
   const nextIds = (nextModuleLessonIds || []).filter(Boolean);
   if (!ids.length) return [];
   return (coreEntries || []).map((entry, index) => {
-    const introIndex = Math.min(index % Math.max(1, ids.length - 1), ids.length - 1);
-    const intro = entry.activeFromLessonId || ids[introIndex];
+    const intro = entry.activeFromLessonId || lexicalIntroductionLesson(index, coreEntries.length, ids);
     const actualIntroIndex = Math.max(0, ids.indexOf(intro));
     const later = ids.filter((_, i) => i > actualIntroIndex);
     const desired = uniq([later[0], later[1], ids[ids.length - 1], nextIds[0]]).filter(Boolean);
@@ -92,7 +102,8 @@ export function lexicalCoverageReport(entries = [], lessonIds = [], nextModuleLe
   });
   const insufficient = rows.filter((row) => row.introducedInModule && row.currentModuleCount < 3);
   const noNextReturn = rows.filter((row) => row.introducedInModule && row.nextModuleEncounters.length === 0);
-  return { rows, insufficient, noNextReturn, ready: insufficient.length === 0 };
+  const requireNextReturn = (nextModuleLessonIds || []).length > 0;
+  return { rows, insufficient, noNextReturn, ready: insufficient.length === 0 && (!requireNextReturn || noNextReturn.length === 0) };
 }
 
 export function planModuleActivities({
