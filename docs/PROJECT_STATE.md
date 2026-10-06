@@ -1,3 +1,14 @@
+## 2026-10-06 — A2→C1 digital textbook foundation — branch `agent/a2-c1-textbook-core`
+
+Checked `origin/main` `9990e8e`. Owner: turn the existing KeeleSepp A2, B1, B2 and C1 curricula plus Worksheet Studio into one coherent digital textbook system rather than a collection of unrelated worksheets.
+- Scope: architecture only in this stage. No production Firestore writes, no curriculum migration, no lesson overwrite, no deploy. Existing stable curriculum IDs remain authoritative: A2 `est-a2-curriculum-v1` (100 lessons), B1 `est-a2-b1-roadmap-v1` (90), B2 `est-b1-b2-roadmap-v1` (90), C1 `est-c1-curriculum-240-v1` (100); total 380 managed lessons.
+- New code contract: `crm-v2/src/features/curriculum/textbookContract.js` defines the four level manifests, lesson/module counts, authoring ranges, required skills, Avasta/Harjuta/Kasuta phase contracts, complete lesson/module components, lexical encounter requirements, vocabulary metadata and the activity-family target set.
+- Tests: `textbookContract.test.js` validates the current 380-lesson path, all four manifests, three-phase completeness, module opener/revision/assessment/project requirements, lexical recycling metadata and the diverse activity-family contract.
+- Architecture doc: `docs/TEXTBOOK_A2_C1_MASTER_PLAN.md` defines the target product: module opener + lesson bundles + Korda + Kontroll + Projekt, Teacher Book, Student Book/Workbook projections, grammar progression, lexical spaced retrieval, listening/source bank, writing/speaking progression and adaptive evidence.
+- Safety: the textbook layer is explicitly a contract over existing roadmaps, not a fifth competing curriculum. Existing published worksheet versions and immutable lesson IDs are preserved.
+- Known gaps: grammar progression schema, vocabulary master schema/data, module-level source/audio contracts and the missing first-class activity blocks (information gap, timeline/sequencing, ranking, decision tree, compare sources, form filling, graph/data interpretation, structured mediation, branching scenario) are not implemented yet.
+- Next safe step: run the new contract test plus focused curriculum tests, then open a draft PR before implementing the grammar/vocabulary schemas.
+
 ## 2026-10-06 — B1 Avasta 001–050 quality upgrade — branch `agent/avasta-b1-module1`
 
 Checked `origin/main` `0b5ae77`. Owner: expand the existing B1 `Avasta` sheets 001–015 and continue with 016–050 without duplicating lessons or touching `Harjuta` / `Kasuta`.
