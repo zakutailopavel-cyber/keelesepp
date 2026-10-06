@@ -9,7 +9,8 @@ import { ROLES } from '../../utils/roles.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import StudentForm from './StudentForm.jsx';
-import { LEGACY_TEACHERS, STUDENT_LEVELS } from './studentOptions.js';
+import { STUDENT_LEVELS } from './studentOptions.js';
+import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import { DEFAULT_STUDENT_FILTERS, studentFiltersFromParams, studentFiltersToParams, studentListHref } from './studentFilterParams.js';
 import './studentFinancePanel.css';
 
@@ -89,10 +90,11 @@ function EnrollmentManager({ student, teachers, service, onClose, onChanged }) {
   </Modal>;
 }
 
-export default function StudentsPage({ service = studentsService, mergeApi = financeApi, actor }) {
+export default function StudentsPage({ service = studentsService, mergeApi = financeApi, teacherApi, actor }) {
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
+  const staffTeachers = useTeacherNames(canAssignTeacher, teacherApi);
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
   const [searchParams, setSearchParams] = useSearchParams();
   const initialFilters = studentFiltersFromParams(searchParams);
@@ -148,9 +150,9 @@ export default function StudentsPage({ service = studentsService, mergeApi = fin
   const cardOptions = useMemo(() => [...state.items].sort((left, right) => String(left.name || '').localeCompare(String(right.name || ''), 'et')), [state.items]);
 
   const options = useMemo(() => ({
-    teachers: [...new Set([...LEGACY_TEACHERS, ...state.items.map((student) => canonicalTeacherName(student.teacher))].filter(Boolean))].sort((left, right) => left.localeCompare(right, 'et')),
+    teachers: teacherChoices(staffTeachers, state.items.map((student) => student.teacher)),
     levels: STUDENT_LEVELS.filter(Boolean),
-  }), [state.items]);
+  }), [state.items, staffTeachers]);
 
   const applyFilters = (nextFilters) => {
     setFilters(nextFilters);
