@@ -1,3 +1,16 @@
+## 2026-10-07 — A2 module 08 textbook production — branch `agent/a2-module-08-production`
+
+Stacked on A2 module 07 / PR #333. Serial lesson production continues.
+- Added curated Content Library v9 sources for `a2-036…a2-040` / “Teenused ja asjaajamine”: `appointment-booking`, `service-modals`, `forms-instructions`, `phone-service`.
+- A2-036 practices booking, changing and confirming a service time through realistic calendar/phone contexts rather than isolated time phrases.
+- A2-037 uses explicit modal transformations for `pean + ma` versus `saan/võin/tohin + da`, plus repair, mediation and service-rule interaction.
+- A2-038 contains two functional reading documents: a service application form and a step-by-step submission instruction. Each has six questions covering required fields, sequence, interpretation and action decisions.
+- A2-039 contains two service-call listening scripts with five keyed facts each: appointment change and call transfer. Harjuta is guaranteed an actual listening-comprehension block.
+- Added `production/a2Module08.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 036–038, module-07 recycling across 036–038, distributed return to 041–043, no new core vocabulary in Kontroll 8, and a grammar/function spine for booking, service modals, form instructions and phone repair strategies.
+- Tests cover five curated profiles, modal transformations, A2-038 reading, A2-039 listening, 15 worksheet documents, cross-module lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue to A2 module 09.
+
 ## 2026-10-07 — A2 module 07 textbook production — branch `agent/a2-module-07-production`
 
 Stacked on A2 module 06 / PR #332. Serial lesson production continues.
