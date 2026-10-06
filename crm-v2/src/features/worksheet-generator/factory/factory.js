@@ -29,6 +29,10 @@ const PACK_KEYWORDS = Object.freeze({
   'inner-local-cases': ['kus kuhu kust', 'sisekoh', '-sse', 'kodusse', 'poodi'],
   'outer-local-cases': ['väliskoh', '-le', 'tööle', 'lauale'],
   neighbourhood: ['naabruskond', 'korter ja naabruskond', 'asub', 'lähedal', 'район'],
+  'city-places': ['kohad linnas', 'apteek', 'postkontor', 'raamatukogu', 'jaam'],
+  directions: ['kuidas ma sinna saan', 'tee küsimine', 'marsruut', 'ristmik'],
+  'route-imperative': ['käskiv kõneviis', 'mine', 'pööra', 'ära + verb'],
+  'city-practical-info': ['sildid', 'lahtiolekuajad', 'avatud', 'suletud', 'sissepääs'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
