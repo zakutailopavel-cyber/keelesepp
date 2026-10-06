@@ -1,6 +1,8 @@
 import { normalizeDifficulty } from './difficulty.js';
 import { normalizeLessonKind } from './lessonKind.js';
 import { normalizeLevel } from './vocabulary.js';
+import { grammarStateForLesson } from '../../curriculum/grammarProgression.js';
+import { vocabularyStatusForLesson } from '../../curriculum/textbookVocabulary.js';
 
 export const LESSON_DNA_SCHEMA = 'keelesepp.lesson-dna/1';
 
@@ -33,10 +35,19 @@ export function createLessonDna({
   const targetVocabularyIds = uniq((profile.activeVocabulary || []).map((item) => item.id || item.word));
   const targetSet = new Set(targetVocabularyIds);
   const recycledVocabularyIds = uniq(profile.recycledVocabularyIds || []).filter((id) => !targetSet.has(id));
+  const lessonId = String(profile.lessonId || lesson.id || '');
+  const grammarPlan = (profile.grammarTargets || []).filter((item) => item?.id).map((target) => ({ id: String(target.id), state: grammarStateForLesson(target, lessonId) }));
+  const vocabularyPlan = (profile.textbookVocabulary || []).filter((item) => item?.id).map((entry) => ({
+    id: String(entry.id),
+    status: vocabularyStatusForLesson(entry, lessonId, {
+      currentModuleLessonIds: profile.currentModuleLessonIds || [],
+      previousModuleLessonIds: profile.previousModuleLessonIds || [],
+    }),
+  })).filter((item) => item.status);
 
   return {
     schema: LESSON_DNA_SCHEMA,
-    lessonId: String(profile.lessonId || lesson.id || ''),
+    lessonId,
     profileVersion: Number(profile.version) || 0,
     level: normalizedLevel.base || 'A1',
     levelModifier: normalizedLevel.modifier || '',
@@ -47,6 +58,8 @@ export function createLessonDna({
     focusIds: selectedFocusIds,
     targetVocabularyIds,
     recycledVocabularyIds,
+    grammarPlan,
+    vocabularyPlan,
     prioritySkills: PRIORITY_SKILLS[lessonKind] || PRIORITY_SKILLS.integrated,
     variant: Math.max(0, Number(variant) || 0),
     seed: String(seed || ''),
@@ -64,6 +77,8 @@ export function lessonDnaFingerprint(dna = {}) {
     dna.difficulty || 'core',
     `v${Number(dna.variant) || 0}`,
     (dna.focusIds || []).join('+'),
+    (dna.grammarPlan || []).map((item) => `${item.id}:${item.state}`).join('+'),
+    (dna.vocabularyPlan || []).map((item) => `${item.id}:${item.status}`).join('+'),
     dna.seed || '',
   ].join(':');
 }
