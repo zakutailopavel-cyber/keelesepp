@@ -1,5 +1,17 @@
 # KeeleSepp Project State
 
+## 2026-10-06 — Student teacher choice lists real staff accounts — branch `agent/teacher-options`
+
+Checked `origin/main` `0fa3afe`. Owner: the new teacher (Jegor) is missing from „Õpetaja” in „Muuda õpilast”.
+- Cause: student pages offered only the hard-coded `LEGACY_TEACHERS` (4 names) plus names already on students.
+- Fix: `students/useTeacherNames.js` — `useTeacherNames` loads `teachersService.list()` (users with role admin/teacher,
+  disabled left out; admins only) and `teacherChoices` merges them with the legacy names (canonical, deduped, sorted).
+  Used in `StudentsPage` (form, enrollments, filter) and `StudentProfilePage` (edit form). Groups/parents already used
+  the staff list. No data or rules change.
+- Checks: students tests 49/49 (new hook test); `npx eslint .` clean; build OK.
+- Note: a teacher appears only after the account is approved with role „teacher” (Uued kontod / Õpetajad).
+- Next safe step: owner merges the draft PR.
+
 ## 2026-10-06 — Õppevara: Avasta / Harjuta / Kasuta on the lesson card — branch `agent/library-phases`
 
 Checked `origin/main` `da425fe`. Owner/handoff: teachers could not see which lesson sheets exist, which are published

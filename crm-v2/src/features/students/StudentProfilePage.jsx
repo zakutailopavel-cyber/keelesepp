@@ -20,7 +20,7 @@ import { homeworkService } from '../../services/firebase/homework.js';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
-import { LEGACY_TEACHERS } from './studentOptions.js';
+import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
@@ -46,11 +46,12 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, petApi, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, petApi, teacherApi, actor }) {
   const { studentId } = useParams();
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
+  const staffTeachers = useTeacherNames(canAssignTeacher, teacherApi);
   const canViewFinance = currentUser.roles?.some((role) => [ROLES.ADMIN, ROLES.FINANCE].includes(role));
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
   const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], plan: null });
@@ -169,7 +170,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         </> : null}
       </div>
 
-      <StudentForm open={editing} student={student} teachers={[...new Set([...LEGACY_TEACHERS, canonicalTeacherName(student.teacher)].filter(Boolean))]} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setEditing(false)} onSubmit={async (values) => { const safeValues = canAssignTeacher ? values : { ...values, teacher: student.teacher || teacherScope }; await studentApi.update(student.id, safeValues); await load(); setNotice('Õpilase andmed on salvestatud.'); }} />
+      <StudentForm open={editing} student={student} teachers={teacherChoices(staffTeachers, [student.teacher])} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setEditing(false)} onSubmit={async (values) => { const safeValues = canAssignTeacher ? values : { ...values, teacher: student.teacher || teacherScope }; await studentApi.update(student.id, safeValues); await load(); setNotice('Õpilase andmed on salvestatud.'); }} />
     </div>
   );
 }
