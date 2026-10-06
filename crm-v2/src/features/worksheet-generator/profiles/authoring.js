@@ -12,6 +12,7 @@ const LIMITS = Object.freeze({
   sentences: 160,
   dialogues: 30,
   listeningScripts: 30,
+  readingDocuments: 30,
   errorPairs: 100,
   translations: 100,
   transformations: 100,
@@ -141,6 +142,15 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
     sentences: clean(item?.sentences, 1600),
   })).filter((item) => item.transcript && item.sentences);
 
+  const readingDocuments = boundedArray(input.banks?.readingDocuments, LIMITS.readingDocuments).map((item, index) => ({
+    id: safeId(item?.id, `rd${index + 1}`),
+    focusIds: refs(item?.focusIds, focusIds),
+    contextIds: refs(item?.contextIds, contextIds),
+    title: clean(item?.title, 240),
+    passage: clean(item?.passage, 5000),
+    questions: clean(item?.questions, 3000),
+  })).filter((item) => item.passage && item.questions);
+
   const promptBank = (name, prefix) => boundedArray(input.banks?.[name], LIMITS.prompts).map((item, index) => ({
     id: safeId(item?.id, `${prefix}${index + 1}`),
     focusIds: refs(item?.focusIds, focusIds),
@@ -165,6 +175,7 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
       transformations,
       dialogues,
       listeningScripts,
+      readingDocuments,
       speakingPrompts: promptBank('speakingPrompts', 'sp'),
       writingPrompts: promptBank('writingPrompts', 'w'),
     },
@@ -185,7 +196,7 @@ export function scaffoldGeneratorProfile(lesson = {}) {
     focuses: focusText ? [{ id: 'lesson-focus', type: 'communication', label: focusText }] : [],
     activeVocabulary: [],
     contexts: [],
-    banks: { sentences: [], errorPairs: [], translations: [], transformations: [], dialogues: [], listeningScripts: [], speakingPrompts: [], writingPrompts: [] },
+    banks: { sentences: [], errorPairs: [], translations: [], transformations: [], dialogues: [], listeningScripts: [], readingDocuments: [], speakingPrompts: [], writingPrompts: [] },
     successCriteria: criterion ? [criterion] : [],
   }, { lessonId, lesson });
 }
@@ -229,6 +240,7 @@ export function validateGeneratorProfile(input, { lessonId = '', lesson = {} } =
       sentences: profile.banks.sentences.length,
       dialogues: profile.banks.dialogues.length,
       listeningScripts: profile.banks.listeningScripts.length,
+      readingDocuments: profile.banks.readingDocuments.length,
       errorPairs: profile.banks.errorPairs.length,
       translations: profile.banks.translations.length,
       transformations: profile.banks.transformations.length,
