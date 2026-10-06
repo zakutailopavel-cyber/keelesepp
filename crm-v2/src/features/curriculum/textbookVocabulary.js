@@ -51,8 +51,8 @@ export function vocabularyStatusForLesson(entry = {}, lessonId = '', { currentMo
   const id = String(lessonId || '');
   if (!id) return '';
   if (id === entry.activeFromLessonId) return 'new';
-  if (currentModuleLessonIds.includes(id) && (entry.recycleLessonIds || []).includes(id)) return 'current-module';
   if (previousModuleLessonIds.includes(entry.activeFromLessonId) && (entry.recycleLessonIds || []).includes(id)) return 'previous-module';
+  if (currentModuleLessonIds.includes(id) && (entry.recycleLessonIds || []).includes(id)) return 'current-module';
   if ((entry.recycleLessonIds || []).includes(id)) return 'long-gap';
   return '';
 }
