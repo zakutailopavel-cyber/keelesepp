@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -181,6 +181,38 @@ describe('Content Pack Factory v1', () => {
     const readingBlocks = readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.filter((block) => block.type === 'reading');
     expect(readingBlocks).toHaveLength(1);
     expect(readingBlocks[0].data.questions.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('module 6 uses curated food, quantity, cafe and order-listening sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-026')).toEqual(['food-drink']);
+    expect(pick('a2-027')).toEqual(['quantity-partitive']);
+    expect(pick('a2-028')).toEqual(['cafe-order']);
+    expect(pick('a2-029')).toEqual(['order-bill']);
+    expect(pick('a2-030')).toEqual(['food-drink', 'quantity-partitive', 'cafe-order', 'order-bill']);
+
+    const quantity = createContentPackDraft(lessons.find((item) => item.id === 'a2-027')).profile;
+    const listening = createContentPackDraft(lessons.find((item) => item.id === 'a2-029')).profile;
+    expect(quantity.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(quantity.banks.errorPairs.length).toBeGreaterThanOrEqual(3);
+    expect(listening.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+
+    const quantityGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-027'),
+      profile: quantity,
+      seed: 'a2-027:transformations',
+    });
+    expect(quantityGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('transformation');
+
+    const listeningGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-029'),
+      profile: listening,
+      seed: 'a2-029:listening-required',
+    });
+    const listeningBlocks = listeningGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.filter((block) => block.type === 'listening');
+    expect(listeningBlocks).toHaveLength(1);
+    expect(listeningBlocks[0].data.transcript.length).toBeGreaterThan(100);
+    expect(listeningBlocks[0].data.sentences.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
   });
 
   it('translation hints never reveal an accepted answer', () => {
