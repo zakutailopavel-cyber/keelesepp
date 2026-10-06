@@ -138,6 +138,37 @@ describe('generator profile authoring', () => {
     expect(profile.arbitrary).toBeUndefined();
   });
 
+  it('sanitizes and preserves controlled transformation and listening banks', () => {
+    const profile = sanitizeGeneratorProfile({
+      lessonId: 'lesson-media',
+      level: 'A2',
+      lessonKind: 'listening',
+      title: 'Media',
+      focuses: [{ id: 'f1', type: 'listening', label: 'Fookus' }],
+      activeVocabulary: [
+        { id: 'v1', word: 'kodu', translation: 'дом', focusIds: ['f1'] },
+        { id: 'v2', word: 'pood', translation: 'магазин', focusIds: ['f1'] },
+        { id: 'v3', word: 'töö', translation: 'работа', focusIds: ['f1'] },
+      ],
+      contexts: [
+        { id: 'c1', label: 'Üks' }, { id: 'c2', label: 'Kaks' }, { id: 'c3', label: 'Kolm' },
+      ],
+      banks: {
+        sentences: Array.from({ length: 5 }, (_, i) => ({ id: `s${i}`, focusIds: ['f1'], contextIds: ['c1'], text: 'Kodu on siin.' })),
+        errorPairs: [],
+        translations: [],
+        transformations: [{ id: 'tr1', focusIds: ['f1'], from: 'Ma olen kodus.', prompt: 'Kuhu?', answer: 'Ma lähen koju.' }],
+        dialogues: [],
+        listeningScripts: [{ id: 'ls1', focusIds: ['f1'], contextIds: ['c1'], title: 'Kuula', transcript: 'Kodu on poe kõrval.', sentences: 'Kodu on [poe] kõrval.' }],
+        speakingPrompts: [],
+        writingPrompts: [],
+      },
+      successCriteria: ['Ma saan aru.'],
+    }, { lessonId: 'lesson-media' });
+    expect(profile.banks.transformations).toEqual([expect.objectContaining({ id: 'tr1', answer: 'Ma lähen koju.' })]);
+    expect(profile.banks.listeningScripts).toEqual([expect.objectContaining({ id: 'ls1', transcript: 'Kodu on poe kõrval.' })]);
+  });
+
   it('round-trips reference content without losing slots, aliases or dialogue bank', () => {
     const fields = profileToEditorFields(referenceProfile, referenceLesson);
     const parsed = editorFieldsToProfile(fields, { lesson: referenceLesson, baseProfile: referenceProfile });
