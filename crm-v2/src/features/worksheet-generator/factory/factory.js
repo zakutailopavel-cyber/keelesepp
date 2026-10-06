@@ -33,6 +33,10 @@ const PACK_KEYWORDS = Object.freeze({
   directions: ['kuidas ma sinna saan', 'tee küsimine', 'marsruut', 'ristmik'],
   'route-imperative': ['käskiv kõneviis', 'mine', 'pööra', 'ära + verb'],
   'city-practical-info': ['sildid', 'lahtiolekuajad', 'avatud', 'suletud', 'sissepääs'],
+  'food-drink': ['toit ja joogid', 'leib', 'piim', 'supp', 'salat'],
+  'quantity-partitive': ['kui palju', 'partitiiv', 'kilo', 'liiter', 'klaas'],
+  'cafe-order': ['kohvikus', 'ma soovin', 'arve', 'tellimus'],
+  'order-bill': ['tellimus ja arve', 'hind', 'euro', 'sent', 'kokku'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
