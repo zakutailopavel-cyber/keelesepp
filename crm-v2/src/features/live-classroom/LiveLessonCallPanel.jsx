@@ -9,7 +9,7 @@ export default function LiveLessonCallPanel(props) {
   const {
     status, statusLabel, busy, screenBusy, error, hasLocalMedia, audioEnabled, videoEnabled, screenSharing, peerOnline,
     peerName, connected, canReconnect, localVideoRef, remoteVideoRef, startTeacherCall, joinStudentCall, hangUp,
-    toggleAudio, toggleVideo, startScreenShare, stopScreenShare,
+    toggleAudio, toggleVideo, startScreenShare, stopScreenShare, needsPlay, resumePlayback,
   } = useLiveCall(props);
 
   return <Card className={floating ? 'live-call-card live-call-card--floating' : 'live-call-card'}>
@@ -34,6 +34,7 @@ export default function LiveLessonCallPanel(props) {
     <div className="live-call-stage">
       <video ref={remoteVideoRef} className="live-call-video live-call-video--remote" autoPlay playsInline />
       {!connected ? <div className="live-call-placeholder"><Video size={34} /><strong>{role === 'teacher' ? 'Õpilase video' : 'Õpetaja video'}</strong><span>{statusLabel}</span></div> : null}
+      {needsPlay ? <button type="button" className="lr-tap-play" onClick={resumePlayback}>▶ Puuduta, et näha ja kuulda<span>Нажмите, чтобы видеть и слышать</span></button> : null}
       <video ref={localVideoRef} className={screenSharing ? 'live-call-video live-call-video--local is-screen-share' : 'live-call-video live-call-video--local'} autoPlay playsInline muted />
     </div>
 

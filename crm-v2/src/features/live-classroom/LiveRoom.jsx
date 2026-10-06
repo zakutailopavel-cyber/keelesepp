@@ -334,11 +334,12 @@ export default function LiveRoom({
             {!call.connected ? <span className="lr-tile__avatar" aria-hidden="true">{initial(call.peerName)}</span> : null}
             <figcaption><span>{call.peerName}</span><Signal status={call.connected ? 'connected' : call.peerOnline ? 'waiting' : 'idle'} label={`${call.peerName} ${peerLabel}`} /></figcaption>
             {!call.connected ? <small className="lr-tile__state">{call.peerOnline ? call.statusLabel : `${call.peerName} ${peerLabel}`}</small> : null}
+            {call.needsPlay ? <button type="button" className="lr-tap-play" onClick={call.resumePlayback}>▶ Puuduta, et näha ja kuulda<span>Нажмите, чтобы видеть и слышать</span></button> : null}
           </figure>
           <figure className={`lr-tile lr-tile--self ${call.hasLocalMedia ? 'is-live' : ''}`}>
             <video ref={call.localVideoRef} autoPlay playsInline muted className={call.screenSharing ? 'is-screen' : ''} />
             {!call.hasLocalMedia ? <span className="lr-tile__avatar" aria-hidden="true">{initial(user.displayName)}</span> : null}
-            <figcaption><span>Sina{call.screenSharing ? ' · ekraan' : ''}</span></figcaption>
+            <figcaption><span>Sina{call.screenSharing ? ' · ekraan' : ''}{call.audioOnly ? ' · ainult heli' : ''}</span></figcaption>
           </figure>
 
           {panel === 'chat' ? <Drawer title="Vestlus" onClose={() => setPanel('')}><ChatPanel invitation={invitation} user={user} repository={messagesRepository} messages={messages} error={chatError} /></Drawer> : null}

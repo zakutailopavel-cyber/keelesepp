@@ -20,3 +20,6 @@
 @media(max-width:760px){.live-whiteboard-card{padding:14px}.live-whiteboard-header{display:grid}.live-whiteboard-toolbar>.button{flex:1 1 140px}.live-whiteboard-count{width:100%;margin-left:0}.live-whiteboard-stage{min-height:330px;aspect-ratio:auto}}
 .live-resume{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;max-width:760px;margin-bottom:16px;border-color:#bfe8d3;background:#f2fbf6}.live-resume>div{display:grid;gap:2px}.live-resume small{color:var(--muted)}.live-resume .button{width:auto;margin-top:0}
 .lr-page-error{position:fixed;top:84px;left:50%;transform:translateX(-50%);z-index:1320}
+.live-call-stage { position: relative; }
+.live-call-stage .lr-tap-play { position: absolute; inset: 0; z-index: 3; display: grid; place-content: center; gap: 2px; border: 0; background: rgba(20, 24, 50, .55); color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.live-call-stage .lr-tap-play span { font-weight: 600; font-size: .75rem; opacity: .85; }
