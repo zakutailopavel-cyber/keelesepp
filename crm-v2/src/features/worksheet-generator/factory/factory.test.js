@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -245,6 +245,37 @@ describe('Content Pack Factory v1', () => {
     const readingBlocks = readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.filter((block) => block.type === 'reading');
     expect(readingBlocks).toHaveLength(1);
     expect(readingBlocks[0].data.questions.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('module 8 uses curated booking, modal, form-reading and phone-service sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-036')).toEqual(['appointment-booking']);
+    expect(pick('a2-037')).toEqual(['service-modals']);
+    expect(pick('a2-038')).toEqual(['forms-instructions']);
+    expect(pick('a2-039')).toEqual(['phone-service']);
+    expect(pick('a2-040')).toEqual(['appointment-booking', 'service-modals', 'forms-instructions', 'phone-service']);
+
+    const modals = createContentPackDraft(lessons.find((item) => item.id === 'a2-037')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-038')).profile;
+    const phone = createContentPackDraft(lessons.find((item) => item.id === 'a2-039')).profile;
+    expect(modals.banks.transformations.length).toBeGreaterThanOrEqual(4);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+    expect(phone.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-038'),
+      profile: reading,
+      seed: 'a2-038:reading-required',
+    });
+    expect(readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('reading');
+
+    const phoneGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-039'),
+      profile: phone,
+      seed: 'a2-039:listening-required',
+    });
+    expect(phoneGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('listening');
   });
 
   it('translation hints never reveal an accepted answer', () => {
