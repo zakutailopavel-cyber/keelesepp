@@ -1511,7 +1511,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['3', 'shopping-prices', 'prices-tags', 'See jope maksab nelikümmend eurot.'],
       ['4', 'shopping-prices', 'prices-cashdesk', 'Kokku on kuuskümmend kaks eurot.'],
       ['5', 'shopping-prices', 'prices-cashdesk', 'Kviitung näitab hinda ja kogust.'],
-      ['6', 'shopping-prices', 'prices-cashdesk', 'Tagastus on kolm eurot ja viiskümmend senti.'],
+      ['6', 'shopping-prices', 'prices-cashdesk', 'Hind on pärast tagastust kolm eurot ja viiskümmend senti väiksem.'],
       ['7', 'shopping-prices', 'prices-sizes', 'Suurus 42 sobib sellele kliendile.'],
       ['8', 'shopping-prices', 'prices-sizes', 'Number on karbi peal kirjas.'],
       ['9', 'shopping-prices', 'prices-sizes', 'Paar kingi maksab seitsekümmend eurot.'],
@@ -1582,7 +1582,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     sentences: sentences('fitting-compare', [
       ['1', 'fitting-compare', 'fitting-room', 'Proovikabiin on kassa kõrval.'],
       ['2', 'fitting-compare', 'fitting-room', 'See suurus sobib hästi.'],
-      ['3', 'fitting-compare', 'fitting-room', 'Need püksid on liiga kitsad.'],
+      ['3', 'fitting-compare', 'fitting-room', 'Kitsas suurus ei sobi hästi.'],
       ['4', 'fitting-compare', 'fitting-two', 'Sinine variant on odavam.'],
       ['5', 'fitting-compare', 'fitting-two', 'Must jope on kallim, aga mugav.'],
       ['6', 'fitting-compare', 'fitting-two', 'Kas teil on suurem suurus?'],
