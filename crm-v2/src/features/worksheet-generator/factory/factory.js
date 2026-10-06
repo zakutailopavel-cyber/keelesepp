@@ -41,6 +41,10 @@ const PACK_KEYWORDS = Object.freeze({
   'shopping-prices': ['arvud, hinnad ja kogused', 'hinnad', 'suurus', 'eurot', 'senti'],
   'fitting-compare': ['proovimine ja valimine', 'suuremat', 'väiksemat', 'odavam', 'kallim'],
   'receipt-return': ['kviitung', 'kampaania', 'tagastus', 'allahindlus', 'vahetus'],
+  'appointment-booking': ['aja broneerimine', 'soovin aega', 'varem', 'hiljem', 'vastuvõtt'],
+  'service-modals': ['pean, saan, võin, tohin', 'pean +', 'saan/võin/tohin', 'modaal'],
+  'forms-instructions': ['vormid ja juhised', 'täitke', 'allkiri', 'isikukood'],
+  'phone-service': ['telefon ja klienditeenindus', 'oodake', 'ühendan', 'korrake'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
