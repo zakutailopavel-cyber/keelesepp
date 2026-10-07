@@ -521,6 +521,20 @@ test("lesson journal is stable across retries and keeps calendar and counters in
   assert.equal(lessonSnap.exists, false);
   assert.equal(scheduleSnap.data().status, "Planeeritud");
   assert.equal(studentSnap.data().lessonsSinceInvoice, 0);
+
+  // A v2 series has both recurring=true and a start date in date. Its result belongs to one day only.
+  await db.collection("schedule").doc(scheduleId).set({ recurring: true, startDate: lesson.date }, { merge: true });
+  const weekly = await financeRequest(teacherToken, "/lessons/journal", { ...firstPayload, requestId: "emulator_dated_weekly_0001" });
+  assert.equal(weekly.status, 201, JSON.stringify(weekly.body));
+  scheduleSnap = await db.collection("schedule").doc(scheduleId).get();
+  assert.equal(scheduleSnap.data().status, "Planeeritud");
+  assert.equal(scheduleSnap.data().occurrenceStatuses[lesson.date].lessonEntryId, weekly.body.lessonId);
+  assert.equal(scheduleSnap.data().occurrenceStatuses[lesson.date].status, "Toimunud");
+  const weeklyDelete = await financeRequest(teacherToken, "/lessons/journal/delete", { lessonId: weekly.body.lessonId, requestId: "emulator_dated_weekly_delete_0001" });
+  assert.equal(weeklyDelete.status, 201, JSON.stringify(weeklyDelete.body));
+  scheduleSnap = await db.collection("schedule").doc(scheduleId).get();
+  assert.equal(scheduleSnap.data().status, "Planeeritud");
+  assert.equal(scheduleSnap.data().occurrenceStatuses[lesson.date], undefined);
 });
 
 test("one-click lesson completion commits attendance, homework, curriculum and follow-up together", async () => {

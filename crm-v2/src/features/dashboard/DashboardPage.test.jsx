@@ -80,15 +80,17 @@ describe('DashboardPage role scoping', () => {
         { id: 'o1', date: '2026-10-05', time: '07:00', duration: 60, status: 'Planeeritud', studentName: 'Jaan' },
         { id: 'o2', date: '2026-10-06', time: '10:00', duration: 60, status: 'Planeeritud', studentName: 'Jaan' },
       ]);
+      dataRepositories.groups = { list: vi.fn().mockResolvedValue([{ id: 'g1', name: 'A1 grupp', students: ['s2'], lessons: [{ id: 'gl1', day: 'Mon', startDate: '2026-09-07', time: '17:00' }] }]) };
       dataRepositories.homework.list.mockResolvedValue([{ id: 'h1', studentId: 's1', status: 'Ootel' }, { id: 'h2', studentId: 'gone', status: 'Ootel' }, { id: 'h3', studentId: 's2', status: 'Tehtud' }]);
       renderDashboard({ uid: 'admin-1', displayName: 'Pavel', roles: ['admin'] }, dataRepositories);
       const tile = (label) => screen.getByText(label).closest('article');
       expect(await screen.findByText('Tunnid täna')).toBeInTheDocument();
-      expect(tile('Tunnid täna')).toHaveTextContent('2');
-      expect(tile('Tunnid täna')).toHaveTextContent('1 veel ees · kõik õpetajad');
+      expect(tile('Tunnid täna')).toHaveTextContent('3');
+      expect(tile('Tunnid täna')).toHaveTextContent('2 veel ees · kõik õpetajad');
       expect(tile('Aktiivsed õpilased')).toHaveTextContent('2');
       expect(tile('Kodutööd pooleli')).toHaveTextContent('1');
       expect(screen.getByText('Mari')).toBeInTheDocument();
+      expect(screen.getByText('A1 grupp')).toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }

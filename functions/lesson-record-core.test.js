@@ -50,3 +50,10 @@ test("legacy lesson counter changes only on completion transitions", () => {
   assert.equal(lessonCompletionCounterDelta("Toimunud", "Puudus_p"), -1);
   assert.equal(lessonCompletionCounterDelta("Puudus_eta", "Puudus_p"), 0);
 });
+
+ test("dated v2 weekly schedules are still recurring", () => {
+  const { isRecurringSchedule } = require("./lesson-record-core");
+  assert.equal(isRecurringSchedule({ recurring: true, date: "2026-10-05" }), true);
+  assert.equal(isRecurringSchedule({ recurring: true }), true);
+  assert.equal(isRecurringSchedule({ recurring: false, date: "2026-10-05" }), false);
+});

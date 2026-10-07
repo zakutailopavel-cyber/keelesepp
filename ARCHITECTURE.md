@@ -2,17 +2,31 @@
 
 ## Current shape
 
-KeeleSepp is a progressively separated browser application. The CRM is still delivered from
-`haldus.html`, while learning content and live teaching already have independent entry points:
+The primary CRM is the React application in `crm-v2/`: routes are in `src/app/routes.jsx`,
+domain screens in `src/features/`, and Firebase adapters in `src/services/firebase/`.
+`haldus.html` and the older learning entry points remain compatibility surfaces; they are not
+the architectural description of the current primary CRM.
 
-- `haldus.html` — CRM, schedule, students, invoices and administration;
-- `haldus-exercises/index.html` — learning library, curricula, exercises and assignments;
-- `live-classroom.html` + `live-classroom.js` — private teacher desk and public student stage;
-- `functions/` — trusted financial mutations and document/email generation;
-- `firestore.rules` — authorization and browser-write schema boundaries.
+### Calendar accounting integrity (2026-10-07)
 
-This is an intentional migration path. A full rewrite would put working school operations at
-risk, so new behavior must first be extracted behind small tested core modules.
+`schedule` stores the plan/series; `lessons` stores the journal. Per-date `occurrenceStatuses`
+and `lessonEntryId` are legacy-compatible references, not replacements for a journal record.
+Calendar resolution checks both scheduleId/date and explicit record IDs, always requiring the
+same student and date. Missing or duplicate terminal records are shown as inconsistencies;
+quick completion and dragging are blocked instead of creating a second charge.
+Series result statuses apply only to their recorded occurrence date; new server journal writes
+keep the series Planeeritud and store the result under occurrenceStatuses[date]. A dated v2
+series is recurring when recurring=true, regardless of whether date is populated.
+CRM v2 completion and group array/attendance mutations use Firestore transactions. On retries,
+they read the latest document instead of overwriting another staff member's changes.
+The dashboard includes individual and group occurrences, matching the calendar's projection.
+
+### Current Google authority (owner decision 2026-10-05)
+
+KeeleSepp is authoritative: lessons are pushed to Google; inbound lesson changes/imports are
+disabled. Previously imported lessons are editable in KeeleSepp (`isGoogleOwned` returns false).
+Older two-way descriptions later in this document describe the historical implementation,
+not the current policy. OAuth permissions, scoped credentials and deferred-delete outbox remain.
 
 ## Tested browser contracts
 

@@ -39,8 +39,33 @@ export function eventOccursOn(event, date) {
   return (event.day || DAY_IDS[new Date(`${start}T12:00:00`).getDay()]) === DAY_IDS[new Date(`${date}T12:00:00`).getDay()];
 }
 
+const RESULT_STATUSES = new Set(['Toimunud', 'Puudus_eta', 'Puudus_p']);
+
+export function occurrenceStatus(event, date) {
+  const occurrence = event.occurrenceStatuses?.[date];
+  if (occurrence?.status) return occurrence.status;
+  if (!event.recurring || !RESULT_STATUSES.has(event.status)) return event.status;
+  // Older journals wrote an occurrence result onto the entire series. Keep the dated result only.
+  return (event.lessonOccurrenceDate || event.date) === date ? event.status : 'Planeeritud';
+}
+
+export function resolveOccurrenceRecord(item, records = []) {
+  if (item.isGroup) return item;
+  const date = item.occurrenceDate;
+  const reference = item.occurrenceStatuses?.[date]?.lessonEntryId
+    || ((!item.recurring || (item.lessonOccurrenceDate || item.date) === date) ? item.lessonEntryId : '');
+  const candidates = records.filter((record) => record.date === date
+    && record.studentId === item.studentId
+    && (record.scheduleId === item.id || (reference && record.id === reference)));
+  if (candidates.length === 1) {
+    const record = candidates[0];
+    return { ...item, status: record.status || 'Toimunud', lessonRecordId: record.id, record };
+  }
+  return { ...item, recordProblem: candidates.length > 1 ? 'duplicate' : RESULT_STATUSES.has(item.status) ? 'missing' : '' };
+}
+
 export function occurrencesForDates(events, dates) {
-  return dates.flatMap((date) => events.filter((event) => eventOccursOn(event, date)).map((event) => ({ ...event, occurrenceDate: date, occurrenceId: `${event.id}:${date}` })))
+  return dates.flatMap((date) => events.filter((event) => eventOccursOn(event, date)).map((event) => ({ ...event, status: occurrenceStatus(event, date), occurrenceDate: date, occurrenceId: `${event.id}:${date}` })))
     .sort((left, right) => `${left.occurrenceDate} ${left.time}`.localeCompare(`${right.occurrenceDate} ${right.time}`, 'et'));
 }
 
@@ -69,6 +94,8 @@ export function groupCalendarEvents(groups = []) {
       endDate: lesson.endDate || '',
       excludedDates: lesson.excludedDates || [],
       attendance: lesson.attendance || {},
+      occurrenceStatuses: lesson.occurrenceStatuses || {},
+      lessonOccurrenceDate: lesson.lessonOccurrenceDate || '',
     };
   }));
 }

@@ -64,7 +64,7 @@ async function loadDashboardData(user, repositories) {
   const activeStudents = studentsResult.items.filter((item) => item.active);
   const current = today();
   const nowClock = new Date().toTimeString().slice(0, 5);
-  const todayLessons = occurrencesForDates(schedule, [current]);
+  const todayLessons = occurrencesForDates([...schedule, ...groupCalendarEvents(groups)], [current]);
   const upcoming = todayLessons.filter((item) => String(item.time || '99:99') >= nowClock);
   const overdue = invoices.filter(isInvoiceOverdue);
   const studentIds = new Set(studentsResult.items.map((item) => item.id));

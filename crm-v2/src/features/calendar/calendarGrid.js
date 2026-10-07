@@ -79,7 +79,7 @@ export function layoutColumn(items, range = { start: GRID_START, end: GRID_END }
 
 // Lessons that are already accounting records (done / absent) or cancelled are not moved.
 export function canMove(item) {
-  return Boolean(item) && !item.lessonRecordId && !['Toimunud', 'Tühistatud', 'Puudus_eta', 'Puudus_p'].includes(item.status);
+  return Boolean(item) && !item.recordProblem && !item.lessonRecordId && !['Toimunud', 'Tühistatud', 'Puudus_eta', 'Puudus_p'].includes(item.status);
 }
 
 const COPY_FIELDS = ['studentId', 'studentName', 'teacher', 'teacherUid', 'subject', 'level', 'groupId', 'note'];

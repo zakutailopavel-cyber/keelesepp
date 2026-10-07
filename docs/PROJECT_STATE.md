@@ -1,3 +1,34 @@
+## 2026-10-07 — Calendar/journal integrity fixes — branch `agent/calendar-integrity-fixes`
+
+Fresh main checked: `813b231`; no open PRs returned before work. Owner requested all confirmed
+bugs from the architecture review to be fixed. This branch is limited to calendar/journal,
+group concurrency and dashboard projections; worksheet and cleanup fixes are separate PRs.
+
+- Resolve legacy explicit journal links by student/date; expose missing/duplicate links and block
+  quick completion/dragging of inconsistent entries. No fabricated historical lessons.
+- Weekly series no longer spread one occurrence result to following dates; server journal treats
+  dated v2 recurring schedules as series and stores per-date results, including deletion recovery.
+- Completion is transactional; group membership, slots and attendance reread current group arrays
+  transactionally. Dashboard counts/displays today's groups as well as individual lessons.
+- Contracts: existing schedule/lessons/groups/activityLog only; immutable IDs preserved; no new
+  rules, collections, paid calls, production writes, migrations or deployments.
+- Verification: targeted CRM calendar/group/dashboard 83 tests passed; Functions unit 236 passed;
+  combined fixes CRM suite 191 files / 1195 tests passed, lint 0 errors (2 existing generator
+  hook warnings), build passed (existing bundle warning). A later worksheet-only regression
+  check also passed 2 files / 31 tests. Emulator with CLI 15 blocked by Java 17; CLI 14
+  Functions execution blocked by local IPC EPERM and CLI/Functions v7 compatibility;
+  cancelled rather than treating it as a product result. Rules-only Auth/Firestore emulator
+  completed successfully: 7 tests PASS (worksheet ownership/snapshots/live pointers and
+  admin verification). No successful Functions journal API emulator result is claimed.
+- Limit: truly missing historical records still require read-only production reconciliation;
+  explicit missing/duplicate states are not automatically charged, repaired or deleted.
+- PR: not created. Automatic approval review rejected git push: unverified external remote
+  and no explicit authorization to export changes. No remote workaround was attempted.
+  Sibling local branches: agent/worksheet-save-integrity (dc6a5bb),
+  agent/cleanup-audit-integrity (0dfea82). No merge/deploy or production data mutation.
+- Next safe step: owner explicitly authorizes pushing the three reviewable branches and
+  creating draft PRs; Functions emulator execution remains a release validation gate.
+
 ## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
 
 Owner: the invoice showed his personal e-mail; take the invoice generator of the first site version.
