@@ -17,7 +17,9 @@ describe('ManualInvoiceDialog', () => {
     await waitFor(() => expect(screen.getByRole('option', { name: 'Milan' })).toBeInTheDocument());
     expect(select).not.toBeDisabled();
     expect(api.listStudents).toHaveBeenCalledTimes(1);
-    fireEvent.change(select, { target: { value: 's2' } });
+    fireEvent.change(screen.getByLabelText('Otsi õpilast'), { target: { value: 'mil' } });
+    expect(screen.queryByRole('option', { name: 'Anna' })).not.toBeInTheDocument();
+    expect(select).toHaveValue('s2');
     fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Õpik' } });
     fireEvent.change(screen.getByLabelText('Summa (€)'), { target: { value: '12.50' } });
     fireEvent.change(screen.getByLabelText('Märkus'), { target: { value: 'sisemine' } });
