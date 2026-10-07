@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react';
+import PageErrorBoundary from './PageErrorBoundary.jsx';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { LoadingState } from '../components/ui/index.js';
 import AppShell from '../components/layout/AppShell.jsx';
@@ -39,7 +40,7 @@ const LessonWorksheetSet = lazy(() => import('../features/worksheet-generator/ui
 const LessonWorksheetStudioPage = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx'));
 const AvastaUpgradePage = lazy(() => import('../features/worksheet-generator/ui/AvastaUpgradePage.jsx'));
 const Module1ThreePhasePage = lazy(() => import('../features/worksheet-generator/ui/Module1ThreePhasePage.jsx'));
-const generatorPage = (element) => <Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense>;
+const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
 
 export default function AppRoutes() {
   return (

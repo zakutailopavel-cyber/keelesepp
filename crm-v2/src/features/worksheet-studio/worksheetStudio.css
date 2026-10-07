@@ -286,3 +286,5 @@ textarea.ed-input { resize: vertical; }
 .ws-studio .st-btn[aria-pressed] { display: inline-flex; align-items: center; gap: 5px; }
 @media (max-width: 560px) { .ws-studio .st-btn-label { display: none; } }
 @media print { .ws-studio.is-focus { position: static; height: auto; } }
+.st-btn.st-edit{background:#fff4d6;border-color:#f3c96b;color:#7a4b00;font-weight:800}
+.st-btn.st-edit:hover{background:#ffeab0}

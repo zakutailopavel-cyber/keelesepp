@@ -85,3 +85,4 @@
 .student-works__open { display: grid; gap: 8px; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
 .student-works__open h3, .student-works__subhead { margin: 0 0 4px; font-size: 1rem; }
 .review-layout--single { grid-template-columns: minmax(0, 1fr); }
+.profile-track{display:block}

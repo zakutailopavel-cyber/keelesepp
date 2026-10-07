@@ -1,6 +1,6 @@
 // Students who have no lesson ahead in the calendar, so nobody is forgotten. A student counts as planned when any
 // lesson that is not cancelled lies ahead: a weekly series that has not ended, a one-off lesson today or later, or a
-// group lesson series the student belongs to. A student the teacher paused („Paus kuni …”) is left out until then.
+// group lesson series the student belongs to. In one teacher's view only that teacher's lessons count. A student the teacher paused („Paus kuni …”) is left out until then.
 
 export function hasLessonAhead(event, today) {
   if (!event || event.status === 'Tühistatud') return false;
@@ -12,6 +12,8 @@ export function unplannedStudents({ students = [], events = [], today, teacherUi
   const planned = new Set();
   for (const event of events) {
     if (!hasLessonAhead(event, today)) continue;
+    // a teacher's own view: another teacher's lessons (other subject of the same student) do not count
+    if (teacherUid && event.teacherUid && event.teacherUid !== teacherUid) continue;
     if (event.isGroup) (event.studentIds || []).forEach((id) => planned.add(id));
     else if (event.studentId) planned.add(event.studentId);
   }
