@@ -1673,8 +1673,8 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       { id: 'receipt-return-t-2', focusIds: ['receipt-return'], sourceLang: 'ru', source: 'Скидка действует до воскресенья.', target: 'Allahindlus kehtib kuni pühapäevani.', alternatives: [] },
     ],
     transformations: [
-      { id: 'receipt-return-tr-1', focusIds: ['receipt-return'], from: 'Kampaania lõpeb pühapäeval.', prompt: 'Kasuta verbi „kehtima”.', answer: 'Kampaania kehtib kuni pühapäevani.', alternatives: [] },
-      { id: 'receipt-return-tr-2', focusIds: ['receipt-return'], from: 'Toote saab tagasi anda 14 päeva jooksul.', prompt: 'Kasuta sõna „tagastus”.', answer: 'Tagastus on võimalik 14 päeva jooksul.', alternatives: [] },
+      { id: 'receipt-return-tr-1', focusIds: ['receipt-return'], from: 'Kampaania lõpeb pühapäeval.', prompt: 'Kasuta verbi „kehtima”.', answer: 'Kampaania kehtib pühapäevani.', alternatives: [] },
+      { id: 'receipt-return-tr-2', focusIds: ['receipt-return'], from: 'Toote saab tagasi anda 14 päeva jooksul.', prompt: 'Kasuta sõna „tagastus”.', answer: 'Kauba tagastus on võimalik 14 päeva jooksul.', alternatives: [] },
     ],
     listeningScripts: [],
     readingDocuments: [
