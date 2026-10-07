@@ -7,6 +7,7 @@ import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import CalendarPage from '../features/calendar/CalendarPage.jsx';
 import FinanceWorkspacePage from '../features/finance/FinanceWorkspacePage.jsx';
+import FinanceMonthPage from '../features/finance/FinanceMonthPage.jsx';
 import ExpensesPage from '../features/expenses/ExpensesPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
 import GroupsPage from '../features/groups/GroupsPage.jsx';
@@ -94,7 +95,8 @@ export default function AppRoutes() {
             <Route path="student" element={<StudentDashboardPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
-            <Route path="finance" element={<FinanceWorkspacePage />} />
+            <Route path="finance" element={<FinanceMonthPage />} />
+            <Route path="finance/vana" element={<FinanceWorkspacePage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
             <Route path="finance/payroll" element={<PayrollPage />} />

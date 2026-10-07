@@ -33,7 +33,6 @@ import {
   PageHeader,
   Select,
 } from "../../components/ui/index.js";
-import { useAsyncData } from "../../hooks/useAsyncData.js";
 import {
   bankTransactionsService,
   creditNotesService,
@@ -71,6 +70,7 @@ import InvoiceNumberingPanel from "./InvoiceNumberingPanel.jsx";
 import EmailDeliveryPanel from "./EmailDeliveryPanel.jsx";
 import "./financeWorkspace.css";
 import MonthlyInvoicePanel from "./MonthlyInvoicePanel.jsx";
+import { useFinanceData } from "./useFinanceData.js";
 
 const money = (value) =>
   new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
@@ -197,62 +197,18 @@ export default function FinancePage({
 }) {
   const { user } = useAuth();
   const canRegisterPayment = hasAnyRole(user.roles, [ROLES.ADMIN]);
-  const state = useAsyncData(async () => {
-    const [
-      invoices,
-      plans,
-      students,
-      lessons,
-      bankTransactions,
-      periods,
-      credits,
-      refunds,
-      creditNotes,
-      auditEntries,
-    ] = await Promise.all([
-      invoiceRepository.list(),
-      planRepository.list(),
-      canRegisterPayment
-        ? studentRepository.list({
-            status: "active",
-            pageSize: 500,
-            exhaustive: true,
-          })
-        : Promise.resolve({ items: [] }),
-      canRegisterPayment
-        ? lessonRepository.listForBilling()
-        : Promise.resolve([]),
-      canRegisterPayment ? bankRepository.list() : Promise.resolve([]),
-      canRegisterPayment ? periodRepository.list() : Promise.resolve([]),
-      canRegisterPayment ? creditRepository.list() : Promise.resolve([]),
-      canRegisterPayment ? creditRepository.listRefunds() : Promise.resolve([]),
-      canRegisterPayment ? creditNoteRepository.list() : Promise.resolve([]),
-      canRegisterPayment ? auditRepository.list() : Promise.resolve([]),
-    ]);
-    return {
-      invoices,
-      plans,
-      students: students.items,
-      lessons,
-      bankTransactions,
-      periods,
-      credits,
-      refunds,
-      creditNotes,
-      auditEntries,
-    };
-  }, [
+  const state = useFinanceData({
+    canManageFinance: canRegisterPayment,
+    invoiceRepository,
+    planRepository,
+    studentRepository,
+    lessonRepository,
     bankRepository,
-    canRegisterPayment,
+    periodRepository,
     creditRepository,
     creditNoteRepository,
-    invoiceRepository,
-    lessonRepository,
-    planRepository,
-    periodRepository,
     auditRepository,
-    studentRepository,
-  ]);
+  });
   const [activeFinanceSection, setActiveFinanceSection] = useState("tunniarvestus"); const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [selected, setSelected] = useState(null);

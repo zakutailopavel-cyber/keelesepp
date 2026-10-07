@@ -83,9 +83,11 @@ export default function MonthlyInvoicePanel({
   scheduleRepository = scheduleService, groupRepository = groupsService,
   invoiceApi = manualInvoiceApi, deliveryApi = invoiceDeliveryApi, lessonRepository = lessonsService, parentRepository = parentsService,
   planRepository = revenuePlansService, studentRepository = studentsService,
-  onChanged,
+  onChanged, month: controlledMonth, onMonthChange,
 }) {
-  const [month, setMonth] = useState(() => defaultBillingMonth());
+  const [localMonth, setLocalMonth] = useState(() => defaultBillingMonth());
+  const month = controlledMonth || localMonth;
+  const setMonth = (value) => { setLocalMonth(value); onMonthChange?.(value); };
   const [mode, setMode] = useState('all');
   const [calendar, setCalendar] = useState({ loading: true, schedule: [], groups: [], parents: [], error: '' });
   const [selected, setSelected] = useState(() => new Set());
@@ -202,7 +204,7 @@ export default function MonthlyInvoicePanel({
         <span aria-live="polite">{busy ? progress : ready.length ? `Valitud ${chosen.length} / ${ready.length} arvet · ${money(totalCents)}` : ''}</span>
         {rows.some((row) => row.status === 'no-price') ? <span className="monthly-invoices__warn"><TriangleAlert size={16} /> Osal õpilastel puudub hind: sisesta see õpilase real (või profiilis → Arveldus).</span> : null}
         <div>
-          <Button variant="secondary" disabled={!chosen.length || Boolean(busy)} loading={busy === 'create'} onClick={() => create(false)}><FileText size={17} /> Koosta arved</Button>
+          <Button variant="secondary" disabled={!chosen.length || Boolean(busy)} loading={busy === 'create'} onClick={() => create(false)}><FileText size={17} /> Koosta kõik</Button>
           <Button disabled={!chosen.length || Boolean(busy)} loading={busy === 'send'} onClick={() => create(true)}><Send size={17} /> Koosta ja saada</Button>
         </div>
       </div>
