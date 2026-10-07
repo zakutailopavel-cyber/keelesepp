@@ -23,7 +23,7 @@
     company:'E&P Koolitus OÜ',
     regCode:'17270880',
     address:'Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401',
-    email:'zakutailo.pavel@gmail.com',
+    email:'info@epkoolitus.ee',
     iban:'EE917700771011885682',
     bank:'LHV Pank AS',
     swift:'LHVBEE22',

@@ -1,3 +1,17 @@
+## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
+
+Owner: the invoice showed his personal e-mail; take the invoice generator of the first site version.
+- `functions/invoice-document.js` `buildInvoicePdf` rewritten after v1 `haldus.html printInvoice`: seller with address,
+  e-mail, phone, IBAN/SWIFT; Arve nr / Kuupäev / Tähtaeg / Valuuta table; „Maksja” + „Maksetingimused” (due day,
+  viivis, selgitus); line table Nr / Nimetus / Ühik / Kogus / Hind / Summa / KM / Kokku (monthly lines show quantity ×
+  unit price; credited lesson lines struck through); „Summa tasumiseks” + sum in Estonian words (`amountInWords`);
+  Makseinfo + Õpilane / Arve saaja boxes; signature lines Väljastas (Koostaja) / Võttis vastu.
+- `PAYMENT_DETAILS` (functions/index.js): e-mail info@epkoolitus.ee (was the owner's personal Gmail), phone
+  +372 5434 4155, address, late fee, issuer from v1; v1 `haldus-shared.js` e-mail changed too.
+- Checks: functions unit 235/235 (new: amount in words, monthly invoice on one page); sample PDF reviewed.
+- Deploy: `invoiceApi`, `sendInvoicePaymentReminders`, `financeApi`. Existing invoices keep their data; the PDF is
+  rendered on request, so previews and e-mails use the new layout immediately.
+
 ## 2026-10-07 — „Lisa arve”: clear message when something is missing — branch `agent/invoice-dialog-validation`
 
 Owner: the dialog buttons „do not react”. Checked live: both buttons are clickable; „Loo arve” on an empty form was

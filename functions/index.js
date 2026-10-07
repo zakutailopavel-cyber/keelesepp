@@ -163,14 +163,20 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "http://127.0.0.1:8765",
   "http://127.0.0.1:8766",
 ];
+// Company details on invoices and e-mails (layout and data of the first KeeleSepp version; school e-mail and phone
+// instead of the owner's personal address — owner 2026-10-07).
 const PAYMENT_DETAILS = {
   company: "E&P Koolitus OÜ",
   regCode: "17270880",
-  email: "zakutailo.pavel@gmail.com",
+  address: "Harju maakond, Saue vald, Laagri alevik, Nõlvaku põik 3b, 76401",
+  email: "info@epkoolitus.ee",
+  phone: "+372 5434 4155",
   iban: "EE917700771011885682",
   bank: "LHV Pank AS",
   swift: "LHVBEE22",
   paymentDueDay: 10,
+  lateFeePerDay: "0,0%",
+  issuer: "Pavel Zakutailo",
 };
 const MAIL_FROM = process.env.MAIL_FROM || `KeeleSepp <${PAYMENT_DETAILS.email}>`;
 const MAIL_REPLY_TO = process.env.MAIL_REPLY_TO || "info@epkoolitus.ee";
