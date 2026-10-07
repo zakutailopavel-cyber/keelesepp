@@ -539,6 +539,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             ))}
           </div>
           <div className="st-actions">
+            {/* in the student or print view the way back to editing is one clear button */}
+            {mode !== 'edit' && <button type="button" className="st-btn st-edit" onClick={() => switchMode('edit')}><Icons.PenLine size={16} aria-hidden="true" /> Muuda lehte</button>}
             {mode === 'interactive' && <button type="button" className="st-btn primary" onClick={check}>Kontrolli vastuseid</button>}
             {mode === 'interactive' && <button type="button" className="st-btn" onClick={() => { setAnswers({}); setResults({}); setEvidence(null); }}>Tühjenda</button>}
             {mode === 'edit' && <button type="button" className="st-btn" disabled={!history.past.length} onClick={undo} title="Võta tagasi (Ctrl+Z)" aria-label="Võta tagasi"><Icons.Undo2 size={16} /></button>}
