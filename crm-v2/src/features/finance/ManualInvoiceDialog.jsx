@@ -113,7 +113,8 @@ export default function ManualInvoiceDialog({ onCreated }) {
           </>
         )}
       >
-        <form id="manual-invoice-form" className="form-grid" onSubmit={submit}>
+        {/* noValidate: our own Estonian messages instead of the browser's barely visible bubble */}
+        <form id="manual-invoice-form" className="form-grid" onSubmit={submit} noValidate>
           <Input
             className="form-grid__wide"
             label="Otsi õpilast"
@@ -182,7 +183,7 @@ export default function ManualInvoiceDialog({ onCreated }) {
               Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong> ja lisatakse kohe arvete nimekirja.
             </p>
           ) : null}
-          {error ? <p className="action-error form-grid__wide">{error}</p> : null}
+          {error ? <p className="action-error form-grid__wide" role="alert">{error}</p> : null}
         </form>
       </Modal>
     </>
