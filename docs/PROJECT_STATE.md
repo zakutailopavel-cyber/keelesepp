@@ -1,3 +1,12 @@
+## 2026-10-07 — Finance v3 debts and bank import — branch `agent/finance-v3-debts`
+
+- Goal: show all unpaid invoices from earlier months and let an administrator import/match bank receipts without leaving the new month screen.
+- Completed: added `Võlgnevused` with total outstanding cents, prior-month invoice rows and reminders. `Impordi pank` opens the existing audited CSV reconciliation flow in a modal. Successful allocation calls the shared finance API and then reloads finance data, so paid/partial debt rows update immediately. Added pure debt selection and component tests.
+- Files: `FinanceDebtsPanel.jsx`, `FinanceDebtsPanel.test.jsx`, `financeDebts.js`, `financeDebts.css`, `FinanceMonthPage.jsx`, `docs/screenshots/finance-v3-debts/*`, and this entry.
+- Checks: `npx vitest run src/features/finance src/features/students src/services/firebase` — 56 files, 284 tests passed. `npx vitest run --maxWorkers=4` — 191 files / 1209 tests passed; exactly the 10 documented Node 26 `localStorage` failures remained. `npx eslint .` — 0 errors, 2 pre-existing hook dependency warnings. `npm run build` — passed with the existing chunk-size advisory. `git diff --check` — passed. Desktop and full-page 375 px screenshots used local mock repositories only.
+- Limits/risks: no bank file, production record, e-mail, payment, merge or deployment action. Import retains the existing idempotent request ids and partial-allocation behavior.
+- Next safe step: open PR 4, wait for green CI, merge it, then prepare the owner review gate before cleanup.
+
 ## 2026-10-07 — Finance v3 settings and navigation — branch `agent/finance-v3-settings`
 
 - Goal: move low-frequency finance controls to a dedicated settings page and keep old finance links useful after the month-screen switch.

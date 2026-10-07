@@ -36,6 +36,7 @@ import MonthlyInvoicePanel from './MonthlyInvoicePanel.jsx';
 import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
+import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import './financeMonth.css';
 import './manualInvoice.css';
@@ -161,6 +162,8 @@ export default function FinanceMonthPage({
       </section>
 
       {canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={invoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
+
+      {canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} /> : null}
 
       <Card className="finance-month-ledger">
         <div className="finance-month-ledger__heading"><div><span className="eyebrow">Arved</span><h2>Kuu arved ja maksed</h2></div><span>{rows.length} kirjet</span></div>
