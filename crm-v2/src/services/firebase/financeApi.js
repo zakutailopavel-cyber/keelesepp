@@ -308,4 +308,8 @@ export const invoiceDeliveryApi = {
   testEmail() {
     return postInvoice("/email-test", {});
   },
+  // admin: { autoEnabled } of the automatic daily payment reminders; pass a boolean to switch them
+  reminderSettings(autoEnabled) {
+    return postInvoice("/reminder-settings", typeof autoEnabled === "boolean" ? { autoEnabled } : {});
+  },
 };

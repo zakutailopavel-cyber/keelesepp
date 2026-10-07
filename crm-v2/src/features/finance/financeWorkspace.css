@@ -741,3 +741,8 @@
 .email-delivery-row span{display:grid;min-width:0}
 .email-delivery-row small{color:#667085;overflow-wrap:anywhere}
 .email-delivery-error{grid-column:2 / -1;color:#b42318 !important}
+.email-reminders{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;margin:8px 0;border:1px solid #d0d5dd}
+.email-reminders span{display:grid;gap:2px}
+.email-reminders small{color:#667085}
+.email-reminders.is-off{background:#f9fafb}
+.email-reminders.is-on{background:#ecfdf3;border-color:#abefc6}

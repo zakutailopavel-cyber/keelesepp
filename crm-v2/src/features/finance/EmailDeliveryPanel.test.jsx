@@ -16,4 +16,20 @@ describe('EmailDeliveryPanel', () => {
     expect(await screen.findByText(/Testkirja ei saanud saata aadressile zakutailo.pavel@gmail.com: EAUTH · 535 · Invalid login/)).toBeInTheDocument();
     expect(repository.recent).toHaveBeenCalledTimes(2);
   });
+
+  it('shows the automatic reminders off and switches them on only after confirmation', async () => {
+    const repository = { recent: vi.fn().mockResolvedValue([]) };
+    let on = false;
+    const deliveryApi = { testEmail: vi.fn(), reminderSettings: vi.fn(async (value) => { if (typeof value === 'boolean') on = value; return { autoEnabled: on }; }) };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(false);
+    render(<EmailDeliveryPanel repository={repository} deliveryApi={deliveryApi} />);
+    expect(await screen.findByText('Automaatsed meeldetuletused: VÄLJAS')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Lülita sisse' }));
+    expect(deliveryApi.reminderSettings).not.toHaveBeenCalledWith(true);
+    confirm.mockReturnValue(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Lülita sisse' }));
+    expect(await screen.findByText('Automaatsed meeldetuletused: SEES')).toBeInTheDocument();
+    expect(deliveryApi.reminderSettings).toHaveBeenCalledWith(true);
+    confirm.mockRestore();
+  });
 });
