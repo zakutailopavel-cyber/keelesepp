@@ -530,6 +530,12 @@ test("lesson journal is stable across retries and keeps calendar and counters in
   assert.equal(scheduleSnap.data().status, "Planeeritud");
   assert.equal(scheduleSnap.data().occurrenceStatuses[lesson.date].lessonEntryId, weekly.body.lessonId);
   assert.equal(scheduleSnap.data().occurrenceStatuses[lesson.date].status, "Toimunud");
+  // Completed lessons retain financial deletion protection. Clear it through the journal API.
+  const weeklyAbsence = await financeRequest(teacherToken, "/lessons/journal", {
+    lessonId: weekly.body.lessonId, scheduleId,
+    lesson: { ...lesson, status: "Puudus_p" }, requestId: "emulator_dated_weekly_absence_0001",
+  });
+  assert.equal(weeklyAbsence.status, 201, JSON.stringify(weeklyAbsence.body));
   const weeklyDelete = await financeRequest(teacherToken, "/lessons/journal/delete", { lessonId: weekly.body.lessonId, requestId: "emulator_dated_weekly_delete_0001" });
   assert.equal(weeklyDelete.status, 201, JSON.stringify(weeklyDelete.body));
   scheduleSnap = await db.collection("schedule").doc(scheduleId).get();

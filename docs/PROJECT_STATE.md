@@ -22,12 +22,12 @@ group concurrency and dashboard projections; worksheet and cleanup fixes are sep
   admin verification). No successful Functions journal API emulator result is claimed.
 - Limit: truly missing historical records still require read-only production reconciliation;
   explicit missing/duplicate states are not automatically charged, repaired or deleted.
-- PR: not created. Automatic approval review rejected git push: unverified external remote
-  and no explicit authorization to export changes. No remote workaround was attempted.
-  Sibling local branches: agent/worksheet-save-integrity (dc6a5bb),
-  agent/cleanup-audit-integrity (0dfea82). No merge/deploy or production data mutation.
-- Next safe step: owner explicitly authorizes pushing the three reviewable branches and
-  creating draft PRs; Functions emulator execution remains a release validation gate.
+- PR: #358. Owner explicitly authorized publication and merge after all checks pass.
+  CI exposed an invalid delete fixture (completed lessons are financially protected) and
+  a nested-map merge deletion bug. The fixture now clears billing via the journal API;
+  deletion replaces the occurrence map with transaction.update, preserving other dates.
+  Remote CI remains the merge gate. Sibling PRs: #359 worksheet, #360 cleanup.
+- Next safe step: merge only after successful CI; no production data repair or manual deploy.
 
 ## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
 

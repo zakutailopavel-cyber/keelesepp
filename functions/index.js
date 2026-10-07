@@ -1692,7 +1692,7 @@ async function deleteLessonJournal({ actor, lessonId, requestId }) {
       if (isRecurringSchedule(schedule) && lesson.date) {
         const occurrenceStatuses = { ...(schedule.occurrenceStatuses || {}) };
         delete occurrenceStatuses[lesson.date];
-        transaction.set(scheduleRef, { occurrenceStatuses, status: "Planeeritud", ...(schedule.lessonEntryId === cleanLessonId ? { lessonEntryId: "", lessonOccurrenceDate: "" } : {}), lessonUpdatedAt: nowIso }, { merge: true });
+        transaction.update(scheduleRef, { occurrenceStatuses, status: "Planeeritud", ...(schedule.lessonEntryId === cleanLessonId ? { lessonEntryId: "", lessonOccurrenceDate: "" } : {}), lessonUpdatedAt: nowIso });
       } else if (!schedule.lessonEntryId || schedule.lessonEntryId === cleanLessonId) {
         transaction.set(scheduleRef, {
           status: "Planeeritud",
