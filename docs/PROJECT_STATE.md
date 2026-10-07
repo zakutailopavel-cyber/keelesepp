@@ -8,6 +8,16 @@ Owner moves lesson-content production to Codex, which reads `AGENTS.md` automati
   (branch per batch from main, ≤2–3 stacked PRs, generator tests green, one PROJECT_STATE entry).
 - Docs only; no code change.
 - Next safe step: owner merges.
+## 2026-10-07 — Vercel: no preview builds for agent branches — branch `agent/vercel-skip-agent-previews`
+
+Checked `origin/main`. Owner moved Vercel to Pro (commercial use; Hobby allowed 100 deployments/day and agents'
+branch pushes used them up).
+- `vercel.json` (public site) and `crm-v2/vercel.json` (CRM) get `ignoreCommand`: a push to `agent/*` skips the
+  Vercel build (exit 0); `main`, other branches and CLI deploys (empty ref) build as before (exit 1). PR checks stay on
+  GitHub Actions.
+- Checks: the command run locally for `agent/foo` → 0, `main` → 1, `feature/x` → 1, empty → 1.
+- Limit: no preview URL for agent PRs any more; production deploys of `main` unchanged.
+- Next safe step: owner merges; then confirm a merge to `main` still deploys (Vercel status on the merge commit).
 
 ## 2026-10-07 — Worksheet constructor: „Muuda lehte” button — branch `agent/edit-sheet-button`
 
