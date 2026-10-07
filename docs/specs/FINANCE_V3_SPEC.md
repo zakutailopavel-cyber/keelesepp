@@ -10,6 +10,9 @@ Status: implementation starts with draft PR #361 on `agent/finance-v3-rows`, reb
 - Keep financial amounts in integer cents for summaries and balances. A credit note remains a separate accounting record and must not be represented as a negative open balance.
 - For a row with a positive balance, overdue takes precedence over partial-payment, failed-email, and no-show attention states. Fully paid and credited rows do not count as overdue.
 - A due date is current for the full local calendar day; overdue begins the next day.
+- Billing basis confirmed by the owner on 2026-10-07: the default is **one month in advance**. The invoice created during the current month uses the next month's planned calendar lessons; differences from the prior month remain explicit correction lines.
+- Some students have an individual agreement to pay **after lessons actually take place**. Store this as an effective-dated student billing-plan override, not as a global switch or an invoice-row guess. Actual billing uses only chargeable lesson outcomes for the completed period. Changing the mode must never rewrite issued invoices or earlier billing history.
+- The exact default due date for actual-lesson billing is still an owner decision. The HTML prototype shows the 10th of the following month as a proposal; implementation must not hard-code it until confirmed.
 - Do not use production data or send real e-mail for screenshots or tests. Do not deploy, migrate production data, or merge these PRs.
 
 ## PR sequence
