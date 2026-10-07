@@ -1,3 +1,14 @@
+## 2026-10-07 — Worksheet constructor: „Muuda lehte” button — branch `agent/edit-sheet-button`
+
+Checked `origin/main` `1ae1ddd`. Owner: a sheet opened from Õppevara (published → student view) gave no obvious way to
+edit it; only the small „Koosta” tab.
+- `WorksheetStudioPage`: in „Õpilase vaade” and „Trükivaade” a highlighted „✎ Muuda lehte” button switches to edit
+  mode (`.st-edit` in `worksheetStudio.css`). No data change.
+- Checks: new test (published sheet opens in student view, button returns to „Koosta”); studio tests 22/22; eslint 0
+  errors; build OK.
+- Next safe step: owner merges the draft PR. Architecture assessment given to the owner (chat): unify the three
+  worksheet paths into „lesson → three phases” next.
+
 ## 2026-10-07 — Blank worksheet page after a deploy — branch `agent/student-view-crash`
 
 Checked `origin/main` `32489b2`. Owner: opening Avasta (and other sheets) shows a blank page.
