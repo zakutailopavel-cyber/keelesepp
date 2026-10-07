@@ -46,3 +46,23 @@ test("invoice parties prefer immutable payer data", () => {
     payerEmail: "pere@example.com",
   });
 });
+
+test("the sum is written in Estonian words as on the first version's invoice", () => {
+  const { amountInWords } = require("./invoice-document");
+  assert.equal(amountInWords(90), "üheksakümmend eurot");
+  assert.equal(amountInWords(1250.5), "tuhat kakssada viiskümmend eurot ja 50 senti");
+  assert.equal(amountInWords(0), "null eurot");
+});
+
+test("a monthly invoice with quantity and unit price renders on one page", async () => {
+  const pdf = await buildInvoicePdf({
+    invoice: { num: "KS-2026-090", date: "2026-10-07", due: "2026-10-10", amount: 90, payerName: "Timur", lines: [
+      { type: "monthly_planned_lessons", description: "Keeletunnid, oktoober 2026: 4 × 60 min × 20 €", quantity: 4, unitPriceCents: 2000, amountCents: 8000, amount: 80 },
+      { type: "monthly_correction", description: "Eelmise kuu tasaarveldus: +0,5 tundi", quantity: 0.5, unitPriceCents: 2000, amountCents: 1000, amount: 10 },
+    ] },
+    student: { name: "Timur", subject: "Eesti keel" },
+    paymentDetails: { company: "E&P Koolitus OÜ", regCode: "17270880", email: "info@epkoolitus.ee", phone: "+372 5434 4155", iban: "EE917700771011885682", bank: "LHV Pank AS", swift: "LHVBEE22", issuer: "Pavel Zakutailo" },
+  });
+  assert.equal(pdf.subarray(0, 5).toString("ascii"), "%PDF-");
+  assert.equal((pdf.toString("latin1").match(/\/Type \/Page\b/g) || []).length, 1);
+});
