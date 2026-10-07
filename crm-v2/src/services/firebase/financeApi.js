@@ -304,4 +304,8 @@ export const invoiceDeliveryApi = {
   sendCreditNote(creditNoteId) {
     return postInvoice("/credit-note/send", { creditNoteId });
   },
+  // admin: one test e-mail to the admin's own address → { ok, to, error }
+  testEmail() {
+    return postInvoice("/email-test", {});
+  },
 };

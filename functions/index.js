@@ -4607,6 +4607,17 @@ function invoiceRecipient(invoice, student) {
   );
 }
 
+// the parent account linked to the invoice or the student card (Lapsevanemad), when no e-mail is on the card
+async function linkedParentEmail(invoice, student) {
+  const ids = [...new Set([invoice?.parentUid, invoice?.linkedParentId, invoice?.guardianUid, student?.linkedParentId, student?.parentUid, student?.guardianUid].filter(Boolean).map(String))];
+  for (const id of ids) {
+    const snap = await db.collection("users").doc(id).get();
+    const email = snap.exists ? firstEmail(snap.data().email) : "";
+    if (email) return email;
+  }
+  return "";
+}
+
 function invoiceIsParentTarget(invoice) {
   return invoice?.invoiceTargetType === "parent" || (!invoice?.studentId && Boolean(invoice?.parentUid || invoice?.linkedParentId || invoice?.parentName || invoice?.parentEmail || invoice?.payerName || invoice?.payerEmail));
 }
@@ -4838,12 +4849,17 @@ async function deliverEmail(message, context = {}) {
     await ref.update({ status: "sent", provider: "sendgrid", providerId, sentAt: FieldValue.serverTimestamp() });
     return { status: "sent", provider: "sendgrid", queueId: ref.id, providerId };
   } catch (e) {
+    // the provider's answer (e.g. „535 authentication failed”) without credentials, so the cause can be read
+    const detail = [e.code, e.responseCode, e.message || e].filter(Boolean).join(" · ").slice(0, 500);
+    console.error("email delivery failed", { provider, host: provider === "smtp" ? smtpHost : "", user: provider === "smtp" ? smtpUser : "", detail });
     await ref.update({
       status: "failed",
-      error: String(e.message || e).slice(0, 500),
+      error: detail,
       failedAt: FieldValue.serverTimestamp(),
     });
-    throw httpError(502, "Email provider error");
+    const failure = httpError(502, "Email provider error");
+    failure.detail = detail;
+    throw failure;
   }
 }
 
@@ -4853,7 +4869,7 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
     throw httpError(400, "Invoice is already paid");
   }
   const student = await loadInvoiceStudent(invoice);
-  const to = invoiceRecipient(invoice, student);
+  const to = invoiceRecipient(invoice, student) || await linkedParentEmail(invoice, student);
   if (!to) throw httpError(400, "Recipient email is missing");
   const payload = composeInvoiceEmail(invoice, student, type);
   const nowIso = new Date().toISOString();
@@ -7696,6 +7712,25 @@ exports.invoiceApi = functions
       }
       const result = await sendCreditNoteMessage(req.body?.creditNoteId, { actor });
       res.json(result);
+      return;
+    }
+
+    // admin: one test e-mail to the admin's own address; returns the provider's error text when it fails
+    if (path === "/email-test") {
+      const admin = await requireAdminUser(req);
+      const to = firstEmail(admin.decoded.email);
+      if (!to) throw httpError(400, "Recipient email is missing");
+      try {
+        const delivery = await deliverEmail({
+          to,
+          subject: "KeeleSepp: e-posti test",
+          text: "See on KeeleSepa testkiri. Kui see kiri jõudis kohale, töötab arvete ja meeldetuletuste saatmine.",
+          html: "<p>See on KeeleSepa testkiri.</p><p>Kui see kiri jõudis kohale, töötab arvete ja meeldetuletuste saatmine.</p>",
+        }, { type: "test", createdByUid: admin.decoded.uid, createdByEmail: to });
+        res.json({ ok: true, to, status: delivery.status, provider: delivery.provider });
+      } catch (e) {
+        res.json({ ok: false, to, error: e.detail || e.message || "Email provider error" });
+      }
       return;
     }
 

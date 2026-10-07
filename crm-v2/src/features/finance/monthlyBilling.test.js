@@ -59,3 +59,15 @@ describe('monthly billing', () => {
     expect(defaultDue('2031-03', 'advance')).toBe('2031-02-28');
   });
 });
+
+describe('payer e-mail', () => {
+  it('uses the student card first, then the linked parent account', async () => {
+    const { payerEmailOf } = await import('./monthlyBilling.js');
+    const parents = [{ id: 'p1', email: 'ema@example.com' }, { id: 'p2', email: '' }];
+    expect(payerEmailOf({ parentEmail: 'kaart@example.com', linkedParentId: 'p1' }, parents)).toBe('kaart@example.com');
+    expect(payerEmailOf({ linkedParentId: 'p1' }, parents)).toBe('ema@example.com');
+    expect(payerEmailOf({ guardianUid: 'p1' }, parents)).toBe('ema@example.com');
+    expect(payerEmailOf({ linkedParentId: 'p2' }, parents)).toBe('');
+    expect(payerEmailOf({}, parents)).toBe('');
+  });
+});

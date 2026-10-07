@@ -8,7 +8,7 @@ describe('finance workspace navigation', () => {
   });
 
   it('keeps rare tools under Täpsem', () => {
-    expect(FINANCE_WORKSPACE_GROUPS[1].sections.map((section) => section.id)).toEqual(['tunniarvestus', 'avansid', 'audit', 'numeratsioon']);
+    expect(FINANCE_WORKSPACE_GROUPS[1].sections.map((section) => section.id)).toEqual(['tunniarvestus', 'avansid', 'audit', 'numeratsioon', 'ekirjad']);
   });
 
   it('opens old links in the tab that now holds them', () => {
