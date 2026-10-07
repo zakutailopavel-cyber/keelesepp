@@ -247,6 +247,16 @@ describe('Content Pack Factory v1', () => {
     expect(readingBlocks[0].data.questions.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
   });
 
+  it('A2-034 reading questions all carry answer keys', () => {
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-034')).profile;
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    reading.banks.readingDocuments.forEach((doc) => {
+      const questions = doc.questions.split('\n').filter(Boolean);
+      expect(questions.length).toBeGreaterThanOrEqual(5);
+      questions.forEach((question) => expect(question, `${doc.id}: ${question}`).toMatch(/\[[^\]]+\]\s*$/));
+    });
+  });
+
   it('translation hints never reveal an accepted answer', () => {
     for (const lessonId of ['a2-007', 'a2-011', 'a2-012', 'a2-013']) {
       const lesson = lessons.find((item) => item.id === lessonId);
