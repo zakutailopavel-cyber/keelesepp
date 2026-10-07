@@ -1,3 +1,16 @@
+## 2026-10-07 — A2 module 09 textbook production — branch `agent/a2-module-09-production`
+
+Stacked on A2 module 08 / PR #334. Serial lesson production continues.
+- Added curated Content Library v10 sources for `a2-041…a2-045` / “Tervis ja kehahooldus”: `body-symptoms`, `health-state-forms`, `doctor-visit`, `medicine-appointment-info`.
+- A2-041 keeps the vocabulary functional and limited to frequent body parts, symptoms and basic state language rather than medical terminology.
+- A2-042 practices `mul on / mul valutab / mul ei ole / mul on vaja` with explicit controlled transformations and error repair.
+- A2-043 contains a short authored consultation listening source plus 8–10-reply role-play prompts focused on symptoms, onset, duration and confirmation of what was understood.
+- A2-044 contains two functional reading documents with 5+ questions. The medicine example is explicitly marked as an educational sample, not a real medication instruction, and tells the learner to ask a pharmacist or doctor when real instructions are unclear.
+- Added `production/a2Module09.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 041–043, module-08 recycling across 041–043, distributed return to 046–048, no new core vocabulary in Kontroll 9, and a grammar/function spine for state constructions, onset/duration questions, recommendations and frequency/time in practical health information.
+- Tests cover five curated profiles, state transformations, safe practical reading, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue directly to A2 module 10 “Vaba aeg ja meelelahutus”.
+
 ## 2026-10-07 — A2 module 08 textbook production — branch `agent/a2-module-08-production`
 
 Stacked on A2 module 07 / PR #333. Serial lesson production continues.
