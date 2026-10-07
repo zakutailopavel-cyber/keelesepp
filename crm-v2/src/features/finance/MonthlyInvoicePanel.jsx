@@ -7,6 +7,8 @@ import { lessonsService } from '../../services/firebase/lessons.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
 import { parentsService } from '../../services/firebase/parents.js';
+import { LESSON_MINUTES, revenuePlansService } from '../../services/firebase/revenuePlans.js';
+import { studentsService } from '../../services/firebase/students.js';
 import { defaultBillingMonth, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
 import './monthlyInvoicePanel.css';
 
@@ -24,10 +26,63 @@ const STATUS = {
 
 // Finance v2 §2, tab "Kuuarved": one invoice per student for the lessons planned in the chosen month, with last
 // month's difference. Nothing is created or e-mailed until the admin presses a button.
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Under a row that cannot be invoiced yet: the lesson price (saved to the student's billing plan, admin only) and/or
+// the payer e-mail (saved on the student card) right here, so the month does not need 30 profile visits.
+function RowFix({ row, user, planRepository, studentRepository, onPlan, onEmail }) {
+  const needsPrice = row.status === 'no-price';
+  const needsEmail = !row.payerEmail;
+  const [price, setPrice] = useState('');
+  const [minutes, setMinutes] = useState(String(row.plan?.lessonMinutes || 60));
+  const [email, setEmail] = useState('');
+  const [busy, setBusy] = useState('');
+  const [error, setError] = useState('');
+  if (!needsPrice && !needsEmail) return null;
+  const savePrice = async (event) => {
+    event.preventDefault();
+    setBusy('price'); setError('');
+    try {
+      // weekly lessons only feed the revenue forecast: keep the plan's value or estimate it from this month
+      const weeklyLessons = row.plan?.weeklyLessons || Math.max(0.5, Math.round((row.lessonCount / 4.33) * 2) / 2);
+      const plan = await planRepository.save(row.student, { lessonPrice: price, weeklyLessons, lessonMinutes: minutes, billingMode: row.plan?.billingMode || 'current' }, user, row.plan || null);
+      onPlan(plan);
+    } catch (caught) { setError(caught.message || 'Hinda ei saanud salvestada.'); } finally { setBusy(''); }
+  };
+  const saveEmail = async (event) => {
+    event.preventDefault();
+    if (!EMAIL.test(email.trim())) { setError('Sisesta korrektne e-posti aadress.'); return; }
+    setBusy('email'); setError('');
+    try {
+      await studentRepository.update(row.student.id, { parentEmail: email.trim() });
+      onEmail(email.trim());
+    } catch (caught) { setError(caught.message || 'E-posti ei saanud salvestada.'); } finally { setBusy(''); }
+  };
+  return (
+    <div className="monthly-invoices__fix">
+      {needsPrice ? (
+        <form onSubmit={savePrice} aria-label={`Tunni hind: ${row.student.name}`}>
+          <label><span>Tunni hind (€)</span><input inputMode="decimal" value={price} onChange={(event) => setPrice(event.target.value)} placeholder="20" required /></label>
+          <label><span>Tunni pikkus</span><select value={minutes} onChange={(event) => setMinutes(event.target.value)}>{LESSON_MINUTES.map((value) => <option key={value} value={value}>{value} min</option>)}</select></label>
+          <Button type="submit" variant="secondary" loading={busy === 'price'} disabled={Boolean(busy) || !price.trim()}>Salvesta hind</Button>
+        </form>
+      ) : null}
+      {needsEmail ? (
+        <form onSubmit={saveEmail} aria-label={`Maksja e-post: ${row.student.name}`}>
+          <label><span>Maksja e-post</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="lapsevanem@näide.ee" required /></label>
+          <Button type="submit" variant="secondary" loading={busy === 'email'} disabled={Boolean(busy) || !email.trim()}>Salvesta e-post</Button>
+        </form>
+      ) : null}
+      {error ? <p className="form-error" role="alert">{error}</p> : null}
+    </div>
+  );
+}
+
 export default function MonthlyInvoicePanel({
   students = [], plans = [], lessons = [], invoices = [], user,
   scheduleRepository = scheduleService, groupRepository = groupsService,
   invoiceApi = manualInvoiceApi, deliveryApi = invoiceDeliveryApi, lessonRepository = lessonsService, parentRepository = parentsService,
+  planRepository = revenuePlansService, studentRepository = studentsService,
   onChanged,
 }) {
   const [month, setMonth] = useState(() => defaultBillingMonth());
@@ -39,6 +94,11 @@ export default function MonthlyInvoicePanel({
   const [progress, setProgress] = useState('');
   const [error, setError] = useState('');
   const [waived, setWaived] = useState({});
+  // prices and e-mails entered in the table count at once, without reloading the finance page
+  const [planFixes, setPlanFixes] = useState({});
+  const [emailFixes, setEmailFixes] = useState({});
+  const allPlans = useMemo(() => [...plans.filter((plan) => !planFixes[plan.studentId || plan.id]), ...Object.values(planFixes)], [plans, planFixes]);
+  const allStudents = useMemo(() => students.map((student) => (emailFixes[student.id] ? { ...student, parentEmail: emailFixes[student.id] } : student)), [students, emailFixes]);
 
   useEffect(() => {
     let alive = true;
@@ -50,8 +110,8 @@ export default function MonthlyInvoicePanel({
   }, [scheduleRepository, groupRepository, parentRepository]);
 
   const lessonsWithWaivers = useMemo(() => lessons.map((lesson) => (lesson.id in waived ? { ...lesson, billingWaived: waived[lesson.id] } : lesson)), [lessons, waived]);
-  const rows = useMemo(() => (calendar.loading ? [] : monthlyBillingRows({ month, students, plans, schedule: calendar.schedule, groups: calendar.groups, lessons: lessonsWithWaivers, invoices, parents: calendar.parents })),
-    [calendar, month, students, plans, lessonsWithWaivers, invoices]);
+  const rows = useMemo(() => (calendar.loading ? [] : monthlyBillingRows({ month, students: allStudents, plans: allPlans, schedule: calendar.schedule, groups: calendar.groups, lessons: lessonsWithWaivers, invoices, parents: calendar.parents })),
+    [calendar, month, allStudents, allPlans, lessonsWithWaivers, invoices]);
   const visible = rows.filter((row) => mode === 'all' || row.mode === mode);
   const ready = visible.filter((row) => row.status === 'ready');
   const chosen = ready.filter((row) => selected.has(row.student.id));
@@ -116,6 +176,16 @@ export default function MonthlyInvoicePanel({
                   <span>{dateLabel(row.existing?.due || row.due)}</span>
                   <span><Badge tone={status.tone}>{row.existing ? `${status.label} ${row.existing.num || ''}` : status.label}</Badge></span>
                 </div>
+                {!row.existing && user?.roles?.includes('admin') ? (
+                  <RowFix
+                    row={row}
+                    user={user}
+                    planRepository={planRepository}
+                    studentRepository={studentRepository}
+                    onPlan={(plan) => { setPlanFixes((current) => ({ ...current, [plan.studentId]: plan })); setSelected((current) => new Set([...current, row.student.id])); }}
+                    onEmail={(value) => setEmailFixes((current) => ({ ...current, [row.student.id]: value }))}
+                  />
+                ) : null}
                 {open === row.student.id ? (
                   <div className="monthly-invoices__detail">
                     <p>{row.correction.note || 'Eelmise kuu tunnid läksid plaanipäraselt.'}</p>
@@ -130,7 +200,7 @@ export default function MonthlyInvoicePanel({
       )}
       <div className="monthly-invoices__footer">
         <span aria-live="polite">{busy ? progress : ready.length ? `Valitud ${chosen.length} / ${ready.length} arvet · ${money(totalCents)}` : ''}</span>
-        {rows.some((row) => row.status === 'no-price') ? <span className="monthly-invoices__warn"><TriangleAlert size={16} /> Osal õpilastel puudub hind: lisa see õpilase profiilis (Finantsid → Arveldus).</span> : null}
+        {rows.some((row) => row.status === 'no-price') ? <span className="monthly-invoices__warn"><TriangleAlert size={16} /> Osal õpilastel puudub hind: sisesta see õpilase real (või profiilis → Arveldus).</span> : null}
         <div>
           <Button variant="secondary" disabled={!chosen.length || Boolean(busy)} loading={busy === 'create'} onClick={() => create(false)}><FileText size={17} /> Koosta arved</Button>
           <Button disabled={!chosen.length || Boolean(busy)} loading={busy === 'send'} onClick={() => create(true)}><Send size={17} /> Koosta ja saada</Button>

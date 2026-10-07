@@ -19,3 +19,13 @@
 .monthly-invoices__warn { display: inline-flex; gap: 6px; align-items: center; color: #b54708; }
 .monthly-invoices__done { display: flex; gap: 6px; align-items: center; margin: 0; color: #087443; font-weight: 700; }
 @media (max-width: 640px) { .monthly-invoices__modes { margin-left: 0; } .monthly-invoices__footer > div { width: 100%; flex-direction: column; } }
+
+/* price / payer e-mail right in the row */
+.monthly-invoices__fix{display:flex;flex-wrap:wrap;gap:10px 18px;padding:6px 12px 12px 44px}
+.monthly-invoices__fix form{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px}
+.monthly-invoices__fix label{display:grid;gap:3px;font-size:.76rem;font-weight:700;color:#475467}
+.monthly-invoices__fix input,.monthly-invoices__fix select{min-height:36px;border:1px solid #d0d5dd;border-radius:9px;padding:0 10px;font:inherit;background:#fff}
+.monthly-invoices__fix input[inputmode=decimal]{width:90px}
+.monthly-invoices__fix input[type=email]{width:240px}
+.monthly-invoices__fix .button{min-height:36px}
+.monthly-invoices__fix .form-error{flex-basis:100%;margin:0}

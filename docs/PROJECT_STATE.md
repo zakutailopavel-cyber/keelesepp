@@ -1,3 +1,14 @@
+## 2026-10-07 — „Kuuarved”: price and payer e-mail entered in the row — branch `agent/kuuarved-inline`
+
+October: 31 students without price, many without payer e-mail; fixing them meant opening every profile.
+- `MonthlyInvoicePanel` `RowFix` (admin, rows not yet invoiced): „Tunni hind (€)” + lesson length → saved via
+  `revenuePlansService.save` (price only in `studentRevenuePlans`; weekly lessons kept or estimated from the month for
+  the forecast); „Maksja e-post” → `studentsService.update({ parentEmail })`. The row updates at once (local overrides,
+  no finance page reload) and a newly priced row is selected.
+- Root cause found in the audit (previous entry) still needs the owner: SMTP password of info@epkoolitus.ee at Zone
+  is rejected („535 Authentication failed”) → owner sets `SMTP_PASS`, then the 6 mail functions are redeployed.
+- Checks: finance tests 72/72 (new inline price + e-mail test); eslint 0 errors; build OK.
+
 ## 2026-10-07 — Finance audit: e-mails never leave the server; parent account e-mail; „E-kirjad” — branch `agent/finance-parent-email`
 
 Owner: „check the whole finance block and finish it”. Read-only audit in the owner's Chrome: all 7 finance tabs load,
