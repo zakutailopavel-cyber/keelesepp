@@ -1,3 +1,9 @@
+## 2026-10-07 — A2-034 answer-key fix — branch `agent/a2-module-07-production`
+
+- Fixed both A2-034 functional-reading documents so every scored question has an explicit accepted answer; this removes the intermittent `ANSWER_KEY_MISSING` failure in the generator test.
+- Added a focused regression test that checks all A2-034 reading questions end with an answer key.
+- Generator CI re-triggered from commit `b7a0087`; no production data or UI files changed.
+
 ## 2026-10-07 — A2 module 07 textbook production — branch `agent/a2-module-07-production`
 
 Stacked on A2 module 06 / PR #332. Serial lesson production continues.
