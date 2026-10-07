@@ -1,5 +1,5 @@
 import { BookA, Image as ImageIcon, Settings2, Sparkles, Target } from 'lucide-react';
-import { artBlock, missingArt } from '../art/textbookArt.js';
+import { artBlock, artPromptBlock, missingArt } from '../art/textbookArt.js';
 import { createBlock } from '../../worksheet-studio/engine/registry.js';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -96,7 +96,7 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
   // the lesson's textbook illustrations for this sheet that are not on it yet
   const art = doc ? missingArt(doc, lessonId, worksheetId) : [];
   const insertArt = () => {
-    onInsertBlocks(art.map(artBlock));
+    onInsertBlocks(art.flatMap((visual) => [artBlock(visual), artPromptBlock(visual)]));
     setNotice(art.length === 1 ? 'Lehele lisati tunni pilt.' : `Lehele lisati ${art.length} tunni pilti.`);
   };
 

@@ -1,3 +1,17 @@
+## 2026-10-07 — Picture layout + „Valmista moodul ette” (one click per module) — branch `agent/art-layout`
+
+Owner: the half-width picture left half a row empty; the UI is too busy — „do it all yourself”.
+- `art/textbookArt.js`: the picture takes ⅔ of the row (`span 8`) with a „Vaata pilti” notice card beside it
+  (`span 4`, phase questions or the brief's own `prompts`); `withArtLayout` upgrades older half-width picture
+  blocks (applied on load in `LessonWorksheetStudioPage` and when preparing a module); „Lisa tunni pilt” inserts both.
+- `ui/moduleDrafts.js` `prepareModule`: missing drafts → every core sheet gets its picture/layout → publish drafts
+  that pass `analyzeWorksheet` (no errors); published sheets are re-published only when a picture was added;
+  sheets with quality errors stay drafts and are counted.
+- Õppevara admin button on a module heading is now „Valmista moodul ette” (replaces „Loo mustandid”).
+- Checks: textbookArt, moduleDrafts (prepareModule), Õppevara tests; full suite only the known 10 Node 26
+  `localStorage` failures; eslint 0 errors; build OK.
+- Next safe step: run „Valmista moodul ette” on A2 modules (done by the agent in the owner's Chrome, see next entry).
+
 ## 2026-10-07 — „Loo mustandid”: immediate feedback while the generator loads — branch `agent/module-drafts-feedback`
 
 Checked in the owner's Chrome after #349: module 1 run → „1 tunnile lisati puuduvad etapid”; a2-001 now has

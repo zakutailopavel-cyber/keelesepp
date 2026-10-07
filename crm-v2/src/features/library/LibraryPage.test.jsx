@@ -273,18 +273,18 @@ describe('LibraryPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/library/lessons/a2b1-001/worksheets/discover?vaade=opilane');
   });
 
-  it('an admin creates the drafts of a whole module only for lessons without sheets', async () => {
+  it('an admin prepares a whole module in one click and sees what was published', async () => {
     const lesson = (id, number, phases) => ({ id, title: `Tund ${number}`, level: 'A2', topic: '01. Algus', roadmapManaged: true, roadmapModuleNumber: 1, roadmapModuleTitle: '01. Algus', roadmapLessonNumber: number, ...(phases ? { worksheetPhases: phases } : {}) });
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [lesson('a2-001', 1, { discover: { publishedVersion: 1 } }), lesson('a2-002', 2)], exercises: [] }) };
-    const generateModuleDrafts = vi.fn().mockResolvedValue({ created: ['a2-002'], existing: ['a2-001'], noProfile: [], failed: [] });
-    vi.doMock('../worksheet-generator/ui/moduleDrafts.js', () => ({ generateModuleDrafts }));
+    const prepareModule = vi.fn().mockResolvedValue({ drafts: { created: ['a2-002'], completed: ['a2-001'], existing: [], noProfile: [], failed: [] }, published: ['a', 'b', 'c', 'd', 'e'], pictured: ['a2-001:discover'], notReady: ['a2-002:transfer'], failed: [] });
+    vi.doMock('../worksheet-generator/ui/moduleDrafts.js', () => ({ prepareModule }));
     const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
     render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 'admin', displayName: 'Admin', roles: ['admin'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} worksheetRepository={{ syncPhases: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
-    fireEvent.click(await screen.findByRole('button', { name: 'Loo mustandid' }));
-    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('kuni 2 tunnile'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Valmista moodul ette' }));
+    expect(confirm).toHaveBeenCalledWith(expect.stringContaining('kvaliteedikontrollis vigu ei ole'));
     expect(screen.getByRole('button', { name: 'Laen generaatorit…' })).toBeDisabled();
-    expect(await screen.findByRole('status')).toHaveTextContent('Mustandid loodi 1 tunnile; 1 tunnil olid lehed juba olemas.');
-    expect(generateModuleDrafts).toHaveBeenCalledWith(expect.objectContaining({ lessons: [expect.objectContaining({ id: 'a2-001' }), expect.objectContaining({ id: 'a2-002' })] }));
+    expect(await screen.findByRole('status')).toHaveTextContent('lehed loodi 2 tunnile; avaldati 5 lehte, pilt lisati 1 avaldatud lehele; 1 lehte jäi kvaliteedivigade tõttu mustandiks.');
+    expect(prepareModule).toHaveBeenCalledWith(expect.objectContaining({ lessons: [expect.objectContaining({ id: 'a2-001' }), expect.objectContaining({ id: 'a2-002' })] }));
     confirm.mockRestore();
     vi.doUnmock('../worksheet-generator/ui/moduleDrafts.js');
   });

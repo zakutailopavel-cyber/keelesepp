@@ -26,12 +26,29 @@ export function visualsFor(lessonId, phase, visuals = ALL_VISUALS) {
   return visuals.filter((visual) => visualLessonId(visual) === lessonId && (!phase || visual.phase === phase));
 }
 
-// the worksheet image block for one illustration (artId marks it so it is never added twice)
+// Picture questions beside the illustration (a brief may give its own `prompts`), by phase, simple A2 Estonian.
+const PHASE_PROMPTS = {
+  discover: ['Kes on pildil?', 'Kus nad on?', 'Mis toimub?'],
+  practice: ['Mida inimesed teevad?', 'Mida nad ütlevad?', 'Kirjelda pilti 2–3 lausega.'],
+  transfer: ['Mis olukord see on?', 'Mida sina selles olukorras teeksid?', 'Räägi paarilisega.'],
+};
+const ART_SPAN = 8;
+const PROMPT_SPAN = 4;
+
+// the „Vaata pilti” card that sits beside the picture: the picture's learning job for the learner
+export function artPromptBlock(visual) {
+  const prompts = Array.isArray(visual.prompts) && visual.prompts.length ? visual.prompts : PHASE_PROMPTS[visual.phase] || PHASE_PROMPTS.discover;
+  return { id: `artq_${visual.id}`, type: 'notice', span: PROMPT_SPAN, width: 'half', data: { title: 'Vaata pilti', lines: prompts.join('\n'), artFor: visual.id } };
+}
+
+// the worksheet image block for one illustration (artId marks it so it is never added twice); ⅔ of the row
 export function artBlock(visual) {
   const format = FORMATS[visual.format] || FORMATS.scene;
   return {
     id: `art_${visual.id}`,
     type: 'image',
+    span: ART_SPAN,
+    width: 'half',
     data: {
       img: { src: visualSrc(visual), width: format.width, height: format.height, focus: { x: 50, y: 50 } },
       aspect: format.aspect,
@@ -51,8 +68,24 @@ export function withLessonArt(doc, lessonId, phase, visuals = ALL_VISUALS) {
   if (!doc || !missing.length) return doc;
   const blocks = [...(doc.blocks || [])];
   const at = ['text', 'notice', 'tip'].includes(blocks[0]?.type) ? 1 : 0;
-  blocks.splice(at, 0, ...missing.map(artBlock));
+  blocks.splice(at, 0, ...missing.flatMap((visual) => [artBlock(visual), artPromptBlock(visual)]));
   return { ...doc, blocks };
+}
+
+// Sheets made before the picture had its own row: the half-width picture left half a row empty. Give it ⅔ of the
+// row and the „Vaata pilti” card beside it. Returns the same doc when nothing needs fixing.
+export function withArtLayout(doc, visuals = ALL_VISUALS) {
+  const blocks = doc?.blocks || [];
+  const legacy = blocks.filter((block) => block?.type === 'image' && block.data?.artId && !block.span);
+  if (!legacy.length) return doc;
+  const next = [];
+  for (const block of blocks) {
+    if (!(block?.type === 'image' && block.data?.artId && !block.span)) { next.push(block); continue; }
+    const visual = visuals.find((item) => item.id === block.data.artId) || { id: block.data.artId, phase: 'discover' };
+    next.push({ ...block, span: ART_SPAN, width: 'half' });
+    if (!blocks.some((item) => item?.data?.artFor === block.data.artId)) next.push(artPromptBlock(visual));
+  }
+  return { ...doc, blocks: next };
 }
 
 export const missingArt = (doc, lessonId, phase, visuals = ALL_VISUALS) => visualsFor(lessonId, phase, visuals).filter((visual) => !hasArt(doc, visual));

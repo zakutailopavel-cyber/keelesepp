@@ -7,6 +7,7 @@ import { regenerateTask, regenerateTaskOptions } from '../engine/regenerate.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
 import LessonGeneratorBar from './LessonGeneratorBar.jsx';
 import { coreSheetMeta } from './lessonGeneration.js';
+import { withArtLayout } from '../art/textbookArt.js';
 
 const MISSING = 'Töölehte ei leitud.';
 
@@ -31,7 +32,8 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
         return { document: { ...document, meta: { ...document.meta, title: meta.label.replace(/^\d\s*/, '') } }, source: 'lesson-new', lesson: {}, baseUpdatedAt: '', version: 0, status: 'draft', generation: null };
       }
       exists.current = true;
-      return { document: record.worksheetDoc, source: 'worksheetDoc', lesson: {}, baseUpdatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, generation: record.generation || null };
+      // pictures added before they had their own row get ⅔ width and the „Vaata pilti” card (saved with the next save)
+      return { document: withArtLayout(record.worksheetDoc), source: 'worksheetDoc', lesson: {}, baseUpdatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, generation: record.generation || null };
     },
     async save({ document, user, baseUpdatedAt, status, generation }) {
       const method = status === 'published' ? 'publish' : 'saveDraft';
