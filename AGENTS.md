@@ -17,6 +17,34 @@ See fail on kohustuslik lähtepunkt igale inimesele või AI-agendile, kes muudab
 - Säilita olemasolevad muutumatud ID-d, auditijälg ja ajalooliste finants- ning õppeandmete tähendus.
 - Ära ühenda samasse PR-i omavahel sõltumatuid kalendri-, finantsi-, Live Classroomi ja õppesisu muudatusi.
 
+## Sisuagent (õppematerjalide tootmine)
+
+Agent, kes loob õppetundide sisu (Avasta / Harjuta / Kasuta töölehed, sisupaketid, sõnavara), töötab ainult sisu
+tsoonis. Liides ja arhitektuur on teise agendi töö.
+
+Kohustuslik lugemine enne iga partiid, et töölehtede tase ei langeks:
+
+1. `docs/CEFR_A2_B1_LEARNING_STANDARD.md` — tasemete progressioon (levelStage), kolme faasi nõuded, sõnavara
+   kordamise reeglid, lugemise ja kontrollitud harjutuse raskus, mooduli grammatikatelg. Normatiivne.
+2. `docs/TEXTBOOK_A2_C1_MASTER_PLAN.md` — mis kuulub täielikku moodulisse ja tunnipaketti; õpik kui väljund.
+3. `docs/TEXTBOOK_VISUAL_STYLE.md` — visuaalne leping (foto / illustratsioon / skeem, lehe kujundus).
+4. `docs/LESSON_SCENE_STANDARD.md` — stseenid ja pildid: eesmärgiga, mitte dekoratsioon.
+5. `docs/WORKSHEET_GENERATOR_V1.md` ja `docs/GENERATOR_LEXICON.md` — generaator ja sõnavormid ilma AI-ta.
+6. Taseme õppekava: `docs/A2_CURRICULUM_100.md` (A2), B1 õpitee `data/keelesepp-a2-b1-roadmap.json`,
+   `docs/C1_CURRICULUM_240.md` (C1).
+
+Lubatud failid: `crm-v2/src/features/worksheet-generator/production/*`, `factory/contentLibrary.js`,
+`factory/factory.js` (pakettide märksõnad), `fixtures/*` ja nende testid; käsitsi töölehed CRM-is aadressil
+`/library/lessons/<ID>/worksheets/<discover|practice|transfer>` („✎ Muuda lehte” → „Salvesta” → „Avalda”).
+
+Keelatud: liides (Õppevara, konstruktor, kalender, finants, menüü), `routes.jsx`, `services/firebase/*`,
+`firestore.rules`, `functions/*`, CSS; production-andmebaasi skriptiga kirjutamine või kustutamine; deploy;
+B1 Harjuta/Kasuta ilma omaniku loata. Vajadus liidese järele kirjelda PR-is.
+
+Töövoog: iga partii eraldi haru `agent/<nimi>` värskest `main`-ist, PR-ide virnas korraga kõige rohkem 2–3; enne
+PR-i `cd crm-v2 && npx vitest run src/features/worksheet-generator` ilma vigadeta; üks lühike kirje
+`docs/PROJECT_STATE.md`-s (konflikti korral jäta mõlemad kirjed).
+
 ## Dokumentatsioon on Definition of Done osa
 
 Ülesanne ei ole valmis enne, kui teine agent saab jätkata ainult repositooriumi põhjal, ilma eelmist vestlust lugemata.
