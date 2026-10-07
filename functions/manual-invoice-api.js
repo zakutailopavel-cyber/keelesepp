@@ -6,6 +6,13 @@ const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
+// the owner's account is admin by e-mail everywhere else (firestore.rules superAdmin(), functions/index.js)
+const SUPER_ADMIN_EMAILS = new Set(
+  (process.env.SUPER_ADMIN_EMAILS || 'zakutailo.pavel@gmail.com')
+    .split(',')
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean),
+);
 const DEFAULT_ALLOWED_ORIGINS = new Set([
   'https://keelesepp.vercel.app',
   'https://keelesepp-crm-v2.vercel.app',
@@ -58,6 +65,7 @@ async function requireFinanceUser(req) {
     ...(Array.isArray(decoded.roles) ? decoded.roles : []),
     decoded.role,
   ].filter(Boolean).map(String));
+  if (SUPER_ADMIN_EMAILS.has(String(decoded.email || '').toLowerCase())) roles.add('admin');
   if (![...roles].some((role) => ALLOWED_ROLES.has(role))) {
     throw httpError(403, 'Finance or administrator access required');
   }
