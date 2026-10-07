@@ -22,6 +22,7 @@ describe('BookPage', () => {
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: lessons, exercises: [] }) };
     const { container } = render(<MemoryRouter><BookPage repository={repository} /></MemoryRouter>);
     await screen.findByText('Õpik töölehtedest');
+    fireEvent.click(screen.getByRole('tab', { name: 'Vali käsitsi' }));
     expect(screen.queryByText('Ainult pilt')).toBeNull();
     fireEvent.change(screen.getByLabelText('Pealkiri'), { target: { value: 'Eesti keel' } });
     fireEvent.click(screen.getByRole('button', { name: /Minu pere/ }));
@@ -37,3 +38,41 @@ describe('BookPage', () => {
     expect(JSON.parse(window.localStorage.getItem('ks-worksheet-book-draft')).ids).toEqual(['a', 'b']);
   });
 });
+
+describe('BookPage by the curriculum', () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it('assembles the published phase sheets of a level in curriculum order and lists what is missing', async () => {
+    const lesson = (id, number, title, phases) => ({ id, title, level: 'B1', roadmapManaged: true, roadmapModuleNumber: 1, roadmapModuleTitle: '01. Igapäevaelu', roadmapLessonNumber: number, worksheetPhases: phases });
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [
+      lesson('a2b1-002', 2, 'Minu päev', { discover: { publishedVersion: 1 } }),
+      lesson('a2b1-001', 1, 'Lähtepunkt', { discover: { publishedVersion: 5 }, practice: { publishedVersion: 0, version: 1 } }),
+      { id: 'a2-001', title: 'A2 tund', level: 'A2', roadmapManaged: true, roadmapModuleNumber: 1, roadmapLessonNumber: 1 },
+    ], exercises: [] }) };
+    const sheets = {
+      'a2b1-001': [
+        { worksheetId: 'discover', publishedWorksheetDoc: doc('Avasta: minu eesti keel', 'B1'), worksheetDocStatus: 'published' },
+        { worksheetId: 'practice', worksheetDoc: doc('Harjuta mustand', 'B1'), worksheetDocStatus: 'draft' },
+      ],
+      'a2b1-002': [{ worksheetId: 'discover', publishedWorksheetDoc: doc('Avasta: päev', 'B1'), worksheetDocStatus: 'published' }],
+    };
+    const worksheetRepository = { list: vi.fn((id) => Promise.resolve(sheets[id] || [])) };
+    const { container } = render(<MemoryRouter><BookPage repository={repository} worksheetRepository={worksheetRepository} /></MemoryRouter>);
+    fireEvent.change(await screen.findByLabelText('Õpiku tase'), { target: { value: 'B1' } });
+    expect(screen.getByLabelText('Valmidus')).toHaveTextContent('Avasta 2/2 · Harjuta 0/2 · Kasuta 0/2');
+    fireEvent.click(screen.getByRole('button', { name: 'Koosta õpik' }));
+    const toc = within(await waitForToc(container));
+    expect(toc.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['1. Igapäevaelu', '1. Lähtepunkt · Avasta3', '2. Minu päev · Avasta4']);
+    expect(worksheetRepository.list).not.toHaveBeenCalledWith('a2-001');
+    expect(screen.getByText('Puudu 4 avaldatud lehte')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '1. Lähtepunkt · Harjuta' })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/practice');
+    expect(container.querySelector('.ws-book-cover h1').textContent).toBe('Eesti keel B1');
+  });
+});
+
+async function waitForToc(container) {
+  const { waitFor } = await import('@testing-library/react');
+  let toc;
+  await waitFor(() => { toc = container.querySelector('.ws-book-toc'); expect(toc.querySelectorAll('li').length).toBeGreaterThan(1); });
+  return toc;
+}

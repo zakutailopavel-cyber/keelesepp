@@ -288,3 +288,13 @@ textarea.ed-input { resize: vertical; }
 @media print { .ws-studio.is-focus { position: static; height: auto; } }
 .st-btn.st-edit{background:#fff4d6;border-color:#f3c96b;color:#7a4b00;font-weight:800}
 .st-btn.st-edit:hover{background:#ffeab0}
+
+/* Õpik by the curriculum */
+.ws-book-phases{border:0;margin:6px 0;padding:0;display:flex;gap:12px;flex-wrap:wrap}
+.ws-book-phases legend{font-size:.78rem;font-weight:700;color:#475467;margin-bottom:4px}
+.ws-book-phases label{display:inline-flex;gap:5px;align-items:center;font-size:.86rem}
+.ws-book-progress{font-weight:600}
+.ws-book-missing{margin-top:8px;font-size:.84rem}
+.ws-book-missing summary{cursor:pointer;font-weight:700;color:#8a5a00}
+.ws-book-missing ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}
+.ws-book-toc-section{list-style:none;margin:14px 0 4px;font-weight:800;color:#0b5c4d;text-transform:uppercase;letter-spacing:.03em;font-size:.85rem}
