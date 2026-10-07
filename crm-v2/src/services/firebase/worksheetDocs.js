@@ -1,5 +1,5 @@
 /* global TextEncoder */
-import { collection, doc, getDoc, getDocs, query, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where, runTransaction } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { convertLegacyWorksheet } from '../../features/worksheet-studio/engine/legacy.js';
@@ -69,49 +69,49 @@ export const worksheetDocsService = {
   async save({ lessonId = '', document, user, baseUpdatedAt = '', status = 'draft' }) {
     validateWorksheetDoc(document);
     const { db } = requireFirebaseClient();
-    const batch = writeBatch(db);
     const now = new Date().toISOString();
     const lessonRef = lessonId ? doc(db, 'curriculumLessons', lessonId) : doc(collection(db, 'curriculumLessons'));
     const created = !lessonId;
-    let current = {};
-    if (!created) {
-      const snapshot = await getDoc(lessonRef);
-      if (!snapshot.exists()) throw new Error('Õppematerjali ei leitud.');
-      current = snapshot.data() || {};
-      if (baseUpdatedAt && current.worksheetDocUpdatedAt && current.worksheetDocUpdatedAt !== baseUpdatedAt) throw new WorksheetConflictError();
-    }
-    const version = (Number(current.worksheetDocVersion) || 0) + 1;
-    const normalizedStatus = status === 'published' ? 'published' : 'draft';
-    const preservePublished = normalizedStatus === 'draft' && !current.publishedWorksheetDoc
-      && current.worksheetDoc && (!current.worksheetDocStatus || current.worksheetDocStatus === 'published');
-    const stored = clean({ ...document, updatedAt: now, updatedBy: user?.uid || '', version, status: normalizedStatus });
-    const common = {
-      worksheetDoc: stored,
-      worksheetDocSchema: SCHEMA,
-      worksheetDocUpdatedAt: now,
-      worksheetDocVersion: version,
-      worksheetDocStatus: normalizedStatus,
-      updatedAt: now,
-      ...(preservePublished ? {
-        publishedWorksheetDoc: current.worksheetDoc,
-        publishedWorksheetDocVersion: Number(current.worksheetDocVersion) || Number(current.worksheetDoc.version) || 1,
-        publishedWorksheetDocUpdatedAt: current.worksheetDocUpdatedAt || current.worksheetDoc.updatedAt || now,
-      } : {}),
-      ...(normalizedStatus === 'published' ? { publishedWorksheetDoc: stored, publishedWorksheetDocVersion: version, publishedWorksheetDocUpdatedAt: now } : {}),
-    };
-    if (created) {
-      batch.set(lessonRef, {
-        ...common,
-        title: document.meta.title.trim(),
-        type: 'material',
-        subject: document.meta.subject || 'Eesti keel',
-        level: document.meta.level || '',
-        topic: document.meta.module || '',
-        description: document.meta.subtitle || '',
-        files: [],
-        authorUid: user?.uid || '',
-        authorName: user?.displayName || user?.email || '',
-        createdAt: now.slice(0, 10),
+    return runTransaction(db, async (batch) => {
+      let current = {};
+      if (!created) {
+        const snapshot = await batch.get(lessonRef);
+        if (!snapshot.exists()) throw new Error('Õppematerjali ei leitud.');
+        current = snapshot.data() || {};
+        if ((current.worksheetDocUpdatedAt || '') !== baseUpdatedAt) throw new WorksheetConflictError();
+      }
+      const version = (Number(current.worksheetDocVersion) || 0) + 1;
+      const normalizedStatus = status === 'published' ? 'published' : 'draft';
+      const preservePublished = normalizedStatus === 'draft' && !current.publishedWorksheetDoc
+        && current.worksheetDoc && (!current.worksheetDocStatus || current.worksheetDocStatus === 'published');
+      const stored = clean({ ...document, updatedAt: now, updatedBy: user?.uid || '', version, status: normalizedStatus });
+      const common = {
+        worksheetDoc: stored,
+        worksheetDocSchema: SCHEMA,
+        worksheetDocUpdatedAt: now,
+        worksheetDocVersion: version,
+        worksheetDocStatus: normalizedStatus,
+        updatedAt: now,
+        ...(preservePublished ? {
+          publishedWorksheetDoc: current.worksheetDoc,
+          publishedWorksheetDocVersion: Number(current.worksheetDocVersion) || Number(current.worksheetDoc.version) || 1,
+          publishedWorksheetDocUpdatedAt: current.worksheetDocUpdatedAt || current.worksheetDoc.updatedAt || now,
+        } : {}),
+        ...(normalizedStatus === 'published' ? { publishedWorksheetDoc: stored, publishedWorksheetDocVersion: version, publishedWorksheetDocUpdatedAt: now } : {}),
+      };
+      if (created) {
+        batch.set(lessonRef, {
+          ...common,
+          title: document.meta.title.trim(),
+          type: 'material',
+          subject: document.meta.subject || 'Eesti keel',
+          level: document.meta.level || '',
+          topic: document.meta.module || '',
+          description: document.meta.subtitle || '',
+          files: [],
+          authorUid: user?.uid || '',
+          authorName: user?.displayName || user?.email || '',
+          createdAt: now.slice(0, 10),
       });
     } else {
       batch.set(lessonRef, common, { merge: true });
@@ -130,8 +130,8 @@ export const worksheetDocsService = {
       createdAt: now,
       date: now.slice(0, 10),
     });
-    await batch.commit();
     return { id: lessonRef.id, created, title: document.meta.title, updatedAt: now, version, status: normalizedStatus };
+    });
   },
 
   async listVersions(lessonId) {

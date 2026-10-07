@@ -29,6 +29,24 @@ group concurrency and dashboard projections; worksheet and cleanup fixes are sep
   Remote CI remains the merge gate. Sibling PRs: #359 worksheet, #360 cleanup.
 - Next safe step: merge only after successful CI; no production data repair or manual deploy.
 
+## 2026-10-07 — Transactional worksheet saves — branch `agent/worksheet-save-integrity`
+
+Fresh main `813b231`; owner requested fixes from the architecture review. Worksheet saves now read
+and write the lesson, version snapshot and activity log in one Firestore transaction. A concurrent
+save retries against the current revision and rejects stale baseUpdatedAt, including an editor
+opened before the first timestamp existed. Existing published snapshots and immutable IDs remain.
+
+Files: worksheetDocs.js/test, ARCHITECTURE.md, this state file. No new collections/rules,
+production writes, migration, deploy, paid API call or content changes.
+Validation: targeted Worksheet Studio/service 2 files / 31 tests PASS; combined-fix CRM suite
+191 files / 1195 tests PASS before the final empty-base regression, which passed in the focused
+run; lint 0 errors (2 existing warnings), build PASS. Rules-only Auth/Firestore emulator:
+7 tests PASS (worksheet save/assignment/student access/live pointer and admin verification).
+Functions API emulator blocked by environment compatibility/IPC; no API PASS claimed.
+PR #359 merged after CRM v2, CRM v2 CI and Vercel checks passed. Owner explicitly authorized
+publication and conditional merge. No manual deployment or production mutation performed.
+Next safe step: finish calendar #358 and cleanup #360 CI/merge, then verify combined main.
+
 ## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
 
 Owner: the invoice showed his personal e-mail; take the invoice generator of the first site version.

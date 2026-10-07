@@ -7,6 +7,7 @@ const firestore = vi.hoisted(() => ({
   getDoc: vi.fn(),
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
+  runTransaction: vi.fn(),
 }));
 const storageApi = vi.hoisted(() => ({
   ref: vi.fn((_storage, path) => `storage-ref:${path}`),
@@ -31,6 +32,11 @@ describe('worksheetDocsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     firestore.writeBatch.mockReturnValue(firestore.batch);
+    firestore.runTransaction.mockImplementation(async (_db, callback) => {
+      const value = await callback({ ...firestore.batch, get: firestore.getDoc });
+      await firestore.batch.commit();
+      return value;
+    });
     storageApi.uploadBytesResumable.mockReturnValue({ on: vi.fn((_e, _p, _err, done) => done()) });
   });
 
@@ -70,7 +76,7 @@ describe('worksheetDocsService', () => {
     expect(firestore.batch.set).not.toHaveBeenCalled();
     firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => draft });
     document.meta.title = 'Avaldatud uus versioon';
-    await worksheetDocsService.save({ lessonId: 'lesson-1', document, user, status: 'published' });
+    await worksheetDocsService.save({ lessonId: 'lesson-1', document, user, baseUpdatedAt: draft.worksheetDocUpdatedAt, status: 'published' });
     const published = { ...draft, ...firestore.batch.set.mock.calls[0][1] };
     expect(published.publishedWorksheetDoc.meta.title).toBe('Avaldatud uus versioon');
     firestore.batch.set.mockClear();
@@ -142,4 +148,9 @@ describe('worksheetDocsService', () => {
     expect(res.src).toBe('https://files.example/uploaded.jpg');
     await expect(worksheetDocsService.uploadAudio(new File(['x'], 'a.pdf', { type: 'application/pdf' }))).rejects.toThrow(/helifail/);
   });
+});
+
+it('rejects an editor loaded before the first timestamp was created', async () => {
+ firestore.getDoc.mockResolvedValue({ exists: () => true, data: () => ({ worksheetDocVersion: 1, worksheetDocUpdatedAt: 'first-save' }) });
+ await expect(worksheetDocsService.save({ lessonId: 'lesson-1', document: sampleDocument(), user, baseUpdatedAt: '' })).rejects.toThrow(/teises aknas/);
 });
