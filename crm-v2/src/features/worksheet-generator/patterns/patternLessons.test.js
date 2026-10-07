@@ -6,7 +6,8 @@ import { generatorProfileReadiness } from '../profiles/index.js';
 
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 const lessonOf = (id) => lessons.find((item) => item.id === id);
-const PATTERN_LESSONS = Object.keys(LESSON_GRAMMAR_POINTS);
+const PATTERN_LESSONS = Object.keys(LESSON_GRAMMAR_POINTS)
+  .filter((lessonId) => suggestReusablePackIds(lessonOf(lessonId)).length === 0);
 const blocksOf = (generated) => generated.sheets.flatMap((sheet) => sheet.worksheetDoc.blocks);
 
 describe('lessons generated from grammar patterns (no hand-written pack)', () => {

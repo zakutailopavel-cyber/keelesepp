@@ -1,3 +1,7 @@
+## 2026-10-07 — A2 Module 11: ilm, aastaajad ja riided — branch `agent/a2-module-11-production`
+
+Added curated production content for a2-051…055: weather and seasons, -m comparison, weather forecast mediation, clothing advice and the combined module assessment. No UI, Firebase, rules, functions, B1 content, production writes or deploys.
+
 ## 2026-10-07 — AGENTS.md: rules and required reading for the content agent — branch `agent/agents-content-rules`
 
 Owner moves lesson-content production to Codex, which reads `AGENTS.md` automatically.

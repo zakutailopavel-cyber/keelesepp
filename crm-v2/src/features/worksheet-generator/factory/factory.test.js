@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-051', 'a2-052', 'a2-053', 'a2-054', 'a2-055'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-051', 'a2-052', 'a2-053', 'a2-054', 'a2-055'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -125,6 +125,23 @@ describe('Content Pack Factory v1', () => {
       const profile = createContentPackDraft(lessons.find((item) => item.id === lessonId)).profile;
       expect(profile.contexts.every((context) => context.times.length === 0)).toBe(true);
     }
+  });
+
+  it('module 11 uses distinct weather sources and combines all of them only in the assessment', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-051')).toEqual(['weather-seasons']);
+    expect(pick('a2-052')).toEqual(['weather-seasons', 'weather-comparison']);
+    expect(pick('a2-053')).toEqual(['weather-seasons', 'weather-forecast']);
+    expect(pick('a2-054')).toEqual(['weather-seasons', 'weather-clothing-advice']);
+    expect(pick('a2-055')).toEqual(['weather-seasons', 'weather-comparison', 'weather-forecast', 'weather-clothing-advice']);
+
+    const forecast = createContentPackDraft(lessons.find((item) => item.id === 'a2-053')).profile;
+    expect(forecast.banks.dialogues.some((item) => item.id === 'weather-forecast-d-1')).toBe(true);
+    expect(forecast.successCriteria).toContain('Ma leian ilmateatest koha, aja, temperatuuri, sademed ja tuule ning annan põhiinfo edasi.');
+
+    const advice = createContentPackDraft(lessons.find((item) => item.id === 'a2-054')).profile;
+    expect(advice.activeVocabulary.map((item) => item.word)).toEqual(expect.arrayContaining(['pane selga', 'võta kaasa', 'vihmavari']));
+    expect(advice.banks.speakingPrompts).toHaveLength(4);
   });
 
   it('translation hints never reveal an accepted answer', () => {

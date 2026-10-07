@@ -25,6 +25,10 @@ const PACK_KEYWORDS = Object.freeze({
   'clock-time': ['kellaaeg', 'ajaväljend'],
   frequency: ['kui tihti', 'sagedus', 'частотн'],
   'week-plan': ['minu nädal', 'nädalaplaan'],
+  'weather-seasons': ['ilm', 'aastaajad', 'погод', 'сезон'],
+  'weather-comparison': ['soojem', 'külmem', 'võrdlus', 'теплее', 'холоднее'],
+  'weather-forecast': ['ilmateade', 'temperatuur', 'prognoos', 'прогноз'],
+  'weather-clothing-advice': ['riided', 'selga', 'vihmavari', 'одежд'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from

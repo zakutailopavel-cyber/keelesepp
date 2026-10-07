@@ -1,5 +1,5 @@
 export const CONTENT_LIBRARY_SCHEMA = 'keelesepp.generator-content-library/1';
-export const CONTENT_LIBRARY_VERSION = 4;
+export const CONTENT_LIBRARY_VERSION = 5;
 
 const vocabulary = (id, rows) => rows.map(([key, word, translation, lexicalType, focusId]) => ({
   id: `${id}-v-${key}`, word, translation, lexicalType, focusIds: [focusId],
@@ -625,6 +625,203 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     ]),
     successCriteria: ['Ma kirjutan oma nädalast järjestatud teksti ja kasutan vähemalt viit ajamäärust või sidesõna.'],
   },
+  'weather-seasons': {
+    id: 'weather-seasons',
+    focus: { id: 'weather-seasons', type: 'vocabulary', label: 'Ilm ja aastaajad', patterns: ['Täna on … ilm.', 'Kevadel / suvel / sügisel / talvel …', 'Õues sajab …'], aliases: ['ilm', 'aastaajad'] },
+    vocabulary: vocabulary('weather-seasons', [
+      ['paikeseline', 'päikeseline', 'солнечный', 'adjective', 'weather-seasons'],
+      ['pilvine', 'pilvine', 'облачный', 'adjective', 'weather-seasons'],
+      ['vihmane', 'vihmane', 'дождливый', 'adjective', 'weather-seasons'],
+      ['tuuline', 'tuuline', 'ветреный', 'adjective', 'weather-seasons'],
+      ['soe', 'soe', 'тёплый', 'adjective', 'weather-seasons'],
+      ['kulm', 'külm', 'холодный', 'adjective', 'weather-seasons'],
+      ['kevad', 'kevad', 'весна', 'noun', 'weather-seasons'],
+      ['suvi', 'suvi', 'лето', 'noun', 'weather-seasons'],
+      ['sugis', 'sügis', 'осень', 'noun', 'weather-seasons'],
+      ['talv', 'talv', 'зима', 'noun', 'weather-seasons'],
+    ]),
+    contexts: [
+      { id: 'weather-window', label: 'Ilm akna taga', tags: ['weather', 'home'], names: ['Kati', 'Oleg'], times: [] },
+      { id: 'weather-seasons-estonia', label: 'Aastaajad Eestis', tags: ['weather', 'seasons'], names: ['Mari', 'Anton'], times: [] },
+      { id: 'weather-weekend', label: 'Nädalavahetuse plaan', tags: ['weather', 'plans'], names: ['Liis', 'Viktor'], times: [] },
+    ],
+    sentences: sentences('weather-seasons', [
+      ['1', 'weather-seasons', 'weather-window', 'Täna on päikeseline ja soe ilm.'],
+      ['2', 'weather-seasons', 'weather-window', 'Hommikul oli pilvine, kuid vihma ei sadanud.'],
+      ['3', 'weather-seasons', 'weather-window', 'Mere ääres on sageli tuuline ilm.'],
+      ['4', 'weather-seasons', 'weather-seasons-estonia', 'Kevad on muutlik ja vahel veel külm.'],
+      ['5', 'weather-seasons', 'weather-seasons-estonia', 'Suvi on tavaliselt soe ja valge.'],
+      ['6', 'weather-seasons', 'weather-seasons-estonia', 'Sügis on tihti vihmane ja tuuline.'],
+      ['7', 'weather-seasons', 'weather-seasons-estonia', 'Talv on külm, aga lumi teeb päeva valgemaks.'],
+      ['8', 'weather-seasons', 'weather-weekend', 'Kui ilm on päikeseline, läheme matkama.'],
+      ['9', 'weather-seasons', 'weather-weekend', 'Vihmane päev sobib muuseumis käimiseks.'],
+    ]),
+    dialogues: [{ id: 'weather-seasons-d-1', focusIds: ['weather-seasons'], contextIds: ['weather-weekend'], speakers: ['Kati', 'Oleg'], lines: [
+      { who: 'Kati', text: 'Milline ilm täna on?' },
+      { who: 'Oleg', text: 'Praegu on [pilvine] ja [tuuline].' },
+      { who: 'Kati', text: 'Kas läheme siiski jalutama?' },
+      { who: 'Oleg', text: 'Jah, õhtul peaks ilm olema [soe].' },
+    ] }],
+    errorPairs: [
+      { id: 'weather-seasons-e-1', focusIds: ['weather-seasons'], wrong: 'Täna ilm on päikeseline.', correct: 'Täna on päikeseline ilm.' },
+      { id: 'weather-seasons-e-2', focusIds: ['weather-seasons'], wrong: 'Sügisel on sageli vihm.', correct: 'Sügisel on sageli vihmane ilm.' },
+    ],
+    translations: [
+      { id: 'weather-seasons-t-1', focusIds: ['weather-seasons'], sourceLang: 'ru', source: 'Сегодня солнечная и тёплая погода.', target: 'Täna on päikeseline ja soe ilm.', alternatives: [] },
+      { id: 'weather-seasons-t-2', focusIds: ['weather-seasons'], sourceLang: 'ru', source: 'Осень в Эстонии часто дождливая.', target: 'Sügis on Eestis sageli vihmane.', alternatives: [] },
+    ],
+    speakingPrompts: prompts('weather-seasons', 'sp', [
+      ['1', 'weather-seasons', 'weather-window', 'Vaata aknast välja ja kirjelda tänast ilma vähemalt nelja lausega.'],
+      ['2', 'weather-seasons', 'weather-seasons-estonia', 'Võrdle oma kodumaa ja Eesti aastaaegu. Milline aastaaeg sulle kõige rohkem meeldib?'],
+    ]),
+    writingPrompts: prompts('weather-seasons', 'wp', [['1', 'weather-seasons', 'weather-weekend', 'Kirjuta 60–80 sõna oma lemmikaastaajast ja sellest, mida sa selle ilmaga teed.']]),
+    successCriteria: ['Ma kirjeldan tänast ja tüüpilist ilma ning räägin neljast aastaajast.'],
+  },
+  'weather-comparison': {
+    id: 'weather-comparison',
+    focus: { id: 'weather-comparison', type: 'grammar', label: 'Ilma võrdlemine: -m ja kui', patterns: ['soojem kui', 'külmem kui', 'parem kui'], aliases: ['võrdlus', 'soojem', 'külmem'] },
+    vocabulary: vocabulary('weather-comparison', [
+      ['soojem', 'soojem', 'теплее', 'adjective', 'weather-comparison'],
+      ['kulmem', 'külmem', 'холоднее', 'adjective', 'weather-comparison'],
+      ['tuulisem', 'tuulisem', 'ветренее', 'adjective', 'weather-comparison'],
+      ['vihmasem', 'vihmasem', 'дождливее', 'adjective', 'weather-comparison'],
+      ['parem', 'parem', 'лучше', 'adjective', 'weather-comparison'],
+      ['halvem', 'halvem', 'хуже', 'adjective', 'weather-comparison'],
+    ]),
+    contexts: [
+      { id: 'compare-cities', label: 'Ilm kahes linnas', tags: ['weather', 'comparison'], names: ['Tallinn', 'Tartu'], times: [] },
+      { id: 'compare-days', label: 'Eilne ja tänane ilm', tags: ['weather', 'days'], names: ['Anna', 'Jüri'], times: [] },
+      { id: 'compare-seasons', label: 'Aastaaegade võrdlus', tags: ['weather', 'seasons'], names: ['Olga', 'Marek'], times: [] },
+    ],
+    sentences: sentences('weather-comparison', [
+      ['1', 'weather-comparison', 'compare-cities', 'Tartus on täna soojem kui Tallinnas.'],
+      ['2', 'weather-comparison', 'compare-cities', 'Rannikul on tuulisem kui sisemaal.'],
+      ['3', 'weather-comparison', 'compare-cities', 'Tallinnas on ilm halvem kui Pärnus.'],
+      ['4', 'weather-comparison', 'compare-days', 'Täna on külmem kui eile.'],
+      ['5', 'weather-comparison', 'compare-days', 'Homme on ilm parem kui täna.'],
+      ['6', 'weather-comparison', 'compare-days', 'See nädal on vihmasem kui eelmine nädal.'],
+      ['7', 'weather-comparison', 'compare-seasons', 'Kevad on soojem kui talv.'],
+      ['8', 'weather-comparison', 'compare-seasons', 'Sügis on tuulisem kui suvi.'],
+    ]),
+    dialogues: [{ id: 'weather-comparison-d-1', focusIds: ['weather-comparison'], contextIds: ['compare-days'], speakers: ['Anna', 'Jüri'], lines: [
+      { who: 'Anna', text: 'Kas täna on [soojem] kui eile?' },
+      { who: 'Jüri', text: 'Ei, täna on kaks kraadi [külmem].' },
+      { who: 'Anna', text: 'Kas homme läheb paremaks?' },
+      { who: 'Jüri', text: 'Jah, homne ilm on [parem] kui tänane.' },
+    ] }],
+    errorPairs: [
+      { id: 'weather-comparison-e-1', focusIds: ['weather-comparison'], wrong: 'Täna on soojem kui eile ilm.', correct: 'Täna on soojem kui eile.' },
+      { id: 'weather-comparison-e-2', focusIds: ['weather-comparison'], wrong: 'Talv on külmim kui sügis.', correct: 'Talv on külmem kui sügis.' },
+    ],
+    translations: [
+      { id: 'weather-comparison-t-1', focusIds: ['weather-comparison'], sourceLang: 'ru', source: 'Сегодня теплее, чем вчера.', target: 'Täna on soojem kui eile.', alternatives: [] },
+      { id: 'weather-comparison-t-2', focusIds: ['weather-comparison'], sourceLang: 'ru', source: 'На побережье ветренее, чем в городе.', target: 'Rannikul on tuulisem kui linnas.', alternatives: [] },
+    ],
+    speakingPrompts: prompts('weather-comparison', 'sp', [
+      ['1', 'weather-comparison', 'compare-days', 'Võrdle eilset, tänast ja homset ilma. Kasuta vähemalt kolme -m-vormi.'],
+      ['2', 'weather-comparison', 'compare-seasons', 'Võrdle Eesti aastaaegu paarides ja põhjenda oma arvamust.'],
+    ]),
+    writingPrompts: prompts('weather-comparison', 'wp', [['1', 'weather-comparison', 'compare-cities', 'Kirjuta 6–8 lauset kahe linna ilma kohta. Kasuta vähemalt nelja võrdlust sõnaga kui.']]),
+    successCriteria: ['Ma moodustan -m-võrdlusvorme ja võrdlen ilma sõnaga kui vähemalt kaheksal juhul kümnest õigesti.'],
+  },
+  'weather-forecast': {
+    id: 'weather-forecast',
+    focus: { id: 'weather-forecast', type: 'communication', label: 'Ilmateate mõistmine ja vahendamine', patterns: ['Temperatuur on … kraadi.', 'Sajab vihma / lund.', 'Puhub … tuul.'], aliases: ['ilmateade', 'temperatuur', 'prognoos'] },
+    vocabulary: vocabulary('weather-forecast', [
+      ['ilmateade', 'ilmateade', 'прогноз погоды', 'noun', 'weather-forecast'],
+      ['temperatuur', 'temperatuur', 'температура', 'noun', 'weather-forecast'],
+      ['kraadi', 'kraadi', 'градусов', 'noun', 'weather-forecast'],
+      ['sajab', 'sajab', 'идёт (об осадках)', 'verb', 'weather-forecast'],
+      ['puhub', 'puhub', 'дует', 'verb', 'weather-forecast'],
+      ['hommikul', 'hommikul', 'утром', 'adverb', 'weather-forecast'],
+      ['ohtul', 'õhtul', 'вечером', 'adverb', 'weather-forecast'],
+      ['ookulma', 'öökülma', 'ночной заморозок', 'noun', 'weather-forecast'],
+    ]),
+    contexts: [
+      { id: 'forecast-radio', label: 'Hommikune raadio ilmateade', tags: ['weather', 'listening'], names: ['Saatejuht', 'Kuulaja'], times: ['07:30', '08:00', '09:00'] },
+      { id: 'forecast-map', label: 'Eesti ilmakaart', tags: ['weather', 'map'], names: ['Tallinn', 'Tartu'], times: ['12:00', '15:00', '18:00'] },
+      { id: 'forecast-message', label: 'Ilmateate edasiandmine', tags: ['weather', 'mediation'], names: ['Maria', 'Aleks'], times: ['18:00', '21:00', '07:00'] },
+    ],
+    sentences: sentences('weather-forecast', [
+      ['1', 'weather-forecast', 'forecast-radio', 'Ilmateade lubab homseks vihma.'],
+      ['2', 'weather-forecast', 'forecast-radio', 'Hommikul sajab Põhja-Eestis vihma.'],
+      ['3', 'weather-forecast', 'forecast-radio', 'Õhtul puhub tugev läänetuul.'],
+      ['4', 'weather-forecast', 'forecast-map', 'Tallinnas on temperatuur kaheksa kraadi.'],
+      ['5', 'weather-forecast', 'forecast-map', 'Tartus sajab pärastlõunal lund.'],
+      ['6', 'weather-forecast', 'forecast-map', 'Saartel puhub mõõdukas tuul.'],
+      ['7', 'weather-forecast', 'forecast-message', 'Öösel on võimalik öökülma.'],
+      ['8', 'weather-forecast', 'forecast-message', 'Homme tõuseb temperatuur kaheteistkümne kraadini.'],
+    ]),
+    dialogues: [{ id: 'weather-forecast-d-1', focusIds: ['weather-forecast'], contextIds: ['forecast-radio'], speakers: ['Saatejuht', 'Kuulaja'], lines: [
+      { who: 'Saatejuht', text: '[Hommikul] on [temperatuur] viis kuni seitse [kraadi].' },
+      { who: 'Saatejuht', text: 'Pärastlõunal [sajab] vihma ja [puhub] tugev tuul.' },
+      { who: 'Kuulaja', text: 'Seega võtan vihmavarju kaasa.' },
+    ] }],
+    errorPairs: [
+      { id: 'weather-forecast-e-1', focusIds: ['weather-forecast'], wrong: 'Temperatuur on kaheksa kraad.', correct: 'Temperatuur on kaheksa kraadi.' },
+      { id: 'weather-forecast-e-2', focusIds: ['weather-forecast'], wrong: 'Homme sajab vihm.', correct: 'Homme sajab vihma.' },
+    ],
+    translations: [
+      { id: 'weather-forecast-t-1', focusIds: ['weather-forecast'], sourceLang: 'ru', source: 'Утром будет восемь градусов.', target: 'Hommikul on kaheksa kraadi.', alternatives: [] },
+      { id: 'weather-forecast-t-2', focusIds: ['weather-forecast'], sourceLang: 'ru', source: 'Вечером будет дождь и сильный ветер.', target: 'Õhtul sajab vihma ja puhub tugev tuul.', alternatives: [] },
+    ],
+    speakingPrompts: prompts('weather-forecast', 'sp', [
+      ['1', 'weather-forecast', 'forecast-map', 'Esita 30-sekundiline ilmateade: nimeta koht, aeg, temperatuur, sademed ja tuul.'],
+      ['2', 'weather-forecast', 'forecast-message', 'Kuula partneri ilmateadet ja ütle selle põhiinfo edasi inimesele, kes seda ei kuulnud.'],
+    ]),
+    writingPrompts: prompts('weather-forecast', 'wp', [['1', 'weather-forecast', 'forecast-message', 'Kirjuta sõbrale 50–70 sõnaline homse ilma kokkuvõte ja üks praktiline soovitus.']]),
+    successCriteria: ['Ma leian ilmateatest koha, aja, temperatuuri, sademed ja tuule ning annan põhiinfo edasi.'],
+  },
+  'weather-clothing-advice': {
+    id: 'weather-clothing-advice',
+    focus: { id: 'weather-clothing-advice', type: 'communication', label: 'Riietus ja ilmasoovitus', patterns: ['Pane selga …', 'Võta kaasa …', 'Parem …, sest …'], aliases: ['riided', 'selga', 'soovitus'] },
+    vocabulary: vocabulary('weather-clothing-advice', [
+      ['jope', 'jope', 'куртка', 'noun', 'weather-clothing-advice'],
+      ['mantel', 'mantel', 'пальто', 'noun', 'weather-clothing-advice'],
+      ['saapad', 'saapad', 'сапоги', 'noun', 'weather-clothing-advice'],
+      ['muts', 'müts', 'шапка', 'noun', 'weather-clothing-advice'],
+      ['kindad', 'kindad', 'перчатки', 'noun', 'weather-clothing-advice'],
+      ['vihmavari', 'vihmavari', 'зонт', 'noun', 'weather-clothing-advice'],
+      ['pane-selga', 'pane selga', 'надень', 'phrase', 'weather-clothing-advice'],
+      ['vota-kaasa', 'võta kaasa', 'возьми с собой', 'phrase', 'weather-clothing-advice'],
+      ['parem', 'parem', 'лучше', 'adverb', 'weather-clothing-advice'],
+      ['sest', 'sest', 'потому что', 'conjunction', 'weather-clothing-advice'],
+    ]),
+    contexts: [
+      { id: 'clothes-school', label: 'Enne kooli', tags: ['clothes', 'advice'], names: ['Ema', 'Karl'], times: ['07:30', '08:00', '15:00'] },
+      { id: 'clothes-trip', label: 'Nädalavahetuse matk', tags: ['clothes', 'outdoors'], names: ['Liina', 'Pavel'], times: ['09:00', '13:00', '18:00'] },
+      { id: 'clothes-suitcase', label: 'Reisikohvri pakkimine', tags: ['clothes', 'travel'], names: ['Anna', 'Mihkel'], times: ['10:00', '14:00', '20:00'] },
+    ],
+    sentences: sentences('weather-clothing-advice', [
+      ['1', 'weather-clothing-advice', 'clothes-school', 'Pane selga soe jope, sest väljas on külm.'],
+      ['2', 'weather-clothing-advice', 'clothes-school', 'Võta kaasa vihmavari, sest pärastlõunal sajab.'],
+      ['3', 'weather-clothing-advice', 'clothes-school', 'Talvel on parem kanda mütsi ja kindaid.'],
+      ['4', 'weather-clothing-advice', 'clothes-trip', 'Matkale pane selga veekindel jope.'],
+      ['5', 'weather-clothing-advice', 'clothes-trip', 'Vihmase ilmaga on saapad parem valik kui kingad.'],
+      ['6', 'weather-clothing-advice', 'clothes-trip', 'Võta kaasa kindad, sest õhtul läheb külmaks.'],
+      ['7', 'weather-clothing-advice', 'clothes-suitcase', 'Sügiseseks linnareisiks paki kaasa mantel.'],
+      ['8', 'weather-clothing-advice', 'clothes-suitcase', 'Ära unusta vihmavarju, sest ilmateade lubab vihma.'],
+    ]),
+    dialogues: [{ id: 'weather-clothing-advice-d-1', focusIds: ['weather-clothing-advice'], contextIds: ['clothes-school'], speakers: ['Ema', 'Karl'], lines: [
+      { who: 'Ema', text: '[Pane selga] [jope] ja [müts], sest väljas on külm.' },
+      { who: 'Karl', text: 'Kas mul on vihmavarju vaja?' },
+      { who: 'Ema', text: 'Jah, [võta kaasa] [vihmavari], sest õhtul sajab.' },
+    ] }],
+    errorPairs: [
+      { id: 'weather-clothing-advice-e-1', focusIds: ['weather-clothing-advice'], wrong: 'Pane jope seljas.', correct: 'Pane jope selga.' },
+      { id: 'weather-clothing-advice-e-2', focusIds: ['weather-clothing-advice'], wrong: 'Võta kaasas vihmavari.', correct: 'Võta kaasa vihmavari.' },
+    ],
+    translations: [
+      { id: 'weather-clothing-advice-t-1', focusIds: ['weather-clothing-advice'], sourceLang: 'ru', source: 'Надень куртку, потому что на улице холодно.', target: 'Pane jope selga, sest väljas on külm.', alternatives: [] },
+      { id: 'weather-clothing-advice-t-2', focusIds: ['weather-clothing-advice'], sourceLang: 'ru', source: 'Возьми с собой зонт.', target: 'Võta vihmavari kaasa.', alternatives: ['Võta kaasa vihmavari.'] },
+    ],
+    speakingPrompts: prompts('weather-clothing-advice', 'sp', [
+      ['1', 'weather-clothing-advice', 'clothes-trip', 'Anna partnerile matkaks kolm riietussoovitust ja põhjenda iga soovitust ilmaga.'],
+      ['2', 'weather-clothing-advice', 'clothes-suitcase', 'Vaata kolme päeva ilmaprognoosi ja soovita, mida reisikohvrisse pakkida.'],
+    ]),
+    writingPrompts: prompts('weather-clothing-advice', 'wp', [['1', 'weather-clothing-advice', 'clothes-suitcase', 'Kirjuta 60–80 sõnaline sõnum külalisele: milline ilm tuleb ja mida tal tasub kaasa võtta.']]),
+    successCriteria: ['Ma valin ilma järgi sobivad riided ning annan selge soovituse vormidega pane selga ja võta kaasa.'],
+  },
 });
 
 export const LESSON_CONTENT_BLUEPRINTS = Object.freeze({
@@ -642,4 +839,9 @@ export const LESSON_CONTENT_BLUEPRINTS = Object.freeze({
   'a2-013': { packIds: ['frequency'], title: 'Kui tihti?', lessonKind: 'grammar' },
   'a2-014': { packIds: ['week-plan'], title: 'Minu nädal', lessonKind: 'writing' },
   'a2-015': { packIds: ['daily-routine', 'clock-time', 'frequency', 'week-plan'], title: 'Kontroll 3 — päev ja aeg', lessonKind: 'assessment' },
+  'a2-051': { packIds: ['weather-seasons'], title: 'Ilm ja aastaajad', lessonKind: 'vocabulary' },
+  'a2-052': { packIds: ['weather-seasons', 'weather-comparison'], title: 'Võrdlus: soojem, külmem', lessonKind: 'grammar' },
+  'a2-053': { packIds: ['weather-seasons', 'weather-forecast'], title: 'Ilmateade', lessonKind: 'listening' },
+  'a2-054': { packIds: ['weather-seasons', 'weather-clothing-advice'], title: 'Mida selga panna?', lessonKind: 'communication' },
+  'a2-055': { packIds: ['weather-seasons', 'weather-comparison', 'weather-forecast', 'weather-clothing-advice'], title: 'Kontroll 11 — ilm ja riided', lessonKind: 'assessment' },
 });
