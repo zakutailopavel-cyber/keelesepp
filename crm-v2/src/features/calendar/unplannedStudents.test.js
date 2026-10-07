@@ -32,3 +32,14 @@ describe('students without a lesson ahead', () => {
     expect(unplannedStudents({ students, events, today }).map((row) => row.student.id)).toContain('g');
   });
 });
+
+describe('a student with two teachers', () => {
+  it('in one teacher\'s view only that teacher\'s lessons make the student planned', async () => {
+    const { unplannedStudents } = await import('./unplannedStudents.js');
+    const milan = { id: 's3', name: 'Milan', active: true, teacherUid: 't1', teacherUids: ['t1', 't9'] };
+    const events = [{ id: 'a', studentId: 's3', teacherUid: 't1', recurring: true, status: 'Planeeritud' }];
+    expect(unplannedStudents({ students: [milan], events, today: '2026-10-07', teacherUid: 't9' }).map((row) => row.student.id)).toEqual(['s3']);
+    expect(unplannedStudents({ students: [milan], events, today: '2026-10-07', teacherUid: 't1' })).toEqual([]);
+    expect(unplannedStudents({ students: [milan], events, today: '2026-10-07' })).toEqual([]);
+  });
+});
