@@ -137,3 +137,15 @@ describe('LessonWorksheetStudioPage task regeneration', () => {
     expect(container.querySelector('.ws-page')).toHaveTextContent('утром');
   });
 });
+
+describe('LessonWorksheetStudioPage student view', () => {
+  it('opens a published sheet in the student view with a clear button back to editing', async () => {
+    const record = { ...generatedPracticeRecord(), worksheetDocStatus: 'published' };
+    const repository = { load: vi.fn().mockResolvedValue(record), saveDraft: vi.fn(), publish: vi.fn(), listVersions: vi.fn().mockResolvedValue([]) };
+    renderPage(repository, '/library/lessons/a2b1-016/worksheets/practice?vaade=opilane');
+    expect(await screen.findByRole('button', { name: 'Kontrolli vastuseid' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Muuda lehte/ }));
+    expect(screen.getByRole('tab', { name: 'Koosta' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('button', { name: /Muuda lehte/ })).not.toBeInTheDocument();
+  });
+});
