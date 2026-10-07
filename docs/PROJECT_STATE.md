@@ -72,6 +72,99 @@ Checked `origin/main` `c7ec04c` after PR #325 merged. Owner priority: finish les
 - No Firestore writes, migrations, production worksheet changes, publishing, deploy, or Õpik UI changes.
 - Next safe step: CI on the draft PR. After merge, stop adding generic architecture unless a concrete lesson batch exposes a gap; begin serial lesson/module production.
 
+## 2026-10-07 — AGENTS.md: rules and required reading for the content agent — branch `agent/agents-content-rules`
+
+Owner moves lesson-content production to Codex, which reads `AGENTS.md` automatically.
+- New section „Sisuagent”: required reading before every batch (CEFR A2→B1 standard, textbook master plan, visual
+  style, lesson scene standard, generator + lexicon docs, level curricula), allowed files (generator production /
+  content packs / fixtures; manual sheets via `/library/lessons/<ID>/worksheets/<phase>`), forbidden areas (UI,
+  routes, services, rules, functions, CSS, production writes, deploys, B1 Harjuta/Kasuta without approval), workflow
+  (branch per batch from main, ≤2–3 stacked PRs, generator tests green, one PROJECT_STATE entry).
+- Docs only; no code change.
+- Next safe step: owner merges.
+## 2026-10-07 — Vercel: no preview builds for agent branches — branch `agent/vercel-skip-agent-previews`
+
+Checked `origin/main`. Owner moved Vercel to Pro (commercial use; Hobby allowed 100 deployments/day and agents'
+branch pushes used them up).
+- `vercel.json` (public site) and `crm-v2/vercel.json` (CRM) get `ignoreCommand`: a push to `agent/*` skips the
+  Vercel build (exit 0); `main`, other branches and CLI deploys (empty ref) build as before (exit 1). PR checks stay on
+  GitHub Actions.
+- Checks: the command run locally for `agent/foo` → 0, `main` → 1, `feature/x` → 1, empty → 1.
+- Limit: no preview URL for agent PRs any more; production deploys of `main` unchanged.
+- Next safe step: owner merges; then confirm a merge to `main` still deploys (Vercel status on the merge commit).
+
+## 2026-10-07 — Worksheet constructor: „Muuda lehte” button — branch `agent/edit-sheet-button`
+
+Checked `origin/main` `1ae1ddd`. Owner: a sheet opened from Õppevara (published → student view) gave no obvious way to
+edit it; only the small „Koosta” tab.
+- `WorksheetStudioPage`: in „Õpilase vaade” and „Trükivaade” a highlighted „✎ Muuda lehte” button switches to edit
+  mode (`.st-edit` in `worksheetStudio.css`). No data change.
+- Checks: new test (published sheet opens in student view, button returns to „Koosta”); studio tests 22/22; eslint 0
+  errors; build OK.
+- Next safe step: owner merges the draft PR. Architecture assessment given to the owner (chat): unify the three
+  worksheet paths into „lesson → three phases” next.
+
+## 2026-10-07 — Blank worksheet page after a deploy — branch `agent/student-view-crash`
+
+Checked `origin/main` `32489b2`. Owner: opening Avasta (and other sheets) shows a blank page.
+- Diagnosis: the same URL (`/library/lessons/a2b1-017/worksheets/discover?vaade=opilane`) opened fresh in the owner's
+  Chrome renders correctly (student view, „Peab, võib ja saab”, version 1 published, no console errors). The worksheet
+  pages are lazy chunks; a tab loaded before a Vercel deploy asks for an old chunk that no longer exists → the import
+  fails and, with no error boundary, React leaves a blank screen.
+- Fix: `app/staleBuild.js` (`isStaleBuildError`, `reloadOnceForNewBuild` — at most one reload per 30 s via
+  sessionStorage), `vite:preloadError` listener in `main.jsx`, and `app/PageErrorBoundary.jsx` around the lazy
+  generator routes: a missing chunk reloads once, any other page error shows „Lehte ei saanud avada” with the message
+  and „Proovi uuesti” instead of a blank page.
+- Checks: `src/app` tests 23/23 (new stale-build + boundary tests); eslint 0 errors; build OK.
+- Next safe step: owner merges the draft PR.
+
+## 2026-10-07 — „Lisa arve”: Failed to fetch, empty student list, search — branch `agent/invoice-cors`
+
+Checked `origin/main` `1b44b47`. Owner after #336: the dialog shows „Failed to fetch”; the admin must type or pick the
+student.
+- Cause 1: `functions/manual-invoice-api.js` CORS allow-list lacked `https://crm.epkoolitus.ee` → the browser blocked
+  every call from the CRM. Added.
+- Cause 2: `listInvoiceStudents` queried `status == 'active'`; CRM students keep `active: true` → empty list. Now
+  `active == true`, without `convertedToParent`, each with `hint` (parent name · e-mail · subject).
+- UI: „Otsi õpilast” filters the select by name/parent/e-mail; a single match is picked automatically; options show
+  the hint for namesakes.
+- Checks: emulator `finance-emulator.integration.js` (pattern manual invoice + monthly) 2/2 pass incl. new test
+  (CRM origin preflight, active/archived/parent filter); finance UI tests 69/69; build OK.
+- Manual gate: deploy `functions:manualInvoiceApi` to production (owner approval), then create a test invoice.
+- Next safe step: owner merges the draft PR and approves the function deploy.
+
+## 2026-10-07 — Finance „Lisa arve”: student list stuck on „Laen õpilasi…” — branch `agent/manual-invoice`
+
+Checked `origin/main` `c7ec04c`. Owner: the manual invoice dialog does not work.
+- Cause: `ManualInvoiceDialog` effect depended on `loadingStudents`; setting it re-ran the effect, whose cleanup
+  cancelled the running request, and the guard stopped a new one → the select stayed disabled „Laen õpilasi…”.
+- Fix: the effect depends only on `open` and `students.length`. „Märkus” textarea gets proper field markup/label
+  (`field__textarea` in `manualInvoice.css`). Server (`manualInvoiceApi` /students, /create) unchanged.
+- Checks: new `ManualInvoiceDialog.test.jsx` (loads students once, creates invoice); finance tests 69/69; eslint clean;
+  build OK. Not clicked in production (would create a real invoice).
+- Next safe step: owner merges the draft PR and creates a test invoice in the CRM.
+## 2026-10-07 — One student, two subjects, two teachers — branch `agent/two-teachers`
+
+Checked `origin/main` `0b5ae77`. Owner: Milan studies Estonian and English with two teachers; he must be one card and
+each teacher must plan his lessons in their own calendar without disturbing the other.
+- Existing model kept: one `students` doc with `enrollments` („Õppesuunad”: subject, teacher, teacherUid) and
+  `teacherUids`; rules already give each teacher of `teacherUids` access. No schema or rules change.
+- Bug fixed: in the calendar a teacher (non-admin) creating a lesson got the student's *primary* `teacherUid` (the
+  other teacher) → the lesson went to the wrong calendar or was refused by rules. Now a teacher always plans for
+  themselves.
+- Calendar form: a student with several active study tracks shows „Õppesuund” (admin: all tracks, choosing one also
+  picks its teacher; teacher: only own tracks). The schedule entry gets `subject` of the track, so the held lesson
+  (`lessons.completeFromSchedule` already used `event.subject`, default „Eesti keel”) is recorded with the right subject.
+  Live lesson title uses the lesson subject.
+- „Planeerimata õpilased” in one teacher's view counts only that teacher's lessons (`unplannedStudents`).
+- Student profile shows all study tracks with their teachers.
+- Existing duplicate cards (e.g. Milan ×2): admin merges them with „Ühenda käsitsi” and then adds the second subject
+  in „Õppesuunad” — the server merge keeps the duplicate's teacher only as an alias (functions unchanged).
+- Checks: calendar + students tests 112 passed, 1 known Node 26 `localStorage` failure („Alusta tundi”); new tests:
+  admin picks track → teacher+subject, second teacher plans into own calendar, unplanned per teacher; eslint 0 errors;
+  build OK.
+- Next safe step: owner merges the draft PR, then fixes Milan's cards as above.
+
 ## 2026-10-06 — Textbook generator wiring — branch `agent/textbook-generator-wiring`
 
 Checked `origin/main` `7c3f764` after owner merged PR #324. Owner priority remains: finish lesson content A2 → B1 → B2 → C1 before final Õpik assembly.
