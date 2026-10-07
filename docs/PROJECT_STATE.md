@@ -1,3 +1,11 @@
+## 2026-10-07 — „Loo mustandid”: immediate feedback while the generator loads — branch `agent/module-drafts-feedback`
+
+Checked in the owner's Chrome after #349: module 1 run → „1 tunnile lisati puuduvad etapid”; a2-001 now has
+Harjuta + Kasuta drafts, its published hand-made Avasta (v10) untouched. The first run looked dead: loading the
+generator chunk and the word-form lexicon takes up to a minute (the tab is busy), and the button only changed after
+the first lesson. Now it shows „Laen generaatorit…” (disabled) right after the confirmation.
+- Checks: library tests incl. the new assertion; build OK.
+
 ## 2026-10-07 — „Loo mustandid” adds only the missing phases — branch `agent/module-drafts-missing`
 
 Owner ran „Loo mustandid” on A2 module 1 in production: drafts were created for a2-002, a2-004, a2-005 (checked in

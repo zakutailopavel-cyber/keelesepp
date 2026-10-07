@@ -282,6 +282,7 @@ describe('LibraryPage', () => {
     render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 'admin', displayName: 'Admin', roles: ['admin'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} worksheetRepository={{ syncPhases: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
     fireEvent.click(await screen.findByRole('button', { name: 'Loo mustandid' }));
     expect(confirm).toHaveBeenCalledWith(expect.stringContaining('kuni 2 tunnile'));
+    expect(screen.getByRole('button', { name: 'Laen generaatorit…' })).toBeDisabled();
     expect(await screen.findByRole('status')).toHaveTextContent('Mustandid loodi 1 tunnile; 1 tunnil olid lehed juba olemas.');
     expect(generateModuleDrafts).toHaveBeenCalledWith(expect.objectContaining({ lessons: [expect.objectContaining({ id: 'a2-001' }), expect.objectContaining({ id: 'a2-002' })] }));
     confirm.mockRestore();
