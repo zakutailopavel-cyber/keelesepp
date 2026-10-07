@@ -1,3 +1,21 @@
+## 2026-10-07 — Transactional worksheet saves — branch `agent/worksheet-save-integrity`
+
+Fresh main `813b231`; owner requested fixes from the architecture review. Worksheet saves now read
+and write the lesson, version snapshot and activity log in one Firestore transaction. A concurrent
+save retries against the current revision and rejects stale baseUpdatedAt, including an editor
+opened before the first timestamp existed. Existing published snapshots and immutable IDs remain.
+
+Files: worksheetDocs.js/test, ARCHITECTURE.md, this state file. No new collections/rules,
+production writes, migration, deploy, paid API call or content changes.
+Validation: targeted Worksheet Studio/service 2 files / 31 tests PASS; combined-fix CRM suite
+191 files / 1195 tests PASS before the final empty-base regression, which passed in the focused
+run; lint 0 errors (2 existing warnings), build PASS. Rules-only Auth/Firestore emulator:
+7 tests PASS (worksheet save/assignment/student access/live pointer and admin verification).
+Functions API emulator blocked by environment compatibility/IPC; no API PASS claimed.
+PR not created: automatic approval review rejected git push of the calendar sibling branch
+because external GitHub export was not explicitly authorized. All sibling fixes remain local.
+Next safe step: obtain explicit authorization to push the reviewable commits and create draft PRs.
+
 ## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
 
 Owner: the invoice showed his personal e-mail; take the invoice generator of the first site version.
