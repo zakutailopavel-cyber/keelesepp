@@ -1,6 +1,6 @@
 # Finance v3 — staged delivery specification
 
-Status: implementation starts with PR 1 on `agent/finance-v3-rows`, from `origin/main` `813b231` (2026-10-07). Do not merge or deploy from this work.
+Status: implementation starts with draft PR #361 on `agent/finance-v3-rows`, rebased onto `origin/main` `d74b3cc` (2026-10-07). Do not merge or deploy from this work.
 
 ## Product decisions
 

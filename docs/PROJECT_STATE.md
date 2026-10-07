@@ -1,6 +1,6 @@
 ## 2026-10-07 — Finance v3 PR 1: row state and summaries
 
-- Checked fresh `origin/main` at `d74b3cc`; branch: `agent/finance-v3-rows`; PR: not opened yet.
+- Checked fresh `origin/main` at `d74b3cc`; branch: `agent/finance-v3-rows`; draft PR: #361.
 - Goal: add a pure finance-row state/summary/filter/sort module and exhaustive unit coverage without changing existing UI, service APIs, or financial records.
 - Completed: `financeRowState` covers unpaid, partial, overdue, paid, credit, email failure, and no-show; summaries count states and cents; filtering supports status/month/student/text; sorting supports due date, balance, status, and student. Added the staged Finance v3 plan and decisions.
 - Files: `crm-v2/src/features/finance/financeRows.js`, `crm-v2/src/features/finance/financeRows.test.js`, `docs/specs/FINANCE_V3_SPEC.md`, this entry.
