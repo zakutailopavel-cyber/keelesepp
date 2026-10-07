@@ -18,10 +18,24 @@ describe('textbook illustrations', () => {
     expect([artLevel('a2-001'), artLevel('a2b1-016'), artLevel('b1b2-004'), artLevel('est-c1-010')]).toEqual(['a2', 'b1', 'b2', 'c1']);
     const doc = { blocks: [{ id: 'i', type: 'text', data: {} }, { id: 't', type: 'gap', data: {} }] };
     const withArt = withLessonArt(doc, 'a2-001', 'discover');
-    expect(withArt.blocks.map((block) => block.type)).toEqual(['text', 'image', 'gap']);
-    expect(withArt.blocks[1].data).toMatchObject({ artId: 'a2-001-avasta-1', aspect: '3:2', img: { src: '/textbook-art/a2/a2-001/a2-001-avasta-1.webp' } });
+    expect(withArt.blocks.map((block) => block.type)).toEqual(['text', 'image', 'notice', 'gap']);
+    expect(withArt.blocks[1]).toMatchObject({ span: 8, data: { artId: 'a2-001-avasta-1', aspect: '3:2', img: { src: '/textbook-art/a2/a2-001/a2-001-avasta-1.webp' } } });
+    expect(withArt.blocks[2]).toMatchObject({ span: 4, data: { title: 'Vaata pilti', lines: 'Kes on pildil?\nKus nad on?\nMis toimub?' } });
     expect(withLessonArt(withArt, 'a2-001', 'discover')).toBe(withArt);
     expect(missingArt(withArt, 'a2-001', 'discover')).toEqual([]);
     expect(withLessonArt(doc, 'a2-001', 'practice')).toBe(doc);
+  });
+});
+
+describe('older sheets with a half-width picture', () => {
+  it('get ⅔ width and the „Vaata pilti” card once; other sheets stay the same object', async () => {
+    const { withArtLayout } = await import('./textbookArt.js');
+    const old = { blocks: [{ id: 'p', type: 'image', width: 'half', data: { artId: 'a2-004-kasuta-1' } }, { id: 't', type: 'table', width: 'full', data: {} }] };
+    const fixed = withArtLayout(old);
+    expect(fixed.blocks.map((block) => [block.type, block.span])).toEqual([['image', 8], ['notice', 4], ['table', undefined]]);
+    expect(fixed.blocks[1].data.lines).toBe('Mis olukord see on?\nMida sina selles olukorras teeksid?\nRäägi paarilisega.');
+    expect(withArtLayout(fixed)).toBe(fixed);
+    const plain = { blocks: [{ id: 'x', type: 'text', data: {} }] };
+    expect(withArtLayout(plain)).toBe(plain);
   });
 });

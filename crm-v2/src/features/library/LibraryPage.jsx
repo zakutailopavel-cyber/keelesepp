@@ -287,24 +287,23 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     }
   };
 
-  // admin: drafts of Avasta / Harjuta / Kasuta for the whole module (lessons without sheets only); the generator is
-  // loaded only when used
-  const makeModuleDrafts = async (section) => {
+  // admin, one click per module: missing Avasta / Harjuta / Kasuta drafts, textbook pictures, and publishing of the
+  // sheets that pass the quality check (the generator loads only when used)
+  const prepareModuleSheets = async (section) => {
     const lessons = items.filter((item) => item.withPhases && item.moduleKey === section.key).map((item) => ({ ...item.source, id: item.sourceId }));
-    const empty = lessons.filter((lesson) => ['discover', 'practice', 'transfer'].some((id) => !lesson.worksheetPhases?.[id])).length;
-    if (!empty) { setSuccess(`Moodulis „${section.label}” on kõigil tundidel kõik kolm töölehte juba olemas.`); return; }
-    if (!globalThis.confirm(`Loon puuduvad mustandid (Avasta, Harjuta, Kasuta) kuni ${empty} tunnile moodulis „${section.label}”? Olemasolevaid lehti ei muudeta ja midagi ei avaldata.`)) return;
+    if (!globalThis.confirm(`Valmistan mooduli „${section.label}” ette: loon puuduvad Avasta / Harjuta / Kasuta lehed, lisan tunni pildid ja avaldan lehed, mille kvaliteedikontrollis vigu ei ole. Olemasolevat sisu ei kustutata. Jätkata?`)) return;
     setInstallError('');
-    // the generator and the word-form lexicon load first (can take a while): show it right away
     setModuleDrafts({ key: section.key, text: 'Laen generaatorit…' });
     try {
-      const { generateModuleDrafts } = await import('../worksheet-generator/ui/moduleDrafts.js');
-      const result = await generateModuleDrafts({ lessons, user, onProgress: (done, total) => setModuleDrafts({ key: section.key, text: done < total ? `Loon mustandeid… ${done + 1}/${total}` : '' }) });
-      setSuccess(`Mustandid loodi ${result.created.length} tunnile${result.completed?.length ? `; ${result.completed.length} tunnile lisati puuduvad etapid` : ''}${result.existing.length ? `; ${result.existing.length} tunnil olid lehed juba olemas` : ''}${result.noProfile.length ? `; ${result.noProfile.length} tunnil generaator pole valmis` : ''}.`);
-      if (result.failed.length) setInstallError(`Ei õnnestunud: ${result.failed.map((item) => `${item.id} (${item.message})`).join(', ')}`);
+      const { prepareModule } = await import('../worksheet-generator/ui/moduleDrafts.js');
+      const result = await prepareModule({ lessons, user, onProgress: (step, done, total) => setModuleDrafts({ key: section.key, text: done < total ? `${step === 'drafts' ? 'Loon lehti' : 'Avaldan'}… ${done + 1}/${total}` : 'Lõpetan…' }) });
+      const made = result.drafts.created.length + result.drafts.completed.length;
+      setSuccess(`Moodul „${section.label}”: ${made ? `lehed loodi ${made} tunnile; ` : ''}avaldati ${result.published.length} lehte${result.pictured.length ? `, pilt lisati ${result.pictured.length} avaldatud lehele` : ''}${result.notReady.length ? `; ${result.notReady.length} lehte jäi kvaliteedivigade tõttu mustandiks` : ''}${result.drafts.noProfile.length ? `; ${result.drafts.noProfile.length} tunnil generaator pole valmis` : ''}.`);
+      const failed = [...result.drafts.failed, ...result.failed];
+      if (failed.length) setInstallError(`Ei õnnestunud: ${failed.map((item) => `${item.id} (${item.message})`).join(', ')}`);
       state.reload();
     } catch (error) {
-      setInstallError(error?.message || 'Mustandeid ei saanud luua.');
+      setInstallError(error?.message || 'Moodulit ei saanud ette valmistada.');
     } finally {
       setModuleDrafts({ key: '', text: '' });
     }
@@ -436,7 +435,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
           {results.length ? sections.map((section) => (
             <div className="lib2-section" key={section.key}>
-              {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small>{moduleProgress.get(section.key) ? <em className="lib2-module-progress">{moduleProgress.get(section.key)}</em> : null}{isAdmin && moduleProgress.get(section.key) ? <button type="button" className="lib2-module-drafts" disabled={Boolean(moduleDrafts.key)} onClick={() => makeModuleDrafts(section)} title="Loob mooduli tundidele Avasta / Harjuta / Kasuta mustandid; olemasolevaid lehti ei muuda">{moduleDrafts.key === section.key ? moduleDrafts.text || 'Loon…' : 'Loo mustandid'}</button> : null}</h3> : null}
+              {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small>{moduleProgress.get(section.key) ? <em className="lib2-module-progress">{moduleProgress.get(section.key)}</em> : null}{isAdmin && moduleProgress.get(section.key) ? <button type="button" className="lib2-module-drafts" disabled={Boolean(moduleDrafts.key)} onClick={() => prepareModuleSheets(section)} title="Loob puuduvad lehed, lisab tunni pildid ja avaldab kvaliteedikontrolli läbinud lehed">{moduleDrafts.key === section.key ? moduleDrafts.text || 'Töötan…' : 'Valmista moodul ette'}</button> : null}</h3> : null}
               <ul className="lib2-list">{section.results.map(row)}</ul>
             </div>
           )) : <Card><EmptyState title="Midagi ei leitud" description={onlyFav ? 'Lemmikuid pole veel — märgi materjal tärniga.' : 'Proovi teist sõna või tühjenda filtrid.'} /></Card>}
