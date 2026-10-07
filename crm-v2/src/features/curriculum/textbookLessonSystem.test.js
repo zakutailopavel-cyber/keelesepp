@@ -61,5 +61,11 @@ describe('textbook lesson system schemas', () => {
     expect(vocabularyStatusForLesson(entry, 'a2-011', ctx)).toBe('new');
     expect(vocabularyStatusForLesson(entry, 'a2-012', ctx)).toBe('current-module');
     expect(vocabularyStatusForLesson(entry, 'a2-021', ctx)).toBe('long-gap');
+
+    const previous = createVocabularyEntry({
+      id: 'v-eelmine', lemma: 'nimi', forms: ['nimi', 'nime', 'nime'], translationRu: 'имя', level: 'A2',
+      activeFromLessonId: 'a2-006', recycleLessonIds: ['a2-011'],
+    });
+    expect(vocabularyStatusForLesson(previous, 'a2-011', ctx)).toBe('previous-module');
   });
 });

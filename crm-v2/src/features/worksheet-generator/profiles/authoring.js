@@ -11,8 +11,11 @@ const LIMITS = Object.freeze({
   contexts: 16,
   sentences: 160,
   dialogues: 30,
+  listeningScripts: 30,
+  readingDocuments: 30,
   errorPairs: 100,
   translations: 100,
+  transformations: 100,
   prompts: 60,
   criteria: 20,
   slots: 16,
@@ -109,6 +112,15 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
     alternatives: boundedArray(item?.alternatives, 12).map((value) => clean(value, 800)).filter(Boolean),
   })).filter((item) => item.source);
 
+  const transformations = boundedArray(input.banks?.transformations, LIMITS.transformations).map((item, index) => ({
+    id: safeId(item?.id, `tr${index + 1}`),
+    focusIds: refs(item?.focusIds, focusIds),
+    from: clean(item?.from || item?.source, 800),
+    prompt: clean(item?.prompt || item?.instruction, 500),
+    answer: clean(item?.answer || item?.to, 800),
+    alternatives: boundedArray(item?.alternatives, 12).map((value) => clean(value, 800)).filter(Boolean),
+  })).filter((item) => item.from && item.answer);
+
   const dialogues = boundedArray(input.banks?.dialogues, LIMITS.dialogues).map((item, index) => ({
     id: safeId(item?.id, `d${index + 1}`),
     focusIds: refs(item?.focusIds, focusIds),
@@ -120,6 +132,24 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
       answerAlternatives: boundedArray(line?.answerAlternatives, 12).map((value) => clean(value, 240)).filter(Boolean),
     })).filter((line) => line.text),
   })).filter((item) => item.lines.length);
+
+  const listeningScripts = boundedArray(input.banks?.listeningScripts, LIMITS.listeningScripts).map((item, index) => ({
+    id: safeId(item?.id, `ls${index + 1}`),
+    focusIds: refs(item?.focusIds, focusIds),
+    contextIds: refs(item?.contextIds, contextIds),
+    title: clean(item?.title, 240),
+    transcript: clean(item?.transcript, 2400),
+    sentences: clean(item?.sentences, 1600),
+  })).filter((item) => item.transcript && item.sentences);
+
+  const readingDocuments = boundedArray(input.banks?.readingDocuments, LIMITS.readingDocuments).map((item, index) => ({
+    id: safeId(item?.id, `rd${index + 1}`),
+    focusIds: refs(item?.focusIds, focusIds),
+    contextIds: refs(item?.contextIds, contextIds),
+    title: clean(item?.title, 240),
+    passage: clean(item?.passage, 5000),
+    questions: clean(item?.questions, 3000),
+  })).filter((item) => item.passage && item.questions);
 
   const promptBank = (name, prefix) => boundedArray(input.banks?.[name], LIMITS.prompts).map((item, index) => ({
     id: safeId(item?.id, `${prefix}${index + 1}`),
@@ -142,7 +172,10 @@ export function sanitizeGeneratorProfile(input = {}, { lessonId = '', lesson = {
       sentences,
       errorPairs,
       translations,
+      transformations,
       dialogues,
+      listeningScripts,
+      readingDocuments,
       speakingPrompts: promptBank('speakingPrompts', 'sp'),
       writingPrompts: promptBank('writingPrompts', 'w'),
     },
@@ -163,7 +196,7 @@ export function scaffoldGeneratorProfile(lesson = {}) {
     focuses: focusText ? [{ id: 'lesson-focus', type: 'communication', label: focusText }] : [],
     activeVocabulary: [],
     contexts: [],
-    banks: { sentences: [], errorPairs: [], translations: [], dialogues: [], speakingPrompts: [], writingPrompts: [] },
+    banks: { sentences: [], errorPairs: [], translations: [], transformations: [], dialogues: [], listeningScripts: [], readingDocuments: [], speakingPrompts: [], writingPrompts: [] },
     successCriteria: criterion ? [criterion] : [],
   }, { lessonId, lesson });
 }
@@ -206,8 +239,11 @@ export function validateGeneratorProfile(input, { lessonId = '', lesson = {} } =
       contexts: profile.contexts.length,
       sentences: profile.banks.sentences.length,
       dialogues: profile.banks.dialogues.length,
+      listeningScripts: profile.banks.listeningScripts.length,
+      readingDocuments: profile.banks.readingDocuments.length,
       errorPairs: profile.banks.errorPairs.length,
       translations: profile.banks.translations.length,
+      transformations: profile.banks.transformations.length,
       speakingPrompts: profile.banks.speakingPrompts.length,
       writingPrompts: profile.banks.writingPrompts.length,
     },

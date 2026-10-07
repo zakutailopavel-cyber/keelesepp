@@ -2,6 +2,176 @@
 
 Added curated production content for a2-051…055: weather and seasons, -m comparison, weather forecast mediation, clothing advice and the combined module assessment. No UI, Firebase, rules, functions, B1 content, production writes or deploys.
 
+## 2026-10-07 — A2-034 answer-key fix
+
+- Propagated the A2-034 functional-reading answer-key fix upward so every scored question has an explicit accepted answer.
+- Added the focused regression test for A2-034 reading keys. No UI, Firebase or production data changes.
+
+## 2026-10-07 — A2 module 10 textbook production — branch `agent/a2-module-10-production`
+
+Stacked on A2 module 09 / PR #340. Serial lesson production continues.
+- Added curated Content Library v11 sources for `a2-046…a2-050` / “Vaba aeg ja meelelahutus”: `hobby-leisure`, `liking-preferences`, `invitation-response`, `events-tickets`.
+- A2-046 practices free-time vocabulary through ranking, frequency and short personal monologue rather than isolated word lists.
+- A2-047 explicitly contrasts `mulle meeldib + nimisõna` with `mulle meeldib + da-infinitiiv` and includes controlled transformations plus error repair.
+- A2-048 practices invitation, acceptance, polite refusal, changed time/place and final confirmation through role-play and dialogue repair.
+- A2-049 contains two event-information reading documents with 5+ questions each, mixing fact retrieval, condition reading, inference and justified choice.
+- Added `production/a2Module10.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 046–048, module-09 recycling across 046–048, distributed return to 051–053, no new core vocabulary in Kontroll 10, and a grammar/function spine for `meeldima`, da-infinitive preference language, invitation negotiation and event information.
+- Tests cover five curated profiles, meeldima transformations, event reading, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue directly to A2 module 11 “Ilm, aastaajad ja riided”.
+
+## 2026-10-07 — A2 module 09 textbook production — branch `agent/a2-module-09-production`
+
+Stacked on A2 module 08 / PR #334. Serial lesson production continues.
+- Added curated Content Library v10 sources for `a2-041…a2-045` / “Tervis ja kehahooldus”: `body-symptoms`, `health-state-forms`, `doctor-visit`, `medicine-appointment-info`.
+- A2-041 keeps the vocabulary functional and limited to frequent body parts, symptoms and basic state language rather than medical terminology.
+- A2-042 practices `mul on / mul valutab / mul ei ole / mul on vaja` with explicit controlled transformations and error repair.
+- A2-043 contains a short authored consultation listening source plus 8–10-reply role-play prompts focused on symptoms, onset, duration and confirmation of what was understood.
+- A2-044 contains two functional reading documents with 5+ questions. The medicine example is explicitly marked as an educational sample, not a real medication instruction, and tells the learner to ask a pharmacist or doctor when real instructions are unclear.
+- Added `production/a2Module09.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 041–043, module-08 recycling across 041–043, distributed return to 046–048, no new core vocabulary in Kontroll 9, and a grammar/function spine for state constructions, onset/duration questions, recommendations and frequency/time in practical health information.
+- Tests cover five curated profiles, state transformations, safe practical reading, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue directly to A2 module 10 “Vaba aeg ja meelelahutus”.
+
+## 2026-10-07 — A2 module 08 textbook production — branch `agent/a2-module-08-production`
+
+Stacked on A2 module 07 / PR #333. Serial lesson production continues.
+- Added curated Content Library v9 sources for `a2-036…a2-040` / “Teenused ja asjaajamine”: `appointment-booking`, `service-modals`, `forms-instructions`, `phone-service`.
+- A2-036 practices booking, changing and confirming a service time through realistic calendar/phone contexts rather than isolated time phrases.
+- A2-037 uses explicit modal transformations for `pean + ma` versus `saan/võin/tohin + da`, plus repair, mediation and service-rule interaction.
+- A2-038 contains two functional reading documents: a service application form and a step-by-step submission instruction. Each has six questions covering required fields, sequence, interpretation and action decisions.
+- A2-039 contains two service-call listening scripts with five keyed facts each: appointment change and call transfer. Harjuta is guaranteed an actual listening-comprehension block.
+- Added `production/a2Module08.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 036–038, module-07 recycling across 036–038, distributed return to 041–043, no new core vocabulary in Kontroll 8, and a grammar/function spine for booking, service modals, form instructions and phone repair strategies.
+- Tests cover five curated profiles, modal transformations, A2-038 reading, A2-039 listening, 15 worksheet documents, cross-module lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue to A2 module 09.
+
+## 2026-10-07 — A2 module 07 textbook production — branch `agent/a2-module-07-production`
+
+Stacked on A2 module 06 / PR #332. Serial lesson production continues.
+- Added curated Content Library v8 sources for `a2-031…a2-035` / “Pood, raha ja ostud”: `shopping-goods`, `shopping-prices`, `fitting-compare`, `receipt-return`.
+- A2-032 now combines prices, sizes, numbers and quantities with controlled transformations plus two listening scripts. Because the lesson is grammar with authored listening input, Harjuta keeps an actual listening-comprehension block instead of relying only on visual number drills.
+- A2-033 practices fitting and comparison through size/color changes, comparison forms, repair and interaction; Kasuta makes the learner adapt to changed size, color or price conditions.
+- A2-034 uses two practical reading documents: a receipt/promotion and return conditions. Each has six questions mixing factual retrieval, inference, conditions, exceptions and action decisions rather than direct sentence copying.
+- Added `production/a2Module07.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 031–033, module-06 return across 031–033, distributed return to 036–038, no new core vocabulary in Kontroll 7, and grammar/function spine for prices/quantities, comparison, shopping-service functions and practical return reading.
+- Tests cover five curated profiles, real A2-032 listening, A2-034 functional reading with 5+ questions, 15 worksheet documents, cross-module lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue to A2 module 08 “Teenused ja asjaajamine”.
+
+## 2026-10-07 — A2 module 06 textbook production — branch `agent/a2-module-06-production`
+
+Stacked on A2 module 05 / PR #331. Serial lesson production continues.
+- Added curated Content Library v7 sources for `a2-026…a2-030` / “Söök, jook ja kohvik”: `food-drink`, `quantity-partitive`, `cafe-order`, `order-bill`.
+- A2-027 now has controlled quantity/partitive transformations instead of isolated word-bank insertion. The content bank explicitly contrasts quantity phrases such as `kilo leiba`, `liiter piima`, `tass kohvi` and fixes common nominative-after-quantity errors.
+- A2-028 is a functional cafe interaction lesson: polite ordering, unavailable item, composition clarification, `ilma + -ta`, and bill request are practiced through dialogue, repair, transformation and free interaction.
+- A2-029 has two authored listening scripts with 5 keyed details each: a lunch order with prices and an order change. The existing listening guarantee places real listening in Harjuta for the listening lesson.
+- Added `production/a2Module06.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 026–028, module-05 lexical return across 026–028, distributed return to 031–033, no new core vocabulary in Kontroll 6, and grammar/function spine for quantity + partitive, polite cafe requests, `ilma + -ta`, and price/order listening.
+- Tests cover all five curated profiles, partitive transformations, real A2-029 listening, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue immediately to A2 module 07 “Pood, raha ja ostud”.
+
+## 2026-10-07 — A2 module 05 textbook production — branch `agent/a2-module-05-production`
+
+Stacked on A2 module 04 / PR #330. Serial lesson production continues.
+- Added curated Content Library v6 sources for `a2-021…a2-025` / “Linn, kohad ja tee”: `city-places`, `directions`, `route-imperative`, `city-practical-info`.
+- Added a structured functional-reading source contract: `banks.readingDocuments` stores a practical text plus at least five comprehension/mediation questions. New `practice-functional-reading` materializes the existing Worksheet Studio reading block. Reading lessons are guaranteed a reading activity in Harjuta when a controlled reading document is available.
+- Reading questions in the new city-info pack deliberately mix practical inference, paraphrase and action decisions instead of copying answer strings directly from the passage. The two initial documents cover library opening information and a temporary bus-stop notice.
+- Grammar lessons that intentionally contain authored `listeningScripts` now keep one listening activity in Harjuta; this makes A2-023 “Käskiv kõneviis igapäevaselt” include real instruction listening rather than grammar-only drilling.
+- Added `production/a2Module05.js`: 16 core lexical items with three forms + Russian translation, 8+5+3 introduction across 021–023, module-04 lexical return across 021–023, distributed return to 026–028, no new core vocabulary in Kontroll 5, and grammar/function spine for city local cases, route questions, imperative instructions and practical city reading.
+- Updated old module-04 regressions exposed by CI: one home sentence now contains an actual target word; pattern-only tests now exclude lessons intentionally replaced by curated packs; the short-next-module lexical test now expects distributed returns instead of every word in one lesson.
+- Tests cover all five curated module-05 profiles, functional reading bank sanitization, imperative listening, lesson-024 reading with 5+ questions, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue immediately to A2 module 06 “Söök, jook ja kohvik”.
+
+## 2026-10-06 — A2 module 04 textbook production — branch `agent/a2-module-04-production`
+
+Stacked on A2 module 03 / PR #329. Serial lesson production continues while Vercel preview builds are rate-limited.
+- Added curated Content Library v5 sources for `a2-016…a2-020` / “Kodu ja ümbrus”: `home-rooms`, `inner-local-cases`, `outer-local-cases`, `neighbourhood`. This replaces the old generic pattern-only fallback for these lessons with topic-grounded contexts, vocabulary, controlled sentences, dialogues, error repair, translation, transformations and productive prompts.
+- Generator profiles/content-pack factory now preserve explicit `transformations` banks. The transformation block added in #325 can therefore be fed with authored source → instruction → accepted-answer pairs instead of remaining unavailable in most real lessons.
+- Added first structured listening-source contract used by the generator: `banks.listeningScripts` stores title, transcript and controlled gap sentences. New `practice-listening-comprehension` activity materializes the existing Worksheet Studio listening block with teacher-readable transcript and future audio attachment support. Listening lessons are guaranteed at least one listening activity in Harjuta when a controlled script is available.
+- The neighbourhood pack includes two A2 listening scripts; no external TTS/audio is required for lesson production because the teacher-read transcript is a supported fallback.
+- Added `production/a2Module04.js`: 16 core lexical items with three forms + Russian translation, 8+5+3 introduction across 016–018, module-03 vocabulary return, no new core vocabulary in Kontroll 4, and grammar spine for inner/outer local cases, case-series choice and spatial relations.
+- Tests cover five curated profiles, transformation/listening bank preservation, 15 valid worksheets, diversity thresholds, local-case transformation practice, an actual listening block in A2-019, cross-module lexical recycling and the no-new-vocabulary assessment rule.
+- No Firestore writes, worksheet publishing, production deployment or Õpik changes.
+- Next gate: CI. If green, continue to A2 module 05; only concrete gaps exposed by lesson production should add infrastructure.
+
+## 2026-10-06 — A2 module 03 textbook production — branch `agent/a2-module-03-production`
+
+Stacked on A2 module 02 / PR #328. Serial lesson production continues while Vercel is rate-limited.
+- Added `production/a2Module03.js` for `a2-011…a2-015` / “Päev, kell ja harjumused”: five complete Avasta + Harjuta + Kasuta bundles using the existing daily-routine, clock-time, frequency and week-plan content packs.
+- Added a 16-item module core lexicon with three learner forms + Russian translation. New words are introduced 8 + 5 + 3 in lessons 011–013; lessons 014 and Kontroll 3 introduce no new core vocabulary; return is scheduled across 016–018.
+- Added grammar spine for time adverbials/simple word order, clock/time ranges, frequency adverbs and sequence connectors.
+- Module 02 vocabulary is actively recycled across 011–013 through scheduled lesson vocabulary and appears as `previous-module` in Lesson DNA.
+- Tests cover 15 valid worksheet documents, module diversity thresholds, lexical progression, cross-module recycling and zero new core vocabulary in the assessment lesson.
+- No Firestore writes, publishing, production deploy or Õpik changes.
+- Next gate: CI; if green, continue to A2 module 04.
+
+## 2026-10-06 — A2 module 02 textbook production — branch `agent/a2-module-02-production`
+
+Stacked on A2 module 01 / PR #327. Owner asked to keep producing lessons while deployment limits are active and combine/merge the PR stack later.
+- Added `production/a2Module02.js` for `a2-006…a2-010` / “Pere, inimesed ja kirjeldamine”: five complete Avasta + Harjuta + Kasuta bundles from the existing authoritative A2 roadmap/content packs.
+- Added a 16-item module core lexicon with three learner forms + Russian translation and an A2 grammar spine for possession/genitive, `tal on` description and person-description questions.
+- Improved lexical recycling from a paper plan into lesson input: `scheduledVocabularyForLesson` maps due textbook entries into generator vocabulary, so scheduled new/recycled words can appear in recognition/choice/categorisation/speaking support instead of living only in metadata.
+- Module 01 production is updated on this stacked branch to materialize its scheduled vocabulary in each lesson profile.
+- Cross-module recycling is now real in module 02: the 16 core entries from module 01 are scheduled back across lessons 006–008 and are marked as `previous-module` in Lesson DNA. Fixed status precedence so previous-module returns are not mislabeled current-module.
+- Next-module returns are distributed 8 + 5 + 3 across the first three lessons of the following module instead of dumping all 16 words into its first lesson.
+- Added tests for module 02 15-sheet completeness, 8+5+3 new vocabulary, module-03 returns, module-01 recycling, previous-module status and no new core vocabulary in the assessment lesson. Planner/schema tests cover distributed next-module returns.
+- No Firestore writes, worksheet publishing, production deployment or Õpik changes.
+- Next gate: CI. If green, continue directly to A2 module 03 while the PR stack remains open.
+
+## 2026-10-06 — A2 module 01 textbook production — branch `agent/a2-module-01-production`
+
+Stacked on `agent/module-diversity-planner` / PR #326. Owner priority: stop expanding generic architecture and begin serial lesson production A2 → B1 → B2 → C1.
+- Added `production/a2Module01.js` for the first five A2 lessons: `a2-001…a2-005` / “A2 lähtepunkt ja eneseinfo”.
+- Production uses the existing authoritative A2 roadmap and existing curated generator profiles; it does not create duplicate lesson IDs or a competing curriculum.
+- The module is planned as five complete lesson bundles, each with Avasta + Harjuta + Kasuta, using the module-level activity plan from #326. `generateLessonBundle` now accepts an optional preplanned activity plan so module-level diversity rules actually control the generated sheets.
+- Added a 16-item core lexical syllabus for the module with three learner forms + Russian translation. The recycling planner introduces it 8 + 5 + 3 across lessons 001–003, introduces no new core vocabulary in 004/005, requires at least three current-module encounters and schedules a return in `a2-006`.
+- Added module grammar spine: personal pronouns + `olema`, common present-tense verbs, and basic question forms. Grammar/vocabulary progression is carried into Lesson DNA for all three phases.
+- Added focused tests for 5 × 3 = 15 valid worksheet documents, module diversity thresholds, lexical 8+5+3 distribution, no new vocabulary in the assessment lesson, next-module return, progression metadata and raw-markdown leakage.
+- No Firestore writes, publishing, production deployment or Õpik changes. This branch produces deterministic lesson content in code only.
+- Next gate: CI. If the module planner/content banks expose a concrete failure, fix that concrete gap; otherwise merge the stacked PRs and move immediately to A2 module 02.
+
+## 2026-10-06 — Module diversity + lexical recycling planner — branch `agent/module-diversity-planner`
+
+Checked `origin/main` `c7ec04c` after PR #325 merged. Owner priority: finish lesson content A2 → B1 → B2 → C1 before final Õpik assembly.
+- Added `modulePlanner.js` as a deterministic module-level planner over the existing lesson planner.
+- Diversity gate checks the whole 5-lesson module, not one sheet in isolation: at least 4 Harjuta activity families, at least 3 Kasuta families, warns when Avasta has fewer than 3 families, and rejects a family-pattern template repeated in 3+ lessons. It also warns when the same activity id is reused inside one lesson.
+- `planModuleActivities` plans lessons sequentially with prior activity history, so later lessons prefer cooled-down activity types instead of mechanically repeating the same pattern.
+- Lexical planner assigns a 12–16 word core set to the first three lessons with the textbook target distribution (up to 8 new in lesson 1, up to 5 in lesson 2, remainder in lesson 3), schedules at least two later current-module encounters plus the module assessment/final lesson, and schedules a first return in the next module when one is supplied.
+- `lexicalCoverageReport` rejects core items with fewer than 3 encounters inside their introduction module and, when a next module exists, items with no next-module return.
+- Generator exports the module planner APIs; deterministic-source audit now includes `modulePlanner.js`.
+- Tests cover a varied five-lesson module, repeated-template rejection, current/next-module lexical coverage, and the 8+5+3 introduction distribution for a 16-word core set.
+- No Firestore writes, migrations, production worksheet changes, publishing, deploy, or Õpik UI changes.
+- Next safe step: CI on the draft PR. After merge, stop adding generic architecture unless a concrete lesson batch exposes a gap; begin serial lesson/module production.
+## 2026-10-07 — Textbook art bible: line-art with one lime accent — branch `agent/textbook-art-contract`
+
+Owner chose the illustration style (Pinterest reference: black line, white figures, lime accent, pale-lime blob,
+plants, floating books) and decided images are drawn by ChatGPT/Codex built-in image generation, no paid API.
+- New `docs/TEXTBOOK_ART_BIBLE.md`: palette (#1E1E1E line, white, #C9F03D accent, #E8F9B0 blob, #D9D9D9 grey),
+  drawing rules, recurring cast (Anna, Markus, Liis, Viktor, Sofia, Jaan + dog Muki), visual brief format
+  (`visuals` in content packs), master generation prompt, file path `crm-v2/public/textbook-art/<level>/<lessonId>/
+  <id>.webp` (≤150 KB, 1600 px), acceptance checklist.
+- `AGENTS.md` „Sisuagent” required reading now includes the art bible; `TEXTBOOK_VISUAL_STYLE.md` links to it.
+- Docs only. Next: Õpik page design in this style (module bands, speech bubbles, „Pea meeles!” boxes) — separate PR.
+- Next safe step: owner merges; Codex generates the cast sheet first and the owner approves it.
+## 2026-10-07 — Õpik assembled by the curriculum from phase sheets — branch `agent/opik-from-phases`
+
+Checked `origin/main` `aedb862`. Owner: Õpik becomes the main asset; all lessons flow into it in order. Before, Õpik
+used only the old single worksheet on the lesson root, so none of the Avasta/Harjuta/Kasuta sheets reached it.
+- `worksheet-studio/bookProgram.js`: `programLessons/Levels/Modules` (roadmap lessons ordered level → module →
+  lesson), `programProgress` (from `worksheetPhases` summaries, no sheet reads), `publishedPhaseDoc` (published
+  version only, never a draft), `assembleProgramBook` (sheets in order + missing list; lesson without phase sheets
+  falls back to its old published lesson sheet).
+- `BookPage`: new default mode „Õppekava järgi” (level, module or all, phase checkboxes, readiness „Avasta x/n · …”,
+  „Koosta õpik” reads each lesson's sheets via `lessonWorksheetsService.list`, contents grouped by module, „Puudu N
+  avaldatud lehte” with links to the constructor); the old hand-picked book stays as „Vali käsitsi”. Draft in
+  localStorage keeps mode and program choice. No data writes.
+- Checks: new `bookProgram.test.js` and program-mode BookPage test; studio + library tests 104/104; eslint 0 errors;
+  build OK.
+- Limit: a full level reads every lesson's worksheets once per „Koosta õpik” (~90–100 reads); fine for an on-demand
+  export.
+- Next safe step: owner merges; then open Õpik → B1 → „Koosta õpik” and check the 17 published Avasta sheets.
+
 ## 2026-10-07 — AGENTS.md: rules and required reading for the content agent — branch `agent/agents-content-rules`
 
 Owner moves lesson-content production to Codex, which reads `AGENTS.md` automatically.

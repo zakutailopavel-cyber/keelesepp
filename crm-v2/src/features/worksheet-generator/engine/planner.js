@@ -38,6 +38,8 @@ function requirementAvailable(profile, requirement) {
     case 'translations': return countBank(profile, 'translations') >= 2;
     case 'transformations': return countBank(profile, 'transformations') >= 2;
     case 'dialogues': return countBank(profile, 'dialogues') >= 1;
+    case 'listeningScripts': return countBank(profile, 'listeningScripts') >= 1;
+    case 'readingDocuments': return countBank(profile, 'readingDocuments') >= 1;
     case 'speakingOrSuccess': return countBank(profile, 'speakingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingOrSuccess': return countBank(profile, 'writingPrompts') >= 1 || (profile?.successCriteria || []).length >= 1;
     case 'writingPrompts': return countBank(profile, 'writingPrompts') >= 1;
@@ -140,6 +142,21 @@ export function planPhaseActivities({
   return { activityIds: selected.slice(0, count), diagnostics };
 }
 
+function ensurePhaseActivity({ phase, activityIds, profile, lessonKind, activityId }) {
+  if (!activityId || activityIds.includes(activityId)) return activityIds;
+  const candidate = eligibleActivities({ phase, profile, lessonKind }).find((activity) => activity.id === activityId);
+  if (!candidate) return activityIds;
+  return [...activityIds.slice(0, Math.max(0, activityIds.length - 1)), candidate.id];
+}
+
+function ensureLessonKindSkill({ phase, activityIds, profile, lessonKind, skill }) {
+  if (!skill || activityIds.some((id) => (activityById(id)?.skills || []).includes(skill))) return activityIds;
+  const candidate = eligibleActivities({ phase, profile, lessonKind })
+    .find((activity) => (activity.skills || []).includes(skill) && !activityIds.includes(activity.id));
+  if (!candidate) return activityIds;
+  return [...activityIds.slice(0, Math.max(0, activityIds.length - 1)), candidate.id];
+}
+
 export function planLessonActivities({
   profile = {},
   lessonKind = 'integrated',
@@ -163,6 +180,20 @@ export function planLessonActivities({
     phases[phase] = plan.activityIds;
     diagnostics.push(...plan.diagnostics);
   });
+
+  const normalizedKind = normalizeLessonKind(lessonKind);
+  if (normalizedKind === 'listening' || (normalizedKind === 'grammar' && countBank(profile, 'listeningScripts') > 0)) {
+    phases.practice = ensurePhaseActivity({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, activityId: 'practice-listening-comprehension' });
+  }
+  if (normalizedKind === 'writing') {
+    phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'writing' });
+  }
+  if (normalizedKind === 'reading') {
+    phases.practice = ensurePhaseActivity({ phase: 'practice', activityIds: phases.practice, profile, lessonKind: normalizedKind, activityId: 'practice-functional-reading' });
+  }
+  if (normalizedKind === 'communication') {
+    phases.transfer = ensureLessonKindSkill({ phase: 'transfer', activityIds: phases.transfer, profile, lessonKind: normalizedKind, skill: 'speaking' });
+  }
   return { phases, diagnostics };
 }
 
