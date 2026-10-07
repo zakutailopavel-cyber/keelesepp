@@ -8,6 +8,7 @@ import LoginPage from '../features/auth/LoginPage.jsx';
 import CalendarPage from '../features/calendar/CalendarPage.jsx';
 import FinanceWorkspacePage from '../features/finance/FinanceWorkspacePage.jsx';
 import FinanceMonthPage from '../features/finance/FinanceMonthPage.jsx';
+import FinanceSettingsPage from '../features/finance/FinanceSettingsPage.jsx';
 import ExpensesPage from '../features/expenses/ExpensesPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
 import GroupsPage from '../features/groups/GroupsPage.jsx';
@@ -96,6 +97,7 @@ export default function AppRoutes() {
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
             <Route path="finance" element={<FinanceMonthPage />} />
+            <Route path="finance/seaded" element={<FinanceSettingsPage />} />
             <Route path="finance/vana" element={<FinanceWorkspacePage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>

@@ -96,7 +96,7 @@ describe('notifications', () => {
     expect(homeworkNotifications([{ id: 'h1', submissionKind: 'worksheet', studentName: 'Mari', title: 'Tööleht 3', reviewStatus: 'pending', percentage: 80 }, { id: 'h2', reviewStatus: 'reviewed' }]))
       .toEqual([expect.objectContaining({ title: 'Töö ootab kontrolli · Mari', meta: '80%' })]);
     expect(invoiceNotifications([{ id: 'i1', studentName: 'Mari', status: 'Ootel', due: '2026-09-01', amountCents: 5000 }], new Date('2026-10-01T10:00:00Z')))
-      .toHaveLength(1);
+      .toEqual([expect.objectContaining({ to: '/finance?status=overdue&invoice=i1' })]);
   });
 
   it('the bell counts notifications and opens the task from the panel', async () => {

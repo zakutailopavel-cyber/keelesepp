@@ -1,3 +1,12 @@
+## 2026-10-07 — Finance v3 settings and navigation — branch `agent/finance-v3-settings`
+
+- Goal: move low-frequency finance controls to a dedicated settings page and keep old finance links useful after the month-screen switch.
+- Completed: added `/finance/seaded` with panels for billing rules/forecast, periods, numbering, e-mail delivery and audit; added responsive navigation and a settings entry in the month header. Legacy finance hashes resolve to their new destination. Invoice notifications now open the overdue view with the invoice id, and the dashboard overdue link opens the overdue filter. Access policy includes the new route.
+- Files: `FinanceSettingsPage.jsx`, `FinanceSettingsPage.test.jsx`, `financeSettingsNavigation.js`, `financeSettingsNavigation.test.js`, `financeSettings.css`, `FinanceMonthPage.jsx`, routes/access policy, notification model, dashboard links/tests, and `docs/screenshots/finance-v3-settings/*`.
+- Checks: `npx vitest run src/features/finance src/features/students src/services/firebase` — 55 files, 282 tests passed. `npx vitest run --maxWorkers=4` — 190 files / 1207 tests passed; exactly the 10 documented Node 26 `localStorage` failures remained. `npx eslint .` — 0 errors, 2 pre-existing hook dependency warnings. `npm run build` — passed with the existing chunk-size advisory. `git diff --check` — passed. Local desktop and 375 px screenshots used mock repositories only.
+- Limits/risks: no production data, e-mail, invoice, payment, merge or deployment action. The existing panel implementations are reused so service behavior stays unchanged. Debts and bank import remain PR 4.
+- Next safe step: open PR 3, wait for green CI, merge it, then create `agent/finance-v3-debts` from fresh `origin/main`.
+
 ## 2026-10-07 — Finance v3 month screen — branch `agent/finance-v3-screen`
 
 - Goal: replace `/finance` with the approved month-focused workflow while preserving the complete legacy workspace at `/finance/vana`.

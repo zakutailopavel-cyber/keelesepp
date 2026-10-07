@@ -8,10 +8,11 @@ import {
   ReceiptText,
   Search,
   Send,
+  Settings2,
   WalletCards,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select } from '../../components/ui/index.js';
 import {
@@ -35,6 +36,7 @@ import MonthlyInvoicePanel from './MonthlyInvoicePanel.jsx';
 import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
+import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
@@ -88,16 +90,23 @@ export default function FinanceMonthPage({
   showPrivacyBanner = true,
 }) {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const canManage = hasAnyRole(user.roles, [ROLES.ADMIN]);
   const state = useFinanceData({ canManageFinance: canManage, invoiceRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository });
   const [month, setMonth] = useState(() => defaultBillingMonth());
-  const [status, setStatus] = useState('all');
+  const [status, setStatus] = useState(() => new globalThis.URLSearchParams(location.search).get('status') || 'all');
   const [query, setQuery] = useState('');
   const [paymentInvoice, setPaymentInvoice] = useState(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const destination = legacyFinanceDestination(location.hash);
+    if (destination) navigate(destination, { replace: true });
+  }, [location.hash, navigate]);
 
   const invoices = useMemo(() => state.data?.invoices || [], [state.data?.invoices]);
   const monthInvoices = useMemo(() => filterFinanceRows(invoices, { month }), [invoices, month]);
@@ -132,7 +141,7 @@ export default function FinanceMonthPage({
       {showPrivacyBanner ? <PricePrivacyBanner /> : null}
       <header className="finance-month-hero">
         <div><span className="eyebrow">Finantsid</span><h1>Kuu arveldus</h1><p>Koosta arved, jälgi laekumisi ja lahenda erandid ühes vaates.</p></div>
-        <div className="finance-month-hero__actions"><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}</div>
+        <div className="finance-month-hero__actions"><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}</div>
       </header>
 
       <div className="finance-month-switcher">
