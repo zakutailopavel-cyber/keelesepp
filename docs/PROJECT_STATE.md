@@ -1,3 +1,8 @@
+## 2026-10-07 — A2-034 answer-key fix
+
+- Propagated the A2-034 functional-reading answer-key fix upward so every scored question has an explicit accepted answer.
+- Added the focused regression test for A2-034 reading keys. No UI, Firebase or production data changes.
+
 ## 2026-10-07 — A2 module 09 textbook production — branch `agent/a2-module-09-production`
 
 Stacked on A2 module 08 / PR #334. Serial lesson production continues.
