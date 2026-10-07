@@ -1673,8 +1673,8 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       { id: 'receipt-return-t-2', focusIds: ['receipt-return'], sourceLang: 'ru', source: 'Скидка действует до воскресенья.', target: 'Allahindlus kehtib kuni pühapäevani.', alternatives: [] },
     ],
     transformations: [
-      { id: 'receipt-return-tr-1', focusIds: ['receipt-return'], from: 'Kampaania lõpeb pühapäeval.', prompt: 'Kasuta verbi „kehtima”.', answer: 'Kampaania kehtib kuni pühapäevani.', alternatives: [] },
-      { id: 'receipt-return-tr-2', focusIds: ['receipt-return'], from: 'Toote saab tagasi anda 14 päeva jooksul.', prompt: 'Kasuta sõna „tagastus”.', answer: 'Tagastus on võimalik 14 päeva jooksul.', alternatives: [] },
+      { id: 'receipt-return-tr-1', focusIds: ['receipt-return'], from: 'Kampaania lõpeb pühapäeval.', prompt: 'Kasuta verbi „kehtima”.', answer: 'Kampaania kehtib pühapäevani.', alternatives: [] },
+      { id: 'receipt-return-tr-2', focusIds: ['receipt-return'], from: 'Toote saab tagasi anda 14 päeva jooksul.', prompt: 'Kasuta sõna „tagastus”.', answer: 'Kauba tagastus on võimalik 14 päeva jooksul.', alternatives: [] },
     ],
     listeningScripts: [],
     readingDocuments: [
@@ -2279,8 +2279,8 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
     sentences: sentences('hobby-leisure', [
       ['1', 'hobby-leisure', 'hobby-weekend', 'Sport aitab mul pärast töönädalat liikuda.'],
       ['2', 'hobby-leisure', 'hobby-weekend', 'Laupäeval käin kinos, sest kino on kodu lähedal.'],
-      ['3', 'hobby-leisure', 'hobby-weekend', 'Pühapäeva hommikul on minu hobiks käsitöö.'],
-      ['4', 'hobby-leisure', 'hobby-evening', 'Õhtul kuulan tavaliselt muusikat.'],
+      ['3', 'hobby-leisure', 'hobby-weekend', 'Pühapäeva hommikul teen käsitööd, sest käsitöö on minu hobi.'],
+      ['4', 'hobby-leisure', 'hobby-evening', 'Õhtul kuulan tavaliselt muusikat, sest muusika aitab mul puhata.'],
       ['5', 'hobby-leisure', 'hobby-evening', 'Lugemine aitab mul enne magamist rahuneda.'],
       ['6', 'hobby-leisure', 'hobby-evening', 'Jalutamine pärast õhtusööki kestab tavaliselt pool tundi.'],
       ['7', 'hobby-leisure', 'hobby-choice', 'Kontsert algab kell seitse ja kestab kaks tundi.'],
