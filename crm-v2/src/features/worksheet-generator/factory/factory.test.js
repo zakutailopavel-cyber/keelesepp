@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045', 'a2-046', 'a2-047', 'a2-048', 'a2-049', 'a2-050', 'a2-046', 'a2-047', 'a2-048', 'a2-049', 'a2-050', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(Array.from({ length: 54 }, (_, index) => `a2-${String(index + 2).padStart(3, '0')}`))('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(Array.from({ length: 49 }, (_, index) => `a2-${String(index + 7).padStart(3, '0')}`))('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -335,6 +335,23 @@ describe('Content Pack Factory v1', () => {
       expect(questions.length).toBeGreaterThanOrEqual(5);
       questions.forEach((question) => expect(question, `${doc.id}: ${question}`).toMatch(/\[[^\]]+\]\s*$/));
     });
+  });
+
+  it('module 11 uses distinct weather sources and combines all of them only in the assessment', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-051')).toEqual(['weather-seasons']);
+    expect(pick('a2-052')).toEqual(['weather-seasons', 'weather-comparison']);
+    expect(pick('a2-053')).toEqual(['weather-seasons', 'weather-forecast']);
+    expect(pick('a2-054')).toEqual(['weather-seasons', 'weather-clothing-advice']);
+    expect(pick('a2-055')).toEqual(['weather-seasons', 'weather-comparison', 'weather-forecast', 'weather-clothing-advice']);
+
+    const forecast = createContentPackDraft(lessons.find((item) => item.id === 'a2-053')).profile;
+    expect(forecast.banks.dialogues.some((item) => item.id === 'weather-forecast-d-1')).toBe(true);
+    expect(forecast.successCriteria).toContain('Ma leian ilmateatest koha, aja, temperatuuri, sademed ja tuule ning annan põhiinfo edasi.');
+
+    const advice = createContentPackDraft(lessons.find((item) => item.id === 'a2-054')).profile;
+    expect(advice.activeVocabulary.map((item) => item.word)).toEqual(expect.arrayContaining(['pane selga', 'võta kaasa', 'vihmavari']));
+    expect(advice.banks.speakingPrompts).toHaveLength(4);
   });
 
   it('translation hints never reveal an accepted answer', () => {
