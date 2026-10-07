@@ -7715,6 +7715,21 @@ exports.invoiceApi = functions
       return;
     }
 
+    // admin: read or switch the automatic daily payment reminders
+    if (path === "/reminder-settings") {
+      const admin = await requireAdminUser(req);
+      if (typeof req.body?.autoEnabled === "boolean") {
+        await reminderSettingsRef().set({
+          autoEnabled: req.body.autoEnabled,
+          updatedAt: new Date().toISOString(),
+          updatedByUid: admin.decoded.uid,
+          updatedByEmail: String(admin.decoded.email || "").toLowerCase(),
+        }, { merge: true });
+      }
+      res.json({ autoEnabled: await autoRemindersEnabled() });
+      return;
+    }
+
     // admin: one test e-mail to the admin's own address; returns the provider's error text when it fails
     if (path === "/email-test") {
       const admin = await requireAdminUser(req);
@@ -9922,6 +9937,14 @@ exports.syncAllCalendars = functions.pubsub
     return null;
   });
 
+// Automatic payment reminders run only when an admin has switched them on (Finantsid → Täpsem → E-kirjad).
+// No settings document = off: the owner decided on 2026-10-07 that the admin sends invoices and reminders by hand.
+const reminderSettingsRef = () => db.collection("financeSettings").doc("reminders");
+async function autoRemindersEnabled() {
+  const snap = await reminderSettingsRef().get();
+  return snap.exists && snap.data().autoEnabled === true;
+}
+
 // ── SCHEDULED: invoice payment reminders ─────────────────────
 exports.sendInvoicePaymentReminders = functions
   .runWith({ secrets: ["SMTP_PASS"] })
@@ -9929,6 +9952,10 @@ exports.sendInvoicePaymentReminders = functions
   .schedule("0 9 * * *")
   .timeZone(APP_TIME_ZONE)
   .onRun(async () => {
+    if (!await autoRemindersEnabled()) {
+      console.log("Invoice reminders paused (financeSettings/reminders.autoEnabled is not true)");
+      return null;
+    }
     const due10 = await sendInvoiceBatch({ type: "due10", force: false });
     const overdue = await sendInvoiceBatch({ type: "reminder", force: false });
     console.log("Invoice reminders", { due10, overdue });

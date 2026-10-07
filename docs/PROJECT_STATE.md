@@ -1,3 +1,16 @@
+## 2026-10-07 — E-mail works again; automatic payment reminders paused — branch `agent/reminders-pause`
+
+- SMTP: the owner's correct info@epkoolitus.ee password was checked locally (`functions/tools/smtp-check.js`,
+  `functions/tools/set-smtp-pass.sh`: hidden input, Zone login verified before saving, never printed — untracked
+  helper scripts) and stored as `SMTP_PASS` version 5; the 6 mail functions were redeployed; the test e-mail from
+  „E-kirjad” arrived (16:21). Older secret versions 1–4 are still ENABLED (can be destroyed later).
+- Owner: nothing is sent automatically for now; the admin sends invoices and reminders by hand.
+  `sendInvoicePaymentReminders` now runs only when `financeSettings/reminders.autoEnabled === true` (no document = off);
+  `invoiceApi /reminder-settings` (admin) reads/switches it; „E-kirjad” shows „Automaatsed meeldetuletused:
+  VÄLJAS/SEES” with a confirmed switch.
+- Checks: finance UI 73/73, emulator 3/3 incl. new reminder-settings test, eslint 0 errors.
+- Deploy: `invoiceApi`, `sendInvoicePaymentReminders`.
+
 ## 2026-10-07 — „Kuuarved”: price and payer e-mail entered in the row — branch `agent/kuuarved-inline`
 
 October: 31 students without price, many without payer e-mail; fixing them meant opening every profile.

@@ -3440,3 +3440,22 @@ test("manual invoice: the owner (super admin by e-mail) may invoice without an a
     if (before.exists) await profile.set(before.data()); else await profile.delete();
   }
 });
+
+test("automatic payment reminders are off until an admin switches them on", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await db.collection("financeSettings").doc("reminders").delete();
+  const adminToken = await createAdminToken();
+  const call = (body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/invoiceApi/reminder-settings`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  assert.deepEqual((await call({})).body, { autoEnabled: false });
+  assert.deepEqual((await call({ autoEnabled: true })).body, { autoEnabled: true });
+  assert.deepEqual((await call({ autoEnabled: false })).body, { autoEnabled: false });
+  const stored = await db.collection("financeSettings").doc("reminders").get();
+  assert.equal(stored.data().autoEnabled, false);
+  assert.equal(stored.data().updatedByEmail, "zakutailo.pavel@gmail.com");
+});

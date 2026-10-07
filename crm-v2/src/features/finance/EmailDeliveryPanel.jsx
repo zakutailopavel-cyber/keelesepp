@@ -19,6 +19,14 @@ const when = (value) => (value ? new Date(value).toLocaleString('et-EE', { day: 
 export default function EmailDeliveryPanel({ repository = emailQueueService, deliveryApi = invoiceDeliveryApi }) {
   const state = useAsyncData(() => repository.recent(30), [repository]);
   const [test, setTest] = useState({ busy: false, result: null });
+  const reminders = useAsyncData(() => (deliveryApi.reminderSettings ? deliveryApi.reminderSettings() : Promise.resolve(null)), [deliveryApi]);
+  const [switching, setSwitching] = useState(false);
+  const [switchError, setSwitchError] = useState('');
+  const switchReminders = async (autoEnabled) => {
+    if (autoEnabled && !globalThis.confirm('Lülitan automaatsed meeldetuletused sisse: igal hommikul kell 9 saadetakse lapsevanematele meeldetuletused tasumata ja tähtaja ületanud arvete kohta. Jätkata?')) return;
+    setSwitching(true); setSwitchError('');
+    try { await deliveryApi.reminderSettings(autoEnabled); reminders.reload(); } catch (error) { setSwitchError(error.message || 'Seadet ei saanud muuta.'); } finally { setSwitching(false); }
+  };
   const runTest = async () => {
     setTest({ busy: true, result: null });
     try {
@@ -43,6 +51,13 @@ export default function EmailDeliveryPanel({ repository = emailQueueService, del
           <Button loading={test.busy} onClick={runTest}><Send size={16} /> Saada testkiri endale</Button>
         </div>
       </div>
+      {reminders.data ? (
+        <div className={`email-reminders ${reminders.data.autoEnabled ? 'is-on' : 'is-off'}`}>
+          <span><strong>Automaatsed meeldetuletused: {reminders.data.autoEnabled ? 'SEES' : 'VÄLJAS'}</strong><small>{reminders.data.autoEnabled ? 'Igal hommikul kell 9 saadetakse meeldetuletused tasumata ja üle tähtaja arvete kohta.' : 'Midagi ei saadeta ise. Arved ja meeldetuletused saadab administraator nuppudega.'}</small></span>
+          <Button variant="secondary" loading={switching} onClick={() => switchReminders(!reminders.data.autoEnabled)}>{reminders.data.autoEnabled ? 'Lülita välja' : 'Lülita sisse'}</Button>
+        </div>
+      ) : null}
+      {switchError ? <p className="form-error" role="alert">{switchError}</p> : null}
       {test.result ? (
         test.result.ok
           ? <p className="success-notice" role="status"><MailCheck size={16} /> Testkiri saadeti aadressile {test.result.to}. Kontrolli postkasti.</p>
