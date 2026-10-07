@@ -1,4 +1,5 @@
-import { BookA, Settings2, Sparkles, Target } from 'lucide-react';
+import { BookA, Image as ImageIcon, Settings2, Sparkles, Target } from 'lucide-react';
+import { artBlock, missingArt } from '../art/textbookArt.js';
 import { createBlock } from '../../worksheet-studio/engine/registry.js';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,7 +15,7 @@ const UNSAVED = 'Töölehel on salvestamata muudatusi. Genereerimine laadib uue 
 
 // Lesson worksheets and the generator in one strip at the top of the worksheet constructor:
 // switch between the lesson's sheets, pick difficulty, generate the three sheets or one focus sheet.
-export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = false, onGenerated, onPreviewSheet, onInsertBlocks, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
+export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, dirty = false, onGenerated, onPreviewSheet, onInsertBlocks, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState('core');
@@ -92,6 +93,13 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = fals
     setNotice(kind === 'vocab' ? `Lehele lisati ${words.length} tunni sõna.` : 'Lehele lisati sõnade ja tõlgete paarid.');
   };
 
+  // the lesson's textbook illustrations for this sheet that are not on it yet
+  const art = doc ? missingArt(doc, lessonId, worksheetId) : [];
+  const insertArt = () => {
+    onInsertBlocks(art.map(artBlock));
+    setNotice(art.length === 1 ? 'Lehele lisati tunni pilt.' : `Lehele lisati ${art.length} tunni pilti.`);
+  };
+
   const generateFocus = (event) => {
     event.currentTarget.closest('details')?.removeAttribute('open');
     run('focus', async () => {
@@ -139,6 +147,7 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, dirty = fals
             </div>
           </details>
         ) : null}
+        {art.length && onInsertBlocks ? <button type="button" className="st-btn" onClick={insertArt} title={art.map((visual) => visual.caption || visual.id).join('\n')}><ImageIcon size={15} aria-hidden="true" /> Lisa tunni pilt{art.length > 1 ? ` (${art.length})` : ''}</button> : null}
         <Link className="st-btn" to={`/library/lessons/${encodeURIComponent(lessonId)}/worksheets`} title="Generaatori sisu ja katvus"><Settings2 size={15} aria-hidden="true" /> Seaded</Link>
       </div>
       {error ? <span className="lgb-error" role="alert">{error}</span> : null}

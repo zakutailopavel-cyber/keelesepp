@@ -1,3 +1,20 @@
+## 2026-10-07 — Textbook pictures on the sheets + module drafts in one click — branch `agent/art-on-sheets`
+
+Checked `origin/main` `5f0c540` (Codex art #347 for A2 module 01 merged: 5 WebP, 76–100 KB).
+- `worksheet-generator/art/textbookArt.js` + `art/visuals/a2-module-01.js` (briefs from
+  `docs/TEXTBOOK_ART_A2_MODULE_01.md`): registry, `visualSrc` (`/textbook-art/<level>/<lessonId>/<id>.webp`),
+  `artBlock` (image block, 3:2, caption, alt, `artId`), `withLessonArt` (after the opening text, once), `missingArt`.
+- Generator: `generateCoreSheets` and „Ainult see leht” add the lesson's pictures of that phase to the sheet.
+- Constructor (`LessonGeneratorBar`, gets `doc` from `WorksheetStudioPage.renderTop`): „Lisa tunni pilt” inserts the
+  missing picture into an existing sheet (also manual ones). Image block uses `alt` when given.
+- Õppevara (admin): „Loo mustandid” on a module heading → `ui/moduleDrafts.js` (loaded on click) creates Avasta /
+  Harjuta / Kasuta drafts for lessons that have a generator profile and no core sheet; existing sheets untouched,
+  nothing published; result notice lists created / existing / no generator / failed.
+- Rules: art bible §8 and AGENTS „Sisuagent” now name `art/visuals/*` + the `MODULES` line as the content agent's files.
+- Checks: new `textbookArt.test.js` (every brief has its file ≤150 KB, caption, alt, job; insertion once),
+  `moduleDrafts.test.js`, `LessonGeneratorBar.art.test.jsx`, Õppevara module-drafts test; see PR for full run.
+- Next safe step: owner opens Õppevara → A2 module 1 → „Loo mustandid”, reviews the drafts, publishes.
+
 ## 2026-10-07 — A2 Module 11: ilm, aastaajad ja riided — branch `agent/a2-module-11-production`
 
 Added curated production content for a2-051…055: weather and seasons, -m comparison, weather forecast mediation, clothing advice and the combined module assessment. No UI, Firebase, rules, functions, B1 content, production writes or deploys.

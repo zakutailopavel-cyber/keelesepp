@@ -97,6 +97,11 @@ Format: {3:2 landscape | 1:1 square | 2:3 portrait}, white background.
 - Path: `crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp` (e.g. `a2/a2-036/a2-036-avasta-1.webp`);
   the sheet's image block uses `src: '/textbook-art/a2/a2-036/a2-036-avasta-1.webp'`, `alt` and `caption` from the brief.
 - Size: longest side 1600 px, WebP quality ≈ 80, **≤ 150 KB** (line art compresses well).
+- The briefs of a module go to `crm-v2/src/features/worksheet-generator/art/visuals/<level>-module-<NN>.js`
+  (`export default [ …briefs ]`, see `a2-module-01.js`) and the file is added to `MODULES` in `art/textbookArt.js`.
+  Then the generator puts each picture on its sheet automatically (after the opening text, once), the constructor
+  offers „Lisa tunni pilt” on existing sheets, and the test `art/textbookArt.test.js` checks that every brief has
+  its file (≤ 150 KB), caption, alt and learning job.
 - When a file cannot be committed (image made in a chat), upload it in the CRM constructor image block instead
   (Firebase Storage) and note the brief id in the caption field until the repo copy exists.
 - Never commit stock photos, watermarked images or images of real identifiable people.

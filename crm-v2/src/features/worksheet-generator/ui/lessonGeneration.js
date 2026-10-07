@@ -1,5 +1,6 @@
 import { ACTIVITY_CATALOG_VERSION, generateFocusWorksheet, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
 import { focusPhaseLabel, focusWorksheetId } from '../engine/focusWorksheet.js';
+import { withLessonArt } from '../art/textbookArt.js';
 
 export const CORE_SHEETS = Object.freeze([
   { id: 'discover', label: '1 Avasta', slot: 1, hint: 'Märka ja saa aru' },
@@ -56,7 +57,7 @@ export async function generateCoreSheets({ repository, lessonId, lesson, profile
       role: meta.id,
       slot: meta.slot,
       displayLabel: meta.label,
-      worksheetDoc: sheet.worksheetDoc,
+      worksheetDoc: withLessonArt(sheet.worksheetDoc, lessonId, meta.id),
       user,
       baseUpdatedAt: current?.worksheetDocUpdatedAt || '',
       generation: generationMeta(sheet, { scope: 'lesson-bundle', variant, levelVocabulary }),
@@ -119,5 +120,5 @@ export function previewCoreSheet({ lessonId, lesson, profile, sheets, levelVocab
   const sheet = result.sheets[index];
   const blocking = result.diagnostics.filter((item) => item.severity === 'error');
   if (blocking.length || !sheet) throw new Error(blocking.map((item) => item.message).join(' ') || 'Lehte ei saanud luua.');
-  return { worksheetDoc: sheet.worksheetDoc, generation: generationMeta(sheet, { scope: 'lesson-sheet', variant, levelVocabulary }), variant };
+  return { worksheetDoc: withLessonArt(sheet.worksheetDoc, lessonId, worksheetId), generation: generationMeta(sheet, { scope: 'lesson-sheet', variant, levelVocabulary }), variant };
 }

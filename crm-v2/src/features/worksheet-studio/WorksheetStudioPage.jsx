@@ -566,6 +566,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         </header>
         {renderTop ? renderTop({
           dirty,
+          doc,
           insertBlocks,
           // a generated sheet shown in the editor first: nothing is saved until „Salvesta” (or autosave), Ctrl+Z undoes it
           replaceDocument: (next, nextGeneration) => {

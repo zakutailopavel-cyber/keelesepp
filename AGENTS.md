@@ -36,7 +36,8 @@ Kohustuslik lugemine enne iga partiid, et töölehtede tase ei langeks:
    `docs/C1_CURRICULUM_240.md` (C1).
 
 Lubatud failid: `crm-v2/src/features/worksheet-generator/production/*`, `factory/contentLibrary.js`,
-`factory/factory.js` (pakettide märksõnad), `fixtures/*` ja nende testid; käsitsi töölehed CRM-is aadressil
+`factory/factory.js` (pakettide märksõnad), `fixtures/*`, pildid `crm-v2/public/textbook-art/**` ja nende
+lähteülesanded `worksheet-generator/art/visuals/*` (+ rida `MODULES`-is `art/textbookArt.js`-is) ja nende testid; käsitsi töölehed CRM-is aadressil
 `/library/lessons/<ID>/worksheets/<discover|practice|transfer>` („✎ Muuda lehte” → „Salvesta” → „Avalda”).
 
 Keelatud: liides (Õppevara, konstruktor, kalender, finants, menüü), `routes.jsx`, `services/firebase/*`,

@@ -58,7 +58,7 @@ export const image = {
   create: () => ({ img: null, aspect: '4:3', caption: '', bubble: '' }),
   View: ({ data }) => (
     <figure className="ws-figure">
-      <Photo img={data.img} aspect={data.aspect} alt={data.caption}>
+      <Photo img={data.img} aspect={data.aspect} alt={data.alt || data.caption}>
         {data.bubble && <div className="ws-bubble">{data.bubble}</div>}
       </Photo>
       {data.caption && <figcaption>{data.caption}</figcaption>}
