@@ -60,4 +60,19 @@ describe('MonthlyInvoicePanel', () => {
     await waitFor(() => expect(screen.queryByRole('form', { name: /Jaan/ })).not.toBeInTheDocument());
     expect(screen.getByText(/Valitud 2 \/ 2 arvet/)).toBeInTheDocument();
   });
+
+  it('keeps completed invoices and shows progress when a batch stops on an error', async () => {
+    const p = props();
+    p.plans.push({ studentId: 's2', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'current' });
+    p.students[1].parentEmail = 'jaan@example.com';
+    p.invoiceApi.createMonthly
+      .mockResolvedValueOnce({ invoice: { id: 'inv1' } })
+      .mockRejectedValueOnce(new Error('Teine arve ebaõnnestus'));
+    render(<MonthlyInvoicePanel {...p} />);
+    await screen.findByRole('table', { name: 'Kuuarved 2031-10' });
+    await screen.findByText(/Valitud 2 \/ 2 arvet/);
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta kõik/ })); });
+    expect(p.invoiceApi.createMonthly).toHaveBeenCalledTimes(2);
+    expect(screen.getByRole('alert')).toHaveTextContent('Juba loodud arved (1) jäid alles');
+  });
 });
