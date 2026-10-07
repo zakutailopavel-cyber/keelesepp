@@ -75,8 +75,9 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
       allowCopy={false}
       initialMode={searchParams.get('vaade') === 'opilane' ? 'interactive' : 'edit'}
       draftId={`${lessonId}:${worksheetId}`}
-      renderTop={({ dirty, replaceDocument, insertBlocks }) => (
+      renderTop={({ dirty, doc, replaceDocument, insertBlocks }) => (
         <LessonGeneratorBar
+          doc={doc}
           lessonId={lessonId}
           worksheetId={worksheetId}
           dirty={dirty}
