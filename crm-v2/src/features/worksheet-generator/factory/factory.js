@@ -45,6 +45,10 @@ const PACK_KEYWORDS = Object.freeze({
   'service-modals': ['pean, saan, võin, tohin', 'pean +', 'saan/võin/tohin', 'modaal'],
   'forms-instructions': ['vormid ja juhised', 'täitke', 'allkiri', 'isikukood'],
   'phone-service': ['telefon ja klienditeenindus', 'oodake', 'ühendan', 'korrake'],
+  'body-symptoms': ['keha ja enesetunne', 'sümptom', 'palavik', 'köha', 'nohu'],
+  'health-state-forms': ['mul on', 'mul valutab', 'mul ei ole', 'enesetunne'],
+  'doctor-visit': ['arsti juures', 'kui kaua', 'millal algas', 'puhake'],
+  'medicine-appointment-info': ['ravimiinfo', 'vastuvõtuaeg', 'kabinet', 'korda päevas'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
