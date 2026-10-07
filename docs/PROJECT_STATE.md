@@ -1,3 +1,15 @@
+## 2026-10-07 — Textbook art bible: line-art with one lime accent — branch `agent/textbook-art-contract`
+
+Owner chose the illustration style (Pinterest reference: black line, white figures, lime accent, pale-lime blob,
+plants, floating books) and decided images are drawn by ChatGPT/Codex built-in image generation, no paid API.
+- New `docs/TEXTBOOK_ART_BIBLE.md`: palette (#1E1E1E line, white, #C9F03D accent, #E8F9B0 blob, #D9D9D9 grey),
+  drawing rules, recurring cast (Anna, Markus, Liis, Viktor, Sofia, Jaan + dog Muki), visual brief format
+  (`visuals` in content packs), master generation prompt, file path `crm-v2/public/textbook-art/<level>/<lessonId>/
+  <id>.webp` (≤150 KB, 1600 px), acceptance checklist.
+- `AGENTS.md` „Sisuagent” required reading now includes the art bible; `TEXTBOOK_VISUAL_STYLE.md` links to it.
+- Docs only. Next: Õpik page design in this style (module bands, speech bubbles, „Pea meeles!” boxes) — separate PR.
+- Next safe step: owner merges; Codex generates the cast sheet first and the owner approves it.
+
 ## 2026-10-07 — AGENTS.md: rules and required reading for the content agent — branch `agent/agents-content-rules`
 
 Owner moves lesson-content production to Codex, which reads `AGENTS.md` automatically.

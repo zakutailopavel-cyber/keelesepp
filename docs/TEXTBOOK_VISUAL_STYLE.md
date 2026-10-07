@@ -1,7 +1,8 @@
 # KeeleSepp textbook visual style
 
 Status: active visual contract  
-Applies to: Worksheet Studio, Õpik export, Student Book / Workbook projections, future generator-produced visuals.
+Applies to: Worksheet Studio, Õpik export, Student Book / Workbook projections, future generator-produced visuals.  
+Concrete house style, cast and generation rules: `docs/TEXTBOOK_ART_BIBLE.md` (owner choice 2026-10-07: flat line-art with one lime accent).
 
 ## 1. One system, three visual modes
 
