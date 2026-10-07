@@ -1,3 +1,16 @@
+## 2026-10-07 — A2 module 10 textbook production — branch `agent/a2-module-10-production`
+
+Stacked on A2 module 09 / PR #340. Serial lesson production continues.
+- Added curated Content Library v11 sources for `a2-046…a2-050` / “Vaba aeg ja meelelahutus”: `hobby-leisure`, `liking-preferences`, `invitation-response`, `events-tickets`.
+- A2-046 practices free-time vocabulary through ranking, frequency and short personal monologue rather than isolated word lists.
+- A2-047 explicitly contrasts `mulle meeldib + nimisõna` with `mulle meeldib + da-infinitiiv` and includes controlled transformations plus error repair.
+- A2-048 practices invitation, acceptance, polite refusal, changed time/place and final confirmation through role-play and dialogue repair.
+- A2-049 contains two event-information reading documents with 5+ questions each, mixing fact retrieval, condition reading, inference and justified choice.
+- Added `production/a2Module10.js`: 16 core lexical items with three learner forms + Russian translation, 8+5+3 introduction across 046–048, module-09 recycling across 046–048, distributed return to 051–053, no new core vocabulary in Kontroll 10, and a grammar/function spine for `meeldima`, da-infinitive preference language, invitation negotiation and event information.
+- Tests cover five curated profiles, meeldima transformations, event reading, 15 worksheet documents, lexical recycling and assessment rules.
+- No Firestore writes, worksheet publishing, production deploy or Õpik changes.
+- Next gate: CI. If green, continue directly to A2 module 11 “Ilm, aastaajad ja riided”.
+
 ## 2026-10-07 — A2 module 09 textbook production — branch `agent/a2-module-09-production`
 
 Stacked on A2 module 08 / PR #334. Serial lesson production continues.
