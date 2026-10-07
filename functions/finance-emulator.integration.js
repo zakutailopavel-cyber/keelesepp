@@ -3418,3 +3418,25 @@ test("manual invoice dialog: CRM origin is allowed and active students (active: 
   assert.ok(!ids.includes("invoice-list-parent"));
   assert.equal(body.students.find((student) => student.id === "invoice-list-active").hint, "Ema");
 });
+
+test("manual invoice: the owner (super admin by e-mail) may invoice without an admin role on the profile", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const profile = db.collection("users").doc(tokenUid(adminToken));
+  const before = await profile.get();
+  await profile.set({ email: "zakutailo.pavel@gmail.com", displayName: "Pavel Zakutailo" });
+  try {
+    const response = await fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/manualInvoiceApi/students`, {
+      method: "POST",
+      headers: { Origin: "https://crm.epkoolitus.ee", Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+      body: "{}",
+    });
+    const body = await response.json();
+    assert.equal(response.status, 200, JSON.stringify(body));
+    assert.ok(Array.isArray(body.students));
+  } finally {
+    if (before.exists) await profile.set(before.data()); else await profile.delete();
+  }
+});

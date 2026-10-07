@@ -1,3 +1,14 @@
+## 2026-10-07 — „Lisa arve”: „Finance or administrator access required” for the owner — branch `agent/invoice-superadmin`
+
+Owner (zakutailo.pavel@gmail.com) got 403 in the manual invoice dialog; the student list stayed empty.
+- Cause: `manualInvoiceApi.requireFinanceUser` only looked at `role`/`roles` on the user profile and token; the owner
+  is admin by e-mail (`superAdmin()` in firestore.rules, `SUPER_ADMIN_EMAILS` in functions/index.js) and has no
+  `admin` role on the profile.
+- Fix: the same `SUPER_ADMIN_EMAILS` (env, default the owner's e-mail) counts as admin in `manual-invoice-api.js`.
+- Checks: emulator manual invoice tests 3/3 incl. new „super admin without role on profile”; functions unit tests
+  (see PR). Deploy: `functions:manualInvoiceApi` only.
+- Paused meanwhile on the owner's request: publishing A2 modules with „Valmista moodul ette” (#351 merged, not run).
+
 ## 2026-10-07 — Picture layout + „Valmista moodul ette” (one click per module) — branch `agent/art-layout`
 
 Owner: the half-width picture left half a row empty; the UI is too busy — „do it all yourself”.
