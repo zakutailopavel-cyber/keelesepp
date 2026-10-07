@@ -28,8 +28,9 @@ export default function ManualInvoiceDialog({ onCreated }) {
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
 
+  // loadingStudents is not a dependency: setting it would re-run the effect, cancel this request and never load
   useEffect(() => {
-    if (!open || students.length || loadingStudents) return;
+    if (!open || students.length) return undefined;
     let active = true;
     setLoadingStudents(true);
     manualInvoiceApi
@@ -49,7 +50,7 @@ export default function ManualInvoiceDialog({ onCreated }) {
     return () => {
       active = false;
     };
-  }, [loadingStudents, open, students.length]);
+  }, [open, students.length]);
 
   const selectedStudent = useMemo(
     () => students.find((student) => student.id === form.studentId),
@@ -141,15 +142,17 @@ export default function ManualInvoiceDialog({ onCreated }) {
             onChange={(event) => setForm({ ...form, due: event.target.value })}
             required
           />
-          <label className="form-field form-grid__wide">
-            <span>Märkus</span>
+          <div className="field form-grid__wide">
+            <label className="field__label" htmlFor="manual-invoice-note">Märkus</label>
             <textarea
+              id="manual-invoice-note"
+              className="field__textarea"
               rows="3"
               value={form.note}
               onChange={(event) => setForm({ ...form, note: event.target.value })}
               placeholder="Sisemine märkus, soovi korral"
             />
-          </label>
+          </div>
           {selectedStudent ? (
             <p className="form-hint form-grid__wide">
               Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong> ja lisatakse kohe arvete nimekirja.

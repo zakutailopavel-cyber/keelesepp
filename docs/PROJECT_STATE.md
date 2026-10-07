@@ -1,3 +1,13 @@
+## 2026-10-07 — Finance „Lisa arve”: student list stuck on „Laen õpilasi…” — branch `agent/manual-invoice`
+
+Checked `origin/main` `c7ec04c`. Owner: the manual invoice dialog does not work.
+- Cause: `ManualInvoiceDialog` effect depended on `loadingStudents`; setting it re-ran the effect, whose cleanup
+  cancelled the running request, and the guard stopped a new one → the select stayed disabled „Laen õpilasi…”.
+- Fix: the effect depends only on `open` and `students.length`. „Märkus” textarea gets proper field markup/label
+  (`field__textarea` in `manualInvoice.css`). Server (`manualInvoiceApi` /students, /create) unchanged.
+- Checks: new `ManualInvoiceDialog.test.jsx` (loads students once, creates invoice); finance tests 69/69; eslint clean;
+  build OK. Not clicked in production (would create a real invoice).
+- Next safe step: owner merges the draft PR and creates a test invoice in the CRM.
 ## 2026-10-07 — One student, two subjects, two teachers — branch `agent/two-teachers`
 
 Checked `origin/main` `0b5ae77`. Owner: Milan studies Estonian and English with two teachers; he must be one card and
