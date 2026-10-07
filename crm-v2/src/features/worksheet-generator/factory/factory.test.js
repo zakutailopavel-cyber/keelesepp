@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045', 'a2-046', 'a2-047', 'a2-048', 'a2-049', 'a2-050', 'a2-046', 'a2-047', 'a2-048', 'a2-049', 'a2-050', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -299,6 +299,30 @@ describe('Content Pack Factory v1', () => {
       lesson: lessons.find((item) => item.id === 'a2-044'),
       profile: reading,
       seed: 'a2-044:reading-required',
+    });
+    expect(readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('reading');
+  });
+
+  it('module 10 uses curated hobby, preference, invitation and event-reading sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-046')).toEqual(['hobby-leisure']);
+    expect(pick('a2-047')).toEqual(['liking-preferences']);
+    expect(pick('a2-048')).toEqual(['invitation-response']);
+    expect(pick('a2-049')).toEqual(['events-tickets']);
+    expect(pick('a2-050')).toEqual(['hobby-leisure', 'liking-preferences', 'invitation-response', 'events-tickets']);
+
+    const liking = createContentPackDraft(lessons.find((item) => item.id === 'a2-047')).profile;
+    const invitation = createContentPackDraft(lessons.find((item) => item.id === 'a2-048')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-049')).profile;
+    expect(liking.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(invitation.banks.dialogues.length).toBeGreaterThanOrEqual(1);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-049'),
+      profile: reading,
+      seed: 'a2-049:reading-required',
     });
     expect(readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('reading');
   });
