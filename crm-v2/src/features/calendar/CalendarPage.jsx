@@ -10,7 +10,7 @@ import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, rememberLessonLink } from '../live-classroom/lessonLink.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
-import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, shiftDate, toIsoDate } from './calendarView.js';
+import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, resolveOccurrenceRecord, shiftDate, toIsoDate } from './calendarView.js';
 import { canMove, planDelete, planMove, teacherTone, toClock } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
@@ -153,10 +153,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const studentMap = new Map(students.items.map((student) => [student.id, student]));
   const events = [...scheduleEvents, ...groupCalendarEvents(groups)];
   const filteredEvents = filterCalendarEvents(events, filters);
-  const recordByOccurrence = new Map(lessonRecords.filter((lesson) => lesson.scheduleId && lesson.date).map((lesson) => [`${lesson.scheduleId}:${lesson.date}`, lesson]));
   const withRecord = (item) => {
-    const record = item.isGroup ? null : recordByOccurrence.get(`${item.id}:${item.occurrenceDate}`);
-    return record ? { ...item, status: record.status || 'Toimunud', lessonRecordId: record.id, record, recordTopic: topicLine(record) || record.topic || '' } : item;
+    const resolved = resolveOccurrenceRecord(item, lessonRecords);
+    return resolved.record ? { ...resolved, recordTopic: topicLine(resolved.record) || resolved.record.topic || '' } : resolved;
   };
   const occurrences = occurrencesForDates(filteredEvents, dates).map(withRecord);
   // teachers of the lessons plus (admin) every active staff account, so a new teacher without lessons can be chosen

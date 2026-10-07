@@ -1,6 +1,7 @@
 export function canQuickCompleteLesson(item = {}) {
   return Boolean(
     item.id
+    && !item.recordProblem
     && !item.isGroup
     && !item.lessonRecordId
     && item.status !== 'Toimunud'

@@ -9,6 +9,7 @@ const firestore = vi.hoisted(() => ({
   where: vi.fn((field, operator, value) => ({ field, operator, value })),
   batch: { set: vi.fn(), update: vi.fn(), delete: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
+  runTransaction: vi.fn(),
 }));
 
 vi.mock('firebase/firestore', () => firestore);
@@ -22,6 +23,11 @@ describe('lessonsService accounting', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     firestore.writeBatch.mockReturnValue(firestore.batch);
+    firestore.runTransaction.mockImplementation(async (_db, callback) => {
+      const value = await callback({ ...firestore.batch, get: firestore.getDoc });
+      await firestore.batch.commit();
+      return value;
+    });
     firestore.getDoc.mockResolvedValue({ exists: () => false });
   });
 

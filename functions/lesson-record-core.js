@@ -14,6 +14,10 @@ function normalizedLessonStatus(value) {
   return status;
 }
 
+function isRecurringSchedule(schedule) {
+  return schedule?.recurring === true;
+}
+
 function scheduleStatusForLesson(status) {
   return normalizedLessonStatus(status);
 }
@@ -55,6 +59,7 @@ function lessonMutationSignature({ lessonId, scheduleId, lesson, completion }) {
 
 module.exports = {
   LESSON_STATUSES,
+  isRecurringSchedule,
   lessonCompletionCounterDelta,
   lessonMutationSignature,
   normalizedLessonStatus,

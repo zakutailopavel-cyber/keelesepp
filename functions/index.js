@@ -118,6 +118,7 @@ const {
   lessonMutationSignature,
   normalizedLessonStatus,
   scheduleStatusForLesson,
+  isRecurringSchedule,
   stableLessonDocumentId,
 } = require("./lesson-record-core");
 const { planTeacherScopeBackfill } = require("./teacher-scope-core");
@@ -1527,8 +1528,9 @@ async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, value
       const scheduleStatus = scheduleStatusForLesson(input.status);
       const attendanceKey = `${input.studentId}_${input.date}`;
       const attendancePatch = completionInput ? {attendance:{...(schedule.attendance||{}),[attendanceKey]:{status:completionInput.attendanceStatus,by:actor.decoded.uid,byName:actorData.name,byRole:actorData.role,updatedAt:nowIso}}} : {};
-      const schedulePatch = schedule.recurring && !schedule.date
+      const schedulePatch = isRecurringSchedule(schedule)
         ? {
+            status: "Planeeritud",
             occurrenceStatuses: {
               ...(schedule.occurrenceStatuses || {}),
               [input.date]: {
@@ -1687,10 +1689,10 @@ async function deleteLessonJournal({ actor, lessonId, requestId }) {
       }, { merge: true });
     }
     if (scheduleRef && scheduleSnap?.exists) {
-      if (schedule.recurring && !schedule.date && lesson.date) {
+      if (isRecurringSchedule(schedule) && lesson.date) {
         const occurrenceStatuses = { ...(schedule.occurrenceStatuses || {}) };
         delete occurrenceStatuses[lesson.date];
-        transaction.set(scheduleRef, { occurrenceStatuses, lessonUpdatedAt: nowIso }, { merge: true });
+        transaction.update(scheduleRef, { occurrenceStatuses, status: "Planeeritud", ...(schedule.lessonEntryId === cleanLessonId ? { lessonEntryId: "", lessonOccurrenceDate: "" } : {}), lessonUpdatedAt: nowIso });
       } else if (!schedule.lessonEntryId || schedule.lessonEntryId === cleanLessonId) {
         transaction.set(scheduleRef, {
           status: "Planeeritud",
