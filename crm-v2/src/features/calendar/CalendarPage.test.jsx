@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import CalendarPage from './CalendarPage.jsx';
 import { toIsoDate } from './calendarView.js';
 
@@ -9,8 +9,9 @@ globalThis.PointerEvent = class PointerEvent extends globalThis.MouseEvent {
   constructor(type, init = {}) { super(type, init); this.pointerId = init.pointerId ?? 1; }
 };
 
+const auth = vi.hoisted(() => ({ user: null }));
 vi.mock('../../app/AuthContext.jsx', () => ({
-  useAuth: () => ({ user: { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] } }),
+  useAuth: () => ({ user: auth.user || { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] } }),
 }));
 
 const today = toIsoDate();
@@ -272,6 +273,42 @@ describe('calendar v2', () => {
     fireEvent.change(await screen.findByLabelText('Õpetaja'), { target: { value: 't2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', teacher: 'Jelena', teacherUid: 't2' })));
+  });
+
+  describe('a student with two subjects and two teachers', () => {
+    const milan = { id: 's3', name: 'Milan Mets', teacher: 'Pavel', teacherUid: 't1', teacherUids: ['t1', 't9'], subject: 'Eesti keel', enrollments: [
+      { id: 'e1', subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 't1', active: true },
+      { id: 'e2', subject: 'Inglise keel', teacher: 'Jegor', teacherUid: 't9', active: true },
+    ] };
+    const setup = () => {
+      const props = repositories();
+      props.studentRepository.list.mockResolvedValue({ items: [milan] });
+      props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't9', name: 'Jegor' }]) };
+      render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+      return props;
+    };
+    afterEach(() => { auth.user = null; });
+
+    it('the admin picks the study track and the lesson goes to its teacher with its subject', async () => {
+      const props = setup();
+      fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+      fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+      fireEvent.click(await screen.findByRole('option', { name: /Milan Mets/ }));
+      fireEvent.change(await screen.findByLabelText('Õppesuund'), { target: { value: 'Inglise keel' } });
+      fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+      await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's3', teacher: 'Jegor', teacherUid: 't9', subject: 'Inglise keel' })));
+    });
+
+    it('the second teacher plans the lesson into their own calendar, not the first teacher\'s', async () => {
+      auth.user = { uid: 't9', displayName: 'Jegor', roles: ['teacher'] };
+      const props = setup();
+      fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+      fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+      fireEvent.click(await screen.findByRole('option', { name: /Milan Mets/ }));
+      expect(screen.queryByLabelText('Õppesuund')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+      await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's3', teacher: 'Jegor', teacherUid: 't9', subject: 'Inglise keel' })));
+    });
   });
 
   it('a lesson cannot be planned into a teacher\'s red window', async () => {

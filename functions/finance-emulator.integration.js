@@ -3394,3 +3394,27 @@ test("monthly plan invoice is priced from the private plan and issued once per m
   const noPrice = await call({ ...body, studentId: "price-card-only-missing", month: "2031-11" });
   assert.equal(noPrice.status, 404, JSON.stringify(noPrice.body));
 });
+
+test("manual invoice dialog: CRM origin is allowed and active students (active: true) are listed", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await Promise.all([
+    db.collection("students").doc("invoice-list-active").set({ name: "Arve Aktiivne", active: true, parentName: "Ema" }),
+    db.collection("students").doc("invoice-list-archived").set({ name: "Arve Arhiiv", active: false }),
+    db.collection("students").doc("invoice-list-parent").set({ name: "Arve Vanem", active: true, convertedToParent: true }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const url = `http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/manualInvoiceApi/students`;
+  const preflight = await fetch(url, { method: "OPTIONS", headers: { Origin: "https://crm.epkoolitus.ee", "Access-Control-Request-Method": "POST" } });
+  assert.equal(preflight.headers.get("access-control-allow-origin"), "https://crm.epkoolitus.ee");
+  const response = await fetch(url, { method: "POST", headers: { Origin: "https://crm.epkoolitus.ee", Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: "{}" });
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  const ids = body.students.map((student) => student.id);
+  assert.ok(ids.includes("invoice-list-active"));
+  assert.ok(!ids.includes("invoice-list-archived"));
+  assert.ok(!ids.includes("invoice-list-parent"));
+  assert.equal(body.students.find((student) => student.id === "invoice-list-active").hint, "Ema");
+});
