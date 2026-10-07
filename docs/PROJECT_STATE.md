@@ -9,6 +9,23 @@ plants, floating books) and decided images are drawn by ChatGPT/Codex built-in i
 - `AGENTS.md` „Sisuagent” required reading now includes the art bible; `TEXTBOOK_VISUAL_STYLE.md` links to it.
 - Docs only. Next: Õpik page design in this style (module bands, speech bubbles, „Pea meeles!” boxes) — separate PR.
 - Next safe step: owner merges; Codex generates the cast sheet first and the owner approves it.
+## 2026-10-07 — Õpik assembled by the curriculum from phase sheets — branch `agent/opik-from-phases`
+
+Checked `origin/main` `aedb862`. Owner: Õpik becomes the main asset; all lessons flow into it in order. Before, Õpik
+used only the old single worksheet on the lesson root, so none of the Avasta/Harjuta/Kasuta sheets reached it.
+- `worksheet-studio/bookProgram.js`: `programLessons/Levels/Modules` (roadmap lessons ordered level → module →
+  lesson), `programProgress` (from `worksheetPhases` summaries, no sheet reads), `publishedPhaseDoc` (published
+  version only, never a draft), `assembleProgramBook` (sheets in order + missing list; lesson without phase sheets
+  falls back to its old published lesson sheet).
+- `BookPage`: new default mode „Õppekava järgi” (level, module or all, phase checkboxes, readiness „Avasta x/n · …”,
+  „Koosta õpik” reads each lesson's sheets via `lessonWorksheetsService.list`, contents grouped by module, „Puudu N
+  avaldatud lehte” with links to the constructor); the old hand-picked book stays as „Vali käsitsi”. Draft in
+  localStorage keeps mode and program choice. No data writes.
+- Checks: new `bookProgram.test.js` and program-mode BookPage test; studio + library tests 104/104; eslint 0 errors;
+  build OK.
+- Limit: a full level reads every lesson's worksheets once per „Koosta õpik” (~90–100 reads); fine for an on-demand
+  export.
+- Next safe step: owner merges; then open Õpik → B1 → „Koosta õpik” and check the 17 published Avasta sheets.
 
 ## 2026-10-07 — AGENTS.md: rules and required reading for the content agent — branch `agent/agents-content-rules`
 
