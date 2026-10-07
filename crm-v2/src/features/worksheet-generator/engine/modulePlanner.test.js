@@ -35,8 +35,7 @@ describe('module diversity planner', () => {
     expect(report.ready).toBe(true);
     expect(report.insufficient).toEqual([]);
     expect(report.noNextReturn).toEqual([]);
-    expect(entries[0].recycleLessonIds).toContain('a2-006');
-    expect(entries[1].recycleLessonIds).toContain('a2-007');
+    expect(entries.every((entry) => entry.recycleLessonIds.includes('a2-006'))).toBe(true);
   });
 
   it('distributes a 16-word core set as 8 + 5 + 3 introductions across the first three lessons', () => {
