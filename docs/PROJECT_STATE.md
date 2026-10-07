@@ -1,3 +1,18 @@
+## 2026-10-07 — „Lisa arve”: Failed to fetch, empty student list, search — branch `agent/invoice-cors`
+
+Checked `origin/main` `1b44b47`. Owner after #336: the dialog shows „Failed to fetch”; the admin must type or pick the
+student.
+- Cause 1: `functions/manual-invoice-api.js` CORS allow-list lacked `https://crm.epkoolitus.ee` → the browser blocked
+  every call from the CRM. Added.
+- Cause 2: `listInvoiceStudents` queried `status == 'active'`; CRM students keep `active: true` → empty list. Now
+  `active == true`, without `convertedToParent`, each with `hint` (parent name · e-mail · subject).
+- UI: „Otsi õpilast” filters the select by name/parent/e-mail; a single match is picked automatically; options show
+  the hint for namesakes.
+- Checks: emulator `finance-emulator.integration.js` (pattern manual invoice + monthly) 2/2 pass incl. new test
+  (CRM origin preflight, active/archived/parent filter); finance UI tests 69/69; build OK.
+- Manual gate: deploy `functions:manualInvoiceApi` to production (owner approval), then create a test invoice.
+- Next safe step: owner merges the draft PR and approves the function deploy.
+
 ## 2026-10-07 — Finance „Lisa arve”: student list stuck on „Laen õpilasi…” — branch `agent/manual-invoice`
 
 Checked `origin/main` `c7ec04c`. Owner: the manual invoice dialog does not work.
