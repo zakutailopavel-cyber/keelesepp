@@ -17,6 +17,7 @@ export const FINANCE_WORKSPACE_GROUPS = [
       { id: 'avansid', label: 'Avansid ja tagasimaksed' },
       { id: 'audit', label: 'Finantsaudit' },
       { id: 'numeratsioon', label: 'Arvete numeratsioon' },
+      { id: 'ekirjad', label: 'E-kirjad' },
     ],
   },
 ];

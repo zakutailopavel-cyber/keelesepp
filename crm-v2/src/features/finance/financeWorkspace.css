@@ -732,3 +732,12 @@
     height: calc(100vh - 150px);
   }
 }
+
+/* Täpsem → E-kirjad */
+.email-delivery-actions{display:flex;gap:8px;flex-wrap:wrap}
+.email-delivery-list{display:grid;gap:2px;margin-top:10px}
+.email-delivery-row{display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f3}
+.email-delivery-row time{color:#667085;font-size:.8rem}
+.email-delivery-row span{display:grid;min-width:0}
+.email-delivery-row small{color:#667085;overflow-wrap:anywhere}
+.email-delivery-error{grid-column:2 / -1;color:#b42318 !important}

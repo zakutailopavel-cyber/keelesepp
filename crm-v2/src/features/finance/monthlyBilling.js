@@ -64,7 +64,15 @@ function correctionFor({ student, plan, previousInvoice, previousLessons }) {
   };
 }
 
-export function monthlyBillingRows({ month, students = [], plans = [], schedule = [], groups = [], lessons = [], invoices = [] }) {
+// payer e-mail: the student card first, then the parent account linked to the card (Lapsevanemad)
+export function payerEmailOf(student, parents = []) {
+  const own = student.payerEmail || student.parentEmail || student.contactEmail || student.email || '';
+  if (own) return own;
+  const parentIds = [student.linkedParentId, student.parentUid, student.guardianUid].filter(Boolean);
+  return parents.find((parent) => parentIds.includes(parent.id) && parent.email)?.email || '';
+}
+
+export function monthlyBillingRows({ month, students = [], plans = [], schedule = [], groups = [], lessons = [], invoices = [], parents = [] }) {
   const dates = monthDates(month);
   const previousMonth = shiftMonth(month, -1);
   const events = [...schedule, ...groupCalendarEvents(groups)];
@@ -99,7 +107,7 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
         priceCents,
         totalCents,
         due: defaultDue(month, mode),
-        payerEmail: student.payerEmail || student.parentEmail || student.contactEmail || student.email || '',
+        payerEmail: payerEmailOf(student, parents),
         existing,
         status,
       };

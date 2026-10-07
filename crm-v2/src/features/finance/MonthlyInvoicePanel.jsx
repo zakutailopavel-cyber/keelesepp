@@ -6,6 +6,7 @@ import { groupsService } from '../../services/firebase/groups.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
+import { parentsService } from '../../services/firebase/parents.js';
 import { defaultBillingMonth, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
 import './monthlyInvoicePanel.css';
 
@@ -26,12 +27,12 @@ const STATUS = {
 export default function MonthlyInvoicePanel({
   students = [], plans = [], lessons = [], invoices = [], user,
   scheduleRepository = scheduleService, groupRepository = groupsService,
-  invoiceApi = manualInvoiceApi, deliveryApi = invoiceDeliveryApi, lessonRepository = lessonsService,
+  invoiceApi = manualInvoiceApi, deliveryApi = invoiceDeliveryApi, lessonRepository = lessonsService, parentRepository = parentsService,
   onChanged,
 }) {
   const [month, setMonth] = useState(() => defaultBillingMonth());
   const [mode, setMode] = useState('all');
-  const [calendar, setCalendar] = useState({ loading: true, schedule: [], groups: [], error: '' });
+  const [calendar, setCalendar] = useState({ loading: true, schedule: [], groups: [], parents: [], error: '' });
   const [selected, setSelected] = useState(() => new Set());
   const [open, setOpen] = useState('');
   const [busy, setBusy] = useState('');
@@ -41,14 +42,15 @@ export default function MonthlyInvoicePanel({
 
   useEffect(() => {
     let alive = true;
-    Promise.all([scheduleRepository.list(), groupRepository.list()])
-      .then(([schedule, groups]) => { if (alive) setCalendar({ loading: false, schedule, groups: Array.isArray(groups) ? groups : groups?.items || [], error: '' }); })
-      .catch((caught) => { if (alive) setCalendar({ loading: false, schedule: [], groups: [], error: caught.message || 'Tunniplaani ei saanud laadida.' }); });
+    // parent accounts give the payer e-mail when the student card has none; not fatal when they cannot be read
+    Promise.all([scheduleRepository.list(), groupRepository.list(), parentRepository?.list ? parentRepository.list().catch(() => []) : []])
+      .then(([schedule, groups, parents]) => { if (alive) setCalendar({ loading: false, schedule, groups: Array.isArray(groups) ? groups : groups?.items || [], parents: parents || [], error: '' }); })
+      .catch((caught) => { if (alive) setCalendar({ loading: false, schedule: [], groups: [], parents: [], error: caught.message || 'Tunniplaani ei saanud laadida.' }); });
     return () => { alive = false; };
-  }, [scheduleRepository, groupRepository]);
+  }, [scheduleRepository, groupRepository, parentRepository]);
 
   const lessonsWithWaivers = useMemo(() => lessons.map((lesson) => (lesson.id in waived ? { ...lesson, billingWaived: waived[lesson.id] } : lesson)), [lessons, waived]);
-  const rows = useMemo(() => (calendar.loading ? [] : monthlyBillingRows({ month, students, plans, schedule: calendar.schedule, groups: calendar.groups, lessons: lessonsWithWaivers, invoices })),
+  const rows = useMemo(() => (calendar.loading ? [] : monthlyBillingRows({ month, students, plans, schedule: calendar.schedule, groups: calendar.groups, lessons: lessonsWithWaivers, invoices, parents: calendar.parents })),
     [calendar, month, students, plans, lessonsWithWaivers, invoices]);
   const visible = rows.filter((row) => mode === 'all' || row.mode === mode);
   const ready = visible.filter((row) => row.status === 'ready');

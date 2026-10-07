@@ -68,6 +68,7 @@ import AdvanceManagementPanel from "./AdvanceManagementPanel.jsx";
 import DocumentPreviewModal from "./DocumentPreviewModal.jsx";
 import FinancialAuditPanel from "./FinancialAuditPanel.jsx";
 import InvoiceNumberingPanel from "./InvoiceNumberingPanel.jsx";
+import EmailDeliveryPanel from "./EmailDeliveryPanel.jsx";
 import "./financeWorkspace.css";
 import MonthlyInvoicePanel from "./MonthlyInvoicePanel.jsx";
 
@@ -787,6 +788,7 @@ export default function FinancePage({
           onReload={state.reload}
           onOpenInvoice={openInvoice} /></div>
       ) : null}
+      {canRegisterPayment && section === 'ekirjad' ? <div id="ekirjad"><EmailDeliveryPanel /></div> : null}
       {show('tuluprognoos') ? <Card id="tuluprognoos" className="revenue-forecast-card">
         <div className="section-heading">
           <div>

@@ -1,3 +1,24 @@
+## 2026-10-07 — Finance audit: e-mails never leave the server; parent account e-mail; „E-kirjad” — branch `agent/finance-parent-email`
+
+Owner: „check the whole finance block and finish it”. Read-only audit in the owner's Chrome: all 7 finance tabs load,
+no console errors, all API calls 200, CORS OK for financeApi / invoiceApi / manualInvoiceApi / staffOperationsApi.
+Findings:
+- **No e-mail is delivered at all**: `sendInvoicePaymentReminders` 2026-10-07 09:00 → sent 0, failed 15; account
+  notifications also fail („Email provider error” 04.10 and 06.10). SMTP (smtp.zone.eu, info@epkoolitus.ee,
+  secret SMTP_PASS) rejects; the real provider error was stored only in `emailQueue.error`.
+- October „Kuuarved”: 61 students, 16 ready (1787 €), 31 without price, 37 without payer e-mail, 14 without planned
+  lessons, 4 names on two cards (Aleksandr Smirnov, Artemi Lesnikov, Emilia, Maria).
+- The payer e-mail ignored the linked parent account (Lapsevanemad); 25 parents are linked to children.
+- Bank: 7 payments (567 €) stored as advances, 0 linked (imported when no open invoice matched).
+Changes:
+- `monthlyBilling.payerEmailOf` + `MonthlyInvoicePanel` (loads parent accounts) and server `sendInvoiceMessage`
+  (`linkedParentEmail`) fall back to the e-mail of the linked parent account.
+- `deliverEmail` logs and stores the provider's detail (code · response code · message, no credentials).
+- Finance „Täpsem → E-kirjad” (`EmailDeliveryPanel`, `emailQueueService`): last 30 e-mails with status and error,
+  „Saada testkiri endale” → `invoiceApi /email-test` (admin, to the admin's own address).
+- Checks: finance tests 71/71 (payer e-mail, panel), functions unit 233/233, eslint 0 errors, build OK.
+- Deploy: `invoiceApi`, `sendInvoicePaymentReminders`.
+
 ## 2026-10-07 — „Lisa arve”: „Finance or administrator access required” for the owner — branch `agent/invoice-superadmin`
 
 Owner (zakutailo.pavel@gmail.com) got 403 in the manual invoice dialog; the student list stayed empty.
