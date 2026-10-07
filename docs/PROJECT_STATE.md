@@ -1,3 +1,13 @@
+## 2026-10-07 — Finance v3 PR 1: row state and summaries
+
+- Checked fresh `origin/main` at `d74b3cc`; branch: `agent/finance-v3-rows`; draft PR: #361.
+- Goal: add a pure finance-row state/summary/filter/sort module and exhaustive unit coverage without changing existing UI, service APIs, or financial records.
+- Completed: `financeRowState` covers unpaid, partial, overdue, paid, credit, email failure, and no-show; summaries count states and cents; filtering supports status/month/student/text; sorting supports due date, balance, status, and student. Added the staged Finance v3 plan. Owner confirmed the billing contract: month-in-advance is the default; an effective-dated student override bills actual chargeable lessons after the period. Advance reconciliation carries unused paid lesson units at their original cent value and consumes them only from final teacher-recorded calendar outcomes.
+- Files: `crm-v2/src/features/finance/financeRows.js`, `crm-v2/src/features/finance/financeRows.test.js`, `docs/specs/FINANCE_V3_SPEC.md`, this entry.
+- Checks after rebasing onto `d74b3cc`: `npx vitest run src/features/finance src/features/students src/services/firebase` — 52 files, 277 tests passed. `npx vitest run --maxWorkers=4` — 187 files / 1202 tests passed; exactly the 10 documented Node 26 `localStorage` failures remain in calendar/live-classroom tests. Isolated PetCompanion rerun after an earlier transient full-suite timeout — 1 file, 9 tests passed; both later full runs passed all PetCompanion tests. `npx eslint .` — 0 errors, 2 pre-existing hook dependency warnings. `npm run build` — passed (Vite chunk-size advisory). `git diff --check` — passed. Initial `npm ci` installed lockfile dependencies; it reported 11 audit findings (2 moderate, 9 high); no audit fixes applied.
+- Limits/risks: presentation state only; no writes, API changes, production data, external services, deployment, or merge. Email/no-show markers accept documented row fields; connect the new screen only after confirming its exact view models. Actual-lesson billing uses the following-month day 10 as its default, with a future plan-level override rather than historical rewrites.
+- Next safe step: review the draft PR; after it is green and approved, build PR 2 from the accepted PR 1 state without merging or deploying either change automatically.
+
 ## 2026-10-07 — Atomic audit for cleanup chunks — branch `agent/cleanup-audit-integrity`
 
 Fresh main `813b231`; owner requested confirmed architecture-review fixes. Each cleanup chunk
@@ -62,7 +72,6 @@ Functions API emulator blocked by environment compatibility/IPC; no API PASS cla
 PR #359 merged after CRM v2, CRM v2 CI and Vercel checks passed. Owner explicitly authorized
 publication and conditional merge. No manual deployment or production mutation performed.
 Next safe step: finish calendar #358 and cleanup #360 CI/merge, then verify combined main.
-
 ## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
 
 Owner: the invoice showed his personal e-mail; take the invoice generator of the first site version.
