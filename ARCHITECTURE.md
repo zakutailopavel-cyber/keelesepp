@@ -508,3 +508,11 @@ Live Classroom calls use STUN plus Cloudflare Realtime TURN: `liveTurnApi` gives
 accepted invitation short-lived relay credentials (key in Secret Manager); without it the call falls back to STUN only.
 The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
 the network-free generator core.
+
+## Worksheet Studio concurrent-save boundary (2026-10-07)
+
+`worksheetDocsService.save` uses one Firestore transaction for reading the current authoring
+revision and writing the lesson, immutable version and activity log. The expected timestamp
+compares exactly, including the empty timestamp of an editor loaded before the first save.
+A retry must reject an intervening revision instead of silently replacing its document.
+This aligns the legacy single-sheet save path with transactional phased worksheet persistence.
