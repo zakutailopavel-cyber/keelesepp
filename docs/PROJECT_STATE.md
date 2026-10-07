@@ -1,3 +1,17 @@
+## 2026-10-07 — Blank worksheet page after a deploy — branch `agent/student-view-crash`
+
+Checked `origin/main` `32489b2`. Owner: opening Avasta (and other sheets) shows a blank page.
+- Diagnosis: the same URL (`/library/lessons/a2b1-017/worksheets/discover?vaade=opilane`) opened fresh in the owner's
+  Chrome renders correctly (student view, „Peab, võib ja saab”, version 1 published, no console errors). The worksheet
+  pages are lazy chunks; a tab loaded before a Vercel deploy asks for an old chunk that no longer exists → the import
+  fails and, with no error boundary, React leaves a blank screen.
+- Fix: `app/staleBuild.js` (`isStaleBuildError`, `reloadOnceForNewBuild` — at most one reload per 30 s via
+  sessionStorage), `vite:preloadError` listener in `main.jsx`, and `app/PageErrorBoundary.jsx` around the lazy
+  generator routes: a missing chunk reloads once, any other page error shows „Lehte ei saanud avada” with the message
+  and „Proovi uuesti” instead of a blank page.
+- Checks: `src/app` tests 23/23 (new stale-build + boundary tests); eslint 0 errors; build OK.
+- Next safe step: owner merges the draft PR.
+
 ## 2026-10-07 — „Lisa arve”: Failed to fetch, empty student list, search — branch `agent/invoice-cors`
 
 Checked `origin/main` `1b44b47`. Owner after #336: the dialog shows „Failed to fetch”; the admin must type or pick the
