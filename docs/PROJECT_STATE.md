@@ -1,3 +1,16 @@
+## 2026-10-07 — „Loo mustandid” adds only the missing phases — branch `agent/module-drafts-missing`
+
+Owner ran „Loo mustandid” on A2 module 1 in production: drafts were created for a2-002, a2-004, a2-005 (checked in
+the owner's Chrome: a2-004 Kasuta shows the Codex picture with caption after the opening text; the second DOM copy
+is the hidden `ws-measure` layer, not a duplicate). a2-001 was skipped because it already had a published hand-made
+Avasta, so it had no Harjuta/Kasuta.
+- `generateCoreSheets({ onlyMissing })` saves only phases without a sheet; `moduleDrafts` now treats a lesson as done
+  only when all three phases exist (`created` = all three, `completed` = missing ones added); Õppevara confirm and
+  notice count lessons with any missing phase.
+- Checks: new `lessonGeneration.onlyMissing.test.js` (published Avasta untouched, Harjuta+Kasuta saved), updated
+  module-drafts tests; generator + library 470/470; eslint 0 errors; build OK.
+- Next safe step: owner runs „Loo mustandid” on module 1 again → a2-001 gets Harjuta and Kasuta drafts.
+
 ## 2026-10-07 — Textbook pictures on the sheets + module drafts in one click — branch `agent/art-on-sheets`
 
 Checked `origin/main` `5f0c540` (Codex art #347 for A2 module 01 merged: 5 WebP, 76–100 KB).

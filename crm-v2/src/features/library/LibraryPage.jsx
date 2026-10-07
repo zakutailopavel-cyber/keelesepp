@@ -291,14 +291,14 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   // loaded only when used
   const makeModuleDrafts = async (section) => {
     const lessons = items.filter((item) => item.withPhases && item.moduleKey === section.key).map((item) => ({ ...item.source, id: item.sourceId }));
-    const empty = lessons.filter((lesson) => !Object.keys(lesson.worksheetPhases || {}).length).length;
-    if (!empty) { setSuccess(`Moodulis „${section.label}” on kõigil tundidel töölehed juba olemas.`); return; }
-    if (!globalThis.confirm(`Loon mustandid (Avasta, Harjuta, Kasuta) kuni ${empty} tunnile moodulis „${section.label}”? Olemasolevaid lehti ei muudeta ja midagi ei avaldata.`)) return;
+    const empty = lessons.filter((lesson) => ['discover', 'practice', 'transfer'].some((id) => !lesson.worksheetPhases?.[id])).length;
+    if (!empty) { setSuccess(`Moodulis „${section.label}” on kõigil tundidel kõik kolm töölehte juba olemas.`); return; }
+    if (!globalThis.confirm(`Loon puuduvad mustandid (Avasta, Harjuta, Kasuta) kuni ${empty} tunnile moodulis „${section.label}”? Olemasolevaid lehti ei muudeta ja midagi ei avaldata.`)) return;
     setInstallError('');
     try {
       const { generateModuleDrafts } = await import('../worksheet-generator/ui/moduleDrafts.js');
       const result = await generateModuleDrafts({ lessons, user, onProgress: (done, total) => setModuleDrafts({ key: section.key, text: done < total ? `Loon mustandeid… ${done + 1}/${total}` : '' }) });
-      setSuccess(`Mustandid loodi ${result.created.length} tunnile${result.existing.length ? `; ${result.existing.length} tunnil olid lehed juba olemas` : ''}${result.noProfile.length ? `; ${result.noProfile.length} tunnil generaator pole valmis` : ''}.`);
+      setSuccess(`Mustandid loodi ${result.created.length} tunnile${result.completed?.length ? `; ${result.completed.length} tunnile lisati puuduvad etapid` : ''}${result.existing.length ? `; ${result.existing.length} tunnil olid lehed juba olemas` : ''}${result.noProfile.length ? `; ${result.noProfile.length} tunnil generaator pole valmis` : ''}.`);
       if (result.failed.length) setInstallError(`Ei õnnestunud: ${result.failed.map((item) => `${item.id} (${item.message})`).join(', ')}`);
       state.reload();
     } catch (error) {
