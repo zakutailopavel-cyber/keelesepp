@@ -4,16 +4,16 @@ import { requireFirebaseClient } from './client.js';
 // Admin data cleanup („Seaded → Andmete korrastus”): small batched writes on records the admin ticked.
 // Every action is logged in activityLog.
 
-async function inBatches(entries, apply) {
+async function inBatches(entries, apply, audit) {
   const { db } = requireFirebaseClient();
-  let batch = writeBatch(db);
-  let pending = 0;
-  for (const entry of entries) {
-    apply(batch, db, entry);
-    pending += 1;
-    if (pending >= 400) { await batch.commit(); batch = writeBatch(db); pending = 0; }
+  for (let offset = 0; offset < entries.length; offset += 400) {
+    const chunk = entries.slice(offset, offset + 400);
+    const batch = writeBatch(db);
+    for (const entry of chunk) apply(batch, db, entry);
+    // Each committed chunk carries its own audit; partial completion is visible if a later chunk fails.
+    audit(batch, db, chunk);
+    await batch.commit();
   }
-  if (pending) await batch.commit();
 }
 
 function log(batch, db, user, type, label, meta) {
@@ -33,11 +33,7 @@ export const maintenanceService = {
     const now = new Date().toISOString();
     await inBatches(lessons, (batch, db, lesson) => {
       batch.update(doc(db, 'lessons', lesson.id), { topic: '', updatedAt: now, updatedByUid: user?.uid || '', updatedByName: user?.displayName || '' });
-    });
-    const { db } = requireFirebaseClient();
-    const batch = writeBatch(db);
-    log(batch, db, user, 'maintenance.lesson_topics_cleared', `Tühjendati ${lessons.length} tunni teema „Uus tööleht”`, { lessonIds: lessons.map((item) => item.id).slice(0, 200) });
-    await batch.commit();
+    }, (batch, db, chunk) => log(batch, db, user, 'maintenance.lesson_topics_cleared', `Tühjendati ${chunk.length} tunni teema „Uus tööleht”`, { lessonIds: chunk.map((item) => item.id) }));
   },
 
   // old homework nobody will do any more → „Suletud” (not done, just no longer open)
@@ -45,19 +41,12 @@ export const maintenanceService = {
     const now = new Date().toISOString();
     await inBatches(items, (batch, db, item) => {
       batch.update(doc(db, 'homework', item.id), { status: 'Suletud', closedAt: now, closedBy: user?.uid || '', updatedAt: now });
-    });
-    const { db } = requireFirebaseClient();
-    const batch = writeBatch(db);
-    log(batch, db, user, 'maintenance.homework_closed', `Suleti ${items.length} vana kodutööd`, { homeworkIds: items.map((item) => item.id).slice(0, 200) });
-    await batch.commit();
+    }, (batch, db, chunk) => log(batch, db, user, 'maintenance.homework_closed', `Suleti ${chunk.length} vana kodutööd`, { homeworkIds: chunk.map((item) => item.id) }));
   },
 
   // test conversations: their messages are deleted (admin only by the rules)
   async deleteMessages(messageIds, user, label = '') {
-    await inBatches(messageIds, (batch, db, id) => { batch.delete(doc(db, 'messages', id)); });
-    const { db } = requireFirebaseClient();
-    const batch = writeBatch(db);
-    log(batch, db, user, 'maintenance.messages_deleted', `Kustutati testvestlused (${messageIds.length} sõnumit)${label ? `: ${label}` : ''}`, { messageIds: messageIds.slice(0, 200) });
-    await batch.commit();
+    await inBatches(messageIds, (batch, db, id) => { batch.delete(doc(db, 'messages', id)); },
+      (batch, db, chunk) => log(batch, db, user, 'maintenance.messages_deleted', `Kustutati testvestlused (${chunk.length} sõnumit)${label ? `: ${label}` : ''}`, { messageIds: chunk }));
   },
 };

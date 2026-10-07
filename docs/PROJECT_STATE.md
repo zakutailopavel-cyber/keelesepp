@@ -1,3 +1,17 @@
+## 2026-10-07 — Atomic audit for cleanup chunks — branch `agent/cleanup-audit-integrity`
+
+Fresh main `813b231`; owner requested confirmed architecture-review fixes. Each cleanup chunk
+(maximum 400 changes plus one audit entry) commits its changes and the full affected-ID list
+together. If a later chunk fails, already-committed chunks retain their own audit trail.
+This replaces the previous final separate log write, which could fail after changes committed.
+Files: maintenance.js/test, ARCHITECTURE.md, this state file. No production cleanup invoked;
+no rules/schema, migration, deployment, external message or paid call.
+Validation: 2 audit regression tests PASS; combined fixes CRM suite 191 files / 1195 tests PASS,
+lint 0 errors (2 existing warnings), build PASS; git diff --check PASS.
+PR not created: automatic review rejected sibling git push (external export not explicitly
+authorized). This branch and the calendar/worksheet sibling commits are local and reviewable.
+Next safe step: obtain explicit authorization to push the commits and create draft PRs.
+
 ## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
 
 Owner: the invoice showed his personal e-mail; take the invoice generator of the first site version.
