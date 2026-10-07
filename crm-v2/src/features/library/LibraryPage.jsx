@@ -295,6 +295,8 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     if (!empty) { setSuccess(`Moodulis „${section.label}” on kõigil tundidel kõik kolm töölehte juba olemas.`); return; }
     if (!globalThis.confirm(`Loon puuduvad mustandid (Avasta, Harjuta, Kasuta) kuni ${empty} tunnile moodulis „${section.label}”? Olemasolevaid lehti ei muudeta ja midagi ei avaldata.`)) return;
     setInstallError('');
+    // the generator and the word-form lexicon load first (can take a while): show it right away
+    setModuleDrafts({ key: section.key, text: 'Laen generaatorit…' });
     try {
       const { generateModuleDrafts } = await import('../worksheet-generator/ui/moduleDrafts.js');
       const result = await generateModuleDrafts({ lessons, user, onProgress: (done, total) => setModuleDrafts({ key: section.key, text: done < total ? `Loon mustandeid… ${done + 1}/${total}` : '' }) });
