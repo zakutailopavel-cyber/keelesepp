@@ -70,6 +70,7 @@ describe('MonthlyInvoicePanel', () => {
       .mockRejectedValueOnce(new Error('Teine arve ebaõnnestus'));
     render(<MonthlyInvoicePanel {...p} />);
     await screen.findByRole('table', { name: 'Kuuarved 2031-10' });
+    await screen.findByText(/Valitud 2 \/ 2 arvet/);
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta kõik/ })); });
     expect(p.invoiceApi.createMonthly).toHaveBeenCalledTimes(2);
     expect(screen.getByRole('alert')).toHaveTextContent('Juba loodud arved (1) jäid alles');
