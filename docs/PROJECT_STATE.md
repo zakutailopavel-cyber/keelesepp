@@ -1,3 +1,34 @@
+## 2026-10-07 — Calendar/journal integrity fixes — branch `agent/calendar-integrity-fixes`
+
+Fresh main checked: `813b231`; no open PRs returned before work. Owner requested all confirmed
+bugs from the architecture review to be fixed. This branch is limited to calendar/journal,
+group concurrency and dashboard projections; worksheet and cleanup fixes are separate PRs.
+
+- Resolve legacy explicit journal links by student/date; expose missing/duplicate links and block
+  quick completion/dragging of inconsistent entries. No fabricated historical lessons.
+- Weekly series no longer spread one occurrence result to following dates; server journal treats
+  dated v2 recurring schedules as series and stores per-date results, including deletion recovery.
+- Completion is transactional; group membership, slots and attendance reread current group arrays
+  transactionally. Dashboard counts/displays today's groups as well as individual lessons.
+- Contracts: existing schedule/lessons/groups/activityLog only; immutable IDs preserved; no new
+  rules, collections, paid calls, production writes, migrations or deployments.
+- Verification: targeted CRM calendar/group/dashboard 83 tests passed; Functions unit 236 passed;
+  combined fixes CRM suite 191 files / 1195 tests passed, lint 0 errors (2 existing generator
+  hook warnings), build passed (existing bundle warning). A later worksheet-only regression
+  check also passed 2 files / 31 tests. Emulator with CLI 15 blocked by Java 17; CLI 14
+  Functions execution blocked by local IPC EPERM and CLI/Functions v7 compatibility;
+  cancelled rather than treating it as a product result. Rules-only Auth/Firestore emulator
+  completed successfully: 7 tests PASS (worksheet ownership/snapshots/live pointers and
+  admin verification). No successful Functions journal API emulator result is claimed.
+- Limit: truly missing historical records still require read-only production reconciliation;
+  explicit missing/duplicate states are not automatically charged, repaired or deleted.
+- PR: #358. Owner explicitly authorized publication and merge after all checks pass.
+  CI exposed an invalid delete fixture (completed lessons are financially protected) and
+  a nested-map merge deletion bug. The fixture now clears billing via the journal API;
+  deletion replaces the occurrence map with transaction.update, preserving other dates.
+  Remote CI remains the merge gate. Sibling PRs: #359 worksheet, #360 cleanup.
+- Next safe step: merge only after successful CI; no production data repair or manual deploy.
+
 ## 2026-10-07 — Transactional worksheet saves — branch `agent/worksheet-save-integrity`
 
 Fresh main `813b231`; owner requested fixes from the architecture review. Worksheet saves now read
@@ -12,9 +43,9 @@ Validation: targeted Worksheet Studio/service 2 files / 31 tests PASS; combined-
 run; lint 0 errors (2 existing warnings), build PASS. Rules-only Auth/Firestore emulator:
 7 tests PASS (worksheet save/assignment/student access/live pointer and admin verification).
 Functions API emulator blocked by environment compatibility/IPC; no API PASS claimed.
-PR not created: automatic approval review rejected git push of the calendar sibling branch
-because external GitHub export was not explicitly authorized. All sibling fixes remain local.
-Next safe step: obtain explicit authorization to push the reviewable commits and create draft PRs.
+PR #359 merged after CRM v2, CRM v2 CI and Vercel checks passed. Owner explicitly authorized
+publication and conditional merge. No manual deployment or production mutation performed.
+Next safe step: finish calendar #358 and cleanup #360 CI/merge, then verify combined main.
 
 ## 2026-10-07 — Invoice PDF in the first version's layout, school contacts — branch `agent/invoice-v1-layout`
 

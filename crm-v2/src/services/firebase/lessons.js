@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDocs, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { financeApi } from './financeApi.js';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
@@ -50,48 +50,48 @@ export const lessonsService = {
     const { db } = requireFirebaseClient();
     const id = accountingLessonId(`schedule_${event.id}`, occurrenceDate, event.studentId);
     const lessonRef = doc(db, 'lessons', id);
-    const existing = await getDoc(lessonRef);
-    if (existing.exists()) return normalizeLesson(existing.id, existing.data());
-    const createdAt = new Date().toISOString();
-    const value = {
-      scheduleId: event.id,
-      occurrenceDate,
-      studentId: event.studentId,
-      studentName: event.studentName || '',
-      teacher: canonicalTeacherName(event.teacher || user?.displayName),
-      teacherUid: event.teacherUid || user?.uid || '',
-      subject: event.subject || 'Eesti keel',
-      topic: details.topic || event.topic || '',
-      topicLevel: details.topicLevel || '',
-      topicModule: details.topicModule || '',
-      topicLessonId: details.topicLessonId || '',
-      notes: String(details.notes || '').slice(0, 1000),
-      date: occurrenceDate,
-      time: event.time || '',
-      duration: Math.max(5, Number(event.duration) || 60),
-      status: ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(details.status) ? details.status : 'Toimunud',
-      accountingSource: 'crm_v2',
-      createdAt,
-      createdByUid: user?.uid || '',
-      createdByName: user?.displayName || user?.email || '',
-    };
-    const batch = writeBatch(db);
-    batch.set(lessonRef, value);
-    if (!event.recurring) batch.set(doc(db, 'schedule', event.id), { status: value.status, updatedAtIso: createdAt }, { merge: true });
-    batch.set(doc(collection(db, 'activityLog')), {
-      type: 'lesson.completed',
-      label: `${event.studentName || 'Õpilane'} tund märgitud toimunuks`,
-      studentId: event.studentId,
-      studentName: event.studentName || '',
-      byUid: user?.uid || '',
-      byName: user?.displayName || user?.email || '',
-      byRole: user?.roles?.[0] || '',
-      createdAt,
-      date: occurrenceDate,
-      meta: { lessonId: id, scheduleId: event.id },
+    return runTransaction(db, async (batch) => {
+      const existing = await batch.get(lessonRef);
+      if (existing.exists()) return normalizeLesson(existing.id, existing.data());
+      const createdAt = new Date().toISOString();
+      const value = {
+        scheduleId: event.id,
+        occurrenceDate,
+        studentId: event.studentId,
+        studentName: event.studentName || '',
+        teacher: canonicalTeacherName(event.teacher || user?.displayName),
+        teacherUid: event.teacherUid || user?.uid || '',
+        subject: event.subject || 'Eesti keel',
+        topic: details.topic || event.topic || '',
+        topicLevel: details.topicLevel || '',
+        topicModule: details.topicModule || '',
+        topicLessonId: details.topicLessonId || '',
+        notes: String(details.notes || '').slice(0, 1000),
+        date: occurrenceDate,
+        time: event.time || '',
+        duration: Math.max(5, Number(event.duration) || 60),
+        status: ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(details.status) ? details.status : 'Toimunud',
+        accountingSource: 'crm_v2',
+        createdAt,
+        createdByUid: user?.uid || '',
+        createdByName: user?.displayName || user?.email || '',
+      };
+      batch.set(lessonRef, value);
+      if (!event.recurring) batch.set(doc(db, 'schedule', event.id), { status: value.status, updatedAtIso: createdAt }, { merge: true });
+      batch.set(doc(collection(db, 'activityLog')), {
+        type: 'lesson.completed',
+        label: `${event.studentName || 'Õpilane'} tund märgitud toimunuks`,
+        studentId: event.studentId,
+        studentName: event.studentName || '',
+        byUid: user?.uid || '',
+        byName: user?.displayName || user?.email || '',
+        byRole: user?.roles?.[0] || '',
+        createdAt,
+        date: occurrenceDate,
+        meta: { lessonId: id, scheduleId: event.id },
     });
-    await batch.commit();
     return normalizeLesson(id, value);
+    });
   },
   // Fix a mark made by mistake from the calendar: another status (held / absent) or back to "planned".
   // A lesson already on an invoice or in a closed period is refused by the rules; that is corrected in Finantsid.

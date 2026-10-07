@@ -4,6 +4,8 @@ const firestore = vi.hoisted(() => ({
   collection: vi.fn((_db, name) => name),
   doc: vi.fn((...parts) => parts.length === 1 ? { id: 'generated-group', path: `${parts[0]}:generated-group` } : parts.join(':')),
   getDocs: vi.fn(),
+  getDoc: vi.fn(),
+  runTransaction: vi.fn(),
   batch: { set: vi.fn(), delete: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
@@ -19,6 +21,11 @@ describe('groupsService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     firestore.writeBatch.mockReturnValue(firestore.batch);
+    firestore.runTransaction.mockImplementation(async (_db, callback) => {
+      const result = await callback({ set: firestore.batch.set, delete: firestore.batch.delete, get: firestore.getDoc });
+      await firestore.batch.commit();
+      return result;
+    });
   });
 
   it('normalizes legacy members, lessons and student lesson assignments', () => {
@@ -65,6 +72,7 @@ describe('groupsService', () => {
 
   it('atomically updates both group membership and the student card', async () => {
     const group = { id: 'group-1', name: 'A1 õhturühm', students: [], lessons: [{ id: 'lesson-1' }], studentLessonMap: {} };
+    firestore.getDoc.mockResolvedValue({ exists: () => true, id: group.id, data: () => group });
     await groupsService.setStudent(group, { id: 'student-1', name: 'Mari' }, true, admin);
 
     expect(firestore.batch.set).toHaveBeenCalledTimes(3);
@@ -89,6 +97,7 @@ describe('groupsService', () => {
   it('lets a teacher store occurrence attendance on the legacy group lesson', async () => {
     const group = { id: 'group-1', name: 'A1 õhturühm', lessons: [{ id: 'lesson-1', attendance: {} }] };
     const teacher = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+    firestore.getDoc.mockResolvedValue({ exists: () => true, id: group.id, data: () => group });
     await expect(groupsService.setAttendance(group, 'lesson-1', '2026-08-04', 'student-1', 'coming', teacher)).resolves.toMatchObject({
       'student-1_2026-08-04': { status: 'coming', by: 'teacher-1' },
     });
@@ -96,4 +105,12 @@ describe('groupsService', () => {
     expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ studentId: 'student-1', status: 'Toimunud', accountingSource: 'crm_v2' });
     expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'group.attendance_updated', meta: expect.objectContaining({ occurrenceDate: '2026-08-04', studentId: 'student-1' }) });
   });
+});
+
+it('keeps other students attendance when the caller has a stale group snapshot', async () => {
+ const stale = { id: 'g', name: 'Group', lessons: [{ id: 'l', attendance: {} }] };
+ const latest = { ...stale, lessons: [{ id: 'l', attendance: { 'other_2026-10-05': { status: 'coming' } } }] };
+ firestore.getDoc.mockResolvedValue({ exists: () => true, id: 'g', data: () => latest });
+ await groupsService.setAttendance(stale, 'l', '2026-10-05', 's', 'coming', admin);
+ expect(firestore.batch.set.mock.calls.at(-3)[1].lessons[0].attendance).toMatchObject({ 'other_2026-10-05': { status: 'coming' }, 's_2026-10-05': { status: 'coming' } });
 });

@@ -63,7 +63,7 @@ function readDraft(item) {
 }
 
 export default function LessonPanel({ item, history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
-  const done = Boolean(item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
+  const done = Boolean(item?.recordProblem || item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
   const [draft] = useState(() => readDraft(item));
   const [picked, setPicked] = useState(draft?.picked || null);
@@ -124,6 +124,10 @@ export default function LessonPanel({ item, history = [], catalog, library, load
         </section>
       ) : null}
 
+      {item.recordProblem ? <section className="lp-fix" role="alert">
+        <p>{item.recordProblem === 'duplicate' ? 'Selle kuupäeva kohta leiti mitu tunni märget.' : 'Tund on märgitud arvestatuks, kuid seotud päevikukannet ei leitud.'} Kontrolli päevikut enne uue märke lisamist.</p>
+        <a className="link-button" href={`/students/${encodeURIComponent(item.studentId)}`}>Ava õpilase päevik</a>
+      </section> : null}
       {children}
 
       {!item.isGroup && done ? (
