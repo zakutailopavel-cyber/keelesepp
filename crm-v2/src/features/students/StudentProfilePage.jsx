@@ -97,6 +97,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   if (!state.student) return <div className="page-content"><Card><EmptyState title="Õpilast ei leitud" action={<Link className="button button--secondary" to="/students">Tagasi nimekirja</Link>} /></Card></div>;
 
   const { student } = state;
+  const tracks = (student.enrollments || []).filter((track) => track.active !== false && track.subject);
   const tabPanelId = `student-profile-panel-${activeTab}`;
   const initials = String(student.name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
@@ -130,7 +131,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
       <div id={tabPanelId} role="tabpanel" aria-labelledby={`student-profile-tab-${activeTab}`} className="student-profile-tab-panel">
         {activeTab === 'overview' ? (
           <div className="profile-grid">
-            <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>Õpetaja</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
+            <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>{tracks.length > 1 ? 'Õppesuunad' : 'Õpetaja'}</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : tracks.length > 1 ? tracks.map((track) => <span className="profile-track" key={track.id || track.subject}>{track.subject} — {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}</span>) : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
             <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{student.level || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
             <PetOverview studentIds={[student.id]} lessons={state.lessons} {...(petApi ? { repository: petApi } : {})} />
           </div>

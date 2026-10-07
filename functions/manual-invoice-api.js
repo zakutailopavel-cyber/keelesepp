@@ -9,6 +9,7 @@ const ALLOWED_ROLES = new Set(['admin', 'finance']);
 const DEFAULT_ALLOWED_ORIGINS = new Set([
   'https://keelesepp.vercel.app',
   'https://keelesepp-crm-v2.vercel.app',
+  'https://crm.epkoolitus.ee',
   'https://epkoolitus.ee',
   'https://www.epkoolitus.ee',
   'http://localhost:3000',
@@ -74,10 +75,16 @@ function cleanRequestId(value) {
   return requestId;
 }
 
+// active students (the CRM keeps `active: true`, not a status field) with a hint to tell namesakes apart
 async function listInvoiceStudents() {
-  const snap = await db.collection('students').where('status', '==', 'active').get();
+  const snap = await db.collection('students').where('active', '==', true).get();
   return snap.docs
-    .map((doc) => ({ id: doc.id, name: String(doc.data()?.name || '').trim() }))
+    .filter((doc) => !doc.data()?.convertedToParent)
+    .map((doc) => {
+      const data = doc.data() || {};
+      const hint = [data.parentName, data.parentEmail || data.email, data.subject].map((value) => String(value || '').trim()).filter(Boolean).join(' · ');
+      return { id: doc.id, name: String(data.name || '').trim(), hint };
+    })
     .filter((student) => student.name)
     .sort((left, right) => left.name.localeCompare(right.name, 'et'));
 }

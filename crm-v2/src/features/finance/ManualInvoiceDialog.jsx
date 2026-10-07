@@ -27,9 +27,11 @@ export default function ManualInvoiceDialog({ onCreated }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState(emptyForm);
+  const [query, setQuery] = useState('');
 
+  // loadingStudents is not a dependency: setting it would re-run the effect, cancel this request and never load
   useEffect(() => {
-    if (!open || students.length || loadingStudents) return;
+    if (!open || students.length) return undefined;
     let active = true;
     setLoadingStudents(true);
     manualInvoiceApi
@@ -49,7 +51,14 @@ export default function ManualInvoiceDialog({ onCreated }) {
     return () => {
       active = false;
     };
-  }, [loadingStudents, open, students.length]);
+  }, [open, students.length]);
+
+  // the admin types part of the name (or parent / e-mail) and picks from the matches
+  const matches = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase('et');
+    if (!needle) return students;
+    return students.filter((student) => `${student.name} ${student.hint || ''}`.toLocaleLowerCase('et').includes(needle));
+  }, [query, students]);
 
   const selectedStudent = useMemo(
     () => students.find((student) => student.id === form.studentId),
@@ -59,6 +68,7 @@ export default function ManualInvoiceDialog({ onCreated }) {
   const resetAndClose = () => {
     setOpen(false);
     setError('');
+    setQuery('');
     setForm(emptyForm());
   };
 
@@ -104,6 +114,21 @@ export default function ManualInvoiceDialog({ onCreated }) {
         )}
       >
         <form id="manual-invoice-form" className="form-grid" onSubmit={submit}>
+          <Input
+            className="form-grid__wide"
+            label="Otsi õpilast"
+            type="search"
+            placeholder="Kirjuta nimi, lapsevanem või e-post"
+            value={query}
+            disabled={loadingStudents}
+            onChange={(event) => {
+              const next = event.target.value;
+              setQuery(next);
+              const needle = next.trim().toLocaleLowerCase('et');
+              const found = needle ? students.filter((student) => `${student.name} ${student.hint || ''}`.toLocaleLowerCase('et').includes(needle)) : [];
+              if (found.length === 1) setForm((current) => ({ ...current, studentId: found[0].id }));
+            }}
+          />
           <Select
             className="form-grid__wide"
             label="Õpilane"
@@ -112,9 +137,9 @@ export default function ManualInvoiceDialog({ onCreated }) {
             onChange={(event) => setForm({ ...form, studentId: event.target.value })}
             required
           >
-            <option value="">{loadingStudents ? 'Laen õpilasi…' : 'Vali õpilane'}</option>
-            {students.map((student) => (
-              <option key={student.id} value={student.id}>{student.name}</option>
+            <option value="">{loadingStudents ? 'Laen õpilasi…' : matches.length ? `Vali õpilane (${matches.length})` : 'Keegi ei vasta otsingule'}</option>
+            {(selectedStudent && !matches.includes(selectedStudent) ? [selectedStudent, ...matches] : matches).map((student) => (
+              <option key={student.id} value={student.id}>{student.hint ? `${student.name} · ${student.hint}` : student.name}</option>
             ))}
           </Select>
           <Input
@@ -141,15 +166,17 @@ export default function ManualInvoiceDialog({ onCreated }) {
             onChange={(event) => setForm({ ...form, due: event.target.value })}
             required
           />
-          <label className="form-field form-grid__wide">
-            <span>Märkus</span>
+          <div className="field form-grid__wide">
+            <label className="field__label" htmlFor="manual-invoice-note">Märkus</label>
             <textarea
+              id="manual-invoice-note"
+              className="field__textarea"
               rows="3"
               value={form.note}
               onChange={(event) => setForm({ ...form, note: event.target.value })}
               placeholder="Sisemine märkus, soovi korral"
             />
-          </label>
+          </div>
           {selectedStudent ? (
             <p className="form-hint form-grid__wide">
               Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong> ja lisatakse kohe arvete nimekirja.
