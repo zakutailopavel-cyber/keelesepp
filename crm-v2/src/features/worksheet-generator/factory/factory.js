@@ -53,6 +53,10 @@ const PACK_KEYWORDS = Object.freeze({
   'liking-preferences': ['mulle meeldib', 'ei meeldi', 'eelistus', 'da-infinitiiv'],
   'invitation-response': ['kutse ja vastus', 'kas tahad', 'kas sul on aega', 'kahjuks ei saa'],
   'events-tickets': ['üritused ja piletid', 'algus', 'kestus', 'tasuta', 'registreerimine'],
+  'weather-seasons': ['ilm', 'aastaajad', 'погод', 'сезон'],
+  'weather-comparison': ['soojem', 'külmem', 'võrdlus', 'теплее', 'холоднее'],
+  'weather-forecast': ['ilmateade', 'temperatuur', 'prognoos', 'прогноз'],
+  'weather-clothing-advice': ['riided', 'selga', 'vihmavari', 'одежд'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
