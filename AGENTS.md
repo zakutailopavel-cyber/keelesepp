@@ -30,7 +30,9 @@ Kohustuslik lugemine enne iga partiid, et töölehtede tase ei langeks:
 3. `docs/TEXTBOOK_VISUAL_STYLE.md` — visuaalne leping (foto / illustratsioon / skeem, lehe kujundus).
 4. `docs/LESSON_SCENE_STANDARD.md` — stseenid ja pildid: eesmärgiga, mitte dekoratsioon.
 5. `docs/WORKSHEET_GENERATOR_V1.md` ja `docs/GENERATOR_LEXICON.md` — generaator ja sõnavormid ilma AI-ta.
-6. Taseme õppekava: `docs/A2_CURRICULUM_100.md` (A2), B1 õpitee `data/keelesepp-a2-b1-roadmap.json`,
+6. `docs/TEXTBOOK_ART_BIBLE.md` — illustratsioonide stiil (must joon, valge, üks laimiroheline aktsent), püsitegelased,
+   pildi lähteülesanne (`visuals`), genereerimise juhis ja failide asukoht. Iga töölehe pilt vajab lähteülesannet.
+7. Taseme õppekava: `docs/A2_CURRICULUM_100.md` (A2), B1 õpitee `data/keelesepp-a2-b1-roadmap.json`,
    `docs/C1_CURRICULUM_240.md` (C1).
 
 Lubatud failid: `crm-v2/src/features/worksheet-generator/production/*`, `factory/contentLibrary.js`,
