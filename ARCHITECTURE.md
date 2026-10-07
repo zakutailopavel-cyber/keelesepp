@@ -523,6 +523,12 @@ accepted invitation short-lived relay credentials (key in Secret Manager); witho
 The CEFR reserve is loaded separately with authenticated Firebase Storage `getBytes()` and is passed as plain data to
 the network-free generator core.
 
+## Admin cleanup audit boundary (2026-10-07)
+
+Maintenance operations commit at most 400 data writes and one activityLog entry in the same
+Firestore batch. Each entry includes all IDs for its chunk, not a truncated global list.
+Multi-chunk cleanup may partially complete, but committed changes cannot lose their audit
+because a subsequent standalone log write failed. No automatic production cleanup is performed.
 ## Worksheet Studio concurrent-save boundary (2026-10-07)
 
 `worksheetDocsService.save` uses one Firestore transaction for reading the current authoring

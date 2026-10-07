@@ -1,3 +1,18 @@
+## 2026-10-07 — Atomic audit for cleanup chunks — branch `agent/cleanup-audit-integrity`
+
+Fresh main `813b231`; owner requested confirmed architecture-review fixes. Each cleanup chunk
+(maximum 400 changes plus one audit entry) commits its changes and the full affected-ID list
+together. If a later chunk fails, already-committed chunks retain their own audit trail.
+This replaces the previous final separate log write, which could fail after changes committed.
+Files: maintenance.js/test, ARCHITECTURE.md, this state file. No production cleanup invoked;
+no rules/schema, migration, deployment, external message or paid call.
+Validation: 2 audit regression tests PASS; combined fixes CRM suite 191 files / 1195 tests PASS,
+lint 0 errors (2 existing warnings), build PASS; git diff --check PASS.
+PR #360 published with explicit owner authorization. Initial CRM v2, CRM v2 CI and Vercel
+checks passed; branch incorporates calendar #358 and merged worksheet #359 to verify combined
+behavior. Documentation conflicts resolved preserving all three architecture/state entries.
+Next safe step: merge #358 first, then #360 only if updated-head CI succeeds; no manual deploy.
+
 ## 2026-10-07 — Calendar/journal integrity fixes — branch `agent/calendar-integrity-fixes`
 
 Fresh main checked: `813b231`; no open PRs returned before work. Owner requested all confirmed
@@ -19,7 +34,8 @@ group concurrency and dashboard projections; worksheet and cleanup fixes are sep
   Functions execution blocked by local IPC EPERM and CLI/Functions v7 compatibility;
   cancelled rather than treating it as a product result. Rules-only Auth/Firestore emulator
   completed successfully: 7 tests PASS (worksheet ownership/snapshots/live pointers and
-  admin verification). No successful Functions journal API emulator result is claimed.
+  admin verification). Remote Financial Core emulator run 715 passed after deletion fix;
+  final combined-head CI is required before merge.
 - Limit: truly missing historical records still require read-only production reconciliation;
   explicit missing/duplicate states are not automatically charged, repaired or deleted.
 - PR: #358. Owner explicitly authorized publication and merge after all checks pass.
