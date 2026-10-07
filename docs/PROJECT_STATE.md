@@ -1,3 +1,10 @@
+## 2026-10-07 — „Lisa arve”: clear message when something is missing — branch `agent/invoice-dialog-validation`
+
+Owner: the dialog buttons „do not react”. Checked live: both buttons are clickable; „Loo arve” on an empty form was
+stopped by the browser's native validation (only focus moved, the bubble was barely visible). The form now has
+`noValidate`, so the dialog's own messages show („Vali õpilane.”, „Lisa arve kirjeldus.”, …) in an alert.
+- Checks: new dialog test; finance tests pass; build OK.
+
 ## 2026-10-07 — E-mail works again; automatic payment reminders paused — branch `agent/reminders-pause`
 
 - SMTP: the owner's correct info@epkoolitus.ee password was checked locally (`functions/tools/smtp-check.js`,

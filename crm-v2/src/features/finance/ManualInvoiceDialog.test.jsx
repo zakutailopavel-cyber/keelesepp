@@ -27,4 +27,18 @@ describe('ManualInvoiceDialog', () => {
     await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's2', description: 'Õpik', amount: '12.50', note: 'sisemine' })));
     await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv-1' }));
   });
+
+  it('says what is missing when „Loo arve” is pressed on an empty form', async () => {
+    api.listStudents.mockResolvedValue([{ id: 's1', name: 'Anna' }]);
+    api.create.mockClear();
+    render(<ManualInvoiceDialog />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
+    await screen.findByRole('option', { name: 'Anna' });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Vali õpilane.');
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 's1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Lisa arve kirjeldus.');
+    expect(api.create).not.toHaveBeenCalled();
+  });
 });
