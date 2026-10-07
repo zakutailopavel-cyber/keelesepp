@@ -24,7 +24,7 @@ const props = () => ({
   auditRepository: emptyList,
 });
 
-const renderPage = (value) => render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'a1', roles: ['admin'] } }}><FinanceMonthPage {...value} /></AuthContext.Provider></MemoryRouter>);
+const renderPage = (value, route = '/') => render(<MemoryRouter initialEntries={[route]}><AuthContext.Provider value={{ user: { uid: 'a1', roles: ['admin'] } }}><FinanceMonthPage {...value} /></AuthContext.Provider></MemoryRouter>);
 
 describe('FinanceMonthPage', () => {
   it('registers a payment and refreshes the month', async () => {
@@ -39,7 +39,7 @@ describe('FinanceMonthPage', () => {
   });
 
   it('sends an overdue reminder from the invoice row', async () => {
-    const value = props(); renderPage(value);
+    const value = props(); renderPage(value, '/finance?status=overdue');
     const table = await screen.findByRole('table', { name: 'Arved 2031-10' });
     await act(async () => { fireEvent.click(within(table).getByRole('button', { name: /Meeldetuletus/ })); });
     expect(value.deliveryRepository.remind).toHaveBeenCalledWith('i1');

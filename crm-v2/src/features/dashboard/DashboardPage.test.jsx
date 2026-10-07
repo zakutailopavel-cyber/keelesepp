@@ -60,7 +60,7 @@ describe('DashboardPage role scoping', () => {
     expect(dataRepositories.homework.list).not.toHaveBeenCalled();
     expect(dataRepositories.homework.listByStudentIds).not.toHaveBeenCalled();
     expect(screen.queryByText('Aktiivsed õpilased')).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /tähtaja ületanud arvet/i })).toHaveAttribute('href', '/finance');
+    expect(screen.getByRole('link', { name: /tähtaja ületanud arvet/i })).toHaveAttribute('href', '/finance?status=overdue');
     expect(screen.queryByRole('link', { name: /Ava tänane kalender/i })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Finantsid.*Arved, maksed ja kontroll/i })).toHaveAttribute('href', '/finance');
   });

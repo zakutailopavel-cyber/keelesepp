@@ -6,7 +6,7 @@ import { ROLES } from '../utils/roles.js';
 const roleCases = [
   {
     role: ROLES.ADMIN,
-    allowed: ['/', '/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/settings', '/homework', '/messages', '/finance', '/finance/vana', '/finance/payroll', '/finance/expenses'],
+    allowed: ['/', '/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/settings', '/homework', '/messages', '/finance', '/finance/seaded', '/finance/vana', '/finance/payroll', '/finance/expenses'],
     denied: ['/parent', '/student'],
   },
   {
@@ -16,7 +16,7 @@ const roleCases = [
   },
   {
     role: ROLES.FINANCE,
-    allowed: ['/', '/settings', '/finance', '/finance/vana'],
+    allowed: ['/', '/settings', '/finance', '/finance/seaded', '/finance/vana'],
     denied: ['/students', '/calendar', '/groups', '/parents', '/library', '/live-classroom', '/teachers', '/homework', '/messages', '/finance/payroll', '/finance/expenses', '/parent', '/student'],
   },
   {

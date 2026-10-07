@@ -67,7 +67,7 @@ export function invoiceNotifications(invoices, today = new Date()) {
     title: `Arve on tähtaja ületanud · ${invoice.studentName || invoice.parentName || 'Klient'}`,
     detail: `${invoice.number ? `Arve ${invoice.number} · ` : ''}tasuda ${money(invoiceBalanceCents(invoice))}`,
     meta: invoice.due ? `Tähtaeg ${formatDue(String(invoice.due).slice(0, 10))}` : '',
-    to: '/finance',
+    to: `/finance?status=overdue&invoice=${encodeURIComponent(invoice.id)}`,
   }));
 }
 
