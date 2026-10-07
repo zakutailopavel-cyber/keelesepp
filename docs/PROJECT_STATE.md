@@ -8,6 +8,27 @@ Checked `origin/main` `c7ec04c`. Owner: the manual invoice dialog does not work.
 - Checks: new `ManualInvoiceDialog.test.jsx` (loads students once, creates invoice); finance tests 69/69; eslint clean;
   build OK. Not clicked in production (would create a real invoice).
 - Next safe step: owner merges the draft PR and creates a test invoice in the CRM.
+## 2026-10-07 — One student, two subjects, two teachers — branch `agent/two-teachers`
+
+Checked `origin/main` `0b5ae77`. Owner: Milan studies Estonian and English with two teachers; he must be one card and
+each teacher must plan his lessons in their own calendar without disturbing the other.
+- Existing model kept: one `students` doc with `enrollments` („Õppesuunad”: subject, teacher, teacherUid) and
+  `teacherUids`; rules already give each teacher of `teacherUids` access. No schema or rules change.
+- Bug fixed: in the calendar a teacher (non-admin) creating a lesson got the student's *primary* `teacherUid` (the
+  other teacher) → the lesson went to the wrong calendar or was refused by rules. Now a teacher always plans for
+  themselves.
+- Calendar form: a student with several active study tracks shows „Õppesuund” (admin: all tracks, choosing one also
+  picks its teacher; teacher: only own tracks). The schedule entry gets `subject` of the track, so the held lesson
+  (`lessons.completeFromSchedule` already used `event.subject`, default „Eesti keel”) is recorded with the right subject.
+  Live lesson title uses the lesson subject.
+- „Planeerimata õpilased” in one teacher's view counts only that teacher's lessons (`unplannedStudents`).
+- Student profile shows all study tracks with their teachers.
+- Existing duplicate cards (e.g. Milan ×2): admin merges them with „Ühenda käsitsi” and then adds the second subject
+  in „Õppesuunad” — the server merge keeps the duplicate's teacher only as an alias (functions unchanged).
+- Checks: calendar + students tests 112 passed, 1 known Node 26 `localStorage` failure („Alusta tundi”); new tests:
+  admin picks track → teacher+subject, second teacher plans into own calendar, unplanned per teacher; eslint 0 errors;
+  build OK.
+- Next safe step: owner merges the draft PR, then fixes Milan's cards as above.
 
 ## 2026-10-06 — Textbook generator wiring — branch `agent/textbook-generator-wiring`
 
