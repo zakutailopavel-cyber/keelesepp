@@ -7,7 +7,7 @@ import { createContentPackDraft, suggestReusablePackIds } from './factory.js';
 const lessons = roadmap.modules.flatMap((module) => module.lessons);
 
 describe('Content Pack Factory v1', () => {
-  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
+  it.each(['a2-002', 'a2-003', 'a2-004', 'a2-005', 'a2-006', 'a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045', 'a2-046', 'a2-047', 'a2-048', 'a2-049', 'a2-050', 'a2-046', 'a2-047', 'a2-048', 'a2-049', 'a2-050', 'a2-041', 'a2-042', 'a2-043', 'a2-044', 'a2-045'])('builds a ready, deterministic five-task bundle for %s', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const first = createContentPackDraft(lesson);
     const second = createContentPackDraft(lesson);
@@ -74,7 +74,7 @@ describe('Content Pack Factory v1', () => {
     expect(result.profile.banks.writingPrompts).toHaveLength(1);
   });
 
-  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
+  it.each(['a2-007', 'a2-008', 'a2-009', 'a2-010', 'a2-011', 'a2-012', 'a2-013', 'a2-014', 'a2-015', 'a2-016', 'a2-017', 'a2-018', 'a2-019', 'a2-020', 'a2-021', 'a2-022', 'a2-023', 'a2-024', 'a2-025', 'a2-026', 'a2-027', 'a2-028', 'a2-029', 'a2-030', 'a2-031', 'a2-032', 'a2-033', 'a2-034', 'a2-035', 'a2-036', 'a2-037', 'a2-038', 'a2-039', 'a2-040'])('gives %s complete answer keys on every sheet across seeds', (lessonId) => {
     const lesson = lessons.find((item) => item.id === lessonId);
     const { profile } = createContentPackDraft(lesson);
     for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
@@ -125,6 +125,216 @@ describe('Content Pack Factory v1', () => {
       const profile = createContentPackDraft(lessons.find((item) => item.id === lessonId)).profile;
       expect(profile.contexts.every((context) => context.times.length === 0)).toBe(true);
     }
+  });
+
+  it('module 4 uses curated home/local-case sources, transformations and real listening input', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-016')).toEqual(['home-rooms']);
+    expect(pick('a2-017')).toEqual(['inner-local-cases']);
+    expect(pick('a2-018')).toEqual(['outer-local-cases']);
+    expect(pick('a2-019')).toEqual(['neighbourhood']);
+    expect(pick('a2-020')).toEqual(['home-rooms', 'inner-local-cases', 'outer-local-cases', 'neighbourhood']);
+
+    const inner = createContentPackDraft(lessons.find((item) => item.id === 'a2-017')).profile;
+    const outer = createContentPackDraft(lessons.find((item) => item.id === 'a2-018')).profile;
+    const listening = createContentPackDraft(lessons.find((item) => item.id === 'a2-019')).profile;
+    expect(inner.banks.transformations.length).toBeGreaterThanOrEqual(2);
+    expect(outer.banks.transformations.length).toBeGreaterThanOrEqual(2);
+    expect(listening.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+
+    const generated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-019'),
+      profile: listening,
+      seed: 'a2-019:listening-required',
+    });
+    const practiceTypes = generated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type);
+    expect(practiceTypes).toContain('listening');
+  });
+
+  it('module 5 uses curated city, route, imperative and practical-reading sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-021')).toEqual(['city-places']);
+    expect(pick('a2-022')).toEqual(['directions']);
+    expect(pick('a2-023')).toEqual(['route-imperative']);
+    expect(pick('a2-024')).toEqual(['city-practical-info']);
+    expect(pick('a2-025')).toEqual(['city-places', 'directions', 'route-imperative', 'city-practical-info']);
+
+    const imperative = createContentPackDraft(lessons.find((item) => item.id === 'a2-023')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-024')).profile;
+    expect(imperative.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+    expect(imperative.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+
+    const imperativeGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-023'),
+      profile: imperative,
+      seed: 'a2-023:listening-required',
+    });
+    expect(imperativeGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('listening');
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-024'),
+      profile: reading,
+      seed: 'a2-024:reading-required',
+    });
+    const readingBlocks = readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.filter((block) => block.type === 'reading');
+    expect(readingBlocks).toHaveLength(1);
+    expect(readingBlocks[0].data.questions.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('module 6 uses curated food, quantity, cafe and order-listening sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-026')).toEqual(['food-drink']);
+    expect(pick('a2-027')).toEqual(['quantity-partitive']);
+    expect(pick('a2-028')).toEqual(['cafe-order']);
+    expect(pick('a2-029')).toEqual(['order-bill']);
+    expect(pick('a2-030')).toEqual(['food-drink', 'quantity-partitive', 'cafe-order', 'order-bill']);
+
+    const quantity = createContentPackDraft(lessons.find((item) => item.id === 'a2-027')).profile;
+    const listening = createContentPackDraft(lessons.find((item) => item.id === 'a2-029')).profile;
+    expect(quantity.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(quantity.banks.errorPairs.length).toBeGreaterThanOrEqual(3);
+    expect(listening.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+
+    const quantityGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-027'),
+      profile: quantity,
+      seed: 'a2-027:transformations',
+    });
+    expect(quantityGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('transformation');
+
+    const listeningGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-029'),
+      profile: listening,
+      seed: 'a2-029:listening-required',
+    });
+    const listeningBlocks = listeningGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.filter((block) => block.type === 'listening');
+    expect(listeningBlocks).toHaveLength(1);
+    expect(listeningBlocks[0].data.transcript.length).toBeGreaterThan(100);
+    expect(listeningBlocks[0].data.sentences.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('module 7 uses curated shopping, prices, fitting and return-reading sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-031')).toEqual(['shopping-goods']);
+    expect(pick('a2-032')).toEqual(['shopping-prices']);
+    expect(pick('a2-033')).toEqual(['fitting-compare']);
+    expect(pick('a2-034')).toEqual(['receipt-return']);
+    expect(pick('a2-035')).toEqual(['shopping-goods', 'shopping-prices', 'fitting-compare', 'receipt-return']);
+
+    const prices = createContentPackDraft(lessons.find((item) => item.id === 'a2-032')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-034')).profile;
+    expect(prices.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+    expect(prices.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+
+    const pricesGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-032'),
+      profile: prices,
+      seed: 'a2-032:listening-required',
+    });
+    expect(pricesGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('listening');
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-034'),
+      profile: reading,
+      seed: 'a2-034:reading-required',
+    });
+    const readingBlocks = readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.filter((block) => block.type === 'reading');
+    expect(readingBlocks).toHaveLength(1);
+    expect(readingBlocks[0].data.questions.split('\n').filter(Boolean).length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('module 8 uses curated booking, modal, form-reading and phone-service sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-036')).toEqual(['appointment-booking']);
+    expect(pick('a2-037')).toEqual(['service-modals']);
+    expect(pick('a2-038')).toEqual(['forms-instructions']);
+    expect(pick('a2-039')).toEqual(['phone-service']);
+    expect(pick('a2-040')).toEqual(['appointment-booking', 'service-modals', 'forms-instructions', 'phone-service']);
+
+    const modals = createContentPackDraft(lessons.find((item) => item.id === 'a2-037')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-038')).profile;
+    const phone = createContentPackDraft(lessons.find((item) => item.id === 'a2-039')).profile;
+    expect(modals.banks.transformations.length).toBeGreaterThanOrEqual(4);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+    expect(phone.banks.listeningScripts.length).toBeGreaterThanOrEqual(2);
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-038'),
+      profile: reading,
+      seed: 'a2-038:reading-required',
+    });
+    expect(readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('reading');
+
+    const phoneGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-039'),
+      profile: phone,
+      seed: 'a2-039:listening-required',
+    });
+    expect(phoneGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('listening');
+  });
+
+  it('module 9 uses curated symptom, state, doctor and safe practical-reading sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-041')).toEqual(['body-symptoms']);
+    expect(pick('a2-042')).toEqual(['health-state-forms']);
+    expect(pick('a2-043')).toEqual(['doctor-visit']);
+    expect(pick('a2-044')).toEqual(['medicine-appointment-info']);
+    expect(pick('a2-045')).toEqual(['body-symptoms', 'health-state-forms', 'doctor-visit', 'medicine-appointment-info']);
+
+    const state = createContentPackDraft(lessons.find((item) => item.id === 'a2-042')).profile;
+    const doctor = createContentPackDraft(lessons.find((item) => item.id === 'a2-043')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-044')).profile;
+    expect(state.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(doctor.banks.listeningScripts.length).toBeGreaterThanOrEqual(1);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+    expect(reading.banks.readingDocuments[0].passage).toContain('EI OLE PÄRIS RAVIMIJUHIS');
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-044'),
+      profile: reading,
+      seed: 'a2-044:reading-required',
+    });
+    expect(readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('reading');
+  });
+
+  it('module 10 uses curated hobby, preference, invitation and event-reading sources', () => {
+    const pick = (lessonId) => suggestReusablePackIds(lessons.find((item) => item.id === lessonId));
+    expect(pick('a2-046')).toEqual(['hobby-leisure']);
+    expect(pick('a2-047')).toEqual(['liking-preferences']);
+    expect(pick('a2-048')).toEqual(['invitation-response']);
+    expect(pick('a2-049')).toEqual(['events-tickets']);
+    expect(pick('a2-050')).toEqual(['hobby-leisure', 'liking-preferences', 'invitation-response', 'events-tickets']);
+
+    const liking = createContentPackDraft(lessons.find((item) => item.id === 'a2-047')).profile;
+    const invitation = createContentPackDraft(lessons.find((item) => item.id === 'a2-048')).profile;
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-049')).profile;
+    expect(liking.banks.transformations.length).toBeGreaterThanOrEqual(3);
+    expect(invitation.banks.dialogues.length).toBeGreaterThanOrEqual(1);
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    expect(reading.banks.readingDocuments.every((doc) => doc.questions.split('\n').filter(Boolean).length >= 5)).toBe(true);
+
+    const readingGenerated = generateLessonBundle({
+      lesson: lessons.find((item) => item.id === 'a2-049'),
+      profile: reading,
+      seed: 'a2-049:reading-required',
+    });
+    expect(readingGenerated.sheets.find((sheet) => sheet.phase === 'practice').worksheetDoc.blocks.map((block) => block.type)).toContain('reading');
+  });
+
+  it('A2-034 reading questions all carry answer keys', () => {
+    const reading = createContentPackDraft(lessons.find((item) => item.id === 'a2-034')).profile;
+    expect(reading.banks.readingDocuments.length).toBeGreaterThanOrEqual(2);
+    reading.banks.readingDocuments.forEach((doc) => {
+      const questions = doc.questions.split('\n').filter(Boolean);
+      expect(questions.length).toBeGreaterThanOrEqual(5);
+      questions.forEach((question) => expect(question, `${doc.id}: ${question}`).toMatch(/\[[^\]]+\]\s*$/));
+    });
   });
 
   it('translation hints never reveal an accepted answer', () => {

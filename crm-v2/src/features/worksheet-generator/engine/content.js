@@ -293,6 +293,45 @@ function clockData(profile, contextId, seed, spec) {
   };
 }
 
+function readingData(profile, focusIds, contextId, state, seed) {
+  const candidates = (profile.banks?.readingDocuments || []).filter((item) =>
+    hasFocus(item, focusIds) &&
+    contextMatches(item, contextId) &&
+    !state.usedReadingIds.has(item.id));
+  const fallback = (profile.banks?.readingDocuments || []).filter((item) =>
+    hasFocus(item, focusIds) && !state.usedReadingIds.has(item.id));
+  const item = shuffleSeeded(candidates.length ? candidates : fallback, seed)[0];
+  if (!item) return null;
+  state.usedReadingIds.add(item.id);
+  return {
+    title: 'Loe ja vasta.',
+    instruction: 'Loe praktilist teksti. Vasta vähemalt viiele küsimusele teksti mõtte, mitte ainult sõnade järgi.',
+    passageTitle: item.title || '',
+    passage: item.passage,
+    questions: item.questions,
+    lineWidth: 'wide',
+  };
+}
+
+function listeningData(profile, focusIds, contextId, state, seed) {
+  const candidates = (profile.banks?.listeningScripts || []).filter((item) =>
+    hasFocus(item, focusIds) &&
+    contextMatches(item, contextId) &&
+    !state.usedListeningIds.has(item.id));
+  const fallback = (profile.banks?.listeningScripts || []).filter((item) =>
+    hasFocus(item, focusIds) && !state.usedListeningIds.has(item.id));
+  const item = shuffleSeeded(candidates.length ? candidates : fallback, seed)[0];
+  if (!item) return null;
+  state.usedListeningIds.add(item.id);
+  return {
+    title: item.title || 'Kuula ja täida.',
+    instruction: 'Kuula õpetajat või helifaili ja täida puuduvad sõnad.',
+    audio: null,
+    sentences: item.sentences,
+    transcript: item.transcript,
+  };
+}
+
 function dictationData(profile, focusIds, contextId, state, seed) {
   const sentences = takeSentences(profile, state, { focusIds, contextId, count: 1, seed });
   return {
@@ -439,6 +478,12 @@ function materializeActivity({ activityId, profile, focusIds, contextId, seed, s
     case 'practice-focus-categorize':
       data = categorizeData(profile, focusIds);
       break;
+    case 'practice-functional-reading':
+      data = readingData(profile, focusIds, contextId, state, seed);
+      break;
+    case 'practice-listening-comprehension':
+      data = listeningData(profile, focusIds, contextId, state, seed);
+      break;
     case 'practice-dictation':
       data = dictationData(profile, focusIds, contextId, state, seed);
       break;
@@ -488,6 +533,8 @@ export function createDiversityState() {
     usedRenderedSentences: new Set(),
     usedQuestionIds: new Set(),
     usedDialogueIds: new Set(),
+    usedListeningIds: new Set(),
+    usedReadingIds: new Set(),
     usedContextIds: new Set(),
     usedTranslationIds: new Set(),
     usedActivityIds: new Set(),

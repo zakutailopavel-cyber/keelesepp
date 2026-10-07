@@ -119,6 +119,7 @@ export function generateLessonBundle({
   seed,
   generatorVersion = GENERATOR_VERSION,
   activityHistory = [],
+  activityPlan = null,
   difficulty = 'core',
   durationMinutes,
   variant = 0,
@@ -146,14 +147,16 @@ export function generateLessonBundle({
   if (contexts.length < 3) diagnostics.push(diagnostic('error', 'BANK_INSUFFICIENT', 'Kolme töölehe jaoks on vaja vähemalt kolme konteksti.'));
 
   const lessonKind = normalizeLessonKind(profile.lessonKind || lesson?.tag || lesson?.kind);
-  const plan = planLessonActivities({
-    profile,
-    lessonKind,
-    seed: bundleSeed,
-    activityHistory,
-    difficulty: normalizedDifficulty,
-    countPerPhase: 5,
-  });
+  const plan = activityPlan
+    ? { phases: activityPlan, diagnostics: [] }
+    : planLessonActivities({
+      profile,
+      lessonKind,
+      seed: bundleSeed,
+      activityHistory,
+      difficulty: normalizedDifficulty,
+      countPerPhase: 5,
+    });
   diagnostics.push(...plan.diagnostics);
 
   const state = createDiversityState();
@@ -274,5 +277,6 @@ export { createLessonDna, lessonDnaFingerprint, LESSON_DNA_SCHEMA } from './less
 export { normalizeLessonKind } from './lessonKind.js';
 export { catalogReadiness, planLessonActivities, planPhaseActivities } from './planner.js';
 export { ACTIVITY_CATALOG, ACTIVITY_CATALOG_VERSION } from './activityCatalog.js';
+export { lexicalCoverageReport, moduleDiversityReport, planLexicalRecycling, planModuleActivities } from './modulePlanner.js';
 export { createSeededRandom, sampleSeeded, shuffleSeeded } from './seed.js';
 export { inspectVocabularyLevel, normalizeLevel, normalizeLevelLexicon, selectVocabulary } from './vocabulary.js';

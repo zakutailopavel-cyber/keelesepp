@@ -115,7 +115,7 @@ describe('worksheet generation', () => {
 
   it('keeps the generator path free of non-deterministic random calls and provider imports', () => {
     const folder = join(process.cwd(), 'src/features/worksheet-generator/engine');
-    const sources = ['seed.js', 'lessonKind.js', 'focus.js', 'vocabulary.js', 'difficulty.js', 'lessonDna.js', 'activityCatalog.js', 'planner.js', 'recipes.js', 'content.js', 'quality.js', 'generator.js'].map((file) => readFileSync(`${folder}/${file}`, 'utf8')).join('\n');
+    const sources = ['seed.js', 'lessonKind.js', 'focus.js', 'vocabulary.js', 'difficulty.js', 'lessonDna.js', 'activityCatalog.js', 'planner.js', 'modulePlanner.js', 'recipes.js', 'content.js', 'quality.js', 'generator.js'].map((file) => readFileSync(`${folder}/${file}`, 'utf8')).join('\n');
     expect(sources).not.toContain('Math.random');
     expect(sources).not.toMatch(/openai|anthropic|gemini|@google\/generative-ai/i);
   });
