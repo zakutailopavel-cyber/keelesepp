@@ -41,4 +41,23 @@ describe('MonthlyInvoicePanel', () => {
     expect(p.lessonRepository.setBillingWaived).toHaveBeenCalledWith('l3', true, p.user);
     await waitFor(() => expect(screen.getByRole('button', { name: '-1' })).toBeInTheDocument());
   });
+
+  it('the admin enters a missing price and payer e-mail in the row and it becomes ready at once', async () => {
+    const p = props();
+    p.user = { uid: 'a', displayName: 'Admin', roles: ['admin'] };
+    p.parentRepository = { list: vi.fn().mockResolvedValue([]) };
+    p.planRepository = { save: vi.fn().mockImplementation(async (student, values) => ({ studentId: student.id, lessonPriceCents: 2000, lessonMinutes: Number(values.lessonMinutes), billingMode: 'current', weeklyLessons: values.weeklyLessons })) };
+    p.studentRepository = { update: vi.fn().mockResolvedValue({}) };
+    render(<MonthlyInvoicePanel {...p} />);
+    const priceForm = await screen.findByRole('form', { name: 'Tunni hind: Jaan' });
+    fireEvent.change(within(priceForm).getByLabelText('Tunni hind (€)'), { target: { value: '20' } });
+    await act(async () => { fireEvent.click(within(priceForm).getByRole('button', { name: 'Salvesta hind' })); });
+    expect(p.planRepository.save).toHaveBeenCalledWith(expect.objectContaining({ id: 's2' }), expect.objectContaining({ lessonPrice: '20', lessonMinutes: '60', weeklyLessons: 1 }), p.user, null);
+    const emailForm = screen.getByRole('form', { name: 'Maksja e-post: Jaan' });
+    fireEvent.change(within(emailForm).getByLabelText('Maksja e-post'), { target: { value: 'jaan.isa@example.com' } });
+    await act(async () => { fireEvent.click(within(emailForm).getByRole('button', { name: 'Salvesta e-post' })); });
+    expect(p.studentRepository.update).toHaveBeenCalledWith('s2', { parentEmail: 'jaan.isa@example.com' });
+    await waitFor(() => expect(screen.queryByRole('form', { name: /Jaan/ })).not.toBeInTheDocument());
+    expect(screen.getByText(/Valitud 2 \/ 2 arvet/)).toBeInTheDocument();
+  });
 });
