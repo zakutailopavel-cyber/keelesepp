@@ -2282,7 +2282,7 @@ export const REUSABLE_CONTENT_LIBRARY = Object.freeze({
       ['3', 'hobby-leisure', 'hobby-weekend', 'Pühapäeva hommikul teen käsitööd.'],
       ['4', 'hobby-leisure', 'hobby-evening', 'Õhtul kuulan tavaliselt muusikat.'],
       ['5', 'hobby-leisure', 'hobby-evening', 'Lugemine aitab mul enne magamist rahuneda.'],
-      ['6', 'hobby-leisure', 'hobby-evening', 'Pärast õhtusööki teen väikese jalutamise asemel pikema jalutuskäigu.'],
+      ['6', 'hobby-leisure', 'hobby-evening', 'Jalutamine pärast õhtusööki kestab tavaliselt pool tundi.'],
       ['7', 'hobby-leisure', 'hobby-choice', 'Kontsert algab kell seitse ja kestab kaks tundi.'],
       ['8', 'hobby-leisure', 'hobby-choice', 'Raamat sobib mulle paremini kui pikk film.'],
       ['9', 'hobby-leisure', 'hobby-choice', 'Matk on hea valik, kui ilm on kuiv.'],
