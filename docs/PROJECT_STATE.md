@@ -1,3 +1,13 @@
+## 2026-10-07 — AGENTS.md: rules and required reading for the content agent — branch `agent/agents-content-rules`
+
+Owner moves lesson-content production to Codex, which reads `AGENTS.md` automatically.
+- New section „Sisuagent”: required reading before every batch (CEFR A2→B1 standard, textbook master plan, visual
+  style, lesson scene standard, generator + lexicon docs, level curricula), allowed files (generator production /
+  content packs / fixtures; manual sheets via `/library/lessons/<ID>/worksheets/<phase>`), forbidden areas (UI,
+  routes, services, rules, functions, CSS, production writes, deploys, B1 Harjuta/Kasuta without approval), workflow
+  (branch per batch from main, ≤2–3 stacked PRs, generator tests green, one PROJECT_STATE entry).
+- Docs only; no code change.
+- Next safe step: owner merges.
 ## 2026-10-07 — Vercel: no preview builds for agent branches — branch `agent/vercel-skip-agent-previews`
 
 Checked `origin/main`. Owner moved Vercel to Pro (commercial use; Hobby allowed 100 deployments/day and agents'
