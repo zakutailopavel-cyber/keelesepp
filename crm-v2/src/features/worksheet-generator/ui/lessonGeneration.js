@@ -32,7 +32,8 @@ export function generationMeta(sheet, { scope, variant, size = 'standard', level
 }
 
 // Generates the three core sheets (Avasta, Harjuta, Kasuta) and saves them as drafts. Returns the variant number.
-export async function generateCoreSheets({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user }) {
+// onlyMissing: phases that already have a sheet (draft or published, generated or hand-made) are left untouched.
+export async function generateCoreSheets({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user, onlyMissing = false }) {
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
   const existing = CORE_SHEETS.map(({ id }) => byId.get(id)).filter(Boolean);
   const previousActivityIds = existing.flatMap((sheet) => sheet?.generation?.activityIds || []);
@@ -51,6 +52,7 @@ export async function generateCoreSheets({ repository, lessonId, lesson, profile
   await Promise.all(result.sheets.map((sheet, index) => {
     const meta = CORE_SHEETS[index];
     const current = byId.get(meta.id);
+    if (onlyMissing && current) return null;
     return repository.saveDraft({
       lessonId,
       worksheetId: meta.id,
