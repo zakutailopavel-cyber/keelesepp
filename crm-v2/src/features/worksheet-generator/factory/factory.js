@@ -49,6 +49,10 @@ const PACK_KEYWORDS = Object.freeze({
   'health-state-forms': ['mul on', 'mul valutab', 'mul ei ole', 'enesetunne'],
   'doctor-visit': ['arsti juures', 'kui kaua', 'millal algas', 'puhake'],
   'medicine-appointment-info': ['ravimiinfo', 'vastuvõtuaeg', 'kabinet', 'korda päevas'],
+  'hobby-leisure': ['hobid', 'vaba aeg', 'sport', 'kino', 'muusika'],
+  'liking-preferences': ['mulle meeldib', 'ei meeldi', 'eelistus', 'da-infinitiiv'],
+  'invitation-response': ['kutse ja vastus', 'kas tahad', 'kas sul on aega', 'kahjuks ei saa'],
+  'events-tickets': ['üritused ja piletid', 'algus', 'kestus', 'tasuta', 'registreerimine'],
 });
 
 // Lessons without a hand-written pack whose roadmap focus is a covered grammar point: the profile is generated from
