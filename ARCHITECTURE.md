@@ -116,6 +116,11 @@ students or parents retain their own invoice cabinet. Legacy internal routes are
 matching administrator section so dashboard alerts and saved operational links do not lose their
 destination during the UI consolidation.
 
+The `/finance` month screen shows one finance view at a time: issued invoices, invoices with
+received payments, open invoices and earlier debts, student advances, or monthly invoice
+preparation. Its summary cards select the corresponding views. Invoice printing reads the
+server-generated PDF through the existing delivery API; it does not mutate the invoice.
+
 `accounting-ledger-core.js` builds the administrator's monthly invoice register as a read-only
 projection of `lessons`, `invoices`, `payments`, `bankTransactions` and `payerCredits`. It
 deliberately does not persist a second ledger. Invoice periods use the issue date while

@@ -1,9 +1,9 @@
-import { Download, FileText } from "lucide-react";
+import { Download, FileText, Printer } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { Button, Modal } from "../../components/ui/index.js";
 import { base64DocumentBlob } from "../../services/firebase/paymentDocuments.js";
 
-export default function DocumentPreviewModal({ document, onClose }) {
+export default function DocumentPreviewModal({ document, onClose, printable = false }) {
   const url = useMemo(() => {
     if (!document) return "";
     if (document.url) return document.url;
@@ -25,6 +25,11 @@ export default function DocumentPreviewModal({ document, onClose }) {
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>Sulge</Button>
+          {url && printable ? (
+            <a className="button button--secondary" href={url} target="_blank" rel="noopener noreferrer" aria-label="Ava PDF printimiseks">
+              <Printer size={17} /> Prindi PDF
+            </a>
+          ) : null}
           {url ? (
             <a
               className="button button--primary"
