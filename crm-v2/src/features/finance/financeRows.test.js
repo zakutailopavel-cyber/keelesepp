@@ -12,6 +12,7 @@ describe('financeRowState', () => {
   it('marks a fully paid invoice paid', () => expect(financeRowState(row({ paidAmountCents: 10000, dueDate: '2026-10-01' }), today)).toMatchObject({ status: 'paid', balanceCents: 0 }));
   it('marks a credited invoice as credit with no open balance', () => expect(financeRowState(row({ status: 'Krediteeritud' }), today)).toMatchObject({ status: 'credit', balanceCents: 0 }));
   it('marks a zero-amount credit note as credit', () => expect(financeRowState(row({ amountCents: 0, creditNoteId: 'c1' }), today).status).toBe('credit'));
+  it('keeps a cancelled invoice out of active financial totals', () => expect(financeRowState(row({ status: 'Tühistatud', effectiveAmountCents: 0, balanceDueCents: 0 }), today)).toMatchObject({ status: 'cancelled', amountCents: 0, paidCents: 0, balanceCents: 0 }));
   it('uses effective amount and stored balance after a partial credit', () => expect(financeRowState(row({ amountCents: 10000, effectiveAmountCents: 7500, paidAmountCents: 2000, balanceDueCents: 5500 }), today)).toMatchObject({ status: 'partial', amountCents: 7500, paidCents: 2000, balanceCents: 5500 }));
   it('marks failed email delivery on otherwise open invoices', () => expect(financeRowState(row({ emailStatus: 'failed' }), today)).toMatchObject({ status: 'email-failed', emailFailed: true }));
   it('marks unbilled no-show rows for attention', () => expect(financeRowState(row({ noShow: true }), today)).toMatchObject({ status: 'no-show', noShow: true }));
@@ -23,7 +24,7 @@ describe('financeRowState', () => {
 describe('finance row summaries, filters, and sorting', () => {
   it('summarizes every status and financial total', () => {
     const rows = [row(), row({ id: 'i2', paidAmountCents: 2000 }), row({ id: 'i3', dueDate: '2026-10-01' }), row({ id: 'i4', paidAmountCents: 10000 }), row({ id: 'i5', status: 'credited' }), row({ id: 'i6', emailStatus: 'failed' }), row({ id: 'i7', noShow: true })];
-    expect(summarizeFinanceRows(rows, today)).toEqual({ count: 7, amountCents: 70000, billableCents: 60000, paidCents: 12000, balanceCents: 48000, byStatus: { unpaid: 1, partial: 1, overdue: 1, paid: 1, credit: 1, 'email-failed': 1, 'no-show': 1 } });
+    expect(summarizeFinanceRows(rows, today)).toEqual({ count: 7, amountCents: 70000, billableCents: 60000, paidCents: 12000, balanceCents: 48000, byStatus: { unpaid: 1, partial: 1, overdue: 1, paid: 1, credit: 1, cancelled: 0, 'email-failed': 1, 'no-show': 1 } });
   });
   it('filters by status, month, student and case-insensitive text', () => {
     const rows = [row({ id: 'a', studentId: 's1', planMonth: '2026-10', payerEmail: 'mari@example.ee' }), row({ id: 'b', studentId: 's2', planMonth: '2026-09', dueDate: '2026-10-01', studentName: 'Kati' })];

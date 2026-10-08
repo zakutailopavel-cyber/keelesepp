@@ -2,6 +2,14 @@
 
 Status: PRs 1–4 are merged. The 2026-10-08 follow-up implements the confirmed individual billing mode and manual-invoice preview/PDF workflow. Legacy cleanup remains gated by owner confirmation.
 
+## 2026-10-08 issued-invoice follow-up
+
+- The month header offers a direct `Väljastatud arved` jump to the current month's invoice list. Monthly preparation has its own name/e-mail search; bulk creation applies only to visible, selected rows.
+- The invoice list offers `Tühista` for an administrator on an unpaid, unsent manual or monthly invoice without lesson-linked lines or credit notes. Require a written reason of at least 10 characters. The backend checks eligibility and open financial dates again in one transaction, sets the effective amount and balance to zero, and appends `invoice.cancelled` to `financialAudit` while preserving the original invoice number and amount.
+- Cancelled invoices leave active month counts, debts, send, payment and PDF flows. An eligible monthly invoice can be prepared again for the same student and month with a new invoice ID revision and a new sequential number; the cancelled document is retained.
+- Sent, paid, credited, lesson-linked and financially closed invoices require their existing correction workflow. Do not offer destructive deletion for these records. Delivery reserves `emailStatus: sending` before sending, so cancellation and email delivery cannot race past the eligibility check.
+- Screenshots and UI checks use local mock repositories at desktop and 375 px widths. No production records, messages or payments are used.
+
 ## Product decisions
 
 - Deliver one reviewable, green PR at a time, in dependency order. Keep the current Finance v2 services and mutation APIs as the source of truth.

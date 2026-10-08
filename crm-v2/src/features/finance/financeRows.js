@@ -18,6 +18,7 @@ function noShow(invoice) {
 }
 
 export function financeRowState(invoice = {}, today = new Date()) {
+  if (invoice.status === 'Tühistatud') return { status: 'cancelled', amountCents: 0, paidCents: 0, balanceCents: 0, dueDate: asDate(invoice.dueDate || invoice.due), overdue: false, emailFailed: false, noShow: false };
   const amountCents = Number.isFinite(Number(invoice.effectiveAmountCents))
     ? Math.max(0, Number(invoice.effectiveAmountCents))
     : invoiceAmountCents(invoice);
@@ -54,7 +55,7 @@ export function summarizeFinanceRows(rows = [], today = new Date()) {
     return summary;
   }, {
     count: 0, amountCents: 0, billableCents: 0, paidCents: 0, balanceCents: 0,
-    byStatus: { unpaid: 0, partial: 0, overdue: 0, paid: 0, credit: 0, 'email-failed': 0, 'no-show': 0 },
+    byStatus: { unpaid: 0, partial: 0, overdue: 0, paid: 0, credit: 0, cancelled: 0, 'email-failed': 0, 'no-show': 0 },
   });
 }
 

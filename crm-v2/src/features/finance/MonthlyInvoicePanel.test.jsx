@@ -75,4 +75,20 @@ describe('MonthlyInvoicePanel', () => {
     expect(p.invoiceApi.createMonthly).toHaveBeenCalledTimes(2);
     expect(screen.getByRole('alert')).toHaveTextContent('Juba loodud arved (1) jäid alles');
   });
+
+  it('searches the invoice preparation list and batches only visible students', async () => {
+    const p = props();
+    p.plans.push({ studentId: 's2', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'current' });
+    p.students[1].parentEmail = 'jaan@example.com';
+    render(<MonthlyInvoicePanel {...p} />);
+    await screen.findByText(/Valitud 2 \/ 2 arvet/);
+    fireEvent.change(screen.getByLabelText('Otsi õpilast või maksjat'), { target: { value: 'JAAN@EXAMPLE.COM' } });
+    const table = screen.getByRole('table', { name: 'Kuuarved 2031-10' });
+    expect(within(table).getByText('Jaan')).toBeInTheDocument();
+    expect(within(table).queryByText('Mari')).not.toBeInTheDocument();
+    expect(screen.getByText(/Valitud 1 \/ 1 arvet/)).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta kõik/ })); });
+    expect(p.invoiceApi.createMonthly).toHaveBeenCalledTimes(1);
+    expect(p.invoiceApi.createMonthly).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's2' }));
+  });
 });

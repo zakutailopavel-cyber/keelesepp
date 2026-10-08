@@ -9,9 +9,10 @@ import {
   Search,
   Send,
   Settings2,
+  Trash2,
   WalletCards,
 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, Select } from '../../components/ui/index.js';
@@ -38,6 +39,7 @@ import { defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
+import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
@@ -47,6 +49,28 @@ const STATUS = {
   unpaid: ['Tasumata', 'neutral'], partial: ['Osaliselt', 'info'], overdue: ['Üle tähtaja', 'danger'],
   paid: ['Makstud', 'success'], credit: ['Krediteeritud', 'neutral'], 'email-failed': ['E-post ebaõnnestus', 'danger'], 'no-show': ['Puudumine', 'warning'],
 };
+
+function canCancelInvoice(invoice) {
+  return ['manual_charge_v1', 'monthly_plan_v1'].includes(invoice.billingMode) &&
+    !['Tühistatud', 'Makstud'].includes(invoice.status) &&
+    !['sent', 'queued', 'sending'].includes(invoice.emailStatus) &&
+    !invoice.emailSentAt && !invoice.invoiceEmailSentAt && !invoice.emailQueuedAt &&
+    !invoice.lessonIds?.length && !invoice.lines?.some((line) => line.lessonId) &&
+    !Number(invoice.paidAmountCents || invoice.paidAmount * 100 || 0) &&
+    !Number(invoice.creditedAmountCents || 0);
+}
+
+function CancelInvoiceDialog({ invoice, busy, error, onClose, onSubmit }) {
+  const [reason, setReason] = useState('');
+  return <Modal open={Boolean(invoice)} title={`Tühista arve · ${invoice?.num || invoice?.number || ''}`} onClose={onClose}
+    footer={<><Button variant="secondary" disabled={busy} onClick={onClose}>Tagasi</Button><Button variant="danger" type="submit" form="finance-month-cancel" loading={busy} disabled={reason.trim().length < 10}>Tühista arve</Button></>}>
+    <form id="finance-month-cancel" onSubmit={(event) => { event.preventDefault(); if (reason.trim().length >= 10) onSubmit(reason.trim()); }}>
+      <p>Arve eemaldatakse aktiivsest nimekirjast ja summadest. Arve number ning tühistamise põhjus jäävad ajalukku. Seda toimingut ei saa tagasi võtta.</p>
+      <div className="field"><label className="field__label" htmlFor="finance-month-cancel-reason">Tühistamise põhjus</label><textarea id="finance-month-cancel-reason" className="field__textarea" rows="3" minLength="10" maxLength="500" required value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Kirjelda, miks arve tühistatakse" /></div>
+      {error ? <p className="form-error" role="alert">{error}</p> : null}
+    </form>
+  </Modal>;
+}
 
 function PaymentDialog({ invoice, busy, error, onClose, onSubmit }) {
   const state = financeRowState(invoice || {});
@@ -78,6 +102,7 @@ function PaymentDialog({ invoice, busy, error, onClose, onSubmit }) {
 export default function FinanceMonthPage({
   invoiceRepository = invoicesService,
   financeRepository = financeApi,
+  manualInvoiceRepository = manualInvoiceApi,
   deliveryRepository = invoiceDeliveryApi,
   planRepository = revenuePlansService,
   studentRepository = studentsService,
@@ -99,10 +124,13 @@ export default function FinanceMonthPage({
   const [status, setStatus] = useState(() => new globalThis.URLSearchParams(location.search).get('status') || 'all');
   const [query, setQuery] = useState('');
   const [paymentInvoice, setPaymentInvoice] = useState(null);
+  const [cancelInvoice, setCancelInvoice] = useState(null);
+  const [cancelBusy, setCancelBusy] = useState(false);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const invoiceListRef = useRef(null);
 
   useEffect(() => {
     const destination = legacyFinanceDestination(location.hash);
@@ -110,9 +138,15 @@ export default function FinanceMonthPage({
   }, [location.hash, navigate]);
 
   const invoices = useMemo(() => state.data?.invoices || [], [state.data?.invoices]);
-  const monthInvoices = useMemo(() => filterFinanceRows(invoices, { month }), [invoices, month]);
+  const monthInvoices = useMemo(() => filterFinanceRows(invoices, { month }).filter((invoice) => invoice.status !== 'Tühistatud'), [invoices, month]);
   const summary = useMemo(() => summarizeFinanceRows(monthInvoices), [monthInvoices]);
   const rows = useMemo(() => sortFinanceRows(filterFinanceRows(monthInvoices, { status, query }), 'dueDate'), [monthInvoices, query, status]);
+
+  const showIssuedInvoices = () => {
+    setStatus('all');
+    setQuery('');
+    invoiceListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   const announce = (value) => { setMessage(value); setError(''); };
   const deliver = async (invoice, mode) => {
@@ -133,6 +167,14 @@ export default function FinanceMonthPage({
     } catch (caught) { setError(caught.message || 'Makse registreerimine ebaõnnestus.'); }
     finally { setPaymentBusy(false); }
   };
+  const confirmCancellation = async (reason) => {
+    setCancelBusy(true); setError('');
+    try {
+      await manualInvoiceRepository.cancel(cancelInvoice.id, reason);
+      setCancelInvoice(null); announce('Arve tühistati. Number ja põhjus säilitati ajaloos.'); await state.reload();
+    } catch (caught) { setError(caught.message || 'Arve tühistamine ebaõnnestus.'); }
+    finally { setCancelBusy(false); }
+  };
 
   if (state.loading) return <LoadingState label="Laen finantsandmeid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
@@ -142,7 +184,7 @@ export default function FinanceMonthPage({
       {showPrivacyBanner ? <PricePrivacyBanner /> : null}
       <header className="finance-month-hero">
         <div><span className="eyebrow">Finantsid</span><h1>Kuu arveldus</h1><p>Koosta arved, jälgi laekumisi ja lahenda erandid ühes vaates.</p></div>
-        <div className="finance-month-hero__actions"><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}</div>
+        <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}</div>
       </header>
 
       <div className="finance-month-switcher">
@@ -165,7 +207,7 @@ export default function FinanceMonthPage({
 
       {canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} /> : null}
 
-      <Card className="finance-month-ledger">
+      <Card ref={invoiceListRef} className="finance-month-ledger">
         <div className="finance-month-ledger__heading"><div><span className="eyebrow">Arved</span><h2>Kuu arved ja maksed</h2></div><span>{rows.length} kirjet</span></div>
         <div className="finance-month-filters">
           <Input label="Otsi" type="search" placeholder="Õpilane, maksja või arve number" value={query} onChange={(event) => setQuery(event.target.value)} icon={<Search size={17} />} />
@@ -176,11 +218,12 @@ export default function FinanceMonthPage({
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id}>
             <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{invoice.payerEmail || ''}</small></span>
             <span>{invoice.num || invoice.number || invoice.invoiceNumber || '—'}</span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span><Badge tone={tone}>{label}</Badge></span>
-            <span className="finance-month-table__actions">{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}</span>
+            <span className="finance-month-table__actions">{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
         </div>}
       </Card>
       <PaymentDialog key={paymentInvoice?.id || 'closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
+      <CancelInvoiceDialog key={cancelInvoice?.id || 'closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
     </div>
   );
 }

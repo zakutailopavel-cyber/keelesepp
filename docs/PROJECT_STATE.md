@@ -1,3 +1,13 @@
+## 2026-10-08 — Finance v3 issued invoices and cancellation — branch `agent/finance-v3-issued-invoices`
+
+- Last checked `origin/main`: `b180bc9` on 2026-10-08. Draft PR: to be opened from this branch.
+- Goal: expose issued invoices without scrolling, make monthly invoice preparation searchable, and let an administrator remove an erroneous invoice from active finance safely.
+- Completed: added the `Väljastatud arved` header jump, separate student/payer search in monthly preparation, and responsive invoice cards at 375 px. Added `Tühista` with a written reason for eligible unpaid and unsent manual/monthly invoices. Cancellation preserves the original invoice and number, creates a financial audit entry, zeros effective amount/balance, and prevents further payment, sending or PDF delivery. A new monthly revision may replace a cancelled invoice with a new number. Sent, paid, credited, lesson-linked and closed-period invoices remain outside this action.
+- Files: `FinanceMonthPage.jsx` and CSS/tests, `MonthlyInvoicePanel.jsx` and CSS/tests, `financeRows.js` and tests, `manualInvoiceApi.js`, `functions/manual-invoice-api.js`, `functions/invoice-cancellation-core.js` and tests, `functions/index.js`, this specification, and `docs/screenshots/finance-v3-issued-invoices/*`.
+- Checks: scoped Vitest — 56 files / 292 passed; full Vitest — 196 files / 1217 passed, exactly 10 known Node 26 `localStorage` failures in calendar/live-classroom; ESLint — 0 errors / 2 existing hook warnings; CRM build — passed with existing chunk advisory; Functions `npm test` — 241 passed; backend syntax and `git diff --check` — passed. Local React screenshots: 1425 px desktop and 375 px mobile, with `documentWidth` exactly 375 px on mobile.
+- Data/security: cancellation is administrator-only and transactionally guarded against existing payments, credit notes, email delivery and locked financial dates; original documents and audit evidence remain. No production data, email, payment, external service, migration, merge or deployment was used.
+- Next safe step: open the draft PR and wait for green CI; require owner approval before merge and deployment, including the Firebase Functions changes.
+
 ## 2026-10-08 — Finance v3 invoice preview and billing modes — branch `agent/finance-v3-billing-modes`
 
 - Goal: complete the agreed advance/actual billing choice and make manual invoice creation reviewable before saving, with access to the final PDF.
