@@ -12,7 +12,7 @@ const firestore = vi.hoisted(() => ({
 vi.mock('firebase/firestore', () => firestore);
 vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
 
-import { nextPriceHistory, revenuePlansService, validateRevenuePlan } from './revenuePlans.js';
+import { nextPriceHistory, normalizeRevenuePlan, revenuePlansService, validateRevenuePlan } from './revenuePlans.js';
 
 describe('revenuePlansService', () => {
   beforeEach(() => {
@@ -23,6 +23,11 @@ describe('revenuePlansService', () => {
   it('validates euro price and fractional weekly lesson count', () => {
     expect(validateRevenuePlan({ lessonPrice: '27,50', weeklyLessons: '1,5' })).toMatchObject({ valid: true, lessonPriceCents: 2750, weeklyLessons: 1.5 });
     expect(validateRevenuePlan({ lessonPrice: '0', weeklyLessons: '80' }).valid).toBe(false);
+  });
+
+  it('defaults new and old plans to advance billing and preserves actual billing', () => {
+    expect(normalizeRevenuePlan('s1', {}).billingMode).toBe('advance');
+    expect(normalizeRevenuePlan('s1', { billingMode: 'actual' }).billingMode).toBe('actual');
   });
 
   it('loads the finance-safe forecast projection', async () => {

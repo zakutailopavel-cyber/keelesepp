@@ -15,7 +15,7 @@ import './monthlyInvoicePanel.css';
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
 const num = (value) => String(Math.round(value * 100) / 100).replace('.', ',');
 const dateLabel = (iso) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('et-EE') : '—');
-const MODES = [['all', 'Kõik'], ['current', 'Jooksev kuu'], ['advance', 'Kuu ette']];
+const MODES = [['all', 'Kõik'], ['advance', 'Kuu ette'], ['actual', 'Toimunud tunnid'], ['current', 'Jooksev kuu']];
 const STATUS = {
   ready: { label: 'Valmis', tone: 'info' },
   invoiced: { label: 'Arve olemas', tone: 'success' },
@@ -45,7 +45,7 @@ function RowFix({ row, user, planRepository, studentRepository, onPlan, onEmail 
     try {
       // weekly lessons only feed the revenue forecast: keep the plan's value or estimate it from this month
       const weeklyLessons = row.plan?.weeklyLessons || Math.max(0.5, Math.round((row.lessonCount / 4.33) * 2) / 2);
-      const plan = await planRepository.save(row.student, { lessonPrice: price, weeklyLessons, lessonMinutes: minutes, billingMode: row.plan?.billingMode || 'current' }, user, row.plan || null);
+      const plan = await planRepository.save(row.student, { lessonPrice: price, weeklyLessons, lessonMinutes: minutes, billingMode: row.plan?.billingMode || 'advance' }, user, row.plan || null);
       onPlan(plan);
     } catch (caught) { setError(caught.message || 'Hinda ei saanud salvestada.'); } finally { setBusy(''); }
   };
@@ -171,7 +171,7 @@ export default function MonthlyInvoicePanel({
               <div key={row.student.id} className="monthly-invoices__group">
                 <div className="monthly-invoices__row" role="row">
                   <span>{row.status === 'ready' ? <input type="checkbox" aria-label={`Vali ${row.student.name}`} checked={selected.has(row.student.id)} onChange={() => toggle(row.student.id)} /> : null}</span>
-                  <span><strong>{row.student.name}</strong><small>{row.mode === 'advance' ? 'Kuu ette' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.payerEmail ? '' : ' · e-post puudub'}</small></span>
+                  <span><strong>{row.student.name}</strong><small>{row.mode === 'advance' ? 'Kuu ette' : row.mode === 'actual' ? 'Toimunud tunnid' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.payerEmail ? '' : ' · e-post puudub'}</small></span>
                   <span>{row.lessonCount}{row.plan && row.plannedUnits !== row.lessonCount ? <small>{num(row.plannedUnits)} ühikut</small> : null}</span>
                   <span>{row.correction.units ? <button type="button" className="linklike" aria-expanded={open === row.student.id} onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>{row.correction.units > 0 ? '+' : ''}{num(row.correction.units)}</button> : noShows.length ? <button type="button" className="linklike" onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>0</button> : '—'}</span>
                   <span><strong>{row.existing ? money(row.existing.amountCents) : row.priceCents ? money(row.totalCents) : '—'}</strong></span>

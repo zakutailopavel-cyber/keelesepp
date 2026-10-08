@@ -39,3 +39,21 @@
 
 .field__textarea{width:100%;min-height:84px;border:1px solid #d6dee7;border-radius:12px;background:#fff;padding:10px 12px;color:#17253a;font:inherit;resize:vertical}
 .field__textarea:focus{outline:0;border-color:#55ae9d;box-shadow:0 0 0 4px rgba(8,126,107,.085)}
+
+.modal.modal--manual-invoice{width:min(1180px,calc(100vw - 40px))}
+.manual-invoice-layout{display:grid;grid-template-columns:minmax(360px,.88fr) minmax(420px,1.12fr);gap:28px;align-items:start}
+.manual-invoice-form{min-width:0;align-content:start}
+.manual-invoice-form .field,.manual-invoice-form input,.manual-invoice-form select,.manual-invoice-form textarea{min-width:0;max-width:100%}
+.manual-invoice-preview{position:sticky;top:0;min-width:0;padding:16px;border-radius:16px;background:#eef3f1;box-sizing:border-box}
+.manual-invoice-preview__label{margin:0 0 11px;color:#52645f;font:800 .72rem Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.manual-invoice-paper{min-height:520px;padding:28px 30px;border:1px solid #d8dfdc;border-radius:8px;background:#fff;box-shadow:0 12px 30px rgba(18,48,41,.09);color:#17253a;box-sizing:border-box}
+.manual-invoice-paper header{display:grid;grid-template-columns:1fr 210px;gap:24px;align-items:start}
+.manual-invoice-paper header>div{display:grid;gap:4px}.manual-invoice-paper header>div strong{font:800 1.15rem Manrope,sans-serif}.manual-invoice-paper header>div span{color:#087e6b;font-size:.78rem;font-weight:700}
+.manual-invoice-paper dl{margin:0;border:1px solid #d8dfdc;border-radius:6px;overflow:hidden}.manual-invoice-paper dl>div{display:grid;grid-template-columns:1fr 1.15fr}.manual-invoice-paper dt,.manual-invoice-paper dd{margin:0;padding:6px 8px;border-bottom:1px solid #e5e9e7;font-size:.66rem}.manual-invoice-paper dl>div:last-child dt,.manual-invoice-paper dl>div:last-child dd{border-bottom:0}.manual-invoice-paper dt{background:#f5f7f6;color:#60706c;font-weight:700}.manual-invoice-paper dd{font-weight:700}
+.manual-invoice-paper h3{margin:28px 0 20px;font:800 1.35rem Manrope,sans-serif}
+.manual-invoice-paper__payer{display:grid;gap:5px;min-height:74px;margin-bottom:24px}.manual-invoice-paper__payer span{color:#60706c;font-size:.68rem;font-weight:800;text-transform:uppercase}.manual-invoice-paper__payer strong{font-size:.9rem}.manual-invoice-paper__payer small{color:#60706c}
+.manual-invoice-paper__line{display:grid;grid-template-columns:minmax(0,1fr) 56px 90px;border:1px solid #d8dfdc;border-radius:6px;overflow:hidden}.manual-invoice-paper__line>*{padding:9px 10px;border-right:1px solid #d8dfdc;font-size:.72rem}.manual-invoice-paper__line>*:nth-child(3n){border-right:0;text-align:right}.manual-invoice-paper__line>span:nth-child(-n+3){background:#f5f7f6;color:#52645f;font-weight:800}.manual-invoice-paper__line>strong{overflow-wrap:anywhere}
+.manual-invoice-paper__total{display:flex;justify-content:flex-end;align-items:center;gap:18px;padding:18px 0;border-bottom:1px solid #d8dfdc}.manual-invoice-paper__total span{font-size:.76rem}.manual-invoice-paper__total strong{font:800 1rem Manrope,sans-serif;color:#087e6b}
+.manual-invoice-paper footer{display:grid;gap:4px;margin-top:22px;color:#60706c;font-size:.66rem}
+@media(max-width:900px){.manual-invoice-layout{grid-template-columns:1fr}.manual-invoice-preview{position:static}.manual-invoice-paper{min-height:440px}}
+@media(max-width:560px){.modal.modal--manual-invoice{width:100%;max-width:100%;overflow:hidden}.modal--manual-invoice .modal__body{min-width:0;padding:14px}.modal--manual-invoice .modal__footer{display:grid;grid-template-columns:1fr}.manual-invoice-layout{width:100%;gap:18px;min-width:0}.manual-invoice-preview{width:100%;max-width:calc(100vw - 28px);padding:10px;overflow:hidden}.manual-invoice-paper{width:100%;max-width:calc(100vw - 48px);min-width:0;min-height:390px;padding:18px 16px;overflow:hidden}.manual-invoice-paper header{grid-template-columns:1fr}.manual-invoice-paper dl{display:none}.manual-invoice-paper__line{grid-template-columns:minmax(0,1fr) 72px}.manual-invoice-paper__line>*{padding:8px 6px;font-size:.65rem}.manual-invoice-paper__line>*:nth-child(2),.manual-invoice-paper__line>*:nth-child(5){display:none}.manual-invoice-paper__line>*:nth-child(3n){border-right:0;text-align:right}.manual-invoice-paper__total{gap:10px}.manual-invoice-paper footer{font-size:.62rem}}

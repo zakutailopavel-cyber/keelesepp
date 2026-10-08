@@ -1,7 +1,9 @@
-import { Plus } from 'lucide-react';
+import { Download, Plus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
+import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
+import { base64DocumentBlob } from '../../services/firebase/paymentDocuments.js';
 
 function nextDueDate() {
   const now = new Date();
@@ -20,7 +22,25 @@ const emptyForm = () => ({
   note: '',
 });
 
-export default function ManualInvoiceDialog({ onCreated }) {
+const formatDate = (value) => {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return match ? `${match[3]}.${match[2]}.${match[1]}` : '—';
+};
+
+const formatMoney = (value) => new Intl.NumberFormat('et-EE', {
+  style: 'currency', currency: 'EUR', minimumFractionDigits: 2,
+}).format(Number(value) || 0);
+
+function downloadDocument(document) {
+  const url = document.url || URL.createObjectURL(base64DocumentBlob(document));
+  const link = globalThis.document.createElement('a');
+  link.href = url;
+  link.download = document.filename || document.fileName || 'arve.pdf';
+  link.click();
+  if (!document.url) URL.revokeObjectURL(url);
+}
+
+export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDeliveryApi }) {
   const [open, setOpen] = useState(false);
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -76,7 +96,7 @@ export default function ManualInvoiceDialog({ onCreated }) {
     if (!saving) resetAndClose();
   };
 
-  const submit = async (event) => {
+  const submit = async (event, downloadPdf = false) => {
     event.preventDefault();
     setError('');
     if (!form.studentId) return setError('Vali õpilane.');
@@ -88,6 +108,7 @@ export default function ManualInvoiceDialog({ onCreated }) {
     try {
       const result = await manualInvoiceApi.create(form);
       const invoice = result.invoice;
+      if (downloadPdf) downloadDocument(await deliveryApi.pdf(invoice.id));
       resetAndClose();
       await onCreated?.(invoice);
     } catch (requestError) {
@@ -104,17 +125,25 @@ export default function ManualInvoiceDialog({ onCreated }) {
       </Button>
       <Modal
         open={open}
+        className="modal--manual-invoice"
         title="Lisa arve"
         onClose={close}
         footer={(
           <>
             <Button variant="secondary" disabled={saving} onClick={close}>Loobu</Button>
+            <Button
+              variant="secondary"
+              loading={saving}
+              type="button"
+              onClick={(event) => submit(event, true)}
+            ><Download size={17} /> Loo ja laadi PDF</Button>
             <Button loading={saving} type="submit" form="manual-invoice-form">Loo arve</Button>
           </>
         )}
       >
         {/* noValidate: our own Estonian messages instead of the browser's barely visible bubble */}
-        <form id="manual-invoice-form" className="form-grid" onSubmit={submit} noValidate>
+        <div className="manual-invoice-layout">
+        <form id="manual-invoice-form" className="form-grid manual-invoice-form" onSubmit={submit} noValidate>
           <Input
             className="form-grid__wide"
             label="Otsi õpilast"
@@ -185,6 +214,33 @@ export default function ManualInvoiceDialog({ onCreated }) {
           ) : null}
           {error ? <p className="action-error form-grid__wide" role="alert">{error}</p> : null}
         </form>
+        <aside className="manual-invoice-preview" aria-label="Arve eelvaade">
+          <div className="manual-invoice-preview__label">Arve eelvaade</div>
+          <div className="manual-invoice-paper">
+            <header>
+              <div><strong>EP Koolitus</strong><span>KeeleSepp</span></div>
+              <dl>
+                <div><dt>Arve nr.</dt><dd>Tekib loomisel</dd></div>
+                <div><dt>Kuupäev</dt><dd>{formatDate(new Date().toISOString().slice(0, 10))}</dd></div>
+                <div><dt>Tähtaeg</dt><dd>{formatDate(form.due)}</dd></div>
+                <div><dt>Valuuta</dt><dd>EUR</dd></div>
+              </dl>
+            </header>
+            <h3>ARVE</h3>
+            <section className="manual-invoice-paper__payer">
+              <span>Maksja / õpilane</span>
+              <strong>{selectedStudent?.name || 'Vali õpilane'}</strong>
+              <small>{selectedStudent?.hint || 'Maksja andmed lisatakse õpilase kaardilt'}</small>
+            </section>
+            <div className="manual-invoice-paper__line">
+              <span>Nimetus</span><span>Kogus</span><span>Summa</span>
+              <strong>{form.description.trim() || 'Arve kirjeldus'}</strong><span>1</span><strong>{formatMoney(form.amount)}</strong>
+            </div>
+            <div className="manual-invoice-paper__total"><span>Summa tasumiseks</span><strong>{formatMoney(form.amount)}</strong></div>
+            <footer><span>Makseinfo lisatakse ettevõtte seadetest.</span><span>PDF luuakse pärast arve salvestamist.</span></footer>
+          </div>
+        </aside>
+        </div>
       </Modal>
     </>
   );

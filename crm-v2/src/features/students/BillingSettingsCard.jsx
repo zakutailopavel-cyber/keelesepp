@@ -11,7 +11,7 @@ function formOf(plan, student) {
     lessonPrice: plan?.lessonPriceCents ? String(plan.lessonPriceCents / 100).replace('.', ',') : student?.lessonPrice ? String(student.lessonPrice).replace('.', ',') : '',
     lessonMinutes: String(plan?.lessonMinutes || 60),
     weeklyLessons: String(plan?.weeklyLessons || student?.weeklyLessons || 1).replace('.', ','),
-    billingMode: plan?.billingMode || 'current',
+    billingMode: plan?.billingMode || 'advance',
     chargeNoShow: plan ? plan.chargeNoShow !== false : true,
     validFrom: today(),
   };

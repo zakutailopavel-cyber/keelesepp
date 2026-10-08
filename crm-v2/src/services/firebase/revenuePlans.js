@@ -14,7 +14,7 @@ export function normalizeRevenuePlan(id, data = {}) {
     lessonPriceCents: Math.max(0, Math.round(Number(data.lessonPriceCents) || 0)),
     weeklyLessons: Math.max(0, Number(data.weeklyLessons) || 0),
     lessonMinutes: LESSON_MINUTES.includes(Number(data.lessonMinutes)) ? Number(data.lessonMinutes) : 60,
-    billingMode: data.billingMode === 'advance' ? 'advance' : 'current',
+    billingMode: ['advance', 'actual', 'current'].includes(data.billingMode) ? data.billingMode : 'advance',
     chargeNoShow: data.chargeNoShow !== false,
     validFrom: clean(data.validFrom),
     priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
@@ -24,8 +24,9 @@ export function normalizeRevenuePlan(id, data = {}) {
 
 export const LESSON_MINUTES = [30, 45, 60, 75, 90, 120];
 export const BILLING_MODES = [
-  { id: 'current', label: 'Jooksev kuu (tasuda 10.)' },
-  { id: 'advance', label: 'Kuu ette' },
+  { id: 'advance', label: 'Kuu ette (vaikimisi)' },
+  { id: 'actual', label: 'Pärast toimunud tunde' },
+  { id: 'current', label: 'Jooksev kuu (vana leping)' },
 ];
 
 // A new price or lesson length starts from `validFrom`; the previous one is kept so earlier lessons keep their price.
@@ -76,7 +77,7 @@ export const revenuePlansService = {
     const updatedBy = user.displayName || user.email || '';
     const billing = {
       lessonMinutes: LESSON_MINUTES.includes(Number(values.lessonMinutes)) ? Number(values.lessonMinutes) : (previous?.lessonMinutes || 60),
-      billingMode: values.billingMode === 'advance' ? 'advance' : values.billingMode === 'current' ? 'current' : (previous?.billingMode || 'current'),
+      billingMode: ['advance', 'actual', 'current'].includes(values.billingMode) ? values.billingMode : (previous?.billingMode || 'advance'),
       chargeNoShow: values.chargeNoShow === undefined ? previous?.chargeNoShow !== false : Boolean(values.chargeNoShow),
       validFrom: /^\d{4}-\d{2}-\d{2}$/.test(String(values.validFrom || '')) ? values.validFrom : updatedAt.slice(0, 10),
     };
