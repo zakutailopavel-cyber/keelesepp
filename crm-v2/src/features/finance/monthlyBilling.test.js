@@ -52,6 +52,23 @@ describe('monthly billing', () => {
     expect(rows.find((row) => row.student.id === 's2').status).toBe('invoiced');
   });
 
+  it('bills actual-payment students only for teacher-confirmed chargeable lessons', () => {
+    const actualPlans = [{ studentId: 's1', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'actual', chargeNoShow: true }];
+    const lessons = [
+      { id: 'done', studentId: 's1', date: '2031-10-02', status: 'Toimunud', duration: 60 },
+      { id: 'charged-no-show', studentId: 's1', date: '2031-10-09', status: 'Puudus_eta', duration: 60 },
+      { id: 'waived-no-show', studentId: 's1', date: '2031-10-16', status: 'Puudus_eta', duration: 60, billingWaived: true },
+      { id: 'notified', studentId: 's1', date: '2031-10-23', status: 'Puudus_p', duration: 60 },
+      { id: 'other-month', studentId: 's1', date: '2031-09-30', status: 'Toimunud', duration: 60 },
+    ];
+    const mari = monthlyBillingRows({ month: '2031-10', students, plans: actualPlans, schedule, groups, lessons, invoices: [] }).find((row) => row.student.id === 's1');
+    expect(mari.lessonCount).toBe(2);
+    expect(mari.plannedUnits).toBe(2);
+    expect(mari.correction.units).toBe(0);
+    expect(mari.totalCents).toBe(4000);
+    expect(mari.due).toBe('2031-11-10');
+  });
+
   it('picks the month and due dates', () => {
     expect(defaultBillingMonth(new Date(2031, 9, 5))).toBe('2031-10');
     expect(defaultBillingMonth(new Date(2031, 9, 20))).toBe('2031-11');

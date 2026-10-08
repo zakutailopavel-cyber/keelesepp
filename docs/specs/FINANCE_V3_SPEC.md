@@ -1,6 +1,6 @@
 # Finance v3 — staged delivery specification
 
-Status: implementation starts with draft PR #361 on `agent/finance-v3-rows`, rebased onto `origin/main` `d74b3cc` (2026-10-07). Do not merge or deploy from this work.
+Status: PRs 1–4 are merged. The 2026-10-08 follow-up implements the confirmed individual billing mode and manual-invoice preview/PDF workflow. Legacy cleanup remains gated by owner confirmation.
 
 ## Product decisions
 
@@ -16,6 +16,7 @@ Status: implementation starts with draft PR #361 on `agent/finance-v3-rows`, reb
 - Advance reconciliation is an auditable **paid lesson balance**, displayed in both lesson units and cents. Issuing a €100 advance invoice at €20 per lesson covers five units. A unit is consumed only by a final calendar outcome: `Toimunud`, or a chargeable `Puudus_eta` unless that lesson is waived. Unmarked, school-cancelled, notified-absence and waived lessons consume no unit. If four of five covered lessons are consumed, the next five-lesson invoice shows gross €100, one carried unit / €20 credit, and €80 due.
 - Preserve the original paid value in cents when carrying a unit forward; price changes must not revalue an existing credit. Duration-based units may be fractional. Reconciliation must be idempotent by invoice/student/lesson evidence and must never mark a lesson held on behalf of a teacher.
 - Students billed from actual outcomes do not also consume an advance balance for the same period.
+- Manual invoice creation shows a live HTML preview before saving. `Loo ja laadi PDF` first creates the invoice and then downloads the existing server-generated document so its number, seller details and payment details are authoritative. It must never download a locally fabricated accounting document.
 - Do not use production data or send real e-mail for screenshots or tests. Do not deploy, migrate production data, or merge these PRs.
 
 ## PR sequence

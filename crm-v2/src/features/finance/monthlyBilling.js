@@ -28,6 +28,7 @@ export function defaultBillingMonth(today = new Date()) {
 }
 
 export function defaultDue(month, mode) {
+  if (mode === 'actual') return `${shiftMonth(month, 1)}-${String(PAYMENT_DUE_DAY).padStart(2, '0')}`;
   if (mode === 'advance') {
     const [year, index] = month.split('-').map(Number);
     return toIsoDate(new Date(year, index - 1, 0, 12)); // last day of the month before
@@ -85,13 +86,14 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
     .map((student) => {
       const plan = planByStudent.get(student.id) || null;
       const mine = occurrences.filter((event) => event.studentId === student.id || (event.studentIds || []).includes(student.id));
-      const plannedUnits = plan ? round2(mine.reduce((sum, event) => sum + unitsOf(event.duration, plan), 0)) : 0;
+      const mode = plan?.billingMode === 'actual' ? 'actual' : plan?.billingMode === 'current' ? 'current' : 'advance';
+      const actualLessons = mode === 'actual' && plan ? lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${month}-`) && isChargeable(lesson, plan)) : [];
+      const plannedUnits = plan ? round2((mode === 'actual' ? actualLessons : mine).reduce((sum, event) => sum + unitsOf(event.duration, plan), 0)) : 0;
       const previousLessons = lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${previousMonth}-`));
-      const correction = plan ? correctionFor({ student, plan, previousInvoice: invoiceFor(student.id, previousMonth), previousLessons }) : { units: 0, note: '', noShows: [] };
+      const correction = plan && mode !== 'actual' ? correctionFor({ student, plan, previousInvoice: invoiceFor(student.id, previousMonth), previousLessons }) : { units: 0, note: '', noShows: [] };
       const priceCents = plan?.lessonPriceCents || 0;
       const totalCents = Math.round((plannedUnits + correction.units) * priceCents);
       const existing = invoiceFor(student.id, month);
-      const mode = plan?.billingMode === 'advance' ? 'advance' : 'current';
       let status = 'ready';
       if (existing) status = 'invoiced';
       else if (!plan || !priceCents) status = 'no-price';
@@ -101,7 +103,7 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
         student,
         plan,
         mode,
-        lessonCount: mine.length,
+        lessonCount: mode === 'actual' ? actualLessons.length : mine.length,
         plannedUnits,
         correction,
         priceCents,

@@ -1,3 +1,12 @@
+## 2026-10-08 — Finance v3 invoice preview and billing modes — branch `agent/finance-v3-billing-modes`
+
+- Goal: complete the agreed advance/actual billing choice and make manual invoice creation reviewable before saving, with access to the final PDF.
+- Completed: new and legacy plans without an explicit mode default to month-in-advance; an administrator can choose actual-outcome billing for an individual student. Actual billing counts only teacher-confirmed `Toimunud` lessons and chargeable unwaived `Puudus_eta` outcomes in the selected month, with payment due on the following month's 10th. The manual invoice modal now has a live invoice preview on the right, stacks cleanly on narrow screens, and offers `Loo ja laadi PDF`, which creates the invoice and downloads the server-generated PDF containing the final number and company payment details.
+- Files: `revenuePlans.js` and tests, `BillingSettingsCard.jsx`, `monthlyBilling.js` and tests, `MonthlyInvoicePanel.jsx`, `ManualInvoiceDialog.jsx` and tests, `manualInvoice.css`, `docs/screenshots/finance-v3-invoice-preview/*`, the Finance v3 specification, and this entry.
+- Checks: `npx vitest run src/features/finance src/features/students src/services/firebase` — 56 files / 287 tests passed. `npx vitest run --maxWorkers=4` — 196 files / 1212 tests passed; exactly the 10 documented Node 26 `localStorage` failures remained. `npx eslint .` — 0 errors, 2 pre-existing hook dependency warnings. `npm run build` — passed with the existing chunk-size advisory. `git diff --check` — passed. Desktop and 375 px screenshots were rendered locally with example data only.
+- Limits/risks: downloading from this dialog deliberately creates the invoice first so the PDF uses the immutable real invoice number; the button text states that behavior. No production record, e-mail, payment, external service or production data was used during verification. The legacy `/finance/vana` screen remains because its removal still requires owner confirmation after the refined screen is reviewed.
+- Next safe step: open the PR, wait for green CI, merge and verify the resulting production deployment and `/finance` route; retain `/finance/vana` until the owner explicitly approves cleanup.
+
 ## 2026-10-07 — Finance v3 debts and bank import — branch `agent/finance-v3-debts`
 
 - Goal: show all unpaid invoices from earlier months and let an administrator import/match bank receipts without leaving the new month screen.
