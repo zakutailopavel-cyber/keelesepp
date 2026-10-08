@@ -47,4 +47,7 @@ export const manualInvoiceApi = {
       requestId: values.requestId || financeRequestId('manual_invoice'),
     });
   },
+  cancel(invoiceId, reason) {
+    return post('/cancel', { invoiceId, reason, requestId: financeRequestId('invoice_cancel') });
+  },
 };

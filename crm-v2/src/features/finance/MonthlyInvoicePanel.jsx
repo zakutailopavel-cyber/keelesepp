@@ -1,4 +1,4 @@
-import { CalendarRange, Check, FileText, Send, TriangleAlert } from 'lucide-react';
+import { CalendarRange, Check, FileText, Search, Send, TriangleAlert } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, Input, LoadingState } from '../../components/ui/index.js';
 import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
@@ -89,6 +89,7 @@ export default function MonthlyInvoicePanel({
   const month = controlledMonth || localMonth;
   const setMonth = (value) => { setLocalMonth(value); onMonthChange?.(value); };
   const [mode, setMode] = useState('all');
+  const [query, setQuery] = useState('');
   const [calendar, setCalendar] = useState({ loading: true, schedule: [], groups: [], parents: [], error: '' });
   const [selected, setSelected] = useState(() => new Set());
   const [open, setOpen] = useState('');
@@ -114,7 +115,9 @@ export default function MonthlyInvoicePanel({
   const lessonsWithWaivers = useMemo(() => lessons.map((lesson) => (lesson.id in waived ? { ...lesson, billingWaived: waived[lesson.id] } : lesson)), [lessons, waived]);
   const rows = useMemo(() => (calendar.loading ? [] : monthlyBillingRows({ month, students: allStudents, plans: allPlans, schedule: calendar.schedule, groups: calendar.groups, lessons: lessonsWithWaivers, invoices, parents: calendar.parents })),
     [calendar, month, allStudents, allPlans, lessonsWithWaivers, invoices]);
-  const visible = rows.filter((row) => mode === 'all' || row.mode === mode);
+  const search = query.trim().toLocaleLowerCase('et');
+  const visible = rows.filter((row) => (mode === 'all' || row.mode === mode) && (!search || [row.student.name, row.student.parentName, row.student.payerName, row.payerEmail]
+    .some((value) => String(value || '').toLocaleLowerCase('et').includes(search))));
   const ready = visible.filter((row) => row.status === 'ready');
   const chosen = ready.filter((row) => selected.has(row.student.id));
   const totalCents = chosen.reduce((sum, row) => sum + row.totalCents, 0);
@@ -159,9 +162,13 @@ export default function MonthlyInvoicePanel({
           {MODES.map(([id, label]) => <button key={id} type="button" aria-pressed={mode === id} className={mode === id ? 'is-active' : ''} onClick={() => setMode(id)}>{label}</button>)}
         </div>
       </div>
+      <div className="monthly-invoices__search">
+        <Input label="Otsi õpilast või maksjat" type="search" placeholder="Nimi või e-post" icon={<Search size={17} />} value={query} onChange={(event) => setQuery(event.target.value)} />
+        <span aria-live="polite">{visible.length} / {rows.length} õpilast</span>
+      </div>
       {calendar.error ? <p className="form-error" role="alert">{calendar.error}</p> : null}
       {error ? <p className="form-error" role="alert">{error}</p> : null}
-      {calendar.loading ? <LoadingState label="Loen tunniplaani…" /> : !visible.length ? <EmptyState title="Selle kuu kohta arveid ei ole" description="Õpilastel pole arveldusseadeid ega planeeritud tunde." action={<CalendarRange size={28} />} /> : (
+      {calendar.loading ? <LoadingState label="Loen tunniplaani…" /> : !visible.length ? <EmptyState title={search ? 'Õpilast ei leitud' : 'Selle kuu kohta arveid ei ole'} description={search ? 'Proovi teist nime või e-posti aadressi.' : 'Õpilastel pole arveldusseadeid ega planeeritud tunde.'} action={<CalendarRange size={28} />} /> : (
         <div className="monthly-invoices__table" role="table" aria-label={`Kuuarved ${month}`}>
           <div className="monthly-invoices__head" role="row"><span /><span>Õpilane</span><span>Tunde</span><span>Tasaarveldus</span><span>Summa</span><span>Tähtaeg</span><span>Olek</span></div>
           {visible.map((row) => {

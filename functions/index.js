@@ -2600,6 +2600,7 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     const invoiceSnap = await transaction.get(invoiceRef);
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
+    if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot receive payments");
     const payments = await activeInvoicePayments(transaction, invoiceRef.id);
     await assertFinancialDateOpen(transaction, paymentDate);
     const payment = {
@@ -3682,6 +3683,7 @@ async function allocateBankTransaction({
     const invoiceSnaps = await Promise.all(invoiceRefs.map(ref => transaction.get(ref)));
     invoiceSnaps.forEach((snap, index) => {
       if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
+      if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
     });
     const lessonRefs = sortedLessonAllocations.map(allocation =>
       db.collection("lessons").doc(allocation.lessonId),
@@ -3981,6 +3983,7 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
     const invoiceSnaps = await Promise.all(invoiceRefs.map(ref => transaction.get(ref)));
     invoiceSnaps.forEach((snap, index) => {
       if (!snap.exists) throw httpError(404, `Invoice ${sortedAllocations[index].invoiceId} not found`);
+      if (snap.data().status === "Tühistatud") throw httpError(409, `Invoice ${sortedAllocations[index].invoiceId} is cancelled`);
     });
     if (credit.studentId) {
       invoiceSnaps.forEach((snap, index) => {
@@ -4873,6 +4876,7 @@ async function deliverEmail(message, context = {}) {
 
 async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } = {}) {
   const invoice = await loadInvoice(invoiceId);
+  if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot be sent");
   if (type !== "invoice" && invoice.status === "Makstud") {
     throw httpError(400, "Invoice is already paid");
   }
@@ -4881,6 +4885,13 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
   if (!to) throw httpError(400, "Recipient email is missing");
   const payload = composeInvoiceEmail(invoice, student, type);
   const nowIso = new Date().toISOString();
+
+  await db.runTransaction(async transaction => {
+    const current = await transaction.get(invoice.ref);
+    if (!current.exists || current.data().status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot be sent");
+    if (current.data().emailStatus === "sending") throw httpError(409, "Invoice email is already being sent");
+    transaction.update(invoice.ref, { emailStatus: "sending", emailUpdatedAt: nowIso, emailLastType: type });
+  });
 
   let delivery;
   try {
@@ -4938,6 +4949,7 @@ async function creditNoteDocumentData(creditNoteId) {
 
 async function invoicePdf(invoiceId) {
   const invoice = await loadInvoice(invoiceId);
+  if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice has no active PDF");
   const student = await loadInvoiceStudent(invoice);
   const content = await buildInvoicePdf({
     invoice,
@@ -6786,6 +6798,7 @@ async function correctInvoiceDueDate({ actor, invoiceId, due, reason, requestId 
     if (auditSnap.exists) return { invoice: { id: invoiceSnap.id, ...invoiceSnap.data() }, idempotent: true };
     if (!invoiceSnap.exists) throw httpError(404, "Invoice not found");
     const invoice = invoiceSnap.data();
+    if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot be corrected");
     await assertFinancialDateOpen(transaction, invoice.date || cleanDue);
     if (invoice.date && cleanDue < invoice.date) throw httpError(400, "Due date cannot be before invoice date");
     const history = [...(Array.isArray(invoice.dueDateHistory) ? invoice.dueDateHistory : []), {

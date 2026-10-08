@@ -3,6 +3,7 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-core');
 const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('./monthly-invoice-core');
+const { invoiceCancellationError } = require('./invoice-cancellation-core');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -174,7 +175,7 @@ async function createManualInvoice({ actor, values, requestId }) {
 }
 
 // Finance v2 §2: the month's invoice for one student (planned lessons + last month's difference).
-// The invoice id is fixed per student and month, so a month cannot be invoiced twice.
+// Only one active invoice per student and month; cancelled revisions keep their audit trail.
 async function createMonthlyInvoice({ actor, values }) {
   let input;
   try {
@@ -182,20 +183,26 @@ async function createMonthlyInvoice({ actor, values }) {
   } catch (error) {
     throw httpError(400, error.message);
   }
-  const invoiceId = monthlyInvoiceId(input.studentId, input.month);
-  const invoiceRef = db.collection('invoices').doc(invoiceId);
+  const baseInvoiceId = monthlyInvoiceId(input.studentId, input.month);
   const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
   const todayIso = nowIso.slice(0, 10);
   return db.runTransaction(async (transaction) => {
-    const existing = await transaction.get(invoiceRef);
-    if (existing.exists) return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
-    const [studentSnap, planSnap, counterSnap, dateLockSnap] = await Promise.all([
+    const [studentSnap, planSnap, counterSnap, dateLockSnap, studentInvoicesSnap] = await Promise.all([
       transaction.get(db.collection('students').doc(input.studentId)),
       transaction.get(db.collection('studentRevenuePlans').doc(input.studentId)),
       transaction.get(counterRef),
       transaction.get(db.collection('financialLockedDates').doc(todayIso)),
+      transaction.get(db.collection('invoices').where('studentId', '==', input.studentId)),
     ]);
+    const monthInvoices = studentInvoicesSnap.docs.filter(doc => doc.data().planMonth === input.month);
+    const activeInvoice = monthInvoices.find(doc => doc.data().status !== 'Tühistatud');
+    if (activeInvoice) return { invoice: { id: activeInvoice.id, ...activeInvoice.data() }, idempotent: true };
+    const revision = monthInvoices.length + 1;
+    const invoiceId = revision === 1 ? baseInvoiceId : `${baseInvoiceId}-r${revision}`;
+    const invoiceRef = db.collection('invoices').doc(invoiceId);
+    const existing = await transaction.get(invoiceRef);
+    if (existing.exists) throw httpError(409, 'Monthly invoice revision already exists');
     if (!studentSnap.exists) throw httpError(404, 'Student not found');
     if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
     let priced;
@@ -237,6 +244,7 @@ async function createMonthlyInvoice({ actor, values }) {
       billingMode: 'monthly_plan_v1',
       pricingMode: 'plan',
       planMonth: input.month,
+      monthRevision: revision,
       plannedUnits: input.plannedUnits,
       correctionUnits: input.correctionUnits,
     };
@@ -261,6 +269,49 @@ async function createMonthlyInvoice({ actor, values }) {
   });
 }
 
+async function cancelInvoice({ actor, invoiceId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanInvoiceId = String(invoiceId || '').trim();
+  const cleanReason = String(reason || '').trim().slice(0, 500);
+  if (!cleanInvoiceId || cleanInvoiceId.length > 160) throw httpError(400, 'Invoice id required');
+  if (cleanReason.length < 10) throw httpError(400, 'Cancellation reason must have at least 10 characters');
+  if (!actor.role.split(',').includes('admin')) throw httpError(403, 'Administrator access required');
+  const invoiceRef = db.collection('invoices').doc(cleanInvoiceId);
+  const auditRef = db.collection('financialAudit').doc(mutationId);
+  const nowIso = new Date().toISOString();
+  return db.runTransaction(async transaction => {
+    const existingAudit = await transaction.get(auditRef);
+    if (existingAudit.exists) {
+      if (existingAudit.data().action !== 'invoice.cancelled' || existingAudit.data().invoiceId !== cleanInvoiceId || existingAudit.data().reason !== cleanReason) throw httpError(409, 'requestId already used');
+      return { invoiceId: cleanInvoiceId, idempotent: true };
+    }
+    const invoiceSnap = await transaction.get(invoiceRef);
+    if (!invoiceSnap.exists) throw httpError(404, 'Invoice not found');
+    const invoice = invoiceSnap.data();
+    const [paymentsSnap, creditNotesSnap, issueLockSnap, todayLockSnap] = await Promise.all([
+      transaction.get(db.collection('payments').where('invoiceId', '==', cleanInvoiceId)),
+      transaction.get(db.collection('creditNotes').where('invoiceId', '==', cleanInvoiceId)),
+      transaction.get(db.collection('financialLockedDates').doc(String(invoice.date || '').slice(0, 10))),
+      transaction.get(db.collection('financialLockedDates').doc(nowIso.slice(0, 10))),
+    ]);
+    if (issueLockSnap.exists || todayLockSnap.exists) throw httpError(409, 'Financial period is closed');
+    const reasonBlocked = invoiceCancellationError(invoice, paymentsSnap.docs.map(doc => doc.data()), creditNotesSnap.docs.map(doc => doc.data()));
+    if (reasonBlocked) throw httpError(409, reasonBlocked);
+    transaction.set(invoiceRef, {
+      status: 'Tühistatud', paymentStatus: 'voided', effectiveAmountCents: 0, effectiveAmount: 0,
+      balanceDueCents: 0, balanceDue: 0, parentPaymentStatus: 'voided', cancelledAt: nowIso, cancelledBy: actor,
+      cancellationReason: cleanReason, cancellationRequestId: mutationId,
+    }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: 'invoice', entityId: cleanInvoiceId, invoiceId: cleanInvoiceId,
+      invoiceNum: invoice.num || '', action: 'invoice.cancelled', actor,
+      originalAmountCents: Number(invoice.amountCents || 0), reason: cleanReason,
+      createdAt: nowIso, requestId: mutationId,
+    });
+    return { invoiceId: cleanInvoiceId, idempotent: false };
+  });
+}
+
 const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === 'OPTIONS') {
@@ -282,6 +333,11 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    if (req.path === '/cancel') {
+      const result = await cancelInvoice({ actor, invoiceId: req.body?.invoiceId, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(200).json(result);
+      return;
+    }
     if (req.path !== '/create') {
       res.status(404).json({ error: 'Not found' });
       return;
@@ -297,4 +353,4 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   }
 });
 
-module.exports = { manualInvoiceApi, createManualInvoice, createMonthlyInvoice, listInvoiceStudents };
+module.exports = { manualInvoiceApi, createManualInvoice, createMonthlyInvoice, cancelInvoice, listInvoiceStudents };
