@@ -1,3 +1,13 @@
+## 2026-10-08 — Finance v3 tabs and invoice printing — branch `agent/finance-v3-tabs`
+
+- Last checked `origin/main`: `227d561` on 2026-10-08. Draft PR: #367.
+- Goal: make all four finance summary cards open their own views instead of stacking every finance section vertically, and allow an issued invoice to be printed from its row.
+- Completed: added accessible summary tabs for all invoices, invoices with payments, current unpaid invoices plus earlier debts/bank import, and student advances. Monthly invoice preparation has a separate tab. Existing issued-invoice and overdue links select the correct views. The advance figure now uses available credit cents. Every issued invoice row opens its existing server-generated PDF in a preview with download and browser-print access; no invoice is created or sent by this action.
+- Files: `FinanceMonthPage.jsx`, `FinanceMonthPage.test.jsx`, `financeMonth.css`, `DocumentPreviewModal.jsx`, `ARCHITECTURE.md`, `docs/specs/FINANCE_V3_SPEC.md`, this state entry, and `docs/screenshots/finance-v3-tabs/*`.
+- Checks: scoped Vitest — 56 files / 296 passed. Full Vitest — 196 files / 1221 passed; exactly the 10 documented Node 26 `localStorage` failures remain in calendar/live-classroom, with no other failures. ESLint — 0 errors / 2 existing worksheet hook warnings. CRM build — passed with existing chunk-size advisory. `git diff --check` — passed. Local mock screenshots at 1440 px desktop and true 375 px mobile; mobile `documentWidth` equals 375 px.
+- Data/security: all new views reuse existing service data and role checks. Printing reads the authorized PDF and has no financial mutation. No production records, email, bank import, payment, external service, migration, merge or deployment was used. The browser PDF viewer provides the final print command.
+- Next safe step: wait for PR #367 CI and owner review; require separate owner approval before merging or deploying.
+
 ## 2026-10-08 — Finance v3 issued invoices and cancellation — branch `agent/finance-v3-issued-invoices`
 
 - Last checked `origin/main`: `b180bc9` on 2026-10-08. Draft PR: #366.

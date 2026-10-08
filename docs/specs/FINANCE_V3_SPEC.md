@@ -2,6 +2,14 @@
 
 Status: PRs 1–4 are merged. The 2026-10-08 follow-up implements the confirmed individual billing mode and manual-invoice preview/PDF workflow. Legacy cleanup remains gated by owner confirmation.
 
+## 2026-10-08 finance tabs and invoice printing follow-up
+
+- The four month summary cards are interactive tabs: `Arveid` shows all issued invoices for the selected month, `Laekunud` shows invoices with received payments (including partial payments), `Laekumata` shows current-month open invoices plus the prior-month debt panel and bank import, and `Ette makstud` shows the existing student-advance register. Only the selected view is rendered below the cards.
+- Monthly invoice preparation has its own `Koosta arved` tab; it no longer extends the default invoice list vertically. The `Väljastatud arved` hero action selects the all-invoices tab and clears list filters. Existing overdue notification links select the open-invoices tab with the overdue filter. Tabs support keyboard arrow, Home and End navigation.
+- The advance-card figure uses the available cent balance from `payerCredits` and matches the existing advance register. The selected month still controls the three invoice summary cards; the advance balance is a current account balance.
+- Every issued invoice row offers `Prindi`. This reads the existing server-generated PDF through `invoiceDeliveryApi.pdf`, opens it in the CRM preview, and offers a direct link to the browser PDF viewer for printing. It does not create, send or change an invoice. The existing download control remains in the preview.
+- No financial schema, authorization rule or mutation API changes. Screenshots use only local mock repositories at desktop and 375 px widths.
+
 ## 2026-10-08 issued-invoice follow-up
 
 - The month header offers a direct `Väljastatud arved` jump to the current month's invoice list. Monthly preparation has its own name/e-mail search; bulk creation applies only to visible, selected rows.

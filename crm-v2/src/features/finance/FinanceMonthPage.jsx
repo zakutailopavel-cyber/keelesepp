@@ -4,6 +4,8 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock3,
+  FilePlus2,
+  Printer,
   Mail,
   ReceiptText,
   Search,
@@ -38,6 +40,8 @@ import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
+import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
+import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import './financeMonth.css';
@@ -49,6 +53,9 @@ const STATUS = {
   unpaid: ['Tasumata', 'neutral'], partial: ['Osaliselt', 'info'], overdue: ['Üle tähtaja', 'danger'],
   paid: ['Makstud', 'success'], credit: ['Krediteeritud', 'neutral'], 'email-failed': ['E-post ebaõnnestus', 'danger'], 'no-show': ['Puudumine', 'warning'],
 };
+const VIEWS = ['invoices', 'paid', 'unpaid', 'credits', 'prepare'];
+const creditAvailableCents = (credit) => Number.isInteger(credit?.availableAmountCents)
+  ? credit.availableAmountCents : Math.round(Number(credit?.availableAmount || 0) * 100);
 
 function canCancelInvoice(invoice) {
   return ['manual_charge_v1', 'monthly_plan_v1'].includes(invoice.billingMode) &&
@@ -122,15 +129,24 @@ export default function FinanceMonthPage({
   const state = useFinanceData({ canManageFinance: canManage, invoiceRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository });
   const [month, setMonth] = useState(() => defaultBillingMonth());
   const [status, setStatus] = useState(() => new globalThis.URLSearchParams(location.search).get('status') || 'all');
+  const [activeView, setActiveView] = useState(() => {
+    const params = new globalThis.URLSearchParams(location.search);
+    const requested = params.get('status') === 'overdue' ? 'unpaid' : (VIEWS.includes(params.get('view')) ? params.get('view') : 'invoices');
+    return requested === 'prepare' && !canManage ? 'invoices' : requested;
+  });
   const [query, setQuery] = useState('');
   const [paymentInvoice, setPaymentInvoice] = useState(null);
   const [cancelInvoice, setCancelInvoice] = useState(null);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState('');
+  const [printBusy, setPrintBusy] = useState('');
+  const [documentPreview, setDocumentPreview] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const invoiceListRef = useRef(null);
+  const viewRef = useRef(null);
+  const tabRefs = useRef([]);
+  const visibleViews = canManage ? VIEWS : VIEWS.slice(0, 4);
 
   useEffect(() => {
     const destination = legacyFinanceDestination(location.hash);
@@ -140,12 +156,32 @@ export default function FinanceMonthPage({
   const invoices = useMemo(() => state.data?.invoices || [], [state.data?.invoices]);
   const monthInvoices = useMemo(() => filterFinanceRows(invoices, { month }).filter((invoice) => invoice.status !== 'Tühistatud'), [invoices, month]);
   const summary = useMemo(() => summarizeFinanceRows(monthInvoices), [monthInvoices]);
-  const rows = useMemo(() => sortFinanceRows(filterFinanceRows(monthInvoices, { status, query }), 'dueDate'), [monthInvoices, query, status]);
+  const rows = useMemo(() => sortFinanceRows(filterFinanceRows(monthInvoices.filter((invoice) => {
+    const row = financeRowState(invoice);
+    if (activeView === 'paid') return row.paidCents > 0;
+    if (activeView === 'unpaid') return row.balanceCents > 0;
+    return true;
+  }), { status: activeView === 'paid' ? 'all' : status, query }), 'dueDate'), [activeView, monthInvoices, query, status]);
+  const creditTotal = (state.data?.credits || []).reduce((sum, credit) => sum + creditAvailableCents(credit), 0);
 
-  const showIssuedInvoices = () => {
+  const selectView = (view, scroll = false) => {
+    setActiveView(view);
     setStatus('all');
     setQuery('');
-    invoiceListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (scroll) viewRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  };
+  const moveTab = (event, index) => {
+    const next = event.key === 'ArrowRight' ? (index + 1) % visibleViews.length
+      : event.key === 'ArrowLeft' ? (index + visibleViews.length - 1) % visibleViews.length
+        : event.key === 'Home' ? 0 : event.key === 'End' ? visibleViews.length - 1 : null;
+    if (next === null) return;
+    event.preventDefault();
+    selectView(visibleViews[next]);
+    tabRefs.current[next]?.focus();
+  };
+
+  const showIssuedInvoices = () => {
+    selectView('invoices', true);
   };
 
   const announce = (value) => { setMessage(value); setError(''); };
@@ -158,6 +194,12 @@ export default function FinanceMonthPage({
       await state.reload();
     } catch (caught) { setError(caught.message || 'E-kirja saatmine ebaõnnestus.'); }
     finally { setActionBusy(''); }
+  };
+  const openInvoiceForPrint = async (invoice) => {
+    setPrintBusy(invoice.id); setError('');
+    try { setDocumentPreview(await deliveryRepository.pdf(invoice.id)); }
+    catch (caught) { setError(caught.message || 'Arve PDF-i ei saanud avada.'); }
+    finally { setPrintBusy(''); }
   };
   const recordPayment = async (form) => {
     setPaymentBusy(true); setError('');
@@ -196,34 +238,41 @@ export default function FinanceMonthPage({
       {message ? <div className="success-notice" role="status">{message}<button aria-label="Sulge teade" onClick={() => setMessage('')}>×</button></div> : null}
       {error && !paymentInvoice ? <div className="finance-month-alert" role="alert"><AlertTriangle size={18} />{error}</div> : null}
 
-      <section className="finance-month-metrics" aria-label="Kuu kokkuvõte">
-        <Card><span><ReceiptText size={18} /> Arveid</span><strong>{summary.count}</strong><small>{money(summary.amountCents)} kokku</small></Card>
-        <Card><span><CheckCircle2 size={18} /> Laekunud</span><strong>{money(summary.paidCents)}</strong><small>{summary.byStatus.paid} täielikult makstud</small></Card>
-        <Card><span><Clock3 size={18} /> Laekumata</span><strong>{money(summary.balanceCents)}</strong><small>{summary.byStatus.overdue} üle tähtaja</small></Card>
-        <Card><span><WalletCards size={18} /> Ette makstud</span><strong>{money((state.data.credits || []).reduce((sum, item) => sum + Number(item.balanceCents || 0), 0))}</strong><small>kantakse järgmisele arvele</small></Card>
+      <section className="finance-month-metrics" role="tablist" aria-label="Finantside vaated">
+        {[
+          ['invoices', <ReceiptText size={18} />, 'Arveid', summary.count, `${money(summary.amountCents)} kokku`],
+          ['paid', <CheckCircle2 size={18} />, 'Laekunud', money(summary.paidCents), `${summary.byStatus.paid} täielikult makstud`],
+          ['unpaid', <Clock3 size={18} />, 'Laekumata', money(summary.balanceCents), `${summary.byStatus.overdue} üle tähtaja`],
+          ['credits', <WalletCards size={18} />, 'Ette makstud', money(creditTotal), 'kantakse järgmisele arvele'],
+          ...(canManage ? [['prepare', <FilePlus2 size={18} />, 'Koosta arved', '', 'Kuuarvete ettevalmistus']] : []),
+        ].map(([view, icon, label, value, caption], index) => <button key={view} ref={(node) => { tabRefs.current[index] = node; }} id={`finance-tab-${view}`} type="button" role="tab" aria-selected={activeView === view} aria-controls="finance-view-panel" tabIndex={activeView === view ? 0 : -1} className={`finance-month-metric ${view === 'prepare' ? 'finance-month-metric--prepare' : ''}`} onClick={() => selectView(view)} onKeyDown={(event) => moveTab(event, index)}><span>{icon}{label}</span>{value !== '' ? <strong>{value}</strong> : null}<small>{caption}</small></button>)}
       </section>
 
-      {canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={invoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
+      <section ref={viewRef} id="finance-view-panel" className="finance-month-view" role="tabpanel" aria-labelledby={`finance-tab-${activeView}`}>
+      {activeView === 'prepare' && canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={invoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
 
-      {canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} /> : null}
+      {activeView === 'credits' ? (canManage ? <AdvanceManagementPanel credits={state.data.credits || []} refunds={state.data.refunds || []} invoices={invoices} onApply={(creditId, invoiceId, amount, note) => financeRepository.applyPayerCredit(creditId, invoiceId, amount, note)} onRefund={(creditId, refund) => financeRepository.refundPayerCredit(creditId, refund)} onReload={state.reload} /> : <Card><EmptyState title="Ettemaksude haldamine" description="See vaade on administraatorile." /></Card>) : null}
 
-      <Card ref={invoiceListRef} className="finance-month-ledger">
-        <div className="finance-month-ledger__heading"><div><span className="eyebrow">Arved</span><h2>Kuu arved ja maksed</h2></div><span>{rows.length} kirjet</span></div>
+      {['invoices', 'paid', 'unpaid'].includes(activeView) ? <Card className="finance-month-ledger">
+        <div className="finance-month-ledger__heading"><div><span className="eyebrow">{activeView === 'invoices' ? 'Arved' : activeView === 'paid' ? 'Laekunud' : 'Laekumata'}</span><h2>{activeView === 'invoices' ? 'Kuu arved ja maksed' : activeView === 'paid' ? 'Laekunud maksetega arved' : 'Kuu tasumata arved'}</h2></div><span>{rows.length} kirjet</span></div>
         <div className="finance-month-filters">
           <Input label="Otsi" type="search" placeholder="Õpilane, maksja või arve number" value={query} onChange={(event) => setQuery(event.target.value)} icon={<Search size={17} />} />
-          <Select label="Olek" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">Kõik olekud</option>{Object.entries(STATUS).map(([value, [label]]) => <option key={value} value={value}>{label}</option>)}</Select>
+          {activeView !== 'paid' ? <Select label="Olek" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">Kõik olekud</option>{Object.entries(STATUS).filter(([value]) => activeView === 'invoices' || ['unpaid', 'partial', 'overdue', 'email-failed', 'no-show'].includes(value)).map(([value, [label]]) => <option key={value} value={value}>{label}</option>)}</Select> : null}
         </div>
-        {!rows.length ? <EmptyState title="Selle kuu arveid ei ole" description="Koosta arved ülal olevast kuuplaanist või vali teine kuu." /> : <div className="finance-month-table" role="table" aria-label={`Arved ${month}`}>
+        {!rows.length ? <EmptyState title={activeView === 'paid' ? 'Laekunud makseid ei ole' : activeView === 'unpaid' ? 'Selle kuu võlgnevusi ei ole' : 'Selle kuu arveid ei ole'} description={activeView === 'invoices' ? 'Koosta arved eraldi vaates või vali teine kuu.' : 'Vali teine kuu või muuda filtrit.'} /> : <div className="finance-month-table" role="table" aria-label={`Arved ${month}`}>
           <div className="finance-month-table__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Summa</span><span>Jääk</span><span>Olek</span><span>Tegevused</span></div>
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id}>
             <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{invoice.payerEmail || ''}</small></span>
             <span>{invoice.num || invoice.number || invoice.invoiceNumber || '—'}</span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span><Badge tone={tone}>{label}</Badge></span>
-            <span className="finance-month-table__actions">{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
+            <span className="finance-month-table__actions">{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
         </div>}
-      </Card>
+      </Card> : null}
+      {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} /> : null}
+      </section>
       <PaymentDialog key={paymentInvoice?.id || 'closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
       <CancelInvoiceDialog key={cancelInvoice?.id || 'closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
+      <DocumentPreviewModal document={documentPreview} printable onClose={() => setDocumentPreview(null)} />
     </div>
   );
 }
