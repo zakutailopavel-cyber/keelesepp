@@ -9,6 +9,7 @@ describe('financeRowState', () => {
   it('marks a partially paid invoice partial before due date', () => expect(financeRowState(row({ paidAmountCents: 2500 }), today)).toMatchObject({ status: 'partial', balanceCents: 7500 }));
   it('marks a partial balance overdue once due date passes', () => expect(financeRowState(row({ paidAmountCents: 2500, dueDate: '2026-10-06' }), today)).toMatchObject({ status: 'overdue', balanceCents: 7500 }));
   it('treats the due date as current through that calendar day', () => expect(financeRowState(row({ dueDate: '2026-10-07' }), today).status).toBe('unpaid'));
+  it('uses a corrected due date over a legacy dueDate snapshot', () => expect(financeRowState(row({ dueDate: '2026-10-01', due: '2026-10-20' }), today).status).toBe('unpaid'));
   it('marks a fully paid invoice paid', () => expect(financeRowState(row({ paidAmountCents: 10000, dueDate: '2026-10-01' }), today)).toMatchObject({ status: 'paid', balanceCents: 0 }));
   it('marks a credited invoice as credit with no open balance', () => expect(financeRowState(row({ status: 'Krediteeritud' }), today)).toMatchObject({ status: 'credit', balanceCents: 0 }));
   it('marks a zero-amount credit note as credit', () => expect(financeRowState(row({ amountCents: 0, creditNoteId: 'c1' }), today).status).toBe('credit'));

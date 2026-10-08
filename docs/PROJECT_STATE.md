@@ -4091,3 +4091,13 @@ was made.
 Known limits: embedded tools are still separate HTML runtimes; this is a navigation and visual-shell
 consolidation, not a risky rewrite. The numeric position is a planning pointer rather than proof of earlier
 completion. Exactly one next safe step: run the authenticated Vercel preview smoke described in the handoff.
+## 2026-10-08 — Finance v3 earlier-debt invoice actions — branch `agent/finance-v3-debt-actions`
+
+- Last checked `origin/main`: `cdde3ce` on 2026-10-08. Draft PR: pending.
+- Goal: let an administrator correct or safely cancel eligible prior-month invoices directly in `Võlgnevused`.
+- Completed: added `Muuda` per debt row for audited due-date corrections and lesson-line credit notes; added `Tühista` for eligible unsent/unpaid manual and monthly invoices using the existing cancellation dialog and backend; refreshed debt totals after corrections; made actions visible in stacked mobile rows. Corrected the finance row state to prefer the authoritative revised `due` value over a stale legacy `dueDate` snapshot.
+- Files: `FinanceDebtsPanel.jsx` and tests/CSS, `FinanceMonthPage.jsx` and tests, `invoiceActions.js` and tests, `financeRows.js` and tests, `financeApi.js`, `docs/specs/FINANCE_V3_SPEC.md`, this entry, and `docs/screenshots/finance-v3-debt-actions/*`.
+- Checks: scoped Vitest — 57 files / 311 passed; full Vitest — 197 files / 1236 passed with exactly the 10 documented Node 26 `localStorage` failures in calendar/live-classroom; ESLint — 0 errors / 2 existing worksheet hook warnings; CRM build — passed with existing chunk-size advisory; `git diff --check` — passed. Desktop and 375 px mobile screenshots used local example data only; mobile `documentWidth` = 375 px.
+- Data/security: the client shows only server-supported operations; the backend authoritatively checks cancellation, financial locks, and credits and records reasons/audit. Issued invoices remain in history. No production records, e-mail, payments, bank import, external service, merge or deployment were used.
+- Limits: historical sent/paid/legacy invoices cannot be hard-deleted; a full amount or payer correction needs a separate, approved accounting workflow. A closed financial date prevents these existing correction endpoints from mutating that period.
+- Next safe step: open the draft PR, wait for CI, and obtain owner review of the exact correction fields needed for legacy invoices.

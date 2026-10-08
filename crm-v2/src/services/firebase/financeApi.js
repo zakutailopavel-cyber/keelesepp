@@ -169,6 +169,14 @@ export const financeApi = {
       requestId: financeRequestId("credit_note"),
     });
   },
+  correctInvoiceDueDate(invoiceId, due, reason) {
+    return postStaff('/data-quality/invoice-due', {
+      invoiceId,
+      due,
+      reason,
+      requestId: financeRequestId('invoice_due'),
+    });
+  },
   recordPayment(invoiceId, payment) {
     return post("/payments", {
       invoiceId,

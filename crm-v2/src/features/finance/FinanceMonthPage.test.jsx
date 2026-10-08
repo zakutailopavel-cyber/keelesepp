@@ -156,4 +156,21 @@ describe('FinanceMonthPage', () => {
     await screen.findByText('Mari Maasikas');
     expect(screen.queryByRole('button', { name: 'Tühista arve AR-31' })).not.toBeInTheDocument();
   });
+
+  it('uses the same audited cancellation flow for an eligible prior-month debt', async () => {
+    const value = props();
+    value.invoiceRepository.list.mockResolvedValueOnce([
+      { id: 'old-1', planMonth: '2031-09', billingMode: 'monthly_plan_v1', status: 'Ootel', studentName: 'Mari Maasikas', num: 'AR-30', amountCents: 10000, due: '2031-09-10' },
+    ]).mockResolvedValueOnce([
+      { id: 'old-1', planMonth: '2031-09', billingMode: 'monthly_plan_v1', status: 'Tühistatud', studentName: 'Mari Maasikas', num: 'AR-30', amountCents: 10000, effectiveAmountCents: 0, balanceDueCents: 0, due: '2031-09-10' },
+    ]);
+    renderPage(value, '/finance?view=unpaid');
+    const debtTable = await screen.findByRole('table', { name: 'Võlgnevused' });
+    fireEvent.click(within(debtTable).getByRole('button', { name: 'Tühista arve AR-30' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Tühistamise põhjus'), { target: { value: 'Arve koostati ekslikult' } });
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Tühista arve' })); });
+    expect(value.manualInvoiceRepository.cancel).toHaveBeenCalledWith('old-1', 'Arve koostati ekslikult');
+    await waitFor(() => expect(screen.queryByText('Mari Maasikas')).not.toBeInTheDocument());
+  });
 });

@@ -6,11 +6,23 @@
 .finance-debts__heading > div:last-child > strong { color: #9a3b31; font-size: 1.55rem; }
 .finance-debts__notice { margin: 0 26px 16px; color: #176553; font-weight: 700; }
 .finance-debts__table { overflow-x: auto; }
-.finance-debts__head, .finance-debts__row { display: grid; grid-template-columns: minmax(170px,1.4fr) 120px 120px 100px 130px 170px; gap: 12px; align-items: center; min-width: 850px; padding: 13px 26px; }
+.finance-debts__head, .finance-debts__row { display: grid; grid-template-columns: minmax(170px,1.4fr) 120px 120px 100px 130px minmax(220px,1fr); gap: 12px; align-items: center; min-width: 950px; padding: 13px 26px; }
 .finance-debts__head { color: #73817d; background: #f5f7f5; font-size: .75rem; font-weight: 800; text-transform: uppercase; }
 .finance-debts__row { border-top: 1px solid #edf0ed; }
 .finance-debts__row small { display: block; margin-top: 3px; color: #81908b; }
 .finance-debts__row .button { min-height: 34px; padding: 7px 10px; font-size: .78rem; }
+.finance-debts__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.finance-debts__credit-lines { display: grid; gap: 8px; margin: 16px 0; }
+.finance-debts__credit-lines p { margin: 0; color: #71807b; }
+.finance-debts__credit-lines label { display: block; }
 .finance-bank-modal.modal { width: min(1180px, 96vw); }
 .finance-bank-modal .bank-reconciliation { border: 0; box-shadow: none; padding: 0; }
-@media (max-width: 680px) { .finance-debts__heading { align-items: stretch; flex-direction: column; padding: 20px 16px; } .finance-debts__heading > div:last-child { justify-content: space-between; } .finance-debts__head, .finance-debts__row { padding-inline: 16px; } }
+@media (max-width: 680px) {
+  .finance-debts__heading { align-items: stretch; flex-direction: column; padding: 20px 16px; }
+  .finance-debts__heading > div:last-child { justify-content: space-between; }
+  .finance-debts__head { display: none; }
+  .finance-debts__row { grid-template-columns: repeat(2, minmax(0, 1fr)); min-width: 0; gap: 12px; padding: 18px 16px; }
+  .finance-debts__row > span:first-child, .finance-debts__actions { grid-column: 1 / -1; }
+  .finance-debts__row > span[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #73817d; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
+  .finance-debts__actions .button { flex: 1 1 auto; justify-content: center; }
+}

@@ -2,6 +2,14 @@
 
 Status: PRs 1–4 are merged. The 2026-10-08 follow-up implements the confirmed individual billing mode and manual-invoice preview/PDF workflow. Legacy cleanup remains gated by owner confirmation.
 
+## 2026-10-08 earlier-debt invoice actions follow-up
+
+- In `Võlgnevused`, every prior-month open invoice has `Muuda`. An administrator can correct the due date with a written reason through the existing `staffOperationsApi /data-quality/invoice-due` route. The route writes due-date history and financial audit; closed financial periods remain server-blocked.
+- A lesson-linked invoice can credit one uncredited lesson line at a time through the existing `financeApi /invoices/credit-lesson-line` route. This issues a separate credit note, updates the balance, and preserves the original invoice. Failed corrections remain visible in the form without claiming success.
+- `Tühista` appears on prior-month invoices that satisfy the same client eligibility as the current-month list: unpaid, unsent manual/monthly invoices without lesson links or credits. The server rechecks eligibility, payments, credit notes, and financial date locks transactionally. Cancellation preserves the invoice number, original amount, and reason in audit history.
+- Issued invoices are never hard-deleted. Other historical invoices require a specific credit or correction workflow. Arbitrary amount/line and payer edits are not covered by the existing safe APIs and remain an owner decision for a subsequent scoped change.
+- The debt list stacks row details and actions at 375 px instead of hiding actions in horizontal scrolling. Local example invoices were used for desktop and mobile screenshots; no production actions or records were used.
+
 ## 2026-10-08 finance tabs and invoice printing follow-up
 
 - The four month summary cards are interactive tabs: `Arveid` shows all issued invoices for the selected month, `Laekunud` shows invoices with received payments (including partial payments), `Laekumata` shows current-month open invoices plus the prior-month debt panel and bank import, and `Ette makstud` shows the existing student-advance register. Only the selected view is rendered below the cards.
