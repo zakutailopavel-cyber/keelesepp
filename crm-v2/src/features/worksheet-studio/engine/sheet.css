@@ -311,6 +311,8 @@
 /* Edit mode: disabled answer controls (choice options, …) let the click through to the block, so clicking
    anywhere on a task selects it. */
 .ws-root.mode-edit :is(button, input, select, textarea):disabled { pointer-events: none; }
+/* answer controls are disabled outside the student view, but must stay fully readable (the CRM dims disabled buttons) */
+.ws-root .ws-body :is(button, input, select, textarea):disabled { opacity: 1; cursor: inherit; }
 /* „Skeem” block: boxes on top of connector lines */
 .ws-diagram { position: relative; width: 100%; margin: 2mm 0; color: #173a63; }
 .ws-dg-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
@@ -398,6 +400,9 @@
 
 /* edit mode: tools above the selected block, „+” to insert a block after it */
 .ws-toolbar { position: absolute; top: 0; right: 2mm; transform: translateY(calc(-100% - 2mm)); z-index: 6; display: flex; align-items: center; gap: 1px; padding: 4px; background: #111827; border-radius: 12px; box-shadow: 0 10px 28px rgba(17,24,39,.28); cursor: default; }
+/* the bar is wider than a half-width block: the first block of a row grows it to the right, the others to the left,
+   so it always stays on the page (the page clips what sticks out) */
+.ws-toolbar.is-left { left: 2mm; right: auto; }
 .ws-toolbar button { border: 0; background: transparent; color: #f9fafb; font: 500 12px 'Inter', 'DM Sans', system-ui, sans-serif; padding: 6px 8px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
 .ws-toolbar button:hover:not(:disabled) { background: rgba(255,255,255,.14); }
 .ws-toolbar button:disabled { opacity: .45; cursor: default; }

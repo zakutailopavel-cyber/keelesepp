@@ -1,3 +1,11 @@
+## 2026-10-09 — Fix: block bar clipped on half-width blocks; answer options looked greyed out — branch `agent/bar-clip`
+
+- Base: `main` 602df44.
+- The dark bar is wider than a half-width block. It was anchored to the card's right edge, so on a left-column block it stuck out past the page and was clipped (the page has `overflow: hidden`). Fix: `Card` takes `barSide`; the first block of a row gets `is-left` (`left: 2mm`), so the bar grows into the page.
+- The global `button:disabled { opacity: .62 }` in `src/styles/index.css` dimmed answer controls in edit and print mode, where they are disabled. `sheet.css` now resets it for `.ws-root .ws-body` controls; the toolbar keeps its own disabled look.
+- Checks: `npx vitest run src/features/worksheet-studio src/features/worksheet-generator`: 583/583; eslint is clean; build succeeds.
+- Next safe step: the owner checks a half-width block in the left column, on screen and in print.
+
 ## 2026-10-09 — Fix: block bar menus and the content panel flashed in the top-left corner — branch `agent/menu-flash`
 
 - Base: `main` 3109c92.
