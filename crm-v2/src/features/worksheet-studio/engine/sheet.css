@@ -467,3 +467,11 @@
 .mode-edit .ws-card [data-edit]:hover { background-color: rgba(8, 126, 107, .08); box-shadow: 0 0 0 1.5mm rgba(8, 126, 107, .08); }
 .ws-float-edit { box-sizing: border-box; padding: 6px 9px; font: 500 15px/1.35 'DM Sans', system-ui, sans-serif; color: #17253a; background: #fff; border: 2px solid #087e6b; border-radius: 8px; box-shadow: 0 10px 28px rgba(16, 35, 57, .25); resize: none; outline: none; overflow: hidden; }
 .ws-reading > .ws-audio, .ws-dialog > .ws-audio { grid-column: 1 / -1; align-self: start; }
+
+/* live lesson: a note under a task (shown answers), tasks the learner does not see yet */
+.ws-card-note { margin-top: 3mm; }
+.ws-live-answers { display: flex; flex-wrap: wrap; gap: 1.5mm 4mm; padding: 2mm 3mm; border-radius: 2.5mm; background: #e9f7ee; color: #1d5b35; font-size: 10.5pt; border: .35mm solid #b7e0c4; }
+.ws-live-answers b { width: 100%; }
+.ws-live-shown { display: inline-flex; align-items: center; gap: 1.5mm; padding: 1mm 2.5mm; border-radius: 99px; background: #e9f7ee; color: #1d5b35; font-size: 9.5pt; font-weight: 700; }
+.ws-card.is-live-closed { opacity: .45; filter: grayscale(.6); }
+.ws-card.is-live-closed::before { content: 'Õpilane ei näe veel'; position: absolute; right: 3mm; top: 3mm; z-index: 4; padding: .8mm 2.5mm; border-radius: 99px; background: #132238; color: #fff; font-size: 8.5pt; font-weight: 700; }

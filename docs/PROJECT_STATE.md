@@ -14,6 +14,27 @@ Checked `origin/main` (after #394). Step 5 (last) of the owner's constructor roa
 - Checks: worksheet-studio 26 files / 126 tests (insights 4, tips 1), homework service 17/17; eslint 0 errors;
   screenshot of the panel with sample results.
 - Next safe step: merge; the owner opens „Tulemused” on a sheet that learners have already submitted.
+## 2026-10-09 — Live lesson on a worksheet: step mode, show answers, task overview — branch `agent/live-sheet`
+
+Checked `origin/main` `d2b94c2` (after #394). Step 4 of the owner's constructor roadmap.
+- Teacher (`LiveWorksheetView`, page and Live Classroom room): new right panel „Ülesanded” (`LiveTaskPanel.jsx`) —
+  per task right / answered / all with a bar and a tone (good / mixed / hard / idle), „Samm-sammult” (the learner
+  sees only opened tasks; „Ava järgmine” opens the next and points at it), „Ava / Peida” per task, „Näita vastust /
+  Peida vastus” per task, „Mis oli raske?” (the 3 hardest tasks). Tasks the learner does not see are dimmed on the
+  teacher's sheet; tasks with shown answers are labelled.
+- Learner (`DocWorksheetPlayer`): follows `liveStep` (only opened tasks + all non-task blocks, a „Õpetaja avab
+  ülesandeid ükshaaval” note) and `liveShown` (✓ / ✗ for answered fields of that task and the right answers listed
+  under it).
+- Data: two new staff-written fields on `worksheetAssignments`: `liveStep` {on, open: [blockId], at} and
+  `liveShown` [blockId] (`homeworkService.setWorksheetLiveStep`, `setWorksheetShown`). Existing rules already let staff
+  update any field; the learner's allowed keys are unchanged → no rules change, no deploy.
+- Model `engine/liveLesson.js`: `stepView`, `nextToOpen`, `shownResults`, `rightAnswers` (via `errorText.expectedAnswer`),
+  `taskStats`, `hardestTasks`. `Sheet` got optional `blockNotes` / `blockClasses` props.
+- Checks: worksheet-studio + homework + live-classroom + homework service 47 files / 248 tests (liveLesson 3, live
+  page step + learner 2, service 1); eslint 0 errors; Chromium screenshots of the teacher panel and the learner view.
+- Limits: 1:1 assignments (a group room shows one learner's sheet at a time); the right answers are in the sheet
+  document anyway, so „Peida” is pedagogy, not secrecy.
+- Next safe step: merge; step 5 = sheet analytics and authoring hints.
 ## 2026-10-09 — Constructor: easier / harder copies of a sheet — branch `agent/sheet-variants` (on top of #394)
 
 Step 3 of the owner's constructor roadmap. Branch starts from `agent/sheet-editing` (#394, not merged yet).

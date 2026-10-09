@@ -5,6 +5,8 @@ import { homeworkService } from '../../services/firebase/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
+import LiveTaskPanel from './LiveTaskPanel.jsx';
+import { taskStats } from './engine/liveLesson.js';
 import SheetAnnotations from './SheetAnnotations.jsx';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { useFitScale } from './useFitScale.js';
@@ -42,6 +44,26 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   }, [checked, answers, assignment?.status]);
   const progress = useMemo(() => (doc ? answerProgress(doc, answers) : null), [doc, answers]);
   const focusId = assignment?.liveFocus?.blockId || '';
+  const stats = useMemo(() => taskStats(doc, answers), [doc, answers]);
+  const step = assignment?.liveStep || null;
+  const shown = useMemo(() => assignment?.liveShown || [], [assignment?.liveShown]);
+  const [busy, setBusy] = useState(false);
+  const live = async (action) => {
+    setFocusError(''); setBusy(true);
+    try { await action(); } catch (err) { setFocusError(err.message || 'Muudatust ei saanud salvestada.'); } finally { setBusy(false); }
+  };
+  const canStep = typeof repository.setWorksheetLiveStep === 'function';
+  const toggleStep = (on) => live(() => repository.setWorksheetLiveStep({ assignmentId, on, open: step?.open || [] }));
+  const openTask = (blockId, open) => live(async () => {
+    const list = new Set(step?.open || []);
+    if (open) list.add(blockId); else list.delete(blockId);
+    await repository.setWorksheetLiveStep({ assignmentId, on: true, open: [...list] });
+    if (open) await repository.setWorksheetLiveFocus({ assignmentId, blockId });
+  });
+  const showTask = (blockId, show) => live(() => repository.setWorksheetShown({ assignmentId, shown: show ? [...shown, blockId] : shown.filter((id) => id !== blockId) }));
+  // on the teacher's sheet: tasks the learner does not see yet are dimmed, shown answers are labelled
+  const blockClasses = useMemo(() => (step?.on ? Object.fromEntries(stats.filter((s) => !(step.open || []).includes(s.id)).map((s) => [s.id, 'is-live-closed'])) : null), [step, stats]);
+  const blockNotes = useMemo(() => Object.fromEntries(shown.map((id) => [id, <span key={id} className="ws-live-shown"><Icons.Eye size={14} aria-hidden="true" /> Õiged vastused on õpilasele näha</span>])), [shown]);
 
   const point = async (blockId) => {
     setFocusError('');
@@ -71,15 +93,16 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
       </header>
       <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Vali tekst või klõpsa vastusel, et lisada viga või märkus.</div>
       {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
-      <div className="st-body">
+      <div className="st-body ws-live-body">
         <main className="st-canvas" ref={fitRef}>
           <SheetAnnotations annotations={assignment.annotations || []} editable onChange={saveMarks}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} />
+              <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} />
             </div>
           </SheetAnnotations>
           <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
         </main>
+        {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} /> : null}
       </div>
     </div>
   );

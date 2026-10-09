@@ -431,6 +431,20 @@ export const homeworkService = {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('lessonId', '==', lessonId)));
     return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+  // live lesson: step mode (open tasks one by one) and the tasks whose right answers the learner sees
+  async setWorksheetLiveStep({ assignmentId, on, open }) {
+    if (!assignmentId) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const liveStep = { on: Boolean(on), open: [...new Set((open || []).map(String))].slice(0, 200), at: new Date().toISOString() };
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveStep });
+    return liveStep;
+  },
+  async setWorksheetShown({ assignmentId, shown }) {
+    if (!assignmentId) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const liveShown = [...new Set((shown || []).map(String))].slice(0, 200);
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveShown });
+    return liveShown;
   },
   async saveWorksheetDraft({ assignmentId, answers }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');
