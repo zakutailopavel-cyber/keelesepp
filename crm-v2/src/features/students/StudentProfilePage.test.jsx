@@ -93,7 +93,7 @@ describe('student profile tabs and role access', () => {
     expect(await screen.findByText('2026-08-04 · 14:00', {}, { timeout: 4000 })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('tab', { name: 'Areng' }));
-    expect(screen.getByText('Lugemine')).toBeInTheDocument();
+    expect(await screen.findByText('Lugemine')).toBeInTheDocument();
     expect(screen.getByText('82%')).toBeInTheDocument();
   });
 
@@ -224,7 +224,7 @@ describe('student profile tabs and role access', () => {
     expect(homeworkApi.reviewSubmission).toHaveBeenCalledWith(expect.objectContaining({ skillGrades: { Grammatika: 4 } }));
 
     fireEvent.click(screen.getByRole('tab', { name: 'Areng' }));
-    expect(screen.getByText('Grammatika')).toBeInTheDocument();
+    expect(await screen.findByText('Grammatika')).toBeInTheDocument();
     expect(screen.getByText('80%')).toBeInTheDocument();
   });
 
