@@ -82,7 +82,9 @@ export const choice = {
     <ol className="ws-choice">
       {(data.questions || []).map((q, qi) => {
         const o = opts(q.options).map((opt, oi) => ({ ...opt, oi }));
-        const shown = ctx.shuffle ? seededShuffle(o, `${id}:${qi}`) : o;
+        // options are mixed by default (the source often lists the right one first); the same order on screen and
+        // on paper; `keepOrder` (inspector) shows them as written
+        const shown = ctx.keepOrder ? o : seededShuffle(o, `${id}:${qi}`);
         const multi = o.filter((x) => x.correct).length > 1;
         return (
           <li key={qi}>
@@ -91,7 +93,8 @@ export const choice = {
               {shown.map((opt) => {
                 const oi = opt.oi;
                 const key = `${qi}`;
-                const cur = ctx.get(key) || (multi ? [] : '');
+                // the first option is index 0: `??`, not `||`, or picking it would show as nothing picked
+                const cur = ctx.get(key) ?? (multi ? [] : '');
                 const on = multi ? cur.includes(oi) : cur === oi;
                 const toggle = () => ctx.set(key, multi ? (on ? cur.filter((x) => x !== oi) : [...cur, oi]) : oi);
                 return (

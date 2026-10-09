@@ -68,6 +68,24 @@ describe('scoring', () => {
     expect(r.map((x) => x.ok)).toEqual([true, true]);
   });
 
+  it('choice shows the first option as picked (its answer is 0)', () => {
+    const b = { ...createBlock('choice'), data: { title: '', questions: [{ q: 'a', options: '*x\ny\nz' }] } };
+    const { container } = render(<Sheet doc={doc([b])} mode="interactive" answers={answer(b, { 0: 0 })} setAnswer={() => {}} />);
+    const options = [...container.querySelectorAll('.ws-page .ws-opt')];
+    expect(options.find((el) => el.textContent === 'x').className).toContain('on');
+    expect(options.filter((el) => el.className.includes(' on')).length).toBe(1);
+  });
+
+  it('choice mixes the options the same way every time unless the teacher keeps the order', () => {
+    const questions = Array.from({ length: 8 }, (_, i) => ({ q: `k${i}`, options: '*a\nb\nc' }));
+    const b = { ...createBlock('choice'), id: 'mix-test', data: { title: '', questions } };
+    const firsts = (block) => [...render(<Sheet doc={doc([block])} mode="print" />).container.querySelectorAll('.ws-page .ws-opts')].map((el) => el.firstElementChild.textContent);
+    const mixed = firsts(b);
+    expect(mixed.some((t) => t !== 'a')).toBe(true);
+    expect(firsts(b)).toEqual(mixed);
+    expect(firsts({ ...b, opts: { keepOrder: true } }).every((t) => t === 'a')).toBe(true);
+  });
+
   it('true/false, match, word order, table, categorize and dialogue score deterministically', () => {
     const tf = createBlock('truefalse');
     expect(scoreDocument(doc([tf]), answer(tf, { 0: 'false', 1: 'true' })).perBlock[tf.id].every((x) => x.ok)).toBe(true);
