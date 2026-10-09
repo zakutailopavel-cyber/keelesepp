@@ -232,6 +232,13 @@ describe('homeworkService submissions', () => {
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveFocus: { blockId: 'b', at: expect.any(String) } });
   });
 
+  it('lists all learners\' copies of one sheet for its results', async () => {
+    firestore.getDocs.mockResolvedValueOnce({ docs: [{ id: 'a', data: () => ({ lessonId: 'l1', status: 'done' }) }] });
+    expect(await homeworkService.listWorksheetResults('l1')).toEqual([{ id: 'a', lessonId: 'l1', status: 'done' }]);
+    expect(firestore.where).toHaveBeenCalledWith('lessonId', '==', 'l1');
+    expect(await homeworkService.listWorksheetResults('')).toEqual([]);
+  });
+
   it('opens a worksheet in a live room and streams the room worksheets for one student', async () => {
     await homeworkService.openWorksheetInRoom({ assignmentId: 'as-1', roomKey: 'inv-1' });
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveRoomKey: 'inv-1', liveOpenedAt: expect.any(String) });

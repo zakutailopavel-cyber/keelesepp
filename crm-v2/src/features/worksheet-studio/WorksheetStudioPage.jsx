@@ -1,9 +1,9 @@
 /* global ResizeObserver, Blob, setTimeout, clearTimeout, structuredClone */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { lessonWorksheetsService, libraryService, worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
+import { homeworkService, lessonWorksheetsService, libraryService, worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
 import { mediaBankService } from '../../services/firebase/mediaBank.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';
@@ -29,6 +29,8 @@ import { MARK_KINDS, addMark } from './engine/marksModel.js';
 import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
+import InsightsPanel from './InsightsPanel.jsx';
+import { addAlternative } from './engine/insights.js';
 import { formalLetterDocument } from './engine/templates.js';
 
 const DEFAULT_TITLE = newDocument().meta.title;
@@ -40,7 +42,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, speech = languageToolsService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const draftName = draftId || (isNew ? 'new' : lessonId);
@@ -88,6 +90,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [versions, setVersions] = useState([]);
   const [paletteQuery, setPaletteQuery] = useState('');
   const [markMenu, setMarkMenu] = useState(''); // the block whose „Joonista” menu is open
+  const loadResults = useCallback((id) => resultsSource.listWorksheetResults(id), [resultsSource]);
   const [draftRestored, setDraftRestored] = useState(false);
   const lastPush = useRef(0);
   const canvasRef = useRef(null);
@@ -305,6 +308,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     const { block: next, mark } = addMark(block, kind);
     if (mark) { updateBlock(next); setSelectedId(id); }
     setMarkMenu('');
+  };
+  // „Tulemused”: learners' results of this sheet; a common „wrong” answer can become a right one
+  const addRightAnswer = (blockId, key, answer) => {
+    const block = doc.blocks.find((b) => b.id === blockId);
+    if (block) { updateBlock(addAlternative(block, key, answer)); setSelectedId(blockId); }
   };
   const addItemTo = (id) => {
     const block = doc.blocks.find((b) => b.id === id);
@@ -665,7 +673,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         {notice && <div className="st-banner ok" role="status">{notice}</div>}
         {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
         <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
-          <summary>{quality.ready ? `✓ Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : `Kvaliteedikontroll: ${quality.errors.length} viga, ${quality.warnings.length} hoiatust`}</summary>
+          <summary>{quality.ready ? `✓ Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : `Kvaliteedikontroll: ${quality.errors.length} viga, ${quality.warnings.length} hoiatust`}{quality.tips.length ? ` · ${quality.tips.length} nõuannet` : ''}</summary>
           {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
         </details>
         {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className={`st-btn ${comparing?.id === entry.id ? 'primary' : ''}`} key={entry.id} onClick={() => setComparing(comparing?.id === entry.id ? null : entry)}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)} <button type="button" className="st-btn" onClick={() => { setVersions([]); setComparing(null); }}>Sulge</button></div>}
@@ -687,9 +695,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                 <button type="button" role="tab" aria-pressed={leftTab === 'blocks'} onClick={() => setLeftTab('blocks')}>Plokid</button>
                 <button type="button" role="tab" aria-pressed={leftTab === 'bank'} onClick={() => setLeftTab('bank')}>Pank</button>
                 <button type="button" role="tab" aria-pressed={leftTab === 'sheet'} onClick={() => setLeftTab('sheet')}>Leht</button>
+                {!isNew && typeof resultsSource?.listWorksheetResults === 'function' ? <button type="button" role="tab" aria-pressed={leftTab === 'results'} onClick={() => setLeftTab('results')}>Tulemused</button> : null}
                 {original.length > 0 ? <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button> : null}
               </div>
-              {leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
+              {leftTab === 'results' && !isNew ? <InsightsPanel lessonId={lessonId} doc={doc} load={loadResults} onSelect={(id) => setSelectedId(id)} onAddAlternative={addRightAnswer} />
+              : leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />

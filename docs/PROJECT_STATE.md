@@ -1,3 +1,20 @@
+## 2026-10-09 — Constructor: sheet results („Tulemused”) and authoring tips — branch `agent/sheet-insights`
+
+Checked `origin/main` (after #394). Step 5 (last) of the owner's constructor roadmap.
+- New left tab „Tulemused” in the constructor (saved sheets): `InsightsPanel.jsx` loads every copy of this sheet given
+  to learners (`homeworkService.listWorksheetResults(lessonId)` = `worksheetAssignments where lessonId ==`; staff read
+  by the existing rules, single-field query, no index) and shows submitted count, average %, per task % right
+  (click = select the task on the sheet), and „Mida parandada?”: the same „wrong” answer written by ≥ 2 learners and
+  ≥ 30 % of attempts (one click „Lisa õigeks” adds it as `[a|b|answer]` to that gap in Lüngad / Kuulamine / Dialoog),
+  hard tasks (< 50 %), tasks everyone got right (≥ 3 submissions).
+- Model `engine/insights.js`: `sheetInsights(doc, assignments)` (scores each submitted copy with its own snapshot,
+  counts only tasks still on the sheet), `addAlternative(block, key, answer)`.
+- `quality.js`: new level `tip` (does not block publishing): no speaking / writing on a sheet with ≥ 3 tasks, three
+  tasks of one type in a row, more than 10 tasks; the quality summary shows „N nõuannet”.
+- Checks: worksheet-studio 26 files / 126 tests (insights 4, tips 1), homework service 17/17; eslint 0 errors;
+  screenshot of the panel with sample results.
+- Next safe step: merge; the owner opens „Tulemused” on a sheet that learners have already submitted.
+
 ## 2026-10-09 — Constructor: edit lines on the sheet + free layer (arrows, callouts, stickers) — branch `agent/sheet-editing`
 
 Checked `origin/main` `d3554ce`. Step 2 of the owner's constructor roadmap (after voices, #393).
