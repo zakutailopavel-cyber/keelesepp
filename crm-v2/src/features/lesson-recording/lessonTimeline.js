@@ -52,3 +52,21 @@ export function lessonAnalysis(transcript = []) {
   const studentShare = allMs ? Math.round((totals.student.ms / allMs) * 100) : allWords ? Math.round((totals.student.words / allWords) * 100) : 0;
   return { ...totals, studentShare, longestStudentLine: longest, studentQuestions: questions };
 }
+
+// Word changes between what the learner said and the corrected sentence (longest common subsequence of words):
+// [{ type: 'same' | 'del' | 'ins', text }] — „del” was said but is wrong, „ins” is the right form.
+export function wordDiff(said = '', corrected = '') {
+  const a = String(said).split(/\s+/).filter(Boolean);
+  const b = String(corrected).split(/\s+/).filter(Boolean);
+  const key = (w) => w.toLocaleLowerCase('et').replace(/[.,!?;:…"„“”]+/g, '');
+  const dp = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = a.length - 1; i >= 0; i -= 1) for (let j = b.length - 1; j >= 0; j -= 1) {
+    dp[i][j] = key(a[i]) === key(b[j]) ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  }
+  const out = [];
+  let i = 0; let j = 0;
+  while (i < a.length || j < b.length) {
+    if (i < a.length && j < b.length && key(a[i]) === key(b[j])) { out.push({ type: 'same', text: b[j] }); i += 1; j += 1; } else if (j < b.length && (i >= a.length || dp[i][j + 1] >= dp[i + 1][j])) { out.push({ type: 'ins', text: b[j] }); j += 1; } else { out.push({ type: 'del', text: a[i] }); i += 1; }
+  }
+  return out;
+}
