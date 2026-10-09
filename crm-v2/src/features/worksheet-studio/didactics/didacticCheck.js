@@ -5,6 +5,7 @@
 // Returns { level, label, checks[], score, issues[] } — issues never block publishing (warning / tip only).
 import { BLOCKS } from '../engine/registry.js';
 import { LEVELS, PHASE_TASKS, levelKey } from './levels.js';
+import { wordLevel } from './levelVocabulary.js';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
 // „Ma ärkan [hommikul|varakult] kell 7.” → the sentence as the learner will read it once solved
@@ -46,7 +47,8 @@ export function sheetPhase(doc) {
   return found.length === 1 ? found[0] : 'full';
 }
 
-export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhase(doc) } = {}) {
+// `forms`: the EKI level vocabularies (levelVocabulary.js loadLevelForms); without them the vocabulary is not checked
+export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhase(doc), forms = null } = {}) {
   const key = levelKey(level);
   const norm = LEVELS[key];
   const tasks = (doc?.blocks || []).filter((b) => BLOCKS[b.type]?.task);
@@ -144,12 +146,30 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
     }
   }
 
+  // vocabulary above the level (EKI A1 / A2 / B1 lists, every form): names (a capital inside a sentence) and numbers
+  // are skipped; B2 and C1 are not checked (the lists end at B1)
+  const allowed = { A1: ['A1'], A2: ['A1', 'A2'], 'A2+': ['A1', 'A2'], 'B1-': ['A1', 'A2', 'B1'], B1: ['A1', 'A2', 'B1'] }[key];
+  if (forms && allowed) {
+    const texts = [...all, ...tasks.filter((b) => b.type === 'reading').flatMap((b) => [b.data?.passageTitle || ''])];
+    const tokens = texts.flatMap((sentence) => String(sentence).split(/\s+/).map((raw, i) => ({ raw, i })))
+      .map(({ raw, i }) => ({ w: raw.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ''), i, raw }))
+      .filter(({ w, i }) => w.length > 2 && !/\d/.test(w) && !(i > 0 && /^\p{Lu}/u.test(w)) && !w.includes('-'));
+    if (tokens.length >= 15) {
+      const above = tokens.filter(({ w }) => { const lv = wordLevel(w, forms); return !lv || !allowed.includes(lv); });
+      const share = above.length / tokens.length;
+      const examples = [...new Set(above.map(({ w }) => w.toLocaleLowerCase('et')))].slice(0, 6);
+      add('vocabulary', 'Sõnavara vastab tasemele', share <= 0.1,
+        { detail: `${Math.round(share * 100)}% sõnadest pole tasemel ${norm.label} õpitavas sõnavaras (EKI loend), nt ${examples.join(', ')}. Selgita need sõnad või asenda lihtsamatega.`, severity: share > 0.2 ? 'warning' : 'tip' });
+    }
+  }
+
   // instructions the learner reads alone
   tasks.forEach((b) => {
     const n = wordsIn(b.data?.instruction);
     if (n > norm.instructionWords) add(`instruction-${b.id}`, `${name(b)}: juhise pikkus`, false, { detail: `${name(b)}: juhises on ${n} sõna — tasemel ${norm.label} kuni ~${norm.instructionWords}; ütle lühemalt.`, blockId: b.id });
   });
 
-  const score = checks.length ? Math.round((checks.filter((c) => c.ok).length / checks.length) * 100) : 100;
+  // a warning costs 12 points, a tip 6 (a sheet with one small tip is not „0%”)
+  const score = Math.max(0, 100 - issues.reduce((n, i) => n + (i.level === 'warning' ? 12 : 6), 0));
   return { level: key, label: norm.label, phase, checks, score, issues };
 }
