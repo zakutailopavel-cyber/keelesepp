@@ -27,3 +27,32 @@ describe('lesson timeline', () => {
     expect(analysis.studentQuestions).toEqual(['Mis see sõna tähendab?']);
   });
 });
+
+describe('one lesson, one row', () => {
+  it('joins the parts of one invitation on one day in time order', async () => {
+    const { groupRecordings } = await import('./lessonTimeline.js');
+    const parts = [
+      { id: 'inv1_2', invitationId: 'inv1', startedAt: '2026-10-09T15:38:22Z', endedAt: '2026-10-09T15:51:00Z', status: 'done', transcript: [{ speaker: 'student', startMs: 1000, endMs: 2000, text: 'Teine.' }], analysis: { version: 3, errors: [{ startMs: 1000, said: 'a b', corrected: 'a c' }] } },
+      { id: 'inv1_1', invitationId: 'inv1', startedAt: '2026-10-09T15:19:00Z', endedAt: '2026-10-09T15:35:00Z', status: 'done', transcript: [{ speaker: 'teacher', startMs: 0, endMs: 900, text: 'Esimene.' }] },
+      { id: 'inv2_1', invitationId: 'inv2', startedAt: '2026-10-10T09:00:00Z', status: 'uploaded', transcript: [] },
+    ];
+    const [lesson, other] = groupRecordings(parts);
+    expect(lesson.id).toBe('inv1_1');
+    expect(lesson.parts).toEqual(['inv1_1', 'inv1_2']);
+    expect(lesson.transcript.map((l) => [l.text, l.startMs])).toEqual([['Esimene.', 0], ['Teine.', 1163000]]);
+    expect(lesson.analysis.errors[0].startMs).toBe(1163000);
+    expect(lesson.status).toBe('done');
+    expect(other.parts).toBeUndefined();
+  });
+
+  it('uses the analysis the Mac made for the whole lesson', async () => {
+    const { joinRecordingParts } = await import('./lessonTimeline.js');
+    const whole = { version: 3, parts: ['a', 'b'], errors: [], summary: { kokkuvote: 'Kogu tund.' } };
+    const joined = joinRecordingParts([
+      { id: 'a', startedAt: '2026-10-09T10:00:00Z', status: 'done', transcript: [], analysis: whole },
+      { id: 'b', startedAt: '2026-10-09T10:10:00Z', status: 'transcribing', transcript: [], analysis: { version: 3, partOf: 'a' } },
+    ]);
+    expect(joined.analysis).toBe(whole);
+    expect(joined.status).toBe('transcribing');
+  });
+});

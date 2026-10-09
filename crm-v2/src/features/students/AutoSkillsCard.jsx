@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card, EmptyState } from '../../components/ui/index.js';
 import { AUTO_SKILLS, autoSkills } from './autoSkills.js';
+import { groupRecordings } from '../lesson-recording/lessonTimeline.js';
 
 const clamp = (n) => Math.max(0, Math.min(100, Number(n) || 0));
 
@@ -16,7 +17,7 @@ export default function AutoSkillsCard({ student, user, isAdmin = false, homewor
     ]).then(([assignments, recordings]) => { if (alive) setData({ loading: false, assignments, recordings }); });
     return () => { alive = false; };
   }, [homeworkApi, isAdmin, recordingApi, student.id, user]);
-  const rows = useMemo(() => autoSkills({ assignments: data.assignments, recordings: data.recordings }), [data]);
+  const rows = useMemo(() => autoSkills({ assignments: data.assignments, recordings: groupRecordings(data.recordings) }), [data]);
   const manual = student.skillMap || {};
   const manualOnly = Object.keys(manual).filter((skill) => !rows.some((r) => r.skill === skill)).sort((a, b) => AUTO_SKILLS.indexOf(a) - AUTO_SKILLS.indexOf(b));
   // a skill only the teacher graded so far: her grade is the value

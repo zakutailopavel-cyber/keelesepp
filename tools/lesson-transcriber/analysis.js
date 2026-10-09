@@ -8,7 +8,8 @@
 // not readable by the student). Pure helpers here; the Ollama calls are in index.js.
 
 // 2: the summary is written in Russian (gemma3's Estonian had many errors; the teachers read Russian)
-const ANALYSIS_VERSION = 2;
+// 3: one analysis per lesson — the parts of one invitation on one day (a reload starts a new recording) together
+const ANALYSIS_VERSION = 3;
 const MAX_SENTENCES = 60;
 const MAX_TRANSCRIPT_CHARS = 60000;
 
@@ -67,10 +68,28 @@ function parseSummary(raw) {
   return summary.kokkuvote || summary.meeldis.length || summary.raske.length || summary.jargmiseks.length ? summary : null;
 }
 
+// The parts of one lesson: recordings of the same invitation started on the same (local) day, in time order. Their
+// lines are joined with each part's times moved by its start (the CRM joins them the same way: lessonTimeline.js).
+const localDay = (iso) => { const d = new Date(iso || ''); return Number.isNaN(d.getTime()) ? '' : `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+function lessonParts(rec, all = []) {
+  const day = localDay(rec.startedAt);
+  return all.filter((r) => r.id === rec.id || (rec.invitationId && r.invitationId === rec.invitationId && localDay(r.startedAt) === day))
+    .sort((a, b) => String(a.startedAt).localeCompare(String(b.startedAt)));
+}
+function joinedTranscript(parts = []) {
+  const t0 = Date.parse(parts[0]?.startedAt || '') || 0;
+  return parts.flatMap((part) => {
+    const shift = Math.max(0, (Date.parse(part.startedAt || '') || t0) - t0);
+    return (part.transcript || []).map((l) => ({ ...l, startMs: (l.startMs || 0) + shift, endMs: (l.endMs || 0) + shift }));
+  });
+}
+// a lesson is analysed once all its parts are finished (done or failed)
+const partsFinished = (parts) => parts.every((p) => p.status === 'done' || p.status === 'failed');
+
 // a finished recording with a transcript still waiting for (this version of) the analysis
 function needsAnalysis(rec = {}) {
   return rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0
     && !(rec.analysis && rec.analysis.version >= ANALYSIS_VERSION);
 }
 
-module.exports = { ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+module.exports = { lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

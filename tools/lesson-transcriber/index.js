@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -220,15 +220,26 @@ async function analyzeNext() {
   const hasSummary = models.includes(SUMMARY_MODEL);
   if (!hasGec && !hasSummary) return;
   const snap = await db.collection('lessonRecordings').where('status', '==', 'done').get();
-  const rec = snap.docs.map((d) => ({ id: d.id, ref: d.ref, ...d.data() })).filter(needsAnalysis)
-    .sort((a, b) => String(b.endedAt || b.startedAt || '').localeCompare(String(a.endedAt || a.startedAt || '')))[0];
+  const done = snap.docs.map((d) => ({ id: d.id, ref: d.ref, ...d.data() })).filter(needsAnalysis)
+    .sort((a, b) => String(b.endedAt || b.startedAt || '').localeCompare(String(a.endedAt || a.startedAt || '')));
+  // one lesson = all parts of its invitation that day (a reload starts a new recording); wait until all are finished
+  let rec = null;
+  let parts = [];
+  for (const candidate of done) {
+    const sameInvitation = candidate.invitationId
+      ? (await db.collection('lessonRecordings').where('invitationId', '==', candidate.invitationId).get()).docs.map((d) => ({ id: d.id, ref: d.ref, ...d.data() }))
+      : [candidate];
+    const group = lessonParts(candidate, sameInvitation);
+    if (partsFinished(group)) { rec = candidate; parts = group; break; }
+  }
   if (!rec) return;
+  const transcript = joinedTranscript(parts);
   current = { state: 'analyzing', recordingId: rec.id };
   const started = Date.now();
   try {
     const errors = [];
     if (hasGec) {
-      for (const s of learnerSentences(rec.transcript, rec.language || 'et')) {
+      for (const s of learnerSentences(transcript, rec.language || 'et')) {
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(s.text), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
         if (isCorrection(s.text, corrected)) errors.push({ startMs: s.startMs, said: s.text, corrected, ...(s.unsure ? { unsure: true } : {}) });
         progress();
@@ -236,15 +247,19 @@ async function analyzeNext() {
     }
     let summary = null;
     if (hasSummary) {
-      summary = parseSummary(await ollama({ model: SUMMARY_MODEL, prompt: summaryPrompt(rec.transcript), format: 'json', options: { temperature: 0.2, num_ctx: 32768 } }));
+      summary = parseSummary(await ollama({ model: SUMMARY_MODEL, prompt: summaryPrompt(transcript), format: 'json', options: { temperature: 0.2, num_ctx: 32768 } }));
       progress();
     }
-    await rec.ref.update({ analysis: {
-      version: ANALYSIS_VERSION, errors, ...(summary ? { summary } : {}),
+    // the whole lesson's analysis goes on its first part; the other parts only point to it
+    const analyzedAt = new Date().toISOString();
+    const [first, ...rest] = parts;
+    await first.ref.update({ analysis: {
+      version: ANALYSIS_VERSION, parts: parts.map((p) => p.id), errors, ...(summary ? { summary } : {}),
       models: { ...(hasGec ? { gec: GEC_MODEL } : {}), ...(hasSummary ? { summary: SUMMARY_MODEL } : {}) },
-      analyzedAt: new Date().toISOString(), seconds: Math.round((Date.now() - started) / 1000),
+      analyzedAt, seconds: Math.round((Date.now() - started) / 1000),
     } });
-    log('analyzed', rec.id, `${errors.length} errors`, summary ? 'summary' : 'no summary');
+    for (const part of rest) await part.ref.update({ analysis: { version: ANALYSIS_VERSION, partOf: first.id, analyzedAt } });
+    log('analyzed', first.id, `${parts.length} part(s)`, `${errors.length} errors`, summary ? 'summary' : 'no summary');
   } catch (err) {
     // saved so a broken recording is not tried again every minute; a new ANALYSIS_VERSION retries all
     await rec.ref.update({ analysis: { version: ANALYSIS_VERSION, error: String(err.message || err).slice(0, 300), analyzedAt: new Date().toISOString() } });

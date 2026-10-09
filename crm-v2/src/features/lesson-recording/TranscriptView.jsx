@@ -139,7 +139,7 @@ export default function LessonsCard({ rows, studentId, loading, error, onReload,
           const r = row.recording;
           const status = r ? (STATUS[r.status] || STATUS.uploaded) : null;
           return <div key={row.key} className={inline && r ? 'lesson-rows__item is-inline' : undefined}>
-            <div><strong>{r ? dateLabel(r.startedAt) : dateLabel(row.at)} · {row.title}</strong><span>{r ? `${r.teacherName || 'Õpetaja'} · salvestatud` : 'ainult tahvel'}{row.pageTitle ? ` · leht „${row.pageTitle}”` : ''}</span></div>
+            <div><strong>{r ? dateLabel(r.startedAt) : dateLabel(row.at)} · {row.title}</strong><span>{r ? `${r.teacherName || 'Õpetaja'} · salvestatud${r.parts?.length > 1 ? ` (${r.parts.length} osas)` : ''}` : 'ainult tahvel'}{row.pageTitle ? ` · leht „${row.pageTitle}”` : ''}</span></div>
             {status ? <Badge tone={status[1]}>{status[0]}</Badge> : null}
             <span className="lesson-rows__actions">
               {r && !inline ? <Button variant="secondary" onClick={() => setOpen(r)}><BarChart3 size={15} /> Tunni analüüs</Button> : null}
