@@ -1382,6 +1382,24 @@ service cloud.firestore {
     // Lesson recordings from the Live Classroom room. The teacher of an accepted invitation starts one only when
     // the student card has recordingConsent == true; the browser appends audio segments; the transcription worker
     // (Admin SDK on the school Mac) writes the text. Teacher, student and admin may read; nobody else.
+    // The school's picture and text bank for the worksheet constructor (staff only).
+    match /mediaAssets/{assetId} {
+      allow read: if isStaff();
+      allow create, update: if isStaff()
+        && request.resource.data.keys().hasOnly([
+          'kind', 'level', 'topic', 'sheetTitle', 'lessonId', 'phase', 'tags', 'source',
+          'src', 'storagePath', 'width', 'height', 'caption', 'credit',
+          'title', 'text', 'words', 'textType',
+          'createdAt', 'createdBy', 'createdByName', 'updatedAt'
+        ])
+        && request.resource.data.kind in ['image', 'text']
+        && request.resource.data.level in ['', 'A1', 'A2', 'B1', 'B2', 'C1']
+        && request.resource.data.tags is list && request.resource.data.tags.size() <= 60
+        && (request.resource.data.kind != 'image' || (request.resource.data.src is string && request.resource.data.src.size() > 0 && request.resource.data.src.size() <= 2000))
+        && (request.resource.data.kind != 'text' || (request.resource.data.text is string && request.resource.data.text.size() <= 6000));
+      allow delete: if isAdmin() || (isStaff() && resource.data.createdBy == uid());
+    }
+
     match /lessonRecordings/{recordingId} {
       // the student only sees that a lesson is being recorded right now (the room's indicator); the finished
       // recording and its transcript are for the teacher and admins only (owner, 2026-10-04)

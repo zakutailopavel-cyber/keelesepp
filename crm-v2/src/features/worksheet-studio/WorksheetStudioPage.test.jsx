@@ -17,13 +17,13 @@ Object.defineProperty(window, 'localStorage', {
   },
 });
 
-function renderAt(path, repository, templates = { list: vi.fn().mockResolvedValue([]), create: vi.fn(), remove: vi.fn() }) {
+function renderAt(path, repository, templates = { list: vi.fn().mockResolvedValue([]), create: vi.fn(), remove: vi.fn() }, mediaBank = { list: vi.fn().mockResolvedValue([]), save: vi.fn().mockResolvedValue({}) }) {
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthContext.Provider value={{ user }}>
         <Routes>
-          <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} templates={templates} />} />
+          <Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} templates={templates} mediaBank={mediaBank} />} />
           <Route path="/library/lessons/:lessonId/worksheets/discover" element={<div>lesson-engine</div>} />
           <Route path="/library" element={<div>library</div>} />
         </Routes>
@@ -59,6 +59,27 @@ describe('WorksheetStudioPage', () => {
     expect(saved.lessonId).toBe('lesson-1');
     expect(saved.document.blocks.some((b) => b.type === 'truefalse')).toBe(true);
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
+  });
+
+  it('„Pank”: a text from the bank comes with gaps made from it; a picture goes into a new picture block', async () => {
+    const passage = 'Mari elab Tallinnas koos oma perega. Hommikul ärkab ta kell seitse ja joob kohvi. Siis sõidab ta bussiga tööle kesklinna. Õhtul vaatab Mari televiisorit ja loeb raamatut.';
+    const mediaBank = { save: vi.fn().mockResolvedValue({}), list: vi.fn().mockResolvedValue([
+      { id: 'txt_1', kind: 'text', title: 'Mari päev', text: passage, words: 30, level: 'A2', tags: ['mari', 'tallinnas'], textType: 'reading' },
+      { id: 'img_1', kind: 'image', src: 'https://cdn.example/kass.jpg', caption: 'Kass', level: 'A2', tags: ['kass'] },
+    ]) };
+    const repository = repo();
+    const { container } = renderAt('/library/worksheets/lesson-1', repository, undefined, mediaBank);
+    await screen.findByText('Töölehe konstruktor');
+    const cards = () => container.querySelectorAll('.ws-page .ws-card').length;
+    const before = cards();
+    fireEvent.click(screen.getByRole('tab', { name: 'Pank' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Lisa pilt: Kass' }));
+    await waitFor(() => expect(cards()).toBe(before + 1));
+    fireEvent.click(screen.getByRole('tab', { name: /Tekstid/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Mari päev/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa lehele' }));
+    await waitFor(() => expect(cards()).toBe(before + 3));
+    expect(container.querySelector('.ws-page').textContent).toContain('Mari elab Tallinnas');
   });
 
   it('edits the sheet title and a task title directly on the sheet', async () => {

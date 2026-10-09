@@ -1,3 +1,23 @@
+## 2026-10-09 — Constructor: school picture and text bank, better internet search — branch `agent/media-bank`
+
+Owner: the constructor lacks a proper library to find pictures and texts by level (chose bank of pictures, bank of
+texts, better internet search; will describe what else is weak).
+- `worksheet-studio/mediaBank.js` (pure): `extractAssets(doc, context)` — every `img` in a sheet's blocks (picture
+  blocks, picture tasks…) and longer texts (reading / listening passage, text ≥ 25 words, dialogue ≥ 12 words) with
+  level, topic, tags; `searchAssets` (word starts, level, kind); `gapsFromText`, `wordOrderFromText`,
+  `vocabFromText` (plain rules, no AI); `textbookArtAssets` (the textbook illustrations are in the bank from the start).
+- Firestore `mediaAssets/{hash}` (`services/firebase/mediaBank.js`, staff read / write, shape in the rules):
+  `save` (every picture uploaded in the constructor and every internet pick goes in with the sheet's level and
+  title), `indexCurriculum` (admin button „Uuenda panka õppekavast”: all published lesson sheets and phases).
+- Constructor left panel tab „Pank”: Pildid (search et/ru words, level A1–C1, click = into the selected picture block
+  or a new one), Tekstid (preview; „Lisa lehele” adds a reading block + optional gaps / word order / vocabulary from
+  the text), Internet.
+- Internet search (`ImageSearch`): the query is translated to English first (MyMemory, only the search words; falls
+  back to the original), Kõik / Joonistused / Fotod (Openverse `category`), 20 per page and „Näita veel”.
+- Checks: worksheet-studio + library green (new mediaBank 6, ImageSearch 2, constructor 1); new
+  `media-bank-rules-emulator.integration.js` 1/1; build OK. Manual gates: `firestore:rules` deploy; an admin presses
+  „Uuenda panka õppekavast” once.
+
 ## 2026-10-09 — Homework that really gets finished — branch `agent/homework-flow`
 
 Owner: otherwise homework stays undone forever (all four chosen).
