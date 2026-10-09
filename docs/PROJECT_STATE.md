@@ -14,6 +14,23 @@ Checked `origin/main` (after #394). Step 5 (last) of the owner's constructor roa
 - Checks: worksheet-studio 26 files / 126 tests (insights 4, tips 1), homework service 17/17; eslint 0 errors;
   screenshot of the panel with sample results.
 - Next safe step: merge; the owner opens „Tulemused” on a sheet that learners have already submitted.
+## 2026-10-09 — Constructor: easier / harder copies of a sheet — branch `agent/sheet-variants` (on top of #394)
+
+Step 3 of the owner's constructor roadmap. Branch starts from `agent/sheet-editing` (#394, not merged yet).
+- „Fail” → „Tee lihtsam versioon (toetav)” / „Tee raskem versioon (väljakutse)”: `engine/variants.js`
+  `makeVariant(doc, 'support' | 'challenge')` (plain rules, no AI) → a new draft copy (new block ids, title suffix,
+  `meta.variant`, `meta.variantOf` = source lesson id, `meta.variantChanges`), saved with `repository.save` like
+  „Tee töölehest koopia” and opened. The copy shows a banner with what changed and a link to the original.
+- Toetav: solved example on (blocks with `example`), Lüngad get a word bank (made from the answers if empty),
+  Kuulamine / Dialoog / Tabel / Skeem get „Abisõnad: …” in the instruction, Valikvastused keep the right answer and
+  1–2 wrong ones, no shuffle.
+- Väljakutse: examples off, options shuffled (`SHUFFLE_BLOCKS`), helper words and the word bank hidden, every other
+  given scheme box becomes a gap (in a mind map with sub-branches only sub-branches), every other table row's given
+  cells become gaps.
+- Checks: worksheet-studio 25 files / 121 tests (variants 3, studio „lihtsam versioon” 1); eslint 0 errors;
+  screenshots of the sample sheet in both versions.
+- Not done: per-student automatic choice of the version (needs the learner profile; later).
+- Next safe step: merge #394, then this PR; step 4 = live lesson mode for worksheets.
 
 ## 2026-10-09 — Constructor: edit lines on the sheet + free layer (arrows, callouts, stickers) — branch `agent/sheet-editing`
 
