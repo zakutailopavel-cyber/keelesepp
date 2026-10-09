@@ -105,6 +105,16 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
 }
 
 
+// A small picture of a block for the palette: the real card drawn in print mode, scaled down, never interactive.
+const NO_ANSWERS = () => ({ interactive: false, review: false, get: () => undefined, set: () => {}, state: () => undefined, focus: {}, setFocus: () => {} });
+export function BlockPreview({ block, theme = '' }) {
+  return (
+    <div className={`ws-root ws-thumb mode-print ${theme ? `theme-${theme}` : ''}`} aria-hidden="true" inert>
+      <div className="ws-thumb-page"><div className="ws-row"><Card block={{ ...block, span: COLUMNS, width: 'full' }} num={1} mode="print" ctx={NO_ANSWERS} theme={theme} /></div></div>
+    </div>
+  );
+}
+
 // Edit mode on a page: the card can be dragged (dnd-kit, the context is in WorksheetStudioPage) and blocks can be
 // dropped on it. The hidden measuring layer uses the plain Card, so ids are never registered twice.
 function DndCard(props) {

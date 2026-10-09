@@ -125,6 +125,30 @@ describe('WorksheetStudioPage', () => {
     await waitFor(() => expect(instruction.className).not.toContain('ws-rich-hidden'));
   }, 20000);
 
+  it('the block bar changes the look from small menus; the icon rail opens and closes the drawer', async () => {
+    const { container } = renderAt('/library/worksheets/lesson-1', repo());
+    await screen.findByText('Töölehe konstruktor');
+    const card = () => container.querySelectorAll('.ws-page .ws-card')[1];
+    fireEvent.click(card());
+    const toolbar = await screen.findByRole('toolbar', { name: 'Ploki tööriistad' });
+    fireEvent.click(within(toolbar).getByRole('button', { name: 'Värv' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Taust: Roheline' }));
+    await waitFor(() => expect(card().getAttribute('style')).toContain('rgb(236, 246, 233)'));
+    fireEvent.click(within(screen.getByRole('toolbar', { name: 'Ploki tööriistad' })).getByRole('button', { name: 'Raam' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Kriipsud' }));
+    await waitFor(() => expect(card().className).toContain('frame-dashed'));
+    // the content panel closes with × and comes back with „Sisu”
+    fireEvent.click(screen.getByRole('button', { name: 'Sulge seaded' }));
+    expect(container.querySelector('.st-inspector')).toBeNull();
+    fireEvent.click(within(screen.getByRole('toolbar', { name: 'Ploki tööriistad' })).getByRole('button', { name: /Sisu/ }));
+    expect(container.querySelector('.st-inspector')).not.toBeNull();
+    // a second click on the open rail tab hides the drawer
+    fireEvent.click(screen.getByRole('tab', { name: 'Plokid' }));
+    expect(container.querySelector('.st-palette')).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: 'Plokid' }));
+    expect(container.querySelector('.st-palette')).not.toBeNull();
+  });
+
   it('edits the sheet title and a task title directly on the sheet', async () => {
     const repository = repo();
     const { container } = renderAt('/library/worksheets/lesson-1', repository);
@@ -303,7 +327,8 @@ describe('WorksheetStudioPage', () => {
     fireEvent.change(screen.getByLabelText('Pealkiri', { exact: true }), { target: { value: 'Perekond' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Võrguühendus katkes.');
-    expect(screen.getByText(/Perekond · salvestamata/)).toBeInTheDocument();
+    expect(screen.getByTitle('Perekond')).toBeInTheDocument();
+    expect(screen.getByText(/^salvestamata/)).toBeInTheDocument();
   });
 
   it('shows a load error with a way back', async () => {
@@ -350,7 +375,7 @@ describe('WorksheetStudioPage', () => {
     const count = () => container.querySelectorAll('.ws-page .ws-card').length;
     const before = count();
     fireEvent.click(container.querySelector('.ws-page .ws-card'));
-    fireEvent.click(container.querySelector('.st-inspector .ed-btn.danger'));
+    fireEvent.click(within(screen.getByRole('toolbar', { name: 'Ploki tööriistad' })).getByRole('button', { name: 'Kustuta plokk' }));
     await waitFor(() => expect(count()).toBe(before - 1));
     expect(document.querySelector('.st-banner.ok')).toHaveTextContent('kustutati');
     fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
