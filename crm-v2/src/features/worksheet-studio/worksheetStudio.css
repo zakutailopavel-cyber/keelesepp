@@ -76,6 +76,18 @@ textarea.ed-input { resize: vertical; }
 .ws-studio .ed-seg button { flex: 1; border: 1px solid var(--st-line); background: var(--st-bg); color: var(--st-ink); border-radius: 8px; padding: 6px; font: 700 12.5px inherit; cursor: pointer; }
 .ws-studio .ed-seg button.on { background: var(--st-navy); color: #fff; border-color: var(--st-navy); }
 .ws-studio .ed-tones { display: flex; gap: 6px; }
+/* „Loo heli eesti häälega” (Neurokõne) */
+.ws-studio .ed-speak { gap: 8px; padding: 10px; border-radius: 12px; background: var(--st-accent-soft); border: 1px solid color-mix(in srgb, var(--st-accent) 25%, transparent); }
+.ws-studio .ed-speak .ed-label { display: inline-flex; align-items: center; gap: 5px; color: var(--st-accent-dark); }
+.ws-studio .ed-speak-voice { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 120px; }
+.ws-studio .ed-speak-voice small { font-size: 11px; font-weight: 700; color: var(--st-muted); }
+.ws-studio .ed-speak-voice .ed-input { width: 100%; }
+.ws-studio .ed-speak-go { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 12px; font-size: 13px; }
+.ws-studio .ed-btn:disabled { opacity: .6; cursor: default; }
+.ws-studio .ed-hint.is-ok { color: var(--st-accent-dark); font-weight: 700; }
+.ws-studio .ed-hint.is-error { color: var(--st-danger); font-weight: 700; }
+.ed-spin { animation: ed-spin 1s linear infinite; }
+@keyframes ed-spin { to { transform: rotate(360deg); } }
 .ws-studio .ed-tones button { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--st-line); cursor: pointer; }
 .ws-studio .ed-tones button.on { border-color: var(--st-navy); box-shadow: 0 0 0 2px var(--st-panel), 0 0 0 4px var(--st-accent); }
 .ws-studio .ed-img { position: relative; border-radius: 8px; overflow: hidden; background: var(--st-bg); border: 1px dashed var(--st-line); cursor: crosshair; }

@@ -62,4 +62,18 @@ function formsLine(forms = []) {
   return forms.map(form => form.value).join(", ");
 }
 
-module.exports = { LANGS, KEY_FORMS, cleanTerm, cacheKey, translationRequest, keyFormsFromParadigms, pickEkilexWord, formsLine };
+// Speech (TartuNLP / Neurokõne): Estonian voices the constructor offers, speed 0.5–2 (1 = normal).
+const TTS_SPEAKERS = ["mari", "liivika", "vesta", "kylli", "lee", "albert", "tambet", "peeter", "kalev", "indrek", "meelis", "luukas"];
+const MAX_SPEECH = 1200;
+
+function speechRequest({ text, speaker = "mari", speed = 1 } = {}) {
+  const clean = cleanTerm(text, MAX_SPEECH + 1);
+  if (!clean) throw Object.assign(new Error("Text required"), { status: 400 });
+  if (clean.length > MAX_SPEECH) throw Object.assign(new Error(`Text too long (max ${MAX_SPEECH} characters)`), { status: 400 });
+  const voice = String(speaker || "").toLowerCase();
+  if (!TTS_SPEAKERS.includes(voice)) throw Object.assign(new Error("Unknown voice"), { status: 400 });
+  const pace = Number(speed);
+  return { text: clean, speaker: voice, speed: Number.isFinite(pace) ? Math.min(2, Math.max(0.5, Math.round(pace * 100) / 100)) : 1 };
+}
+
+module.exports = { LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine };
