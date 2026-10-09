@@ -1,3 +1,16 @@
+## 2026-10-10 — „Hinda EKI-ga”: EKI text evaluation (words + grammatical forms) of a sheet — branch `agent/eki-text-evaluation`
+
+- Base: `main` (after #423). The owner pointed to Sõnaveeb „Õppeteksti hindamine”.
+- `functions/index.js` `languageApi` `POST /evaluate` (staff only) → `https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/evaluation`, with a 40 s timeout and 502 on failure.
+- `functions/language-core.js` `evaluationRequest` (max 8000 chars) / `summarizeEvaluation(data, level)` → `{words, wordLevels, unknownWords, formLevels, aboveWords, aboveForms, lix}`. Test in `language-core.test.js` (5/5).
+- CRM:
+  - `languageToolsService.evaluate`;
+  - `didactics/sheetText.js` (solved task sentences, reading passages, text blocks);
+  - `editor/EkiEvaluation.jsx` in SheetInspector, with `evaluate` from `WorksheetStudioPage` `speech`;
+  - worksheet-studio tests 152/152.
+- Deploy: `firebase deploy --only functions:languageApi` (this function only).
+- Next safe step: use the same evaluation on the school Mac to flag grammatical forms above the level in „Paku tekst”.
+
 ## 2026-10-10 — EKI grammar profile A1–C1 in the constructor and the AI prompts — branch `agent/eki-grammar`
 
 - Base: `main` (after #422). The owner pointed to Sõnaveeb „Õpetaja tööriistad” → Grammatika.

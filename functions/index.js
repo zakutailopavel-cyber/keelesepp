@@ -9704,6 +9704,23 @@ exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSe
       res.set("Content-Type", "audio/wav").set("Cache-Control", "no-store").send(audio);
       return;
     }
+    if (req.path === "/evaluate") {
+      // EKI „Õppeteksti hindamine”: the level of the sheet's words and grammatical forms (public etLex API)
+      const { evaluationRequest, summarizeEvaluation } = require("./language-core");
+      const body = evaluationRequest(req.body || {});
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 40000);
+      try {
+        const response = await fetch("https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/evaluation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: controller.signal });
+        if (!response.ok) throw httpError(502, "EKI text evaluation unavailable");
+        res.json(summarizeEvaluation(await response.json(), req.body?.level));
+      } catch (error) {
+        throw error.status ? error : httpError(502, error.name === "AbortError" ? "EKI text evaluation did not answer in time" : "EKI text evaluation unavailable");
+      } finally {
+        clearTimeout(timer);
+      }
+      return;
+    }
     if (req.path === "/word") {
       // one call for the word card: translation into the student's language + Estonian forms (each may fail alone)
       const word = String(req.body?.word || "");

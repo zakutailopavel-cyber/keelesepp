@@ -76,4 +76,34 @@ function speechRequest({ text, speaker = "mari", speed = 1 } = {}) {
   return { text: clean, speaker: voice, speed: Number.isFinite(pace) ? Math.min(2, Math.max(0.5, Math.round(pace * 100) / 100)) : 1 };
 }
 
-module.exports = { LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine };
+// EKI etLex „Õppeteksti hindamine” (https://sonaveeb.ee/teacher-tools/#/rating): the level of every word (lexical) and of
+// every grammatical form. Summary for the constructor: shares per level, and what lies above the sheet's level.
+const ETLEX_LEVELS = ["A1", "A2", "B1", "B2", "C1"];
+const MAX_EVALUATION_TEXT = 8000;
+function evaluationRequest({ text = "" } = {}) {
+  const clean = String(text || "").replace(/\s+/g, " ").trim().slice(0, MAX_EVALUATION_TEXT);
+  if (clean.length < 3) { const error = new Error("Text required"); error.status = 400; throw error; }
+  return { text: clean };
+}
+function summarizeEvaluation(data, level = "A2") {
+  const cap = ETLEX_LEVELS.indexOf(String(level || "").toUpperCase().slice(0, 2));
+  const limit = cap >= 0 ? cap : 1;
+  const words = (data?.evaluatedText || []).filter((t) => t.pos !== "Z");
+  const forms = (data?.evaluatedGrammarText || []).filter((t) => ETLEX_LEVELS.includes(t.level));
+  const count = (list) => Object.fromEntries(ETLEX_LEVELS.map((l) => [l, list.filter((t) => t.level === l).length]));
+  const above = (list, pick) => {
+    const seen = new Set();
+    return list.filter((t) => ETLEX_LEVELS.indexOf(t.level) > limit).map(pick).filter((x) => { const k = `${x.text}|${x.level}`; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 40);
+  };
+  return {
+    words: words.length,
+    wordLevels: count(words),
+    unknownWords: words.filter((t) => !ETLEX_LEVELS.includes(t.level)).length,
+    formLevels: count(forms),
+    aboveWords: above(words, (t) => ({ text: t.text, lemma: t.lemma, level: t.level })),
+    aboveForms: above(forms, (t) => ({ text: t.text, lemma: t.lemma, level: t.level, form: t.formXinfo || t.form || "" })),
+    lix: data?.textStat?.LixIndex ?? null,
+  };
+}
+
+module.exports = { evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine };
