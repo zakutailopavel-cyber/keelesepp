@@ -60,3 +60,39 @@ export function dropRun(blocks, fromId, toId) {
   rest.splice(target, 0, first, ...run.slice(1));
   return rest;
 }
+
+// Drag & drop with a side: the dragged group lands before or after the target's group (left = before, right = after).
+export function dropAt(blocks, fromId, toId, side = 'before') {
+  if (side === 'before' || side === 'left') return dropRun(blocks, fromId, toId);
+  const from = blocks.findIndex((block) => block.id === fromId);
+  const to = blocks.findIndex((block) => block.id === toId);
+  if (from < 0 || to < 0) return blocks;
+  const [start, end] = runBounds(blocks, from);
+  if (to >= start && to <= end) return blocks;
+  const run = blocks.slice(start, end + 1);
+  const first = { ...run[0] };
+  delete first.joined;
+  const rest = [...blocks.slice(0, start), ...blocks.slice(end + 1)];
+  const targetEnd = runBounds(rest, rest.findIndex((block) => block.id === toId))[1];
+  rest.splice(targetEnd + 1, 0, first, ...run.slice(1));
+  return rest;
+}
+
+// a new block dropped from the palette: before or after the target's group (or at the end)
+export function insertAt(blocks, fresh, toId, side = 'after') {
+  const to = blocks.findIndex((block) => block.id === toId);
+  if (to < 0) return [...blocks, ...fresh];
+  const [start, end] = runBounds(blocks, to);
+  const at = side === 'before' || side === 'left' ? start : end + 1;
+  return [...blocks.slice(0, at), ...fresh, ...blocks.slice(at)];
+}
+
+// where a dragged block would land on a card: near the left / right edge of a card that is not full width →
+// beside it; otherwise above or below it
+export function dropSide({ x, y, width, height }, fullWidth = false) {
+  const fx = width ? x / width : 0.5;
+  const fy = height ? y / height : 0.5;
+  if (!fullWidth && fx < 0.22) return 'left';
+  if (!fullWidth && fx > 0.78) return 'right';
+  return fy < 0.5 ? 'before' : 'after';
+}

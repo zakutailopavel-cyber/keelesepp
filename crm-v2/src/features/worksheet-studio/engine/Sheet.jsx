@@ -5,6 +5,7 @@ import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
 import { addItemLabel } from './addItem.js';
+import { dropSide } from './look.js';
 import { findEditable } from './inlineEdit.js';
 import { BookOpen, CheckCircle2, Clock3, Headphones, Lightbulb, MessageCircle, PenLine, Star } from 'lucide-react';
 
@@ -34,7 +35,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick, onResize, onAddItem, toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
+function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropHint = '', onSelect, drag, focused, onPick, onResize, onAddItem, toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
@@ -48,6 +49,8 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
   const hasExample = Object.keys(example).length > 0;
   const base = ctx(block.id);
   const addLabel = mode === 'edit' && selected && onAddItem ? addItemLabel(block) : null;
+  // the tools show on hover as well as on the selected block
+  const active = mode === 'edit' && (selected || hovered);
   // the solved example is read-only and shown in every mode (edit, print, student)
   const blockCtx = hasExample || opts.shuffle ? {
     ...base,
@@ -58,7 +61,7 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
   } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''}`}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''}`}
       data-cols={opts.cols > 1 ? opts.cols : undefined}
       data-size={opts.size || undefined}
       style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}) }}
@@ -66,8 +69,11 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
       draggable={mode === 'edit'}
       onDragStart={mode === 'edit' ? (e) => drag.start(e, block.id) : undefined}
-      onDragOver={mode === 'edit' ? (e) => drag.over(e, block.id) : undefined}
+      onDragOver={mode === 'edit' ? (e) => drag.over(e, block.id, spanOf(block) >= COLUMNS) : undefined}
       onDrop={mode === 'edit' ? (e) => drag.drop(e, block.id) : undefined}
+      onDragEnd={mode === 'edit' ? () => drag.end() : undefined}
+      onMouseEnter={mode === 'edit' && onHover ? () => onHover(block.id) : undefined}
+      onMouseLeave={mode === 'edit' && onHover ? () => onHover(null) : undefined}
     >
       {!def.task && LookIcon ? <LookIcon className="ws-look-icon is-corner" aria-hidden="true" /> : null}
       {def.task && (
@@ -82,8 +88,8 @@ function Card({ block, num, mode, ctx, selected, onSelect, drag, focused, onPick
       {/* body fills the rest of a block made taller than its content (see .is-tall in sheet.css) */}
       <div className="ws-body"><def.View data={d} ctx={blockCtx} id={block.id} /></div>
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
-      {mode === 'edit' && selected && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
-      {mode === 'edit' && selected && toolbar ? <div className="ws-toolbar" role="toolbar" aria-label="Ploki tööriistad" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
+      {active && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
+      {active && toolbar ? <div className="ws-toolbar" role="toolbar" aria-label="Ploki tööriistad" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
       {mode === 'edit' && onInsertAfter ? <button type="button" className="ws-insert" title="Lisa plokk selle järele" aria-label="Lisa plokk selle järele" onClick={(e) => { e.stopPropagation(); onInsertAfter(block.id); }}>+</button> : null}
     </section>
   );
@@ -104,16 +110,21 @@ function ResizeHandles({ block, onResize }) {
     const pxPerMm = page.getBoundingClientRect().width / 270;
     const colWidth = rowRect.width / COLUMNS;
     const startCol = Math.round((cardRect.left - rowRect.left) / colWidth);
+    const FRACTION = { 3: '¼', 4: '⅓', 6: '½', 8: '⅔', 9: '¾', 12: 'täislaius' };
     const move = (e) => {
-      if (axis === 'x') {
+      if (axis === 'x' || axis === 'xy') {
         const raw = (e.clientX - rowRect.left) / colWidth - startCol;
-        card.dataset.previewSpan = String(snapSpan(Math.max(1, raw)));
-        card.style.gridColumn = `span ${Math.min(COLUMNS - startCol, snapSpan(Math.max(1, raw)))}`;
-      } else {
+        const span = Math.min(COLUMNS - startCol, snapSpan(Math.max(1, raw)));
+        card.dataset.previewSpan = String(span);
+        card.style.gridColumn = `span ${span}`;
+      }
+      if (axis === 'y' || axis === 'xy') {
         const mm = Math.max(20, (e.clientY - cardRect.top) / pxPerMm);
         card.dataset.previewHeight = String(Math.round(mm));
         card.style.minHeight = `${Math.round(mm)}mm`;
       }
+      // the size is shown while dragging (CSS ::after of the card)
+      card.dataset.sizeLabel = [card.dataset.previewSpan ? FRACTION[card.dataset.previewSpan] || `${card.dataset.previewSpan}/12` : '', card.dataset.previewHeight ? `${card.dataset.previewHeight} mm` : ''].filter(Boolean).join(' · ');
     };
     const up = () => {
       globalThis.removeEventListener('pointermove', move);
@@ -122,10 +133,14 @@ function ResizeHandles({ block, onResize }) {
       const swallow = (e) => e.stopPropagation();
       globalThis.addEventListener('click', swallow, { capture: true, once: true });
       globalThis.setTimeout(() => globalThis.removeEventListener('click', swallow, { capture: true }), 0);
-      if (axis === 'x' && card.dataset.previewSpan) onResize(block.id, { span: Number(card.dataset.previewSpan) });
-      if (axis === 'y' && card.dataset.previewHeight) onResize(block.id, { minHeightMm: Number(card.dataset.previewHeight) });
+      const patch = {
+        ...(card.dataset.previewSpan ? { span: Number(card.dataset.previewSpan) } : {}),
+        ...(card.dataset.previewHeight ? { minHeightMm: Number(card.dataset.previewHeight) } : {}),
+      };
+      if (Object.keys(patch).length) onResize(block.id, patch);
       delete card.dataset.previewSpan;
       delete card.dataset.previewHeight;
+      delete card.dataset.sizeLabel;
     };
     globalThis.addEventListener('pointermove', move);
     globalThis.addEventListener('pointerup', up);
@@ -134,11 +149,12 @@ function ResizeHandles({ block, onResize }) {
     <>
       <span className="ws-resize ws-resize-x" role="separator" aria-orientation="vertical" aria-label="Muuda laiust" title="Lohista, et muuta laiust" onPointerDown={(e) => start(e, 'x')} onClick={(e) => e.stopPropagation()} />
       <span className="ws-resize ws-resize-y" role="separator" aria-orientation="horizontal" aria-label="Muuda kõrgust" title="Lohista, et muuta kõrgust" onPointerDown={(e) => start(e, 'y')} onClick={(e) => e.stopPropagation()} />
+      <span className="ws-resize ws-resize-xy" role="separator" aria-label="Muuda suurust" title="Lohista nurgast, et muuta laiust ja kõrgust" onPointerDown={(e) => start(e, 'xy')} onClick={(e) => e.stopPropagation()} />
     </>
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onResize, onAddItem, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onDropNew, onResize, onAddItem, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -156,12 +172,31 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     setFocus: (bid, v) => setFocusState((f) => ({ ...f, [bid]: v })),
   });
 
-  // drag & drop reorder (edit mode)
+  // drag & drop (edit mode): a block of the sheet or a new one from the palette; the place it would land is lit up
   const dragId = useRef(null);
+  const [hoverId, setHoverId] = useState(null);
+  const [dropHint, setDropHint] = useState(null);
+  const NEW_BLOCK = 'application/x-ws-block';
   const drag = {
-    start: (e, id) => { dragId.current = id; e.dataTransfer.effectAllowed = 'move'; },
-    over: (e) => { e.preventDefault(); },
-    drop: (e, id) => { e.preventDefault(); if (dragId.current && dragId.current !== id) onMove?.(dragId.current, id); dragId.current = null; },
+    start: (e, id) => { dragId.current = id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData?.('text/plain', id); },
+    over: (e, id, fullWidth) => {
+      e.preventDefault();
+      if (dragId.current === id) { if (dropHint) setDropHint(null); return; }
+      const rect = e.currentTarget.getBoundingClientRect();
+      const side = dropSide({ x: e.clientX - rect.left, y: e.clientY - rect.top, width: rect.width, height: rect.height }, fullWidth);
+      if (dropHint?.id !== id || dropHint?.side !== side) setDropHint({ id, side });
+    },
+    drop: (e, id) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const side = dropHint?.id === id ? dropHint.side : 'before';
+      const type = e.dataTransfer?.getData?.(NEW_BLOCK);
+      if (type) onDropNew?.(type, id, side);
+      else if (dragId.current && dragId.current !== id) onMove?.(dragId.current, id, side);
+      dragId.current = null;
+      setDropHint(null);
+    },
+    end: () => { dragId.current = null; setDropHint(null); },
   };
 
   // --- pagination: measure rows in a hidden layer, then pack them into A4 pages ---
@@ -244,7 +279,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} toolbar={selectedId === b.id && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
+      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} hovered={hoverId === b.id} onHover={mode === 'edit' ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} toolbar={(selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
     </div>
   );
 
@@ -259,7 +294,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
         <div className="ws-page" key={p}>
           {p === 0 ? <Header key={`head:${rev}`} meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
           <div className="ws-flow">{idxs.map((i) => rows[i] && rowView(rows[i], i))}</div>
-          {mode === 'edit' && idxs.length === 0 && <div className="ws-empty">Lisa vasakult esimene plokk.</div>}
+          {mode === 'edit' && idxs.length === 0 && <div className="ws-empty" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const type = e.dataTransfer?.getData?.(NEW_BLOCK); if (type) onDropNew?.(type, null, 'after'); }}>Lisa vasakult esimene plokk või lohista see siia.</div>}
           <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} />
         </div>
       ))}

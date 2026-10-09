@@ -82,6 +82,38 @@ describe('WorksheetStudioPage', () => {
     expect(container.querySelector('.ws-page').textContent).toContain('Mari elab Tallinnas');
   });
 
+  it('on the sheet: tools on hover, a lit drop place, a new block dragged from the palette, settings float by the block', async () => {
+    const repository = repo();
+    const { container } = renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
+    const before = cards().length;
+    const second = cards()[1];
+    fireEvent.mouseEnter(second);
+    expect(second.querySelector('.ws-toolbar')).not.toBeNull();
+    expect(second.querySelector('.ws-resize-xy')).not.toBeNull();
+    fireEvent.mouseLeave(second);
+    expect(second.querySelector('.ws-toolbar')).toBeNull();
+    const store = {};
+    const dataTransfer = { setData: (k, v) => { store[k] = v; }, getData: (k) => store[k] || '', effectAllowed: '' };
+    fireEvent.dragStart(screen.getByRole('button', { name: /Õige \/ vale/ }), { dataTransfer });
+    second.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 200, right: 400, bottom: 200 });
+    fireEvent.dragOver(second, { dataTransfer, clientX: 200, clientY: 20 });
+    // jsdom drag events carry no pointer position, so only that a place is lit is checked here (sides: look tests)
+    expect(second.className).toMatch(/drop-(before|after)/);
+    fireEvent.drop(second, { dataTransfer, clientX: 200, clientY: 20 });
+    await waitFor(() => expect(cards().length).toBe(before + 1));
+    const added = cards().find((card) => card.className.includes('selected'));
+    expect(cards().indexOf(added)).toBeGreaterThan(0);
+    expect(cards().indexOf(added)).toBeLessThan(3);
+    const panel = container.querySelector('.st-inspector.is-floating');
+    expect(panel).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Vii paneel teisele poole' }));
+    expect(container.querySelector('.st-inspector.is-floating.is-left')).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Sulge seaded' }));
+    expect(container.querySelector('.st-inspector')).toBeNull();
+  });
+
   it('edits the sheet title and a task title directly on the sheet', async () => {
     const repository = repo();
     const { container } = renderAt('/library/worksheets/lesson-1', repository);
@@ -256,6 +288,7 @@ describe('WorksheetStudioPage', () => {
   it('reports save errors without losing the draft', async () => {
     renderAt('/library/worksheets/new', repo({ save: vi.fn().mockRejectedValue(new Error('Võrguühendus katkes.')) }));
     await screen.findByText('Töölehe konstruktor');
+    fireEvent.click(screen.getByRole('tab', { name: 'Leht' }));
     fireEvent.change(screen.getByLabelText('Pealkiri', { exact: true }), { target: { value: 'Perekond' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Võrguühendus katkes.');

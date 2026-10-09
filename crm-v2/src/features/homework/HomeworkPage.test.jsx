@@ -134,7 +134,7 @@ describe('HomeworkPage', () => {
     expect(screen.queryByRole('button', { name: /Kinnita hinne 1/ })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Kinnita hinne 4 — Mari' }));
     fireEvent.click(screen.getByRole('button', { name: 'Tühista' }));
-    await new Promise((r) => setTimeout(r, 300));
+    await new Promise((r) => globalThis.setTimeout(r, 300));
     expect(data.repository.reviewSubmission).not.toHaveBeenCalled();
   });
 
