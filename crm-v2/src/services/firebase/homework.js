@@ -425,6 +425,13 @@ export const homeworkService = {
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveFocus });
     return liveFocus;
   },
+  // all copies of one sheet given to learners (the sheet's „Tulemused” in the constructor) — staff only by the rules
+  async listWorksheetResults(lessonId) {
+    if (!lessonId) return [];
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('lessonId', '==', lessonId)));
+    return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+  },
   // live lesson: step mode (open tasks one by one) and the tasks whose right answers the learner sees
   async setWorksheetLiveStep({ assignmentId, on, open }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

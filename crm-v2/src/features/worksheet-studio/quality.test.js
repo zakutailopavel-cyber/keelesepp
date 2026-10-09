@@ -46,3 +46,16 @@ describe('worksheet publication quality', () => {
     expect(analyzeWorksheet(doc).errors.map((issue) => issue.code)).toEqual(expect.arrayContaining([`${block.id}:title`, `${block.id}:answers`]));
   });
 });
+
+describe('authoring tips', () => {
+  it('suggests speaking or writing, variety and a shorter sheet without blocking publishing', async () => {
+    const { analyzeWorksheet } = await import('./quality.js');
+    const task = (id, type) => ({ id, type, data: { title: 'T', instruction: 'I', statements: [{ text: 'a', answer: 'true' }], sentences: 'a [b]' } });
+    const doc = { meta: { title: 'Leht', goals: { g: 'x' } }, blocks: [task('a', 'truefalse'), task('b', 'truefalse'), task('c', 'truefalse')] };
+    const result = analyzeWorksheet(doc);
+    expect(result.ready).toBe(true);
+    expect(result.tips.map((t) => t.code)).toEqual(['productive', 'c:same-type']);
+    const long = { ...doc, blocks: Array.from({ length: 11 }, (_, i) => task(`t${i}`, i % 2 ? 'speaking' : 'truefalse')) };
+    expect(analyzeWorksheet(long).tips.map((t) => t.code)).toEqual(['long']);
+  });
+});
