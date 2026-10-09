@@ -67,7 +67,7 @@ describe('PetCompanion', () => {
     await screen.findByRole('button', { name: /Rebu: vajuta/ }, { timeout: 5000 });
     push([{ id: 'inv-1', status: 'pending', teacherName: 'Kati', expiresAt: new Date(at(12, 5)).toISOString() }]);
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Kati kutsub sind tundi!'), { timeout: 5000 });
-  });
+  }, 15000); // the two waits above can take 5 s each on a loaded CI runner
 
   it('can be hidden and called back; never shown to staff or in preview', async () => {
     window.localStorage.setItem('ks-pet-tour-u1', '1');
