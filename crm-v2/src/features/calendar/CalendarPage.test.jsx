@@ -449,6 +449,26 @@ describe('calendar v2', () => {
     expect(props.lessonRepository.completeFromSchedule).not.toHaveBeenCalled();
   });
 
+  it('a Live Classroom lesson that was not in the calendar is added and marked held in one click', async () => {
+    const props = repositories({ events: [] });
+    const takeHandoff = vi.fn(() => ({ notes: 'Tubli töö', lessonIds: ['b1-2'], savedAt: Date.now() }));
+    render(<MemoryRouter initialEntries={[`/calendar?student=s1&held=${encodeURIComponent(`${today}|18:15|45`)}`]}><Routes><Route path="/calendar" element={<CalendarPage {...props} takeHandoff={takeHandoff} />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText(/ei olnud kalendris/)).toBeInTheDocument();
+    expect(takeHandoff).toHaveBeenCalledWith(`student:s1|${today}`);
+    fireEvent.click(await screen.findByRole('button', { name: 'Lisa ja märgi toimunuks' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1', date: today, time: '18:15', duration: 45, recurring: false })));
+    await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'created-1', occurrenceDate: today, studentId: 's1' }), expect.anything(), expect.objectContaining({ topicLessonId: 'b1-2', notes: 'Tubli töö' })));
+    expect(await screen.findByText(/märgitud toimunuks koos märkusega/)).toBeInTheDocument();
+  });
+
+  it('marks the planned lesson of that day when there is one', async () => {
+    const props = repositories({ events: [lesson()] });
+    render(<MemoryRouter initialEntries={[`/calendar?student=s1&held=${encodeURIComponent(`${today}|10:05|60`)}`]}><Routes><Route path="/calendar" element={<CalendarPage {...props} takeHandoff={() => null} />} /></Routes></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Märgi toimunuks' }));
+    await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.anything()));
+    expect(props.scheduleRepository.create).not.toHaveBeenCalled();
+  });
+
   it('ignores a malformed ?lesson= link', async () => {
     renderCalendar({ events: [lesson()] }, '/calendar?lesson=bogus');
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });
