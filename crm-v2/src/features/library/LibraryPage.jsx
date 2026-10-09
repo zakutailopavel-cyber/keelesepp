@@ -21,7 +21,9 @@ import {
   Sparkles,
   Star,
   Wrench,
-  X,, BarChart3 } from 'lucide-react';
+  X,
+  BarChart3,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
