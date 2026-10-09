@@ -1,3 +1,18 @@
+## 2026-10-10 — Indicator: when the AI analysis of a lesson will be ready — branch `agent/analysis-indicator`
+
+- Base: `main` (after #411). Owner: show when the analysis will be ready.
+- Mac (`tools/lesson-transcriber`):
+  - `heartbeat` may carry `recordingIds` (the lesson's parts) and `detail` („alustan”, „vead 8/40”, „kokkuvõte”).
+  - `analyzeNext` beats at the start, every 8 sentences and before the summary.
+  - Tests: `node --test` 16/16. Installed on the Mac and restarted.
+- CRM:
+  - `transcriberState` returns `analyzing: [{ids, detail}]`.
+  - New `analysisStatus(recording, transcriber)` gives ready / running (with step) / waiting / offline / failed, or null while the text is not done.
+  - `LessonsCard` shows a second badge per lesson („AI analüüs” / „Analüüsin… vead 8/40” / „AI ootab”). While an analysis is waiting or running, the list reloads every 30 s.
+  - `RecordingText` shows the status line above the analysis.
+  - Tests: lesson-recording + students pass. live-classroom has only the 9 documented Node 26 localStorage failures.
+- Next safe step: open a freshly recorded lesson and watch the badge go from „AI ootab” to „AI analüüs”.
+
 ## 2026-10-10 — One lesson, one row: recording parts joined; the Mac analyses the whole lesson — branch `agent/one-lesson-one-row`
 
 - Base: `main` (after #410). Owner: Ilja's lesson of 09.10 showed as 4 rows („одна дата — один урок”).

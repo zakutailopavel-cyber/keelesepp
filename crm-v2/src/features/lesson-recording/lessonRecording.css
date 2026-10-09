@@ -54,3 +54,10 @@
 .lesson-ai__errors time { color: var(--muted, #6b7091); font-size: .78rem; font-variant-numeric: tabular-nums; }
 .lesson-ai__errors s { color: #b42318; } .lesson-ai__errors ins { color: #067647; font-weight: 700; text-decoration: none; }
 .lesson-ai__errors small { color: #b54708; font-size: .72rem; }
+.lesson-rows__badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.lesson-ai__status { margin: 0 0 10px; padding: 8px 12px; border-radius: 10px; background: #f2f4f7; color: #344054; font-size: .88rem; }
+.lesson-ai__status.is-running { background: #eff8ff; color: #175cd3; }
+.lesson-ai__status.is-running::before { content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 8px; border-radius: 50%; background: #2e90fa; animation: lesson-ai-pulse 1.2s infinite; vertical-align: 1px; }
+.lesson-ai__status.is-failed { background: #fef3f2; color: #b42318; }
+@keyframes lesson-ai-pulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .lesson-ai__status.is-running::before { animation: none; } }

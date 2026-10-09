@@ -123,3 +123,10 @@ test('words whisper was unsure of are marked; language and marks survive merging
     ['Как сказать?', 'ru', undefined],
   ]);
 });
+
+test('the heartbeat carries the lesson parts and the progress only while analysing', () => {
+  const { heartbeat } = require('./lib');
+  const beat = heartbeat({ host: 'm', state: 'analyzing', recordingId: 'a', recordingIds: ['a', 'b'], detail: 'vead 8/40', now: new Date(0) });
+  assert.deepEqual([beat.recordingIds, beat.detail], [['a', 'b'], 'vead 8/40']);
+  assert.equal('detail' in heartbeat({ host: 'm', now: new Date(0) }), false);
+});

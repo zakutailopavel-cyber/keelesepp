@@ -26,7 +26,7 @@ export default function StudentRecordingsPanel({ student, user, isAdmin = false,
   return (
     <>
       {student.recordingConsent === true ? null : <p className="form-hint profile-wide"><Mic size={15} aria-hidden="true" /> Tundi ei salvestata: nõusolekut pole. Selle saab märkida nupu „Muuda” all.</p>}
-      <div className="profile-wide"><LessonsCard rows={rows} studentId={student.id} loading={state.loading} error={state.error} onReload={load} /></div>
+      <div className="profile-wide"><LessonsCard rows={rows} studentId={student.id} loading={state.loading} error={state.error} onReload={load} transcriberService={service} /></div>
     </>
   );
 }

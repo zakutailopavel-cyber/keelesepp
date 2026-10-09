@@ -234,12 +234,16 @@ async function analyzeNext() {
   }
   if (!rec) return;
   const transcript = joinedTranscript(parts);
-  current = { state: 'analyzing', recordingId: rec.id };
+  const ids = parts.map((p) => p.id);
+  current = { state: 'analyzing', recordingId: rec.id, recordingIds: ids, detail: 'alustan' };
+  await beat();
   const started = Date.now();
   try {
     const errors = [];
     if (hasGec) {
-      for (const s of learnerSentences(transcript, rec.language || 'et')) {
+      const sentences = learnerSentences(transcript, rec.language || 'et');
+      for (const [i, s] of sentences.entries()) {
+        if (i % 8 === 0) { current = { ...current, detail: `vead ${i}/${sentences.length}` }; await beat(); }
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(s.text), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
         if (isCorrection(s.text, corrected)) errors.push({ startMs: s.startMs, said: s.text, corrected, ...(s.unsure ? { unsure: true } : {}) });
         progress();
@@ -247,6 +251,8 @@ async function analyzeNext() {
     }
     let summary = null;
     if (hasSummary) {
+      current = { ...current, detail: 'kokkuvõte' };
+      await beat();
       summary = parseSummary(await ollama({ model: SUMMARY_MODEL, prompt: summaryPrompt(transcript), format: 'json', options: { temperature: 0.2, num_ctx: 32768 } }));
       progress();
     }
