@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt } from './boardModel.js';
+import { arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -270,5 +270,35 @@ describe('StudentBoard with several lesson worksheets', () => {
     expect(screen.getByRole('tab', { name: /Tööleht: Avasta/ })).toHaveClass('is-worksheet');
     expect(screen.getByRole('tab', { name: /Tööleht: Harjuta/ })).toHaveClass('is-worksheet');
     expect(service.addPage).not.toHaveBeenCalled();
+  });
+});
+
+describe('moving the board', () => {
+  it('a wheel or two-finger scroll moves the board, a pinch or Ctrl + wheel zooms', () => {
+    const view = { x: 10, y: 20, scale: 1 };
+    expect(wheelView(view, { deltaX: 5, deltaY: 40 }, { x: 0, y: 0 })).toEqual({ x: 5, y: -20, scale: 1 });
+    expect(wheelView(view, { deltaY: 3, deltaMode: 1 }, { x: 0, y: 0 })).toEqual({ x: 10, y: -28, scale: 1 });
+    const zoomed = wheelView(view, { deltaY: -50, ctrlKey: true }, { x: 100, y: 100 });
+    expect(zoomed.scale).toBeGreaterThan(1);
+    expect(zoomed.scale).toBeLessThanOrEqual(1.25);
+    expect(wheelView(view, { deltaY: 50, metaKey: true }, { x: 100, y: 100 }).scale).toBeLessThan(1);
+  });
+
+  it('two fingers follow their centre and scale with their distance', () => {
+    const start = { x: 0, y: 0, scale: 1 };
+    expect(pinchView(start, [{ x: 0, y: 0 }, { x: 100, y: 0 }], [{ x: 20, y: 30 }, { x: 120, y: 30 }])).toEqual({ x: 20, y: 30, scale: 1 });
+    const zoom = pinchView(start, [{ x: 0, y: 0 }, { x: 100, y: 0 }], [{ x: -50, y: 0 }, { x: 150, y: 0 }]);
+    expect(zoom.scale).toBe(2);
+    expect(zoom.x).toBe(-50);
+  });
+
+  it('on the board the plain wheel pans instead of zooming', () => {
+    const { container } = render(<StudentBoard studentId="s-1" user={{ uid: 'u' }} service={fakeService()} />);
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    const g = () => svg.querySelector('g[transform]').getAttribute('transform');
+    const before = g();
+    fireEvent.wheel(svg, { deltaY: 30, clientX: 10, clientY: 10 });
+    expect(g()).not.toBe(before);
+    expect(g()).toMatch(/scale\(1\)$|scale\(1\)/);
   });
 });

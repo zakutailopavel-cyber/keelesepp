@@ -2,7 +2,7 @@ import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Crosshair, Eraser, Fi
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, zoomAt } from './boardModel.js';
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, wheelView, zoomAt, pinchView } from './boardModel.js';
 import './board.css';
 
 const TOOLS = [
@@ -341,7 +341,59 @@ export default function StudentBoard({
 
   const wheel = (event) => {
     event.preventDefault?.();
-    moveView((current) => zoomAt(current, event.deltaY < 0 ? 1.08 : 1 / 1.08, local(event)));
+    moveView((current) => wheelView(current, event, local(event)));
+  };
+  // Moving the board without the hand tool: two fingers (pan + pinch) with any tool, one finger on a worksheet page
+  // while filling it in, the middle mouse button anywhere. Handled on the stage before the drawing layer sees it.
+  const touches = useRef(new Map());
+  const nav = useRef(null);
+  const navDown = (event) => {
+    const point = local(event);
+    if (event.pointerType === 'mouse') {
+      if (event.button !== 1) return;
+      event.preventDefault(); event.stopPropagation();
+      nav.current = { kind: 'pan', start: point, view, pointerId: event.pointerId };
+      return;
+    }
+    if (event.pointerType !== 'touch') return;
+    touches.current.set(event.pointerId, point);
+    if (touches.current.size === 2) {
+      // a second finger: whatever the first one started (a line, a shape) is dropped, the board moves instead
+      gesture.current = null; setDraft(null);
+      nav.current = { kind: 'pinch', start: [...touches.current.values()], view };
+      event.stopPropagation();
+    } else if (touches.current.size === 1 && filling) {
+      nav.current = { kind: 'pan', start: point, view, pointerId: event.pointerId, moved: false };
+    }
+  };
+  const navMove = (event) => {
+    const current = nav.current;
+    if (!current) return;
+    const point = local(event);
+    if (current.kind === 'pinch') {
+      if (!touches.current.has(event.pointerId)) return;
+      touches.current.set(event.pointerId, point);
+      const now = [...touches.current.values()];
+      if (now.length >= 2) moveView(pinchView(current.view, current.start, now.slice(0, 2)));
+      event.stopPropagation();
+      return;
+    }
+    if (event.pointerId !== current.pointerId) return;
+    const dx = point.x - current.start.x;
+    const dy = point.y - current.start.y;
+    if (!current.moved && Math.hypot(dx, dy) < 8 && event.pointerType === 'touch') return; // a tap on an answer field
+    current.moved = true;
+    moveView({ ...current.view, x: current.view.x + dx, y: current.view.y + dy });
+    event.stopPropagation();
+  };
+  const navUp = (event) => {
+    touches.current.delete(event.pointerId);
+    const current = nav.current;
+    if (!current) return;
+    if (current.kind === 'pinch' ? touches.current.size < 2 : event.pointerId === current.pointerId) {
+      nav.current = null;
+      event.stopPropagation();
+    }
   };
   const zoom = (factor) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -349,7 +401,8 @@ export default function StudentBoard({
   };
   const fit = () => {
     const rect = svgRef.current?.getBoundingClientRect();
-    setView(fitPage(bounds, rect?.width || 800, rect?.height || 500));
+    // a worksheet page is read top-down: fit its width; anything else fits whole
+    setView(onWorksheet ? fitWidth(bounds, rect?.width || 800) : fitPage(bounds, rect?.width || 800, rect?.height || 500));
   };
   const clear = () => {
     if (!globalThis.confirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.')) return;
@@ -422,7 +475,8 @@ export default function StudentBoard({
   </>;
 
   const filling = onWorksheet && tool === 'fill';
-  const stage = <div className={`sb-stage tool-${tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}>
+  const stage = <div className={`sb-stage tool-${tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
+    onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
     {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs><pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>

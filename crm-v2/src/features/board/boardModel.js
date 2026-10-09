@@ -165,3 +165,20 @@ export function imageSize(url) {
     image.src = url;
   });
 }
+
+// Wheel / trackpad: a plain wheel or two-finger scroll moves the board (like a page); a pinch or Ctrl/⌘ + wheel zooms.
+export function wheelView(view, { deltaX = 0, deltaY = 0, ctrlKey = false, metaKey = false, deltaMode = 0 }, point) {
+  const unit = deltaMode === 1 ? 16 : 1; // lines → pixels (Firefox)
+  if (ctrlKey || metaKey) return zoomAt(view, Math.min(1.25, Math.max(0.8, Math.exp(-deltaY * unit * 0.01))), point);
+  return { ...view, x: view.x - deltaX * unit, y: view.y - deltaY * unit };
+}
+
+// Two fingers: the board follows the fingers' centre and scales with their distance (from the view at the start).
+export function pinchView(start, [a0, b0], [a1, b1]) {
+  const centre = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  const c0 = centre(a0, b0);
+  const c1 = centre(a1, b1);
+  const factor = Math.hypot(b1.x - a1.x, b1.y - a1.y) / Math.max(1, Math.hypot(b0.x - a0.x, b0.y - a0.y));
+  const zoomed = zoomAt(start, factor, c0);
+  return { ...zoomed, x: zoomed.x + c1.x - c0.x, y: zoomed.y + c1.y - c0.y };
+}

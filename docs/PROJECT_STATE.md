@@ -1,3 +1,18 @@
+## 2026-10-09 — Board: whole worksheet, easier moving — branch `agent/board-navigation`
+
+Checked `origin/main` `9df66cf` (#374–#377 merged by the owner). Owner: a worksheet on the board is cut off and
+students find moving the board awkward.
+- Cause 1: the embedded worksheet kept its own `max-height: 75vh` inner scroll inside the board. `board.css`: inside
+  `.sb-underlay` the sheet has no height limit; the board pans and zooms it. „Sobita” on a worksheet page fits the
+  width (top-down reading), other pages still fit whole.
+- Cause 2: the mouse wheel only zoomed and touch had no pan or pinch. `boardModel.wheelView`: wheel / two-finger
+  trackpad scroll moves the board, pinch or Ctrl/⌘ + wheel zooms. `pinchView`: two fingers pan + zoom with any tool
+  (a line started by the first finger is dropped). One finger moves a worksheet page while filling it in (a tap on
+  an answer field still types). Middle mouse button pans anywhere. Handled in the stage's capture phase.
+- Checks: board tests 20/20 (new wheel / pinch tests); live-classroom + worksheet-studio only the known 9 Node 26
+  `localStorage` failures; eslint 0 errors; build OK. Not tried on a real touch device.
+- Next safe step: a student fills a long worksheet on a phone / tablet after merge.
+
 ## 2026-10-09 — Tahvel full screen — branch `agent/board-fullscreen`
 
 Owner: the board must be better and always available to the student. Students and parents already have „Tahvel”
