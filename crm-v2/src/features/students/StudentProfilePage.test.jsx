@@ -33,6 +33,27 @@ function renderProfile({
 }
 
 describe('student profile tabs and role access', () => {
+  it('an admin archives the student from the card after a confirmation, and can restore them', async () => {
+    const apis = renderProfile();
+    apis.studentApi.archive = vi.fn().mockResolvedValue({ active: false });
+    apis.studentApi.restore = vi.fn().mockResolvedValue({ active: true });
+    fireEvent.click(await screen.findByRole('button', { name: /Arhiveeri/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Arhiveeri õpilane' });
+    expect(dialog).toHaveTextContent('ajalugu säilivad');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Arhiveeri' }));
+    expect(await screen.findByText('Arhiveeritud')).toBeInTheDocument();
+    expect(apis.studentApi.archive).toHaveBeenCalledWith(['s1']);
+    fireEvent.click(screen.getByRole('button', { name: /Taasta/ }));
+    fireEvent.click(within(screen.getByRole('dialog', { name: 'Taasta õpilane' })).getByRole('button', { name: 'Taasta' }));
+    expect(await screen.findByText('Aktiivne õpilane')).toBeInTheDocument();
+  });
+
+  it('a teacher does not see the archive button', async () => {
+    renderProfile({ actor: { uid: 't1', roles: ['teacher'], displayName: 'Pavel' } });
+    await screen.findByRole('heading', { name: 'Mari Maas' });
+    expect(screen.queryByRole('button', { name: /Arhiveeri/ })).toBeNull();
+  });
+
   it('shows a concise overview first and switches to the lessons tab with planned and unmarked lessons', async () => {
     renderProfile({
       schedule: [{ id: 'sc1', date: '2026-10-10', time: '15:00', teacher: 'Pavel' }, { id: 'sc0', date: '2026-08-10', time: '15:00', teacher: 'Pavel', status: 'Planeeritud' }],

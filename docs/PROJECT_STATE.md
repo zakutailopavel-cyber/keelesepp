@@ -1,3 +1,9 @@
+## 2026-10-09 — Archive a student from the card — branch `agent/profile-archive`
+
+Owner: a student cannot be archived. Archiving existed only in the „Õpilased” list (icon in the row). The student
+card (admin) now has „Arhiveeri” / „Taasta” next to „Muuda andmeid” with a confirmation; it uses the same
+`studentsService.archive / restore` (active flag, archivedAt / restoredAt; ID, lessons, invoices and history stay).
+Checks: students 51/51 (2 new); eslint 0 errors.
 ## 2026-10-09 — Google Calendar card: one way only — branch `agent/gcal-one-way-label`
 
 Owner: sync must go only from the site to Google. It already does (server `GOOGLE_IMPORT_ENABLED = false`); the card
