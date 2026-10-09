@@ -45,7 +45,7 @@ export const gaps = {
           {lines.map((l, li) => {
             let gi = -1;
             return (
-              <li key={li}>
+              <li key={li} data-edit={`sentences#${li}`}>
                 {gapParts(l).map((p, pi) => {
                   if (!p.gap) return <Fragment key={pi}><Md text={p.text} /></Fragment>;
                   gi += 1;
@@ -137,7 +137,7 @@ export const truefalse = {
       <div className="ws-tf-head"><span /><b>Õ</b><b>V</b></div>
       {(data.statements || []).map((s, i) => (
         <div className="ws-tf-row" key={i}>
-          <span>{i + 1}. <Md text={s.text} /></span>
+          <span>{i + 1}. <span data-edit={`statements.${i}.text`}><Md text={s.text} /></span></span>
           {['true', 'false'].map((v) => (
             <button type="button" key={v} disabled={!ctx.interactive} className={`ws-tfbox ${ctx.get(`${i}`) === v ? 'on' : ''} ${ctx.get(`${i}`) === v && ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} onClick={() => ctx.set(`${i}`, v)} aria-label={v === 'true' ? 'Õige' : 'Vale'} />
           ))}

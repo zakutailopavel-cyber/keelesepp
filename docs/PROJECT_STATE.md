@@ -1,3 +1,22 @@
+## 2026-10-09 — Constructor: edit lines on the sheet + free layer (arrows, callouts, stickers) — branch `agent/sheet-editing`
+
+Checked `origin/main` `d3554ce`. Step 2 of the owner's constructor roadmap (after voices, #393).
+- Editing on the sheet: a view marks a source line with `data-edit` and a double-click opens a small field over it
+  with the stored text (gaps stay in brackets): Enter / click away saves, Esc cancels, an empty line is removed.
+  `inlineEdit.editSource(data, spec)`: `"sentences#2"` = 3rd non-empty line of a newline field (also nested:
+  `"questions.0.options#1"`), `"lines.1.text"` = nested string. `engine/floatingEditor.js` lays a textarea over the
+  element (React's DOM is not touched). Tagged: Lüngad and Kuulamine sentences, Sõnajärg sentences, Dialoog lines,
+  Õige/vale statements, Lugemine questions, every scheme box (centre, nodes, mind-map branches with their dash,
+  timeline / formula lines, Venn / T-chart titles and items). Plain texts keep the old double-click editing.
+- Free layer: `block.marks` (new optional array, max 20) — `note` (callout), `label` (free text), `sticker` (emoji),
+  `circle` (ring), `arrow`; positions in % of the card, so marks move with the block and survive page breaks
+  (`engine/marksModel.js`, `engine/Marks.jsx`). Edit mode: drag to move, handles resize / move arrow ends,
+  double-click edits text, Delete removes, a small bar picks the colour (5 house colours) or the sticker. Student and
+  print modes show the marks without tools. Block toolbar: „Joonista” → Nool / Mull / Tekst / Kleebis / Ring.
+- Checks: worksheet-studio 22 files / 110 tests (new marks + editSource + Sheet double-click test); eslint 0 errors;
+  Chromium harness: marks drawn, colour bar, line editor with brackets, sticker dragged 210 × 125 px.
+- No Firestore / rules / functions change (`marks` is part of the worksheet document like `look`).
+- Next safe step: merge, then step 3 (easier / harder variants of a sheet).
 ## 2026-10-09 — Constructor: Estonian voices (TartuNLP Neurokõne) — branch `agent/tts-voice`
 
 Checked `origin/main` `d3554ce` (after #392). Owner chose the constructor roadmap: voices → editing on the sheet →

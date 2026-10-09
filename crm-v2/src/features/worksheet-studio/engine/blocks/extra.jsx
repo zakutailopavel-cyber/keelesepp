@@ -33,7 +33,7 @@ export const dialogue = {
       {(data.lines || []).map((l, i) => (
         <div key={i} className={`ws-say ${l.who === 'B' ? 'b' : 'a'}`}>
           <span className="ws-who">{l.who === 'B' ? data.speakerB : data.speakerA}</span>
-          <div className="ws-sayb"><GapText text={l.text} ctx={ctx} prefix={`${i}`} /></div>
+          <div className="ws-sayb" data-edit={`lines.${i}.text`}><GapText text={l.text} ctx={ctx} prefix={`${i}`} /></div>
         </div>
       ))}
     </div>
@@ -69,7 +69,7 @@ export const reading = {
           const m = q.match(/^(.*?)\s*\[([^\]]*)\]\s*$/);
           const question = m ? m[1] : q;
           return (
-            <li key={i}><div className="ws-q"><Md text={question} /></div>
+            <li key={i}><div className="ws-q" data-edit={`questions#${i}`}><Md text={question} /></div>
               <Line interactive={ctx.interactive} value={ctx.get(`${i}`)} onChange={(v) => ctx.set(`${i}`, v)} state={ctx.state(`${i}`)} width="100%" label={`Vastus ${i + 1}`} />
             </li>
           );
@@ -118,7 +118,7 @@ export const listening = {
   View: ({ data, ctx }) => (
     <div className="ws-listen">
       {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive} label="Kuula" /> : <div className="ws-hint">Helifail puudub.</div>}
-      <ol className="ws-gaps">{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
+      <ol className="ws-gaps">{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i} data-edit={`sentences#${i}`}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
     </div>
   ),
   score: (data, get) => scoreGaps(String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, i) => gapKeys(l, `${i}`)), get),
@@ -229,7 +229,7 @@ export const wordorder = {
     <ol className="ws-order">
       {String(data.sentences || '').split('\n').filter((l) => l.trim()).map((s, i) => (
         <li key={i}>
-          <div className="ws-chips">{scramble(s).map((w, k) => <span key={k} className="ws-chip">{w}</span>)}</div>
+          <div className="ws-chips" data-edit={`sentences#${i}`} title="Topeltklõps: muuda õiget lauset">{scramble(s).map((w, k) => <span key={k} className="ws-chip">{w}</span>)}</div>
           <Line interactive={ctx.interactive} value={ctx.get(`${i}`)} onChange={(v) => ctx.set(`${i}`, v)} state={ctx.state(`${i}`)} width="100%" label={`Lause ${i + 1}`} />
         </li>
       ))}

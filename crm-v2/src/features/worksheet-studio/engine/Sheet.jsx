@@ -6,7 +6,9 @@ import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
 import { addItemLabel } from './addItem.js';
 import { dropSide } from './look.js';
-import { findEditable } from './inlineEdit.js';
+import { editSource, findEditable } from './inlineEdit.js';
+import { openFloatingEditor } from './floatingEditor.js';
+import MarksLayer from './Marks.jsx';
 import { BookOpen, CheckCircle2, Clock3, Headphones, Lightbulb, MessageCircle, PenLine, Star } from 'lucide-react';
 
 // Renders a worksheet document as real A4 pages (270 mm design canvas, zoomed to A4 when printed).
@@ -35,7 +37,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropHint = '', onSelect, drag, focused, onPick, onResize, onAddItem, toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
+function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropHint = '', onSelect, drag, focused, onPick, onResize, onAddItem, onMarks, toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
@@ -87,6 +89,7 @@ function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropH
       )}
       {/* body fills the rest of a block made taller than its content (see .is-tall in sheet.css) */}
       <div className="ws-body"><def.View data={d} ctx={blockCtx} id={block.id} /></div>
+      <MarksLayer block={block} editable={mode === 'edit' && Boolean(onMarks)} onChange={(next) => onMarks?.(block.id, next.marks)} />
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {active && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
       {active && toolbar ? <div className="ws-toolbar" role="toolbar" aria-label="Ploki tööriistad" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
@@ -154,7 +157,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onDropNew, onResize, onAddItem, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onDropNew, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -242,6 +245,17 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     const head = card ? null : event.target.closest?.('.ws-hdr, .ws-title');
     const block = card ? doc.blocks.find((b) => b.id === card.dataset.block) : null;
     if (!block && !head) return;
+    // a marked source line (a sentence with gaps, a scheme box…): edit its stored text in a field over it
+    const tagged = block ? event.target.closest?.('[data-edit]') : null;
+    if (tagged && card.contains(tagged)) {
+      const source = editSource(block.data, tagged.dataset.edit);
+      if (source) {
+        event.preventDefault();
+        event.stopPropagation();
+        openFloatingEditor({ anchor: tagged, value: source.value, label: 'Muuda rida (lünk nurksulgudes)', onCommit: (next) => { const change = source.write(next); if (change) onEditText(block.id, change.path, change.value); } });
+        return;
+      }
+    }
     const hit = findEditable(event.target, card || head.parentElement, block ? block.data : doc.meta);
     if (!hit) return;
     event.preventDefault();
@@ -279,7 +293,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} hovered={hoverId === b.id} onHover={mode === 'edit' ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} toolbar={(selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
+      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} hovered={hoverId === b.id} onHover={mode === 'edit' ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} toolbar={(selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
     </div>
   );
 
