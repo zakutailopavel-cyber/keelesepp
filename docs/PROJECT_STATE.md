@@ -1,3 +1,24 @@
+## 2026-10-10 — Didactic engine step 5: local models write under the level norms; „Paku tekst” for reading — branch `agent/ai-level-filter`
+
+- Base: `main` (after #418).
+- School Mac (`tools/lesson-transcriber/analysis.js`):
+  - `loadDidactics` imports `levels.js` and reads `levelForms.json`;
+  - `hardWords` / `wordLevel` (same rule as the CRM);
+  - `readingPrompt` / `parseReading` / `simplifyPrompt`.
+- `index.js` `answerAiRequests`:
+  - **sentences:** level-aware prompt with 2× candidates. It drops sentences that are too long or have more than one word above the level, then runs GEC.
+  - **reading** (new kind): text + questions, one simplification round when over 8% of words are above the level, GEC per sentence. The result is `{title, passage, questions, words, hard, flagged, level}`.
+  - Installed on the Mac, with `app/didactics/{levels.js, levelForms.json}`.
+- Rules: `aiRequests` kind in `['sentences', 'reading']`, optional int `words` 0–1000. Emulator: 5/5. Deployed.
+- CRM:
+  - `aiRequestsService.requestReading`;
+  - `editor/AiReading.jsx` in the reading block inspector: hard words, „Paranda / Paranda kõik”, „Kasuta seda teksti”, which fills the passage title, passage and questions;
+  - AiSentences shows „üle taseme” words.
+- Checks:
+  - worksheet-studio 149/149; Mac `node --test` 19/19.
+  - End-to-end on the Mac with temporary admin requests (deleted): sentences 34 s, reading 40 s.
+- Next safe step: step 6 — personal sheets from the learner model (errors, weak skills, due words).
+
 ## 2026-10-10 — Didactic engine step 3: EKI level vocabulary (A1/A2/B1) in the check — branch `agent/level-vocabulary`
 
 - Base: `main` (after #417).

@@ -3,6 +3,7 @@ import { TONES } from '../engine/schema.js';
 import { Text, Area, Select } from './fields.jsx';
 import { THEMES } from '../engine/look.js';
 import AiSentences from './AiSentences.jsx';
+import AiReading from './AiReading.jsx';
 
 // Settings of the selected block (the floating panel) and of the whole sheet („Leht”).
 // The look of a block (style, colour, frame, icon, width) is edited from its bar on the sheet (BlockBar.jsx); this
@@ -48,6 +49,7 @@ export function BlockInspector({ block, doc, update }) {
         </div>
       )}
 
+      {block.type === 'reading' ? <div className="ed-section"><AiReading meta={doc.meta} onUse={(patch) => set(patch)} /></div> : null}
       {block.type === 'gaps' ? <div className="ed-section"><AiSentences meta={doc.meta} onAdd={(lines) => set({ sentences: [String(block.data.sentences || '').trim(), ...lines].filter(Boolean).join('\n') })} /></div> : null}
       <div className="ed-section"><def.Editor data={block.data} set={set} /></div>
     </div>

@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -313,21 +313,54 @@ async function answerAiRequests() {
     if (!claimed) continue;
     const req = d.data();
     try {
-      const count = Math.max(1, Math.min(12, Number(req.count) || 8));
-      const sentences = parseSentences(await ollama({ model: SUMMARY_MODEL, prompt: sentencesPrompt({ ...req, count }), format: 'json', options: { temperature: 0.5 } }, 3 * 60 * 1000), count);
-      const result = [];
-      for (const text of sentences) {
-        let suggestion = '';
-        if (models.includes(GEC_MODEL)) {
-          const plain = withoutGap(text);
-          const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(plain), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
-          if (isCorrection(plain, corrected)) suggestion = corrected;
+      const did = await loadDidactics();
+      const key = did ? did.levelKey(req.level) : 'A2';
+      const norm = did?.LEVELS?.[key] || null;
+      const grammarList = did ? did.LEVEL_ORDER.slice(0, did.LEVEL_ORDER.indexOf(key) + 1).flatMap((l) => did.GRAMMAR[l] || []) : [];
+      const gec = async (sentence) => {
+        if (!models.includes(GEC_MODEL)) return '';
+        const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(sentence), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
+        return isCorrection(sentence, corrected) ? corrected : '';
+      };
+      if (req.kind === 'reading') {
+        let reading = parseReading(await ollama({ model: SUMMARY_MODEL, prompt: readingPrompt({ ...req, norm }), format: 'json', options: { temperature: 0.6, num_ctx: 8192 } }, 4 * 60 * 1000));
+        if (!reading) throw new Error('Mudel ei kirjutanud sobivat teksti. Proovi uuesti.');
+        let hard = hardWords(reading.passage, key, did?.forms);
+        // too many words above the level: one simplification round
+        if (hard.length > wordsOf(reading.passage) * 0.08) {
+          const simpler = await ollama({ model: SUMMARY_MODEL, prompt: simplifyPrompt(reading.passage, hard, norm?.label || key), format: 'json', options: { temperature: 0.3, num_ctx: 8192 } }, 4 * 60 * 1000).catch(() => '');
+          try { const text = String(JSON.parse(simpler).tekst || '').trim(); if (wordsOf(text) >= wordsOf(reading.passage) * 0.6) { reading = { ...reading, passage: text }; hard = hardWords(text, key, did?.forms); } } catch { /* keep the first text */ }
         }
-        result.push({ text, ok: !suggestion, ...(suggestion ? { suggestion } : {}) });
+        const flagged = [];
+        for (const sentence of reading.passage.split(/(?<=[.!?…])\s+/).filter((x) => wordsOf(x) >= 3).slice(0, 30)) {
+          const suggestion = await gec(sentence);
+          if (suggestion) flagged.push({ sentence, suggestion });
+          progress();
+        }
+        const result = { ...reading, words: wordsOf(reading.passage), hard: hard.slice(0, 30), flagged, level: norm?.label || key };
+        await d.ref.update({ status: 'done', result, doneAt: new Date().toISOString(), models: { write: SUMMARY_MODEL, ...(models.includes(GEC_MODEL) ? { check: GEC_MODEL } : {}) } });
+        log('ai reading', d.id, `${result.words} words`, `${hard.length} hard`, `${flagged.length} flagged`);
+        continue;
+      }
+      const count = Math.max(1, Math.min(12, Number(req.count) || 8));
+      // twice as many as asked: what is too long or above the level is dropped
+      const candidates = parseSentences(await ollama({ model: SUMMARY_MODEL, prompt: sentencesPrompt({ ...req, count: Math.min(20, count * 2), norm, grammarList }), format: 'json', options: { temperature: 0.5 } }, 3 * 60 * 1000), 20);
+      const result = [];
+      for (const text of candidates) {
+        if (result.filter((r) => r.ok).length >= count) break;
+        const plain = withoutGap(text);
+        if (norm && wordsOf(plain) > norm.sentence.max) continue;
+        const gapWord = (text.match(/\[([^\]]+)\]/) || [])[1] || '';
+        const hard = hardWords(plain, key, did?.forms).filter((w) => !gapWord.toLocaleLowerCase('et').split(/\s+/).includes(w));
+        if (hard.length > 1) continue;
+        const suggestion = await gec(plain);
+        result.push({ text, ok: !suggestion && !hard.length, ...(suggestion ? { suggestion } : {}), ...(hard.length ? { hard } : {}) });
         progress();
       }
+      result.sort((a, b) => Number(b.ok) - Number(a.ok));
+      result.splice(count);
       await d.ref.update({ status: 'done', result, doneAt: new Date().toISOString(), models: { write: SUMMARY_MODEL, ...(models.includes(GEC_MODEL) ? { check: GEC_MODEL } : {}) } });
-      log('ai sentences', d.id, `${result.length} sentences`, `${result.filter((r) => !r.ok).length} flagged`);
+      log('ai sentences', d.id, `${candidates.length} written`, `${result.length} kept`, `${result.filter((r) => !r.ok).length} flagged`);
     } catch (err) {
       await d.ref.update({ status: 'failed', error: String(err.message || err).slice(0, 300), doneAt: new Date().toISOString() });
       log('ai sentences failed', d.id, err.message);
