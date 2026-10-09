@@ -3,7 +3,7 @@ import { homeworkService as defaultHomework } from '../../services/firebase/home
 import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { saveLessonHandoff, unfinishedSheets } from './lessonHandoff.js';
-import { lessonLinkFor } from './lessonLink.js';
+import { localDay, lessonLinkFor, looseLessonKey } from './lessonLink.js';
 import '../vocabulary/vocabulary.css';
 
 const inWeek = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -24,7 +24,9 @@ export default function LessonEndPanel({
   const [homework, setHomework] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [lessonKey] = useState(() => linkedKey ?? lessonLinkFor(invitation.id));
+  // the calendar lesson the room was started from; without one the lesson is added to the calendar afterwards
+  const [linked] = useState(() => linkedKey ?? lessonLinkFor(invitation.id));
+  const lessonKey = linked || looseLessonKey(invitation.studentId, localDay(Date.now()));
   const [markHeld, setMarkHeld] = useState(true);
   const [giving, setGiving] = useState('');
   useEffect(() => {
@@ -91,8 +93,9 @@ export default function LessonEndPanel({
       {homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span>{item.task}</span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud („Rohkem” → „Anna kodutöö”).</p>}
       <label className="vw-field"><span>Sõnum õpilasele (valikuline)</span>
         <textarea rows={3} maxLength={2000} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Tubli töö! Järgmises tunnis kordame …" /></label>
-      {lessonKey ? <label className="vw-check"><input type="checkbox" checked={markHeld} onChange={(event) => setMarkHeld(event.target.checked)} /> Märgi tund kalendris toimunuks (teema töölehest, märkus läheb päevikusse)</label>
-        : <p className="vw-muted">Tund ei alanud kalendrist: pärast lõppu märgi see kalendris ise.</p>}
+      <label className="vw-check"><input type="checkbox" checked={markHeld} onChange={(event) => setMarkHeld(event.target.checked)} /> {linked
+        ? 'Märgi tund kalendris toimunuks (teema töölehest, märkus läheb päevikusse)'
+        : 'Tund ei olnud kalendris: kalender pakub selle lisada ja märkida toimunuks (teema töölehest, märkus päevikusse)'}</label>
       {error ? <p className="vw-error" role="alert">{error}</p> : null}
       <div className="vw-actions">
         <button type="button" className="vw-btn is-primary" disabled={busy || ending} onClick={() => finish(true)}>Saada kokkuvõte ja lõpeta tund</button>

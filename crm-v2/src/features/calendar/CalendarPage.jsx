@@ -7,7 +7,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { isSameTeacher } from '../../utils/teachers.js';
 import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
-import { isLessonKey, rememberLessonLink } from '../live-classroom/lessonLink.js';
+import { isLessonKey, looseLessonKey, parseHeld, rememberLessonLink } from '../live-classroom/lessonLink.js';
 import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff.js';
 import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
@@ -129,6 +129,10 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   // „Lõpeta tund” in the Live Classroom left the note and the worksheets' topics for this lesson: mark it held once
   const [handoff, setHandoff] = useState(() => (linkedLesson ? takeHandoff(linkedLesson) : null));
   const [autoMarked, setAutoMarked] = useState('');
+  // `?student=<id>&held=<date>|<HH:MM>|<min>`: a Live Classroom lesson that was not in the calendar has just ended
+  const [held] = useState(() => (searchParams.get('student') ? parseHeld(searchParams.get('held')) : null));
+  const [heldHandoff] = useState(() => (held ? takeHandoff(looseLessonKey(searchParams.get('student'), held.date)) : null));
+  const [heldState, setHeldState] = useState('');
   const [panelError, setPanelError] = useState('');
   const [panelSaving, setPanelSaving] = useState(false);
   const [attendanceSaving, setAttendanceSaving] = useState('');
@@ -196,6 +200,30 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       setAutoMarked(item.occurrenceId);
       await state.reload();
     } catch (error) { setPanelError(`${error.message || 'Salvestamine ebaõnnestus.'} Märgi tund siin käsitsi.`); } finally { setPanelSaving(false); }
+  };
+  // the lesson that just ended without a calendar lesson: mark that day's planned lesson, or add one and mark it
+  const heldStudent = held ? studentMap.get(searchParams.get('student') || '') : null;
+  const heldDay = heldStudent ? occurrencesForDates(events, [held.date]).map(withRecord).filter((item) => !item.isGroup && item.studentId === heldStudent.id) : [];
+  const heldPlanned = heldDay.find(canQuickCompleteLesson) || null;
+  const heldMarked = heldDay.some((item) => item.lessonRecordId || item.status === 'Toimunud');
+  const usualDuration = Number(events.find((item) => !item.isGroup && item.studentId === heldStudent?.id && Number(item.duration))?.duration) || held?.duration || 60;
+  const markHeldLesson = async () => {
+    setHeldState('saving'); setActionError('');
+    try {
+      let item = heldPlanned;
+      if (!item) {
+        const teacherFields = lessonTeacher(heldStudent);
+        const subject = lessonSubject(heldStudent, teacherFields.teacherUid);
+        const candidate = { ...blankLesson(), studentId: heldStudent.id, studentName: heldStudent.name, date: held.date, time: held.time, duration: usualDuration, ...teacherFields, ...(subject ? { subject } : {}) };
+        if (!candidate.subject) delete candidate.subject;
+        const created = await scheduleRepository.create(candidate);
+        item = { ...candidate, id: created.id, occurrenceDate: held.date, occurrenceId: `${created.id}:${held.date}` };
+      }
+      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: heldStudent.level || '', history: historyOf(heldStudent.id) }) : null;
+      await lessonRepository.completeFromSchedule(item, user, topicFields(handoffTopic(catalog, heldHandoff, suggestion), heldHandoff?.notes || ''));
+      setHeldState('done');
+      await state.reload();
+    } catch (error) { setHeldState(''); setActionError(error.message || 'Tundi ei saanud märkida.'); }
   };
   const panelGroup = panelItem?.isGroup ? groups.find((group) => group.id === panelItem.groupId) : null;
 
@@ -530,6 +558,15 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {unplanned.length ? <button type="button" className={`cal2-unplanned-chip ${showUnplanned ? 'is-open' : ''}`} aria-expanded={showUnplanned} onClick={() => setShowUnplanned((value) => !value)}><UserRoundX size={15} /> {unplanned.length} {unplanned.length === 1 ? 'õpilane' : 'õpilast'} ilma tulevase tunnita</button> : null}
       <span className="cal2-hint">{narrow ? '' : 'Lohista tundi, et muuta aega · tõmba alumisest servast, et muuta kestust'}</span>
     </div>
+    {heldStudent && (heldState === 'done' || !heldMarked) ? <div className="cal2-held" role="status">
+      {heldState === 'done' ? <span>Tund on kalendris ja märgitud toimunuks{heldHandoff?.notes ? ' koos märkusega' : ''}. Kui midagi on valesti, ava tund ja paranda.</span> : <>
+        <span>{heldPlanned
+          ? <>Live Classroomi tund lõppes ({heldStudent.name}). Märgi selle päeva tund kell {heldPlanned.time} toimunuks?</>
+          : <>Live Classroomi tundi ({heldStudent.name}, {held.date} kell {held.time}) ei olnud kalendris. Lisa see ({usualDuration} min) ja märgi toimunuks?</>}</span>
+        <Button loading={heldState === 'saving'} disabled={libraryState.loading} onClick={markHeldLesson}>{heldPlanned ? 'Märgi toimunuks' : 'Lisa ja märgi toimunuks'}</Button>
+        {heldPlanned ? null : <Button variant="secondary" disabled={heldState === 'saving'} onClick={() => { openCreate(held.date, held.time, heldStudent.id); setForm((current) => ({ ...current, duration: usualDuration })); }}>Muuda enne</Button>}
+      </>}
+    </div> : null}
     {paint && paintTeacher ? (
       <div className="cal2-paint" role="region" aria-label="Õpetaja ajad">
         <strong>{teacherOnly ? 'Minu ajad' : `${paintTeacher.name} — ajad`}</strong>

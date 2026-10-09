@@ -1,3 +1,15 @@
+## 2026-10-09 — A Live Classroom lesson that was not in the calendar — branch `agent/unplanned-lesson-close`
+
+Owner: after „Lõpeta tund” the calendar showed the student with 0 lessons (the lesson was never planned), nothing to
+mark. `lessonLink.calendarPathAfterLesson(invitation, startedMs)` without a calendar link → `/calendar?student=<id>
+&held=<date>|<HH:MM>|<min>` (start from `respondedAt`). `LessonEndPanel` keeps the handoff under
+`looseLessonKey(student, day)` = `student:<id>|<date>` when there is no calendar link. `CalendarPage` shows a banner:
+a planned lesson of that day → „Märgi toimunuks”; none → „Lisa ja märgi toimunuks” (non-recurring schedule entry at
+that time, the student's usual lesson length, else the measured one) or „Muuda enne” (prefilled „Lisa tund”). Marking
+uses `completeFromSchedule` with the worksheet topic / suggestion and the room note, as for linked lessons.
+Checks: 2 calendar + 1 handoff tests; calendar 78/79 and live-classroom with only the known Node 26 `localStorage`
+failures; build OK.
+
 ## 2026-10-09 — Lesson room: board full width, videos over it — branch `agent/room-wide-board`
 
 Owner: the board should be wider and the video tiles should lie over it. `LiveRoom` body gets `lr-body--float`

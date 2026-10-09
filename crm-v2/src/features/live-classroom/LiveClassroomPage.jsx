@@ -179,7 +179,7 @@ export default function LiveClassroomPage({
     try {
       await invitationService.close(activeInvitation.id, user);
       // the lesson is over: open it in the calendar to mark it held (topic, homework) — the usual „Toimunud” flow
-      if (isStaff) navigate(calendarPathAfterLesson(activeInvitation), { replace: true });
+      if (isStaff) navigate(calendarPathAfterLesson(activeInvitation, timestampMillis(activeInvitation.respondedAt) || timestampMillis(activeInvitation.createdAt)), { replace: true });
       else setSearchParams({}, { replace: true });
     } catch (error) {
       setActionError(firebaseErrorMessage(error));
