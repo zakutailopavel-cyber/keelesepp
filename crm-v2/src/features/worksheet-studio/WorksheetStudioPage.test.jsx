@@ -58,7 +58,7 @@ describe('WorksheetStudioPage', () => {
     const saved = repository.save.mock.calls[0][0];
     expect(saved.lessonId).toBe('lesson-1');
     expect(saved.document.blocks.some((b) => b.type === 'truefalse')).toBe(true);
-    expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
+    expect(await screen.findByText(/salvestati/, { selector: '.st-banner' })).toBeInTheDocument();
   });
 
   it('makes an easier copy of the sheet and opens it with a note of what changed', async () => {
@@ -95,37 +95,35 @@ describe('WorksheetStudioPage', () => {
     expect(container.querySelector('.ws-page').textContent).toContain('Mari elab Tallinnas');
   });
 
-  it('on the sheet: tools on hover, a lit drop place, a new block dragged from the palette, settings float by the block', async () => {
+  it('on the sheet: tools on hover, settings float by the block, a formatted text is edited in place', async () => {
     const repository = repo();
     const { container } = renderAt('/library/worksheets/lesson-1', repository);
     await screen.findByText('Töölehe konstruktor');
     const cards = () => [...container.querySelectorAll('.ws-page .ws-card')];
-    const before = cards().length;
     const second = cards()[1];
     fireEvent.mouseEnter(second);
     expect(second.querySelector('.ws-toolbar')).not.toBeNull();
     expect(second.querySelector('.ws-resize-xy')).not.toBeNull();
     fireEvent.mouseLeave(second);
     expect(second.querySelector('.ws-toolbar')).toBeNull();
-    const store = {};
-    const dataTransfer = { setData: (k, v) => { store[k] = v; }, getData: (k) => store[k] || '', effectAllowed: '' };
-    fireEvent.dragStart(screen.getByRole('button', { name: /Õige \/ vale/ }), { dataTransfer });
-    second.getBoundingClientRect = () => ({ left: 0, top: 0, width: 400, height: 200, right: 400, bottom: 200 });
-    fireEvent.dragOver(second, { dataTransfer, clientX: 200, clientY: 20 });
-    // jsdom drag events carry no pointer position, so only that a place is lit is checked here (sides: look tests)
-    expect(second.className).toMatch(/drop-(before|after)/);
-    fireEvent.drop(second, { dataTransfer, clientX: 200, clientY: 20 });
+    // palette blocks are draggable (dnd-kit) and still added with a click
+    const before = cards().length;
+    fireEvent.click(screen.getByRole('button', { name: /Õige \/ vale/ }));
     await waitFor(() => expect(cards().length).toBe(before + 1));
-    const added = cards().find((card) => card.className.includes('selected'));
-    expect(cards().indexOf(added)).toBeGreaterThan(0);
-    expect(cards().indexOf(added)).toBeLessThan(3);
-    const panel = container.querySelector('.st-inspector.is-floating');
-    expect(panel).not.toBeNull();
+    expect(container.querySelector('.st-inspector.is-floating')).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Vii paneel teisele poole' }));
     expect(container.querySelector('.st-inspector.is-floating.is-left')).not.toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Sulge seaded' }));
     expect(container.querySelector('.st-inspector')).toBeNull();
-  });
+    // an instruction opens the formatting editor right over it
+    const instruction = [...container.querySelectorAll('.ws-page .ws-ch p')][0];
+    fireEvent.doubleClick(instruction);
+    // Tiptap is loaded lazily on the first double click
+    expect(await screen.findByLabelText('Muuda teksti', {}, { timeout: 8000 })).toBeInTheDocument();
+    expect(instruction.className).toContain('ws-rich-hidden');
+    fireEvent.keyDown(screen.getByLabelText('Muuda teksti'), { key: 'Escape' });
+    await waitFor(() => expect(instruction.className).not.toContain('ws-rich-hidden'));
+  }, 20000);
 
   it('edits the sheet title and a task title directly on the sheet', async () => {
     const repository = repo();
@@ -354,7 +352,7 @@ describe('WorksheetStudioPage', () => {
     fireEvent.click(container.querySelector('.ws-page .ws-card'));
     fireEvent.click(container.querySelector('.st-inspector .ed-btn.danger'));
     await waitFor(() => expect(count()).toBe(before - 1));
-    expect(screen.getByRole('status')).toHaveTextContent('kustutati');
+    expect(document.querySelector('.st-banner.ok')).toHaveTextContent('kustutati');
     fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
     await waitFor(() => expect(count()).toBe(before));
   });
@@ -399,7 +397,7 @@ describe('WorksheetStudioPage', () => {
       generation: expect.objectContaining({ phase: 'practice' }),
     }));
     await waitFor(() => expect(container.querySelector('.ws-page')).toHaveTextContent('Uus kellavariant.'));
-    expect(screen.getByRole('status')).toHaveTextContent('teise ülesandetüübiga');
+    expect(container.querySelector('.st-banner.ok')).toHaveTextContent('teise ülesandetüübiga');
 
     fireEvent.click(screen.getByRole('button', { name: 'Võta tagasi' }));
     await waitFor(() => expect(container.querySelector('.ws-page')).toHaveTextContent('Soojendus.'));

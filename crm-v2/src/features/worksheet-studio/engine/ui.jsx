@@ -1,4 +1,5 @@
 import { ASPECTS } from './schema.js';
+import { MARK_COLORS, MARK_TOKEN } from './richText.js';
 import { objectPosition } from './image.js';
 import { Headphones } from 'lucide-react';
 
@@ -35,11 +36,16 @@ export function Line({ value, onChange, interactive, state, width, label, classN
 }
 
 export function Md({ text }) {
-  // Learner-safe inline emphasis. {{term}} = curriculum keyword highlight; *term* keeps legacy italic support.
-  const parts = String(text || '').split(/(\{\{[^{}]+\}\}|\*[^*]+\*)/g);
+  // Learner-safe inline emphasis. {{term}} = curriculum keyword highlight; *italic*, **bold**, ==highlight==,
+  // {red}colour{/red} (richText.js; written by the on-sheet editor).
+  const parts = String(text || '').split(MARK_TOKEN);
   return parts.map((p, i) => {
     if (p.startsWith('{{') && p.endsWith('}}')) return <strong className="ws-keyword" key={i}>{p.slice(2, -2)}</strong>;
-    if (p.startsWith('*') && p.endsWith('*')) return <em key={i}>{p.slice(1, -1)}</em>;
+    const color = /^\{([a-z]+)\}([\s\S]+)\{\/\1\}$/.exec(p);
+    if (color && MARK_COLORS[color[1]]) return <span key={i} style={{ color: MARK_COLORS[color[1]] }}><Md text={color[2]} /></span>;
+    if (p.startsWith('**') && p.endsWith('**') && p.length > 4) return <strong key={i}>{p.slice(2, -2)}</strong>;
+    if (p.startsWith('==') && p.endsWith('==') && p.length > 4) return <mark key={i} className="ws-mark-hl">{p.slice(2, -2)}</mark>;
+    if (p.startsWith('*') && p.endsWith('*') && p.length > 2) return <em key={i}>{p.slice(1, -1)}</em>;
     return <span key={i}>{p}</span>;
   });
 }

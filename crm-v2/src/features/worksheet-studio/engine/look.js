@@ -96,3 +96,50 @@ export function dropSide({ x, y, width, height }, fullWidth = false) {
   if (!fullWidth && fx > 0.78) return 'right';
   return fy < 0.5 ? 'before' : 'after';
 }
+
+// ── ready-made styles and sheet themes (owner, 2026-10-09: textbook look in one click) ──
+// heading look and number shape of a task block
+export const HEADS = [['', 'Tavaline'], ['band', 'Riba'], ['tab', 'Sakk'], ['line', 'Joon all']];
+export const NUMS = [['', 'Ring'], ['square', 'Ruut'], ['outline', 'Kontuur']];
+
+// one click = tone + frame + heading colour + icon + heading look + number shape
+export const STYLE_PRESETS = [
+  { key: 'exercise', label: 'Harjutus', tone: 'blue', look: {} },
+  { key: 'grammar', label: 'Grammatika', tone: 'green', look: { frame: 'line', icon: 'idea', head: 'band' } },
+  { key: 'words', label: 'Sõnavara', tone: 'cream', look: { frame: 'dashed', icon: 'read', head: 'line' } },
+  { key: 'speak', label: 'Räägi', tone: 'sky', look: { icon: 'speak', head: 'tab', num: 'square' } },
+  { key: 'important', label: 'Tähtis', tone: 'peach', look: { frame: 'bold', icon: 'star', accent: 'peach' } },
+  { key: 'homework', label: 'Kodutöö', tone: 'white', look: { frame: 'dashed', icon: 'write', head: 'tab', num: 'outline' } },
+  { key: 'plain', label: 'Lihtne', tone: 'white', look: {} },
+];
+
+// the style part of a block (to copy it or apply a preset): tone + look
+export const styleOf = (block) => ({ tone: block.tone || 'white', look: { ...(block.look || {}) } });
+export function withStyle(block, style) {
+  const next = { ...block, tone: style.tone || block.tone };
+  const look = Object.fromEntries(Object.entries(style.look || {}).filter(([, value]) => value));
+  if (Object.keys(look).length) next.look = look; else delete next.look;
+  return next;
+}
+// the same style on every block of that type on the sheet
+export const styleSameType = (blocks, source) => blocks.map((block) => (block.type === source.type && block.id !== source.id ? withStyle(block, styleOf(source)) : block));
+
+// Sheet themes (doc.meta.theme): the brand tones redrawn for a mood; '' = the textbook (TONES as they are).
+export const THEMES = [
+  { key: '', label: 'Õpik' },
+  { key: 'pastel', label: 'Pastell', tones: {
+    blue: { card: '#f3f1ff', badge: '#534ab7' }, green: { card: '#eefaf5', badge: '#0f6e56' }, peach: { card: '#fff4ee', badge: '#993c1d' },
+    cream: { card: '#fffaf0', badge: '#854f0b' }, sky: { card: '#eef7fd', badge: '#185fa5' }, white: { card: '#ffffff', badge: '#534ab7' } } },
+  { key: 'kids', label: 'Lastele', tones: {
+    blue: { card: '#dff0ff', badge: '#185fa5' }, green: { card: '#e3f6d4', badge: '#3b6d11' }, peach: { card: '#ffe9d6', badge: '#c2410c' },
+    cream: { card: '#fff3c4', badge: '#854f0b' }, sky: { card: '#d9f2ff', badge: '#0e7490' }, white: { card: '#ffffff', badge: '#be185d' } } },
+  { key: 'bw', label: 'Must-valge', tones: {
+    blue: { card: '#ffffff', badge: '#2c2c2a' }, green: { card: '#f4f4f2', badge: '#2c2c2a' }, peach: { card: '#ffffff', badge: '#444441' },
+    cream: { card: '#f4f4f2', badge: '#444441' }, sky: { card: '#ffffff', badge: '#2c2c2a' }, white: { card: '#ffffff', badge: '#2c2c2a' } } },
+];
+export const themeOf = (key) => THEMES.find((theme) => theme.key === (key || '')) || THEMES[0];
+// a tone as the sheet's theme draws it (falls back to the brand tone)
+export function themedTone(themeKey, tone, base) {
+  const over = themeOf(themeKey).tones?.[tone];
+  return over ? { ...base, ...over } : base;
+}

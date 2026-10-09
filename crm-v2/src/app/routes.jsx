@@ -13,7 +13,6 @@ import ExpensesPage from '../features/expenses/ExpensesPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
 import GroupsPage from '../features/groups/GroupsPage.jsx';
 import LibraryPage from '../features/library/LibraryPage.jsx';
-import WorksheetStudioPage from '../features/worksheet-studio/WorksheetStudioPage.jsx';
 import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePage.jsx';
 import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
@@ -24,7 +23,6 @@ import PayrollPage from '../features/payroll/PayrollPage.jsx';
 import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
-import StudentWorksheetStudioPage from '../features/students/StudentWorksheetStudioPage.jsx';
 import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
 import TasksPage from '../features/tasks/TasksPage.jsx';
 import TeachersPage from '../features/teachers/TeachersPage.jsx';
@@ -40,6 +38,9 @@ import { ACCESS } from './accessPolicy.js';
 // The worksheet generator (with its Estonian form lexicon) is loaded only on its own staff pages.
 const GeneratorCoveragePage = lazy(() => import('../features/worksheet-generator/ui/GeneratorCoveragePage.jsx'));
 const LessonWorksheetSet = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetSet.jsx'));
+// the constructor (drag & drop, floating panels, text formatting) loads only when it is opened
+const WorksheetStudioPage = lazy(() => import('../features/worksheet-studio/WorksheetStudioPage.jsx'));
+const StudentWorksheetStudioPage = lazy(() => import('../features/students/StudentWorksheetStudioPage.jsx'));
 const LessonWorksheetStudioPage = lazy(() => import('../features/worksheet-generator/ui/LessonWorksheetStudioPage.jsx'));
 const AvastaUpgradePage = lazy(() => import('../features/worksheet-generator/ui/AvastaUpgradePage.jsx'));
 const Module1ThreePhasePage = lazy(() => import('../features/worksheet-generator/ui/Module1ThreePhasePage.jsx'));
@@ -59,7 +60,7 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:studentId" element={<StudentProfilePage />} />
-            <Route path="students/:studentId/worksheets/:lessonId" element={<StudentWorksheetStudioPage />} />
+            <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="groups" element={<GroupsPage />} />
@@ -72,7 +73,7 @@ export default function AppRoutes() {
             <Route path="library/worksheet-generator/module-1-three-phase" element={generatorPage(<Module1ThreePhasePage />)} />
             <Route path="library/lessons/:lessonId/worksheets" element={generatorPage(<LessonWorksheetSet />)} />
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
-            <Route path="library/worksheets/:lessonId" element={<WorksheetStudioPage />} />
+            <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
             <Route path="parents" element={<ParentsPage />} />
             <Route path="board/:studentId" element={<BoardPage />} />
             <Route path="leads" element={<LeadsPage />} />

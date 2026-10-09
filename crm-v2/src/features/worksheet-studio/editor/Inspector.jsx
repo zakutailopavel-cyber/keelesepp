@@ -2,7 +2,7 @@ import { BLOCKS, COLUMN_BLOCKS, SHUFFLE_BLOCKS } from '../engine/registry.js';
 import { TONES, TONE_ORDER } from '../engine/schema.js';
 import { Text, Area, Select } from './fields.jsx';
 import { SPAN_PRESETS, spanOf, withHeight, withSpan } from '../engine/layout.js';
-import { FRAMES, LOOK_ICONS, withLook } from '../engine/look.js';
+import { FRAMES, HEADS, LOOK_ICONS, NUMS, STYLE_PRESETS, THEMES, withLook, withStyle } from '../engine/look.js';
 
 // Right panel: settings of the selected block, or of the whole sheet when nothing is selected.
 
@@ -40,6 +40,12 @@ export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMo
           <button type="button" className={`ed-btn ${block.minHeightMm ? 'ghost' : 'on'}`} aria-pressed={!block.minHeightMm} onClick={() => update(withHeight(block, 0))}>Automaatne</button>
           <label><input type="number" min="20" max="330" step="5" aria-label="Kõrgus millimeetrites" value={block.minHeightMm || ''} placeholder="mm" onChange={(e) => update(withHeight(block, Number(e.target.value) || 0))} /> mm</label>
         </div>
+        <span className="ed-label">Valmis stiil</span>
+        <div className="ed-presets" role="group" aria-label="Valmis stiil">
+          {STYLE_PRESETS.map((preset) => (
+            <button type="button" key={preset.key} className={`ed-preset tone-${preset.tone}`} style={{ background: TONES[preset.tone].card, borderColor: TONES[preset.look.accent || preset.tone].badge }} onClick={() => update(withStyle(block, preset))}>{preset.label}</button>
+          ))}
+        </div>
         <span className="ed-label">Värv (ainult brändi toonid)</span>
         <div className="ed-tones">
           {TONE_ORDER.map((t) => (
@@ -57,6 +63,16 @@ export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMo
             <button type="button" key={t} title={TONES[t].label} aria-label={`Värv ${TONES[t].label}`} className={block.look?.accent === t ? 'on' : ''} style={{ background: TONES[t].badge }} onClick={() => update(withLook(block, { accent: t }))} />
           ))}
         </div>
+        {def.task ? <>
+          <span className="ed-label">Pealkiri</span>
+          <div className="ed-seg" role="group" aria-label="Pealkirja kuju">
+            {HEADS.map(([value, label]) => <button type="button" key={label} aria-pressed={(block.look?.head || '') === value} className={(block.look?.head || '') === value ? 'on' : ''} onClick={() => update(withLook(block, { head: value }))}>{label}</button>)}
+          </div>
+          <span className="ed-label">Number</span>
+          <div className="ed-seg" role="group" aria-label="Numbri kuju">
+            {NUMS.map(([value, label]) => <button type="button" key={label} aria-pressed={(block.look?.num || '') === value} className={(block.look?.num || '') === value ? 'on' : ''} onClick={() => update(withLook(block, { num: value }))}>{label}</button>)}
+          </div>
+        </> : null}
         <span className="ed-label">Ikoon</span>
         <div className="ed-seg ed-seg--wrap" role="group" aria-label="Ikoon">
           {LOOK_ICONS.map(([value, label]) => <button type="button" key={label} aria-pressed={(block.look?.icon || '') === value} className={(block.look?.icon || '') === value ? 'on' : ''} onClick={() => update(withLook(block, { icon: value }))}>{label}</button>)}
@@ -106,6 +122,12 @@ export function SheetInspector({ doc, setMeta }) {
     <div className="ed-inspector">
       <div className="ed-inspector-head"><b>Töölehe andmed</b></div>
       <div className="ed-section">
+        <span className="ed-label">Lehe teema</span>
+        <div className="ed-presets" role="group" aria-label="Lehe teema">
+          {THEMES.map((theme) => (
+            <button type="button" key={theme.key || 'book'} aria-pressed={(m.theme || '') === theme.key} className={`ed-preset ${(m.theme || '') === theme.key ? 'on' : ''}`} style={{ background: (theme.tones?.blue || TONES.blue).card, borderColor: (theme.tones?.blue || TONES.blue).badge }} onClick={() => setMeta({ theme: theme.key || undefined })}>{theme.label}</button>
+          ))}
+        </div>
         <Text label="Pealkiri" value={m.title} onChange={(v) => setMeta({ title: v })} />
         <Text label="Alapealkiri" value={m.subtitle} onChange={(v) => setMeta({ subtitle: v })} />
         <div className="ed-row">
