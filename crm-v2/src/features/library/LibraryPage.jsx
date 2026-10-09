@@ -1,6 +1,7 @@
 import {
   ArrowRight,
   Check,
+  ChevronDown,
   Circle,
   Plus,
   BookCopy,
@@ -19,6 +20,7 @@ import {
   Send,
   Sparkles,
   Star,
+  Wrench,
   X,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -315,6 +317,8 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
     setFavorites(next);
     saveFavorites(user?.uid, next);
   };
+  // a header menu closes after a choice
+  const closeMenu = (event) => event.currentTarget.closest('details')?.removeAttribute('open');
   const open = (item) => {
     if (item.kind === 'exercise') { setSelected(item); return; }
     setPreviewing(item);
@@ -366,9 +370,9 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         ) : null}
         <span className="lib2-meta">{item.fileCount ? <span title={`${item.fileCount} faili`}><Paperclip size={14} />{item.fileCount}</span> : null}{shortDate(item.updatedAt) ? <time dateTime={item.updatedAt}>{shortDate(item.updatedAt)}</time> : null}</span>
         <span className="lib2-actions">
-          <Button variant="secondary" aria-label={`Vaata: ${item.title}`} onClick={() => open(item)}><Eye size={15} /> Vaata</Button>
-          <Button variant="secondary" aria-label={`Muuda: ${item.title}`} onClick={() => edit(item)}><FilePenLine size={15} /> Muuda</Button>
-          <Button onClick={() => setAssigning(item)}><Send size={15} /> Määra</Button>
+          <button type="button" className="lib2-act" aria-label={`Vaata: ${item.title}`} title="Vaata" onClick={() => open(item)}><Eye size={16} /></button>
+          <button type="button" className="lib2-act" aria-label={`Muuda: ${item.title}`} title="Muuda" onClick={() => edit(item)}><FilePenLine size={16} /></button>
+          <button type="button" className="lib2-act lib2-act--assign" title="Määra õpilastele" onClick={() => setAssigning(item)}><Send size={15} /> Määra</button>
         </span>
       </li>
     );
@@ -377,10 +381,31 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   return (
     <div className="page-content library-page lib2">
       <PageHeader
+        compact
         eyebrow="Õppetöö"
         title="Õppevara"
-        description="Otsi pealkirja, teema või sisu järgi — või vali tase ja moodul nagu õpiku sisukorrast."
-        actions={<>{isAdmin ? <Button variant="secondary" loading={syncingPhases} disabled={syncingPhases} onClick={syncPhases} title="Loeb iga tunni Avasta / Harjuta / Kasuta lehed ja kirjutab nende oleku tunnile">Uuenda töölehtede olek</Button> : null}{isAdmin && plansMissing ? <Button variant="secondary" loading={refreshingPlans} disabled={refreshingPlans} onClick={refreshLessonPlans}><ClipboardList size={17} /> Lisa tunniplaanid ({plansMissing})</Button> : null}{!a2Complete ? <Button variant="secondary" loading={installingA2} disabled={installingA2} onClick={installA2Curriculum}><BookOpen size={17} /> Paigalda A2 õppekava</Button> : null}{isAdmin ? <Button variant="secondary" onClick={() => navigate('/library/worksheet-generator/avasta-module-1')}>Avasta 001–050 kvaliteet</Button> : null}<Button onClick={() => navigate('/library/worksheets/new')}><LayoutTemplate size={17} /> Töölehe konstruktor</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button><Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button><Button variant="secondary" onClick={() => setEditing(null)}><Sparkles size={17} /> Lisa materjal</Button></>}
+        actions={<>
+          <Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button>
+          <details className="lib2-menu">
+            <summary className="button button--primary"><Plus size={17} /> Loo uus <ChevronDown size={15} /></summary>
+            <div className="lib2-menu__list">
+              <button type="button" onClick={(event) => { closeMenu(event); navigate('/library/worksheets/new'); }}><LayoutTemplate size={16} /> Töölehe konstruktor</button>
+              <button type="button" onClick={(event) => { closeMenu(event); setEditing(null); }}><Sparkles size={16} /> Lisa materjal</button>
+            </div>
+          </details>
+          {isAdmin || !a2Complete ? (
+            <details className="lib2-menu">
+              <summary className="button button--secondary"><Wrench size={16} /> Tööriistad <ChevronDown size={15} /></summary>
+              <div className="lib2-menu__list">
+                {isAdmin ? <button type="button" disabled={syncingPhases} onClick={(event) => { closeMenu(event); syncPhases(); }} title="Loeb iga tunni Avasta / Harjuta / Kasuta lehed ja kirjutab nende oleku tunnile">{syncingPhases ? 'Uuendan…' : 'Uuenda töölehtede olek'}</button> : null}
+                {isAdmin && plansMissing ? <button type="button" disabled={refreshingPlans} onClick={(event) => { closeMenu(event); refreshLessonPlans(); }}><ClipboardList size={16} /> Lisa tunniplaanid ({plansMissing})</button> : null}
+                {!a2Complete ? <button type="button" disabled={installingA2} onClick={(event) => { closeMenu(event); installA2Curriculum(); }}><BookOpen size={16} /> Paigalda A2 õppekava</button> : null}
+                {isAdmin ? <button type="button" onClick={(event) => { closeMenu(event); navigate('/library/worksheet-generator/avasta-module-1'); }}>Avasta 001–050 kvaliteet</button> : null}
+                <button type="button" onClick={(event) => { closeMenu(event); navigate('/library/worksheets/convert'); }}><Replace size={16} /> Üleviimine</button>
+              </div>
+            </details>
+          ) : <Button variant="secondary" onClick={() => navigate('/library/worksheets/convert')}><Replace size={17} /> Üleviimine</Button>}
+        </>}
       />
       {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
       {installError ? <div className="action-error" role="alert">{installError}</div> : null}
@@ -413,9 +438,13 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
         <section className="lib2-results" aria-label="Õppematerjalid">
           <div className="lib2-filters">
-            <div className="lib2-chips" role="group" aria-label="Materjali tüüp">
-              <button type="button" className={!type ? 'is-active' : ''} aria-pressed={!type} onClick={() => setParam({ tyyp: '' })}>Kõik tüübid</button>
-              {types.map((facet) => <button type="button" key={facet.key} className={type === facet.key ? 'is-active' : ''} aria-pressed={type === facet.key} onClick={() => setParam({ tyyp: type === facet.key ? '' : facet.key })}>{facet.label} <span>{facet.count}</span></button>)}
+            <label className="lib2-sort"><span>Tüüp</span>
+              <select aria-label="Materjali tüüp" value={type} onChange={(event) => setParam({ tyyp: event.target.value })}>
+                <option value="">Kõik tüübid</option>
+                {types.map((facet) => <option value={facet.key} key={facet.key}>{facet.label} ({facet.count})</option>)}
+              </select>
+            </label>
+            <div className="lib2-chips" role="group" aria-label="Minu valik">
               <button type="button" className={onlyFav ? 'is-active' : ''} aria-pressed={onlyFav} onClick={() => setParam({ lemmikud: onlyFav ? '' : '1' })}><Star size={14} /> Lemmikud</button>
               <button type="button" className={onlyMine ? 'is-active' : ''} aria-pressed={onlyMine} onClick={() => setParam({ minu: onlyMine ? '' : '1' })}>Minu loodud</button>
             </div>

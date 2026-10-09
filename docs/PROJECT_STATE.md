@@ -1,3 +1,14 @@
+## 2026-10-09 — Õppevara tidied — branch `agent/library-tidy`
+
+Owner: the Õppevara page is overloaded (6 big header buttons, a primary „Määra” on every row, filters in three rows).
+- Header (`LibraryPage`, compact): „Õpik”, one primary „Loo uus ▾” (Töölehe konstruktor, Lisa materjal) and
+  „Tööriistad ▾” (admin/setup: Uuenda töölehtede olek, Lisa tunniplaanid, Paigalda A2 õppekava, Avasta 001–050
+  kvaliteet, Üleviimine); menus are `<details>` and close after a choice.
+- Filters: material type is a select with counts (was a row of chips); Lemmikud / Minu loodud stay as chips next to
+  „Töölehed” and „Järjestus”.
+- Rows: „Vaata” and „Muuda” are icon buttons (aria-labels unchanged), „Määra” is an outlined button.
+- Checks: library tests 29/29; eslint 0 errors; build OK.
+
 ## 2026-10-09 — Deploy of Finance v3 server + rules; clickable worksheets on the lesson board — branch `agent/live-worksheets`
 
 Checked `origin/main` `857cecb` (Finance v3 #361–#367 and private student worksheets #369 merged by the owner).
