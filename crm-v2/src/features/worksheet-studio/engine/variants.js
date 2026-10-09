@@ -127,15 +127,15 @@ export function makeVariant(doc, level) {
   const note = (text) => counts.set(text, (counts.get(text) || 0) + 1);
   const blocks = (doc.blocks || []).map((block) => {
     const next = level === 'support' ? supportBlock(block, note) : challengeBlock(block, note);
-    return { ...structuredClone(next), id: newId() };
+    return { ...globalThis.structuredClone(next), id: newId() };
   });
   const baseTitle = String(doc.meta?.title || 'Tööleht').replace(/\s+\((toetav|väljakutse)\)$/i, '');
   const changes = [...counts.entries()].map(([text, n]) => (n > 1 ? `${text} (${n} ülesandes)` : text));
   return {
     doc: {
-      ...structuredClone(doc),
+      ...globalThis.structuredClone(doc),
       id: newId('ws'),
-      meta: { ...structuredClone(doc.meta || {}), title: `${baseTitle} (${variant.short})`, variant: level, variantOf: doc.id || '', variantChanges: changes },
+      meta: { ...globalThis.structuredClone(doc.meta || {}), title: `${baseTitle} (${variant.short})`, variant: level, variantOf: doc.id || '', variantChanges: changes },
       blocks,
     },
     changes,
