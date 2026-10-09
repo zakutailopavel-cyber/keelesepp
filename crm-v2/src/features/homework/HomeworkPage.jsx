@@ -20,20 +20,28 @@ import '../common/finalReadiness.css';
 import SubmissionReviewModal from './SubmissionReviewModal.jsx';
 import { formatDate } from './submissionFormat.js';
 import { isHomeworkOpen } from './homeworkStatus.js';
+import { quickFeedback, suggestedGrade } from './reviewTemplates.js';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
 
-function SubmissionList({ items, staff, onOpen }) {
+function SubmissionList({ items, staff, onOpen, onConfirm, confirming = '' }) {
   if (!items.length) return <EmptyState title={staff ? 'Kontrollitavaid töid ei leitud' : 'Esitatud töid ei ole'} description={staff ? 'Uued õpilaste esitused ilmuvad siia automaatselt.' : 'Pärast töö esitamist näed siin tulemust ja õpetaja tagasisidet.'} />;
   return <div className="submission-list">{items.map((item) => {
     const reviewed = item.reviewStatus === 'reviewed';
-    return <button className="submission-row" key={`${item.submissionKind}-${item.id}`} onClick={() => onOpen(item)}>
+    // an auto-checked work waiting for review can be confirmed with the suggested grade without opening it
+    const grade = staff && !reviewed && onConfirm ? suggestedGrade(item.percentage) : null;
+    const key = `${item.submissionKind}-${item.id}`;
+    const row = <button className="submission-row" key={grade ? undefined : key} onClick={() => onOpen(item)}>
       <i>{item.submissionKind === 'worksheet' ? <FileText size={20} /> : <ClipboardCheck size={20} />}</i>
       <span className="submission-row__main"><strong>{item.title}</strong><small>{item.studentName || 'Õpilane'} · {formatDate(item.completedAt)}</small></span>
       <span className="submission-row__score">{item.percentage != null ? <b>{item.percentage}%</b> : null}{item.teacherGrade ? <small>Hinne {item.teacherGrade}</small> : null}</span>
-      <Badge tone={reviewed ? 'success' : 'info'}>{reviewed ? 'Tagasiside antud' : 'Ootab kontrolli'}</Badge>
+      <Badge tone={reviewed ? 'success' : 'info'}>{reviewed ? 'Tagasiside antud' : item.percentage != null ? 'Automaatselt kontrollitud' : 'Ootab kontrolli'}</Badge>
       <Eye size={18} />
     </button>;
+    if (!grade) return row;
+    return <div className="submission-item" key={key}>{row}
+      <Button variant="secondary" className="submission-confirm" loading={confirming === key} disabled={Boolean(confirming)} aria-label={`Kinnita hinne ${grade} — ${item.studentName || 'Õpilane'}`} title={quickFeedback(item.percentage)} onClick={() => onConfirm(item, grade)}>Kinnita {grade}</Button>
+    </div>;
   })}</div>;
 }
 
@@ -58,6 +66,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
   const [success, setSuccess] = useState('');
+  const [confirming, setConfirming] = useState('');
 
   const state = useAsyncData(async () => {
     const studentResult = staff
@@ -104,6 +113,11 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   if (state.error && !state.data) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const { students } = state.data;
   const today = new Date().toISOString().slice(0, 10);
+  // the queue: the next work below in the list that still waits for a review (else the first one above)
+  const reviewKey = (item) => `${item.submissionKind}-${item.id}`;
+  const waiting = reviewing ? submissions.filter((item) => item.reviewStatus !== 'reviewed' && reviewKey(item) !== reviewKey(reviewing)) : [];
+  const at = reviewing ? submissions.findIndex((item) => reviewKey(item) === reviewKey(reviewing)) : -1;
+  const nextReview = waiting.find((item) => submissions.indexOf(item) > at) || waiting[0] || null;
   const openHomework = state.data.homework.filter(isHomeworkOpen);
   const overdueHomework = openHomework.filter((item) => item.due && item.due < today);
   const pendingReviews = state.data.submissions.filter((item) => item.reviewStatus !== 'reviewed');
@@ -134,6 +148,16 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const openReview = (submission) => {
     setReviewing(submission);
     setActionError('');
+  };
+  // one click: the suggested grade and a short standard comment (open the work to write more)
+  const confirmReview = async (submission, grade) => {
+    const key = `${submission.submissionKind}-${submission.id}`;
+    setConfirming(key); setActionError('');
+    try {
+      await repository.reviewSubmission({ submission, teacherGrade: grade, teacherFeedback: quickFeedback(submission.percentage), user });
+      setSuccess(`${submission.studentName || 'Õpilane'}: hinne ${grade} saadetud.`);
+      await state.reload();
+    } catch (error) { setActionError(error.message || 'Hinnet ei saanud salvestada.'); } finally { setConfirming(''); }
   };
 
   const openExercise = async (homework) => {
@@ -211,7 +235,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
 
       <Card className="list-card submission-card">
         <div className="homework-card-heading"><div><span className="eyebrow">{staff ? 'Kontrollimine' : 'Tulemused'}</span><h2>{staff ? 'Esitatud tööd' : 'Minu esitused'}</h2></div>{staff ? <Select aria-label="Kontrolli staatus" value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value)}><option value="pending">Ootab kontrolli</option><option value="reviewed">Tagasiside antud</option><option value="all">Kõik esitused</option></Select> : <Badge tone="neutral">{submissions.length}</Badge>}</div>
-        <SubmissionList items={submissions} staff={staff} onOpen={openReview} />
+        <SubmissionList items={submissions} staff={staff} onOpen={openReview} onConfirm={staff ? confirmReview : undefined} confirming={confirming} />
       </Card>
     </div>
 
@@ -228,6 +252,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       skillMap={staff ? (students.items.find((item) => item.id === reviewing.studentId)?.skillMap || {}) : null}
       onClose={() => setReviewing(null)}
       onSaved={async () => { setReviewing(null); setSuccess('Hinne ja tagasiside saadeti õpilasele.'); await state.reload(); }}
+      {...(staff && nextReview ? { onSavedNext: async () => { setReviewing(nextReview); setSuccess('Hinne ja tagasiside saadeti õpilasele.'); await state.reload(); } } : {})}
     /> : null}
     {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => setPlaying(null)} onSubmitted={state.reload} /> : null}
     {playingInteractive ? <InteractiveLessonPlayer assignmentId={playingInteractive} user={user} staff={staff} repository={interactiveRepository} onClose={() => setPlayingInteractive('')} onChanged={interactiveState.reload} /> : null}

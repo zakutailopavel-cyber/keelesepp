@@ -60,6 +60,29 @@ describe('RoomWorksheetPanel', () => {
     await waitFor(() => expect(homework.subscribeWorksheetAssignment).toHaveBeenCalledWith('as-9', expect.any(Function), expect.any(Function)));
   });
 
+  it('puts the student\'s next curriculum lesson on the board with one click', async () => {
+    const homework = { ...homeworkRepo(), adoptPreparedWorksheets: vi.fn().mockResolvedValue(0), listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([]) };
+    const phases = { discover: { title: 'Avasta 2', publishedVersion: 1 }, practice: { title: 'Harjuta 2', publishedVersion: 1 } };
+    const library = {
+      list: vi.fn().mockResolvedValue({ curriculumLessons: [
+        { id: 'b1', title: 'Esimene', level: 'B1', roadmapModuleTitle: '1. Algus', roadmapLessonNumber: 1, worksheetPhases: { discover: { publishedVersion: 1 } } },
+        { id: 'b2', title: 'Teine', level: 'B1', roadmapModuleTitle: '1. Algus', roadmapLessonNumber: 2, worksheetPhases: phases },
+      ] }),
+      assign: vi.fn().mockResolvedValueOnce({ assignments: [{ id: 'as-1' }] }).mockResolvedValueOnce({ assignments: [{ id: 'as-2' }] }),
+    };
+    const lessons = { listByStudent: vi.fn().mockResolvedValue([{ topicLessonId: 'b1', date: '2026-10-01', status: 'Toimunud' }]) };
+    const lessonWorksheets = { list: vi.fn().mockResolvedValue([{ worksheetId: 'discover', publishedWorksheetDoc: worksheetDoc }, { worksheetId: 'practice', publishedWorksheetDoc: worksheetDoc }]) };
+    render(<MemoryRouter><RoomWorksheetPanel invitation={invitation} role="teacher" user={user} homework={homework} library={library} lessons={lessons} lessonWorksheets={lessonWorksheets} /></MemoryRouter>);
+    const card = await screen.findByRole('group', { name: 'Järgmine tund' });
+    expect(card).toHaveTextContent('2. Teine');
+    expect(card).toHaveTextContent('Avasta · Harjuta');
+    expect(lessons.listByStudent).toHaveBeenCalledWith('st-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Pane tahvlile' }));
+    await waitFor(() => expect(homework.openWorksheetInRoom).toHaveBeenCalledTimes(2));
+    expect(homework.openWorksheetInRoom).toHaveBeenNthCalledWith(1, { assignmentId: 'as-1', roomKey: 'inv-1' });
+    expect(homework.openWorksheetInRoom).toHaveBeenNthCalledWith(2, { assignmentId: 'as-2', roomKey: 'inv-1' });
+  });
+
   it('shows the room worksheet inline to the student', async () => {
     const homework = homeworkRepo();
     const { container } = render(<MemoryRouter><RoomWorksheetPanel invitation={invitation} role="student" user={{ uid: 's', roles: ['student'] }} homework={homework} library={{ list: vi.fn() }} /></MemoryRouter>);

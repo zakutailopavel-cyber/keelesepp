@@ -432,6 +432,23 @@ describe('calendar v2', () => {
     expect(await screen.findByRole('dialog', { name: 'Tund: Mari Maas' })).toBeInTheDocument();
   });
 
+  it('marks the lesson held after „Lõpeta tund” with the room note and the worksheet topic', async () => {
+    const props = repositories({ events: [lesson()] });
+    const key = `schedule-1:${today}|${today}`;
+    const takeHandoff = vi.fn(() => ({ notes: 'Tubli töö', lessonIds: ['b1-2'], savedAt: Date.now() }));
+    render(<MemoryRouter initialEntries={[`/calendar?lesson=${encodeURIComponent(key)}`]}><Routes><Route path="/calendar" element={<CalendarPage {...props} takeHandoff={takeHandoff} />} /></Routes></MemoryRouter>);
+    await waitFor(() => expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledTimes(1));
+    expect(takeHandoff).toHaveBeenCalledWith(key);
+    expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ topic: 'Sagedus', topicLessonId: 'b1-2', notes: 'Tubli töö' }));
+  });
+
+  it('a bare ?lesson= link only opens the panel, it never marks the lesson', async () => {
+    const props = repositories({ events: [lesson()] });
+    render(<MemoryRouter initialEntries={[`/calendar?lesson=${encodeURIComponent(`schedule-1:${today}|${today}`)}`]}><Routes><Route path="/calendar" element={<CalendarPage {...props} takeHandoff={() => null} />} /></Routes></MemoryRouter>);
+    expect(await screen.findByRole('dialog', { name: 'Tund: Mari Maas' })).toBeInTheDocument();
+    expect(props.lessonRepository.completeFromSchedule).not.toHaveBeenCalled();
+  });
+
   it('ignores a malformed ?lesson= link', async () => {
     renderCalendar({ events: [lesson()] }, '/calendar?lesson=bogus');
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });
