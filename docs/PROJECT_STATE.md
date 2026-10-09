@@ -10,6 +10,22 @@ libraries, no general redesign.
 - Checks: calendar 11 files / 74 tests; eslint 0 errors; screenshot of the week view on local emulators with fake data.
 - Next safe step: merge; the owner looks at the real calendar.
 
+## 2026-10-09 — Constructor: sheet results („Tulemused”) and authoring tips — branch `agent/sheet-insights`
+
+Checked `origin/main` (after #394). Step 5 (last) of the owner's constructor roadmap.
+- New left tab „Tulemused” in the constructor (saved sheets): `InsightsPanel.jsx` loads every copy of this sheet given
+  to learners (`homeworkService.listWorksheetResults(lessonId)` = `worksheetAssignments where lessonId ==`; staff read
+  by the existing rules, single-field query, no index) and shows submitted count, average %, per task % right
+  (click = select the task on the sheet), and „Mida parandada?”: the same „wrong” answer written by ≥ 2 learners and
+  ≥ 30 % of attempts (one click „Lisa õigeks” adds it as `[a|b|answer]` to that gap in Lüngad / Kuulamine / Dialoog),
+  hard tasks (< 50 %), tasks everyone got right (≥ 3 submissions).
+- Model `engine/insights.js`: `sheetInsights(doc, assignments)` (scores each submitted copy with its own snapshot,
+  counts only tasks still on the sheet), `addAlternative(block, key, answer)`.
+- `quality.js`: new level `tip` (does not block publishing): no speaking / writing on a sheet with ≥ 3 tasks, three
+  tasks of one type in a row, more than 10 tasks; the quality summary shows „N nõuannet”.
+- Checks: worksheet-studio 26 files / 126 tests (insights 4, tips 1), homework service 17/17; eslint 0 errors;
+  screenshot of the panel with sample results.
+- Next safe step: merge; the owner opens „Tulemused” on a sheet that learners have already submitted.
 ## 2026-10-09 — Live lesson on a worksheet: step mode, show answers, task overview — branch `agent/live-sheet`
 
 Checked `origin/main` `d2b94c2` (after #394). Step 4 of the owner's constructor roadmap.
