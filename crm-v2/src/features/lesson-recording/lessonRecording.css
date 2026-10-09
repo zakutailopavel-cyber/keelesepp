@@ -30,3 +30,6 @@
 .lesson-analysis__stats dt { font-size: .78rem; color: var(--muted, #6b7091); }
 .lesson-analysis__stats dd { margin: 2px 0 0; font-weight: 700; }
 .lesson-analysis ul { margin: 4px 0 0; padding-left: 18px; }
+/* one lesson opened from the student card: the recording's text right under its row */
+.lesson-rows > .lesson-rows__item.is-inline { flex-wrap: wrap; }
+.lesson-rows__text { flex-basis: 100%; grid-column: 1 / -1; display: grid; gap: 12px; margin-top: 10px; }

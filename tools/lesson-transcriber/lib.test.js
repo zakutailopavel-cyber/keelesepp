@@ -56,3 +56,14 @@ test('heartbeat doc for the lesson room', () => {
     { host: 'Kooli-Mac', state: 'idle', recordingId: '', startedAt: 'x', lastSeenAt: '2026-10-04T10:00:00.000Z' });
   assert.equal(heartbeat({ host: 'm', state: 'transcribing', recordingId: 'r1', now }).state, 'transcribing');
 });
+
+test('a lesson a dead transcriber had taken goes back to the queue', () => {
+  const { isStaleTranscribing } = require('./lib');
+  const now = Date.parse('2026-10-09T16:00:00Z');
+  const rec = { status: 'transcribing', transcriber: 'Mac', transcribeStartedAt: '2026-10-09T15:00:00Z' };
+  assert.equal(isStaleTranscribing(rec, { host: 'Mac', startedAt: '2026-10-09T15:40:00Z', now }), true);
+  assert.equal(isStaleTranscribing(rec, { host: 'Mac', startedAt: '2026-10-09T14:00:00Z', now }), false);
+  assert.equal(isStaleTranscribing(rec, { host: 'Other', startedAt: '2026-10-09T15:40:00Z', now }), false);
+  assert.equal(isStaleTranscribing({ ...rec, transcribeStartedAt: '2026-10-09T12:00:00Z' }, { host: 'Other', now }), true);
+  assert.equal(isStaleTranscribing({ ...rec, status: 'done' }, { host: 'Mac', now }), false);
+});

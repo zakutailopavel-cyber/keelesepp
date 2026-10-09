@@ -1,45 +1,42 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
-import StudentLessonsPanel from './StudentLessonsPanel.jsx';
+import LessonDetailModal from './LessonDetailModal.jsx';
 
-const student = { id: 's1', name: 'Mari Maas', teacher: 'Pavel', subject: 'Eesti keel' };
-const lessons = [
-  { id: 'l1', date: '2026-09-04', time: '14:00', status: 'Toimunud', verified: true, verifiedByName: 'Admin', topic: 'Minu päev', notes: 'Hea töö kellaaegadega.', duration: 60 },
-  { id: 'l2', date: '2026-09-02', status: 'Puudus_p' },
-];
+const none = { subscribeForStudent: vi.fn((_id, onData) => { onData([]); return () => {}; }) };
 
-function apis() {
-  return {
-    homeworkApi: { listByStudentIds: vi.fn().mockResolvedValue([{ id: 'h1', task: 'Korda tunni sõnu', due: '2026-09-11', date: '2026-09-04', status: 'Ootel' }, { id: 'h2', task: 'Teine päev', date: '2026-09-02' }]) },
-    summaryApi: { subscribeForStudent: (id, onData) => { onData([{ id: 'inv1', startedAt: '2026-09-04T11:00:00.000Z', note: 'Rääkisime päevast.', pages: [{ id: 'p1', title: 'Kellaajad' }] }]); return () => {}; } },
-    wordsApi: { subscribeForStudent: (id, onData) => { onData([{ id: 'w1', word: 'hommikul', translation: 'утром', createdAt: '2026-09-04T11:10:00.000Z' }, { id: 'w2', word: 'vana', createdAt: '2026-08-01T10:00:00.000Z' }]); return () => {}; } },
-    recordingApi: { listForStudent: vi.fn().mockResolvedValue([]) },
-    boardApi: { subscribePages: (id, onData) => { onData([]); return () => {}; } },
-  };
+function renderLesson(recordings) {
+  return render(<MemoryRouter><LessonDetailModal
+    lesson={{ date: '2026-10-09', time: '18:00' }}
+    student={{ id: 's1', name: 'Ilja' }}
+    user={{ uid: 't1' }}
+    markLabel="Toimunud"
+    onClose={vi.fn()}
+    homeworkApi={{ listByStudentIds: vi.fn().mockResolvedValue([]) }}
+    summaryApi={none}
+    wordsApi={none}
+    boardApi={{ subscribePages: vi.fn((_id, onData) => { onData([]); return () => {}; }) }}
+    recordingApi={{ listForStudent: vi.fn().mockResolvedValue(recordings) }}
+  /></MemoryRouter>);
 }
 
-describe('a lesson opened on its own from the student card', () => {
-  it('shows the mark, topic, notes and everything from that day only', async () => {
-    const detailApis = apis();
-    render(<MemoryRouter><StudentLessonsPanel student={student} lessons={lessons} schedule={[]} user={{ uid: 'a' }} lessonApi={{}} onChanged={() => {}} detailApis={detailApis} /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: 'Ava tund 2026-09-04' }));
-    const dialog = await screen.findByRole('dialog', { name: 'Tund 2026-09-04 · 14:00' });
-    expect(within(dialog).getByText('Toimunud ja kontrollitud')).toBeInTheDocument();
-    expect(within(dialog).getByText('Minu päev')).toBeInTheDocument();
-    expect(within(dialog).getByText('Hea töö kellaaegadega.')).toBeInTheDocument();
-    expect(within(dialog).getByText('Rääkisime päevast.')).toBeInTheDocument();
-    expect(await within(dialog).findByText('Korda tunni sõnu')).toBeInTheDocument();
-    expect(within(dialog).queryByText('Teine päev')).not.toBeInTheDocument();
-    expect(within(dialog).getByText('hommikul – утром')).toBeInTheDocument();
-    expect(within(dialog).queryByText(/vana/)).not.toBeInTheDocument();
-    expect(detailApis.recordingApi.listForStudent).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's1' }));
+describe('LessonDetailModal: the lesson text', () => {
+  it('shows the transcript of the day right away, without another window', async () => {
+    renderLesson([{ id: 'r1', status: 'done', startedAt: '2026-10-09T15:00:00Z', title: 'Eesti keel', teacherName: 'Pavel', segments: [{}], transcript: [
+      { speaker: 'teacher', startMs: 0, text: 'Tere, Ilja!' },
+      { speaker: 'student', startMs: 2000, text: 'Tere! Mul läheb hästi.' },
+    ] }]);
+    expect(await screen.findByText('Tere! Mul läheb hästi.')).toBeInTheDocument();
+    expect(screen.getByText('Õpilase osa kõnest')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Tunni analüüs/ })).toBeNull();
   });
 
-  it('says so when nothing else is known about the day', async () => {
-    const detailApis = { ...apis(), homeworkApi: { listByStudentIds: vi.fn().mockResolvedValue([]) }, summaryApi: { subscribeForStudent: (id, onData) => { onData([]); return () => {}; } }, wordsApi: { subscribeForStudent: (id, onData) => { onData([]); return () => {}; } } };
-    render(<MemoryRouter><StudentLessonsPanel student={student} lessons={lessons} schedule={[]} user={{ uid: 'a' }} lessonApi={{}} onChanged={() => {}} detailApis={detailApis} /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: 'Ava tund 2026-09-02' }));
-    expect(await screen.findByText(/pole kodutööd, kokkuvõtet, sõnu ega salvestist/)).toBeInTheDocument();
+  it('says what the text is waiting for, and when a recording had no speech', async () => {
+    renderLesson([
+      { id: 'r2', status: 'transcribing', startedAt: '2026-10-09T15:00:00Z', title: 'Tund', segments: [], transcript: [] },
+      { id: 'r3', status: 'done', startedAt: '2026-10-09T16:00:00Z', title: 'Tund', segments: [], transcript: [] },
+    ]);
+    expect(await screen.findByText(/Tekst ilmub siia mõne minuti jooksul/)).toBeInTheDocument();
+    expect(screen.getByText(/ei leitud kõnet/)).toBeInTheDocument();
   });
 });
