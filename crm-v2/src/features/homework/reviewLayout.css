@@ -39,3 +39,12 @@
 .submission-item { display: flex; align-items: center; gap: 8px; padding-right: 14px; border-bottom: 1px solid #eef0f3; background: #fff; }
 .submission-item > .submission-row { flex: 1; min-width: 0; border-bottom: 0; }
 .submission-confirm { flex: none; white-space: nowrap; }
+/* homework: the student's „Tehtud” and answer */
+.task-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.task-answer { display: grid; gap: 4px; margin-top: 8px; padding: 8px 10px; border-radius: 10px; background: #f0f9ff; }
+.task-answer small { color: #475467; font-weight: 700; }
+.task-answer p { margin: 0; white-space: pre-wrap; }
+.task-answer a { display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; }
+.task-answer-form { display: grid; gap: 8px; margin-top: 8px; }
+.task-answer-file { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; }
+.task-answer-actions { display: flex; flex-wrap: wrap; gap: 8px; }

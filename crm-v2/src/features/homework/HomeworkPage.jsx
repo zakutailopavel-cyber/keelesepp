@@ -1,5 +1,5 @@
-import { CheckCircle2, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, PlayCircle, Plus, Search, Star, Trash2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Archive, CheckCircle2, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Paperclip, PlayCircle, Plus, Search, Star, Trash2 } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
@@ -21,15 +21,29 @@ import SubmissionReviewModal from './SubmissionReviewModal.jsx';
 import { formatDate } from './submissionFormat.js';
 import { isHomeworkOpen } from './homeworkStatus.js';
 import { quickFeedback, suggestedGrade } from './reviewTemplates.js';
+import { QUICK_MIN_GRADE, isOverdue, selfCompleted, sortHomework, staleHomework } from './homeworkFlow.js';
 
 const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
+
+// The student's answer to a task: a few lines and / or a photo of the notebook (optional), sent with „Tehtud”.
+function AnswerForm({ busy, onSend, onCancel }) {
+  const [text, setText] = useState('');
+  const [file, setFile] = useState(null);
+  return <form className="task-answer-form" onSubmit={(event) => { event.preventDefault(); onSend({ text, file }); }}>
+    <label className="textarea-field"><span>Vastus (valikuline)</span><textarea rows={3} maxLength={4000} value={text} onChange={(event) => setText(event.target.value)} placeholder="Kirjuta vastus või lisa foto vihikust" /></label>
+    <label className="task-answer-file"><Paperclip size={15} /> <input type="file" accept="image/*,application/pdf" onChange={(event) => setFile(event.target.files?.[0] || null)} aria-label="Lisa foto või fail" /></label>
+    <div className="task-answer-actions"><Button type="submit" loading={busy}><CheckCircle2 size={16} /> Saada ja märgi tehtuks</Button><Button variant="secondary" disabled={busy} onClick={onCancel}>Loobu</Button></div>
+  </form>;
+}
 
 function SubmissionList({ items, staff, onOpen, onConfirm, confirming = '' }) {
   if (!items.length) return <EmptyState title={staff ? 'Kontrollitavaid töid ei leitud' : 'Esitatud töid ei ole'} description={staff ? 'Uued õpilaste esitused ilmuvad siia automaatselt.' : 'Pärast töö esitamist näed siin tulemust ja õpetaja tagasisidet.'} />;
   return <div className="submission-list">{items.map((item) => {
     const reviewed = item.reviewStatus === 'reviewed';
     // an auto-checked work waiting for review can be confirmed with the suggested grade without opening it
-    const grade = staff && !reviewed && onConfirm ? suggestedGrade(item.percentage) : null;
+    // only a good result is confirmed without opening the work; a low grade needs a look and a comment
+    const suggested = staff && !reviewed && onConfirm ? suggestedGrade(item.percentage) : null;
+    const grade = suggested && suggested >= QUICK_MIN_GRADE ? suggested : null;
     const key = `${item.submissionKind}-${item.id}`;
     const row = <button className="submission-row" key={grade ? undefined : key} onClick={() => onOpen(item)}>
       <i>{item.submissionKind === 'worksheet' ? <FileText size={20} /> : <ClipboardCheck size={20} />}</i>
@@ -45,7 +59,7 @@ function SubmissionList({ items, staff, onOpen, onConfirm, confirming = '' }) {
   })}</div>;
 }
 
-export default function HomeworkPage({ repository = homeworkService, studentRepository = studentsService, interactiveRepository = interactiveAssignmentsService }) {
+export default function HomeworkPage({ repository = homeworkService, studentRepository = studentsService, interactiveRepository = interactiveAssignmentsService, quickDelayMs = 5000 }) {
   const { user } = useAuth();
   const staff = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]);
   const teacherOnly = hasAnyRole(user.roles, [ROLES.TEACHER]) && !hasAnyRole(user.roles, [ROLES.ADMIN]);
@@ -67,6 +81,12 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [actionError, setActionError] = useState('');
   const [success, setSuccess] = useState('');
   const [confirming, setConfirming] = useState('');
+  const pendingQuick = useRef(null);
+  const [undoable, setUndoable] = useState(null);
+  const [answering, setAnswering] = useState(null);
+  const [answerBusy, setAnswerBusy] = useState(false);
+  // leaving the page within the 5 seconds still sends the grade the teacher confirmed
+  useEffect(() => () => { const entry = pendingQuick.current; if (entry) { globalThis.clearTimeout(entry.timer); repository.reviewSubmission({ submission: entry.submission, teacherGrade: entry.grade, teacherFeedback: quickFeedback(entry.submission.percentage), user }).catch(() => {}); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const state = useAsyncData(async () => {
     const studentResult = staff
@@ -95,10 +115,11 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   );
   const interactive = (interactiveState.data || []).filter((item) => (staff ? item.status === 'submitted' : true));
 
-  const filtered = useMemo(() => (state.data?.homework || []).filter((item) => (
+  const filtered = useMemo(() => sortHomework((state.data?.homework || []).filter((item) => (
     `${item.studentName || ''} ${item.task || ''}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
     && (status === 'all' || (status === 'done' ? !isHomeworkOpen(item) : isHomeworkOpen(item)))
-  )), [state.data, query, status]);
+  ))), [state.data, query, status]);
+  const stale = staff ? staleHomework(state.data?.homework || []) : [];
   const submissions = useMemo(() => (state.data?.submissions || []).filter((item) => (
     `${item.studentName} ${item.title}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
     && (!staff || reviewStatus === 'all' || item.reviewStatus === reviewStatus)
@@ -150,14 +171,49 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     setActionError('');
   };
   // one click: the suggested grade and a short standard comment (open the work to write more)
-  const confirmReview = async (submission, grade) => {
-    const key = `${submission.submissionKind}-${submission.id}`;
-    setConfirming(key); setActionError('');
+  // „Kinnita” waits 5 seconds with „Tühista” before the grade goes to the student
+  const sendQuick = async (entry) => {
     try {
-      await repository.reviewSubmission({ submission, teacherGrade: grade, teacherFeedback: quickFeedback(submission.percentage), user });
-      setSuccess(`${submission.studentName || 'Õpilane'}: hinne ${grade} saadetud.`);
+      await repository.reviewSubmission({ submission: entry.submission, teacherGrade: entry.grade, teacherFeedback: quickFeedback(entry.submission.percentage), user });
+      setSuccess(`${entry.submission.studentName || 'Õpilane'}: hinne ${entry.grade} saadetud.`);
       await state.reload();
     } catch (error) { setActionError(error.message || 'Hinnet ei saanud salvestada.'); } finally { setConfirming(''); }
+  };
+  const confirmReview = (submission, grade) => {
+    const key = `${submission.submissionKind}-${submission.id}`;
+    setConfirming(key); setActionError(''); setSuccess('');
+    const entry = { submission, grade };
+    entry.timer = globalThis.setTimeout(() => { pendingQuick.current = null; setUndoable(null); sendQuick(entry); }, quickDelayMs);
+    pendingQuick.current = entry;
+    setUndoable(entry);
+  };
+  const undoQuick = () => {
+    const entry = pendingQuick.current;
+    if (!entry) return;
+    globalThis.clearTimeout(entry.timer);
+    pendingQuick.current = null;
+    setUndoable(null); setConfirming('');
+  };
+
+  // the student's own „Tehtud” (with an optional answer) and the teacher's „Sulge”
+  const finishTask = async (item, withAnswer = null) => {
+    setAnswerBusy(true); setActionError('');
+    try {
+      if (withAnswer && repository.submitAnswer) await repository.submitAnswer({ item, ...withAnswer });
+      else await repository.setStatus(item.id, 'Tehtud');
+      setAnswering(null);
+      setSuccess('Kodutöö on märgitud tehtuks. Õpetaja näeb seda kohe.');
+      await state.reload();
+    } catch (error) { setActionError(error.message || 'Kodutööd ei saanud salvestada.'); } finally { setAnswerBusy(false); }
+  };
+  const closeTasks = async (items, ask) => {
+    if (!items.length || (ask && !globalThis.confirm(ask))) return;
+    setActionError('');
+    try {
+      await (repository.closeMany ? repository.closeMany(items.map((item) => item.id)) : Promise.all(items.map((item) => repository.setStatus(item.id, 'Suletud'))));
+      setSuccess(items.length === 1 ? 'Kodutöö on suletud.' : `${items.length} vana kodutööd on suletud.`);
+      await state.reload();
+    } catch (error) { setActionError(error.message || 'Kodutöid ei saanud sulgeda.'); }
   };
 
   const openExercise = async (homework) => {
@@ -195,6 +251,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       { icon: Star, label: 'Hilinenud', value: overdueHomework.length + overdueAssignments.length, hint: 'vajab tähelepanu' },
       { icon: MessageSquare, label: staff ? 'Ootab kontrolli' : 'Tagasisideta', value: pendingReviews.length, hint: `${state.data.submissions.length} esitust kokku` },
     ]} />
+    {undoable ? <div className="success-notice" role="status">{undoable.submission.studentName || 'Õpilane'}: hinne {undoable.grade} saadetakse 5 sekundi pärast. <button type="button" className="link-button" onClick={undoQuick}>Tühista</button></div> : null}
     {success ? <div className="success-notice" role="status">{success}<button onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')}>×</button></div> : null}
 
@@ -217,18 +274,23 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
 
     <div className="homework-grid">
       <Card className="list-card homework-task-card">
-        <div className="homework-card-heading"><div><span className="eyebrow">Ülesanded</span><h2>Kodutööd</h2></div><Badge tone="neutral">{filtered.length}</Badge></div>
+        <div className="homework-card-heading"><div><span className="eyebrow">Ülesanded</span><h2>Kodutööd</h2></div>{stale.length ? <Button variant="secondary" onClick={() => closeTasks(stale, `Sulgeda ${stale.length} kodutööd, mille tähtaeg möödus üle 30 päeva tagasi? Need jäävad alles staatusega „Suletud”.`)}><Archive size={16} /> Sulge vanad ({stale.length})</Button> : <Badge tone="neutral">{filtered.length}</Badge>}</div>
         {filtered.length ? <div className="task-list">{filtered.map((item) => {
           const done = item.status === 'Tehtud';
-          const overdue = !done && item.due && item.due < new Date().toISOString().slice(0, 10);
+          const closed = item.status === 'Suletud';
+          const overdue = isOverdue(item, new Date().toISOString().slice(0, 10));
+          const studentCanFinish = studentRole && !done && !closed && selfCompleted(item);
           const exerciseTask = Boolean(item.isExercise && item.exerciseId);
           const materialTask = Boolean(!exerciseTask && (item.sourceId || item.attachments?.length || item.fileUrl));
-          return <article className={done ? 'task-row is-done' : 'task-row'} key={item.id}>
+          return <article className={done || closed ? 'task-row is-done' : 'task-row'} key={item.id}>
             {exerciseTask && !staff ? studentRole && !done ? <button className="task-check exercise-launch" aria-label={`Alusta harjutust ${item.exerciseTitle || item.task}`} disabled={loadingExercise === item.id} onClick={() => openExercise(item)}>{loadingExercise === item.id ? <span className="button__spinner" /> : <PlayCircle />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <PlayCircle />}</span> : canMarkHomework ? <button className="task-check" aria-label={done ? 'Märgi pooleliolevaks' : 'Märgi tehtuks'} onClick={async () => { await repository.setStatus(item.id, done ? 'Ootel' : 'Tehtud'); await state.reload(); }}>{done ? <CheckCircle2 /> : <Clock3 />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <Clock3 />}</span>}
             <div><strong className="task-text">{item.task}</strong><span>{item.studentName || 'Õpilane'}{exerciseTask ? ' · Interaktiivne harjutus' : ''}{item.source === 'live-classroom' ? ' · Tunnist' : ''}</span>
               {item.boardPageId ? <Link className="task-link" to={staff ? `/board/${item.studentId}?page=${item.boardPageId}` : `/board?page=${item.boardPageId}`}>Ava tahvlileht „{item.boardPageTitle || 'Tahvlileht'}”</Link> : null}
-              {item.worksheetTitle ? <span>Tööleht „{item.worksheetTitle}” on all „Töölehed”</span> : null}</div>
-            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
+              {item.worksheetTitle ? <span>Tööleht „{item.worksheetTitle}” on all „Töölehed”</span> : null}
+              {item.studentAnswer || item.studentFiles?.length ? <div className="task-answer"><small>Õpilase vastus</small>{item.studentAnswer ? <p>{item.studentAnswer}</p> : null}{(item.studentFiles || []).map((file) => <a key={file.url} href={file.url} target="_blank" rel="noreferrer"><Paperclip size={13} /> {file.name || 'Fail'}</a>)}</div> : null}
+              {studentCanFinish && answering !== item.id ? <div className="task-actions"><Button loading={answerBusy && answering === null} onClick={() => finishTask(item)}><CheckCircle2 size={16} /> Tehtud</Button><Button variant="secondary" onClick={() => setAnswering(item.id)}><Paperclip size={15} /> Lisa vastus</Button></div> : null}
+              {studentCanFinish && answering === item.id ? <AnswerForm busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} /> : null}</div>
+            <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : closed ? 'neutral' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : closed ? 'Suletud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff && !done && !closed ? <button className="text-button" aria-label={`Sulge: ${item.task}`} title="Sulge (keegi ei tee seda enam)" onClick={() => closeTasks([item])}><Archive size={17} /></button> : null}{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
           </article>;
         })}</div> : <EmptyState title="Kodutöid ei leitud" description={staff ? 'Lisa esimene ülesanne või muuda filtrit.' : 'Praegu ei ole siin ühtegi ülesannet.'} />}
       </Card>
