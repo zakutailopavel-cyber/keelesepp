@@ -36,6 +36,7 @@ import { VARIANTS, makeVariant } from './engine/variants.js';
 import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
+import { loadLevelForms } from './didactics/levelVocabulary.js';
 import InsightsPanel from './InsightsPanel.jsx';
 import { addAlternative } from './engine/insights.js';
 import { formalLetterDocument } from './engine/templates.js';
@@ -175,6 +176,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [focus, setFocus] = useState(() => { try { return window.localStorage.getItem('ks-studio-focus') !== 'off'; } catch { return true; } });
   const toggleFocus = () => setFocus((value) => { try { window.localStorage.setItem('ks-studio-focus', value ? 'off' : 'on'); } catch { /* storage may be disabled */ } return !value; });
   useUnsavedGuard(dirty);
+  // the EKI level vocabularies for the didactic check, loaded lazily (≈290 kB)
+  const [levelForms, setLevelForms] = useState(null);
+  useEffect(() => { let alive = true; loadLevelForms().then((forms) => { if (alive) setLevelForms(forms); }); return () => { alive = false; }; }, []);
   // a notice is a short message in the corner that goes away by itself
   useEffect(() => {
     if (!notice) return undefined;
@@ -289,7 +293,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
   const palette = useMemo(() => { const all = paletteEntries(); return GROUPS.map((g) => [g, all.filter((b) => b.group === g)]); }, []);
   const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.hint || ''} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);
-  const quality = useMemo(() => analyzeWorksheet(doc || newDocument()), [doc]);
+  const quality = useMemo(() => analyzeWorksheet(doc || newDocument(), { forms: levelForms }), [doc, levelForms]);
 
   if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to={backTo}>Tagasi: {backLabel}</Link></div></div>;
   if (!doc) return <div className="page-content"><p className="ws-studio-loading">Laen töölehte…</p></div>;

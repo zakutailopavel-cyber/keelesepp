@@ -52,3 +52,19 @@ describe('lesson phases', () => {
     expect(didacticCheck({ meta: { level: 'B1', title: 'Pere — Kasuta' }, blocks: closed }).issues.map((i) => i.code)).toContain('did-productive');
   });
 });
+
+describe('vocabulary level (EKI lists)', () => {
+  it('finds words above the level, counts compounds by their harder part and skips names', async () => {
+    const { wordLevel } = await import('./levelVocabulary.js');
+    const forms = { A1: new Set(['ma', 'elan', 'koos', 'emaga', 'koolis', 'käin', 'sõbralik', 'mul', 'kaks', 'venda']), A2: new Set(['arvutiga']), B1: new Set(['keskkonna', 'tarbimine']) };
+    expect(wordLevel('Koolis', forms)).toBe('A1');
+    expect(wordLevel('keskkonnasõbralik', forms)).toBe('B1');
+    expect(wordLevel('xyzzy', forms)).toBeNull();
+    const sentences = Array.from({ length: 4 }, () => 'Ma elan koos emaga ja Mari käin koolis tarbimine.');
+    const doc = { meta: { level: 'A2' }, blocks: [task('gaps', { sentences: sentences.map((x) => x.replace('koolis', '[koolis]')).join('\n') })] };
+    const issue = didacticCheck(doc, { forms }).issues.find((i) => i.code === 'did-vocabulary');
+    expect(issue.text).toMatch(/tarbimine/);
+    expect(issue.text).not.toMatch(/mari/i);
+    expect(didacticCheck(doc).issues.find((i) => i.code === 'did-vocabulary')).toBeUndefined();
+  });
+});

@@ -1,3 +1,17 @@
+## 2026-10-10 — Didactic engine step 3: EKI level vocabulary (A1/A2/B1) in the check — branch `agent/level-vocabulary`
+
+- Base: `main` (after #417).
+- Source: EKI level word lists, 2018, CC BY 4.0. The PDFs were downloaded to the scratchpad and parsed by `tools/lexicon/build_level_forms.py parse` into `tools/lexicon/eki-levels-2018.json`, which is committed with attribution.
+- `build` (Vabamorf / EstNLTK 1.7.5, `.venv` per docs/GENERATOR_LEXICON.md) writes `crm-v2/src/features/worksheet-studio/didactics/levelForms.json`: 126k forms; it is a lazy chunk of about 294 kB gz.
+- `didactics/levelVocabulary.js`:
+  - `loadLevelForms()` loads the forms lazily;
+  - `wordLevel(word, forms)`: a compound of two known parts counts as the harder part.
+- `didacticCheck(doc, {forms})` adds `did-vocabulary`: more than 10% of words above the level is a tip, more than 20% a warning. Up to 6 example words are shown.
+- `analyzeWorksheet(doc, {forms})`: `WorksheetStudioPage` loads the forms once.
+- The score is now 100 − 12 per warning − 6 per tip.
+- Checks: worksheet-studio + generator 591/591; eslint is clean; build succeeds. Run by hand on 18 real A2 sheets (read-only dump, deleted).
+- Next safe step: step 5 — local models fill slots under the profile and are filtered by GEC + `didacticCheck` (including vocabulary).
+
 ## 2026-10-10 — Didactic engine step 2: the generator takes its amounts from the level norms and checks itself — branch `agent/generator-norms`
 
 - Base: `main` (after #416).

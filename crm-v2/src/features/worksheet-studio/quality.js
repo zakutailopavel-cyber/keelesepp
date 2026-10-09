@@ -5,7 +5,8 @@ import { didacticCheck } from './didactics/didacticCheck.js';
 const text = (value) => String(value || '').trim();
 const rows = (value) => String(value || '').split('\n').filter((x) => x.trim());
 
-export function analyzeWorksheet(document) {
+// `forms`: the EKI level vocabularies, once loaded (didactics/levelVocabulary.js)
+export function analyzeWorksheet(document, { forms = null } = {}) {
   const issues = [];
   if (!text(document?.meta?.title) || text(document.meta.title) === 'Uus tööleht') issues.push({ level: 'warning', code: 'title', text: 'Anna töölehele sisuline pealkiri.' });
   if (!document?.blocks?.length) issues.push({ level: 'error', code: 'blocks', text: 'Lisa vähemalt üks ülesanne või sisublokk.' });
@@ -35,7 +36,7 @@ export function analyzeWorksheet(document) {
   if (taskBlocks.length > 10) issues.push({ level: 'tip', code: 'long', text: `Nõuanne: lehel on ${taskBlocks.length} ülesannet. Kas jagad selle kahe tunni peale?` });
   if (!Object.keys(document?.meta?.goals || {}).length) issues.push({ level: 'warning', code: 'goals', text: 'Lisa vähemalt üks õpieesmärk, et tulemusi saaks eesmärkide kaupa jälgida.' });
   // the level's didactic norms (didactics/levels.js): never blocking, shown as warnings and tips
-  const didactics = didacticCheck(document || {});
+  const didactics = didacticCheck(document || {}, { forms });
   issues.push(...didactics.issues);
   const errors = issues.filter((issue) => issue.level === 'error');
   return { ready: errors.length === 0, issues, errors, warnings: issues.filter((issue) => issue.level === 'warning'), tips: issues.filter((issue) => issue.level === 'tip'), didactics };
