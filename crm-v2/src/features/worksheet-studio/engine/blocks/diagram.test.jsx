@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { diagram } from './diagram.jsx';
-import { KIND_SAMPLES, cellParts, cycleArcs, diagramLayout, diagramNodes, pairLines, switchKind } from './diagramModel.js';
+import { KIND_SAMPLES, cellParts, cycleArcs, diagramLayout, diagramNodes, mindMapLayout, mindTree, pairLines, switchKind } from './diagramModel.js';
 import { createBlock, isPaletteKey, paletteEntries } from '../registry.js';
 
 const ctx = (values = {}) => ({ interactive: true, get: (k) => values[k] || '', set: vi.fn(), state: () => undefined });
@@ -95,5 +95,35 @@ describe('Skeem kinds (2026-10-09)', () => {
     expect(isPaletteKey('diagram:nope')).toBe(false);
     expect(createBlock('diagram:formula').data.kind).toBe('formula');
     expect(createBlock('diagram').data.kind).toBe('mind');
+  });
+});
+
+describe('Mind map with sub-branches', () => {
+  it('a line starting with a dash or spaces is a sub-branch; keys follow the line order', () => {
+    const tree = mindTree('hommikul\n- ärkan\n  [pesen] hambaid\npäeval\nõhtul\n* loen');
+    expect(tree.map((b) => [b.key, b.raw, b.children.map((c) => `${c.key}:${c.raw}`)])).toEqual([
+      ['n0', 'hommikul', ['n1:ärkan', 'n2:[pesen] hambaid']], ['n3', 'päeval', []], ['n4', 'õhtul', ['n5:loen']],
+    ]);
+    expect(mindTree('- esimene\n- teine').map((b) => b.children.length)).toEqual([1]);
+  });
+
+  it('balances branches right and left and keeps sub-branches inside the box', () => {
+    const layout = mindMapLayout(mindTree('a\n- 1\n- 2\n- 3\nb\n- 4\nc\n- 5\n- 6'));
+    expect(layout.branches.map((b) => b.side)).toEqual(['right', 'left', 'left']);
+    layout.branches.flatMap((b) => [b, ...b.children]).forEach(({ at }) => {
+      expect(at.x).toBeGreaterThan(0);
+      expect(at.x).toBeLessThan(100);
+      expect(at.y).toBeGreaterThan(0);
+      expect(at.y).toBeLessThan(layout.h);
+    });
+  });
+
+  it('scores gaps in branches and sub-branches; a map without sub-branches keeps the old keys', () => {
+    const data = { kind: 'mind', center: 'Päev', nodes: 'hommikul\n- [pesen] hambaid\n[päeval]' };
+    expect(diagram.answers(data).map((a) => a.key)).toEqual(['n1', 'n2']);
+    expect(diagram.answers({ kind: 'mind', center: '[päev]', nodes: 'a\n[b]' }).map((a) => a.key)).toEqual(['c', 'n1']);
+    render(<diagram.View data={data} ctx={ctx()} id="b" />);
+    expect(screen.getByLabelText('Haru 1 lünk 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('Skeemi haru 2')).toBeInTheDocument();
   });
 });

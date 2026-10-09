@@ -319,6 +319,15 @@
 .ws-dg-step { position: absolute; left: -2.6mm; top: -2.6mm; width: 5.5mm; height: 5.5mm; border-radius: 50%; background: #2f7d4c; color: #fff; font-size: 8.5pt; font-weight: 700; line-height: 5.5mm; text-align: center; }
 .ws-diagram .ws-dg-node .ws-gapline, .ws-dg-timeline .ws-gapline, .ws-dg-formula .ws-gapline, .ws-dg-venn .ws-gapline, .ws-dg-compare .ws-gapline { display: inline-block; vertical-align: baseline; margin: 0 .6mm; }
 .ws-diagram.is-cycle { margin: 3mm 0; }
+/* mind map with sub-branches */
+.ws-diagram.is-map .ws-dg-lines path { stroke-width: 1.6; opacity: .75; }
+.ws-diagram.is-map .ws-dg-lines path.is-trunk { stroke-width: 3.2; opacity: .85; }
+.ws-diagram.is-map .ws-dg-node { max-width: 40mm; }
+.ws-dg-node.is-branch { background: var(--dg-c); color: #fff; font-weight: 700; border-radius: 99px; box-shadow: none; }
+.ws-dg-node.is-branch .ws-line { background: #fff; color: #173a63; }
+.ws-dg-node.is-leaf { border-width: 0 0 1.6px; border-radius: 0; padding: .8mm 1.5mm; background: transparent; box-shadow: none; min-width: 18mm; max-width: none; white-space: nowrap; }
+.ws-dg-node.is-leaf.is-right { transform: translate(-1mm, -50%); text-align: left; }
+.ws-dg-node.is-leaf.is-left { transform: translate(calc(-100% + 1mm), -50%); text-align: right; }
 /* timeline: time above the axis, event below */
 .ws-dg-timeline { display: grid; grid-template-columns: repeat(var(--dg-n), minmax(0, 1fr)); row-gap: 4mm; padding: 1mm 0 2mm; }
 .ws-dg-tl-item { display: grid; grid-template-rows: 9mm 7mm auto; text-align: center; min-width: 0; }

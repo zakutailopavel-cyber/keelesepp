@@ -1,6 +1,6 @@
 import { Fragment, useId } from 'react';
 import { Line, Md } from '../ui.jsx';
-import { MAX_NODES, cellParts, cycleArcs, diagramKind, diagramLayout, pairLines, zoneItems } from './diagramModel.js';
+import { MAX_NODES, cellParts, curve, cycleArcs, diagramKind, diagramLayout, mindMapLayout, mindTree, pairLines, zoneItems } from './diagramModel.js';
 
 // The drawings of the „Skeem” block, one per kind (diagram.jsx holds the block definition).
 
@@ -16,11 +16,11 @@ function Cell({ raw, keyName, ctx, label }) {
     : <Md key={i} text={p.text} />));
 }
 
-const box = ({ raw, at, h, ctx, keyName, label, main = false, color, step = 0 }) => {
+const box = ({ raw, at, h, ctx, keyName, label, main = false, color, step = 0, branch = false, leaf = '' }) => {
   const whole = cellParts(raw, keyName);
   const gap = whole.length === 1 && whole[0].gap;
   return (
-    <div className={`ws-dg-node ${main ? 'is-main' : ''} ${gap ? 'is-gap' : ''}`} style={{ left: `${at.x}%`, top: `${(at.y / h) * 100}%`, ...(color ? { '--dg-c': color } : {}) }}>
+    <div className={`ws-dg-node ${main ? 'is-main' : ''} ${gap ? 'is-gap' : ''} ${branch ? 'is-branch' : ''} ${leaf ? `is-leaf is-${leaf}` : ''}`} style={{ left: `${at.x}%`, top: `${(at.y / h) * 100}%`, ...(color ? { '--dg-c': color } : {}) }}>
       {step ? <span className="ws-dg-step" aria-hidden="true">{step}</span> : null}
       <Cell raw={raw} keyName={keyName} ctx={ctx} label={label} />
     </div>
@@ -66,6 +66,37 @@ function Positioned({ data, ctx, kind }) {
       }) : null}
       {center ? box({ raw: center, at: layout.center, h: layout.h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true }) : null}
       {raws.map((raw, i) => <Fragment key={i}>{box({ raw, at: layout.points[i], h: layout.h, ctx, keyName: `n${i}`, label: `Skeemi lünk ${i + 1}`, color: colored ? BRANCH[i % BRANCH.length] : null, step: kind === 'flow' ? i + 1 : 0 })}</Fragment>)}
+    </div>
+  );
+}
+
+// a mind map with sub-branches: topic in the middle, branches right and left, sub-branches outside, one colour per branch
+function MindMap({ data, ctx, branches }) {
+  const layout = mindMapLayout(branches);
+  const { h, center } = layout;
+  return (
+    <div className="ws-diagram is-mind is-map" style={{ aspectRatio: `100 / ${h}` }}>
+      <svg className="ws-dg-lines" viewBox={`0 0 100 ${h}`} preserveAspectRatio="none" aria-hidden="true">
+        {layout.branches.map((b) => {
+          const color = BRANCH[b.index % BRANCH.length];
+          return (
+            <g key={b.key} style={{ stroke: color }}>
+              {data.center ? <path d={curve(center, b.at)} className="is-trunk" fill="none" vectorEffect="non-scaling-stroke" /> : null}
+              {b.children.map((c) => <path key={c.key} d={curve(b.at, c.at)} fill="none" vectorEffect="non-scaling-stroke" />)}
+            </g>
+          );
+        })}
+      </svg>
+      {data.center ? box({ raw: data.center, at: center, h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true }) : null}
+      {layout.branches.map((b, i) => {
+        const color = BRANCH[b.index % BRANCH.length];
+        return (
+          <Fragment key={b.key}>
+            {box({ raw: b.raw, at: b.at, h, ctx, keyName: b.key, label: `Skeemi haru ${i + 1}`, color, branch: true })}
+            {b.children.map((c, j) => <Fragment key={c.key}>{box({ raw: c.raw, at: c.at, h, ctx, keyName: c.key, label: `Haru ${i + 1} lünk ${j + 1}`, color, leaf: b.side })}</Fragment>)}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
@@ -138,6 +169,10 @@ const VIEWS = { timeline: Timeline, formula: Formula, venn: Venn, compare: Compa
 
 export function DiagramView({ data, ctx }) {
   const kind = diagramKind(data);
+  if (kind === 'mind') {
+    const branches = mindTree(data.nodes);
+    if (branches.some((b) => b.children.length)) return <MindMap data={data} ctx={ctx} branches={branches} />;
+  }
   const View = VIEWS[kind];
   return View ? <View data={data} ctx={ctx} /> : <Positioned data={data} ctx={ctx} kind={kind} />;
 }

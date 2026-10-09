@@ -27,7 +27,7 @@ export const diagramKind = (data = {}) => (KIND_SET.has(data.kind) ? data.kind :
 
 // A ready example per kind: a new block of that kind (or switching an empty one) starts filled in.
 export const KIND_SAMPLES = {
-  mind: { title: 'Täida skeem.', instruction: 'Kirjuta puuduvad sõnad.', center: 'Minu päev', nodes: 'hommikul\n[päeval]\nõhtul\n[öösel]' },
+  mind: { title: 'Mõttekaart.', instruction: 'Kirjuta puuduvad sõnad.', center: 'Minu päev', nodes: 'hommikul\n- ärkan\n- [pesen] hambaid\npäeval\n- töötan\n- [söön] lõunat\nõhtul\n- vaatan telekat\n- loen raamatut\nöösel\n- [magan]' },
   flow: { title: 'Pane sammud järjekorda.', instruction: 'Kirjuta puuduvad tegusõnad.', nodes: 'Ärkan kell seitse.\n[Pesen] hambaid.\nSöön hommikusööki.\n[Lähen] tööle.' },
   cycle: { title: 'Aastaajad.', instruction: 'Kirjuta puuduvad aastaajad.', center: 'Aasta', nodes: 'kevad\n[suvi]\nsügis\n[talv]' },
   timeline: { title: 'Minu nädal.', instruction: 'Kirjuta tegusõna õiges ajavormis.', nodes: 'eile | [käisin] kinos\ntäna | olen kodus\nhomme | [lähen] tööle' },
@@ -102,10 +102,62 @@ export function diagramCells(data = {}) {
     return pairLines(data.nodes).flatMap(({ label, text }, i) => [{ key: `${labelKey}${i}`, raw: label }, { key: `n${i}`, raw: text }]);
   }
   const center = kind !== 'flow' && data.center ? [{ key: 'c', raw: data.center }] : [];
+  if (kind === 'mind') return [...center, ...mindTree(data.nodes).flatMap((b) => [b, ...b.children]).map(({ key, raw }) => ({ key, raw }))];
   return [...center, ...lines(data.nodes).map((raw, i) => ({ key: `n${i}`, raw }))];
 }
 export const diagramAnswers = (data = {}) => diagramCells(data).flatMap(({ key, raw }) => cellAnswers(raw, key));
 export const diagramHasContent = (data = {}) => diagramCells(data).some(({ raw }) => String(raw || '').trim());
+
+// A mind map with sub-branches: a line that starts with spaces, a tab or „-” / „*” / „•” is a sub-branch of the branch
+// above it. Keys follow the line order (n0, n1, …), so a map without sub-branches keeps the old keys.
+export const MAX_MIND_LINES = 30;
+export function mindTree(value) {
+  const branches = [];
+  String(value || '').split('\n').filter((line) => line.trim()).slice(0, MAX_MIND_LINES).forEach((line, i) => {
+    const sub = /^(\s+|\s*[-*•]\s*)/.test(line) && branches.length > 0;
+    const raw = line.trim().replace(/^[-*•]\s*/, '');
+    if (sub) branches[branches.length - 1].children.push({ key: `n${i}`, raw });
+    else branches.push({ key: `n${i}`, raw, children: [] });
+  });
+  return branches;
+}
+
+// The two-sided map: branches go right and left of the topic (balanced by size), sub-branches stand outside them.
+export function mindMapLayout(branches) {
+  const ROW = 7;
+  const weight = (b) => Math.max(1, b.children.length);
+  const sides = { right: [], left: [] };
+  const sum = { right: 0, left: 0 };
+  branches.forEach((b, index) => {
+    const side = sum.right <= sum.left ? 'right' : 'left';
+    sides[side].push({ ...b, index });
+    sum[side] += weight(b);
+  });
+  const h = Math.max(30, Math.max(sum.right, sum.left) * ROW + 8);
+  const placed = [];
+  ['right', 'left'].forEach((side) => {
+    const dir = side === 'right' ? 1 : -1;
+    let y = (h - sum[side] * ROW) / 2;
+    sides[side].forEach((b) => {
+      const slot = weight(b) * ROW;
+      const by = y + slot / 2;
+      placed.push({
+        ...b,
+        side,
+        at: { x: 50 + dir * 19, y: by },
+        children: b.children.map((c, j) => ({ ...c, at: { x: 50 + dir * 32, y: y + ROW / 2 + j * ROW } })),
+      });
+      y += slot;
+    });
+  });
+  return { h, center: { x: 50, y: h / 2 }, branches: placed.sort((a, b) => a.index - b.index) };
+}
+
+// a soft horizontal S-curve between two points
+export const curve = (a, b) => {
+  const mx = (a.x + b.x) / 2;
+  return `M${a.x},${a.y} C${mx},${a.y} ${mx},${b.y} ${b.x},${b.y}`;
+};
 
 // positions in a 100-wide box; `h` is the box height in the same units
 export function diagramLayout(kind, count) {

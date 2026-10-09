@@ -1,6 +1,6 @@
 import { Area, Select, Text } from '../../editor/fields.jsx';
 import { norm } from '../schema.js';
-import { DIAGRAM_KINDS, KIND_SAMPLES, MAX_NODES, ZONE_KINDS, diagramAnswers, diagramKind, switchKind } from './diagramModel.js';
+import { DIAGRAM_KINDS, KIND_SAMPLES, MAX_MIND_LINES, MAX_NODES, ZONE_KINDS, diagramAnswers, diagramKind, switchKind } from './diagramModel.js';
 import { DiagramView } from './diagramViews.jsx';
 
 // „Skeem”: mind map, chain of steps, cycle, timeline, sentence formula, Venn diagram, T-chart or tree
@@ -37,7 +37,11 @@ export const diagram = {
         ) : (
           <>
             {kind !== 'flow' ? <Text label={kind === 'tree' ? 'Ülemine kast' : 'Keskmine kast'} value={data.center} onChange={(v) => set({ center: v })} placeholder="Minu päev  või  [lünk]" /> : null}
-            <Area label={`Kastid (iga rida üks kast, kuni ${MAX_NODES})`} rows={7} value={data.nodes} onChange={(v) => set({ nodes: v })} hint="Lünk nurksulgudes: [päeval] või [päeval|lõunal] — ka lause sees: [Pesen] hambaid." />
+            {kind === 'mind' ? (
+              <Area label="Harud (iga rida üks haru, alamharu algab miinusega)" rows={10} value={data.nodes} onChange={(v) => set({ nodes: v })} hint={`Näide: hommikul ⏎ - ärkan ⏎ - [pesen] hambaid. Kuni ${MAX_MIND_LINES} rida. Lünk nurksulgudes: [päeval] või [päeval|lõunal].`} />
+            ) : (
+              <Area label={`Kastid (iga rida üks kast, kuni ${MAX_NODES})`} rows={7} value={data.nodes} onChange={(v) => set({ nodes: v })} hint="Lünk nurksulgudes: [päeval] või [päeval|lõunal] — ka lause sees: [Pesen] hambaid." />
+            )}
           </>
         )}
       </>
