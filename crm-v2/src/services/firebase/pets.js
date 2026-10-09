@@ -4,9 +4,9 @@ import { PET_KINDS, validPetName } from '../../features/pet/petModel.js';
 import { cleanWearing } from '../../features/pet/petItems.js';
 
 // The student's own pet lives on their account document (users/{uid}.pet). The rule lets the user write only
-// kind, name, chosenAt, tourDoneAt, hidden, optedOut and the outfit (owned, wearing, spentStars). Growth is never
+// kind, name, chosenAt, tourDoneAt, hidden, optedOut, playedAt and the outfit (owned, wearing, spentStars). Growth is never
 // stored: it is derived. `petProfiles/{uid}` is the public copy (kind, name, outfit) the teacher and parents see.
-const FLAGS = ['tourDoneAt', 'hidden', 'optedOut'];
+const FLAGS = ['tourDoneAt', 'hidden', 'optedOut', 'playedAt'];
 
 export const petsService = {
   async get(uid) {
@@ -56,7 +56,7 @@ export const petsService = {
     const snapshots = await Promise.all(ids.map((id) => getDocs(query(collection(db, 'petProfiles'), where('studentId', '==', id)))));
     return snapshots.flatMap((snapshot) => snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))).filter((pet) => PET_KINDS.includes(pet.kind));
   },
-  // tourDoneAt (ISO string), hidden (bool), optedOut (bool)
+  // tourDoneAt (ISO string), hidden (bool), optedOut (bool), playedAt (ISO string, the last word game)
   async update({ uid, current = null, ...flags }) {
     if (!uid) throw new Error('Konto puudub.');
     const { db } = requireFirebaseClient();

@@ -87,7 +87,7 @@ export default function StudentDashboardPage({
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
-    {students.length ? <PetCard user={user} studentId={students[0]?.id || ''} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} words={words} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(petRepository ? { repository: petRepository } : {})} /> : null}
+    {students.length ? <PetCard user={user} studentId={students[0]?.id || ''} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} words={words} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(wordsService ? { wordsService } : {})} {...(petRepository ? { repository: petRepository } : {})} /> : null}
     <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
       { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },

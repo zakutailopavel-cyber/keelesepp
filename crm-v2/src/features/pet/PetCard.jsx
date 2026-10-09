@@ -6,6 +6,9 @@ import { MOODS, SPECIES, STAGES, petSvg } from './petArt.js';
 import { PET_KINDS, petGreeting, petProgress, validPetName } from './petModel.js';
 import { announcePet } from './petEvents.js';
 import PetWardrobe from './PetWardrobe.jsx';
+import PetCare from './PetCare.jsx';
+import { careGreeting, careMood, lowestNeed, petNeeds } from './petCare.js';
+import { studentWordsService } from '../../services/firebase/studentWords.js';
 import './pet.css';
 
 // Estonian: singular after 1, partitive otherwise (1 tund, 3 tundi)
@@ -48,7 +51,7 @@ function PetPicker({ initial, onSave, onCancel, onDecline, saving, error }) {
 }
 
 // The student's pet on "Minu õpingud": chosen once, then grows from lessons, submitted worksheets and goals.
-export default function PetCard({ user, studentId = '', readOnly = false, lessons = [], submissions = [], homework = [], words = [], pendingHomework = 0, lessonToday = '', subject = '', repository = petsService }) {
+export default function PetCard({ user, studentId = '', readOnly = false, lessons = [], submissions = [], homework = [], words = [], pendingHomework = 0, lessonToday = '', subject = '', repository = petsService, wordsService = studentWordsService }) {
   const [pet, setPet] = useState(undefined);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -97,20 +100,30 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
     const saved = await repository.updateOutfit({ uid: user.uid, current: pet, ...next });
     setPet(saved);
   };
-  const say = petGreeting({ petName: pet.name, progress, pendingHomework, lessonToday, subject });
+  // tamagotchi care: needs filled only by learning; a low need makes the pet sad (never more)
+  const needs = petNeeds({ words, homework, submissions, lessons, playedAt: pet.playedAt });
+  const mood = careMood(progress.mood, needs);
+  const hungry = mood === 'sad' ? lowestNeed(needs) : '';
+  const greeting = petGreeting({ petName: pet.name, progress, pendingHomework, lessonToday, subject });
+  const say = hungry ? careGreeting(hungry, greeting.lang) : greeting;
+  const played = async () => {
+    const saved = await Promise.resolve().then(() => repository.update({ uid: user.uid, current: pet, playedAt: new Date().toISOString() })).catch(() => null);
+    setPet(saved || { ...pet, playedAt: new Date().toISOString() });
+  };
   const pct = progress.stageSize ? Math.round((progress.stageXp / progress.stageSize) * 100) : 100;
   return (
     <Card className="pet-card">
       <div className="pet-home">
-        <PetArt kind={pet.kind} mood={progress.mood} stage={progress.stage} wearing={pet.wearing || {}} className="pet-home__art" />
+        <PetArt kind={pet.kind} mood={mood} stage={progress.stage} wearing={pet.wearing || {}} className="pet-home__art" />
         <div className="pet-home__body">
           <div className="pet-bubble" lang={say.lang}><p>{say.text}</p><small lang="ru">{say.hint}</small></div>
           <div className="pet-home__meta">
             <strong>{pet.name}</strong>
-            <span>{STAGES[progress.stage]} · {MOODS[progress.mood].label}</span>
+            <span>{STAGES[progress.stage]} · {MOODS[mood].label}</span>
             {!readOnly ? <button type="button" className="pet-home__edit" onClick={() => setEditing(true)}>Muuda</button> : null}
             {!readOnly && repository.updateOutfit ? <button type="button" className="pet-home__edit" aria-expanded={wardrobe} onClick={() => setWardrobe(!wardrobe)}>Riidekapp</button> : null}
           </div>
+          <PetCare needs={needs} words={words} wordsService={wordsService} readOnly={readOnly} onPlayed={played} />
           <div className="pet-xp" aria-label={`Kasv ${pct}%`}>
             <div className="pet-xp__bar"><i style={{ width: `${pct}%` }} /></div>
             <div className="pet-xp__row"><span>{progress.nextItem ? `Järgmine: ${progress.nextItem}` : 'Täiskasvanud sõber'}</span><span>{count(progress.lessons, 'tund', 'tundi')} · {count(progress.submissions, 'töö', 'tööd')} · {count(progress.goals, 'eesmärk', 'eesmärki')}</span></div>
