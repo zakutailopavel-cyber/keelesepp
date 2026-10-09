@@ -32,7 +32,8 @@ export function createBlock(key) {
   return { id: newId(), type, width: def.width, span: def.width === 'full' ? 12 : 6, tone: def.tone, data: variant ? def.create(variant) : def.create() };
 }
 
-// Task modifications (spec §2): block.opts = { cols: 1|2|3, example: bool, shuffle: bool, size: 'small'|'large' }.
+// Task modifications (spec §2): block.opts = { cols: 1|2|3, example: bool, shuffle: bool, keepOrder: bool (choice: options
+// are mixed unless set), size: 'small'|'large' }.
 export const COLUMN_BLOCKS = new Set(['gaps', 'choice', 'truefalse', 'wordorder', 'reading', 'listening', 'selfcheck', 'categorize', 'wordforms', 'errorfix', 'translation']);
 export const SHUFFLE_BLOCKS = new Set(['choice', 'wordforms', 'errorfix']);
 

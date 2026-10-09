@@ -1,3 +1,19 @@
+## 2026-10-09 — Fix: „Valikvastused” first option could not be picked; options mixed by default — branch `agent/choice-first-option`
+
+- Base: `main` 777b0d8.
+- Reported by a learner: in a choice task the first option of every question could not be selected. The right answer was also always listed first.
+- Cause: the answer is the index of the option. The first option has index 0, which is falsy, and the view read it with `||`, so the pick was not drawn. Scoring and progress were correct.
+- Fix in `engine/blocks/tasks.jsx`:
+  - `??` replaces `||`.
+  - Choice options are now mixed by default with the seeded shuffle, so the screen and paper show the same order. Answers stay stored by the original index, so old answers stay valid.
+  - A new `opts.keepOrder` keeps the written order; it is the „Sega vastusevariandid” checkbox in the inspector.
+  - `Sheet.jsx` passes `keepOrder` in the block context.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/worksheet-generator src/features/homework`: 623/623, including 2 new tests in `engine/engine.test.jsx`.
+  - eslint is clean and the build succeeds.
+- Not changed: the generator still writes the right option first. That is now hidden by the shuffle; the content agent may also vary it at the source.
+- Next safe step: ask the learner to reopen the worksheet and confirm that picking the first option works.
+
 ## 2026-10-09 — Constructor pro: dnd-kit drag, floating panel, Tiptap rich text, block styles and sheet themes — branch `agent/constructor-pro`
 
 - Base: `main` d9aea33 (2026-10-09). There are no rules, functions or data changes.

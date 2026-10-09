@@ -93,7 +93,8 @@ export function BlockInspector({ block, doc, update, onDelete, onDuplicate, onMo
             {[['small', 'Väike'], ['', 'Tavaline'], ['large', 'Suur']].map(([v, l]) => <button type="button" key={l} aria-pressed={(block.opts?.size || '') === v} className={(block.opts?.size || '') === v ? 'on' : ''} onClick={() => setOpts({ size: v })}>{l}</button>)}
           </div></div>
           {def.example ? <label className="ed-check"><input type="checkbox" checked={Boolean(block.opts?.example)} onChange={(e) => setOpts({ example: e.target.checked })} /> Esimene ülesanne on lahendatud näide („Näide”)</label> : null}
-          {SHUFFLE_BLOCKS.has(block.type) ? <label className="ed-check"><input type="checkbox" checked={Boolean(block.opts?.shuffle)} onChange={(e) => setOpts({ shuffle: e.target.checked })} /> Sega vastusevariandid</label> : null}
+          {block.type === 'choice' ? <label className="ed-check"><input type="checkbox" checked={!block.opts?.keepOrder} onChange={(e) => setOpts({ keepOrder: !e.target.checked })} /> Sega vastusevariandid</label>
+            : SHUFFLE_BLOCKS.has(block.type) ? <label className="ed-check"><input type="checkbox" checked={Boolean(block.opts?.shuffle)} onChange={(e) => setOpts({ shuffle: e.target.checked })} /> Sega vastusevariandid</label> : null}
         </div>
       )}
 

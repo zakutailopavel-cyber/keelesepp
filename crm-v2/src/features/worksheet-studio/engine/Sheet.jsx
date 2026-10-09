@@ -61,9 +61,10 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
   // the tools show on hover as well as on the selected block
   const active = mode === 'edit' && (selected || hovered);
   // the solved example is read-only and shown in every mode (edit, print, student)
-  const blockCtx = hasExample || opts.shuffle ? {
+  const blockCtx = hasExample || opts.shuffle || opts.keepOrder ? {
     ...base,
     shuffle: Boolean(opts.shuffle),
+    keepOrder: Boolean(opts.keepOrder),
     get: (k) => (k in example ? example[k] : base.get(k)),
     set: (k, v) => { if (!(k in example)) base.set(k, v); },
     state: (k) => (k in example ? undefined : base.state(k)),
