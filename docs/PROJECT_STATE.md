@@ -1,3 +1,21 @@
+## 2026-10-10 — Transcriber: only the lesson's language and Russian; no punctuation-only lines — branch `agent/transcriber-et-ru`
+
+- Base: `main` 0afc487.
+- The owner wants a free solution only, so no cloud speech API is used.
+- Diagnosis (read-only on production data, plus a dry run on the Mac that wrote nothing to Firestore):
+  - The delays of about 3 h on 2026-10-08 came from the old 3 h hand-over of interrupted recordings (15 min since #381) and from the school Mac losing internet.
+  - The missing speech on long lessons is already fixed by the 2026-10-09 per-phrase pipeline. On Sofia's lesson (06.10) the first 5 min give 50 lines now against 8 before.
+  - Short learner answers were often detected as English. Whisper then invented English sentences: „My eyes” for „Majas”, „There is taste” for „Tõesti”.
+- Fix in `tools/lesson-transcriber/lib.js`:
+  - `chooseLanguage(detected, lessonLang)` allows only the lesson's language (`et`, or `en` in English lessons) and `ru`. Anything else, or an unsure guess, becomes the lesson's language.
+  - `cleanText` drops lines with no letter or digit.
+  - New asserts in `lib.test.js`; `node --test lib.test.js` gives 8/8.
+- Installed on the school Mac: `~/KeeleSeppTranscriber/app/lib.js`; the previous copy is kept as `~/KeeleSeppTranscriber/lib.js.bak-*`. The service was restarted with `launchctl kickstart` and logged „started” at 2026-10-09T21:06Z.
+- Limits:
+  - Whisper writes words, not sounds. A badly pronounced word may still come out as the nearest real word. The TalTech `et-verbatim` model is the closest free option to „exactly what was said”.
+  - Old transcripts are unchanged until they are requeued, which only the owner decides.
+- Next safe step: after the next real lesson, read its transcript. There should be no English lines in an Estonian lesson.
+
 ## 2026-10-09 — Fix: block bar clipped on half-width blocks; answer options looked greyed out — branch `agent/bar-clip`
 
 - Base: `main` 602df44.

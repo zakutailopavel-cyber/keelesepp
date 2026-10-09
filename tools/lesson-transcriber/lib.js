@@ -6,6 +6,7 @@ const JUNK = [
   /^\s*[[(].*[\])]\s*$/, // [MUSIC], (inaudible)
   /subtitles? (by|made)/i, /субтитры/i, /redaktor subtiitrite/i, /tõlkis/i,
   /^\s*(thank you|thanks for watching)\.?\s*$/i, /продолжение следует/i,
+  /^[^\p{L}\p{N}]*$/u, // only punctuation („.”, „…”)
 ];
 
 // Whisper sometimes loops („ja, ja, ja, …”, „to be able to be able …”): a word or a group of up to 6 words repeated
@@ -59,10 +60,12 @@ function parseDetectedLanguage(output) {
   const m = /auto-detected language:\s*([a-z]{2,3})\s*\(p\s*=\s*([\d.]+)\)/i.exec(String(output || ''));
   return m ? { lang: m[1].toLowerCase(), p: Number(m[2]) } : null;
 }
-// only the school's languages; an unsure or other guess falls back to the lesson's language
-const LESSON_LANGUAGES = ['et', 'ru', 'en'];
-function chooseLanguage(detected, fallback = 'et') {
-  return detected && LESSON_LANGUAGES.includes(detected.lang) && detected.p >= 0.5 ? detected.lang : fallback;
+// A lesson speaks its own language (Estonian, or English in an English lesson) and Russian for explanations. Short
+// answers of a learner are often guessed as English (or Finnish, Polish…) and whisper then invents an English sentence
+// („My eyes” for „Majas”), so only these two are allowed; an unsure or other guess is the lesson's language.
+function chooseLanguage(detected, lessonLang = 'et') {
+  const allowed = [lessonLang, 'ru'];
+  return detected && allowed.includes(detected.lang) && detected.p >= 0.5 ? detected.lang : lessonLang;
 }
 
 // whisper-cli -oj output → lines with absolute time in the lesson
