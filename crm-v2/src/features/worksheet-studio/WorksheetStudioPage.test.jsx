@@ -61,6 +61,19 @@ describe('WorksheetStudioPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
   });
 
+  it('makes an easier copy of the sheet and opens it with a note of what changed', async () => {
+    const repository = repo({ save: vi.fn().mockResolvedValue({ id: 'lesson-2', created: true }) });
+    renderAt('/library/worksheets/lesson-1', repository);
+    await screen.findByText('Töölehe konstruktor');
+    fireEvent.click(screen.getByRole('button', { name: 'Tee lihtsam versioon (toetav)' }));
+    await waitFor(() => expect(repository.save).toHaveBeenCalledTimes(1));
+    const saved = repository.save.mock.calls[0][0];
+    expect(saved).toMatchObject({ lessonId: '', status: 'draft' });
+    expect(saved.document.meta).toMatchObject({ variant: 'support', variantOf: 'lesson-1' });
+    expect(saved.document.meta.title).toMatch(/\(toetav\)$/);
+    await waitFor(() => expect(repository.load).toHaveBeenCalledWith('lesson-2'));
+  });
+
   it('„Pank”: a text from the bank comes with gaps made from it; a picture goes into a new picture block', async () => {
     const passage = 'Mari elab Tallinnas koos oma perega. Hommikul ärkab ta kell seitse ja joob kohvi. Siis sõidab ta bussiga tööle kesklinna. Õhtul vaatab Mari televiisorit ja loeb raamatut.';
     const mediaBank = { save: vi.fn().mockResolvedValue({}), list: vi.fn().mockResolvedValue([
