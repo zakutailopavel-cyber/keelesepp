@@ -10,6 +10,7 @@ import { petCelebrate, petQuiet } from '../pet/petEvents.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 import SheetAnnotations from './SheetAnnotations.jsx';
+import { rightAnswers, shownResults, stepView } from './engine/liveLesson.js';
 
 // Local recordings (blob: URLs) must be uploaded before the answers are stored.
 async function persistRecordings({ doc, answers, assignment, repository }) {
@@ -50,6 +51,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
   const [focusId, setFocusId] = useState(assignment.liveFocus?.blockId || '');
   const [teacherMarks, setTeacherMarks] = useState(assignment.annotations || []);
+  // live lesson: the teacher opens tasks one by one and shows the right answers of a task
+  const [liveStep, setLiveStep] = useState(assignment.liveStep || null);
+  const [liveShown, setLiveShown] = useState(assignment.liveShown || []);
   const [autosaved, setAutosaved] = useState('');
   const edited = useRef(false);
 
@@ -79,6 +83,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     return repository.subscribeWorksheetAssignment(assignment.id, (next) => {
       if (!review) setFocusId(next.liveFocus?.blockId || '');
       setTeacherMarks(next.annotations || []);
+      setLiveStep(next.liveStep || null);
+      setLiveShown(next.liveShown || []);
     }, () => {});
   }, [review, repository, assignment.id]);
   useEffect(() => {
@@ -86,6 +92,16 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     const el = canvasRef.current?.querySelector(`.ws-page [data-block="${focusId}"]`);
     if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [focusId]);
+
+  const stepped = useMemo(() => (review ? { doc, hidden: 0 } : stepView(doc, liveStep)), [doc, liveStep, review]);
+  const shownMarks = useMemo(() => (review ? {} : shownResults(doc, answers, liveShown)), [doc, answers, liveShown, review]);
+  const answerNotes = useMemo(() => {
+    if (review || !liveShown.length) return null;
+    return Object.fromEntries(doc.blocks.filter((b) => liveShown.includes(b.id)).map((b) => {
+      const list = rightAnswers(b);
+      return [b.id, list.length ? <span className="ws-live-answers"><b>Õiged vastused:</b> {list.map((a, i) => <span key={i}>{i + 1}) {a}</span>)}</span> : <span className="ws-live-answers">Õpetaja vaatab selle ülesande koos sinuga üle.</span>];
+    }));
+  }, [doc, liveShown, review]);
 
   const saveDraft = async () => {
     setSavingDraft(true); setError('');
@@ -131,10 +147,11 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
+      {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
       <div className="st-canvas" ref={setCanvas}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || {}} focusId={review ? '' : focusId} />
+          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
         </div>
         </SheetAnnotations>
       </div>

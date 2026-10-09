@@ -353,3 +353,37 @@ textarea.ed-input { resize: vertical; }
 .st-sheetpanel { padding: 0 2px; }
 .ws-studio .st-block[draggable="true"] { cursor: grab; }
 @media (max-width: 1000px) { .ws-studio .st-inspector.is-floating { left: 8px !important; right: 8px !important; top: auto !important; bottom: 8px; width: auto; max-height: 50dvh !important; } }
+
+/* live worksheet lesson: the teacher's task list, step mode, shown answers (LiveTaskPanel.jsx) */
+.ws-studio.ws-live .st-body.ws-live-body:has(.ws-live-tasks) { grid-template-columns: 1fr 270px; }
+.ws-live-body > .st-canvas { min-width: 0; }
+.ws-live-tasks { min-width: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px; overflow: auto; background: var(--st-panel); border-left: 1px solid var(--st-line); }
+.ws-live-tasks-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ws-live-tasks-head b { font: 800 15px 'Nunito', sans-serif; }
+.ws-live-tasks .st-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; padding: 6px 10px; }
+.ws-live-tasks .st-btn.is-on { background: var(--st-accent); color: #fff; border-color: var(--st-accent); }
+.ws-live-step { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 10px; background: var(--st-accent-soft); font-weight: 700; font-size: 13px; }
+.ws-live-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ws-live-list > li { padding: 8px 10px; border: 1px solid var(--st-line); border-left: 4px solid #b9c3cf; border-radius: 10px; background: var(--st-bg); }
+.ws-live-list > li.is-good { border-left-color: #2f9e5b; }
+.ws-live-list > li.is-mixed { border-left-color: #e0a526; }
+.ws-live-list > li.is-hard { border-left-color: #d1453b; }
+.ws-live-list > li.is-closed { opacity: .62; border-style: dashed; border-left-style: solid; }
+.ws-live-row { display: flex; align-items: center; gap: 8px; }
+.ws-live-num { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--st-navy); color: #fff; font: 800 12px 'Nunito', sans-serif; }
+.ws-live-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 13px; }
+.ws-live-count { flex: none; font: 800 13px 'Nunito', sans-serif; color: var(--st-muted); }
+.ws-live-bar { position: relative; height: 6px; margin: 7px 0 2px; border-radius: 99px; background: var(--st-line); overflow: hidden; }
+.ws-live-bar span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
+.ws-live-bar .is-answered { background: #f2c4bf; }
+.ws-live-bar .is-ok { background: #2f9e5b; }
+.ws-live-actions { display: flex; gap: 6px; margin-top: 6px; }
+.ws-live-actions button { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--st-line); border-radius: 99px; background: var(--st-panel); color: var(--st-ink); font: 700 12px inherit; cursor: pointer; }
+.ws-live-actions button.is-on { background: var(--st-accent-soft); border-color: var(--st-accent); color: var(--st-accent-dark); }
+.ws-live-actions button:disabled { opacity: .55; cursor: default; }
+.ws-live-hard { padding: 10px; border-radius: 10px; background: #fff4e5; color: #6b3d00; font-size: 13px; }
+.ws-live-hard b { display: inline-flex; align-items: center; gap: 5px; }
+.ws-live-hard ul { margin: 6px 0 0; padding-left: 18px; }
+.ws-live-wait { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 10px 14px; border-radius: 12px; background: #eef6ff; color: #173a63; font-weight: 700; }
+@media (max-width: 900px) { .ws-studio.ws-live .st-body.ws-live-body:has(.ws-live-tasks) { grid-template-columns: 1fr; } .ws-live-tasks { border-left: 0; border-top: 1px solid var(--st-line); } }
+.ws-live.is-embedded .ws-live-tasks { max-height: 75vh; }

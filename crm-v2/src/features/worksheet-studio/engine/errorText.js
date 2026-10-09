@@ -10,7 +10,7 @@ function position(key) {
   return `${Number(row) + 1}. vastus`;
 }
 
-function expected(block, key) {
+export function expectedAnswer(block, key) {
   const def = BLOCKS[block?.type];
   if (!def) return '';
   if (typeof def.answers === 'function') {
@@ -36,7 +36,7 @@ export function describeAutoErrors(worksheetDoc, errorLog = []) {
     const block = blocks.find((item) => item.id === blockId);
     const answer = String(entry?.answer ?? '').trim();
     const task = block ? [numbers[block.id] ? `Ülesanne ${numbers[block.id]}` : BLOCKS[block.type]?.label, block.data?.title].filter(Boolean).join(' · ') : 'Ülesanne';
-    const right = block ? expected(block, sub) : '';
+    const right = block ? expectedAnswer(block, sub) : '';
     const where = position(sub);
     return {
       task,

@@ -37,7 +37,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropHint = '', onSelect, drag, focused, onPick, onResize, onAddItem, onMarks, toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
+function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropHint = '', onSelect, drag, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = TONES[block.tone] || TONES.white;
@@ -63,7 +63,7 @@ function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropH
   } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''}`}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${extraClass}`}
       data-cols={opts.cols > 1 ? opts.cols : undefined}
       data-size={opts.size || undefined}
       style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}) }}
@@ -89,6 +89,7 @@ function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropH
       )}
       {/* body fills the rest of a block made taller than its content (see .is-tall in sheet.css) */}
       <div className="ws-body"><def.View data={d} ctx={blockCtx} id={block.id} /></div>
+      {note ? <div className="ws-card-note">{note}</div> : null}
       <MarksLayer block={block} editable={mode === 'edit' && Boolean(onMarks)} onChange={(next) => onMarks?.(block.id, next.marks)} />
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {active && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
@@ -157,7 +158,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onDropNew, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onDropNew, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -293,7 +294,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} hovered={hoverId === b.id} onHover={mode === 'edit' ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} toolbar={(selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
+      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} hovered={hoverId === b.id} onHover={mode === 'edit' ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={(selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
     </div>
   );
 

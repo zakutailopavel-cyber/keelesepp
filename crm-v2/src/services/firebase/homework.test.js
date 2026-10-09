@@ -232,6 +232,14 @@ describe('homeworkService submissions', () => {
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveFocus: { blockId: 'b', at: expect.any(String) } });
   });
 
+  it('saves the live step mode and the shown tasks on the assignment', async () => {
+    await homeworkService.setWorksheetLiveStep({ assignmentId: 'as-1', on: true, open: ['a', 'a', 'b'] });
+    expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveStep: { on: true, open: ['a', 'b'], at: expect.any(String) } });
+    await homeworkService.setWorksheetShown({ assignmentId: 'as-1', shown: ['b'] });
+    expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveShown: ['b'] });
+    await expect(homeworkService.setWorksheetShown({ shown: [] })).rejects.toThrow();
+  });
+
   it('opens a worksheet in a live room and streams the room worksheets for one student', async () => {
     await homeworkService.openWorksheetInRoom({ assignmentId: 'as-1', roomKey: 'inv-1' });
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveRoomKey: 'inv-1', liveOpenedAt: expect.any(String) });
