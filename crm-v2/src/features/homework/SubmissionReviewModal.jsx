@@ -62,10 +62,10 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
               <section><h3>Õpilase vastused</h3><AnswerList answers={current.answers} /></section>
             </>}
           <TextAnnotationEditor fields={submissionWritingFields(current)} annotations={current.annotations || []} editable={staff} onChange={saveAnnotations} />
-          {staff ? <LearnerTextAnalysis texts={learnerTexts({ worksheetDoc, answers: current.answers || {}, fields: submissionWritingFields(current) })} level={worksheetDoc?.meta?.level || 'A2'} onFeedback={(lines) => setReview((r) => ({ ...r, teacherFeedback: lines.reduce((text, line) => addLine(text, line), r.teacherFeedback || '') }))} /> : null}
         </div>
         <aside className="review-layout__side">
           <div className="submission-review__hero"><div><span className="eyebrow">{current.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{current.studentName}</strong><small>Esitatud {formatDate(current.completedAt)}</small></div><div>{current.percentage != null ? <b>{current.percentage}%</b> : <ClipboardCheck size={28} />}{current.score?.total ? <small>{current.score.correct}/{current.score.total} õiget</small> : null}</div></div>
+          {staff ? <LearnerTextAnalysis texts={learnerTexts({ worksheetDoc, answers: current.answers || {}, fields: submissionWritingFields(current) })} level={worksheetDoc?.meta?.level || 'A2'} onFeedback={(lines) => setReview((r) => ({ ...r, teacherFeedback: lines.reduce((text, line) => addLine(text, line), r.teacherFeedback || '') }))} /> : null}
           {current.selfAssessment ? <section className="submission-self"><strong>Õpilase enesehinnang</strong><p>{current.selfAssessment.difficulty ? `Raskus: ${current.selfAssessment.difficulty}. ` : ''}{current.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
           {Array.isArray(current.errorLog) && current.errorLog.length ? (
             <section>
