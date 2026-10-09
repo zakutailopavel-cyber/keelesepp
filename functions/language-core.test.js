@@ -32,3 +32,14 @@ test("picks the Estonian headword among search hits", () => {
   assert.equal(pickEkilexWord([{ wordId: 9, wordValue: "kassike", lang: "est" }], "kass").wordId, 9);
   assert.equal(pickEkilexWord([], "kass"), null);
 });
+
+test("speech request: known voice, speed clamped, text required and limited", () => {
+  const { speechRequest, MAX_SPEECH } = require("./language-core");
+  assert.deepEqual(speechRequest({ text: "  Tere,   Mari! ", speaker: "Albert", speed: 0.8 }), { text: "Tere, Mari!", speaker: "albert", speed: 0.8 });
+  assert.equal(speechRequest({ text: "Tere", speed: 9 }).speed, 2);
+  assert.equal(speechRequest({ text: "Tere", speed: "x" }).speed, 1);
+  assert.equal(speechRequest({ text: "Tere" }).speaker, "mari");
+  assert.throws(() => speechRequest({ text: "", speaker: "mari" }), (e) => e.status === 400);
+  assert.throws(() => speechRequest({ text: "Tere", speaker: "siri" }), (e) => e.status === 400);
+  assert.throws(() => speechRequest({ text: "a".repeat(MAX_SPEECH + 1) }), (e) => e.status === 400);
+});

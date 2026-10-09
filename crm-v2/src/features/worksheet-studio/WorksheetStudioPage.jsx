@@ -5,6 +5,7 @@ import * as Icons from 'lucide-react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { lessonWorksheetsService, libraryService, worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
 import { mediaBankService } from '../../services/firebase/mediaBank.js';
+import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';
 import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
@@ -38,7 +39,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, speech = languageToolsService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const draftName = draftId || (isNew ? 'new' : lessonId);
@@ -198,7 +199,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const assets = useMemo(() => ({
     image: async (file) => { const img = await repository.uploadImage(file); bankImage(img, { name: file?.name }); return img; },
     audio: (file) => repository.uploadAudio(file),
-  }), [repository, docMeta]); // eslint-disable-line react-hooks/exhaustive-deps
+    // Estonian voices (TartuNLP Neurokõne) for listening, dialogue and reading blocks
+    ...(speech?.speak ? { speak: (request) => speech.speak(request) } : {}),
+  }), [repository, docMeta, speech]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const palette = useMemo(() => { const all = paletteEntries(); return GROUPS.map((g) => [g, all.filter((b) => b.group === g)]); }, []);
   const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.hint || ''} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);

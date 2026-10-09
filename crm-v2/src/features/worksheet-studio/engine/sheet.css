@@ -169,6 +169,14 @@
 .ws-rq { margin: 0; padding-left: 6mm; } .ws-rq li { margin-bottom: 2.6mm; }
 /* listening */
 .ws-listen audio { width: 100%; margin-bottom: 2mm; }
+/* the audio of a task: one pill with an icon, a name and the player */
+.ws-audio { display: flex; align-items: center; gap: 2.5mm; margin: 0 0 3mm; padding: 1.5mm 2mm 1.5mm 1.5mm; border-radius: 99px; background: #fff; border: .35mm solid rgba(23, 58, 99, .18); box-shadow: 0 .4mm 1.2mm rgba(23, 58, 99, .08); }
+.ws-audio-ico { flex: none; display: grid; place-items: center; width: 9mm; height: 9mm; border-radius: 50%; background: var(--ks-green-2, #2f7d4c); color: #fff; }
+.ws-audio-ico svg { width: 5mm; height: 5mm; }
+.ws-audio b { flex: none; font-size: 11pt; color: var(--ks-navy-2, #173a63); }
+.ws-audio audio { flex: 1; min-width: 0; height: 9mm; margin: 0; }
+.ws-audio.is-print { border-radius: 3mm; padding: 2mm 3mm; font-size: 10.5pt; color: var(--ks-navy-2, #173a63); }
+.ws-audio.is-print svg { width: 5mm; height: 5mm; flex: none; color: var(--ks-green-2, #2f7d4c); }
 .ws-qr { background: rgba(255,255,255,.75); border-radius: 3mm; padding: 2mm 3mm; font-size: 11pt; margin-bottom: 2mm; }
 /* table */
 .ws-table { width: 100%; border-collapse: collapse; font-size: 12pt; background: rgba(255,255,255,.7); border-radius: 3mm; overflow: hidden; }
@@ -427,3 +435,4 @@
 .ws-card.drop-right::after { top: 0; bottom: 0; right: -2.4mm; width: 1.4mm; }
 @keyframes ws-drop-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 @media print { .ws-card::before, .ws-card::after { display: none !important; } }
+.ws-reading > .ws-audio, .ws-dialog > .ws-audio { grid-column: 1 / -1; align-self: start; }

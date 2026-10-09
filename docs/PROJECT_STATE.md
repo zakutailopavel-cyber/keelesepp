@@ -1,3 +1,27 @@
+## 2026-10-09 — Constructor: Estonian voices (TartuNLP Neurokõne) — branch `agent/tts-voice`
+
+Checked `origin/main` `d3554ce` (after #392). Owner chose the constructor roadmap: voices → editing on the sheet →
+easier / harder variants → live lesson mode → sheet analytics; visuals improved along the way.
+- `functions`: `languageApi` route `POST /speak` {text ≤ 1200, speaker, speed 0.5–2} → TartuNLP Neurokõne
+  (`https://api.tartunlp.ai/text-to-speech/v2`, `x-api-key: public`, free public API) → `audio/wav` back to the
+  teacher's browser. Staff only (same `requireStaffUser` as translate); nothing is stored on the server; timeout 25 s,
+  function timeout 30 → 60 s. Voices allowed: mari, liivika, vesta, kylli, lee, albert, tambet, peeter, kalev, indrek,
+  meelis, luukas (`language-core.speechRequest`, `TTS_SPEAKERS`).
+- CRM: `languageToolsService.speak()` → Blob; the constructor passes it into `AssetContext` as `speak` (prop `speech`
+  on `WorksheetStudioPage`; hosts without it hide the panel). `editor/tts.js` (pure): voices, speeds, `fillGaps` (a gap
+  is read as its first right answer), `splitForSpeech` (≤ 900 chars after a sentence), `speechScript(type, data)`
+  (listening: transcript or sentences; dialogue: each line in the speaker's voice; reading: title + passage), `joinWav`
+  (pieces + pause), `wavSeconds`. `editor/Speak.jsx` `SpeakPanel` („Loo heli eesti häälega”: voice per role, speed
+  Aeglane / Rahulik / Tavaline / Kiire) saves the WAV with the existing `uploadAudio` (Storage `curriculum/`), block
+  field `audio` {src, storagePath, name, tts: {speed, voices}}; `voice`, `voiceA`, `voiceB`, `speed` remembered.
+- Blocks: Kuulamine (panel), Dialoog and Lugemine (new optional `audio`: upload or voice). On the sheet a new
+  `AudioBar` pill (icon, name, player); on paper a note instead of a player.
+- Checks: functions `language-core` + `language-api` 8/8 (speech request, Neurokõne call shape, non-audio → 502);
+  CRM worksheet-studio 23 files / 110 tests (tts 4, SpeakPanel 3); eslint 0 errors. Screenshot from a local harness.
+  The real Neurokõne call was not made from here (sandbox blocks the host).
+- Manual gate: deploy functions (`languageApi`) — until then „Loo heli” shows the error from the old function (404).
+- Next safe step: owner deploys `languageApi` and presses „Loo heli” on one listening task.
+
 ## 2026-10-09 — Constructor: scheme blocks („Skeemid”) — branch `agent/diagram-blocks` (on top of #391)
 
 Checked `origin/main` `990cfca` (after #390); the branch starts from `agent/constructor-direct` (#391, not merged yet) to

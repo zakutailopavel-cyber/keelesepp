@@ -4,6 +4,8 @@ import { Line, Md } from '../ui.jsx';
 import { norm, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
 import { Text, Area, Rows } from '../../editor/fields.jsx';
+import { SpeakPanel } from '../../editor/Speak.jsx';
+import { AudioBar } from '../ui.jsx';
 
 // Second wave: dialogue, reading, listening, table and sorting into groups.
 
@@ -27,6 +29,7 @@ export const dialogue = {
   create: () => ({ title: 'Täida dialoog.', instruction: 'Kirjuta puuduvad sõnad.', speakerA: 'Mari', speakerB: 'Jaan', lines: [{ who: 'A', text: 'Tere! Mis kell sa [ärkad]?' }, { who: 'B', text: 'Ma ärkan [tavaliselt] kell seitse.' }] }),
   View: ({ data, ctx }) => (
     <div className="ws-dialog">
+      {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive} label="Kuula dialoogi" /> : null}
       {(data.lines || []).map((l, i) => (
         <div key={i} className={`ws-say ${l.who === 'B' ? 'b' : 'a'}`}>
           <span className="ws-who">{l.who === 'B' ? data.speakerB : data.speakerA}</span>
@@ -47,6 +50,8 @@ export const dialogue = {
             <input className="ed-input" value={row.text} placeholder="Tere! Kuidas [läheb]?" onChange={(e) => patch({ text: e.target.value })} />
           </div>
         )} />
+      <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
+      <SpeakPanel type="dialogue" data={data} set={set} roles={[['voiceA', data.speakerA || 'A'], ['voiceB', data.speakerB || 'B']]} />
     </>
   ),
 };
@@ -57,6 +62,7 @@ export const reading = {
   create: () => ({ title: 'Loe teksti.', instruction: 'Vasta küsimustele.', passageTitle: 'Mari päev', passage: 'Mari ärkab tavaliselt kell seitse. Hommikul ta joob kohvi ja läheb tööle.', questions: 'Mis kell Mari ärkab? [kell seitse|seitse|7]\nMida Mari hommikul joob? [kohvi]', lineWidth: 'wide' }),
   View: ({ data, ctx }) => (
     <div className="ws-reading">
+      {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive} label="Kuula teksti" /> : null}
       <div className="ws-passage">{data.passageTitle && <h4>{data.passageTitle}</h4>}{String(data.passage || '').split(/\n{2,}/).map((p, i) => <p key={i}><Md text={p} /></p>)}</div>
       <ol className="ws-rq">
         {String(data.questions || '').split('\n').filter((q) => q.trim()).map((q, i) => {
@@ -82,6 +88,8 @@ export const reading = {
     <>
       <Text label="Teksti pealkiri" value={data.passageTitle} onChange={(v) => set({ passageTitle: v })} />
       <Area label="Tekst" rows={8} value={data.passage} onChange={(v) => set({ passage: v })} hint="Tühi rida = uus lõik." />
+      <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
+      <SpeakPanel type="reading" data={data} set={set} />
       <Area label="Küsimused (iga rida eraldi)" rows={5} value={data.questions} onChange={(v) => set({ questions: v })} hint="Õige vastus rea lõpus nurksulgudes: Mis kell? [seitse|7]. Ilma sulgudeta küsimust hindab õpetaja." />
     </>
   ),
@@ -109,7 +117,7 @@ export const listening = {
   create: () => ({ title: 'Kuula.', instruction: 'Kuula ja täida laused.', audio: null, sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].', transcript: '' }),
   View: ({ data, ctx }) => (
     <div className="ws-listen">
-      {data.audio?.src ? (ctx.interactive ? <audio controls src={data.audio.src} /> : <div className="ws-qr">🎧 Heli: kuula õpetaja juures või veebis</div>) : <div className="ws-hint">Helifail puudub.</div>}
+      {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive} label="Kuula" /> : <div className="ws-hint">Helifail puudub.</div>}
       <ol className="ws-gaps">{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
     </div>
   ),
@@ -120,6 +128,7 @@ export const listening = {
       <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />
       <Area label="Laused (lünk nurksulgudes)" rows={5} value={data.sentences} onChange={(v) => set({ sentences: v })} />
       <Area label="Transkriptsioon õpetajale (õpilane ei näe)" rows={3} value={data.transcript} onChange={(v) => set({ transcript: v })} />
+      <SpeakPanel type="listening" data={data} set={set} />
     </>
   ),
 };

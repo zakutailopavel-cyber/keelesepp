@@ -66,3 +66,21 @@ test("a failing service gives a clean 502", async () => {
     await assert.rejects(translateText({ text: "tere", src: "et", tgt: "ru" }), (error) => error.status === 502);
   } finally { index.__set__("fetch", global.fetch); }
 });
+
+test("speech goes to TartuNLP Neurokõne and comes back as WAV; a non-audio answer is an error", async () => {
+  const synthesizeSpeech = index.__get__("synthesizeSpeech");
+  const calls = [];
+  const wav = Buffer.concat([Buffer.from("RIFF"), Buffer.alloc(60)]);
+  index.__set__("fetch", async (url, options) => { calls.push({ url, body: JSON.parse(options.body), headers: options.headers }); return { ok: true, arrayBuffer: async () => wav.buffer.slice(wav.byteOffset, wav.byteOffset + wav.length) }; });
+  try {
+    const audio = await synthesizeSpeech({ text: "Tere!", speaker: "vesta", speed: 0.8 });
+    assert.equal(audio.toString("ascii", 0, 4), "RIFF");
+    assert.equal(calls[0].url, "https://api.tartunlp.ai/text-to-speech/v2");
+    assert.deepEqual(calls[0].body, { text: "Tere!", speaker: "vesta", speed: 0.8 });
+    assert.equal(calls[0].headers["x-api-key"], "public");
+    index.__set__("fetch", async () => ({ ok: true, arrayBuffer: async () => new TextEncoder().encode("{\"error\":1}").buffer }));
+    await assert.rejects(synthesizeSpeech({ text: "Tere!" }), (error) => error.status === 502);
+    index.__set__("fetch", async () => ({ ok: false, status: 503 }));
+    await assert.rejects(synthesizeSpeech({ text: "Tere!" }), (error) => error.status === 502);
+  } finally { index.__set__("fetch", global.fetch); }
+});
