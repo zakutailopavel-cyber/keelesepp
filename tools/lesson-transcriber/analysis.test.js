@@ -96,3 +96,12 @@ test('a -mine noun counts as its verb', async () => {
   assert.equal(wordLevel('raiskamisest', did.forms), wordLevel('raiskama', did.forms));
   assert.ok(wordLevel('õppimine', did.forms));
 });
+
+test('the EKI grammar profile gives the targets of a level and what is known before', async () => {
+  const { loadDidactics, ekiGrammar } = require('./analysis');
+  const did = await loadDidactics();
+  assert.ok(did.grammarProfile, 'grammarProfile.json is found');
+  const g = ekiGrammar(did.grammarProfile, 'B1-');
+  assert.equal(g.level, 'B1');
+  assert.ok(g.targets.length > 50 && g.known.length > 100);
+});

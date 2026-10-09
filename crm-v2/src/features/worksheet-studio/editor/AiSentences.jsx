@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { aiRequestsService } from '../../../services/firebase/aiRequests.js';
+import { useGrammarTopics } from './useGrammarTopics.js';
 
 const SLOW_MS = 2 * 60 * 1000;
 
@@ -11,6 +12,8 @@ const SLOW_MS = 2 * 60 * 1000;
 // add; nothing is added by itself.
 export default function AiSentences({ meta = {}, onAdd, service = aiRequestsService }) {
   const { user } = useAuth() || {};
+  const topics = useGrammarTopics(meta.level);
+  const listId = 'ed-grammar-sentences';
   const [form, setForm] = useState({ topic: meta.title || '', grammar: '', count: 8 });
   const [state, setState] = useState({ phase: 'idle', items: [], picked: [], error: '', slow: false });
   const stop = useRef(() => {});
@@ -41,9 +44,10 @@ export default function AiSentences({ meta = {}, onAdd, service = aiRequestsServ
   return (
     <div className="ed-ai">
       <span className="ed-label"><Sparkles size={14} aria-hidden="true" /> Paku laused (AI kooli arvutis)</span>
+      <datalist id={listId}>{topics.map((t) => <option key={t} value={t} />)}</datalist>
       <div className="ed-ai__form">
         <input className="ed-input" aria-label="Teema" placeholder="Teema" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
-        <input className="ed-input" aria-label="Mida lünk harjutab" placeholder="Lünk harjutab (nt osastav, mineviku vorm)" value={form.grammar} onChange={(e) => setForm({ ...form, grammar: e.target.value })} />
+        <input className="ed-input" aria-label="Mida lünk harjutab" list={listId} placeholder="Lünk harjutab (nt osastav, mineviku vorm)" value={form.grammar} onChange={(e) => setForm({ ...form, grammar: e.target.value })} />
         <div className="ed-row">
           <select className="ed-input small" aria-label="Mitu lauset" value={form.count} onChange={(e) => setForm({ ...form, count: Number(e.target.value) })}>{[4, 6, 8, 10, 12].map((n) => <option key={n} value={n}>{n} lauset</option>)}</select>
           <button type="button" className="ed-btn" disabled={state.phase === 'waiting'} onClick={ask}>{state.phase === 'waiting' ? 'Kirjutan…' : 'Paku laused'}</button>

@@ -1,3 +1,13 @@
+## 2026-10-10 — EKI grammar profile A1–C1 in the constructor and the AI prompts — branch `agent/eki-grammar`
+
+- Base: `main` (after #422). The owner pointed to Sõnaveeb „Õpetaja tööriistad” → Grammatika.
+- `tools/lexicon/build_level_forms.py grammar` reads `https://etlex.eki.ee/etLex/api/v1.0/gramprofiles?project=etLex` (547 topics) into `crm-v2/src/features/worksheet-studio/didactics/grammarProfile.json` (≈72 kB gz, lazy). Each entry is `{topic, can, category, sub, example}`.
+- `didactics/grammarProfile.js`: `loadGrammarProfile`, `GRAMMAR_LEVEL`, `grammarFor(profile, key)` → `{level, targets, known}`.
+- `editor/GrammarPanel.jsx` in SheetInspector; `editor/useGrammarTopics.js` gives datalist suggestions in AiSentences / AiReading.
+- Mac: `analysis.js` `loadDidactics` reads `grammarProfile.json`; `ekiGrammar`; the sentence prompts use known + target topics. Installed with `app/didactics/grammarProfile.json`.
+- Checks: worksheet-studio 150 + didactics 8 pass; Mac `node --test` 21/21; build succeeds.
+- Next safe step: detect the grammar used in a sheet with Vabamorf on the Mac and compare it with the level's targets.
+
 ## 2026-10-10 — Level vocabulary A1–C1 from EKI etLex (B2 and C1 included) — branch `agent/b2-c1-vocabulary`
 
 - Base: `main` (after #421). The owner pointed out that EKI also has B2 and C1.

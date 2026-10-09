@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { BookOpenText } from 'lucide-react';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { aiRequestsService } from '../../../services/firebase/aiRequests.js';
+import { useGrammarTopics } from './useGrammarTopics.js';
 import { levelProfile } from '../didactics/levels.js';
 
 const SLOW_MS = 3 * 60 * 1000;
@@ -12,6 +13,8 @@ const SLOW_MS = 3 * 60 * 1000;
 // sentence. The teacher sees the hard words and the corrections, applies them and uses the text.
 export default function AiReading({ meta = {}, onUse, service = aiRequestsService }) {
   const { user } = useAuth() || {};
+  const topics = useGrammarTopics(meta.level);
+  const listId = 'ed-grammar-reading';
   const norm = levelProfile(meta.level);
   const [form, setForm] = useState({ topic: meta.title || '', grammar: '', words: Math.round((norm.reading.words[0] + norm.reading.words[1]) / 2) });
   const [state, setState] = useState({ phase: 'idle', result: null, error: '', slow: false });
@@ -44,9 +47,10 @@ export default function AiReading({ meta = {}, onUse, service = aiRequestsServic
   return (
     <div className="ed-ai">
       <span className="ed-label"><BookOpenText size={14} aria-hidden="true" /> Paku tekst (AI kooli arvutis · tase {norm.label})</span>
+      <datalist id={listId}>{topics.map((t) => <option key={t} value={t} />)}</datalist>
       <div className="ed-ai__form">
         <input className="ed-input" aria-label="Teksti teema" placeholder="Teema" value={form.topic} onChange={(e) => setForm({ ...form, topic: e.target.value })} />
-        <input className="ed-input" aria-label="Grammatika tekstis" placeholder="Grammatika tekstis (valikuline, nt lihtminevik)" value={form.grammar} onChange={(e) => setForm({ ...form, grammar: e.target.value })} />
+        <input className="ed-input" aria-label="Grammatika tekstis" list={listId} placeholder="Grammatika tekstis (valikuline, nt lihtminevik)" value={form.grammar} onChange={(e) => setForm({ ...form, grammar: e.target.value })} />
         <div className="ed-row">
           <label className="ed-hint">Sõnu <input className="ed-input small" type="number" min={norm.reading.words[0]} max={norm.reading.words[1]} aria-label="Sõnade arv" value={form.words} onChange={(e) => setForm({ ...form, words: Number(e.target.value) })} /></label>
           <button type="button" className="ed-btn" disabled={state.phase === 'waiting'} onClick={ask}>{state.phase === 'waiting' ? 'Kirjutan…' : 'Paku tekst'}</button>

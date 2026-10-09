@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -316,7 +316,9 @@ async function answerAiRequests() {
       const did = await loadDidactics();
       const key = did ? did.levelKey(req.level) : 'A2';
       const norm = did?.LEVELS?.[key] || null;
-      const grammarList = did ? did.LEVEL_ORDER.slice(0, did.LEVEL_ORDER.indexOf(key) + 1).flatMap((l) => did.GRAMMAR[l] || []) : [];
+      // what the learner already knows: EKI's grammar profile (the levels before), else levels.js GRAMMAR
+      const eki = did?.grammarProfile ? ekiGrammar(did.grammarProfile, key) : null;
+      const grammarList = eki ? [...eki.known.slice(-6), ...eki.targets.slice(0, 6)] : did ? did.LEVEL_ORDER.slice(0, did.LEVEL_ORDER.indexOf(key) + 1).flatMap((l) => did.GRAMMAR[l] || []) : [];
       const gec = async (sentence) => {
         if (!models.includes(GEC_MODEL)) return '';
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(sentence), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
