@@ -162,8 +162,13 @@ function pickModel(lang, { et, general }, exists = () => true) {
 function workerId(host) {
   return String(host || 'mac').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || 'mac';
 }
-function heartbeat({ host, state = 'idle', recordingId = '', startedAt, now = new Date() }) {
-  return { host: String(host || '').slice(0, 100), state, recordingId, startedAt, lastSeenAt: now.toISOString() };
+// `recordingIds` (all parts of the lesson) and `detail` („vead 12/40”) only while analysing: the CRM shows the progress
+function heartbeat({ host, state = 'idle', recordingId = '', recordingIds = null, detail = '', startedAt, now = new Date() }) {
+  return {
+    host: String(host || '').slice(0, 100), state, recordingId, startedAt, lastSeenAt: now.toISOString(),
+    ...(Array.isArray(recordingIds) && recordingIds.length ? { recordingIds: recordingIds.slice(0, 20).map(String) } : {}),
+    ...(detail ? { detail: String(detail).slice(0, 80) } : {}),
+  };
 }
 
 module.exports = {
