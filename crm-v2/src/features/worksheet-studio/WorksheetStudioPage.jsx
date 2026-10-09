@@ -1,4 +1,4 @@
-/* global ResizeObserver, Blob, setTimeout, clearTimeout, structuredClone */
+/* global ResizeObserver, IntersectionObserver, Blob, setTimeout, clearTimeout, structuredClone */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -10,13 +10,15 @@ import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';
 import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
-import Sheet from './engine/Sheet.jsx';
+import Sheet, { BlockPreview } from './engine/Sheet.jsx';
+import BlockLookMenus from './editor/BlockBar.jsx';
+import BarMenu from './editor/BarMenu.jsx';
 import { NO_DRAG, dropAction, hintFor } from './engine/dragIds.js';
 import { DndContext, DragOverlay, PointerSensor, pointerWithin, rectIntersection, useDraggable, useSensor, useSensors } from '@dnd-kit/core';
 import { dropSide } from './engine/look.js';
 import { AssetContext } from './engine/assets.jsx';
 import { BLOCKS, GROUPS, checkDocument, createBlock, isPaletteKey, paletteEntries } from './engine/registry.js';
-import { STYLE_PRESETS, dropAt, insertAt, moveRun, styleOf, styleSameType, withStyle } from './engine/look.js';
+import { dropAt, insertAt, moveRun, styleOf, styleSameType } from './engine/look.js';
 import { ASPECTS, newDocument, newId } from './engine/schema.js';
 import { cropToFile, nearestAspect } from './engine/image.js';
 import { originalFiles } from './conversion.js';
@@ -59,9 +61,27 @@ class SheetPointerSensor extends PointerSensor {
 const paletteLabel = (key) => paletteEntries().find((entry) => entry.key === key)?.label || '';
 const collide = (args) => { const inside = pointerWithin(args); return inside.length ? inside : rectIntersection(args); };
 
-function PaletteItem({ id, onClick, title, children }) {
+// A palette tile: a small picture of the block (drawn once the tile scrolls into view) and its name; dragged onto
+// the sheet or added with a click.
+function PaletteItem({ id, onClick, title, theme = '', children }) {
   const { setNodeRef, listeners, isDragging } = useDraggable({ id: `new:${id}`, data: { kind: 'new', type: id } });
-  return <button type="button" ref={setNodeRef} {...listeners} className={`st-block ${isDragging ? 'is-dragging' : ''}`} onClick={onClick} title={title}>{children}</button>;
+  const [seen, setSeen] = useState(false);
+  const boxRef = useRef(null);
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || seen || typeof IntersectionObserver === 'undefined') return undefined;
+    const io = new IntersectionObserver((entries) => { if (entries.some((entry) => entry.isIntersecting)) { setSeen(true); io.disconnect(); } }, { rootMargin: '240px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [seen]);
+  const sample = useMemo(() => (seen ? createBlock(id) : null), [seen, id]);
+  const setRef = (node) => { setNodeRef(node); boxRef.current = node; };
+  return (
+    <button type="button" ref={setRef} {...listeners} className={`st-block st-tile ${isDragging ? 'is-dragging' : ''}`} onClick={onClick} title={title}>
+      <span className="st-thumb" aria-hidden="true">{sample ? <BlockPreview block={sample} theme={theme} /> : null}</span>
+      <span className="st-tile-label">{children}</span>
+    </button>
+  );
 }
 
 export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
@@ -88,14 +108,17 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [scale, setScale] = useState(1);
   const [original, setOriginal] = useState([]);
   const [leftTab, setLeftTab] = useState('blocks');
+  // the left drawer (blocks, bank, sheet, results) opens from the icon rail; a second click on the icon closes it
+  const [leftOpen, setLeftOpen] = useState(true);
+  // the selected block's content panel; closed with ×, opened again with „Sisu” on the block's bar
+  const [panelOpen, setPanelOpen] = useState(true);
   // the selected block's settings float next to it (no fixed right column); the side can be switched
   // drag & drop (dnd-kit): what is dragged and where it would land (the lit line on the sheet)
   const [dragging, setDragging] = useState(null);
   const [dropHint, setDropHint] = useState(null);
   const sensors = useSensors(useSensor(SheetPointerSensor, { activationConstraint: { distance: 6 } }));
   const [popSide, setPopSide] = useState('right');
-  // „Stiil” on the block toolbar: ready-made styles, copy / paste a style, the same style on all blocks of the type
-  const [styleMenu, setStyleMenu] = useState('');
+  // „Stiil” on the block's bar: a copied style can be pasted on other blocks
   const [copiedStyle, setCopiedStyle] = useState(null);
   // Floating UI: the panel sits beside the page at the height of the selected block (a virtual reference = the page's
   // left / right edges and the block's top / bottom), flips to the other side when there is no room, follows scrolling
@@ -132,7 +155,6 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [version, setVersion] = useState(0);
   const [versions, setVersions] = useState([]);
   const [paletteQuery, setPaletteQuery] = useState('');
-  const [markMenu, setMarkMenu] = useState(''); // the block whose „Joonista” menu is open
   const loadResults = useCallback((id) => resultsSource.listWorksheetResults(id), [resultsSource]);
   const [draftRestored, setDraftRestored] = useState(false);
   const lastPush = useRef(0);
@@ -150,6 +172,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [focus, setFocus] = useState(() => { try { return window.localStorage.getItem('ks-studio-focus') !== 'off'; } catch { return true; } });
   const toggleFocus = () => setFocus((value) => { try { window.localStorage.setItem('ks-studio-focus', value ? 'off' : 'on'); } catch { /* storage may be disabled */ } return !value; });
   useUnsavedGuard(dirty);
+  // a notice is a short message in the corner that goes away by itself
+  useEffect(() => {
+    if (!notice) return undefined;
+    const timer = setTimeout(() => setNotice(''), 6500);
+    return () => clearTimeout(timer);
+  }, [notice]);
   // own block templates (shared with all staff); the constructor works without them if they cannot be loaded
   useEffect(() => {
     let alive = true;
@@ -350,7 +378,6 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     if (!block) return;
     const { block: next, mark } = addMark(block, kind);
     if (mark) { updateBlock(next); setSelectedId(id); }
-    setMarkMenu('');
   };
   // „Tulemused”: learners' results of this sheet; a common „wrong” answer can become a right one
   const addRightAnswer = (blockId, key, answer) => {
@@ -368,6 +395,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     next.splice(at, 0, b);
     setBlocks(next);
     setSelectedId(b.id);
+    setPanelOpen(true);
   };
   // blocks made elsewhere (template, lesson words) go after the selected block, or to the end
   const insertBlocks = (blocks) => {
@@ -440,6 +468,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     const b = createBlock(type);
     setBlocks(insertAt(doc.blocks, [b], toId, side));
     setSelectedId(b.id);
+    setPanelOpen(true);
   };
   const dragStart = ({ active }) => { setDragging(active.data.current || null); setSelectedId(null); };
   const dragMove = ({ active, over, delta, activatorEvent }) => {
@@ -504,6 +533,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   // „+” under a block: the next block chosen on the left is added right after it
   const insertAfter = (id) => {
     setSelectedId(id);
+    setLeftTab('blocks');
+    setLeftOpen(true);
     setNotice('Vali vasakult plokk – see lisatakse valitud ploki järele.');
     globalThis.setTimeout(() => searchRef.current?.focus(), 0);
   };
@@ -551,19 +582,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     const canRegenerate = canRegenerateSelected && selected?.id === block.id;
     return (
       <>
-        <button type="button" onClick={() => moveBlock(block.id, -1)} disabled={index <= 0} title="Üles (Alt+↑)" aria-label="Liiguta üles"><Icons.ArrowUp aria-hidden="true" /></button>
-        <button type="button" onClick={() => moveBlock(block.id, 1)} disabled={index >= doc.blocks.length - 1} title="Alla (Alt+↓)" aria-label="Liiguta alla"><Icons.ArrowDown aria-hidden="true" /></button>
-        <span className="ws-toolbar-menu">
-          <button type="button" aria-expanded={styleMenu === block.id} onClick={() => setStyleMenu(styleMenu === block.id ? '' : block.id)} title="Valmis stiilid"><Icons.Palette aria-hidden="true" /> Stiil</button>
-          {styleMenu === block.id ? <span className="ws-style-menu" role="menu" aria-label="Stiil">
-            {STYLE_PRESETS.map((preset) => <button type="button" role="menuitem" key={preset.key} onClick={() => { updateBlock(withStyle(block, preset)); setStyleMenu(''); }}><i className={`ws-swatch tone-${preset.tone}`} aria-hidden="true" />{preset.label}</button>)}
-            <span className="ws-style-sep" aria-hidden="true" />
-            <button type="button" role="menuitem" onClick={() => { setCopiedStyle(styleOf(block)); setStyleMenu(''); setNotice('Stiil kopeeritud. Vali teine plokk → Stiil → Kleebi stiil.'); }}>Kopeeri stiil</button>
-            {copiedStyle ? <button type="button" role="menuitem" onClick={() => { updateBlock(withStyle(block, copiedStyle)); setStyleMenu(''); }}>Kleebi stiil</button> : null}
-            <button type="button" role="menuitem" onClick={() => { setBlocks(styleSameType(doc.blocks, block)); setStyleMenu(''); setNotice(`Sama stiil kõigil „${BLOCKS[block.type]?.label || 'sama tüüpi'}” plokkidel.`); }}>Kõigile sama tüüpi</button>
-          </span> : null}
-        </span>
-        <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)"><Icons.Copy aria-hidden="true" /> Kopeeri</button>
+        <BlockLookMenus block={block} update={updateBlock} onOpen={() => setSelectedId(block.id)} copiedStyle={copiedStyle}
+          onCopyStyle={() => { setCopiedStyle(styleOf(block)); setNotice('Stiil kopeeritud. Vali teine plokk → Stiil → Kleebi stiil.'); }}
+          onStyleAll={() => { setBlocks(styleSameType(doc.blocks, block)); setNotice(`Sama stiil kõigil „${BLOCKS[block.type]?.label || 'sama tüüpi'}” plokkidel.`); }} />
+        <span className="ws-bar-sep" aria-hidden="true" />
+        <button type="button" onClick={() => { setSelectedId(block.id); setPanelOpen(true); }} title="Ploki sisu ja ülesande seaded"><Icons.SlidersHorizontal aria-hidden="true" /> Sisu</button>
+        <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)" aria-label="Kopeeri"><Icons.Copy aria-hidden="true" /></button>
         {canRegenerate && !flipping ? <button type="button" onClick={() => regenerateSelected()} disabled={regenerating} title="Sama fookus ja raskus, kolm uut varianti"><Icons.Sparkles aria-hidden="true" /> {regenerating ? 'Genereerin…' : 'Uus variant'}</button> : null}
         {canRegenerate && flipping ? (
           <>
@@ -574,10 +598,12 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <button type="button" onClick={() => showVariant(0)} disabled={!variants.index}>Algne</button>
           </>
         ) : null}
-        {markMenu === block.id
-          ? MARK_KINDS.map(([kind, label, icon]) => { const Ico = Icons[icon] || Icons.Plus; return <button key={kind} type="button" onClick={() => addMarkTo(block.id, kind)} title={`Lisa: ${label}`}><Ico aria-hidden="true" /> {label}</button>; })
-          : <button type="button" onClick={() => setMarkMenu(block.id)} title="Nool, mull, tekst, kleebis või ring lehe peale"><Icons.PenTool aria-hidden="true" /> Joonista</button>}
-        {templates ? <button type="button" onClick={() => saveTemplate(block)} title="Salvesta see plokk mallina"><Icons.BookmarkPlus aria-hidden="true" /> Mall</button> : null}
+        <BarMenu ariaLabel="Joonista" title="Nool, mull, tekst, kleebis või ring lehe peale" icon={<Icons.PenTool aria-hidden="true" />} onOpen={() => setSelectedId(block.id)}>
+          {(close) => MARK_KINDS.map(([kind, label, icon]) => { const Ico = Icons[icon] || Icons.Plus; return <button key={kind} type="button" role="menuitem" className="ws-bm-item" onClick={() => { addMarkTo(block.id, kind); close(); }}><Ico aria-hidden="true" /> {label}</button>; })}
+        </BarMenu>
+        {templates ? <button type="button" onClick={() => saveTemplate(block)} title="Salvesta see plokk mallina" aria-label="Mall"><Icons.BookmarkPlus aria-hidden="true" /></button> : null}
+        <button type="button" onClick={() => moveBlock(block.id, -1)} disabled={index <= 0} title="Üles (Alt+↑)" aria-label="Liiguta üles"><Icons.ArrowUp aria-hidden="true" /></button>
+        <button type="button" onClick={() => moveBlock(block.id, 1)} disabled={index >= doc.blocks.length - 1} title="Alla (Alt+↓)" aria-label="Liiguta alla"><Icons.ArrowDown aria-hidden="true" /></button>
         <button type="button" className="is-danger" onClick={() => deleteBlock(block.id)} title="Kustuta (Delete)" aria-label="Kustuta plokk"><Icons.Trash2 aria-hidden="true" /></button>
       </>
     );
@@ -696,15 +722,27 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     change({ ...formalLetterDocument(), id: doc.id }); setSelectedId(null);
   };
 
+  const statusText = saving ? 'salvestan…' : dirty ? 'salvestamata' : savedAt ? `salvestatud ${new Date(savedAt).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })}` : worksheetStatus === 'published' ? 'avaldatud' : 'mustand';
+  const showResults = !isNew && typeof resultsSource?.listWorksheetResults === 'function';
+  // the icon rail: one click opens the drawer on that tab, a click on the open tab closes it
+  const railTabs = [
+    ['blocks', 'Plokid', Icons.LayoutGrid],
+    ['bank', 'Pank', Icons.Images],
+    ['sheet', 'Leht', Icons.FileText],
+    ...(showResults ? [['results', 'Tulemused', Icons.ChartColumn]] : []),
+    ...(original.length > 0 ? [['original', 'Originaal', Icons.ScanLine]] : []),
+  ];
+  const pickTab = (key) => { if (leftTab === key && leftOpen) setLeftOpen(false); else { setLeftTab(key); setLeftOpen(true); } };
+
   return (
     <AssetContext.Provider value={assets}>
-      <div className={`ws-studio mode-${mode} ${focus ? 'is-focus' : ''}`}>
+      <div className={`ws-studio st-skin mode-${mode} ${focus ? 'is-focus' : ''}`}>
         <header className="st-bar">
-          <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel}</Link>
-          <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{saving ? ' · salvestan…' : dirty ? ' · salvestamata' : savedAt ? ` · salvestatud ${new Date(savedAt).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })}` : ''}</span></div>
+          <Link className="st-back" to={backTo} title={backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel} aria-label={backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel}><Icons.ArrowLeft size={18} aria-hidden="true" /></Link>
+          <div className="st-title"><span className="st-kicker">Töölehe konstruktor</span><b title={doc.meta.title}>{doc.meta.title}</b><span className={`st-status ${dirty ? 'is-dirty' : ''}`}>{statusText}{version ? ` · v${version}` : ''}</span></div>
           <div className="st-seg" role="tablist" aria-label="Vaade">
-            {[['edit', 'Koosta'], ['interactive', 'Õpilase vaade'], ['print', 'Trükivaade']].map(([m, l]) => (
-              <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => switchMode(m)}>{l}</button>
+            {[['edit', 'Koosta', Icons.PenLine], ['interactive', 'Õpilase vaade', Icons.MonitorSmartphone], ['print', 'Trükivaade', Icons.Printer]].map(([m, l, Ico]) => (
+              <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => switchMode(m)}><Ico size={15} aria-hidden="true" /><span>{l}</span></button>
             ))}
           </div>
           <div className="st-actions">
@@ -712,13 +750,21 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             {mode !== 'edit' && <button type="button" className="st-btn st-edit" onClick={() => switchMode('edit')}><Icons.PenLine size={16} aria-hidden="true" /> Muuda lehte</button>}
             {mode === 'interactive' && <button type="button" className="st-btn primary" onClick={check}>Kontrolli vastuseid</button>}
             {mode === 'interactive' && <button type="button" className="st-btn" onClick={() => { setAnswers({}); setResults({}); setEvidence(null); }}>Tühjenda</button>}
-            {mode === 'edit' && <button type="button" className="st-btn" disabled={!history.past.length} onClick={undo} title="Võta tagasi (Ctrl+Z)" aria-label="Võta tagasi"><Icons.Undo2 size={16} /></button>}
-            {mode === 'edit' && <button type="button" className="st-btn" disabled={!history.future.length} onClick={redo} title="Tee uuesti (Ctrl+Shift+Z)" aria-label="Tee uuesti"><Icons.Redo2 size={16} /></button>}
-            <button type="button" className="st-btn" onClick={toggleFocus} aria-pressed={focus} title={focus ? 'Näita CRM-i menüüd' : 'Konstruktor kogu aknas'}>{focus ? <Icons.Minimize2 size={16} aria-hidden="true" /> : <Icons.Maximize2 size={16} aria-hidden="true" />}<span className="st-btn-label">{focus ? 'Näita menüüd' : 'Täisekraan'}</span></button>
-            <button type="button" className="st-btn" onClick={() => { switchMode('print'); setTimeout(() => window.print(), 300); }}>PDF / Prindi</button>
+            <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
+              <summary className="st-chip" title="Kvaliteedikontroll">{quality.ready ? <Icons.CircleCheck size={15} aria-hidden="true" /> : <Icons.CircleAlert size={15} aria-hidden="true" />}<span>{quality.ready ? 'Avaldamiseks valmis' : `${quality.errors.length} viga · ${quality.warnings.length} hoiatust`}</span>{quality.tips.length ? <em>{quality.tips.length}</em> : null}</summary>
+              <div className="st-quality-pop">
+                <b>{quality.ready ? `Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : 'Kvaliteedikontroll'}</b>
+                {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
+              </div>
+            </details>
+            {mode === 'edit' && <span className="st-group-btns">
+              <button type="button" className="st-btn st-icon" disabled={!history.past.length} onClick={undo} title="Võta tagasi (Ctrl+Z)" aria-label="Võta tagasi"><Icons.Undo2 size={16} /></button>
+              <button type="button" className="st-btn st-icon" disabled={!history.future.length} onClick={redo} title="Tee uuesti (Ctrl+Shift+Z)" aria-label="Tee uuesti"><Icons.Redo2 size={16} /></button>
+            </span>}
             <details className="st-more" ref={menuRef}>
-              <summary className="st-btn">Fail ▾</summary>
+              <summary className="st-btn">Fail <Icons.ChevronDown size={14} aria-hidden="true" /></summary>
               <div className="st-menu">
+                <button type="button" onClick={() => { closeMenu(); switchMode('print'); setTimeout(() => window.print(), 300); }}><Icons.Printer size={15} aria-hidden="true" /> PDF / Prindi</button>
                 <button type="button" onClick={loadSample}>Laadi näidisleht „Minu päev”</button>
                 <button type="button" onClick={loadFormalLetter}>Mall „Kiri linnavalitsusele”</button>
                 {allowCopy ? <button type="button" onClick={saveCopy}>Tee töölehest koopia</button> : null}
@@ -729,6 +775,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               </div>
             </details>
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
+            <button type="button" className="st-btn st-icon" onClick={toggleFocus} aria-pressed={focus} title={focus ? 'Näita CRM-i menüüd' : 'Konstruktor kogu aknas'} aria-label={focus ? 'Näita menüüd' : 'Täisekraan'}>{focus ? <Icons.Minimize2 size={16} aria-hidden="true" /> : <Icons.Maximize2 size={16} aria-hidden="true" />}</button>
             <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
             {allowAssign && !isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}`}>Määra õpilastele</Link> : null}
             <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>{privateFor ? 'Määra õpilasele' : 'Avalda'}</button>
@@ -751,12 +798,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         {source === 'converted' && <div className="st-banner">See tööleht teisendati vanast vormingust uude kujundusse. Kontrolli ülesandeid ja salvesta. Vana versioon jääb alles.</div>}
         {doc?.meta?.variant && VARIANTS[doc.meta.variant] ? <div className={`st-banner st-variant is-${doc.meta.variant}`} role="note"><b>{VARIANTS[doc.meta.variant].label}</b>{doc.meta.variantOf ? <> lehest <Link to={`${editorBase}/${doc.meta.variantOf}`}>algne leht</Link></> : null}{doc.meta.variantChanges?.length ? <span>: {doc.meta.variantChanges.join(' · ')}.</span> : null} Vaata üle ja salvesta.</div> : null}
         {saveError && <div className="st-banner error" role="alert">{saveError}</div>}
-        {notice && <div className="st-banner ok" role="status">{notice}</div>}
         {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}
-        <details className={`st-quality ${quality.ready ? 'ready' : ''}`}>
-          <summary>{quality.ready ? `✓ Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : `Kvaliteedikontroll: ${quality.errors.length} viga, ${quality.warnings.length} hoiatust`}{quality.tips.length ? ` · ${quality.tips.length} nõuannet` : ''}</summary>
-          {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
-        </details>
         {versions.length > 0 && <div className="st-banner"><strong>Versioonid:</strong> {versions.slice(0, 12).map((entry) => <button type="button" className={`st-btn ${comparing?.id === entry.id ? 'primary' : ''}`} key={entry.id} onClick={() => setComparing(comparing?.id === entry.id ? null : entry)}>v{entry.version} · {entry.status === 'published' ? 'avaldatud' : 'mustand'}</button>)} <button type="button" className="st-btn" onClick={() => { setVersions([]); setComparing(null); }}>Sulge</button></div>}
         {comparing && (() => {
           const rows = versionDiff(comparing);
@@ -772,20 +814,20 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         <DndContext sensors={sensors} collisionDetection={collide} onDragStart={dragStart} onDragMove={dragMove} onDragEnd={dragEnd} onDragCancel={dragCancel} autoScroll={{ threshold: { x: 0, y: 0.18 }, acceleration: 14 }}>
         <div className="st-body">
           {mode === 'edit' && (
+            <nav className="st-rail" role="tablist" aria-label="Tööriistad">
+              {railTabs.map(([key, label, Ico]) => (
+                <button type="button" role="tab" key={key} aria-pressed={leftOpen && leftTab === key} onClick={() => pickTab(key)} title={label}><Ico size={20} aria-hidden="true" /><span>{label}</span></button>
+              ))}
+            </nav>
+          )}
+          {mode === 'edit' && leftOpen && (
             <aside className={`st-palette ${leftTab === 'original' ? 'is-original' : ''}`} aria-label="Plokid">
-              <div className="st-lefttabs" role="tablist">
-                <button type="button" role="tab" aria-pressed={leftTab === 'blocks'} onClick={() => setLeftTab('blocks')}>Plokid</button>
-                <button type="button" role="tab" aria-pressed={leftTab === 'bank'} onClick={() => setLeftTab('bank')}>Pank</button>
-                <button type="button" role="tab" aria-pressed={leftTab === 'sheet'} onClick={() => setLeftTab('sheet')}>Leht</button>
-                {!isNew && typeof resultsSource?.listWorksheetResults === 'function' ? <button type="button" role="tab" aria-pressed={leftTab === 'results'} onClick={() => setLeftTab('results')}>Tulemused</button> : null}
-                {original.length > 0 ? <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button> : null}
-              </div>
               {leftTab === 'results' && !isNew ? <InsightsPanel lessonId={lessonId} doc={doc} load={loadResults} onSelect={(id) => setSelectedId(id)} onAddAlternative={addRightAnswer} />
               : leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
-              : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{myTemplates.length ? (
+              : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint" title="Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc."><Icons.MousePointerClick size={14} aria-hidden="true" /> Lohista plokk lehele. Topeltklõps lehel muudab teksti.</p>{myTemplates.length ? (
                 <div className="st-group st-templates">
                   <div className="st-group-title">Mallid</div>
                   <ul>{myTemplates.filter((t) => !paletteQuery || t.title.toLowerCase().includes(paletteQuery.toLowerCase())).map((t) => (
@@ -798,14 +840,16 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               ) : null}{filteredPalette.map(([g, defs]) => (
                 <div key={g} className="st-group">
                   <div className="st-group-title">{g}</div>
-                  {defs.map((d) => {
-                    const Ico = Icons[d.icon] || Icons.Square;
-                    return (
-                      <PaletteItem key={d.key} id={d.key} onClick={() => addBlock(d.key)} title={d.hint ? `${d.hint} — klõpsa või lohista lehele` : 'Klõpsa või lohista lehele'}>
-                        <Ico size={16} aria-hidden="true" /><span>{d.label}</span>{d.task && <em>ülesanne</em>}
-                      </PaletteItem>
-                    );
-                  })}
+                  <div className="st-tiles">
+                    {defs.map((d) => {
+                      const Ico = Icons[d.icon] || Icons.Square;
+                      return (
+                        <PaletteItem key={d.key} id={d.key} theme={doc.meta.theme || ''} onClick={() => addBlock(d.key)} title={d.hint ? `${d.hint} — klõpsa või lohista lehele` : 'Klõpsa või lohista lehele'}>
+                          <Ico size={14} aria-hidden="true" /><span>{d.label}</span>
+                        </PaletteItem>
+                      );
+                    })}
+                  </div>
                 </div>
               ))}</>}
             </aside>
@@ -819,10 +863,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           </main>
 
           {mode === 'edit' && (
-            selected ? <aside ref={refs.setFloating} className={`st-inspector is-floating is-${popSide}`} aria-label="Seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
+            selected && panelOpen ? <aside ref={refs.setFloating} className={`st-inspector is-floating is-${popSide}`} aria-label="Seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
               <div className="st-pop-head"><b>{BLOCKS[selected.type]?.label || 'Plokk'}</b>
                 <button type="button" className="ed-btn" onClick={() => setPopSide(popSide === 'right' ? 'left' : 'right')} title="Vii paneel teisele poole" aria-label="Vii paneel teisele poole"><Icons.ArrowLeftRight size={15} aria-hidden="true" /></button>
-                <button type="button" className="ed-btn" onClick={() => setSelectedId(null)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
+                <button type="button" className="ed-btn" onClick={() => setPanelOpen(false)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
               </div>
               {selected ? (
                 <>
@@ -848,6 +892,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           {dragging ? <div className="st-drag-ghost"><Icons.GripVertical size={16} aria-hidden="true" /><span>{dragLabel}</span></div> : null}
         </DragOverlay>
         </DndContext>
+        {notice && <div className="st-banner ok st-toast" role="status"><Icons.CircleCheck size={16} aria-hidden="true" />{notice}<button type="button" onClick={() => setNotice('')} aria-label="Sulge teade"><Icons.X size={14} aria-hidden="true" /></button></div>}
       </div>
     </AssetContext.Provider>
   );

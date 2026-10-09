@@ -1,3 +1,38 @@
+## 2026-10-09 — Constructor skin: one top row, icon rail with drawer, block look on the dark bar, palette thumbnails, toasts — branch `agent/constructor-skin`
+
+- Base: `main` 3a7dcf2. The owner saw the local preview and approved it („мне нравится”).
+- Top row (`WorksheetStudioPage.jsx`):
+  - One row instead of four: back, sheet title and status, view switch, quality chip, undo/redo, Fail, full screen, Salvesta, Avalda.
+  - «PDF / Prindi» moved into Fail.
+  - The quality check `<details class="st-quality">` is now a chip with a pop-up list.
+- Left side:
+  - An icon rail (`.st-rail`, buttons with role `tab`: Plokid / Pank / Leht / Tulemused / Originaal).
+  - The drawer (`.st-palette`) opens from the rail; a second click on the open tab hides it.
+  - Palette tiles show a small picture of the block: `BlockPreview` in `engine/Sheet.jsx` draws the real card in print mode, scaled down, `inert`, and only once the tile is visible (IntersectionObserver).
+- Block look:
+  - Edited from the dark bar on the sheet (`editor/BlockBar.jsx`), with menus from `editor/BarMenu.jsx` (Floating UI portal):
+    - Stiil: presets, copy / paste style, apply to all of the same type;
+    - colour: background, heading and frame;
+    - Raam: frame, heading look, number;
+    - Ikoon;
+    - width: width, height, join with the previous block, start on a new page.
+  - The bar also has Sisu, Kopeeri, Joonista, Mall, ↑ ↓ and delete.
+  - `BlockInspector` now keeps only the content: task settings, title, instruction, goal and the block's fields.
+  - The floating panel shows while `panelOpen`: × closes it, „Sisu” or a newly added block opens it.
+- Notices are toasts (`.st-banner.ok.st-toast`, role status) that hide after 6.5 s.
+- UI font: Inter, added to the Google Fonts import in `src/styles/index.css`. The sheet keeps its own fonts.
+- Styles:
+  - `.ws-studio.st-skin` and `.ws-barmenu` / `.ws-bm-*` in `worksheetStudio.css`;
+  - the dark bar colour is in `sheet.css`.
+- No new packages and no data or rules changes.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/worksheet-generator src/features/homework src/app`: 647/647, with 1 new test for the bar menus and the rail;
+  - eslint is clean; build succeeds.
+- Limits:
+  - The lesson generator strip (`LessonGeneratorBar`) stays a second row, restyled quieter.
+  - The floating panel opens on the left of the page when there is no room on the right, over the drawer.
+- Next safe step: watch how teachers use the bar menus, then decide on Ctrl+K search and a gallery of whole-sheet templates.
+
 ## 2026-10-09 — Fix: „Valikvastused” first option could not be picked; options mixed by default — branch `agent/choice-first-option`
 
 - Base: `main` 777b0d8.
