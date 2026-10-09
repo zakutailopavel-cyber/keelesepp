@@ -1,3 +1,28 @@
+## 2026-10-09 — Deploy of Finance v3 server + rules; clickable worksheets on the lesson board — branch `agent/live-worksheets`
+
+Checked `origin/main` `857cecb` (Finance v3 #361–#367 and private student worksheets #369 merged by the owner).
+- Found: Vercel had shipped the Finance v3 UI, but the server changes and rules were never deployed (invoice
+  „/cancel”, payment / bank / delivery guards; rules for `studentWorksheetDrafts` and `student-worksheets/**`).
+  Owner asked to fix all errors → deployed firestore + storage rules and the functions manualInvoiceApi, financeApi,
+  invoiceApi, sendInvoicePaymentReminders, staffOperationsApi, notifyPendingAccount, notifyHomeworkCreated,
+  websiteLeadApi from `857cecb` (all „Successful update”). PR #368 (debt actions) is still open, not merged.
+- Live Classroom worksheets (owner: a clickable worksheet could not be put on the workspace):
+  - `worksheet-studio/roomWorksheetChoices.js`: choices = the student's unfinished sheets (homework + personal),
+    published Avasta / Harjuta / Kasuta from `worksheetPhases`, older lesson sheets; search + level filter;
+    `prepRoomKey(studentId)` = `prep_<student>`.
+  - `RoomWorksheetPicker` (in `RoomWorksheetPanel.jsx`): „Lisa tahvlile” — phase sheets load their published doc via
+    `lessonWorksheetsService.list` and are assigned with `libraryService.assign`; own sheets are opened as they are;
+    then `homework.openWorksheetInRoom`.
+  - Tööruum (`TeacherWorkspace`) has „Töölehed”: sheets are put on the student's board while preparing (room key
+    `prep_<student>`); `homework.adoptPreparedWorksheets` moves them into the lesson room when it opens (teacher).
+  - `StudentBoard` takes `worksheets` (several, newest first): each has its own page „Tööleht: <title>”, the open
+    page decides which sheet lies under the drawing layer; `openWorksheet(id)`. LiveRoom passes all room sheets.
+- Checks: new roomWorksheetChoices + picker tests, multi-worksheet board test; full suite 1224 passed, only the known
+  10 Node 26 `localStorage` failures; eslint 0 errors; build OK. Not exercised on production data (would create
+  assignments).
+- Limits: page ↔ sheet are matched by title (two sheets with the same title share a page).
+- Next safe step: owner opens Live Classroom → student → „Töölehed” → „Lisa tahvlile” with a test student.
+
 ## 2026-10-09 — Personal worksheets from a student profile — branch `codex/student-private-worksheets`
 
 - Goal: let a teacher create a worksheet inside one student's profile without publishing it to the shared material library or assigning it to another student.

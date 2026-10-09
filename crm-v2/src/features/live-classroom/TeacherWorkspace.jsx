@@ -1,9 +1,12 @@
-import { ArrowLeft, GraduationCap, LibraryBig, Redo2, Search, Undo2, Users, Video, X, XCircle } from 'lucide-react';
+import { ArrowLeft, ClipboardList, GraduationCap, LibraryBig, Redo2, Search, Undo2, Users, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorState, Input, LoadingState, Select } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
+import { RoomWorksheetContent, RoomWorksheetPicker } from '../worksheet-studio/RoomWorksheetPanel.jsx';
+import { prepRoomKey } from '../worksheet-studio/roomWorksheetChoices.js';
+import { homeworkService } from '../../services/firebase/index.js';
 import { fileKind } from './roomMaterials.js';
 import './liveRoom.css';
 
@@ -12,7 +15,7 @@ import './liveRoom.css';
 export default function TeacherWorkspace({
   user, studentsState, selectedId, onSelect, title, onTitle, onInvite, inviting = false, pending = null, onCancel,
   cancelling = false, resumable = null, onResume, onBack, error = '', boardService, library,
-  groupIds = [], onToggleGroup, onInviteGroup, invitingGroup = false, openGroups = [], onOpenGroup,
+  groupIds = [], onToggleGroup, onInviteGroup, invitingGroup = false, openGroups = [], onOpenGroup, homework = homeworkService,
 }) {
   const [mode, setMode] = useState('single');
   const group = mode === 'group';
@@ -36,6 +39,21 @@ export default function TeacherWorkspace({
     if (id) { setNotice(`„${file.name || 'Materjal'}” on tahvlil.`); setPanel(''); }
   };
   const uploadImage = library?.uploadFile ? (file) => library.uploadFile({ file, user }) : undefined;
+  // worksheets put on the board while preparing: clickable pages now, taken into the lesson room on invitation
+  const [prepared, setPrepared] = useState([]);
+  useEffect(() => {
+    if (!student?.id || !homework?.subscribeRoomWorksheets) return undefined;
+    try {
+      return homework.subscribeRoomWorksheets({ studentId: student.id, roomKey: prepRoomKey(student.id) }, setPrepared, () => setPrepared([]));
+    } catch {
+      return undefined;
+    }
+  }, [homework, student?.id]);
+  const boardSheets = useMemo(() => (student ? prepared.map((item) => ({
+    id: item.id,
+    title: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
+    content: <RoomWorksheetContent current={item} role="teacher" homework={homework} />,
+  })) : []), [homework, prepared, student]);
 
   return (
     <div className="lr lw" role="region" aria-label="Tööruum">
@@ -59,6 +77,7 @@ export default function TeacherWorkspace({
           {student ? <>
             <button type="button" aria-label="Võta tagasi" title="Võta tagasi" className="lr-icon" disabled={!history.canUndo} onClick={() => boardRef.current?.undo()}><Undo2 size={18} /></button>
             <button type="button" aria-label="Tee uuesti" title="Tee uuesti" className="lr-icon" disabled={!history.canRedo} onClick={() => boardRef.current?.redo()}><Redo2 size={18} /></button>
+            <button type="button" className={`lr-text-btn ${panel === 'worksheets' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'worksheets' ? '' : 'worksheets')}><ClipboardList size={17} /> Töölehed{prepared.length ? ` (${prepared.length})` : ''}</button>
             <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button>
           </> : null}
           {resumable ? <Button variant="secondary" onClick={onResume}><Video size={17} /> Tagasi tundi: {resumable.studentName}</Button> : null}
@@ -94,9 +113,20 @@ export default function TeacherWorkspace({
             controllerRef={boardRef}
             onHistoryChange={setHistory}
             uploadImage={uploadImage}
+            worksheets={boardSheets}
             {...(boardService ? { service: boardService } : {})}
           /> : <div className="lw-empty"><EmptyState title="Vali õpilane" description="Tema tahvel avaneb kohe: saad tunni ette valmistada (lehed, materjalid, märkmed) ja siis kutsuda ta tundi. Õpilane näeb kõike, mida siia paned." /></div>}
         </main>
+        {panel === 'worksheets' && student ? <aside className="lr-side has-drawer" aria-label="Töölehed">
+          <section className="lr-drawer" aria-label="Töölehed">
+            <header><strong>Lisa tööleht</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>
+            <div className="lr-drawer__body">
+              <p className="form-hint">Tööleht tuleb tahvlile oma lehele ja on klõpsatav. Kui kutsud õpilase tundi, täidab ta seda ja näed vastuseid kohe.</p>
+              {prepared.length ? <p className="form-hint">Tahvlil: {prepared.map((item) => item.title || 'Tööleht').join(' · ')}</p> : null}
+              <RoomWorksheetPicker studentId={student.id} studentName={student.name} roomKey={prepRoomKey(student.id)} note={title ? `Live Classroom: ${title}` : 'Live Classroom'} user={user} homework={homework} {...(library ? { library } : {})} onOpened={(choice) => { setNotice(`„${choice.title}” on tahvlil.`); setPanel(''); }} />
+            </div>
+          </section>
+        </aside> : null}
         {panel === 'materials' && student ? <aside className="lr-side has-drawer" aria-label="Materjalid">
           <section className="lr-drawer" aria-label="Materjalid">
             <header><strong>Materjalid</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>
