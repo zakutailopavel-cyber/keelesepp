@@ -27,3 +27,7 @@
 }
 /* everything already seen: a quiet dot instead of a red number */
 .nc-dot { position: absolute; top: 9px; right: 9px; width: 8px; height: 8px; border-radius: 50%; background: #98a2b3; }
+/* the head and the filter chips keep their height; only the list scrolls (admin, 2026-10-09: chips were squashed) */
+.nc-head, .nc-filters { flex: none; }
+.nc-filters { align-items: center; min-height: 44px; }
+.nc-list { flex: 1 1 auto; min-height: 0; }
