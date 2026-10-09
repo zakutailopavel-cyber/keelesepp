@@ -1,3 +1,17 @@
+## 2026-10-09 — Constructor: edit right on the sheet — branch `agent/constructor-direct`
+
+Owner: stretch a block freely, put it anywhere with the place lit up, tools on hover, editing on the block instead of
+a separate column.
+- `Sheet`: hover shows the block toolbar and resize handles (not only the selected block); new corner handle resizes
+  width (snaps ¼ ⅓ ½ ⅔ ¾ full) and height (mm) at once, the size is shown while dragging (`data-size-label`).
+- Drag & drop: the place is lit — a pulsing line above / below, or left / right of a card that is not full width
+  (`look.dropSide`); `dropAt` moves the dragged group before / after the target group; palette blocks can be dragged
+  onto the sheet (`application/x-ws-block`, `insertAt`), also onto an empty sheet.
+- `WorksheetStudioPage`: no right column; the selected block's settings float by the block (`.st-inspector.is-floating`,
+  follows the block's top, side switch ⇆, × closes); sheet settings moved to the left tab „Leht”.
+- Checks: worksheet-studio + worksheet-generator 536/536 (new look drop tests, constructor on-sheet test); eslint
+  0 errors; build OK. Not looked at in a real browser yet.
+
 ## 2026-10-09 — Constructor: school picture and text bank, better internet search — branch `agent/media-bank`
 
 Owner: the constructor lacks a proper library to find pictures and texts by level (chose bank of pictures, bank of

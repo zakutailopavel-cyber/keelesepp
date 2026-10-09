@@ -11,7 +11,7 @@ import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
 import { BLOCKS, GROUPS, checkDocument, createBlock } from './engine/registry.js';
-import { dropRun, moveRun } from './engine/look.js';
+import { dropAt, insertAt, moveRun } from './engine/look.js';
 import { ASPECTS, newDocument, newId } from './engine/schema.js';
 import { cropToFile, nearestAspect } from './engine/image.js';
 import { originalFiles } from './conversion.js';
@@ -62,6 +62,22 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [scale, setScale] = useState(1);
   const [original, setOriginal] = useState([]);
   const [leftTab, setLeftTab] = useState('blocks');
+  // the selected block's settings float next to it (no fixed right column); the side can be switched
+  const [popSide, setPopSide] = useState('right');
+  const [popTop, setPopTop] = useState(80);
+  useEffect(() => {
+    if (!selectedId) return undefined;
+    const place = () => {
+      const rect = globalThis.document?.querySelector(`.ws-page [data-block="${selectedId}"]`)?.getBoundingClientRect();
+      const height = globalThis.innerHeight || 800;
+      setPopTop(Math.round(rect ? Math.min(Math.max(72, rect.top), Math.max(72, height - 360)) : 80));
+    };
+    place();
+    globalThis.addEventListener?.('scroll', place, true);
+    globalThis.addEventListener?.('resize', place);
+    return () => { globalThis.removeEventListener?.('scroll', place, true); globalThis.removeEventListener?.('resize', place); };
+  }, [selectedId]);
+  const popStyle = { top: popTop, maxHeight: `calc(100vh - ${popTop + 16}px)` };
   const [cut, setCut] = useState({ busy: false, error: '' });
   const [history, setHistory] = useState(emptyHistory);
   const [baseUpdatedAt, setBaseUpdatedAt] = useState('');
@@ -349,7 +365,14 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   };
   // joined blocks (look.js) move as one group
   const moveBlock = (id, dir) => setBlocks(moveRun(doc.blocks, id, dir));
-  const dropMove = (fromId, toId) => setBlocks(dropRun(doc.blocks, fromId, toId));
+  const dropMove = (fromId, toId, side = 'before') => setBlocks(dropAt(doc.blocks, fromId, toId, side));
+  // a block dragged from the palette lands where the lit line shows
+  const dropNew = (type, toId, side = 'after') => {
+    if (!BLOCKS[type]) return;
+    const b = createBlock(type);
+    setBlocks(insertAt(doc.blocks, [b], toId, side));
+    setSelectedId(b.id);
+  };
   const cutPhoto = async (url, rect) => {
     setCut({ busy: true, error: '' });
     try {
@@ -643,9 +666,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               <div className="st-lefttabs" role="tablist">
                 <button type="button" role="tab" aria-pressed={leftTab === 'blocks'} onClick={() => setLeftTab('blocks')}>Plokid</button>
                 <button type="button" role="tab" aria-pressed={leftTab === 'bank'} onClick={() => setLeftTab('bank')}>Pank</button>
+                <button type="button" role="tab" aria-pressed={leftTab === 'sheet'} onClick={() => setLeftTab('sheet')}>Leht</button>
                 {original.length > 0 ? <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button> : null}
               </div>
-              {leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
+              {leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
+              : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
               : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{myTemplates.length ? (
@@ -664,7 +689,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   {defs.map((d) => {
                     const Ico = Icons[d.icon] || Icons.Square;
                     return (
-                      <button type="button" key={d.type} className="st-block" onClick={() => addBlock(d.type)} title="Lisa lehele">
+                      <button type="button" key={d.type} className="st-block" onClick={() => addBlock(d.type)} title="Klõpsa või lohista lehele" draggable onDragStart={(e) => { e.dataTransfer.setData('application/x-ws-block', d.type); e.dataTransfer.effectAllowed = 'copy'; }}>
                         <Ico size={16} aria-hidden="true" /><span>{d.label}</span>{d.task && <em>ülesanne</em>}
                       </button>
                     );
@@ -676,13 +701,17 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
           <main className="st-canvas" ref={canvasRef}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onResize={resizeBlock} onAddItem={addItemTo} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
+              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onDropNew={dropNew} onResize={resizeBlock} onAddItem={addItemTo} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
 
           {mode === 'edit' && (
-            <aside className="st-inspector" aria-label="Seaded">
+            selected ? <aside className={`st-inspector is-floating is-${popSide}`} aria-label="Seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
+              <div className="st-pop-head"><b>{BLOCKS[selected.type]?.label || 'Plokk'}</b>
+                <button type="button" className="ed-btn" onClick={() => setPopSide(popSide === 'right' ? 'left' : 'right')} title="Vii paneel teisele poole" aria-label="Vii paneel teisele poole"><Icons.ArrowLeftRight size={15} aria-hidden="true" /></button>
+                <button type="button" className="ed-btn" onClick={() => setSelectedId(null)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
+              </div>
               {selected ? (
                 <>
                   {canRegenerateSelected && (
@@ -699,10 +728,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                     onDuplicate={() => duplicateBlock(selected.id)}
                     onMove={(dir) => moveBlock(selected.id, dir)} />
                 </>
-              ) : (
-                <SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} />
-              )}
-            </aside>
+              ) : null}
+            </aside> : null
           )}
         </div>
       </div>

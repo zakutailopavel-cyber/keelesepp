@@ -354,3 +354,17 @@
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 }
+/* Direct editing on the sheet (owner, 2026-10-09): tools on hover, a lit drop place, corner resize with the size */
+.mode-edit .ws-card.hovered { outline: 1.5px dashed rgba(8, 126, 107, .45); outline-offset: 1mm; }
+.mode-edit .ws-card.hovered > .ws-toolbar { opacity: .92; }
+.ws-resize-xy { right: -2.4mm; bottom: -2.4mm; width: 4.5mm; height: 4.5mm; cursor: nwse-resize; z-index: 4; }
+.ws-resize-xy::after { inset: 0; border-radius: 50%; background: #fff; border: .5mm solid var(--ks-green-2, #2f7d4c); opacity: 1; }
+.ws-card[data-size-label]::before { content: attr(data-size-label); position: absolute; right: 2mm; bottom: 2mm; z-index: 7; padding: 1mm 2.5mm; border-radius: 99px; background: #132238; color: #fff; font: 700 11px 'DM Sans', system-ui, sans-serif; pointer-events: none; }
+.ws-card.drop-before, .ws-card.drop-after, .ws-card.drop-left, .ws-card.drop-right { position: relative; }
+.ws-card.drop-before::after, .ws-card.drop-after::after, .ws-card.drop-left::after, .ws-card.drop-right::after { content: ''; position: absolute; z-index: 8; border-radius: 99px; background: #0ea5e9; box-shadow: 0 0 0 3px rgba(14, 165, 233, .25), 0 0 14px rgba(14, 165, 233, .6); pointer-events: none; animation: ws-drop-pulse 1s ease-in-out infinite; }
+.ws-card.drop-before::after { left: 0; right: 0; top: -2.4mm; height: 1.4mm; }
+.ws-card.drop-after::after { left: 0; right: 0; bottom: -2.4mm; height: 1.4mm; }
+.ws-card.drop-left::after { top: 0; bottom: 0; left: -2.4mm; width: 1.4mm; }
+.ws-card.drop-right::after { top: 0; bottom: 0; right: -2.4mm; width: 1.4mm; }
+@keyframes ws-drop-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@media print { .ws-card::before, .ws-card::after { display: none !important; } }
