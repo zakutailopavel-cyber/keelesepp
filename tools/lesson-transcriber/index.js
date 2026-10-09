@@ -7,12 +7,13 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat } = require('./lib');
+const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
 const env = (k, d) => process.env[k] || d;
 const BUCKET = env('FIREBASE_STORAGE_BUCKET', 'keelesepp-5136b.firebasestorage.app');
 const WHISPER = env('WHISPER_BIN', '/opt/homebrew/bin/whisper-cli');
+const VAD_BIN = env('WHISPER_VAD_BIN', path.join(path.dirname(WHISPER), 'whisper-vad-speech-segments'));
 const MODEL = env('WHISPER_MODEL', path.join(os.homedir(), 'KeeleSeppTranscriber', 'models', 'ggml-large-v3-turbo.bin'));
 // TalTechNLP/whisper-large-v3-turbo-et-verbatim-2604 (MIT), ggml file from its Hugging Face repo
 const MODEL_ET = env('WHISPER_MODEL_ET', path.join(path.dirname(MODEL), 'ggml-taltech-et-verbatim-2604.bin'));
@@ -44,17 +45,33 @@ async function claim() {
   return mine;
 }
 
-async function transcribeSegment(seg, lang, dir) {
+// One track segment (5 min of one speaker): speech is cut into chunks (VAD), the language of each chunk is detected
+// (Estonian → TalTech's Estonian model, Russian / English → the general model) and every chunk is transcribed on its
+// own without carrying text from the previous one (-mc 0), which stops whisper's repetition loops.
+async function transcribeSegment(seg, lessonLang, dir) {
   const src = path.join(dir, path.basename(seg.path));
   const wav = `${src}.wav`;
   await bucket.file(seg.path).download({ destination: src });
   await run(FFMPEG, ['-y', '-loglevel', 'error', '-i', src, '-ar', '16000', '-ac', '1', '-c:a', 'pcm_s16le', wav]);
-  // voice activity detection: exact start times per phrase and no invented text on silence
-  const vad = fs.existsSync(VAD_MODEL) ? ['--vad', '-vm', VAD_MODEL] : [];
-  await run(WHISPER, ['-m', modelFor(lang), '-l', lang, '-t', THREADS, '-f', wav, '-oj', '-of', src, '-np', ...vad], { maxBuffer: 64 * 1024 * 1024 });
-  const json = JSON.parse(fs.readFileSync(`${src}.json`, 'utf8'));
-  progress();
-  return parseWhisperJson(json, { speaker: seg.track, offsetMs: seg.startMs || 0 });
+  const totalMs = Math.round(((fs.statSync(wav).size - 44) / 32000) * 1000);
+  let chunks = [{ startMs: 0, endMs: totalMs }];
+  if (fs.existsSync(VAD_BIN) && fs.existsSync(VAD_MODEL)) {
+    const { stdout } = await run(VAD_BIN, ['-vm', VAD_MODEL, '-f', wav], { maxBuffer: 16 * 1024 * 1024 });
+    chunks = groupChunks(parseVadSegments(stdout), { totalMs });
+  }
+  const lines = [];
+  for (const [index, chunk] of chunks.entries()) {
+    if (chunk.endMs - chunk.startMs < 400) continue;
+    const piece = `${src}.${index}.wav`;
+    await run(FFMPEG, ['-y', '-loglevel', 'error', '-ss', String(chunk.startMs / 1000), '-t', String((chunk.endMs - chunk.startMs) / 1000), '-i', wav, '-c', 'copy', piece]);
+    const detect = await run(WHISPER, ['-m', MODEL, '-l', 'auto', '-dl', '-t', THREADS, '-f', piece], { maxBuffer: 16 * 1024 * 1024 }).catch((err) => err);
+    const lang = chooseLanguage(parseDetectedLanguage(`${detect?.stderr || ''}${detect?.stdout || ''}`), lessonLang);
+    await run(WHISPER, ['-m', modelFor(lang), '-l', lang, '-t', THREADS, '-f', piece, '-oj', '-of', piece, '-np', '-mc', '0', '-sns'], { maxBuffer: 64 * 1024 * 1024 });
+    const json = JSON.parse(fs.readFileSync(`${piece}.json`, 'utf8'));
+    lines.push(...parseWhisperJson(json, { speaker: seg.track, offsetMs: (seg.startMs || 0) + chunk.startMs }).map((line) => ({ ...line, lang })));
+    progress();
+  }
+  return lines;
 }
 
 // heartbeat for the lesson room („Transkribeerija töötab”); a failed write never stops the work

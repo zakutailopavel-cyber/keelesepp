@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import LessonEndPanel from './LessonEndPanel.jsx';
 import { handoffTopic, saveLessonHandoff, takeLessonHandoff, unfinishedSheets } from './lessonHandoff.js';
+import { heldParam, isLessonKey, looseLessonKey, parseHeld } from './lessonLink.js';
 
 const memory = () => { const data = {}; return { getItem: (k) => data[k] ?? null, setItem: (k, v) => { data[k] = String(v); } }; };
 const KEY = 'sched-1:2026-10-09|2026-10-09';
@@ -62,6 +63,18 @@ describe('LessonEndPanel: closing the lesson', () => {
     unmount();
     const loose = base({ lessonKey: '' });
     render(<LessonEndPanel {...loose} />);
-    expect(screen.getByText(/märgi see kalendris ise/)).toBeInTheDocument();
+    expect(screen.getByRole('checkbox', { name: /Tund ei olnud kalendris/ })).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Lõpeta ilma kokkuvõtteta' }));
+    expect(loose.saveHandoff).toHaveBeenCalledWith(expect.stringMatching(/^student:s1\|\d{4}-\d{2}-\d{2}$/), expect.anything());
+  });
+
+  it('a lesson without a calendar lesson: its day, start and length travel to the calendar', () => {
+    const start = new Date(2026, 9, 9, 18, 18).getTime();
+    expect(heldParam(start, start + 47 * 60000)).toBe('2026-10-09|18:18|45');
+    expect(heldParam(start, start + 2 * 60000)).toBe('2026-10-09|18:18|15');
+    expect(heldParam(0)).toBe('');
+    expect(parseHeld('2026-10-09|18:18|45')).toEqual({ date: '2026-10-09', time: '18:18', duration: 45 });
+    expect(parseHeld('bogus')).toBeNull();
+    expect(isLessonKey(looseLessonKey('s1', '2026-10-09'))).toBe(true);
   });
 });
