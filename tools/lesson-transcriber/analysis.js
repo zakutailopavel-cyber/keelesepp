@@ -104,7 +104,10 @@ async function loadDidactics() {
   for (const level of FORM_LEVELS) {
     try { forms[level] = new Set(String(JSON.parse(fs.readFileSync(path.join(dir, `levelForms.${level}.json`), 'utf8')).forms || '').split('\n')); } catch { /* level missing */ }
   }
-  didactics = { ...levels, forms: Object.keys(forms).length ? forms : null };
+  // EKI's grammar profile (grammarProfile.json): per level the topics with their „oskab” statement
+  let grammarProfile = null;
+  try { grammarProfile = JSON.parse(fs.readFileSync(path.join(dir, 'grammarProfile.json'), 'utf8')).levels || null; } catch { grammarProfile = null; }
+  didactics = { ...levels, forms: Object.keys(forms).length ? forms : null, grammarProfile };
   return didactics;
 }
 const FORM_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
@@ -212,4 +215,13 @@ function needsAnalysis(rec = {}) {
     && !(rec.analysis && rec.analysis.version >= ANALYSIS_VERSION);
 }
 
-module.exports = { loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+// the EKI grammar of a profile key: topics new on the level (targets) and those before (known)
+const GRAMMAR_LEVEL = { A1: 'A1', A2: 'A2', 'A2+': 'A2', 'B1-': 'B1', B1: 'B1', B2: 'B2', C1: 'C1' };
+function ekiGrammar(profile, key) {
+  const order = ['A1', 'A2', 'B1', 'B2', 'C1'];
+  const level = GRAMMAR_LEVEL[key] || 'A2';
+  const topics = (l) => (profile?.[l] || []).map((t) => t.topic);
+  return { level, targets: topics(level), known: order.slice(0, order.indexOf(level)).flatMap(topics) };
+}
+
+module.exports = { ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

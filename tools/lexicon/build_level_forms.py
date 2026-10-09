@@ -6,7 +6,8 @@ Koppel et al. „Eesti keele kui teise keele õpetaja tööriistad”, licence C
 The older PDF lists (A1–B1, 2018) can still be parsed with `parse`.
 
     .venv/bin/python tools/lexicon/build_level_forms.py fetch     # → tools/lexicon/etlex-levels.json (≈10.6k lemmas)
-    .venv/bin/python tools/lexicon/build_level_forms.py build     # → levelForms.json
+    .venv/bin/python tools/lexicon/build_level_forms.py build     # → levelForms.<level>.json
+    .venv/bin/python tools/lexicon/build_level_forms.py grammar   # → grammarProfile.json (EKI grammar profile A1–C1)
 
 `parse` reads the PDFs (pypdf) into tools/lexicon/eki-levels-2018.json (lemma + part of speech per level).
 `build` generates every form with Vabamorf (EstNLTK 1.7.5) and writes, per level, only the forms that first appear on
@@ -73,6 +74,40 @@ def fetch():
     print(len(rows), 'lemmas')
 
 
+GRAMMAR_API = 'https://etlex.eki.ee/etLex/api/v1.0/gramprofiles?project=etLex'
+GRAMMAR_OUT = ROOT / 'crm-v2/src/features/worksheet-studio/didactics/grammarProfile.json'
+
+
+def grammar():
+    """EKI's grammar competence description for adult learners (A1–C1, CC BY) → grammarProfile.json, per level the
+    topics with their „oskab” statement, category and one example (HTML tags removed)."""
+    import html
+    import time
+    import urllib.request
+    items, offset = [], 0
+    while True:
+        data = json.load(urllib.request.urlopen(f'{GRAMMAR_API}&limit=500&offset={offset}', timeout=60))
+        batch = data.get('items', [])
+        items += batch
+        offset += len(batch)
+        if not batch or offset >= data.get('total_count', 0):
+            break
+        time.sleep(0.5)
+    clean = lambda v: re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', '', str(v or '')))).strip()
+    out = {level: [] for level in LEVELS}
+    for i in sorted(items, key=lambda x: (x.get('langlevel_ord') or 0, x.get('maincategory_ord') or 0, x.get('subcategory_ord') or 0, str(x.get('ord') or ''))):
+        level = i.get('langlevel')
+        if level not in out:
+            continue
+        out[level].append({
+            'topic': clean(i.get('topic')), 'can': clean(i.get('can_do_statement')),
+            'category': clean(i.get('maincategory_name')).capitalize(), 'sub': clean(i.get('subcategory_name')).capitalize(),
+            'example': clean(i.get('firstexample'))[:200],
+        })
+    GRAMMAR_OUT.write_text(json.dumps({'source': 'EKI etLex grammatikaprofiil (täiskasvanud keeleõppija), CC BY, https://sonaveeb.ee/teacher-tools/#/grammar', 'levels': out}, ensure_ascii=False) + '\n')
+    print({k: len(v) for k, v in out.items()})
+
+
 def forms_of(lemma, pos):
     from estnltk.vabamorf.morf import synthesize
     out = {lemma.lower()}
@@ -121,6 +156,8 @@ def build():
 if __name__ == '__main__':
     if len(sys.argv) > 2 and sys.argv[1] == 'parse':
         parse(sys.argv[2])
+    elif len(sys.argv) > 1 and sys.argv[1] == 'grammar':
+        grammar()
     elif len(sys.argv) > 1 and sys.argv[1] == 'fetch':
         fetch()
     elif len(sys.argv) > 1 and sys.argv[1] == 'build':

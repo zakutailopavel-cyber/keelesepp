@@ -75,8 +75,11 @@ These are real gaps of the generator, fixed in step 2.
    - **Rules for unlisted words:** names and numbers are skipped; a compound counts by its harder known part; a -mine noun in any form counts as its verb.
    - The 2018 PDF lists (A1–B1) can still be parsed with `parse`; `build` uses etLex when it is present.
    - Still open: generator lexicon breadth. etLex has no translations, so `source.json` entries still need a Russian translation and tags.
-4. Grammar targets: `GRAMMAR` in `levels.js` drives the planner and the local model prompts. Grammar in a sheet is
-   detected later with the morphological analyser.
+4. ~~Grammar targets from EKI.~~ Done.
+   - **Source:** `tools/lexicon/build_level_forms.py grammar` reads EKI's grammar competence profile for adults (etLex `gramprofiles`, CC BY) into `didactics/grammarProfile.json`. It has 547 topics: A1 84, A2 136, B1 171, B2 135, C1 21. Each topic carries an „oskab” statement, a category and an example.
+   - **Constructor:** „Leht” → „Tasemel X õpitav grammatika (EKI)” (`GrammarPanel`). The AI fields „Lünk harjutab” and „Grammatika tekstis” suggest the level's topics (datalist).
+   - **School Mac:** the prompts list what is known (earlier levels) and the level's targets from this profile (`ekiGrammar`). `levels.js` `GRAMMAR` is only the fallback.
+   - **Still open:** detecting the grammar actually used in a sheet (Vabamorf analysis on the Mac).
 5. ~~Local models under the norms.~~ Done for gap sentences and reading texts.
    - On the school Mac, `answerAiRequests` loads `levels.js` and `levelForms.json` (copied into `app/didactics`, or from the repository).
    - **Gap sentences:** gemma3 gets the level's sentence length and grammar, and writes twice as many as asked. Sentences that are too long or have more than one word above the level are dropped; the rest are checked by GEC.
