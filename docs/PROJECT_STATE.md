@@ -1,3 +1,10 @@
+## 2026-10-09 — Transcriber: interrupted recordings within 15 min — branch `agent/transcriber-quick-handover`
+
+Owner: recording starts by itself with the call, so a page reload during a lesson starts a new recording and leaves the
+old one in „recording”. `lib.isAbandoned` now hands such a recording over after 15 min without a new segment (a live
+recording adds one every 5 min; was 3 h). Installed on the school Mac and restarted: Ilja's interrupted recording
+`UwmaDxckwIW9iTu45e2x_1791559189464` was handed over. Checks: transcriber lib tests 6/6.
+
 ## 2026-10-09 — Lesson text in the student card; transcriber self-repair — branch `agent/transcript-in-lesson`
 
 Checked `origin/main` `61ee47d` (#379 merged, `firestore:rules,storage` deployed by request).
