@@ -1,3 +1,17 @@
+## 2026-10-09 — Admin bug notes: stuck „Toimunud” lessons, squashed notification filters — branch `agent/admin-bugs`
+
+From the admin's bug channel (screenshots, 2026-10-09).
+- Calendar: a lesson marked „Toimunud” / „Puudus” with no journal entry behind it (old or imported data, a
+  `lessonRecordId` pointing nowhere) showed only the status chip — no way to cancel or delete it. `LessonPanel.jsx`:
+  `orphanMark` (done, no `record`, not a duplicate problem) shows a short note and the „Tühista tund” / „Kustuta” footer
+  (no „Muuda aega”). Lessons with a real journal entry keep the buttons hidden (accounting stays protected);
+  `planDelete` and the rules already allow it.
+- Notification centre: the filter chips („Kõik / Kodutööd / Arved”) were squashed by a long list in the flex column —
+  head and filters are `flex: none`, only the list scrolls (`features/notifications/notifications.css`).
+- Checks: calendar + layout 14 files / 85 tests (2 new panel tests); eslint 0 errors.
+- Not changed: the duplicate „Maria” / „Maria Kummer” is data (two student cards) — merge them in „Kontrolli
+  duplikaate”; the admin's „track new accounts” wish is already „Uued kontod”.
+
 ## 2026-10-09 — Live lesson on a worksheet: step mode, show answers, task overview — branch `agent/live-sheet`
 
 Checked `origin/main` `d2b94c2` (after #394). Step 4 of the owner's constructor roadmap.

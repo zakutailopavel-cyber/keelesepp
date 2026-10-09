@@ -94,6 +94,9 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
     if (ok) { try { window.localStorage.removeItem(draftKey(item)); } catch { /* storage may be disabled */ } }
   };
   const googleOwned = isGoogleOwned(item);
+  // a „Toimunud” / „Puudus” status with no journal entry behind it (old or imported data, admin 2026-10-09): nothing is
+  // booked for it, so the lesson may still be cancelled or deleted like a planned one
+  const orphanMark = done && !item.isGroup && !record && item.recordProblem !== 'duplicate';
   const sync = lessonSyncState(item);
   const absent = item.status === 'Puudus_eta' || item.status === 'Puudus_p' || ['Puudus_eta', 'Puudus_p'].includes(record?.status);
 
@@ -144,6 +147,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
               <div className="lp-actions"><Button loading={saving} onClick={async () => { if (await onUpdateDetails(topicFromPick(catalog, editing.pick, editing.notes))) setEditing(null); }}>Salvesta</Button><Button variant="secondary" disabled={saving} onClick={() => setEditing(null)}>Loobu</Button></div>
             </div>
           ) : null}
+          {orphanMark ? <p className="lp-hint lp-orphan">See märge on ilma päevikukandeta — arvele midagi ei läinud. Kui tund on vale, tühista või kustuta see allpool.</p> : null}
           {record && onChangeMark && !fixing ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
           {record && fixing ? (
             <div className="lp-fix" role="group" aria-label="Paranda märge">
@@ -186,9 +190,9 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
         </section>
       ) : null}
 
-      {!done && !item.isGroup && !googleOwned ? (
+      {(!done || orphanMark) && !item.isGroup && !googleOwned ? (
         <footer className="lp-foot">
-          <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button>
+          {!done ? <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button> : null}
           <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button>
           {onDeleteLesson ? <Button variant="danger" disabled={saving} onClick={onDeleteLesson}><Trash2 size={15} /> Kustuta</Button> : null}
           {onDeleteLesson ? <p className="lp-hint">„Tühista” — tund jääb ära. „Kustuta” — tund lisati kogemata (vale õpilane või päev).</p> : null}
