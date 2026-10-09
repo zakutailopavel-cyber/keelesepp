@@ -4,6 +4,33 @@ Owner: sync must go only from the site to Google. It already does (server `GOOGL
 still said „Kahesuunaline / KeeleSepp ↔ Google”. `describeConnection`: connected → „Ühendatud” (row: „Tunnid liiguvad
 ainult KeeleSepast Google’isse”); without write permission → „Vaja Google’i luba” (was „Ainult Google → KeeleSepp”).
 Checks: google-calendar + settings 16/16.
+## 2026-10-09 — Billing setting „Pärast toimunud tunde” was refused by the rules — branch `agent/billing-actual-rule`
+
+Owner: saving „Arveldus” with „Pärast toimunud tunde” on a student's Finantsid tab → „Missing or insufficient
+permissions”. Finance v3 added `billingMode: 'actual'` in the UI and `monthlyBilling.js`, but the
+`studentRevenuePlans` rule allowed only `advance` / `current`. Rule now allows `actual`. Emulator: the finance role
+test also writes `actual` (200) and an unknown mode (403) — pass. Manual gate: `firestore:rules` deploy.
+## 2026-10-09 — Transcriber: language per phrase, no repetition loops — branch `agent/transcriber-languages`
+
+Owner: today's transcripts were nonsense (Russian speech forced through the Estonian model; loops like „ja, ja, ja…”).
+- Each 5-min track segment is cut by VAD (`whisper-vad-speech-segments`) into chunks ≤ 25 s (`parseVadSegments`,
+  `groupChunks`); per chunk the language is detected (`-dl`, `parseDetectedLanguage`, `chooseLanguage`: et / ru / en,
+  p ≥ 0.5, else the lesson's language): Estonian → TalTech model, others → large-v3-turbo; decoding without carried
+  context (`-mc 0`, `-sns`). Lines carry `lang`. `collapseRepeats` keeps a word / group (≤ 6 words) repeated ≥ 3 times
+  once. Tried locally on a real 5-min student track of today: 48 chunks in 99 s, readable Russian and Estonian.
+- Checks: transcriber lib tests 8/8.
+- Next safe step: install on the school Mac and requeue today's recordings.
+## 2026-10-09 — A Live Classroom lesson that was not in the calendar — branch `agent/unplanned-lesson-close`
+
+Owner: after „Lõpeta tund” the calendar showed the student with 0 lessons (the lesson was never planned), nothing to
+mark. `lessonLink.calendarPathAfterLesson(invitation, startedMs)` without a calendar link → `/calendar?student=<id>
+&held=<date>|<HH:MM>|<min>` (start from `respondedAt`). `LessonEndPanel` keeps the handoff under
+`looseLessonKey(student, day)` = `student:<id>|<date>` when there is no calendar link. `CalendarPage` shows a banner:
+a planned lesson of that day → „Märgi toimunuks”; none → „Lisa ja märgi toimunuks” (non-recurring schedule entry at
+that time, the student's usual lesson length, else the measured one) or „Muuda enne” (prefilled „Lisa tund”). Marking
+uses `completeFromSchedule` with the worksheet topic / suggestion and the room note, as for linked lessons.
+Checks: 2 calendar + 1 handoff tests; calendar 78/79 and live-classroom with only the known Node 26 `localStorage`
+failures; build OK.
 
 ## 2026-10-09 — Lesson room: board full width, videos over it — branch `agent/room-wide-board`
 

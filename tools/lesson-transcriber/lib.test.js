@@ -68,3 +68,26 @@ test('a lesson a dead transcriber had taken goes back to the queue', () => {
   assert.equal(isStaleTranscribing({ ...rec, transcribeStartedAt: '2026-10-09T12:00:00Z' }, { host: 'Other', now }), true);
   assert.equal(isStaleTranscribing({ ...rec, status: 'done' }, { host: 'Mac', now }), false);
 });
+
+test('whisper loops are collapsed: a word or a group repeated three or more times stays once', () => {
+  const { collapseRepeats, cleanText } = require('./lib');
+  assert.equal(collapseRepeats('Ja, ja, ja, ja, ja tõesti, tõesti, tõesti. Da.'), 'Ja, tõesti, Da.');
+  assert.equal(collapseRepeats("I'm going to be able to be able to be able to be able to go"), "I'm going to be able to go");
+  assert.equal(collapseRepeats('ma ei tea, ma ei tea, ma ei tea, seda'), 'ma ei tea, seda');
+  assert.equal(collapseRepeats('jah jah, see on hea'), 'jah jah, see on hea');
+  assert.equal(cleanText('  võ võ võ võ  '), 'võ');
+});
+
+test('speech is cut into chunks and each chunk gets its own language', () => {
+  const { parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
+  const vad = parseVadSegments('Detected 3 speech segments:\nSpeech segment 0: start = 391.00, end = 502.00\nSpeech segment 1: start = 600.00, end = 768.00\nSpeech segment 2: start = 4333.00, end = 4374.00\n');
+  assert.deepEqual(vad, [{ startMs: 3910, endMs: 5020 }, { startMs: 6000, endMs: 7680 }, { startMs: 43330, endMs: 43740 }]);
+  assert.deepEqual(groupChunks(vad, { totalMs: 43800 }), [{ startMs: 3710, endMs: 7880 }, { startMs: 43130, endMs: 43800 }]);
+  assert.equal(groupChunks([{ startMs: 0, endMs: 20000 }, { startMs: 20500, endMs: 30000 }], { padMs: 0 }).length, 2, 'a chunk stays under 25 s');
+  assert.deepEqual(parseDetectedLanguage('whisper_full_with_state: auto-detected language: ru (p = 0.973476)'), { lang: 'ru', p: 0.973476 });
+  assert.equal(parseDetectedLanguage('nothing'), null);
+  assert.equal(chooseLanguage({ lang: 'ru', p: 0.97 }, 'et'), 'ru');
+  assert.equal(chooseLanguage({ lang: 'fi', p: 0.9 }, 'et'), 'et');
+  assert.equal(chooseLanguage({ lang: 'en', p: 0.3 }, 'et'), 'et');
+  assert.equal(chooseLanguage(null, 'et'), 'et');
+});
