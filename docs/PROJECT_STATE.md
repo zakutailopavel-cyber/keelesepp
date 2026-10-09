@@ -1,3 +1,16 @@
+## 2026-10-09 — Faster review queue — branch `agent/review-queue`
+
+Checked `origin/main` `deb3b78`. Owner: make teachers' life easier (3/3: checking submitted work).
+- `homework/reviewTemplates.js`: `suggestedGrade(percentage)` (≥90 → 5, ≥75 → 4, ≥50 → 3, ≥30 → 2, else 1),
+  `quickFeedback`, `feedbackTemplates` („Korda: <tasks with automatic errors>” first, then standard lines), `addLine`.
+- „Esitatud tööd” (`HomeworkPage`): auto-checked works waiting for review say „Automaatselt kontrollitud” and have
+  „Kinnita <hinne>” — saves the suggested grade + a short standard comment through the existing
+  `reviewSubmission` without opening the work.
+- `SubmissionReviewModal`: an unreviewed auto-checked work starts with the suggested grade (hint shows the %), comment
+  chips add ready-made lines, „Saada ja järgmine” saves and opens the next work waiting in the list.
+- Checks: new `reviewTemplates.test.js` + 2 HomeworkPage tests; homework + students suites 83/83; eslint 0 errors.
+- Next safe step: a teacher confirms one real auto-checked work and checks what the student sees.
+
 ## 2026-10-09 — Pet care (tamagotchi) — branch `agent/pet-care`
 
 Checked `origin/main` `a5c3a84`. Owner chose „care through learning” for the pet.

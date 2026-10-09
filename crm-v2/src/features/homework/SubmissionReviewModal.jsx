@@ -8,6 +8,7 @@ import { submissionWritingFields } from './annotations.js';
 import { GRADE_LABEL, skillList, suggestedSkills } from './skillGrades.js';
 import { formatDate, readableValue } from './submissionFormat.js';
 import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';
+import { addLine, feedbackTemplates, suggestedGrade } from './reviewTemplates.js';
 import './reviewLayout.css';
 
 function AnswerList({ answers }) {
@@ -18,9 +19,12 @@ function AnswerList({ answers }) {
 
 // A submitted work, checked in one large window: the student's sheet with answers on the left, everything the teacher
 // decides on the right — grade, skill grades (they move the student's skill map in „Areng”) and the comment.
-export default function SubmissionReviewModal({ submission, staff, repository, user, skillMap = null, onClose, onSaved }) {
+// `onSavedNext` (staff queue): „Saada ja järgmine” opens the next work waiting for a review.
+export default function SubmissionReviewModal({ submission, staff, repository, user, skillMap = null, onClose, onSaved, onSavedNext }) {
   const [current, setCurrent] = useState(submission);
-  const [review, setReview] = useState({ teacherGrade: submission.teacherGrade ?? '', teacherFeedback: submission.teacherFeedback || '' });
+  // an unreviewed auto-checked work starts with the grade the automatic check suggests
+  const autoGrade = submission.reviewStatus === 'reviewed' ? null : suggestedGrade(submission.percentage);
+  const [review, setReview] = useState({ teacherGrade: submission.teacherGrade ?? autoGrade ?? '', teacherFeedback: submission.teacherFeedback || '' });
   const worksheetDoc = current.submissionKind === 'worksheet' ? current.source?.worksheetDoc : null;
   const suggested = suggestedSkills(worksheetDoc);
   const skills = skillList(skillMap || {});
@@ -33,11 +37,11 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
     setCurrent((value) => ({ ...value, annotations: saved }));
     return saved;
   };
-  const save = async () => {
+  const save = async (next = false) => {
     setSaving(true); setError('');
     try {
       const result = await repository.reviewSubmission({ submission: current, ...review, user, ...(skillMap ? { skillGrades: grades } : {}) });
-      onSaved?.(result);
+      (next && onSavedNext ? onSavedNext : onSaved)?.(result);
     } catch (saveError) {
       setError(saveError.message || 'Tagasisidet ei saanud salvestada.');
     } finally {
@@ -47,7 +51,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
   const ordered = [...suggested, ...skills.filter((skill) => !suggested.includes(skill))];
 
   return (
-    <Modal open title={current.title || 'Esitatud töö'} onClose={onClose} className="modal--review" footer={staff ? <>{error ? <span className="form-error review-error" role="alert">{error}</span> : null}<Button variant="secondary" onClick={onClose}>Sulge</Button><Button loading={saving} onClick={save}><MessageSquare size={17} /> Saada tagasiside</Button></> : <Button variant="secondary" onClick={onClose}>Sulge</Button>}>
+    <Modal open title={current.title || 'Esitatud töö'} onClose={onClose} className="modal--review" footer={staff ? <>{error ? <span className="form-error review-error" role="alert">{error}</span> : null}<Button variant="secondary" onClick={onClose}>Sulge</Button>{onSavedNext ? <Button variant="secondary" disabled={saving} onClick={() => save(true)}>Saada ja järgmine</Button> : null}<Button loading={saving} onClick={() => save()}><MessageSquare size={17} /> Saada tagasiside</Button></> : <Button variant="secondary" onClick={onClose}>Sulge</Button>}>
       <div className="review-layout">
         <div className="review-layout__work">
           {worksheetDoc?.blocks?.length
@@ -74,6 +78,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
               <section className="submission-feedback">
                 <h3>Hinne</h3>
                 <div className="submission-grade"><Select id="teacher-grade" label="Hinne 1–5" value={review.teacherGrade} onChange={(event) => setReview({ ...review, teacherGrade: event.target.value })}><option value="">Hindeta</option>{[1, 2, 3, 4, 5].map((grade) => <option key={grade} value={grade}>{grade}</option>)}</Select><Star size={21} /></div>
+                {autoGrade ? <p className="form-hint">Soovitus automaatkontrolli järgi: {autoGrade} ({current.percentage}%).</p> : null}
               </section>
               {skillMap ? (
                 <section className="review-skills" aria-label="Oskuste hinnang">
@@ -91,6 +96,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
                 </section>
               ) : null}
               <label className="textarea-field"><span>Kommentaar õpilasele</span><textarea aria-label="Kommentaar õpilasele" rows="5" value={review.teacherFeedback} onChange={(event) => setReview({ ...review, teacherFeedback: event.target.value })} placeholder="Mis läks hästi ja mida järgmisel korral parandada?" /></label>
+              <div className="review-templates" role="group" aria-label="Valmis laused">{feedbackTemplates(current).map((line) => <button type="button" key={line} className="review-template" onClick={() => setReview((value) => ({ ...value, teacherFeedback: addLine(value.teacherFeedback, line) }))}>{line}</button>)}</div>
             </>
           ) : current.reviewStatus === 'reviewed' ? (
             <section className="returned-feedback"><div><MessageSquare size={20} /><strong>Õpetaja tagasiside</strong>{current.teacherGrade ? <Badge tone="success">Hinne {current.teacherGrade}</Badge> : null}</div><p>{current.teacherFeedback || 'Õpetaja jättis tööle hinde ilma kommentaarita.'}</p><small>{current.reviewedByName ? `${current.reviewedByName} · ` : ''}{formatDate(current.reviewedAt)}</small></section>
