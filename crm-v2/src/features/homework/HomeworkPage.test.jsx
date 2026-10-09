@@ -76,6 +76,34 @@ describe('HomeworkPage', () => {
     expect(data.repository.listSubmissionsByStudentIds).toHaveBeenCalledWith(['student-1']);
   });
 
+  it('confirms an auto-checked work with the suggested grade in one click', async () => {
+    const data = repositories();
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+    renderPage(user, data);
+    fireEvent.click(await screen.findByRole('button', { name: 'Kinnita hinne 4 — Mari' }));
+    await waitFor(() => expect(data.repository.reviewSubmission).toHaveBeenCalledWith({ submission: completedWork, teacherGrade: 4, teacherFeedback: 'Tubli! Vaata vead üle ja jätka samas vaimus.', user }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Mari: hinne 4 saadetud.');
+  });
+
+  it('suggests the grade, offers ready-made lines and moves on to the next work', async () => {
+    const second = { ...completedWork, id: 'worksheet-2', title: 'Teine leht', studentName: 'Jaan', percentage: null };
+    const data = repositories([completedWork, second]);
+    const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
+    renderPage(user, data);
+    fireEvent.click(await screen.findByRole('button', { name: /^Pere tööleht/ }));
+    const dialog = screen.getByRole('dialog', { name: 'Pere tööleht' });
+    expect(within(dialog).getByLabelText('Hinne 1–5')).toHaveValue('4');
+    expect(dialog).toHaveTextContent('Soovitus automaatkontrolli järgi: 4 (80%).');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tubli!' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Järgmises tunnis kordame seda teemat.' }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tubli!' }));
+    expect(within(dialog).getByLabelText('Kommentaar õpilasele')).toHaveValue('Tubli!\nJärgmises tunnis kordame seda teemat.');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Saada ja järgmine' }));
+    await waitFor(() => expect(data.repository.reviewSubmission).toHaveBeenCalledWith(expect.objectContaining({ teacherGrade: 4, teacherFeedback: 'Tubli!\nJärgmises tunnis kordame seda teemat.' })));
+    expect(await screen.findByRole('dialog', { name: 'Teine leht' })).toBeInTheDocument();
+    expect(within(screen.getByRole('dialog', { name: 'Teine leht' })).getByLabelText('Hinne 1–5')).toHaveValue('');
+  });
+
   it('shows returned feedback to a student without staff actions', async () => {
     const reviewed = { ...completedWork, reviewStatus: 'reviewed', teacherGrade: 4, teacherFeedback: 'Harjuta veel käändeid.', reviewedAt: '2026-08-04T10:00:00.000Z', reviewedByName: 'Õpetaja', annotations: [{ id: 'note-1', blockId: 'first', start: 5, end: 8, selectedText: 'ema', parandus: 'ema nimi', selgitus: 'Täpsusta väljendit.', createdAt: '2026-08-04T10:00:00.000Z', dismissed: false }] };
     const data = repositories([reviewed]);

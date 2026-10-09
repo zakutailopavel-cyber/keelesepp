@@ -33,3 +33,9 @@
 .auto-errors strong { font-size: .8rem; color: var(--muted, #627087); font-weight: 700; }
 .auto-errors s { color: #b42318; text-decoration-thickness: 1px; }
 .auto-errors b { color: var(--green-dark, #056454); }
+.review-templates { display: flex; flex-wrap: wrap; gap: 6px; }
+.review-template { border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: .8rem; cursor: pointer; text-align: left; }
+.review-template:hover { border-color: #0b5c4d; color: #0b5c4d; }
+.submission-item { display: flex; align-items: center; gap: 8px; padding-right: 14px; border-bottom: 1px solid #eef0f3; background: #fff; }
+.submission-item > .submission-row { flex: 1; min-width: 0; border-bottom: 0; }
+.submission-confirm { flex: none; white-space: nowrap; }
