@@ -1,3 +1,16 @@
+## 2026-10-10 — Didactic engine step 6: „Tee isiklik tööleht” from the learner model — branch `agent/personal-worksheet`
+
+- Base: `main` (after #419).
+- `features/students/personalWorksheet.js` builds the draft from:
+  - due words from „Minu sõnad”, at most 10, low boxes first → vocab + match;
+  - the newest joined lessons' errors without `unsure`, at most 8 → errorfix / gaps / word forms (reuses `errorsWorksheet`);
+  - the weaker of „Rääkimine” and „Kirjutamine” from `autoSkills` → speaking or writing with the level's amounts from `levels.js`.
+  - The goals are g_words, g_errors and g_use. It returns null when only the productive task would remain.
+- `studentWordsService.listForStudent` (one read).
+- `AutoSkillsCard` has „Tee isiklik tööleht”, which navigates to `/students/:id/worksheets/new` with `state.document`. The private constructor opens it unsaved.
+- Checks: students + vocabulary + WorksheetStudioPage 92/92, with new `personalWorksheet.test.js`; build succeeds.
+- Next safe step: step 7 — calibration: the teacher's „bad sentence” flag and item difficulty from submitted answers.
+
 ## 2026-10-10 — Didactic engine step 5: local models write under the level norms; „Paku tekst” for reading — branch `agent/ai-level-filter`
 
 - Base: `main` (after #418).

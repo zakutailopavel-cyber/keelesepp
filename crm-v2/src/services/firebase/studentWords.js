@@ -1,4 +1,4 @@
-import { collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { cleanWord, normalizeWord, review } from '../../features/vocabulary/wordsModel.js';
 
@@ -10,6 +10,14 @@ export const studentWordsService = {
     const { db } = requireFirebaseClient();
     return onSnapshot(query(collection(db, 'studentWords'), where('studentId', '==', studentId)),
       (snapshot) => onData(snapshot.docs.map((d) => normalizeWord(d.id, d.data()))), (error) => onError?.(error));
+  },
+
+  // one read of the student's words (the personal worksheet takes the due ones)
+  async listForStudent(studentId) {
+    if (!studentId) return [];
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'studentWords'), where('studentId', '==', studentId)));
+    return snapshot.docs.map((d) => normalizeWord(d.id, d.data()));
   },
 
   async add({ studentId, invitationId = '', user, ...input }) {
