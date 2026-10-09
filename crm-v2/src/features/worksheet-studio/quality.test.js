@@ -54,8 +54,8 @@ describe('authoring tips', () => {
     const doc = { meta: { title: 'Leht', goals: { g: 'x' } }, blocks: [task('a', 'truefalse'), task('b', 'truefalse'), task('c', 'truefalse')] };
     const result = analyzeWorksheet(doc);
     expect(result.ready).toBe(true);
-    expect(result.tips.map((t) => t.code)).toEqual(['productive', 'c:same-type']);
+    expect(result.issues.map((t) => t.code)).toEqual(expect.arrayContaining(['did-productive', 'c:same-type']));
     const long = { ...doc, blocks: Array.from({ length: 11 }, (_, i) => task(`t${i}`, i % 2 ? 'speaking' : 'truefalse')) };
-    expect(analyzeWorksheet(long).tips.map((t) => t.code)).toEqual(['long']);
+    expect(analyzeWorksheet(long).tips.map((t) => t.code)).toContain('long');
   });
 });

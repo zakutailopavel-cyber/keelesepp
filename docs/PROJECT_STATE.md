@@ -1,3 +1,20 @@
+## 2026-10-10 — Didactic engine step 1: level norms A1–C1 as data + the didactic check in the constructor — branch `agent/didactic-engine`
+
+- Base: `main` (after #415). Owner: build a high-level worksheet generator with didactic norms per level, „сделай все сам”. The plan is in `docs/DIDACTIC_ENGINE.md`.
+- `worksheet-studio/didactics/levels.js`:
+  - `LEVELS` profiles A1 / A2 / A2+ / B1- / B1 / B2 / C1;
+  - `GRAMMAR` targets per level;
+  - `PHASE_TASKS`;
+  - `levelKey` (lesson stages, e.g. „A2+/B1-” → B1-).
+- `didactics/didacticCheck.js`: `measureBlock`, `sheetPhase` and `didacticCheck(doc, {level, phase})`, which returns `{level, label, phase, checks, score, issues}`.
+- `quality.js` `analyzeWorksheet` adds the didactic issues (never errors) and returns `didactics`. The old „productive” tip is replaced by `did-productive`.
+- The constructor quality pop-up shows „Didaktika · tase X · N%”.
+- Checks:
+  - worksheet-studio + generator tests: 148 + generator suites pass;
+  - eslint is clean; build succeeds.
+  - Calibration on generator fixtures (findings in the doc): 3 items per task, short B1 sentences.
+- Next safe step: step 2 — the generator takes item counts and amounts from `levels.js` and runs `didacticCheck` on its output.
+
 ## 2026-10-10 — The pet learns from recorded lessons: speech XP, praise, „Paranda” with the learner's own sentences — branch `agent/pet-speech`
 
 - Base: `main` (after #414). Owner: tie the lesson analysis to the students' tamagotchi.

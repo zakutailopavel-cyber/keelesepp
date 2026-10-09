@@ -1,5 +1,6 @@
 import { BLOCKS } from './engine/registry.js';
 import { diagramHasContent } from './engine/blocks/diagramModel.js';
+import { didacticCheck } from './didactics/didacticCheck.js';
 
 const text = (value) => String(value || '').trim();
 const rows = (value) => String(value || '').split('\n').filter((x) => x.trim());
@@ -25,7 +26,6 @@ export function analyzeWorksheet(document) {
   });
   // tips (do not block publishing): a balanced, not too long sheet
   const types = taskBlocks.map((block) => block.type);
-  if (taskBlocks.length >= 3 && !types.some((type) => ['speaking', 'dialogue', 'rolecards', 'writing', 'guidedletter'].includes(type))) issues.push({ level: 'tip', code: 'productive', text: 'Nõuanne: lehel pole rääkimist ega kirjutamist — lisa „Räägi”, „Dialoog” või „Kirjuta”, et õpilane kasutaks sõnu ise.' });
   for (let i = 2; i < types.length; i += 1) {
     if (types[i] === types[i - 1] && types[i] === types[i - 2]) {
       issues.push({ level: 'tip', code: `${taskBlocks[i].id}:same-type`, text: `Nõuanne: ülesanded ${i - 1}–${i + 1} on sama tüüpi (${BLOCKS[types[i]]?.label || types[i]}). Vaheldus hoiab tähelepanu.` });
@@ -34,6 +34,9 @@ export function analyzeWorksheet(document) {
   }
   if (taskBlocks.length > 10) issues.push({ level: 'tip', code: 'long', text: `Nõuanne: lehel on ${taskBlocks.length} ülesannet. Kas jagad selle kahe tunni peale?` });
   if (!Object.keys(document?.meta?.goals || {}).length) issues.push({ level: 'warning', code: 'goals', text: 'Lisa vähemalt üks õpieesmärk, et tulemusi saaks eesmärkide kaupa jälgida.' });
+  // the level's didactic norms (didactics/levels.js): never blocking, shown as warnings and tips
+  const didactics = didacticCheck(document || {});
+  issues.push(...didactics.issues);
   const errors = issues.filter((issue) => issue.level === 'error');
-  return { ready: errors.length === 0, issues, errors, warnings: issues.filter((issue) => issue.level === 'warning'), tips: issues.filter((issue) => issue.level === 'tip') };
+  return { ready: errors.length === 0, issues, errors, warnings: issues.filter((issue) => issue.level === 'warning'), tips: issues.filter((issue) => issue.level === 'tip'), didactics };
 }

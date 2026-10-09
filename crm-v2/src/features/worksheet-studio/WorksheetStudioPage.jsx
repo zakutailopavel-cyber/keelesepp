@@ -762,6 +762,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               <summary className="st-chip" title="Kvaliteedikontroll">{quality.ready ? <Icons.CircleCheck size={15} aria-hidden="true" /> : <Icons.CircleAlert size={15} aria-hidden="true" />}<span>{quality.ready ? 'Avaldamiseks valmis' : `${quality.errors.length} viga · ${quality.warnings.length} hoiatust`}</span>{quality.tips.length ? <em>{quality.tips.length}</em> : null}</summary>
               <div className="st-quality-pop">
                 <b>{quality.ready ? `Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : 'Kvaliteedikontroll'}</b>
+                {quality.didactics ? <p className="st-didactic"><span>Didaktika · tase {quality.didactics.label}</span><b>{quality.didactics.score}%</b><i style={{ width: `${quality.didactics.score}%` }} /></p> : null}
                 {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
               </div>
             </details>
