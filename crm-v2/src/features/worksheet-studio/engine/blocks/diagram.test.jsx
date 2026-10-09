@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import { diagram } from './diagram.jsx';
-import { diagramLayout, diagramNodes } from './diagramModel.js';
+import { KIND_SAMPLES, cellParts, cycleArcs, diagramLayout, diagramNodes, pairLines, switchKind } from './diagramModel.js';
+import { createBlock, isPaletteKey, paletteEntries } from '../registry.js';
 
 const ctx = (values = {}) => ({ interactive: true, get: (k) => values[k] || '', set: vi.fn(), state: () => undefined });
 
@@ -37,5 +38,62 @@ describe('Skeem block', () => {
     expect(screen.getByText('Minu päev')).toBeInTheDocument();
     expect(screen.getByText('hommikul')).toBeInTheDocument();
     expect(screen.getByLabelText('Skeemi lünk 2')).toBeInTheDocument();
+  });
+});
+
+describe('Skeem kinds (2026-10-09)', () => {
+  it('reads gaps inside a sentence; the first gap keeps the cell key', () => {
+    expect(cellParts('[Pesen] hambaid ja [kammin|harjan] juukseid', 'n1')).toEqual([
+      { gap: ['Pesen'], key: 'n1' }, { text: ' hambaid ja ' }, { gap: ['kammin', 'harjan'], key: 'n1.1' }, { text: ' juukseid' },
+    ]);
+  });
+
+  it('splits timeline and formula lines on the bar outside a gap', () => {
+    expect(pairLines('eile | [käisin|olin] kinos\nlihtsalt tekst')).toEqual([{ label: 'eile', text: '[käisin|olin] kinos' }, { label: '', text: 'lihtsalt tekst' }]);
+  });
+
+  it('scores every kind from its own fields', () => {
+    const venn = { kind: 'venn', left: 'Linn', right: '[Maa]', leftItems: '[pood]', both: 'kodu\n[sõbrad]', rightItems: 'mets' };
+    expect(diagram.answers(venn).map((a) => a.key)).toEqual(['R', 'l0', 'm1']);
+    const timeline = { kind: 'timeline', nodes: '[eile] | [käisin] kinos\ntäna | olen kodus' };
+    expect(diagram.answers(timeline).map((a) => a.key)).toEqual(['t0', 'n0']);
+    const values = { t0: 'Eile', n0: 'läksin' };
+    expect(diagram.score(timeline, (k) => values[k])).toEqual([{ key: 't0', ok: true }, { key: 'n0', ok: false }]);
+    expect(diagram.answers({ kind: 'formula', nodes: 'Kus? | [Tallinnas]' })).toEqual([{ key: 'n0', accept: ['Tallinnas'] }]);
+    expect(diagram.answers({ kind: 'compare', left: 'A', right: 'B', leftItems: 'x', rightItems: '[y]', both: '[ignored]' }).map((a) => a.key)).toEqual(['r0']);
+  });
+
+  it('a new block of a kind starts with its example; switching keeps what the teacher wrote', () => {
+    expect(diagram.create('venn')).toMatchObject({ kind: 'venn', left: 'Linn', right: 'Maa' });
+    const fresh = diagram.create('mind');
+    expect(switchKind(fresh, 'timeline')).toMatchObject({ kind: 'timeline', nodes: KIND_SAMPLES.timeline.nodes, center: '' });
+    expect(switchKind({ ...fresh, nodes: 'minu oma' }, 'cycle')).toEqual({ kind: 'cycle' });
+  });
+
+  it('cycle arrows run between neighbours outside the boxes', () => {
+    const layout = diagramLayout('cycle', 4);
+    expect(layout.links).toEqual([[0, 1], [1, 2], [2, 3], [3, 0]]);
+    expect(cycleArcs(layout)).toHaveLength(4);
+    expect(cycleArcs(diagramLayout('cycle', 1))).toEqual([]);
+  });
+
+  it('renders the timeline, formula, Venn and T-chart with inputs for the gaps', () => {
+    const { unmount } = render(<diagram.View data={{ kind: 'timeline', nodes: 'eile | [käisin] kinos' }} ctx={ctx()} id="b" />);
+    expect(screen.getByText('eile')).toBeInTheDocument();
+    expect(screen.getByLabelText('Ajajoone lünk 1')).toBeInTheDocument();
+    unmount();
+    render(<diagram.View data={{ ...KIND_SAMPLES.venn, kind: 'venn' }} ctx={ctx()} id="b" />);
+    expect(screen.getByText('Linn')).toBeInTheDocument();
+    expect(screen.getByText('kodu')).toBeInTheDocument();
+    expect(screen.getByLabelText('Parem lünk 2')).toBeInTheDocument();
+  });
+
+  it('the palette offers each kind and creates it filled in', () => {
+    const entries = paletteEntries().filter((e) => e.group === 'Skeemid');
+    expect(entries.map((e) => e.key)).toContain('diagram:venn');
+    expect(isPaletteKey('diagram:venn')).toBe(true);
+    expect(isPaletteKey('diagram:nope')).toBe(false);
+    expect(createBlock('diagram:formula').data.kind).toBe('formula');
+    expect(createBlock('diagram').data.kind).toBe('mind');
   });
 });
