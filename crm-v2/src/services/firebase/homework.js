@@ -431,6 +431,7 @@ export const homeworkService = {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('lessonId', '==', lessonId)));
     return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+  },
   // live lesson: step mode (open tasks one by one) and the tasks whose right answers the learner sees
   async setWorksheetLiveStep({ assignmentId, on, open }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

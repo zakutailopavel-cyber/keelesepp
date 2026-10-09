@@ -237,6 +237,8 @@ describe('homeworkService submissions', () => {
     expect(await homeworkService.listWorksheetResults('l1')).toEqual([{ id: 'a', lessonId: 'l1', status: 'done' }]);
     expect(firestore.where).toHaveBeenCalledWith('lessonId', '==', 'l1');
     expect(await homeworkService.listWorksheetResults('')).toEqual([]);
+  });
+
   it('saves the live step mode and the shown tasks on the assignment', async () => {
     await homeworkService.setWorksheetLiveStep({ assignmentId: 'as-1', on: true, open: ['a', 'a', 'b'] });
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveStep: { on: true, open: ['a', 'b'], at: expect.any(String) } });
