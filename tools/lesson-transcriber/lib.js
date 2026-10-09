@@ -63,36 +63,69 @@ function parseDetectedLanguage(output) {
 // A lesson speaks its own language (Estonian, or English in an English lesson) and Russian for explanations. Short
 // answers of a learner are often guessed as English (or Finnish, Polish…) and whisper then invents an English sentence
 // („My eyes” for „Majas”), so only these two are allowed; an unsure or other guess is the lesson's language.
-function chooseLanguage(detected, lessonLang = 'et') {
-  const allowed = [lessonLang, 'ru'];
-  return detected && allowed.includes(detected.lang) && detected.p >= 0.5 ? detected.lang : lessonLang;
+// `ruMin`: how sure the guess must be to take Russian — the learner's track asks more (0.8), so his Estonian goes to
+// TalTech's verbatim Estonian model unless it is clearly Russian.
+function chooseLanguage(detected, lessonLang = 'et', { ruMin = 0.5 } = {}) {
+  if (!detected) return lessonLang;
+  if (detected.lang === 'ru') return detected.p >= ruMin ? 'ru' : lessonLang;
+  return detected.lang === lessonLang && detected.p >= 0.5 ? detected.lang : lessonLang;
 }
 
-// whisper-cli -oj output → lines with absolute time in the lesson
+// A word whisper was unsure of (its least sure token below this) is marked, so a guess is not taken for what was said.
+const UNSURE_P = 0.4;
+// whisper's full JSON (-ojf): the words of one piece with the least probability of their tokens; special tokens
+// („[_TT_307]”, „[_BEG_]”) are not words
+function tokenWords(tokens = []) {
+  const words = [];
+  for (const t of tokens) {
+    const text = String(t?.text || '');
+    if (/^\[_.*\]$/.test(text.trim())) continue;
+    const p = Number.isFinite(t?.p) ? t.p : 1;
+    if (!words.length || /^\s/.test(text)) words.push({ text: text.trim(), p });
+    else { const last = words[words.length - 1]; last.text += text; last.p = Math.min(last.p, p); }
+  }
+  return words.filter((w) => w.text);
+}
+
+// whisper-cli -oj / -ojf output → lines with absolute time in the lesson; with token probabilities a line gets `unsure`:
+// indexes of its unsure words (in `text.split(' ')`), only when cleaning left the words as they were
 function parseWhisperJson(json, { speaker, offsetMs = 0 }) {
   const items = Array.isArray(json?.transcription) ? json.transcription : [];
-  return items.map((it) => ({
-    speaker,
-    startMs: offsetMs + Number(it?.offsets?.from || 0),
-    endMs: offsetMs + Number(it?.offsets?.to || 0),
-    text: cleanText(it?.text),
-  })).filter((l) => l.text);
+  return items.map((it) => {
+    const text = cleanText(it?.text);
+    const line = { speaker, startMs: offsetMs + Number(it?.offsets?.from || 0), endMs: offsetMs + Number(it?.offsets?.to || 0), text };
+    if (Array.isArray(it?.tokens) && text) {
+      const words = tokenWords(it.tokens).filter((w) => /[\p{L}\p{N}]/u.test(w.text));
+      const said = text.split(' ');
+      if (words.length === said.length) {
+        const unsure = words.map((w, i) => (w.p < UNSURE_P ? i : -1)).filter((i) => i >= 0);
+        if (unsure.length) line.unsure = unsure;
+      }
+    }
+    return line;
+  }).filter((l) => l.text);
 }
 
-// both speakers in time order; consecutive lines of one speaker close together become one line
+// both speakers in time order; consecutive lines of one speaker in one language close together become one line
+// (the language of every line is kept for the CRM: badges, the language filter, the learner's share in Estonian)
 function mergeDialogue(lines, { joinGapMs = 1500 } = {}) {
   const sorted = [...lines].sort((a, b) => a.startMs - b.startMs || (a.speaker === 'teacher' ? -1 : 1));
   const out = [];
   for (const l of sorted) {
     const last = out[out.length - 1];
-    if (last && last.speaker === l.speaker && l.startMs - last.endMs <= joinGapMs) {
+    if (last && last.speaker === l.speaker && (last.lang || '') === (l.lang || '') && l.startMs - last.endMs <= joinGapMs) {
+      const shift = last.text.split(' ').length;
+      if (l.unsure?.length) last.unsure = [...(last.unsure || []), ...l.unsure.map((i) => i + shift)];
       last.text = `${last.text} ${l.text}`;
       last.endMs = Math.max(last.endMs, l.endMs);
-    } else out.push({ ...l });
+    } else out.push({ ...l, ...(l.unsure ? { unsure: [...l.unsure] } : {}) });
   }
   // repeated identical lines are a whisper loop, keep one
   return out.filter((l, i) => !(i > 0 && out[i - 1].speaker === l.speaker && out[i - 1].text === l.text))
-    .map(({ speaker, startMs, endMs, text }) => ({ speaker, startMs: Math.round(startMs), endMs: Math.round(endMs), text }));
+    .map(({ speaker, startMs, endMs, text, lang, unsure }) => ({
+      speaker, startMs: Math.round(startMs), endMs: Math.round(endMs), text,
+      ...(lang ? { lang } : {}), ...(unsure?.length ? { unsure } : {}),
+    }));
 }
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -134,4 +167,4 @@ function heartbeat({ host, state = 'idle', recordingId = '', startedAt, now = ne
 }
 
 module.exports = {
-  collapseRepeats, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage, isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };
+  tokenWords, UNSURE_P, collapseRepeats, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage, isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };

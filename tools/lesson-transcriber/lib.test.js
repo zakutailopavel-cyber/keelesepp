@@ -97,3 +97,29 @@ test('speech is cut into chunks and each chunk gets its own language', () => {
   assert.equal(chooseLanguage({ lang: 'en', p: 0.93 }, 'en'), 'en');
   assert.equal(chooseLanguage({ lang: 'et', p: 0.9 }, 'en'), 'en');
 });
+
+test('the learner track takes Russian only when the guess is sure', () => {
+  const { chooseLanguage } = require('./lib');
+  assert.equal(chooseLanguage({ lang: 'ru', p: 0.67 }, 'et'), 'ru');
+  assert.equal(chooseLanguage({ lang: 'ru', p: 0.67 }, 'et', { ruMin: 0.8 }), 'et');
+  assert.equal(chooseLanguage({ lang: 'ru', p: 0.95 }, 'et', { ruMin: 0.8 }), 'ru');
+});
+
+test('words whisper was unsure of are marked; language and marks survive merging', () => {
+  const json = { transcription: [{ offsets: { from: 0, to: 2000 }, text: ' Ma ei saa õega.', tokens: [
+    { text: '[_BEG_]', p: 1 }, { text: ' Ma', p: 0.98 }, { text: ' ei', p: 0.9 }, { text: ' sa', p: 0.31 }, { text: 'a', p: 0.9 },
+    { text: ' õ', p: 0.95 }, { text: 'ega', p: 0.7 }, { text: '.', p: 1 }, { text: '[_TT_100]', p: 0.3 },
+  ] }] };
+  const [line] = parseWhisperJson(json, { speaker: 'student' });
+  assert.equal(line.text, 'Ma ei saa õega.');
+  assert.deepEqual(line.unsure, [2]);
+  const merged = mergeDialogue([
+    { ...line, lang: 'et' },
+    { speaker: 'student', startMs: 2500, endMs: 3000, text: 'Mul on koer.', lang: 'et', unsure: [2] },
+    { speaker: 'student', startMs: 3200, endMs: 4000, text: 'Как сказать?', lang: 'ru' },
+  ]);
+  assert.deepEqual(merged.map((l) => [l.text, l.lang, l.unsure]), [
+    ['Ma ei saa õega. Mul on koer.', 'et', [2, 6]],
+    ['Как сказать?', 'ru', undefined],
+  ]);
+});
