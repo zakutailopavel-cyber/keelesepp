@@ -1575,7 +1575,8 @@ service cloud.firestore {
       allow read: if liveGroupParticipant(roomId);
       allow create, update: if liveGroupParticipant(roomId)
         && request.resource.data.updatedByUid == uid()
-        && request.resource.data.keys().hasOnly(['schemaVersion', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId']);
+        && request.resource.data.keys().hasOnly(['schemaVersion', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'backgrounds'])
+        && (!('backgrounds' in request.resource.data) || (request.resource.data.backgrounds is map && request.resource.data.backgrounds.size() <= 300));
       allow delete: if isAdmin();
 
       match /elements/{elementId} {
@@ -2272,7 +2273,8 @@ service cloud.firestore {
         && (
           data.type != 'image'
           || (
-            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff'])
+            data.keys().hasOnly(['type', 'x', 'y', 'w', 'h', 'url', 'storagePath', 'rotation', 'locked', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'revision', 'byStaff', 'byStudent'])
+            && (!('byStudent' in data) || data.byStudent == true)
             && data.x is number && data.y is number
             && data.w is number && data.h is number
             && data.w > 0 && data.h > 0 && data.w <= 100000 && data.h <= 100000
@@ -2314,8 +2316,44 @@ service cloud.firestore {
     // teacher's image/PDF create then hit Firestore's 1000-expression limit (permission-denied). With access already
     // granted, "staff action" is exactly admin or teacher.
     function whiteboardElementCreateAllowed(studentId, data) {
-      return whiteboardAccessAllowed(studentId)
-        && whiteboardElementCreateValid(data);
+      let admin = isAdmin();
+      let teacher = isTeacher();
+      return whiteboardAccessAs(studentId, admin, teacher)
+        && whiteboardElementCreateValidAs(data, admin || teacher);
+    }
+
+    // Board access with the caller's roles already known: every isAdmin()/isTeacher() costs many expressions, and
+    // board writes sit close to Firestore's 1000-expression limit (a teacher's image on a lesson page).
+    function whiteboardAccessAs(studentId, admin, teacher) {
+      return admin
+        || (
+          teacher
+          && exists(studentPath(studentId))
+          && (
+            !teacherScopeReadEnforced()
+            || studentDoc(studentId).get('teacherUid', '') == uid()
+            || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
+          )
+        )
+        || ownsStudent(studentId);
+    }
+
+    function whiteboardPageElementCreateAllowed(studentId, pageId, data) {
+      let admin = isAdmin();
+      let teacher = isTeacher();
+      return whiteboardAccessAs(studentId, admin, teacher)
+        && (
+          (lessonPageLive(studentId, pageId) && whiteboardElementCreateValidAs(data, admin || teacher))
+          || ((admin || teacher) && snapshotPageActive(studentId, pageId) && validWhiteboardElement(data))
+        );
+    }
+
+    function whiteboardPageElementUpdateAllowed(studentId, pageId, before, after) {
+      let admin = isAdmin();
+      let teacher = isTeacher();
+      return whiteboardAccessAs(studentId, admin, teacher)
+        && lessonPageLive(studentId, pageId)
+        && whiteboardElementUpdateValid(before, after, admin || teacher);
     }
 
     function whiteboardMaterialSourceUnchanged(before, after) {
@@ -2341,8 +2379,9 @@ service cloud.firestore {
     // a student's eraser or drag must never remove what the teacher put on the board.
     // Teacher content (images/PDFs, and since 2026-10-04 everything a teacher draws or writes: byStaff) is moved,
     // changed and erased only by staff; a student's eraser never removes it.
+    // A student's own photo (byStudent, an image only) is the student's: they may move, resize and erase it.
     function whiteboardMaterialStaffOnly(data) {
-      return (!(data.type in ['image', 'pdf']) && data.get('byStaff', false) != true) || isAdmin() || isTeacher();
+      return ((!(data.type in ['image', 'pdf']) || data.get('byStudent', false) == true) && data.get('byStaff', false) != true) || isAdmin() || isTeacher();
     }
 
     // `staff` (admin or teacher) is computed once by the caller: re-checking roles here pushed teacher writes over
@@ -2351,7 +2390,8 @@ service cloud.firestore {
       return validWhiteboardElement(after)
         && after.type == before.type
         && after.get('byStaff', false) == before.get('byStaff', false)
-        && (staff || (!(before.type in ['image', 'pdf']) && before.get('byStaff', false) != true))
+        && after.get('byStudent', false) == before.get('byStudent', false)
+        && (staff || ((!(before.type in ['image', 'pdf']) || before.get('byStudent', false) == true) && before.get('byStaff', false) != true))
         && (
           !(after.type in ['image', 'pdf'])
           || (
@@ -2362,9 +2402,10 @@ service cloud.firestore {
     }
 
     function whiteboardElementUpdateAllowed(studentId, before, after) {
-      let staff = isAdmin() || isTeacher();
-      return whiteboardAccessAllowed(studentId)
-        && whiteboardElementUpdateValid(before, after, staff);
+      let admin = isAdmin();
+      let teacher = isTeacher();
+      return whiteboardAccessAs(studentId, admin, teacher)
+        && whiteboardElementUpdateValid(before, after, admin || teacher);
     }
 
     function whiteboardElementDeleteAllowed(studentId, data) {
@@ -2374,12 +2415,22 @@ service cloud.firestore {
     }
 
     // Element shape plus "only staff add images/PDFs", for rules that have already checked board access once.
+    // Students add their own photos too (owner, 2026-10-09): an image marked byStudent, uploaded to the board's
+    // student folder in Storage.
     function whiteboardElementCreateValid(data) {
+      return whiteboardElementCreateValidAs(data, isAdmin() || isTeacher());
+    }
+
+    function whiteboardElementCreateValidAs(data, staff) {
       return validWhiteboardElement(data)
         && (
-          (!(data.type in ['image', 'pdf']) && !('byStaff' in data))
-          || isAdmin()
-          || isTeacher()
+          (!(data.type in ['image', 'pdf']) && !('byStaff' in data) && !('byStudent' in data))
+          || (
+            data.type == 'image' && data.get('byStudent', false) == true && !('byStaff' in data)
+            && data.url.matches('^https://firebasestorage[.]googleapis[.]com/.*')
+            && data.get('storagePath', '').matches('^whiteboards/[^/]+/student/[^/]+$')
+          )
+          || staff
         );
     }
 
@@ -2437,8 +2488,10 @@ service cloud.firestore {
       allow create, update: if whiteboardAccessAllowed(studentId)
         && request.resource.data.updatedByUid == uid()
         && request.resource.data.keys().hasOnly([
-          'schemaVersion', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'elements'
+          'schemaVersion', 'updatedAt', 'updatedByUid', 'updatedByName', 'lastClientId', 'elements', 'backgrounds'
         ])
+        // the paper of each page (dots, grid, lines, plain), keyed by page ('board' or a lesson page id)
+        && (!('backgrounds' in request.resource.data) || (request.resource.data.backgrounds is map && request.resource.data.backgrounds.size() <= 300))
         && (
           !('elements' in request.resource.data)
           || (request.resource.data.elements is list && request.resource.data.elements.size() <= 800)
@@ -2484,18 +2537,8 @@ service cloud.firestore {
           // A snapshot accepts one staff-authored initial copy while its
           // parent page is active. Once the parent becomes completed, the
           // element set is immutable, even through a direct page URL.
-          allow create: if whiteboardAccessAllowed(studentId)
-            && (
-              (lessonPageLive(studentId, pageId) && whiteboardElementCreateValid(request.resource.data))
-              || (
-                (isAdmin() || isTeacher())
-                && snapshotPageActive(studentId, pageId)
-                && validWhiteboardElement(request.resource.data)
-              )
-            );
-          allow update: if whiteboardAccessAllowed(studentId)
-            && lessonPageLive(studentId, pageId)
-            && whiteboardElementUpdateValid(resource.data, request.resource.data, isAdmin() || isTeacher());
+          allow create: if whiteboardPageElementCreateAllowed(studentId, pageId, request.resource.data);
+          allow update: if whiteboardPageElementUpdateAllowed(studentId, pageId, resource.data, request.resource.data);
           allow delete: if whiteboardAccessAllowed(studentId)
             && (
               (lessonPageLive(studentId, pageId) && resource.data.get('locked', false) != true && whiteboardMaterialStaffOnly(resource.data))

@@ -1,5 +1,7 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, serverTimestamp, updateDoc, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
+import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
 
 // The student's own board outside lessons: the same data as the CRM v1 board (whiteboards/{studentId}/elements and
 // lesson pages whiteboards/{studentId}/lessonPages/{pageId}/elements), so everything drawn in v1 stays and both CRMs
@@ -87,6 +89,33 @@ export function createBoardService(root = 'whiteboards') {
       updatedByName: authorName(user),
     });
     return value;
+  },
+  // The paper of each page: { board: 'lines', <pageId>: 'grid' } on the board document (dots when not set).
+  subscribeBackgrounds(studentId, onChange, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(doc(db, root, studentId), (snapshot) => onChange(snapshot.exists() ? snapshot.data().backgrounds || {} : {}), onError);
+  },
+  async setBackground(studentId, pageKey, value, user) {
+    const { db } = requireFirebaseClient();
+    await setDoc(doc(db, root, studentId), {
+      backgrounds: { [pageKey]: value },
+      updatedAt: serverTimestamp(),
+      updatedByUid: user.uid,
+      updatedByName: authorName(user),
+    }, { merge: true });
+  },
+  // A student's (or parent's) own photo for the board, e.g. a notebook page: made a JPEG of at most 1600 px and
+  // stored in the board's student folder (the only place the rules let a student's picture come from).
+  async uploadStudentImage(studentId, file) {
+    if (root !== 'whiteboards') throw new Error('Pilti saab lisada ainult õpilase tahvlile.');
+    if (!String(file?.type || '').startsWith('image/')) throw new Error('Vali pildifail.');
+    const { storage } = requireFirebaseClient();
+    const { blob } = await fileToJpegBlob(file);
+    const name = String(file.name || 'pilt').normalize('NFKD').replace(/[^\w.-]+/g, '-').replace(/\.[^.]+$/, '').slice(-40) || 'pilt';
+    const storagePath = `whiteboards/${studentId}/student/${Date.now()}_${name}.jpg`;
+    const storageRef = ref(storage, storagePath);
+    await uploadBytes(storageRef, blob, { contentType: 'image/jpeg' });
+    return { url: await getDownloadURL(storageRef), storagePath };
   },
   async remove(studentId, pageId, elementId) {
     const { db } = requireFirebaseClient();

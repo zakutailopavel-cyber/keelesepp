@@ -1,13 +1,15 @@
-import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Crosshair, Eraser, FilePlus2, FileText, MousePointerClick, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, wheelView, zoomAt, pinchView } from './boardModel.js';
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, wheelView, zoomAt, pinchView,
+  BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds } from './boardModel.js';
 import './board.css';
 
 const TOOLS = [
   ['select', 'Vali ja liiguta', MousePointer2],
   ['pen', 'Pliiats', PenLine],
+  ['marker', 'Marker', Highlighter],
   ['note', 'Märkmepaber', StickyNote],
   ['text', 'Tekst', Type],
   ['rect', 'Ristkülik', Square],
@@ -54,6 +56,20 @@ export default function StudentBoard({
   const [editing, setEditing] = useState(null);
   const [history, setHistory] = useState({ undo: [], redo: [] });
   const [uploading, setUploading] = useState(false);
+  // selection (tool „Vali”): ids; while dragging, the moved / resized preview and the selection frame
+  const [selected, setSelected] = useState([]);
+  const [moving, setMoving] = useState(null);
+  const [resizing, setResizing] = useState(null);
+  const [marquee, setMarquee] = useState(null);
+  const [spaceHeld, setSpaceHeld] = useState(false);
+  const [marker, setMarker] = useState(MARKER_COLORS[0]);
+  const clipboard = useRef([]);
+  // the paper of each page (dots, grid, lines, plain), shared by everyone with the board
+  const [backgrounds, setBackgrounds] = useState({});
+  useEffect(() => {
+    if (!service.subscribeBackgrounds) return undefined;
+    try { return service.subscribeBackgrounds(studentId, setBackgrounds, () => setBackgrounds({})); } catch { return undefined; }
+  }, [service, studentId]);
   const svgRef = useRef(null);
   const gesture = useRef(null);
   const fileInput = useRef(null);
@@ -114,12 +130,21 @@ export default function StudentBoard({
     const rect = svgRef.current.getBoundingClientRect();
     return { x: event.clientX - rect.left, y: event.clientY - rect.top };
   };
+  const drawBounds = growBounds(bounds);
+  const canEdit = (element) => staff || !teacherMaterial(element);
+  const selectedElements = elements.filter((element) => selected.includes(element.id) && movable(element) && canEdit(element));
+  const pageKeyName = pageId || 'board';
+  const paper = backgroundOf(backgrounds, pageKeyName);
+  const chooseBackground = (key) => {
+    setBackgrounds((current) => ({ ...current, [pageKeyName]: key }));
+    service.setBackground?.(studentId, pageKeyName, key, user).catch(fail('Tausta ei saanud muuta.'));
+  };
   const preset = SIZES[size] || SIZES.M;
   const shapeWidth = Math.max(1, Math.round(width * 0.75));
 
   // ── own-action history (undo/redo) ─────────────────────────────
   const record = useCallback((entry) => setHistory((current) => ({ undo: [...current.undo, entry].slice(-HISTORY_LIMIT), redo: [] })), []);
-  const choosePage = (next) => { setPageId(next); setHistory({ undo: [], redo: [] }); setEditing(null); };
+  const choosePage = (next) => { setPageId(next); setHistory({ undo: [], redo: [] }); setEditing(null); setSelected([]); };
   const add = useCallback((input, message) => {
     const data = staff ? { ...input, byStaff: true } : input;
     return service.add(studentId, pageId, data, user)
@@ -135,19 +160,41 @@ export default function StudentBoard({
   const erase = (element) => service.remove(studentId, pageId, element.id)
     .then(() => record({ op: 'remove', id: element.id, data: plain(element) }))
     .catch(fail('Elementi ei saanud kustutada.'));
+  // several elements at once (move, resize, delete, copy) are one step for „Võta tagasi”
+  const changeMany = (pairs, message) => Promise.all(pairs.map(({ element, patch }) => service.update(studentId, pageId, element, patch, user)))
+    .then(() => record({ op: 'batch', entries: pairs.map(({ element, patch }) => ({ op: 'update', id: element.id, before: Object.fromEntries(Object.keys(patch).map((key) => [key, element[key]])), after: patch })) }))
+    .catch(fail(message));
+  const eraseMany = (list) => Promise.all(list.map((element) => service.remove(studentId, pageId, element.id)))
+    .then(() => record({ op: 'batch', entries: list.map((element) => ({ op: 'remove', id: element.id, data: plain(element) })) }))
+    .catch(fail('Elementi ei saanud kustutada.'));
+  const addMany = (list) => {
+    const marked = list.map((data) => (staff ? { ...data, byStaff: true } : data));
+    return Promise.all(marked.map((data) => service.add(studentId, pageId, data, user)))
+      .then((ids) => { record({ op: 'batch', entries: ids.map((id, index) => ({ op: 'add', id, data: marked[index] })) }); setSelected(ids); return ids; })
+      .catch(fail('Kopeerimine ebaõnnestus.'));
+  };
 
   // apply an entry backwards (undo) or forwards (redo); returns the entry with its current element id
-  const apply = useCallback(async (entry, backwards) => {
-    const removeIt = (entry.op === 'add') === backwards;
-    if (entry.op === 'update') {
-      const element = byId.get(entry.id);
-      if (!element) throw new Error('Element on vahepeal kustutatud.');
-      await service.update(studentId, pageId, element, backwards ? entry.before : entry.after, user);
-      return entry;
-    }
-    if (removeIt) { await service.remove(studentId, pageId, entry.id); return entry; }
-    const id = await service.add(studentId, pageId, entry.data, user);
-    return { ...entry, id };
+  const apply = useCallback(async (first, backwards) => {
+    const one = async (entry) => {
+      if (entry.op === 'batch') {
+        const list = backwards ? [...entry.entries].reverse() : entry.entries;
+        const done = [];
+        for (const item of list) done.push(await one(item));
+        return { ...entry, entries: backwards ? done.reverse() : done };
+      }
+      const removeIt = (entry.op === 'add') === backwards;
+      if (entry.op === 'update') {
+        const element = byId.get(entry.id);
+        if (!element) throw new Error('Element on vahepeal kustutatud.');
+        await service.update(studentId, pageId, element, backwards ? entry.before : entry.after, user);
+        return entry;
+      }
+      if (removeIt) { await service.remove(studentId, pageId, entry.id); return entry; }
+      const id = await service.add(studentId, pageId, entry.data, user);
+      return { ...entry, id };
+    };
+    return one(first);
   }, [byId, pageId, service, studentId, user]);
   const undo = useCallback(() => {
     const entry = history.undo.at(-1);
@@ -169,14 +216,14 @@ export default function StudentBoard({
 
   // A material (image or PDF) placed in the middle of the visible board, scaled to fit about two thirds of it.
   const insertFile = useCallback(async ({ url, name = '', kind = 'image', width: naturalW = 1000, height: naturalH = 1400, storagePath = '' }) => {
-    if (!staff) throw new Error('Materjali saab tahvlile lisada õpetaja.');
+    if (!staff && kind !== 'image') throw new Error('Materjali saab tahvlile lisada õpetaja.');
     const rect = svgRef.current?.getBoundingClientRect();
     const box = { w: rect?.width || 900, h: rect?.height || 600 };
     const fitScale = Math.min((box.w * 0.66) / view.scale / naturalW, (box.h * 0.9) / view.scale / naturalH, 1.5);
     const w = Math.round(naturalW * fitScale);
     const h = Math.round(naturalH * fitScale);
     const center = screenToWorld({ x: box.w / 2, y: box.h / 2 }, view);
-    const data = { type: kind === 'pdf' ? 'pdf' : 'image', x: Math.round(center.x - w / 2), y: Math.round(center.y - h / 2), w, h, url, locked: false, ...(storagePath ? { storagePath } : {}), ...(kind === 'pdf' ? { name: String(name).slice(0, 300) } : {}) };
+    const data = { type: kind === 'pdf' ? 'pdf' : 'image', x: Math.round(center.x - w / 2), y: Math.round(center.y - h / 2), w, h, url, locked: false, ...(storagePath ? { storagePath } : {}), ...(kind === 'pdf' ? { name: String(name).slice(0, 300) } : {}), ...(staff ? {} : { byStudent: true }) };
     return add(data, 'Materjali ei saanud tahvlile lisada.');
   }, [add, staff, view]);
   const newPage = useCallback(async (title) => {
@@ -262,10 +309,12 @@ export default function StudentBoard({
     setError('');
     setShapesOpen(false);
     const screen = local(event);
-    const world = clampPoint(screenToWorld(screen, view), bounds);
+    const raw = screenToWorld(screen, view);
+    // drawing may go past the edge of the sheet: the sheet grows to hold it
+    const world = clampPoint(raw, drawBounds);
     const target = byId.get(event.target?.closest?.('[data-element-id]')?.dataset?.elementId);
     if (tool === 'laser') { onPointer?.({ x: Math.round(world.x), y: Math.round(world.y) }); return; }
-    if (tool === 'hand' || (tool === 'select' && !target)) {
+    if (tool === 'hand' || spaceHeld) {
       gesture.current = { kind: 'pan', start: screen, view };
     } else if (tool === 'eraser') {
       if (target?.locked) { setError('Õpetaja materjal on lukus ja seda ei saa kustutada.'); return; }
@@ -273,11 +322,21 @@ export default function StudentBoard({
       if (target) erase(target);
       return;
     } else if (tool === 'select') {
-      if (!movable(target) || (!staff && teacherMaterial(target))) return;
-      gesture.current = { kind: 'move', element: target, start: world, dx: 0, dy: 0 };
-    } else if (tool === 'pen') {
-      gesture.current = { kind: 'pen', points: [world] };
-      setDraft({ type: 'stroke', points: [world], color, strokeWidth: width });
+      if (event.target?.dataset?.handle && selectedElements.length === 1) {
+        gesture.current = { kind: 'resize', element: selectedElements[0], start: raw };
+      } else if (movable(target) && canEdit(target)) {
+        const has = selected.includes(target.id);
+        const ids = event.shiftKey ? (has ? selected.filter((id) => id !== target.id) : [...selected, target.id]) : (has ? selected : [target.id]);
+        setSelected(ids);
+        gesture.current = { kind: 'move', ids, start: raw, dx: 0, dy: 0 };
+      } else {
+        // empty place (or the teacher's material for a student): drag a frame to select several
+        gesture.current = { kind: 'marquee', start: raw, add: event.shiftKey };
+      }
+    } else if (tool === 'pen' || tool === 'marker') {
+      const style = tool === 'marker' ? { color: markerColor(marker), strokeWidth: markerWidth(width) } : { color, strokeWidth: width };
+      gesture.current = { kind: 'pen', points: [world], style };
+      setDraft({ type: 'stroke', points: [world], ...style });
     } else if (['rect', 'ellipse', 'arrow'].includes(tool)) {
       gesture.current = { kind: 'shape', start: world };
     } else if (tool === 'note' || tool === 'text') {
@@ -303,19 +362,26 @@ export default function StudentBoard({
     const current = gesture.current;
     if (!current) return;
     const screen = local(event);
-    const world = clampPoint(screenToWorld(screen, view), bounds);
+    const raw = screenToWorld(screen, view);
+    const world = clampPoint(raw, drawBounds);
     if (current.kind === 'pan') {
       moveView({ ...current.view, x: current.view.x + screen.x - current.start.x, y: current.view.y + screen.y - current.start.y });
     } else if (current.kind === 'pen') {
       const last = current.points[current.points.length - 1];
       if (Math.hypot(world.x - last.x, world.y - last.y) * view.scale < 3 || current.points.length >= 800) return;
       current.points = [...current.points, { x: Math.round(world.x * 100) / 100, y: Math.round(world.y * 100) / 100 }];
-      setDraft({ type: 'stroke', points: current.points, color, strokeWidth: width });
+      setDraft({ type: 'stroke', points: current.points, ...current.style });
     } else if (current.kind === 'shape') {
       setDraft({ type: 'shape', shape: tool, ...shapeFromDrag(tool, current.start, world), color, strokeWidth: shapeWidth });
     } else if (current.kind === 'move') {
-      current.dx = world.x - current.start.x; current.dy = world.y - current.start.y;
-      setDraft({ ...current.element, id: '__moving', movingId: current.element.id, x: current.element.x + current.dx, y: current.element.y + current.dy });
+      current.dx = raw.x - current.start.x; current.dy = raw.y - current.start.y;
+      setMoving({ ids: new Set(current.ids), dx: current.dx, dy: current.dy });
+    } else if (current.kind === 'resize') {
+      current.patch = resizePatch(current.element, raw.x - current.start.x, raw.y - current.start.y);
+      setResizing({ id: current.element.id, patch: current.patch });
+    } else if (current.kind === 'marquee') {
+      current.box = frameFrom(current.start, raw);
+      setMarquee(current.box);
     }
   };
 
@@ -326,18 +392,67 @@ export default function StudentBoard({
     setDraft(null);
     if (!current) return;
     if (current.kind === 'pen' && current.points.length > 1) {
-      add({ type: 'stroke', points: current.points, color, strokeWidth: width }, 'Joont ei saanud salvestada.');
+      add({ type: 'stroke', points: current.points, ...current.style }, 'Joont ei saanud salvestada.');
     } else if (current.kind === 'shape') {
-      const end = clampPoint(screenToWorld(local(event), view), bounds);
+      const end = clampPoint(screenToWorld(local(event), view), drawBounds);
       const box = shapeFromDrag(tool, current.start, end);
       if (Math.abs(box.w) > 4 || Math.abs(box.h) > 4) add({ type: 'shape', shape: tool, ...box, color, strokeWidth: shapeWidth }, 'Kujundit ei saanud salvestada.');
-    } else if (current.kind === 'move' && (Math.abs(current.dx) > 1 || Math.abs(current.dy) > 1)) {
-      const element = current.element;
-      const x = Math.min(bounds.x2 - Math.min(element.w || 0, bounds.x2 - bounds.x1), Math.max(bounds.x1, element.x + current.dx));
-      const y = Math.min(bounds.y2 - Math.min(element.h || 0, bounds.y2 - bounds.y1), Math.max(bounds.y1, element.y + current.dy));
-      update(element, { x, y }, 'Elementi ei saanud liigutada.');
+    } else if (current.kind === 'move') {
+      const list = current.ids.map((id) => byId.get(id)).filter((element) => element && movable(element) && canEdit(element));
+      if (list.length && (Math.abs(current.dx) > 1 || Math.abs(current.dy) > 1)) {
+        changeMany(list.map((element) => ({ element, patch: movePatch(element, current.dx, current.dy) })), 'Elementi ei saanud liigutada.').finally(() => setMoving(null));
+      } else setMoving(null);
+    } else if (current.kind === 'resize') {
+      if (current.patch && Object.keys(current.patch).length) changeMany([{ element: current.element, patch: current.patch }], 'Suurust ei saanud muuta.').finally(() => setResizing(null));
+      else setResizing(null);
+    } else if (current.kind === 'marquee') {
+      const box = current.box;
+      setMarquee(null);
+      if (!box || (box.x2 - box.x1) * view.scale < 4 || (box.y2 - box.y1) * view.scale < 4) { if (!current.add) setSelected([]); return; }
+      const ids = elements.filter((element) => movable(element) && canEdit(element) && touchesBox(element, box)).map((element) => element.id);
+      setSelected(current.add ? [...new Set([...selected, ...ids])] : ids);
     }
   };
+
+  // ── selection actions and keys ─────────────────────────────────
+  const duplicate = () => { if (selectedElements.length) addMany(selectedElements.map((element) => copyData(element))); };
+  const deleteSelection = () => {
+    const list = selectedElements.filter((element) => element.locked !== true);
+    setSelected([]);
+    if (list.length) eraseMany(list);
+  };
+  const onKey = useRef(null);
+  onKey.current = (event) => {
+    const target = event.target;
+    if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName || ''))) return;
+    if (editing) return;
+    const mod = event.ctrlKey || event.metaKey;
+    const key = String(event.key || '').toLowerCase();
+    if (event.key === ' ') { event.preventDefault(); setSpaceHeld(true); return; }
+    if (mod && key === 'z') { event.preventDefault(); if (event.shiftKey) redo(); else undo(); return; }
+    if (mod && key === 'y') { event.preventDefault(); redo(); return; }
+    if (mod && key === 'c' && selectedElements.length) { clipboard.current = selectedElements.map((element) => copyData(element, 0)); return; }
+    if (mod && key === 'v' && clipboard.current.length) {
+      event.preventDefault();
+      clipboard.current = clipboard.current.map((data) => ({ ...data, ...movePatch(data, 24, 24) }));
+      addMany(clipboard.current);
+      setTool('select');
+      return;
+    }
+    if (mod && key === 'd') { event.preventDefault(); duplicate(); return; }
+    if ((key === 'delete' || key === 'backspace') && selectedElements.length) { event.preventDefault(); deleteSelection(); return; }
+    if (key === 'escape') { setSelected([]); setShapesOpen(false); return; }
+    if (mod || event.altKey) return;
+    const tools = { v: 'select', p: 'pen', m: 'marker', t: 'text', n: 'note', e: 'eraser', h: 'hand' };
+    if (tools[key]) { setTool(tools[key]); if (tools[key] !== 'select') setSelected([]); }
+  };
+  useEffect(() => {
+    const down = (event) => onKey.current?.(event);
+    const up = (event) => { if (event.key === ' ') setSpaceHeld(false); };
+    globalThis.addEventListener?.('keydown', down);
+    globalThis.addEventListener?.('keyup', up);
+    return () => { globalThis.removeEventListener?.('keydown', down); globalThis.removeEventListener?.('keyup', up); };
+  }, []);
 
   const wheel = (event) => {
     event.preventDefault?.();
@@ -436,7 +551,7 @@ export default function StudentBoard({
 
   const render = (element) => {
     const common = { 'data-element-id': element.id };
-    if (element.type === 'stroke') return <path {...common} d={pathFor(element.points)} fill="none" stroke={element.color || COLORS[0]} strokeWidth={element.strokeWidth || 4} strokeLinecap="round" strokeLinejoin="round" />;
+    if (element.type === 'stroke') return <path {...common} d={pathFor(element.points)} fill="none" stroke={element.color || COLORS[0]} strokeWidth={element.strokeWidth || 4} strokeLinecap="round" strokeLinejoin="round" style={isMarker(element) ? { mixBlendMode: 'multiply' } : undefined} />;
     if (element.type === 'shape') {
       const stroke = { stroke: element.color || COLORS[0], strokeWidth: element.strokeWidth || 3, fill: 'none' };
       if (element.shape === 'ellipse') return <ellipse {...common} {...stroke} cx={element.x + element.w / 2} cy={element.y + element.h / 2} rx={Math.abs(element.w / 2)} ry={Math.abs(element.h / 2)} />;
@@ -458,15 +573,16 @@ export default function StudentBoard({
   };
 
   const editingElement = editing ? byId.get(editing.id) : null;
-  const palette = tool === 'note' ? NOTE_COLORS : room ? ROOM_COLORS : COLORS;
-  const activeColor = tool === 'note' ? noteColor : color;
+  const palette = tool === 'note' ? NOTE_COLORS : tool === 'marker' ? MARKER_COLORS : room ? ROOM_COLORS : COLORS;
+  const activeColor = tool === 'note' ? noteColor : tool === 'marker' ? marker : color;
   const chooseColor = (value) => {
     if (tool === 'note') { setNoteColor(value); return; }
+    if (tool === 'marker') { setMarker(value); return; }
     setColor(value);
     restyle({ color: value });
   };
   const fontButtons = <div className="sb-style__fonts" role="group" aria-label="Kiri">{Object.entries(FONTS).map(([key, item]) => <button type="button" key={key} className={font === key ? 'is-active' : ''} aria-pressed={font === key} style={{ fontFamily: item.css }} onMouseDown={(event) => event.preventDefault()} onClick={() => pickFont(key)}>{item.label}</button>)}</div>;
-  const toolButton = ([key, label, Icon]) => <button type="button" key={key} className={tool === key ? 'is-active' : ''} aria-pressed={tool === key} aria-label={label} title={label} onClick={() => { setTool(key); setShapesOpen(false); }}><Icon size={room ? 20 : 18} /></button>;
+  const toolButton = ([key, label, Icon]) => <button type="button" key={key} className={tool === key ? 'is-active' : ''} aria-pressed={tool === key} aria-label={label} title={label} onClick={() => { setTool(key); setShapesOpen(false); if (key !== 'select') setSelected([]); }}><Icon size={room ? 20 : 18} /></button>;
   const zoomControls = <>
     <button type="button" aria-label="Vähenda" onClick={() => zoom(1 / 1.2)}><Minus size={16} /></button>
     <span className="sb-zoom">{Math.round(view.scale * 100)}%</span>
@@ -474,19 +590,31 @@ export default function StudentBoard({
     <button type="button" aria-label="Sobita" title="Näita kõike" onClick={fit}><Maximize size={16} /></button>
   </>;
 
+  const shownSelection = selectedElements.map((element) => (resizing?.id === element.id ? { ...element, ...resizing.patch } : element));
+  const selectionBounds = tool === 'select' ? unionBounds(shownSelection) : null;
+  const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
   const filling = onWorksheet && tool === 'fill';
-  const stage = <div className={`sb-stage tool-${tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
+  const stage = <div className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
     {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
-      <defs><pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>
+      <defs>
+        <pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern>
+        <pattern id="sb-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#e4e7ec" strokeWidth="1" /></pattern>
+        <pattern id="sb-lines" width="40" height="40" patternUnits="userSpaceOnUse"><line x1="0" y1="39.5" x2="40" y2="39.5" stroke="#c7d7fe" strokeWidth="1" /></pattern>
+      </defs>
       <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>
         {onWorksheet ? null : <>
           <rect className="sb-sheet" x={bounds.x1} y={bounds.y1} width={bounds.x2 - bounds.x1} height={bounds.y2 - bounds.y1} rx="6" />
-          <rect x={bounds.x1} y={bounds.y1} width={bounds.x2 - bounds.x1} height={bounds.y2 - bounds.y1} fill="url(#sb-dots)" pointerEvents="none" />
+          {paper === 'plain' ? null : <rect className={`sb-paper is-${paper}`} x={bounds.x1} y={bounds.y1} width={bounds.x2 - bounds.x1} height={bounds.y2 - bounds.y1} fill={`url(#sb-${paper})`} pointerEvents="none" />}
         </>}
-        {elements.filter((element) => element.id !== draft?.movingId).map((element) => <g key={element.id}>{render(element)}</g>)}
+        {elements.map((element) => <g key={element.id} transform={moving?.ids.has(element.id) ? `translate(${moving.dx} ${moving.dy})` : undefined}>{render(resizing?.id === element.id ? { ...element, ...resizing.patch } : element)}</g>)}
         {draft ? <g key="__draft">{render({ ...draft, id: draft.id || '__draft' })}</g> : null}
+        {selectionBox ? <g className="sb-selection">
+          <rect x={selectionBox.x1 - 6 / view.scale} y={selectionBox.y1 - 6 / view.scale} width={selectionBox.x2 - selectionBox.x1 + 12 / view.scale} height={selectionBox.y2 - selectionBox.y1 + 12 / view.scale} fill="none" stroke="#4f7cff" strokeWidth={1.5 / view.scale} strokeDasharray={`${6 / view.scale} ${4 / view.scale}`} pointerEvents="none" />
+          {selectedElements.length === 1 && !moving ? <rect data-handle="se" aria-label="Muuda suurust" x={selectionBox.x2 + 6 / view.scale - 8 / view.scale} y={selectionBox.y2 + 6 / view.scale - 8 / view.scale} width={16 / view.scale} height={16 / view.scale} rx={4 / view.scale} fill="#fff" stroke="#4f7cff" strokeWidth={2 / view.scale} className="sb-handle" /> : null}
+        </g> : null}
+        {marquee ? <rect className="sb-marquee" x={marquee.x1} y={marquee.y1} width={marquee.x2 - marquee.x1} height={marquee.y2 - marquee.y1} strokeWidth={1 / view.scale} pointerEvents="none" /> : null}
         {pointer && (pointer.pageId || '') === (pageId || '') ? <g className="sb-laser" data-testid="teacher-pointer" pointerEvents="none">
           <circle cx={pointer.x} cy={pointer.y} r={16 / view.scale} className="sb-laser__glow" />
           <circle cx={pointer.x} cy={pointer.y} r={6 / view.scale} className="sb-laser__dot" />
@@ -504,6 +632,10 @@ export default function StudentBoard({
       onBlur={saveText}
       onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }}
     /> : null}
+    {selectionBox && !moving && !resizing ? <div className="sb-selbar" role="toolbar" aria-label="Valitud" style={{ left: Math.max(8, view.x + selectionBox.x1 * view.scale), top: Math.max(8, view.y + selectionBox.y1 * view.scale - 52) }}>
+      <button type="button" aria-label="Kopeeri" title="Kopeeri (Ctrl+D)" onClick={duplicate}><Copy size={16} /></button>
+      <button type="button" aria-label="Kustuta valitud" title="Kustuta (Delete)" onClick={deleteSelection}><Trash2 size={16} /></button>
+    </div> : null}
     {ready && !elements.length && !draft && !onWorksheet ? <div className="sb-empty">{room ? (staff ? 'Tühi tahvel. Lisa materjal nupust „Materjalid” või joonista ja kirjuta — õpilane näeb kõike kohe.' : 'Tühi tahvel. Kui õpetaja lisab materjali, näed seda siin. Võid ka ise joonistada ja kirjutada.') : 'Tühi tahvel: joonista, lisa märkmepaber või tekst. Õpetaja ja õpilane näevad muudatusi kohe.'}</div> : null}
   </div>;
 
@@ -524,10 +656,10 @@ export default function StudentBoard({
             <button type="button" className={SHAPES.some(([key]) => key === tool) ? 'is-active' : ''} aria-label="Kujundid" aria-expanded={shapesOpen} title="Kujundid" onClick={() => setShapesOpen(!shapesOpen)}><ShapeIcon size={20} /></button>
             {shapesOpen ? <span className="sb-dock__menu" role="menu" aria-label="Kujundid">{SHAPES.map(toolButton)}</span> : null}
           </span>
-          {TOOLS.filter(([key]) => ['pen', 'eraser', 'text', 'note'].includes(key)).map(toolButton)}
-          {staff && uploadImage ? <>
+          {TOOLS.filter(([key]) => ['pen', 'marker', 'eraser', 'text', 'note'].includes(key)).map(toolButton)}
+          {uploadImage ? <>
             <input ref={fileInput} className="sr-only" type="file" accept="image/*" aria-label="Lisa pilt tahvlile" onChange={(event) => { pickImage(event.target.files?.[0]); event.target.value = ''; }} />
-            <button type="button" aria-label="Pilt" title="Lisa pilt" disabled={uploading} onClick={() => fileInput.current?.click()}><ImagePlus size={20} /></button>
+            <button type="button" aria-label="Pilt" title={staff ? 'Lisa pilt' : 'Lisa foto (nt vihikust)'} disabled={uploading} onClick={() => fileInput.current?.click()}><ImagePlus size={20} /></button>
           </> : null}
           <button type="button" className={`sb-dock__more ${stylesOpen ? 'is-open' : ''}`} aria-label={stylesOpen ? 'Peida värvid' : 'Näita värve'} aria-pressed={stylesOpen} onClick={() => setStylesOpen(!stylesOpen)}><ChevronDown size={18} /></button>
         </div>
@@ -536,6 +668,7 @@ export default function StudentBoard({
           <label className="sb-style__width"><span className="sr-only">Joone paksus</span><input type="range" min="1" max="24" value={width} aria-label="Joone paksus" onChange={(event) => { setWidth(Number(event.target.value)); setSize(''); }} /></label>
           <div className="sb-style__sizes" role="group" aria-label="Suurus">{Object.keys(SIZES).map((key) => <button type="button" key={key} className={size === key ? 'is-active' : ''} aria-pressed={size === key} onMouseDown={(event) => event.preventDefault()} onClick={() => pickSize(key)}>{key}</button>)}</div>
           {fontButtons}
+          {onWorksheet || !service.setBackground ? null : <div className="sb-style__paper" role="group" aria-label="Taust">{BACKGROUNDS.map(([key, label]) => <button type="button" key={key} className={paper === key ? 'is-active' : ''} aria-pressed={paper === key} onClick={() => chooseBackground(key)}>{label}</button>)}</div>}
           {staff ? <button type="button" className="sb-style__clear" disabled={!elements.length} onClick={clear}><Trash2 size={14} /> Tühjenda leht</button> : null}
         </div> : null}
       </div>
