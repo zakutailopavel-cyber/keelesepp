@@ -1,3 +1,22 @@
+## 2026-10-10 — One lesson, one row: recording parts joined; the Mac analyses the whole lesson — branch `agent/one-lesson-one-row`
+
+- Base: `main` (after #410). Owner: Ilja's lesson of 09.10 showed as 4 rows („одна дата — один урок”).
+- Cause: a page reload or a reconnect starts a new `lessonRecordings` doc for the same invitation.
+- Recording still works that way. Only showing and analysing changed.
+- CRM `lessonTimeline.js`:
+  - `groupRecordings` / `joinRecordingParts` treat the parts of one `invitationId` on one day as one lesson.
+  - Lines are joined in time order, each part's times shifted by its `startedAt`; the status is the least finished one.
+  - The analysis is the whole-lesson one (`analysis.parts`), or the parts' errors together.
+  - `lessonTimeline` builds its rows from the groups; the row shows „salvestatud (N osas)”.
+  - `AutoSkillsCard` counts speaking per lesson.
+- Mac (`tools/lesson-transcriber`, `ANALYSIS_VERSION` 3):
+  - `lessonParts` / `joinedTranscript` / `partsFinished` in `analysis.js`.
+  - `analyzeNext` waits until all parts are finished, then analyses the joined lesson.
+  - The full analysis is written on the first part (`analysis.parts = ids`); the other parts get `{version, partOf}`.
+  - Installed on the school Mac and restarted; a backup is in `~/KeeleSeppTranscriber/backup-*`.
+- Checks: lesson-recording + students 81/81; `node --test` analysis + lib 15/15; eslint shows 0 errors; build succeeds.
+- Next safe step: if reload splits keep bothering, resume the open recording of the same invitation instead of starting a new one. That needs a rules change (the update rule allows status `recording` only) and a check of segment numbering.
+
 ## 2026-10-10 — Student card: recording consent in the form; „Areng” computed automatically — branch `agent/consent-auto-areng`
 
 - Base: `main` (after #409). Owner: move the consent card into the settings, and automate „Areng”, which was empty unless the teacher graded skills by hand.

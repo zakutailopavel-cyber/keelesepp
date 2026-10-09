@@ -1,4 +1,4 @@
-// The student's Live Classroom lessons for the teacher's view of the student card: one row per recording, plus board
+// The student's Live Classroom lessons for the teacher's view of the student card: one row per lesson, plus board
 // lesson pages of days without a recording. Each row offers the lesson analysis (transcript) and the board.
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -8,13 +8,51 @@ export function dayKey(value) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
+// A page reload or a reconnect starts a new recording, so one lesson can be stored in several parts. Parts of one
+// invitation on one day are one lesson (owner, 2026-10-10: „одна дата — один урок”): their text is joined in time
+// order (each part's times are moved by its start), the status is the least finished one, and the analysis is the
+// one the school Mac made for the whole lesson (`analysis.parts`), or the parts' errors together.
+const STATUS_ORDER = ['recording', 'uploaded', 'transcribing', 'failed', 'done'];
+const msOf = (value) => { const t = Date.parse(value || ''); return Number.isNaN(t) ? 0 : t; };
+export function joinRecordingParts(parts = []) {
+  if (parts.length <= 1) return parts[0] || null;
+  const sorted = [...parts].sort((a, b) => String(a.startedAt).localeCompare(String(b.startedAt)));
+  const first = sorted[0];
+  const t0 = msOf(first.startedAt);
+  const shift = (part) => Math.max(0, msOf(part.startedAt) - t0);
+  const transcript = sorted.flatMap((part) => (part.transcript || []).map((line) => ({ ...line, startMs: (line.startMs || 0) + shift(part), endMs: (line.endMs || 0) + shift(part) })));
+  const statuses = sorted.map((part) => part.status || 'recording');
+  const open = statuses.filter((st) => st !== 'done' && st !== 'failed');
+  const status = open.length ? STATUS_ORDER.find((st) => open.includes(st)) : statuses.includes('done') ? 'done' : 'failed';
+  const ids = sorted.map((part) => part.id);
+  const whole = sorted.map((part) => part.analysis).find((a) => Array.isArray(a?.parts) && ids.every((id) => a.parts.includes(id)));
+  const partErrors = sorted.flatMap((part) => (Array.isArray(part.analysis?.errors) ? part.analysis.errors.map((e) => ({ ...e, startMs: (e.startMs || 0) + shift(part) })) : []));
+  const longest = [...sorted].sort((a, b) => (b.transcript?.length || 0) - (a.transcript?.length || 0))[0];
+  const analysis = whole || (sorted.some((part) => part.analysis && !part.analysis.error)
+    ? { errors: partErrors, ...(longest.analysis?.summary ? { summary: longest.analysis.summary } : {}) } : null);
+  return {
+    ...first, parts: ids, status, transcript, analysis,
+    endedAt: sorted[sorted.length - 1].endedAt || first.endedAt,
+    segments: sorted.flatMap((part) => part.segments || []),
+  };
+}
+export function groupRecordings(recordings = []) {
+  const groups = new Map();
+  for (const rec of recordings) {
+    const key = `${rec.invitationId || rec.id}|${dayKey(rec.startedAt)}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(rec);
+  }
+  return [...groups.values()].map(joinRecordingParts);
+}
+
 export function lessonTimeline(recordings = [], pages = []) {
   const pageByDay = new Map();
   for (const page of pages) {
     const key = dayKey(page.createdAt);
     if (key && !pageByDay.has(key)) pageByDay.set(key, page);
   }
-  const rows = recordings.map((recording) => {
+  const rows = groupRecordings(recordings).map((recording) => {
     const day = dayKey(recording.startedAt);
     const page = pageByDay.get(day) || null;
     return { key: `rec-${recording.id}`, day, at: recording.startedAt, title: recording.title || 'Tund', recording, pageId: page?.id || '', pageTitle: page?.title || '' };

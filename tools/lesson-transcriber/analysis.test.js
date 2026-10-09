@@ -38,3 +38,18 @@ test('only finished recordings with text and without this analysis version are a
   assert.equal(needsAnalysis({ ...done, transcript: [] }), false);
   assert.match(summaryPrompt([{ speaker: 'student', startMs: 61000, text: 'Tere' }]), /\[1:01\] Õpilane: Tere/);
 });
+
+test('one lesson: the parts of one invitation on one day, joined in time order', () => {
+  const { lessonParts, joinedTranscript, partsFinished } = require('./analysis');
+  const all = [
+    { id: 'b', invitationId: 'i', startedAt: '2026-10-09T15:38:00Z', status: 'done', transcript: [{ speaker: 'student', startMs: 500, endMs: 900, text: 'Kaks.' }] },
+    { id: 'a', invitationId: 'i', startedAt: '2026-10-09T15:19:00Z', status: 'done', transcript: [{ speaker: 'teacher', startMs: 0, endMs: 400, text: 'Üks.' }] },
+    { id: 'c', invitationId: 'i', startedAt: '2026-10-12T15:19:00Z', status: 'done', transcript: [] },
+    { id: 'd', invitationId: 'other', startedAt: '2026-10-09T15:00:00Z', status: 'done', transcript: [] },
+  ];
+  const parts = lessonParts(all[0], all);
+  assert.deepEqual(parts.map((p) => p.id), ['a', 'b']);
+  assert.deepEqual(joinedTranscript(parts).map((l) => [l.text, l.startMs]), [['Üks.', 0], ['Kaks.', 1140500]]);
+  assert.equal(partsFinished(parts), true);
+  assert.equal(partsFinished([...parts, { status: 'transcribing' }]), false);
+});
