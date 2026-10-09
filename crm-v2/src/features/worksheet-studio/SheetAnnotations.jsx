@@ -1,7 +1,7 @@
 /* global ResizeObserver, Highlight, CSS, setTimeout, clearTimeout */
 import { MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { HIGHLIGHT, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
+import { HIGHLIGHT, fieldTextRects, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 import './sheetAnnotations.css';
 
 const nextFrame = (fn) => (globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(fn) : setTimeout(fn, 16));
@@ -39,12 +39,22 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
       if (!card) return;
       let rect = null;
       let box = null;
+      let words = null;
       if (item.kind === 'field') {
         const field = fieldsOf(card)[item.fieldIndex];
         if (!field) return;
-        const r = field.getBoundingClientRect();
-        box = { left: r.left - base.left - 2, top: r.top - base.top - 2, width: r.width + 4, height: r.height + 4 };
-        rect = r;
+        // a selected word or phrase in the answer is marked by itself; the whole field only when nothing was selected
+        const partial = item.end > item.start && item.end - item.start < String(field.value || '').length;
+        const parts = partial ? fieldTextRects(field, item.start, item.end) : [];
+        if (parts.length) {
+          words = parts.map((r) => ({ left: r.left - base.left - 1, top: r.top - base.top, width: r.width + 2, height: r.height }));
+          rect = parts[parts.length - 1];
+          rect = { right: rect.left + rect.width, top: rect.top };
+        } else {
+          const r = field.getBoundingClientRect();
+          box = { left: r.left - base.left - 2, top: r.top - base.top - 2, width: r.width + 4, height: r.height + 4 };
+          rect = r;
+        }
       } else {
         const range = rangeOf(card, item);
         if (!range) return;
@@ -52,7 +62,7 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
         const rects = range.getClientRects();
         rect = rects[rects.length - 1] || range.getBoundingClientRect();
       }
-      next.push({ item, index, box, pin: { left: rect.right - base.left - 2, top: rect.top - base.top - 10 } });
+      next.push({ item, index, box, words, pin: { left: rect.right - base.left - 2, top: rect.top - base.top - 10 } });
     });
     if (typeof CSS !== 'undefined' && CSS.highlights && typeof Highlight !== 'undefined') {
       Object.entries(HIGHLIGHT).forEach(([color, name]) => CSS.highlights.set(name, new Highlight(...ranges[color])));
@@ -123,9 +133,10 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
       onClickCapture={(event) => { if (justPicked.current) { justPicked.current = false; event.stopPropagation(); } }}>
       {children}
       <div className="sa-layer" aria-label="Õpetaja märkused">
-        {marks.map(({ item, index, box, pin }) => (
+        {marks.map(({ item, index, box, words, pin }) => (
           <div key={item.id}>
             {box ? <div className={`sa-box is-${item.color}`} style={box} /> : null}
+            {words ? words.map((w, i) => <div key={i} className={`sa-word is-${item.color}`} style={w} />) : null}
             <button type="button" className={`sa-pin is-${item.color}`} style={pin} aria-label={`Märkus ${index + 1}: ${item.parandus || item.selgitus}`} aria-expanded={open === item.id} onClick={() => setOpen(open === item.id ? '' : item.id)}>{index + 1}</button>
             {open === item.id ? (
               <div className={`sa-pop is-${item.color}`} style={{ left: Math.max(4, pin.left - 120), top: pin.top + 26 }} role="dialog" aria-label="Märkus">
