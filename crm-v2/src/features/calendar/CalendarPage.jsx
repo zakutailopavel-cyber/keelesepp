@@ -1,5 +1,5 @@
 import { CalendarRange, ChevronLeft, ChevronRight, Plus, Search, Undo2, UserRoundX, X, XCircle } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
@@ -8,6 +8,8 @@ import { isSameTeacher } from '../../utils/teachers.js';
 import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, rememberLessonLink } from '../live-classroom/lessonLink.js';
+import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff.js';
+import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, resolveOccurrenceRecord, shiftDate, toIsoDate } from './calendarView.js';
@@ -96,7 +98,18 @@ function LessonButton({ item, compact = false, onClick, onComplete, completing }
 }
 
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService }) {
+// runs `run` once when mounted (the Live Classroom handoff: mark the lesson held)
+function RunOnce({ run }) {
+  const started = useRef(false);
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    run();
+  }, [run]);
+  return null;
+}
+
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, takeHandoff = takeLessonHandoff }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -113,6 +126,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
   const [panelKey, setPanelKey] = useState(linkedLesson);
+  // „Lõpeta tund” in the Live Classroom left the note and the worksheets' topics for this lesson: mark it held once
+  const [handoff, setHandoff] = useState(() => (linkedLesson ? takeHandoff(linkedLesson) : null));
+  const [autoMarked, setAutoMarked] = useState('');
   const [panelError, setPanelError] = useState('');
   const [panelSaving, setPanelSaving] = useState(false);
   const [attendanceSaving, setAttendanceSaving] = useState('');
@@ -168,6 +184,19 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const today = toIsoDate();
   const historyOf = (studentId) => lessonRecords.filter((lesson) => lesson.studentId === studentId && ['Toimunud', undefined, ''].includes(lesson.status)).sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`));
   const panelItem = panelKey ? occurrencesForDates(events, [panelKey.split('|')[1]]).map(withRecord).find((item) => item.occurrenceId === panelKey.split('|')[0]) || null : null;
+  const autoMarkReady = Boolean(handoff && panelItem && !panelItem.isGroup && canQuickCompleteLesson(panelItem) && panelItem.occurrenceDate <= today && !libraryState.loading);
+  const autoMark = async () => {
+    const item = panelItem;
+    const from = handoff;
+    setHandoff(null);
+    setPanelSaving(true); setPanelError('');
+    try {
+      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId) }) : null;
+      await lessonRepository.completeFromSchedule(item, user, topicFields(handoffTopic(catalog, from, suggestion), from.notes));
+      setAutoMarked(item.occurrenceId);
+      await state.reload();
+    } catch (error) { setPanelError(`${error.message || 'Salvestamine ebaõnnestus.'} Märgi tund siin käsitsi.`); } finally { setPanelSaving(false); }
+  };
   const panelGroup = panelItem?.isGroup ? groups.find((group) => group.id === panelItem.groupId) : null;
 
   // ── teacher windows ──────────────────────────────────────────
@@ -558,9 +587,11 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
               {!occurrences.length ? <p className="cal2-empty">{hasActiveFilters ? <>Filtritele vastavaid tunde ei leitud · <button type="button" className="link-button" onClick={() => setFilters(emptyFilters())}>Tühjenda filtrid</button></> : 'Valitud perioodil tunde ei ole — klõpsa kalendris vabal ajal, et lisada tund.'}</p> : null}
             </>}
       </div>
+      {autoMarkReady ? <RunOnce run={autoMark} /> : null}
       {panelItem ? (
         <LessonPanel
           key={panelItem.occurrenceId}
+          notice={autoMarked === panelItem.occurrenceId ? 'Tund märgiti Live Classroomist toimunuks: teema töölehest, märkus kokkuvõttest. Kui midagi on valesti, muuda allpool.' : ''}
           item={panelItem}
           history={panelItem.isGroup ? [] : historyOf(panelItem.studentId)}
           catalog={catalog}

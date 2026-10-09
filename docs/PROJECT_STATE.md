@@ -1,3 +1,19 @@
+## 2026-10-09 — Close the lesson in one step — branch `agent/lesson-close`
+
+Checked `origin/main` `deb3b78`. Owner: make teachers' life easier (1/3: closing the lesson).
+- Live Classroom „Tunni lõpp” (`LessonEndPanel`): lists the lesson's worksheets (Pooleli / Esitatud); an unfinished
+  one becomes homework with „Anna kodutööks” (`homework.createFromLesson`, task „Lõpeta tööleht „…””, due +7 days,
+  the sheet keeps its answers). New tick „Märgi tund kalendris toimunuks” (on by default, only when the room was
+  started from a calendar lesson via `lessonLink.js`).
+- `live-classroom/lessonHandoff.js`: on finishing, the note and the sheets' curriculum `lessonId`s are kept in the
+  teacher's browser per lesson key (12 h, read once). `CalendarPage` (prop `takeHandoff`) takes it when it opens
+  `?lesson=` and marks the lesson held through the existing `lessonRepository.completeFromSchedule` with
+  `topicFields(sheet's lesson | suggestion, note)`; the panel says so and „Märkisid valesti? Paranda” stays. A bare
+  `?lesson=` link never marks anything; groups, future, already marked lessons are skipped.
+- Checks: new `lessonHandoff.test.jsx` (4) + 2 calendar tests; live-classroom + calendar suites pass except the known
+  Node 26 `localStorage` failures; eslint 0 errors.
+- Next safe step: owner runs one real lesson started from the calendar and checks the journal entry.
+
 ## 2026-10-09 — Pet care (tamagotchi) — branch `agent/pet-care`
 
 Checked `origin/main` `a5c3a84`. Owner chose „care through learning” for the pet.
