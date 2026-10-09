@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FileText } from 'lucide-react';
 import { Button, Card } from '../../components/ui/index.js';
-import { homeworkService, lessonWorksheetsService, libraryService } from '../../services/firebase/index.js';
+import { homeworkService, lessonWorksheetsService, lessonsService, libraryService } from '../../services/firebase/index.js';
 import { publishedPhaseDoc } from './bookProgram.js';
-import { curriculumSheetChoices, filterChoices, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
+import { curriculumSheetChoices, filterChoices, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
 import DocWorksheetPlayer from './DocWorksheetPlayer.jsx';
 import LiveWorksheetView from './LiveWorksheetView.jsx';
 import './worksheetStudio.css';
@@ -25,8 +25,27 @@ const errorText = (err, fallback) => err?.message || fallback;
 // „Lisa tööleht”: search the student's own open worksheets and the curriculum (published Avasta / Harjuta / Kasuta,
 // older lesson sheets) and put the chosen one on the lesson board — before the lesson (room key prep_<student>) or
 // during it. Each chosen curriculum sheet becomes a normal assignment, so it also stays in the student's history.
-export function RoomWorksheetPicker({ studentId, studentName = '', roomKey, note = 'Live Classroom', user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, onOpened }) {
-  const [state, setState] = useState({ loading: true, error: '', lessons: [], assignments: [] });
+// Puts one choice on the board: a curriculum sheet becomes the student's assignment first, then it gets the room key.
+async function placeChoice({ choice, studentId, studentName, roomKey, note, user, homework, library, lessonWorksheets }) {
+  let assignmentId = choice.assignmentId || '';
+  if (!assignmentId) {
+    let source = choice.lesson;
+    if (choice.kind === 'phase') {
+      const records = await lessonWorksheets.list(choice.lessonId);
+      const doc = publishedPhaseDoc(records.find((record) => (record.worksheetId || record.id) === choice.phase));
+      if (!doc) throw new Error('Sellel lehel pole avaldatud versiooni.');
+      source = { id: choice.lessonId, title: choice.title, subject: choice.subject, level: choice.level, topic: choice.topic, publishedWorksheetDoc: doc, worksheetDocStatus: 'published', files: [] };
+    }
+    const item = { kind: 'curriculum', type: 'worksheet', sourceId: choice.lessonId, title: choice.title, subject: source.subject || '', level: source.level || '', topic: source.topic || '', source };
+    const result = await library.assign({ item, students: [{ id: studentId, name: studentName }], note, user });
+    assignmentId = result.assignments?.[0]?.id;
+    if (!assignmentId) throw new Error('Töölehte ei saanud avada.');
+  }
+  await homework.openWorksheetInRoom({ assignmentId, roomKey });
+}
+
+export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel = '', roomKey, note = 'Live Classroom', user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, lessons = lessonsService, onOpened }) {
+  const [state, setState] = useState({ loading: true, error: '', lessons: [], assignments: [], records: [] });
   const [tab, setTab] = useState('curriculum');
   const [query, setQuery] = useState('');
   const [level, setLevel] = useState('');
@@ -39,39 +58,43 @@ export function RoomWorksheetPicker({ studentId, studentName = '', roomKey, note
     Promise.all([
       Promise.resolve().then(() => library.list()).catch(() => ({ curriculumLessons: [] })),
       homework.listWorksheetAssignmentsByStudentIds ? homework.listWorksheetAssignmentsByStudentIds([studentId]).catch(() => []) : [],
-    ]).then(([res, assignments]) => {
-      if (alive) setState({ loading: false, error: '', lessons: res.curriculumLessons || [], assignments: assignments || [] });
+      // the journal tells where the student is in the curriculum (a teacher may not read another teacher's lessons)
+      Promise.resolve().then(() => lessons?.listByStudent?.(studentId) || []).catch(() => []),
+    ]).then(([res, assignments, records]) => {
+      if (alive) setState({ loading: false, error: '', lessons: res.curriculumLessons || [], assignments: assignments || [], records: records || [] });
     });
     return () => { alive = false; };
-  }, [library, homework, studentId, reload]);
+  }, [library, homework, lessons, studentId, reload]);
 
   const curriculum = useMemo(() => curriculumSheetChoices(state.lessons), [state.lessons]);
   const own = useMemo(() => studentSheetChoices(state.assignments, roomKey), [state.assignments, roomKey]);
   const levels = useMemo(() => [...new Set(curriculum.map((choice) => choice.level).filter(Boolean))], [curriculum]);
   const list = filterChoices(tab === 'own' ? own : curriculum, { query, level: tab === 'own' ? '' : level });
+  const next = useMemo(() => nextLessonSuggestion({ curriculum, lessonRecords: state.records, assignments: state.assignments, studentLevel, roomKey }), [curriculum, state.records, state.assignments, studentLevel, roomKey]);
+  const context = { studentId, studentName, roomKey, note, user, homework, library, lessonWorksheets };
 
   const open = async (choice) => {
     setOpening(choice.key); setError('');
     try {
-      let assignmentId = choice.assignmentId || '';
-      if (!assignmentId) {
-        let source = choice.lesson;
-        if (choice.kind === 'phase') {
-          const records = await lessonWorksheets.list(choice.lessonId);
-          const doc = publishedPhaseDoc(records.find((record) => (record.worksheetId || record.id) === choice.phase));
-          if (!doc) throw new Error('Sellel lehel pole avaldatud versiooni.');
-          source = { id: choice.lessonId, title: choice.title, subject: choice.subject, level: choice.level, topic: choice.topic, publishedWorksheetDoc: doc, worksheetDocStatus: 'published', files: [] };
-        }
-        const item = { kind: 'curriculum', type: 'worksheet', sourceId: choice.lessonId, title: choice.title, subject: source.subject || '', level: source.level || '', topic: source.topic || '', source };
-        const result = await library.assign({ item, students: [{ id: studentId, name: studentName }], note, user });
-        assignmentId = result.assignments?.[0]?.id;
-        if (!assignmentId) throw new Error('Töölehte ei saanud avada.');
-      }
-      await homework.openWorksheetInRoom({ assignmentId, roomKey });
+      await placeChoice({ choice, ...context });
       onOpened?.(choice);
       setReload((value) => value + 1);
     } catch (err) {
       setError(errorText(err, 'Töölehte ei saanud avada.'));
+    } finally {
+      setOpening('');
+    }
+  };
+  // „Järgmine tund”: all its sheets (Avasta, Harjuta, Kasuta) on the board with one click
+  const placeNext = async () => {
+    setOpening('next'); setError('');
+    try {
+      for (const choice of next.choices) await placeChoice({ choice, ...context });
+      onOpened?.({ title: `${next.number ? `${next.number}. ` : ''}${next.lessonTitle}`, key: 'next' });
+      setReload((value) => value + 1);
+    } catch (err) {
+      setError(errorText(err, 'Töölehte ei saanud avada.'));
+      setReload((value) => value + 1);
     } finally {
       setOpening('');
     }
@@ -88,6 +111,12 @@ export function RoomWorksheetPicker({ studentId, studentName = '', roomKey, note
         <div className="room-sheet-picker__levels" role="group" aria-label="Tase">
           <button type="button" aria-pressed={!level} className={!level ? 'is-active' : ''} onClick={() => setLevel('')}>Kõik</button>
           {levels.map((item) => <button type="button" key={item} aria-pressed={level === item} className={level === item ? 'is-active' : ''} onClick={() => setLevel(level === item ? '' : item)}>{item}</button>)}
+        </div>
+      ) : null}
+      {next?.choices.length && tab === 'curriculum' && !query ? (
+        <div className="room-sheet-picker__next" role="group" aria-label="Järgmine tund">
+          <span><small>Järgmine tund · {[next.level, next.module].filter(Boolean).join(' · ')}</small><strong>{next.number ? `${next.number}. ` : ''}{next.lessonTitle}</strong><small>{next.choices.map((choice) => choice.phaseLabel || 'Tööleht').join(' · ')}</small></span>
+          <Button loading={opening === 'next'} disabled={Boolean(opening)} onClick={placeNext}>Pane tahvlile</Button>
         </div>
       ) : null}
       {error ? <div className="action-error" role="alert">{error}</div> : null}
@@ -108,7 +137,7 @@ export function RoomWorksheetPicker({ studentId, studentName = '', roomKey, note
 
 // `showSheet`: false when the room shows the worksheet on the board and this panel only picks/announces it.
 // onSheetsChange: every worksheet of this room, newest first (the board shows each on its own page).
-export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, onCurrentChange, onSheetsChange, showSheet = true }) {
+export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, lessons = lessonsService, onCurrentChange, onSheetsChange, showSheet = true }) {
   const roomKey = invitation.roomKey || invitation.id;
   const [items, setItems] = useState(null);
   const [error, setError] = useState('');
@@ -145,7 +174,7 @@ export default function RoomWorksheetPanel({ invitation, role, user, homework = 
       </div>
       {error ? <div className="action-error" role="alert">{error}</div> : null}
       {!showSheet && items?.length ? <p className="form-hint">Tahvlil: {items.map((item) => item.title || item.worksheetDoc?.meta?.title || 'Tööleht').join(' · ')}</p> : null}
-      {role === 'teacher' ? <RoomWorksheetPicker studentId={invitation.studentId} studentName={invitation.studentName} roomKey={roomKey} note={invitation.title ? `Live Classroom: ${invitation.title}` : 'Live Classroom'} user={user} homework={homework} library={library} lessonWorksheets={lessonWorksheets} /> : null}
+      {role === 'teacher' ? <RoomWorksheetPicker studentId={invitation.studentId} studentName={invitation.studentName} roomKey={roomKey} note={invitation.title ? `Live Classroom: ${invitation.title}` : 'Live Classroom'} user={user} homework={homework} library={library} lessonWorksheets={lessonWorksheets} lessons={lessons} /> : null}
       {showSheet ? <RoomWorksheetContent current={current} role={role} homework={homework} /> : null}
     </Card>
   );

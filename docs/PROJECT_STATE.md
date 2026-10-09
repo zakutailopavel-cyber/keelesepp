@@ -1,3 +1,18 @@
+## 2026-10-09 — Next lesson on the board in one click — branch `agent/lesson-prep`
+
+Checked `origin/main` `deb3b78`. Owner: make teachers' life easier (2/3: lesson preparation).
+- `roomWorksheetChoices.nextLessonSuggestion`: the curriculum lesson after the latest one the student did — journal
+  `topicLessonId` (held lessons) or a worksheet assignment's `lessonId`, newest wins — at the same level; with no
+  history the first lesson of the student's level. Returns its published phase sheets not yet on this board.
+- `RoomWorksheetPicker`: „Järgmine tund” card on top of the curriculum tab with one „Pane tahvlile” (all its sheets,
+  in Avasta → Harjuta → Kasuta order; shared `placeChoice` = the old single „Lisa tahvlile” flow). Reads the journal
+  via `lessonsService.listByStudent` (if the rules refuse, e.g. another teacher's lessons, it falls back to the
+  worksheets). Tööruum opens the „Töölehed” drawer when a student is picked, so the suggestion is in front of the
+  teacher; works the same inside the lesson room.
+- Checks: new choice + picker tests; worksheet-studio + live-classroom suites pass except the known Node 26
+  `localStorage` failures; eslint 0 errors.
+- Next safe step: owner picks a student in Tööruum and checks that the suggested lesson is the right one.
+
 ## 2026-10-09 — Pet care (tamagotchi) — branch `agent/pet-care`
 
 Checked `origin/main` `a5c3a84`. Owner chose „care through learning” for the pet.
