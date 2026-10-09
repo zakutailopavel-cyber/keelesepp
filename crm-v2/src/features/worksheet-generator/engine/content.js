@@ -42,6 +42,7 @@ function takeSentences(profile, state, { focusIds, contextId, count, seed, allow
   const result = [];
   for (const item of shuffleSeeded(sentenceCandidates(profile, focusIds, contextId), seed)) {
     const rendered = renderTemplate(item, seed);
+    if (state.blocked?.has(sentenceKey(rendered))) continue;
     if (!allowReuse && (state.usedSentenceIds.has(item.id) || state.usedRenderedSentences.has(rendered))) continue;
     if (!allowReuse) {
       state.usedSentenceIds.add(item.id);
@@ -243,6 +244,7 @@ function takeGapSentences(profile, state, { focusIds, contextId, count, seed }) 
   const result = [];
   for (const item of shuffleSeeded(sentenceCandidates(profile, focusIds, contextId), seed)) {
     const rendered = renderTemplate(item, seed);
+    if (state.blocked?.has(sentenceKey(rendered))) continue;
     if (state.usedSentenceIds.has(item.id) || state.usedRenderedSentences.has(rendered)) continue;
     const candidate = { ...item, rendered };
     const marked = knownAnswerGap(candidate) || markGap(rendered, profile, focusIds);
@@ -528,8 +530,13 @@ export function materializePhase({ phase, profile, focusIds, contextId, seed, st
   return blocks;
 }
 
-export function createDiversityState() {
+// a sentence as the teacher flagged it („Halb lause”): case, punctuation and spacing do not matter
+export const sentenceKey = (text) => String(text || '').replace(/\[([^\]|]*)(\|[^\]]*)?\]/g, '$1').toLocaleLowerCase('et').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+
+// `blocked`: sentences teachers marked bad (generatorFlags) — never used again
+export function createDiversityState({ blocked = [] } = {}) {
   return {
+    blocked: new Set(blocked.map(sentenceKey)),
     usedSentenceIds: new Set(),
     usedRenderedSentences: new Set(),
     usedQuestionIds: new Set(),

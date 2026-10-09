@@ -127,6 +127,7 @@ export function generateLessonBundle({
   difficulty = 'core',
   durationMinutes,
   variant = 0,
+  blockedSentences = [],
 } = {}) {
   const diagnostics = validateInputs(profile, generatorVersion);
   if (diagnostics.length) return { sheets: [], diagnostics };
@@ -163,7 +164,7 @@ export function generateLessonBundle({
     });
   diagnostics.push(...plan.diagnostics);
 
-  const state = createDiversityState();
+  const state = createDiversityState({ blocked: blockedSentences });
   const sheets = diagnostics.some((item) => item.severity === 'error')
     ? []
     : PHASES.map((phase, index) => sheetFor({
@@ -198,6 +199,7 @@ export function generateFocusWorksheet({
   difficulty = 'core',
   durationMinutes,
   variant = 0,
+  blockedSentences = [],
 } = {}) {
   const diagnostics = validateInputs(profile, generatorVersion);
   if (diagnostics.length) return { sheet: null, diagnostics };
@@ -266,7 +268,7 @@ export function generateFocusWorksheet({
     seed: focusSeed,
     generatorVersion,
     contextId: context.id,
-    state: createDiversityState(),
+    state: createDiversityState({ blocked: blockedSentences }),
     activityIds,
     activityPlan,
     difficulty: normalizedDifficulty,

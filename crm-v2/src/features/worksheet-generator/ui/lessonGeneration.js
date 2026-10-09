@@ -33,7 +33,7 @@ export function generationMeta(sheet, { scope, variant, size = 'standard', level
 
 // Generates the three core sheets (Avasta, Harjuta, Kasuta) and saves them as drafts. Returns the variant number.
 // onlyMissing: phases that already have a sheet (draft or published, generated or hand-made) are left untouched.
-export async function generateCoreSheets({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user, onlyMissing = false }) {
+export async function generateCoreSheets({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user, onlyMissing = false, blockedSentences = [] }) {
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
   const existing = CORE_SHEETS.map(({ id }) => byId.get(id)).filter(Boolean);
   const previousActivityIds = existing.flatMap((sheet) => sheet?.generation?.activityIds || []);
@@ -42,6 +42,7 @@ export async function generateCoreSheets({ repository, lessonId, lesson, profile
     lesson,
     profile,
     levelLexicon: levelVocabulary.lexicon,
+    blockedSentences,
     activityHistory: previousActivityIds,
     difficulty,
     variant,
@@ -69,7 +70,7 @@ export async function generateCoreSheets({ repository, lessonId, lesson, profile
 }
 
 // Generates one focus sheet and saves it as a draft. Returns its id, label and variant.
-export async function generateFocusSheet({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, focusId, phase, user }) {
+export async function generateFocusSheet({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, focusId, phase, user, blockedSentences = [] }) {
   const focus = (profile.focuses || []).find((item) => item.id === focusId);
   if (!focus) throw new Error('Valitud fookust ei leitud.');
   const worksheetId = focusWorksheetId({ focusIds: [focusId], phase });
@@ -79,6 +80,7 @@ export async function generateFocusSheet({ repository, lessonId, lesson, profile
     lesson,
     profile,
     levelLexicon: levelVocabulary.lexicon,
+    blockedSentences,
     focusIds: [focusId],
     phase,
     difficulty,
@@ -104,7 +106,7 @@ export async function generateFocusSheet({ repository, lessonId, lesson, profile
 }
 
 // One core sheet generated again without saving: the constructor shows it first, the teacher decides.
-export function previewCoreSheet({ lessonId, lesson, profile, sheets, levelVocabulary, difficulty, worksheetId }) {
+export function previewCoreSheet({ lessonId, lesson, profile, sheets, levelVocabulary, difficulty, worksheetId, blockedSentences = [] }) {
   const index = CORE_SHEETS.findIndex((meta) => meta.id === worksheetId);
   if (index < 0) throw new Error('Seda lehte ei saa eraldi genereerida.');
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
@@ -114,6 +116,7 @@ export function previewCoreSheet({ lessonId, lesson, profile, sheets, levelVocab
     lesson,
     profile,
     levelLexicon: levelVocabulary.lexicon,
+    blockedSentences,
     activityHistory: existing.flatMap((sheet) => sheet?.generation?.activityIds || []),
     difficulty,
     variant,

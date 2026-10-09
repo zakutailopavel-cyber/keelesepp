@@ -1,4 +1,4 @@
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
+import { limit, addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
@@ -160,6 +160,12 @@ export const homeworkService = {
     ]);
     return [...worksheets.filter((item) => item.status === 'done' || item.reviewStatus === 'reviewed'), ...exercises]
       .sort((a, b) => String(b.completedAt).localeCompare(String(a.completedAt)));
+  },
+  // all submitted worksheets (staff): the didactic calibration (worksheet-studio/didactics/calibration.js)
+  async listDoneWorksheetAssignments({ max = 800 } = {}) {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('status', '==', 'done'), limit(max)));
+    return snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data()));
   },
   async listWorksheetAssignmentsByStudentIds(studentIds = []) {
     if (!studentIds.length) return [];

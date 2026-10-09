@@ -1,3 +1,20 @@
+## 2026-10-10 — Didactic engine step 7: calibration from real answers + „Halb lause” — branch `agent/calibration`
+
+- Base: `main` (after #420).
+- „Halb lause”:
+  - `editor/SentenceFlags.jsx` in the gaps / word order inspector removes the line and writes `generatorFlags/{id}` = `{text, lessonId, blockType, createdBy, createdByName, createdAt}` via `services/firebase/generatorFlags.js`.
+  - `LessonGeneratorBar` loads the flags and passes `blockedSentences` to `generateCoreSheets` / `generateFocusSheet` / `previewCoreSheet` → `generateLessonBundle` / `generateFocusWorksheet` → `createDiversityState({ blocked })`.
+  - `takeSentences` / `takeGapSentences` skip a blocked `sentenceKey`. Covered by a generator test.
+- Rules: `match /generatorFlags/{flagId}`. Staff create their own and read; admins delete; no updates. Emulator 6/6; deployed.
+- Calibration:
+  - `didactics/calibration.js` `calibrate(assignments)` gives the share of right answers per level × task type, with a verdict at ≥20 answers.
+  - `homeworkService.listDoneWorksheetAssignments({max: 800})`.
+  - `CalibrationCard` on `/library/worksheet-generator`.
+- Also fixed: the unused `phase` param in `difficultySpec` (from #417) failed eslint. `npx eslint src` now shows 0 errors.
+- Checks: worksheet-generator + worksheet-studio + services + homework 775/775; build succeeds.
+- The 7 steps of docs/DIDACTIC_ENGINE.md are done; the next items are listed there.
+- Next safe step: the owner tries „Paku tekst”, „Tee isiklik tööleht” and the didactic score on a real lesson.
+
 ## 2026-10-10 — Didactic engine step 6: „Tee isiklik tööleht” from the learner model — branch `agent/personal-worksheet`
 
 - Base: `main` (after #419).

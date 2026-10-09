@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../app/AuthContext.jsx';
 import { useAsyncData } from '../../../hooks/useAsyncData.js';
 import { lessonWorksheetsService, levelVocabularyService } from '../../../services/firebase/index.js';
+import { generatorFlagsService } from '../../../services/firebase/generatorFlags.js';
 import { FOCUS_PHASES } from '../engine/focusWorksheet.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
 import { CORE_SHEETS, generateCoreSheets, generateFocusSheet, previewCoreSheet } from './lessonGeneration.js';
@@ -15,7 +16,7 @@ const UNSAVED = 'Töölehel on salvestamata muudatusi. Genereerimine laadib uue 
 
 // Lesson worksheets and the generator in one strip at the top of the worksheet constructor:
 // switch between the lesson's sheets, pick difficulty, generate the three sheets or one focus sheet.
-export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, dirty = false, onGenerated, onPreviewSheet, onInsertBlocks, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService }) {
+export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, dirty = false, onGenerated, onPreviewSheet, onInsertBlocks, repository = lessonWorksheetsService, vocabularyRepository = levelVocabularyService, flagsService = generatorFlagsService }) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [difficulty, setDifficulty] = useState('core');
@@ -29,6 +30,9 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
     return { lesson, sheets };
   }, [lessonId, repository]);
   const vocabularyState = useAsyncData(async () => vocabularyRepository.load().catch(() => ({ lexicon: [], source: '', wordCount: 0 })), [vocabularyRepository]);
+  // sentences teachers marked bad („Halb lause”) are never generated again
+  const flags = useAsyncData(() => Promise.resolve().then(() => flagsService?.list?.() || []).catch(() => []), [flagsService]);
+
 
   if (state.loading || state.error) return state.error ? <div className="lgb-bar"><span className="lgb-error" role="alert">{state.error.message}</span></div> : null;
 
@@ -40,7 +44,7 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
   const hasCore = CORE_SHEETS.some(({ id }) => ids.has(id));
   const selectedFocusId = focusId || profile?.focuses?.[0]?.id || '';
   const sheetPath = (id) => `/library/lessons/${encodeURIComponent(lessonId)}/worksheets/${encodeURIComponent(id)}`;
-  const deps = () => ({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user });
+  const deps = () => ({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user, blockedSentences: (flags.data || []).map((f) => f.text) });
 
   const run = async (kind, task) => {
     if (dirty && !globalThis.confirm(UNSAVED)) return;

@@ -142,3 +142,17 @@ test('a reading text request: kind reading with a word count, nothing else', asy
   assert.equal(await ask({ ...ok, words: { integerValue: '5000' } }), 403);
   assert.equal(await ask({ ...ok, kind: { stringValue: 'essay' } }), 403);
 });
+
+test('„Halb lause” flags: staff create their own and read all; students cannot', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const teacher = await account('teacher');
+  const learner = await account('student');
+  const add = (who, data) => fetch(`${base}/generatorFlags`, { method: 'POST', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: data }) }).then((r) => r.status);
+  const ok = (uid) => ({ text: { stringValue: 'Minu põrsas on roheline.' }, lessonId: { stringValue: 'a2-001' }, blockType: { stringValue: 'gaps' }, createdBy: { stringValue: uid }, createdByName: { stringValue: 'Kati' }, createdAt: { stringValue: '2026-10-10T10:00:00Z' } });
+  assert.equal(await add(teacher, ok(teacher.uid)), 200);
+  assert.equal(await add(learner, ok(learner.uid)), 403);
+  assert.equal(await add(teacher, ok(learner.uid)), 403);
+  const list = (who) => fetch(`${base}:runQuery`, { method: 'POST', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'generatorFlags' }] } }) }).then((r) => r.status);
+  assert.equal(await list(teacher), 200);
+  assert.equal(await list(learner), 403);
+});
