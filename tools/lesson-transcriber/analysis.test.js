@@ -53,3 +53,12 @@ test('one lesson: the parts of one invitation on one day, joined in time order',
   assert.equal(partsFinished(parts), true);
   assert.equal(partsFinished([...parts, { status: 'transcribing' }]), false);
 });
+
+test('„Paku laused”: only sentences with exactly one gap, unique, at most the count', () => {
+  const { parseSentences, withoutGap, sentencesPrompt } = require('./analysis');
+  const raw = JSON.stringify({ laused: ['Minu [ema] on õpetaja.', 'Ilma lüngata lause.', 'Kaks [lünka] [siin].', 'minu [ema] on õpetaja.', '  Mul on kaks [venda].  '] });
+  assert.deepEqual(parseSentences(raw, 5), ['Minu [ema] on õpetaja.', 'Mul on kaks [venda].']);
+  assert.deepEqual(parseSentences('nonsense'), []);
+  assert.equal(withoutGap('Mul on kaks [venda].'), 'Mul on kaks venda.');
+  assert.match(sentencesPrompt({ topic: 'Minu pere', level: 'A2', grammar: 'osastav', count: 6 }), /Kirjuta 6 .*osastav/s);
+});

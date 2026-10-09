@@ -1513,6 +1513,23 @@ service cloud.firestore {
     }
 
     // Heartbeat of the transcriber on the school Mac (Admin SDK). Staff see in the lesson room whether it runs.
+    // „Paku laused” in the constructor: a teacher asks the school Mac (local models, nothing leaves the Mac) for
+    // sentences; the Mac answers with the Admin SDK. Only the asker and admins read the answer.
+    match /aiRequests/{requestId} {
+      allow read: if isAdmin() || (isStaff() && resource.data.createdBy == uid());
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['kind', 'topic', 'level', 'grammar', 'count', 'createdBy', 'createdAt', 'status'])
+        && request.resource.data.kind == 'sentences'
+        && request.resource.data.status == 'new'
+        && request.resource.data.createdBy == uid()
+        && request.resource.data.topic is string && request.resource.data.topic.size() <= 120
+        && request.resource.data.level is string && request.resource.data.level.size() <= 10
+        && request.resource.data.grammar is string && request.resource.data.grammar.size() <= 120
+        && request.resource.data.count is int && request.resource.data.count >= 1 && request.resource.data.count <= 12
+        && request.resource.data.createdAt is string && request.resource.data.createdAt.size() <= 40;
+      allow update, delete: if false;
+    }
+
     match /transcriberStatus/{workerId} {
       allow read: if isStaff();
       allow write: if false;

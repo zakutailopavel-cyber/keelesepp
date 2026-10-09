@@ -93,3 +93,26 @@ test('transcriber heartbeat: staff read, nobody writes from the browser', async 
   const r = await fetch(`${base}/transcriberStatus/kooli-mac?updateMask.fieldPaths=lastSeenAt`, { method: 'PATCH', headers: { Authorization: `Bearer ${teacher.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: fields({ lastSeenAt: '2030-01-01T00:00:00Z' }) }) });
   assert.equal(r.status, 403, 'only the worker writes the heartbeat');
 });
+
+test('a teacher asks the school Mac for sentences; only the asker reads the answer', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const teacher = await account('teacher');
+  const other = await account('teacher');
+  const learner = await account('student');
+  const ask = (who, data) => fetch(`${base}/aiRequests`, { method: 'POST', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: data }) });
+  const ok = { kind: { stringValue: 'sentences' }, topic: { stringValue: 'Minu pere' }, level: { stringValue: 'A2' }, grammar: { stringValue: 'osastav' }, count: { integerValue: '8' }, createdBy: { stringValue: teacher.uid }, createdAt: { stringValue: '2026-10-10T10:00:00Z' }, status: { stringValue: 'new' } };
+  const res = await ask(teacher, ok);
+  assert.equal(res.status, 200);
+  const id = (await res.json()).name.split('/').pop();
+  assert.equal((await ask(learner, { ...ok, createdBy: { stringValue: learner.uid } })).status, 403, 'students cannot ask');
+  assert.equal((await ask(teacher, { ...ok, createdBy: { stringValue: other.uid } })).status, 403, 'only for oneself');
+  assert.equal((await ask(teacher, { ...ok, status: { stringValue: 'done' } })).status, 403, 'starts as new');
+  assert.equal((await ask(teacher, { ...ok, count: { integerValue: '50' } })).status, 403, 'at most 12');
+  assert.equal((await ask(teacher, { ...ok, result: { stringValue: 'forged' } })).status, 403, 'the answer is the Mac\'s');
+  const get = (who) => fetch(`${base}/aiRequests/${id}`, { headers: { Authorization: `Bearer ${who.token}` } }).then((r) => r.status);
+  assert.equal(await get(teacher), 200);
+  assert.equal(await get(other), 403);
+  assert.equal(await get(learner), 403);
+  const patchRes = await fetch(`${base}/aiRequests/${id}?updateMask.fieldPaths=status`, { method: 'PATCH', headers: { Authorization: `Bearer ${teacher.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { status: { stringValue: 'done' } } }) });
+  assert.equal(patchRes.status, 403, 'the browser does not answer');
+});
