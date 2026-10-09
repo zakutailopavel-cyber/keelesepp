@@ -88,8 +88,8 @@ describe('Live Classroom invitation lifecycle', () => {
     await waitFor(() => expect(screen.getByTestId('location')).toHaveTextContent('group=room-1'));
     expect(await screen.findByRole('region', { name: 'Grupitund' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
-    expect(screen.getByText('Mari')).toBeInTheDocument();
-    expect(screen.getByText('Jaan')).toBeInTheDocument();
+    expect(await screen.findByText('Mari')).toBeInTheDocument();
+    expect(await screen.findByText('Jaan')).toBeInTheDocument();
   });
 
   it('group lesson chat: everyone in the room reads and writes', async () => {

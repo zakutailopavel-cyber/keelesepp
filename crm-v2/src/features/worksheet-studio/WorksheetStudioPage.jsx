@@ -10,7 +10,7 @@ import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from
 import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
-import { BLOCKS, GROUPS, checkDocument, createBlock } from './engine/registry.js';
+import { BLOCKS, GROUPS, checkDocument, createBlock, isPaletteKey, paletteEntries } from './engine/registry.js';
 import { dropAt, insertAt, moveRun } from './engine/look.js';
 import { ASPECTS, newDocument, newId } from './engine/schema.js';
 import { cropToFile, nearestAspect } from './engine/image.js';
@@ -200,8 +200,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     audio: (file) => repository.uploadAudio(file),
   }), [repository, docMeta]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const palette = useMemo(() => GROUPS.map((g) => [g, Object.values(BLOCKS).filter((b) => b.group === g)]), []);
-  const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);
+  const palette = useMemo(() => { const all = paletteEntries(); return GROUPS.map((g) => [g, all.filter((b) => b.group === g)]); }, []);
+  const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.hint || ''} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);
   const quality = useMemo(() => analyzeWorksheet(doc || newDocument()), [doc]);
 
   if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to={backTo}>Tagasi: {backLabel}</Link></div></div>;
@@ -368,7 +368,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const dropMove = (fromId, toId, side = 'before') => setBlocks(dropAt(doc.blocks, fromId, toId, side));
   // a block dragged from the palette lands where the lit line shows
   const dropNew = (type, toId, side = 'after') => {
-    if (!BLOCKS[type]) return;
+    if (!isPaletteKey(type)) return;
     const b = createBlock(type);
     setBlocks(insertAt(doc.blocks, [b], toId, side));
     setSelectedId(b.id);
@@ -689,7 +689,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   {defs.map((d) => {
                     const Ico = Icons[d.icon] || Icons.Square;
                     return (
-                      <button type="button" key={d.type} className="st-block" onClick={() => addBlock(d.type)} title="Klõpsa või lohista lehele" draggable onDragStart={(e) => { e.dataTransfer.setData('application/x-ws-block', d.type); e.dataTransfer.effectAllowed = 'copy'; }}>
+                      <button type="button" key={d.key} className="st-block" onClick={() => addBlock(d.key)} title={d.hint ? `${d.hint} — klõpsa või lohista lehele` : 'Klõpsa või lohista lehele'} draggable onDragStart={(e) => { e.dataTransfer.setData('application/x-ws-block', d.key); e.dataTransfer.effectAllowed = 'copy'; }}>
                         <Ico size={16} aria-hidden="true" /><span>{d.label}</span>{d.task && <em>ülesanne</em>}
                       </button>
                     );

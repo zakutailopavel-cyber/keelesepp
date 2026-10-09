@@ -9,11 +9,27 @@ import { newId } from './schema.js';
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
 export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram };
 
-export const GROUPS = ['Grammatika ja sõnavara', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Kujundus'];
+export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Kujundus'];
 
-export function createBlock(type) {
+// A palette key is a block type, or `type:variant` for a block that offers ready variants (the scheme kinds).
+const splitKey = (key) => String(key || '').split(':');
+export const isPaletteKey = (key) => {
+  const [type, variant] = splitKey(key);
   const def = BLOCKS[type];
-  return { id: newId(), type, width: def.width, span: def.width === 'full' ? 12 : 6, tone: def.tone, data: def.create() };
+  return Boolean(def && (!variant || def.variants?.some((v) => v.variant === variant)));
+};
+
+// What the palette shows: every block, a block with variants as one entry per variant.
+export function paletteEntries() {
+  return Object.values(BLOCKS).flatMap((def) => (def.variants?.length
+    ? def.variants.map((v) => ({ key: `${def.type}:${v.variant}`, label: v.label, hint: v.hint, icon: v.icon || def.icon, group: def.group, task: def.task }))
+    : [{ key: def.type, label: def.label, icon: def.icon, group: def.group, task: def.task }]));
+}
+
+export function createBlock(key) {
+  const [type, variant] = splitKey(key);
+  const def = BLOCKS[type];
+  return { id: newId(), type, width: def.width, span: def.width === 'full' ? 12 : 6, tone: def.tone, data: variant ? def.create(variant) : def.create() };
 }
 
 // Task modifications (spec §2): block.opts = { cols: 1|2|3, example: bool, shuffle: bool, size: 'small'|'large' }.

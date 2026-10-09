@@ -1,3 +1,30 @@
+## 2026-10-09 — Constructor: scheme blocks („Skeemid”) — branch `agent/diagram-blocks` (on top of #391)
+
+Checked `origin/main` `990cfca` (after #390); the branch starts from `agent/constructor-direct` (#391, not merged yet) to
+avoid conflicts in `WorksheetStudioPage`. Owner: „нам очень сильно не хватает нормальных блоков со схемами”.
+- The „Skeem / diagramm” block (`engine/blocks/diagram.jsx`, drawings in `diagramViews.jsx`, pure model
+  `diagramModel.js`) now has 8 kinds: mõttekaart (coloured branches), järjestus (numbered steps), **ring / tsükkel**
+  (arrows between neighbours), **ajajoon** (`aeg | sündmus` lines), **lause valem** (`küsimus | sõna` slots joined with
+  „+”, optional example sentence `note`), **Venni diagramm** and **võrdlus / T-tabel** (fields `left`, `right`,
+  `leftItems`, `rightItems`, `both`), puu (elbow lines).
+- Gaps may sit inside a sentence: `[Pesen] hambaid`. Answer keys: the first gap of a cell keeps the cell's key (`c`,
+  `n0`… as before, so saved answers stay valid), further gaps `n0.1`…; timeline time `t{i}`, formula question `q{i}`,
+  zones `L`, `R`, `l{i}`, `m{i}`, `r{i}`. Old documents (kind mind / flow / tree) render and score as before.
+- Palette: new group „Skeemid” with one entry per kind (`registry.paletteEntries()`, palette key `diagram:<kind>`,
+  `createBlock('diagram:venn')` starts with that kind's example, `isPaletteKey` for drops). Switching kind in the
+  settings keeps what the teacher wrote; an untouched example is swapped for the new kind's example (`switchKind`).
+- Mind map with sub-branches (owner: „возможности делать mind map”): in „Harud” a line starting with „-”, „*”, „•”
+  or spaces is a sub-branch of the branch above (`mindTree`, up to 30 lines). With any sub-branch the map is drawn
+  two-sided (`mindMapLayout`): topic in the middle, branches right / left balanced by size as coloured pills, sub-branches
+  outside on coloured underlines, curved links. Keys follow the line order (`n{i}`), so a map without sub-branches
+  keeps the old radial look and keys. The palette's Mõttekaart example now has sub-branches.
+- `quality.js`: „skeemil pole ühtegi kasti” now checks every kind's fields (`diagramHasContent`).
+- No Firestore, rules or functions change; documents keep schema `keelesepp.worksheet/2`.
+- Checks: worksheet-studio + worksheet-generator 63 files / 546 tests (diagram 14); eslint 0 errors (5 old warnings);
+  screenshots of all 8 kinds from a local harness (Chromium, interactive mode).
+- Not done: no drag-to-place free shapes / arrows; schemes are not in the AI generator; print not checked on paper.
+- Next safe step: merge #391, then this PR; the owner tries the „Skeemid” group on a real lesson sheet.
+
 ## 2026-10-09 — Constructor: edit right on the sheet — branch `agent/constructor-direct`
 
 Owner: stretch a block freely, put it anywhere with the place lit up, tools on hover, editing on the block instead of
