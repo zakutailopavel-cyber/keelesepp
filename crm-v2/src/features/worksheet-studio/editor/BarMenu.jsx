@@ -6,11 +6,12 @@ import { ChevronDown } from 'lucide-react';
  * A button on the block's dark bar that opens a small menu under it (Floating UI: flips and shifts to stay on the
  * screen, Esc or a click elsewhere closes it). The menu is drawn in a portal, so the sheet's zoom does not shrink it;
  * React events still bubble to the bar, which keeps them away from the card (no select, no drag).
+ * It stays hidden until its place is computed, so it never flashes in the top-left corner first.
  * `children` may be a function that gets `close`.
  */
 export default function BarMenu({ label = '', icon = null, title = '', ariaLabel = '', onOpen, className = '', children }) {
   const [open, setOpen] = useState(false);
-  const { refs, floatingStyles, context } = useFloating({
+  const { refs, floatingStyles, context, isPositioned } = useFloating({
     open,
     onOpenChange: (next) => { setOpen(next); if (next) onOpen?.(); },
     placement: 'bottom-start',
@@ -28,7 +29,7 @@ export default function BarMenu({ label = '', icon = null, title = '', ariaLabel
       </button>
       {open ? (
         <FloatingPortal>
-          <div ref={setFloating} style={floatingStyles} className={`ws-barmenu ${className}`} {...getFloatingProps()}>
+          <div ref={setFloating} style={{ ...floatingStyles, opacity: isPositioned ? 1 : 0 }} className={`ws-barmenu ${className}`} {...getFloatingProps()}>
             {typeof children === 'function' ? children(close) : children}
           </div>
         </FloatingPortal>
