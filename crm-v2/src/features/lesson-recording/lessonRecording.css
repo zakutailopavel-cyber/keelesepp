@@ -39,3 +39,18 @@
 
 /* a word the transcriber was unsure of */
 .transcript__unsure { text-decoration: underline dotted #d97706; text-decoration-thickness: 2px; text-underline-offset: 3px; cursor: help; }
+
+/* AI analysis of a lesson (teacher only) */
+.lesson-ai { display: grid; gap: 10px; margin-bottom: 14px; padding: 12px 14px; border: 1px solid #ddd6fe; border-radius: 14px; background: #faf8ff; }
+.lesson-ai header { display: flex; align-items: center; gap: 6px; color: #5b21b6; }
+.lesson-ai header small { color: var(--muted, #6b7091); font-size: .75rem; }
+.lesson-ai p { margin: 0; }
+.lesson-ai__parts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.lesson-ai__parts > div { padding: 8px 10px; border-radius: 10px; background: #fff; border: 1px solid var(--border, #e4e6f2); }
+.lesson-ai__parts .is-good b { color: #067647; } .lesson-ai__parts .is-hard b { color: #b54708; } .lesson-ai__parts .is-next b { color: #175cd3; }
+.lesson-ai__parts ul { margin: 4px 0 0; padding-left: 18px; font-size: .9rem; }
+.lesson-ai__errors ol { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 4px; }
+.lesson-ai__errors li { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 8px; border-radius: 8px; background: #fff; }
+.lesson-ai__errors time { color: var(--muted, #6b7091); font-size: .78rem; font-variant-numeric: tabular-nums; }
+.lesson-ai__errors s { color: #b42318; } .lesson-ai__errors ins { color: #067647; font-weight: 700; text-decoration: none; }
+.lesson-ai__errors small { color: #b54708; font-size: .72rem; }

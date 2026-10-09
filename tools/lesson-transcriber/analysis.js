@@ -7,7 +7,8 @@
 // Both are guesses of a model and only the teacher (and admins) see them (Firestore rules: a finished recording is
 // not readable by the student). Pure helpers here; the Ollama calls are in index.js.
 
-const ANALYSIS_VERSION = 1;
+// 2: the summary is written in Russian (gemma3's Estonian had many errors; the teachers read Russian)
+const ANALYSIS_VERSION = 2;
 const MAX_SENTENCES = 60;
 const MAX_TRANSCRIPT_CHARS = 60000;
 
@@ -45,13 +46,13 @@ const GEC_PROMPT = (sentence) => `### Instruction:\nReply with a corrected versi
 function summaryPrompt(transcript = []) {
   let text = transcript.map((l) => `[${clock(l.startMs)}] ${l.speaker === 'student' ? 'Õpilane' : 'Õpetaja'}: ${l.text}`).join('\n');
   if (text.length > MAX_TRANSCRIPT_CHARS) text = `${text.slice(0, MAX_TRANSCRIPT_CHARS)}\n[…]`;
-  return `Sa oled kogenud eesti keele õpetaja metoodik. All on eesti keele tunni transkriptsioon (automaatne kõnetuvastus, võib sisaldada tuvastusvigu). Õpilane õpib eesti keelt, tema emakeel on tavaliselt vene keel.
+  return `Ты опытный методист, преподаватель эстонского языка как второго. Ниже расшифровка урока эстонского языка (автоматическое распознавание речи, возможны ошибки распознавания). «Õpilane» — ученик, «Õpetaja» — учитель. Родной язык ученика обычно русский.
 
-Kirjuta õpetajale lühike analüüs JSON-ina, ainult JSON, ilma muu tekstita:
-{"kokkuvote": "2-3 lauset tunnist", "meeldis": ["mis õpilasele meeldis või kus ta oli aktiivne, koos tõendiga tekstist"], "raske": ["mis oli raske: kus ta takerdus, lülitus vene keelde, vastas lühidalt"], "jargmiseks": ["2-3 konkreetset soovitust järgmiseks tunniks"]}
-Ära mõtle välja midagi, mida tekstis ei ole. Kui millegi kohta tõendit pole, jäta loend tühjaks.
+Напиши учителю короткий разбор урока на русском языке в виде JSON, только JSON, без другого текста:
+{"kokkuvote": "2-3 предложения о том, что было на уроке", "meeldis": ["что ученику понравилось или где он был активен — с доказательством из текста"], "raske": ["что было трудно: где ученик запинался, переходил на русский, отвечал односложно"], "jargmiseks": ["2-3 конкретных совета на следующий урок"]}
+В каждом пункте не больше двух отметок времени вида 12:34. Не придумывай того, чего нет в тексте. Технические проблемы со связью не анализируй. Если доказательств нет, оставь список пустым.
 
-Transkriptsioon:
+Расшифровка:
 ${text}`;
 }
 

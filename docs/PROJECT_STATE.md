@@ -1,3 +1,26 @@
+## 2026-10-10 — Lesson analysis on the school Mac: learner errors (TartuNLP GEC) and a summary (gemma3), local and free — branch `agent/lesson-analysis`
+
+- Base: `main` (after #408). Owner: free only. Goal: from what the learner says, a didactic analysis (errors; what was liked or hard; what to do next).
+- Installed on the school Mac with the owner's go-ahead („поставим на этот мак”):
+  - Ollama 0.35.1 via Homebrew, running as `brew services start ollama`.
+  - `~/KeeleSeppTranscriber/models/llammas-gec-q4_0.gguf` (3.8 GB): the RichardErkhov GGUF of `tartuNLP/Llammas-base-p1-llama-errors-p2-GEC`. It is registered as Ollama model `llammas-gec` from `models/Modelfile.gec` (Alpaca prompt, temperature 0).
+  - `gemma3:12b` (8.2 GB).
+- `tools/lesson-transcriber/analysis.js` holds the pure helpers:
+  - `learnerSentences`: the learner's Estonian sentences, at most 60;
+  - `isCorrection`: words changed, not only punctuation;
+  - `GEC_PROMPT`;
+  - `summaryPrompt`: Russian output; gemma's Estonian had too many errors;
+  - `parseSummary`: short strings only;
+  - `needsAnalysis`: by `ANALYSIS_VERSION`, now 2.
+  - Tests: `analysis.test.js`.
+- `index.js` `analyzeNext()` runs after transcription in each tick and handles one done recording per tick, newest first. It writes `lessonRecordings/{id}.analysis = { version, errors[{startMs, said, corrected, unsure?}], summary{kokkuvote, meeldis[], raske[], jargmiseks[]}, models, analyzedAt, seconds }`. On failure it writes `{version, error}`, so it does not retry every minute. It is skipped when Ollama is down; `ANALYSIS=off` disables it.
+- Visibility: Firestore rules already make a finished recording readable only by its teacher and admins (not the student).
+- CRM `TranscriptView.jsx`:
+  - `LessonAi` shows the summary (labels Meeldis / Oli raske / Järgmiseks; text in Russian) and the errors as a word diff (`wordDiff` in `lessonTimeline.js`), marked „kohalik mudel · ainult õpetajale · kontrolli üle”.
+  - Tests: lesson-recording + students 76/76.
+- Real result: Ilja 09.10, 9 errors found, all plausible (e.g. „toit raiskamisest” → „toidu raiskamisest”); one analysis takes about 1–2 min.
+- Next safe step: the owner opens a recent lesson in the student profile and judges whether the summary is useful.
+
 ## 2026-10-10 — Fix: a word marked in a learner's answer field highlighted the whole field — branch `agent/annotation-word`
 
 - Base: `main` (after #407). Reported by the owner: one selected word („tahavad”) in a written answer turned the whole textarea red.

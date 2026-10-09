@@ -1,9 +1,9 @@
 import { Fragment, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BarChart3, PenLine } from 'lucide-react';
+import { BarChart3, PenLine, Sparkles } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, Input, Modal } from '../../components/ui/index.js';
 import { RECORDING_STATUS } from '../../services/firebase/lessonRecordings.js';
-import { lessonAnalysis } from './lessonTimeline.js';
+import { lessonAnalysis, wordDiff } from './lessonTimeline.js';
 import './lessonRecording.css';
 
 const clock = (ms) => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -81,6 +81,34 @@ function Analysis({ recording }) {
   </div>;
 }
 
+// The learner's likely errors (TartuNLP's Estonian correction model on the school Mac): what was said, with the
+// changed words struck through and the right ones in bold. A model's suggestion, so the teacher checks it.
+function LearnerErrors({ errors }) {
+  return <div className="lesson-ai__errors">
+    <b>Õpilase vead ({errors.length})</b>
+    {errors.length ? <ol>{errors.map((e, i) => (
+      <li key={i}><time>{clock(e.startMs)}</time><span>{wordDiff(e.said, e.corrected).map((w, k) => (
+        <Fragment key={k}>{k ? ' ' : ''}{w.type === 'del' ? <s>{w.text}</s> : w.type === 'ins' ? <ins>{w.text}</ins> : w.text}</Fragment>
+      ))}</span>{e.unsure ? <small title="Kõnetuvastus polnud selles lauses kindel">kontrolli salvestisest</small> : null}</li>
+    ))}</ol> : <p className="form-hint">Eestikeelsetes lausetes vigu ei leitud.</p>}
+  </div>;
+}
+
+const SUMMARY_PARTS = [['meeldis', 'Meeldis / aktiivne', 'is-good'], ['raske', 'Oli raske', 'is-hard'], ['jargmiseks', 'Järgmiseks tunniks', 'is-next']];
+// The didactic analysis made on the school Mac with local models (nothing leaves the Mac). Teacher and admins only.
+export function LessonAi({ analysis }) {
+  if (!analysis || analysis.error || (!analysis.summary && !analysis.errors)) return null;
+  const s = analysis.summary;
+  return <section className="lesson-ai" aria-label="Tunni analüüs (AI)">
+    <header><Sparkles size={15} aria-hidden="true" /><b>AI analüüs</b><small>kohalik mudel kooli arvutis · ainult õpetajale · kontrolli üle</small></header>
+    {s?.kokkuvote ? <p>{s.kokkuvote}</p> : null}
+    {s ? <div className="lesson-ai__parts">{SUMMARY_PARTS.filter(([k]) => s[k]?.length).map(([k, label, cls]) => (
+      <div key={k} className={cls}><b>{label}</b><ul>{s[k].map((t, i) => <li key={i}>{t}</li>)}</ul></div>
+    ))}</div> : null}
+    {Array.isArray(analysis.errors) ? <LearnerErrors errors={analysis.errors} /> : null}
+  </section>;
+}
+
 const WAITING = {
   recording: 'Tund on veel salvestamisel.',
   uploaded: 'Salvestis on üles laaditud. Tekst ilmub siia, kui kooli arvuti on selle tekstiks teinud (tavaliselt mõne minuti jooksul).',
@@ -92,7 +120,7 @@ const WAITING = {
 export function RecordingText({ recording }) {
   if (recording.status === RECORDING_STATUS.done) {
     return recording.transcript?.length
-      ? <><Analysis recording={recording} /><Transcript recording={recording} /></>
+      ? <><Analysis recording={recording} /><LessonAi analysis={recording.analysis} /><Transcript recording={recording} /></>
       : <p className="form-hint">Salvestisest ei leitud kõnet (liiga lühike või vaikne).</p>;
   }
   return <p className="form-hint">{WAITING[recording.status] || WAITING.uploaded}{recording.error ? ` ${recording.error}` : ''}</p>;
