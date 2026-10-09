@@ -1,3 +1,14 @@
+## 2026-10-09 — Tahvel full screen — branch `agent/board-fullscreen`
+
+Owner: the board must be better and always available to the student. Students and parents already have „Tahvel”
+(`/board`, own card via `listOwned`); it shows only when the account is linked to the student card.
+- `BoardPage`: full screen like the Live Classroom (`.lr .lw` shell, `StudentBoard variant="room"`: floating tool
+  dock, style panel, zoom), top bar with back (student → home, staff → student card), title, student choice (several
+  cards), undo / redo. Staff can add a picture (`libraryService.uploadFile`, same as the room). `?page=` still opens
+  a lesson page.
+- Checks: board + app tests 40/40; eslint 0 errors (1 old warning). Not looked at live (needs a merge: Vercel skips
+  agent/* previews).
+- Next safe step: owner opens a student's „Tahvel” on a phone and a laptop after merge.
 ## 2026-10-09 — Faster review queue — branch `agent/review-queue`
 
 Checked `origin/main` `deb3b78`. Owner: make teachers' life easier (3/3: checking submitted work).
