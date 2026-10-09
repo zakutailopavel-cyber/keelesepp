@@ -15,6 +15,7 @@ import RoomPet from '../pet/RoomPet.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
+import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { fileKind } from './roomMaterials.js';
 import './liveRoom.css';
@@ -252,6 +253,9 @@ export default function LiveRoom({
     return () => globalThis.clearTimeout(timer);
   }, [notice]);
   const uploadImage = library?.uploadFile ? (file) => library.uploadFile({ file, user }) : undefined;
+  // the student may show a photo (e.g. a notebook page) on their own board
+  const boardUploads = boardService || studentBoardService;
+  const studentUpload = boardUploads?.uploadStudentImage ? (file) => boardUploads.uploadStudentImage(invitation.studentId, file) : undefined;
 
   const peerLabel = call.peerOnline ? 'võrgus' : 'pole võrgus';
   const startCall = teacher ? call.startTeacherCall : call.joinStudentCall;
@@ -322,7 +326,7 @@ export default function LiveRoom({
             controllerRef={boardRef}
             onHistoryChange={setHistory}
             newPageTitle={`Tund ${lessonDate}`}
-            uploadImage={teacher ? uploadImage : undefined}
+            uploadImage={teacher ? uploadImage : studentUpload}
             worksheets={boardSheets}
             onPageChange={onPageChange}
             {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}

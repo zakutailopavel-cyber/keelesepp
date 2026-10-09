@@ -44,8 +44,10 @@ export default function BoardPage({ studentRepository = studentsService, boardSe
   if (!student) {
     return <div className="page-content board-page"><Card><EmptyState title="Tahvlit ei leitud" description="Konto ei ole veel õpilase kaardiga seotud. Kirjuta õpetajale." /></Card></div>;
   }
-  // teachers can put a picture on the board here too (the same upload as in the Live Classroom)
-  const uploadImage = staff && library?.uploadFile ? (file) => library.uploadFile({ file, user }) : undefined;
+  // teachers put a picture on the board (the same upload as in the Live Classroom); students and parents a photo
+  const uploadImage = staff
+    ? (library?.uploadFile ? (file) => library.uploadFile({ file, user }) : undefined)
+    : (boardService.uploadStudentImage ? (file) => boardService.uploadStudentImage(student.id, file) : undefined);
   return (
     <div className="lr lw board-full" role="region" aria-label="Tahvel">
       <header className="lr-top lw-top">

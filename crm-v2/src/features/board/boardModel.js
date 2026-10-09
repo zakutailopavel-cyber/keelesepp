@@ -147,11 +147,12 @@ export function clampPoint(point, bounds) {
 // teacher content: images/PDFs (only staff add them) and everything a teacher drew or wrote (byStaff); only staff
 // may move, change or delete it (also enforced by the Firestore rules)
 export function teacherMaterial(element) {
-  return ['image', 'pdf'].includes(element?.type) || element?.byStaff === true;
+  return (['image', 'pdf'].includes(element?.type) && element?.byStudent !== true) || element?.byStaff === true;
 }
 
+// anything not locked can be selected, moved and resized (lines too, since 2026-10-09)
 export function movable(element) {
-  return Boolean(element) && element.type !== 'stroke' && element.locked !== true;
+  return Boolean(element) && element.locked !== true;
 }
 
 // Natural size of an image, so it keeps its proportions on the board (A4 portrait when it cannot be read).
@@ -182,3 +183,69 @@ export function pinchView(start, [a0, b0], [a1, b1]) {
   const zoomed = zoomAt(start, factor, c0);
   return { ...zoomed, x: zoomed.x + c1.x - c0.x, y: zoomed.y + c1.y - c0.y };
 }
+
+// ── selection, moving, resizing ──────────────────────────────────
+// the box around several elements (null when there is nothing)
+export function unionBounds(elements = []) {
+  const boxes = elements.map(elementBounds).filter(Boolean);
+  if (!boxes.length) return null;
+  return { x1: Math.min(...boxes.map((b) => b.x1)), y1: Math.min(...boxes.map((b) => b.y1)), x2: Math.max(...boxes.map((b) => b.x2)), y2: Math.max(...boxes.map((b) => b.y2)) };
+}
+// does an element lie (partly) inside a dragged frame
+export function touchesBox(element, box) {
+  const b = elementBounds(element);
+  return Boolean(b) && b.x1 <= box.x2 && b.x2 >= box.x1 && b.y1 <= box.y2 && b.y2 >= box.y1;
+}
+export const frameFrom = (a, b) => ({ x1: Math.min(a.x, b.x), y1: Math.min(a.y, b.y), x2: Math.max(a.x, b.x), y2: Math.max(a.y, b.y) });
+const round2 = (n) => Math.round(n * 100) / 100;
+// the fields that move an element by dx, dy (a line moves all its points)
+export function movePatch(element, dx, dy) {
+  if (element.type === 'stroke') return { points: (element.points || []).map((p) => ({ x: round2(p.x + dx), y: round2(p.y + dy) })) };
+  return { x: Math.round(element.x + dx), y: Math.round(element.y + dy) };
+}
+// Dragging the corner handle by dx, dy: pictures and PDFs keep their proportions, text grows its letters with the box,
+// a line is scaled around its top-left corner. Never smaller than 12 board units.
+export function resizePatch(element, dx, dy) {
+  const box = elementBounds(element);
+  if (!box) return {};
+  const w0 = Math.max(1, box.x2 - box.x1);
+  const h0 = Math.max(1, box.y2 - box.y1);
+  let w = Math.max(12, w0 + dx);
+  let h = Math.max(12, h0 + dy);
+  if (element.type === 'image' || element.type === 'pdf') { const k = Math.max(w / w0, h / h0); w = w0 * k; h = h0 * k; }
+  if (element.type === 'stroke') {
+    const kx = w / w0;
+    const ky = h / h0;
+    return { points: (element.points || []).map((p) => ({ x: round2(box.x1 + (p.x - box.x1) * kx), y: round2(box.y1 + (p.y - box.y1) * ky) })) };
+  }
+  if (element.type === 'shape' && (element.shape === 'arrow' || element.shape === 'line')) {
+    return { w: Math.round(element.w * (w / w0)), h: Math.round(element.h * (h / h0)) };
+  }
+  const patch = { w: Math.round(w), h: Math.round(h) };
+  if (element.type === 'text') patch.fontSize = Math.max(8, Math.min(96, Math.round((element.fontSize || 18) * (h / h0))));
+  return patch;
+}
+// a copy of an element for „Kopeeri” / paste, shifted so it is visible next to the original
+export function copyData(element, offset = 24) {
+  const { id, updatedAt, updatedByUid, updatedByName, lastClientId, revision, locked, ...data } = element; // eslint-disable-line no-unused-vars
+  return { ...data, ...movePatch(element, offset, offset), ...(['image', 'pdf'].includes(element.type) ? { locked: false } : {}) };
+}
+
+// ── the sheet grows while you draw ───────────────────────────────
+// drawing may go this far past the current edge; the sheet then grows to hold it
+export const GROW = 600;
+export const growBounds = (bounds, by = GROW) => ({ x1: bounds.x1 - by, y1: bounds.y1 - by, x2: bounds.x2 + by, y2: bounds.y2 + by });
+
+// ── paper and marker ─────────────────────────────────────────────
+export const BACKGROUNDS = [
+  ['dots', 'Täpid'],
+  ['grid', 'Ruudud'],
+  ['lines', 'Jooned'],
+  ['plain', 'Tühi'],
+];
+export const backgroundOf = (backgrounds = {}, pageKey = 'board') => (BACKGROUNDS.some(([key]) => key === backgrounds[pageKey]) ? backgrounds[pageKey] : 'dots');
+// a highlighter is a see-through line (8-digit hex colour), drawn wide
+export const MARKER_COLORS = ['#FDE047', '#86EFAC', '#F9A8D4', '#93C5FD'];
+export const markerColor = (hex) => `${String(hex).slice(0, 7)}66`;
+export const isMarker = (element) => element?.type === 'stroke' && /^#[0-9a-f]{8}$/i.test(String(element.color || ''));
+export const markerWidth = (penWidth = 4) => Math.min(40, Math.max(12, penWidth * 4));

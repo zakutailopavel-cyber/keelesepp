@@ -39,6 +39,7 @@ function encode(value) {
   if (typeof value === "boolean") return { booleanValue: value };
   if (typeof value === "number") return Number.isInteger(value) ? { integerValue: String(value) } : { doubleValue: value };
   if (typeof value === "string") return { stringValue: value };
+  if (typeof value === "object") return { mapValue: { fields: Object.fromEntries(Object.entries(value).map(([key, item]) => [key, encode(item)])) } };
   throw new Error(`Unsupported value ${value}`);
 }
 
@@ -211,4 +212,45 @@ test("nobody writes to a completed lesson snapshot", async () => {
   const ctx = await seed();
   const result = await commit(ctx.teacherToken, [createElement(`whiteboards/${ctx.studentId}/lessonPages/done/elements/t-late`, ctx.teacherUid, note)]);
   assert.equal(result.status, 403);
+});
+
+test("a student adds, moves and erases their own photo, but not an outside picture or a PDF", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const photo = { type: "image", x: 0, y: 0, w: 400, h: 300, url: "https://firebasestorage.googleapis.com/v0/b/x/o/vihik.jpg", storagePath: `whiteboards/${ctx.studentId}/student/vihik.jpg`, locked: false, byStudent: true };
+  const path = `whiteboards/${ctx.studentId}/elements/s-photo`;
+  const added = await commit(ctx.studentToken, [createElement(path, ctx.studentUid, photo)]);
+  assert.equal(added.status, 200, JSON.stringify(added.body));
+  const moved = await commit(ctx.studentToken, [updateElement(path, ctx.studentUid, { ...photo, x: 50, w: 600, h: 450 })]);
+  assert.equal(moved.status, 200, JSON.stringify(moved.body));
+  const unmarked = await commit(ctx.studentToken, [updateElement(path, ctx.studentUid, { ...photo, byStudent: false })]);
+  assert.equal(unmarked.status, 403, "the student mark cannot be removed");
+  for (const [name, data] of [
+    ["outside", { ...photo, url: "https://evil.example/pilt.jpg" }],
+    ["other-folder", { ...photo, storagePath: `whiteboards/${ctx.studentId}/materials/x.jpg` }],
+    ["pdf", { ...pdf, byStudent: true, storagePath: `whiteboards/${ctx.studentId}/student/x.pdf`, url: photo.url }],
+  ]) {
+    const denied = await commit(ctx.studentToken, [createElement(`whiteboards/${ctx.studentId}/elements/s-${name}`, ctx.studentUid, data)]);
+    assert.equal(denied.status, 403, name);
+  }
+  const page = await commit(ctx.studentToken, [createElement(`whiteboards/${ctx.studentId}/lessonPages/live/elements/s-photo`, ctx.studentUid, photo)]);
+  assert.equal(page.status, 200, JSON.stringify(page.body));
+  const erased = await commit(ctx.studentToken, [{ delete: documentName(path) }]);
+  assert.equal(erased.status, 200, JSON.stringify(erased.body));
+  const teacherMove = await commit(ctx.teacherToken, [updateElement(`whiteboards/${ctx.studentId}/lessonPages/live/elements/s-photo`, ctx.teacherUid, { ...photo, x: 10 })]);
+  assert.equal(teacherMove.status, 200, JSON.stringify(teacherMove.body));
+});
+
+test("the paper of a page (backgrounds) is stored on the board document", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seed();
+  const write = (backgrounds) => commit(ctx.studentToken, [{
+    update: { name: documentName(`whiteboards/${ctx.studentId}`), fields: { backgrounds: encode(backgrounds), updatedByUid: encode(ctx.studentUid), updatedByName: encode("Board Student") } },
+    updateMask: { fieldPaths: ["backgrounds", "updatedByUid", "updatedByName"] },
+    updateTransforms: [{ fieldPath: "updatedAt", setToServerValue: "REQUEST_TIME" }],
+  }]);
+  const ok = await write({ board: "lines", live: "grid" });
+  assert.equal(ok.status, 200, JSON.stringify(ok.body));
+  const bad = await write("lines");
+  assert.equal(bad.status, 403);
 });

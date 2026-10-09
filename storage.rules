@@ -156,6 +156,14 @@ service firebase.storage {
       allow write: if staff() && safeContent();
     }
 
+    // A student's (or parent's) own photos on the board, e.g. a notebook page: images only, up to 10 MB.
+    match /whiteboards/{studentId}/student/{fileName} {
+      allow read: if staff() || ownsStudent(studentId);
+      allow write: if (staff() || ownsStudent(studentId))
+        && (request.resource == null
+          || (request.resource.size < 10 * 1024 * 1024 && request.resource.contentType.matches('^image/.*$')));
+    }
+
     match /financial/payment-orders/{paymentId}/{documentId} {
       allow read: if accountingAdmin();
       allow create: if accountingAdmin() && safePaymentOrder();

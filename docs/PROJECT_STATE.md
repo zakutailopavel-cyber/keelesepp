@@ -1,3 +1,30 @@
+## 2026-10-09 — Board: objects, growing sheet, paper, marker, student photos — branch `agent/board-tools`
+
+Checked `origin/main` `f341ba9`. Owner chose three board packages.
+- Objects (tool „Vali”): drag on an empty place → selection frame (Shift adds); a click selects one; the selection
+  moves as one step; the corner handle resizes (pictures keep proportions, text grows its letters, lines scale);
+  bar over the selection: „Kopeeri”, „Kustuta”. Keys: Ctrl/⌘+Z, Ctrl+Shift+Z / Ctrl+Y, Delete/Backspace, Ctrl+C/V,
+  Ctrl+D, Esc, Space held = move the board, V/P/M/T/N/E/H tools (never while typing). Lines can now be moved.
+  Several changes are one history entry (`op: 'batch'`). Model: `movePatch`, `resizePatch`, `copyData`,
+  `unionBounds`, `touchesBox`, `frameFrom`.
+- Space: drawing may go `GROW` = 600 units past the sheet edge (`growBounds`); the sheet grows to hold it.
+  Paper per page: dots / grid / lines / plain in the style panel, stored on the board document
+  (`whiteboards/{id}.backgrounds[pageKey]`, also `groupBoards`), `studentBoard.subscribeBackgrounds/setBackground`.
+- Marker: tool „Marker” (M), 4 see-through colours (`#RRGGBB66`, multiply), wide line; no rule change.
+- Student photos: students/parents add an image (`byStudent: true`) from the dock (BoardPage and their Live Classroom
+  board) via `studentBoard.uploadStudentImage` → Storage `whiteboards/{id}/student/` (images ≤ 10 MB, JPEG ≤ 1600 px).
+  The student may move / resize / erase own photos; the teacher too. `teacherMaterial` excludes `byStudent`.
+- Rules: board element rules now compute admin/teacher once (`whiteboardAccessAs`, `whiteboardPage*Allowed`,
+  `whiteboardElementCreateValidAs`) — the added checks pushed teacher image writes over the 1000-expression limit
+  before that. Student image: url must be Firebase Storage, storagePath `whiteboards/<id>/student/<file>`.
+- Checks: whiteboard + group room emulator tests 11/11 (2 new); board 25/25 (5 new); live-classroom +
+  worksheet-studio only the known 9 Node 26 `localStorage` failures; eslint 0 errors; build OK.
+- Manual gate: deploy `firestore:rules,storage` after merge (backgrounds and photos need them; drawing does not).
+- Also today (no repo change): the lesson transcriber on the school Mac ran an old copy without the heartbeat, so
+  the room always said „Mac ei transkribeeri”; updated `~/KeeleSeppTranscriber/app` from `tools/lesson-transcriber`
+  (old copy in `~/KeeleSeppTranscriber/backup-2026-10-09`), restarted; `transcriberStatus/macbook-pro` is written.
+- Next safe step: after merge + rules deploy, a student tries a photo and the marker on a phone.
+
 ## 2026-10-09 — Board: whole worksheet, easier moving — branch `agent/board-navigation`
 
 Checked `origin/main` `9df66cf` (#374–#377 merged by the owner). Owner: a worksheet on the board is cut off and

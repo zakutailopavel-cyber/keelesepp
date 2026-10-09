@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView } from './boardModel.js';
+import { arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -43,7 +43,7 @@ describe('board geometry', () => {
     expect(shapeFromDrag('rect', { x: 50, y: 50 }, { x: 10, y: 20 })).toEqual({ x: 10, y: 20, w: 40, h: 30 });
     expect(shapeFromDrag('arrow', { x: 50, y: 50 }, { x: 10, y: 20 })).toEqual({ x: 50, y: 50, w: -40, h: -30 });
     expect(arrowHead({ x: 0, y: 0, w: 100, h: 0 })).toContain('100,0');
-    expect(movable({ type: 'stroke' })).toBe(false);
+    expect(movable({ type: 'stroke' })).toBe(true);
     expect(movable({ type: 'image', locked: true })).toBe(false);
     expect(movable({ type: 'note' })).toBe(true);
   });
@@ -300,5 +300,84 @@ describe('moving the board', () => {
     fireEvent.wheel(svg, { deltaY: 30, clientX: 10, clientY: 10 });
     expect(g()).not.toBe(before);
     expect(g()).toMatch(/scale\(1\)$|scale\(1\)/);
+  });
+});
+
+describe('board objects, paper and marker', () => {
+  it('moves, resizes and copies elements; pictures keep their proportions, text grows its letters', () => {
+    const stroke = { type: 'stroke', points: [{ x: 0, y: 0 }, { x: 10, y: 20 }] };
+    expect(movePatch(stroke, 5, 5)).toEqual({ points: [{ x: 5, y: 5 }, { x: 15, y: 25 }] });
+    expect(movePatch({ type: 'note', x: 10, y: 10 }, 5, -5)).toEqual({ x: 15, y: 5 });
+    expect(resizePatch({ type: 'image', x: 0, y: 0, w: 200, h: 100 }, 200, 0)).toEqual({ w: 400, h: 200 });
+    expect(resizePatch({ type: 'text', x: 0, y: 0, w: 100, h: 40, fontSize: 18 }, 0, 40)).toEqual({ w: 100, h: 80, fontSize: 36 });
+    expect(resizePatch({ type: 'note', x: 0, y: 0, w: 100, h: 100 }, -500, -500)).toEqual({ w: 12, h: 12 });
+    expect(resizePatch(stroke, 10, 20).points[1]).toEqual({ x: 20, y: 40 });
+    const copy = copyData({ id: 'a', type: 'note', x: 0, y: 0, w: 10, h: 10, text: 'x', updatedByUid: 'u', revision: 3, locked: true });
+    expect(copy).toEqual({ type: 'note', x: 24, y: 24, w: 10, h: 10, text: 'x' });
+    expect(unionBounds([{ type: 'note', x: 0, y: 0, w: 10, h: 10 }, { type: 'note', x: 20, y: 30, w: 10, h: 10 }])).toEqual({ x1: 0, y1: 0, x2: 30, y2: 40 });
+    expect(touchesBox({ type: 'note', x: 0, y: 0, w: 10, h: 10 }, { x1: 5, y1: 5, x2: 50, y2: 50 })).toBe(true);
+    expect(touchesBox({ type: 'note', x: 0, y: 0, w: 10, h: 10 }, { x1: 20, y1: 20, x2: 50, y2: 50 })).toBe(false);
+    expect(growBounds({ x1: 0, y1: 0, x2: 100, y2: 100 }, 50)).toEqual({ x1: -50, y1: -50, x2: 150, y2: 150 });
+  });
+
+  it('a student photo is the student\'s; marker lines are see-through; unknown paper is dots', () => {
+    expect(teacherMaterial({ type: 'image' })).toBe(true);
+    expect(teacherMaterial({ type: 'image', byStudent: true })).toBe(false);
+    expect(markerColor('#FDE047')).toBe('#FDE04766');
+    expect(isMarker({ type: 'stroke', color: '#FDE04766' })).toBe(true);
+    expect(isMarker({ type: 'stroke', color: '#1C2B3A' })).toBe(false);
+    expect(backgroundOf({ board: 'lines' })).toBe('lines');
+    expect(backgroundOf({ board: 'nonsense' })).toBe('dots');
+    expect(backgroundOf({ p1: 'grid' }, 'p1')).toBe('grid');
+  });
+
+  it('selects with a frame, moves the selection as one step and deletes it with the Delete key', async () => {
+    const service = fakeService({ board: [
+      { id: 'n1', type: 'note', x: 100, y: 100, w: 50, h: 50, text: 'a', color: '#FEF3C7' },
+      { id: 'n2', type: 'note', x: 200, y: 100, w: 50, h: 50, text: 'b', color: '#FEF3C7' },
+      { id: 'far', type: 'note', x: 900, y: 900, w: 50, h: 50, text: 'c', color: '#FEF3C7' },
+    ] });
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} variant="room" />);
+    const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
+    await act(async () => { fireEvent.pointerDown(svg, { clientX: 80, clientY: 80, button: 0 }); });
+    await act(async () => { fireEvent.pointerMove(svg, { clientX: 300, clientY: 200 }); });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 300, clientY: 200 }); });
+    expect(screen.getByRole('toolbar', { name: 'Valitud' })).toBeInTheDocument();
+    const note = container.querySelector('[data-element-id="n1"]');
+    await act(async () => { fireEvent.pointerDown(note, { clientX: 120, clientY: 120, button: 0 }); });
+    await act(async () => { fireEvent.pointerMove(svg, { clientX: 140, clientY: 150 }); });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 140, clientY: 150 }); });
+    await waitFor(() => expect(service.update).toHaveBeenCalledTimes(2));
+    expect(service.data.board.find((e) => e.id === 'n2')).toMatchObject({ x: 220, y: 130 });
+    expect(service.data.board.find((e) => e.id === 'far')).toMatchObject({ x: 900, y: 900 });
+    await act(async () => { fireEvent.keyDown(window, { key: 'Delete' }); });
+    await waitFor(() => expect(service.data.board.map((e) => e.id)).toEqual(['far']));
+    await act(async () => { fireEvent.keyDown(window, { key: 'z', ctrlKey: true }); });
+    await waitFor(() => expect(service.data.board).toHaveLength(3));
+  });
+
+  it('copies with Ctrl+D, draws a see-through marker line and changes the paper', async () => {
+    const service = { ...fakeService({ board: [{ id: 'n1', type: 'note', x: 100, y: 100, w: 50, h: 50, text: 'a', color: '#FEF3C7' }] }), setBackground: vi.fn(async () => {}), subscribeBackgrounds: vi.fn((_id, onData) => { onData({}); return () => {}; }) };
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={service} variant="room" />);
+    const svg = screen.getByRole('img', { name: 'Õpilase tahvel' });
+    fireEvent.click(screen.getByRole('button', { name: 'Vali ja liiguta' }));
+    await act(async () => { fireEvent.pointerDown(container.querySelector('[data-element-id="n1"]'), { clientX: 120, clientY: 120, button: 0 }); });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 120, clientY: 120 }); });
+    await act(async () => { fireEvent.keyDown(window, { key: 'd', ctrlKey: true }); });
+    await waitFor(() => expect(service.add).toHaveBeenCalledWith('s-1', null, expect.objectContaining({ type: 'note', x: 124, y: 124, text: 'a' }), user));
+    fireEvent.click(screen.getByRole('button', { name: 'Marker' }));
+    await act(async () => { fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, button: 0 }); });
+    await act(async () => { fireEvent.pointerMove(svg, { clientX: 60, clientY: 10 }); });
+    await act(async () => { fireEvent.pointerUp(svg, { clientX: 60, clientY: 10 }); });
+    await waitFor(() => expect(service.add).toHaveBeenLastCalledWith('s-1', null, expect.objectContaining({ type: 'stroke', color: '#FDE04766', strokeWidth: 16 }), user));
+    fireEvent.click(screen.getByRole('button', { name: 'Jooned' }));
+    expect(service.setBackground).toHaveBeenCalledWith('s-1', 'board', 'lines', user);
+    expect(container.querySelector('.sb-paper.is-lines')).not.toBeNull();
+  });
+
+  it('a student gets the photo button when the board can take their pictures', () => {
+    render(<StudentBoard studentId="s-1" user={user} service={fakeService()} variant="room" uploadImage={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Pilt' })).toHaveAttribute('title', 'Lisa foto (nt vihikust)');
   });
 });
