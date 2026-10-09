@@ -44,6 +44,7 @@ import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
 import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
+import { canCancelInvoice } from './invoiceActions.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
@@ -56,16 +57,6 @@ const STATUS = {
 const VIEWS = ['invoices', 'paid', 'unpaid', 'credits', 'prepare'];
 const creditAvailableCents = (credit) => Number.isInteger(credit?.availableAmountCents)
   ? credit.availableAmountCents : Math.round(Number(credit?.availableAmount || 0) * 100);
-
-function canCancelInvoice(invoice) {
-  return ['manual_charge_v1', 'monthly_plan_v1'].includes(invoice.billingMode) &&
-    !['Tühistatud', 'Makstud'].includes(invoice.status) &&
-    !['sent', 'queued', 'sending'].includes(invoice.emailStatus) &&
-    !invoice.emailSentAt && !invoice.invoiceEmailSentAt && !invoice.emailQueuedAt &&
-    !invoice.lessonIds?.length && !invoice.lines?.some((line) => line.lessonId) &&
-    !Number(invoice.paidAmountCents || invoice.paidAmount * 100 || 0) &&
-    !Number(invoice.creditedAmountCents || 0);
-}
 
 function CancelInvoiceDialog({ invoice, busy, error, onClose, onSubmit }) {
   const [reason, setReason] = useState('');
@@ -268,7 +259,7 @@ export default function FinanceMonthPage({
           </div>; })}
         </div>}
       </Card> : null}
-      {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} /> : null}
+      {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={async (invoice) => { await deliveryRepository.remind(invoice.id); await state.reload(); }} onCancel={(invoice) => { setError(''); setCancelInvoice(invoice); }} onCorrectDueDate={(invoice, due, reason) => financeRepository.correctInvoiceDueDate(invoice.id, due, reason)} onCreditLessonLine={(invoice, lessonId, reason) => financeRepository.creditInvoiceLessonLine(invoice.id, lessonId, reason)} /> : null}
       </section>
       <PaymentDialog key={paymentInvoice?.id || 'closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
       <CancelInvoiceDialog key={cancelInvoice?.id || 'closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
