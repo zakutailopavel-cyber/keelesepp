@@ -475,3 +475,39 @@
 .ws-live-shown { display: inline-flex; align-items: center; gap: 1.5mm; padding: 1mm 2.5mm; border-radius: 99px; background: #e9f7ee; color: #1d5b35; font-size: 9.5pt; font-weight: 700; }
 .ws-card.is-live-closed { opacity: .45; filter: grayscale(.6); }
 .ws-card.is-live-closed::before { content: 'Õpilane ei näe veel'; position: absolute; right: 3mm; top: 3mm; z-index: 4; padding: .8mm 2.5mm; border-radius: 99px; background: #132238; color: #fff; font-size: 8.5pt; font-weight: 700; }
+/* on-sheet formatted text (Md + RichInlineEditor) */
+.ws-mark-hl { background: #fde68a; color: inherit; padding: 0 .4mm; border-radius: .6mm; }
+.ws-rich-hidden { visibility: hidden; }
+.ws-tiptap { background: #fff; border-radius: 6px; box-shadow: 0 0 0 2px #0ea5e9, 0 10px 26px rgba(16, 35, 57, .18); padding: 2px 4px; }
+.ws-tiptap .ProseMirror { outline: none; white-space: pre-wrap; }
+.ws-tiptap .ProseMirror p { margin: 0 0 .4em; } .ws-tiptap .ProseMirror p:last-child { margin: 0; }
+.ws-tiptap mark { background: #fde68a; color: inherit; border-radius: 2px; }
+.ws-tiptap-bar { display: flex; align-items: center; gap: 2px; padding: 4px; border-radius: 10px; background: #132238; box-shadow: 0 10px 26px rgba(16, 35, 57, .3); z-index: 1001; }
+.ws-tiptap-bar button { display: grid; place-items: center; min-width: 28px; height: 28px; border: 0; border-radius: 7px; background: transparent; color: #fff; font: 700 13px 'DM Sans', system-ui, sans-serif; cursor: pointer; }
+.ws-tiptap-bar button:hover, .ws-tiptap-bar button.is-on { background: rgba(255, 255, 255, .18); }
+.ws-tiptap-hl { background: #fde68a; color: #132238; padding: 0 4px; border-radius: 3px; }
+.ws-tiptap-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .85); }
+.ws-tiptap-sep { width: 1px; height: 18px; margin: 0 3px; background: rgba(255, 255, 255, .25); }
+@media print { .ws-tiptap, .ws-tiptap-bar { display: none !important; } }
+/* ready-made styles: heading look (look.head) and number shape (look.num); colour = --ws-badge of the block */
+.ws-card.head-band .ws-ch { margin: -4mm -4.6mm 3mm; padding: 2.6mm 4.6mm; background: var(--ws-badge); border-radius: var(--radius) var(--radius) 0 0; }
+.ws-card.head-band .ws-ch h3, .ws-card.head-band .ws-ch p { color: #fff !important; }
+.ws-card.head-band .ws-num { background: #fff !important; color: var(--ws-badge); }
+.ws-card.head-tab .ws-ch h3 { display: inline-block; padding: .9mm 3.4mm; border-radius: 2mm 2mm 0 0; background: var(--ws-badge); color: #fff !important; }
+.ws-card.head-line .ws-ch h3 { padding-bottom: 1mm; border-bottom: .7mm solid var(--ws-badge); }
+.ws-card.num-square .ws-num { border-radius: 2mm; }
+.ws-card.num-outline .ws-num { background: transparent !important; border: .6mm solid var(--ws-badge); color: var(--ws-badge); }
+/* sheet themes (meta.theme); colours of the tones come from look.js THEMES */
+.ws-root.theme-kids { --radius: 5mm; }
+.ws-root.theme-kids .ws-ch h3 { letter-spacing: .01em; }
+.ws-root.theme-pastel { --radius: 3.5mm; }
+.ws-root.theme-bw .ws-card:not(.plain) { box-shadow: inset 0 0 0 .3mm #8a8a86; }
+.ws-root.theme-bw .ws-num { background: #2c2c2a !important; }
+/* the toolbar's „Stiil” menu */
+.ws-toolbar-menu { position: relative; display: inline-flex; }
+.ws-style-menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 9; display: grid; gap: 1px; min-width: 170px; padding: 4px; border-radius: 10px; background: #132238; box-shadow: 0 14px 32px rgba(16, 35, 57, .3); }
+.ws-style-menu button { justify-content: flex-start; }
+.ws-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 4px; border: 1.5px solid rgba(255, 255, 255, .7); }
+.ws-swatch.tone-blue { background: #edf5fd; } .ws-swatch.tone-green { background: #ecf6e9; } .ws-swatch.tone-peach { background: #fcf3e4; }
+.ws-swatch.tone-cream { background: #fdf8ee; } .ws-swatch.tone-sky { background: #eaf4fc; } .ws-swatch.tone-white { background: #fff; }
+.ws-style-sep { height: 1px; margin: 3px 2px; background: rgba(255, 255, 255, .2); }

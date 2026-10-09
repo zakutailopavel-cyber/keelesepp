@@ -1,5 +1,6 @@
 /* global ResizeObserver, Blob, setTimeout, clearTimeout, structuredClone */
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -10,9 +11,12 @@ import MediaBankPanel from './MediaBankPanel.jsx';
 import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet from './engine/Sheet.jsx';
+import { NO_DRAG, dropAction, hintFor } from './engine/dragIds.js';
+import { DndContext, DragOverlay, PointerSensor, pointerWithin, rectIntersection, useDraggable, useSensor, useSensors } from '@dnd-kit/core';
+import { dropSide } from './engine/look.js';
 import { AssetContext } from './engine/assets.jsx';
 import { BLOCKS, GROUPS, checkDocument, createBlock, isPaletteKey, paletteEntries } from './engine/registry.js';
-import { dropAt, insertAt, moveRun } from './engine/look.js';
+import { STYLE_PRESETS, dropAt, insertAt, moveRun, styleOf, styleSameType, withStyle } from './engine/look.js';
 import { ASPECTS, newDocument, newId } from './engine/schema.js';
 import { cropToFile, nearestAspect } from './engine/image.js';
 import { originalFiles } from './conversion.js';
@@ -43,6 +47,23 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
+// A press on a block (not on its tools, fields or texts being edited) or on a palette item starts a drag after 6 px.
+class SheetPointerSensor extends PointerSensor {
+  static activators = [{
+    eventName: 'onPointerDown',
+    handler: ({ nativeEvent: event }) => event.isPrimary !== false && event.button === 0
+      && (Boolean(event.target?.closest?.('.st-block')) || !event.target?.closest?.(NO_DRAG)),
+  }];
+}
+// both pointer-inside (precise) and overlap (when the pointer is between cards)
+const paletteLabel = (key) => paletteEntries().find((entry) => entry.key === key)?.label || '';
+const collide = (args) => { const inside = pointerWithin(args); return inside.length ? inside : rectIntersection(args); };
+
+function PaletteItem({ id, onClick, title, children }) {
+  const { setNodeRef, listeners, isDragging } = useDraggable({ id: `new:${id}`, data: { kind: 'new', type: id } });
+  return <button type="button" ref={setNodeRef} {...listeners} className={`st-block ${isDragging ? 'is-dragging' : ''}`} onClick={onClick} title={title}>{children}</button>;
+}
+
 export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
@@ -68,21 +89,42 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [original, setOriginal] = useState([]);
   const [leftTab, setLeftTab] = useState('blocks');
   // the selected block's settings float next to it (no fixed right column); the side can be switched
+  // drag & drop (dnd-kit): what is dragged and where it would land (the lit line on the sheet)
+  const [dragging, setDragging] = useState(null);
+  const [dropHint, setDropHint] = useState(null);
+  const sensors = useSensors(useSensor(SheetPointerSensor, { activationConstraint: { distance: 6 } }));
   const [popSide, setPopSide] = useState('right');
-  const [popTop, setPopTop] = useState(80);
-  useEffect(() => {
-    if (!selectedId) return undefined;
-    const place = () => {
-      const rect = globalThis.document?.querySelector(`.ws-page [data-block="${selectedId}"]`)?.getBoundingClientRect();
-      const height = globalThis.innerHeight || 800;
-      setPopTop(Math.round(rect ? Math.min(Math.max(72, rect.top), Math.max(72, height - 360)) : 80));
-    };
-    place();
-    globalThis.addEventListener?.('scroll', place, true);
-    globalThis.addEventListener?.('resize', place);
-    return () => { globalThis.removeEventListener?.('scroll', place, true); globalThis.removeEventListener?.('resize', place); };
-  }, [selectedId]);
-  const popStyle = { top: popTop, maxHeight: `calc(100vh - ${popTop + 16}px)` };
+  // „Stiil” on the block toolbar: ready-made styles, copy / paste a style, the same style on all blocks of the type
+  const [styleMenu, setStyleMenu] = useState('');
+  const [copiedStyle, setCopiedStyle] = useState(null);
+  // Floating UI: the panel sits beside the page at the height of the selected block (a virtual reference = the page's
+  // left / right edges and the block's top / bottom), flips to the other side when there is no room, follows scrolling
+  const { refs, floatingStyles } = useFloating({
+    open: Boolean(selectedId),
+    strategy: 'fixed',
+    placement: popSide === 'right' ? 'right-start' : 'left-start',
+    middleware: [
+      offset(14),
+      flip({ padding: 12 }),
+      shift({ padding: 12, crossAxis: true }),
+      size({ padding: 12, apply: ({ availableHeight, elements }) => { elements.floating.style.maxHeight = `${Math.max(260, Math.floor(availableHeight))}px`; } }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+  useLayoutEffect(() => {
+    const card = selectedId ? globalThis.document?.querySelector(`.ws-page [data-block="${selectedId}"]`) : null;
+    if (!card) { refs.setPositionReference(null); return; }
+    const page = card.closest('.ws-page') || card;
+    refs.setPositionReference({
+      contextElement: card,
+      getBoundingClientRect: () => {
+        const c = card.getBoundingClientRect();
+        const p = page.getBoundingClientRect();
+        return { x: p.left, y: c.top, left: p.left, right: p.right, top: c.top, bottom: c.bottom, width: p.width, height: c.height };
+      },
+    });
+  }, [selectedId, doc?.blocks, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+  const popStyle = floatingStyles;
   const [cut, setCut] = useState({ busy: false, error: '' });
   const [history, setHistory] = useState(emptyHistory);
   const [baseUpdatedAt, setBaseUpdatedAt] = useState('');
@@ -399,6 +441,22 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setBlocks(insertAt(doc.blocks, [b], toId, side));
     setSelectedId(b.id);
   };
+  const dragStart = ({ active }) => { setDragging(active.data.current || null); setSelectedId(null); };
+  const dragMove = ({ active, over, delta, activatorEvent }) => {
+    const pointer = { x: (activatorEvent?.clientX || 0) + delta.x, y: (activatorEvent?.clientY || 0) + delta.y };
+    const next = hintFor({ active: active.data.current, over: over ? { ...over.data.current, rect: over.rect } : null, pointer, dropSide });
+    if (next?.id !== dropHint?.id || next?.side !== dropHint?.side) setDropHint(next);
+  };
+  const dragEnd = ({ active, over }) => {
+    const action = dropAction({ active: active.data.current, overKind: over?.data.current?.kind, hint: dropHint });
+    setDragging(null); setDropHint(null);
+    if (action?.op === 'new') dropNew(action.type, action.toId, action.side);
+    if (action?.op === 'move') dropMove(action.fromId, action.toId, action.side);
+  };
+  const dragCancel = () => { setDragging(null); setDropHint(null); };
+  const dragLabel = dragging?.kind === 'new'
+    ? (paletteLabel(dragging.type) || 'Plokk')
+    : (() => { const b = doc?.blocks.find((x) => x.id === dragging?.id); return b ? (b.data?.title || BLOCKS[b.type]?.label || 'Plokk') : ''; })();
   const cutPhoto = async (url, rect) => {
     setCut({ busy: true, error: '' });
     try {
@@ -495,6 +553,16 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       <>
         <button type="button" onClick={() => moveBlock(block.id, -1)} disabled={index <= 0} title="Üles (Alt+↑)" aria-label="Liiguta üles"><Icons.ArrowUp aria-hidden="true" /></button>
         <button type="button" onClick={() => moveBlock(block.id, 1)} disabled={index >= doc.blocks.length - 1} title="Alla (Alt+↓)" aria-label="Liiguta alla"><Icons.ArrowDown aria-hidden="true" /></button>
+        <span className="ws-toolbar-menu">
+          <button type="button" aria-expanded={styleMenu === block.id} onClick={() => setStyleMenu(styleMenu === block.id ? '' : block.id)} title="Valmis stiilid"><Icons.Palette aria-hidden="true" /> Stiil</button>
+          {styleMenu === block.id ? <span className="ws-style-menu" role="menu" aria-label="Stiil">
+            {STYLE_PRESETS.map((preset) => <button type="button" role="menuitem" key={preset.key} onClick={() => { updateBlock(withStyle(block, preset)); setStyleMenu(''); }}><i className={`ws-swatch tone-${preset.tone}`} aria-hidden="true" />{preset.label}</button>)}
+            <span className="ws-style-sep" aria-hidden="true" />
+            <button type="button" role="menuitem" onClick={() => { setCopiedStyle(styleOf(block)); setStyleMenu(''); setNotice('Stiil kopeeritud. Vali teine plokk → Stiil → Kleebi stiil.'); }}>Kopeeri stiil</button>
+            {copiedStyle ? <button type="button" role="menuitem" onClick={() => { updateBlock(withStyle(block, copiedStyle)); setStyleMenu(''); }}>Kleebi stiil</button> : null}
+            <button type="button" role="menuitem" onClick={() => { setBlocks(styleSameType(doc.blocks, block)); setStyleMenu(''); setNotice(`Sama stiil kõigil „${BLOCKS[block.type]?.label || 'sama tüüpi'}” plokkidel.`); }}>Kõigile sama tüüpi</button>
+          </span> : null}
+        </span>
         <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)"><Icons.Copy aria-hidden="true" /> Kopeeri</button>
         {canRegenerate && !flipping ? <button type="button" onClick={() => regenerateSelected()} disabled={regenerating} title="Sama fookus ja raskus, kolm uut varianti"><Icons.Sparkles aria-hidden="true" /> {regenerating ? 'Genereerin…' : 'Uus variant'}</button> : null}
         {canRegenerate && flipping ? (
@@ -701,6 +769,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           );
         })()}
 
+        <DndContext sensors={sensors} collisionDetection={collide} onDragStart={dragStart} onDragMove={dragMove} onDragEnd={dragEnd} onDragCancel={dragCancel} autoScroll={{ threshold: { x: 0, y: 0.18 }, acceleration: 14 }}>
         <div className="st-body">
           {mode === 'edit' && (
             <aside className={`st-palette ${leftTab === 'original' ? 'is-original' : ''}`} aria-label="Plokid">
@@ -732,9 +801,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                   {defs.map((d) => {
                     const Ico = Icons[d.icon] || Icons.Square;
                     return (
-                      <button type="button" key={d.key} className="st-block" onClick={() => addBlock(d.key)} title={d.hint ? `${d.hint} — klõpsa või lohista lehele` : 'Klõpsa või lohista lehele'} draggable onDragStart={(e) => { e.dataTransfer.setData('application/x-ws-block', d.key); e.dataTransfer.effectAllowed = 'copy'; }}>
+                      <PaletteItem key={d.key} id={d.key} onClick={() => addBlock(d.key)} title={d.hint ? `${d.hint} — klõpsa või lohista lehele` : 'Klõpsa või lohista lehele'}>
                         <Ico size={16} aria-hidden="true" /><span>{d.label}</span>{d.task && <em>ülesanne</em>}
-                      </button>
+                      </PaletteItem>
                     );
                   })}
                 </div>
@@ -744,13 +813,13 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
           <main className="st-canvas" ref={canvasRef}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onDropNew={dropNew} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
+              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
 
           {mode === 'edit' && (
-            selected ? <aside className={`st-inspector is-floating is-${popSide}`} aria-label="Seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
+            selected ? <aside ref={refs.setFloating} className={`st-inspector is-floating is-${popSide}`} aria-label="Seaded" style={popStyle} onClick={(e) => e.stopPropagation()}>
               <div className="st-pop-head"><b>{BLOCKS[selected.type]?.label || 'Plokk'}</b>
                 <button type="button" className="ed-btn" onClick={() => setPopSide(popSide === 'right' ? 'left' : 'right')} title="Vii paneel teisele poole" aria-label="Vii paneel teisele poole"><Icons.ArrowLeftRight size={15} aria-hidden="true" /></button>
                 <button type="button" className="ed-btn" onClick={() => setSelectedId(null)} aria-label="Sulge seaded"><Icons.X size={15} aria-hidden="true" /></button>
@@ -775,6 +844,10 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             </aside> : null
           )}
         </div>
+        <DragOverlay dropAnimation={{ duration: 220, easing: 'cubic-bezier(.2,.8,.2,1)' }}>
+          {dragging ? <div className="st-drag-ghost"><Icons.GripVertical size={16} aria-hidden="true" /><span>{dragLabel}</span></div> : null}
+        </DragOverlay>
+        </DndContext>
       </div>
     </AssetContext.Provider>
   );

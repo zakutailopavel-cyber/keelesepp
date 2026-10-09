@@ -1,6 +1,8 @@
 // Inline editing on the sheet: the text a teacher double-clicks is matched back to the one string in the
 // block data (or sheet meta) it was rendered from. Ambiguous or derived text is left to the inspector.
 
+import { stripMarks } from './richText.js';
+
 const norm = (value) => String(value ?? '').replace(/\s+/g, ' ').trim();
 
 // Paths of string leaves in `value` whose text equals `text` (whitespace-insensitive).
@@ -8,7 +10,8 @@ export function textPaths(value, text, path = [], out = []) {
   const wanted = norm(text);
   if (!wanted) return out;
   if (typeof value === 'string') {
-    if (norm(value) === wanted) out.push(path);
+    // the sheet shows the text without its formatting markup
+    if (norm(stripMarks(value)) === wanted) out.push(path);
   } else if (Array.isArray(value)) {
     value.forEach((item, index) => textPaths(item, wanted, [...path, index], out));
   } else if (value && typeof value === 'object') {

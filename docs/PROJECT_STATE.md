@@ -1,3 +1,30 @@
+## 2026-10-09 — Constructor pro: dnd-kit drag, floating panel, Tiptap rich text, block styles and sheet themes — branch `agent/constructor-pro`
+
+- Base: `main` d9aea33 (2026-10-09). There are no rules, functions or data changes.
+- Drag and drop:
+  - Now built on `@dnd-kit/core` 6.3.1 (pointer, touch and auto-scroll). This replaces the HTML5 drag.
+  - Ids are `block:<id>`, `drop:<id>`, `drop:__end` and `new:<palette key>`. The pure logic is in `engine/dragIds.js` (`hintFor`, `dropAction`).
+  - Moved cards animate with FLIP.
+- The block panel is positioned with `@floating-ui/react` 0.27.20 (flip, shift and size) next to the card.
+- Inline rich text:
+  - `@tiptap/*` 3.31.3 drives `engine/RichInlineEditor.jsx`, which is lazy-loaded. It opens on double-click for `instruction`, `text` and `passage`.
+  - Selecting text shows a bubble menu: bold, italic, highlight, five colours and clear.
+  - Formatting is stored as plain markup in the same string fields: `**b**`, `*i*`, `==hl==` and `{red}…{/red}`. See `engine/richText.js`.
+  - Older sheets are unchanged. `Md` draws the markup, and `stripMarks` keeps inline-edit matching working.
+- Styles and themes (`engine/look.js`):
+  - `STYLE_PRESETS` define ready block styles, plus `head` (band/tab/line) and `num` (square/outline) task looks.
+  - The toolbar has a «Stiil» menu: copy or paste a style, or apply it to all blocks of the same type.
+  - `THEMES` (Õpik, Pastell, Lastele, Must-valge) are stored in `meta.theme` and recolour the block tones.
+- Routes: the studio pages are lazy-loaded. The main bundle is about 360 KB gz, down from about 398 KB.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/worksheet-generator`: 580/580.
+  - eslint is clean and `npm run build` succeeds.
+  - Checked by hand in a local preview: themes, the «Grammatika» preset, the Tiptap colour save, and no toolbar in the measure layer.
+- Limits:
+  - The task title (h3) stays plain text.
+  - Tests should look up the banner with `.st-banner`, because dnd-kit adds its own `role="status"` region.
+- Next safe step: try the drag and the bubble menu on a real sheet in production, and collect what teachers still miss.
+
 ## 2026-10-09 — Admin bug notes: stuck „Toimunud” lessons, squashed notification filters — branch `agent/admin-bugs`
 
 From the admin's bug channel (screenshots, 2026-10-09).

@@ -1,14 +1,21 @@
 /* global ResizeObserver */
-import { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { dragId, dropId } from './dragIds.js';
 import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
 import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
 import { COLUMNS, rowsOf, snapSpan, spanOf } from './layout.js';
 import { addItemLabel } from './addItem.js';
-import { dropSide } from './look.js';
 import { editSource, findEditable } from './inlineEdit.js';
 import { openFloatingEditor } from './floatingEditor.js';
 import MarksLayer from './Marks.jsx';
+// Tiptap is loaded only when a teacher opens a text for formatting (students never download it)
+const RichInlineEditor = lazy(() => import('./RichInlineEditor.jsx'));
+import { themedTone } from './look.js';
+
+// texts that may carry formatting (bold, colour, highlight) — they are rendered with <Md>
+const RICH_FIELDS = new Set(['instruction', 'text', 'passage']);
 import { BookOpen, CheckCircle2, Clock3, Headphones, Lightbulb, MessageCircle, PenLine, Star } from 'lucide-react';
 
 // Renders a worksheet document as real A4 pages (270 mm design canvas, zoomed to A4 when printed).
@@ -37,12 +44,12 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropHint = '', onSelect, drag, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
+function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
-  const tone = TONES[block.tone] || TONES.white;
+  const tone = themedTone(theme, block.tone || 'white', TONES[block.tone] || TONES.white);
   const look = block.look || {};
-  const accent = look.accent ? (TONES[look.accent] || tone).badge : null;
+  const accent = look.accent ? themedTone(theme, look.accent, TONES[look.accent] || tone).badge : null;
   const LookIcon = LOOK_ICON[look.icon] || null;
   const plain = !def.task && block.tone === 'white' && !look.frame;
   const d = block.data;
@@ -63,17 +70,14 @@ function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropH
   } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${extraClass}`}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${dragging ? 'is-dragging' : ''} ${look.head ? `head-${look.head}` : ''} ${look.num ? `num-${look.num}` : ''} ${extraClass}`}
       data-cols={opts.cols > 1 ? opts.cols : undefined}
       data-size={opts.size || undefined}
-      style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}) }}
+      style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}), '--ws-badge': accent || tone.badge }}
       data-block={block.id}
       onClick={mode === 'edit' ? (e) => { e.stopPropagation(); onSelect?.(block.id); } : onPick ? () => onPick(block.id) : undefined}
-      draggable={mode === 'edit'}
-      onDragStart={mode === 'edit' ? (e) => drag.start(e, block.id) : undefined}
-      onDragOver={mode === 'edit' ? (e) => drag.over(e, block.id, spanOf(block) >= COLUMNS) : undefined}
-      onDrop={mode === 'edit' ? (e) => drag.drop(e, block.id) : undefined}
-      onDragEnd={mode === 'edit' ? () => drag.end() : undefined}
+      ref={dndRef}
+      {...(dndListeners || {})}
       onMouseEnter={mode === 'edit' && onHover ? () => onHover(block.id) : undefined}
       onMouseLeave={mode === 'edit' && onHover ? () => onHover(null) : undefined}
     >
@@ -93,12 +97,26 @@ function Card({ block, num, mode, ctx, selected, hovered = false, onHover, dropH
       <MarksLayer block={block} editable={mode === 'edit' && Boolean(onMarks)} onChange={(next) => onMarks?.(block.id, next.marks)} />
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {active && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
-      {active && toolbar ? <div className="ws-toolbar" role="toolbar" aria-label="Ploki tööriistad" onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
-      {mode === 'edit' && onInsertAfter ? <button type="button" className="ws-insert" title="Lisa plokk selle järele" aria-label="Lisa plokk selle järele" onClick={(e) => { e.stopPropagation(); onInsertAfter(block.id); }}>+</button> : null}
+      {active && toolbar ? <div className="ws-toolbar" role="toolbar" aria-label="Ploki tööriistad" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
+      {mode === 'edit' && onInsertAfter ? <button type="button" className="ws-insert" title="Lisa plokk selle järele" aria-label="Lisa plokk selle järele" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onInsertAfter(block.id); }}>+</button> : null}
     </section>
   );
 }
 
+
+// Edit mode on a page: the card can be dragged (dnd-kit, the context is in WorksheetStudioPage) and blocks can be
+// dropped on it. The hidden measuring layer uses the plain Card, so ids are never registered twice.
+function DndCard(props) {
+  const { block } = props;
+  const drag = useDraggable({ id: dragId(block.id), data: { kind: 'block', id: block.id } });
+  const drop = useDroppable({ id: dropId(block.id), data: { kind: 'block', id: block.id, full: spanOf(block) >= COLUMNS } });
+  const setRef = (node) => { drag.setNodeRef(node); drop.setNodeRef(node); };
+  return <Card {...props} dndRef={setRef} dndListeners={drag.listeners} dragging={drag.isDragging} />;
+}
+function EmptyDrop() {
+  const { setNodeRef, isOver } = useDroppable({ id: 'drop:__end', data: { kind: 'end' } });
+  return <div ref={setNodeRef} className={`ws-empty ${isOver ? 'is-over' : ''}`}>Lisa vasakult esimene plokk või lohista see siia.</div>;
+}
 
 // Edit mode: drag the right edge to change the width (snaps to ¼ ⅓ ½ ⅔ ¾ full), the bottom edge to change the height.
 function ResizeHandles({ block, onResize }) {
@@ -158,7 +176,7 @@ function ResizeHandles({ block, onResize }) {
   );
 }
 
-export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, onMove, onDropNew, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null }) {
+export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnswer, results = {}, selectedId, onSelect, dropHint = null, dnd = false, onResize, onAddItem, onMarks, onEditText, renderToolbar, onInsertAfter, startPage, onPageCount, focusId, onPick, blockNotes = null, blockClasses = null }) {
   // bumped after an inline edit so React redraws the text the browser changed in place
   const [rev, setRev] = useState(0);
   const nums = useMemo(() => numberTasks(doc.blocks), [doc.blocks]);
@@ -176,32 +194,38 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     setFocus: (bid, v) => setFocusState((f) => ({ ...f, [bid]: v })),
   });
 
-  // drag & drop (edit mode): a block of the sheet or a new one from the palette; the place it would land is lit up
-  const dragId = useRef(null);
   const [hoverId, setHoverId] = useState(null);
-  const [dropHint, setDropHint] = useState(null);
-  const NEW_BLOCK = 'application/x-ws-block';
-  const drag = {
-    start: (e, id) => { dragId.current = id; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData?.('text/plain', id); },
-    over: (e, id, fullWidth) => {
-      e.preventDefault();
-      if (dragId.current === id) { if (dropHint) setDropHint(null); return; }
-      const rect = e.currentTarget.getBoundingClientRect();
-      const side = dropSide({ x: e.clientX - rect.left, y: e.clientY - rect.top, width: rect.width, height: rect.height }, fullWidth);
-      if (dropHint?.id !== id || dropHint?.side !== side) setDropHint({ id, side });
-    },
-    drop: (e, id) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const side = dropHint?.id === id ? dropHint.side : 'before';
-      const type = e.dataTransfer?.getData?.(NEW_BLOCK);
-      if (type) onDropNew?.(type, id, side);
-      else if (dragId.current && dragId.current !== id) onMove?.(dragId.current, id, side);
-      dragId.current = null;
-      setDropHint(null);
-    },
-    end: () => { dragId.current = null; setDropHint(null); },
-  };
+  // the formatted text being edited on the sheet (Tiptap over the text)
+  const [rich, setRich] = useState(null);
+
+  // after a block moved, every card slides from where it was to its new place (FLIP; positions relative to the
+  // sheet, so scrolling between two renders does not count as movement)
+  const rootRef = useRef(null);
+  const flip = useRef({ key: '', rects: new Map() });
+  const orderKey = doc.blocks.map((b) => b.id).join(',');
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root || mode !== 'edit') return;
+    const base = root.getBoundingClientRect();
+    const rects = new Map();
+    root.querySelectorAll('.ws-page .ws-card[data-block]').forEach((card) => {
+      const r = card.getBoundingClientRect();
+      rects.set(card.dataset.block, { x: r.left - base.left, y: r.top - base.top, card });
+    });
+    const before = flip.current;
+    const reduce = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    if (before.key && before.key !== orderKey && !reduce) {
+      rects.forEach(({ x, y, card }, id) => {
+        const old = before.rects.get(id);
+        if (!old || typeof card.animate !== 'function') return;
+        const dx = old.x - x;
+        const dy = old.y - y;
+        if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+        card.animate([{ transform: `translate(${dx}px, ${dy}px)` }, { transform: 'none' }], { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      });
+    }
+    flip.current = { key: orderKey, rects };
+  });
 
   // --- pagination: measure rows in a hidden layer, then pack them into A4 pages ---
   const rows = useMemo(() => rowsOf(doc.blocks), [doc.blocks]);
@@ -262,6 +286,22 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     event.preventDefault();
     event.stopPropagation();
     const { el, path, text } = hit;
+    // a formatted text (instruction, text, reading passage): Tiptap right over it, with the formatting bar
+    if (block && RICH_FIELDS.has(path[path.length - 1])) {
+      const stored = path.reduce((value, key) => (value == null ? value : value[key]), block.data);
+      if (typeof stored === 'string') {
+        const r = el.getBoundingClientRect();
+        const css = globalThis.getComputedStyle?.(el);
+        const zoom = el.offsetHeight ? r.height / el.offsetHeight : 1;
+        el.classList.add('ws-rich-hidden');
+        setRich({
+          el, blockId: block.id, path, value: stored, multiline: path[path.length - 1] !== 'instruction',
+          rect: { left: r.left + (globalThis.scrollX || 0), top: r.top + (globalThis.scrollY || 0), width: r.width, height: r.height },
+          textStyle: css ? { fontFamily: css.fontFamily, fontSize: `${parseFloat(css.fontSize) * (zoom || 1)}px`, lineHeight: css.lineHeight === 'normal' ? 1.4 : `${parseFloat(css.lineHeight) * (zoom || 1)}px`, color: css.color } : {},
+        });
+        return;
+      }
+    }
     const draggable = el.closest('[draggable="true"]');
     if (draggable) draggable.draggable = false;
     el.setAttribute('contenteditable', 'plaintext-only');
@@ -292,27 +332,30 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     el.addEventListener('blur', finish);
   };
 
-  const rowView = (row, key) => (
+  const rowView = (row, key, measuring = false) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => <Card key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} selected={selectedId === b.id} hovered={hoverId === b.id} onHover={mode === 'edit' ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} drag={drag} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={(selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />)}
+      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />; })}
     </div>
   );
 
   return (
-    <div className={`ws-root mode-${mode}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
+    <div ref={rootRef} className={`ws-root mode-${mode} ${doc.meta.theme ? `theme-${doc.meta.theme}` : ''}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
       {/* hidden measuring layer, same width and styles as a page */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true">
         <div className="ws-measure-head"><Header meta={doc.meta} /></div>
-        {rows.map((row, i) => <div className="ws-measure-row" key={i}>{rowView(row, i)}</div>)}
+        {rows.map((row, i) => <div className="ws-measure-row" key={i}>{rowView(row, i, true)}</div>)}
       </div>
       {pages.map((idxs, p) => (
         <div className="ws-page" key={p}>
           {p === 0 ? <Header key={`head:${rev}`} meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
           <div className="ws-flow">{idxs.map((i) => rows[i] && rowView(rows[i], i))}</div>
-          {mode === 'edit' && idxs.length === 0 && <div className="ws-empty" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const type = e.dataTransfer?.getData?.(NEW_BLOCK); if (type) onDropNew?.(type, null, 'after'); }}>Lisa vasakult esimene plokk või lohista see siia.</div>}
+          {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
           <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} />
         </div>
       ))}
+      {rich ? <Suspense fallback={null}><RichInlineEditor key={`${rich.blockId}:${rich.path.join('.')}`} rect={rich.rect} value={rich.value} multiline={rich.multiline} textStyle={rich.textStyle}
+        onCommit={(next) => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); onEditText?.(rich.blockId, rich.path, next); }}
+        onCancel={() => { rich.el.classList.remove('ws-rich-hidden'); setRich(null); }} /></Suspense> : null}
     </div>
   );
 }

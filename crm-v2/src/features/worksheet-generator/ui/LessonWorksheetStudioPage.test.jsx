@@ -73,7 +73,7 @@ describe('LessonWorksheetStudioPage task regeneration', () => {
     fireEvent.click(container.querySelector('.ws-page .ws-card'));
     fireEvent.click(screen.getByRole('button', { name: 'Genereeri uus variant' }));
 
-    await screen.findByRole('status');
+    await waitFor(() => expect(document.querySelector('.st-banner')).not.toBeNull());
     expect(repository.saveDraft).not.toHaveBeenCalled();
     const currentCard = container.querySelector('.ws-page .ws-card');
     expect(currentCard).toBeTruthy();

@@ -348,8 +348,6 @@ textarea.ed-input { resize: vertical; }
 
 /* the selected block's settings float over the canvas (owner, 2026-10-09: edit on the block, no right column) */
 .ws-studio .st-inspector.is-floating { position: fixed; z-index: 60; width: min(360px, calc(100vw - 32px)); overflow-y: auto; border: 1px solid var(--st-line); border-radius: 14px; box-shadow: 0 18px 44px rgba(16, 35, 57, .22); }
-.ws-studio .st-inspector.is-floating.is-right { right: 16px; }
-.ws-studio .st-inspector.is-floating.is-left { left: 256px; }
 .st-pop-head { position: sticky; top: -10px; z-index: 1; display: flex; align-items: center; gap: 6px; margin: -10px -10px 8px; padding: 8px 10px; background: var(--st-panel); border-bottom: 1px solid var(--st-line); }
 .st-pop-head b { flex: 1; font-size: .9rem; }
 .st-sheetpanel { padding: 0 2px; }
@@ -413,3 +411,14 @@ textarea.ed-input { resize: vertical; }
 .ws-live-wait { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 10px 14px; border-radius: 12px; background: #eef6ff; color: #173a63; font-weight: 700; }
 @media (max-width: 900px) { .ws-studio.ws-live .st-body.ws-live-body:has(.ws-live-tasks) { grid-template-columns: 1fr; } .ws-live-tasks { border-left: 0; border-top: 1px solid var(--st-line); } }
 .ws-live.is-embedded .ws-live-tasks { max-height: 75vh; }
+/* drag & drop (dnd-kit): the floating preview and the card being dragged */
+.st-drag-ghost { display: inline-flex; align-items: center; gap: 8px; max-width: 280px; padding: 10px 14px; border-radius: 12px; background: #132238; color: #fff; font: 700 13px 'DM Sans', system-ui, sans-serif; box-shadow: 0 18px 40px rgba(16, 35, 57, .35); transform: rotate(-1.5deg); cursor: grabbing; }
+.st-drag-ghost span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ws-card.is-dragging { opacity: .35; }
+.st-block.is-dragging { opacity: .5; }
+.ws-empty.is-over { outline: 2px dashed #0ea5e9; outline-offset: -6px; }
+.mode-edit .ws-card[data-block] { touch-action: manipulation; }
+/* ready-made styles and themes (inspector) */
+.ed-presets { display: flex; flex-wrap: wrap; gap: 5px; }
+.ed-preset { border: 1.5px solid transparent; border-radius: 8px; padding: 4px 9px; font: 700 12px 'DM Sans', system-ui, sans-serif; color: #132238; cursor: pointer; }
+.ed-preset.on { box-shadow: 0 0 0 2px #0f6e56; }
