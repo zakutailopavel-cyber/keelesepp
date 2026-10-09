@@ -23,8 +23,8 @@ function repository(status = connected, extra = {}) {
 describe('Google Calendar model', () => {
   it('describes the connection in one line', () => {
     expect(describeConnection(null).label).toBe('Ühendamata');
-    expect(describeConnection(connected)).toMatchObject({ tone: 'success', label: 'Kahesuunaline' });
-    expect(describeConnection({ ...connected, writeEnabled: false, requiresWriteConsent: true }).label).toBe('Ainult Google → KeeleSepp');
+    expect(describeConnection(connected)).toMatchObject({ tone: 'success', label: 'Ühendatud' });
+    expect(describeConnection({ ...connected, writeEnabled: false, requiresWriteConsent: true }).label).toBe('Vaja Google’i luba');
     expect(describeConnection({ ...connected, lastPushError: 'invalid_grant' })).toMatchObject({ tone: 'danger', error: 'invalid_grant' });
   });
 
@@ -73,7 +73,7 @@ describe('GoogleCalendarCard', () => {
   it('shows the state, syncs now, switches group lessons off and disconnects after a confirmation', async () => {
     const repo = repository();
     render(<GoogleCalendarCard user={user} repository={repo} />);
-    expect(await screen.findByText('Kahesuunaline')).toBeInTheDocument();
+    expect(await screen.findByText('Tunnid liiguvad ainult KeeleSepast Google’isse')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /Sünkrooni kohe/ }));
     expect(await screen.findByRole('status')).toHaveTextContent("Google'ist uuendati 2 tundi");

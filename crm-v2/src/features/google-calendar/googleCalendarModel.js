@@ -19,10 +19,11 @@ export function describeConnection(status) {
   if (!status?.connected) return { tone: 'neutral', label: 'Ühendamata', short: 'Google: ühendamata' };
   const error = status.lastSyncError || status.lastPushError || status.lastGroupPushError;
   if (error) return { tone: 'danger', label: 'Viga sünkroonimisel', short: 'Google: viga', error };
+  // Lessons go only from KeeleSepp to Google (import from Google is off on the server, GOOGLE_IMPORT_ENABLED).
   if (status.requiresWriteConsent) {
-    return { tone: 'info', label: 'Ainult Google → KeeleSepp', short: 'Google: ainult import' };
+    return { tone: 'info', label: 'Vaja Google’i luba', short: 'Google: luba puudub' };
   }
-  return { tone: 'success', label: 'Kahesuunaline', short: 'Google ✓' };
+  return { tone: 'success', label: 'Ühendatud', short: 'Google ✓' };
 }
 
 /** Sync when the calendar opens, at most every AUTO_SYNC_MINUTES, and never while an error is unresolved. */

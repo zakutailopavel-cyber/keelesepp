@@ -1,3 +1,10 @@
+## 2026-10-09 — Google Calendar card: one way only — branch `agent/gcal-one-way-label`
+
+Owner: sync must go only from the site to Google. It already does (server `GOOGLE_IMPORT_ENABLED = false`); the card
+still said „Kahesuunaline / KeeleSepp ↔ Google”. `describeConnection`: connected → „Ühendatud” (row: „Tunnid liiguvad
+ainult KeeleSepast Google’isse”); without write permission → „Vaja Google’i luba” (was „Ainult Google → KeeleSepp”).
+Checks: google-calendar + settings 16/16.
+
 ## 2026-10-09 — Lesson room: board full width, videos over it — branch `agent/room-wide-board`
 
 Owner: the board should be wider and the video tiles should lie over it. `LiveRoom` body gets `lr-body--float`
