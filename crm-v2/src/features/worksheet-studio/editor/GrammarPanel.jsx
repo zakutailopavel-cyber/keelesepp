@@ -20,6 +20,7 @@ export default function GrammarPanel({ level }) {
         </div>
       ))}
       <p className="ed-hint">Allikas: Eesti Keele Instituut, õpetaja tööriistad (Sõnaveeb), CC BY.</p>
+      <p className="ed-hint">EKI õpetaja tööriistad: <a href="https://sonaveeb.ee/teacher-tools/#/vocabulary" target="_blank" rel="noreferrer">sõnavara</a> · <a href="https://sonaveeb.ee/teacher-tools/#/grammar" target="_blank" rel="noreferrer">grammatika</a> · <a href="https://sonaveeb.ee/teacher-tools/#/usecase" target="_blank" rel="noreferrer">kasutusolukorrad</a> · <a href="https://sonaveeb.ee/teacher-tools/#/rating" target="_blank" rel="noreferrer">teksti hindamine</a> · <a href="https://sonaveeb.ee/teacher-tools/#/educational-material" target="_blank" rel="noreferrer">õppevara loend</a></p>
     </details>
   );
 }

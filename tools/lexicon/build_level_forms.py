@@ -8,6 +8,7 @@ The older PDF lists (A1–B1, 2018) can still be parsed with `parse`.
     .venv/bin/python tools/lexicon/build_level_forms.py fetch     # → tools/lexicon/etlex-levels.json (≈10.6k lemmas)
     .venv/bin/python tools/lexicon/build_level_forms.py build     # → levelForms.<level>.json
     .venv/bin/python tools/lexicon/build_level_forms.py grammar   # → grammarProfile.json (EKI grammar profile A1–C1)
+    .venv/bin/python tools/lexicon/build_level_forms.py usecases  # → useCases.json (EKI use situations by level)
 
 `parse` reads the PDFs (pypdf) into tools/lexicon/eki-levels-2018.json (lemma + part of speech per level).
 `build` generates every form with Vabamorf (EstNLTK 1.7.5) and writes, per level, only the forms that first appear on
@@ -108,6 +109,40 @@ def grammar():
     print({k: len(v) for k, v in out.items()})
 
 
+USECASES_API = 'https://etlex.eki.ee/etLex/api/v1.0/usecases?project=noor'
+USECASES_OUT = ROOT / 'crm-v2/src/features/worksheet-studio/didactics/useCases.json'
+
+
+def usecases():
+    """EKI's language use situations by level (etLex „Kasutusolukorrad”, CEFR illustrative scales, CC BY; filled for
+    young learners only) → useCases.json: per level the situations with their „Ma oskan … / Saan aru …” examples."""
+    import html
+    import time
+    import urllib.request
+    items, offset = [], 0
+    while True:
+        data = json.load(urllib.request.urlopen(f'{USECASES_API}&limit=500&offset={offset}', timeout=60))
+        batch = data.get('items', [])
+        items += batch
+        offset += len(batch)
+        if not batch or offset >= data.get('total_count', 0):
+            break
+        time.sleep(0.5)
+    clean = lambda v: re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', '', str(v or '')))).strip()
+    out = {}
+    for i in sorted(items, key=lambda x: (x.get('langlevel_ord') or 0, x.get('maincategory_ord') or 0, x.get('subcategory_ord') or 0)):
+        level = i.get('langlevel') or ''
+        d = i.get('descriptors') or {}
+        out.setdefault(level, []).append({
+            'category': clean(i.get('maincategory_name')).capitalize(), 'skill': clean(i.get('subcategory_name')),
+            'topic': clean(i.get('topic')), 'note': clean(i.get('can_do_statement')),
+            'form': ', '.join(d.get('SUHTLUSVORM', {}).get('values', [])), 'themes': d.get('TEKSTITEEMA', {}).get('values', [])[:8],
+            'examples': [clean(x) for x in str(i.get('example') or '').split('\n') if clean(x)][:6],
+        })
+    USECASES_OUT.write_text(json.dumps({'source': 'EKI etLex kasutusolukorrad (noor keeleõppija), CC BY, https://sonaveeb.ee/teacher-tools/#/usecase', 'levels': out}, ensure_ascii=False) + '\n')
+    print({k: len(v) for k, v in out.items()})
+
+
 def forms_of(lemma, pos):
     from estnltk.vabamorf.morf import synthesize
     out = {lemma.lower()}
@@ -156,6 +191,8 @@ def build():
 if __name__ == '__main__':
     if len(sys.argv) > 2 and sys.argv[1] == 'parse':
         parse(sys.argv[2])
+    elif len(sys.argv) > 1 and sys.argv[1] == 'usecases':
+        usecases()
     elif len(sys.argv) > 1 and sys.argv[1] == 'grammar':
         grammar()
     elif len(sys.argv) > 1 and sys.argv[1] == 'fetch':

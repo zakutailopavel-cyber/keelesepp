@@ -7,6 +7,7 @@ import AiReading from './AiReading.jsx';
 import SentenceFlags from './SentenceFlags.jsx';
 import GrammarPanel from './GrammarPanel.jsx';
 import EkiEvaluation from './EkiEvaluation.jsx';
+import UseCases from './UseCases.jsx';
 
 // Settings of the selected block (the floating panel) and of the whole sheet („Leht”).
 // The look of a block (style, colour, frame, icon, width) is edited from its bar on the sheet (BlockBar.jsx); this
@@ -55,10 +56,14 @@ export function BlockInspector({ block, doc, update }) {
       {block.type === 'reading' ? <div className="ed-section"><AiReading meta={doc.meta} onUse={(patch) => set(patch)} /></div> : null}
       {block.type === 'gaps' ? <div className="ed-section"><AiSentences meta={doc.meta} onAdd={(lines) => set({ sentences: [String(block.data.sentences || '').trim(), ...lines].filter(Boolean).join('\n') })} /></div> : null}
       <div className="ed-section"><def.Editor data={block.data} set={set} /></div>
+      {block.type === 'selfcheck' ? <div className="ed-section"><UseCases level={doc.meta.level} title="Lisa „Ma oskan” rida (EKI)" actions={[['Lisa', (x) => set({ items: [String(block.data.items || '').trim(), x].filter(Boolean).join('\n') })]]} /></div> : null}
       {block.type === 'gaps' || block.type === 'wordorder' ? <div className="ed-section"><SentenceFlags sentences={block.data.sentences} docId={doc.id} blockType={block.type} onRemove={(line) => set({ sentences: String(block.data.sentences || '').split('\n').filter((x) => x !== line).join('\n') })} /></div> : null}
     </div>
   );
 }
+
+// a new goal's id (outside render: the time is read only when a goal is added)
+const newGoalId = () => `g_${Date.now().toString(36)}`;
 
 export function SheetInspector({ doc, setMeta, evaluate = null }) {
   const m = doc.meta;
@@ -81,6 +86,7 @@ export function SheetInspector({ doc, setMeta, evaluate = null }) {
           <Text label="Moodul" value={m.module} onChange={(v) => setMeta({ module: v })} />
         </div>
         <Text label="Ma oskan… (tunni lubadus)" value={m.canDo} onChange={(v) => setMeta({ canDo: v })} />
+        <UseCases level={m.level} actions={[['Ma oskan…', (x) => setMeta({ canDo: x })], ['+ eesmärk', (x) => setGoals([...goals, [newGoalId(), x]])]]} />
         <Text label="Taseme kasti tekst" value={m.badge} onChange={(v) => setMeta({ badge: v })} />
       </div>
       <div className="ed-section">

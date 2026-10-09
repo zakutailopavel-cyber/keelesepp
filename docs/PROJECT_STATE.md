@@ -1,3 +1,15 @@
+## 2026-10-10 — EKI use situations („Kasutusolukorrad”) in the constructor + links to all EKI teacher tools — branch `agent/eki-usecases`
+
+- Base: `main` (after #424).
+- `build_level_forms.py usecases` writes `didactics/useCases.json` (311 situations, young-learner project; the adult project has 0). It is about 23 kB gz and loaded lazily.
+- `editor/UseCases.jsx` (level filter A2+ → A2, B1- → B1, C1 → B2):
+  - SheetInspector „Ma oskan…” / „+ eesmärk”;
+  - the self-check block's „Lisa”.
+- `newGoalId` was moved outside render (react-compiler purity lint).
+- `GrammarPanel` links vocabulary / grammar / use situations / text evaluation / the textbook list.
+- Checks: worksheet-studio 153/153; eslint 0 errors; build succeeds.
+- Next safe step: the owner tries „Hinda EKI-ga” and the use situations on a real sheet.
+
 ## 2026-10-10 — „Hinda EKI-ga”: EKI text evaluation (words + grammatical forms) of a sheet — branch `agent/eki-text-evaluation`
 
 - Base: `main` (after #423). The owner pointed to Sõnaveeb „Õppeteksti hindamine”.

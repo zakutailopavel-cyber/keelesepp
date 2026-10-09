@@ -97,6 +97,14 @@ These are real gaps of the generator, fixed in step 2.
    - **„Halb lause”:** in the gaps / word order inspector a sentence is marked bad. It is removed from the sheet and stored in `generatorFlags`. The generator skips it (`createDiversityState({ blocked })`, normalised by `sentenceKey`).
    - **Calibration:** `didactics/calibration.js` computes, over all done `worksheetAssignments` (up to 800), the share of right answers per level × task type. With at least 20 answers it gives „Liiga raske” (<50%) or „Liiga lihtne” (>92%). It is shown on the „Generaatori katvus” page (`CalibrationCard`).
 
+## EKI use situations and links
+
+- `tools/lexicon/build_level_forms.py usecases` reads etLex `usecases?project=noor` (CEFR illustrative scales; the adult project is still empty) into `didactics/useCases.json`. That is 311 situations: A1 86, A2 87, B1 82, B2 56. Each has a category, skill, topic, form, themes and „Saan aru … / Oskan …” examples.
+- The constructor picker (`editor/UseCases.jsx`) is in two places:
+  - „Leht”: an example becomes „Ma oskan…” or a goal;
+  - the „Kontrolli end” block: an example becomes a line.
+- The grammar panel links all EKI teacher tools, including „Õppevara loend”: a bibliography with no data API, so it is linked only.
+
 ## Next (after the 7 steps)
 
 - Translations and tags for the EKI level words, so the generator lexicon grows beyond 314 words.
