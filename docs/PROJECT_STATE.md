@@ -1,3 +1,13 @@
+## 2026-10-09 — Transcriber: language per phrase, no repetition loops — branch `agent/transcriber-languages`
+
+Owner: today's transcripts were nonsense (Russian speech forced through the Estonian model; loops like „ja, ja, ja…”).
+- Each 5-min track segment is cut by VAD (`whisper-vad-speech-segments`) into chunks ≤ 25 s (`parseVadSegments`,
+  `groupChunks`); per chunk the language is detected (`-dl`, `parseDetectedLanguage`, `chooseLanguage`: et / ru / en,
+  p ≥ 0.5, else the lesson's language): Estonian → TalTech model, others → large-v3-turbo; decoding without carried
+  context (`-mc 0`, `-sns`). Lines carry `lang`. `collapseRepeats` keeps a word / group (≤ 6 words) repeated ≥ 3 times
+  once. Tried locally on a real 5-min student track of today: 48 chunks in 99 s, readable Russian and Estonian.
+- Checks: transcriber lib tests 8/8.
+- Next safe step: install on the school Mac and requeue today's recordings.
 ## 2026-10-09 — A Live Classroom lesson that was not in the calendar — branch `agent/unplanned-lesson-close`
 
 Owner: after „Lõpeta tund” the calendar showed the student with 0 lessons (the lesson was never planned), nothing to
