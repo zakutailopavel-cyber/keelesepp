@@ -1,3 +1,23 @@
+## 2026-10-09 — Lesson text during the lesson („Tekst kohe”), language filter, test student — branch `agent/live-text`
+
+Owner: see the text of an oral task right in the lesson; smaller audio; Estonian / Russian filter; a test student who
+„joins” at once so the teacher can test with their own voice.
+- Recorder (`RoomRecorder`): Opus at 32 kbit/s (`AUDIO_BITS`, was the browser default ~128). „Tekst kohe” closes both
+  tracks' files at once (`cutNow`), waits for the uploads and writes `textRequestedAt`
+  (`lessonRecordingsService.requestText`); the panel subscribes to the recording (`subscribeRecording`) and shows the
+  growing transcript, newest first.
+- Transcriber: `liveWork()` every 15 s (`LIVE_POLL_SECONDS`): segments of recordings still in „recording” that are not
+  in `doneSegments` are transcribed at once (requested ones first); raw lines in `rawLines`, `transcript` re-merged,
+  `textDoneAt`. The final pass after the lesson does only the remaining segments.
+- Transcript (`TranscriptView`): filter „Kõik keeled / Eesti keel / Vene keel / Inglise keel” (when lines carry
+  `lang`), line tag ET/RU, „Õpilane ütles N sõna, neist eesti keeles M (P%)” (`studentLanguageShare`).
+- Test student: a student card with `testStudent: true` — the inviting teacher (or admin) accepts the invitation for
+  them (`liveLessonInvitations.acceptForTestStudent`; rule branch only for test cards, before expiry). LiveClassroom
+  does it right after „Kutsu õpilane tundi”. Rules: `lessonRecordings` update may set `textRequestedAt`.
+- Checks: emulator live-lesson invitations + lesson recording 10/10 (1 new); lesson-recording 22/22 (1 new),
+  LessonDetailModal 3/3 (1 new); live-classroom only the known Node 26 `localStorage` failures; transcriber lib 8/8;
+  build OK. Manual gate: `firestore:rules` deploy; transcriber installed on the school Mac.
+
 ## 2026-10-09 — Archive a student from the card — branch `agent/profile-archive`
 
 Owner: a student cannot be archived. Archiving existed only in the „Õpilased” list (icon in the row). The student

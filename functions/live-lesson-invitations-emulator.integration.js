@@ -257,6 +257,28 @@ test("only the linked student can accept a live lesson invitation", async () => 
   assert.equal(parentAccept.status, 403, JSON.stringify(parentAccept.body));
 });
 
+test("the inviting teacher accepts only for a test student", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seedUsersAndStudents("testacc");
+  const future = admin.firestore.Timestamp.fromMillis(Date.now() + 120000);
+  const created = admin.firestore.Timestamp.now();
+  const invite = (id) => ctx.db.collection("liveLessonInvitations").doc(id).set({
+    teacherUid: ctx.teacherUid, teacherName: "Invite Teacher", studentId: ctx.ownStudentId, studentUid: ctx.studentUid,
+    studentName: "Invite Student", title: "Test", status: "pending", roomKey: id, createdAt: created,
+    createdAtIso: created.toDate().toISOString(), expiresAt: future, respondedAt: null, cancelledAt: null, closedAt: null,
+  });
+  await invite("invite-real-student");
+  const refused = await firestoreCommitRequest(ctx.teacherToken, [statusUpdateWrite("invite-real-student", "accepted", "respondedAt")]);
+  assert.equal(refused.status, 403, "a real student answers themselves");
+  await ctx.db.collection("students").doc(ctx.ownStudentId).set({ testStudent: true }, { merge: true });
+  await invite("invite-test-student");
+  const accepted = await firestoreCommitRequest(ctx.teacherToken, [statusUpdateWrite("invite-test-student", "accepted", "respondedAt")]);
+  assert.equal(accepted.status, 200, JSON.stringify(accepted.body));
+  await invite("invite-test-student-2");
+  const parent = await firestoreCommitRequest(ctx.parentToken, [statusUpdateWrite("invite-test-student-2", "accepted", "respondedAt")]);
+  assert.equal(parent.status, 403);
+});
+
 test("an expired invitation cannot be accepted", async () => {
   requireSafeEmulatorEnvironment();
   const ctx = await seedUsersAndStudents("expired");

@@ -33,3 +33,6 @@
 /* one lesson opened from the student card: the recording's text right under its row */
 .lesson-rows > .lesson-rows__item.is-inline { flex-wrap: wrap; }
 .lesson-rows__text { flex-basis: 100%; grid-column: 1 / -1; display: grid; gap: 12px; margin-top: 10px; }
+.transcript__lang { color: #667085; font-weight: 600; font-size: .7rem; }
+.transcript__tools { flex-wrap: wrap; }
+.rec-live { flex-basis: 100%; max-height: 50vh; overflow-y: auto; }

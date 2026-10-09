@@ -70,6 +70,20 @@ export const lessonRecordingsService = {
     return segment;
   },
 
+  // „Tekst kohe”: the teacher asks for the text of what was just said (the recorder closes its files first); the
+  // transcriber on the school Mac takes this recording before anything else
+  async requestText(recordingId) {
+    const { db } = requireFirebaseClient();
+    const at = new Date().toISOString();
+    await updateDoc(doc(db, 'lessonRecordings', recordingId), { textRequestedAt: at });
+    return at;
+  },
+  // the recording as it is now (its transcript grows during the lesson)
+  subscribeRecording(recordingId, onData, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(doc(db, 'lessonRecordings', recordingId), (snapshot) => onData(snapshot.exists() ? normalizeRecording(snapshot.id, snapshot.data()) : null), (error) => onError?.(error));
+  },
+
   async finish(recordingId) {
     const { db } = requireFirebaseClient();
     const endedAt = new Date().toISOString();

@@ -1402,7 +1402,8 @@ service cloud.firestore {
       allow update: if isStaff()
         && resource.data.teacherUid == uid()
         && resource.data.status == 'recording'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'endedAt', 'segments', 'updatedAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'endedAt', 'segments', 'updatedAt', 'textRequestedAt'])
+        && (!('textRequestedAt' in request.resource.data) || (request.resource.data.textRequestedAt is string && request.resource.data.textRequestedAt.size() <= 40))
         && request.resource.data.status in ['recording', 'uploaded']
         && request.resource.data.segments is list
         && request.resource.data.segments.size() <= 240;
@@ -1676,6 +1677,17 @@ service cloud.firestore {
                 && resource.data.studentUid == uid()
                 && request.time < resource.data.expiresAt
                 && request.resource.data.status in ['accepted', 'declined']
+                && request.resource.data.respondedAt == request.time
+                && request.resource.data.cancelledAt == null
+                && request.resource.data.closedAt == null
+              )
+              // a test student (testStudent on the card) cannot answer: the inviting teacher or an admin accepts for them
+              || (
+                (isAdmin() || (signedIn() && resource.data.teacherUid == uid()))
+                && request.time < resource.data.expiresAt
+                && exists(studentPath(resource.data.studentId))
+                && studentDoc(resource.data.studentId).get('testStudent', false) == true
+                && request.resource.data.status == 'accepted'
                 && request.resource.data.respondedAt == request.time
                 && request.resource.data.cancelledAt == null
                 && request.resource.data.closedAt == null

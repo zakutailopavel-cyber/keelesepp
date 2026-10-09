@@ -1,8 +1,9 @@
 /* global MediaRecorder, MediaStream, Blob, setInterval, clearInterval, setTimeout */
 import { useEffect, useRef, useState } from 'react';
-import { Circle, Square } from 'lucide-react';
+import { Circle, FileText, Square } from 'lucide-react';
 import { Button } from '../../components/ui/index.js';
 import { lessonRecordingsService, SEGMENT_MS } from '../../services/firebase/lessonRecordings.js';
+import { Transcript } from './TranscriptView.jsx';
 import './lessonRecording.css';
 
 function pickMime() {
@@ -10,6 +11,9 @@ function pickMime() {
   return ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find((m) => MediaRecorder.isTypeSupported?.(m)) || '';
 }
 const clock = (ms) => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+// speech needs far less than music: 32 kbit/s Opus keeps the transcript as good and the files ~4× smaller
+export const AUDIO_BITS = 32000;
 
 // One audio track recorded in standalone 5-minute files (each file plays and transcribes on its own).
 // `nextSeq` numbers the files per track across restarts (reconnect, another microphone), so a restarted track never
@@ -23,7 +27,7 @@ class TrackRecorder {
     this.timer = setInterval(() => this.rotate(), SEGMENT_MS);
   }
   next() {
-    const rec = new MediaRecorder(this.stream, this.mime ? { mimeType: this.mime } : undefined);
+    const rec = new MediaRecorder(this.stream, { ...(this.mime ? { mimeType: this.mime } : {}), audioBitsPerSecond: AUDIO_BITS });
     const chunks = [];
     const startMs = Date.now() - this.t0;
     const seq = this.nextSeq();
@@ -40,6 +44,13 @@ class TrackRecorder {
     const old = this.rec;
     this.next();
     if (old?.state === 'recording') old.stop();
+  }
+  // „Tekst kohe”: close the current file now (and start the 5-minute clock again)
+  cutNow() {
+    if (this.stopped) return;
+    clearInterval(this.timer);
+    this.rotate();
+    this.timer = setInterval(() => this.rotate(), SEGMENT_MS);
   }
   stop() {
     this.stopped = true;
@@ -165,6 +176,25 @@ export default function RoomRecorder({
 
   useEffect(() => { onStateChange?.({ recording: Boolean(recording), error }); }, [error, onStateChange, recording]);
 
+  // the text of this recording, growing during the lesson (the school Mac transcribes every closed file)
+  const [live, setLive] = useState(null);
+  const [asked, setAsked] = useState('');
+  useEffect(() => {
+    if (!recording?.id || !service.subscribeRecording) return undefined;
+    try { return service.subscribeRecording(recording.id, setLive, () => {}); } catch { return undefined; }
+  }, [recording?.id, service]);
+  const waitingText = Boolean(asked && !(live?.textDoneAt && live.textDoneAt >= asked));
+  const textNow = async () => {
+    const c = ctx.current;
+    c.teacher?.rec.cutNow(); c.student?.rec.cutNow();
+    try {
+      // the closed files upload first, then the Mac is asked to take them before anything else
+      await new Promise((r) => setTimeout(r, 300));
+      await Promise.all(c.uploads);
+      setAsked(await service.requestText(c.id));
+    } catch (err) { setError(err.message || 'Teksti ei saanud küsida.'); }
+  };
+
   if (consent === false) {
     return <div className="rec-panel is-off"><Circle size={14} aria-hidden="true" /><span>Salvestamiseks on vaja õpilase nõusolekut. Märgi see õpilase kaardil („Tunni salvestamine”).</span></div>;
   }
@@ -176,6 +206,9 @@ export default function RoomRecorder({
           <strong>Salvestan · {clock(elapsed)}</strong>
           <span className="rec-meta">{streams?.remote ? 'õpetaja + õpilane' : 'ootan õpilase heli'}{pending ? ` · laen üles ${pending}` : ''}</span>
           <Button variant="secondary" loading={busy} onClick={() => { manualStop.current = true; stop(); }}><Square size={15} /> Lõpeta salvestamine</Button>
+          {service.requestText ? <Button loading={waitingText} onClick={textNow} title="Tee äsja öeldu kohe tekstiks (umbes minutiga), nt suulise ülesande vigade arutamiseks"><FileText size={15} /> Tekst kohe</Button> : null}
+          {waitingText ? <span className="rec-meta">Teen teksti… (umbes minut)</span> : null}
+          {live?.transcript?.length ? <div className="rec-live"><Transcript recording={live} newestFirst /></div> : <span className="rec-meta">Tekst ilmub siia tunni ajal iga 5 minuti järel või kohe „Tekst kohe” nupust.</span>}
         </>
       ) : (
         <>
