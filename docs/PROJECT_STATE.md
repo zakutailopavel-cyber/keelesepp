@@ -1,3 +1,9 @@
+## 2026-10-09 — Google Calendar card: one way only — branch `agent/gcal-one-way-label`
+
+Owner: sync must go only from the site to Google. It already does (server `GOOGLE_IMPORT_ENABLED = false`); the card
+still said „Kahesuunaline / KeeleSepp ↔ Google”. `describeConnection`: connected → „Ühendatud” (row: „Tunnid liiguvad
+ainult KeeleSepast Google’isse”); without write permission → „Vaja Google’i luba” (was „Ainult Google → KeeleSepp”).
+Checks: google-calendar + settings 16/16.
 ## 2026-10-09 — Billing setting „Pärast toimunud tunde” was refused by the rules — branch `agent/billing-actual-rule`
 
 Owner: saving „Arveldus” with „Pärast toimunud tunde” on a student's Finantsid tab → „Missing or insufficient

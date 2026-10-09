@@ -96,7 +96,7 @@ export default function GoogleCalendarCard({ user, repository = googleCalendarSe
 
       {status?.connected ? (
         <>
-          <div className="integration-row"><div><strong>Olek</strong><span>{summary.label === 'Kahesuunaline' ? 'KeeleSepp ↔ Google' : summary.label}</span></div><Badge tone={summary.tone}>{summary.label}</Badge></div>
+          <div className="integration-row"><div><strong>Olek</strong><span>{summary.tone === 'success' ? 'Tunnid liiguvad ainult KeeleSepast Google’isse' : summary.label}</span></div><Badge tone={summary.tone}>{summary.label}</Badge></div>
           {status.writeEnabled ? <div className="integration-row"><div><strong>KeeleSepp → Google</strong><span>{formatSyncTime(status.lastPushAt)}</span></div></div> : null}
           {summary.error ? <p className="form-error" role="alert">{summary.error}</p> : null}
           {status.requiresWriteConsent ? (
