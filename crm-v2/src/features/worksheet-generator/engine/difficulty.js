@@ -15,7 +15,7 @@ const LEVEL_BASE = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5 };
 // support = the profile's lower part, core = the middle, challenge = the upper part.
 const lower = ([a, b]) => [a, Math.round((a + b) / 2)];
 const upper = ([a, b]) => [Math.round((a + b) / 2), b];
-export function difficultySpec({ level = 'A1', mode = 'core', phase = 'practice' } = {}) {
+export function difficultySpec({ level = 'A1', mode = 'core' } = {}) { // callers also pass `phase`; the norms do not depend on it
   const normalizedMode = normalizeDifficulty(mode);
   const base = normalizeLevel(level).base || 'A1';
   const rank = LEVEL_BASE[base] || 1;

@@ -120,3 +120,16 @@ describe('worksheet generation', () => {
     expect(sources).not.toMatch(/openai|anthropic|gemini|@google\/generative-ai/i);
   });
 });
+
+describe('teacher-flagged sentences („Halb lause”)', () => {
+  it('a sentence marked bad is never generated again', () => {
+    const first = generateLessonBundle({ lesson, profile, levelLexicon: lexicon, seed: 'flags' });
+    const sentencesOf = (bundle) => bundle.sheets.flatMap((s) => s.worksheetDoc.blocks).filter((b) => b.type === 'gaps' || b.type === 'wordorder')
+      .flatMap((b) => String(b.data.sentences || '').split('\n').filter(Boolean));
+    const used = sentencesOf(first);
+    expect(used.length).toBeGreaterThan(0);
+    const again = generateLessonBundle({ lesson, profile, levelLexicon: lexicon, seed: 'flags', blockedSentences: [used[0]] });
+    const key = (x) => x.replace(/\[([^\]|]*)(\|[^\]]*)?\]/g, '$1').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+    expect(sentencesOf(again).map(key)).not.toContain(key(used[0]));
+  });
+});

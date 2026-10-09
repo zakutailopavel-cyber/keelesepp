@@ -88,4 +88,12 @@ These are real gaps of the generator, fixed in step 2.
      - his own lesson errors (errorfix, gaps, word forms);
      - one task for the weaker of speaking and writing, with the amounts of his level.
    - It opens as an unsaved private draft (`/students/:id/worksheets/new`).
-7. Calibration: item difficulty from submitted answers, and the teacher's „bad sentence” flag.
+7. ~~Calibration.~~ Done.
+   - **„Halb lause”:** in the gaps / word order inspector a sentence is marked bad. It is removed from the sheet and stored in `generatorFlags`. The generator skips it (`createDiversityState({ blocked })`, normalised by `sentenceKey`).
+   - **Calibration:** `didactics/calibration.js` computes, over all done `worksheetAssignments` (up to 800), the share of right answers per level × task type. With at least 20 answers it gives „Liiga raske” (<50%) or „Liiga lihtne” (>92%). It is shown on the „Generaatori katvus” page (`CalibrationCard`).
+
+## Next (after the 7 steps)
+
+- Translations and tags for the EKI level words, so the generator lexicon grows beyond 314 words.
+- Grammar detection in a sheet with Vabamorf analysis (on the Mac), against `GRAMMAR`.
+- Feed the calibration verdicts back into `levels.js` once enough answers exist.

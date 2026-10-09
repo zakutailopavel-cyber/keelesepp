@@ -9,6 +9,7 @@ import {
   GENERATOR_COVERAGE_LABELS,
   GENERATOR_COVERAGE_STATUSES,
 } from '../coverage.js';
+import CalibrationCard from './CalibrationCard.jsx';
 import '../generator.css';
 
 const STATUS_OPTIONS = [
@@ -131,6 +132,7 @@ export default function GeneratorCoveragePage({ repository = lessonWorksheetsSer
           </div>
         ) : <div className="generator-coverage-empty">Valitud filtritega tunde ei leitud.</div>}
       </Card>
+      <CalibrationCard />
     </div>
   );
 }
