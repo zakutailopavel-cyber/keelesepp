@@ -1,3 +1,4 @@
+import { didacticCheck } from '../../worksheet-studio/didactics/didacticCheck.js';
 import { SCHEMA } from '../../worksheet-studio/engine/schema.js';
 import { materializeFullFocus, materializePhase, createDiversityState } from './content.js';
 import { normalizeDifficulty } from './difficulty.js';
@@ -72,7 +73,7 @@ function sheetFor({
   const resolvedActivityIds = phase === 'full' ? fullActivityIds(activityPlan) : activityIds;
   const blocks = phase === 'full'
     ? materializeFullFocus({ profile, focusIds, contextId, seed, state, activityPlan, difficulty })
-    : materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds: resolvedActivityIds, difficulty });
+    : materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds: resolvedActivityIds, difficulty, levelStage: lesson?.levelStage || '' });
   const worksheetDoc = makeDocument({ lesson, profile, phase, displayLabel: recipe.displayLabel, focusIds, blocks, seed });
   const sheet = {
     role,
@@ -92,6 +93,9 @@ function sheetFor({
   };
   const quality = inspectGeneratedSheet(sheet, { selectedFocusIds: focusIds });
   sheet.diagnostics = quality.diagnostics;
+  // self-check against the level's didactic norms (docs/DIDACTIC_ENGINE.md); advisory, never blocks a sheet
+  const didactic = didacticCheck(worksheetDoc, { level: lesson?.levelStage || profile.level, phase: phase === 'full' ? 'full' : phase });
+  sheet.didactic = { level: didactic.label, score: didactic.score, issues: didactic.issues.map(({ level, code, text }) => ({ level, code, text })) };
   return sheet;
 }
 

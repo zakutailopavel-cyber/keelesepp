@@ -1,4 +1,5 @@
 import { normalizeLevel } from './vocabulary.js';
+import { LEVELS, levelKey } from '../../worksheet-studio/didactics/levels.js';
 
 export const DIFFICULTY_MODES = Object.freeze(['support', 'core', 'challenge']);
 
@@ -9,24 +10,32 @@ export function normalizeDifficulty(value) {
 
 const LEVEL_BASE = { A1: 1, A2: 2, B1: 3, B2: 4, C1: 5 };
 
+// Amounts follow the level's didactic norms (worksheet-studio/didactics/levels.js, docs/DIDACTIC_ENGINE.md): answers
+// per closed task, speaking seconds, writing amount and word bank use. `level` may be a lesson stage (A2+, A2+/B1-).
+// support = the profile's lower part, core = the middle, challenge = the upper part.
+const lower = ([a, b]) => [a, Math.round((a + b) / 2)];
+const upper = ([a, b]) => [Math.round((a + b) / 2), b];
 export function difficultySpec({ level = 'A1', mode = 'core', phase = 'practice' } = {}) {
   const normalizedMode = normalizeDifficulty(mode);
   const base = normalizeLevel(level).base || 'A1';
   const rank = LEVEL_BASE[base] || 1;
   const support = normalizedMode === 'support';
   const challenge = normalizedMode === 'challenge';
-  const productionBoost = phase === 'transfer' ? 1 : 0;
-
+  const norm = LEVELS[levelKey(level)] || LEVELS.A2;
+  const [itemsMin, itemsMax] = norm.items;
+  // from B1 on the writing norm is in words; about 12 words per sentence
+  const writing = norm.writing.sentences || norm.writing.words.map((w) => Math.round(w / 12));
+  const pick = (range) => (support ? lower(range) : challenge ? upper(range) : range);
   return {
     mode: normalizedMode,
     level: base,
     preferCognitiveLoad: support ? Math.max(1, rank) : challenge ? Math.min(5, rank + 3) : Math.min(5, rank + 1),
-    showWordBank: support || (!challenge && rank <= 2),
+    showWordBank: norm.bank === 'yes' ? !challenge : norm.bank === 'tip' ? support : false,
     distractorCount: support ? 1 : challenge ? 3 : 2,
-    closedItemCount: support ? 2 : challenge ? 4 : 3,
+    closedItemCount: Math.min(itemsMax, support ? itemsMin : challenge ? itemsMin + 2 : itemsMin + 1),
     clockItemCount: support ? 3 : challenge ? 5 : 4,
-    speakingSeconds: support ? [45, 90] : challenge ? [90 + productionBoost * 30, 180] : [60, 120],
-    writingSentences: support ? [4, 7] : challenge ? [8 + productionBoost * 2, 14] : [6, 10],
+    speakingSeconds: pick(norm.speaking),
+    writingSentences: pick(writing),
     planningLines: support ? 3 : challenge ? 1 : 2,
   };
 }
