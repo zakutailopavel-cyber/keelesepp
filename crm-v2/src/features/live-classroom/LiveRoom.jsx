@@ -316,7 +316,8 @@ export default function LiveRoom({
       {call.error ? <p className="lr-toast lr-toast--error" role="alert">{call.error}</p> : null}
       {notice ? <p className="lr-toast" role="status">{notice}</p> : null}
 
-      <div className="lr-body">
+      {/* the board takes the whole width; the video tiles and drawers float over its right edge (owner, 2026-10-09) */}
+      <div className="lr-body lr-body--float">
         <main className="lr-stage">
           <StudentBoard
             studentId={invitation.studentId}

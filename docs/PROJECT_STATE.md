@@ -1,3 +1,10 @@
+## 2026-10-09 — Lesson room: board full width, videos over it — branch `agent/room-wide-board`
+
+Owner: the board should be wider and the video tiles should lie over it. `LiveRoom` body gets `lr-body--float`
+(desktop ≥ 761 px): the board fills the whole width; the tiles float top-right (220 px, below the page tabs); an
+open drawer floats on the right (340 px, full height). Phones keep the old overlay layout; Tööruum and group rooms
+unchanged. Checks: live-classroom only the known 9 Node 26 `localStorage` failures; build OK. Not looked at live.
+
 ## 2026-10-09 — Lesson text in the student card; transcriber self-repair — branch `agent/transcript-in-lesson`
 
 Checked `origin/main` `61ee47d` (#379 merged, `firestore:rules,storage` deployed by request).
