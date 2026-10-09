@@ -8,10 +8,61 @@ const JUNK = [
   /^\s*(thank you|thanks for watching)\.?\s*$/i, /продолжение следует/i,
 ];
 
+// Whisper sometimes loops („ja, ja, ja, …”, „to be able to be able …”): a word or a group of up to 6 words repeated
+// three or more times in a row is kept once.
+function collapseRepeats(text) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  const norm = (w) => w.toLocaleLowerCase().replace(/[.,!?;:…"„“”]+/g, '');
+  const out = [];
+  let i = 0;
+  while (i < words.length) {
+    let skipped = false;
+    for (let n = 6; n >= 1 && !skipped; n -= 1) {
+      if (i + n * 3 > words.length) continue;
+      const unit = words.slice(i, i + n).map(norm).join(' ');
+      if (!unit) continue;
+      let times = 1;
+      while (i + n * (times + 1) <= words.length && words.slice(i + n * times, i + n * (times + 1)).map(norm).join(' ') === unit) times += 1;
+      if (times >= 3) { out.push(...words.slice(i, i + n)); i += n * times; skipped = true; }
+    }
+    if (!skipped) { out.push(words[i]); i += 1; }
+  }
+  return out.join(' ');
+}
+
 function cleanText(text) {
-  const t = String(text || '').replace(/\s+/g, ' ').trim();
+  const t = collapseRepeats(String(text || '').replace(/\s+/g, ' ').trim());
   if (!t || JUNK.some((re) => re.test(t))) return '';
   return t;
+}
+
+// ── languages per phrase ────────────────────────────────────────
+// A lesson mixes languages (Estonian practice, Russian explanations): each phrase is transcribed in its own language.
+// whisper-vad-speech-segments output („Speech segment 3: start = 1322.00, end = 1373.00”, centiseconds) → ms
+function parseVadSegments(output) {
+  return [...String(output || '').matchAll(/start\s*=\s*([\d.]+),\s*end\s*=\s*([\d.]+)/g)]
+    .map((m) => ({ startMs: Math.round(Number(m[1]) * 10), endMs: Math.round(Number(m[2]) * 10) }))
+    .filter((s) => s.endMs > s.startMs);
+}
+// speech close together becomes one chunk (one phrase or a few), at most `maxMs` long
+function groupChunks(segments, { maxGapMs = 1200, maxMs = 25000, padMs = 200, totalMs = Infinity } = {}) {
+  const chunks = [];
+  for (const s of segments) {
+    const last = chunks[chunks.length - 1];
+    if (last && s.startMs - last.endMs <= maxGapMs && s.endMs - last.startMs <= maxMs) last.endMs = s.endMs;
+    else chunks.push({ ...s });
+  }
+  return chunks.map((c) => ({ startMs: Math.max(0, c.startMs - padMs), endMs: Math.min(totalMs, c.endMs + padMs) }));
+}
+// „auto-detected language: ru (p = 0.97)” → { lang, p }
+function parseDetectedLanguage(output) {
+  const m = /auto-detected language:\s*([a-z]{2,3})\s*\(p\s*=\s*([\d.]+)\)/i.exec(String(output || ''));
+  return m ? { lang: m[1].toLowerCase(), p: Number(m[2]) } : null;
+}
+// only the school's languages; an unsure or other guess falls back to the lesson's language
+const LESSON_LANGUAGES = ['et', 'ru', 'en'];
+function chooseLanguage(detected, fallback = 'et') {
+  return detected && LESSON_LANGUAGES.includes(detected.lang) && detected.p >= 0.5 ? detected.lang : fallback;
 }
 
 // whisper-cli -oj output → lines with absolute time in the lesson
@@ -80,4 +131,4 @@ function heartbeat({ host, state = 'idle', recordingId = '', startedAt, now = ne
 }
 
 module.exports = {
-  isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };
+  collapseRepeats, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage, isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };

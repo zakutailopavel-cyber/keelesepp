@@ -164,6 +164,18 @@ test("finance role can read invoices without gaining student or mutation access"
     },
   );
   assert.equal(adminForecastWrite.status, 200, JSON.stringify(adminForecastWrite.body));
+  // „Pärast toimunud tunde” (billingMode actual) is a valid billing setting (Finance v3); anything else is not
+  const planWith = (billingMode) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
+    fields: {
+      studentId: { stringValue: "admin-forecast-student" }, studentName: { stringValue: "Admin Forecast Student" },
+      lessonPriceCents: { integerValue: "2500" }, weeklyLessons: { doubleValue: 1 }, currency: { stringValue: "EUR" },
+      active: { booleanValue: true }, updatedAt: { stringValue: "2026-10-09T12:00:00.000Z" }, updatedBy: { stringValue: "Admin" },
+      updatedByUid: { stringValue: tokenUid(adminToken) }, lessonMinutes: { integerValue: "60" }, billingMode: { stringValue: billingMode },
+      chargeNoShow: { booleanValue: true }, validFrom: { stringValue: "2026-10-09" },
+    },
+  });
+  assert.equal((await planWith("actual")).status, 200, "billingMode actual");
+  assert.equal((await planWith("weekly")).status, 403, "unknown billingMode");
 });
 
 async function firestoreDocumentRequest(token, method, documentPath, body) {
