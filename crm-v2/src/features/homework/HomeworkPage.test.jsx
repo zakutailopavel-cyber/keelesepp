@@ -48,6 +48,46 @@ function renderPage(user, data) {
   render(<MemoryRouter><AuthContext.Provider value={{ user }}><HomeworkPage {...data} /></AuthContext.Provider></MemoryRouter>);
 }
 
+describe('HomeworkPage: finishing and closing tasks', () => {
+  const today = new Date().toISOString().slice(0, 10);
+  it('the student marks a task done with an answer; the teacher sees it', async () => {
+    const task = { id: 'h1', studentId: 'student-1', studentName: 'Mari', task: 'Kirjuta 5 lauset', status: 'Ootel', due: today };
+    const data = repositories([], [], [task]);
+    data.repository.submitAnswer = vi.fn().mockResolvedValue({});
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa vastus/ }));
+    fireEvent.change(screen.getByLabelText('Vastus (valikuline)'), { target: { value: 'Ma käisin poes.' } });
+    fireEvent.click(screen.getByRole('button', { name: /Saada ja märgi tehtuks/ }));
+    await waitFor(() => expect(data.repository.submitAnswer).toHaveBeenCalledWith({ item: expect.objectContaining({ id: 'h1' }), text: 'Ma käisin poes.', file: null }));
+    expect(await screen.findByText(/Kodutöö on märgitud tehtuks/)).toBeInTheDocument();
+  });
+
+  it('the student finishes a task with one click', async () => {
+    const data = repositories([], [], [{ id: 'h2', studentId: 'student-1', studentName: 'Mari', task: 'Õpi sõnad', status: 'Ootel', due: today }]);
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
+    fireEvent.click(await screen.findByRole('button', { name: /^Tehtud$/ }));
+    await waitFor(() => expect(data.repository.setStatus).toHaveBeenCalledWith('h2', 'Tehtud'));
+  });
+
+  it('the teacher closes old overdue tasks in one go and sees the student\'s answer', async () => {
+    const tasks = [
+      { id: 'old', studentId: 'student-1', studentName: 'Mari', task: 'Vana ülesanne', status: 'Ootel', due: '2026-01-10' },
+      { id: 'new', studentId: 'student-1', studentName: 'Mari', task: 'Uus ülesanne', status: 'Ootel', due: '2099-01-10' },
+      { id: 'ans', studentId: 'student-1', studentName: 'Mari', task: 'Kirjand', status: 'Tehtud', due: today, studentAnswer: 'Minu vastus', studentFiles: [{ name: 'vihik.jpg', url: 'https://x/vihik.jpg' }] },
+    ];
+    const data = repositories([], [], tasks);
+    data.repository.closeMany = vi.fn().mockResolvedValue(1);
+    globalThis.confirm = vi.fn(() => true);
+    renderPage({ uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] }, data);
+    expect(await screen.findByText('Minu vastus')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /vihik.jpg/ })).toHaveAttribute('href', 'https://x/vihik.jpg');
+    const titles = [...document.querySelectorAll('.task-text')].map((node) => node.textContent);
+    expect(titles.slice(0, 2)).toEqual(['Vana ülesanne', 'Uus ülesanne']);
+    fireEvent.click(screen.getByRole('button', { name: /Sulge vanad \(1\)/ }));
+    await waitFor(() => expect(data.repository.closeMany).toHaveBeenCalledWith(['old']));
+  });
+});
+
 describe('HomeworkPage', () => {
   it('scopes a teacher to assigned students and sends a review', async () => {
     const data = repositories();
@@ -76,13 +116,26 @@ describe('HomeworkPage', () => {
     expect(data.repository.listSubmissionsByStudentIds).toHaveBeenCalledWith(['student-1']);
   });
 
-  it('confirms an auto-checked work with the suggested grade in one click', async () => {
-    const data = repositories();
+  it('confirms an auto-checked work with the suggested grade in one click, with a moment to undo', async () => {
+    const data = { ...repositories(), quickDelayMs: 30 };
     const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
     renderPage(user, data);
     fireEvent.click(await screen.findByRole('button', { name: 'Kinnita hinne 4 — Mari' }));
+    expect(screen.getByText(/saadetakse 5 sekundi pärast/)).toBeInTheDocument();
     await waitFor(() => expect(data.repository.reviewSubmission).toHaveBeenCalledWith({ submission: completedWork, teacherGrade: 4, teacherFeedback: 'Tubli! Vaata vead üle ja jätka samas vaimus.', user }));
     expect(await screen.findByRole('status')).toHaveTextContent('Mari: hinne 4 saadetud.');
+  });
+
+  it('„Tühista” stops the quick grade, and a low result is not confirmed without opening the work', async () => {
+    const low = { ...completedWork, id: 'low-1', title: 'Nõrk töö', studentName: 'Mihhail', percentage: 20 };
+    const data = { ...repositories([completedWork, low]), quickDelayMs: 200 };
+    renderPage({ uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] }, data);
+    expect(await screen.findByRole('button', { name: 'Kinnita hinne 4 — Mari' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Kinnita hinne 1/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Kinnita hinne 4 — Mari' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Tühista' }));
+    await new Promise((r) => setTimeout(r, 300));
+    expect(data.repository.reviewSubmission).not.toHaveBeenCalled();
   });
 
   it('suggests the grade, offers ready-made lines and moves on to the next work', async () => {

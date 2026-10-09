@@ -1047,8 +1047,14 @@ service cloud.firestore {
             'submittedAt',
             'updatedAt',
             'fileRemovedAt',
-            'fileRemovedBy'
+            'fileRemovedBy',
+            'studentAnswer',
+            'studentFiles'
           ])
+          // the student's answer with „Tehtud”: a short text and up to 10 files
+          && (!('studentAnswer' in request.resource.data) || (request.resource.data.studentAnswer is string && request.resource.data.studentAnswer.size() <= 4000))
+          && (!('studentFiles' in request.resource.data) || (request.resource.data.studentFiles is list && request.resource.data.studentFiles.size() <= 10))
+          && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) || request.resource.data.status in ['Ootel', 'Tehtud'])
         );
       allow delete: if isStaff();
     }

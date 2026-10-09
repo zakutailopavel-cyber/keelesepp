@@ -1,3 +1,18 @@
+## 2026-10-09 — Homework that really gets finished — branch `agent/homework-flow`
+
+Owner: otherwise homework stays undone forever (all four chosen).
+- Student: open tasks (not interactive exercises) have „Tehtud” and „Lisa vastus” (text ≤ 4000 + a photo / file, image
+  → JPEG ≤ 1600 px) → `homework.submitAnswer` (status Tehtud, `studentAnswer`, `studentFiles` ≤ 10, Storage
+  `homework/{studentId}/`). The teacher sees the answer under the task.
+- Old tasks: list order late → open by due → finished (`homeworkFlow.sortHomework`); staff „Sulge” per task and
+  „Sulge vanad (N)” for open tasks overdue > 30 days (`staleHomework`, `homework.closeMany` → „Suletud”).
+- Submitted worksheet closes the task: `submitWorksheet` marks homework with that `worksheetAssignmentId` „Tehtud”.
+- „Kinnita” only for suggested grade ≥ 3 (`QUICK_MIN_GRADE`) and waits 5 s with „Tühista” (sent on leaving the page).
+- Rules: student homework update may set `studentAnswer` (string ≤ 4000) and `studentFiles` (list ≤ 10); a status
+  change by a student only to Ootel / Tehtud (no „Suletud”).
+- Checks: homework 41/41 (new homeworkFlow + 5 page tests); new `homework-rules-emulator.integration.js` 1/1; build OK.
+  Manual gate: `firestore:rules` deploy.
+
 ## 2026-10-09 — Lesson text during the lesson („Tekst kohe”), language filter, test student — branch `agent/live-text`
 
 Owner: see the text of an oral task right in the lesson; smaller audio; Estonian / Russian filter; a test student who

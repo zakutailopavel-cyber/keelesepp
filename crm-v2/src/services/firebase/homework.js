@@ -2,6 +2,7 @@ import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query,
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
+import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
 
 function chunksOfTen(values = []) {
   return Array.from({ length: Math.ceil(values.length / 10) }, (_, index) => values.slice(index * 10, index * 10 + 10));
@@ -220,6 +221,46 @@ export const homeworkService = {
     const snapshot = await getDocs(query(collection(db, 'homework'), where('studentId', '==', studentId), where('invitationId', '==', invitationId)));
     return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })).sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
   },
+  // The student's own „Tehtud” with an optional answer: a few lines of text and / or a photo or file (e.g. a notebook
+  // page). Files go to Storage homework/{studentId}/; pictures are made JPEGs of at most 1600 px.
+  async submitAnswer({ item, text = '', file = null }) {
+    if (!item?.id || !item.studentId) throw new Error('Kodutööd ei leitud.');
+    const { db, storage } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    const files = [];
+    if (file) {
+      if (file.size > 19 * 1024 * 1024) throw new Error('Fail on liiga suur (kuni 19 MB).');
+      const image = String(file.type || '').startsWith('image/');
+      const body = image ? (await fileToJpegBlob(file)).blob : file;
+      const name = String(file.name || 'vastus').normalize('NFKD').replace(/[^\w.-]+/g, '-').slice(-60) || 'vastus';
+      const path = `homework/${item.studentId}/${Date.now()}_${image ? name.replace(/\.[^.]+$/, '') + '.jpg' : name}`;
+      const storageRef = ref(storage, path);
+      await new Promise((resolve, reject) => {
+        const task = uploadBytesResumable(storageRef, body, { contentType: image ? 'image/jpeg' : file.type || 'application/octet-stream' });
+        task.on('state_changed', null, reject, resolve);
+      });
+      files.push({ name: image ? name.replace(/\.[^.]+$/, '') + '.jpg' : name, url: await getDownloadURL(storageRef), path, uploadedAt: now });
+    }
+    const answer = String(text || '').trim().slice(0, 4000);
+    const patch = {
+      status: 'Tehtud', submittedAt: now, updatedAt: now,
+      ...(answer ? { studentAnswer: answer } : {}),
+      ...(files.length ? { studentFiles: [...(Array.isArray(item.studentFiles) ? item.studentFiles : []), ...files].slice(-10) } : {}),
+    };
+    await updateDoc(doc(db, 'homework', item.id), patch);
+    return { ...item, ...patch };
+  },
+  // staff: close tasks nobody will do any more („Suletud”), many at once
+  async closeMany(ids = []) {
+    const { db } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    for (let offset = 0; offset < ids.length; offset += 400) {
+      const batch = writeBatch(db);
+      ids.slice(offset, offset + 400).forEach((id) => batch.update(doc(db, 'homework', id), { status: 'Suletud', updatedAt: now }));
+      await batch.commit();
+    }
+    return ids.length;
+  },
   async setStatus(id, status) {
     const { db } = requireFirebaseClient();
     await updateDoc(doc(db, 'homework', id), { status, updatedAt: new Date().toISOString() });
@@ -406,6 +447,16 @@ export const homeworkService = {
       updatedAt: completedAt,
     };
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
+    // a homework task that pointed at this worksheet (given in the lesson) is done with it
+    try {
+      const assignment = await getDoc(doc(db, 'worksheetAssignments', assignmentId));
+      const studentId = assignment.data()?.studentId;
+      if (studentId) {
+        const linked = await getDocs(query(collection(db, 'homework'), where('studentId', '==', studentId), where('worksheetAssignmentId', '==', assignmentId)));
+        await Promise.all(linked.docs.filter((item) => item.data().status !== 'Tehtud')
+          .map((item) => updateDoc(item.ref, { status: 'Tehtud', submittedAt: completedAt, updatedAt: completedAt })));
+      }
+    } catch { /* the worksheet itself is submitted; the task can still be marked by hand */ }
     return payload;
   },
   async saveSelfAssessment({ assignmentId, difficulty, comment }) {
