@@ -1,0 +1,75 @@
+'use strict';
+// Didactic analysis of a finished lesson, made on the school Mac with local models (Ollama), nothing leaves the Mac:
+//   errors  — every Estonian sentence of the learner is corrected by TartuNLP's Estonian GEC model
+//             (tartuNLP/Llammas-base-p1-llama-errors-p2-GEC); a sentence that changed is a likely error
+//   summary — a general local model (gemma3) reads the whole lesson and writes for the teacher: what the learner
+//             liked, what was hard, what to do next
+// Both are guesses of a model and only the teacher (and admins) see them (Firestore rules: a finished recording is
+// not readable by the student). Pure helpers here; the Ollama calls are in index.js.
+
+const ANALYSIS_VERSION = 1;
+const MAX_SENTENCES = 60;
+const MAX_TRANSCRIPT_CHARS = 60000;
+
+const CYRILLIC = /[а-яё]/i;
+const words = (s) => String(s || '').split(/\s+/).filter(Boolean);
+const clock = (ms) => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+
+// the learner's sentences in the lesson language (older lines have no `lang`: those without Cyrillic count),
+// at least two words, at most MAX_SENTENCES; `unsure` when the line had words the transcriber was unsure of
+function learnerSentences(transcript = [], lang = 'et') {
+  const out = [];
+  for (const line of transcript) {
+    if (line.speaker !== 'student') continue;
+    if (line.lang ? line.lang !== lang : CYRILLIC.test(line.text)) continue;
+    for (const sentence of String(line.text).split(/(?<=[.!?…])\s+/)) {
+      const text = sentence.trim();
+      if (words(text).length < 2 || CYRILLIC.test(text) || !/\p{L}/u.test(text)) continue;
+      out.push({ startMs: line.startMs, text, unsure: Boolean(line.unsure?.length) });
+      if (out.length >= MAX_SENTENCES) return out;
+    }
+  }
+  return out;
+}
+
+// a correction counts only when words changed, not just punctuation or capitals
+const plain = (s) => words(String(s || '').toLocaleLowerCase('et').replace(/[.,!?;:…"„“”«»()-]+/g, ' ')).join(' ');
+function isCorrection(said, corrected) {
+  const a = plain(said);
+  const b = plain(corrected);
+  return Boolean(a && b) && a !== b;
+}
+
+const GEC_PROMPT = (sentence) => `### Instruction:\nReply with a corrected version of the input sentence in Estonian with all grammatical and spelling errors fixed. If there are no errors, reply with a copy of the original sentence.\n\n### Input:\n${sentence}\n\n### Response:\n`;
+
+function summaryPrompt(transcript = []) {
+  let text = transcript.map((l) => `[${clock(l.startMs)}] ${l.speaker === 'student' ? 'Õpilane' : 'Õpetaja'}: ${l.text}`).join('\n');
+  if (text.length > MAX_TRANSCRIPT_CHARS) text = `${text.slice(0, MAX_TRANSCRIPT_CHARS)}\n[…]`;
+  return `Sa oled kogenud eesti keele õpetaja metoodik. All on eesti keele tunni transkriptsioon (automaatne kõnetuvastus, võib sisaldada tuvastusvigu). Õpilane õpib eesti keelt, tema emakeel on tavaliselt vene keel.
+
+Kirjuta õpetajale lühike analüüs JSON-ina, ainult JSON, ilma muu tekstita:
+{"kokkuvote": "2-3 lauset tunnist", "meeldis": ["mis õpilasele meeldis või kus ta oli aktiivne, koos tõendiga tekstist"], "raske": ["mis oli raske: kus ta takerdus, lülitus vene keelde, vastas lühidalt"], "jargmiseks": ["2-3 konkreetset soovitust järgmiseks tunniks"]}
+Ära mõtle välja midagi, mida tekstis ei ole. Kui millegi kohta tõendit pole, jäta loend tühjaks.
+
+Transkriptsioon:
+${text}`;
+}
+
+// the model's JSON → a small, safe shape (strings only, short, a few items)
+function parseSummary(raw) {
+  let data;
+  try { data = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { return null; }
+  if (!data || typeof data !== 'object') return null;
+  const str = (v, max = 600) => String(v ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
+  const list = (v) => (Array.isArray(v) ? v.map((x) => str(x, 300)).filter(Boolean).slice(0, 5) : []);
+  const summary = { kokkuvote: str(data.kokkuvote), meeldis: list(data.meeldis), raske: list(data.raske), jargmiseks: list(data.jargmiseks) };
+  return summary.kokkuvote || summary.meeldis.length || summary.raske.length || summary.jargmiseks.length ? summary : null;
+}
+
+// a finished recording with a transcript still waiting for (this version of) the analysis
+function needsAnalysis(rec = {}) {
+  return rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0
+    && !(rec.analysis && rec.analysis.version >= ANALYSIS_VERSION);
+}
+
+module.exports = { ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

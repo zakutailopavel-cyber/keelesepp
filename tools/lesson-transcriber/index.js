@@ -7,6 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
+const { ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -193,9 +194,71 @@ async function liveWork() {
   }
 }
 
+// ── didactic analysis (local Ollama; skipped quietly when Ollama is not running) ──
+const OLLAMA = env('OLLAMA_URL', 'http://127.0.0.1:11434');
+const GEC_MODEL = env('GEC_MODEL', 'llammas-gec');
+const SUMMARY_MODEL = env('SUMMARY_MODEL', 'gemma3:12b');
+async function ollama(body, timeoutMs = 10 * 60 * 1000) {
+  const res = await fetch(`${OLLAMA}/api/generate`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stream: false, ...body }), signal: AbortSignal.timeout(timeoutMs),
+  });
+  if (!res.ok) throw new Error(`Ollama ${res.status}`);
+  return (await res.json()).response || '';
+}
+async function ollamaModels() {
+  try {
+    const res = await fetch(`${OLLAMA}/api/tags`, { signal: AbortSignal.timeout(5000) });
+    return res.ok ? ((await res.json()).models || []).map((m) => m.name.replace(/:latest$/, '')) : [];
+  } catch { return []; }
+}
+
+// one finished recording per tick: the learner's errors (GEC) and the summary for the teacher, saved as `analysis`
+async function analyzeNext() {
+  if (env('ANALYSIS', 'on') === 'off') return;
+  const models = await ollamaModels();
+  const hasGec = models.includes(GEC_MODEL);
+  const hasSummary = models.includes(SUMMARY_MODEL);
+  if (!hasGec && !hasSummary) return;
+  const snap = await db.collection('lessonRecordings').where('status', '==', 'done').get();
+  const rec = snap.docs.map((d) => ({ id: d.id, ref: d.ref, ...d.data() })).filter(needsAnalysis)
+    .sort((a, b) => String(b.endedAt || b.startedAt || '').localeCompare(String(a.endedAt || a.startedAt || '')))[0];
+  if (!rec) return;
+  current = { state: 'analyzing', recordingId: rec.id };
+  const started = Date.now();
+  try {
+    const errors = [];
+    if (hasGec) {
+      for (const s of learnerSentences(rec.transcript, rec.language || 'et')) {
+        const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(s.text), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
+        if (isCorrection(s.text, corrected)) errors.push({ startMs: s.startMs, said: s.text, corrected, ...(s.unsure ? { unsure: true } : {}) });
+        progress();
+      }
+    }
+    let summary = null;
+    if (hasSummary) {
+      summary = parseSummary(await ollama({ model: SUMMARY_MODEL, prompt: summaryPrompt(rec.transcript), format: 'json', options: { temperature: 0.2, num_ctx: 32768 } }));
+      progress();
+    }
+    await rec.ref.update({ analysis: {
+      version: ANALYSIS_VERSION, errors, ...(summary ? { summary } : {}),
+      models: { ...(hasGec ? { gec: GEC_MODEL } : {}), ...(hasSummary ? { summary: SUMMARY_MODEL } : {}) },
+      analyzedAt: new Date().toISOString(), seconds: Math.round((Date.now() - started) / 1000),
+    } });
+    log('analyzed', rec.id, `${errors.length} errors`, summary ? 'summary' : 'no summary');
+  } catch (err) {
+    // saved so a broken recording is not tried again every minute; a new ANALYSIS_VERSION retries all
+    await rec.ref.update({ analysis: { version: ANALYSIS_VERSION, error: String(err.message || err).slice(0, 300), analyzedAt: new Date().toISOString() } });
+    log('analysis failed', rec.id, err.message);
+  } finally {
+    current = { state: 'idle', recordingId: '' };
+  }
+}
+
 async function tick() {
   await handOverAbandoned();
   for (const rec of await claim()) await transcribe(rec);
+  // only when no lesson waits for its text: one analysis per tick
+  try { await analyzeNext(); } catch (err) { log('analysis tick error', err.message); }
   if (new Date().getMinutes() < 2) await deleteOldAudio(); // about once an hour
 }
 
