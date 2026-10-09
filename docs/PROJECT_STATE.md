@@ -1,3 +1,10 @@
+## 2026-10-09 — Fix: block bar menus and the content panel flashed in the top-left corner — branch `agent/menu-flash`
+
+- Base: `main` 3109c92.
+- Floating UI places a floating element at 0,0 until its first position is computed. `BarMenu.jsx` and the „Sisu” panel in `WorksheetStudioPage.jsx` now stay transparent (`opacity: 0`) until `isPositioned`. `visibility: hidden` was not used because it would hide the controls from tests.
+- Checks: `npx vitest run src/features/worksheet-studio src/features/worksheet-generator`: 583/583; eslint is clean.
+- Next safe step: the owner opens a bar menu on production and confirms there is no flash.
+
 ## 2026-10-09 — Constructor skin: one top row, icon rail with drawer, block look on the dark bar, palette thumbnails, toasts — branch `agent/constructor-skin`
 
 - Base: `main` 3a7dcf2. The owner saw the local preview and approved it („мне нравится”).

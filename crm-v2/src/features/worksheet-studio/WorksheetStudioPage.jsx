@@ -122,7 +122,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [copiedStyle, setCopiedStyle] = useState(null);
   // Floating UI: the panel sits beside the page at the height of the selected block (a virtual reference = the page's
   // left / right edges and the block's top / bottom), flips to the other side when there is no room, follows scrolling
-  const { refs, floatingStyles } = useFloating({
+  const { refs, floatingStyles, isPositioned } = useFloating({
     open: Boolean(selectedId),
     strategy: 'fixed',
     placement: popSide === 'right' ? 'right-start' : 'left-start',
@@ -147,7 +147,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       },
     });
   }, [selectedId, doc?.blocks, mode]); // eslint-disable-line react-hooks/exhaustive-deps
-  const popStyle = floatingStyles;
+  // hidden until placed, or it flashes in the top-left corner for a moment
+  const popStyle = { ...floatingStyles, opacity: isPositioned ? 1 : 0 };
   const [cut, setCut] = useState({ busy: false, error: '' });
   const [history, setHistory] = useState(emptyHistory);
   const [baseUpdatedAt, setBaseUpdatedAt] = useState('');
