@@ -105,3 +105,15 @@ test('the EKI grammar profile gives the targets of a level and what is known bef
   assert.equal(g.level, 'B1');
   assert.ok(g.targets.length > 50 && g.known.length > 100);
 });
+
+test('EKI evaluation summary: levels, what is above the level, the highest forms used', () => {
+  const { summarizeEvaluation, sentencesOf } = require('./analysis');
+  const s = summarizeEvaluation({
+    evaluatedText: [{ text: 'Ma', lemma: 'mina', pos: 'P', level: 'A1' }, { text: 'ostaksin', lemma: 'ostma', pos: 'V', level: 'A1' }, { text: '.', pos: 'Z', level: '' }],
+    evaluatedGrammarText: [{ text: 'ostaksin', level: 'B1', formXinfo: 'tingiv kõneviis' }, { text: 'Ma', level: 'A1', formXinfo: 'ainsuse nimetav' }],
+  }, 'A2');
+  assert.equal(s.words, 2);
+  assert.deepEqual(s.aboveForms, [{ text: 'ostaksin', lemma: undefined, level: 'B1', form: 'tingiv kõneviis' }]);
+  assert.deepEqual(s.topForms[0], { text: 'ostaksin', level: 'B1', form: 'tingiv kõneviis' });
+  assert.deepEqual(sentencesOf('Ma elan Tallinnas. Jah. Mul on koer!'), ['Ma elan Tallinnas.', 'Mul on koer!']);
+});

@@ -1,3 +1,23 @@
+## 2026-10-10 — EKI evaluation via the school Mac; „Analüüsi teksti” for learners' written answers (TartuNLP + EKI) — branch `agent/eki-via-mac`
+
+- Base: `main` (after #427).
+- The owner saw „Internal error” on „Hinda EKI-ga”. The logs show `EKI text evaluation unavailable` (502 after 16 s) from Cloud Functions us-central1, while the same text answers in 0.2 s from the Mac. EKI seems to block foreign cloud addresses.
+- Rules: `aiRequests` kinds now include `evaluate` and `learnerText`, with an optional string `text` ≤ 8000. Emulator 7/7. Deployed.
+- `aiRequestsService.requestText`.
+- Mac:
+  - `analysis.js` `ekiEvaluate`, `summarizeEvaluation` (+ `topForms`), `sentencesOf`;
+  - `index.js` answers `evaluate` (EKI only) and `learnerText` (GEC per sentence, at most 40, + EKI);
+  - sentences / reading are skipped when gemma3 is missing, the others still run.
+  - End-to-end with temporary requests (deleted): evaluate 6 s, learnerText found all 3 planted errors.
+  - Installed.
+- CRM:
+  - `editor/useMacRequest.js`, `editor/LevelBars.jsx`;
+  - `EkiEvaluation` now uses the Mac queue; the `evaluate` prop was removed;
+  - `homework/LearnerTextAnalysis.jsx` (`learnerTexts` from writing / guidedletter answers and older writing fields) in SubmissionReviewModal, staff only.
+  - Tests: homework + worksheet-studio 195/195.
+- Privacy: the learner's text (without a name) goes to the school Mac and to EKI's public evaluation service (an Estonian state institute).
+- Next safe step: the owner analyses one real written answer in „Kodutööd”.
+
 ## 2026-10-10 — EKI use situations („Kasutusolukorrad”) in the constructor + links to all EKI teacher tools — branch `agent/eki-usecases`
 
 - Base: `main` (after #424).

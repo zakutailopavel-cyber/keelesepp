@@ -156,3 +156,13 @@ test('„Halb lause” flags: staff create their own and read all; students cann
   assert.equal(await list(teacher), 200);
   assert.equal(await list(learner), 403);
 });
+
+test('text requests for the school Mac: evaluate and learnerText with a bounded text', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const teacher = await account('teacher');
+  const ask = (data) => fetch(`${base}/aiRequests`, { method: 'POST', headers: { Authorization: `Bearer ${teacher.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: data }) }).then((r) => r.status);
+  const ok = (kind, text) => ({ kind: { stringValue: kind }, text: { stringValue: text }, topic: { stringValue: '' }, level: { stringValue: 'A2' }, grammar: { stringValue: '' }, count: { integerValue: '1' }, createdBy: { stringValue: teacher.uid }, createdAt: { stringValue: '2026-10-10T10:00:00Z' }, status: { stringValue: 'new' } });
+  assert.equal(await ask(ok('evaluate', 'Ma elan Tallinnas.')), 200);
+  assert.equal(await ask(ok('learnerText', 'Ma elan Tallinnas koos minu ema.')), 200);
+  assert.equal(await ask(ok('learnerText', 'x'.repeat(8001))), 403);
+});
