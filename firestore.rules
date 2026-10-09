@@ -1323,8 +1323,16 @@ service cloud.firestore {
 
     match /worksheetAssignments/{assignmentId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create, delete: if isStaff();
-      allow update: if isStaff()
+      allow create: if isStaff()
+        && (
+          request.resource.data.get('source', '') != 'student_private_worksheet'
+          || (
+            getAfter(/databases/$(database)/documents/studentWorksheetDrafts/$(assignmentId)).data.studentId == request.resource.data.studentId
+          )
+        );
+      allow delete: if isStaff();
+      allow update: if request.resource.data.studentId == resource.data.studentId
+        && (isStaff()
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -1337,7 +1345,19 @@ service cloud.firestore {
             'selfAssessment',
             'updatedAt'
           ])
-        );
+        ));
+    }
+
+    // Personal Worksheet Studio drafts stay outside the shared curriculum library.
+    // The student sees only the published snapshot in worksheetAssignments.
+    match /studentWorksheetDrafts/{draftId} {
+      allow read: if isAdmin() || (isTeacher() && teacherCanRead(studentDoc(resource.data.studentId)));
+      allow create: if request.resource.data.studentId is string
+        && exists(studentPath(request.resource.data.studentId))
+        && (isAdmin() || (isTeacher() && teacherCanRead(studentDoc(request.resource.data.studentId))));
+      allow update: if request.resource.data.studentId == resource.data.studentId
+        && (isAdmin() || (isTeacher() && teacherCanRead(studentDoc(resource.data.studentId))));
+      allow delete: if isAdmin() || (isTeacher() && teacherCanRead(studentDoc(resource.data.studentId)));
     }
 
     match /exerciseResults/{resultId} {

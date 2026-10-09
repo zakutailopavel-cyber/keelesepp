@@ -24,6 +24,7 @@ import PayrollPage from '../features/payroll/PayrollPage.jsx';
 import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
+import StudentWorksheetStudioPage from '../features/students/StudentWorksheetStudioPage.jsx';
 import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
 import TasksPage from '../features/tasks/TasksPage.jsx';
 import TeachersPage from '../features/teachers/TeachersPage.jsx';
@@ -58,6 +59,7 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:studentId" element={<StudentProfilePage />} />
+            <Route path="students/:studentId/worksheets/:lessonId" element={<StudentWorksheetStudioPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="groups" element={<GroupsPage />} />

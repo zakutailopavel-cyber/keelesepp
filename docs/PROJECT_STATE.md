@@ -1,3 +1,12 @@
+## 2026-10-09 — Personal worksheets from a student profile — branch `codex/student-private-worksheets`
+
+- Goal: let a teacher create a worksheet inside one student's profile without publishing it to the shared material library or assigning it to another student.
+- Completed: added a profile action and private-draft list, reused Worksheet Studio in a student-bound route, saved drafts in `studentWorksheetDrafts`, and published one `worksheetAssignments` snapshot for that student. The existing profile tracking, student player, submission and review flow use that snapshot. Firestore and Storage rules restrict student access by `studentId`.
+- Files: `StudentProfilePage.jsx`, `StudentWorksPanel.jsx`, `StudentWorksheetStudioPage.jsx`, `WorksheetStudioPage.jsx`, `studentWorksheets.js`, routes/access policy, profile CSS, `firestore.rules`, `storage.rules`, `docs/specs/STUDENT_PRIVATE_WORKSHEETS.md`, this entry.
+- Checks: targeted ESLint — 0 errors; full ESLint — 0 errors / 2 existing worksheet-generator hook warnings; CRM production build — passed with the existing large-chunk advisory; `git diff --check` — passed. Automated tests were not run for this request. No live student flow has been exercised.
+- Data/security: no production records were changed and no messages, merge or deployment were performed. The new collection and Storage path require the accompanying rules before use. Admins and permitted teachers can see drafts; only the chosen student's linked account can read its published assignment.
+- Next safe step: review the draft PR and its checks, including Firestore and Storage rules. Merge and deployment require a separate owner decision.
+
 ## 2026-10-08 — Finance v3 tabs and invoice printing — branch `agent/finance-v3-tabs`
 
 - Last checked `origin/main`: `227d561` on 2026-10-08. Draft PR: #367.
