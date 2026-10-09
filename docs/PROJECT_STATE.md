@@ -4,6 +4,12 @@ Owner: the board should be wider and the video tiles should lie over it. `LiveRo
 (desktop ≥ 761 px): the board fills the whole width; the tiles float top-right (220 px, below the page tabs); an
 open drawer floats on the right (340 px, full height). Phones keep the old overlay layout; Tööruum and group rooms
 unchanged. Checks: live-classroom only the known 9 Node 26 `localStorage` failures; build OK. Not looked at live.
+## 2026-10-09 — Transcriber: interrupted recordings within 15 min — branch `agent/transcriber-quick-handover`
+
+Owner: recording starts by itself with the call, so a page reload during a lesson starts a new recording and leaves the
+old one in „recording”. `lib.isAbandoned` now hands such a recording over after 15 min without a new segment (a live
+recording adds one every 5 min; was 3 h). Installed on the school Mac and restarted: Ilja's interrupted recording
+`UwmaDxckwIW9iTu45e2x_1791559189464` was handed over. Checks: transcriber lib tests 6/6.
 
 ## 2026-10-09 — Lesson text in the student card; transcriber self-repair — branch `agent/transcript-in-lesson`
 
