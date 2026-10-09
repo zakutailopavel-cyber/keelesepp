@@ -82,5 +82,10 @@ These are real gaps of the generator, fixed in step 2.
    - **Gap sentences:** gemma3 gets the level's sentence length and grammar, and writes twice as many as asked. Sentences that are too long or have more than one word above the level are dropped; the rest are checked by GEC.
    - **Reading:** a text with questions at the level's length. When over 8% of its words are above the level, it is simplified once. Every sentence is GEC-checked; the CRM shows the hard words and the corrections („Paranda kõik”).
    - Measured: 8 A2 gap sentences in 34 s, 6 clean. A 110-word A2 text in 40 s, with 5 real errors caught and fixed by GEC.
-6. Personal sheets from the learner model (errors, weak skills, due words).
+6. ~~Personal sheets from the learner model.~~ Done.
+   - „Areng” → „Tee isiklik tööleht” (`features/students/personalWorksheet.js`) builds a draft with:
+     - his due words (vocabulary + matching);
+     - his own lesson errors (errorfix, gaps, word forms);
+     - one task for the weaker of speaking and writing, with the amounts of his level.
+   - It opens as an unsaved private draft (`/students/:id/worksheets/new`).
 7. Calibration: item difficulty from submitted answers, and the teacher's „bad sentence” flag.
