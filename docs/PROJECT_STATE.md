@@ -1,3 +1,15 @@
+## 2026-10-09 — Calendar look refresh — branch `agent/calendar-look`
+
+Owner looked at a full shadcn-style concept and found it „too corporate”; only the calendar look is wanted. No new
+libraries, no general redesign.
+- `calendar/TimeGrid.jsx`: lesson colour by student when the grid shows one teacher's lessons, by teacher when several
+  teachers are shown (`toneOf`); the teacher line on a card only when several teachers are shown.
+- `calendar/calendarV2.css` (appended block): day header = small weekday + big number left-aligned, today in green
+  (no pill), lighter grid lines and hour labels, lessons as soft cards with a thin coloured frame (no thick left bar),
+  name first then time, past (done) lessons fainter, groups marked with an inner bar.
+- Checks: calendar 11 files / 74 tests; eslint 0 errors; screenshot of the week view on local emulators with fake data.
+- Next safe step: merge; the owner looks at the real calendar.
+
 ## 2026-10-09 — Constructor: sheet results („Tulemused”) and authoring tips — branch `agent/sheet-insights`
 
 Checked `origin/main` (after #394). Step 5 (last) of the owner's constructor roadmap.

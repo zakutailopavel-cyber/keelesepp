@@ -42,6 +42,9 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
   const [painting, setPainting] = useState(null);
   const [now, setNow] = useState(nowMinutes);
   const { start: GRID_START, end: GRID_END } = gridRange(columns.flatMap((column) => column.items));
+  // colour: by teacher when several teachers are on the grid, by student when it is one teacher's week (owner, 2026-10-09)
+  const manyTeachers = new Set(columns.flatMap((column) => column.items).map((item) => item.teacherUid || item.teacher || '')).size > 1;
+  const toneOf = (item) => teacherTone(manyTeachers ? (item.teacherUid || item.teacher) : (item.studentId || item.studentName || item.teacher));
   const HOURS = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, index) => GRID_START / 60 + index);
   const firstRange = useRef({ start: GRID_START, end: GRID_END });
 
@@ -186,7 +189,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                     {group.items.map(({ item }) => {
                       const status = statusOf(item);
                       return (
-                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${teacherTone(item.teacherUid || item.teacher)} is-${status}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.teacher ? ` · ${item.teacher}` : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
+                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${toneOf(item)} is-${status}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.teacher ? ` · ${item.teacher}` : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
                           <span>{item.time}</span><strong>{item.studentName || 'Õpilane'}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
                         </button>
                       );
@@ -199,7 +202,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                   return (
                     <div
                       key={item.occurrenceId}
-                      className={`tg-block tone-${teacherTone(item.teacherUid || item.teacher)} is-${status} ${item.isGroup ? 'is-group' : ''} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
+                      className={`tg-block tone-${toneOf(item)} is-${status} ${item.isGroup ? 'is-group' : ''} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
                       style={{ top: top * PX_PER_MIN, height: Math.max(22, blockHeight * PX_PER_MIN - 2), left: `calc(${(lane / lanes) * 100}% + 2px)`, width: `calc(${100 / lanes}% - 4px)` }}
                       onPointerDown={(event) => startDrag(event, item, column, 'move')}
                       title={`${item.time} · ${item.studentName || 'Õpilane'}${item.teacher ? ` · ${item.teacher}` : ''}`}
@@ -212,7 +215,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                       >
                         <span className="tg-time">{item.time}{status === 'done' ? <Check size={12} /> : status === 'absent' ? <X size={12} /> : null}</span>
                         <strong>{item.studentName || 'Õpilane'}{item.online ? <span className="tg-online" title="Veebitund"> · veeb</span> : null}</strong>
-                        {item.recordTopic ? <small className="tg-topic">{item.recordTopic}</small> : showTeacher ? <small>{item.teacher}</small> : null}
+                        {item.recordTopic ? <small className="tg-topic">{item.recordTopic}</small> : showTeacher && manyTeachers ? <small>{item.teacher}</small> : null}
                       </button>
                       {onQuickDone && status === 'planned' && !item.isGroup && item.occurrenceDate <= column.today ? (
                         <button type="button" className="tg-quick" aria-label={`Märgi toimunuks: ${item.studentName || 'Õpilane'}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onQuickDone(item); }}><Check size={14} /></button>
