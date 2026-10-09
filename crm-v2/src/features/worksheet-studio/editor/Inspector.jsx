@@ -6,6 +6,7 @@ import AiSentences from './AiSentences.jsx';
 import AiReading from './AiReading.jsx';
 import SentenceFlags from './SentenceFlags.jsx';
 import GrammarPanel from './GrammarPanel.jsx';
+import EkiEvaluation from './EkiEvaluation.jsx';
 
 // Settings of the selected block (the floating panel) and of the whole sheet („Leht”).
 // The look of a block (style, colour, frame, icon, width) is edited from its bar on the sheet (BlockBar.jsx); this
@@ -59,7 +60,7 @@ export function BlockInspector({ block, doc, update }) {
   );
 }
 
-export function SheetInspector({ doc, setMeta }) {
+export function SheetInspector({ doc, setMeta, evaluate = null }) {
   const m = doc.meta;
   const goals = Object.entries(m.goals || {});
   const setGoals = (entries) => setMeta({ goals: Object.fromEntries(entries.filter(([, g]) => g !== null)) });
@@ -93,6 +94,7 @@ export function SheetInspector({ doc, setMeta }) {
         <button type="button" className="ed-btn ghost" onClick={() => setGoals([...goals, [`g_${Date.now().toString(36)}`, 'Uus eesmärk']])}>+ Lisa eesmärk</button>
         <span className="ed-hint">Iga ülesande saab siduda eesmärgiga. Kontrolli tulemus näitab, milline eesmärk on omandatud.</span>
       </div>
+      <div className="ed-section"><EkiEvaluation doc={doc} evaluate={evaluate} /></div>
       <div className="ed-section"><GrammarPanel level={m.level} /></div>
     </div>
   );

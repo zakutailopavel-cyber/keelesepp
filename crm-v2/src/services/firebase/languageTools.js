@@ -24,6 +24,10 @@ async function post(path, body) {
 }
 
 export const languageToolsService = {
+  // EKI „Õppeteksti hindamine” through languageApi: { words, wordLevels, unknownWords, formLevels, aboveWords, aboveForms, lix }
+  evaluate({ text, level }) {
+    return post('/evaluate', { text, level });
+  },
   // { translation, forms: { available, found, forms: [{ code, label, ru, value }], line } }
   lookupWord({ word, src = 'et', tgt = 'ru' }) {
     if (src !== 'et') return post('/translate', { text: word, src, tgt }).then((data) => ({ word, translation: data.result || '', forms: { available: false, forms: [], line: '' } }));

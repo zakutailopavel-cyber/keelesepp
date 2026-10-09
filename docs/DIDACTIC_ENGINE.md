@@ -79,7 +79,9 @@ These are real gaps of the generator, fixed in step 2.
    - **Source:** `tools/lexicon/build_level_forms.py grammar` reads EKI's grammar competence profile for adults (etLex `gramprofiles`, CC BY) into `didactics/grammarProfile.json`. It has 547 topics: A1 84, A2 136, B1 171, B2 135, C1 21. Each topic carries an „oskab” statement, a category and an example.
    - **Constructor:** „Leht” → „Tasemel X õpitav grammatika (EKI)” (`GrammarPanel`). The AI fields „Lünk harjutab” and „Grammatika tekstis” suggest the level's topics (datalist).
    - **School Mac:** the prompts list what is known (earlier levels) and the level's targets from this profile (`ekiGrammar`). `levels.js` `GRAMMAR` is only the fallback.
-   - **Still open:** detecting the grammar actually used in a sheet (Vabamorf analysis on the Mac).
+   - ~~Detecting the grammar actually used in a sheet.~~ Done with EKI's own tool, „Õppeteksti hindamine” (etLex `POST /projects/etLex/evaluation`). It gives the level of every word and every grammatical form („ostaksin — tingiv kõneviis — B1”).
+     - EKI does not allow browser calls from our domain (the CORS preflight answers 400), so the call goes through `languageApi` `POST /evaluate`, which is staff only (`evaluationRequest` / `summarizeEvaluation` in `functions/language-core.js`).
+     - Constructor: „Leht” → „Hinda EKI-ga” (`editor/EkiEvaluation.jsx`) sends `sheetText(doc)`, the solved learner-facing text. It shows the word and form level bars and the words and forms above the sheet's level.
 5. ~~Local models under the norms.~~ Done for gap sentences and reading texts.
    - On the school Mac, `answerAiRequests` loads `levels.js` and `levelForms.json` (copied into `app/didactics`, or from the repository).
    - **Gap sentences:** gemma3 gets the level's sentence length and grammar, and writes twice as many as asked. Sentences that are too long or have more than one word above the level are dropped; the rest are checked by GEC.

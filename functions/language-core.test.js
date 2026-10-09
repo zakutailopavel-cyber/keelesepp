@@ -43,3 +43,22 @@ test("speech request: known voice, speed clamped, text required and limited", ()
   assert.throws(() => speechRequest({ text: "Tere", speaker: "siri" }), (e) => e.status === 400);
   assert.throws(() => speechRequest({ text: "a".repeat(MAX_SPEECH + 1) }), (e) => e.status === 400);
 });
+
+test('summarizes the EKI text evaluation against the sheet level', () => {
+  const { summarizeEvaluation, evaluationRequest } = require('./language-core');
+  const data = {
+    evaluatedText: [
+      { text: 'Kui', lemma: 'kui', pos: 'J', level: 'A1' }, { text: 'ostaksin', lemma: 'ostma', pos: 'V', level: 'A1' },
+      { text: 'keskkonnasõbralik', lemma: 'keskkonnasõbralik', pos: 'A', level: 'B1' }, { text: '.', pos: 'Z', level: '' }, { text: 'Xyz', lemma: 'xyz', pos: 'S', level: '' },
+    ],
+    evaluatedGrammarText: [{ text: 'ostaksin', lemma: 'ostma', level: 'B1', formXinfo: 'tingiv kõneviis' }, { text: 'Kui', level: 'määramata' }],
+    textStat: { LixIndex: 31 },
+  };
+  const s = summarizeEvaluation(data, 'A2');
+  assert.equal(s.words, 4);
+  assert.equal(s.unknownWords, 1);
+  assert.deepEqual(s.aboveWords, [{ text: 'keskkonnasõbralik', lemma: 'keskkonnasõbralik', level: 'B1' }]);
+  assert.deepEqual(s.aboveForms, [{ text: 'ostaksin', lemma: 'ostma', level: 'B1', form: 'tingiv kõneviis' }]);
+  assert.equal(summarizeEvaluation(data, 'B1').aboveForms.length, 0);
+  assert.throws(() => evaluationRequest({ text: ' ' }));
+});
