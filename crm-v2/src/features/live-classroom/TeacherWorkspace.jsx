@@ -67,7 +67,7 @@ export default function TeacherWorkspace({
           </div> : null}
           {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <>
             <label className="lr-search lw-search"><Search size={16} /><input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-            {group ? null : <Select label="Õpilane" value={studentId} disabled={Boolean(pending)} onChange={(event) => onSelect(event.target.value)}>
+            {group ? null : <Select label="Õpilane" value={studentId} disabled={Boolean(pending)} onChange={(event) => { onSelect(event.target.value); setPanel(event.target.value ? 'worksheets' : ''); }}>
               <option value="">Vali õpilane</option>
               {visible.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.subject || 'Õppeaine puudub'} · {item.level || 'tase puudub'}</option>)}
             </Select>}
@@ -121,9 +121,9 @@ export default function TeacherWorkspace({
           <section className="lr-drawer" aria-label="Töölehed">
             <header><strong>Lisa tööleht</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>
             <div className="lr-drawer__body">
-              <p className="form-hint">Tööleht tuleb tahvlile oma lehele ja on klõpsatav. Kui kutsud õpilase tundi, täidab ta seda ja näed vastuseid kohe.</p>
+              <p className="form-hint">„Järgmine tund” on õpilase järgmine õppekava tund (päeviku ja tehtud töölehtede järgi). Tööleht tuleb tahvlile oma lehele ja on klõpsatav. Kui kutsud õpilase tundi, täidab ta seda ja näed vastuseid kohe.</p>
               {prepared.length ? <p className="form-hint">Tahvlil: {prepared.map((item) => item.title || 'Tööleht').join(' · ')}</p> : null}
-              <RoomWorksheetPicker studentId={student.id} studentName={student.name} roomKey={prepRoomKey(student.id)} note={title ? `Live Classroom: ${title}` : 'Live Classroom'} user={user} homework={homework} {...(library ? { library } : {})} onOpened={(choice) => { setNotice(`„${choice.title}” on tahvlil.`); setPanel(''); }} />
+              <RoomWorksheetPicker studentId={student.id} studentName={student.name} studentLevel={student.level || ''} roomKey={prepRoomKey(student.id)} note={title ? `Live Classroom: ${title}` : 'Live Classroom'} user={user} homework={homework} {...(library ? { library } : {})} onOpened={(choice) => { setNotice(`„${choice.title}” on tahvlil.`); setPanel(''); }} />
             </div>
           </section>
         </aside> : null}

@@ -58,3 +58,37 @@ export function filterChoices(choices = [], { query = '', level = '' } = {}) {
   const tokens = norm(query).split(/\s+/).filter(Boolean);
   return choices.filter((choice) => (!level || choice.level === level) && tokens.every((token) => choice.search.includes(token)));
 }
+
+const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const time = (value) => {
+  const t = Date.parse(String(value || '').length === 10 ? `${value}T12:00:00` : value || '');
+  return Number.isFinite(t) ? t : 0;
+};
+
+// The student's next curriculum lesson with sheets: the one after the latest lesson they did — marked in the journal
+// (`topicLessonId`) or worked on as a worksheet (`lessonId`) — at the same level; otherwise the first lesson of their
+// level. Returns { lessonId, lessonTitle, level, module, number, choices: [its phase sheets not on this board] } or null.
+export function nextLessonSuggestion({ curriculum = [], lessonRecords = [], assignments = [], studentLevel = '', roomKey = '' } = {}) {
+  const order = [...new Map(curriculum.map((choice) => [choice.lessonId, choice])).values()];
+  if (!order.length) return null;
+  const index = new Map(order.map((choice, i) => [choice.lessonId, i]));
+  const seen = [
+    ...lessonRecords.filter((record) => (!record.status || record.status === 'Toimunud') && index.has(record.topicLessonId)).map((record) => ({ id: record.topicLessonId, at: time(record.date) })),
+    ...assignments.filter((item) => index.has(item.lessonId)).map((item) => ({ id: item.lessonId, at: time(item.completedAt || item.assignedAt) })),
+  ].sort((a, b) => b.at - a.at || index.get(b.id) - index.get(a.id));
+  let next = null;
+  if (seen.length) {
+    const last = order[index.get(seen[0].id)];
+    const following = order[index.get(last.lessonId) + 1];
+    next = following && following.level === last.level ? following : null;
+  } else {
+    const level = LEVELS.includes(String(studentLevel).toUpperCase()) ? String(studentLevel).toUpperCase() : '';
+    next = order.find((choice) => !level || choice.level === level) || null;
+  }
+  if (!next) return null;
+  const onBoard = new Set(assignments.filter((item) => roomKey && item.liveRoomKey === roomKey && item.lessonId === next.lessonId).map((item) => item.title));
+  return {
+    lessonId: next.lessonId, lessonTitle: next.lessonTitle, level: next.level, module: next.module, number: next.number,
+    choices: curriculum.filter((choice) => choice.lessonId === next.lessonId && !onBoard.has(choice.title)),
+  };
+}
