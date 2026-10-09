@@ -1,11 +1,13 @@
 import { ClipboardCheck, Eye, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
 import LiveWorksheetView from '../worksheet-studio/LiveWorksheetView.jsx';
 import { answerProgress } from '../worksheet-studio/engine/registry.js';
 import '../homework/reviewLayout.css';
 import SubmissionReviewModal from '../homework/SubmissionReviewModal.jsx';
 import { formatDate } from '../homework/submissionFormat.js';
+import { studentWorksheetsService } from '../../services/firebase/studentWorksheets.js';
 
 // Student card „Tööd”: worksheets given but not handed in yet (open live: the teacher sees the answers as they are now,
 // autosaved by the student's player) and every worksheet and exercise the student handed in, opened in the large
@@ -22,8 +24,8 @@ function openState(assignment) {
     overdue,
   };
 }
-export default function StudentWorksPanel({ student, user, homeworkApi, onSkillMap }) {
-  const [state, setState] = useState({ loading: true, error: '', items: [], open: [] });
+export default function StudentWorksPanel({ student, user, homeworkApi, privateWorksheetApi = studentWorksheetsService, onSkillMap }) {
+  const [state, setState] = useState({ loading: true, error: '', items: [], open: [], drafts: [], draftError: '' });
   const [watching, setWatching] = useState(null);
   const [opened, setOpened] = useState(null);
   const [notice, setNotice] = useState('');
@@ -34,19 +36,29 @@ export default function StudentWorksPanel({ student, user, homeworkApi, onSkillM
     Promise.resolve().then(() => Promise.all([
       homeworkApi.listSubmissionsByStudentIds([student.id]),
       homeworkApi.listWorksheetAssignmentsByStudentIds ? homeworkApi.listWorksheetAssignmentsByStudentIds([student.id]) : [],
+      privateWorksheetApi.listDraftsByStudent(student.id)
+        .then((items) => ({ items, error: '' }))
+        .catch((error) => ({ items: [], error: error.message || 'Isiklikke mustandeid ei saanud laadida.' })),
     ]))
-      .then(([items, assignments]) => { if (alive) setState({ loading: false, error: '', items: items || [], open: (assignments || []).filter((item) => item.status !== 'done' && item.reviewStatus !== 'reviewed') }); })
-      .catch((error) => { if (alive) setState({ loading: false, error: error.message || 'Töid ei saanud laadida.', items: [], open: [] }); });
+      .then(([items, assignments, drafts]) => { if (alive) setState({ loading: false, error: '', items: items || [], open: (assignments || []).filter((item) => item.status !== 'done' && item.reviewStatus !== 'reviewed'), drafts: drafts.items || [], draftError: drafts.error }); })
+      .catch((error) => { if (alive) setState({ loading: false, error: error.message || 'Töid ei saanud laadida.', items: [], open: [], drafts: [], draftError: '' }); });
     return () => { alive = false; };
-  }, [homeworkApi, student.id, version]);
+  }, [homeworkApi, privateWorksheetApi, student.id, version]);
   const load = () => { setState((current) => ({ ...current, loading: true, error: '' })); setVersion((value) => value + 1); };
 
   const pending = state.items.filter((item) => item.reviewStatus !== 'reviewed').length;
 
   return (
     <Card className="profile-wide student-works">
-      <div className="section-heading"><div><span className="eyebrow">Õpilase tööd</span><h2>Töölehed ja harjutused</h2></div>{pending ? <Badge tone="info">{pending} ootab kontrolli</Badge> : null}</div>
+      <div className="section-heading"><div><span className="eyebrow">Õpilase tööd</span><h2>Töölehed ja harjutused</h2></div><div className="student-works__actions">{pending ? <Badge tone="info">{pending} ootab kontrolli</Badge> : null}<Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}>Koosta isiklik tööleht</Link></div></div>
       {notice ? <div className="success-notice" role="status">{notice}<button type="button" onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
+      {state.draftError ? <p className="form-hint" role="alert">{state.draftError}</p> : null}
+      {!state.loading && !state.error && state.drafts.length ? (
+        <section className="student-works__open" aria-label="Isiklikud mustandid">
+          <h3>Isiklikud mustandid ({state.drafts.length})</h3>
+          <div className="submission-list">{state.drafts.map((draft) => <Link className="submission-row" key={draft.id} to={`/students/${encodeURIComponent(student.id)}/worksheets/${encodeURIComponent(draft.id)}`}><i><FileText size={20} /></i><span className="submission-row__main"><strong>{draft.title}</strong><small>Nähtav ainult õpetajatele, kuni määrad selle õpilasele</small></span><Badge tone="neutral">Mustand</Badge></Link>)}</div>
+        </section>
+      ) : null}
       {!state.loading && !state.error && state.open.length ? (
         <section className="student-works__open" aria-label="Määratud, veel esitamata">
           <h3>Määratud, veel esitamata ({state.open.length})</h3>

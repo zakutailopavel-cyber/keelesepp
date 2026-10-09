@@ -35,10 +35,10 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, backTo = '/library', allowCopy = true, draftId = '', renderTop = null, initialMode = 'edit' }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
-  const draftName = isNew ? 'new' : draftId || lessonId;
+  const draftName = draftId || (isNew ? 'new' : lessonId);
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -101,7 +101,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     let alive = true;
     if (isNew) {
       const fresh = newDocument();
-      const local = readDraft(draftKey('new'));
+      const local = readDraft(draftKey(draftName));
       const restored = local?.document?.schema === fresh.schema;
       setDoc(restored ? local.document : fresh);
       setDraftRestored(restored);
@@ -175,7 +175,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);
   const quality = useMemo(() => analyzeWorksheet(doc || newDocument()), [doc]);
 
-  if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to="/library">Tagasi Õppevarasse</Link></div></div>;
+  if (loadError) return <div className="page-content"><div className="ws-studio-error" role="alert">{loadError} <Link to={backTo}>Tagasi: {backLabel}</Link></div></div>;
   if (!doc) return <div className="page-content"><p className="ws-studio-loading">Laen töölehte…</p></div>;
 
   // Every change is undoable; quick successive edits (typing in the inspector) form one undo step.
@@ -470,8 +470,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       setDraftRestored(false);
       try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ }
       setSavedAt(Date.now());
-      if (!auto) setNotice(nextStatus === 'published' ? `„${res.title}” avaldati (versioon ${res.version}).` : `„${res.title}” salvestati mustandina (versioon ${res.version}).`);
-      if (res.created) navigate(`/library/worksheets/${res.id}`, { replace: true });
+      if (!auto) setNotice(nextStatus === 'published' ? (privateFor ? `„${res.title}” määrati õpilasele ${privateFor}.` : `„${res.title}” avaldati (versioon ${res.version}).`) : `„${res.title}” salvestati mustandina (versioon ${res.version}).`);
+      if (res.created) navigate(`${editorBase}/${res.id}`, { replace: true });
     } catch (error) {
       setSaveError(auto ? `Automaatne salvestamine ebaõnnestus: ${error.message || 'tundmatu viga'}. Muudatused on selles brauseris alles.` : error.message || 'Salvestamine ebaõnnestus.');
     } finally {
@@ -485,7 +485,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     try {
       const copy = { ...structuredClone(doc), id: newId(), meta: { ...doc.meta, title: `${doc.meta.title} – koopia` } };
       const res = await repository.save({ lessonId: '', document: copy, user, status: 'draft' });
-      navigate(`/library/worksheets/${res.id}`);
+      navigate(`${editorBase}/${res.id}`);
     } catch (error) { setSaveError(error.message || 'Koopia loomine ebaõnnestus.'); }
     finally { setSaving(false); }
   };
@@ -531,7 +531,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     <AssetContext.Provider value={assets}>
       <div className={`ws-studio mode-${mode} ${focus ? 'is-focus' : ''}`}>
         <header className="st-bar">
-          <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : 'Õppevara'}</Link>
+          <Link className="st-back" to={backTo}><Icons.ArrowLeft size={16} /> {backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel}</Link>
           <div className="st-title"><b>Töölehe konstruktor</b><span>{doc.meta.title}{saving ? ' · salvestan…' : dirty ? ' · salvestamata' : savedAt ? ` · salvestatud ${new Date(savedAt).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })}` : ''}</span></div>
           <div className="st-seg" role="tablist" aria-label="Vaade">
             {[['edit', 'Koosta'], ['interactive', 'Õpilase vaade'], ['print', 'Trükivaade']].map(([m, l]) => (
@@ -560,8 +560,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             </details>
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
             <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
-            {!isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}`}>Määra õpilastele</Link> : null}
-            <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>Avalda</button>
+            {allowAssign && !isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}`}>Määra õpilastele</Link> : null}
+            <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>{privateFor ? 'Määra õpilasele' : 'Avalda'}</button>
           </div>
         </header>
         {renderTop ? renderTop({
@@ -577,6 +577,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             setNotice('Uus variant on lehel. Kui meeldib, salvesta; kui ei, „Võta tagasi” (Ctrl+Z) toob eelmise tagasi.');
           },
         }) : null}
+        {privateFor && <div className="st-banner" role="note">Isiklik tööleht: {privateFor}. Salvestatud mustandit näevad ainult õpetajad. Õpilane saab töölehe pärast nuppu „Määra õpilasele”.</div>}
         {source === 'converted' && <div className="st-banner">See tööleht teisendati vanast vormingust uude kujundusse. Kontrolli ülesandeid ja salvesta. Vana versioon jääb alles.</div>}
         {saveError && <div className="st-banner error" role="alert">{saveError}</div>}
         {notice && <div className="st-banner ok" role="status">{notice}</div>}

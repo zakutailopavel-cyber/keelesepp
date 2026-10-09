@@ -103,6 +103,11 @@ service firebase.storage {
       allow write: if staff() && safeContent();
     }
 
+    match /student-worksheets/{studentId}/{fileName} {
+      allow read: if staff() || ownsStudent(studentId);
+      allow write: if staff() && safeContent();
+    }
+
     match /didactics/{staffUid}/{fileName} {
       allow read: if staff();
       allow write: if staff() && staffUid == request.auth.uid && safeDidacticContent();

@@ -1,7 +1,7 @@
-import { ArrowLeft, BookOpenCheck, CalendarDays, Pencil, ReceiptText, PenLine } from 'lucide-react';
+import { ArrowLeft, BookOpenCheck, CalendarDays, Pencil, ReceiptText, PenLine, Plus } from 'lucide-react';
 import '../board/board.css';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState } from '../../components/ui/index.js';
 import { invoicesService } from '../../services/firebase/invoices.js';
@@ -48,6 +48,7 @@ const PROFILE_TABS = [
 
 export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, petApi, teacherApi, actor }) {
   const { studentId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
@@ -57,7 +58,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], plan: null });
   const [editing, setEditing] = useState(false);
   const [notice, setNotice] = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => PROFILE_TABS.some((tab) => tab.id === searchParams.get('tab')) ? searchParams.get('tab') : 'overview');
 
   const load = useCallback(async () => {
     setState((current) => ({ ...current, loading: true, error: null }));
@@ -108,7 +109,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
       <header className="student-profile-hero">
         <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1><p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p></span></div>
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
-        <div className="student-profile-hero__actions"><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button></div>
+        <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button></div>
       </header>
 
       <nav className="student-profile-tabs" role="tablist" aria-label="Õpilase profiili jaotised">
@@ -121,7 +122,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
             aria-selected={activeTab === tab.id}
             aria-controls={`student-profile-panel-${tab.id}`}
             className={activeTab === tab.id ? 'is-active' : ''}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => { setActiveTab(tab.id); setSearchParams(tab.id === 'overview' ? {} : { tab: tab.id }, { replace: true }); }}
           >
             {tab.label}
           </button>
