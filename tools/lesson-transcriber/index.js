@@ -67,8 +67,9 @@ async function transcribeSegment(seg, lessonLang, dir) {
     const piece = `${src}.${index}.wav`;
     await run(FFMPEG, ['-y', '-loglevel', 'error', '-ss', String(chunk.startMs / 1000), '-t', String((chunk.endMs - chunk.startMs) / 1000), '-i', wav, '-c', 'copy', piece]);
     const detect = await run(WHISPER, ['-m', MODEL, '-l', 'auto', '-dl', '-t', THREADS, '-f', piece], { maxBuffer: 16 * 1024 * 1024 }).catch((err) => err);
-    const lang = chooseLanguage(parseDetectedLanguage(`${detect?.stderr || ''}${detect?.stdout || ''}`), lessonLang);
-    await run(WHISPER, ['-m', modelFor(lang), '-l', lang, '-t', THREADS, '-f', piece, '-oj', '-of', piece, '-np', '-mc', '0', '-sns'], { maxBuffer: 64 * 1024 * 1024 });
+    const lang = chooseLanguage(parseDetectedLanguage(`${detect?.stderr || ''}${detect?.stdout || ''}`), lessonLang, { ruMin: seg.track === 'student' ? 0.8 : 0.5 });
+    // -ojf: token probabilities, so words whisper was unsure of are marked in the transcript
+    await run(WHISPER, ['-m', modelFor(lang), '-l', lang, '-t', THREADS, '-f', piece, '-ojf', '-of', piece, '-np', '-mc', '0', '-sns'], { maxBuffer: 64 * 1024 * 1024 });
     const json = JSON.parse(fs.readFileSync(`${piece}.json`, 'utf8'));
     lines.push(...parseWhisperJson(json, { speaker: seg.track, offsetMs: (seg.startMs || 0) + chunk.startMs }).map((line) => ({ ...line, lang })));
     progress();

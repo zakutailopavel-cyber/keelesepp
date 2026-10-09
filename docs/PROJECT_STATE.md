@@ -1,3 +1,17 @@
+## 2026-10-10 — Transcriber accuracy: learner's Estonian to the verbatim model, unsure words marked, language kept — branch `agent/transcriber-accuracy`
+
+- Base: `main` (after #406). The owner's goal: get as exactly as possible what the learner said, as the basis for a didactic analysis later.
+- `tools/lesson-transcriber`:
+  - `chooseLanguage(detected, lessonLang, { ruMin })`: the learner track takes Russian only at p ≥ 0.8 (teacher 0.5), so his Estonian goes to TalTech's verbatim model.
+  - whisper is now run with `-ojf`. `parseWhisperJson` marks words whose weakest token has p < 0.4 as `line.unsure` (word indexes in `text.split(' ')`), only when `cleanText` left the words unchanged.
+  - **Bug fixed:** `mergeDialogue` dropped `lang`. Finished transcripts had no language, so the RU/ET badges, the language filter and the learner's Estonian share did not work. It now keeps `lang`, merges only lines of the same language, and shifts `unsure` indexes when merging.
+  - Tests: `node --test lib.test.js` gives 10/10.
+- CRM `features/lesson-recording/TranscriptView.jsx`: `LineText` underlines unsure words (dotted amber, title „Ebakindel sõna: kuula salvestisest üle”). New `TranscriptView.test.jsx`; lesson-recording + students tests give 75/75.
+- Installed on the school Mac (`~/KeeleSeppTranscriber/app/{index,lib}.js`; backup in `~/KeeleSeppTranscriber/backup-202610100026/`) and restarted.
+- Data shape: transcript lines may now carry `lang` and `unsure: number[]`. Both are optional; older lines are unchanged.
+- In progress: Ollama (Homebrew, `brew services`) plus the TartuNLP GEC model (`models/llammas-gec-q4_0.gguf`, RichardErkhov GGUF of `tartuNLP/Llammas-base-p1-llama-errors-p2-GEC`) and `gemma3:12b`, for the error analysis and the lesson summary (stages 3–4, teacher only, local).
+- Next safe step: after the next real lesson, check the ET/RU badges and the underlined words in its transcript.
+
 ## 2026-10-10 — Transcriber: only the lesson's language and Russian; no punctuation-only lines — branch `agent/transcriber-et-ru`
 
 - Base: `main` 0afc487.

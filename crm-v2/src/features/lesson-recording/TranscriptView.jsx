@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BarChart3, PenLine } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, Input, Modal } from '../../components/ui/index.js';
@@ -26,6 +26,15 @@ export function studentLanguageShare(transcript = [], lang = 'et') {
   return { all, inLang, share: all ? Math.round((inLang / all) * 100) : 0, known: said.some((l) => l.lang) };
 }
 
+// a word the transcriber was unsure of (`line.unsure` = word indexes) is underlined: a guess, not what was surely said
+export function LineText({ line }) {
+  if (!line.unsure?.length) return line.text;
+  const marked = new Set(line.unsure);
+  return String(line.text).split(' ').map((word, i) => (
+    <Fragment key={i}>{i ? ' ' : ''}{marked.has(i) ? <span className="transcript__unsure" title="Ebakindel sõna: kuula salvestisest üle">{word}</span> : word}</Fragment>
+  ));
+}
+
 export function Transcript({ recording, newestFirst = false }) {
   const [q, setQ] = useState('');
   const [who, setWho] = useState('all');
@@ -51,7 +60,7 @@ export function Transcript({ recording, newestFirst = false }) {
         <span className="transcript__stat">Õpilane ütles {studentWords} sõna{share.known ? `, neist ${IN_LANGUAGE[learned]} ${share.inLang} (${share.share}%)` : ''}</span>
       </div>
       {lines.length ? <ol className="transcript__lines">{lines.map((l, i) => (
-        <li key={`${l.startMs}-${i}`} className={`is-${l.speaker}`}><time>{clock(l.startMs)}</time><b>{SPEAKER[l.speaker] || l.speaker}{l.lang && LANGUAGE[l.lang] ? <small className="transcript__lang"> · {l.lang.toUpperCase()}</small> : null}</b><p>{l.text}</p></li>
+        <li key={`${l.startMs}-${i}`} className={`is-${l.speaker}`}><time>{clock(l.startMs)}</time><b>{SPEAKER[l.speaker] || l.speaker}{l.lang && LANGUAGE[l.lang] ? <small className="transcript__lang"> · {l.lang.toUpperCase()}</small> : null}</b><p><LineText line={l} /></p></li>
       ))}</ol> : <EmptyState title="Midagi ei leitud" />}
     </div>
   );
