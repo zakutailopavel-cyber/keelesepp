@@ -1,7 +1,7 @@
 /* global ResizeObserver, IntersectionObserver, Blob, setTimeout, clearTimeout, structuredClone */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { homeworkService, lessonWorksheetsService, libraryService, worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
@@ -90,6 +90,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const draftName = draftId || (isNew ? 'new' : lessonId);
   const { user } = useAuth();
   const navigate = useNavigate();
+  // a draft handed over by another page (e.g. „Tee tööleht vigadest” in a lesson analysis): shown, not saved yet
+  const handed = useLocation().state?.document || null;
 
   const [doc, setDoc] = useState(null);
   const [source, setSource] = useState('');
@@ -198,6 +200,11 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     let alive = true;
     if (isNew) {
       const fresh = newDocument();
+      if (handed?.schema === fresh.schema && Array.isArray(handed.blocks)) {
+        setDoc(handed); setDirty(true); setDraftRestored(false); setSource('new'); setGeneration(null);
+        setNotice('Mustand on valmis. Kontrolli laused üle, siis salvesta ja määra õpilasele.');
+        return undefined;
+      }
       const local = readDraft(draftKey(draftName));
       const restored = local?.document?.schema === fresh.schema;
       setDoc(restored ? local.document : fresh);
@@ -230,7 +237,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
       })
       .catch((error) => { if (alive) setLoadError(error.message || 'Töölehte ei saanud avada.'); });
     return () => { alive = false; };
-  }, [isNew, lessonId, draftName, navigate, repository]);
+  }, [isNew, lessonId, draftName, navigate, repository, handed]);
 
   useEffect(() => {
     if (!doc || !dirty) return undefined;

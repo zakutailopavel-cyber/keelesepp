@@ -1,3 +1,20 @@
+## 2026-10-10 — „Tee tööleht vigadest”: a draft worksheet from the learner's own lesson errors — branch `agent/errors-worksheet`
+
+- Base: `main` (after #412). Owner asked for both AI worksheet helps; this is the first.
+- `features/lesson-recording/errorWorksheet.js`:
+  - `firstChange(said, corrected)` takes the first changed place from `wordDiff` and builds a gapped corrected sentence.
+  - `errorsWorksheet({errors, studentName, date, level})` builds a new document from at most 10 errors; errors marked `unsure` are skipped. It holds three blocks:
+    - errorfix: the learner's own sentences;
+    - gaps: corrected sentences with the right form as the gap;
+    - wordforms: one-word changes.
+  - Nothing is invented.
+- `LessonAi` has a button „Tee tööleht vigadest (N)”. It navigates to `/library/worksheets/new` with router state `{document}`.
+- `WorksheetStudioPage` opens a handed-over `document` (same schema) as an unsaved draft, with a notice to check, save and assign it.
+- Checks:
+  - lesson-recording + WorksheetStudioPage tests: 52/52, with new `errorWorksheet.test.js` and a handed-draft test;
+  - eslint is clean; build succeeds.
+- Next safe step: the owner opens Ilja's lesson analysis → „Tee tööleht vigadest” and checks the draft.
+
 ## 2026-10-10 — Indicator: when the AI analysis of a lesson will be ready — branch `agent/analysis-indicator`
 
 - Base: `main` (after #411). Owner: show when the analysis will be ready.

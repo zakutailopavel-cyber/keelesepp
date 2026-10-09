@@ -331,6 +331,20 @@ describe('WorksheetStudioPage', () => {
     expect(screen.getByText(/^salvestamata/)).toBeInTheDocument();
   });
 
+  it('opens a draft handed over by another page (lesson errors) without saving it', async () => {
+    const document = { ...sampleDocument(), meta: { ...sampleDocument().meta, title: 'Minu vead tunnist 9.10' } };
+    const repository = repo();
+    render(
+      <MemoryRouter initialEntries={[{ pathname: '/library/worksheets/new', state: { document } }]}>
+        <AuthContext.Provider value={{ user: { uid: 'teacher-1', roles: ['teacher'], displayName: 'Õpetaja' } }}>
+          <Routes><Route path="/library/worksheets/:lessonId" element={<WorksheetStudioPage repository={repository} templates={{ list: vi.fn().mockResolvedValue([]) }} mediaBank={{ list: vi.fn().mockResolvedValue([]) }} />} /></Routes>
+        </AuthContext.Provider>
+      </MemoryRouter>,
+    );
+    expect(await screen.findByTitle('Minu vead tunnist 9.10')).toBeInTheDocument();
+    expect(repository.save).not.toHaveBeenCalled();
+  });
+
   it('shows a load error with a way back', async () => {
     renderAt('/library/worksheets/missing', repo({ load: vi.fn().mockRejectedValue(new Error('Õppematerjali ei leitud.')) }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Õppematerjali ei leitud.');

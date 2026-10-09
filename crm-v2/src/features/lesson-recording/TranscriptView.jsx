@@ -1,10 +1,11 @@
 import { Fragment, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BarChart3, PenLine, Sparkles } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { BarChart3, FilePlus2, PenLine, Sparkles } from 'lucide-react';
 import { Badge, Button, Card, EmptyState, Input, Modal } from '../../components/ui/index.js';
 import { RECORDING_STATUS } from '../../services/firebase/lessonRecordings.js';
 import { lessonAnalysis, wordDiff } from './lessonTimeline.js';
 import { analysisStatus, useTranscriberStatus } from './transcriberStatus.js';
+import { errorsWorksheet } from './errorWorksheet.js';
 import './lessonRecording.css';
 
 const clock = (ms) => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
@@ -97,9 +98,17 @@ function LearnerErrors({ errors }) {
 
 const SUMMARY_PARTS = [['meeldis', 'Meeldis / aktiivne', 'is-good'], ['raske', 'Oli raske', 'is-hard'], ['jargmiseks', 'Järgmiseks tunniks', 'is-next']];
 // The didactic analysis made on the school Mac with local models (nothing leaves the Mac). Teacher and admins only.
-export function LessonAi({ analysis }) {
+export function LessonAi({ analysis, recording = null }) {
+  const navigate = useNavigate();
   if (!analysis || analysis.error || (!analysis.summary && !analysis.errors)) return null;
   const s = analysis.summary;
+  // „Tee tööleht vigadest”: the learner's own sentences of this lesson as a draft in the constructor (not saved yet)
+  const draft = () => {
+    const date = recording?.startedAt ? new Date(recording.startedAt).toLocaleDateString('et-EE', { day: 'numeric', month: 'numeric' }) : '';
+    const document = errorsWorksheet({ errors: analysis.errors || [], studentName: recording?.studentName || '', date });
+    if (document) navigate('/library/worksheets/new', { state: { document, from: 'lesson-errors' } });
+  };
+  const usableErrors = (analysis.errors || []).filter((e) => !e.unsure).length;
   return <section className="lesson-ai" aria-label="Tunni analüüs (AI)">
     <header><Sparkles size={15} aria-hidden="true" /><b>AI analüüs</b><small>kohalik mudel kooli arvutis · ainult õpetajale · kontrolli üle</small></header>
     {s?.kokkuvote ? <p>{s.kokkuvote}</p> : null}
@@ -107,6 +116,7 @@ export function LessonAi({ analysis }) {
       <div key={k} className={cls}><b>{label}</b><ul>{s[k].map((t, i) => <li key={i}>{t}</li>)}</ul></div>
     ))}</div> : null}
     {Array.isArray(analysis.errors) ? <LearnerErrors errors={analysis.errors} /> : null}
+    {usableErrors ? <div><Button variant="secondary" onClick={draft}><FilePlus2 size={15} aria-hidden="true" /> Tee tööleht vigadest ({usableErrors})</Button></div> : null}
   </section>;
 }
 
@@ -122,7 +132,7 @@ export function RecordingText({ recording, transcriber = null }) {
   if (recording.status === RECORDING_STATUS.done) {
     const ai = analysisStatus(recording, transcriber || {});
     return recording.transcript?.length
-      ? <><Analysis recording={recording} />{ai && ai.key !== 'ready' ? <p className={`lesson-ai__status is-${ai.key}`} role="status">{ai.label}</p> : null}<LessonAi analysis={recording.analysis} /><Transcript recording={recording} /></>
+      ? <><Analysis recording={recording} />{ai && ai.key !== 'ready' ? <p className={`lesson-ai__status is-${ai.key}`} role="status">{ai.label}</p> : null}<LessonAi analysis={recording.analysis} recording={recording} /><Transcript recording={recording} /></>
       : <p className="form-hint">Salvestisest ei leitud kõnet (liiga lühike või vaikne).</p>;
   }
   return <p className="form-hint">{WAITING[recording.status] || WAITING.uploaded}{recording.error ? ` ${recording.error}` : ''}</p>;
