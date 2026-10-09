@@ -430,3 +430,20 @@
 .library-detail__plan { white-space: pre-line; line-height: 1.55; max-height: 46vh; overflow: auto; }
 .lib2-module-drafts{margin-left:8px;border:1px solid #9fd8c8;background:#e7f5f1;color:#0b5c4d;border-radius:999px;padding:3px 10px;font-size:.76rem;font-weight:700;cursor:pointer}
 .lib2-module-drafts:disabled{opacity:.6;cursor:default}
+
+/* header: one primary „Loo uus”, tools in a menu */
+.lib2 .page-header__actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lib2-menu{position:relative}
+.lib2-menu > summary{list-style:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.lib2-menu > summary::-webkit-details-marker{display:none}
+.lib2-menu__list{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:240px;display:grid;padding:6px;background:#fff;border:1px solid #e4e7ec;border-radius:12px;box-shadow:0 12px 30px rgba(16,24,40,.12)}
+.lib2-menu__list button{display:flex;align-items:center;gap:8px;text-align:left;border:0;background:transparent;padding:9px 10px;border-radius:8px;font:inherit;font-size:.9rem;color:#1d2939;cursor:pointer}
+.lib2-menu__list button:hover{background:#f2f4f7}
+.lib2-menu__list button:disabled{opacity:.55;cursor:default}
+/* quieter row actions: icons + one outlined „Määra” */
+.lib2-actions{align-items:center}
+.lib2-act{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:34px;height:34px;padding:0 8px;border:1px solid transparent;background:transparent;border-radius:9px;color:#475467;cursor:pointer;font:inherit;font-size:.84rem;font-weight:700}
+.lib2-act:hover{background:#f2f4f7;border-color:#e4e7ec;color:#1d2939}
+.lib2-act--assign{border-color:#9fd8c8;color:#0b5c4d;background:#f0faf7;padding:0 12px}
+.lib2-act--assign:hover{background:#e7f5f1;border-color:#0b5c4d;color:#0b5c4d}
+.lib2-filters{align-items:end}
