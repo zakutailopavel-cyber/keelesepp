@@ -116,3 +116,19 @@ test('a teacher asks the school Mac for sentences; only the asker reads the answ
   const patchRes = await fetch(`${base}/aiRequests/${id}?updateMask.fieldPaths=status`, { method: 'PATCH', headers: { Authorization: `Bearer ${teacher.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { status: { stringValue: 'done' } } }) });
   assert.equal(patchRes.status, 403, 'the browser does not answer');
 });
+
+test('the pet lesson numbers: the learner reads his own, nobody writes from the browser', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const teacher = await account('teacher');
+  const learner = await account('student');
+  const other = await account('student');
+  await admin.firestore().doc('petLessonStats/les-1').set({ studentId: 's1', studentUid: learner.uid, share: 70, practice: [] });
+  const get = (who) => fetch(`${base}/petLessonStats/les-1`, { headers: { Authorization: `Bearer ${who.token}` } }).then((r) => r.status);
+  assert.equal(await get(learner), 200);
+  assert.equal(await get(teacher), 200);
+  assert.equal(await get(other), 403);
+  const forged = await fetch(`${base}/petLessonStats?documentId=les-2`, { method: 'POST', headers: { Authorization: `Bearer ${learner.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { studentUid: { stringValue: learner.uid }, share: { integerValue: '100' } } }) });
+  assert.equal(forged.status, 403);
+  const list = await fetch(`${base}:runQuery`, { method: 'POST', headers: { Authorization: `Bearer ${learner.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'petLessonStats' }], where: { fieldFilter: { field: { fieldPath: 'studentUid' }, op: 'EQUAL', value: { stringValue: learner.uid } } } } }) });
+  assert.equal(list.status, 200);
+});

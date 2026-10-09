@@ -58,6 +58,14 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
   const [error, setError] = useState('');
   const [wardrobe, setWardrobe] = useState(false);
 
+  // the learner's recorded lessons: simple numbers and his own corrected sentences (petLessonStats, school Mac)
+  const [speech, setSpeech] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    if (readOnly || typeof repository.lessonStats !== 'function' || !user?.uid) return undefined;
+    Promise.resolve().then(() => repository.lessonStats(user.uid)).then((list) => { if (alive) setSpeech(list || []); }).catch(() => {});
+    return () => { alive = false; };
+  }, [repository, readOnly, user?.uid]);
   useEffect(() => {
     let alive = true;
     Promise.resolve().then(() => repository.get(user?.uid))
@@ -95,16 +103,16 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
     return <Card className="pet-card"><PetPicker initial={pet} onSave={save} onCancel={pet?.kind ? () => setEditing(false) : null} onDecline={pet?.kind ? null : decline} saving={saving} error={error} /></Card>;
   }
 
-  const progress = petProgress({ lessons, submissions, homework, words });
+  const progress = petProgress({ lessons, submissions, homework, words, speech });
   const changeOutfit = async (next) => {
     const saved = await repository.updateOutfit({ uid: user.uid, current: pet, ...next });
     setPet(saved);
   };
   // tamagotchi care: needs filled only by learning; a low need makes the pet sad (never more)
-  const needs = petNeeds({ words, homework, submissions, lessons, playedAt: pet.playedAt });
+  const needs = petNeeds({ words, homework, submissions, lessons, playedAt: pet.playedAt, canFix: speech.some((s) => s.practice?.length) });
   const mood = careMood(progress.mood, needs);
   const hungry = mood === 'sad' ? lowestNeed(needs) : '';
-  const greeting = petGreeting({ petName: pet.name, progress, pendingHomework, lessonToday, subject });
+  const greeting = petGreeting({ petName: pet.name, progress, pendingHomework, lessonToday, subject, lastSpeech: speech[0] || null });
   const say = hungry ? careGreeting(hungry, greeting.lang) : greeting;
   const played = async () => {
     const saved = await Promise.resolve().then(() => repository.update({ uid: user.uid, current: pet, playedAt: new Date().toISOString() })).catch(() => null);
@@ -123,7 +131,7 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
             {!readOnly ? <button type="button" className="pet-home__edit" onClick={() => setEditing(true)}>Muuda</button> : null}
             {!readOnly && repository.updateOutfit ? <button type="button" className="pet-home__edit" aria-expanded={wardrobe} onClick={() => setWardrobe(!wardrobe)}>Riidekapp</button> : null}
           </div>
-          <PetCare needs={needs} words={words} wordsService={wordsService} readOnly={readOnly} onPlayed={played} />
+          <PetCare needs={needs} words={words} wordsService={wordsService} readOnly={readOnly} onPlayed={played} stats={speech} />
           <div className="pet-xp" aria-label={`Kasv ${pct}%`}>
             <div className="pet-xp__bar"><i style={{ width: `${pct}%` }} /></div>
             <div className="pet-xp__row"><span>{progress.nextItem ? `Järgmine: ${progress.nextItem}` : 'Täiskasvanud sõber'}</span><span>{count(progress.lessons, 'tund', 'tundi')} · {count(progress.submissions, 'töö', 'tööd')} · {count(progress.goals, 'eesmärk', 'eesmärki')}</span></div>

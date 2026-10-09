@@ -1,13 +1,13 @@
-import { Gamepad2, Moon, Utensils } from 'lucide-react';
+import { Gamepad2, Moon, SpellCheck, Utensils } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import WordPractice from '../vocabulary/WordPractice.jsx';
-import { FEED_WORDS, LOW_NEED, feedingWords, gameRounds } from './petCare.js';
+import { FEED_WORDS, LOW_NEED, feedingWords, fixRounds, gameRounds } from './petCare.js';
 
 const NEEDS = [
   { key: 'food', label: 'Kõht', ru: 'Сытость: повтор слов', Icon: Utensils },
   { key: 'energy', label: 'Energia', ru: 'Энергия: домашние задания', Icon: Moon },
-  { key: 'joy', label: 'Rõõm', ru: 'Радость: урок или игра со словами', Icon: Gamepad2 },
+  { key: 'joy', label: 'Rõõm', ru: 'Радость: урок, игра со словами или «Paranda»', Icon: Gamepad2 },
 ];
 
 /** Word game: GAME_ROUNDS questions „word → translation”, nothing is written to the word list. */
@@ -46,8 +46,41 @@ export function PetGame({ words, onDone, onClose }) {
   );
 }
 
+/** „Paranda”: the learner's own sentences from his lessons — which one is right? Nothing is written but the play time. */
+export function PetFixGame({ stats, onDone, onClose }) {
+  const [rounds] = useState(() => fixRounds(stats));
+  const [index, setIndex] = useState(0);
+  const [picked, setPicked] = useState('');
+  const [right, setRight] = useState(0);
+  const round = rounds[index];
+  if (!round) {
+    return <div className="vw-practice" role="status">
+      <p><strong>Tubli!</strong> Õigeid vastuseid: {right} / {rounds.length}. Need olid sinu enda laused tunnist.</p>
+      <button type="button" className="vw-btn" onClick={onClose}>Sulge</button>
+    </div>;
+  }
+  const next = () => {
+    const total = right + (picked === round.answer ? 1 : 0);
+    setRight(total); setPicked(''); setIndex(index + 1);
+    if (index + 1 === rounds.length) onDone?.(total);
+  };
+  return (
+    <div className="vw-practice pet-game" aria-label="Paranda">
+      <small className="vw-muted">{index + 1} / {rounds.length} · Sa ütlesid tunnis midagi sellist. Kumb lause on õige?</small>
+      <div className="pet-game__options is-sentences" role="group" aria-label="Laused">
+        {round.options.map((option) => {
+          const state = picked ? (option === round.answer ? 'is-right' : option === picked ? 'is-wrong' : '') : '';
+          return <button type="button" key={option} className={`vw-btn ${state}`} disabled={Boolean(picked)} onClick={() => setPicked(option)}>{option}</button>;
+        })}
+      </div>
+      {picked ? <div className="vw-actions"><span role="status" className={picked === round.answer ? 'vw-right' : 'vw-wrong'}>{picked === round.answer ? 'Õige!' : `Õige: ${round.answer}`}</span><button type="button" className="vw-btn is-primary" onClick={next}>Edasi</button></div> : null}
+    </div>
+  );
+}
+
 /** The three needs with their care actions (read-only for parents and the staff preview). */
-export default function PetCare({ needs, words, wordsService, readOnly = false, onPlayed }) {
+export default function PetCare({ needs, words, wordsService, readOnly = false, onPlayed, stats = [] }) {
+  const canFix = fixRounds(stats).length > 0;
   const [mode, setMode] = useState('');
   const [feed, setFeed] = useState([]);
   const close = () => setMode('');
@@ -64,12 +97,14 @@ export default function PetCare({ needs, words, wordsService, readOnly = false, 
       {readOnly ? null : <>
         {mode === 'feed' ? <WordPractice words={feed} service={wordsService} onClose={close} />
           : mode === 'play' ? <PetGame words={words} onDone={onPlayed} onClose={close} />
+          : mode === 'fix' ? <PetFixGame stats={stats} onDone={onPlayed} onClose={close} />
           : <div className="pet-care__actions">
             <button type="button" className="pet-btn" disabled={!needs.dueWords} onClick={() => { setFeed(feedingWords(words)); setMode('feed'); }} title={needs.dueWords ? '' : 'Kõik sõnad on korratud'}>
               <Utensils size={14} aria-hidden="true" /> Toida ({Math.min(FEED_WORDS, needs.dueWords)} sõna)
             </button>
             {needs.openHomework ? <Link className="pet-btn" to="/homework"><Moon size={14} aria-hidden="true" /> Kodutöö ({needs.openHomework})</Link> : null}
-            {needs.canPlay ? <button type="button" className="pet-btn" onClick={() => setMode('play')}><Gamepad2 size={14} aria-hidden="true" /> Mängi</button> : null}
+            {needs.canWordGame ?? needs.canPlay ? <button type="button" className="pet-btn" onClick={() => setMode('play')}><Gamepad2 size={14} aria-hidden="true" /> Mängi</button> : null}
+            {canFix ? <button type="button" className="pet-btn" onClick={() => setMode('fix')} title="Sinu enda laused tunnist"><SpellCheck size={14} aria-hidden="true" /> Paranda</button> : null}
           </div>}
       </>}
     </div>

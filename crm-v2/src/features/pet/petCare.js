@@ -26,7 +26,8 @@ const clamp = (n) => Math.max(0, Math.min(100, Math.round(n)));
 // 100 right after `at`, 0 after `span`
 const fresh = (at, span, now) => (at && at <= now ? clamp(100 * (1 - (now - at) / span)) : 0);
 
-export function petNeeds({ words = [], homework = [], submissions = [], lessons = [], playedAt = '', now = Date.now() }) {
+// `canFix`: the learner has own corrected sentences from a lesson (petLessonStats.practice), so the „Paranda” game counts
+export function petNeeds({ words = [], homework = [], submissions = [], lessons = [], playedAt = '', canFix = false, now = Date.now() }) {
   const due = words.filter((w) => isDue(w, now));
   const fedBy = words.reduce((sum, w) => sum + fresh(time(w.reviewedAt), FOOD_HOURS * HOUR, now) / FEED_WORDS, 0);
   const food = due.length ? clamp(fedBy) : 100;
@@ -39,11 +40,11 @@ export function petNeeds({ words = [], homework = [], submissions = [], lessons 
   const energy = open.length ? fresh(lastWork, ENERGY_DAYS * DAY, now) : 100;
 
   const lastLesson = Math.max(0, ...lessons.filter((l) => !l.status || l.status === 'Toimunud').map((l) => time(l.date)).filter((t) => t <= now));
-  const canPlay = playableWords(words).length >= 3;
+  const canPlay = playableWords(words).length >= 3 || Boolean(canFix);
   // without the game there is nothing the student could do for joy, so it stays full
   const joy = canPlay ? Math.max(fresh(lastLesson, LESSON_JOY_DAYS * DAY, now), fresh(time(playedAt), GAME_JOY_DAYS * DAY, now)) : 100;
 
-  return { food, energy, joy, dueWords: due.length, openHomework: open.length, canPlay };
+  return { food, energy, joy, dueWords: due.length, openHomework: open.length, canPlay, canWordGame: playableWords(words).length >= 3 };
 }
 
 // the lowest need below LOW_NEED, or '' when the pet is fine
@@ -105,4 +106,17 @@ const PHRASES = {
 
 export function careGreeting(need, lang = 'et') {
   return { text: PHRASES[lang]?.[need] || PHRASES.et[need], hint: PHRASES.ru[need], lang };
+}
+
+// „Paranda”: the learner's own sentences from recent lessons (as said, and as the model corrected them) → rounds
+// „which one is right?”. `random` is injectable for tests.
+export function fixRounds(stats = [], random = Math.random) {
+  const seen = new Set();
+  const pairs = stats.flatMap((s) => s.practice || []).filter((p) => {
+    const key = String(p.corrected || '').toLocaleLowerCase('et');
+    if (!p.said || !p.corrected || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, GAME_ROUNDS);
+  return pairs.map((p) => ({ answer: p.corrected, options: random() < 0.5 ? [p.corrected, p.said] : [p.said, p.corrected] }));
 }

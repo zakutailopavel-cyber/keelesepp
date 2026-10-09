@@ -62,3 +62,16 @@ test('„Paku laused”: only sentences with exactly one gap, unique, at most th
   assert.equal(withoutGap('Mul on kaks [venda].'), 'Mul on kaks venda.');
   assert.match(sentencesPrompt({ topic: 'Minu pere', level: 'A2', grammar: 'osastav', count: 6 }), /Kirjuta 6 .*osastav/s);
 });
+
+test("the pet gets only simple numbers and the learner's own corrected sentences", () => {
+  const { petLessonStats } = require('./analysis');
+  const parts = [{ id: 'a', studentId: 's1', studentUid: 'u1', startedAt: '2026-10-09T15:00:00Z', endedAt: '2026-10-09T15:40:00Z' }];
+  const transcript = [
+    { speaker: 'student', text: 'Ma elan Tallinnas koos oma emaga.', lang: 'et' },
+    { speaker: 'student', text: 'Как это сказать?', lang: 'ru' },
+    { speaker: 'teacher', text: 'Väga hea!', lang: 'et' },
+  ];
+  const stats = petLessonStats({ parts, transcript, errors: [{ said: 'a b', corrected: 'a c' }, { said: 'x y', corrected: 'x z', unsure: true }] });
+  assert.deepEqual(stats, { studentId: 's1', studentUid: 'u1', date: '2026-10-09T15:00:00Z', minutes: 40, studentWords: 9, estonianWords: 6, share: 67, longest: 6, practice: [{ said: 'a b', corrected: 'a c' }], lang: 'et' });
+  assert.equal(petLessonStats({ parts: [{ id: 'b' }], transcript }), null);
+});

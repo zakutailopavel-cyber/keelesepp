@@ -1,3 +1,25 @@
+## 2026-10-10 — The pet learns from recorded lessons: speech XP, praise, „Paranda” with the learner's own sentences — branch `agent/pet-speech`
+
+- Base: `main` (after #414). Owner: tie the lesson analysis to the students' tamagotchi.
+- The school Mac (`tools/lesson-transcriber`):
+  - After a lesson analysis it writes `petLessonStats/{first part id}` = `{studentId, studentUid, date, minutes, studentWords, estonianWords, share, longest, practice:[≤5 {said, corrected}], lang}` (`petLessonStats` in `analysis.js`).
+  - These are only simple numbers and the learner's own sentences, never the teacher's AI summary.
+  - Lessons analysed earlier are backfilled once (`analysis.petStatsAt`).
+  - Tests: `node --test` 18/18. Installed on the Mac.
+- Rules: `match /petLessonStats/{lessonId}` is readable by the learner (`studentUid == uid()`) and staff; no browser writes.
+  - Emulator: 4/4.
+  - Deployed with `firebase deploy --only firestore:rules` (owner: „деплой”).
+- CRM pet:
+  - `petsService.lessonStats(uid)`.
+  - `petProgress` takes `speech`: `speechXp` is 0–5 per lesson, one per 20% Estonian.
+  - `petGreeting(lastSpeech)` praises the lesson for 3 days („Tunnis rääkisid 71% eesti keeles. Tubli!”, with a ru hint).
+  - New game `PetFixGame` „Paranda”: which one is right, the learner's sentence or the corrected one? It fills joy like the word game; `petNeeds({canFix})`.
+- Not done: the pet speaking aloud. Neurokõne `/speak` is staff-only in `languageApi`; opening it to students needs a functions change and deploy.
+- Checks:
+  - pet + students + app tests pass.
+  - The PetCompanion invitation test flaked once under load; alone it passes 9/9. It is the known flake and the file is untouched.
+- Next safe step: a learner with a recorded lesson opens „Minu õpingud”; check the praise and „Paranda”.
+
 ## 2026-10-10 — „Paku laused”: gap sentences from the school Mac (gemma3 writes, TartuNLP checks) — branch `agent/ai-sentences`
 
 - Base: `main` (after #413). The second AI worksheet help the owner asked for („делай оба”).
