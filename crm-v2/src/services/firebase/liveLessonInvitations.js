@@ -7,6 +7,7 @@ import {
   serverTimestamp,
   Timestamp,
   where,
+  updateDoc,
   writeBatch,
 } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
@@ -85,6 +86,13 @@ export const liveLessonInvitationsService = {
     });
     await batch.commit();
     return normalizeInvitation(reference.id, { ...payload, createdAt: createdAtIso });
+  },
+
+  // A test student (student card testStudent: true) has nobody to press „Liitu tunniga”: the teacher's room accepts the
+  // invitation for them, so the teacher can try the lesson room, recording and transcript with their own voice.
+  async acceptForTestStudent(invitationId) {
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'liveLessonInvitations', invitationId), { status: INVITATION_STATUS.ACCEPTED, respondedAt: serverTimestamp() });
   },
 
   async respond(invitationId, decision, user) {

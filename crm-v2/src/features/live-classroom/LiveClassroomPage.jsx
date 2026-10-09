@@ -134,6 +134,8 @@ export default function LiveClassroomPage({
     setActionError('');
     try {
       const created = await invitationService.create({ student: selectedStudent, title: title || selectedStudent.subject }, user);
+      // a test student „joins” at once (the teacher tests the room with their own voice)
+      if (selectedStudent.testStudent === true && invitationService.acceptForTestStudent) await invitationService.acceptForTestStudent(created.id);
       setSearchParams({ invitation: created.id }, { replace: true });
     } catch (error) {
       setActionError(firebaseErrorMessage(error));

@@ -9,7 +9,7 @@ import { recordingLanguage } from '../../services/firebase/lessonRecordings.js';
 class FakeRecorder {
   static isTypeSupported() { return true; }
   static all = [];
-  constructor(stream, opts) { this.stream = stream; this.mimeType = opts?.mimeType || 'audio/webm'; this.state = 'inactive'; FakeRecorder.all.push(this); }
+  constructor(stream, opts) { this.stream = stream; this.opts = opts; this.mimeType = opts?.mimeType || 'audio/webm'; this.state = 'inactive'; FakeRecorder.all.push(this); }
   start() { this.state = 'recording'; }
   stop() { this.state = 'inactive'; this.ondataavailable?.({ data: new globalThis.Blob(['x'], { type: this.mimeType }) }); this.onstop?.(); }
 }
@@ -52,6 +52,28 @@ describe('RoomRecorder', () => {
     expect(tracks).toEqual(['student', 'teacher']);
     expect(service.uploadSegment.mock.calls[0][0]).toMatchObject({ recordingId: 'inv-1_1', seq: 0 });
     expect(await screen.findByRole('button', { name: 'Alusta salvestamist' })).toBeInTheDocument();
+  });
+
+  it('„Tekst kohe” closes the files at once, asks the Mac for text and shows it as it comes; speech at 32 kbit/s', async () => {
+    let push = () => {};
+    const service = {
+      start: vi.fn(async () => ({ id: 'inv-1_2' })),
+      uploadSegment: vi.fn(async () => ({})),
+      finish: vi.fn(async () => ''),
+      requestText: vi.fn(async () => '2026-10-09T16:00:00.000Z'),
+      subscribeRecording: vi.fn((_id, onData) => { push = onData; onData({ id: 'inv-1_2', transcript: [] }); return () => {}; }),
+    };
+    render(<RoomRecorder invitation={invitation} user={user} streams={{ local: stream(), remote: null }} consent subject="Eesti keel" service={service} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Alusta salvestamist' }));
+    await screen.findByText(/Salvestan/);
+    expect(FakeRecorder.all[0].opts.audioBitsPerSecond).toBe(32000);
+    fireEvent.click(screen.getByRole('button', { name: /Tekst kohe/ }));
+    await waitFor(() => expect(service.requestText).toHaveBeenCalledWith('inv-1_2'));
+    expect(service.uploadSegment).toHaveBeenCalledWith(expect.objectContaining({ track: 'teacher', seq: 0 }));
+    expect(await screen.findByText(/Teen teksti/)).toBeInTheDocument();
+    act(() => push({ id: 'inv-1_2', language: 'et', textDoneAt: '2026-10-09T16:00:30.000Z', transcript: [{ speaker: 'teacher', startMs: 0, text: 'Räägi oma päevast.', lang: 'et' }] }));
+    expect(await screen.findByText('Räägi oma päevast.')).toBeInTheDocument();
+    expect(screen.queryByText(/Teen teksti/)).toBeNull();
   });
 
   it('auto: starts with the call, closes the files when the call ends and starts again on the next call', async () => {

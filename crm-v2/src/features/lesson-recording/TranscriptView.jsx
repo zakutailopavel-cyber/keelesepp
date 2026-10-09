@@ -13,12 +13,31 @@ const STATUS = {
   done: ['Tekst valmis', 'success'], failed: ['Viga', 'danger'],
 };
 const SPEAKER = { teacher: 'Õpetaja', student: 'Õpilane' };
+// each line knows its language since the transcriber detects it per phrase (older lines have none)
+export const LANGUAGE = { et: 'Eesti keel', ru: 'Vene keel', en: 'Inglise keel' };
+const IN_LANGUAGE = { et: 'eesti keeles', ru: 'vene keeles', en: 'inglise keeles' };
+const wordsIn = (lines) => lines.reduce((n, l) => n + String(l.text).split(/\s+/).filter(Boolean).length, 0);
 
-function Transcript({ recording }) {
+// how much of what the student said was in the language being learned
+export function studentLanguageShare(transcript = [], lang = 'et') {
+  const said = transcript.filter((l) => l.speaker === 'student');
+  const all = wordsIn(said);
+  const inLang = wordsIn(said.filter((l) => l.lang === lang));
+  return { all, inLang, share: all ? Math.round((inLang / all) * 100) : 0, known: said.some((l) => l.lang) };
+}
+
+export function Transcript({ recording, newestFirst = false }) {
   const [q, setQ] = useState('');
   const [who, setWho] = useState('all');
-  const lines = useMemo(() => recording.transcript.filter((l) => (who === 'all' || l.speaker === who) && (!q || String(l.text).toLocaleLowerCase('et').includes(q.toLocaleLowerCase('et')))), [recording.transcript, q, who]);
-  const studentWords = recording.transcript.filter((l) => l.speaker === 'student').reduce((n, l) => n + String(l.text).split(/\s+/).filter(Boolean).length, 0);
+  const [lang, setLang] = useState('all');
+  const langs = useMemo(() => Object.keys(LANGUAGE).filter((key) => recording.transcript.some((l) => l.lang === key)), [recording.transcript]);
+  const lines = useMemo(() => {
+    const list = recording.transcript.filter((l) => (who === 'all' || l.speaker === who) && (lang === 'all' || l.lang === lang) && (!q || String(l.text).toLocaleLowerCase('et').includes(q.toLocaleLowerCase('et'))));
+    return newestFirst ? [...list].reverse() : list;
+  }, [recording.transcript, q, who, lang, newestFirst]);
+  const studentWords = wordsIn(recording.transcript.filter((l) => l.speaker === 'student'));
+  const learned = recording.language === 'en' ? 'en' : 'et';
+  const share = studentLanguageShare(recording.transcript, learned);
   return (
     <div className="transcript">
       <div className="transcript__tools">
@@ -26,10 +45,13 @@ function Transcript({ recording }) {
         <div className="transcript__who" role="group" aria-label="Kes räägib">
           {[['all', 'Kõik'], ['student', 'Õpilane'], ['teacher', 'Õpetaja']].map(([k, l]) => <button type="button" key={k} aria-pressed={who === k} onClick={() => setWho(k)}>{l}</button>)}
         </div>
-        <span className="transcript__stat">Õpilane ütles {studentWords} sõna</span>
+        {langs.length > 1 ? <div className="transcript__who" role="group" aria-label="Keel">
+          {[['all', 'Kõik keeled'], ...langs.map((key) => [key, LANGUAGE[key]])].map(([k, l]) => <button type="button" key={k} aria-pressed={lang === k} onClick={() => setLang(k)}>{l}</button>)}
+        </div> : null}
+        <span className="transcript__stat">Õpilane ütles {studentWords} sõna{share.known ? `, neist ${IN_LANGUAGE[learned]} ${share.inLang} (${share.share}%)` : ''}</span>
       </div>
       {lines.length ? <ol className="transcript__lines">{lines.map((l, i) => (
-        <li key={`${l.startMs}-${i}`} className={`is-${l.speaker}`}><time>{clock(l.startMs)}</time><b>{SPEAKER[l.speaker] || l.speaker}</b><p>{l.text}</p></li>
+        <li key={`${l.startMs}-${i}`} className={`is-${l.speaker}`}><time>{clock(l.startMs)}</time><b>{SPEAKER[l.speaker] || l.speaker}{l.lang && LANGUAGE[l.lang] ? <small className="transcript__lang"> · {l.lang.toUpperCase()}</small> : null}</b><p>{l.text}</p></li>
       ))}</ol> : <EmptyState title="Midagi ei leitud" />}
     </div>
   );

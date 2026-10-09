@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import LessonDetailModal from './LessonDetailModal.jsx';
@@ -38,5 +38,19 @@ describe('LessonDetailModal: the lesson text', () => {
     ]);
     expect(await screen.findByText(/Tekst ilmub siia mõne minuti jooksul/)).toBeInTheDocument();
     expect(screen.getByText(/ei leitud kõnet/)).toBeInTheDocument();
+  });
+
+  it('filters the lesson text by language and counts the student\'s Estonian', async () => {
+    renderLesson([{ id: 'r4', status: 'done', language: 'et', startedAt: '2026-10-09T15:00:00Z', title: 'Eesti keel', segments: [{}], transcript: [
+      { speaker: 'teacher', startMs: 0, text: 'Объясню по-русски.', lang: 'ru' },
+      { speaker: 'student', startMs: 2000, text: 'Ma elan Tallinnas.', lang: 'et' },
+      { speaker: 'student', startMs: 4000, text: 'Не понял.', lang: 'ru' },
+    ] }]);
+    expect(await screen.findByText(/neist eesti keeles 3 \(60%\)/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Vene keel' }));
+    expect(screen.queryByText('Ma elan Tallinnas.')).toBeNull();
+    expect(screen.getByText('Не понял.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Eesti keel' }));
+    expect(screen.getByText('Ma elan Tallinnas.')).toBeInTheDocument();
   });
 });
