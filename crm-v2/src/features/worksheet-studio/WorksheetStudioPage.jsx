@@ -3,7 +3,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
+import { lessonWorksheetsService, libraryService, worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
+import { mediaBankService } from '../../services/firebase/mediaBank.js';
+import MediaBankPanel from './MediaBankPanel.jsx';
+import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet from './engine/Sheet.jsx';
 import { AssetContext } from './engine/assets.jsx';
@@ -35,7 +38,7 @@ const readDraft = (key) => { try { return JSON.parse(window.localStorage.getItem
 
 // Worksheet Studio: teachers assemble branded, interactive worksheets from blocks.
 // Route: /library/worksheets/new  or  /library/worksheets/:lessonId (curriculumLessons document).
-export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
+export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
   const { lessonId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const draftName = draftId || (isNew ? 'new' : lessonId);
@@ -166,10 +169,20 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     return () => ro.disconnect();
   }, [doc === null]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // every picture uploaded here also goes to the school's picture bank (with the sheet's level and title as tags)
+  const bankImage = (img, { caption = '', credit = '', source = 'upload', name = '' } = {}) => {
+    if (!img?.src || !mediaBank?.save) return;
+    Promise.resolve().then(() => mediaBank.save({
+      kind: 'image', key: assetKey('img', img.src), src: img.src, storagePath: img.storagePath || '', width: img.width, height: img.height,
+      caption, credit, source, level: doc?.meta?.level || '', topic: doc?.meta?.title || '', sheetTitle: doc?.meta?.title || '',
+      tags: tagsOf(caption, doc?.meta?.title || '', doc?.meta?.module || '', String(name).replace(/\.[^.]+$/, '')),
+    }, user)).catch(() => {});
+  };
+  const docMeta = doc?.meta;
   const assets = useMemo(() => ({
-    image: (file) => repository.uploadImage(file),
+    image: async (file) => { const img = await repository.uploadImage(file); bankImage(img, { name: file?.name }); return img; },
     audio: (file) => repository.uploadAudio(file),
-  }), [repository]);
+  }), [repository, docMeta]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const palette = useMemo(() => GROUPS.map((g) => [g, Object.values(BLOCKS).filter((b) => b.group === g)]), []);
   const filteredPalette = useMemo(() => palette.map(([group, defs]) => [group, defs.filter((def) => !paletteQuery.trim() || `${def.label} ${def.group}`.toLocaleLowerCase('et').includes(paletteQuery.trim().toLocaleLowerCase('et')))]).filter(([, defs]) => defs.length), [palette, paletteQuery]);
@@ -304,9 +317,35 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   };
   const pickWebImage = async (file, credit) => {
     const img = await repository.uploadImage(file);
-    if (!selected) return;
-    updateBlock({ ...selected, data: { ...selected.data, img, caption: selected.data.caption || credit.caption, credit: credit.credit, creditSource: credit.source } });
+    bankImage(img, { caption: credit.caption, credit: credit.credit, source: 'openverse', name: file?.name });
+    placeImage(img, credit.caption, credit);
     setNotice('Pilt lisati. Autor ja litsents on pildiallkirjas.');
+  };
+  // a picture from the bank or the internet: into the selected picture block, or a new picture block after it
+  const placeImage = (img, caption = '', credit = null) => {
+    const extra = credit ? { credit: credit.credit, creditSource: credit.source } : {};
+    if (selected && 'img' in (selected.data || {})) {
+      updateBlock({ ...selected, data: { ...selected.data, img, caption: selected.data.caption || caption, ...extra } });
+      return;
+    }
+    const b = createBlock('image');
+    b.data = { ...b.data, img, caption, ...extra };
+    insertBlocks([b]);
+  };
+  const pickBankImage = (asset) => {
+    placeImage({ src: asset.src, storagePath: asset.storagePath || '', width: asset.width || 0, height: asset.height || 0, focus: { x: 50, y: 50 } }, asset.credit ? asset.caption : '');
+    setNotice('Pilt pangast lisati lehele.');
+  };
+  // a text from the bank: a reading block, and if wanted gaps / word order / vocabulary made from it
+  const pickBankText = (asset, extras = []) => {
+    const reading = createBlock('reading');
+    reading.data = { ...reading.data, passageTitle: asset.title, passage: asset.text, questions: '' };
+    const made = [reading];
+    if (extras.includes('gaps')) { const b = createBlock('gaps'); b.data = { ...b.data, ...gapsFromText(asset.text) }; made.push(b); }
+    if (extras.includes('wordorder')) { const b = createBlock('wordorder'); b.data = { ...b.data, ...wordOrderFromText(asset.text) }; made.push(b); }
+    if (extras.includes('vocab')) { const b = createBlock('vocab'); b.data = { ...b.data, ...vocabFromText(asset.text) }; made.push(b); }
+    insertBlocks(made);
+    setNotice(`Tekst „${asset.title}” lisati${made.length > 1 ? ' koos ülesannetega' : ''}. Kirjuta lugemisele küsimused.`);
   };
   // joined blocks (look.js) move as one group
   const moveBlock = (id, dir) => setBlocks(moveRun(doc.blocks, id, dir));
@@ -601,13 +640,15 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         <div className="st-body">
           {mode === 'edit' && (
             <aside className={`st-palette ${leftTab === 'original' ? 'is-original' : ''}`} aria-label="Plokid">
-              {original.length > 0 && (
-                <div className="st-lefttabs" role="tablist">
-                  <button type="button" role="tab" aria-pressed={leftTab === 'blocks'} onClick={() => setLeftTab('blocks')}>Plokid</button>
-                  <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button>
-                </div>
-              )}
-              {leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{myTemplates.length ? (
+              <div className="st-lefttabs" role="tablist">
+                <button type="button" role="tab" aria-pressed={leftTab === 'blocks'} onClick={() => setLeftTab('blocks')}>Plokid</button>
+                <button type="button" role="tab" aria-pressed={leftTab === 'bank'} onClick={() => setLeftTab('bank')}>Pank</button>
+                {original.length > 0 ? <button type="button" role="tab" aria-pressed={leftTab === 'original'} onClick={() => setLeftTab('original')}>Originaal</button> : null}
+              </div>
+              {leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
+                onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}
+                onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
+              : leftTab === 'original' && original.length > 0 ? <OriginalPanel files={original} onCut={cutPhoto} busy={cut.busy} error={cut.error} /> : <><div className="st-palette-search"><input ref={searchRef} className="ed-input" type="search" value={paletteQuery} onChange={(e) => setPaletteQuery(e.target.value)} placeholder="Otsi plokki…" aria-label="Otsi plokki" /></div><p className="st-palette-hint">Teksti muutmiseks tee lehel topeltklõps. Kiirklahvid: Ctrl+S salvesta, Ctrl+D kopeeri, Alt+↑/↓ liiguta, ↑/↓ vali, Delete kustuta, Esc.</p>{myTemplates.length ? (
                 <div className="st-group st-templates">
                   <div className="st-group-title">Mallid</div>
                   <ul>{myTemplates.filter((t) => !paletteQuery || t.title.toLowerCase().includes(paletteQuery.toLowerCase())).map((t) => (
