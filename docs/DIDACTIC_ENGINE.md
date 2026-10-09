@@ -62,10 +62,12 @@ These are real gaps of the generator, fixed in step 2.
 ## Plan
 
 1. ~~Level norms + the didactic check in the constructor.~~ Done.
-2. The generator obeys the norms:
-   - `difficultySpec` takes item counts, speaking and writing ranges, and bank use from `levels.js`;
-   - `inspectGeneratedSheet` adds the didactic check;
-   - the planner prefers task types the profile wants.
+2. ~~The generator obeys the norms.~~ Done for item counts, speaking and writing ranges, and word bank: `difficultySpec`
+   reads them from `levels.js`, using the lesson's `levelStage`. Every generated sheet carries
+   `sheet.didactic = {level, score, issues}`.
+   - Re-calibration on the same fixtures: the average score is 83%; item findings fell from 64 to 27.
+   - The rest are content limits (profiles have only 3–4 error or translation items) and instruction texts.
+   - Still open: the planner preferring the task types a profile wants.
 3. Lexicon breadth: generate word forms with Vabamorf / EstNLTK on the school Mac, plus a frequency band per level.
 4. Grammar targets: `GRAMMAR` in `levels.js` drives the planner and the local model prompts. Grammar in a sheet is
    detected later with the morphological analyser.

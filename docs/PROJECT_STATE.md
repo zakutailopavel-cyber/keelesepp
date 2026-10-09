@@ -1,3 +1,16 @@
+## 2026-10-10 — Didactic engine step 2: the generator takes its amounts from the level norms and checks itself — branch `agent/generator-norms`
+
+- Base: `main` (after #416).
+- `worksheet-generator/engine/difficulty.js`: `difficultySpec` now takes from `levels.js`:
+  - `closedItemCount`: support = minimum, core = minimum + 1, challenge = minimum + 2;
+  - `speakingSeconds` and `writingSentences`: lower half, full range, upper half of the profile;
+  - `showWordBank`: from the profile's bank rule.
+  - The level can be a lesson stage. `materializePhase` takes `levelStage`, which `generator.js` passes as `lesson.levelStage`.
+- `generator.js`: every sheet gets `sheet.didactic = {level, score, issues}` from `didacticCheck`. It is advisory.
+- Calibration on the fixtures: the average didactic score is 83%; item findings fell from 64 to 27. The rest are content limits.
+- Checks: worksheet-generator 443/443; worksheet-studio passes; build succeeds.
+- Next safe step: step 3 — Vabamorf / EstNLTK word forms on the school Mac for a much larger lexicon.
+
 ## 2026-10-10 — Didactic engine step 1: level norms A1–C1 as data + the didactic check in the constructor — branch `agent/didactic-engine`
 
 - Base: `main` (after #415). Owner: build a high-level worksheet generator with didactic norms per level, „сделай все сам”. The plan is in `docs/DIDACTIC_ENGINE.md`.

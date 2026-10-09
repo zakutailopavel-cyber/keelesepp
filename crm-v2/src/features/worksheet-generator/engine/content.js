@@ -506,8 +506,9 @@ function materializeActivity({ activityId, profile, focusIds, contextId, seed, s
   return block(activity.blockType, data, { id, goal });
 }
 
-export function materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds = [], difficulty = 'core' }) {
-  const spec = difficultySpec({ level: profile?.level, mode: difficulty, phase });
+export function materializePhase({ phase, profile, focusIds, contextId, seed, state, activityIds = [], difficulty = 'core', levelStage = '' }) {
+  // the lesson's own stage (A2+, A2+/B1-) is more exact than the profile's level
+  const spec = difficultySpec({ level: levelStage || profile?.level, mode: difficulty, phase });
   const goal = `focus:${focusIds[0] || profile.focuses?.[0]?.id || 'lesson'}`;
   const blocks = [];
   activityIds.forEach((activityId, index) => {
