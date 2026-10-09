@@ -68,13 +68,13 @@ These are real gaps of the generator, fixed in step 2.
    - Re-calibration on the same fixtures: the average score is 83%; item findings fell from 64 to 27.
    - The rest are content limits (profiles have only 3–4 error or translation items) and instruction texts.
    - Still open: the planner preferring the task types a profile wants.
-3. ~~Level vocabulary.~~ Done for the check.
-   - Source: EKI „Eesti keele A1-, A2- ja B1-taseme sõnavara” (Kallas & Koppel 2018, CC BY 4.0, https://arhiiv.eki.ee/litsents/). The lists are cumulative: 740 / 2004 / 4454 lemmas.
-   - `tools/lexicon/build_level_forms.py parse` reads the PDFs into `tools/lexicon/eki-levels-2018.json`.
-   - `build` generates every form with Vabamorf into `didactics/levelForms.json`: 126k forms, about 290 kB gz, loaded lazily by the constructor.
-   - `didacticCheck(doc, {forms})` reports the share of words above the level, with examples. Names, numbers and B2/C1 are skipped; a compound counts by its harder known part.
-   - On 18 real published A2 sheets, one finding: „kuupäev”, „kehtib” in lesson 1 are B1 words.
-   - Still open: generator lexicon breadth. The EKI lists have no translations, so `source.json` entries still need a Russian translation and tags.
+3. ~~Level vocabulary A1–C1.~~ Done.
+   - **Source:** the EKI etLex adult learner lists (Sõnaveeb „Õpetaja tööriistad”, CC BY), read from the public etLex API by `tools/lexicon/build_level_forms.py fetch` into `tools/lexicon/etlex-levels.json`. That is 10,539 lemmas: A1 730, A2 1056, B1 2832, B2 5167, C1 754.
+   - **Forms:** `build` generates every form with Vabamorf into `didactics/levelForms.<level>.json`, 321k forms in total. The constructor loads only the levels up to the sheet's level: A2 ≈115 kB gz, C1 ≈745 kB gz.
+   - **The check:** `didacticCheck(doc, {forms})` reports the share of words above the level, with examples. It works on every level; on C1 it counts only words outside all lists.
+   - **Rules for unlisted words:** names and numbers are skipped; a compound counts by its harder known part; a -mine noun in any form counts as its verb.
+   - The 2018 PDF lists (A1–B1) can still be parsed with `parse`; `build` uses etLex when it is present.
+   - Still open: generator lexicon breadth. etLex has no translations, so `source.json` entries still need a Russian translation and tags.
 4. Grammar targets: `GRAMMAR` in `levels.js` drives the planner and the local model prompts. Grammar in a sheet is
    detected later with the morphological analyser.
 5. ~~Local models under the norms.~~ Done for gap sentences and reading texts.

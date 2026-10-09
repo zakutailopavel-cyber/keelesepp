@@ -36,7 +36,8 @@ import { VARIANTS, makeVariant } from './engine/variants.js';
 import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
-import { loadLevelForms } from './didactics/levelVocabulary.js';
+import { VOCABULARY_FOR, loadLevelForms } from './didactics/levelVocabulary.js';
+import { levelKey } from './didactics/levels.js';
 import InsightsPanel from './InsightsPanel.jsx';
 import { addAlternative } from './engine/insights.js';
 import { formalLetterDocument } from './engine/templates.js';
@@ -178,7 +179,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   useUnsavedGuard(dirty);
   // the EKI level vocabularies for the didactic check, loaded lazily (≈290 kB)
   const [levelForms, setLevelForms] = useState(null);
-  useEffect(() => { let alive = true; loadLevelForms().then((forms) => { if (alive) setLevelForms(forms); }); return () => { alive = false; }; }, []);
+  // only the vocabulary levels the sheet's level may use (A2: A1 + A2)
+  const vocabularyLevels = (VOCABULARY_FOR[levelKey(doc?.meta?.level)] || []).join(',');
+  useEffect(() => { let alive = true; loadLevelForms(vocabularyLevels ? vocabularyLevels.split(',') : []).then((forms) => { if (alive) setLevelForms(forms); }); return () => { alive = false; }; }, [vocabularyLevels]);
   // a notice is a short message in the corner that goes away by itself
   useEffect(() => {
     if (!notice) return undefined;
