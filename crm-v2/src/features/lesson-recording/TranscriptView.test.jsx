@@ -22,12 +22,13 @@ describe('LessonAi', () => {
     const { LessonAi } = await import('./TranscriptView.jsx');
     const analysis = { version: 1, summary: { kokkuvote: 'Hea tund.', meeldis: ['joonistamine'], raske: [], jargmiseks: ['mul on / mul ei ole'] },
       errors: [{ startMs: 61000, said: 'Mul on kaks vend.', corrected: 'Mul on kaks venda.' }] };
-    const { container } = render(<LessonAi analysis={analysis} />);
+    const { container } = render(<MemoryRouter><LessonAi analysis={analysis} /></MemoryRouter>);
     expect(screen.getByText('Hea tund.')).toBeInTheDocument();
     expect(screen.getByText('joonistamine')).toBeInTheDocument();
     expect(screen.queryByText('Oli raske')).toBeNull();
     expect(container.querySelector('s').textContent).toBe('vend.');
     expect(container.querySelector('ins').textContent).toBe('venda.');
-    expect(render(<LessonAi analysis={{ version: 1, error: 'x' }} />).container.innerHTML).toBe('');
+    expect(render(<MemoryRouter><LessonAi analysis={{ version: 1, error: 'x' }} /></MemoryRouter>).container.innerHTML).toBe('');
+    expect(screen.getByRole('button', { name: /Tee tööleht vigadest \(1\)/ })).toBeInTheDocument();
   });
 });
