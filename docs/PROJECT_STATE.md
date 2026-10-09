@@ -1,3 +1,19 @@
+## 2026-10-09 — Lesson text in the student card; transcriber self-repair — branch `agent/transcript-in-lesson`
+
+Checked `origin/main` `61ee47d` (#379 merged, `firestore:rules,storage` deployed by request).
+- Owner: when a lesson is opened in the student card, the transcript should be there. `LessonDetailModal` passes
+  `inline` to `LessonsCard` (TranscriptView.jsx): each recording of the day shows its analysis and transcript right
+  under its row (no second window); not finished → what it waits for; done without speech → „Salvestisest ei leitud
+  kõnet”. Shared `RecordingText`; the search field id is per recording.
+- Transcriber (`tools/lesson-transcriber`): a lesson left in „transcribing” by a dead run (this Mac restarted since
+  the claim, or the claim is > 3 h old) goes back to „uploaded” (`isStaleTranscribing`); a watchdog exits after
+  30 min without progress so launchd restarts it (after today's network outage a Firestore call hung for hours).
+  Installed on the school Mac (`~/KeeleSeppTranscriber/app`) and restarted: `jPuc2n…_1791551150861` (24 segments,
+  stuck since 13:05 UTC) was requeued.
+- Checks: new `LessonDetailModal.test.jsx` (2); students + lesson-recording 70/70; transcriber lib tests 6/6;
+  build OK.
+- Next safe step: owner opens today's lesson in Ilja's card after the transcriber finishes.
+
 ## 2026-10-09 — Board: objects, growing sheet, paper, marker, student photos — branch `agent/board-tools`
 
 Checked `origin/main` `f341ba9`. Owner chose three board packages.

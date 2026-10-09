@@ -77,7 +77,7 @@ export default function LessonDetailModal({
             <p className="lesson-detail__words">{dayWords.map((item) => [item.word, item.translation].filter(Boolean).join(' – ')).join(' · ')}</p>
           </section>
         ) : null}
-        {rows.length || recordings.error ? <LessonsCard rows={rows} studentId={student.id} loading={false} error={recordings.error} /> : null}
+        {rows.length || recordings.error ? <LessonsCard rows={rows} studentId={student.id} loading={false} error={recordings.error} inline /> : null}
         {recordings.loading ? <p className="form-hint">Laen tunni materjale…</p> : null}
         {nothing ? <p className="form-hint">Selle päeva kohta pole kodutööd, kokkuvõtet, sõnu ega salvestist.</p> : null}
       </div>

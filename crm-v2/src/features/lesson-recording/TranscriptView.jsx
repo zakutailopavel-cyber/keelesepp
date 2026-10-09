@@ -22,7 +22,7 @@ function Transcript({ recording }) {
   return (
     <div className="transcript">
       <div className="transcript__tools">
-        <Input id="transcript-search" label="Otsi" value={q} onChange={(e) => setQ(e.target.value)} placeholder="sõna tekstist" />
+        <Input id={`transcript-search-${recording.id || 'x'}`} label="Otsi" value={q} onChange={(e) => setQ(e.target.value)} placeholder="sõna tekstist" />
         <div className="transcript__who" role="group" aria-label="Kes räägib">
           {[['all', 'Kõik'], ['student', 'Õpilane'], ['teacher', 'Õpetaja']].map(([k, l]) => <button type="button" key={k} aria-pressed={who === k} onClick={() => setWho(k)}>{l}</button>)}
         </div>
@@ -57,8 +57,19 @@ const WAITING = {
   failed: 'Tekstiks tegemine ebaõnnestus.',
 };
 
+// The text of one recording as it is now: analysis + transcript when done, otherwise what it waits for.
+export function RecordingText({ recording }) {
+  if (recording.status === RECORDING_STATUS.done) {
+    return recording.transcript?.length
+      ? <><Analysis recording={recording} /><Transcript recording={recording} /></>
+      : <p className="form-hint">Salvestisest ei leitud kõnet (liiga lühike või vaikne).</p>;
+  }
+  return <p className="form-hint">{WAITING[recording.status] || WAITING.uploaded}{recording.error ? ` ${recording.error}` : ''}</p>;
+}
+
 // Teacher/admin: the student's Live Classroom lessons; each opens the lesson analysis (transcript) or its board.
-export default function LessonsCard({ rows, studentId, loading, error, onReload }) {
+// `inline` (one lesson opened from the student card): the text of each recording is shown right away.
+export default function LessonsCard({ rows, studentId, loading, error, onReload, inline = false }) {
   const [open, setOpen] = useState(null);
   return (
     <Card>
@@ -68,18 +79,19 @@ export default function LessonsCard({ rows, studentId, loading, error, onReload 
         <div className="simple-list lesson-rows">{rows.map((row) => {
           const r = row.recording;
           const status = r ? (STATUS[r.status] || STATUS.uploaded) : null;
-          return <div key={row.key}>
+          return <div key={row.key} className={inline && r ? 'lesson-rows__item is-inline' : undefined}>
             <div><strong>{r ? dateLabel(r.startedAt) : dateLabel(row.at)} · {row.title}</strong><span>{r ? `${r.teacherName || 'Õpetaja'} · salvestatud` : 'ainult tahvel'}{row.pageTitle ? ` · leht „${row.pageTitle}”` : ''}</span></div>
             {status ? <Badge tone={status[1]}>{status[0]}</Badge> : null}
             <span className="lesson-rows__actions">
-              {r ? <Button variant="secondary" onClick={() => setOpen(r)}><BarChart3 size={15} /> Tunni analüüs</Button> : null}
+              {r && !inline ? <Button variant="secondary" onClick={() => setOpen(r)}><BarChart3 size={15} /> Tunni analüüs</Button> : null}
               <Link className="button button--secondary" to={`/board/${studentId}${row.pageId ? `?page=${encodeURIComponent(row.pageId)}` : ''}`}><PenLine size={15} /> Tahvel</Link>
             </span>
+            {inline && r ? <div className="lesson-rows__text"><RecordingText recording={r} /></div> : null}
           </div>;
         })}</div>
       ) : <EmptyState title="Live Classroomi tunde veel ei ole" description="Tund ilmub siia, kui see on salvestatud või tahvlile on tehtud tunnileht." />}
       {open ? <Modal open title={`Tunni analüüs · ${dateLabel(open.startedAt)} · ${open.title || 'Tund'}`} onClose={() => setOpen(null)} className="modal--transcript">
-        {open.status === RECORDING_STATUS.done ? <><Analysis recording={open} /><Transcript recording={open} /></> : <p className="form-hint">{WAITING[open.status] || WAITING.uploaded}{open.error ? ` ${open.error}` : ''}</p>}
+        <RecordingText recording={open} />
       </Modal> : null}
     </Card>
   );

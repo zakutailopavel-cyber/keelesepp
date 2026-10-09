@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, pickModel, workerId, heartbeat } = require('./lib');
+const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat } = require('./lib');
 
 const run = promisify(execFile);
 const env = (k, d) => process.env[k] || d;
@@ -53,6 +53,7 @@ async function transcribeSegment(seg, lang, dir) {
   const vad = fs.existsSync(VAD_MODEL) ? ['--vad', '-vm', VAD_MODEL] : [];
   await run(WHISPER, ['-m', modelFor(lang), '-l', lang, '-t', THREADS, '-f', wav, '-oj', '-of', src, '-np', ...vad], { maxBuffer: 64 * 1024 * 1024 });
   const json = JSON.parse(fs.readFileSync(`${src}.json`, 'utf8'));
+  progress();
   return parseWhisperJson(json, { speaker: seg.track, offsetMs: seg.startMs || 0 });
 }
 
@@ -107,6 +108,20 @@ async function handOverAbandoned() {
   for (const d of snap.docs) {
     if (isAbandoned(d.data())) { await d.ref.update({ status: 'uploaded', endedAt: d.data().updatedAt || new Date().toISOString(), abandoned: true }); log('handed over', d.id); }
   }
+  // work a dead transcriber had taken (this Mac restarted, or the claim is hours old) goes back to the queue
+  const stuck = await db.collection('lessonRecordings').where('status', '==', 'transcribing').get();
+  for (const d of stuck.docs) {
+    if (isStaleTranscribing(d.data(), { host: os.hostname(), startedAt: STARTED_AT })) { await d.ref.update({ status: 'uploaded', requeuedAt: new Date().toISOString() }); log('requeued', d.id); }
+  }
+}
+
+// Watchdog: after a network outage a Firestore call may hang forever (seen 2026-10-09). Without progress for this
+// long the program exits and launchd (KeepAlive) starts it again.
+const STALL_MS = 30 * 60 * 1000;
+let lastProgress = Date.now();
+const progress = () => { lastProgress = Date.now(); };
+function watchdog() {
+  if (Date.now() - lastProgress > STALL_MS) { log('no progress for 30 min, restarting'); process.exit(1); }
 }
 
 async function deleteOldAudio() {
@@ -133,8 +148,10 @@ async function main() {
   if (process.argv.includes('--once')) { await tick(); await deleteOldAudio(); return; }
   await beat();
   setInterval(beat, 60 * 1000).unref?.();
+  setInterval(watchdog, 60 * 1000).unref?.();
   for (;;) {
     try { await tick(); } catch (err) { log('tick error', err.message); }
+    progress();
     await new Promise((r) => setTimeout(r, EVERY_MS));
   }
 }

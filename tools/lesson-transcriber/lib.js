@@ -53,6 +53,16 @@ function isAbandoned(recording, now = Date.now(), hours = 3) {
   return recording?.status === 'recording' && Boolean(t) && now - t > hours * 60 * 60 * 1000;
 }
 
+// A lesson left in „transcribing” by a transcriber that died (this Mac restarted since it claimed it, or the claim is
+// older than `hours`) goes back to the queue.
+function isStaleTranscribing(recording, { host = '', startedAt = '', now = Date.now(), hours = 3 } = {}) {
+  if (recording?.status !== 'transcribing') return false;
+  const claimed = Date.parse(recording.transcribeStartedAt || '');
+  if (!claimed) return true;
+  if (host && recording.transcriber === host && startedAt && claimed < Date.parse(startedAt)) return true;
+  return now - claimed > hours * 60 * 60 * 1000;
+}
+
 // Estonian lessons use TalTech's Estonian verbatim Whisper (far fewer errors on Estonian); other languages the
 // general model. Falls back to the general model if the Estonian file is missing.
 function pickModel(lang, { et, general }, exists = () => true) {
@@ -68,4 +78,4 @@ function heartbeat({ host, state = 'idle', recordingId = '', startedAt, now = ne
 }
 
 module.exports = {
-  pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };
+  isStaleTranscribing, pickModel, cleanText, parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, workerId, heartbeat };
