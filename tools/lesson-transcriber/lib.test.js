@@ -36,7 +36,8 @@ test('audio is deleted after 60 days; forgotten recordings are handed over after
   assert.equal(isAudioExpired({ endedAt: '2026-11-20T10:00:00Z' }, now), false);
   assert.equal(isAudioExpired({ endedAt: '2026-09-29T10:00:00Z', audioDeletedAt: '2026-11-28' }, now), false);
   assert.equal(isAbandoned({ status: 'recording', updatedAt: '2026-11-30T20:00:00Z' }, now), true);
-  assert.equal(isAbandoned({ status: 'recording', updatedAt: '2026-11-30T23:00:00Z' }, now), false);
+  assert.equal(isAbandoned({ status: 'recording', updatedAt: '2026-11-30T23:40:00Z' }, now), true);
+  assert.equal(isAbandoned({ status: 'recording', updatedAt: '2026-11-30T23:50:00Z' }, now), false);
 });
 
 test('Estonian lessons use the TalTech Estonian model, others the general one', () => {

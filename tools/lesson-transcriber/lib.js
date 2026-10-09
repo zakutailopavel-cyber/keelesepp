@@ -47,10 +47,12 @@ function isAudioExpired(recording, now = Date.now(), days = 60) {
   return Boolean(end) && !recording?.audioDeletedAt && now - end > days * DAY;
 }
 
-// a teacher who closed the tab without "Lõpeta salvestamine" leaves status "recording"; hand it over after 3 h
-function isAbandoned(recording, now = Date.now(), hours = 3) {
+// Recording starts by itself with the call, so a page reload or a closed tab leaves a recording in "recording" and a
+// new one begins. A live recording adds a segment every 5 min (updatedAt), so 15 min without one means it was left:
+// hand it over for transcription then (was 3 h, owner 2026-10-09: the text of an interrupted lesson came hours late).
+function isAbandoned(recording, now = Date.now(), minutes = 15) {
   const t = Date.parse(recording?.updatedAt || recording?.startedAt || '');
-  return recording?.status === 'recording' && Boolean(t) && now - t > hours * 60 * 60 * 1000;
+  return recording?.status === 'recording' && Boolean(t) && now - t > minutes * 60 * 1000;
 }
 
 // A lesson left in „transcribing” by a transcriber that died (this Mac restarted since it claimed it, or the claim is
