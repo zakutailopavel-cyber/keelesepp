@@ -2,7 +2,9 @@
 // results per lesson goal). Nothing here can be "farmed": the student cannot write any of these inputs.
 
 export const PET_KINDS = ['siil', 'rebane', 'kakk', 'draakon'];
-export const XP = { lesson: 10, submission: 15, goal: 5, homework: 10, word: 2, streakDay: 3 };
+// speech: per recorded lesson up to 5 XP, one per 20% of what the learner said in the lesson language (petLessonStats)
+export const XP = { lesson: 10, submission: 15, goal: 5, homework: 10, word: 2, streakDay: 3, speech: 5 };
+export const speechXp = (stat) => Math.max(0, Math.min(XP.speech, Math.floor((Number(stat?.share) || 0) / 20)));
 // a word counts as learned once it reached Leitner box 3 (known three times in a row, spread over days)
 export const WORD_LEARNED_BOX = 3;
 const STREAK_XP_CAP = 30;
@@ -39,7 +41,7 @@ export function learningStreak(activityTimes = [], now = Date.now()) {
   return streak;
 }
 
-export function petProgress({ lessons = [], submissions = [], homework = [], words = [], now = Date.now() }) {
+export function petProgress({ lessons = [], submissions = [], homework = [], words = [], speech = [], now = Date.now() }) {
   // only lessons the student actually attended feed the pet (absences 'Puudus_*' and cancellations do not)
   const held = lessons.filter((l) => isAttended(l) && time(l.date) && time(l.date) <= now);
   const done = submissions.filter((s) => s.status === 'done' || s.completedAt);
@@ -53,7 +55,8 @@ export function petProgress({ lessons = [], submissions = [], homework = [], wor
   ];
   const streak = learningStreak(activity, now);
   const xp = held.length * XP.lesson + done.length * XP.submission + goals * XP.goal
-    + homeworkDone.length * XP.homework + learnedWords * XP.word + Math.min(STREAK_XP_CAP, streak * XP.streakDay);
+    + homeworkDone.length * XP.homework + learnedWords * XP.word + Math.min(STREAK_XP_CAP, streak * XP.streakDay)
+    + speech.reduce((sum, stat) => sum + speechXp(stat), 0);
   const stage = xp >= STAGE_AT[2] ? 3 : xp >= STAGE_AT[1] ? 2 : 1;
   const from = STAGE_AT[stage - 1];
   const to = STAGE_AT[stage] ?? null;
@@ -67,7 +70,7 @@ export function petProgress({ lessons = [], submissions = [], homework = [], wor
   else if (!last || now - last > 14 * DAY) mood = xp ? 'sleep' : 'calm';
   return {
     xp, stage, mood, goals, lessons: held.length, submissions: done.length,
-    homework: homeworkDone.length, learnedWords, streak, stars: Math.floor(xp / 5),
+    homework: homeworkDone.length, learnedWords, streak, stars: Math.floor(xp / 5), speechLessons: speech.length,
     stageXp: xp - from, stageSize: to ? to - from : null,
     nextItem: stage === 1 ? 'sall' : stage === 2 ? 'lõpetaja müts' : null,
   };
@@ -81,6 +84,7 @@ const PHRASES = {
     proud: 'Sa täitsid tunni eesmärgi! Olen sinu üle uhke.',
     sleep: 'Oi, ma magasin. Hea, et sa tagasi oled!',
     fine: 'Kõik on tehtud. Tubli!',
+    speech: (n) => (n >= 50 ? `Tunnis rääkisid ${n}% eesti keeles. Tubli!` : `Tunnis rääkisid ${n}% eesti keeles. Järgmine kord veel rohkem!`),
   },
   ru: {
     greet: (name) => `Привет! Я ${name}.`,
@@ -89,6 +93,7 @@ const PHRASES = {
     proud: 'Ты выполнил(а) цель урока! Я тобой горжусь.',
     sleep: 'Ой, я спал(а). Хорошо, что ты вернулся(ась)!',
     fine: 'Всё сделано. Молодец!',
+    speech: (n) => (n >= 50 ? `На уроке ты говорил(а) по-эстонски ${n}% времени. Молодец!` : `На уроке ты говорил(а) по-эстонски ${n}%. В следующий раз ещё больше!`),
   },
   en: {
     greet: (name) => `Hi! I'm ${name}.`,
@@ -97,15 +102,18 @@ const PHRASES = {
     proud: 'You reached a lesson goal! I am proud of you.',
     sleep: 'Oh, I was sleeping. Good to see you again!',
     fine: 'Everything is done. Well done!',
+    speech: (n) => (n >= 50 ? `In the lesson ${n}% of what you said was in English. Great!` : `In the lesson ${n}% of what you said was in English. Even more next time!`),
   },
 };
 
 // One short line in the language the student is learning (English learners get English), with a Russian hint.
-export function petGreeting({ petName, progress, pendingHomework = 0, lessonToday = '', subject = '' }) {
+// `lastSpeech`: the latest recorded lesson's numbers (petLessonStats), praised for 3 days after the lesson
+export function petGreeting({ petName, progress, pendingHomework = 0, lessonToday = '', subject = '', lastSpeech = null, now = Date.now() }) {
   const lang = /inglise|english/i.test(subject) ? 'en' : 'et';
   const pick = (p) => {
     if (progress.mood === 'sleep') return p.sleep;
     if (progress.mood === 'proud') return p.proud;
+    if (lastSpeech && now - (Date.parse(lastSpeech.date || '') || 0) <= 3 * DAY && lastSpeech.studentWords >= 20) return p.speech(lastSpeech.share);
     if (lessonToday) return p.lessonToday(lessonToday);
     if (pendingHomework) return p.homework(pendingHomework);
     return progress.xp ? p.fine : p.greet(petName);

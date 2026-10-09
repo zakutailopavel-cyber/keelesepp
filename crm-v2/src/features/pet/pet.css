@@ -133,3 +133,5 @@
 .pet-game__options .vw-btn.is-right { border-color: #2f7d4c; background: #ecfdf3; color: #05603a; }
 .pet-game__options .vw-btn.is-wrong { border-color: #f04438; background: #fef3f2; color: #b42318; }
 @media (max-width: 640px) { .pet-needs { grid-template-columns: 1fr; gap: 6px; } }
+.pet-game__options.is-sentences { flex-direction: column; align-items: stretch; }
+.pet-game__options.is-sentences .vw-btn { text-align: left; white-space: normal; }

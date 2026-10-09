@@ -102,3 +102,24 @@ describe('PetCard care', () => {
     expect(screen.queryByRole('button', { name: /Toida/ })).toBeNull();
   });
 });
+
+describe('learning from the learner\'s own lesson sentences', () => {
+  it('„Paranda” rounds use the learner\'s sentences; the game also keeps joy up', async () => {
+    const { fixRounds, petNeeds: needsOf } = await import('./petCare.js');
+    const stats = [{ practice: [{ said: 'Mul on kaks vend.', corrected: 'Mul on kaks venda.' }, { said: 'Mul on kaks vend', corrected: 'Mul on kaks venda.' }] }];
+    const rounds = fixRounds(stats, () => 0.9);
+    expect(rounds).toEqual([{ answer: 'Mul on kaks venda.', options: ['Mul on kaks vend.', 'Mul on kaks venda.'] }]);
+    expect(needsOf({ canFix: true, now: Date.parse('2026-10-10T10:00:00Z') }).canPlay).toBe(true);
+    expect(needsOf({ canFix: true, now: Date.parse('2026-10-10T10:00:00Z') }).canWordGame).toBe(false);
+  });
+
+  it('speech gives XP and the pet praises the last lesson for three days', async () => {
+    const { petProgress, petGreeting } = await import('./petModel.js');
+    const now = Date.parse('2026-10-10T10:00:00Z');
+    const speech = [{ date: '2026-10-09T15:00:00Z', share: 71, studentWords: 300 }];
+    expect(petProgress({ speech, now }).xp).toBe(3);
+    const progress = petProgress({ speech, now });
+    expect(petGreeting({ petName: 'Okas', progress: { ...progress, mood: 'calm' }, lastSpeech: speech[0], now }).text).toBe('Tunnis rääkisid 71% eesti keeles. Tubli!');
+    expect(petGreeting({ petName: 'Okas', progress: { ...progress, mood: 'calm' }, lastSpeech: speech[0], now: now + 4 * 864e5 }).text).not.toMatch(/Tunnis rääkisid/);
+  });
+});

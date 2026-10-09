@@ -1530,6 +1530,13 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // The learner's pet: the simple numbers of a recorded lesson and the learner's own corrected sentences, written by
+    // the school Mac (never the teacher's AI summary). The learner reads his own; staff read them for the pet preview.
+    match /petLessonStats/{lessonId} {
+      allow read: if isStaff() || (signedIn() && resource.data.studentUid == uid());
+      allow write: if false;
+    }
+
     match /transcriberStatus/{workerId} {
       allow read: if isStaff();
       allow write: if false;

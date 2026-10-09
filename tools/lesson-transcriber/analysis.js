@@ -106,10 +106,32 @@ function parseSentences(raw, count = 12) {
 }
 const withoutGap = (sentence) => String(sentence).replace(/\[([^\]]+)\]/, '$1');
 
+// ── the learner's pet (student-readable `petLessonStats/{lessonId}`) ──
+// Only simple, checked numbers and the learner's own sentences with their corrections: never the model's summary
+// (that is for the teacher). Numbers come from the transcript, so the pet cannot be „farmed”.
+const PET_PRACTICE = 5;
+function petLessonStats({ parts = [], transcript = [], errors = [], lang = 'et' }) {
+  const first = parts[0] || {};
+  if (!first.studentUid || !first.studentId) return null;
+  const said = transcript.filter((l) => l.speaker === 'student');
+  const count = (lines) => lines.reduce((n, l) => n + words(l.text).length, 0);
+  const inLang = said.filter((l) => (l.lang ? l.lang === lang : !CYRILLIC.test(l.text)));
+  const all = count(said);
+  const longest = learnerSentences(transcript, lang).reduce((max, s) => Math.max(max, words(s.text).length), 0);
+  const ends = parts.map((p) => Date.parse(p.endedAt || p.updatedAt || p.startedAt || '') || 0);
+  const minutes = Math.max(0, Math.round((Math.max(...ends) - (Date.parse(first.startedAt || '') || 0)) / 60000));
+  return {
+    studentId: first.studentId, studentUid: first.studentUid, date: first.startedAt || '', minutes,
+    studentWords: all, estonianWords: count(inLang), share: all ? Math.round((count(inLang) / all) * 100) : 0, longest,
+    practice: errors.filter((e) => !e.unsure && e.said && e.corrected).slice(0, PET_PRACTICE).map((e) => ({ said: e.said, corrected: e.corrected })),
+    lang,
+  };
+}
+
 // a finished recording with a transcript still waiting for (this version of) the analysis
 function needsAnalysis(rec = {}) {
   return rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0
     && !(rec.analysis && rec.analysis.version >= ANALYSIS_VERSION);
 }
 
-module.exports = { sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+module.exports = { petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

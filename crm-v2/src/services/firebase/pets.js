@@ -57,6 +57,13 @@ export const petsService = {
     return snapshots.flatMap((snapshot) => snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))).filter((pet) => PET_KINDS.includes(pet.kind));
   },
   // tourDoneAt (ISO string), hidden (bool), optedOut (bool), playedAt (ISO string, the last word game)
+  // the simple numbers of the learner's recorded lessons and his own corrected sentences (written by the school Mac)
+  async lessonStats(uid) {
+    if (!uid) return [];
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'petLessonStats'), where('studentUid', '==', uid)));
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 20);
+  },
   async update({ uid, current = null, ...flags }) {
     if (!uid) throw new Error('Konto puudub.');
     const { db } = requireFirebaseClient();

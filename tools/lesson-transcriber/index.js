@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -212,6 +212,27 @@ async function ollamaModels() {
   } catch { return []; }
 }
 
+// the learner's pet gets the lesson's simple numbers and his own corrected sentences (petLessonStats/{first part})
+async function writePetStats(parts, transcript, errors, lang) {
+  const stats = petLessonStats({ parts, transcript, errors, lang });
+  if (!stats) return;
+  await db.collection('petLessonStats').doc(parts[0].id).set({ ...stats, updatedAt: new Date().toISOString() });
+}
+// lessons analysed before the pet got its numbers: written once, no model needed
+async function backfillPetStats() {
+  const snap = await db.collection('lessonRecordings').where('status', '==', 'done').get();
+  for (const d of snap.docs) {
+    const a = d.data().analysis;
+    if (!Array.isArray(a?.parts) || a.parts[0] !== d.id || a.petStatsAt) continue;
+    const parts = (await Promise.all(a.parts.map((id) => db.collection('lessonRecordings').doc(id).get())))
+      .filter((x) => x.exists).map((x) => ({ id: x.id, ref: x.ref, ...x.data() }))
+      .sort((x, y) => String(x.startedAt).localeCompare(String(y.startedAt)));
+    await writePetStats(parts, joinedTranscript(parts), a.errors || [], d.data().language || 'et');
+    await d.ref.update({ 'analysis.petStatsAt': new Date().toISOString() });
+    log('pet stats', d.id);
+  }
+}
+
 // one finished recording per tick: the learner's errors (GEC) and the summary for the teacher, saved as `analysis`
 async function analyzeNext() {
   if (env('ANALYSIS', 'on') === 'off') return;
@@ -262,9 +283,10 @@ async function analyzeNext() {
     await first.ref.update({ analysis: {
       version: ANALYSIS_VERSION, parts: parts.map((p) => p.id), errors, ...(summary ? { summary } : {}),
       models: { ...(hasGec ? { gec: GEC_MODEL } : {}), ...(hasSummary ? { summary: SUMMARY_MODEL } : {}) },
-      analyzedAt, seconds: Math.round((Date.now() - started) / 1000),
+      analyzedAt, petStatsAt: analyzedAt, seconds: Math.round((Date.now() - started) / 1000),
     } });
     for (const part of rest) await part.ref.update({ analysis: { version: ANALYSIS_VERSION, partOf: first.id, analyzedAt } });
+    await writePetStats(parts, transcript, errors, rec.language || 'et');
     log('analyzed', first.id, `${parts.length} part(s)`, `${errors.length} errors`, summary ? 'summary' : 'no summary');
   } catch (err) {
     // saved so a broken recording is not tried again every minute; a new ANALYSIS_VERSION retries all
@@ -323,6 +345,7 @@ async function tick() {
   for (const rec of await claim()) await transcribe(rec);
   // only when no lesson waits for its text: one analysis per tick
   try { await analyzeNext(); } catch (err) { log('analysis tick error', err.message); }
+  try { await backfillPetStats(); } catch (err) { log('pet stats error', err.message); }
   if (new Date().getMinutes() < 2) { await deleteOldAudio(); await deleteOldAiRequests().catch(() => {}); } // about once an hour
 }
 
