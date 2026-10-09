@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -302,8 +302,9 @@ async function answerAiRequests() {
   const snap = await db.collection('aiRequests').where('status', '==', 'new').limit(3).get();
   if (snap.empty) return;
   const models = await ollamaModels();
-  if (!models.includes(SUMMARY_MODEL)) return;
   for (const d of snap.docs) {
+    // writing needs gemma3; the EKI evaluation needs nothing local; a learner text uses the GEC model when it is there
+    if (['sentences', 'reading'].includes(d.data().kind) && !models.includes(SUMMARY_MODEL)) continue;
     const claimed = await db.runTransaction(async (tx) => {
       const fresh = await tx.get(d.ref);
       if (fresh.data()?.status !== 'new') return false;
@@ -324,6 +325,27 @@ async function answerAiRequests() {
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(sentence), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
         return isCorrection(sentence, corrected) ? corrected : '';
       };
+      if (req.kind === 'evaluate') {
+        const result = summarizeEvaluation(await ekiEvaluate(req.text), req.level);
+        await d.ref.update({ status: 'done', result, doneAt: new Date().toISOString() });
+        log('ai evaluate', d.id, `${result.words} words`);
+        continue;
+      }
+      if (req.kind === 'learnerText') {
+        // a learner's written answer: TartuNLP corrections per sentence + the EKI levels of what he used
+        const corrections = [];
+        const sentences = sentencesOf(req.text).slice(0, 40);
+        for (const sentence of sentences) {
+          const corrected = await gec(sentence);
+          if (corrected) corrections.push({ said: sentence, corrected });
+          progress();
+        }
+        const evaluation = await ekiEvaluate(req.text).then((data) => summarizeEvaluation(data, req.level)).catch(() => null);
+        const result = { sentences: sentences.length, corrections, ...(evaluation ? { evaluation } : {}) };
+        await d.ref.update({ status: 'done', result, doneAt: new Date().toISOString(), models: { ...(models.includes(GEC_MODEL) ? { check: GEC_MODEL } : {}), ...(evaluation ? { levels: 'EKI etLex' } : {}) } });
+        log('ai learner text', d.id, `${sentences.length} sentences`, `${corrections.length} corrections`);
+        continue;
+      }
       if (req.kind === 'reading') {
         let reading = parseReading(await ollama({ model: SUMMARY_MODEL, prompt: readingPrompt({ ...req, norm }), format: 'json', options: { temperature: 0.6, num_ctx: 8192 } }, 4 * 60 * 1000));
         if (!reading) throw new Error('Mudel ei kirjutanud sobivat teksti. Proovi uuesti.');

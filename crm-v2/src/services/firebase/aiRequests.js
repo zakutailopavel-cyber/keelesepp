@@ -23,6 +23,19 @@ export const aiRequestsService = {
     });
     return ref.id;
   },
+  // a text for the school Mac: kind „evaluate” (EKI text evaluation of a sheet) or „learnerText” (a learner's written
+  // answer: TartuNLP corrections + EKI levels of the words and forms used). EKI only answers Estonian addresses, so the
+  // Mac (not the cloud) asks it.
+  async requestText({ kind, text = '', level = '' }, user) {
+    if (!user?.uid) throw new Error('Kasutaja puudub.');
+    if (!['evaluate', 'learnerText'].includes(kind)) throw new Error('Tundmatu päring.');
+    const { db } = requireFirebaseClient();
+    const ref = await addDoc(collection(db, 'aiRequests'), {
+      kind, text: String(text).slice(0, 8000), topic: '', level: String(level).slice(0, 10), grammar: '', count: 1,
+      createdBy: user.uid, createdAt: new Date().toISOString(), status: 'new',
+    });
+    return ref.id;
+  },
   subscribe(id, onData, onError) {
     const { db } = requireFirebaseClient();
     return onSnapshot(doc(db, 'aiRequests', id), (snap) => onData(snap.exists() ? { id: snap.id, ...snap.data() } : null), (error) => onError?.(error));

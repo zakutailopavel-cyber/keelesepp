@@ -65,7 +65,7 @@ export function BlockInspector({ block, doc, update }) {
 // a new goal's id (outside render: the time is read only when a goal is added)
 const newGoalId = () => `g_${Date.now().toString(36)}`;
 
-export function SheetInspector({ doc, setMeta, evaluate = null }) {
+export function SheetInspector({ doc, setMeta }) {
   const m = doc.meta;
   const goals = Object.entries(m.goals || {});
   const setGoals = (entries) => setMeta({ goals: Object.fromEntries(entries.filter(([, g]) => g !== null)) });
@@ -100,7 +100,7 @@ export function SheetInspector({ doc, setMeta, evaluate = null }) {
         <button type="button" className="ed-btn ghost" onClick={() => setGoals([...goals, [`g_${Date.now().toString(36)}`, 'Uus eesmärk']])}>+ Lisa eesmärk</button>
         <span className="ed-hint">Iga ülesande saab siduda eesmärgiga. Kontrolli tulemus näitab, milline eesmärk on omandatud.</span>
       </div>
-      <div className="ed-section"><EkiEvaluation doc={doc} evaluate={evaluate} /></div>
+      <div className="ed-section"><EkiEvaluation doc={doc} /></div>
       <div className="ed-section"><GrammarPanel level={m.level} /></div>
     </div>
   );

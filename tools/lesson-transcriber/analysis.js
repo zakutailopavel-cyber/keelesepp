@@ -209,6 +209,35 @@ Tekst:
 ${text}`;
 }
 
+// ── EKI text evaluation (etLex „Õppeteksti hindamine”): EKI answers only Estonian addresses, so the Mac asks it ──
+const ETLEX_EVALUATION = 'https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/evaluation';
+const ETLEX_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+async function ekiEvaluate(text) {
+  const res = await fetch(ETLEX_EVALUATION, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: String(text).replace(/\s+/g, ' ').trim().slice(0, 8000) }), signal: AbortSignal.timeout(60000) });
+  if (!res.ok) throw new Error(`EKI ${res.status}`);
+  return res.json();
+}
+// the same summary as functions/language-core.js summarizeEvaluation, plus the forms used per level (for a learner's text)
+function summarizeEvaluation(data, level = 'A2') {
+  const cap = ETLEX_LEVELS.indexOf(String(level || '').toUpperCase().slice(0, 2));
+  const limit = cap >= 0 ? cap : 1;
+  const words = (data?.evaluatedText || []).filter((t) => t.pos !== 'Z');
+  const forms = (data?.evaluatedGrammarText || []).filter((t) => ETLEX_LEVELS.includes(t.level));
+  const count = (list) => Object.fromEntries(ETLEX_LEVELS.map((l) => [l, list.filter((t) => t.level === l).length]));
+  const unique = (list, pick, test) => { const seen = new Set(); return list.filter(test).map(pick).filter((x) => { const k = `${x.text}|${x.level}`; if (seen.has(k)) return false; seen.add(k); return true; }).slice(0, 40); };
+  const above = (list, pick) => unique(list, pick, (t) => ETLEX_LEVELS.indexOf(t.level) > limit);
+  // the highest-level grammatical forms the text uses (what the learner can already produce)
+  const top = [...forms].sort((a, b) => ETLEX_LEVELS.indexOf(b.level) - ETLEX_LEVELS.indexOf(a.level));
+  return {
+    words: words.length, wordLevels: count(words), unknownWords: words.filter((t) => !ETLEX_LEVELS.includes(t.level)).length, formLevels: count(forms),
+    aboveWords: above(words, (t) => ({ text: t.text, lemma: t.lemma, level: t.level })),
+    aboveForms: above(forms, (t) => ({ text: t.text, lemma: t.lemma, level: t.level, form: t.formXinfo || t.form || '' })),
+    topForms: unique(top, (t) => ({ text: t.text, level: t.level, form: t.formXinfo || t.form || '' }), () => true).slice(0, 8),
+    lix: data?.textStat?.LixIndex ?? null,
+  };
+}
+const sentencesOf = (text) => String(text || '').replace(/\s+/g, ' ').split(/(?<=[.!?…])\s+/).map((x) => x.trim()).filter((x) => wordsOf(x) >= 2);
+
 // a finished recording with a transcript still waiting for (this version of) the analysis
 function needsAnalysis(rec = {}) {
   return rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0
@@ -224,4 +253,4 @@ function ekiGrammar(profile, key) {
   return { level, targets: topics(level), known: order.slice(0, order.indexOf(level)).flatMap(topics) };
 }
 
-module.exports = { ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+module.exports = { ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

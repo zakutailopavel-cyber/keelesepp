@@ -48,3 +48,13 @@
 .task-answer-form { display: grid; gap: 8px; margin-top: 8px; }
 .task-answer-file { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; }
 .task-answer-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* the learner's written texts: TartuNLP corrections + EKI levels (LearnerTextAnalysis.jsx) */
+.learner-texts { display: grid; gap: 10px; margin-top: 14px; }
+.learner-texts h3 { margin: 0; font-size: 1rem; }
+.learner-text { padding: 10px 12px; border: 1px solid #e4e7ec; border-radius: 12px; background: #fcfcfd; display: grid; gap: 8px; }
+.learner-text__head { display: flex; align-items: center; gap: 8px; }
+.learner-text__head small { color: #667085; margin-right: auto; }
+.learner-text__fixes { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: .92rem; }
+.learner-text__fixes s { color: #b42318; } .learner-text__fixes ins { color: #067647; font-weight: 700; text-decoration: none; }
+.learner-text__eki { display: grid; gap: 4px; background: transparent; border: 0; box-shadow: none; height: auto; min-height: 0; }

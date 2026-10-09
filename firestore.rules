@@ -1518,8 +1518,9 @@ service cloud.firestore {
     match /aiRequests/{requestId} {
       allow read: if isAdmin() || (isStaff() && resource.data.createdBy == uid());
       allow create: if isStaff()
-        && request.resource.data.keys().hasOnly(['kind', 'topic', 'level', 'grammar', 'count', 'words', 'createdBy', 'createdAt', 'status'])
-        && request.resource.data.kind in ['sentences', 'reading']
+        && request.resource.data.keys().hasOnly(['kind', 'topic', 'level', 'grammar', 'count', 'words', 'text', 'createdBy', 'createdAt', 'status'])
+        && request.resource.data.kind in ['sentences', 'reading', 'evaluate', 'learnerText']
+        && (!('text' in request.resource.data) || (request.resource.data.text is string && request.resource.data.text.size() <= 8000))
         && (!('words' in request.resource.data) || (request.resource.data.words is int && request.resource.data.words >= 0 && request.resource.data.words <= 1000))
         && request.resource.data.status == 'new'
         && request.resource.data.createdBy == uid()
