@@ -193,3 +193,28 @@
 .lp-notice { padding: 8px 10px; border-radius: 10px; background: #ecfdf3; color: #05603a; }
 .cal2-held { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 0 0 12px; padding: 10px 14px; border: 1px solid #a6f4c5; border-radius: 14px; background: #ecfdf3; color: #05603a; font-size: .9rem; }
 .cal2-held > span { flex: 1 1 320px; }
+
+/* calendar look (owner, 2026-10-09): light grid, day number first, lessons as soft cards with a thin coloured frame,
+   name first, past lessons fainter */
+.tg-head { background: #fff; }
+.tg-colhead { justify-items: start; padding: 10px 10px 8px; gap: 0; }
+.tg-colhead span { font-size: .7rem; letter-spacing: .02em; color: #8a94a6; }
+.tg-colhead strong { font: 650 1.2rem Manrope, sans-serif; letter-spacing: -.01em; color: #1c2533; }
+.tg-colhead.is-today strong { color: #087e6b; background: none; padding: 0; }
+.tg-colhead.is-today span { color: #087e6b; }
+.tg-col { border-left-color: #eef0f3; }
+.tg-col.is-today { background: rgba(8, 126, 107, .025); }
+.tg-line { border-top-color: #f2f4f7; }
+.tg-hours span { color: #a3acba; font-size: .7rem; }
+.tg-block { border: 1px solid color-mix(in srgb, var(--tone-strong) 28%, transparent); border-left-width: 1px; border-radius: 8px; padding: 5px 8px; background: var(--tone-soft); color: color-mix(in srgb, var(--tone-strong) 62%, #14243a); box-shadow: none; }
+.tg-block:hover { box-shadow: 0 6px 18px rgba(16, 35, 57, .10); border-color: color-mix(in srgb, var(--tone-strong) 55%, transparent); }
+.tg-open strong { order: -1; font-weight: 650; color: inherit; }
+.tg-block .tg-time { font-weight: 500; color: inherit; opacity: .85; }
+.tg-block small { color: inherit; opacity: .8; }
+.tg-block .tg-topic { color: inherit; font-weight: 600; opacity: .9; }
+.tg-block.is-done { opacity: .58; }
+.tg-block.is-done:hover { opacity: .85; }
+.tg-block.is-short .tg-open strong { order: 0; }
+.tg-block.is-group { border-style: solid; border-width: 1px; box-shadow: inset 3px 0 0 var(--tone-strong); }
+.tg-block.is-absent { border-color: #f1b8b2; color: #8a1c13; }
+.tg-cluster-item { border-left-width: 0; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone-strong, #087e6b) 25%, transparent); color: color-mix(in srgb, var(--tone-strong, #087e6b) 62%, #14243a); }
