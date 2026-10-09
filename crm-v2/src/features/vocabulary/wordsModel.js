@@ -42,6 +42,7 @@ export function normalizeWord(id, data = {}) {
     box,
     dueAt: data.dueAt || data.createdAt || '',
     reviews: Number.isInteger(data.reviews) ? data.reviews : 0,
+    reviewedAt: data.reviewedAt || '',
   };
 }
 

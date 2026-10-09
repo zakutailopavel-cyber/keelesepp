@@ -817,11 +817,12 @@ service cloud.firestore {
     }
 
     // Student cabinet pet: the chosen kind and a short name plus three own flags; growth is derived, never stored.
+    // playedAt: the last word game (care only, gives no xp or stars).
     function validPet(data) {
       return !('pet' in data)
         || (
           data.pet is map
-          && data.pet.keys().hasOnly(['kind', 'name', 'chosenAt', 'tourDoneAt', 'hidden', 'optedOut', 'owned', 'wearing', 'spentStars'])
+          && data.pet.keys().hasOnly(['kind', 'name', 'chosenAt', 'tourDoneAt', 'hidden', 'optedOut', 'owned', 'wearing', 'spentStars', 'playedAt'])
           && (!('owned' in data.pet) || (data.pet.owned is list && data.pet.owned.size() <= 40))
           && (!('wearing' in data.pet) || (data.pet.wearing is map && data.pet.wearing.keys().hasOnly(['bg', 'hat', 'glasses', 'neck'])))
           && (!('spentStars' in data.pet) || (data.pet.spentStars is int && data.pet.spentStars >= 0 && data.pet.spentStars <= 100000))
@@ -830,6 +831,7 @@ service cloud.firestore {
           && (!('name' in data.pet) || (data.pet.name is string && data.pet.name.size() > 0 && data.pet.name.size() <= 24))
           && (!('chosenAt' in data.pet) || (data.pet.chosenAt is string && data.pet.chosenAt.size() <= 40))
           && (!('tourDoneAt' in data.pet) || (data.pet.tourDoneAt is string && data.pet.tourDoneAt.size() <= 40))
+          && (!('playedAt' in data.pet) || (data.pet.playedAt is string && data.pet.playedAt.size() <= 40))
           && (!('hidden' in data.pet) || data.pet.hidden is bool)
           && (!('optedOut' in data.pet) || data.pet.optedOut is bool)
         );

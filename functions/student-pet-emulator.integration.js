@@ -62,6 +62,10 @@ test('student pet on the account document', async () => {
   assert.equal(await setFlags(other, other.uid, { optedOut: true }), 200);
   assert.equal(await setFlags(other, other.uid, { kind: 'siil' }), 403); // a kind always needs a name
   assert.equal(await setFlags(learner, other.uid, { optedOut: false }), 403);
+  // care: the last word game
+  assert.equal(await setFlags(learner, learner.uid, { playedAt: '2026-10-09T10:00:00Z' }), 200);
+  assert.equal(await setFlags(learner, learner.uid, { playedAt: 'x'.repeat(41) }), 403);
+  assert.equal(await setFlags(learner, learner.uid, { playedAt: 5 }), 403);
 });
 
 test('pet outfit: stars only go up, items are never lost; the public copy is the student\'s own', async () => {

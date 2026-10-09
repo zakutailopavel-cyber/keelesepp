@@ -1,3 +1,23 @@
+## 2026-10-09 — Pet care (tamagotchi) — branch `agent/pet-care`
+
+Checked `origin/main` `a5c3a84`. Owner chose „care through learning” for the pet.
+- `features/pet/petCare.js`: three needs 0–100 that run down and are filled only by learning —
+  Kõht ← word reviews in „Minu sõnad” (3 fresh = full, empty after 48 h; full while no word is due),
+  Energia ← homework (full while none is open; open homework drains it over 5 days from the last finished work or
+  from when it was given), Rõõm ← attended lesson (7 days) or the word game (2 days; full when the student has fewer
+  than 3 words with a translation). A need below 25 makes the pet sad (new mood `sad` in `petArt.js`, with a tear);
+  proud/asleep win. The pet never dies. Care gives no XP and no stars (still derived only from CRM data).
+- `PetCare.jsx` on the pet card: three meters + „Toida” (WordPractice over ≤3 due words — real SRS reviews),
+  „Kodutöö (n)” → /homework, „Mängi” (`PetGame`: 4 rounds word → 1 of 3 translations, writes nothing to the words).
+  Read-only cards (staff preview) show meters only. Sad pet says what it needs (et/en + ru hint).
+- Data: `users/{uid}.pet.playedAt` (ISO string ≤40) — rule `validPet` extended; `petsService.update` flag.
+  `normalizeWord` now keeps `reviewedAt` (before it was dropped, so word practice never counted for the streak).
+- Checks: pet + vocabulary + students tests 92/92 (new `petCare.test.jsx`); student-pet emulator test 2/2 with the
+  new rule; eslint 0 errors; build OK.
+- Manual gate: `firestore:rules` deploy is needed for „Mängi” to persist (until then the game works, the joy is
+  kept only in the open page).
+- Next safe step: deploy rules after merge, then check a student account's card (Toida / Mängi).
+
 ## 2026-10-09 — Õppevara tidied — branch `agent/library-tidy`
 
 Owner: the Õppevara page is overloaded (6 big header buttons, a primary „Määra” on every row, filters in three rows).

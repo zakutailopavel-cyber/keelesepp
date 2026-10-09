@@ -4,6 +4,8 @@
   .pet .eye { transform-box: fill-box; transform-origin: 50% 50%; animation: blink 4.6s infinite; }
   .pet.m-happy .jump { animation: hop 1.4s ease-in-out infinite; }
   .pet.m-sleep .breathe { animation-duration: 5.5s; }
+  .pet.m-sad .breathe { animation-duration: 4.8s; }
+  .pet .tear { animation: tear 2.6s ease-in infinite; }
   .pet .zz { animation: floatz 3s ease-in-out infinite; opacity: 0; }
   .pet .zz.z2 { animation-delay: 1.5s; }
   .pet .spark { transform-box: fill-box; transform-origin: center; animation: twinkle 1.8s ease-in-out infinite; }
@@ -14,6 +16,7 @@
   @keyframes hop { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(0); } }
   @keyframes floatz { 0% { opacity: 0; transform: translate(0,0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(12px,-26px); } }
   @keyframes twinkle { 0%,100% { transform: scale(.6); opacity: .4; } 50% { transform: scale(1.1); opacity: 1; } }
+  @keyframes tear { 0%, 40% { opacity: 0; transform: translateY(0); } 55% { opacity: 1; } 100% { opacity: 0; transform: translateY(14px); } }
   @keyframes wag { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-8deg); } }
   @media (prefers-reduced-motion: reduce) { .pet * { animation: none !important; } .pet .zz { opacity: 1; } }
 
@@ -113,3 +116,20 @@
 .room-pet__bubble p { margin: 0; font-weight: 700; font-size: 14px; }
 .room-pet__bubble small { color: #667085; }
 @media (max-width: 760px) { .room-pet { bottom: 96px; } .room-pet__art { width: 56px; height: 56px; } }
+
+/* Tamagotchi care: needs and actions on the pet card */
+.pet-care { display: grid; gap: 10px; }
+.pet-needs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.pet-need { display: grid; gap: 4px; font-size: 12px; font-weight: 700; color: #344054; }
+.pet-need > span { display: inline-flex; align-items: center; gap: 4px; }
+.pet-need__bar { height: 8px; border-radius: 99px; background: rgba(11,42,79,.08); overflow: hidden; }
+.pet-need__bar i { display: block; height: 100%; border-radius: inherit; background: #2f7d4c; transition: width .6s ease; }
+.pet-need.is-low { color: #b42318; }
+.pet-need.is-low .pet-need__bar i { background: #f04438; }
+.pet-care__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pet-care__actions .pet-btn { display: inline-flex; align-items: center; gap: 5px; text-decoration: none; font-size: 13px; }
+.pet-btn:disabled { opacity: .5; cursor: default; }
+.pet-game__options { display: grid; gap: 8px; }
+.pet-game__options .vw-btn.is-right { border-color: #2f7d4c; background: #ecfdf3; color: #05603a; }
+.pet-game__options .vw-btn.is-wrong { border-color: #f04438; background: #fef3f2; color: #b42318; }
+@media (max-width: 640px) { .pet-needs { grid-template-columns: 1fr; gap: 6px; } }

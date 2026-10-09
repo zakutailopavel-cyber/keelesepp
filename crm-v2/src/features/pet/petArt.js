@@ -11,6 +11,7 @@ export const MOODS = {
   calm:  { label: 'Tavaline', why: 'Обычный день: моргает и ждёт ученика.' },
   proud: { label: 'Uhke', why: 'Выполнена цель урока: получен новый предмет.' },
   sleep: { label: 'Magab', why: 'Ученик давно не заходил. Питомец просто спит и проснётся при входе.' },
+  sad:   { label: 'Kurb', why: 'Питомец голоден, устал или скучает. Повтор слов, домашка или игра его порадуют.' },
 };
 export const STAGES = { 1: 'Beebi', 2: 'Noor', 3: 'Täiskasvanu' };
 const O = 'var(--outline)';
@@ -24,6 +25,10 @@ function face(mood, cx, cy, r) {
     eyes = [-1, 1].map((s) => `<path d="M${cx + s * ex - 8} ${ey} q8 6 16 0" fill="none" stroke="${O}" stroke-width="4" stroke-linecap="round"/>`).join('');
     mouth = `<ellipse cx="${cx}" cy="${cy + r * 0.34}" rx="4" ry="3" fill="${O}"/>`;
     extra = `<text class="zz" x="${cx + r * 0.7}" y="${cy - r * 0.6}" font-family="Nunito, sans-serif" font-weight="900" font-size="20" fill="${O}">z</text><text class="zz z2" x="${cx + r * 0.9}" y="${cy - r * 0.85}" font-family="Nunito, sans-serif" font-weight="900" font-size="14" fill="${O}">z</text>`;
+  } else if (mood === 'sad') {
+    eyes = [-1, 1].map((s) => `<g class="eye"><ellipse cx="${cx + s * ex}" cy="${ey + 2}" rx="6" ry="7" fill="${O}"/><circle cx="${cx + s * ex + 2}" cy="${ey - 1}" r="2" fill="#fff"/></g><path d="M${cx + s * ex - s * 10} ${ey - 14} l${s * 16} 5" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>`).join('');
+    mouth = `<path d="M${cx - 9} ${cy + r * 0.38} q9 -8 18 0" fill="none" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>`;
+    extra = `<path class="tear" d="M${cx + ex + 4} ${ey + 10} q-4 7 0 10 q4 -3 0 -10z" fill="#60a5fa" stroke="${O}" stroke-width="1.5"/>`;
   } else {
     const big = mood === 'proud';
     eyes = [-1, 1].map((s) => `<g class="eye"><ellipse cx="${cx + s * ex}" cy="${ey}" rx="${big ? 8 : 7}" ry="${big ? 10 : 9}" fill="${O}"/><circle cx="${cx + s * ex + 2.5}" cy="${ey - 3.5}" r="2.6" fill="#fff"/></g>`).join('');
