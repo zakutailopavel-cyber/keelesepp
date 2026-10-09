@@ -3,9 +3,9 @@
 - Goal: let a teacher create a worksheet inside one student's profile without publishing it to the shared material library or assigning it to another student.
 - Completed: added a profile action and private-draft list, reused Worksheet Studio in a student-bound route, saved drafts in `studentWorksheetDrafts`, and published one `worksheetAssignments` snapshot for that student. The existing profile tracking, student player, submission and review flow use that snapshot. Firestore and Storage rules restrict student access by `studentId`.
 - Files: `StudentProfilePage.jsx`, `StudentWorksPanel.jsx`, `StudentWorksheetStudioPage.jsx`, `WorksheetStudioPage.jsx`, `studentWorksheets.js`, routes/access policy, profile CSS, `firestore.rules`, `storage.rules`, `docs/specs/STUDENT_PRIVATE_WORKSHEETS.md`, this entry.
-- Checks: targeted ESLint — 0 errors; full ESLint — 0 errors / 2 existing worksheet-generator hook warnings; CRM production build — passed with the existing large-chunk advisory; `git diff --check` — passed. Automated tests were not run for this request. No live student flow has been exercised.
+- Checks: targeted ESLint — 0 errors; full ESLint — 0 errors / 2 existing worksheet-generator hook warnings; CRM production build — passed with the existing large-chunk advisory; `git diff --check` — passed. Firestore and Storage emulators started with the new rules and exited 0. Local automated tests and live student flow were not run. GitHub CI on code commit `3012f29` passed all 6 checks (two verify jobs, security-regression, financial-core, Vercel, Preview Comments).
 - Data/security: no production records were changed and no messages, merge or production deployment were performed. GitHub created an automatic Vercel preview for the draft PR. The new collection and Storage path require the accompanying rules before use. Admins and permitted teachers can see drafts; only the chosen student's linked account can read its published assignment.
-- Next safe step: review the draft PR and its checks, including Firestore and Storage rules. Merge and deployment require a separate owner decision.
+- Next safe step: review draft PR #369 and confirm the one-student flow with two test accounts. Merge and production deployment require a separate owner decision.
 
 ## 2026-10-08 — Finance v3 tabs and invoice printing — branch `agent/finance-v3-tabs`
 
