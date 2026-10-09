@@ -44,7 +44,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
+function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = themedTone(theme, block.tone || 'white', TONES[block.tone] || TONES.white);
@@ -98,7 +98,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
       <MarksLayer block={block} editable={mode === 'edit' && Boolean(onMarks)} onChange={(next) => onMarks?.(block.id, next.marks)} />
       {addLabel ? <button type="button" className="ws-add" onClick={(e) => { e.stopPropagation(); onAddItem(block.id); }}>+ {addLabel}</button> : null}
       {active && onResize ? <ResizeHandles block={block} onResize={onResize} /> : null}
-      {active && toolbar ? <div className="ws-toolbar" role="toolbar" aria-label="Ploki tööriistad" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
+      {active && toolbar ? <div className={`ws-toolbar is-${barSide}`} role="toolbar" aria-label="Ploki tööriistad" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>{toolbar}</div> : null}
       {mode === 'edit' && onInsertAfter ? <button type="button" className="ws-insert" title="Lisa plokk selle järele" aria-label="Lisa plokk selle järele" onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onInsertAfter(block.id); }}>+</button> : null}
     </section>
   );
@@ -345,7 +345,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
 
   const rowView = (row, key, measuring = false) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />; })}
+      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />; })}
     </div>
   );
 
