@@ -16,11 +16,11 @@ function Cell({ raw, keyName, ctx, label }) {
     : <Md key={i} text={p.text} />));
 }
 
-const box = ({ raw, at, h, ctx, keyName, label, main = false, color, step = 0, branch = false, leaf = '' }) => {
+const box = ({ raw, at, h, ctx, keyName, label, main = false, color, step = 0, branch = false, leaf = '', edit = '' }) => {
   const whole = cellParts(raw, keyName);
   const gap = whole.length === 1 && whole[0].gap;
   return (
-    <div className={`ws-dg-node ${main ? 'is-main' : ''} ${gap ? 'is-gap' : ''} ${branch ? 'is-branch' : ''} ${leaf ? `is-leaf is-${leaf}` : ''}`} style={{ left: `${at.x}%`, top: `${(at.y / h) * 100}%`, ...(color ? { '--dg-c': color } : {}) }}>
+    <div className={`ws-dg-node ${main ? 'is-main' : ''} ${gap ? 'is-gap' : ''} ${branch ? 'is-branch' : ''} ${leaf ? `is-leaf is-${leaf}` : ''}`} style={{ left: `${at.x}%`, top: `${(at.y / h) * 100}%`, ...(color ? { '--dg-c': color } : {}) }} data-edit={edit || undefined}>
       {step ? <span className="ws-dg-step" aria-hidden="true">{step}</span> : null}
       <Cell raw={raw} keyName={keyName} ctx={ctx} label={label} />
     </div>
@@ -64,8 +64,8 @@ function Positioned({ data, ctx, kind }) {
         const angle = Math.abs(to.y - from.y) > 0.5 ? (to.y > from.y ? 90 : -90) : (to.x > from.x ? 0 : 180);
         return <span key={`arrow-${a}`} className="ws-dg-arrow" aria-hidden="true" style={{ left: `${(from.x + to.x) / 2}%`, top: `${(((from.y + to.y) / 2) / layout.h) * 100}%`, transform: `translate(-50%, -50%) rotate(${angle}deg)` }}>➜</span>;
       }) : null}
-      {center ? box({ raw: center, at: layout.center, h: layout.h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true }) : null}
-      {raws.map((raw, i) => <Fragment key={i}>{box({ raw, at: layout.points[i], h: layout.h, ctx, keyName: `n${i}`, label: `Skeemi lünk ${i + 1}`, color: colored ? BRANCH[i % BRANCH.length] : null, step: kind === 'flow' ? i + 1 : 0 })}</Fragment>)}
+      {center ? box({ raw: center, at: layout.center, h: layout.h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true, edit: 'center' }) : null}
+      {raws.map((raw, i) => <Fragment key={i}>{box({ raw, at: layout.points[i], h: layout.h, ctx, keyName: `n${i}`, label: `Skeemi lünk ${i + 1}`, color: colored ? BRANCH[i % BRANCH.length] : null, step: kind === 'flow' ? i + 1 : 0, edit: `nodes#${i}` })}</Fragment>)}
     </div>
   );
 }
@@ -87,13 +87,13 @@ function MindMap({ data, ctx, branches }) {
           );
         })}
       </svg>
-      {data.center ? box({ raw: data.center, at: center, h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true }) : null}
+      {data.center ? box({ raw: data.center, at: center, h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true, edit: 'center' }) : null}
       {layout.branches.map((b, i) => {
         const color = BRANCH[b.index % BRANCH.length];
         return (
           <Fragment key={b.key}>
-            {box({ raw: b.raw, at: b.at, h, ctx, keyName: b.key, label: `Skeemi haru ${i + 1}`, color, branch: true })}
-            {b.children.map((c, j) => <Fragment key={c.key}>{box({ raw: c.raw, at: c.at, h, ctx, keyName: c.key, label: `Haru ${i + 1} lünk ${j + 1}`, color, leaf: b.side })}</Fragment>)}
+            {box({ raw: b.raw, at: b.at, h, ctx, keyName: b.key, label: `Skeemi haru ${i + 1}`, color, branch: true, edit: `nodes#${b.key.slice(1)}` })}
+            {b.children.map((c, j) => <Fragment key={c.key}>{box({ raw: c.raw, at: c.at, h, ctx, keyName: c.key, label: `Haru ${i + 1} lünk ${j + 1}`, color, leaf: b.side, edit: `nodes#${c.key.slice(1)}` })}</Fragment>)}
           </Fragment>
         );
       })}
@@ -106,7 +106,7 @@ function Timeline({ data, ctx }) {
   return (
     <div className="ws-diagram ws-dg-timeline" style={{ '--dg-n': Math.min(Math.max(rows.length, 1), 6) }}>
       {rows.map((row, i) => (
-        <div key={i} className={`ws-dg-tl-item ${i === rows.length - 1 ? 'is-last' : ''}`}>
+        <div key={i} className={`ws-dg-tl-item ${i === rows.length - 1 ? 'is-last' : ''}`} data-edit={`nodes#${i}`}>
           <div className="ws-dg-tl-when"><Cell raw={row.label} keyName={`t${i}`} ctx={ctx} label={`Ajajoone aeg ${i + 1}`} /></div>
           <div className="ws-dg-tl-axis" aria-hidden="true"><span /></div>
           <div className="ws-dg-tl-what"><Cell raw={row.text} keyName={`n${i}`} ctx={ctx} label={`Ajajoone lünk ${i + 1}`} /></div>
@@ -124,7 +124,7 @@ function Formula({ data, ctx }) {
         {rows.map((row, i) => (
           <Fragment key={i}>
             {i ? <span className="ws-dg-plus" aria-hidden="true">+</span> : null}
-            <div className="ws-dg-slot" style={{ '--dg-c': BRANCH[i % BRANCH.length] }}>
+            <div className="ws-dg-slot" style={{ '--dg-c': BRANCH[i % BRANCH.length] }} data-edit={`nodes#${i}`}>
               <div className="ws-dg-q"><Cell raw={row.label} keyName={`q${i}`} ctx={ctx} label={`Valemi küsimus ${i + 1}`} /></div>
               <div className="ws-dg-w"><Cell raw={row.text} keyName={`n${i}`} ctx={ctx} label={`Valemi lünk ${i + 1}`} /></div>
             </div>
@@ -136,8 +136,9 @@ function Formula({ data, ctx }) {
   );
 }
 
+const ZONE_FIELD = { l: 'leftItems', m: 'both', r: 'rightItems' };
 const ZoneList = ({ items, prefix, ctx, label }) => (
-  <ul className="ws-dg-list">{items.map((raw, i) => <li key={i}><Cell raw={raw} keyName={`${prefix}${i}`} ctx={ctx} label={`${label} ${i + 1}`} /></li>)}</ul>
+  <ul className="ws-dg-list">{items.map((raw, i) => <li key={i} data-edit={`${ZONE_FIELD[prefix]}#${i}`}><Cell raw={raw} keyName={`${prefix}${i}`} ctx={ctx} label={`${label} ${i + 1}`} /></li>)}</ul>
 );
 
 function Venn({ data, ctx }) {
@@ -147,8 +148,8 @@ function Venn({ data, ctx }) {
         <circle cx="38" cy="20" r="19" className="is-a" />
         <circle cx="62" cy="20" r="19" className="is-b" />
       </svg>
-      <div className="ws-dg-vt is-a"><Cell raw={data.left} keyName="L" ctx={ctx} label="Vasaku ringi nimi" /></div>
-      <div className="ws-dg-vt is-b"><Cell raw={data.right} keyName="R" ctx={ctx} label="Parema ringi nimi" /></div>
+      <div className="ws-dg-vt is-a" data-edit="left"><Cell raw={data.left} keyName="L" ctx={ctx} label="Vasaku ringi nimi" /></div>
+      <div className="ws-dg-vt is-b" data-edit="right"><Cell raw={data.right} keyName="R" ctx={ctx} label="Parema ringi nimi" /></div>
       <div className="ws-dg-vz is-a"><ZoneList items={zoneItems(data.leftItems)} prefix="l" ctx={ctx} label="Vasak lünk" /></div>
       <div className="ws-dg-vz is-m"><ZoneList items={zoneItems(data.both)} prefix="m" ctx={ctx} label="Ühine lünk" /></div>
       <div className="ws-dg-vz is-b"><ZoneList items={zoneItems(data.rightItems)} prefix="r" ctx={ctx} label="Parem lünk" /></div>
@@ -159,8 +160,8 @@ function Venn({ data, ctx }) {
 function Compare({ data, ctx }) {
   return (
     <div className="ws-diagram ws-dg-compare">
-      <div className="ws-dg-col is-a"><div className="ws-dg-ch"><Cell raw={data.left} keyName="L" ctx={ctx} label="Vasaku veeru pealkiri" /></div><ZoneList items={zoneItems(data.leftItems)} prefix="l" ctx={ctx} label="Vasak lünk" /></div>
-      <div className="ws-dg-col is-b"><div className="ws-dg-ch"><Cell raw={data.right} keyName="R" ctx={ctx} label="Parema veeru pealkiri" /></div><ZoneList items={zoneItems(data.rightItems)} prefix="r" ctx={ctx} label="Parem lünk" /></div>
+      <div className="ws-dg-col is-a"><div className="ws-dg-ch" data-edit="left"><Cell raw={data.left} keyName="L" ctx={ctx} label="Vasaku veeru pealkiri" /></div><ZoneList items={zoneItems(data.leftItems)} prefix="l" ctx={ctx} label="Vasak lünk" /></div>
+      <div className="ws-dg-col is-b"><div className="ws-dg-ch" data-edit="right"><Cell raw={data.right} keyName="R" ctx={ctx} label="Parema veeru pealkiri" /></div><ZoneList items={zoneItems(data.rightItems)} prefix="r" ctx={ctx} label="Parem lünk" /></div>
     </div>
   );
 }

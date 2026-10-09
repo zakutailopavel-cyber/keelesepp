@@ -24,6 +24,7 @@ import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
+import { MARK_KINDS, addMark } from './engine/marksModel.js';
 import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
@@ -85,6 +86,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [version, setVersion] = useState(0);
   const [versions, setVersions] = useState([]);
   const [paletteQuery, setPaletteQuery] = useState('');
+  const [markMenu, setMarkMenu] = useState(''); // the block whose „Joonista” menu is open
   const [draftRestored, setDraftRestored] = useState(false);
   const lastPush = useRef(0);
   const canvasRef = useRef(null);
@@ -289,6 +291,18 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     if (!block) return;
     updateBlock('span' in patch ? withSpan(block, patch.span) : withHeight(block, patch.minHeightMm));
   };
+  // the free layer of a block: arrows, callouts, free text, stickers, rings (engine/marksModel.js)
+  const setMarks = (id, marks) => {
+    const block = doc.blocks.find((b) => b.id === id);
+    if (block) updateBlock({ ...block, marks });
+  };
+  const addMarkTo = (id, kind) => {
+    const block = doc.blocks.find((b) => b.id === id);
+    if (!block) return;
+    const { block: next, mark } = addMark(block, kind);
+    if (mark) { updateBlock(next); setSelectedId(id); }
+    setMarkMenu('');
+  };
   const addItemTo = (id) => {
     const block = doc.blocks.find((b) => b.id === id);
     if (block) updateBlock(addItem(block));
@@ -480,6 +494,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <button type="button" onClick={() => showVariant(0)} disabled={!variants.index}>Algne</button>
           </>
         ) : null}
+        {markMenu === block.id
+          ? MARK_KINDS.map(([kind, label, icon]) => { const Ico = Icons[icon] || Icons.Plus; return <button key={kind} type="button" onClick={() => addMarkTo(block.id, kind)} title={`Lisa: ${label}`}><Ico aria-hidden="true" /> {label}</button>; })
+          : <button type="button" onClick={() => setMarkMenu(block.id)} title="Nool, mull, tekst, kleebis või ring lehe peale"><Icons.PenTool aria-hidden="true" /> Joonista</button>}
         {templates ? <button type="button" onClick={() => saveTemplate(block)} title="Salvesta see plokk mallina"><Icons.BookmarkPlus aria-hidden="true" /> Mall</button> : null}
         <button type="button" className="is-danger" onClick={() => deleteBlock(block.id)} title="Kustuta (Delete)" aria-label="Kustuta plokk"><Icons.Trash2 aria-hidden="true" /></button>
       </>
@@ -701,7 +718,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
           <main className="st-canvas" ref={canvasRef}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onDropNew={dropNew} onResize={resizeBlock} onAddItem={addItemTo} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
+              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} onMove={dropMove} onDropNew={dropNew} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
