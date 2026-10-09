@@ -5,7 +5,7 @@
 // Returns { level, label, checks[], score, issues[] } — issues never block publishing (warning / tip only).
 import { BLOCKS } from '../engine/registry.js';
 import { LEVELS, PHASE_TASKS, levelKey } from './levels.js';
-import { wordLevel } from './levelVocabulary.js';
+import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
 // „Ma ärkan [hommikul|varakult] kell 7.” → the sentence as the learner will read it once solved
@@ -146,10 +146,10 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
     }
   }
 
-  // vocabulary above the level (EKI A1 / A2 / B1 lists, every form): names (a capital inside a sentence) and numbers
-  // are skipped; B2 and C1 are not checked (the lists end at B1)
-  const allowed = { A1: ['A1'], A2: ['A1', 'A2'], 'A2+': ['A1', 'A2'], 'B1-': ['A1', 'A2', 'B1'], B1: ['A1', 'A2', 'B1'] }[key];
-  if (forms && allowed) {
+  // vocabulary above the level (EKI etLex A1–C1 lists, every form): names (a capital inside a sentence) and numbers
+  // are skipped; on C1 only words outside all lists are counted
+  const allowed = VOCABULARY_FOR[key];
+  if (forms && allowed && allowed.every((level) => forms[level])) {
     const texts = [...all, ...tasks.filter((b) => b.type === 'reading').flatMap((b) => [b.data?.passageTitle || ''])];
     const tokens = texts.flatMap((sentence) => String(sentence).split(/\s+/).map((raw, i) => ({ raw, i })))
       .map(({ raw, i }) => ({ w: raw.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ''), i, raw }))
@@ -159,7 +159,7 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
       const share = above.length / tokens.length;
       const examples = [...new Set(above.map(({ w }) => w.toLocaleLowerCase('et')))].slice(0, 6);
       add('vocabulary', 'Sõnavara vastab tasemele', share <= 0.1,
-        { detail: `${Math.round(share * 100)}% sõnadest pole tasemel ${norm.label} õpitavas sõnavaras (EKI loend), nt ${examples.join(', ')}. Selgita need sõnad või asenda lihtsamatega.`, severity: share > 0.2 ? 'warning' : 'tip' });
+        { detail: `${Math.round(share * 100)}% sõnadest pole tasemel ${norm.label} õpitavas sõnavaras (EKI etLex), nt ${examples.join(', ')}. Selgita need sõnad või asenda lihtsamatega.`, severity: share > 0.2 ? 'warning' : 'tip' });
     }
   }
 

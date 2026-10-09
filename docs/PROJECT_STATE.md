@@ -1,3 +1,20 @@
+## 2026-10-10 — Level vocabulary A1–C1 from EKI etLex (B2 and C1 included) — branch `agent/b2-c1-vocabulary`
+
+- Base: `main` (after #421). The owner pointed out that EKI also has B2 and C1.
+- The 2018 PDFs only cover A1–B1. B2 and C1 are in the etLex adult lists (Sõnaveeb teacher tools, CC BY), read from the public API `https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/lemmas`, 500 per page.
+- `tools/lexicon/build_level_forms.py`:
+  - `fetch` writes `tools/lexicon/etlex-levels.json` with 10,539 lemmas;
+  - `build` writes `crm-v2/src/features/worksheet-studio/didactics/levelForms.{A1,A2,B1,B2,C1}.json` (321k forms) and removes the old single file.
+- `didactics/levelVocabulary.js`:
+  - `FORM_LEVELS` A1–C1;
+  - `VOCABULARY_FOR[levelKey]`;
+  - `loadLevelForms(levels)` loads per level;
+  - `wordLevel` also counts a -mine noun as its verb.
+- `didacticCheck` now checks vocabulary on B2 and C1 too. `WorksheetStudioPage` loads only `VOCABULARY_FOR[sheet level]`.
+- School Mac: `analysis.js` reads the per-level files from `app/didactics`; B2 and C1 are allowed in `ALLOWED_FORMS`; same -mine rule. Installed and restarted.
+- Checks: worksheet-studio 150/150; Mac `node --test` analysis + lib pass; eslint is clean; build succeeds. Lazy chunks: A1 44 kB, A2 72 kB, B1 187 kB, B2 381 kB, C1 57 kB gz.
+- Next safe step: Russian translations and tags for the etLex lemmas, to grow the generator lexicon.
+
 ## 2026-10-10 — Didactic engine step 7: calibration from real answers + „Halb lause” — branch `agent/calibration`
 
 - Base: `main` (after #420).

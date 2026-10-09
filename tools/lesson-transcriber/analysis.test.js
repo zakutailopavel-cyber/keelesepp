@@ -81,10 +81,18 @@ test('level filter: words above the level and the reading answer shape', async (
   const did = await loadDidactics();
   assert.ok(did && did.forms, 'the CRM didactics are found from the repository');
   assert.deepEqual(hardWords('Ma elan koos emaga Tallinnas. Keskkonnasõbralik tarbimine on oluline.', 'A2', did.forms), ['keskkonnasõbralik', 'tarbimine']);
-  assert.deepEqual(hardWords('Keskkonnasõbralik tarbimine.', 'B2', did.forms), [], 'B2 and C1 are not checked');
+  assert.deepEqual(hardWords('Keskkonnasõbralik tarbimine on oluline teema.', 'B2', did.forms), [], 'B2 knows these words');
+  assert.ok(did.forms.B2 && did.forms.C1, 'B2 and C1 lists are loaded');
   const reading = parseReading(JSON.stringify({ pealkiri: 'Mari päev', tekst: 'Mari ärkab kell seitse. '.repeat(6), kysimused: [{ kysimus: 'Millal Mari ärkab?', vastus: 'kell [seitse]' }, { kysimus: '', vastus: 'x' }] }));
   assert.equal(reading.title, 'Mari päev');
   assert.deepEqual(reading.questions, [{ q: 'Millal Mari ärkab?', a: 'kell seitse' }]);
   assert.equal(parseReading('{"tekst": "liiga lühike"}'), null);
   assert.match(readingPrompt({ topic: 'Pere', norm: did.LEVELS.B1 }), /Miks/);
+});
+
+test('a -mine noun counts as its verb', async () => {
+  const { loadDidactics, wordLevel } = require('./analysis');
+  const did = await loadDidactics();
+  assert.equal(wordLevel('raiskamisest', did.forms), wordLevel('raiskama', did.forms));
+  assert.ok(wordLevel('õppimine', did.forms));
 });

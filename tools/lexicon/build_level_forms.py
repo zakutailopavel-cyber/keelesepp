@@ -1,15 +1,17 @@
-"""Word forms of the EKI level vocabularies (A1, A2, B1) for the didactic check (docs/DIDACTIC_ENGINE.md).
+"""Word forms of the EKI level vocabularies (A1–C1) for the didactic check (docs/DIDACTIC_ENGINE.md).
 
-Source: Jelena Kallas, Kristina Koppel. Eesti keele A1-, A2- ja B1-taseme sõnavara. Eesti Keele Instituut 2018,
-https://arhiiv.eki.ee/litsents/ — licence CC BY 4.0. The lists are cumulative (A2 includes A1).
+Source: EKI etLex adult learner lists (Sõnaveeb „Õpetaja tööriistad”, https://sonaveeb.ee/teacher-tools; Kallas, Üksik,
+Koppel et al. „Eesti keele kui teise keele õpetaja tööriistad”, licence CC BY), read from the public etLex API
+(https://etlex.eki.ee/etLex/api/v1.0). Every lemma has one level: A1, A2, B1, B2 or C1.
+The older PDF lists (A1–B1, 2018) can still be parsed with `parse`.
 
-    .venv/bin/python tools/lexicon/build_level_forms.py parse <dir with A1.pdf A2.pdf B1.pdf>   # → eki-levels-2018.json
-    .venv/bin/python tools/lexicon/build_level_forms.py build                                  # → levelForms.json
+    .venv/bin/python tools/lexicon/build_level_forms.py fetch     # → tools/lexicon/etlex-levels.json (≈10.6k lemmas)
+    .venv/bin/python tools/lexicon/build_level_forms.py build     # → levelForms.json
 
 `parse` reads the PDFs (pypdf) into tools/lexicon/eki-levels-2018.json (lemma + part of speech per level).
 `build` generates every form with Vabamorf (EstNLTK 1.7.5) and writes, per level, only the forms that first appear on
-that level, lower-cased, to crm-v2/src/features/worksheet-studio/didactics/levelForms.json (loaded lazily by the
-constructor). No network, nothing at runtime: the CRM only reads the JSON.
+that level, lower-cased, to crm-v2/src/features/worksheet-studio/didactics/levelForms.<level>.json (the constructor
+loads only the levels up to the sheet's level). No network, nothing at runtime: the CRM only reads the JSON.
 """
 import json
 import re
@@ -18,8 +20,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 LIST = ROOT / 'tools/lexicon/eki-levels-2018.json'
-OUT = ROOT / 'crm-v2/src/features/worksheet-studio/didactics/levelForms.json'
-LEVELS = ['A1', 'A2', 'B1']
+ETLEX = ROOT / 'tools/lexicon/etlex-levels.json'
+ETLEX_API = 'https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/lemmas'
+OUT_DIR = ROOT / 'crm-v2/src/features/worksheet-studio/didactics'  # levelForms.<level>.json, one per level
+LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1']
 
 NOMINAL_CASES = ['n', 'g', 'p', 'ill', 'in', 'el', 'all', 'ad', 'abl', 'tr', 'ter', 'es', 'ab', 'kom']
 NOMINAL = [f'sg {c}' for c in NOMINAL_CASES] + ['adt'] + [f'pl {c}' for c in NOMINAL_CASES]
@@ -52,6 +56,23 @@ def parse(folder):
     print({k: len(v) for k, v in out.items()})
 
 
+def fetch():
+    import time
+    import urllib.request
+    items, offset = [], 0
+    while True:
+        data = json.load(urllib.request.urlopen(f'{ETLEX_API}?limit=500&offset={offset}', timeout=60))
+        batch = data.get('items', [])
+        items += batch
+        offset += len(batch)
+        if not batch or offset >= data.get('total_count', 0):
+            break
+        time.sleep(0.5)
+    rows = sorted({(i['lemma'], i['pos'].split(',')[0], i['level']) for i in items if i.get('level') in LEVELS})
+    ETLEX.write_text(json.dumps({'source': 'EKI etLex (Sõnaveeb õpetaja tööriistad), CC BY, https://sonaveeb.ee/teacher-tools', 'lemmas': [list(r) for r in rows]}, ensure_ascii=False, indent=0) + '\n')
+    print(len(rows), 'lemmas')
+
+
 def forms_of(lemma, pos):
     from estnltk.vabamorf.morf import synthesize
     out = {lemma.lower()}
@@ -73,23 +94,35 @@ def forms_of(lemma, pos):
 
 
 def build():
-    data = json.loads(LIST.read_text())['levels']
+    # etLex: one level per lemma; without it the older cumulative PDF lists (A1–B1)
+    if ETLEX.exists():
+        by_level = {level: [] for level in LEVELS}
+        for lemma, pos, level in json.loads(ETLEX.read_text())['lemmas']:
+            by_level[level].append((lemma, pos))
+    else:
+        by_level = {level: [tuple(x) for x in json.loads(LIST.read_text())['levels'].get(level, [])] for level in LEVELS}
     known = set()
     result = {}
     for level in LEVELS:
         new = set()
-        for lemma, pos in data[level]:
+        for lemma, pos in by_level[level]:
             new |= forms_of(lemma, pos)
         new -= known
         known |= new
         result[level] = '\n'.join(sorted(new))
-        print(level, len(data[level]), 'lemmas', len(new), 'new forms')
-    OUT.write_text(json.dumps({'source': 'EKI tasemete sõnavara 2018 (CC BY 4.0), forms by Vabamorf', 'levels': result}, ensure_ascii=False) + '\n')
+        print(level, len(by_level[level]), 'lemmas', len(new), 'new forms')
+    for level in LEVELS:
+        (OUT_DIR / f'levelForms.{level}.json').write_text(json.dumps({'source': 'EKI etLex level vocabularies (CC BY), forms by Vabamorf', 'level': level, 'forms': result[level]}, ensure_ascii=False) + '\n')
+    old = OUT_DIR / 'levelForms.json'
+    if old.exists():
+        old.unlink()
 
 
 if __name__ == '__main__':
     if len(sys.argv) > 2 and sys.argv[1] == 'parse':
         parse(sys.argv[2])
+    elif len(sys.argv) > 1 and sys.argv[1] == 'fetch':
+        fetch()
     elif len(sys.argv) > 1 and sys.argv[1] == 'build':
         build()
     else:

@@ -99,21 +99,24 @@ async function loadDidactics() {
   const dir = DIDACTICS_DIRS.find((d) => fs.existsSync(path.join(d, 'levels.js')));
   if (!dir) return null;
   const levels = await import(pathToFileURL(path.join(dir, 'levels.js')).href);
-  let forms = null;
-  try {
-    const raw = JSON.parse(fs.readFileSync(path.join(dir, 'levelForms.json'), 'utf8')).levels || {};
-    forms = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, new Set(String(v).split('\n'))]));
-  } catch { forms = null; }
-  didactics = { ...levels, forms };
+  // one file per level (levelForms.A1.json … levelForms.C1.json)
+  const forms = {};
+  for (const level of FORM_LEVELS) {
+    try { forms[level] = new Set(String(JSON.parse(fs.readFileSync(path.join(dir, `levelForms.${level}.json`), 'utf8')).forms || '').split('\n')); } catch { /* level missing */ }
+  }
+  didactics = { ...levels, forms: Object.keys(forms).length ? forms : null };
   return didactics;
 }
-const FORM_LEVELS = ['A1', 'A2', 'B1'];
-const ALLOWED_FORMS = { A1: ['A1'], A2: ['A1', 'A2'], 'A2+': ['A1', 'A2'], 'B1-': ['A1', 'A2', 'B1'], B1: ['A1', 'A2', 'B1'] };
+const FORM_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1'];
+const ALLOWED_FORMS = { A1: ['A1'], A2: ['A1', 'A2'], 'A2+': ['A1', 'A2'], 'B1-': ['A1', 'A2', 'B1'], B1: ['A1', 'A2', 'B1'], B2: ['A1', 'A2', 'B1', 'B2'], C1: FORM_LEVELS };
 function wordLevel(word, forms) {
   const w = String(word || '').toLocaleLowerCase('et');
   if (!forms || !w) return null;
   const direct = FORM_LEVELS.find((l) => forms[l]?.has(w));
   if (direct) return direct;
+  // a -mine noun in any form counts as its verb („raiskamisest” → raiskama), as in the CRM (levelVocabulary.js)
+  const mine = /^(.{2,})mi(ne|se|st|sel|sele|selt|ses|sesse|sest|seks|seni|sena|seta|sega|sed|ste|si|sid|sile|sil|silt|sis|sisse|sist|siks)$/.exec(w);
+  if (mine) { const verb = FORM_LEVELS.find((l) => forms[l]?.has(`${mine[1]}ma`)); if (verb) return verb; }
   for (let i = 3; i <= w.length - 3; i += 1) {
     const a = FORM_LEVELS.findIndex((l) => forms[l]?.has(w.slice(0, i)));
     const b = FORM_LEVELS.findIndex((l) => forms[l]?.has(w.slice(i)));
