@@ -32,7 +32,7 @@ const HISTORY_LIMIT = 50;
  */
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
-  controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet = null,
+  controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null,
   onPageChange, onPointer, pointer = null,
 }) {
   const room = variant === 'room';
@@ -87,8 +87,15 @@ export default function StudentBoard({
   const byId = useMemo(() => new Map(elements.map((element) => [element.id, element])), [elements]);
   // The open worksheet (Live Classroom) is a page of the board: it lies under the drawing layer, moves and zooms with
   // the board, and what is drawn on top of it is stored on its own lesson page „Tööleht: <title>”.
-  const worksheetPage = worksheet ? pages.find((page) => page.title === worksheetPageTitle(worksheet.title)) : null;
-  const onWorksheet = Boolean(worksheet && worksheetPage && pageId === worksheetPage.id);
+  // Several worksheets can be open in one lesson (newest first); each has its own page „Tööleht: <title>”.
+  const sheets = useMemo(() => (worksheetList?.length ? worksheetList : singleWorksheet ? [singleWorksheet] : []), [worksheetList, singleWorksheet]);
+  const sheetPageOf = useCallback((sheet) => (sheet ? pages.find((page) => page.title === worksheetPageTitle(sheet.title)) || null : null), [pages]);
+  const sheetPageIds = useMemo(() => new Set(sheets.map(sheetPageOf).filter(Boolean).map((page) => page.id)), [sheets, sheetPageOf]);
+  // the newest sheet takes over the board when it opens; the page on screen decides which sheet lies under the drawing
+  const worksheet = sheets[0] || null;
+  const worksheetPage = sheetPageOf(worksheet);
+  const activeSheet = sheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
+  const onWorksheet = Boolean(activeSheet);
   const underlayRef = useRef(null);
   const [underlayHeight, setUnderlayHeight] = useState(1000);
   useEffect(() => {
@@ -197,20 +204,25 @@ export default function StudentBoard({
   // a worksheet page opens with its width on screen, from the top
   const fittedWorksheet = useRef('');
   useEffect(() => {
-    if (!onWorksheet || fittedWorksheet.current === worksheetPage.id) return;
+    if (!onWorksheet || fittedWorksheet.current === pageId) return;
     const [width] = screenSize();
     if (!width) return;
-    fittedWorksheet.current = worksheetPage.id;
+    fittedWorksheet.current = pageId;
     setView(fitWidth(bounds, width));
-  }, [onWorksheet]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
   // the pointer disappears for the student when the teacher puts it away
   useEffect(() => { if (tool !== 'laser') onPointer?.(null); }, [onPointer, tool]);
 
-  const openWorksheet = useCallback(() => {
-    if (!worksheet) return;
-    if (worksheetPage) { choosePage(worksheetPage.id); setTool('fill'); } else setWantWorksheet(worksheet.id);
-  }, [worksheet, worksheetPage]);
+  // opens a worksheet of the lesson (the newest one without an id); its page is created when it does not exist yet
+  const openWorksheet = useCallback((sheetId = '') => {
+    const target = sheets.find((sheet) => sheet.id === sheetId) || worksheet;
+    if (!target) return;
+    const page = sheetPageOf(target);
+    if (page) { choosePage(page.id); setTool('fill'); return; }
+    if (target.id === worksheet?.id) { setWantWorksheet(target.id); return; }
+    if (staff) service.addPage(studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool('fill'); }).catch(fail('Töölehe lehte ei saanud luua.'));
+  }, [sheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]); // eslint-disable-line react-hooks/exhaustive-deps
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet }), [insertFile, newPage, openWorksheet, redo, undo]);
 
   // rename a lesson page: double click its tab or the pencil next to the open page
@@ -228,7 +240,7 @@ export default function StudentBoard({
       ? <input key={page.id} className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
         onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
         onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
-      : <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} className={worksheetPage?.id === page.id ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber" onClick={() => { choosePage(page.id); if (worksheetPage?.id === page.id) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })}>{worksheetPage?.id === page.id ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>))}
+      : <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>))}
     {pageId && !renaming ? <button type="button" className="sb-page-tool" aria-label="Nimeta leht ümber" title="Nimeta leht ümber" onClick={() => { const page = pages.find((item) => item.id === pageId); if (page) setRenaming({ id: page.id, title: page.title || '' }); }}><Pencil size={14} /></button> : null}
     <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
     <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
@@ -411,7 +423,7 @@ export default function StudentBoard({
 
   const filling = onWorksheet && tool === 'fill';
   const stage = <div className={`sb-stage tool-${tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}>
-    {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{worksheet.content}</div> : null}
+    {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs><pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern></defs>
       <g transform={`translate(${view.x} ${view.y}) scale(${view.scale})`}>

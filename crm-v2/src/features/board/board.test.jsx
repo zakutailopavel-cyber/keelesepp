@@ -253,3 +253,22 @@ describe('StudentBoard in the lesson room: pointer and page', () => {
     expect(screen.getByTestId('teacher-pointer')).toBeInTheDocument();
   });
 });
+
+describe('StudentBoard with several lesson worksheets', () => {
+  it('gives each worksheet its own page and shows the sheet of the page that is open', async () => {
+    const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }, { id: 'pg-h', title: 'Tööleht: Harjuta' }] });
+    const worksheets = [
+      { id: 'as-2', title: 'Harjuta', content: <div>Harjuta sisu</div> },
+      { id: 'as-1', title: 'Avasta', content: <div>Avasta sisu</div> },
+    ];
+    const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} worksheets={worksheets} />);
+    expect(await screen.findByText('Harjuta sisu')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Tööleht: Avasta/ }));
+    expect(await screen.findByText('Avasta sisu')).toBeInTheDocument();
+    expect(screen.queryByText('Harjuta sisu')).toBeNull();
+    expect(screen.getByRole('tab', { name: /Tööleht: Avasta/ })).toHaveClass('is-worksheet');
+    expect(screen.getByRole('tab', { name: /Tööleht: Harjuta/ })).toHaveClass('is-worksheet');
+    expect(service.addPage).not.toHaveBeenCalled();
+  });
+});

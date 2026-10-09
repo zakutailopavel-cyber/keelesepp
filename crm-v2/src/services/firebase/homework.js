@@ -367,6 +367,15 @@ export const homeworkService = {
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), payload);
     return payload;
   },
+  // Staff only: worksheets the teacher put on the board while preparing (room key `prep_<student>`) move into the
+  // lesson room that has just started.
+  async adoptPreparedWorksheets({ studentId, fromKey, toKey }) {
+    if (!studentId || !fromKey || !toKey || fromKey === toKey) return 0;
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('studentId', '==', studentId), where('liveRoomKey', '==', fromKey)));
+    await Promise.all(snapshot.docs.map((item) => updateDoc(item.ref, { liveRoomKey: toKey })));
+    return snapshot.size;
+  },
   // Staff only (existing rule): the task the teacher points at during the lesson.
   async setWorksheetLiveFocus({ assignmentId, blockId }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');

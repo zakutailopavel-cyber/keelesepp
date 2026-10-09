@@ -142,6 +142,7 @@ export default function LiveRoom({
   const [panel, setPanel] = useState('');
   const [menu, setMenu] = useState('');
   const [sheet, setSheet] = useState(null);
+  const [sheetList, setSheetList] = useState([]);
   const [messages, setMessages] = useState([]);
   const [chatError, setChatError] = useState('');
   const [seenCount, setSeenCount] = useState(null);
@@ -184,11 +185,14 @@ export default function LiveRoom({
     setSheet(current);
     if (current) setPanel((open) => (open === 'tasks' ? '' : open));
   }, []);
-  const worksheet = useMemo(() => (sheet ? {
-    id: sheet.id,
-    title: sheet.title || sheet.worksheetDoc?.meta?.title || 'Tööleht',
-    content: <RoomWorksheetContent current={sheet} role={role} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} />,
-  } : null), [role, sheet, worksheetProps.homework]);
+  const sheetTitle = (item) => item.title || item.worksheetDoc?.meta?.title || 'Tööleht';
+  const worksheet = useMemo(() => (sheet ? { id: sheet.id, title: sheetTitle(sheet) } : null), [sheet]);
+  // every worksheet of the lesson lies on the board on its own page (newest first)
+  const boardSheets = useMemo(() => sheetList.map((item) => ({
+    id: item.id,
+    title: sheetTitle(item),
+    content: <RoomWorksheetContent current={item} role={role} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} />,
+  })), [role, sheetList, worksheetProps.homework]);
 
   // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
   const [myPage, setMyPage] = useState('');
@@ -319,7 +323,7 @@ export default function LiveRoom({
             onHistoryChange={setHistory}
             newPageTitle={`Tund ${lessonDate}`}
             uploadImage={teacher ? uploadImage : undefined}
-            worksheet={worksheet}
+            worksheets={boardSheets}
             onPageChange={onPageChange}
             {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}
             {...(boardService ? { service: boardService } : {})}
@@ -359,7 +363,7 @@ export default function LiveRoom({
           <div className={panel === 'tasks' ? 'lr-drawer' : 'lr-drawer is-hidden'} aria-hidden={panel !== 'tasks'} role="region" aria-label="Ülesanded">
             <header><strong>Ülesanded</strong><IconButton label="Sulge ülesanded" onClick={() => setPanel('')}><X size={18} /></IconButton></header>
             <div className="lr-drawer__body">
-              <RoomWorksheetPanel invitation={invitation} role={role} user={user} onCurrentChange={onSheet} showSheet={false} {...worksheetProps} />
+              <RoomWorksheetPanel invitation={invitation} role={role} user={user} onCurrentChange={onSheet} onSheetsChange={setSheetList} showSheet={false} {...worksheetProps} />
               {sheet ? <button type="button" className="lr-text-btn" onClick={() => { setPanel(''); boardRef.current?.openWorksheet?.(); }}><ClipboardList size={16} /> Ava tööleht tahvlil</button> : null}
             </div>
           </div>
