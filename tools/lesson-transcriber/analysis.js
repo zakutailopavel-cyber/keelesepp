@@ -86,10 +86,30 @@ function joinedTranscript(parts = []) {
 // a lesson is analysed once all its parts are finished (done or failed)
 const partsFinished = (parts) => parts.every((p) => p.status === 'done' || p.status === 'failed');
 
+// ── „Paku laused” (constructor): gemma3 writes gap sentences, TartuNLP's GEC checks each one ──
+function sentencesPrompt({ topic = '', level = 'A2', grammar = '', count = 8 } = {}) {
+  return `Sa koostad eesti keele töölehte tasemele ${level || 'A2'}${topic ? ` teemal "${topic}"` : ''}.
+Kirjuta ${count} lihtsat, loomulikku ja mõttekat eestikeelset lauset, mis sobivad sellele tasemele. Igas lauses on täpselt üks sõna või vorm nurksulgudes: see on lünk, mille õpilane täidab, nt "Minu [ema] on õpetaja."${grammar ? ` Lünk harjutab: ${grammar} (lünka pane just see vorm).` : ''}
+Laused peavad olema grammatiliselt õiged ja tähenduselt loogilised (ei mingeid absurdseid lauseid). Ära korda sama lauset.
+Vasta ainult JSON-ina: {"laused": ["...", "..."]}`;
+}
+// the model's JSON → sentences with exactly one [gap], cleaned, unique, at most `count`
+function parseSentences(raw, count = 12) {
+  let data;
+  try { data = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { return []; }
+  const list = Array.isArray(data?.laused) ? data.laused : Array.isArray(data) ? data : [];
+  const seen = new Set();
+  return list.map((x) => String(x || '').replace(/\s+/g, ' ').trim())
+    .filter((x) => x.length <= 200 && (x.match(/\[[^\]]+\]/g) || []).length === 1)
+    .filter((x) => { const k = x.toLocaleLowerCase('et'); if (seen.has(k)) return false; seen.add(k); return true; })
+    .slice(0, count);
+}
+const withoutGap = (sentence) => String(sentence).replace(/\[([^\]]+)\]/, '$1');
+
 // a finished recording with a transcript still waiting for (this version of) the analysis
 function needsAnalysis(rec = {}) {
   return rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0
     && !(rec.analysis && rec.analysis.version >= ANALYSIS_VERSION);
 }
 
-module.exports = { lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+module.exports = { sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

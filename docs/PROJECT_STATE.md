@@ -1,3 +1,26 @@
+## 2026-10-10 — „Paku laused”: gap sentences from the school Mac (gemma3 writes, TartuNLP checks) — branch `agent/ai-sentences`
+
+- Base: `main` (after #413). The second AI worksheet help the owner asked for („делай оба”).
+- Flow:
+  - The constructor (gaps block → floating panel) has `editor/AiSentences.jsx` with topic, „Lünk harjutab” and a count.
+  - It calls `services/firebase/aiRequests.js`, which creates `aiRequests/{id}` = `{kind:'sentences', topic, level, grammar, count (1–12), createdBy, createdAt, status:'new'}` and subscribes to it.
+  - The school Mac (`answerAiRequests` in `tools/lesson-transcriber/index.js`, run every loop of about 15 s):
+    - claims the request (`working`);
+    - asks gemma3:12b for gap sentences (`sentencesPrompt` / `parseSentences`: exactly one `[gap]`, unique);
+    - checks every sentence without its gap with `llammas-gec`;
+    - writes `status:'done'`, `result:[{text, ok, suggestion?}]`.
+  - Requests older than 7 days are deleted hourly.
+  - In the panel, flagged sentences are unticked with „kontrolli · Tartu mudel parandaks: …”. „Lisa valitud” appends the ticked ones to the block's sentences.
+- **New rules:** `firestore.rules` `match /aiRequests/{requestId}`. Staff create their own requests with only the listed keys. The asker and admins read. No update or delete from the browser.
+  - Emulator test in `functions/lesson-recording-emulator.integration.js`: 3/3 pass.
+  - **The rules are NOT deployed yet.** The CRM cannot create requests until the owner allows `firebase deploy --only firestore:rules`.
+- Checks:
+  - worksheet-studio tests: 142/142, including `AiSentences.test.jsx`;
+  - `node --test` (analysis + lib): 17/17;
+  - end-to-end on the Mac with a temporary admin-created request (deleted afterwards): answered in 19 s, 4 of 8 sentences flagged, correctly.
+- Limit: gemma3's Estonian is weak; even unflagged sentences may miss the target form. It is a helper, the teacher chooses.
+- Next safe step: deploy the Firestore rules with the owner's permission.
+
 ## 2026-10-10 — „Tee tööleht vigadest”: a draft worksheet from the learner's own lesson errors — branch `agent/errors-worksheet`
 
 - Base: `main` (after #412). Owner asked for both AI worksheet helps; this is the first.

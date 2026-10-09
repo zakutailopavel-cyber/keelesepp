@@ -574,3 +574,12 @@ textarea.ed-input { resize: vertical; }
 .ws-bm-icons svg { width: 18px; height: 18px; }
 .ws-bm-check { display: flex; align-items: center; gap: 8px; padding: 6px 4px; cursor: pointer; }
 .ws-bm-check input { accent-color: #5eead4; }
+/* „Paku laused” (AiSentences.jsx) */
+.ws-studio .ed-ai { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: #faf8ff; border: 1px solid #ddd6fe; }
+.ws-studio .ed-ai .ed-label { display: inline-flex; gap: 5px; align-items: center; color: #5b21b6; }
+.ws-studio .ed-ai__form { display: grid; gap: 6px; }
+.ws-studio .ed-ai__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.ws-studio .ed-ai__list li { padding: 6px 8px; border-radius: 8px; background: var(--st-panel); border: 1px solid var(--st-line); font-size: 13px; }
+.ws-studio .ed-ai__list li.is-check { border-color: #fdb022; background: #fffaeb; }
+.ws-studio .ed-ai__list label { display: flex; gap: 6px; align-items: flex-start; cursor: pointer; }
+.ws-studio .ed-ai__list small { display: block; margin: 2px 0 0 22px; color: #b54708; font-size: 11.5px; }

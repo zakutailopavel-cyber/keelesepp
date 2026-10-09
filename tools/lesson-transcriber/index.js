@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -275,12 +275,55 @@ async function analyzeNext() {
   }
 }
 
+// „Paku laused” from the constructor: answered right away (checked every loop, before transcription waits)
+async function answerAiRequests() {
+  const snap = await db.collection('aiRequests').where('status', '==', 'new').limit(3).get();
+  if (snap.empty) return;
+  const models = await ollamaModels();
+  if (!models.includes(SUMMARY_MODEL)) return;
+  for (const d of snap.docs) {
+    const claimed = await db.runTransaction(async (tx) => {
+      const fresh = await tx.get(d.ref);
+      if (fresh.data()?.status !== 'new') return false;
+      tx.update(d.ref, { status: 'working', startedAt: new Date().toISOString() });
+      return true;
+    });
+    if (!claimed) continue;
+    const req = d.data();
+    try {
+      const count = Math.max(1, Math.min(12, Number(req.count) || 8));
+      const sentences = parseSentences(await ollama({ model: SUMMARY_MODEL, prompt: sentencesPrompt({ ...req, count }), format: 'json', options: { temperature: 0.5 } }, 3 * 60 * 1000), count);
+      const result = [];
+      for (const text of sentences) {
+        let suggestion = '';
+        if (models.includes(GEC_MODEL)) {
+          const plain = withoutGap(text);
+          const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(plain), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
+          if (isCorrection(plain, corrected)) suggestion = corrected;
+        }
+        result.push({ text, ok: !suggestion, ...(suggestion ? { suggestion } : {}) });
+        progress();
+      }
+      await d.ref.update({ status: 'done', result, doneAt: new Date().toISOString(), models: { write: SUMMARY_MODEL, ...(models.includes(GEC_MODEL) ? { check: GEC_MODEL } : {}) } });
+      log('ai sentences', d.id, `${result.length} sentences`, `${result.filter((r) => !r.ok).length} flagged`);
+    } catch (err) {
+      await d.ref.update({ status: 'failed', error: String(err.message || err).slice(0, 300), doneAt: new Date().toISOString() });
+      log('ai sentences failed', d.id, err.message);
+    }
+  }
+}
+async function deleteOldAiRequests() {
+  const old = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const snap = await db.collection('aiRequests').where('createdAt', '<', old).limit(200).get();
+  for (const d of snap.docs) await d.ref.delete();
+}
+
 async function tick() {
   await handOverAbandoned();
   for (const rec of await claim()) await transcribe(rec);
   // only when no lesson waits for its text: one analysis per tick
   try { await analyzeNext(); } catch (err) { log('analysis tick error', err.message); }
-  if (new Date().getMinutes() < 2) await deleteOldAudio(); // about once an hour
+  if (new Date().getMinutes() < 2) { await deleteOldAudio(); await deleteOldAiRequests().catch(() => {}); } // about once an hour
 }
 
 async function main() {
@@ -293,6 +336,7 @@ async function main() {
   let lastTick = 0;
   for (;;) {
     try { await liveWork(); } catch (err) { log('live tick error', err.message); }
+    try { await answerAiRequests(); } catch (err) { log('ai requests error', err.message); }
     if (Date.now() - lastTick >= EVERY_MS) {
       try { await tick(); } catch (err) { log('tick error', err.message); }
       lastTick = Date.now();
