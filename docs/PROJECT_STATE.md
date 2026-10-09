@@ -1,3 +1,9 @@
+## 2026-10-09 — Billing setting „Pärast toimunud tunde” was refused by the rules — branch `agent/billing-actual-rule`
+
+Owner: saving „Arveldus” with „Pärast toimunud tunde” on a student's Finantsid tab → „Missing or insufficient
+permissions”. Finance v3 added `billingMode: 'actual'` in the UI and `monthlyBilling.js`, but the
+`studentRevenuePlans` rule allowed only `advance` / `current`. Rule now allows `actual`. Emulator: the finance role
+test also writes `actual` (200) and an unknown mode (403) — pass. Manual gate: `firestore:rules` deploy.
 ## 2026-10-09 — Transcriber: language per phrase, no repetition loops — branch `agent/transcriber-languages`
 
 Owner: today's transcripts were nonsense (Russian speech forced through the Estonian model; loops like „ja, ja, ja…”).
