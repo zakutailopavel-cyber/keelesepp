@@ -9665,7 +9665,33 @@ async function estonianWordForms(input) {
   });
 }
 
-exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSeconds: 30 }).https.onRequest(async (req, res) => {
+// Estonian speech for the constructor's listening tasks: the text goes to TartuNLP Neurokõne, the WAV comes back to the
+// teacher's browser, which saves it into the worksheet like an uploaded audio file (no copy is kept here).
+const TARTUNLP_TTS_URL = process.env.TARTUNLP_TTS_URL || "https://api.tartunlp.ai/text-to-speech/v2";
+const SPEECH_TIMEOUT_MS = 25000;
+
+async function synthesizeSpeech(input) {
+  const { speechRequest } = require("./language-core");
+  const body = speechRequest(input);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), SPEECH_TIMEOUT_MS);
+  try {
+    const response = await fetch(TARTUNLP_TTS_URL, {
+      method: "POST", headers: { "Content-Type": "application/json", "x-api-key": "public" }, body: JSON.stringify(body), signal: controller.signal,
+    });
+    if (!response.ok) throw httpError(502, `Speech service answered ${response.status}`);
+    const audio = Buffer.from(await response.arrayBuffer());
+    if (audio.length < 44 || audio.toString("ascii", 0, 4) !== "RIFF") throw httpError(502, "Speech service sent no audio");
+    return audio;
+  } catch (error) {
+    if (error.status) throw error;
+    throw httpError(502, error.name === "AbortError" ? "Speech service did not answer in time" : "Speech service unavailable");
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSeconds: 60 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
@@ -9673,6 +9699,11 @@ exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSe
     await requireStaffUser(req);
     if (req.path === "/translate") { res.json(await translateText(req.body || {})); return; }
     if (req.path === "/forms") { res.json(await estonianWordForms(req.body || {})); return; }
+    if (req.path === "/speak") {
+      const audio = await synthesizeSpeech(req.body || {});
+      res.set("Content-Type", "audio/wav").set("Cache-Control", "no-store").send(audio);
+      return;
+    }
     if (req.path === "/word") {
       // one call for the word card: translation into the student's language + Estonian forms (each may fail alone)
       const word = String(req.body?.word || "");

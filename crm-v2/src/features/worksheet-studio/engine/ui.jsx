@@ -1,5 +1,6 @@
 import { ASPECTS } from './schema.js';
 import { objectPosition } from './image.js';
+import { Headphones } from 'lucide-react';
 
 // Shared visual primitives used by all blocks. Keep them dumb: blocks decide what to show.
 
@@ -81,3 +82,16 @@ export const Target = () => (
 export const Check = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13 l6 6 L21 5" fill="none" stroke="#0b2a4f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
+
+// The audio of a task: a player on screen, a note on paper (a printed sheet cannot play).
+export function AudioBar({ audio, interactive, label = 'Kuula' }) {
+  if (!audio?.src) return null;
+  if (!interactive) return <div className="ws-audio is-print"><Headphones aria-hidden="true" /><span>{label}: heli on veebis, kuula õpetaja juures.</span></div>;
+  return (
+    <div className="ws-audio">
+      <span className="ws-audio-ico" aria-hidden="true"><Headphones /></span>
+      <b>{label}</b>
+      <audio controls preload="metadata" src={audio.src} aria-label={label} />
+    </div>
+  );
+}
