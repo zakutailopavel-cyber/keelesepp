@@ -10,6 +10,35 @@ Checked `origin/main` `deb3b78`. Owner: make teachers' life easier (3/3: checkin
   chips add ready-made lines, „Saada ja järgmine” saves and opens the next work waiting in the list.
 - Checks: new `reviewTemplates.test.js` + 2 HomeworkPage tests; homework + students suites 83/83; eslint 0 errors.
 - Next safe step: a teacher confirms one real auto-checked work and checks what the student sees.
+## 2026-10-09 — Next lesson on the board in one click — branch `agent/lesson-prep`
+
+Checked `origin/main` `deb3b78`. Owner: make teachers' life easier (2/3: lesson preparation).
+- `roomWorksheetChoices.nextLessonSuggestion`: the curriculum lesson after the latest one the student did — journal
+  `topicLessonId` (held lessons) or a worksheet assignment's `lessonId`, newest wins — at the same level; with no
+  history the first lesson of the student's level. Returns its published phase sheets not yet on this board.
+- `RoomWorksheetPicker`: „Järgmine tund” card on top of the curriculum tab with one „Pane tahvlile” (all its sheets,
+  in Avasta → Harjuta → Kasuta order; shared `placeChoice` = the old single „Lisa tahvlile” flow). Reads the journal
+  via `lessonsService.listByStudent` (if the rules refuse, e.g. another teacher's lessons, it falls back to the
+  worksheets). Tööruum opens the „Töölehed” drawer when a student is picked, so the suggestion is in front of the
+  teacher; works the same inside the lesson room.
+- Checks: new choice + picker tests; worksheet-studio + live-classroom suites pass except the known Node 26
+  `localStorage` failures; eslint 0 errors.
+- Next safe step: owner picks a student in Tööruum and checks that the suggested lesson is the right one.
+## 2026-10-09 — Close the lesson in one step — branch `agent/lesson-close`
+
+Checked `origin/main` `deb3b78`. Owner: make teachers' life easier (1/3: closing the lesson).
+- Live Classroom „Tunni lõpp” (`LessonEndPanel`): lists the lesson's worksheets (Pooleli / Esitatud); an unfinished
+  one becomes homework with „Anna kodutööks” (`homework.createFromLesson`, task „Lõpeta tööleht „…””, due +7 days,
+  the sheet keeps its answers). New tick „Märgi tund kalendris toimunuks” (on by default, only when the room was
+  started from a calendar lesson via `lessonLink.js`).
+- `live-classroom/lessonHandoff.js`: on finishing, the note and the sheets' curriculum `lessonId`s are kept in the
+  teacher's browser per lesson key (12 h, read once). `CalendarPage` (prop `takeHandoff`) takes it when it opens
+  `?lesson=` and marks the lesson held through the existing `lessonRepository.completeFromSchedule` with
+  `topicFields(sheet's lesson | suggestion, note)`; the panel says so and „Märkisid valesti? Paranda” stays. A bare
+  `?lesson=` link never marks anything; groups, future, already marked lessons are skipped.
+- Checks: new `lessonHandoff.test.jsx` (4) + 2 calendar tests; live-classroom + calendar suites pass except the known
+  Node 26 `localStorage` failures; eslint 0 errors.
+- Next safe step: owner runs one real lesson started from the calendar and checks the journal entry.
 
 ## 2026-10-09 — Pet care (tamagotchi) — branch `agent/pet-care`
 

@@ -190,3 +190,4 @@
 .tg-online { color: #9a5b00; font-weight: 700; font-size: .72rem; }
 .lp-draft { color: #087e6b; }
 .lp-notes-edit { display: grid; gap: 8px; margin-top: 6px; }
+.lp-notice { padding: 8px 10px; border-radius: 10px; background: #ecfdf3; color: #05603a; }
