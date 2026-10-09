@@ -13,6 +13,8 @@ test('parses whisper output with the segment offset and drops invented lines', (
     { speaker: 'teacher', startMs: 300000, endMs: 302000, text: 'Tere! Kuidas läheb?' },
   ]);
   assert.equal(cleanText('  '), '');
+  assert.equal(cleanText(' . '), '');
+  assert.equal(cleanText('…'), '');
 });
 
 test('merges both tracks into one dialogue in time order', () => {
@@ -90,4 +92,8 @@ test('speech is cut into chunks and each chunk gets its own language', () => {
   assert.equal(chooseLanguage({ lang: 'fi', p: 0.9 }, 'et'), 'et');
   assert.equal(chooseLanguage({ lang: 'en', p: 0.3 }, 'et'), 'et');
   assert.equal(chooseLanguage(null, 'et'), 'et');
+  // a short Estonian answer guessed as English stays Estonian; an English lesson keeps English
+  assert.equal(chooseLanguage({ lang: 'en', p: 0.93 }, 'et'), 'et');
+  assert.equal(chooseLanguage({ lang: 'en', p: 0.93 }, 'en'), 'en');
+  assert.equal(chooseLanguage({ lang: 'et', p: 0.9 }, 'en'), 'en');
 });
