@@ -24,6 +24,16 @@ describe('student form business options', () => {
     expect(screen.getByRole('option', { name: 'Jelena' })).toBeInTheDocument();
   });
 
+  it('sets the lesson recording consent in the form', async () => {
+    const onSubmit = vi.fn(async () => {});
+    render(<StudentForm {...baseProps} showConsent student={{ id: 's1', name: 'Mari', recordingConsent: false }} onSubmit={onSubmit} />);
+    const box = screen.getByRole('checkbox', { name: /Tundi võib salvestada/ });
+    expect(box).not.toBeChecked();
+    fireEvent.click(box);
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ recordingConsent: true })));
+  });
+
   it('validates required and contact fields before submitting', async () => {
     const onSubmit = vi.fn();
     render(<StudentForm {...baseProps} onSubmit={onSubmit} />);

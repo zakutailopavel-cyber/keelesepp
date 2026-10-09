@@ -156,7 +156,7 @@ describe('RecordingIndicator', () => {
 });
 
 describe('StudentRecordingsPanel', () => {
-  it('toggles consent and opens the dialogue of a transcribed lesson', async () => {
+  it('says recording needs consent (set in the student form) and opens the dialogue of a transcribed lesson', async () => {
     const service = {
       listForStudent: vi.fn().mockResolvedValue([{ id: 'r1', status: 'done', startedAt: '2026-09-29T10:00:00Z', title: 'Eesti keel', teacherName: 'Kati', segments: [{}, {}], transcript: [
         { speaker: 'teacher', startMs: 0, text: 'Tere! Mis kell sa ärkad?' },
@@ -166,9 +166,8 @@ describe('StudentRecordingsPanel', () => {
     };
     const boardService = { subscribePages: vi.fn((_id, onChange) => { onChange([{ id: 'p-29', title: 'Tund 29.09.2026', createdAt: new Date('2026-09-29T10:05:00Z') }]); return vi.fn(); }) };
     render(<MemoryRouter><StudentRecordingsPanel student={{ id: 'st-1', recordingConsent: false }} user={user} service={service} boardService={boardService} /></MemoryRouter>);
-    fireEvent.click(screen.getByRole('button', { name: 'Märgi nõusolek saadud' }));
-    await waitFor(() => expect(service.setConsent).toHaveBeenCalledWith({ studentId: 'st-1', value: true, user }));
-    expect(await screen.findByText('Nõusolek on olemas')).toBeInTheDocument();
+    expect(screen.getByText(/Tundi ei salvestata: nõusolekut pole/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Märgi nõusolek saadud' })).toBeNull();
     expect(await screen.findByRole('link', { name: /Tahvel/ })).toHaveAttribute('href', '/board/st-1?page=p-29');
     fireEvent.click(await screen.findByRole('button', { name: /Tunni analüüs/ }));
     expect(screen.getByText('Õpilase osa kõnest')).toBeInTheDocument();

@@ -1,6 +1,6 @@
 import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
 import '../board/board.css';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
@@ -23,6 +23,8 @@ import StudentForm from './StudentForm.jsx';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
+import AutoSkillsCard from './AutoSkillsCard.jsx';
+import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
@@ -46,7 +48,7 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, petApi, teacherApi, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, petApi, teacherApi, actor }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -93,7 +95,6 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
     if (!canViewFinance && activeTab === 'finance') setActiveTab('overview');
   }, [activeTab, canViewFinance]);
 
-  const progress = useMemo(() => Object.entries(state.student?.skillMap || {}).sort((a, b) => b[1] - a[1]).slice(0, 12), [state.student]);
   const visibleTabs = PROFILE_TABS.filter((tab) => !tab.financeOnly || canViewFinance);
 
   if (state.loading) return <div className="page-content"><Card><LoadingState label="Laen õpilase profiili…" /></Card></div>;
@@ -173,8 +174,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
 
         {activeTab === 'learning' ? (
           <div className="profile-grid">
-            <Card className="profile-wide"><h2>Areng</h2>{progress.length ? <div className="progress-list">{progress.map(([skill, score]) => <div key={skill}><span>{skill}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <EmptyState title="Oskuste tulemusi ei ole veel salvestatud" />}</Card>
-            <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} />
+            <AutoSkillsCard student={student} user={currentUser} isAdmin={canAssignTeacher} homeworkApi={homeworkApi} recordingApi={recordingApi} />
+            <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} service={recordingApi} />
           </div>
         ) : null}
 
@@ -187,7 +188,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         </> : null}
       </div>
 
-      <StudentForm open={editing} student={student} teachers={teacherChoices(staffTeachers, [student.teacher])} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} onClose={() => setEditing(false)} onSubmit={async (values) => { const safeValues = canAssignTeacher ? values : { ...values, teacher: student.teacher || teacherScope }; await studentApi.update(student.id, safeValues); await load(); setNotice('Õpilase andmed on salvestatud.'); }} />
+      <StudentForm open={editing} student={student} teachers={teacherChoices(staffTeachers, [student.teacher])} canAssignTeacher={canAssignTeacher} defaultTeacher={teacherScope} showConsent onClose={() => setEditing(false)} onSubmit={async (values) => { const safeValues = canAssignTeacher ? values : { ...values, teacher: student.teacher || teacherScope }; await studentApi.update(student.id, safeValues); if ((values.recordingConsent === true) !== (student.recordingConsent === true)) await recordingApi.setConsent({ studentId: student.id, value: values.recordingConsent === true, user: currentUser }); await load(); setNotice('Õpilase andmed on salvestatud.'); }} />
     </div>
   );
 }

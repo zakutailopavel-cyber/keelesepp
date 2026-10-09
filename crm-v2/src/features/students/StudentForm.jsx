@@ -17,7 +17,7 @@ function validate(values) {
   return errors;
 }
 
-export default function StudentForm({ open, student, teachers = [], canAssignTeacher = false, defaultTeacher = '', onClose, onSubmit }) {
+export default function StudentForm({ open, student, teachers = [], canAssignTeacher = false, defaultTeacher = '', showConsent = false, onClose, onSubmit }) {
   const [values, setValues] = useState(emptyForm);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -26,7 +26,7 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
   useEffect(() => {
     if (open) {
       setValues(student
-        ? { ...emptyForm, ...student, teacher: canonicalTeacherName(student.teacher) }
+        ? { ...emptyForm, ...student, teacher: canonicalTeacherName(student.teacher), recordingConsent: student.recordingConsent === true }
         : { ...emptyForm, teacher: canonicalTeacherName(defaultTeacher) });
       setErrors({});
       setSubmitError('');
@@ -71,6 +71,9 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
         <Input label="Klass / vanuserühm" name="grade" value={values.grade} onChange={change} />
         <Input label="Rühm" name="group" value={values.group} onChange={change} />
         {canAssignTeacher ? <Select label="Õpetaja" name="teacher" value={values.teacher} onChange={change}><option value="">Määramata</option>{teachers.map((teacher) => <option key={teacher} value={teacher}>{teacher}</option>)}</Select> : <Input label="Õpetaja" name="teacher" value={values.teacher || defaultTeacher} disabled />}
+        {/* consent for recording Live Classroom lessons (was a big card in „Areng”; owner, 2026-10-10: into the settings) */}
+        {showConsent ? <label className="student-form__check form-grid__wide"><input type="checkbox" name="recordingConsent" checked={values.recordingConsent === true} onChange={(e) => setValues((current) => ({ ...current, recordingConsent: e.target.checked }))} />
+          <span><b>Tundi võib salvestada</b><small>Õpilane (alaealise puhul lapsevanem) on nõus. Salvestamise ajal näeb õpilane märki „Tundi salvestatakse”. Heli kustutatakse 60 päeva pärast, tekst jääb.</small></span></label> : null}
         {submitError ? <p className="form-error form-grid__wide" role="alert">{submitError}</p> : null}
       </form>
     </Modal>

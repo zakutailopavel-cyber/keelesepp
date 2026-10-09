@@ -1,3 +1,20 @@
+## 2026-10-10 — Student card: recording consent in the form; „Areng” computed automatically — branch `agent/consent-auto-areng`
+
+- Base: `main` (after #409). Owner: move the consent card into the settings, and automate „Areng”, which was empty unless the teacher graded skills by hand.
+- Recording consent:
+  - `StudentForm` takes `showConsent`: a checkbox „Tundi võib salvestada” in „Muuda”.
+  - `StudentProfilePage` calls `lessonRecordingsService.setConsent` only when the value changed; the field is not in `writableFields`, the same write as before.
+  - The big card in `StudentRecordingsPanel` is gone. Without consent a one-line hint remains.
+- `features/students/autoSkills.js` (pure) and `AutoSkillsCard.jsx` (tab „Areng”):
+  - worksheets: every checked field of a done worksheet (re-scored with `scoreDocument` from its stored `worksheetDoc` + `answers`) counts for its task's skill (`TASK_SKILL`), with half weight after 45 days;
+  - speaking: „Rääkimine” from recorded lessons, the average of the learner's share of words in the lesson language and the share of sentences without errors (`analysis.errors` from the Mac);
+  - the teacher's `skillMap` grades show as a marker, or as the value when only the teacher graded a skill.
+  - Nothing is written to the database.
+- Checks:
+  - `npx vitest run src/features/students src/features/lesson-recording src/features/homework`: 120/120, with new `autoSkills.test.js` and a StudentForm consent test;
+  - eslint shows 0 errors; build succeeds.
+- Next safe step: the owner opens „Areng” of a student with done worksheets and a recorded lesson.
+
 ## 2026-10-10 — Lesson analysis on the school Mac: learner errors (TartuNLP GEC) and a summary (gemma3), local and free — branch `agent/lesson-analysis`
 
 - Base: `main` (after #408). Owner: free only. Goal: from what the learner says, a didactic analysis (errors; what was liked or hard; what to do next).
