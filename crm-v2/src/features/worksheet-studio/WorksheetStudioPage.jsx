@@ -26,6 +26,7 @@ import './engine/sheet.css';
 import './worksheetStudio.css';
 import { addItem } from './engine/addItem.js';
 import { MARK_KINDS, addMark } from './engine/marksModel.js';
+import { VARIANTS, makeVariant } from './engine/variants.js';
 import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
@@ -571,6 +572,16 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     } catch (error) { setSaveError(error.message || 'Koopia loomine ebaõnnestus.'); }
     finally { setSaving(false); }
   };
+  // „Toetav” / „Väljakutse”: an easier or harder copy of this sheet (engine/variants.js), saved as a new draft
+  const saveVariant = async (level) => {
+    closeMenu(); setSaving(true); setSaveError('');
+    try {
+      const { doc: variantDoc } = makeVariant({ ...doc, id: isNew ? '' : lessonId }, level);
+      const res = await repository.save({ lessonId: '', document: variantDoc, user, status: 'draft' });
+      navigate(`${editorBase}/${res.id}`);
+    } catch (error) { setSaveError(error.message || 'Versiooni loomine ebaõnnestus.'); }
+    finally { setSaving(false); }
+  };
   const loadVersions = async () => {
     closeMenu();
     if (isNew || typeof repository.listVersions !== 'function') return;
@@ -635,6 +646,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
                 <button type="button" onClick={loadSample}>Laadi näidisleht „Minu päev”</button>
                 <button type="button" onClick={loadFormalLetter}>Mall „Kiri linnavalitsusele”</button>
                 {allowCopy ? <button type="button" onClick={saveCopy}>Tee töölehest koopia</button> : null}
+                {allowCopy ? Object.entries(VARIANTS).map(([level, v]) => <button key={level} type="button" onClick={() => saveVariant(level)} title={v.hint}>{level === 'support' ? 'Tee lihtsam versioon (toetav)' : 'Tee raskem versioon (väljakutse)'}</button>) : null}
                 {!isNew && <button type="button" onClick={loadVersions}>Versioonid ja taastamine…</button>}
                 <button type="button" onClick={exportJson}>Salvesta faili (JSON)</button>
                 <button type="button" onClick={() => { closeMenu(); fileRef.current?.click(); }}>Ava failist…</button>
@@ -661,6 +673,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         }) : null}
         {privateFor && <div className="st-banner" role="note">Isiklik tööleht: {privateFor}. Salvestatud mustandit näevad ainult õpetajad. Õpilane saab töölehe pärast nuppu „Määra õpilasele”.</div>}
         {source === 'converted' && <div className="st-banner">See tööleht teisendati vanast vormingust uude kujundusse. Kontrolli ülesandeid ja salvesta. Vana versioon jääb alles.</div>}
+        {doc?.meta?.variant && VARIANTS[doc.meta.variant] ? <div className={`st-banner st-variant is-${doc.meta.variant}`} role="note"><b>{VARIANTS[doc.meta.variant].label}</b>{doc.meta.variantOf ? <> lehest <Link to={`${editorBase}/${doc.meta.variantOf}`}>algne leht</Link></> : null}{doc.meta.variantChanges?.length ? <span>: {doc.meta.variantChanges.join(' · ')}.</span> : null} Vaata üle ja salvesta.</div> : null}
         {saveError && <div className="st-banner error" role="alert">{saveError}</div>}
         {notice && <div className="st-banner ok" role="status">{notice}</div>}
         {draftRestored && <div className="st-banner st-draft-note" role="status"><span>Taastasin selles brauseris automaatselt salvestatud mustandi.</span><button type="button" className="st-btn" onClick={() => { try { window.localStorage.removeItem(draftKey(draftName)); } catch { /* ignore */ } window.location.reload(); }}>Loobu mustandist</button></div>}

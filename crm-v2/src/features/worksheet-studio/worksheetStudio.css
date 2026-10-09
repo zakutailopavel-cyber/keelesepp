@@ -8,6 +8,8 @@
   :root:not([data-theme="light"]) .ws-studio { --st-bg: #151b24; --st-panel: #1d2531; --st-field: #232c3a; --st-ink: #e6ebf1; --st-muted: #9aa6b6; --st-line: rgba(255,255,255,.1); --st-accent-soft: rgba(8,126,107,.18); }
 }
 .ws-studio .st-back { display: inline-flex; gap: 6px; align-items: center; font: 700 13px inherit; color: var(--st-ink); text-decoration: none; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--st-line); }
+.ws-studio .st-banner.st-variant { background: #e8f6f2; color: #0d4a3f; } .ws-studio .st-banner.st-variant.is-challenge { background: #f3ecfb; color: #4a2a73; }
+.ws-studio .st-banner.st-variant b { margin-right: 4px; } .ws-studio .st-banner.st-variant a { color: inherit; font-weight: 700; }
 .ws-studio .st-banner { padding: 8px 14px; font-size: 13px; background: #fff4d6; color: #5a4310; border-bottom: 1px solid var(--st-line); }
 .ws-studio .st-banner.error { background: #fbe9e6; color: #8a2a1c; }
 .ws-studio .st-banner.ok { background: #e7f5ec; color: #1f5f39; }
