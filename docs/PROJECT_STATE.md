@@ -1,3 +1,16 @@
+## 2026-10-10 — Fix: a word marked in a learner's answer field highlighted the whole field — branch `agent/annotation-word`
+
+- Base: `main` (after #407). Reported by the owner: one selected word („tahavad”) in a written answer turned the whole textarea red.
+- A field annotation already stored `start`/`end` of the selection, but `SheetAnnotations.jsx` always drew the box around the whole field.
+- Fix:
+  - New `fieldTextRects(field, start, end)` in `sheetAnnotationsModel.js`: a hidden mirror with the field's box and font measures the selected part, scaled for the sheet's CSS zoom.
+  - A partial selection is now drawn as `.sa-word` marks (soft red with an underline) with the pin after the word.
+  - Nothing selected → the whole-field box as before. Students see the same.
+- Checks:
+  - `npx vitest run src/features/worksheet-studio src/features/homework`: 181/181; eslint is clean; build succeeds.
+  - Checked by hand in Chrome on a test textarea at zoom 0.6: the mark lies exactly on the word.
+- Next safe step: the owner marks one word in a written answer and checks that only that word is red.
+
 ## 2026-10-10 — Transcriber accuracy: learner's Estonian to the verbatim model, unsure words marked, language kept — branch `agent/transcriber-accuracy`
 
 - Base: `main` (after #406). The owner's goal: get as exactly as possible what the learner said, as the basis for a didactic analysis later.

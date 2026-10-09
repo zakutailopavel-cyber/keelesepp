@@ -52,3 +52,38 @@ export function rangeOf(card, { start, end, selectedText }) {
 }
 
 export const fieldsOf = (card) => [...card.querySelectorAll('input.ws-line, textarea')];
+
+// Where a part of an answer field's text is on screen. A textarea / input draws its text itself (no DOM text to make a
+// Range of), so a hidden copy with the same box and font is laid out and the part is measured there. The sheet may be
+// zoomed (CSS zoom in the constructor / review): sizes are scaled by the field's drawn width / its own width.
+const MIRRORED = ['boxSizing', 'width', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft', 'borderTopWidth', 'borderRightWidth',
+  'borderBottomWidth', 'borderLeftWidth', 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'fontVariant', 'letterSpacing', 'wordSpacing',
+  'lineHeight', 'textTransform', 'textIndent', 'tabSize'];
+export function fieldTextRects(field, start, end) {
+  const doc = field?.ownerDocument;
+  const view = doc?.defaultView;
+  const value = String(field?.value ?? '');
+  if (!doc || !view?.getComputedStyle || !(end > start) || start >= value.length) return [];
+  const css = view.getComputedStyle(field);
+  const mirror = doc.createElement('div');
+  MIRRORED.forEach((prop) => { mirror.style[prop] = css[prop]; });
+  Object.assign(mirror.style, {
+    position: 'absolute', left: '-99999px', top: '0', visibility: 'hidden', borderStyle: 'solid', borderColor: 'transparent',
+    whiteSpace: field.tagName === 'TEXTAREA' ? 'pre-wrap' : 'pre', overflowWrap: 'break-word', height: 'auto',
+  });
+  mirror.textContent = value.slice(0, start);
+  const part = doc.createElement('span');
+  part.textContent = value.slice(start, end);
+  mirror.append(part, doc.createTextNode(value.slice(end)));
+  doc.body.appendChild(mirror);
+  try {
+    const box = mirror.getBoundingClientRect();
+    const drawn = field.getBoundingClientRect();
+    const k = field.offsetWidth ? drawn.width / field.offsetWidth : 1;
+    return [...part.getClientRects()].filter((r) => r.width > 0).map((r) => ({
+      left: drawn.left + (r.left - box.left - field.scrollLeft) * k,
+      top: drawn.top + (r.top - box.top - field.scrollTop) * k,
+      width: r.width * k, height: r.height * k,
+    }));
+  } finally { mirror.remove(); }
+}
