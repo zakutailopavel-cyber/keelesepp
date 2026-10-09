@@ -86,10 +86,58 @@ function joinedTranscript(parts = []) {
 // a lesson is analysed once all its parts are finished (done or failed)
 const partsFinished = (parts) => parts.every((p) => p.status === 'done' || p.status === 'failed');
 
+// ── level filter for what the models write (didactics/levels.js + the EKI level vocabularies, docs/DIDACTIC_ENGINE.md)
+// The CRM's ES modules are loaded once (dynamic import); in the installed copy they sit in ./didactics, in the
+// repository in crm-v2/src/features/worksheet-studio/didactics.
+const fs = require('node:fs');
+const path = require('node:path');
+const { pathToFileURL } = require('node:url');
+const DIDACTICS_DIRS = [process.env.DIDACTICS_DIR, path.join(__dirname, 'didactics'), path.join(__dirname, '../../crm-v2/src/features/worksheet-studio/didactics')].filter(Boolean);
+let didactics = null;
+async function loadDidactics() {
+  if (didactics) return didactics;
+  const dir = DIDACTICS_DIRS.find((d) => fs.existsSync(path.join(d, 'levels.js')));
+  if (!dir) return null;
+  const levels = await import(pathToFileURL(path.join(dir, 'levels.js')).href);
+  let forms = null;
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.join(dir, 'levelForms.json'), 'utf8')).levels || {};
+    forms = Object.fromEntries(Object.entries(raw).map(([k, v]) => [k, new Set(String(v).split('\n'))]));
+  } catch { forms = null; }
+  didactics = { ...levels, forms };
+  return didactics;
+}
+const FORM_LEVELS = ['A1', 'A2', 'B1'];
+const ALLOWED_FORMS = { A1: ['A1'], A2: ['A1', 'A2'], 'A2+': ['A1', 'A2'], 'B1-': ['A1', 'A2', 'B1'], B1: ['A1', 'A2', 'B1'] };
+function wordLevel(word, forms) {
+  const w = String(word || '').toLocaleLowerCase('et');
+  if (!forms || !w) return null;
+  const direct = FORM_LEVELS.find((l) => forms[l]?.has(w));
+  if (direct) return direct;
+  for (let i = 3; i <= w.length - 3; i += 1) {
+    const a = FORM_LEVELS.findIndex((l) => forms[l]?.has(w.slice(0, i)));
+    const b = FORM_LEVELS.findIndex((l) => forms[l]?.has(w.slice(i)));
+    if (a >= 0 && b >= 0) return FORM_LEVELS[Math.max(a, b)];
+  }
+  return null;
+}
+// the words of a text above the level (names, numbers and short words skipped); [] when the level is not checked
+function hardWords(text, key, forms) {
+  const allowed = ALLOWED_FORMS[key];
+  if (!allowed || !forms) return [];
+  return [...new Set(String(text).split(/(?<=[.!?…])\s+/).flatMap((sentence) => sentence.split(/\s+/).map((raw, i) => ({ w: raw.replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ''), i })))
+    .filter(({ w, i }) => w.length > 2 && !/\d/.test(w) && !(i > 0 && /^\p{Lu}/u.test(w)) && !w.includes('-'))
+    .filter(({ w }) => { const lv = wordLevel(w, forms); return !lv || !allowed.includes(lv); })
+    .map(({ w }) => w.toLocaleLowerCase('et')))];
+}
+const wordsOf = (text) => String(text || '').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+
 // ── „Paku laused” (constructor): gemma3 writes gap sentences, TartuNLP's GEC checks each one ──
-function sentencesPrompt({ topic = '', level = 'A2', grammar = '', count = 8 } = {}) {
+function sentencesPrompt({ topic = '', level = 'A2', grammar = '', count = 8, norm = null, grammarList = [] } = {}) {
+  const limits = norm ? ` Iga lause on lühike: keskmiselt umbes ${norm.sentence.avg} sõna, mitte üle ${norm.sentence.max} sõna. Kasuta ainult tasemele ${norm.label} sobivat lihtsat ja sagedast sõnavara.` : '';
+  const known = grammarList.length ? ` Õpilane oskab juba: ${grammarList.slice(-8).join('; ')}.` : '';
   return `Sa koostad eesti keele töölehte tasemele ${level || 'A2'}${topic ? ` teemal "${topic}"` : ''}.
-Kirjuta ${count} lihtsat, loomulikku ja mõttekat eestikeelset lauset, mis sobivad sellele tasemele. Igas lauses on täpselt üks sõna või vorm nurksulgudes: see on lünk, mille õpilane täidab, nt "Minu [ema] on õpetaja."${grammar ? ` Lünk harjutab: ${grammar} (lünka pane just see vorm).` : ''}
+Kirjuta ${count} lihtsat, loomulikku ja mõttekat eestikeelset lauset, mis sobivad sellele tasemele. Igas lauses on täpselt üks sõna või vorm nurksulgudes: see on lünk, mille õpilane täidab, nt "Minu [ema] on õpetaja."${grammar ? ` Lünk harjutab: ${grammar} (lünka pane just see vorm).` : ''}${limits}${known}
 Laused peavad olema grammatiliselt õiged ja tähenduselt loogilised (ei mingeid absurdseid lauseid). Ära korda sama lauset.
 Vasta ainult JSON-ina: {"laused": ["...", "..."]}`;
 }
@@ -128,10 +176,37 @@ function petLessonStats({ parts = [], transcript = [], errors = [], lang = 'et' 
   };
 }
 
+// ── „Paku tekst” (constructor, reading block): a short text with questions under the level's norms ──
+function readingPrompt({ topic = '', level = 'A2', norm = null, words = 0, grammar = '' } = {}) {
+  const [lo, hi] = norm?.reading?.words || [80, 200];
+  const target = Math.max(lo, Math.min(hi, Number(words) || Math.round((lo + hi) / 2)));
+  const qn = norm?.reading?.questions?.[0] || 4;
+  return `Kirjuta eesti keele õppijale tasemel ${norm?.label || level} lugemistekst${topic ? ` teemal "${topic}"` : ''}.
+Tekstis on umbes ${target} sõna. Laused on keskmiselt umbes ${norm?.sentence?.avg || 9} sõna, mitte üle ${norm?.sentence?.max || 14} sõna. Kasuta tasemele sobivat sagedast sõnavara; tekst on loomulik, sidus ja huvitav, mitte sõnade loend.${grammar ? ` Tekstis on mitu näidet vormist: ${grammar}.` : ''}
+Lisa ${qn + 1} küsimust teksti kohta, igaühele lühike õige vastus (1–4 sõna) tekstist.${norm?.reading?.inference ? ' Vähemalt üks küsimus algab sõnaga "Miks" või "Kuidas".' : ''}
+Vasta ainult JSON-ina: {"pealkiri": "...", "tekst": "...", "kysimused": [{"kysimus": "...", "vastus": "..."}]}`;
+}
+function parseReading(raw) {
+  let data;
+  try { data = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { return null; }
+  const passage = String(data?.tekst || '').replace(/[ \t]+/g, ' ').trim();
+  if (wordsOf(passage) < 20) return null;
+  const questions = (Array.isArray(data?.kysimused) ? data.kysimused : [])
+    .map((q) => ({ q: String(q?.kysimus || '').replace(/\s+/g, ' ').trim().slice(0, 200), a: String(q?.vastus || '').replace(/[[\]|]/g, '').replace(/\s+/g, ' ').trim().slice(0, 80) }))
+    .filter((q) => q.q && q.a).slice(0, 10);
+  return { title: String(data?.pealkiri || '').replace(/\s+/g, ' ').trim().slice(0, 80), passage: passage.slice(0, 6000), questions };
+}
+function simplifyPrompt(text, hard, level) {
+  return `Lihtsusta see eestikeelne tekst tasemele ${level}: asenda need sõnad lihtsamate ja sagedasematega või selgita neid lihtsalt: ${hard.slice(0, 20).join(', ')}. Hoia sisu, pikkus ja lausete arv samad. Vasta ainult JSON-ina: {"tekst": "..."}
+
+Tekst:
+${text}`;
+}
+
 // a finished recording with a transcript still waiting for (this version of) the analysis
 function needsAnalysis(rec = {}) {
   return rec.status === 'done' && Array.isArray(rec.transcript) && rec.transcript.length > 0
     && !(rec.analysis && rec.analysis.version >= ANALYSIS_VERSION);
 }
 
-module.exports = { petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+module.exports = { loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };

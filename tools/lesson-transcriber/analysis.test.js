@@ -75,3 +75,16 @@ test("the pet gets only simple numbers and the learner's own corrected sentences
   assert.deepEqual(stats, { studentId: 's1', studentUid: 'u1', date: '2026-10-09T15:00:00Z', minutes: 40, studentWords: 9, estonianWords: 6, share: 67, longest: 6, practice: [{ said: 'a b', corrected: 'a c' }], lang: 'et' });
   assert.equal(petLessonStats({ parts: [{ id: 'b' }], transcript }), null);
 });
+
+test('level filter: words above the level and the reading answer shape', async () => {
+  const { loadDidactics, hardWords, parseReading, readingPrompt } = require('./analysis');
+  const did = await loadDidactics();
+  assert.ok(did && did.forms, 'the CRM didactics are found from the repository');
+  assert.deepEqual(hardWords('Ma elan koos emaga Tallinnas. Keskkonnasõbralik tarbimine on oluline.', 'A2', did.forms), ['keskkonnasõbralik', 'tarbimine']);
+  assert.deepEqual(hardWords('Keskkonnasõbralik tarbimine.', 'B2', did.forms), [], 'B2 and C1 are not checked');
+  const reading = parseReading(JSON.stringify({ pealkiri: 'Mari päev', tekst: 'Mari ärkab kell seitse. '.repeat(6), kysimused: [{ kysimus: 'Millal Mari ärkab?', vastus: 'kell [seitse]' }, { kysimus: '', vastus: 'x' }] }));
+  assert.equal(reading.title, 'Mari päev');
+  assert.deepEqual(reading.questions, [{ q: 'Millal Mari ärkab?', a: 'kell seitse' }]);
+  assert.equal(parseReading('{"tekst": "liiga lühike"}'), null);
+  assert.match(readingPrompt({ topic: 'Pere', norm: did.LEVELS.B1 }), /Miks/);
+});

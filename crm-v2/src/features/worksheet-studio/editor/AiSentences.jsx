@@ -55,7 +55,8 @@ export default function AiSentences({ meta = {}, onAdd, service = aiRequestsServ
         <ul className="ed-ai__list">{state.items.map((it, i) => (
           <li key={i} className={it.ok ? '' : 'is-check'}>
             <label><input type="checkbox" checked={Boolean(state.picked[i])} onChange={(e) => setState((s) => ({ ...s, picked: s.picked.map((v, j) => (j === i ? e.target.checked : v)) }))} /> <span>{it.text}</span></label>
-            {it.ok ? null : <small>kontrolli · Tartu mudel parandaks: „{it.suggestion}”</small>}
+            {it.suggestion ? <small>kontrolli · Tartu mudel parandaks: „{it.suggestion}”</small> : null}
+            {it.hard?.length ? <small>üle taseme: {it.hard.join(', ')}</small> : null}
           </li>
         ))}</ul>
         <button type="button" className="ed-btn" disabled={!chosen.length} onClick={() => { onAdd(chosen.map((it) => it.text)); setState({ phase: 'idle', items: [], picked: [], error: '', slow: false }); }}>Lisa valitud ({chosen.length})</button>

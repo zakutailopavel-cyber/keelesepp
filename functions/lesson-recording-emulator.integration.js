@@ -132,3 +132,13 @@ test('the pet lesson numbers: the learner reads his own, nobody writes from the 
   const list = await fetch(`${base}:runQuery`, { method: 'POST', headers: { Authorization: `Bearer ${learner.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'petLessonStats' }], where: { fieldFilter: { field: { fieldPath: 'studentUid' }, op: 'EQUAL', value: { stringValue: learner.uid } } } } }) });
   assert.equal(list.status, 200);
 });
+
+test('a reading text request: kind reading with a word count, nothing else', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const teacher = await account('teacher');
+  const ask = (data) => fetch(`${base}/aiRequests`, { method: 'POST', headers: { Authorization: `Bearer ${teacher.token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: data }) }).then((r) => r.status);
+  const ok = { kind: { stringValue: 'reading' }, topic: { stringValue: 'Pere' }, level: { stringValue: 'A2' }, grammar: { stringValue: '' }, count: { integerValue: '1' }, words: { integerValue: '120' }, createdBy: { stringValue: teacher.uid }, createdAt: { stringValue: '2026-10-10T10:00:00Z' }, status: { stringValue: 'new' } };
+  assert.equal(await ask(ok), 200);
+  assert.equal(await ask({ ...ok, words: { integerValue: '5000' } }), 403);
+  assert.equal(await ask({ ...ok, kind: { stringValue: 'essay' } }), 403);
+});

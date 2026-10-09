@@ -77,7 +77,10 @@ These are real gaps of the generator, fixed in step 2.
    - Still open: generator lexicon breadth. The EKI lists have no translations, so `source.json` entries still need a Russian translation and tags.
 4. Grammar targets: `GRAMMAR` in `levels.js` drives the planner and the local model prompts. Grammar in a sheet is
    detected later with the morphological analyser.
-5. Local models fill slots only (situations, names, short texts) under the profile's limits. Every sentence goes
-   through GEC and `didacticCheck`; anything that fails is dropped.
+5. ~~Local models under the norms.~~ Done for gap sentences and reading texts.
+   - On the school Mac, `answerAiRequests` loads `levels.js` and `levelForms.json` (copied into `app/didactics`, or from the repository).
+   - **Gap sentences:** gemma3 gets the level's sentence length and grammar, and writes twice as many as asked. Sentences that are too long or have more than one word above the level are dropped; the rest are checked by GEC.
+   - **Reading:** a text with questions at the level's length. When over 8% of its words are above the level, it is simplified once. Every sentence is GEC-checked; the CRM shows the hard words and the corrections („Paranda kõik”).
+   - Measured: 8 A2 gap sentences in 34 s, 6 clean. A 110-word A2 text in 40 s, with 5 real errors caught and fixed by GEC.
 6. Personal sheets from the learner model (errors, weak skills, due words).
 7. Calibration: item difficulty from submitted answers, and the teacher's „bad sentence” flag.
