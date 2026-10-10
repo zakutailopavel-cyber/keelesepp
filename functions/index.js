@@ -9744,12 +9744,10 @@ async function studentWordLookup({ decoded, studentId = "", word = "", tgt = "ru
     || (Array.isArray(c.linkedUserIds) && c.linkedUserIds.includes(uid));
   if (!owns) throw httpError(403, "This is not your student card");
   const target = ["ru", "en", "uk", "fi", "de", "lv", "lt"].includes(tgt) ? tgt : "ru";
-  const [translation, forms] = await Promise.allSettled([
-    translateText({ text: term, src: "et", tgt: target }),
-    estonianWordForms({ word: term }),
-  ]);
-  const formData = forms.status === "fulfilled" ? forms.value : { available: false, forms: [], line: "" };
-  const headword = String(formData.headword || term).slice(0, 120);
+  // forms first: the headword (ärkan → ärkama) is what is translated and saved
+  const formData = await estonianWordForms({ word: term }).catch(() => ({ available: false, forms: [], line: "" }));
+  const headword = String((formData.found && formData.headword) || term).slice(0, 120);
+  const [translation] = await Promise.allSettled([translateText({ text: headword, src: "et", tgt: target })]);
   const result = {
     word: headword,
     asked: term,
