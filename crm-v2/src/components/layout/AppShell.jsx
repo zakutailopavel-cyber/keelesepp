@@ -11,6 +11,7 @@ import NotificationCenter from './NotificationCenter.jsx';
 import PetCompanion from '../../features/pet/PetCompanion.jsx';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { messagesService } from '../../services/firebase/messages.js';
+import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
 import './appShell.css';
 
 function initials(name) {
@@ -80,6 +81,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
 
       <main className="main-area">
         <LessonInvitationOverlay />
+        {testSessionName() && !preview ? <div className="preview-banner" role="status"><span><strong>Testõpilase seanss: {testSessionName()}</strong><small>Sa oled sisse logitud testõpilasena · administraatoriks naasmiseks logi uuesti sisse</small></span><button onClick={() => { clearTestSession(); signOut(); }}>Lõpeta testseanss</button></div> : null}
         {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={exitPreview}>Lõpeta vaade</button></div> : null}
         <header className="topbar">
           <IconButton className="mobile-only" data-tour="menu" label="Ava menüü" onClick={() => setMenuOpen(true)}><Menu size={21} /></IconButton>

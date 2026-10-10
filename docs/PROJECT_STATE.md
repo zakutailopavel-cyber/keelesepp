@@ -1,3 +1,12 @@
+## 2026-10-10 · agent/admin-test-student — administraator logib sisse testõpilasena
+
+- Base: `main` 0659706.
+- Owner: admins need to switch to the test student (test@keelesepp.ee, card `self_5NJ27OT29YRzZdqVCnjZj411Mck1`, `testStudent: true`) from Settings.
+- Server: `staffOperationsApi` `POST /accounts/test-student-session` — `requireAdminUser`, finds a student card with `testStudent: true` and a linked `studentUid` (never a real student), checks `users.role == 'student'`, returns `admin.auth().createCustomToken(uid, { testSession: true })`. No password stored or sent.
+- Client: `authService.signInAsTestStudent()` → `signInWithCustomToken`; Settings card „Testõpilane” (admins, not in preview); AppShell banner „Testõpilase seanss · Lõpeta testseanss” (sessionStorage flag, cleared on sign-out). Back to admin = sign in again.
+- Checks: vitest settings/layout/firebase services 156 passed; `vite build` ok; `require('./functions/index.js')` loads.
+- Manual gate: the function must be deployed (`firebase deploy --only functions:staffOperationsApi`) — needs the owner's OK; `createCustomToken` needs the functions service account to have „Service Account Token Creator”.
+
 ## 2026-10-10 · agent/board-pinch-zoom — tahvli suumimine puuteplaadiga ei suumi enam kogu lehte
 
 - Base: `main` a68dac6.
