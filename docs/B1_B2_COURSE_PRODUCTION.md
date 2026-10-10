@@ -134,3 +134,4 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | B2 M10 Suhted ja konfliktid | b1b2-046–050 | Avasta, Harjuta, Kasuta | agent/course-b2-m10 |
 | B2 M11 Raha ja tarbimine | b1b2-051–055 | Avasta, Harjuta, Kasuta | agent/course-b2-m11 |
 | B2 M12 Tehnoloogia ja sotsiaalmeedia | b1b2-056–060 | Avasta, Harjuta, Kasuta | agent/course-b2-m12 |
+| B2 M13 Keskkond ja vastutustundlik elu | b1b2-061–065 | Avasta, Harjuta, Kasuta | agent/course-b2-m13 |

@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m13 — B2 M13 Keskkond ja vastutustundlik elu (b1b2-061–065), kõik kolm etappi
+
+- Base: `main` d982140. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module13.js`, stage B2- (readings 300+ words, speaking 180–210 s, letters 150–200 words): environmental problems as cause → consequence chains, cause/effect connectors (kuna, seetõttu, selle tõttu, mistõttu, tänu sellele) with word order, comparing green choices by impact, price, time and convenience, a problem-solution text 180–200 words, Kontroll 13. 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m12 — B2 M12 Tehnoloogia ja sotsiaalmeedia (b1b2-056–060), kõik kolm etappi
 
 - Base: `main` 1e9a282. Previous modules are published to production (diff with production: 0 differences).
