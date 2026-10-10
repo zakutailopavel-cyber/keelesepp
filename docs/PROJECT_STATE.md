@@ -19,6 +19,15 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/course-b1-m07-m08 — 50 lehte avaldatud (v2) ja B1 moodul 7 valmis
+
+- Omaniku loal („заливай”) avaldati production'isse kõik 50 laiendatud lehte (a2b1-006…030 Harjuta + Kasuta) versioonina v2. Varem avaldatud lühike v1 jäi `worksheetVersions` arhiivi.
+  - Skript kordab `lessonWorksheetsService.persist` loogikat: `worksheets/{phase}`, `worksheetVersions` ja `worksheetPhases` kokkuvõte; `createdByName` = „Claude (Pavel Zakutailo loal)”.
+  - Kontrolljooks: 50/50 on v2.
+  - Juba määratud õpilaste töid see ei muuda (neil on oma koopia).
+- `admin/course/b1/module07.js`: a2b1-031…035 „Tervis ja enesetunne” (A2+), Harjuta + Kasuta, 39–42 min lehe kohta. Sisu: sümptomid, arsti vastuvõtt, ravimi infoleht, käskiv kõneviis, nõuanded, harjumused, „peaksin / võiksin”, number 1220, reisihaigus. Kvaliteedivärav läbitud.
+- Järgmine samm (omaniku soov): B2 kursus kohe; mahu ja keerukuse normid CEFR-i ja Harno B2 eksami järgi.
+
 ## 2026-10-10 · agent/course-b1-expand-m05 — B1 moodulid 5 ja 6 laiendatud; kõik 50 kursuse lehte on terved tunnid
 
 - a2b1-021…030 Harjuta + Kasuta (A2+): iga leht on 40–46 min (enne 9–24 min).
