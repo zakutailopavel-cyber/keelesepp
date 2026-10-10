@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/live-answers-realtime — õpilase vastused jõuavad õpetajani kirjutamise ajal
+
+- Base: `main` b0357cc.
+- Owner: the teacher saw a student's answer only after the student stopped typing. Cause: `DocWorksheetPlayer` autosave was a 1.5 s debounce reset by every keystroke.
+- Fix: a throttle — the first change saves after 150 ms, then at most every 600 ms while typing (`AUTOSAVE_EVERY_MS`, `AUTOSAVE_MIN_DELAY_MS`). The teacher's `LiveWorksheetView` already subscribes to the assignment, so it updates live. Firestore: ~1–2 writes per second per assignment while typing (short bursts are within limits).
+- Checks: `npx vitest run src/features/worksheet-studio src/features/homework` 205 passed (`LiveWorksheetPage.test.jsx` timer moved from 1600 to 700 ms).
+- Next step: watch one live lesson; if writes feel heavy, raise `AUTOSAVE_EVERY_MS` to 1000.
+
 ## 2026-10-10 · agent/invite-clock-skew — tunnikutse ei ilmunud õpilasele, kelle arvuti kell käis ette
 
 - Base: `main` 7e2bc36.

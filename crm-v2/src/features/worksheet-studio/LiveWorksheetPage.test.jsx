@@ -50,7 +50,7 @@ describe('live worksheet lesson', () => {
     const { container } = render(<WorksheetPlayer assignment={{ id: 'as-1', studentId: 's', title: 'Minu päev', status: 'new', answers: {}, worksheetDoc }} repository={repository} onClose={() => {}} />);
     fireEvent.click(container.querySelectorAll('.ws-page .ws-tfbox')[1]);
     expect(repository.saveWorksheetDraft).not.toHaveBeenCalled();
-    await act(async () => { vi.advanceTimersByTime(1600); });
+    await act(async () => { vi.advanceTimersByTime(700); });
     expect(repository.saveWorksheetDraft).toHaveBeenCalledWith({ assignmentId: 'as-1', answers: { 'tf:0': 'false' } });
     act(() => push({ liveFocus: { blockId: 'tf' } }));
     expect(container.querySelector('.ws-page [data-block="tf"]').className).toContain('focused');
