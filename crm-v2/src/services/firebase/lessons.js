@@ -99,6 +99,17 @@ export const lessonsService = {
     if (!record?.id) throw new Error('Tunni märget ei leitud.');
     if (!['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(status)) throw new Error('Vigane staatus.');
     if (record.invoiceId || record.billingStatus) throw new Error('Tund on juba arvel: paranda see Finantsides.');
+    // older marks (server lesson journal) carry counter / package bookkeeping that a plain status edit would skip:
+    // the server reverses the old mark, then the lesson is marked again with the new status
+    if (record.accountingSource !== 'crm_v2') {
+      if (!record.scheduleId || !record.studentId || !record.date) throw new Error('Selle tunni märget saab muuta ainult tunnipäevikus.');
+      await financeApi.deleteLessonJournal(record.id);
+      return lessonsService.completeFromSchedule({
+        id: record.scheduleId, occurrenceDate: record.date, studentId: record.studentId, studentName: record.studentName,
+        teacher: record.teacher, teacherUid: record.teacherUid, subject: record.subject, time: record.time, duration: record.duration,
+        recurring: scheduleRecurring,
+      }, user, { status, topic: record.topic || '', topicLevel: record.topicLevel || '', topicModule: record.topicModule || '', topicLessonId: record.topicLessonId || '', notes: record.notes || '' });
+    }
     const { db } = requireFirebaseClient();
     const now = new Date().toISOString();
     const batch = writeBatch(db);
