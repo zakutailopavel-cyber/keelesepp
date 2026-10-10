@@ -85,17 +85,20 @@ function FilePreview({ file }) {
 function PhaseSheets({ item, repository }) {
   const first = item.phases.find((phase) => phase.state === 'published') || item.phases.find((phase) => phase.state !== 'none') || item.phases[0];
   const [phaseId, setPhaseId] = useState(first?.id || 'discover');
-  const [state, setState] = useState({ loading: true, record: null, error: '' });
+  // loaded sheets by phase; a phase without a sheet is not read at all
+  const [loaded, setLoaded] = useState({});
   const phase = item.phases.find((entry) => entry.id === phaseId);
+  const empty = !phase || phase.state === 'none';
   useEffect(() => {
+    if (empty || loaded[phaseId]) return undefined;
     let alive = true;
-    if (!phase || phase.state === 'none') { setState({ loading: false, record: null, error: '' }); return undefined; }
-    setState({ loading: true, record: null, error: '' });
     repository.load(item.sourceId, phaseId)
-      .then((record) => { if (alive) setState({ loading: false, record, error: '' }); })
-      .catch((error) => { if (alive) setState({ loading: false, record: null, error: error?.message || 'Töölehte ei saanud laadida.' }); });
+      .then((record) => { if (alive) setLoaded((current) => ({ ...current, [phaseId]: { record, error: '' } })); })
+      .catch((error) => { if (alive) setLoaded((current) => ({ ...current, [phaseId]: { record: null, error: error?.message || 'Töölehte ei saanud laadida.' } })); });
     return () => { alive = false; };
-  }, [item.sourceId, phase, phaseId, repository]);
+  }, [empty, item.sourceId, loaded, phaseId, repository]);
+  const entry = loaded[phaseId];
+  const state = { loading: !empty && !entry, record: entry?.record || null, error: entry?.error || '' };
   const doc = state.record ? (publishedWorksheetDoc(state.record) || state.record.worksheetDoc) : null;
   return (
     <section className="preview-phases" aria-label="Töölehed">

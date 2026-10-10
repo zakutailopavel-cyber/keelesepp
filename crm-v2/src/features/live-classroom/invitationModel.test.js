@@ -1,3 +1,4 @@
+import { afterEach } from 'vitest';
 import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, noteServerTime, normalizeInvitation, resetServerClock, serverNow, studentAccountUid } from './invitationModel.js';
 
 describe('live lesson invitation model', () => {
