@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m07 — B2 M07 Haridus ja õppimine (b1b2-031–035), kõik kolm etappi
+
+- Base: `main` 3745d26. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module07.js`, stage B1+: learning and motivation (factors of success), effective methods (method → expected result, conditional), analysis of an education text (main idea, arguments, author's position), a proposal in four parts (draft → clean copy), Kontroll 7. 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/lesson-summary-prompt — tunni kokkuvõte omasõnadega (analüüs v5)
 
 - After v4 (Aleksandr D.'s lesson went from 29 errors to 9, mostly real), the summary still pasted whole Russian lines into „meeldis”, negative ones too.
