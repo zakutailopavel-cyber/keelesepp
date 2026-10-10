@@ -37,6 +37,7 @@ import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
 import { SHEET_MINUTES } from './didactics/timeEstimate.js';
+import TextToTasks from './editor/TextToTasks.jsx';
 import { VOCABULARY_FOR, loadLevelForms } from './didactics/levelVocabulary.js';
 import { levelKey } from './didactics/levels.js';
 import InsightsPanel from './InsightsPanel.jsx';
@@ -744,6 +745,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const railTabs = [
     ['blocks', 'Plokid', Icons.LayoutGrid],
     ['bank', 'Pank', Icons.Images],
+    ['text', 'Tekstist', Icons.WandSparkles],
     ['sheet', 'Leht', Icons.FileText],
     ...(showResults ? [['results', 'Tulemused', Icons.ChartColumn]] : []),
     ...(original.length > 0 ? [['original', 'Originaal', Icons.ScanLine]] : []),
@@ -841,6 +843,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           {mode === 'edit' && leftOpen && (
             <aside className={`st-palette ${leftTab === 'original' ? 'is-original' : ''}`} aria-label="Plokid">
               {leftTab === 'results' && !isNew ? <InsightsPanel lessonId={lessonId} doc={doc} load={loadResults} onSelect={(id) => setSelectedId(id)} onAddAlternative={addRightAnswer} />
+              : leftTab === 'text' ? <TextToTasks onInsert={(blocks) => { insertBlocks(blocks); setNotice(`Tekstist lisati ${blocks.length} ülesannet. Vaata need üle.`); }} />
               : leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}

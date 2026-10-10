@@ -19,6 +19,19 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/text-to-tasks — „Tekstist”: üks tekst → mitu ülesannet
+
+- Omanik: õpetaja paneb teksti ja tekst muutub ülesandeks vastavalt ülesande tüübile.
+- `editor/textToTasks.js`: `sentencesOf`, `tokensOf`, `gapsFromChoice` (õpetaja klõpsatud sõnad, sõnapank sisse või välja), `autoGapChoice` (iga lause pikim sõna, mitte esimene), `wordOrderFrom`, `dictationFrom`, `halvesFrom` (lause algus ja lõpp ühendamiseks), `readingFrom`, `vocabFrom`, `tasksFromText`.
+- `editor/TextToTasks.jsx`: konstruktori vasakul ribal on uus vahekaart „Tekstist”.
+  - Tekst kleebitakse, ülesanded valitakse linnukestega.
+  - Lünga sõnad valitakse automaatselt või klõpsuga.
+  - „Lisa N ülesannet lehele” lisab plokid valitud ploki järele.
+- Kontrollid:
+  - worksheet-studio 162/162 (uus test: muundused ja paneel);
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/sheet-minutes — leht = terve tund (40–55 min): tööaja hinnang ja B1 moodul 2 laiendatud
 
 - Omanik: ülesanded on liiga lühikesed, lehte tehakse ~10 minutiga, aga plaani järgi on see terve tund (tund 60 min, leht 40–50 min).
