@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m18 — B2 M18 B2 rääkimine ja lõpphindamine (b1b2-086–090), kõik kolm etappi
+
+- Base: `main` a941e7d. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module18.js`, stage B2: a longer 3–4-minute monologue (keywords map, development not a list), negotiation and compromise (five steps, a condition changes mid-talk), reading → speaking (5 min reading, 3 min summary, 6 min discussion; author vs own view), a full B2 simulation with one rubric, final assessment and next plan (progress vs lesson 1 and four checks, portfolio, exam / C1 / keeping the language). 15 sheets. The B2 course (modules 1–18, b1b2-001…090) is complete.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m17 — B2 M17 B2 kirjutamine (b1b2-081–085), kõik kolm etappi
 
 - Base: `main` 09570c4. Previous modules are published to production (diff with production: 0 differences).
