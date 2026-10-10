@@ -49,7 +49,8 @@ describe('Live Classroom invitation lifecycle', () => {
     };
     const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', active: true, studentUid: 'student-user-1', subject: 'Eesti keel', level: 'A2' }] }) };
     renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository });
-    fireEvent.change(await screen.findByLabelText('Õpilane'), { target: { value: 'student-1' } });
+    fireEvent.change(await screen.findByLabelText('Õpilane'), { target: { value: 'Mar' } });
+    fireEvent.mouseDown(screen.getByRole('option', { name: /Mari/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Kutsu õpilane tundi' }));
     await waitFor(() => expect(invitationService.create).toHaveBeenCalledWith(expect.objectContaining({ student: expect.objectContaining({ id: 'student-1' }), title: 'Eesti keel' }), expect.objectContaining({ uid: 'teacher-1' })));
   });
@@ -63,7 +64,8 @@ describe('Live Classroom invitation lifecycle', () => {
     renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository });
     expect(await screen.findByRole('region', { name: 'Tööruum' })).toBeInTheDocument();
     expect(screen.queryByRole('img', { name: 'Õpilase tahvel' })).not.toBeInTheDocument();
-    fireEvent.change(await screen.findByLabelText('Õpilane'), { target: { value: 'student-1' } });
+    fireEvent.change(await screen.findByLabelText('Õpilane'), { target: { value: 'Mar' } });
+    fireEvent.mouseDown(screen.getByRole('option', { name: /Mari/ }));
     expect(await screen.findByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Materjalid/ })).toBeInTheDocument();
     expect(screen.getByRole('tab', { name: 'Tahvel' })).toBeInTheDocument();

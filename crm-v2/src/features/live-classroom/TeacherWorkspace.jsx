@@ -1,6 +1,6 @@
 import { ArrowLeft, ClipboardList, GraduationCap, LibraryBig, Redo2, Search, Undo2, Users, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Button, EmptyState, ErrorState, Input, LoadingState, Select } from '../../components/ui/index.js';
+import { Button, EmptyState, ErrorState, Input, LoadingState } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize } from '../board/boardModel.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
@@ -66,11 +66,8 @@ export default function TeacherWorkspace({
             <button type="button" aria-pressed={group} className={group ? 'is-active' : ''} onClick={() => setMode('group')}><Users size={14} /> Grupitund</button>
           </div> : null}
           {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <>
-            <label className="lr-search lw-search"><Search size={16} /><input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-            {group ? null : <Select label="Õpilane" value={studentId} disabled={Boolean(pending)} onChange={(event) => { onSelect(event.target.value); setPanel(event.target.value ? 'worksheets' : ''); }}>
-              <option value="">Vali õpilane</option>
-              {visible.map((item) => <option key={item.id} value={item.id}>{item.name} · {item.subject || 'Õppeaine puudub'} · {item.level || 'tase puudub'}</option>)}
-            </Select>}
+            {group ? <label className="lr-search lw-search"><Search size={16} /><input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+              : <StudentPicker student={student} items={visible} search={search} onSearch={setSearch} disabled={Boolean(pending)} onPick={(id) => { onSelect(id); setSearch(''); setPanel(id ? 'worksheets' : ''); }} />}
           </> : <EmptyState title="Kontoga seotud õpilasi ei ole" description="Seo õpilase kaart tema kasutajakontoga, et saaksid talle tunnikutsungi saata." />}
         </div>
         <div className="lr-top__group lr-top__right">
@@ -134,6 +131,40 @@ export default function TeacherWorkspace({
           </section>
         </aside> : null}
       </div>
+    </div>
+  );
+}
+
+const studentLine = (item) => `${item.subject || 'Õppeaine puudub'} · ${item.level || 'tase puudub'}`;
+
+// One field to find and choose the student (owner, 2026-10-10): type a name, the matching students drop down below.
+function StudentPicker({ student, items, search, onSearch, onPick, disabled = false }) {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
+  const pick = (id) => { onPick(id); setOpen(false); };
+  const onKey = (event) => {
+    if (event.key === 'ArrowDown') { event.preventDefault(); setOpen(true); setActive((i) => Math.min(i + 1, items.length - 1)); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); setActive((i) => Math.max(i - 1, 0)); }
+    else if (event.key === 'Enter' && open && items[active]) { event.preventDefault(); pick(items[active].id); }
+    else if (event.key === 'Escape') { setOpen(false); onSearch(''); }
+  };
+  return (
+    <div className="lw-picker">
+      <Search size={16} aria-hidden="true" />
+      <input
+        role="combobox" aria-label="Õpilane" aria-expanded={open} aria-controls="lw-picker-list" aria-autocomplete="list" autoComplete="off"
+        disabled={disabled} placeholder={student ? `${student.name} · ${studentLine(student)}` : 'Vali või otsi õpilane…'}
+        className={student ? 'has-value' : ''} value={search}
+        onFocus={() => { setOpen(true); setActive(0); }} onBlur={() => setOpen(false)}
+        onChange={(event) => { onSearch(event.target.value); setOpen(true); setActive(0); }} onKeyDown={onKey}
+      />
+      {student && !disabled ? <button type="button" className="lw-picker__clear" aria-label="Tühjenda valik" onMouseDown={(event) => event.preventDefault()} onClick={() => pick('')}><X size={15} /></button> : null}
+      {open ? <ul id="lw-picker-list" role="listbox" aria-label="Õpilased">
+        {items.length ? items.map((item, index) => <li key={item.id} role="option" aria-selected={item.id === student?.id} className={index === active ? 'is-active' : ''}
+          onMouseDown={(event) => { event.preventDefault(); pick(item.id); }} onMouseEnter={() => setActive(index)}>
+          <strong>{item.name}</strong><small>{studentLine(item)}</small>
+        </li>) : <li className="lw-picker__none">Ei leidnud ühtegi õpilast</li>}
+      </ul> : null}
     </div>
   );
 }
