@@ -19,6 +19,20 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/course-b1-m03-m04 — B1 moodulid 3 ja 4: Harjuta + Kasuta
+
+- Uued failid:
+  - `admin/course/b1/module03.js`: a2b1-011…015 „Kodu, kohad ja linn”. Kus? Kuhu? Kust? tuleb läbi kolimise, asjaajamise ja teejuhatamise. Materjal on tööraamatu tundidest 6–9: kolimispäeva lugu ja vormikolmikud.
+  - `b1/module04.js`: a2b1-016…020 „Aeg, plaanid ja kohustused”. Selles on päevakava, maja reeglid (peab / võib / saab), prioriteedid, kolm kokkuleppekõnet ja vahehindamine 1.
+- `blocks.js`: lisatud `clock`. Mõlemad moodulid on registris.
+- Kokku 20 lehte, kõik läbivad kvaliteedivärava (didaktiline skoor ≥ 85, taseme normides hoiatusi ei ole).
+- Kontrollid:
+  - `admin/course` 6/6;
+  - eslint;
+  - build.
+- Production'isse ei kirjutatud midagi. Avaldamine käib lehel „Kursuse tootmine”.
+- Järgmine ohutu samm: B1 moodul 5 (021–025, A2+) Harjuta + Kasuta.
+
 ## 2026-10-10 · agent/course-b1-m02 — kursuse tootmine: kvaliteedivärav, admin-leht, B1 moodul 2 Harjuta + Kasuta
 
 - Omanik: töölehtede konstruktoriga tuleb lõpetada B1 ja B2 kursus. Tööraamat „KeeleSepp A2 → B1, 52 tundi” on materjalipank. Areng peab olema järkjärguline ja mitte ühetaoline. Samal ajal pannakse kirja, mis süsteemist puudu on.

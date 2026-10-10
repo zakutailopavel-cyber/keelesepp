@@ -95,7 +95,7 @@ Leht avaldatakse ainult siis, kui:
    - `npx vitest run src/features/worksheet-generator/admin/course` — kvaliteedivärav;
    - eslint;
    - build.
-3. Iga mooduli jaoks eraldi PR.
+3. Üks PR ühe või kahe mooduli kohta.
 4. Pärast deploy'd avaldab omanik või admin: Õppevara → menüü → „Kursuse tootmine (B1, B2)”.
    - Seal vali moodul, vaata iga lehte („Vaata”) ja vajuta „Avalda tund”.
    - Olemasolev leht asendatakse ainult eraldi kinnitusega.
@@ -113,4 +113,6 @@ Leht avaldatakse ainult siis, kui:
 
 | Moodul | Tunnid | Etapid | PR |
 | --- | --- | --- | --- |
-| B1 M02 Mina, pere ja suhted | 006–010 | Harjuta, Kasuta | agent/course-b1-m02 |
+| B1 M02 Mina, pere ja suhted | 006–010 | Harjuta, Kasuta | #433 |
+| B1 M03 Kodu, kohad ja linn | 011–015 | Harjuta, Kasuta | agent/course-b1-m03-m04 |
+| B1 M04 Aeg, plaanid ja kohustused | 016–020 | Harjuta, Kasuta | agent/course-b1-m03-m04 |

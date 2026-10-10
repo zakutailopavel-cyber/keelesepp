@@ -3,8 +3,10 @@
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
 import * as b1m02 from './b1/module02.js';
+import * as b1m03 from './b1/module03.js';
+import * as b1m04 from './b1/module04.js';
 
-export const COURSE_MODULES = [b1m02];
+export const COURSE_MODULES = [b1m02, b1m03, b1m04];
 
 export const COURSES = {
   b1: { label: 'B1 · A2 → B1 õpitee', badge: 'KeeleSepp A2 → B1' },
