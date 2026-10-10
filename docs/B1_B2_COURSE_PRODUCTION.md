@@ -143,3 +143,4 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | C1 M01 Eneseväljendus, identiteet ja suhted | est-c1-001–010 | Avasta, Harjuta, Kasuta | agent/course-c1-m01 |
 | C1 M02 Kodu, kogukond ja linnakeskkond | est-c1-011–020 | Avasta, Harjuta, Kasuta | agent/course-c1-m02 |
 | C1 M03 Teenused, tarbimine ja raha | est-c1-021–030 | Avasta, Harjuta, Kasuta | agent/course-c1-m03 |
+| C1 M04 Haridus, õppimine ja info | est-c1-031–040 | Avasta, Harjuta, Kasuta | agent/course-c1-m04 |
