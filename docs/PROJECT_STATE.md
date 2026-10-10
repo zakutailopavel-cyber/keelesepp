@@ -19,6 +19,18 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/accounts-badge — menüü loendurid: „Uued kontod” ja „Suhtlus”
+
+- Omanik nägi uut registreerimist juhuslikult ja soovis märki ka „Suhtluse” juurde.
+- `AppShell`: menüüpunktil on punane loendur.
+  - „Uued kontod” (admin): `accountApprovalsService.subscribePendingCount` (`users.approvalStatus == 'pending'`, reaalajas).
+  - „Suhtlus” (õpetaja/admin): `messagesService.subscribeUnreadCount` (`messages.read == false`, mitte enda kirjutatud). Õpetaja näeb oma õpilaste vestlusi, admin kõiki.
+- Eelvaates loendureid ei ole. Uusi reegleid ei lisatud: töötajad lugesid neid kollektsioone juba varem.
+- Kontrollid:
+  - layout + messages 16/16 (uus test);
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/text-to-tasks — „Tekstist”: üks tekst → mitu ülesannet
 
 - Omanik: õpetaja paneb teksti ja tekst muutub ülesandeks vastavalt ülesande tüübile.

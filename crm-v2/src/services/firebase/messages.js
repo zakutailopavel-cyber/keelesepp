@@ -59,6 +59,15 @@ export const messagesService = {
     const snapshots = await Promise.all(chunks([...new Set(studentIds.filter(Boolean))]).map((ids) => getDocs(query(collection(db, 'messages'), where('studentId', 'in', ids)))));
     return snapshots.flatMap(messageRecords).sort((a, b) => String(a.createdAt || a.date || '').localeCompare(String(b.createdAt || b.date || '')));
   },
+  // unread messages for the staff member (the „Suhtlus” menu badge): not written by them; a teacher counts only the
+  // conversations of their own students, an administrator all
+  subscribeUnreadCount({ uid, teacherName = '', all = false }, onCount, onError) {
+    const { db } = requireFirebaseClient();
+    const me = canonicalTeacherName(teacherName);
+    return onSnapshot(query(collection(db, 'messages'), where('read', '==', false)), (snapshot) => {
+      onCount(messageRecords(snapshot).filter((m) => m.fromUid !== uid && (all || !m.teacher || m.teacher === me)).length);
+    }, (error) => onError?.(error));
+  },
   // Live conversation of one student (Live Classroom chat): the same internal messages as the Suhtlus page.
   subscribeByStudent(studentId, onChange, onError) {
     const { db } = requireFirebaseClient();
