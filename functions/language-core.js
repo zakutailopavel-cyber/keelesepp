@@ -38,7 +38,9 @@ const KEY_FORMS = [
 // Ekilex paradigm(s) → { wordClass, forms: [{ code, label, ru, value }] } (first paradigm that has key forms)
 function keyFormsFromParadigms(paradigms = []) {
   for (const paradigm of Array.isArray(paradigms) ? paradigms : []) {
-    const forms = Array.isArray(paradigm?.forms) ? paradigm.forms : [];
+    // Ekilex answers with `paradigmForms` (older answers and tests: `forms`)
+    const list = paradigm?.paradigmForms || paradigm?.forms;
+    const forms = Array.isArray(list) ? list : [];
     const byCode = new Map();
     forms.forEach(form => {
       const value = cleanTerm(form?.value || form?.valuePrese || form?.displayForm, 80);
@@ -106,4 +108,38 @@ function summarizeEvaluation(data, level = "A2") {
   };
 }
 
-module.exports = { evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine };
+// The clicked word may be an inflected form („ärkan”, „söön”, „koju”); Ekilex searches headwords only. Likely
+// headwords, most likely first; the caller keeps the first one whose paradigm contains the clicked form.
+function headwordCandidates(term = "") {
+  const t = cleanTerm(term, 80).toLocaleLowerCase("et");
+  if (!t) return [];
+  const out = [t];
+  const add = (stem, end = "") => { if (stem.length >= 2) out.push(stem + end); };
+  // verbs: present (n, d, b, me, te, vad), past (sin, sid, s, sime, site, sid), da/ma forms
+  [["vad", "ma"], ["me", "ma"], ["te", "ma"], ["n", "ma"], ["d", "ma"], ["b", "ma"], ["sime", "ma"], ["site", "ma"], ["sin", "ma"], ["sid", "ma"], ["s", "ma"], ["da", "ma"], ["ta", "ma"], ["mas", "ma"], ["mast", "ma"], ["mata", "ma"]]
+    .forEach(([end, add2]) => { if (t.endsWith(end)) add(t.slice(0, -end.length), add2); });
+  // nouns and adjectives: case endings on the genitive stem, plural markers
+  ["sse", "st", "le", "lt", "ga", "ks", "na", "ni", "ta", "s", "l", "d", "t", "id", "de", "te", "sid", "i", "a", "e", "u"]
+    .forEach((end) => {
+      if (!t.endsWith(end)) return;
+      const stem = t.slice(0, -end.length);
+      add(stem);
+      // the genitive stem keeps a vowel the headword does not have: raamatu-t → raamat
+      if (/[aeiu]$/.test(stem)) add(stem.slice(0, -1));
+    });
+  return [...new Set(out)].slice(0, 12);
+}
+
+// a proper noun („Kassi”, a place) is not what a learner clicked on a lowercase word
+function isProperFor(hit, term = "") {
+  const value = String(hit?.wordValue || "");
+  const first = value.charAt(0);
+  return first && first !== first.toLocaleLowerCase("et") && String(term).charAt(0) === String(term).charAt(0).toLocaleLowerCase("et");
+}
+
+function paradigmHasForm(paradigms = [], term = "") {
+  const key = cleanTerm(term, 80).toLocaleLowerCase("et");
+  return (Array.isArray(paradigms) ? paradigms : []).some((p) => (p?.paradigmForms || p?.forms || []).some((f) => String(f?.value || "").toLocaleLowerCase("et") === key));
+}
+
+module.exports = { evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor };

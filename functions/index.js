@@ -9680,17 +9680,24 @@ async function translateText(input) {
 }
 
 async function estonianWordForms(input) {
-  const { cleanTerm, cacheKey, keyFormsFromParadigms, pickEkilexWord, formsLine } = require("./language-core");
+  const { cleanTerm, cacheKey, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor } = require("./language-core");
   const term = cleanTerm(input?.word, 80);
   if (!term || /\s/.test(term)) throw httpError(400, "One Estonian word required");
   const apiKey = String(process.env.EKILEX_API_KEY || "").trim();
   if (!/^[0-9a-fA-F]{32}$/.test(apiKey)) return { word: term, available: false, forms: [], line: "" };
-  return cachedLanguageAnswer(cacheKey("forms", term.toLocaleLowerCase("et")), async () => {
+  return cachedLanguageAnswer(cacheKey("forms2", term.toLocaleLowerCase("et")), async () => {
     const headers = { "ekilex-api-key": apiKey };
-    const search = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(term)}/eki`, { headers });
-    const word = pickEkilexWord(search?.words, term);
+    // the clicked word may be inflected: try likely headwords until one's paradigm contains the clicked form
+    let word = null;
+    let paradigms = null;
+    for (const candidate of headwordCandidates(term)) {
+      const search = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(candidate)}/eki`, { headers });
+      const hit = pickEkilexWord(search?.words, candidate);
+      if (!hit?.wordId || isProperFor(hit, term)) continue;
+      const details = await fetchJsonWithin(`${EKILEX_URL}paradigm/details/${encodeURIComponent(hit.wordId)}`, { headers });
+      if (paradigmHasForm(details, term)) { word = hit; paradigms = details; break; }
+    }
     if (!word?.wordId) return { word: term, available: true, found: false, forms: [], line: "" };
-    const paradigms = await fetchJsonWithin(`${EKILEX_URL}paradigm/details/${encodeURIComponent(word.wordId)}`, { headers });
     const picked = keyFormsFromParadigms(paradigms);
     return { word: term, headword: word.wordValue || term, available: true, found: picked.forms.length > 0, ...picked, line: formsLine(picked.forms), source: "EKI Ekilex (CC BY 4.0)" };
   });
