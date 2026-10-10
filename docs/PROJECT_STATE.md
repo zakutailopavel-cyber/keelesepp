@@ -7,6 +7,12 @@
 - Checks: vitest worksheet-studio + homework 208 passed (2 new tests); eslint ok; `require('./functions/index.js')` loads.
 - Manual gate: deploy `languageApi` (+ `staffOperationsApi` for the test student) — owner's OK required. Merge the client only after the deploy.
 - Limit: an inflected form (e.g. „söön”) gets forms only if Ekilex finds it; translation works for any form.
+## 2026-10-10 · agent/board-sheet-full-height — õpilane ei saanud tahvlil töölehte alla kerida
+
+- Base: `main` 81ad5ce.
+- Cause: on the board the worksheet player (`.ws-doc-player.is-inline`) and the teacher's embedded live view (`.ws-live.is-embedded`) kept `max-height: 75vh; overflow: auto`. Wheel and touch on the board move the board, so the inner scroll was unreachable and the sheet's bottom was cut off.
+- Fix (`board.css`): inside `.sb-underlay … .is-board` the canvas has `max-height: none; overflow: visible`; the underlay's ResizeObserver measures the full sheet, so the board pans to the end.
+- Checks: vitest board + worksheet-studio 190 passed; `vite build` ok.
 
 ## 2026-10-10 · agent/admin-test-student — administraator logib sisse testõpilasena
 
