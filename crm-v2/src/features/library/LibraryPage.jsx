@@ -10,6 +10,7 @@ import {
   Eye,
   FilePenLine,
   House,
+  Library,
   LayoutTemplate,
   Paperclip,
   Presentation,
@@ -372,6 +373,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         title="Õppevara"
         actions={<>
           <Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button>
+          <Button variant="secondary" onClick={() => navigate('/library/raamatukogu')}><Library size={17} /> Raamatukogu</Button>
           <details className="lib2-menu">
             <summary className="button button--primary"><Plus size={17} /> Loo uus <ChevronDown size={15} /></summary>
             <div className="lib2-menu__list">

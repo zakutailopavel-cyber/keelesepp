@@ -13,6 +13,7 @@ import ExpensesPage from '../features/expenses/ExpensesPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
 import GroupsPage from '../features/groups/GroupsPage.jsx';
 import LibraryPage from '../features/library/LibraryPage.jsx';
+import RaamatukoguPage from '../features/library/raamatukogu/RaamatukoguPage.jsx';
 import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePage.jsx';
 import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
@@ -68,6 +69,7 @@ export default function AppRoutes() {
             <Route path="tasks" element={<TasksPage />} />
             <Route path="groups" element={<GroupsPage />} />
             <Route path="library" element={<LibraryPage />} />
+            <Route path="library/raamatukogu" element={<RaamatukoguPage />} />
             <Route path="library/worksheets/convert" element={<ConversionQueuePage />} />
             <Route path="library/worksheets/book" element={<BookPage />} />
             <Route path="library/worksheets/live/:assignmentId" element={<LiveWorksheetPage />} />
