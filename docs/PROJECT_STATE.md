@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m14 — B2 M14 Ühiskond ja avalikud teenused (b1b2-066–070), kõik kolm etappi
+
+- Base: `main` 9357ca6. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module14.js`, stage B2-: public services (problem, affected group, practical solution), community and participation (initiative with a concrete effect, participatory budget), obligation / permission / prohibition (peab, tuleb, on vaja, võib, tohib, ei tohi, ei pea — ma/da infinitive), a local problem proposal (3-minute presentation + committee questions), Kontroll 14 (explaining abstract ideas simply). 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m13 — B2 M13 Keskkond ja vastutustundlik elu (b1b2-061–065), kõik kolm etappi
 
 - Base: `main` d982140. Previous modules are published to production (diff with production: 0 differences).
