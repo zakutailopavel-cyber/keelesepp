@@ -256,11 +256,16 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!globalThis.confirm(`Eemaldan ${band.kind === 'busy' ? 'punase' : band.kind === 'online' ? 'kollase' : 'rohelise'} aja ${toClock(band.start)}–${toClock(band.end)}${band.date ? '' : ' (iga nädal)'}?`)) return;
     saveWindows((availabilityFor(paintTeacher.uid)?.slots || []).filter((slot) => slot.id !== band.id));
   };
-  // a lesson never goes into a teacher's red window, and into a yellow one only as an online lesson
+  // a lesson never goes into a teacher's red window, and into a yellow one only as an online lesson — unless it is the
+  // teacher's own lesson: a teacher may override their own time after a confirmation; an admin may not override
+  // another teacher's (owner 2026-10-10)
   const assertTeacherWindow = ({ teacherUid, teacher, date, time, duration, online }) => {
     const windows = availabilityFor(teacherUid) || availabilityFor(teacher);
     const problem = windowProblem(windows, { date, time, duration, online: Boolean(online) }, teacher);
-    if (problem) throw new Error(problem);
+    if (!problem) return;
+    const own = Boolean(teacherUid) && teacherUid === user.uid;
+    if (own && globalThis.confirm?.(`${problem.split('. Vali')[0].split('. Märgi')[0]}. See on sinu enda aeg — panen tunni ikkagi?`)) return;
+    throw new Error(own ? 'Tund jäi panemata.' : problem);
   };
 
   const navigatePeriod = (direction) => setAnchor((current) => view === 'month' ? shiftMonth(current, direction) : shiftDate(current, direction * (view === 'week' ? 7 : 1)));
