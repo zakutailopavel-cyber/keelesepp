@@ -1,3 +1,13 @@
+## 2026-10-10 · UI fixes after owner review — Live Classroom (#500, #501), Õppevara and Õpik (#502)
+
+- Base: `main` 0274dde. All three PRs merged and deployed (Vercel success).
+- #500 Live Classroom workspace: one combobox `StudentPicker` (aria-label „Õpilane”) replaces search + labelled select; group mode keeps the plain filter.
+- #501 Student joins with one press: `useLiveCall({ autoAnswer })` — in the student room the teacher's offer is answered automatically; `manualJoin` shows „Liitu kõnega” only after a failure or the student's own hang-up. Group rooms (`useGroupCall`) unchanged.
+- #502 Õppevara: no phase chips on lesson rows; the eye on a curriculum lesson shows the sheets (tabs per phase, `lessonWorksheetsService.load`, published version first); the edit dialog lists the phase sheets (`PhaseLinks`); Õpik program mode assembles itself for the chosen level/module (race-safe `latestBuild` ref).
+- Checks: library + worksheet-studio + worksheet-generator 710/710; live-classroom 64/73 — the 9 failures are pre-existing on `main` (Node test env has no `localStorage`: lessonLink, useLiveCall devices/channel, one page test).
+- Known: A2 sheets are mostly drafts (Õppevara „Avasta 1/100”), so the A2 book shows only lesson 1 until they are published. Security review findings (Fable 5.1, read-only) were reported to the owner; fixes to `firestore.rules` / `functions` need owner approval.
+- Next step: owner decides which security findings to fix first.
+
 ## 2026-10-10 · agent/course-c1-m10 — C1 M10 Teadus, tehnoloogia ja tulevik (est-c1-091–100), kõik kolm etappi
 
 - Base: `main` 317153f. Previous modules are published to production (diff with production: 0 differences).
