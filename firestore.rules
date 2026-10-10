@@ -661,6 +661,12 @@ service cloud.firestore {
         );
     }
 
+    // fields of the teacher's check of a student's work (grade, feedback, skill-map movement)
+    function teacherReviewFields() {
+      return ['teacherGrade', 'teacherFeedback', 'reviewedAt', 'reviewedBy', 'reviewedByName',
+        'skillGrades', 'skillDeltas', 'skillCreated', 'seenByTeacher', 'annotations'];
+    }
+
     function ownsInvoice(invoice) {
       return signedIn()
         && (
@@ -992,7 +998,7 @@ service cloud.firestore {
       allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(resource.data.studentId);
       allow create: if isAdmin() || teacherCanCreate(request.resource.data);
       allow update: if isAdmin() || teacherCanUpdate(resource.data, request.resource.data);
-      allow delete: if isAdmin() || teacherCanRead(resource.data);
+      allow delete: if isAdmin() || teacherCanUpdate(resource.data, resource.data);
     }
 
     match /lessons/{lessonId} {
@@ -1026,7 +1032,7 @@ service cloud.firestore {
             )
           )
         );
-      allow delete: if (isAdmin() || teacherCanRead(resource.data))
+      allow delete: if (isAdmin() || teacherCanUpdate(resource.data, resource.data))
         && financialDateOpen(resource.data.get('date', ''))
         && (
           !resource.data.keys().hasAny(['invoiceId'])
@@ -1044,7 +1050,7 @@ service cloud.firestore {
 
     match /homework/{homeworkId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow create: if isStaff();
       allow update: if isStaff()
         || (
           ownsStudent(resource.data.studentId)
@@ -1331,7 +1337,12 @@ service cloud.firestore {
 
     match /messages/{messageId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow create: if isStaff()
+        || (
+          ownsStudent(request.resource.data.studentId)
+          && request.resource.data.get('fromUid', '') == uid()
+          && request.resource.data.get('fromRole', '') in ['', 'student', 'parent']
+        );
       allow update: if isStaff()
         || (
           ownsStudent(resource.data.studentId)
@@ -1392,11 +1403,18 @@ service cloud.firestore {
 
     match /exerciseResults/{resultId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff() || ownsStudent(request.resource.data.studentId);
+      allow create: if isStaff()
+        || (
+          ownsStudent(request.resource.data.studentId)
+          && !request.resource.data.keys().hasAny(teacherReviewFields())
+          && request.resource.data.get('reviewStatus', 'pending') == 'pending'
+        );
       allow update: if isStaff()
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.studentId == resource.data.studentId
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(teacherReviewFields())
+          && request.resource.data.get('reviewStatus', 'pending') == 'pending'
         );
       allow delete: if isAdmin();
     }
@@ -2211,7 +2229,11 @@ service cloud.firestore {
         && request.resource.data.label.size() > 0
         && request.resource.data.label.size() <= 300
         && request.resource.data.createdAt is string
-        && request.resource.data.date is string;
+        && request.resource.data.date is string
+        && (
+          isStaff()
+          || !request.resource.data.type.matches('^(lesson|invoice|finance|payment|schedule|group|parent|students?|task|curriculum|live_lesson|account|learning_material|learning_exercise|worksheet_doc|expense|accounting|homework)[.].*')
+        );
       allow update, delete: if isAdmin();
     }
 

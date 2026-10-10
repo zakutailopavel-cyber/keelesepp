@@ -6,7 +6,7 @@
     "shell": "firebase functions:shell",
     "start": "npm run shell",
     "test": "node --test",
-    "test:emulator": "node --test --test-concurrency=1 finance-emulator.integration.js learning-session-emulator.integration.js learning-profile-evidence-emulator.integration.js live-lesson-invitations-emulator.integration.js whiteboard-rules-emulator.integration.js lesson-worksheets-emulator.integration.js initial-assessment-rules-emulator.integration.js live-group-rooms-emulator.integration.js lessons-verified-emulator.integration.js worksheet-templates-emulator.integration.js student-skillmap-emulator.integration.js teacher-availability-emulator.integration.js security-finance-emulator.integration.js student-words-own-emulator.integration.js",
+    "test:emulator": "node --test --test-concurrency=1 finance-emulator.integration.js learning-session-emulator.integration.js learning-profile-evidence-emulator.integration.js live-lesson-invitations-emulator.integration.js whiteboard-rules-emulator.integration.js lesson-worksheets-emulator.integration.js initial-assessment-rules-emulator.integration.js live-group-rooms-emulator.integration.js lessons-verified-emulator.integration.js worksheet-templates-emulator.integration.js student-skillmap-emulator.integration.js teacher-availability-emulator.integration.js security-finance-emulator.integration.js security-access-emulator.integration.js student-words-own-emulator.integration.js",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },

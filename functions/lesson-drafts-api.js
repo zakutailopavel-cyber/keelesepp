@@ -1,5 +1,6 @@
 'use strict';
 const functions = require('firebase-functions/v1');
+const { isDisabledProfile } = require('./auth-core');
 const admin = require('firebase-admin');
 const {FieldValue, FieldPath} = require('firebase-admin/firestore');
 const {randomUUID} = require('node:crypto');
@@ -40,7 +41,7 @@ async function actorFor(req){
   if(!token)throw error(401,'Sign in required');
   let tokenData;try{tokenData=await admin.auth().verifyIdToken(token,true);}catch{throw error(401,'Invalid token');}
   const profile=(await db.collection('users').doc(tokenData.uid).get()).data()||{};
-  if(profile.disabled===true||profile.status==='disabled'||!['teacher','admin'].includes(profile.role))throw error(403,'Teacher or administrator required');
+  if(isDisabledProfile(profile)||profile.status==='disabled'||!['teacher','admin'].includes(profile.role))throw error(403,'Teacher or administrator required');
   return {uid:tokenData.uid,isAdmin:profile.role==='admin'};
 }
 function authorize(actor,record){if(record.ownerUid!==actor.uid&&!actor.isAdmin)throw error(403,'Outside your lesson library');}
