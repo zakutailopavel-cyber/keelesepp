@@ -7531,6 +7531,17 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    // two cards of one learner: preview, then merge (functions/student-merge.js)
+    if (req.path === "/students/merge") {
+      const { mergeStudentCards } = require("./student-merge");
+      try {
+        res.json(await mergeStudentCards(db, {
+          FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), actor: actorSnapshot(actor),
+          apply: req.body?.apply === true, includeFinance: req.body?.includeFinance === true, includeSchedule: req.body?.includeSchedule === true,
+        }));
+      } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+      return;
+    }
     if (req.path === "/accounts/reviews") {
       res.json({ reviews: await listAccountLinkReviews() });
       return;
