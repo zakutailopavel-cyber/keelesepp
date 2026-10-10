@@ -1,8 +1,8 @@
 import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, wheelView, zoomAt, pinchView,
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
   BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds } from './boardModel.js';
 import './board.css';
 
@@ -54,6 +54,7 @@ export default function StudentBoard({
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
   const [draft, setDraft] = useState(null);
   const [editing, setEditing] = useState(null);
+  const editorRef = useRef(null);
   const [history, setHistory] = useState({ undo: [], redo: [] });
   const [uploading, setUploading] = useState(false);
   // selection (tool „Vali”): ids; while dragging, the moved / resized preview and the selection frame
@@ -299,7 +300,7 @@ export default function StudentBoard({
     const element = editingText();
     if (!element) return;
     const next = { ...element, ...patch };
-    update(element, { ...patch, ...textBox(editing?.text ?? element.text, next.fontSize || 18, 120) }, 'Teksti ei saanud muuta.');
+    update(element, { ...patch, ...textBoxOf(next, editing?.text ?? element.text) }, 'Teksti ei saanud muuta.');
   };
   const pickSize = (key) => { setSize(key); setWidth(SIZES[key].pen); restyle({ fontSize: SIZES[key].font }); };
   const pickFont = (key) => { setFont(key); restyle({ fontFamily: key }); };
@@ -523,6 +524,13 @@ export default function StudentBoard({
     if (!globalThis.confirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.')) return;
     service.clear(studentId, pageId).then(() => setHistory({ undo: [], redo: [] })).catch(fail('Tahvlit ei saanud tühjendada.'));
   };
+  // the saved size of a text: wrapped estimate, or the editor's measured height when the browser wrapped more lines
+  const measuredBox = (element, value) => {
+    const box = textBoxOf(element, value);
+    const area = editorRef.current;
+    const real = area?.scrollHeight ? Math.ceil((area.scrollHeight + 4) / view.scale) : 0;
+    return { ...box, h: Math.max(box.h, real) };
+  };
   const saveText = () => {
     const element = byId.get(editing?.id);
     const text = editing?.text ?? '';
@@ -531,7 +539,7 @@ export default function StudentBoard({
     if (!text.trim()) { service.remove(studentId, pageId, element.id).catch(fail('Tühja elementi ei saanud eemaldada.')); return; }
     if (text === element.text) return;
     const value = text.slice(0, element.type === 'note' ? 2000 : 4000);
-    const box = element.type === 'text' ? textBox(value, element.fontSize || 18, 120) : {};
+    const box = element.type === 'text' ? measuredBox(element, value) : {};
     update(element, { text: value, ...box }, 'Teksti ei saanud salvestada.');
   };
   const pickImage = async (file) => {
@@ -560,7 +568,7 @@ export default function StudentBoard({
     }
     if (element.type === 'note' || element.type === 'text') {
       const isNote = element.type === 'note';
-      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={element.h} onDoubleClick={(event) => { event.stopPropagation(); if (staff || !teacherMaterial(element)) setEditing({ id: element.id, text: element.text || '' }); }}>
+      return <foreignObject {...common} x={element.x} y={element.y} width={element.w} height={isNote ? element.h : Math.max(element.h, textBox(element.text || '', element.fontSize || 18, 60, { width: element.w }).h)} onDoubleClick={(event) => { event.stopPropagation(); if (staff || !teacherMaterial(element)) setEditing({ id: element.id, text: element.text || '' }); }}>
         <div data-element-id={element.id} className={isNote ? 'sb-note' : 'sb-text'} style={isNote ? { background: element.color } : { color: element.color, fontSize: element.fontSize || 18, fontFamily: fontCss(element.fontFamily) }}>{element.text || (isNote ? 'Topeltklõps, et kirjutada' : 'Tekst')}</div>
       </foreignObject>;
     }
@@ -573,6 +581,14 @@ export default function StudentBoard({
   };
 
   const editingElement = editing ? byId.get(editing.id) : null;
+  // while typing, a text box wraps and grows downwards; the textarea's real height wins over the estimate
+  const editBox = editingElement?.type === 'text' ? textBoxOf(editingElement, editing.text) : null;
+  useLayoutEffect(() => {
+    const area = editorRef.current;
+    if (!area || !editBox) return;
+    area.style.height = 'auto';
+    area.style.height = `${Math.max(editBox.h * view.scale, area.scrollHeight + 4)}px`;
+  });
   const palette = tool === 'note' ? NOTE_COLORS : tool === 'marker' ? MARKER_COLORS : room ? ROOM_COLORS : COLORS;
   const activeColor = tool === 'note' ? noteColor : tool === 'marker' ? marker : color;
   const chooseColor = (value) => {
@@ -622,10 +638,11 @@ export default function StudentBoard({
       </g>
     </svg>
     {editingElement ? <textarea
-      className="sb-editor"
+      ref={editorRef}
+      className={editBox ? 'sb-editor sb-editor--text' : 'sb-editor'}
       aria-label={editingElement.type === 'note' ? 'Märkmepaberi tekst' : 'Tekst'}
       autoFocus
-      style={{ left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: editingElement.w * view.scale, height: editingElement.h * view.scale, fontSize: (editingElement.type === 'note' ? 15 : editingElement.fontSize || 18) * view.scale, ...(editingElement.type === 'text' ? { fontFamily: fontCss(editingElement.fontFamily), color: editingElement.color } : {}) }}
+      style={{ left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: (editBox || editingElement).w * view.scale, height: (editBox || editingElement).h * view.scale, fontSize: (editingElement.type === 'note' ? 15 : editingElement.fontSize || 18) * view.scale, ...(editingElement.type === 'text' ? { fontFamily: fontCss(editingElement.fontFamily), color: editingElement.color } : {}) }}
       value={editing.text}
       maxLength={editingElement.type === 'note' ? 2000 : 4000}
       onChange={(event) => setEditing({ ...editing, text: event.target.value })}
