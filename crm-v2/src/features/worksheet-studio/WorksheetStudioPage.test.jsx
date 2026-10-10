@@ -126,7 +126,10 @@ describe('WorksheetStudioPage', () => {
   }, 20000);
 
   it('the block bar changes the look from small menus; the icon rail opens and closes the drawer', async () => {
-    const { container } = renderAt('/library/worksheets/lesson-1', repo());
+    // the old textbook theme draws block colours (Klassika, the default, keeps every card white)
+    const doc = sampleDocument();
+    doc.meta.theme = 'opik';
+    const { container } = renderAt('/library/worksheets/lesson-1', repo({ load: vi.fn().mockResolvedValue({ document: doc, source: 'worksheetDoc', lesson: { id: 'lesson-1' } }) }));
     await screen.findByText('Töölehe konstruktor');
     const card = () => container.querySelectorAll('.ws-page .ws-card')[1];
     fireEvent.click(card());

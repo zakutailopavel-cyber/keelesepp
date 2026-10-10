@@ -12,7 +12,7 @@ import { openFloatingEditor } from './floatingEditor.js';
 import MarksLayer from './Marks.jsx';
 // Tiptap is loaded only when a teacher opens a text for formatting (students never download it)
 const RichInlineEditor = lazy(() => import('./RichInlineEditor.jsx'));
-import { themedTone } from './look.js';
+import { themeClass, themedTone } from './look.js';
 
 // texts that may carry formatting (bold, colour, highlight) — they are rendered with <Md>
 const RICH_FIELDS = new Set(['instruction', 'text', 'passage']);
@@ -109,7 +109,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
 const NO_ANSWERS = () => ({ interactive: false, review: false, get: () => undefined, set: () => {}, state: () => undefined, focus: {}, setFocus: () => {} });
 export function BlockPreview({ block, theme = '' }) {
   return (
-    <div className={`ws-root ws-thumb mode-print ${theme ? `theme-${theme}` : ''}`} aria-hidden="true" inert>
+    <div className={`ws-root ws-thumb mode-print ${themeClass(theme)}`} aria-hidden="true" inert>
       <div className="ws-thumb-page"><div className="ws-row"><Card block={{ ...block, span: COLUMNS, width: 'full' }} num={1} mode="print" ctx={NO_ANSWERS} theme={theme} /></div></div>
     </div>
   );
@@ -350,7 +350,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   );
 
   return (
-    <div ref={rootRef} className={`ws-root mode-${mode} ${doc.meta.theme ? `theme-${doc.meta.theme}` : ''}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
+    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
       {/* hidden measuring layer, same width and styles as a page */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true">
         <div className="ws-measure-head"><Header meta={doc.meta} /></div>

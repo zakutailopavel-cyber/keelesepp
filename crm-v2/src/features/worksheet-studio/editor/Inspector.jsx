@@ -1,7 +1,7 @@
 import { BLOCKS, COLUMN_BLOCKS, SHUFFLE_BLOCKS } from '../engine/registry.js';
 import { TONES } from '../engine/schema.js';
 import { Text, Area, Select } from './fields.jsx';
-import { THEMES } from '../engine/look.js';
+import { DEFAULT_THEME, THEMES, sheetTheme } from '../engine/look.js';
 import AiSentences from './AiSentences.jsx';
 import AiReading from './AiReading.jsx';
 import SentenceFlags from './SentenceFlags.jsx';
@@ -76,7 +76,7 @@ export function SheetInspector({ doc, setMeta }) {
         <span className="ed-label">Lehe teema</span>
         <div className="ed-presets" role="group" aria-label="Lehe teema">
           {THEMES.map((theme) => (
-            <button type="button" key={theme.key || 'book'} aria-pressed={(m.theme || '') === theme.key} className={`ed-preset ${(m.theme || '') === theme.key ? 'on' : ''}`} style={{ background: (theme.tones?.blue || TONES.blue).card, borderColor: (theme.tones?.blue || TONES.blue).badge }} onClick={() => setMeta({ theme: theme.key || undefined })}>{theme.label}</button>
+            <button type="button" key={theme.key} aria-pressed={sheetTheme(m.theme) === theme.key} className={`ed-preset ${sheetTheme(m.theme) === theme.key ? 'on' : ''}`} style={{ background: (theme.tones?.blue || TONES.blue).card, borderColor: (theme.tones?.blue || TONES.blue).badge }} onClick={() => setMeta({ theme: theme.key === DEFAULT_THEME ? undefined : theme.key })}>{theme.label}</button>
           ))}
         </div>
         <Text label="Pealkiri" value={m.title} onChange={(v) => setMeta({ title: v })} />

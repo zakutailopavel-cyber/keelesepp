@@ -19,6 +19,20 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/klassika-default — Klassika (valge) on maja põhiteema
+
+- Omanik valis põhiteemaks Klassika (valge paber).
+- `look.js`:
+  - `DEFAULT_THEME = 'klassika'`, `sheetTheme(key)` ja `themeClass(key)`;
+  - teemata lehte joonistatakse Klassikas;
+  - vana õpiku välimus on nüüd valik „Õpik (vana)” (`meta.theme = 'opik'`).
+- `Sheet.jsx` ja konstruktori teemavalik kasutavad seda.
+- See muudab ka juba avaldatud teemata lehtede (Avasta 001–050 jt) välimust, sisu jääb samaks.
+- Kontrollid:
+  - worksheet-studio + library + homework 229/229 (kaks testi uuendatud uue vaikimisi teema järgi);
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/merge-student-cards — ühe õpilase kahe kaardi liitmine
 
 - Omanik: „объединяй”.
