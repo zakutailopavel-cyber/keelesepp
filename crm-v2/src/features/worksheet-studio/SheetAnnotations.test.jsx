@@ -56,4 +56,14 @@ describe('SheetAnnotations', () => {
     expect(saved[1]).toMatchObject({ kind: 'field', blockId: 'b1', fieldIndex: 0, selectedText: 'koer', parandus: 'koera', color: 'error' });
     expect(saved[1].at).toBeUndefined();
   });
+
+  it('does not open a whole-answer mark on a plain click in a longer answer', async () => {
+    const { container } = render(<SheetAnnotations annotations={[]} editable onChange={vi.fn()}>{page('Minu koer on suur')}</SheetAnnotations>);
+    fireEvent.mouseUp(container.querySelector('input.ws-line'));
+    expect(screen.queryByRole('dialog', { name: 'Uus märkus' })).toBeNull();
+    const input = container.querySelector('input.ws-line');
+    input.setSelectionRange(5, 9);
+    fireEvent.mouseUp(input);
+    expect(screen.getByRole('dialog', { name: 'Uus märkus' })).toHaveTextContent('„koer”');
+  });
 });

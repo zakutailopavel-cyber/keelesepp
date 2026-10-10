@@ -23,3 +23,14 @@ describe('LearnerTextAnalysis', () => {
     } finally { req.mockRestore(); sub.mockRestore(); }
   });
 });
+
+describe('fixParts', () => {
+  it('puts the learner words before the correction', async () => {
+    const { fixParts } = await import('./LearnerTextAnalysis.jsx');
+    const parts = fixParts('Palju õpilasi tahab jalutada', 'Paljud õpilased tahavad jalutada');
+    const firstIns = parts.findIndex((p) => p.type === 'ins');
+    const firstDel = parts.findIndex((p) => p.type === 'del');
+    expect(firstDel).toBeLessThan(firstIns);
+    expect(parts.filter((p) => p.type === 'del').map((p) => p.text).join(' ')).toBe('Palju õpilasi tahab');
+  });
+});

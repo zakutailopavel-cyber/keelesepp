@@ -18,6 +18,15 @@
 - Privacy: the learner's text (without a name) goes to the school Mac and to EKI's public evaluation service (an Estonian state institute).
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
+
+## 2026-10-10 · agent/review-polish — märkused kirjalikus vastuses, parandused loetavamaks
+
+- `sheetAnnotationsModel.js` `fieldTextRects`: mõõtmise koopia pannakse välja kõrvale (sama CSS-zoom), seega märgitud sõna kast on täpselt sõna peal ka pikas vastuses (enne libisesid kaugemad märkused tühjadele ridadele). Brauseris kontrollitud zoom 0.72 juures.
+- `SheetAnnotations.jsx`: tavaline klõps mitmesõnalises vastuses ei ava enam märkust kogu tekstile (õpetaja valib sõna); tühi / ühesõnaline vastus märgitakse tervikuna nagu enne.
+- `LearnerTextAnalysis.jsx` `fixParts`: igas muudatuses kõigepealt õpilase läbikriipsutatud sõnad, siis parandus; tühja vormisildiga EKI vormid jäetakse „Kasutab juba” reast välja.
+- Kontrollid: vitest homework + worksheet-studio 197/197, eslint 0 vigu, `npm run build` õnnestus.
+- Järgmine ohutu samm: omanik kontrollib märkust pikas kirjalikus vastuses.
+
 ## 2026-10-10 — EKI use situations („Kasutusolukorrad”) in the constructor + links to all EKI teacher tools — branch `agent/eki-usecases`
 
 - Base: `main` (after #424).
