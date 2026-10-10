@@ -7318,7 +7318,14 @@ async function testStudentSession({ actor, studentId = "" }) {
   const uid = String(card.data().studentUid).trim();
   const profile = await db.collection("users").doc(uid).get();
   if (!profile.exists || profile.data().role !== "student") throw httpError(409, "Testõpilase konto ei ole õpilase roll.");
-  const token = await admin.auth().createCustomToken(uid, { testSession: true });
+  let token;
+  try {
+    token = await admin.auth().createCustomToken(uid, { testSession: true });
+  } catch (error) {
+    // the functions service account needs „Service Account Token Creator” (iam.serviceAccounts.signBlob)
+    if (String(error?.code || "").includes("insufficient-permission")) throw httpError(503, "Serveril puudub õigus sisselogimisvõtit luua: anna teenusekontole keelesepp-5136b@appspot.gserviceaccount.com roll „Service Account Token Creator” (Google Cloud → IAM).");
+    throw error;
+  }
   console.info("test-student-session", { by: actor.decoded.uid, uid, studentId: card.id });
   return { token, studentId: card.id, studentName: card.data().name || "Testõpilane" };
 }
