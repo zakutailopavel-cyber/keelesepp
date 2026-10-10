@@ -136,6 +136,16 @@ export const THEMES = [
   { key: 'bw', label: 'Must-valge', tones: {
     blue: { card: '#ffffff', badge: '#2c2c2a' }, green: { card: '#f4f4f2', badge: '#2c2c2a' }, peach: { card: '#ffffff', badge: '#444441' },
     cream: { card: '#f4f4f2', badge: '#444441' }, sky: { card: '#ffffff', badge: '#2c2c2a' }, white: { card: '#ffffff', badge: '#2c2c2a' } } },
+  // owner's references (2026-10-10): a clean airy page, a magazine page, a classic printed textbook
+  { key: 'selge', label: 'Selge', tones: {
+    blue: { card: '#ffffff', badge: '#1170c0' }, green: { card: '#ffffff', badge: '#1170c0' }, peach: { card: '#ffffff', badge: '#1170c0' },
+    cream: { card: '#ffffff', badge: '#1170c0' }, sky: { card: '#ffffff', badge: '#1170c0' }, white: { card: '#ffffff', badge: '#1170c0' } } },
+  { key: 'ajakiri', label: 'Ajakiri', tones: {
+    blue: { card: '#ffffff', badge: '#2f6f9f' }, green: { card: '#ffffff', badge: '#3f7d4e' }, peach: { card: '#ffffff', badge: '#c0563b' },
+    cream: { card: '#ffffff', badge: '#a0702c' }, sky: { card: '#ffffff', badge: '#2f6f9f' }, white: { card: '#ffffff', badge: '#7a4a2a' } } },
+  { key: 'klassika', label: 'Klassika', tones: {
+    blue: { card: '#fbf7ec', badge: '#1d2b4a' }, green: { card: '#fbf7ec', badge: '#1d2b4a' }, peach: { card: '#fbf7ec', badge: '#1d2b4a' },
+    cream: { card: '#fbf7ec', badge: '#1d2b4a' }, sky: { card: '#fbf7ec', badge: '#1d2b4a' }, white: { card: '#fbf7ec', badge: '#1d2b4a' } } },
 ];
 export const themeOf = (key) => THEMES.find((theme) => theme.key === (key || '')) || THEMES[0];
 // a tone as the sheet's theme draws it (falls back to the brand tone)

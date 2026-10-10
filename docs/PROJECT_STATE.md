@@ -19,6 +19,20 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/sheet-themes — kolm uut töölehe kujundust omaniku näidiste järgi
+
+- Omanik saatis viis näidist (Twee, kohvik, lennujaam, Egiptus) ja ütles, et praegune värvigamma tundub lapsik. `look.js` `THEMES` sai kolm uut teemat; konstruktori „Teema” valikus on need automaatselt.
+  - **Selge** (Twee): Rubik, üks sinine aktsent, suured numbrid ilma ringita, tase suures ringis vasakus nurgas, „Oskused” helesinise ribana, tekst ja sõnapank helesinisel taustal.
+  - **Ajakiri** (kohvik / Egiptus): soe paber, raamiga ülesanded, värvilised pealkirjad, käekirjas pealkiri, punktiirraamiga lugemistekst, tume lint jaluses.
+  - **Klassika** (lennujaam): kreemjas paber, topeltraam, ruudukujulised numbrid, VERSAALIS pealkirjad (Josefin Sans), Lora tekst, õhukesed jooned.
+- Muudetud on ainult kujundus (`sheet.css` teemaklassid); sisu ja andmed ei muutu. Teema valitakse lehe kaupa (`meta.theme`).
+- Kontrollid:
+  - worksheet-studio 155/155;
+  - eslint;
+  - build;
+  - kolm teemat kontrollitud brauseri demo-lehel lehega a2b1-012 Kasuta.
+- Järgmine samm: omanik valib teema, seejärel saab sellest kursuse lehtede vaikimisi teema.
+
 ## 2026-10-10 · agent/categorize-undo — „Sorteeri gruppidesse”: paigutatud sõna saab tagasi võtta
 
 - Omanik: kui sõna on gruppi pandud, ei saa seda enam eemaldada.
