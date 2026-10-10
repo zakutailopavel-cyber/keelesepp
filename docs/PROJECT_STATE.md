@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-c1-m06 — C1 M06 Tervis, heaolu ja sotsiaalne toimetulek (est-c1-051–060), kõik kolm etappi
+
+- Base: `main` 3f7ad42. Previous modules are published to production (diff with production: 0 differences).
+- patsiendisuhtlus, tervisekäitumine, vaimne heaolu, sotsiaalne tugi, vananemine, riskikommunikatsioon, tõendid ja põhjendamine, relatiivlaused, kõrvallausete süsteem, progressikontroll 6
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-c1-m05 — C1 M05 Töö, professionaalne suhtlus ja organisatsioon (est-c1-041–050), kõik kolm etappi
 
 - Base: `main` 1cbfc47. Previous modules are published to production (diff with production: 0 differences).
