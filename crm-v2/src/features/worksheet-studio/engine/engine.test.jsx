@@ -157,3 +157,23 @@ describe('legacy worksheetData adapter', () => {
     expect(container.querySelectorAll('.ws-page .ws-card').length).toBe(d.blocks.length);
   });
 });
+
+describe('categorize interaction', () => {
+  it('puts a word into a group and takes it back on click', async () => {
+    const { render, fireEvent, screen } = await import('@testing-library/react');
+    const { BLOCKS } = await import('./registry.js');
+    const answers = {};
+    const ctx = { interactive: true, focus: {}, get: (k) => answers[k], set: (k, v) => { answers[k] = v; }, state: () => '', setFocus: (id, v) => { ctx.focus[id] = v; } };
+    const View = BLOCKS.categorize.View;
+    const data = { groups: [{ name: 'Välimus', words: 'pikk' }, { name: 'Iseloom', words: 'rahulik' }] };
+    const { rerender } = render(<View data={data} ctx={ctx} id="c" />);
+    fireEvent.click(screen.getByText('pikk'));
+    rerender(<View data={data} ctx={{ ...ctx }} id="c" />);
+    fireEvent.click(screen.getByText('Iseloom'));
+    expect(answers.w0).toBe('1');
+    rerender(<View data={data} ctx={{ ...ctx }} id="c" />);
+    const placed = screen.getAllByText('pikk').find((el) => el.classList.contains('ws-cat-item'));
+    fireEvent.click(placed);
+    expect(answers.w0).toBe('');
+  });
+});
