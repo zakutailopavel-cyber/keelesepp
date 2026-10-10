@@ -4,9 +4,11 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { homeworkService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
 import { INVITATION_STATUS, newestInvitation, normalizeInvitation } from '../live-classroom/invitationModel.js';
-import { occurrencesForDates, toIsoDate } from '../calendar/calendarView.js';
+import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
+import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { petSvg } from './petArt.js';
 import { PAGE_HINTS, TOUR_STEPS, celebrationHint, companionHint } from './companionModel.js';
+import { REACTIONS, dayPart, lifeLines, nextLesson, season, seasonalWear } from './petLife.js';
 import { PET_CELEBRATE_EVENT, PET_EVENT, PET_QUIET_EVENT } from './petEvents.js';
 import './pet.css';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
@@ -18,9 +20,11 @@ const store = {
 };
 const reducedMotion = () => typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-function PetFigure({ kind, mood, stage = 1 }) {
-  return <span className="pet-figure" dangerouslySetInnerHTML={{ __html: petSvg(kind, mood, stage) }} />;
+function PetFigure({ kind, mood, stage = 1, wearing = {}, figureRef = null }) {
+  return <span className="pet-figure" ref={figureRef} dangerouslySetInnerHTML={{ __html: petSvg(kind, mood, stage, wearing) }} />;
 }
+const pickOne = (list) => list[Math.floor(Math.random() * list.length)];
+const IDLE_MS = { night: 40 * 1000, day: 150 * 1000 };
 
 // First-visit tour: the pet points at the menu items one by one.
 function PetTour({ pet, onDone }) {
@@ -88,7 +92,7 @@ function PetTour({ pet, onDone }) {
 // and homework, and gives a short tour on the first visit. Students only; never in staff preview.
 export default function PetCompanion({
   pets = petsService, invitationsService = liveLessonInvitationsService, students = studentsService,
-  schedule = scheduleService, homework = homeworkService, now: nowProp,
+  schedule = scheduleService, homework = homeworkService, wordsService = studentWordsService, now: nowProp,
 }) {
   const { user, preview } = useAuth();
   const navigate = useNavigate();
@@ -113,6 +117,23 @@ export default function PetCompanion({
   const [walking, setWalking] = useState(false);
   const laneRef = useRef(null);
   const [laneW, setLaneW] = useState(0);
+  const [laneLeft, setLaneLeft] = useState(0);
+  // alive: dragged with the mouse, falls down when let go, sleeps when nobody moves, follows the cursor with its eyes
+  const [y, setY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [falling, setFalling] = useState(false);
+  const [landed, setLanded] = useState(false);
+  const [asleep, setAsleep] = useState(false);
+  const [waking, setWaking] = useState(false);
+  const [petted, setPetted] = useState(false);
+  const [chatter, setChatter] = useState(null);
+  const drag = useRef(null);
+  const justDragged = useRef(false);
+  const asleepRef = useRef(false);
+  const dirRef = useRef(1);
+  const figureRef = useRef(null);
+  const pettingTimer = useRef(0);
+  const [lastSeenAt] = useState(() => Number(store.get(`ks-pet-seen-${uid}`)) || 0);
 
   // pet (and changes made on "Minu õpingud")
   useEffect(() => {
@@ -153,15 +174,23 @@ export default function PetCompanion({
         homework.listWorksheetAssignmentsByStudentIds ? homework.listWorksheetAssignmentsByStudentIds(ids) : [],
       ]);
       const today = toIsoDate();
-      const lessons = occurrencesForDates(scheduleLists.flat(), [today]);
+      const upcoming = occurrencesForDates(scheduleLists.flat(), Array.from({ length: 14 }, (_, i) => shiftDate(today, i)));
+      const lessons = upcoming.filter((l) => l.occurrenceDate === today);
+      const [words, speech] = await Promise.all([
+        ids[0] && wordsService?.listForStudent ? wordsService.listForStudent(ids[0]).catch(() => []) : [],
+        pets.lessonStats ? Promise.resolve().then(() => pets.lessonStats(uid)).catch(() => []) : [],
+      ]);
       const open = [
         ...hw.filter(isHomeworkOpen).map((h) => h.due),
         ...sheets.filter((w) => w.status !== 'done').map((w) => w.dueDate),
       ].filter(Boolean);
-      if (alive) setInfo({ lessons, dueToday: open.filter((d) => d === today).length, overdue: open.filter((d) => d < today).length, lang: /inglise|english/i.test(mine[0]?.subject || '') ? 'en' : 'et' });
+      if (alive) setInfo({ loaded: true, upcoming, words, speech, lessons, dueToday: open.filter((d) => d === today).length, overdue: open.filter((d) => d < today).length, lang: /inglise|english/i.test(mine[0]?.subject || '') ? 'en' : 'et' });
     })().catch(() => {});
     return () => { alive = false; };
-  }, [homework, isStudent, pet, schedule, students, uid]);
+  }, [homework, isStudent, pet, pets, schedule, students, uid, wordsService]);
+
+  // the last visit, for „I missed you”
+  useEffect(() => { if (isStudent) store.set(`ks-pet-seen-${uid}`, String(Date.now())); }, [isStudent, uid]);
 
   useEffect(() => {
     if (!isStudent || nowProp) return undefined;
@@ -170,12 +199,13 @@ export default function PetCompanion({
   }, [isStudent, nowProp]);
 
   const invitation = useMemo(() => newestInvitation(invites.map((i) => normalizeInvitation(i.id, i, tick)), [INVITATION_STATUS.PENDING]), [invites, tick]);
-  const hint = companionHint({ now: tick, invitation, todayLessons: info.lessons, dueToday: info.dueToday, overdue: info.overdue, petName: pet?.name || '', tipIndex, lang: info.lang });
+  const personal = useMemo(() => (info.loaded ? lifeLines({ now: tick, lastSeenAt, lesson: nextLesson(info.upcoming, tick), speech: info.speech, words: info.words, lang: info.lang }) : []), [info, lastSeenAt, tick]);
+  const hint = companionHint({ now: tick, invitation, todayLessons: info.lessons, dueToday: info.dueToday, overdue: info.overdue, petName: pet?.name || '', tipIndex, lang: info.lang, personal });
 
   const laneWidth = useCallback(() => Math.max(0, (laneRef.current?.clientWidth || 0) - SIZE - 16), []);
 
   useEffect(() => {
-    const measure = () => setLaneW(laneWidth());
+    const measure = () => { setLaneW(laneWidth()); setLaneLeft(laneRef.current?.getBoundingClientRect().left || 0); };
     measure();
     window.addEventListener('resize', measure);
     return () => window.removeEventListener('resize', measure);
@@ -194,8 +224,8 @@ export default function PetCompanion({
   const pageHint = pagePath && !seenPages.has(pagePath) && tourDone ? { ...PAGE_HINTS[pagePath], key: `page-${pagePath}`, page: pagePath } : null;
   // in the lesson room the pet stays put and only says the one page hint
   const urgent = !inRoom && hint.urgent && !closedKeys.has(hint.key) ? hint : null;
-  const bubble = openHint || cheer || urgent || pageHint;
-  const atInvitation = Boolean(invitation && bubble?.urgent);
+  const bubble = dragging ? null : openHint || cheer || urgent || pageHint || chatter;
+  const atInvitation = Boolean(invitation && bubble?.urgent) && !dragging && !y;
   const shownX = atInvitation ? Math.max(0, laneW - (window.innerWidth > 640 ? 470 : 0)) : x;
   const talking = Boolean(bubble);
   const closeBubble = () => {
@@ -203,13 +233,79 @@ export default function PetCompanion({
     if (bubble?.page) { store.set(`ks-pet-page-${uid}-${bubble.page}`, '1'); setSeenPages((p) => new Set(p).add(bubble.page)); }
     if (bubble) setClosedKeys((k) => new Set(k).add(bubble.key));
     setOpenHint(null);
+    setChatter(null);
   };
+
+  // a short line that closes by itself (reactions, the daily personal greeting)
+  useEffect(() => {
+    if (!chatter) return undefined;
+    const t = window.setTimeout(() => setChatter(null), chatter.ttl || 4000);
+    return () => window.clearTimeout(t);
+  }, [chatter]);
+
+  // once a day the pet says something personal by itself (missed you, good morning, the next lesson …)
+  const ready = active && !hidden && !touring && !inRoom && personal.length > 0;
+  useEffect(() => {
+    if (!ready) return undefined;
+    const key = `ks-pet-said-${uid}`;
+    const today = toIsoDate();
+    if (store.get(key) === today) return undefined;
+    const t = window.setTimeout(() => { store.set(key, today); setChatter({ ...personal[0], key: `life-${personal[0].key}`, ttl: 9000 }); }, 3000);
+    return () => window.clearTimeout(t);
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // falls asleep when nobody moves (sooner at night); any movement wakes it with a stretch
+  useEffect(() => { asleepRef.current = asleep; }, [asleep]);
+  useEffect(() => {
+    if (!active || hidden || inRoom) return undefined;
+    let timer = 0;
+    let last = 0;
+    const later = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setAsleep(true), dayPart(Date.now()) === 'night' ? IDLE_MS.night : IDLE_MS.day);
+    };
+    const onActivity = () => {
+      const t = Date.now();
+      if (t - last < 800) return;
+      last = t;
+      if (asleepRef.current) { setAsleep(false); setWaking(true); window.setTimeout(() => setWaking(false), 1300); }
+      later();
+    };
+    later();
+    const events = ['pointermove', 'keydown', 'scroll', 'touchstart'];
+    events.forEach((name) => window.addEventListener(name, onActivity, { passive: true, capture: true }));
+    return () => { window.clearTimeout(timer); events.forEach((name) => window.removeEventListener(name, onActivity, { capture: true })); };
+  }, [active, hidden, inRoom]);
+
+  // the eyes follow the cursor (a few SVG units, no re-render)
+  useEffect(() => { dirRef.current = dir; }, [dir]);
+  useEffect(() => {
+    if (!active || hidden || reducedMotion()) return undefined;
+    let frame = 0;
+    const onMove = (event) => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const el = figureRef.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        const dx = event.clientX - (r.left + r.width / 2);
+        const dy = event.clientY - (r.top + r.height * 0.4);
+        const len = Math.hypot(dx, dy) || 1;
+        const k = Math.min(1, len / 240) * 3.5;
+        el.style.setProperty('--lx', `${((dx / len) * k * dirRef.current).toFixed(2)}px`);
+        el.style.setProperty('--ly', `${((dy / len) * k).toFixed(2)}px`);
+      });
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => { window.removeEventListener('pointermove', onMove); if (frame) window.cancelAnimationFrame(frame); };
+  }, [active, hidden]);
 
   // idle walk along the bottom lane
   useEffect(() => {
     if (!active || hidden || touring || inRoom || quiet || reducedMotion()) return undefined;
     const t = window.setInterval(() => {
-      if (talking) return;
+      if (talking || asleepRef.current || drag.current) return;
       const w = laneWidth();
       setX((prev) => {
         const next = Math.round(Math.random() * w);
@@ -229,6 +325,8 @@ export default function PetCompanion({
   const show = () => { store.set(`ks-pet-hidden-${uid}`, '0'); setLocalHidden(false); remember({ hidden: false }); };
   const finishTour = () => { store.set(`ks-pet-tour-${uid}`, '1'); setLocalTourDone(true); remember({ tourDoneAt: new Date().toISOString() }); };
   const talk = () => {
+    if (justDragged.current) { justDragged.current = false; return; }
+    if (asleep) { setAsleep(false); setWaking(true); window.setTimeout(() => setWaking(false), 1300); }
     if (bubble) { closeBubble(); return; }
     setOpenHint(hint);
     if (!hint.urgent) setTipIndex((n) => n + 1);
@@ -238,24 +336,85 @@ export default function PetCompanion({
     return <button type="button" className="pet-dock" onClick={show} aria-label={`Kutsu ${pet.name} tagasi`}><PetFigure kind={pet.kind} mood="calm" /></button>;
   }
 
-  const mood = bubble?.key === 'celebrate' ? 'proud' : bubble?.urgent ? 'happy' : 'calm';
+  // drag: press and move to pick the pet up; let go and it falls back down onto the bottom lane
+  const onPointerDown = (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    // no text selection or native image drag while the pet is held
+    if (event.pointerType === 'mouse') event.preventDefault();
+    drag.current = { sx: event.clientX, sy: event.clientY, x0: shownX, y0: y, moved: false };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+  const onPointerMove = (event) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = event.clientX - d.sx;
+    const dy = event.clientY - d.sy;
+    if (!d.moved && Math.hypot(dx, dy) < 6) return;
+    if (!d.moved) { d.moved = true; setDragging(true); setFalling(false); setAsleep(false); setPetted(false); setOpenHint(null); setChatter(null); }
+    const rect = laneRef.current?.getBoundingClientRect();
+    const lane = { left: rect?.left || 0, bottom: rect?.bottom || window.innerHeight };
+    const minX = 4 - (lane.left + 8);
+    const maxX = window.innerWidth - lane.left - 8 - SIZE - 4;
+    setX(Math.round(Math.max(minX, Math.min(maxX, d.x0 + dx))));
+    setY(Math.round(Math.max(Math.min(0, SIZE + 4 - lane.bottom), Math.min(0, d.y0 + dy))));
+    if (Math.abs(event.movementX || 0) > 1) setDir(event.movementX > 0 ? 1 : -1);
+  };
+  const onPointerUp = () => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d?.moved) return;
+    justDragged.current = true;
+    // the click that ends a drag must not press whatever is under the pet
+    const swallow = (event) => { event.stopPropagation(); event.preventDefault(); };
+    window.addEventListener('click', swallow, { capture: true, once: true });
+    window.setTimeout(() => { justDragged.current = false; window.removeEventListener('click', swallow, { capture: true }); }, 0);
+    setDragging(false);
+    setFalling(true);
+    setX((prev) => Math.max(0, Math.min(laneWidth(), prev)));
+    setY(0);
+    window.setTimeout(() => { setFalling(false); setLanded(true); }, 560);
+    window.setTimeout(() => setLanded(false), 1000);
+    const [text, ru] = pickOne(REACTIONS.drop);
+    setChatter({ key: `drop-${Date.now()}`, text, hint: ru, ttl: 2500, quick: true });
+  };
+  const startPetting = () => { window.clearTimeout(pettingTimer.current); pettingTimer.current = window.setTimeout(() => {
+    setPetted(true);
+    const [text, ru] = pickOne(REACTIONS.tickle);
+    setChatter((c) => c || { key: `tickle-${Date.now()}`, text, hint: ru, ttl: 2000, quick: true });
+  }, 900); };
+  const stopPetting = () => { window.clearTimeout(pettingTimer.current); setPetted(false); };
+
+  const mood = dragging ? 'happy' : bubble?.key === 'celebrate' ? 'proud' : bubble?.urgent ? 'happy' : asleep ? 'sleep' : petted ? 'happy' : 'calm';
+  const { bg: _bg, ...worn } = pet.wearing || {};
+  const wearing = seasonalWear(worn, { now: tick, asleep });
+  const weather = { christmas: 'snow', winter: 'snow', autumn: 'leaves' }[season(tick)] || '';
+  // the bubble opens towards the middle and always stays inside the window
+  const talkW = Math.min(300, window.innerWidth - 32);
+  const walkerAt = laneLeft + 8 + shownX;
+  const talkLeft = Math.round(Math.max(8 - walkerAt, Math.min(window.innerWidth - 8 - talkW - walkerAt, shownX > laneW / 2 ? SIZE - talkW : 0)));
+  const walkerClass = ['pet-walker', walking && !dragging && !asleep ? 'is-walking' : '', bubble?.urgent || bubble?.key === 'celebrate' ? 'is-excited' : '',
+    dragging ? 'is-dragging' : '', falling ? 'is-falling' : '', landed ? 'is-landed' : '', waking ? 'is-waking' : ''].filter(Boolean).join(' ');
   return (
     <>
       <div className={`pet-lane ${atInvitation ? 'is-above-card' : ''}`} ref={laneRef} aria-live="polite">
-        <div className={`pet-walker ${walking ? 'is-walking' : ''} ${bubble?.urgent || bubble?.key === 'celebrate' ? 'is-excited' : ''}`} style={{ transform: `translateX(${shownX}px)` }}>
+        <div className={walkerClass} style={{ transform: `translate(${shownX}px, ${y}px)` }}>
+          {weather && !dragging ? <span className={`pet-weather is-${weather}`} aria-hidden="true"><i /><i /><i /></span> : null}
+          {petted && !dragging ? <span className="pet-hearts" aria-hidden="true"><i>♥</i><i>♥</i></span> : null}
           {bubble ? (
-            <div className={`pet-talk ${shownX > laneW / 2 ? 'is-left' : ''}`} role="status">
+            <div className="pet-talk" role="status" style={{ left: talkLeft }}>
               <p>{bubble.text}</p>
               <small lang="ru">{bubble.hint}</small>
-              <div className="pet-talk__actions">
+              {bubble.quick ? null : <div className="pet-talk__actions">
                 {bubble.action ? <button type="button" className="pet-btn" onClick={() => { closeBubble(); navigate(bubble.action.to); }}>{bubble.action.label}</button> : null}
                 <button type="button" className="pet-link" onClick={closeBubble}>Selge</button>
                 <button type="button" className="pet-link" onClick={hide}>Peida mind</button>
-              </div>
+              </div>}
             </div>
           ) : null}
-          <button type="button" className="pet-body" data-tour="pet" onClick={talk} aria-label={`${pet.name}: vajuta, et saada abi`} style={{ transform: `scaleX(${dir})` }}>
-            <PetFigure kind={pet.kind} mood={mood} />
+          <button type="button" className="pet-body" data-tour="pet" onClick={talk} aria-label={`${pet.name}: vajuta, et saada abi`} style={{ transform: `scaleX(${dir})` }}
+            onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
+            onPointerEnter={startPetting} onPointerLeave={stopPetting}>
+            <PetFigure kind={pet.kind} mood={mood} wearing={wearing} figureRef={figureRef} />
           </button>
         </div>
       </div>
