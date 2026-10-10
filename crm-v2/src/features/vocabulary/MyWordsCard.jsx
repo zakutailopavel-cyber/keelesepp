@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState } from '../../components/ui/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { isDue, newestFirst } from './wordsModel.js';
@@ -34,6 +35,7 @@ export default function MyWordsCard({ studentIds = [], service = studentWordsSer
         : words.length ? <>
           <div className="vw-actions">
             {readOnly ? null : <button type="button" className="vw-btn is-primary" disabled={!due.length} onClick={() => setMode('practice')}>Harjuta ({due.length})</button>}
+            {readOnly ? null : <Link className="vw-btn" to="/student/sonavara">Õpi teistmoodi</Link>}
             <button type="button" className="vw-btn" aria-expanded={mode === 'list'} onClick={() => setMode(mode === 'list' ? '' : 'list')}>{mode === 'list' ? 'Peida sõnad' : `Kõik sõnad (${words.length})`}</button>
           </div>
           {mode === 'list' ? <ul className="vw-list">{words.map((item) => <li key={item.id}><span><strong>{item.word}</strong>{item.translation ? <> — {item.translation}</> : null}{item.forms ? <small className="vw-forms">{item.forms}</small> : null}{item.example ? <small>{item.example}</small> : null}</span></li>)}</ul> : null}

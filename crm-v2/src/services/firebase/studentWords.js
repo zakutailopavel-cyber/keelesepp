@@ -36,6 +36,11 @@ export const studentWordsService = {
     return normalizeWord(ref.id, record);
   },
 
+  // the student keeps a word from a course deck for repetition („Lisa raskemad minu sõnadesse”)
+  async addOwn({ studentId, user, ...input }) {
+    return this.add({ studentId, invitationId: '', user, ...cleanWord(input) });
+  },
+
   async update(id, input) {
     const data = cleanWord(input);
     if (!data.word) throw new Error('Kirjuta sõna.');

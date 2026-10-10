@@ -1485,7 +1485,8 @@ service cloud.firestore {
     }
     match /studentWords/{wordId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff()
+      // staff in lessons; the student (or a linked parent) from the course decks of „Sõnavara”
+      allow create: if (isStaff() || ownsStudent(request.resource.data.studentId))
         && request.resource.data.keys().hasOnly(['studentId', 'invitationId', 'word', 'translation', 'example',
           'forms', 'formItems', 'createdByUid', 'createdByName', 'createdAt', 'updatedAt', 'box', 'dueAt'])
         && request.resource.data.keys().hasAll(['studentId', 'word', 'createdByUid', 'createdAt', 'box'])
@@ -1495,6 +1496,8 @@ service cloud.firestore {
         && request.resource.data.get('invitationId', '') is string
         && request.resource.data.get('invitationId', '').size() <= 200
         && request.resource.data.box == 0
+        // a lesson link (invitationId) is only set by the teacher of the lesson
+        && (isStaff() || request.resource.data.get('invitationId', '') == '')
         && studentWordTextValid(request.resource.data)
         && exists(studentPath(request.resource.data.studentId));
       allow update: if (isStaff()

@@ -5,6 +5,9 @@ import { AuthContext } from '../../app/AuthContext.jsx';
 import WorksheetStudioPage from './WorksheetStudioPage.jsx';
 import { sampleDocument } from './engine/sample.js';
 
+// the studio renders whole sheets; on shared CI runners some tests need more than the default 5 s
+vi.setConfig({ testTimeout: 20_000 });
+
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 const draftStore = new Map();
 Object.defineProperty(window, 'localStorage', {

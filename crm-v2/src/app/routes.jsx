@@ -24,6 +24,7 @@ import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
 import StudentsPage from '../features/students/StudentsPage.jsx';
 import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
 import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
+import VocabularyPage from '../features/vocabulary/VocabularyPage.jsx';
 import TasksPage from '../features/tasks/TasksPage.jsx';
 import TeachersPage from '../features/teachers/TeachersPage.jsx';
 import AccountsPage from '../features/accounts/AccountsPage.jsx';
@@ -101,6 +102,7 @@ export default function AppRoutes() {
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.STUDENT} />}>
             <Route path="student" element={<StudentDashboardPage />} />
+            <Route path="student/sonavara" element={<VocabularyPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
             <Route path="finance" element={<FinanceMonthPage />} />

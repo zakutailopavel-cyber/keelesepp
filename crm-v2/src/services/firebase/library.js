@@ -145,6 +145,11 @@ function validateWorksheetBlocks(blocks) {
 }
 
 export const libraryService = {
+  // the course lessons only (students may read them; exercises are staff-only)
+  async listCurriculum() {
+    const { db } = requireFirebaseClient();
+    return records(await getDocs(collection(db, 'curriculumLessons')));
+  },
   async list() {
     const { db } = requireFirebaseClient();
     const [curriculumLessons, exercises] = await Promise.all([
