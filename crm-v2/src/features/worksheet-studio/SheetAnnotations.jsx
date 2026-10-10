@@ -32,6 +32,9 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
     const wrap = wrapRef.current;
     if (!wrap) return;
     const base = wrap.getBoundingClientRect();
+    // on the Live Classroom board the sheet is inside a CSS transform (scale): screen pixels → the layer's own pixels
+    const k = wrap.offsetWidth ? base.width / wrap.offsetWidth || 1 : 1;
+    const u = (v) => v / k;
     const ranges = { error: [], note: [] };
     const next = [];
     list.forEach((item, index) => {
@@ -47,12 +50,12 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
         const partial = item.end > item.start && item.end - item.start < String(field.value || '').length;
         const parts = partial ? fieldTextRects(field, item.start, item.end) : [];
         if (parts.length) {
-          words = parts.map((r) => ({ left: r.left - base.left - 1, top: r.top - base.top, width: r.width + 2, height: r.height }));
+          words = parts.map((r) => ({ left: u(r.left - base.left) - 1, top: u(r.top - base.top), width: u(r.width) + 2, height: u(r.height) }));
           rect = parts[parts.length - 1];
           rect = { right: rect.left + rect.width, top: rect.top };
         } else {
           const r = field.getBoundingClientRect();
-          box = { left: r.left - base.left - 2, top: r.top - base.top - 2, width: r.width + 4, height: r.height + 4 };
+          box = { left: u(r.left - base.left) - 2, top: u(r.top - base.top) - 2, width: u(r.width) + 4, height: u(r.height) + 4 };
           rect = r;
         }
       } else {
@@ -62,7 +65,7 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
         const rects = range.getClientRects();
         rect = rects[rects.length - 1] || range.getBoundingClientRect();
       }
-      next.push({ item, index, box, words, pin: { left: rect.right - base.left - 2, top: rect.top - base.top - 10 } });
+      next.push({ item, index, box, words, pin: { left: u(rect.right - base.left) - 2, top: u(rect.top - base.top) - 10 } });
     });
     if (typeof CSS !== 'undefined' && CSS.highlights && typeof Highlight !== 'undefined') {
       Object.entries(HIGHLIGHT).forEach(([color, name]) => CSS.highlights.set(name, new Highlight(...ranges[color])));
@@ -91,7 +94,8 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
     const target = event.target;
     const card = target.closest?.('.ws-page [data-block]');
     if (!card || target.closest('.sa-layer, .sa-composer')) return;
-    const at = { left: Math.min(event.clientX - base.left, base.width - 300), top: event.clientY - base.top + 12 };
+    const k = wrap.offsetWidth ? base.width / wrap.offsetWidth || 1 : 1;
+    const at = { left: Math.min((event.clientX - base.left) / k, base.width / k - 300), top: (event.clientY - base.top) / k + 12 };
     if (target.matches?.('input.ws-line, textarea')) {
       const value = target.value || '';
       const hasSel = target.selectionEnd > target.selectionStart;

@@ -1,3 +1,10 @@
+## 2026-10-10 · agent/annotation-board-scale — vea/märkuse märk tahvlil õige sõna juures
+
+- Owner's screenshot: in the Live Classroom the „Viga” mark and its window landed far below the selected word.
+- Cause: the marks are placed in screen pixels, but on the board the sheet is inside `transform: scale(view.scale)`, so with a zoomed board the offsets grew by the scale.
+- Fix in `SheetAnnotations.jsx`: offsets, word boxes, pins and the composer position are divided by the layer's scale (`getBoundingClientRect().width / offsetWidth`).
+- Check: vitest `worksheet-studio` 39 files, 162/162.
+
 ## 2026-10-10 · agent/own-red-time — oma tunni võib panna oma punasele ajale
 
 - Owner: a teacher may put their OWN lesson on their own red (or yellow) time after a confirmation; an admin placing another teacher's lesson there is still refused.
