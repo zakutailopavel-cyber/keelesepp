@@ -3,7 +3,7 @@
 // and KeeleSepp's own A2 → B1 standard (docs/CEFR_A2_B1_LEARNING_STANDARD.md, lesson stages A2 / A2+ / A2+/B1- /
 // B1- / B1). Numbers are norms for a worksheet task, not for a whole course.
 
-export const LEVEL_ORDER = ['A1', 'A2', 'A2+', 'B1-', 'B1', 'B2', 'C1'];
+export const LEVEL_ORDER = ['A1', 'A2', 'A2+', 'B1-', 'B1', 'B1+', 'B2-', 'B2', 'C1'];
 
 // sentence: average / longest sentence in words; items: answers per closed task; reading: passage words and questions;
 // writing: sentences (or words from B2); speaking: seconds; bank: word bank in gap tasks (yes | tip | no);
@@ -35,9 +35,22 @@ export const LEVELS = Object.freeze({
     writing: { sentences: [10, 14], words: [100, 180] }, speaking: [120, 240], bank: 'no', closedShare: 0.45, instructionWords: 25, example: 'no',
     can: 'Kirjutab ja räägib iseseisvalt selge ülesehitusega; järeldab, sõnastab ümber ja kannab üle uude olukorda.',
   },
+  // B1 → B2 course stages (roadmap levelStage B1+ and B1+/B2- / B2-), between the B1 and B2 profiles
+  'B1+': {
+    label: 'B1+', sentence: { avg: 14, max: 24 }, items: [6, 10], reading: { words: [250, 500], questions: [5, 8], inference: true },
+    writing: { words: [120, 180] }, speaking: [150, 240], bank: 'no', closedShare: 0.4, instructionWords: 30, example: 'no',
+    can: 'Arutleb tuttavatel teemadel, võrdleb ja põhjendab; kirjutab seotud teksti, ametliku kirja ja lühikese arvamusloo.',
+  },
+  'B2-': {
+    label: 'B2-', sentence: { avg: 15, max: 26 }, items: [6, 12], reading: { words: [300, 600], questions: [5, 10], inference: true },
+    writing: { words: [140, 200] }, speaking: [180, 270], bank: 'no', closedShare: 0.38, instructionWords: 32, example: 'no',
+    can: 'Esitab ja kaitseb seisukohta, kaalub poolt- ja vastuargumente; mõistab probleemartikleid ja pikemaid intervjuusid.',
+  },
+  // B2 after Harno's B2 exam: writing ~140 words (letter / explanation) and ~180 words (argument with pros and cons),
+  // long problem articles in reading, a prepared speech at a meeting and a discussion with argument cards
   B2: {
-    label: 'B2', sentence: { avg: 16, max: 28 }, items: [6, 12], reading: { words: [350, 650], questions: [5, 10], inference: true },
-    writing: { words: [180, 280] }, speaking: [180, 300], bank: 'no', closedShare: 0.35, instructionWords: 35, example: 'no',
+    label: 'B2', sentence: { avg: 16, max: 28 }, items: [6, 12], reading: { words: [350, 700], questions: [5, 10], inference: true },
+    writing: { words: [140, 220] }, speaking: [180, 300], bank: 'no', closedShare: 0.35, instructionWords: 35, example: 'no',
     can: 'Arutleb, kaalub plusse ja miinuseid, kirjutab arutleva teksti; mõistab keerukamaid tekste.',
   },
   C1: {
@@ -56,6 +69,8 @@ export const GRAMMAR = Object.freeze({
   'A2+': ['mitmuse osastav (sagedased sõnad)', 'täisminevik', 'kaudsed küsimused (kas, kus …)', 'sihitise käänded (täis- ja osasihitis)', 'ülivõrre', 'ühendverbid (ära, ette, kaasa)'],
   'B1-': ['enneminevik', 'tingiv kõneviis (oleks, tahaksin)', 'mitmuse omastav', 'kesksõnad (-v, -nud, -tud) omadussõnana', 'des-vorm', 'rektsioon (huvitub millest, sõltub millest)'],
   B1: ['umbisikuline tegumood olevikus ja minevikus', 'kaudne kõne', 'mitmuse käänded tervikuna', 'tingiva kõneviisi minevik', 'mas-, mast-, maks-, mata-vorm', 'põhjust ja tingimust väljendavad laused'],
+  'B1+': ['umbisikuline tegumood kõigis aegades', 'kaudne kõne (et-lause, ütles, et…)', 'mas-, mast-, maks-, mata-vorm', 'täis- ja osasihitis keerukamates lausetes', 'rektsioon (sõltuma millest, nõustuma millega)', 'sidesõnad (kuigi, seetõttu, samas, pigem)'],
+  'B2-': ['kaudne kõneviis (-vat)', 'kesksõnad (-v, -tav, -nud, -tud) laiendina', 'des-vorm lauselühendina', 'nominaliseerimine (-mine, -us)', 'sidusvahendid (esiteks, teisalt, seega, kokkuvõttes)', 'tingiv kõneviis minevikus (oleksin teinud)'],
   B2: ['kaudne kõneviis (-vat)', 'umbisikulise tegumoe kõik ajad', 'nominaliseerimine (-mine, -us)', 'keerukad lauselühendid', 'sidusvahendid tekstis', 'registri valik (ametlik / igapäevane)'],
   C1: ['stiil ja register', 'idioomid ja püsiühendid', 'implitsiitne tähendus ja hinnangud', 'keerukas lause- ja tekstiehitus', 'termini- ja ametikeel'],
 });
@@ -73,6 +88,8 @@ export function levelKey(value) {
   const v = String(value || '').toUpperCase().replace(/\s+/g, '');
   if (!v) return 'A2';
   if (v.includes('C1') || v.includes('C2')) return 'C1';
+  if (v.includes('B1+')) return 'B1+';
+  if (v.includes('B2-')) return 'B2-';
   if (v.includes('B2')) return 'B2';
   if (v.includes('A2+/B1') || v === 'B1-' || v.includes('B1-')) return 'B1-';
   if (v.includes('B1')) return 'B1';

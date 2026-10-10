@@ -9,7 +9,7 @@ Kursuse tootmise ajal (`docs/B1_B2_COURSE_PRODUCTION.md`) kirjutatakse siia, mid
    - Omaniku luba on vaja, sest need lehed on avaldatud.
 2. **Tase on lehel vale.** Avasta 006–050 kannavad `Tase: B1`, kuigi õppekava `levelStage` on A2 / A2+. Seetõttu kontrollib didaktiline kontroll neid liiga kõrgete normidega ja õpilane näeb vale taset.
    - Ettepanek: Avasta ümbertegemisel `meta.level = levelStage`.
-3. **Taseme profiilid puuduvad.** `levels.js`-is pole profiile B1+ ja B1+/B2-; `levelKey('B1+/B2-')` annab B2.
+3. ✓ (agent/b2-profiles) **Taseme profiilid puuduvad.** `levels.js`-is pole profiile B1+ ja B1+/B2-; `levelKey('B1+/B2-')` annab B2.
    - Mõju: B2 kursuse algus (B1+) saaks liiga ranged B2 normid.
    - Ettepanek: lisada profiil B1+ (lause ~14/24, tekst 250–500, kiri 120–200 sõna) enne B2 tootmist.
 4. **Kuulamisel pole heli.** Kuulamisülesanded saavad praegu ainult õpetaja ettelugemise; konstruktor hoiatab.

@@ -15,7 +15,7 @@ const loadOne = (level) => {
   return cache[level];
 };
 // the profile key of a sheet (levels.js levelKey) → the vocabulary levels it may use
-export const VOCABULARY_FOR = { A1: ['A1'], A2: ['A1', 'A2'], 'A2+': ['A1', 'A2'], 'B1-': ['A1', 'A2', 'B1'], B1: ['A1', 'A2', 'B1'], B2: ['A1', 'A2', 'B1', 'B2'], C1: FORM_LEVELS };
+export const VOCABULARY_FOR = { A1: ['A1'], A2: ['A1', 'A2'], 'A2+': ['A1', 'A2'], 'B1-': ['A1', 'A2', 'B1'], B1: ['A1', 'A2', 'B1'], 'B1+': ['A1', 'A2', 'B1'], 'B2-': ['A1', 'A2', 'B1', 'B2'], B2: ['A1', 'A2', 'B1', 'B2'], C1: FORM_LEVELS };
 
 // { A1: Set, A2: Set, … } for the given levels (missing ones are left out); null when nothing could be loaded
 export async function loadLevelForms(levels = FORM_LEVELS) {
