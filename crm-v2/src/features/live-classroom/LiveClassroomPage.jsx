@@ -7,7 +7,7 @@ import { libraryService, liveLessonCallSignalsService, liveLessonInvitationsServ
 import { groupBoardService, studentBoardService } from '../../services/firebase/studentBoard.js';
 import { liveGroupRoomsService } from '../../services/firebase/liveGroupRooms.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
-import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, timestampMillis } from './invitationModel.js';
+import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, serverNow, timestampMillis } from './invitationModel.js';
 import { calendarPathAfterLesson } from './lessonLink.js';
 import LiveRoom from './LiveRoom.jsx';
 import GroupRoom from './GroupRoom.jsx';
@@ -67,7 +67,7 @@ export default function LiveClassroomPage({
   const [title, setTitle] = useState('');
   const [saving, setSaving] = useState('');
   const [actionError, setActionError] = useState('');
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => serverNow());
   const [callStreams, setCallStreams] = useState({ local: null, remote: null });
   const [roomStudent, setRoomStudent] = useState(null);
 
@@ -104,7 +104,7 @@ export default function LiveClassroomPage({
   }, [groupService, isStaff, user.uid]);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    const timer = window.setInterval(() => setNow(serverNow()), 1000);
     return () => window.clearInterval(timer);
   }, []);
 

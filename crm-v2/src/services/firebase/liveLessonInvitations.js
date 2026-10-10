@@ -13,8 +13,10 @@ import {
 import { requireFirebaseClient } from './client.js';
 import {
   INVITATION_STATUS,
+  noteServerTime,
   normalizeInvitation,
   studentAccountUid,
+  timestampMillis,
 } from '../../features/live-classroom/invitationModel.js';
 
 const INVITATION_TTL_MS = 2 * 60 * 1000;
@@ -27,9 +29,19 @@ function records(snapshot) {
 function subscribe(field, uid, onChange, onError) {
   if (!uid) { onChange([]); return () => {}; }
   const { db } = requireFirebaseClient();
+  let first = true;
   return onSnapshot(
     query(collection(db, 'liveLessonInvitations'), where(field, '==', uid)),
-    (snapshot) => onChange(records(snapshot)),
+    (snapshot) => {
+      // an invitation added after the first snapshot was just written: its server createdAt tells the server time
+      if (!first && !snapshot.metadata.fromCache) {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added' && !change.doc.metadata.hasPendingWrites) noteServerTime(timestampMillis(change.doc.data().createdAt));
+        });
+      }
+      first = false;
+      onChange(records(snapshot));
+    },
     onError,
   );
 }

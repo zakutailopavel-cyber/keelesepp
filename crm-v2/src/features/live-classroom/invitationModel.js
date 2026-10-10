@@ -24,7 +24,24 @@ export function timestampMillis(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-export function normalizeInvitation(id, data = {}, now = Date.now()) {
+// The device clock can be wrong: a student's school laptop ran ~20 minutes ahead, so every 2-minute invitation looked
+// expired the moment it arrived and was never shown. serverNow() corrects the local clock with the offset learned from
+// invitations that arrive live (their server createdAt is „now” on the server); without a sample the offset is 0.
+let serverClockOffsetMs = 0;
+
+export function noteServerTime(serverMs, localMs = Date.now()) {
+  if (Number.isFinite(serverMs) && serverMs > 0) serverClockOffsetMs = serverMs - localMs;
+}
+
+export function serverNow(localMs = Date.now()) {
+  return localMs + serverClockOffsetMs;
+}
+
+export function resetServerClock() {
+  serverClockOffsetMs = 0;
+}
+
+export function normalizeInvitation(id, data = {}, now = serverNow()) {
   const expiresAtMs = timestampMillis(data.expiresAt);
   const status = clean(data.status) || INVITATION_STATUS.PENDING;
   const expired = status === INVITATION_STATUS.PENDING && Boolean(expiresAtMs) && expiresAtMs <= now;
