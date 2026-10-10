@@ -2,6 +2,9 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const MM = 3.7795;
+// on the Live Classroom board the sheet lies on a 1000 px page with 28 px sides: the same scale for teacher and student,
+// so the board drawings and notes sit on the same words on both screens
+export const BOARD_SHEET_SCALE = (1000 - 56) / (270 * MM);
 
 // Fits the 270 mm design canvas into the available width (never enlarges).
 // Returns a callback ref, so it also works when the canvas appears after a loading state.

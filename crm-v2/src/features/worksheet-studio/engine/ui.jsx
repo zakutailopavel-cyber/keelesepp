@@ -19,7 +19,26 @@ export function Photo({ img, aspect = '4:3', alt = '', children, className = '' 
   );
 }
 
+// a full-width answer grows downwards with what is written (owner 2026-10-10: a long answer was cut off on one line)
+const grow = (node) => { if (node) { node.style.height = 'auto'; node.style.height = `${node.scrollHeight}px`; } };
+
 export function Line({ value, onChange, interactive, state, width, label, className = '' }) {
+  if (width === '100%') {
+    return (
+      <textarea
+        ref={grow}
+        rows={1}
+        className={`ws-line ws-line--grow ${state ? 'is-' + state : ''} ${className}`}
+        value={value || ''}
+        readOnly={!interactive}
+        tabIndex={interactive ? 0 : -1}
+        aria-label={label}
+        autoComplete="off"
+        spellCheck={false}
+        onChange={(e) => { grow(e.target); onChange?.(e.target.value); }}
+      />
+    );
+  }
   return (
     <input
       className={`ws-line ${state ? 'is-' + state : ''} ${className}`}

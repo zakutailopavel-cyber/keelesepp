@@ -5,7 +5,7 @@ import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
-import { useFitScale } from './useFitScale.js';
+import { BOARD_SHEET_SCALE, useFitScale } from './useFitScale.js';
 import { petCelebrate, petQuiet } from '../pet/petEvents.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
@@ -29,7 +29,7 @@ async function persistRecordings({ doc, answers, assignment, repository }) {
 
 // Student player for a structured worksheet (assignment.worksheetDoc): the same sheet, the same design,
 // the answers kept on the assignment. Teachers open it read-only and see the marks and the per-goal result.
-export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false }) {
+export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false }) {
   const doc = assignment.worksheetDoc;
   const [answers, setAnswers] = useState(assignment.answers || {});
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
@@ -42,7 +42,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [comment, setComment] = useState(assignment.selfAssessment?.comment || '');
   const [assessmentSaved, setAssessmentSaved] = useState(Boolean(assignment.selfAssessment));
   const canvasRef = useRef(null);
-  const [fitRef, scale] = useFitScale();
+  const [fitRef, fitted] = useFitScale();
+  const scale = board ? BOARD_SHEET_SCALE : fitted;
   const setCanvas = useCallback((node) => { canvasRef.current = node; fitRef(node); }, [fitRef]);
 
   const review = submitted || readOnly;
@@ -159,6 +160,23 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {submitted && !readOnly ? <section className="worksheet-assessment"><div><Star size={21} /><div><strong>Kuidas tööleht tundus?</strong><span>Tagasiside aitab õpetajal järgmisi ülesandeid kohandada.</span></div></div>{assessmentSaved ? <p><CheckCircle2 size={17} /> Tagasiside salvestatud. Aitäh!</p> : <><Select id="worksheet-difficulty" label="Raskusaste" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Vali</option><option value="1">Väga lihtne</option><option value="2">Lihtne</option><option value="3">Paras</option><option value="4">Raske</option><option value="5">Väga raske</option></Select><label className="textarea-field"><span>Kommentaar</span><textarea rows="3" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Mis oli raske või jäi arusaamatuks?" /></label><Button loading={saving} disabled={!difficulty} onClick={saveAssessment}>Saada tagasiside</Button></>}</section> : null}
     </article>
   );
+  // on the board: the sheet first and nothing above it, so it lies exactly like the teacher's copy; the rest below
+  if (board) {
+    const sheetFirst = <article className="worksheet-player ws-studio ws-doc-player is-inline is-board">
+      <div className="st-canvas" ref={setCanvas}>
+        <SheetAnnotations annotations={teacherMarks}>
+        <div className="st-zoom" style={{ zoom: scale }}>
+          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
+        </div>
+        </SheetAnnotations>
+      </div>
+      {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
+      {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
+      {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong></div></div> : null}
+      {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
+    </article>;
+    return <section className="ws-inline-player is-board" aria-label={assignment.title}>{sheetFirst}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
+  }
   // inline: inside the Live Classroom room, next to video and board (no dialog)
   if (inline) return <section className="ws-inline-player" aria-label={assignment.title}><h3>{assignment.title}</h3>{body}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
   return <Modal open title={assignment.title} onClose={onClose} className="modal--worksheet modal--worksheet-doc" footer={footer}>{body}</Modal>;

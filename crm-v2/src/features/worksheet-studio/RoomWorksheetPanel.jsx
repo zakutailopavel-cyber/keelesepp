@@ -16,8 +16,8 @@ import './worksheetStudio.css';
 export function RoomWorksheetContent({ current, role, homework = homeworkService }) {
   if (!current) return null;
   return role === 'teacher'
-    ? <LiveWorksheetView key={current.id} assignmentId={current.id} repository={homework} embedded />
-    : <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline />;
+    ? <LiveWorksheetView key={current.id} assignmentId={current.id} repository={homework} embedded board />
+    : <DocWorksheetPlayer key={`${current.id}-${current.status === 'done' ? 'done' : 'open'}`} assignment={current} repository={homework} inline board />;
 }
 
 const errorText = (err, fallback) => err?.message || fallback;

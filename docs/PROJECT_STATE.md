@@ -1,3 +1,15 @@
+## 2026-10-10 · agent/sheet-board-same — tööleht tahvlil on õpetajal ja õpilasel ühesugune; pikk vastus ei lõigu ära
+
+- Owner's screenshots:
+  - the board notes landed on different words for the teacher and the student, because the sheet had different frames and scale;
+  - a long reading answer was cut off on one line.
+- Board mode (`board` prop of `DocWorksheetPlayer` and `LiveWorksheetView`, set by `RoomWorksheetContent`):
+  - the sheet comes first, with nothing above it, at one fixed scale `BOARD_SHEET_SCALE` (`useFitScale.js`);
+  - progress, Salvesta / Esita, the live stats and the task panel move below the sheet;
+  - CSS `.sb-underlay .is-board` removes padding, margin and centring.
+- `engine/ui.jsx` `Line`: a full-width answer (`width="100%"`: reading, translation…) is a textarea that grows downwards (`.ws-line--grow`).
+- Check: vitest `worksheet-studio`, `board`, `homework` → 50 files, 231/231.
+
 ## 2026-10-10 · agent/course-b2-m05 — B2 M05 Arvamus ja põhjendamine (b1b2-021–025), kõik kolm etappi
 
 - Base: `main` 856b67f. Previous modules are published to production (diff with production: 0 differences).
