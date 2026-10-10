@@ -126,7 +126,7 @@ export const styleSameType = (blocks, source) => blocks.map((block) => (block.ty
 
 // Sheet themes (doc.meta.theme): the brand tones redrawn for a mood; '' = the textbook (TONES as they are).
 export const THEMES = [
-  { key: '', label: 'Õpik' },
+  { key: 'opik', label: 'Õpik (vana)' },
   { key: 'pastel', label: 'Pastell', tones: {
     blue: { card: '#f3f1ff', badge: '#534ab7' }, green: { card: '#eefaf5', badge: '#0f6e56' }, peach: { card: '#fff4ee', badge: '#993c1d' },
     cream: { card: '#fffaf0', badge: '#854f0b' }, sky: { card: '#eef7fd', badge: '#185fa5' }, white: { card: '#ffffff', badge: '#534ab7' } } },
@@ -147,7 +147,12 @@ export const THEMES = [
     blue: { card: '#ffffff', badge: '#1d2b4a' }, green: { card: '#ffffff', badge: '#1d2b4a' }, peach: { card: '#ffffff', badge: '#1d2b4a' },
     cream: { card: '#ffffff', badge: '#1d2b4a' }, sky: { card: '#ffffff', badge: '#1d2b4a' }, white: { card: '#ffffff', badge: '#1d2b4a' } } },
 ];
-export const themeOf = (key) => THEMES.find((theme) => theme.key === (key || '')) || THEMES[0];
+// owner 2026-10-10: Klassika (white) is the house look; a sheet without a theme is drawn in it, the old textbook
+// look stays as „Õpik (vana)”
+export const DEFAULT_THEME = 'klassika';
+export const sheetTheme = (key) => key || DEFAULT_THEME;
+export const themeClass = (key) => (sheetTheme(key) === 'opik' ? '' : `theme-${sheetTheme(key)}`);
+export const themeOf = (key) => THEMES.find((theme) => theme.key === sheetTheme(key)) || THEMES[0];
 // a tone as the sheet's theme draws it (falls back to the brand tone)
 export function themedTone(themeKey, tone, base) {
   const over = themeOf(themeKey).tones?.[tone];

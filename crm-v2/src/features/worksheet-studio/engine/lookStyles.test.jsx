@@ -20,7 +20,9 @@ describe('ready-made styles and sheet themes', () => {
   });
 
   it('a theme redraws the tones and the sheet carries the heading look', () => {
-    expect(themedTone('', 'blue', TONES.blue)).toBe(TONES.blue);
+    expect(themedTone('opik', 'blue', TONES.blue)).toBe(TONES.blue);
+    // a sheet without a theme is drawn in the house theme Klassika (white cards)
+    expect(themedTone('', 'blue', TONES.blue).card).toBe('#ffffff');
     expect(themedTone('bw', 'blue', TONES.blue).card).toBe('#ffffff');
     const doc = sampleDocument();
     doc.meta.theme = 'kids';
