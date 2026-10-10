@@ -6,6 +6,12 @@
 - Checks: vitest guide + app + layout 35 passed (new `TeacherGuidePage.test.jsx`); eslint and `vite build` ok.
 - Keep the guide in sync: a new feature should add or change an item in `guideContent.js`.
 
+
+### 2026-10-10 · Juhend seadetes (agent/guide-in-settings)
+- „Juhend” eemaldati külgmenüüst (`app/navigation.js`); Seadetes on õpetajale/adminile kaart „Juhend” lingiga `/guide` (`SettingsPage.jsx`). Marsruut `/guide` ja esmakordne bänner jäävad.
+- Kontroll: `npx vitest run src/features/settings src/app src/features/guide src/components/layout` → 40/40.
+- Järgmine samm: vajadusel lisada juhendisse peatükk „Seaded”.
+
 ## 2026-10-10 · agent/course-c1-m01 — C1 M01 Eneseväljendus, identiteet ja suhted (est-c1-001–010), kõik kolm etappi
 
 - Base: `main` 16b37fd. Previous modules are published to production (diff with production: 0 differences).
