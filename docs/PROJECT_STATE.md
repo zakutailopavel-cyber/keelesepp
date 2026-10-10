@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m11 — B2 M11 Raha ja tarbimine (b1b2-051–055), kõik kolm etappi
+
+- Base: `main` 02de144. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module11.js`, stage B1+/B2-: budget and purchase decisions (4 criteria, total cost), how advertising works (techniques, a position plus a counter-argument), a consumer problem (fact, evidence, a realistic demand; consumer rights), save or spend (a weighed conclusion), Kontroll 11. 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m10 — B2 M10 Suhted ja konfliktid (b1b2-046–050), kõik kolm etappi
 
 - Base: `main` fb602e3. Previous modules are published to production (diff with production: 0 differences).
