@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-c1-m09 — C1 M09 Ühiskond, institutsioonid ja avalik elu (est-c1-081–090), kõik kolm etappi
+
+- Base: `main` 1c2ffef. Previous modules are published to production (diff with production: 0 differences).
+- C1 moodul 9: avalikud institutsioonid ja teenused, õigused ja reeglid, kodanikuosalus, avalik otsustus ja huvide tasakaal, sotsiaalne sidusus, kriisiinfo, debatt, kirjavahemärgid keerukas lauses, viiteselgus ja sidusus, progressikontroll 9. Kvaliteedivärav roheline.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-c1-m08 — C1 M08 Kultuur, keel ja meedia (est-c1-071–080), kõik kolm etappi
 
 - Base: `main` 5a65ee1. Previous modules are published to production (diff with production: 0 differences).
