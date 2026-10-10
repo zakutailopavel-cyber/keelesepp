@@ -1,3 +1,12 @@
+## 2026-10-10 · agent/invite-overlay-zindex — tunnikutse oli õpilase tahvli all peidus
+
+- Base: `main` ef02c4e.
+- Symptom: the teacher invited Demjan (invitation `d9jdgQRN2M2ygzrPrHPO`, addressed to the right uid, status pending), but the student on „Minu tahvel” never saw it.
+- Cause: the student workspace `.lr` is `position: fixed; z-index: 1300` (liveRoom.css), the invitation overlay `.lesson-invitation` had `z-index: 1200`, so it rendered under the board.
+- Fix: `.lesson-invitation` z-index 1400 (above `.lr` 1300 and the floating call card 1350). No data or rules change.
+- Known: an invitation lives 2 minutes (`INVITATION_TTL_MS`); after that the teacher sends a new one.
+- Next step: ask the student to reload the page once and send a new invitation.
+
 ## 2026-10-10 · agent/course-b2-m14 — B2 M14 Ühiskond ja avalikud teenused (b1b2-066–070), kõik kolm etappi
 
 - Base: `main` 9357ca6. Previous modules are published to production (diff with production: 0 differences).
