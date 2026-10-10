@@ -243,6 +243,18 @@ describe('LibraryPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');
   });
 
+  it('keeps the phase chips on a roadmap lesson that also has an older single worksheet', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{
+      id: 'a2b1-009', title: 'Koos veedetud aeg', subject: 'Eesti keel', level: 'B1', topic: '02. Pere', roadmapManaged: true, roadmapLessonNumber: 9,
+      worksheetDoc: { schema: 'keelesepp.worksheet/2', meta: { title: 'Vana leht' }, blocks: [{ id: 'b', type: 'text', data: {} }] },
+      worksheetPhases: { discover: { title: 'Koos veedetud aeg', status: 'published', version: 2, publishedVersion: 2, updatedAt: '2026-10-06T15:28:00.000Z' } },
+    }], exercises: [] }) };
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
+    const phases = within(await screen.findByRole('group', { name: 'Töölehed: Koos veedetud aeg' }));
+    expect(phases.getByRole('link', { name: /Avasta: «Koos veedetud aeg» · Avaldatud/ })).toBeInTheDocument();
+    expect(phases.getByRole('link', { name: /Harjuta: lehte pole veel/ })).toBeInTheDocument();
+  });
+
   it('shows Avasta / Harjuta / Kasuta on the lesson card, filters by them and opens a published sheet in the student view', async () => {
     const lesson = (id, number, title, worksheetPhases) => ({ id, title, subject: 'Eesti keel', level: 'B1', topic: '01. A2 lähtepunkt', roadmapManaged: true, roadmapLessonNumber: number, ...(worksheetPhases ? { worksheetPhases } : {}) });
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [

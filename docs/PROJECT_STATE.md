@@ -19,6 +19,19 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/library-roadmap-phases — õppekava tund jääb tunniks ka vana töölehega
+
+- Omaniku ekraanipilt: a2b1-009 „Koos veedetud aeg” on Õppevaras „Tööleht” ilma Avasta / Harjuta / Kasuta märkideta.
+- Põhjus: tunni dokumendile on kunagi salvestatud ka vana üksik `worksheetDoc`, mistõttu `usesLessonEngine` jättis etapid välja. Pärast avaldamist ei oleks Harjuta ja Kasuta seal näha olnud.
+- Parandus (`LibraryPage.jsx`):
+  - õppekava tund (`roadmapManaged`), millel on `worksheetPhases`, näitab etappe ka siis, kui tal on vana leht;
+  - nupp „Muuda töölehte” jääb vana lehe jaoks alles.
+- Andmeid ei muudetud.
+- Kontrollid:
+  - library 30/30 (uus test);
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/course-b1-m05-m06 — B1 moodulid 5 ja 6: Harjuta + Kasuta (A2+)
 
 - `admin/course/b1/module05.js`: a2b1-021…025 „Lihtminevik ja kogemused”. Iga vorm kasutatakse kohe loos. Materjal on tööraamatu tundidest 3–4: „Üks ootamatu hommik” ja Mari hiline hommik.
