@@ -5,7 +5,7 @@
 import { levelKey } from './levels.js';
 
 export const SHEET_MINUTES = { min: 40, max: 55 };
-const WPM = { A1: 50, A2: 60, 'A2+': 70, 'B1-': 80, B1: 90, B2: 110, C1: 130 };
+const WPM = { A1: 50, A2: 60, 'A2+': 70, 'B1-': 80, B1: 90, 'B1+': 100, 'B2-': 105, B2: 110, C1: 130 };
 
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
 const words = (v) => String(v || '').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;

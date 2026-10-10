@@ -6,6 +6,8 @@ const task = (type, data, extra = {}) => ({ id: `${type}-${Math.random().toStrin
 describe('didactic check', () => {
   it('reads lesson stages and plain levels', () => {
     expect(['A1', 'a2', 'A2+', 'A2+/B1-', 'B1-', 'B1', 'B2', 'C1', 'Eelkool', ''].map(levelKey)).toEqual(['A1', 'A2', 'A2+', 'B1-', 'B1-', 'B1', 'B2', 'C1', 'A1', 'A2']);
+    // B1 → B2 course stages
+    expect(['B1+', 'B1+/B2-', 'B2-', 'B2'].map(levelKey)).toEqual(['B1+', 'B1+', 'B2-', 'B2']);
   });
 
   it('measures the solved sentences and the answers of a task', () => {

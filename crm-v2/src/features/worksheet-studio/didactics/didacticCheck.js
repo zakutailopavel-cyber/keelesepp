@@ -67,7 +67,7 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
     const avg = all.reduce((n, x) => n + wordsIn(x), 0) / all.length;
     const longest = measured.flatMap((m) => m.sentences.map((x) => ({ b: m.b, n: wordsIn(x), x }))).sort((a, b) => b.n - a.n)[0];
     // too simple only matters from B1- on (short sentences are right for beginners)
-    const tooSimple = ['B1-', 'B1', 'B2', 'C1'].includes(key) && avg < norm.sentence.avg * 0.55;
+    const tooSimple = ['B1-', 'B1', 'B1+', 'B2-', 'B2', 'C1'].includes(key) && avg < norm.sentence.avg * 0.55;
     add('sentence-avg', 'Lause pikkus sobib tasemele', avg <= norm.sentence.avg * 1.25 && !tooSimple,
       { detail: !tooSimple ? `laused on keskmiselt ${Math.round(avg)} sõna, tasemel ${norm.label} sobib kuni ~${norm.sentence.avg}.` : `laused on keskmiselt ${Math.round(avg)} sõna — tasemele ${norm.label} liiga lihtsad (~${norm.sentence.avg}).`, severity: 'warning' });
     add('sentence-max', 'Ükski lause pole liiga pikk', longest.n <= norm.sentence.max,
@@ -135,7 +135,7 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
     add('closed-share', 'Äratundmisülesandeid pole liiga palju', closed / tasks.length <= norm.closedShare,
       { detail: `${closed} ülesannet ${tasks.length}-st on äratundmine (õige/vale, ühendamine, valik). Tasemel ${norm.label} peaks õpilane rohkem ise moodustama.`, severity: 'warning' });
     const productive = tasks.filter((b) => PHASE_TASKS.productive.includes(b.type));
-    const advanced = ['A2+', 'B1-', 'B1', 'B2', 'C1'].includes(key) || phase === 'transfer';
+    const advanced = ['A2+', 'B1-', 'B1', 'B1+', 'B2-', 'B2', 'C1'].includes(key) || phase === 'transfer';
     if (phase === 'full' || phase === 'transfer') add('productive', 'Lehel on rääkimine või kirjutamine', productive.length > 0,
       { detail: 'lehel pole rääkimist ega kirjutamist — lisa „Räägi”, „Rollikaardid” või „Kirjuta”, et õpilane kasutaks keelt ise.', severity: advanced ? 'warning' : 'tip' });
     const firstProductive = tasks.findIndex((b) => PHASE_TASKS.productive.includes(b.type));

@@ -19,6 +19,21 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/b2-profiles — taseme profiilid B1+ ja B2-, B2 normid Harno B2-eksami järgi
+
+- Omanik: B2 kursus peab mahult ja keerukuselt vastama CEFR-ile ja Harnole.
+- Harno B2 konsultatsioonivihikust (kirjutamine, lugemine, kuulamine, rääkimine) ja raamatust „Iseseisev keelekasutaja” (B2 kirjeldused) võetud nõuded on kirjas dokumendis `docs/DIDACTIC_ENGINE.md`.
+- `levels.js`:
+  - uued profiilid `B1+` ja `B2-`; `levelKey` tunneb `B1+` ja `B1+/B2-` (→ B1+) ning `B2-`;
+  - B2 kirjutamine 140–220 sõna (Harno ~140 ja ~180), lugemine 350–700 sõna;
+  - grammatikateemad B1+ ja B2- jaoks.
+- Uued võtmed on ka failides `levelVocabulary`, `grammarProfile`, `UseCases`, `timeEstimate` (lugemiskiirus) ja `didacticCheck`.
+- `COURSE_SYSTEM_GAPS.md` punkt 3 on lahendatud.
+- Kontrollid:
+  - worksheet-studio + generator 620/620 (uus `levelKey` test);
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/course-b1-m07-m08 — 50 lehte avaldatud (v2) ja B1 moodul 7 valmis
 
 - Omaniku loal („заливай”) avaldati production'isse kõik 50 laiendatud lehte (a2b1-006…030 Harjuta + Kasuta) versioonina v2. Varem avaldatud lühike v1 jäi `worksheetVersions` arhiivi.

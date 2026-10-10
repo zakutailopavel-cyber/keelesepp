@@ -111,3 +111,16 @@ These are real gaps of the generator, fixed in step 2.
 - Translations and tags for the EKI level words, so the generator lexicon grows beyond 314 words.
 - Grammar detection in a sheet with Vabamorf analysis (on the Mac), against `GRAMMAR`.
 - Feed the calibration verdicts back into `levels.js` once enough answers exist.
+
+
+## B1+ ja B2- profiilid; B2 Harno järgi (2026-10-10)
+
+- B1 → B2 kursuse etapid on nüüd ka profiilides:
+  - `B1+`: lause ~14/24, tekst 250–500 sõna, kirjutamine 120–180 sõna, kõne 150–240 s;
+  - `B2-`: lause ~15/26, tekst 300–600 sõna, kirjutamine 140–200 sõna, kõne 180–270 s.
+- `levelKey`: `B1+/B2-` → `B1+`, `B2-` → `B2-`.
+- B2 normid on seotud Harno B2-eksamiga (konsultatsioonivihik):
+  - kirjutamine 80 min, kaks teksti: ~140 sõna (seletuskiri, kiri) ja ~180 sõna (arutlus poolt- ja vastuargumentidega ning kokkuvõttega). Profiilis on kirjutamine 140–220 sõna;
+  - lugemine 70 min: valikvastused, vastavusse viimine ja lünktekst, kus sõna valitakse; tekst 350–700 sõna;
+  - kuulamine 35 min: lühilõigud kuulatakse üks kord, intervjuu kaks korda, lüngad 1–2 sõnaga, õige/vale;
+  - rääkimine: ettevalmistatud sõnavõtt koosolekul või seminaril teemakaardi järgi ja paarisarutelu argumendikaartidega (poolt/vastu).

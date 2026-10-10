@@ -4,7 +4,7 @@ import { levelKey } from '../didactics/levels.js';
 
 // EKI's language use situations (etLex „Kasutusolukorrad”, CEFR illustrative scales, written for young learners in the
 // „mina” form): ready „Saan aru … / Oskan …” statements of the sheet's level. `actions`: [[label, (text) => void]].
-const USE_LEVEL = { A1: 'A1', A2: 'A2', 'A2+': 'A2', 'B1-': 'B1', B1: 'B1', B2: 'B2', C1: 'B2' };
+const USE_LEVEL = { A1: 'A1', A2: 'A2', 'A2+': 'A2', 'B1-': 'B1', B1: 'B1', 'B1+': 'B1', 'B2-': 'B2', B2: 'B2', C1: 'B2' };
 let loading = null;
 const loadUseCases = () => { if (!loading) loading = import('../didactics/useCases.json').then((m) => (m.default || m).levels || null).catch(() => null); return loading; };
 
