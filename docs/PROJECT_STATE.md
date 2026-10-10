@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m08 — B2 M08 Reisimine ja kultuur (b1b2-036–040), kõik kolm etappi
+
+- Base: `main` 50b8548. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module08.js`, stage B1+: planning a trip (budget, transport, compromise), a trip gone wrong (passenger rights, firm but polite demands), cultural differences without simple generalisations, a travel review (story + evaluation, no repetitions), Vahehindamine 2 (lessons 21–40). Role plays change conditions in the middle. 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m07 — B2 M07 Haridus ja õppimine (b1b2-031–035), kõik kolm etappi
 
 - Base: `main` 3745d26. Previous modules are published to production (diff with production: 0 differences).
