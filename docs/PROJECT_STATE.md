@@ -19,6 +19,21 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/course-b1-m05-m06 — B1 moodulid 5 ja 6: Harjuta + Kasuta (A2+)
+
+- `admin/course/b1/module05.js`: a2b1-021…025 „Lihtminevik ja kogemused”. Iga vorm kasutatakse kohe loos. Materjal on tööraamatu tundidest 3–4: „Üks ootamatu hommik” ja Mari hiline hommik.
+- `b1/module06.js`: a2b1-026…030 „Toit ja teenindus”. Partitiiv tuleb ostunimekirjas, retseptis, tellimuses ja kaebuses; lihtminevik tuleb tagasi lauses „ma tellisin…, aga sain…”.
+- Tase A2+:
+  - tekst 120–250 sõna;
+  - kinnises ülesandes ≥ 5 punkti.
+- Kokku 20 lehte, kõik läbivad kvaliteedivärava.
+- Kontrollid:
+  - `admin/course` 10/10;
+  - eslint;
+  - build.
+- Production'isse ei kirjutatud midagi.
+- Järgmine ohutu samm: B1 moodulid 7–8 (031–040) Harjuta + Kasuta.
+
 ## 2026-10-10 · agent/course-b1-m03-m04 — B1 moodulid 3 ja 4: Harjuta + Kasuta
 
 - Uued failid:

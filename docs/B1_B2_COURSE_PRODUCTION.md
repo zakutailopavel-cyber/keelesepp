@@ -114,5 +114,7 @@ Leht avaldatakse ainult siis, kui:
 | Moodul | Tunnid | Etapid | PR |
 | --- | --- | --- | --- |
 | B1 M02 Mina, pere ja suhted | 006–010 | Harjuta, Kasuta | #433 |
-| B1 M03 Kodu, kohad ja linn | 011–015 | Harjuta, Kasuta | agent/course-b1-m03-m04 |
-| B1 M04 Aeg, plaanid ja kohustused | 016–020 | Harjuta, Kasuta | agent/course-b1-m03-m04 |
+| B1 M03 Kodu, kohad ja linn | 011–015 | Harjuta, Kasuta | #434 |
+| B1 M04 Aeg, plaanid ja kohustused | 016–020 | Harjuta, Kasuta | #434 |
+| B1 M05 Lihtminevik ja kogemused | 021–025 | Harjuta, Kasuta | agent/course-b1-m05-m06 |
+| B1 M06 Toit ja teenindus | 026–030 | Harjuta, Kasuta | agent/course-b1-m05-m06 |
