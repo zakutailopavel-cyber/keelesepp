@@ -320,7 +320,9 @@ export const studentsService = {
       payload.teacherUid = current?.teacherUid && isSameTeacher(current.teacher, payload.teacher)
         ? current.teacherUid
         : await resolveTeacherUid(db, payload.teacher);
-      payload.teacherUids = payload.teacherUid ? [...new Set([...(current?.teacherUids || []), payload.teacherUid])] : (current?.teacherUids || []);
+      // the previous teacher loses access: only the new teacher and the teachers of active enrollments stay
+      const enrollmentUids = (current?.enrollments || []).filter((item) => item?.active !== false).map((item) => item.teacherUid).filter(Boolean);
+      payload.teacherUids = [...new Set([payload.teacherUid, ...enrollmentUids].filter(Boolean))];
     }
     const candidate = current ? normalizeStudent(id, { ...current, ...payload }) : null;
     if (

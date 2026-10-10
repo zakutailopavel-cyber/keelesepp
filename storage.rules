@@ -58,7 +58,7 @@ service firebase.storage {
         || (
           request.resource.size < 20 * 1024 * 1024
           && request.resource.contentType is string
-          && request.resource.contentType.matches('^(image/.*|application/pdf|text/.*|audio/.*|video/.*|application/vnd\\..*|application/msword)$')
+          && request.resource.contentType.matches('^(image/.*|application/pdf|text/plain|text/csv|audio/.*|video/.*|application/vnd\\..*|application/msword)$')
         );
     }
 

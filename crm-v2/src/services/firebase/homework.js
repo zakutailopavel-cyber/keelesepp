@@ -210,8 +210,12 @@ export const homeworkService = {
       ...(boardPage?.id ? { boardPageId: boardPage.id, boardPageTitle: String(boardPage.title || 'Tahvlileht').slice(0, 200) } : {}),
       ...(worksheet?.id ? { worksheetAssignmentId: worksheet.id, worksheetTitle: String(worksheet.title || 'Tööleht').slice(0, 200) } : {}),
     };
-    const reference = await addDoc(collection(db, 'homework'), value);
-    if (worksheet?.id && value.due) await updateDoc(doc(db, 'worksheetAssignments', worksheet.id), { dueDate: value.due, updatedAt: now });
+    // the homework and the worksheet's deadline are written together: never a task without the sheet's due date
+    const reference = doc(collection(db, 'homework'));
+    const batch = writeBatch(db);
+    batch.set(reference, value);
+    if (worksheet?.id && value.due) batch.update(doc(db, 'worksheetAssignments', worksheet.id), { dueDate: value.due, updatedAt: now });
+    await batch.commit();
     return { id: reference.id, ...value };
   },
   // live: homework given in one Live Classroom lesson (the student's pet cheers when one arrives)

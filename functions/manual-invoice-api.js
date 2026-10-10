@@ -1,4 +1,5 @@
 const functions = require('firebase-functions/v1');
+const { isDisabledProfile } = require('./auth-core');
 const { appToday } = require('./local-date-core');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
@@ -60,7 +61,7 @@ async function requireFinanceUser(req) {
   }
   const profileSnap = await db.collection('users').doc(decoded.uid).get();
   const profile = profileSnap.exists ? profileSnap.data() : {};
-  if (profile.disabled === true || profile.status === 'disabled') throw httpError(403, 'Account disabled');
+  if (isDisabledProfile(profile) || profile.status === 'disabled') throw httpError(403, 'Account disabled');
   const roles = new Set([
     ...(Array.isArray(profile.roles) ? profile.roles : []),
     profile.role,
