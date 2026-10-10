@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const { cacheKey, translationRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor } = require("./language-core");
 
 test("translation request: clean text, supported pairs only", () => {
-  assert.deepEqual(translationRequest({ text: "  kass  magab ", src: "et", tgt: "ru" }), { text: "kass magab", src: "et", tgt: "ru", domain: "auto", application: "keelesepp-crm" });
+  assert.deepEqual(translationRequest({ text: "  kass  magab ", src: "et", tgt: "ru" }), { text: "kass magab", src: "et", tgt: "ru", application: "keelesepp-crm" });
   assert.throws(() => translationRequest({ text: "", src: "et", tgt: "ru" }), /Text required/);
   assert.throws(() => translationRequest({ text: "x", src: "et", tgt: "et" }), /Unsupported/);
   assert.throws(() => translationRequest({ text: "x", src: "et", tgt: "zz" }), /Unsupported/);

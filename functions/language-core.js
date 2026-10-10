@@ -19,7 +19,8 @@ function translationRequest({ text, src = "et", tgt = "ru" } = {}) {
   const clean = cleanTerm(text);
   if (!clean) throw Object.assign(new Error("Text required"), { status: 400 });
   if (!LANGS.includes(src) || !LANGS.includes(tgt) || src === tgt) throw Object.assign(new Error("Unsupported language pair"), { status: 400 });
-  return { text: clean, src, tgt, domain: "auto", application: "keelesepp-crm" };
+  // no `domain`: TartuNLP answers 422 to "auto" (2026-10); the default general domain is used
+  return { text: clean, src, tgt, application: "keelesepp-crm" };
 }
 
 // The forms a learner needs, in the order teachers say them: nouns/adjectives the three principal forms (+ plural
