@@ -131,3 +131,4 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | B2 M07 Haridus ja õppimine | b1b2-031–035 | Avasta, Harjuta, Kasuta | agent/course-b2-m07 |
 | B2 M08 Reisimine ja kultuur | b1b2-036–040 | Avasta, Harjuta, Kasuta | agent/course-b2-m08 |
 | B2 M09 Tervis ja eluviis | b1b2-041–045 | Avasta, Harjuta, Kasuta | agent/course-b2-m09 |
+| B2 M10 Suhted ja konfliktid | b1b2-046–050 | Avasta, Harjuta, Kasuta | agent/course-b2-m10 |
