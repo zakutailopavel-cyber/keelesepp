@@ -19,6 +19,20 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/course-b1-expand-m05 — B1 moodulid 5 ja 6 laiendatud; kõik 50 kursuse lehte on terved tunnid
+
+- a2b1-021…030 Harjuta + Kasuta (A2+): iga leht on 40–46 min (enne 9–24 min).
+- Lisandusid:
+  - A2+ mahus lugemistekstid (120+ sõna): Toomase laupäev, Liisi kiire nädal, kiri Pärnust, ema sünnipäev, võtmed külmkapis, esimene tööpäev, postitused, poeskäik, kohvik Kaneel, mida eestlased söövad, kaebus restoranile, restorani vastus;
+  - vormid, eitus, osastav, teisendused, tõlge, etteütlus, kirjutamine 8–10 lauset, kõne, dialoog ja sorteerimine.
+- Vaheldusreegel leidis kaks liiga sarnast naaberlehte (027 ja 030 Kasuta); ülesandetüübid vahetati.
+- Ühelgi moodulil ei ole enam `shortSheets`. Kõik 50 lehte (moodulid 2–6) on terve tunni pikkused.
+- Kontrollid:
+  - worksheet-generator + worksheet-studio testid;
+  - eslint;
+  - build.
+- NB: kui omanik avaldas mõne mooduli 2 lehe enne laiendamist, tuleb see „Kursuse tootmise” lehel uuesti avaldada (leht näitab „olemas vN” ja küsib asendamisel kinnitust).
+
 ## 2026-10-10 · agent/course-b1-expand-m03 — B1 moodulid 3 ja 4 laiendatud tervete tundideni
 
 - a2b1-011…020 Harjuta + Kasuta: iga leht on 40–45 min (enne 10–24 min), plokke 10–17.
