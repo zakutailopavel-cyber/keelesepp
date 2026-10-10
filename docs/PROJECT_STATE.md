@@ -20,6 +20,20 @@
 
 
 
+## 2026-10-10 · agent/course-b2-m02 — B2 kursus: moodul 2 (b1b2-006…010), kõik kolm etappi
+
+- Base: `main` 8f5403f (after #451).
+- New file `b2/module02.js` „Linn, teenused ja asjaajamine”, registered in `registry.js`. 15 sheets, stage B1, each 40–55 min.
+  - 006: kuhu / kus / kust tied to movement, routes and directions.
+  - 007: polite service dialogue (tingiv kõneviis, täpsustamine, kokkuvõte).
+  - 008: complaint in 4 steps; Harno B2 letter of ~140 words.
+  - 009: spontaneous reactions, role cards with a change in the middle.
+  - 010: Kontroll 2 (12 grammar points, 2 role situations, complaint letter).
+- Every Harjuta sheet has a reading of at least 200 words. Without it, the B1 sentence-length norm fails.
+- Check: `npx vitest run src/features/worksheet-generator` → 44 files, 462/462.
+- The 75 existing course sheets were compared with production: all are identical, nothing to republish.
+- Next step: publish the 15 new sheets, then B2 module 3 „Minevik ja kogemused” (b1b2-011…015).
+
 ### 2026-10-10 — Tahvli tekst murdub ridadeks (agent/board-text)
 
 - Põhjus: kleebitud lõik muutus üheks kuni 1600 px pikaks reaks, teine rida lõigati ära (omaniku ekraanipilt).
