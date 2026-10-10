@@ -48,6 +48,15 @@ export function speakingOf(recording) {
   const lang = recording.language === 'en' ? 'en' : 'et';
   const said = (recording.transcript || []).filter((l) => l.speaker === 'student');
   const all = said.reduce((n, l) => n + wordsIn(l.text), 0);
+  // analysis 4+ (school Mac) counts without recognition noise and form lists: its own word counts and checked sentences
+  const speech = recording.analysis?.speech;
+  const checked = Number(recording.analysis?.checked) || 0;
+  if (speech?.words >= 20) {
+    return {
+      share: Math.round((speech.langWords / speech.words) * 100),
+      accuracy: !Array.isArray(recording.analysis?.errors) || !checked ? null : Math.round(Math.max(0, 1 - recording.analysis.errors.length / checked) * 100),
+    };
+  }
   if (all < 20) return null;
   const inLang = said.filter((l) => (l.lang ? l.lang === lang : !CYRILLIC.test(l.text))).reduce((n, l) => n + wordsIn(l.text), 0);
   const sentences = said.filter((l) => (l.lang ? l.lang === lang : !CYRILLIC.test(l.text)))

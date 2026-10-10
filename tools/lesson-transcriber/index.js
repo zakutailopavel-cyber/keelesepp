@@ -7,7 +7,7 @@ const path = require('node:path');
 const { execFile, spawn } = require('node:child_process');
 const { promisify } = require('node:util');
 const admin = require('firebase-admin');
-const { ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
+const { learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis } = require('./analysis');
 const { parseWhisperJson, mergeDialogue, isAudioExpired, isAbandoned, isStaleTranscribing, pickModel, workerId, heartbeat, parseVadSegments, groupChunks, parseDetectedLanguage, chooseLanguage } = require('./lib');
 
 const run = promisify(execFile);
@@ -261,8 +261,8 @@ async function analyzeNext() {
   const started = Date.now();
   try {
     const errors = [];
+    const sentences = learnerSentences(transcript, rec.language || 'et', (await loadDidactics().catch(() => null))?.forms || null);
     if (hasGec) {
-      const sentences = learnerSentences(transcript, rec.language || 'et');
       for (const [i, s] of sentences.entries()) {
         if (i % 8 === 0) { current = { ...current, detail: `vead ${i}/${sentences.length}` }; await beat(); }
         const corrected = (await ollama({ model: GEC_MODEL, prompt: GEC_PROMPT(s.text), raw: true, options: { temperature: 0, num_predict: 200, stop: ['\n', '###'] } }, 60 * 1000)).trim();
@@ -282,6 +282,8 @@ async function analyzeNext() {
     const [first, ...rest] = parts;
     await first.ref.update({ analysis: {
       version: ANALYSIS_VERSION, parts: parts.map((p) => p.id), errors, ...(summary ? { summary } : {}),
+      // what the CRM's „Rääkimine” counts: the sentences that were checked and the learner's (Estonian) words
+      checked: hasGec ? sentences.length : 0, speech: learnerSpeech(transcript, rec.language || 'et'),
       models: { ...(hasGec ? { gec: GEC_MODEL } : {}), ...(hasSummary ? { summary: SUMMARY_MODEL } : {}) },
       analyzedAt, petStatsAt: analyzedAt, seconds: Math.round((Date.now() - started) / 1000),
     } });
