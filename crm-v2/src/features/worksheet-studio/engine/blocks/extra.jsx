@@ -134,34 +134,55 @@ export const listening = {
 };
 
 // ---------- table ----------
+// A cell is free text, a whole-cell answer „[õige]” (key „row.col”) or text with answers inside it
+// („siin ei [viibita]”, keys „row.col.n”) — the inline form reads like a gap sentence.
+const WHOLE_CELL = /^\[(.*)\]$/;
+const INLINE_GAP = /\[([^\]]*)\]/g;
+const tableRows = (data) => String(data.rows || '').split('\n').filter((r) => r.trim()).map((r) => r.split('|').map((c) => c.trim()));
+function cellParts(cell) {
+  const parts = [];
+  let last = 0;
+  let n = 0;
+  for (const m of cell.matchAll(INLINE_GAP)) {
+    if (m.index > last) parts.push({ text: cell.slice(last, m.index) });
+    parts.push({ gap: n++, accept: m[1] });
+    last = m.index + m[0].length;
+  }
+  if (last < cell.length) parts.push({ text: cell.slice(last) });
+  return parts;
+}
 export const table = {
   type: 'table', label: 'Tabel', group: 'Grammatika ja sõnavara', icon: 'Table', task: true, width: 'full', tone: 'blue',
   create: () => ({ title: 'Täida tabel.', instruction: '', headers: 'Nimetav, Omastav, Osastav', rows: 'maja | [maja] | [maja]\nkool | [kooli] | [kooli]', }),
   View: ({ data, ctx }) => {
     const heads = splitList(data.headers);
-    const rows = String(data.rows || '').split('\n').filter((r) => r.trim()).map((r) => r.split('|').map((c) => c.trim()));
+    const rows = tableRows(data);
+    const input = (key, width) => <Line interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={width} label="Lahter" />;
     return (
       <table className="ws-table">
         <thead><tr>{heads.map((h, i) => <th key={i}>{h}</th>)}</tr></thead>
         <tbody>{rows.map((r, ri) => (
           <tr key={ri}>{heads.map((_, ci) => {
             const c = r[ci] || '';
-            const m = c.match(/^\[(.*)\]$/);
             const key = `${ri}.${ci}`;
-            return <td key={ci}>{m || c === '' ? <Line interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width="100%" label="Lahter" /> : <Md text={c} />}</td>;
+            if (WHOLE_CELL.test(c) || c === '') return <td key={ci}>{input(key, '100%')}</td>;
+            if (!c.includes('[')) return <td key={ci}><Md text={c} /></td>;
+            return <td key={ci}>{cellParts(c).map((p, pi) => (p.text !== undefined ? <Md key={pi} text={p.text} /> : <span key={pi}>{input(`${key}.${p.gap}`, `${Math.max(5, p.accept.split('/')[0].length + 2)}ch`)}</span>))}</td>;
           })}</tr>
         ))}</tbody>
       </table>
     );
   },
-  score: (data, get) => String(data.rows || '').split('\n').filter((r) => r.trim()).flatMap((r, ri) => r.split('|').map((c, ci) => {
-    const m = c.trim().match(/^\[(.*)\]$/);
-    return m ? { key: `${ri}.${ci}`, ok: m[1].split('/').map(norm).includes(norm(get(`${ri}.${ci}`))) } : null;
-  }).filter(Boolean)),
+  score: (data, get) => tableRows(data).flatMap((r, ri) => r.flatMap((c, ci) => {
+    const ok = (key, accept) => ({ key, ok: accept.split('/').map(norm).includes(norm(get(key))) });
+    const whole = c.match(WHOLE_CELL);
+    if (whole) return [ok(`${ri}.${ci}`, whole[1])];
+    return cellParts(c).filter((p) => p.gap !== undefined).map((p) => ok(`${ri}.${ci}.${p.gap}`, p.accept));
+  })),
   Editor: ({ data, set }) => (
     <>
       <Text label="Veergude pealkirjad (komaga)" value={data.headers} onChange={(v) => set({ headers: v })} />
-      <Area label="Read (lahtrid | märgiga)" rows={6} value={data.rows} onChange={(v) => set({ rows: v })} hint="Täidetav lahter: [õige vastus] (mitu: [a/b]). Tühi lahter on vaba vastus." />
+      <Area label="Read (lahtrid | märgiga)" rows={6} value={data.rows} onChange={(v) => set({ rows: v })} hint="Täidetav lahter: [õige vastus] (mitu: [a/b]) või lünk teksti sees: siin ei [viibita]. Tühi lahter on vaba vastus." />
     </>
   ),
 };

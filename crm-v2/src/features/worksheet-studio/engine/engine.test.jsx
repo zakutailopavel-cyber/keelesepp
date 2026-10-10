@@ -101,6 +101,10 @@ describe('scoring', () => {
 
     const t = createBlock('table');
     expect(scoreDocument(doc([t]), answer(t, { '0.1': 'maja', '0.2': 'maja', '1.1': 'kooli', '1.2': 'kooli' })).perBlock[t.id].every((x) => x.ok)).toBe(true);
+    // answers inside a cell's text are gaps of their own
+    const ti = { ...createBlock('table'), data: { headers: 'a, b', rows: 'pink | siin ei [viibita/peatuta] ja [magata]' } };
+    const inline = scoreDocument(doc([ti]), answer(ti, { '0.1.0': 'peatuta', '0.1.1': 'magada' })).perBlock[ti.id];
+    expect(inline.map((x) => [x.key, x.ok])).toEqual([['0.1.0', true], ['0.1.1', false]]);
 
     const c = createBlock('categorize');
     // alphabetical word order: lähen magama(1), söön hommikusööki(0), vaatan filmi(1), ärkan(0)

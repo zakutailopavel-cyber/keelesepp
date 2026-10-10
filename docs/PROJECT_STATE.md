@@ -6,6 +6,13 @@
 - After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
 - Next step: the next module of the course.
 
+
+### 2026-10-10 · Tööleht: tabeli lüngad lahtri sees ja pikk lugemine ei lõiku (agent/sheet-table-inline-gaps)
+- Tabelplokk (`engine/blocks/extra.jsx`): lahter võib olla vaba tekst, terve lahtri vastus `[õige]` (võti `rida.veerg`) või tekst lünkadega `siin ei [viibita]` (võtmed `rida.veerg.n`). Varem näidati segalahtris vastus nurksulgudes õpilasele välja — puudutas 63 tabelit B2 ja C1 kursusel; nüüd on need automaatselt kontrollitavad lüngad. `variants.js` ei mähi segalahtrit uuesti sulgudesse.
+- `Sheet.jsx` + `sheet.css`: kui üks lehe rida (nt C1 500+ sõnaga lugemine) on kõrgem kui A4, saab leht klassi `is-tall` ja kasvab, varem lõigati tekst `overflow: hidden` tõttu ära.
+- Kontroll: `npx vitest run src/features/worksheet-studio src/features/worksheet-generator` → 663/663 (uus test: tabeli lüngad lahtri sees).
+- Järgmine samm: kontrollida C1 lehte /library/lessons/est-c1-013/worksheets/discover õpilase vaates.
+
 ## 2026-10-10 · agent/teacher-guide — süsteemi tutvustus õpetajatele
 
 - Base: `main` eadc52b.
