@@ -1,3 +1,14 @@
+## 2026-10-10 · agent/material-quality-checklist — Õppematerjali kvaliteedi kontrollnimekiri ja audit
+
+- Base: `main` 3ee4659. Branch `agent/material-quality-checklist`, draft PR.
+- New normative doc `docs/MATERIAL_QUALITY_CHECKLIST.md`: 24 criteria in three groups (K kaasahaarav, A aktiivne ja suhtluslik, J jõukohane ja arendav), rewritten in our own words from Mare Kitsnik's TÜ / RITA-ränne guide (no text copied), mapped to our block types. Added to the content agent's required reading in `AGENTS.md`.
+- Advisory checker `crm-v2/src/features/worksheet-generator/admin/course/materialChecklist.js` (12 automatic criteria; does not block publishing — the hard gate stays `quality.js`) and `materialAudit.js` (collects A2 modules 1–10, B1 module 1, course modules B1 2–7 / B2 1–18 / C1 1–10 = 795 sheets, 275 lessons; applies `withLessonArt`).
+- Report `docs/MATERIAL_QUALITY_AUDIT.md` (regenerate: `WRITE_MATERIAL_AUDIT=1 AUDIT_DATE=… AUDIT_COMMIT=… npx vitest run src/features/worksheet-generator/admin/course/materialAudit.test.js`).
+- Main findings: C1 has no listening at all (A1 0%); A2 has little reading/listening (A1 34%) and its Harjuta sheets have no self-check (J5 0%); B1 module 1 has no pair work and no listening; pictures only in A2 module 1 (K2 ≤10%); no differentiation anywhere (J4 0%); tasks beyond the classroom in 30–60% of modules (K4). Strong: open tasks, support for productive tasks, controlled → free order, clear instructions.
+- Not covered: sheets edited by hand in the CRM / only in Firestore (e.g. migrated Avasta 001–050); the „Inimene” criteria need a human review.
+- Checks: `npx vitest run src/features/worksheet-generator` 45 files / 517 tests passed; eslint clean on the new files.
+- Next step: owner chooses which gap to fix first (recommended: listening tasks for C1 and A2, then self-check on A2 Harjuta).
+
 ## 2026-10-10 · UI fixes after owner review — Live Classroom (#500, #501), Õppevara and Õpik (#502)
 
 - Base: `main` 0274dde. All three PRs merged and deployed (Vercel success).
