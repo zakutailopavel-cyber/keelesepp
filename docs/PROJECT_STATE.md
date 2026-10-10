@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m06 — B2 M06 Tööelu (b1b2-026–030), kõik kolm etappi
+
+- Base: `main` 63ecfbb. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module06.js`, stage B1+: work vocabulary and responsibility, a good workplace (criteria, three vacancies), a conflict at work (facts, not accusations; a meeting with the manager), remote work or the office (balanced conclusion, 150–170 words), Kontroll 6. 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/sheet-board-same — tööleht tahvlil on õpetajal ja õpilasel ühesugune; pikk vastus ei lõigu ära
 
 - Owner's screenshots:
