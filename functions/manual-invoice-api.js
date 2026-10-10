@@ -1,4 +1,5 @@
 const functions = require('firebase-functions/v1');
+const { appToday } = require('./local-date-core');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-core');
@@ -112,7 +113,7 @@ async function createManualInvoice({ actor, values, requestId }) {
   const studentRef = db.collection('students').doc(input.studentId);
   const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
-  const todayIso = nowIso.slice(0, 10);
+  const todayIso = appToday(nowIso);
 
   return db.runTransaction(async (transaction) => {
     const existing = await transaction.get(invoiceRef);
@@ -186,7 +187,7 @@ async function createMonthlyInvoice({ actor, values }) {
   const baseInvoiceId = monthlyInvoiceId(input.studentId, input.month);
   const counterRef = db.collection('meta').doc('invoiceCounter');
   const nowIso = new Date().toISOString();
-  const todayIso = nowIso.slice(0, 10);
+  const todayIso = appToday(nowIso);
   return db.runTransaction(async (transaction) => {
     const [studentSnap, planSnap, counterSnap, dateLockSnap, studentInvoicesSnap] = await Promise.all([
       transaction.get(db.collection('students').doc(input.studentId)),
@@ -292,7 +293,7 @@ async function cancelInvoice({ actor, invoiceId, reason, requestId }) {
       transaction.get(db.collection('payments').where('invoiceId', '==', cleanInvoiceId)),
       transaction.get(db.collection('creditNotes').where('invoiceId', '==', cleanInvoiceId)),
       transaction.get(db.collection('financialLockedDates').doc(String(invoice.date || '').slice(0, 10))),
-      transaction.get(db.collection('financialLockedDates').doc(nowIso.slice(0, 10))),
+      transaction.get(db.collection('financialLockedDates').doc(appToday(nowIso))),
     ]);
     if (issueLockSnap.exists || todayLockSnap.exists) throw httpError(409, 'Financial period is closed');
     const reasonBlocked = invoiceCancellationError(invoice, paymentsSnap.docs.map(doc => doc.data()), creditNotesSnap.docs.map(doc => doc.data()));

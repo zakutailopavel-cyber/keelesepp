@@ -57,6 +57,22 @@ describe('lessonsService accounting', () => {
     expect(firestore.writeBatch).not.toHaveBeenCalled();
   });
 
+  it('changes an older server-journal mark through the server, keeping the topic and the note', async () => {
+    const user = { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] };
+    const result = await lessonsService.changeMark({
+      id: 'scheduled_abc', accountingSource: 'lesson_journal_v2', scheduleId: 'schedule-1', studentId: 'student-1', studentName: 'Mari', date: '2026-08-04',
+      teacher: 'Pavel', teacherUid: 'teacher-1', status: 'Puudus_p', topic: 'Kellaajad', notes: 'Hästi', duration: 60, time: '10:00',
+    }, 'Toimunud', user, { scheduleRecurring: true });
+    expect(financeApi.deleteLessonJournal).toHaveBeenCalledWith('scheduled_abc');
+    expect(firestore.batch.update).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ status: 'Toimunud', accountingSource: 'crm_v2', topic: 'Kellaajad', notes: 'Hästi', scheduleId: 'schedule-1' });
+  });
+
+  it('refuses to change an older mark without a calendar link', async () => {
+    await expect(lessonsService.changeMark({ id: 'old-1', studentId: 's', date: '2026-08-04', status: 'Puudus_p' }, 'Toimunud', { uid: 'u' })).rejects.toThrow(/tunnipäevikus/);
+    expect(financeApi.deleteLessonJournal).not.toHaveBeenCalled();
+  });
+
   it('fixes a CRM v2 mark in place and sets a one-off schedule back to planned when removed', async () => {
     const user = { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] };
     const record = { id: 'rec-1', scheduleId: 'schedule-1', studentId: 's1', date: '2026-08-04', status: 'Toimunud', accountingSource: 'crm_v2' };
