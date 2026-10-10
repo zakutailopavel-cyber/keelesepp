@@ -5,6 +5,7 @@ import {
   sendEmailVerification,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  signInWithCustomToken,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -31,6 +32,9 @@ function accountAccessError(error) {
 // Self-registration (same profile shape as the legacy CRM, see haldus.html `register`).
 // Teachers and administrators are created by an administrator, never here.
 export const TERMS_VERSION = '2025-08-10';
+export const TEST_SESSION_KEY = 'keelesepp.testStudentSession';
+export function testSessionName() { try { return globalThis.sessionStorage?.getItem(TEST_SESSION_KEY) || ''; } catch { return ''; } }
+export function clearTestSession() { try { globalThis.sessionStorage?.removeItem(TEST_SESSION_KEY); } catch { /* storage blocked */ } }
 export const REGISTRATION_TEACHERS = ['Pavel', 'Jelena', 'Elizaveta', 'Angelina'];
 export const SELF_ROLES = ['parent', 'student'];
 const STAFF_OPERATIONS_URL = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi';
@@ -143,6 +147,24 @@ export const authService = {
     }, onError);
     return () => { generation += 1; unsubscribe(); };
   },
+  // Admin → test student: the server checks the admin and returns a one-time token for the card marked testStudent.
+  // The admin's own session ends; „Lõpeta testseanss” signs out and the admin logs in again.
+  async signInAsTestStudent() {
+    const { auth } = requireFirebaseClient();
+    if (!auth.currentUser) throw new Error('Logi uuesti sisse.');
+    const idToken = await auth.currentUser.getIdToken();
+    const baseUrl = String(import.meta.env.VITE_STAFF_OPERATIONS_API_URL || 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi').replace(/\/$/, '');
+    const response = await globalThis.fetch(`${baseUrl}/accounts/test-student-session`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${idToken}`, 'Content-Type': 'application/json' },
+      body: '{}',
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.token) throw new Error(data.error || 'Testõpilasena sisselogimine ebaõnnestus.');
+    await signInWithCustomToken(auth, data.token);
+    try { globalThis.sessionStorage?.setItem(TEST_SESSION_KEY, data.studentName || 'Testõpilane'); } catch { /* storage blocked */ }
+    return data;
+  },
   async signIn(email, password) {
     const { auth } = requireFirebaseClient();
     const credential = await signInWithEmailAndPassword(auth, email, password);
@@ -212,6 +234,7 @@ export const authService = {
     return clean;
   },
   async signOut() {
+    clearTestSession();
     const { auth } = requireFirebaseClient();
     await signOut(auth);
   },

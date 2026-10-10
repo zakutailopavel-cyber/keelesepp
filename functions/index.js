@@ -7310,6 +7310,19 @@ async function deliverApprovalEmailWithin(message, context) {
   }
 }
 
+async function testStudentSession({ actor, studentId = "" }) {
+  const cards = await db.collection("students").where("testStudent", "==", true).limit(20).get();
+  const wanted = String(studentId || "").trim();
+  const card = cards.docs.find((item) => (!wanted || item.id === wanted) && String(item.data().studentUid || "").trim());
+  if (!card) throw httpError(404, "Testõpilast ei leitud (õpilase kaardil peab olema testStudent ja seotud konto).");
+  const uid = String(card.data().studentUid).trim();
+  const profile = await db.collection("users").doc(uid).get();
+  if (!profile.exists || profile.data().role !== "student") throw httpError(409, "Testõpilase konto ei ole õpilase roll.");
+  const token = await admin.auth().createCustomToken(uid, { testSession: true });
+  console.info("test-student-session", { by: actor.decoded.uid, uid, studentId: card.id });
+  return { token, studentId: card.id, studentName: card.data().name || "Testõpilane" };
+}
+
 exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -7324,6 +7337,13 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       if (!profileSnap.exists) throw httpError(409, "Account profile is not ready");
       const result = await bootstrapCurrentAccount({ decoded, profile: profileSnap.data(), includeSelfStudent: req.body?.includeSelfStudent === true });
       res.status(result.createdStudentIds?.length ? 201 : 200).json(result);
+      return;
+    }
+    // Admin switches to a test student (owner, 2026-10-10): a one-time sign-in token for a student account whose card is
+    // marked testStudent: true — never a real student. No password is stored or sent.
+    if (req.path === "/accounts/test-student-session") {
+      const actor = await requireAdminUser(req);
+      res.json(await testStudentSession({ actor, studentId: req.body?.studentId }));
       return;
     }
     if (req.path === "/clock-in") {

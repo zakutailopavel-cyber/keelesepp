@@ -7,6 +7,7 @@ import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import { teacherScopeMigrationApi } from '../../services/firebase/teacherScopeMigrationApi.js';
 import { parentsService } from '../../services/firebase/parents.js';
+import { authService } from '../../services/firebase/auth.js';
 import { studentsService } from '../../services/firebase/students.js';
 import PetSettingsCard from '../pet/PetSettingsCard.jsx';
 import GoogleCalendarCard from '../google-calendar/GoogleCalendarCard.jsx';
@@ -179,6 +180,8 @@ export default function SettingsPage({ parentRepository = parentsService, studen
 
       {isAdmin ? <Card><div className="settings-icon"><Eye /></div><h2>Vanema / õpilase vaade</h2><p className="settings-copy">Ava valitud lapsevanema või õpilase kabinet ilma tema parooli ja Firebase Auth seanssi muutmata. Tugivaade on vaikimisi ainult lugemiseks.</p>{!supportData ? <Button variant="secondary" loading={supportLoading} onClick={loadSupportUsers}>Laadi kasutajad</Button> : <div className="settings-profile-form"><Select label="Vaate tüüp" value={supportType} onChange={(event) => { setSupportType(event.target.value); setSupportTarget(''); }}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></Select><Select label={supportType === 'parent' ? 'Lapsevanem' : 'Õpilane'} value={supportTarget} onChange={(event) => setSupportTarget(event.target.value)}><option value="">Vali kasutaja</option>{(supportType === 'parent' ? supportData.parents : supportData.students).map((item) => <option value={item.id} key={item.id}>{supportType === 'parent' ? (item.displayName || item.email || 'Nimetu lapsevanem') : (item.name || 'Nimetu õpilane')}</option>)}</Select><Button disabled={!supportTarget} onClick={openSupportView}><Eye size={17} /> Ava read-only vaade</Button></div>}{supportError ? <p className="form-hint" role="alert">{supportError}</p> : null}</Card> : null}
 
+      {isAdmin && !preview ? <TestStudentCard /> : null}
+
       {isAdmin ? <DataCleanupPanel user={user} /> : null}
 
       {isAdmin ? <Card><div className="settings-icon"><ShieldAlert /></div><h2>Teacher-scope migratsioon (diagnostika)</h2><p className="settings-copy">Ajutine admin-tööriist: kontrollib, kas õpetajate andmed on valmis range teacherUid-põhise ligipääsu jaoks, käivitab backfilli ja lülitab range kontrolli sisse. Iga toiming nõuab kaht klõpsu (kinnitus ilma brauseri hüpikaknata). Rollback on olemas serveris.</p><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><Button variant="secondary" loading={migrationLoading} onClick={previewTeacherScopeMigration}>Preview</Button><Button variant={migrationApplyArmed ? 'primary' : 'secondary'} loading={migrationApplyLoading} onClick={applyTeacherScopeMigration}>{migrationApplyArmed ? 'Kinnita: rakenda backfill' : 'Rakenda (apply)'}</Button><Button variant={migrationEnforceArmed ? 'primary' : 'secondary'} loading={migrationEnforceLoading} onClick={enforceTeacherScopeMigration}>{migrationEnforceArmed ? 'Kinnita: luba range piirang' : 'Luba range piirang (enforce)'}</Button></div>{migrationError ? <p className="form-hint" role="alert">{migrationError}</p> : null}{migrationPreview ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationPreview, null, 2)}</pre> : null}{migrationApplyResult ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationApplyResult, null, 2)}</pre> : null}{migrationEnforceResult ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationEnforceResult, null, 2)}</pre> : null}</Card> : null}
@@ -186,3 +189,16 @@ export default function SettingsPage({ parentRepository = parentsService, studen
   </div>;
 
 }
+
+// Admin switches to the test student (a real sign-in, so lesson invitations, the room and homework work as for a student)
+function TestStudentCard({ service = authService }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const start = async () => {
+    setBusy(true); setError('');
+    try { await service.signInAsTestStudent(); globalThis.location?.assign('/'); }
+    catch (nextError) { setError(nextError.message || 'Testõpilasena sisselogimine ebaõnnestus.'); setBusy(false); }
+  };
+  return <Card><div className="settings-icon"><UserRound /></div><h2>Testõpilane</h2><p className="settings-copy">Logi sisse testõpilasena, et proovida tundi, kutset, töölehti ja kodutöid õpilase silmadega. Sinu administraatori seanss lõpeb; tagasi saad, kui vajutad „Lõpeta testseanss” ja logid uuesti sisse.</p><Button variant="secondary" loading={busy} onClick={start}><UserRound size={17} /> Ava testõpilasena</Button>{error ? <p className="form-hint" role="alert">{error}</p> : null}</Card>;
+}
+
