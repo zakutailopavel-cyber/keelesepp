@@ -2,7 +2,7 @@ import { ArrowLeft, Download, ExternalLink, Lightbulb, Search } from 'lucide-rea
 import { useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Badge, Button, EmptyState, PageHeader } from '../../../components/ui/index.js';
-import { filterResources, typeCounts } from './raamatukoguModel.js';
+import { filterResources, groupByType, groupLinks, typeCounts } from './raamatukoguModel.js';
 import { AUDIENCES, LEVELS, RESOURCE_TYPES, RESOURCES } from './resources.js';
 import '../libraryWorkspace.css';
 import './raamatukogu.css';
@@ -15,13 +15,26 @@ function ResourceCard({ resource }) {
         <span className="rk-card__type">{RESOURCE_TYPES[resource.type]}</span>
         <span className="rk-card__levels">{resource.levels.map((level) => <Badge key={level}>{level}</Badge>)}</span>
       </div>
-      <h2>{resource.title}</h2>
+      <h3>{resource.title}</h3>
       <p className="rk-card__author">{resource.author}</p>
       <p>{resource.summary}</p>
       <p className="rk-card__ideas"><Lightbulb size={15} aria-hidden="true" /> <span>{resource.ideas}</span></p>
       <p className="rk-card__meta">
         {resource.audience.map((key) => AUDIENCES[key]).join(' · ')} · juhendkeel: {resource.instructionLanguages.join(', ')}
       </p>
+      {resource.links?.length ? (
+        <details className="rk-card__links">
+          <summary>Materjalid ({resource.links.length})</summary>
+          {groupLinks(resource.links).map(({ group, items }) => (
+            <div className="rk-card__linkgroup" key={group}>
+              <strong>{group}</strong>
+              <ul>
+                {items.map((item) => <li key={item.url}><a href={item.url} target="_blank" rel="noopener noreferrer">{item.label}</a></li>)}
+              </ul>
+            </div>
+          ))}
+        </details>
+      ) : null}
       <p className="rk-card__license">{resource.license}</p>
       <div className="rk-card__actions">
         {isFile ? (
@@ -55,6 +68,7 @@ export default function RaamatukoguPage({ resources = RESOURCES }) {
     () => filterResources(resources, { q, level, type, audience, filesOnly }),
     [resources, q, level, type, audience, filesOnly],
   );
+  const sections = useMemo(() => groupByType(visible), [visible]);
 
   return (
     <div className="page-content library-page lib2 rk-page">
@@ -97,11 +111,20 @@ export default function RaamatukoguPage({ resources = RESOURCES }) {
 
       <p className="rk-count" role="status">{visible.length} / {resources.length} allikat</p>
 
-      {visible.length ? (
-        <ul className="rk-grid" aria-label="Allikad">
-          {visible.map((resource) => <ResourceCard resource={resource} key={resource.id} />)}
-        </ul>
-      ) : (
+      {sections.length > 1 ? (
+        <nav className="rk-toc" aria-label="Rubriigid">
+          {sections.map((section) => <a href={`#rk-${section.type}`} key={section.type}>{section.label} <span>{section.items.length}</span></a>)}
+        </nav>
+      ) : null}
+
+      {sections.length ? sections.map((section) => (
+        <section className="rk-section" id={`rk-${section.type}`} key={section.type} aria-labelledby={`rk-${section.type}-title`}>
+          <h2 id={`rk-${section.type}-title`}>{section.label} <span>{section.items.length}</span></h2>
+          <ul className="rk-grid" aria-label={section.label}>
+            {section.items.map((resource) => <ResourceCard resource={resource} key={resource.id} />)}
+          </ul>
+        </section>
+      )) : (
         <EmptyState title="Midagi ei leitud" description="Proovi teist otsingusõna või eemalda filtrid." />
       )}
     </div>

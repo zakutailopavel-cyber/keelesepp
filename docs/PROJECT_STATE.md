@@ -1,11 +1,12 @@
-## 2026-10-10 · agent/oppevara-raamatukogu — Õppevara: Raamatukogu (tasuta välised allikad)
+## 2026-10-10 · agent/oppevara-raamatukogu — Õppevara: Raamatukogu (tasuta välised allikad + tasemeeksamid)
 
-- Base: `main` a7b37e6. Branch `agent/oppevara-raamatukogu`, draft PR.
-- New page `/library/raamatukogu` (button „Raamatukogu” in the Õppevara header): cards of free outside sources for teachers' inspiration — search, level chips A1–C1, type, audience, „Allalaaditavad failid”. Filters live in the URL (`q`, `tase`, `tyyp`, `kellele`, `failid`).
-- Data: static list `crm-v2/src/features/library/raamatukogu/resources.js` (13 sources: Keeleklikk/Keeletee, Keeleõppija Sõnaveeb, Sõnaveeb, EKI keelenõuanne, Integratsiooni SA kursused, Peace Corps, TÜ harjutused, Colloquial Estonian audio, DIGAR A1/B1/B2, e-Koolikott, AlusEST). No Firestore, rules or functions changes.
-- Copyright contract: only public-domain / open-licence files are hosted (`access: 'file'`, under `crm-v2/public/raamatukogu/`). Currently one: `peace-corps-estonian-ED402761.pdf` (5.4 MB, ERIC ED402761, US government work). Everything else is a link to the author's site — TÜ exercises forbid commercial use, DIGAR books are library-network only, Keeleklikk/Sõnaveeb are web services.
-- Checks: `npx vitest run src/features/library` 37/37; eslint clean on changed files; `vite build` OK. Not checked visually in a logged-in browser.
-- Known: AlusEST link points to the project presentation until the e-handbook appears in e-Koolikott. Adding a source = one object in `resources.js` (test checks ids, types, levels, hosted files exist).
+- Base: `main` a7b37e6. Branch `agent/oppevara-raamatukogu`, draft PR #505.
+- Page `/library/raamatukogu` (button „Raamatukogu” in the Õppevara header): 29 free outside sources in sections (order = `RESOURCE_TYPES`): Eksamid ja tasemetestid, Veebikursused, Õpikud, Harjutused, Sõnastikud ja keeleabi, Video/audio/äpid, Õpetajale: metoodika, Materjalide portaalid, Tasuta kursused. Section chips jump to anchors; search, level chips A1–C1, type, audience, „Allalaaditavad failid”; filters in the URL (`q`, `tase`, `tyyp`, `kellele`, `failid`).
+- Exams: `examResources.js` — Harno tasemeeksamid: one info card (teabeleht, digitaalne harjutusvara, EIS, CEFR) + one card per level A2/B1/B2/C1 with ~15–19 direct links grouped Ettevalmistus / Kirjutamine / Kuulamine / Lugemine / Rääkimine (konsultatsioonivihikud, sooritusnäidised, tasemekirjeldused, näidisülesanded). All 78 exam links returned HTTP 200 on 2026-10-10.
+- Data: static `crm-v2/src/features/library/raamatukogu/resources.js` + `examResources.js`. No Firestore, rules or functions changes.
+- Copyright contract: only public-domain / open-licence files are hosted (`access: 'file'`, `crm-v2/public/raamatukogu/`): currently `peace-corps-estonian-ED402761.pdf` (5.4 MB, US government work). Harno states no licence → direct links to Harno PDFs, no copies. TÜ exercises forbid commercial use; DIGAR modern books are library-network only. DIGAR 1905/1919 grammars are Public Domain Mark but their download id could not be resolved reliably, so they are links too.
+- Checks: `npx vitest run src/features/library` 40/40; eslint clean on `raamatukogu/`; `vite build` OK. Not checked visually in a logged-in browser.
+- Known: LÄLÄ and Videoõps cards link to a YouTube search (channel handle not verified); AlusEST links to the project presentation until the e-handbook is in e-Koolikott; Harno may move PDFs — re-check links when a card breaks.
 - Next step: owner reviews the page on the Vercel deploy and names more sources to add.
 
 ## 2026-10-10 · UI fixes after owner review — Live Classroom (#500, #501), Õppevara and Õpik (#502)
