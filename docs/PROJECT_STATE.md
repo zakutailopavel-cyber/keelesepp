@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m12 — B2 M12 Tehnoloogia ja sotsiaalmeedia (b1b2-056–060), kõik kolm etappi
+
+- Base: `main` 1e9a282. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module12.js`, stage B1+/B2-: digital habits (3+ / 3− consequences), AI in everyday life (2 arguments + 1 counter-argument, responsibility), the impersonal voice (tehakse, ei lubata, tehti, on tehtud), misinformation and sources (fact / opinion / unproven claim, 3 criteria), Vahehindamine 3 (lessons 41–60). 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m11 — B2 M11 Raha ja tarbimine (b1b2-051–055), kõik kolm etappi
 
 - Base: `main` 02de144. Previous modules are published to production (diff with production: 0 differences).
