@@ -1,3 +1,9 @@
+## 2026-10-10 · agent/own-red-time — oma tunni võib panna oma punasele ajale
+
+- Owner: a teacher may put their OWN lesson on their own red (or yellow) time after a confirmation; an admin placing another teacher's lesson there is still refused.
+- Changed `CalendarPage.jsx` `assertTeacherWindow`: the lesson's `teacherUid === user.uid` → confirm „See on sinu enda aeg — panen tunni ikkagi?”.
+- Check: vitest `calendar` 75/76. The one failure („Alusta tundi”: `localStorage` undefined in this Node) fails on main too.
+
 ## 2026-10-10 · agent/lesson-analysis-clean — tunni analüüs: ainult päris eestikeelsed laused (analüüs v4)
 
 - Owner's request after Aleksandr D.'s lesson:
