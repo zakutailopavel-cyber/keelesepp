@@ -123,3 +123,4 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | B1 M06 Toit ja teenindus | 026–030 | Harjuta, Kasuta | #435, laiendus agent/course-b1-expand-m05 |
 | B1 M07 Tervis ja enesetunne | 031–035 | Harjuta, Kasuta | #448 |
 | B2 M01 Igapäevaelu ja B1 lähtepunkt | b1b2-001–005 | Avasta, Harjuta, Kasuta | agent/course-b2-m01 |
+| B2 M02 Linn, teenused ja asjaajamine | b1b2-006–010 | Avasta, Harjuta, Kasuta | agent/course-b2-m02 |
