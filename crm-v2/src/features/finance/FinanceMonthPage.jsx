@@ -57,6 +57,19 @@ const VIEWS = ['invoices', 'paid', 'unpaid', 'credits', 'prepare'];
 const creditAvailableCents = (credit) => Number.isInteger(credit?.availableAmountCents)
   ? credit.availableAmountCents : Math.round(Number(credit?.availableAmount || 0) * 100);
 
+// the e-mail state of an invoice (functions/index.js writes emailStatus, emailSentAt, emailRecipient, lastReminderSentAt)
+const stamp = (iso) => { const d = new Date(iso || ''); return Number.isNaN(d.getTime()) ? '' : d.toLocaleString('et-EE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); };
+export function invoiceEmailLine(invoice = {}) {
+  const status = String(invoice.emailStatus || '').toLowerCase();
+  if (status === 'sending') return { text: 'Saatmisel…', tone: 'info' };
+  if (status === 'failed') return { text: 'Saatmine ebaõnnestus', tone: 'danger', title: invoice.emailLastError || '' };
+  const reminder = invoice.lastReminderSentAt ? `Meeldetuletus ${stamp(invoice.lastReminderSentAt)}` : '';
+  const sentAt = invoice.invoiceEmailSentAt || invoice.emailSentAt;
+  if (status === 'queued' && !sentAt) return { text: `Järjekorras ${stamp(invoice.emailQueuedAt || invoice.emailUpdatedAt)}`, tone: 'info' };
+  if (sentAt || status === 'sent') return { text: [`Saadetud ${stamp(sentAt || invoice.emailUpdatedAt)}`, reminder].filter(Boolean).join(' · '), tone: 'success', title: invoice.emailRecipient || '' };
+  return { text: 'Saatmata', tone: 'neutral' };
+}
+
 function canCancelInvoice(invoice) {
   return ['manual_charge_v1', 'monthly_plan_v1'].includes(invoice.billingMode) &&
     !['Tühistatud', 'Makstud'].includes(invoice.status) &&
@@ -263,7 +276,7 @@ export default function FinanceMonthPage({
           <div className="finance-month-table__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Summa</span><span>Jääk</span><span>Olek</span><span>Tegevused</span></div>
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id}>
             <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{invoice.payerEmail || ''}</small></span>
-            <span>{invoice.num || invoice.number || invoice.invoiceNumber || '—'}</span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span><Badge tone={tone}>{label}</Badge></span>
+            <span>{invoice.num || invoice.number || invoice.invoiceNumber || '—'}</span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
             <span className="finance-month-table__actions">{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
         </div>}
