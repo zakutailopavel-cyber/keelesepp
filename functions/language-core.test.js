@@ -1,10 +1,10 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { cacheKey, translationRequest, keyFormsFromParadigms, pickEkilexWord, formsLine } = require("./language-core");
+const { cacheKey, translationRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor } = require("./language-core");
 
 test("translation request: clean text, supported pairs only", () => {
-  assert.deepEqual(translationRequest({ text: "  kass  magab ", src: "et", tgt: "ru" }), { text: "kass magab", src: "et", tgt: "ru", domain: "auto", application: "keelesepp-crm" });
+  assert.deepEqual(translationRequest({ text: "  kass  magab ", src: "et", tgt: "ru" }), { text: "kass magab", src: "et", tgt: "ru", application: "keelesepp-crm" });
   assert.throws(() => translationRequest({ text: "", src: "et", tgt: "ru" }), /Text required/);
   assert.throws(() => translationRequest({ text: "x", src: "et", tgt: "et" }), /Unsupported/);
   assert.throws(() => translationRequest({ text: "x", src: "et", tgt: "zz" }), /Unsupported/);
@@ -61,4 +61,18 @@ test('summarizes the EKI text evaluation against the sheet level', () => {
   assert.deepEqual(s.aboveForms, [{ text: 'ostaksin', lemma: 'ostma', level: 'B1', form: 'tingiv kõneviis' }]);
   assert.equal(summarizeEvaluation(data, 'B1').aboveForms.length, 0);
   assert.throws(() => evaluationRequest({ text: ' ' }));
+});
+
+test("Ekilex paradigmForms and headwords for inflected forms", () => {
+  const paradigms = [{ paradigmForms: [{ morphCode: "Sup", value: "ärkama" }, { morphCode: "Inf", value: "ärgata" }, { morphCode: "IndPrSg3", value: "ärkab" }, { morphCode: "IndPrSg1", value: "ärkan" }] }];
+  assert.equal(formsLine(keyFormsFromParadigms(paradigms).forms), "ärkama, ärgata, ärkab");
+  assert.ok(headwordCandidates("ärkan").includes("ärkama"));
+  assert.ok(headwordCandidates("söön").includes("sööma"));
+  assert.equal(headwordCandidates("Kass")[0], "kass");
+  assert.equal(paradigmHasForm(paradigms, "Ärkan"), true);
+  assert.equal(paradigmHasForm(paradigms, "magan"), false);
+  assert.ok(headwordCandidates("kassi").includes("kass"));
+  assert.ok(headwordCandidates("raamatut").includes("raamat"));
+  assert.equal(isProperFor({ wordValue: "Kassi" }, "kassi"), true);
+  assert.equal(isProperFor({ wordValue: "kass" }, "kassi"), false);
 });

@@ -33,6 +33,10 @@ export const languageToolsService = {
     if (src !== 'et') return post('/translate', { text: word, src, tgt }).then((data) => ({ word, translation: data.result || '', forms: { available: false, forms: [], line: '' } }));
     return post('/word', { word, tgt });
   },
+  // the learner's double-click on a worksheet word: forms + translation; the server saves it in the learner's „Sõnad”
+  lookupStudentWord({ studentId, word, tgt = 'ru' }) {
+    return post('/student-word', { studentId, word, tgt });
+  },
   // Estonian speech (TartuNLP Neurokõne) → a WAV Blob; the constructor saves it like an uploaded audio file.
   async speak({ text, speaker = 'mari', speed = 1 }) {
     const response = await request('/speak', { text, speaker, speed });

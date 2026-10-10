@@ -9680,17 +9680,24 @@ async function translateText(input) {
 }
 
 async function estonianWordForms(input) {
-  const { cleanTerm, cacheKey, keyFormsFromParadigms, pickEkilexWord, formsLine } = require("./language-core");
+  const { cleanTerm, cacheKey, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor } = require("./language-core");
   const term = cleanTerm(input?.word, 80);
   if (!term || /\s/.test(term)) throw httpError(400, "One Estonian word required");
   const apiKey = String(process.env.EKILEX_API_KEY || "").trim();
   if (!/^[0-9a-fA-F]{32}$/.test(apiKey)) return { word: term, available: false, forms: [], line: "" };
-  return cachedLanguageAnswer(cacheKey("forms", term.toLocaleLowerCase("et")), async () => {
+  return cachedLanguageAnswer(cacheKey("forms2", term.toLocaleLowerCase("et")), async () => {
     const headers = { "ekilex-api-key": apiKey };
-    const search = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(term)}/eki`, { headers });
-    const word = pickEkilexWord(search?.words, term);
+    // the clicked word may be inflected: try likely headwords until one's paradigm contains the clicked form
+    let word = null;
+    let paradigms = null;
+    for (const candidate of headwordCandidates(term)) {
+      const search = await fetchJsonWithin(`${EKILEX_URL}word/search/${encodeURIComponent(candidate)}/eki`, { headers });
+      const hit = pickEkilexWord(search?.words, candidate);
+      if (!hit?.wordId || isProperFor(hit, term)) continue;
+      const details = await fetchJsonWithin(`${EKILEX_URL}paradigm/details/${encodeURIComponent(hit.wordId)}`, { headers });
+      if (paradigmHasForm(details, term)) { word = hit; paradigms = details; break; }
+    }
     if (!word?.wordId) return { word: term, available: true, found: false, forms: [], line: "" };
-    const paradigms = await fetchJsonWithin(`${EKILEX_URL}paradigm/details/${encodeURIComponent(word.wordId)}`, { headers });
     const picked = keyFormsFromParadigms(paradigms);
     return { word: term, headword: word.wordValue || term, available: true, found: picked.forms.length > 0, ...picked, line: formsLine(picked.forms), source: "EKI Ekilex (CC BY 4.0)" };
   });
@@ -9722,11 +9729,56 @@ async function synthesizeSpeech(input) {
   }
 }
 
+// One word for the student's own list: the caller must own the student card (the student or a linked parent). The word
+// card is looked up like /word and stored in studentWords once (the student may not create words under the rules).
+async function studentWordLookup({ decoded, studentId = "", word = "", tgt = "ru" }) {
+  const { cleanTerm } = require("./language-core");
+  const id = String(studentId || "").trim();
+  const term = cleanTerm(String(word || "").replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ""), 80);
+  if (!id || !term || /\s/.test(term)) throw httpError(400, "One word and the student are required");
+  const card = await db.collection("students").doc(id).get();
+  if (!card.exists) throw httpError(404, "Student not found");
+  const c = card.data();
+  const uid = decoded.uid;
+  const owns = id === uid || [c.studentUid, c.linkedUserId, c.linkedParentId, c.parentUid].includes(uid)
+    || (Array.isArray(c.linkedUserIds) && c.linkedUserIds.includes(uid));
+  if (!owns) throw httpError(403, "This is not your student card");
+  const target = ["ru", "en", "uk", "fi", "de", "lv", "lt"].includes(tgt) ? tgt : "ru";
+  // forms first: the headword (ärkan → ärkama) is what is translated and saved
+  const formData = await estonianWordForms({ word: term }).catch(() => ({ available: false, forms: [], line: "" }));
+  const headword = String((formData.found && formData.headword) || term).slice(0, 120);
+  const [translation] = await Promise.allSettled([translateText({ text: headword, src: "et", tgt: target })]);
+  const result = {
+    word: headword,
+    asked: term,
+    translation: translation.status === "fulfilled" ? String(translation.value.result || "").slice(0, 200) : "",
+    forms: formData,
+  };
+  const existing = await db.collection("studentWords").where("studentId", "==", id).where("word", "==", headword).limit(1).get();
+  if (!existing.empty) return { ...result, saved: false, already: true, wordId: existing.docs[0].id };
+  const now = new Date().toISOString();
+  const formItems = (formData.forms || []).slice(0, 8).map((f) => ({ code: String(f.code || "").slice(0, 20), label: String(f.label || "").slice(0, 40), value: String(f.value || "").slice(0, 60) })).filter((f) => f.code && f.label && f.value);
+  const ref = db.collection("studentWords").doc();
+  await ref.set({
+    studentId: id, invitationId: "", word: headword, translation: result.translation, example: "",
+    forms: String(formData.line || "").slice(0, 200), ...(formItems.length ? { formItems } : {}),
+    createdByUid: uid, createdByName: String(decoded.name || decoded.email || "").slice(0, 160),
+    createdAt: now, updatedAt: now, box: 0, dueAt: now, source: "double-click",
+  });
+  return { ...result, saved: true, wordId: ref.id };
+}
+
 exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSeconds: 60 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
   try {
+    // the student double-clicks a word on a worksheet (owner, 2026-10-10): forms + translation, saved to their Sõnad
+    if (req.path === "/student-word") {
+      const decoded = await requireFirebaseUser(req);
+      res.json(await studentWordLookup({ decoded, studentId: req.body?.studentId, word: req.body?.word, tgt: req.body?.tgt }));
+      return;
+    }
     await requireStaffUser(req);
     if (req.path === "/translate") { res.json(await translateText(req.body || {})); return; }
     if (req.path === "/forms") { res.json(await estonianWordForms(req.body || {})); return; }

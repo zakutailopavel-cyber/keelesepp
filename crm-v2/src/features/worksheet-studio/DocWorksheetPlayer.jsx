@@ -10,6 +10,7 @@ import { petCelebrate, petQuiet } from '../pet/petEvents.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 import SheetAnnotations from './SheetAnnotations.jsx';
+import { useWordLookup } from './WordLookup.jsx';
 import { rightAnswers, shownResults, stepView } from './engine/liveLesson.js';
 
 // Local recordings (blob: URLs) must be uploaded before the answers are stored.
@@ -33,7 +34,7 @@ async function persistRecordings({ doc, answers, assignment, repository }) {
 const AUTOSAVE_EVERY_MS = 600;
 const AUTOSAVE_MIN_DELAY_MS = 150;
 
-export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false }) {
+export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false, wordService }) {
   // the teacher may correct a task during the live lesson: the sheet follows the assignment document
   const [doc, setDoc] = useState(assignment.worksheetDoc);
   const [answers, setAnswers] = useState(assignment.answers || {});
@@ -63,6 +64,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const [autosaved, setAutosaved] = useState('');
   const edited = useRef(false);
 
+  // double-click a word: forms + translation, and the word goes into the learner's own word list
+  const words = useWordLookup({ studentId: assignment.studentId, enabled: !readOnly, ...(wordService ? { service: wordService } : {}) });
   const setAnswer = (key, value) => { edited.current = true; setAnswers((a) => ({ ...a, [key]: value })); setDraftSaved(false); };
 
   // the cabinet pet stays silent while a worksheet is open; it celebrates after the student is back
@@ -160,7 +163,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
       {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
-      <div className="st-canvas" ref={setCanvas}>
+      <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
           <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
@@ -168,13 +171,14 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
         </SheetAnnotations>
       </div>
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
+      {words.popup}
       {submitted && !readOnly ? <section className="worksheet-assessment"><div><Star size={21} /><div><strong>Kuidas tööleht tundus?</strong><span>Tagasiside aitab õpetajal järgmisi ülesandeid kohandada.</span></div></div>{assessmentSaved ? <p><CheckCircle2 size={17} /> Tagasiside salvestatud. Aitäh!</p> : <><Select id="worksheet-difficulty" label="Raskusaste" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Vali</option><option value="1">Väga lihtne</option><option value="2">Lihtne</option><option value="3">Paras</option><option value="4">Raske</option><option value="5">Väga raske</option></Select><label className="textarea-field"><span>Kommentaar</span><textarea rows="3" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Mis oli raske või jäi arusaamatuks?" /></label><Button loading={saving} disabled={!difficulty} onClick={saveAssessment}>Saada tagasiside</Button></>}</section> : null}
     </article>
   );
   // on the board: the sheet first and nothing above it, so it lies exactly like the teacher's copy; the rest below
   if (board) {
     const sheetFirst = <article className="worksheet-player ws-studio ws-doc-player is-inline is-board">
-      <div className="st-canvas" ref={setCanvas}>
+      <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
           <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
@@ -185,6 +189,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong></div></div> : null}
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
+      {words.popup}
     </article>;
     return <section className="ws-inline-player is-board" aria-label={assignment.title}>{sheetFirst}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
   }
