@@ -1,5 +1,7 @@
 "use strict";
 
+const { appToday } = require("./local-date-core");
+
 function toCents(value, field = "amount") {
   const number = Number(value);
   if (!Number.isFinite(number) || number <= 0) {
@@ -1465,7 +1467,7 @@ function invoiceFinancialPatch(invoice, payments, nowIso) {
     ).length,
     status: balanceDueCents === 0 && amountCents > 0 ? "Makstud" : "Ootel",
     paidAt: balanceDueCents === 0 && amountCents > 0
-      ? (invoice.paidAt || nowIso.slice(0, 10))
+      ? (invoice.paidAt || appToday(nowIso))
       : null,
     parentPaymentStatus: balanceDueCents === 0 && amountCents > 0 ? "confirmed" : "pending",
     financialUpdatedAt: nowIso,

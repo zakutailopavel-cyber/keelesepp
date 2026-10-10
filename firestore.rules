@@ -668,10 +668,15 @@ service cloud.firestore {
           || invoice.parentUid == uid()
           || invoice.linkedParentId == uid()
           || invoice.guardianUid == uid()
-          || (invoice.parentEmailLower is string && invoice.parentEmailLower == email())
-          || (invoice.payerEmailLower is string && invoice.payerEmailLower == email())
-          || (invoice.parentEmail is string && invoice.parentEmail.lower() == email())
-          || (invoice.payerEmail is string && invoice.payerEmail.lower() == email())
+          || (
+            request.auth.token.email_verified == true
+            && (
+              (invoice.parentEmailLower is string && invoice.parentEmailLower == email())
+              || (invoice.payerEmailLower is string && invoice.payerEmailLower == email())
+              || (invoice.parentEmail is string && invoice.parentEmail.lower() == email())
+              || (invoice.payerEmail is string && invoice.payerEmail.lower() == email())
+            )
+          )
         );
     }
 
@@ -1000,6 +1005,10 @@ service cloud.firestore {
         && financialDateOpen(request.resource.data.get('date', ''))
         && !changesLessonBillingSource()
         && !changesLessonPackageSource()
+        && (
+          resource.data.get('accountingSource', '') == 'crm_v2'
+          || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status'])
+        )
         // Finance v2: "don't charge this no-show" is an admin decision
         && (isAdmin() || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['billingWaived', 'billingWaivedBy', 'billingWaivedAt']))
         // "held and checked" is set and cleared only by an admin
@@ -1061,7 +1070,8 @@ service cloud.firestore {
 
     match /invoices/{invoiceId} {
       allow read: if isStaff() || isFinance() || ownsInvoice(resource.data);
-      allow create: if isStaff() && financialDateOpen(request.resource.data.get('date', ''));
+      // invoices are made by the finance functions (CRM v2); a direct create is left to the administrator (old haldus)
+      allow create: if isAdmin() && financialDateOpen(request.resource.data.get('date', ''));
       allow update: if (
           isAdmin()
           && !changesInvoiceFinancialSource()
@@ -1074,6 +1084,18 @@ service cloud.firestore {
           && financialDateOpen(resource.data.get('date', ''))
           && financialDateOpen(request.resource.data.get('date', ''))
           && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+            // number and recipient: who the invoice is for and where it is e-mailed
+            'num',
+            'studentId',
+            'invoiceTargetType',
+            'parentUid',
+            'linkedParentId',
+            'guardianUid',
+            'parentEmail',
+            'parentEmailLower',
+            'payerEmail',
+            'payerEmailLower',
+            'email',
             'paidAmountCents',
             'paidAmount',
             'balanceDueCents',

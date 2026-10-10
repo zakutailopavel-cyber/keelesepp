@@ -14,6 +14,7 @@
  */
 
 const functions = require("firebase-functions/v1");
+const { appToday } = require("./local-date-core");
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { google } = require("googleapis");
@@ -1325,9 +1326,7 @@ function lessonActorCanWrite(actor, { lesson = {}, schedule = {}, student = {} }
   const teacherNames = [lesson.teacher, schedule.teacher, student.teacher]
     .map(value => String(value || "").trim().toLowerCase())
     .filter(Boolean);
-  return Boolean(actorName) && teacherNames.some(name =>
-    name === actorName || name === actorName.split(" ")[0] || actorName === name.split(" ")[0]
-  );
+  return Boolean(actorName) && teacherNames.some(name => name === actorName);
 }
 
 function cleanLessonJournalInput(values = {}) {
@@ -1780,7 +1779,7 @@ async function createLessonInvoice({
   const tariffAssignmentsQuery = db.collection("studentTariffAssignments")
     .where("studentId", "==", cleanStudentId);
   const nowIso = new Date().toISOString();
-  const todayIso = nowIso.slice(0, 10);
+  const todayIso = appToday(nowIso);
   const actorData = actorSnapshot(actor);
 
   return db.runTransaction(async transaction => {
@@ -1813,6 +1812,17 @@ async function createLessonInvoice({
       if (!lesson) throw httpError(409, `Lesson ${id} is not currently billable`);
       return lesson;
     });
+    // one calendar occurrence must not be billed twice: two journal records of the same schedule slot (client and
+    // server ids, two open windows) are refused here instead of reaching the invoice
+    const occurrenceKey = lesson => (lesson.scheduleId && lesson.date ? `${lesson.scheduleId}|${lesson.date}` : "");
+    const counted = studentLessons.filter(lesson => occurrenceKey(lesson)
+      && (lessonIsBillable(lesson) || String(lesson.invoiceId || "").trim()));
+    for (const lesson of selectedLessons) {
+      const key = occurrenceKey(lesson);
+      if (key && counted.some(other => other.id !== lesson.id && occurrenceKey(other) === key)) {
+        throw httpError(409, `Lesson ${lesson.id} duplicates another record of the same calendar lesson (${lesson.date}); remove the duplicate first`);
+      }
+    }
     for (const date of [...new Set([todayIso, ...selectedLessons.map(lesson => lesson.date)])]) {
       await assertFinancialDateOpen(transaction, date);
     }
@@ -2297,7 +2307,7 @@ async function refundPayerCredit({
     && !Number.isNaN(parsedRefundDate.getTime())
     && parsedRefundDate.toISOString().slice(0, 10) === rawRefundDate
     ? rawRefundDate
-    : nowIso.slice(0, 10);
+    : appToday(nowIso);
   const cleanMethod = cleanText(method, 40) || "bank";
   const cleanReference = cleanText(reference, 160);
   const signature = crypto.createHash("sha256").update(JSON.stringify({
@@ -2400,7 +2410,7 @@ async function createInvoiceLessonCreditNote({
   const auditRef = db.collection("financialAudit").doc(mutationId);
   const counterRef = db.collection("meta").doc("creditNoteCounter");
   const nowIso = new Date().toISOString();
-  const todayIso = nowIso.slice(0, 10);
+  const todayIso = appToday(nowIso);
   const actorData = actorSnapshot(actor);
 
   return db.runTransaction(async transaction => {
@@ -2583,7 +2593,7 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
   const nowIso = new Date().toISOString();
   const paymentDate = /^\d{4}-\d{2}-\d{2}$/.test(String(paidAt || ""))
     ? String(paidAt)
-    : nowIso.slice(0, 10);
+    : appToday(nowIso);
   const actorData = actorSnapshot(actor);
 
   return db.runTransaction(async transaction => {
@@ -3648,7 +3658,7 @@ async function allocateBankTransaction({
     && !Number.isNaN(parsedTransactionDate.getTime())
     && parsedTransactionDate.toISOString().slice(0, 10) === rawTransactionDate
     ? rawTransactionDate
-    : nowIso.slice(0, 10);
+    : appToday(nowIso);
   const cleanPayerName = cleanText(payerName, 200);
   const cleanCreditStudentId = cleanText(creditStudentId, 160);
   const cleanReference = cleanText(reference, 300);
@@ -4042,7 +4052,7 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
         payerName: credit.payerName || invoice.payerName || invoice.parentName || invoice.studentName || "",
         amountCents: allocation.amountCents,
         amount: centsToAmount(allocation.amountCents),
-        paidAt: nowIso.slice(0, 10),
+        paidAt: appToday(nowIso),
         method: "credit",
         reference: `Avanss ${creditRef.id}`,
         note: cleanNote || "Payer credit applied",
@@ -4081,7 +4091,7 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
         payerName: credit.payerName || lesson.studentName || "",
         amountCents: allocation.amountCents,
         amount: paidAmount,
-        paidAt: nowIso.slice(0, 10),
+        paidAt: appToday(nowIso),
         method: "credit",
         reference: `Avanss ${creditRef.id}`,
         note: cleanNote || "Payer credit applied directly to lesson",
@@ -4100,7 +4110,7 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
         directPaymentId: paymentId,
         directPaymentAmountCents: allocation.amountCents,
         directPaymentAmount: paidAmount,
-        directPaidAt: nowIso.slice(0, 10),
+        directPaidAt: appToday(nowIso),
         sourceCreditId: creditRef.id,
         financialUpdatedAt: nowIso,
       }, { merge: true });
@@ -4881,6 +4891,11 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
     throw httpError(400, "Invoice is already paid");
   }
   const student = await loadInvoiceStudent(invoice);
+  // a teacher sends only the invoices of their own students (or ones they made); the administrator any
+  if (actor && !lessonActorCanWrite(actor, { student: student || {} })
+    && String(invoice.createdByUid || invoice.createdBy?.uid || "") !== String(actor.decoded.uid || "")) {
+    throw httpError(403, "This invoice belongs to another teacher's student");
+  }
   const to = invoiceRecipient(invoice, student) || await linkedParentEmail(invoice, student);
   if (!to) throw httpError(400, "Recipient email is missing");
   const payload = composeInvoiceEmail(invoice, student, type);
@@ -5855,7 +5870,7 @@ async function studentPricePrivacy({ actor, apply }) {
           lessonMinutes: 60,
           billingMode: "current",
           chargeNoShow: true,
-          validFrom: nowIso.slice(0, 10),
+          validFrom: appToday(nowIso),
           priceHistory: [],
           updatedAt: nowIso,
           updatedBy: actorData.name || "",
@@ -5873,7 +5888,7 @@ async function studentPricePrivacy({ actor, apply }) {
     byUid: actorData.uid,
     byName: actorData.name || "Administraator",
     createdAt: nowIso,
-    date: nowIso.slice(0, 10),
+    date: appToday(nowIso),
     meta: plan.summary,
   });
   return { ...plan, applied: true };
@@ -6255,7 +6270,7 @@ function bootstrapStudentCardData({
     contactNotes: "Loodud kaitstud konto sidumise käigus",
     accountLinkSource: source,
     accountLinkedAt: nowIso,
-    createdAt: nowIso.slice(0, 10),
+    createdAt: appToday(nowIso),
     updatedAt: nowIso,
   };
 }
@@ -7120,7 +7135,7 @@ async function applyTeacherFutureScheduleClear({ actor, fromDate, requestId, con
     summary,
     result,
     createdAt: nowIso,
-    date: nowIso.slice(0, 10),
+    date: appToday(nowIso),
     operationId: mutationId,
   });
   return { ...result, idempotent: false };
@@ -7822,13 +7837,16 @@ exports.invoiceApi = functions
       return;
     }
 
+    // batch e-mails go to every unpaid invoice of the school: an administrator decision
     if (path === "/monthly-reminders") {
+      await requireAdminUser(req);
       const result = await sendInvoiceBatch({ type: "due10", force: Boolean(req.body?.force), actor });
       res.json(result);
       return;
     }
 
     if (path === "/overdue-reminders") {
+      await requireAdminUser(req);
       const result = await sendInvoiceBatch({ type: "reminder", force: Boolean(req.body?.force), actor });
       res.json(result);
       return;
