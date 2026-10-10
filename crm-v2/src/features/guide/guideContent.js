@@ -2,6 +2,16 @@
 // про все способности системы”). Estonian first, a short Russian line for teachers who think in Russian.
 // `to` opens the page; `admin` / `finance` limit an item to those roles; `steps` are the „how to” in short.
 
+// Short silent video guides (real CRM screens, invented student names), files in public/guide-videos.
+export const GUIDE_VIDEOS = [
+  { id: 'kalender', title: 'Tund kalendrisse', ru: 'Урок в календарь', seconds: 25 },
+  { id: 'tunni-kaart', title: 'Tunni kaart ja õige tund', ru: 'Карточка урока и выбор темы', seconds: 26 },
+  { id: 'oppevara', title: 'Õppevara', ru: 'Учебные материалы', seconds: 18 },
+  { id: 'konstruktor', title: 'Töölehe konstruktor', ru: 'Конструктор листов', seconds: 31 },
+  { id: 'opilase-vaade', title: 'Õpilase vaade ja kontroll', ru: 'Вид ученика и автопроверка', seconds: 18 },
+  { id: 'live-tund', title: 'Live tund', ru: 'Живой урок', seconds: 22 },
+].map((video) => ({ ...video, src: `/guide-videos/${video.id}.mp4`, poster: `/guide-videos/${video.id}.jpg` }));
+
 export const FIRST_STEPS = [
   { id: 'student', et: 'Ava oma õpilase kaart ja vaata tema õpiteed', ru: 'Открой карточку ученика и посмотри его учебный путь', to: '/students' },
   { id: 'calendar', et: 'Lisa kalendrisse üks tund (ka korduv)', ru: 'Добавь урок в календарь (можно повторяющийся)', to: '/calendar' },
@@ -36,7 +46,7 @@ export const GUIDE_SECTIONS = [
   {
     id: 'calendar', title: 'Kalender ja tunniplaan', ru: 'Календарь и расписание',
     items: [
-      { title: 'Kalender', to: '/calendar', et: 'Tundide lisamine, muutmine ja kordumine. Värvid näitavad sinu saadavust: punane aeg on blokeeritud.', ru: 'Добавление, изменение и повторение уроков. Цвета показывают доступность: красное время занято.',
+      { title: 'Kalender', video: ['kalender', 'tunni-kaart'], to: '/calendar', et: 'Tundide lisamine, muutmine ja kordumine. Värvid näitavad sinu saadavust: punane aeg on blokeeritud.', ru: 'Добавление, изменение и повторение уроков. Цвета показывают доступность: красное время занято.',
         steps: ['Klõpsa vabale ajale ja vali õpilane või grupp.', 'Korduva tunni jaoks vali „kordub iga nädal”.', 'Kui paned oma tunni punasele ajale, küsib süsteem kinnitust — see on lubatud ainult sinu enda tunnile.', 'Pärast tundi märgi tund toimunuks; sellest sõltuvad aruandlus ja arved.'] },
       { title: 'Google’i kalender', to: '/settings', et: 'Kui ühendad Google’i kalendri, ilmuvad KeeleSepa tunnid ka sinu telefoni kalendrisse.', ru: 'Подключи Google-календарь — уроки KeeleSepp появятся и в телефоне.' },
       { title: 'Ülesanded', to: '/tasks', et: 'Meeskonna ülesanded, tähtajad ja arutelu (näiteks „helista vanemale”, „valmista test”).', ru: 'Задачи команды, сроки и обсуждение.' },
@@ -45,23 +55,23 @@ export const GUIDE_SECTIONS = [
   {
     id: 'live', title: 'Tund otse: Live Classroom', ru: 'Урок онлайн: Live Classroom',
     items: [
-      { title: 'Kutse ja ühendus', to: '/live-classroom', et: 'Vali õpilane ja vajuta „Kutsu õpilane tundi”. Õpilane näeb kutset kohe ekraanil ja vajutab „Liitu tunniga”. Kutse kehtib 2 minutit; kui õpilane ei jõua, saada uus.', ru: 'Выбери ученика и нажми «Kutsu õpilane tundi». Ученик видит приглашение и нажимает «Liitu tunniga». Действует 2 минуты — если не успел, отправь новое.' },
+      { title: 'Kutse ja ühendus', video: ['live-tund'], to: '/live-classroom', et: 'Vali õpilane ja vajuta „Kutsu õpilane tundi”. Õpilane näeb kutset kohe ekraanil ja vajutab „Liitu tunniga”. Kutse kehtib 2 minutit; kui õpilane ei jõua, saada uus.', ru: 'Выбери ученика и нажми «Kutsu õpilane tundi». Ученик видит приглашение и нажимает «Liitu tunniga». Действует 2 минуты — если не успел, отправь новое.' },
       { title: 'Video, heli ja ekraan', et: 'Toas on video, mikrofon, ekraani jagamine ja seadmete valik. Kõne tööriistariba on üleval.', ru: 'В комнате видео, микрофон, демонстрация экрана и выбор устройств — панель вверху.' },
       { title: 'Tahvel', et: 'Ühine tahvel: pliiats, marker, kujundid, tekst, kleepmärkmed, pildid ja PDF. Suumi puuteplaadiga kahe sõrmega; liigu käe-tööriistaga.', ru: 'Общая доска: ручка, маркер, фигуры, текст, стикеры, картинки и PDF. Масштаб — двумя пальцами на тачпаде, перемещение — рукой.' },
-      { title: 'Tööleht tahvlil', et: 'Ava „Töölehed” ja vali tunni leht. Näed õpilase vastuseid reaalajas, ✓ ja ✗ ilmuvad kohe. Saad avada ülesandeid ükshaaval, näidata õigeid vastuseid ja lisada lehele märkusi.', ru: '«Töölehed» → выбери лист урока. Ответы ученика видны сразу, ✓ и ✗ появляются мгновенно. Можно открывать задания по одному, показывать правильные ответы и делать пометки.',
+      { title: 'Tööleht tahvlil', video: ['live-tund'], et: 'Ava „Töölehed” ja vali tunni leht. Näed õpilase vastuseid reaalajas, ✓ ja ✗ ilmuvad kohe. Saad avada ülesandeid ükshaaval, näidata õigeid vastuseid ja lisada lehele märkusi.', ru: '«Töölehed» → выбери лист урока. Ответы ученика видны сразу, ✓ и ✗ появляются мгновенно. Можно открывать задания по одному, показывать правильные ответы и делать пометки.',
         steps: ['Klõpsa ülesandel — see süttib ka õpilase lehel.', '„Samm-sammult” režiimis avad ülesandeid ükshaaval.', 'Märgi tekst või vastus, et lisada viga või kommentaar — õpilane näeb seda kohe.'] },
       { title: 'Paranda lehte tunni ajal', et: 'Kui ülesandes on viga, vajuta „Paranda lehte” ja tee tekstil topeltklõps. Parandus läheb ainult selle õpilase lehele ja ta näeb seda kohe.', ru: 'Если в задании ошибка — «Paranda lehte» и двойной клик по тексту. Исправление только у этого ученика и сразу видно.' },
       { title: 'Sõnad ja materjalid', et: '„Sõnad” paneelil lisad tunni sõnu õpilase sõnavarasse. „Materjalid” toob tahvlile pildid, PDF-id ja Õppevara.', ru: 'Панель «Sõnad» — добавляешь слова урока в словарь ученика. «Materjalid» — картинки, PDF и Õppevara на доску.' },
       { title: 'Salvestus ja tunnianalüüs', et: 'Kui õpilane on andnud nõusoleku, saad tunni salvestada. Pärast tundi tehakse tekst ja analüüs: kui palju õpilane rääkis, tüüpilised vead ja soovitused.', ru: 'Если ученик дал согласие — урок можно записать. После урока: текст и анализ (сколько говорил ученик, ошибки, советы).' },
-      { title: 'Grupitund ja tunni lõpp', et: 'Grupitunnis kutsud mitu õpilast samasse tuppa. Tunni lõpus saad anda kodutöö ja kalender pakub tunni märkimist toimunuks.', ru: 'В групповом уроке — несколько учеников в одной комнате. В конце — домашка и отметка урока в календаре.' },
+      { title: 'Grupitund ja tunni lõpp', video: ['tunni-kaart'], et: 'Grupitunnis kutsud mitu õpilast samasse tuppa. Tunni lõpus saad anda kodutöö ja kalender pakub tunni märkimist toimunuks.', ru: 'В групповом уроке — несколько учеников в одной комнате. В конце — домашка и отметка урока в календаре.' },
     ],
   },
   {
     id: 'library', title: 'Õppevara ja töölehed', ru: 'Учебные материалы и листы',
     items: [
-      { title: 'Kursused ja tunnid', to: '/library', et: 'Valmis õpiteed: A2 → B1, B1 → B2 ja B2 → C1. Igal tunnil on kolm töölehte: Avasta, Harjuta ja Kasuta (40–55 minutit).', ru: 'Готовые курсы A2→B1, B1→B2, B2→C1. У каждого урока три листа: Avasta, Harjuta, Kasuta (40–55 мин).' },
-      { title: 'Töölehe konstruktor', et: 'Lehte saab muuta: „✎ Muuda lehte”, siis topeltklõps tekstil. Lisa ülesandeid, pilte ja kuulamise heli (eesti hääled). „Hinda EKI-ga” näitab teksti taset.', ru: 'Лист можно менять: «✎ Muuda lehte», двойной клик по тексту. Добавляй задания, картинки и аудио (эстонские голоса). «Hinda EKI-ga» показывает уровень текста.' },
-      { title: 'Õpiku vaade ja PDF', et: 'Töölehed saab välja printida või salvestada PDF-ina.', ru: 'Листы можно распечатать или сохранить в PDF.' },
+      { title: 'Kursused ja tunnid', video: ['oppevara'], to: '/library', et: 'Valmis õpiteed: A2 → B1, B1 → B2 ja B2 → C1. Igal tunnil on kolm töölehte: Avasta, Harjuta ja Kasuta (40–55 minutit).', ru: 'Готовые курсы A2→B1, B1→B2, B2→C1. У каждого урока три листа: Avasta, Harjuta, Kasuta (40–55 мин).' },
+      { title: 'Töölehe konstruktor', video: ['konstruktor'], et: 'Lehte saab muuta: „✎ Muuda lehte”, siis topeltklõps tekstil. Lisa ülesandeid, pilte ja kuulamise heli (eesti hääled). „Hinda EKI-ga” näitab teksti taset.', ru: 'Лист можно менять: «✎ Muuda lehte», двойной клик по тексту. Добавляй задания, картинки и аудио (эстонские голоса). «Hinda EKI-ga» показывает уровень текста.' },
+      { title: 'Õpiku vaade ja PDF', video: ['opilase-vaade'], et: 'Töölehed saab välja printida või salvestada PDF-ina.', ru: 'Листы можно распечатать или сохранить в PDF.' },
     ],
   },
   {

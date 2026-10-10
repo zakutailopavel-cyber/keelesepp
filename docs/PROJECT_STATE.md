@@ -6,6 +6,15 @@
 - After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
 - Next step: the next module of the course.
 
+
+### 2026-10-10 · Juhend: videojuhendid (agent/guide-videos)
+- Omaniku soov: „обучающие видео по каждой ключевой функции … в раздел Juhend”. Kuus vaikset lühivideot (18–31 s, ET pealkiri + RU rida) failides `crm-v2/public/guide-videos/{kalender,tunni-kaart,oppevara,konstruktor,opilase-vaade,live-tund}.{mp4,jpg}` (kokku ~9 MB, 720p).
+- Kaadrid on päris CRM-ist (Chrome, 10.10.2026); päris õpilaste nimed on kaadrites asendatud väljamõeldud nimedega (ainult ekraanil, andmeid ei muudetud), sest `public/` failid on lingiga avatavad ilma sisselogimiseta. Testtund tehti testõpilasega.
+- `features/guide/guideContent.js`: `GUIDE_VIDEOS` ja juhendi punktidel `video: [...]`; `TeacherGuidePage.jsx`: plokk „Videojuhendid” ja punktides „Vaata videot” lingid; `guide.css`.
+- Kontroll: `npx vitest run src/features/guide src/features/settings` → 7/7.
+- Lõpetamata: videod kodutööde, õpilase kaardi ja Seadete (testõpilane, Google) kohta — Chrome'i vahekaart külmus filmimise ajal.
+- Järgmine samm: filmida ülejäänud kolm videot samal viisil (nimed asendatud) ja lisada `GUIDE_VIDEOS`-i.
+
 ## 2026-10-10 · agent/course-c1-m04 — C1 M04 Haridus, õppimine ja info (est-c1-031–040), kõik kolm etappi
 
 - Base: `main` 9d3aefc. Previous modules are published to production (diff with production: 0 differences).
