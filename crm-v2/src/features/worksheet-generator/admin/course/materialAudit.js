@@ -27,7 +27,7 @@ export function collectWorks() {
       group: 'A2',
       id: result.moduleId,
       title: `A2 moodul ${index + 1}: ${result.moduleTitle}`,
-      lessons: Object.fromEntries(result.bundles.map((bundle) => [bundle.lessonId, bundle.sheets.map((sheet) => art(sheet.worksheetDoc, bundle.lessonId))])),
+      lessons: Object.fromEntries(result.bundles.map((bundle) => [bundle.lessonId, bundle.sheets.map((sheet) => art({ ...sheet.worksheetDoc, meta: { ...sheet.worksheetDoc.meta, phase: sheet.worksheetDoc.meta?.phase || sheet.phase } }, bundle.lessonId))])),
     };
   });
   const b1m1 = {

@@ -13,7 +13,10 @@ const PRODUCTIVE = ['speaking', 'writing', 'dialogue', 'rolecards', 'guidedlette
 const SITUATION = ['text', 'tip', 'image', 'reading', 'listening', 'dialogue'];
 
 const tasks = (doc) => (doc.blocks || []).filter((b) => BLOCKS[b.type]?.task);
-const typeSet = (doc) => new Set(tasks(doc).map((b) => b.type));
+// the lesson frame added by engine/lessonEnrichment.js (ids `enr_…`: listening, self-check, real-life task) is the same
+// in every lesson, so variety and similarity are measured on the author's own tasks
+const authored = (doc) => tasks(doc).filter((b) => !String(b.id || '').startsWith('enr_'));
+const typeSet = (doc) => new Set(authored(doc).map((b) => b.type));
 const has = (doc, list) => tasks(doc).some((b) => list.includes(b.type));
 const overlap = (a, b) => { const A = typeSet(a); const Bs = typeSet(b); const inter = [...A].filter((t) => Bs.has(t)).length; return inter / Math.max(1, new Set([...A, ...Bs]).size); };
 
@@ -56,11 +59,11 @@ export function moduleProblems(sheets) {
   for (const lessonId of lessonIds) {
     for (const [phase, doc] of Object.entries(sheets[lessonId])) sheetProblems(doc).forEach((p) => out.push({ lessonId, phase, ...p }));
     const docs = Object.values(sheets[lessonId]);
-    if (new Set(docs.map((d) => tasks(d).map((b) => b.type).join('|'))).size !== docs.length) out.push({ lessonId, phase: '*', code: 'phases-same', text: 'tunni etappidel on sama ülesannete jada' });
+    if (new Set(docs.map((d) => authored(d).map((b) => b.type).join('|'))).size !== docs.length) out.push({ lessonId, phase: '*', code: 'phases-same', text: 'tunni etappidel on sama ülesannete jada' });
   }
   for (const phase of ['discover', 'practice', 'transfer']) {
     const list = lessonIds.filter((id) => sheets[id][phase]).map((id) => [id, sheets[id][phase]]);
-    const seqs = list.map(([, d]) => tasks(d).map((b) => b.type).join('|'));
+    const seqs = list.map(([, d]) => authored(d).map((b) => b.type).join('|'));
     if (new Set(seqs).size !== seqs.length) out.push({ lessonId: '*', phase, code: 'module-same', text: 'mooduli kahel lehel on sama ülesannete jada' });
     for (let i = 1; i < list.length; i += 1) {
       const o = overlap(list[i - 1][1], list[i][1]);

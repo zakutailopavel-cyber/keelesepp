@@ -1,3 +1,14 @@
+## 2026-10-11 · agent/lesson-quality-80 — kõik õppematerjali auditi näitajad ≥ 80%
+
+- Base: `main` 6987009 + PR #509 (`agent/material-quality-checklist`, stacked). Branch `agent/lesson-quality-80`, draft PR.
+- Goal (owner): every automatic indicator of `docs/MATERIAL_QUALITY_AUDIT.md` ≥ 80% for A2, B1, B2, C1. Result: all 91–100% (before: listening C1 0%, A2 four skills 34%, pictures 0–10%, differentiation 0%, real-life 30–60%, A2 self-check 0%).
+- New lesson frame `engine/lessonEnrichment.js` (ids `enr_…`): listening from the lesson's own text (134 lessons), pair work, warm-up, self-check per sheet, „Kiiremale” stretch line, „Päriselus” task; never over 55 min. Wired into `admin/course/registry.js` (`courseLessonSheets`), `admin/module1ThreePhase.js` and the new `generateTextbookLessonBundle` (A2 module files + `ui/lessonGeneration.js`); `generateLessonBundle` unchanged. When an A2 plan had no text, Avasta gets the profile's guided dialogue.
+- Pictures: `art/topicArt.js` draws 270 SVG still lifes in the art-bible palette (≈1.5 MB in `public/textbook-art`), briefs in `art/visuals/topic-art.json`; course and module-1 sheets now attach lesson art themselves. `docs/TEXTBOOK_ART_BIBLE.md` §10.
+- Gate change: `admin/course/quality.js` measures variety / neighbour similarity on authored tasks only (frame excluded). Module 1 test counts authored blocks.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio src/features/library` 87 files / 716 tests passed; eslint clean on changed files; all 495 frame blocks scanned for markup leftovers (0).
+- Not done / manual gates: production sheets in Firestore are NOT updated — publishing the regenerated course sheets needs the owner's go-ahead (production write). Audio files are not pre-generated: listening blocks carry `transcript`, the constructor's „Loo heli” makes Neurokõne audio. Topic pictures are placeholders for commissioned cast scenes; owner approves the style.
+- Next step: owner reviews a few lessons per level in the CRM preview and approves publishing.
+
 ## 2026-10-10 · agent/material-quality-checklist — Õppematerjali kvaliteedi kontrollnimekiri ja audit
 
 - Base: `main` 3ee4659. Branch `agent/material-quality-checklist`, draft PR.

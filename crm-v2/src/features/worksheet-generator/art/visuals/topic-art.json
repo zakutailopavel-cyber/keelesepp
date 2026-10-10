@@ -1,0 +1,6212 @@
+[
+  {
+    "id": "a2-006-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "frame",
+      "people",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pildiraam, kaks inimest, avatud raamat.",
+    "accent": "pildiraam",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pildiraam, kaks inimest, avatud raamat.",
+    "caption": "Pilt. Pere ja lähedased"
+  },
+  {
+    "id": "a2-007-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "frame",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, pildiraam, kaks inimest.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pusletükid, pildiraam, kaks inimest.",
+    "caption": "Pilt. Kelle oma? Genitiiv"
+  },
+  {
+    "id": "a2-008-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "face",
+      "people",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: nägu, kaks inimest, avatud raamat.",
+    "accent": "nägu",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: nägu, kaks inimest, avatud raamat.",
+    "caption": "Pilt. Välimus ja iseloom"
+  },
+  {
+    "id": "a2-009-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "frame",
+      "pencil",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pildiraam, pliiats, kaks inimest.",
+    "accent": "pildiraam",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pildiraam, pliiats, kaks inimest.",
+    "caption": "Pilt. Minu inimesed"
+  },
+  {
+    "id": "a2-010-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "frame"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, pildiraam.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, pildiraam.",
+    "caption": "Pilt. Kontroll 2"
+  },
+  {
+    "id": "a2-011-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, avatud raamat, jutumullid.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kell, avatud raamat, jutumullid.",
+    "caption": "Pilt. Minu päev"
+  },
+  {
+    "id": "a2-012-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, jutumullid, pliiats.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kell, jutumullid, pliiats.",
+    "caption": "Pilt. Kellaaeg ja ajaväljendid"
+  },
+  {
+    "id": "a2-013-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, pliiats, avatud raamat.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kell, pliiats, avatud raamat.",
+    "caption": "Pilt. Kui tihti?"
+  },
+  {
+    "id": "a2-014-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "pencil",
+      "clock"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, pliiats, kell.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kalender, pliiats, kell.",
+    "caption": "Pilt. Minu nädal"
+  },
+  {
+    "id": "a2-015-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "clock",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, kell, avatud raamat.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, kell, avatud raamat.",
+    "caption": "Pilt. Kontroll 3"
+  },
+  {
+    "id": "a2-016-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "house",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: maja, avatud raamat, jutumullid.",
+    "accent": "maja",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: maja, avatud raamat, jutumullid.",
+    "caption": "Pilt. Minu kodu"
+  },
+  {
+    "id": "a2-017-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "house",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, maja, avatud raamat.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kaardinõel, maja, avatud raamat.",
+    "caption": "Pilt. Kus? Kuhu? Kust?"
+  },
+  {
+    "id": "a2-018-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, avatud raamat, jutumullid.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kaardinõel, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kus? Kuhu? Kust?"
+  },
+  {
+    "id": "a2-019-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "house",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: maja, avatud raamat, jutumullid.",
+    "accent": "maja",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: maja, avatud raamat, jutumullid.",
+    "caption": "Pilt. Korter ja naabruskond"
+  },
+  {
+    "id": "a2-020-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "house",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, maja, avatud raamat.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, maja, avatud raamat.",
+    "caption": "Pilt. Kontroll 4"
+  },
+  {
+    "id": "a2-021-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "signpost",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, teeviit, avatud raamat.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kaardinõel, teeviit, avatud raamat.",
+    "caption": "Pilt. Kohad linnas"
+  },
+  {
+    "id": "a2-022-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, avatud raamat, jutumullid.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kaardinõel, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kuidas ma sinna saan?"
+  },
+  {
+    "id": "a2-023-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, teeviit.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, teeviit.",
+    "caption": "Pilt. Käskiv kõneviis igapäevaselt"
+  },
+  {
+    "id": "a2-024-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "signpost",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: teeviit, jutumullid, pliiats.",
+    "accent": "teeviit",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: teeviit, jutumullid, pliiats.",
+    "caption": "Pilt. Sildid, kaardid ja lahtiolekuajad"
+  },
+  {
+    "id": "a2-025-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "mappin"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, kaardinõel.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, kaardinõel.",
+    "caption": "Pilt. Kontroll 5"
+  },
+  {
+    "id": "a2-026-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "plate",
+      "cup",
+      "receipt"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: taldrik söögiriistadega, kohvitass, kviitung.",
+    "accent": "taldrik söögiriistadega",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: taldrik söögiriistadega, kohvitass, kviitung.",
+    "caption": "Pilt. Toit ja joogid"
+  },
+  {
+    "id": "a2-027-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "cup",
+      "plate"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, kohvitass, taldrik söögiriistadega.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pusletükid, kohvitass, taldrik söögiriistadega.",
+    "caption": "Pilt. Kui palju? Partitiiv"
+  },
+  {
+    "id": "a2-028-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "cup",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kohvitass, avatud raamat, jutumullid.",
+    "accent": "kohvitass",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kohvitass, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kohvikus"
+  },
+  {
+    "id": "a2-029-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "cup",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kohvitass, avatud raamat, jutumullid.",
+    "accent": "kohvitass",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kohvitass, avatud raamat, jutumullid.",
+    "caption": "Pilt. Tellimus ja arve"
+  },
+  {
+    "id": "a2-030-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, jutumullid, pliiats.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, jutumullid, pliiats.",
+    "caption": "Pilt. Kontroll 6"
+  },
+  {
+    "id": "a2-031-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bag",
+      "shirt",
+      "coins"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ostukott, särk, mündid.",
+    "accent": "ostukott",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: ostukott, särk, mündid.",
+    "caption": "Pilt. Poes ja kaubad"
+  },
+  {
+    "id": "a2-032-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "coins",
+      "bag",
+      "shirt"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: mündid, ostukott, särk.",
+    "accent": "mündid",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: mündid, ostukott, särk.",
+    "caption": "Pilt. Arvud, hinnad ja kogused"
+  },
+  {
+    "id": "a2-033-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bag",
+      "receipt",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ostukott, kviitung, avatud raamat.",
+    "accent": "ostukott",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: ostukott, kviitung, avatud raamat.",
+    "caption": "Pilt. Proovimine ja valimine"
+  },
+  {
+    "id": "a2-034-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "receipt",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kviitung, avatud raamat, jutumullid.",
+    "accent": "kviitung",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kviitung, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kviitung, kampaania ja tagastus"
+  },
+  {
+    "id": "a2-035-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, avatud raamat, jutumullid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kontroll 7"
+  },
+  {
+    "id": "a2-036-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "building",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, asutuse hoone, ankeet.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kalender, asutuse hoone, ankeet.",
+    "caption": "Pilt. Aja broneerimine"
+  },
+  {
+    "id": "a2-037-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "building",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: asutuse hoone, avatud raamat, jutumullid.",
+    "accent": "asutuse hoone",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: asutuse hoone, avatud raamat, jutumullid.",
+    "caption": "Pilt. Pean, saan, võin, tohin"
+  },
+  {
+    "id": "a2-038-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "form",
+      "building",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ankeet, asutuse hoone, avatud raamat.",
+    "accent": "ankeet",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: ankeet, asutuse hoone, avatud raamat.",
+    "caption": "Pilt. Vormid ja juhised"
+  },
+  {
+    "id": "a2-039-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "phone",
+      "book",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: telefon, avatud raamat, pliiats.",
+    "accent": "telefon",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: telefon, avatud raamat, pliiats.",
+    "caption": "Pilt. Telefon ja klienditeenindus"
+  },
+  {
+    "id": "a2-040-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "building"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, asutuse hoone.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, asutuse hoone.",
+    "caption": "Pilt. Kontroll 8"
+  },
+  {
+    "id": "a2-041-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "ball",
+      "care"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, jalgpall, hoolivad käed.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: süda, jalgpall, hoolivad käed.",
+    "caption": "Pilt. Keha ja enesetunne"
+  },
+  {
+    "id": "a2-042-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "care",
+      "hourglass"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, hoolivad käed, liivakell.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: süda, hoolivad käed, liivakell.",
+    "caption": "Pilt. Mul on… / Mul valutab…"
+  },
+  {
+    "id": "a2-043-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "medbag",
+      "ball",
+      "care"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: arstikohver, jalgpall, hoolivad käed.",
+    "accent": "arstikohver",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: arstikohver, jalgpall, hoolivad käed.",
+    "caption": "Pilt. Arsti juures"
+  },
+  {
+    "id": "a2-044-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "medbag",
+      "heart",
+      "ball"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: arstikohver, süda, jalgpall.",
+    "accent": "arstikohver",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: arstikohver, süda, jalgpall.",
+    "caption": "Pilt. Ravimiinfo ja vastuvõtuaeg"
+  },
+  {
+    "id": "a2-045-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, avatud raamat, jutumullid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kontroll 9"
+  },
+  {
+    "id": "a2-046-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "ticket",
+      "note",
+      "ball"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pilet, noodid, jalgpall.",
+    "accent": "pilet",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pilet, noodid, jalgpall.",
+    "caption": "Pilt. Hobid ja vaba aeg"
+  },
+  {
+    "id": "a2-047-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "ticket",
+      "ball",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pilet, jalgpall, avatud raamat.",
+    "accent": "pilet",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pilet, jalgpall, avatud raamat.",
+    "caption": "Pilt. Mulle meeldib…"
+  },
+  {
+    "id": "a2-048-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "envelope",
+      "note",
+      "ball"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ümbrik ja kiri, noodid, jalgpall.",
+    "accent": "ümbrik ja kiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: ümbrik ja kiri, noodid, jalgpall.",
+    "caption": "Pilt. Kutse ja vastus"
+  },
+  {
+    "id": "a2-049-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "ticket",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pilet, jutumullid, pliiats.",
+    "accent": "pilet",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pilet, jutumullid, pliiats.",
+    "caption": "Pilt. Üritused ja piletid"
+  },
+  {
+    "id": "a2-050-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, jutumullid, pliiats.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, jutumullid, pliiats.",
+    "caption": "Pilt. Kontroll 10"
+  },
+  {
+    "id": "a2b1-001-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, avatud raamat, jutumullid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, avatud raamat, jutumullid.",
+    "caption": "Pilt. A2 lähtediagnostika"
+  },
+  {
+    "id": "a2b1-002-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, jutumullid, pliiats.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kell, jutumullid, pliiats.",
+    "caption": "Pilt. Minu päev ja kellaaeg"
+  },
+  {
+    "id": "a2b1-003-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, pliiats.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, pliiats.",
+    "caption": "Pilt. Sagedus ja lihtne lausejärg"
+  },
+  {
+    "id": "a2b1-004-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, avatud raamat, jutumullid.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kalender, avatud raamat, jutumullid.",
+    "caption": "Pilt. Minu nädal"
+  },
+  {
+    "id": "a2b1-005-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, jutumullid, pliiats.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, jutumullid, pliiats.",
+    "caption": "Pilt. Kontroll 1"
+  },
+  {
+    "id": "a2b1-006-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "frame",
+      "people",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pildiraam, kaks inimest, avatud raamat.",
+    "accent": "pildiraam",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pildiraam, kaks inimest, avatud raamat.",
+    "caption": "Pilt. Pere ja lähedased"
+  },
+  {
+    "id": "a2b1-007-kasuta-1",
+    "phase": "transfer",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "face",
+      "frame",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: nägu, pildiraam, kaks inimest.",
+    "accent": "nägu",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: nägu, pildiraam, kaks inimest.",
+    "caption": "Pilt. Välimus ja iseloom"
+  },
+  {
+    "id": "a2b1-008-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "frame",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pildiraam, avatud raamat, jutumullid.",
+    "accent": "pildiraam",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pildiraam, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kelle? Kelle oma?"
+  },
+  {
+    "id": "a2b1-009-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "frame",
+      "pencil",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pildiraam, pliiats, kaks inimest.",
+    "accent": "pildiraam",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pildiraam, pliiats, kaks inimest.",
+    "caption": "Pilt. Koos veedetud aeg"
+  },
+  {
+    "id": "a2b1-010-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "frame"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, pildiraam.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, pildiraam.",
+    "caption": "Pilt. Kontroll 2"
+  },
+  {
+    "id": "a2b1-011-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "house",
+      "mappin",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: maja, kaardinõel, teeviit.",
+    "accent": "maja",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: maja, kaardinõel, teeviit.",
+    "caption": "Pilt. Minu kodu"
+  },
+  {
+    "id": "a2b1-012-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "house",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, maja, avatud raamat.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kaardinõel, maja, avatud raamat.",
+    "caption": "Pilt. Kus? Kuhu? Kust?"
+  },
+  {
+    "id": "a2b1-013-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, avatud raamat, jutumullid.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kaardinõel, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kohad linnas"
+  },
+  {
+    "id": "a2b1-014-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, jutumullid, pliiats.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kaardinõel, jutumullid, pliiats.",
+    "caption": "Pilt. Tee küsimine ja juhatamine"
+  },
+  {
+    "id": "a2b1-015-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, jutumullid, pliiats.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, jutumullid, pliiats.",
+    "caption": "Pilt. Kontroll 3"
+  },
+  {
+    "id": "a2b1-016-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "calendar",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, kalender, avatud raamat.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kell, kalender, avatud raamat.",
+    "caption": "Pilt. Ajamäärused ja päevaplaan"
+  },
+  {
+    "id": "a2b1-017-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, jutumullid, pliiats.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kalender, jutumullid, pliiats.",
+    "caption": "Pilt. Peab, võib ja saab"
+  },
+  {
+    "id": "a2b1-018-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, pliiats, avatud raamat.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kalender, pliiats, avatud raamat.",
+    "caption": "Pilt. Mida ma pean tegema?"
+  },
+  {
+    "id": "a2b1-019-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, avatud raamat, jutumullid.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kalender, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kokkulepe ja aja muutmine"
+  },
+  {
+    "id": "a2b1-020-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "calendar",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, kalender, avatud raamat.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, kalender, avatud raamat.",
+    "caption": "Pilt. Vahehindamine 1"
+  },
+  {
+    "id": "a2b1-021-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "camera",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, fotokaamera, ankeet.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: liivakell, fotokaamera, ankeet.",
+    "caption": "Pilt. Lihtmineviku põhivormid"
+  },
+  {
+    "id": "a2b1-022-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "calendar",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, kalender, avatud raamat.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: liivakell, kalender, avatud raamat.",
+    "caption": "Pilt. Eile ja eelmisel nädalal"
+  },
+  {
+    "id": "a2b1-023-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, jutumullid, pliiats.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: liivakell, jutumullid, pliiats.",
+    "caption": "Pilt. I-lihtminevik ja sagedased erandid"
+  },
+  {
+    "id": "a2b1-024-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "pencil",
+      "camera"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, pliiats, fotokaamera.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: liivakell, pliiats, fotokaamera.",
+    "caption": "Pilt. Lugu piltide järgi"
+  },
+  {
+    "id": "a2b1-025-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "hourglass"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, liivakell.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, liivakell.",
+    "caption": "Pilt. Kontroll 5"
+  },
+  {
+    "id": "a2b1-026-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "plate",
+      "cup",
+      "coins"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: taldrik söögiriistadega, kohvitass, mündid.",
+    "accent": "taldrik söögiriistadega",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: taldrik söögiriistadega, kohvitass, mündid.",
+    "caption": "Pilt. Toiduained ja kogused"
+  },
+  {
+    "id": "a2b1-027-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "cup",
+      "receipt",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kohvitass, kviitung, avatud raamat.",
+    "accent": "kohvitass",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kohvitass, kviitung, avatud raamat.",
+    "caption": "Pilt. Kohvikus ja restoranis"
+  },
+  {
+    "id": "a2b1-028-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "cup",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, kohvitass, jutumullid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pusletükid, kohvitass, jutumullid.",
+    "caption": "Pilt. Partitiiv toidu ja koguse juures"
+  },
+  {
+    "id": "a2b1-029-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "cup",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kohvitass, avatud raamat, jutumullid.",
+    "accent": "kohvitass",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kohvitass, avatud raamat, jutumullid.",
+    "caption": "Pilt. Tellimusega on probleem"
+  },
+  {
+    "id": "a2b1-030-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "plate"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, taldrik söögiriistadega.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, taldrik söögiriistadega.",
+    "caption": "Pilt. Kontroll 6"
+  },
+  {
+    "id": "a2b1-031-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "ball",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, jalgpall, avatud raamat.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: süda, jalgpall, avatud raamat.",
+    "caption": "Pilt. Keha ja sümptomid"
+  },
+  {
+    "id": "a2b1-032-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "medbag",
+      "heart",
+      "ball"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: arstikohver, süda, jalgpall.",
+    "accent": "arstikohver",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: arstikohver, süda, jalgpall.",
+    "caption": "Pilt. Arsti juures"
+  },
+  {
+    "id": "a2b1-033-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "signpost",
+      "heart"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, teeviit, süda.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: pusletükid, teeviit, süda.",
+    "caption": "Pilt. Nõuanded ja käskiv kõneviis"
+  },
+  {
+    "id": "a2b1-034-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, jutumullid, pliiats.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kell, jutumullid, pliiats.",
+    "caption": "Pilt. Tervislikud harjumused"
+  },
+  {
+    "id": "a2b1-035-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "heart"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, süda.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "name the objects and connect them to the lesson topic in 2 sentences",
+    "prompts": [
+      "Mis esemed on pildil?",
+      "Kuidas need on seotud tunni teemaga?",
+      "Ütle paarilisele 2 lauset."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, süda.",
+    "caption": "Pilt. Kontroll 7"
+  },
+  {
+    "id": "b1b2-001-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "clock",
+      "house"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, kell, maja.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, kell, maja.",
+    "caption": "Pilt. B1 lähtediagnostika"
+  },
+  {
+    "id": "b1b2-002-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "bubbles",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, jutumullid, avatud raamat.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kell, jutumullid, avatud raamat.",
+    "caption": "Pilt. Minu tavaline päev"
+  },
+  {
+    "id": "b1b2-003-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "house",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, maja, jutumullid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, maja, jutumullid.",
+    "caption": "Pilt. Aeg, sagedus ja lauseehitus"
+  },
+  {
+    "id": "b1b2-004-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "book",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, avatud raamat, pliiats.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kell, avatud raamat, pliiats.",
+    "caption": "Pilt. Argipäev vs nädalavahetus"
+  },
+  {
+    "id": "b1b2-005-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "clock"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, kell.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, kell.",
+    "caption": "Pilt. Kontroll 1"
+  },
+  {
+    "id": "b1b2-006-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "signpost",
+      "building"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, teeviit, asutuse hoone.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kaardinõel, teeviit, asutuse hoone.",
+    "caption": "Pilt. Kus? Kuhu? Kust?"
+  },
+  {
+    "id": "b1b2-007-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "building",
+      "mappin",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: asutuse hoone, kaardinõel, teeviit.",
+    "accent": "asutuse hoone",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: asutuse hoone, kaardinõel, teeviit.",
+    "caption": "Pilt. Teeninduses ja ametiasutuses"
+  },
+  {
+    "id": "b1b2-008-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "building",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, asutuse hoone, ankeet.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: hoiatusmärk, asutuse hoone, ankeet.",
+    "caption": "Pilt. Kaebus ja probleem"
+  },
+  {
+    "id": "b1b2-009-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "form",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, ankeet, avatud raamat.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kaardinõel, ankeet, avatud raamat.",
+    "caption": "Pilt. Ootamatu olukord linnas"
+  },
+  {
+    "id": "b1b2-010-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, avatud raamat, jutumullid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kontroll 2"
+  },
+  {
+    "id": "b1b2-011-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "camera",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, fotokaamera, avatud raamat.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: liivakell, fotokaamera, avatud raamat.",
+    "caption": "Pilt. Lihtminevik"
+  },
+  {
+    "id": "b1b2-012-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, avatud raamat, jutumullid.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: liivakell, avatud raamat, jutumullid.",
+    "caption": "Pilt. Täisminevik"
+  },
+  {
+    "id": "b1b2-013-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, jutumullid, pliiats.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: liivakell, jutumullid, pliiats.",
+    "caption": "Pilt. Enneminevik ja ajajoon"
+  },
+  {
+    "id": "b1b2-014-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "pencil",
+      "camera"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, pliiats, fotokaamera.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: liivakell, pliiats, fotokaamera.",
+    "caption": "Pilt. Meeldejääv kogemus"
+  },
+  {
+    "id": "b1b2-015-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "hourglass"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, liivakell.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, liivakell.",
+    "caption": "Pilt. Kontroll 3"
+  },
+  {
+    "id": "b1b2-016-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, jutumullid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, jutumullid.",
+    "caption": "Pilt. Täissihitis ja osasihitis"
+  },
+  {
+    "id": "b1b2-017-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, pliiats.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, pliiats.",
+    "caption": "Pilt. ma- ja da-infinitiiv"
+  },
+  {
+    "id": "b1b2-018-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, pliiats, avatud raamat.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, pliiats, avatud raamat.",
+    "caption": "Pilt. Tegusõna rektsioon"
+  },
+  {
+    "id": "b1b2-019-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, pliiats, avatud raamat.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, pliiats, avatud raamat.",
+    "caption": "Pilt. Probleemi lahendamine grammatikaga"
+  },
+  {
+    "id": "b1b2-020-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "puzzle",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pusletükid, avatud raamat.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pusletükid, avatud raamat.",
+    "caption": "Pilt. Vahehindamine 1"
+  },
+  {
+    "id": "b1b2-021-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "scales",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, kaalud, avatud raamat.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: jutumullid, kaalud, avatud raamat.",
+    "caption": "Pilt. Seisukoha väljendamine"
+  },
+  {
+    "id": "b1b2-022-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "book",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, avatud raamat, pliiats.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: jutumullid, avatud raamat, pliiats.",
+    "caption": "Pilt. Põhjus → näide → järeldus"
+  },
+  {
+    "id": "b1b2-023-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "pencil",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, pliiats, kaalud.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: jutumullid, pliiats, kaalud.",
+    "caption": "Pilt. Nõustumine ja mittenõustumine"
+  },
+  {
+    "id": "b1b2-024-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "scales",
+      "pencil",
+      "bulb"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaalud, pliiats, lambipirn.",
+    "accent": "kaalud",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kaalud, pliiats, lambipirn.",
+    "caption": "Pilt. Kahe lahenduse võrdlemine"
+  },
+  {
+    "id": "b1b2-025-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "bubbles",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, jutumullid, kaalud.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, jutumullid, kaalud.",
+    "caption": "Pilt. Kontroll 5"
+  },
+  {
+    "id": "b1b2-026-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "laptop",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, sülearvuti, avatud raamat.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: portfell, sülearvuti, avatud raamat.",
+    "caption": "Pilt. Töökoht ja vastutus"
+  },
+  {
+    "id": "b1b2-027-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, avatud raamat, jutumullid.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: portfell, avatud raamat, jutumullid.",
+    "caption": "Pilt. Hea töökoht"
+  },
+  {
+    "id": "b1b2-028-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "bubbles",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, jutumullid, avatud raamat.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: portfell, jutumullid, avatud raamat.",
+    "caption": "Pilt. Konflikt tööl"
+  },
+  {
+    "id": "b1b2-029-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "pencil",
+      "laptop"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, pliiats, sülearvuti.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: portfell, pliiats, sülearvuti.",
+    "caption": "Pilt. Kaugtöö või kontor?"
+  },
+  {
+    "id": "b1b2-030-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "briefcase"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, portfell.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, portfell.",
+    "caption": "Pilt. Kontroll 6"
+  },
+  {
+    "id": "b1b2-031-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "book",
+      "bulb",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: avatud raamat, lambipirn, jutumullid.",
+    "accent": "avatud raamat",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: avatud raamat, lambipirn, jutumullid.",
+    "caption": "Pilt. Õppimine ja motivatsioon"
+  },
+  {
+    "id": "b1b2-032-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "book",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: avatud raamat, jutumullid, pliiats.",
+    "accent": "avatud raamat",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: avatud raamat, jutumullid, pliiats.",
+    "caption": "Pilt. Mis teeb õppimise tõhusaks?"
+  },
+  {
+    "id": "b1b2-033-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "book",
+      "pencil",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: avatud raamat, pliiats, jutumullid.",
+    "accent": "avatud raamat",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: avatud raamat, pliiats, jutumullid.",
+    "caption": "Pilt. Haridusteksti analüüs"
+  },
+  {
+    "id": "b1b2-034-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bulb",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: lambipirn, avatud raamat, jutumullid.",
+    "accent": "lambipirn",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: lambipirn, avatud raamat, jutumullid.",
+    "caption": "Pilt. Ettepanek õppimise parandamiseks"
+  },
+  {
+    "id": "b1b2-035-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "book",
+      "bulb"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, avatud raamat, lambipirn.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, avatud raamat, lambipirn.",
+    "caption": "Pilt. Kontroll 7"
+  },
+  {
+    "id": "b1b2-036-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "suitcase",
+      "globe"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, kohver, maakera.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kalender, kohver, maakera.",
+    "caption": "Pilt. Reisi planeerimine"
+  },
+  {
+    "id": "b1b2-037-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "globe",
+      "masks"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, maakera, teatrimaskid.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: hoiatusmärk, maakera, teatrimaskid.",
+    "caption": "Pilt. Reis läks valesti"
+  },
+  {
+    "id": "b1b2-038-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "masks",
+      "globe",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: teatrimaskid, maakera, jutumullid.",
+    "accent": "teatrimaskid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: teatrimaskid, maakera, jutumullid.",
+    "caption": "Pilt. Kultuurierinevused"
+  },
+  {
+    "id": "b1b2-039-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "masks",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, teatrimaskid, avatud raamat.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: liivakell, teatrimaskid, avatud raamat.",
+    "caption": "Pilt. Reisikogemus ja hinnang"
+  },
+  {
+    "id": "b1b2-040-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, jutumullid, pliiats.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, jutumullid, pliiats.",
+    "caption": "Pilt. Vahehindamine 2"
+  },
+  {
+    "id": "b1b2-041-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "ball",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, jalgpall, avatud raamat.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: süda, jalgpall, avatud raamat.",
+    "caption": "Pilt. Tervislik eluviis"
+  },
+  {
+    "id": "b1b2-042-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, teeviit.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, teeviit.",
+    "caption": "Pilt. Nõuanded ja tingiv kõneviis"
+  },
+  {
+    "id": "b1b2-043-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "laptop",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, sülearvuti, kaalud.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: süda, sülearvuti, kaalud.",
+    "caption": "Pilt. Stress ja töö-elu tasakaal"
+  },
+  {
+    "id": "b1b2-044-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, jutumullid, pliiats.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kalender, jutumullid, pliiats.",
+    "caption": "Pilt. Elustiili muutmise plaan"
+  },
+  {
+    "id": "b1b2-045-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "heart"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, süda.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, süda.",
+    "caption": "Pilt. Kontroll 9"
+  },
+  {
+    "id": "b1b2-046-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "frame",
+      "people",
+      "face"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pildiraam, kaks inimest, nägu.",
+    "accent": "pildiraam",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pildiraam, kaks inimest, nägu.",
+    "caption": "Pilt. Suhted ja iseloom"
+  },
+  {
+    "id": "b1b2-047-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "face",
+      "bubbles",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: nägu, jutumullid, kaalud.",
+    "accent": "nägu",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: nägu, jutumullid, kaalud.",
+    "caption": "Pilt. Emotsioonide põhjendamine"
+  },
+  {
+    "id": "b1b2-048-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "frame"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, pildiraam.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, pildiraam.",
+    "caption": "Pilt. Kaudne kõne konfliktis"
+  },
+  {
+    "id": "b1b2-049-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "scales",
+      "bubbles",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaalud, jutumullid, avatud raamat.",
+    "accent": "kaalud",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kaalud, jutumullid, avatud raamat.",
+    "caption": "Pilt. Kompromissi leidmine"
+  },
+  {
+    "id": "b1b2-050-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "book",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, avatud raamat, pliiats.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, avatud raamat, pliiats.",
+    "caption": "Pilt. Kontroll 10"
+  },
+  {
+    "id": "b1b2-051-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "receipt",
+      "bag",
+      "shirt"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kviitung, ostukott, särk.",
+    "accent": "kviitung",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kviitung, ostukott, särk.",
+    "caption": "Pilt. Eelarve ja ostuotsus"
+  },
+  {
+    "id": "b1b2-052-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "megaphone",
+      "receipt",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: megafon, kviitung, avatud raamat.",
+    "accent": "megafon",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: megafon, kviitung, avatud raamat.",
+    "caption": "Pilt. Reklaami mõju"
+  },
+  {
+    "id": "b1b2-053-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bag",
+      "coins",
+      "receipt"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ostukott, mündid, kviitung.",
+    "accent": "ostukott",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: ostukott, mündid, kviitung.",
+    "caption": "Pilt. Tarbijaprobleem"
+  },
+  {
+    "id": "b1b2-054-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "coins",
+      "pencil",
+      "receipt"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: mündid, pliiats, kviitung.",
+    "accent": "mündid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: mündid, pliiats, kviitung.",
+    "caption": "Pilt. Säästa või kulutada?"
+  },
+  {
+    "id": "b1b2-055-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "coins"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, mündid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, mündid.",
+    "caption": "Pilt. Kontroll 11"
+  },
+  {
+    "id": "b1b2-056-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "chip",
+      "laptop"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, kiip, sülearvuti.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kell, kiip, sülearvuti.",
+    "caption": "Pilt. Digiharjumused"
+  },
+  {
+    "id": "b1b2-057-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "laptop",
+      "phone"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, sülearvuti, telefon.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kell, sülearvuti, telefon.",
+    "caption": "Pilt. Tehisintellekt igapäevaelus"
+  },
+  {
+    "id": "b1b2-058-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "magnifier",
+      "chip"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, luup, kiip.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: pusletükid, luup, kiip.",
+    "caption": "Pilt. Umbisikuline tegumood"
+  },
+  {
+    "id": "b1b2-059-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "newspaper",
+      "phone",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ajaleht, telefon, avatud raamat.",
+    "accent": "ajaleht",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: ajaleht, telefon, avatud raamat.",
+    "caption": "Pilt. Valeinfo ja allikad"
+  },
+  {
+    "id": "b1b2-060-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "phone",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, telefon, avatud raamat.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "describe the objects and tell a related personal experience",
+    "prompts": [
+      "Mis on pildil?",
+      "Millist olukorda need esemed meenutavad?",
+      "Räägi paarilisega oma kogemusest."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, telefon, avatud raamat.",
+    "caption": "Pilt. Vahehindamine 3"
+  },
+  {
+    "id": "b1b2-061-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "plant",
+      "globe"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, taim, maakera.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: hoiatusmärk, taim, maakera.",
+    "caption": "Pilt. Keskkonnaprobleemid"
+  },
+  {
+    "id": "b1b2-062-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "plant",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: taim, avatud raamat, jutumullid.",
+    "accent": "taim",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: taim, avatud raamat, jutumullid.",
+    "caption": "Pilt. Põhjus ja tagajärg"
+  },
+  {
+    "id": "b1b2-063-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "plant",
+      "scales",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: taim, kaalud, avatud raamat.",
+    "accent": "taim",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: taim, kaalud, avatud raamat.",
+    "caption": "Pilt. Keskkonnasõbralikud valikud"
+  },
+  {
+    "id": "b1b2-064-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, avatud raamat, jutumullid.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: hoiatusmärk, avatud raamat, jutumullid.",
+    "caption": "Pilt. Probleem ja lahendus"
+  },
+  {
+    "id": "b1b2-065-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "plant"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, taim.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, taim.",
+    "caption": "Pilt. Kontroll 13"
+  },
+  {
+    "id": "b1b2-066-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "building",
+      "form",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: asutuse hoone, ankeet, teeviit.",
+    "accent": "asutuse hoone",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: asutuse hoone, ankeet, teeviit.",
+    "caption": "Pilt. Avalikud teenused"
+  },
+  {
+    "id": "b1b2-067-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "people",
+      "building",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaks inimest, asutuse hoone, ankeet.",
+    "accent": "kaks inimest",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kaks inimest, asutuse hoone, ankeet.",
+    "caption": "Pilt. Kogukond ja osalemine"
+  },
+  {
+    "id": "b1b2-068-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "people",
+      "ballot"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, kaks inimest, valimiskast.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kalender, kaks inimest, valimiskast.",
+    "caption": "Pilt. Kohustus, võimalus ja piirang"
+  },
+  {
+    "id": "b1b2-069-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "people",
+      "ballot"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, kaks inimest, valimiskast.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: hoiatusmärk, kaks inimest, valimiskast.",
+    "caption": "Pilt. Kohaliku probleemi lahendus"
+  },
+  {
+    "id": "b1b2-070-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "signpost",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, teeviit, kaalud.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, teeviit, kaalud.",
+    "caption": "Pilt. Kontroll 14"
+  },
+  {
+    "id": "b1b2-071-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "newspaper",
+      "magnifier",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ajaleht, luup, jutumullid.",
+    "accent": "ajaleht",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: ajaleht, luup, jutumullid.",
+    "caption": "Pilt. Fakt või arvamus?"
+  },
+  {
+    "id": "b1b2-072-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "newspaper",
+      "bubbles",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ajaleht, jutumullid, kaalud.",
+    "accent": "ajaleht",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: ajaleht, jutumullid, kaalud.",
+    "caption": "Pilt. Autori seisukoht"
+  },
+  {
+    "id": "b1b2-073-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "magnifier",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, luup, avatud raamat.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: jutumullid, luup, avatud raamat.",
+    "caption": "Pilt. Argumentide tugevus"
+  },
+  {
+    "id": "b1b2-074-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "magnifier",
+      "bubbles",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: luup, jutumullid, avatud raamat.",
+    "accent": "luup",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: luup, jutumullid, avatud raamat.",
+    "caption": "Pilt. Teksti kokkuvõte ja reaktsioon"
+  },
+  {
+    "id": "b1b2-075-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "newspaper"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, ajaleht.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, ajaleht.",
+    "caption": "Pilt. Kontroll 15"
+  },
+  {
+    "id": "b1b2-076-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, jutumullid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, jutumullid.",
+    "caption": "Pilt. Liitlause ja sidendid"
+  },
+  {
+    "id": "b1b2-077-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, pliiats.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, pliiats.",
+    "caption": "Pilt. Sõnajärg keerukamas lauses"
+  },
+  {
+    "id": "b1b2-078-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, pliiats, avatud raamat.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: pusletükid, pliiats, avatud raamat.",
+    "caption": "Pilt. Kesksõnad ja des-vorm"
+  },
+  {
+    "id": "b1b2-079-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, jutumullid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, jutumullid.",
+    "caption": "Pilt. Tingiv, umbisikuline ja kaudne kõne"
+  },
+  {
+    "id": "b1b2-080-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "puzzle",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pusletükid, avatud raamat.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pusletükid, avatud raamat.",
+    "caption": "Pilt. Vahehindamine 4"
+  },
+  {
+    "id": "b1b2-081-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "scales",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, kaalud, pliiats.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: jutumullid, kaalud, pliiats.",
+    "caption": "Pilt. Arvamusteksti struktuur"
+  },
+  {
+    "id": "b1b2-082-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "form",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ankeet, pliiats, avatud raamat.",
+    "accent": "ankeet",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: ankeet, pliiats, avatud raamat.",
+    "caption": "Pilt. Ametlik kiri ja taotlus"
+  },
+  {
+    "id": "b1b2-083-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "bulb",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, lambipirn, jutumullid.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: hoiatusmärk, lambipirn, jutumullid.",
+    "caption": "Pilt. Probleemilahendus-tekst"
+  },
+  {
+    "id": "b1b2-084-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "pencil",
+      "bubbles",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pliiats, jutumullid, avatud raamat.",
+    "accent": "pliiats",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: pliiats, jutumullid, avatud raamat.",
+    "caption": "Pilt. Oma teksti parandamine"
+  },
+  {
+    "id": "b1b2-085-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, avatud raamat, jutumullid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, avatud raamat, jutumullid.",
+    "caption": "Pilt. Kontroll 17"
+  },
+  {
+    "id": "b1b2-086-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mic",
+      "bubbles",
+      "clipboard"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: mikrofon, jutumullid, kontrollnimekiri.",
+    "accent": "mikrofon",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: mikrofon, jutumullid, kontrollnimekiri.",
+    "caption": "Pilt. Pikem monoloog"
+  },
+  {
+    "id": "b1b2-087-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "scales",
+      "bubbles",
+      "clipboard"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaalud, jutumullid, kontrollnimekiri.",
+    "accent": "kaalud",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kaalud, jutumullid, kontrollnimekiri.",
+    "caption": "Pilt. Läbirääkimine ja kompromiss"
+  },
+  {
+    "id": "b1b2-088-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "magnifier",
+      "bubbles",
+      "clipboard"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: luup, jutumullid, kontrollnimekiri.",
+    "accent": "luup",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: luup, jutumullid, kontrollnimekiri.",
+    "caption": "Pilt. Lugemine → rääkimine"
+  },
+  {
+    "id": "b1b2-089-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "mic"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, mikrofon.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, mikrofon.",
+    "caption": "Pilt. Täismahus B2 simulatsioon"
+  },
+  {
+    "id": "b1b2-090-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "calendar"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, kalender.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "infer the topic and argue which object matters most",
+    "prompts": [
+      "Kuidas pilt tunni teemaga seostub?",
+      "Milline ese on teema jaoks kõige olulisem ja miks?",
+      "Sõnasta pildi põhjal üks arutlusküsimus."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, kalender.",
+    "caption": "Pilt. Lõpphindamine ja järgmine plaan"
+  },
+  {
+    "id": "est-c1-001-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "face",
+      "shirt",
+      "globe"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: nägu, särk, maakera.",
+    "accent": "nägu",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: nägu, särk, maakera.",
+    "caption": "Pilt. Mina kui vilunud keelekasutaja: identiteet ja enesepilt"
+  },
+  {
+    "id": "est-c1-002-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "signpost",
+      "frame",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: teeviit, pildiraam, kaks inimest.",
+    "accent": "teeviit",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: teeviit, pildiraam, kaks inimest.",
+    "caption": "Pilt. Väärtused, valikud ja prioriteedid"
+  },
+  {
+    "id": "est-c1-003-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "frame",
+      "shirt",
+      "mic"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pildiraam, särk, mikrofon.",
+    "accent": "pildiraam",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pildiraam, särk, mikrofon.",
+    "caption": "Pilt. Suhted, rollid ja ootused"
+  },
+  {
+    "id": "est-c1-004-harjuta-1",
+    "phase": "practice",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "scales",
+      "people",
+      "face"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaalud, kaks inimest, nägu.",
+    "accent": "kaalud",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaalud, kaks inimest, nägu.",
+    "caption": "Pilt. Konflikt, kompromiss ja piiride seadmine"
+  },
+  {
+    "id": "est-c1-005-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "face",
+      "bubbles",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: nägu, jutumullid, avatud raamat.",
+    "accent": "nägu",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: nägu, jutumullid, avatud raamat.",
+    "caption": "Pilt. Emotsioonid, hoiakud ja varjatud tähendus"
+  },
+  {
+    "id": "est-c1-006-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "book",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, avatud raamat, pliiats.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: jutumullid, avatud raamat, pliiats.",
+    "caption": "Pilt. Suhtlusstiil ja register"
+  },
+  {
+    "id": "est-c1-007-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "book",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, avatud raamat, pliiats.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: jutumullid, avatud raamat, pliiats.",
+    "caption": "Pilt. Avalik eneseväljendus ja põhjendatud seisukoht"
+  },
+  {
+    "id": "est-c1-008-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, pliiats, avatud raamat.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, pliiats, avatud raamat.",
+    "caption": "Pilt. Sihitis C1-tasemel"
+  },
+  {
+    "id": "est-c1-009-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "frame"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, pildiraam.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, pildiraam.",
+    "caption": "Pilt. Rektsioon ja käändevalik"
+  },
+  {
+    "id": "est-c1-010-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "people",
+      "face"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, kaks inimest, nägu.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, kaks inimest, nägu.",
+    "caption": "Pilt. Mooduli 1 progressikontroll"
+  },
+  {
+    "id": "est-c1-011-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "house",
+      "signpost",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: maja, teeviit, kaalud.",
+    "accent": "maja",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: maja, teeviit, kaalud.",
+    "caption": "Pilt. Eluasemevalikud ja elukvaliteet"
+  },
+  {
+    "id": "est-c1-012-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "house",
+      "ballot",
+      "mappin"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: maja, valimiskast, kaardinõel.",
+    "accent": "maja",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: maja, valimiskast, kaardinõel.",
+    "caption": "Pilt. Naabruskond ja kogukond"
+  },
+  {
+    "id": "est-c1-013-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "plant",
+      "globe"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, taim, maakera.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaardinõel, taim, maakera.",
+    "caption": "Pilt. Linnaruum ja avalik ruum"
+  },
+  {
+    "id": "est-c1-014-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "building",
+      "signpost",
+      "plant"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: asutuse hoone, teeviit, taim.",
+    "accent": "asutuse hoone",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: asutuse hoone, teeviit, taim.",
+    "caption": "Pilt. Kohalikud teenused ja teenuse kvaliteet"
+  },
+  {
+    "id": "est-c1-015-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "plant",
+      "globe"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, taim, maakera.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoiatusmärk, taim, maakera.",
+    "caption": "Pilt. Turvalisus ja kriisiolukorrad"
+  },
+  {
+    "id": "est-c1-016-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "people",
+      "ballot"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, kaks inimest, valimiskast.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoiatusmärk, kaks inimest, valimiskast.",
+    "caption": "Pilt. Kohaliku elu probleemide arutelu"
+  },
+  {
+    "id": "est-c1-017-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "envelope",
+      "globe",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ümbrik ja kiri, maakera, kaks inimest.",
+    "accent": "ümbrik ja kiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ümbrik ja kiri, maakera, kaks inimest.",
+    "caption": "Pilt. Ettepanek ja pöördumine omavalitsusele"
+  },
+  {
+    "id": "est-c1-018-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "globe",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, maakera, kaks inimest.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, maakera, kaks inimest.",
+    "caption": "Pilt. Sõnajärg ja infostruktuur"
+  },
+  {
+    "id": "est-c1-019-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, pliiats.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, pliiats.",
+    "caption": "Pilt. Käänete keerukam kasutus"
+  },
+  {
+    "id": "est-c1-020-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "house"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, maja.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, maja.",
+    "caption": "Pilt. Mooduli 2 progressikontroll"
+  },
+  {
+    "id": "est-c1-021-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "camera",
+      "building"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, fotokaamera, asutuse hoone.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: liivakell, fotokaamera, asutuse hoone.",
+    "caption": "Pilt. Teenuse kvaliteet ja kliendikogemus"
+  },
+  {
+    "id": "est-c1-022-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bag",
+      "scales",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ostukott, kaalud, teeviit.",
+    "accent": "ostukott",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ostukott, kaalud, teeviit.",
+    "caption": "Pilt. Tarbimisotsused ja võrdlemine"
+  },
+  {
+    "id": "est-c1-023-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "form",
+      "receipt",
+      "building"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ankeet, kviitung, asutuse hoone.",
+    "accent": "ankeet",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ankeet, kviitung, asutuse hoone.",
+    "caption": "Pilt. Lepingud, tingimused ja kohustused"
+  },
+  {
+    "id": "est-c1-024-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "form",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, ankeet, avatud raamat.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoiatusmärk, ankeet, avatud raamat.",
+    "caption": "Pilt. Kaebus, pretensioon ja vaidluse lahendamine"
+  },
+  {
+    "id": "est-c1-025-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "receipt",
+      "building",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kviitung, asutuse hoone, ankeet.",
+    "accent": "kviitung",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kviitung, asutuse hoone, ankeet.",
+    "caption": "Pilt. Isiklik rahandus ja eelarveotsused"
+  },
+  {
+    "id": "est-c1-026-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "coins",
+      "pencil",
+      "receipt"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: mündid, pliiats, kviitung.",
+    "accent": "mündid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: mündid, pliiats, kviitung.",
+    "caption": "Pilt. Pangandus ja kindlustus"
+  },
+  {
+    "id": "est-c1-027-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bag",
+      "form",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ostukott, ankeet, avatud raamat.",
+    "accent": "ostukott",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ostukott, ankeet, avatud raamat.",
+    "caption": "Pilt. Tarbimisühiskond ja vastutustundlik valik"
+  },
+  {
+    "id": "est-c1-028-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, ankeet.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, ankeet.",
+    "caption": "Pilt. Ajavormid sidusas tekstis"
+  },
+  {
+    "id": "est-c1-029-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "coins",
+      "receipt"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, mündid, kviitung.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, mündid, kviitung.",
+    "caption": "Pilt. Kõneviisid ja modaalsus"
+  },
+  {
+    "id": "est-c1-030-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "building",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, asutuse hoone, ankeet.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, asutuse hoone, ankeet.",
+    "caption": "Pilt. Mooduli 3 progressikontroll"
+  },
+  {
+    "id": "est-c1-031-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "book",
+      "bulb",
+      "newspaper"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: avatud raamat, lambipirn, ajaleht.",
+    "accent": "avatud raamat",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: avatud raamat, lambipirn, ajaleht.",
+    "caption": "Pilt. Elukestev õpe ja enesetäiendamine"
+  },
+  {
+    "id": "est-c1-032-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "book",
+      "bulb"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, avatud raamat, lambipirn.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: portfell, avatud raamat, lambipirn.",
+    "caption": "Pilt. Õpistrateegiad ja enesejuhtimine"
+  },
+  {
+    "id": "est-c1-033-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "newspaper",
+      "bulb",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ajaleht, lambipirn, jutumullid.",
+    "accent": "ajaleht",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ajaleht, lambipirn, jutumullid.",
+    "caption": "Pilt. Keeruka info lugemine"
+  },
+  {
+    "id": "est-c1-034-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "bulb",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, lambipirn, jutumullid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, lambipirn, jutumullid.",
+    "caption": "Pilt. Allikad, usaldusväärsus ja faktikontroll"
+  },
+  {
+    "id": "est-c1-035-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "newspaper",
+      "pencil",
+      "magnifier"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ajaleht, pliiats, luup.",
+    "accent": "ajaleht",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ajaleht, pliiats, luup.",
+    "caption": "Pilt. Kokkuvõte ja eri allikate süntees"
+  },
+  {
+    "id": "est-c1-036-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "book",
+      "pencil",
+      "bulb"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: avatud raamat, pliiats, lambipirn.",
+    "accent": "avatud raamat",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: avatud raamat, pliiats, lambipirn.",
+    "caption": "Pilt. Loeng, konspekt ja suuline vahendamine"
+  },
+  {
+    "id": "est-c1-037-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "book",
+      "bulb",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: avatud raamat, lambipirn, teeviit.",
+    "accent": "avatud raamat",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: avatud raamat, lambipirn, teeviit.",
+    "caption": "Pilt. Hariduse muutumine ja tulevikuoskused"
+  },
+  {
+    "id": "est-c1-038-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, ankeet.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, ankeet.",
+    "caption": "Pilt. ma- ja da-infinitiiv ning käändelised vormid"
+  },
+  {
+    "id": "est-c1-039-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "newspaper",
+      "magnifier"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, ajaleht, luup.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, ajaleht, luup.",
+    "caption": "Pilt. Kesksõnad ja lühendatud tarindid"
+  },
+  {
+    "id": "est-c1-040-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "magnifier",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, luup, jutumullid.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, luup, jutumullid.",
+    "caption": "Pilt. Mooduli 4 progressikontroll"
+  },
+  {
+    "id": "est-c1-041-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "face",
+      "shirt",
+      "briefcase"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: nägu, särk, portfell.",
+    "accent": "nägu",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: nägu, särk, portfell.",
+    "caption": "Pilt. Karjäär, pädevused ja professionaalne identiteet"
+  },
+  {
+    "id": "est-c1-042-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, avatud raamat, jutumullid.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: portfell, avatud raamat, jutumullid.",
+    "caption": "Pilt. Värbamine ja kvalifikatsioon"
+  },
+  {
+    "id": "est-c1-043-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "envelope",
+      "laptop",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ümbrik ja kiri, sülearvuti, avatud raamat.",
+    "accent": "ümbrik ja kiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ümbrik ja kiri, sülearvuti, avatud raamat.",
+    "caption": "Pilt. Tööalane kirjalik suhtlus"
+  },
+  {
+    "id": "est-c1-044-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, avatud raamat, jutumullid.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: portfell, avatud raamat, jutumullid.",
+    "caption": "Pilt. Koosolek ja otsustamine"
+  },
+  {
+    "id": "est-c1-045-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "scales",
+      "pencil",
+      "briefcase"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaalud, pliiats, portfell.",
+    "accent": "kaalud",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaalud, pliiats, portfell.",
+    "caption": "Pilt. Läbirääkimised ja kompromiss"
+  },
+  {
+    "id": "est-c1-046-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, avatud raamat, jutumullid.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: portfell, avatud raamat, jutumullid.",
+    "caption": "Pilt. Juhtimine, meeskond ja tagasiside"
+  },
+  {
+    "id": "est-c1-047-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "laptop",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, sülearvuti, teeviit.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: portfell, sülearvuti, teeviit.",
+    "caption": "Pilt. Töökorraldus, muutused ja eetilised valikud"
+  },
+  {
+    "id": "est-c1-048-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "laptop",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, sülearvuti, jutumullid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, sülearvuti, jutumullid.",
+    "caption": "Pilt. Isikuline, umbisikuline ja passiivne väljendus"
+  },
+  {
+    "id": "est-c1-049-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "newspaper",
+      "magnifier"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, ajaleht, luup.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, ajaleht, luup.",
+    "caption": "Pilt. Nominalisatsioon ja info tihendamine"
+  },
+  {
+    "id": "est-c1-050-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "briefcase"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, portfell.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, portfell.",
+    "caption": "Pilt. Mooduli 5 progressikontroll"
+  },
+  {
+    "id": "est-c1-051-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "building",
+      "form",
+      "medbag"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: asutuse hoone, ankeet, arstikohver.",
+    "accent": "asutuse hoone",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: asutuse hoone, ankeet, arstikohver.",
+    "caption": "Pilt. Tervishoiuteenused ja patsiendisuhtlus"
+  },
+  {
+    "id": "est-c1-052-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, avatud raamat, jutumullid.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: süda, avatud raamat, jutumullid.",
+    "caption": "Pilt. Eluviis, ennetus ja tervisekäitumine"
+  },
+  {
+    "id": "est-c1-053-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, jutumullid, pliiats.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: süda, jutumullid, pliiats.",
+    "caption": "Pilt. Vaimne heaolu ja koormus"
+  },
+  {
+    "id": "est-c1-054-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "care",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoolivad käed, avatud raamat, jutumullid.",
+    "accent": "hoolivad käed",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoolivad käed, avatud raamat, jutumullid.",
+    "caption": "Pilt. Sotsiaalne tugi ja hooldus"
+  },
+  {
+    "id": "est-c1-055-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "care",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoolivad käed, jutumullid, pliiats.",
+    "accent": "hoolivad käed",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoolivad käed, jutumullid, pliiats.",
+    "caption": "Pilt. Vananemine ja demograafilised muutused"
+  },
+  {
+    "id": "est-c1-056-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, avatud raamat, jutumullid.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoiatusmärk, avatud raamat, jutumullid.",
+    "caption": "Pilt. Avalik terviseinfo ja riskikommunikatsioon"
+  },
+  {
+    "id": "est-c1-057-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "heart",
+      "bubbles",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: süda, jutumullid, kaalud.",
+    "accent": "süda",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: süda, jutumullid, kaalud.",
+    "caption": "Pilt. Tõend, arvamus ja põhjendamine terviseteemal"
+  },
+  {
+    "id": "est-c1-058-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "ball",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jalgpall, jutumullid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, jalgpall, jutumullid.",
+    "caption": "Pilt. Relatiivlaused ja viitamine"
+  },
+  {
+    "id": "est-c1-059-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, jutumullid, pliiats.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, jutumullid, pliiats.",
+    "caption": "Pilt. Kõrvallausete süsteem ja lausestuse hierarhia"
+  },
+  {
+    "id": "est-c1-060-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "pencil",
+      "heart"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, pliiats, süda.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, pliiats, süda.",
+    "caption": "Pilt. Mooduli 6 progressikontroll"
+  },
+  {
+    "id": "est-c1-061-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "bus",
+      "mappin"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, buss, kaardinõel.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kell, buss, kaardinõel.",
+    "caption": "Pilt. Liikumisviisid ja igapäevane transport"
+  },
+  {
+    "id": "est-c1-062-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bus",
+      "warning",
+      "suitcase"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: buss, hoiatusmärk, kohver.",
+    "accent": "buss",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: buss, hoiatusmärk, kohver.",
+    "caption": "Pilt. Reisimine, liikuvus ja ootamatud olukorrad"
+  },
+  {
+    "id": "est-c1-063-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "globe",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, maakera, kaalud.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaardinõel, maakera, kaalud.",
+    "caption": "Pilt. Linn ja maa: elukeskkonna valikud"
+  },
+  {
+    "id": "est-c1-064-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "plant",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: taim, avatud raamat, jutumullid.",
+    "accent": "taim",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: taim, avatud raamat, jutumullid.",
+    "caption": "Pilt. Keskkond ja kliimamuutuse mõju"
+  },
+  {
+    "id": "est-c1-065-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bolt",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: välk, avatud raamat, jutumullid.",
+    "accent": "välk",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: välk, avatud raamat, jutumullid.",
+    "caption": "Pilt. Energia ja ressursside kasutamine"
+  },
+  {
+    "id": "est-c1-066-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, jutumullid, pliiats.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kalender, jutumullid, pliiats.",
+    "caption": "Pilt. Planeerimine ja avalik arutelu"
+  },
+  {
+    "id": "est-c1-067-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "calendar",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kalender, jutumullid, pliiats.",
+    "accent": "kalender",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kalender, jutumullid, pliiats.",
+    "caption": "Pilt. Kestlik lahendus ja tegevuskava"
+  },
+  {
+    "id": "est-c1-068-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, pliiats.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, pliiats.",
+    "caption": "Pilt. Sidendid ja tekstisisesed seosed"
+  },
+  {
+    "id": "est-c1-069-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, pliiats, avatud raamat.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, pliiats, avatud raamat.",
+    "caption": "Pilt. Määruslikud suhted, kaassõnad ja käänded"
+  },
+  {
+    "id": "est-c1-070-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "plant",
+      "globe"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, taim, maakera.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, taim, maakera.",
+    "caption": "Pilt. Mooduli 7 progressikontroll"
+  },
+  {
+    "id": "est-c1-071-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "hourglass",
+      "camera",
+      "ticket"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: liivakell, fotokaamera, pilet.",
+    "accent": "liivakell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: liivakell, fotokaamera, pilet.",
+    "caption": "Pilt. Kultuuris osalemine ja kultuurikogemus"
+  },
+  {
+    "id": "est-c1-072-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "masks",
+      "newspaper",
+      "magnifier"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: teatrimaskid, ajaleht, luup.",
+    "accent": "teatrimaskid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: teatrimaskid, ajaleht, luup.",
+    "caption": "Pilt. Film, teater, kirjandus ja tõlgendus"
+  },
+  {
+    "id": "est-c1-073-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "face",
+      "bubbles",
+      "masks"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: nägu, jutumullid, teatrimaskid.",
+    "accent": "nägu",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: nägu, jutumullid, teatrimaskid.",
+    "caption": "Pilt. Keel, identiteet ja kuuluvus"
+  },
+  {
+    "id": "est-c1-074-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "people",
+      "masks",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaks inimest, teatrimaskid, avatud raamat.",
+    "accent": "kaks inimest",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaks inimest, teatrimaskid, avatud raamat.",
+    "caption": "Pilt. Mitmekeelne ühiskond ja vahendamine"
+  },
+  {
+    "id": "est-c1-075-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "newspaper",
+      "globe",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ajaleht, maakera, jutumullid.",
+    "accent": "ajaleht",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ajaleht, maakera, jutumullid.",
+    "caption": "Pilt. Meediažanrid ja sõnumi kujundamine"
+  },
+  {
+    "id": "est-c1-076-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "newspaper",
+      "book",
+      "globe"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ajaleht, avatud raamat, maakera.",
+    "accent": "ajaleht",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ajaleht, avatud raamat, maakera.",
+    "caption": "Pilt. Sotsiaalmeedia ja avalik diskursus"
+  },
+  {
+    "id": "est-c1-077-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "masks",
+      "pencil",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: teatrimaskid, pliiats, avatud raamat.",
+    "accent": "teatrimaskid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: teatrimaskid, pliiats, avatud raamat.",
+    "caption": "Pilt. Arvustus ja kultuuriline argument"
+  },
+  {
+    "id": "est-c1-078-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "masks"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, teatrimaskid.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, teatrimaskid.",
+    "caption": "Pilt. Kaudne kõne ja refereerimine"
+  },
+  {
+    "id": "est-c1-079-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, ankeet.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, ankeet.",
+    "caption": "Pilt. Stiilivariandid ja paralleelvormid"
+  },
+  {
+    "id": "est-c1-080-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "newspaper",
+      "magnifier"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, ajaleht, luup.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, ajaleht, luup.",
+    "caption": "Pilt. Mooduli 8 progressikontroll"
+  },
+  {
+    "id": "est-c1-081-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "building",
+      "form",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: asutuse hoone, ankeet, teeviit.",
+    "accent": "asutuse hoone",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: asutuse hoone, ankeet, teeviit.",
+    "caption": "Pilt. Avalikud institutsioonid ja teenused"
+  },
+  {
+    "id": "est-c1-082-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "form",
+      "building",
+      "people"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: ankeet, asutuse hoone, kaks inimest.",
+    "accent": "ankeet",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: ankeet, asutuse hoone, kaks inimest.",
+    "caption": "Pilt. Õigused, kohustused ja reeglid"
+  },
+  {
+    "id": "est-c1-083-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "care",
+      "ballot",
+      "building"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoolivad käed, valimiskast, asutuse hoone.",
+    "accent": "hoolivad käed",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoolivad käed, valimiskast, asutuse hoone.",
+    "caption": "Pilt. Kodanikuosalus ja vabatahtlik tegevus"
+  },
+  {
+    "id": "est-c1-084-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "scales",
+      "building",
+      "form"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaalud, asutuse hoone, ankeet.",
+    "accent": "kaalud",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaalud, asutuse hoone, ankeet.",
+    "caption": "Pilt. Avalik otsustus ja huvide tasakaal"
+  },
+  {
+    "id": "est-c1-085-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "people",
+      "bubbles",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaks inimest, jutumullid, pliiats.",
+    "accent": "kaks inimest",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaks inimest, jutumullid, pliiats.",
+    "caption": "Pilt. Sotsiaalne sidusus ja mitmekesisus"
+  },
+  {
+    "id": "est-c1-086-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "warning",
+      "people",
+      "ballot"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: hoiatusmärk, kaks inimest, valimiskast.",
+    "accent": "hoiatusmärk",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: hoiatusmärk, kaks inimest, valimiskast.",
+    "caption": "Pilt. Kriisiinfo ja ametlik kommunikatsioon"
+  },
+  {
+    "id": "est-c1-087-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "pencil",
+      "scales"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, pliiats, kaalud.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: jutumullid, pliiats, kaalud.",
+    "caption": "Pilt. Debatt ja argumentide kaalumine"
+  },
+  {
+    "id": "est-c1-088-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "building"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, asutuse hoone.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, asutuse hoone.",
+    "caption": "Pilt. Kirjavahemärgid keerukas lauses"
+  },
+  {
+    "id": "est-c1-089-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "people",
+      "ballot"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, kaks inimest, valimiskast.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, kaks inimest, valimiskast.",
+    "caption": "Pilt. Viiteselgus, asesõnad ja tekstiline sidusus"
+  },
+  {
+    "id": "est-c1-090-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "people",
+      "ballot"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, kaks inimest, valimiskast.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, kaks inimest, valimiskast.",
+    "caption": "Pilt. Mooduli 9 progressikontroll"
+  },
+  {
+    "id": "est-c1-091-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clock",
+      "bulb",
+      "house"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kell, lambipirn, maja.",
+    "accent": "kell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kell, lambipirn, maja.",
+    "caption": "Pilt. Teadus ja innovatsioon igapäevaelus"
+  },
+  {
+    "id": "est-c1-092-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "building",
+      "chip",
+      "laptop"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: asutuse hoone, kiip, sülearvuti.",
+    "accent": "asutuse hoone",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: asutuse hoone, kiip, sülearvuti.",
+    "caption": "Pilt. Digitaalsed teenused ja tehisaru"
+  },
+  {
+    "id": "est-c1-093-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "bubbles",
+      "chip",
+      "laptop"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: jutumullid, kiip, sülearvuti.",
+    "accent": "jutumullid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: jutumullid, kiip, sülearvuti.",
+    "caption": "Pilt. Andmed, statistika ja järeldused"
+  },
+  {
+    "id": "est-c1-094-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "briefcase",
+      "signpost",
+      "chip"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: portfell, teeviit, kiip.",
+    "accent": "portfell",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: portfell, teeviit, kiip.",
+    "caption": "Pilt. Töö ja hariduse tulevik"
+  },
+  {
+    "id": "est-c1-095-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "scales",
+      "signpost",
+      "book"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaalud, teeviit, avatud raamat.",
+    "accent": "kaalud",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaalud, teeviit, avatud raamat.",
+    "caption": "Pilt. Tehnoloogia ja eetilised dilemmad"
+  },
+  {
+    "id": "est-c1-096-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "mappin",
+      "book",
+      "bubbles"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kaardinõel, avatud raamat, jutumullid.",
+    "accent": "kaardinõel",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kaardinõel, avatud raamat, jutumullid.",
+    "caption": "Pilt. Tulevikustsenaariumid ja ebakindlus"
+  },
+  {
+    "id": "est-c1-097-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "magnifier",
+      "bulb",
+      "signpost"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: luup, lambipirn, teeviit.",
+    "accent": "luup",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: luup, lambipirn, teeviit.",
+    "caption": "Pilt. C1 avalik ettekanne ja süntees"
+  },
+  {
+    "id": "est-c1-098-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "signpost",
+      "pencil"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, teeviit, pliiats.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, teeviit, pliiats.",
+    "caption": "Pilt. Keeletäpsus ja veaparandus"
+  },
+  {
+    "id": "est-c1-099-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "puzzle",
+      "book",
+      "chip"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: pusletükid, avatud raamat, kiip.",
+    "accent": "pusletükid",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: pusletükid, avatud raamat, kiip.",
+    "caption": "Pilt. C1 grammatika tervikpilt"
+  },
+  {
+    "id": "est-c1-100-avasta-1",
+    "phase": "discover",
+    "format": "scene",
+    "ext": "svg",
+    "objects": [
+      "clipboard",
+      "laptop",
+      "phone"
+    ],
+    "cast": [],
+    "scene": "Natüürmort: kontrollnimekiri, sülearvuti, telefon.",
+    "accent": "kontrollnimekiri",
+    "text": [],
+    "learningJob": "interpret what the picture says and leaves unsaid; formulate a claim and a counter-claim",
+    "prompts": [
+      "Milliseid seoseid näed esemete ja tunni teema vahel?",
+      "Mida pilt jätab ütlemata?",
+      "Sõnasta pildi põhjal väide ja vastuväide."
+    ],
+    "alt": "Joonistus: kontrollnimekiri, sülearvuti, telefon.",
+    "caption": "Pilt. Mooduli 10 progressikontroll"
+  }
+]

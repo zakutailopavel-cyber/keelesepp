@@ -74,3 +74,28 @@ Järjekord on teadlik: huvi ja aktiivsus on eeldus, ilma milleta ka tasemekohane
   kontrollib, et audit jookseb.
 - **Kõva värav** jääb `admin/course/quality.js`-i. Automaatne kriteerium muudetakse väravaks ainult omaniku loal ja
   alles siis, kui senised lehed on parandatud.
+
+## Tunniraam: kuidas lüngad täidetakse automaatselt (2026-10-11)
+
+Iga koodis toodetud tund saab pärast autori lehti ühtse **tunniraami**
+(`crm-v2/src/features/worksheet-generator/engine/lessonEnrichment.js`). Samm lisatakse ainult siis, kui tunnis seda
+veel pole; midagi ei kustutata ja leht jääb `SHEET_MINUTES.max` (55 min) piiresse. Raami plokkide id algab `enr_`.
+
+| Samm | Kriteerium | Mis lisatakse |
+|---|---|---|
+| Kuulamine | A1, A3 | `listening` tunni enda tekstist (lugemistekst, dialoog, olukord, näitelaused): 4–5 lauset, üks lünk lauses, `transcript` = laused. Harjutas, kui aega jätkub, muidu Avastas / Kasutas. Heli: konstruktoris „Loo heli” (TartuNLP Neurokõne) või õpetaja loeb. |
+| Lugemine (A2) | A1 | Kui generaatori plaanis teksti polnud, saab Avasta profiili juhitud dialoogi (`generateTextbookLessonBundle`). |
+| Paaristöö | A2 | Esimene rääkimisülesanne saab „Räägi paarilisega.”, muidu kirjutamine „loe oma tekst paarilisele ette”. |
+| Häälestus | A5 | Avasta algab tunni teema ja paarilisega häälestusküsimusega, kui leht algas kohe ülesandega. |
+| Enesehinnang | J5 | Lehele, kus pole `selfcheck` / `rubric`, etapi järgi 3 „Ma …” väidet. |
+| Kiiremale | J4 | Kasuta viimasele vabale ülesandele tasemekohane lisarida („Kiiremale: …”). |
+| Päriselus | K4 | Kasuta lõppu `planning` „Päriselus: tee see enne järgmist tundi.” tasemekohase päriseluülesandega. |
+| Pilt | K2 | Tunnid ilma tellitud illustratsioonita saavad koodis joonistatud natüürmordi (`art/topicArt.js`, vt [`TEXTBOOK_ART_BIBLE.md`](TEXTBOOK_ART_BIBLE.md) §10). |
+
+Rakendub: kursuse moodulid (`admin/course/registry.js` → `courseLessonSheets`), B1 moodul 1
+(`admin/module1ThreePhase.js`) ja A2 generaator (`engine/generator.js` → `generateTextbookLessonBundle`, mida kasutavad
+„Loo mustandid” ja A2 moodulite failid). Põhigeneraatori `generateLessonBundle` viie ülesande leping jääb samaks.
+Kursuse värav `quality.js` mõõdab mitmekesisust ja naabrite sarnasust ainult autori ülesannetel (raam on igas tunnis sama).
+
+Raam on miinimum, mitte asendus: sisuagent kirjutab parema kuulamisteksti, päris dialoogi või tellitud pildi, ja raami
+samm jääb siis ise ära.

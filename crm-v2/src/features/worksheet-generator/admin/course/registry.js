@@ -2,6 +2,8 @@
 // ({ [lessonId]: { title, canDo, practice?, transfer?, discover? } }); the admin page „Kursuse tootmine” previews
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
+import { withLessonArt } from '../../art/textbookArt.js';
+import { enrichLesson } from '../../engine/lessonEnrichment.js';
 import * as b1m02 from './b1/module02.js';
 import * as b1m03 from './b1/module03.js';
 import * as b1m04 from './b1/module04.js';
@@ -69,7 +71,7 @@ export function lessonOrder(blocks = []) {
   return [...head, ...rest.sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)];
 }
 
-export function buildCourseSheet(mod, lessonId, phase) {
+function rawCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
   const course = COURSES[mod.MODULE.course];
@@ -95,8 +97,19 @@ export function buildCourseSheet(mod, lessonId, phase) {
   };
 }
 
+// all phases of one lesson, enriched together (docs/MATERIAL_QUALITY_CHECKLIST.md): { [phase]: doc }
+export function courseLessonSheets(mod, lessonId) {
+  const phases = Object.keys(PHASES).filter((p) => mod.LESSONS[lessonId]?.[p]);
+  const enriched = enrichLesson(phases.map((phase) => ({ phase, doc: rawCourseSheet(mod, lessonId, phase) })), { level: mod.LESSONS[lessonId].level || mod.MODULE.level });
+  return Object.fromEntries(enriched.map(({ phase, doc }) => [phase, withLessonArt(doc, lessonId, phase)]));
+}
+
+export function buildCourseSheet(mod, lessonId, phase) {
+  if (!mod.LESSONS[lessonId]?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
+  return courseLessonSheets(mod, lessonId)[phase];
+}
+
 // every sheet a module produces: { [lessonId]: { [phase]: doc } }
 export function moduleSheets(mod) {
-  return Object.fromEntries(Object.keys(mod.LESSONS).map((lessonId) => [lessonId,
-    Object.fromEntries(Object.keys(PHASES).filter((p) => mod.LESSONS[lessonId][p]).map((p) => [p, buildCourseSheet(mod, lessonId, p)]))]));
+  return Object.fromEntries(Object.keys(mod.LESSONS).map((lessonId) => [lessonId, courseLessonSheets(mod, lessonId)]));
 }
