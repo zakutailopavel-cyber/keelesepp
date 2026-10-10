@@ -5,8 +5,10 @@
 import * as b1m02 from './b1/module02.js';
 import * as b1m03 from './b1/module03.js';
 import * as b1m04 from './b1/module04.js';
+import * as b1m05 from './b1/module05.js';
+import * as b1m06 from './b1/module06.js';
 
-export const COURSE_MODULES = [b1m02, b1m03, b1m04];
+export const COURSE_MODULES = [b1m02, b1m03, b1m04, b1m05, b1m06];
 
 export const COURSES = {
   b1: { label: 'B1 · A2 → B1 õpitee', badge: 'KeeleSepp A2 → B1' },
