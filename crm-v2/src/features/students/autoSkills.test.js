@@ -32,3 +32,12 @@ describe('autoSkills', () => {
     expect(autoSkills({ now, recordings: [{ ...rec, transcript: transcript.slice(2) }] })).toEqual([]);
   });
 });
+
+describe('speaking from the cleaned analysis', () => {
+  it('uses the Mac analysis word counts and checked sentences when present', () => {
+    const transcript = [{ speaker: 'student', text: 'The bovli out of the book', lang: 'et' }];
+    const r = speakingOf({ transcript, analysis: { errors: [{}, {}], checked: 10, speech: { words: 100, langWords: 40 } } });
+    expect(r).toEqual({ share: 40, accuracy: 80 });
+  });
+});
+

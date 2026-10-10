@@ -1,3 +1,20 @@
+## 2026-10-10 · agent/lesson-analysis-clean — tunni analüüs: ainult päris eestikeelsed laused (analüüs v4)
+
+- Owner's request after Aleksandr D.'s lesson:
+  - half of the „errors” were recognition noise in English or Portuguese;
+  - lists of one word's forms („jõgi, jõe, jõge”) were „corrected” into wrong forms;
+  - the summary gave the teacher's words to the learner.
+- `tools/lesson-transcriber/analysis.js` `learnerSentences`, ANALYSIS_VERSION 4 (re-analyses all lessons), checks a sentence only when all of these hold:
+  - the line has no unsure words;
+  - it looks Estonian (`looksEstonian`: no foreign letters or English/Portuguese words);
+  - it is not a form list (`isFormList`);
+  - at most one word is unknown to the EKI level vocabularies (`knownEnough`).
+- `learnerSpeech` counts the learner's words and Estonian words without the noise; analysis saves `checked` and `speech`.
+- The summary prompt: only „Õpilane” lines in meeldis/raske; form lists and foreign fragments are not errors.
+- CRM `students/autoSkills.js` `speakingOf` uses `analysis.speech` and `analysis.checked` when present.
+- Check: `node --test analysis.test.js` 12/12; vitest `students` 60/60.
+- Installed on the school Mac (`~/KeeleSeppTranscriber/app`, launchd restarted).
+
 ## 2026-10-10 · agent/course-b2-m06 — B2 M06 Tööelu (b1b2-026–030), kõik kolm etappi
 
 - Base: `main` 63ecfbb. Previous modules are published to production (diff with production: 0 differences).

@@ -11,8 +11,8 @@ test('takes the learner\'s Estonian sentences only', () => {
     { speaker: 'student', startMs: 3000, text: 'Mul on kaks vend.' }, // an older line without `lang`
     { speaker: 'student', startMs: 4000, text: 'Ну это Mul on' },
   ];
+  // a line with unsure words is left out (it may be misheard)
   assert.deepEqual(learnerSentences(transcript), [
-    { startMs: 1000, text: 'Ma elan Tallinnas koos minu ema.', unsure: true },
     { startMs: 3000, text: 'Mul on kaks vend.', unsure: false },
   ]);
 });
@@ -116,4 +116,18 @@ test('EKI evaluation summary: levels, what is above the level, the highest forms
   assert.deepEqual(s.aboveForms, [{ text: 'ostaksin', lemma: undefined, level: 'B1', form: 'tingiv kõneviis' }]);
   assert.deepEqual(s.topForms[0], { text: 'ostaksin', level: 'B1', form: 'tingiv kõneviis' });
   assert.deepEqual(sentencesOf('Ma elan Tallinnas. Jah. Mul on koer!'), ['Ma elan Tallinnas.', 'Mul on koer!']);
+});
+
+test('foreign recognition noise and lists of one word\'s forms are not checked (owner 2026-10-10)', () => {
+  const { looksEstonian, isFormList, learnerSpeech } = require('./analysis');
+  const line = (text) => ({ speaker: 'student', startMs: 0, text, lang: 'et' });
+  const transcript = ['The bovli out of the book.', 'Minera é sra do pojo.', "I'm still guys. Yeah.", 'Jõgi jõe jõge.', ', käsi, käe, kätt.', 'Ravi, ravimu, ravimud.', 'Olulik näitaja.', 'Minu sõber võttis kaasa väikese.'].map(line);
+  assert.deepEqual(learnerSentences(transcript).map((s) => s.text), ['Olulik näitaja.', 'Minu sõber võttis kaasa väikese.']);
+  assert.equal(looksEstonian('Ma elan Tallinnas.'), true);
+  assert.equal(looksEstonian('See on minu maja ja me elame siin.'), true);
+  assert.equal(looksEstonian('from the way you before.'), false);
+  assert.equal(isFormList('Suur, suur, suurt.'), true);
+  assert.equal(isFormList('Ma lähen koju.'), false);
+  const speech = learnerSpeech([line('The bovli out of the book.'), line('Ma elan Tallinnas.'), { speaker: 'student', text: 'Я не знаю', lang: 'ru' }]);
+  assert.deepEqual(speech, { words: 12, langWords: 3 });
 });

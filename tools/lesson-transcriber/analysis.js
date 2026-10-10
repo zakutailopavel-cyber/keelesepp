@@ -9,7 +9,11 @@
 
 // 2: the summary is written in Russian (gemma3's Estonian had many errors; the teachers read Russian)
 // 3: one analysis per lesson — the parts of one invitation on one day (a reload starts a new recording) together
-const ANALYSIS_VERSION = 3;
+// 4: only real Estonian phrases are checked (owner 2026-10-10: half of the „errors” were recognition noise in English
+//    or Portuguese, lists of one word's forms were „corrected” into wrong forms, the summary gave the teacher's words
+//    to the learner): lines with unsure words, foreign fragments and form lists are left out; `speech` counts the
+//    learner's words and Estonian words the same way, `checked` how many sentences were checked
+const ANALYSIS_VERSION = 4;
 const MAX_SENTENCES = 60;
 const MAX_TRANSCRIPT_CHARS = 60000;
 
@@ -17,17 +21,49 @@ const CYRILLIC = /[а-яё]/i;
 const words = (s) => String(s || '').split(/\s+/).filter(Boolean);
 const clock = (ms) => { const s = Math.floor((ms || 0) / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 
+// words that are not Estonian: recognition noise of the transcriber in a mixed lesson comes out as English or
+// Portuguese fragments tagged as Estonian („The bovli out of the book”, „Minera é sra do pojo”)
+const FOREIGN_WORDS = new Set(['the', 'you', 'i', "i'm", 'im', 'it', "it's", 'is', 'are', 'and', 'to', 'of', 'out', 'way', 'get', 'got', 'be', 'able', 'want', "don't", 'dont', 'know', 'yeah', 'guys', 'my', 'what', 'this', 'that', 'with', 'for', 'right', 'down', 'from', 'were', 'was', 'will', "i'll", 'still', 'dear', 'okay', 'ok', 'oh', 'so', 'yes', 'here', 'there', 'they', 'we', 'he', 'she', 'not', 'but', 'have', 'has', 'can', 'do', 'é', 'de', 'que', 'em', 'um', 'uma', 'por', 'para', 'com', 'sra', 'eu']);
+const NOT_ESTONIAN_LETTERS = /[éèêëçãâàáíóúñwxyqc]|'/i;
+const letterWords = (s) => String(s || '').toLocaleLowerCase('et').split(/\s+/).map((w) => w.replace(/^[^\p{L}']+|[^\p{L}']+$/gu, '')).filter(Boolean);
+function looksEstonian(text) {
+  const list = letterWords(text);
+  if (!list.length || NOT_ESTONIAN_LETTERS.test(text)) return false;
+  const foreign = list.filter((w) => FOREIGN_WORDS.has(w)).length;
+  return foreign === 0 || foreign / list.length < 0.34;
+}
+// a list of one word's forms read from a table („käsi, käe, kätt”, „Jõgi jõe jõge”): not a sentence to correct
+function isFormList(text) {
+  const pieces = String(text).split(',').map((x) => x.trim()).filter(Boolean);
+  if (pieces.length >= 2 && pieces.every((x) => words(x).length <= 1)) return true;
+  const list = letterWords(text);
+  return list.length >= 2 && list.length <= 4 && list.every((w) => w.slice(0, 2) === list[0].slice(0, 2));
+}
+
 // the learner's sentences in the lesson language (older lines have no `lang`: those without Cyrillic count),
 // at least two words, at most MAX_SENTENCES; `unsure` when the line had words the transcriber was unsure of
-function learnerSentences(transcript = [], lang = 'et') {
+// with the EKI level vocabularies (`forms`): misheard Estonian has several words that do not exist („Ja tolge need
+// pisud”); a learner's real error usually has one („Olulik näitaja”), so at most one unknown word is allowed
+function knownEnough(text, forms) {
+  if (!forms) return true;
+  const list = letterWords(text).filter((w) => w.length > 1);
+  if (!list.length) return false;
+  const unknown = list.filter((w) => !wordLevel(w, forms)).length;
+  return unknown <= 1 && unknown / list.length <= 0.5;
+}
+
+function learnerSentences(transcript = [], lang = 'et', forms = null) {
   const out = [];
   for (const line of transcript) {
     if (line.speaker !== 'student') continue;
     if (line.lang ? line.lang !== lang : CYRILLIC.test(line.text)) continue;
+    // the transcriber was unsure of a word: the line may be misheard, so it is not judged
+    if (line.unsure?.length) continue;
     for (const sentence of String(line.text).split(/(?<=[.!?…])\s+/)) {
       const text = sentence.trim();
       if (words(text).length < 2 || CYRILLIC.test(text) || !/\p{L}/u.test(text)) continue;
-      out.push({ startMs: line.startMs, text, unsure: Boolean(line.unsure?.length) });
+      if (lang === 'et' && (!looksEstonian(text) || isFormList(text) || !knownEnough(text, forms))) continue;
+      out.push({ startMs: line.startMs, text, unsure: false });
       if (out.length >= MAX_SENTENCES) return out;
     }
   }
@@ -51,7 +87,7 @@ function summaryPrompt(transcript = []) {
 
 Напиши учителю короткий разбор урока на русском языке в виде JSON, только JSON, без другого текста:
 {"kokkuvote": "2-3 предложения о том, что было на уроке", "meeldis": ["что ученику понравилось или где он был активен — с доказательством из текста"], "raske": ["что было трудно: где ученик запинался, переходил на русский, отвечал односложно"], "jargmiseks": ["2-3 конкретных совета на следующий урок"]}
-В каждом пункте не больше двух отметок времени вида 12:34. Не придумывай того, чего нет в тексте. Технические проблемы со связью не анализируй. Если доказательств нет, оставь список пустым.
+В «meeldis» и «raske» используй только реплики с пометкой «Õpilane»; слова учителя («Õpetaja») никогда не приписывай ученику. Списки форм одного слова («käsi, käe, kätt») — это чтение таблицы, а не ошибки речи. Обрывки на английском или другом языке — скорее всего ошибки распознавания, не делай по ним выводов. В каждом пункте не больше двух отметок времени вида 12:34. Не придумывай того, чего нет в тексте. Технические проблемы со связью не анализируй. Если доказательств нет, оставь список пустым.
 
 Расшифровка:
 ${text}`;
@@ -164,19 +200,24 @@ const withoutGap = (sentence) => String(sentence).replace(/\[([^\]]+)\]/, '$1');
 // Only simple, checked numbers and the learner's own sentences with their corrections: never the model's summary
 // (that is for the teacher). Numbers come from the transcript, so the pet cannot be „farmed”.
 const PET_PRACTICE = 5;
+// the learner's words and the words in the lesson language (foreign noise tagged as the lesson language left out)
+function learnerSpeech(transcript = [], lang = 'et') {
+  const said = transcript.filter((l) => l.speaker === 'student');
+  const count = (lines) => lines.reduce((n, l) => n + words(l.text).length, 0);
+  const inLang = said.filter((l) => (l.lang ? l.lang === lang : !CYRILLIC.test(l.text)) && (lang !== 'et' || looksEstonian(l.text)));
+  return { words: count(said), langWords: count(inLang) };
+}
+
 function petLessonStats({ parts = [], transcript = [], errors = [], lang = 'et' }) {
   const first = parts[0] || {};
   if (!first.studentUid || !first.studentId) return null;
-  const said = transcript.filter((l) => l.speaker === 'student');
-  const count = (lines) => lines.reduce((n, l) => n + words(l.text).length, 0);
-  const inLang = said.filter((l) => (l.lang ? l.lang === lang : !CYRILLIC.test(l.text)));
-  const all = count(said);
+  const { words: all, langWords } = learnerSpeech(transcript, lang);
   const longest = learnerSentences(transcript, lang).reduce((max, s) => Math.max(max, words(s.text).length), 0);
   const ends = parts.map((p) => Date.parse(p.endedAt || p.updatedAt || p.startedAt || '') || 0);
   const minutes = Math.max(0, Math.round((Math.max(...ends) - (Date.parse(first.startedAt || '') || 0)) / 60000));
   return {
     studentId: first.studentId, studentUid: first.studentUid, date: first.startedAt || '', minutes,
-    studentWords: all, estonianWords: count(inLang), share: all ? Math.round((count(inLang) / all) * 100) : 0, longest,
+    studentWords: all, estonianWords: langWords, share: all ? Math.round((langWords / all) * 100) : 0, longest,
     practice: errors.filter((e) => !e.unsure && e.said && e.corrected).slice(0, PET_PRACTICE).map((e) => ({ said: e.said, corrected: e.corrected })),
     lang,
   };
@@ -253,4 +294,5 @@ function ekiGrammar(profile, key) {
   return { level, targets: topics(level), known: order.slice(0, order.indexOf(level)).flatMap(topics) };
 }
 
-module.exports = { ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
+module.exports = {
+  looksEstonian, isFormList, learnerSpeech, ekiEvaluate, summarizeEvaluation, sentencesOf, ekiGrammar, loadDidactics, wordLevel, hardWords, wordsOf, readingPrompt, parseReading, simplifyPrompt, petLessonStats, sentencesPrompt, parseSentences, withoutGap, lessonParts, joinedTranscript, partsFinished, ANALYSIS_VERSION, learnerSentences, isCorrection, GEC_PROMPT, summaryPrompt, parseSummary, needsAnalysis };
