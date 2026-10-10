@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { liveLessonInvitationsService } from '../../services/firebase/liveLessonInvitations.js';
-import { INVITATION_STATUS, newestInvitation, normalizeInvitation } from '../../features/live-classroom/invitationModel.js';
+import { INVITATION_STATUS, newestInvitation, normalizeInvitation, serverNow } from '../../features/live-classroom/invitationModel.js';
 import { Button, IconButton } from '../ui/index.js';
 import '../../features/live-classroom/liveClassroom.css';
 
@@ -14,7 +14,7 @@ export default function LessonInvitationOverlay({ service = liveLessonInvitation
   const [hiddenId, setHiddenId] = useState('');
   const [saving, setSaving] = useState('');
   const [error, setError] = useState('');
-  const [now, setNow] = useState(() => Date.now());
+  const [now, setNow] = useState(() => serverNow());
   const isStudent = user.roles?.includes('student');
   const readOnlyPreview = Boolean(preview?.readOnly);
 
@@ -29,7 +29,7 @@ export default function LessonInvitationOverlay({ service = liveLessonInvitation
 
   useEffect(() => {
     if (!isStudent || readOnlyPreview) return undefined;
-    const timer = window.setInterval(() => setNow(Date.now()), 1000);
+    const timer = window.setInterval(() => setNow(serverNow()), 1000);
     return () => window.clearInterval(timer);
   }, [isStudent, readOnlyPreview]);
 

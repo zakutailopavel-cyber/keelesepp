@@ -1,4 +1,4 @@
-import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, studentAccountUid } from './invitationModel.js';
+import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, noteServerTime, normalizeInvitation, resetServerClock, serverNow, studentAccountUid } from './invitationModel.js';
 
 describe('live lesson invitation model', () => {
   it('uses only an explicit student account link', () => {
@@ -37,5 +37,24 @@ describe('live lesson invitation model', () => {
     expect(isInvitationRouteUsable(normalizeInvitation('cancelled', { status: 'cancelled' }, now))).toBe(false);
     expect(isInvitationRouteUsable(normalizeInvitation('closed', { status: 'closed' }, now))).toBe(false);
     expect(isInvitationRouteUsable(normalizeInvitation('expired', { status: 'pending', expiresAt: '2026-09-28T10:00:00Z' }, now))).toBe(false);
+  });
+});
+
+describe('server clock', () => {
+  afterEach(() => resetServerClock());
+
+  it('keeps a fresh invitation valid on a device whose clock runs 20 minutes ahead', () => {
+    const serverCreated = Date.parse('2026-10-10T12:38:11Z');
+    const localNow = serverCreated + 20 * 60_000;
+    noteServerTime(serverCreated, localNow);
+    const invitation = normalizeInvitation('live', { status: 'pending', createdAt: '2026-10-10T12:38:11Z', expiresAt: '2026-10-10T12:40:11Z' }, serverNow(localNow + 30_000));
+    expect(invitation.expired).toBe(false);
+    expect(normalizeInvitation('live', { status: 'pending', expiresAt: '2026-10-10T12:40:11Z' }, serverNow(localNow + 3 * 60_000)).expired).toBe(true);
+  });
+
+  it('uses the local clock until a server time is known', () => {
+    expect(serverNow(1000)).toBe(1000);
+    noteServerTime(0, 5000);
+    expect(serverNow(1000)).toBe(1000);
   });
 });

@@ -1,3 +1,12 @@
+## 2026-10-10 · agent/invite-clock-skew — tunnikutse ei ilmunud õpilasele, kelle arvuti kell käis ette
+
+- Base: `main` 7e2bc36.
+- Symptom: after the z-index fix Demjan still saw no invitation. Diagnosis (read-only Firestore): his client wrote `users.updatedAt` 12:43:48 while the server stored the write at 12:24:15 — his clock runs ~19.5 min ahead. An invitation lives 2 min (`expiresAt` by server time), so his device judged every invitation expired on arrival and `newestInvitation` dropped it.
+- Fix: `invitationModel.js` adds `noteServerTime` / `serverNow` / `resetServerClock`; `normalizeInvitation` defaults to `serverNow()`. `liveLessonInvitations.js` `subscribe` learns the offset from invitations added after the first snapshot (their server `createdAt`). The overlay and `LiveClassroomPage` tick with `serverNow()`.
+- Limit: an invitation that already existed when the page loaded is still judged by the local clock (no live sample yet); the teacher sends a new one while the student's page is open. The real fix on the device is to set the clock automatically.
+- Checks: `invitationModel.test.js` + `LessonInvitationOverlay.test.jsx` 17 passed; `vite build` ok. `src/features/live-classroom` still has the 9 known `localStorage` environment failures (unrelated).
+- Next step: the student reloads the page once; the teacher sends a new invitation.
+
 ## 2026-10-10 · agent/course-b2-m15 — B2 M15 Meedia, info ja kriitiline lugemine (b1b2-071–075), kõik kolm etappi
 
 - Base: `main` 8a4c9d7. Previous modules are published to production (diff with production: 0 differences).
