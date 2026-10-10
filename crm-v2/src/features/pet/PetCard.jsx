@@ -9,6 +9,8 @@ import PetWardrobe from './PetWardrobe.jsx';
 import PetCare from './PetCare.jsx';
 import { careGreeting, careMood, lowestNeed, petNeeds } from './petCare.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { roomSvg } from './petRoom.js';
+import { seasonalWear } from './petLife.js';
 import './pet.css';
 
 // Estonian: singular after 1, partitive otherwise (1 tund, 3 tundi)
@@ -17,6 +19,17 @@ const count = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 // Our own generated SVG (constants only), safe to inject.
 export function PetArt({ kind, mood, stage, wearing = {}, className = '' }) {
   return <div className={`pet-art ${className}`} dangerouslySetInnerHTML={{ __html: petSvg(kind, mood, stage, wearing) }} />;
+}
+
+// The pet in its room: the room grows with learning (petRoom.js); a bought background shows in the window
+function PetRoom({ progress, pet, mood }) {
+  const { bg = '', ...wearing } = pet.wearing || {};
+  return (
+    <div className="pet-home__art pet-scene">
+      <div className="pet-scene__room" dangerouslySetInnerHTML={{ __html: roomSvg({ progress, bg }) }} />
+      <PetArt kind={pet.kind} mood={mood} stage={progress.stage} wearing={seasonalWear(wearing)} className="pet-scene__pet" />
+    </div>
+  );
 }
 
 function PetPicker({ initial, onSave, onCancel, onDecline, saving, error }) {
@@ -122,7 +135,7 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
   return (
     <Card className="pet-card">
       <div className="pet-home">
-        <PetArt kind={pet.kind} mood={mood} stage={progress.stage} wearing={pet.wearing || {}} className="pet-home__art" />
+        <PetRoom progress={progress} pet={pet} mood={mood} />
         <div className="pet-home__body">
           <div className="pet-bubble" lang={say.lang}><p>{say.text}</p><small lang="ru">{say.hint}</small></div>
           <div className="pet-home__meta">

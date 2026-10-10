@@ -50,7 +50,7 @@ function item(stage, mood, cx, headTop, bodyY, wearing = {}) {
 }
 
 // Bought outfit (petItems.js), drawn from constants only.
-const BACKGROUNDS = {
+export const BACKGROUNDS = {
   'bg-sky': `<rect x="4" y="4" width="192" height="192" rx="28" fill="#dbeafe"/><g fill="#fff"><ellipse cx="48" cy="44" rx="22" ry="10"/><ellipse cx="64" cy="38" rx="16" ry="10"/><ellipse cx="150" cy="64" rx="20" ry="9"/></g>`,
   'bg-forest': `<rect x="4" y="4" width="192" height="192" rx="28" fill="#e7f5e1"/><g fill="#7fbf7f"><path d="M26 150 l18 -46 l18 46z"/><path d="M150 150 l20 -54 l20 54z"/><path d="M168 120 l12 -30 l12 30z"/></g>`,
   'bg-space': `<rect x="4" y="4" width="192" height="192" rx="28" fill="#1e1b4b"/><g fill="#fde68a"><circle cx="30" cy="34" r="2.5"/><circle cx="168" cy="28" r="2"/><circle cx="150" cy="80" r="2.5"/><circle cx="40" cy="96" r="1.8"/><circle cx="176" cy="132" r="2"/></g><circle cx="160" cy="44" r="12" fill="#c4b5fd"/>`,
@@ -70,6 +70,8 @@ function accessories(wearing, cx, headY, headR, headTop, faceY, bodyY, bodyRy) {
   if (wearing.hat === 'cap') out += `<path d="M${cx - headR * 0.75} ${headTop + 14} q${headR * 0.75} -${headR * 0.75} ${headR * 1.5} 0 z" fill="#2563eb" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><path d="M${cx + headR * 0.6} ${headTop + 12} h${headR * 0.55}" stroke="${O}" stroke-width="6" stroke-linecap="round"/>`;
   if (wearing.hat === 'crown') out += `<path d="M${cx - 28} ${headTop + 4} l6 -26 l12 14 l10 -20 l10 20 l12 -14 l6 26 z" fill="#f5b301" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><circle cx="${cx}" cy="${headTop - 4}" r="4" fill="#e11d48"/>`;
   if (wearing.hat === 'wizard') out += `<path d="M${cx - 32} ${headTop + 8} l32 -58 l32 58 z" fill="#6d28d9" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><circle cx="${cx - 6}" cy="${headTop - 18}" r="3" fill="#fde68a"/><circle cx="${cx + 8}" cy="${headTop - 30}" r="2.4" fill="#fde68a"/>`;
+  if (wearing.hat === 'santa') out += `<path d="M${cx - headR * 0.8} ${headTop + 16} q${headR * 0.5} -${headR * 0.9} ${headR * 1.25} -${headR * 0.55} q${headR * 0.4} ${headR * 0.2} ${headR * 0.5} ${headR * 0.75} z" fill="#dc2626" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><rect x="${cx - headR * 0.88}" y="${headTop + 8}" width="${headR * 1.76}" height="12" rx="6" fill="#fff" stroke="${O}" stroke-width="3"/><circle cx="${cx + headR * 0.95}" cy="${headTop + 24}" r="8" fill="#fff" stroke="${O}" stroke-width="3"/>`;
+  if (wearing.hat === 'nightcap') out += `<path d="M${cx - headR * 0.8} ${headTop + 16} q${headR * 0.3} -${headR * 0.8} ${headR * 1.2} -${headR * 0.7} q${headR * 0.5} ${headR * 0.1} ${headR * 0.9} ${headR * 0.6} q-${headR * 0.5} -${headR * 0.25} -${headR * 0.55} ${headR * 0.1} z" fill="#93c5fd" stroke="${O}" stroke-width="3" stroke-linejoin="round"/><circle cx="${cx + headR * 1.3}" cy="${headTop + 12}" r="7" fill="#fde68a" stroke="${O}" stroke-width="3"/>`;
   if (wearing.hat === 'flower') out += `<g transform="translate(${cx + headR * 0.55} ${headTop + 10})">${[0, 72, 144, 216, 288].map((a) => `<ellipse rx="6" ry="10" transform="rotate(${a}) translate(0 -9)" fill="#f9a8d4" stroke="${O}" stroke-width="2"/>`).join('')}<circle r="6" fill="#f5b301" stroke="${O}" stroke-width="2"/></g>`;
   return out;
 }

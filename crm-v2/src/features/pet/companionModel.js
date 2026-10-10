@@ -11,7 +11,7 @@ function minutesUntil(time, now) {
   return Math.round((d.getTime() - now) / MIN);
 }
 
-export function companionHint({ now = Date.now(), invitation = null, todayLessons = [], dueToday = 0, overdue = 0, petName = '', tipIndex = 0, lang = 'et' }) {
+export function companionHint({ now = Date.now(), invitation = null, todayLessons = [], dueToday = 0, overdue = 0, petName = '', tipIndex = 0, lang = 'et', personal = [] }) {
   const en = lang === 'en';
   if (invitation) {
     return {
@@ -62,7 +62,9 @@ export function companionHint({ now = Date.now(), invitation = null, todayLesson
     ['Kui õpetaja kutsub tundi, annan sulle kohe märku.', 'Когда учитель позовёт на урок, я сразу дам знать.'],
     ['Tubli! Samm-sammult jõuad kaugele.', 'Молодец! Шаг за шагом дойдёшь далеко.'],
   ];
-  const [text, hint] = tips[((tipIndex % tips.length) + tips.length) % tips.length];
+  // after the introduction, what the pet remembers about the learner comes before the general tips (petLife.js)
+  const all = [tips[0], ...personal.map((p) => [p.text, p.hint]), ...tips.slice(1)];
+  const [text, hint] = all[((tipIndex % all.length) + all.length) % all.length];
   return { key: `tip-${tipIndex}`, urgent: false, text, hint };
 }
 

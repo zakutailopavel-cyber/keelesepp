@@ -130,3 +130,24 @@ describe('celebration text', () => {
     expect(celebrationHint({ xp: 25, goals: 2 }).hint).toBe('Молодец! Лист сдан и выполнено целей: 2. +25 мне!');
   });
 });
+
+describe('alive pet', () => {
+  it('can be picked up and dragged, and lets go without opening the help bubble', async () => {
+    // the bottom lane spans the window
+    vi.spyOn(Element.prototype, 'getBoundingClientRect').mockReturnValue({ left: 0, top: 792, right: 1200, bottom: 792, width: 1200, height: 0 });
+    renderCompanion();
+    const body = await screen.findByRole('button', { name: /Rebu: vajuta/ });
+    const walker = body.closest('.pet-walker');
+    fireEvent.pointerDown(body, { clientX: 100, clientY: 700, button: 0 });
+    fireEvent.pointerMove(body, { clientX: 160, clientY: 500 });
+    expect(walker.className).toContain('is-dragging');
+    expect(walker.getAttribute("style")).toContain("-200px");
+    fireEvent.pointerUp(body, { clientX: 160, clientY: 500 });
+    fireEvent.click(body);
+    expect(walker.className).toContain('is-falling');
+    expect(walker.style.transform).toMatch(/, 0px\)/);
+    expect(screen.queryByText(/Mina olen Rebu/)).toBeNull();
+    vi.restoreAllMocks();
+  });
+});
+

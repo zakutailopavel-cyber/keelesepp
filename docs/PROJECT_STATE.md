@@ -19,6 +19,32 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/pet-alive — elav lemmik: tõstmine, päev ja öö, aastaajad, mälu, kasvav tuba
+
+- `PetCompanion.jsx`:
+  - lemmiku saab hiirega (ja puutega) üles tõsta ja üle ekraani tirida; lahti lastes kukub ta alumisele rajale, maandub vetrudes ja ütleb „Hopsti!”;
+  - lohistamise lõpu klõps ei vajuta seda, mis on lemmiku all;
+  - silmad jälgivad kursorit (CSS `--lx/--ly`, ilma uuesti joonistamata);
+  - kui keegi ei liigu, jääb lemmik magama (öösel 40 s, päeval 150 s) ja ärkab venitusega;
+  - hiir lemmiku peal üle 0,9 s → silitamine: südamed ja „Hihii”;
+  - talvel sajab lund, sügisel langevad lehed;
+  - jõuludel (1.12–6.1) on tal jõuluvana müts, öösel magades öömüts;
+  - kord päevas ütleb ta ise midagi isiklikku.
+- `petLife.js` (uus): `dayPart`, `season`, `seasonalWear`, `nextLesson` ja `lifeLines`. `lifeLines` annab read: puudus 3+ päeva, hommik / õhtu / öö, järgmine tund koos õpetaja eesnimega, õpilase enda lause viimasest salvestatud tunnist (`petLessonStats.practice`), üks õpitav sõna, aastaaeg. `companionModel.companionHint` saab `personal` (pärast tutvustust, enne üldisi nõuandeid).
+- `petRoom.js` (uus) ja `PetCard.jsx`: lemmik elab „Minu õpingutes” toas.
+  - Riiulil on raamatud õpitud sõnade järgi (≤ 24).
+  - Seinal on diplomid: üks iga 3 tehtud kodutöö või töölehe kohta (≤ 6).
+  - Karikad tulevad tunni eesmärkide järgi (≤ 5); taim kasvab õppimispäevade järjestusega.
+  - Aknas on kellaaeg ja aastaaeg; ostetud taust (bg) on aknas.
+- `petArt.js`: mütsid `santa` ja `nightcap`; `BACKGROUNDS` on eksporditud.
+- Andmed: uusi kollektsioone ega reegleid ei ole. Loetakse `studentWords.listForStudent` ja `petProfiles.lessonStats`; brauserisse salvestatakse ainult `ks-pet-seen-<uid>` ja `ks-pet-said-<uid>`.
+- Kontrollid:
+  - vitest pet + students: 96/96;
+  - eslint 0 vigu;
+  - build õnnestus;
+  - brauseris demo-lehega kontrollitud: tirimine, kukkumine, „Hopsti!” jääb ekraanile, nupp lemmiku all ei vajutu.
+- Järgmine ohutu samm: minimängud õpilase teemade järgi (eraldi PR).
+
 ## 2026-10-10 · agent/review-polish — märkused kirjalikus vastuses, parandused loetavamaks
 
 - `sheetAnnotationsModel.js` `fieldTextRects`: mõõtmise koopia pannakse välja kõrvale (sama CSS-zoom), seega märgitud sõna kast on täpselt sõna peal ka pikas vastuses (enne libisesid kaugemad märkused tühjadele ridadele). Brauseris kontrollitud zoom 0.72 juures.
