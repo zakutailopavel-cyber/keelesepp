@@ -480,6 +480,24 @@ export default function StudentBoard({
     event.preventDefault?.();
     moveView((current) => wheelView(current, event, local(event)));
   };
+  // A trackpad pinch arrives as a wheel event with ctrlKey. React's wheel listener is passive, so its preventDefault
+  // does not stop the browser from zooming the whole page (tabs and the video tiles went off screen). A native
+  // non-passive listener on the stage stops the page zoom; the board zooms itself through `wheel` as before.
+  // a callback ref (React 19 cleanup): the stage is rendered in two layouts, so the listeners follow the element
+  const stageRef = useCallback((el) => {
+    if (!el) return undefined;
+    const stopPageZoom = (event) => { if (event.ctrlKey || event.metaKey) event.preventDefault(); };
+    const stopGesture = (event) => event.preventDefault();
+    el.addEventListener('wheel', stopPageZoom, { passive: false });
+    // Safari sends its own gesture events for a pinch
+    el.addEventListener('gesturestart', stopGesture);
+    el.addEventListener('gesturechange', stopGesture);
+    return () => {
+      el.removeEventListener('wheel', stopPageZoom);
+      el.removeEventListener('gesturestart', stopGesture);
+      el.removeEventListener('gesturechange', stopGesture);
+    };
+  }, []);
   // Moving the board without the hand tool: two fingers (pan + pinch) with any tool, one finger on a worksheet page
   // while filling it in, the middle mouse button anywhere. Handled on the stage before the drawing layer sees it.
   const touches = useRef(new Map());
@@ -632,7 +650,7 @@ export default function StudentBoard({
   const selectionBounds = tool === 'select' ? unionBounds(shownSelection) : null;
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
   const filling = onWorksheet && tool === 'fill';
-  const stage = <div className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
+  const stage = <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
     {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>

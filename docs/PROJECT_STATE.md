@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/board-pinch-zoom — tahvli suumimine puuteplaadiga ei suumi enam kogu lehte
+
+- Base: `main` a68dac6.
+- Owner: a trackpad pinch on the Live Classroom board zoomed the whole browser page; tabs and the student's video went off screen.
+- Cause: a pinch is a wheel event with `ctrlKey`; React's `onWheel` listener is passive, so `wheel()`'s `preventDefault` had no effect.
+- Fix: `StudentBoard` stage gets a callback ref (React 19 cleanup) with a native non-passive `wheel` listener that cancels the page zoom when `ctrlKey`/`metaKey`, plus Safari `gesturestart`/`gesturechange`. The board still zooms through `wheel` → `wheelView`.
+- Checks: `npx vitest run src/features/board` 27 passed (new pinch test); eslint and `vite build` ok.
+
 ## 2026-10-10 · agent/live-sheet-edit — õpetaja parandab töölehte tunni ajal
 
 - Base: `main` c6149ef.
