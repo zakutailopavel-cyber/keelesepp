@@ -101,4 +101,36 @@ describe('live worksheet lesson', () => {
     expect(container.querySelector('.ws-page [data-block="tf"]')).not.toBeNull();
     expect(container.querySelector('.ws-page .ws-live-answers')).toBeNull();
   });
+
+  it('the teacher corrects a task during the lesson and the learner sheet follows', async () => {
+    let push;
+    const repository = {
+      subscribeWorksheetAssignment: vi.fn((_id, onData) => { push = onData; return () => {}; }),
+      setWorksheetLiveFocus: vi.fn().mockResolvedValue({}),
+      saveWorksheetDoc: vi.fn().mockResolvedValue({}),
+    };
+    const { container } = render(
+      <MemoryRouter initialEntries={['/library/worksheets/live/as-1']}>
+        <Routes><Route path="/library/worksheets/live/:assignmentId" element={<LiveWorksheetPage repository={repository} />} /></Routes>
+      </MemoryRouter>,
+    );
+    act(() => push({ id: 'as-1', studentName: 'Mari', status: 'in_progress', answers: {}, worksheetDoc }));
+    fireEvent.click(await screen.findByRole('button', { name: /Paranda lehte/ }));
+    const statement = [...container.querySelectorAll('.ws-page *')].find((el) => el.children.length === 0 && el.textContent === 'Päeval on pime.');
+    fireEvent.doubleClick(statement);
+    const field = document.querySelector('textarea.ws-float-edit');
+    fireEvent.change(field, { target: { value: 'Öösel on pime.' } });
+    fireEvent.keyDown(field, { key: 'Enter' });
+    await waitFor(() => expect(repository.saveWorksheetDoc).toHaveBeenCalled());
+    const saved = repository.saveWorksheetDoc.mock.calls[0][0];
+    expect(saved.assignmentId).toBe('as-1');
+    expect(saved.worksheetDoc.blocks[0].data.statements[0].text).toBe('Öösel on pime.');
+
+    // the learner's player takes the corrected sheet from the assignment subscription
+    let pushStudent;
+    const studentRepo = { saveWorksheetDraft: vi.fn(), submitWorksheet: vi.fn(), saveSelfAssessment: vi.fn(), uploadRecording: vi.fn(), subscribeWorksheetAssignment: vi.fn((_id, onData) => { pushStudent = onData; return () => {}; }) };
+    render(<WorksheetPlayer assignment={{ id: 'as-1', studentId: 's', title: 'Minu päev', status: 'new', answers: {}, worksheetDoc }} repository={studentRepo} onClose={() => {}} />);
+    act(() => pushStudent({ worksheetDoc: saved.worksheetDoc }));
+    expect(screen.getAllByText('Öösel on pime.').length).toBeGreaterThan(0);
+  });
 });

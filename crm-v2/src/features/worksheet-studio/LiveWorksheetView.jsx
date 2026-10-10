@@ -8,6 +8,7 @@ import GoalEvidence from './GoalEvidence.jsx';
 import LiveTaskPanel from './LiveTaskPanel.jsx';
 import { taskStats } from './engine/liveLesson.js';
 import SheetAnnotations from './SheetAnnotations.jsx';
+import { setPath } from './engine/inlineEdit.js';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { BOARD_SHEET_SCALE, useFitScale } from './useFitScale.js';
 import './engine/sheet.css';
@@ -72,6 +73,27 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     catch (err) { setFocusError(err.message || 'Ülesannet ei saanud märkida.'); }
   };
 
+  // Correct the sheet during the lesson (owner, 2026-10-10): double-click a text in edit mode; the change is saved on
+  // this assignment's copy and the student's player, subscribed to it, shows it at once. The library sheet stays as is.
+  const canEdit = typeof repository.saveWorksheetDoc === 'function';
+  const [editing, setEditing] = useState(false);
+  const [editNote, setEditNote] = useState('');
+  const editText = (blockId, path, text) => live(async () => {
+    const current = assignment.worksheetDoc;
+    const next = blockId
+      ? { ...current, blocks: current.blocks.map((b) => (b.id === blockId ? { ...b, data: setPath(b.data, path, text) } : b)) }
+      : { ...current, meta: setPath(current.meta, path, text) };
+    await repository.saveWorksheetDoc({ assignmentId, worksheetDoc: next });
+    setEditNote('Parandus salvestatud — õpilane näeb seda kohe.');
+  });
+  const editToggle = canEdit ? <button type="button" className={`st-btn ${editing ? 'primary' : ''}`} aria-pressed={editing} onClick={() => { setEditing((v) => !v); setEditNote(''); }}>
+    <Icons.Pencil size={15} aria-hidden="true" /> {editing ? 'Valmis' : 'Paranda lehte'}
+  </button> : null;
+  const editBanner = editing ? <div className="st-banner" role="status">{editNote || 'Topeltklõpsa tekstil, mida tahad parandada (lünga õige vastus on nurksulgudes). Parandus läheb ainult selle õpilase lehele.'}</div> : null;
+  const sheet = editing
+    ? <Sheet doc={doc} mode="edit" onEditText={editText} />
+    : <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} />;
+
   // marks go to the assignment; the student's player is subscribed and shows them at once
   const saveMarks = (annotations) => repository.saveSubmissionAnnotations({ submission: { ...assignment, submissionKind: 'worksheet' }, annotations, user });
 
@@ -91,13 +113,14 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     return (
       <div className="ws-studio ws-live is-embedded is-board">
         <div className="st-canvas" ref={fitRef}>
-          <SheetAnnotations annotations={assignment.annotations || []} editable onChange={saveMarks}>
+          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} />
+              {sheet}
             </div>
           </SheetAnnotations>
         </div>
-        <header className="st-bar"><div className="st-title"><b>Otse tunnis: {assignment.studentName || 'õpilane'}</b><span>{doc.meta?.title}</span></div>{liveStats}</header>
+        <header className="st-bar"><div className="st-title"><b>Otse tunnis: {assignment.studentName || 'õpilane'}</b><span>{doc.meta?.title}</span></div>{editToggle}{liveStats}</header>
+        {editBanner}
         {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
         <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
         {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} /> : null}
@@ -114,15 +137,17 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
           <span>{done ? 'Esitatud' : assignment.status === 'in_progress' ? 'Täidab' : 'Pole alustanud'}</span>
           <b>{progress.answered}/{progress.total} vastust</b>
           <span>viimati {time(assignment.updatedAt)}</span>
+          {editToggle}
         </div>
       </header>
+      {editBanner}
       <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Vali tekst või klõpsa vastusel, et lisada viga või märkus.</div>
       {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
       <div className="st-body ws-live-body">
         <main className="st-canvas" ref={fitRef}>
-          <SheetAnnotations annotations={assignment.annotations || []} editable onChange={saveMarks}>
+          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} />
+              {sheet}
             </div>
           </SheetAnnotations>
           <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />

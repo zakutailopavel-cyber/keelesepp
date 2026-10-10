@@ -34,7 +34,8 @@ const AUTOSAVE_EVERY_MS = 600;
 const AUTOSAVE_MIN_DELAY_MS = 150;
 
 export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false }) {
-  const doc = assignment.worksheetDoc;
+  // the teacher may correct a task during the live lesson: the sheet follows the assignment document
+  const [doc, setDoc] = useState(assignment.worksheetDoc);
   const [answers, setAnswers] = useState(assignment.answers || {});
   const [submitted, setSubmitted] = useState(assignment.status === 'done');
   const [score, setScore] = useState(assignment.score || null);
@@ -91,6 +92,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   useEffect(() => {
     if (typeof repository.subscribeWorksheetAssignment !== 'function') return undefined;
     return repository.subscribeWorksheetAssignment(assignment.id, (next) => {
+      if (next.worksheetDoc?.blocks) setDoc(next.worksheetDoc);
       if (!review) setFocusId(next.liveFocus?.blockId || '');
       setTeacherMarks(next.annotations || []);
       setLiveStep(next.liveStep || null);
