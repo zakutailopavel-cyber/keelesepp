@@ -19,6 +19,17 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+
+### 2026-10-10 — Tahvli tekst murdub ridadeks (agent/board-text)
+
+- Põhjus: kleebitud lõik muutus üheks kuni 1600 px pikaks reaks, teine rida lõigati ära (omaniku ekraanipilt).
+- `boardModel.textBox` murrab read laiusel ≤ `TEXT_MAX_WIDTH` (640) ja loeb kõrguse murtud ridadest; `textBoxOf` hoiab kasutaja lohistatud laiust.
+- Redaktor kasvab kirjutades allapoole, salvestamisel võetakse tegelik kõrgus. Vanad elemendid kuvatakse vajaliku kõrgusega.
+- Nurga lohistamine: külgsuunas murrab read uuesti (täht jääb samaks), alla või diagonaalis kasvatab tähti koos kastiga.
+- Andmeskeem ja `firestore.rules` ei muutunud.
+- Kontroll: `npx vitest run src/features/board` → 26/26.
+- Järgmine samm: B2 moodul 2.
+
 ## 2026-10-10 · agent/course-b2-m01 — B2 kursus: moodul 1 (b1b2-001…005), kõik kolm etappi
 
 - `admin/course/b2/module01.js`: „Igapäevaelu ja B1 lähtepunkt”, tase B1. Kokku 15 lehte (Avasta + Harjuta + Kasuta), igaüks 40–51 min.

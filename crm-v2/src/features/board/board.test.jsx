@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
+import { textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -303,13 +303,34 @@ describe('moving the board', () => {
   });
 });
 
+describe('board text wraps', () => {
+  it('a long pasted paragraph wraps at a readable width and the height counts the wrapped lines', () => {
+    const paragraph = 'Lorem ipsum dolor sit amet '.repeat(40);
+    const box = textBox(paragraph, 18);
+    expect(box.w).toBe(TEXT_MAX_WIDTH);
+    expect(box.h).toBeGreaterThan(18 * 1.35 * 15);
+    expect(textBox('Tere', 18).w).toBe(260);
+    expect(textBox('a\nb\nc', 18).h).toBe(Math.round(3 * 18 * 1.35 + 10));
+    // a box from before wrapping (1600 wide) comes back to a readable width on the next edit
+    expect(textBoxOf({ type: 'text', w: 1600, fontSize: 18 }, paragraph).w).toBe(TEXT_MAX_WIDTH);
+    // a width the user dragged wider than the text needs is kept
+    expect(textBoxOf({ type: 'text', w: 500, fontSize: 18 }, 'Tere').w).toBe(500);
+  });
+});
+
 describe('board objects, paper and marker', () => {
   it('moves, resizes and copies elements; pictures keep their proportions, text grows its letters', () => {
     const stroke = { type: 'stroke', points: [{ x: 0, y: 0 }, { x: 10, y: 20 }] };
     expect(movePatch(stroke, 5, 5)).toEqual({ points: [{ x: 5, y: 5 }, { x: 15, y: 25 }] });
     expect(movePatch({ type: 'note', x: 10, y: 10 }, 5, -5)).toEqual({ x: 15, y: 5 });
     expect(resizePatch({ type: 'image', x: 0, y: 0, w: 200, h: 100 }, 200, 0)).toEqual({ w: 400, h: 200 });
-    expect(resizePatch({ type: 'text', x: 0, y: 0, w: 100, h: 40, fontSize: 18 }, 0, 40)).toEqual({ w: 100, h: 80, fontSize: 36 });
+    expect(resizePatch({ type: 'text', x: 0, y: 0, w: 100, h: 40, fontSize: 18 }, 0, 40)).toEqual({ w: 200, h: 59, fontSize: 36 });
+    // sideways: the text re-wraps at the new width, the letters stay
+    const long = { type: 'text', x: 0, y: 0, w: 640, h: 40, fontSize: 18, text: 'sõna '.repeat(60) };
+    const narrow = resizePatch(long, -340, 0);
+    expect(narrow.w).toBe(300);
+    expect(narrow.fontSize).toBeUndefined();
+    expect(narrow.h).toBeGreaterThan(resizePatch(long, 0, 0).h);
     expect(resizePatch({ type: 'note', x: 0, y: 0, w: 100, h: 100 }, -500, -500)).toEqual({ w: 12, h: 12 });
     expect(resizePatch(stroke, 10, 20).points[1]).toEqual({ x: 20, y: 40 });
     const copy = copyData({ id: 'a', type: 'note', x: 0, y: 0, w: 10, h: 10, text: 'x', updatedByUid: 'u', revision: 3, locked: true });

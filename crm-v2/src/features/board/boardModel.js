@@ -16,15 +16,24 @@ export const FONTS = {
 };
 export const fontCss = (key) => (FONTS[key] || FONTS.sans).css;
 
-// a text box grows with what was written (lines × line height, longest line × average glyph width)
-export function textBox(text = '', fontSize = 18, minWidth = 260) {
+// a text box grows with what was written: long lines wrap at a readable width (owner 2026-10-10: a pasted paragraph
+// became one 1600-px line with its second line cut off). The height counts the wrapped lines. `width` keeps a width the
+// user chose (dragging the box sideways); otherwise the box is as wide as its longest line, at most TEXT_MAX_WIDTH.
+export const TEXT_MAX_WIDTH = 640;
+const GLYPH = 0.56; // average letter width per font size
+const TEXT_PAD = 12; // .sb-text padding left + right
+export function textBox(text = '', fontSize = 18, minWidth = 260, { width } = {}) {
   const lines = String(text).split('\n');
   const longest = Math.max(1, ...lines.map((line) => line.length));
-  return {
-    w: Math.round(Math.min(1600, Math.max(minWidth, longest * fontSize * 0.6 + 16))),
-    h: Math.round(Math.max(1, lines.length) * fontSize * 1.4 + 12),
-  };
+  const w = Math.round(width ? Math.max(minWidth, width) : Math.min(TEXT_MAX_WIDTH, Math.max(minWidth, longest * fontSize * GLYPH + TEXT_PAD + 4)));
+  const perLine = Math.max(1, Math.floor((w - TEXT_PAD) / (fontSize * GLYPH)));
+  const rows = lines.reduce((n, line) => n + Math.max(1, Math.ceil(line.length / perLine)), 0);
+  return { w, h: Math.round(rows * fontSize * 1.35 + 10) };
 }
+
+// the size of a text element after editing: as wide as its lines need, never narrower than it already is (a width the
+// user dragged), and boxes from before wrapping (up to 1600 wide) come back to a readable TEXT_MAX_WIDTH
+export const textBoxOf = (element, text = element?.text || '', fontSize = element?.fontSize || 18) => textBox(text, fontSize, Math.max(120, Math.min(TEXT_MAX_WIDTH, element?.w || 0)));
 
 // the topmost text or note under a board point (for editing with a double click or the text tool)
 export function textAt(elements = [], point) {
@@ -221,9 +230,13 @@ export function resizePatch(element, dx, dy) {
   if (element.type === 'shape' && (element.shape === 'arrow' || element.shape === 'line')) {
     return { w: Math.round(element.w * (w / w0)), h: Math.round(element.h * (h / h0)) };
   }
-  const patch = { w: Math.round(w), h: Math.round(h) };
-  if (element.type === 'text') patch.fontSize = Math.max(8, Math.min(96, Math.round((element.fontSize || 18) * (h / h0))));
-  return patch;
+  if (element.type === 'text') {
+    // sideways: the lines re-wrap at the new width and the letters stay; down or diagonally: the letters grow with the box
+    if (Math.abs(dx) > Math.abs(dy)) return textBox(element.text || '', element.fontSize || 18, 60, { width: w });
+    const fontSize = Math.max(8, Math.min(96, Math.round((element.fontSize || 18) * (h / h0))));
+    return { ...textBox(element.text || '', fontSize, 60, { width: w0 * (fontSize / (element.fontSize || 18)) }), fontSize };
+  }
+  return { w: Math.round(w), h: Math.round(h) };
 }
 // a copy of an element for „Kopeeri” / paste, shifted so it is visible next to the original
 export function copyData(element, offset = 24) {
