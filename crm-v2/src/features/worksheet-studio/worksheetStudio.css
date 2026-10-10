@@ -628,3 +628,14 @@ textarea.ed-input { resize: vertical; }
 .st-t2t-words button { border: 0; background: transparent; padding: 2px 4px; border-radius: 5px; font: inherit; font-size: 13px; cursor: pointer; }
 .st-t2t-words button:hover { background: #eef4ff; }
 .st-t2t-words button.on { background: #1d2b4a; color: #fff; }
+
+/* the learner's word card (double-click a word on the sheet); above the Live Classroom room (.lr 1300) */
+.ws-word-card{position:fixed;z-index:1450;width:280px;padding:14px 16px 12px;border:1px solid #e3e6f0;border-radius:16px;background:#fff;box-shadow:0 18px 50px rgba(20,30,60,.22);color:#24294a;font:14px/1.4 Inter,system-ui,sans-serif}
+.ws-word-card__close{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:24px;height:24px;border:0;border-radius:8px;background:#f2f3f8;color:#5c6185;cursor:pointer}
+.ws-word-card__word{display:block;margin-right:24px;font-size:1.15rem}
+.ws-word-card__tr{margin:4px 0 8px;color:#3b4170;font-style:italic}
+.ws-word-card__forms{display:grid;gap:4px;margin:0 0 8px;padding:0;list-style:none}
+.ws-word-card__forms li{display:flex;justify-content:space-between;gap:10px;padding:4px 8px;border-radius:8px;background:#f6f7fb}
+.ws-word-card__forms span{color:#6b7091;font-size:.8rem}
+.ws-word-card__muted{margin:6px 0;color:#6b7091;font-size:.85rem}
+.ws-word-card__saved{display:flex;align-items:center;gap:6px;margin:0;color:#067647;font-size:.82rem;font-weight:600}

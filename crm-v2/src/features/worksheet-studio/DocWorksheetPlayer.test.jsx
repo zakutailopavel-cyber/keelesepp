@@ -2,7 +2,8 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import WorksheetPlayer from '../homework/WorksheetPlayer.jsx';
-import { DocWorksheetSubmissionPreview } from './DocWorksheetPlayer.jsx';
+import DocWorksheetPlayer, { DocWorksheetSubmissionPreview } from './DocWorksheetPlayer.jsx';
+import { wordFromSelection } from './WordLookup.jsx';
 import { SCHEMA } from './engine/schema.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -81,5 +82,24 @@ describe('structured worksheet player', () => {
     expect(container.querySelector('.ws-page audio')?.getAttribute('src')).toBe('https://files.example/rec.webm');
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
     expect(screen.getByText('salvestus 41 s — hindab õpetaja')).toBeInTheDocument();
+  });
+
+  it('a double-clicked word shows its forms and translation and is saved to the learner words', async () => {
+    const wordService = { lookupStudentWord: vi.fn().mockResolvedValue({ word: 'ärkama', translation: 'просыпаться', saved: true, forms: { forms: [{ code: 'Sup', label: 'ma-tegevusnimi', value: 'ärkama' }, { code: 'Inf', label: 'da-tegevusnimi', value: 'ärgata' }, { code: 'IndPrSg3', label: 'kolmas isik', value: 'ärkab' }] } }) };
+    const { container } = render(<DocWorksheetPlayer assignment={assignment()} repository={repo()} inline wordService={wordService} />);
+    const original = globalThis.getSelection;
+    globalThis.getSelection = () => ({ toString: () => 'ärkan.', rangeCount: 0 });
+    fireEvent.doubleClick(container.querySelector('.ws-page [data-block="tf"]'));
+    globalThis.getSelection = original;
+    expect(wordService.lookupStudentWord).toHaveBeenCalledWith({ studentId: 'st-1', word: 'ärkan' });
+    expect(await screen.findByText('просыпаться')).toBeInTheDocument();
+    expect(screen.getByText('ärgata')).toBeInTheDocument();
+    expect(screen.getByText('Lisatud sinu sõnavarasse.')).toBeInTheDocument();
+  });
+
+  it('takes one word from a selection, not phrases or empty text', () => {
+    expect(wordFromSelection({ toString: () => ' „kodu”, ' })).toBe('kodu');
+    expect(wordFromSelection({ toString: () => 'kaks sõna' })).toBe('');
+    expect(wordFromSelection({ toString: () => '…' })).toBe('');
   });
 });

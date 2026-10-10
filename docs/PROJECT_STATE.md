@@ -1,3 +1,13 @@
+## 2026-10-10 · agent/word-lookup-dblclick — õpilane topeltklõpsab sõnal: vormid, tõlge ja sõnavarasse
+
+- Base: `main` 81ad5ce.
+- Owner: a double-click on a word shows its forms and translation and writes the word into the student's Sõnavara.
+- Server: `languageApi` `POST /student-word` (any signed-in user; must own the student card — student or linked parent). Looks up translation (TartuNLP, et→ru by default) and key forms (EKI Ekilex), saves `studentWords` once per headword (Admin SDK; `source: "double-click"`, `box: 0`). Students may not create words under the rules — no rule change.
+- Client: `WordLookup.jsx` (`useWordLookup`, `wordFromSelection`), wired into `DocWorksheetPlayer` (lesson board, inline and homework dialog); card portalled to body, z-index 1450. `languageToolsService.lookupStudentWord`.
+- Checks: vitest worksheet-studio + homework 208 passed (2 new tests); eslint ok; `require('./functions/index.js')` loads.
+- Manual gate: deploy `languageApi` (+ `staffOperationsApi` for the test student) — owner's OK required. Merge the client only after the deploy.
+- Limit: an inflected form (e.g. „söön”) gets forms only if Ekilex finds it; translation works for any form.
+
 ## 2026-10-10 · agent/admin-test-student — administraator logib sisse testõpilasena
 
 - Base: `main` 0659706.
