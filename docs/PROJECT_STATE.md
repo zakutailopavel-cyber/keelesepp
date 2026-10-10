@@ -1,3 +1,13 @@
+## 2026-10-10 · agent/oppevara-raamatukogu — Õppevara: Raamatukogu (tasuta välised allikad)
+
+- Base: `main` a7b37e6. Branch `agent/oppevara-raamatukogu`, draft PR.
+- New page `/library/raamatukogu` (button „Raamatukogu” in the Õppevara header): cards of free outside sources for teachers' inspiration — search, level chips A1–C1, type, audience, „Allalaaditavad failid”. Filters live in the URL (`q`, `tase`, `tyyp`, `kellele`, `failid`).
+- Data: static list `crm-v2/src/features/library/raamatukogu/resources.js` (13 sources: Keeleklikk/Keeletee, Keeleõppija Sõnaveeb, Sõnaveeb, EKI keelenõuanne, Integratsiooni SA kursused, Peace Corps, TÜ harjutused, Colloquial Estonian audio, DIGAR A1/B1/B2, e-Koolikott, AlusEST). No Firestore, rules or functions changes.
+- Copyright contract: only public-domain / open-licence files are hosted (`access: 'file'`, under `crm-v2/public/raamatukogu/`). Currently one: `peace-corps-estonian-ED402761.pdf` (5.4 MB, ERIC ED402761, US government work). Everything else is a link to the author's site — TÜ exercises forbid commercial use, DIGAR books are library-network only, Keeleklikk/Sõnaveeb are web services.
+- Checks: `npx vitest run src/features/library` 37/37; eslint clean on changed files; `vite build` OK. Not checked visually in a logged-in browser.
+- Known: AlusEST link points to the project presentation until the e-handbook appears in e-Koolikott. Adding a source = one object in `resources.js` (test checks ids, types, levels, hosted files exist).
+- Next step: owner reviews the page on the Vercel deploy and names more sources to add.
+
 ## 2026-10-10 · UI fixes after owner review — Live Classroom (#500, #501), Õppevara and Õpik (#502)
 
 - Base: `main` 0274dde. All three PRs merged and deployed (Vercel success).
