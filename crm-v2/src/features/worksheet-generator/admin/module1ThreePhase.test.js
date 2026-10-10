@@ -29,10 +29,11 @@ describe('module 1 three-phase worksheets', () => {
 
   it('discover sheets are substantial and do not share one block template', () => {
     const patterns = MODULE1_LESSON_IDS.map((lessonId) => {
-      const doc = buildModule1Worksheet(lessonId, 'discover');
-      expect(doc.blocks.length).toBeGreaterThanOrEqual(7);
-      expect(doc.blocks.length).toBeLessThanOrEqual(9);
-      return doc.blocks.map((block) => block.type).join('|');
+      // the author's blocks; the lesson frame (enrichment `enr_…`, picture `art_…` / `artq_…`) is the same everywhere
+      const blocks = buildModule1Worksheet(lessonId, 'discover').blocks.filter((block) => !/^(enr|art|artq)_/.test(String(block.id)));
+      expect(blocks.length).toBeGreaterThanOrEqual(7);
+      expect(blocks.length).toBeLessThanOrEqual(9);
+      return blocks.map((block) => block.type).join('|');
     });
     expect(new Set(patterns).size).toBeGreaterThanOrEqual(4);
   });

@@ -111,3 +111,18 @@ Format: {3:2 landscape | 1:1 square | 2:3 portrait}, white background.
 An image is accepted only if: palette matches §2 exactly (one accent), cast identity matches §4, the brief's text is
 spelled exactly, the learning job is visible, no extra text/watermark/signature, line weight consistent with the
 module's other images, size/path per §8. The owner approves the first image of every module before the rest.
+
+## 10. Code-drawn topic still lifes (2026-10-11)
+
+Until a lesson has a commissioned illustration (§6–§9), it gets a still life drawn in code:
+`crm-v2/src/features/worksheet-generator/art/topicArt.js` — ~50 topic objects (cup, bus, clipboard, scales, …) in
+this palette and line style, three per picture, the main object with the one lime accent, the pale-lime blob, plants,
+no people and no text. Objects come from the lesson title, then the module title; neighbouring lessons rotate the side
+objects. Prompts beside the picture are level-based (name/describe at A2–B1, infer/argue at B2–C1).
+
+- Files: `crm-v2/public/textbook-art/<level>/<lessonId>/<lessonId>-<avasta|harjuta|kasuta>-1.svg`; briefs with
+  `ext: 'svg'` in `art/visuals/topic-art.json` (registered in `MODULES`).
+- Placement: the first phase (Avasta → Harjuta → Kasuta) whose sheet stays within 55 min and 18 blocks.
+- Regenerate after lesson changes: `cd crm-v2 && WRITE_TOPIC_ART=1 npx vitest run src/features/worksheet-generator/art/topicArt.test.js`.
+- A commissioned picture for a lesson replaces its still life automatically (lessons with a non-`svg` brief are skipped).
+- These are placeholders for the cast-based scenes; the owner's first-image approval (§9) still applies.

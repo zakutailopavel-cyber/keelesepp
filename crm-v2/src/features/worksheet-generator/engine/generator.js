@@ -1,4 +1,5 @@
 import { didacticCheck } from '../../worksheet-studio/didactics/didacticCheck.js';
+import { enrichLesson } from './lessonEnrichment.js';
 import { SCHEMA } from '../../worksheet-studio/engine/schema.js';
 import { materializeFullFocus, materializePhase, createDiversityState } from './content.js';
 import { normalizeDifficulty } from './difficulty.js';
@@ -183,6 +184,29 @@ export function generateLessonBundle({
 
   const allDiagnostics = [...diagnostics, ...vocabulary.diagnostics, ...vocabularyAudit.diagnostics, ...sheets.flatMap((sheet) => sheet.diagnostics)];
   return { sheets, diagnostics: allDiagnostics, activityPlan: plan.phases, lessonDna, vocabularyAudit };
+}
+
+// The textbook lesson: the five-task bundle above, then the material checklist's lesson frame
+// (docs/MATERIAL_QUALITY_CHECKLIST.md): a text to read when the plan picked none (the profile's guided dialogue in
+// Avasta), and engine/lessonEnrichment.js (listening, pair work, warm-up, self-check, stretch, real-life task).
+export function generateTextbookLessonBundle(args = {}) {
+  const result = generateLessonBundle(args);
+  if (!result.sheets?.length) return result;
+  const sheets = [...result.sheets];
+  const readable = (sheet) => sheet.worksheetDoc.blocks.some((b) => b.type === 'reading' || b.type === 'dialogue');
+  const di = sheets.findIndex((sheet) => sheet.phase === 'discover');
+  if (di >= 0 && !sheets.some(readable)) {
+    const sheet = sheets[di];
+    const [dialogue] = materializePhase({ phase: 'discover', profile: args.profile, focusIds: sheet.focusIds || [], contextId: sheet.contextId, seed: `${sheet.seed}:reading`, state: createDiversityState(), activityIds: ['discover-guided-dialogue'], difficulty: sheet.difficulty, levelStage: args.lesson?.levelStage || '' });
+    if (dialogue) {
+      const doc = sheet.worksheetDoc;
+      const closing = doc.blocks.findIndex((b) => b.type === 'selfcheck' || b.type === 'rubric');
+      const at = closing < 0 ? doc.blocks.length : closing;
+      sheets[di] = { ...sheet, worksheetDoc: { ...doc, blocks: [...doc.blocks.slice(0, at), { ...dialogue, id: 'enr_reading' }, ...doc.blocks.slice(at)] } };
+    }
+  }
+  const enriched = enrichLesson(sheets.map((sheet) => ({ phase: sheet.phase, doc: sheet.worksheetDoc })), { level: args.profile?.level || args.lesson?.levelStage });
+  return { ...result, sheets: sheets.map((sheet, index) => ({ ...sheet, worksheetDoc: enriched[index].doc })) };
 }
 
 export function generateFocusWorksheet({

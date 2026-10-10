@@ -1,3 +1,5 @@
+import { withLessonArt } from '../art/textbookArt.js';
+import { enrichLesson } from '../engine/lessonEnrichment.js';
 const MODULE = 'A2 lähtepunkt ja igapäevaelu';
 
 const phaseMeta = Object.freeze({
@@ -402,7 +404,7 @@ export function module1VocabularyCycle() {
   };
 }
 
-export function buildModule1Worksheet(lessonId, phase) {
+function rawModule1Worksheet(lessonId, phase) {
   const lesson = spec[lessonId];
   if (!lesson) throw new Error(`Tund ${lessonId} ei kuulu moodulisse 1.`);
   if (!phaseMeta[phase] || !lesson[phase]) throw new Error(`Etapp ${phase} ei ole toetatud.`);
@@ -425,4 +427,12 @@ export function buildModule1Worksheet(lessonId, phase) {
 }
 
 export const MODULE1_LESSON_IDS = Object.freeze(Object.keys(spec));
+
+// all phases built and enriched together (docs/MATERIAL_QUALITY_CHECKLIST.md), then the asked phase
+export function buildModule1Worksheet(lessonId, phase) {
+  rawModule1Worksheet(lessonId, phase);
+  const phases = ['discover', 'practice', 'transfer'].filter((p) => spec[lessonId][p]);
+  const enriched = enrichLesson(phases.map((p) => ({ phase: p, doc: rawModule1Worksheet(lessonId, p) })), { level: baseMeta.level });
+  return withLessonArt(enriched.find((e) => e.phase === phase).doc, lessonId, phase);
+}
 export const MODULE1_PHASES = Object.freeze(['discover', 'practice', 'transfer']);

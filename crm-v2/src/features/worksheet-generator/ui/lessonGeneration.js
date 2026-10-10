@@ -1,4 +1,4 @@
-import { ACTIVITY_CATALOG_VERSION, generateFocusWorksheet, generateLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
+import { ACTIVITY_CATALOG_VERSION, generateFocusWorksheet, generateTextbookLessonBundle, GENERATOR_VERSION } from '../engine/generator.js';
 import { focusPhaseLabel, focusWorksheetId } from '../engine/focusWorksheet.js';
 import { withLessonArt } from '../art/textbookArt.js';
 
@@ -38,7 +38,7 @@ export async function generateCoreSheets({ repository, lessonId, lesson, profile
   const existing = CORE_SHEETS.map(({ id }) => byId.get(id)).filter(Boolean);
   const previousActivityIds = existing.flatMap((sheet) => sheet?.generation?.activityIds || []);
   const variant = Math.max(0, ...existing.map((sheet) => Number(sheet?.generation?.variant) || Number(sheet?.worksheetDocVersion) || 0)) + 1;
-  const result = generateLessonBundle({
+  const result = generateTextbookLessonBundle({
     lesson,
     profile,
     levelLexicon: levelVocabulary.lexicon,
@@ -112,7 +112,7 @@ export function previewCoreSheet({ lessonId, lesson, profile, sheets, levelVocab
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
   const existing = CORE_SHEETS.map(({ id }) => byId.get(id)).filter(Boolean);
   const variant = Math.max(0, ...existing.map((sheet) => Number(sheet?.generation?.variant) || Number(sheet?.worksheetDocVersion) || 0)) + 1;
-  const result = generateLessonBundle({
+  const result = generateTextbookLessonBundle({
     lesson,
     profile,
     levelLexicon: levelVocabulary.lexicon,

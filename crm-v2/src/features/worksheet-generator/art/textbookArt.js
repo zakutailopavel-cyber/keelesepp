@@ -1,8 +1,10 @@
 import a2Module01 from './visuals/a2-module-01.js';
+import topicArt from './visuals/topic-art.json';
 
 // Textbook illustrations (docs/TEXTBOOK_ART_BIBLE.md): the content agent adds one visuals file per module under
 // ./visuals and lists it here; the image files live in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-const MODULES = [a2Module01];
+// topic-art.json: the still lifes drawn in code for every lesson without a commissioned picture (art/topicArt.js)
+const MODULES = [a2Module01, topicArt];
 
 const PHASES = new Set(['discover', 'practice', 'transfer']);
 const FORMATS = { scene: { aspect: '3:2', width: 1600, height: 1067 }, object: { aspect: '1:1', width: 1600, height: 1600 }, opener: { aspect: '3:4', width: 1200, height: 1600 } };
@@ -18,7 +20,7 @@ export function artLevel(lessonId) {
 }
 
 export const visualLessonId = (visual) => String(visual?.id || '').replace(/-(avasta|harjuta|kasuta)-\d+$/, '');
-export const visualSrc = (visual) => `/textbook-art/${artLevel(visualLessonId(visual))}/${visualLessonId(visual)}/${visual.id}.webp`;
+export const visualSrc = (visual) => `/textbook-art/${artLevel(visualLessonId(visual))}/${visualLessonId(visual)}/${visual.id}.${visual.ext || 'webp'}`;
 
 export const ALL_VISUALS = Object.freeze(MODULES.flat().filter((visual) => visual?.id && PHASES.has(visual.phase) && artLevel(visualLessonId(visual))));
 

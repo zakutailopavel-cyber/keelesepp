@@ -1,7 +1,7 @@
 import roadmap from '../../curriculum/a2Roadmap.json';
 import { createGrammarTarget } from '../../curriculum/grammarProgression.js';
 import { createVocabularyEntry } from '../../curriculum/textbookVocabulary.js';
-import { generateLessonBundle } from '../engine/generator.js';
+import { generateTextbookLessonBundle } from '../engine/generator.js';
 import { lexicalCoverageReport, planLexicalRecycling, planModuleActivities, scheduledVocabularyForLesson } from '../engine/modulePlanner.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
 import { A2_MODULE_02_CORE_VOCABULARY } from './a2Module02.js';
@@ -157,7 +157,7 @@ export function generateA2Module03({
     const profile = profiles[index];
     const planned = modulePlan.plans[index];
     if (!profile || !planned) return { lessonId: lesson.id, sheets: [], diagnostics: [] };
-    const generated = generateLessonBundle({
+    const generated = generateTextbookLessonBundle({
       lesson,
       profile,
       levelLexicon,
