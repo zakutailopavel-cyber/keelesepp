@@ -1,5 +1,6 @@
 'use strict';
 const functions=require('firebase-functions/v1'),admin=require('firebase-admin');
+const { isDisabledProfile } = require('./auth-core');
 const {randomUUID}=require('node:crypto');
 const {FieldValue,FieldPath}=require('firebase-admin/firestore');
 const core=require('./lesson-contract/interactive-lesson-core');
@@ -8,7 +9,7 @@ if(!admin.apps.length)admin.initializeApp();const db=admin.firestore();
 const fail=(status,message)=>{throw Object.assign(new Error(message),{status});};
 const id=x=>{if(typeof x!=='string'||!/^[A-Za-z0-9_-]{1,160}$/.test(x))fail(400,'Invalid ID');return x;};
 const wire=x=>x?.toDate?x.toDate().toISOString():Array.isArray(x)?x.map(wire):x&&typeof x==='object'?Object.fromEntries(Object.entries(x).map(([k,v])=>[k,wire(v)])):x;
-async function actor(req){const token=(req.get('Authorization')||'').match(/^Bearer (.+)$/i)?.[1];if(!token)fail(401,'Sign in required');let decoded;try{decoded=await admin.auth().verifyIdToken(token,true);}catch{fail(401,'Invalid token');}const p=(await db.doc('users/'+decoded.uid).get()).data();if(!p||p.disabled===true||p.status==='disabled'||!['teacher','admin','student'].includes(p.role))fail(403,'Account not allowed');return{uid:decoded.uid,role:p.role};}
+async function actor(req){const token=(req.get('Authorization')||'').match(/^Bearer (.+)$/i)?.[1];if(!token)fail(401,'Sign in required');let decoded;try{decoded=await admin.auth().verifyIdToken(token,true);}catch{fail(401,'Invalid token');}const p=(await db.doc('users/'+decoded.uid).get()).data();if(!p||isDisabledProfile(p)||p.status==='disabled'||!['teacher','admin','student'].includes(p.role))fail(403,'Account not allowed');return{uid:decoded.uid,role:p.role};}
 const teacher=a=>a.role==='teacher'||a.role==='admin';
 function access(a,r){if(a.role==='admin')return;if(teacher(a)&&r.teacherUid===a.uid)return;if(a.role==='student'&&r.studentUid===a.uid)return;fail(403,'Assignment not accessible');}
 async function previewStudent(a,studentId){

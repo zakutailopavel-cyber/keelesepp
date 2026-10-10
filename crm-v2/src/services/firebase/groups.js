@@ -237,9 +237,13 @@ export const groupsService = {
     if (!group?.id || !lessonId || !studentId || !/^\d{4}-\d{2}-\d{2}$/.test(occurrenceDate || '')) throw new Error('Kohalolu seos on vigane.');
     const { db } = requireFirebaseClient();
     const groupRef = doc(db, 'groups', group.id);
+    const accountingRef = doc(db, 'lessons', attendanceLessonId(group.id, lessonId, occurrenceDate, studentId));
     return runTransaction(db, async (batch) => {
-      const snapshot = await batch.get(groupRef);
+      const [snapshot, accounting] = await Promise.all([batch.get(groupRef), batch.get(accountingRef)]);
       if (!snapshot.exists()) throw new Error('Gruppi ei leitud.');
+      // a lesson already on an invoice is corrected in Finantsid, not by changing the attendance
+      const existing = accounting?.exists?.() ? accounting.data() : null;
+      if (existing && (existing.invoiceId || existing.billingStatus)) throw new Error('See tund on juba arvel: paranda see Finantsides.');
       const group = normalizeGroup(snapshot.id, snapshot.data());
       if (!['coming', 'absent', 'warned', 'clear'].includes(status)) throw new Error('Kohalolu olek on vigane.');
       const attendanceKey = `${studentId}_${occurrenceDate}`;
@@ -262,7 +266,6 @@ export const groupsService = {
       if (!found) throw new Error('Grupi tunniaega ei leitud.');
       const updatedAt = new Date().toISOString();
       batch.set(doc(db, 'groups', group.id), { lessons, updatedAt }, { merge: true });
-      const accountingRef = doc(db, 'lessons', attendanceLessonId(group.id, lessonId, occurrenceDate, studentId));
       if (status === 'clear') batch.delete(accountingRef);
       else batch.set(accountingRef, {
         groupId: group.id,
@@ -279,9 +282,8 @@ export const groupsService = {
         duration: Math.max(5, Number((group.lessons || []).find((lesson) => lesson.id === lessonId)?.duration) || 60),
         status: status === 'coming' ? 'Toimunud' : status === 'warned' ? 'Puudus_p' : 'Puudus_eta',
         accountingSource: 'crm_v2',
-        createdAt: updatedAt,
-        createdByUid: user.uid,
-        createdByName: user.displayName || user.email || '',
+        // the first mark keeps its author and time
+        ...(existing ? { updatedAt, updatedByUid: user.uid, updatedByName: user.displayName || user.email || '' } : { createdAt: updatedAt, createdByUid: user.uid, createdByName: user.displayName || user.email || '' }),
       }, { merge: true });
       activity(batch, db, 'group.attendance_updated', `${group.name || 'Grupi'} kohalolu uuendatud`, group, user, { lessonId, occurrenceDate, studentId, status });
       return updatedAttendance;
