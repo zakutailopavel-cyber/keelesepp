@@ -30,7 +30,7 @@ test("translation goes to TartuNLP once, then comes from the cache", async () =>
     const first = await translateText({ text: "Kass", src: "et", tgt: "ru" });
     assert.equal(first.result, "кошка");
     assert.equal(calls[0].url, "https://api.tartunlp.ai/translation/v2");
-    assert.deepEqual(calls[0].body, { text: "Kass", src: "et", tgt: "ru", domain: "auto", application: "keelesepp-crm" });
+    assert.deepEqual(calls[0].body, { text: "Kass", src: "et", tgt: "ru", application: "keelesepp-crm" });
     const second = await translateText({ text: "kass", src: "et", tgt: "ru" });
     assert.equal(second.cached, true);
     assert.equal(calls.length, 1);
