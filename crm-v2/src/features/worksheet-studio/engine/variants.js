@@ -110,7 +110,7 @@ function challengeBlock(block, note) {
       if (!row.trim() || ri % 2 === 0) return row;
       return row.split('|').map((cell, ci) => {
         const c = cell.trim();
-        if (ci === 0 || !c || /^\[.*\]$/.test(c)) return cell;
+        if (ci === 0 || !c || c.includes('[')) return cell;
         turned = true;
         return ` [${c}] `;
       }).join('|').replace(/\s+\|/g, ' |').replace(/\|\s+/g, '| ').trim();

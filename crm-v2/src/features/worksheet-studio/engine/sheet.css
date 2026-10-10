@@ -15,6 +15,7 @@
   padding: 11mm 9mm 9mm; box-shadow: 0 6px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 4mm;
   font-family: var(--font-body); font-size: 12.6pt; line-height: 1.35; position: relative; overflow: hidden;
 }
+.ws-page.is-tall { height: auto; min-height: 381.86mm; overflow: visible; }
 .ws-page *, .ws-measure * { box-sizing: border-box; }
 .ws-flow, .ws-measure { display: flex; flex-direction: column; gap: 4mm; }
 .ws-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4mm; align-items: stretch; }

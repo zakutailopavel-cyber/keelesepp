@@ -242,19 +242,22 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   const rows = useMemo(() => rowsOf(doc.blocks), [doc.blocks]);
   const measureRef = useRef(null);
   const [pages, setPages] = useState([rows.map((_, i) => i)]);
+  // pages whose content is taller than A4 (one very long reading): they grow instead of clipping the text
+  const [tallPages, setTallPages] = useState([]);
   useLayoutEffect(() => {
     const el = measureRef.current;
     if (!el) return;
     const run = () => {
       const mm = el.offsetWidth / 270;
       // cannot measure (hidden tab, test DOM): show everything on one page instead of dropping rows
-      if (!mm) { setPages([rows.map((_, i) => i)]); return; }
+      if (!mm) { setPages([rows.map((_, i) => i)]); setTallPages([]); return; }
       const headH = el.querySelector('.ws-measure-head').offsetHeight / mm;
       const rowEls = [...el.querySelectorAll('.ws-measure-row')];
       const hs = rowEls.map((r) => r.offsetHeight / mm);
       const firstCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - headH - GAP;
       const nextCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - RUNHEAD;
       const out = [[]];
+      const tall = [];
       let used = 0;
       hs.forEach((h, i) => {
         if (rows[i]?.[0]?.pageBreakBefore && out[out.length - 1].length) { out.push([]); used = 0; }
@@ -262,8 +265,10 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
         if (out[out.length - 1].length && used + h > cap) { out.push([]); used = 0; }
         out[out.length - 1].push(i);
         used += h + GAP;
+        if (used - GAP > (out.length === 1 ? firstCap : nextCap)) tall[out.length - 1] = true;
       });
       setPages(out);
+      setTallPages(tall);
     };
     run();
     document.fonts?.ready.then(run);
@@ -357,7 +362,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
         {rows.map((row, i) => <div className="ws-measure-row" key={i}>{rowView(row, i, true)}</div>)}
       </div>
       {pages.map((idxs, p) => (
-        <div className="ws-page" key={p}>
+        <div className={`ws-page${tallPages[p] ? ' is-tall' : ''}`} key={p}>
           {p === 0 ? <Header key={`head:${rev}`} meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
           <div className="ws-flow">{idxs.map((i) => rows[i] && rowView(rows[i], i))}</div>
           {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
