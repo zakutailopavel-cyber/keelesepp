@@ -29,6 +29,10 @@ async function persistRecordings({ doc, answers, assignment, repository }) {
 
 // Student player for a structured worksheet (assignment.worksheetDoc): the same sheet, the same design,
 // the answers kept on the assignment. Teachers open it read-only and see the marks and the per-goal result.
+
+const AUTOSAVE_EVERY_MS = 600;
+const AUTOSAVE_MIN_DELAY_MS = 150;
+
 export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false }) {
   const doc = assignment.worksheetDoc;
   const [answers, setAnswers] = useState(assignment.answers || {});
@@ -67,14 +71,19 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   }, []);
 
   // Autosave (also what the teacher sees live). Local recordings are uploaded only on Salvesta / Esita.
+  // A throttle, not a debounce: while the student types, the teacher sees the text about every 0.6 s instead of only after
+  // a pause (owner, 2026-10-10). Firestore takes ~1 sustained write per second per document, short bursts are fine.
+  const lastAutosave = useRef(0);
   useEffect(() => {
     if (review || !edited.current) return undefined;
+    const wait = Math.max(AUTOSAVE_MIN_DELAY_MS, AUTOSAVE_EVERY_MS - (Date.now() - lastAutosave.current));
     const timer = setTimeout(() => {
+      lastAutosave.current = Date.now();
       const clean = Object.fromEntries(Object.entries(answers).filter(([k, v]) => !k.endsWith(':error') && !(typeof v === 'string' && v.startsWith('blob:'))));
       repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: clean })
         .then(() => setAutosaved(new Date().toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })))
         .catch(() => setAutosaved(''));
-    }, 1500);
+    }, wait);
     return () => clearTimeout(timer);
   }, [answers, review, repository, assignment.id]);
 
