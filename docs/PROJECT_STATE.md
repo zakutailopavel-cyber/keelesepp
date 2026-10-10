@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-c1-m10 — C1 M10 Teadus, tehnoloogia ja tulevik (est-c1-091–100), kõik kolm etappi
+
+- Base: `main` 317153f. Previous modules are published to production (diff with production: 0 differences).
+- C1 moodul 10 (kursuse lõpp): teadus ja innovatsioon, digiteenused ja tehisaru, andmed ja statistika, töö ja hariduse tulevik, tehnoloogia eetika, tulevikustsenaariumid ja ebakindlus, avalik ettekanne ja süntees, keeletäpsus ja veaparandus, C1 grammatika tervikpilt, progressikontroll 10. C1 kursus est-c1-001…100 on nüüd tervikuna olemas. Kvaliteedivärav roheline.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-c1-m09 — C1 M09 Ühiskond, institutsioonid ja avalik elu (est-c1-081–090), kõik kolm etappi
 
 - Base: `main` 1c2ffef. Previous modules are published to production (diff with production: 0 differences).
