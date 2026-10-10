@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m09 — B2 M09 Tervis ja eluviis (b1b2-041–045), kõik kolm etappi
+
+- Base: `main` 9a497dc. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module09.js`, stage B1+/B2-: a healthy lifestyle (habit → consequence), advice with the conditional (võiks, tasuks, peaks, oleks parem), stress and work–life balance (3 causes, 3 solutions, how realistic), a lifestyle change plan (a plan, not a list), Kontroll 9. Advice is adapted to the person's limits. 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/invoice-email-status — arve e-kirja olek tabelis
 
 - Owner pressed „Saada” and saw nothing: the confirmation was only at the top of the page, off screen.
