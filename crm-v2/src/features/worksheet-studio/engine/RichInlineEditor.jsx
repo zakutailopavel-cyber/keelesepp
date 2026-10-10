@@ -51,7 +51,7 @@ export default function RichInlineEditor({ rect, value, multiline = true, textSt
   const color = (name) => editor.chain().focus().setColor(MARK_COLORS[name]).run();
   const style = {
     position: 'absolute', left: rect.left, top: rect.top, width: Math.max(rect.width, 180), minHeight: rect.height,
-    zIndex: 1000, ...textStyle,
+    zIndex: 1500, ...textStyle,
   };
   return createPortal(
     <div className="ws-tiptap" style={style} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()} onDoubleClick={(e) => e.stopPropagation()}>

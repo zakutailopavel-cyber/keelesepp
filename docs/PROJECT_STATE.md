@@ -1,3 +1,13 @@
+## 2026-10-10 · agent/live-sheet-edit — õpetaja parandab töölehte tunni ajal
+
+- Base: `main` c6149ef.
+- Owner: a task on the sheet had a mistake; the teacher wants to fix it during the lesson.
+- `LiveWorksheetView`: button „Paranda lehte” switches the teacher's sheet to `mode="edit"`; double-click a text (gap lines open the floating editor with the answer in brackets). `editText` writes `block.data` (or `meta`) with `setPath` and saves via new `homeworkService.saveWorksheetDoc({ assignmentId, worksheetDoc })` (+ `worksheetEditedAt`). Only this assignment's copy changes, not the library sheet. Staff may already update `worksheetAssignments` — no rule change.
+- `DocWorksheetPlayer`: the sheet is state and follows `next.worksheetDoc` from the assignment subscription, so the student sees the fix at once; answers keep their keys (block ids unchanged), a corrected gap answer is re-checked.
+- Floating and rich inline editors: z-index 1000 → 1500, so they open above the Live Classroom room (`.lr` 1300).
+- Checks: `npx vitest run src/features/worksheet-studio src/features/homework` 206 passed (new test in `LiveWorksheetPage.test.jsx`); eslint and `vite build` ok.
+- Limit: the library sheet keeps the mistake; fix it there too with „✎ Muuda lehte” in Õppevara.
+
 ## 2026-10-10 · agent/live-answers-realtime — õpilase vastused jõuavad õpetajani kirjutamise ajal
 
 - Base: `main` b0357cc.

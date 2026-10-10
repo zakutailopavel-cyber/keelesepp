@@ -453,6 +453,15 @@ export const homeworkService = {
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveShown });
     return liveShown;
   },
+  // Live lesson: the teacher corrects a task on the student's copy of the sheet; the student's player is subscribed.
+  // Only this assignment changes, not the library sheet (staff may update worksheetAssignments, no rule change).
+  async saveWorksheetDoc({ assignmentId, worksheetDoc }) {
+    if (!assignmentId || !worksheetDoc?.blocks) throw new Error('Töölehte ei leitud.');
+    const { db } = requireFirebaseClient();
+    const updatedAt = new Date().toISOString();
+    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { worksheetDoc, worksheetEditedAt: updatedAt });
+    return { worksheetDoc, worksheetEditedAt: updatedAt };
+  },
   async saveWorksheetDraft({ assignmentId, answers }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');
     const { db } = requireFirebaseClient();

@@ -16,7 +16,7 @@ export function openFloatingEditor({ anchor, value, multiline = false, label = '
     top: `${rect.top + (view?.scrollY || 0)}px`,
     width: `${Math.max(rect.width, 160)}px`,
     minHeight: `${Math.max(rect.height, 30)}px`,
-    zIndex: 1000,
+    zIndex: 1500,
   });
   doc.body.appendChild(field);
   const grow = () => { field.style.height = 'auto'; field.style.height = `${field.scrollHeight + 2}px`; };
