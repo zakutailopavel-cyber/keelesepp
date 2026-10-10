@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m16 — B2 M16 B2 grammatika integratsioon (b1b2-076–080), kõik kolm etappi
+
+- Base: `main` e1cc65f. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module16.js`, stage B2-: complex sentences with six connectors (kuigi, ehkki, samal ajal kui, juhul kui, mistõttu, seetõttu), word order in complex sentences (verb second, after a fronted clause; a dictogloss), participles and des-form (-v/-tav, -nud/-tud, -des) for processes and portraits, conditional + impersonal + reported speech chosen by function (incl. -vat), Vahehindamine 4 (lessons 61–80). 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/word-lookup-dblclick — õpilane topeltklõpsab sõnal: vormid, tõlge ja sõnavarasse
 
 - Base: `main` 81ad5ce.
