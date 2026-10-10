@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m15 — B2 M15 Meedia, info ja kriitiline lugemine (b1b2-071–075), kõik kolm etappi
+
+- Base: `main` 8a4c9d7. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module15.js`, stage B2-: fact / evaluation / assumption by language markers (kindlasti, ilmselt, väidetavalt, kahjuks, liiga), the author's position, tone and aim proved with 2–3 quotes, argument strength (claim, reason, evidence, example, counter-argument; five typical fallacies), summary 5–6 sentences plus a separated reaction, Kontroll 15 (inference questions answered in own words). 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/invite-overlay-zindex — tunnikutse oli õpilase tahvli all peidus
 
 - Base: `main` ef02c4e.
