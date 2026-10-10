@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-c1-m05 — C1 M05 Töö, professionaalne suhtlus ja organisatsioon (est-c1-041–050), kõik kolm etappi
+
+- Base: `main` 1cbfc47. Previous modules are published to production (diff with production: 0 differences).
+- karjäär ja pädevused, värbamine, tööalane kiri ja memo, koosolek, läbirääkimised, juhtimine ja tagasiside, muutused ja eetika, tegumood, nominalisatsioon, progressikontroll 5
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-c1-m04 — C1 M04 Haridus, õppimine ja info (est-c1-031–040), kõik kolm etappi
 
 - Base: `main` 9d3aefc. Previous modules are published to production (diff with production: 0 differences).
