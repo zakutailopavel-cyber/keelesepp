@@ -368,3 +368,13 @@ describe('LibraryPage', () => {
   });
 
 });
+
+describe('assigning to a card without an account', () => {
+  it('warns that the learner will not see the work', async () => {
+    const { studentAccess } = await import('../../services/firebase/students.js');
+    expect(studentAccess({ linkedUserId: 'u' })).toBe('student');
+    expect(studentAccess({ linkedUserIds: ['u'] })).toBe('student');
+    expect(studentAccess({ linkedParentId: 'p' })).toBe('parent');
+    expect(studentAccess({})).toBe('none');
+  });
+});

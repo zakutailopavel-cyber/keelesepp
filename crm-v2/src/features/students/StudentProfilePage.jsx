@@ -7,7 +7,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Modal } from
 import { invoicesService } from '../../services/firebase/invoices.js';
 import { lessonsService } from '../../services/firebase/lessons.js';
 import { scheduleService } from '../../services/firebase/schedule.js';
-import { studentsService } from '../../services/firebase/students.js';
+import { studentAccess, studentsService } from '../../services/firebase/students.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import { ROLES } from '../../utils/roles.js';
 import { studentValueLabel } from '../../utils/studentPrivacy.js';
@@ -168,6 +168,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
 
         {activeTab === 'works' ? (
           <div className="profile-grid">
+            {studentAccess(student) === 'none' ? <p className="action-error" role="alert">Selle kaardiga pole seotud ühtegi kontot: õpilane ei näe siia määratud töid. Seo õpilase konto (Muuda → konto) või kontrolli, kas tal on teine sama nimega kaart.</p> : null}
             <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
           </div>
         ) : null}

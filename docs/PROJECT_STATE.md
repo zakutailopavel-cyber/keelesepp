@@ -19,6 +19,23 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/assign-account-warning — hoiatus: õpilase kaardil pole kontot
+
+- Omanik määras töölehe „B1 test” kahele õpilasele, kuid nad ei näinud seda.
+- Põhjus (production-andmed, ainult lugemine):
+  - Uljana Kazak: tööd määrati kaardile `OVZJxmlY9I7UuXNnjQCH`, millel pole kontot. Tema konto on seotud teise kaardiga „Ulyana Kazak” `NY05vjOTFGIZEm9M2vRH`.
+  - Vlad: kaart `t7RmPVAj30uzX6iEIMEI` ei ole ühegi kontoga seotud.
+  - Aktiivsetest kaartidest 87/129 on ilma kontota.
+- Kood:
+  - `students.js` `studentAccess(student)` tagastab `student` | `parent` | `none`.
+  - Õppevara „Määra” aknas on iga kontota õpilase juures „⚠ Kontot pole — õpilane ei näe tööd”. Valiku korral ilmub hoiatus nimedega.
+  - Õpilase kaardi vahekaardil „Tööd” on sama hoiatus.
+- Andmeid ei muudetud. Kahe määramise ümbertõstmine õigele kaardile ja topeltkaartide liitmine ootab omaniku luba.
+- Kontrollid:
+  - library + students 88/88;
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/sheet-themes — kolm uut töölehe kujundust omaniku näidiste järgi
 
 - Omanik saatis viis näidist (Twee, kohvik, lennujaam, Egiptus) ja ütles, et praegune värvigamma tundub lapsik. `look.js` `THEMES` sai kolm uut teemat; konstruktori „Teema” valikus on need automaatselt.

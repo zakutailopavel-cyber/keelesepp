@@ -95,6 +95,14 @@ export function groupStudentPeople(items = []) {
   }).sort((a, b) => a.name.localeCompare(b.name, 'et', { sensitivity: 'base' }));
 }
 
+// who can open the student's work in the CRM: the learner's own account, only a parent's account, or nobody (a card
+// without a linked account — assigned work is saved but no one sees it)
+export function studentAccess(student = {}) {
+  if (student.linkedUserId || student.studentUid || (student.linkedUserIds || []).length) return 'student';
+  if (student.linkedParentId || student.parentUid || student.guardianUid || (student.linkedParentIds || []).length) return 'parent';
+  return 'none';
+}
+
 export function normalizeStudent(id, data = {}) {
   const legacyEnrollment = normalizedEnrollment(data, data);
   const sourceEnrollments = Array.isArray(data.enrollments) && data.enrollments.length ? data.enrollments : [legacyEnrollment];
