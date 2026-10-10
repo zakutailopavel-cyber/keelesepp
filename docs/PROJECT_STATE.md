@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/teacher-guide — süsteemi tutvustus õpetajatele
+
+- Base: `main` eadc52b.
+- Owner: teachers need an introduction to the system — not only first steps, but all its capabilities.
+- New route `/guide` „Süsteemi tutvustus” (STAFF; menu item „Juhend”): `features/guide/guideContent.js` (FIRST_STEPS — 8 steps with links; GUIDE_SECTIONS — every part of the system with Estonian text, a Russian line, a link and „how to” steps; `visibleGuide` hides admin/finance items by role; `searchGuide` searches both languages), `TeacherGuidePage.jsx` (checklist with progress, search, table of contents, sections), `GuideBanner.jsx` (one dismissible invitation above pages for teachers who have not opened the guide; not in preview or Live Classroom). Progress and „seen” are per-browser conveniences in localStorage.
+- Checks: vitest guide + app + layout 35 passed (new `TeacherGuidePage.test.jsx`); eslint and `vite build` ok.
+- Keep the guide in sync: a new feature should add or change an item in `guideContent.js`.
+
 ## 2026-10-10 · agent/course-c1-m01 — C1 M01 Eneseväljendus, identiteet ja suhted (est-c1-001–010), kõik kolm etappi
 
 - Base: `main` 16b37fd. Previous modules are published to production (diff with production: 0 differences).

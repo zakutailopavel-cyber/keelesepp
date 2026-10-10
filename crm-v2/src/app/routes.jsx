@@ -31,6 +31,7 @@ import LeadsPage from '../features/leads/LeadsPage.jsx';
 import TeacherProfilePage from '../features/teachers/TeacherProfilePage.jsx';
 import SettingsPage from '../features/settings/SettingsPage.jsx';
 import BoardPage from '../features/board/BoardPage.jsx';
+import TeacherGuidePage from '../features/guide/TeacherGuidePage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import HomePage from './HomePage.jsx';
 import { ACCESS } from './accessPolicy.js';
@@ -59,6 +60,7 @@ export default function AppRoutes() {
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
           <Route index element={<HomePage />} />
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
+            <Route path="guide" element={<TeacherGuidePage />} />
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:studentId" element={<StudentProfilePage />} />
             <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />
