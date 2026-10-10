@@ -138,3 +138,4 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | B2 M14 Ühiskond ja avalikud teenused | b1b2-066–070 | Avasta, Harjuta, Kasuta | agent/course-b2-m14 |
 | B2 M15 Meedia, info ja kriitiline lugemine | b1b2-071–075 | Avasta, Harjuta, Kasuta | agent/course-b2-m15 |
 | B2 M16 B2 grammatika integratsioon | b1b2-076–080 | Avasta, Harjuta, Kasuta | agent/course-b2-m16 |
+| B2 M17 B2 kirjutamine | b1b2-081–085 | Avasta, Harjuta, Kasuta | agent/course-b2-m17 |

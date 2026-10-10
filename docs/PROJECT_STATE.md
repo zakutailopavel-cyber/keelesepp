@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m17 — B2 M17 B2 kirjutamine (b1b2-081–085), kõik kolm etappi
+
+- Base: `main` 09570c4. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module17.js`, stage B2 (readings 350+ words): opinion text structure (a function per paragraph, topic sentences, a conclusion that adds a thought), formal letter and request (five parts, tone, conditional politeness), problem-solution text 190–220 words (problem, causes, consequences, solutions tied to causes, evaluation), editing one's own text (six error types, six readings, a correction log), Kontroll 17 (10 + 35–40 + 5 minutes). 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m16 — B2 M16 B2 grammatika integratsioon (b1b2-076–080), kõik kolm etappi
 
 - Base: `main` e1cc65f. Previous modules are published to production (diff with production: 0 differences).
