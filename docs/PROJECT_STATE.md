@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-c1-m07 — C1 M07 Liikuvus, keskkond ja elukeskkonna areng (est-c1-061–070), kõik kolm etappi
+
+- Base: `main` 7565ec4. Previous modules are published to production (diff with production: 0 differences).
+- C1 moodul 7: liikumisviisid, reisimine, linn ja maa, kliimamuutus, energia, planeerimine ja avalik arutelu, tegevuskava, sidendid ja tekstisisesed seosed, kaassõnad ja määruslikud suhted, progressikontroll 7. Kvaliteedivärav roheline.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-c1-m06 — C1 M06 Tervis, heaolu ja sotsiaalne toimetulek (est-c1-051–060), kõik kolm etappi
 
 - Base: `main` 3f7ad42. Previous modules are published to production (diff with production: 0 differences).
