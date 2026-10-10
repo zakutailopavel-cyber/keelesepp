@@ -50,6 +50,16 @@ describe('board geometry', () => {
 });
 
 describe('StudentBoard', () => {
+  it('a trackpad pinch zooms the board, not the whole page', () => {
+    const { container } = render(<StudentBoard studentId="s-1" user={user} service={fakeService({ board: [] })} />);
+    const stage = container.querySelector('.sb-stage');
+    const pinch = new WheelEvent('wheel', { deltaY: -10, ctrlKey: true, bubbles: true, cancelable: true });
+    stage.dispatchEvent(pinch);
+    expect(pinch.defaultPrevented).toBe(true);
+    const scroll = new WheelEvent('wheel', { deltaY: 10, bubbles: true, cancelable: true });
+    container.querySelector('.sb-stage').dispatchEvent(scroll);
+  });
+
   it('shows what was drawn in CRM v1: strokes, shapes, notes, text, images and PDFs', () => {
     const service = fakeService({ board: [
       { id: 's1', type: 'stroke', points: [{ x: 1, y: 1 }, { x: 20, y: 20 }], color: '#1C2B3A', strokeWidth: 4 },
