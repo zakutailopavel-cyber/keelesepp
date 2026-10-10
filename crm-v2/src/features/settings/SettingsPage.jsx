@@ -1,5 +1,6 @@
-import { CheckCircle2, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
+import { CheckCircle2, Compass, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
@@ -44,6 +45,7 @@ export default function SettingsPage({ parentRepository = parentsService, studen
   const [supportLoading, setSupportLoading] = useState(false);
   const [supportError, setSupportError] = useState('');
   const isAdmin = hasAnyRole(user.roles, [ROLES.ADMIN]);
+  const isStaff = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]);
 
   const loadSupportUsers = async () => {
     setSupportLoading(true);
@@ -168,6 +170,7 @@ export default function SettingsPage({ parentRepository = parentsService, studen
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
     <section className="settings-grid">
+      {isStaff ? <Card><div className="settings-icon"><Compass /></div><h2>Juhend</h2><p className="settings-copy">Süsteemi tutvustus õpetajale: esimesed sammud ja kõik KeeleSepa võimalused ühes kohas · Все возможности системы для учителя.</p><Link className="button button--secondary" to="/guide"><Compass size={17} /> Ava juhend</Link></Card> : null}
       <Card className="settings-profile-card"><div className="settings-icon"><UserRound /></div><h2>Minu andmed</h2><form className="settings-profile-form" onSubmit={save}><Input id="settings-name" label="Nimi" autoComplete="name" required maxLength="160" value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} /><Input id="settings-phone" label="Telefon" type="tel" autoComplete="tel" maxLength="40" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /><Input id="settings-email" label="E-post" type="email" value={user.email} disabled /><p className="form-hint">E-posti või rolli muutmiseks pöördu administraatori poole.</p><Button type="submit" loading={saving}><Save size={17} /> Salvesta andmed</Button></form></Card>
 
       {hasAnyRole(user.roles, [ROLES.STUDENT]) && !preview ? <PetSettingsCard user={user} /> : null}
