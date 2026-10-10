@@ -4,7 +4,7 @@
 // (Eile, täna ja homme; Minu lugu: sündmused järjekorras — „Üks ootamatu hommik”, Mari's late morning).
 import { B } from '../blocks.js';
 
-export const MODULE = { id: 'a2b1-module-05', course: 'b1', title: 'Lihtminevik ja kogemused', level: 'A2+' };
+export const MODULE = { id: 'a2b1-module-05', course: 'b1', shortSheets: true, title: 'Lihtminevik ja kogemused', level: 'A2+' };
 
 export const LESSONS = {
   'a2b1-021': {

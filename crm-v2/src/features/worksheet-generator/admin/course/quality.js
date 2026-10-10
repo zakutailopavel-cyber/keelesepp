@@ -3,6 +3,7 @@
 // no two sheets of one phase share the same task sequence, neighbours differ, and each phase does its own job.
 import { BLOCKS } from '../../../worksheet-studio/engine/registry.js';
 import { analyzeWorksheet } from '../../../worksheet-studio/quality.js';
+import { SHEET_MINUTES, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
 
 export const MIN_DIDACTIC_SCORE = 85;
 const FORM = ['gaps', 'wordforms', 'table', 'transformation', 'dictation', 'translation'];
@@ -26,7 +27,10 @@ export function sheetProblems(doc) {
   const ids = (doc.blocks || []).map((b) => b.id);
   if (new Set(ids).size !== ids.length) out.push({ code: 'ids', text: 'korduvad ploki id-d' });
   const n = doc.blocks.length;
-  if (n < 6 || n > 10) out.push({ code: 'length', text: `${n} plokki (lubatud 6–10)` });
+  // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
+  if (n < 6 || n > 18) out.push({ code: 'length', text: `${n} plokki (lubatud 6–18)` });
+  const minutes = sheetMinutes(doc);
+  if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > SHEET_MINUTES.max)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
   if (typeSet(doc).size < 5) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt 5)` });
   const last = doc.blocks[n - 1]?.type;
   if (last !== 'selfcheck' && last !== 'rubric') out.push({ code: 'end', text: 'leht lõpeb enesehinnangu või rubriigiga' });

@@ -4,6 +4,7 @@ import { Button, Card, ErrorState, LoadingState, Modal, PageHeader } from '../..
 import { lessonWorksheetsService } from '../../../services/firebase/lessonWorksheets.js';
 import { ROLES } from '../../../utils/roles.js';
 import { analyzeWorksheet } from '../../worksheet-studio/quality.js';
+import { sheetMinutes } from '../../worksheet-studio/didactics/timeEstimate.js';
 import { COURSE_MODULES, COURSES, PHASES, moduleNumber, moduleSheets } from '../admin/course/registry.js';
 import { moduleProblems } from '../admin/course/quality.js';
 
@@ -92,7 +93,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
               return (
                 <div key={phase} style={{ display: 'grid', gridTemplateColumns: '110px 1fr auto auto', gap: 12, alignItems: 'center', paddingTop: 8, borderTop: '1px solid var(--border)' }}>
                   <b>{PHASES[phase].label}</b>
-                  <span className="form-hint">{doc.blocks.length} plokki · {[...new Set(doc.blocks.map((b) => b.type))].join(', ')} · didaktika {score}</span>
+                  <span className="form-hint">{doc.blocks.length} plokki · {[...new Set(doc.blocks.map((b) => b.type))].join(', ')} · didaktika {score} · ≈ {sheetMinutes(doc)} min</span>
                   <span>{record ? `olemas v${record.worksheetDocVersion || 0}${record.publishedWorksheetDocVersion ? ' · avaldatud' : ''}` : 'uus'}</span>
                   <Button variant="secondary" onClick={() => setPreview({ lessonId, phase, doc })}>Vaata</Button>
                 </div>

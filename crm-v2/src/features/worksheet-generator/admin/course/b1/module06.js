@@ -4,7 +4,7 @@
 // comes back in the complaint („Ma tellisin…, aga sain…”).
 import { B } from '../blocks.js';
 
-export const MODULE = { id: 'a2b1-module-06', course: 'b1', title: 'Toit ja teenindus', level: 'A2+' };
+export const MODULE = { id: 'a2b1-module-06', course: 'b1', shortSheets: true, title: 'Toit ja teenindus', level: 'A2+' };
 
 export const LESSONS = {
   'a2b1-026': {

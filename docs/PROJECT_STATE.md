@@ -19,6 +19,25 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/sheet-minutes — leht = terve tund (40–55 min): tööaja hinnang ja B1 moodul 2 laiendatud
+
+- Omanik: ülesanded on liiga lühikesed, lehte tehakse ~10 minutiga, aga plaani järgi on see terve tund (tund 60 min, leht 40–50 min).
+- `worksheet-studio/didactics/timeEstimate.js` (uus): `blockMinutes` / `sheetMinutes` arvestavad ploki tüüpi, punktide arvu, teksti pikkust ja taseme lugemiskiirust.
+  - Määrad on kalibreeritud omaniku tähelepaneku järgi: lünk ≈ 20 s, valik ≈ 15 s, kirjutatud lause ≈ 1 min.
+  - `SHEET_MINUTES` = 40–55 min.
+- Konstruktor: kvaliteedikontrollis on rida „Tööaeg ≈ N min · terve tund 40–55 min”; alla 40 min tuleb nõuanne (ei blokeeri). `analyzeWorksheet` tagastab `minutes`.
+- Kursuse kvaliteedivärav:
+  - nõuab 40–55 min ja 6–18 plokki;
+  - moodulid 3–6 on märgitud `shortSheets` (lehel `meta.shortSheet`), kuni neid laiendatakse.
+- `registry.lessonOrder`: kontrollitud ülesanded tulevad enne vaba kasutust ja enesehinnang on viimane.
+- „Kursuse tootmine” näitab ka minuteid.
+- B1 moodul 2 (006–010) on laiendatud. Leht kestab 40–43 min (enne Harjuta 11–15 ja Kasuta 17–25 min), plokke 10–16. Lisandusid lugemistekstid, omastava harjutused, teisendused, tõlge, etteütlus, kirjutamine, rollikaardid ja kuulutused.
+- Kontrollid:
+  - worksheet-studio + worksheet-generator 613/613;
+  - eslint;
+  - build.
+- Järgmine samm: laiendada moodulid 3–6 ja eemaldada `shortSheets`. Seejärel tuleb tekstist ülesande muundur konstruktoris.
+
 ## 2026-10-10 · agent/klassika-default — Klassika (valge) on maja põhiteema
 
 - Omanik valis põhiteemaks Klassika (valge paber).
