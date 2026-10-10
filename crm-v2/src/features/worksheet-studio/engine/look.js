@@ -144,8 +144,8 @@ export const THEMES = [
     blue: { card: '#ffffff', badge: '#2f6f9f' }, green: { card: '#ffffff', badge: '#3f7d4e' }, peach: { card: '#ffffff', badge: '#c0563b' },
     cream: { card: '#ffffff', badge: '#a0702c' }, sky: { card: '#ffffff', badge: '#2f6f9f' }, white: { card: '#ffffff', badge: '#7a4a2a' } } },
   { key: 'klassika', label: 'Klassika', tones: {
-    blue: { card: '#fbf7ec', badge: '#1d2b4a' }, green: { card: '#fbf7ec', badge: '#1d2b4a' }, peach: { card: '#fbf7ec', badge: '#1d2b4a' },
-    cream: { card: '#fbf7ec', badge: '#1d2b4a' }, sky: { card: '#fbf7ec', badge: '#1d2b4a' }, white: { card: '#fbf7ec', badge: '#1d2b4a' } } },
+    blue: { card: '#ffffff', badge: '#1d2b4a' }, green: { card: '#ffffff', badge: '#1d2b4a' }, peach: { card: '#ffffff', badge: '#1d2b4a' },
+    cream: { card: '#ffffff', badge: '#1d2b4a' }, sky: { card: '#ffffff', badge: '#1d2b4a' }, white: { card: '#ffffff', badge: '#1d2b4a' } } },
 ];
 export const themeOf = (key) => THEMES.find((theme) => theme.key === (key || '')) || THEMES[0];
 // a tone as the sheet's theme draws it (falls back to the brand tone)

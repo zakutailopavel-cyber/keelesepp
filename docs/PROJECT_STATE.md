@@ -19,6 +19,13 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/klassika-white — töölehe paber on valge
+
+- Omanik: „цвет листов белый”. Teemade Klassika ja Ajakiri paber, kaardid ja lugemistekstid on nüüd valged; raamid, jooned ja värvid jäid samaks.
+- Kontrollid:
+  - worksheet-studio testid;
+  - build.
+
 ## 2026-10-10 · agent/assign-account-warning — hoiatus: õpilase kaardil pole kontot
 
 - Omanik määras töölehe „B1 test” kahele õpilasele, kuid nad ei näinud seda.

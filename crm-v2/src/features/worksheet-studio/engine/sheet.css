@@ -553,7 +553,7 @@
 
 /* Ajakiri — warm paper, framed tasks, coloured headings, ribbon footer (magazine / coffee shop) */
 .ws-root.theme-ajakiri { --ks-navy: #3b2a20; --ks-ink: #2c2420; --radius: 4mm; --font-head: 'Nunito', system-ui, sans-serif; }
-.ws-root.theme-ajakiri .ws-page { background: #fbf6ee; }
+.ws-root.theme-ajakiri .ws-page { background: #fff; }
 .ws-root.theme-ajakiri .ws-card:not(.plain) { border: .45mm solid color-mix(in srgb, var(--ws-badge) 45%, #fff); box-shadow: 0 .6mm 0 color-mix(in srgb, var(--ws-badge) 18%, transparent); }
 .ws-root.theme-ajakiri .ws-ch h3 { color: var(--ws-badge); font-weight: 800; }
 .ws-root.theme-ajakiri .ws-num { box-shadow: 0 0 0 .8mm #fff, 0 0 0 1.2mm color-mix(in srgb, var(--ws-badge) 50%, #fff); }
@@ -567,9 +567,9 @@
 .ws-root.theme-ajakiri .ws-ftr em { justify-self: center; background: #3b2a20; color: #fff6e8; font-style: normal; font-weight: 800; padding: 1.2mm 6mm; border-radius: 1mm; letter-spacing: .4pt; text-transform: uppercase; font-size: 10pt; }
 .ws-root.theme-ajakiri .ws-runhead { border-bottom-color: #c9b49a; }
 
-/* Klassika — cream paper, navy ink, square numbers, small caps headings, thin rules (printed textbook) */
+/* Klassika — white paper (owner 2026-10-10), navy ink, square numbers, small caps headings, thin rules (printed textbook) */
 .ws-root.theme-klassika { --ks-navy: #1d2b4a; --ks-ink: #1d2433; --radius: 0; --font-head: 'Josefin Sans', system-ui, sans-serif; --font-body: 'Lora', Georgia, serif; }
-.ws-root.theme-klassika .ws-page { background: #f4eddc; box-shadow: inset 0 0 0 4mm #f4eddc, inset 0 0 0 4.4mm #1d2b4a, inset 0 0 0 5.4mm #f4eddc, inset 0 0 0 5.7mm #1d2b4a, 0 6px 30px rgba(0,0,0,.18); padding: 13mm 12mm 11mm; font-size: 12pt; }
+.ws-root.theme-klassika .ws-page { background: #fff; box-shadow: inset 0 0 0 4mm #fff, inset 0 0 0 4.4mm #1d2b4a, inset 0 0 0 5.4mm #fff, inset 0 0 0 5.7mm #1d2b4a, 0 6px 30px rgba(0,0,0,.18); padding: 13mm 12mm 11mm; font-size: 12pt; }
 .ws-root.theme-klassika .ws-card:not(.plain) { border: .35mm solid #1d2b4a; }
 .ws-root.theme-klassika .ws-ch { grid-template-columns: 8mm 1fr; align-items: center; border-bottom: .3mm solid #1d2b4a; padding-bottom: 1.6mm; }
 .ws-root.theme-klassika .ws-num { border-radius: 0; width: 8mm; height: 8mm; font: 700 12pt var(--font-head); background: #1d2b4a !important; }
@@ -582,6 +582,6 @@
 .ws-root.theme-klassika .ws-title { text-align: center; border-top: .35mm solid #1d2b4a; border-bottom: .35mm solid #1d2b4a; padding: 3mm 0; }
 .ws-root.theme-klassika .ws-title h2 { font: 700 36pt/1 var(--font-head); text-transform: uppercase; letter-spacing: 2pt; color: #1d2b4a; }
 .ws-root.theme-klassika .ws-title p { font-style: italic; }
-.ws-root.theme-klassika .ws-passage, .ws-root.theme-klassika .ws-bank { border: .3mm solid #1d2b4a; background: #fffaf0; padding: 3mm 4mm; }
+.ws-root.theme-klassika .ws-passage, .ws-root.theme-klassika .ws-bank { border: .3mm solid #1d2b4a; background: #fff; padding: 3mm 4mm; }
 .ws-root.theme-klassika .ws-fl { color: #1d2b4a; font-family: var(--font-head); text-transform: uppercase; }
 .ws-root.theme-klassika .ws-runhead { border-bottom-color: #1d2b4a; font-family: var(--font-head); }
