@@ -25,6 +25,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/groups': ACCESS.STAFF,
   '/library': ACCESS.STAFF,
   '/library/worksheet-generator/avasta-module-1': ACCESS.ADMIN,
+  '/library/worksheet-generator/course': ACCESS.ADMIN,
   '/library/worksheets/convert': ACCESS.STAFF,
   '/library/worksheets/book': ACCESS.STAFF,
   '/library/worksheets/live/:assignmentId': ACCESS.STAFF,
