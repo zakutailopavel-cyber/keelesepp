@@ -149,3 +149,4 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | C1 M07 Liikuvus, keskkond ja elukeskkonna areng | est-c1-061–070 | Avasta, Harjuta, Kasuta | agent/course-c1-m07 |
 | C1 M08 Kultuur, keel ja meedia | est-c1-071–080 | Avasta, Harjuta, Kasuta | agent/course-c1-m08 |
 | C1 M09 Ühiskond, institutsioonid ja avalik elu | est-c1-081–090 | Avasta, Harjuta, Kasuta | agent/course-c1-m09 |
+| C1 M10 Teadus, tehnoloogia ja tulevik | est-c1-091–100 | Avasta, Harjuta, Kasuta | agent/course-c1-m10 |
