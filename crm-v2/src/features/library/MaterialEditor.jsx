@@ -134,6 +134,20 @@ function MaterialBlockEditor({ block, index, availableImages = [], onChange, onR
 }
 
 // The worksheet of this material lives on the same record (`worksheetDoc`, made in the Töölehe konstruktor).
+// curriculum lessons keep their sheets per phase (Avasta / Harjuta / Kasuta), not on the lesson record itself
+function PhaseLinks({ item, onOpenPhase, onPreview }) {
+  const done = item.phases.filter((phase) => phase.state === 'published').length;
+  return (
+    <section className="material-worksheet-link" aria-label="Töölehed">
+      <div><strong>Töölehed</strong><span>{done}/{item.phases.length} avaldatud · {item.phases.map((phase) => `${phase.label}: ${phase.state === 'published' ? 'avaldatud' : phase.state === 'draft' ? 'mustand' : 'puudub'}`).join(' · ')}</span></div>
+      <div className="material-worksheet-link__actions">
+        {onPreview ? <Button variant="secondary" onClick={() => onPreview(item)}><Eye size={16} /> Vaata lehti</Button> : null}
+        {item.phases.map((phase) => <Button key={phase.id} variant="secondary" onClick={() => onOpenPhase(item, phase.id)}><FilePenLine size={16} /> {phase.label}</Button>)}
+      </div>
+    </section>
+  );
+}
+
 function WorksheetLink({ item, onOpenWorksheet, onPreview }) {
   const studioBlocks = item.source?.worksheetDoc?.blocks?.length || 0;
   const legacyBlocks = item.source?.worksheetData?.blocks?.length || 0;
@@ -151,7 +165,7 @@ function WorksheetLink({ item, onOpenWorksheet, onPreview }) {
   );
 }
 
-export default function MaterialEditor({ item = null, repository, user, onClose, onSaved, onOpenWorksheet, onPreview }) {
+export default function MaterialEditor({ item = null, repository, user, onClose, onSaved, onOpenWorksheet, onOpenPhase, onPreview }) {
   const formId = useId();
   const fileInput = useRef(null);
   const [values, setValues] = useState(() => initialValues(item));
@@ -236,7 +250,8 @@ export default function MaterialEditor({ item = null, repository, user, onClose,
     >
       <form id={formId} className="material-editor" onSubmit={submit}>
         {saveError ? <div className="action-error" role="alert">{saveError}</div> : null}
-        {item?.sourceId && onOpenWorksheet ? <WorksheetLink item={item} onOpenWorksheet={onOpenWorksheet} onPreview={onPreview} /> : null}
+        {item?.sourceId && item.withPhases && onOpenPhase ? <PhaseLinks item={item} onOpenPhase={onOpenPhase} onPreview={onPreview} />
+          : item?.sourceId && onOpenWorksheet ? <WorksheetLink item={item} onOpenWorksheet={onOpenWorksheet} onPreview={onPreview} /> : null}
         <div className="form-grid">
           <Input id={`${formId}-title`} className="form-grid__wide" label="Pealkiri *" value={values.title} error={errors.title} maxLength={180} onChange={(event) => update('title', event.target.value)} />
           <Select id={`${formId}-type`} label="Materjali tüüp" value={values.materialType} disabled={Boolean(item)} onChange={(event) => update('materialType', event.target.value)}>

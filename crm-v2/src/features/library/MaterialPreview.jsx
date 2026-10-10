@@ -1,7 +1,8 @@
 import { CheckCircle2, FilePenLine, FileQuestion, Image as ImageIcon } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Badge, Button, EmptyState, LoadingState, Modal } from '../../components/ui/index.js';
 import { isUnpublishedWorksheet, LIBRARY_TYPES, publishedWorksheetDoc } from './libraryModel.js';
+import { lessonWorksheetsService } from '../../services/firebase/index.js';
 
 const StudioSheetPreview = lazy(() => import('./StudioSheetPreview.jsx'));
 
@@ -79,7 +80,47 @@ function FilePreview({ file }) {
   return <div className="preview-unsupported"><FileQuestion size={22} /><div><strong>{file.name || 'Fail'}</strong><span>Seda failivormingut ei saa brauseris turvaliselt eelvaadata.</span></div></div>;
 }
 
-export default function MaterialPreview({ item, onClose, onEditWorksheet }) {
+// Avasta / Harjuta / Kasuta of a curriculum lesson (owner, 2026-10-10): the eye shows the sheets themselves, one tab
+// per phase, as the student sees them (published version; a draft-only sheet is marked).
+function PhaseSheets({ item, repository }) {
+  const first = item.phases.find((phase) => phase.state === 'published') || item.phases.find((phase) => phase.state !== 'none') || item.phases[0];
+  const [phaseId, setPhaseId] = useState(first?.id || 'discover');
+  const [state, setState] = useState({ loading: true, record: null, error: '' });
+  const phase = item.phases.find((entry) => entry.id === phaseId);
+  useEffect(() => {
+    let alive = true;
+    if (!phase || phase.state === 'none') { setState({ loading: false, record: null, error: '' }); return undefined; }
+    setState({ loading: true, record: null, error: '' });
+    repository.load(item.sourceId, phaseId)
+      .then((record) => { if (alive) setState({ loading: false, record, error: '' }); })
+      .catch((error) => { if (alive) setState({ loading: false, record: null, error: error?.message || 'Töölehte ei saanud laadida.' }); });
+    return () => { alive = false; };
+  }, [item.sourceId, phase, phaseId, repository]);
+  const doc = state.record ? (publishedWorksheetDoc(state.record) || state.record.worksheetDoc) : null;
+  return (
+    <section className="preview-phases" aria-label="Töölehed">
+      <div className="preview-phase-tabs" role="tablist" aria-label="Tunni etapid">
+        {item.phases.map((entry) => <button type="button" role="tab" key={entry.id} aria-selected={entry.id === phaseId} className={`is-${entry.state} ${entry.id === phaseId ? 'is-active' : ''}`} onClick={() => setPhaseId(entry.id)}>
+          {entry.state === 'published' ? <CheckCircle2 size={14} aria-hidden="true" /> : null}{entry.label}{entry.state === 'draft' ? <small>mustand</small> : entry.state === 'none' ? <small>puudub</small> : null}
+        </button>)}
+      </div>
+      {state.loading ? <LoadingState label="Laen töölehte…" /> : state.error ? <EmptyState title="Töölehte ei saanud laadida" description={state.error} />
+        : doc?.blocks?.length ? <div className="preview-studio"><Suspense fallback={<LoadingState label="Laen töölehte…" />}><StudioSheetPreview doc={doc} /></Suspense></div>
+          : <EmptyState title={`${phase?.label || 'Etapi'} lehte pole veel`} description="Loo see töölehe konstruktoris." />}
+    </section>
+  );
+}
+
+export default function MaterialPreview({ item, onClose, onEditWorksheet, onOpenPhase, worksheetRepository = lessonWorksheetsService }) {
+  if (item.withPhases && item.sourceId) {
+    return (
+      <Modal open title={`Eelvaade: ${item.title}`} onClose={onClose} className="modal--preview" footer={onOpenPhase ? <Button variant="secondary" onClick={() => onOpenPhase(item, 'discover')}><FilePenLine size={16} /> Ava konstruktoris</Button> : null}>
+        <article className="material-preview">
+          <PhaseSheets item={item} repository={worksheetRepository} />
+        </article>
+      </Modal>
+    );
+  }
   const source = item.source || {};
   const previewDoc = publishedWorksheetDoc(source) || source.worksheetDoc;
   const studioDoc = previewDoc?.blocks?.length ? previewDoc : null;

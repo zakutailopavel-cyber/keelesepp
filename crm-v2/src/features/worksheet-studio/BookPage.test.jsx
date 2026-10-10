@@ -60,10 +60,9 @@ describe('BookPage by the curriculum', () => {
     const { container } = render(<MemoryRouter><BookPage repository={repository} worksheetRepository={worksheetRepository} /></MemoryRouter>);
     fireEvent.change(await screen.findByLabelText('Õpiku tase'), { target: { value: 'B1' } });
     expect(screen.getByLabelText('Valmidus')).toHaveTextContent('Avasta 2/2 · Harjuta 0/2 · Kasuta 0/2');
-    fireEvent.click(screen.getByRole('button', { name: 'Koosta õpik' }));
     const toc = within(await waitForToc(container));
     expect(toc.getAllByRole('listitem').map((li) => li.textContent)).toEqual(['1. Igapäevaelu', '1. Lähtepunkt · Avasta3', '2. Minu päev · Avasta4']);
-    expect(worksheetRepository.list).not.toHaveBeenCalledWith('a2-001');
+    expect(worksheetRepository.list).toHaveBeenCalledWith('a2b1-001');
     expect(screen.getByText('Puudu 4 avaldatud lehte')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '1. Lähtepunkt · Harjuta' })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/practice');
     expect(container.querySelector('.ws-book-cover h1').textContent).toBe('Eesti keel B1');

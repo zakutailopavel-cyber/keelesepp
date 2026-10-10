@@ -448,3 +448,5 @@
 .lib2-act--assign:hover{background:#e7f5f1;border-color:#0b5c4d;color:#0b5c4d}
 .lib2-filters{justify-content:flex-start;align-items:center;gap:10px 16px}
 .lib2-filters .lib2-chips{margin:0}
+/* eye on a curriculum lesson: one tab per phase, the sheet below */
+.preview-phase-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}.preview-phase-tabs button{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 14px;border:1px solid #d6dee7;border-radius:999px;background:#fff;color:#34445a;font:inherit;font-weight:700;cursor:pointer}.preview-phase-tabs button small{font-weight:600;color:#98a2b3}.preview-phase-tabs button.is-published svg{color:#087e6b}.preview-phase-tabs button.is-active{border-color:#087e6b;background:#ecf8f4;color:#0b4f43}

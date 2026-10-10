@@ -243,19 +243,27 @@ describe('LibraryPage', () => {
     expect(screen.getByTestId('location')).toHaveTextContent('/library/worksheets/plan-2');
   });
 
-  it('keeps the phase chips on a roadmap lesson that also has an older single worksheet', async () => {
+  it('the eye on a roadmap lesson shows its sheets, one tab per phase, and the editor knows them', async () => {
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [{
       id: 'a2b1-009', title: 'Koos veedetud aeg', subject: 'Eesti keel', level: 'B1', topic: '02. Pere', roadmapManaged: true, roadmapLessonNumber: 9,
       worksheetDoc: { schema: 'keelesepp.worksheet/2', meta: { title: 'Vana leht' }, blocks: [{ id: 'b', type: 'text', data: {} }] },
       worksheetPhases: { discover: { title: 'Koos veedetud aeg', status: 'published', version: 2, publishedVersion: 2, updatedAt: '2026-10-06T15:28:00.000Z' } },
     }], exercises: [] }) };
-    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
-    const phases = within(await screen.findByRole('group', { name: 'Töölehed: Koos veedetud aeg' }));
-    expect(phases.getByRole('link', { name: /Avasta: «Koos veedetud aeg» · Avaldatud/ })).toBeInTheDocument();
-    expect(phases.getByRole('link', { name: /Harjuta: lehte pole veel/ })).toBeInTheDocument();
+    const worksheetRepository = { load: vi.fn().mockResolvedValue({ id: 'discover', worksheetDocStatus: 'published', worksheetDoc: { schema: 'keelesepp.worksheet/2', meta: { title: 'Koos veedetud aeg' }, blocks: [{ id: 't1', type: 'text', data: { title: 'Sissejuhatus', text: 'Tere' } }] } }) };
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} worksheetRepository={worksheetRepository} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByRole('button', { name: 'Vaata: Koos veedetud aeg' })).toBeInTheDocument();
+    expect(screen.queryByRole('group', { name: 'Töölehed: Koos veedetud aeg' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Vaata: Koos veedetud aeg' }));
+    const tabs = within(await screen.findByRole('tablist', { name: 'Tunni etapid' }));
+    expect(tabs.getByRole('tab', { name: /Avasta/ })).toHaveAttribute('aria-selected', 'true');
+    expect(tabs.getByRole('tab', { name: /Harjuta.*puudub/ })).toBeInTheDocument();
+    await waitFor(() => expect(worksheetRepository.load).toHaveBeenCalledWith('a2b1-009', 'discover'));
+    fireEvent.click(tabs.getByRole('tab', { name: /Harjuta/ }));
+    expect(await screen.findByText('Harjuta lehte pole veel')).toBeInTheDocument();
+    expect(worksheetRepository.load).toHaveBeenCalledTimes(1);
   });
 
-  it('shows Avasta / Harjuta / Kasuta on the lesson card, filters by them and opens a published sheet in the student view', async () => {
+  it('counts Avasta / Harjuta / Kasuta per module and filters lessons by them', async () => {
     const lesson = (id, number, title, worksheetPhases) => ({ id, title, subject: 'Eesti keel', level: 'B1', topic: '01. A2 lähtepunkt', roadmapManaged: true, roadmapLessonNumber: number, ...(worksheetPhases ? { worksheetPhases } : {}) });
     const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [
       lesson('a2b1-001', 1, 'A2 lähtediagnostika', {
@@ -264,25 +272,14 @@ describe('LibraryPage', () => {
       }),
       lesson('a2b1-002', 2, 'Minu päev ja kellaaeg'),
     ], exercises: [] }) };
-    function Location() { const location = useLocation(); return <output data-testid="location">{location.pathname}{location.search}</output>; }
-    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><Routes><Route path="*" element={<><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /><Location /></>} /></Routes></AuthContext.Provider></MemoryRouter>);
-
-    const phases = within(await screen.findByRole('group', { name: 'Töölehed: A2 lähtediagnostika' }));
-    expect(phases.getByRole('link', { name: /Avasta: «Avasta: minu eesti keel» · Avaldatud · versioon 5/ })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/discover?vaade=opilane');
-    expect(phases.getByRole('link', { name: /Harjuta: «Harjuta: kordus» · Mustand · versioon 1/ })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/practice');
-    expect(phases.getByRole('link', { name: /Kasuta: lehte pole veel/ })).toHaveAttribute('href', '/library/lessons/a2b1-001/worksheets/transfer');
-    expect(phases.getByText('1/3 valmis')).toBeInTheDocument();
-    expect(screen.getByText('Avasta 1/2 · Harjuta 0/2 · Kasuta 0/2')).toBeInTheDocument();
-
+    render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByText('Avasta 1/2 · Harjuta 0/2 · Kasuta 0/2')).toBeInTheDocument();
     fireEvent.change(screen.getByRole('combobox', { name: 'Töölehtede olek' }), { target: { value: 'none' } });
-    expect(screen.queryByRole('group', { name: 'Töölehed: A2 lähtediagnostika' })).not.toBeInTheDocument();
-    expect(screen.getByRole('group', { name: 'Töölehed: Minu päev ja kellaaeg' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Vaata: A2 lähtediagnostika' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Vaata: Minu päev ja kellaaeg' })).toBeInTheDocument();
     fireEvent.change(screen.getByRole('combobox', { name: 'Töölehtede olek' }), { target: { value: 'drafts' } });
-    expect(screen.getByRole('group', { name: 'Töölehed: A2 lähtediagnostika' })).toBeInTheDocument();
-    expect(screen.queryByRole('group', { name: 'Töölehed: Minu päev ja kellaaeg' })).not.toBeInTheDocument();
-
-    fireEvent.click(within(screen.getByRole('group', { name: 'Töölehed: A2 lähtediagnostika' })).getByRole('link', { name: /Avasta:/ }));
-    expect(screen.getByTestId('location')).toHaveTextContent('/library/lessons/a2b1-001/worksheets/discover?vaade=opilane');
+    expect(screen.getByRole('button', { name: 'Vaata: A2 lähtediagnostika' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Vaata: Minu päev ja kellaaeg' })).not.toBeInTheDocument();
   });
 
   it('an admin prepares a whole module in one click and sees what was published', async () => {

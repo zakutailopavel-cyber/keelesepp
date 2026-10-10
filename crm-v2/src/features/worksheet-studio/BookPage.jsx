@@ -1,5 +1,5 @@
 /* global setTimeout */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { lessonWorksheetsService, libraryService } from '../../services/firebase/index.js';
@@ -89,17 +89,30 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   const scope = chosenModule ? chosenModule.lessons : modules.flatMap((item) => item.lessons);
   const progress = programProgress(scope);
   const buildKey = `${level}|${chosenModule?.key || ''}|${program.phases.join(',')}`;
+  const latestBuild = useRef('');
   const buildProgram = async () => {
-    setBuilt({ loading: true, error: '', sheets: [], missing: [], key: buildKey });
+    const key = buildKey;
+    latestBuild.current = key;
+    setBuilt({ loading: true, error: '', sheets: [], missing: [], key });
     try {
       const records = await Promise.all(scope.map((lesson) => worksheetRepository.list(lesson.id).then((list) => [lesson.id, list]).catch(() => [lesson.id, []])));
+      if (latestBuild.current !== key) return;
       const result = assembleProgramBook(scope, Object.fromEntries(records), program.phases);
-      setBuilt({ loading: false, error: '', ...result, key: buildKey });
-      if (!book.title) setBook((current) => ({ ...current, title: `Eesti keel ${level}`, level, subtitle: chosenModule ? chosenModule.label : current.subtitle }));
+      setBuilt({ loading: false, error: '', ...result, key });
+      // the default title follows the level; a title the teacher typed is kept
+      setBook((current) => (!current.title || /^Eesti keel (A1|A2|B1|B2|C1|C2)$/.test(current.title)
+        ? { ...current, title: `Eesti keel ${level}`, level, subtitle: chosenModule ? chosenModule.label : '' }
+        : current));
     } catch (error) {
-      setBuilt({ loading: false, error: error.message || 'Õpikut ei saanud koostada.', sheets: [], missing: [], key: buildKey });
+      if (latestBuild.current === key) setBuilt({ loading: false, error: error.message || 'Õpikut ei saanud koostada.', sheets: [], missing: [], key });
     }
   };
+  // the book assembles itself for the chosen level / module (owner, 2026-10-10: an empty book until a button press
+  // looked broken); „Koosta õpik” stays to rebuild after sheets were published
+  useEffect(() => {
+    if (mode !== 'program' || state.loading || !scope.length || !program.phases.length || latestBuild.current === buildKey) return;
+    buildProgram();
+  }, [buildKey, mode, state.loading]); // eslint-disable-line react-hooks/exhaustive-deps
   const programSheets = built.key === buildKey ? built.sheets : [];
   const items = mode === 'program'
     ? programSheets
