@@ -111,7 +111,7 @@ Leht avaldatakse ainult siis, kui:
 
 ## 8. Valminud
 
-Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Moodulid 2–4 on laiendatud; moodulid 5–6 on veel märgitud `shortSheets`.
+Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Moodulid 2–6 on laiendatud (40–46 min lehe kohta).
 
 
 | Moodul | Tunnid | Etapid | PR |
@@ -119,5 +119,5 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | B1 M02 Mina, pere ja suhted | 006–010 | Harjuta, Kasuta | #433 |
 | B1 M03 Kodu, kohad ja linn | 011–015 | Harjuta, Kasuta | #434 |
 | B1 M04 Aeg, plaanid ja kohustused | 016–020 | Harjuta, Kasuta | #434 |
-| B1 M05 Lihtminevik ja kogemused | 021–025 | Harjuta, Kasuta | agent/course-b1-m05-m06 |
-| B1 M06 Toit ja teenindus | 026–030 | Harjuta, Kasuta | agent/course-b1-m05-m06 |
+| B1 M05 Lihtminevik ja kogemused | 021–025 | Harjuta, Kasuta | #435, laiendus agent/course-b1-expand-m05 |
+| B1 M06 Toit ja teenindus | 026–030 | Harjuta, Kasuta | #435, laiendus agent/course-b1-expand-m05 |
