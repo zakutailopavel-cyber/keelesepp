@@ -95,6 +95,9 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
     if (target.matches?.('input.ws-line, textarea')) {
       const value = target.value || '';
       const hasSel = target.selectionEnd > target.selectionStart;
+      // a plain click in a written answer only places the cursor (to select a word next); an empty or one-word
+      // answer is marked as a whole
+      if (!hasSel && value.trim().split(/\s+/).length > 1) return;
       markPicked();
       setDraft({ kind: 'field', blockId: card.dataset.block, fieldIndex: fieldsOf(card).indexOf(target), start: hasSel ? target.selectionStart : 0, end: hasSel ? target.selectionEnd : value.length, selectedText: hasSel ? value.slice(target.selectionStart, target.selectionEnd) : value, color: 'error', parandus: '', selgitus: '', at });
       setError('');

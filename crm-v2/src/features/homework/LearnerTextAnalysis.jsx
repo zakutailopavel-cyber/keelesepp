@@ -6,6 +6,21 @@ import { useMacRequest } from '../worksheet-studio/editor/useMacRequest.js';
 import LevelBars from '../worksheet-studio/editor/LevelBars.jsx';
 import '../worksheet-studio/worksheetStudio.css';
 
+// the learner's words first (crossed out), then the correction, in every changed stretch
+export function fixParts(said, corrected) {
+  const out = [];
+  let del = [];
+  let ins = [];
+  const flush = () => { if (del.length) out.push({ type: 'del', text: del.join(' ') }); if (ins.length) out.push({ type: 'ins', text: ins.join(' ') }); del = []; ins = []; };
+  for (const w of wordDiff(said, corrected)) {
+    if (w.type === 'del') del.push(w.text);
+    else if (w.type === 'ins') ins.push(w.text);
+    else { flush(); out.push(w); }
+  }
+  flush();
+  return out;
+}
+
 const words = (t) => String(t || '').split(/\s+/).filter(Boolean).length;
 
 // The learner's written answers of a worksheet (writing, letters): structured sheets (blocks) and older sheets
@@ -36,11 +51,11 @@ function OneText({ item, level, onFeedback }) {
       {r ? <div className="learner-text__result">
         <p className="form-hint">{r.sentences} lauset · {r.corrections.length ? `${r.corrections.length} parandust (Tartu mudel)` : 'vigu ei leitud (Tartu mudel)'}</p>
         {r.corrections.length ? <ol className="learner-text__fixes">{r.corrections.map((c, i) => (
-          <li key={i}>{wordDiff(c.said, c.corrected).map((w, k) => <Fragment key={k}>{k ? ' ' : ''}{w.type === 'del' ? <s>{w.text}</s> : w.type === 'ins' ? <ins>{w.text}</ins> : w.text}</Fragment>)}</li>
+          <li key={i}>{fixParts(c.said, c.corrected).map((w, k) => <Fragment key={k}>{k ? ' ' : ''}{w.type === 'del' ? <s>{w.text}</s> : w.type === 'ins' ? <ins>{w.text}</ins> : w.text}</Fragment>)}</li>
         ))}</ol> : null}
         {r.evaluation ? <div className="ws-studio learner-text__eki">
           <LevelBars rows={[['Sõnad', r.evaluation.wordLevels], ['Vormid', r.evaluation.formLevels]]} />
-          {r.evaluation.topForms?.length ? <p className="form-hint">Kasutab juba: {r.evaluation.topForms.slice(0, 5).map((f) => `${f.text} — ${f.form} (${f.level})`).join('; ')}</p> : null}
+          {r.evaluation.topForms?.some((f) => f.form) ? <p className="form-hint">Kasutab juba: {r.evaluation.topForms.filter((f) => f.form).slice(0, 5).map((f) => `${f.text} — ${f.form} (${f.level})`).join('; ')}</p> : null}
           {r.evaluation.aboveWords?.length ? <p className="form-hint">Sõnad üle taseme {level}: {r.evaluation.aboveWords.map((w) => `${w.text} (${w.level})`).join(', ')}</p> : null}
         </div> : <p className="form-hint">EKI tasemehinnang ei olnud praegu kättesaadav.</p>}
         {lines.length && onFeedback ? <Button variant="secondary" onClick={() => onFeedback(lines)}>Lisa parandused tagasisidesse</Button> : null}
