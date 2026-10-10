@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-c1-m01 — C1 M01 Eneseväljendus, identiteet ja suhted (est-c1-001–010), kõik kolm etappi
+
+- Base: `main` 16b37fd. Previous modules are published to production (diff with production: 0 differences).
+- First C1 module. Registry: `COURSES.c1` (badge „KeeleSepp B2 → C1”), `c1/module01.js` (001–005) + `c1/module01b.js` (006–010), level C1 (readings 500+ words, sentence average ≥ ~11 in tasks, speaking 240–300 s, letters 250–300 words). Identity and self-image (neutral / evaluative / figurative), values and nuance (reservation, hedging), roles and implicit expectations, conflict and boundaries, irony and hidden attitude, register, a reasoned public position (PÜNK), grammar: the object case at C1 and government (rektsioon), progress check 1. 30 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b2-m18 — B2 M18 B2 rääkimine ja lõpphindamine (b1b2-086–090), kõik kolm etappi
 
 - Base: `main` a941e7d. Previous modules are published to production (diff with production: 0 differences).
