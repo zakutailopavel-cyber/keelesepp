@@ -28,6 +28,7 @@ export const B = {
   errorfix: (id, title, instruction, rows, width = 'full', goal = 'g_use') => block(id, 'errorfix', 'peach', goal, { title, instruction, rows: rows.map(([wrong, answer]) => ({ wrong, answer })) }, width),
   transformation: (id, title, instruction, rows, width = 'full', goal = 'g_use') => block(id, 'transformation', 'blue', goal, { title, instruction, rows: rows.map(([from, prompt, answer]) => ({ from, prompt, answer })) }, width),
   wordorder: (id, title, instruction, sentences, width = 'half', goal = 'g_use') => block(id, 'wordorder', 'sky', goal, { title, instruction, sentences: join(sentences) }, width),
+  clock: (id, title, instruction, items, goal = 'g_use') => block(id, 'clock', 'blue', goal, { title, instruction, columns: '3', items }),
   table: (id, title, instruction, headers, rows, goal = 'g_use') => block(id, 'table', 'blue', goal, { title, instruction, headers, rows: join(rows) }),
   translation: (id, title, instruction, rows, width = 'half', goal = 'g_use') => block(id, 'translation', 'cream', goal, { title, instruction, rows: rows.map((source) => ({ source, hint: '' })) }, width),
   dialogue: (id, title, instruction, speakerA, speakerB, lines, goal = 'g_use') => block(id, 'dialogue', 'green', goal, { title, instruction, speakerA, speakerB, lines: lines.map(([who, text]) => ({ who, text })) }),
