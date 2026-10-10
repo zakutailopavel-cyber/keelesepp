@@ -19,6 +19,20 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/course-b1-expand-m03 — B1 moodulid 3 ja 4 laiendatud tervete tundideni
+
+- a2b1-011…020 Harjuta + Kasuta: iga leht on 40–45 min (enne 10–24 min), plokke 10–17.
+- Lisandusid:
+  - lugemistekstid (Eliise tuba, Anu päev, Danieli asjaajamised, linna meelespea, teekirjeldus, kiri hotellile, Kati tööpäev, keelekooli reeglid, Mardi nimekiri, sõnumid, arsti teade, Olga uus elu);
+  - vormiharjutused (kus/kuhu/kust, kellaajad, modaalverbid), teisendused, vigade parandus, tõlge, etteütlus;
+  - pikemad kirjutamisülesanded (8–10 lauset), kõne ja rollikaardid.
+- Moodulitelt 3 ja 4 on eemaldatud `shortSheets`. Lühikesena on endiselt märgitud moodulid 5–6.
+- Kontrollid:
+  - kursuse kvaliteedivärav 11/11 (40–55 min, normid, vaheldus);
+  - eslint;
+  - build.
+- Production'isse ei kirjutatud midagi.
+
 ## 2026-10-10 · agent/accounts-badge — menüü loendurid: „Uued kontod” ja „Suhtlus”
 
 - Omanik nägi uut registreerimist juhuslikult ja soovis märki ka „Suhtluse” juurde.

@@ -111,6 +111,9 @@ Leht avaldatakse ainult siis, kui:
 
 ## 8. Valminud
 
+Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Moodulid 2–4 on laiendatud; moodulid 5–6 on veel märgitud `shortSheets`.
+
+
 | Moodul | Tunnid | Etapid | PR |
 | --- | --- | --- | --- |
 | B1 M02 Mina, pere ja suhted | 006–010 | Harjuta, Kasuta | #433 |
