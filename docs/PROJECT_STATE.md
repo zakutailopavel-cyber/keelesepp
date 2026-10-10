@@ -1,3 +1,10 @@
+## 2026-10-10 · agent/cancel-reason-hint — arve tühistamise põhjuse vihje
+
+- Owner could not cancel an invoice: the reason „Vale arve” has 9 characters, while the UI and `functions/manual-invoice-api.js` require at least 10. The disabled button gave no explanation.
+- `FinanceMonthPage.jsx`: the placeholder says „vähemalt 10 märki” and a live hint shows how many characters are still missing.
+- No backend change; the 10-character audit rule stays.
+- Check: vitest FinanceMonthPage 9/9.
+
 ## 2026-10-10 · agent/course-b2-m08 — B2 M08 Reisimine ja kultuur (b1b2-036–040), kõik kolm etappi
 
 - Base: `main` 50b8548. Previous modules are published to production (diff with production: 0 differences).
