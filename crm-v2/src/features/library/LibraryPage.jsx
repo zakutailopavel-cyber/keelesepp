@@ -30,6 +30,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { curriculumInstallerService, groupsService, lessonWorksheetsService, libraryService, studentsService } from '../../services/firebase/index.js';
+import { studentAccess } from '../../services/firebase/students.js';
 import { legacyUrl } from '../../utils/legacyUrls.js';
 import { ROLES } from '../../utils/roles.js';
 import { A2_LESSON_COUNT, a2InstalledCount } from '../curriculum/a2Curriculum.js';
@@ -151,11 +152,15 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
               {visibleStudents.map((student) => (
                 <label className={selectedIds.includes(student.id) ? 'is-selected' : ''} key={student.id}>
                   <input type="checkbox" checked={selectedIds.includes(student.id)} onChange={() => toggle(student.id)} />
-                  <span><strong>{student.name}</strong><small>{[student.subject, student.level, student.group, student.teacher].filter(Boolean).join(' · ') || 'Õppeinfo puudub'}</small></span>
+                  <span><strong>{student.name}</strong><small>{[student.subject, student.level, student.group, student.teacher].filter(Boolean).join(' · ') || 'Õppeinfo puudub'}</small>
+                    {studentAccess(student) === 'none' ? <small className="assignment-noaccount">⚠ Kontot pole — õpilane ei näe tööd</small> : studentAccess(student) === 'parent' ? <small className="assignment-noaccount is-parent">Näeb ainult lapsevanema konto</small> : null}</span>
                 </label>
               ))}
               {!visibleStudents.length ? <EmptyState title="Õpilasi ei leitud" description="Muuda otsingut või kontrolli õpetaja seost." /> : null}
             </div>
+            {selectedIds.some((id) => studentAccess(students.find((student) => student.id === id)) === 'none') ? (
+              <p className="action-error" role="alert">Valitud õpilastest {selectedIds.filter((id) => studentAccess(students.find((student) => student.id === id)) === 'none').map((id) => students.find((student) => student.id === id)?.name).join(', ')} pole kontoga seotud: nad ei näe tööd. Seo konto õpilase kaardil või vali õige kaart (sama nimega kaarte võib olla mitu).</p>
+            ) : null}
             <div className="assignment-options"><Input id="assignment-due" label="Tähtaeg" type="date" value={dueDate} onChange={(event) => setDueDate(event.target.value)} /><Input id="assignment-note" label="Märkus õpilasele" value={note} onChange={(event) => setNote(event.target.value)} placeholder="Näiteks: tee enne järgmist tundi" /></div>
           </>
         )}
