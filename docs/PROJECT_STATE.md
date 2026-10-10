@@ -1,3 +1,10 @@
+## 2026-10-10 · agent/board-sheet-full-height — õpilane ei saanud tahvlil töölehte alla kerida
+
+- Base: `main` 81ad5ce.
+- Cause: on the board the worksheet player (`.ws-doc-player.is-inline`) and the teacher's embedded live view (`.ws-live.is-embedded`) kept `max-height: 75vh; overflow: auto`. Wheel and touch on the board move the board, so the inner scroll was unreachable and the sheet's bottom was cut off.
+- Fix (`board.css`): inside `.sb-underlay … .is-board` the canvas has `max-height: none; overflow: visible`; the underlay's ResizeObserver measures the full sheet, so the board pans to the end.
+- Checks: vitest board + worksheet-studio 190 passed; `vite build` ok.
+
 ## 2026-10-10 · agent/admin-test-student — administraator logib sisse testõpilasena
 
 - Base: `main` 0659706.

@@ -96,6 +96,9 @@
 .sb-underlay .st-canvas, .sb-underlay .ws-live.is-embedded .st-canvas, .sb-underlay .ws-doc-player.is-inline .st-canvas { max-height: none; overflow: visible; }
 /* teacher and student: the same sheet at the same place (no frame, padding or centring that differs between them) */
 .sb-underlay .is-board .st-canvas { margin: 0; padding: 0; border-radius: 0; background: transparent; min-height: 0; }
+/* on the board the whole sheet lies on the canvas and moves with the board (wheel, two fingers, hand); the 75vh inner
+   scroll of the inline player / embedded live view could not be reached there, so the bottom of the sheet was cut off */
+.sb-underlay .is-board .st-canvas, .sb-underlay .ws-doc-player.is-inline.is-board .st-canvas, .sb-underlay .ws-live.is-embedded.is-board .st-canvas { max-height: none; overflow: visible; }
 .sb-underlay .is-board .st-zoom { margin: 0; }
 .sb-underlay .ws-inline-player.is-board, .sb-underlay .ws-live.is-board { display: block; max-width: none; width: 100%; padding: 0; margin: 0; border: 0; box-shadow: none; background: transparent; }
 .sb-underlay .is-board .ws-inline-footer, .sb-underlay .ws-live.is-board > .st-bar { margin-top: 16px; }
