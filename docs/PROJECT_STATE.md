@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-c1-m03 — C1 M03 Teenused, tarbimine ja raha (est-c1-021–030), kõik kolm etappi
+
+- Base: `main` aa33ce0. Previous modules are published to production (diff with production: 0 differences).
+- teenuse kvaliteet, tarbimisotsused, lepingud, pretensioon, isiklik rahandus, pangandus ja kindlustus, vastutustundlik tarbimine, ajavormid sidusas tekstis, kõneviisid ja modaalsus, progressikontroll 3
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-c1-m02 — C1 M02 Kodu, kogukond ja linnakeskkond (est-c1-011–020), kõik kolm etappi
 
 - Base: `main` c4d28dd. Previous modules are published to production (diff with production: 0 differences).
