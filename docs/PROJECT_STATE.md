@@ -19,6 +19,26 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/pet-games — lemmiku teemamängud õpilase töölehtedest
+
+- `petGames.js` (uus): `sheetItems(worksheetDoc)` võtab õpetaja antud töölehtedest mängumaterjali koos õigete vastustega.
+  - Allikad: lüngad / kuulamine, sõnavormid, valikvastused, ühendamine, sõnajärg / etteütlus, õige-vale ja vea parandus.
+  - `learnerTopics(assignments)` järjestab: avatud töölehed ees, siis uuemad; ainult need mängud, millel on piisavalt materjali.
+  - `gameRounds` teeb voorud.
+- `PetGames.jsx` (uus) annab neli mängu:
+  - „Püüa sõna”: õige sõna kukub taevast, püüa enne maandumist;
+  - „Paarid”: mälukaardid;
+  - „Lauseehitus”: sõnadest lause;
+  - „Kiire kontroll”: õige või vale 7 sekundiga.
+  Teema valitakse töölehe pealkirja järgi.
+- `PetCare.jsx`: nupp „Teemamängud” täidab rõõmu nagu sõnamäng. `PetCard.jsx` loeb `homeworkService.listWorksheetAssignmentsByStudentIds([studentId])` (õpilase enda lugemisõigus, uusi reegleid ei ole).
+- Midagi ei kirjutata peale olemasoleva `pet.playedAt`.
+- Kontrollid:
+  - vitest pet + students õnnestus;
+  - eslint 0 vigu;
+  - build õnnestus;
+  - „Püüa sõna” kontrollitud brauseri demo-lehel.
+
 ## 2026-10-10 · agent/pet-alive — elav lemmik: tõstmine, päev ja öö, aastaajad, mälu, kasvav tuba
 
 - `PetCompanion.jsx`:

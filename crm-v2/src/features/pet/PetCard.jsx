@@ -9,6 +9,8 @@ import PetWardrobe from './PetWardrobe.jsx';
 import PetCare from './PetCare.jsx';
 import { careGreeting, careMood, lowestNeed, petNeeds } from './petCare.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { homeworkService } from '../../services/firebase/index.js';
+import { learnerTopics } from './petGames.js';
 import { roomSvg } from './petRoom.js';
 import { seasonalWear } from './petLife.js';
 import './pet.css';
@@ -64,7 +66,7 @@ function PetPicker({ initial, onSave, onCancel, onDecline, saving, error }) {
 }
 
 // The student's pet on "Minu õpingud": chosen once, then grows from lessons, submitted worksheets and goals.
-export default function PetCard({ user, studentId = '', readOnly = false, lessons = [], submissions = [], homework = [], words = [], pendingHomework = 0, lessonToday = '', subject = '', repository = petsService, wordsService = studentWordsService }) {
+export default function PetCard({ user, studentId = '', readOnly = false, lessons = [], submissions = [], homework = [], words = [], pendingHomework = 0, lessonToday = '', subject = '', repository = petsService, wordsService = studentWordsService, assignmentsService = homeworkService }) {
   const [pet, setPet] = useState(undefined);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -79,6 +81,14 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
     Promise.resolve().then(() => repository.lessonStats(user.uid)).then((list) => { if (alive) setSpeech(list || []); }).catch(() => {});
     return () => { alive = false; };
   }, [repository, readOnly, user?.uid]);
+  // the worksheets the teacher gave: their tasks become the pet's topic games (petGames.js)
+  const [topics, setTopics] = useState([]);
+  useEffect(() => {
+    let alive = true;
+    if (readOnly || !studentId || typeof assignmentsService?.listWorksheetAssignmentsByStudentIds !== 'function') return undefined;
+    Promise.resolve().then(() => assignmentsService.listWorksheetAssignmentsByStudentIds([studentId])).then((list) => { if (alive) setTopics(learnerTopics(list || [])); }).catch(() => {});
+    return () => { alive = false; };
+  }, [assignmentsService, readOnly, studentId]);
   useEffect(() => {
     let alive = true;
     Promise.resolve().then(() => repository.get(user?.uid))
@@ -144,7 +154,7 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
             {!readOnly ? <button type="button" className="pet-home__edit" onClick={() => setEditing(true)}>Muuda</button> : null}
             {!readOnly && repository.updateOutfit ? <button type="button" className="pet-home__edit" aria-expanded={wardrobe} onClick={() => setWardrobe(!wardrobe)}>Riidekapp</button> : null}
           </div>
-          <PetCare needs={needs} words={words} wordsService={wordsService} readOnly={readOnly} onPlayed={played} stats={speech} />
+          <PetCare needs={needs} words={words} wordsService={wordsService} readOnly={readOnly} onPlayed={played} stats={speech} topics={topics} kind={pet.kind} />
           <div className="pet-xp" aria-label={`Kasv ${pct}%`}>
             <div className="pet-xp__bar"><i style={{ width: `${pct}%` }} /></div>
             <div className="pet-xp__row"><span>{progress.nextItem ? `Järgmine: ${progress.nextItem}` : 'Täiskasvanud sõber'}</span><span>{count(progress.lessons, 'tund', 'tundi')} · {count(progress.submissions, 'töö', 'tööd')} · {count(progress.goals, 'eesmärk', 'eesmärki')}</span></div>
