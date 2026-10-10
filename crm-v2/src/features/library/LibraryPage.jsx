@@ -1,8 +1,6 @@
 import {
   ArrowRight,
-  Check,
   ChevronDown,
-  Circle,
   Plus,
   BookCopy,
   BookOpen,
@@ -41,7 +39,6 @@ import {
   matchesPhaseFilter,
   modulePhaseProgress,
   PHASE_FILTERS,
-  phasesDone,
   levelFacets,
   moduleFacets,
   searchLibrary,
@@ -339,14 +336,10 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const openWorksheet = (item) => navigate(usesLessonEngine(item)
     ? `/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets/discover`
     : `/library/worksheets/${encodeURIComponent(item.sourceId)}`);
+  const openPhase = (item, phaseId) => navigate(`/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets/${phaseId}`);
   const shown = results.slice(0, limit);
   const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
   const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine || phaseFilter);
-  const sheetPath = (item, phase) => `/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets/${phase.id}${phase.state === 'published' ? '?vaade=opilane' : ''}`;
-  const phaseHint = (phase) => (phase.state === 'none'
-    ? `${phase.label}: lehte pole veel — ava konstruktoris`
-    : `${phase.label}: «${phase.title || 'pealkirjata'}» · ${phase.state === 'published' ? `Avaldatud · versioon ${phase.publishedVersion}${phase.newerDraft ? ` (uuem mustand v${phase.version})` : ''}` : `Mustand · versioon ${phase.version}`}${phase.updatedAt ? ` · ${shortDate(phase.updatedAt)}` : ''}`);
-  const phaseIcon = { published: Check, draft: Circle, none: Plus };
 
   const row = ({ item, snippet }) => {
     const Icon = typeIcons[item.type] || BookOpen;
@@ -361,20 +354,6 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
           <small>{[meta.label, item.level || item.ageGroup, sort !== 'toc' ? item.moduleTitle : '', item.languageFocus].filter(Boolean).join(' · ')}</small>
           {snippet ? <em className="lib2-snippet"><b>{snippet.label}:</b> {snippet.text}</em> : null}
         </button>
-        {item.withPhases ? (
-          <span className="lib2-phases" role="group" aria-label={`Töölehed: ${item.title}`}>
-            {item.phases.map((phase) => {
-              const PhaseIcon = phaseIcon[phase.state];
-              const hint = phaseHint(phase);
-              return (
-                <Link key={phase.id} to={sheetPath(item, phase)} className={`lib2-phase is-${phase.state}`} title={hint} aria-label={hint}>
-                  <PhaseIcon size={13} aria-hidden="true" /> {phase.label}{phase.title ? <small>{phase.title}</small> : null}
-                </Link>
-              );
-            })}
-            <em className="lib2-phase-count">{phasesDone(item.phases)}/3 valmis</em>
-          </span>
-        ) : null}
         <span className="lib2-meta">{item.fileCount ? <span title={`${item.fileCount} faili`}><Paperclip size={14} />{item.fileCount}</span> : null}{shortDate(item.updatedAt) ? <time dateTime={item.updatedAt}>{shortDate(item.updatedAt)}</time> : null}</span>
         <span className="lib2-actions">
           <button type="button" className="lib2-act" aria-label={`Vaata: ${item.title}`} title="Vaata" onClick={() => open(item)}><Eye size={16} /></button>
@@ -489,8 +468,8 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
       >
         {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p className="library-detail__plan">{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Tase</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Moodul</dt><dd>{selected.moduleTitle || selected.curriculum || selected.topic || '—'}</dd></div>{selected.languageFocus ? <div><dt>Keelefookus</dt><dd>{selected.languageFocus}</dd></div> : null}{selected.source?.goal ? <div><dt>Eesmärk</dt><dd>{selected.source.goal}</dd></div> : null}<div><dt>Failid</dt><dd>{selected.fileCount || '—'}</dd></div><div><dt>Muudetud</dt><dd>{shortDate(selected.updatedAt) || '—'}{selected.authorName ? ` · ${selected.authorName}` : ''}</dd></div></dl></div> : null}
       </Modal>
-      {previewing ? <MaterialPreview item={previewing} onClose={() => setPreviewing(null)} onEditWorksheet={previewing.sourceId ? openWorksheet : undefined} /> : null}
-      {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onOpenWorksheet={openWorksheet} onPreview={(item) => { setEditing(undefined); setPreviewing(item); }} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
+      {previewing ? <MaterialPreview item={previewing} worksheetRepository={worksheetRepository} onOpenPhase={openPhase} onClose={() => setPreviewing(null)} onEditWorksheet={previewing.sourceId ? openWorksheet : undefined} /> : null}
+      {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onOpenWorksheet={openWorksheet} onOpenPhase={openPhase} onPreview={(item) => { setEditing(undefined); setPreviewing(item); }} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {exerciseEditing !== undefined ? <ExerciseEditor item={exerciseEditing} repository={repository} user={user} onClose={() => setExerciseEditing(undefined)} onSaved={(result) => { setExerciseEditing(undefined); setSuccess(`Harjutus „${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} onClose={() => setAssigning(null)} onAssigned={(result) => {
         const live = assigning.source?.worksheetDoc?.blocks?.length ? (result.assignments || []).slice(0, 6) : [];
