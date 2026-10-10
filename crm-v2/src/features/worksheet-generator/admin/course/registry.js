@@ -30,6 +30,15 @@ const GOALS = {
 
 export function moduleNumber(mod) { return Number(String(mod.MODULE.id).split('-').pop()); }
 
+// controlled work first, free use after it, the self-check last (didactic norm „kontrollitud → vaba”); an opening
+// situation (text / tip) stays on top. Stable: the author's order holds inside each group.
+const RANK = { planning: 2, speaking: 3, writing: 3, rolecards: 3, guidedletter: 3, rubric: 4, selfcheck: 5 };
+export function lessonOrder(blocks = []) {
+  const head = ['text', 'tip'].includes(blocks[0]?.type) ? [blocks[0]] : [];
+  const rest = blocks.slice(head.length).map((b, i) => ({ b, i, r: RANK[b.type] || 1 }));
+  return [...head, ...rest.sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)];
+}
+
 export function buildCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
@@ -46,11 +55,13 @@ export function buildCourseSheet(mod, lessonId, phase) {
       goals: GOALS,
       phase,
       displayLabel: PHASES[phase].label,
+      // modules written before the 40–55 min rule are marked until they are expanded (docs/B1_B2_COURSE_PRODUCTION.md)
+      ...(mod.MODULE.shortSheets ? { shortSheet: true } : {}),
       badge: `${course.badge} · moodul ${moduleNumber(mod)}`,
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: lesson[phase],
+    blocks: lessonOrder(lesson[phase]),
   };
 }
 

@@ -36,6 +36,7 @@ import { VARIANTS, makeVariant } from './engine/variants.js';
 import { setPath } from './engine/inlineEdit.js';
 import { emptyHistory, isTextTarget, parseWorksheetFile, pushHistory, redoHistory, undoHistory, useUnsavedGuard } from './editorHistory.js';
 import { analyzeWorksheet } from './quality.js';
+import { SHEET_MINUTES } from './didactics/timeEstimate.js';
 import { VOCABULARY_FOR, loadLevelForms } from './didactics/levelVocabulary.js';
 import { levelKey } from './didactics/levels.js';
 import InsightsPanel from './InsightsPanel.jsx';
@@ -770,6 +771,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               <div className="st-quality-pop">
                 <b>{quality.ready ? `Avaldamiseks valmis · versioon ${version || 'uus'} · ${worksheetStatus === 'published' ? 'avaldatud' : 'mustand'}` : 'Kvaliteedikontroll'}</b>
                 {quality.didactics ? <p className="st-didactic"><span>Didaktika · tase {quality.didactics.label}</span><b>{quality.didactics.score}%</b><i style={{ width: `${quality.didactics.score}%` }} /></p> : null}
+                {quality.minutes ? <p className="st-didactic"><span>Tööaeg · terve tund {SHEET_MINUTES.min}–{SHEET_MINUTES.max} min</span><b>≈ {quality.minutes} min</b><i style={{ width: `${Math.min(100, Math.round((quality.minutes / SHEET_MINUTES.min) * 100))}%` }} /></p> : null}
                 {quality.issues.length ? <ul>{quality.issues.map((issue) => <li className={issue.level} key={issue.code}><button type="button" className="st-issue" onClick={() => showIssue(issue)}>{issue.text}</button></li>)}</ul> : <p>Kõik kohustuslikud kontrollid on läbitud.</p>}
               </div>
             </details>

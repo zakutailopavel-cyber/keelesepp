@@ -1,5 +1,6 @@
 import { BLOCKS } from './engine/registry.js';
 import { diagramHasContent } from './engine/blocks/diagramModel.js';
+import { SHEET_MINUTES, sheetMinutes } from './didactics/timeEstimate.js';
 import { didacticCheck } from './didactics/didacticCheck.js';
 
 const text = (value) => String(value || '').trim();
@@ -38,6 +39,9 @@ export function analyzeWorksheet(document, { forms = null } = {}) {
   // the level's didactic norms (didactics/levels.js): never blocking, shown as warnings and tips
   const didactics = didacticCheck(document || {}, { forms });
   issues.push(...didactics.issues);
+  // how long the learner works on it (didactics/timeEstimate.js); a lesson sheet takes 40–55 min
+  const minutes = sheetMinutes(document || {});
+  if (document?.blocks?.length && minutes < SHEET_MINUTES.min) issues.push({ level: 'tip', code: 'minutes', text: `Nõuanne: töö võtab umbes ${minutes} min. Terve tunni leht on ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min — lisa ülesandeid või punkte.` });
   const errors = issues.filter((issue) => issue.level === 'error');
-  return { ready: errors.length === 0, issues, errors, warnings: issues.filter((issue) => issue.level === 'warning'), tips: issues.filter((issue) => issue.level === 'tip'), didactics };
+  return { ready: errors.length === 0, minutes, issues, errors, warnings: issues.filter((issue) => issue.level === 'warning'), tips: issues.filter((issue) => issue.level === 'tip'), didactics };
 }

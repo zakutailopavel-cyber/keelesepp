@@ -4,7 +4,7 @@
 // people (module 2) come back. 020 is the first mid-term check (A2 base).
 import { B } from '../blocks.js';
 
-export const MODULE = { id: 'a2b1-module-04', course: 'b1', title: 'Aeg, plaanid ja kohustused', level: 'A2' };
+export const MODULE = { id: 'a2b1-module-04', course: 'b1', shortSheets: true, title: 'Aeg, plaanid ja kohustused', level: 'A2' };
 
 export const LESSONS = {
   'a2b1-016': {

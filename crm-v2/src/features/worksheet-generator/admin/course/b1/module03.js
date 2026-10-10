@@ -5,7 +5,7 @@
 // küsimine; Minu kodukoht).
 import { B } from '../blocks.js';
 
-export const MODULE = { id: 'a2b1-module-03', course: 'b1', title: 'Kodu, kohad ja linn', level: 'A2' };
+export const MODULE = { id: 'a2b1-module-03', course: 'b1', shortSheets: true, title: 'Kodu, kohad ja linn', level: 'A2' };
 
 export const LESSONS = {
   'a2b1-011': {
