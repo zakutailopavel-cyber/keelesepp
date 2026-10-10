@@ -19,6 +19,28 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/course-b2-m01 — B2 kursus: moodul 1 (b1b2-001…005), kõik kolm etappi
+
+- `admin/course/b2/module01.js`: „Igapäevaelu ja B1 lähtepunkt”, tase B1. Kokku 15 lehte (Avasta + Harjuta + Kasuta), igaüks 40–51 min.
+- B1 normid:
+  - tekst 200–400 sõna;
+  - sõnapanka ei ole, algvorm on sulgudes;
+  - kirjutamine 10–14 lauset või 100–190 sõna;
+  - kõne 2–3 min;
+  - igal lugemisel on järeldav küsimus.
+- Õppekava järgi ei vastata ühe lausega: igas tunnis on põhjus, näide ja ajajärjekord (transformatsioonid „pikenda vastust”).
+- Harno B2 vormid algavad juba moodulis 1:
+  - kiri juhile umbes 140 sõna (003 Kasuta);
+  - arutlus umbes 180 sõna poolt- ja vastuargumentidega (004 Kasuta);
+  - sõnavõtt koosolekul teemakaardi järgi;
+  - arutelu argumendikaartidega;
+  - kuulamine lünkadega 1–2 sõna.
+- Kvaliteedivärav on läbitud (normid, ≥ 85, 40–55 min, vaheldus).
+- Kontrollid:
+  - worksheet-generator + worksheet-studio testid;
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/b2-profiles — taseme profiilid B1+ ja B2-, B2 normid Harno B2-eksami järgi
 
 - Omanik: B2 kursus peab mahult ja keerukuselt vastama CEFR-ile ja Harnole.
