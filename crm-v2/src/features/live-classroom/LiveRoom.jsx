@@ -137,7 +137,7 @@ export default function LiveRoom({
   recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false,
 }) {
   const teacher = role === 'teacher';
-  const call = useLiveCall({ ...callProps, invitation, role, user });
+  const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
   const boardRef = useRef(null);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   const [panel, setPanel] = useState('');
@@ -261,7 +261,9 @@ export default function LiveRoom({
   const startCall = teacher ? call.startTeacherCall : call.joinStudentCall;
   const callButton = call.hasLocalMedia
     ? <IconButton label="Lõpeta kõne" danger className="lr-call" disabled={call.busy} onClick={call.hangUp}><PhoneOff size={19} /></IconButton>
-    : <button type="button" className="lr-call-start" disabled={call.busy} onClick={startCall}><Phone size={17} /> {teacher ? 'Alusta kõnet' : 'Liitu kõnega'}</button>;
+    : !teacher && !call.manualJoin
+      ? <span className="lr-pill lr-call-wait" role="status">{call.busy ? 'Ühendan…' : 'Ootan, kuni õpetaja alustab kõnet…'}</span>
+      : <button type="button" className="lr-call-start" disabled={call.busy} onClick={startCall}><Phone size={17} /> {teacher ? 'Alusta kõnet' : 'Liitu kõnega'}</button>;
 
   return (
     <div className="lr" role="region" aria-label="Tunniruum">

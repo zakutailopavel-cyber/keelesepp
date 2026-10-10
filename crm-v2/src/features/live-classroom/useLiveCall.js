@@ -73,6 +73,9 @@ export function useLiveCall({
   peerFactory = defaultPeerFactory,
   turnService = liveTurnService,
   onMediaStreams,
+  // student in a lesson room (owner, 2026-10-10): no second „join” press — the teacher's „Alusta kõnet” offer is
+  // answered automatically; the manual button stays only after a failure or the student's own hang-up
+  autoAnswer = false,
 }) {
   // TURN credentials are fetched as soon as the room is open, so they are usually ready before the call starts.
   const turnRef = useRef({ servers: [], expiresAt: 0, pending: null });
@@ -113,6 +116,10 @@ export function useLiveCall({
   const pendingCandidatesRef = useRef([]);
   const processedSignalsRef = useRef(new Set());
   const recoveryRef = useRef({ timer: null, attempts: 0 });
+  const joinRef = useRef(null);
+  const joiningRef = useRef(false);
+  const declinedRef = useRef(false);
+  const [declined, setDeclined] = useState(false);
   const restartRef = useRef(null);
   // room data channel (teacher's page and pointer): created by the teacher with every offer, received by the student
   const channelRef = useRef(null);
@@ -418,6 +425,7 @@ export function useLiveCall({
             pendingOfferRef.current = signal;
             setTeacherReady(true);
             if (localStreamRef.current) await answerOffer(signal);
+            else if (autoAnswer && !declinedRef.current) await joinRef.current?.();
             return;
           }
           if (signal.type === 'answer' && role === 'teacher') {
@@ -451,7 +459,7 @@ export function useLiveCall({
       (nextError) => setError(nextError?.message || 'Videokõne ühendust ei saanud jälgida.'),
     );
     return () => unsubscribe?.();
-  }, [answerOffer, flushCandidates, invitation.id, resetCall, role, signalService, user.uid]);
+  }, [answerOffer, autoAnswer, flushCandidates, invitation.id, resetCall, role, signalService, user.uid]);
 
   useEffect(() => {
     let alive = true;
@@ -552,6 +560,10 @@ export function useLiveCall({
   };
 
   const joinStudentCall = async () => {
+    if (joiningRef.current) return;
+    joiningRef.current = true;
+    declinedRef.current = false;
+    setDeclined(false);
     setBusy(true);
     setError('');
     try {
@@ -563,9 +575,11 @@ export function useLiveCall({
       resetCall('failed', true);
       setError(nextError.message || 'Videokõnega ei saanud liituda.');
     } finally {
+      joiningRef.current = false;
       setBusy(false);
     }
   };
+  joinRef.current = joinStudentCall;
 
   const hangUp = async () => {
     const sessionId = sessionIdRef.current || pendingOfferRef.current?.sessionId;
@@ -578,6 +592,7 @@ export function useLiveCall({
     } finally {
       pendingOfferRef.current = null;
       setTeacherReady(false);
+      if (role === 'student') { declinedRef.current = true; setDeclined(true); }
       recoveryRef.current.attempts = 0;
       resetCall('ended', true);
       setBusy(false);
@@ -685,6 +700,7 @@ export function useLiveCall({
 
   return {
     needsPlay, resumePlayback, audioOnly,
+    manualJoin: role === 'student' && (!autoAnswer || declined || status === 'failed'),
     status, statusLabel: statusText(status, role, teacherReady), busy, screenBusy, error, setError, hasLocalMedia,
     audioEnabled, videoEnabled, screenSharing, teacherReady, peerOnline, peerName, connected, canReconnect,
     localVideoRef, remoteVideoRef, startTeacherCall, joinStudentCall, hangUp, toggleAudio, toggleVideo,
