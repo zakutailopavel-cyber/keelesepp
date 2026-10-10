@@ -23,8 +23,9 @@ import * as b2m12 from './b2/module12.js';
 import * as b2m13 from './b2/module13.js';
 import * as b2m14 from './b2/module14.js';
 import * as b2m15 from './b2/module15.js';
+import * as b2m16 from './b2/module16.js';
 
-export const COURSE_MODULES = [b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15];
+export const COURSE_MODULES = [b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16];
 
 export const COURSES = {
   b1: { label: 'B1 · A2 → B1 õpitee', badge: 'KeeleSepp A2 → B1' },
