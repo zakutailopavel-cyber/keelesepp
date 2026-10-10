@@ -1,3 +1,9 @@
+## 2026-10-10 · agent/lesson-summary-prompt — tunni kokkuvõte omasõnadega (analüüs v5)
+
+- After v4 (Aleksandr D.'s lesson went from 29 errors to 9, mostly real), the summary still pasted whole Russian lines into „meeldis”, negative ones too.
+- Summary prompt: retell in own words, one sentence per item; „meeldis” = only what went well; „raske” = concrete language difficulties; „jargmiseks” without quotes.
+- ANALYSIS_VERSION 5 (re-runs on the Mac). Installed.
+
 ## 2026-10-10 · agent/annotation-board-scale — vea/märkuse märk tahvlil õige sõna juures
 
 - Owner's screenshot: in the Live Classroom the „Viga” mark and its window landed far below the selected word.
