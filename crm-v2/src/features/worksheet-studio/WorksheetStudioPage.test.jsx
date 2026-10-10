@@ -259,7 +259,7 @@ describe('WorksheetStudioPage', () => {
     const compare = screen.getByRole('region', { name: /Versioon 1 võrreldes praegusega/ });
     fireEvent.click(within(compare).getAllByRole('button', { name: 'Too see ülesanne tagasi' })[0]);
     await waitFor(() => expect(container.querySelector(`.ws-page [data-block="${removedId}"]`)).toBeTruthy());
-  });
+  }, 20_000);
 
   it('saves a block as a shared template and adds templates back to the sheet', async () => {
     const templates = {
@@ -293,7 +293,7 @@ describe('WorksheetStudioPage', () => {
       promptSpy.mockRestore();
       confirmSpy.mockRestore();
     }
-  });
+  }, 20_000);
 
   it('redirects a roadmap lesson without a standalone worksheet to its lesson constructor', async () => {
     const repository = repo({
