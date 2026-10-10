@@ -1,9 +1,9 @@
-import { CheckCircle2, Circle, ExternalLink, Search } from 'lucide-react';
+import { CheckCircle2, Circle, ExternalLink, PlayCircle, Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, PageHeader } from '../../components/ui/index.js';
-import { FIRST_STEPS, searchGuide, visibleGuide } from './guideContent.js';
+import { FIRST_STEPS, GUIDE_VIDEOS, searchGuide, visibleGuide } from './guideContent.js';
 import './guide.css';
 
 // per-browser conveniences only (a remembered checklist and „guide seen”); the page works without storage
@@ -12,8 +12,8 @@ const STEPS_KEY = 'keelesepp.guideSteps';
 const read = (key, fallback) => { try { return JSON.parse(globalThis.localStorage?.getItem(key) ?? 'null') ?? fallback; } catch { return fallback; } };
 const write = (key, value) => { try { globalThis.localStorage?.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ } };
 
-// The teacher's introduction to the whole system: first steps with a checklist, then every part of the system with a
-// short explanation (Estonian and Russian), a link to the page and „how to” steps.
+// The teacher's introduction to the whole system: first steps with a checklist, short video guides, then every part of
+// the system with a short explanation (Estonian and Russian), a link to the page, „how to” steps and its videos.
 export default function TeacherGuidePage() {
   const { user } = useAuth();
   const [query, setQuery] = useState('');
@@ -38,6 +38,16 @@ export default function TeacherGuidePage() {
       </ol>
     </Card>
 
+    <section className="guide-videos" aria-labelledby="guide-videos-title">
+      <h2 id="guide-videos-title">Videojuhendid <span className="guide-ru">· Видеоинструкции</span></h2>
+      <div className="guide-videos__grid">
+        {GUIDE_VIDEOS.map((video) => <figure key={video.id} id={`video-${video.id}`} className="guide-video">
+          <video controls preload="none" playsInline poster={video.poster} src={video.src} aria-label={video.title} />
+          <figcaption><strong>{video.title}</strong><span className="guide-ru">{video.ru} · {video.seconds} s</span></figcaption>
+        </figure>)}
+      </div>
+    </section>
+
     <label className="guide-search"><Search size={17} aria-hidden="true" /><input type="search" placeholder="Otsi juhendist… / Поиск…" value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Otsi juhendist" /></label>
 
     <nav className="guide-toc" aria-label="Juhendi osad">{sections.map((section) => <a key={section.id} href={`#guide-${section.id}`}>{section.title}</a>)}</nav>
@@ -50,7 +60,10 @@ export default function TeacherGuidePage() {
           <p>{item.et}</p>
           <p className="guide-ru">{item.ru}</p>
           {item.steps ? <ol className="guide-howto">{item.steps.map((step) => <li key={step}>{step}</li>)}</ol> : null}
-          {item.to ? <Link className="guide-open" to={item.to}>Ava „{item.title}” <ExternalLink size={14} aria-hidden="true" /></Link> : null}
+          <div className="guide-item__links">
+            {item.to ? <Link className="guide-open" to={item.to}>Ava „{item.title}” <ExternalLink size={14} aria-hidden="true" /></Link> : null}
+            {(item.video || []).map((id) => GUIDE_VIDEOS.find((video) => video.id === id)).filter(Boolean).map((video) => <a key={video.id} className="guide-open guide-watch" href={`#video-${video.id}`}><PlayCircle size={14} aria-hidden="true" /> Vaata videot: {video.title}</a>)}
+          </div>
         </Card>)}
       </div>
     </section>) : <p className="guide-empty">Midagi ei leitud. · Ничего не найдено.</p>}

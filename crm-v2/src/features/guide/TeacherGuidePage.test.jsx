@@ -14,6 +14,9 @@ describe('teacher guide', () => {
     expect(screen.getByRole('heading', { name: /Tund otse: Live Classroom/ })).toBeInTheDocument();
     expect(screen.queryByText('Uued kontod')).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /Arved ja raha/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Videojuhendid/ })).toBeInTheDocument();
+    expect(screen.getByLabelText('Tund kalendrisse')).toHaveAttribute('src', '/guide-videos/kalender.mp4');
+    expect(screen.getAllByRole('link', { name: /Vaata videot: Live tund/ })[0]).toHaveAttribute('href', '#video-live-tund');
     fireEvent.click(screen.getAllByRole('button', { name: /Märgi tehtuks/ })[0]);
     expect(screen.getByText('1/8')).toBeInTheDocument();
   });
