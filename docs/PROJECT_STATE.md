@@ -20,6 +20,16 @@
 
 
 
+## 2026-10-10 · agent/course-b2-m03 — B2 kursus: moodul 3 (b1b2-011…015), kõik kolm etappi
+
+- Base: `main` a6e7bbd (after #452). Module 2 is published to production (15 sheets, v1; the diff with production shows 0 differences).
+- New file `b2/module03.js` „Minevik ja kogemused”, registered in `registry.js`. 15 sheets, stage B1, each 40–55 min.
+  - Each tense is tied to its function: lihtminevik = an event, täisminevik = an experience (plus a job interview), enneminevik = a timeline (detective story, witness statement).
+  - 014: a memorable story (3-minute monologue, 120–140 words).
+  - 015: Kontroll 3 (15 grammar points, oral story, written story).
+- Check: `npx vitest run src/features/worksheet-generator` → 44 files, 464/464.
+- Next step: publish module 3 after the merge, then B2 module 4 (b1b2-016…020).
+
 ## 2026-10-10 · agent/course-b2-m02 — B2 kursus: moodul 2 (b1b2-006…010), kõik kolm etappi
 
 - Base: `main` 8f5403f (after #451).
