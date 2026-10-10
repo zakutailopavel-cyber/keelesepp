@@ -1,3 +1,4 @@
+import { MemoryRouter } from 'react-router-dom';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { vi } from 'vitest';
 import { cleanWord, formQuestion, isDue, practiceOrder, review, sameForm, sameWord } from './wordsModel.js';
@@ -62,7 +63,7 @@ describe('LessonWordsPanel', () => {
 describe('MyWordsCard', () => {
   it('practises the due words with flashcards and counts the result', async () => {
     const service = fakeService([w('kass', { translation: 'кошка', example: 'Kass magab.' }), w('koer'), w('hiljem', { box: 3, dueAt: '2099-01-01T00:00:00Z' })]);
-    render(<MyWordsCard studentIds={['s-1']} service={service} />);
+    render(<MemoryRouter><MyWordsCard studentIds={['s-1']} service={service} /></MemoryRouter>);
     expect(screen.getByText('2 kordamiseks')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Harjuta (2)' }));
     const deck = screen.getByLabelText('Sõnade kordamine');
@@ -121,7 +122,7 @@ describe('word forms (TartuNLP + Ekilex through our server)', () => {
 
   it('a form question in practice: type, check, go on', async () => {
     const service = fakeService([w('kass', { reviews: 1, translation: 'кошка', forms: 'kass, kassi, kassi, kasse', ...kass })]);
-    render(<MyWordsCard studentIds={['s-1']} service={service} />);
+    render(<MemoryRouter><MyWordsCard studentIds={['s-1']} service={service} /></MemoryRouter>);
     fireEvent.click(screen.getByRole('button', { name: 'Harjuta (1)' }));
     expect(screen.getByText('ainsuse omastav?')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Vorm: ainsuse omastav'), { target: { value: 'kassi' } });

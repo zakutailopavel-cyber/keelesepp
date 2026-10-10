@@ -40,7 +40,7 @@ test('student words: staff write, owner practises, outsiders see nothing', async
   await admin.firestore().doc('students/st-words').set({ name: 'Mari', linkedUserId: learner.uid, linkedParentId: parent.uid });
   const word = (extra = {}) => ({ studentId: 'st-words', invitationId: 'inv-1', word: 'kass', translation: 'кошка', example: 'Kass magab.', createdByUid: teacher.uid, createdByName: 'Kati', createdAt: '2026-10-04T10:00:00Z', updatedAt: '2026-10-04T10:00:00Z', box: 0, dueAt: '2026-10-04T10:00:00Z', ...extra });
 
-  assert.equal(await create(learner, 'w0', { ...word(), createdByUid: learner.uid }), 403, 'students do not add words');
+  assert.equal(await create(learner, 'w0', { ...word(), createdByUid: learner.uid }), 403, 'students do not add lesson words (with a lesson link)');
   assert.equal(await create(teacher, 'w0', word({ createdByUid: learner.uid })), 403, 'author is the writer');
   assert.equal(await create(teacher, 'w0', word({ box: 3 })), 403, 'starts in box 0');
   assert.equal(await create(teacher, 'w0', word({ word: '' })), 403, 'word required');

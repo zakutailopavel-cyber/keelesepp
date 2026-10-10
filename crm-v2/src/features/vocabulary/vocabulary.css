@@ -37,3 +37,73 @@
 .vw-formcheck input { font: inherit; font-size: 16px; padding: 6px 10px; border: 1px solid #d0d5dd; border-radius: 8px; width: 160px; }
 .vw-right { color: #067647; font-weight: 700; }
 .vw-wrong { color: #b42318; font-weight: 700; }
+
+/* „Sõnavara” page: decks and the five study modes */
+.vw-btn { display: inline-flex; align-items: center; gap: 6px; }
+.vw-btn.is-warn { border-color: #fecdca; background: #fff6f5; color: #b42318; }
+.vw-notice { margin: 0 0 14px; padding: 10px 14px; border-radius: 10px; background: #ecfdf3; color: #067647; font-weight: 600; }
+.vocabulary-decks { display: grid; gap: 18px; }
+.vd-list { display: grid; gap: 6px; }
+.vd-deck { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: 1px solid #e4e7ec; border-radius: 12px; background: #fff; color: #182230; font: inherit; text-align: left; cursor: pointer; }
+.vd-deck:hover { border-color: #84adff; background: #f5f8ff; }
+.vd-deck span { display: grid; flex: 1; min-width: 0; }
+.vd-deck small { color: #667085; font-size: 13px; }
+.vd-deck.is-mine { border-color: #b2ccff; background: #eff4ff; }
+.vd-level { height: 38px; padding: 0 10px; border: 1px solid #d0d5dd; border-radius: 10px; background: #fff; font: inherit; }
+.vd-module { border-top: 1px solid #f2f4f7; padding: 8px 0; }
+.vd-module summary { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-weight: 700; cursor: pointer; }
+.vd-module summary small { margin-left: auto; color: #667085; font-weight: 500; }
+.vd-module .vd-list { margin: 6px 0 4px 24px; }
+
+.vs-session { display: grid; gap: 16px; }
+.vs-head { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.vs-head > div { display: grid; flex: 1; min-width: 160px; }
+.vs-head small { color: #667085; }
+.vs-direction { display: flex; align-items: center; gap: 8px; color: #475467; font-size: 14px; }
+.vs-direction select { height: 36px; padding: 0 8px; border: 1px solid #d0d5dd; border-radius: 8px; background: #fff; font: inherit; }
+.vs-modes { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.vs-mode-card { display: grid; gap: 4px; padding: 18px; border: 1px solid #e4e7ec; border-radius: 14px; background: #fff; font: inherit; text-align: left; cursor: pointer; }
+.vs-mode-card strong { font-size: 18px; color: #1849a9; }
+.vs-mode-card small { color: #667085; }
+.vs-mode-card:hover:not(:disabled) { border-color: #84adff; box-shadow: 0 6px 18px rgba(24, 73, 169, .1); }
+.vs-mode { display: grid; gap: 14px; justify-items: center; }
+.vs-progress { position: relative; width: 100%; max-width: 620px; height: 8px; border-radius: 99px; background: #eef2f6; }
+.vs-progress i { display: block; height: 100%; border-radius: inherit; background: #1849a9; transition: width .2s; }
+.vs-progress span { position: absolute; right: 0; top: 10px; color: #667085; font-size: 12px; }
+.vs-card { display: grid; place-items: center; gap: 8px; width: 100%; max-width: 620px; min-height: 240px; margin-top: 12px; padding: 28px; border: 1px solid #d0d5dd; border-radius: 18px; background: #fff; box-shadow: 0 10px 28px rgba(16, 24, 40, .08); font: inherit; cursor: pointer; transition: transform .25s, background .25s; }
+.vs-card span { font-size: clamp(22px, 4vw, 34px); font-weight: 700; color: #101828; text-align: center; }
+.vs-card small { color: #475467; }
+.vs-card em { color: #98a2b3; font-size: 13px; font-style: normal; }
+.vs-card.is-flipped { background: #f5f8ff; border-color: #b2ccff; }
+.vs-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.vs-question { display: grid; gap: 6px; justify-items: center; text-align: center; max-width: 620px; }
+.vs-question small { color: #667085; }
+.vs-question strong { font-size: clamp(20px, 3.4vw, 28px); }
+.vs-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; max-width: 620px; }
+.vs-choices button { min-height: 52px; padding: 10px 14px; border: 1px solid #d0d5dd; border-radius: 12px; background: #fff; font: inherit; cursor: pointer; }
+.vs-choices button:hover:not(:disabled), .vs-choices button[aria-pressed="true"] { border-color: #1849a9; background: #eff4ff; }
+.vs-choices button.is-right { border-color: #12b76a; background: #ecfdf3; color: #067647; }
+.vs-write { display: flex; gap: 8px; width: 100%; max-width: 620px; }
+.vs-write input, .vs-test input { flex: 1; min-width: 0; height: 46px; padding: 0 14px; border: 1px solid #d0d5dd; border-radius: 12px; font: inherit; font-size: 17px; }
+.vs-feedback { display: grid; gap: 10px; justify-items: center; width: 100%; max-width: 620px; padding: 12px 14px; border-radius: 12px; }
+.vs-feedback.is-right { background: #ecfdf3; color: #067647; }
+.vs-feedback.is-almost { background: #fffaeb; color: #b54708; }
+.vs-feedback.is-wrong { background: #fef3f2; color: #b42318; }
+.vs-timer { font-size: 22px; font-weight: 700; color: #1849a9; font-variant-numeric: tabular-nums; }
+.vs-match { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; width: 100%; }
+.vs-match button { min-height: 86px; padding: 10px; border: 1px solid #d0d5dd; border-radius: 12px; background: #fff; font: inherit; cursor: pointer; transition: opacity .2s; }
+.vs-match button.is-picked { border-color: #1849a9; background: #eff4ff; }
+.vs-match button.is-wrong { border-color: #f04438; background: #fef3f2; }
+.vs-match button.is-done { visibility: hidden; }
+.vs-test { justify-items: stretch; }
+.vs-test ol { display: grid; gap: 14px; margin: 0; padding-left: 22px; }
+.vs-test li { display: grid; gap: 8px; padding: 12px; border: 1px solid #eaecf0; border-radius: 12px; }
+.vs-test li.is-right { border-color: #a6f4c5; background: #f6fef9; }
+.vs-test li.is-wrong { border-color: #fecdca; background: #fffbfa; }
+.vs-tf { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.vs-tf button { padding: 8px 14px; border: 1px solid #d0d5dd; border-radius: 10px; background: #fff; font: inherit; cursor: pointer; }
+.vs-tf button[aria-pressed="true"] { border-color: #1849a9; background: #eff4ff; }
+.vs-done { display: grid; gap: 10px; justify-items: center; width: 100%; padding: 18px; border-radius: 14px; background: #f9fafb; text-align: center; }
+.vs-done strong { font-size: 20px; }
+.vs-missed { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; color: #475467; }
+@media (max-width: 560px) { .vs-choices { grid-template-columns: 1fr; } .vs-card { min-height: 200px; } }

@@ -1,3 +1,14 @@
+## 2026-10-10 · agent/flashcards — „Sõnavara”: Quizlet-like learning for students
+
+- Base: `main` after #506. Owner request: in the student's Sõnavara an „Õppimine” mode with several ways to learn, plus decks of the course lessons; first for the student at home.
+- New route `/student/sonavara` (menu „Sõnavara”, students only; `ACCESS.STUDENT`). Decks: „Minu sõnad” (studentWords with a meaning), the lessons the student has had (`lessons.topicLessonId`), and every course lesson by level → module.
+- Course deck cards come from the published phase sheets of the lesson (`curriculumLessons/{id}/worksheets`): `vocab` blocks („sõna — перевод”) and `match` pairs; one card per word (`deckModel.js`).
+- Modes (`StudySession.jsx`): Kaardid (flip, tean / õpin veel, shuffle), Õpi (choice, then written, until each card is right twice), Kirjuta (typed, one-letter tolerance on longer words, „Mul oli õigus”), Sobita (6 pairs on time), Test (10 mixed: choice, written, true/false). Direction: Estonian → meaning or back.
+- Own words move in their Leitner boxes once per session; missed course words can be kept with „Lisa raskemad minu sõnadesse” (`studentWordsService.addOwn`).
+- Rules: `studentWords` create now also for the student/parent of that card, box 0, `createdByUid == uid`, no `invitationId` (lesson link stays teacher-only). New `libraryService.listCurriculum()` (curriculumLessons only).
+- Tests: deckModel 8, VocabularyPage + modes 7, access/navigation updated; emulator `student-words-own-emulator.integration.js` + updated `student-words-emulator.integration.js` pass.
+- Next step: the teacher sees deck progress (not built: progress of course decks is not stored, only own words' boxes).
+
 ## 2026-10-10 · UI fixes after owner review — Live Classroom (#500, #501), Õppevara and Õpik (#502)
 
 - Base: `main` 0274dde. All three PRs merged and deployed (Vercel success).
