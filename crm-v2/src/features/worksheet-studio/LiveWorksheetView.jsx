@@ -9,7 +9,7 @@ import LiveTaskPanel from './LiveTaskPanel.jsx';
 import { taskStats } from './engine/liveLesson.js';
 import SheetAnnotations from './SheetAnnotations.jsx';
 import { AuthContext } from '../../app/AuthContext.jsx';
-import { useFitScale } from './useFitScale.js';
+import { BOARD_SHEET_SCALE, useFitScale } from './useFitScale.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 
@@ -18,11 +18,12 @@ const time = (iso) => (iso ? new Date(iso).toLocaleTimeString('et-EE', { hour: '
 // Live lesson on a structured worksheet: the teacher watches the learner's answers arrive (autosaved by the
 // student player), sees the marks per task and per lesson goal, and points at the task the class works on.
 // Uses the assignment document only; no Firestore rule change. Rendered as a page and inside the Live Classroom room.
-export default function LiveWorksheetView({ assignmentId, repository = homeworkService, back = { to: '/homework', label: 'Kodutööd' }, embedded = false }) {
+export default function LiveWorksheetView({ assignmentId, repository = homeworkService, back = { to: '/homework', label: 'Kodutööd' }, embedded = false, board = false }) {
   const [assignment, setAssignment] = useState(null);
   const [error, setError] = useState('');
   const [focusError, setFocusError] = useState('');
-  const [fitRef, scale] = useFitScale();
+  const [fitRef, fitted] = useFitScale();
+  const scale = board ? BOARD_SHEET_SCALE : fitted;
   const user = useContext(AuthContext)?.user;
 
   useEffect(() => repository.subscribeWorksheetAssignment(
@@ -79,6 +80,30 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   if (!doc) return <div className="ws-studio-error" role="alert">See ülesanne ei ole uues vormingus tööleht.</div>;
 
   const done = assignment.status === 'done';
+  const liveStats = <div className="st-actions ws-live-stats" aria-live="polite">
+    <span className={`ws-live-dot ${done ? 'done' : ''}`} />
+    <span>{done ? 'Esitatud' : assignment.status === 'in_progress' ? 'Täidab' : 'Pole alustanud'}</span>
+    <b>{progress.answered}/{progress.total} vastust</b>
+    <span>viimati {time(assignment.updatedAt)}</span>
+  </div>;
+  // on the board: the sheet first and nothing above it, so it lies exactly like the student's copy; the rest below
+  if (board) {
+    return (
+      <div className="ws-studio ws-live is-embedded is-board">
+        <div className="st-canvas" ref={fitRef}>
+          <SheetAnnotations annotations={assignment.annotations || []} editable onChange={saveMarks}>
+            <div className="st-zoom" style={{ zoom: scale }}>
+              <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} />
+            </div>
+          </SheetAnnotations>
+        </div>
+        <header className="st-bar"><div className="st-title"><b>Otse tunnis: {assignment.studentName || 'õpilane'}</b><span>{doc.meta?.title}</span></div>{liveStats}</header>
+        {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
+        <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
+        {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} /> : null}
+      </div>
+    );
+  }
   return (
     <div className={`ws-studio ws-live ${embedded ? 'is-embedded' : ''}`}>
       <header className="st-bar">

@@ -94,6 +94,11 @@
 .board-full__title { margin: 0; font-size: .95rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* a worksheet on the board is shown whole: the board itself scrolls and zooms, the sheet has no inner scroll */
 .sb-underlay .st-canvas, .sb-underlay .ws-live.is-embedded .st-canvas, .sb-underlay .ws-doc-player.is-inline .st-canvas { max-height: none; overflow: visible; }
+/* teacher and student: the same sheet at the same place (no frame, padding or centring that differs between them) */
+.sb-underlay .is-board .st-canvas { margin: 0; padding: 0; border-radius: 0; background: transparent; min-height: 0; }
+.sb-underlay .is-board .st-zoom { margin: 0; }
+.sb-underlay .ws-inline-player.is-board, .sb-underlay .ws-live.is-board { display: block; max-width: none; width: 100%; padding: 0; margin: 0; border: 0; box-shadow: none; background: transparent; }
+.sb-underlay .is-board .ws-inline-footer, .sb-underlay .ws-live.is-board > .st-bar { margin-top: 16px; }
 /* selection („Vali”): frame, corner handle, actions; paper choice */
 .sb-handle { cursor: nwse-resize; }
 .sb-marquee { fill: rgba(79, 124, 255, .08); stroke: #4f7cff; }

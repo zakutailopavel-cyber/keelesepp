@@ -51,6 +51,7 @@
 .ws-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .ws-photo-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #9a9384; font: 700 11pt var(--font-body); }
 .ws-line { border: 0; border-bottom: 1px solid var(--ks-line); background: transparent; font: 700 16pt var(--font-hand); color: #1b4a8a; min-width: 18mm; padding: 0 1mm; outline: none; border-radius: 0; }
+.ws-line--grow { display: block; width: 100%; box-sizing: border-box; resize: none; overflow: hidden; line-height: 1.35; field-sizing: content; min-height: 1.4em; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ws-line:focus { border-bottom-color: var(--ks-navy); background: rgba(23,58,99,.05); }
 .is-ok { box-shadow: inset 0 -2px 0 var(--ok) !important; color: var(--ok) !important; }
 .is-bad { box-shadow: inset 0 -2px 0 var(--bad) !important; color: var(--bad) !important; }
