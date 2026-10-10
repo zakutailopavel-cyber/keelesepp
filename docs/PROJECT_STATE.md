@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m04 — B2 M04 Sihitis, ma-/da-infinitiiv ja rektsioon (b1b2-016–020), kõik kolm etappi
+
+- Base: `main` a50f5c8. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module04.js`: object (täis/osa), ma/da infinitive, verb government, an integration lesson with two rounds of correction, Vahehindamine 1 (lessons 1–20). 15 sheets, stage B1.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 — EKI evaluation via the school Mac; „Analüüsi teksti” for learners' written answers (TartuNLP + EKI) — branch `agent/eki-via-mac`
 
 - Base: `main` (after #427).
