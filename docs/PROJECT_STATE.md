@@ -1,3 +1,14 @@
+## 2026-10-10 · agent/board-sheet-fit — Live Classroom: tööleht õpilasel jälle täislaiuses
+
+- Problem (owner's screenshot): in the lesson room the student saw the worksheet tiny, about half of the board width.
+- Cause: the sheet was fitted to the width only once, when the board opened. The room layout settles later (videos, panel, full screen), and the fit also counted drawings far beside the sheet.
+- Fix in `StudentBoard.jsx`:
+  - the sheet fits by its own width (`WORKSHEET_WIDTH`), not by all the drawings;
+  - a ResizeObserver refits on every change of the board width until the user pans or zooms;
+  - the „Mahuta” button resets that.
+- Check: `vitest src/features/board` passes.
+  - The live-classroom tests that fail (`localStorage.clear` undefined in this Node) fail on main too, unrelated.
+
 ## 2026-10-10 · agent/course-b2-m04 — B2 M04 Sihitis, ma-/da-infinitiiv ja rektsioon (b1b2-016–020), kõik kolm etappi
 
 - Base: `main` a50f5c8. Previous modules are published to production (diff with production: 0 differences).

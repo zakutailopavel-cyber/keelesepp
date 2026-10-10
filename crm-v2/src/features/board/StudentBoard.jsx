@@ -125,7 +125,11 @@ export default function StudentBoard({
   const bounds = useMemo(() => pageBounds(elements, 40, onWorksheet ? { w: WORKSHEET_WIDTH, h: underlayHeight + 40 } : undefined), [elements, onWorksheet, underlayHeight]);
   const screenSize = () => { const rect = svgRef.current?.getBoundingClientRect(); return [rect?.width || 0, rect?.height || 0]; };
   // every pan and zoom keeps part of the sheet on screen
-  const moveView = (update) => setView((current) => clampView(typeof update === 'function' ? update(current) : update, bounds, ...screenSize()));
+  // the user's own pan or zoom; until then a worksheet page keeps fitting its width when the screen changes size
+  const userMoved = useRef(false);
+  const moveView = (update) => { userMoved.current = true; setView((current) => clampView(typeof update === 'function' ? update(current) : update, bounds, ...screenSize())); };
+  // a worksheet fits by the sheet itself, not by drawings far beside it (owner 2026-10-10: the sheet was tiny for the student)
+  const sheetFit = (width) => fitWidth({ x1: 0, y1: 0, x2: WORKSHEET_WIDTH, y2: bounds.y2 }, width);
   const fail = (message) => (nextError) => setError(nextError?.message || message);
   const local = (event) => {
     const rect = svgRef.current.getBoundingClientRect();
@@ -256,7 +260,24 @@ export default function StudentBoard({
     const [width] = screenSize();
     if (!width) return;
     fittedWorksheet.current = pageId;
-    setView(fitWidth(bounds, width));
+    userMoved.current = false;
+    setView(sheetFit(width));
+  }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
+  // the room's layout settles after the board mounts (videos, side panel, full screen): refit the sheet to the new width
+  useEffect(() => {
+    const node = svgRef.current;
+    if (!onWorksheet || !node || !globalThis.ResizeObserver) return undefined;
+    let last = 0;
+    const observer = new globalThis.ResizeObserver(() => {
+      const width = Math.round(node.getBoundingClientRect().width || 0);
+      if (!width || width === last) return;
+      last = width;
+      if (userMoved.current && fittedWorksheet.current === pageId) return;
+      fittedWorksheet.current = pageId;
+      setView(sheetFit(width));
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
   // the pointer disappears for the student when the teacher puts it away
@@ -518,7 +539,8 @@ export default function StudentBoard({
   const fit = () => {
     const rect = svgRef.current?.getBoundingClientRect();
     // a worksheet page is read top-down: fit its width; anything else fits whole
-    setView(onWorksheet ? fitWidth(bounds, rect?.width || 800) : fitPage(bounds, rect?.width || 800, rect?.height || 500));
+    userMoved.current = false;
+    setView(onWorksheet ? sheetFit(rect?.width || 800) : fitPage(bounds, rect?.width || 800, rect?.height || 500));
   };
   const clear = () => {
     if (!globalThis.confirm('Tühjendada see tahvel? Lukus materjalid jäävad alles.')) return;
