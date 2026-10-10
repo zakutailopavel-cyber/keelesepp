@@ -126,7 +126,8 @@ describe('Live Classroom invitation lifecycle', () => {
     const invitationService = { subscribeIncoming: vi.fn((uid, onChange) => { onChange([{ id: 'invite-1', teacherName: 'Pavel', studentName: 'Mari', studentId: 's-1', title: 'Eesti keel', status: 'accepted', expiresAt: new Date(Date.now() - 60_000).toISOString() }]); return vi.fn(); }) };
     renderPage({ user: { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, invitationService, studentRepository: {}, path: '/live-classroom?invitation=invite-1' });
     expect(await screen.findByRole('region', { name: 'Tunniruum' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Liitu kõnega/ })).toBeInTheDocument();
+    expect(screen.getByText('Ootan, kuni õpetaja alustab kõnet…')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Liitu kõnega/ })).not.toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Materjalid/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Lahku tunniruumist' }));
