@@ -402,6 +402,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
                 {isAdmin && plansMissing ? <button type="button" disabled={refreshingPlans} onClick={(event) => { closeMenu(event); refreshLessonPlans(); }}><ClipboardList size={16} /> Lisa tunniplaanid ({plansMissing})</button> : null}
                 {!a2Complete ? <button type="button" disabled={installingA2} onClick={(event) => { closeMenu(event); installA2Curriculum(); }}><BookOpen size={16} /> Paigalda A2 õppekava</button> : null}
                 {isAdmin ? <button type="button" onClick={(event) => { closeMenu(event); navigate('/library/worksheet-generator/avasta-module-1'); }}>Avasta 001–050 kvaliteet</button> : null}
+                {isAdmin ? <button type="button" onClick={(event) => { closeMenu(event); navigate('/library/worksheet-generator/course'); }}>Kursuse tootmine (B1, B2)</button> : null}
                 {isAdmin ? <button type="button" onClick={(event) => { closeMenu(event); navigate('/library/worksheet-generator'); }}><BarChart3 size={16} /> Generaatori katvus ja kalibreerimine</button> : null}
                 <button type="button" onClick={(event) => { closeMenu(event); navigate('/library/worksheets/convert'); }}><Replace size={16} /> Üleviimine</button>
               </div>

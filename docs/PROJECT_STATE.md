@@ -19,6 +19,32 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/course-b1-m02 — kursuse tootmine: kvaliteedivärav, admin-leht, B1 moodul 2 Harjuta + Kasuta
+
+- Omanik: töölehtede konstruktoriga tuleb lõpetada B1 ja B2 kursus. Tööraamat „KeeleSepp A2 → B1, 52 tundi” on materjalipank. Areng peab olema järkjärguline ja mitte ühetaoline. Samal ajal pannakse kirja, mis süsteemist puudu on.
+- Seis production-andmebaasis (ainult lugemine, midagi ei muudetud):
+  - B1: Avasta 001–050, Harjuta ja Kasuta 001–005;
+  - B2: 0 lehte.
+  Puudu on umbes 480 lehte.
+- Plaan, vastavustabel ja töövoog on dokumendis `docs/B1_B2_COURSE_PRODUCTION.md`. Puudujäägid on dokumendis `docs/COURSE_SYSTEM_GAPS.md` (9 kirjet; nt Avasta 006–050 on ühe malli järgi ja kannavad B1 taset A2 tundidel).
+- Kood (`worksheet-generator/admin/course/`):
+  - `blocks.js`: plokiehitajad;
+  - `quality.js`: kvaliteedivärav — konstruktori vead, taseme normide hoiatused, didaktiline skoor ≥ 85, 6–10 plokki, ≥ 5 tüüpi, etapi roll ja vaheldus moodulis;
+  - `registry.js`: moodulid ja `buildCourseSheet`;
+  - `b1/module02.js`: 10 lehte (a2b1-006…010 Harjuta + Kasuta, tase A2), test `course.test.js`.
+- UI:
+  - `ui/CourseProductionPage.jsx`, marsruut `/library/worksheet-generator/course` (ainult admin);
+  - Õppevara menüüs on „Kursuse tootmine (B1, B2)”.
+  - Leht näitab moodulit, kvaliteedivärava tulemust, olemasolevaid versioone ja eelvaadet. „Avalda tund” küsib kinnitust ja asendamisel hoiatab eraldi. Kirjutab läbi olemasoleva `lessonWorksheetsService.publish`.
+- Kontrollid:
+  - vitest worksheet-generator + library: 477/477;
+  - eslint 0 vigu;
+  - build õnnestus;
+  - lehtede trükivaade kontrollitud brauseri demo-lehel.
+- Production'isse ei kirjutatud midagi.
+- Käsitsi värav: pärast deploy'd avab admin „Kursuse tootmine” → B1 moodul 2 → „Vaata” → „Avalda tund”. Seejärel kontrollib Õpilase vaates.
+- Järgmine ohutu samm: B1 moodul 3 (011–015) Harjuta + Kasuta.
+
 ## 2026-10-10 · agent/pet-games — lemmiku teemamängud õpilase töölehtedest
 
 - `petGames.js` (uus): `sheetItems(worksheetDoc)` võtab õpetaja antud töölehtedest mängumaterjali koos õigete vastustega.
