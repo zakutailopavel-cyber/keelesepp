@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b2-m05 — B2 M05 Arvamus ja põhjendamine (b1b2-021–025), kõik kolm etappi
+
+- Base: `main` 856b67f. Previous modules are published to production (diff with production: 0 differences).
+- New `b2/module05.js`, stage B1+: stating a position and how sure you are, the argument scheme (reason → example → conclusion), polite agreement and disagreement, comparing two solutions, Kontroll 5 (argumentation, 140–160 words). 15 sheets.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/board-sheet-fit — Live Classroom: tööleht õpilasel jälle täislaiuses
 
 - Problem (owner's screenshot): in the lesson room the student saw the worksheet tiny, about half of the board width.

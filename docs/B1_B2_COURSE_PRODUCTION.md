@@ -126,3 +126,4 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | B2 M02 Linn, teenused ja asjaajamine | b1b2-006–010 | Avasta, Harjuta, Kasuta | agent/course-b2-m02 |
 | B2 M03 Minevik ja kogemused | b1b2-011–015 | Avasta, Harjuta, Kasuta | agent/course-b2-m03 |
 | B2 M04 Sihitis, ma-/da-infinitiiv ja rektsioon | b1b2-016–020 | Avasta, Harjuta, Kasuta | agent/course-b2-m04 |
+| B2 M05 Arvamus ja põhjendamine | b1b2-021–025 | Avasta, Harjuta, Kasuta | agent/course-b2-m05 |
