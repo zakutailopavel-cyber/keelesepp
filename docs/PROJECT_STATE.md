@@ -19,6 +19,28 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/merge-student-cards — ühe õpilase kahe kaardi liitmine
+
+- Omanik: „объединяй”.
+- Põhjus: registreerumisel tekib iseregistreerimise kaart (`self_<uid>`), kui nimi ei ühti õpetaja kaardiga („Влад Повжик” ≠ „Vlad”, „Ulyana” ≠ „Uljana”). Tunniplaan ja ajalugu jäävad õpetaja kaardile, konto aga teisele kaardile, nii et määratud tööd ei jõua õpilaseni.
+- Server: `functions/student-merge.js` `mergeStudentCards(db, { keepId, sourceId, apply, includeFinance, includeSchedule })`.
+  - Otsib kõikidest kollektsioonidest `studentId` / `studentIds`.
+  - Ilma `apply`-ta on eelvaade.
+  - Õppetöö kirjed suunatakse alles jäävale kaardile; neile pannakse `mergedFromStudentId`.
+  - Finantsid ja `schedule` liiguvad ainult eraldi lipuga.
+  - Lemmik: kui alles jääval kaardil on juba lemmik, teise kaardi lemmikut ei tõsteta.
+  - Konto, lapsevanema seosed, e-post ja telefon liiguvad alles jäävale kaardile. Teine kaart saab `active: false` ja `mergedInto`, tema kontoseosed eemaldatakse, `users.linkedStudentIds` uuendatakse ja auditisse lisatakse `student.cards_merged`.
+  - Marsruut `staffOperationsApi /students/merge` (ainult admin).
+- UI:
+  - õpilase kaardil on nupp „Liida kaardid” (admin);
+  - `MergeCardsModal` näitab sarnaseid nimesid ka eri tähestikus, teeb eelvaate ja küsib finantside ja tunniplaani kohta eraldi.
+- Kontrollid:
+  - emulaatoritest `student-merge-emulator.integration.js` õnnestus;
+  - students 59/59 (uus modaalitest);
+  - eslint;
+  - build;
+  - `node --check`.
+
 ## 2026-10-10 · agent/klassika-white — töölehe paber on valge
 
 - Omanik: „цвет листов белый”. Teemade Klassika ja Ajakiri paber, kaardid ja lugemistekstid on nüüd valged; raamid, jooned ja värvid jäid samaks.

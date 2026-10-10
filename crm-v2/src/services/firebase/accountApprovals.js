@@ -42,6 +42,10 @@ export const accountApprovalsService = {
     const data = await staffPost('/accounts/reviews');
     return Array.isArray(data.reviews) ? data.reviews : [];
   },
+  // two cards of one learner (the teacher's card and the self-registration card): preview, then merge into keepId
+  mergeStudents({ keepId, sourceId, apply = false, includeFinance = false, includeSchedule = false }) {
+    return staffPost('/students/merge', { keepId, sourceId, apply, includeFinance, includeSchedule });
+  },
   linkToStudent({ uid, studentId, relationship }) {
     const requestId = `review-link-${uid}-${studentId}-${relationship}`.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120);
     return staffPost('/accounts/link', { uid, studentId, relationship, requestId });

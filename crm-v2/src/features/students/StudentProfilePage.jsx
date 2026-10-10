@@ -1,6 +1,7 @@
-import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
+import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
 import '../board/board.css';
 import { useCallback, useContext, useEffect, useState } from 'react';
+import MergeCardsModal from './MergeCardsModal.jsx';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
@@ -54,6 +55,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
+  const [merging, setMerging] = useState(false);
   const staffTeachers = useTeacherNames(canAssignTeacher, teacherApi);
   const canViewFinance = currentUser.roles?.some((role) => [ROLES.ADMIN, ROLES.FINANCE].includes(role));
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
@@ -114,7 +116,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
       <header className="student-profile-hero">
         <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1><p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p></span></div>
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
-        <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
+        <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
+        {merging ? <MergeCardsModal open student={student} onClose={() => setMerging(false)} onMerged={() => { setMerging(false); window.location.reload(); }} /> : null}
         <Modal open={archiveAsk} title={student.active ? 'Arhiveeri õpilane' : 'Taasta õpilane'} onClose={() => !archiving && setArchiveAsk(false)} footer={<><Button variant="secondary" disabled={archiving} onClick={() => setArchiveAsk(false)}>Loobu</Button><Button variant={student.active ? 'danger' : 'primary'} loading={archiving} onClick={async () => {
           setArchiving(true); setArchiveError('');
           try {
