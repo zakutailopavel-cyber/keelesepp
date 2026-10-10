@@ -1,3 +1,12 @@
+## 2026-10-10 · agent/invoice-email-status — arve e-kirja olek tabelis
+
+- Owner pressed „Saada” and saw nothing: the confirmation was only at the top of the page, off screen.
+- `FinanceMonthPage.jsx` `invoiceEmailLine`: every row now shows the e-mail state under the payment state:
+  - Saatmata / Saatmisel… / Saatmine ebaõnnestus (the error in a tooltip) / Järjekorras;
+  - Saadetud dd.mm hh:mm (the recipient in a tooltip), plus the last reminder.
+- It reads the fields that `functions/index.js` already writes; no backend change.
+- Check: vitest `finance` 24/24 files, plus the new `invoiceEmailLine.test.js`.
+
 ## 2026-10-10 · agent/cancel-reason-hint — arve tühistamise põhjuse vihje
 
 - Owner could not cancel an invoice: the reason „Vale arve” has 9 characters, while the UI and `functions/manual-invoice-api.js` require at least 10. The disabled button gave no explanation.

@@ -77,3 +77,8 @@
   .finance-month-page .monthly-invoices__modes { width: 100%; overflow-x: auto; }
   .finance-month-page .monthly-invoices__modes button { white-space: nowrap; }
 }
+.finance-month-table__state { display: grid; gap: 4px; justify-items: start; }
+.finance-mail { font-size: .72rem; color: #667085; line-height: 1.3; }
+.finance-mail--success { color: #067647; }
+.finance-mail--danger { color: #b42318; font-weight: 700; }
+.finance-mail--info { color: #175cd3; }
