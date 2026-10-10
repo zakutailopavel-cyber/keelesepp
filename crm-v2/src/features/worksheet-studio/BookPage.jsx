@@ -111,7 +111,7 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   // looked broken); „Koosta õpik” stays to rebuild after sheets were published
   useEffect(() => {
     if (mode !== 'program' || state.loading || !scope.length || !program.phases.length || latestBuild.current === buildKey) return;
-    buildProgram();
+    globalThis.queueMicrotask(buildProgram);
   }, [buildKey, mode, state.loading]); // eslint-disable-line react-hooks/exhaustive-deps
   const programSheets = built.key === buildKey ? built.sheets : [];
   const items = mode === 'program'
