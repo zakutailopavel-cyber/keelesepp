@@ -1,5 +1,5 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { navigation, settingsNavigation } from '../../app/navigation.js';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -9,13 +9,15 @@ import IconButton from '../ui/IconButton.jsx';
 import LessonInvitationOverlay from './LessonInvitationOverlay.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
 import PetCompanion from '../../features/pet/PetCompanion.jsx';
+import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
+import { messagesService } from '../../services/firebase/messages.js';
 import './appShell.css';
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export default function AppShell() {
+export default function AppShell({ approvals = accountApprovalsService, messages = messagesService }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, signOut, preview, stopPreview } = useAuth();
@@ -23,6 +25,21 @@ export default function AppShell() {
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
   const showNotifications = hasAnyRole(user.roles, ['admin', 'teacher', 'finance']);
+  // admins see at once that someone registered and waits for approval
+  const isAdmin = hasAnyRole(user.roles, ['admin']) && !preview;
+  const [pendingAccounts, setPendingAccounts] = useState(0);
+  useEffect(() => {
+    if (!isAdmin || !approvals?.subscribePendingCount) return undefined;
+    try { return approvals.subscribePendingCount(setPendingAccounts, () => setPendingAccounts(0)); } catch { return undefined; }
+  }, [approvals, isAdmin]);
+  // staff see unread messages on „Suhtlus”
+  const isStaff = hasAnyRole(user.roles, ['admin', 'teacher']) && !preview;
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  useEffect(() => {
+    if (!isStaff || !messages?.subscribeUnreadCount || !user.uid) return undefined;
+    try { return messages.subscribeUnreadCount({ uid: user.uid, teacherName: user.displayName, all: isAdmin }, setUnreadMessages, () => setUnreadMessages(0)); } catch { return undefined; }
+  }, [messages, isStaff, isAdmin, user.uid, user.displayName]);
+  const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0 };
   const exitPreview = () => { stopPreview(); navigate('/settings'); };
   const blockPreviewButtons = (event) => {
     if (!preview?.readOnly) return;
@@ -46,7 +63,7 @@ export default function AppShell() {
             <Fragment key={to}>
               {group && group !== visibleNavigation[index - 1]?.group ? <span className="nav-group">{group}</span> : null}
               <NavLink to={to} end={end} data-tour={`nav-${to}`} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} onClick={() => setMenuOpen(false)}>
-                <Icon size={19} /><span>{label}</span>
+                <Icon size={19} /><span>{label}</span>{badges[to] ? <b className="nav-count" aria-label={to === "/messages" ? `${badges[to]} lugemata` : `${badges[to]} ootel`}>{badges[to]}</b> : null}
               </NavLink>
             </Fragment>
           ))}

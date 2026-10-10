@@ -1,4 +1,4 @@
-import { collection, doc, getDocFromServer, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDocFromServer, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 // Parents and students who registered themselves wait as approvalStatus "pending" until an
@@ -57,6 +57,12 @@ export const accountApprovalsService = {
     return staffPost('/accounts/reviews/dismiss', { reviewId });
   },
 
+
+  // live number of registrations waiting for approval (the „Uued kontod” menu badge)
+  subscribePendingCount(onCount, onError) {
+    const { db } = requireFirebaseClient();
+    return onSnapshot(query(collection(db, 'users'), where('approvalStatus', '==', 'pending')), (snapshot) => onCount(snapshot.size), (error) => onError?.(error));
+  },
 
   async list(status = 'pending') {
     const { db } = requireFirebaseClient();
