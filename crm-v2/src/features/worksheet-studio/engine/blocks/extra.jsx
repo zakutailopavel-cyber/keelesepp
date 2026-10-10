@@ -184,13 +184,17 @@ export const categorize = {
               onClick={() => ctx.interactive && ctx.setFocus(id, `w${i}`)}>{w}</span>
           );
         })}</div>
-        {ctx.interactive && <div className="ws-hint">Klõpsa sõnal, siis grupil.</div>}
+        {ctx.interactive && <div className="ws-hint">Klõpsa sõnal, siis grupil. Vale sõna võtad tagasi, kui klõpsad sellel grupis.</div>}
         <div className="ws-cat-groups" style={{ gridTemplateColumns: `repeat(${Math.min(groups.length, 4)}, 1fr)` }}>
           {groups.map((g, gi) => (
             <div key={gi} className="ws-cat-g" onClick={() => { if (ctx.interactive && pick) { ctx.set(pick, String(gi)); ctx.setFocus(id, undefined); } }}>
               <b>{g.name}</b>
               <div className="ws-cat-list">
-                {all.map((w, i) => (ctx.get(`w${i}`) === String(gi) ? <span key={i} className={`ws-cat-item ${ctx.state(`w${i}`) ? 'is-' + ctx.state(`w${i}`) : ''}`}>{w}</span> : null))}
+                {all.map((w, i) => (ctx.get(`w${i}`) === String(gi) ? <span key={i} className={`ws-cat-item ${ctx.state(`w${i}`) ? 'is-' + ctx.state(`w${i}`) : ''}`}
+                  // a placed word goes back to the bank on click (a wrong choice can be undone)
+                  role={ctx.interactive ? 'button' : undefined} tabIndex={ctx.interactive ? 0 : -1} title={ctx.interactive ? 'Klõpsa, et sõna tagasi võtta' : undefined}
+                  onClick={(e) => { if (!ctx.interactive) return; e.stopPropagation(); ctx.set(`w${i}`, ''); }}
+                  onKeyDown={(e) => { if (ctx.interactive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); ctx.set(`w${i}`, ''); } }}>{w}</span> : null))}
                 {!ctx.interactive && Array.from({ length: Math.max(3, splitList(g.words).length) }).map((_, k) => <div key={k} className="ws-cat-line" />)}
               </div>
             </div>

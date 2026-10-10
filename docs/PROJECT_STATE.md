@@ -19,6 +19,15 @@
 - Next safe step: the owner analyses one real written answer in „Kodutööd”.
 
 
+## 2026-10-10 · agent/categorize-undo — „Sorteeri gruppidesse”: paigutatud sõna saab tagasi võtta
+
+- Omanik: kui sõna on gruppi pandud, ei saa seda enam eemaldada.
+- `engine/blocks/extra.jsx` categorize: kui klõpsad (või vajutad Enter) grupis oleval sõnal, läheb see tagasi sõnapanka ja vastus tühjendatakse. Vihje ütleb seda õpilasele.
+- Kontrollid:
+  - worksheet-studio engine 71/71 (uus interaktsioonitest);
+  - eslint;
+  - build.
+
 ## 2026-10-10 · agent/library-roadmap-phases — õppekava tund jääb tunniks ka vana töölehega
 
 - Omaniku ekraanipilt: a2b1-009 „Koos veedetud aeg” on Õppevaras „Tööleht” ilma Avasta / Harjuta / Kasuta märkideta.
