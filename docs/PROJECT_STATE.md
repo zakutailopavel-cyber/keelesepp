@@ -1,3 +1,16 @@
+## 2026-10-11 · agent/teacher-no-finance — õpetajal pole ligipääsu rahale
+
+- Base: `main` 6b2b123. Branch `agent/teacher-no-finance`, draft PR.
+- Owner decision (2026-10-11): teachers only mark held lessons; they have nothing to do with finance.
+- Found in the role simulation: any teacher could read every invoice of the school (incl. other teachers' students), edit invoice descriptions, read `emailQueue` (invoice and reminder e-mails) and send / remind invoices of own students through `invoiceApi`.
+- `firestore.rules`: `invoices` read = admin, finance or the invoice's own family (`ownsInvoice`); update = admin only (the staff branch with limited fields is removed); `emailQueue` read = admin or finance.
+- `functions/index.js` `invoiceApi`: `/send` and `/remind` require an administrator (were staff). Lesson marking (`financeApi` `/lessons/journal`, `/lessons/journal/delete`, `/lessons/package-consumption/sync`) stays open to teachers.
+- CRM v2 never showed invoices to teachers (finance views are gated by admin / finance role), so no UI change. Legacy `haldus.html` loads all invoices for staff: for a teacher this listener now gets permission-denied and its existing error handler shows an empty list.
+- Checks: `firebase emulators:exec … npm run test:emulator` 74/74 (incl. updated `security-finance-emulator.integration.js`: teacher cannot read or edit an invoice, cannot send / remind even an own student's invoice, cannot list `emailQueue`; admin can edit the description); functions `npm test` 251/251.
+- Manual gate: owner-approved `firebase deploy --only firestore:rules,functions:invoiceApi`. Nothing changes in production before that.
+- Still open (owner question): whether a teacher should see messages / homework of other teachers' students.
+- Next step: owner reviews, merges and deploys rules + `invoiceApi`.
+
 ## 2026-10-11 · agent/live-guest-link — Live Classroom: tunnilink kontota õpilasele
 
 - Base: `main` 533a366. Branch `agent/live-guest-link`, draft PR.

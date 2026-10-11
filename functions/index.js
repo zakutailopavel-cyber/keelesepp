@@ -7854,7 +7854,8 @@ exports.invoiceApi = functions
       return;
     }
 
-    const actor = await requireStaffUser(req);
+    // sending invoices and reminders is finance work: administrator only, never a teacher (owner decision 2026-10-11)
+    const actor = await requireAdminUser(req);
 
     if (path === "/send") {
       const result = await sendInvoiceMessage(req.body?.invoiceId, { type: "invoice", actor });
