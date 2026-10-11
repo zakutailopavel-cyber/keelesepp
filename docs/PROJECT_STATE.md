@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b1-m09 — B1 kursus moodul 9 (Harjuta + Kasuta) (a2b1-041…045), kõik kolm etappi
+
+- Base: `main` f026384. Previous modules are published to production (diff with production: 0 differences).
+- Mooduli 9 „Töö ja ametid” Harjuta ja Kasuta lehed (ametid, töökogemus, ma-/da-vorm tööelus ja töökuulutus, töövestlus, kontroll 9); kvaliteedivärav roheline; avaldatud prod-is skriptiga.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b1-m08 — B1 kursus moodul 8 (Harjuta + Kasuta) (a2b1-036…040), kõik kolm etappi
 
 - Base: `main` 6b2b123. Previous modules are published to production (diff with production: 0 differences).
