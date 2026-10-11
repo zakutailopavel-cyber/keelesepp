@@ -1,3 +1,6 @@
+import { publishedWorksheetDoc } from '../library/libraryModel.js';
+import { vocabPairs } from '../vocabulary/deckModel.js';
+
 // Pet mini-games on the learner's own topics: the material comes from the worksheets his teacher gave him (worksheetDoc
 // blocks with their right answers), so the games always follow what he is learning now. Pure: the component passes in
 // the assignments and a random source. Nothing here is written anywhere; playing only fills the pet's joy (petCare).
@@ -6,15 +9,24 @@
 //   pairs — „Paarid”: memory cards from matching tasks
 //   order — „Lauseehitus”: build the sentence from its words
 //   truth — „Kiire kontroll”: right or wrong, before the time runs out (true/false tasks, sentences with an error)
+//   sort  — „Sorteeri”: drop each word into the right basket of the pet (categorize tasks)
+//   guess — „Arva sõna”: guess the word letter by letter from its clue (crosswords, vocabulary lists, matching)
+//
+// Material: the worksheets the teacher assigned, and the published course sheets of the lessons the learner has had
+// (courseTopics). Both are the learner's own topics; nothing else is offered.
 
-export const GAME_SIZE = { catch: 5, pairs: 6, order: 3, truth: 6 };
-const MIN = { catch: 3, pairs: 3, order: 2, truth: 3 };
+export const GAME_SIZE = { catch: 5, pairs: 6, order: 3, truth: 6, sort: 8, guess: 4 };
+const MIN = { catch: 3, pairs: 3, order: 2, truth: 3, sort: 6, guess: 3 };
 export const GAMES = [
   { key: 'catch', label: 'Püüa sõna', ru: 'Поймай нужное слово, пока оно не упало' },
   { key: 'pairs', label: 'Paarid', ru: 'Найди пары карточек' },
   { key: 'order', label: 'Lauseehitus', ru: 'Собери предложение из слов' },
   { key: 'truth', label: 'Kiire kontroll', ru: 'Верно или неверно — быстро!' },
+  { key: 'sort', label: 'Sorteeri', ru: 'Разложи слова по корзинкам' },
+  { key: 'guess', label: 'Arva sõna', ru: 'Угадай слово по буквам' },
 ];
+// the letters of the „Arva sõna” keyboard
+export const LETTERS = 'abcdefghijklmnoprsšzžtuvõäöüy'.split('');
 
 const clean = (v) => String(v ?? '').replace(/\s+/g, ' ').trim();
 const same = (a, b) => clean(a).toLocaleLowerCase('et') === clean(b).toLocaleLowerCase('et');
@@ -48,7 +60,7 @@ function gapSentence(line) {
 
 // everything a sheet offers for the games
 export function sheetItems(doc) {
-  const out = { catch: [], pairs: [], order: [], truth: [] };
+  const out = { catch: [], pairs: [], order: [], truth: [], sort: [], guess: [] };
   const answers = [];
   const gapRows = [];
   for (const b of doc?.blocks || []) {
@@ -77,6 +89,26 @@ export function sheetItems(doc) {
     if (b.type === 'wordorder' || b.type === 'dictation') {
       lines(d.sentences).forEach((s) => out.order.push({ sentence: s }));
     }
+    // „Ütle teisiti”: the expected sentence is a sentence to build
+    if (b.type === 'transformation') {
+      (d.rows || []).forEach((r) => { if (clean(r.answer)) out.order.push({ sentence: clean(r.answer) }); });
+    }
+    // a dialogue with gaps: „See on meie uus õpetaja. [Tal on] habe…” is a gap like in `gaps`
+    if (b.type === 'dialogue') {
+      (d.lines || []).map((l) => gapSentence(l?.text || '')).filter(Boolean).forEach((g) => { gapRows.push(g); answers.push(g.answer); });
+    }
+    // two or more named groups of words: every word goes into its group's basket
+    if (b.type === 'categorize') {
+      const groups = (d.groups || []).map((g) => ({ name: clean(g.name), words: String(g.words || '').split(/[,;\n]/).map(clean).filter(Boolean) }))
+        .filter((g) => g.name && g.words.length);
+      if (groups.length >= 2 && groups.length <= 4) out.sort.push({ groups });
+    }
+    if (b.type === 'crossword') {
+      (d.rows || []).forEach((r) => out.guess.push({ clue: clean(r.clue), word: clean(r.answer) }));
+    }
+    // vocabulary lists and matching: the meaning is the clue (only single words make a fair letter game)
+    if (b.type === 'vocab') vocabPairs(d.words).forEach(([word, meaning]) => out.guess.push({ clue: meaning, word }));
+    if (b.type === 'match') (d.pairs || []).forEach((p) => out.guess.push({ clue: clean(p.right), word: clean(p.left) }));
     if (b.type === 'truefalse') {
       (d.statements || []).filter((s) => clean(s.text) && (s.answer === 'true' || s.answer === 'false')).forEach((s) => out.truth.push({ text: clean(s.text), right: s.answer === 'true' }));
     }
@@ -98,22 +130,55 @@ export function sheetItems(doc) {
   out.pairs = uniqueBy(out.pairs, (p) => p.left);
   out.order = uniqueBy(out.order.filter((o) => words(o.sentence).length >= 3 && words(o.sentence).length <= 12), (o) => o.sentence);
   out.truth = uniqueBy(out.truth, (t) => t.text);
+  // a clue that already contains the word (koer → koeri) gives it away
+  const lower = (v) => clean(v).toLocaleLowerCase('et');
+  out.guess = uniqueBy(out.guess.filter((g) => g.clue && guessable(g.word) && !lower(g.clue).includes(lower(g.word)) && !lower(g.word).includes(lower(g.clue))), (g) => g.word);
   return out;
 }
 
+// one word of 3–14 letters that the keyboard can type (no spaces, digits or punctuation)
+export function guessable(word) {
+  const w = clean(word).toLocaleLowerCase('et');
+  return w.length >= 3 && w.length <= 14 && [...w].every((ch) => LETTERS.includes(ch));
+}
+
 // The learner's topics, newest first; open (not yet done) worksheets first, they are what he is learning now.
-export function learnerTopics(assignments = [], limit = 4) {
+// how much a topic offers for one game (for „Sorteeri” the words, not the tasks)
+export function gameSize(items, key) {
+  if (key === 'sort') return (items?.sort || []).reduce((n, task) => n + task.groups.reduce((m, g) => m + g.words.length, 0), 0);
+  return items?.[key]?.length || 0;
+}
+
+export function learnerTopics(assignments = [], limit = 6) {
   return [...assignments]
     .filter((a) => a.worksheetDoc?.blocks?.length)
     .sort((a, b) => Number(a.status === 'done') - Number(b.status === 'done') || String(b.assignedAt).localeCompare(String(a.assignedAt)))
     .map((a) => {
       const items = sheetItems(a.worksheetDoc);
-      const games = GAMES.filter((g) => items[g.key].length >= MIN[g.key]).map((g) => g.key);
-      return { id: a.id, title: clean(a.title || a.worksheetDoc?.meta?.title) || 'Tööleht', level: a.worksheetDoc?.meta?.level || '', items, games };
+      const games = GAMES.filter((g) => gameSize(items, g.key) >= MIN[g.key]).map((g) => g.key);
+      return { id: a.id, title: clean(a.title || a.worksheetDoc?.meta?.title) || 'Tööleht', level: a.worksheetDoc?.meta?.level || '', items, games, source: a.source === 'course' ? 'course' : 'assigned' };
     })
     .filter((t) => t.games.length)
     .filter((t, i, list) => list.findIndex((x) => same(x.title, t.title)) === i)
     .slice(0, limit);
+}
+
+// The published course sheets of the lessons the learner has had (lessons.topicLessonId), as pseudo-assignments for
+// learnerTopics: one per lesson, the phase sheets merged. `sheetsByLesson`: { lessonId: [lesson worksheet records] }.
+export function courseTopics(lessons = [], sheetsByLesson = {}, limit = 4) {
+  const seen = new Set();
+  return [...lessons]
+    .filter((l) => l.topicLessonId && (!l.status || l.status === 'Toimunud'))
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+    .filter((l) => (seen.has(l.topicLessonId) ? false : seen.add(l.topicLessonId)))
+    .slice(0, limit)
+    .map((l) => {
+      const docs = (sheetsByLesson[l.topicLessonId] || []).map(publishedWorksheetDoc).filter((d) => d?.blocks?.length);
+      if (!docs.length) return null;
+      return { id: `course:${l.topicLessonId}`, source: 'course', status: 'done', assignedAt: l.date, title: clean(l.topic) || clean(docs[0].meta?.title) || 'Tund',
+        worksheetDoc: { meta: { title: clean(l.topic) || docs[0].meta?.title, level: l.topicLevel || docs[0].meta?.level || '' }, blocks: docs.flatMap((d) => d.blocks) } };
+    })
+    .filter(Boolean);
 }
 
 // The rounds of one game (options shuffled; `catch` keeps 3 options: the answer and 2 others)
@@ -122,7 +187,17 @@ export function gameRounds(topic, game, random = Math.random) {
   if (game === 'catch') return items.map((it) => ({ ...it, options: shuffle([it.answer, ...shuffle(it.options.filter((o) => !same(o, it.answer)), random).slice(0, 2)], random) }));
   if (game === 'pairs') return shuffle(items.flatMap((p, i) => [{ id: `${i}a`, pair: i, text: p.left }, { id: `${i}b`, pair: i, text: p.right }]), random);
   if (game === 'order') return items.map((it) => { const w = words(it.sentence); let mixed = shuffle(w, random); if (w.length > 1 && mixed.join(' ') === w.join(' ')) mixed = [...w.slice(1), w[0]]; return { sentence: it.sentence, words: w, mixed }; });
+  if (game === 'guess') return items.map((it) => ({ ...it, letters: [...clean(it.word).toLocaleLowerCase('et')] }));
   return items;
+}
+
+// „Sorteeri”: one categorize task (with the most words) → its baskets and up to GAME_SIZE.sort words, mixed
+export function sortRound(topic, random = Math.random) {
+  const tasks = [...(topic?.items?.sort || [])].sort((a, b) => b.groups.reduce((n, g) => n + g.words.length, 0) - a.groups.reduce((n, g) => n + g.words.length, 0));
+  const task = tasks[Math.floor(random() * Math.min(tasks.length, 3))] || tasks[0];
+  if (!task) return { baskets: [], words: [] };
+  const all = task.groups.flatMap((g) => g.words.map((word) => ({ word, basket: g.name })));
+  return { baskets: task.groups.map((g) => g.name), words: shuffle(all, random).slice(0, GAME_SIZE.sort) };
 }
 
 export const sameSentence = (a, b) => clean(a).replace(/[.!?]+$/, '') === clean(b).replace(/[.!?]+$/, '');

@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import PetGames from './PetGames.jsx';
-import { gameRounds, learnerTopics, sheetItems } from './petGames.js';
+import { courseTopics, gameRounds, guessable, learnerTopics, sheetItems, sortRound } from './petGames.js';
 
 const doc = { meta: { title: 'Mitmuse osastav', level: 'A2+' }, blocks: [
   { type: 'gaps', data: { bank: 'koeri, raamatuid', sentences: 'Ma näen [koeri].\nTa loeb [raamatuid] kodus.\nMeil on palju [õpilasi] klassis.' } },
@@ -45,5 +45,88 @@ describe('pet topic games', () => {
     expect(screen.getByText(/Kas see on õige/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Õige' }));
     expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  const courseDoc = { meta: { title: 'Pere', level: 'A2' }, blocks: [
+    { type: 'categorize', data: { groups: [{ name: 'Välimus', words: 'pikk, lühike, sale, prillidega' }, { name: 'Iseloom', words: 'sõbralik, rahulik, naljakas' }] } },
+    { type: 'crossword', data: { rows: [{ clue: 'Minu ema ema', answer: 'vanaema' }, { clue: 'Poeg või tütar', answer: 'laps' }, { clue: 'Ema ja isa koos', answer: 'vanemad' }, { clue: 'kaks sõna', answer: 'ema isa' }] } },
+    { type: 'vocab', data: { words: 'õde — сестра, vend — брат, kõigepealt — сначала' } },
+    { type: 'transformation', data: { rows: [{ from: 'Mul on vend.', prompt: 'Minu …', answer: 'Minu vend elab Soomes.' }] } },
+    { type: 'dialogue', data: { lines: [{ who: 'A', text: 'Kes see on?' }, { who: 'B', text: 'See on meie uus [õpetaja].' }, { who: 'B', text: 'Ta on [rahulik] ja kannatlik.' }] } },
+  ] };
+
+  it('takes sorting, letter guessing, transformations and dialogue gaps from course sheets', () => {
+    const items = sheetItems(courseDoc);
+    expect(items.sort[0].groups.map((g) => g.name)).toEqual(['Välimus', 'Iseloom']);
+    expect(items.guess.map((g) => g.word)).toEqual(['vanaema', 'laps', 'vanemad', 'õde', 'vend', 'kõigepealt']);
+    expect(items.guess[3]).toEqual({ clue: 'сестра', word: 'õde' });
+    expect(items.order.map((o) => o.sentence)).toContain('Minu vend elab Soomes.');
+    expect(items.catch.map((c) => c.answer)).toEqual(['õpetaja', 'rahulik']);
+    expect(guessable('ema isa')).toBe(false);
+    expect(guessable('šokolaad')).toBe(true);
+  });
+
+  it('builds topics from the published sheets of attended lessons, newest first, one per lesson', () => {
+    const lessons = [
+      { date: '2026-10-01', status: 'Toimunud', topicLessonId: 'l1', topic: 'Pere' },
+      { date: '2026-10-08', status: 'Puudus_p', topicLessonId: 'l2', topic: 'Puudutud' },
+      { date: '2026-10-05', status: 'Toimunud', topicLessonId: 'l1', topic: 'Pere' },
+      { date: '2026-10-06', status: 'Toimunud', topicLessonId: 'l3', topic: 'Mustand' },
+    ];
+    const sheets = {
+      l1: [{ worksheetDoc: courseDoc }, { worksheetDocStatus: 'draft', worksheetDoc: doc }],
+      l2: [{ worksheetDoc: doc }],
+      l3: [{ worksheetDocStatus: 'draft', worksheetDoc: doc }],
+    };
+    const topics = courseTopics(lessons, sheets);
+    expect(topics.map((t) => t.id)).toEqual(['course:l1']);
+    expect(topics[0]).toMatchObject({ source: 'course', title: 'Pere', assignedAt: '2026-10-05' });
+    // the draft sheet (not published) is not played
+    expect(topics[0].worksheetDoc.blocks).toHaveLength(courseDoc.blocks.length);
+    const listed = learnerTopics(topics);
+    expect(listed[0].games).toEqual(expect.arrayContaining(['sort', 'guess']));
+    expect(listed[0].source).toBe('course');
+  });
+
+  it('plays „Sorteeri”: the right basket counts, a wrong one shows where the word belongs', () => {
+    vi.useFakeTimers();
+    const topics = learnerTopics(courseTopics([{ date: '2026-10-01', topicLessonId: 'l1', topic: 'Pere' }], { l1: [{ worksheetDoc: courseDoc }] }));
+    const round = sortRound(topics[0], seq());
+    expect(round.baskets).toEqual(['Välimus', 'Iseloom']);
+    expect(round.words.length).toBe(7);
+    const onDone = vi.fn();
+    render(<PetGames topics={topics} kind="kakk" onDone={onDone} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: /Sorteeri/ }));
+    for (let k = 0; k < 7; k += 1) {
+      const word = document.querySelector('.pg-word').textContent;
+      const basket = ['pikk', 'lühike', 'sale', 'prillidega'].includes(word) ? 'Välimus' : 'Iseloom';
+      fireEvent.click(screen.getByRole('button', { name: new RegExp(`^${k === 0 ? (basket === 'Välimus' ? 'Iseloom' : 'Välimus') : basket}`) }));
+      if (k === 0) expect(screen.getByRole('status')).toHaveTextContent(`See läheb korvi „${basket}”`);
+      act(() => { vi.advanceTimersByTime(2000); });
+    }
+    expect(onDone).toHaveBeenCalledWith(6);
+    vi.useRealTimers();
+  });
+
+  it('plays „Arva sõna”: letters fill the word, the pet is told the word after six misses', () => {
+    vi.useFakeTimers();
+    const topics = [{ id: 't', title: 'Pere', items: { catch: [], pairs: [], order: [], truth: [], sort: [], guess: [{ clue: 'Poeg või tütar', word: 'laps' }, { clue: 'сестра', word: 'õde' }, { clue: 'брат', word: 'vend' }] }, games: ['guess'] }];
+    const onDone = vi.fn();
+    render(<PetGames topics={topics} kind="siil" onDone={onDone} onClose={() => {}} />);
+    fireEvent.click(screen.getByRole('button', { name: /Arva sõna/ }));
+    for (let r = 0; r < 3; r += 1) {
+      const clue = screen.getByText(/Vihje/).textContent;
+      const word = clue.includes('Poeg') ? 'laps' : clue.includes('сестра') ? 'õde' : 'vend';
+      if (r === 0) {
+        ['b', 'c', 'f', 'g', 'h', 'i'].forEach((ch) => fireEvent.click(screen.getByRole('button', { name: `Täht ${ch}` })));
+        expect(screen.getByRole('status')).toHaveTextContent(`Sõna oli: ${word}`);
+      } else {
+        [...new Set(word)].forEach((ch) => fireEvent.click(screen.getByRole('button', { name: `Täht ${ch}` })));
+        expect(screen.getByRole('status')).toHaveTextContent('Arvasid ära!');
+      }
+      act(() => { vi.advanceTimersByTime(2500); });
+    }
+    expect(onDone).toHaveBeenCalledWith(2);
+    vi.useRealTimers();
   });
 });
