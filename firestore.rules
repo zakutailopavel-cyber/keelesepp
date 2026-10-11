@@ -255,6 +255,25 @@ service cloud.firestore {
         );
     }
 
+    // Live Classroom guest link (functions/live-guest.js): the server writes liveGuestGrants/{uid} for a guest who
+    // opened the teacher's link; the grant opens only that card's board and the worksheets of that lesson room.
+    function liveGuestGrantPath() {
+      return /databases/$(database)/documents/liveGuestGrants/$(uid());
+    }
+
+    function liveGuestFor(studentId) {
+      return signedIn()
+        && request.auth.token.get('liveGuest', false) == true
+        && exists(liveGuestGrantPath())
+        && get(liveGuestGrantPath()).data.studentId == studentId
+        && get(liveGuestGrantPath()).data.expiresAt > request.time;
+    }
+
+    function liveGuestRoomSheet(data) {
+      return liveGuestFor(data.studentId)
+        && data.get('liveRoomKey', '') == get(liveGuestGrantPath()).data.invitationId;
+    }
+
     function validLiveLessonWhiteboardStroke(data) {
       return data is map
         && data.keys().hasOnly([
@@ -1363,7 +1382,7 @@ service cloud.firestore {
     }
 
     match /worksheetAssignments/{assignmentId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
+      allow read: if isStaff() || ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data);
       allow create: if isStaff()
         && (
           request.resource.data.get('source', '') != 'student_private_worksheet'
@@ -1375,7 +1394,7 @@ service cloud.firestore {
       allow update: if request.resource.data.studentId == resource.data.studentId
         && (isStaff()
         || (
-          ownsStudent(resource.data.studentId)
+          (ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data))
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
             'status',
             'answers',
@@ -1915,6 +1934,16 @@ service cloud.firestore {
       }
     }
 
+    // guest links and grants are written only by the server (functions/live-guest.js); a guest reads its own grant
+    match /liveGuestLinks/{tokenHash} {
+      allow read, write: if false;
+    }
+
+    match /liveGuestGrants/{guestUid} {
+      allow read: if signedIn() && guestUid == uid();
+      allow write: if false;
+    }
+
     match /liveClassrooms/{classroomId} {
       allow read: if isAdmin()
         || (signedIn() && resource.data.teacherUid == uid())
@@ -2329,7 +2358,8 @@ service cloud.firestore {
     function whiteboardAccessAllowed(studentId) {
       return isAdmin()
         || (isTeacher() && exists(studentPath(studentId)) && teacherCanRead(studentDoc(studentId)))
-        || ownsStudent(studentId);
+        || ownsStudent(studentId)
+        || liveGuestFor(studentId);
     }
 
     // Firestore rules cannot cheaply validate every point in a stroke's
@@ -2459,7 +2489,8 @@ service cloud.firestore {
             || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
           )
         )
-        || ownsStudent(studentId);
+        || ownsStudent(studentId)
+        || liveGuestFor(studentId);
     }
 
     function whiteboardPageElementCreateAllowed(studentId, pageId, data) {

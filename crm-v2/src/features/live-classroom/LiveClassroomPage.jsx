@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
-import { libraryService, liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, messagesService, studentsService } from '../../services/firebase/index.js';
+import { libraryService, liveGuestService, liveLessonCallSignalsService, liveLessonInvitationsService, liveLessonPresenceService, messagesService, studentsService } from '../../services/firebase/index.js';
 import { groupBoardService, studentBoardService } from '../../services/firebase/studentBoard.js';
 import { liveGroupRoomsService } from '../../services/firebase/liveGroupRooms.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -51,6 +51,7 @@ export default function LiveClassroomPage({
   groupService = liveGroupRoomsService,
   groupBoard = groupBoardService,
   groupCallOptions,
+  guestService = liveGuestService,
 }) {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -137,6 +138,22 @@ export default function LiveClassroomPage({
       // a test student „joins” at once (the teacher tests the room with their own voice)
       if (selectedStudent.testStudent === true && invitationService.acceptForTestStudent) await invitationService.acceptForTestStudent(created.id);
       setSearchParams({ invitation: created.id }, { replace: true });
+    } catch (error) {
+      setActionError(firebaseErrorMessage(error));
+    } finally {
+      setSaving('');
+    }
+  };
+
+  // a student without a login: a lesson link instead of an invitation (functions/live-guest.js); the pending
+  // invitation shows the link to copy, and the room opens when the student opens it
+  const createGuestLink = async () => {
+    if (!selectedStudent) { setActionError('Vali õpilane.'); return; }
+    setSaving('link');
+    setActionError('');
+    try {
+      const created = await guestService.createLink({ studentId: selectedStudent.id, title: title || selectedStudent.subject });
+      setSearchParams({ invitation: created.invitationId }, { replace: true });
     } catch (error) {
       setActionError(firebaseErrorMessage(error));
     } finally {
@@ -280,6 +297,8 @@ export default function LiveClassroomPage({
     onTitle={setTitle}
     onInvite={sendInvitation}
     inviting={saving === 'create'}
+    onGuestLink={createGuestLink}
+    linking={saving === 'link'}
     pending={pending}
     onCancel={cancel}
     cancelling={saving === 'cancel'}

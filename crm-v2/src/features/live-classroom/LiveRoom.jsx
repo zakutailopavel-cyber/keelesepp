@@ -138,6 +138,8 @@ export default function LiveRoom({
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
+  // a guest by lesson link (functions/live-guest.js) has this room only: no chat history, words, pet or uploads of the card
+  const guest = user?.guest === true;
   const boardRef = useRef(null);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   const [panel, setPanel] = useState('');
@@ -164,7 +166,7 @@ export default function LiveRoom({
   }, []);
 
   useEffect(() => {
-    if (!messagesRepository?.subscribeByStudent || !invitation.studentId) return undefined;
+    if (guest || !messagesRepository?.subscribeByStudent || !invitation.studentId) return undefined;
     try {
       return messagesRepository.subscribeByStudent(invitation.studentId, (items) => {
         setMessages(items);
@@ -175,7 +177,7 @@ export default function LiveRoom({
       globalThis.queueMicrotask(() => setChatError(nextError?.message || 'Vestlust ei saanud laadida.'));
       return undefined;
     }
-  }, [invitation.studentId, messagesRepository]);
+  }, [guest, invitation.studentId, messagesRepository]);
   // messages already there when the room opened are not "new"; the chat badge counts what arrives during the lesson
   const baseline = seenCount ?? messages.length;
   useEffect(() => { if (panel === 'chat') setSeenCount(messages.length); }, [messages.length, panel]);
@@ -293,9 +295,9 @@ export default function LiveRoom({
         <div className="lr-top__group lr-top__right">
           <IconButton label="Rohkem" active={menu === 'more'} onClick={() => setMenu(menu === 'more' ? '' : 'more')}><MoreHorizontal size={19} /></IconButton>
           <IconButton label="Osalejad" active={panel === 'people'} onClick={() => toggle('people')}><Users size={18} /></IconButton>
-          <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton>
+          {!guest ? <IconButton label="Vestlus" active={panel === 'chat'} onClick={() => toggle('chat')}><MessageSquare size={18} />{unread ? <span className="lr-badge">{unread}</span> : null}</IconButton> : null}
           {teacher ? <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => toggle('materials')}><LibraryBig size={17} /> Materjalid</button> : null}
-          <button type="button" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /> Sõnad</button>
+          {!guest ? <button type="button" className={`lr-text-btn ${panel === 'words' ? 'is-active' : ''}`} onClick={() => toggle('words')}><Languages size={17} /> Sõnad</button> : null}
           <button type="button" className={`lr-text-btn ${panel === 'tasks' ? 'is-active' : ''}`} onClick={() => { setMenu(''); if (sheet && !teacher) { boardRef.current?.openWorksheet?.(); return; } toggle('tasks'); }}><ClipboardList size={17} /> Ülesanded{sheet ? <span className="lr-dot" aria-label="Tööleht on avatud" /> : null}</button>
         </div>
         {menu === 'info' ? <div className="lr-menu lr-menu--left" role="dialog" aria-label="Tunni info">
@@ -329,13 +331,13 @@ export default function LiveRoom({
             controllerRef={boardRef}
             onHistoryChange={setHistory}
             newPageTitle={`Tund ${lessonDate}`}
-            uploadImage={teacher ? uploadImage : studentUpload}
+            uploadImage={teacher ? uploadImage : guest ? undefined : studentUpload}
             worksheets={boardSheets}
             onPageChange={onPageChange}
             {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}
             {...(boardService ? { service: boardService } : {})}
           />
-          {!teacher ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
+          {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
         </main>
 
