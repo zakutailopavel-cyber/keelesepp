@@ -42,9 +42,9 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
   const [painting, setPainting] = useState(null);
   const [now, setNow] = useState(nowMinutes);
   const { start: GRID_START, end: GRID_END } = gridRange(columns.flatMap((column) => column.items));
-  // colour: by teacher when several teachers are on the grid, by student when it is one teacher's week (owner, 2026-10-09)
+  // colour: always by teacher, one colour per teacher (owner, 2026-10-11); the legend is about free slots only
+  const toneOf = (item) => teacherTone(item.teacherUid || item.teacher);
   const manyTeachers = new Set(columns.flatMap((column) => column.items).map((item) => item.teacherUid || item.teacher || '')).size > 1;
-  const toneOf = (item) => teacherTone(manyTeachers ? (item.teacherUid || item.teacher) : (item.studentId || item.studentName || item.teacher));
   const HOURS = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, index) => GRID_START / 60 + index);
   const firstRange = useRef({ start: GRID_START, end: GRID_END });
 
