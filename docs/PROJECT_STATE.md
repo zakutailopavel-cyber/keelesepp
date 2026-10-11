@@ -6,8 +6,8 @@
 - Rules (`firestore.rules`): `liveGuestFor(studentId)` (claim + unexpired grant for that card) opens `whiteboards/{studentId}` (+ elements, lessonPages); `liveGuestRoomSheet` opens only `worksheetAssignments` with `liveRoomKey == grant.invitationId` (read + student answer fields). `liveGuestLinks` no client access; `liveGuestGrants/{uid}` read by itself only. Signals / presence / strokes already follow `invitation.studentUid`. The guest has no chat, words, pet or uploads (LiveRoom `user.guest`).
 - Files: `functions/live-guest.js` (+ `live-guest.test.js`, `live-guest-emulator.integration.js` in `test:emulator`), `functions/index.js` (2 routes), `firestore.rules`, `crm-v2/src/services/firebase/liveGuest.js`, `features/live-classroom/{GuestLessonPage,LiveClassroomPage,TeacherWorkspace,LiveRoom}.jsx`, `liveRoom.css`, `app/routes.jsx`, tests.
 - Checks: functions `node --test` 251/251; live-classroom vitest: new tests pass, 9 failures pre-existing (no `localStorage` in local Node; they pass in CI); eslint clean; `vite build` OK. Emulator rules test runs in CI (local Java is 8).
-- Deploy needs (owner approval): `firebase deploy --only firestore:rules,functions:staffOperationsApi` + merge for Vercel. `createCustomToken` needs the functions service account role „Service Account Token Creator” (same as the test-student session); without it `/live/guest-join` answers 503 with that instruction.
-- Next step: owner approves deploy; then test with a testStudent card.
+- Deployed 2026-10-11 with owner approval: `firestore:rules` + `functions:staffOperationsApi` (firebase CLI) and PR #512 merged → Vercel success. Production check: link created in Live Classroom for the test card „test”, `/live/guest-join` → 200 with a `guest_…` sign-in token (Token Creator role present), the teacher's room opened; the test lesson was ended without a summary (not marked held).
+- Next step: teachers use „Loo tunnilink” for students without a login (e.g. Anhelina Korotka's children).
 
 ## 2026-10-11 · agent/teacher-assigned-students — õpetaja näeb talle määratud õpilasi (Live Classroom)
 
