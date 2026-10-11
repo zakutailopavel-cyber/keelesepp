@@ -39,8 +39,8 @@ export default function AppShell({ approvals = accountApprovalsService, messages
   const [unreadMessages, setUnreadMessages] = useState(0);
   useEffect(() => {
     if (!isStaff || !messages?.subscribeUnreadCount || !user.uid) return undefined;
-    try { return messages.subscribeUnreadCount({ uid: user.uid, teacherName: user.displayName, all: isAdmin }, setUnreadMessages, () => setUnreadMessages(0)); } catch { return undefined; }
-  }, [messages, isStaff, isAdmin, user.uid, user.displayName]);
+    try { return messages.subscribeUnreadCount({ uid: user.uid, all: isAdmin }, setUnreadMessages, () => setUnreadMessages(0)); } catch { return undefined; }
+  }, [messages, isStaff, isAdmin, user.uid]);
   const badges = { '/accounts': isAdmin ? pendingAccounts : 0, '/messages': isStaff ? unreadMessages : 0 };
   const exitPreview = () => { stopPreview(); navigate('/settings'); };
   const blockPreviewButtons = (event) => {

@@ -1,6 +1,7 @@
 import { collection, doc, getDocs, onSnapshot, query, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
+import { studentsService } from './students.js';
 
 const defaultMetaMessagingUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/metaMessagingApi';
 
@@ -59,14 +60,32 @@ export const messagesService = {
     const snapshots = await Promise.all(chunks([...new Set(studentIds.filter(Boolean))]).map((ids) => getDocs(query(collection(db, 'messages'), where('studentId', 'in', ids)))));
     return snapshots.flatMap(messageRecords).sort((a, b) => String(a.createdAt || a.date || '').localeCompare(String(b.createdAt || b.date || '')));
   },
-  // unread messages for the staff member (the „Suhtlus” menu badge): not written by them; a teacher counts only the
-  // conversations of their own students, an administrator all
-  subscribeUnreadCount({ uid, teacherName = '', all = false }, onCount, onError) {
+  // unread messages for the staff member (the „Suhtlus” menu badge): not written by them. An administrator counts all;
+  // a teacher may read only their own students' messages (rules), so the teacher's query goes by those student ids.
+  subscribeUnreadCount({ uid, all = false, studentIds = null, students = studentsService }, onCount, onError) {
     const { db } = requireFirebaseClient();
-    const me = canonicalTeacherName(teacherName);
-    return onSnapshot(query(collection(db, 'messages'), where('read', '==', false)), (snapshot) => {
-      onCount(messageRecords(snapshot).filter((m) => m.fromUid !== uid && (all || !m.teacher || m.teacher === me)).length);
-    }, (error) => onError?.(error));
+    const count = (records) => records.filter((m) => !m.read && m.fromUid !== uid).length;
+    if (all) {
+      return onSnapshot(query(collection(db, 'messages'), where('read', '==', false)), (snapshot) => onCount(count(messageRecords(snapshot))), (error) => onError?.(error));
+    }
+    let stopped = false;
+    const unsubs = [];
+    const byChunk = new Map();
+    const push = () => onCount([...byChunk.values()].reduce((sum, value) => sum + value, 0));
+    Promise.resolve(studentIds || students.list({ status: 'active', pageSize: 500, exhaustive: true, scopeTeacherUid: uid }).then((result) => result.items.map((student) => student.id)))
+      .then((ids) => {
+        if (stopped) return;
+        const groups = chunks([...new Set(ids.filter(Boolean))]);
+        if (!groups.length) onCount(0);
+        groups.forEach((group, index) => {
+          unsubs.push(onSnapshot(query(collection(db, 'messages'), where('studentId', 'in', group)), (snapshot) => {
+            byChunk.set(index, count(messageRecords(snapshot)));
+            push();
+          }, (error) => onError?.(error)));
+        });
+      })
+      .catch((error) => onError?.(error));
+    return () => { stopped = true; unsubs.forEach((unsubscribe) => unsubscribe()); };
   },
   // Live conversation of one student (Live Classroom chat): the same internal messages as the Suhtlus page.
   subscribeByStudent(studentId, onChange, onError) {

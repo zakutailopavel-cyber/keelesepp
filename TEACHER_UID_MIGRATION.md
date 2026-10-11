@@ -5,6 +5,7 @@ This change prepares the legacy CRM for teacher-scoped reads without moving data
 ## Safety model
 
 - `students`, `lessons`, and `schedule` keep their current staff-wide behavior while `securityMigrations/teacherUidV1.readEnforced` is absent or `false`.
+- `homework`, `messages`, `worksheetAssignments` and `exerciseResults` are always per student (owner decision 2026-10-11, rule `staffCanAccessStudent`): an administrator sees all; a teacher only documents whose `studentId` card has the teacher's uid in `teacherUid` / `teacherUids`, or — while `readEnforced` is not `true` — the teacher's name in `teacher`. Clients must query these collections by `studentId` (`in` chunks of 10); an unfiltered collection query is denied for a teacher.
 - The backfill never overwrites an existing valid `teacherUid`.
 - Unknown teacher names, ambiguous staff identities, and stale UIDs block both apply and enforcement.
 - Records with no assigned teacher are reported separately and remain admin-only after enforcement.

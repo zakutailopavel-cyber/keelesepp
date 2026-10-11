@@ -1,3 +1,15 @@
+## 2026-10-11 · agent/teacher-own-students — õpetaja näeb ainult oma õpilaste kodutöid ja sõnumeid
+
+- Base: `main` 6b2b123. Branch `agent/teacher-own-students`, draft PR. Independent of #514 / #515 / #516.
+- Owner decision (2026-10-11): a teacher sees correspondence and homework only of their own students.
+- Rules (`firestore.rules`, new `staffCanAccessStudent(studentId)`): `homework`, `messages`, `worksheetAssignments`, `exerciseResults` — read / create / update / delete for the administrator, or for a teacher whose uid is in the card's `teacherUid` / `teacherUids` (by the card's teacher name while `teacherUidV1.readEnforced` is not `true`). Updates cannot move a document to another student. Families' own rules are unchanged. Documented in `TEACHER_UID_MIGRATION.md`.
+- CRM v2: the „Suhtlus” badge (`messagesService.subscribeUnreadCount`) counts a teacher's unread messages by own student ids (was an unfiltered `read == false` query); the constructor's sheet results (`homeworkService.listWorksheetResults`) for a teacher query own students; the didactic calibration card (all sheets of the school) is shown to administrators only. Other teacher views already queried by own student ids.
+- Legacy: `haldus.html` stops the unfiltered homework / messages / worksheet listeners for a teacher and subscribes them by own card ids (the families' code path); `haldus-communication` loads a teacher's messages by own student ids.
+- Known limit: a group student whose card belongs to another teacher is not visible to the group teacher until the admin adds that teacher to the card (`teacherUids`, „Seo õpetaja kontoga”).
+- Checks: emulator `npm run test:emulator` 75/75 (new test in `security-access-emulator.integration.js`: own / second-teacher / name-only / foreign card, single reads, `in` queries, whole-collection query, create, move, delete, admin; `finance-emulator` live-room fixture now names the room's teacher on the card) + homework / lesson summary / interactive / words / lesson worksheets emulator tests 21/21; functions `npm test` 251/251; crm-v2 vitest 1503/1504 — the one failure (`LessonWorksheetStudioPage` regeneration) fails on `main` too in a full run and passes alone; eslint 0 errors; root `student-portal-scope-ui.test.js` 6/6.
+- Manual gate: owner-approved `firebase deploy --only firestore:rules` together with the Vercel deploy of this PR (the client change must be live when the rules are, otherwise a teacher's menu badge shows 0).
+- Next step: owner reviews, merges, then deploys the rules.
+
 ## 2026-10-11 · agent/live-guest-link — Live Classroom: tunnilink kontota õpilasele
 
 - Base: `main` 533a366. Branch `agent/live-guest-link`, draft PR.

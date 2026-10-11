@@ -162,7 +162,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const [version, setVersion] = useState(0);
   const [versions, setVersions] = useState([]);
   const [paletteQuery, setPaletteQuery] = useState('');
-  const loadResults = useCallback((id) => resultsSource.listWorksheetResults(id), [resultsSource]);
+  const scopeResultsTo = user?.roles?.includes?.('admin') ? '' : (user?.uid || '');
+  const loadResults = useCallback((id) => resultsSource.listWorksheetResults(id, scopeResultsTo ? { scopeTeacherUid: scopeResultsTo } : {}), [resultsSource, scopeResultsTo]);
   const [draftRestored, setDraftRestored] = useState(false);
   const lastPush = useRef(0);
   const canvasRef = useRef(null);
