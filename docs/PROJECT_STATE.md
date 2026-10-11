@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b1-m10 — B1 kursus moodul 10 (Harjuta + Kasuta) (a2b1-046…050), kõik kolm etappi
+
+- Base: `main` 7d5bd87. Previous modules are published to production (diff with production: 0 differences).
+- Mooduli 10 „Reisimine ja transport” Harjuta ja Kasuta lehed (piletid ja sõiduinfo, reisi planeerimine, minevik reisil, ootamatu olukord, kontroll 10); kvaliteedivärav roheline; avaldatud prod-is skriptiga. A2→B1 moodulid 2–10 on nüüd PPP; 051–090 vajavad kõiki kolme faasi.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b1-m09 — B1 kursus moodul 9 (Harjuta + Kasuta) (a2b1-041…045), kõik kolm etappi
 
 - Base: `main` f026384. Previous modules are published to production (diff with production: 0 differences).
