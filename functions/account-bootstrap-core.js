@@ -103,7 +103,17 @@ function planParentChildBootstrap({ uid, email, emailVerified = false, childName
   const cleanEmail = normalizeEmail(email);
   const available = activeStudents(students);
   const plans = [];
-  unique(childNames.map(name => String(name || "").trim())).forEach(childName => {
+  const names = unique(childNames.map(name => String(name || "").trim())).filter(name => normalizeName(name));
+  // Cards that name this parent's e-mail but are not linked to the account yet: never linked or duplicated
+  // automatically, the administrator decides in „Uued kontod” → „Vajab otsust”.
+  const emailOnlyCandidates = cleanEmail
+    ? available.filter(student => parentEmails(student).includes(cleanEmail) && !studentParentIds(student).includes(cleanUid))
+    : [];
+  if (!names.length) {
+    if (emailOnlyCandidates.length) plans.push({ childName: "", status: "review", reason: "parent_email_without_child_name", candidates: emailOnlyCandidates.map(candidateSummary) });
+    return plans;
+  }
+  names.forEach(childName => {
     const nameKey = normalizeName(childName);
     if (!nameKey) return;
     const linkedByParent = available.filter(student =>
@@ -137,6 +147,11 @@ function planParentChildBootstrap({ uid, email, emailVerified = false, childName
     }
     if (exactMatches.length > 1) {
       plans.push({ childName, status: "review", reason: "parent_email_and_name_multiple_students", candidates: exactMatches.map(candidateSummary) });
+      return;
+    }
+    const otherEmailCards = emailOnlyCandidates.filter(student => normalizeName(student.name) !== nameKey);
+    if (otherEmailCards.length) {
+      plans.push({ childName, status: "review", reason: "parent_email_other_child_name", candidates: otherEmailCards.map(candidateSummary) });
       return;
     }
     plans.push({ childName, status: "create", source: "no_exact_match", student: { name: childName, parentEmail: cleanEmail } });

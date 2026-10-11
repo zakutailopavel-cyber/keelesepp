@@ -584,7 +584,6 @@ function AuthScreen({onLogin}) {
   const [pass,setPass]   = useState('');
   const [pass2,setPass2] = useState('');
   const [child,setChild] = useState('');
-  const [parentTeacher,setParentTeacher] = useState('Pavel');
   const [code,setCode]   = useState('');
   const [acceptedTerms,setAcceptedTerms] = useState(false);
   const [err,setErr]     = useState('');
@@ -614,7 +613,7 @@ function AuthScreen({onLogin}) {
         onLogin(profile);
       }
       else{
-        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'Pavel',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10',approvalStatus:'pending'};
+        const ud={role:'parent',displayName:u.displayName,email:u.email,childName:'',preferredTeacher:'',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10',approvalStatus:'pending'};
         await db.collection('users').doc(u.uid).set(ud);
         await auth.signOut();
         setInfo(ACCOUNT_PENDING_TEXT);
@@ -660,10 +659,11 @@ function AuthScreen({onLogin}) {
     if(pass.length<6){setErr('Parool peab olema vähemalt 6 tähemärki');return;}
     if(!['parent','student'].includes(role)){setErr('Õpetaja ja administraatori kontod loob administraator.');return;}
     if(!acceptedTerms){setErr('Konto loomiseks nõustu kasutustingimustega.');return;}
+    if(role==='parent'&&!child.trim()){setErr('Kirjuta lapse nimi (mitu last komaga).');return;}
     setErr('');setBusy(true);
     try{
       const res=await auth.createUserWithEmailAndPassword(email,pass);
-      const ud={role,displayName:name,email,childName:role==='parent'?child:'',preferredTeacher:role==='parent'?parentTeacher:'',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10',approvalStatus:'pending'};
+      const ud={role,displayName:name,email,childName:role==='parent'?child.trim():'',preferredTeacher:'',createdAt:today(),termsAcceptedAt:new Date().toISOString(),termsVersion:'2025-08-10',approvalStatus:'pending'};
       try{
         await res.user.updateProfile({displayName:name});
         await db.collection('users').doc(res.user.uid).set(ud);
@@ -726,10 +726,7 @@ function AuthScreen({onLogin}) {
           {mode==='register'&&<>
             <input type="password" value={pass2} onChange={e=>setPass2(e.target.value)} placeholder="Korda parooli *"/>
             {role==='parent'&&<>
-              <input value={child} onChange={e=>setChild(e.target.value)} placeholder="Lapse nimi"/>
-              <select value={parentTeacher} onChange={e=>setParentTeacher(e.target.value)}>
-                {TEACHERS.map(t=><option key={t} value={t}>Õpetaja: {t}</option>)}
-              </select>
+              <input value={child} onChange={e=>setChild(e.target.value)} placeholder="Lapse nimi (mitu last komaga) *"/>
             </>}
             {role==='student'&&<div style={{fontSize:'.75rem',color:'#2F5D50',padding:'8px 10px',background:'rgba(47,93,80,.08)',borderRadius:8,textAlign:'left'}}>
               Konto seotakse automaatselt ühe täpse e-posti vastega. Ebaselge vaste saadetakse administraatorile kontrollimiseks.

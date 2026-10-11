@@ -12,6 +12,22 @@ function service(overrides = {}) {
 }
 
 describe('new accounts page', () => {
+  it('counts a newly created card once', async () => {
+    render(<AccountsPage service={service({ decide: vi.fn().mockResolvedValue({ approvalStatus: 'approved', linkedStudentIds: ['self_u1'], createdStudentIds: ['self_u1'], mailed: true }) })} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Kinnita/ }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Seotud õpilase kaarte: 1.');
+  });
+
+  it('lets the administrator assign the teacher when approving', async () => {
+    const svc = service({ listTeachers: vi.fn(async () => [{ id: 't1', name: 'Mari Tamm' }, { id: 't2', name: 'Jaan Kask' }]) });
+    render(<AccountsPage service={svc} />);
+    const select = await screen.findByLabelText('Õpetaja (uuele õpilase kaardile)');
+    await screen.findByRole('option', { name: 'Jaan Kask' });
+    fireEvent.change(select, { target: { value: 't2' } });
+    fireEvent.click(screen.getByRole('button', { name: /Kinnita/ }));
+    await waitFor(() => expect(svc.decide).toHaveBeenCalledWith(expect.objectContaining({ uid: 'u1', decision: 'approve', teacherUid: 't2' })));
+  });
+
   it('reports a committed approval with a lost response as a notice, not an error', async () => {
     const svc = service({ decide: vi.fn().mockResolvedValue({ approvalStatus: 'approved', mailed: false, responseLost: true }) });
     render(<AccountsPage service={svc} />);

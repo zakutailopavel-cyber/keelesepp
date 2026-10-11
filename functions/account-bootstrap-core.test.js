@@ -109,3 +109,37 @@ test("parent short and full child name variants are reviewed instead of duplicat
   assert.equal(result[0].status, "review");
   assert.equal(result[0].reason, "parent_child_name_variant");
 });
+
+test("parent without a child name gets a review of the cards that carry the parent's e-mail", () => {
+  const result = planParentChildBootstrap({
+    uid: "parent-1",
+    email: "olga@example.com",
+    emailVerified: false,
+    childNames: [],
+    students: [
+      { id: "mark", name: "Mark Ivanov", parentEmail: "OLGA@example.com" },
+      { id: "sofia", name: "Sofia Ivanova", parentEmail: "olga@example.com" },
+      { id: "linked", name: "Juba seotud", parentEmail: "olga@example.com", linkedParentIds: ["parent-1"] },
+      { id: "other", name: "Karl", parentEmail: "liis@example.com" },
+    ],
+  });
+  assert.equal(result.length, 1);
+  assert.equal(result[0].status, "review");
+  assert.equal(result[0].reason, "parent_email_without_child_name");
+  assert.deepEqual(result[0].candidates.map(item => item.id), ["mark", "sofia"]);
+  assert.deepEqual(planParentChildBootstrap({ uid: "parent-2", email: "new@example.com", childNames: [], students: [] }), []);
+});
+
+test("a new child name never creates a duplicate next to an unlinked card with the parent's e-mail", () => {
+  const result = planParentChildBootstrap({
+    uid: "parent-1",
+    email: "olga@example.com",
+    emailVerified: true,
+    childNames: ["Markus"],
+    students: [{ id: "mark", name: "Mark Ivanov", parentEmail: "olga@example.com" }],
+  });
+  assert.equal(result[0].status, "review");
+  assert.equal(result[0].reason, "parent_email_other_child_name");
+  const fresh = planParentChildBootstrap({ uid: "parent-1", email: "olga@example.com", emailVerified: true, childNames: ["Lena"], students: [] });
+  assert.equal(fresh[0].status, "create");
+});

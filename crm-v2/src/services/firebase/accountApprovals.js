@@ -1,5 +1,6 @@
 import { collection, doc, getDocFromServer, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { teachersService } from './teachers.js';
 
 // Parents and students who registered themselves wait as approvalStatus "pending" until an
 // administrator approves them; the decision runs on the server (links the student card, e-mails the person).
@@ -14,6 +15,7 @@ export function normalizeAccount(id, data = {}) {
     role: data.role || '',
     childName: data.childName || '',
     preferredTeacher: data.preferredTeacher || '',
+    assignedTeacherUid: data.assignedTeacherUid || '',
     createdAt: data.createdAt || '',
     approvalStatus: data.approvalStatus || 'approved',
     approvalReason: data.approvalReason || '',
@@ -58,6 +60,13 @@ export const accountApprovalsService = {
   },
 
 
+  // teachers the administrator can assign on approval (the registering person no longer chooses one)
+  async listTeachers() {
+    const teachers = await teachersService.list();
+    return teachers.filter((teacher) => teacher.disabled !== true && teacher.role === 'teacher')
+      .sort((a, b) => a.name.localeCompare(b.name, 'et'));
+  },
+
   // live number of registrations waiting for approval (the „Uued kontod” menu badge)
   subscribePendingCount(onCount, onError) {
     const { db } = requireFirebaseClient();
@@ -71,7 +80,7 @@ export const accountApprovalsService = {
       .sort((a, b) => String(b.approvalDecidedAt || b.createdAt).localeCompare(String(a.approvalDecidedAt || a.createdAt)));
   },
 
-  async decide({ uid, decision, reason = '' }) {
+  async decide({ uid, decision, reason = '', teacherUid = '' }) {
     const { auth, db } = requireFirebaseClient();
     if (!auth.currentUser) throw new Error('Aktiivne kasutajaseanss puudub. Logi uuesti sisse.');
     const token = await auth.currentUser.getIdToken();
@@ -82,7 +91,7 @@ export const accountApprovalsService = {
       response = await globalThis.fetch(`${baseUrl}/accounts/approval`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid, decision, reason }),
+        body: JSON.stringify({ uid, decision, reason, ...(decision === 'approve' && teacherUid ? { teacherUid } : {}) }),
       });
       data = await response.json().catch((error) => {
         if (response.ok) throw error;

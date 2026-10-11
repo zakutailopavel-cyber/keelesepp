@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { BookOpenCheck, GraduationCap, ShieldCheck } from 'lucide-react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Card, ErrorState, Input, Select } from '../../components/ui/index.js';
+import { Button, Card, ErrorState, Input } from '../../components/ui/index.js';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { REGISTRATION_TEACHERS, validatePassword } from '../../services/firebase/auth.js';
+import { validatePassword } from '../../services/firebase/auth.js';
 import { modeFromLocation } from './loginMode.js';
 
 const TERMS_URL = 'https://www.epkoolitus.ee/tingimused';
@@ -24,7 +24,7 @@ const AUTH_MESSAGES = {
 };
 const message = (caught) => AUTH_MESSAGES[caught?.code] || caught?.message || 'Midagi läks valesti.';
 
-const EMPTY = { email: '', password: '', passwordRepeat: '', displayName: '', role: 'parent', childName: '', preferredTeacher: 'Pavel', acceptedTerms: false };
+const EMPTY = { email: '', password: '', passwordRepeat: '', displayName: '', role: 'parent', childName: '', acceptedTerms: false };
 
 export default function LoginPage({ initialMode }) {
   const { configured, user, signIn, signInWithGoogle, register, resetPasswordFor } = useAuth();
@@ -51,7 +51,7 @@ export default function LoginPage({ initialMode }) {
     } finally { setSubmitting(false); }
   };
 
-  const registration = () => ({ role: form.role, acceptedTerms: form.acceptedTerms, childName: form.childName, preferredTeacher: form.preferredTeacher });
+  const registration = () => ({ role: form.role, acceptedTerms: form.acceptedTerms, childName: form.childName });
 
   const submit = (event) => {
     event.preventDefault();
@@ -60,11 +60,13 @@ export default function LoginPage({ initialMode }) {
     const passwordError = validatePassword(form.password, form.passwordRepeat);
     if (passwordError) { setError(passwordError); return undefined; }
     if (!form.acceptedTerms) { setError('Konto loomiseks nõustu kasutustingimustega.'); return undefined; }
+    if (form.role === 'parent' && !form.childName.trim()) { setError('Kirjuta lapse nimi (mitu last komaga).'); return undefined; }
     return run(async () => { await register({ ...registration(), displayName: form.displayName, email: form.email, password: form.password, passwordRepeat: form.passwordRepeat }); done(); });
   };
 
   const google = () => {
     if (mode === 'register' && !form.acceptedTerms) { setError('Konto loomiseks nõustu kasutustingimustega.'); return; }
+    if (mode === 'register' && form.role === 'parent' && !form.childName.trim()) { setError('Kirjuta lapse nimi (mitu last komaga).'); return; }
     run(async () => { await signInWithGoogle(mode === 'register' ? registration() : null); done(); });
   };
 
@@ -107,12 +109,7 @@ export default function LoginPage({ initialMode }) {
               <>
                 <Input label="Korda parooli" name="passwordRepeat" type="password" autoComplete="new-password" required value={form.passwordRepeat} onChange={set('passwordRepeat')} />
                 {form.role === 'parent' ? (
-                  <>
-                    <Input label="Lapse nimi (mitu last komaga)" name="childName" maxLength={300} value={form.childName} onChange={set('childName')} />
-                    <Select label="Õpetaja" name="preferredTeacher" value={form.preferredTeacher} onChange={set('preferredTeacher')}>
-                      {REGISTRATION_TEACHERS.map((name) => <option key={name} value={name}>{name}</option>)}
-                    </Select>
-                  </>
+                  <Input label="Lapse nimi (mitu last komaga)" name="childName" required maxLength={300} value={form.childName} onChange={set('childName')} />
                 ) : null}
                 <label className="login-terms">
                   <input type="checkbox" name="acceptedTerms" checked={form.acceptedTerms} onChange={set('acceptedTerms')} />
