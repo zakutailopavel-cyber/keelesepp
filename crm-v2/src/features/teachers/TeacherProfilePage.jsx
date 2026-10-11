@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarDays, Clock3, Euro, GraduationCap, Mail, Save, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Clock3, Euro, GraduationCap, Link2, Mail, Save, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -12,6 +12,9 @@ import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
 const monthNow = () => new Date().toISOString().slice(0, 7);
 const dateLabel = (value) => { const date = value?.toDate?.() || (value ? new Date(value) : null); return date && !Number.isNaN(date.getTime()) ? date.toLocaleString('et-EE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'; };
 const durationLabel = (minutes) => `${Math.floor(Number(minutes || 0) / 60)} h ${String(Number(minutes || 0) % 60).padStart(2, '0')} min`;
+// a card belongs to the teacher by account id, or by name (the card itself or an active study direction)
+const assignedByName = (item, name) => [item.teacher, ...(item.enrollments || []).filter((e) => e?.active !== false).map((e) => e?.teacher)].some((teacher) => isSameTeacher(teacher, name));
+const linkedTo = (item, uid) => item.teacherUid === uid || (item.teacherUids || []).includes(uid);
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
 
 export default function TeacherProfilePage({ teacherRepository = teachersService, studentRepository = studentsService, scheduleRepository = scheduleService, timeRepository = workTimeService }) {
@@ -23,6 +26,7 @@ export default function TeacherProfilePage({ teacherRepository = teachersService
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
   const [success, setSuccess] = useState('');
+  const [linking, setLinking] = useState(false);
   const state = useAsyncData(async () => {
     const teacher = await teacherRepository.getById(teacherId);
     if (!teacher) return { teacher: null, students: [], schedule: [], workTime: { sessions: [], programDays: [], summary: {} } };
@@ -31,7 +35,7 @@ export default function TeacherProfilePage({ teacherRepository = teachersService
     ]);
     return {
       teacher,
-      students: students.items.filter((item) => item.teacherUid === teacherId || isSameTeacher(item.teacher, teacher.name)),
+      students: students.items.filter((item) => linkedTo(item, teacherId) || assignedByName(item, teacher.name)),
       schedule: schedule.filter((item) => item.teacherUid === teacherId || isSameTeacher(item.teacher, teacher.name)),
       workTime,
     };
@@ -41,6 +45,17 @@ export default function TeacherProfilePage({ teacherRepository = teachersService
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   if (!state.data.teacher) return <ErrorState title="Õpetajat ei leitud" message="Kasutaja võib olla eemaldatud või sul puudub ligipääs." />;
   const { teacher, students, schedule, workTime } = state.data;
+  const isAdmin = (user?.roles || []).includes('admin');
+  // assigned by name only: the teacher cannot read these cards (Live Classroom, Õpilased stay empty)
+  const unlinked = students.filter((item) => !linkedTo(item, teacher.id));
+  const linkStudents = async () => {
+    setLinking(true); setActionError('');
+    try {
+      const { linked } = await studentRepository.linkTeacher(unlinked.map((item) => item.id), { teacherUid: teacher.id, teacherName: teacher.name });
+      setSuccess(`${linked} õpilast seoti õpetaja kontoga. ${teacher.name} näeb neid nüüd Live Classroomis ja õpilaste lehel (värskenda lehte).`);
+      await state.reload();
+    } catch (error) { setActionError(error.message); } finally { setLinking(false); }
+  };
   const today = new Date().toISOString().slice(0, 10);
   const upcomingDates = Array.from({ length: 30 }, (_, index) => shiftDate(today, index));
   const allUpcoming = occurrencesForDates(schedule, upcomingDates);
@@ -55,6 +70,7 @@ export default function TeacherProfilePage({ teacherRepository = teachersService
   };
 
   return <div className="page-content"><Link className="back-link" to="/teachers"><ArrowLeft size={17} /> Tagasi õpetajate juurde</Link><PageHeader eyebrow="Meeskond" title={teacher.name} description="Õpetaja profiil, õpilased, ajakava ja tööaja tõendid." actions={editing ? null : <Button onClick={startEditing}>Muuda profiili</Button>} />
+    {isAdmin && unlinked.length ? <div className="action-error" role="status"><span><strong>{unlinked.length} õpilast on määratud ainult nime järgi</strong> ({unlinked.map((item) => item.name).join(', ')}). {teacher.name} ei näe neid Live Classroomis ega õpilaste lehel, kuni need on tema kontoga seotud.</span> <Button loading={linking} onClick={linkStudents}><Link2 size={16} /> Seo õpetaja kontoga</Button></div> : null}
     {success ? <div className="success-notice">{success}<button onClick={() => setSuccess('')}>×</button></div> : null}{actionError ? <div className="action-error">{actionError}<button onClick={() => setActionError('')}>×</button></div> : null}
     <PeopleOverview label="Õpetaja kokkuvõte" eyebrow="Meeskonna töölaud" title="Õpetaja hetkeseis" description="Õpilased, lähitunnid ja kinnitatud tööaeg ühes vaates." metrics={[
       { icon: GraduationCap, label: 'Aktiivsed õpilased', value: students.length, hint: 'praegu määratud' },

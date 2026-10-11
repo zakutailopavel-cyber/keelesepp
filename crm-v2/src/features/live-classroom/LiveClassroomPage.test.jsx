@@ -115,11 +115,22 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(screen.queryByRole('button', { name: 'Lõpeta tund' })).not.toBeInTheDocument();
   });
 
-  it('does not offer a student without a student account link', async () => {
+  it('lists the teacher\'s student without a login account but explains that the invitation needs one', async () => {
     const invitationService = { subscribeOutgoing: vi.fn((uid, onChange) => { onChange([]); return vi.fn(); }) };
     const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', active: true, linkedParentId: 'parent-only' }] }) };
     renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository });
-    expect(await screen.findByText('Kontoga seotud õpilasi ei ole')).toBeInTheDocument();
+    const picker = await screen.findByRole('combobox', { name: 'Õpilane' });
+    fireEvent.focus(picker);
+    expect(screen.getByRole('option', { name: /Mari.*konto puudub/ })).toBeInTheDocument();
+    fireEvent.mouseDown(screen.getByRole('option', { name: /Mari/ }));
+    expect(await screen.findByText(/Õpilasel pole sisselogimiskontot/)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Kutsu õpilane tundi/ })).not.toBeInTheDocument();
+  });
+
+  it('says where to fix it when the teacher has no students at all', async () => {
+    const invitationService = { subscribeOutgoing: vi.fn((uid, onChange) => { onChange([]); return vi.fn(); }) };
+    renderPage({ user: { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] }, invitationService, studentRepository: { list: vi.fn().mockResolvedValue({ items: [] }) } });
+    expect(await screen.findByText('Sulle määratud õpilasi ei leitud')).toBeInTheDocument();
   });
 
   it('opens the full-screen lesson room for the student with the board and opt-in call', async () => {
