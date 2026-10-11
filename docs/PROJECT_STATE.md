@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b1-m11 — B1 kursus moodul 11 (Avasta + Harjuta + Kasuta) (a2b1-051…055), kõik kolm etappi
+
+- Base: `main` 438c9de. Previous modules are published to production (diff with production: 0 differences).
+- Mooduli 11 „Raha, ostlemine ja teenused” kõik kolm lehte (poes ja hinnad, võrdlusaste, kauba tagastamine, e-teenused ja maksmine, kontroll 11); kvaliteedivärav roheline; avaldatud prod-is skriptiga.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b1-m10 — B1 kursus moodul 10 (Harjuta + Kasuta) (a2b1-046…050), kõik kolm etappi
 
 - Base: `main` 7d5bd87. Previous modules are published to production (diff with production: 0 differences).

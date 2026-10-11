@@ -150,6 +150,7 @@ Alates 2026-10-10 on iga leht 40–55 min (`didactics/timeEstimate.js`). Mooduli
 | C1 M08 Kultuur, keel ja meedia | est-c1-071–080 | Avasta, Harjuta, Kasuta | agent/course-c1-m08 |
 | C1 M09 Ühiskond, institutsioonid ja avalik elu | est-c1-081–090 | Avasta, Harjuta, Kasuta | agent/course-c1-m09 |
 | C1 M10 Teadus, tehnoloogia ja tulevik | est-c1-091–100 | Avasta, Harjuta, Kasuta | agent/course-c1-m10 |
+| B1 kursus moodul 11 (Avasta + Harjuta + Kasuta) | a2b1-051…055 | Avasta, Harjuta, Kasuta | agent/course-b1-m11 |
 | B1 kursus moodul 10 (Harjuta + Kasuta) | a2b1-046…050 | Avasta, Harjuta, Kasuta | agent/course-b1-m10 |
 | B1 kursus moodul 9 (Harjuta + Kasuta) | a2b1-041…045 | Avasta, Harjuta, Kasuta | agent/course-b1-m09 |
 | B1 kursus moodul 8 (Harjuta + Kasuta) | a2b1-036…040 | Avasta, Harjuta, Kasuta | agent/course-b1-m08 |
