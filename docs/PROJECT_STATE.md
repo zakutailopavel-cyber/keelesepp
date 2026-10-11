@@ -1,3 +1,13 @@
+## 2026-10-11 · agent/teacher-assigned-students — õpetaja näeb talle määratud õpilasi (Live Classroom)
+
+- Base: `main` 6987009. Branch `agent/teacher-assigned-students`, draft PR.
+- Problem (owner, teacher Anhelina Korotka): the teacher page counted 6 students (by teacher *name*), but Live Classroom said „Kontoga seotud õpilasi ei ole”. Cause: a teacher can read a student card only when it holds her account id (`firestore.rules` → `teacherCanRead`: `teacherUid` / `teacherUids`); older cards name the teacher only. Live Classroom also hid every student without a login account.
+- Fix: `studentsService.linkTeacher(ids, { teacherUid, teacherName })` adds the teacher's uid to `teacherUids` (and to empty `teacherUid` / matching enrollments) for cards that name her; admin button „Seo õpetaja kontoga” on the teacher page lists the name-only students. Teacher page counts active enrollments by name too. Live Classroom lists all the teacher's active students (`workspaceStudents`); a card without a login shows „konto puudub”, the board can be prepared, the invite button is replaced by an explanation; group mode cannot tick such a card. Empty state now says where to fix it.
+- No rules / functions change. The button writes production data only when the admin presses it.
+- Checks: `npx vitest run src/features/teachers` 3/3; `src/features/live-classroom/LiveClassroomPage.test.jsx` 12/13 — the failing one („after ending a room started from the calendar…”) is pre-existing on `main` (no `localStorage` in the Node test env), as are lessonLink / useLiveCall failures; eslint clean.
+- Immediate workaround before deploy: admin re-saves each of the teacher's student cards („Muuda andmeid” → „Salvesta”), which also writes `teacherUids`.
+- Next step: owner merges the PR; then on Anhelina Korotka's teacher page press „Seo õpetaja kontoga”.
+
 ## 2026-10-10 · agent/flashcards — „Sõnavara”: Quizlet-like learning for students
 
 - Base: `main` after #506. Owner request: in the student's Sõnavara an „Õppimine” mode with several ways to learn, plus decks of the course lessons; first for the student at home.

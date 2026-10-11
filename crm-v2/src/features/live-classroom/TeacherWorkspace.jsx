@@ -68,7 +68,7 @@ export default function TeacherWorkspace({
           {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <>
             {group ? <label className="lr-search lw-search"><Search size={16} /><input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
               : <StudentPicker student={student} items={visible} search={search} onSearch={setSearch} disabled={Boolean(pending)} onPick={(id) => { onSelect(id); setSearch(''); setPanel(id ? 'worksheets' : ''); }} />}
-          </> : <EmptyState title="Kontoga seotud õpilasi ei ole" description="Seo õpilase kaart tema kasutajakontoga, et saaksid talle tunnikutsungi saata." />}
+          </> : <EmptyState title="Sulle määratud õpilasi ei leitud" description="Kui õpilased on sulle määratud, palu administraatoril avada sinu õpetajaleht ja vajutada „Seo õpetaja kontoga”." />}
         </div>
         <div className="lr-top__group lr-top__right">
           {student ? <>
@@ -87,7 +87,9 @@ export default function TeacherWorkspace({
             <Button variant="danger" loading={cancelling} onClick={onCancel}><XCircle size={17} /> Tühista kutse</Button>
           </> : student ? <>
             <Input aria-label="Tunni pealkiri" value={title} maxLength={160} placeholder="Tunni pealkiri" onChange={(event) => onTitle(event.target.value)} />
-            <Button loading={inviting} onClick={onInvite}><GraduationCap size={18} /> Kutsu õpilane tundi</Button>
+            {student.invitationStudentUid
+              ? <Button loading={inviting} onClick={onInvite}><GraduationCap size={18} /> Kutsu õpilane tundi</Button>
+              : <span className="lr-pill lw-pending" role="note" title="Kutse saadetakse õpilase kontole. Administraator seob konto lehel „Uued kontod”.">Õpilasel pole sisselogimiskontot — tahvlit saad ette valmistada, kutse pärast konto sidumist</span>}
           </> : null}
         </div>
       </header>
@@ -98,8 +100,8 @@ export default function TeacherWorkspace({
           {group ? <div className="lw-group" role="group" aria-label="Grupi õpilased">
             <p>Vali kuni 4 õpilast. Kõik näevad üksteist ja ühist grupi tahvlit; igaühe oma tahvel jääb alles.</p>
             <div className="lw-group__list">{visible.map((item) => <label key={item.id} className={groupIds.includes(item.id) ? 'is-on' : ''}>
-              <input type="checkbox" checked={groupIds.includes(item.id)} disabled={!groupIds.includes(item.id) && groupIds.length >= 4} onChange={() => onToggleGroup?.(item.id)} />
-              <span><strong>{item.name}</strong><small>{item.subject || 'Õppeaine puudub'} · {item.level || 'tase puudub'}</small></span>
+              <input type="checkbox" checked={groupIds.includes(item.id)} disabled={!item.invitationStudentUid || (!groupIds.includes(item.id) && groupIds.length >= 4)} onChange={() => onToggleGroup?.(item.id)} />
+              <span><strong>{item.name}</strong><small>{studentLine(item)}</small></span>
             </label>)}</div>
           </div> : student ? <StudentBoard
             key={student.id}
@@ -135,7 +137,7 @@ export default function TeacherWorkspace({
   );
 }
 
-const studentLine = (item) => `${item.subject || 'Õppeaine puudub'} · ${item.level || 'tase puudub'}`;
+const studentLine = (item) => `${item.subject || 'Õppeaine puudub'} · ${item.level || 'tase puudub'}${item.invitationStudentUid ? '' : ' · konto puudub'}`;
 
 // One field to find and choose the student (owner, 2026-10-10): type a name, the matching students drop down below.
 function StudentPicker({ student, items, search, onSearch, onPick, disabled = false }) {

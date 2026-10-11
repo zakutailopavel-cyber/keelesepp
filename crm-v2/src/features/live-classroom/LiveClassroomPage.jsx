@@ -7,7 +7,7 @@ import { libraryService, liveLessonCallSignalsService, liveLessonInvitationsServ
 import { groupBoardService, studentBoardService } from '../../services/firebase/studentBoard.js';
 import { liveGroupRoomsService } from '../../services/firebase/liveGroupRooms.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
-import { eligibleInvitationStudents, INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, serverNow, timestampMillis } from './invitationModel.js';
+import { INVITATION_STATUS, isInvitationRouteUsable, newestInvitation, normalizeInvitation, serverNow, timestampMillis, workspaceStudents } from './invitationModel.js';
 import { calendarPathAfterLesson } from './lessonLink.js';
 import LiveRoom from './LiveRoom.jsx';
 import GroupRoom from './GroupRoom.jsx';
@@ -75,7 +75,7 @@ export default function LiveClassroomPage({
     if (!isStaff) return undefined;
     let alive = true;
     studentRepository.list({ status: 'active', scopeTeacherUid: user.roles.includes('admin') ? '' : user.uid, pageSize: 500, exhaustive: true })
-      .then((result) => { if (alive) setStudentsState({ loading: false, items: eligibleInvitationStudents(result.items), error: '' }); })
+      .then((result) => { if (alive) setStudentsState({ loading: false, items: workspaceStudents(result.items), error: '' }); })
       .catch((error) => { if (alive) setStudentsState({ loading: false, items: [], error: firebaseErrorMessage(error) }); });
     return () => { alive = false; };
   }, [isStaff, studentRepository, user.roles, user.uid]);

@@ -341,6 +341,32 @@ export const studentsService = {
     await updateDoc(doc(db, 'students', id), payload);
     return this.getById(id);
   },
+  // Cards that name the teacher but miss the teacher's account id (older cards): the id goes into teacherUids (and
+  // into teacherUid / the matching enrollments when they are empty), so the teacher can read the card — firestore.rules
+  // teacherCanRead → Live Classroom, Õpilased. Admin action from the teacher's page; nothing else on the card changes.
+  async linkTeacher(recordIds = [], { teacherUid, teacherName } = {}) {
+    if (!teacherUid || !canonicalTeacherName(teacherName)) throw new Error('Õpetaja konto puudub.');
+    const { db } = requireFirebaseClient();
+    let linked = 0;
+    for (const id of recordIds) {
+      const reference = doc(db, 'students', id);
+      const snapshot = await getDoc(reference);
+      if (!snapshot.exists()) continue;
+      const data = snapshot.data();
+      const enrollments = Array.isArray(data.enrollments) ? data.enrollments : [];
+      const named = isSameTeacher(data.teacher, teacherName) || enrollments.some((item) => item?.active !== false && isSameTeacher(item?.teacher, teacherName));
+      const uids = Array.isArray(data.teacherUids) ? data.teacherUids : [];
+      if (!named || (uids.includes(teacherUid) && data.teacherUid)) continue;
+      const payload = { teacherUids: [...new Set([...uids, teacherUid])] };
+      if (!data.teacherUid && isSameTeacher(data.teacher, teacherName)) payload.teacherUid = teacherUid;
+      if (enrollments.some((item) => item && !item.teacherUid && isSameTeacher(item.teacher, teacherName))) {
+        payload.enrollments = enrollments.map((item) => (item && !item.teacherUid && isSameTeacher(item.teacher, teacherName) ? { ...item, teacherUid } : item));
+      }
+      await updateDoc(reference, payload);
+      linked += 1;
+    }
+    return { linked };
+  },
   async addEnrollment(id, enrollment) {
     const current = await this.getById(id);
     if (!current) throw new Error('Õpilast ei leitud.');

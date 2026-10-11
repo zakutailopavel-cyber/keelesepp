@@ -81,6 +81,15 @@ export function eligibleInvitationStudents(students = []) {
     .sort((left, right) => clean(left.name).localeCompare(clean(right.name), 'et', { sensitivity: 'base' }));
 }
 
+// every active student of the teacher for the workspace; a card without a login account can be prepared for, but the
+// invitation needs the account (invitationStudentUid '' → the invite button explains it)
+export function workspaceStudents(students = []) {
+  return students
+    .filter((student) => student?.id && student.active !== false)
+    .map((student) => ({ ...student, invitationStudentUid: studentAccountUid(student) }))
+    .sort((left, right) => clean(left.name).localeCompare(clean(right.name), 'et', { sensitivity: 'base' }));
+}
+
 export function newestInvitation(invitations = [], statuses = DEFAULT_INVITATION_STATUSES) {
   return [...invitations]
     .filter((invitation) => statuses.includes(invitation.status) && !invitation.expired)
