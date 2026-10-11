@@ -9,8 +9,8 @@ import PetWardrobe from './PetWardrobe.jsx';
 import PetCare from './PetCare.jsx';
 import { careGreeting, careMood, lowestNeed, petNeeds } from './petCare.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
-import { homeworkService } from '../../services/firebase/index.js';
-import { learnerTopics } from './petGames.js';
+import { homeworkService, lessonWorksheetsService } from '../../services/firebase/index.js';
+import { courseTopics, learnerTopics } from './petGames.js';
 import { roomSvg } from './petRoom.js';
 import { seasonalWear } from './petLife.js';
 import './pet.css';
@@ -66,7 +66,7 @@ function PetPicker({ initial, onSave, onCancel, onDecline, saving, error }) {
 }
 
 // The student's pet on "Minu õpingud": chosen once, then grows from lessons, submitted worksheets and goals.
-export default function PetCard({ user, studentId = '', readOnly = false, lessons = [], submissions = [], homework = [], words = [], pendingHomework = 0, lessonToday = '', subject = '', repository = petsService, wordsService = studentWordsService, assignmentsService = homeworkService }) {
+export default function PetCard({ user, studentId = '', readOnly = false, lessons = [], submissions = [], homework = [], words = [], pendingHomework = 0, lessonToday = '', subject = '', repository = petsService, wordsService = studentWordsService, assignmentsService = homeworkService, courseSheets = lessonWorksheetsService }) {
   const [pet, setPet] = useState(undefined);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -83,12 +83,25 @@ export default function PetCard({ user, studentId = '', readOnly = false, lesson
   }, [repository, readOnly, user?.uid]);
   // the worksheets the teacher gave: their tasks become the pet's topic games (petGames.js)
   const [topics, setTopics] = useState([]);
+  const lessonKey = lessons.map((l) => `${l.topicLessonId || ''}:${l.status || ''}`).join('|');
   useEffect(() => {
     let alive = true;
     if (readOnly || !studentId || typeof assignmentsService?.listWorksheetAssignmentsByStudentIds !== 'function') return undefined;
-    Promise.resolve().then(() => assignmentsService.listWorksheetAssignmentsByStudentIds([studentId])).then((list) => { if (alive) setTopics(learnerTopics(list || [])); }).catch(() => {});
+    // plus the published course sheets of the lessons he has had (Õppevara topic of the lesson), so there is always
+    // something to play: one sheet set per lesson, the last four lessons
+    const lessonIds = [...new Set(lessons.filter((l) => l.topicLessonId && (!l.status || l.status === 'Toimunud'))
+      .sort((a, b) => String(b.date).localeCompare(String(a.date))).map((l) => l.topicLessonId))].slice(0, 4);
+    const loadCourse = typeof courseSheets?.list === 'function'
+      ? Promise.all(lessonIds.map((id) => Promise.resolve().then(() => courseSheets.list(id)).then((sheets) => [id, sheets || []]).catch(() => [id, []])))
+      : Promise.resolve([]);
+    Promise.all([
+      Promise.resolve().then(() => assignmentsService.listWorksheetAssignmentsByStudentIds([studentId])).catch(() => []),
+      loadCourse,
+    ]).then(([list, course]) => {
+      if (alive) setTopics(learnerTopics([...(list || []), ...courseTopics(lessons, Object.fromEntries(course))]));
+    }).catch(() => {});
     return () => { alive = false; };
-  }, [assignmentsService, readOnly, studentId]);
+  }, [assignmentsService, courseSheets, readOnly, studentId, lessonKey]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     let alive = true;
     Promise.resolve().then(() => repository.get(user?.uid))
