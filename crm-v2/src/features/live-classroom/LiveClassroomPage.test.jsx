@@ -21,7 +21,7 @@ function groupFake(room = null) {
   };
 }
 
-function renderPage({ user, invitationService, studentRepository, path = '/live-classroom', callSignalService, groupService = groupFake() }) {
+function renderPage({ user, invitationService, studentRepository, path = '/live-classroom', callSignalService, groupService = groupFake(), guestService }) {
   const signals = callSignalService || { subscribe: vi.fn(() => vi.fn()), send: vi.fn().mockResolvedValue(undefined) };
   const presence = {
     heartbeat: vi.fn().mockResolvedValue(undefined),
@@ -38,7 +38,7 @@ function renderPage({ user, invitationService, studentRepository, path = '/live-
   const library = { list: vi.fn().mockResolvedValue({ curriculumLessons: [] }), assign: vi.fn() };
   const homework = { subscribeRoomWorksheets: vi.fn((query, onChange) => { onChange([]); return vi.fn(); }) };
   const recording = { subscribeForStudent: vi.fn(() => vi.fn()), subscribeForInvitation: vi.fn(() => vi.fn()) };
-  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} boardService={board} messagesRepository={messages} libraryRepository={library} worksheetHomework={homework} worksheetLibrary={library} recordingService={recording} groupService={groupService} groupBoard={board} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
+  return render(<AuthContext.Provider value={{ user }}><MemoryRouter initialEntries={[path]}><LiveClassroomPage invitationService={invitationService} studentRepository={studentRepository} callSignalService={signals} callPresenceService={presence} boardService={board} messagesRepository={messages} libraryRepository={library} worksheetHomework={homework} worksheetLibrary={library} recordingService={recording} groupService={groupService} groupBoard={board} {...(guestService ? { guestService } : {})} /><LocationProbe /></MemoryRouter></AuthContext.Provider>);
 }
 
 describe('Live Classroom invitation lifecycle', () => {
@@ -123,8 +123,24 @@ describe('Live Classroom invitation lifecycle', () => {
     fireEvent.focus(picker);
     expect(screen.getByRole('option', { name: /Mari.*konto puudub/ })).toBeInTheDocument();
     fireEvent.mouseDown(screen.getByRole('option', { name: /Mari/ }));
-    expect(await screen.findByText(/Õpilasel pole sisselogimiskontot/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Kutsu õpilane tundi/ })).not.toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /Loo tunnilink/ })).toBeInTheDocument();
+  });
+
+  it('makes a lesson link for a student without a login and shows it to copy while waiting', async () => {
+    let push;
+    const invitationService = { subscribeOutgoing: vi.fn((uid, onChange) => { push = onChange; onChange([]); return vi.fn(); }), cancel: vi.fn() };
+    const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mykyta', active: true, subject: 'Eesti keel', level: 'A1' }] }) };
+    const guestService = { createLink: vi.fn().mockResolvedValue({ invitationId: 'inv-g', url: 'https://crm.epkoolitus.ee/tund/abc' }) };
+    renderPage({ user: { uid: 'teacher-1', displayName: 'Anhelina', roles: ['teacher'] }, invitationService, studentRepository, guestService });
+    fireEvent.focus(await screen.findByRole('combobox', { name: 'Õpilane' }));
+    fireEvent.mouseDown(screen.getByRole('option', { name: /Mykyta/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Loo tunnilink/ }));
+    await waitFor(() => expect(guestService.createLink).toHaveBeenCalledWith({ studentId: 'student-1', title: 'Eesti keel' }));
+    push([{ id: 'inv-g', teacherUid: 'teacher-1', studentId: 'student-1', studentUid: '', studentName: 'Mykyta', title: 'Eesti keel', status: 'pending', roomKey: 'inv-g', expiresAt: new Date(Date.now() + 3600_000).toISOString(), guestLink: true, guestUrl: 'https://crm.epkoolitus.ee/tund/abc' }]);
+    expect(await screen.findByLabelText('Tunnilink')).toHaveValue('https://crm.epkoolitus.ee/tund/abc');
+    expect(screen.getByRole('button', { name: /Kopeeri link/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Tühista kutse/ })).toBeInTheDocument();
   });
 
   it('says where to fix it when the teacher has no students at all', async () => {

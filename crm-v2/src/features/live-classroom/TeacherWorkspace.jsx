@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardList, GraduationCap, LibraryBig, Redo2, Search, Undo2, Users, Video, X, XCircle } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Copy, GraduationCap, Link2, LibraryBig, Redo2, Search, Undo2, Users, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorState, Input, LoadingState } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
@@ -13,7 +13,7 @@ import './liveRoom.css';
 // Live Classroom opens as the teacher's workspace (owner, 2026-10-04): pick a student → their board opens at once, so a
 // lesson can be prepared in advance (sheets, materials, notes); „Kutsu õpilane tundi” invites them into the same board.
 export default function TeacherWorkspace({
-  user, studentsState, selectedId, onSelect, title, onTitle, onInvite, inviting = false, pending = null, onCancel,
+  user, studentsState, selectedId, onSelect, title, onTitle, onInvite, inviting = false, onGuestLink, linking = false, pending = null, onCancel,
   cancelling = false, resumable = null, onResume, onBack, error = '', boardService, library,
   groupIds = [], onToggleGroup, onInviteGroup, invitingGroup = false, openGroups = [], onOpenGroup, homework = homeworkService,
 }) {
@@ -83,13 +83,16 @@ export default function TeacherWorkspace({
             <Input aria-label="Tunni pealkiri" value={title} maxLength={160} placeholder="Grupitunni pealkiri" onChange={(event) => onTitle(event.target.value)} />
             <Button loading={invitingGroup} disabled={!groupIds.length} onClick={onInviteGroup}><Users size={18} /> Kutsu grupp tundi ({groupIds.length}/4)</Button>
           </> : pending ? <>
-            <span className="lr-pill lw-pending" role="status">Kutse saadetud — ootan: {pending.studentName}</span>
+            {pending.guestUrl ? <GuestLinkBox url={pending.guestUrl} studentName={pending.studentName} />
+              : <span className="lr-pill lw-pending" role="status">Kutse saadetud — ootan: {pending.studentName}</span>}
             <Button variant="danger" loading={cancelling} onClick={onCancel}><XCircle size={17} /> Tühista kutse</Button>
           </> : student ? <>
             <Input aria-label="Tunni pealkiri" value={title} maxLength={160} placeholder="Tunni pealkiri" onChange={(event) => onTitle(event.target.value)} />
             {student.invitationStudentUid
               ? <Button loading={inviting} onClick={onInvite}><GraduationCap size={18} /> Kutsu õpilane tundi</Button>
-              : <span className="lr-pill lw-pending" role="note" title="Kutse saadetakse õpilase kontole. Administraator seob konto lehel „Uued kontod”.">Õpilasel pole sisselogimiskontot — tahvlit saad ette valmistada, kutse pärast konto sidumist</span>}
+              : onGuestLink
+                ? <Button loading={linking} onClick={onGuestLink} title="Õpilasel pole oma kontot: saada talle link, tund avaneb lingi avamisel"><Link2 size={18} /> Loo tunnilink</Button>
+                : <span className="lr-pill lw-pending" role="note">Õpilasel pole sisselogimiskontot</span>}
           </> : null}
         </div>
       </header>
@@ -134,6 +137,21 @@ export default function TeacherWorkspace({
         </aside> : null}
       </div>
     </div>
+  );
+}
+
+// the lesson link for a student without a login: copy it into WhatsApp / e-mail; the room opens when it is opened
+function GuestLinkBox({ url, studentName }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    try { await globalThis.navigator?.clipboard?.writeText(url); setCopied(true); globalThis.setTimeout(() => setCopied(false), 2500); } catch { setCopied(false); }
+  };
+  return (
+    <span className="lw-guest" role="status">
+      <span className="lw-guest__text">Saada link: {studentName}. Tund avaneb, kui ta lingi avab.</span>
+      <input className="lw-guest__url" aria-label="Tunnilink" readOnly value={url} onFocus={(event) => event.target.select()} />
+      <Button variant="secondary" onClick={copy}><Copy size={16} /> {copied ? 'Kopeeritud' : 'Kopeeri link'}</Button>
+    </span>
   );
 }
 

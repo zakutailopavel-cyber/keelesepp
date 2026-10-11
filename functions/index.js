@@ -7363,6 +7363,37 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     }
     // Admin switches to a test student (owner, 2026-10-10): a one-time sign-in token for a student account whose card is
     // marked testStudent: true — never a real student. No password is stored or sent.
+    // Live Classroom guest link (functions/live-guest.js): the teacher makes a link for a student without a login …
+    if (req.path === "/live/guest-link") {
+      const actor = await requireStaffUser(req);
+      const { createGuestLink } = require("./live-guest");
+      res.json(await createGuestLink({
+        db, Timestamp: admin.firestore.Timestamp, FieldValue: admin.firestore.FieldValue,
+        actor: { uid: actor.decoded.uid, name: actor.profile.displayName || actor.decoded.name || "", isAdmin: isSuperAdmin(actor.decoded) || actor.roles.has("admin") },
+        studentId: req.body?.studentId, title: req.body?.title, origin: req.get("Origin") || req.body?.origin || "",
+        originAllowed: (origin) => originAllowed(origin, allowedCorsOrigins()),
+      }));
+      return;
+    }
+    // … and whoever opens it joins that one lesson (no account; an earlier guest sign-in on this browser keeps its uid)
+    if (req.path === "/live/guest-join") {
+      const { joinGuestLink } = require("./live-guest");
+      let guestUid = "";
+      const header = req.get("Authorization") || "";
+      if (/^Bearer\s+/i.test(header)) {
+        try {
+          const decoded = await admin.auth().verifyIdToken(header.replace(/^Bearer\s+/i, ""), true);
+          if (decoded.liveGuest === true) guestUid = decoded.uid;
+        } catch { /* a stale guest token just means a fresh guest */ }
+      }
+      try {
+        res.json(await joinGuestLink({ db, Timestamp: admin.firestore.Timestamp, FieldValue: admin.firestore.FieldValue, auth: admin.auth(), token: req.body?.token, guestUid }));
+      } catch (error) {
+        if (String(error?.code || "").includes("insufficient-permission")) throw httpError(503, "Serveril puudub õigus sisselogimisvõtit luua: anna teenusekontole keelesepp-5136b@appspot.gserviceaccount.com roll „Service Account Token Creator” (Google Cloud → IAM).");
+        throw error;
+      }
+      return;
+    }
     if (req.path === "/accounts/test-student-session") {
       const actor = await requireAdminUser(req);
       res.json(await testStudentSession({ actor, studentId: req.body?.studentId }));

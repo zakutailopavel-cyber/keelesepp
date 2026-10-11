@@ -16,6 +16,7 @@ import LibraryPage from '../features/library/LibraryPage.jsx';
 import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePage.jsx';
 import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
+import GuestLessonPage from '../features/live-classroom/GuestLessonPage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import ParentsPage from '../features/parents/ParentsPage.jsx';
@@ -56,6 +57,8 @@ export default function AppRoutes() {
       <Route path="/registreeru" element={<LoginPage initialMode="register" />} />
       <Route path="/register" element={<Navigate to="/registreeru" replace />} />
       <Route path="/forbidden" element={<ForbiddenPage />} />
+      {/* the lesson link for a student without a login (functions/live-guest.js) — no account, one lesson only */}
+      <Route path="/tund/:token" element={<GuestLessonPage />} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
