@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b1-m13 — B1 kursus moodul 13 (Avasta + Harjuta + Kasuta) (a2b1-061…065), kõik kolm etappi
+
+- Base: `main` 41c06a6. Previous modules are published to production (diff with production: 0 differences).
+- Mooduli 13 „Suhtlemine ja probleemilahendus” kõik kolm lehte (palumine/ettepanek/keeldumine, tingiv kõneviis viisakuses, konflikt ja kompromiss, ootamatu olukord, kontroll 13); kvaliteedivärav roheline; avaldatud prod-is skriptiga.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b1-m12 — B1 kursus moodul 12 (Avasta + Harjuta + Kasuta) (a2b1-056…060), kõik kolm etappi
 
 - Base: `main` b1e5dc7. Previous modules are published to production (diff with production: 0 differences).
