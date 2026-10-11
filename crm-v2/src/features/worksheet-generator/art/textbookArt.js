@@ -1,8 +1,24 @@
 import a2Module01 from './visuals/a2-module-01.js';
+import a2Module02 from './visuals/a2-module-02.js';
+import a2Module03 from './visuals/a2-module-03.js';
+import a2Module04 from './visuals/a2-module-04.js';
+import a2Module05 from './visuals/a2-module-05.js';
+import a2Module06 from './visuals/a2-module-06.js';
+import a2Module07 from './visuals/a2-module-07.js';
+import a2Module08 from './visuals/a2-module-08.js';
+import a2Module09 from './visuals/a2-module-09.js';
+import a2Module10 from './visuals/a2-module-10.js';
+import a2Module11 from './visuals/a2-module-11.js';
+import a2Module12 from './visuals/a2-module-12.js';
+import a2Module13 from './visuals/a2-module-13.js';
+import a2Module14 from './visuals/a2-module-14.js';
+import a2Module15 from './visuals/a2-module-15.js';
+import a2Module16 from './visuals/a2-module-16.js';
+import a2Module17 from './visuals/a2-module-17.js';
 
 // Textbook illustrations (docs/TEXTBOOK_ART_BIBLE.md): the content agent adds one visuals file per module under
 // ./visuals and lists it here; the image files live in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-const MODULES = [a2Module01];
+const MODULES = [a2Module01, a2Module02, a2Module03, a2Module04, a2Module05, a2Module06, a2Module07, a2Module08, a2Module09, a2Module10, a2Module11, a2Module12, a2Module13, a2Module14, a2Module15, a2Module16, a2Module17];
 
 const PHASES = new Set(['discover', 'practice', 'transfer']);
 const FORMATS = { scene: { aspect: '3:2', width: 1600, height: 1067 }, object: { aspect: '1:1', width: 1600, height: 1600 }, opener: { aspect: '3:4', width: 1200, height: 1600 } };
