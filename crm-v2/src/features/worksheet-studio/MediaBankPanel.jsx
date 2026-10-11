@@ -30,7 +30,8 @@ export default function MediaBankPanel({ level = '', service = mediaBankService,
   const all = useMemo(() => {
     const own = state.items;
     const art = (staticAssets || textbookArtAssets()).filter((asset) => !own.some((item) => item.id === asset.key || item.key === asset.key));
-    return [...art, ...own];
+    // the teacher's own bank first: the grid shows 60, and the textbook art (hundreds of pictures) hid it
+    return [...own, ...art];
   }, [staticAssets, state.items]);
   const images = useMemo(() => searchAssets(all, { query, level: lvl, kind: 'image' }), [all, query, lvl]);
   const texts = useMemo(() => searchAssets(all, { query, level: lvl, kind: 'text' }), [all, query, lvl]);
