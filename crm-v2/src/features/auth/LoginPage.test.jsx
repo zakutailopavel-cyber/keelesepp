@@ -47,8 +47,23 @@ describe('login page', () => {
     fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: 'Loo konto' }));
     await waitFor(() => expect(auth.register).toHaveBeenCalledWith(expect.objectContaining({
-      role: 'parent', displayName: 'Mari Maasikas', email: 'mari@example.ee', childName: 'Kati', preferredTeacher: 'Pavel', acceptedTerms: true,
+      role: 'parent', displayName: 'Mari Maasikas', email: 'mari@example.ee', childName: 'Kati', acceptedTerms: true,
     })));
+    expect(auth.register.mock.calls[0][0]).not.toHaveProperty('preferredTeacher');
+    expect(screen.queryByLabelText('Õpetaja')).not.toBeInTheDocument();
+  });
+
+  it('does not register a parent without the child name', async () => {
+    const auth = renderLogin({ register: vi.fn().mockResolvedValue({}) }, { initialMode: 'register' });
+    fireEvent.change(screen.getByLabelText('Täisnimi'), { target: { value: 'Mari Maasikas' } });
+    fireEvent.change(screen.getByLabelText('E-post'), { target: { value: 'mari@example.ee' } });
+    fireEvent.change(screen.getByLabelText('Parool'), { target: { value: 'salasona1' } });
+    fireEvent.change(screen.getByLabelText('Korda parooli'), { target: { value: 'salasona1' } });
+    fireEvent.change(screen.getByLabelText('Lapse nimi (mitu last komaga)'), { target: { value: '  ' } });
+    fireEvent.click(screen.getByRole('checkbox'));
+    fireEvent.submit(screen.getByRole('button', { name: 'Loo konto' }).closest('form'));
+    expect(await screen.findByRole('alert')).toHaveTextContent('lapse nimi');
+    expect(auth.register).not.toHaveBeenCalled();
   });
 
   it('switches a new Google account to registration instead of a dead end', async () => {

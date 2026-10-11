@@ -45,10 +45,11 @@ export default function LinkReviewsCard({ reviews = [], service, onChanged }) {
             </li>
           ))}</ul> : null}
           <div className="link-review__actions">
-            <Button disabled={Boolean(busy)} loading={busy === `${review.id}:new`}
+            {/* a parent review without the child's name cannot create a card: link one of the cards above */}
+            {review.relationship === 'parent' && !review.childName ? null : <Button disabled={Boolean(busy)} loading={busy === `${review.id}:new`}
               onClick={() => run(`${review.id}:new`, () => service.createCardForReview(review.id), `${review.childName || review.displayName}: loodi uus õpilase kaart.`)}>
               <UserPlus size={15} /> Loo uus kaart
-            </Button>
+            </Button>}
             <Button variant="secondary" disabled={Boolean(busy)} loading={busy === `${review.id}:dismiss`}
               onClick={() => { if (globalThis.confirm?.('Jätta see otsus vahele? Kaarti ei looda ega seota.')) run(`${review.id}:dismiss`, () => service.dismissReview(review.id), 'Otsus jäeti vahele.'); }}>
               <X size={15} /> Jäta vahele

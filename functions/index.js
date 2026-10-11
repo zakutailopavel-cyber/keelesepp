@@ -6227,6 +6227,14 @@ function accountTeacherDirectoryKey(value) {
 
 // A new student card for a self-registered account: the student's own card ("student") or a child card of a
 // parent ("parent"). Used by the automatic bootstrap and by the administrator's „Loo uus kaart” on a link review.
+// Teacher of a card created while linking an account: only the one the administrator assigned on approval
+// (assignedTeacher*, which the account owner cannot write). The registering person never chooses a teacher;
+// without an assignment the new card stays unassigned for the administrator.
+function accountCardTeacher(profile = {}) {
+  const uid = cleanText(profile.assignedTeacherUid, 180);
+  return uid ? { name: cleanText(profile.assignedTeacher, 180), uid } : { name: "", uid: "" };
+}
+
 function bootstrapStudentCardData({
   relationship, uid, email, displayName, student = {}, childName = "", isParent = false,
   preferredTeacher = "", teacherUid = "", source = "", nowIso,
@@ -6284,6 +6292,8 @@ const LINK_REVIEW_REASONS = {
   parent_child_name_variant: "Lapse nimi sarnaneb olemasoleva kaardiga",
   parent_email_not_verified: "Lapse kaart on olemas, kuid vanema e-post ei ole kinnitatud",
   parent_email_and_name_multiple_students: "Mitu sobivat lapse kaarti",
+  parent_email_without_child_name: "Lapse nime ei sisestatud, kuid vanema e-postiga on lapse kaart",
+  parent_email_other_child_name: "Vanema e-postiga on teise nimega lapse kaart",
 };
 
 // Administrator: registrations the automatic linking did not decide (possible duplicates). Shown in „Uued kontod”.
@@ -6324,10 +6334,7 @@ async function createStudentForLinkReview({ actor, reviewId }) {
   const relationship = review.relationship === "parent" ? "parent" : "student";
   let authUser;
   try { authUser = await admin.auth().getUser(uid); } catch (error) { throw httpError(404, "Firebase account not found"); }
-  const [profileSnap, directorySnap] = await Promise.all([
-    db.collection("users").doc(uid).get(),
-    db.collection("securityConfig").doc("teacherDirectoryV1").get(),
-  ]);
+  const profileSnap = await db.collection("users").doc(uid).get();
   const profile = profileSnap.exists ? profileSnap.data() : {};
   const roles = collectTrustedRoles(profile, { uid });
   const isParent = roles.has("parent");
@@ -6335,8 +6342,7 @@ async function createStudentForLinkReview({ actor, reviewId }) {
   const displayName = cleanText(profile.displayName || authUser.displayName || email || "Õpilane", 180);
   const childName = cleanText(review.childName, 180);
   if (relationship === "parent" && !childName) throw httpError(400, "Child name missing");
-  const preferredTeacher = cleanText(profile.preferredTeacher || profile.teacher || (isParent ? "Pavel" : ""), 180);
-  const teacherUid = String(directorySnap.data()?.teachers?.[accountTeacherDirectoryKey(preferredTeacher)] || "");
+  const { name: preferredTeacher, uid: teacherUid } = accountCardTeacher(profile);
   const studentId = relationship === "student"
     ? `self_${uid}`
     : `parent_${uid}_${accountBootstrapKey(childName).slice(0, 12)}`;
@@ -6391,13 +6397,9 @@ async function bootstrapCurrentAccount({ decoded, profile, includeSelfStudent = 
   const emailVerified = decoded.email_verified === true;
   const displayName = cleanText(profile.displayName || decoded.name || email || "Õpilane", 180);
   const childNames = accountChildNames(profile.childName);
-  const [studentSnap, directorySnap] = await Promise.all([
-    db.collection("students").get(),
-    db.collection("securityConfig").doc("teacherDirectoryV1").get(),
-  ]);
+  const studentSnap = await db.collection("students").get();
   const students = studentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  const preferredTeacher = cleanText(profile.preferredTeacher || profile.teacher || (isParent ? "Pavel" : ""), 180);
-  const teacherUid = String(directorySnap.data()?.teachers?.[accountTeacherDirectoryKey(preferredTeacher)] || "");
+  const { name: preferredTeacher, uid: teacherUid } = accountCardTeacher(profile);
   const plans = [];
   if (shouldBootstrapStudent) plans.push({ relationship: "student", ...planStudentAccountBootstrap({ uid, email, emailVerified, displayName, students }) });
   if (isParent) planParentChildBootstrap({ uid, email, emailVerified, childNames, students }).forEach(plan => plans.push({ relationship: "parent", ...plan }));
@@ -7641,6 +7643,14 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       try {
         update = approvalUpdate({ decision: req.body?.decision, actor: actorSnapshot(actor), nowIso, reason: req.body?.reason });
       } catch (error) { throw httpError(400, error.message); }
+      const assignedTeacherUid = update.approvalStatus === "approved" ? cleanText(req.body?.teacherUid, 180) : "";
+      if (assignedTeacherUid) {
+        const teacherSnap = await db.collection("users").doc(assignedTeacherUid).get();
+        const teacher = teacherSnap.exists ? teacherSnap.data() : null;
+        if (!teacher || teacher.role !== "teacher" || teacher.disabled === true) throw httpError(400, "Valitud õpetajat ei leitud.");
+        update.assignedTeacherUid = assignedTeacherUid;
+        update.assignedTeacher = cleanText(teacher.displayName || teacher.email, 180);
+      }
       await profileRef.update(update);
       const profile = { ...profileSnap.data(), ...update };
       let linked = null;

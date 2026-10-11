@@ -27,7 +27,6 @@ function composePendingAccountEmail(profile = {}, { to = "info@epkoolitus.ee" } 
     ["E-post", profile.email],
     ["Roll", ROLE_LABEL[profile.role] || profile.role],
     ["Lapse nimi", profile.childName || "—"],
-    ["Soovitud õpetaja", profile.preferredTeacher || "—"],
   ];
   const subject = `Uus konto ootab kinnitamist: ${profile.displayName || profile.email}`;
   const text = `${rows.map(([k, v]) => `${k}: ${v || "—"}`).join("\n")}\n\nKinnita või keeldu: ${CRM_URL}/accounts`;

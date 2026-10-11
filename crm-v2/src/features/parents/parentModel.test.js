@@ -1,4 +1,4 @@
-import { buildParentRows, exactParentDuplicateClusters, filterParentRows, parentMatchesStudent } from './parentModel.js';
+import { buildParentRows, exactParentDuplicateClusters, filterParentRows, parentLinkedToStudent, parentMatchesStudent } from './parentModel.js';
 
 describe('parent model', () => {
   const parent = { id: 'parent-1', displayName: 'Mari Ema', email: 'ema@example.com', childName: 'Mari', parentReviewStatus: 'checked', parentReviewKey: 'mari', parentContactStatus: 'active' };
@@ -14,6 +14,18 @@ describe('parent model', () => {
     const rows = buildParentRows([parent], [{ id: 'student-1', name: 'Mari', linkedParentId: 'parent-1', active: true }], [{ id: 'invoice-1', studentId: 'student-1', amount: 40, paidAmount: 10 }]);
     expect(rows[0]).toMatchObject({ children: [expect.objectContaining({ id: 'student-1', recordIds: ['student-1'] })], missingNames: [], needsReview: false, balanceCents: 3000 });
     expect(filterParentRows(rows, { query: 'mari', status: 'active' })).toHaveLength(1);
+  });
+
+  it('treats an e-mail match as a suggestion, never as a linked child (the parent would see nothing)', () => {
+    const rows = buildParentRows([parent], [
+      { id: 'student-1', name: 'Mari', parentEmail: 'ema@example.com', active: true },
+      { id: 'student-2', name: 'Kati', linkedParentIds: ['parent-1'], active: true },
+    ], []);
+    expect(rows[0].children.map((child) => child.id)).toEqual(['student-2']);
+    expect(rows[0].suggestedChildren.map((child) => child.id)).toEqual(['student-1']);
+    expect(rows[0].missingNames).toEqual(['Mari']);
+    expect(parentLinkedToStudent(parent, { linkedParentIds: ['parent-1'] })).toBe(true);
+    expect(parentLinkedToStudent(parent, { parentEmail: 'ema@example.com' })).toBe(false);
   });
 
   it('groups several learning records of the same child under one parent child entry', () => {
