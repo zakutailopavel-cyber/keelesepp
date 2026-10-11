@@ -14,6 +14,8 @@ import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.j
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
+import { useLessonWordsImport } from '../vocabulary/useLessonWordsImport.js';
+import { freshLessonWords } from '../vocabulary/lessonWords.js';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 function unique(items) {
@@ -70,6 +72,8 @@ export default function StudentDashboardPage({
 
   // words of „Minu sõnad” also feed the pet (learned words, practice days)
   const words = useStudentWords((state.data?.students || []).map((student) => student.id), ...(wordsService ? [wordsService] : []));
+  // the vocabulary of the lessons he has just had goes into „Minu sõnad” (cards in Sõnavara, the pet's food)
+  useLessonWordsImport({ studentId: state.data?.students?.[0]?.id || '', lessons: state.data?.lessons || [], user, enabled: !preview, ...(wordsService ? { service: wordsService } : {}) });
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
   if (state.loading) return <LoadingState label="Laen sinu õpinguid…" />;
@@ -88,6 +92,7 @@ export default function StudentDashboardPage({
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
     {students.length ? <PetCard user={user} studentId={students[0]?.id || ''} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} words={words} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(wordsService ? { wordsService } : {})} {...(petRepository ? { repository: petRepository } : {})} /> : null}
+    {!preview && freshLessonWords(words).length ? <p className="success-notice" role="status">Tunnist tulid uued sõnad: {freshLessonWords(words).length} sõna ootab sind „Minu sõnades”. Korda neid kaartidega — ka sõber saab kõhu täis! <Link to="/student/sonavara">Ava sõnad</Link></p> : null}
     <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
       { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },

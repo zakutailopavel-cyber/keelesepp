@@ -1,3 +1,12 @@
+## 2026-10-11 · agent/lesson-vocabulary — iga A2–C1 tunni sõnavara kaartidele ja lemmikule
+
+- Base: `main` 6b2b123. Branch `agent/lesson-vocabulary`, draft PR. Owner request: vocabulary of every course lesson A2–C1 for the student through flashcards and the pet.
+- Data: `crm-v2/src/features/vocabulary/lessonWords/*.json` — 380 lessons (a2 100, a2b1 90, b1b2 90, est-c1 100), 5 047 words (et, ru, example, pos); words of the 220 lessons with course sheets come from the sheet text. Contract and delivery: `docs/LESSON_VOCABULARY.md`. Not reviewed by a teacher yet.
+- Sõnavara: lesson deck starts with the lesson vocabulary; „Lisa tunni sõnad minu sõnadesse”.
+- Minu õpingud: vocabulary of held lessons of the last 14 days (≤ 3 lessons per visit) goes into „Minu sõnad” automatically, one batch per lesson under fixed ids `lw_<student>_<lesson>_<n>` (imported once; no rules change); notice „Tunnist tulid uued sõnad” until practised. The pet's food already comes from repeating these words.
+- Checks: crm-v2 vitest 1506/1507 (the one failure `LessonWorksheetStudioPage` regeneration also fails on `main` in a full run and passes alone); new tests: lessonWords (deck cards, import selection, batch import) and data test (all 380 roadmap lessons covered, format); eslint 0 errors; `vite build` OK with one lazy chunk per course. Browser on emulators: student Karl with held lesson b1b2-006 → 15 words written once (not again after reload), notice shown, Sõnavara deck „6. Kus? Kuhu? Kust?” 15 cards; rules accepted the student's batch.
+- Next step: teachers review the word lists (start with the courses in use); owner merges.
+
 ## 2026-10-11 · agent/live-guest-link — Live Classroom: tunnilink kontota õpilasele
 
 - Base: `main` 533a366. Branch `agent/live-guest-link`, draft PR.

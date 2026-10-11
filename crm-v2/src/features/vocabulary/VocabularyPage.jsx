@@ -7,6 +7,7 @@ import { lessonsService, lessonWorksheetsService, libraryService, studentsServic
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { deckFromSheets, deckFromWords } from './deckModel.js';
+import { importLessonWords, lessonImported, lessonWordCards, loadLessonWords } from './lessonWords.js';
 import StudySession from './StudySession.jsx';
 import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
@@ -60,8 +61,11 @@ export default function VocabularyPage({
     setNotice('');
     setOpen({ title: `${lesson.number ? `${lesson.number}. ` : ''}${lesson.title}`, lessonId: lesson.id, loading: true, deck: [] });
     try {
-      const records = await worksheetRepository.list(lesson.id);
-      setOpen((current) => (current?.lessonId === lesson.id ? { ...current, loading: false, deck: deckFromSheets(records, lesson.id) } : current));
+      // the lesson's own vocabulary first, then the words of its sheets that are not in it yet
+      const [records, lessonWords] = await Promise.all([worksheetRepository.list(lesson.id).catch(() => []), loadLessonWords(lesson.id)]);
+      const own = lessonWordCards(lessonWords, lesson.id);
+      const extra = deckFromSheets(records, lesson.id).filter((card) => !own.some((c) => c.front.toLocaleLowerCase('et') === card.front.toLocaleLowerCase('et')));
+      setOpen((current) => (current?.lessonId === lesson.id ? { ...current, loading: false, deck: [...own, ...extra], lessonWordCount: own.length } : current));
     } catch (error) {
       setOpen((current) => (current?.lessonId === lesson.id ? { ...current, loading: false, error: error?.message || 'Sõnu ei saanud laadida.' } : current));
     }
@@ -72,6 +76,17 @@ export default function VocabularyPage({
     if (!card.word || preview || reviewed.current.has(card.id)) return;
     reviewed.current.add(card.id);
     try { await wordsService.review(card.word, knew); } catch { /* the practice goes on */ }
+  };
+  // „Lisa tunni sõnad minu sõnadesse”: the whole lesson vocabulary into the repetition (and the pet's food)
+  const addLesson = async (lessonId) => {
+    const studentId = students[0]?.id;
+    if (!studentId || preview) return;
+    try {
+      const added = await importLessonWords({ studentId, lessonId, words, service: wordsService, user });
+      setNotice(added ? `${added} sõna lisati sinu sõnade hulka. Sõber saab neid sinuga koos korrata!` : 'Need sõnad on sinu sõnade hulgas juba olemas.');
+    } catch (error) {
+      setNotice(error?.message || 'Sõnu ei saanud lisada.');
+    }
   };
   const addMissed = async (cards) => {
     const studentId = students[0]?.id;
@@ -97,7 +112,11 @@ export default function VocabularyPage({
           {open.loading ? <LoadingState label="Laen tunni sõnu…" />
             : open.error ? <ErrorState message={open.error} onRetry={() => openLesson(catalog.byId.get(open.lessonId))} />
               : open.deck.length < 2 ? <EmptyState title="Selles tunnis sõnu veel ei ole" description="Vali mõni teine tund." action={<button type="button" className="vw-btn" onClick={() => setOpen(null)}>Tagasi</button>} />
-                : <StudySession key={open.lessonId || 'mine'} deck={open.deck} title={open.title} onResult={onResult} onAddMissed={preview ? undefined : addMissed} onBack={() => setOpen(null)} />}
+                : <>
+                  {open.lessonId && open.lessonWordCount && !preview && students[0] && !lessonImported(students[0].id, open.lessonId, words)
+                    ? <div className="vw-actions"><button type="button" className="vw-btn" onClick={() => addLesson(open.lessonId)}>Lisa tunni sõnad minu sõnadesse ({open.lessonWordCount})</button></div> : null}
+                  <StudySession key={open.lessonId || 'mine'} deck={open.deck} title={open.title} onResult={onResult} onAddMissed={preview ? undefined : addMissed} onBack={() => setOpen(null)} />
+                </>}
         </Card>
       ) : (
         <div className="vocabulary-decks">
