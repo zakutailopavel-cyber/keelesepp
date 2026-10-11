@@ -13758,9 +13758,10 @@ function App() {
     if(userIsStaff){
       unsubs.push(scopedCollection('students').onSnapshot(s=>setStu(mapDocs(s)),scopedError('Students',setStu)));
       unsubs.push(scopedCollection('lessons').onSnapshot(s=>setLes(mapDocs(s)),scopedError('Lessons',setLes)));
-      unsubs.push(db.collection('homework').onSnapshot(s=>setHw(mapDocs(s)),scopedError('Homework',setHw)));
+      // a teacher reads homework, messages and worksheets only of own students (rules): those subscribe by studentId below
+      if(userIsAdmin) unsubs.push(db.collection('homework').onSnapshot(s=>setHw(mapDocs(s)),scopedError('Homework',setHw)));
       unsubs.push(scopedCollection('schedule').onSnapshot(s=>setSch(mapDocs(s)),scopedError('Schedule',setSch)));
-      unsubs.push(db.collection('messages').onSnapshot(s=>setMessages(mapDocs(s)),scopedError('Messages',setMessages)));
+      if(userIsAdmin) unsubs.push(db.collection('messages').onSnapshot(s=>setMessages(mapDocs(s)),scopedError('Messages',setMessages)));
       unsubs.push(db.collection('groups').onSnapshot(s=>setGroups(mapDocs(s)),scopedError('Groups',setGroups)));
       unsubs.push(db.collection('tasks').onSnapshot(s=>setTasks(mapDocs(s)),scopedError('Tasks',setTasks)));
       unsubs.push(db.collection('users').onSnapshot(
@@ -13772,7 +13773,7 @@ function App() {
         err=>{console.warn('Users listener failed:',err);setAllUsers([]);setStaffMembers([]);}
       ));
       unsubs.push(db.collection('activityLog').onSnapshot(s=>setActivityLog(mapDocs(s)),scopedError('Activity log',setActivityLog)));
-      unsubs.push(db.collection('worksheetAssignments').onSnapshot(s=>setAllWsAssignments(mapDocs(s)),scopedError('Worksheet assignments',setAllWsAssignments)));
+      if(userIsAdmin) unsubs.push(db.collection('worksheetAssignments').onSnapshot(s=>setAllWsAssignments(mapDocs(s)),scopedError('Worksheet assignments',setAllWsAssignments)));
     }else{
       // Firestore does not filter forbidden documents from an unscoped query.
       // Build the family/student scope first; dependent collections subscribe below by studentId.
@@ -13967,12 +13968,24 @@ function App() {
     return uniqueStudents(visibleStudents.filter(s=>isOwnStudentRecord(s,user)));
 	  },[user,students,isAdmin,isParentUser,isStudentUser]);
 
-  const ownedStudentIds=useMemo(()=>[...new Set(myStudents.map(student=>student.id).filter(Boolean))],[myStudents]);
+  // a teacher's own cards as the rules see them: teacherUid / teacherUids, or the teacher's name on the card
+  const teacherOnlyUser=Boolean(user)&&isStaff&&!isAdmin;
+  const teacherStudentIds=useMemo(()=>{
+    if(!teacherOnlyUser) return [];
+    const me=canonicalTeacherName(user.displayName||'');
+    return [...new Set(students.filter(s=>s.teacherUid===user.uid||(Array.isArray(s.teacherUids)&&s.teacherUids.includes(user.uid))||(me&&canonicalTeacherName(s.teacher)===me)).map(s=>s.id).filter(Boolean))];
+  },[teacherOnlyUser,students,user]);
+  const ownedStudentIds=useMemo(()=>teacherOnlyUser?teacherStudentIds:[...new Set(myStudents.map(student=>student.id).filter(Boolean))],[teacherOnlyUser,teacherStudentIds,myStudents]);
   const ownedStudentIdsKey=ownedStudentIds.join('|');
 
   useEffect(()=>{
-    if(!user||isStaff) return undefined;
-    const collections=[
+    if(!user||(isStaff&&!teacherOnlyUser)) return undefined;
+    // families: everything by their cards; a teacher: lessons and schedule come scoped above, the rest by own cards
+    const collections=teacherOnlyUser?[
+      ['homework',setHw],
+      ['messages',setMessages],
+      ['worksheetAssignments',setAllWsAssignments]
+    ]:[
       ['lessons',setLes],
       ['homework',setHw],
       ['schedule',setSch],
@@ -14006,7 +14019,7 @@ function App() {
       });
     });
     return()=>unsubs.forEach(unsub=>unsub&&unsub());
-  },[user?.uid,isStaff,ownedStudentIdsKey]);
+  },[user?.uid,isStaff,teacherOnlyUser,ownedStudentIdsKey]);
 
 	  useEffect(()=>{
 	    if(!user){setInv([]);return;}

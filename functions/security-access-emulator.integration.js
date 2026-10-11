@@ -142,3 +142,58 @@ test("a teacher deletes only their own schedule entries and lessons", async () =
   assert.equal((await documentRequest(token, "DELETE", "schedule/sec-other-slot")).status, 403);
   assert.equal((await documentRequest(token, "DELETE", "schedule/sec-own-slot")).status, 200);
 });
+
+async function runQuery(token, collectionId, where) {
+  const response = await fetch(`http://${FIRESTORE_EMULATOR}/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`, {
+    method: "POST", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId }], ...(where ? { where } : {}) } }),
+  });
+  const body = await response.json().catch(() => ({}));
+  return { status: response.status, count: Array.isArray(body) ? body.filter(item => item.document).length : 0 };
+}
+
+// Owner decision 2026-10-11: a teacher sees homework, submissions and messages only of their own students.
+test("a teacher reads and writes homework, submissions and messages only of their own students", async () => {
+  requireSafeEmulatorEnvironment();
+  const teacher = await account("sec-own-teacher@example.com", { role: "teacher", roles: ["teacher"], displayName: "Own Teacher" });
+  const uid = tokenUid(teacher);
+  await Promise.all([
+    db().collection("students").doc("sec-own-card").set({ name: "Own Card", teacher: "Own Teacher", teacherUid: uid, teacherUids: [uid], active: true }),
+    db().collection("students").doc("sec-second-card").set({ name: "Second Teacher Card", teacher: "Main Teacher", teacherUid: "main-teacher", teacherUids: ["main-teacher", uid], active: true }),
+    db().collection("students").doc("sec-name-card").set({ name: "Name Only Card", teacher: "Own Teacher", active: true }),
+    db().collection("students").doc("sec-foreign-card").set({ name: "Foreign Card", teacher: "Other Teacher", teacherUid: "other-teacher", teacherUids: ["other-teacher"], active: true }),
+  ]);
+  const collections = ["homework", "messages", "worksheetAssignments", "exerciseResults"];
+  await Promise.all(collections.flatMap(name => ["sec-own-card", "sec-second-card", "sec-name-card", "sec-foreign-card"].map(studentId =>
+    db().collection(name).doc(`${name}-${studentId}`).set({ studentId, text: "x", task: "x", read: false, status: "Ootel" }))));
+  const inFilter = ids => ({ fieldFilter: { field: { fieldPath: "studentId" }, op: "IN", value: { arrayValue: { values: ids.map(str) } } } });
+
+  for (const enforced of [true, false]) {
+    await db().collection("securityMigrations").doc("teacherUidV1").set({ readEnforced: enforced }, { merge: true });
+    for (const name of collections) {
+      assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-own-card`)).status, 200, `${name} own ${enforced}`);
+      assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-second-card`)).status, 200, `${name} second teacher ${enforced}`);
+      assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-foreign-card`)).status, 403, `${name} foreign ${enforced}`);
+      // a name-only card counts only until teacher scope is enforced
+      assert.equal((await documentRequest(teacher, "GET", `${name}/${name}-sec-name-card`)).status, enforced ? 403 : 200, `${name} name-only ${enforced}`);
+      const own = await runQuery(teacher, name, inFilter(["sec-own-card", "sec-second-card"]));
+      assert.deepEqual([own.status, own.count], [200, 2], `${name} own query ${enforced}`);
+      assert.equal((await runQuery(teacher, name, inFilter(["sec-own-card", "sec-foreign-card"]))).status, 403, `${name} mixed query ${enforced}`);
+      assert.equal((await runQuery(teacher, name)).status, 403, `${name} whole collection ${enforced}`);
+    }
+  }
+
+  const create = (studentId) => documentRequest(teacher, "PATCH", `homework/sec-new-${studentId}`, { fields: { studentId: str(studentId), task: str("Uus"), status: str("Ootel") } });
+  assert.equal((await create("sec-foreign-card")).status, 403);
+  assert.equal((await create("sec-own-card")).status, 200);
+  const message = (studentId) => documentRequest(teacher, "PATCH", `messages/sec-new-${studentId}`, { fields: { studentId: str(studentId), text: str("Tere"), fromUid: str(uid), fromRole: str("teacher") } });
+  assert.equal((await message("sec-foreign-card")).status, 403);
+  assert.equal((await message("sec-own-card")).status, 200);
+  // moving an own homework to a foreign student is not a way around it
+  assert.equal((await documentRequest(teacher, "PATCH", "homework/homework-sec-own-card?updateMask.fieldPaths=studentId", { fields: { studentId: str("sec-foreign-card") } })).status, 403);
+  assert.equal((await documentRequest(teacher, "DELETE", "homework/homework-sec-foreign-card")).status, 403);
+
+  const adminQuery = await runQuery(await adminToken(), "homework");
+  assert.equal(adminQuery.status, 200);
+  assert.equal((await documentRequest(await adminToken(), "GET", "messages/messages-sec-foreign-card")).status, 200);
+});

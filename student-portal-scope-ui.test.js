@@ -32,13 +32,20 @@ test('duplicate merge is previewed and executed by the protected server API',()=
 });
 
 test('non-staff data subscriptions are constrained to owned student ids',()=>{
-  assert.match(html,/if\(!user\|\|isStaff\) return undefined/);
+  assert.match(html,/if\(!user\|\|\(isStaff&&!teacherOnlyUser\)\) return undefined/);
   assert.match(html,/\['lessons',setLes\]/);
   assert.match(html,/\['homework',setHw\]/);
   assert.match(html,/\['schedule',setSch\]/);
   assert.match(html,/\['messages',setMessages\]/);
   assert.match(html,/\['worksheetAssignments',setAllWsAssignments\]/);
   assert.match(html,/db\.collection\(name\)\.where\('studentId','in',ids\)/);
+});
+
+test('a teacher reads homework, messages and worksheets only of own students (owner decision 2026-10-11)',()=>{
+  assert.match(html,/if\(userIsAdmin\) unsubs\.push\(db\.collection\('homework'\)/);
+  assert.match(html,/if\(userIsAdmin\) unsubs\.push\(db\.collection\('messages'\)/);
+  assert.match(html,/if\(userIsAdmin\) unsubs\.push\(db\.collection\('worksheetAssignments'\)/);
+  assert.match(html,/const teacherOnlyUser=Boolean\(user\)&&isStaff&&!isAdmin;/);
 });
 
 test('dashboard and invoice screen keep completed lessons and unpaid invoices visible',()=>{

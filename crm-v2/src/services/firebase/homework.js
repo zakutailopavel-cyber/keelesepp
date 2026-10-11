@@ -1,6 +1,7 @@
 import { limit, addDoc, collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, runTransaction, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
+import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
 
@@ -435,10 +436,18 @@ export const homeworkService = {
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveFocus });
     return liveFocus;
   },
-  // all copies of one sheet given to learners (the sheet's „Tulemused” in the constructor) — staff only by the rules
-  async listWorksheetResults(lessonId) {
+  // all copies of one sheet given to learners (the sheet's „Tulemused” in the constructor). An administrator reads
+  // every copy; a teacher may read only their own students' copies (rules), so that query goes by student ids.
+  async listWorksheetResults(lessonId, { scopeTeacherUid = '', students = studentsService } = {}) {
     if (!lessonId) return [];
     const { db } = requireFirebaseClient();
+    if (scopeTeacherUid) {
+      const { items } = await students.list({ status: 'active', pageSize: 500, exhaustive: true, scopeTeacherUid });
+      const ids = [...new Set(items.map((student) => student.id).filter(Boolean))];
+      const snapshots = await Promise.all(chunksOfTen(ids).map((group) => getDocs(query(collection(db, 'worksheetAssignments'), where('studentId', 'in', group)))));
+      return snapshots.flatMap((snapshot) => snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })))
+        .filter((entry) => entry.lessonId === lessonId);
+    }
     const snapshot = await getDocs(query(collection(db, 'worksheetAssignments'), where('lessonId', '==', lessonId)));
     return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
   },
