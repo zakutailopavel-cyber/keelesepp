@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b1-m12 — B1 kursus moodul 12 (Avasta + Harjuta + Kasuta) (a2b1-056…060), kõik kolm etappi
+
+- Base: `main` b1e5dc7. Previous modules are published to production (diff with production: 0 differences).
+- Mooduli 12 „Ilm, loodus ja keskkond” kõik kolm lehte (ilm ja aastaajad, loodus ja igaüheõigus, põhjus ja tagajärg, keskkonnasõbralik valik ja arvamus, vahehindamine 3); kvaliteedivärav roheline; avaldatud prod-is skriptiga.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-11 · agent/ipad-board-fixes — Live Classroom iPadil: kerimine, sõna topeltpuudutus, rebane
 
 - Base: `main` 322d21a. Why (owner, Monika's lesson 2026-10-11 on an iPad): the worksheet on the board stopped scrolling half way, a double tap on a word did nothing, the pet „stopped writing words”.
