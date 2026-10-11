@@ -18,7 +18,9 @@ describe('ParentDashboardPage', () => {
 
     expect(await screen.findByRole('heading', { name: 'Tere, Mari Ema!' })).toBeInTheDocument();
     expect(screen.getByText('Õpi sõnad')).toBeInTheDocument();
-    expect(screen.getByText(/30,00/)).toBeInTheDocument();
+    expect(screen.getAllByText(/30,00/).length).toBeGreaterThan(0);
+    expect(screen.getByRole('heading', { name: 'Arved' })).toBeInTheDocument();
+    expect(screen.getByText('Tasumata', { selector: '.badge' })).toBeInTheDocument();
     expect(screen.getByText('Eesti keel')).toBeInTheDocument();
     expect(screen.getByText('A1 → A2')).toBeInTheDocument();
     expect(screen.getByText('Õpetaja')).toBeInTheDocument();
@@ -28,7 +30,7 @@ describe('ParentDashboardPage', () => {
     expect(invoiceRepository.listByStudent).toHaveBeenCalledWith('student-1');
   });
 
-  it('shows parents what was done in the last lessons: Õppevara topic, note, or "Individuaalne tund"', async () => {
+  it('shows parents the last lessons, absences included,: Õppevara topic, note, or "Individuaalne tund"', async () => {
     const studentRepository = { listOwned: vi.fn().mockResolvedValue([{ id: 'student-1', name: 'Mari' }]) };
     const empty = { listByStudentIds: vi.fn().mockResolvedValue([]), listByStudent: vi.fn().mockResolvedValue([]) };
     const lessonRepository = { listByStudent: vi.fn().mockResolvedValue([
@@ -39,11 +41,14 @@ describe('ParentDashboardPage', () => {
     const user = { uid: 'parent-1', displayName: 'Mari Ema', roles: ['parent'] };
     render(<MemoryRouter><AuthContext.Provider value={{ user }}><ParentDashboardPage studentRepository={studentRepository} homeworkRepository={empty} scheduleRepository={empty} invoiceRepository={empty} lessonRepository={lessonRepository} /></AuthContext.Provider></MemoryRouter>);
 
-    expect(await screen.findByRole('heading', { name: 'Mida tunnis tehti' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Viimased tunnid' })).toBeInTheDocument();
     expect(screen.getByText('Partitiiv toidu juures')).toBeInTheDocument();
     expect(screen.getByText(/B1 · Toit ja teenindus/)).toBeInTheDocument();
     expect(screen.getByText('Harjutasime tellimist kohvikus.')).toBeInTheDocument();
     expect(screen.getByText('Individuaalne tund')).toBeInTheDocument();
     expect(screen.getAllByText('Toimus')).toHaveLength(2);
+    // a missed lesson is shown to the family as well
+    expect(screen.getByText('Puudus (teatas ette)')).toBeInTheDocument();
+    expect(screen.getByText('Tund jäi vahele')).toBeInTheDocument();
   });
 });

@@ -109,8 +109,8 @@ export default function MessagesPage({ repository = messagesService, studentRepo
   return <div className="page-content messages-page">
     <PageHeader
       eyebrow="Suhtlus"
-      title="Kommunikatsioon"
-      description="KeeleSepa sisemised vestlused, Facebook ja Instagram ühes töövoos."
+      title={staff ? 'Kommunikatsioon' : 'Sõnumid'}
+      description={staff ? 'KeeleSepa sisemised vestlused, Facebook ja Instagram ühes töövoos.' : 'Kirjuta õpetajale — vastus tuleb siia.'}
       actions={totalUnread ? <Badge tone="info">{totalUnread} lugemata</Badge> : null}
       compact
     />
@@ -127,7 +127,7 @@ export default function MessagesPage({ repository = messagesService, studentRepo
         <strong>{totalUnread}</strong>
         <small>vajab vastust või ülevaatust</small>
       </Card>
-      <Card className="message-metric">
+      {staff ? <><Card className="message-metric">
         <span>KeeleSepp</span>
         <strong>{internalCount}</strong>
         <small>sisemist vestlust</small>
@@ -136,7 +136,7 @@ export default function MessagesPage({ repository = messagesService, studentRepo
         <span>Väliskanalid</span>
         <strong>{externalCount}</strong>
         <small>Facebook + Instagram</small>
-      </Card>
+      </Card></> : null}
     </section>
 
     <Card className="messages-shell">
@@ -149,14 +149,15 @@ export default function MessagesPage({ repository = messagesService, studentRepo
           <Inbox size={19} />
         </div>
         <div className="search-field"><Search size={17} /><input aria-label="Otsi vestlust" placeholder="Otsi nime järgi…" value={query} onChange={(event) => setQuery(event.target.value)} /></div>
-        <div className="channel-filter" aria-label="Filtreeri kanali järgi">
+        {/* Facebook / Instagram threads are the school's own inboxes: students and parents never have them */}
+        {staff ? <div className="channel-filter" aria-label="Filtreeri kanali järgi">
           {[
             ['all', 'Kõik'],
             ['internal', 'KeeleSepp'],
             ['facebook', 'Facebook'],
             ['instagram', 'Instagram'],
           ].map(([value, label]) => <button type="button" className={channel === value ? 'is-active' : ''} key={value} onClick={() => setChannel(value)}>{label}</button>)}
-        </div>
+        </div> : null}
         <select className="new-conversation" aria-label="Alusta vestlust" value="" onChange={start}><option value="">+ Alusta uut vestlust</option>{students.map((student) => <option value={student.id} key={student.id}>{student.name}</option>)}</select>
         <div className="conversation-list__items">{conversations.map((item) => <button className={active?.id === item.id ? 'conversation active' : 'conversation'} key={item.id} onClick={() => setSelected(item.id)}>
           <span className="conversation-avatar">{initials(item.name)}</span><div><strong>{item.name}</strong><small><span className={`channel-dot channel-dot--${item.channel}`} />{channelLabel(item.channel)} · {item.messages.at(-1)?.text}</small></div>{item.unread ? <b aria-label={`${item.unread} lugemata`}>{item.unread}</b> : <CheckCheck className="conversation-read" size={17} />}
@@ -164,12 +165,12 @@ export default function MessagesPage({ repository = messagesService, studentRepo
         {!conversations.length ? <div className="conversation-empty">{query || channel !== 'all' ? 'Vestlusi ei leitud.' : 'Vestlusi veel ei ole.'}</div> : null}
       </aside>
       <section className="chat-panel">{active ? <>
-        <header><span className="conversation-avatar">{initials(active.name)}</span><div><strong>{active.name}</strong><small><span className={`channel-dot channel-dot--${active.channel}`} />{channelLabel(active.channel)} · {active.messages.length} sõnumit{active.teacher ? ` · ${active.teacher}` : ''}</small></div>{active.unread ? <Badge tone="info">{active.unread} lugemata</Badge> : null}</header>
+        <header><span className="conversation-avatar">{initials(active.name)}</span><div><strong>{active.name}</strong><small><span className={`channel-dot channel-dot--${active.channel}`} />{channelLabel(active.channel)} · {active.messages.length} {active.messages.length === 1 ? 'sõnum' : 'sõnumit'}{active.teacher ? ` · ${active.teacher}` : ''}</small></div>{active.unread ? <Badge tone="info">{active.unread} lugemata</Badge> : null}</header>
         <div className="message-stream" aria-label={`Vestlus: ${active.name}`}>{active.messages.length ? active.messages.map((message) => <div className={message.fromUid === user.uid ? 'message own' : 'message'} key={message.id}><span>{message.fromName}</span><p>{message.text}</p><time>{messageTime(message)}</time></div>) : <EmptyState title="Alusta vestlust" description="Kirjuta esimene sõnum allolevasse väljale." action={<MessageCircle size={28} />} />}</div>
         {externalConversation && !admin
           ? <div className="message-composer"><small>Facebooki ja Instagrami vestlustele saab vastata administraator.</small></div>
           : <form className="message-composer" onSubmit={send}><textarea aria-label="Sõnum" maxLength={externalConversation ? 2000 : 4000} placeholder="Kirjuta sõnum…" rows="2" value={text} onChange={(event) => setText(event.target.value)} /><div><small>{text.length}/{externalConversation ? 2000 : 4000}</small><Button type="submit" loading={sending} disabled={!text.trim()} aria-label="Saada"><Send size={18} /></Button></div></form>}
-      </> : <EmptyState title="Vestlusi veel ei ole" description="Vali õpilane ja alusta esimest vestlust." action={<MessageCircle size={28} />} />}</section>
+      </> : <EmptyState title="Vestlusi veel ei ole" description={students.length ? (staff ? 'Vali õpilane ja alusta esimest vestlust.' : 'Vali ülalt „Alusta uut vestlust” ja kirjuta õpetajale.') : (staff ? 'Sinu tööalas ei ole õpilasi.' : 'Konto ei ole veel õpilase kaardiga seotud. Kirjuta kooli: info@epkoolitus.ee')} action={<MessageCircle size={28} />} />}</section>
     </Card>
   </div>;
 }

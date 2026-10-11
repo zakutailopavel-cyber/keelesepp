@@ -5,6 +5,13 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { websiteLeadsService } from '../../services/firebase/index.js';
 import './leads.css';
 
+// createdAt is an ISO timestamp from the website form; show it as a Tallinn date and time
+function arrivedAt(value) {
+  const date = new Date(value || '');
+  if (!value || Number.isNaN(date.getTime())) return value || '—';
+  return date.toLocaleString('et-EE', { timeZone: 'Europe/Tallinn', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 const STATUS = { new: 'Uus', contacted: 'Ühendust võetud', converted: 'Õppijaks saanud', closed: 'Suletud' };
 
 export default function LeadsPage({ service = websiteLeadsService }) {
@@ -27,7 +34,7 @@ export default function LeadsPage({ service = websiteLeadsService }) {
         <div className="lead-row__main">
           <div className="lead-row__head"><strong>{lead.name}</strong><Badge>{STATUS[lead.status] || lead.status}</Badge><Badge>{lead.source === 'level-test' ? 'Tasemetest' : 'Veebivorm'}</Badge></div>
           <div className="lead-row__contact"><a href={`mailto:${lead.email}`}>{lead.email}</a>{lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : null}</div>
-          <dl><dt>Keel ja tase</dt><dd>{lead.language} · {lead.level}</dd><dt>Saabus</dt><dd>{lead.createdAt || '—'}</dd>{lead.assessment ? <><dt>Test</dt><dd>{lead.assessment.score}/100 · {lead.assessment.answered} vastust · {lead.assessment.diagnosticId}</dd></> : null}{lead.message ? <><dt>Eesmärk</dt><dd>{lead.message}</dd></> : null}</dl>
+          <dl><dt>Keel ja tase</dt><dd>{lead.language} · {lead.level}</dd><dt>Saabus</dt><dd>{arrivedAt(lead.createdAt)}</dd>{lead.assessment ? <><dt>Test</dt><dd>{lead.assessment.score}/100 · {lead.assessment.answered} vastust · {lead.assessment.diagnosticId}</dd></> : null}{lead.message ? <><dt>Eesmärk</dt><dd>{lead.message}</dd></> : null}</dl>
         </div>
         <div className="lead-row__actions">
           {lead.status === 'new' ? <Button loading={busy === lead.id} onClick={() => changeStatus(lead, 'contacted')}>Märgi kontakteerituks</Button> : null}
