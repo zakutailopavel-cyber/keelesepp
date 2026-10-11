@@ -1,3 +1,14 @@
+## 2026-10-11 · agent/pet-course-games — lemmiku mängud kursuse töölehtedest, „Sorteeri” ja „Arva sõna”
+
+- Base: `main` 6b2b123. Branch `agent/pet-course-games`, draft PR. Owner request: more games and interaction with the pet, built on the many worksheets.
+- Material (`pet/petGames.js`, `PetCard.jsx`): besides the worksheets the teacher assigned, the topic games now take the published course sheets (`curriculumLessons/{id}/worksheets`, `publishedWorksheetDoc`; draft-only sheets are skipped) of the last 4 attended lessons with an Õppevara topic (`lessons.topicLessonId`) — `courseTopics()`, shown as „· tunnist”. Up to 6 topics.
+- More tasks feed the existing games: `transformation` answers → „Lauseehitus”; `dialogue` gaps → „Püüa sõna”.
+- New games (`PetGames.jsx`, `pet.css`): „Sorteeri” (`categorize` groups → baskets; one word at a time, the pet reacts, a wrong basket shows the right one) and „Arva sõna” (letter guessing from `crossword` clues, `vocab` meanings and `match` pairs; Estonian keyboard incl. õ ä ö ü š ž; six misses show the word; clues that contain the word are skipped).
+- Coverage on the B1–C1 course (630 sheets / 220 lessons): sheets with at least one game 565 → 605; every lesson has ≥ 2 games, 64 lessons 5–6; „Sorteeri” 988 words, „Arva sõna” 426 words.
+- Unchanged contract: games only fill the pet's joy (petCare `playedAt`); no XP or stars from playing, nothing new is written. No rules or functions change (students already read `curriculumLessons/**`).
+- Checks: vitest pet + students + vocabulary + library 164/164 (4 new pet tests: extraction, course topics incl. draft and absence, both games played); eslint clean; `vite build` OK; browser on emulators (student Karl, 420 px): topic „Minu pere” from an attended lesson offers Püüa sõna, Lauseehitus, Sorteeri, Arva sõna; both new games play, no console errors.
+- Next step: owner tries the games with a test student and merges; possible follow-up: A1/A2 Avasta sheets coverage and a daily „pet asks one question” prompt.
+
 ## 2026-10-11 · agent/live-guest-link — Live Classroom: tunnilink kontota õpilasele
 
 - Base: `main` 533a366. Branch `agent/live-guest-link`, draft PR.
