@@ -1,4 +1,4 @@
-import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { cleanWord, normalizeWord, review } from '../../features/vocabulary/wordsModel.js';
 
@@ -34,6 +34,29 @@ export const studentWordsService = {
     };
     await setDoc(ref, record);
     return normalizeWord(ref.id, record);
+  },
+
+  // the words of one course lesson's vocabulary, all in one batch (a lesson is never half imported), each under its
+  // fixed id (lessonWordId): the id says which lesson it came from, so a lesson is imported once — the rules allow
+  // no extra field for that, and a student cannot delete words. `items`: [{ id, word, translation, example }]
+  async addLessonWords({ studentId, items = [], user }) {
+    if (!studentId) throw new Error('Õpilane puudub.');
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    const records = items.map(({ id, ...input }) => {
+      const data = cleanWord(input);
+      if (!id || !data.word) throw new Error('Kirjuta sõna.');
+      const record = {
+        studentId, invitationId: '', ...data,
+        createdByUid: user.uid, createdByName: String(user.displayName || user.email || '').slice(0, 160),
+        createdAt: now, updatedAt: now, box: 0, dueAt: now,
+      };
+      batch.set(doc(db, 'studentWords', id), record);
+      return normalizeWord(id, record);
+    });
+    if (records.length) await batch.commit();
+    return records;
   },
 
   // the student keeps a word from a course deck for repetition („Lisa raskemad minu sõnadesse”)
