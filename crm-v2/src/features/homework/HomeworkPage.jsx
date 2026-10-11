@@ -83,6 +83,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const [confirming, setConfirming] = useState('');
   const pendingQuick = useRef(null);
   const [undoable, setUndoable] = useState(null);
+  const [reopenable, setReopenable] = useState(null);
   const [answering, setAnswering] = useState(null);
   const [answerBusy, setAnswerBusy] = useState(false);
   // leaving the page within the 5 seconds still sends the grade the teacher confirmed
@@ -203,6 +204,8 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       else await repository.setStatus(item.id, 'Tehtud');
       setAnswering(null);
       setSuccess('Kodutöö on märgitud tehtuks. Õpetaja näeb seda kohe.');
+      // one click without an answer: a written task would reach the teacher empty, so offer a way back
+      setReopenable(withAnswer ? null : item);
       await state.reload();
     } catch (error) { setActionError(error.message || 'Kodutööd ei saanud salvestada.'); } finally { setAnswerBusy(false); }
   };
@@ -244,15 +247,15 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   };
 
   return <div className="page-content">
-    <PageHeader compact eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
-    <PeopleOverview label="Kodutööde kokkuvõte" eyebrow={staff ? 'Õppetöö ülevaade' : 'Minu töölaud'} title={staff ? 'Ülesanded ja tagasiside' : 'Minu kodutööd'} description={staff ? 'Pooleliolevad tööd, tähtajad ja kontrollimist ootavad esitused.' : 'Ülesanded, tähtajad ja õpetaja tagasiside ühes vaates.'} metrics={[
+    <PageHeader compact eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : studentRole ? 'Sinu ülesanded, tulemused ja õpetaja tagasiside.' : 'Laste ülesanded, tähtajad ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
+    <PeopleOverview label="Kodutööde kokkuvõte" eyebrow={staff ? 'Õppetöö ülevaade' : studentRole ? 'Minu töölaud' : 'Pere töölaud'} title={staff ? 'Ülesanded ja tagasiside' : studentRole ? 'Minu kodutööd' : 'Laste kodutööd'} description={staff ? 'Pooleliolevad tööd, tähtajad ja kontrollimist ootavad esitused.' : 'Ülesanded, tähtajad ja õpetaja tagasiside ühes vaates.'} metrics={[
       { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length + allAssignments.length, hint: staff ? `${students.items.length} õpilast` : `${allAssignments.length} töölehte` },
       { icon: Clock3, label: 'Pooleli', value: openHomework.length + openAssignments.length, hint: 'ootab tegemist' },
       { icon: Star, label: 'Hilinenud', value: overdueHomework.length + overdueAssignments.length, hint: 'vajab tähelepanu' },
       { icon: MessageSquare, label: staff ? 'Ootab kontrolli' : 'Tagasisideta', value: pendingReviews.length, hint: `${state.data.submissions.length} esitust kokku` },
     ]} />
     {undoable ? <div className="success-notice" role="status">{undoable.submission.studentName || 'Õpilane'}: hinne {undoable.grade} saadetakse 5 sekundi pärast. <button type="button" className="link-button" onClick={undoQuick}>Tühista</button></div> : null}
-    {success ? <div className="success-notice" role="status">{success}<button onClick={() => setSuccess('')}>×</button></div> : null}
+    {success ? <div className="success-notice" role="status">{success}{reopenable ? <> Kirjalik töö? Õpetaja ei näe vastust, kui seda ei lisa. <button type="button" className="link-button" onClick={async () => { const item = reopenable; setReopenable(null); setSuccess(''); await repository.setStatus(item.id, 'Ootel'); await state.reload(); setAnswering(item.id); }}>Võta tagasi ja lisa vastus</button></> : null}<button onClick={() => { setSuccess(''); setReopenable(null); }}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')}>×</button></div> : null}
 
     <Card className="homework-overview">
@@ -296,7 +299,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       </Card>
 
       <Card className="list-card submission-card">
-        <div className="homework-card-heading"><div><span className="eyebrow">{staff ? 'Kontrollimine' : 'Tulemused'}</span><h2>{staff ? 'Esitatud tööd' : 'Minu esitused'}</h2></div>{staff ? <Select aria-label="Kontrolli staatus" value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value)}><option value="pending">Ootab kontrolli</option><option value="reviewed">Tagasiside antud</option><option value="all">Kõik esitused</option></Select> : <Badge tone="neutral">{submissions.length}</Badge>}</div>
+        <div className="homework-card-heading"><div><span className="eyebrow">{staff ? 'Kontrollimine' : 'Tulemused'}</span><h2>{staff ? 'Esitatud tööd' : studentRole ? 'Minu esitused' : 'Laste esitused'}</h2></div>{staff ? <Select aria-label="Kontrolli staatus" value={reviewStatus} onChange={(event) => setReviewStatus(event.target.value)}><option value="pending">Ootab kontrolli</option><option value="reviewed">Tagasiside antud</option><option value="all">Kõik esitused</option></Select> : <Badge tone="neutral">{submissions.length}</Badge>}</div>
         <SubmissionList items={submissions} staff={staff} onOpen={openReview} onConfirm={staff ? confirmReview : undefined} confirming={confirming} />
       </Card>
     </div>

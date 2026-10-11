@@ -1,3 +1,17 @@
+## 2026-10-11 · agent/portal-ux-fixes — õpilase ja lapsevanema vaated pärast rollisimulatsiooni
+
+- Base: `main` 6b2b123. Branch `agent/portal-ux-fixes`, draft PR. Independent of `agent/account-linking`.
+- Why: full role simulation on local emulators found family-facing gaps. UI only — no rules, functions or data changes.
+- Kodutööd (`HomeworkPage.jsx`): after the student's one-click „Tehtud” without an answer the notice offers „Võta tagasi ja lisa vastus” (reopens as `Ootel` and opens the answer form). A parent sees „Laste kodutööd / Laste esitused” instead of „Minu …”.
+- Sõnumid (`MessagesPage.jsx`): students and parents see the title „Sõnumid”, no Facebook / Instagram filters or external-channel metrics; empty state explains what to do (or that the account is not linked yet). „1 sõnum” instead of „1 sõnumit”.
+- Minu pere (`ParentDashboardPage.jsx`): „Viimased tunnid” shows absences (`Puudus_eta`, `Puudus_p`) next to held lessons; new card „Arved” lists invoices (number, amount, child, due date, Tasutud / Tasumata / Tähtaeg möödas; cancelled hidden).
+- Minu õpingud (`StudentDashboardPage.jsx`): a child whose card has a parent link no longer sees the family's unpaid balance (metric replaced by „Tehtud ülesanded”); adult learners still see it.
+- Roles shown as words (`utils/roles.js` `roleLabels`: Lapsevanem, Õpilane, Õpetaja …) in the menu profile and Seaded; Seaded hides Firebase status, support view and account UID from students and parents.
+- Texts: „1 tund” plurals on the teacher dashboard and Sõnavara; lead arrival time as a Tallinn date instead of a raw ISO string (`LeadsPage.jsx`).
+- Checks: crm-v2 vitest full suite 1504 passed before the last settings test update, then settings / components / app 44/44 and settings 5/5; eslint 0 errors (warnings pre-existing elsewhere). Browser check on emulators: parent sees „Puudus (teatas ette)”, invoice KS-2026-102 with „Tasumata 90,00 €”, „Sõnumid” without external channels, role „Lapsevanem”.
+- Not done: teacher read scope for invoices / messages / homework and `/board/:id` (needs a rules change and owner approval); self-service lesson cancellation for parents; message / absence e-mail notifications; Russian interface.
+- Next step: owner reviews and merges the draft PR (Vercel deploys the UI; no backend deploy needed).
+
 ## 2026-10-11 · agent/live-guest-link — Live Classroom: tunnilink kontota õpilasele
 
 - Base: `main` 533a366. Branch `agent/live-guest-link`, draft PR.

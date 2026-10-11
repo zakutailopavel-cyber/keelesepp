@@ -28,6 +28,14 @@ function renderPage(user, data) {
 }
 
 describe('MessagesPage', () => {
+  it('a parent sees only school messages, without Facebook / Instagram inboxes', async () => {
+    renderPage({ uid: 'parent-1', displayName: 'Mari ema', roles: ['parent'] }, repositories());
+    expect(await screen.findByRole('heading', { name: 'Sõnumid' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Facebook' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Väliskanalid')).not.toBeInTheDocument();
+    expect(await screen.findByText(/1 sõnum\b/)).toBeInTheDocument();
+  });
+
   it('groups conversations chronologically and counts unread incoming messages', () => {
     const result = buildConversations([
       { ...incoming, id: 'later', createdAt: '2026-08-04T11:00:00.000Z' },

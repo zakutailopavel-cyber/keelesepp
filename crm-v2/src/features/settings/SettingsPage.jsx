@@ -5,7 +5,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
-import { hasAnyRole, ROLES } from '../../utils/roles.js';
+import { hasAnyRole, ROLES, roleLabels } from '../../utils/roles.js';
 import { teacherScopeMigrationApi } from '../../services/firebase/teacherScopeMigrationApi.js';
 import { parentsService } from '../../services/firebase/parents.js';
 import { authService } from '../../services/firebase/auth.js';
@@ -163,9 +163,12 @@ export default function SettingsPage({ parentRepository = parentsService, studen
     <PageHeader eyebrow="Konto" title="Seaded" description="Sinu kontaktandmed, ligipääs ja konto turvalisus." />
     <PeopleOverview label="Konto kokkuvõte" eyebrow="Turvaline konto" title={user.displayName || 'Minu seaded'} description="Profiil, rollid, ühendused ja tugivahendid ühes kontrollitud vaates." metrics={[
       { icon: UserRound, label: 'Profiil', value: form.displayName ? 'Valmis' : 'Puudulik', hint: form.phone ? 'telefon lisatud' : 'telefon puudub' },
-      { icon: ShieldCheck, label: 'Rollid', value: user.roles.length, hint: user.roles.join(', ') },
-      { icon: Database, label: 'Firebase', value: configured ? 'Ühendatud' : 'Puudub', hint: 'andmed ja autentimine' },
-      { icon: Eye, label: 'Tugivaade', value: isAdmin ? 'Saadaval' : 'Piiratud', hint: isAdmin ? 'administraatorile' : 'vastavalt rollile' },
+      { icon: ShieldCheck, label: 'Rollid', value: user.roles.length, hint: roleLabels(user.roles) },
+      // technical rows (database connection, support view) mean nothing to a student or parent
+      ...(isStaff ? [
+        { icon: Database, label: 'Firebase', value: configured ? 'Ühendatud' : 'Puudub', hint: 'andmed ja autentimine' },
+        { icon: Eye, label: 'Tugivaade', value: isAdmin ? 'Saadaval' : 'Piiratud', hint: isAdmin ? 'administraatorile' : 'vastavalt rollile' },
+      ] : []),
     ]} />
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
@@ -175,11 +178,11 @@ export default function SettingsPage({ parentRepository = parentsService, studen
 
       {hasAnyRole(user.roles, [ROLES.STUDENT]) && !preview ? <PetSettingsCard user={user} /> : null}
       {hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]) && !preview ? <GoogleCalendarCard user={user} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} /> : null}
-      <Card><div className="settings-icon"><ShieldCheck /></div><h2>Ligipääs</h2><div className="detail-list"><div><dt>Kasutaja</dt><dd>{user.displayName}</dd></div><div><dt>E-post</dt><dd>{user.email}</dd></div><div><dt>Rollid</dt><dd>{user.roles.join(', ')}</dd></div><div><dt>Konto UID</dt><dd className="mono">{user.uid}</dd></div></div></Card>
+      <Card><div className="settings-icon"><ShieldCheck /></div><h2>Ligipääs</h2><div className="detail-list"><div><dt>Kasutaja</dt><dd>{user.displayName}</dd></div><div><dt>E-post</dt><dd>{user.email}</dd></div><div><dt>Rollid</dt><dd>{roleLabels(user.roles)}</dd></div>{isStaff ? <div><dt>Konto UID</dt><dd className="mono">{user.uid}</dd></div> : null}</div></Card>
 
-      <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta CRM-is otse. Firebase saadab turvalise taastamislingi ainult sinu praeguse konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>
+      <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta siin otse. Saadame turvalise taastamislingi ainult sinu konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>
 
-      <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card>
+      {isStaff ? <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card> : null}
 
       {isAdmin ? <Card><div className="settings-icon"><Eye /></div><h2>Vanema / õpilase vaade</h2><p className="settings-copy">Ava valitud lapsevanema või õpilase kabinet ilma tema parooli ja Firebase Auth seanssi muutmata. Tugivaade on vaikimisi ainult lugemiseks.</p>{!supportData ? <Button variant="secondary" loading={supportLoading} onClick={loadSupportUsers}>Laadi kasutajad</Button> : <div className="settings-profile-form"><Select label="Vaate tüüp" value={supportType} onChange={(event) => { setSupportType(event.target.value); setSupportTarget(''); }}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></Select><Select label={supportType === 'parent' ? 'Lapsevanem' : 'Õpilane'} value={supportTarget} onChange={(event) => setSupportTarget(event.target.value)}><option value="">Vali kasutaja</option>{(supportType === 'parent' ? supportData.parents : supportData.students).map((item) => <option value={item.id} key={item.id}>{supportType === 'parent' ? (item.displayName || item.email || 'Nimetu lapsevanem') : (item.name || 'Nimetu õpilane')}</option>)}</Select><Button disabled={!supportTarget} onClick={openSupportView}><Eye size={17} /> Ava read-only vaade</Button></div>}{supportError ? <p className="form-hint" role="alert">{supportError}</p> : null}</Card> : null}
 

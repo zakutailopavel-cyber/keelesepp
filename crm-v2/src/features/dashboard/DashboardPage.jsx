@@ -161,7 +161,7 @@ export default function DashboardPage({
                   </div>
                 ))}
               </div>
-            ) : <EmptyState title={data.todayLessons.length ? 'Tänased tunnid on läbi' : 'Täna tunde ei ole'} description={data.todayLessons.length ? `Täna oli ${data.todayLessons.length} tundi. Märgi need kalendris.` : 'Tänaseks ei ole ühtegi planeeritud tundi.'} />}
+            ) : <EmptyState title={data.todayLessons.length ? 'Tänased tunnid on läbi' : 'Täna tunde ei ole'} description={data.todayLessons.length ? `Täna oli ${data.todayLessons.length} ${data.todayLessons.length === 1 ? 'tund' : 'tundi'}. Märgi need kalendris.` : 'Tänaseks ei ole ühtegi planeeritud tundi.'} />}
             {data.upcoming.length > 6 ? <p className="form-hint">+ veel {data.upcoming.length - 6} tundi täna</p> : null}
           </Card>
         ) : null}

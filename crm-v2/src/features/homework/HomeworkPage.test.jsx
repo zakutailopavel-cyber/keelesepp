@@ -67,6 +67,16 @@ describe('HomeworkPage: finishing and closing tasks', () => {
     renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, data);
     fireEvent.click(await screen.findByRole('button', { name: /^Tehtud$/ }));
     await waitFor(() => expect(data.repository.setStatus).toHaveBeenCalledWith('h2', 'Tehtud'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Võta tagasi ja lisa vastus' }));
+    await waitFor(() => expect(data.repository.setStatus).toHaveBeenCalledWith('h2', 'Ootel'));
+  });
+
+  it('a parent sees the family wording, not the student\'s', async () => {
+    const data = repositories([], [], [{ id: 'h3', studentId: 'student-1', studentName: 'Mari', task: 'Õpi sõnad', status: 'Ootel', due: today }]);
+    renderPage({ uid: 'parent-user-1', displayName: 'Ema', roles: ['parent'] }, data);
+    expect(await screen.findByText('Laste kodutööd')).toBeInTheDocument();
+    expect(screen.queryByText('Minu kodutööd')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Tehtud$/ })).not.toBeInTheDocument();
   });
 
   it('the teacher closes old overdue tasks in one go and sees the student\'s answer', async () => {

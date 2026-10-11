@@ -125,7 +125,7 @@ export default function VocabularyPage({
             </div>
             {modules.length ? modules.map((module) => (
               <details key={module.key} className="vd-module">
-                <summary><BookOpen size={16} /> {module.label} <small>{module.lessons.length} tundi</small></summary>
+                <summary><BookOpen size={16} /> {module.label} <small>{module.lessons.length} {module.lessons.length === 1 ? 'tund' : 'tundi'}</small></summary>
                 <div className="vd-list">{module.lessons.map((lesson) => (
                   <button type="button" key={lesson.id} className="vd-deck" onClick={() => openLesson(lesson)}>
                     <span><strong>{lesson.number ? `${lesson.number}. ` : ''}{lesson.title}</strong></span><ChevronRight size={16} />

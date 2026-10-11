@@ -24,6 +24,19 @@ export function normalizeRoles(profile = {}, claims = {}, identity = {}) {
   return [...new Set(values.filter(Boolean).map((role) => String(role).toLowerCase()))];
 }
 
+const ROLE_LABELS = Object.freeze({
+  admin: 'Administraator',
+  teacher: 'Õpetaja',
+  student: 'Õpilane',
+  parent: 'Lapsevanem',
+  finance: 'Raamatupidaja',
+});
+
+// Roles as people read them (the raw ids „parent”, „teacher” were shown in the menu and settings).
+export function roleLabels(roles = []) {
+  return roles.map((role) => ROLE_LABELS[role] || role).join(', ');
+}
+
 export function hasAnyRole(userRoles, allowedRoles) {
   if (!allowedRoles?.length) return true;
   return allowedRoles.some((role) => userRoles.includes(role));

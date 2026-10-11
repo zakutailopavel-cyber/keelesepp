@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, ChevronRight, GraduationCap, MessageSquareText, Star, WalletCards } from 'lucide-react';
+import { BookOpen, CalendarDays, CheckCircle2, ChevronRight, GraduationCap, MessageSquareText, Star, WalletCards } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -83,6 +83,7 @@ export default function StudentDashboardPage({
   const attendedLessons = lessons.filter(isAttended);
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
+  const paidByParent = students.some((student) => student.linkedParentId || student.parentUid || student.guardianUid || student.linkedParentIds?.length);
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
@@ -92,7 +93,10 @@ export default function StudentDashboardPage({
       { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },
       { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },
       { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
-      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
+      // a child's invoices are the parent's business (shown in „Minu pere”); an adult learner pays and sees them here
+      paidByParent
+        ? { icon: CheckCircle2, label: 'Tehtud ülesanded', value: homework.filter((item) => item.status === 'Tehtud').length, hint: 'kokku' }
+        : { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
     ]} />
 
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
