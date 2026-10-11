@@ -1,0 +1,40 @@
+// Visual briefs of a2 module 16; images in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
+// Briefs and pictures made by Codex (built-in image generation) per docs/TEXTBOOK_ART_BIBLE.md, imported by KeeleSeppArt/import_art.py.
+export default [
+  {
+    id: "a2-076-kasuta-1",
+    phase: "transfer",
+    format: "scene",
+    cast: ["Jaan"],
+    scene: "Jaan järjestab köögilaual eilse päeva pildikaarte: jalutuskäik Mukiga, kohvik ja suletud spordikott, et rääkida tehtud ja tegemata tegevustest.",
+    accent: "the picture cards",
+    text: [],
+    learningJob: "retell yesterday in the simple past and identify one action not done",
+    alt: "Jaan järjestab eilseid tegevusi ja näitab, mida ta ei teinud.",
+    caption: "Pilt 1. Eilsed tehtud ja tegemata tegevused.",
+  },
+  {
+    id: "a2-077-kasuta-1",
+    phase: "transfer",
+    format: "scene",
+    cast: ["Sofia", "Anna"],
+    scene: "Sofia näitab Annale telefonist eilse päeva pilte: märg bussipeatus, maha kukkunud kott ja hilinenud kohtumine; Anna kuulab üllatunult.",
+    accent: "Anna’s top",
+    text: [],
+    learningJob: "infer what happened yesterday and retell events in order",
+    alt: "Sofia jutustab Annale telefonipiltide järgi, mis eile juhtus.",
+    caption: "Pilt 1. Mis eile juhtus?",
+  },
+  {
+    id: "a2-080-kasuta-1",
+    phase: "transfer",
+    format: "scene",
+    cast: ["Anna", "Markus"],
+    scene: "Anna ja Markus panevad laual õigesse järjekorda eilse nädalavahetuse pildid: bussisõit, park ja kohvik; üks tegemata tegevuskaart jääb kõrvale.",
+    accent: "Anna’s top",
+    text: [],
+    learningJob: "review past-tense narration and explain what did not happen",
+    alt: "Anna ja Markus järjestavad nädalavahetuse sündmusi.",
+    caption: "Pilt 1. Mineviku kontrollülesanne.",
+  },
+];
