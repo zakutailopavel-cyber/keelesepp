@@ -113,15 +113,21 @@ export default function StudentBoard({
   const worksheetPage = sheetPageOf(worksheet);
   const activeSheet = sheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
   const onWorksheet = Boolean(activeSheet);
-  const underlayRef = useRef(null);
+  // the sheet's height bounds how far the board pans down. The stage is rendered in two layouts, so the underlay may
+  // be a new element (a reconnect, the layout switching on a tablet): the observer follows the element itself, else
+  // the old height stayed and the student could not scroll past it (owner 2026-10-11, Monika on an iPad)
+  const [underlayNode, setUnderlayNode] = useState(null);
   const [underlayHeight, setUnderlayHeight] = useState(1000);
   useEffect(() => {
-    const node = underlayRef.current;
-    if (!onWorksheet || !node || !globalThis.ResizeObserver) return undefined;
-    const observer = new globalThis.ResizeObserver(() => setUnderlayHeight(Math.max(400, Math.ceil(node.offsetHeight || 0))));
+    const node = underlayNode;
+    if (!node) return undefined;
+    const measure = () => { if (node.offsetHeight > 0) setUnderlayHeight(Math.max(400, Math.ceil(node.offsetHeight))); };
+    measure();
+    if (!globalThis.ResizeObserver) return undefined;
+    const observer = new globalThis.ResizeObserver(measure);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [onWorksheet]);
+  }, [underlayNode]);
   const bounds = useMemo(() => pageBounds(elements, 40, onWorksheet ? { w: WORKSHEET_WIDTH, h: underlayHeight + 40 } : undefined), [elements, onWorksheet, underlayHeight]);
   const screenSize = () => { const rect = svgRef.current?.getBoundingClientRect(); return [rect?.width || 0, rect?.height || 0]; };
   // every pan and zoom keeps part of the sheet on screen
@@ -547,7 +553,8 @@ export default function StudentBoard({
     if (!current) return;
     if (current.kind === 'pinch' ? touches.current.size < 2 : event.pointerId === current.pointerId) {
       nav.current = null;
-      event.stopPropagation();
+      // a tap (no pan) goes on to the sheet: a double tap on a word looks it up (owner 2026-10-11, iPad)
+      if (current.kind === 'pinch' || current.moved || event.pointerType === 'mouse') event.stopPropagation();
     }
   };
   const zoom = (factor) => {
@@ -652,7 +659,7 @@ export default function StudentBoard({
   const filling = onWorksheet && tool === 'fill';
   const stage = <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
-    {onWorksheet ? <div ref={underlayRef} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
+    {onWorksheet ? <div ref={setUnderlayNode} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs>
         <pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern>

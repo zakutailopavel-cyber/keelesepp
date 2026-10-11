@@ -10,7 +10,7 @@ const SHOW_MS = 5000;
 
 /**
  * The student's pet in the Live Classroom: sits in the corner of the board, says hello and cheers when the teacher
- * adds a new word or gives homework in this lesson. Nothing is written; a student without a pet sees nothing.
+ * adds a new word or gives homework in this lesson, and when the student adds a word from the sheet. Nothing is written; a student without a pet sees nothing.
  */
 export default function RoomPet({
   user, studentId, invitationId,
@@ -42,7 +42,9 @@ export default function RoomPet({
     if (!active || !studentId) return undefined;
     try {
       return wordsService.subscribeForStudent(studentId, (items) => {
-        const lesson = items.filter((item) => item.invitationId === invitationId);
+        // the teacher's words of this lesson and the words the student adds on the sheet (a double click or tap is
+        // saved without a lesson: owner 2026-10-11, the fox „stopped writing words” for Monika)
+        const lesson = items.filter((item) => item.invitationId === invitationId || item.source === 'double-click');
         const known = seen.current.words;
         seen.current.words = new Set(lesson.map((item) => item.id));
         if (!known) return;

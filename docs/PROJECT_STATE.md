@@ -1,3 +1,13 @@
+## 2026-10-11 · agent/ipad-board-fixes — Live Classroom iPadil: kerimine, sõna topeltpuudutus, rebane
+
+- Base: `main` 322d21a. Why (owner, Monika's lesson 2026-10-11 on an iPad): the worksheet on the board stopped scrolling half way, a double tap on a word did nothing, the pet „stopped writing words”.
+- `features/board/StudentBoard.jsx`: the sheet height (bounds of panning) is measured on the underlay element through a callback ref, so a new element (reconnect, layout switch) is measured again; before, the old height stayed and the board would not pan below it. A one-finger tap without a pan is no longer stopped on the stage, so the sheet receives it.
+- `features/worksheet-studio/WordLookup.jsx`: `wordAtPoint` (caretRangeFromPoint / caretPositionFromPoint) + `onPointerUp` double-tap detection for touch (350 ms, 24 px); `DocWorksheetPlayer` passes it next to `onDoubleClick`.
+- `features/pet/RoomPet.jsx`: the room pet cheers also for words the student adds from the sheet (`source: 'double-click'`, saved without `invitationId` by `/student-word`). Not changed: the server still saves those words without the lesson id (would need a functions deploy).
+- Checks: new tests `RoomPet.test.jsx`, double-tap and `wordAtPoint` tests in `DocWorksheetPlayer.test.jsx`; board + studio + pet tests pass; full vitest 14 failures, all pre-existing on `main` (no `localStorage` in local Node 26; WorksheetStudioPage „Pank” fails on main too); eslint clean on changed files. Not verified on a real iPad.
+- Transcriber (outside the repo, `~/KeeleSeppTranscriber/app`, backup `backup-YYYYMMDDHHMM`): ANALYSIS_VERSION 6 — subtitle credits („Редактор субтитров…”) and English noise dropped, echoes of the teacher and self-corrected attempts not judged, implausible GEC rewrites dropped, every error has `kind`. `npm test` 10/10; service restarted, re-analyses lessons.
+- Next step: try a lesson on an iPad (scroll to the end of a sheet, double tap a word, see the pet's bubble).
+
 ## 2026-10-10 · agent/course-b1-m11 — B1 kursus moodul 11 (Avasta + Harjuta + Kasuta) (a2b1-051…055), kõik kolm etappi
 
 - Base: `main` 438c9de. Previous modules are published to production (diff with production: 0 differences).

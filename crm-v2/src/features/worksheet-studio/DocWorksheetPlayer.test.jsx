@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import WorksheetPlayer from '../homework/WorksheetPlayer.jsx';
 import DocWorksheetPlayer, { DocWorksheetSubmissionPreview } from './DocWorksheetPlayer.jsx';
-import { wordFromSelection } from './WordLookup.jsx';
+import { wordAtPoint, wordFromSelection } from './WordLookup.jsx';
 import { SCHEMA } from './engine/schema.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -95,6 +95,32 @@ describe('structured worksheet player', () => {
     expect(await screen.findByText('просыпаться')).toBeInTheDocument();
     expect(screen.getByText('ärgata')).toBeInTheDocument();
     expect(screen.getByText('Lisatud sinu sõnavarasse.')).toBeInTheDocument();
+  });
+
+  it('a double tap with a finger looks up the word under it (iPad has no double click)', async () => {
+    const wordService = { lookupStudentWord: vi.fn().mockResolvedValue({ word: 'kodu', translation: 'дом', saved: true, forms: { forms: [] } }) };
+    const { container } = render(<DocWorksheetPlayer assignment={assignment()} repository={repo()} inline wordService={wordService} />);
+    const block = container.querySelector('.ws-page [data-block="tf"]');
+    const text = globalThis.document.createTextNode('Minu kodu on suur.');
+    block.appendChild(text);
+    const original = globalThis.document.caretRangeFromPoint;
+    globalThis.document.caretRangeFromPoint = () => ({ startContainer: text, startOffset: 6 });
+    const tap = { pointerType: 'touch', clientX: 100, clientY: 50 };
+    fireEvent.pointerUp(block, tap);
+    expect(wordService.lookupStudentWord).not.toHaveBeenCalled();
+    fireEvent.pointerUp(block, tap);
+    globalThis.document.caretRangeFromPoint = original;
+    expect(wordService.lookupStudentWord).toHaveBeenCalledWith({ studentId: 'st-1', word: 'kodu' });
+    expect(await screen.findByText('дом')).toBeInTheDocument();
+  });
+
+  it('finds the whole word around a point, letters with diacritics included', () => {
+    const text = globalThis.document.createTextNode('Ma ärkan vara.');
+    globalThis.document.body.appendChild(text);
+    const doc = { caretRangeFromPoint: () => ({ startContainer: text, startOffset: 5 }), createRange: () => globalThis.document.createRange() };
+    expect(wordAtPoint(0, 0, doc).word).toBe('ärkan');
+    expect(wordAtPoint(0, 0, { caretRangeFromPoint: () => null })).toBe(null);
+    text.remove();
   });
 
   it('takes one word from a selection, not phrases or empty text', () => {

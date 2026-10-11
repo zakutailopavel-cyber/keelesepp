@@ -163,7 +163,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {readOnly && !submitted ? <div className="worksheet-readonly"><Clock3 size={19} /><p>Õpilane ei ole seda töölehte veel esitanud.</p></div> : null}
       {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
-      <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick}>
+      <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
           <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
@@ -178,7 +178,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   // on the board: the sheet first and nothing above it, so it lies exactly like the teacher's copy; the rest below
   if (board) {
     const sheetFirst = <article className="worksheet-player ws-studio ws-doc-player is-inline is-board">
-      <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick}>
+      <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
           <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
