@@ -14,7 +14,7 @@ export default function MyProgressCard({ progress }) {
         <div>
           <span className="eyebrow">Minu areng</span>
           <h2>{reached ? `Eesmärk ${to} on käes!` : `${from} → ${to}`}</h2>
-          <p>{reached ? 'Räägi õpetajaga uuest eesmärgist.' : `Praegu: tase ${step} · ${readiness}% valmis`}<span lang="ru"> · {reached ? 'цель достигнута' : `сейчас идёшь к ${step}`}</span></p>
+          <p>{reached ? 'Räägi õpetajaga uuest eesmärgist.' : `Praegu: tase ${from} · teel tasemele ${step}: ${readiness}%`}<span lang="ru"> · {reached ? 'цель достигнута' : `сейчас идёшь к ${step}`}</span></p>
         </div>
         <strong className="my-progress__big" aria-label={`${overall}% teest`}>{overall}%<small>teest</small></strong>
       </header>
