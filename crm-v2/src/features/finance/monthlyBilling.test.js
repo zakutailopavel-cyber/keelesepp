@@ -1,4 +1,4 @@
-import { defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
+import { currentMonth, defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
 
 const students = [
   { id: 's1', name: 'Mari', active: true, parentEmail: 'mari@example.com' },
@@ -72,6 +72,8 @@ describe('monthly billing', () => {
   it('picks the month and due dates', () => {
     expect(defaultBillingMonth(new Date(2031, 9, 5))).toBe('2031-10');
     expect(defaultBillingMonth(new Date(2031, 9, 20))).toBe('2031-11');
+    // the invoice lists open on this month even after the 10th (only preparing moves to the next one)
+    expect(currentMonth(new Date(2031, 9, 20))).toBe('2031-10');
     expect(shiftMonth('2031-01', -1)).toBe('2030-12');
     expect(defaultDue('2031-03', 'advance')).toBe('2031-02-28');
   });

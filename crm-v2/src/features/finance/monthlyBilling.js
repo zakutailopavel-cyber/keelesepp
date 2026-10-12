@@ -22,6 +22,10 @@ export function shiftMonth(month, amount) {
 }
 
 // the month to bill by default: this month until the 10th, afterwards next month
+export function currentMonth(today = new Date()) {
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export function defaultBillingMonth(today = new Date()) {
   const month = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
   return today.getDate() <= PAYMENT_DUE_DAY ? month : shiftMonth(month, 1);
