@@ -1,3 +1,9 @@
+## 2026-10-12 · agent/course-audit — full course audit before any new automation
+
+- Why (owner): „начать с нормальных рабочих листов, цели урока по каждому уроку и адекватного учебного плана без косяков”.
+- `docs/COURSE_AUDIT_2026-10-12.md`: per lesson findings for 381 lessons; `tools/course-audit/` (export + audit, read-only). Headline: no lesson passes all checks; goals are Russian teacher notes (no Estonian learner goal); A2 33 and B1 15 lessons have no sheets; 27 A2 Avasta have no text; many closed tasks have < 4 items; A2 has 20/101 assessment lessons; B2 #35 missing; C1 has no success criteria.
+- Next: owner decides the plan questions (A2 assessments, goal format), then sheets level by level.
+
 ## 2026-10-12 · agent/student-cabinet-simple — student cabinet: short menu, home 10 → 4 blocks, clear „Tund”
 
 - Why (owner): „всего много и не понятно что куда нажимать”; approved mockup, „дизайн сохраняем наш”.
