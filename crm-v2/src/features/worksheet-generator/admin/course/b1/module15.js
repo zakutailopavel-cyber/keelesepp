@@ -324,7 +324,7 @@ export const LESSONS = {
         'Tere, Marta!',
         'Aitäh sinu kirja eest! Mul on suur uudis: septembrist {*hakkan|hakkasin|hakata} ma õppima kokakoolis. Ma olen sellest juba ammu {*unistanud|unistama|unistan}. Kool kestab kaks aastat ja tunnid toimuvad õhtuti, nii et päeval saan ma edasi {*töötada|töötama|töötan}.',
         'Minu eesmärk on kunagi oma kohvik {*avada|avama|avan}. Ma tean, et see ei ole lihtne. Kui mul {*on|oli|oleks} piisavalt raha, siis avan selle võib-olla viie aasta pärast. Selleks hakkan ma juba nüüd raha {*kõrvale|kõrval|kõrvalt} panema.',
-        'Järgmisel kuul {*kolin|kolisin|kolima} ma kooli lähedale. Uus korter on väiksem {*kui|nagu|kas} praegune, aga palju odavam. Ma {*loodan|lootsin|lootma}, et sa tuled mulle {*külla|külas|külast}, kui sul on aega. Siis küpsetan ma sulle midagi head!',
+        'Järgmisel kuul {*kolin|kolisin|kolima} ma kooli lähedale. Uus korter on väiksem {*kui|nagu|kas} praegune, aga palju odavam. Ma {*loodan|loota|lootma}, et sa tuled mulle {*külla|külas|külast}, kui sul on aega. Siis küpsetan ma sulle midagi head!',
         'Kirjuta, mis sinul uut on.\nSinu Mihkel',
       ].join('\n\n')),
       B.gaps('075_p_mix', 'Lugemine 4: minu plaan järgmiseks aastaks.', 'Vali igasse lünka sobiv lauseosa. Kolm osa jääb üle.', [
