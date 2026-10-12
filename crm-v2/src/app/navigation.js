@@ -24,4 +24,18 @@ export const navigation = [
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
 ];
 
+// A student's own short menu (owner 2026-10-12: 8 items, two of them the same board, „не понятно что куда нажимать”):
+// everything to do is under „Ülesanded” (homework, sheets, „Kordamine”), the lesson room is „Tund”, the board opens
+// from there. Parents and staff keep the menu above.
+export const studentNavigation = [
+  { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
+  { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT },
+  { to: '/student/sonavara', label: 'Sõnavara', icon: Languages, roles: ACCESS.STUDENT },
+  { to: '/live-classroom', label: 'Tund', icon: Video, roles: ACCESS.STUDENT },
+  { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.STUDENT },
+];
+
+// a pure student account (not also staff or a parent) gets the short menu
+export const navigationFor = (roles = []) => (roles.includes('student') && !roles.some((role) => ['admin', 'teacher', 'finance', 'parent'].includes(role)) ? studentNavigation : navigation);
+
 export const settingsNavigation = { to: '/settings', label: 'Seaded', icon: Settings, roles: ACCESS.ALL_AUTHENTICATED };

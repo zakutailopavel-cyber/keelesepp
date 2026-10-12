@@ -1,3 +1,13 @@
+## 2026-10-12 · agent/student-cabinet-simple — student cabinet: short menu, home 10 → 4 blocks, clear „Tund”
+
+- Why (owner): „всего много и не понятно что куда нажимать”; approved mockup, „дизайн сохраняем наш”.
+- Menu: `navigation.js` `studentNavigation` / `navigationFor(roles)` — a pure student sees Minu õpingud, Ülesanded (/homework), Sõnavara, Tund (/live-classroom), Suhtlus; „Tahvel” and „Kordamine” left the menu (the board opens from „Tund”, „Kordamine” from „Ülesanded”). Parents and staff unchanged. Pet tour texts follow the new names.
+- Home (`StudentDashboardPage`): „Täna” (next lesson + steps) → „Minu areng” → unpaid invoices (only if any) → lesson summaries, latest results. Removed duplicates: Järgmised tunnid, Pooleli ülesanded, Minu sõnad, Viimased tunnid, Kiirviited, Minu õppeprofiil.
+- „Ülesanded” (`HomeworkPage` for students): title, one-line how-to, „Kordamine” link (existing quick-link style).
+- „Tund” without a lesson (`StudentWorkspace`): „Tund ei ole veel alanud” + what happens next; „Ava minu tahvel” opens the board; „Tagasi tundi” when a lesson can be resumed.
+- Checks: students 68/68, homework 43/43, app/pet/components 85/85, live classroom (13/14 locally; the 1 is the known Node 26 localStorage test).
+- Next: lesson rescheduling request (student → teacher confirm), then admin joins another teacher's lesson.
+
 ## 2026-10-12 · agent/student-ui-bugs — four bugs from the student/lesson UX review
 
 - Why (owner): a full review of the student profile, the lesson room and the student cabinet („всего много и непонятно”); bugs first.

@@ -1,7 +1,7 @@
 import { GraduationCap, LogOut, Menu, X } from 'lucide-react';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { navigation, settingsNavigation } from '../../app/navigation.js';
+import { navigationFor, settingsNavigation } from '../../app/navigation.js';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole } from '../../utils/roles.js';
 import GlobalStudentSearch from './GlobalStudentSearch.jsx';
@@ -23,7 +23,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, signOut, preview, stopPreview } = useAuth();
-  const visibleNavigation = useMemo(() => navigation.filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
+  const visibleNavigation = useMemo(() => navigationFor(user.roles).filter((item) => hasAnyRole(user.roles, item.roles)), [user.roles]);
   const showSettings = hasAnyRole(user.roles, settingsNavigation.roles);
   const canSearchStudents = hasAnyRole(user.roles, ['admin', 'teacher']);
   const showNotifications = hasAnyRole(user.roles, ['admin', 'teacher', 'finance']);
