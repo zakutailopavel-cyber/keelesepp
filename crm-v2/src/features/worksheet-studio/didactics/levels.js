@@ -95,9 +95,9 @@ export const GRAMMAR = Object.freeze({
 // the task types that belong to each phase of a lesson (Avasta / Harjuta / Kasuta)
 export const PHASE_TASKS = Object.freeze({
   input: ['reading', 'listening', 'dialogue', 'vocab', 'text', 'image', 'diagram'],
-  controlled: ['picmatch', 'scenelabel', 'profiles', 'gaps', 'choice', 'truefalse', 'match', 'manymatch', 'wordforms', 'errorfix', 'transformation', 'wordorder', 'categorize', 'table', 'clock', 'pictures', 'crossword', 'wordsearch', 'dictation', 'translation'],
+  controlled: ['cloze', 'picmatch', 'scenelabel', 'profiles', 'gaps', 'choice', 'truefalse', 'match', 'manymatch', 'wordforms', 'errorfix', 'transformation', 'wordorder', 'categorize', 'table', 'clock', 'pictures', 'crossword', 'wordsearch', 'dictation', 'translation'],
   productive: ['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'picrows'],
-  recognition: ['picmatch', 'truefalse', 'match', 'manymatch', 'choice', 'pictures', 'wordsearch', 'crossword', 'clock'],
+  recognition: ['cloze', 'picmatch', 'truefalse', 'match', 'manymatch', 'choice', 'pictures', 'wordsearch', 'crossword', 'clock'],
 });
 
 // „A2+”, „A2+/B1-”, „B1-”, „B1”, „b2” … → a key of LEVELS (the closest profile; unknown → A2, the most common level)

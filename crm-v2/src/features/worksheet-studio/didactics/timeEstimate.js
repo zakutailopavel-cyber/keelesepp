@@ -21,6 +21,8 @@ export function blockMinutes(block, level = 'A2') {
     case 'listening': return (words(d.transcript || d.sentences) / 110) * 2 + Math.max(gapsIn(d.sentences), lines(d.sentences).length) * 0.4;
     case 'gaps': return lines(d.sentences).length * 0.35;
     case 'choice': return (d.questions || []).length * 0.3;
+    // a text with option gaps: read the text, then about 20 s per gap
+    case 'cloze': return (words(String(d.passage || '').replace(/\{[^}]*\}/g, 'x')) / wpm) * 1.5 + (String(d.passage || '').match(/\{/g) || []).length * 0.35;
     case 'truefalse': return (d.statements || []).length * 0.2;
     case 'match': return (d.pairs || []).length * 0.2;
     case 'manymatch': return lines(d.left).length * 0.3;

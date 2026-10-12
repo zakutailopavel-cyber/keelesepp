@@ -115,6 +115,8 @@ export function measureBlock(block) {
     case 'manymatch': items = lines(d.left).length; break;
     case 'categorize': items = (d.groups || []).reduce((n, g) => n + String(g.words || '').split(',').filter((w) => w.trim()).length, 0); break;
     case 'reading': sentencesIn(d.passage).forEach((x) => s.push(x)); items = lines(d.questions).length; break;
+    // a text with option gaps: the solved text (right options), one answer per gap
+    case 'cloze': sentencesIn(String(d.passage || '').replace(/\{([^}]*)\}/g, (_, o) => (o.split('|').find((x) => x.trim().startsWith('*')) || '').replace('*', '').trim())).forEach((x) => s.push(x)); items = (String(d.passage || '').match(/\{/g) || []).length; break;
     default: break;
   }
   return { sentences: s.filter((x) => wordsIn(x) >= 2), items };

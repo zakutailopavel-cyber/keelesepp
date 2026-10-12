@@ -1,3 +1,18 @@
+## 2026-10-13 · agent/b1-harno-formats — B1 modules 02–15 train the Harno exam formats of their stage
+
+- Why (owner): „начинай переделку B1 под Harno”. Target: `docs/HARNO_LEVEL_REQUIREMENTS.md` (A2 and B1 exams).
+- New block „Valiklünktekst” (`cloze`, `engine/blocks/exam.jsx`; `B.cloze`): a text with numbered option gaps „{*õige|vale|vale}” (Harno B1 reading 3), options listed under the text on paper, a select on screen; time estimate and didactic measure.
+- `admin/course/b1/module02…15.js`:
+  - stages after the roadmap: 09–12 'A2+/B1-', 13–15 'B1-' (02–08 already A2 / A2+); texts and speaking raised to the stage norms (B1 stages: readings 150–250 words, speaking 90–150 s);
+  - every module has listening (transcript, the teacher reads twice; audio null) and an exam-length text (A2 ≥ 120, B1 ≥ 200 words);
+  - assessment lessons 010, 015, 020, 025, 030, 035, 040 (Harno A2 formats) and 045, 050, 055, 060, 065, 070, 075 (Harno B1): Harjuta „Lugemine ja kuulamine (eksami vormis)” — situations ↔ ads, a 200–300-word text with 3-option questions, a 10-gap cloze, a phrase bank with extras, listening; Kasuta „Kirjutamine ja rääkimine (eksami vormis)” — a 40–60-word note on 4 points, a 90–120-word letter, examiner questions, „reach an agreement”, a phone role-play with cards (A2: business-card / message 25–50 words, picture description, idea cards).
+- Engine: sentence answers also accept „;” between variants (136 course answers use it).
+- Quality baseline: B1 known problems 25 → 0 (all B1 modules clean); none added. Reports: `docs/level-audit-2026-10-12/b1-harno/`.
+- Data / production: none yet — the lessons must be republished on „Kursuse tootmine” (Harjuta/Kasuta; Avasta is not changed by this PR).
+- Checks: full crm-v2 vitest — the 10 known failures (live classroom / calendar storage) + the timing-flaky LessonWorksheetStudioPage test (passes alone); lint 0 errors; build ok.
+- Still missing for the exam: audio files; listening with picture choice / long monologue multiple choice / interview true-false as one block; the 10-question questionnaire option; modules 16–18 (076–090, incl. B1 proovitund and Lõpphindamine); module 1 (001–005); B1 grammar axis (A2 grammar in some lessons).
+- Next: merge, republish B1 Harjuta/Kasuta, then modules 16–18.
+
 ## 2026-10-12 · B1 republished in production (owner's request, admin session in the browser)
 
 - After #571 and #572 were merged and deployed (Vercel production `3ba57ec`):
