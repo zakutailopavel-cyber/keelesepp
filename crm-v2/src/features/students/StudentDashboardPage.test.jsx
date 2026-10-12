@@ -38,7 +38,8 @@ describe('StudentDashboardPage', () => {
     expect(within(today).getByText('Korda sõnu')).toBeInTheDocument();
     expect(within(today).getByText('Tee kodutöö')).toBeInTheDocument();
     expect(within(today).getByText('Õpi sõnad')).toBeInTheDocument();
-    expect(within(today).getByText('0/2 sammu tehtud')).toBeInTheDocument();
+    expect(within(today).getByText('0/3 sammu tehtud')).toBeInTheDocument();
+    expect(screen.getByText('Vali endale sõber')).toBeInTheDocument();
     expect(screen.getAllByText('Õpi sõnad').length).toBe(2);
     expect(screen.getByText('Väga tubli!')).toBeInTheDocument();
     expect(screen.getByText('Hinne 5')).toBeInTheDocument();

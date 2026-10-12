@@ -93,9 +93,9 @@ export default function StudentDashboardPage({
   const reviewedToday = reviewedOn(user?.uid, today);
   const pathDone = useMemo(() => {
     if (!state.data) return false;
-    const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, reviewedToday, today });
+    const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, reviewedToday, offerPet: !preview, today });
     return day.total > 0 && day.done === day.total;
-  }, [state.data, words, today, reviewedToday]);
+  }, [state.data, words, today, reviewedToday, preview]);
   useEffect(() => {
     if (!pathDone || preview) return;
     try {
@@ -129,7 +129,7 @@ export default function StudentDashboardPage({
     const computed = [...autoSkills({ assignments: allSheets }), ...[speakingFromStats(stats)].filter(Boolean)];
     return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });
   })();
-  const path = todayPath({ words, homework, submissions, pet: state.data.pet, reviewedToday, today });
+  const path = todayPath({ words, homework, submissions, pet: state.data.pet, reviewedToday, offerPet: !preview, today });
   const streak = petProgress({ lessons, submissions, homework, words }).streak;
   const STEP_ICON = { words: Languages, work: BookOpen, pet: Gamepad2 };
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);

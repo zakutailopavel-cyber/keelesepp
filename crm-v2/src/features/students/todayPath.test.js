@@ -22,6 +22,11 @@ describe('Tänane tee', () => {
     const path = todayPath({ today, now, words: [{ id: 'b', dueAt: '2026-10-01' }], homework: [], submissions: [] });
     expect(path.steps.map((step) => [step.key, step.label, step.done, step.to])).toEqual([['words', 'Korda sõnu', false, '/student/sonavara'], ['work', 'Korda tundi', false, '/student/kursus']]);
   });
+  it('a student without a friend gets the step to choose one (not in the teacher\'s preview, not when switched off)', () => {
+    expect(todayPath({ today, now, offerPet: true }).steps.at(-1)).toMatchObject({ key: 'pet', label: 'Vali endale sõber', to: '/student/lemmik', done: false });
+    expect(todayPath({ today, now, offerPet: false }).steps.some((step) => step.key === 'pet')).toBe(false);
+    expect(todayPath({ today, now, offerPet: true, pet: { optedOut: true } }).steps.some((step) => step.key === 'pet')).toBe(false);
+  });
   it('a sheet submitted today closes the work step', () => {
     const path = todayPath({ today, now, homework: [{ id: 'h', status: 'Ootel', task: 'X' }], submissions: [{ completedAt: '2026-10-12T09:00:00Z' }] });
     expect(path.steps[1]).toMatchObject({ done: true, detail: 'Tehtud täna' });

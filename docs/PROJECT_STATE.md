@@ -1,3 +1,9 @@
+## 2026-10-12 · agent/pet-first-choice — a new student can choose the pet
+
+- Why (owner): the pet picker opened only from the pet itself (`/student/lemmik` via the companion), so a student without a pet had nowhere to choose one.
+- `todayPath.js` (`offerPet`, off in the teacher's preview): no pet and not switched off → step „Vali endale sõber” → `/student/lemmik` (the existing `PetCard` picker). `PetSettingsCard`: „Vali sõber” link instead of the outdated hint.
+- Checks: students + pet + settings 118/118.
+
 ## 2026-10-12 · agent/manual-invoice-both-subjects — „Lisa arve”: both subjects at once
 
 - Base: `main` after #551. Why (owner): „так а где два счета то?” — a student with two subject cards had to be billed twice by hand.
