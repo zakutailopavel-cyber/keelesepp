@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, Check, RotateCcw, Shuffle, Star, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpenCheck, Check, ClipboardCheck, Layers, PencilLine, Puzzle, RotateCcw, Shuffle, Star, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { buildTest, checkAnswer, choices, learnedCount, learnStep, prompt, shuffle, startLearn } from './deckModel.js';
 
@@ -6,23 +6,37 @@ import { buildTest, checkAnswer, choices, learnedCount, learnStep, prompt, shuff
 // ('back' = the Estonian word is shown, the meaning is asked; 'front' = the other way) and two callbacks:
 // onResult(card, knew) for every answer (the student's own words move in their Leitner boxes), onMissed(cards) at the end.
 export const STUDY_MODES = [
-  { id: 'cards', label: 'Kaardid', hint: 'Pööra kaarti, sorteeri: tean / õpin veel' },
-  { id: 'learn', label: 'Õpi', hint: 'Valikvastused, siis kirjutamine, kuni kõik on selge' },
-  { id: 'write', label: 'Kirjuta', hint: 'Kirjuta vastus ise' },
-  { id: 'match', label: 'Sobita', hint: 'Leia paarid võimalikult kiiresti' },
-  { id: 'test', label: 'Test', hint: '10 küsimust, lõpus tulemus' },
+  { id: 'learn', label: 'Õpi', hint: 'Valikvastused, siis kirjutamine', icon: BookOpenCheck },
+  { id: 'cards', label: 'Kaardid', hint: 'Pööra ja sorteeri', icon: Layers },
+  { id: 'write', label: 'Kirjuta', hint: 'Kirjuta vastus ise', icon: PencilLine },
+  { id: 'match', label: 'Sobita', hint: 'Leia paarid kiiresti', icon: Puzzle },
+  { id: 'test', label: 'Test', hint: '10 küsimust', icon: ClipboardCheck },
 ];
+
+// keys while learning (not while typing an answer): 1–4 pick a choice, Space turns a card, Enter goes on
+function useKeys(handler, deps) {
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.target?.closest?.('input, textarea, select')) return;
+      handler(event);
+    };
+    globalThis.addEventListener('keydown', onKey);
+    return () => globalThis.removeEventListener('keydown', onKey);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
+}
 
 function Done({ title, children, onAgain, onClose, missed = [], onAddMissed }) {
   return (
     <div className="vs-done" role="status">
+      <span className="vs-done__badge" aria-hidden="true">🎉</span>
       <strong>{title}</strong>
       {children}
       {missed.length ? <ul className="vs-missed">{missed.map((card) => <li key={card.id}><b>{card.front}</b> — {card.back}</li>)}</ul> : null}
       <div className="vs-row">
         {onAddMissed && missed.length ? <button type="button" className="vw-btn" onClick={() => onAddMissed(missed)}><Star size={15} /> Lisa raskemad minu sõnadesse</button> : null}
         <button type="button" className="vw-btn is-primary" onClick={onAgain}><RotateCcw size={15} /> Uuesti</button>
-        <button type="button" className="vw-btn" onClick={onClose}>Vali teine viis</button>
+        {onClose ? <button type="button" className="vw-btn" onClick={onClose}>Vali teine viis</button> : null}
       </div>
     </div>
   );
@@ -51,6 +65,7 @@ function CardsMode({ deck, direction, onResult, onClose, onAddMissed }) {
   const side = prompt(card, direction);
   return (
     <div className="vs-mode">
+      <CardKeys flip={() => setFlipped((value) => !value)} sort={sort} />
       <Progress value={index} total={order.length} label="Kaardid" />
       <button type="button" className={`vs-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(!flipped)} aria-label={flipped ? `Vastus: ${side.answer}` : `Küsimus: ${side.ask}. Vajuta, et pöörata`}>
         <span>{flipped ? side.answer : side.ask}</span>
@@ -65,6 +80,15 @@ function CardsMode({ deck, direction, onResult, onClose, onAddMissed }) {
       </div>
     </div>
   );
+}
+
+function CardKeys({ flip, sort }) {
+  useKeys((event) => {
+    if (event.key === ' ') { event.preventDefault(); flip(); }
+    if (event.key === '1') sort(false);
+    if (event.key === '2') sort(true);
+  }, [flip, sort]);
+  return <p className="vs-keys" aria-hidden="true">Tühik — pööra · 1 — õpin veel · 2 — tean</p>;
 }
 
 function AnswerField({ onSubmit, disabled }) {
@@ -95,6 +119,7 @@ function Feedback({ result, answer, onNext, onOverride }) {
 function LearnMode({ deck, direction, onResult, onClose, onAddMissed }) {
   const [state, setState] = useState(() => startLearn(deck));
   const [answer, setAnswer] = useState(null);
+  const [chosen, setChosen] = useState('');
   const byId = useMemo(() => new Map(deck.map((card) => [card.id, card])), [deck]);
   const [missed, setMissed] = useState([]);
   const cardId = state.queue[0];
@@ -102,24 +127,35 @@ function LearnMode({ deck, direction, onResult, onClose, onAddMissed }) {
   const options = useMemo(() => (card && state.level[card.id] === 0 && deck.length >= 4 ? choices(card, deck, direction) : null), [card, deck, direction, state.level]);
   if (!card) return <Done title={`Kõik ${deck.length} sõna õpitud!`} missed={missed} onAddMissed={onAddMissed} onClose={onClose} onAgain={() => { setState(startLearn(deck)); setMissed([]); }}><p>Vigu kokku: {state.mistakes}</p></Done>;
   const side = prompt(card, direction);
-  const answerWith = (correct) => {
+  const answerWith = (correct, option = '') => {
+    setChosen(option);
     setAnswer(correct ? 'right' : 'wrong');
     onResult?.(card, correct);
     if (!correct && !missed.some((item) => item.id === card.id)) setMissed((current) => [...current, card]);
   };
-  const next = (correct) => { setState(learnStep(state, card.id, correct)); setAnswer(null); };
+  const next = (correct) => { setState(learnStep(state, card.id, correct)); setAnswer(null); setChosen(''); };
   return (
     <div className="vs-mode">
+      <LearnKeys options={options} answer={answer} pick={(option) => answerWith(option === side.answer, option)} onNext={() => next(answer !== 'wrong')} />
       <Progress value={learnedCount(state)} total={deck.length} label="Õpitud" />
       <div className="vs-question"><small>{options ? 'Vali õige vastus' : 'Kirjuta vastus'}</small><strong>{side.ask}</strong></div>
       {options ? (
         <div className="vs-choices">{options.map((option) => (
-          <button type="button" key={option} disabled={Boolean(answer)} className={answer && option === side.answer ? 'is-right' : ''} onClick={() => answerWith(option === side.answer)}>{option}</button>
+          <button type="button" key={option} disabled={Boolean(answer)} className={answer && option === side.answer ? 'is-right' : answer && option === chosen ? 'is-wrong' : ''} onClick={() => answerWith(option === side.answer, option)}><kbd aria-hidden="true">{options.indexOf(option) + 1}</kbd>{option}</button>
         ))}</div>
       ) : <AnswerField disabled={Boolean(answer)} onSubmit={(value) => { const result = checkAnswer(value, side.answer); setAnswer(result); onResult?.(card, result !== 'wrong'); if (result === 'wrong' && !missed.some((item) => item.id === card.id)) setMissed((current) => [...current, card]); }} />}
       <Feedback result={answer} answer={side.answer} onNext={() => next(answer !== 'wrong')} onOverride={() => next(true)} />
     </div>
   );
+}
+
+function LearnKeys({ options, answer, pick, onNext }) {
+  useKeys((event) => {
+    if (answer && event.key === 'Enter') { event.preventDefault(); onNext(); return; }
+    const index = Number(event.key) - 1;
+    if (!answer && options && index >= 0 && index < options.length) pick(options[index]);
+  }, [options, answer, pick, onNext]);
+  return null;
 }
 
 function WriteMode({ deck, direction, onResult, onClose, onAddMissed }) {
@@ -237,16 +273,16 @@ function TestMode({ deck, direction, onResult, onClose, onAddMissed }) {
 
 const MODES = { cards: CardsMode, learn: LearnMode, write: WriteMode, match: MatchMode, test: TestMode };
 
-/** One deck: choose how to learn it, the direction, then the mode itself. */
-export default function StudySession({ deck, title, onResult, onAddMissed, onBack }) {
-  const [mode, setMode] = useState('');
+/** One deck: the modes as tabs on top (it opens in „Õpi”), the direction and the mode itself. */
+export default function StudySession({ deck, title, onResult, onAddMissed, onBack, initialMode = '' }) {
+  const [mode, setMode] = useState(initialMode || (deck.length >= 4 ? 'learn' : 'cards'));
   const [direction, setDirection] = useState('back');
   const Mode = MODES[mode];
   return (
     <section className="vs-session" aria-label={`Õppimine: ${title}`}>
       <header className="vs-head">
-        <button type="button" className="vw-btn" onClick={mode ? () => setMode('') : onBack}><ArrowLeft size={15} /> {mode ? 'Viisid' : 'Kõik kogud'}</button>
-        <div><strong>{title}</strong><small>{deck.length} kaarti</small></div>
+        <button type="button" className="vw-btn is-ghost" onClick={onBack}><ArrowLeft size={15} /> Kogud</button>
+        <div className="vs-head__title"><strong>{title}</strong><small>{deck.length} kaarti</small></div>
         <label className="vs-direction"><span>Küsin</span>
           <select value={direction} onChange={(event) => setDirection(event.target.value)} aria-label="Küsimuse suund">
             <option value="back">eesti keeles → tähendus</option>
@@ -254,15 +290,17 @@ export default function StudySession({ deck, title, onResult, onAddMissed, onBac
           </select>
         </label>
       </header>
-      {Mode ? <Mode key={`${mode}-${direction}`} deck={deck} direction={direction} onResult={onResult} onAddMissed={onAddMissed} onClose={() => setMode('')} /> : (
-        <div className="vs-modes" role="group" aria-label="Õppimise viisid">
-          {STUDY_MODES.map((item) => (
-            <button type="button" key={item.id} className="vs-mode-card" disabled={item.id === 'match' && deck.length < 2} onClick={() => setMode(item.id)}>
-              <strong>{item.label}</strong><small>{item.hint}</small>
-            </button>
-          ))}
-        </div>
-      )}
+      <nav className="vs-tabs" aria-label="Õppimise viisid">
+        {STUDY_MODES.map((item) => {
+          const Icon = item.icon;
+          return <button type="button" key={item.id} aria-pressed={mode === item.id} className={mode === item.id ? 'is-active' : ''} disabled={item.id === 'match' && deck.length < 2} onClick={() => setMode(item.id)} title={item.hint}>
+            <Icon size={16} aria-hidden="true" />{item.label}
+          </button>;
+        })}
+      </nav>
+      <div className="vs-stage">
+        {Mode ? <Mode key={`${mode}-${direction}`} deck={deck} direction={direction} onResult={onResult} onAddMissed={onAddMissed} onClose={() => setMode(mode === 'learn' ? 'cards' : 'learn')} /> : null}
+      </div>
     </section>
   );
 }

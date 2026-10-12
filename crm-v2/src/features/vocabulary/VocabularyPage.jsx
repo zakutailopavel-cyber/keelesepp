@@ -1,4 +1,4 @@
-import { BookOpen, ChevronRight, GraduationCap, Star } from 'lucide-react';
+import { BookOpen, ChevronRight, GraduationCap, Play, Star } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
@@ -55,6 +55,7 @@ export default function VocabularyPage({
   const shownLevel = level || levels.find((entry) => entry.key === studentLevel || entry.label === studentLevel)?.key || myLessons[0]?.level || levels[0]?.key || '';
   const modules = levels.find((entry) => entry.key === shownLevel)?.modules || [];
   const myDeck = useMemo(() => deckFromWords(words), [words]);
+  const dueDeck = useMemo(() => deckFromWords(words.filter((word) => isDue(word))), [words]);
 
   const openLesson = async (lesson) => {
     setNotice('');
@@ -90,17 +91,26 @@ export default function VocabularyPage({
 
   return (
     <div className="page-content vocabulary-page">
-      <PageHeader eyebrow="Minu õpingud" title="Sõnavara" description="Õpi sõnu kaartide, valikvastuste, kirjutamise, paaride ja testiga." />
+      <PageHeader eyebrow="Minu õpingud" title="Sõnavara" description="Iga päev natuke: korda oma sõnu, siis tundide sõnu." />
       {notice ? <p className="vw-notice" role="status">{notice}</p> : null}
       {open ? (
         <Card>
           {open.loading ? <LoadingState label="Laen tunni sõnu…" />
             : open.error ? <ErrorState message={open.error} onRetry={() => openLesson(catalog.byId.get(open.lessonId))} />
               : open.deck.length < 2 ? <EmptyState title="Selles tunnis sõnu veel ei ole" description="Vali mõni teine tund." action={<button type="button" className="vw-btn" onClick={() => setOpen(null)}>Tagasi</button>} />
-                : <StudySession key={open.lessonId || 'mine'} deck={open.deck} title={open.title} onResult={onResult} onAddMissed={preview ? undefined : addMissed} onBack={() => setOpen(null)} />}
+                : <StudySession key={open.key || open.lessonId || 'mine'} initialMode={open.mode || ''} deck={open.deck} title={open.title} onResult={onResult} onAddMissed={preview ? undefined : addMissed} onBack={() => setOpen(null)} />}
         </Card>
       ) : (
         <div className="vocabulary-decks">
+          <section className="vd-hero" aria-label="Täna">
+            <div>
+              <span className="eyebrow">Täna</span>
+              <h2>{dueDeck.length ? `${dueDeck.length} sõna ootab kordamist` : myDeck.length ? 'Kõik sõnad on korratud' : 'Alusta tundide sõnadest'}</h2>
+              <p>{dueDeck.length ? 'Kümme minutit — ja sinu lemmik saab kõhu täis.' : myDeck.length ? 'Tubli! Harjuta veel või vali tunni sõnad allpool.' : 'Vali allpool tund ja õpi selle sõnu.'}</p>
+            </div>
+            {dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: dueDeck.length >= 4 ? 'learn' : 'cards' })}><Play size={18} /> Korda nüüd</button>
+              : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
+          </section>
           <Card>
             <div className="section-heading"><div><span className="eyebrow">Minu sõnad</span><h2>Sõnad minu tundidest</h2></div></div>
             {myDeck.length >= 2 ? (
