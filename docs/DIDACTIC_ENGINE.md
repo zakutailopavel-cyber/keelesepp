@@ -124,3 +124,31 @@ These are real gaps of the generator, fixed in step 2.
   - lugemine 70 min: valikvastused, vastavusse viimine ja lünktekst, kus sõna valitakse; tekst 350–700 sõna;
   - kuulamine 35 min: lühilõigud kuulatakse üks kord, intervjuu kaks korda, lüngad 1–2 sõnaga, õige/vale;
   - rääkimine: ettevalmistatud sõnavõtt koosolekul või seminaril teemakaardi järgi ja paarisarutelu argumendikaartidega (poolt/vastu).
+
+## Harno normid ja lahendatavus (2026-10-12)
+
+Põhjus: taseme audit (`docs/level-audit-2026-10-12/`) — ükski kursus ei vii oma Harno eksami vormini; paljud
+ülesanded on lahendatavad keelt oskamata. Harno nõuded: `docs/HARNO_LEVEL_REQUIREMENTS.md`.
+
+- `levels.js` normid Harno järgi:
+  - kirjutamine (sõnu): B1 50–120 (lauseid 6–12), B1+ 100–160, B2- 120–180, B2 120–200, C1 180–260 (oli 250–400);
+  - C1 lugemine 400–650 sõna (oli 500–900);
+  - kõne (ühe õppija sõnavõtt): B2-/B2 60–180 s (eksami monoloog 1 min), C1 90–180 s (2 min), B1+ 120–240 s;
+  - sõnapank `extra` (B1…C1): pank on lubatud, kui selles on rohkem valikuid kui lünki (Harno B1 fraasid, B2 laused).
+- `HARNO` + `harnoFor(level)`: eksami pikim tekst, kirjutamise ülesanded, monoloog, valikute arv (A2/B1 3, B2/C1 4),
+  kuulamine. Etapp → eksam: A2, A2+ → A2; B1-, B1, B1+ → B1; B2-, B2 → B2; C1 → C1.
+- Uued kontrollid (`didacticCheck.js`, „lahendatavus”; A1/A2 vihje, alates A2+ hoiatus):
+  - `bank-extra` — pangas sama palju sõnu kui lünki;
+  - `choice-options` (< 3 valikut), `choice-four` (B2/C1: 4 valikut, vihje), `choice-length` (õige vastus mitu korda
+    pikem), `choice-russian` (vene keeles valikud alates A2+);
+  - `forms-which` (sama sõna ja vihje, eri vastus), `forms-given` (vastus vihjes), `errorfix-none`, `transform-none`,
+    `categorize-same` (rühmades samad sõnad), `tf-absolute` (vale väide paistab sõna „alati / ainult” järgi);
+  - `reading-copy` — ≥ 80 % vastustest saab tekstist kopeerida (B1-/B1 vihje, alates B1+ hoiatus).
+- Mooduli Harno kontroll (`admin/course/quality.js` `harnoProblems`): moodulis on kuulamine ja vähemalt üks tekst
+  ≥ 80 % eksami pikimast tekstist.
+- Kvaliteedi baas (`admin/course/qualityBaseline.json`): kursuse probleemid, mis olid olemas kontrolli lisamisel.
+  „Kursuse tootmine” näitab neid „teadaolevate puudustena” ega lukusta avaldamist; uus probleem lukustab. Parandatud
+  probleem tuleb baasist eemaldada: `UPDATE_QUALITY_BASELINE=1 npx vitest run src/features/worksheet-generator/admin/course`.
+- Teadlikult muutmata: A2 `items` jääb 4–8 (5 muudaks A2 generaatori väljundit — sisutöö); `GRAMMAR` järjestus
+  (Harno A2 käsiraamat lubab paljusid vorme juba A2-l vigadega — pedagoogiline otsus omanikule); B1 `inference`
+  jääb (tunni kvaliteedileping nõuab Avastas järeldavat küsimust, Harno alles B2-st).

@@ -7,6 +7,16 @@
 - Data / production: none.
 - Base: `main` effee40. Checks: full crm-v2 vitest — 10 failures, the same 10 as on clean `main` (live classroom / calendar storage); pageSplit 6/6; lint 0 errors; build ok.
 - Next: the remaining gaps come from rows of two half-width blocks and single huge paragraphs; owner's request for picture-rich, denser sheets (Pinterest examples) is a separate design task.
+## 2026-10-12 · agent/harno-level-norms — level norms after Harno and checks for tasks solved without the language
+
+- Why (owner): „задание не соответствует уровню” — the level audit of all 52 modules in code (`docs/level-audit-2026-10-12/`, Russian, with quotes and fixes; Harno requirements `docs/HARNO_LEVEL_REQUIREMENTS.md`) found no course reaching its Harno exam format and many tasks solvable without Estonian; the automatic check caught only „too hard”.
+- `worksheet-studio/didactics/levels.js`: writing/reading/speaking/bank norms after Harno (C1 writing 180–260, reading 400–650; B1 writing 50–120; B2 monologue 60–180 s; bank `extra`) + `HARNO`, `harnoFor`.
+- `didacticCheck.js`: solvability checks (bank without distractors, choice by length / < 3 options / Russian, word forms without a clear form or with the answer in the hint, error fix without an error, unchanged transformation, categorize with identical groups, true/false by „alati”, reading answers copied). Shown in the constructor; never block publishing there.
+- `admin/course/quality.js`: `harnoProblems` (listening + one exam-length text per module), `splitByBaseline`; `qualityBaseline.json` = 153 known problems in 38 of 42 course modules; `CourseProductionPage` locks only new problems and lists the known ones.
+- Data / production: none (no database write, no deploy).
+- Base: `main` effee40 (2026-10-12). Checks: worksheet-generator + worksheet-studio + personalWorksheet 711/711 (+1 skipped baseline writer); full crm-v2 run: 10 failures that fail on clean `main` too (live classroom / calendar storage tests, Node 26 localStorage), nothing new; lint 0 errors; build ok.
+- Not done: A2 `items` stays 4–8 (5 changes the A2 generator — content work); `GRAMMAR` order vs Harno A2 handbook (owner decision); Avasta sheets in the database not audited by level (only course code).
+- Next: content agent fixes the wrong answer keys and Estonian errors listed in `docs/level-audit-2026-10-12/` and regenerates the baseline.
 
 ## 2026-10-12 · agent/assignment-phase-title — the three sheets of a lesson are told apart
 

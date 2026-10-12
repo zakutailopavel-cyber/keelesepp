@@ -1,12 +1,15 @@
 // Didactic norms per level, as data (docs/DIDACTIC_ENGINE.md). One source for the constructor's check, the generator's
-// self-check and the prompts of the local models. Ranges follow CEFR, the Estonian national level descriptions (Harno)
-// and KeeleSepp's own A2 → B1 standard (docs/CEFR_A2_B1_LEARNING_STANDARD.md, lesson stages A2 / A2+ / A2+/B1- /
-// B1- / B1). Numbers are norms for a worksheet task, not for a whole course.
+// self-check and the prompts of the local models. Reading and writing lengths, speaking time and the word bank follow
+// Harno's level exams (HARNO below, docs/HARNO_LEVEL_REQUIREMENTS.md); sentence length, items per task, closed-task share,
+// instruction length and the stages A2+ / B1- / B1+ / B2- are KeeleSepp's own norms (docs/CEFR_A2_B1_LEARNING_STANDARD.md).
+// Numbers are norms for a worksheet task, not for a whole course.
 
 export const LEVEL_ORDER = ['A1', 'A2', 'A2+', 'B1-', 'B1', 'B1+', 'B2-', 'B2', 'C1'];
 
 // sentence: average / longest sentence in words; items: answers per closed task; reading: passage words and questions;
-// writing: sentences (or words from B2); speaking: seconds; bank: word bank in gap tasks (yes | tip | no);
+// writing: sentences (or words from B1); speaking: seconds of one learner's talk (the exam monologue is short: B2 1 min,
+// C1 2 min; a discussion is longer); bank: word bank in gap tasks — yes (a bank of words helps), tip (give base forms),
+// extra (a bank is fine when it holds more options than gaps, as in Harno's B1/B2 tasks);
 // closedShare: the most a sheet should consist of recognition tasks (true/false, matching, choice);
 // instructionWords: the longest instruction a learner of this level reads alone.
 export const LEVELS = Object.freeze({
@@ -32,33 +35,47 @@ export const LEVELS = Object.freeze({
   },
   B1: {
     label: 'B1', sentence: { avg: 13, max: 22 }, items: [5, 10], reading: { words: [200, 400], questions: [5, 8], inference: true },
-    writing: { sentences: [10, 14], words: [100, 180] }, speaking: [120, 240], bank: 'no', closedShare: 0.45, instructionWords: 25, example: 'no',
+    writing: { sentences: [6, 12], words: [50, 120] }, speaking: [120, 240], bank: 'extra', closedShare: 0.45, instructionWords: 25, example: 'no',
     can: 'Kirjutab ja räägib iseseisvalt selge ülesehitusega; järeldab, sõnastab ümber ja kannab üle uude olukorda.',
   },
   // B1 → B2 course stages (roadmap levelStage B1+ and B1+/B2- / B2-), between the B1 and B2 profiles
   'B1+': {
     label: 'B1+', sentence: { avg: 14, max: 24 }, items: [6, 10], reading: { words: [250, 500], questions: [5, 8], inference: true },
-    writing: { words: [120, 180] }, speaking: [150, 240], bank: 'no', closedShare: 0.4, instructionWords: 30, example: 'no',
+    writing: { words: [100, 160] }, speaking: [120, 240], bank: 'extra', closedShare: 0.4, instructionWords: 30, example: 'no',
     can: 'Arutleb tuttavatel teemadel, võrdleb ja põhjendab; kirjutab seotud teksti, ametliku kirja ja lühikese arvamusloo.',
   },
   'B2-': {
     label: 'B2-', sentence: { avg: 15, max: 26 }, items: [6, 12], reading: { words: [300, 600], questions: [5, 10], inference: true },
-    writing: { words: [140, 200] }, speaking: [180, 270], bank: 'no', closedShare: 0.38, instructionWords: 32, example: 'no',
+    writing: { words: [120, 180] }, speaking: [60, 180], bank: 'extra', closedShare: 0.38, instructionWords: 32, example: 'no',
     can: 'Esitab ja kaitseb seisukohta, kaalub poolt- ja vastuargumente; mõistab probleemartikleid ja pikemaid intervjuusid.',
   },
   // B2 after Harno's B2 exam: writing ~140 words (letter / explanation) and ~180 words (argument with pros and cons),
   // long problem articles in reading, a prepared speech at a meeting and a discussion with argument cards
   B2: {
     label: 'B2', sentence: { avg: 16, max: 28 }, items: [6, 12], reading: { words: [350, 700], questions: [5, 10], inference: true },
-    writing: { words: [140, 220] }, speaking: [180, 300], bank: 'no', closedShare: 0.35, instructionWords: 35, example: 'no',
+    writing: { words: [120, 200] }, speaking: [60, 180], bank: 'extra', closedShare: 0.35, instructionWords: 35, example: 'no',
     can: 'Arutleb, kaalub plusse ja miinuseid, kirjutab arutleva teksti; mõistab keerukamaid tekste.',
   },
   C1: {
-    label: 'C1', sentence: { avg: 19, max: 40 }, items: [6, 12], reading: { words: [500, 900], questions: [5, 10], inference: true },
-    writing: { words: [250, 400] }, speaking: [240, 420], bank: 'no', closedShare: 0.25, instructionWords: 45, example: 'no',
+    label: 'C1', sentence: { avg: 19, max: 40 }, items: [6, 12], reading: { words: [400, 650], questions: [5, 10], inference: true },
+    writing: { words: [180, 260] }, speaking: [90, 180], bank: 'extra', closedShare: 0.25, instructionWords: 45, example: 'no',
     can: 'Väljendab end vabalt ja täpselt, valib registri ja stiili; mõistab pikki ja implitsiitseid tekste.',
   },
 });
+
+// Harno's level exams (harno.ee, consultation booklets; docs/HARNO_LEVEL_REQUIREMENTS.md): what a course must train
+// toward. longestText: the longest reading text of the exam (words); writing: the exam's writing tasks (words);
+// monologue: seconds of the prepared talk; options: answer options in a choice gap; listening: the exam has a listening
+// part (every level does). A module of a course is checked against the exam of its stage (HARNO_FOR).
+export const HARNO = Object.freeze({
+  A2: { level: 'A2', longestText: 150, writing: [[25, 40], [30, 50]], monologue: 60, options: 3, listening: true },
+  B1: { level: 'B1', longestText: 250, writing: [[40, 60], [90, 120]], monologue: 90, options: 3, listening: true },
+  B2: { level: 'B2', longestText: 550, writing: [[120, 160], [160, 200]], monologue: 60, options: 4, listening: true },
+  C1: { level: 'C1', longestText: 575, writing: [[160, 200], [220, 260]], monologue: 120, options: 4, listening: true },
+});
+// the exam a stage prepares for (A2+ still meets the A2 exam; B1- already reads toward B1)
+const HARNO_STAGE = { A1: 'A2', A2: 'A2', 'A2+': 'A2', 'B1-': 'B1', B1: 'B1', 'B1+': 'B1', 'B2-': 'B2', B2: 'B2', C1: 'C1' };
+export const harnoFor = (value) => HARNO[HARNO_STAGE[levelKey(value)]];
 
 // Grammar of Estonian as a second language, by the level where it becomes a target (what is earlier is known; what is
 // later is too early as a target, though it may appear as a fixed phrase). Used by the generator's planner and the

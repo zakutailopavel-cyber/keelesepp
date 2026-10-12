@@ -10,7 +10,7 @@ describe('personal worksheet', () => {
     expect(summary).toEqual({ errors: 1, words: 5, task: 'Kirjutamine' });
     expect(doc.meta.level).toBe('B1');
     expect(doc.blocks.map((b) => b.type)).toEqual(['vocab', 'match', 'errorfix', 'gaps', 'wordforms', 'writing']);
-    expect(doc.blocks[5].data).toMatchObject({ minSent: 10, maxSent: 14 });
+    expect(doc.blocks[5].data).toMatchObject({ minSent: 6, maxSent: 12 });
     expect(Object.keys(doc.meta.goals)).toEqual(['g_words', 'g_errors', 'g_use']);
   });
 
