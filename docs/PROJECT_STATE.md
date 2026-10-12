@@ -1,3 +1,9 @@
+## 2026-10-13 · agent/book-progressive — the textbook appears a few sheets at a time
+
+- After #579 the book no longer froze for good, but opening „Õpik” still blocked the browser ~40 s (a whole level, 200+ sheets, each measuring itself at once).
+- `worksheet-studio/BookPage.jsx`: the sheets appear 8 first, then 4 every 40 ms („Koostan õpikut… n/N lehte”); page numbers grow as they lay out; „PDF / Prindi” waits until the whole book is there.
+- Checks: worksheet-studio 235/235; lint 0 errors. Production: none.
+
 ## 2026-10-13 · agent/book-render — the B1 textbook froze the browser
 
 - Symptom: „Õpik töölehtedest” → level B1 (270 published sheets) — the page stopped responding.
