@@ -24,6 +24,9 @@ import { BookOpen, CheckCircle2, Clock3, Headphones, Lightbulb, MessageCircle, P
 
 const PAGE_H_MM = 381.86;
 const PAD_TOP = 11, PAD_BOTTOM = 9, FOOTER = 12, GAP = 4, RUNHEAD = 12;
+// a compact sheet (meta.density) has 3 mm between rows (sheet.css .density-compact)
+const gapOf = (meta) => (meta?.density === 'compact' ? 3 : GAP);
+const densityClass = (meta) => (meta?.density === 'compact' ? 'density-compact' : '');
 
 function Header({ meta }) {
   return (
@@ -259,7 +262,8 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       if (!mm) { setPages([rows.map((_, i) => i)]); setTallPages([]); return; }
       const headH = el.querySelector('.ws-measure-head').offsetHeight / mm;
       const rowEls = [...el.querySelectorAll('.ws-measure-row')];
-      const firstCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - headH - GAP;
+      const gap = gapOf(doc.meta);
+      const firstCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - headH - gap;
       const nextCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - RUNHEAD;
       // a list task alone in its row may continue on the next page (pageSplit.js); not while editing, where a text is
       // edited by its line number in the whole block
@@ -281,7 +285,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
         if (!items.length || items.length !== itemCount(block)) return row;
         return { ...row, split: { head: items[0].top, tail: el2.offsetHeight / mm - items[items.length - 1].bottom, items } };
       });
-      const { pages: out, tall } = packPages(measured, { firstCap, nextCap, gap: GAP });
+      const { pages: out, tall } = packPages(measured, { firstCap, nextCap, gap });
       setPages(out);
       setTallPages(tall);
     };
@@ -370,7 +374,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
   );
 
   return (
-    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
+    <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)} ${densityClass(doc.meta)}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
       {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
           its content, so a row is measured exactly as it will be drawn */}
       <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">

@@ -1,3 +1,13 @@
+## 2026-10-12 · agent/picture-blocks-compact — picture tasks and a compact sheet
+
+- Why (owner, Pinterest worksheet examples): „нет возможности вот такие листы делать”. None of the 885 course sheets in code has a picture.
+- `worksheet-studio/engine/blocks/picture.jsx`: four task blocks in the palette group „Pildid” — `picmatch` (words ↔ lettered pictures A–L), `scenelabel` (numbered pins on one picture + word bank), `profiles` (character cards: portrait, facts, sentences with gaps), `picrows` (picture + situation + question with lines). `scoreDocument` passes the block as the third argument of `score` (the picture match mixes its pictures by the block id). Didactic categories in `levels.js` `PHASE_TASKS`.
+- Compact sheet: `meta.density: 'compact'` (inspector „Tihedus”) → `.density-compact` (10.6 pt, tighter cards, 3 mm gaps); pagination uses the same gap.
+- Images: `docs/CODEX_TASK_PICTURES.md` — task for the content agent (cast portraits, word pictures, label scenes, situation pictures; built-in image generation only, owner approves the first of each kind).
+- Stacked on PR #567 (agent/sheet-page-fill). Data / production: none.
+- Checks: worksheet-studio + worksheet-generator + library + homework 786/786 (+ picture tests 3); lint 0 errors; build ok; visual check of a demo sheet with A2 art in compact density.
+- Next: Codex makes the pictures; then picture tasks go into the course modules.
+
 ## 2026-10-12 · agent/sheet-page-fill — fewer empty spaces on worksheet pages
 
 - Why (owner, screenshots): half-empty pages and a last page with only „Kontrolli ennast”.
