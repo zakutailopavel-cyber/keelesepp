@@ -4,7 +4,7 @@ d=json.load(open(sys.argv[1] if len(sys.argv) > 1 else 'course-audit-raw.json'))
 CYR=re.compile('[А-Яа-яЁё]')
 NONTASK={'text','tip','notice','vocab','image','heading'}
 # sub-goal sentences that fit any lesson (contract rule 2)
-GENERIC=['mõistab teksti põhiideed ja detaile','märkab ja selgitab tunni keelemustrit','kasutab õpitut suulises ja kirjalikus suhtluses','kasutab mooduli põhisõnavara uutes lausetes']
+GENERIC=['mooduli põhivara','kasutab sihtkeelt','tuttava igapäevateksti','mõistab teksti põhiideed ja detaile','märkab ja selgitab tunni keelemustrit','kasutab õpitut suulises ja kirjalikus suhtluses','kasutab mooduli põhisõnavara uutes lausetes']
 def items(b):
     dd=b['d'] or {}
     if isinstance(dd.get('groups'),list):

@@ -5,6 +5,8 @@
 const block = (id, type, tone, goal, data, width = 'full') => ({ id, type, width, span: width === 'full' ? 12 : 6, tone, goal, data });
 const join = (v) => (Array.isArray(v) ? v.join('\n') : String(v || ''));
 
+// default sub-goal of each task type (lesson quality contract A3, owner 2026-10-12): form tasks train the form
+// (g_notice), word tasks the vocabulary (g_vocab), speaking/writing/dialogue the use (g_use)
 export const B = {
   text: (id, heading, text, width = 'full') => block(id, 'text', 'white', '', { heading, text }, width),
   tip: (id, title, text, width = 'half') => block(id, 'tip', 'white', '', { title, text: join(text) }, width),
@@ -18,19 +20,19 @@ export const B = {
   truefalse: (id, title, instruction, statements, width = 'half', goal = 'g_read') => block(id, 'truefalse', 'sky', goal, {
     title, instruction, statements: statements.map(([text, ok]) => ({ text, answer: ok ? 'true' : 'false' })),
   }, width),
-  gaps: (id, title, instruction, sentences, bank = '', width = 'full', goal = 'g_use') => block(id, 'gaps', 'blue', goal, {
+  gaps: (id, title, instruction, sentences, bank = '', width = 'full', goal = 'g_notice') => block(id, 'gaps', 'blue', goal, {
     title, instruction, sentences: join(sentences), bank: Array.isArray(bank) ? bank.join(', ') : bank, showBank: bank ? 'yes' : 'no',
   }, width),
   match: (id, title, instruction, pairs, width = 'full', goal = 'g_vocab') => block(id, 'match', 'peach', goal, { title, instruction, pairs: pairs.map(([left, right]) => ({ left, right })) }, width),
-  manymatch: (id, title, instruction, left, right, width = 'full', goal = 'g_use') => block(id, 'manymatch', 'peach', goal, { title, instruction, left: join(left), right: join(right) }, width),
-  categorize: (id, title, instruction, groups, width = 'full', goal = 'g_use') => block(id, 'categorize', 'peach', goal, { title, instruction, groups: groups.map(([name, words]) => ({ name, words: Array.isArray(words) ? words.join(', ') : words })) }, width),
-  wordforms: (id, title, instruction, rows, width = 'half', goal = 'g_use') => block(id, 'wordforms', 'blue', goal, { title, instruction, rows: rows.map(([base, prompt, answer]) => ({ base, prompt, answer })) }, width),
-  errorfix: (id, title, instruction, rows, width = 'full', goal = 'g_use') => block(id, 'errorfix', 'peach', goal, { title, instruction, rows: rows.map(([wrong, answer]) => ({ wrong, answer })) }, width),
-  transformation: (id, title, instruction, rows, width = 'full', goal = 'g_use') => block(id, 'transformation', 'blue', goal, { title, instruction, rows: rows.map(([from, prompt, answer]) => ({ from, prompt, answer })) }, width),
-  wordorder: (id, title, instruction, sentences, width = 'half', goal = 'g_use') => block(id, 'wordorder', 'sky', goal, { title, instruction, sentences: join(sentences) }, width),
-  clock: (id, title, instruction, items, goal = 'g_use') => block(id, 'clock', 'blue', goal, { title, instruction, columns: '3', items }),
+  manymatch: (id, title, instruction, left, right, width = 'full', goal = 'g_vocab') => block(id, 'manymatch', 'peach', goal, { title, instruction, left: join(left), right: join(right) }, width),
+  categorize: (id, title, instruction, groups, width = 'full', goal = 'g_vocab') => block(id, 'categorize', 'peach', goal, { title, instruction, groups: groups.map(([name, words]) => ({ name, words: Array.isArray(words) ? words.join(', ') : words })) }, width),
+  wordforms: (id, title, instruction, rows, width = 'half', goal = 'g_notice') => block(id, 'wordforms', 'blue', goal, { title, instruction, rows: rows.map(([base, prompt, answer]) => ({ base, prompt, answer })) }, width),
+  errorfix: (id, title, instruction, rows, width = 'full', goal = 'g_notice') => block(id, 'errorfix', 'peach', goal, { title, instruction, rows: rows.map(([wrong, answer]) => ({ wrong, answer })) }, width),
+  transformation: (id, title, instruction, rows, width = 'full', goal = 'g_notice') => block(id, 'transformation', 'blue', goal, { title, instruction, rows: rows.map(([from, prompt, answer]) => ({ from, prompt, answer })) }, width),
+  wordorder: (id, title, instruction, sentences, width = 'half', goal = 'g_notice') => block(id, 'wordorder', 'sky', goal, { title, instruction, sentences: join(sentences) }, width),
+  clock: (id, title, instruction, items, goal = 'g_vocab') => block(id, 'clock', 'blue', goal, { title, instruction, columns: '3', items }),
   table: (id, title, instruction, headers, rows, goal = 'g_use') => block(id, 'table', 'blue', goal, { title, instruction, headers, rows: join(rows) }),
-  translation: (id, title, instruction, rows, width = 'half', goal = 'g_use') => block(id, 'translation', 'cream', goal, { title, instruction, rows: rows.map((source) => ({ source, hint: '' })) }, width),
+  translation: (id, title, instruction, rows, width = 'half', goal = 'g_vocab') => block(id, 'translation', 'cream', goal, { title, instruction, rows: rows.map((source) => ({ source, hint: '' })) }, width),
   dialogue: (id, title, instruction, speakerA, speakerB, lines, goal = 'g_use') => block(id, 'dialogue', 'green', goal, { title, instruction, speakerA, speakerB, lines: lines.map(([who, text]) => ({ who, text })) }),
   diagram: (id, kind, data, width = 'half', goal = 'g_notice') => block(id, 'diagram', 'white', goal, { kind, ...data }, width),
   crossword: (id, title, instruction, rows, width = 'half', goal = 'g_vocab') => block(id, 'crossword', 'cream', goal, { title, instruction, rows: rows.map(([clue, answer]) => ({ clue, answer })) }, width),

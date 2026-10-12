@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { B1_LESSON_GOALS } from './lessonGoals.js';
 import { buildCourseSheet, COURSE_MODULES } from '../registry.js';
 
-const GENERIC = ['mõistab teksti põhiideed ja detaile', 'märkab ja selgitab tunni keelemustrit', 'kasutab õpitut suulises ja kirjalikus suhtluses', 'kasutab mooduli põhisõnavara uutes lausetes'];
+const GENERIC = ['mooduli põhivara', 'kasutab sihtkeelt', 'tuttava igapäevateksti', 'mõistab teksti põhiideed ja detaile', 'märkab ja selgitab tunni keelemustrit', 'kasutab õpitut suulises ja kirjalikus suhtluses', 'kasutab mooduli põhisõnavara uutes lausetes'];
 
 describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
   it('every lesson 1–75 has an Estonian learner goal and four specific sub-goals', () => {
@@ -11,7 +11,7 @@ describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
       const entry = B1_LESSON_GOALS[id];
       expect(entry, id).toBeTruthy();
       expect(entry.canDo, id).not.toMatch(/[А-Яа-я]/);
-      for (const key of ['g_vocab', 'g_read', 'g_notice', 'g_use']) expect(entry.goals[key], `${id} ${key}`).toBeTruthy();
+      expect(Object.keys(entry.goals).sort(), id).toEqual(['g_notice', 'g_read', 'g_use', 'g_vocab']);
       for (const text of Object.values(entry.goals)) expect(GENERIC.some((g) => text.includes(g)), `${id}: ${text}`).toBe(false);
     }
   });
