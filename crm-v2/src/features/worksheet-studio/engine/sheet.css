@@ -9,15 +9,17 @@
   --font-hand: 'Caveat', 'Bradley Hand', cursive;
   display: flex; flex-direction: column; align-items: center; gap: 10mm;
 }
-.ws-measure { position: absolute; left: -99999px; top: 0; visibility: hidden; width: 270mm; padding: 0 9mm; box-sizing: border-box; }
-.ws-page {
+.ws-measure { position: absolute; left: -99999px; top: 0; visibility: hidden; width: 270mm; box-sizing: border-box; }
+.ws-page, .ws-page-measure {
   width: 270mm; height: 381.86mm; background: #fff; color: var(--ks-ink); box-sizing: border-box;
   padding: 11mm 9mm 9mm; box-shadow: 0 6px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; gap: 4mm;
   font-family: var(--font-body); font-size: 12.6pt; line-height: 1.35; position: relative; overflow: hidden;
 }
 .ws-page.is-tall { height: auto; min-height: 381.86mm; overflow: visible; }
+/* the hidden measuring page (Sheet.jsx): the page's padding, font and theme, but it grows with its rows */
+.ws-page-measure { height: auto; overflow: visible; box-shadow: none; }
 .ws-page *, .ws-measure * { box-sizing: border-box; }
-.ws-flow, .ws-measure { display: flex; flex-direction: column; gap: 4mm; }
+.ws-flow { display: flex; flex-direction: column; gap: 4mm; }
 .ws-row { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4mm; align-items: stretch; }
 
 /* header */
@@ -81,6 +83,13 @@
 .mode-interactive .ws-bank-w { cursor: pointer; } .mode-interactive .ws-bank-w:hover { background: rgba(23,58,99,.09); }
 .ws-gaps, .ws-choice { margin: 0; padding-left: 6.5mm; }
 .ws-gaps li { padding: .8mm 0; }
+/* a task continued from the previous page (engine/pageSplit.js); a split reading is one column, a split letter has
+   only its own lines */
+.ws-cont { font-weight: 400; font-style: italic; opacity: .7; }
+.ws-card.is-part-stack .ws-reading { display: block; }
+.ws-card.is-part-stack .ws-passage { margin-bottom: 3mm; }
+.ws-card.is-part-stack .ws-passage:empty { display: none; }
+.ws-card:is(.is-part-first, .is-part-cont) .ws-guidedletter textarea { min-height: 0; }
 .ws-gapline { margin: 0 1mm; }
 
 /* choice */
@@ -523,7 +532,7 @@
 
 /* Selge — airy page, one blue accent, big numerals, level in a corner circle (Twee) */
 .ws-root.theme-selge { --font-head: 'Rubik', system-ui, sans-serif; --font-body: 'Rubik', system-ui, sans-serif; --ks-navy: #111827; --radius: 3mm; --sel: #1170c0; --sel-soft: #e6f2fb; }
-.ws-root.theme-selge .ws-page { font-weight: 400; background: #fff radial-gradient(#d7dee8 .35mm, transparent .4mm) 0 0 / 7mm 7mm no-repeat; background-size: 7mm 7mm; background-repeat: repeat-x; background-position: 0 0; }
+.ws-root.theme-selge :is(.ws-page, .ws-page-measure) { font-weight: 400; background: #fff radial-gradient(#d7dee8 .35mm, transparent .4mm) 0 0 / 7mm 7mm no-repeat; background-size: 7mm 7mm; background-repeat: repeat-x; background-position: 0 0; }
 .ws-root.theme-selge .ws-page::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 62mm; background: radial-gradient(#cfd8e3 .35mm, transparent .45mm) 0 0 / 7mm 7mm; opacity: .7; pointer-events: none; }
 .ws-root.theme-selge .ws-hdr { position: relative; grid-template-columns: 1fr; order: 1; }
 .ws-root.theme-selge .ws-title { order: 0; padding-left: 52mm; min-height: 30mm; display: flex; flex-direction: column; justify-content: center; position: relative; z-index: 1; }
@@ -571,7 +580,7 @@
 
 /* Klassika — white paper (owner 2026-10-10), navy ink, square numbers, small caps headings, thin rules (printed textbook) */
 .ws-root.theme-klassika { --ks-navy: #1d2b4a; --ks-ink: #1d2433; --radius: 0; --font-head: 'Josefin Sans', system-ui, sans-serif; --font-body: 'Lora', Georgia, serif; }
-.ws-root.theme-klassika .ws-page { background: #fff; box-shadow: inset 0 0 0 4mm #fff, inset 0 0 0 4.4mm #1d2b4a, inset 0 0 0 5.4mm #fff, inset 0 0 0 5.7mm #1d2b4a, 0 6px 30px rgba(0,0,0,.18); padding: 13mm 12mm 11mm; font-size: 12pt; }
+.ws-root.theme-klassika :is(.ws-page, .ws-page-measure) { background: #fff; box-shadow: inset 0 0 0 4mm #fff, inset 0 0 0 4.4mm #1d2b4a, inset 0 0 0 5.4mm #fff, inset 0 0 0 5.7mm #1d2b4a, 0 6px 30px rgba(0,0,0,.18); padding: 13mm 12mm 11mm; font-size: 12pt; }
 .ws-root.theme-klassika .ws-card:not(.plain) { border: .35mm solid #1d2b4a; }
 .ws-root.theme-klassika .ws-ch { grid-template-columns: 8mm 1fr; align-items: center; border-bottom: .3mm solid #1d2b4a; padding-bottom: 1.6mm; }
 .ws-root.theme-klassika .ws-num { border-radius: 0; width: 8mm; height: 8mm; font: 700 12pt var(--font-head); background: #1d2b4a !important; }

@@ -13,6 +13,7 @@ import MarksLayer from './Marks.jsx';
 // Tiptap is loaded only when a teacher opens a text for formatting (students never download it)
 const RichInlineEditor = lazy(() => import('./RichInlineEditor.jsx'));
 import { themeClass, themedTone } from './look.js';
+import { SPLITTABLE, canSplit, itemCount, packPages, shiftKey, sliceBlock } from './pageSplit.js';
 
 // texts that may carry formatting (bold, colour, highlight) — they are rendered with <Md>
 const RICH_FIELDS = new Set(['instruction', 'text', 'passage']);
@@ -44,7 +45,7 @@ const Footer = ({ meta, page, pages, bookPage }) => (
 
 const LOOK_ICON = { speak: MessageCircle, listen: Headphones, read: BookOpen, write: PenLine, idea: Lightbulb, star: Star, time: Clock3, check: CheckCircle2 };
 
-function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false }) {
+function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, onHover, dropHint = '', onSelect, dndRef = null, dndListeners = null, dragging = false, focused, onPick, onResize, onAddItem, onMarks, note = null, extraClass = '', toolbar = null, barSide = 'right', onInsertAfter, joinedBefore = false, joinedAbove = false, joinedAfter = false, part = null }) {
   const def = BLOCKS[block.type];
   if (!def) return null;
   const tone = themedTone(theme, block.tone || 'white', TONES[block.tone] || TONES.white);
@@ -52,11 +53,16 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
   const accent = look.accent ? themedTone(theme, look.accent, TONES[look.accent] || tone).badge : null;
   const LookIcon = LOOK_ICON[look.icon] || null;
   const plain = !def.task && block.tone === 'white' && !look.frame;
-  const d = block.data;
+  // a part of a task split over pages (pageSplit.js): only its items, answer keys shifted to the items' place
+  const sliced = part ? sliceBlock(block, part.from, part.to) : null;
+  const from = sliced?.start || 0;
+  const continued = Boolean(part?.from);
+  const d = sliced ? sliced.block.data : block.data;
   const opts = block.opts || {};
-  const example = exampleAnswers(block);
+  const example = continued ? {} : exampleAnswers(block);
   const hasExample = Object.keys(example).length > 0;
-  const base = ctx(block.id);
+  const whole = ctx(block.id);
+  const base = from ? { ...whole, start: from, get: (k) => whole.get(shiftKey(k, from)), set: (k, v) => whole.set(shiftKey(k, from), v), state: (k) => whole.state(shiftKey(k, from)) } : whole;
   const addLabel = mode === 'edit' && selected && onAddItem ? addItemLabel(block) : null;
   // the tools show on hover as well as on the selected block
   const active = mode === 'edit' && (selected || hovered);
@@ -71,7 +77,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
   } : base;
   return (
     <section
-      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${dragging ? 'is-dragging' : ''} ${look.head ? `head-${look.head}` : ''} ${look.num ? `num-${look.num}` : ''} ${extraClass}`}
+      className={`ws-card ${plain ? 'plain' : ''} ${block.width === 'full' ? 'full' : ''} ${selected ? 'selected' : ''} ${focused ? 'focused' : ''} ${onPick ? 'pickable' : ''} ${hasExample ? 'has-example' : ''} ${block.minHeightMm ? 'is-tall' : ''} ${look.frame ? `frame-${look.frame}` : ''} ${joinedBefore ? 'joined-before' : ''} ${joinedAbove ? 'joined-above' : ''} ${joinedAfter ? 'joined-after' : ''} ${hovered && !selected ? 'hovered' : ''} ${dropHint ? `drop-${dropHint}` : ''} ${dragging ? 'is-dragging' : ''} ${part ? (continued ? 'is-part-cont' : 'is-part-first') : ''} ${part && SPLITTABLE[block.type]?.stacked ? 'is-part-stack' : ''} ${look.head ? `head-${look.head}` : ''} ${look.num ? `num-${look.num}` : ''} ${extraClass}`}
       data-cols={opts.cols > 1 ? opts.cols : undefined}
       data-size={opts.size || undefined}
       style={{ ...(plain ? {} : { background: tone.card }), gridColumn: `span ${spanOf(block)}`, ...(block.minHeightMm ? { minHeight: `${block.minHeightMm}mm` } : {}), ...(accent ? { '--ws-accent': accent } : {}), '--ws-badge': accent || tone.badge }}
@@ -87,8 +93,8 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
         <div className="ws-ch">
           <div className="ws-num" style={{ background: accent || tone.badge }}>{num}</div>
           <div>
-            <h3>{LookIcon ? <LookIcon className="ws-look-icon" aria-hidden="true" /> : null}{d.title}{d.titleMore ? <span> {d.titleMore}</span> : null}</h3>
-            {d.instruction && <p><Md text={d.instruction} /></p>}
+            <h3>{LookIcon ? <LookIcon className="ws-look-icon" aria-hidden="true" /> : null}{d.title}{d.titleMore ? <span> {d.titleMore}</span> : null}{continued ? <span className="ws-cont"> (järg)</span> : null}</h3>
+            {d.instruction && !continued && <p><Md text={d.instruction} /></p>}
           </div>
         </div>
       )}
@@ -253,20 +259,29 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       if (!mm) { setPages([rows.map((_, i) => i)]); setTallPages([]); return; }
       const headH = el.querySelector('.ws-measure-head').offsetHeight / mm;
       const rowEls = [...el.querySelectorAll('.ws-measure-row')];
-      const hs = rowEls.map((r) => r.offsetHeight / mm);
       const firstCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - headH - GAP;
       const nextCap = PAGE_H_MM - PAD_TOP - PAD_BOTTOM - FOOTER - RUNHEAD;
-      const out = [[]];
-      const tall = [];
-      let used = 0;
-      hs.forEach((h, i) => {
-        if (rows[i]?.[0]?.pageBreakBefore && out[out.length - 1].length) { out.push([]); used = 0; }
-        const cap = out.length === 1 ? firstCap : nextCap;
-        if (out[out.length - 1].length && used + h > cap) { out.push([]); used = 0; }
-        out[out.length - 1].push(i);
-        used += h + GAP;
-        if (used - GAP > (out.length === 1 ? firstCap : nextCap)) tall[out.length - 1] = true;
+      // a list task alone in its row may continue on the next page (pageSplit.js); not while editing, where a text is
+      // edited by its line number in the whole block
+      const measured = rowEls.map((r, i) => {
+        const h = r.offsetHeight / mm;
+        const row = { h, breakBefore: Boolean(rows[i]?.[0]?.pageBreakBefore) };
+        const block = rows[i]?.length === 1 ? rows[i][0] : null;
+        if (!block || !canSplit(block, mode)) return row;
+        const spec = SPLITTABLE[block.type];
+        // a reading is split in its one-column form, drawn once more for measuring
+        const el2 = spec.stacked ? el.querySelector(`.ws-measure-stack[data-row="${i}"]`) : r;
+        if (!el2) return row;
+        const box = el2.getBoundingClientRect();
+        const scale = el2.offsetHeight ? box.height / el2.offsetHeight : 1;
+        const at = (y) => (y - box.top) / (scale || 1) / mm;
+        const card = el2.querySelector('.ws-card');
+        const raw = typeof spec.items === 'function' ? spec.items(card, block) : [...el2.querySelectorAll(spec.items)].map((it) => it.getBoundingClientRect());
+        const items = raw.map((b) => ({ top: at(b.top), bottom: at(b.bottom) }));
+        if (!items.length || items.length !== itemCount(block)) return row;
+        return { ...row, split: { head: items[0].top, tail: el2.offsetHeight / mm - items[items.length - 1].bottom, items } };
       });
+      const { pages: out, tall } = packPages(measured, { firstCap, nextCap, gap: GAP });
       setPages(out);
       setTallPages(tall);
     };
@@ -275,7 +290,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     const ro = new ResizeObserver(run);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [rows, doc.meta]);
+  }, [rows, doc.meta, mode]);
 
   useLayoutEffect(() => { onPageCount?.(pages.length); }, [pages.length, onPageCount]);
 
@@ -348,23 +363,26 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
     el.addEventListener('blur', finish);
   };
 
-  const rowView = (row, key, measuring = false) => (
+  const rowView = (row, key, measuring = false, part = null) => (
     <div className="ws-row" key={key}>
-      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} />; })}
+      {row.map((b, i) => { const C = dnd && mode === 'edit' && !measuring ? DndCard : Card; return <C key={`${b.id}:${rev}`} block={b} num={nums[b.id]} mode={mode} ctx={ctx} theme={doc.meta.theme || ''} selected={!measuring && selectedId === b.id} hovered={!measuring && hoverId === b.id} onHover={mode === 'edit' && !measuring ? setHoverId : undefined} dropHint={dropHint?.id === b.id ? dropHint.side : ''} onSelect={onSelect} focused={focusId === b.id} onPick={onPick} onResize={onResize} onAddItem={onAddItem} onMarks={onMarks} note={blockNotes?.[b.id] || null} extraClass={blockClasses?.[b.id] || ''} toolbar={!measuring && (selectedId === b.id || hoverId === b.id) && renderToolbar ? renderToolbar(b) : null} barSide={i === 0 ? 'left' : 'right'} onInsertAfter={onInsertAfter} joinedBefore={i > 0 && Boolean(b.joined)} joinedAbove={i === 0 && Boolean(b.joined)} joinedAfter={Boolean(row[i + 1]?.joined)} part={part} />; })}
     </div>
   );
 
   return (
     <div ref={rootRef} className={`ws-root mode-${mode} ${themeClass(doc.meta.theme)}`} onClick={mode === 'edit' ? () => onSelect?.(null) : undefined} onDoubleClick={mode === 'edit' ? editInline : undefined}>
-      {/* hidden measuring layer, same width and styles as a page */}
-      <div className="ws-measure" ref={measureRef} aria-hidden="true">
+      {/* hidden measuring layer: a page of its own (same width, padding, font and theme as the real pages), grown to
+          its content, so a row is measured exactly as it will be drawn */}
+      <div className="ws-measure" ref={measureRef} aria-hidden="true"><div className="ws-page-measure">
         <div className="ws-measure-head"><Header meta={doc.meta} /></div>
         {rows.map((row, i) => <div className="ws-measure-row" key={i}>{rowView(row, i, true)}</div>)}
-      </div>
+        {rows.map((row, i) => (row.length === 1 && SPLITTABLE[row[0].type]?.stacked && canSplit(row[0], mode)
+          ? <div className="ws-measure-stack" data-row={i} key={`s${i}`}>{rowView(row, `s${i}`, true, { from: 0, to: itemCount(row[0]) })}</div> : null))}
+      </div></div>
       {pages.map((idxs, p) => (
         <div className={`ws-page${tallPages[p] ? ' is-tall' : ''}`} key={p}>
           {p === 0 ? <Header key={`head:${rev}`} meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
-          <div className="ws-flow">{idxs.map((i) => rows[i] && rowView(rows[i], i))}</div>
+          <div className="ws-flow">{idxs.map((e) => (typeof e === 'number' ? rows[e] && rowView(rows[e], e) : rows[e.row] && rowView(rows[e.row], `${e.row}:${e.from}`, false, e)))}</div>
           {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
           <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} />
         </div>

@@ -1,3 +1,12 @@
+## 2026-10-12 · agent/sheet-page-fill — fewer empty spaces on worksheet pages
+
+- Why (owner, screenshots): half-empty pages and a last page with only „Kontrolli ennast”.
+- Cause 1 (old bug): the hidden measuring layer of `Sheet.jsx` took the host page's font and line-height (CRM body 16px / 1.5) instead of the sheet's (12.6pt / 1.35, theme padding), so rows were measured too tall and moved to the next page too early (in other hosts too short — 5 sheets overflowed under the footer). Now it is a `.ws-page-measure` with the page's padding, font and theme.
+- Cause 2: whole rows only. New `engine/pageSplit.js`: a task alone in its row continues on the next page at an item boundary (≥ 2 items per part) with „(järg)”: gaps, word order, choice, true/false, word forms, error fix, transformation, translation; a long reading in one column (paragraphs, then questions); a guided letter's lines on paper only. Answer keys, numbering (`ol start`) and the choice shuffle continue across parts (`ctx.start`). Not split: edit mode (inline edit uses line numbers), blocks in columns or with a fixed height.
+- Measured on all 885 course + A2 sheets in code with the CRM styles: pages 3855 → 3532, empty share of inner pages 22.6 % → 12.7 %, inner pages ≥ 25 % empty 993 → 274, pages overflowing the footer 5 → 0; no sheet got more pages.
+- Data / production: none.
+- Base: `main` effee40. Checks: full crm-v2 vitest — 10 failures, the same 10 as on clean `main` (live classroom / calendar storage); pageSplit 6/6; lint 0 errors; build ok.
+- Next: the remaining gaps come from rows of two half-width blocks and single huge paragraphs; owner's request for picture-rich, denser sheets (Pinterest examples) is a separate design task.
 ## 2026-10-12 · agent/harno-level-norms — level norms after Harno and checks for tasks solved without the language
 
 - Why (owner): „задание не соответствует уровню” — the level audit of all 52 modules in code (`docs/level-audit-2026-10-12/`, Russian, with quotes and fixes; Harno requirements `docs/HARNO_LEVEL_REQUIREMENTS.md`) found no course reaching its Harno exam format and many tasks solvable without Estonian; the automatic check caught only „too hard”.

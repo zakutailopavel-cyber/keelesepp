@@ -19,7 +19,7 @@ export const wordforms = {
 export const errorfix = {
   type: 'errorfix', label: 'Leia ja paranda viga', group: 'Grammatika ja sõnavara', icon: 'ScanSearch', task: true, width: 'half', tone: 'peach',
   create: () => ({ title: 'Leia ja paranda viga.', instruction: 'Kirjuta lause õigesti.', rows: [{ wrong: 'Ma lähen koolis.', answer: 'Ma lähen kooli.' }, { wrong: 'Ta õppib eesti keel.', answer: 'Ta õpib eesti keelt.' }] }),
-  View: ({ data, ctx }) => <ol className="ws-fix">{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt">{row.wrong}</span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Parandus ${i + 1}`} /></li>)}</ol>,
+  View: ({ data, ctx }) => <ol className="ws-fix" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt">{row.wrong}</span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Parandus ${i + 1}`} /></li>)}</ol>,
   score: (data, get) => scoreRows(data.rows, get),
   example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
   Editor: ({ data, set }) => <Rows label="Laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ wrong: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Vigane lause" value={row.wrong} onChange={(wrong) => patch({ wrong })} /><Text label="Õige lause" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
@@ -35,7 +35,7 @@ export const transformation = {
       { from: 'Mari elab Tallinnas.', prompt: 'Alusta sõnaga „Tallinnas”.', answer: 'Tallinnas elab Mari.' },
     ],
   }),
-  View: ({ data, ctx }) => <ol className="ws-fix">{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt"><b>{row.from}</b><br /><small>{row.prompt}</small></span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Muudetud lause ${i + 1}`} /></li>)}</ol>,
+  View: ({ data, ctx }) => <ol className="ws-fix" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt"><b>{row.from}</b><br /><small>{row.prompt}</small></span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Muudetud lause ${i + 1}`} /></li>)}</ol>,
   score: (data, get) => scoreRows(data.rows, get),
   example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
   Editor: ({ data, set }) => <Rows label="Muudatavad laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ from: '', prompt: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Alglause" value={row.from} onChange={(from) => patch({ from })} /><Text label="Juhis" value={row.prompt} onChange={(prompt) => patch({ prompt })} /><Text label="Õige vastus (variandid komaga)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
@@ -52,7 +52,7 @@ export const dictation = {
 export const translation = {
   type: 'translation', label: 'Tõlge → eesti keel', group: 'Grammatika ja sõnavara', icon: 'Languages', task: true, width: 'half', tone: 'cream',
   create: () => ({ title: 'Tõlgi eesti keelde.', instruction: 'Õpetaja kontrollib vastust.', rows: [{ source: 'Я живу в Таллине.', hint: '' }, { source: 'Сегодня хорошая погода.', hint: '' }] }),
-  View: ({ data, ctx }) => <ol className="ws-translation">{(data.rows || []).map((row, i) => <li key={i}><span>{row.source}</span>{row.hint && <small>{row.hint}</small>}<Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} width="100%" label={`Tõlge ${i + 1}`} /></li>)}</ol>,
+  View: ({ data, ctx }) => <ol className="ws-translation" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span>{row.source}</span>{row.hint && <small>{row.hint}</small>}<Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} width="100%" label={`Tõlge ${i + 1}`} /></li>)}</ol>,
   answerKeys: (data) => (data.rows || []).map((_, i) => String(i)),
   Editor: ({ data, set }) => <Rows label="Tõlkelaused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ source: '', hint: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Lähtetekst" value={row.source} onChange={(source) => patch({ source })} /><Text label="Vihje (valikuline)" value={row.hint} onChange={(hint) => patch({ hint })} /></>} />,
 };
@@ -103,7 +103,7 @@ export const phrasebank = {
 export const guidedletter = {
   type: 'guidedletter', label: 'Suunatud pikk kiri', group: 'Kõne ja kirjutamine', icon: 'FilePenLine', task: true, width: 'full', tone: 'cream',
   create: () => ({ title: 'Kirjuta kiri.', instruction: 'Koosta terviklik ametlik kiri.', opening: 'Lugupeetud linnavalitsuse esindaja', closing: 'Lugupidamisega', minWords: 120, maxWords: 150, lines: 16 }),
-  View: ({ data, ctx }) => { const value = ctx.get('text') || ''; const count = String(value).trim() ? String(value).trim().split(/\s+/).length : 0; return <div className="ws-guidedletter"><p>{data.opening}</p><textarea className="ws-ruled" readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} rows={Number(data.lines) || 12} value={value} onChange={(e) => ctx.set('text', e.target.value)} aria-label="Kiri" /><p>{data.closing}</p><small>{count} sõna · eesmärk {data.minWords}–{data.maxWords}</small></div>; },
+  View: ({ data, ctx }) => { const value = ctx.get('text') || ''; const count = String(value).trim() ? String(value).trim().split(/\s+/).length : 0; return <div className="ws-guidedletter">{data.opening ? <p>{data.opening}</p> : null}<textarea className="ws-ruled" readOnly={!ctx.interactive} tabIndex={ctx.interactive ? 0 : -1} rows={Number(data.lines) || 12} value={value} onChange={(e) => ctx.set('text', e.target.value)} aria-label="Kiri" /><p>{data.closing}</p>{data.partOf && !data.closing ? null : <small>{count} sõna · eesmärk {data.minWords}–{data.maxWords}</small>}</div>; },
   answerKeys: () => ['text'],
   Editor: ({ data, set }) => <><Text label="Algus" value={data.opening} onChange={(opening) => set({ opening })} /><Text label="Lõpetus" value={data.closing} onChange={(closing) => set({ closing })} /><div className="ed-row"><Num label="Min sõnu" value={data.minWords} max={1000} onChange={(minWords) => set({ minWords })} /><Num label="Max sõnu" value={data.maxWords} max={1000} onChange={(maxWords) => set({ maxWords })} /></div><Num label="Kirjutamisridu" value={data.lines} max={30} onChange={(value) => set({ lines: value })} /></>,
 };
