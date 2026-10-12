@@ -6,6 +6,12 @@ const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).fi
 const scoreRows = (rows, get, answerKey = 'answer') => (rows || []).map((row, i) => ({
   key: String(i), ok: splitList(row[answerKey]).map(norm).includes(norm(get(String(i)))),
 }));
+// A whole sentence (error fix, transformation) keeps its commas: variants are separated by „|” or a new line only
+// (owner's B1 check 2026-10-12: „Valime rongi, sest …” was split at the comma and a right answer scored wrong).
+export const sentenceVariants = (answer) => String(answer || '').split(/[|\n]/).map((x) => x.trim()).filter(Boolean);
+const scoreSentences = (rows, get) => (rows || []).map((row, i) => ({
+  key: String(i), ok: sentenceVariants(row.answer).map(norm).includes(norm(get(String(i)))),
+}));
 
 export const wordforms = {
   type: 'wordforms', label: 'Sõnavormid', group: 'Grammatika ja sõnavara', icon: 'Languages', task: true, width: 'half', tone: 'blue',
@@ -20,9 +26,9 @@ export const errorfix = {
   type: 'errorfix', label: 'Leia ja paranda viga', group: 'Grammatika ja sõnavara', icon: 'ScanSearch', task: true, width: 'half', tone: 'peach',
   create: () => ({ title: 'Leia ja paranda viga.', instruction: 'Kirjuta lause õigesti.', rows: [{ wrong: 'Ma lähen koolis.', answer: 'Ma lähen kooli.' }, { wrong: 'Ta õppib eesti keel.', answer: 'Ta õpib eesti keelt.' }] }),
   View: ({ data, ctx }) => <ol className="ws-fix" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt">{row.wrong}</span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Parandus ${i + 1}`} /></li>)}</ol>,
-  score: (data, get) => scoreRows(data.rows, get),
+  score: (data, get) => scoreSentences(data.rows, get),
   example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
-  Editor: ({ data, set }) => <Rows label="Laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ wrong: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Vigane lause" value={row.wrong} onChange={(wrong) => patch({ wrong })} /><Text label="Õige lause" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
+  Editor: ({ data, set }) => <Rows label="Laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ wrong: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Vigane lause" value={row.wrong} onChange={(wrong) => patch({ wrong })} /><Text label="Õige lause (mitu varianti: a | b)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
 };
 
 export const transformation = {
@@ -36,9 +42,9 @@ export const transformation = {
     ],
   }),
   View: ({ data, ctx }) => <ol className="ws-fix" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt"><b>{row.from}</b><br /><small>{row.prompt}</small></span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Muudetud lause ${i + 1}`} /></li>)}</ol>,
-  score: (data, get) => scoreRows(data.rows, get),
+  score: (data, get) => scoreSentences(data.rows, get),
   example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
-  Editor: ({ data, set }) => <Rows label="Muudatavad laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ from: '', prompt: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Alglause" value={row.from} onChange={(from) => patch({ from })} /><Text label="Juhis" value={row.prompt} onChange={(prompt) => patch({ prompt })} /><Text label="Õige vastus (variandid komaga)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
+  Editor: ({ data, set }) => <Rows label="Muudatavad laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ from: '', prompt: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Alglause" value={row.from} onChange={(from) => patch({ from })} /><Text label="Juhis" value={row.prompt} onChange={(prompt) => patch({ prompt })} /><Text label="Õige vastus (mitu varianti: a | b)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
 };
 
 export const dictation = {

@@ -8,6 +8,22 @@
 - Checks: worksheet-generator + worksheet-studio 713/714 (the 1 is the timing-flaky LessonWorksheetStudioPage test, 4/4 alone); lint 0 errors; avastaModule tests pass.
 - Not fixed (needs a redesign, see the reports): texts 80–150 words (Harno B1: 200–300), no listening in modules 07–08, A2 grammar in 048/051/052/056/057/066/067/071, no täisminevik in module 05, no enneminevik; modules 09–15 marked A2+ while the roadmap says A2+/B1- / B1- (raising it unlocks longer speaking); (fixed on owner request: the a2b1-023 g_notice goal now says „erandlikud lihtmineviku vormid … algvormiga”, in avastaModule5.js and lessonGoals.js).
 - Next: merge #570, then this PR; then republish B1 lessons.
+## 2026-10-12 · agent/sentence-answer-commas — a right sentence with a comma was scored wrong
+
+- Found in the B1 check: error fix and transformation answers were split at commas as if they were variant lists (`splitList`), so „Valime rongi, sest see on kiire.” accepted only fragments. 1670 of 3736 sentence answers in the course code contain a comma (none is a variant list).
+- `worksheet-studio/engine/blocks/advanced.jsx`: `sentenceVariants` — variants of a whole sentence are separated by „|” or a new line; error fix and transformation score with it. Word forms and crossword keep comma variants. Editor labels say „mitu varianti: a | b”.
+- Data / production: none (already saved answers are rescored when a sheet is checked again).
+- Base: `main` after #568. Checks: worksheet-studio + homework + worksheet-generator + pet 805/806 (+1 timing-flaky Studio test that passes alone); new test „sentence answers”.
+
+## 2026-10-12 · agent/picture-blocks-compact — picture tasks and a compact sheet
+
+- Why (owner, Pinterest worksheet examples): „нет возможности вот такие листы делать”. None of the 885 course sheets in code has a picture.
+- `worksheet-studio/engine/blocks/picture.jsx`: four task blocks in the palette group „Pildid” — `picmatch` (words ↔ lettered pictures A–L), `scenelabel` (numbered pins on one picture + word bank), `profiles` (character cards: portrait, facts, sentences with gaps), `picrows` (picture + situation + question with lines). `scoreDocument` passes the block as the third argument of `score` (the picture match mixes its pictures by the block id). Didactic categories in `levels.js` `PHASE_TASKS`.
+- Compact sheet: `meta.density: 'compact'` (inspector „Tihedus”) → `.density-compact` (10.6 pt, tighter cards, 3 mm gaps); pagination uses the same gap.
+- Images: `docs/CODEX_TASK_PICTURES.md` — task for the content agent (cast portraits, word pictures, label scenes, situation pictures; built-in image generation only, owner approves the first of each kind).
+- Stacked on PR #567 (agent/sheet-page-fill). Data / production: none.
+- Checks: worksheet-studio + worksheet-generator + library + homework 786/786 (+ picture tests 3); lint 0 errors; build ok; visual check of a demo sheet with A2 art in compact density.
+- Next: Codex makes the pictures; then picture tasks go into the course modules.
 
 ## 2026-10-12 · agent/sheet-page-fill — fewer empty spaces on worksheet pages
 

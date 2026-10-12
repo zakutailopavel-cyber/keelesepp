@@ -4,10 +4,11 @@ import { productiveBlocks } from './blocks/productive.jsx';
 import { extraBlocks } from './blocks/extra.jsx';
 import { advancedBlocks } from './blocks/advanced.jsx';
 import { diagram } from './blocks/diagram.jsx';
+import { pictureBlocks } from './blocks/picture.jsx';
 import { newId } from './schema.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram };
+export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram };
 
 export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Kujundus'];
 
@@ -58,7 +59,8 @@ export function scoreDocument(doc, answers) {
     if (!def?.score) continue;
     const get = (k) => answers[`${b.id}:${k}`];
     const example = exampleAnswers(b);
-    const items = def.score(b.data, get).filter((item) => !(item.key in example));
+    // the block itself is the third argument (a picture match mixes its pictures by the block id)
+    const items = def.score(b.data, get, b).filter((item) => !(item.key in example));
     perBlock[b.id] = items;
     const goal = b.goal || '_none';
     perGoal[goal] = perGoal[goal] || { ok: 0, total: 0 };
