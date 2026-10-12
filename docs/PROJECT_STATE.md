@@ -1,3 +1,10 @@
+## 2026-10-12 · agent/finance-month-default — Finance opens on the current month
+
+- Base: `main` 896afd9. Why (owner): „почему я не вижу счетов?” — after the 10th (`PAYMENT_DUE_DAY`) `/finance` opened on next month (`defaultBillingMonth()`), which has no invoices yet, so the list showed „Arveid 0”. Data was intact (2026-10: 9, 2026-09: 17 invoices).
+- Change: `monthlyBilling.js` `currentMonth()`; `FinanceMonthPage.jsx` opens the lists on the current month, and the „Koosta arved” view (or `?view=prepare`) moves once to `defaultBillingMonth()`. No data, rules or functions touched.
+- Checks: `npx vitest run src/features/finance` 25 files / 109 tests passed; eslint 0 errors.
+- Next safe step: owner checks `/finance` shows October invoices.
+
 ## 2026-10-12 · agent/content-protection — kursuse materjali kaitse
 
 - Base: `main` d9812ca. Why (owner): protect the school's material from being spread.

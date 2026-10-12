@@ -37,7 +37,7 @@ import { filterFinanceRows, financeRowState, sortFinanceRows, summarizeFinanceRo
 import ManualInvoiceDialog from './ManualInvoiceDialog.jsx';
 import MonthlyInvoicePanel from './MonthlyInvoicePanel.jsx';
 import PricePrivacyBanner from './PricePrivacyBanner.jsx';
-import { defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
+import { currentMonth, defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
 import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
@@ -140,7 +140,10 @@ export default function FinanceMonthPage({
   const navigate = useNavigate();
   const canManage = hasAnyRole(user.roles, [ROLES.ADMIN]);
   const state = useFinanceData({ canManageFinance: canManage, invoiceRepository, planRepository, studentRepository, lessonRepository, bankRepository, periodRepository, creditRepository, creditNoteRepository, auditRepository });
-  const [month, setMonth] = useState(() => defaultBillingMonth());
+  // the lists open on this month (owner 2026-10-12: after the 10th the page opened on next month, empty, and the
+  // invoices looked gone); preparing invoices opens on the billing month
+  const [month, setMonth] = useState(() => (new globalThis.URLSearchParams(location.search).get('view') === 'prepare' ? defaultBillingMonth() : currentMonth()));
+  const preparedMonthSet = useRef(false);
   const [status, setStatus] = useState(() => new globalThis.URLSearchParams(location.search).get('status') || 'all');
   const [activeView, setActiveView] = useState(() => {
     const params = new globalThis.URLSearchParams(location.search);
@@ -179,6 +182,7 @@ export default function FinanceMonthPage({
 
   const selectView = (view, scroll = false) => {
     setActiveView(view);
+    if (view === 'prepare' && !preparedMonthSet.current) { preparedMonthSet.current = true; setMonth(defaultBillingMonth()); }
     setStatus('all');
     setQuery('');
     if (scroll) viewRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
