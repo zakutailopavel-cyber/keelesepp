@@ -24,3 +24,16 @@ describe('key forms on word cards', () => {
     expect(await loadWordForms(() => Promise.reject(new Error('offline')))).toEqual({});
   });
 });
+
+describe('forms the file does not know', () => {
+  it('are asked from the server once, only single words without forms', async () => {
+    const { missingForms } = await import('./wordForms.js');
+    const calls = [];
+    const service = { keyForms: async (words) => { calls.push(words); return { forms: { perroon: ['perroon', 'perrooni', 'perrooni'] } }; } };
+    const found = await missingForms(['Perroon', 'pood', 'rong jäi hiljaks', 'perroon'], { pood: ['pood', 'poe', 'poodi'] }, service);
+    expect(calls).toEqual([['perroon']]);
+    expect(found.perroon).toEqual(['perroon', 'perrooni', 'perrooni']);
+    await missingForms(['perroon'], {}, service);
+    expect(calls.length).toBe(1);
+  });
+});

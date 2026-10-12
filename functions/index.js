@@ -9830,6 +9830,22 @@ exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSe
   if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
   try {
     // the student double-clicks a word on a worksheet (owner, 2026-10-10): forms + translation, saved to their Sõnad
+    if (req.path === "/key-forms") {
+      // the three key forms of the words on a student's cards (any signed-in user; EKI answers are cached)
+      await requireFirebaseUser(req);
+      const { keyFormsRequest, threeKeyForms } = require("./language-core");
+      const words = keyFormsRequest(req.body || {});
+      const forms = {};
+      for (let i = 0; i < words.length; i += 5) {
+        const answers = await Promise.allSettled(words.slice(i, i + 5).map(word => estonianWordForms({ word })));
+        answers.forEach((answer, j) => {
+          const three = answer.status === "fulfilled" ? threeKeyForms(answer.value.forms) : [];
+          if (three.length) forms[words[i + j].toLocaleLowerCase("et")] = three;
+        });
+      }
+      res.json({ forms });
+      return;
+    }
     if (req.path === "/student-word") {
       const decoded = await requireFirebaseUser(req);
       res.json(await studentWordLookup({ decoded, studentId: req.body?.studentId, word: req.body?.word, tgt: req.body?.tgt }));

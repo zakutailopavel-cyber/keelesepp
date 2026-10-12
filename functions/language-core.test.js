@@ -76,3 +76,12 @@ test("Ekilex paradigmForms and headwords for inflected forms", () => {
   assert.equal(isProperFor({ wordValue: "Kassi" }, "kassi"), true);
   assert.equal(isProperFor({ wordValue: "kass" }, "kassi"), false);
 });
+
+test("three key forms for word cards: verbs ma · da · tema, others nimetav · omastav · osastav", () => {
+  const { threeKeyForms, keyFormsRequest } = require("./language-core");
+  assert.deepEqual(threeKeyForms([{ code: "SgN", value: "pood" }, { code: "SgG", value: "poe" }, { code: "SgP", value: "poodi" }, { code: "PlP", value: "poode" }]), ["pood", "poe", "poodi"]);
+  assert.deepEqual(threeKeyForms([{ code: "Sup", value: "tegema" }, { code: "Inf", value: "teha" }, { code: "IndPrSg3", value: "teeb" }]), ["tegema", "teha", "teeb"]);
+  assert.deepEqual(threeKeyForms([{ code: "SgN", value: "pood" }]), []);
+  assert.deepEqual(keyFormsRequest({ words: ["„pood”,", "pood", "rong jäi", "", "kass"] }), ["pood", "kass"]);
+  assert.equal(keyFormsRequest({ words: Array.from({ length: 50 }, (_, i) => `sõna${"a".repeat(i)}`) }).length, 30);
+});
