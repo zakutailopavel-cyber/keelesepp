@@ -1,5 +1,5 @@
 import { Download, Plus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
@@ -14,8 +14,12 @@ function nextDueDate() {
   return target.toISOString().slice(0, 10);
 }
 
+// „Mõlemad ained”: one invoice per subject card of the same student, each with its own amount (owner 2026-10-12)
+const ALL_SUBJECTS = '__all__';
+
 const emptyForm = () => ({
   studentId: '',
+  amounts: {},
   description: '',
   amount: '',
   due: nextDueDate(),
@@ -119,6 +123,9 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
   const [pickedName, setPickedName] = useState('');
   const name = selectedStudent?.name || pickedName;
   const sameName = useMemo(() => students.filter((student) => student.name === name), [students, name]);
+  const allSubjects = form.studentId === ALL_SUBJECTS && sameName.length > 1;
+  const bothLines = allSubjects ? sameName.map((card) => ({ card, amount: form.amounts[card.id] || '' })) : [];
+  const bothTotal = bothLines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
   const pickName = (value) => {
     setPickedName(value);
     const cards = students.filter((student) => student.name === value);
@@ -142,8 +149,35 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
     setError('');
     if (!form.studentId) return setError(pickedName && sameName.length > 1 ? 'Vali aine.' : 'Vali õpilane.');
     if (!form.description.trim()) return setError('Lisa arve kirjeldus.');
-    if (!(Number(form.amount) > 0)) return setError('Lisa korrektne summa.');
+    if (allSubjects) {
+      if (bothLines.some((line) => !(Number(line.amount) > 0))) return setError('Lisa summa igale ainele.');
+    } else if (!(Number(form.amount) > 0)) return setError('Lisa korrektne summa.');
     if (!form.due) return setError('Lisa maksetähtaeg.');
+
+    if (allSubjects) {
+      setSaving(true);
+      let last = null;
+      const left = { ...form.amounts };
+      try {
+        // one by one; a created subject leaves the form, so a retry after an error never makes it twice
+        for (const line of bothLines) {
+          const result = await manualInvoiceApi.create({ ...form, studentId: line.card.id, amount: line.amount });
+          last = result.invoice;
+          delete left[line.card.id];
+          if (downloadPdf) downloadDocument(await deliveryApi.pdf(last.id));
+        }
+        resetAndClose();
+        await onCreated?.(last);
+      } catch (requestError) {
+        setForm((current) => ({ ...current, amounts: left }));
+        const done = bothLines.length - Object.keys(left).length;
+        setError(`${done ? `${done} arve loodud. ` : ''}${requestError.message || 'Arve loomine ebaõnnestus.'}`);
+        if (done) await onCreated?.(last);
+      } finally {
+        setSaving(false);
+      }
+      return undefined;
+    }
 
     setSaving(true);
     try {
@@ -178,7 +212,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
               type="button"
               onClick={(event) => submit(event, true)}
             ><Download size={17} /> Loo ja laadi PDF</Button>
-            <Button loading={saving} type="submit" form="manual-invoice-form">Loo arve</Button>
+            <Button loading={saving} type="submit" form="manual-invoice-form">{allSubjects ? `Loo arved (${sameName.length})` : 'Loo arve'}</Button>
           </>
         )}
       >
@@ -224,6 +258,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             >
               <option value="">Vali aine ({sameName.length})</option>
               {sameName.map((student) => <option key={student.id} value={student.id}>{cardLabel(student, sameName)}</option>)}
+              <option value={ALL_SUBJECTS}>Mõlemad ained ({sameName.length} arvet)</option>
             </Select>
           ) : null}
           <Input
@@ -234,15 +269,28 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             onChange={(event) => setForm({ ...form, description: event.target.value })}
             required
           />
-          <Input
-            label="Summa (€)"
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={form.amount}
-            onChange={(event) => setForm({ ...form, amount: event.target.value })}
-            required
-          />
+          {allSubjects ? bothLines.map((line) => (
+            <Input
+              key={line.card.id}
+              label={`Summa — ${subjectOf(line.card) || 'aine'} (€)`}
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={line.amount}
+              onChange={(event) => setForm({ ...form, amounts: { ...form.amounts, [line.card.id]: event.target.value } })}
+              required
+            />
+          )) : (
+            <Input
+              label="Summa (€)"
+              type="number"
+              min="0.01"
+              step="0.01"
+              value={form.amount}
+              onChange={(event) => setForm({ ...form, amount: event.target.value })}
+              required
+            />
+          )}
           <Input
             label="Maksetähtaeg"
             type="date"
@@ -261,6 +309,11 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
               placeholder="Sisemine märkus, soovi korral"
             />
           </div>
+          {allSubjects ? (
+            <p className="form-hint form-grid__wide">
+              Luuakse <strong>{sameName.length} eraldi arvet</strong> õpilasele <strong>{name}</strong>: igal arvel oma aine ja summa.
+            </p>
+          ) : null}
           {selectedStudent ? (
             <p className="form-hint form-grid__wide">
               Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong>{subjectOf(selectedStudent) ? <> ({subjectOf(selectedStudent)})</> : null} ja lisatakse kohe arvete nimekirja.
@@ -288,9 +341,10 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             </section>
             <div className="manual-invoice-paper__line">
               <span>Nimetus</span><span>Kogus</span><span>Summa</span>
-              <strong>{form.description.trim() || 'Arve kirjeldus'}{selectedStudent && subjectOf(selectedStudent) ? ` · ${subjectOf(selectedStudent)}` : ''}</strong><span>1</span><strong>{formatMoney(form.amount)}</strong>
+              {allSubjects ? bothLines.map((line) => <Fragment key={line.card.id}><strong>{form.description.trim() || 'Arve kirjeldus'} · {subjectOf(line.card)}</strong><span>1</span><strong>{formatMoney(line.amount)}</strong></Fragment>)
+                : <><strong>{form.description.trim() || 'Arve kirjeldus'}{selectedStudent && subjectOf(selectedStudent) ? ` · ${subjectOf(selectedStudent)}` : ''}</strong><span>1</span><strong>{formatMoney(form.amount)}</strong></>}
             </div>
-            <div className="manual-invoice-paper__total"><span>Summa tasumiseks</span><strong>{formatMoney(form.amount)}</strong></div>
+            <div className="manual-invoice-paper__total"><span>{allSubjects ? `Kokku (${sameName.length} arvet)` : 'Summa tasumiseks'}</span><strong>{formatMoney(allSubjects ? bothTotal : form.amount)}</strong></div>
             <footer><span>Makseinfo lisatakse ettevõtte seadetest.</span><span>PDF luuakse pärast arve salvestamist.</span></footer>
           </div>
         </aside>

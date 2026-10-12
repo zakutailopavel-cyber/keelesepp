@@ -90,4 +90,29 @@ describe('ManualInvoiceDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
     await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'a-en' })));
   });
+
+  it('makes one invoice per subject in one go for a student with two subjects', async () => {
+    api.create.mockReset();
+    api.create.mockImplementation(async (values) => ({ invoice: { id: `inv-${values.studentId}` } }));
+    const onCreated = vi.fn();
+    const cards = [
+      { id: 'a-et', name: 'Aleksandr Smirnov', subject: 'Eesti keel', parentName: 'Jekaterina' },
+      { id: 'a-en', name: 'Aleksandr Smirnov', subject: 'Inglise keel', parentName: 'Jekaterina' },
+    ];
+    render(<ManualInvoiceDialog studentCards={cards} onCreated={onCreated} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
+    await screen.findByRole('option', { name: 'Aleksandr Smirnov · 2 ainet' });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Aleksandr Smirnov' } });
+    fireEvent.change(screen.getByLabelText('Aine'), { target: { value: '__all__' } });
+    fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Keeletunnid, november' } });
+    fireEvent.change(screen.getByLabelText('Summa — Eesti keel (€)'), { target: { value: '80' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arved (2)' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Lisa summa igale ainele.');
+    fireEvent.change(screen.getByLabelText('Summa — Inglise keel (€)'), { target: { value: '95' } });
+    expect(within(screen.getByLabelText('Arve eelvaade')).getByText(/175,00/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arved (2)' }));
+    await waitFor(() => expect(api.create).toHaveBeenCalledTimes(2));
+    expect(api.create.mock.calls.map(([values]) => [values.studentId, values.amount])).toEqual([['a-et', '80'], ['a-en', '95']]);
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv-a-en' }));
+  });
 });
