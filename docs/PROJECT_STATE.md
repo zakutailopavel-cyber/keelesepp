@@ -1,3 +1,13 @@
+## 2026-10-12 · agent/b1-didactic-fixes — B1 sheets: errors fixed (keys, Estonian, false errors, guessable and unsolvable tasks)
+
+- Why (owner): „проверь рабочие листы б1 на дидактическую ценность, найди ошибки и исправь их”. Source: `docs/level-audit-2026-10-12/b1-part1.md`, `b1-part2.md` + a full read of every sheet.
+- Files: `admin/course/b1/module02…15.js`, `admin/avastaModule1…10.js`, `admin/module1ThreePhase.js`; `admin/course/qualityBaseline.json` (B1 known problems 59 → 25, none added). Per-lesson change lists: `docs/level-audit-2026-10-12/b1-fixes/A.md` (lessons 001–020), `B.md` (021–040), `C.md` (041–055), `D.md` (056–075).
+- About 650 edits in 165 course sheets + Avasta upgrades: wrong keys and missing accepted variants (|), Estonian errors, correct Estonian marked as an error in „Paranda viga” replaced with real learner errors, one word-order rule per module (kuna / sest / sellepärast), unsolvable word forms and titles, absurd distractors, banks without extra words, reading questions that need more than copying one word. Block ids, order, types, goals and canDo unchanged (checked by a dump of all 165 sheets).
+- Depends on #570: answer variants of sentences are written with „|”, which error fix / transformation score only after #570.
+- Data / production: none. The owner republishes the B1 lessons on „Kursuse tootmine” (or the Avasta upgrade buttons) — until then students see the old versions.
+- Checks: worksheet-generator + worksheet-studio 713/714 (the 1 is the timing-flaky LessonWorksheetStudioPage test, 4/4 alone); lint 0 errors; avastaModule tests pass.
+- Not fixed (needs a redesign, see the reports): texts 80–150 words (Harno B1: 200–300), no listening in modules 07–08, A2 grammar in 048/051/052/056/057/066/067/071, no täisminevik in module 05, no enneminevik; modules 09–15 marked A2+ while the roadmap says A2+/B1- / B1- (raising it unlocks longer speaking); (fixed on owner request: the a2b1-023 g_notice goal now says „erandlikud lihtmineviku vormid … algvormiga”, in avastaModule5.js and lessonGoals.js).
+- Next: merge #570, then this PR; then republish B1 lessons.
 ## 2026-10-12 · agent/sentence-answer-commas — a right sentence with a comma was scored wrong
 
 - Found in the B1 check: error fix and transformation answers were split at commas as if they were variant lists (`splitList`), so „Valime rongi, sest see on kiire.” accepted only fragments. 1670 of 3736 sentence answers in the course code contain a comma (none is a variant list).

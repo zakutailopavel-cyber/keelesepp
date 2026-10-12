@@ -33,9 +33,9 @@ const SPECS = {
         title: 'Kuidas kodukirjeldusest aru saada?',
         instruction: 'Vali vastus, mis aitab ruumi kõige paremini ette kujutada.',
         questions: [
-          { q: 'Milline info on toa kirjelduses kõige tähtsam?', options: '*Mis ruumis on ja kus asjad asuvad.\nKõigi esemete hind.\nAinult seinte värv.' },
+          { q: 'Milline info on toa kirjelduses kõige tähtsam?', options: '*Mis ruumis on ja kus asjad asuvad.\nKes toas elab ja kui vana ta on.\nMillal tuba viimati remonditi.' },
           { q: 'Milline lause annab täpse asukoha?', options: '*Lamp on diivani kõrval.\nLamp on ilus.\nLamp maksab palju.' },
-          { q: 'Milline küsimus aitab asukohta täpsustada?', options: '*Kus laud on?\nMillal sa sündisid?\nMiks buss hilineb?' },
+          { q: 'Milline küsimus aitab asukohta täpsustada?', options: '*Kus laud on?\nMis värvi laud on?\nKui suur laud on?' },
         ],
       }),
       notice: block('a2b1_011_av_notice', 'notice', 'white', 'g_notice', {
@@ -45,7 +45,7 @@ const SPECS = {
       controlled: block('a2b1_011_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Pane asjad õigesse kohta.',
         instruction: 'Täienda laused sobiva asukohaväljendiga.',
-        bank: 'laual, kapis, kõrval, ees, juures, seinal',
+        bank: 'laual, kapis, kõrval, ees, juures, seinal, lauale, kappi',
         showBank: 'yes',
         sentences: 'Arvuti on [laual].\nRiided on [kapis].\nLamp on voodi [kõrval].\nVaip on diivani [ees].\nTugitool on akna [juures].\nPilt on [seinal].',
       }, 'full'),
@@ -80,14 +80,14 @@ const SPECS = {
       }),
       notice: block('a2b1_012_av_notice', 'notice', 'white', 'g_notice', {
         title: 'Märka liikumise suunda.',
-        lines: '**Kus?** Olen koolis / tööl / laual.\n**Kuhu?** Lähen kooli / tööle / lauale.\n**Kust?** Tulen koolist / töölt / laualt.\nKüsimus muutub koos tegevusega: *olen* ≠ *lähen* ≠ *tulen*.',
+        lines: '**Kus?** Olen koolis / tööl. Telefon on laual.\n**Kuhu?** Lähen kooli / tööle. Panen telefoni lauale.\n**Kust?** Tulen koolist / töölt. Võtan telefoni laualt.\nKüsimus muutub koos tegevusega: *olen* ≠ *lähen* ≠ *tulen*.',
       }),
       controlled: block('a2b1_012_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Vali õige kohavorm.',
         instruction: 'Täienda laused sulgudes oleva sõna õige vormiga.',
         bank: '',
         showBank: 'no',
-        sentences: 'Ma olen praegu [koolis] (kool).\nPärast tundi lähen [koju] (kodu).\nHommikul tulen [kodust] (kodu).\nTelefon on [laual] (laud).\nPane telefon [lauale] (laud).\nVõta telefon [laualt] (laud).',
+        sentences: 'Ma olen praegu [koolis] (kool).\nPärast tundi lähen [koju] (kodu).\nHommikul lähen [kodust] (kodu) välja.\nTelefon on [laual] (laud).\nPane telefon [lauale] (laud).\nVõta telefon [laualt] (laud).',
       }, 'full'),
     },
   },
@@ -106,7 +106,7 @@ const SPECS = {
     additions: {
       vocab: block('a2b1_013_av_vocab', 'vocab', 'cream', 'g_vocab', {
         title: 'Linnas vajalikud kohad',
-        words: 'pood, apteek, pank, raamatukogu, postkontor, jaam, bussipeatus, polikliinik, kohvik, turuplats, spordikeskus, linnavalitsus',
+        words: 'pood, apteek, pank, raamatukogu, postkontor, jaam, bussipeatus, polikliinik, kohvik, turg, spordikeskus, linnavalitsus',
         columns: '3',
       }, 'full'),
       general: block('a2b1_013_av_general', 'choice', 'sky', 'g_read', {
@@ -116,7 +116,7 @@ const SPECS = {
           { q: 'Sul on vaja retseptiravimit kätte saada.', options: '*apteeki\nraamatukokku\nspordikeskusse' },
           { q: 'Tahad raamatu laenutada.', options: '*raamatukokku\npanka\njaama' },
           { q: 'Tahad saata paki.', options: '*postkontorisse\nkohvikusse\npolikliinikusse' },
-          { q: 'Tahad võtta sularaha või rääkida kontost.', options: '*panka\nturuplatsile\nbussipeatusse' },
+          { q: 'Tahad võtta sularaha või rääkida kontost.', options: '*panka\nturule\npostkontorisse' },
         ],
       }),
       notice: block('a2b1_013_av_notice', 'notice', 'white', 'g_notice', {
@@ -126,9 +126,9 @@ const SPECS = {
       controlled: block('a2b1_013_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Vali koht konteksti järgi.',
         instruction: 'Täienda laused sobiva kohaga õiges vormis.',
-        bank: 'apteeki, pangas, raamatukogust, postkontorisse, kohvikus, jaama',
+        bank: 'apteeki, pangas, raamatukogust, postkontorisse, kohvikus, jaama, apteegis, pangast',
         showBank: 'yes',
-        sentences: 'Pean ravimi ostma, seega lähen [apteeki].\nMul on kohtumine [pangas].\nLaenutasin raamatu [raamatukogust].\nPean paki saatma, seega lähen [postkontorisse].\nKohtume pärast tööd [kohvikus].\nRongi peale minekuks lähen [jaama].',
+        sentences: 'Pean ravimi ostma, seega lähen [apteeki].\nMul on kohtumine [pangas].\nLaenutasin raamatu [raamatukogust].\nPean paki saatma, seega lähen [postkontorisse].\nKohtume pärast tööd [kohvikus].\nPean rongile jõudma, seega lähen [jaama].',
       }, 'full'),
     },
   },
@@ -154,9 +154,9 @@ const SPECS = {
         title: 'Mis teeb juhise arusaadavaks?',
         instruction: 'Vali kõige parem vastus.',
         questions: [
-          { q: 'Milline juhis on kõige selgem?', options: '*Mine otse kaks kvartalit ja pööra siis paremale.\nMine sinna.\nVaata ise.' },
+          { q: 'Milline juhis on kõige selgem?', options: '*Mine otse kaks kvartalit ja pööra siis paremale.\nMine sinna, see on lähedal.\nMine otse ja kuskil pööra.' },
           { q: 'Milleks kasutatakse sõna „siis”?', options: '*Järgmise sammu näitamiseks.\nKoha omaniku näitamiseks.\nMineviku moodustamiseks.' },
-          { q: 'Milline küsimus sobib tee küsimiseks?', options: '*Vabandust, kuidas ma saan raamatukokku?\nMis su lemmikvärv on?\nKui vana sa oled?' },
+          { q: 'Milline küsimus sobib tee küsimiseks?', options: '*Vabandust, kuidas ma saan raamatukokku?\nVabandust, kas raamatukogu on täna avatud?\nVabandust, kas te käite raamatukogus?' },
         ],
       }),
       notice: block('a2b1_014_av_notice', 'notice', 'white', 'g_notice', {
@@ -166,9 +166,9 @@ const SPECS = {
       controlled: block('a2b1_014_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Taasta juhis.',
         instruction: 'Täienda teekirjeldus nii, et marsruut oleks loogiline.',
-        bank: 'mine, pööra, ületa, jätka, kõrval, siis',
+        bank: 'mine, pööra, ületa, jätka, kõrval, siis, vastas, minge',
         showBank: 'yes',
-        sentences: '[Mine] otse kuni esimese ristmikuni.\n[Siis] pööra paremale.\n[Ületa] tee valgusfoori juures.\n[Jätka] otse umbes 100 meetrit.\n[Pööra] teise tänava juures vasakule.\nRaamatukogu on panga [kõrval].',
+        sentences: '[Mine] otse kuni esimese ristmikuni.\n[Siis] pööra paremale.\n[Ületa] tee valgusfoori juures.\n[Jätka] otse umbes 100 meetrit.\n[Pööra] teise tänava juures vasakule.\nRaamatukogu on panga [kõrval|vastas].',
       }, 'full'),
     },
   },

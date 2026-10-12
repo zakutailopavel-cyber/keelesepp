@@ -34,21 +34,21 @@ const SPECS = {
         title: 'Kuidas päevaplaanist aru saada?',
         instruction: 'Vali kõige sobivam vastus.',
         questions: [
-          { q: 'Milline info näitab tegevuse kestust?', options: '*alates kell üheksa kuni kell üksteist\nhommikul\nsiis' },
+          { q: 'Milline info näitab tegevuse kestust?', options: '*kella üheksast kella üheteistkümneni\nkell üheksa\nhommikul kell üheksa' },
           { q: 'Milline sõna näitab esimest sammu?', options: '*kõigepealt\nlõpuks\npärast' },
           { q: 'Milline sõna sobib viimase tegevuse ette?', options: '*lõpuks\nenne\nalates' },
         ],
       }),
       notice: block('a2b1_016_av_notice', 'notice', 'white', 'g_notice', {
         title: 'Märka ajamustreid.',
-        lines: 'Töötan **alates kell üheksa kuni kell viis**.\n**Kõigepealt** vastan kirjadele, **siis** teen tähtsamad ülesanded.\n**Pärast** lõunat on mul koosolek.\n**Lõpuks** kontrollin homset päevaplaani.',
+        lines: 'Töötan **alates kella üheksast kuni kella viieni**.\n**Kõigepealt** vastan kirjadele, **siis** teen tähtsamad ülesanded.\n**Pärast** lõunat on mul koosolek.\n**Lõpuks** kontrollin homset päevaplaani.',
       }),
       controlled: block('a2b1_016_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Ehita loogiline päevaplaan.',
         instruction: 'Täienda laused sobiva ajamarkeriga.',
-        bank: 'kõigepealt, alates, kuni, pärast, siis, lõpuks',
+        bank: 'kõigepealt, alates, kuni, pärast, siis, lõpuks, enne, kell',
         showBank: 'yes',
-        sentences: '[Kõigepealt] söön hommikusööki.\nTöötan [alates] kell üheksa [kuni] kell viis.\n[Pärast] lõunat on mul koosolek.\nKoosoleku järel teen ühe telefonikõne ja [siis] kirjutan aruande.\n[Lõpuks] vaatan üle homse plaani.',
+        sentences: '[Kõigepealt] söön hommikusööki.\nTöötan [alates] kella üheksast [kuni] kella viieni.\n[Pärast] lõunat on mul koosolek.\nKoosoleku järel teen ühe telefonikõne ja [siis] kirjutan aruande.\n[Lõpuks] vaatan üle homse plaani.',
       }, 'full'),
     },
     seed: {
@@ -65,7 +65,7 @@ const SPECS = {
         instruction: 'Loe tekst läbi. Seejärel vasta detailiküsimustele.',
         passageTitle: 'Kristi tööpäev',
         passage: 'Kristi töötab väikeses ettevõttes. Tema tööpäev algab tavaliselt kell üheksa, kuid ta jõuab kontorisse umbes veerand tundi varem. Kõigepealt teeb ta kohvi ja vaatab üle päevaplaani. Alates kella üheksast kuni üheteistkümneni vastab ta kirjadele ja teeb keskendumist nõudvaid ülesandeid. Enne lõunat helistab ta klientidele. Kell kaksteist sööb Kristi koos kolleegidega lõunat. Pärast lõunat on tal sageli üks või kaks koosolekut. Umbes kell neli kontrollib ta, mis on veel tegemata, ja lõpetab tähtsamad asjad. Kui mõni ülesanne ei ole kiire, märgib ta selle järgmise päeva plaani. Tööpäev lõpeb kell viis. Siis läheb ta koju või trenni. Õhtul püüab ta tööasjadele enam mitte mõelda ja jätab telefoni mõneks ajaks kõrvale.',
-        questions: 'Mis kell Kristi tööpäev tavaliselt algab? [kell üheksa|üheksa|9|9.00|09.00]\nMida ta teeb kõigepealt? [teeb kohvi ja vaatab üle päevaplaani|teeb kohvi|vaatab üle päevaplaani]\nMillal ta helistab klientidele? [enne lõunat]\nKellega ta lõunat sööb? [kolleegidega|koos kolleegidega]\nMis kell tööpäev lõpeb? [kell viis|viis|5|17.00|17]',
+        questions: 'Mis kell jõuab Kristi tavaliselt kontorisse? [kolmveerand üheksa|kell kolmveerand üheksa|8.45|umbes 8.45]\nMida ta teeb kõigepealt? [teeb kohvi ja vaatab üle päevaplaani|teeb kohvi|vaatab üle päevaplaani]\nMillal ta helistab klientidele? [enne lõunat]\nMida teeb Kristi ülesandega, mis ei ole kiire? [märgib selle järgmise päeva plaani|jätab selle järgmiseks päevaks|lükkab selle järgmisse päeva]\nMis kell tööpäev lõpeb? [kell viis|viis|5|17.00|17]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_016_av_speaking', 'speaking', 'green', 'g_use', {
@@ -101,7 +101,7 @@ const SPECS = {
     additions: {
       vocab: block('a2b1_017_av_vocab', 'vocab', 'cream', 'g_vocab', {
         title: 'Reeglid ja võimalused',
-        words: 'peab tegema, ei pea tegema, võib teha, ei või teha, saab teha, ei saa teha, reegel, luba, kohustus, võimalus',
+        words: 'peab tegema, ei pea tegema, võib teha, ei tohi teha, saab teha, ei saa teha, reegel, luba, kohustus, võimalus, keeld',
         columns: '3',
       }, 'full'),
       general: block('a2b1_017_av_general', 'choice', 'sky', 'g_read', {
@@ -115,14 +115,14 @@ const SPECS = {
       }),
       notice: block('a2b1_017_av_notice', 'notice', 'white', 'g_notice', {
         title: 'Märka vormi ja tähendust.',
-        lines: 'Ma **pean minema** tööle. → peab + ma-infinitiiv.\nSiin **võib istuda**. → võib + da-infinitiiv.\nSeda **saab teha** veebis. → saab + da-infinitiiv.\nTäna **ei pea tulema** varem. → kohustust ei ole.',
+        lines: 'Ma **pean minema** tööle. → peab + ma-infinitiiv.\nSiin **võib istuda**. → võib + da-infinitiiv.\nSeda **saab teha** veebis. → saab + da-infinitiiv.\nTäna **ei pea tulema** varem. → kohustust ei ole.\nSiin **ei tohi suitsetada**. → keeld (ei pea ≠ ei tohi).',
       }),
       controlled: block('a2b1_017_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Vali peab, võib või saab.',
         instruction: 'Täienda laused tähenduse järgi.',
-        bank: 'peab, võib, saab, ei pea, ei või, ei saa',
+        bank: 'peab, võib, saab, ei pea, ei tohi, ei saa, pead, võid',
         showBank: 'yes',
-        sentences: 'Raamatukogus [ei või] valjusti rääkida.\nArsti juurde [peab] aja kokku leppima.\nSelle avalduse [saab] internetis täita.\nPühapäeval [ei pea] tööle minema.\nSiin [võib] tasuta parkida kaks tundi.\nIlma paroolita [ei saa] kontole sisse logida.',
+        sentences: 'Raamatukogus [ei tohi|ei või] valjusti rääkida.\nArsti juurde [peab] aja kokku leppima.\nSelle avalduse [saab] internetis täita.\nPühapäeval [ei pea] tööle minema.\nSiin [võib] tasuta parkida kaks tundi.\nIlma paroolita [ei saa] kontole sisse logida.',
       }, 'full'),
     },
     seed: {
@@ -138,22 +138,22 @@ const SPECS = {
         title: 'Loe uue töötaja juhiseid.',
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Esimene päev tööl',
-        passage: 'Markus alustab uut tööd laos. Esimesel päeval selgitab juhataja talle põhireegleid. Töötaja peab kandma turvavesti ja kinniseid jalanõusid. Tööalal ei või kõrvaklappe kasutada, sest seal liiguvad tõstukid. Pausi ajal võib telefoni vaadata ja puhkeruumis saab tasuta kohvi teha. Kui Markus ei saa mõnest ülesandest aru, võib ta alati juhendajalt küsida. Tööpäeva lõpus peab ta oma töökoha korrastama, kuid ta ei pea ise kõiki seadmeid puhastama. Mõne dokumendi saab täita arvutis ja teised peab allkirjastama paberil. Enne töö alustamist võib ta oma isiklikud asjad lukustatavasse kappi panna. Markus märgib juhised üles, sest esimesel päeval on uut infot palju ja kõike korraga meelde jätta on raske.',
-        questions: 'Mida Markus peab kandma? [turvavesti ja kinniseid jalanõusid|turvavesti|kinniseid jalanõusid]\nMida ei või tööalal kasutada? [kõrvaklappe]\nMillal võib telefoni vaadata? [pausi ajal|pausil]\nKellelt võib Markus abi küsida? [juhendajalt]\nMida peab ta tööpäeva lõpus tegema? [töökoha korrastama|oma töökoha korrastama]',
+        passage: 'Markus alustab uut tööd laos. Esimesel päeval selgitab juhataja talle põhireegleid. Töötaja peab kandma turvavesti ja kinniseid jalanõusid. Tööalal ei tohi kõrvaklappe kasutada, sest seal liiguvad tõstukid. Pausi ajal võib telefoni vaadata ja puhkeruumis saab tasuta kohvi teha. Kui Markus ei saa mõnest ülesandest aru, võib ta alati juhendajalt küsida. Tööpäeva lõpus peab ta oma töökoha korrastama, kuid ta ei pea ise kõiki seadmeid puhastama. Mõne dokumendi saab täita arvutis ja teised peab allkirjastama paberil. Enne töö alustamist võib ta oma isiklikud asjad lukustatavasse kappi panna. Markus märgib juhised üles, sest esimesel päeval on uut infot palju ja kõike korraga meelde jätta on raske.',
+        questions: 'Mida Markus peab kandma? [turvavesti ja kinniseid jalanõusid|turvavesti|kinniseid jalanõusid]\nMiks ei tohi tööalal kõrvaklappe kasutada? [seal liiguvad tõstukid|tõstukite pärast|sest seal sõidavad tõstukid]\nMillal võib telefoni vaadata? [pausi ajal|pausil]\nKas Markus peab ise kõik seadmed puhastama? [ei|ei pea|ei, ei pea]\nMida peab ta tööpäeva lõpus tegema? [töökoha korrastama|oma töökoha korrastama]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_017_av_speaking', 'speaking', 'green', 'g_use', {
         title: 'Selgita kolme reeglit.',
         instruction: 'Räägi 1–2 minutit ühest kohast: kodu, töö, kool, trenn või liiklus.',
-        questions: 'Mida seal peab tegema?\nMida seal ei pea tegema?\nMida võib teha?\nMida ei või teha?\nMida saab vajadusel teha?',
+        questions: 'Mida seal peab tegema?\nMida seal ei pea tegema?\nMida võib teha?\nMida ei tohi teha?\nMida saab vajadusel teha?',
         img: null, aspect: '4:3', bubble: '',
         tipTitle: 'Kasuta kolme tähendust:',
-        tipText: 'kohustus: peab · luba: võib · võimalus: saab',
+        tipText: 'kohustus: peab · luba: võib · võimalus: saab · keeld: ei tohi',
         minSec: 60, maxSec: 120,
       }, 'full'),
       selfcheck: block('a2b1_017_av_self', 'selfcheck', 'sky', '', {
         title: 'Kontrolli end.', titleMore: 'Kas ma oskan?', instruction: '',
-        items: 'Ma eristan kohustust, luba ja võimalust.\nMa oskan kasutada *peab + ma-infinitiiv*.\nMa oskan kasutada *võib/saab + da-infinitiiv*.\nMa oskan kirjeldada vähemalt kolme reeglit.\nJärgmises tunnis tahan paremini harjutada üht modaalset konstruktsiooni.',
+        items: 'Ma eristan kohustust, luba, võimalust ja keeldu.\nMa oskan kasutada *peab + ma-infinitiiv*.\nMa oskan kasutada *võib/saab + da-infinitiiv*.\nMa oskan kirjeldada vähemalt kolme reeglit.\nJärgmises tunnis tahan paremini harjutada üht modaalset konstruktsiooni.',
         stamp: 'Tähendus on paigas!',
       }, 'full'),
     },
@@ -192,9 +192,9 @@ const SPECS = {
       controlled: block('a2b1_018_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Pane prioriteedid sõnadesse.',
         instruction: 'Täienda laused sobiva väljendiga.',
-        bank: 'pean, ei pea, mul on vaja, tahan, ei saa, hiljem',
+        bank: 'pean, ei pea, mul on vaja, tahan, ei saa, hiljem, võin, kohe',
         showBank: 'yes',
-        sentences: 'Täna [pean] lõpetama ühe tähtsa töö.\nMul [on vaja] enne õhtut poodi minna.\nSeda väikest ülesannet ma täna [ei pea] tegema.\nMa [tahan] õhtul perega aega veeta.\nKell kaks ma [ei saa] kohtuda.\nVähem kiire töö teen [hiljem].',
+        sentences: 'Täna [pean] lõpetama ühe tähtsa töö.\n[Mul on vaja] enne õhtut poodi minna.\nSeda väikest ülesannet ma täna [ei pea] tegema.\nMa [tahan] õhtul perega aega veeta.\nKell kaks ma [ei saa] kohtuda.\nVähem kiire töö teen [hiljem].',
       }, 'full'),
     },
     seed: {
@@ -211,7 +211,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Kõike ei jõua korraga',
         passage: 'Toomasel on täna palju tegemist. Hommikul peab ta viima auto teenindusse ja enne kella kümmet saatma ühe tähtsa töömeili. Tal on vaja ka apteegist ravim ära tuua. Lõuna ajal tahab ta kohtuda sõbraga, kuid ta ei saa pikalt kohvikus olla, sest kell kaks algab veebikoosolek. Õhtuks peab Toomas maksma elektriarve. Korteri koristamine ei ole täna nii kiire ja selle saab ta edasi lükata homsele. Pärast tööd tahab ta teha trenni, aga kui päev venib pikaks, võib ta trenni asemel lihtsalt jalutama minna. Lisaks peab ta õhtul emale helistama, kuid seda saab teha ka veidi hiljem. Toomas otsustab, et kõigepealt teeb ta ära need asjad, millel on kindel tähtaeg.',
-        questions: 'Mida peab Toomas enne kella kümmet tegema? [saatma tähtsa töömeili|töömeili saatma|meili saatma]\nMida on tal vaja apteegist tuua? [ravim|ravim ära tuua]\nMiks ei saa ta kaua kohvikus olla? [kell kaks algab veebikoosolek|tal algab kell kaks veebikoosolek]\nMida saab ta homsele edasi lükata? [korteri koristamise|koristamise]\nMillised asjad teeb ta kõigepealt? [kindla tähtajaga asjad|need asjad millel on kindel tähtaeg]',
+        questions: 'Mida peab Toomas enne kella kümmet tegema? [saatma tähtsa töömeili|töömeili saatma|meili saatma]\nMida teeb Toomas trenni asemel, kui päev venib pikaks? [läheb jalutama|läheb lihtsalt jalutama|jalutab]\nMiks ei saa ta kaua kohvikus olla? [kell kaks algab veebikoosolek|tal algab kell kaks veebikoosolek]\nMida saab ta homsele edasi lükata? [korteri koristamise|koristamise]\nMillised asjad teeb ta kõigepealt? [kindla tähtajaga asjad|need asjad millel on kindel tähtaeg]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_018_av_speaking', 'speaking', 'green', 'g_use', {
@@ -253,7 +253,7 @@ const SPECS = {
         instruction: 'Vali kõige sobivam vastus.',
         questions: [
           { q: 'Mida teha, kui pakutud aeg ei sobi?', options: '*Keelduda viisakalt ja pakkuda alternatiiv.\nÖelda ainult „ei”.\nVestlus lõpetada.' },
-          { q: 'Milline fraas pakub uut aega?', options: '*Aga kuidas oleks neljapäeval kell kuus?\nKahjuks ei saa.\nTere!' },
+          { q: 'Milline fraas pakub uut aega?', options: '*Aga kuidas oleks neljapäeval kell kuus?\nKahjuks ei saa.\nNeljapäeval kell kuus mul ei sobi.' },
           { q: 'Milline vastus lõpetab kokkuleppe?', options: '*Sobib küll, lepime nii kokku.\nEks näis.\nVõib-olla kunagi.' },
         ],
       }),
@@ -289,7 +289,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Kohtumise aeg muutub',
         passage: 'Anu ja Sergei plaanisid kohtuda kolmapäeval kell 17 kohvikus. Teisipäeva õhtul saab Anu teada, et tal on kolmapäeval töökoosolek, mis lõpeb alles kell 17.30. Ta kirjutab Sergeile: „Kahjuks ei saa ma homme kell viis kohtuda. Mul on töökoosolek. Kas sulle sobiks kell pool seitse?” Sergei vastab, et õhtul on tal trenn ja pool seitse ei sobi. Ta pakub neljapäeva kell 18. Anu kontrollib kalendrit ja ütleb, et neljapäev sobib hästi. Nad lepivad kokku, et kohtuvad samas kohvikus kell kuus. Sergei küsib veel, kas sama laud akna juures sobib, ja Anu nõustub. Mõlemad kinnitavad uue aja sõnumiga, et hiljem ei tekiks segadust.',
-        questions: 'Millal pidid nad alguses kohtuma? [kolmapäeval kell 17|kolmapäeval kell viis]\nMiks Anu ei saa algsel ajal tulla? [tal on töökoosolek|töökoosoleku pärast]\nMis aega Anu esimesena asemele pakub? [kell pool seitse|18.30|pool seitse]\nMiks see aeg Sergeile ei sobi? [tal on trenn|trenni pärast]\nMillal nad lõpuks kohtuvad? [neljapäeval kell 18|neljapäeval kell kuus]',
+        questions: 'Kus nad neljapäeval kohtuvad? [samas kohvikus|samas kohvikus akna juures|kohvikus akna juures]\nMiks Anu ei saa algsel ajal tulla? [tal on töökoosolek|töökoosoleku pärast]\nMillise uue aja pakub Anu esimesena? [kell pool seitse|18.30|pool seitse]\nMiks see aeg Sergeile ei sobi? [tal on trenn|trenni pärast]\nMillal nad lõpuks kohtuvad? [neljapäeval kell 18|neljapäeval kell kuus]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_019_av_speaking', 'speaking', 'green', 'g_use', {
@@ -327,7 +327,7 @@ const SPECS = {
         groups: [
           { name: 'Aeg', words: 'pärast, kõigepealt, lõpuks, tavaliselt' },
           { name: 'Pere ja suhted', words: 'lähedane, sugulane, hooliv, koos' },
-          { name: 'Linn ja liikumine', words: 'apteek, raamatukogu, pööra, kõrvalt' },
+          { name: 'Linn ja liikumine', words: 'apteek, raamatukogu, pööra, kõrval' },
           { name: 'Kohustus ja plaan', words: 'peab, võib, saab, kokkulepe' },
         ],
       }, 'full'),
@@ -349,7 +349,7 @@ const SPECS = {
         instruction: 'Täienda ainult vajalik sõna või vorm. Vihjeid ei ole.',
         bank: '',
         showBank: 'no',
-        sentences: 'Pärast tööd lähen [apteeki] (apteek).\nHommikul tulen [kodust] (kodu).\nTäna ma [pean] lõpetama tähtsa aruande.\nSiin [võib] parkida kaks tundi.\n[Kõigepealt] helistan arstile, siis lähen tööle.\nKahjuks ma kell viis [ei saa] kohtuda.',
+        sentences: 'Pärast tööd lähen [apteeki] (apteek).\nHommikul lähen [kodust] (kodu) välja.\nTäna ma [pean] lõpetama tähtsa aruande.\nSiin [võib|saab] parkida kaks tundi.\n[Kõigepealt] helistan arstile, siis lähen tööle.\nKahjuks ma kell viis [ei saa] kohtuda.',
       }, 'full'),
     },
     seed: {
@@ -366,7 +366,7 @@ const SPECS = {
         instruction: 'Loe üks kord tervikuna, siis vasta detailidele.',
         passageTitle: 'Tihe neljapäev',
         passage: 'Neljapäev on Marile tavalisest keerulisem. Hommikul peab ta viima lapse kooli ja minema siis tööle. Kell kümme on tal koosolek. Lõuna ajal helistab Mari apteeki, sest tal on vaja retseptiravimit. Pärast tööd plaanib ta apteeki minna, kuid kolleeg palub tal jääda pooleks tunniks kauemaks. Mari kirjutab abikaasale ja küsib, kas tema saab lapse trennist ära tuua. Abikaasa nõustub. Kell viis pidi Mari kohtuma sõbraga, kuid nüüd ta ei jõua. Ta kirjutab: „Kahjuks ei saa ma kell viis tulla. Aga kuidas oleks kell kuus?” Sõbrale sobib uus aeg. Enne kohtumist jõuab Mari apteegist läbi ja lõpuks saavad kõik tähtsad asjad tehtud.',
-        questions: 'Kuhu peab Mari hommikul lapse viima? [kooli]\nMis kell on Maril koosolek? [kell kümme|10|10.00|10:00]\nMiks ta helistab apteeki? [tal on vaja retseptiravimit|retseptiravimi pärast]\nKes toob lapse trennist ära? [abikaasa|Mari abikaasa]\nMis kell kohtub Mari lõpuks sõbraga? [kell kuus|6|18|18.00|18:00]\nKus käib Mari enne kohtumist? [apteegis|apteegist läbi]',
+        questions: 'Miks ei jõua Mari kell viis sõbraga kohtuma? [kolleeg palub tal kauemaks jääda|ta peab tööle kauemaks jääma|ta jääb tööle kauemaks]\nMis kell on Maril koosolek? [kell kümme|10|10.00|10:00]\nMiks ta helistab apteeki? [tal on vaja retseptiravimit|retseptiravimi pärast]\nKes toob lapse trennist ära? [abikaasa|Mari abikaasa]\nMis kell kohtub Mari lõpuks sõbraga? [kell kuus|6|18|18.00|18:00]\nKus käib Mari enne kohtumist? [apteegis|apteegist läbi]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_020_av_speaking', 'speaking', 'green', 'g_use', {

@@ -28,9 +28,9 @@ const SPECS = {
         title: 'Mida ostetakse ja kui palju?',
         instruction: 'Vali kõige sobivam vastus.',
         questions: [
-          { q: 'Milline väljend näitab täpset kogust?', options: '*üks kilo kartuleid\nkartulid\npoes' },
-          { q: 'Milline ühik sobib piimaga kõige loomulikumalt?', options: '*liiter\ntükk\nmeeter' },
-          { q: 'Milline fraas sobib ostunimekirja?', options: '*kaks pakki riisi\nriis väga\nriisile kaks' },
+          { q: 'Milline väljend näitab täpset kogust?', options: '*üks kilo kartuleid\npalju kartuleid\nnatuke kartuleid' },
+          { q: 'Milline ühik sobib piimaga kõige loomulikumalt?', options: '*liiter\ntükk\npaar' },
+          { q: 'Milline fraas sobib ostunimekirja?', options: '*kaks pakki riisi\nkaks pakki riis\nkaks paki riisi' },
         ],
       }),
       notice: block('a2b1_026_av_notice', 'notice', 'white', 'g_notice', {
@@ -40,7 +40,7 @@ const SPECS = {
       controlled: block('a2b1_026_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Koosta ostunimekiri.',
         instruction: 'Täienda fraasid sobiva koguse või ühikuga.',
-        bank: 'kilo, liitrit, pakki, tükki, pudelit, natuke',
+        bank: 'kilo, liitrit, pakki, tükki, pudelit, natuke, grammi, klaasi',
         showBank: 'yes',
         sentences: 'Ostan kaks [kilo] kartuleid.\nMul on vaja kolm [liitrit] piima.\nVõtan kaks [pakki] riisi.\nPalun neli [tükki] saia.\nOstan kaks [pudelit] vett.\nVajan [natuke] juustu.',
       }, 'full'),
@@ -59,7 +59,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Nädala ostud',
         passage: 'Liis teeb tavaliselt suurema toiduostu pühapäeval. Enne poodi minekut kontrollib ta külmkappi ja kirjutab nimekirja. Sel nädalal on tal vaja kaks liitrit piima, üks pakk võid, kümme muna ja umbes kilo kanafileed. Köögiviljadest ostab ta kaks kilo kartuleid, neli tomatit ja kaks kurki. Puuviljadest võtab Liis kuus õuna ja ühe kilo banaane. Lisaks on tal vaja kaks pakki riisi, üks pudel õli ja natuke juustu. Ta ei taha liiga palju osta, sest osa toidust läheb muidu halvaks. Tavaliselt vaatab ta ka kuupäevi ning valib väiksema pakendi, kui teab, et sööb midagi ainult üks kord. Poes võrdleb Liis pakendi suurust ja hinda ning valib koguse selle järgi, kui mitu päeva toit säilib.',
-        questions: 'Mis päeval teeb Liis suurema toiduostu? [pühapäeval]\nMitu liitrit piima ta ostab? [kaks liitrit|2 liitrit|2]\nKui palju kanafileed tal vaja on? [umbes kilo|üks kilo|1 kilo]\nMitu õuna ta võtab? [kuus|6]\nMiks ta ei taha liiga palju osta? [toit võib halvaks minna|osa toidust läheb muidu halvaks]',
+        questions: 'Mis päeval teeb Liis suurema toiduostu? [pühapäeval]\nMitu liitrit piima ta ostab? [kaks liitrit|2 liitrit|2]\nKui palju kanafileed tal vaja on? [umbes kilo|üks kilo|1 kilo]\nMida ja kui palju ostab Liis puuviljadest? [kuus õuna ja kilo banaane|kuus õuna ja ühe kilo banaane|6 õuna ja 1 kilo banaane]\nMiks ta ei taha liiga palju osta? [toit võib halvaks minna|osa toidust läheb muidu halvaks]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_026_av_speaking', 'speaking', 'green', 'g_use', {
@@ -101,9 +101,9 @@ const SPECS = {
         title: 'Milline repliik sobib olukorda?',
         instruction: 'Vali kõige loomulikum vastus.',
         questions: [
-          { q: 'Teenindaja küsib: „Mida teile joogiks?”', options: '*Palun üks mineraalvesi.\nMa olen kell kuus.\nSee on minu vend.' },
-          { q: 'Tahad teada, kas toidus on pähkleid.', options: '*Kas selles on pähkleid?\nKas see on eile?\nKus on peatus?' },
-          { q: 'Tahad maksta.', options: '*Arve palun.\nVeel üks laud.\nTere tulemast.' },
+          { q: 'Teenindaja küsib: „Mida teile joogiks?”', options: '*Palun üks mineraalvesi.\nPalun üks kanasalat.\nPalun arve.' },
+          { q: 'Tahad teada, kas toidus on pähkleid.', options: '*Kas selles on pähkleid?\nKas teil on pähkleid?\nKas see on pähkel?' },
+          { q: 'Tahad maksta.', options: '*Arve palun.\nMenüü palun.\nKas maksate kaardiga?' },
         ],
       }),
       notice: block('a2b1_027_av_notice', 'notice', 'white', 'g_notice', {
@@ -121,7 +121,7 @@ const SPECS = {
           { who: 'B', text: '[Kas selles on] pähkleid?' },
           { who: 'A', text: 'Ei ole. Mida joogiks?' },
           { who: 'B', text: '[Palun mulle] üks mineraalvesi.' },
-          { who: 'B', text: 'Ja pärast [arve palun].' },
+          { who: 'B', text: 'Aitäh, kõik oli hea. [Arve palun].' },
         ],
       }, 'full'),
     },
@@ -195,7 +195,7 @@ const SPECS = {
         instruction: 'Kirjuta sulgudes olev sõna partitiivis.',
         bank: '',
         showBank: 'no',
-        sentences: 'Ostan kilo [kartuleid] (kartul).\nPalun kaks liitrit [piima] (piim).\nJoome klaasi [mahla] (mahl).\nRetseptis on natuke [suhkrut] (suhkur).\nLaual on palju [õunu] (õun).\nPalun kaks tükki [kooki] (kook).',
+        sentences: 'Ostan kilo [kartuleid] (kartulid).\nPalun kaks liitrit [piima] (piim).\nJoome klaasi [mahla] (mahl).\nRetseptis on natuke [suhkrut] (suhkur).\nLaual on palju [õunu] (õunad).\nPalun kaks tükki [kooki] (kook).',
       }, 'full'),
     },
     seed: {
@@ -212,7 +212,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Lihtne õhtusöök neljale',
         passage: 'Mari valmistab õhtusööki neljale inimesele. Ta otsustab teha ahjukartuleid ja kanasalatit. Kartulite jaoks vajab ta umbes poolteist kilo kartuleid, natuke õli, soola ja pipart. Salati jaoks ostab Mari 500 grammi kanafileed, kaks tomatit, ühe kurgi ja natuke rohelist salatit. Kastmesse läheb üks klaas maitsestamata jogurtit ja natuke sidrunimahla. Joogiks ostab ta kaks liitrit mineraalvett. Magustoiduks tahab Mari pakkuda puuvilju, seega võtab ta kuus õuna ja neli banaani. Lisaks ostab ta ühe väikese leiva, sest üks külaline eelistab kartulite kõrvale värsket pehmet leiba. Ta kontrollib kogused üle, sest liiga väike kogus ei jätku kõigile, aga liiga palju toitu võib üle jääda.',
-        questions: 'Kui palju kartuleid Mari vajab? [umbes poolteist kilo|poolteist kilo]\nKui palju kanafileed ta ostab? [500 grammi|500 g]\nMitu tomatit läheb salatisse? [kaks|2]\nMida läheb kastmesse üks klaas? [maitsestamata jogurtit|jogurtit]\nKui palju mineraalvett ta ostab? [kaks liitrit|2 liitrit]',
+        questions: 'Kui palju kartuleid Mari vajab? [umbes poolteist kilo|poolteist kilo]\nKui palju kanafileed ta ostab? [500 grammi|500 g]\nMitu tomatit läheb salatisse? [kaks|2]\nMis läheb kastmesse? [klaas jogurtit ja natuke sidrunimahla|jogurt ja sidrunimahl|klaas maitsestamata jogurtit ja natuke sidrunimahla]\nKui palju mineraalvett ta ostab? [kaks liitrit|2 liitrit]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_028_av_speaking', 'speaking', 'green', 'g_use', {
@@ -254,9 +254,9 @@ const SPECS = {
         title: 'Mis on hea kaebus?',
         instruction: 'Vali kõige sobivam variant.',
         questions: [
-          { q: 'Kuidas probleemi kõige selgemalt kirjeldada?', options: '*Ma tellisin supi, aga sain salati.\nSee on halb.\nEi meeldi.' },
-          { q: 'Milline fraas palub lahendust?', options: '*Kas saaksite selle ära vahetada?\nMiks te üldse töötate?\nSee on kohvik.' },
-          { q: 'Mis aitab konflikti vältida?', options: '*konkreetne probleem ja viisakas soov\nväga vali hääl\nsolvamine' },
+          { q: 'Kuidas probleemi kõige selgemalt kirjeldada?', options: '*Ma tellisin supi, aga sain salati.\nSee salat ei ole väga hea.\nMulle ei meeldi salat.' },
+          { q: 'Milline fraas palub lahendust?', options: '*Kas saaksite selle ära vahetada?\nSee ei ole see, mida ma tellisin.\nVabandust, mul on probleem.' },
+          { q: 'Mis aitab konflikti vältida?', options: '*konkreetne probleem ja viisakas soov\nainult probleem, ilma soovita\npikk selgitus, miks sa pahane oled' },
         ],
       }),
       notice: block('a2b1_029_av_notice', 'notice', 'white', 'g_notice', {
@@ -337,9 +337,9 @@ const SPECS = {
         title: 'Põhiidee.',
         instruction: 'Vali vastus teksti põhjal.',
         questions: [
-          { q: 'Mis on kliendi peamine eesmärk?', options: '*saada õige tellimus ja korrektne arve\nõppida retsepti pähe\nvahetada töökohta' },
-          { q: 'Milline oskus on olukorras kõige tähtsam?', options: '*täpne ja viisakas suhtlus\nväga kiire kõne\nkeerulised sõnad' },
-          { q: 'Milline grammatika on koguse juures oluline?', options: '*partitiiv\nkomparatiiv\ntingiv kõneviis' },
+          { q: 'Mis on Kristjani peamine eesmärk?', options: '*saada õige lisand ja õige arve\nsaada tasuta kohvi\nvahetada supp teise vastu' },
+          { q: 'Miks lahkub Kristjan rahulolevalt?', options: '*probleemid lahendati kiiresti ja viisakalt\ntoit oli tasuta\nta sai kohvi ja magustoitu' },
+          { q: 'Mida teeb Kristjan, kui teenindaja pakub kohvi?', options: '*ütleb viisakalt, et praegu mitte\ntellib kohvi ja magustoidu\npalub kohe arvet' },
         ],
       }),
       notice: block('a2b1_030_av_notice', 'notice', 'white', 'g_notice', {
@@ -351,7 +351,7 @@ const SPECS = {
         instruction: 'Täienda õige sõna või vormiga.',
         bank: '',
         showBank: 'no',
-        sentences: 'Palun kaks liitrit [piima] (piim).\nOstan kilo [õunu] (õun).\n[Soovin] päevapraadi ja vett.\nKas selles [on] pähkleid?\nMa tellisin supi, aga [sain] salati.\nKas [saaksite] arvet kontrollida?',
+        sentences: 'Palun kaks liitrit [piima] (piim).\nOstan kilo [õunu] (õunad).\n[Soovin] päevapraadi ja vett.\nKas selles [on] pähkleid?\nMa tellisin supi, aga [sain] salati.\nKas [saaksite] arvet kontrollida?',
       }, 'full'),
     },
     seed: {

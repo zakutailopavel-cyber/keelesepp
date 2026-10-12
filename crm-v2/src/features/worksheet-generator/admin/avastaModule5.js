@@ -65,7 +65,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Martini teisipäev',
         passage: 'Eile oli Martinil üsna tavaline tööpäev. Ta ärkas kell seitse ja tegi kiiresti hommikusöögi. Seejärel sõitis ta bussiga tööle. Kontoris töötas Martin kõigepealt arvutis ja vastas mitmele kirjale. Enne lõunat helistas ta ühele kliendile ja lõpetas ühe väikese projekti. Kell kaksteist sõi ta kolleegidega lõunat. Pärast lõunat töötas ta veel kolm tundi. Ühel hetkel aitas ta kolleegi, kelle arvutis oli väike probleem. Kell viis läks Martin koju. Õhtul ei töötanud ta enam. Ta tegi süüa, vaatas ühe seriaali osa ja rääkis telefonis sõbraga. Enne magamaminekut luges ta natuke. Martin ütles, et päev ei olnud eriline, aga kõik vajalikud asjad said tehtud.',
-        questions: 'Mis kell Martin ärkas? [kell seitse|seitse|7|07.00|7.00]\nKuidas ta tööle läks? [bussiga]\nMida ta enne lõunat lõpetas? [ühe väikese projekti|projekti]\nKellega ta lõunat sõi? [kolleegidega]\nKas ta töötas õhtul? [ei|ei töötanud]',
+        questions: 'Mis kell Martin ärkas? [kell seitse|seitse|7|07.00|7.00]\nMida Martin õhtul tegi? [tegi süüa, vaatas seriaali ja rääkis sõbraga|tegi süüa ja vaatas seriaali|tegi süüa]\nMida ta enne lõunat lõpetas? [ühe väikese projekti|projekti]\nKuidas aitas Martin kolleegi? [lahendas arvutiprobleemi|aitas arvutiga|parandas arvuti]\nKas ta töötas õhtul? [ei|ei töötanud]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_021_av_speaking', 'speaking', 'green', 'g_use', {
@@ -135,7 +135,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Katrini nädalavahetus',
         passage: 'Eelmisel nädalavahetusel oli Katrinil palju plaane. Laupäeva hommikul ärkas ta veidi hiljem ja sõi rahulikult hommikusööki. Kõigepealt koristas ta korteri. Siis läks ta turule, sest tahtis õhtuks värskeid toiduaineid osta. Pärast seda kohtus Katrin õega ja nad jõid koos kohvi. Nad rääkisid pikalt tööst ja suveplaanidest ning otsustasid järgmisel kuul ühe väikese reisi teha. Õhtul tegid nad kodus süüa ning vaatasid vana filmi. Pühapäeval Katrin ei kiirustanud. Hommikul käis ta pikalt jalutamas. Lõuna ajal helistas ta vanematele ja pärast kõnet luges raamatut. Õhtul valmistas ta ette järgmise nädala tööasjad. Lõpuks läks Katrin tavalisest varem magama, sest esmaspäeval pidi ta vara ärkama.',
-        questions: 'Mida Katrin laupäeval kõigepealt tegi? [koristas korteri|korteri koristas]\nMiks ta turule läks? [tahtis värskeid toiduaineid osta|värskeid toiduaineid ostma]\nKellega ta kohvi jõi? [õega]\nMida ta pühapäeva hommikul tegi? [käis jalutamas|jalutas]\nMiks ta läks vara magama? [esmaspäeval pidi vara ärkama|pidi esmaspäeval vara ärkama]',
+        questions: 'Mida Katrin laupäeval kõigepealt tegi? [koristas korteri|korteri koristas]\nMiks ta turule läks? [tahtis värskeid toiduaineid osta|värskeid toiduaineid ostma]\nMida otsustasid Katrin ja tema õde? [teha järgmisel kuul väikese reisi|minna järgmisel kuul reisile|teha reisi]\nMida ta pühapäeva hommikul tegi? [käis jalutamas|jalutas]\nMiks ta läks vara magama? [esmaspäeval pidi vara ärkama|pidi esmaspäeval vara ärkama]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_022_av_speaking', 'speaking', 'green', 'g_use', {
@@ -162,7 +162,7 @@ const SPECS = {
       goals: {
         g_vocab: 'Õpilane tunneb ära sagedased erandlikud minevikuvormid.',
         g_read: 'Õpilane mõistab tekstis sagedasi erandlikke minevikuvorme kontekstist.',
-        g_notice: 'Õpilane seostab oleviku vormid tuli, läks, tegi, nägi, sõi, jõi, oli jne minevikutähendusega.',
+        g_notice: 'Õpilane seostab erandlikud lihtmineviku vormid tuli, läks, tegi, nägi, sõi, jõi, oli algvormiga (tulema, minema, tegema …) ja kasutab neid minevikust rääkides.',
         g_use: 'Õpilane kasutab vähemalt 8 sihtvormi 10-st õigesti.',
       },
     },
@@ -178,7 +178,7 @@ const SPECS = {
         questions: [
           { q: '„Ta läks eile arsti juurde.” Mis on verbi algvorm?', options: '*minema\ntulema\nnägema' },
           { q: '„Me sõime restoranis.” Mis tegevus see on?', options: '*sööma\njooma\nsaama' },
-          { q: '„Mari nägi sõpra.” Mis on oleviku algvorm?', options: '*nägema\nviima\njääma' },
+          { q: '„Mari nägi sõpra.” Mis on verbi algvorm?', options: '*nägema\nviima\njääma' },
         ],
       }),
       notice: block('a2b1_023_av_notice', 'notice', 'white', 'g_notice', {
@@ -199,7 +199,7 @@ const SPECS = {
         instruction: 'Vali minevikuvorm, mida oled juba kuulnud või kasutanud.',
         questions: [
           { q: 'Milline lause tundub loomulik?', options: '*Eile läksin tööle.\nEile minasin tööle.\nEile mineksin tööle.' },
-          { q: 'Milline vorm tähendab „oli”?', options: '*olema minevik\nminema minevik\ntegema minevik' },
+          { q: '„Oli” on minevikuvorm. Mis on selle algvorm?', options: '*olema\nminema\nootama' },
         ],
       }),
       reading: block('a2b1_023_av_reading', 'reading', 'cream', 'g_read', {
@@ -207,7 +207,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Päev, mis läks teisiti',
         passage: 'Eile oli Rainil vaba päev. Hommikul läks ta turule ja nägi seal juhuslikult vana koolikaaslast. Nad rääkisid natuke ja jõid kohvikus kohvi. Rain sai teada, et sõber elab nüüd samas linnaosas. Nad leppisid kokku, et kohtuvad järgmisel nädalal uuesti ja lähevad koos pikemalt jalutama. Pärast kohtumist läks Rain koju ja tegi lõunasööki. Ta sõi suppi ning jõi klaasi vett. Pärast sööki jäi ta mõneks ajaks diivanile raamatut lugema. Õhtul tuli tema õde külla ja nad vaatasid koos vanu fotosid. Rain nägi piltidel palju inimesi, keda polnud aastaid kohanud. Õhtu oli rahulik, aga päev tõi talle mitu ootamatut kohtumist ja mälestust.',
-        questions: 'Kuhu Rain hommikul läks? [turule]\nKeda ta turul nägi? [vana koolikaaslast|koolikaaslast]\nMida nad kohvikus jõid? [kohvi]\nMida Rain lõunaks tegi? [lõunasööki|suppi]\nKes tuli õhtul külla? [tema õde|õde]',
+        questions: 'Kuhu Rain hommikul läks? [turule]\nKeda ta turul nägi? [vana koolikaaslast|koolikaaslast]\nMiks saavad Rain ja koolikaaslane nüüd kergemini kohtuda? [sõber elab samas linnaosas|nad elavad samas linnaosas]\nMida Rain lõunaks tegi? [lõunasööki|suppi]\nKes tuli õhtul külla? [tema õde|õde]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_023_av_speaking', 'speaking', 'green', 'g_use', {
@@ -260,7 +260,7 @@ const SPECS = {
       controlled: block('a2b1_024_av_controlled', 'wordorder', 'blue', 'g_use', {
         title: 'Taasta sündmuste laused.',
         instruction: 'Pane sõnad õigesse järjekorda.',
-        sentences: 'Alguses läks Karl hommikul poodi.\nSiis märkas ta tänaval kadunud koera.\nPärast seda helistas ta loomade varjupaika.\nNatuke hiljem tuli koera omanik kohale.\nLõpuks jõudis Karl koju palju hiljem kui plaanis.',
+        sentences: 'Alguses läks Karl hommikul poodi.\nSiis märkas ta tänaval kadunud koera.\nPärast seda helistas ta loomade varjupaika.\nNatuke hiljem tuli koera omanik kohale.\nLõpuks jõudis Karl koju palju hiljem kui plaanitud.',
       }, 'full'),
     },
     seed: {
@@ -321,7 +321,7 @@ const SPECS = {
         title: 'Põhiidee ja ajaloogika.',
         instruction: 'Vali vastus ainult teksti põhjal.',
         questions: [
-          { q: 'Mis teeb tekstist minevikujutu?', options: '*Sündmused on lõpetatud ja ajaliselt järjestatud.\nKõik laused on küsimused.\nTekstis ei ole verbe.' },
+          { q: 'Mis teeb tekstist minevikujutu?', options: '*Sündmused on lõpetatud ja ajaliselt järjestatud.\nSündmused toimuvad praegu ja korduvad iga päev.\nTekst räägib tulevikuplaanidest.' },
           { q: 'Milline sõna näitab selgelt loo lõppu?', options: '*lõpuks\neile\nhommikul' },
           { q: 'Milline vorm on erandlik?', options: '*läks\ntöötasin\nvaatasin' },
         ],
@@ -352,7 +352,7 @@ const SPECS = {
         instruction: 'Loe üks kord tervikuna ja vasta siis detailidele.',
         passageTitle: 'Päev, mis muutis plaani',
         passage: 'Eelmisel reedel plaanis Oliver pärast tööd otse koju minna. Hommikul töötas ta tavaliselt ja lõpetas ühe suure ülesande. Lõuna ajal sai ta aga sõbralt sõnumi. Sõber kirjutas, et tal oli kaks kontserdipiletit ja üks inimene ei saanud tulla. Oliver mõtles natuke ja otsustas minna. Pärast tööd läks ta kiiresti koju, vahetas riided ja sõi midagi. Siis sõitis ta kesklinna. Kontserdil nägi Oliver veel kahte tuttavat, keda ta polnud ammu kohanud. Nad kuulasid muusikat ja rääkisid vaheajal. Oliver ostis enne viimast osa vett ja helistas korraks koju. Kontsert lõppes hilja. Lõpuks jõudis Oliver koju pärast südaööd. Ta oli väsinud, kuid ütles, et spontaanne plaan oli seda väärt.',
-        questions: 'Mida Oliver alguses pärast tööd plaanis? [koju minna|otse koju minna]\nKellelt ta sõnumi sai? [sõbralt]\nMiks sõber talle kirjutas? [tal oli kaks kontserdipiletit ja üks inimene ei saanud tulla|tal oli vaba kontserdipilet]\nKeda Oliver kontserdil nägi? [kahte tuttavat|tuttavaid]\nMillal ta koju jõudis? [pärast südaööd]',
+        questions: 'Mida Oliver alguses pärast tööd plaanis? [koju minna|otse koju minna]\nKas Oliver tegi reedel seda, mida ta hommikul plaanis? [ei|ei, ta läks kontserdile|ei, ta ei läinud otse koju]\nMiks sõber talle kirjutas? [tal oli kaks kontserdipiletit ja üks inimene ei saanud tulla|tal oli vaba kontserdipilet]\nKeda Oliver kontserdil nägi? [kahte tuttavat|tuttavaid]\nMillal ta koju jõudis? [pärast südaööd]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_025_av_speaking', 'speaking', 'green', 'g_use', {
