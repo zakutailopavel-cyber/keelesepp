@@ -4,6 +4,8 @@
 import { BLOCKS } from '../../../worksheet-studio/engine/registry.js';
 import { analyzeWorksheet } from '../../../worksheet-studio/quality.js';
 import { SHEET_MINUTES, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
+import { harnoFor } from '../../../worksheet-studio/didactics/levels.js';
+import BASELINE from './qualityBaseline.json';
 
 export const MIN_DIDACTIC_SCORE = 85;
 const FORM = ['gaps', 'wordforms', 'table', 'transformation', 'dictation', 'translation'];
@@ -22,7 +24,8 @@ export function sheetProblems(doc) {
   const out = [];
   const { issues, didactics } = analyzeWorksheet(doc);
   issues.filter((i) => i.level === 'error').forEach((i) => out.push({ code: 'error', text: i.text }));
-  didactics?.issues?.filter((i) => i.level === 'warning').forEach((i) => out.push({ code: 'norm', text: i.text }));
+  // check: the didactic check's own id (block + rule), so a known problem is recognised in the baseline
+  didactics?.issues?.filter((i) => i.level === 'warning').forEach((i) => out.push({ code: 'norm', check: i.code.split(':').pop(), text: i.text }));
   if ((didactics?.score ?? 100) < MIN_DIDACTIC_SCORE) out.push({ code: 'didactic', text: `didaktiline skoor ${didactics.score} < ${MIN_DIDACTIC_SCORE}: ${didactics.issues.map((i) => i.text).join(' · ')}` });
   const ids = (doc.blocks || []).map((b) => b.id);
   if (new Set(ids).size !== ids.length) out.push({ code: 'ids', text: 'korduvad ploki id-d' });
@@ -67,7 +70,38 @@ export function moduleProblems(sheets) {
       if (o > 0.75) out.push({ lessonId: list[i][0], phase, code: 'neighbour', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe)` });
     }
   }
+  out.push(...harnoProblems(sheets));
   return out;
+}
+
+// What the module must train for its Harno exam (levels.js HARNO): a listening task and at least one reading text near
+// the exam's longest text. Checked per module, not per sheet: one exam-length text a module is enough.
+export function harnoProblems(sheets) {
+  const docs = Object.values(sheets).flatMap((lesson) => Object.values(lesson));
+  const harno = harnoFor(docs[0]?.meta?.level);
+  if (!harno) return [];
+  const out = [];
+  const blocks = docs.flatMap((d) => d.blocks || []);
+  if (harno.listening && !blocks.some((b) => b.type === 'listening')) out.push({ lessonId: '*', phase: '*', code: 'harno-listening', text: `moodulis pole ühtki kuulamisülesannet (Harno ${harno.level} eksamil on kuulamine veerand punktidest)` });
+  const longest = Math.max(0, ...blocks.filter((b) => b.type === 'reading').map((b) => String(b.data?.passage || '').split(/\s+/).filter(Boolean).length));
+  const want = Math.round(harno.longestText * 0.8);
+  if (longest < want) out.push({ lessonId: '*', phase: '*', code: 'harno-reading', text: `pikim lugemistekst on ${longest} sõna — Harno ${harno.level} eksami pikim tekst on ~${harno.longestText} sõna; vähemalt üks tekst moodulis ≥ ${want} sõna` });
+  return out;
+}
+
+// The quality baseline (qualityBaseline.json): problems the course had when a check was introduced. They are shown but
+// do not lock publishing; a new problem does, and a fixed one must leave the baseline (the course test says how).
+export const problemKey = (p) => [p.lessonId, p.phase, p.check || p.code].join('|');
+export function splitByBaseline(moduleId, problems, baseline = BASELINE) {
+  const left = new Map();
+  (baseline[moduleId] || []).forEach((k) => left.set(k, (left.get(k) || 0) + 1));
+  const fresh = []; const known = [];
+  problems.forEach((p) => {
+    const k = problemKey(p);
+    if (left.get(k)) { known.push(p); left.set(k, left.get(k) - 1); } else fresh.push(p);
+  });
+  const fixed = [...left].flatMap(([k, n]) => Array(n).fill(k));
+  return { fresh, known, fixed };
 }
 
 // the type mix of a course part, for the production page and the docs
