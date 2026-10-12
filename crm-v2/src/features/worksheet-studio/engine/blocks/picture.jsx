@@ -51,6 +51,11 @@ export const picmatch = {
       </div>
     );
   },
+  answers: (data, block = {}) => {
+    const items = data.items || [];
+    const order = picmatchOrder(items, block.id, Boolean(block.opts?.keepOrder));
+    return items.map((_, i) => ({ key: `${i}`, accept: [LETTERS[order.indexOf(i)]] }));
+  },
   // the right letter of word i: where its picture landed after mixing (the block is scoreDocument's third argument)
   score: (data, get, block = {}) => {
     const items = data.items || [];
@@ -101,6 +106,7 @@ export const scenelabel = {
       </div>
     );
   },
+  answers: (data) => (data.pins || []).map((p, i) => ({ key: `${i}`, accept: splitList(String(p.answer || '').replace(/\|/g, ',')) })),
   score: (data, get) => (data.pins || []).map((p, i) => ({ key: `${i}`, ok: accepts(p.answer).includes(norm(get(`${i}`))) })),
   Editor: ({ data, set }) => (
     <>
@@ -163,6 +169,7 @@ export const profiles = {
       ))}
     </div>
   ),
+  answers: (data) => (data.people || []).flatMap((p, pi) => lines(p.sentences).flatMap((s, si) => [...s.matchAll(GAP)].map((m, gi) => ({ key: `${pi}.${si}.${gi}`, accept: splitList(m[1].replace(/\|/g, ',')) })))),
   score: (data, get) => (data.people || []).flatMap((p, pi) => lines(p.sentences).flatMap((s, si) => [...s.matchAll(GAP)].map((m, gi) => ({ key: `${pi}.${si}.${gi}`, ok: accepts(m[1]).includes(norm(get(`${pi}.${si}.${gi}`))) })))),
   Editor: ({ data, set }) => (
     <>

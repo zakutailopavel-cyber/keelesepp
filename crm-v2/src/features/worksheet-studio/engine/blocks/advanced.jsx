@@ -52,6 +52,7 @@ export const dictation = {
   type: 'dictation', label: 'Etteütlus', group: 'Tekst ja heli', icon: 'AudioLines', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Etteütlus.', instruction: 'Kuula õpetajat või helifaili ja kirjuta laused.', sentences: 'Hommikul lähen ma tööle.\nÕhtul loen raamatut.', lines: 6 }),
   View: ({ data, ctx }) => <div className="ws-dictation">{lines(data.sentences).map((_, i) => <Line key={i} interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Etteütluse lause ${i + 1}`} />)}</div>,
+  answers: (data) => lines(data.sentences).map((answer, i) => ({ key: String(i), accept: [answer] })),
   score: (data, get) => lines(data.sentences).map((answer, i) => ({ key: String(i), ok: norm(get(String(i))) === norm(answer) })),
   Editor: ({ data, set }) => <><Area label="Õiged laused (õpilane neid ei näe)" rows={6} value={data.sentences} onChange={(sentences) => set({ sentences })} /><Num label="Kirjutamisridu" value={data.lines} max={15} onChange={(value) => set({ lines: value })} /></>,
 };
@@ -80,7 +81,7 @@ export const wordsearch = {
 export const crossword = {
   type: 'crossword', label: 'Ristsõna', group: 'Grammatika ja sõnavara', icon: 'Grid2X2', task: true, width: 'full', tone: 'blue',
   create: () => ({ title: 'Lahenda ristsõna.', instruction: 'Kirjuta vastused vihjete järgi.', rows: [{ clue: 'Koht, kus õpitakse', answer: 'kool' }, { clue: 'Inimene, kes õpetab', answer: 'õpetaja' }] }),
-  View: ({ data, ctx }) => <ol className="ws-crossword">{(data.rows || []).map((row, i) => <li key={i}><span>{row.clue}</span><div className="ws-crossword-cells">{[...String(row.answer || '')].map((_, ci) => <Line key={ci} interactive={ctx.interactive} value={String(ctx.get(String(i)) || '')[ci] || ''} onChange={(v) => { const old = [...String(ctx.get(String(i)) || '').padEnd(String(row.answer || '').length, ' ')]; old[ci] = v.slice(-1); ctx.set(String(i), old.join('').trimEnd()); }} state={ctx.state(String(i))} width="8mm" label={`${i + 1}.${ci + 1}`} />)}</div></li>)}</ol>,
+  View: ({ data, ctx }) => <ol className="ws-crossword">{(data.rows || []).map((row, i) => <li key={i}><span>{row.clue}</span><div className="ws-crossword-cells">{[...String(row.answer || '')].map((_, ci) => <Line key={ci} interactive={ctx.interactive} value={(String(ctx.get(String(i)) || '')[ci] || '').trim()} onChange={(v) => { const old = [...String(ctx.get(String(i)) || '').padEnd(String(row.answer || '').length, ' ')]; old[ci] = v.slice(-1) || ' '; ctx.set(String(i), old.join('').trimEnd()); }} state={ctx.state(String(i))} width="8mm" label={`${i + 1}.${ci + 1}`} />)}</div></li>)}</ol>,
   score: (data, get) => scoreRows(data.rows, get),
   Editor: ({ data, set }) => <Rows label="Vihjed ja vastused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ clue: '', answer: '' })} addLabel="Lisa sõna" render={(row, patch) => <><Text label="Vihje" value={row.clue} onChange={(clue) => patch({ clue })} /><Text label="Vastus" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
 };

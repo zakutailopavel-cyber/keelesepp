@@ -7,6 +7,28 @@
 - Checks: `npx vitest run src/features/vocabulary src/features/students src/services` 50 files / 266 tests passed; `npx eslint src` 0 errors (10 old warnings); `npm run build` ok (word files are separate chunks).
 - Limits: the word lists (PR #519) are not checked by a teacher; the unlock is enforced in the app only; cycle progress lives on the device; the staff profile does not show topic progress yet (skipped, see the doc); PR #519 itself stays open and conflicts with main.
 - Next: owner/teacher tries „Teemad” on a test student and a teacher reviews the A2 word lists.
+## 2026-10-13 · agent/blocks-e2e — every answerable worksheet block checked end to end (student → score → teacher → print)
+
+- Checked from `main` 489754e. New test `crm-v2/src/features/worksheet-studio/engine/blocksRoundtrip.test.jsx`: for all 28 block types with `score` / `answerKeys` (+ every scheme kind; an explicit list fails when a new block appears without a case) the student answers through the sheet (typing, clicking options / Õ-V / bank words / groups, selects), every field writes exactly one key (no collisions), scoreDocument gives 100 % for right answers and < 100 % with a ✗ for a wrong one, review shows the answers with ✓ / ✗, print stays blank; the second part of a task split over pages (all `SPLITTABLE` types) writes its own items' keys; the homework review dialog (`DocWorksheetSubmissionPreview`) shows every block with the answers.
+- Bugs fixed: `cloze` — in review (teacher, homework, live) the gaps showed „(1) ________” instead of the chosen word: now the chosen option with its mark; `crossword` — clearing a cell shifted the later letters one cell left (the letter is kept as a space); `choice` — several right options sorted as text (10 before 2); live lesson „Näita vastuseid” and the teacher's error list had no right answer for truefalse, choice, cloze, match, clock, picmatch, scenelabel, profiles, dialogue, reading, listening, table, categorize, wordorder, dictation — each now has `answers(data, block)` (errorText passes the block, picmatch needs its id).
+- `Sheet.jsx` exports `SheetCard` (the Card, for the split-part test). No data, production or CSS changes.
+- Checks: worksheet-studio + homework 278/278; with live-classroom the 9 known failures only; eslint 0 errors; build ok.
+- Not automatic: drag-and-drop on the real page split (jsdom cannot measure), voice recording (`speaking`), how marks look.
+- Next: review and merge the PR.
+## 2026-10-13 · agent/art-b1-b2-import — 68 textbook pictures (B1, B2) and pictures on course sheets
+
+- Imported Codex batch 2 (`~/KeeleSeppArt/import_art.py`, from a copy of the inbox so the running batch is not disturbed): 48 B1 + 20 B2 pictures → `crm-v2/public/textbook-art/{b1,b2}/…webp`, briefs `art/visuals/{b1,b2}-module-NN.js` (registered in `textbookArt.js`). 3 briefs without a png were skipped (a2-064, a2b1-009, b1b2-015).
+- `admin/course/registry.js` `buildCourseSheet`: the lesson's picture and its „Vaata pilti” card go on the course sheet after the opening text (`withLessonArt`) — 26 course sheets get a picture now.
+- „Avasta kvaliteeditäiendus” page: card „Tunni pildid (Avasta 001–050)” — adds only the missing picture + card to the published B1 Avasta sheets (42 lessons).
+- Codex batch 2 resumes at 03:05 (`~/KeeleSeppArt/run-resume-0305.sh`) from b1b2-021; its new pictures are imported the same way afterwards.
+- Checks: worksheet-generator 540/540 (+1 skipped); lint 0 errors. Data / production: none until the admin publishes.
+## 2026-10-13 · agent/b1-modules-16-18 — B1 modules 16–18 (lessons 076–090) with two full Harno B1 mocks
+
+- New `admin/course/b1/module16.js` („Arvamus, võrdlemine ja põhjendamine”, B1-, 076–080), `module17.js` („B1 lugemine ja kirjutamine”, B1, 081–085), `module18.js` („B1 rääkimine ja lõpphindamine”, B1, 086–090): 15 lessons × Avasta / Harjuta / Kasuta, registered in `registry.js`; goals for 076–090 in `b1/lessonGoals.js` (test now 1–90).
+- Harno B1: 080 „Vahehindamine 4” (reading + listening / writing + speaking in exam form), 081–085 all four reading tasks and both writing tasks (note, questionnaire, letter or story, rubric 8 + 12), 086–088 speaking formats and all four listening formats, 089 „B1 proovitund” and 090 „Lõpphindamine” = two parallel full mocks (listening 30, reading 33 points, writing, speaking; pass rule 60 % per skill as Harno, 70 % overall for KeeleSepp).
+- Option-gap texts of the whole B1 course reviewed (182 gaps): 9 ambiguous wrong options replaced, 2 text errors fixed (055, 089).
+- Quality gate: 0 problems in 16–18; baseline unchanged. Reports: `docs/level-audit-2026-10-12/b1-modules-16-18/`.
+- Checks: worksheet-generator + worksheet-studio 729/729 (+1 skipped); lint 0 errors. Production: none until published on „Kursuse tootmine”.
 
 ## 2026-10-13 · agent/b1-harno-formats — B1 modules 02–15 train the Harno exam formats of their stage
 
