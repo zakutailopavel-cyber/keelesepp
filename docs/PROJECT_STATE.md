@@ -1,3 +1,11 @@
+## 2026-10-12 · B1 republished in production (owner's request, admin session in the browser)
+
+- After #571 and #572 were merged and deployed (Vercel production `3ba57ec`):
+  - „Kursuse tootmine”: Harjuta + Kasuta of B1 modules 02–15, 70 lessons, all published without errors (versions +1, e.g. module 8 v3 → v4).
+  - „Avasta kvaliteeditäiendus” → „B1 kontrolli parandused (12.10)”: 112 corrected blocks/meta in 56 sheets (Avasta 001–050 and module 1 Harjuta/Kasuta) applied; 0 skipped (no block had been changed since publication); a re-check reads back „Parandada: 0 · juba parandatud: 112”. 9 corrected blocks of the fix list are not on the published sheets (nothing to patch).
+  - „Moodul 1 kolm faasi” was NOT used: it rewrites all three phases and module 1's Avasta is at v5–v9 since.
+- Next: Codex pictures (`docs/CODEX_TASK_PICTURES.md`); B1 redesign items in `docs/level-audit-2026-10-12/b1-fixes/`.
+
 ## 2026-10-12 · agent/avasta-b1-fixes-apply — the B1 check's corrections reach the published Avasta sheets
 
 - Why: re-running an Avasta upgrade (`admin/avastaModuleN.js`) never replaces a block that exists, so #571.s corrections of 103 blocks in 49 published Avasta sheets (and the a2b1-023 goal, the a2b1-045 title) would not reach students; module 1 (001–005) is published by „Moodul 1 kolm faasi”, which rewrites all three phases — its Avasta is at v5–v9 since, so that page would undo later work.
