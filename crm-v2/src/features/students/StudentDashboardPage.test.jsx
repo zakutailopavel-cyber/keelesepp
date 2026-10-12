@@ -42,7 +42,11 @@ describe('StudentDashboardPage', () => {
     expect(screen.getAllByText('Õpi sõnad').length).toBe(2);
     expect(screen.getByText('Väga tubli!')).toBeInTheDocument();
     expect(screen.getByText('Hinne 5')).toBeInTheDocument();
-    expect(screen.getByText('Rääkimine')).toBeInTheDocument();
+    // „Minu areng”: the student's level → target with his skills and next steps (owner 2026-10-12)
+    const growth = screen.getByRole('region', { name: 'Minu areng' });
+    expect(within(growth).getByText('Rääkimine')).toBeInTheDocument();
+    expect(within(growth).getByText('Mida veel teha?')).toBeInTheDocument();
+    expect(screen.getAllByText('Rääkimine').length).toBeGreaterThan(1);
     expect(screen.getByText(/30,00/)).toBeInTheDocument();
     expect(screen.getByText('Tervitused')).toBeInTheDocument();
     expect(data.studentRepository.listSelf).toHaveBeenCalledWith('user-1');
