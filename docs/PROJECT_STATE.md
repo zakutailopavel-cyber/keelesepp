@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b1-m15 — B1 kursus moodul 15 (Avasta + Harjuta + Kasuta) (a2b1-071…075), kõik kolm etappi
+
+- Base: `main` 9b75be0. Previous modules are published to production (diff with production: 0 differences).
+- Mooduli 15 „Tulevik, plaanid ja eesmärgid” kõik kolm lehte (tulevik olevikuga ja hakkama-ga, soovid ja eesmärgid, kui…siis, plaani põhjendamine, kontroll 15); kvaliteedivärav roheline; avaldatud prod-is skriptiga.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b1-m14 — B1 kursus moodul 14 (Avasta + Harjuta + Kasuta) (a2b1-066…070), kõik kolm etappi
 
 - Base: `main` e1e031b. Previous modules are published to production (diff with production: 0 differences).
