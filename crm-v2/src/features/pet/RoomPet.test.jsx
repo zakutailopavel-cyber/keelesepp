@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import RoomPet from './RoomPet.jsx';
 
@@ -9,6 +9,8 @@ describe('RoomPet', () => {
     const repository = { get: async () => ({ kind: 'rebane', name: 'Lisa' }) };
     render(<RoomPet user={{ uid: 'u1' }} studentId="s1" invitationId="inv1" repository={repository} wordsService={words} homeworkService={{}} />);
     expect(await screen.findByText(/Lisa on ka tunnis/)).toBeInTheDocument();
+    // the subscription starts in an effect after the hello (flaky in CI without the wait)
+    await waitFor(() => expect(typeof push).toBe('function'));
     act(() => push([{ id: 'old', word: 'kass', invitationId: 'inv0' }]));
     act(() => push([{ id: 'old', word: 'kass', invitationId: 'inv0' }, { id: 'w1', word: 'linn', invitationId: 'inv1' }]));
     expect(screen.getByText('Uus sõna: linn!')).toBeInTheDocument();
