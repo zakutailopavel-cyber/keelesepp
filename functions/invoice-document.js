@@ -95,7 +95,7 @@ const quantityText = (value) => String(Math.round(value * 100) / 100).replace(".
 // Invoice layout of the first KeeleSepp version (haldus printInvoice): seller with address and contacts, number /
 // date / due / currency table, payer and payment terms, a line table with unit, quantity, price and VAT, the sum in
 // words, payment info and signature lines.
-function buildInvoicePdf({ invoice, student = {}, paymentDetails = {} }) {
+function buildInvoicePdf({ invoice, student = {}, paymentDetails = {}, payUrl = "" }) {
   const invoiceNumber = invoice?.num || invoice?.number;
   if (!invoiceNumber) throw new Error("Invoice number required");
   const parties = invoiceParties(invoice, student);
@@ -229,7 +229,15 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {} }) {
       document.font("Helvetica").fontSize(8.5).fillColor(muted);
       rows.filter(Boolean).forEach((row, index) => document.text(row, boxLeft + 10, y + 26 + index * 11, { width: half - 20 }));
     });
-    y += boxHeight + 46;
+    y += boxHeight + 14;
+
+    // LHV LinkPay: the stable CRM link (opens the bank page with the current balance)
+    if (payUrl) {
+      document.fillColor(ink).font("Helvetica-Bold").fontSize(9.5).text("Maksa kaardi või pangalingiga:", left, y);
+      document.fillColor("#0F766E").font("Helvetica").fontSize(8.5).text(payUrl, left, y + 14, { link: payUrl, underline: true, width });
+      y += 34;
+    }
+    y += 32;
 
     // signatures
     if (y > 760) { document.addPage(); y = 80; }

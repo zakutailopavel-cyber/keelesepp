@@ -29,6 +29,7 @@ const {
   buildInvoicePdf,
   invoiceFileName,
 } = require("./invoice-document");
+const linkpay = require("./linkpay-core");
 const liveTurnCore = require("./live-turn-core");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
@@ -190,6 +191,7 @@ const SMTP_DEFAULTS = {
   from: "KeeleSepp <info@epkoolitus.ee>",
 };
 const APP_BASE_URL = process.env.APP_BASE_URL || "https://www.epkoolitus.ee/haldus/";
+const CRM_ORIGIN = process.env.CRM_ORIGIN || "https://crm.epkoolitus.ee";
 const INVOICE_REMINDER_INTERVAL_DAYS = Number(process.env.INVOICE_REMINDER_INTERVAL_DAYS || 3);
 
 // ── CONFIG ────────────────────────────────────────────────────
@@ -4650,7 +4652,7 @@ function invoicePartyLabel(invoice, student) {
   return invoice.studentName || student?.name || "õpilane";
 }
 
-function composeInvoiceEmail(invoice, student, type = "invoice") {
+function composeInvoiceEmail(invoice, student, type = "invoice", payUrl = "") {
   const due = invoice.due || invoiceDueDate();
   const reference = invoice.paymentReference || invoice.num || "";
   const partyKind = invoiceIsParentTarget(invoice) ? "Lapsevanem" : "Õpilane";
@@ -4693,6 +4695,7 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
     `Pank: ${PAYMENT_DETAILS.bank}`,
     `SWIFT: ${PAYMENT_DETAILS.swift}`,
     "",
+    ...(payUrl ? [`Maksa kaardi või pangalingiga: ${payUrl}`, ""] : []),
     "Aitäh!",
     "KeeleSepp",
   ];
@@ -4716,6 +4719,7 @@ function composeInvoiceEmail(invoice, student, type = "invoice") {
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Tähtaeg</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(formatEtDate(due))}</td></tr>
         <tr><td style="padding:8px;border:1px solid #e5e7eb;font-weight:700">Makse selgitus</td><td style="padding:8px;border:1px solid #e5e7eb">${escapeHtml(reference)}</td></tr>
       </table>
+      ${payUrl ? `<p style="margin:0 0 16px"><a href="${escapeHtml(payUrl)}" style="display:inline-block;padding:12px 22px;background:#0f766e;color:#fff;border-radius:10px;text-decoration:none;font-weight:700">Maksa arve</a> <span style="color:#667085">kaardi või pangalingiga</span></p>` : ""}
       <div style="padding:14px 16px;background:#F9F8F6;border:1px solid #e5e7eb;border-radius:10px">
         <strong>${escapeHtml(PAYMENT_DETAILS.company)}</strong><br>
         IBAN: ${escapeHtml(PAYMENT_DETAILS.iban)}<br>
@@ -4898,7 +4902,8 @@ async function sendInvoiceMessage(invoiceId, { type = "invoice", actor = null } 
   }
   const to = invoiceRecipient(invoice, student) || await linkedParentEmail(invoice, student);
   if (!to) throw httpError(400, "Recipient email is missing");
-  const payload = composeInvoiceEmail(invoice, student, type);
+  const payUrl = await invoicePayUrl(invoice.ref, invoice).catch(() => "");
+  const payload = composeInvoiceEmail(invoice, student, type, payUrl);
   const nowIso = new Date().toISOString();
 
   await db.runTransaction(async transaction => {
@@ -4962,14 +4967,122 @@ async function creditNoteDocumentData(creditNoteId) {
   return { creditNote, invoice, student };
 }
 
+// ── LHV LinkPay (docs/LINKPAY_INTEGRATION.md) ───────────────
+// financeSettings/linkpay { enabled, environment: 'sandbox' | 'production', linkpayToken }; the API secret and username
+// live only in Secret Manager (LINKPAY_SANDBOX_*), never in Firestore, responses or logs.
+async function loadLinkpayConfig() {
+  const snap = await db.collection("financeSettings").doc("linkpay").get();
+  const data = snap.exists ? snap.data() : {};
+  const environment = data.environment === "production" ? "production" : "sandbox";
+  return { enabled: data.enabled === true, environment, linkpayToken: String(data.linkpayToken || ""), ...linkpay.ENVIRONMENTS[environment] };
+}
+
+function linkpayCredentials(environment) {
+  // production keys are added with the production switch (separate PR + owner's permission)
+  if (environment !== "sandbox") throw httpError(503, "LinkPay production is not configured");
+  const username = String(process.env.LINKPAY_SANDBOX_USERNAME || "").trim();
+  const secret = String(process.env.LINKPAY_SANDBOX_SECRET || "").trim();
+  if (!username || !secret) throw httpError(503, "LinkPay keys are not configured");
+  return { username, secret };
+}
+
+// the stable CRM link printed on the PDF and in the e-mail; "" when LinkPay is off or the invoice is not payable
+async function invoicePayUrl(invoiceRef, invoice) {
+  const config = await loadLinkpayConfig();
+  if (!config.enabled || linkpay.unpayableReason(invoice)) return "";
+  let code = invoice.payCode;
+  if (!code) {
+    code = linkpay.newPayCode();
+    await invoiceRef.set({ payCode: code }, { merge: true });
+  }
+  return `${CRM_ORIGIN}/maksa/${encodeURIComponent(invoiceRef.id)}?k=${encodeURIComponent(code)}`;
+}
+
+const LINKPAY_ACTOR = { decoded: { uid: "system:linkpay", email: "" }, profile: { displayName: "LHV LinkPay" }, roles: new Set(["system"]) };
+
+// a new attempt with the invoice's current open balance → the signed bank URL
+async function startLinkpayAttempt({ invoiceId, source, actorUid = "" }) {
+  const config = await loadLinkpayConfig();
+  const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
+  const snap = await invoiceRef.get();
+  const invoice = snap.exists ? snap.data() : null;
+  const reason = linkpay.unpayableReason(invoice);
+  if (reason) throw httpError(409, reason);
+  if (!config.linkpayToken) throw httpError(503, "LinkPay link is not configured");
+  const { secret } = linkpayCredentials(config.environment);
+  const amountCents = linkpay.openBalanceCents(invoice);
+  const orderReference = linkpay.orderReference(invoice);
+  await db.collection("paymentAttempts").doc(orderReference).create({
+    orderReference, invoiceId: invoiceRef.id, invoiceNum: invoice.num || "", studentId: invoice.studentId || "",
+    amountCents, currency: "EUR", environment: config.environment, status: "created", source, createdBy: actorUid,
+    createdAt: new Date().toISOString(),
+  });
+  const url = linkpay.signedLinkpayUrl({
+    prefix: config.prefix, linkpayToken: config.linkpayToken, secret,
+    params: {
+      transaction_amount: linkpay.amountString(amountCents),
+      invoice_number: invoice.num || "",
+      customer_name: String(invoice.payerName || invoice.parentName || invoice.studentName || "").slice(0, 100),
+      customer_email: invoice.payerEmail || invoice.parentEmail || "",
+      order_reference: orderReference,
+    },
+  });
+  return { url, orderReference, amountCents };
+}
+
+// the bank's own record decides; repeated callbacks / returns are harmless (attempt state + payment requestId)
+async function settleLinkpayPayment({ paymentReference, orderReference }) {
+  const ref = String(paymentReference || "").trim();
+  const order = String(orderReference || "").trim();
+  if (!/^[A-Za-z0-9_-]{6,120}$/.test(ref) || !/^[A-Za-z0-9-]{3,80}$/.test(order)) throw httpError(400, "payment_reference and order_reference required");
+  const attemptRef = db.collection("paymentAttempts").doc(order);
+  const attemptSnap = await attemptRef.get();
+  if (!attemptSnap.exists) throw httpError(404, "Unknown payment attempt");
+  const attempt = attemptSnap.data();
+  const config = await loadLinkpayConfig();
+  if (attempt.environment !== config.environment) throw httpError(409, "Payment attempt belongs to another environment");
+  const { username, secret } = linkpayCredentials(attempt.environment);
+  const response = await fetch(`${config.apiBase}/payments/${encodeURIComponent(ref)}?api_username=${encodeURIComponent(username)}`, {
+    headers: { Authorization: `Basic ${Buffer.from(`${username}:${secret}`).toString("base64")}`, Accept: "application/json" },
+  });
+  if (!response.ok) throw httpError(502, `LinkPay status check failed (${response.status})`);
+  const payment = await response.json();
+  const verdict = linkpay.paymentVerdict(payment, attempt);
+  const nowIso = new Date().toISOString();
+  let status = verdict.status;
+  let paymentId = "";
+  if (verdict.status === "settled") {
+    try {
+      const result = await recordInvoicePayment({
+        actor: LINKPAY_ACTOR, invoiceId: attempt.invoiceId, amount: verdict.amountCents / 100, paidAt: appToday(nowIso),
+        method: "linkpay", reference: ref, note: `LHV LinkPay ${order}`, requestId: linkpay.paymentRequestId(ref),
+      });
+      paymentId = result.payment.id;
+    } catch (error) {
+      console.error("LinkPay payment could not be recorded", { order, status: error.status, message: error.message });
+      status = "needs_review";
+    }
+  }
+  await attemptRef.set({ status, paymentReference: ref, bankState: verdict.state, problems: verdict.problems || [], paymentId, checkedAt: nowIso }, { merge: true });
+  await db.collection("paymentProviderEvents").doc(linkpay.paymentRequestId(ref)).set({
+    provider: "linkpay", paymentReference: ref, orderReference: order, invoiceId: attempt.invoiceId,
+    bankState: verdict.state, status, paymentId, checkedAt: nowIso,
+  }, { merge: true });
+  const invoiceSnap = await db.collection("invoices").doc(attempt.invoiceId).get();
+  const invoice = invoiceSnap.data() || {};
+  return { status, invoiceNum: invoice.num || attempt.invoiceNum || "", invoiceStatus: invoice.status || "", balanceCents: linkpay.openBalanceCents(invoice) };
+}
+
 async function invoicePdf(invoiceId) {
   const invoice = await loadInvoice(invoiceId);
   if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice has no active PDF");
   const student = await loadInvoiceStudent(invoice);
+  const payUrl = await invoicePayUrl(invoice.ref, invoice).catch(() => "");
   const content = await buildInvoicePdf({
     invoice,
     student,
     paymentDetails: PAYMENT_DETAILS,
+    payUrl,
   });
   return {
     invoice,
@@ -7779,6 +7892,83 @@ exports.liveTurnApi = functions
   });
 
 // ── API: invoice emails and reminders ────────────────────────
+// ── LHV LinkPay: pay links, the bank's notification and the return page (docs/LINKPAY_INTEGRATION.md) ──
+exports.linkpayApi = functions
+  .runWith({ secrets: ["LINKPAY_SANDBOX_USERNAME", "LINKPAY_SANDBOX_SECRET"], timeoutSeconds: 30 })
+  .https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  const path = req.path;
+  const input = { ...(req.query || {}), ...(req.body && typeof req.body === "object" ? req.body : {}) };
+  try {
+    // the bank's notification (GET or POST): only references; the status comes from the bank's API
+    if (path === "/callback") {
+      const result = await settleLinkpayPayment({ paymentReference: input.payment_reference, orderReference: input.order_reference });
+      res.json({ ok: true, status: result.status });
+      return;
+    }
+    if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
+    if (path === "/config") {
+      const config = await loadLinkpayConfig();
+      res.json({ enabled: config.enabled, environment: config.environment });
+      return;
+    }
+    // the customer came back from the bank (Customer URL): check the same way as the notification
+    if (path === "/return") {
+      res.json(await settleLinkpayPayment({ paymentReference: input.payment_reference, orderReference: input.order_reference }));
+      return;
+    }
+    if (path === "/start") {
+      const invoiceId = String(input.invoiceId || "");
+      const config = await loadLinkpayConfig();
+      let source = "";
+      let actorUid = "";
+      if (input.k) {
+        // the link from the PDF / e-mail: the code stored on the invoice, no login needed
+        const snap = await db.collection("invoices").doc(invoiceId).get();
+        if (!snap.exists || !linkpay.payCodeMatches(snap.data().payCode, input.k)) throw httpError(404, "Arvet ei leitud.");
+        source = "link";
+      } else {
+        const decoded = await requireFirebaseUser(req);
+        const profileSnap = await db.collection("users").doc(decoded.uid).get();
+        const profile = profileSnap.exists ? profileSnap.data() : {};
+        if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+        const roles = collectTrustedRoles(profile, decoded);
+        const staff = isSuperAdmin(decoded) || [...roles].some(role => STAFF_ROLES.has(role));
+        const snap = await db.collection("invoices").doc(invoiceId).get();
+        const owner = snap.exists && linkpay.ownsInvoice(snap.data(), {
+          uid: decoded.uid, email: decoded.email, emailVerified: decoded.email_verified === true,
+          linkedStudentIds: Array.isArray(profile.linkedStudentIds) ? profile.linkedStudentIds : [],
+        });
+        if (!staff && !owner) throw httpError(404, "Arvet ei leitud.");
+        source = staff ? "staff" : "cabinet";
+        actorUid = decoded.uid;
+      }
+      // switched off: only staff may try it (sandbox testing before the switch)
+      if (!config.enabled && source !== "staff") throw httpError(409, "Kaardimakse ei ole veel avatud.");
+      const result = await startLinkpayAttempt({ invoiceId, source, actorUid });
+      res.json({ url: result.url, amountCents: result.amountCents });
+      return;
+    }
+    if (path === "/settings") {
+      await requireAdminUser(req);
+      const ref = db.collection("financeSettings").doc("linkpay");
+      if (input.save) {
+        const environment = input.environment === "production" ? "production" : "sandbox";
+        const linkpayToken = String(input.linkpayToken || "").trim();
+        if (linkpayToken && !/^[A-Za-z0-9]{4,40}$/.test(linkpayToken)) throw httpError(400, "Invalid LinkPay token");
+        await ref.set({ enabled: input.enabled === true, environment, linkpayToken, updatedAt: new Date().toISOString() }, { merge: true });
+      }
+      const config = await loadLinkpayConfig();
+      res.json({ enabled: config.enabled, environment: config.environment, linkpayToken: config.linkpayToken });
+      return;
+    }
+    res.status(404).json({ error: "Not found" });
+  } catch (e) {
+    sendError(res, e);
+  }
+  });
+
 exports.invoiceApi = functions
   .runWith({ secrets: ["SMTP_PASS"] })
   .https.onRequest(async (req, res) => {
