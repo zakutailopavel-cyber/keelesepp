@@ -14,6 +14,7 @@ import { AVASTA_MODULE8_IDS, upgradeAvastaModule8Document } from '../admin/avast
 import { AVASTA_MODULE9_IDS, upgradeAvastaModule9Document } from '../admin/avastaModule9.js';
 import { AVASTA_MODULE10_IDS, upgradeAvastaModule10Document } from '../admin/avastaModule10.js';
 import { AVASTA_FIX_SHEETS, applyAvastaFixes } from '../admin/avastaFixes.js';
+import { ALL_VISUALS, visualLessonId, withLessonArt } from '../art/textbookArt.js';
 
 const MISSING = 'Töölehte ei leitud.';
 const MODULES = [
@@ -84,6 +85,63 @@ function FixesCard({ repository, user }) {
         {rows ? rows.filter((row) => row.updated.length || row.skipped.length || row.state).map((row) => (
           <div key={row.key} className="form-hint"><b>{row.lessonId} · {row.phase}</b>{row.updated.length ? ` · parandada: ${row.updated.join(', ')}` : ''}{row.skipped.length ? ` · jäetakse alles: ${row.skipped.join(', ')}` : ''}{row.state ? ` · ${row.state}` : ''}</div>
         )) : null}
+      </div>
+    </Card>
+  );
+}
+
+// The textbook pictures of the published Avasta sheets (art/visuals): only adds a lesson's missing picture and its
+// „Vaata pilti” card after the opening text; nothing on the sheet changes otherwise.
+const ART_LESSONS = [...new Set(ALL_VISUALS.filter((v) => v.phase === 'discover' && /^a2b1-0([0-4]\d|50)$/.test(visualLessonId(v))).map(visualLessonId))].sort();
+function ArtCard({ repository, user }) {
+  const [rows, setRows] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const check = async () => {
+    setError('');
+    const out = [];
+    for (const lessonId of ART_LESSONS) {
+      try {
+        const record = await repository.load(lessonId, 'discover');
+        const next = withLessonArt(record.worksheetDoc, lessonId, 'discover');
+        out.push({ lessonId, record, document: next, todo: next !== record.worksheetDoc, state: '' });
+      } catch (cause) {
+        out.push({ lessonId, record: null, todo: false, state: cause?.message || String(cause) });
+      }
+    }
+    setRows(out);
+  };
+  const todo = (rows || []).filter((row) => row.todo);
+  const publish = async () => {
+    if (!todo.length || !window.confirm(`Lisada tunni pilt ${todo.length} Avasta lehele?`)) return;
+    setBusy(true);
+    setError('');
+    try {
+      for (const row of todo) {
+        const saved = await repository.publish({ lessonId: row.lessonId, worksheetId: 'discover', worksheetDoc: row.document, user, baseUpdatedAt: row.record.worksheetDocUpdatedAt || '' });
+        setRows((list) => list.map((item) => (item.lessonId === row.lessonId ? { ...item, todo: false, state: `✓ v${saved.worksheetDocVersion}` } : item)));
+      }
+    } catch (cause) {
+      setError(cause?.message || String(cause));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Card>
+      <div style={{ display: 'grid', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div>
+            <h3 style={{ margin: 0 }}>Tunni pildid (Avasta 001–050)</h3>
+            <div className="form-hint">Õpiku illustratsioon ja „Vaata pilti” küsimused lisatakse pärast avateksti; muu leht jääb samaks. Pildiga tunde: {ART_LESSONS.length}.</div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Button variant="secondary" onClick={check} disabled={busy}>Kontrolli</Button>
+            <Button onClick={publish} disabled={busy || !todo.length} loading={busy}>Lisa pildid{todo.length ? ` (${todo.length})` : ''}</Button>
+          </div>
+        </div>
+        {error ? <ErrorState title="Avaldamine peatus" message={error} /> : null}
+        {rows ? <div className="form-hint">Lisada: {todo.length} · pilt juba lehel: {rows.filter((row) => row.record && !row.todo && !row.state).length}{rows.some((row) => row.state && !row.state.startsWith('✓')) ? ` · vead: ${rows.filter((row) => row.state && !row.state.startsWith('✓')).map((row) => row.lessonId).join(', ')}` : ''}</div> : null}
       </div>
     </Card>
   );
@@ -185,6 +243,7 @@ export default function AvastaUpgradePage({ repository = lessonWorksheetsService
         description="001–015 täiendatakse olemasolevat sisu säilitades. 016–050 puhul täiendatakse olemasolevat Avasta lehte või luuakse puuduv leht täielikult. Harjuta ja Kasuta jäävad puutumata."
       />
       <FixesCard repository={repository} user={user} />
+      <ArtCard repository={repository} user={user} />
       {error ? <ErrorState title="Avaldamine peatus" message={error} /> : null}
       {grouped.map((module) => {
         const blocked = module.rows.filter((row) => row.state === 'blocked');
