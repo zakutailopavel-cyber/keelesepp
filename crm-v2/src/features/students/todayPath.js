@@ -6,7 +6,7 @@ import { isDue } from '../vocabulary/wordsModel.js';
 
 const dayOf = (value) => String(value || '').slice(0, 10);
 
-export function todayPath({ words = [], homework = [], submissions = [], pet = null, reviewedToday = false, today, now = Date.now() }) {
+export function todayPath({ words = [], homework = [], submissions = [], pet = null, offerPet = false, reviewedToday = false, today, now = Date.now() }) {
   const due = words.filter((word) => isDue(word, now)).length;
   const reviewed = words.filter((word) => dayOf(word.reviewedAt) === today).length;
   const open = homework.filter(isHomeworkOpen);
@@ -26,6 +26,11 @@ export function todayPath({ words = [], homework = [], submissions = [], pet = n
       detail: workToday || reviewedToday ? 'Tehtud täna' : '7 minutit: tunni sõnad ja vormid',
     },
   ];
+  // no friend chosen yet (and not switched off): the first step to the picker (owner 2026-10-12: a new student had
+  // nowhere to choose one — the picker opened only from the pet itself)
+  if (offerPet && !pet?.kind && !pet?.optedOut) {
+    steps.push({ key: 'pet', label: 'Vali endale sõber', to: '/student/lemmik', done: false, detail: 'Õppesõber kasvab koos sinuga' });
+  }
   if (pet?.kind && !pet.optedOut) {
     steps.push({ key: 'pet', label: `Mängi: ${pet.name || 'lemmik'}`, to: '/student/lemmik', done: dayOf(pet.playedAt) === today, detail: dayOf(pet.playedAt) === today ? 'Mängitud täna' : 'Teemamäng tunni sõnadega' });
   }

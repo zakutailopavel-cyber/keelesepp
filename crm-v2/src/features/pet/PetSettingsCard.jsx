@@ -34,11 +34,12 @@ export default function PetSettingsCard({ user, repository = petsService }) {
     <Card>
       <div className="settings-icon"><PawPrint /></div>
       <h2>Minu sõber</h2>
-      <p className="form-hint">{on ? (pet?.kind ? `${pet.name} on sinu kabinetis sees.` : 'Sõpra ei ole veel valitud: vali ta lehel „Minu õpingud”.') : 'Sõber on välja lülitatud.'}</p>
+      <p className="form-hint">{on ? (pet?.kind ? `${pet.name} on sinu kabinetis sees.` : 'Sõpra ei ole veel valitud.') : 'Sõber on välja lülitatud.'}</p>
       <div className="settings-actions" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         {on
           ? <Button variant="secondary" loading={saving} onClick={() => change({ optedOut: true }, 'Sõber on välja lülitatud.')}>Lülita välja</Button>
           : <Button loading={saving} onClick={() => change({ optedOut: false, hidden: false }, 'Sõber on tagasi!')}>Lülita sisse</Button>}
+        {on && !pet?.kind ? <a className="button button--primary" href="/student/lemmik">Vali sõber</a> : null}
         {on && pet?.kind ? <Button variant="secondary" disabled={saving} onClick={() => change({ tourDoneAt: '' }, 'Tutvustus algab uuesti.')}>Näita tutvustust uuesti</Button> : null}
       </div>
       {notice ? <p className="form-hint" role="status">{notice}</p> : null}
