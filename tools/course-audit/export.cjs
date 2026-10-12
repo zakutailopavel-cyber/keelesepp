@@ -15,7 +15,7 @@ const db = admin.firestore();
       if (!sheet.exists) { row.phases[phase] = null; continue; }
       const y = sheet.data();
       const doc = y.publishedWorksheetDoc || (y.worksheetDocStatus === 'published' ? y.worksheetDoc : null);
-      row.phases[phase] = doc ? { status: 'published', canDo: doc.meta?.canDo || '', blocks: (doc.blocks || []).map((b) => ({ t: b.type, d: b.data })) } : { status: y.worksheetDocStatus || 'draft' };
+      row.phases[phase] = doc ? { status: 'published', canDo: doc.meta?.canDo || '', goals: doc.meta?.goals || {}, blocks: (doc.blocks || []).map((b) => ({ t: b.type, g: b.goal || '', d: b.data })) } : { status: y.worksheetDocStatus || 'draft' };
     }
     out.push(row);
   }
