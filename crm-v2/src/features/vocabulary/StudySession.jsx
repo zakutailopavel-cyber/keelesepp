@@ -1,6 +1,15 @@
 import { ArrowLeft, ArrowRight, BookOpenCheck, Check, ClipboardCheck, Layers, PencilLine, Puzzle, RotateCcw, Shuffle, Star, X } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { buildTest, checkAnswer, choices, learnedCount, learnStep, prompt, shuffle, startLearn } from './deckModel.js';
+import { keyForms, useWordForms } from './wordForms.js';
+
+// the three key forms under the Estonian word (soodustus · soodustuse · soodustust)
+const FormsContext = createContext({});
+function Forms({ card }) {
+  const dictionary = useContext(FormsContext);
+  const forms = keyForms(card?.front, card?.hint, dictionary);
+  return forms.length ? <span className="vs-forms" lang="et" aria-label={`Põhivormid: ${forms.join(', ')}`}>{forms.join(' · ')}</span> : null;
+}
 
 // The five ways to learn one deck (owner, 2026-10-10: like Quizlet). Each mode gets the deck, the direction
 // ('back' = the Estonian word is shown, the meaning is asked; 'front' = the other way) and two callbacks:
@@ -69,7 +78,7 @@ function CardsMode({ deck, direction, onResult, onClose, onAddMissed }) {
       <Progress value={index} total={order.length} label="Kaardid" />
       <button type="button" className={`vs-card ${flipped ? 'is-flipped' : ''}`} onClick={() => setFlipped(!flipped)} aria-label={flipped ? `Vastus: ${side.answer}` : `Küsimus: ${side.ask}. Vajuta, et pöörata`}>
         <span>{flipped ? side.answer : side.ask}</span>
-        {flipped && card.hint ? <small>{card.hint}</small> : null}
+        {(flipped ? side.answer : side.ask) === card.front ? <Forms card={card} /> : null}
         <em>{flipped ? 'vastus' : 'vajuta, et pöörata'}</em>
       </button>
       <div className="vs-row">
@@ -103,11 +112,12 @@ function AnswerField({ onSubmit, disabled }) {
   );
 }
 
-function Feedback({ result, answer, onNext, onOverride }) {
+function Feedback({ result, answer, card, onNext, onOverride }) {
   if (!result) return null;
   return (
     <div className={`vs-feedback is-${result}`} role="status">
       <span>{result === 'right' ? 'Õige!' : result === 'almost' ? <>Peaaegu! Õigesti: <b>{answer}</b></> : <>Õige vastus: <b>{answer}</b></>}</span>
+      {card ? <Forms card={card} /> : null}
       <div className="vs-row">
         {result === 'wrong' && onOverride ? <button type="button" className="vw-btn" onClick={onOverride}>Mul oli õigus</button> : null}
         <button type="button" className="vw-btn is-primary" onClick={onNext} autoFocus>Edasi <ArrowRight size={15} /></button>
@@ -138,13 +148,13 @@ function LearnMode({ deck, direction, onResult, onClose, onAddMissed }) {
     <div className="vs-mode">
       <LearnKeys options={options} answer={answer} pick={(option) => answerWith(option === side.answer, option)} onNext={() => next(answer !== 'wrong')} />
       <Progress value={learnedCount(state)} total={deck.length} label="Õpitud" />
-      <div className="vs-question"><small>{options ? 'Vali õige vastus' : 'Kirjuta vastus'}</small><strong>{side.ask}</strong></div>
+      <div className="vs-question"><small>{options ? 'Vali õige vastus' : 'Kirjuta vastus'}</small><strong>{side.ask}</strong>{side.ask === card.front ? <Forms card={card} /> : null}</div>
       {options ? (
         <div className="vs-choices">{options.map((option) => (
           <button type="button" key={option} disabled={Boolean(answer)} className={answer && option === side.answer ? 'is-right' : answer && option === chosen ? 'is-wrong' : ''} onClick={() => answerWith(option === side.answer, option)}><kbd aria-hidden="true">{options.indexOf(option) + 1}</kbd>{option}</button>
         ))}</div>
       ) : <AnswerField disabled={Boolean(answer)} onSubmit={(value) => { const result = checkAnswer(value, side.answer); setAnswer(result); onResult?.(card, result !== 'wrong'); if (result === 'wrong' && !missed.some((item) => item.id === card.id)) setMissed((current) => [...current, card]); }} />}
-      <Feedback result={answer} answer={side.answer} onNext={() => next(answer !== 'wrong')} onOverride={() => next(true)} />
+      <Feedback result={answer} answer={side.answer} card={card} onNext={() => next(answer !== 'wrong')} onOverride={() => next(true)} />
     </div>
   );
 }
@@ -174,9 +184,9 @@ function WriteMode({ deck, direction, onResult, onClose, onAddMissed }) {
   return (
     <div className="vs-mode">
       <Progress value={index} total={order.length} label="Kirjuta" />
-      <div className="vs-question"><small>Kirjuta vastus</small><strong>{side.ask}</strong></div>
+      <div className="vs-question"><small>Kirjuta vastus</small><strong>{side.ask}</strong>{side.ask === card.front ? <Forms card={card} /> : null}</div>
       <AnswerField disabled={Boolean(result)} onSubmit={(value) => { const checked = checkAnswer(value, side.answer); setResult(checked); onResult?.(card, checked !== 'wrong'); }} />
-      <Feedback result={result} answer={side.answer} onNext={() => next(result !== 'wrong')} onOverride={() => next(true)} />
+      <Feedback result={result} answer={side.answer} card={card} onNext={() => next(result !== 'wrong')} onOverride={() => next(true)} />
     </div>
   );
 }
@@ -278,7 +288,9 @@ export default function StudySession({ deck, title, onResult, onAddMissed, onBac
   const [mode, setMode] = useState(initialMode || (deck.length >= 4 ? 'learn' : 'cards'));
   const [direction, setDirection] = useState('back');
   const Mode = MODES[mode];
+  const dictionary = useWordForms();
   return (
+    <FormsContext.Provider value={dictionary}>
     <section className="vs-session" aria-label={`Õppimine: ${title}`}>
       <header className="vs-head">
         <button type="button" className="vw-btn is-ghost" onClick={onBack}><ArrowLeft size={15} /> Kogud</button>
@@ -302,5 +314,6 @@ export default function StudySession({ deck, title, onResult, onAddMissed, onBac
         {Mode ? <Mode key={`${mode}-${direction}`} deck={deck} direction={direction} onResult={onResult} onAddMissed={onAddMissed} onClose={() => setMode(mode === 'learn' ? 'cards' : 'learn')} /> : null}
       </div>
     </section>
+    </FormsContext.Provider>
   );
 }
