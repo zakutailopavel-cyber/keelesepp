@@ -2341,8 +2341,48 @@ service cloud.firestore {
 
     // Calendar: a teacher's green (free) and red (busy) windows. Staff read them (the admin plans lessons by them);
     // the teacher edits their own, the admin anyone's.
+    // „Ei saa tulla?” (owner 2026-10-12): a student or parent asks to move one lesson of their own card; the lesson's
+    // teacher (or an admin) confirms one time or declines; the asker may withdraw while pending. The calendar change
+    // itself is the teacher's normal schedule write.
+    match /lessonChangeRequests/{requestId} {
+      allow read: if isAdmin()
+        || (isStaff() && resource.data.teacherUid == uid())
+        || ownsStudent(resource.data.studentId);
+      allow create: if signedIn()
+        && ownsStudent(request.resource.data.studentId)
+        && request.resource.data.keys().hasOnly(['scheduleId', 'occurrenceDate', 'occurrenceTime', 'duration', 'studentId',
+          'studentName', 'teacherUid', 'teacherName', 'requestedByUid', 'requestedByName', 'requestedByRole', 'proposals',
+          'other', 'reason', 'late', 'status', 'createdAt'])
+        && request.resource.data.status == 'pending'
+        && request.resource.data.requestedByUid == uid()
+        && request.resource.data.scheduleId is string
+        && exists(/databases/$(database)/documents/schedule/$(request.resource.data.scheduleId))
+        && get(/databases/$(database)/documents/schedule/$(request.resource.data.scheduleId)).data.get('studentId', '') == request.resource.data.studentId
+        && get(/databases/$(database)/documents/schedule/$(request.resource.data.scheduleId)).data.get('teacherUid', '') == request.resource.data.teacherUid
+        && request.resource.data.proposals is list && request.resource.data.proposals.size() <= 3
+        && request.resource.data.other is string && request.resource.data.other.size() <= 300
+        && request.resource.data.reason is string && request.resource.data.reason.size() <= 300;
+      allow update: if resource.data.status == 'pending'
+        && (
+          (
+            (isAdmin() || (isStaff() && resource.data.teacherUid == uid()))
+            && request.resource.data.status in ['accepted', 'declined']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'chosen', 'teacherNote', 'decidedAt', 'decidedByUid'])
+          )
+          || (
+            ownsStudent(resource.data.studentId)
+            && request.resource.data.status == 'cancelled'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt'])
+          )
+        );
+      allow delete: if false;
+    }
+
     match /teacherAvailability/{teacherUid} {
-      allow read: if isStaff();
+      // students and parents read the windows to ask for a new lesson time („Ei saa tulla?”, owner 2026-10-12): only
+      // free/busy windows, never other students' lessons
+      allow read: if isStaff()
+        || (signedIn() && hasUserDoc(uid()) && get(userPath(uid())).data.get('role', '') in ['student', 'parent']);
       allow write: if (isAdmin() || (isStaff() && teacherUid == uid()))
         && request.resource.data.keys().hasOnly(['teacherUid', 'teacherName', 'slots', 'updatedAt', 'updatedBy'])
         && request.resource.data.teacherUid == teacherUid

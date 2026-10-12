@@ -4,7 +4,7 @@ import { formatDue, hasUnreadReply, isAssignedTo, isNewForMe, isOverdue, scopeTa
 // The notification centre does not store notifications: every item is derived from its source record and disappears
 // when the source is handled (task done or opened, message read, work reviewed, invoice paid) — as in CRM v1.
 
-export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', invoice: 'Arved' };
+export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', lesson: 'Tunnid', invoice: 'Arved' };
 const SEVERITY_ORDER = { danger: 0, warning: 1, info: 2, success: 3 };
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
@@ -68,6 +68,19 @@ export function invoiceNotifications(invoices, today = new Date()) {
     detail: `${invoice.number ? `Arve ${invoice.number} · ` : ''}tasuda ${money(invoiceBalanceCents(invoice))}`,
     meta: invoice.due ? `Tähtaeg ${formatDue(String(invoice.due).slice(0, 10))}` : '',
     to: `/finance?status=overdue&invoice=${encodeURIComponent(invoice.id)}`,
+  }));
+}
+
+// „Ei saa tulla?”: a pending request to move a lesson (owner 2026-10-12); it disappears when the teacher answers
+export function lessonChangeNotifications(requests = []) {
+  return requests.filter((item) => item.status === 'pending').map((item) => ({
+    id: `lesson-change:${item.id}`,
+    category: 'lesson',
+    severity: item.late ? 'danger' : 'warning',
+    title: `${item.studentName || 'Õpilane'} palub tundi üle viia`,
+    detail: `${formatDue(item.occurrenceDate)} kell ${item.occurrenceTime}${item.reason ? ` · ${item.reason}` : ''}`,
+    meta: item.late ? 'vähem kui 24 h' : '',
+    to: `/calendar?request=${encodeURIComponent(item.id)}`,
   }));
 }
 

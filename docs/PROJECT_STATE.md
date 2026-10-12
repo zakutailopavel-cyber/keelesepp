@@ -18,6 +18,13 @@
 - Why (owner): „начать с нормальных рабочих листов, цели урока по каждому уроку и адекватного учебного плана без косяков”.
 - `docs/COURSE_AUDIT_2026-10-12.md`: per lesson findings for 381 lessons; `tools/course-audit/` (export + audit, read-only). Headline: no lesson passes all checks; goals are Russian teacher notes (no Estonian learner goal); A2 33 and B1 15 lessons have no sheets; 27 A2 Avasta have no text; many closed tasks have < 4 items; A2 has 20/101 assessment lessons; B2 #35 missing; C1 has no success criteria.
 - Next: owner decides the plan questions (A2 assessments, goal format), then sheets level by level.
+## 2026-10-12 · agent/lesson-reschedule — „Ei saa tulla?”: a student or parent asks to move a lesson
+
+- Why (owner): students reschedule through Messenger; „добавь перенос урока”, „как предлагаешь” (24 h warning, students and parents may ask).
+- Flow: student home „Täna” / parent „Järgmised tunnid” → „Ei saa tulla?” (`students/RescheduleDialog`) → up to 3 times from the teacher's green windows (`calendar/rescheduleModel.proposalSlots`, one per day, never past or on the student's own lessons) or a written time + optional reason; < 24 h shows a warning only. The lesson stays until the teacher answers. Teacher: bell category „Tunnid” (`lessonChangeNotifications`) and the calendar panel `ChangeRequestsPanel` — „Kinnita <time>” moves that one lesson with the normal `planMove` + `runOps` (window check included) and answers; „Keeldu” with an optional note. The student sees „Palve saadetud” / the answer and may withdraw a pending request.
+- Data: `lessonChangeRequests/{id}` (`services/firebase/lessonChangeRequests.js`). Rules: create only for an owned card's own schedule entry and its teacher, fixed keys, pending; teacher of the lesson or admin answers once; the asker may only cancel; others read nothing. `teacherAvailability` is now readable (not writable) by students and parents.
+- Checks: rescheduleModel / ChangeRequestsPanel / RescheduleDialog 8/8; calendar + students 143/144 locally (the 1 is the known Node 26 localStorage test); parents 11/11; notifications 16/16; emulator: `lesson-change-emulator.integration.js` + updated `teacher-availability-emulator` pass (added to `test:emulator`).
+- Manual gate: deploy `firestore.rules` (owner's permission) before the frontend is live, else the request fails with a permission error.
 
 ## 2026-10-12 · agent/student-cabinet-simple — student cabinet: short menu, home 10 → 4 blocks, clear „Tund”
 

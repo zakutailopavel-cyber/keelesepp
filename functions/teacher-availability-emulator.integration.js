@@ -1,6 +1,7 @@
 'use strict';
 // Teacher windows (teacherAvailability) against the real Firestore rules (emulators): a teacher writes their own
-// green/red windows, the admin anyone's; staff read them, students do not.
+// green/red windows, the admin anyone's; staff read them; students and parents read them (to ask for a new lesson
+// time, owner 2026-10-12) but never write them.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const admin = require('firebase-admin');
@@ -43,7 +44,7 @@ async function put(who, id, data) {
 const get = (who, id) => fetch(`${base()}/teacherAvailability/${id}`, { headers: { Authorization: `Bearer ${who.token}` } }).then((r) => r.status);
 const windows = (teacherUid, updatedBy) => ({ teacherUid, teacherName: 'Õpetaja', slots: [{ id: 'a', kind: 'busy', day: 'Mon', start: '18:00', end: '20:00' }], updatedAt: new Date().toISOString(), updatedBy });
 
-test('teacher windows: own for teachers, any for the admin, hidden from students', async () => {
+test('teacher windows: own for teachers, any for the admin, read-only for students', async () => {
   safe();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
   const teacher = await account('teacher');
@@ -56,5 +57,6 @@ test('teacher windows: own for teachers, any for the admin, hidden from students
   assert.equal(await put(teacher, teacher.uid, { ...windows(teacher.uid, teacher.uid), extra: 1 }), 403, 'fixed keys');
   assert.equal(await put(boss, other.uid, windows(other.uid, boss.uid)), 200, 'admin marks anyone\'s');
   assert.equal(await get(other, teacher.uid), 200, 'staff read');
-  assert.equal(await get(learner, teacher.uid), 403, 'students do not');
+  assert.equal(await get(learner, teacher.uid), 200, 'students read (rescheduling)');
+  assert.equal(await put(learner, teacher.uid, windows(teacher.uid, learner.uid)), 403, 'students never write');
 });

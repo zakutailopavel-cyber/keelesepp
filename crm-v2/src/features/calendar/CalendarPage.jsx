@@ -5,7 +5,8 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { isSameTeacher } from '../../utils/teachers.js';
-import { groupsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
+import { groupsService, lessonChangeRequestsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
+import ChangeRequestsPanel from './ChangeRequestsPanel.jsx';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, looseLessonKey, parseHeld, rememberLessonLink } from '../live-classroom/lessonLink.js';
 import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff.js';
@@ -109,7 +110,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, takeHandoff = takeLessonHandoff }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -125,6 +126,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [form, setForm] = useState(blankLesson());
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState('');
+  // „Ei saa tulla?”: pending requests of this teacher (an admin: all), live
+  const [changeRequestList, setChangeRequestList] = useState([]);
+  const [requestBusy, setRequestBusy] = useState('');
   const [panelKey, setPanelKey] = useState(linkedLesson);
   // „Lõpeta tund” in the Live Classroom left the note and the worksheets' topics for this lesson: mark it held once
   const [handoff, setHandoff] = useState(() => (linkedLesson ? takeHandoff(linkedLesson) : null));
@@ -147,6 +151,11 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [showUnplanned, setShowUnplanned] = useState(() => searchParams.get('unplanned') === '1');
   const [pausing, setPausing] = useState('');
   const isAdmin = user.roles.includes(ROLES.ADMIN);
+  useEffect(() => {
+    if (!changeRequests?.subscribePending || !user?.uid) return undefined;
+    try { return changeRequests.subscribePending({ teacherUid: user.uid, all: isAdmin }, setChangeRequestList, () => setChangeRequestList([])); } catch { return undefined; }
+  }, [changeRequests, user?.uid, isAdmin]);
+
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !isAdmin;
   const state = useAsyncData(async () => Promise.all([
     scheduleRepository.list(teacherOnly ? { teacherUid: user.uid } : {}),
@@ -358,6 +367,29 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     return created;
   };
 
+  // confirm: the one lesson moves to the chosen time like a calendar drag (slot null: the teacher moved it already)
+  const acceptChangeRequest = async (request, slot) => {
+    setActionError('');
+    setRequestBusy(`${request.id}|${slot ? `${slot.date} ${slot.time}` : 'manual'}`);
+    try {
+      if (slot) {
+        const item = occurrencesForDates(events, [request.occurrenceDate]).find((entry) => entry.id === request.scheduleId);
+        if (!item) throw new Error('Seda tundi ei leitud kalendris: see võib olla juba liigutatud. Liiguta tund ise ja vajuta „Liigutasin ise”.');
+        assertTeacherWindow({ date: slot.date, time: slot.time, duration: item.duration, teacher: item.teacher, teacherUid: item.teacherUid, online: Boolean(item.online) });
+        await runOps(planMove(item, { toDate: slot.date, toTime: slot.time, duration: item.duration, scope: 'single' }).apply, item);
+      }
+      await changeRequests.decide(request.id, { accepted: true, chosen: slot, user });
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || 'Tundi ei saanud üle viia.');
+    } finally { setRequestBusy(''); }
+  };
+  const declineChangeRequest = async (request, note) => {
+    setActionError('');
+    setRequestBusy(`${request.id}|decline`);
+    try { await changeRequests.decide(request.id, { accepted: false, note, user }); } catch (error) { setActionError(error.message || 'Vastust ei saanud saata.'); } finally { setRequestBusy(''); }
+  };
+
   const executeMove = async ({ item, toDate, time, duration }, scope) => {
     setMoveAsk(null); setActionError('');
     try {
@@ -556,6 +588,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
       </div>
     </div>
+    <ChangeRequestsPanel requests={changeRequestList} focusId={searchParams.get('request') || ''} busy={requestBusy} onAccept={acceptChangeRequest} onDecline={declineChangeRequest} />
     <div className="calendar-filter-summary cal2-summary" aria-live="polite">
       <span><strong>{occurrences.length}</strong> tundi valitud perioodil</span>
       {filters.student ? <button type="button" className="cal2-chip" onClick={() => setFilters({ ...filters, student: '' })}>Õpilane: {studentMap.get(filters.student)?.name || filters.student} <X size={13} /></button> : null}
