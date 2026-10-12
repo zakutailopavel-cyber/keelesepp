@@ -1,3 +1,11 @@
+## 2026-10-10 · agent/course-b1-m14 — B1 kursus moodul 14 (Avasta + Harjuta + Kasuta) (a2b1-066…070), kõik kolm etappi
+
+- Base: `main` e1e031b. Previous modules are published to production (diff with production: 0 differences).
+- Mooduli 14 „Minevik, kogemused ja jutustamine” kõik kolm lehte (pikem jutustus lihtminevikus, täisminevik ja elukogemus, ajajoon ja sidesõnad, meeldejääv kogemus, kontroll 14); kvaliteedivärav roheline; avaldatud prod-is skriptiga.
+- Quality gate: no constructor errors, B-level norms, 40–55 min per sheet, at least 5 task types, neighbours differ. Check: `npx vitest run src/features/worksheet-generator` passes.
+- After merge: sheets published to production as `published` (script replicates `lessonWorksheetsService.persist`).
+- Next step: the next module of the course.
+
 ## 2026-10-10 · agent/course-b1-m13 — B1 kursus moodul 13 (Avasta + Harjuta + Kasuta) (a2b1-061…065), kõik kolm etappi
 
 - Base: `main` 41c06a6. Previous modules are published to production (diff with production: 0 differences).
