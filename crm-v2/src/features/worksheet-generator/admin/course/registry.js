@@ -2,6 +2,7 @@
 // ({ [lessonId]: { title, canDo, practice?, transfer?, discover? } }); the admin page „Kursuse tootmine” previews
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
+import { withLessonArt } from '../../art/textbookArt.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import * as b1m02 from './b1/module02.js';
 import * as b1m03 from './b1/module03.js';
@@ -82,11 +83,12 @@ export function lessonOrder(blocks = []) {
   return [...head, ...rest.sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)];
 }
 
+// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text
 export function buildCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
   const course = COURSES[mod.MODULE.course];
-  return {
+  return withLessonArt({
     schema: 'keelesepp.worksheet/2',
     id: `ws_${lessonId}_${phase}`,
     meta: {
@@ -105,7 +107,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
     blocks: lessonOrder(lesson[phase]),
-  };
+  }, lessonId, phase);
 }
 
 // every sheet a module produces: { [lessonId]: { [phase]: doc } }

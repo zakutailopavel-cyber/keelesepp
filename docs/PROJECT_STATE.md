@@ -1,3 +1,11 @@
+## 2026-10-13 · agent/art-b1-b2-import — 68 textbook pictures (B1, B2) and pictures on course sheets
+
+- Imported Codex batch 2 (`~/KeeleSeppArt/import_art.py`, from a copy of the inbox so the running batch is not disturbed): 48 B1 + 20 B2 pictures → `crm-v2/public/textbook-art/{b1,b2}/…webp`, briefs `art/visuals/{b1,b2}-module-NN.js` (registered in `textbookArt.js`). 3 briefs without a png were skipped (a2-064, a2b1-009, b1b2-015).
+- `admin/course/registry.js` `buildCourseSheet`: the lesson's picture and its „Vaata pilti” card go on the course sheet after the opening text (`withLessonArt`) — 26 course sheets get a picture now.
+- „Avasta kvaliteeditäiendus” page: card „Tunni pildid (Avasta 001–050)” — adds only the missing picture + card to the published B1 Avasta sheets (42 lessons).
+- Codex batch 2 resumes at 03:05 (`~/KeeleSeppArt/run-resume-0305.sh`) from b1b2-021; its new pictures are imported the same way afterwards.
+- Checks: worksheet-generator 540/540 (+1 skipped); lint 0 errors. Data / production: none until the admin publishes.
+
 ## 2026-10-13 · agent/b1-harno-formats — B1 modules 02–15 train the Harno exam formats of their stage
 
 - Why (owner): „начинай переделку B1 под Harno”. Target: `docs/HARNO_LEVEL_REQUIREMENTS.md` (A2 and B1 exams).
