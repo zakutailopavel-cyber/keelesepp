@@ -1,3 +1,11 @@
+## 2026-10-12 · agent/student-ui-bugs — four bugs from the student/lesson UX review
+
+- Why (owner): a full review of the student profile, the lesson room and the student cabinet („всего много и непонятно”); bugs first.
+- Fixed: (1) „Minu areng” said „Praegu: tase B1” for an A2 student → `MyProgressCard` shows the current level and the step; (2) the lesson room suggested „5. Kontroll 1” after lesson 1 — `nextLessonSuggestion` counted homework sheets given ahead; now only lesson-room sheets (`liveRoomKey`) and the journal count; (3) three equal tabs „Tööleht: …” — the board created the sheet page again when the page list was not loaded yet; `studentBoardService.addWorksheetPage` uses a fixed id from the title (`worksheetPageId`, FNV-1a) in a transaction; (4) student „Kodutööd”: sheets sorted by deadline, counters include interactive lessons.
+- Data: 4 boards × sheet have duplicate pages (6 extra, 5 of them empty) — not cleaned (owner's call).
+- Checks: board + worksheet-studio + students + homework suites passed (265 + 43); eslint clean.
+- Next: UX simplification (student menu 8→5, home 10→4 sections, lesson room „clean mode”) with mockups first.
+
 ## 2026-10-12 · agent/avasta-openers — B1 Avasta: a real opening instead of two survey questions
 
 - Why (owner): „все Avasta однотипные, особенно два вопроса в первом блоке… это не вводная часть”. Audit of all 333 published Avasta sheets: 69 open with a 2-item task. B1 a2b1-016…050 (35): two personal questions with a fixed „right” answer (scored opinions). A2 (34, generator): two context-less true/false sentences — and the whole A2 sheet has only 5 blocks and no reading text (separate follow-up).

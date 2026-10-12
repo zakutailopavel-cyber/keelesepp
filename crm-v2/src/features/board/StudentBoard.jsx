@@ -256,7 +256,7 @@ export default function StudentBoard({
     }
     if (staff && creatingWorksheet.current !== worksheet.id) {
       creatingWorksheet.current = worksheet.id;
-      service.addPage(studentId, worksheetPageTitle(worksheet.title), pages.length + 1, user).catch(fail('Töölehe lehte ei saanud luua.'));
+      (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(worksheet.title), pages.length + 1, user).catch(fail('Töölehe lehte ei saanud luua.'));
     }
   }, [wantWorksheet, worksheet, worksheetPage, staff]); // eslint-disable-line react-hooks/exhaustive-deps
   // a worksheet page opens with its width on screen, from the top
@@ -296,8 +296,8 @@ export default function StudentBoard({
     const page = sheetPageOf(target);
     if (page) { choosePage(page.id); setTool('fill'); return; }
     if (target.id === worksheet?.id) { setWantWorksheet(target.id); return; }
-    if (staff) service.addPage(studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool('fill'); }).catch(fail('Töölehe lehte ei saanud luua.'));
-  }, [sheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (staff) (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool('fill'); }).catch(fail('Töölehe lehte ei saanud luua.'));
+  }, [sheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet }), [insertFile, newPage, openWorksheet, redo, undo]);
 
   // rename a lesson page: double click its tab or the pencil next to the open page

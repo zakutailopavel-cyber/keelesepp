@@ -126,7 +126,8 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   )), [state.data, query, reviewStatus, staff]);
   const assignments = useMemo(() => (state.data?.assignments || []).filter((item) => (
     item.status !== 'done' && `${item.studentName} ${item.title}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
-  )), [state.data, query]);
+  // the nearest deadline first; sheets without a deadline after them (owner 2026-10-12: 15 → 21 → 18)
+  )).sort((a, b) => String(a.dueDate || '9999').localeCompare(String(b.dueDate || '9999')) || String(a.assignedAt || '').localeCompare(String(b.assignedAt || ''))), [state.data, query]);
 
   // A reload after saving or submitting keeps the page (and an open worksheet) on screen: unmounting the
   // player would reopen it from the old copy and hide the result.
@@ -246,8 +247,8 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   return <div className="page-content">
     <PageHeader compact eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
     <PeopleOverview label="Kodutööde kokkuvõte" eyebrow={staff ? 'Õppetöö ülevaade' : 'Minu töölaud'} title={staff ? 'Ülesanded ja tagasiside' : 'Minu kodutööd'} description={staff ? 'Pooleliolevad tööd, tähtajad ja kontrollimist ootavad esitused.' : 'Ülesanded, tähtajad ja õpetaja tagasiside ühes vaates.'} metrics={[
-      { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length + allAssignments.length, hint: staff ? `${students.items.length} õpilast` : `${allAssignments.length} töölehte` },
-      { icon: Clock3, label: 'Pooleli', value: openHomework.length + openAssignments.length, hint: 'ootab tegemist' },
+      { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length + allAssignments.length + (staff ? 0 : interactive.length), hint: staff ? `${students.items.length} õpilast` : `${allAssignments.length} töölehte` },
+      { icon: Clock3, label: 'Pooleli', value: openHomework.length + openAssignments.length + (staff ? 0 : interactive.filter((item) => item.status === 'active').length), hint: 'ootab tegemist' },
       { icon: Star, label: 'Hilinenud', value: overdueHomework.length + overdueAssignments.length, hint: 'vajab tähelepanu' },
       { icon: MessageSquare, label: staff ? 'Ootab kontrolli' : 'Tagasisideta', value: pendingReviews.length, hint: `${state.data.submissions.length} esitust kokku` },
     ]} />

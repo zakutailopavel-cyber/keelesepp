@@ -74,7 +74,9 @@ export function nextLessonSuggestion({ curriculum = [], lessonRecords = [], assi
   const index = new Map(order.map((choice, i) => [choice.lessonId, i]));
   const seen = [
     ...lessonRecords.filter((record) => (!record.status || record.status === 'Toimunud') && index.has(record.topicLessonId)).map((record) => ({ id: record.topicLessonId, at: time(record.date) })),
-    ...assignments.filter((item) => index.has(item.lessonId)).map((item) => ({ id: item.lessonId, at: time(item.completedAt || item.assignedAt) })),
+    // only sheets worked on in a lesson room count as a held lesson; homework given ahead (e.g. Harjuta of the next
+    // lessons) must not move the course forward (owner 2026-10-12: „5. Kontroll 1” suggested after lesson 1)
+    ...assignments.filter((item) => item.liveRoomKey && index.has(item.lessonId)).map((item) => ({ id: item.lessonId, at: time(item.completedAt || item.assignedAt) })),
   ].sort((a, b) => b.at - a.at || index.get(b.id) - index.get(a.id));
   let next = null;
   if (seen.length) {

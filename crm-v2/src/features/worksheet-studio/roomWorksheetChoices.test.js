@@ -37,8 +37,10 @@ describe('worksheets for the lesson board', () => {
     const next = nextLessonSuggestion({ curriculum, lessonRecords: journal });
     expect(next.lessonId).toBe('b2');
     expect(next.choices.map((choice) => choice.phaseLabel)).toEqual(['Avasta', 'Harjuta', 'Kasuta']);
-    // a worksheet of b2 done later than the journal entry moves on to b3
-    expect(nextLessonSuggestion({ curriculum, lessonRecords: journal, assignments: [{ lessonId: 'b2', assignedAt: '2026-10-05T10:00:00Z' }] }).lessonId).toBe('b3');
+    // a worksheet of b2 worked on in a lesson room later than the journal entry moves on to b3
+    expect(nextLessonSuggestion({ curriculum, lessonRecords: journal, assignments: [{ lessonId: 'b2', liveRoomKey: 'r0', assignedAt: '2026-10-05T10:00:00Z' }] }).lessonId).toBe('b3');
+    // homework given ahead (Harjuta of b2, b3) does not count as a held lesson
+    expect(nextLessonSuggestion({ curriculum, lessonRecords: journal, assignments: [{ lessonId: 'b3', phase: 'practice', assignedAt: '2026-10-06T10:00:00Z' }] }).lessonId).toBe('b2');
     // the last lesson of a level has no next one; sheets already on this board are left out
     expect(nextLessonSuggestion({ curriculum, lessonRecords: [{ topicLessonId: 'b3', date: '2026-10-03' }] })).toBeNull();
     const onBoard = nextLessonSuggestion({ curriculum, lessonRecords: journal, roomKey: 'r1', assignments: [{ lessonId: 'b2', liveRoomKey: 'r1', title: curriculum.find((c) => c.key === 'phase:b2:discover').title, assignedAt: '2026-09-01' }] });

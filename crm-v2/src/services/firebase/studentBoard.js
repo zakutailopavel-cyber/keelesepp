@@ -1,7 +1,14 @@
-import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, runTransaction, serverTimestamp, setDoc, updateDoc, writeBatch } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
+
+// stable page id of a worksheet title (FNV-1a), e.g. ws-3f2a9c1b
+export function worksheetPageId(title) {
+  let hash = 0x811c9dc5;
+  for (const char of String(title || '')) { hash ^= char.codePointAt(0); hash = Math.imul(hash, 0x01000193) >>> 0; }
+  return `ws-${hash.toString(16).padStart(8, '0')}`;
+}
 
 // The student's own board outside lessons: the same data as the CRM v1 board (whiteboards/{studentId}/elements and
 // lesson pages whiteboards/{studentId}/lessonPages/{pageId}/elements), so everything drawn in v1 stays and both CRMs
@@ -75,6 +82,22 @@ export function createBoardService(root = 'whiteboards') {
       updatedAt: serverTimestamp(),
       updatedByUid: user.uid,
       updatedByName: authorName(user),
+    });
+    return reference.id;
+  },
+  // a worksheet's page has a fixed id from its title, so opening the sheet again (another tab, a reload before the
+  // page list arrived, teacher and student at once) finds the same page instead of adding a copy (owner 2026-10-12:
+  // three tabs „Tööleht: Loodus ja tegevused”)
+  async addWorksheetPage(studentId, title, order, user) {
+    const { db } = requireFirebaseClient();
+    const clean = String(title || 'Tööleht').trim().slice(0, 200) || 'Tööleht';
+    const reference = doc(db, root, studentId, 'lessonPages', worksheetPageId(clean));
+    await runTransaction(db, async (transaction) => {
+      if ((await transaction.get(reference)).exists()) return;
+      transaction.set(reference, {
+        title: clean, order: Math.max(1, Math.round(Number(order) || 1)), status: 'active', isSnapshot: false, snapshotOf: null,
+        createdAt: serverTimestamp(), updatedAt: serverTimestamp(), updatedByUid: user.uid, updatedByName: authorName(user),
+      });
     });
     return reference.id;
   },
