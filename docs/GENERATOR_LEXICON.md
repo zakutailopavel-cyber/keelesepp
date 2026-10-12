@@ -105,3 +105,10 @@ illative when the short one equals the base form (Tartusse, Pärnusse — not �
    can cover more of the 100 A2 lessons.
 5. Teacher review screen: mark a generated sentence as bad so it is never used again.
 Hand-written packs stay as the gold standard and take precedence.
+
+## Key forms for word cards (2026-10-12)
+
+`tools/lexicon/build_key_forms.py` writes `crm-v2/public/word-forms.json`: the three key forms of every EKI level lemma
+(nouns/adjectives: nimetav, omastav, osastav; verbs: ma, da, 3rd person present) — 8661 words; the hand-checked
+generator lexicon wins; ambiguous lemmas (319) are left out. The student's study session (`vocabulary/wordForms.js`)
+shows them under the Estonian word; a word's own EKI line (saved with a double-click lookup) comes first.

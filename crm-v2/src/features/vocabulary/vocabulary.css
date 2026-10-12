@@ -137,3 +137,5 @@
 .vs-done strong { font-size: 22px; }
 .vs-missed { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; color: #475467; }
 @media (max-width: 560px) { .vs-choices { grid-template-columns: 1fr; } .vs-card { min-height: 200px; } .vs-tabs button { min-width: 84px; } }
+.vs-forms { display: inline-block; margin-top: 2px; padding: 4px 12px; border-radius: 999px; background: #f0faf6; color: #0b6b5a; font-size: 15px; font-weight: 600; letter-spacing: .01em; }
+.vs-feedback .vs-forms { background: rgba(255,255,255,.7); }
