@@ -63,8 +63,8 @@ export const reading = {
   View: ({ data, ctx }) => (
     <div className="ws-reading">
       {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive} label="Kuula teksti" /> : null}
-      <div className="ws-passage">{data.passageTitle && <h4>{data.passageTitle}</h4>}{String(data.passage || '').split(/\n{2,}/).map((p, i) => <p key={i}><Md text={p} /></p>)}</div>
-      <ol className="ws-rq">
+      <div className="ws-passage">{data.passageTitle && <h4>{data.passageTitle}</h4>}{String(data.passage || '').split(/\n{2,}/).filter((p) => p.trim()).map((p, i) => <p key={i}><Md text={p} /></p>)}</div>
+      <ol className="ws-rq" start={(ctx.start || 0) + 1}>
         {String(data.questions || '').split('\n').filter((q) => q.trim()).map((q, i) => {
           const m = q.match(/^(.*?)\s*\[([^\]]*)\]\s*$/);
           const question = m ? m[1] : q;
@@ -251,7 +251,7 @@ export const wordorder = {
   type: 'wordorder', label: 'Sõnajärg (moodusta lause)', group: 'Grammatika ja sõnavara', icon: 'ArrowDownUp', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Moodusta lause.', instruction: 'Pane sõnad õigesse järjekorda.', sentences: 'Ma ärkan tavaliselt kell seitse.\nÕhtul ma vaatan filmi.' }),
   View: ({ data, ctx }) => (
-    <ol className="ws-order">
+    <ol className="ws-order" start={(ctx.start || 0) + 1}>
       {String(data.sentences || '').split('\n').filter((l) => l.trim()).map((s, i) => (
         <li key={i}>
           <div className="ws-chips" data-edit={`sentences#${i}`} title="Topeltklõps: muuda õiget lauset">{scramble(s).map((w, k) => <span key={k} className="ws-chip">{w}</span>)}</div>

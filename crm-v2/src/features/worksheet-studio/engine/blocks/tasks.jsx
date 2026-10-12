@@ -41,7 +41,7 @@ export const gaps = {
         {data.showBank !== 'no' && bank.length > 0 && (
           <div className="ws-bank">{bank.map((w, i) => <span key={i} className="ws-bank-w" role={ctx.interactive ? 'button' : undefined} tabIndex={ctx.interactive ? 0 : -1} onClick={() => put(w)} onKeyDown={(e) => e.key === 'Enter' && put(w)}>{w}</span>)}</div>
         )}
-        <ol className="ws-gaps">
+        <ol className="ws-gaps" start={(ctx.start || 0) + 1}>
           {lines.map((l, li) => {
             let gi = -1;
             return (
@@ -79,12 +79,12 @@ export const choice = {
   type: 'choice', label: 'Valikvastused', group: 'Grammatika ja sõnavara', icon: 'ListChecks', task: true, width: 'half', tone: 'sky',
   create: () => ({ title: 'Vali õige vastus.', instruction: '', questions: [{ q: 'Mis kell sa ärkad?', options: '*Ma ärkan kell 7.\nMa ärkan kell 23.\nMa ärkan õhtul.' }] }),
   View: ({ data, ctx, id }) => (
-    <ol className="ws-choice">
+    <ol className="ws-choice" start={(ctx.start || 0) + 1}>
       {(data.questions || []).map((q, qi) => {
         const o = opts(q.options).map((opt, oi) => ({ ...opt, oi }));
         // options are mixed by default (the source often lists the right one first); the same order on screen and
         // on paper; `keepOrder` (inspector) shows them as written
-        const shown = ctx.keepOrder ? o : seededShuffle(o, `${id}:${qi}`);
+        const shown = ctx.keepOrder ? o : seededShuffle(o, `${id}:${qi + (ctx.start || 0)}`);
         const multi = o.filter((x) => x.correct).length > 1;
         return (
           <li key={qi}>
@@ -140,7 +140,7 @@ export const truefalse = {
       <div className="ws-tf-head"><span /><b>Õ</b><b>V</b></div>
       {(data.statements || []).map((s, i) => (
         <div className="ws-tf-row" key={i}>
-          <span>{i + 1}. <span data-edit={`statements.${i}.text`}><Md text={s.text} /></span></span>
+          <span>{(ctx.start || 0) + i + 1}. <span data-edit={`statements.${i}.text`}><Md text={s.text} /></span></span>
           {['true', 'false'].map((v) => (
             <button type="button" key={v} disabled={!ctx.interactive} className={`ws-tfbox ${ctx.get(`${i}`) === v ? 'on' : ''} ${ctx.get(`${i}`) === v && ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} onClick={() => ctx.set(`${i}`, v)} aria-label={v === 'true' ? 'Õige' : 'Vale'} />
           ))}
