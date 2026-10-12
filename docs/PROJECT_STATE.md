@@ -1,3 +1,10 @@
+## 2026-10-12 · agent/manual-invoice-students — „Lisa arve”: fast student list and „Aine”
+
+- Base: `main` after #543. Why (owner): the student list in „Lisa arve” loaded slowly; a student with two subjects (two cards, e.g. Aleksandr Smirnov: Eesti keel + Inglise keel) appeared as two equal names.
+- `ManualInvoiceDialog.jsx`: on `/finance` it takes the active cards the page already loaded (`studentCards`), no `manualInvoiceApi /students` call (cold Cloud Function in us-central1); the old workspace page still uses the API. „Õpilane” lists each name once; a name with several cards shows a new „Aine” field (subject, plus the parent when the subject repeats). The invoice is still created for one card (`studentId`), no server or data change.
+- Checks: finance 110/110; eslint clean.
+- Not done: the subject is not printed on the invoice PDF/record (server change + deploy, owner's call).
+
 ## 2026-10-12 · agent/self-study-review — „Õpi ise” → „Kordamine” (review of held lessons only)
 
 - Base: `main` after #542. Why (owner): the student should not go through the course worksheets on his own; the sheets belong to the lesson with the teacher.

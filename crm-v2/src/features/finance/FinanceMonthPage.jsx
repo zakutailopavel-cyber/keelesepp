@@ -243,7 +243,7 @@ export default function FinanceMonthPage({
       {showPrivacyBanner ? <PricePrivacyBanner /> : null}
       <header className="finance-month-hero">
         <div><span className="eyebrow">Finantsid</span><h1>Kuu arveldus</h1><p>Koosta arved, jälgi laekumisi ja lahenda erandid ühes vaates.</p></div>
-        <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}</div>
+        <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog studentCards={state.data.students} onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}</div>
       </header>
 
       <div className="finance-month-switcher">

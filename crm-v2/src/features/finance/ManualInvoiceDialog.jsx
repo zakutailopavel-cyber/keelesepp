@@ -40,7 +40,37 @@ function downloadDocument(document) {
   if (!document.url) URL.revokeObjectURL(url);
 }
 
-export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDeliveryApi }) {
+// the student cards the finance page already holds (owner 2026-10-12: the list took long to load through the function)
+function invoiceStudents(cards = []) {
+  return cards
+    .filter((card) => card && card.active !== false && !card.convertedToParent && String(card.name || '').trim())
+    .map((card) => {
+      const subject = String(card.subject || '').trim();
+      const hint = [card.parentName, card.parentEmail || card.email, subject].map((value) => String(value || '').trim()).filter(Boolean).join(' · ');
+      return { id: card.id, name: String(card.name).trim(), subject, parent: String(card.parentName || card.parentEmail || card.email || '').trim(), hint };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name, 'et'));
+}
+
+// one row per name; a student learning two subjects has two cards (one per subject) → the „Aine” field
+function groupByName(students = []) {
+  const groups = new Map();
+  for (const student of students) {
+    const list = groups.get(student.name) || [];
+    list.push(student);
+    groups.set(student.name, list);
+  }
+  return [...groups.entries()].map(([name, cards]) => ({ name, cards }));
+}
+
+const subjectOf = (student) => student.subject || String(student.hint || '').split(' · ').at(-1) || '';
+const cardLabel = (student, cards) => {
+  const subject = subjectOf(student) || 'Aine määramata';
+  const sameSubject = cards.filter((card) => subjectOf(card) === subjectOf(student)).length > 1;
+  return sameSubject && student.parent ? `${subject} · ${student.parent}` : subject;
+};
+
+export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDeliveryApi, studentCards = null }) {
   const [open, setOpen] = useState(false);
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -52,6 +82,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
   // loadingStudents is not a dependency: setting it would re-run the effect, cancel this request and never load
   useEffect(() => {
     if (!open || students.length) return undefined;
+    if (studentCards?.length) { setStudents(invoiceStudents(studentCards)); return undefined; }
     let active = true;
     setLoadingStudents(true);
     manualInvoiceApi
@@ -71,7 +102,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
     return () => {
       active = false;
     };
-  }, [open, students.length]);
+  }, [open, students.length, studentCards]);
 
   // the admin types part of the name (or parent / e-mail) and picks from the matches
   const matches = useMemo(() => {
@@ -84,11 +115,21 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
     () => students.find((student) => student.id === form.studentId),
     [form.studentId, students],
   );
+  const groups = useMemo(() => groupByName(matches), [matches]);
+  const [pickedName, setPickedName] = useState('');
+  const name = selectedStudent?.name || pickedName;
+  const sameName = useMemo(() => students.filter((student) => student.name === name), [students, name]);
+  const pickName = (value) => {
+    setPickedName(value);
+    const cards = students.filter((student) => student.name === value);
+    setForm((current) => ({ ...current, studentId: cards.length === 1 ? cards[0].id : '' }));
+  };
 
   const resetAndClose = () => {
     setOpen(false);
     setError('');
     setQuery('');
+    setPickedName('');
     setForm(emptyForm());
   };
 
@@ -99,7 +140,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
   const submit = async (event, downloadPdf = false) => {
     event.preventDefault();
     setError('');
-    if (!form.studentId) return setError('Vali õpilane.');
+    if (!form.studentId) return setError(pickedName && sameName.length > 1 ? 'Vali aine.' : 'Vali õpilane.');
     if (!form.description.trim()) return setError('Lisa arve kirjeldus.');
     if (!(Number(form.amount) > 0)) return setError('Lisa korrektne summa.');
     if (!form.due) return setError('Lisa maksetähtaeg.');
@@ -156,22 +197,35 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
               setQuery(next);
               const needle = next.trim().toLocaleLowerCase('et');
               const found = needle ? students.filter((student) => `${student.name} ${student.hint || ''}`.toLocaleLowerCase('et').includes(needle)) : [];
-              if (found.length === 1) setForm((current) => ({ ...current, studentId: found[0].id }));
+              const names = [...new Set(found.map((student) => student.name))];
+              if (names.length === 1) pickName(names[0]);
             }}
           />
           <Select
             className="form-grid__wide"
             label="Õpilane"
-            value={form.studentId}
+            value={name}
             disabled={loadingStudents}
-            onChange={(event) => setForm({ ...form, studentId: event.target.value })}
+            onChange={(event) => pickName(event.target.value)}
             required
           >
-            <option value="">{loadingStudents ? 'Laen õpilasi…' : matches.length ? `Vali õpilane (${matches.length})` : 'Keegi ei vasta otsingule'}</option>
-            {(selectedStudent && !matches.includes(selectedStudent) ? [selectedStudent, ...matches] : matches).map((student) => (
-              <option key={student.id} value={student.id}>{student.hint ? `${student.name} · ${student.hint}` : student.name}</option>
+            <option value="">{loadingStudents ? 'Laen õpilasi…' : groups.length ? `Vali õpilane (${groups.length})` : 'Keegi ei vasta otsingule'}</option>
+            {(name && !groups.some((group) => group.name === name) ? [{ name, cards: sameName }, ...groups] : groups).map((group) => (
+              <option key={group.name} value={group.name}>{group.cards.length > 1 ? `${group.name} · ${group.cards.length} ainet` : group.cards[0]?.hint ? `${group.name} · ${group.cards[0].hint}` : group.name}</option>
             ))}
           </Select>
+          {sameName.length > 1 ? (
+            <Select
+              className="form-grid__wide"
+              label="Aine"
+              value={form.studentId}
+              onChange={(event) => setForm({ ...form, studentId: event.target.value })}
+              required
+            >
+              <option value="">Vali aine ({sameName.length})</option>
+              {sameName.map((student) => <option key={student.id} value={student.id}>{cardLabel(student, sameName)}</option>)}
+            </Select>
+          ) : null}
           <Input
             className="form-grid__wide"
             label="Kirjeldus"
@@ -209,7 +263,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
           </div>
           {selectedStudent ? (
             <p className="form-hint form-grid__wide">
-              Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong> ja lisatakse kohe arvete nimekirja.
+              Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong>{subjectOf(selectedStudent) ? <> ({subjectOf(selectedStudent)})</> : null} ja lisatakse kohe arvete nimekirja.
             </p>
           ) : null}
           {error ? <p className="action-error form-grid__wide" role="alert">{error}</p> : null}
@@ -229,7 +283,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             <h3>ARVE</h3>
             <section className="manual-invoice-paper__payer">
               <span>Maksja / õpilane</span>
-              <strong>{selectedStudent?.name || 'Vali õpilane'}</strong>
+              <strong>{selectedStudent?.name || name || 'Vali õpilane'}</strong>
               <small>{selectedStudent?.hint || 'Maksja andmed lisatakse õpilase kaardilt'}</small>
             </section>
             <div className="manual-invoice-paper__line">
