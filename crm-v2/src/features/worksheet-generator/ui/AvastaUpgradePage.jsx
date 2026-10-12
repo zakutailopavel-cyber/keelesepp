@@ -13,7 +13,7 @@ import { AVASTA_MODULE7_IDS, upgradeAvastaModule7Document } from '../admin/avast
 import { AVASTA_MODULE8_IDS, upgradeAvastaModule8Document } from '../admin/avastaModule8.js';
 import { AVASTA_MODULE9_IDS, upgradeAvastaModule9Document } from '../admin/avastaModule9.js';
 import { AVASTA_MODULE10_IDS, upgradeAvastaModule10Document } from '../admin/avastaModule10.js';
-import { AVASTA_FIX_LESSONS, applyAvastaFixes } from '../admin/avastaFixes.js';
+import { AVASTA_FIX_SHEETS, applyAvastaFixes } from '../admin/avastaFixes.js';
 
 const MISSING = 'Töölehte ei leitud.';
 const MODULES = [
@@ -38,25 +38,26 @@ function FixesCard({ repository, user }) {
   const check = async () => {
     setError('');
     const out = [];
-    for (const lessonId of AVASTA_FIX_LESSONS) {
+    for (const { lessonId, phase } of AVASTA_FIX_SHEETS) {
+      const key = `${lessonId}:${phase}`;
       try {
-        const record = await repository.load(lessonId, 'discover');
-        out.push({ lessonId, record, ...applyAvastaFixes(lessonId, record.worksheetDoc), state: '' });
+        const record = await repository.load(lessonId, phase);
+        out.push({ key, lessonId, phase, record, ...applyAvastaFixes(lessonId, phase, record.worksheetDoc), state: '' });
       } catch (cause) {
-        out.push({ lessonId, record: null, updated: [], already: [], skipped: [], state: cause?.message || String(cause) });
+        out.push({ key, lessonId, phase, record: null, updated: [], already: [], skipped: [], state: cause?.message || String(cause) });
       }
     }
     setRows(out);
   };
   const todo = (rows || []).filter((row) => row.record && row.updated.length);
   const publish = async () => {
-    if (!todo.length || !window.confirm(`Rakendada parandused ${todo.length} Avasta lehele? Muudetakse ainult plokke, mis on samad mis enne kontrolli.`)) return;
+    if (!todo.length || !window.confirm(`Rakendada parandused ${todo.length} töölehele? Muudetakse ainult plokke, mis on samad mis enne kontrolli.`)) return;
     setBusy(true);
     setError('');
     try {
       for (const row of todo) {
-        const saved = await repository.publish({ lessonId: row.lessonId, worksheetId: 'discover', worksheetDoc: row.document, user, baseUpdatedAt: row.record.worksheetDocUpdatedAt || '' });
-        setRows((list) => list.map((item) => (item.lessonId === row.lessonId ? { ...item, state: `✓ avaldatud · v${saved.worksheetDocVersion}`, updated: [], already: [...item.already, ...item.updated] } : item)));
+        const saved = await repository.publish({ lessonId: row.lessonId, worksheetId: row.phase, worksheetDoc: row.document, user, baseUpdatedAt: row.record.worksheetDocUpdatedAt || '' });
+        setRows((list) => list.map((item) => (item.key === row.key ? { ...item, state: `✓ avaldatud · v${saved.worksheetDocVersion}`, updated: [], already: [...item.already, ...item.updated] } : item)));
       }
     } catch (cause) {
       setError(cause?.message || String(cause));
@@ -71,7 +72,7 @@ function FixesCard({ repository, user }) {
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
           <div>
             <h3 style={{ margin: 0 }}>B1 kontrolli parandused (12.10)</h3>
-            <div className="form-hint">Valed võtmed, keelevead, arvatavad ja lahendamatud ülesanded {AVASTA_FIX_LESSONS.length} Avasta lehel. Käsitsi muudetud plokke ei puudutata.</div>
+            <div className="form-hint">Valed võtmed, keelevead, arvatavad ja lahendamatud ülesanded: Avasta 001–050 ja mooduli 1 kolm etappi ({AVASTA_FIX_SHEETS.length} lehte). Käsitsi muudetud plokke ei puudutata.</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <Button variant="secondary" onClick={check} disabled={busy}>Kontrolli</Button>
@@ -81,7 +82,7 @@ function FixesCard({ repository, user }) {
         {error ? <ErrorState title="Avaldamine peatus" message={error} /> : null}
         {rows ? <div className="form-hint">Parandada: {total('updated')} · juba parandatud: {total('already')} · muudetud pärast avaldamist, jäetakse alles: {total('skipped')}</div> : null}
         {rows ? rows.filter((row) => row.updated.length || row.skipped.length || row.state).map((row) => (
-          <div key={row.lessonId} className="form-hint"><b>{row.lessonId}</b>{row.updated.length ? ` · parandada: ${row.updated.join(', ')}` : ''}{row.skipped.length ? ` · jäetakse alles: ${row.skipped.join(', ')}` : ''}{row.state ? ` · ${row.state}` : ''}</div>
+          <div key={row.key} className="form-hint"><b>{row.lessonId} · {row.phase}</b>{row.updated.length ? ` · parandada: ${row.updated.join(', ')}` : ''}{row.skipped.length ? ` · jäetakse alles: ${row.skipped.join(', ')}` : ''}{row.state ? ` · ${row.state}` : ''}</div>
         )) : null}
       </div>
     </Card>
