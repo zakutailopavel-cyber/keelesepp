@@ -1,4 +1,4 @@
-import { Archive, CheckCircle2, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Paperclip, PlayCircle, Plus, Search, Star, Trash2 } from 'lucide-react';
+import { Archive, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Paperclip, PlayCircle, Plus, RotateCcw, Search, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -245,13 +245,14 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   };
 
   return <div className="page-content">
-    <PageHeader compact eyebrow="Õppetöö" title="Kodutööd" description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Sinu ülesanded, tulemused ja õpetaja tagasiside.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
+    <PageHeader compact eyebrow="Õppetöö" title={studentRole && !staff ? 'Ülesanded' : 'Kodutööd'} description={staff ? 'Ülesanded, esitused, hindamine ja tagasiside ühes vaates.' : 'Tee tööd tähtaja järgi: kõige lähem on üleval. Iga tööleht kontrollitakse kohe.'} actions={staff ? <Button onClick={() => setModal(true)}><Plus size={18} /> Uus kodutöö</Button> : null} />
     <PeopleOverview label="Kodutööde kokkuvõte" eyebrow={staff ? 'Õppetöö ülevaade' : 'Minu töölaud'} title={staff ? 'Ülesanded ja tagasiside' : 'Minu kodutööd'} description={staff ? 'Pooleliolevad tööd, tähtajad ja kontrollimist ootavad esitused.' : 'Ülesanded, tähtajad ja õpetaja tagasiside ühes vaates.'} metrics={[
       { icon: ClipboardCheck, label: 'Kõik ülesanded', value: state.data.homework.length + allAssignments.length + (staff ? 0 : interactive.length), hint: staff ? `${students.items.length} õpilast` : `${allAssignments.length} töölehte` },
       { icon: Clock3, label: 'Pooleli', value: openHomework.length + openAssignments.length + (staff ? 0 : interactive.filter((item) => item.status === 'active').length), hint: 'ootab tegemist' },
       { icon: Star, label: 'Hilinenud', value: overdueHomework.length + overdueAssignments.length, hint: 'vajab tähelepanu' },
       { icon: MessageSquare, label: staff ? 'Ootab kontrolli' : 'Tagasisideta', value: pendingReviews.length, hint: `${state.data.submissions.length} esitust kokku` },
     ]} />
+    {studentRole && !staff ? <div className="parent-quick-links"><Link to="/student/kursus"><RotateCcw size={20} aria-hidden="true" /><span><strong>Kordamine</strong><small>Korda tundides õpitut: sõnad, vormid ja sinu enda laused · 5–10 min</small></span><ChevronRight size={18} aria-hidden="true" /></Link></div> : null}
     {undoable ? <div className="success-notice" role="status">{undoable.submission.studentName || 'Õpilane'}: hinne {undoable.grade} saadetakse 5 sekundi pärast. <button type="button" className="link-button" onClick={undoQuick}>Tühista</button></div> : null}
     {success ? <div className="success-notice" role="status">{success}<button onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')}>×</button></div> : null}

@@ -34,22 +34,25 @@ describe('StudentDashboardPage', () => {
     // study comes first: the „Täna” strip shows the next lesson, open homework and word cards (owner 2026-10-12)
     const today = screen.getByRole('region', { name: 'Täna' });
     // „Tänane tee”: steps of the day with progress (words, homework), the open homework's task as its detail
-    expect(within(today).getByText('Tänane tee')).toBeInTheDocument();
+    expect(within(today).getAllByText('Täna').length).toBeGreaterThan(0);
     expect(within(today).getByText('Korda sõnu')).toBeInTheDocument();
     expect(within(today).getByText('Tee kodutöö')).toBeInTheDocument();
     expect(within(today).getByText('Õpi sõnad')).toBeInTheDocument();
     expect(within(today).getByText('0/3 sammu tehtud')).toBeInTheDocument();
     expect(screen.getByText('Vali endale sõber')).toBeInTheDocument();
-    expect(screen.getAllByText('Õpi sõnad').length).toBe(2);
+    // no duplicate lists under „Täna” (owner 2026-10-12: home 10 → 4 blocks)
+    expect(screen.getAllByText('Õpi sõnad').length).toBe(1);
+    expect(screen.queryByText('Kiirviited')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pooleli ülesanded')).not.toBeInTheDocument();
+    expect(screen.queryByText('Minu õppeprofiil')).not.toBeInTheDocument();
     expect(screen.getByText('Väga tubli!')).toBeInTheDocument();
     expect(screen.getByText('Hinne 5')).toBeInTheDocument();
     // „Minu areng”: the student's level → target with his skills and next steps (owner 2026-10-12)
     const growth = screen.getByRole('region', { name: 'Minu areng' });
     expect(within(growth).getByText('Rääkimine')).toBeInTheDocument();
     expect(within(growth).getByText('Mida veel teha?')).toBeInTheDocument();
-    expect(screen.getAllByText('Rääkimine').length).toBeGreaterThan(1);
     expect(screen.getByText(/30,00/)).toBeInTheDocument();
-    expect(screen.getByText('Tervitused')).toBeInTheDocument();
+    expect(screen.queryByText('Viimased tunnid')).not.toBeInTheDocument();
     expect(data.studentRepository.listSelf).toHaveBeenCalledWith('user-1');
     expect(data.homeworkRepository.listByStudentIds).toHaveBeenCalledWith(['student-1']);
     expect(data.scheduleRepository.listByStudent).toHaveBeenCalledWith('student-1');

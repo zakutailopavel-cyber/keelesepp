@@ -158,13 +158,17 @@ describe('Live Classroom invitation lifecycle', () => {
     expect(screen.getByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Materjalid/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Lahku tunniruumist' }));
-    expect(await screen.findByRole('region', { name: 'Minu tahvel' })).toBeInTheDocument();
+    expect(await screen.findByRole('region', { name: 'Tund' })).toBeInTheDocument();
   });
 
-  it('without a lesson the student has their own board in Live Classroom', async () => {
+  it('without a lesson „Tund” says the lesson has not started; the own board opens with one button', async () => {
     const invitationService = { subscribeIncoming: vi.fn((uid, onChange) => { onChange([]); return vi.fn(); }) };
     const studentRepository = { listSelf: vi.fn().mockResolvedValue([{ id: 's-1', name: 'Mari', subject: 'Eesti keel' }]) };
     renderPage({ user: { uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, invitationService, studentRepository });
+    expect(await screen.findByRole('region', { name: 'Tund' })).toBeInTheDocument();
+    expect(await screen.findByText('Tund ei ole veel alanud')).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Õpilase tahvel' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Ava minu tahvel/ }));
     expect(await screen.findByRole('region', { name: 'Minu tahvel' })).toBeInTheDocument();
     expect(await screen.findByRole('img', { name: 'Õpilase tahvel' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Uus leht' })).toBeInTheDocument();
