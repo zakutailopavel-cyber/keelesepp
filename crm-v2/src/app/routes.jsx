@@ -20,7 +20,7 @@ import GuestLessonPage from '../features/live-classroom/GuestLessonPage.jsx';
 import PayInvoicePage from '../features/payments/PayInvoicePage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
 import PetPage from '../features/pet/PetPage.jsx';
-import SelfStudyPage from '../features/self-study/SelfStudyPage.jsx';
+import MistakesPage from '../features/self-study/MistakesPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import ParentsPage from '../features/parents/ParentsPage.jsx';
 import PayrollPage from '../features/payroll/PayrollPage.jsx';
@@ -112,7 +112,9 @@ export default function AppRoutes() {
             <Route path="student" element={<StudentDashboardPage />} />
             <Route path="student/sonavara" element={<VocabularyPage />} />
             <Route path="student/lemmik" element={<PetPage />} />
-            <Route path="student/kursus" element={<SelfStudyPage />} />
+            <Route path="student/vead" element={<MistakesPage />} />
+            {/* „Kordamine” became „Minu vead” (+ words in Sõnad), owner 2026-10-12 */}
+            <Route path="student/kursus" element={<Navigate to="/student/vead" replace />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
             <Route path="finance" element={<FinanceMonthPage />} />

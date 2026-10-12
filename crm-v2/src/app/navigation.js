@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, LayoutDashboard, LibraryBig, ListTodo, MessageSquareText, PenLine, Settings, UserRoundCog, UserRoundPlus, Users, Video } from 'lucide-react';
+import { BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, LayoutDashboard, LibraryBig, ListTodo, MessageSquareText, PenLine, Settings, UserRoundCog, UserRoundPlus, Users, Video } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -6,7 +6,6 @@ export const navigation = [
   { to: '/', label: 'Ülevaade', icon: LayoutDashboard, end: true, roles: ACCESS.DASHBOARD },
   { to: '/parent', label: 'Minu pere', icon: HeartHandshake, roles: ACCESS.PARENT },
   { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
-  { to: '/student/kursus', label: 'Kordamine', icon: BookOpenCheck, roles: ACCESS.STUDENT },
   { to: '/student/sonavara', label: 'Sõnavara', icon: Languages, roles: ACCESS.STUDENT },
   { to: '/calendar', label: 'Kalender', icon: CalendarDays, roles: ACCESS.STAFF, group: 'Õppetöö' },
   { to: '/live-classroom', label: 'Live Classroom', icon: Video, roles: ACCESS.LIVE_CLASSROOM, group: 'Õppetöö' },
@@ -24,14 +23,15 @@ export const navigation = [
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
 ];
 
-// A student's own short menu (owner 2026-10-12: 8 items, two of them the same board, „не понятно что куда нажимать”):
-// everything to do is under „Ülesanded” (homework, sheets, „Kordamine”), the lesson room is „Tund”, the board opens
-// from there. Parents and staff keep the menu above.
+// A student's own short menu (owner 2026-10-12): exactly four things to do — interactive tasks, words, my mistakes and
+// the pet — plus messages. The lesson invitation pops up on every page, so the lesson room needs no menu item.
+// Parents and staff keep the menu above.
 export const studentNavigation = [
   { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
   { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT },
-  { to: '/student/sonavara', label: 'Sõnavara', icon: Languages, roles: ACCESS.STUDENT },
-  { to: '/live-classroom', label: 'Tund', icon: Video, roles: ACCESS.STUDENT },
+  { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT },
+  { to: '/student/vead', label: 'Minu vead', icon: SpellCheck, roles: ACCESS.STUDENT },
+  { to: '/student/lemmik', label: 'Lemmik', icon: PawPrint, roles: ACCESS.STUDENT },
   { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.STUDENT },
 ];
 

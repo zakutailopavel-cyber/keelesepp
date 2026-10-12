@@ -73,8 +73,9 @@ export const TOUR_STEPS = [
   // phones: the menu is closed, so the tour points at the menu button instead of the items
   { target: '[data-tour="menu"]', text: 'Menüü on siin: tunnid, kodutööd, tund õpetajaga ja sõnumid.', hint: 'Меню здесь: уроки, домашки, урок с учителем и сообщения.' },
   { target: '[data-tour="nav-/student"]', text: 'Siin on „Minu õpingud”: sinu tunnid, ülesanded ja mina.', hint: 'Здесь «Minu õpingud»: твои уроки, задания и я.' },
-  { target: '[data-tour="nav-/homework"]', text: '„Ülesanded”: kõik, mida teha — töölehed, kodutööd ja kordamine.', hint: '«Ülesanded»: всё, что нужно сделать — листы, домашка и повторение.' },
-  { target: '[data-tour="nav-/live-classroom"]', text: '„Tund”: siia tuled tundi. Kui õpetaja kutsub, annan märku!', hint: '«Tund»: сюда ты приходишь на урок. Когда учитель позовёт, я дам знать!' },
+  { target: '[data-tour="nav-/homework"]', text: '„Ülesanded”: interaktiivsed tööd õpetajalt.', hint: '«Ülesanded»: интерактивные задания от учителя.' },
+  { target: '[data-tour="nav-/student/vead"]', text: '„Minu vead”: laused tunnist, mida harjutame, kuni need tulevad õigesti.', hint: '«Minu vead»: фразы с урока, которые тренируем, пока не получится.' },
+  { target: '[data-tour="nav-/student/lemmik"]', text: 'Siin elan mina! Kui õpetaja kutsub tundi, annan märku igal lehel.', hint: 'Здесь живу я! Когда учитель позовёт на урок, я дам знать на любой странице.' },
   { target: '[data-tour="nav-/messages"]', text: '„Suhtlus”: kirjuta õpetajale, kui midagi on segane.', hint: '«Suhtlus»: напиши учителю, если что-то непонятно.' },
   { target: '[data-tour="pet"]', text: 'Ja mina olen alati siin. Vajuta mulle, kui vajad abi!', hint: 'А я всегда здесь. Нажми на меня, если нужна помощь!' },
 ];
