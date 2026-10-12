@@ -46,6 +46,8 @@ Validation before save: known block types only, ≤ 150 blocks, ≤ 800 KB JSON,
 - Topics: clock (drawn from data; accepts digits and Estonian words), dialogue with speech bubbles and gaps.
 - Text & audio: reading + questions (`[answer]` or open), listening + gap sentences (+ transcript for teacher).
 - Pictures: photo, picture grid (order numbers / labels / show).
+- Picture tasks (2026-10-12, `blocks/picture.jsx`): words ↔ lettered pictures A–L (`picmatch`, pictures mixed by the block id, the right letter computed in scoring), numbered labels on one picture (`scenelabel`, pins in % + word bank), character cards (`profiles`: portrait, facts, sentences with [gaps]), picture + situation + question rows (`picrows`, teacher-checked).
+- Sheet density (`meta.density: 'compact'`, inspector „Tihedus”): smaller font, tighter cards and 3 mm row gaps — more tasks on a page.
 - Speaking & writing: speaking (voice recording with target duration), writing (lined, live sentence and keyword
   counters), self-check "Kas ma oskan?".
 - Layout: text, "Märka!" notice, tip, vocabulary box.

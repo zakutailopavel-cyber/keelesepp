@@ -79,6 +79,7 @@ export function SheetInspector({ doc, setMeta }) {
             <button type="button" key={theme.key} aria-pressed={sheetTheme(m.theme) === theme.key} className={`ed-preset ${sheetTheme(m.theme) === theme.key ? 'on' : ''}`} style={{ background: (theme.tones?.blue || TONES.blue).card, borderColor: (theme.tones?.blue || TONES.blue).badge }} onClick={() => setMeta({ theme: theme.key === DEFAULT_THEME ? undefined : theme.key })}>{theme.label}</button>
           ))}
         </div>
+        <Select label="Tihedus" value={m.density || ''} onChange={(v) => setMeta({ density: v || undefined })} options={[['', 'Tavaline (õpik)'], ['compact', 'Kompaktne — rohkem ülesandeid lehel']]} />
         <Text label="Pealkiri" value={m.title} onChange={(v) => setMeta({ title: v })} />
         <Text label="Alapealkiri" value={m.subtitle} onChange={(v) => setMeta({ subtitle: v })} />
         <div className="ed-row">

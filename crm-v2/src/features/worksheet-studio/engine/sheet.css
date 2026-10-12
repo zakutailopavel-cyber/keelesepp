@@ -596,3 +596,41 @@
 .ws-root.theme-klassika .ws-passage, .ws-root.theme-klassika .ws-bank { border: .3mm solid #1d2b4a; background: #fff; padding: 3mm 4mm; }
 .ws-root.theme-klassika .ws-fl { color: #1d2b4a; font-family: var(--font-head); text-transform: uppercase; }
 .ws-root.theme-klassika .ws-runhead { border-bottom-color: #1d2b4a; font-family: var(--font-head); }
+
+/* ── picture tasks (blocks/picture.jsx) ── */
+.ws-picmatch { display: grid; grid-template-columns: minmax(48mm, 1fr) 2.6fr; gap: 5mm; align-items: start; }
+.ws-picmatch-words { margin: 0; padding-left: 6mm; display: grid; gap: 1.6mm; }
+.ws-picmatch-words li { display: flex; justify-content: space-between; align-items: center; gap: 3mm; }
+.ws-pic-letter { position: absolute; left: 1.5mm; top: 1.5mm; width: 6.5mm; height: 6.5mm; border-radius: 50%; display: grid; place-items: center; background: var(--ws-badge, var(--ks-navy)); color: #fff; font: 900 10pt var(--font-head); }
+.ws-scenelabel { display: grid; grid-template-columns: 1.4fr 1fr; gap: 5mm; align-items: start; }
+.ws-pin { position: absolute; transform: translate(-50%, -50%); width: 7mm; height: 7mm; border-radius: 50%; display: grid; place-items: center; background: #fff; border: .5mm solid var(--ws-badge, var(--ks-navy)); color: var(--ks-navy); font: 900 10.5pt var(--font-head); box-shadow: 0 .3mm 1mm rgba(0,0,0,.2); }
+.ws-scenelabel-answers { margin: 0; padding-left: 6mm; column-gap: 6mm; }
+.ws-scenelabel-answers li { break-inside: avoid; margin-bottom: 2mm; }
+.ws-profiles { display: grid; gap: 3mm; }
+.ws-profile { border: .3mm solid var(--ks-line); border-radius: 3mm; padding: 2.5mm; background: rgba(255,255,255,.75); display: flex; flex-direction: column; gap: 1.5mm; min-width: 0; }
+.ws-profile > .ws-photo { width: 62%; align-self: center; border-radius: 50%; }
+.ws-profile-name { text-align: center; font: 900 11.5pt var(--font-head); color: var(--ks-navy); text-transform: uppercase; letter-spacing: .4pt; }
+.ws-profile-facts { margin: 0; padding-left: 4.5mm; font-size: .9em; }
+.ws-profile-sentences { margin: 0; padding-left: 5mm; font-size: .9em; display: grid; gap: 1.2mm; }
+.ws-picrows { margin: 0; padding: 0; list-style: none; counter-reset: picrow; display: grid; gap: 3mm; }
+.ws-picrow { counter-increment: picrow; display: grid; grid-template-columns: 42mm 1fr 1.3fr; gap: 4mm; align-items: center; border: .3mm solid var(--ks-line); border-radius: 3mm; padding: 2.5mm 3mm 2.5mm 9mm; position: relative; }
+.ws-picrow::before { content: counter(picrow); position: absolute; left: -2mm; top: -2mm; width: 8mm; height: 8mm; border-radius: 50%; display: grid; place-items: center; background: var(--ws-badge, var(--ks-navy)); color: #fff; font: 900 11pt var(--font-head); }
+.ws-picrow-answer { display: grid; gap: 1.6mm; }
+.ws-ruleline { display: block; height: 7mm; border-bottom: 1px solid var(--ks-line); }
+
+/* ── compact sheet (meta.density 'compact', owner 2026-10-12: more tasks on a page, like a printed worksheet) ── */
+.ws-root.density-compact :is(.ws-page, .ws-page-measure) { font-size: 10.6pt; line-height: 1.28; gap: 3mm; padding-left: 7mm; padding-right: 7mm; }
+.ws-root.density-compact .ws-flow, .ws-root.density-compact .ws-row { gap: 3mm; }
+.ws-root.density-compact .ws-card { padding: 2.6mm 3.2mm 3mm; }
+.ws-root.density-compact .ws-ch { grid-template-columns: 8mm 1fr; gap: 2.2mm; margin-bottom: 1.8mm; }
+.ws-root.density-compact .ws-num { width: 8mm; height: 8mm; font-size: 12pt; }
+.ws-root.density-compact .ws-ch h3 { font-size: 12.5pt; }
+.ws-root.density-compact .ws-ch h3 span { font-size: 11pt; }
+.ws-root.density-compact .ws-ch p { font-size: 10.4pt; margin-top: .4mm; }
+.ws-root.density-compact .ws-title h2 { font-size: 26pt; }
+.ws-root.density-compact .ws-title p { font-size: 12pt; }
+.ws-root.density-compact .ws-bank { padding: 1.4mm 3mm; margin-bottom: 1.8mm; }
+.ws-root.density-compact .ws-bank-w { font-size: 10.4pt; }
+.ws-root.density-compact .ws-passage { font-size: 10.6pt; }
+.ws-root.density-compact .ws-gaps li { padding: .4mm 0; }
+.ws-root.density-compact .ws-card.head-band .ws-ch { margin: -2.6mm -3.2mm 2mm; padding: 1.8mm 3.2mm; }
