@@ -35,6 +35,13 @@ service firebase.storage {
       return superAdmin() || role() in ['teacher', 'admin'];
     }
 
+    // course material: staff and approved students linked to a student card (same as courseReader in firestore.rules)
+    function courseReader() {
+      return staff()
+        || (signedIn() && role() == 'student'
+          && firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.get('linkedStudentIds', []).size() > 0);
+    }
+
     function accountingAdmin() {
       return superAdmin() || role() == 'admin';
     }
@@ -78,12 +85,12 @@ service firebase.storage {
     }
 
     match /eesti_soned.json {
-      allow read: if signedIn();
+      allow read: if courseReader();
       allow write: if staff();
     }
 
     match /worksheet/{fileName} {
-      allow read: if signedIn();
+      allow read: if courseReader();
       allow write: if staff() && safeContent();
     }
 
@@ -99,7 +106,7 @@ service firebase.storage {
     }
 
     match /curriculum/{fileName} {
-      allow read: if signedIn();
+      allow read: if courseReader();
       allow write: if staff() && safeContent();
     }
 

@@ -2298,14 +2298,24 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // The course is the school's own material (owner 2026-10-12: protect it from being spread): only staff and approved
+    // students linked to a student card read it. „signedIn()” alone let any self-made account without a profile
+    // download every lesson.
+    function courseReader() {
+      return isStaff()
+        || (signedIn() && hasUserDoc(uid())
+          && get(userPath(uid())).data.get('role', '') == 'student'
+          && get(userPath(uid())).data.get('linkedStudentIds', []).size() > 0);
+    }
+
     match /curriculumLessons/{lessonId} {
-      allow read: if signedIn();
+      allow read: if courseReader();
       allow write: if isStaff();
 
       // A lesson may own several independent Worksheet Studio documents.
       // The legacy worksheetDoc fields on the lesson stay a separate contract.
       match /worksheets/{worksheetId} {
-        allow read: if signedIn();
+        allow read: if courseReader();
         allow create, update, delete: if isStaff();
       }
     }
