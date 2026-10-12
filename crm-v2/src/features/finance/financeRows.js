@@ -67,7 +67,7 @@ export function filterFinanceRows(rows = [], filters = {}, today = new Date()) {
     if (filters.month && !String(row.planMonth || row.month || row.date || '').startsWith(filters.month)) return false;
     if (filters.studentId && row.studentId !== filters.studentId) return false;
     if (query) {
-      const haystack = [row.num, row.invoiceNumber, row.studentName, row.payerName, row.payerEmail, row.description]
+      const haystack = [row.num, row.invoiceNumber, row.studentName, row.subject, row.payerName, row.payerEmail, row.description]
         .filter(Boolean).join(' ').toLocaleLowerCase('et');
       if (!haystack.includes(query)) return false;
     }

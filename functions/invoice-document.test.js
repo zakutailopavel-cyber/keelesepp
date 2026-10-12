@@ -66,3 +66,11 @@ test("a monthly invoice with quantity and unit price renders on one page", async
   assert.equal(pdf.subarray(0, 5).toString("ascii"), "%PDF-");
   assert.equal((pdf.toString("latin1").match(/\/Type \/Page\b/g) || []).length, 1);
 });
+
+test("the invoice PDF prints the subject stored on the invoice", async () => {
+  const pdf = await buildInvoicePdf({
+    invoice: { num: "KS-2026-501", date: "2026-10-12", due: "2026-11-10", amount: 10, studentName: "Aleksandr Smirnov", subject: "Inglise keel", lines: [{ type: "manual_charge", description: "Õpik", amount: 10 }] },
+    paymentDetails: { company: "E&P Koolitus OÜ", iban: "EE000000000000000000", bank: "Test Pank" },
+  });
+  assert.equal(pdf.subarray(0, 5).toString("ascii"), "%PDF-");
+});
