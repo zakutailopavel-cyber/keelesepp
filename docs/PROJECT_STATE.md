@@ -1,3 +1,9 @@
+## 2026-10-12 · agent/linkpay-spec — LHV LinkPay sandbox configured, CRM spec
+
+- Base: `main` 7c767cc. Sandbox link „KeeleSepp - CRM invoices - SANDBOX” (token `b3uagr8a5v`, Estonian, EUR3D1, unlimited, URL-changeable amount/invoice/payer/order reference, customer cannot edit). Forged HMAC is refused by the gateway (checked). Signed A/B links not yet checked (secret stays with the owner; script `linkpay-sign-test.cjs`, not committed).
+- Spec for the integration: `docs/LINKPAY_INTEGRATION.md`. CRM code not changed; production not touched.
+- Next safe step: owner runs the script, then Codex implements §4 on sandbox.
+
 ## 2026-10-12 · agent/invoice-subject — subject on the invoice and the PDF
 
 - Base: `main` after #544. Why (owner): a student with two subjects (two cards) — the invoice must say which subject.
