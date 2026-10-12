@@ -1,6 +1,8 @@
 /* global fetch, setTimeout, clearTimeout */
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AuthContext } from '../../app/AuthContext.jsx';
+import { copyWithMark, markLabel, OWNER, watermarkStyle } from './contentMark.js';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
@@ -155,8 +157,18 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     ? <><span className="worksheet-progress">{progress.answered}/{progress.total} vastust{draftSaved ? ' · Salvestatud' : autosaved ? ` · automaatselt salvestatud ${autosaved}` : ''}</span><Button variant="secondary" loading={savingDraft} onClick={saveDraft}>Salvesta</Button>{onClose ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null}<Button loading={saving} onClick={submit}><Send size={17} /> Esita tööleht</Button></>
     : onClose ? <Button variant="secondary" onClick={onClose}>Sulge</Button> : null;
 
+  // whose screen: a student's sheet carries his name as a faint watermark and on copied text (staff see none)
+  const mark = markLabel(useContext(AuthContext)?.user);
+  const onCopy = (event) => {
+    if (!mark || !event.clipboardData) return;
+    const text = String(globalThis.getSelection?.() || '');
+    if (!text) return;
+    event.clipboardData.setData('text/plain', copyWithMark(text, mark));
+    event.preventDefault();
+  };
+  const markLine = mark ? <p className="ws-mark-line">© {OWNER} · ainult isiklikuks õppimiseks · {mark.split(' · ©')[0]}</p> : null;
   const body = (
-    <article className={`worksheet-player ws-studio ws-doc-player ${inline ? 'is-inline' : ''}`}>
+    <article className={`worksheet-player ws-studio ws-doc-player ${inline ? 'is-inline' : ''} ${mark ? 'is-marked' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
       <header><div><span className="eyebrow">{assignment.subject || 'Õppetöö'} · {assignment.level || doc.meta?.level || 'Tööleht'}</span><p>{assignment.topic || assignment.note || doc.meta?.canDo || 'Õpetaja määratud tööleht'}</p></div>{submitted ? <Badge tone="success">Esitatud</Badge> : readOnly ? <Badge tone="neutral">Ainult vaatamiseks</Badge> : <Badge tone="info">Täitmisel</Badge>}</header>
       {assignment.note ? <div className="worksheet-note"><strong>Õpetaja märkus</strong><p>{assignment.note}</p></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong><span>{score.pct >= 80 ? 'Suurepärane töö!' : score.pct >= 50 ? 'Tubli! Vaata vead üle.' : 'Harjuta veel ja küsi õpetajalt abi.'}</span></div></div> : null}
@@ -172,12 +184,13 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       </div>
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
       {words.popup}
+      {markLine}
       {submitted && !readOnly ? <section className="worksheet-assessment"><div><Star size={21} /><div><strong>Kuidas tööleht tundus?</strong><span>Tagasiside aitab õpetajal järgmisi ülesandeid kohandada.</span></div></div>{assessmentSaved ? <p><CheckCircle2 size={17} /> Tagasiside salvestatud. Aitäh!</p> : <><Select id="worksheet-difficulty" label="Raskusaste" value={difficulty} onChange={(event) => setDifficulty(event.target.value)}><option value="">Vali</option><option value="1">Väga lihtne</option><option value="2">Lihtne</option><option value="3">Paras</option><option value="4">Raske</option><option value="5">Väga raske</option></Select><label className="textarea-field"><span>Kommentaar</span><textarea rows="3" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Mis oli raske või jäi arusaamatuks?" /></label><Button loading={saving} disabled={!difficulty} onClick={saveAssessment}>Saada tagasiside</Button></>}</section> : null}
     </article>
   );
   // on the board: the sheet first and nothing above it, so it lies exactly like the teacher's copy; the rest below
   if (board) {
-    const sheetFirst = <article className="worksheet-player ws-studio ws-doc-player is-inline is-board">
+    const sheetFirst = <article className={`worksheet-player ws-studio ws-doc-player is-inline is-board ${mark ? 'is-marked' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
@@ -190,6 +203,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong></div></div> : null}
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
       {words.popup}
+      {markLine}
     </article>;
     return <section className="ws-inline-player is-board" aria-label={assignment.title}>{sheetFirst}{footer ? <div className="ws-inline-footer">{footer}</div> : null}</section>;
   }

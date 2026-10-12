@@ -639,3 +639,8 @@ textarea.ed-input { resize: vertical; }
 .ws-word-card__forms span{color:#6b7091;font-size:.8rem}
 .ws-word-card__muted{margin:6px 0;color:#6b7091;font-size:.85rem}
 .ws-word-card__saved{display:flex;align-items:center;gap:6px;margin:0;color:#067647;font-size:.82rem;font-weight:600}
+
+/* the student's watermark and line (owner 2026-10-12: protect the course); printed too */
+.ws-doc-player.is-marked { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.ws-mark-line { margin: 10px 0 0; color: #98a2b3; font-size: 11px; text-align: center; }
+@media print { .ws-doc-player.is-marked { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .ws-mark-line { display: block !important; } }

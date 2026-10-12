@@ -1,3 +1,12 @@
+## 2026-10-12 · agent/content-protection — kursuse materjali kaitse
+
+- Base: `main` d9812ca. Why (owner): protect the school's material from being spread.
+- **Hole closed:** `curriculumLessons` + `worksheets` and Storage `curriculum/`, `worksheet/`, `eesti_soned.json` were readable by `signedIn()`, which is true for an Auth account without a `users` doc (anyone could sign up through the public API key and download the course; prod had 4 such accounts). New `courseReader()` (firestore.rules + storage.rules): staff, or a `student` with a non-empty `users.linkedStudentIds`. Parents, unlinked students and profile-less accounts are refused.
+- **Traceability:** the student's worksheet player (`worksheet-studio/contentMark.js`) shows a faint tiled watermark „name · e-mail · © EP Koolitus” (also printed), a line „ainult isiklikuks õppimiseks” and adds the mark to copied text. Staff see no marks.
+- Checks: `course-access-emulator.integration.js` (new, in `test:emulator`); full emulator suite 76/76 (lesson-worksheets fixture: the learner is linked); contentMark tests; worksheet-studio/self-study/homework 215/215.
+- **Manual gates:** (1) data backfill `users.linkedStudentIds` for 6 students linked only from the card side (script in the session scratchpad, additive), (2) deploy firestore + storage rules — in this order, else those 6 lose the course.
+- Not covered: public `/textbook-art` images and `/word-forms.json` on Vercel (low value; images could move behind auth later), screenshots, account sharing.
+
 ## 2026-10-12 · agent/self-study — „Õpi ise”: the course on one's own
 
 - Base: `main` 4d9a50d. Why (owner): the student studies by himself between lessons.

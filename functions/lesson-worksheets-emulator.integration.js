@@ -23,7 +23,8 @@ async function account(role) {
   const body = await response.json();
   assert.ok(body.idToken);
   const uid = JSON.parse(Buffer.from(body.idToken.split('.')[1], 'base64url')).sub;
-  await admin.firestore().doc(`users/${uid}`).set({ role });
+  // a learner reads the course only when linked to a student card (course access rule, 2026-10-12)
+  await admin.firestore().doc(`users/${uid}`).set(role === 'student' ? { role, linkedStudentIds: ['lesson-ws-card'] } : { role });
   return { token: body.idToken, uid };
 }
 
