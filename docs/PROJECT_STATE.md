@@ -1,3 +1,10 @@
+## 2026-10-12 · agent/sentence-answer-commas — a right sentence with a comma was scored wrong
+
+- Found in the B1 check: error fix and transformation answers were split at commas as if they were variant lists (`splitList`), so „Valime rongi, sest see on kiire.” accepted only fragments. 1670 of 3736 sentence answers in the course code contain a comma (none is a variant list).
+- `worksheet-studio/engine/blocks/advanced.jsx`: `sentenceVariants` — variants of a whole sentence are separated by „|” or a new line; error fix and transformation score with it. Word forms and crossword keep comma variants. Editor labels say „mitu varianti: a | b”.
+- Data / production: none (already saved answers are rescored when a sheet is checked again).
+- Base: `main` after #568. Checks: worksheet-studio + homework + worksheet-generator + pet 805/806 (+1 timing-flaky Studio test that passes alone); new test „sentence answers”.
+
 ## 2026-10-12 · agent/picture-blocks-compact — picture tasks and a compact sheet
 
 - Why (owner, Pinterest worksheet examples): „нет возможности вот такие листы делать”. None of the 885 course sheets in code has a picture.
