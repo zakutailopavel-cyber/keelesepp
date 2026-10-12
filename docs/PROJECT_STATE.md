@@ -1,3 +1,8 @@
+## 2026-10-12 · agent/assignment-phase-title — the three sheets of a lesson are told apart
+
+- Why (owner): Aleksandr Dikovitš had „3 одинаковых задания” — Avasta, Harjuta and Kasuta of a2b1-014 put on the board in one lesson, all titled with the lesson title. `normalizeWorksheetAssignment` appends „· Avasta / Harjuta / Kasuta” (from `phase` or the sheet meta). No data removed.
+- Data (owner's request): 22 word cards for Aleksandr (a2b1-014 directions, a2b1-062 polite forms, Russian translations); Avasta of a2b1-062 assigned earlier today.
+
 ## 2026-10-12 · agent/student-four-things — the student has four things to do
 
 - Why (owner): „у ученика должно быть всё просто: задания интерактивные делать, повторить слова, мои ошибки и игры с тамагочи — больше ничего”.

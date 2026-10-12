@@ -111,13 +111,22 @@ export function sanitizeSubmissionAnnotations(annotations = []) {
   });
 }
 
+const PHASE_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta' };
+function withPhase(title, data) {
+  const phase = data.phase || data.worksheetDoc?.meta?.phase || '';
+  const label = PHASE_LABEL[phase] || '';
+  return label && !String(title).includes(label) ? `${title} · ${label}` : title;
+}
+
 export function normalizeWorksheetAssignment(id, data = {}) {
   return {
     id,
     ...data,
     studentId: data.studentId || '',
     studentName: data.studentName || '',
-    title: data.lessonTitle || data.worksheetDoc?.meta?.title || data.worksheetData?.meta?.title || 'Tööleht',
+    // a course lesson has three sheets with the same lesson title: name the phase too (owner 2026-10-12: „3 одинаковых
+    // задания” were Avasta, Harjuta and Kasuta of one lesson)
+    title: withPhase(data.lessonTitle || data.worksheetDoc?.meta?.title || data.worksheetData?.meta?.title || 'Tööleht', data),
     status: data.status || 'new',
     assignedAt: timestampValue(data.assignedAt),
     completedAt: timestampValue(data.completedAt),
