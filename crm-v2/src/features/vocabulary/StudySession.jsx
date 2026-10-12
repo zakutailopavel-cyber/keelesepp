@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, BookOpenCheck, Check, ClipboardCheck, Layers, Pe
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { buildTest, checkAnswer, choices, learnedCount, learnStep, prompt, shuffle, startLearn } from './deckModel.js';
 import { keyForms, useWordForms } from './wordForms.js';
+import { languageToolsService } from '../../services/firebase/languageTools.js';
 
 // the three key forms under the Estonian word (soodustus · soodustuse · soodustust)
 const FormsContext = createContext({});
@@ -284,11 +285,11 @@ function TestMode({ deck, direction, onResult, onClose, onAddMissed }) {
 const MODES = { cards: CardsMode, learn: LearnMode, write: WriteMode, match: MatchMode, test: TestMode };
 
 /** One deck: the modes as tabs on top (it opens in „Õpi”), the direction and the mode itself. */
-export default function StudySession({ deck, title, onResult, onAddMissed, onBack, initialMode = '' }) {
+export default function StudySession({ deck, title, onResult, onAddMissed, onBack, initialMode = '', formsService = languageToolsService }) {
   const [mode, setMode] = useState(initialMode || (deck.length >= 4 ? 'learn' : 'cards'));
   const [direction, setDirection] = useState('back');
   const Mode = MODES[mode];
-  const dictionary = useWordForms();
+  const dictionary = useWordForms(deck, formsService);
   return (
     <FormsContext.Provider value={dictionary}>
     <section className="vs-session" aria-label={`Õppimine: ${title}`}>

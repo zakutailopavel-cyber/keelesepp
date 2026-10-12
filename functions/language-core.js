@@ -60,6 +60,24 @@ function pickEkilexWord(words = [], term = "") {
   return list.find(word => String(word.wordValue || "").toLocaleLowerCase("et") === key) || list[0] || null;
 }
 
+// the three key forms of a word card (owner 2026-10-12): verbs ma · da · tema-olevik, others nimetav · omastav ·
+// osastav; [] when one of the three is missing
+function threeKeyForms(forms = []) {
+  const by = new Map((Array.isArray(forms) ? forms : []).map(form => [form.code, form.value]));
+  const codes = by.has("Sup") ? ["Sup", "Inf", "IndPrSg3"] : ["SgN", "SgG", "SgP"];
+  const values = codes.map(code => by.get(code)).filter(Boolean);
+  return values.length === 3 ? values : [];
+}
+
+// POST /key-forms { words: [...] }: single words only, no repeats, at most 30 per call
+const MAX_KEY_FORM_WORDS = 30;
+function keyFormsRequest(body = {}) {
+  const words = (Array.isArray(body.words) ? body.words : [])
+    .map(word => cleanTerm(String(word || "").replace(/^[^\p{L}]+|[^\p{L}]+$/gu, ""), 80))
+    .filter(word => word && !/\s/.test(word));
+  return [...new Set(words)].slice(0, MAX_KEY_FORM_WORDS);
+}
+
 // one short line for the word card: "kass, kassi, kassi, kasse" / "lugema, lugeda, loeb"
 function formsLine(forms = []) {
   return forms.map(form => form.value).join(", ");
@@ -143,4 +161,5 @@ function paradigmHasForm(paradigms = [], term = "") {
   return (Array.isArray(paradigms) ? paradigms : []).some((p) => (p?.paradigmForms || p?.forms || []).some((f) => String(f?.value || "").toLocaleLowerCase("et") === key));
 }
 
-module.exports = { evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor };
+module.exports = {
+  threeKeyForms, keyFormsRequest, MAX_KEY_FORM_WORDS, evaluationRequest, summarizeEvaluation, LANGS, KEY_FORMS, TTS_SPEAKERS, MAX_SPEECH, cleanTerm, cacheKey, translationRequest, speechRequest, keyFormsFromParadigms, pickEkilexWord, formsLine, headwordCandidates, paradigmHasForm, isProperFor };

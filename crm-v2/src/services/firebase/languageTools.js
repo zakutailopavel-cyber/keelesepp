@@ -33,6 +33,10 @@ export const languageToolsService = {
     if (src !== 'et') return post('/translate', { text: word, src, tgt }).then((data) => ({ word, translation: data.result || '', forms: { available: false, forms: [], line: '' } }));
     return post('/word', { word, tgt });
   },
+  // the three key forms of words on a student's cards (EKI, cached on the server): { forms: { word: [a, b, c] } }
+  keyForms(words = []) {
+    return post('/key-forms', { words });
+  },
   // the learner's double-click on a worksheet word: forms + translation; the server saves it in the learner's „Sõnad”
   lookupStudentWord({ studentId, word, tgt = 'ru' }) {
     return post('/student-word', { studentId, word, tgt });

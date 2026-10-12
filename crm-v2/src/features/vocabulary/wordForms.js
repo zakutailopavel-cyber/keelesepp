@@ -26,12 +26,40 @@ export function keyForms(word, hint = '', dictionary = {}) {
   return dictionary[key] || [];
 }
 
-export function useWordForms() {
+// words the file does not know are asked from EKI through the server, 30 at a time, each word once per page load
+const asked = new Map();
+const MAX_ASK = 90;
+export async function missingForms(words, dictionary, service) {
+  if (typeof service?.keyForms !== 'function') return {};
+  const missing = [...new Set(words.map((word) => clean(word)).filter((word) => word && !/\s/.test(word) && !dictionary[word] && !asked.has(word)))].slice(0, MAX_ASK);
+  const found = {};
+  for (let i = 0; i < missing.length; i += 30) {
+    const batch = missing.slice(i, i + 30);
+    batch.forEach((word) => asked.set(word, null));
+    try {
+      const data = await service.keyForms(batch);
+      Object.entries(data?.forms || {}).forEach(([word, forms]) => { asked.set(word, forms); found[word] = forms; });
+    } catch { /* the cards work without forms */ }
+  }
+  asked.forEach((forms, word) => { if (forms && !found[word]) found[word] = forms; });
+  return found;
+}
+
+// cards: [{ front, hint }]; a card with its own forms line needs no lookup
+export function useWordForms(cards = [], service = null) {
   const [dictionary, setDictionary] = useState({});
+  const key = cards.map((card) => card.front).join('|');
   useEffect(() => {
     let alive = true;
-    loadWordForms().then((forms) => { if (alive) setDictionary(forms); });
+    loadWordForms().then(async (forms) => {
+      if (!alive) return;
+      setDictionary(forms);
+      const words = cards.filter((card) => keyForms(card.front, card.hint, forms).length === 0).map((card) => card.front);
+      const extra = await missingForms(words, forms, service);
+      if (alive && Object.keys(extra).length) setDictionary({ ...forms, ...extra });
+    });
     return () => { alive = false; };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, service]);
   return dictionary;
 }
