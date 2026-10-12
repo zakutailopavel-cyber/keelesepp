@@ -121,7 +121,7 @@ describe('LiveLessonCallPanel', () => {
     expect(peerFactory.mock.calls[0][0]).toEqual([{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] }]);
   });
 
-  it('does not hold the call more than a few seconds for a slow TURN service', async () => {
+  it('does not hold the call longer than the TURN wake-up time for a slow TURN service', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout'] });
     try {
       const stream = makeStream();
@@ -131,7 +131,10 @@ describe('LiveLessonCallPanel', () => {
       const turnService = { iceServers: vi.fn(() => new Promise(() => {})) };
       render(<LiveLessonCallPanel invitation={teacherInvitation} role="teacher" user={{ uid: 'teacher-1' }} signalService={signalService} presenceService={makePresenceService()} mediaDevices={mediaDevices} peerFactory={peerFactory} turnService={turnService} />);
       fireEvent.click(screen.getByRole('button', { name: /Käivita video ja mikrofon/i }));
+      // the call waits for a sleeping TURN function (wake-up 6–8 s), never longer than 8 s
       await vi.advanceTimersByTimeAsync(3100);
+      expect(peerFactory).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(5000);
       expect(peerFactory).toHaveBeenCalled();
     } finally {
       vi.useRealTimers();

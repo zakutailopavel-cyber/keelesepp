@@ -5,6 +5,11 @@ import { requireFirebaseClient } from './client.js';
 const defaultLiveTurnUrl = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/liveTurnApi';
 
 export const liveTurnService = {
+  // a cheap request that only wakes the function up (no credentials; the answer is ignored)
+  warmUp() {
+    const baseUrl = String(import.meta.env.VITE_LIVE_TURN_API_URL || defaultLiveTurnUrl).replace(/\/$/, '');
+    try { globalThis.fetch?.(`${baseUrl}/ping`, { method: 'POST' })?.catch?.(() => {}); } catch { /* offline: the call still works */ }
+  },
   async iceServers(invitationId) {
     try {
       const { auth } = requireFirebaseClient();
