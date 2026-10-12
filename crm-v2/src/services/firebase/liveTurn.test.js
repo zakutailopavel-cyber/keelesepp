@@ -22,4 +22,12 @@ describe('liveTurnService', () => {
     expect(await liveTurnService.iceServers('invite-1')).toEqual({ iceServers: [], ttl: 0 });
     expect(await liveTurnService.iceServers('')).toEqual({ iceServers: [], ttl: 0 });
   });
+
+  it('wakes the sleeping TURN function without credentials', () => {
+    const fetch = vi.fn().mockResolvedValue({ ok: false });
+    vi.stubGlobal('fetch', fetch);
+    liveTurnService.warmUp();
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/liveTurnApi\/ping$/), { method: 'POST' });
+    vi.unstubAllGlobals();
+  });
 });

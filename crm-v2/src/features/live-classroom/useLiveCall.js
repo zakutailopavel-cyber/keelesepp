@@ -7,7 +7,9 @@ import { openMedia } from './mobileMedia.js';
 export const STUN_SERVERS = Object.freeze([
   { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
 ]);
-const TURN_WAIT_MS = 3000;
+// the TURN function sleeps when idle and needs 6–8 s to wake up (owner 2026-10-12: calls started without the relay and
+// broke on weak networks); the room wakes it on open, and a call waits this long for the relay at most
+const TURN_WAIT_MS = 8000;
 // automatic recovery (teacher side): a „disconnected” peer often heals by itself, so it gets a grace period first
 export const DISCONNECT_GRACE_MS = 8000;
 export const RECOVERY_DELAY_MS = 1500;
@@ -105,6 +107,8 @@ export function useLiveCall({
   useEffect(() => {
     if (invitation?.status === 'accepted') loadTurn();
   }, [invitation?.status, loadTurn]);
+  // wake the TURN function as soon as the room opens, so the credentials come fast when the call starts
+  useEffect(() => { turnService?.warmUp?.(); }, [turnService]);
 
   const localVideoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -513,6 +517,8 @@ export function useLiveCall({
 
   restartRef.current = async () => {
     try {
+      // a reconnect takes the relay too: if the first request missed it (sleeping function), ask again now
+      await waitForTurn();
       const peer = await sendOffer();
       if (peerRef.current === peer && peer.connectionState !== 'connected') setStatus('reconnecting');
     } catch (nextError) {

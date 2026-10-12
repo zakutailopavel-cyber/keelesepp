@@ -1,3 +1,11 @@
+## 2026-10-12 · agent/live-call-turn-wait — Live Classroom: the relay (TURN) really used
+
+- Base: `main` after #548. Why (owner): calls hung on „Ühendan…” and were unstable.
+- Found: `liveTurnApi` never got credentials before today — Cloudflare answered 404 (the stored key id did not exist) since at least 2026-10-09, so every call was STUN-only. Fixed in operations: new Cloudflare Realtime TURN key `keelesepp-crm`, secrets `CLOUDFLARE_TURN_KEY_ID` v4 and `CLOUDFLARE_TURN_API_TOKEN` v3 set by the owner from the clipboard (values never seen), `liveTurnApi` redeployed; first 200 at 12:57 UTC. Old keys `keelesepp`, `keelesepp-2` can be deleted in Cloudflare.
+- Code: the TURN function sleeps and wakes in 6–8 s, but a call waited only 3 s → started without the relay. `useLiveCall.js`: wait up to 8 s, wake the function when the room opens (`liveTurnService.warmUp()` → `POST /ping`, answer ignored), a reconnect asks for the relay again before the new offer.
+- Checks: LiveLessonCallPanel + liveTurn tests 15/15 (+ warm-up test); other live-classroom failures locally are the known Node 26 localStorage ones (CI Node 24).
+- Possible next step (paid, owner's call): `minInstances: 1` for `liveTurnApi` removes the wake-up delay entirely.
+
 ## 2026-10-12 · agent/linkpay-sandbox — LinkPay in the CRM (sandbox, off by default)
 
 - Base: `main` after #547. Owner: „да, начинай” (step 2 of the LinkPay plan).
