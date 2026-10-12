@@ -1,3 +1,4 @@
+- 2026-10-12 · `agent/lhv-production-request`: drafted `docs/LHV_PRODUCTION_REQUEST.md` (ET letter + RU owner translation) for LHV LinkPay production activation; sandbox bank-payment check confirmed, card payment not claimed; invoice volumes not calculated (no Firestore read access); no mail sent, no production change.
 ## 2026-10-12 · agent/linkpay-sandbox-verified — LinkPay sandbox round trip works
 
 - Base: `main` ba9e280. Full sandbox payment through the CRM verified (KS-2026-093, 1 €): bank-confirmed, registered once despite repeated notifications, then voided + invoice cancelled. Card payments stay **off** (sandbox). Details: `docs/LINKPAY_INTEGRATION.md` „Sandbox round trip verified”.
