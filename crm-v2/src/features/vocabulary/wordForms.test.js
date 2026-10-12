@@ -14,7 +14,7 @@ describe('key forms on word cards', () => {
   });
   it('the shipped file has the forms of course words', async () => {
     const { readFileSync } = await import('node:fs');
-    const forms = JSON.parse(readFileSync(`${process.cwd()}/public/word-forms.json`, 'utf8')).forms;
+    const forms = JSON.parse(readFileSync(`${globalThis.process.cwd()}/public/word-forms.json`, 'utf8')).forms;
     expect(forms.pood).toEqual(['pood', 'poe', 'poodi']);
     expect(forms.lugema).toEqual(['lugema', 'lugeda', 'loeb']);
     expect(forms.kool).toEqual(['kool', 'kooli', 'kooli']);
