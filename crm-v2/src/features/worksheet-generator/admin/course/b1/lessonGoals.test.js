@@ -5,8 +5,8 @@ import { buildCourseSheet, COURSE_MODULES } from '../registry.js';
 const GENERIC = ['mooduli põhivara', 'kasutab sihtkeelt', 'tuttava igapäevateksti', 'mõistab teksti põhiideed ja detaile', 'märkab ja selgitab tunni keelemustrit', 'kasutab õpitut suulises ja kirjalikus suhtluses', 'kasutab mooduli põhisõnavara uutes lausetes'];
 
 describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
-  it('every lesson 1–75 has an Estonian learner goal and four specific sub-goals', () => {
-    for (let n = 1; n <= 75; n += 1) {
+  it('every lesson 1–90 has an Estonian learner goal and four specific sub-goals', () => {
+    for (let n = 1; n <= 90; n += 1) {
       const id = `a2b1-${String(n).padStart(3, '0')}`;
       const entry = B1_LESSON_GOALS[id];
       expect(entry, id).toBeTruthy();

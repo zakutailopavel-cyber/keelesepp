@@ -2,6 +2,7 @@
 // ({ [lessonId]: { title, canDo, practice?, transfer?, discover? } }); the admin page „Kursuse tootmine” previews
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
+import { withLessonArt } from '../../art/textbookArt.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import * as b1m02 from './b1/module02.js';
 import * as b1m03 from './b1/module03.js';
@@ -17,6 +18,9 @@ import * as b1m12 from './b1/module12.js';
 import * as b1m13 from './b1/module13.js';
 import * as b1m14 from './b1/module14.js';
 import * as b1m15 from './b1/module15.js';
+import * as b1m16 from './b1/module16.js';
+import * as b1m17 from './b1/module17.js';
+import * as b1m18 from './b1/module18.js';
 import * as b2m01 from './b2/module01.js';
 import * as b2m02 from './b2/module02.js';
 import * as b2m03 from './b2/module03.js';
@@ -46,7 +50,7 @@ import * as c1m08 from './c1/module08.js';
 import * as c1m09 from './c1/module09.js';
 import * as c1m10 from './c1/module10.js';
 
-export const COURSE_MODULES = [b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10];
+export const COURSE_MODULES = [b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10];
 
 export const COURSES = {
   b1: { label: 'B1 · A2 → B1 õpitee', badge: 'KeeleSepp A2 → B1' },
@@ -82,11 +86,12 @@ export function lessonOrder(blocks = []) {
   return [...head, ...rest.sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)];
 }
 
+// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text
 export function buildCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
   const course = COURSES[mod.MODULE.course];
-  return {
+  return withLessonArt({
     schema: 'keelesepp.worksheet/2',
     id: `ws_${lessonId}_${phase}`,
     meta: {
@@ -105,7 +110,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
     blocks: lessonOrder(lesson[phase]),
-  };
+  }, lessonId, phase);
 }
 
 // every sheet a module produces: { [lessonId]: { [phase]: doc } }
