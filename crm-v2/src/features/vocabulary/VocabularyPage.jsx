@@ -8,6 +8,8 @@ import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { deckFromSheets, deckFromWords, lessonDecks } from './deckModel.js';
 import StudySession from './StudySession.jsx';
+import TopicsSection from './TopicsSection.jsx';
+import { loadWordsForLessons } from './lessonWords.js';
 import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
 import './vocabulary.css';
@@ -23,6 +25,7 @@ export default function VocabularyPage({
   catalogRepository = libraryService,
   worksheetRepository = lessonWorksheetsService,
   wordsService = studentWordsService,
+  loadWords = loadWordsForLessons,
 }) {
   const { user, preview } = useAuth();
   const state = useAsyncData(async () => {
@@ -112,6 +115,8 @@ export default function VocabularyPage({
             {dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: dueDeck.length >= 4 ? 'learn' : 'cards' })}><Play size={18} /> Korda nüüd</button>
               : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
           </section>
+          <TopicsSection catalog={catalog} studentId={students[0]?.id || ''} studentLevel={studentLevel} words={words.filter((word) => word.studentId === students[0]?.id)}
+            wordsService={wordsService} user={user} preview={Boolean(preview)} loadWords={loadWords} />
           <Card>
             <div className="section-heading"><div><span className="eyebrow">Minu sõnad</span><h2>Sõnad minu tundidest</h2></div></div>
             {myDeck.length >= 2 ? (

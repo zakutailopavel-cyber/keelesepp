@@ -1,3 +1,13 @@
+## 2026-10-13 · agent/vocab-topics — „Sõnavara → Teemad”: all course words by topic, unlocked topic by topic
+
+- Why (owner): „в словарный запас у ученика сразу добавить все слова по темам … открывались когда ученик пройдет цикл повторений и подтвердит знания заданиями”.
+- Files: `crm-v2/src/features/vocabulary/topicModel.js` (+ test), `TopicsSection.jsx` (+ test), `lessonWords.js` (trimmed loader, + test), `lessonWords/*.json` + `lessonWords.data.test.js` (data from PR #519), `VocabularyPage.jsx` (section under „Täna”), `StudySession.jsx` (`onLearnDone`), `vocabulary.css` (`.vt-*`), `services/firebase/studentWords.js` (`addLessonWords`, batched create, + test); `docs/VOCABULARY_TOPICS.md`.
+- How: topics = modules of the student's level (switchable); open topic → „Kordamine” (Õpi, 10 words at a time until every word is learned once, kept in localStorage) → „Kinnita teadmisi” (14 words: match, choice, write; ≥ 80 %) → the topic words are created in `studentWords` (box 0, ids `lw_<student>_<lesson>_<n>`), the next topic opens. Locked topics show title, count and a greyed preview.
+- Data: student-created `studentWords` docs only; `firestore.rules` unchanged (create with box 0 and the allowed keys).
+- Checks: `npx vitest run src/features/vocabulary src/features/students src/services` 50 files / 266 tests passed; `npx eslint src` 0 errors (10 old warnings); `npm run build` ok (word files are separate chunks).
+- Limits: the word lists (PR #519) are not checked by a teacher; the unlock is enforced in the app only; cycle progress lives on the device; the staff profile does not show topic progress yet (skipped, see the doc); PR #519 itself stays open and conflicts with main.
+- Next: owner/teacher tries „Teemad” on a test student and a teacher reviews the A2 word lists.
+
 ## 2026-10-13 · agent/b1-harno-formats — B1 modules 02–15 train the Harno exam formats of their stage
 
 - Why (owner): „начинай переделку B1 под Harno”. Target: `docs/HARNO_LEVEL_REQUIREMENTS.md` (A2 and B1 exams).

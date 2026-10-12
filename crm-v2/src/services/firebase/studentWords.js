@@ -1,4 +1,4 @@
-import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import { getDocs, collection, deleteDoc, doc, onSnapshot, query, setDoc, updateDoc, where, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { cleanWord, normalizeWord, review } from '../../features/vocabulary/wordsModel.js';
 
@@ -34,6 +34,30 @@ export const studentWordsService = {
     };
     await setDoc(ref, record);
     return normalizeWord(ref.id, record);
+  },
+
+  // the words of a passed „Teemad” topic, each under its fixed id (lessonWordId), written in batches (Firestore allows
+  // 500 writes per batch). Create only: the rules let the student create words with box 0 and the usual keys.
+  // `items`: [{ id, word, translation, example }]
+  async addLessonWords({ studentId, items = [], user }) {
+    if (!studentId) throw new Error('Õpilane puudub.');
+    const { db } = requireFirebaseClient();
+    const now = new Date().toISOString();
+    const records = items.map(({ id, ...input }) => {
+      const data = cleanWord(input);
+      if (!id || !data.word) throw new Error('Kirjuta sõna.');
+      return [id, {
+        studentId, invitationId: '', ...data,
+        createdByUid: user.uid, createdByName: String(user.displayName || user.email || '').slice(0, 160),
+        createdAt: now, updatedAt: now, box: 0, dueAt: now,
+      }];
+    });
+    for (let start = 0; start < records.length; start += 400) {
+      const batch = writeBatch(db);
+      records.slice(start, start + 400).forEach(([id, record]) => batch.set(doc(db, 'studentWords', id), record));
+      await batch.commit();
+    }
+    return records.map(([id, record]) => normalizeWord(id, record));
   },
 
   // the student keeps a word from a course deck for repetition („Lisa raskemad minu sõnadesse”)
