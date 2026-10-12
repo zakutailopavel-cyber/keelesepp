@@ -1,3 +1,12 @@
+## 2026-10-12 · agent/art-cast-portraits — six recurring-character profile portraits
+
+- Base: fresh `origin/main` at `ec3d8b0` (2026-10-12). Owner approved the Anna portrait preview in chat before the remaining five portraits were generated.
+- Added `crm-v2/src/features/worksheet-generator/art/cast.js` because the picture-task brief's referenced cast registry did not yet exist on `main`; it lists Anna, Markus, Liis, Viktor, Sofia and Jaan in art-bible order with ages and Estonian alt text.
+- Added six built-in-generated portraits under `crm-v2/public/textbook-art/cast/`. All are WebP, 800×800, 28–32 KB. No paid image API, database write or deployment.
+- Checks: `file crm-v2/public/textbook-art/cast/*.webp` confirmed all six are 800×800; `du -h` showed 28–32 KB each; `cd crm-v2 && npx vitest run src/features/worksheet-generator` — 48 files passed, 538 tests passed, 1 skipped.
+- Limits: profile-block consumer code is still in open PR #568, so these portraits are registered as content data and are not wired into the constructor yet. No course worksheets were changed.
+- Next: prepare and show the first A2 module 1–10 word picture for owner approval before generating the rest of that picture type.
+
 ## 2026-10-12 · agent/harno-level-norms — level norms after Harno and checks for tasks solved without the language
 
 - Why (owner): „задание не соответствует уровню” — the level audit of all 52 modules in code (`docs/level-audit-2026-10-12/`, Russian, with quotes and fixes; Harno requirements `docs/HARNO_LEVEL_REQUIREMENTS.md`) found no course reaching its Harno exam format and many tasks solvable without Estonian; the automatic check caught only „too hard”.
