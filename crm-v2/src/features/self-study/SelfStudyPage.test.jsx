@@ -4,43 +4,42 @@ import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import SelfStudyPage from './SelfStudyPage.jsx';
 
-// the worksheet player measures its canvas
-globalThis.ResizeObserver ||= class { observe() {} unobserve() {} disconnect() {} };
+const vocabSheet = { worksheetId: 'discover', worksheetDocStatus: 'published', worksheetDoc: { meta: { phase: 'discover' }, blocks: [{ id: 'v', type: 'vocab', data: { words: 'raha — деньги, pank — банк, arve — счёт, hind — цена' } }] } };
 
-const doc = (phase) => ({ meta: { phase, title: `Leht ${phase}` }, blocks: [{ id: 'b1', type: 'text', data: { heading: 'Tere', text: 'Tekst' } }] });
-const sheet = (phase) => ({ worksheetId: phase, worksheetDocStatus: 'published', worksheetDoc: doc(phase) });
-
-function renderPage() {
-  const homework = {
-    listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([
-      { id: 'w1', lessonId: 'b1-003', phase: 'discover', status: 'done', score: { pct: 80 }, worksheetDoc: doc('discover') },
-    ]),
-    createSelfStudy: vi.fn(async ({ lesson, phase, publishedDoc }) => ({ id: 'new-1', lessonId: lesson.id, phase, status: 'new', answers: {}, worksheetDoc: publishedDoc, source: 'self_study' })),
-    saveWorksheetDraft: vi.fn(), submitWorksheet: vi.fn(),
-  };
+function renderPage({ lessons = [{ topicLessonId: 'b1-003', date: '2026-10-08' }] } = {}) {
   const props = {
     studentRepository: { listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari', level: 'B1' }]) },
+    lessonRepository: { listByStudent: vi.fn().mockResolvedValue(lessons) },
     catalogRepository: { listCurriculum: vi.fn().mockResolvedValue([
       { id: 'b1-003', title: 'Raha ja ost', level: 'B1', topic: '01. Igapäev', roadmapManaged: true, roadmapLessonNumber: 3 },
       { id: 'b1-004', title: 'Pank', level: 'B1', topic: '01. Igapäev', roadmapManaged: true, roadmapLessonNumber: 4 },
     ]) },
-    worksheetRepository: { list: vi.fn().mockResolvedValue([sheet('discover'), sheet('practice'), sheet('transfer')]) },
-    homework,
+    worksheetRepository: { list: vi.fn().mockResolvedValue([vocabSheet]) },
+    wordsService: { subscribeForStudent: vi.fn((id, next) => { next([{ id: 'w1', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }]); return () => {}; }) },
+    formsLoader: vi.fn().mockResolvedValue({ pank: ['pank', 'panga', 'panka'] }),
   };
-  render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', displayName: 'Mari' } }}><SelfStudyPage {...props} /></AuthContext.Provider></MemoryRouter>);
+  render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1' } }}><SelfStudyPage {...props} /></AuthContext.Provider></MemoryRouter>);
   return props;
 }
 
-describe('Õpi ise', () => {
-  it('goes on with the started lesson and opens its next sheet as the student\'s own', async () => {
+describe('Kordamine page', () => {
+  it('shows only held lessons and never the course worksheets', async () => {
+    renderPage();
+    expect(await screen.findByText('3. Raha ja ost')).toBeInTheDocument();
+    expect(screen.queryByText(/Pank$/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Avasta|Kasuta/)).not.toBeInTheDocument();
+    expect(await screen.findByText('1 parandatud lauset')).toBeInTheDocument();
+  });
+
+  it('runs a drill one task at a time', async () => {
     const props = renderPage();
-    expect(await screen.findByRole('heading', { name: '3. Raha ja ost' })).toBeInTheDocument();
-    expect(screen.getByText('0/2 tundi läbitud')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Jätka/ }));
-    expect(await screen.findByText('Tehtud · 80%')).toBeInTheDocument();
-    const buttons = screen.getAllByRole('button', { name: /Alusta/ });
-    fireEvent.click(buttons[0]);
-    await waitFor(() => expect(props.homework.createSelfStudy).toHaveBeenCalledWith(expect.objectContaining({ phase: 'practice', lesson: expect.objectContaining({ id: 'b1-003' }) })));
-    expect(props.homework.createSelfStudy.mock.calls[0][0].publishedDoc.meta.phase).toBe('practice');
+    fireEvent.click(await screen.findByText('3. Raha ja ost'));
+    await waitFor(() => expect(props.worksheetRepository.list).toHaveBeenCalledWith('b1-003'));
+    expect(await screen.findByText(/^1\//)).toBeInTheDocument();
+  });
+
+  it('explains that review opens after the first lesson', async () => {
+    renderPage({ lessons: [] });
+    expect(await screen.findByText('Kordamine avaneb pärast esimest tundi')).toBeInTheDocument();
   });
 });

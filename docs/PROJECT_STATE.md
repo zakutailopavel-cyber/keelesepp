@@ -1,3 +1,12 @@
+## 2026-10-12 · agent/self-study-review — „Õpi ise” → „Kordamine” (review of held lessons only)
+
+- Base: `main` after #542. Why (owner): the student should not go through the course worksheets on his own; the sheets belong to the lesson with the teacher.
+- `/student/kursus` (menu „Kordamine”) no longer opens course sheets or creates `self_study` assignments. It lists only lessons held with the teacher (done lessons with `topicLessonId`) and builds a short drill (≤10 tasks) without AI: meaning choice, recall, omastav+osastav (`/word-forms.json`), choose the right sentence and put the sentence together from his own corrected sentences (word cards „Sinu lause: …” from „Pärast tundi”). One task per screen, big buttons.
+- Files: `self-study/reviewModel.js`, `reviewStore.js` (results per device in localStorage, practice only), `SelfStudyPage.jsx`, `selfStudy.css`, tests; `students/todayPath.js` (step „Korda tundi”), `levelProgress.js` (hints point to Kordamine / homework), `StudentDashboardPage.jsx`, `app/navigation.js`.
+- Not changed: `firestore.rules` still allows the `selfStudySheet` create (unused by the UI now; removing it needs a rules deploy — owner's call). Old `self_study` assignments stay as history.
+- Checks: self-study + students + app 99/99; full suite locally 1541/1551 — the 10 failures are live-classroom/calendar tests with `localStorage` under local Node 26 (untouched files; CI uses Node 24).
+- Next safe step: owner tries „Kordamine” as Test Õpilane after a held lesson.
+
 ## 2026-10-12 · agent/finance-month-default — Finance opens on the current month
 
 - Base: `main` 896afd9. Why (owner): „почему я не вижу счетов?” — after the 10th (`PAYMENT_DUE_DAY`) `/finance` opened on next month (`defaultBillingMonth()`), which has no invoices yet, so the list showed „Arveid 0”. Data was intact (2026-10: 9, 2026-09: 17 invoices).

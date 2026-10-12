@@ -6,7 +6,7 @@ import { isDue } from '../vocabulary/wordsModel.js';
 
 const dayOf = (value) => String(value || '').slice(0, 10);
 
-export function todayPath({ words = [], homework = [], submissions = [], pet = null, today, now = Date.now() }) {
+export function todayPath({ words = [], homework = [], submissions = [], pet = null, reviewedToday = false, today, now = Date.now() }) {
   const due = words.filter((word) => isDue(word, now)).length;
   const reviewed = words.filter((word) => dayOf(word.reviewedAt) === today).length;
   const open = homework.filter(isHomeworkOpen);
@@ -17,13 +17,13 @@ export function todayPath({ words = [], homework = [], submissions = [], pet = n
       key: 'words', label: 'Korda sõnu', to: '/student/sonavara', done: reviewed > 0,
       detail: reviewed ? `${reviewed} sõna korratud` : due ? `${due} sõna ootab` : words.length ? 'Harjuta tundide sõnu' : 'Vali tund ja õpi sõnu',
     },
-    // no homework open: the step is a lesson of the course on one's own („Õpi ise”)
+    // no homework open: the step is a short review of the held lessons („Kordamine”; the course sheets stay for the lesson)
     open.length ? {
       key: 'work', label: 'Tee kodutöö', to: '/homework', done: workToday,
       detail: workToday ? 'Tehtud täna' : open[0].task || `${open.length} ootab`,
     } : {
-      key: 'work', label: 'Õpi ise', to: '/student/kursus', done: workToday,
-      detail: workToday ? 'Tehtud täna' : 'Tee üks leht kursusest',
+      key: 'work', label: 'Korda tundi', to: '/student/kursus', done: workToday || reviewedToday,
+      detail: workToday || reviewedToday ? 'Tehtud täna' : '7 minutit: tunni sõnad ja vormid',
     },
   ];
   if (pet?.kind && !pet.optedOut) {

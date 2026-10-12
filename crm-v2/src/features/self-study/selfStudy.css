@@ -29,3 +29,41 @@
 .ss-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: #1d4f91; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
 .ss-btn:disabled { opacity: .45; cursor: default; }
 @media (max-width: 560px) { .ss-lessons { margin-left: 0; } .ss-step { grid-template-columns: auto minmax(0, 1fr); } .ss-step .ss-btn { grid-column: 1 / -1; justify-content: center; } }
+
+/* „Kordamine” (owner 2026-10-12): one task at a time, big buttons, works on a phone */
+.ss-muted { margin: 4px 0 0; color: #667085; }
+.ss-lesson small { display: block; color: #667085; font-size: 13px; }
+.ss-badge { padding: 3px 10px; border-radius: 999px; background: #eef4ff; color: #1d4f91; font-size: 13px; font-weight: 700; }
+.ss-lesson.is-done .ss-badge { background: #12b76a; color: #fff; }
+.ss-btn--ghost { background: #f2f4f7; color: #344054; }
+.ss-drill { max-width: 640px; margin: 0 auto; padding: 22px 22px 26px; border: 1px solid #e4e7ec; border-radius: 22px; background: #fff; box-shadow: 0 10px 30px rgba(16, 24, 40, .06); }
+.ss-drill__top { display: flex; justify-content: space-between; gap: 12px; color: #475467; }
+.ss-drill__bar { height: 6px; margin: 10px 0 18px; border-radius: 999px; background: #f2f4f7; overflow: hidden; }
+.ss-drill__bar i { display: block; height: 100%; background: #12b76a; transition: width .25s; }
+.ss-drill__label { margin: 0; color: #667085; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; }
+.ss-drill__ask { margin: 6px 0 18px; font-size: clamp(22px, 5vw, 30px); line-height: 1.2; }
+.ss-drill__ask small { color: #667085; font-size: 16px; font-weight: 500; }
+.ss-options { display: grid; gap: 10px; }
+.ss-option { min-height: 52px; padding: 12px 16px; border: 2px solid #e4e7ec; border-radius: 14px; background: #fff; color: #182230; font: inherit; font-size: 17px; text-align: left; cursor: pointer; }
+.ss-option:hover:not(:disabled) { border-color: #84adff; background: #f5f8ff; }
+.ss-option:disabled { cursor: default; }
+.ss-option.is-right { border-color: #12b76a; background: #ecfdf3; }
+.ss-option.is-wrong { border-color: #f04438; background: #fef3f2; }
+.ss-options--chips { display: flex; flex-wrap: wrap; }
+.ss-options--chips .ss-option { min-height: 44px; padding: 8px 14px; }
+.ss-options--chips .ss-option:disabled { opacity: .35; }
+.ss-order__line { min-height: 52px; margin: 0 0 12px; padding: 12px 14px; border-radius: 14px; background: #f9fafb; font-size: 18px; }
+.ss-write { display: grid; gap: 10px; }
+.ss-write input { height: 52px; padding: 0 14px; border: 2px solid #d0d5dd; border-radius: 14px; font: inherit; font-size: 18px; }
+.ss-write label { display: grid; gap: 4px; color: #475467; font-weight: 600; }
+.ss-write .ss-btn, .ss-drill__actions .ss-btn, .ss-result .ss-btn { height: 48px; justify-content: center; font-size: 16px; }
+.ss-drill__actions { display: flex; gap: 10px; margin-top: 12px; }
+.ss-drill__actions .ss-btn { flex: 1; }
+.ss-result { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 16px; padding: 12px 14px; border-radius: 14px; font-weight: 700; }
+.ss-result span { flex: 1; min-width: 160px; }
+.ss-result.is-right { background: #ecfdf3; color: #067647; }
+.ss-result.is-almost { background: #fffaeb; color: #b54708; }
+.ss-result.is-wrong { background: #fef3f2; color: #b42318; }
+.ss-drill--end { text-align: center; }
+.ss-drill__big { font-size: 48px; }
+@media (max-width: 560px) { .ss-drill { padding: 16px; border-radius: 18px; } .ss-result .ss-btn { width: 100%; } }
