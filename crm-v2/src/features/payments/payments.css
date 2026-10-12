@@ -1,0 +1,21 @@
+/* LHV LinkPay: public pay page and the open invoices card (owner 2026-10-12) */
+.pay-page { display: grid; place-items: center; min-height: 100vh; padding: 16px; background: #f4f6f5; }
+.pay-card { display: grid; justify-items: center; gap: 8px; width: min(440px, 100%); padding: 32px 24px 20px; border-radius: 20px; background: #fff; box-shadow: 0 14px 40px rgba(16, 24, 40, .08); text-align: center; }
+.pay-card h1 { margin: 6px 0 0; font-size: 22px; }
+.pay-card p { margin: 0; color: #475467; }
+.pay-card footer { margin-top: 18px; color: #98a2b3; font-size: 13px; }
+.pay-muted { font-size: 14px; }
+.pay-icon { color: #1d4f91; }
+.pay-icon.is-ok { color: #12b76a; }
+.pay-icon.is-bad { color: #f04438; }
+.pay-spin { color: #0f766e; animation: pay-spin 1s linear infinite; }
+@keyframes pay-spin { to { transform: rotate(360deg); } }
+.open-invoices { display: grid; gap: 8px; }
+.open-invoice { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 14px; border: 1px solid #e4e7ec; border-radius: 14px; background: #fff; }
+.open-invoice > div { flex: 1; min-width: 160px; display: grid; gap: 2px; }
+.open-invoice small { color: #667085; }
+.open-invoice strong.open-invoice__sum { font-size: 17px; }
+.open-invoice.is-overdue { border-color: #fda29b; background: #fffbfa; }
+.open-invoice__pay { display: inline-flex; align-items: center; gap: 6px; height: 42px; padding: 0 16px; border: 0; border-radius: 12px; background: #0f766e; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.open-invoice__pay:disabled { opacity: .5; cursor: default; }
+@media (max-width: 560px) { .open-invoice__pay { width: 100%; justify-content: center; } }

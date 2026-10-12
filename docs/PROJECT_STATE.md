@@ -1,3 +1,10 @@
+## 2026-10-12 · agent/linkpay-sandbox — LinkPay in the CRM (sandbox, off by default)
+
+- Base: `main` after #547. Owner: „да, начинай” (step 2 of the LinkPay plan).
+- Built: `linkpayApi` (start / callback / return / config / settings), pay link on the PDF and in the invoice e-mail, public `/maksa/<id>`, „Tasumata arved” + „Maksa arve” for parents and students, finance settings „Kaardimaksed”. Payments go through `recordInvoicePayment` (idempotent by `linkpay_<payment_reference>`), only after the bank's own record says settled with the same reference, currency and amount. Details: `docs/LINKPAY_INTEGRATION.md` §6.
+- Checks: functions `npm test` (incl. `linkpay-core.test.js` 6/6); CRM payments 5/5, parents/students/finance/app 211/211; build OK; sample PDF with the pay link checked visually.
+- Manual gates: owner sets the two sandbox secrets; deploy of 4 functions; Customer URL + Callback URL in the LHV sandbox; test payment. Production: separate PR.
+
 ## 2026-10-12 · agent/linkpay-verified — LinkPay signed links verified in the sandbox
 
 - Base: `main` after #546. Signed links A (25 €) and B (175 €) open with the right amount, invoice number and Estonian labels; a changed amount with the old signature is refused. Details in `docs/LINKPAY_INTEGRATION.md` §2.

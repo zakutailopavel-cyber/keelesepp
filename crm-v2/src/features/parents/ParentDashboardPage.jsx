@@ -9,6 +9,7 @@ import { homeworkService, invoicesService, lessonsService, scheduleService, stud
 import { groupStudentPeople } from '../../services/firebase/students.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from '../students/studentFinance.js';
+import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
 import { INDIVIDUAL_TOPIC } from '../calendar/lessonTopic.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
@@ -62,6 +63,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
     ]} />
     {!students.length ? <Card><EmptyState title="Õpilase kaarti ei ole kontoga seotud" description="Palu administraatoril siduda lapse olemasolev õpilase kaart sinu kontoga." /></Card> : <div className="parent-home-grid">
+      <OpenInvoicesCard invoices={invoices} />
       <Card><div className="section-heading"><div><span className="eyebrow">Pere</span><h2>Minu õpilased</h2></div></div><div className="parent-home-students">{students.map((student) => <article className="parent-child-card" key={student.personKey || student.id}><div className="parent-child-card__head"><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><div><strong>{student.name}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</small></div></div><div className="parent-child-enrollments">{(student.enrollments || []).map((enrollment) => <div key={enrollment.id}><strong>{enrollment.subject || 'Õppeaine puudub'}</strong><span>{enrollment.level || 'tase puudub'}{enrollment.targetLevel ? ` → ${enrollment.targetLevel}` : ''}</span><small>{enrollment.teacher || 'õpetaja määramata'}</small></div>)}</div></article>)}</div></Card>
       <Card><div className="section-heading"><div><span className="eyebrow">Õppetöö</span><h2>Mida tunnis tehti</h2></div></div>{doneLessons.length ? <div className="simple-list parent-home-done">{doneLessons.map((lesson) => <div key={lesson.id}><div><strong>{lesson.topic || INDIVIDUAL_TOPIC}</strong><span>{[new Date(`${lesson.date}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'short' }), studentMap.get(lesson.studentId)?.name || lesson.studentName, [lesson.topicLevel, lesson.topicModule].filter(Boolean).join(' · ')].filter(Boolean).join(' · ')}</span>{lesson.notes ? <small className="parent-home-note">{lesson.notes}</small> : null}</div><Badge tone="success">Toimus</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
       <PetOverview studentIds={studentRecords.map((student) => student.id)} lessons={lessons} homework={homework} names={Object.fromEntries(studentRecords.map((student) => [student.id, student.name]))} {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} />

@@ -17,6 +17,7 @@ import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePag
 import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
 import GuestLessonPage from '../features/live-classroom/GuestLessonPage.jsx';
+import PayInvoicePage from '../features/payments/PayInvoicePage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
 import PetPage from '../features/pet/PetPage.jsx';
 import SelfStudyPage from '../features/self-study/SelfStudyPage.jsx';
@@ -61,6 +62,8 @@ export default function AppRoutes() {
       <Route path="/forbidden" element={<ForbiddenPage />} />
       {/* the lesson link for a student without a login (functions/live-guest.js) — no account, one lesson only */}
       <Route path="/tund/:token" element={<GuestLessonPage />} />
+      {/* LHV LinkPay: public pay link from the invoice PDF / e-mail and the bank's return page */}
+      <Route path="/maksa/:invoiceId" element={<PayInvoicePage />} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}

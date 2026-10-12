@@ -1,6 +1,6 @@
 # LHV LinkPay (EveryPay) — KeeleSepp CRM integration spec
 
-Status 2026-10-12: **sandbox configured, CRM not changed.** This is the contract for the agent (Codex) that builds the
+Status 2026-10-12: **sandbox configured; CRM integration built (branch `agent/linkpay-sandbox`), switched off until the owner's test.** This is the contract for the agent (Codex) that builds the
 integration. Production stays off until the owner gives separate permission.
 
 ## 1. What is configured in LHV Paytech Sandbox (`merchant.sandbox.lhv.ee`)
@@ -98,3 +98,39 @@ ownership, cancelled/paid refusal, idempotent callback, partial payment. Do not 
 LHV production agreement and LinkPay activation for E&P Koolitus OÜ; production link with the same settings; production
 API username/secret into Secret Manager; Callback URL in the production e-shop; a real confirmation page for Customer
 URL; owner's explicit go-ahead.
+
+## 6. Implementation (agent/linkpay-sandbox)
+
+- `functions/linkpay-core.js` (+ tests): signing, amount, open balance, unique `order_reference`, pay code, ownership
+  (same owners as the `ownsInvoice` rule), verdict on the bank record, payment requestId.
+- `functions/index.js` → `exports.linkpayApi` (secrets `LINKPAY_SANDBOX_USERNAME`, `LINKPAY_SANDBOX_SECRET`):
+  - `POST /config` → `{ enabled, environment }` (public);
+  - `POST /start { invoiceId, k }` (code from the PDF / e-mail, no login) or `POST /start { invoiceId }` with a Firebase
+    token (owner or staff) → new `paymentAttempts/{orderReference}` with the open balance → `{ url }`. While switched
+    off only staff get a link (testing);
+  - `GET|POST /callback ?payment_reference&order_reference` (the e-shop Callback Notification URL) and
+    `POST /return` (the CRM return page) → `settleLinkpayPayment`: GET `{apiBase}/payments/{ref}` with Basic auth,
+    `paymentVerdict`, settled → `recordInvoicePayment` (method `linkpay`, requestId `linkpay_<payment_reference>`,
+    actor `system:linkpay`), attempt + `paymentProviderEvents/{requestId}` updated; a closed period or a mismatch →
+    attempt `needs_review` / `mismatch`, nothing paid;
+  - `POST /settings` (admin) → `financeSettings/linkpay { enabled, environment, linkpayToken }`.
+  - Environments in `linkpay-core.ENVIRONMENTS`: sandbox `https://payment.sandbox.lhv.ee/lp` + `/api/v4` (API answers
+    401 without keys, checked), production `https://payment.lhv.ee/lp` + `/api/v4`. Production credentials are not
+    wired yet (`linkpayCredentials` refuses) — a separate PR with the owner's permission.
+- PDF (`invoice-document.js`) and the invoice e-mail get „Maksa kaardi või pangalingiga: https://crm.epkoolitus.ee/maksa/<id>?k=<payCode>”
+  only while switched on and the invoice has a balance; `payCode` is created on the invoice the first time.
+- CRM: public `/maksa/:invoiceId` (`features/payments/PayInvoicePage.jsx`; `/maksa/tagasi` is the return page),
+  „Tasumata arved” with „Maksa arve” on the parent and student home (`OpenInvoicesCard`), finance settings → „Kaardimaksed”
+  (`LinkpaySettings`). Client `services/firebase/linkpayApi.js`.
+- New server-only collections (rules default deny): `paymentAttempts`, `paymentProviderEvents`.
+
+### Switching on (sandbox)
+
+1. Owner: `firebase functions:secrets:set LINKPAY_SANDBOX_USERNAME` and `… LINKPAY_SANDBOX_SECRET` (typed at the prompt).
+2. Deploy `linkpayApi`, `invoiceApi`, `financeApi`, `sendInvoicePaymentReminders` (owner's permission).
+3. Finance → Seaded → Kaardimaksed: token `b3uagr8a5v`, keep off; staff test from a family view or `/maksa/<id>?k=…`.
+4. LHV sandbox: link Customer URL `https://crm.epkoolitus.ee/maksa/tagasi`; e-shop Callback Notification URL
+   `https://us-central1-keelesepp-5136b.cloudfunctions.net/linkpayApi/callback`.
+5. Pay a test invoice with an LHV test card → the invoice turns „Makstud”, the payment shows method `linkpay`.
+
+Not covered by automatic tests: the real bank round trip (needs keys) — step 5 is the check.

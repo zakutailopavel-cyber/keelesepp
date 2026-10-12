@@ -1,6 +1,7 @@
-import { ArrowLeft, BarChart3, CalendarClock, FileDigit, Mail, ScrollText } from 'lucide-react';
+import { ArrowLeft, BarChart3, CalendarClock, CreditCard, FileDigit, Mail, ScrollText } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import LinkpaySettings from '../payments/LinkpaySettings.jsx';
 import FinancePage from './FinancePage.jsx';
 import { normalizeFinanceSettingsSection } from './financeSettingsNavigation.js';
 import './financeSettings.css';
@@ -10,6 +11,7 @@ const sections = [
   { id: 'perioodid', label: 'Perioodid', description: 'Kuu kontroll ja sulgemine', icon: CalendarClock },
   { id: 'numeratsioon', label: 'Numeratsioon', description: 'Arvenumbrite kontroll', icon: FileDigit },
   { id: 'ekirjad', label: 'E-kirjad', description: 'Saatmine ja tarneolek', icon: Mail },
+  { id: 'kaardimaksed', label: 'Kaardimaksed', description: 'LHV LinkPay makselingid', icon: CreditCard },
   { id: 'audit', label: 'Audit', description: 'Muutmatu finantsajalugu', icon: ScrollText },
 ];
 
@@ -29,7 +31,7 @@ export default function FinanceSettingsPage(props) {
       <nav className="finance-settings-nav" aria-label="Finantsseaded">
         {sections.map(({ id, label, description, icon: Icon }) => <button key={id} type="button" className={active === id ? 'is-active' : ''} aria-pressed={active === id} onClick={() => select(id)}><Icon size={19} /><span><strong>{label}</strong><small>{description}</small></span></button>)}
       </nav>
-      <section className="finance-settings-content"><FinancePage key={active} {...props} section={active} /></section>
+      <section className="finance-settings-content">{active === 'kaardimaksed' ? <LinkpaySettings /> : <FinancePage key={active} {...props} section={active} />}</section>
     </div>
   );
 }
