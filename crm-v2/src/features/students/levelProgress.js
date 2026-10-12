@@ -1,7 +1,7 @@
 // „Minu areng” (owner 2026-10-12): every student sees his own way from his level to his target level (both on his card)
 // — how far he is, every skill against the bar, and at most three very concrete next steps. Evidence: the skills
 // computed from his checked worksheets (autoSkills), speaking from his recorded lessons (petLessonStats), the
-// teacher's grades on the card where the computed value is missing, and the course of the next level („Õpi ise”).
+// teacher's grades on the card where the computed value is missing, and the course of the next level (held with the teacher).
 import { AUTO_SKILLS } from './autoSkills.js';
 
 export const LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
@@ -9,11 +9,11 @@ export const READY = 70; // a skill counts as ready for the next level from here
 const norm = (value) => String(value || '').toUpperCase().replace(/[^ABC12]/g, '').slice(0, 2);
 
 const ACTIONS = {
-  Grammatika: { et: 'Tee „Õpi ise” Harjuta-lehti: vormid ja lauseehitus.', ru: 'Делай листы «Harjuta» в «Õpi ise»: формы и порядок слов.', to: '/student/kursus' },
+  Grammatika: { et: 'Tee iga päev kordamist: vormid ja sinu enda laused.', ru: 'Каждый день делай «Kordamine»: формы и твои собственные предложения.', to: '/student/kursus' },
   Sõnavara: { et: 'Korda sõnakaarte iga päev 10 minutit.', ru: 'Повторяй карточки слов по 10 минут в день.', to: '/student/sonavara' },
-  Lugemine: { et: 'Loe Avasta-lehtede tekste ja vasta küsimustele.', ru: 'Читай тексты в листах «Avasta» и отвечай на вопросы.', to: '/student/kursus' },
-  Kuulamine: { et: 'Tee Harjuta-lehtede etteütlusi.', ru: 'Делай диктанты в листах «Harjuta».', to: '/student/kursus' },
-  Kirjutamine: { et: 'Kirjuta Kasuta-lehtede kirjad ja jutud lõpuni.', ru: 'Дописывай письма и рассказы в листах «Kasuta».', to: '/student/kursus' },
+  Lugemine: { et: 'Tee õpetaja antud lehtede tekstid ja küsimused lõpuni.', ru: 'Дочитывай тексты в листах от учителя и отвечай на вопросы.', to: '/homework' },
+  Kuulamine: { et: 'Tee kodutöö etteütlused ja kuulamisülesanded.', ru: 'Делай диктанты и задания на слух из домашки.', to: '/homework' },
+  Kirjutamine: { et: 'Kirjuta kodutöö kirjad ja jutud lõpuni.', ru: 'Дописывай письма и рассказы в домашке.', to: '/homework' },
   Rääkimine: { et: 'Räägi tunnis eesti keeles, ära mine üle vene keelele.', ru: 'Говори на уроке по-эстонски, не переходи на русский.', to: '/student' },
 };
 const FIRST = {
@@ -74,7 +74,7 @@ export function levelProgress({ level, target, computed = [], skillMap = {}, cou
   if (weakest) hints.push({ key: `skill-${weakest.skill}`, skill: weakest.skill, et: `${weakest.skill} ${weakest.pct}% → ${READY}%: ${ACTIONS[weakest.skill].et}`, ru: `${weakest.skill}: ${weakest.pct}% из ${READY}%. ${ACTIONS[weakest.skill].ru}`, to: ACTIONS[weakest.skill].to });
   const unknown = skills.find((s) => s.pct === null);
   if (unknown) hints.push({ key: `first-${unknown.skill}`, skill: unknown.skill, et: `${unknown.skill}: tee ${FIRST[unknown.skill]}, siis näed oma taset.`, ru: `${unknown.skill}: сделай ${unknownRu(unknown.skill)} — тогда увидишь свой уровень.`, to: ACTIONS[unknown.skill].to });
-  if (!reached && course.next) hints.push({ key: 'course', et: `Kursus ${step}: ${course.done}/${course.total} tundi. Järgmine: ${course.next}.`, ru: `Курс ${step}: пройдено ${course.done} из ${course.total} уроков. Дальше: ${course.next}.`, to: '/student/kursus' });
+  if (!reached && course.next) hints.push({ key: 'course', et: `Kursus ${step}: ${course.done}/${course.total} tundi. Järgmises tunnis: ${course.next}.`, ru: `Курс ${step}: пройдено ${course.done} из ${course.total} уроков. На следующем уроке: ${course.next}.`, to: '/student/kursus' });
 
   return { from, to, step, reached, readiness, overall, coursePct, course, skills, path, hints: hints.slice(0, 3) };
 }

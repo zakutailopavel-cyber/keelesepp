@@ -6,7 +6,7 @@ export const navigation = [
   { to: '/', label: 'Ülevaade', icon: LayoutDashboard, end: true, roles: ACCESS.DASHBOARD },
   { to: '/parent', label: 'Minu pere', icon: HeartHandshake, roles: ACCESS.PARENT },
   { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
-  { to: '/student/kursus', label: 'Õpi ise', icon: BookOpenCheck, roles: ACCESS.STUDENT },
+  { to: '/student/kursus', label: 'Kordamine', icon: BookOpenCheck, roles: ACCESS.STUDENT },
   { to: '/student/sonavara', label: 'Sõnavara', icon: Languages, roles: ACCESS.STUDENT },
   { to: '/calendar', label: 'Kalender', icon: CalendarDays, roles: ACCESS.STAFF, group: 'Õppetöö' },
   { to: '/live-classroom', label: 'Live Classroom', icon: Video, roles: ACCESS.LIVE_CLASSROOM, group: 'Õppetöö' },
