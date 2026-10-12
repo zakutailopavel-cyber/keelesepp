@@ -1,3 +1,16 @@
+## 2026-10-12 · agent/b1-lesson-goals — B1: one specific goal set per lesson on all three sheets
+
+- Why: lesson quality contract A1–A3; the audit found the generic `GOALS` of `admin/course/registry.js` on 70 B1 Harjuta/Kasuta (and Avasta 51–75) and different learner goals on the three sheets of 15 lessons.
+- `admin/course/b1/lessonGoals.js` (`B1_LESSON_GOALS`): canDo + sub-goals for a2b1-001…075 (1–50 from their reviewed Avasta sheets, 51–75 rewritten specific); `buildCourseSheet` uses them before the generic defaults. Test `b1/lessonGoals.test.js`.
+- Published: 225 sheets (75 lessons × 3) get a new version with only `meta.canDo` / `meta.goals` changed and 9 blocks' `g_form` → `g_notice`; tasks untouched; no unpublished drafts existed.
+- Checks: worksheet-generator 535/535.
+- Next: B1 small tasks (< 5 items) → modules 16–18 → B1 assessment lessons by the contract.
+
+## 2026-10-12 · agent/course-audit — full course audit before any new automation
+
+- Why (owner): „начать с нормальных рабочих листов, цели урока по каждому уроку и адекватного учебного плана без косяков”.
+- `docs/COURSE_AUDIT_2026-10-12.md`: per lesson findings for 381 lessons; `tools/course-audit/` (export + audit, read-only). Headline: no lesson passes all checks; goals are Russian teacher notes (no Estonian learner goal); A2 33 and B1 15 lessons have no sheets; 27 A2 Avasta have no text; many closed tasks have < 4 items; A2 has 20/101 assessment lessons; B2 #35 missing; C1 has no success criteria.
+- Next: owner decides the plan questions (A2 assessments, goal format), then sheets level by level.
 ## 2026-10-12 · agent/lesson-reschedule — „Ei saa tulla?”: a student or parent asks to move a lesson
 
 - Why (owner): students reschedule through Messenger; „добавь перенос урока”, „как предлагаешь” (24 h warning, students and parents may ask).
