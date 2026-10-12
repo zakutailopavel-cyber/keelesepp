@@ -204,5 +204,10 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 .student-today__card small{color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.04em}
 .student-today__card strong{font-size:1.05rem}
 .student-today__card em{font-style:normal;color:var(--muted);font-size:.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.student-play{margin-top:22px}
 @media(max-width:900px){.student-today{grid-template-columns:1fr}}
+.student-today{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+/* the study cards pack like a masonry wall (owner 2026-10-12: much empty space); empty cards stay small */
+.student-home-grid{display:block;columns:2 440px;column-gap:18px}
+.student-home-grid>*{break-inside:avoid;margin:0 0 18px;display:block;width:100%}
+.student-home-grid .state-view{min-height:0;padding:14px 8px}
+.student-home-grid .state-view p{margin:4px 0 0}

@@ -18,6 +18,7 @@ import BookPage from '../features/worksheet-studio/BookPage.jsx';
 import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
 import GuestLessonPage from '../features/live-classroom/GuestLessonPage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
+import PetPage from '../features/pet/PetPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
 import ParentsPage from '../features/parents/ParentsPage.jsx';
 import PayrollPage from '../features/payroll/PayrollPage.jsx';
@@ -106,6 +107,7 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute roles={ACCESS.STUDENT} />}>
             <Route path="student" element={<StudentDashboardPage />} />
             <Route path="student/sonavara" element={<VocabularyPage />} />
+            <Route path="student/lemmik" element={<PetPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
             <Route path="finance" element={<FinanceMonthPage />} />
