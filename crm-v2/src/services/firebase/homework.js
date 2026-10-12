@@ -177,6 +177,22 @@ export const homeworkService = {
     return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => normalizeWorksheetAssignment(item.id, item.data())))
       .sort((a, b) => String(b.assignedAt).localeCompare(String(a.assignedAt)));
   },
+  // „Õpi ise” (owner 2026-10-12): the student opens a course lesson's published sheet on his own. The rules allow it
+  // only for his own card, with source 'self_study', no score, and the sheet exactly as published in the course.
+  async createSelfStudy({ student, lesson, phase, publishedDoc, user }) {
+    if (!student?.id || !lesson?.id || !publishedDoc?.blocks?.length) throw new Error('Tööleht puudub.');
+    const { db } = requireFirebaseClient();
+    const value = {
+      lessonId: lesson.id, lessonTitle: String(lesson.title || '').slice(0, 200), phase,
+      subject: student.subject || 'Eesti keel', level: lesson.level || student.level || '', topic: String(lesson.title || '').slice(0, 200),
+      worksheetDoc: publishedDoc, files: [],
+      studentId: student.id, studentName: student.name || '',
+      assignedBy: user.uid, assignedByName: String(user.displayName || '').slice(0, 160), assignedAt: new Date().toISOString(),
+      dueDate: '', note: '', status: 'new', score: null, completedAt: '', answers: {}, source: 'self_study',
+    };
+    const reference = await addDoc(collection(db, 'worksheetAssignments'), value);
+    return normalizeWorksheetAssignment(reference.id, value);
+  },
   async create(data) {
     const { db } = requireFirebaseClient();
     const value = { ...data, task: String(data.task || '').trim(), status: 'Ootel', date: new Date().toISOString().slice(0, 10), fileUrl: '', fileName: '', attachments: [] };

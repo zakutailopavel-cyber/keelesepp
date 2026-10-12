@@ -18,9 +18,9 @@ describe('Tänane tee', () => {
     expect(path.done).toBe(1);
     expect(path.total).toBe(3);
   });
-  it('no open homework is a done step; no pet, no pet step', () => {
+  it('no open homework: the step is a course lesson on one\'s own; no pet, no pet step', () => {
     const path = todayPath({ today, now, words: [{ id: 'b', dueAt: '2026-10-01' }], homework: [], submissions: [] });
-    expect(path.steps.map((step) => [step.key, step.done, step.detail])).toEqual([['words', false, '1 sõna ootab'], ['work', true, 'Kõik tehtud']]);
+    expect(path.steps.map((step) => [step.key, step.label, step.done, step.to])).toEqual([['words', 'Korda sõnu', false, '/student/sonavara'], ['work', 'Õpi ise', false, '/student/kursus']]);
   });
   it('a sheet submitted today closes the work step', () => {
     const path = todayPath({ today, now, homework: [{ id: 'h', status: 'Ootel', task: 'X' }], submissions: [{ completedAt: '2026-10-12T09:00:00Z' }] });

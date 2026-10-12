@@ -1381,15 +1381,34 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // „Õpi ise” (owner 2026-10-12): a student opens a course lesson's sheet on his own — only for his own card, as
+    // 'self_study', unscored and new, with the sheet exactly as published in the course (nothing of his own in it)
+    function selfStudySheet(data) {
+      return ownsStudent(data.studentId)
+        && data.keys().hasOnly(['lessonId', 'lessonTitle', 'phase', 'subject', 'level', 'topic', 'worksheetDoc', 'files',
+          'studentId', 'studentName', 'assignedBy', 'assignedByName', 'assignedAt', 'dueDate', 'note', 'status', 'score',
+          'completedAt', 'answers', 'source'])
+        && data.source == 'self_study'
+        && data.status == 'new'
+        && data.assignedBy == uid()
+        && data.get('score', null) == null
+        && data.get('completedAt', '') == ''
+        && data.get('answers', {}) == {}
+        && data.phase in ['discover', 'practice', 'transfer']
+        && data.lessonId is string
+        && data.worksheetDoc == get(/databases/$(database)/documents/curriculumLessons/$(data.lessonId)/worksheets/$(data.phase)).data.publishedWorksheetDoc;
+    }
+
     match /worksheetAssignments/{assignmentId} {
       allow read: if isStaff() || ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data);
-      allow create: if isStaff()
+      allow create: if (isStaff()
         && (
           request.resource.data.get('source', '') != 'student_private_worksheet'
           || (
             getAfter(/databases/$(database)/documents/studentWorksheetDrafts/$(assignmentId)).data.studentId == request.resource.data.studentId
           )
-        );
+        ))
+        || selfStudySheet(request.resource.data);
       allow delete: if isStaff();
       allow update: if request.resource.data.studentId == resource.data.studentId
         && (isStaff()

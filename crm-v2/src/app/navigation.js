@@ -1,4 +1,4 @@
-import { BookOpen, Languages, PenLine, UserRoundPlus, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Layers3, LibraryBig, LayoutDashboard, ListTodo, MessageSquareText, Settings, UserRoundCog, Users, Video } from 'lucide-react';
+import { BookOpen, BookOpenCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, LayoutDashboard, LibraryBig, ListTodo, MessageSquareText, PenLine, Settings, UserRoundCog, UserRoundPlus, Users, Video } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -6,6 +6,7 @@ export const navigation = [
   { to: '/', label: 'Ülevaade', icon: LayoutDashboard, end: true, roles: ACCESS.DASHBOARD },
   { to: '/parent', label: 'Minu pere', icon: HeartHandshake, roles: ACCESS.PARENT },
   { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
+  { to: '/student/kursus', label: 'Õpi ise', icon: BookOpenCheck, roles: ACCESS.STUDENT },
   { to: '/student/sonavara', label: 'Sõnavara', icon: Languages, roles: ACCESS.STUDENT },
   { to: '/calendar', label: 'Kalender', icon: CalendarDays, roles: ACCESS.STAFF, group: 'Õppetöö' },
   { to: '/live-classroom', label: 'Live Classroom', icon: Video, roles: ACCESS.LIVE_CLASSROOM, group: 'Õppetöö' },

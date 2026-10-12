@@ -1,0 +1,31 @@
+/* „Õpi ise” (owner 2026-10-12): the course on one's own */
+.ss-back { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 12px; padding: 6px 10px; border: 0; border-radius: 10px; background: transparent; color: #475467; font: inherit; font-weight: 700; cursor: pointer; }
+.ss-back:hover { background: #f2f4f7; }
+.ss-hero { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; padding: 22px 24px; border-radius: 20px; background: linear-gradient(120deg, #1d4f91 0%, #3b6fd8 100%); color: #fff; box-shadow: 0 14px 34px rgba(29, 79, 145, .25); }
+.ss-hero .eyebrow { color: rgba(255,255,255,.8); }
+.ss-hero h2 { margin: 2px 0 4px; color: #fff; font-size: clamp(20px, 3vw, 26px); }
+.ss-hero p { margin: 0; color: rgba(255,255,255,.88); }
+.ss-hero__go { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 22px; border: 0; border-radius: 14px; background: #fff; color: #1d4f91; font: inherit; font-weight: 800; font-size: 16px; cursor: pointer; }
+.ss-module { border-top: 1px solid #f2f4f7; padding: 8px 0; }
+.ss-module summary { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-weight: 700; cursor: pointer; }
+.ss-module summary small { margin-left: auto; color: #667085; font-weight: 600; }
+.ss-lessons { display: grid; gap: 6px; margin: 6px 0 4px 24px; }
+.ss-lesson { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; border: 1px solid #e4e7ec; border-radius: 12px; background: #fff; color: #182230; font: inherit; text-align: left; cursor: pointer; }
+.ss-lesson:hover { border-color: #84adff; background: #f5f8ff; }
+.ss-lesson > span:first-child { flex: 1; min-width: 0; }
+.ss-lesson.is-done { background: #f0faf6; border-color: #a6e3cc; }
+.ss-dots { display: inline-flex; gap: 5px; }
+.ss-dots i { width: 12px; height: 12px; border-radius: 50%; background: #e4e7ec; }
+.ss-dots i.is-started { background: #f5b301; }
+.ss-dots i.is-done { background: #12b76a; }
+.ss-steps { display: grid; gap: 12px; max-width: 720px; }
+.ss-step { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px 18px; border: 1px solid #e4e7ec; border-radius: 16px; background: #fff; }
+.ss-step__num { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: #eef4ff; color: #1d4f91; font-weight: 800; }
+.ss-step div { display: grid; gap: 2px; }
+.ss-step small { color: #667085; }
+.ss-step.is-done { border-color: #a6e3cc; background: #f0faf6; }
+.ss-step.is-done .ss-step__num { background: #12b76a; color: #fff; }
+.ss-step.is-started { border-color: #f5c26b; background: #fffaf0; }
+.ss-btn { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 16px; border: 0; border-radius: 12px; background: #1d4f91; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.ss-btn:disabled { opacity: .45; cursor: default; }
+@media (max-width: 560px) { .ss-lessons { margin-left: 0; } .ss-step { grid-template-columns: auto minmax(0, 1fr); } .ss-step .ss-btn { grid-column: 1 / -1; justify-content: center; } }

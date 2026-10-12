@@ -17,9 +17,13 @@ export function todayPath({ words = [], homework = [], submissions = [], pet = n
       key: 'words', label: 'Korda sõnu', to: '/student/sonavara', done: reviewed > 0,
       detail: reviewed ? `${reviewed} sõna korratud` : due ? `${due} sõna ootab` : words.length ? 'Harjuta tundide sõnu' : 'Vali tund ja õpi sõnu',
     },
-    {
-      key: 'work', label: open.length ? 'Tee kodutöö' : 'Kodutöö', to: '/homework', done: workToday || !open.length,
-      detail: workToday ? 'Tehtud täna' : open.length ? open[0].task || `${open.length} ootab` : 'Kõik tehtud',
+    // no homework open: the step is a lesson of the course on one's own („Õpi ise”)
+    open.length ? {
+      key: 'work', label: 'Tee kodutöö', to: '/homework', done: workToday,
+      detail: workToday ? 'Tehtud täna' : open[0].task || `${open.length} ootab`,
+    } : {
+      key: 'work', label: 'Õpi ise', to: '/student/kursus', done: workToday,
+      detail: workToday ? 'Tehtud täna' : 'Tee üks leht kursusest',
     },
   ];
   if (pet?.kind && !pet.optedOut) {
