@@ -34,8 +34,8 @@ const SPECS = {
         instruction: 'Vali vastus, mis näitab kõige paremini, kas said tekstist üldiselt aru.',
         questions: [
           { q: 'Mis aitab pereteksti kõige paremini mõista?', options: '*Kes on omavahel seotud ja mida nende kohta öeldakse.\nKõigi inimeste täpne vanus.\nAinult nimed.' },
-          { q: 'Milline lause annab suhtest rohkem infot?', options: '*Minu õde elab Tartus ja me räägime peaaegu iga päev.\nMul on õde.\nÕde on sõna.' },
-          { q: 'Milline küsimus aitab seost täpsustada?', options: '*Kes ta sulle on?\nMis värvi on laud?\nMis kell buss tuleb?' },
+          { q: 'Milline lause annab suhtest rohkem infot?', options: '*Minu õde elab Tartus ja me räägime peaaegu iga päev.\nMul on üks õde.\nMinu õe nimi on Liisa.' },
+          { q: 'Milline küsimus aitab seost täpsustada?', options: '*Kes ta sulle on?\nKus ta elab?\nMis ta nimi on?' },
         ],
       }),
       notice: block('a2b1_006_av_notice', 'notice', 'white', 'g_notice', {
@@ -45,7 +45,7 @@ const SPECS = {
       controlled: block('a2b1_006_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Räägi perest täpsemalt.',
         instruction: 'Täienda laused sobiva vormiga.',
-        bank: 'venna, õe, ema, vanaema, meie, lähedane',
+        bank: 'venna, õe, ema, vanaema, meie, lähedane, vend, õde',
         showBank: 'yes',
         sentences: 'See on minu [venna] tuba.\nMa räägin sageli oma [õega].\nMinu [ema] töötab koolis.\nPühapäeval läheme [vanaema] juurde.\n[Meie] peres armastatakse koos süüa teha.\nTa on mulle väga [lähedane] inimene.',
       }, 'full'),
@@ -85,7 +85,7 @@ const SPECS = {
       controlled: block('a2b1_007_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Tee kirjeldus loomulikumaks.',
         instruction: 'Täienda laused sobiva sõna või väljendiga.',
-        bank: 'on, tal on, väga, üsna, natuke, aga',
+        bank: 'on, tal on, väga, üsna, natuke, aga, sest, tema',
         showBank: 'yes',
         sentences: 'Ta [on] sõbralik ja avatud.\n[Tal on] lühikesed tumedad juuksed.\nTa on [väga|üsna] energiline.\nTa on [natuke] tagasihoidlik uute inimestega.\nTa tundub tõsine, [aga] räägib sõpradega palju.\nTa on [üsna|väga] rahulik ka keerulises olukorras.',
       }, 'full'),
@@ -127,7 +127,7 @@ const SPECS = {
         instruction: 'Kirjuta sulgudes olev sõna genitiivis.',
         bank: '',
         showBank: 'no',
-        sentences: 'See on minu [sõbra] (sõber) auto.\nKus on [õpetaja] (õpetaja) raamat?\nMa nägin [õe] (õde) uut korterit.\nSee on [lapse] (laps) jalgratas.\nKas see on [venna] (vend) jope?\nMe ootame [ema] (ema) sõpra.',
+        sentences: 'See on minu [sõbra] (sõber) auto.\nKus on [naabri] (naaber) raamat?\nMa nägin [õe] (õde) uut korterit.\nSee on [lapse] (laps) jalgratas.\nKas see on [venna] (vend) jope?\nMe ootame [tütre] (tütar) sõpra.',
       }, 'full'),
     },
   },
@@ -154,8 +154,8 @@ const SPECS = {
         instruction: 'Vali kõige sisulisem vastus.',
         questions: [
           { q: 'Mis teeb ühistegevuse kirjelduse huvitavamaks?', options: '*Tegevus + kui tihti + miks see meeldib.\nAinult tegevuse nimi.\nAinult inimese vanus.' },
-          { q: 'Milline lause põhjendab eelistust?', options: '*Me käime koos jalutamas, sest siis saame rahulikult rääkida.\nMe käime koos jalutamas.\nJalutamine on sõna.' },
-          { q: 'Milline väljend näitab, et tegevus ei toimu alati?', options: '*vahel\nalati\nmitte kunagi' },
+          { q: 'Milline lause põhjendab eelistust?', options: '*Me käime koos jalutamas, sest siis saame rahulikult rääkida.\nMe käime koos jalutamas.\nMe käime koos jalutamas ja vahel kinos.' },
+          { q: 'Milline väljend näitab, et tegevus toimub mõnikord, aga mitte alati?', options: '*vahel\nalati\nmitte kunagi' },
         ],
       }),
       notice: block('a2b1_009_av_notice', 'notice', 'white', 'g_notice', {
@@ -165,9 +165,9 @@ const SPECS = {
       controlled: block('a2b1_009_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Lisa tegevus ja põhjus.',
         instruction: 'Täienda laused nii, et mõte oleks loomulik.',
-        bank: 'koos, tavaliselt, vahel, sest, meeldib, räägime',
+        bank: 'koos, tavaliselt, vahel, sest, meeldib, räägime, harva, aga',
         showBank: 'yes',
-        sentences: 'Me veedame nädalavahetusel aega [koos].\nMe [tavaliselt] sööme pühapäeval lõunat koos.\n[Vahel] läheme kinno või jalutama.\nMulle [meeldib] temaga süüa teha.\nMe kohtume sageli, [sest] elame lähestikku.\nKui jalutame, siis [räägime] rahulikult oma nädalast.',
+        sentences: 'Me veedame nädalavahetusel aega [koos].\nMe [tavaliselt|vahel] sööme pühapäeval lõunat koos.\n[Vahel|Tavaliselt] läheme kinno või jalutama.\nMulle [meeldib] temaga süüa teha.\nMe kohtume sageli, [sest] elame lähestikku.\nKui jalutame, siis [räägime] rahulikult oma nädalast.',
       }, 'full'),
     },
   },
@@ -193,8 +193,8 @@ const SPECS = {
         title: 'Kontrolli põhiideed.',
         instruction: 'Vali vastus ainult teksti põhjal.',
         questions: [
-          { q: 'Mis on teksti keskne teema?', options: '*Inimeste suhted ja see, mida nende kohta teada saame.\nÜhe linna transport.\nTööpäeva kellaaeg.' },
-          { q: 'Milline info aitab kõige paremini mõista inimeste suhet?', options: '*Kes nad teineteisele on ja mida nad koos teevad.\nNende kinganumber.\nIlmateade.' },
+          { q: 'Mis on teksti keskne teema?', options: '*Inimeste suhted ja see, mida nende kohta teada saame.\nÜhe inimese tööpäev.\nPere uus kodu.' },
+          { q: 'Milline info aitab kõige paremini mõista inimeste suhet?', options: '*Kes nad teineteisele on ja mida nad koos teevad.\nKus nad töötavad.\nKui vanad nad on.' },
           { q: 'Milline detail näitab kuuluvust?', options: '*„See on mu õe kott.”\n„Ta on rahulik.”\n„Nad lähevad kinno.”' },
         ],
       }),

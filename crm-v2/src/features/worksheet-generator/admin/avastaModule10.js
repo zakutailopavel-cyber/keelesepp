@@ -28,7 +28,7 @@ const SPECS = {
         title: 'Leia sõidu põhiinfo.',
         instruction: 'Vali kõige sobivam vastus.',
         questions: [
-          { q: 'Mida tähendab „rong väljub kell 14.20”?', options: '*rong alustab sõitu kell 14.20\nrong jõuab kohale kell 14.20\npilet maksab 14.20 eurot' },
+          { q: 'Mida tähendab „rong väljub kell 14.20”?', options: '*rong alustab sõitu kell 14.20\nrong jõuab kohale kell 14.20\npiletit saab osta kuni kella 14.20-ni' },
           { q: 'Mida tähendab „saabub perroonile 3”?', options: '*rong jõuab kolmandale perroonile\npilet on kolmandas vagunis\nrong väljub kolme tunni pärast' },
           { q: 'Kui pead teise bussi peale minema, siis pead…', options: '*ümber istuma\npileti tagastama\njaamast väljuma' },
         ],
@@ -40,7 +40,7 @@ const SPECS = {
       controlled: block('a2b1_046_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Täienda sõiduinfo.',
         instruction: 'Kasuta sobivat transpordisõna.',
-        bank: 'väljub, saabub, perroon, pilet, ümber, hilineb',
+        bank: 'väljub, saabub, perroonilt, perroonil, pilet, piletit, ümber, hilineb',
         showBank: 'yes',
         sentences: 'Rong [väljub] Tallinnast kell 10.15.\nTartusse [saabub] rong kell 12.22.\nRong läheb [perroonilt] number 4.\nÜks [pilet] maksab 15 eurot.\nTapal tuleb [ümber] istuda.\nTäna rong [hilineb] kümme minutit.',
       }, 'full'),
@@ -59,7 +59,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Tallinnast Tartusse',
         passage: 'Kristi tahab laupäeval Tallinnast Tartusse sõita. Ta avab transpordirakenduse ja võrdleb kahte võimalust. Esimene rong väljub Balti jaamast kell 9.05 ja saabub Tartusse kell 11.18. Pilet maksab 18 eurot ning istekoha saab valida juba ostmise ajal. Teine rong väljub kell 10.12, kuid Tapal tuleb ümber istuda. Selle sõidu pilet on veidi odavam, 15 eurot, kuid kogu reis kestab peaaegu kolm tundi. Kristi valib esimese rongi, sest tahab varem Tartusse jõuda. Sõidupäeva hommikul kontrollib ta rakendusest veel kord perrooni ja väljumisaega. Rakendus näitab, et rong väljub perroonilt 6 ning praegu hilinemist ei ole. Kristi ostab pileti telefoni ja salvestab selle enne jaama minekut.',
-        questions: 'Mis kell väljub esimene rong? [kell 9.05|9.05|09.05|9:05]\nKui palju maksab esimese rongi pilet? [18 eurot|18 €|18]\nKus tuleb teise rongiga ümber istuda? [Tapal|Tapa]\nMiks valib Kristi esimese rongi? [tahab varem Tartusse jõuda|esimene rong on kiirem]\nMilliselt perroonilt rong väljub? [perroonilt 6|6. perroonilt|6]',
+        questions: 'Mis kell väljub esimene rong? [kell 9.05|9.05|09.05|9:05]\nKui palju kallim on esimese rongi pilet? [3 eurot|kolm eurot|3 euro võrra|kolme euro võrra]\nKus tuleb teise rongiga ümber istuda? [Tapal|Tapa]\nMiks valib Kristi esimese rongi? [tahab varem Tartusse jõuda|esimene rong on kiirem]\nMilliselt perroonilt rong väljub? [perroonilt 6|6. perroonilt|6]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_046_av_speaking', 'speaking', 'green', 'g_use', {
@@ -101,8 +101,8 @@ const SPECS = {
         title: 'Miks üks variant on parem?',
         instruction: 'Vali kõige sisulisem põhjendus.',
         questions: [
-          { q: 'Miks valida rong bussi asemel?', options: '*Rong on kallim, aga jõuab tund varem kohale.\nRong on rong.\nSest jah.' },
-          { q: 'Miks valida odavam hotell?', options: '*Et eelarves jääks rohkem raha tegevusteks.\nHotell on maja.\nSest odav.' },
+          { q: 'Miks valida rong bussi asemel?', options: '*Rong on kallim, aga jõuab tund varem kohale.\nMulle lihtsalt meeldivad rongid.\nRongis on alati palju inimesi.' },
+          { q: 'Miks valida odavam hotell?', options: '*Et eelarves jääks rohkem raha tegevusteks.\nSest odavas hotellis on väiksemad toad.\nSest see hotell on odav.' },
           { q: 'Mida teeb hea reisiplaan?', options: '*seob marsruudi, aja ja põhjused\nloetleb ainult kohanimed\nannab ainult ühe kellaaja' },
         ],
       }),
@@ -113,9 +113,9 @@ const SPECS = {
       controlled: block('a2b1_047_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Ehita reisiplaan.',
         instruction: 'Täienda plaan sobiva siduva väljendiga.',
-        bank: 'kõigepealt, siis, pärast seda, sest, sellepärast, lõpuks',
+        bank: 'kõigepealt, siis, pärast seda, sest, sellepärast, lõpuks, aga, kuigi',
         showBank: 'yes',
-        sentences: '[Kõigepealt] kontrollin sõiduajad.\n[Siis] ostan pileti.\nValin varasema väljumise, [sest] tahan lõunaks kohal olla.\n[Pärast seda] broneerin majutuse.\nHotell on jaama lähedal ja [sellepärast] saan sinna jalgsi minna.\n[Lõpuks] kontrollin kogu plaani veel kord üle.',
+        sentences: '[Kõigepealt] kontrollin sõiduajad.\n[Siis|Pärast seda] ostan pileti.\nValin varasema väljumise, [sest] tahan lõunaks kohal olla.\n[Pärast seda|Siis] broneerin majutuse.\nHotell on jaama lähedal ja [sellepärast] saan sinna jalgsi minna.\n[Lõpuks] kontrollin kogu plaani veel kord üle.',
       }, 'full'),
     },
     seed: {
@@ -205,7 +205,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Nädalavahetus Helsingis',
         passage: 'Eelmisel kuul sõitsid Mari ja tema sõber Helsingisse. Laupäeva hommikul jõudsid nad sadamasse varakult ja ostsid enne laevale minekut kohvi. Laev väljus õigel ajal ning Helsingisse saabusid nad enne keskpäeva. Kõigepealt läksid nad hotelli ja jätsid kotid sinna. Seejärel jalutasid nad kesklinnas ning külastasid üht muuseumi. Pärast seda sõid nad väikeses restoranis lõunat ja proovisid kohalikku kala. Õhtul läksid nad mere äärde jalutama, kuid ilm muutus külmaks ja nad tulid varem hotelli tagasi. Pühapäeval ostsid nad turult mõned kingitused ja jõid enne sadamasse minekut kohvi. Tagasisõidul oli meri rahulik ja nad puhkasid suure osa teest. Mari ütles, et lühike reis oli väsitav, kuid väga meeldiv.',
-        questions: 'Kuhu Mari ja sõber sõitsid? [Helsingisse]\nMillal nad Helsingisse saabusid? [enne keskpäeva]\nMida tegid nad kõigepealt linnas? [läksid hotelli ja jätsid kotid sinna|läksid hotelli]\nMiks tulid nad õhtul varem hotelli tagasi? [ilm muutus külmaks|külma ilma tõttu]\nMida ostsid nad pühapäeval? [kingitusi|mõned kingitused]',
+        questions: 'Millega Mari ja sõber Helsingisse sõitsid? [laevaga]\nMillal nad Helsingisse saabusid? [enne keskpäeva]\nMida tegid nad kõigepealt linnas? [läksid hotelli ja jätsid kotid sinna|läksid hotelli]\nMiks tulid nad õhtul varem hotelli tagasi? [ilm muutus külmaks|külma ilma tõttu]\nMida ostsid nad pühapäeval? [kingitusi|mõned kingitused]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_048_av_speaking', 'speaking', 'green', 'g_use', {
@@ -240,16 +240,16 @@ const SPECS = {
     additions: {
       vocab: block('a2b1_049_av_vocab', 'vocab', 'cream', 'g_vocab', {
         title: 'Probleem reisil',
-        words: 'rong jäi hiljaks, buss jäi ära, pilet kadus, vale perroon, broneering puudub, ühendus jäi maha, Mis ma nüüd teen?, Kas on teine võimalus?, Millal järgmine väljub?, Kust ma abi saan?, Kas pilet kehtib?',
+        words: 'rong jäi hiljaks, buss jäi ära, pilet kadus, vale perroon, broneering puudub, jäin bussist maha, Mis ma nüüd teen?, Kas on teine võimalus?, Millal järgmine väljub?, Kust ma abi saan?, Kas pilet kehtib?',
         columns: '2',
       }, 'full'),
       general: block('a2b1_049_av_general', 'choice', 'sky', 'g_read', {
         title: 'Mis on järgmine samm?',
         instruction: 'Vali kõige kasulikum vastus.',
         questions: [
-          { q: 'Rong hilineb ja järgmine ühendus võib maha jääda.', options: '*küsin, kas on teine ühendus\nootan ilma infot küsimata\nostan kohe uue passi' },
-          { q: 'Oled valel perroonil.', options: '*küsin, millisest perroonist rong tegelikult väljub\nlähen koju\nkustutan pileti' },
-          { q: 'Mida peab hea lahendus sisaldama?', options: '*probleem + küsimus + alternatiiv\nainult kaebus\nainult „ei tea”' },
+          { q: 'Rong hilineb ja sa võid järgmisest rongist maha jääda.', options: '*küsin infoletist, kas on mõni teine ühendus\nostan kohe uue pileti järgmisele rongile\nootan, kuni rong lõpuks tuleb' },
+          { q: 'Oled valel perroonil.', options: '*küsin, milliselt perroonilt rong tegelikult väljub\nootan, sest rong tuleb ehk ka siia\nostan uue pileti teisele rongile' },
+          { q: 'Mida peab hea lahendus sisaldama?', options: '*probleem + küsimus + alternatiiv\nprobleem + kaebus + vabandus\nküsimus + tänu + hüvastijätt' },
         ],
       }),
       notice: block('a2b1_049_av_notice', 'notice', 'white', 'g_notice', {
@@ -283,9 +283,9 @@ const SPECS = {
       reading: block('a2b1_049_av_reading', 'reading', 'cream', 'g_read', {
         title: 'Loe ootamatut olukorda.',
         instruction: 'Loe ja vasta detailiküsimustele.',
-        passageTitle: 'Ühendus jäi maha',
+        passageTitle: 'Järgmine buss oli juba läinud',
         passage: 'Sander sõidab Pärnust Tartusse ja peab Viljandis teise bussi peale ümber istuma. Esimene buss jääb teeolude tõttu kakskümmend minutit hiljaks. Kui Sander Viljandisse jõuab, on Tartu buss juba lahkunud. Ta läheb infoleti juurde ja selgitab olukorda. Töötaja kontrollib graafikut ning ütleb, et järgmine buss väljub tunni pärast. Sander küsib, kas tema olemasolev pilet kehtib ka järgmisele bussile. Selgub, et pilet tuleb ümber vormistada, kuid lisatasu maksma ei pea. Sander küsib veel, millisest peatusest järgmine buss väljub. Töötaja annab uue pileti ja näitab peatuse numbri. Sander jõuab Tartusse plaanitust hiljem, kuid tal ei ole vaja uut piletit osta. Ta saadab sõbrale sõnumi ja teatab uue saabumisaja.',
-        questions: 'Kus pidi Sander ümber istuma? [Viljandis]\nMiks esimene buss hilines? [teeolude tõttu|teeolude pärast]\nKui kaua peab ta järgmist bussi ootama? [tunni|üks tund|1 tund]\nKas ta peab lisatasu maksma? [ei]\nMida infoleti töötaja talle annab? [uue pileti ja peatuse numbri|uue pileti]',
+        questions: 'Miks ei pidanud Sander uut piletit ostma? [pilet vormistati tasuta ümber|vana pilet vormistati ümber|tema pilet kehtis järgmisele bussile]\nMiks esimene buss hilines? [teeolude tõttu|teeolude pärast]\nKui kaua peab ta järgmist bussi ootama? [tunni|üks tund|1 tund]\nKas ta peab lisatasu maksma? [ei]\nMida infoleti töötaja talle annab? [uue pileti ja peatuse numbri|uue pileti]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_049_av_speaking', 'speaking', 'green', 'g_use', {
@@ -332,9 +332,9 @@ const SPECS = {
         title: 'Kontrolli põhiinfot.',
         instruction: 'Vali vastus ainult teksti põhjal.',
         questions: [
-          { q: 'Mis on reisi peamine probleem?', options: '*ühendus muutub hilinemise tõttu\nreisija ei tea sihtkohta\npilet on liiga odav' },
-          { q: 'Mida reisija peab tegema?', options: '*leidma alternatiivse ühenduse\nminema tagasi koju\nostma alati uue pileti' },
-          { q: 'Milline oskus aitab olukorra lahendada?', options: '*täpsustava küsimuse esitamine\nainult ootamine\nvaikimine' },
+          { q: 'Mis on reisi peamine probleem?', options: '*rong hilineb ja Karin võib kohtumisele hiljaks jääda\nKarin ei leia jaamas õiget perrooni\nKarini pilet ei kehti sellele rongile' },
+          { q: 'Mida Karin teeb?', options: '*küsib infoletist kiiremat alternatiivi\nootab jaamas rongi ära\nostab kohe uue rongipileti' },
+          { q: 'Milline oskus aitab olukorra lahendada?', options: '*täpsustava küsimuse esitamine\npika kaebuse kirjutamine\nkannatlik ootamine' },
         ],
       }),
       notice: block('a2b1_050_av_notice', 'notice', 'white', 'g_notice', {
@@ -346,7 +346,7 @@ const SPECS = {
         instruction: 'Täienda õige sõna või vormiga.',
         bank: '',
         showBank: 'no',
-        sentences: 'Rong [väljub] kell 9.10.\nEile [sõitsin] (sõitma) Tartusse.\nJaama [jõudsin] (jõudma) õigel ajal.\nMinu buss [hilineb] 20 minutit.\nKas ma pean [ümber] istuma?\nMillal järgmine rong [väljub]?',
+        sentences: 'Rong [väljub|saabub|läheb] kell 9.10.\nEile [sõitsin] (sõitma) Tartusse.\nJaama [jõudsin] (jõudma) õigel ajal.\nMinu buss [hilineb|hilines] 20 minutit.\nKas ma pean [ümber] istuma?\nMillal järgmine rong [väljub|läheb]?',
       }, 'full'),
     },
     seed: {
@@ -363,7 +363,7 @@ const SPECS = {
         instruction: 'Loe tekst läbi ja vasta detailidele.',
         passageTitle: 'Plaanimuutus teel Tartusse',
         passage: 'Karin plaanis laupäeval Tallinnast Tartusse sõita. Ta ostis pileti rongile, mis pidi väljuma kell 9.12 ja saabuma Tartusse enne keskpäeva. Jaama jõudes nägi Karin tabloolt, et rong hilineb tehnilise probleemi tõttu 45 minutit. Tal oli Tartus kell üks kohtumine ja ta kartis hiljaks jääda. Karin läks infoleti juurde ning küsis, kas on mõni kiirem alternatiiv. Töötaja leidis bussi, mis väljus lähedalasuvast bussijaamast kahekümne minuti pärast. Karin küsis, kas rongipileti saab tagastada. Töötaja selgitas, et saab küll ning näitas, kuidas seda rakenduses teha. Karin otsustas minna bussiga, sest nii jõudis ta Tartusse ainult kümme minutit plaanitust hiljem. Ta kirjutas kohtumise teisele osapoolele ja teatas uuest saabumisajast.',
-        questions: 'Mis kell pidi rong väljuma? [kell 9.12|9.12|09.12|9:12]\nKui palju rong hilines? [45 minutit|45 min]\nMiks oli Karinil kiire? [tal oli kell üks kohtumine|kohtumine oli kell üks]\nMillise alternatiivi töötaja leidis? [bussi|bussi bussijaamast]\nKui palju plaanitust hiljem jõudis Karin Tartusse? [kümme minutit|10 minutit]',
+        questions: 'Mida pidi Karin rongipiletiga tegema? [tagastama selle rakenduses|tagastama rakenduses|tagastama]\nKui palju rong hilines? [45 minutit|45 min]\nMiks oli Karinil kiire? [tal oli kell üks kohtumine|kohtumine oli kell üks]\nMillise alternatiivi töötaja leidis? [bussi|bussi bussijaamast]\nKui palju plaanitust hiljem jõudis Karin Tartusse? [kümme minutit|10 minutit]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_050_av_speaking', 'speaking', 'green', 'g_use', {

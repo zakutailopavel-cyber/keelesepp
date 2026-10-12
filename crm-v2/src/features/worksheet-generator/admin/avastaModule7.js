@@ -30,7 +30,7 @@ const SPECS = {
         questions: [
           { q: '„Mul valutab kurk.” Mis sümptom see on?', options: '*kurguvalu\nseljavalu\nnohu' },
           { q: '„Mul on 38 kraadi.”', options: '*palavik\nköha\npeavalu' },
-          { q: '„Tunnen end väga väsinuna.”', options: '*enesetunne\nasukoht\nkokkulepe' },
+          { q: 'Milline lause kirjeldab enesetunnet õigesti?', options: '*Tunnen end väga väsinuna.\nTunnen end väga väsinud.\nOlen end väga väsinuna.' },
         ],
       }),
       notice: block('a2b1_031_av_notice', 'notice', 'white', 'g_notice', {
@@ -40,7 +40,7 @@ const SPECS = {
       controlled: block('a2b1_031_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Kirjelda sümptomit.',
         instruction: 'Täienda laused sobiva vormiga.',
-        bank: 'valutab, on, tunnen, köha, palavik, väsinuna',
+        bank: 'valutab, on, tunnen, köha, palavik, väsinuna, valutavad, nohu',
         showBank: 'yes',
         sentences: 'Mul [valutab] pea.\nMul [on] tugev nohu.\nMul on kuiv [köha].\nÕhtul oli mul kõrge [palavik].\nMa [tunnen] end halvasti.\nPärast tööd tunnen end väga [väsinuna].',
       }, 'full'),
@@ -59,7 +59,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Mari ei tunne end hästi',
         passage: 'Mari ärkas hommikul tavalisest varem, sest tal oli kurk valus ja nina kinni. Ta mõõtis palavikku ning termomeeter näitas 37,8 kraadi. Pea valutas natuke, kuid kõige rohkem häiris tugev nohu. Tööle minnes tundis Mari end väsinuna ja päeva jooksul tekkis ka kuiv köha. Lõuna ajal otsustas ta, et ei jää õhtuni tööle. Ta kirjutas juhile, et tunneb end halvasti, ja läks koju. Kodus jõi Mari sooja teed, puhkas ja mõõtis hiljem uuesti palavikku. Ta ei teinud trenni ega läinud õhtul sõpradega välja, kuigi see oli varem plaanis. Õhtul oli enesetunne natuke parem, kuid köha ja kurguvalu olid alles. Mari otsustas, et kui sümptomid hommikuks ei vähene, helistab ta perearstikeskusesse.',
-        questions: 'Mis Maril hommikul valutas? [kurk]\nKui kõrge oli palavik? [37,8 kraadi|37.8 kraadi|37,8]\nMis sümptom tekkis päeva jooksul? [kuiv köha|köha]\nMiks ta läks varem koju? [tundis end halvasti|ta tundis end halvasti]\nMillal plaanib ta perearstikeskusesse helistada? [kui sümptomid hommikuks ei vähene|hommikul kui sümptomid ei vähene]',
+        questions: 'Mis Maril hommikul valutas? [kurk|kurk ja pea|pea ja kurk]\nKui kõrge oli palavik? [37,8 kraadi|37.8 kraadi|37,8]\nMis sümptom tekkis päeva jooksul? [kuiv köha|köha]\nMiks ta läks varem koju? [tundis end halvasti|ta tundis end halvasti]\nMillal plaanib ta perearstikeskusesse helistada? [kui sümptomid hommikuks ei vähene|hommikul kui sümptomid ei vähene]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_031_av_speaking', 'speaking', 'green', 'g_use', {
@@ -101,9 +101,9 @@ const SPECS = {
         title: 'Millist infot arst vajab?',
         instruction: 'Vali kõige sobivam vastus.',
         questions: [
-          { q: 'Miks küsib arst „Kui kaua?”', options: '*et teada sümptomi kestust\net teada aadressi\net teada töökohta' },
-          { q: '„Millal algas?” küsib…', options: '*algusaega\nravimi hinda\npatsiendi nime' },
-          { q: 'Milline vastus on piisavalt täpne?', options: '*See algas kolm päeva tagasi.\nNatuke aega.\nKunagi.' },
+          { q: 'Arst küsib: „Kui kaua see on kestnud?” Milline vastus sobib?', options: '*Umbes kolm päeva.\nEile õhtul.\nParemal pool.' },
+          { q: 'Arst küsib: „Millal see algas?” Milline vastus sobib?', options: '*Eile õhtul.\nUmbes nädal.\nKolm korda päevas.' },
+          { q: 'Milline vastus on piisavalt täpne?', options: '*See algas kolm päeva tagasi.\nSee algas juba ammu.\nSee algas natuke aega tagasi.' },
         ],
       }),
       notice: block('a2b1_032_av_notice', 'notice', 'white', 'g_notice', {
@@ -112,16 +112,18 @@ const SPECS = {
       }),
       controlled: block('a2b1_032_av_controlled', 'dialogue', 'green', 'g_use', {
         title: 'Taasta vastuvõtudialoog.',
-        instruction: 'Täida puuduvad patsiendi vastused.',
+        instruction: 'Täida patsiendi vastustes puuduv tegusõna.',
         speakerA: 'Arst',
         speakerB: 'Patsient',
         lines: [
           { who: 'A', text: 'Millal kurguvalu algas?' },
-          { who: 'B', text: 'See [algas eile õhtul].' },
+          { who: 'B', text: 'See [algas] eile õhtul.' },
           { who: 'A', text: 'Kui kaua teil köha on olnud?' },
-          { who: 'B', text: '[Umbes kolm päeva].' },
+          { who: 'B', text: 'Köha on [olnud] umbes kolm päeva.' },
           { who: 'A', text: 'Kas teil on palavik?' },
-          { who: 'B', text: 'Jah, eile [oli 38 kraadi].' },
+          { who: 'B', text: 'Täna ei ole, aga eile [oli] 38 kraadi.' },
+          { who: 'A', text: 'Kas te võtate praegu ravimeid?' },
+          { who: 'B', text: 'Ei, ma ei [võta].' },
         ],
       }, 'full'),
     },
@@ -139,7 +141,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Perearsti vastuvõtt',
         passage: 'Arst küsib Andreilt, mis teda häirib. Andrei ütleb, et tal on juba neli päeva köha ja nohu. Köha oli alguses kuiv, kuid täna hommikul muutus tugevamaks. Arst küsib, kas Andreil on olnud palavikku. Andrei vastab, et üleeile õhtul oli 38 kraadi, kuid täna palavikku ei ole. Samuti valutab tal natuke pea. Arst kuulab Andrei kopse ja vaatab kurku. Seejärel küsib ta, kas Andrei kasutab mõnda ravimit või kas tal on allergiaid. Andrei ütleb, et ravimeid ei võta ja teadaolevaid allergiaid ei ole. Arst soovitab paar päeva puhata, juua piisavalt vedelikku ja võtta vajadusel palavikualandajat. Kui enesetunne halveneb, peab Andrei uuesti ühendust võtma.',
-        questions: 'Kui kaua Andreil köha on olnud? [neli päeva|4 päeva]\nMillal tal oli palavik? [üleeile õhtul]\nKas tal on täna palavik? [ei]\nMida arst kontrollib? [kopse ja kurku|kopse|kurku]\nMida peab Andrei tegema, kui enesetunne halveneb? [uuesti ühendust võtma|arstiga uuesti ühendust võtma]',
+        questions: 'Kui kaua Andreil köha on olnud? [neli päeva|4 päeva]\nMillal tal oli palavik? [üleeile õhtul]\nMida arst soovitab? [puhata, juua piisavalt ja võtta vajadusel palavikualandajat|puhata ja juua piisavalt vedelikku|puhata ja juua]\nMida arst kontrollib? [kopse ja kurku|kopse|kurku]\nMida peab Andrei tegema, kui enesetunne halveneb? [uuesti ühendust võtma|arstiga uuesti ühendust võtma]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_032_av_speaking', 'speaking', 'green', 'g_use', {
@@ -181,9 +183,9 @@ const SPECS = {
         title: 'Milline nõuanne sobib?',
         instruction: 'Vali olukorrale kõige mõistlikum vastus.',
         questions: [
-          { q: 'Sul on palavik ja nõrkus.', options: '*Puhka ja joo piisavalt.\nMine kohe trenni.\nÄra maga.' },
-          { q: 'Kurguvalu on mitu päeva väga tugev.', options: '*Võiksid arstile helistada.\nJoo vähem.\nTee rohkem tööd.' },
-          { q: 'Mida tähendab „Ära mine täna trenni”?', options: '*negatiivne soovitus\nluba\nminevik' },
+          { q: 'Sul on palavik ja nõrkus.', options: '*Puhka ja joo piisavalt.\nPuhkad ja jood piisavalt.\nPuhata ja juua piisavalt.' },
+          { q: 'Kurguvalu on mitu päeva väga tugev.', options: '*Sa võiksid arstile helistada.\nSa võiksid arstile helistama.\nSa võiksid arstile helista.' },
+          { q: 'Kuidas öelda eitavalt „Mine täna trenni!”?', options: '*Ära mine täna trenni!\nÄra lähe täna trenni!\nEi mine täna trenni!' },
         ],
       }),
       notice: block('a2b1_033_av_notice', 'notice', 'white', 'g_notice', {
@@ -193,7 +195,7 @@ const SPECS = {
       controlled: block('a2b1_033_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Anna sobiv nõuanne.',
         instruction: 'Täienda laused sobiva käsu või soovitusega.',
-        bank: 'puhka, joo, võta, ära mine, maga, helista',
+        bank: 'puhka, joo, võta, ära mine, maga, helista, söö, ära joo',
         showBank: 'yes',
         sentences: 'Kui sul on palavik, [puhka] kodus.\nKurguvalu korral [joo] sooja teed.\nKui arst soovitas ravimit, [võta] seda juhendi järgi.\nKui tunned end halvasti, [ära mine] trenni.\nKui oled väga väsinud, [maga] piisavalt.\nKui sümptomid ei vähene, [helista] arstile.',
       }, 'full'),
@@ -256,7 +258,7 @@ const SPECS = {
         questions: [
           { q: 'Magad igal ööl ainult viis tundi.', options: '*liiga vähe\npiisavalt\nliiga palju' },
           { q: 'Liigud iga päev vähemalt pool tundi.', options: '*hea harjumus\nhalb harjumus\nsee ei mõjuta midagi' },
-          { q: 'Miks kasutatakse sõna „sest”?', options: '*põhjuse selgitamiseks\naja ütlemiseks\nkäskimiseks' },
+          { q: 'Milline lause on õige?', options: '*Sa peaksid rohkem liikuma.\nSa peaksid rohkem liikuda.\nSa peaks rohkem liikuma.' },
         ],
       }),
       notice: block('a2b1_034_av_notice', 'notice', 'white', 'g_notice', {
@@ -266,7 +268,7 @@ const SPECS = {
       controlled: block('a2b1_034_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Paranda harjumust.',
         instruction: 'Täienda laused sobiva väljendiga.',
-        bank: 'peaksin, võiksin, liiga palju, liiga vähe, piisavalt, sest',
+        bank: 'peaksin, võiksin, liiga palju, liiga vähe, piisavalt, sest, peaksid, aga',
         showBank: 'yes',
         sentences: 'Ma istun päeval [liiga palju].\nMa magan tööpäevadel [liiga vähe].\nMa joon tavaliselt [piisavalt] vett.\nMa [peaksin] õhtul varem magama minema.\nMa [võiksin] pärast tööd jalutada.\nTahan rohkem liikuda, [sest] see aitab mul paremini puhata.',
       }, 'full'),
@@ -285,7 +287,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Üks väike muutus korraga',
         passage: 'Rasmus töötab suure osa päevast arvuti taga. Õhtuks on ta sageli väsinud, kuigi füüsiliselt liigub vähe. Ta märkas, et magab tööpäevadel ainult umbes kuus tundi ja vaatab enne magamaminekut kaua telefoni. Samuti joob ta päeva jooksul liiga vähe vett. Rasmus otsustas mitte muuta kõike korraga. Kõigepealt paneb ta telefoni pool tundi enne magamaminekut kõrvale. Teiseks võtab ta tööle suurema veepudeli, et oleks lihtsam piisavalt juua. Kolmandaks tahab ta pärast lõunat kümme minutit jalutada. Nädalavahetusel proovib ta vähemalt ühe pikema jalutuskäigu teha ja tööpäeva jooksul tõuseb iga tunni järel korraks püsti. Ta loodab, et need väikesed harjumused aitavad tal paremini magada ja päeva jooksul rohkem energiat tunda.',
-        questions: 'Kus Rasmus suure osa päevast töötab? [arvuti taga]\nKui palju ta tööpäevadel magab? [umbes kuus tundi|6 tundi]\nMida ta teeb enne magamaminekut liiga kaua? [vaatab telefoni|kasutab telefoni]\nMida võtab ta tööle kaasa? [suurema veepudeli|veepudeli]\nKui kaua tahab ta pärast lõunat jalutada? [kümme minutit|10 minutit]',
+        questions: 'Kus Rasmus suure osa päevast töötab? [arvuti taga]\nKui palju ta tööpäevadel magab? [umbes kuus tundi|6 tundi]\nMida ta teeb enne magamaminekut liiga kaua? [vaatab telefoni|kasutab telefoni]\nMiks võtab ta tööle suurema veepudeli? [et oleks lihtsam piisavalt juua|et juua piisavalt|ta joob liiga vähe vett]\nKui kaua tahab ta pärast lõunat jalutada? [kümme minutit|10 minutit]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_034_av_speaking', 'speaking', 'green', 'g_use', {
@@ -331,9 +333,9 @@ const SPECS = {
         title: 'Põhiidee.',
         instruction: 'Vali vastus ainult teksti põhjal.',
         questions: [
-          { q: 'Mis on patsiendi peamine probleem?', options: '*mitu külmetuse sümptomit korraga\ntöökoha vahetus\nliikluse probleem' },
-          { q: 'Mida arst kõigepealt täpsustab?', options: '*sümptomite algust ja kestust\npatsiendi lemmiktoitu\npuhkuse kuupäeva' },
-          { q: 'Milline soovitus on tekstiga kooskõlas?', options: '*puhata ja piisavalt juua\nteha rasket trenni\nmagada vähem' },
+          { q: 'Miks Kaur helistab perearstikeskusesse?', options: '*tal on mitu päeva olnud köha, nohu ja palavik\ntal on tugev peavalu ja raske hingata\ntal on vaja uut retsepti' },
+          { q: 'Mida õde kõigepealt küsib?', options: '*millal sümptomid algasid\nmilliseid ravimeid ta võtab\nkas ta saab normaalselt hingata' },
+          { q: 'Milline soovitus on tekstiga kooskõlas?', options: '*puhata kodus ja palavikku jälgida\ntulla kohe vastuvõtule\nminna homme tavaliselt tööle' },
         ],
       }),
       notice: block('a2b1_035_av_notice', 'notice', 'white', 'g_notice', {

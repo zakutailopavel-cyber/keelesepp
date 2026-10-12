@@ -30,7 +30,7 @@ const SPECS = {
         questions: [
           { q: 'Kes suhtleb iga päev klientidega?', options: '*klienditeenindaja\nehitaja\nkoristaja' },
           { q: 'Kes võib vastutada arvete ja numbrite eest?', options: '*raamatupidaja\nkokk\nautojuht' },
-          { q: 'Milline lause kirjeldab tööülesannet?', options: '*Administraator vastab kirjadele ja telefonile.\nAdministraator on inimene.\nKontor on kesklinnas.' },
+          { q: 'Milline lause kirjeldab tööülesannet?', options: '*Administraator vastab kirjadele ja telefonile.\nAdministraator töötab kontoris.\nAdministraator on sõbralik ja täpne.' },
         ],
       }),
       notice: block('a2b1_041_av_notice', 'notice', 'white', 'g_notice', {
@@ -40,9 +40,9 @@ const SPECS = {
       controlled: block('a2b1_041_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Kirjelda ametit.',
         instruction: 'Täienda laused sobiva tegusõnaga.',
-        bank: 'töötab, tegeleb, vastutab, suhtleb, kontrollib, peab',
+        bank: 'töötab, tegeleb, vastutab, suhtleb, kontrollib, peab, ravib, teenib',
         showBank: 'yes',
-        sentences: 'Õpetaja [töötab] koolis.\nKlienditeenindaja [suhtleb] klientidega.\nRaamatupidaja [vastutab] arvete eest.\nAdministraator [tegeleb] dokumentide ja kõnedega.\nKokk [kontrollib] enne tööpäeva vajalikke toiduaineid.\nAutojuht [peab] järgima liiklusreegleid.',
+        sentences: 'Õpetaja [töötab] koolis.\nKlienditeenindaja [suhtleb|tegeleb] klientidega.\nRaamatupidaja [vastutab] arvete eest.\nAdministraator [tegeleb] dokumentide ja kõnedega.\nKokk [kontrollib] enne tööpäeva vajalikke toiduaineid.\nAutojuht [peab] järgima liiklusreegleid.',
       }, 'full'),
     },
     seed: {
@@ -59,7 +59,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Kolm erinevat tööpäeva',
         passage: 'Kadri töötab väikese ettevõtte administraatorina. Hommikul kontrollib ta e-kirju, vastab telefonile ja aitab klientidel leida õige inimese. Ta tegeleb ka dokumentidega ning paneb kalendrisse kohtumisi. Martin on kokk. Tema tööpäev algab varem, sest enne restorani avamist peab ta kontrollima toiduaineid ja valmistama ette köögi. Päeva jooksul valmistab ta toitu ning suhtleb teiste köögitöötajatega. Jaan töötab autojuhina. Ta viib kaupa erinevatesse kohtadesse, kontrollib enne sõitu autot ja peab täpselt jälgima aega. Kuigi nende tööpäevad on väga erinevad, on kõigil vaja vastutada oma ülesannete eest ja teha koostööd teiste inimestega. Kõik kolm ütlevad, et hea tööpäev sõltub sellest, kas info liigub kiiresti ja iga inimene teab oma rolli.',
-        questions: 'Mis ametit peab Kadri? [administraator|administraatorina]\nMillega ta hommikul tegeleb? [kontrollib e-kirju ja vastab telefonile|e-kirjade ja telefoniga]\nMiks algab Martini tööpäev varem? [ta peab enne restorani avamist köögi ette valmistama|köögi ettevalmistamise pärast]\nMida Jaan enne sõitu kontrollib? [autot]\nMis on kõigil kolmel ühine? [nad peavad vastutama oma ülesannete eest ja tegema koostööd|vastutus ja koostöö]',
+        questions: 'Mis ametit peab Kadri? [administraator|administraatorina|administraatori ametit]\nMillega ta hommikul tegeleb? [kontrollib e-kirju ja vastab telefonile|e-kirjade ja telefoniga]\nMiks algab Martini tööpäev varem? [ta peab enne restorani avamist köögi ette valmistama|köögi ettevalmistamise pärast]\nMida Jaan enne sõitu kontrollib? [autot]\nMis on kõigil kolmel ühine? [nad peavad vastutama oma ülesannete eest ja tegema koostööd|vastutus ja koostöö]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_041_av_speaking', 'speaking', 'green', 'g_use', {
@@ -102,7 +102,7 @@ const SPECS = {
         instruction: 'Vali kõige parem vastus.',
         questions: [
           { q: 'Mis aitab ülesandeid järjestada?', options: '*ajamarkerid ja prioriteedid\nainult ametinimetused\nainult kellaaeg' },
-          { q: 'Milline lause näitab prioriteeti?', options: '*Kõigepealt lõpetan kiire aruande.\nAruanne on dokument.\nKontor on suur.' },
+          { q: 'Milline lause näitab prioriteeti?', options: '*Kõigepealt lõpetan kiire aruande.\nAruanne on kolm lehekülge pikk.\nTäna on mul palju tööd.' },
           { q: 'Milline väljend sobib viimase tegevuse ette?', options: '*päeva lõpus\nkõigepealt\nenne lõunat' },
         ],
       }),
@@ -205,7 +205,7 @@ const SPECS = {
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Otsime administraatorit',
         passage: 'Väike koolituskeskus otsib administraatorit, kes aitaks korraldada igapäevast tööd. Peamised tööülesanded on klientidele vastamine telefoni ja e-posti teel, tundide broneerimine, dokumentide korrastamine ning õpetajate toetamine. Ootame kandidaadilt head suhtlemisoskust, täpsust ja vähemalt B1-tasemel eesti keelt. Vajalik on ka oskus kasutada arvutit ja tavapäraseid kontoriprogramme. Varasem töökogemus teeninduses tuleb kasuks, kuid see ei ole kohustuslik. Töö on osalise koormusega ja graafikut saab osaliselt kokku leppida. Tööandja pakub väljaõpet, toetavat meeskonda ning võimalust hiljem töökoormust suurendada. Kandideerimiseks tuleb saata lühike CV ja paar lauset selle kohta, miks töö sind huvitab. Kuulutuses palutakse märkida ka võimalik tööle asumise aeg ning see, mitu õhtust vahetust kandidaat nädalas teha saab.',
-        questions: 'Mis ametikohale inimest otsitakse? [administraatoriks|administraator]\nNimeta üks tööülesanne. [klientidele vastamine|tundide broneerimine|dokumentide korrastamine|õpetajate toetamine]\nMilline eesti keele tase on vajalik? [B1|B1-tase]\nKas varasem teeninduskogemus on kohustuslik? [ei]\nMida tuleb kandideerimiseks saata? [lühike CV ja paar lauset motivatsiooni kohta|CV ja paar lauset]',
+        questions: 'Kas see töö sobib inimesele, kes tahab kohe täiskohaga töötada? [ei|ei sobi, töö on osalise koormusega|alguses ei, koormust saab hiljem suurendada]\nNimeta üks tööülesanne. [klientidele vastamine|tundide broneerimine|dokumentide korrastamine|õpetajate toetamine]\nMilline eesti keele tase on vajalik? [B1|B1-tase]\nKas varasem teeninduskogemus on kohustuslik? [ei]\nMida tuleb kandideerimiseks saata? [lühike CV ja paar lauset motivatsiooni kohta|CV ja paar lauset]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_043_av_speaking', 'speaking', 'green', 'g_use', {
@@ -247,9 +247,9 @@ const SPECS = {
         title: 'Milline vastus on tugevam?',
         instruction: 'Vali sisulisem töövestluse vastus.',
         questions: [
-          { q: '„Mis on teie tugevus?”', options: '*Olen täpne ja toon alati tähtajad kalendrisse, et midagi ei ununeks.\nOlen hea.\nEi tea.' },
-          { q: '„Miks soovite siin töötada?”', options: '*Töö sobib minu varasema teeninduskogemusega ja tahan selles valdkonnas areneda.\nSest tahan tööd.\nNiisama.' },
-          { q: 'Mis muudab vastuse usutavamaks?', options: '*konkreetne näide\nväga pikk sõna\nüldine kiitus enda kohta' },
+          { q: '„Mis on teie tugevus?”', options: '*Olen täpne ja panen tähtajad alati kalendrisse, et midagi ei ununeks.\nOlen täpne, kiire, sõbralik ja väga hea töötaja.\nMul ei ole nõrkusi, ma olen kõiges hea.' },
+          { q: '„Miks soovite siin töötada?”', options: '*Töö sobib minu varasema teeninduskogemusega ja tahan selles valdkonnas areneda.\nTeie kontor on minu kodu lähedal, see on mugav.\nMul on praegu raha vaja ja otsin mis tahes tööd.' },
+          { q: 'Mis muudab vastuse usutavamaks?', options: '*konkreetne näide\npalju võõrsõnu\nüldine kiitus enda kohta' },
         ],
       }),
       notice: block('a2b1_044_av_notice', 'notice', 'white', 'g_notice', {
@@ -259,7 +259,7 @@ const SPECS = {
       controlled: block('a2b1_044_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Ehita sisuline vastus.',
         instruction: 'Täienda vastused sobiva väljendiga.',
-        bank: 'mul on kogemus, minu tugevus on, olen töötanud, oskan, tahan areneda, sobin',
+        bank: 'mul on kogemus, minu tugevus on, olen töötanud, oskan, tahan areneda, sobin, mulle meeldib, olen täpne',
         showBank: 'yes',
         sentences: '[Mul on kogemus] klienditeeninduses.\n[Olen töötanud] kaks aastat kohvikus.\n[Minu tugevus on] rahulik suhtlemine.\n[Oskan] kasutada tavapäraseid kontoriprogramme.\n[Tahan areneda] administratiivses töös.\nMa [sobin] sellele kohale, sest olen täpne ja õpin kiiresti.',
       }, 'full'),
@@ -300,7 +300,7 @@ const SPECS = {
 
   'a2b1-045': {
     meta: {
-      title: 'Kontroll 8 — töö ja ametid',
+      title: 'Kontroll 9 — töö ja ametid',
       subtitle: 'Näitan, et saan aru tööinfost ja oskan endast tööolukorras rääkida.',
       canDo: 'Ma mõistan töökuulutust, kirjeldan tööpäeva ja vastan töövestluse põhiküsimustele iseseisvalt.',
       goals: {
@@ -325,9 +325,9 @@ const SPECS = {
         title: 'Kontrolli põhiinfot.',
         instruction: 'Vali vastus teksti põhjal.',
         questions: [
-          { q: 'Mis on tööandja peamine nõue?', options: '*sobiv suhtlemis- ja keeleoskus\nainult juhiluba\nainult kõrgharidus' },
-          { q: 'Mida kandidaat peab töövestlusel näitama?', options: '*kogemust, tugevusi ja motivatsiooni\nainult oma nime\nainult tööaega' },
-          { q: 'Mis teeb vastuse sisuliseks?', options: '*konkreetne näide\nväga pikk lause\nüldine „olen hea”' },
+          { q: 'Mis on tööandja peamine nõue?', options: '*B1 eesti keel ja hea arvutioskus\nvarasem teeninduskogemus\nkõrgharidus ja juhiluba' },
+          { q: 'Kuidas näitas Sergei vestlusel oma tugevust?', options: '*tõi näite päris olukorrast\nrääkis oma haridusest\nnäitas soovituskirja' },
+          { q: 'Mis teeb vastuse sisuliseks?', options: '*konkreetne näide\npikk ja keeruline lause\nmitu omadussõna järjest' },
         ],
       }),
       notice: block('a2b1_045_av_notice', 'notice', 'white', 'g_notice', {
@@ -339,7 +339,7 @@ const SPECS = {
         instruction: 'Täienda sobiva sõna või vormiga.',
         bank: '',
         showBank: 'no',
-        sentences: 'Administraator [vastutab] dokumentide eest.\nKuulutuses [oodatakse] head suhtlemisoskust.\nTööandja [pakub] väljaõpet.\nMul [on] kaks aastat teeninduskogemust.\nMinu tugevus [on] rahulik suhtlemine.\nSobiksin sellele tööle, [sest] õpin kiiresti.',
+        sentences: 'Administraator [vastutab] dokumentide eest.\nKuulutuses [oodatakse|nõutakse|eeldatakse] head suhtlemisoskust.\nTööandja [pakub] väljaõpet.\nMul [on] kaks aastat teeninduskogemust.\nMinu tugevus [on] rahulik suhtlemine.\nSobiksin sellele tööle, [sest|kuna] õpin kiiresti.',
       }, 'full'),
     },
     seed: {
@@ -356,7 +356,7 @@ const SPECS = {
         instruction: 'Loe üks kord tervikuna ja vasta siis detailidele.',
         passageTitle: 'Kandideerimine klienditeenindajaks',
         passage: 'Ettevõte otsib klienditeenindajat, kelle põhiülesanne on vastata klientide küsimustele telefoni, e-posti ja vestluse kaudu. Kandidaadilt oodatakse vähemalt B1-tasemel eesti keelt, head arvutioskust ja rahulikku suhtlemist. Varasem teeninduskogemus on eelis, kuid tööandja pakub ka väljaõpet. Sergei loeb kuulutust ja otsustab kandideerida. Tal on kaks aastat kogemust kohvikus, kus ta suhtles iga päev erinevate klientidega. Töövestlusel räägib Sergei, et tema tugevus on rahulik probleemide lahendamine. Ta toob näite olukorrast, kus klient sai vale tellimuse ja tema aitas vea kiiresti parandada. Sergei ütleb ka, et tahab õppida rohkem arvutipõhiseid töövahendeid. Intervjueerijale meeldib, et Sergei vastused on konkreetsed ja seotud päris kogemusega. Vestluse lõpus küsib Sergei ka tööaja, väljaõppe ja meeskonna kohta, et paremini aru saada, kas ametikoht sobib talle pikemaks ajaks.',
-        questions: 'Mis ametikohale inimest otsitakse? [klienditeenindajaks|klienditeenindaja]\nMilline eesti keele tase on nõutud? [B1|B1-tase]\nKui palju teeninduskogemust Sergeil on? [kaks aastat|2 aastat]\nMis on Sergei tugevus? [rahulik probleemide lahendamine]\nMida tahab ta juurde õppida? [arvutipõhiseid töövahendeid|arvutitöövahendeid]',
+        questions: 'Miks küsib Sergei vestluse lõpus tööaja ja meeskonna kohta? [et aru saada, kas töö sobib talle pikemaks ajaks|tahab teada, kas töö sobib talle|et otsustada, kas koht sobib]\nMilline eesti keele tase on nõutud? [B1|B1-tase]\nKui palju teeninduskogemust Sergeil on? [kaks aastat|2 aastat]\nMis on Sergei tugevus? [rahulik probleemide lahendamine]\nMida tahab ta juurde õppida? [arvutipõhiseid töövahendeid|arvutitöövahendeid]',
         lineWidth: 'wide',
       }, 'full'),
       productive: block('a2b1_045_av_speaking', 'speaking', 'green', 'g_use', {

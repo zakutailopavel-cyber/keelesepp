@@ -28,9 +28,9 @@ const SPECS = {
         title: 'Mis teeb õppepäeva kirjelduse selgeks?',
         instruction: 'Vali kõige sobivam vastus.',
         questions: [
-          { q: 'Milline info on kõige olulisem?', options: '*mida õpitakse, mis on raske ja miks\nainult klassiruumi number\nainult päeva pikkus' },
-          { q: 'Milline lause annab hinnangu?', options: '*Matemaatika on mulle keeruline, sest ülesanded nõuavad palju aega.\nMatemaatika on kell kümme.\nMatemaatika on aine.' },
-          { q: 'Milline väljend näitab ettevalmistust?', options: '*valmistun kontrolltööks\nlähen bussiga\nolen sööklas' },
+          { q: 'Milline info on kõige olulisem?', options: '*mida õpitakse, mis on raske ja miks\nmis kell tunnid algavad ja lõpevad\nmitu õpilast on klassis' },
+          { q: 'Milline lause annab hinnangu?', options: '*Matemaatika on mulle keeruline, sest ülesanded võtavad palju aega.\nMatemaatika tund on kolmapäeviti kell kümme ruumis 204.\nMeil on matemaatikas sel aastal uus ja noor õpetaja.' },
+          { q: 'Milline väljend näitab ettevalmistust?', options: '*valmistun kontrolltööks\nsain kontrolltöö eest hinde\nkontrolltöö oli raske' },
         ],
       }),
       notice: block('a2b1_036_av_notice', 'notice', 'white', 'g_notice', {
@@ -40,7 +40,7 @@ const SPECS = {
       controlled: block('a2b1_036_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Kirjelda õppepäeva.',
         instruction: 'Täienda laused sobiva sõnaga.',
-        bank: 'tunniplaan, ülesanne, kontrolltööks, kordan, keeruline, meeldib',
+        bank: 'tunniplaani, ülesande, kontrolltööks, kordan, keeruline, meeldib, kodutöö, hinde',
         showBank: 'yes',
         sentences: 'Hommikul vaatan üle [tunniplaani].\nEsimeses tunnis saime uue [ülesande].\nÕhtul valmistun homseks [kontrolltööks].\nPärast tundi [kordan] uusi sõnu.\nFüüsika on mulle üsna [keeruline].\nMulle [meeldib] ajalugu, sest seal saab palju arutada.',
       }, 'full'),
@@ -131,7 +131,7 @@ const SPECS = {
         title: 'Loe õppimisplaani.',
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Kuidas Erik eksamiks valmistub',
-        passage: 'Erikul on kahe nädala pärast keeleeksam. Ta teab, et peab iga päev natuke õppima, sest viimasel õhtul kõike korraga teha ei saa. Tööpäevadel läheb ta pärast tööd raamatukokku õppima. Kõigepealt tahab ta korrata sõnavara ja seejärel proovib kirjutada ühe lühikese teksti. Erik oskab grammatikaülesandeid üsna hästi teha, kuid rääkida tahab ta rohkem harjutada. Selleks saab ta kaks korda nädalas õpetajaga vestelda ja pärast vestlust märgib ta üles kolm sõna, mida tahab uuesti kasutada. Nädalavahetusel hakkab Erik tegema pikemaid harjutusteste. Kui ta mõnest reeglist aru ei saa, proovib ta näidete abil vastuse leida või küsib õpetajalt. Erik ei taha ainult testi läbida, vaid soovib õppida keelt päriselt kasutama.',
+        passage: 'Erikul on kahe nädala pärast keeleeksam. Ta teab, et peab iga päev natuke õppima, sest viimasel õhtul kõike korraga teha ei saa. Tööpäevadel läheb ta pärast tööd raamatukokku õppima. Kõigepealt tahab ta korrata sõnavara ja seejärel proovib kirjutada ühe lühikese teksti. Erik oskab grammatikaülesandeid üsna hästi teha, kuid rääkimist tahab ta rohkem harjutada. Selleks saab ta kaks korda nädalas õpetajaga vestelda ja pärast vestlust märgib ta üles kolm sõna, mida tahab uuesti kasutada. Nädalavahetusel hakkab Erik tegema pikemaid harjutusteste. Kui ta mõnest reeglist aru ei saa, proovib ta näidete abil vastuse leida või küsib õpetajalt. Erik ei taha ainult testi läbida, vaid soovib õppida keelt päriselt kasutama.',
         questions: 'Millal on Erikul eksam? [kahe nädala pärast]\nKuhu ta pärast tööd läheb? [raamatukokku õppima|raamatukokku]\nMida tahab ta kõigepealt korrata? [sõnavara]\nMida tahab ta rohkem harjutada? [rääkimist|rääkida]\nMida hakkab ta nädalavahetusel tegema? [pikemaid harjutusteste|harjutusteste]',
         lineWidth: 'wide',
       }, 'full'),
@@ -174,9 +174,9 @@ const SPECS = {
         title: 'Kas põhjus on täielik?',
         instruction: 'Vali kõige parem vastus.',
         questions: [
-          { q: 'Mulle meeldib õppida hommikul, sest…', options: '*siis suudan paremini keskenduda.\nhommikul.\nmeeldib.' },
-          { q: 'Kuna mul on homme test, siis…', options: '*kordan täna materjali.\ntest.\neile.' },
-          { q: 'Mida annab põhjendus?', options: '*selgitab, miks ma nii arvan või teen\nainult pikema lause\nmuudab aja minevikuks' },
+          { q: 'Mulle meeldib õppida hommikul, sest…', options: '*siis suudan paremini keskenduda.\nsiis olen ma väga väsinud.\nõhtul on mul rohkem aega.' },
+          { q: 'Kuna mul on homme test, …', options: '*kordan täna materjali.\nlähen täna kinno ja ei õpi.\nkordasin materjali eelmisel kuul.' },
+          { q: 'Ma ei tulnud eile tundi, …', options: '*sest mul oli palavik.\nsest mul oli vaba päev.\nsest tund oli huvitav.' },
         ],
       }),
       notice: block('a2b1_038_av_notice', 'notice', 'white', 'g_notice', {
@@ -185,10 +185,10 @@ const SPECS = {
       }),
       controlled: block('a2b1_038_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Ühenda mõte ja põhjus.',
-        instruction: 'Täienda laused sobiva sidesõnaga.',
+        instruction: 'Täienda laused sobiva sidesõnaga. Lause alguses sobib ainult „kuna”.',
         bank: 'sest, kuna, sellepärast et',
         showBank: 'yes',
-        sentences: 'Õpin hommikul, [sest] siis olen värskem.\n[Kuna] mul on homme kontrolltöö, kordan täna rohkem.\nMulle meeldib paaris töötada, [sest] saan mõtteid arutada.\nÕpin raamatukogus, [sellepärast et] seal on vaikne.\n[Kuna] uus teema on keeruline, küsin õpetajalt abi.\nTeen märkmeid, [sest] nii jääb info paremini meelde.',
+        sentences: 'Õpin hommikul, [sest|kuna|sellepärast et] siis olen värskem.\n[Kuna] mul on homme kontrolltöö, kordan täna rohkem.\nMulle meeldib paaris töötada, [sest|kuna|sellepärast et] saan mõtteid arutada.\nÕpin raamatukogus, [sellepärast et|sest|kuna] seal on vaikne.\n[Kuna] uus teema on keeruline, küsin õpetajalt abi.\nTeen märkmeid, [sest|kuna|sellepärast et] nii jääb info paremini meelde.',
       }, 'full'),
     },
     seed: {
@@ -247,9 +247,9 @@ const SPECS = {
         title: 'Mis on päris lahendus?',
         instruction: 'Vali kõige kasulikum variant.',
         questions: [
-          { q: 'Sa ei saa uuest teemast aru.', options: '*küsin õpetajalt näidet ja harjutan uuesti\nignoreerin teemat\nütlen ainult „raske”' },
-          { q: 'Sul pole kodutööks aega.', options: '*teen realistliku plaani ja alustan tähtsamast\nteen kõike korraga öösel\nei vaata ülesannet' },
-          { q: 'Mida sisaldab hea vastus?', options: '*probleem + põhjus + lahendus\nainult probleem\nainult üks sõna' },
+          { q: 'Sa ei saa uuest teemast aru.', options: '*küsin õpetajalt näidet ja harjutan uuesti\nloen sama reeglit veel kümme korda\njätan teema vahele ja loodan, et testis seda ei ole' },
+          { q: 'Sul pole kodutööks aega.', options: '*teen realistliku plaani ja alustan tähtsamast\nteen kõik ülesanded ühel õhtul hilja\nootan, kuni mul on rohkem vaba aega' },
+          { q: 'Mida sisaldab hea vastus?', options: '*probleem + põhjus + lahendus\nprobleem + põhjus\nprobleem + lahendus' },
         ],
       }),
       notice: block('a2b1_039_av_notice', 'notice', 'white', 'g_notice', {
@@ -259,7 +259,7 @@ const SPECS = {
       controlled: block('a2b1_039_av_controlled', 'gaps', 'blue', 'g_use', {
         title: 'Paku lahendus.',
         instruction: 'Täienda laused sobiva väljendiga.',
-        bank: 'mul on raske, ei saa aru, mul on vaja, võiksin, harjutada, abi küsida',
+        bank: 'mul on raske, ei saa aru, on vaja, võiksin, harjutama, abi küsida, harjutada, abi küsima',
         showBank: 'yes',
         sentences: '[Mul on raske] uusi sõnu meelde jätta.\nMa [ei saa aru], mida selles ülesandes teha.\nMul [on vaja] rohkem aega.\nMa [võiksin] teha igaks päevaks väikese plaani.\nSeda grammatikat pean rohkem [harjutama].\nKui probleem jääb, saan õpetajalt [abi küsida].',
       }, 'full'),
@@ -277,7 +277,7 @@ const SPECS = {
         title: 'Loe probleemist ja lahendusest.',
         instruction: 'Loe ja vasta detailiküsimustele.',
         passageTitle: 'Mark ei jõua kõike teha',
-        passage: 'Mark õpib eesti keelt kaks korda nädalas, kuid viimastel nädalatel on tal olnud tööl väga kiire. Ta jäi ühest tunnist puuduma ja tunneb nüüd, et ei saa uuest grammatikaosast hästi aru. Kodutöö võtab liiga kaua aega ning Mark hakkab mõtlema, et tal pole õppimiseks piisavalt aega. Õpetaja soovitab tal mitte proovida kõike ühe õhtuga teha. Kõigepealt võiks Mark vaadata üle puudutud tunni põhinäited. Seejärel võiks ta valida kolm lühikest harjutust ja teha neid eri päevadel. Kui mõni osa jääb endiselt segaseks, võiks ta saata õpetajale konkreetse küsimuse. Mark otsustab ka panna kalendrisse kolm 20-minutilist õppeaega nädalas. Nii muutub suur ülesanne väiksemateks sammudeks ja ta saab jälle järjepidevalt edasi liikuda.',
+        passage: 'Mark õpib eesti keelt kaks korda nädalas, kuid viimastel nädalatel on tal olnud tööl väga kiire. Ta jäi ühest tunnist puudu ja tunneb nüüd, et ei saa uuest grammatikaosast hästi aru. Kodutöö võtab liiga kaua aega ning Mark hakkab mõtlema, et tal pole õppimiseks piisavalt aega. Õpetaja soovitab tal mitte proovida kõike ühe õhtuga teha. Kõigepealt võiks Mark vaadata üle puudutud tunni põhinäited. Seejärel võiks ta valida kolm lühikest harjutust ja teha neid eri päevadel. Kui mõni osa jääb endiselt segaseks, võiks ta saata õpetajale konkreetse küsimuse. Mark otsustab ka panna kalendrisse kolm 20-minutilist õppeaega nädalas. Nii muutub suur ülesanne väiksemateks sammudeks ja ta saab jälle järjepidevalt edasi liikuda.',
         questions: 'Miks Mark ühest tunnist puudus? [tööl oli väga kiire|töö pärast]\nMillest ta hästi aru ei saa? [uuest grammatikaosast|grammatikast]\nMida soovitab õpetaja kõigepealt teha? [vaadata üle põhinäited|puudutud tunni põhinäited üle vaadata]\nMitu lühikest harjutust võiks ta valida? [kolm|3]\nKui pikad õppeajad paneb Mark kalendrisse? [20 minutit|kakskümmend minutit]',
         lineWidth: 'wide',
       }, 'full'),
@@ -325,9 +325,9 @@ const SPECS = {
         title: 'Põhiidee.',
         instruction: 'Vali vastus ainult teksti põhjal.',
         questions: [
-          { q: 'Mis on teksti keskne teema?', options: '*õppimise, töö ja igapäevaste kohustuste tasakaalustamine\nainult üks koolitund\nainult toidu ostmine' },
-          { q: 'Mida peategelane muudab?', options: '*ta teeb realistlikuma plaani\nta lõpetab õppimise\nta vahetab linna' },
-          { q: 'Milline oskus aitab tal kõige rohkem?', options: '*prioriteetide seadmine ja põhjendatud valikud\nväga kiire lugemine\nkeeruliste sõnade kasutamine' },
+          { q: 'Mis on teksti keskne teema?', options: '*kuidas Anna leiab töö ja kodu kõrvalt aega õppimiseks\nkuidas Anna valmistub eesti keele eksamiks\nmiks Anna otsib uut töökohta' },
+          { q: 'Mida Anna muudab?', options: '*ta õpib lühemalt, aga kindlatel aegadel\nta õpib nüüd igal õhtul kauem\nta läheb osalise tööajaga tööle' },
+          { q: 'Miks kordab Anna sõnavara hommikul?', options: '*siis on tal rohkem energiat\nõhtul on raamatukogu kinni\nhommikul on tal tund õpetajaga' },
         ],
       }),
       notice: block('a2b1_040_av_notice', 'notice', 'white', 'g_notice', {
@@ -339,7 +339,7 @@ const SPECS = {
         instruction: 'Täienda ilma sõnapangata.',
         bank: '',
         showBank: 'no',
-        sentences: 'Eile ma [läksin] (minema) raamatukokku.\nOstsin kilo [õunu] (õun).\nMa pean õhtul [õppima] (õppima).\nMa tahan paremini [rääkida] (rääkima).\nÕpin hommikul, [sest] siis olen värskem.\nKui aega on vähe, [võiksin] teha väiksema plaani.',
+        sentences: 'Eile ma [läksin] (minema) raamatukokku.\nOstsin kilo [õunu] (õunad).\nMa pean õhtul [õppima] (õppima).\nMa tahan paremini [rääkida] (rääkima).\nÕpin hommikul, [sest|kuna|sellepärast et] siis olen värskem.\nKui aega on vähe, [võiksin] (võima, mina) teha väiksema plaani.',
       }, 'full'),
     },
     seed: {
