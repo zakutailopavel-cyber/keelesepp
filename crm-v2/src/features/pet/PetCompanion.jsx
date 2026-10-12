@@ -410,6 +410,7 @@ export default function PetCompanion({
               <small lang="ru">{bubble.hint}</small>
               {bubble.quick ? null : <div className="pet-talk__actions">
                 {bubble.action ? <button type="button" className="pet-btn" onClick={() => { closeBubble(); navigate(bubble.action.to); }}>{bubble.action.label}</button> : null}
+                {location.pathname !== '/student/lemmik' && !bubble.action ? <button type="button" className="pet-btn" onClick={() => { closeBubble(); navigate('/student/lemmik'); }}>Ava</button> : null}
                 <button type="button" className="pet-link" onClick={closeBubble}>Selge</button>
                 <button type="button" className="pet-link" onClick={hide}>Peida mind</button>
               </div>}

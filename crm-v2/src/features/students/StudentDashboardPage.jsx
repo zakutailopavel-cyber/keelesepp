@@ -3,13 +3,10 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
-import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
-import PetCard from '../pet/PetCard.jsx';
-import { isAttended } from '../pet/petModel.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
@@ -41,7 +38,6 @@ export default function StudentDashboardPage({
   scheduleRepository = scheduleService,
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
-  petRepository,
   consentService,
   wordsService,
   summaryService,
@@ -81,7 +77,6 @@ export default function StudentDashboardPage({
   const upcoming = occurrencesForDates(schedule, nextDates).slice(0, 6);
   const pendingHomework = homework.filter(isHomeworkOpen);
   const completedLessons = lessons.filter((lesson) => lesson.status !== 'Tühistatud');
-  const attendedLessons = lessons.filter(isAttended);
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
   const nextLesson = upcoming[0] || null;
   const dueWords = words.filter((word) => isDue(word)).length;
@@ -104,6 +99,10 @@ export default function StudentDashboardPage({
         <i><Languages size={22} /></i>
         <span><small>Sõnakaardid</small><strong>{dueWords ? `${dueWords} sõna kordamiseks` : `${words.length} sõna`}</strong><em>{dueWords ? 'Korda ja toida oma lemmikut' : 'Õpi kursuse tundide sõnu'}</em></span>
       </Link>
+      {balance > 0 ? <div className="student-today__card is-todo">
+        <i><WalletCards size={22} /></i>
+        <span><small>Arved</small><strong>{money(balance)}</strong><em>{invoices.length} arvet · tasumata</em></span>
+      </div> : null}
     </section> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
 
@@ -125,15 +124,5 @@ export default function StudentDashboardPage({
         return <article key={student.id}><div className="student-home-profile-head"><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.level || 'tase puudub'} → {student.targetLevel || '—'}</small><small>Õpetaja: {student.teacher || 'määramata'}</small></span></div>{progress.length ? <div className="student-home-skills">{progress.map(([skill, score]) => <div key={skill}><span>{skillLabel(skill)}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <p className="form-hint">Oskuste tulemusi ei ole veel salvestatud.</p>}</article>;
       })}</div></Card>
     </div>}
-    {students.length ? <section className="student-play" aria-label="Minu lemmik">
-      <div className="section-heading"><div><span className="eyebrow">Õpi ja mängi</span><h2>Minu lemmik</h2><p className="form-hint">Iga tund, kodutöö ja sõnakordus toidab sinu lemmikut. Teemamängudes kordad tunni sõnu.</p></div></div>
-      {students.length ? <PetCard user={user} studentId={students[0]?.id || ''} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} words={words} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(wordsService ? { wordsService } : {})} {...(petRepository ? { repository: petRepository } : {})} /> : null}
-      <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
-      { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },
-      { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },
-      { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
-      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
-    ]} />
-    </section> : null}
   </div>;
 }
