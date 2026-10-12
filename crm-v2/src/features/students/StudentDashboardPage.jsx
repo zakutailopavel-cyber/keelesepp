@@ -140,6 +140,8 @@ export default function StudentDashboardPage({
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Alusta ülevalt: plokis „Täna” on kõik, mida täna teha. Iga töö kontrollitakse kohe." />
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
 
+    {/* „Minu areng” first, then „Täna” (owner 2026-10-12) */}
+    {students.length ? <MyProgressCard progress={progress} /> : null}
     {students.length ? <section className="student-path" aria-label="Täna">
       <header className="student-path__head">
         <div><span className="eyebrow">Täna</span><h2>{path.done === path.total ? 'Kõik tänased sammud tehtud!' : `${path.done}/${path.total} sammu tehtud`}</h2></div>
@@ -172,7 +174,6 @@ export default function StudentDashboardPage({
     {rescheduling && nextLesson ? <RescheduleDialog lesson={nextLesson} student={studentMap.get(nextLesson.studentId) || students[0]} user={user} role="student"
       busy={upcoming.map((item) => ({ date: item.occurrenceDate, time: item.time, duration: item.duration }))} requests={changeRequests}
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
-    {students.length ? <MyProgressCard progress={progress} /> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
       <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} />
 
