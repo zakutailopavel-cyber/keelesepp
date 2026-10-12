@@ -113,6 +113,8 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
   );
 }
 
+// a single card (a part of a split task is drawn through it) — exported for the block tests
+export { Card as SheetCard };
 
 // A small picture of a block for the palette: the real card drawn in print mode, scaled down, never interactive.
 const NO_ANSWERS = () => ({ interactive: false, review: false, get: () => undefined, set: () => {}, state: () => undefined, focus: {}, setFocus: () => {} });

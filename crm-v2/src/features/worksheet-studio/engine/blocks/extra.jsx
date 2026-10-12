@@ -38,6 +38,7 @@ export const dialogue = {
       ))}
     </div>
   ),
+  answers: (data) => (data.lines || []).flatMap((l, i) => gapKeys(l.text, `${i}`)),
   score: (data, get) => scoreGaps((data.lines || []).flatMap((l, i) => gapKeys(l.text, `${i}`)), get),
   example: (data) => Object.fromEntries(gapKeys(data.lines?.[0]?.text, '0').map(({ key, accept }) => [key, accept[0]])),
   Editor: ({ data, set }) => (
@@ -77,6 +78,10 @@ export const reading = {
       </ol>
     </div>
   ),
+  answers: (data) => String(data.questions || '').split('\n').filter((q) => q.trim()).map((q, i) => {
+    const m = q.match(/\[([^\]]*)\]\s*$/);
+    return m ? { key: `${i}`, accept: m[1].split('|').map((x) => x.trim()) } : null;
+  }).filter(Boolean),
   score: (data, get) => String(data.questions || '').split('\n').filter((q) => q.trim()).map((q, i) => {
     const m = q.match(/\[([^\]]*)\]\s*$/);
     if (!m) return null; // open question: teacher reviews
@@ -121,6 +126,7 @@ export const listening = {
       <ol className="ws-gaps">{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i} data-edit={`sentences#${i}`}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
     </div>
   ),
+  answers: (data) => String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, i) => gapKeys(l, `${i}`)),
   score: (data, get) => scoreGaps(String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, i) => gapKeys(l, `${i}`)), get),
   example: (data) => Object.fromEntries(gapKeys(String(data.sentences || '').split('\n').find((l) => l.trim()), '0').map(({ key, accept }) => [key, accept[0]])),
   Editor: ({ data, set }) => (
@@ -173,6 +179,11 @@ export const table = {
       </table>
     );
   },
+  answers: (data) => tableRows(data).flatMap((r, ri) => r.flatMap((c, ci) => {
+    const whole = c.match(WHOLE_CELL);
+    if (whole) return [{ key: `${ri}.${ci}`, accept: whole[1].split('/').map((x) => x.trim()) }];
+    return cellParts(c).filter((p) => p.gap !== undefined).map((p) => ({ key: `${ri}.${ci}.${p.gap}`, accept: p.accept.split('/').map((x) => x.trim()) }));
+  })),
   score: (data, get) => tableRows(data).flatMap((r, ri) => r.flatMap((c, ci) => {
     const ok = (key, accept) => ({ key, ok: accept.split('/').map(norm).includes(norm(get(key))) });
     const whole = c.match(WHOLE_CELL);
@@ -224,6 +235,11 @@ export const categorize = {
       </div>
     );
   },
+  answers: (data) => {
+    const groups = data.groups || [];
+    const all = groups.flatMap((g) => splitList(g.words).map((w) => ({ w, name: g.name }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));
+    return all.map((x, i) => ({ key: `w${i}`, accept: [`${x.w} → ${x.name}`] }));
+  },
   score: (data, get) => {
     const groups = data.groups || [];
     const all = groups.flatMap((g, gi) => splitList(g.words).map((w) => ({ w, gi }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));
@@ -260,6 +276,7 @@ export const wordorder = {
       ))}
     </ol>
   ),
+  answers: (data) => String(data.sentences || '').split('\n').filter((l) => l.trim()).map((s, i) => ({ key: `${i}`, accept: [s.trim()] })),
   score: (data, get) => String(data.sentences || '').split('\n').filter((l) => l.trim()).map((s, i) => ({ key: `${i}`, ok: norm(get(`${i}`)) === norm(s) })),
   example: (data) => { const first = String(data.sentences || '').split('\n').find((l) => l.trim()); return first ? { 0: first.trim() } : {}; },
   Editor: ({ data, set }) => (
