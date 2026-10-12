@@ -19,7 +19,7 @@ describe('ManualInvoiceDialog', () => {
     expect(api.listStudents).toHaveBeenCalledTimes(1);
     fireEvent.change(screen.getByLabelText('Otsi õpilast'), { target: { value: 'mil' } });
     expect(screen.queryByRole('option', { name: 'Anna' })).not.toBeInTheDocument();
-    expect(select).toHaveValue('s2');
+    expect(select).toHaveValue('Milan');
     fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Õpik' } });
     fireEvent.change(screen.getByLabelText('Summa (€)'), { target: { value: '12.50' } });
     const preview = screen.getByLabelText('Arve eelvaade');
@@ -44,7 +44,7 @@ describe('ManualInvoiceDialog', () => {
     render(<ManualInvoiceDialog deliveryApi={deliveryApi} />);
     fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
     await screen.findByRole('option', { name: 'Anna' });
-    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 's1' } });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Anna' } });
     fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Keeletunnid' } });
     fireEvent.change(screen.getByLabelText('Summa (€)'), { target: { value: '100' } });
     fireEvent.click(screen.getByRole('button', { name: /Loo ja laadi PDF/ }));
@@ -61,9 +61,33 @@ describe('ManualInvoiceDialog', () => {
     await screen.findByRole('option', { name: 'Anna' });
     fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Vali õpilane.');
-    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 's1' } });
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Anna' } });
     fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
     expect(screen.getByRole('alert')).toHaveTextContent('Lisa arve kirjeldus.');
     expect(api.create).not.toHaveBeenCalled();
+  });
+
+  it('takes the cards the finance page already has and asks the subject for a student with two cards', async () => {
+    api.listStudents.mockClear();
+    api.create.mockResolvedValue({ invoice: { id: 'inv-2' } });
+    const cards = [
+      { id: 'a-et', name: 'Aleksandr Smirnov', subject: 'Eesti keel', parentName: 'Jekaterina' },
+      { id: 'a-en', name: 'Aleksandr Smirnov', subject: 'Inglise keel', parentName: 'Jekaterina' },
+      { id: 'old', name: 'Vana', convertedToParent: true },
+      { id: 'b', name: 'Anna', subject: 'Eesti keel' },
+    ];
+    render(<ManualInvoiceDialog studentCards={cards} />);
+    fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
+    await screen.findByRole('option', { name: 'Aleksandr Smirnov · 2 ainet' });
+    expect(api.listStudents).not.toHaveBeenCalled();
+    expect(screen.queryByRole('option', { name: /Vana/ })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'Aleksandr Smirnov' } });
+    fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Õpik' } });
+    fireEvent.change(screen.getByLabelText('Summa (€)'), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Vali aine.');
+    fireEvent.change(screen.getByLabelText('Aine'), { target: { value: 'a-en' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
+    await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 'a-en' })));
   });
 });
