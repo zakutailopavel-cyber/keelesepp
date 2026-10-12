@@ -65,11 +65,15 @@ function PetTour({ pet, onDone }) {
 
   if (!step) return null;
   const last = i === steps.length - 1;
-  const cardStyle = rect
-    ? (rect.left + rect.width + 360 < window.innerWidth
-      ? { top: Math.max(12, rect.top - 20), left: rect.left + rect.width + 16 }
-      : { top: Math.max(12, rect.top - 190), left: Math.max(12, Math.min(rect.left, window.innerWidth - 352)) })
-    : { top: '30%', left: '50%', transform: 'translateX(-50%)' };
+  // the card stays inside the screen: beside the target, grown upwards when the target is low (the pet sits in the
+  // bottom corner: the card went below the screen and its text and button were cut, owner 2026-10-12)
+  const low = rect && rect.top + rect.height / 2 > window.innerHeight / 2;
+  const beside = rect && rect.left + rect.width + 360 < window.innerWidth;
+  const cardStyle = !rect
+    ? { top: '30%', left: '50%', transform: 'translateX(-50%)' }
+    : beside
+      ? { ...(low ? { bottom: Math.max(12, window.innerHeight - rect.top - rect.height) } : { top: Math.max(12, rect.top - 20) }), left: rect.left + rect.width + 16 }
+      : { ...(low ? { bottom: Math.max(12, window.innerHeight - rect.top + 16) } : { top: Math.min(window.innerHeight - 220, rect.top + rect.height + 16) }), left: Math.max(12, Math.min(rect.left, window.innerWidth - 352)) };
   return (
     <div className="pet-tour" role="dialog" aria-modal="true" aria-label="Tutvustus">
       {rect ? <div className="pet-tour__ring" style={{ top: rect.top - 6, left: rect.left - 6, width: rect.width + 12, height: rect.height + 12 }} /> : <div className="pet-tour__dim" />}

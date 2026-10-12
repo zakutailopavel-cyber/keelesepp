@@ -75,7 +75,7 @@
 .pet-tour { position: fixed; inset: 0; z-index: 1300; }
 .pet-tour__dim { position: absolute; inset: 0; background: rgba(15,23,42,.55); }
 .pet-tour__ring { position: absolute; border-radius: 14px; box-shadow: 0 0 0 4px #f5b301, 0 0 0 9999px rgba(15,23,42,.55); transition: all .35s ease; pointer-events: none; }
-.pet-tour__card { position: absolute; width: min(340px, calc(100vw - 24px)); display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; align-items: start; background: #fff; border-radius: 18px; padding: 14px; box-shadow: 0 24px 60px rgba(7,24,44,.3); }
+.pet-tour__card { position: absolute; width: min(340px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow-y: auto; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 10px; align-items: start; background: #fff; border-radius: 18px; padding: 14px; box-shadow: 0 24px 60px rgba(7,24,44,.3); }
 .pet-tour__card p { margin: 0; font: 700 1.35rem/1.15 'Caveat', 'Bradley Hand', cursive; color: #1f2d3d; }
 .pet-tour__card small { display: block; margin-top: 3px; color: #5c6875; font-size: .75rem; }
 @media (max-width: 900px) { .pet-lane { left: 0; } .pet-walker, .pet-body { width: 72px; } .pet-talk { bottom: 80px; } }
