@@ -26,6 +26,7 @@ describe('Avasta openers', () => {
     expect(doc.blocks.slice(0, 2).map((block) => block.type)).toEqual(['text', 'truefalse']);
     expect(doc.blocks[1].data.statements).toHaveLength(5);
     expect(doc.blocks.some((block) => block.id === 'a2b1_016_av_intro')).toBe(false);
+    expect(openerBlocks('a2b1-019')[0].data.text).toContain('kell kuus kokku?\n\nJaan:');
     expect(openerBlocks('a2-001')).toBeNull();
   });
 });
