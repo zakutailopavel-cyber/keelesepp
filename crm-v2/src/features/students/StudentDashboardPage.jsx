@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, Check, ChevronRight, Flame, Gamepad2, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
+import { BookOpen, CalendarDays, SpellCheck, Check, ChevronRight, Flame, Gamepad2, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -9,7 +9,7 @@ import { requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
-import { reviewedOn } from '../self-study/reviewStore.js';
+import { readDone } from '../self-study/reviewStore.js';
 import { autoSkills } from './autoSkills.js';
 import { levelProgress, speakingFromStats } from './levelProgress.js';
 import MyProgressCard from './MyProgressCard.jsx';
@@ -92,10 +92,10 @@ export default function StudentDashboardPage({
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
   // the whole day's path done → the walking pet shows a flame, once a day
-  const reviewedToday = reviewedOn(user?.uid, today);
+  const reviewedToday = readDone(user?.uid).errors?.date === today;
   const pathDone = useMemo(() => {
     if (!state.data) return false;
-    const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, reviewedToday, offerPet: !preview, today });
+    const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });
     return day.total > 0 && day.done === day.total;
   }, [state.data, words, today, reviewedToday, preview]);
   useEffect(() => {
@@ -131,9 +131,9 @@ export default function StudentDashboardPage({
     const computed = [...autoSkills({ assignments: allSheets }), ...[speakingFromStats(stats)].filter(Boolean)];
     return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });
   })();
-  const path = todayPath({ words, homework, submissions, pet: state.data.pet, reviewedToday, offerPet: !preview, today });
+  const path = todayPath({ words, homework, submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });
   const streak = petProgress({ lessons, submissions, homework, words }).streak;
-  const STEP_ICON = { words: Languages, work: BookOpen, pet: Gamepad2 };
+  const STEP_ICON = { words: Languages, work: BookOpen, mistakes: SpellCheck, pet: Gamepad2 };
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
 
   return <div className="page-content">

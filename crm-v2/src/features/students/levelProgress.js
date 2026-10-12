@@ -9,7 +9,7 @@ export const READY = 70; // a skill counts as ready for the next level from here
 const norm = (value) => String(value || '').toUpperCase().replace(/[^ABC12]/g, '').slice(0, 2);
 
 const ACTIONS = {
-  Grammatika: { et: 'Tee iga päev kordamist: vormid ja sinu enda laused.', ru: 'Каждый день делай «Kordamine»: формы и твои собственные предложения.', to: '/student/kursus' },
+  Grammatika: { et: 'Harjuta iga päev „Minu vead”: sinu enda laused tundidest.', ru: 'Каждый день тренируй «Minu vead»: твои предложения с уроков.', to: '/student/vead' },
   Sõnavara: { et: 'Korda sõnakaarte iga päev 10 minutit.', ru: 'Повторяй карточки слов по 10 минут в день.', to: '/student/sonavara' },
   Lugemine: { et: 'Tee õpetaja antud lehtede tekstid ja küsimused lõpuni.', ru: 'Дочитывай тексты в листах от учителя и отвечай на вопросы.', to: '/homework' },
   Kuulamine: { et: 'Tee kodutöö etteütlused ja kuulamisülesanded.', ru: 'Делай диктанты и задания на слух из домашки.', to: '/homework' },
@@ -74,7 +74,7 @@ export function levelProgress({ level, target, computed = [], skillMap = {}, cou
   if (weakest) hints.push({ key: `skill-${weakest.skill}`, skill: weakest.skill, et: `${weakest.skill} ${weakest.pct}% → ${READY}%: ${ACTIONS[weakest.skill].et}`, ru: `${weakest.skill}: ${weakest.pct}% из ${READY}%. ${ACTIONS[weakest.skill].ru}`, to: ACTIONS[weakest.skill].to });
   const unknown = skills.find((s) => s.pct === null);
   if (unknown) hints.push({ key: `first-${unknown.skill}`, skill: unknown.skill, et: `${unknown.skill}: tee ${FIRST[unknown.skill]}, siis näed oma taset.`, ru: `${unknown.skill}: сделай ${unknownRu(unknown.skill)} — тогда увидишь свой уровень.`, to: ACTIONS[unknown.skill].to });
-  if (!reached && course.next) hints.push({ key: 'course', et: `Kursus ${step}: ${course.done}/${course.total} tundi. Järgmises tunnis: ${course.next}.`, ru: `Курс ${step}: пройдено ${course.done} из ${course.total} уроков. На следующем уроке: ${course.next}.`, to: '/student/kursus' });
+  if (!reached && course.next) hints.push({ key: 'course', et: `Kursus ${step}: ${course.done}/${course.total} tundi. Järgmises tunnis: ${course.next}.`, ru: `Курс ${step}: пройдено ${course.done} из ${course.total} уроков. На следующем уроке: ${course.next}.`, to: '/homework' });
 
   return { from, to, step, reached, readiness, overall, coursePct, course, skills, path, hints: hints.slice(0, 3) };
 }

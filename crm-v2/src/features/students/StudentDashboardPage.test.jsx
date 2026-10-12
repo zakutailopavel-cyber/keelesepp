@@ -36,12 +36,11 @@ describe('StudentDashboardPage', () => {
     // „Tänane tee”: steps of the day with progress (words, homework), the open homework's task as its detail
     expect(within(today).getAllByText('Täna').length).toBeGreaterThan(0);
     expect(within(today).getByText('Korda sõnu')).toBeInTheDocument();
-    expect(within(today).getByText('Tee kodutöö')).toBeInTheDocument();
-    expect(within(today).getByText('Õpi sõnad')).toBeInTheDocument();
+    expect(within(today).getByText('Tee ülesanded')).toBeInTheDocument();
+    
     expect(within(today).getByText('0/3 sammu tehtud')).toBeInTheDocument();
     expect(screen.getByText('Vali endale sõber')).toBeInTheDocument();
     // no duplicate lists under „Täna” (owner 2026-10-12: home 10 → 4 blocks)
-    expect(screen.getAllByText('Õpi sõnad').length).toBe(1);
     expect(screen.queryByText('Kiirviited')).not.toBeInTheDocument();
     expect(screen.queryByText('Pooleli ülesanded')).not.toBeInTheDocument();
     expect(screen.queryByText('Minu õppeprofiil')).not.toBeInTheDocument();

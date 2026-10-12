@@ -1,3 +1,11 @@
+## 2026-10-12 · agent/student-four-things — the student has four things to do
+
+- Why (owner): „у ученика должно быть всё просто: задания интерактивные делать, повторить слова, мои ошибки и игры с тамагочи — больше ничего”.
+- Menu (`studentNavigation`): Minu õpingud · Ülesanded · Sõnad · Minu vead · Lemmik · Suhtlus. No „Tund” item: the lesson invitation (`LessonInvitationOverlay`) pops up on every page. „Kordamine” is gone (`/student/kursus` → `/student/vead`; `SelfStudyPage` removed): its word part lives in Sõnad, its mistakes part is the new `self-study/MistakesPage.jsx` (drill `ReviewDrill.jsx` + list „said → right”).
+- „Täna” (`todayPath`): Tee ülesanded (open homework + sheets) → Korda sõnu → Minu vead (only if there are mistakes) → Lemmik. Pet tour and „Minu areng” hints point to the new places.
+- Checks: students/self-study/homework/pet/app/components 204/204 + Minu vead 8/8.
+- Next: teacher „Määra õpilastele” for course lessons gives the interactive sheet (Avasta/Harjuta/Kasuta) instead of a text homework.
+
 ## 2026-10-12 · agent/b1-goal-tags — B1 sub-goals trained by real tasks
 
 - Why (contract A3): after the goal fix 75 B1 lessons still had a sub-goal trained by < 2 tasks — the course builders tagged every form task (gaps, word forms, error fix, transformation, word order) and word task (categorize, manymatch, translation, clock) as `g_use`.

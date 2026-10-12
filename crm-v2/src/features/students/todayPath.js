@@ -1,33 +1,34 @@
-// „Tänane tee” (owner 2026-10-12): one short daily path on the student's home instead of separate places —
-// repeat words → do the homework or a sheet → play with the pet. Each step is done by what the student really did
-// today (a word reviewed, work submitted or homework marked done, a pet game); the streak is the pet's learning streak.
+// „Täna” (owner 2026-10-12): a student has exactly four things to do — interactive tasks, words, my mistakes and the
+// pet. Each step is done by what the student really did today (work submitted or a task marked done, a word reviewed,
+// the mistakes drill, a pet game); the streak is the pet's learning streak.
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import { isDue } from '../vocabulary/wordsModel.js';
 
 const dayOf = (value) => String(value || '').slice(0, 10);
+const ERROR_PREFIX = 'Sinu lause:';
 
-export function todayPath({ words = [], homework = [], submissions = [], pet = null, offerPet = false, reviewedToday = false, today, now = Date.now() }) {
-  const due = words.filter((word) => isDue(word, now)).length;
-  const reviewed = words.filter((word) => dayOf(word.reviewedAt) === today).length;
-  const open = homework.filter(isHomeworkOpen);
+export function todayPath({ words = [], homework = [], submissions = [], assignments = [], pet = null, offerPet = false, mistakesDoneToday = false, today, now = Date.now() }) {
+  const own = words.filter((word) => !String(word.translation || '').startsWith(ERROR_PREFIX));
+  const mistakes = words.length - own.length;
+  const due = own.filter((word) => isDue(word, now)).length;
+  const reviewed = own.filter((word) => dayOf(word.reviewedAt) === today).length;
+  const openTasks = homework.filter(isHomeworkOpen).length + assignments.filter((item) => item.status !== 'done' && !item.completedAt).length;
   const workToday = submissions.some((item) => dayOf(item.completedAt) === today)
     || homework.some((item) => item.status === 'Tehtud' && dayOf(item.doneAt || item.submittedAt || item.updatedAt) === today);
   const steps = [
     {
-      key: 'words', label: 'Korda sõnu', to: '/student/sonavara', done: reviewed > 0,
-      detail: reviewed ? `${reviewed} sõna korratud` : due ? `${due} sõna ootab` : words.length ? 'Harjuta tundide sõnu' : 'Vali tund ja õpi sõnu',
+      key: 'work', label: 'Tee ülesanded', to: '/homework', done: workToday || (!openTasks && homework.length + assignments.length > 0),
+      detail: workToday ? 'Tehtud täna' : openTasks ? `${openTasks} ootab` : 'Uusi ülesandeid ei ole',
     },
-    // no homework open: the step is a short review of the held lessons („Kordamine”; the course sheets stay for the lesson)
-    open.length ? {
-      key: 'work', label: 'Tee kodutöö', to: '/homework', done: workToday,
-      detail: workToday ? 'Tehtud täna' : open[0].task || `${open.length} ootab`,
-    } : {
-      key: 'work', label: 'Korda tundi', to: '/student/kursus', done: workToday || reviewedToday,
-      detail: workToday || reviewedToday ? 'Tehtud täna' : '7 minutit: tunni sõnad ja vormid',
+    {
+      key: 'words', label: 'Korda sõnu', to: '/student/sonavara', done: reviewed > 0,
+      detail: reviewed ? `${reviewed} sõna korratud` : due ? `${due} sõna ootab` : own.length ? 'Kõik sõnad korratud' : 'Õpi tunni sõnu',
     },
   ];
-  // no friend chosen yet (and not switched off): the first step to the picker (owner 2026-10-12: a new student had
-  // nowhere to choose one — the picker opened only from the pet itself)
+  if (mistakes) {
+    steps.push({ key: 'mistakes', label: 'Minu vead', to: '/student/vead', done: mistakesDoneToday, detail: mistakesDoneToday ? 'Harjutatud täna' : `${mistakes} lauset tundidest` });
+  }
+  // no friend chosen yet (and not switched off): the step to the picker
   if (offerPet && !pet?.kind && !pet?.optedOut) {
     steps.push({ key: 'pet', label: 'Vali endale sõber', to: '/student/lemmik', done: false, detail: 'Õppesõber kasvab koos sinuga' });
   }

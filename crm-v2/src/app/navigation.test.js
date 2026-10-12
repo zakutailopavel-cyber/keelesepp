@@ -11,7 +11,7 @@ describe('application navigation roles', () => {
   });
 
   it('gives a pure student the short menu and keeps the full one for staff and parents', () => {
-    expect(navigationFor(['student']).map((item) => item.label)).toEqual(['Minu õpingud', 'Ülesanded', 'Sõnavara', 'Tund', 'Suhtlus']);
+    expect(navigationFor(['student']).map((item) => item.label)).toEqual(['Minu õpingud', 'Ülesanded', 'Sõnad', 'Minu vead', 'Lemmik', 'Suhtlus']);
     expect(navigationFor(['student'])).toBe(studentNavigation);
     expect(navigationFor(['student', 'parent'])).toBe(navigation);
     expect(navigationFor(['teacher'])).toBe(navigation);
