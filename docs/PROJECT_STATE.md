@@ -1,3 +1,11 @@
+## 2026-10-12 · agent/avasta-b1-fixes-apply — the B1 check's corrections reach the published Avasta sheets
+
+- Why: re-running an Avasta upgrade (`admin/avastaModuleN.js`) never replaces a block that exists, so #571's corrections of 103 blocks in 49 published Avasta sheets (and the a2b1-023 goal, the a2b1-045 title) would not reach students.
+- `admin/avastaFixes20261012.json` (generated from the code before and after #571: each corrected block's data before / after) + `admin/avastaFixes.js` `applyAvastaFixes`: a three-way patch — a published block is replaced only if it still equals the „before” version (order-insensitive); changed blocks are reported and left alone; meta the same way.
+- „Avasta kvaliteeditäiendus” page (`ui/AvastaUpgradePage.jsx`): card „B1 kontrolli parandused (12.10)” — Kontrolli (counts: to fix / already fixed / changed since) and Rakenda parandused (confirm, publishes only the changed sheets).
+- Checks: avastaFixes 3/3, worksheet-generator ui 17/17, lint 0 errors.
+- Next: admin clicks Kontrolli → Rakenda parandused; Harjuta/Kasuta via „Kursuse tootmine”, lessons 001–005 via „Moodul 1 kolm faasi”.
+
 ## 2026-10-12 · agent/b1-didactic-fixes — B1 sheets: errors fixed (keys, Estonian, false errors, guessable and unsolvable tasks)
 
 - Why (owner): „проверь рабочие листы б1 на дидактическую ценность, найди ошибки и исправь их”. Source: `docs/level-audit-2026-10-12/b1-part1.md`, `b1-part2.md` + a full read of every sheet.
