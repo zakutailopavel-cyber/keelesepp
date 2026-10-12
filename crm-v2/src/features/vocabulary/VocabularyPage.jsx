@@ -6,7 +6,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { lessonsService, lessonWorksheetsService, libraryService, studentsService } from '../../services/firebase/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
-import { deckFromSheets, deckFromWords } from './deckModel.js';
+import { deckFromSheets, deckFromWords, lessonDecks } from './deckModel.js';
 import StudySession from './StudySession.jsx';
 import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
@@ -55,6 +55,7 @@ export default function VocabularyPage({
   const shownLevel = level || levels.find((entry) => entry.key === studentLevel || entry.label === studentLevel)?.key || myLessons[0]?.level || levels[0]?.key || '';
   const modules = levels.find((entry) => entry.key === shownLevel)?.modules || [];
   const myDeck = useMemo(() => deckFromWords(words), [words]);
+  const byLesson = useMemo(() => lessonDecks(words), [words]);
   const dueDeck = useMemo(() => deckFromWords(words.filter((word) => isDue(word))), [words]);
 
   const openLesson = async (lesson) => {
@@ -118,6 +119,12 @@ export default function VocabularyPage({
                 <Star size={18} /><span><strong>Minu sõnad</strong><small>{myDeck.length} sõna · {words.filter((word) => isDue(word)).length} kordamiseks</small></span><ChevronRight size={16} />
               </button>
             ) : <EmptyState title="Sinu sõnu veel ei ole" description="Õpetaja lisab tunnis uued sõnad. Kursuse tundide sõnu saad õppida kohe allpool." />}
+            {byLesson.length ? <div className="vd-list vd-lessons">{byLesson.slice(0, 8).map((item) => {
+              const label = `Tund ${new Date(`${item.day}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'short' })}`;
+              return <button type="button" key={item.key} className="vd-deck" onClick={() => setOpen({ key: item.key, title: label, lessonId: '', deck: item.deck })}>
+                <GraduationCap size={17} /><span><strong>{label}</strong><small>{item.deck.length} sõna tunnist</small></span><ChevronRight size={16} />
+              </button>;
+            })}</div> : null}
           </Card>
           {myLessons.length ? (
             <Card>

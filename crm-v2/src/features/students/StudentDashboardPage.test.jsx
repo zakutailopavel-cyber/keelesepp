@@ -33,9 +33,12 @@ describe('StudentDashboardPage', () => {
     expect(await screen.findByRole('heading', { name: 'Tere, Mari Õpilane!' })).toBeInTheDocument();
     // study comes first: the „Täna” strip shows the next lesson, open homework and word cards (owner 2026-10-12)
     const today = screen.getByRole('region', { name: 'Täna' });
-    expect(within(today).getByText('1 ootab tegemist')).toBeInTheDocument();
+    // „Tänane tee”: steps of the day with progress (words, homework), the open homework's task as its detail
+    expect(within(today).getByText('Tänane tee')).toBeInTheDocument();
+    expect(within(today).getByText('Korda sõnu')).toBeInTheDocument();
+    expect(within(today).getByText('Tee kodutöö')).toBeInTheDocument();
     expect(within(today).getByText('Õpi sõnad')).toBeInTheDocument();
-    expect(within(today).getByText('Sõnakaardid')).toBeInTheDocument();
+    expect(within(today).getByText('0/2 sammu tehtud')).toBeInTheDocument();
     expect(screen.getAllByText('Õpi sõnad').length).toBe(2);
     expect(screen.getByText('Väga tubli!')).toBeInTheDocument();
     expect(screen.getByText('Hinne 5')).toBeInTheDocument();
