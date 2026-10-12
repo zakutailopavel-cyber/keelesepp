@@ -57,7 +57,8 @@
 /* Walking pet (students): a bottom lane over the content area, clicks pass through except on the pet */
 .pet-lane { position: fixed; left: 272px; right: 0; bottom: 8px; height: 0; z-index: 40; pointer-events: none; }
 .pet-walker { position: absolute; bottom: 0; left: 8px; width: 92px; transition: transform 3.8s linear; pointer-events: none; }
-.pet-body { pointer-events: auto; display: block; width: 92px; padding: 0; border: 0; background: transparent; cursor: pointer; transition: transform .3s; }
+/* turning is instant: a transition through scaleX(0) drew the pet as a thin line (owner 2026-10-12) */
+.pet-body { pointer-events: auto; display: block; width: 92px; padding: 0; border: 0; background: transparent; cursor: pointer; transition: none; }
 .pet-body:focus-visible { outline: 3px solid #2f7d4c; outline-offset: 2px; border-radius: 16px; }
 .pet-figure { display: block; } .pet-figure svg { display: block; width: 100%; height: auto; }
 .pet-walker.is-walking .pet-figure { animation: pet-bob .45s ease-in-out infinite; }
@@ -208,3 +209,21 @@
 .pg-finish { display: grid; justify-items: center; gap: 8px; text-align: center; } .pg-finish p { margin: 0; }
 @media (max-width: 640px) { .pg-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (prefers-reduced-motion: reduce) { .pg-drop { animation-duration: 600s !important; } .pg-card { transition: none; } }
+
+/* reactions of the walking pet (owner 2026-10-12): right answer → hop + sparks, wrong → head tilt, round done → dance,
+   day's path done → a flame */
+.pet-walker.react-correct .pet-figure { animation: pet-react-hop .55s ease-out; }
+.pet-walker.react-wrong .pet-figure { animation: pet-react-tilt .9s ease-in-out; }
+.pet-walker.react-done .pet-figure, .pet-walker.react-streak .pet-figure { animation: pet-react-dance 1.6s ease-in-out; }
+@keyframes pet-react-hop { 0%, 100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-18px) scale(1.04, .96); } 60% { transform: translateY(0) scale(1.06, .94); } }
+@keyframes pet-react-tilt { 0%, 100% { transform: rotate(0); } 30%, 70% { transform: rotate(-9deg); } }
+@keyframes pet-react-dance { 0%, 100% { transform: rotate(0) translateY(0); } 20% { transform: rotate(-10deg) translateY(-8px); } 40% { transform: rotate(10deg) translateY(0); } 60% { transform: rotate(-10deg) translateY(-8px); } 80% { transform: rotate(8deg) translateY(0); } }
+.pet-react { position: absolute; left: 0; right: 0; top: -14px; height: 30px; pointer-events: none; text-align: center; }
+.pet-react i { position: absolute; font-style: normal; font-weight: 900; animation: pet-react-float 1s ease-out forwards; }
+.pet-react.is-correct i { color: #f5b301; font-size: 18px; }
+.pet-react.is-correct i:nth-child(1) { left: 14%; } .pet-react.is-correct i:nth-child(2) { left: 46%; animation-delay: .08s; } .pet-react.is-correct i:nth-child(3) { left: 76%; animation-delay: .16s; }
+.pet-react.is-wrong i { left: 62%; color: #0b2a4f; font-size: 22px; }
+.pet-react.is-done i { color: #7c3aed; font-size: 20px; } .pet-react.is-done i:nth-child(1) { left: 20%; } .pet-react.is-done i:nth-child(2) { left: 66%; animation-delay: .25s; }
+.pet-react.is-streak i { left: 38%; font-size: 26px; animation-duration: 1.6s; }
+@keyframes pet-react-float { from { opacity: 0; transform: translateY(8px) scale(.6); } 30% { opacity: 1; transform: translateY(0) scale(1.1); } to { opacity: 0; transform: translateY(-22px) scale(.9); } }
+@media (prefers-reduced-motion: reduce) { .pet-walker[class*="react-"] .pet-figure, .pet-react i { animation: none !important; } }

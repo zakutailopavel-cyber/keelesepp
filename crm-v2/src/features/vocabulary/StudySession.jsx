@@ -2,6 +2,7 @@ import { ArrowLeft, ArrowRight, BookOpenCheck, Check, ClipboardCheck, Layers, Pe
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { buildTest, checkAnswer, choices, learnedCount, learnStep, prompt, shuffle, startLearn } from './deckModel.js';
 import { keyForms, useWordForms } from './wordForms.js';
+import { petReact } from '../pet/petEvents.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 
 // the three key forms under the Estonian word (soodustus · soodustuse · soodustust)
@@ -37,6 +38,7 @@ function useKeys(handler, deps) {
 }
 
 function Done({ title, children, onAgain, onClose, missed = [], onAddMissed }) {
+  useEffect(() => { petReact('done'); }, []);
   return (
     <div className="vs-done" role="status">
       <span className="vs-done__badge" aria-hidden="true">🎉</span>
@@ -64,6 +66,7 @@ function CardsMode({ deck, direction, onResult, onClose, onAddMissed }) {
   const card = order[index];
   const sort = (knew) => {
     onResult?.(card, knew);
+    if (knew) petReact('correct');
     if (!knew) setLearning((current) => [...current, card]);
     setFlipped(false);
     setIndex(index + 1);
@@ -141,6 +144,7 @@ function LearnMode({ deck, direction, onResult, onClose, onAddMissed }) {
   const answerWith = (correct, option = '') => {
     setChosen(option);
     setAnswer(correct ? 'right' : 'wrong');
+    petReact(correct ? 'correct' : 'wrong');
     onResult?.(card, correct);
     if (!correct && !missed.some((item) => item.id === card.id)) setMissed((current) => [...current, card]);
   };
@@ -154,7 +158,7 @@ function LearnMode({ deck, direction, onResult, onClose, onAddMissed }) {
         <div className="vs-choices">{options.map((option) => (
           <button type="button" key={option} disabled={Boolean(answer)} className={answer && option === side.answer ? 'is-right' : answer && option === chosen ? 'is-wrong' : ''} onClick={() => answerWith(option === side.answer, option)}><kbd aria-hidden="true">{options.indexOf(option) + 1}</kbd>{option}</button>
         ))}</div>
-      ) : <AnswerField disabled={Boolean(answer)} onSubmit={(value) => { const result = checkAnswer(value, side.answer); setAnswer(result); onResult?.(card, result !== 'wrong'); if (result === 'wrong' && !missed.some((item) => item.id === card.id)) setMissed((current) => [...current, card]); }} />}
+      ) : <AnswerField disabled={Boolean(answer)} onSubmit={(value) => { const result = checkAnswer(value, side.answer); setAnswer(result); petReact(result === 'wrong' ? 'wrong' : 'correct'); onResult?.(card, result !== 'wrong'); if (result === 'wrong' && !missed.some((item) => item.id === card.id)) setMissed((current) => [...current, card]); }} />}
       <Feedback result={answer} answer={side.answer} card={card} onNext={() => next(answer !== 'wrong')} onOverride={() => next(true)} />
     </div>
   );
@@ -186,7 +190,7 @@ function WriteMode({ deck, direction, onResult, onClose, onAddMissed }) {
     <div className="vs-mode">
       <Progress value={index} total={order.length} label="Kirjuta" />
       <div className="vs-question"><small>Kirjuta vastus</small><strong>{side.ask}</strong>{side.ask === card.front ? <Forms card={card} /> : null}</div>
-      <AnswerField disabled={Boolean(result)} onSubmit={(value) => { const checked = checkAnswer(value, side.answer); setResult(checked); onResult?.(card, checked !== 'wrong'); }} />
+      <AnswerField disabled={Boolean(result)} onSubmit={(value) => { const checked = checkAnswer(value, side.answer); setResult(checked); petReact(checked === 'wrong' ? 'wrong' : 'correct'); onResult?.(card, checked !== 'wrong'); }} />
       <Feedback result={result} answer={side.answer} card={card} onNext={() => next(result !== 'wrong')} onOverride={() => next(true)} />
     </div>
   );

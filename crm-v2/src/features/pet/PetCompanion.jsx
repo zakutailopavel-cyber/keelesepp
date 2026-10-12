@@ -9,7 +9,7 @@ import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { petSvg } from './petArt.js';
 import { PAGE_HINTS, TOUR_STEPS, celebrationHint, companionHint } from './companionModel.js';
 import { REACTIONS, dayPart, lifeLines, nextLesson, season, seasonalWear } from './petLife.js';
-import { PET_CELEBRATE_EVENT, PET_EVENT, PET_QUIET_EVENT } from './petEvents.js';
+import { PET_CELEBRATE_EVENT, PET_EVENT, PET_QUIET_EVENT, PET_REACT_EVENT } from './petEvents.js';
 import './pet.css';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
@@ -157,6 +157,24 @@ export default function PetCompanion({
     window.addEventListener(PET_QUIET_EVENT, onQuiet);
     window.addEventListener(PET_CELEBRATE_EVENT, onCelebrate);
     return () => { window.removeEventListener(PET_QUIET_EVENT, onQuiet); window.removeEventListener(PET_CELEBRATE_EVENT, onCelebrate); };
+  }, [isStudent]);
+
+  // short reactions to what the student just did (cards: right / wrong answer, a finished round, the day's path)
+  const [reaction, setReaction] = useState('');
+  useEffect(() => {
+    if (!isStudent) return undefined;
+    let timer = 0;
+    const onReact = (event) => {
+      const kind = event.detail?.kind;
+      if (!['correct', 'wrong', 'done', 'streak'].includes(kind)) return;
+      window.clearTimeout(timer);
+      setReaction('');
+      window.requestAnimationFrame?.(() => setReaction(kind));
+      if (!window.requestAnimationFrame) setReaction(kind);
+      timer = window.setTimeout(() => setReaction(''), kind === 'done' || kind === 'streak' ? 1800 : 1100);
+    };
+    window.addEventListener(PET_REACT_EVENT, onReact);
+    return () => { window.clearTimeout(timer); window.removeEventListener(PET_REACT_EVENT, onReact); };
   }, [isStudent]);
 
   // lesson invitations
@@ -397,13 +415,14 @@ export default function PetCompanion({
   const walkerAt = laneLeft + 8 + shownX;
   const talkLeft = Math.round(Math.max(8 - walkerAt, Math.min(window.innerWidth - 8 - talkW - walkerAt, shownX > laneW / 2 ? SIZE - talkW : 0)));
   const walkerClass = ['pet-walker', walking && !dragging && !asleep ? 'is-walking' : '', bubble?.urgent || bubble?.key === 'celebrate' ? 'is-excited' : '',
-    dragging ? 'is-dragging' : '', falling ? 'is-falling' : '', landed ? 'is-landed' : '', waking ? 'is-waking' : ''].filter(Boolean).join(' ');
+    dragging ? 'is-dragging' : '', falling ? 'is-falling' : '', landed ? 'is-landed' : '', waking ? 'is-waking' : '', reaction ? `react-${reaction}` : ''].filter(Boolean).join(' ');
   return (
     <>
       <div className={`pet-lane ${atInvitation ? 'is-above-card' : ''}`} ref={laneRef} aria-live="polite">
         <div className={walkerClass} style={{ transform: `translate(${shownX}px, ${y}px)` }}>
           {weather && !dragging ? <span className={`pet-weather is-${weather}`} aria-hidden="true"><i /><i /><i /></span> : null}
           {petted && !dragging ? <span className="pet-hearts" aria-hidden="true"><i>♥</i><i>♥</i></span> : null}
+          {reaction && !dragging ? <span className={`pet-react is-${reaction}`} aria-hidden="true">{reaction === 'correct' ? <><i>✦</i><i>✦</i><i>✦</i></> : reaction === 'wrong' ? <i>?</i> : reaction === 'done' ? <><i>♪</i><i>♫</i></> : <i>🔥</i>}</span> : null}
           {bubble ? (
             <div className="pet-talk" role="status" style={{ left: talkLeft }}>
               <p>{bubble.text}</p>
@@ -419,7 +438,7 @@ export default function PetCompanion({
           <button type="button" className="pet-body" data-tour="pet" onClick={talk} aria-label={`${pet.name}: vajuta, et saada abi`} style={{ transform: `scaleX(${dir})` }}
             onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
             onPointerEnter={startPetting} onPointerLeave={stopPetting}>
-            <PetFigure kind={pet.kind} mood={mood} wearing={wearing} figureRef={figureRef} />
+            <PetFigure kind={pet.kind} mood={reaction === 'correct' || reaction === 'done' || reaction === 'streak' ? 'happy' : mood} wearing={wearing} figureRef={figureRef} />
           </button>
         </div>
       </div>

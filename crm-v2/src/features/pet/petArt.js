@@ -1,10 +1,10 @@
 // KeeleSepp pets: vector drawing of the four species, moods and growth stages (animations in pet.css).
 // Everything is generated from our own constants; no user text is put into the SVG.
 export const SPECIES = {
-  siil:    { name: 'Siil', ru: 'ёжик, спокойный и упорный', body: '#b98552', belly: '#f6e2c4', accent: '#7f582a' },
-  rebane:  { name: 'Rebane', ru: 'лиса, быстрая и любопытная', body: '#e0823d', belly: '#fff3e6', accent: '#b85a1f' },
-  kakk:    { name: 'Kakk', ru: 'сова, мудрая и внимательная', body: '#8a6a4a', belly: '#f3e7d3', accent: '#5a4028' },
-  draakon: { name: 'Draakon', ru: 'дракончик, смелый и весёлый', body: '#3f9a63', belly: '#e9f5d9', accent: '#267743' },
+  siil:    { name: 'Siil', ru: 'ёжик, спокойный и упорный', body: '#b98552', light: '#e2b98a', belly: '#f6e2c4', accent: '#7f582a' },
+  rebane:  { name: 'Rebane', ru: 'лиса, быстрая и любопытная', body: '#e0823d', light: '#f7b277', belly: '#fff3e6', accent: '#b85a1f' },
+  kakk:    { name: 'Kakk', ru: 'сова, мудрая и внимательная', body: '#8a6a4a', light: '#b8936d', belly: '#f3e7d3', accent: '#5a4028' },
+  draakon: { name: 'Draakon', ru: 'дракончик, смелый и весёлый', body: '#3f9a63', light: '#79c98f', belly: '#e9f5d9', accent: '#267743' },
 };
 export const MOODS = {
   happy: { label: 'Rõõmus', why: 'Сегодня был урок или сдан лист.' },
@@ -31,7 +31,7 @@ function face(mood, cx, cy, r) {
     extra = `<path class="tear" d="M${cx + ex + 4} ${ey + 10} q-4 7 0 10 q4 -3 0 -10z" fill="#60a5fa" stroke="${O}" stroke-width="1.5"/>`;
   } else {
     const big = mood === 'proud';
-    eyes = [-1, 1].map((s) => `<g class="eye"><ellipse cx="${cx + s * ex}" cy="${ey}" rx="${big ? 8 : 7}" ry="${big ? 10 : 9}" fill="${O}"/><circle cx="${cx + s * ex + 2.5}" cy="${ey - 3.5}" r="2.6" fill="#fff"/></g>`).join('');
+    eyes = [-1, 1].map((s) => `<g class="eye"><ellipse cx="${cx + s * ex}" cy="${ey}" rx="${big ? 8 : 7}" ry="${big ? 10 : 9}" fill="${O}"/><circle cx="${cx + s * ex + 2.5}" cy="${ey - 3.5}" r="2.8" fill="#fff"/><circle cx="${cx + s * ex - 2.2}" cy="${ey + 3.2}" r="1.3" fill="#fff" opacity=".85"/></g>`).join('');
     mouth = big
       ? `<path d="M${cx - 12} ${cy + r * 0.27} q12 14 24 0" fill="none" stroke="${O}" stroke-width="4" stroke-linecap="round"/>`
       : `<path d="M${cx - 8} ${cy + r * 0.3} q8 7 16 0" fill="none" stroke="${O}" stroke-width="3.5" stroke-linecap="round"/>`;
@@ -86,14 +86,18 @@ export function petSvg(kind, mood = 'calm', stage = 2, wearing = {}) {
   const headY = bodyY - bodyRy - headR * 0.55;
   const headTop = headY - headR;
   const st = `stroke="${O}" stroke-width="3.5" stroke-linejoin="round"`;
+  // growth you can see (owner 2026-10-12): wings, tail, spikes and tufts grow with the stage
+  const grow = { 1: 0.55, 2: 1, 3: 1.35 }[stage];
+  const fill = `url(#pg-${kind})`;
   let back = '', ears = '', headExtra = '', bodyExtra = '';
 
   if (kind === 'siil') {
-    const n = 9;
+    const n = { 1: 7, 2: 9, 3: 12 }[stage];
+    const len = { 1: 1.22, 2: 1.38, 3: 1.5 }[stage];
     back = Array.from({ length: n }, (_, i) => {
       const a = Math.PI * (0.95 + (i / (n - 1)) * 1.1);
       const x1 = cx + Math.cos(a - 0.12) * headR * 0.95, y1 = headY + Math.sin(a - 0.12) * headR * 0.95;
-      const x2 = cx + Math.cos(a) * headR * 1.38, y2 = headY + Math.sin(a) * headR * 1.38;
+      const x2 = cx + Math.cos(a) * headR * len, y2 = headY + Math.sin(a) * headR * len;
       const x3 = cx + Math.cos(a + 0.12) * headR * 0.95, y3 = headY + Math.sin(a + 0.12) * headR * 0.95;
       return `M${x1} ${y1} L${x2} ${y2} L${x3} ${y3}`;
     }).join(' ');
@@ -102,19 +106,23 @@ export function petSvg(kind, mood = 'calm', stage = 2, wearing = {}) {
   }
   if (kind === 'rebane') {
     ears = [-1, 1].map((d) => `<path d="M${cx + d * headR * 0.35} ${headTop + 10} L${cx + d * headR * 0.85} ${headTop - 26} L${cx + d * headR * 0.95} ${headTop + 22} Z" fill="${s.body}" ${st}/><path d="M${cx + d * headR * 0.52} ${headTop + 8} L${cx + d * headR * 0.8} ${headTop - 12} L${cx + d * headR * 0.84} ${headTop + 16} Z" fill="${s.belly}"/>`).join('');
-    back = `<path class="tail" d="M${cx + bodyRx * 0.7} ${bodyY + 8} q${bodyRx * 1.2} -10 ${bodyRx * 0.9} -${bodyRy * 1.3} q-8 22 -${bodyRx * 0.55} ${bodyRy * 0.95} z" fill="${s.body}" ${st}/><path d="M${cx + bodyRx * 1.42} ${bodyY - bodyRy * 1.05} q-8 12 -16 10 q10 -2 16 -10z" fill="#fff"/>`;
+    const t = grow;
+    back = `<path class="tail" d="M${cx + bodyRx * 0.7} ${bodyY + 8} q${bodyRx * 1.2 * t} -10 ${bodyRx * 0.9 * t} -${bodyRy * 1.3 * t} q-8 22 -${bodyRx * 0.55 * t} ${bodyRy * 0.95 * t} z" fill="${fill}" ${st}/><path d="M${cx + bodyRx * (0.7 + 0.72 * t)} ${bodyY + 8 - bodyRy * 1.3 * t + bodyRy * 0.25} q-8 12 -16 10 q10 -2 16 -10z" fill="#fff"/>`;
+    if (stage >= 3) bodyExtra = `<path d="M${cx - bodyRx * 0.4} ${bodyY - bodyRy * 0.75} q${bodyRx * 0.2} ${bodyRy * 0.5} ${bodyRx * 0.4} ${bodyRy * 0.15} q${bodyRx * 0.2} ${bodyRy * 0.35} ${bodyRx * 0.4} -${bodyRy * 0.15}" fill="#fff" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/>`;
     headExtra = `<path d="M${cx - headR * 0.95} ${headY + headR * 0.1} q${headR * 0.55} ${headR * 0.75} ${headR * 0.95} ${headR * 0.8} q${headR * 0.4} -${headR * 0.05} ${headR * 0.95} -${headR * 0.8} q-${headR * 0.3} ${headR * 0.25} -${headR * 0.95} ${headR * 0.25} q-${headR * 0.65} 0 -${headR * 0.95} -${headR * 0.25}z" fill="${s.belly}"/><ellipse cx="${cx}" cy="${headY + headR * 0.14}" rx="5.5" ry="4" fill="${O}"/>`;
   }
   if (kind === 'kakk') {
-    ears = [-1, 1].map((d) => `<path d="M${cx + d * headR * 0.45} ${headTop + 12} L${cx + d * headR * 0.9} ${headTop - 14} L${cx + d * headR * 0.95} ${headTop + 26} Z" fill="${s.accent}" ${st}/>`).join('');
+    ears = [-1, 1].map((d) => `<path d="M${cx + d * headR * 0.45} ${headTop + 12} L${cx + d * headR * 0.9} ${headTop - 14 * grow} L${cx + d * headR * 0.95} ${headTop + 26} Z" fill="${s.accent}" ${st}/>`).join('')
+      + (stage === 1 ? `<path d="M${cx - 6} ${headTop + 4} q6 -14 4 -2 q4 -12 6 0" fill="none" stroke="${O}" stroke-width="3" stroke-linecap="round"/>` : '');
     headExtra = [-1, 1].map((d) => `<circle cx="${cx + d * headR * 0.38}" cy="${headY - headR * 0.05}" r="${headR * 0.33}" fill="${s.belly}" stroke="${s.accent}" stroke-width="3"/>`).join('') +
       `<path d="M${cx - 5} ${headY + headR * 0.14} L${cx + 5} ${headY + headR * 0.14} L${cx} ${headY + headR * 0.3} Z" fill="#f5b301" stroke="${O}" stroke-width="2.5" stroke-linejoin="round"/>`;
     bodyExtra = [-1, 1].map((d) => `<path d="M${cx + d * bodyRx * 0.7} ${bodyY - bodyRy * 0.5} q${d * bodyRx * 0.55} ${bodyRy * 0.4} ${d * bodyRx * 0.15} ${bodyRy * 1.05} q${-d * bodyRx * 0.3} -${bodyRy * 0.4} ${-d * bodyRx * 0.15} -${bodyRy * 1.05}z" fill="${s.accent}" ${st}/>`).join('') +
       [0, 1, 2].map((i) => `<path d="M${cx - 12 + i * 12} ${bodyY + 2 + (i % 2) * 8} q6 5 12 0" fill="none" stroke="${s.accent}" stroke-width="2.5" stroke-linecap="round"/>`).join('');
   }
   if (kind === 'draakon') {
-    ears = [-1, 1].map((d) => `<path d="M${cx + d * headR * 0.4} ${headTop + 8} q${d * 6} -22 ${d * 20} -26 q${-d * 4} 16 ${d * 2} 30z" fill="#f5b301" ${st}/>`).join('');
-    back = [-1, 1].map((d) => `<path d="M${cx + d * bodyRx * 0.55} ${bodyY - bodyRy * 0.55} q${d * bodyRx * 1.1} -${bodyRy * 1.1} ${d * bodyRx * 1.2} -${bodyRy * 0.1} q${-d * bodyRx * 0.4} -${bodyRy * 0.05} ${-d * bodyRx * 0.5} ${bodyRy * 0.35} q${-d * bodyRx * 0.2} -${bodyRy * 0.25} ${-d * bodyRx * 0.7} -${bodyRy * 0.25}z" fill="${s.accent}" ${st}/>`).join('') +
+    ears = [-1, 1].map((d) => `<path d="M${cx + d * headR * 0.4} ${headTop + 8} q${d * 6} -${22 * Math.min(1.2, grow + 0.2)} ${d * 20} -${26 * Math.min(1.2, grow + 0.2)} q${-d * 4} 16 ${d * 2} 30z" fill="#f5b301" ${st}/>`).join('');
+    const w = Math.min(grow, 1.2);
+    back = [-1, 1].map((d) => `<path class="wing" d="M${cx + d * bodyRx * 0.55} ${bodyY - bodyRy * 0.55} q${d * bodyRx * 1.1 * w} -${bodyRy * 1.1 * w} ${d * bodyRx * 1.2 * w} -${bodyRy * 0.1 * w} q${-d * bodyRx * 0.4 * w} -${bodyRy * 0.05} ${-d * bodyRx * 0.5 * w} ${bodyRy * 0.35} q${-d * bodyRx * 0.2} -${bodyRy * 0.25} ${-d * bodyRx * 0.7 * w + d * bodyRx * 0.1} -${bodyRy * 0.25}z" fill="${s.accent}" ${st}/>`).join('') +
       `<path class="tail" d="M${cx + bodyRx * 0.8} ${bodyY + bodyRy * 0.5} q${bodyRx * 0.9} 6 ${bodyRx * 1.05} -${bodyRy * 0.45} l6 -2 l-4 8 q-${bodyRx * 0.4} ${bodyRy * 0.55} -${bodyRx * 1.1} ${bodyRy * 0.3}z" fill="${s.body}" ${st}/>`;
     headExtra = `<ellipse cx="${cx}" cy="${headY + headR * 0.28}" rx="${headR * 0.5}" ry="${headR * 0.34}" fill="${s.belly}"/><circle cx="${cx - 7}" cy="${headY + headR * 0.24}" r="2.4" fill="${O}"/><circle cx="${cx + 7}" cy="${headY + headR * 0.24}" r="2.4" fill="${O}"/>`;
   }
@@ -124,16 +132,18 @@ export function petSvg(kind, mood = 'calm', stage = 2, wearing = {}) {
   const faceSvg = kind === 'kakk' ? face(mood, cx, faceY, headR * 0.98).replace(/fill="#f28b82"/g, 'fill="#f28b82" opacity=".35"') : face(mood, cx, faceY, headR);
 
   return `<svg class="pet m-${mood}" viewBox="0 0 200 200" role="img" aria-label="${s.name}: ${MOODS[mood].label.toLowerCase()}, ${STAGES[stage].toLowerCase()}" xmlns="http://www.w3.org/2000/svg">
+    <defs><radialGradient id="pg-${kind}" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="${s.light}"/><stop offset=".65" stop-color="${s.body}"/><stop offset="1" stop-color="${s.accent}"/></radialGradient></defs>
     ${BACKGROUNDS[wearing.bg] || ''}
     <ellipse cx="${cx}" cy="194" rx="${bodyRx + 14}" ry="5" fill="${O}" opacity=".12"/>
     <g class="jump"><g class="breathe">
       ${back}
-      <ellipse cx="${cx}" cy="${bodyY}" rx="${bodyRx}" ry="${bodyRy}" fill="${s.body}" ${st}/>
+      <ellipse cx="${cx}" cy="${bodyY}" rx="${bodyRx}" ry="${bodyRy}" fill="${fill}" ${st}/>
       <ellipse cx="${cx}" cy="${bodyY + bodyRy * 0.12}" rx="${bodyRx * 0.62}" ry="${bodyRy * 0.7}" fill="${s.belly}"/>
       ${bodyExtra}
       ${feet}
       ${ears}
-      <circle cx="${cx}" cy="${headY}" r="${headR}" fill="${s.body}" ${st}/>
+      <circle cx="${cx}" cy="${headY}" r="${headR}" fill="${fill}" ${st}/>
+      <ellipse cx="${cx - headR * 0.38}" cy="${headY - headR * 0.5}" rx="${headR * 0.3}" ry="${headR * 0.14}" fill="#fff" opacity=".35" transform="rotate(-28 ${cx - headR * 0.38} ${headY - headR * 0.5})"/>
       ${headExtra}
       ${faceSvg}
       ${item(stage, mood, cx, headTop, bodyY, wearing)}
