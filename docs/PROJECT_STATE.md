@@ -1,3 +1,10 @@
+## 2026-10-12 · agent/b1-goal-tags — B1 sub-goals trained by real tasks
+
+- Why (contract A3): after the goal fix 75 B1 lessons still had a sub-goal trained by < 2 tasks — the course builders tagged every form task (gaps, word forms, error fix, transformation, word order) and word task (categorize, manymatch, translation, clock) as `g_use`.
+- `admin/course/blocks.js`: defaults are now form → `g_notice`, words → `g_vocab`, speaking/writing → `g_use`. Published B1: 211 sheets retagged the same way (only `g_use`/empty tags of those types change). `b1/lessonGoals.js`: module 1 and the vague assessment sub-goals rewritten; lessons 6–15 — the teacher-made specific goals take the four core places (the extra unused ids removed). Audit and test catch the vague wording too.
+- Result: 3 B1 sub-goals still have < 2 tasks (a2b1-003 g_read, a2b1-004 g_vocab, a2b1-005 g_vocab) — they need an added task (next step: small tasks).
+- Checks: worksheet-generator course 86/86 (+ full 535 earlier).
+
 ## 2026-10-12 · agent/b1-lesson-goals — B1: one specific goal set per lesson on all three sheets
 
 - Why: lesson quality contract A1–A3; the audit found the generic `GOALS` of `admin/course/registry.js` on 70 B1 Harjuta/Kasuta (and Avasta 51–75) and different learner goals on the three sheets of 15 lessons.
