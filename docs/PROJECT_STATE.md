@@ -1,3 +1,12 @@
+## 2026-10-12 · agent/self-study — „Õpi ise”: the course on one's own
+
+- Base: `main` 4d9a50d. Why (owner): the student studies by himself between lessons.
+- Page `/student/kursus` (`features/self-study/SelfStudyPage.jsx`, nav „Õpi ise”): the course lessons of his level by module, progress dots (Avasta · Harjuta · Kasuta) from his worksheet assignments, a „Jätka siit” hero (started lesson, else the first untouched), a lesson page with the three steps; a sheet opens in the normal worksheet player (autocheck, saving, submit).
+- Data: `homeworkService.createSelfStudy` writes a `worksheetAssignments` doc with `source: 'self_study'` and `phase`. Rule `selfStudySheet` (firestore.rules): only for his own card, status new, no score/answers, `assignedBy == uid`, and `worksheetDoc` exactly equal to the published course sheet (`curriculumLessons/{lessonId}/worksheets/{phase}.publishedWorksheetDoc`). Emulator test `functions/self-study-emulator.integration.js` (in `test:emulator`): allowed + 4 refusals (own content, ready score, someone else's card, other source).
+- „Tänane tee”: with no open homework the 2nd step is „Õpi ise”.
+- Checks: self-study model + page tests, students/app suites 89/89, emulator 5/5 (with security-access).
+- Manual gate: **deploy firestore rules** (not done) — without it the student's „Alusta” is refused in production.
+
 ## 2026-10-12 · agent/learning-loop — Tänane tee, tunni kaardipakid, „Pärast tundi”
 
 - Base: `main` 759a054. Why (owner): connect lesson → words and errors → homework and practice → progress.
