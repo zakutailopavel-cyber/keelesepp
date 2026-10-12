@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -31,7 +31,12 @@ describe('StudentDashboardPage', () => {
     renderPage(data);
 
     expect(await screen.findByRole('heading', { name: 'Tere, Mari Õpilane!' })).toBeInTheDocument();
-    expect(screen.getByText('Õpi sõnad')).toBeInTheDocument();
+    // study comes first: the „Täna” strip shows the next lesson, open homework and word cards (owner 2026-10-12)
+    const today = screen.getByRole('region', { name: 'Täna' });
+    expect(within(today).getByText('1 ootab tegemist')).toBeInTheDocument();
+    expect(within(today).getByText('Õpi sõnad')).toBeInTheDocument();
+    expect(within(today).getByText('Sõnakaardid')).toBeInTheDocument();
+    expect(screen.getAllByText('Õpi sõnad').length).toBe(2);
     expect(screen.getByText('Väga tubli!')).toBeInTheDocument();
     expect(screen.getByText('Hinne 5')).toBeInTheDocument();
     expect(screen.getByText('Rääkimine')).toBeInTheDocument();

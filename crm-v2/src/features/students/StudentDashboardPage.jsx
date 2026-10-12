@@ -1,4 +1,4 @@
-import { BookOpen, CalendarDays, ChevronRight, GraduationCap, MessageSquareText, Star, WalletCards } from 'lucide-react';
+import { BookOpen, CalendarDays, ChevronRight, GraduationCap, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -14,6 +14,7 @@ import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.j
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
+import { isDue } from '../vocabulary/wordsModel.js';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 function unique(items) {
@@ -82,24 +83,29 @@ export default function StudentDashboardPage({
   const completedLessons = lessons.filter((lesson) => lesson.status !== 'Tühistatud');
   const attendedLessons = lessons.filter(isAttended);
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
+  const nextLesson = upcoming[0] || null;
+  const dueWords = words.filter((word) => isDue(word)).length;
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
-    {students.length ? <PetCard user={user} studentId={students[0]?.id || ''} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} words={words} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(wordsService ? { wordsService } : {})} {...(petRepository ? { repository: petRepository } : {})} /> : null}
-    <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
-      { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },
-      { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },
-      { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
-      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
-    ]} />
 
+    {students.length ? <section className="student-today" aria-label="Täna">
+      <Link className="student-today__card is-lesson" to={nextLesson?.occurrenceDate === today ? '/live-classroom' : '/homework'}>
+        <i>{nextLesson?.occurrenceDate === today ? <Video size={22} /> : <CalendarDays size={22} />}</i>
+        <span><small>Järgmine tund</small><strong>{nextLesson ? `${nextLesson.occurrenceDate === today ? 'Täna' : dateLabel(nextLesson.occurrenceDate)} · ${nextLesson.time}` : 'Tunde ei ole plaanis'}</strong><em>{nextLesson ? (nextLesson.occurrenceDate === today ? 'Ava Live Classroom' : `${nextLesson.teacher || 'Õpetaja'} · ${nextLesson.duration || 60} min`) : 'Õpetaja lisab tunni kalendrisse'}</em></span>
+      </Link>
+      <Link className={`student-today__card ${pendingHomework.length ? 'is-todo' : ''}`} to="/homework">
+        <i><BookOpen size={22} /></i>
+        <span><small>Kodutööd</small><strong>{pendingHomework.length ? `${pendingHomework.length} ootab tegemist` : 'Kõik tehtud'}</strong><em>{pendingHomework[0]?.task || 'Uued ülesanded tulevad pärast tundi'}</em></span>
+      </Link>
+      <Link className={`student-today__card ${dueWords ? 'is-todo' : ''}`} to="/student/sonavara">
+        <i><Languages size={22} /></i>
+        <span><small>Sõnakaardid</small><strong>{dueWords ? `${dueWords} sõna kordamiseks` : `${words.length} sõna`}</strong><em>{dueWords ? 'Korda ja toida oma lemmikut' : 'Õpi kursuse tundide sõnu'}</em></span>
+      </Link>
+    </section> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
-      <Card><div className="section-heading"><div><span className="eyebrow">Profiil</span><h2>Minu õppeprofiil</h2></div></div><div className="student-home-profiles">{students.map((student) => {
-        const progress = Object.entries(student.skillMap || {}).sort((left, right) => Number(right[1]) - Number(left[1])).slice(0, 5);
-        return <article key={student.id}><div className="student-home-profile-head"><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.level || 'tase puudub'} → {student.targetLevel || '—'}</small><small>Õpetaja: {student.teacher || 'määramata'}</small></span></div>{progress.length ? <div className="student-home-skills">{progress.map(([skill, score]) => <div key={skill}><span>{skillLabel(skill)}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <p className="form-hint">Oskuste tulemusi ei ole veel salvestatud.</p>}</article>;
-      })}</div></Card>
 
       <Card><div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div></div>{upcoming.length ? <div className="simple-list student-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{dateLabel(lesson.occurrenceDate)} · {lesson.time}</strong><span>{studentMap.get(lesson.studentId)?.name || lesson.studentName || 'Õpilane'} · {lesson.teacher || 'Õpetaja'}</span></div><Badge tone="info">{lesson.duration || 60} min</Badge></div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" />}</Card>
 
@@ -114,6 +120,20 @@ export default function StudentDashboardPage({
       <Card><div className="section-heading"><div><span className="eyebrow">Ajalugu</span><h2>Viimased tunnid</h2></div></div>{completedLessons.length ? <div className="simple-list">{completedLessons.slice(0, 6).map((lesson) => <div key={lesson.id}><div><strong>{dateLabel(lesson.date)} · {lesson.time || ''}</strong><span>{lesson.topic || lesson.subject || studentMap.get(lesson.studentId)?.subject || 'Õppetund'}</span></div><Badge tone="success">{lesson.status || 'Toimunud'}</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
 
       <Card><div className="section-heading"><div><span className="eyebrow">Kontakt</span><h2>Kiirviited</h2></div></div><div className="parent-quick-links"><Link to="/messages"><MessageSquareText size={21} /><span><strong>Sõnumid</strong><small>Kirjuta õpetajale</small></span><ChevronRight size={18} /></Link><Link to="/homework"><BookOpen size={21} /><span><strong>Kodutööd</strong><small>Tee ülesandeid ja vaata tagasisidet</small></span><ChevronRight size={18} /></Link></div></Card>
+      <Card><div className="section-heading"><div><span className="eyebrow">Profiil</span><h2>Minu õppeprofiil</h2></div></div><div className="student-home-profiles">{students.map((student) => {
+        const progress = Object.entries(student.skillMap || {}).sort((left, right) => Number(right[1]) - Number(left[1])).slice(0, 5);
+        return <article key={student.id}><div className="student-home-profile-head"><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><span><strong>{student.name}</strong><small>{student.subject || 'Õppeaine puudub'} · {student.level || 'tase puudub'} → {student.targetLevel || '—'}</small><small>Õpetaja: {student.teacher || 'määramata'}</small></span></div>{progress.length ? <div className="student-home-skills">{progress.map(([skill, score]) => <div key={skill}><span>{skillLabel(skill)}</span><div><i style={{ width: `${Math.max(0, Math.min(100, Number(score) || 0))}%` }} /></div><strong>{score}%</strong></div>)}</div> : <p className="form-hint">Oskuste tulemusi ei ole veel salvestatud.</p>}</article>;
+      })}</div></Card>
     </div>}
+    {students.length ? <section className="student-play" aria-label="Minu lemmik">
+      <div className="section-heading"><div><span className="eyebrow">Õpi ja mängi</span><h2>Minu lemmik</h2><p className="form-hint">Iga tund, kodutöö ja sõnakordus toidab sinu lemmikut. Teemamängudes kordad tunni sõnu.</p></div></div>
+      {students.length ? <PetCard user={user} studentId={students[0]?.id || ''} readOnly={Boolean(preview)} lessons={lessons} submissions={submissions} homework={homework} words={words} pendingHomework={pendingHomework.length} lessonToday={upcoming.find((lesson) => lesson.occurrenceDate === today)?.time || ''} subject={students[0]?.subject || ''} {...(wordsService ? { wordsService } : {})} {...(petRepository ? { repository: petRepository } : {})} /> : null}
+      <PeopleOverview label="Õpingute kokkuvõte" eyebrow="Minu töölaud" title="Õppimise hetkeseis" description="Tunnid, ülesanded, tulemused ja arved ühes rahulikus vaates." metrics={[
+      { icon: GraduationCap, label: 'Läbitud tunnid', value: attendedLessons.length, hint: 'õppeajaloos' },
+      { icon: CalendarDays, label: 'Lähimad tunnid', value: upcoming.length, hint: '28 päeva jooksul' },
+      { icon: BookOpen, label: 'Pooleli ülesanded', value: pendingHomework.length, hint: 'ootab tegemist' },
+      { icon: WalletCards, label: 'Tasumata jääk', value: money(balance), hint: `${invoices.length} arvet` },
+    ]} />
+    </section> : null}
   </div>;
 }
