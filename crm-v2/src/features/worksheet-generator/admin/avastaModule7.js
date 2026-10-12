@@ -1,3 +1,4 @@
+import { openerBlocks } from './avastaOpeners.js';
 const MODULE = 'Tervis ja enesetunne';
 
 const block = (id, type, tone, goal, data, width = 'half') => ({
@@ -405,7 +406,7 @@ export function createAvastaModule7Document(lessonId) {
   const spec = SPECS[lessonId];
   if (!spec) throw new Error(`Tund ${lessonId} ei kuulu moodulisse 7.`);
   const blocks = [
-    spec.seed.intro, spec.additions.vocab, spec.seed.reading, spec.additions.general,
+    ...(openerBlocks(lessonId) || [spec.seed.intro]), spec.additions.vocab, spec.seed.reading, spec.additions.general,
     spec.additions.notice, spec.additions.controlled, spec.seed.productive,
     ...(spec.seed.writing ? [spec.seed.writing] : []), spec.seed.selfcheck,
   ];
