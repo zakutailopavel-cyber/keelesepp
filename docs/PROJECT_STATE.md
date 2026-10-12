@@ -6,6 +6,23 @@
 - Limit: the first layout of a whole level (200+ sheets) still takes ~40 s (every sheet measures itself once); choosing one module is fast.
 - Checks: worksheet-studio 183/183; lint 0 errors. Production: none.
 
+## 2026-10-13 · agent/vocab-topics — „Sõnavara → Teemad”: all course words by topic, unlocked topic by topic
+
+- Why (owner): „в словарный запас у ученика сразу добавить все слова по темам … открывались когда ученик пройдет цикл повторений и подтвердит знания заданиями”.
+- Files: `crm-v2/src/features/vocabulary/topicModel.js` (+ test), `TopicsSection.jsx` (+ test), `lessonWords.js` (trimmed loader, + test), `lessonWords/*.json` + `lessonWords.data.test.js` (data from PR #519), `VocabularyPage.jsx` (section under „Täna”), `StudySession.jsx` (`onLearnDone`), `vocabulary.css` (`.vt-*`), `services/firebase/studentWords.js` (`addLessonWords`, batched create, + test); `docs/VOCABULARY_TOPICS.md`.
+- How: topics = modules of the student's level (switchable); open topic → „Kordamine” (Õpi, 10 words at a time until every word is learned once, kept in localStorage) → „Kinnita teadmisi” (14 words: match, choice, write; ≥ 80 %) → the topic words are created in `studentWords` (box 0, ids `lw_<student>_<lesson>_<n>`), the next topic opens. Locked topics show title, count and a greyed preview.
+- Data: student-created `studentWords` docs only; `firestore.rules` unchanged (create with box 0 and the allowed keys).
+- Checks: `npx vitest run src/features/vocabulary src/features/students src/services` 50 files / 266 tests passed; `npx eslint src` 0 errors (10 old warnings); `npm run build` ok (word files are separate chunks).
+- Limits: the word lists (PR #519) are not checked by a teacher; the unlock is enforced in the app only; cycle progress lives on the device; the staff profile does not show topic progress yet (skipped, see the doc); PR #519 itself stays open and conflicts with main.
+- Next: owner/teacher tries „Teemad” on a test student and a teacher reviews the A2 word lists.
+## 2026-10-13 · agent/blocks-e2e — every answerable worksheet block checked end to end (student → score → teacher → print)
+
+- Checked from `main` 489754e. New test `crm-v2/src/features/worksheet-studio/engine/blocksRoundtrip.test.jsx`: for all 28 block types with `score` / `answerKeys` (+ every scheme kind; an explicit list fails when a new block appears without a case) the student answers through the sheet (typing, clicking options / Õ-V / bank words / groups, selects), every field writes exactly one key (no collisions), scoreDocument gives 100 % for right answers and < 100 % with a ✗ for a wrong one, review shows the answers with ✓ / ✗, print stays blank; the second part of a task split over pages (all `SPLITTABLE` types) writes its own items' keys; the homework review dialog (`DocWorksheetSubmissionPreview`) shows every block with the answers.
+- Bugs fixed: `cloze` — in review (teacher, homework, live) the gaps showed „(1) ________” instead of the chosen word: now the chosen option with its mark; `crossword` — clearing a cell shifted the later letters one cell left (the letter is kept as a space); `choice` — several right options sorted as text (10 before 2); live lesson „Näita vastuseid” and the teacher's error list had no right answer for truefalse, choice, cloze, match, clock, picmatch, scenelabel, profiles, dialogue, reading, listening, table, categorize, wordorder, dictation — each now has `answers(data, block)` (errorText passes the block, picmatch needs its id).
+- `Sheet.jsx` exports `SheetCard` (the Card, for the split-part test). No data, production or CSS changes.
+- Checks: worksheet-studio + homework 278/278; with live-classroom the 9 known failures only; eslint 0 errors; build ok.
+- Not automatic: drag-and-drop on the real page split (jsdom cannot measure), voice recording (`speaking`), how marks look.
+- Next: review and merge the PR.
 ## 2026-10-13 · agent/art-b1-b2-import — 68 textbook pictures (B1, B2) and pictures on course sheets
 
 - Imported Codex batch 2 (`~/KeeleSeppArt/import_art.py`, from a copy of the inbox so the running batch is not disturbed): 48 B1 + 20 B2 pictures → `crm-v2/public/textbook-art/{b1,b2}/…webp`, briefs `art/visuals/{b1,b2}-module-NN.js` (registered in `textbookArt.js`). 3 briefs without a png were skipped (a2-064, a2b1-009, b1b2-015).

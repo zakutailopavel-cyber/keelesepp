@@ -130,7 +130,7 @@ function Feedback({ result, answer, card, onNext, onOverride }) {
   );
 }
 
-function LearnMode({ deck, direction, onResult, onClose, onAddMissed }) {
+function LearnMode({ deck, direction, onResult, onClose, onAddMissed, onLearnDone }) {
   const [state, setState] = useState(() => startLearn(deck));
   const [answer, setAnswer] = useState(null);
   const [chosen, setChosen] = useState('');
@@ -139,6 +139,9 @@ function LearnMode({ deck, direction, onResult, onClose, onAddMissed }) {
   const cardId = state.queue[0];
   const card = byId.get(cardId);
   const options = useMemo(() => (card && state.level[card.id] === 0 && deck.length >= 4 ? choices(card, deck, direction) : null), [card, deck, direction, state.level]);
+  // every card learned once (learnedCount === deck.length): the „Teemad” repetition cycle counts it
+  const finished = learnedCount(state) === deck.length;
+  useEffect(() => { if (finished) onLearnDone?.(deck); }, [finished]); // eslint-disable-line react-hooks/exhaustive-deps
   if (!card) return <Done title={`Kõik ${deck.length} sõna õpitud!`} missed={missed} onAddMissed={onAddMissed} onClose={onClose} onAgain={() => { setState(startLearn(deck)); setMissed([]); }}><p>Vigu kokku: {state.mistakes}</p></Done>;
   const side = prompt(card, direction);
   const answerWith = (correct, option = '') => {
@@ -289,7 +292,7 @@ function TestMode({ deck, direction, onResult, onClose, onAddMissed }) {
 const MODES = { cards: CardsMode, learn: LearnMode, write: WriteMode, match: MatchMode, test: TestMode };
 
 /** One deck: the modes as tabs on top (it opens in „Õpi”), the direction and the mode itself. */
-export default function StudySession({ deck, title, onResult, onAddMissed, onBack, initialMode = '', formsService = languageToolsService }) {
+export default function StudySession({ deck, title, onResult, onAddMissed, onBack, onLearnDone, initialMode = '', formsService = languageToolsService }) {
   const [mode, setMode] = useState(initialMode || (deck.length >= 4 ? 'learn' : 'cards'));
   const [direction, setDirection] = useState('back');
   const Mode = MODES[mode];
@@ -316,7 +319,7 @@ export default function StudySession({ deck, title, onResult, onAddMissed, onBac
         })}
       </nav>
       <div className="vs-stage">
-        {Mode ? <Mode key={`${mode}-${direction}`} deck={deck} direction={direction} onResult={onResult} onAddMissed={onAddMissed} onClose={() => setMode(mode === 'learn' ? 'cards' : 'learn')} /> : null}
+        {Mode ? <Mode key={`${mode}-${direction}`} deck={deck} direction={direction} onResult={onResult} onAddMissed={onAddMissed} onLearnDone={onLearnDone} onClose={() => setMode(mode === 'learn' ? 'cards' : 'learn')} /> : null}
       </div>
     </section>
     </FormsContext.Provider>

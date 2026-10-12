@@ -109,11 +109,14 @@ export const choice = {
       })}
     </ol>
   ),
+  // the right answers as words (live lesson „Näita vastuseid”, the teacher's error list); several right ones joined by +
+  answers: (data) => (data.questions || []).map((q, qi) => ({ key: `${qi}`, accept: [opts(q.options).filter((x) => x.correct).map((x) => x.text).join(' + ')] })).filter((a) => a.accept[0]),
   score: (data, get) => (data.questions || []).map((q, qi) => {
     const o = opts(q.options);
     const correct = o.map((x, i) => (x.correct ? i : -1)).filter((i) => i >= 0);
     const v = get(`${qi}`);
-    const given = Array.isArray(v) ? [...v].sort() : v === undefined || v === '' ? [] : [v];
+    // numeric sort: option 10 must not come before option 2
+    const given = Array.isArray(v) ? [...v].sort((a, b) => a - b) : v === undefined || v === '' ? [] : [v];
     return { key: `${qi}`, ok: given.length === correct.length && given.every((g, i) => g === correct[i]) };
   }),
   example: (data) => {
@@ -148,6 +151,7 @@ export const truefalse = {
       ))}
     </div>
   ),
+  answers: (data) => (data.statements || []).map((s, i) => ({ key: `${i}`, accept: [s.answer === 'true' ? 'Õige' : 'Vale'] })),
   score: (data, get) => (data.statements || []).map((s, i) => ({ key: `${i}`, ok: get(`${i}`) === s.answer })),
   example: (data) => (data.statements?.[0] ? { 0: data.statements[0].answer } : {}),
   Editor: ({ data, set }) => (
@@ -184,6 +188,11 @@ export const match = {
         <ul>{right.map((r, k) => <li key={k}><b>{letter(k)}.</b> <Md text={r.text} /></li>)}</ul>
       </div>
     );
+  },
+  answers: (data) => {
+    const pairs = data.pairs || [];
+    const right = rotate(pairs.map((p, i) => ({ i })));
+    return pairs.map((p, i) => ({ key: `${i}`, accept: [`${String.fromCharCode(65 + right.findIndex((r) => r.i === i))} (${p.right})`] }));
   },
   score: (data, get) => {
     const pairs = data.pairs || [];
@@ -300,6 +309,7 @@ export const clock = {
       ))}
     </div>
   ),
+  answers: (data) => (data.items || []).map((it, i) => ({ key: `${i}`, accept: [`Kell on ${clockAccept(it.time)[0]}`] })),
   score: (data, get) => (data.items || []).map((it, i) => {
     const acc = clockAccept(it.time, it.extra).map(norm);
     const v = norm(get(`${i}`));

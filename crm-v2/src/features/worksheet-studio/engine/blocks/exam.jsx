@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- block definitions are plain objects that carry View/Editor components */
 import { Fragment } from 'react';
 import { Md } from '../ui.jsx';
 import { Area, Text } from '../../editor/fields.jsx';
@@ -20,6 +21,10 @@ function parts(passage) {
   let n = -1;
   return paragraphs(passage).map((p) => p.split(/(\{[^}]*\})/g).map((piece) => (piece.startsWith('{') ? { gap: (n += 1) } : { text: piece })));
 }
+
+// review: the option the learner chose (its index may be 0), with its mark; print: an empty line
+const chosenOption = (options, value) => (value === undefined || value === null || value === '' ? null : options.find((o) => o.oi === Number(value)) || null);
+const ClozeGap = ({ n, chosen, state }) => <span className={`ws-cloze-gap ${chosen && state ? 'is-' + state : ''}`}>({n}) {chosen ? <b>{chosen.text}</b> : '________'}</span>;
 
 export const cloze = {
   type: 'cloze', label: 'Valiklünktekst (eksam)', group: 'Grammatika ja sõnavara', icon: 'TextSelect', task: true, width: 'full', tone: 'cream',
@@ -45,7 +50,7 @@ export const cloze = {
                   <option value="">({gi + 1})</option>
                   {shown[gi].map((o) => <option key={o.oi} value={o.oi}>{o.text}</option>)}
                 </select>
-              ) : <span key={k} className="ws-cloze-gap">({gi + 1}) ________</span>;
+              ) : <ClozeGap key={k} n={gi + 1} chosen={chosenOption(gaps[gi], ctx.get(key))} state={state} />;
             })}</p>
           ))}
         </div>
@@ -57,6 +62,7 @@ export const cloze = {
       </div>
     );
   },
+  answers: (data) => clozeGaps(data.passage).map((opts, gi) => ({ key: `${gi}`, accept: opts.filter((o) => o.correct).map((o) => o.text) })),
   score: (data, get) => clozeGaps(data.passage).map((opts, gi) => ({ key: `${gi}`, ok: get(`${gi}`) !== undefined && get(`${gi}`) !== '' && opts.find((o) => o.oi === Number(get(`${gi}`)))?.correct === true })),
   Editor: ({ data, set }) => (
     <>
