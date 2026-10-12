@@ -4,7 +4,7 @@
 // speaking amounts, scaffolding (word bank, solved example), recognition vs production, instruction length.
 // Returns { level, label, checks[], score, issues[] } — issues never block publishing (warning / tip only).
 import { BLOCKS } from '../engine/registry.js';
-import { LEVELS, PHASE_TASKS, levelKey } from './levels.js';
+import { HARNO, LEVELS, PHASE_TASKS, levelKey } from './levels.js';
 import { VOCABULARY_FOR, wordLevel } from './levelVocabulary.js';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
@@ -13,6 +13,90 @@ const solved = (text) => String(text || '').replace(/\[([^\]|]*)(\|[^\]]*)?\]/g,
 const wordsIn = (text) => String(text || '').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 const sentencesIn = (text) => String(text || '').split(/(?<=[.!?…])\s+|\n+/).map((s) => s.trim()).filter((s) => wordsIn(s) >= 2);
 const INFERENCE = /\b(miks|kuidas|mida (sa )?arvad|mis sa arvad|põhjenda|selgita|mida tähendab|mis on (teksti|loo) (mõte|peamõte)|kas oled nõus)\b/i;
+
+// Can the task be solved without knowing Estonian, or not solved at all? (owner's audit 2026-10-12, docs/DIDACTIC_ENGINE.md
+// „Lahendatavus”). These are the faults the level audit found across all courses; each is a warning from A2+ on.
+const EASY_LEVELS = new Set(['A1', 'A2']);
+const listOf = (value) => String(value || '').split(/[,\n;]/).map((x) => x.trim()).filter(Boolean);
+const normText = (value) => String(value || '').toLocaleLowerCase('et').replace(/[.,!?;:„“”"«»()…–—-]/g, ' ').replace(/\s+/g, ' ').trim();
+const CYRILLIC = /[А-Яа-яЁё]/;
+// a false statement that is false because of „always / only / never” is guessed without the text
+const ABSOLUTE = /\b(alati|ainult|üksnes|mitte kunagi|mitte keegi|iial|kõik|kogu aeg|igal pool)\b/i;
+const answersOf = (line) => (String(line).match(/\[([^\]]*)\]/)?.[1] || '').split('|').map((x) => x.trim()).filter(Boolean);
+
+function solvabilityChecks(tasks, { key, norm: level, name, add }) {
+  const severity = EASY_LEVELS.has(key) ? 'tip' : 'warning';
+  const harno = HARNO[{ 'B2-': 'B2', B2: 'B2', C1: 'C1' }[key]];
+  tasks.forEach((b) => {
+    const d = b.data || {};
+    if (b.type === 'choice') {
+      const qs = (d.questions || []).map((q) => {
+        const opts = String(q.options || '').split('\n').map((o) => o.trim()).filter(Boolean);
+        const right = opts.filter((o) => o.startsWith('*')).map((o) => o.slice(1));
+        const wrong = opts.filter((o) => !o.startsWith('*'));
+        const words = (o) => wordsIn(o);
+        const longest = Math.max(0, ...wrong.map(words));
+        return { opts, right, wrong, giveaway: right.length === 1 && words(right[0]) >= 4 && words(right[0]) >= 2 * Math.max(1, longest) };
+      });
+      const few = qs.filter((q) => q.opts.length < 3).length;
+      add(`choice-options-${b.id}`, `${name(b)}: valikuid on piisavalt`, few === 0,
+        { detail: `${name(b)}: ${few} küsimuses on alla 3 valiku — vastuse saab arvata. Anna 3 valikut (Harno B2/C1: 4).`, severity, blockId: b.id });
+      if (harno && !few) add(`choice-four-${b.id}`, `${name(b)}: neli valikut (Harno ${harno.level})`, qs.every((q) => q.opts.length >= harno.options),
+        { detail: `${name(b)}: Harno ${harno.level} eksamil on lünga juures ${harno.options} valikut; siin on vähem.`, blockId: b.id });
+      const giveaways = qs.filter((q) => q.giveaway).length;
+      add(`choice-length-${b.id}`, `${name(b)}: õige vastus ei paista pikkuse järgi`, !(giveaways >= 2 && giveaways >= qs.length / 2),
+        { detail: `${name(b)}: ${giveaways} küsimuses on õige vastus mitu korda pikem kui teised — selle saab ära arvata keelt oskamata. Tee valikud ühepikkuseks ja usutavaks.`, severity, blockId: b.id });
+      if (!EASY_LEVELS.has(key)) add(`choice-russian-${b.id}`, `${name(b)}: valikud on eesti keeles`, !qs.some((q) => q.opts.some((o) => CYRILLIC.test(o))),
+        { detail: `${name(b)}: valikud on vene keeles — tasemel ${level.label} vali tähendus eesti keeles (seletus, sünonüüm, kontekst).`, severity: 'warning', blockId: b.id });
+    }
+    if (b.type === 'wordforms') {
+      // the same word with the same (or no) hint but different answers: the learner cannot know which form is wanted
+      const seen = new Map();
+      let ambiguous = 0; let given = 0;
+      (d.rows || []).forEach((r) => {
+        const k = `${normText(r.base)}|${normText(r.prompt)}`;
+        if (seen.has(k) && seen.get(k) !== normText(r.answer)) ambiguous += 1;
+        seen.set(k, normText(r.answer));
+        if (normText(r.prompt) && normText(r.prompt) === normText(r.answer)) given += 1;
+      });
+      add(`forms-which-${b.id}`, `${name(b)}: on selge, millist vormi on vaja`, ambiguous === 0,
+        { detail: `${name(b)}: sama sõna ja sama vihjega read ootavad eri vorme (${ambiguous}) — ülesanne pole üheselt lahendatav. Kirjuta vihjesse vorm (nt „mitmuse osastav”, „ma-tegevusnimi”) või lauseosa.`, severity: 'warning', blockId: b.id });
+      add(`forms-given-${b.id}`, `${name(b)}: vastus pole vihjes`, given === 0,
+        { detail: `${name(b)}: ${given} real on vastus juba vihjes kirjas.`, severity: 'warning', blockId: b.id });
+    }
+    if (b.type === 'errorfix') {
+      const same = (d.rows || []).filter((r) => normText(r.wrong) && normText(r.wrong) === normText(r.answer)).length;
+      add(`errorfix-none-${b.id}`, `${name(b)}: igas reas on viga`, same === 0,
+        { detail: `${name(b)}: ${same} real on „vale” ja „õige” lause samad — seal pole midagi parandada.`, severity: 'warning', blockId: b.id });
+    }
+    if (b.type === 'transformation') {
+      const same = (d.rows || []).filter((r) => normText(r.from) && normText(r.from) === normText(r.answer)).length;
+      add(`transform-none-${b.id}`, `${name(b)}: lauset tuleb muuta`, same === 0,
+        { detail: `${name(b)}: ${same} real on vastus sama mis lähtelause.`, severity: 'warning', blockId: b.id });
+    }
+    if (b.type === 'categorize') {
+      const groups = (d.groups || []).map((g) => listOf(Array.isArray(g.items) ? g.items.join(',') : g.words ?? g.items).map(normText).sort().join('|'));
+      const dup = groups.length - new Set(groups.filter(Boolean)).size - groups.filter((g) => !g).length;
+      add(`categorize-same-${b.id}`, `${name(b)}: rühmades on eri sõnad`, dup === 0,
+        { detail: `${name(b)}: mitmes rühmas on täpselt samad sõnad — sorteerida pole võimalik.`, severity: 'warning', blockId: b.id });
+    }
+    if (b.type === 'truefalse') {
+      const st = d.statements || [];
+      const falseAbs = st.filter((s) => s.answer === 'false' && ABSOLUTE.test(s.text)).length;
+      const trueAbs = st.filter((s) => s.answer === 'true' && ABSOLUTE.test(s.text)).length;
+      add(`tf-absolute-${b.id}`, `${name(b)}: valed väited ei paista sõna „alati / ainult” järgi`, !(falseAbs >= 2 && trueAbs === 0),
+        { detail: `${name(b)}: ${falseAbs} vales väites on „alati / ainult / kõik”, õigetes mitte — vastuse saab arvata teksti lugemata.`, blockId: b.id });
+    }
+    if (b.type === 'reading' && !EASY_LEVELS.has(key) && key !== 'A2+') {
+      // answers a learner copies from the text word for word (fine at A2, too easy from B1- on)
+      const passage = normText(d.passage);
+      const qs = lines(d.questions).map(answersOf).filter((a) => a.length);
+      const copied = qs.filter((a) => a.some((x) => wordsIn(x) <= 3 && passage.includes(normText(x)))).length;
+      add(`reading-copy-${b.id}`, `${name(b)}: küsimused nõuavad mõistmist`, !(qs.length >= 3 && copied / qs.length >= 0.8),
+        { detail: `${name(b)}: ${copied} vastust ${qs.length}-st saab tekstist sõna-sõnalt kopeerida. Lisa küsimusi, mis nõuavad ümbersõnastamist, valikut või järeldust (Harno: valikvastused, väide ↔ lõik).`, severity: ['B1-', 'B1'].includes(key) ? 'tip' : 'warning', blockId: b.id });
+    }
+  });
+}
 
 // the learner-facing sentences of a task (solved) and how many answers it asks
 export function measureBlock(block) {
@@ -120,9 +204,16 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
 
   // scaffolding
   tasks.filter((b) => b.type === 'gaps' && b.data?.showBank !== 'no' && String(b.data?.bank || '').trim()).forEach((b) => {
-    if (norm.bank === 'yes') return;
+    if (norm.bank === 'yes' || norm.bank === 'extra') return;
     add(`bank-${b.id}`, `${name(b)}: sõnapank`, false,
       { detail: `${name(b)}: sõnapangast saab vastuse lihtsalt kopeerida. Tasemel ${norm.label} ${norm.bank === 'no' ? 'jäta pank ära või anna algvormid' : 'anna pangas algvormid (õpilane moodustab vormi ise) või lisa segajaid'}.`, severity: norm.bank === 'no' ? 'warning' : 'tip', blockId: b.id });
+  });
+  // a bank of exactly as many words as gaps is solved by elimination (Harno's banks always hold extra options)
+  tasks.filter((b) => b.type === 'gaps' && b.data?.showBank !== 'no' && String(b.data?.bank || '').trim()).forEach((b) => {
+    const bank = listOf(b.data.bank).length;
+    const gaps = lines(b.data.sentences).reduce((n, l) => n + (l.match(/\[/g) || []).length, 0);
+    add(`bank-extra-${b.id}`, `${name(b)}: sõnapangas on segajaid`, bank > gaps,
+      { detail: `${name(b)}: pangas on ${bank} sõna ja ${gaps} lünka — viimase vastuse saab välistamisega. Lisa vähemalt 1–2 segajat.`, severity: EASY_LEVELS.has(key) ? 'tip' : 'warning', blockId: b.id });
   });
   tasks.filter((b) => b.opts?.example).forEach((b) => {
     if (norm.example !== 'no') return;
@@ -162,6 +253,8 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
         { detail: `${Math.round(share * 100)}% sõnadest pole tasemel ${norm.label} õpitavas sõnavaras (EKI etLex), nt ${examples.join(', ')}. Selgita need sõnad või asenda lihtsamatega.`, severity: share > 0.2 ? 'warning' : 'tip' });
     }
   }
+
+  solvabilityChecks(tasks, { key, norm, name, add });
 
   // instructions the learner reads alone
   tasks.forEach((b) => {

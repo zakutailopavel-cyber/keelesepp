@@ -16,15 +16,16 @@ describe('didactic check', () => {
 
   it('a simple A2 sheet passes; the same sheet is too easy and too supported for B2', () => {
     const blocks = [
-      task('gaps', { sentences: 'Ma ärkan [hommikul] kell seitse.\nTa joob [kohvi] ja sööb leiba.\nMeie pere elab [Tallinnas].\nMa lähen [kooli] bussiga.', bank: 'hommikul, kohvi, Tallinnas, kooli', showBank: 'yes' }),
-      task('choice', { questions: [1, 2, 3, 4].map((n) => ({ q: `Mis kell ${n}?`, options: '*Kell on seitse.\nKell on kaheksa.' })) }),
+      task('gaps', { sentences: 'Ma ärkan [hommikul] kell seitse.\nTa joob [kohvi] ja sööb leiba.\nMeie pere elab [Tallinnas].\nMa lähen [kooli] bussiga.\nMa elan [kodus] koos perega.', bank: 'hommikul, õhtul, poes, kohvi, Tallinnas, kooli, kodus', showBank: 'yes' }),
+      task('choice', { questions: [1, 2, 3, 4, 5].map((n) => ({ q: `Mis kell ${n}?`, options: '*Kell on seitse.\nKell on kaheksa.\nKell on üheksa.' })) }),
       task('speaking', { minSec: 45, maxSec: 90, questions: 'Mis kell sa ärkad?' }),
     ];
     const a2 = didacticCheck({ meta: { level: 'A2' }, blocks });
     expect(a2.issues).toEqual([]);
     expect(a2.score).toBe(100);
     const b2 = didacticCheck({ meta: { level: 'B2' }, blocks });
-    expect(b2.issues.map((i) => i.code)).toEqual(expect.arrayContaining(['did-sentence-avg', `${blocks[0].id}:did-bank-${blocks[0].id}`]));
+    // Harno B2 gives four options in a choice
+    expect(b2.issues.map((i) => i.code)).toEqual(expect.arrayContaining(['did-sentence-avg', `${blocks[1].id}:did-choice-four-${blocks[1].id}`]));
     expect(b2.issues.find((i) => i.code === 'did-sentence-avg').level).toBe('warning');
     expect(b2.score).toBeLessThan(100);
   });
@@ -40,6 +41,35 @@ describe('didactic check', () => {
     expect(codes.some((c) => c.endsWith(`did-reading-inf-${doc.blocks[0].id}`))).toBe(true);
     expect(codes).toContain('did-productive');
     expect(codes).toContain('did-closed-share');
+  });
+});
+
+describe('solvable only with the language (level audit 2026-10-12)', () => {
+  const codes = (level, blocks) => didacticCheck({ meta: { level }, blocks }).issues.map((i) => `${i.level} ${i.code.split(':').pop().replace(/-[a-z]+-[a-z0-9]{4}$/, '')}`);
+  it('finds tasks solved by elimination, by length or by an absolute word', () => {
+    const gaps = task('gaps', { sentences: 'Ma elan [Tallinnas] koos perega.\nTa töötab [koolis] õpetajana.\nMe sõidame [bussiga] tööle.\nMul on [kaks] venda.\nMa õpin [õhtul] eesti keelt.', bank: 'Tallinnas, koolis, bussiga, kaks, õhtul', showBank: 'yes' });
+    const choice = task('choice', { questions: [1, 2, 3, 4, 5].map(() => ({ q: 'Mida sa ütled, kui oled hiljaks jäänud?', options: '*Vabandust, ma jäin bussist maha ja tulin järgmisega.\nPakk!\nKoer.' })) });
+    const tf = task('truefalse', { statements: [['Mari elab Tartus.', 'true'], ['Mari käib alati jala.', 'false'], ['Mari töötab ainult hommikul.', 'false'], ['Maril on kaks last.', 'true'], ['Mari õpib eesti keelt.', 'true']].map(([text, answer]) => ({ text, answer })) });
+    const found = codes('B1', [gaps, choice, tf]);
+    expect(found).toEqual(expect.arrayContaining(['warning did-bank-extra', 'warning did-choice-length', 'tip did-tf-absolute']));
+    // at A2 the same faults are tips, not warnings
+    expect(codes('A2', [gaps])).toContain('tip did-bank-extra');
+  });
+
+  it('finds tasks that cannot be solved or need no work', () => {
+    const forms = task('wordforms', { rows: [['raamat', '', 'raamatut'], ['raamat', '', 'raamatus'], ['õppima', 'õppima', 'õppima'], ['ema', 'kelle?', 'ema'], ['isa', 'kelle?', 'isa']].map(([base, prompt, answer]) => ({ base, prompt, answer })) });
+    const fix = task('errorfix', { rows: [['Ma lähen kooli.', 'Ma lähen kooli.'], ['Ma lähen koolis.', 'Ma lähen kooli.']].map(([wrong, answer]) => ({ wrong, answer })) });
+    const sort = task('categorize', { groups: [{ name: 'Kus?', words: 'koolis, kodus' }, { name: 'Kuhu?', words: 'kodus, koolis' }] });
+    const ru = task('choice', { questions: [1, 2, 3, 4, 5].map(() => ({ q: 'Mida tähendab „keel”?', options: '*язык\nдом\nкогда' })) });
+    const found = codes('B1', [forms, fix, sort, ru]);
+    expect(found).toEqual(expect.arrayContaining(['warning did-forms-which', 'warning did-forms-given', 'warning did-errorfix-none', 'warning did-categorize-same', 'warning did-choice-russian']));
+  });
+
+  it('flags reading questions answered by copying from B1- on', () => {
+    const passage = 'Mari elab Tartus ja töötab raamatukogus. Hommikul sõidab ta bussiga tööle. Õhtul käib ta ujumas.';
+    const reading = task('reading', { passage, questions: 'Kus Mari elab? [Tartus]\nKus ta töötab? [raamatukogus]\nMillega ta sõidab? [bussiga]\nKuhu ta õhtul läheb? [ujuma|ujumas]' });
+    expect(codes('B1', [reading])).toContain('tip did-reading-copy');
+    expect(codes('A2', [reading])).not.toContain('tip did-reading-copy');
   });
 });
 

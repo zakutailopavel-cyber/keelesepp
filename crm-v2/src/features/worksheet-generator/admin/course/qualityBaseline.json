@@ -1,0 +1,219 @@
+{
+ "a2b1-module-02": [
+  "*|*|harno-reading",
+  "a2b1-009|practice|didactic"
+ ],
+ "a2b1-module-03": [
+  "*|*|harno-reading"
+ ],
+ "a2b1-module-04": [
+  "*|*|harno-reading"
+ ],
+ "a2b1-module-05": [
+  "a2b1-024|transfer|did-bank-extra-024_tx_link",
+  "a2b1-024|transfer|didactic"
+ ],
+ "a2b1-module-06": [
+  "a2b1-027|practice|did-bank-extra-027_px_phr",
+  "a2b1-027|practice|didactic",
+  "a2b1-029|practice|did-bank-extra-029_p_complaint",
+  "a2b1-029|practice|didactic",
+  "a2b1-029|transfer|did-bank-extra-029_tx_gaps",
+  "a2b1-029|transfer|didactic"
+ ],
+ "a2b1-module-07": [
+  "*|*|harno-listening",
+  "a2b1-031|practice|did-bank-extra-031_p_con",
+  "a2b1-031|practice|didactic",
+  "a2b1-031|transfer|did-bank-extra-031_tx_gaps",
+  "a2b1-031|transfer|did-choice-length-031_t_check",
+  "a2b1-031|transfer|didactic",
+  "a2b1-032|practice|did-bank-extra-032_p_q",
+  "a2b1-032|practice|didactic",
+  "a2b1-032|transfer|did-bank-extra-032_tx_gaps",
+  "a2b1-032|transfer|didactic",
+  "a2b1-033|transfer|did-bank-extra-033_tx_gaps",
+  "a2b1-033|transfer|didactic",
+  "a2b1-034|practice|did-bank-extra-034_p_should",
+  "a2b1-034|practice|didactic",
+  "a2b1-034|transfer|did-bank-extra-034_tx_gaps",
+  "a2b1-034|transfer|didactic",
+  "a2b1-035|transfer|did-bank-extra-035_tx_gaps",
+  "a2b1-035|transfer|didactic"
+ ],
+ "a2b1-module-08": [
+  "*|*|harno-listening",
+  "a2b1-038|practice|did-bank-extra-038_p_gaps",
+  "a2b1-038|practice|did-errorfix-none-038_px_fix",
+  "a2b1-038|practice|didactic",
+  "a2b1-038|transfer|did-choice-length-038_t_check"
+ ],
+ "a2b1-module-09": [
+  "*|*|harno-listening"
+ ],
+ "a2b1-module-10": [
+  "*|*|harno-listening"
+ ],
+ "a2b1-module-11": [
+  "*|*|harno-listening"
+ ],
+ "a2b1-module-12": [
+  "*|*|harno-listening",
+  "a2b1-058|practice|did-errorfix-none-058_p_fix",
+  "a2b1-058|transfer|did-errorfix-none-058_tx_fix",
+  "a2b1-059|practice|did-errorfix-none-059_px_fix",
+  "a2b1-059|transfer|did-choice-length-059_t_check",
+  "a2b1-059|transfer|did-errorfix-none-059_tx_fix",
+  "a2b1-059|transfer|didactic"
+ ],
+ "a2b1-module-13": [
+  "*|*|harno-listening",
+  "a2b1-063|practice|did-choice-length-063_p_choice",
+  "a2b1-063|practice|didactic",
+  "a2b1-065|discover|did-errorfix-none-065_d_fix"
+ ],
+ "a2b1-module-14": [
+  "*|*|harno-listening",
+  "a2b1-066|practice|did-choice-length-066_p_choice",
+  "a2b1-069|discover|did-errorfix-none-069_d_fix"
+ ],
+ "a2b1-module-15": [
+  "*|*|harno-listening",
+  "a2b1-071|transfer|did-choice-length-071_t_check",
+  "a2b1-072|practice|did-errorfix-none-072_p_fix",
+  "a2b1-073|practice|did-errorfix-none-073_p_fix",
+  "a2b1-074|discover|did-errorfix-none-074_d_fix",
+  "a2b1-074|practice|did-choice-length-074_p_choice",
+  "a2b1-074|transfer|did-transform-none-074_tx_trans"
+ ],
+ "b1b2-module-02": [
+  "b1b2-007|practice|did-choice-length-007_p_choice",
+  "b1b2-010|practice|did-choice-length-010_p_choice"
+ ],
+ "b1b2-module-05": [
+  "b1b2-021|practice|did-choice-length-021_p_choice",
+  "b1b2-021|practice|didactic",
+  "b1b2-025|discover|did-errorfix-none-025_d_fix",
+  "b1b2-025|practice|did-choice-length-025_p_choice"
+ ],
+ "b1b2-module-06": [
+  "b1b2-029|practice|did-choice-length-029_p_choice"
+ ],
+ "b1b2-module-07": [
+  "b1b2-032|practice|did-choice-length-032_p_choice"
+ ],
+ "b1b2-module-09": [
+  "b1b2-042|practice|did-choice-length-042_p_choice"
+ ],
+ "b1b2-module-10": [
+  "b1b2-048|discover|did-errorfix-none-048_d_fix",
+  "b1b2-048|discover|didactic",
+  "b1b2-048|practice|did-errorfix-none-048_p_fix"
+ ],
+ "b1b2-module-11": [
+  "b1b2-054|practice|did-errorfix-none-054_p_fix",
+  "b1b2-054|practice|didactic"
+ ],
+ "b1b2-module-12": [
+  "b1b2-057|practice|did-choice-length-057_p_choice"
+ ],
+ "b1b2-module-13": [
+  "*|*|harno-reading"
+ ],
+ "b1b2-module-14": [
+  "*|*|harno-reading",
+  "b1b2-067|practice|did-choice-length-067_p_choice",
+  "b1b2-067|practice|didactic"
+ ],
+ "b1b2-module-15": [
+  "*|*|harno-reading",
+  "b1b2-073|practice|did-choice-length-073_p_choice",
+  "b1b2-073|practice|didactic"
+ ],
+ "b1b2-module-16": [
+  "*|*|harno-reading"
+ ],
+ "b1b2-module-17": [
+  "*|*|harno-reading"
+ ],
+ "b1b2-module-18": [
+  "*|*|harno-listening",
+  "*|*|harno-reading"
+ ],
+ "est-c1-module-01": [
+  "*|*|harno-listening",
+  "est-c1-002|practice|did-choice-length-c1_002_p_choice",
+  "est-c1-002|practice|didactic",
+  "est-c1-004|practice|did-choice-length-c1_004_p_choice",
+  "est-c1-004|practice|didactic",
+  "est-c1-007|practice|did-choice-length-c1_007_p_choice",
+  "est-c1-007|practice|didactic"
+ ],
+ "est-c1-module-02": [
+  "*|*|harno-listening",
+  "est-c1-012|practice|did-choice-length-c1_012_p_choice",
+  "est-c1-012|practice|didactic",
+  "est-c1-016|practice|did-choice-length-c1_016_p_choice",
+  "est-c1-016|practice|didactic"
+ ],
+ "est-c1-module-03": [
+  "*|*|harno-listening",
+  "est-c1-026|practice|did-choice-length-c1_026_p_choice",
+  "est-c1-026|practice|didactic"
+ ],
+ "est-c1-module-04": [
+  "*|*|harno-listening",
+  "est-c1-032|practice|did-choice-length-c1_032_p_choice",
+  "est-c1-032|practice|didactic",
+  "est-c1-034|discover|did-choice-length-c1_034_d_choice",
+  "est-c1-034|discover|didactic",
+  "est-c1-036|practice|did-choice-length-c1_036_p_choice",
+  "est-c1-036|practice|didactic"
+ ],
+ "est-c1-module-05": [
+  "*|*|harno-listening",
+  "est-c1-042|practice|did-choice-length-c1_042_p_choice",
+  "est-c1-042|practice|didactic",
+  "est-c1-044|discover|did-choice-length-c1_044_d_choice",
+  "est-c1-044|discover|didactic",
+  "est-c1-046|practice|did-choice-length-c1_046_p_choice",
+  "est-c1-046|practice|didactic",
+  "est-c1-048|practice|did-choice-length-c1_048_p_choice",
+  "est-c1-048|practice|didactic"
+ ],
+ "est-c1-module-06": [
+  "*|*|harno-listening",
+  "est-c1-052|practice|did-choice-length-c1_052_p_choice",
+  "est-c1-052|practice|didactic",
+  "est-c1-056|practice|did-choice-length-c1_056_p_choice",
+  "est-c1-056|practice|didactic"
+ ],
+ "est-c1-module-07": [
+  "*|*|harno-listening",
+  "est-c1-066|practice|did-choice-length-c1_066_p_choice",
+  "est-c1-066|practice|didactic"
+ ],
+ "est-c1-module-08": [
+  "*|*|harno-listening",
+  "est-c1-072|practice|did-choice-length-c1_072_p_choice",
+  "est-c1-072|practice|didactic",
+  "est-c1-074|discover|did-choice-length-c1_074_d_choice",
+  "est-c1-074|discover|didactic",
+  "est-c1-076|practice|did-choice-length-c1_076_p_choice",
+  "est-c1-076|practice|didactic",
+  "est-c1-078|practice|did-choice-length-c1_078_p_choice",
+  "est-c1-078|practice|didactic"
+ ],
+ "est-c1-module-09": [
+  "*|*|harno-listening",
+  "est-c1-086|practice|did-choice-length-c1_086_p_choice",
+  "est-c1-086|practice|didactic"
+ ],
+ "est-c1-module-10": [
+  "*|*|harno-listening",
+  "est-c1-094|discover|did-choice-length-c1_094_d_choice",
+  "est-c1-094|discover|didactic",
+  "est-c1-096|practice|did-choice-length-c1_096_p_choice",
+  "est-c1-096|practice|didactic"
+ ]
+}
