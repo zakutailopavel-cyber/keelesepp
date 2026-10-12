@@ -110,6 +110,8 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {} }) {
   const dueDay = paymentDetails.paymentDueDay || 10;
   const isParentInvoice = invoice.invoiceTargetType === "parent";
   const studentName = invoice.studentName || student.name || "";
+  // the subject is stored on the invoice (owner 2026-10-12: one student, two subjects = two cards); older invoices: the card
+  const subject = String(invoice.subject || student.subject || "").trim();
 
   return new Promise((resolve, reject) => {
     const document = new PDFDocument({
@@ -197,7 +199,9 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {} }) {
     lines.forEach((line, index) => {
       const corrected = correctedIds.has(line.lessonId);
       const detail = lineDetails(line);
-      const name = `${line.description || "Keeletund"}${line.date ? ` (${formatEtDate(line.date)})` : ""}${corrected ? " · krediteeritud" : ""}`;
+      const base = line.description || "Keeletund";
+      const withSubject = subject && !base.toLocaleLowerCase("et").includes(subject.toLocaleLowerCase("et")) ? `${base} · ${subject}` : base;
+      const name = `${withSubject}${line.date ? ` (${formatEtDate(line.date)})` : ""}${corrected ? " · krediteeritud" : ""}`;
       const height = Math.max(22, document.font("Helvetica").fontSize(8.5).heightOfString(name, { width: columns[1].width - 8 }) + 12);
       if (y + height > 690) { document.addPage(); y = 46; drawRow(columns.map((column) => column.title), y, { header: true }); y += 22; }
       drawRow([index + 1, name, detail.unit, quantityText(detail.quantity), money(detail.unitPrice), money(detail.amount), "0,00", money(detail.amount)], y, { height, strike: corrected });
@@ -218,7 +222,7 @@ function buildInvoicePdf({ invoice, student = {}, paymentDetails = {} }) {
     // payment info + student
     const boxHeight = 74;
     [[left, "Makseinfo", [`Saaja: ${paymentDetails.company || "KeeleSepp"}`, `IBAN: ${paymentDetails.iban || "—"}`, `Pank: ${paymentDetails.bank || "—"}`, paymentDetails.swift ? `SWIFT: ${paymentDetails.swift}` : ""]],
-      [left + half + 28, isParentInvoice ? "Arve saaja" : "Õpilane", [isParentInvoice ? parties.payerName : studentName || parties.payerName, !isParentInvoice && student.subject ? `Õppeaine: ${student.subject}` : ""]],
+      [left + half + 28, isParentInvoice ? "Arve saaja" : "Õpilane", [isParentInvoice ? parties.payerName : studentName || parties.payerName, isParentInvoice && studentName ? `Õpilane: ${studentName}` : "", subject ? `Õppeaine: ${subject}` : ""]],
     ].forEach(([boxLeft, title, rows]) => {
       document.rect(boxLeft, y, half, boxHeight).lineWidth(0.7).strokeColor(border).stroke();
       document.fillColor(ink).font("Helvetica-Bold").fontSize(9).text(title, boxLeft + 10, y + 10);

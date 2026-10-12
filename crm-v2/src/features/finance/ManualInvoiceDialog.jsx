@@ -288,7 +288,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             </section>
             <div className="manual-invoice-paper__line">
               <span>Nimetus</span><span>Kogus</span><span>Summa</span>
-              <strong>{form.description.trim() || 'Arve kirjeldus'}</strong><span>1</span><strong>{formatMoney(form.amount)}</strong>
+              <strong>{form.description.trim() || 'Arve kirjeldus'}{selectedStudent && subjectOf(selectedStudent) ? ` · ${subjectOf(selectedStudent)}` : ''}</strong><span>1</span><strong>{formatMoney(form.amount)}</strong>
             </div>
             <div className="manual-invoice-paper__total"><span>Summa tasumiseks</span><strong>{formatMoney(form.amount)}</strong></div>
             <footer><span>Makseinfo lisatakse ettevõtte seadetest.</span><span>PDF luuakse pärast arve salvestamist.</span></footer>

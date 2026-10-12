@@ -1,3 +1,10 @@
+## 2026-10-12 · agent/invoice-subject — subject on the invoice and the PDF
+
+- Base: `main` after #544. Why (owner): a student with two subjects (two cards) — the invoice must say which subject.
+- `functions/manual-invoice-core.js` `manualInvoiceRecord` stores `subject` (from the card; manual and monthly invoices). `invoice-document.js`: the line name gets „ · <subject>” (unless already in it) and the box shows „Õppeaine: …” (also on parent invoices, with the student's name); older invoices fall back to the card. CRM: subject under the name in the invoice list, searchable; „Lisa arve” preview line.
+- Checks: functions `npm test` 254/254; finance vitest 110/110; sample PDF rendered and checked visually.
+- Deploy (owner approved 2026-10-12): functions `manualInvoiceApi`, `invoiceApi`, `financeApi`, `sendInvoicePaymentReminders`. Existing invoices are not backfilled (the PDF reads the card).
+
 ## 2026-10-12 · agent/manual-invoice-students — „Lisa arve”: fast student list and „Aine”
 
 - Base: `main` after #543. Why (owner): the student list in „Lisa arve” loaded slowly; a student with two subjects (two cards, e.g. Aleksandr Smirnov: Eesti keel + Inglise keel) appeared as two equal names.

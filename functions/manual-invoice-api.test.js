@@ -89,3 +89,11 @@ test('a cancelled monthly invoice can be replaced with a new numbered revision',
     assert.equal(writes[0].target.id, 'monthly_s1_2026-10-r2');
   } finally { restore(); }
 });
+
+test('the invoice keeps the subject of the student card (one student, two subjects = two cards)', () => {
+  const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-core.js');
+  const input = manualInvoiceInput({ studentId: 'a-en', description: 'Õpik', amount: 10, due: '2026-11-10' });
+  const record = manualInvoiceRecord({ input, student: { name: 'Aleksandr Smirnov', subject: ' Inglise keel ' }, invoiceNum: 'KS-2026-500', nowIso: '2026-10-12T10:00:00Z', actor: 'admin', requestId: 'r1', signature: 's' });
+  assert.equal(record.subject, 'Inglise keel');
+  assert.equal(manualInvoiceRecord({ input, student: { name: 'Anna' }, invoiceNum: 'KS-2026-501', nowIso: '2026-10-12T10:00:00Z', actor: 'admin', requestId: 'r2', signature: 's' }).subject, '');
+});

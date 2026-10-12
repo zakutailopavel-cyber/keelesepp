@@ -53,6 +53,7 @@ function manualInvoiceRecord({ input, student, invoiceNum, nowIso, actor, reques
     invoiceTargetType: 'student',
     studentId: input.studentId,
     studentName: student.name || '—',
+    subject: String(student.subject || '').trim().slice(0, 80),
     parentUid,
     linkedParentId: student.linkedParentId || student.parentUid || '',
     guardianUid: student.guardianUid || '',
