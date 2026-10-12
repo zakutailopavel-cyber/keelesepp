@@ -239,6 +239,9 @@ describe('LiveRoom: the student’s pet', () => {
     const homeworkService = { subscribeForLesson: vi.fn((query, onData) => { pushHomework = onData; onData([]); return vi.fn(); }), listForLesson: vi.fn(async () => []) };
     renderRoom('student', services(), { petRepository, wordsService, homeworkService });
     expect(await screen.findByText('Tere! Okas on ka tunnis.')).toBeInTheDocument();
+    // the subscriptions start in an effect after the hello: wait for them, else the push goes nowhere (flaky in CI)
+    await waitFor(() => expect(wordsService.subscribeForStudent).toHaveBeenCalled());
+    await waitFor(() => expect(homeworkService.subscribeForLesson).toHaveBeenCalled());
     act(() => pushWords([{ id: 'old', invitationId: 'inv-0', word: 'vana' }, { id: 'w1', invitationId: 'inv-1', word: 'kass', translation: 'кошка' }]));
     expect(await screen.findByText('Uus sõna: kass!')).toBeInTheDocument();
     expect(screen.getByText('Новое слово: kass — кошка')).toBeInTheDocument();
