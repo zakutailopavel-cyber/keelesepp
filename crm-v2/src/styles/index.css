@@ -223,3 +223,37 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 .student-today__card.is-step.is-done{border-color:#a6e3cc;background:#f0faf6}
 .student-today__card.is-step.is-done>i{background:#12b76a;color:#fff}
 .student-today__card.is-step.is-done strong{text-decoration:line-through;text-decoration-color:rgba(15,138,115,.45)}
+/* „Minu areng” (owner 2026-10-12): level → target, skills against the bar, what to do next */
+.my-progress{margin-bottom:18px;padding:20px 22px;border:1px solid #dfe7f5;border-radius:20px;background:linear-gradient(180deg,#f4f8ff 0%,#fff 70%)}
+.my-progress__head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.my-progress__head h2{margin:2px 0 2px;font-size:1.35rem}
+.my-progress__head p{margin:0;color:var(--muted);font-size:.9rem}
+.my-progress__head p span{color:#98a2b3}
+.my-progress__big{display:grid;justify-items:center;font-size:2rem;line-height:1;color:#1d4f91}
+.my-progress__big small{font-size:.7rem;color:var(--muted);font-weight:600}
+.my-progress__path{display:flex;align-items:flex-start;gap:0;margin:16px 0 14px;padding:0;list-style:none}
+.my-progress__path li{position:relative;flex:1;display:grid;justify-items:center;gap:4px}
+.my-progress__path li:not(:last-child)::after{content:'';position:absolute;top:17px;left:calc(50% + 20px);right:calc(-50% + 20px);height:3px;border-radius:2px;background:#e4e7ec}
+.my-progress__path li.is-done:not(:last-child)::after{background:#12b76a}
+.my-progress__dot{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#f2f4f7;color:#667085;font-weight:800;font-size:.8rem;border:2px solid #e4e7ec}
+.my-progress__path li.is-done .my-progress__dot{background:#12b76a;border-color:#12b76a;color:#fff}
+.my-progress__path li.is-current .my-progress__dot{background:#fff;border-color:#1d4f91;color:#1d4f91;box-shadow:0 0 0 4px rgba(29,79,145,.12)}
+.my-progress__path small{color:var(--muted);font-weight:700}
+.my-progress__bar{display:block;width:70%;height:6px;border-radius:99px;background:#e4e7ec;overflow:hidden}
+.my-progress__bar b{display:block;height:100%;background:#1d4f91;border-radius:inherit}
+.my-progress__skills{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 18px}
+.my-progress__skills>div{display:grid;grid-template-columns:110px minmax(0,1fr);align-items:center;gap:4px 10px}
+.my-progress__skills span{font-weight:700;font-size:.85rem}
+.my-progress__skills i{position:relative;display:block;height:9px;border-radius:99px;background:#eef2f6;overflow:visible}
+.my-progress__skills i b{display:block;height:100%;border-radius:99px;background:#98a2b3}
+.my-progress__skills i em{position:absolute;top:-3px;width:2px;height:15px;background:#0b2a4f;opacity:.35}
+.my-progress__skills .is-ready i b{background:#12b76a}.my-progress__skills .is-close i b{background:#f5b301}.my-progress__skills .is-weak i b{background:#f04438}
+.my-progress__skills small{grid-column:2;color:var(--muted);font-size:.72rem}
+.my-progress__hints{margin-top:16px;padding:14px 16px;border-radius:14px;background:#fffaf0;border:1px solid #f5d796}
+.my-progress__hints h3{display:flex;align-items:center;gap:6px;margin:0 0 8px;font-size:.95rem;color:#b54708}
+.my-progress__hints ul{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+.my-progress__hints li{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.my-progress__hints li div{display:grid;gap:2px}
+.my-progress__hints li small{color:#98a2b3}
+.my-progress__hints a{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:10px;background:#fff;border:1px solid #f5d796;color:#b54708}
+@media(max-width:560px){.my-progress__skills>div{grid-template-columns:96px minmax(0,1fr)}}

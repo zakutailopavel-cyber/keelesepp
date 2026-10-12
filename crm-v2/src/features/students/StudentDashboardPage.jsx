@@ -4,7 +4,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, invoicesService, lessonsService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService, invoicesService, lessonsService, libraryService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { buildTopicCatalog } from '../calendar/lessonTopic.js';
+import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
+import { autoSkills } from './autoSkills.js';
+import { levelProgress, speakingFromStats } from './levelProgress.js';
+import MyProgressCard from './MyProgressCard.jsx';
 import { petProgress } from '../pet/petModel.js';
 import { todayPath } from './todayPath.js';
 import { petReact } from '../pet/petEvents.js';
@@ -41,6 +46,7 @@ export default function StudentDashboardPage({
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
   petRepository = petsService,
+  catalogRepository = libraryService,
   consentService,
   wordsService,
   summaryService,
@@ -51,6 +57,12 @@ export default function StudentDashboardPage({
       ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
       : await studentRepository.listSelf(user.uid);
     const studentIds = students.map((student) => student.id);
+    // „Minu areng” needs the course, all his sheets and his lesson stats; each may fail alone without breaking the page
+    const [progressData] = await Promise.all([Promise.all([
+      Promise.resolve().then(() => catalogRepository.listCurriculum?.() || []).catch(() => []),
+      Promise.resolve().then(() => homeworkRepository.listWorksheetAssignmentsByStudentIds?.(studentIds) || []).catch(() => []),
+      preview ? [] : Promise.resolve().then(() => petRepository.lessonStats?.(user.uid) || []).catch(() => []),
+    ])]);
     const [pet, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
       preview ? null : Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
       homeworkRepository.listByStudentIds(studentIds),
@@ -60,6 +72,7 @@ export default function StudentDashboardPage({
       Promise.all(studentIds.map((studentId) => lessonRepository.listByStudent(studentId))),
     ]);
     return {
+      progressData,
       pet: pet || null,
       students,
       homework,
@@ -99,6 +112,20 @@ export default function StudentDashboardPage({
   const completedLessons = lessons.filter((lesson) => lesson.status !== 'Tühistatud');
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
   const nextLesson = upcoming[0] || null;
+  const progress = (() => {
+    const [curriculum, allSheets, stats] = state.data.progressData || [[], [], []];
+    const student = students[0];
+    if (!student) return null;
+    const catalog = buildTopicCatalog(curriculum);
+    const map = progressMap(allSheets);
+    const courseByLevel = Object.fromEntries(catalog.levels.map((entry) => {
+      const list = entry.modules.flatMap((module) => module.lessons);
+      const next = nextCourseLesson(list, map);
+      return [entry.key, { done: list.filter((lesson) => lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
+    }));
+    const computed = [...autoSkills({ assignments: allSheets }), ...[speakingFromStats(stats)].filter(Boolean)];
+    return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });
+  })();
   const path = todayPath({ words, homework, submissions, pet: state.data.pet, today });
   const streak = petProgress({ lessons, submissions, homework, words }).streak;
   const STEP_ICON = { words: Languages, work: BookOpen, pet: Gamepad2 };
@@ -132,6 +159,7 @@ export default function StudentDashboardPage({
         </div> : null}
       </div>
     </section> : null}
+    {students.length ? <MyProgressCard progress={progress} /> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
 
       <Card><div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div></div>{upcoming.length ? <div className="simple-list student-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{dateLabel(lesson.occurrenceDate)} · {lesson.time}</strong><span>{studentMap.get(lesson.studentId)?.name || lesson.studentName || 'Õpilane'} · {lesson.teacher || 'Õpetaja'}</span></div><Badge tone="info">{lesson.duration || 60} min</Badge></div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" />}</Card>
