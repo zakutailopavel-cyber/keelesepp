@@ -1,10 +1,40 @@
 /* global setTimeout */
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { memo, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import * as Icons from 'lucide-react';
 import { lessonWorksheetsService, libraryService } from '../../services/firebase/index.js';
 import { assembleProgramBook, BOOK_PHASES, programLevels, programModules, programProgress } from './bookProgram.js';
 import Sheet from './engine/Sheet.jsx';
+
+// A book holds hundreds of sheets: a sheet redraws only when its own props change (its first page number), not on
+// every page count another sheet reports (a B1 book of 270 sheets froze the browser, 2026-10-13).
+const BookSheet = memo(Sheet);
+
+// Page counts reported by the sheets, applied to the book in one batch per task (not one book redraw per sheet), and one
+// stable callback per sheet so a memoized sheet is not redrawn for a new function.
+function pageCounter(setCounts) {
+  let pending = {};
+  let frame = 0;
+  const callbacks = new Map();
+  const flush = () => {
+    frame = 0;
+    const batch = pending;
+    pending = {};
+    setCounts((c) => (Object.entries(batch).some(([key, value]) => c[key] !== value) ? { ...c, ...batch } : c));
+  };
+  const report = (id, n) => {
+    pending[id] = n;
+    // a timer, not an animation frame: frames stop in a hidden tab and the book would never get its page numbers
+    if (!frame) frame = globalThis.setTimeout(flush, 0);
+  };
+  return {
+    setter: (id) => {
+      if (!callbacks.has(id)) callbacks.set(id, (n) => report(id, n));
+      return callbacks.get(id);
+    },
+    cancel: () => { if (frame) globalThis.clearTimeout(frame); frame = 0; },
+  };
+}
 import { useFitScale } from './useFitScale.js';
 import { applyPrintA4 } from './printPage.js';
 import './engine/sheet.css';
@@ -126,7 +156,9 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   }, []);
   const last = entries[entries.length - 1];
   const totalPages = last ? last.page + (counts[last.id] || 1) - 1 : 2;
-  const setCount = useCallback((id, n) => setCounts((c) => (c[id] === n ? c : { ...c, [id]: n })), []);
+  // the sheets report their page counts while they lay out; applied once per frame (pageCounter below)
+  const [counter] = useState(() => pageCounter(setCounts));
+  useEffect(() => () => counter.cancel(), [counter]);
   const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= ids.length) return; const n = [...ids]; [n[i], n[j]] = [n[j], n[i]]; setIds(n); };
 
   if (state.loading) return <div className="page-content"><p className="ws-studio-loading">Laen töölehti…</p></div>;
@@ -196,7 +228,7 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           <div className="st-zoom ws-book" style={{ zoom: scale }}>
             <Cover book={book} />
             <Contents entries={entries} />
-            {items.map((item, i) => <Sheet key={item.id} doc={item.doc} mode="print" startPage={entries[i].page} onPageCount={(n) => setCount(item.id, n)} />)}
+            {items.map((item, i) => <BookSheet key={item.id} doc={item.doc} mode="print" startPage={entries[i].page} onPageCount={counter.setter(item.id)} />)}
           </div>
         </main>
       </div>
