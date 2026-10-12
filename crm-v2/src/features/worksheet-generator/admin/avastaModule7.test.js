@@ -6,8 +6,10 @@ describe('Avasta moodul 7', () => {
     const doc = createAvastaModule7Document(lessonId);
     expect(doc.meta.level).toBe('B1');
     expect(doc.meta.module).toBe('Tervis ja enesetunne');
-    expect(doc.blocks.length).toBeGreaterThanOrEqual(7);
-    expect(doc.blocks.length).toBeLessThanOrEqual(9);
+    // 7–9 substantial blocks (CEFR standard); the opening situation text is not a task
+    const tasks = doc.blocks.filter((entry) => entry.type !== 'text');
+    expect(tasks.length).toBeGreaterThanOrEqual(7);
+    expect(tasks.length).toBeLessThanOrEqual(9);
     expect(doc.blocks.some((block) => block.type === 'reading')).toBe(true);
     expect(doc.blocks.some((block) => block.type === 'notice')).toBe(true);
     expect(doc.blocks.at(-1).type).toBe('selfcheck');

@@ -1,3 +1,11 @@
+## 2026-10-12 · agent/avasta-openers — B1 Avasta: a real opening instead of two survey questions
+
+- Why (owner): „все Avasta однотипные, особенно два вопроса в первом блоке… это не вводная часть”. Audit of all 333 published Avasta sheets: 69 open with a 2-item task. B1 a2b1-016…050 (35): two personal questions with a fixed „right” answer (scored opinions). A2 (34, generator): two context-less true/false sentences — and the whole A2 sheet has only 5 blocks and no reading text (separate follow-up).
+- Built: `admin/avastaOpeners.js` — per lesson a mini-situation (message thread, dialogue, notice, voice message, 35–80 words, the lesson's language, other people than the main reading) + five true/false statements (2–3 false); `openerBlocks(lessonId)` replaces `spec.seed.intro` in `avastaModule4…10`. Module tests count task blocks (the situation text is not a task) for the 7–9 rule. `avastaOpeners.test.js`.
+- Published: the 35 sheets get a new version where only the first block is replaced (published content otherwise kept; no unpublished drafts existed).
+- Checks: worksheet-generator 533/533.
+- Next: A2 Avasta sheets (34) — full rewrite (reading text, 7–9 blocks), module by module.
+
 ## 2026-10-12 · agent/pet-first-choice — a new student can choose the pet
 
 - Why (owner): the pet picker opened only from the pet itself (`/student/lemmik` via the companion), so a student without a pet had nowhere to choose one.
