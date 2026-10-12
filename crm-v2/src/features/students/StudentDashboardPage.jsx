@@ -1,5 +1,5 @@
 import { BookOpen, CalendarDays, Check, ChevronRight, Flame, Gamepad2, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
@@ -7,6 +7,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonsService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { petProgress } from '../pet/petModel.js';
 import { todayPath } from './todayPath.js';
+import { petReact } from '../pet/petEvents.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
@@ -73,6 +74,21 @@ export default function StudentDashboardPage({
   const words = useStudentWords((state.data?.students || []).map((student) => student.id), ...(wordsService ? [wordsService] : []));
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
+  // the whole day's path done → the walking pet shows a flame, once a day
+  const pathDone = useMemo(() => {
+    if (!state.data) return false;
+    const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, today });
+    return day.total > 0 && day.done === day.total;
+  }, [state.data, words, today]);
+  useEffect(() => {
+    if (!pathDone || preview) return;
+    try {
+      const key = `ks-path-done-${today}`;
+      if (globalThis.localStorage?.getItem(key)) return;
+      globalThis.localStorage?.setItem(key, '1');
+    } catch { return; }
+    petReact('streak');
+  }, [pathDone, preview, today]);
   if (state.loading) return <LoadingState label="Laen sinu õpinguid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 

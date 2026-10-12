@@ -151,3 +151,28 @@ describe('alive pet', () => {
   });
 });
 
+
+describe('pet reactions and growth (owner 2026-10-12)', () => {
+  it('the walking pet reacts to a right and a wrong answer', async () => {
+    const { container } = renderCompanion();
+    await waitFor(() => expect(container.querySelector('.pet-walker')).toBeTruthy());
+    const { petReact } = await import('./petEvents.js');
+    act(() => petReact('correct'));
+    await waitFor(() => expect(container.querySelector('.pet-walker').className).toContain('react-correct'));
+    expect(container.querySelector('.pet-react.is-correct')).toBeTruthy();
+    act(() => petReact('wrong'));
+    await waitFor(() => expect(container.querySelector('.pet-walker').className).toContain('react-wrong'));
+    act(() => petReact('nonsense'));
+    expect(container.querySelector('.pet-walker').className).not.toContain('react-nonsense');
+  });
+
+  it('grows visibly: more spikes, bigger wings and tail on the later stages', async () => {
+    const { petSvg } = await import('./petArt.js');
+    const spikes = (svg) => (svg.match(/ L/g) || []).length;
+    expect(spikes(petSvg('siil', 'calm', 3))).toBeGreaterThan(spikes(petSvg('siil', 'calm', 1)));
+    const wingWidth = (svg) => Number(/class="wing" d="M[\d.]+ [\d.]+ q([\d.]+)/.exec(svg)[1]);
+    expect(wingWidth(petSvg('draakon', 'calm', 3))).toBeGreaterThan(wingWidth(petSvg('draakon', 'calm', 1)) * 1.8);
+    expect(petSvg('rebane', 'happy', 2)).toContain('url(#pg-rebane)');
+    expect(petSvg('kakk', 'calm', 2)).not.toMatch(/NaN|undefined/);
+  });
+});

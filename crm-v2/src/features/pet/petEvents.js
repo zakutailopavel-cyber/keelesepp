@@ -12,3 +12,8 @@ export function announcePet(pet) { send(PET_EVENT, pet); }
 export function petQuiet(on) { send(PET_QUIET_EVENT, Boolean(on)); }
 // after a submitted worksheet the pet celebrates (shown once the student is back from the worksheet)
 export function petCelebrate({ xp = 15, goals = 0 } = {}) { send(PET_CELEBRATE_EVENT, { xp, goals }); }
+
+// a short reaction of the walking pet to what the student just did (owner 2026-10-12): 'correct' (hop + sparks),
+// 'wrong' (tilts its head), 'done' (a little dance), 'streak' (a flame over the head)
+export const PET_REACT_EVENT = 'ks-pet-react';
+export function petReact(kind) { send(PET_REACT_EVENT, { kind }); }
