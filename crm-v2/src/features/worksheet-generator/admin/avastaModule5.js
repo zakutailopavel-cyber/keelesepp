@@ -162,7 +162,7 @@ const SPECS = {
       goals: {
         g_vocab: 'Õpilane tunneb ära sagedased erandlikud minevikuvormid.',
         g_read: 'Õpilane mõistab tekstis sagedasi erandlikke minevikuvorme kontekstist.',
-        g_notice: 'Õpilane seostab oleviku vormid tuli, läks, tegi, nägi, sõi, jõi, oli jne minevikutähendusega.',
+        g_notice: 'Õpilane seostab erandlikud lihtmineviku vormid tuli, läks, tegi, nägi, sõi, jõi, oli algvormiga (tulema, minema, tegema …) ja kasutab neid minevikust rääkides.',
         g_use: 'Õpilane kasutab vähemalt 8 sihtvormi 10-st õigesti.',
       },
     },

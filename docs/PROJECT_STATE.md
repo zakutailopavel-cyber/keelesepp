@@ -6,7 +6,7 @@
 - Depends on #570: answer variants of sentences are written with „|”, which error fix / transformation score only after #570.
 - Data / production: none. The owner republishes the B1 lessons on „Kursuse tootmine” (or the Avasta upgrade buttons) — until then students see the old versions.
 - Checks: worksheet-generator + worksheet-studio 713/714 (the 1 is the timing-flaky LessonWorksheetStudioPage test, 4/4 alone); lint 0 errors; avastaModule tests pass.
-- Not fixed (needs a redesign, see the reports): texts 80–150 words (Harno B1: 200–300), no listening in modules 07–08, A2 grammar in 048/051/052/056/057/066/067/071, no täisminevik in module 05, no enneminevik; modules 09–15 marked A2+ while the roadmap says A2+/B1- / B1- (raising it unlocks longer speaking); avastaModule5 · 023 goal calls tuli/läks „oleviku vormid” (goals were not to be touched — owner decides).
+- Not fixed (needs a redesign, see the reports): texts 80–150 words (Harno B1: 200–300), no listening in modules 07–08, A2 grammar in 048/051/052/056/057/066/067/071, no täisminevik in module 05, no enneminevik; modules 09–15 marked A2+ while the roadmap says A2+/B1- / B1- (raising it unlocks longer speaking); (fixed on owner request: the a2b1-023 g_notice goal now says „erandlikud lihtmineviku vormid … algvormiga”, in avastaModule5.js and lessonGoals.js).
 - Next: merge #570, then this PR; then republish B1 lessons.
 
 ## 2026-10-12 · agent/sheet-page-fill — fewer empty spaces on worksheet pages
