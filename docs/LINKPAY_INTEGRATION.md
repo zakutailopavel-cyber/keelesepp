@@ -134,3 +134,17 @@ URL; owner's explicit go-ahead.
 5. Pay a test invoice with an LHV test card → the invoice turns „Makstud”, the payment shows method `linkpay`.
 
 Not covered by automatic tests: the real bank round trip (needs keys) — step 5 is the check.
+
+### Sandbox round trip verified (2026-10-12)
+
+Deployed `linkpayApi`, `invoiceApi`, `financeApi`, `sendInvoicePaymentReminders`; secrets `LINKPAY_SANDBOX_USERNAME`,
+`LINKPAY_SANDBOX_SECRET` set by the owner from the clipboard; LHV sandbox link Customer URL
+`https://crm.epkoolitus.ee/maksa/tagasi`, e-shop „LinkPay Notification URL” `…/linkpayApi/callback`;
+`financeSettings/linkpay` = sandbox, token `b3uagr8a5v`, **enabled: false**.
+Test: invoice KS-2026-093 (1 €, „Test Õpilane”) → Finance → Seaded → Kaardimaksed „Ava testmakse” → LHV sandbox bank
+payment (owner confirmed) → return page „Aitäh, makse on kinnitatud!”, invoice „Makstud”, exactly one payment
+(method `linkpay`, actor `system:linkpay`) although the bank notified 4–5 times, attempt `settled`, audit
+`payment.created`. Cleaned up: payment voided, invoice cancelled.
+
+Do **not** switch on while the environment is sandbox (families could „pay” real invoices with test money).
+Next: production (LHV agreement, production link, production keys, `linkpayCredentials` for production — separate PR).
