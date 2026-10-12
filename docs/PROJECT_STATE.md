@@ -1,3 +1,11 @@
+## 2026-10-12 · agent/b1-lesson-goals — B1: one specific goal set per lesson on all three sheets
+
+- Why: lesson quality contract A1–A3; the audit found the generic `GOALS` of `admin/course/registry.js` on 70 B1 Harjuta/Kasuta (and Avasta 51–75) and different learner goals on the three sheets of 15 lessons.
+- `admin/course/b1/lessonGoals.js` (`B1_LESSON_GOALS`): canDo + sub-goals for a2b1-001…075 (1–50 from their reviewed Avasta sheets, 51–75 rewritten specific); `buildCourseSheet` uses them before the generic defaults. Test `b1/lessonGoals.test.js`.
+- Published: 225 sheets (75 lessons × 3) get a new version with only `meta.canDo` / `meta.goals` changed and 9 blocks' `g_form` → `g_notice`; tasks untouched; no unpublished drafts existed.
+- Checks: worksheet-generator 535/535.
+- Next: B1 small tasks (< 5 items) → modules 16–18 → B1 assessment lessons by the contract.
+
 ## 2026-10-12 · agent/course-audit — full course audit before any new automation
 
 - Why (owner): „начать с нормальных рабочих листов, цели урока по каждому уроку и адекватного учебного плана без косяков”.

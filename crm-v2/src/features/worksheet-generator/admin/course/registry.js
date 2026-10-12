@@ -2,6 +2,7 @@
 // ({ [lessonId]: { title, canDo, practice?, transfer?, discover? } }); the admin page „Kursuse tootmine” previews
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
+import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import * as b1m02 from './b1/module02.js';
 import * as b1m03 from './b1/module03.js';
 import * as b1m04 from './b1/module04.js';
@@ -59,6 +60,10 @@ export const PHASES = {
   transfer: { label: '3 Kasuta', slot: 3, subtitle: 'Kasuta õpitut uues olukorras iseseisvalt.' },
 };
 
+// the lesson's own goal and sub-goals win over the generic defaults (contract A1–A3)
+const LESSON_GOALS = { ...B1_LESSON_GOALS };
+export const lessonGoalsFor = (lessonId) => LESSON_GOALS[lessonId] || null;
+
 const GOALS = {
   g_vocab: 'Õpilane kasutab mooduli põhisõnavara uutes lausetes.',
   g_read: 'Õpilane mõistab teksti põhiideed ja detaile.',
@@ -89,8 +94,8 @@ export function buildCourseSheet(mod, lessonId, phase) {
       subtitle: PHASES[phase].subtitle,
       level: lesson.level || mod.MODULE.level,
       module: mod.MODULE.title,
-      canDo: lesson.canDo,
-      goals: GOALS,
+      canDo: LESSON_GOALS[lessonId]?.canDo || lesson.canDo,
+      goals: LESSON_GOALS[lessonId]?.goals || GOALS,
       phase,
       displayLabel: PHASES[phase].label,
       // modules written before the 40–55 min rule are marked until they are expanded (docs/B1_B2_COURSE_PRODUCTION.md)
