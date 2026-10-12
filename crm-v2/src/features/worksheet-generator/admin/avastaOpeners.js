@@ -188,7 +188,8 @@ export function openerBlocks(lessonId) {
   if (!opener) return null;
   const key = lessonId.replace(/[^a-z0-9]/gi, '_');
   return [
-    block(`${key}_av_situation`, 'text', 'cream', 'g_read', { heading: opener.heading, text: opener.text }, 'full'),
+    // one line per message / reply: the text block makes a paragraph of each blank-line-separated part
+    block(`${key}_av_situation`, 'text', 'cream', 'g_read', { heading: opener.heading, text: opener.text.replace(/\n/g, '\n\n') }, 'full'),
     block(`${key}_av_check`, 'truefalse', 'sky', 'g_read', {
       title: 'Loe olukorda. Kas väide on õige?',
       instruction: 'Märgi Õ, kui väide on õige, ja V, kui vale.',
