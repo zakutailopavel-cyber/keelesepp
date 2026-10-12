@@ -1,3 +1,9 @@
+## 2026-10-12 · agent/manual-invoice-both-subjects — „Lisa arve”: both subjects at once
+
+- Base: `main` after #551. Why (owner): „так а где два счета то?” — a student with two subject cards had to be billed twice by hand.
+- `ManualInvoiceDialog.jsx`: „Aine” → „Mõlemad ained (N arvet)” shows one amount per subject and creates one invoice per card (each with its subject on the PDF) with one button „Loo arved (N)”; a created subject leaves the form, so a retry after an error never duplicates. Finance core unchanged (one invoice = one card).
+- Checks: finance 111/111; eslint clean.
+
 ## 2026-10-12 · agent/linkpay-sandbox-verified — LinkPay sandbox round trip works
 
 - Base: `main` ba9e280. Full sandbox payment through the CRM verified (KS-2026-093, 1 €): bank-confirmed, registered once despite repeated notifications, then voided + invoice cancelled. Card payments stay **off** (sandbox). Details: `docs/LINKPAY_INTEGRATION.md` „Sandbox round trip verified”.
