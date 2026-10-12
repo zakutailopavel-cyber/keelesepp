@@ -336,7 +336,7 @@ export const LESSONS = {
       ]),
       // reading 5: a personal letter with 8 option gaps
       B.cloze('010_p_cloze', 'Lugemine 5. Kiri sõbrannalt.', 'Vali igasse lünka sobiv sõna.', 'Tere, Kati!', [
-        'Aitäh {*sinu|sina|sind} kirja eest! Meil läheb hästi ja mul on sulle palju uudiseid. Minu {*venna|vend|vennale} pere kolis eelmisel kuul meie lähedale. Nüüd näen ma tema lapsi {*tihti|harva|kunagi}.',
+        'Aitäh {*sinu|sina|sind} kirja eest! Meil läheb hästi ja mul on sulle palju uudiseid. Minu {*venna|vend|vennale} pere kolis eelmisel kuul meie lähedale. Nüüd näen ma tema lapsi {*tihti|tihe|tiheda}.',
         '',
         'Vanem tüdruk Mia on viieaastane. {*Tal on|Ta on|Teda on} pikad heledad juuksed ja ta naerab palju. Väike Oskar on alles kaks ja käib juba lasteaias. Ta on natuke {*tagasihoidlik|tagasihoidlikud|tagasihoidlikku}, aga minuga mängib ta hea meelega.',
         '',
