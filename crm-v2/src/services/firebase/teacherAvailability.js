@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, setDoc } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 // teacherAvailability/{teacherUid}: the teacher's green (free) and red (busy) windows in the calendar
@@ -9,6 +9,13 @@ export const teacherAvailabilityService = {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(collection(db, 'teacherAvailability'));
     return snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() }));
+  },
+  // one teacher's windows (a student or parent reads them to ask for a new lesson time)
+  async get(teacherUid) {
+    if (!teacherUid) return null;
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDoc(doc(db, 'teacherAvailability', teacherUid));
+    return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
   },
   async save({ teacherUid, teacherName, slots, user }) {
     if (!teacherUid) throw new Error('Õpetaja puudub.');

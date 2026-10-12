@@ -1,10 +1,12 @@
 import { BookOpen, CalendarDays, Check, ChevronRight, Flame, Gamepad2, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, invoicesService, lessonsService, libraryService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService, invoicesService, lessonChangeRequestsService, lessonsService, libraryService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { requestFor } from '../calendar/rescheduleModel.js';
+import RescheduleDialog from './RescheduleDialog.jsx';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
 import { reviewedOn } from '../self-study/reviewStore.js';
@@ -45,11 +47,13 @@ export default function StudentDashboardPage({
   lessonRepository = lessonsService,
   petRepository = petsService,
   catalogRepository = libraryService,
+  changeRequests = lessonChangeRequestsService,
   consentService,
   wordsService,
   summaryService,
 }) {
   const { user, preview } = useAuth();
+  const [rescheduling, setRescheduling] = useState(false);
   const state = useAsyncData(async () => {
     const students = preview?.studentId
       ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
@@ -69,6 +73,7 @@ export default function StudentDashboardPage({
       Promise.all(studentIds.map((studentId) => invoiceRepository.listByStudent(studentId))),
       Promise.all(studentIds.map((studentId) => lessonRepository.listByStudent(studentId))),
     ]);
+    const requests = await Promise.resolve().then(() => changeRequests?.listForStudents?.(studentIds) || []).catch(() => []);
     return {
       progressData,
       pet: pet || null,
@@ -78,6 +83,7 @@ export default function StudentDashboardPage({
       schedule: unique(scheduleLists.flat()),
       invoices: unique(invoiceLists.flat()),
       lessons: unique(lessonLists.flat()),
+      requests,
     };
   }, [homeworkRepository, invoiceRepository, lessonRepository, preview?.studentId, scheduleRepository, studentRepository, user.uid]);
 
@@ -105,9 +111,12 @@ export default function StudentDashboardPage({
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
   const { students, homework, submissions, schedule, invoices, lessons } = state.data;
+  const studentMap = new Map(students.map((student) => [student.id, student]));
   const upcoming = occurrencesForDates(schedule, nextDates).slice(0, 6);
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
   const nextLesson = upcoming[0] || null;
+  const nextRequest = requestFor(state.data.requests, nextLesson);
+  const cancelRequest = async () => { try { await changeRequests.cancel(nextRequest.id); } finally { state.reload(); } };
   const progress = (() => {
     const [curriculum, allSheets, stats] = state.data.progressData || [[], [], []];
     const student = students[0];
@@ -154,7 +163,15 @@ export default function StudentDashboardPage({
           <span><small>Arved</small><strong>{money(balance)}</strong><em>{invoices.length} arvet · tasumata</em></span>
         </div> : null}
       </div>
+      {nextLesson && !preview ? <div className="student-path__reschedule">
+        {nextRequest?.status === 'pending' ? <p className="form-hint" role="status">Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab. <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
+          : nextRequest?.status === 'declined' ? <p className="form-hint" role="status">Õpetaja ei saanud tundi üle viia{nextRequest.teacherNote ? `: ${nextRequest.teacherNote}` : ''}. Tund jääb samale ajale. <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Küsi uuesti</button></p>
+            : <Button variant="secondary" onClick={() => setRescheduling(true)}>Ei saa tulla?</Button>}
+      </div> : null}
     </section> : null}
+    {rescheduling && nextLesson ? <RescheduleDialog lesson={nextLesson} student={studentMap.get(nextLesson.studentId) || students[0]} user={user} role="student"
+      busy={upcoming.map((item) => ({ date: item.occurrenceDate, time: item.time, duration: item.duration }))} requests={changeRequests}
+      onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
     {students.length ? <MyProgressCard progress={progress} /> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
       <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} />

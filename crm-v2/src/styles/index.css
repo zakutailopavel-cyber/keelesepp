@@ -219,6 +219,7 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 .student-path__streak.is-on{background:#fff1e6;color:#c4320a}
 .student-path__bar{height:8px;margin:12px 0 14px;border-radius:99px;background:#e3ece8;overflow:hidden}
 .student-path__bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#12b76a,#0f8a73);transition:width .3s}
+.student-path__reschedule{margin-top:12px;display:flex;justify-content:flex-end}.student-path__reschedule p{margin:0}
 .student-path .student-today{margin-bottom:0}
 .student-today__card.is-step.is-done{border-color:#a6e3cc;background:#f0faf6}
 .student-today__card.is-step.is-done>i{background:#12b76a;color:#fff}

@@ -41,3 +41,4 @@ export { worksheetTemplatesService } from './worksheetTemplates.js';
 export { maintenanceService } from './maintenance.js';
 export { teacherAvailabilityService } from './teacherAvailability.js';
 export { emailQueueService } from './emailQueue.js';
+export { lessonChangeRequestsService } from './lessonChangeRequests.js';
