@@ -634,3 +634,13 @@
 .ws-root.density-compact .ws-passage { font-size: 10.6pt; }
 .ws-root.density-compact .ws-gaps li { padding: .4mm 0; }
 .ws-root.density-compact .ws-card.head-band .ws-ch { margin: -2.6mm -3.2mm 2mm; padding: 1.8mm 3.2mm; }
+
+/* ── exam formats (blocks/exam.jsx) ── */
+.ws-cloze .ws-passage p { line-height: 1.75; }
+.ws-cloze-gap { font-weight: 700; color: var(--ks-navy); white-space: nowrap; }
+.ws-cloze-sel { font: inherit; border: 0; border-bottom: 1px solid var(--ks-line); background: rgba(255,255,255,.8); padding: 0 1mm; }
+.ws-cloze-sel.is-ok { background: #ecfdf3; } .ws-cloze-sel.is-bad { background: #fef3f2; }
+.ws-cloze-options { margin: 3mm 0 0; padding-left: 7mm; columns: 2; column-gap: 8mm; }
+.ws-cloze-options li { break-inside: avoid; margin-bottom: 1.2mm; }
+.ws-cloze-options li span { margin-right: 4mm; white-space: nowrap; }
+.ws-cloze-options .ws-dot { display: inline-block; width: 3mm; height: 3mm; border: .3mm solid var(--ks-line); border-radius: 50%; vertical-align: -.3mm; }

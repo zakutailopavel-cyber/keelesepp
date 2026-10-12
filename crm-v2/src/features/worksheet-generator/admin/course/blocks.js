@@ -40,6 +40,8 @@ export const B = {
   reading: (id, title, instruction, passageTitle, passage, questions, goal = 'g_read') => block(id, 'reading', 'cream', goal, {
     title, instruction, passageTitle, passage: join(passage), questions: questions.map(([q, a]) => (a ? `${q} [${a}]` : q)).join('\n'), lineWidth: 'wide',
   }),
+  // a text with option gaps (Harno B1 reading 3): „… {*õige|vale|vale} …”
+  cloze: (id, title, instruction, passageTitle, passage, goal = 'g_read') => block(id, 'cloze', 'cream', goal, { title, instruction, passageTitle, passage: join(passage) }),
   listening: (id, title, instruction, transcript, sentences, goal = 'g_read') => block(id, 'listening', 'sky', goal, { title, instruction, audio: null, sentences: join(sentences), transcript: join(transcript) }),
   dictation: (id, title, instruction, sentences, lines = 6) => block(id, 'dictation', 'sky', 'g_use', { title, instruction, sentences: join(sentences), lines }),
   speaking: (id, title, instruction, questions, [minSec, maxSec], tipText = '', goal = 'g_use') => block(id, 'speaking', 'green', goal, {
