@@ -1,3 +1,11 @@
+## 2026-10-13 · agent/b1-modules-16-18 — B1 modules 16–18 (lessons 076–090) with two full Harno B1 mocks
+
+- New `admin/course/b1/module16.js` („Arvamus, võrdlemine ja põhjendamine”, B1-, 076–080), `module17.js` („B1 lugemine ja kirjutamine”, B1, 081–085), `module18.js` („B1 rääkimine ja lõpphindamine”, B1, 086–090): 15 lessons × Avasta / Harjuta / Kasuta, registered in `registry.js`; goals for 076–090 in `b1/lessonGoals.js` (test now 1–90).
+- Harno B1: 080 „Vahehindamine 4” (reading + listening / writing + speaking in exam form), 081–085 all four reading tasks and both writing tasks (note, questionnaire, letter or story, rubric 8 + 12), 086–088 speaking formats and all four listening formats, 089 „B1 proovitund” and 090 „Lõpphindamine” = two parallel full mocks (listening 30, reading 33 points, writing, speaking; pass rule 60 % per skill as Harno, 70 % overall for KeeleSepp).
+- Option-gap texts of the whole B1 course reviewed (182 gaps): 9 ambiguous wrong options replaced, 2 text errors fixed (055, 089).
+- Quality gate: 0 problems in 16–18; baseline unchanged. Reports: `docs/level-audit-2026-10-12/b1-modules-16-18/`.
+- Checks: worksheet-generator + worksheet-studio 729/729 (+1 skipped); lint 0 errors. Production: none until published on „Kursuse tootmine”.
+
 ## 2026-10-13 · agent/b1-harno-formats — B1 modules 02–15 train the Harno exam formats of their stage
 
 - Why (owner): „начинай переделку B1 под Harno”. Target: `docs/HARNO_LEVEL_REQUIREMENTS.md` (A2 and B1 exams).

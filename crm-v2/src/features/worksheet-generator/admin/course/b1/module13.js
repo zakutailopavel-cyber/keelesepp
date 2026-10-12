@@ -334,7 +334,7 @@ export const LESSONS = {
       B.cloze('065_p_cloze', 'Lugemine 3: vali lünka sobiv sõna.', 'Igas lüngas on kolm valikut. Vali õige.', 'Kiri majaühistule', [
         'Lugupeetud majaühistu juhatus!',
         'Kirjutan teile, sest meie maja hoovis {*on|oli|oleks} juba kuu aega suur probleem. Mitu autot seisab iga päev mänguväljaku {*kõrval|kõrvale|kõrvalt}, kuigi seal on parkimine keelatud. Lapsed ei saa enam rahulikult {*mängida|mängima|mängivad}. Ma {*rääkisin|rääkida|rääkinud} juba kahe autoomanikuga. Nad ütlesid, et neil ei ole kodu lähedal ühtegi vaba {*parkimiskohta|parkimiskoht|parkimiskohal}. Ma saan sellest aru, aga laste turvalisus on minu {*jaoks|pärast|poolt} kõige olulisem.',
-        'Mul oleks kaks ettepanekut. Esiteks me {*võiksime|võiksin|võiksite} panna hoovi väravasse lukuga tõkke. Teiseks saaks maja taga oleva vana garaaži lammutada ja teha sinna kuus parkimiskohta. See {*maksaks|maksaksid|maksta} umbes kolm tuhat eurot, aga raha võiks jagada kõigi {*korterite|korterid|korteritel} vahel.',
+        'Mul oleks kaks ettepanekut. Esiteks {*võiksime|võiksin|võiksite} me panna hoovi väravasse lukuga tõkke. Teiseks saaks maja taga oleva vana garaaži lammutada ja teha sinna kuus parkimiskohta. See {*maksaks|maksaksid|maksta} umbes kolm tuhat eurot, aga raha võiks jagada kõigi {*korterite|korterid|korteritel} vahel.',
         'Palun arutage seda järgmisel üldkoosolekul. Olen valmis oma ettepanekuid koosolekul {*tutvustama|tutvustada|tutvustan}.',
         'Lugupidamisega\nIrina Tamm, korter 12',
       ].join('\n\n')),
