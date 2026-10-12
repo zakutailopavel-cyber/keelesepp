@@ -43,7 +43,7 @@ describe('Sõnavara page', () => {
     expect(await screen.findByRole('region', { name: 'Õppimine: 3. Raha ja ost' })).toBeInTheDocument();
     expect(props.worksheetRepository.list).toHaveBeenCalledWith('b1-003');
     expect(screen.getByText('3 kaarti')).toBeInTheDocument();
-    ['Kaardid', 'Õpi', 'Kirjuta', 'Sobita', 'Test'].forEach((name) => expect(screen.getByRole('button', { name: new RegExp(`^${name}`) })).toBeInTheDocument());
+    ['Kaardid', 'Õpi', 'Kirjuta', 'Sobita', 'Test'].forEach((name) => expect(screen.getByRole("button", { name: new RegExp(`^${name}$`) })).toBeInTheDocument());
   });
 
   it('flashcards of my own words move them in their boxes once per session', async () => {
