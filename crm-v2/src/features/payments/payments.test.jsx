@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import OpenInvoicesCard from './OpenInvoicesCard.jsx';
+import LinkpaySettings from './LinkpaySettings.jsx';
 import PayInvoicePage from './PayInvoicePage.jsx';
 
 const page = (url, api, go = vi.fn()) => {
@@ -54,5 +55,17 @@ describe('Open invoices card', () => {
     fireEvent.click(screen.getByRole('button', { name: /Maksa arve/ }));
     await waitFor(() => expect(go).toHaveBeenCalledWith('https://bank/x'));
     expect(api.startForInvoice).toHaveBeenCalledWith('a');
+  });
+});
+
+describe('Kaardimaksed settings', () => {
+  it('lets the administrator open a test payment while payments are off', async () => {
+    const go = vi.fn();
+    const api = { settings: vi.fn().mockResolvedValue({ enabled: false, environment: 'sandbox', linkpayToken: 'tok' }), startForInvoice: vi.fn().mockResolvedValue({ url: 'https://bank/test' }) };
+    render(<LinkpaySettings api={api} go={go} />);
+    fireEvent.change(await screen.findByLabelText('Arve ID'), { target: { value: 'inv-test' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ava testmakse' }));
+    await waitFor(() => expect(go).toHaveBeenCalledWith('https://bank/test'));
+    expect(api.startForInvoice).toHaveBeenCalledWith('inv-test');
   });
 });
