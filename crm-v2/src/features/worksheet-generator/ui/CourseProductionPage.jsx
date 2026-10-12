@@ -6,7 +6,7 @@ import { ROLES } from '../../../utils/roles.js';
 import { analyzeWorksheet } from '../../worksheet-studio/quality.js';
 import { sheetMinutes } from '../../worksheet-studio/didactics/timeEstimate.js';
 import { COURSE_MODULES, COURSES, PHASES, moduleNumber, moduleSheets } from '../admin/course/registry.js';
-import { moduleProblems } from '../admin/course/quality.js';
+import { moduleProblems, splitByBaseline } from '../admin/course/quality.js';
 
 const StudioSheetPreview = lazy(() => import('../../library/StudioSheetPreview.jsx'));
 const MISSING = 'Töölehte ei leitud.';
@@ -20,7 +20,8 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   const [moduleId, setModuleId] = useState(modules[0]?.MODULE.id || '');
   const mod = modules.find((m) => m.MODULE.id === moduleId) || modules[0];
   const sheets = useMemo(() => (mod ? moduleSheets(mod) : {}), [mod]);
-  const problems = useMemo(() => moduleProblems(sheets), [sheets]);
+  // a new problem locks publishing; a known one (qualityBaseline.json, the level audit's debt) is shown but does not
+  const { fresh: problems, known } = useMemo(() => (mod ? splitByBaseline(mod.MODULE.id, moduleProblems(sheets)) : { fresh: [], known: [] }), [mod, sheets]);
   const [records, setRecords] = useState({});
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState('');
@@ -78,6 +79,12 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
           {problems.length ? `⚠ Kvaliteedikontroll: ${problems.length} probleemi — avaldamine on lukus.` : '✓ Kvaliteedikontroll läbitud: vormid, taseme normid ja vaheldus on korras.'}
         </p>
         {problems.length ? <ul className="form-error">{problems.map((p, i) => <li key={i}>{p.lessonId} {p.phase}: {p.text}</li>)}</ul> : null}
+        {known.length ? (
+          <details style={{ marginTop: 8 }}>
+            <summary className="form-hint">Teadaolevad puudused: {known.length} (taseme audit 12.10.2026 — parandatakse sisutöös, avaldamist ei lukusta)</summary>
+            <ul className="form-hint">{known.map((p, i) => <li key={i}>{p.lessonId} {p.phase}: {p.text}</li>)}</ul>
+          </details>
+        ) : null}
       </Card>
       {error ? <ErrorState title="Viga" message={error} /> : null}
       {loading ? <LoadingState label="Kontrollin olemasolevaid töölehti…" /> : Object.entries(sheets).map(([lessonId, phases]) => (
