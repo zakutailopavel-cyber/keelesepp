@@ -74,3 +74,19 @@ describe('study decks', () => {
     test.filter((question) => question.kind === 'truefalse').forEach((question) => expect(typeof question.truth).toBe('boolean'));
   });
 });
+
+describe('decks per Live lesson', () => {
+  it('groups the words by lesson, newest first, at least two words', async () => {
+    const { lessonDecks } = await import('./deckModel.js');
+    const words = [
+      { id: '1', word: 'kass', translation: 'кот', invitationId: 'a', createdAt: '2026-10-05T10:00:00Z' },
+      { id: '2', word: 'koer', translation: 'собака', invitationId: 'a', createdAt: '2026-10-05T10:05:00Z' },
+      { id: '3', word: 'pood', translation: 'магазин', invitationId: 'b', createdAt: '2026-10-11T07:00:00Z' },
+      { id: '4', word: 'hind', translation: 'цена', invitationId: 'b', createdAt: '2026-10-11T07:10:00Z' },
+      { id: '5', word: 'üks', translation: 'один', invitationId: 'c', createdAt: '2026-10-12T07:00:00Z' },
+      { id: '6', word: 'oma', translation: 'свой', invitationId: '', createdAt: '2026-10-12T07:00:00Z' },
+    ];
+    const decks = lessonDecks(words);
+    expect(decks.map((d) => [d.invitationId, d.day, d.deck.length])).toEqual([['b', '2026-10-11', 2], ['a', '2026-10-05', 2]]);
+  });
+});

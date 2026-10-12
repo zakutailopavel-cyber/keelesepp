@@ -133,3 +133,22 @@ export function buildTest(deck, { size = 10, direction = 'back', random = Math.r
     return { card, kind, options: kind === 'choice' ? choices(card, deck, direction, random) : [] };
   });
 }
+
+// a deck per Live Classroom lesson (owner 2026-10-12): the words the teacher added in one lesson, newest lesson
+// first; a lesson with fewer than two words makes no deck
+export function lessonDecks(words = []) {
+  const groups = new Map();
+  for (const word of words) {
+    if (!word?.invitationId) continue;
+    const list = groups.get(word.invitationId) || [];
+    list.push(word);
+    groups.set(word.invitationId, list);
+  }
+  return [...groups.entries()]
+    .map(([invitationId, list]) => {
+      const day = list.map((word) => String(word.createdAt || '')).sort()[0].slice(0, 10);
+      return { key: `lesson-${invitationId}`, invitationId, day, deck: deckFromWords(list) };
+    })
+    .filter((item) => item.deck.length >= 2)
+    .sort((a, b) => b.day.localeCompare(a.day));
+}

@@ -88,7 +88,7 @@ export default function LessonEndPanel({
         })}</ul>
       </> : null}
       <h3 className="vw-heading">Uued sõnad ({words.length})</h3>
-      {words.length ? <p className="vw-muted">{words.map((item) => item.word).join(', ')}</p> : <p className="vw-muted">Sõnu ei lisatud („Sõnad”).</p>}
+      {words.length ? <><p className="vw-muted">{words.map((item) => item.word).join(', ')}</p><p className="vw-muted">Õpilane leiab need Sõnavaras kaardipakina „Tund {new Date().toLocaleDateString('et-EE', { day: 'numeric', month: 'short' })}”.</p></> : <p className="vw-muted">Sõnu ei lisatud („Sõnad”).</p>}
       <h3 className="vw-heading">Kodutöö ({homework.length})</h3>
       {homework.length ? <ul className="vw-list">{homework.map((item) => <li key={item.id}><span>{item.task}</span></li>)}</ul> : <p className="vw-muted">Kodutööd ei antud („Rohkem” → „Anna kodutöö”).</p>}
       <label className="vw-field"><span>Sõnum õpilasele (valikuline)</span>
@@ -96,6 +96,7 @@ export default function LessonEndPanel({
       <label className="vw-check"><input type="checkbox" checked={markHeld} onChange={(event) => setMarkHeld(event.target.checked)} /> {linked
         ? 'Märgi tund kalendris toimunuks (teema töölehest, märkus läheb päevikusse)'
         : 'Tund ei olnud kalendris: kalender pakub selle lisada ja märkida toimunuks (teema töölehest, märkus päevikusse)'}</label>
+      <p className="vw-note">Salvestatud tunni AI analüüs ilmub mõne minuti pärast õpilase kaardile („Tunnid”). Seal on õpilase vigade teemad ja nupud „Anna kodutöö teemade järgi” ning „Lisa parandused kaartidele”.</p>
       {error ? <p className="vw-error" role="alert">{error}</p> : null}
       <div className="vw-actions">
         <button type="button" className="vw-btn is-primary" disabled={busy || ending} onClick={() => finish(true)}>Saada kokkuvõte ja lõpeta tund</button>

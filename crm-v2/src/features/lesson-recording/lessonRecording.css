@@ -61,3 +61,10 @@
 .lesson-ai__status.is-failed { background: #fef3f2; color: #b42318; }
 @keyframes lesson-ai-pulse { 50% { opacity: .3; } }
 @media (prefers-reduced-motion: reduce) { .lesson-ai__status.is-running::before { animation: none; } }
+
+/* „Pärast tundi”: the learner's topics and the two next steps */
+.lesson-ai__after { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid #a6e3cc; border-radius: 12px; background: #f0faf6; }
+.lesson-ai__topics { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.lesson-ai__topics li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #fff; border: 1px solid #d0eadf; font-size: 13px; }
+.lesson-ai__topics em { font-style: normal; color: #0b6b5a; font-weight: 700; }
+.lesson-ai__actions { display: flex; flex-wrap: wrap; gap: 8px; }

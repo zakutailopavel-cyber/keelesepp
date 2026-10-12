@@ -1,3 +1,12 @@
+## 2026-10-12 · agent/learning-loop — Tänane tee, tunni kaardipakid, „Pärast tundi”
+
+- Base: `main` 759a054. Why (owner): connect lesson → words and errors → homework and practice → progress.
+- **Tänane tee** (`features/students/todayPath.js`, StudentDashboardPage): three daily steps — repeat words (done when a word was reviewed today), homework/sheet (done when submitted or marked done today, or nothing open), pet game (done when `pet.playedAt` is today) — progress `x/3`, the pet's learning streak, the next lesson card.
+- **Lesson decks** (`vocabulary/deckModel.js` `lessonDecks`): the words the teacher added in a Live lesson (`studentWords.invitationId`) are a deck „Tund 11. okt” in Sõnavara (≥ 2 words, newest first). LessonEndPanel tells the teacher where the student finds them.
+- **Pärast tundi** (`lesson-recording/afterLesson.js`, `AfterLesson` in TranscriptView's AI panel): the learner's counted error topics (transcriber v7 `analysis.focus`) and two buttons — „Anna kodutöö teemade järgi” (homework, due +3 days, his sentences to correct) and „Lisa parandused kaartidele” (≤ 10 cards: front the corrected sentence, back „Sinu lause: …”, linked to the lesson). Nothing is written before the teacher presses.
+- Checks: todayPath, deckModel, afterLesson (+ panel UI) tests; students/vocabulary/lesson-recording/pet suites pass; live-classroom: only the 9 known localStorage failures (Node 26); eslint clean.
+- Next step: watch a real lesson end-to-end (teacher adds words → student's „Tund …” deck; analysis → Pärast tundi buttons).
+
 ## 2026-10-10 · agent/course-b1-m15 — B1 kursus moodul 15 (Avasta + Harjuta + Kasuta) (a2b1-071…075), kõik kolm etappi
 
 - Base: `main` 9b75be0. Previous modules are published to production (diff with production: 0 differences).

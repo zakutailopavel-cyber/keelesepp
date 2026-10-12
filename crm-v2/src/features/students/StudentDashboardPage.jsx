@@ -1,17 +1,18 @@
-import { BookOpen, CalendarDays, ChevronRight, GraduationCap, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
+import { BookOpen, CalendarDays, Check, ChevronRight, Flame, Gamepad2, Languages, MessageSquareText, Star, Video, WalletCards } from 'lucide-react';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { homeworkService, invoicesService, lessonsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { homeworkService, invoicesService, lessonsService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { petProgress } from '../pet/petModel.js';
+import { todayPath } from './todayPath.js';
 import { occurrencesForDates, shiftDate, toIsoDate } from '../calendar/calendarView.js';
 import { invoiceBalanceCents } from './studentFinance.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
-import { isDue } from '../vocabulary/wordsModel.js';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 
 function unique(items) {
@@ -38,6 +39,7 @@ export default function StudentDashboardPage({
   scheduleRepository = scheduleService,
   invoiceRepository = invoicesService,
   lessonRepository = lessonsService,
+  petRepository = petsService,
   consentService,
   wordsService,
   summaryService,
@@ -48,7 +50,8 @@ export default function StudentDashboardPage({
       ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
       : await studentRepository.listSelf(user.uid);
     const studentIds = students.map((student) => student.id);
-    const [homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
+    const [pet, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
+      preview ? null : Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
       homeworkRepository.listByStudentIds(studentIds),
       homeworkRepository.listSubmissionsByStudentIds(studentIds),
       Promise.all(studentIds.map((studentId) => scheduleRepository.listByStudent(studentId))),
@@ -56,6 +59,7 @@ export default function StudentDashboardPage({
       Promise.all(studentIds.map((studentId) => lessonRepository.listByStudent(studentId))),
     ]);
     return {
+      pet: pet || null,
       students,
       homework,
       submissions,
@@ -79,30 +83,38 @@ export default function StudentDashboardPage({
   const completedLessons = lessons.filter((lesson) => lesson.status !== 'Tühistatud');
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
   const nextLesson = upcoming[0] || null;
-  const dueWords = words.filter((word) => isDue(word)).length;
+  const path = todayPath({ words, homework, submissions, pet: state.data.pet, today });
+  const streak = petProgress({ lessons, submissions, homework, words }).streak;
+  const STEP_ICON = { words: Languages, work: BookOpen, pet: Gamepad2 };
   const balance = invoices.reduce((sum, invoice) => sum + invoiceBalanceCents(invoice), 0);
 
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title={`Tere, ${user.displayName || 'õpilane'}!`} description="Sinu tunnid, ülesanded, tulemused ja õppimise edenemine ühes vaates." />
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
 
-    {students.length ? <section className="student-today" aria-label="Täna">
-      <Link className="student-today__card is-lesson" to={nextLesson?.occurrenceDate === today ? '/live-classroom' : '/homework'}>
-        <i>{nextLesson?.occurrenceDate === today ? <Video size={22} /> : <CalendarDays size={22} />}</i>
-        <span><small>Järgmine tund</small><strong>{nextLesson ? `${nextLesson.occurrenceDate === today ? 'Täna' : dateLabel(nextLesson.occurrenceDate)} · ${nextLesson.time}` : 'Tunde ei ole plaanis'}</strong><em>{nextLesson ? (nextLesson.occurrenceDate === today ? 'Ava Live Classroom' : `${nextLesson.teacher || 'Õpetaja'} · ${nextLesson.duration || 60} min`) : 'Õpetaja lisab tunni kalendrisse'}</em></span>
-      </Link>
-      <Link className={`student-today__card ${pendingHomework.length ? 'is-todo' : ''}`} to="/homework">
-        <i><BookOpen size={22} /></i>
-        <span><small>Kodutööd</small><strong>{pendingHomework.length ? `${pendingHomework.length} ootab tegemist` : 'Kõik tehtud'}</strong><em>{pendingHomework[0]?.task || 'Uued ülesanded tulevad pärast tundi'}</em></span>
-      </Link>
-      <Link className={`student-today__card ${dueWords ? 'is-todo' : ''}`} to="/student/sonavara">
-        <i><Languages size={22} /></i>
-        <span><small>Sõnakaardid</small><strong>{dueWords ? `${dueWords} sõna kordamiseks` : `${words.length} sõna`}</strong><em>{dueWords ? 'Korda ja toida oma lemmikut' : 'Õpi kursuse tundide sõnu'}</em></span>
-      </Link>
-      {balance > 0 ? <div className="student-today__card is-todo">
-        <i><WalletCards size={22} /></i>
-        <span><small>Arved</small><strong>{money(balance)}</strong><em>{invoices.length} arvet · tasumata</em></span>
-      </div> : null}
+    {students.length ? <section className="student-path" aria-label="Täna">
+      <header className="student-path__head">
+        <div><span className="eyebrow">Tänane tee</span><h2>{path.done === path.total ? 'Kõik tänased sammud tehtud!' : `${path.done}/${path.total} sammu tehtud`}</h2></div>
+        <span className={`student-path__streak ${streak ? 'is-on' : ''}`} title="Õppimise päevi järjest"><Flame size={17} aria-hidden="true" /> {streak} {streak === 1 ? 'päev' : 'päeva'} järjest</span>
+      </header>
+      <div className="student-path__bar" aria-hidden="true"><i style={{ width: `${path.total ? Math.round((path.done / path.total) * 100) : 0}%` }} /></div>
+      <div className="student-today">
+        <Link className="student-today__card is-lesson" to={nextLesson?.occurrenceDate === today ? '/live-classroom' : '/homework'}>
+          <i>{nextLesson?.occurrenceDate === today ? <Video size={22} /> : <CalendarDays size={22} />}</i>
+          <span><small>Järgmine tund</small><strong>{nextLesson ? `${nextLesson.occurrenceDate === today ? 'Täna' : dateLabel(nextLesson.occurrenceDate)} · ${nextLesson.time}` : 'Tunde ei ole plaanis'}</strong><em>{nextLesson ? (nextLesson.occurrenceDate === today ? 'Ava Live Classroom' : `${nextLesson.teacher || 'Õpetaja'} · ${nextLesson.duration || 60} min`) : 'Õpetaja lisab tunni kalendrisse'}</em></span>
+        </Link>
+        {path.steps.map((step, index) => {
+          const Icon = step.done ? Check : STEP_ICON[step.key];
+          return <Link key={step.key} className={`student-today__card is-step ${step.done ? 'is-done' : 'is-todo'}`} to={step.to}>
+            <i><Icon size={22} /></i>
+            <span><small>{index + 1}. samm</small><strong>{step.label}</strong><em>{step.detail}</em></span>
+          </Link>;
+        })}
+        {balance > 0 ? <div className="student-today__card is-todo">
+          <i><WalletCards size={22} /></i>
+          <span><small>Arved</small><strong>{money(balance)}</strong><em>{invoices.length} arvet · tasumata</em></span>
+        </div> : null}
+      </div>
     </section> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
 
