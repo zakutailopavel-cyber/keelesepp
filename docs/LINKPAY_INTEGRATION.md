@@ -36,10 +36,12 @@ E-shop `epkoolitus.ee`: **Callback Notification URL is empty** — set it only w
 - `https://payment.sandbox.lhv.ee/lp/b3uagr8a5v` opens the Estonian form with the labels above; amount 0,00 € and not editable.
 - A URL with parameters and a wrong `hmac` → „Esitatavates andmetes või HMACi valideerimises tekkis viga” (no payment possible).
 - A URL with parameters and no `hmac` → „page doesn't exist”.
-- **Not yet verified:** the two correctly signed links (A 25 € KS-TEST-001, B 175 € KS-TEST-002) — the secret is not
-  available to the agent. The owner runs the local script `linkpay-sign-test.cjs` (repo root, not committed; reads the
-  secret from `LHV_API_SECRET`, prints A, B and a tampered A). Expected: A and B show their amount and invoice number in
-  Estonian; the tampered A shows the HMAC error.
+- **Verified 2026-10-12 with correctly signed links** (owner ran `linkpay-sign-test.cjs`, secret never left his terminal):
+  A 25.00 € / KS-TEST-001 and B 175.00 € / KS-TEST-002 open the Estonian form with amount, invoice number, payer name,
+  e-mail and order reference filled in and read-only, button „Maksa arve”. The same link with the amount changed to
+  1.00 € and the old signature → HMAC error. Parameter order is free (sorted keys and the EveryPay example order both
+  pass); `25` and `25.00` both pass; amount + token alone pass. The first failed attempt was a wrongly pasted secret
+  (wrong length), not the scheme. No payment was made.
 
 ## 3. Signing (EveryPay „Generate pre-filled LinkPay links”)
 
