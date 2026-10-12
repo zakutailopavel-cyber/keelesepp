@@ -1,3 +1,11 @@
+## 2026-10-13 · agent/book-render — the B1 textbook froze the browser
+
+- Symptom: „Õpik töölehtedest” → level B1 (270 published sheets) — the page stopped responding.
+- Cause: every sheet reported its page count with a separate state update of the book, and every update redrew all sheets (page numbers moved) — hundreds of full redraws (reproduced locally: 120 sheets froze).
+- `worksheet-studio/BookPage.jsx`: page counts are applied in one batch per task (`pageCounter`, a timer — animation frames stop in a hidden tab), sheets are memoized (`BookSheet = memo(Sheet)`) with one stable callback each. Locally: 120 sheets → 3 book redraws instead of hundreds.
+- Limit: the first layout of a whole level (200+ sheets) still takes ~40 s (every sheet measures itself once); choosing one module is fast.
+- Checks: worksheet-studio 183/183; lint 0 errors. Production: none.
+
 ## 2026-10-13 · agent/vocab-topics — „Sõnavara → Teemad”: all course words by topic, unlocked topic by topic
 
 - Why (owner): „в словарный запас у ученика сразу добавить все слова по темам … открывались когда ученик пройдет цикл повторений и подтвердит знания заданиями”.
