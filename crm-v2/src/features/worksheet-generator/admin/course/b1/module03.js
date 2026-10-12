@@ -41,13 +41,14 @@ export const LESSONS = {
     ],
     transfer: [
       B.reading('011_t_ad', 'Üürikuulutus.', 'Loe kuulutus ja vasta küsimustele.', 'Üürile anda kahetoaline korter',
-        'Anname üürile valgusküllase kahetoalise korteri Tartus, Karlovas. Korter on kolmandal korrusel. Esikus on suur riidekapp. Köök on väike, aga seal on uus pliit ja nõudepesumasin. Elutoas on diivan, raamaturiiul ja suur aken lõuna poole. Magamistoas on lai voodi ja kirjutuslaud akna all. Vannitoas on dušš ja pesumasin. Maja kõrval on pood ja bussipeatus. Kesklinna sõidab buss kümme minutit. Hoovis on parkla ja jalgrattahoidla. Hind on 550 eurot kuus, kommunaalkulud lisaks. Lemmikloomad on lubatud. Korter on vaba alates esimesest novembrist. Helista õhtuti pärast kella kuut!',
+        'Anname üürile valgusküllase kahetoalise korteri Tartus, Karlova linnaosas. Korter on kolmandal korrusel, majas on lift. Esikus on suur riidekapp. Köök on väike, aga seal on uus pliit ja nõudepesumasin. Elutoas on diivan, raamaturiiul ja suur aken lõuna poole. Magamistoas on lai voodi ja kirjutuslaud akna all. Vannitoas on dušš ja pesumasin. Rõdu ei ole, aga hoovis on väike aed pinkidega. Maja kõrval on pood ja bussipeatus. Kesklinna sõidab buss kümme minutit, jalgsi jõuab sinna veerand tunniga. Hoovis on parkla ja jalgrattahoidla. Hind on 550 eurot kuus, kommunaalkulud lisaks. Internet on hinna sees. Naabrid on vaiksed ja sõbralikud. Talvel on need umbes 120 eurot. Lemmikloomad on lubatud, aga korteris ei tohi suitsetada. Korter on vaba alates esimesest novembrist. Helista õhtuti pärast kella kuut!',
         [['Mitu tuba korteris on?', 'kaks|2'], ['Mis on köögis uus?', 'pliit ja nõudepesumasin|pliit'], ['Kus on kirjutuslaud?', 'magamistoas akna all|akna all'], ['Mis on maja kõrval?', 'pood ja bussipeatus'], ['Kas koera võib kaasa võtta?', 'jah|jah, lemmikloomad on lubatud']]),
       B.choice('011_t_fit', 'Kas korter sobib?', 'Kes võiks selle korteri üürida? Vali.', [
         ['Annal on koer ja ta töötab kodus.', 'Sobib: loomad on lubatud ja on kirjutuslaud.', 'Ei sobi: loomad ei ole lubatud.', 'Ei sobi: korteris pole lauda.'],
         ['Peeter sõidab iga päev kesklinna.', 'Sobib: maja kõrval on bussipeatus.', 'Ei sobi: kesklinna sõidab buss üks tund.', 'Ei sobi: bussipeatus on kaugel.'],
         ['Liisal on kolm last.', 'Ilmselt ei sobi: korter on kahetoaline.', 'Sobib väga hästi: korter on suur.', 'Sobib: seal on kolm magamistuba.'],
         ['Marko tahab maksta alla 500 euro.', 'Ei sobi: hind on 550 eurot.', 'Sobib: hind on 450 eurot.', 'Sobib: kommunaalkulud on hinna sees.'],
+        ['Tiit suitsetab ja tahab hommikul rõdul kohvi juua.', 'Ei sobi: suitsetada ei tohi ja rõdu pole.', 'Sobib: korteril on suur rõdu.', 'Sobib: suitsetamine on lubatud.'],
       ], 'full', 'g_read'),
       B.rolecards('011_t_call', 'Helista omanikule.', 'Üks on üürnik, teine korteri omanik. Rääkige 2 minutit.',
         'Sa otsid korterit. Küsi vähemalt 4 küsimust: tubade, mööbli ja asukoha kohta.', 'Sa annad korterit üürile. Vasta kuulutuse järgi. Küsi, kellega üürnik elab.',
@@ -183,9 +184,15 @@ export const LESSONS = {
       B.errorfix('014_p_fix', 'Paranda juhis.', 'Kirjuta juhis õigesti.', [
         ['Mine otse ja pööra vasak.', 'Mine otse ja pööra vasakule.'], ['Pood on panga vastu.', 'Pood on panga vastas.'], ['Ületa teed ja minna paremale.', 'Ületa tee ja mine paremale.'], ['Apteek on nurga peale.', 'Apteek on nurga peal.'],
       ]),
-      B.listening('014_p_listen', 'Kuula teed.', 'Õpetaja loeb teekirjelduse. Täida lüngad.', [
-        'Vabandage, kuidas ma saan raamatukokku?', 'Mine siit otse kuni ristmikuni. Seal pööra vasakule.', 'Ületa tee ja jätka umbes sada meetrit.', 'Raamatukogu on paremal, kohviku vastas.',
-      ], ['Mine otse kuni [ristmikuni].', 'Seal pööra [vasakule].', 'Ületa [tee].', 'Jätka umbes [sada|100] meetrit.', 'Raamatukogu on [kohviku] vastas.']),
+      // Harno A2 listening: a phone call, read twice, answers of 1–2 words
+      B.listening('014_p_listen', 'Kuula teed.', 'Õpetaja loeb telefonikõne kaks korda. Kirjuta lünka 1–2 sõna.', [
+        '— Tere, Kati! Ma olen bussist väljas, aga ma ei leia raamatukogu.', '— Tere! Kus sa praegu oled?', '— Bussipeatuses Turu. Siin on suur toidupood.',
+        '— Hästi. Mine poe juurest otse kuni ristmikuni. Seal on suur valge pank. Panga juures pööra vasakule.', '— Panga juures vasakule. Selge.',
+        '— Siis ületa tee ülekäigurajal ja jätka umbes sada meetrit. Paremal näed kohvikut „Mesi”. Raamatukogu on kohviku vastas. See on kollane maja.',
+        '— Kas see on kaugel?', '— Ei, umbes kümme minutit jalgsi.', '— Aga mis kell raamatukogu kinni läheb?',
+        '— Täna on reede, nii et kell kuus. Laupäeval on see avatud ainult kella kolmeni.', '— Mu vend tuleb hiljem autoga. Kas seal on parkla?',
+        '— Jah, parkla on maja taga. Sissepääs on Pargi tänavalt. Ma ootan sind raamatukogu ukse juures.', '— Aitäh! Ma tulen kohe. Varsti näeme!',
+      ], ['Mine otse kuni [ristmikuni].', 'Panga juures pööra [vasakule].', 'Ületa tee ja jätka umbes [sada|100] meetrit.', 'Raamatukogu on [kohviku] vastas.', 'Täna läheb raamatukogu kinni kell [kuus|6|18].', 'Parkla on maja [taga].']),
       B.speaking('014_p_map', 'Kaardiga paaris.', 'Vali kaardil algus ja lõpp. Juhata paarilist 4–6 sammuga.', [
         'Kust sa alustad?', 'Kuhu sa lähed?', 'Kus pöörad?', 'Mis on sihtkoha kõrval või vastas?',
       ], [45, 90], ['Mine otse…', 'Pööra … juures…', 'See on … kõrval / vastas.']),
@@ -227,48 +234,105 @@ export const LESSONS = {
     ],
   },
 
+  // Kontroll 3 in the Harno A2 exam format: Harjuta = reading (tasks 1–5) and listening, Kasuta = writing (tasks 1–2)
+  // and speaking (picture, idea card), on the module's topic home, places and town
   'a2b1-015': {
     title: 'Kontroll 3 — kodu ja linn',
     canDo: 'Ma saan kodu ja linna teemalisest tekstist aru ning kasutan Kus? Kuhu? Kust? vorme praktilises olukorras.',
     practice: [
-      B.tip('015_p_how', 'Kordamine', 'Tee kõigepealt ilma abita. Siis kontrolli Avasta ja Harjuta lehti ning paranda punase pliiatsiga.', 'full'),
-      B.table('015_p_cases', 'Kaheksa vormi.', 'Kirjuta puuduv vorm.', 'Kus?, Kuhu?, Kust?', [
+      B.tip('015_p_how', 'Lugemine ja kuulamine (eksami vormis)', 'See leht on nagu Harno A2 eksam: viis lugemisülesannet ja kaks kuulamisülesannet. Tee kõik ilma abita. Kuulamistekstid loeb õpetaja kaks korda.', 'full'),
+      // reading 1: everyday phrases and politeness
+      B.choice('015_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
+        ['Sa otsid apteeki. Kuidas küsid võõralt?', 'Vabandage, kus on lähim apteek?', 'Kus apteek on? Ütle kiiresti!', 'Tere, kas te olete apteeker?'],
+        ['Võõras küsib sinult teed, aga sa ei tea. Mida ütled?', 'Vabandust, ma ei ole siit kandist.', 'Muidugi, see on kohe nurga taga.', 'Pole tänu väärt, head teed!'],
+        ['Naaber aitas sul kaste kanda. Mida ütled?', 'Suur aitäh, see oli väga lahke!', 'Palun väga, pole midagi!', 'Vabandust, et ma hiljaks jäin!'],
+        ['Sa kutsud naabri oma uude koju. Mida ütled?', 'Tulge laupäeval meile kohvile!', 'Minge laupäeval koju puhkama!', 'Kas te kolite laupäeval ära?'],
+        ['Bussis astusid kogemata kellelegi varbale. Mida ütled?', 'Oi, vabandust!', 'Palun väga!', 'Head aega!'],
+        ['Sõber kolis uude korterisse. Mida ütled?', 'Palju õnne uue kodu puhul!', 'Head paranemist ja jõudu!', 'Kahju, et sul pole kodu!'],
+      ]),
+      // reading 2: three short ads, answers by letter or in 1–2 words
+      B.reading('015_p_three', 'Lugemine 2. Kolm kuulutust.', 'Loe kolme kuulutust. Vasta kuulutuse tähega (A, B, C) või lühidalt.', 'Kodu otsin',
+        'A. Üürile ühetoaline korter kesklinnas, teisel korrusel. Köök ja tuba on koos. Maja on vaikses tänavas ja pood on maja all. Sobib hästi üliõpilasele. Loomad ei ole lubatud. Hind on 380 eurot kuus.\n\nB. Müüa kolmetoaline korter Annelinnas, neljandal korrusel. Majas on lift. Kooli ja lasteaeda on viis minutit jalgsi. Korteril on suur rõdu ja kaks parkimiskohta. Hind kokkuleppel.\n\nC. Üürile väike maja linna serval. Majas on kaks tuba, saun ja suur aed. Aias saab grillida. Kesklinna sõidab buss pool tundi. Koer on teretulnud. Hind on 600 eurot kuus.',
+        [['Millist kodu ei saa üürida, vaid tuleb osta?', 'B'], ['Kus saab elada koos koeraga?', 'C|majas'], ['Milline kodu on lastega perele kõige mugavam?', 'B'], ['Kus on köök ja tuba koos?', 'A'], ['Kui kaua sõidab majast kesklinna?', 'pool tundi|30 minutit'], ['Kus saab õues grillida?', 'C|majas|maja aias']]),
+      // reading 3: signs and notices matched to what they mean
+      B.match('015_p_signs', 'Lugemine 3. Mida silt tähendab?', 'Ühenda silt ja selle tähendus.', [
+        ['Apteek: E–R 8–20, L 9–15, P suletud', 'Pühapäeval siit ravimit ei saa.'], ['Ujula: lapsed alla 7 aasta tasuta', 'Väike laps ujub ilma piletita.'],
+        ['Raamatute tagastamise kast ukse kõrval', 'Raamatu saab tagasi tuua ka siis, kui uks on kinni.'], ['Parkla ainult elanikele', 'Külaline peab auto mujale panema.'],
+        ['Remont! Lift ei tööta 1.–5. märtsini', 'Märtsi alguses tuleb minna trepist.'], ['Postkontor kolis: uus aadress Kesk 5', 'Pakki tuleb saata teisest kohast.'],
+      ], 'full', 'g_read'),
+      // reading 4: a ~150-word text with 3-option questions
+      B.reading('015_px_read', 'Lugemine 4. Minu kodukoht.', 'Loe tekst ja vasta lühidalt.', 'Minu kodukoht',
+        'Ma elan väikeses linnas mere ääres. Minu korter on kolmandal korrusel ja aknast näen sadamat. Korter on väike, ainult kaks tuba, aga väga hele. Kodu lähedal on pood, apteek ja raamatukogu. Kooli juurde kõnnin kümme minutit. Kõigepealt lähen mööda mereäärt, siis pööran pargi juures vasakule. Linnas ei ole suurt kaubanduskeskust. Seetõttu sõidame laupäeviti bussiga naaberlinna. Bussiga kestab sõit pool tundi. Suvel on meie linnas palju turiste ja kohvikud on täis. Talvel on aga vaikne ja paljud kohvikud on kinni. Mulle meeldib siin elada, sest loodus on lähedal ja inimesed on sõbralikud. Naabrid aitavad alati, kui midagi on vaja. Ainult üks asi on halb: kino on meil ainult reedeti. Tulevikus tahaksin elada majas, kus on oma aed. Aga praegu on minu korter mulle täpselt paras.',
+        [['Mis korrusel korter on?', 'kolmandal|kolmandal korrusel'], ['Mida näeb kirjutaja aknast?', 'sadamat'], ['Kui kaua kestab bussisõit naaberlinna?', 'pool tundi|30 minutit']]),
+      B.choice('015_p_readmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali igale küsimusele üks vastus.', [
+        ['Miks sõidab pere laupäeviti naaberlinna?', 'Kodulinnas pole suurt kaubanduskeskust.', 'Seal elavad nende sugulased.', 'Kodulinnas on liiga palju turiste.'],
+        ['Kuidas läheb kirjutaja kooli?', 'jalgsi, mööda mereäärt', 'bussiga, pargi kõrvalt', 'rattaga, sadama kaudu'],
+        ['Milline on linn talvel?', 'vaikne, paljud kohvikud on kinni', 'täis turiste', 'kohvikud on täis'],
+        ['Mis on kirjutaja arvates halb?', 'Kino on ainult reedeti.', 'Naabrid ei aita.', 'Loodus on kaugel.'],
+        ['Millises kodus tahaks kirjutaja tulevikus elada?', 'majas, kus on oma aed', 'suures korteris kesklinnas', 'korteris sadama lähedal'],
+      ]),
+      // reading 5: a personal letter with 8 option gaps
+      B.cloze('015_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Mart!', [
+        'Ma kolisin lõpuks uude {*korterisse|korteris|korterist}! See asub kesklinnas, Kase tänaval. Maja {*kõrval|kõrvale|kõrvalt} on väike park ja pagariäri. Hommikul ostan sealt värsket saia.',
+        '',
+        'Minu tuba on väike, aga hele. Voodi on akna {*all|alla|alt} ja kapp on nurgas. Korteris on ka väike rõdu. Tööle lähen nüüd jalgsi, sest töö on ainult kümne minuti {*kaugusel|kaugele|kaugelt}. Õhtul tulen {*töölt|tööle|tööl} koju läbi pargi.',
+        '',
+        'Laupäeval teen kodus väikese peo. Kas sa tuled ka? Bussiga saad {*jaamast|jaama|jaamas} otse meie maja ette. Kui sa maja ei leia, {*helista|helistab|helistama} mulle! Ootan sind {*külla|külas|külast}!',
+        '',
+        'Kallistusega, Eva',
+      ]),
+      // listening 3 of the A2 exam: an announcement, read twice, answers of 1–2 words
+      B.listening('015_p_listen', 'Kuulamine 1. Raadioteade.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Head kuulajad! Laupäeval on meie linnas linnapäev. Pidu algab kell kümme hommikul raekoja platsil. Kõigepealt mängib seal orkester.',
+        'Kell üksteist algab laste jooksuvõistlus pargis. Lastele on pargis ka batuudid ja näomaalingud. Lõuna ajal saab turul süüa tasuta suppi. Võtke kaasa oma tass ja lusikas.',
+        'Pärastlõunal on raamatukogus avatud uste päev. Seal saab vaadata vanu pilte meie linnast. Muuseum on sel päeval tasuta.',
+        'Kell neli algab sadamas paadisõit. Pileti hind on viis eurot, lapsed sõidavad tasuta.',
+        'Õhtul kell kaheksa algab platsil kontsert. Kui sajab vihma, on kontsert spordihallis. Peo lõpetab kell üksteist ilutulestik.',
+        'Kesklinnas on laupäeval autoga sõitmine keelatud. Seepärast palume tulla jalgsi, rattaga või bussiga. Bussid sõidavad sel päeval iga kümne minuti järel.',
+        'Täpsem info on linna kodulehel. Tulge kõik!',
+      ], ['Pidu algab kell [kümme|10].', 'Laste jooksuvõistlus on [pargis].', 'Lõuna ajal saab turul tasuta [suppi].', 'Paadisõit algab [sadamas].', 'Täiskasvanu pilet maksab [viis|5] eurot.', 'Vihma korral on kontsert [spordihallis].', 'Bussid sõidavad iga [kümne|10] minuti järel.']),
+      // a conversation (A2 listening 2 and 4), answers of 1–2 words
+      B.listening('015_p_listen2', 'Kuulamine 2. Uus korter.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
+        '— Tere, Jaan! Kuulsin, et sa kolisid.', '— Jah, eelmisel nädalal. Nüüd elan Supilinnas.', '— Kas korter on suur?',
+        '— Ei ole, ainult kaks tuba. Aga köök on suur ja seal on palju valgust.', '— Mis korrusel sa elad?', '— Neljandal. Lifti kahjuks ei ole.',
+        '— Oi! Kas sul on rõdu?', '— Jah, väike rõdu jõe poole. Hommikul joon seal kohvi.', '— Kui kaugel on sinu töö?',
+        '— Tööle sõidan rattaga, see võtab viisteist minutit.', '— Ja pood?', '— Pood on kohe maja kõrval. Apteek on kahjuks kaugel, kesklinnas.',
+        '— Kas naabrid on toredad?', '— Jah, all elab vana proua. Ta tõi mulle eile kooki.', '— Kas mööbel on juba olemas?', '— Voodi ja laud on olemas, diivanit veel ei ole.', '— Millal ma saan külla tulla?', '— Tule reedel õhtul. Ma teen sooja toitu.', '— Mida ma kaasa võtan?', '— Võta kaasa head tuju ja natuke leiba!',
+      ], ['Jaan elab nüüd [Supilinnas].', 'Korteris on [kaks|2] tuba.', 'Korter on [neljandal] korrusel.', 'Rõdu on [jõe] poole.', 'Tööle sõidab Jaan [rattaga].', 'Sõber tuleb külla [reedel|reede õhtul].']),
+      B.table('015_p_cases', 'Keeleosa. Kaheksa vormi.', 'Kirjuta puuduv vorm.', 'Kus?, Kuhu?, Kust?', [
         'poes | [poodi] | [poest]', '[tööl] | tööle | [töölt]', '[apteegis] | [apteeki] | apteegist', 'kodus | [koju] | [kodust]',
       ]),
-      B.choice('015_p_choose', 'Vali õige.', 'Vali sobiv vorm.', [
-        ['Ma olen praegu …', 'raamatukogus', 'raamatukokku', 'raamatukogust'], ['Pane piim …', 'külmkappi', 'külmkapis', 'külmkapist'], ['Ta tuleb kell viis … koju.', 'töölt', 'tööl', 'tööle'],
-        ['Kuidas ma saan …?', 'jaama', 'jaamas', 'jaamast'], ['Lamp on laua …', 'kõrval', 'kõrvale', 'kõrvalt'],
-      ], 'half', 'g_use'),
-      B.errorfix('015_p_fix', 'Leia viga.', 'Kirjuta lause õigesti.', [
-        ['Ma lähen kodus.', 'Ma lähen koju.'], ['Raamat on riiulile.', 'Raamat on riiulil.'], ['Ta tuleb poodi.', 'Ta tuleb poest.'], ['Mine otse ja pööra parem.', 'Mine otse ja pööra paremale.'],
+      B.wordforms('015_p_forms', 'Keeleosa. Kus, kuhu või kust?', 'Kirjuta sõna küsimuse järgi.', [
+        ['sadam', 'kuhu?', 'sadamasse'], ['park', 'kus?', 'pargis'], ['turg', 'kust?', 'turult'], ['raamatukogu', 'kuhu?', 'raamatukokku'], ['saun', 'kus?', 'saunas'], ['rõdu', 'kuhu?', 'rõdule'], ['jaam', 'kust?', 'jaamast'], ['maja', 'kus?', 'majas'],
       ]),
-      B.match('015_p_words', 'Sõnavara.', 'Ühenda paarid.', [['laenutan raamatu', 'raamatukogus'], ['ostan ravimit', 'apteegis'], ['saadan paki', 'postkontoris'], ['ootan rongi', 'jaamas']], 'half'),
-      B.speaking('015_p_room', 'Kirjelda tuba.', 'Kirjelda oma tuba 1 minut.', ['Mis toas on?', 'Kus mis asub?', 'Mida tahaksid muuta?'], [60, 90]),
-      B.reading('015_px_read', 'Loe ja vasta.', 'Loe tekst ja vasta.', 'Minu kodukoht',
-        'Ma elan väikeses linnas mere ääres. Minu korter on kolmandal korrusel ja aknast näen sadamat. Kodu lähedal on pood, apteek ja raamatukogu. Kooli juurde kõnnin kümme minutit: kõigepealt mööda mereäärt, siis pööran pargi juures vasakule. Linnas ei ole suurt kaubanduskeskust, seetõttu sõidame laupäeviti bussiga naaberlinna. Suvel on meie linnas palju turiste, talvel on aga vaikne. Mulle meeldib siin elada, sest loodus on lähedal ja inimesed on sõbralikud. Tulevikus tahaksin elada majas, kus on oma aed. Aga praegu on minu korter mulle täpselt paras.',
-        [['Kus linn asub?', 'mere ääres'], ['Millises kodus tahaks kirjutaja tulevikus elada?', 'majas, kus on oma aed|aiaga majas|oma aiaga majas'], ['Mis on kodu lähedal?', 'pood, apteek ja raamatukogu'], ['Kuidas kirjutaja kooli läheb?', 'jalgsi mööda mereäärt|kõnnib'], ['Miks sõidetakse naaberlinna?', 'linnas pole suurt kaubanduskeskust'], ['Miks kirjutajale linn meeldib?', 'loodus on lähedal ja inimesed sõbralikud']]),
-      B.gaps('015_px_mix', 'Kaheksa vormi.', 'Kirjuta õige vorm.', ['Ma elan [Tallinnas] (Tallinn).', 'Homme sõidan [Tartusse] (Tartu).', 'Raamat on [laual] (laud).', 'Ta tuleb [tööle] (töö) kell üheksa.', 'Ma tulen [poest] (pood).', 'Lamp on voodi [kõrval|juures|ees|taga].', '[Mine] (minema) otse ja pööra vasakule.', 'Pane piim [külmkappi] (külmkapp).']),
-      B.translation('015_px_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Я живу в центре города.', 'Около моего дома есть магазин.', 'Иди прямо до светофора.', 'Ключи на полке.']),
-      B.writing('015_px_write', 'Minu kodukoht.', 'Kirjuta 8–10 lauset oma kodust ja kodukohast.', [8, 10], ['elan', 'lähedal', 'kõrval', 'lähen', 'sest'], 4),
-      B.speaking('015_px_test', 'Suuline kordamine.', 'Vasta paarilise küsimustele 2 minutit.', ['Kus sa elad?', 'Kuidas jõuad koolist koju?', 'Mis on sinu toas?', 'Kuhu lähed nädalavahetusel?'], [90, 120]),
-      B.errorfix('015_px_fix2', 'Paranda veel.', 'Kirjuta lause õigesti.', [['Ma elan Tartu.', 'Ma elan Tartus.'], ['Pane raamat riiulil.', 'Pane raamat riiulile.'], ['Mine otse ja pöörad vasakule.', 'Mine otse ja pööra vasakule.'], ['Ta tuleb kool.', 'Ta tuleb koolist.']]),
-      B.dictation('015_px_dict', 'Etteütlus.', 'Kuula ja kirjuta.', ['Ma elan väikeses linnas.', 'Kodu lähedal on pood.', 'Kooli juurde kõnnin kümme minutit.', 'Pargi juures pööran vasakule.']),
-      B.selfcheck('015_p_self', ['Ma tegin ülesanded ilma abita.', 'Ma parandasin vead.', 'Ma tean, mida korrata.', 'Olen valmis Kasuta leheks.'], 'Kordamine tehtud'),
+      B.errorfix('015_p_fix', 'Keeleosa. Leia viga.', 'Kirjuta lause õigesti.', [
+        ['Ma lähen kodus.', 'Ma lähen koju.'], ['Raamat on riiulile.', 'Raamat on riiulil.'], ['Ta tuleb poodi.', 'Ta tuleb poest.'], ['Mine otse ja pööra parem.', 'Mine otse ja pööra paremale.'], ['Me elame Tartu.', 'Me elame Tartus.'],
+      ]),
+      B.speaking('015_p_retell', 'Räägi kuuldust.', 'Mida sa linnapäeval teeksid? Räägi paarilisele.', ['Kuhu sa läheksid kõigepealt?', 'Mida sa seal teeksid?', 'Kuidas sa kesklinna tuleksid?'], [45, 75], ['Kõigepealt läheksin…', 'Siis…', 'Ma tuleksin…, sest…']),
+      B.selfcheck('015_p_self', ['Lugemine: valin olukorda sobiva viisaka lause.', 'Lugemine: leian kuulutusest ja sildilt vajaliku info.', 'Lugemine: valin kirja lünka õige kohavormi.', 'Kuulamine: kirjutan vastuse 1–2 sõnaga.'], 'Lugemine ja kuulamine tehtud'),
     ],
     transfer: [
-      B.reading('015_t_read', 'Loe: külaline tuleb.', 'Loe kiri ja vasta.', 'Tee Miia juurde',
-        'Tere, Leo! Väga tore, et tuled laupäeval külla. Ma elan kesklinna servas, Kase tänaval. Kui tuled rongiga, välju jaamas ja mine otse kuni suure kohvikuni. Kohviku juures pööra vasakule. Ületa tee ja jätka umbes kakssada meetrit. Minu maja on pagariäri kõrval, väikese pargi vastas. Ma elan teisel korrusel, korter number viis. Kui sul on aega, mine enne lillepoodi jaama juures. Mu emal on laupäeval sünnipäev ja ta armastab tulpe! Kui sa ei leia maja, helista mulle. Ma tulen sulle pargi juurde vastu. Õhtul läheme koos jõe äärde jalutama.',
-        [['Kus Miia elab?', 'kesklinna servas|Kase tänaval'], ['Kus peab Leo vasakule pöörama?', 'kohviku juures'], ['Mille kõrval on Miia maja?', 'pagariäri kõrval'], ['Mis on maja vastas?', 'väike park|park'], ['Miks soovitab Miia minna lillepoodi?', 'tema emal on sünnipäev|Miia emal on laupäeval sünnipäev|ema sünnipäeva pärast']]),
-      B.planning('015_t_plan', 'Sinu kord.', 'Kutsu külaline oma koju. Mõtle läbi.', ['Kust ta tuleb?', 'Millised on teejuhised?', 'Milline on sinu kodu?', 'Mida te teete?']),
-      B.letter('015_t_letter', 'Kutse (70–90 sõna).', 'Kirjuta: tee sinu koju, sinu kodu kirjeldus ja plaan.', 'Tere!', 'Kohtumiseni!', [70, 90]),
-      B.rubric('015_t_rubric', 'Kontrolli kirja.', 'Märgi, mis on olemas.', ['Vähemalt 4 teejuhist.', 'Vähemalt 3 kus-, 2 kuhu- ja 1 kust-vormi.', 'Kodu kirjeldus 3 lausega.', 'Ühine plaan.', 'Kiri on 70–90 sõna.']),
-      B.rolecards('015_t_roles', 'Külaline helistab.', 'Külaline on eksinud. Aidake tal kohale jõuda.',
-        'Oled külaline. Ütle, kus sa oled ja mida näed.', 'Oled võõrustaja. Küsi, kus ta on, ja juhata ta oma koju.',
-        ['Ma olen … juures.', 'Ma näen…', 'Kuhu ma nüüd lähen?'], ['Mida sa näed?', 'Mine…', 'Minu maja on … kõrval.']),
-      B.translation('015_tx_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Приходи к нам в субботу.', 'Наш дом рядом с пекарней.', 'Напротив дома маленький парк.', 'Я живу на втором этаже.']),
-      B.speaking('015_tx_mono', 'Minu kodukoht.', 'Räägi 2 minutit oma kodust ja kodukohast ilma tekstita.', ['Kus sa elad?', 'Milline on sinu kodu?', 'Mis on kodu lähedal?', 'Mis sulle seal meeldib?'], [90, 120]),
-      B.writing('015_tx_plan', 'Ühine päev.', 'Kirjuta 8–10 lauset: mida te külalisega linnas teete ja kuhu lähete.', [8, 10], ['kõigepealt', 'siis', 'lähme', 'kus'], 3),
-      B.selfcheck('015_t_self', ['Ma mõistan teekirjeldust.', 'Ma kirjutan kutse 70–90 sõnaga.', 'Ma kasutan kus-, kuhu- ja kust-vorme.', 'Ma juhatan telefonis teed.'], 'Moodul 3 tehtud'),
+      B.text('015_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See leht on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
+      B.notice('015_t_card', 'Visiitkaart', ['Kolimisfirma „Kiire Kast”', 'Kolime kodusid ja kontoreid üle Eesti', 'Aadress: Tähe 12, Tartu', 'Avatud: E–L 8–18', 'Telefon: 5600 1234'], 'full', 'g_read'),
+      // writing 1: information transfer (what, where, when, contact), at least 25 words
+      B.letter('015_t_info', 'Kirjutamine 1. Soovita kolimisfirmat.', 'Sõber kolib. Kirjuta visiitkaardi põhjal: mis firma, kus, millal avatud, kontakt.', 'Tere, Mart! Sa kolid varsti.', 'Edu kolimisel!', [25, 40]),
+      B.planning('015_t_plan', 'Enne kutset.', 'Mõtle läbi ja kirjuta märksõnad.', ['Kuhu sa kutsud?', 'Millal?', 'Kuidas sinu juurde tulla?', 'Mida te teete?']),
+      // writing 2: an invitation, at least 30 words
+      B.letter('015_t_letter', 'Kirjutamine 2. Kutse uude koju.', 'Kutsu sõber uude koju: millal, kuidas tulla, mida teete.', 'Tere!', 'Kohtumiseni!', [30, 50]),
+      B.writing('015_tx_plan', 'Kirjutamine 2 (teine valik). Minu kodukoht.', 'Kirjuta 4–6 lauset: kus elad, mis on lähedal, mis sulle meeldib.', [4, 6], ['elan', 'lähedal', 'sest'], 2),
+      B.table('015_t_form', 'Täida kolimisteade.', 'Sa kolid. Täida majahalduri ankeet.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Vana aadress | ', 'Uus korter (number, korrus) | ', 'Kolimise kuupäev | ', 'Kellega koos kolid? | ']),
+      B.rubric('015_t_rubric', 'Kontrolli kirjutamist.', 'Märgi, mis on olemas.', ['Kirjutamine 1: mis firma, kus, millal, kontakt — vähemalt 25 sõna.', 'Kirjutamine 2: aeg, tee sinu koju, ühine tegevus — 30–50 sõna.', 'Vähemalt 2 kus-, 1 kuhu- ja 1 kust-vorm.', 'Laused on seotud: ja, aga, sest.', 'Rääkimises vastasin igale küsimusele kahe lausega.']),
+      // speaking: getting to know, picture description (task 1), idea cards (task 2)
+      B.speaking('015_t_intro', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Kus sa elad?', 'Kas sa elad majas või korteris?', 'Mis on sinu kodu lähedal?', 'Kuidas sa tööle või kooli lähed?'], [45, 60]),
+      B.speaking('015_tx_mono', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab kummalegi erineva pildi: tuba või tänav. Kirjelda 1 minut.', ['Mis kohta pildil näed?', 'Mis kus asub?', 'Mida inimesed teevad?', 'Kas sulle meeldiks seal elada?'], [60, 90], ['Pildil on…', '… on … kõrval / ees / taga.', 'Inimesed…']),
+      B.speaking('015_t_compare', 'Rääkimine 1. Võrdle pilte.', 'Võrdle oma pilti paarilise pildiga. Vasta õpetaja küsimustele.', ['Mis on piltidel sarnast?', 'Mis on erinevat?', 'Kus sa tahaksid elada?', 'Miks?'], [60, 90]),
+      B.rolecards('015_t_roles', 'Rääkimine 2. Ideekaart „Kodu”.', 'A küsib kaardi märksõnade järgi, B vastab. Siis vahetage.',
+        'Küsi paarilisel 5 küsimust märksõnade järgi: kodu suurus, toad, naabrid, mis on lähedal, unistuste kodu.', 'Vasta igale küsimusele 2–3 lausega. Ütle ka üks detail.',
+        ['Kui suur on sinu kodu?', 'Mis on sinu kodu lähedal?', 'Milline on sinu unistuste kodu?'], ['Minu kodus on…', 'Kodu lähedal on…', 'Ma tahaksin elada…, sest…']),
+      B.rolecards('015_t_city', 'Rääkimine 2. Ideekaart „Minu linn”.', 'Nüüd küsib B ja A vastab.',
+        'Vasta igale küsimusele 2–3 lausega.', 'Küsi 5 küsimust märksõnade järgi: lemmikkoht, buss või ratas, poed, mida turistile näidata, mis puudub.',
+        ['Minu lemmikkoht on…', 'Ma sõidan…', 'Turistile näitaksin…'], ['Mis on sinu lemmikkoht linnas?', 'Kuidas sa linnas liigud?', 'Mida linnas puudu on?']),
+      B.selfcheck('015_t_self', ['Kirjutamine: kirjutan visiitkaardi põhjal 25–40 sõna.', 'Kirjutamine: kirjutan kutse 30–50 sõnaga.', 'Rääkimine: kirjeldan pilti 1 minut.', 'Rääkimine: küsin ja vastan ideekaardi järgi.'], 'Moodul 3 tehtud'),
     ],
   },
 };

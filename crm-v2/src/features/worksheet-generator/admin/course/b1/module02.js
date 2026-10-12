@@ -194,10 +194,17 @@ export const LESSONS = {
       B.selfcheck('008_p_self', ['Ma moodustan omastava 6 sõnast.', 'Ma tean minu, sinu, tema, meie, teie, nende.', 'Ma ütlen sama mõtte teisiti.', 'Ma küsin: kelle oma see on?'], 'Kelle? — tean!'),
     ],
     transfer: [
-      B.listening('008_t_listen', 'Kuula teadet.', 'Õpetaja loeb teate. Täida lüngad.', [
-        'Kooli infolauas on leitud asjad.', 'Esimene on sinine müts. See on ilmselt 2.b klassi õpilase oma.', 'Teine on must telefon. Telefonis on pilt koerast.',
-        'Kolmas on õpetaja Kase vihmavari.', 'Asjad saab kätte reedeni infolauast.',
-      ], ['Leitud on sinine [müts].', 'Müts on ilmselt 2.b klassi [õpilase] oma.', 'Telefonis on pilt [koerast].', 'Vihmavari on õpetaja [Kase] oma.', 'Asjad saab kätte [reedeni].']),
+      // Harno A2 listening 3: a short announcement, read twice, answers of 1–2 words
+      B.listening('008_t_listen', 'Kuula teadet.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tähelepanu, kallid õpilased ja lapsevanemad! Kooli infolauas on palju leitud asju.',
+        'Esimene on sinine müts. See on ilmselt 2.b klassi õpilase oma, sest mütsil on klassi silt.',
+        'Teine on must telefon. Telefon on täiesti uus. Telefoni ekraanil on pilt väikesest pruunist koerast.',
+        'Kolmas asi on suur punane vihmavari. See on õpetaja Kase oma. Ta unustas selle eile sööklasse.',
+        'Neljas asi on lapse jope. Jope taskus on raamatukogu kaart nimega Mia Lepp. Mia käib esimeses klassis. Mia ema, palun tulge jopele järele.',
+        'Viies asi on võtmed. Võtmete küljes on kollane pall.',
+        'Kõik asjad saab kätte reedeni infolauast. Infolaud on avatud kella kaheksast kella neljani.',
+        'Pärast reedet viime asjad kooli keldrisse. Kui te ei saa tulla, helistage kooli sekretärile. Ta paneb teie asja kõrvale. Aitäh!',
+      ], ['Leitud on sinine [müts].', 'Telefoni ekraanil on pilt [koerast|väikesest koerast|pruunist koerast].', 'Vihmavari on õpetaja [Kase] oma.', 'Jope taskus on [raamatukogu kaart|kaart].', 'Võtmete küljes on kollane [pall].', 'Infolaud on avatud kella [neljani|16ni|4ni].', 'Pärast reedet on asjad kooli [keldris].']),
       B.choice('008_t_check', 'Kontrolli mõtet.', 'Vali õige vastus.', [
         ['„See on Kase oma.” Mis see tähendab?', 'Asi kuulub Kasele.', 'Kask leidis selle asja.', 'Kask otsib oma asja.'],
         ['Mis küsimus sobib: „See on nende maja.”?', 'Kelle maja see on?', 'Kus maja on?', 'Mis värvi maja on?'],
@@ -273,8 +280,16 @@ export const LESSONS = {
       B.writing('009_t_post', 'Postitus.', 'Kirjuta postitus fotole: kellega, kus, miks see oli tore. 7–8 lauset.', [7, 8], ['koos', 'sest', 'mulle meeldis'], 2),
       B.manymatch('009_t_who', 'Kellega mida teha?', 'Kellega sa teeksid mida? Mitu vastust on võimalik.', ['kinno minna', 'matkata', 'süüa teha', 'reisida', 'lauamänge mängida'], ['vanematega', 'sõpradega', 'õe või vennaga', 'üksi']),
       B.reading('009_t_poll', 'Loe küsitlust.', 'Loe küsitluse tulemusi ja vasta.', 'Kuidas eestlased koos aega veedavad?',
-        'Ajakiri küsis tuhandelt inimeselt, kuidas nad pere ja sõpradega aega veedavad. Kõige populaarsem tegevus on koos söömine: seda teeb nädalavahetusel kaheksa inimest kümnest. Teisel kohal on jalutamine looduses. Noored eelistavad kino ja kontserte, vanemad inimesed aga aiatööd ja külaskäike. Pooled vastajad ütlesid, et nad tahaksid perega rohkem aega veeta. Suurim takistus on töö: paljud töötavad ka laupäeval. Ainult iga kümnes inimene ütles, et ta veedab vaba aega peamiselt üksi. Ajakirja arvates on koos veedetud aeg tervisele sama tähtis kui sport.',
-        [['Mitmelt inimeselt küsiti?', 'tuhandelt|1000'], ['Mis on kõige populaarsem tegevus?', 'koos söömine'], ['Mida eelistavad noored?', 'kino ja kontserte'], ['Mis on suurim takistus?', 'töö'], ['Mitu vastajat veedab vaba aega peamiselt üksi?', 'sada|100|iga kümnes']]),
+        'Küsitlus tehti selle aasta märtsis. Ajakiri küsis tuhandelt inimeselt, kuidas nad pere ja sõpradega aega veedavad. Kõige populaarsem tegevus on koos söömine. Nädalavahetusel teeb seda kaheksa inimest kümnest. Teisel kohal on jalutamine looduses. Kolmandal kohal on külaskäigud sugulaste juurde. Noored eelistavad kino ja kontserte. Vanemad inimesed eelistavad aiatööd ja külaskäike. Lastega pered käivad tihti ujumas ja mänguväljakul. Pooled vastajad ütlesid, et nad tahaksid perega rohkem aega veeta. Suurim takistus on töö: paljud töötavad ka laupäeval. Teine takistus on pikk tee, sest sugulased elavad sageli teises linnas. Ainult iga kümnes inimene veedab vaba aega peamiselt üksi. Kõige vähem aega veedavad perega noored mehed. Paljud ütlesid, et telefon segab koos olemist. Seetõttu on mõnes peres söögilaual telefonid keelatud. Ajakirja arvates on koos veedetud aeg tervisele sama tähtis kui sport.',
+        [['Mitmelt inimeselt küsiti?', 'tuhandelt|1000'], ['Mis on teisel kohal?', 'jalutamine looduses|jalutamine'], ['Mis on teine takistus?', 'pikk tee|sugulased elavad teises linnas'], ['Mitu vastajat veedab vaba aega peamiselt üksi?', 'sada|100|iga kümnes']]),
+      // Harno A2 reading 4: a ~150-word text with 3-option questions
+      B.choice('009_t_pollmc', 'Vali õige vastus.', 'Loe küsitlust uuesti. Vali igale küsimusele üks vastus.', [
+        ['Mida teeb nädalavahetusel kaheksa inimest kümnest?', 'sööb koos perega või sõpradega', 'jalutab looduses', 'käib kinos ja kontserdil'],
+        ['Mida eelistavad vanemad inimesed?', 'aiatööd ja külaskäike', 'kino ja kontserte', 'ujumist ja mänguväljakut'],
+        ['Miks ei saa paljud perega rohkem aega veeta?', 'nad töötavad ka laupäeval', 'nad ei taha perega olla', 'nad käivad palju trennis'],
+        ['Miks on mõnes peres söögilaual telefonid keelatud?', 'telefon segab koos olemist', 'telefonid on väga kallid', 'lapsed on veel väikesed'],
+        ['Mida arvab ajakiri?', 'koos olemine on tervisele tähtis', 'sport on tähtsam kui pere', 'üksi olla on kõige parem'],
+      ]),
       B.writing('009_t_opinion', 'Sinu arvamus.', 'Kas sina veedad perega piisavalt aega? Kirjuta 6–8 lauset ja põhjenda.', [6, 8], ['sest', 'tavaliselt', 'vahel', 'tahaksin'], 3),
       B.translation('009_t_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Давай встретимся в субботу?', 'К сожалению, в субботу я не могу.', 'А как насчёт воскресенья?', 'Договорились, встретимся в пять.']),
       B.speaking('009_t_plan2', 'Esitle plaani.', 'Tutvusta grupile oma ühise laupäeva plaani 1–2 minutit.', ['Kellega?', 'Mida teete?', 'Miks just see?'], [60, 120]),
@@ -282,59 +297,107 @@ export const LESSONS = {
     ],
   },
 
+  // Kontroll 2 in the Harno A2 exam format: Harjuta = reading (tasks 1–5) and listening, Kasuta = writing (tasks 1–2)
+  // and speaking (picture, idea card), on the module's topic family and relations
   'a2b1-010': {
     title: 'Kontroll 2 — pere ja suhted',
     canDo: 'Ma saan pere ja suhete teemalisest tekstist aru ning kasutan kirjeldusi ja kuuluvuse vorme iseseisvalt.',
     practice: [
-      B.tip('010_p_how', 'Kuidas seda lehte teha?', 'Tee kõigepealt ülesanded ilma abita. Seejärel kontrolli Avasta lehte ja paranda.', 'full'),
-      B.gaps('010_p_mixed', 'Kuus punkti: vormid.', 'Kirjuta õige vorm. Sõnapanka ei ole.', [
-        'See on minu [õe] (õde) telefon.', '[Tal on] lühikesed heledad juuksed.', 'Me läheme pühapäeval [vanaema] (vanaema) juurde.', 'Ta [on] väga kannatlik.',
-        'Kas see on [teie] (te) auto?', 'Me kohtume harva, [sest|kuna] elame kaugel.',
+      B.tip('010_p_how', 'Lugemine ja kuulamine (eksami vormis)', 'See leht on nagu Harno A2 eksam: viis lugemisülesannet ja kaks kuulamisülesannet. Tee kõik ilma abita. Kuulamistekstid loeb õpetaja kaks korda.', 'full'),
+      // reading 1: everyday phrases and politeness
+      B.choice('010_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
+        ['Sõbra vanaema sai 90-aastaseks. Mida sa ütled?', 'Palju õnne talle!', 'Head paranemist talle!', 'Jõudu tööle!'],
+        ['Sa tutvustad oma ema naabrile. Mida sa ütled?', 'Saage tuttavaks, see on minu ema.', 'Vabandust, kas te nägite mu ema?', 'Tere tulemast koju, ema!'],
+        ['Naaber aitas sul kapi tuppa tuua. Mida sa ütled?', 'Suur aitäh teile abi eest!', 'Pole midagi, aitan hea meelega.', 'Palun väga, tulge jälle!'],
+        ['Sõber ütleb: „Mu isa on haiglas.” Mida sa ütled?', 'Kahju küll! Head paranemist talle!', 'Tore, palju õnne talle!', 'Head reisi talle ja sulle!'],
+        ['Sa lahkud sõbra sünnipäevalt. Mida sa ütled?', 'Aitäh, oli väga tore õhtu!', 'Tere tulemast meie juurde!', 'Head isu ja jätku leivale!'],
+        ['Telefonis küsitakse Martinit, aga ta pole kodus. Mida sa ütled?', 'Teda pole praegu kodus. Kas ütlen talle midagi?', 'Jah, mina olen Martin, kuulan teid.', 'Vabandust, te valisite vale numbri.'],
       ]),
-      B.errorfix('010_p_fix', 'Paranda neli viga.', 'Kirjuta laused õigesti.', [
-        ['Ta on sinised silmad.', 'Tal on sinised silmad.'], ['See on nemad koer.', 'See on nende koer.'], ['Ma räägin oma õde.', 'Ma räägin oma õega.'], ['Me läheme pühapäeval vanaema juures.', 'Me läheme pühapäeval vanaema juurde.'],
+      // reading 2: three short texts (ads), answers by letter or in 1–2 words
+      B.reading('010_p_three', 'Lugemine 2. Kolm kuulutust.', 'Loe kolme kuulutust. Vasta kuulutuse tähega (A, B, C) või lühidalt.', 'Pere ja vaba aeg',
+        'A. Perekohvik „Pesa”. Ootame emasid ja isasid koos väikeste lastega. Lastele on mängutuba ja raamatud. Vanemad saavad rahulikult kohvi juua ja teiste vanematega rääkida. Avatud tööpäeviti kella kümnest kella kaheni. Nädalavahetusel on kohvik suletud.\n\nB. Vanavanemate klubi. Kohtume igal kolmapäeval kell viis raamatukogu saalis. Räägime, laulame ja teeme käsitööd. Kord kuus käime koos teatris või muuseumis. Uued liikmed on väga oodatud. Klubi on tasuta.\n\nC. Laste sünnipäevad meie mängumajas! Pidu kestab kaks tundi. Meie töötaja mängib lastega ja teeb näomaalinguid. Tordi ja joogid võite tuua ise. Pidu saab tellida ka nädalavahetusel. Ühe lapse hind on kümme eurot.',
+        [['Kuhu saab minna laupäeval lapse sünnipäeva pidama?', 'C|mängumajja'], ['Kus saab vanaema teiste inimestega laulda?', 'B|klubis|vanavanemate klubis'], ['Kuhu saab minna väikese lapsega kohvi jooma?', 'A|perekohvikusse|Pesasse'], ['Kas klubis peab maksma?', 'ei|ei, klubi on tasuta'], ['Millal on perekohvik suletud?', 'nädalavahetusel|laupäeval ja pühapäeval']]),
+      // reading 3: short notices matched to what they mean
+      B.match('010_p_notices', 'Lugemine 3. Mida kuulutus tähendab?', 'Ühenda kuulutus ja selle tähendus.', [
+        ['Beebikool teisipäeviti kell 10', 'Siia saab minna koos väikese lapsega.'], ['Vanavanemate päev: lapselapsed tasuta muuseumisse', 'Lapselaps saab koos vanaemaga tasuta sisse.'],
+        ['Otsin lapsehoidjat kaheks õhtuks nädalas', 'Pere vajab kedagi, kes hoiab lapsi.'], ['Pulmasaal üürile, 80 kohta', 'Siin saab pidada suurt pidu.'],
+        ['Leitud: väike pruun koer Kase tänaval', 'Keegi on leidnud looma.'], ['Kolin ära! Annan tasuta lastevoodi', 'Siit saab ilma rahata mööblit.'],
+      ], 'full', 'g_read'),
+      // reading 4: a ~150-word text with 3-option questions
+      B.reading('010_p_read', 'Lugemine 4. Vanaema sünnipäev.', 'Loe tekst. Vasta lühidalt.', 'Kaheksakümmend aastat',
+        'Eelmisel laupäeval tähistas Liisa pere vanaema kaheksakümnendat sünnipäeva. Pidu oli vanaema juures maal, sest vanaema ei taha linnas pidu pidada. Pidu algas kell kaks päeval. Kokku tuli kakskümmend kaks külalist. Kõige kaugemalt tuli onu Peeter, kes elab Rootsis. Ta sõitis laevaga ja jõudis alles õhtul. Liisa ema tegi suure tordi ja isa grillis õues liha. Liisa vend Robin on vaikne, aga sel päeval mängis ta kitarri ja laulis. Vanaema oli väga rõõmus ja natuke nuttis ka. Kõige rohkem meeldis talle kingitus lapselastelt. Nad tegid albumi vanadest perepiltidest. Liisa ja Robin tegid seda terve kuu. Igal pildil oli lühike lugu. Õhtul istusid kõik koos aias ja vaatasid albumit. Vanaema rääkis, kes kellele on ja kus keegi elab. Lapsed said teada palju uut. Nüüd on album vanaema elutoas riiulil. Järgmisel aastal tahab pere jälle kokku tulla, aga siis Rootsis.',
+        [['Kus pidu oli?', 'vanaema juures maal|maal|vanaema juures'], ['Mitu külalist tuli?', 'kakskümmend kaks|22'], ['Mida tegi Liisa isa?', 'grillis liha|grillis õues liha']]),
+      B.choice('010_p_readmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali igale küsimusele üks vastus.', [
+        ['Miks oli pidu maal?', 'Vanaema ei taha linnas pidu pidada.', 'Linnas ei olnud vaba saali.', 'Külalisi oli linna jaoks liiga palju.'],
+        ['Kuidas onu Peeter peole tuli?', 'laevaga Rootsist', 'autoga Tallinnast', 'rongiga Tartust'],
+        ['Mis oli Robini juures sel päeval eriline?', 'Vaikne Robin mängis ja laulis.', 'Robin tegi ise suure tordi.', 'Robin tuli peole Rootsist.'],
+        ['Mis meeldis vanaemale kõige rohkem?', 'lapselaste tehtud album', 'Liisa ema tehtud tort', 'onu Peetri kingitus'],
+        ['Mida plaanib pere järgmiseks aastaks?', 'kohtuda jälle, aga Rootsis', 'teha veel ühe albumi', 'pidada pidu linnas'],
       ]),
-      B.categorize('010_p_words', 'Sõnavara kontroll.', 'Sorteeri sõnad.', [
-        ['Pere', ['vanavanemad', 'abikaasa', 'õetütar', 'onu']], ['Välimus', ['habemega', 'sale', 'prillidega']], ['Iseloom', ['kannatlik', 'abivalmis', 'tagasihoidlik']], ['Sagedus', ['harva', 'vahel', 'tavaliselt']],
+      // reading 5: a personal letter with 8 option gaps
+      B.cloze('010_p_cloze', 'Lugemine 5. Kiri sõbrannalt.', 'Vali igasse lünka sobiv sõna.', 'Tere, Kati!', [
+        'Aitäh {*sinu|sina|sind} kirja eest! Meil läheb hästi ja mul on sulle palju uudiseid. Minu {*venna|vend|vennale} pere kolis eelmisel kuul meie lähedale. Nüüd näen ma tema lapsi {*tihti|harva|kunagi}.',
+        '',
+        'Vanem tüdruk Mia on viieaastane. {*Tal on|Ta on|Teda on} pikad heledad juuksed ja ta naerab palju. Väike Oskar on alles kaks ja käib juba lasteaias. Ta on natuke {*tagasihoidlik|tagasihoidlikud|tagasihoidlikku}, aga minuga mängib ta hea meelega.',
+        '',
+        'Pühapäeviti sööme kõik koos {*vanaema|vanaemal|vanaemale} juures. Ma armastan neid päevi, {*sest|aga|või} siis on terve pere koos. Kas sa tuled suvel meile külla? Siis saad {*minu|mina|mind} perega tuttavaks!',
+        '',
+        'Kallistan, Anu',
       ]),
-      B.reading('010_p_read', 'Loe ja vasta.', 'Loe tekst. Vasta lühidalt.', 'Pühapäev vanaema juures',
-        'Igal pühapäeval sõidab Liisa pere vanaema juurde maale. Sõit kestab tund aega. Vanaema on rõõmsameelne ja hooliv. Ta teeb alati pannkooke ja küsib, kuidas lastel koolis läheb. Liisa vend Robin on vaikne. Tal on uued prillid ja ta loeb palju. Isa parandab vanaema aeda, sest vanaisa ei saa enam rasket tööd teha. Ema ja vanaema räägivad köögis. Seekord tuli ka onu Peeter. Ta on naljakas ja tõi kaasa oma koera. Õhtul jalutasid kõik koos järve ääres. Liisale meeldivad need pühapäevad väga.',
-        [['Miks parandab isa vanaema aeda?', 'vanaisa ei saa enam rasket tööd teha|sest vanaisa ei saa rasket tööd teha'], ['Milline on vanaema?', 'rõõmsameelne ja hooliv'], ['Kelle prillid on uued?', 'Robini|Robini omad'], ['Kes tõi kaasa koera?', 'onu Peeter|Peeter'], ['Mida kõik õhtul tegid?', 'jalutasid järve ääres|jalutasid']]),
-      B.speaking('010_p_pic', 'Kirjelda pilti.', 'Kirjelda perepilti 1 minut: kes, milline, mida teevad.', ['Kes on pildil?', 'Milline keegi on?', 'Mida nad teevad?', 'Mis on nende suhe?'], [60, 90], ['Pildil on…', 'Tal on…', 'Ta on…', 'Nad…']),
-      B.wordforms('010_p_forms', 'Kaheksa vormi.', 'Kirjuta sõna omastavas.', [
+      // listening 3 of the A2 exam: a monologue, read twice, answers of 1–2 words
+      B.listening('010_p_listen', 'Kuulamine 1. Häälsõnum.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere, Kati! Siin räägib sinu nõbu Marko. Helistan sugulaste kokkutuleku pärast.',
+        'Kokkutulek on sel aastal juuli teisel laupäeval. Me kohtume vanaisa talus Viljandi lähedal. Algus on kell kaksteist.',
+        'Kõigepealt sööme koos lõunat. Pärast lõunat on lastele mängud ja täiskasvanutele jalutuskäik järve äärde. Õhtul teeme lõkke ja laulame.',
+        'Kõik peavad kaasa võtma ühe toidu. Minu ema teeb kartulisalatit, meie toome kooki. Palun võta sina kaasa leiba või puuvilju.',
+        'Ööbida saab talus, aga voodeid on vähe. Seepärast võta kaasa magamiskott. Kui sul on koer, võta ta ka kaasa. Talus on suur aed.',
+        'Kokku tuleb umbes nelikümmend inimest. Tulevad ka sugulased Soomest ja Saksamaalt.',
+        'Autoga saab parkida talu ees. Kui sa tuled bussiga, tulen sulle peatusse vastu. Palun anna mulle nädala lõpuks teada, mitu inimest teie perest tuleb. Kohtumiseni!',
+      ], ['Kokkutulek on juuli teisel [laupäeval].', 'Kohtutakse vanaisa [talus].', 'Algus on kell [kaksteist|12].', 'Õhtul teevad kõik [lõkke].', 'Kati peab kaasa võtma leiba või [puuvilju].', 'Ööbimiseks on vaja [magamiskotti|magamiskott].', 'Kokku tuleb umbes [nelikümmend|40] inimest.']),
+      // a conversation (A2 listening 2 and 4), answers of 1–2 words
+      B.listening('010_p_listen2', 'Kuulamine 2. Pulmapildid.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
+        '— Tere, Mari! Kas need on sinu pulmapildid?', '— Jah, vaata. See pikk mees prillidega on minu isa.',
+        '— Ja kes on see naine punases kleidis?', '— See on minu tädi Ülle, ema õde. Ta elab Pärnus. Ta on kõige naljakam inimene meie peres.',
+        '— Kes on see väike poiss koeraga?', '— See on minu õepoeg Rasmus. Ta on kuueaastane. Koer on tema oma, selle nimi on Muki.',
+        '— Ja see vanem naine, kes istub?', '— See on minu vanaema. Ta on juba üheksakümmend aastat vana, aga väga tubli.',
+        '— Kus pidu oli?', '— Mere ääres, ühes vanas mõisas. Külalisi oli sada.',
+        '— Sada! Kas sa tundsid kõiki?', '— Ei, pooled olid mehe sugulased. Neid ma veel hästi ei tunne.',
+        '— Kas te käisite ka reisil?', '— Jah, me sõitsime pärast pulmi nädalaks Itaaliasse.',
+      ], ['Mari isa kannab [prille].', 'Tädi Ülle on Mari [ema] õde.', 'Tädi Ülle elab [Pärnus].', 'Rasmus on Mari [õepoeg].', 'Mari vanaema on [üheksakümmend|90] aastat vana.', 'Pärast pulmi sõitsid nad [Itaaliasse].']),
+      B.wordforms('010_p_forms', 'Keeleosa. Kaheksa vormi.', 'Kirjuta sõna omastavas.', [
         ['sõber', 'kelle?', 'sõbra'], ['naaber', 'kelle?', 'naabri'], ['õde', 'kelle?', 'õe'], ['laps', 'kelle?', 'lapse'], ['nemad', 'kelle?', 'nende'], ['tütar', 'kelle?', 'tütre'], ['poeg', 'kelle?', 'poja'], ['meie', 'kelle?', 'meie'],
       ]),
-      B.choice('010_p_mix', 'Vali õige.', 'Vali sobiv variant.', [
-        ['… on lühikesed juuksed.', 'Tal', 'Ta', 'Teda'], ['Ta … väga kannatlik.', 'on', 'tal on', 'olen'], ['See on minu … auto.', 'venna', 'vend', 'vennale'],
-        ['Me kohtume …, sest elame kaugel.', 'harva', 'alati', 'iga päev'], ['Ta on tagasihoidlik, … sõpradega räägib palju.', 'aga', 'sest', 'või'],
-      ], 'full', 'g_use'),
-      B.transformation('010_p_trans', 'Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+      B.errorfix('010_p_fix', 'Keeleosa. Paranda neli viga.', 'Kirjuta laused õigesti.', [
+        ['Ta on sinised silmad.', 'Tal on sinised silmad.'], ['See on nemad koer.', 'See on nende koer.'], ['Ma räägin oma õde.', 'Ma räägin oma õega.'], ['Me läheme pühapäeval vanaema juures.', 'Me läheme pühapäeval vanaema juurde.'],
+      ]),
+      B.transformation('010_p_trans', 'Keeleosa. Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
         ['Raamat kuulub õele.', 'See on …', 'See on õe raamat.'], ['Mul on vend. Ta on arst.', 'Minu …', 'Minu vend on arst.'], ['Ta räägib palju nalja.', 'naljakas', 'Ta on naljakas.'], ['Me kohtume iga nädal.', 'tihti', 'Me kohtume tihti.'],
       ]),
-      B.translation('010_p_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['У моей сестры длинные волосы.', 'Мой дедушка очень спокойный.', 'Это квартира наших родителей.', 'Мы часто гуляем вместе, потому что живём рядом.']),
-      B.writing('010_p_write', 'Kordamise tekst.', 'Kirjuta 7–8 lauset ühest pereliikmest: välimus, iseloom, ühine aeg.', [7, 8], ['tal on', 'ta on', 'koos', 'sest'], 3),
-      B.reading('010_p_read2', 'Loe sõnumit.', 'Loe sõnumit ja vasta.', 'Sõnum sõbrannalt',
-        'Tere, Liina! Kas sa mäletad minu venda Markot? Ta tuleb järgmisel nädalal Tallinnasse ja otsib korterit. Marko on rahulik ja korralik, aga natuke tagasihoidlik. Tal on lühikesed tumedad juuksed ja habe. Ta töötab programmeerijana ja mängib vabal ajal kitarri. Ta on väga sõbralik ja aitab alati naabreid. Ta ei suitseta. Kas sinu naabri korter on veel vaba? Kui jah, siis anna palun naabri telefoninumber. Marko helistab talle ise. Ta tahaks elada kesklinna lähedal, sest tema töökoht on vanalinnas. Aitäh ja kohtumiseni laupäeval!',
-        [['Kes tuleb Tallinnasse?', 'kirjutaja vend Marko|Marko'], ['Miks tahab Marko elada kesklinna lähedal?', 'tema töökoht on vanalinnas|töökoht on vanalinnas|sest ta töötab vanalinnas'], ['Milline on Marko iseloom?', 'rahulik, korralik, natuke tagasihoidlik'], ['Mis tööd Marko teeb?', 'programmeerija'], ['Kelle telefoninumbrit kirjutaja küsib?', 'naabri']]),
-      B.speaking('010_p_mono', 'Monoloog.', 'Räägi 1–2 minutit oma perest ilma tekstita.', ['Kes on sinu peres?', 'Milline keegi on?', 'Mida te koos teete?'], [60, 120]),
-      B.selfcheck('010_p_self', ['Ma tegin ülesanded ilma abita.', 'Ma parandasin oma vead.', 'Ma tean, mida veel korrata.', 'Ma olen valmis Kasuta leheks.'], 'Kordamine tehtud'),
+      B.speaking('010_p_retell', 'Räägi kuuldust.', 'Räägi paarilisele, kes on Mari pulmapiltidel.', ['Kes on pildil?', 'Kes ta Marile on?', 'Milline ta on?'], [45, 75], ['See on Mari…', 'Ta on…', 'Tal on…']),
+      B.selfcheck('010_p_self', ['Lugemine: valin olukorda sobiva viisaka lause.', 'Lugemine: leian kuulutusest ja tekstist vajaliku info.', 'Lugemine: valin kirja lünka õige vormi.', 'Kuulamine: kirjutan vastuse 1–2 sõnaga.'], 'Lugemine ja kuulamine tehtud'),
     ],
     transfer: [
-      B.text('010_t_situation', 'Lõpuülesanne', 'Sinu sõber tuleb sinu perega tutvuma. Valmista ta ette: kes on kes, milline keegi on ja mida te koos teete.'),
-      B.letter('010_t_letter', 'Kiri sõbrale (80–100 sõna).', 'Kirjuta: kes on sinu peres, milline keegi on ja mida te koos teete.', 'Tere!', 'Kohtumiseni!', [80, 100]),
-      B.rubric('010_t_rubric', 'Kontrolli kirja.', 'Märgi, mis on olemas.', ['Vähemalt 4 inimest ja igaühe kohta detail.', 'Vähemalt 2 välimuse ja 2 iseloomu kirjeldust.', 'Vähemalt 2 kelle-vormi.', 'Vähemalt 1 sest-lause.', 'Kiri on 80–100 sõna.']),
-      B.rolecards('010_t_roles', 'Dialoog: külaline tuleb.', 'Rääkige 2–3 minutit.',
-        'Sinu sõber tuleb külla. Tutvusta peret ja lepi kokku, mida te koos teete.', 'Sa oled külaline. Küsi pere kohta ja paku ühist tegevust. Esimene aeg sulle ei sobi.',
-        ['See on minu…', 'Ta on…', 'Kas sulle sobib…?'], ['Kes see on?', 'Milline ta on?', 'Kahjuks ma ei saa, sest…']),
-      B.speaking('010_t_mono', 'Monoloog: inimene, kes on mulle tähtis.', 'Räägi 2 minutit ilma tekstita.', ['Kes ta on ja kuidas te tuttavaks saite?', 'Milline ta on?', 'Mida te koos teete?', 'Miks ta on sulle tähtis?'], [90, 120]),
-      B.reading('010_t_read', 'Loe: pereportree.', 'Loe ajakirja lugu ja vasta.', 'Kolm põlvkonda ühe katuse all',
-        'Tammede pere elab Viljandi lähedal suures talumajas. Majas elab kolm põlvkonda: vanavanemad, nende poeg Jaan koos naise Pillega ja kaks last. Vanaema Helgi on rõõmsameelne ja teeb kõigile süüa. Vanaisa Ants on vaikne, aga väga osav. Ta parandab kõike, mis katki läheb. Jaan ja Pille töötavad linnas ja sõidavad iga päev autoga tööle. Lapsed Mart ja Liis käivad külakoolis. Õhtuti söövad kõik koos suure laua taga. Pille ütleb, et koos elamine on vahel raske, aga lastele on see väga hea.',
-        [['Kus elab Tammede pere?', 'Viljandi lähedal talumajas|talumajas'], ['Mitu inimest majas elab?', 'kuus|6|kuus inimest'], ['Milline on vanaema Helgi?', 'rõõmsameelne'], ['Mida teeb vanaisa Ants?', 'parandab kõike|parandab asju'], ['Mida arvab Pille koos elamisest?', 'vahel raske, aga lastele hea']]),
-      B.speaking('010_t_compare', 'Võrdle peresid.', 'Võrdle Tammede peret oma perega 2–3 minutit.', ['Mis on sarnane?', 'Mis on erinev?', 'Kas sa tahaksid elada kolme põlvkonnaga?', 'Miks?'], [120, 180]),
-      B.translation('010_t_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Это мои родители.', 'Моя сестра очень весёлая.', 'У моего брата есть собака.', 'Мы часто ужинаем вместе.', 'Чья это куртка?', 'Мой дедушка немного серьёзный.']),
-      B.dictation('010_t_dict', 'Etteütlus.', 'Kuula ja kirjuta.', ['Minu vanemad elavad maal.', 'Minu õde on väga abivalmis.', 'Tal on pikad heledad juuksed.', 'Me kohtume sageli, sest elame lähedal.', 'See on minu venna auto.']),
-      B.gaps('010_t_gaps', 'Kontrolli vorme.', 'Kirjuta õige vorm.', ['See on minu [õe] (õde) kass.', '[Tal on] sinised silmad.', 'Me käime tihti [vanaema] (vanaema) juures.', 'Ta on [väga|üsna|natuke] sõbralik.', 'Kas see on [teie] (te) laps?'], '', 'half'),
-      B.selfcheck('010_t_self', ['Ma kirjutasin 80–100 sõna seotud kirja.', 'Ma kasutasin kirjeldusi ja kelle-vorme.', 'Ma pidasin dialoogi lõpuni.', 'Ma rääkisin 2 minutit.'], 'Moodul 2 tehtud'),
+      B.text('010_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See leht on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
+      B.notice('010_t_card', 'Visiitkaart', ['Kristi Kask — lapsehoidja', '8 aastat kogemust, räägib eesti ja vene keelt', 'Töötab Tartus, Annelinnas', 'Aeg: tööpäeviti 15–20, laupäeval kokkuleppel', 'Telefon: 5512 3456'], 'full', 'g_read'),
+      // writing 1: information transfer (who, where, when, contact), at least 25 words
+      B.letter('010_t_info', 'Kirjutamine 1. Soovita lapsehoidjat.', 'Kirjuta sõbrale visiitkaardi põhjal: kes, kus, millal, kuidas ühendust võtta.', 'Tere, Liina! Sa otsid lapsehoidjat.', 'Edu otsimisel!', [25, 40]),
+      B.planning('010_t_plan', 'Enne kutset.', 'Mõtle läbi ja kirjuta märksõnad.', ['Mis pidu see on?', 'Millal ja kus?', 'Kes tulevad?', 'Mida kaasa võtta?']),
+      // writing 2: a message or invitation, at least 30 words
+      B.letter('010_t_letter', 'Kirjutamine 2. Kutse peole.', 'Kutsu sõber oma pere peole: mis pidu, millal, kus, mida kaasa võtta.', 'Tere!', 'Ootan sind!', [30, 50]),
+      B.writing('010_t_week', 'Kirjutamine 2 (teine valik). Nädalavahetus perega.', 'Kirjuta 4–6 lauset: kellega olid, mida tegite, mis meeldis.', [4, 6], ['koos', 'sest', 'meeldis'], 2),
+      B.table('010_t_form', 'Täida ankeet.', 'Sa registreerid pere spordipäevale. Kirjuta andmed.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Telefon | ', 'Mitu inimest tuleb? | ', 'Kes nad sulle on? | ', 'Laste vanus | ']),
+      B.rubric('010_t_rubric', 'Kontrolli kirjutamist.', 'Märgi, mis on olemas.', ['Kirjutamine 1: kes, kus, millal, kontakt — vähemalt 25 sõna.', 'Kirjutamine 2: pidu, aeg ja koht, mida kaasa võtta — 30–50 sõna.', 'Laused on seotud: ja, aga, sest.', 'Kelle-vormid ja ta on / tal on on õiged.', 'Rääkimises vastasin igale küsimusele kahe lausega.']),
+      // speaking: getting to know, picture description (task 1), idea cards (task 2)
+      B.speaking('010_t_intro', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Mis su nimi on?', 'Kus sa elad?', 'Kellega sa elad?', 'Mida sa vabal ajal teed?'], [45, 60]),
+      B.speaking('010_t_mono', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab kummalegi erineva perepildi. Kirjelda oma pilti 1 minut.', ['Kes on pildil?', 'Milline keegi välja näeb?', 'Mida nad teevad?', 'Kus nad on?'], [60, 90], ['Pildil on…', 'Vasakul / paremal on…', 'Tal on…', 'Nad…']),
+      B.speaking('010_t_compare', 'Rääkimine 1. Võrdle pilte.', 'Võrdle oma pilti paarilise pildiga. Vasta õpetaja küsimustele.', ['Mis on piltidel sarnast?', 'Mis on erinevat?', 'Kas sinu pere teeb ka nii?', 'Miks?'], [60, 90]),
+      B.rolecards('010_t_roles', 'Rääkimine 2. Ideekaart „Pere”.', 'A küsib kaardi märksõnade järgi, B vastab. Siis vahetage.',
+        'Küsi paarilisel 5 küsimust märksõnade järgi: pere suurus, kus elavad, õed-vennad, ühine aeg, pere pidu.', 'Vasta igale küsimusele 2–3 lausega. Ütle ka üks detail.',
+        ['Kui suur on sinu pere?', 'Kus sinu vanemad elavad?', 'Mida te koos teete?'], ['Minu peres on…', 'Mul on…', 'Me tavaliselt…, sest…']),
+      B.rolecards('010_t_friends', 'Rääkimine 2. Ideekaart „Sõbrad”.', 'Nüüd küsib B ja A vastab.',
+        'Vasta igale küsimusele 2–3 lausega.', 'Küsi 5 küsimust märksõnade järgi: parim sõber, kus tutvusite, milline ta on, mida koos teete, kui tihti kohtute.',
+        ['Minu parim sõber on…', 'Ta on…', 'Me kohtume…'], ['Kes on sinu parim sõber?', 'Kus te tutvusite?', 'Kui tihti te kohtute?']),
+      B.selfcheck('010_t_self', ['Kirjutamine: kirjutan visiitkaardi põhjal 25–40 sõna.', 'Kirjutamine: kirjutan kutse 30–50 sõnaga.', 'Rääkimine: kirjeldan pilti 1 minut.', 'Rääkimine: küsin ja vastan ideekaardi järgi.'], 'Moodul 2 tehtud'),
     ],
   },
 };

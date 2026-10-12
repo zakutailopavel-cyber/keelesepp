@@ -184,10 +184,10 @@ describe('categorize interaction', () => {
 
 describe('sentence answers', () => {
   it('a corrected or transformed sentence keeps its commas; variants are separated by |', () => {
-    const fix = { ...createBlock('errorfix'), data: { title: 'T', rows: [{ wrong: 'Valime rong, sest see on kiire.', answer: 'Valime rongi, sest see on kiire.' }, { wrong: 'Ma lähen koolis.', answer: 'Ma lähen kooli. | Lähen kooli.' }] } };
+    const fix = { ...createBlock('errorfix'), data: { title: 'T', rows: [{ wrong: 'Valime rong, sest see on kiire.', answer: 'Valime rongi, sest see on kiire.' }, { wrong: 'Ma lähen koolis.', answer: 'Ma lähen kooli. | Lähen kooli.; Lähen ma kooli.' }] } };
     const tr = { ...createBlock('transformation'), data: { title: 'T', rows: [{ from: 'Sajab.', prompt: 'Lisa põhjus.', answer: 'Me jääme koju, sest sajab.' }] } };
     const d = doc([fix, tr]);
-    const ans = { ...answer(fix, { 0: 'valime rongi, sest see on kiire', 1: 'Lähen kooli' }), ...answer(tr, { 0: 'Me jääme koju, sest sajab.' }) };
+    const ans = { ...answer(fix, { 0: 'valime rongi, sest see on kiire', 1: 'Lähen ma kooli' }), ...answer(tr, { 0: 'Me jääme koju, sest sajab.' }) };
     const { perBlock } = scoreDocument(d, ans);
     expect(perBlock[fix.id].map((i) => i.ok)).toEqual([true, true]);
     expect(perBlock[tr.id].map((i) => i.ok)).toEqual([true]);

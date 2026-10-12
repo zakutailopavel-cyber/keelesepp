@@ -6,9 +6,10 @@ const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).fi
 const scoreRows = (rows, get, answerKey = 'answer') => (rows || []).map((row, i) => ({
   key: String(i), ok: splitList(row[answerKey]).map(norm).includes(norm(get(String(i)))),
 }));
-// A whole sentence (error fix, transformation) keeps its commas: variants are separated by „|” or a new line only
-// (owner's B1 check 2026-10-12: „Valime rongi, sest …” was split at the comma and a right answer scored wrong).
-export const sentenceVariants = (answer) => String(answer || '').split(/[|\n]/).map((x) => x.trim()).filter(Boolean);
+// A whole sentence (error fix, transformation) keeps its commas: variants are separated by „|”, „;” or a new line
+// (owner's B1 check 2026-10-12: „Valime rongi, sest …” was split at the comma and a right answer scored wrong; course
+// files list variants with „;” as well).
+export const sentenceVariants = (answer) => String(answer || '').split(/[|;\n]/).map((x) => x.trim()).filter(Boolean);
 const scoreSentences = (rows, get) => (rows || []).map((row, i) => ({
   key: String(i), ok: sentenceVariants(row.answer).map(norm).includes(norm(get(String(i)))),
 }));
