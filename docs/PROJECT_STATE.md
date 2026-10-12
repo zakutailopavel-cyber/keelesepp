@@ -1,6 +1,7 @@
 ## 2026-10-12 · agent/art-cast-portraits — six recurring-character profile portraits
 
 - Base: fresh `origin/main` at `ec3d8b0` (2026-10-12). Owner approved the Anna portrait preview in chat before the remaining five portraits were generated.
+- PR: [#569](https://github.com/zakutailopavel-cyber/keelesepp/pull/569), draft; branch `agent/art-cast-portraits`.
 - Added `crm-v2/src/features/worksheet-generator/art/cast.js` because the picture-task brief's referenced cast registry did not yet exist on `main`; it lists Anna, Markus, Liis, Viktor, Sofia and Jaan in art-bible order with ages and Estonian alt text.
 - Added six built-in-generated portraits under `crm-v2/public/textbook-art/cast/`. All are WebP, 800×800, 28–32 KB. No paid image API, database write or deployment.
 - Checks: `file crm-v2/public/textbook-art/cast/*.webp` confirmed all six are 800×800; `du -h` showed 28–32 KB each; `cd crm-v2 && npx vitest run src/features/worksheet-generator` — 48 files passed, 538 tests passed, 1 skipped.
