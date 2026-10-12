@@ -1,3 +1,9 @@
+## 2026-10-12 · agent/linkpay-verified — LinkPay signed links verified in the sandbox
+
+- Base: `main` after #546. Signed links A (25 €) and B (175 €) open with the right amount, invoice number and Estonian labels; a changed amount with the old signature is refused. Details in `docs/LINKPAY_INTEGRATION.md` §2.
+- Note: the sandbox secret was pasted into the owner's terminal history and the chat; regenerate it in the sandbox portal before production work. Production keys only through Secret Manager.
+- Next safe step: build the CRM integration on the sandbox (§4), owner's go-ahead.
+
 ## 2026-10-12 · agent/linkpay-spec — LHV LinkPay sandbox configured, CRM spec
 
 - Base: `main` 7c767cc. Sandbox link „KeeleSepp - CRM invoices - SANDBOX” (token `b3uagr8a5v`, Estonian, EUR3D1, unlimited, URL-changeable amount/invoice/payer/order reference, customer cannot edit). Forged HMAC is refused by the gateway (checked). Signed A/B links not yet checked (secret stays with the owner; script `linkpay-sign-test.cjs`, not committed).
