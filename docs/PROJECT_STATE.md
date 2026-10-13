@@ -1,3 +1,9 @@
+## 2026-10-13 · agent/art-b2-batch3 — B2 pictures b1b2-021…060 (Codex night batch)
+
+- Codex batch 2 resumed at 03:05 (`~/KeeleSeppArt/run-resume-0305.sh`); imported what was ready (from a copy of the inbox, the batch keeps running): B2 lessons 021–060 → `crm-v2/public/textbook-art/b2/…`, briefs `art/visuals/b2-module-05…12.js`. Some lessons were skipped by Codex after 3 tries (no png) — listed by `import_art.py`.
+- The course sheets show them automatically (`withLessonArt`); republish the B2 modules on „Kursuse tootmine”.
+- Checks: worksheet-generator tests pass (art test: every brief has its file). Production: none until published.
+
 ## 2026-10-13 · agent/b2-c1-fixes — B2 and C1 sheets: errors fixed (keys, Estonian, false errors, guessable / unsolvable tasks)
 
 - Same check as B1 (#571) for B2 (b1b2-001…090) and C1 (est-c1-001…100), from `docs/level-audit-2026-10-12/b2-part*.md`, `c1-part*.md` + a full read: wrong keys and missing accepted variants, Estonian errors, correct Estonian marked as an error, unsolvable word forms / prompts, absurd distractors, banks without extras, copy-one-word reading questions; one word-order rule per course (seetõttu / mistõttu / kuna). C1 093 now has the data to describe; Harno B2 topic-card speaking = 2 min prep, 1 min talk.
