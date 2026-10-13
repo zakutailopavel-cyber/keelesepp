@@ -74,7 +74,11 @@ export function segmentsOf(transcript, seed = 0) {
     const voice = pick(g === 'f' ? FEMALE_VOICES : MALE_VOICES);
     voices.set(p.who, voice); used.add(voice);
   }
-  const narrator = NARRATORS.slice(seed % NARRATORS.length).concat(NARRATORS).find((v) => !used.has(v));
+  // a narrator who introduces himself („Minu nimi on Kati”, „Siin treener Mart”) speaks with a voice of that gender
+  const self = String(transcript || '').match(/(?:minu nimi on|mina olen|siin(?: on)?(?: \p{Ll}+)?)\s+(\p{Lu}\p{Ll}+)/iu);
+  const selfGender = self ? genderOf(self[1]) : '';
+  const narrators = selfGender ? (selfGender === 'f' ? FEMALE_VOICES : MALE_VOICES) : NARRATORS;
+  const narrator = narrators.slice(seed % narrators.length).concat(narrators).find((v) => !used.has(v)) || narrators[0];
   const segments = [];
   parsed.forEach((p) => {
     const voice = p.label ? voices.get(p.who) : narrator;

@@ -1,3 +1,21 @@
+## 2026-10-13 · agent/a2-module-01 — A2 module 1 (a2-001…005) as full course sheets
+
+- Base: `main` 0e1b283. Owner: „а2 листы прям очень маленькие” — checked in production: 68 A2 lessons (001–055 and
+  15 of 056–100) still had the old generated sheets (5 short tasks each, e.g. a clock task in the diagnostic);
+  only the 32 lessons in `admin/course/a2/module12…20.js` were full. My earlier „A2 100/100” counted sheets, not content.
+- `admin/course/a2/module01.js` (new, registered first in `COURSE_MODULES`): lessons 001 diagnostic, 002 getting to know /
+  sina–teie, 003 present tense (olen, elan, töötan, õpin, räägin; ei + stem), 004 personal data and the form, 005
+  control 1 in Harno A2 form. 15 sheets, 11–17 blocks, 40–42 min each; readings 80–140 words; 10 listening tasks;
+  ID cards (`profiles`), forms (`table`), crossword grid, cloze, role cards with recording. Goals in `a2/lessonGoals.js`.
+- `blocks.js` `B.profiles`; `engine/blocks/picture.jsx`: a card without a photo has no empty „Foto” frame;
+  `didactics/timeEstimate.js`: `profiles` minutes.
+- Audio: 10 new recordings (TartuNLP). `tools/listening-audio/plan.mjs`: a narrator who introduces himself („Mina olen
+  Kati”, „Siin treener Mart”) gets a voice of that gender — 7 existing recordings had the wrong gender and were
+  re-recorded (a2-078 t, a2-090 d, a2b1-020 l2, a2b1-028, a2b1-065 l2, a2b1-089 d_l2, b1b2-090 d_l3).
+- Tests: course quality gate passes (no new problems); worksheet-generator + worksheet-studio 814 passed, 1 skipped.
+- Next safe step: after deploy publish „A2 · moodul 1” on „Kursuse tootmine”; then the student Mariam (A1 → A2) gets the
+  new sheets instead of the 10 old ones assigned today; next: A2 modules 2–11 the same way.
+
 ## 2026-10-13 · agent/perf-check — a lighter first load (students, parents, phones)
 
 - Base: `main` 22a922f. First load (gzip): index 427 + react 72 + icons 166 + firebase 172 ≈ 837 KB.

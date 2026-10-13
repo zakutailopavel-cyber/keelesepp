@@ -39,6 +39,8 @@ export function blockMinutes(block, level = 'A2') {
     case 'clock': return (d.items || []).length * 0.25;
     case 'diagram': return Math.max(0.5, gapsIn(JSON.stringify(d)) * 0.3);
     case 'pictures': return (d.items || []).length * 0.25;
+    // character / ID cards: read the facts, fill the gaps of the sentences
+    case 'profiles': return (d.people || []).reduce((n, p) => n + lines(p.facts).length * 0.1 + gapsIn(p.sentences) * 0.35, 0);
     case 'speaking': return ((Number(d.minSec) || 60) + (Number(d.maxSec) || 120)) / 2 / 60 + 1;
     case 'rolecards': return 5;
     case 'planning': return lines(d.prompts).length * 0.5;
