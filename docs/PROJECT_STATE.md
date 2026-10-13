@@ -1,3 +1,18 @@
+## 2026-10-13 · agent/block-library — „Kogu”: the course task library in the constructor
+
+- Base: `main` 604c6ac (A2 modules 2–7 merged and published on „Kursuse tootmine”: 30 lessons, 90 sheets, no errors).
+- Owner: „библиотека материала, откуда по поиску вытаскивать блоки по темам, хэштеги: уровень A2, развитие разговорных
+  навыков, тема моя семья”.
+- `worksheet-studio/blockLibrary.js`: `buildLibrary(COURSE_MODULES, buildCourseSheet)` — every task block of the course
+  sheets (not selfcheck/rubric) with tags: level (a2, b1, b1+…), skill (rääkimine, kirjutamine, lugemine, kuulamine,
+  grammatika, sõnavara — from the block type, choice/truefalse from the goal), phase (avasta/harjuta/kasuta), block type,
+  words of the module title (topic) and lesson title, `kontroll` for control lessons. `searchLibrary(query)`: #tags
+  (prefix) and words (text or tags); Russian aliases (#говорение, #семья, #чтение…).
+- `BlockLibraryPanel.jsx` (own lazy chunk, reads the course registry only when opened): search field, chips for level,
+  skill, phase and the topics of the current hits, a preview of the task and „Lisa lehele” (insertBlocks: new id, audio
+  and pictures kept). Rail tab „Kogu” in `WorksheetStudioPage`.
+- Tests: `blockLibrary.test.jsx` (4); worksheet-studio 245 passed + engine test alone (load timeout locally).
+
 ## 2026-10-13 · agent/a2-modules-04-05 — A2 modules 2–7 (a2-006…035) as full course sheets
 
 - Base: `main` a73f6c0. Written by a sub-agent on the module 1 pattern, checked here (gate + sample reading).
