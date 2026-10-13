@@ -21,5 +21,7 @@ export default defineConfig({
     globals: true,
     setupFiles: './src/test/setup.js',
     css: true,
+    // whole-page and whole-course tests take 3–8 s on a busy runner; the 5 s default failed PR checks at random
+    testTimeout: 20000,
   },
 });
