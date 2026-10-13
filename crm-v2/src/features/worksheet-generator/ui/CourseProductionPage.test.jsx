@@ -12,6 +12,8 @@ describe('CourseProductionPage', () => {
       publish: vi.fn(async ({ lessonId, worksheetId }) => ({ lessonId, worksheetId, worksheetDocVersion: 1, publishedWorksheetDocVersion: 1 })),
     };
     page(repository);
+    // the A2 modules come first; open B1 module 2
+    fireEvent.click(await screen.findByRole('radio', { name: /B1 · moodul 2 ·/ }));
     expect(await screen.findByText(/Kvaliteedikontroll läbitud/)).toBeInTheDocument();
     expect(await screen.findByText(/a2b1-006 · Pere ja lähedased/)).toBeInTheDocument();
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
