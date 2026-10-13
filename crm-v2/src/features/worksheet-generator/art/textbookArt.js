@@ -46,10 +46,13 @@ import b2Module18 from './visuals/b2-module-18.js';
 import c1Module01 from './visuals/c1-module-01.js';
 import c1Module02 from './visuals/c1-module-02.js';
 import c1Module03 from './visuals/c1-module-03.js';
+import c1Module04 from './visuals/c1-module-04.js';
+import c1Module05 from './visuals/c1-module-05.js';
+import c1Module06 from './visuals/c1-module-06.js';
 
 // Textbook illustrations (docs/TEXTBOOK_ART_BIBLE.md): the content agent adds one visuals file per module under
 // ./visuals and lists it here; the image files live in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
-const MODULES = [a2Module01, a2Module02, a2Module03, a2Module04, a2Module05, a2Module06, a2Module07, a2Module08, a2Module09, a2Module10, a2Module11, a2Module12, a2Module13, a2Module14, a2Module15, a2Module16, a2Module17, b1Module01, b1Module02, b1Module03, b1Module04, b1Module05, b1Module06, b1Module07, b1Module08, b1Module09, b1Module10, b2Module01, b2Module02, b2Module03, b2Module04, b2Module05, b2Module06, b2Module07, b2Module08, b2Module09, b2Module10, b2Module11, b2Module12, b2Module13, b2Module14, b2Module15, b2Module16, b2Module17, b2Module18, c1Module01, c1Module02, c1Module03];
+const MODULES = [a2Module01, a2Module02, a2Module03, a2Module04, a2Module05, a2Module06, a2Module07, a2Module08, a2Module09, a2Module10, a2Module11, a2Module12, a2Module13, a2Module14, a2Module15, a2Module16, a2Module17, b1Module01, b1Module02, b1Module03, b1Module04, b1Module05, b1Module06, b1Module07, b1Module08, b1Module09, b1Module10, b2Module01, b2Module02, b2Module03, b2Module04, b2Module05, b2Module06, b2Module07, b2Module08, b2Module09, b2Module10, b2Module11, b2Module12, b2Module13, b2Module14, b2Module15, b2Module16, b2Module17, b2Module18, c1Module01, c1Module02, c1Module03, c1Module04, c1Module05, c1Module06];
 
 const PHASES = new Set(['discover', 'practice', 'transfer']);
 const FORMATS = { scene: { aspect: '3:2', width: 1600, height: 1067 }, object: { aspect: '1:1', width: 1600, height: 1600 }, opener: { aspect: '3:4', width: 1200, height: 1600 } };
