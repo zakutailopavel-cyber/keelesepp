@@ -86,7 +86,7 @@ describe('LessonWorksheetStudioPage task regeneration', () => {
     const replaced = saved.worksheetDoc.blocks.find((block) => block.id === original.id);
     expect(replaced).toBeTruthy();
     expect({ type: replaced.type, data: replaced.data }).not.toEqual({ type: original.type, data: original.data });
-  });
+  }, 20000); // renders the whole studio twice: slow on a busy CI runner (timed out at 5 s)
 
   it('opens a missing core sheet in the constructor and generates the three sheets from the top strip', async () => {
     const lesson = { id: 'a2b1-016', tag: 'Грамматика', levelStage: 'A2', title: 'Ajamäärused ja päevaplaan' };
