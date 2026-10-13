@@ -1,5 +1,5 @@
 /* global ResizeObserver, IntersectionObserver, Blob, setTimeout, clearTimeout, structuredClone */
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Icons } from './icons.js';
@@ -8,6 +8,8 @@ import { homeworkService, lessonWorksheetsService, libraryService, worksheetDocs
 import { mediaBankService } from '../../services/firebase/mediaBank.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';
+// „Kogu” reads the whole course: its own chunk, loaded when the tab opens
+const BlockLibraryPanel = lazy(() => import('./BlockLibraryPanel.jsx'));
 import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
 import ImageSearch from './editor/ImageSearch.jsx';
 import Sheet, { BlockPreview } from './engine/Sheet.jsx';
@@ -746,6 +748,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
   const railTabs = [
     ['blocks', 'Plokid', Icons.LayoutGrid],
     ['bank', 'Pank', Icons.Images],
+    ['library', 'Kogu', Icons.LibraryBig],
     ['text', 'Tekstist', Icons.WandSparkles],
     ['sheet', 'Leht', Icons.FileText],
     ...(showResults ? [['results', 'Tulemused', Icons.ChartColumn]] : []),
@@ -846,6 +849,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
               {leftTab === 'results' && !isNew ? <InsightsPanel lessonId={lessonId} doc={doc} load={loadResults} onSelect={(id) => setSelectedId(id)} onAddAlternative={addRightAnswer} />
               : leftTab === 'text' ? <TextToTasks onInsert={(blocks) => { insertBlocks(blocks); setNotice(`Tekstist lisati ${blocks.length} ülesannet. Vaata need üle.`); }} />
               : leftTab === 'sheet' ? <div className="st-sheetpanel"><SheetInspector doc={doc} setMeta={(patch) => change({ ...doc, meta: { ...doc.meta, ...patch } })} /></div>
+              : leftTab === 'library' ? <Suspense fallback={<p className="ed-hint">Laen kogu…</p>}><BlockLibraryPanel level={doc?.meta?.level || ''} onInsert={(blocks) => { insertBlocks(blocks); setNotice('Kogust lisati ülesanne. Vaata see üle.'); }} /></Suspense>
               : leftTab === 'bank' ? <MediaBankPanel level={doc?.meta?.level || ''} service={mediaBank} isAdmin={Boolean(user?.roles?.includes?.('admin'))}
                 onImage={pickBankImage} onText={pickBankText} onWebImage={pickWebImage}
                 onIndex={(onProgress) => mediaBank.indexCurriculum({ library: libraryService, lessonWorksheets: lessonWorksheetsService, user, onProgress })} />
