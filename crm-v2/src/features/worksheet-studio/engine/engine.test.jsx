@@ -194,4 +194,18 @@ describe('sentence answers', () => {
     // a fragment before the comma is not a right answer
     expect(scoreDocument(d, answer(fix, { 0: 'Valime rongi' })).perBlock[fix.id][0].ok).toBe(false);
   });
+
+  it('keeps the audio player on a checked sheet (the student listens again while looking at the marks)', () => {
+    const doc = seedDocument();
+    const listening = { ...createBlock('listening'), id: 'l1' };
+    listening.data = { ...listening.data, audio: { src: '/audio/x/l1.mp3', name: 'l1.mp3', seconds: 60 } };
+    doc.blocks = [listening];
+    const review = render(<Sheet doc={doc} mode="review" answers={{}} results={{}} />);
+    expect(review.container.querySelector('audio[src="/audio/x/l1.mp3"]')).not.toBeNull();
+    review.unmount();
+    const print = render(<Sheet doc={doc} mode="print" />);
+    expect(print.container.querySelector('audio')).toBeNull();
+    expect(print.container.textContent).toContain('heli on veebis');
+  });
 });
+

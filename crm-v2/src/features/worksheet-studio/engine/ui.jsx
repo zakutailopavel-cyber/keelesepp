@@ -108,7 +108,8 @@ export const Check = () => (
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 13 l6 6 L21 5" fill="none" stroke="#0b2a4f" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg>
 );
 
-// The audio of a task: a player on screen, a note on paper (a printed sheet cannot play).
+// The audio of a task: a player on screen (also on a checked sheet, to listen again), a note on paper (a printed
+// sheet cannot play).
 export function AudioBar({ audio, interactive, label = 'Kuula' }) {
   if (!audio?.src) return null;
   if (!interactive) return <div className="ws-audio is-print"><Headphones aria-hidden="true" /><span>{label}: heli on veebis, kuula õpetaja juures.</span></div>;
