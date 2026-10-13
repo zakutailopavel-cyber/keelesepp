@@ -36,6 +36,14 @@ describe('crossword layout', () => {
     expect(new Set(layout.words.map((w) => w.y)).size).toBe(2);
   });
 
+  it('lets a word that crosses nothing yet wait, so it does not block the others', () => {
+    // kool shares no letter with õpetaja; placed alone first it took the cell õpik needs (live check 2026-10-14)
+    const layout = crosswordLayout([{ clue: 'a', answer: 'kool' }, { clue: 'b', answer: 'õpetaja' }, { clue: 'c', answer: 'õpik' }]);
+    const shared = layout.cells.filter((c) => c.refs.length > 1);
+    expect(shared).toHaveLength(2);
+    expect(layout.height).toBeLessThan(5);
+  });
+
   it('writes one letter into the answer of a word', () => {
     expect(withLetter('', 4, 2, 'o')).toBe('  o');
     expect(withLetter('ko l', 4, 2, 'o')).toBe('kool');
