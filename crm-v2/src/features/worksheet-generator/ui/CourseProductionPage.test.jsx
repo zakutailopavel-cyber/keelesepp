@@ -19,8 +19,9 @@ describe('CourseProductionPage', () => {
     const confirm = vi.spyOn(window, 'confirm').mockReturnValue(true);
     await act(async () => { fireEvent.click(screen.getAllByRole('button', { name: 'Avalda tund' })[0]); });
     expect(confirm.mock.calls[0][0]).toMatch(/asendatakse uue versiooniga: 2 Harjuta/);
-    expect(repository.publish).toHaveBeenCalledTimes(2);
-    expect(repository.publish.mock.calls[0][0]).toMatchObject({ lessonId: 'a2b1-006', worksheetId: 'practice', baseUpdatedAt: 't', slot: 2 });
+    // a2b1-006 has all three sheets: Avasta, Harjuta, Kasuta
+    expect(repository.publish).toHaveBeenCalledTimes(3);
+    expect(repository.publish.mock.calls.map(([arg]) => arg).find((arg) => arg.worksheetId === 'practice')).toMatchObject({ lessonId: 'a2b1-006', worksheetId: 'practice', baseUpdatedAt: 't', slot: 2 });
     confirm.mockRestore();
   });
 

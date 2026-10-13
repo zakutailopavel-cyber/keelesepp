@@ -1,3 +1,14 @@
+## 2026-10-13 · agent/b1-avasta-006-015 — B1 Avasta a2b1-006…015 as full course sheets
+
+- Owner: „перепиши эти 10 листов B1” (they were DB-only hand-made Avasta sheets, ≈ 9.5 blocks).
+- `admin/course/b1/module02.js`, `module03.js`: a `discover` sheet for each lesson (15–17 blocks, 41–45 min, A2+ norms),
+  built on the lesson's own Harjuta/Kasuta (grammar, words, situation); one listening each (10 recordings).
+  `ui/CourseProductionPage.test.jsx`: a2b1-006 now publishes 3 sheets.
+- Characters: B1's own continuity (Anna's husband Martin, Viktor's wife Tiina) is kept; A2 uses Igor / Galina — a
+  cross-course character pass (A2 ↔ B1 ↔ B2 ↔ C1) is still open.
+- Tests: worksheet-generator passes (see below).
+- Next safe step: publish „B1 · moodul 2” and „B1 · moodul 3” (replaces the hand-made Avasta of 006–015; owner agreed).
+
 ## 2026-10-13 · agent/a2-missing-13 — the last 13 A2 lessons as full course sheets: A2 complete
 
 - Base: `main` 787afb6. Lessons a2-059, 060, 062, 064, 065, 068, 070, 072, 076, 077, 080, 081, 085 added into
