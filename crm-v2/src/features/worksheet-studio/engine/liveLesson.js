@@ -43,9 +43,13 @@ export function taskStats(doc, answers = {}) {
   const { results } = checkDocument(doc, answers);
   return doc.blocks.filter(isTask).map((block) => {
     const keys = Object.keys(results).filter((key) => key.startsWith(`${block.id}:`));
-    const answered = keys.filter((key) => filled(answers[key])).length;
+    // a writing task is scored by counters on its text: it counts as answered once the text is written
+    const own = BLOCKS[block.type]?.answerKeys;
+    const written = typeof own === 'function' ? own(block.data || {}).every((k) => filled(answers[`${block.id}:${k}`])) : null;
+    const isFilled = (key) => (written === null ? filled(answers[key]) : written);
+    const answered = keys.filter(isFilled).length;
     const ok = keys.filter((key) => results[key] === 'ok').length;
-    const wrong = keys.filter((key) => results[key] === 'bad' && filled(answers[key])).length;
+    const wrong = keys.filter((key) => results[key] === 'bad' && isFilled(key)).length;
     const tone = !keys.length ? 'open' : !answered ? 'idle' : wrong === 0 ? 'good' : ok >= wrong ? 'mixed' : 'hard';
     return { id: block.id, num: nums[block.id], title: block.data?.title || BLOCKS[block.type]?.label || '', total: keys.length, answered, ok, wrong, tone };
   });

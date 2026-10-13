@@ -1,3 +1,14 @@
+## 2026-10-13 · agent/student-flow-vocab-teacher — exercise blocks checked from the student's side
+
+- Base: `main` 512dcc5. `crm-v2/src/features/homework/studentWorksheetFlow.test.jsx`: a sheet with one block of every answerable type (28 types + all diagram variants), four of them with one mistake. Through the real screens with fake services: „Kodutööd” → student opens the sheet → answers through the UI → autosave gets exactly those answers → „Sulge” and reopen shows them (resume) → „Esita” sends those answers, `checkDocument` score and the error log → ✓/✗ per item for the student → the teacher opens the submission (`normalizeSubmission` of the stored record) and sees every answer, ✓/✗ and the auto-error list. Live lesson: the inline player autosaves, „Näita vastuseid” marks only the shown task, `LiveWorksheetView` shows all answers with marks. The answering cases moved to `src/test/blockAnswerCases.jsx` (shared with `engine/blocksRoundtrip.test.jsx`).
+- Bugs fixed: (1) reopening a sheet after autosave (no page reload) showed it empty and the next keystroke autosaved over the stored answers — `HomeworkPage` reloads on close, `DocWorksheetPlayer` takes the stored answers from its subscription until the student types; (2) a writing task never counted as answered (its scored counters sentences/keywords were counted as fields: 114/116, „Kas esitad ikkagi?” on a finished sheet; „idle” in the live task panel) — `answerProgress` / `taskStats` count a block's `answerKeys`.
+- Checks: homework + students + vocabulary + worksheet-studio 81 files / 404 tests pass; lint 0 errors; build ok. Full run: 10 failures in calendar/live-classroom tests also fail on the base (Node 26 `localStorage.clear`), untouched. Production: none.
+
+## 2026-10-13 · agent/student-flow-vocab-teacher — „Sõnavara → Teemad” for staff (student card)
+
+- `vocabulary/StudentTopicsCard.jsx` on the student card → „Areng”, read only: topics of the student's level (else the first level with words) in course order, state läbitud / avatud / lukus, known/all words, passed/all, date of the last passed topic (newest `createdAt` of its words). `topicModel.topicReport` (reuses `topicStates`). Reads `curriculumLessons` and the student's `studentWords` (staff may read); writes nothing. `StudentProfilePage` takes `topicsApi` for tests. Test: `StudentTopicsCard.test.jsx`.
+- Next safe step: owner review of the draft PR; then push and open it.
+
 ## 2026-10-13 · agent/art-b2-c1-batch4 — the rest of the Codex night batch (B2 061–090, C1 001–018)
 
 - Codex batch 2 stopped at 06:10 („workspace is out of credits”) after est-c1-018. Imported (from a copy of the inbox): B2 lessons up to 090 and C1 001–018 with briefs (`art/visuals/b2-module-14…18.js`, `c1-module-01…03.js`). Lessons Codex skipped after 3 tries have no picture (listed by `import_art.py`).
