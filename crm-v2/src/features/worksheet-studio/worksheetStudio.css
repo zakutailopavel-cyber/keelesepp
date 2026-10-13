@@ -234,6 +234,7 @@ textarea.ed-input { resize: vertical; }
 .ws-studio .lgb-tabs a { display: inline-flex; align-items: center; gap: 4px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--st-line); background: var(--st-panel); color: var(--st-ink); font: 700 13px inherit; text-decoration: none; }
 .ws-studio .lgb-tabs a.is-empty { color: var(--st-muted); border-style: dashed; }
 .ws-studio .lgb-tabs a[aria-current="page"] { background: var(--st-navy); border-color: var(--st-navy); color: #fff; }
+.ws-studio .lgb-course { font: 700 12px inherit; color: #2f7d4c; background: #ecfdf3; border: 1px solid #abefc6; border-radius: 999px; padding: 5px 10px; }
 .ws-studio .lgb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-left: auto; }
 .ws-studio .lgb-actions select, .ws-studio .lgb-focus-menu select { height: 32px; border: 1px solid var(--st-line); border-radius: 999px; background: var(--st-panel); color: var(--st-ink); padding: 0 10px; font: 600 13px inherit; }
 .ws-studio .lgb-actions .st-btn { display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }

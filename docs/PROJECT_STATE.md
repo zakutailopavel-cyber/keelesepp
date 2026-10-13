@@ -1,3 +1,18 @@
+## 2026-10-13 · agent/generator-guard — the generator never replaces a course sheet
+
+- Base: `main` a73f6c0. Generator check (owner „проверь генератор”): `generateLessonBundle` always plans 5 activities a
+  phase (`generator.js` count 5) → 5–17 min sheets, no reading/listening (profiles have no text banks), `practice-clock`
+  allowed for every lesson kind; none passes the course gate (`admin/course/quality.js sheetProblems`). These were the
+  weak sheets of 68 A2 lessons.
+- `ui/lessonGeneration.js`: `isCourseSheet(record, lessonId)` (published doc id `ws_<lesson>_<phase>` = course code);
+  `generateCoreSheets` skips course sheets (also the module drafts path), `previewCoreSheet` refuses them
+  (`COURSE_SHEET_KEPT`); returns the generated docs.
+- `LessonGeneratorBar`: on a lesson with course sheets: label „Kursuse lehed · generaator teeb lisalehe”, no „Genereeri
+  3 lehte uuesti” / „Ainult see leht” on a course sheet, „Genereeri puuduv leht (n)” only for a missing phase, „Fookuse
+  leht” → „Lisaleht”. After generating: a short sheet (< 40 min) is said to be an extra exercise to complete before publishing.
+- Tests: lessonGeneration +3, LessonGeneratorBar +1; worksheet-generator/ui 21 passed; studio/gold standard pass alone
+  (parallel-load timeouts locally).
+
 ## 2026-10-13 · agent/a2-module-01 — A2 module 1 (a2-001…005) as full course sheets
 
 - Base: `main` 0e1b283. Owner: „а2 листы прям очень маленькие” — checked in production: 68 A2 lessons (001–055 and
