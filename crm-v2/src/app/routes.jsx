@@ -5,35 +5,16 @@ import { LoadingState } from '../components/ui/index.js';
 import AppShell from '../components/layout/AppShell.jsx';
 import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
-import CalendarPage from '../features/calendar/CalendarPage.jsx';
-import FinanceWorkspacePage from '../features/finance/FinanceWorkspacePage.jsx';
-import FinanceMonthPage from '../features/finance/FinanceMonthPage.jsx';
-import FinanceSettingsPage from '../features/finance/FinanceSettingsPage.jsx';
-import ExpensesPage from '../features/expenses/ExpensesPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
-import GroupsPage from '../features/groups/GroupsPage.jsx';
-import LibraryPage from '../features/library/LibraryPage.jsx';
-import ConversionQueuePage from '../features/worksheet-studio/ConversionQueuePage.jsx';
-import BookPage from '../features/worksheet-studio/BookPage.jsx';
-import LiveWorksheetPage from '../features/worksheet-studio/LiveWorksheetPage.jsx';
 import GuestLessonPage from '../features/live-classroom/GuestLessonPage.jsx';
 import PayInvoicePage from '../features/payments/PayInvoicePage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
 import PetPage from '../features/pet/PetPage.jsx';
 import MistakesPage from '../features/self-study/MistakesPage.jsx';
 import MessagesPage from '../features/messages/MessagesPage.jsx';
-import ParentsPage from '../features/parents/ParentsPage.jsx';
-import PayrollPage from '../features/payroll/PayrollPage.jsx';
 import ParentDashboardPage from '../features/parents/ParentDashboardPage.jsx';
-import StudentsPage from '../features/students/StudentsPage.jsx';
-import StudentProfilePage from '../features/students/StudentProfilePage.jsx';
 import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx';
 import VocabularyPage from '../features/vocabulary/VocabularyPage.jsx';
-import TasksPage from '../features/tasks/TasksPage.jsx';
-import TeachersPage from '../features/teachers/TeachersPage.jsx';
-import AccountsPage from '../features/accounts/AccountsPage.jsx';
-import LeadsPage from '../features/leads/LeadsPage.jsx';
-import TeacherProfilePage from '../features/teachers/TeacherProfilePage.jsx';
 import SettingsPage from '../features/settings/SettingsPage.jsx';
 import BoardPage from '../features/board/BoardPage.jsx';
 import TeacherGuidePage from '../features/guide/TeacherGuidePage.jsx';
@@ -51,6 +32,27 @@ const LessonWorksheetStudioPage = lazy(() => import('../features/worksheet-gener
 const AvastaUpgradePage = lazy(() => import('../features/worksheet-generator/ui/AvastaUpgradePage.jsx'));
 const Module1ThreePhasePage = lazy(() => import('../features/worksheet-generator/ui/Module1ThreePhasePage.jsx'));
 const CourseProductionPage = lazy(() => import('../features/worksheet-generator/ui/CourseProductionPage.jsx'));
+// pages only staff open: downloaded when opened, so a student's or parent's first load stays small
+const CalendarPage = lazy(() => import('../features/calendar/CalendarPage.jsx'));
+const FinanceWorkspacePage = lazy(() => import('../features/finance/FinanceWorkspacePage.jsx'));
+const FinanceMonthPage = lazy(() => import('../features/finance/FinanceMonthPage.jsx'));
+const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettingsPage.jsx'));
+const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage.jsx'));
+const GroupsPage = lazy(() => import('../features/groups/GroupsPage.jsx'));
+const LibraryPage = lazy(() => import('../features/library/LibraryPage.jsx'));
+const ConversionQueuePage = lazy(() => import('../features/worksheet-studio/ConversionQueuePage.jsx'));
+const BookPage = lazy(() => import('../features/worksheet-studio/BookPage.jsx'));
+const LiveWorksheetPage = lazy(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
+const ParentsPage = lazy(() => import('../features/parents/ParentsPage.jsx'));
+const PayrollPage = lazy(() => import('../features/payroll/PayrollPage.jsx'));
+const StudentsPage = lazy(() => import('../features/students/StudentsPage.jsx'));
+const StudentProfilePage = lazy(() => import('../features/students/StudentProfilePage.jsx'));
+const TasksPage = lazy(() => import('../features/tasks/TasksPage.jsx'));
+const TeachersPage = lazy(() => import('../features/teachers/TeachersPage.jsx'));
+const AccountsPage = lazy(() => import('../features/accounts/AccountsPage.jsx'));
+const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
+const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
+const staffPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen…" />}>{element}</Suspense></PageErrorBoundary>;
 const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
 
 export default function AppRoutes() {
@@ -70,16 +72,16 @@ export default function AppRoutes() {
           <Route index element={<HomePage />} />
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
             <Route path="guide" element={<TeacherGuidePage />} />
-            <Route path="students" element={<StudentsPage />} />
-            <Route path="students/:studentId" element={<StudentProfilePage />} />
+            <Route path="students" element={staffPage(<StudentsPage />)} />
+            <Route path="students/:studentId" element={staffPage(<StudentProfilePage />)} />
             <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />
-            <Route path="calendar" element={<CalendarPage />} />
-            <Route path="tasks" element={<TasksPage />} />
-            <Route path="groups" element={<GroupsPage />} />
-            <Route path="library" element={<LibraryPage />} />
-            <Route path="library/worksheets/convert" element={<ConversionQueuePage />} />
-            <Route path="library/worksheets/book" element={<BookPage />} />
-            <Route path="library/worksheets/live/:assignmentId" element={<LiveWorksheetPage />} />
+            <Route path="calendar" element={staffPage(<CalendarPage />)} />
+            <Route path="tasks" element={staffPage(<TasksPage />)} />
+            <Route path="groups" element={staffPage(<GroupsPage />)} />
+            <Route path="library" element={staffPage(<LibraryPage />)} />
+            <Route path="library/worksheets/convert" element={staffPage(<ConversionQueuePage />)} />
+            <Route path="library/worksheets/book" element={staffPage(<BookPage />)} />
+            <Route path="library/worksheets/live/:assignmentId" element={staffPage(<LiveWorksheetPage />)} />
             <Route path="library/worksheet-generator" element={generatorPage(<GeneratorCoveragePage />)} />
             <Route path="library/worksheet-generator/avasta-module-1" element={generatorPage(<AvastaUpgradePage />)} />
             <Route path="library/worksheet-generator/module-1-three-phase" element={generatorPage(<Module1ThreePhasePage />)} />
@@ -87,17 +89,17 @@ export default function AppRoutes() {
             <Route path="library/lessons/:lessonId/worksheets" element={generatorPage(<LessonWorksheetSet />)} />
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
-            <Route path="parents" element={<ParentsPage />} />
+            <Route path="parents" element={staffPage(<ParentsPage />)} />
             <Route path="board/:studentId" element={<BoardPage />} />
-            <Route path="leads" element={<LeadsPage />} />
+            <Route path="leads" element={staffPage(<LeadsPage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.LIVE_CLASSROOM} />}>
             <Route path="live-classroom" element={<LiveClassroomPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
-            <Route path="teachers" element={<TeachersPage />} />
-            <Route path="accounts" element={<AccountsPage />} />
-            <Route path="teachers/:teacherId" element={<TeacherProfilePage />} />
+            <Route path="teachers" element={staffPage(<TeachersPage />)} />
+            <Route path="accounts" element={staffPage(<AccountsPage />)} />
+            <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
           </Route>
           <Route path="settings" element={<SettingsPage />} />
           <Route path="homework" element={<HomeworkPage />} />
@@ -117,13 +119,13 @@ export default function AppRoutes() {
             <Route path="student/kursus" element={<Navigate to="/student/vead" replace />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
-            <Route path="finance" element={<FinanceMonthPage />} />
-            <Route path="finance/seaded" element={<FinanceSettingsPage />} />
-            <Route path="finance/vana" element={<FinanceWorkspacePage />} />
+            <Route path="finance" element={staffPage(<FinanceMonthPage />)} />
+            <Route path="finance/seaded" element={staffPage(<FinanceSettingsPage />)} />
+            <Route path="finance/vana" element={staffPage(<FinanceWorkspacePage />)} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
-            <Route path="finance/payroll" element={<PayrollPage />} />
-            <Route path="finance/expenses" element={<ExpensesPage />} />
+            <Route path="finance/payroll" element={staffPage(<PayrollPage />)} />
+            <Route path="finance/expenses" element={staffPage(<ExpensesPage />)} />
           </Route>
         </Route>
       </Route>

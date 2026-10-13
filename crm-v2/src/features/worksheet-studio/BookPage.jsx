@@ -1,7 +1,7 @@
 /* global setTimeout */
 import { memo, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import * as Icons from 'lucide-react';
+import { Icons } from './icons.js';
 import { lessonWorksheetsService, libraryService } from '../../services/firebase/index.js';
 import { assembleProgramBook, BOOK_PHASES, programLevels, programModules, programProgress } from './bookProgram.js';
 import Sheet from './engine/Sheet.jsx';

@@ -1,3 +1,15 @@
+## 2026-10-13 · agent/perf-check — a lighter first load (students, parents, phones)
+
+- Base: `main` 22a922f. First load (gzip): index 427 + react 72 + icons 166 + firebase 172 ≈ 837 KB.
+- `worksheet-studio/icons.js`: the ~85 icons the studio looks up by name, instead of `import * as Icons from
+  'lucide-react'` (WorksheetStudioPage, LiveWorksheetView, BookPage, editor/BlockBar) that put all lucide icons into the
+  „icons” chunk every page loads: 166 → 17 KB.
+- `app/routes.jsx`: 19 staff-only pages (calendar, finance, expenses, payroll, groups, library, book, students, teachers,
+  accounts, leads, tasks, parents list, conversion queue, live worksheet view) load on demand (`staffPage` = Suspense +
+  error boundary): index 427 → 278 KB. First load now ≈ 539 KB gzip (−36 %).
+- Tests: app + components + worksheet-studio + guide 284 passed; full suite locally 1700 passed, 11 failed — Node 26
+  localStorage in calendar/live-classroom tests (known, CI runs Node 24) and the slow studio test file.
+
 ## 2026-10-13 · agent/rolecards-record — role cards keep the student's recording
 
 - Base: `agent/crossword-grid` (#594). Gap 8 of `docs/COURSE_SYSTEM_GAPS.md` („Rollikaardid on hindamata”): the
