@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { B1_LESSON_GOALS } from './lessonGoals.js';
 import { buildCourseSheet, COURSE_MODULES } from '../registry.js';
 
+const ASSESSMENTS = new Set([5, 10, 20, 25, 35, 40, 45, 50, 89, 90]);
 const GENERIC = ['mooduli põhivara', 'kasutab sihtkeelt', 'tuttava igapäevateksti', 'mõistab teksti põhiideed ja detaile', 'märkab ja selgitab tunni keelemustrit', 'kasutab õpitut suulises ja kirjalikus suhtluses', 'kasutab mooduli põhisõnavara uutes lausetes'];
 
 describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
@@ -11,7 +12,8 @@ describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
       const entry = B1_LESSON_GOALS[id];
       expect(entry, id).toBeTruthy();
       expect(entry.canDo, id).not.toMatch(/[А-Яа-я]/);
-      expect(Object.keys(entry.goals).sort(), id).toEqual(['g_notice', 'g_read', 'g_use', 'g_vocab']);
+      // checks and mock exams test the module without new vocabulary: form, reading, use (contract D)
+      expect(Object.keys(entry.goals).sort(), id).toEqual(ASSESSMENTS.has(n) ? ['g_notice', 'g_read', 'g_use'] : ['g_notice', 'g_read', 'g_use', 'g_vocab']);
       for (const text of Object.values(entry.goals)) expect(GENERIC.some((g) => text.includes(g)), `${id}: ${text}`).toBe(false);
     }
   });

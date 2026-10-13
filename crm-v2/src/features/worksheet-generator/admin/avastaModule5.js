@@ -37,6 +37,8 @@ const SPECS = {
           { q: 'Milline lause räägib lõpetatud tegevusest?', options: '*Eile töötasin kodus.\nTäna töötan kodus.\nHomme töötan kodus.' },
           { q: 'Milline sõna aitab sageli minevikku märgata?', options: '*eile\nvarsti\nhomme' },
           { q: 'Milline eitus sobib lihtminevikku?', options: '*ei töötanud\nei töötab\nei töötas' },
+          { q: 'Milline vorm on ma-vormist „lugema” lihtminevikus (mina)?', options: '*lugesin\nluges\nloen' },
+          { q: 'Milline lause on minevikus ja eitav?', options: '*Ma ei käinud eile poes.\nMa ei käi täna poes.\nMa ei käinud homme poes.' },
         ],
       }),
       notice: block('a2b1_021_av_notice', 'notice', 'white', 'g_notice', {
@@ -109,6 +111,8 @@ const SPECS = {
           { q: 'Mis aitab sündmuste järjekorda näidata?', options: '*ajamarkerid nagu kõigepealt, siis, pärast seda\nainult nimed\nainult omadussõnad' },
           { q: 'Milline lause alustab minevikujuttu loomulikult?', options: '*Eile hommikul ärkasin tavalisest varem.\nHomme ärkan varem.\nPraegu ärkan.' },
           { q: 'Milline sõna sobib viimase sündmuse ette?', options: '*lõpuks\neelmisel nädalal\nenne' },
+          { q: 'Milline ajamarkerite järjekord on loogiline?', options: '*kõigepealt – siis – pärast seda – lõpuks\nlõpuks – kõigepealt – siis\npärast seda – lõpuks – kõigepealt' },
+          { q: 'Milline väljend sobib eelmise nädala kohta?', options: '*eelmisel nädalal\njärgmisel nädalal\nigal nädalal' },
         ],
       }),
       notice: block('a2b1_022_av_notice', 'notice', 'white', 'g_notice', {
@@ -179,6 +183,8 @@ const SPECS = {
           { q: '„Ta läks eile arsti juurde.” Mis on verbi algvorm?', options: '*minema\ntulema\nnägema' },
           { q: '„Me sõime restoranis.” Mis tegevus see on?', options: '*sööma\njooma\nsaama' },
           { q: '„Mari nägi sõpra.” Mis on verbi algvorm?', options: '*nägema\nviima\njääma' },
+          { q: '„Nad tulid hilja koju.” Mis on algvorm?', options: '*tulema\ntooma\ntegema' },
+          { q: '„Ma jõin kohvi.” Mis on algvorm?', options: '*jooma\njõudma\njooksma' },
         ],
       }),
       notice: block('a2b1_023_av_notice', 'notice', 'white', 'g_notice', {
@@ -251,6 +257,8 @@ const SPECS = {
           { q: 'Mida peab kuulaja loo alguses teada saama?', options: '*Kes, kus ja millal.\nAinult lõpp.\nAinult üks verb.' },
           { q: 'Milleks kasutatakse väljendit „pärast seda”?', options: '*Järgmise sündmuse näitamiseks.\nTegelase nime muutmiseks.\nTuleviku väljendamiseks.' },
           { q: 'Mis teeb lõpu arusaadavaks?', options: '*Selge viimane sündmus või tulemus.\nUus tegelane ilma selgituseta.\nJuhuslik uus teema.' },
+          { q: 'Mis on loo keskel kõige tähtsam?', options: '*probleem või muutus\nilma kirjeldus\ntegelase vanus' },
+          { q: 'Milline lause sobib loo lõppu?', options: '*Lõpuks sai Laura koti tagasi.\nLaupäeva hommikul läks Laura turule.\nSiis märkas Laura midagi.' },
         ],
       }),
       notice: block('a2b1_024_av_notice', 'notice', 'white', 'g_notice', {
@@ -324,6 +332,8 @@ const SPECS = {
           { q: 'Mis teeb tekstist minevikujutu?', options: '*Sündmused on lõpetatud ja ajaliselt järjestatud.\nSündmused toimuvad praegu ja korduvad iga päev.\nTekst räägib tulevikuplaanidest.' },
           { q: 'Milline sõna näitab selgelt loo lõppu?', options: '*lõpuks\neile\nhommikul' },
           { q: 'Milline vorm on erandlik?', options: '*läks\ntöötasin\nvaatasin' },
+          { q: 'Miks otsustas Oliver kontserdile minna?', options: '*sõbral oli üks vaba pilet\ntal oli reedel vaba päev\nta ostis ise piletid' },
+          { q: 'Milline vorm on „nägema” lihtminevikus (tema)?', options: '*nägi\nnägis\nnäeb' },
         ],
       }),
       notice: block('a2b1_025_av_notice', 'notice', 'white', 'g_notice', {

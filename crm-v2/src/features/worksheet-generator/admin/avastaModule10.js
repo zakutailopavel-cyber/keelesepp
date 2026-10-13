@@ -31,6 +31,8 @@ const SPECS = {
           { q: 'Mida tähendab „rong väljub kell 14.20”?', options: '*rong alustab sõitu kell 14.20\nrong jõuab kohale kell 14.20\npiletit saab osta kuni kella 14.20-ni' },
           { q: 'Mida tähendab „saabub perroonile 3”?', options: '*rong jõuab kolmandale perroonile\npilet on kolmandas vagunis\nrong väljub kolme tunni pärast' },
           { q: 'Kui pead teise bussi peale minema, siis pead…', options: '*ümber istuma\npileti tagastama\njaamast väljuma' },
+          { q: 'Miks valib Kristi esimese rongi?', options: '*tahab varem Tartusse jõuda\nsee on odavam\nümberistumine meeldib talle' },
+          { q: 'Mida tähendab „edasi-tagasi pilet”?', options: '*pilet sinna ja tagasi\npilet ainult ühte suunda\npilet teisele inimesele' },
         ],
       }),
       notice: block('a2b1_046_av_notice', 'notice', 'white', 'g_notice', {
@@ -104,6 +106,8 @@ const SPECS = {
           { q: 'Miks valida rong bussi asemel?', options: '*Rong on kallim, aga jõuab tund varem kohale.\nMulle lihtsalt meeldivad rongid.\nRongis on alati palju inimesi.' },
           { q: 'Miks valida odavam hotell?', options: '*Et eelarves jääks rohkem raha tegevusteks.\nSest odavas hotellis on väiksemad toad.\nSest see hotell on odav.' },
           { q: 'Mida teeb hea reisiplaan?', options: '*seob marsruudi, aja ja põhjused\nloetleb ainult kohanimed\nannab ainult ühe kellaaja' },
+          { q: 'Miks valisid Mihkel ja Laura bussi?', options: '*buss on odavam ja lennuk ei säästa palju aega\nbussis saab magada\nlennuk oli täis' },
+          { q: 'Miks valisid nad hotelli vanalinna lähedal?', options: '*sealt saab paljudesse kohtadesse jalgsi\nsee oli kõige kallim\nseal oli bassein' },
         ],
       }),
       notice: block('a2b1_047_av_notice', 'notice', 'white', 'g_notice', {
@@ -177,6 +181,8 @@ const SPECS = {
           { q: 'Eile ma … rongiga Tartusse.', options: '*sõitsin\nsõidan\nsõitma' },
           { q: 'Rong … jaama kell kümme.', options: '*saabus\nsaabub\nsaabuma' },
           { q: 'Me … vanalinnas palju huvitavaid kohti.', options: '*nägime\nnäeme\nnägema' },
+          { q: 'Nad … muuseumi. (külastama)', options: '*külastasid\nkülastavad\nkülastama' },
+          { q: 'Õhtul ilm … külmaks. (muutuma)', options: '*muutus\nmuutub\nmuutma' },
         ],
       }),
       notice: block('a2b1_048_av_notice', 'notice', 'white', 'g_notice', {
@@ -250,6 +256,8 @@ const SPECS = {
           { q: 'Rong hilineb ja sa võid järgmisest rongist maha jääda.', options: '*küsin infoletist, kas on mõni teine ühendus\nostan kohe uue pileti järgmisele rongile\nootan, kuni rong lõpuks tuleb' },
           { q: 'Oled valel perroonil.', options: '*küsin, milliselt perroonilt rong tegelikult väljub\nootan, sest rong tuleb ehk ka siia\nostan uue pileti teisele rongile' },
           { q: 'Mida peab hea lahendus sisaldama?', options: '*probleem + küsimus + alternatiiv\nprobleem + kaebus + vabandus\nküsimus + tänu + hüvastijätt' },
+          { q: 'Mida küsib Sander infoletis?', options: '*kas pilet kehtib järgmisele bussile\nkus on kohvik\nmis kell on' },
+          { q: 'Mis tuleb piletiga teha?', options: '*see tuleb ümber vormistada\nuus pilet tuleb osta\npilet tuleb tagastada' },
         ],
       }),
       notice: block('a2b1_049_av_notice', 'notice', 'white', 'g_notice', {
@@ -335,6 +343,8 @@ const SPECS = {
           { q: 'Mis on reisi peamine probleem?', options: '*rong hilineb ja Karin võib kohtumisele hiljaks jääda\nKarin ei leia jaamas õiget perrooni\nKarini pilet ei kehti sellele rongile' },
           { q: 'Mida Karin teeb?', options: '*küsib infoletist kiiremat alternatiivi\nootab jaamas rongi ära\nostab kohe uue rongipileti' },
           { q: 'Milline oskus aitab olukorra lahendada?', options: '*täpsustava küsimuse esitamine\npika kaebuse kirjutamine\nkannatlik ootamine' },
+          { q: 'Kui palju rong hilineb?', options: '*45 minutit\n20 minutit\nüks tund' },
+          { q: 'Millise alternatiivi leidis töötaja?', options: '*bussi, mis väljub 20 minuti pärast\ntakso\nhilisema rongi' },
         ],
       }),
       notice: block('a2b1_050_av_notice', 'notice', 'white', 'g_notice', {

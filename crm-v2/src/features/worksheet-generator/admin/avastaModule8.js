@@ -31,6 +31,8 @@ const SPECS = {
           { q: 'Milline info on kõige olulisem?', options: '*mida õpitakse, mis on raske ja miks\nmis kell tunnid algavad ja lõpevad\nmitu õpilast on klassis' },
           { q: 'Milline lause annab hinnangu?', options: '*Matemaatika on mulle keeruline, sest ülesanded võtavad palju aega.\nMatemaatika tund on kolmapäeviti kell kümme ruumis 204.\nMeil on matemaatikas sel aastal uus ja noor õpetaja.' },
           { q: 'Milline väljend näitab ettevalmistust?', options: '*valmistun kontrolltööks\nsain kontrolltöö eest hinde\nkontrolltöö oli raske' },
+          { q: 'Milline aine on Kaisale kõige keerulisem?', options: '*matemaatika\najalugu\ninglise keel' },
+          { q: 'Miks meeldib Kaisale ajalugu?', options: '*õpetaja laseb palju arutada\ntunnis ei ole kodutööd\ntund on päeva lõpus' },
         ],
       }),
       notice: block('a2b1_036_av_notice', 'notice', 'white', 'g_notice', {
@@ -104,6 +106,8 @@ const SPECS = {
           { q: 'Ma pean täna …', options: '*õppima\nõppida\nõpin' },
           { q: 'Ma tahan rohkem …', options: '*rääkida\nrääkima\nräägin' },
           { q: 'Ma lähen raamatukokku …', options: '*õppima\nõppida\nõppisin' },
+          { q: 'Mulle meeldib hommikul …', options: '*lugeda\nlugema\nloen' },
+          { q: 'Ma hakkan homme …', options: '*jooksma\njoosta\njooksen' },
         ],
       }),
       notice: block('a2b1_037_av_notice', 'notice', 'white', 'g_notice', {
@@ -177,6 +181,8 @@ const SPECS = {
           { q: 'Mulle meeldib õppida hommikul, sest…', options: '*siis suudan paremini keskenduda.\nsiis olen ma väga väsinud.\nõhtul on mul rohkem aega.' },
           { q: 'Kuna mul on homme test, …', options: '*kordan täna materjali.\nlähen täna kinno ja ei õpi.\nkordasin materjali eelmisel kuul.' },
           { q: 'Ma ei tulnud eile tundi, …', options: '*sest mul oli palavik.\nsest mul oli vaba päev.\nsest tund oli huvitav.' },
+          { q: 'Milline lause on täielik vastus?', options: '*Ma õpin hommikul, sest siis on mu pea värskem.\nSest hommikul.\nMa õpin hommikul.' },
+          { q: 'Kuna sõna on kõrvallause alguses, kus on tegusõna pealauses?', options: '*Kuna olin haige, jäin koju.\nKuna olin haige, ma jäin koju.\nKuna haige olin, koju jäin.' },
         ],
       }),
       notice: block('a2b1_038_av_notice', 'notice', 'white', 'g_notice', {
@@ -250,6 +256,8 @@ const SPECS = {
           { q: 'Sa ei saa uuest teemast aru.', options: '*küsin õpetajalt näidet ja harjutan uuesti\nloen sama reeglit veel kümme korda\njätan teema vahele ja loodan, et testis seda ei ole' },
           { q: 'Sul pole kodutööks aega.', options: '*teen realistliku plaani ja alustan tähtsamast\nteen kõik ülesanded ühel õhtul hilja\nootan, kuni mul on rohkem vaba aega' },
           { q: 'Mida sisaldab hea vastus?', options: '*probleem + põhjus + lahendus\nprobleem + põhjus\nprobleem + lahendus' },
+          { q: 'Mis on Marki probleemi põhjus?', options: '*tööl oli kiire ja ta jäi tunnist puudu\ntal ei meeldi eesti keel\nõpetaja ei seleta hästi' },
+          { q: 'Mida soovitab õpetaja kõigepealt?', options: '*vaadata üle puudutud tunni põhinäited\nteha kõik harjutused ühel õhtul\nkursuse lõpetada' },
         ],
       }),
       notice: block('a2b1_039_av_notice', 'notice', 'white', 'g_notice', {
@@ -328,6 +336,8 @@ const SPECS = {
           { q: 'Mis on teksti keskne teema?', options: '*kuidas Anna leiab töö ja kodu kõrvalt aega õppimiseks\nkuidas Anna valmistub eesti keele eksamiks\nmiks Anna otsib uut töökohta' },
           { q: 'Mida Anna muudab?', options: '*ta õpib lühemalt, aga kindlatel aegadel\nta õpib nüüd igal õhtul kauem\nta läheb osalise tööajaga tööle' },
           { q: 'Miks kordab Anna sõnavara hommikul?', options: '*siis on tal rohkem energiat\nõhtul on raamatukogu kinni\nhommikul on tal tund õpetajaga' },
+          { q: 'Mida Anna nädalavahetusel teeb?', options: '*vaatab oma kalendri üle\nläheb tööle\nkirjutab eksami' },
+          { q: 'Mis juhtus enne muutust?', options: '*osa kodutöid jäi tegemata\nAnna sai uue töö\nkursus jäi ära' },
         ],
       }),
       notice: block('a2b1_040_av_notice', 'notice', 'white', 'g_notice', {

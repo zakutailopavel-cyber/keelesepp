@@ -31,6 +31,8 @@ const SPECS = {
           { q: 'Kes suhtleb iga päev klientidega?', options: '*klienditeenindaja\nehitaja\nkoristaja' },
           { q: 'Kes võib vastutada arvete ja numbrite eest?', options: '*raamatupidaja\nkokk\nautojuht' },
           { q: 'Milline lause kirjeldab tööülesannet?', options: '*Administraator vastab kirjadele ja telefonile.\nAdministraator töötab kontoris.\nAdministraator on sõbralik ja täpne.' },
+          { q: 'Mida teeb kokk enne restorani avamist?', options: '*kontrollib toiduaineid ja valmistab köögi ette\nvastab klientide kirjadele\nviib kaupa laiali' },
+          { q: 'Milline lause kirjeldab omadust, mitte ülesannet?', options: '*Jaan on täpne ja hoolikas.\nJaan viib kaupa erinevatesse kohtadesse.\nJaan kontrollib enne sõitu autot.' },
         ],
       }),
       notice: block('a2b1_041_av_notice', 'notice', 'white', 'g_notice', {
@@ -104,6 +106,8 @@ const SPECS = {
           { q: 'Mis aitab ülesandeid järjestada?', options: '*ajamarkerid ja prioriteedid\nainult ametinimetused\nainult kellaaeg' },
           { q: 'Milline lause näitab prioriteeti?', options: '*Kõigepealt lõpetan kiire aruande.\nAruanne on kolm lehekülge pikk.\nTäna on mul palju tööd.' },
           { q: 'Milline väljend sobib viimase tegevuse ette?', options: '*päeva lõpus\nkõigepealt\nenne lõunat' },
+          { q: 'Miks muutub Anu plaan mõnikord?', options: '*tuleb kiire telefonikõne või uus probleem\nkoosolek jääb alati ära\nta lõpetab töö kell kaksteist' },
+          { q: 'Milline väljend näitab, et midagi toimub tavaliselt?', options: '*tavaliselt\nsel hommikul\nmöödunud aastal' },
         ],
       }),
       notice: block('a2b1_042_av_notice', 'notice', 'white', 'g_notice', {
@@ -175,6 +179,8 @@ const SPECS = {
           { q: '„Ootame head eesti keele oskust.”', options: '*nõue\npakkumine\ntööülesanne' },
           { q: '„Pakume paindlikku tööaega.”', options: '*pakkumine\nnõue\nametinimetus' },
           { q: '„Tööülesanne on klientide nõustamine.”', options: '*tööülesanne\npalk\nharidus' },
+          { q: '„Varasem töökogemus tuleb kasuks.”', options: '*eelis, mitte kohustus\nkohustuslik nõue\ntööülesanne' },
+          { q: '„Töö on osalise koormusega.”', options: '*ei ole täistööaeg\nei ole palka\ntöö on ainult öösel' },
         ],
       }),
       notice: block('a2b1_043_av_notice', 'notice', 'white', 'g_notice', {
@@ -250,6 +256,8 @@ const SPECS = {
           { q: '„Mis on teie tugevus?”', options: '*Olen täpne ja panen tähtajad alati kalendrisse, et midagi ei ununeks.\nOlen täpne, kiire, sõbralik ja väga hea töötaja.\nMul ei ole nõrkusi, ma olen kõiges hea.' },
           { q: '„Miks soovite siin töötada?”', options: '*Töö sobib minu varasema teeninduskogemusega ja tahan selles valdkonnas areneda.\nTeie kontor on minu kodu lähedal, see on mugav.\nMul on praegu raha vaja ja otsin mis tahes tööd.' },
           { q: 'Mis muudab vastuse usutavamaks?', options: '*konkreetne näide\npalju võõrsõnu\nüldine kiitus enda kohta' },
+          { q: 'Mis oli Natalia töö kohvikus?', options: '*suhtles klientidega ja võttis tellimusi vastu\nraamatupidamine\nautojuhtimine' },
+          { q: 'Milline vastus näitab tugevust näitega?', options: '*Ka kiirel ajal jään rahulikuks: eile teenindasin üksi 40 klienti.\nOlen väga hea töötaja.\nMulle meeldib töötada.' },
         ],
       }),
       notice: block('a2b1_044_av_notice', 'notice', 'white', 'g_notice', {
@@ -328,6 +336,8 @@ const SPECS = {
           { q: 'Mis on tööandja peamine nõue?', options: '*B1 eesti keel ja hea arvutioskus\nvarasem teeninduskogemus\nkõrgharidus ja juhiluba' },
           { q: 'Kuidas näitas Sergei vestlusel oma tugevust?', options: '*tõi näite päris olukorrast\nrääkis oma haridusest\nnäitas soovituskirja' },
           { q: 'Mis teeb vastuse sisuliseks?', options: '*konkreetne näide\npikk ja keeruline lause\nmitu omadussõna järjest' },
+          { q: 'Mida pakub tööandja neile, kellel kogemust ei ole?', options: '*väljaõpet\nkõrgemat palka\nkodus töötamist' },
+          { q: 'Kui kaua töötas Sergei kohvikus?', options: '*kaks aastat\nkolm kuud\nviis aastat' },
         ],
       }),
       notice: block('a2b1_045_av_notice', 'notice', 'white', 'g_notice', {

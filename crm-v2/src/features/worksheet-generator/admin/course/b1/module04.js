@@ -88,7 +88,7 @@ export const LESSONS = {
       B.writing('017_px_write', 'Reeglid minu kodus.', 'Kirjuta 8–10 lauset: mida peab, võib ja ei tohi sinu kodus teha.', [8, 10], ['peab', 'võib', 'ei tohi', 'saab'], 3),
       B.dictation('017_px_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Siin ei tohi suitsetada.', 'Piletit saab osta veebis.', 'Ma pean homme tööle minema.', 'Sa võid tulla hiljem.', 'Arve tuleb maksta reedeks.', 'Telefoni ei tohi tunnis kasutada.']),
       B.speaking('017_px_rules', 'Kooli reeglid.', 'Räägi 1–2 minutit oma kooli või töö reeglitest.', ['Mida peab tegema?', 'Mida ei tohi teha?', 'Milline reegel on hea?'], [60, 120]),
-      B.wordorder('017_px_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Klassis võib juua vett.', 'Kodutööd saab esitada veebis.', 'Kursuse lõpus peab tegema testi.']),
+      B.wordorder('017_px_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Klassis võib juua vett.', 'Kodutööd saab esitada veebis.', 'Kursuse lõpus peab tegema testi.', 'Tunnis ei tohi telefoniga rääkida.', 'Puudumisest peab õpetajale teatama.']),
       B.selfcheck('017_p_self', ['Ma eristan kohustust, luba, võimalust ja keeldu.', 'Ma tean: peab + ma, võib/saab/tohib + da; ei pea ≠ ei tohi.', 'Ma parandan modaalverbi vead.', 'Ma räägin reeglitest.'], 'Peab, võib, saab'),
     ],
     transfer: [

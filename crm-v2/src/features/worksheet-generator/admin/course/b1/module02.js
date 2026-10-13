@@ -435,7 +435,7 @@ export const LESSONS = {
       B.translation('009_p_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Мы обычно встречаемся в субботу.', 'Иногда мы ходим в кино.', 'Мне нравится готовить с мамой.', 'Мы редко путешествуем, потому что мало времени.', 'Нам вместе всегда весело.']),
       B.speaking('009_p_habits', 'Pere harjumused.', 'Küsi paariliselt 5 küsimust tema pere harjumuste kohta.', ['Mida teete pühapäeval?', 'Kui tihti kohtute?', 'Mis teile koos meeldib?', 'Mida teete harva?'], [90, 120]),
       B.dictation('009_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Me kohtume tavaliselt laupäeval.', 'Vahel läheme koos kinno.', 'Mulle meeldib vennaga süüa teha.', 'Me jalutame, sest ilm on ilus.', 'Pühapäeval sööme vanaema juures.']),
-      B.wordorder('009_p_order2', 'Veel lauseid.', 'Pane laused kokku.', ['Me reisime harva, sest aega on vähe.', 'Talvel käime perega suusatamas.', 'Õhtul mängime vahel lauamänge.']),
+      B.wordorder('009_p_order2', 'Veel lauseid.', 'Pane laused kokku.', ['Me reisime harva, sest aega on vähe.', 'Talvel käime perega suusatamas.', 'Õhtul mängime vahel lauamänge.', 'Pühapäeval sööme alati koos lõunat.', 'Suvel käime sageli vanaema juures.']),
       B.gaps('009_p_fill', 'Täida tekst.', 'Vali sobiv sõna.', ['Me [veedame] palju aega koos.', 'Pühapäeval [sööme] vanaema juures lõunat.', 'Pärast lõunat [jalutame] pargis.', 'Õhtul [mängime] lauamänge.', 'Mulle meeldib see päev, [sest] kõik on koos.'], ['veedame', 'sööme', 'jalutame', 'mängime', 'sest', 'käime', 'aga']),
       B.selfcheck('009_p_self', ['Ma nimetan 6 ühist tegevust.', 'Ma ütlen, kui tihti me midagi teeme.', 'Ma põhjendan sest-lausega.', 'Ma kirjutan seotud teksti.'], 'Meil on koos tore'),
     ],

@@ -31,6 +31,8 @@ const SPECS = {
           { q: 'Milline väljend näitab täpset kogust?', options: '*üks kilo kartuleid\npalju kartuleid\nnatuke kartuleid' },
           { q: 'Milline ühik sobib piimaga kõige loomulikumalt?', options: '*liiter\ntükk\npaar' },
           { q: 'Milline fraas sobib ostunimekirja?', options: '*kaks pakki riisi\nkaks pakki riis\nkaks paki riisi' },
+          { q: 'Milline väljend sobib munadega?', options: '*kümme muna\nkilo munasid\nliiter mune' },
+          { q: 'Miks ei taha Liis liiga palju osta?', options: '*osa toidust läheb muidu halvaks\npoes ei ole piisavalt toitu\ntal ei ole raha' },
         ],
       }),
       notice: block('a2b1_026_av_notice', 'notice', 'white', 'g_notice', {
@@ -104,6 +106,8 @@ const SPECS = {
           { q: 'Teenindaja küsib: „Mida teile joogiks?”', options: '*Palun üks mineraalvesi.\nPalun üks kanasalat.\nPalun arve.' },
           { q: 'Tahad teada, kas toidus on pähkleid.', options: '*Kas selles on pähkleid?\nKas teil on pähkleid?\nKas see on pähkel?' },
           { q: 'Tahad maksta.', options: '*Arve palun.\nMenüü palun.\nKas maksate kaardiga?' },
+          { q: 'Teenindaja küsib: „Kas soovite veel midagi?” Sa ei soovi.', options: '*Ei, aitäh, see on kõik.\nJah, arve.\nMul on kõht täis, tooge veel.' },
+          { q: 'Kuidas viisakalt tellida?', options: '*Ma sooviksin kanasalatit.\nAnna mulle salat.\nSalat!' },
         ],
       }),
       notice: block('a2b1_027_av_notice', 'notice', 'white', 'g_notice', {
@@ -184,6 +188,8 @@ const SPECS = {
           { q: 'Palju …', options: '*vett\nvesi\nvee' },
           { q: 'Kaks kilo …', options: '*kartuleid\nkartulid\nkartulite' },
           { q: 'Üks klaas …', options: '*mahla\nmahl\nmahlast' },
+          { q: 'Pool kilo …', options: '*juustu\njuust\njuustul' },
+          { q: 'Ma ostan … (paljus, mitmus)', options: '*õunu\nõunad\nõunte' },
         ],
       }),
       notice: block('a2b1_028_av_notice', 'notice', 'white', 'g_notice', {
@@ -257,6 +263,8 @@ const SPECS = {
           { q: 'Kuidas probleemi kõige selgemalt kirjeldada?', options: '*Ma tellisin supi, aga sain salati.\nSee salat ei ole väga hea.\nMulle ei meeldi salat.' },
           { q: 'Milline fraas palub lahendust?', options: '*Kas saaksite selle ära vahetada?\nSee ei ole see, mida ma tellisin.\nVabandust, mul on probleem.' },
           { q: 'Mis aitab konflikti vältida?', options: '*konkreetne probleem ja viisakas soov\nainult probleem, ilma soovita\npikk selgitus, miks sa pahane oled' },
+          { q: 'Mida teeb Marek kõigepealt?', options: '*kutsub teenindaja ja kirjeldab probleemi\nlahkub restoranist\nsööb burgeri ära' },
+          { q: 'Milline vastus on viisakas ja selge?', options: '*Vabandust, ma tellisin friikartulid, aga sain salati.\nTe tõite jälle vale asja!\nMa ei taha seda süüa.' },
         ],
       }),
       notice: block('a2b1_029_av_notice', 'notice', 'white', 'g_notice', {
@@ -340,6 +348,8 @@ const SPECS = {
           { q: 'Mis on Kristjani peamine eesmärk?', options: '*saada õige lisand ja õige arve\nsaada tasuta kohvi\nvahetada supp teise vastu' },
           { q: 'Miks lahkub Kristjan rahulolevalt?', options: '*probleemid lahendati kiiresti ja viisakalt\ntoit oli tasuta\nta sai kohvi ja magustoitu' },
           { q: 'Mida teeb Kristjan, kui teenindaja pakub kohvi?', options: '*ütleb viisakalt, et praegu mitte\ntellib kohvi ja magustoidu\npalub kohe arvet' },
+          { q: 'Mida tellis Kristjan prae kõrvale?', options: '*riisi\nkartuleid\nsalatit' },
+          { q: 'Kuidas Kristjan probleemi lahendab?', options: '*selgitab rahulikult, mida tellis\nkirjutab kaebuse\nlahkub maksmata' },
         ],
       }),
       notice: block('a2b1_030_av_notice', 'notice', 'white', 'g_notice', {

@@ -31,6 +31,8 @@ const SPECS = {
           { q: '„Mul valutab kurk.” Mis sümptom see on?', options: '*kurguvalu\nseljavalu\nnohu' },
           { q: '„Mul on 38 kraadi.”', options: '*palavik\nköha\npeavalu' },
           { q: 'Milline lause kirjeldab enesetunnet õigesti?', options: '*Tunnen end väga väsinuna.\nTunnen end väga väsinud.\nOlen end väga väsinuna.' },
+          { q: '„Mul on nohu.” Mis on probleem?', options: '*nina on kinni või jookseb\nkõht valutab\njalg valutab' },
+          { q: 'Milline lause on õige?', options: '*Mul valutab pea.\nMul valutan pea.\nMa valutab pea.' },
         ],
       }),
       notice: block('a2b1_031_av_notice', 'notice', 'white', 'g_notice', {
@@ -104,6 +106,8 @@ const SPECS = {
           { q: 'Arst küsib: „Kui kaua see on kestnud?” Milline vastus sobib?', options: '*Umbes kolm päeva.\nEile õhtul.\nParemal pool.' },
           { q: 'Arst küsib: „Millal see algas?” Milline vastus sobib?', options: '*Eile õhtul.\nUmbes nädal.\nKolm korda päevas.' },
           { q: 'Milline vastus on piisavalt täpne?', options: '*See algas kolm päeva tagasi.\nSee algas juba ammu.\nSee algas natuke aega tagasi.' },
+          { q: 'Arst küsib: „Kas teil on allergiaid?”', options: '*Ei, teadaolevaid allergiaid ei ole.\nJah, mul on köha.\nUmbes kolm päeva.' },
+          { q: 'Arst küsib: „Kus valutab?”', options: '*Paremal pool kõhus.\nEile õhtul.\nKolm korda päevas.' },
         ],
       }),
       notice: block('a2b1_032_av_notice', 'notice', 'white', 'g_notice', {
@@ -186,6 +190,8 @@ const SPECS = {
           { q: 'Sul on palavik ja nõrkus.', options: '*Puhka ja joo piisavalt.\nPuhkad ja jood piisavalt.\nPuhata ja juua piisavalt.' },
           { q: 'Kurguvalu on mitu päeva väga tugev.', options: '*Sa võiksid arstile helistada.\nSa võiksid arstile helistama.\nSa võiksid arstile helista.' },
           { q: 'Kuidas öelda eitavalt „Mine täna trenni!”?', options: '*Ära mine täna trenni!\nÄra lähe täna trenni!\nEi mine täna trenni!' },
+          { q: 'Milline on teie-vormis nõuanne?', options: '*Puhake rohkem!\nPuhka rohkem!\nPuhkate rohkem!' },
+          { q: 'Mida artikkel soovitab kerge külmetuse korral kõigepealt?', options: '*puhata rohkem ja juua piisavalt\nminna kohe arsti juurde\nteha rasket trenni' },
         ],
       }),
       notice: block('a2b1_033_av_notice', 'notice', 'white', 'g_notice', {
@@ -259,6 +265,8 @@ const SPECS = {
           { q: 'Magad igal ööl ainult viis tundi.', options: '*liiga vähe\npiisavalt\nliiga palju' },
           { q: 'Liigud iga päev vähemalt pool tundi.', options: '*hea harjumus\nhalb harjumus\nsee ei mõjuta midagi' },
           { q: 'Milline lause on õige?', options: '*Sa peaksid rohkem liikuma.\nSa peaksid rohkem liikuda.\nSa peaks rohkem liikuma.' },
+          { q: 'Mida Rasmus kõigepealt muudab?', options: '*paneb telefoni pool tundi enne magamaminekut kõrvale\nhakkab iga päev jooksma\nsööb ainult salatit' },
+          { q: 'Miks Rasmus ei muuda kõike korraga?', options: '*väikest muutust on lihtsam hoida\ntal ei ole aega\narst keelas' },
         ],
       }),
       notice: block('a2b1_034_av_notice', 'notice', 'white', 'g_notice', {
@@ -336,6 +344,8 @@ const SPECS = {
           { q: 'Miks Kaur helistab perearstikeskusesse?', options: '*tal on mitu päeva olnud köha, nohu ja palavik\ntal on tugev peavalu ja raske hingata\ntal on vaja uut retsepti' },
           { q: 'Mida õde kõigepealt küsib?', options: '*millal sümptomid algasid\nmilliseid ravimeid ta võtab\nkas ta saab normaalselt hingata' },
           { q: 'Milline soovitus on tekstiga kooskõlas?', options: '*puhata kodus ja palavikku jälgida\ntulla kohe vastuvõtule\nminna homme tavaliselt tööle' },
+          { q: 'Millal tekkis Kaurul palavik?', options: '*eile õhtul\nneli päeva tagasi\ntäna hommikul' },
+          { q: 'Mida on Kaur võtnud?', options: '*ainult palavikualandajat\nantibiootikumi\nmitte midagi' },
         ],
       }),
       notice: block('a2b1_035_av_notice', 'notice', 'white', 'g_notice', {
