@@ -1,3 +1,18 @@
+## 2026-10-13 · agent/review-sheet — „Kordamisleht”: a review sheet from the course's own tasks
+
+- Base: `main` after #600–#602. Step 1 of „the generator on the course material” (owner agreed: course first, then the
+  generator). No AI, no invented sentences: only checked course tasks from „Kogu”.
+- `worksheet-studio/reviewSheet.js` `buildReviewSheet(entries, lessonId, { variant })`: tasks of this and the 4
+  previous lessons of the same course (not Kasuta; types that work out of context), plan words 2 → reading 1 →
+  listening 1 → forms/sentences 5 → speaking 1, filled round-robin over the lessons, then more form/word tasks up to
+  40–50 min (≤ 14 tasks); seeded by lesson + variant; self-check of the lesson titles at the end; meta.review.
+- `blockLibrary.js` `loadCourseLibrary()` (lazy registry import) shared by „Kogu” and the review.
+- `LessonGeneratorBar`: on course lessons a „Kordamisleht” button (also without a generator profile): saves the draft
+  `worksheetId: 'review'` (role focus, „Kordamine”), next variant each time; the „generator not ready” note is hidden
+  on course lessons.
+- Tests: `reviewSheet.test.js` (7: five levels 40–50 min, no constructor error, deterministic, variant changes, no
+  tasks → message), LessonGeneratorBar +1.
+
 ## 2026-10-13 · agent/a2-modules-08-11 — A2 modules 8–11 (a2-036…055) as full course sheets
 
 - Base: `main` 604c6ac. Written by sub-agents on the module 1 pattern, checked here (course gate).
