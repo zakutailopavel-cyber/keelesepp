@@ -10,7 +10,7 @@ def items(b):
     if isinstance(dd.get('groups'),list):
         total=0
         for g in dd['groups']:
-            v=(g or {}).get('items') if isinstance(g,dict) else None
+            v=((g or {}).get('items') or (g or {}).get('words')) if isinstance(g,dict) else None  # course blocks keep a group's words in `words`
             total+=len(v) if isinstance(v,list) else len([x for x in re.split(r'[,\n]',str(v or '')) if x.strip()])
         return total
     for k in ('questions','statements','pairs','items','sentences','rows'):

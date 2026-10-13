@@ -1,3 +1,29 @@
+## 2026-10-13 · agent/b2-c1-lesson-goals — B2 and C1: a real goal for every lesson
+
+- Owner: „Надо исправить все листы б2 и С1” (after the course audit: 0 of 90 B2 and 0 of 100 C1 lessons passed).
+- Base: `main` c213ff4 (#608 one cast merged).
+- `admin/course/b2/lessonGoals.js` (`B2_LESSON_GOALS`, b1b2-001…090) and `admin/course/c1/lessonGoals.js`
+  (`C1_LESSON_GOALS`, est-c1-001…100): 3–4 specific sub-goals per lesson instead of the generic defaults. Checks,
+  mock exams and C1 grammar lessons have three (form, reading, use) — no new vocabulary there. C1 entries also carry
+  `success` = the teacher's success criterion (`curriculumLessons.successCriteria`, empty for all 100 C1 lessons).
+- `registry.js` `withLessonGoals`: an entry's `tags` give a task its real sub-goal (word-bank gaps and „…sõnavara
+  vormid” train vocabulary, not form — 44 tasks); in a three-goal lesson a task tagged with the missing one counts as
+  form (`g_notice`). A2/B1 sheets are unchanged (all their tasks already use their lesson's goals).
+- 17 new C1 tasks where a sub-goal had only one task: „Õige või vale?” on the Avasta text (001, 003, 006, 067, 077, 087,
+  097) and „… mõisted” term ↔ meaning in Harjuta (014, 017, 024, 034, 044, 054, 064, 074, 084, 094).
+- Bug: est-c1-060 Harjuta showed `${c.sentLines.length}` instead of the points (9).
+- `tools/course-audit/audit.py`: a categorize block's words are in `words` — every sorting task was counted as „< 4 items”
+  (57 B2 + 33 C1 false alarms).
+- Tests: `b2/lessonGoals.test.js`, `c1/lessonGoals.test.js` (3–4 Estonian non-generic sub-goals, every sub-goal ≥ 2
+  tasks, every task on one of the lesson's sub-goals, C1 success criteria, no `${` on any sheet). worksheet-generator
+  605 passed, 1 skipped; eslint clean. Audit on the code-built sheets: B2 89/90, C1 0/100 until the success criteria
+  are written (then 100/100); b1b2-035 has no lesson card fields in Firestore.
+- Found: 76 published B2/C1 sheets still had the old names (Viktor the engineer, Kati, …) — published at 17:56 UTC
+  from a build before #608. Republishing from this code brings the one cast in.
+- Production after merge: republish all B2 and C1 sheets from code; write C1 `successCriteria`; fill b1b2-035 card
+  (title „Kontroll 7 — haridus”, teacher note) and the Estonian titles of b1b2-001/020/040/060/080 (were Russian).
+- Next safe step: re-run `tools/course-audit` on production and check one B2 and one C1 sheet in the CRM.
+
 ## 2026-10-13 · agent/cast-all-courses — one cast across A2, B1, B2 and C1
 
 - Owner: „сверь героев между всеми курсами”. Canon = `docs/TEXTBOOK_ART_BIBLE.md` §4 + the A2 decisions (Anna 28
