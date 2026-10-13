@@ -6,6 +6,8 @@ import { withLessonArt } from '../../art/textbookArt.js';
 import { withListeningAudio } from './listeningAudio.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import { A2_LESSON_GOALS } from './a2/lessonGoals.js';
+import { B2_LESSON_GOALS } from './b2/lessonGoals.js';
+import { C1_LESSON_GOALS } from './c1/lessonGoals.js';
 import * as a2m01 from './a2/module01.js';
 import * as a2m02 from './a2/module02.js';
 import * as a2m03 from './a2/module03.js';
@@ -89,7 +91,7 @@ export const PHASES = {
 };
 
 // the lesson's own goal and sub-goals win over the generic defaults (contract A1–A3)
-const LESSON_GOALS = { ...A2_LESSON_GOALS, ...B1_LESSON_GOALS };
+const LESSON_GOALS = { ...A2_LESSON_GOALS, ...B1_LESSON_GOALS, ...B2_LESSON_GOALS, ...C1_LESSON_GOALS };
 export const lessonGoalsFor = (lessonId) => LESSON_GOALS[lessonId] || null;
 
 const GOALS = {
@@ -98,6 +100,17 @@ const GOALS = {
   g_notice: 'Õpilane märkab ja selgitab tunni keelemustrit.',
   g_use: 'Õpilane kasutab õpitut suulises ja kirjalikus suhtluses.',
 };
+
+// every task trains one of the lesson's own sub-goals (contract A3): a lesson's `tags` set a task's real sub-goal, and in
+// a lesson with three sub-goals (checks, grammar lessons) a task tagged with a missing one counts as language form
+export function withLessonGoals(blocks = [], entry = null) {
+  if (!entry?.goals) return blocks;
+  return blocks.map((b) => {
+    const goal = entry.tags?.[b.id] || b.goal;
+    const own = !goal || entry.goals[goal] ? goal : 'g_notice';
+    return own === b.goal ? b : { ...b, goal: own };
+  });
+}
 
 export function moduleNumber(mod) { return Number(String(mod.MODULE.id).split('-').pop()); }
 
@@ -134,7 +147,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: withListeningAudio(lessonOrder(lesson[phase]), lessonId),
+    blocks: withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId),
   }, lessonId, phase);
 }
 

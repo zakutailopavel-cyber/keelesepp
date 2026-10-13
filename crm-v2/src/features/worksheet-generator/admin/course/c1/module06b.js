@@ -260,7 +260,7 @@ export const LESSONS_B = {
         '11. Paljud vanemad ei teadnud joogi tegelikku koostist. | [C]',
         '12. Autor suhtub lihtsate lahenduste pakkujatesse kriitiliselt. | [D]',
       ], 'g_read'),
-      B.gaps('c1_060_p_sent', 'Lugemine, osa 2: lausetega lüngad (${c.sentLines.length} punkti).', 'Vali igasse lünka sobiv lause. Üks lause jääb üle.', [
+      B.gaps('c1_060_p_sent', 'Lugemine, osa 2: lausetega lüngad (9 punkti).', 'Vali igasse lünka sobiv lause. Üks lause jääb üle.', [
         'Mitmes riigis on arutatud, kas koolipäev peaks algama hiljem. [Teismeliste unerütm nihkub bioloogiliselt hilisemaks.] Kell kaheksa algav tund tähendab paljudele unepuudust.',
         'Uneteadlaste sõnul ei ole tegemist laiskusega. [Noor lihtsalt ei suuda enne südaööd uinuda.] Hommikul äratab teda kell aga sama varakult.',
         'Mõni kool on teinud katse. [Tunnid algasid seal tund aega hiljem.] Õpilaste unehulk kasvas keskmiselt ligi pool tundi.',
@@ -332,7 +332,7 @@ export const LESSONS_B = {
       ]),
       B.rubric('c1_060_p_score', 'Punktid.', 'Loe kokku õiged vastused osade kaupa.', [
         'Lugemine, osa 1 (väide ja lõik): … / 12',
-        'Lugemine, osa 2 (lausetega lüngad): … / ${c.sentLines.length}',
+        'Lugemine, osa 2 (lausetega lüngad): … / 9',
         'Kuulamine, osa 1 (uudised): … / 7',
         'Kuulamine, osa 2 (intervjuu): … / 12',
         'Keeleosa: … / 8',
