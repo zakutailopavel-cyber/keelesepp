@@ -98,6 +98,9 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
     if (typeof repository.subscribeWorksheetAssignment !== 'function') return undefined;
     return repository.subscribeWorksheetAssignment(assignment.id, (next) => {
       if (next.worksheetDoc?.blocks) setDoc(next.worksheetDoc);
+      // opened from an older copy (a list loaded before the last autosave): start from the stored answers, never
+      // autosave the old, emptier ones over them; once the student types, her own answers lead
+      if (!review && !edited.current && next.answers && typeof next.answers === 'object') setAnswers(next.answers);
       if (!review) setFocusId(next.liveFocus?.blockId || '');
       setTeacherMarks(next.annotations || []);
       setLiveStep(next.liveStep || null);

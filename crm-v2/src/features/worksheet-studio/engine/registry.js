@@ -96,7 +96,11 @@ export function answerProgress(doc, answers = {}) {
     const def = BLOCKS[block.type];
     return typeof def?.answerKeys === 'function' ? def.answerKeys(block.data || {}).map((key) => `${block.id}:${key}`) : [];
   });
-  const keys = [...new Set([...Object.keys(results), ...openKeys])];
+  // a block with its own answer fields (answerKeys) is answered in those; its scored items may be counters on the
+  // text (writing: sentences, keywords) that no one fills in and that kept the counter below N/N
+  const own = new Set(doc.blocks.filter((block) => typeof BLOCKS[block.type]?.answerKeys === 'function').map((block) => block.id));
+  const scored = Object.keys(results).filter((k) => !own.has(k.slice(0, k.indexOf(':'))));
+  const keys = [...new Set([...scored, ...openKeys])];
   const answered = keys.filter((k) => {
     const v = answers[k];
     return v !== undefined && v !== null && String(v).trim() !== '';

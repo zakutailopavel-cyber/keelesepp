@@ -1,3 +1,4 @@
+import { answerProgress, createBlock } from './registry.js';
 import { hardestTasks, nextToOpen, rightAnswers, shownResults, stepView, taskStats } from './liveLesson.js';
 
 const doc = {
@@ -35,5 +36,18 @@ describe('live worksheet lesson model', () => {
     ]);
     expect(hardestTasks(stats).map((s) => s.id)).toEqual(['tf', 'g']);
     expect(taskStats(doc, {})[0].tone).toBe('idle');
+  });
+
+  it('a written text counts as answered (writing is scored by counters, not by fields)', () => {
+    const w = { ...createBlock('writing'), id: 'w2' };
+    const sheet = { meta: {}, blocks: [w] };
+    const text = 'Hommikul ma ärkan. Päeval ma töötan. Õhtul ma loen.';
+    // the student filled in the only field: N/N, no „Kas esitad ikkagi?” for a finished sheet
+    expect(answerProgress(sheet, { 'w2:text': text })).toEqual({ answered: 1, total: 1 });
+    expect(answerProgress(sheet, {})).toEqual({ answered: 0, total: 1 });
+    const [stat] = taskStats(sheet, { 'w2:text': text });
+    expect(stat.answered).toBe(stat.total);
+    expect(stat.wrong).toBeGreaterThan(0); // too few sentences and keywords: the teacher sees it as hard, not idle
+    expect(stat.tone).not.toBe('idle');
   });
 });

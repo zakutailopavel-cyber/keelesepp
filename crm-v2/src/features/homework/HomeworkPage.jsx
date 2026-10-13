@@ -317,7 +317,8 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
       onSaved={async () => { setReviewing(null); setSuccess('Hinne ja tagasiside saadeti õpilasele.'); await state.reload(); }}
       {...(staff && nextReview ? { onSavedNext: async () => { setReviewing(nextReview); setSuccess('Hinne ja tagasiside saadeti õpilasele.'); await state.reload(); } } : {})}
     /> : null}
-    {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => setPlaying(null)} onSubmitted={state.reload} /> : null}
+    {/* closing reloads the list: the answers were autosaved meanwhile and a reopened sheet must start from them */}
+    {playing ? <WorksheetPlayer assignment={playing} repository={repository} readOnly={!hasAnyRole(user.roles, [ROLES.STUDENT])} onClose={() => { setPlaying(null); state.reload(); }} onSubmitted={state.reload} /> : null}
     {playingInteractive ? <InteractiveLessonPlayer assignmentId={playingInteractive} user={user} staff={staff} repository={interactiveRepository} onClose={() => setPlayingInteractive('')} onChanged={interactiveState.reload} /> : null}
     {playingExercise ? <ExercisePlayer exercise={playingExercise.exercise} homework={playingExercise.homework} repository={repository} user={user} onClose={() => setPlayingExercise(null)} onCompleted={state.reload} /> : null}
     {previewingMaterial ? <MaterialPreview item={previewingMaterial} onClose={() => setPreviewingMaterial(null)} /> : null}

@@ -56,6 +56,19 @@ export function topicStates(topics = [], studentWords = []) {
   });
 }
 
+// for staff (the student's card): every topic with its state, how many of its words the student has, and when it was
+// passed (the newest createdAt of its words: a passed test creates them all at once; '' when unknown)
+export function topicReport(topics = [], studentWords = []) {
+  const index = ownIndex(studentWords);
+  const byId = new Map(studentWords.map((word) => [word.id, word]));
+  const bySpelling = new Map(studentWords.map((word) => [key(word.word), word]));
+  return topicStates(topics, studentWords).map((topic) => {
+    const own = topic.words.filter((word) => present(word, index)).map((word) => byId.get(word.id) || bySpelling.get(key(word.et)));
+    const passedAt = topic.state === 'passed' ? own.map((word) => String(word?.createdAt || '')).sort().pop() || '' : '';
+    return { ...topic, known: own.length, passedAt };
+  });
+}
+
 // the words a passed test writes into „Minu sõnad”
 export function wordsToAdd(topic, studentWords = []) {
   const index = ownIndex(studentWords);
