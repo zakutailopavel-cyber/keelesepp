@@ -410,9 +410,9 @@ export const LESSONS = {
         ['Liene on pärit Läti.', 'Liene on pärit Lätist.'], ['Helmi on lahke naabrid.', 'Helmi on lahke naaber.'],
       ]),
       B.listening('009_p_listen', 'Kuulamine. Kolm inimest.', 'Õpetaja loeb tekstid kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Mina olen Mart. Ma olen seitsekümmend aastat vana.', 'Olen pensionär. Mu suur huvi on aed.', 'Tere! Mina olen Eva. Ma olen kuusteist.',
+        'Tere! Mina olen Kalle. Ma olen seitsekümmend aastat vana.', 'Olen pensionär. Mu suur huvi on aed.', 'Tere! Mina olen Hanna. Ma olen kuusteist.',
         'Ma olen õpilane ja käin gümnaasiumis. Mulle meeldib tantsida.', 'Tervist! Mina olen Toomas, olen nelikümmend.', 'Olen arst ja lahutatud. Mul on kaks poega.',
-      ], ['Mart on [70|seitsekümmend] aastat vana.', 'Mardi huvi on [aed].', 'Eva on [õpilane].', 'Evale meeldib [tantsida].', 'Toomas on [arst].', 'Toomasel on kaks [poega].']),
+      ], ['Kalle on [70|seitsekümmend] aastat vana.', 'Kalle huvi on [aed].', 'Hanna on [õpilane].', 'Hannale meeldib [tantsida].', 'Toomas on [arst].', 'Toomasel on kaks [poega].']),
       B.dictation('009_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Olga on pärit Narvast.', 'Taras on pikk ja sportlik.', 'Liene elab ühiselamus.', 'Mul on palju huvisid.', 'Mu vanaisa on pensionär.'], 5),
       B.translation('009_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Какой он человек?', 'Сколько ей лет?', 'Мой дедушка пенсионер.', 'Её родители разведены.', 'У него много интересов.']),
       B.speaking('009_p_say', 'Jutusta ümber.', 'Vali üks inimene tekstist. Jutusta temast 5–6 lauset.', ['Kes ta on ja kui vana ta on?', 'Kust ta on pärit ja kus ta elab?', 'Mida ta teeb?', 'Milline ta on ja mis on tema huvid?'], [60, 90]),

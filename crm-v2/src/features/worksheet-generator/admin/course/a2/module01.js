@@ -401,9 +401,9 @@ export const LESSONS = {
         'Tere tulemast spordiklubisse! Palun täitke ankeet ja tooge see esimesse trenni. Ankeeti kirjutage lapse ees- ja perekonnanimi, sünniaeg ja aadress. Kirjutage ka lapsevanema nimi, telefon ja e-post. Trenn on teisipäeviti ja neljapäeviti kell 17.00. Kuu tasu on 35 eurot. Esimesel korral võtke kaasa spordiriided, puhtad jalanõud ja veepudel. Lapsevanemad võivad esimeses trennis saalis olla. Kui laps on haige, saatke treenerile sõnum. Trenn kestab tund aega ja lõpeb kell 18.00. Lapsed treenivad kahes grupis: nooremad ja vanemad. Küsimuste korral helistage treener Mardile: 5899 1122.',
         [['Millal ankeet tuleb tuua?', 'esimesse trenni|esimeses trennis'], ['Mis lapse andmed on vaja?', 'nimi, sünniaeg ja aadress|ees- ja perekonnanimi, sünniaeg, aadress'], ['Mis päevadel on trenn?', 'teisipäeviti ja neljapäeviti'], ['Kui palju trenn kuus maksab?', '35 eurot|kolmkümmend viis eurot']]),
       B.table('004_t_form', 'Ankeet.', 'Täida ankeet: laps võib olla päris või väljamõeldud.', 'Andmed, Sinu vastus', ['Lapse ees- ja perekonnanimi | ', 'Lapse sünniaeg | ', 'Aadress ja sihtnumber | ', 'Lapsevanema nimi | ', 'Telefon | ', 'E-post | ']),
-      B.letter('004_t_letter', 'Sõnum treenerile.', 'Kirjuta treenerile 30–50 sõna: tutvusta ennast ja oma last, anna kontaktandmed, küsi üks küsimus.', 'Tere, Mart!', 'Parimate soovidega', [30, 50]),
+      B.letter('004_t_letter', 'Sõnum treenerile.', 'Kirjuta treenerile 30–50 sõna: tutvusta ennast ja oma last, anna kontaktandmed, küsi üks küsimus.', 'Tere, Marek!', 'Parimate soovidega', [30, 50]),
       B.listening('004_t_listen', 'Kuula treeneri häälsõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin treener Mart spordiklubist Kalev.', 'Aitäh ankeedi eest! Teie laps on nüüd meie grupis.', 'Trenn on teisipäeval ja neljapäeval kell viis.',
+        'Tere! Siin treener Marek spordiklubist Kalev.', 'Aitäh ankeedi eest! Teie laps on nüüd meie grupis.', 'Trenn on teisipäeval ja neljapäeval kell viis.',
         'Palun tooge kaasa spordiriided ja veepudel.', 'Esimene kuu maksab kolmkümmend viis eurot. Makske palun ülekandega.', 'Kui on küsimusi, helistage mulle. Kohtumiseni!',
       ], ['Trenn on teisipäeval ja [neljapäeval].', 'Trenn algab kell [viis|5|17].', 'Kaasa on vaja spordiriided ja [veepudel|vett].', 'Esimene kuu maksab [35|kolmkümmend viis] eurot.', 'Maksta tuleb [ülekandega].']),
       B.writing('004_t_write', 'Sõnum sõbrale.', 'Kirjuta sõbrale 5–6 lauset: kuhu sinu laps trenni läheb, millal ja mis see maksab.', [5, 6], ['trenn', 'kell', 'maksab', 'eurot'], 2),
@@ -413,7 +413,7 @@ export const LESSONS = {
       ]),
       B.speaking('004_t_say', 'Räägi lapsest.', 'Treener küsib lapse kohta. Vasta täislausetega.', ['Mis lapse nimi on?', 'Kui vana ta on?', 'Kus te elate?', 'Kuidas teiega ühendust võtta?'], [45, 75]),
       B.dialogue('004_t_dialog', 'Esimeses trennis.', 'Täida dialoog treeneriga.', 'Treener', 'Lapsevanem', [
-        ['A', 'Tere! Mina olen treener [Mart]. Kas te olete Mia ema?'], ['B', 'Jah, tere! Ma tõin [ankeedi].'], ['A', 'Aitäh! Kas siin on lapse [sünniaeg]?'],
+        ['A', 'Tere! Mina olen treener [Marek]. Kas te olete Mia ema?'], ['B', 'Jah, tere! Ma tõin [ankeedi].'], ['A', 'Aitäh! Kas siin on lapse [sünniaeg]?'],
         ['B', 'Jah, ja minu [telefoninumber] ja e-post ka.'], ['A', 'Väga hea. Trenn [lõpeb] kell kuus.'], ['B', 'Selge. [Aitäh] ja head trenni!'],
       ]),
       B.rubric('004_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Ankeedis on kõik andmed ja need on loetavad.', 'Kuupäev ja aadress on õiges vormis.', 'Sõnumis on tervitus, info ja küsimus (30–50 sõna).', 'Telefonis on nimi ja number õigesti edasi antud.']),
