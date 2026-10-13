@@ -89,7 +89,8 @@ function PaletteItem({ id, onClick, title, theme = '', children }) {
 }
 
 export default function WorksheetStudioPage({ repository = worksheetDocsService, templates = worksheetTemplatesService, mediaBank = mediaBankService, speech = languageToolsService, resultsSource = homeworkService, backTo = '/library', backLabel = 'Õppevara', allowCopy = true, allowAssign = true, draftId = '', editorBase = '/library/worksheets', privateFor = '', renderTop = null, initialMode = 'edit' }) {
-  const { lessonId } = useParams();
+  // worksheetId: the lesson's Avasta / Harjuta / Kasuta sheet (/library/lessons/:lessonId/worksheets/:worksheetId)
+  const { lessonId, worksheetId } = useParams();
   const isNew = !lessonId || lessonId === 'new';
   const draftName = draftId || (isNew ? 'new' : lessonId);
   const { user } = useAuth();
@@ -797,7 +798,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
             <button type="button" className="st-btn st-icon" onClick={toggleFocus} aria-pressed={focus} title={focus ? 'Näita CRM-i menüüd' : 'Konstruktor kogu aknas'} aria-label={focus ? 'Näita menüüd' : 'Täisekraan'}>{focus ? <Icons.Minimize2 size={16} aria-hidden="true" /> : <Icons.Maximize2 size={16} aria-hidden="true" />}</button>
             <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
-            {allowAssign && !isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}`}>Määra õpilastele</Link> : null}
+            {allowAssign && !isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}${worksheetId ? `&leht=${encodeURIComponent(worksheetId)}` : ''}`}>Määra õpilastele</Link> : null}
             <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>{privateFor ? 'Määra õpilasele' : 'Avalda'}</button>
           </div>
         </header>
