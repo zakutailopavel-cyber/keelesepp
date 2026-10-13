@@ -14,7 +14,7 @@ export const LESSONS = {
       B.clock('016_p_clock', 'Mis kell?', 'Kirjuta kellaaeg sõnadega.', [
         { time: '07:15', extra: '' }, { time: '08:30', extra: '' }, { time: '12:45', extra: '' }, { time: '17:00', extra: '' }, { time: '21:30', extra: '' }, { time: '23:00', extra: '' },
       ]),
-      B.diagram('016_p_line', 'timeline', { title: 'Kati tööpäev.', instruction: 'Kirjuta puuduv ajamarker.', nodes: '8.00 | [Kõigepealt] vastab ta kirjadele\n10.00 | [Siis] on koosolek\n12.30 | [Pärast] lõunat helistab ta klientidele\n17.00 | [Lõpuks] teeb homse plaani' }),
+      B.diagram('016_p_line', 'timeline', { title: 'Olga tööpäev.', instruction: 'Kirjuta puuduv ajamarker.', nodes: '8.00 | [Kõigepealt] vastab ta kirjadele\n10.00 | [Siis] on koosolek\n12.30 | [Pärast] lõunat helistab ta klientidele\n17.00 | [Lõpuks] teeb homse plaani' }),
       B.gaps('016_p_from', 'Alates … kuni …', 'Täienda laused.', [
         'Pood on avatud [alates] kella üheksast [kuni] kella kaheksani.', 'Ma töötan [kella] kaheksast viieni.', '[Enne] tööd viin lapse lasteaeda.', '[Pärast] tööd lähen trenni.', 'Koosolek kestab [umbes] tund aega.',
       ], ['alates', 'kuni', 'kella', 'enne', 'pärast', 'umbes', 'lõpuks', 'kell']),
@@ -27,9 +27,9 @@ export const LESSONS = {
       B.speaking('016_p_day', 'Minu homne päev.', 'Räägi oma homsest päevast. Kasuta 6 ajamarkerit.', [
         'Mis kell sa ärkad?', 'Mida teed kõigepealt?', 'Mis on päeva tähtsaim asi?', 'Mida teed pärast tööd?', 'Millal lõpuks puhkad?',
       ], [60, 90], ['kõigepealt', 'siis', 'pärast', 'enne', 'alates … kuni', 'lõpuks']),
-      B.reading('016_px_read', 'Loe: Kati tööpäev.', 'Loe tekst ja vasta.', 'Üks tavaline tööpäev',
-        'Kati töötab raamatupidajana ja tema tööpäev on väga korrapärane. Ta ärkab kell kuus ja jookseb pool tundi pargis. Kõigepealt käib ta duši all, siis sööb hommikust. Kell kaheksa sõidab ta bussiga tööle. Tööl vastab ta kõigepealt kirjadele. Kella kümnest kaheteistkümneni on tal koosolek. Lõuna ajal sööb ta koos kolleegidega kohvikus. Pärast lõunat teeb ta arveid kuni kella viieni. Enne koju minekut kontrollib ta homset plaani. Õhtul teeb ta süüa ja vaatab uudiseid. Lõpuks, umbes kell kümme, läheb ta magama. Nädalavahetusel on tema päev hoopis teistsugune.',
-        [['Mida teeb Kati enne hommikusööki?', 'jookseb pargis ja käib duši all|jookseb ja käib duši all|jookseb pargis'], ['Mida teeb ta kõigepealt tööl?', 'vastab kirjadele'], ['Kui kaua kestab koosolek?', 'kaks tundi|kella kümnest kaheteistkümneni'], ['Mida teeb ta pärast lõunat?', 'teeb arveid'], ['Mida teeb ta enne koju minekut?', 'kontrollib homset plaani'], ['Millal läheb ta magama?', 'umbes kell kümme|kell kümme']]),
+      B.reading('016_px_read', 'Loe: Olga tööpäev.', 'Loe tekst ja vasta.', 'Üks tavaline tööpäev',
+        'Olga töötab raamatupidajana ja tema tööpäev on väga korrapärane. Ta ärkab kell kuus ja jookseb pool tundi pargis. Kõigepealt käib ta duši all, siis sööb hommikust. Kell kaheksa sõidab ta bussiga tööle. Tööl vastab ta kõigepealt kirjadele. Kella kümnest kaheteistkümneni on tal koosolek. Lõuna ajal sööb ta koos kolleegidega kohvikus. Pärast lõunat teeb ta arveid kuni kella viieni. Enne koju minekut kontrollib ta homset plaani. Õhtul teeb ta süüa ja vaatab uudiseid. Lõpuks, umbes kell kümme, läheb ta magama. Nädalavahetusel on tema päev hoopis teistsugune.',
+        [['Mida teeb Olga enne hommikusööki?', 'jookseb pargis ja käib duši all|jookseb ja käib duši all|jookseb pargis'], ['Mida teeb ta kõigepealt tööl?', 'vastab kirjadele'], ['Kui kaua kestab koosolek?', 'kaks tundi|kella kümnest kaheteistkümneni'], ['Mida teeb ta pärast lõunat?', 'teeb arveid'], ['Mida teeb ta enne koju minekut?', 'kontrollib homset plaani'], ['Millal läheb ta magama?', 'umbes kell kümme|kell kümme']]),
       B.table('016_px_times', 'Lahtiolekuajad.', 'Loe silti ja kirjuta lause sõnadega: kella …st kella …ni.', 'silt, lause', ['Apteek 8–20 | Apteek on avatud [kella kaheksast kella kaheksani/kaheksast kaheksani]', 'Raamatukogu 10–18 | Raamatukogu on avatud [kella kümnest kella kuueni/kümnest kuueni]', 'Pank 9.30–17 | Pank on avatud [kella poole kümnest kella viieni/poole kümnest viieni]', 'Kohvik 7–23 | Kohvik on avatud [kella seitsmest kella üheteistkümneni/seitsmest üheteistkümneni]']),
       B.transformation('016_px_join', 'Ühenda laused.', 'Kasuta antud sõna.', [['Ma söön hommikust. Siis lähen tööle.', 'pärast', 'Pärast hommikusööki lähen tööle.'], ['Ma lähen magama. Enne seda loen.', 'enne', 'Enne magamaminekut loen.'], ['Ma lõpetan töö. Siis lähen trenni.', 'pärast', 'Pärast tööd lähen trenni.'], ['Ma joon kohvi. Siis vastan kirjadele.', 'kõigepealt … siis', 'Kõigepealt joon kohvi, siis vastan kirjadele.']]),
       B.translation('016_px_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Я работаю с девяти до пяти.', 'Сначала я пью кофе.', 'После обеда у меня встреча.', 'В конце концов я иду домой.', 'Магазин открыт до восьми.']),
@@ -138,10 +138,10 @@ export const LESSONS = {
       B.speaking('018_p_week', 'Minu nädala kohustused.', 'Räägi 5 kohustusest ja 2 prioriteedist.', [
         'Mida sa pead sel nädalal tegema?', 'Mis on kõige tähtsam?', 'Miks?', 'Mida sa ei pea tegema?', 'Mida sa tahaksid teha, kui aega on?',
       ], [60, 90], ['Kõige tähtsam on…, sest…', 'See võib oodata.', 'Mul on vaja…']),
-      B.reading('018_px_read', 'Loe: Mardi nimekiri.', 'Loe ja vasta.', 'Mardi kiire nädal',
-        'Mardil on sel nädalal väga palju teha. Esmaspäeval peab ta lõpetama tööl tähtsa aruande. Teisipäeval on tal vaja viia auto töökotta, sest pidurid ei tööta hästi. Kolmapäeval tahab ta minna sõbra sünnipäevale, aga ta ei tea veel, kas jõuab. Neljapäeval peab ta maksma üüri ja elektriarve. Reedel ei pea ta tööle minema, sest tal on puhkepäev. Siis tahab ta koristada korterit ja minna ujuma. Mart kirjutab kõik asjad paberile ja tõmbab tehtud asjad maha. Nii näeb ta kohe, mis on veel tegemata. Pühapäeval tahab ta lihtsalt puhata.',
-        [['Mida peab Mart esmaspäeval tegema?', 'lõpetama aruande'], ['Miks on vaja auto töökotta viia?', 'pidurid ei tööta hästi'], ['Kas Mart läheb kolmapäeval kindlasti sõbra sünnipäevale?', 'ei|ei tea|ei, ta ei tea, kas jõuab'], ['Mida peab ta neljapäeval maksma?', 'üüri ja elektriarve'], ['Miks ei pea ta reedel tööle minema?', 'tal on puhkepäev']]),
-      B.categorize('018_px_sort', 'Kohustus või soov?', 'Sorteeri Mardi asjad.', [['Peab', ['lõpetama aruande', 'maksma üüri', 'viima auto töökotta']], ['Tahab', ['minna sünnipäevale', 'minna ujuma']], ['Ei pea', ['minema reedel tööle']]]),
+      B.reading('018_px_read', 'Loe: Reinu nimekiri.', 'Loe ja vasta.', 'Reinu kiire nädal',
+        'Reinul on sel nädalal väga palju teha. Esmaspäeval peab ta lõpetama tööl tähtsa aruande. Teisipäeval on tal vaja viia auto töökotta, sest pidurid ei tööta hästi. Kolmapäeval tahab ta minna sõbra sünnipäevale, aga ta ei tea veel, kas jõuab. Neljapäeval peab ta maksma üüri ja elektriarve. Reedel ei pea ta tööle minema, sest tal on puhkepäev. Siis tahab ta koristada korterit ja minna ujuma. Rein kirjutab kõik asjad paberile ja tõmbab tehtud asjad maha. Nii näeb ta kohe, mis on veel tegemata. Pühapäeval tahab ta lihtsalt puhata.',
+        [['Mida peab Rein esmaspäeval tegema?', 'lõpetama aruande'], ['Miks on vaja auto töökotta viia?', 'pidurid ei tööta hästi'], ['Kas Rein läheb kolmapäeval kindlasti sõbra sünnipäevale?', 'ei|ei tea|ei, ta ei tea, kas jõuab'], ['Mida peab ta neljapäeval maksma?', 'üüri ja elektriarve'], ['Miks ei pea ta reedel tööle minema?', 'tal on puhkepäev']]),
+      B.categorize('018_px_sort', 'Kohustus või soov?', 'Sorteeri Reinu asjad.', [['Peab', ['lõpetama aruande', 'maksma üüri', 'viima auto töökotta']], ['Tahab', ['minna sünnipäevale', 'minna ujuma']], ['Ei pea', ['minema reedel tööle']]]),
       B.gaps('018_px_need', 'Mul on vaja…', 'Täida laused.', ['Mul on [vaja] uus telefon osta.', 'Ma [pean] homme vara ärkama.', 'Ma [tahan] puhata.', 'Kahjuks ma [ei saa] tulla.', 'Sa [ei pea] muretsema.', 'Kas sul [on] abi vaja?'], ['vaja', 'pean', 'tahan', 'ei saa', 'ei pea', 'on', 'saan', 'ei tohi']),
       B.translation('018_px_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Мне нужно позвонить врачу.', 'Я должен закончить отчёт.', 'Это может подождать.', 'Мне нужна помощь.', 'Что самое важное?']),
       B.writing('018_px_write', 'Minu nädal.', 'Kirjuta 8–10 lauset: mida pead, tahad ja ei pea sel nädalal tegema.', [8, 10], ['pean', 'tahan', 'ei pea', 'mul on vaja'], 3),
@@ -163,7 +163,7 @@ export const LESSONS = {
       ], ['Ema jõuab koju kell [kaheksa|8].', 'Vend on trennis [spordihallis].', 'Supp on [külmkapis].', 'Poest on vaja osta leiba ja [piima].', 'Raha on [köögilaual].', 'Vanaema helistab umbes kell [kuus|6].', 'Koosoleku ajal võib emale saata [sõnumi|sõnum].']),
       B.text('018_t_situation', 'Uus olukord', 'Sul on homme väga kiire päev. Sõber palub abi kolimisel. Pead otsustama ja oma plaani selgitama.'),
       B.planning('018_t_plan', 'Minu homme.', 'Kirjuta homsed ülesanded tähtsuse järjekorras.', ['Mida ma pean kindlasti tegema?', 'Mida mul on vaja teha?', 'Mis võib oodata?', 'Kas ma saan sõpra aidata?']),
-      B.letter('018_t_msg', 'Vasta sõbrale.', 'Selgita oma päeva. Ütle, millal saad aidata. 50–70 sõna.', 'Tere, Mart!', 'Kuni homseni!', [50, 70]),
+      B.letter('018_t_msg', 'Vasta sõbrale.', 'Selgita oma päeva. Ütle, millal saad aidata. 50–70 sõna.', 'Tere, Rein!', 'Kuni homseni!', [50, 70]),
       B.rolecards('018_t_roles', 'Kolleegid jagavad tööd.', 'Teil on 5 ülesannet ja vähe aega. Jagage need ära.',
         'Sul on kiire aruanne. Selgita, mida pead tegema ja mida ei saa teha.', 'Sul on rohkem aega. Paku abi ja küsi prioriteete.',
         ['Ma pean…', 'Mul ei ole aega…', 'Kõige kiirem on…'], ['Mida ma saan teha?', 'Mis on kõige tähtsam?', 'Ma võin…']),
@@ -256,8 +256,8 @@ export const LESSONS = {
       ]),
       // reading 2: three short messages, answers by letter or in 1–2 words
       B.reading('020_p_three', 'Lugemine 2. Kolm sõnumit.', 'Loe kolme sõnumit. Vasta sõnumi tähega (A, B, C) või lühidalt.', 'Sõnumid Katile',
-        'A. Tere, Kati! Kas sa saad homme minu lapsi hoida? Mul on kella kolmest arsti juures aeg. Tulen tagasi umbes kell viis. Lapsed on kodus ja süüa on külmkapis. Kui sa ei saa, palun kirjuta mulle täna õhtul. Anu\n\nB. Head naabrid! Laupäeval kell kümme on hoovis koristuspäev. Pärast koristamist joome koos kohvi ja sööme pirukaid. Palun võtke kaasa kindad. Reha ja kotid saab majahaldurilt. Majaühistu\n\nC. Kallis Kati! Ma ei saa reedel kinno tulla, sest pean kauem tööl olema. Kas laupäeva õhtu sobib? Film algab kell seitse. Kohtume kino ees. Piletid ostan mina. Mart',
-        [['Kes palub abi?', 'A|Anu'], ['Kes tahab kokkulepet muuta?', 'C|Mart'], ['Mida peab koristuspäevale kaasa võtma?', 'kindad|kindaid'], ['Miks läheb Anu ära?', 'tal on arsti juures aeg|arsti juurde'], ['Mis kell film algab?', 'seitse|kell seitse|19']]),
+        'A. Tere, Kati! Kas sa saad homme minu lapsi hoida? Mul on kella kolmest arsti juures aeg. Tulen tagasi umbes kell viis. Lapsed on kodus ja süüa on külmkapis. Kui sa ei saa, palun kirjuta mulle täna õhtul. Anu\n\nB. Head naabrid! Laupäeval kell kümme on hoovis koristuspäev. Pärast koristamist joome koos kohvi ja sööme pirukaid. Palun võtke kaasa kindad. Reha ja kotid saab majahaldurilt. Majaühistu\n\nC. Kallis Kati! Ma ei saa reedel kinno tulla, sest pean kauem tööl olema. Kas laupäeva õhtu sobib? Film algab kell seitse. Kohtume kino ees. Piletid ostan mina. Rein',
+        [['Kes palub abi?', 'A|Anu'], ['Kes tahab kokkulepet muuta?', 'C|Rein'], ['Mida peab koristuspäevale kaasa võtma?', 'kindad|kindaid'], ['Miks läheb Anu ära?', 'tal on arsti juures aeg|arsti juurde'], ['Mis kell film algab?', 'seitse|kell seitse|19']]),
       // reading 3: signs and notices matched to what they mean
       B.match('020_p_signs', 'Lugemine 3. Mida silt tähendab?', 'Ühenda silt ja selle tähendus.', [
         ['Raamatukogu: E–R 10–19, L 10–16', 'Laupäeval saab raamatuid laenutada kella neljani.'], ['Treeneriga trenn ainult broneerimisega', 'Enne trenni pead aja kinni panema.'],
@@ -298,11 +298,11 @@ export const LESSONS = {
       B.listening('020_p_listen2', 'Kuulamine 2. Uus aeg.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
         '— Tere! Hambaarsti registratuur, kuulan.', '— Tere! Minu nimi on Olga Ivanova. Mul on aeg neljapäeval kell kümme.', '— Jah, ma näen. Mis juhtus?',
         '— Kahjuks ma ei saa neljapäeval tulla. Mul on tööl tähtis koosolek.', '— Selge. Kas reede sobib? Reedel on vaba aeg kell kaheksa.',
-        '— Kell kaheksa on liiga vara, ma viin siis lapse lasteaeda. Kas pärastlõunal on midagi?', '— Reedel pärastlõunal kahjuks ei ole. Aga järgmisel esmaspäeval kell neli on vaba.',
+        '— Kell kaheksa on liiga vara, ma viin siis lapse kooli. Kas pärastlõunal on midagi?', '— Reedel pärastlõunal kahjuks ei ole. Aga järgmisel esmaspäeval kell neli on vaba.',
         '— Esmaspäev kell neli sobib hästi.', '— Hästi. Siis on teie aeg esmaspäeval kell neli. Palun tulge kümme minutit varem.',
         '— Kas ma pean midagi kaasa võtma?', '— Võtke kaasa isikutunnistus. Kabinet on teisel korrusel, number kakskümmend üks.',
         '— Aitäh! Kuidas teie juurde bussiga saab?', '— Bussiga number viis. Peatus on kohe maja ees.', '— Suur aitäh! Head päeva!',
-      ], ['Olga ei saa neljapäeval tulla, sest tal on [koosolek|tööl koosolek].', 'Kell kaheksa viib Olga lapse [lasteaeda].', 'Uus aeg on esmaspäeval kell [neli|4|16].', 'Olga peab tulema kümme minutit [varem].', 'Kabinet on [teisel] korrusel.', 'Arsti juurde sõidab buss number [viis|5].']),
+      ], ['Olga ei saa neljapäeval tulla, sest tal on [koosolek|tööl koosolek].', 'Kell kaheksa viib Olga lapse [kooli].', 'Uus aeg on esmaspäeval kell [neli|4|16].', 'Olga peab tulema kümme minutit [varem].', 'Kabinet on [teisel] korrusel.', 'Arsti juurde sõidab buss number [viis|5].']),
       B.gaps('020_p_mix', 'Keeleosa. Kirjuta õige vorm.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
         'Ma lähen pärast tööd [apteeki] (apteek).', 'See on minu [venna] (vend) auto.', 'Sa [pead] (pidama) arve täna maksma.', 'Siin [võib] (võima) istuda.', 'Ma tulen kell viis [töölt] (töö).', '[Tal on] pikad juuksed.',
       ]),
@@ -315,7 +315,7 @@ export const LESSONS = {
     ],
     transfer: [
       B.text('020_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See osa on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
-      B.notice('020_t_card', 'Visiitkaart', ['Tiina Mets — eesti keele õpetaja', 'Keelekool „Sõna”, Riia 15, Tartu', 'Tunnid: esmaspäeval ja kolmapäeval kell 17–19', 'Telefon: 5345 6789'], 'full', 'g_read'),
+      B.notice('020_t_card', 'Visiitkaart', ['Tiiu Mets — eesti keele õpetaja', 'Keelekool „Sõna”, Riia 15, Tartu', 'Tunnid: esmaspäeval ja kolmapäeval kell 17–19', 'Telefon: 5345 6789'], 'full', 'g_read'),
       // writing 1: information transfer (who, where, when, contact), at least 25 words
       B.letter('020_t_info', 'Kirjutamine 1. Soovita õpetajat.', 'Sõber otsib eesti keele õpetajat. Kirjuta: kes, kus, millal, kuidas ühendust võtta.', 'Tere, Andrei!', 'Edu õppimisel!', [25, 40]),
       B.planning('020_t_plan', 'Enne sõnumit.', 'Mõtle läbi ja kirjuta märksõnad.', ['Kus sa rahakoti leidsid?', 'Milline rahakott on?', 'Kus see praegu on?', 'Millal ja kus sõber selle saab?']),

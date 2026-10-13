@@ -14,15 +14,15 @@ export const LESSONS = {
     title: 'Ametid ja töökoht',
     canDo: 'Ma kirjeldan oma või väljamõeldud tööd 6–8 lausega: amet, töökoht, tööaeg ja vähemalt kolm ülesannet.',
     discover: [
-      B.text('061_d_situation', 'Uus kolleeg', 'Esmaspäeval tuleb Markuse firmasse uus kolleeg. Tema nimi on Sofia. Ta töötab raamatupidajana. Sofia on pärit Narvast, aga elab nüüd Tallinnas. Markus näitab talle kontorit ja tutvustab teisi kolleege.'),
+      B.text('061_d_situation', 'Uus kolleeg', 'Esmaspäeval tuleb Liisi kooli uus kolleeg. Tema nimi on Olga. Ta töötab raamatupidajana. Olga on pärit Narvast, aga elab nüüd Tallinnas. Liis näitab talle kooli ja tutvustab teisi kolleege.'),
       B.truefalse('061_d_tf', 'Mis toimub?', 'Loe olukorda. Kas lause on õige või vale?', [
-        ['Sofia on Markuse uus kolleeg.', true], ['Sofia töötab müüjana.', false], ['Sofia elab praegu Narvas.', false], ['Markus tutvustab Sofiale kolleege.', true], ['Sofia alustab tööd esmaspäeval.', true],
+        ['Olga on Liisi uus kolleeg.', true], ['Olga töötab müüjana.', false], ['Olga elab praegu Narvas.', false], ['Liis tutvustab Olgale kolleege.', true], ['Olga alustab tööd esmaspäeval.', true],
       ]),
       B.vocab('061_d_vocab', 'Töö sõnad', ['amet — профессия', 'töökoht — место работы', 'kolleeg — коллега', 'klient — клиент', 'ülemus — начальник', 'firma — фирма', 'kontor — офис', 'tööpäev — рабочий день', 'töötama (kellena?) — работать (кем?)', 'vastutama (mille eest?) — отвечать (за что?)', 'teenindama — обслуживать', 'ülesanne — задача'], '2'),
       B.reading('061_d_read', 'Loe: kolm inimest, kolm ametit.', 'Loe tekst ja vasta küsimustele.', 'Kus nad töötavad?',
-        'Jaan on viiekümneaastane. Ta töötab bussijuhina juba kakskümmend aastat. Tema töökoht on buss number seitseteist. Jaan alustab tööd kell kuus hommikul. Ta vastutab reisijate ohutuse eest. Bussis kuulab ta tihti raadiot. Talle meeldib, et iga päev näeb ta palju inimesi.\nLiis töötab apteegis farmatseudina. Ta müüb ravimeid ja annab klientidele nõu. Tema tööpäev on kaheksa tundi pikk. Vahel töötab ta ka laupäeval. Liisi kolleegid on noored ja sõbralikud. Liis ütleb, et tema töö on huvitav, aga väsitav.\nViktor on IT-spetsialist. Ta töötab suures firmas, aga kolm päeva nädalas teeb ta tööd kodus. Lõunat sööb ta kontori köögis koos kolleegidega. Ta parandab arvuteid ja aitab kolleege, kui programm ei tööta. Viktor vastutab firma arvutivõrgu eest. Tema ülemus on Viktoriga rahul, sest Viktor on täpne ja kiire.',
-        [['Kui kaua on Jaan bussijuhina töötanud?', 'kakskümmend aastat|20 aastat'], ['Mille eest vastutab Jaan?', 'reisijate ohutuse eest|reisijate ohutuse'], ['Mida teeb Liis tööl?', 'müüb ravimeid ja annab nõu|müüb ravimeid|annab klientidele nõu'], ['Kes töötab vahel nädalavahetusel?', 'Liis'], ['Kus töötab Viktor kolm päeva nädalas?', 'kodus'], ['Miks on Viktori ülemus rahul?', 'Viktor on täpne ja kiire|ta on täpne ja kiire|sest ta on täpne ja kiire']]),
-      B.notice('061_d_notice', 'Märka: kellena? kus? mille eest?', ['Jaan **töötab bussijuhina**. (bussijuht → bussijuhi**na**)', 'Liis **töötab apteegis**. (kus? → -s)', 'Viktor **on** IT-spetsialist. (kes ta on?)', 'Jaan **vastutab** reisijate ohutuse **eest**.', 'Liis **müüb** ravimeid ja **annab** nõu.'], 'full'),
+        'Urmas on 52-aastane. Ta töötab bussijuhina juba kakskümmend aastat. Tema töökoht on buss number seitseteist. Urmas alustab tööd kell kuus hommikul. Ta vastutab reisijate ohutuse eest. Bussis kuulab ta tihti raadiot. Talle meeldib, et iga päev näeb ta palju inimesi.\nMerle töötab apteegis farmatseudina. Ta müüb ravimeid ja annab klientidele nõu. Tema tööpäev on kaheksa tundi pikk. Vahel töötab ta ka laupäeval. Merle kolleegid on noored ja sõbralikud. Merle ütleb, et tema töö on huvitav, aga väsitav.\nTaras on IT-spetsialist. Ta töötab suures firmas, aga kolm päeva nädalas teeb ta tööd kodus. Lõunat sööb ta kontori köögis koos kolleegidega. Ta parandab arvuteid ja aitab kolleege, kui programm ei tööta. Taras vastutab firma arvutivõrgu eest. Tema ülemus on Tarasega rahul, sest Taras on täpne ja kiire.',
+        [['Kui kaua on Urmas bussijuhina töötanud?', 'kakskümmend aastat|20 aastat'], ['Mille eest vastutab Urmas?', 'reisijate ohutuse eest|reisijate ohutuse'], ['Mida teeb Merle tööl?', 'müüb ravimeid ja annab nõu|müüb ravimeid|annab klientidele nõu'], ['Kes töötab vahel nädalavahetusel?', 'Merle'], ['Kus töötab Taras kolm päeva nädalas?', 'kodus'], ['Miks on Tarase ülemus rahul?', 'Taras on täpne ja kiire|ta on täpne ja kiire|sest ta on täpne ja kiire']]),
+      B.notice('061_d_notice', 'Märka: kellena? kus? mille eest?', ['Urmas **töötab bussijuhina**. (bussijuht → bussijuhi**na**)', 'Merle **töötab apteegis**. (kus? → -s)', 'Taras **on** IT-spetsialist. (kes ta on?)', 'Urmas **vastutab** reisijate ohutuse **eest**.', 'Merle **müüb** ravimeid ja **annab** nõu.'], 'full'),
       B.match('061_d_match', 'Kes kus töötab?', 'Ühenda amet ja töökoht.', [
         ['arst', 'haiglas'], ['õpetaja', 'koolis'], ['müüja', 'poes'], ['kokk', 'restoranis'], ['raamatupidaja', 'kontoris'], ['juuksur', 'juuksurisalongis'],
       ], 'full'),
@@ -44,7 +44,7 @@ export const LESSONS = {
         ['Ma töötan arst.', 'Ma töötan arstina.|Ma olen arst.'], ['Ma töötan koolisse.', 'Ma töötan koolis.'], ['Ma vastutan klientid eest.', 'Ma vastutan klientide eest.'],
         ['Minu ema töötab õpetaja koolis.', 'Minu ema töötab koolis õpetajana.|Minu ema töötab õpetajana koolis.'], ['Ma teenindan klientid.', 'Ma teenindan kliente.'],
       ]),
-      B.wordorder('061_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Ma töötan suures firmas raamatupidajana.', 'Jaan alustab tööd kell kuus hommikul.', 'Liis annab klientidele nõu.', 'Viktor vastutab arvutite eest.', 'Minu töökoht on kesklinnas.']),
+      B.wordorder('061_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Ma töötan suures firmas raamatupidajana.', 'Urmas alustab tööd kell kuus hommikul.', 'Liis annab klientidele nõu.', 'Taras vastutab arvutite eest.', 'Minu töökoht on kesklinnas.']),
       B.translation('061_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Я работаю продавцом.', 'Моя сестра работает в больнице.', 'Он отвечает за клиентов.', 'Мой рабочий день длится восемь часов.', 'Кем ты работаешь?', 'Мои коллеги очень дружелюбные.']),
       B.dictation('061_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Ma töötan müüjana.', 'Minu töökoht on poes.', 'Ma teenindan iga päev kliente.', 'Minu kolleegid on toredad.', 'Ma vastutan kassa eest.', 'Tööpäev algab kell kaheksa.']),
       B.speaking('061_d_say', 'Minu töö.', 'Räägi paarilisele oma tööst 1 minut.', [
@@ -63,13 +63,13 @@ export const LESSONS = {
         ['Ta vastutab ___ eest.', 'klientide', 'kliendid', 'kliente'], ['Me teenindame iga päev palju ___.', 'kliente', 'kliendid', 'klientide'], ['Ma sõidan tööle ___.', 'bussiga', 'bussis', 'bussi'],
       ], 'full', 'g_notice'),
       B.gaps('061_p_gaps', 'Kirjuta õiges vormis.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
-        'Minu vend töötab [kokana] (kokk) restoranis.', 'Anna töötab [raamatupidajana] (raamatupidaja).', 'Jaan töötab [bussijuhina] (bussijuht).', 'Liis töötab [apteegis] (apteek).',
-        'Viktor teeb kolm päeva nädalas tööd [kodus] (kodu).', 'Markus vastutab [projekti] (projekt) eest.', 'Sofia sõidab tööle [trammiga] (tramm).',
+        'Minu vend töötab [kokana] (kokk) restoranis.', 'Anna töötab [raamatupidajana] (raamatupidaja).', 'Urmas töötab [bussijuhina] (bussijuht).', 'Merle töötab [apteegis] (apteek).',
+        'Taras teeb kolm päeva nädalas tööd [kodus] (kodu).', 'Markus vastutab [projekti] (projekt) eest.', 'Olga sõidab tööle [trammiga] (tramm).',
       ]),
       B.transformation('061_p_trans', 'Ütle teisiti.', 'Kirjuta lause. Alusta antud sõnadega.', [
         ['Ma olen müüja.', 'Ma töötan …', 'Ma töötan müüjana.'], ['Minu töökoht on haigla. Ma olen õde.', 'Ma töötan …', 'Ma töötan haiglas õena.|Ma töötan õena haiglas.'],
-        ['Jaan on bussijuht.', 'Jaan töötab …', 'Jaan töötab bussijuhina.'], ['Liisi töö on aidata kliente.', 'Liis aitab …', 'Liis aitab kliente.'],
-        ['Viktor peab hoolitsema arvutite eest.', 'Viktor vastutab …', 'Viktor vastutab arvutite eest.'], ['Sofia on raamatupidaja suures firmas.', 'Sofia töötab …', 'Sofia töötab suures firmas raamatupidajana.|Sofia töötab raamatupidajana suures firmas.'],
+        ['Urmas on bussijuht.', 'Urmas töötab …', 'Urmas töötab bussijuhina.'], ['Liisi töö on aidata kliente.', 'Liis aitab …', 'Liis aitab kliente.'],
+        ['Taras peab hoolitsema arvutite eest.', 'Taras vastutab …', 'Taras vastutab arvutite eest.'], ['Olga on raamatupidaja suures firmas.', 'Olga töötab …', 'Olga töötab suures firmas raamatupidajana.|Olga töötab raamatupidajana suures firmas.'],
       ]),
       B.errorfix('061_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Ma töötan müüja poes.', 'Ma töötan poes müüjana.|Ma töötan müüjana poes.'], ['Mu vend töötab ehitajaks.', 'Mu vend töötab ehitajana.'], ['Ma vastutan kliendid eest.', 'Ma vastutan klientide eest.'],
@@ -98,12 +98,12 @@ export const LESSONS = {
     ],
     transfer: [
       B.text('061_t_situation', 'Uus olukord', 'Sa alustad uuel keelekursusel. Esimeses tunnis tutvustavad kõik oma tööd. Pärast tundi täidad kursuse ankeedi ja kirjutad kolleegist visiitkaardi järgi.'),
-      B.reading('061_t_read', 'Loe: töövarjupäev.', 'Loe tekst ja vasta küsimustele.', 'Tõnise töövarjupäev',
-        'Kolmapäeval oli Anna pojal Tõnisel töövarjupäev. Tõnis on viieteistkümneaastane. Ta käis terve päeva koos Liisiga tööl. Liis töötab loomaarstina väikeses kliinikus. Tööpäev algas kell kaheksa. Kõigepealt vaatasid nad koos koera, kellel oli valus jalg. Siis tuli kliinikusse vanaproua oma kassiga. Liis rääkis klientidega rahulikult ja selgelt. Lõuna ajal sõid kolleegid koos ja rääkisid naljajutte. Pärastlõunal aitas Tõnis administraatorit. Ta vastas telefonile ja kirjutas kliente arvutisse. Õhtul oli Tõnis väsinud, aga õnnelik. Kodus ütles ta emale, et tahab ka loomaarstiks saada. Anna oli üllatunud, sest varem tahtis Tõnis olla kokk.',
-        [['Kellena Liis töötab?', 'loomaarstina|ta on loomaarst|loomaarst'], ['Mis oli koeral viga?', 'tal oli valus jalg|valus jalg|jalg valutas'], ['Mida tegi Tõnis pärastlõunal?', 'aitas administraatorit|vastas telefonile|kirjutas kliente arvutisse'], ['Milline oli Tõnis õhtul?', 'väsinud, aga õnnelik|väsinud ja õnnelik|õnnelik'], ['Miks oli Anna üllatunud?', 'varem tahtis Tõnis olla kokk|Tõnis tahtis enne olla kokk|sest ta tahtis olla kokk']]),
+      B.reading('061_t_read', 'Loe: töövarjupäev.', 'Loe tekst ja vasta küsimustele.', 'Oskari töövarjupäev',
+        'Kolmapäeval oli Liisi pojal Oskaril töövarjupäev. Oskar on viieteistkümneaastane. Ta käis terve päeva koos ema sõbranna Kajaga tööl. Kaja töötab loomaarstina väikeses kliinikus. Tööpäev algas kell kaheksa. Kõigepealt vaatasid nad koos koera, kellel oli valus jalg. Siis tuli kliinikusse vanaproua oma kassiga. Kaja rääkis klientidega rahulikult ja selgelt. Lõuna ajal sõid kolleegid koos ja rääkisid naljajutte. Pärastlõunal aitas Oskar administraatorit. Ta vastas telefonile ja kirjutas kliente arvutisse. Õhtul oli Oskar väsinud, aga õnnelik. Kodus ütles ta emale, et tahab ka loomaarstiks saada. Liis oli üllatunud, sest varem tahtis Oskar olla kokk.',
+        [['Kellena Kaja töötab?', 'loomaarstina|ta on loomaarst|loomaarst'], ['Mis oli koeral viga?', 'tal oli valus jalg|valus jalg|jalg valutas'], ['Mida tegi Oskar pärastlõunal?', 'aitas administraatorit|vastas telefonile|kirjutas kliente arvutisse'], ['Milline oli Oskar õhtul?', 'väsinud, aga õnnelik|väsinud ja õnnelik|õnnelik'], ['Miks oli Liis üllatunud?', 'varem tahtis Oskar olla kokk|Oskar tahtis enne olla kokk|sest ta tahtis olla kokk']]),
       // Harno A2 writing 1: information transfer from a business card, at least 25 words
-      B.tip('061_t_card', 'Visiitkaart', ['**Sofia Ivanova**', 'raamatupidaja', 'firma Arvepidaja, Pärnu maantee 22, Tallinn', 'tööaeg: E–R 9.00–17.00', 'telefon: 5566 7788'], 'full'),
-      B.writing('061_t_cardwrite', 'Kirjuta Sofiast.', 'Kirjuta visiitkaardi järgi 4–5 lauset: kes, kus, millal, kuidas ühendust võtta.', [4, 5], ['töötab', 'raamatupidajana', 'helistada'], 2),
+      B.tip('061_t_card', 'Visiitkaart', ['**Olga Ivanova**', 'raamatupidaja', 'firma Arvepidaja, Pärnu maantee 22, Tallinn', 'tööaeg: E–R 9.00–17.00', 'telefon: 5566 7788'], 'full'),
+      B.writing('061_t_cardwrite', 'Kirjuta Olgast.', 'Kirjuta visiitkaardi järgi 4–5 lauset: kes, kus, millal, kuidas ühendust võtta.', [4, 5], ['töötab', 'raamatupidajana', 'helistada'], 2),
       B.transformation('061_t_trans', 'Märkmetest lauseks.', 'Kirjuta kursusekaaslase märkmetest täislause.', [
         ['Amet: kokk', 'Ta töötab …', 'Ta töötab kokana.'], ['Töökoht: hotell', 'Ta töötab …', 'Ta töötab hotellis.'],
         ['Tööaeg: 8–16', 'Tema tööpäev kestab …', 'Tema tööpäev kestab kella kaheksast neljani.|Tema tööpäev kestab kaheksast neljani.'],
@@ -113,7 +113,7 @@ export const LESSONS = {
         ['Kursusekaaslane küsib: „Mis tööd sa teed?”', 'Ma töötan õpetajana.', 'Ma töötan õpetaja.', 'Ma töötan õpetajat.'],
         ['Kursusekaaslane küsib: „Kus sa töötad?”', 'Ühes väikeses firmas.', 'Ühte väikesesse firmasse.', 'Ühest väikesest firmast.'],
         ['Klient küsib: „Kas te saate mind aidata?”', 'Jah, muidugi. Mida te vajate?', 'Ei, see ei ole minu firma.', 'Jah, minu palk on hea.'],
-        ['Uus kolleeg ütleb: „Tere, mina olen Sofia.”', 'Tere tulemast! Mina olen Markus.', 'Head aega, Sofia!', 'Palju õnne, Sofia!'],
+        ['Uus kolleeg ütleb: „Tere, mina olen Olga.”', 'Tere tulemast! Mina olen Liis.', 'Head aega, Olga!', 'Palju õnne, Olga!'],
         ['Sõber küsib: „Kas sulle meeldib su töö?”', 'Jah, sest mu kolleegid on toredad.', 'Jah, sest ma töötan kolleegid.', 'Ei, sest ma olen töö.'],
       ], 'full', 'g_use'),
       B.errorfix('061_t_fix', 'Kontrolli ankeeti.', 'Paranda ankeedi vead.', [
@@ -141,11 +141,11 @@ export const LESSONS = {
     title: 'Pean tegema, oskan teha',
     canDo: 'Ma räägin oma tööst ja oskustest mustritega pean + ma-vorm, ei pea + ma-vorm ning oskan / saan / tahan + da-vorm ja valin vähemalt 8 vormi 10-st õigesti.',
     discover: [
-      B.text('062_d_situation', 'Uus töökoht', 'Anna töötab nüüd uues firmas Tallinnas. Esimesel päeval räägib juhataja Liis talle, mida ta peab tegema. Anna oskab hästi arvutiga töötada. Aga eesti keeles suhelda on tal veel raske.'),
+      B.text('062_d_situation', 'Uus töökoht', 'Anna töötab nüüd uues firmas Tallinnas. Esimesel päeval räägib juhataja Margit talle, mida ta peab tegema. Anna oskab hästi arvutiga töötada. Aga eesti keeles suhelda on tal veel raske.'),
       B.vocab('062_d_vocab', 'Töö ja oskused', ['pidama (pean) — быть должным', 'ei pea — не нужно', 'oskama (oskan) — уметь', 'saama (saan) — мочь', 'tahtma (tahan) — хотеть', 'kohustus — обязанность', 'nõue — требование', 'juhtima — водить, руководить', 'arvuti — компьютер', 'koristama — убирать', 'suhtlema — общаться', 'aitama — помогать'], '2'),
       B.reading('062_d_read', 'Loe: Anna esimene päev.', 'Loe teksti ja vasta küsimustele.', 'Mida Anna peab tegema?',
-        'Anna on firmas uus raamatupidaja. Esimesel päeval rääkis juhataja Liis talle tööst. Iga hommik peab Anna kontrollima arveid. Arved peab ta klientidele saatma kella kolmeni. Reedeti peab ta tegema nädala aruande. Anna oskab hästi arvutiga töötada. Ta oskab ka inglise ja vene keelt. Eesti keeles suhelda on tal veel raske, aga ta tahab õppida. Kliente ei pea ta ise vastu võtma. Seda teeb sekretär Kati. Kontorit ei pea ta ka koristama, sest firmas on koristaja. Lõunal võib Anna minna kohvikusse või süüa köögis. Üks päev nädalas saab ta kodust töötada. Anna küsis: „Kas ma pean ka laupäeval tööl olema?” Liis naeris: „Ei pea! Laupäeval ja pühapäeval sa puhkad.”',
-        [['Mida peab Anna iga hommik tegema?', 'kontrollima arveid|ta kontrollib arveid'], ['Kuni mis kellani peab ta arved saatma?', 'kella kolmeni|kolmeni'], ['Mis keeli Anna oskab?', 'inglise ja vene keelt|inglise ja vene'], ['Kes võtab kliente vastu?', 'Kati|sekretär Kati|sekretär'], ['Miks ei pea Anna kontorit koristama?', 'firmas on koristaja|sest firmas on koristaja'], ['Mitu päeva nädalas saab ta kodust töötada?', 'üks päev|ühe päeva|1']]),
+        'Anna on firmas uus raamatupidaja. Esimesel päeval rääkis juhataja Margit talle tööst. Iga hommik peab Anna kontrollima arveid. Arved peab ta klientidele saatma kella kolmeni. Reedeti peab ta tegema nädala aruande. Anna oskab hästi arvutiga töötada. Ta oskab ka inglise ja vene keelt. Eesti keeles suhelda on tal veel raske, aga ta tahab õppida. Kliente ei pea ta ise vastu võtma. Seda teeb sekretär Pille. Kontorit ei pea ta ka koristama, sest firmas on koristaja. Lõunal võib Anna minna kohvikusse või süüa köögis. Üks päev nädalas saab ta kodust töötada. Anna küsis: „Kas ma pean ka laupäeval tööl olema?” Margit naeris: „Ei pea! Laupäeval ja pühapäeval sa puhkad.”',
+        [['Mida peab Anna iga hommik tegema?', 'kontrollima arveid|ta kontrollib arveid'], ['Kuni mis kellani peab ta arved saatma?', 'kella kolmeni|kolmeni'], ['Mis keeli Anna oskab?', 'inglise ja vene keelt|inglise ja vene'], ['Kes võtab kliente vastu?', 'Pille|sekretär Pille|sekretär'], ['Miks ei pea Anna kontorit koristama?', 'firmas on koristaja|sest firmas on koristaja'], ['Mitu päeva nädalas saab ta kodust töötada?', 'üks päev|ühe päeva|1']]),
       B.notice('062_d_notice', 'Märka: pean + ma, oskan + da', ['Ma **pean** arveid **kontrollima**. (pidama + ma-vorm)', 'Ma **ei pea** laupäeval **töötama**.', 'Ma **oskan** arvutiga **töötada**. (oskama + da-vorm)', 'Ma **saan** kodust **töötada**. Ma **tahan** eesti keelt **õppida**.', 'ma **pean**, sa **pead**, ta **peab**, me **peame**, te **peate**, nad **peavad**'], 'full'),
       B.profiles('062_d_cards', 'Kes mida oskab?', 'Loe kaarte. Kirjuta lünka sobiv vorm.', [
         ['Jaan', ['kohviku omanik', 'oskab head kohvi teha', 'peab alustama kell 6', 'ei pea pühapäeval töötama'], ['Jaan oskab head kohvi [teha].', 'Ta peab hommikul kell kuus [alustama].', 'Pühapäeval ei [pea] ta töötama.']],
@@ -195,12 +195,12 @@ export const LESSONS = {
         ['Me ei peame laupäeval töötama.', 'Me ei pea laupäeval töötama.'], ['Ma saan sind homme aitama.', 'Ma saan sind homme aidata.'], ['Nad peab kell kaheksa alustama.', 'Nad peavad kell kaheksa alustama.'],
       ]),
       B.listening('062_p_listen', 'Kuulamine. Uus töötaja.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Mina olen Kati, firma sekretär.', 'Ma räägin teile, mida te peate esimesel nädalal tegema.', 'Tööpäev algab kell üheksa. Te peate tulema kümme minutit varem.',
-        'Esmaspäeval peate täitma lepingu ja andma mulle oma pangakonto numbri.', 'Arvutiga oskate te kindlasti töötada, aga programm on uus. Igor aitab teid.',
+        'Tere! Mina olen Pille, firma sekretär.', 'Ma räägin teile, mida te peate esimesel nädalal tegema.', 'Tööpäev algab kell üheksa. Te peate tulema kümme minutit varem.',
+        'Esmaspäeval peate täitma lepingu ja andma mulle oma pangakonto numbri.', 'Arvutiga oskate te kindlasti töötada, aga programm on uus. Siim aitab teid.',
         'Lõunal ei pea te kontoris olema. Lõuna on kella kaheteistkümnest üheni.', 'Reedel saate töötada kodust.',
-      ], ['Tööpäev algab kell [üheksa|9].', 'Tööle peab tulema [kümme|10] minutit varem.', 'Esmaspäeval peab täitma [lepingu].', 'Uue programmiga aitab [Igor].', 'Lõuna algab kell [kaksteist|12].', 'Kodust saab töötada [reedel].']),
-      B.dialogue('062_p_dialog', 'Töövestlus kohvikus.', 'Täida dialoog sobivate sõnadega.', 'Juhataja', 'Tiina', [
-        ['A', 'Tere, Tiina! Mis keeli te [oskate]?'], ['B', 'Ma oskan eesti, vene ja inglise keelt.'], ['A', 'Väga hea. Kas te oskate suppi [teha]?'], ['B', 'Jah, see on minu lemmiktöö!'],
+      ], ['Tööpäev algab kell [üheksa|9].', 'Tööle peab tulema [kümme|10] minutit varem.', 'Esmaspäeval peab täitma [lepingu].', 'Uue programmiga aitab [Siim].', 'Lõuna algab kell [kaksteist|12].', 'Kodust saab töötada [reedel].']),
+      B.dialogue('062_p_dialog', 'Töövestlus kohvikus.', 'Täida dialoog sobivate sõnadega.', 'Juhataja', 'Eva', [
+        ['A', 'Tere, Eva! Mis keeli te [oskate]?'], ['B', 'Ma oskan eesti, vene ja inglise keelt.'], ['A', 'Väga hea. Kas te oskate suppi [teha]?'], ['B', 'Jah, see on minu lemmiktöö!'],
         ['A', 'Te [peate] töötama ka laupäeval. Kas see sobib?'], ['B', 'Jah. Aga kas ma [pean] töötama ka pühapäeval?'], ['A', 'Ei, pühapäeval te ei [pea] töötama.'], ['B', 'Väga hea. Millal ma [saan] alustada?'],
       ]),
       B.translation('062_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Ты должен прийти в девять.', 'Я не умею плавать.', 'Мы хотим найти новую работу.', 'Вам не нужно работать в воскресенье.', 'Можно мне работать из дома?', 'Они должны убрать офис.']),
@@ -212,13 +212,13 @@ export const LESSONS = {
       B.selfcheck('062_p_self', ['Ma pööran pidama: pean, pead, peab…', 'Ma valin ma- või da-vormi õigesti.', 'Ma võrdlen kahe töö nõudeid.', 'Ma räägin töövestlusel oma oskustest.'], 'Vormid on paigas'),
     ],
     transfer: [
-      B.text('062_t_situation', 'Uus olukord', 'Sinu firmasse tuleb kaheks nädalaks praktikant Igor. Ülemus palub: „Kirjuta Igorile lühike juhend. Mida ta peab tegema? Mida ta ei pea tegema?” Esimesel päeval näitad sa talle kontorit.'),
+      B.text('062_t_situation', 'Uus olukord', 'Sinu firmasse tuleb kaheks nädalaks praktikant Rasmus. Ülemus palub: „Kirjuta Rasmusele lühike juhend. Mida ta peab tegema? Mida ta ei pea tegema?” Esimesel päeval näitad sa talle kontorit.'),
       B.notice('062_t_list', 'Ülemuse märkmed', ['Tööaeg: 9–17, lõuna 12–13', 'Peab: vastama telefonile, saatma kirju, tooma posti', 'Ei pea: koosolekutel käima, laupäeviti töötama', 'Saab: kasutada kohvimasinat, parkida maja taga', 'Abi: arvuti — Kati, palk — Anna'], 'full', 'g_read'),
-      B.listening('062_t_listen', 'Kuula Igori häälsõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin Igor, uus praktikant.', 'Mul on homseks paar küsimust.', 'Kas ma pean tulema kell üheksa või kell kaheksa?', 'Ma oskan Exceliga töötada, aga ma ei oska raamatupidamisprogrammi.',
+      B.listening('062_t_listen', 'Kuula Rasmuse häälsõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Siin Rasmus, uus praktikant.', 'Mul on homseks paar küsimust.', 'Kas ma pean tulema kell üheksa või kell kaheksa?', 'Ma oskan Exceliga töötada, aga ma ei oska raamatupidamisprogrammi.',
         'Kas ma saan autoga tulla? Kas maja juures on parkla?', 'Ma tahan võtta kaasa oma sülearvuti. Kas see on võimalik?', 'Palun helista mulle täna kella kuueni. Aitäh!',
-      ], ['Igor on uus [praktikant].', 'Ta ei tea, kas tulla kell üheksa või [kaheksa|8].', 'Igor oskab töötada [Exceliga].', 'Ta ei oska [raamatupidamisprogrammi].', 'Igor tahab tulla [autoga].', 'Helistada tuleb kella [kuueni|6ni|18ni].']),
-      B.table('062_t_table', 'Igori juhend.', 'Kirjuta märkmete järgi: peab, ei pea või saab.', 'Tegevus, Igor', [
+      ], ['Rasmus on uus [praktikant].', 'Ta ei tea, kas tulla kell üheksa või [kaheksa|8].', 'Rasmus oskab töötada [Exceliga].', 'Ta ei oska [raamatupidamisprogrammi].', 'Rasmus tahab tulla [autoga].', 'Helistada tuleb kella [kuueni|6ni|18ni].']),
+      B.table('062_t_table', 'Rasmuse juhend.', 'Kirjuta märkmete järgi: peab, ei pea või saab.', 'Tegevus, Rasmus', [
         'telefonile vastama | [peab]', 'koosolekutel käima | [ei pea]', 'kohvimasinat kasutama | [saab]', 'laupäeviti töötama | [ei pea]', 'posti tooma | [peab]', 'maja taga parkima | [saab]',
       ], 'g_read'),
       B.gaps('062_t_gaps', 'Juhendi laused.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
@@ -234,14 +234,14 @@ export const LESSONS = {
         ['Kati saab sind aitama.', 'Kati saab sind aidata.'], ['Me peab kõik kirjad saatma.', 'Me peame kõik kirjad saatma.'],
       ]),
       B.translation('062_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Ты должна прийти в девять.', 'Тебе не нужно ходить на совещания.', 'Ты можешь парковаться за домом.', 'Кати может тебе помочь.', 'Ты умеешь работать с компьютером?']),
-      B.planning('062_t_plan', 'Enne juhendit.', 'Kirjuta märksõnad.', ['Mis kell tööpäev algab ja lõpeb?', 'Mida Igor peab tegema?', 'Mida ta ei pea tegema?', 'Mida ta saab teha? Kes aitab?']),
-      B.letter('062_t_letter', 'Juhend praktikandile.', 'Kirjuta Igorile juhend 40–60 sõnaga. Kasuta pead, ei pea, saad.', 'Tere, Igor!', 'Edu esimesel päeval!', [40, 60]),
-      B.writing('062_t_reply', 'Vasta Igorile.', 'Kirjuta Igorile sõnum 4–6 lausega: vasta tema küsimustele.', [4, 6], ['pead', 'saad', 'ei pea'], 2),
-      B.speaking('062_t_tour', 'Esimene päev.', 'Näita Igorile kontorit ja selgita tööd. Räägi umbes minut.', ['Mis kell tööpäev algab?', 'Mida Igor peab tegema?', 'Kes teda aitab?', 'Mida ta saab köögis teha?'], [60, 90]),
-      B.rolecards('062_t_roles', 'Igor küsib.', 'A on Igor, B on kolleeg. Siis vahetage.',
-        'Oled praktikant Igor. Küsi vähemalt neli küsimust: Kas ma pean…? Kas ma saan…?', 'Oled kolleeg. Vasta Igori küsimustele märkmete järgi.',
+      B.planning('062_t_plan', 'Enne juhendit.', 'Kirjuta märksõnad.', ['Mis kell tööpäev algab ja lõpeb?', 'Mida Rasmus peab tegema?', 'Mida ta ei pea tegema?', 'Mida ta saab teha? Kes aitab?']),
+      B.letter('062_t_letter', 'Juhend praktikandile.', 'Kirjuta Rasmusele juhend 40–60 sõnaga. Kasuta pead, ei pea, saad.', 'Tere, Rasmus!', 'Edu esimesel päeval!', [40, 60]),
+      B.writing('062_t_reply', 'Vasta Rasmusele.', 'Kirjuta Rasmusele sõnum 4–6 lausega: vasta tema küsimustele.', [4, 6], ['pead', 'saad', 'ei pea'], 2),
+      B.speaking('062_t_tour', 'Esimene päev.', 'Näita Rasmusele kontorit ja selgita tööd. Räägi umbes minut.', ['Mis kell tööpäev algab?', 'Mida Rasmus peab tegema?', 'Kes teda aitab?', 'Mida ta saab köögis teha?'], [60, 90]),
+      B.rolecards('062_t_roles', 'Rasmus küsib.', 'A on Rasmus, B on kolleeg. Siis vahetage.',
+        'Oled praktikant Rasmus. Küsi vähemalt neli küsimust: Kas ma pean…? Kas ma saan…?', 'Oled kolleeg. Vasta Rasmuse küsimustele märkmete järgi.',
         ['Kas ma pean…?', 'Kas ma saan…?', 'Kes mind aitab?'], ['Jah, sa pead…', 'Ei, sa ei pea…', 'Sa saad…']),
-      B.rubric('062_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Juhendis on tööaeg, kohustused ja abi.', 'pean + ma-vorm ja oskan / saan + da-vorm on õiged.', 'Vastus Igorile vastab kõigile tema küsimustele.', 'Suuline selgitus on selge ja viisakas.']),
+      B.rubric('062_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Juhendis on tööaeg, kohustused ja abi.', 'pean + ma-vorm ja oskan / saan + da-vorm on õiged.', 'Vastus Rasmusele vastab kõigile tema küsimustele.', 'Suuline selgitus on selge ja viisakas.']),
       B.selfcheck('062_t_self', ['Ma saan aru, mida uus kolleeg küsib.', 'Ma kirjutan juhendi: pead, ei pea, saad.', 'Ma selgitan tööd suuliselt.', 'Ma vastan küsimustele teie- ja sina-vormis.'], 'Juhend on valmis'),
     ],
   },
@@ -250,14 +250,14 @@ export const LESSONS = {
     title: 'Töögraafik ja lihtne töökuulutus',
     canDo: 'Ma leian töökuulutusest ja töögraafikust vähemalt viis olulist fakti: amet, tööaeg, palk, nõuded ja kandideerimise viis.',
     discover: [
-      B.text('063_d_situation', 'Viktor otsib tööd', 'Viktor otsib uut tööd. Ta tahab töötada ainult päeval, sest õhtuti õpib ta eesti keelt. Internetis näeb ta kahte kuulutust. Mõlemas on palk ja tööaeg kirjas.'),
+      B.text('063_d_situation', 'Andrei otsib tööd', 'Andrei otsib uut tööd. Ta tahab töötada ainult päeval, sest õhtuti õpib ta eesti keelt. Internetis näeb ta kahte kuulutust. Mõlemas on palk ja tööaeg kirjas.'),
       B.truefalse('063_d_tf', 'Mis toimub?', 'Loe olukorda. Kas lause on õige või vale?', [
-        ['Viktor otsib uut tööd.', true], ['Viktor tahab töötada öösel.', false], ['Õhtuti õpib Viktor eesti keelt.', true], ['Viktor leiab kuulutused ajalehest.', false], ['Kuulutustes on kirjas palk.', true],
+        ['Andrei otsib uut tööd.', true], ['Andrei tahab töötada öösel.', false], ['Õhtuti õpib Andrei eesti keelt.', true], ['Andrei leiab kuulutused ajalehest.', false], ['Kuulutustes on kirjas palk.', true],
       ]),
       B.vocab('063_d_vocab', 'Kuulutuse sõnad', ['töökuulutus — объявление о работе', 'vahetus — смена', 'hommikuvahetus / õhtuvahetus — утренняя / вечерняя смена', 'tööaeg — рабочее время', 'töögraafik — график работы', 'palk — зарплата', 'bruto — брутто, до налогов', 'kogemus — опыт', 'vajalik — необходимый', 'kasuks tuleb — будет плюсом', 'kandideerima — подавать заявку', 'CV — резюме'], '2'),
       B.reading('063_d_read', 'Loe kahte kuulutust.', 'Loe kuulutused ja vasta küsimustele.', 'Kaks töökuulutust',
         'A. Kohvik Päikeseratas otsib klienditeenindajat\nTööaeg on graafiku alusel: kaks päeva tööl ja kaks päeva vaba. Vahetus kestab kella 8–20. Palk on 1300 eurot kuus (bruto). Vajalik on eesti keel A2 tasemel. Sa pead olema sõbralik ja täpne. Kogemus ei ole vajalik, me õpetame ise. Saada oma CV kohviku e-postile 15. maiks.\n\nB. Ladu Kiirpakk otsib komplekteerijat\nTööaeg on E–R, hommikuvahetus 7–15 või õhtuvahetus 15–23. Palk on 9 eurot tunnis, õhtuvahetuses 10 eurot tunnis. Vajalik on töökogemus laos vähemalt üks aasta. Kasuks tuleb tõstukijuhi luba. Pakume tasuta lõunat ja bussi linnast lattu. Helista meile või tule kohale.',
-        [['Kui pikk on vahetus kohvikus?', 'kaksteist tundi|12 tundi'], ['Kas kohvikusse on vaja töökogemust?', 'ei|ei ole vaja|kogemus ei ole vajalik'], ['Mitu päeva nädalas töötab laos?', 'viis|5|viis päeva|esmaspäevast reedeni'], ['Kui palju teenib laotöötaja ühes õhtuvahetuses?', 'kaheksakümmend eurot|80 eurot|80'], ['Kuidas saab laos tööle kandideerida?', 'helistada või kohale tulla|helistada|tulla kohale'], ['Milline töö sobib Viktorile tööaja järgi?', 'ladu hommikuvahetuses|B hommikuvahetuses|B|ladu']]),
+        [['Kui pikk on vahetus kohvikus?', 'kaksteist tundi|12 tundi'], ['Kas kohvikusse on vaja töökogemust?', 'ei|ei ole vaja|kogemus ei ole vajalik'], ['Mitu päeva nädalas töötab laos?', 'viis|5|viis päeva|esmaspäevast reedeni'], ['Kui palju teenib laotöötaja ühes õhtuvahetuses?', 'kaheksakümmend eurot|80 eurot|80'], ['Kuidas saab laos tööle kandideerida?', 'helistada või kohale tulla|helistada|tulla kohale'], ['Milline töö sobib Andreile tööaja järgi?', 'ladu hommikuvahetuses|B hommikuvahetuses|B|ladu']]),
       B.notice('063_d_notice', 'Märka: aeg ja nõuded', ['kella 8–20 = kella **kaheksast** õhtul **kaheksani**', 'E–R = **esmaspäevast reedeni**', '9 eurot **tunnis**, 1300 eurot **kuus**', '**Vajalik:** eesti keel. = Eesti keel **on vajalik**.', '**Kasuks tuleb:** juhiluba. = Hea, kui sul on juhiluba.', '**Kandideerimine:** saada CV. = Saada oma CV.'], 'full'),
       B.wordforms('063_d_time', 'Kellast kellani?', 'Kirjuta kellaaeg sõnaga küsimuse järgi.', [
         ['8', 'kellast?', 'kaheksast'], ['15', 'kellani?', 'viieteistkümneni, kolmeni'], ['7', 'kellast?', 'seitsmest'], ['23', 'kellani?', 'kahekümne kolmeni, üheteistkümneni'], ['9', 'kellast?', 'üheksast'], ['17', 'kellani?', 'seitsmeteistkümneni, viieni'],
@@ -280,11 +280,11 @@ export const LESSONS = {
       ], 'full', 'g_read'),
       // Harno A2 listening 3: a phone call, read twice, answers of 1–2 words
       B.listening('063_d_listen', 'Kuula telefonikõnet.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        '— Tere! Siin ladu Kiirpakk, Mari kuulab.', '— Tere! Mina olen Viktor. Ma helistan kuulutuse pärast.', '— Väga hea. Kas teil on laotöö kogemus?',
+        '— Tere! Siin ladu Kiirpakk, Mari kuulab.', '— Tere! Mina olen Andrei. Ma helistan kuulutuse pärast.', '— Väga hea. Kas teil on laotöö kogemus?',
         '— Jah, ma töötasin kaks aastat Narvas laos.', '— Suurepärane. Kas te saate töötada hommikuvahetuses?', '— Jah, hommik sobib mulle hästi. Õhtuti ma õpin.',
         '— Hommikuvahetus algab kell seitse. Meie buss väljub kesklinnast kell pool seitse.', '— Kas buss on tasuta?', '— Jah, buss on töötajatele tasuta. Tulge homme kell kümme vestlusele.',
         '— Aitäh! Kas ma pean midagi kaasa võtma?', '— Võtke kaasa isikutunnistus. Kohtumiseni!',
-      ], ['Viktor töötas laos [kaks|2] aastat.', 'Ta töötas varem [Narvas].', 'Viktorile sobib [hommikuvahetus|hommik].', 'Buss väljub kesklinnast kell [pool seitse|6.30].', 'Buss on töötajatele [tasuta].', 'Vestlus on homme kell [kümme|10].', 'Kaasa tuleb võtta [isikutunnistus|isikutunnistuse].']),
+      ], ['Andrei töötas laos [kaks|2] aastat.', 'Ta töötas varem [Narvas].', 'Andreile sobib [hommikuvahetus|hommik].', 'Buss väljub kesklinnast kell [pool seitse|6.30].', 'Buss on töötajatele [tasuta].', 'Vestlus on homme kell [kümme|10].', 'Kaasa tuleb võtta [isikutunnistus|isikutunnistuse].']),
       B.transformation('063_d_trans', 'Ütle lausega.', 'Kirjuta kuulutuse info täislausena.', [
         ['Tööaeg: E–R', 'Ma töötan …', 'Ma töötan esmaspäevast reedeni.'], ['Vahetus: 7–15', 'Vahetus kestab …', 'Vahetus kestab kella seitsmest kolmeni.|Vahetus kestab seitsmest kolmeni.'],
         ['Palk: 9 € tunnis', 'Palk on …', 'Palk on üheksa eurot tunnis.|Palk on 9 eurot tunnis.'], ['Vajalik: töökogemus', 'Töökogemus on …', 'Töökogemus on vajalik.'],
@@ -312,8 +312,8 @@ export const LESSONS = {
         ['laupäev', 'mis päevast?', 'laupäevast'], ['pühapäev', 'mis päevani?', 'pühapäevani'], ['neljapäev', 'millal?', 'neljapäeval'],
       ]),
       B.gaps('063_p_gaps', 'Kirjuta õiges vormis.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
-        'Liis töötab kohvikus [klienditeenindajana] (klienditeenindaja).', 'Tema vahetus kestab kella seitsmest [kolmeni] (kolm).', 'Viktor töötab [esmaspäevast] (esmaspäev) reedeni.',
-        'Palk on kümme eurot [tunnis] (tund).', 'Anna vastutab [klientide] (kliendid) eest.', 'Sofia töötab [raamatupidajana] (raamatupidaja) ja tema töökoht on [kontoris] (kontor).',
+        'Liis töötab kohvikus [klienditeenindajana] (klienditeenindaja).', 'Tema vahetus kestab kella seitsmest [kolmeni] (kolm).', 'Markus töötab [esmaspäevast] (esmaspäev) reedeni.',
+        'Palk on kümme eurot [tunnis] (tund).', 'Anna vastutab [klientide] (kliendid) eest.', 'Olga töötab [raamatupidajana] (raamatupidaja) ja tema töökoht on [kontoris] (kontor).',
       ]),
       B.errorfix('063_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Ma töötan kell kaheksa kuni kell viis.', 'Ma töötan kella kaheksast viieni.|Ma töötan kaheksast viieni.'], ['Palk on kümme eurot tund.', 'Palk on kümme eurot tunnis.'],
@@ -321,28 +321,28 @@ export const LESSONS = {
         ['Eesti keel on vajalikud.', 'Eesti keel on vajalik.'], ['Ma töötan esmaspäevast reedel.', 'Ma töötan esmaspäevast reedeni.'],
       ]),
       B.reading('063_p_read', 'Loe töögraafikut.', 'Loe graafik ja juhataja märkus. Vasta küsimustele.', 'Kohviku töögraafik, 1.–7. aprill',
-        'Anna: E ja T hommikuvahetus 7–15, R ja L õhtuvahetus 15–23.\nMarkus: E, K ja N õhtuvahetus 15–23.\nLiis: T, K ja N hommikuvahetus 7–15.\nJaan: R, L ja P hommikuvahetus 7–15.\n\nMärkus juhatajalt: Kolmapäeval tuleb kohvikusse suur grupp turiste. Sel päeval peab hommikul tööl olema kaks inimest. Kes saab kolmapäeva hommikul tulla, palun kirjutage mulle. Kui sa tahad vahetust vahetada, kirjuta mulle kaks päeva varem. Õhtuvahetuses on palk tunnis üks euro kõrgem. Uus töötaja Sofia alustab järgmisel nädalal. Esimesel päeval õpetab teda Liis.',
-        [['Kes töötab esmaspäeva õhtul?', 'Markus'], ['Mitu vahetust on Annal sel nädalal?', 'neli|4'], ['Mitu inimest peab kolmapäeva hommikul tööl olema?', 'kaks|2'], ['Millal peab kirjutama, kui tahad vahetust vahetada?', 'kaks päeva varem|2 päeva varem'], ['Miks on õhtuvahetus rahaliselt parem?', 'palk on kõrgem|tunnis üks euro rohkem|palk on üks euro kõrgem'], ['Kes töötab pühapäeval?', 'Jaan']]),
+        'Maarja: E ja T hommikuvahetus 7–15, R ja L õhtuvahetus 15–23.\nLiene: E, K ja N õhtuvahetus 15–23.\nLiis: T, K ja N hommikuvahetus 7–15.\nJaan: R, L ja P hommikuvahetus 7–15.\n\nMärkus juhatajalt: Kolmapäeval tuleb kohvikusse suur grupp turiste. Sel päeval peab hommikul tööl olema kaks inimest. Kes saab kolmapäeva hommikul tulla, palun kirjutage mulle. Kui sa tahad vahetust vahetada, kirjuta mulle kaks päeva varem. Õhtuvahetuses on palk tunnis üks euro kõrgem. Uus töötaja Sofia alustab järgmisel nädalal. Esimesel päeval õpetab teda Liis.',
+        [['Kes töötab esmaspäeva õhtul?', 'Liene'], ['Mitu vahetust on Maarjal sel nädalal?', 'neli|4'], ['Mitu inimest peab kolmapäeva hommikul tööl olema?', 'kaks|2'], ['Millal peab kirjutama, kui tahad vahetust vahetada?', 'kaks päeva varem|2 päeva varem'], ['Miks on õhtuvahetus rahaliselt parem?', 'palk on kõrgem|tunnis üks euro rohkem|palk on üks euro kõrgem'], ['Kes töötab pühapäeval?', 'Jaan']]),
       B.truefalse('063_p_tf', 'Kas see on õige?', 'Vaata graafikut. Kas lause on õige või vale?', [
-        ['Liis töötab kolmapäeva hommikul.', true], ['Markus töötab hommikuti.', false], ['Jaan töötab nädalavahetusel.', true], ['Annal on teisipäeval vaba päev.', false], ['Reede õhtul on tööl Anna.', true],
+        ['Liis töötab kolmapäeva hommikul.', true], ['Liene töötab hommikuti.', false], ['Jaan töötab nädalavahetusel.', true], ['Maarjal on teisipäeval vaba päev.', false], ['Reede õhtul on tööl Maarja.', true],
       ]),
       // Harno A2 reading 5: a personal letter with option gaps
       B.cloze('063_p_cloze', 'Kiri tööandjale.', 'Vali igasse lünka sobiv sõna.', 'Tere!', [
         'Ma nägin teie kuulutust internetis. Ma tahan {*kandideerida|kandideerima|kandideerin} klienditeenindaja kohale. Varem töötasin ma kaks aastat {*müüjana|müüja|müüjat} toidupoes. Ma räägin eesti, vene ja inglise keelt.',
         'Mulle sobib töötada {*graafiku|graafik|graafikut} alusel. Ma saan tööd alustada {*järgmisel|järgmise|järgmist} nädalal. Minu CV on {*kirja|kiri|kirjas} lisas. Ootan teie {*vastust|vastus|vastusega}.',
         '',
-        'Lugupidamisega, Sofia Ivanova',
+        'Lugupidamisega, Sofia Melnik',
       ]),
       B.transformation('063_p_trans', 'Kirjuta graafikust.', 'Kirjuta graafiku järgi täislause.', [
-        ['Anna: E, hommikuvahetus 7–15', 'Esmaspäeval töötab Anna …', 'Esmaspäeval töötab Anna kella seitsmest kolmeni.|Esmaspäeval töötab Anna seitsmest kolmeni.'],
-        ['Markus: K, õhtuvahetus', 'Kolmapäeval on Markusel …', 'Kolmapäeval on Markusel õhtuvahetus.'],
+        ['Maarja: E, hommikuvahetus 7–15', 'Esmaspäeval töötab Maarja …', 'Esmaspäeval töötab Maarja kella seitsmest kolmeni.|Esmaspäeval töötab Maarja seitsmest kolmeni.'],
+        ['Liene: K, õhtuvahetus', 'Kolmapäeval on Lienel …', 'Kolmapäeval on Lienel õhtuvahetus.'],
         ['Jaan: R–P', 'Jaan töötab …', 'Jaan töötab reedest pühapäevani.'],
         ['Liis: E vaba', 'Esmaspäeval on Liisil …', 'Esmaspäeval on Liisil vaba päev.'],
         ['Õhtul: +1 € tunnis', 'Õhtuvahetuses on palk …', 'Õhtuvahetuses on palk ühe euro võrra kõrgem.|Õhtuvahetuses on palk tunnis üks euro kõrgem.'],
       ]),
       B.wordorder('063_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Minu vahetus algab kell seitse hommikul.', 'Palk on kümme eurot tunnis.', 'Kas selles töös on kogemus vajalik?', 'Ma töötan esmaspäevast reedeni.', 'Ma tahan sellele kohale kandideerida.']),
-      B.dialogue('063_p_dialog', 'Vahetuse vahetamine.', 'Täida dialoog. Vaata ka graafikut.', 'Anna', 'Markus', [
-        ['A', 'Markus, kas sa saad laupäeval minu [vahetuse] võtta?'], ['B', 'Mis kell su vahetus [algab]?'], ['A', 'Kell kolm. Ja lõpeb kell [üksteist|23].'],
+      B.dialogue('063_p_dialog', 'Vahetuse vahetamine.', 'Täida dialoog. Vaata ka graafikut.', 'Maarja', 'Liene', [
+        ['A', 'Liene, kas sa saad laupäeval minu [vahetuse] võtta?'], ['B', 'Mis kell su vahetus [algab]?'], ['A', 'Kell kolm. Ja lõpeb kell [üksteist|23].'],
         ['B', 'Hästi, aga siis võta sina minu [neljapäeva|kolmapäeva|esmaspäeva] õhtu.'], ['A', 'Sobib! Ma kirjutan [juhatajale] kohe.'],
       ]),
       B.translation('063_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['У меня утренняя смена.', 'Смена начинается в семь часов.', 'Я работаю со среды по пятницу.', 'Вечером зарплата выше.', 'В субботу у меня выходной.', 'Можно поменяться сменами?']),
@@ -353,18 +353,18 @@ export const LESSONS = {
       B.selfcheck('063_p_self', ['Ma ütlen: esmaspäevast reedeni, kella seitsmest kolmeni.', 'Ma loen töögraafikut.', 'Ma valin õige vormi: kandideerida, tunnis, kogemust.', 'Ma palun vahetust vahetada.'], 'Graafik on käes'),
     ],
     transfer: [
-      B.text('063_t_situation', 'Uus olukord', 'Sinu sõber Jaan otsib tööd. Ta loeb eesti keelt veel aeglaselt. Jaan saatis sulle kolm töökuulutust. Tal on juhiluba ja ta saab töötada ainult tööpäevadel.'),
+      B.text('063_t_situation', 'Uus olukord', 'Sinu sõber Andrei otsib tööd. Ta loeb eesti keelt veel aeglaselt. Andrei saatis sulle kolm töökuulutust. Tal on juhiluba ja ta saab töötada ainult tööpäevadel.'),
       B.reading('063_t_ads', 'Loe kolme kuulutust.', 'Loe kuulutused ja vasta küsimustele.', 'Kolm töökuulutust',
         'A. Pagariäri otsib müüjat. Tööaeg on E–R kella 7–15. Palk on 1200 eurot kuus. Eesti keel peab olema vähemalt A2 tasemel. Kogemus ei ole vajalik. Pakume tasuta kohvi ja saia. Kandideerimiseks helista juhatajale.\n\nB. Kullerfirma otsib autojuhti. Töö on E–R, vahetus kestab kella 9–18. Palk on 1500 eurot kuus. Vajalik on B-kategooria juhiluba. Kasuks tuleb Tallinna tundmine. Firma annab töötajale auto ja telefoni. Saada CV meie kodulehel.\n\nC. Hotell otsib koristajat nädalavahetuseks. Töö on laupäeval ja pühapäeval kella 10–16. Palk on 10 eurot tunnis. Kogemus tuleb kasuks. Hotell asub kesklinnas, bussipeatuse lähedal. Tule vestlusele esmaspäeval kell 12.',
-        [['Mis töö sobib Jaanile kõige paremini?', 'B|autojuht|autojuhi töö|kullerfirma töö'], ['Miks ei sobi Jaanile töö C?', 'see on nädalavahetusel|töö on laupäeval ja pühapäeval'], ['Kui palju teenib koristaja ühel päeval?', 'kuuskümmend eurot|60 eurot|60'], ['Kuidas saab kandideerida autojuhi tööle?', 'saata CV kodulehel|kodulehel|saada CV'], ['Mitu tundi päevas töötab pagariäri müüja?', 'kaheksa|8|kaheksa tundi'], ['Mida annab kullerfirma töötajale?', 'auto ja telefoni|autot ja telefoni|auto ja telefon']]),
-      B.table('063_t_table', 'Märkmed Jaanile.', 'Kirjuta igast kuulutusest kolm fakti.', 'Kuulutus, Tööaeg, Palk, Vajalik või kasuks', [
+        [['Mis töö sobib Andreile kõige paremini?', 'B|autojuht|autojuhi töö|kullerfirma töö'], ['Miks ei sobi Andreile töö C?', 'see on nädalavahetusel|töö on laupäeval ja pühapäeval'], ['Kui palju teenib koristaja ühel päeval?', 'kuuskümmend eurot|60 eurot|60'], ['Kuidas saab kandideerida autojuhi tööle?', 'saata CV kodulehel|kodulehel|saada CV'], ['Mitu tundi päevas töötab pagariäri müüja?', 'kaheksa|8|kaheksa tundi'], ['Mida annab kullerfirma töötajale?', 'auto ja telefoni|autot ja telefoni|auto ja telefon']]),
+      B.table('063_t_table', 'Märkmed Andreile.', 'Kirjuta igast kuulutusest kolm fakti.', 'Kuulutus, Tööaeg, Palk, Vajalik või kasuks', [
         'A müüja | [E–R 7–15/7–15] | [1200 eurot kuus/1200] | [eesti keel/eesti keel A2]', 'B autojuht | [E–R 9–18/9–18] | [1500 eurot kuus/1500] | [juhiluba/B-kategooria juhiluba]', 'C koristaja | [L–P 10–16/10–16] | [10 eurot tunnis/10] | [kogemus/kogemus tuleb kasuks]',
       ], 'g_read'),
       // Harno A2 listening 3: a voicemail, read twice, answers of 1–2 words
       B.listening('063_t_listen', 'Kuula tööandja sõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere, Jaan! Siin on Kati kullerfirmast Kiirkuller.', 'Aitäh, et saatsite oma CV.', 'Me tahame teid vestlusele kutsuda.', 'Vestlus on neljapäeval kell üksteist.',
+        'Tere, Andrei! Siin on Kerli kullerfirmast Kiirkuller.', 'Aitäh, et saatsite oma CV.', 'Me tahame teid vestlusele kutsuda.', 'Vestlus on neljapäeval kell üksteist.',
         'Meie kontor on Pärnu maanteel, maja number kakskümmend.', 'Võtke kaasa juhiluba ja isikutunnistus.', 'Esimesel nädalal sõidate koos kolleegiga.', 'Palun helistage mulle tagasi täna kella viieni. Head päeva!',
-      ], ['Vestlus on [neljapäeval].', 'Vestlus algab kell [üksteist|11].', 'Kontor on Pärnu maanteel, maja number [kakskümmend|20].', 'Kaasa tuleb võtta juhiluba ja [isikutunnistus|isikutunnistuse].', 'Esimesel nädalal sõidab Jaan koos [kolleegiga].', 'Jaan peab helistama kella [viieni|5ni|17ni].']),
+      ], ['Vestlus on [neljapäeval].', 'Vestlus algab kell [üksteist|11].', 'Kontor on Pärnu maanteel, maja number [kakskümmend|20].', 'Kaasa tuleb võtta juhiluba ja [isikutunnistus|isikutunnistuse].', 'Esimesel nädalal sõidab Andrei koos [kolleegiga].', 'Andrei peab helistama kella [viieni|5ni|17ni].']),
       B.choice('063_t_check', 'Mida see tähendab?', 'Loe kuulutuse rida. Vali õige tähendus.', [
         ['„Tööaeg graafiku alusel.”', 'Tööpäevad on igal nädalal erinevad.', 'Töö on ainult esmaspäeval.', 'Tööaega ei ole kirjas.'],
         ['„Kogemus tuleb kasuks.”', 'Kogemus on hea, aga mitte kohustuslik.', 'Ilma kogemuseta ei saa tööle.', 'Kogemus ei ole hea.'],
@@ -372,16 +372,16 @@ export const LESSONS = {
         ['„Kandideerimine kuni 15. maini.”', 'CV peab tulema hiljemalt 15. mail.', 'Töö algab 15. mail.', 'Vestlus on 15. mail.'],
         ['„E–R 9–18.” Millal sa töötad?', 'Esmaspäevast reedeni kella üheksast kuueni.', 'Ainult esmaspäeval ja reedel.', 'Iga päev kella üheksast.'],
       ], 'full', 'g_read'),
-      B.errorfix('063_t_fix', 'Kontrolli kirja.', 'Jaan kirjutas kirja. Paranda vead.', [
+      B.errorfix('063_t_fix', 'Kontrolli kirja.', 'Andrei kirjutas kirja. Paranda vead.', [
         ['Ma tahan kandideerima autojuhi kohale.', 'Ma tahan kandideerida autojuhi kohale.'], ['Mul on viis aastat kogemus.', 'Mul on viis aastat kogemust.|Mul on viie aasta kogemus.'],
         ['Ma töötasin kuller.', 'Ma töötasin kullerina.'], ['Ma saan töötada esmaspäevast reedel.', 'Ma saan töötada esmaspäevast reedeni.'], ['Mul on juhiluba B kategooriast.', 'Mul on B-kategooria juhiluba.'],
       ]),
       B.planning('063_t_plan', 'Enne kirja.', 'Mõtle, mida kirjutad tööandjale. Kirjuta märksõnad.', ['Kes sa oled?', 'Mis tööd sa tahad?', 'Mis kogemus sul on?', 'Millal saad alustada?', 'Kuidas sinuga ühendust võtta?']),
-      B.writing('063_t_msg', 'Sõnum Jaanile.', 'Kirjuta Jaanile 5–7 lauset: mis töö sobib ja miks.', [5, 7], ['sobib', 'tööaeg', 'palk', 'sest'], 2),
+      B.writing('063_t_msg', 'Sõnum Andreile.', 'Kirjuta Andreile 5–7 lauset: mis töö sobib ja miks.', [5, 7], ['sobib', 'tööaeg', 'palk', 'sest'], 2),
       // Harno A2 writing 2: a short letter, at least 30 words
       B.letter('063_t_letter', 'Kandideeri!', 'Kirjuta kullerfirmale lühike kiri. Tutvusta ennast ja oma kogemust.', 'Tere!', 'Lugupidamisega', [30, 50]),
-      B.rolecards('063_t_roles', 'Töövestlus telefonis.', 'Üks on Jaan, teine tööandja. Rääkige 2–3 minutit.',
-        'Oled Jaan. Helistad kullerfirmasse. Küsi tööaja, palga ja auto kohta. Räägi oma kogemusest.', 'Oled kullerfirma juht. Küsi kogemuse ja juhiloa kohta. Vasta Jaani küsimustele.',
+      B.rolecards('063_t_roles', 'Töövestlus telefonis.', 'Üks on Andrei, teine tööandja. Rääkige 2–3 minutit.',
+        'Oled Andrei. Helistad kullerfirmasse. Küsi tööaja, palga ja auto kohta. Räägi oma kogemusest.', 'Oled kullerfirma juht. Küsi kogemuse ja juhiloa kohta. Vasta Andrei küsimustele.',
         ['Ma helistan kuulutuse pärast.', 'Mis kell vahetus algab?', 'Mul on … aastat kogemust.'], ['Kas teil on juhiluba?', 'Kas te tunnete Tallinna?', 'Tööaeg on…']),
       B.speaking('063_t_dream', 'Milline töö sulle sobib?', 'Räägi 1 minut: milline töö ja tööaeg sulle sobivad.', [
         'Mis ametit sa tahad?', 'Mis tööaeg sulle sobib?', 'Kui suur palk on hea?', 'Mis on tööl kõige tähtsam?',
@@ -394,27 +394,27 @@ export const LESSONS = {
     title: 'Tööpäeva juhised',
     canDo: 'Ma kuulan lühikest tööjuhist või häälsõnumit kaks korda ja saan aru vähemalt 75% tegevustest, ajast ja muudatustest; annan ise juhiseid (alusta, too, vii, helista).',
     discover: [
-      B.text('064_d_situation', 'Hommik hotellis', 'Anna töötab hotelli vastuvõtus. Kell on 7.50. Juhataja Liis ei ole täna tööl, aga ta jättis Annale häälsõnumi. Täna on hotellis palju külalisi ja mõned muudatused.'),
+      B.text('064_d_situation', 'Hommik hotellis', 'Liis töötab hotelli vastuvõtus. Kell on 7.50. Juhataja Helen ei ole täna tööl, aga ta jättis Liisile häälsõnumi. Täna on hotellis palju külalisi ja mõned muudatused.'),
       B.vocab('064_d_vocab', 'Juhised', ['alustama → alusta! — начинать → начни!', 'lõpetama → lõpeta! — заканчивать → закончи!', 'tooma → too! — приносить → принеси!', 'viima → vii! — относить → отнеси!', 'helistama → helista! — звонить → позвони!', 'ootama → oota! — ждать → подожди!', 'kontrollima → kontrolli! — проверять → проверь!', 'saatma → saada! — отправлять → отправь!', 'juhis — инструкция', 'muudatus — изменение', 'kohe — сразу', 'täna / homme — сегодня / завтра'], '2'),
       // Harno A2 listening: a voice message, answers of 1–2 words
       B.listening('064_d_listen', 'Kuula juhataja häälsõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere, Anna! Siin Liis.', 'Ma olen täna haige, nii et sina oled vastuvõtus üksi.', 'Kõigepealt kontrolli broneeringuid arvutis.', 'Kell üheksa tuleb grupp Soomest. Neid on kaksteist inimest.',
-        'Vii nende kohvrid teisele korrusele. Igor aitab sind.', 'Kell kaksteist helista pesumajja ja küsi, millal nad toovad rätikud.', 'Muudatus: koosolek ei ole täna, vaid homme kell kümme.', 'Kell neli tuleb Kati. Oota teda ja siis lõpeta töö.',
-      ], ['Liis on täna [haige].', 'Kõigepealt peab Anna kontrollima [broneeringuid].', 'Grupp tuleb [Soomest].', 'Kohvrid tuleb viia [teisele] korrusele.', 'Kell kaksteist peab Anna helistama [pesumajja].', 'Koosolek on [homme] kell kümme.', 'Kati tuleb kell [neli|4|16].']),
+        'Tere, Liis! Siin Helen.', 'Ma olen täna haige, nii et sina oled vastuvõtus üksi.', 'Kõigepealt kontrolli broneeringuid arvutis.', 'Kell üheksa tuleb grupp Soomest. Neid on kaksteist inimest.',
+        'Vii nende kohvrid teisele korrusele. Tarmo aitab sind.', 'Kell kaksteist helista pesumajja ja küsi, millal nad toovad rätikud.', 'Muudatus: koosolek ei ole täna, vaid homme kell kümme.', 'Kell neli tuleb Kati. Oota teda ja siis lõpeta töö.',
+      ], ['Helen on täna [haige].', 'Kõigepealt peab Liis kontrollima [broneeringuid].', 'Grupp tuleb [Soomest].', 'Kohvrid tuleb viia [teisele] korrusele.', 'Kell kaksteist peab Liis helistama [pesumajja].', 'Koosolek on [homme] kell kümme.', 'Kati tuleb kell [neli|4|16].']),
       B.table('064_d_order', 'Mis on järjekord?', 'Kirjuta igale tegevusele number 1–5.', 'Tegevus, Number', [
         'Vii kohvrid teisele korrusele. | [2]', 'Kontrolli broneeringuid. | [1]', 'Helista pesumajja. | [3]', 'Lõpeta töö. | [5]', 'Oota Katit. | [4]',
       ], 'g_read'),
       B.reading('064_d_note', 'Loe juhataja kirja.', 'Loe kirja ja vasta küsimustele.', 'Homseks',
-        'Tere, Anna! Aitäh, et sa täna üksi hakkama said. Homme on mõned muudatused. Hommikul ära alusta kell kaheksa, vaid kell seitse. Kell pool kaheksa toob pagar värsked saiad. Vii need kohe kööki. Kell kümme on koosolek minu kabinetis. Too palun kaasa nädala broneeringute nimekiri. Pärast koosolekut saada Soome grupile e-kiri. Kirjuta, et buss lennujaama väljub kell kolm. Kui keegi helistab ja küsib vaba tuba, ütle, et nädalavahetusel on hotell täis. Kui sul on küsimusi, helista mulle. Ma olen homme kontoris kogu päeva. Liis',
-        [['Mis kell alustab Anna homme tööd?', 'kell seitse|seitse|7'], ['Mida toob pagar?', 'värsked saiad|saiad|saiu'], ['Kuhu peab Anna saiad viima?', 'kööki'], ['Mida peab Anna koosolekule kaasa tooma?', 'broneeringute nimekirja|nimekirja|nädala broneeringute nimekirja'], ['Mis kell väljub buss lennujaama?', 'kell kolm|kolm|15'], ['Mida ütleb Anna, kui keegi küsib vaba tuba?', 'nädalavahetusel on hotell täis|hotell on täis']]),
+        'Tere, Liis! Aitäh, et sa täna üksi hakkama said. Homme on mõned muudatused. Hommikul ära alusta kell kaheksa, vaid kell seitse. Kell pool kaheksa toob pagar värsked saiad. Vii need kohe kööki. Kell kümme on koosolek minu kabinetis. Too palun kaasa nädala broneeringute nimekiri. Pärast koosolekut saada Soome grupile e-kiri. Kirjuta, et buss lennujaama väljub kell kolm. Kui keegi helistab ja küsib vaba tuba, ütle, et nädalavahetusel on hotell täis. Kui sul on küsimusi, helista mulle. Ma olen homme kontoris kogu päeva. Helen',
+        [['Mis kell alustab Liis homme tööd?', 'kell seitse|seitse|7'], ['Mida toob pagar?', 'värsked saiad|saiad|saiu'], ['Kuhu peab Liis saiad viima?', 'kööki'], ['Mida peab Liis koosolekule kaasa tooma?', 'broneeringute nimekirja|nimekirja|nädala broneeringute nimekirja'], ['Mis kell väljub buss lennujaama?', 'kell kolm|kolm|15'], ['Mida ütleb Liis, kui keegi küsib vaba tuba?', 'nädalavahetusel on hotell täis|hotell on täis']]),
       B.notice('064_d_notice', 'Märka: juhis (käskiv kõneviis)', ['ma-vorm → juhis: alusta**ma** → **alusta!**, oota**ma** → **oota!**', 'helista**ma** → **helista!**, kontrolli**ma** → **kontrolli!**', 'Jäta meelde: too**ma** → **too!**, vii**ma** → **vii!**, saat**ma** → **saada!**', 'Eitus: **ära alusta! ära helista!**', 'Viisakalt: **palun helista!** — teie-vorm: **helistage!**'], 'full'),
       B.wordforms('064_d_forms', 'Tee juhis.', 'Kirjuta juhis (sina-vorm).', [['alustama', 'sina', 'alusta'], ['lõpetama', 'sina', 'lõpeta'], ['tooma', 'sina', 'too'], ['viima', 'sina', 'vii'], ['helistama', 'sina', 'helista'], ['saatma', 'sina', 'saada'], ['kontrollima', 'sina', 'kontrolli']]),
       B.manymatch('064_d_match', 'Olukord ja juhis.', 'Ühenda olukord ja sobiv juhis.', ['Klient tahab arvet e-postiga.', 'Kohvrid on fuajees.', 'Juhataja tahab nimekirja.', 'Pesumaja ei ole rätikuid toonud.', 'Kell on neli ja Kati on tulnud.', 'Toa number on vale.'], ['Saada arve kohe!', 'Vii kohvrid tuppa!', 'Too nimekiri kabinetti!', 'Helista pesumajja!', 'Lõpeta töö ja mine koju!', 'Kontrolli broneeringut!'], 'full', 'g_use'),
-      B.choice('064_d_choice', 'Mida see juhis tähendab?', 'Vali, mida Anna teeb.', [
-        ['„Vii kohvrid teisele korrusele.”', 'Anna paneb kohvrid teisele korrusele.', 'Anna toob kohvrid teiselt korruselt.', 'Anna ootab kohvreid fuajees.'],
-        ['„Too nimekiri kaasa.”', 'Anna võtab nimekirja koosolekule kaasa.', 'Anna saadab nimekirja e-postiga.', 'Anna jätab nimekirja koju.'],
-        ['„Helista pesumajja.”', 'Anna võtab telefoni ja helistab.', 'Anna läheb ise pesumajja.', 'Anna kirjutab pesumajale kirja.'],
-        ['„Oota Katit.”', 'Anna jääb tööle, kuni Kati tuleb.', 'Anna läheb Katile bussi vastu.', 'Anna saadab Katile sõnumi.'],
+      B.choice('064_d_choice', 'Mida see juhis tähendab?', 'Vali, mida Liis teeb.', [
+        ['„Vii kohvrid teisele korrusele.”', 'Liis paneb kohvrid teisele korrusele.', 'Liis toob kohvrid teiselt korruselt.', 'Liis ootab kohvreid fuajees.'],
+        ['„Too nimekiri kaasa.”', 'Liis võtab nimekirja koosolekule kaasa.', 'Liis saadab nimekirja e-postiga.', 'Liis jätab nimekirja koju.'],
+        ['„Helista pesumajja.”', 'Liis võtab telefoni ja helistab.', 'Liis läheb ise pesumajja.', 'Liis kirjutab pesumajale kirja.'],
+        ['„Oota Katit.”', 'Liis jääb tööle, kuni Kati tuleb.', 'Liis läheb Katile bussi vastu.', 'Liis saadab Katile sõnumi.'],
         ['„Alusta kell seitse.”', 'Tööpäev algab kell seitse.', 'Tööpäev lõpeb kell seitse.', 'Koosolek on kell seitse.'],
       ]),
       B.gaps('064_d_gaps', 'Täida juhised.', 'Vali sõnapangast sobiv juhis. Kaks sõna jääb üle.', [
@@ -431,16 +431,16 @@ export const LESSONS = {
     ],
     practice: [
       B.listening('064_p_listen', 'Kuulamine 1. Neli ülesannet.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Markus, tere! Siin Liis.', 'Mul on sulle täna neli ülesannet.', 'Esiteks saada kliendile Tammele pakk. Pakk on kolmandal riiulil.', 'Teiseks helista Igorile, sest arvuti ei tööta.',
+        'Markus, tere! Siin Toomas.', 'Mul on sulle täna neli ülesannet.', 'Esiteks saada kliendile Tammele pakk. Pakk on kolmandal riiulil.', 'Teiseks helista Andresele, sest arvuti ei tööta.',
         'Kolmandaks too koosolekuruumi kümme tooli.', 'Neljandaks vii kaks kirja postkontorisse. Postkontor on avatud kella kuueni.', 'Koosolek algab kell kolm, mitte kell kaks. Aitäh!',
-      ], ['Pakk tuleb saata kliendile [Tammele].', 'Arvuti ei tööta, seepärast tuleb helistada [Igorile].', 'Koosolekuruumi on vaja [kümme|10] tooli.', 'Kirjad tuleb viia [postkontorisse].', 'Postkontor on avatud kella [kuueni|6ni|18ni].', 'Koosolek algab kell [kolm|3|15].']),
+      ], ['Pakk tuleb saata kliendile [Tammele].', 'Arvuti ei tööta, seepärast tuleb helistada [Andresele].', 'Koosolekuruumi on vaja [kümme|10] tooli.', 'Kirjad tuleb viia [postkontorisse].', 'Postkontor on avatud kella [kuueni|6ni|18ni].', 'Koosolek algab kell [kolm|3|15].']),
       B.truefalse('064_p_tf', 'Õige või vale?', 'Kuula sõnumit veel kord. Õige või vale?', [
-        ['Liis annab Markusele neli ülesannet.', true], ['Pakk on Liisi kabinetis.', false], ['Markus peab tooma koosolekuruumi toolid.', true], ['Postkontor on avatud kella viieni.', false], ['Koosolek algab kell kaks.', false],
+        ['Toomas annab Markusele neli ülesannet.', true], ['Pakk on Toomase kabinetis.', false], ['Markus peab tooma koosolekuruumi toolid.', true], ['Postkontor on avatud kella viieni.', false], ['Koosolek algab kell kaks.', false],
       ]),
       B.listening('064_p_change', 'Kuulamine 2. Muudatus.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Markus, siin jälle Liis. Mul on kaks muudatust.', 'Kliendil Tammel on uus aadress. Ära saada pakki vanale aadressile.', 'Uue aadressi saadan sulle sõnumiga.',
+        'Markus, siin jälle Toomas. Mul on kaks muudatust.', 'Kliendil Tammel on uus aadress. Ära saada pakki vanale aadressile.', 'Uue aadressi saadan sulle sõnumiga.',
         'Koosolek ei ole kolmandal korrusel, vaid teisel korrusel.', 'Seepärast vii toolid teise korruse saali.', 'Kirjad võid viia postkontorisse homme hommikul.',
-      ], ['Kliendil on uus [aadress].', 'Liis saadab aadressi [sõnumiga].', 'Koosolek on [teisel] korrusel.', 'Toolid tuleb viia teise korruse [saali].', 'Kirjad võib viia [homme] hommikul.']),
+      ], ['Kliendil on uus [aadress].', 'Toomas saadab aadressi [sõnumiga].', 'Koosolek on [teisel] korrusel.', 'Toolid tuleb viia teise korruse [saali].', 'Kirjad võib viia [homme] hommikul.']),
       B.table('064_p_changes', 'Enne ja nüüd.', 'Kirjuta, mis muutus.', 'Mis?, Enne, Nüüd', [
         'Koosoleku aeg | kell [kaks/2] | kell [kolm/3]', 'Koosoleku koht | [kolmas] korrus | [teine] korrus', 'Kirjad postkontorisse | [täna] | [homme hommikul/homme]',
       ], 'g_read'),
@@ -457,9 +457,9 @@ export const LESSONS = {
         ['Palun helistama kliendile!', 'Palun helista kliendile!'], ['Saatma arve kohe!', 'Saada arve kohe!'], ['Vii mulle palun kohvi!', 'Too mulle palun kohvi!'],
         ['Ära ootad mind!', 'Ära oota mind!'], ['Palun kontrollib broneeringut!', 'Palun kontrolli broneeringut!'],
       ]),
-      B.wordorder('064_p_order', 'Pane juhis kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Palun saada pakk kohe kliendile.', 'Helista Igorile, sest arvuti ei tööta.', 'Too koosolekuruumi kümme tooli.', 'Koosolek ei ole kolmandal korrusel.', 'Kirjad võid viia homme hommikul.']),
-      B.dialogue('064_p_dialog', 'Telefonis.', 'Täida Markuse ja Liisi vestlus.', 'Markus', 'Liis', [
-        ['A', 'Tere, Liis! Mul on üks küsimus.'], ['B', 'Jah, [küsi]!'], ['A', 'Kas ma pean paki täna [saatma]?'], ['B', 'Jah, [saada] see kohe, palun.'],
+      B.wordorder('064_p_order', 'Pane juhis kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Palun saada pakk kohe kliendile.', 'Helista Andresele, sest arvuti ei tööta.', 'Too koosolekuruumi kümme tooli.', 'Koosolek ei ole kolmandal korrusel.', 'Kirjad võid viia homme hommikul.']),
+      B.dialogue('064_p_dialog', 'Telefonis.', 'Täida Markuse ja Toomase vestlus.', 'Markus', 'Toomas', [
+        ['A', 'Tere, Toomas! Mul on üks küsimus.'], ['B', 'Jah, [küsi]!'], ['A', 'Kas ma pean paki täna [saatma]?'], ['B', 'Jah, [saada] see kohe, palun.'],
         ['A', 'Selge. Ja kuhu ma toolid [viin]?'], ['B', '[Vii] need teise korruse saali.'], ['A', 'Kas ma pean ka postkontorisse [minema]?'], ['B', 'Ei, täna mitte. [Mine] homme hommikul.'],
       ]),
       B.translation('064_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta juhis eesti keeles.', ['Начни работу в восемь.', 'Закончи отчёт к пятнице.', 'Отнеси письма на почту.', 'Не звони мне после шести.', 'Подожди меня у входа.', 'Проверь, пожалуйста, адрес.']),
@@ -467,37 +467,37 @@ export const LESSONS = {
       B.rolecards('064_p_roles', 'Mis muutus?', 'A ütleb muudatused, B kirjutab üles ja kordab.',
         'Oled juhataja. Ütle kolm muudatust: aeg, koht ja tegevus.', 'Oled töötaja. Kirjuta muudatused üles ja korda need valjult.',
         ['Muudatus: …', '… ei ole kell kaks, vaid…', 'Palun vii…'], ['Kas ma sain õigesti aru…?', 'Niisiis: …', 'Palun korda!']),
-      B.writing('064_p_write', 'Markuse märkmed.', 'Kirjuta Liisi sõnumite järgi Markuse ülesanded: 5–7 lauset.', [5, 7], ['saada', 'helista', 'too', 'vii'], 2),
+      B.writing('064_p_write', 'Markuse märkmed.', 'Kirjuta Toomase sõnumite järgi Markuse ülesanded: 5–7 lauset.', [5, 7], ['saada', 'helista', 'too', 'vii'], 2),
       B.selfcheck('064_p_self', ['Ma kirjutan kuuldud juhisest üles tegevuse ja aja.', 'Ma märkan muudatust kahe sõnumi vahel.', 'Ma teen juhise: saada, helista, ära oota.', 'Ma jätan kolleegile selge häälsõnumi.'], 'Kuulan ja teen'),
     ],
     transfer: [
-      B.text('064_t_situation', 'Uus olukord', 'Sa töötad Jaani kohvikus. Homme on Jaan koolitusel ja sina oled kohvikus üksi. Jaan jättis sulle häälsõnumi. Õhtul helistab ka uus töötaja Igor ja küsib, mida ta peab homme tegema.'),
+      B.text('064_t_situation', 'Uus olukord', 'Sa töötad Jaani kohvikus. Homme on Jaan koolitusel ja sina oled kohvikus üksi. Jaan jättis sulle häälsõnumi. Õhtul helistab ka uus töötaja Karl ja küsib, mida ta peab homme tegema.'),
       B.listening('064_t_listen', 'Kuula Jaani sõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Tere! Siin Jaan. Homme oled sa kohvikus üksi.', 'Alusta tööd kell seitse. Võti on naabri juures, korteris viis.', 'Kõigepealt lülita sisse kohvimasin.', 'Kell pool kaheksa toob pagar saiad. Kontrolli, kas kõik on olemas.',
-        'Kell kümme tuleb uus töötaja Igor. Näita talle kassat.', 'Pärastlõunal helista piimafirmale ja telli kaks kasti piima.', 'Muudatus: kohvik ei sulge kell kuus, vaid kell viis.', 'Lõpuks vii prügi välja ja pane uks lukku. Aitäh!',
+        'Kell kümme tuleb uus töötaja Karl. Näita talle kassat.', 'Pärastlõunal helista piimafirmale ja telli kaks kasti piima.', 'Muudatus: kohvik ei sulge kell kuus, vaid kell viis.', 'Lõpuks vii prügi välja ja pane uks lukku. Aitäh!',
       ], ['Tööd tuleb alustada kell [seitse|7].', 'Võti on [naabri] juures.', 'Kõigepealt tuleb sisse lülitada [kohvimasin].', 'Uus töötaja tuleb kell [kümme|10].', 'Piimafirmalt tuleb tellida kaks [kasti].', 'Homme sulgeb kohvik kell [viis|5|17].']),
-      B.truefalse('064_t_tf', 'Õige või vale?', 'Kuula Jaani sõnumit uuesti.', [['Võti on Jaani juures.', false], ['Pagar toob saiad kell pool kaheksa.', true], ['Igor tuleb pärastlõunal.', false], ['Piima tuleb tellida.', true], ['Homme on kohvik avatud kella kuueni.', false]]),
+      B.truefalse('064_t_tf', 'Õige või vale?', 'Kuula Jaani sõnumit uuesti.', [['Võti on Jaani juures.', false], ['Pagar toob saiad kell pool kaheksa.', true], ['Karl tuleb pärastlõunal.', false], ['Piima tuleb tellida.', true], ['Homme on kohvik avatud kella kuueni.', false]]),
       B.categorize('064_t_sort', 'Millal mida teha?', 'Pane juhised õigesse rühma.', [
-        ['Hommikul', ['võta võti naabrilt', 'lülita kohvimasin sisse', 'kontrolli saiad']], ['Päeval', ['näita Igorile kassat', 'helista piimafirmale', 'telli piima']], ['Õhtul', ['vii prügi välja', 'pane uks lukku', 'sulge kohvik kell viis']],
+        ['Hommikul', ['võta võti naabrilt', 'lülita kohvimasin sisse', 'kontrolli saiad']], ['Päeval', ['näita Karlile kassat', 'helista piimafirmale', 'telli piima']], ['Õhtul', ['vii prügi välja', 'pane uks lukku', 'sulge kohvik kell viis']],
       ], 'full', 'g_read'),
-      B.wordorder('064_t_order', 'Pane juhis kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Alusta tööd kell seitse.', 'Võti on naabri juures.', 'Näita Igorile kassat.', 'Helista pärastlõunal piimafirmale.', 'Pane uks lukku.']),
-      B.transformation('064_t_mia', 'Juhised Igorile (teie).', 'Kirjuta juhis teie-vormis.', [
+      B.wordorder('064_t_order', 'Pane juhis kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Alusta tööd kell seitse.', 'Võti on naabri juures.', 'Näita Karlile kassat.', 'Helista pärastlõunal piimafirmale.', 'Pane uks lukku.']),
+      B.transformation('064_t_mia', 'Juhised Karlile (teie).', 'Kirjuta juhis teie-vormis.', [
         ['Tule kell kümme.', 'teie', 'Tulge kell kümme.'], ['Oota mind kassa juures.', 'teie', 'Oodake mind kassa juures.'], ['Too oma ID-kaart kaasa.', 'teie', 'Tooge oma ID-kaart kaasa.'],
         ['Helista, kui jääd hiljaks.', 'teie', 'Helistage, kui jääte hiljaks.'], ['Kontrolli saiad üle.', 'teie', 'Kontrollige saiad üle.'],
       ]),
       B.errorfix('064_t_fix', 'Paranda märkmed.', 'Kolleeg kirjutas juhised valesti. Paranda.', [
         ['Alustama tööd kell seitse!', 'Alusta tööd kell seitse!'], ['Viima prügi välja!', 'Vii prügi välja!'], ['Ära unustad ust lukku panna!', 'Ära unusta ust lukku panna!'],
-        ['Igor, palun tulge kell kümme ja ootad mind!', 'Igor, palun tulge kell kümme ja oodake mind!'], ['Helista piimafirmale ja tellib piima.', 'Helista piimafirmale ja telli piima.'],
+        ['Karl, palun tulge kell kümme ja ootad mind!', 'Karl, palun tulge kell kümme ja oodake mind!'], ['Helista piimafirmale ja tellib piima.', 'Helista piimafirmale ja telli piima.'],
       ]),
       B.dictation('064_t_dict', 'Etteütlus.', 'Kuula ja kirjuta juhised.', ['Alusta tööd kell seitse.', 'Võti on naabri juures.', 'Kontrolli saiad üle.', 'Telli kaks kasti piima.', 'Pane uks lukku.']),
-      B.translation('064_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Ключ у соседа.', 'Сначала включи кофемашину.', 'Покажи Игорю кассу.', 'Закажи два ящика молока.', 'Кафе закрывается в пять.']),
+      B.translation('064_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Ключ у соседа.', 'Сначала включи кофемашину.', 'Покажи Карлу кассу.', 'Закажи два ящика молока.', 'Кафе закрывается в пять.']),
       B.planning('064_t_plan', 'Sinu homne päev.', 'Kirjuta juhised õiges järjekorras.', ['Kell 7:', 'Kell 7.30:', 'Kell 10:', 'Pärastlõunal:', 'Õhtul:']),
-      B.letter('064_t_letter', 'Sõnum Igorile.', 'Kirjuta Igorile 40–60 sõna: millal tulla, mida kaasa võtta, mida teha.', 'Tere, Igor!', 'Kohtumiseni homme!', [40, 60]),
+      B.letter('064_t_letter', 'Sõnum Karlile.', 'Kirjuta Karlile 40–60 sõna: millal tulla, mida kaasa võtta, mida teha.', 'Tere, Karl!', 'Kohtumiseni homme!', [40, 60]),
       B.speaking('064_t_voice', 'Häälsõnum Jaanile.', 'Jaan ei vasta. Jäta talle häälsõnum: kõik on selge ja üks küsimus.', ['Tervita ja ütle oma nimi.', 'Korda kaks tähtsat juhist.', 'Küsi üks küsimus.', 'Lõpeta viisakalt.'], [45, 90]),
-      B.rolecards('064_t_roles', 'Igor helistab.', 'A on Igor, B annab juhiseid. Siis vahetage.',
-        'Oled uus töötaja Igor. Küsi: mis kell tulla, mida teha, millal lõpetada.', 'Selgita Igorile homset päeva Jaani sõnumi järgi. Ütle ka muudatus.',
+      B.rolecards('064_t_roles', 'Karl helistab.', 'A on Karl, B annab juhiseid. Siis vahetage.',
+        'Oled uus töötaja Karl. Küsi: mis kell tulla, mida teha, millal lõpetada.', 'Selgita Karlile homset päeva Jaani sõnumi järgi. Ütle ka muudatus.',
         ['Mis kell ma pean tulema?', 'Mida ma pean tegema?', 'Palun korrake!'], ['Tulge kell…', 'Kõigepealt…', 'Muudatus: …']),
-      B.rubric('064_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Kuulamisest on kirjas aeg, koht ja tegevused.', 'Juhised on õiges vormis (alusta, vii, helista; tulge, oodake).', 'Sõnumis Igorile on aeg, kaasa võtta ja ülesanded.', 'Telefonis küsib ja täpsustab õpilane, kui ei saa aru.']),
+      B.rubric('064_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Kuulamisest on kirjas aeg, koht ja tegevused.', 'Juhised on õiges vormis (alusta, vii, helista; tulge, oodake).', 'Sõnumis Karlile on aeg, kaasa võtta ja ülesanded.', 'Telefonis küsib ja täpsustab õpilane, kui ei saa aru.']),
       B.selfcheck('064_t_self', ['Ma saan aru kolleegi häälsõnumist.', 'Ma panen juhised õigesse järjekorda.', 'Ma kirjutan uuele töötajale selged juhised.', 'Ma selgitan päeva plaani telefonis.'], 'Päev on plaanitud'),
     ],
   },
@@ -560,7 +560,7 @@ export const LESSONS = {
       ], 'full', 'g_use'),
       // reading 2: a job ad
       B.reading('065_p_ad', 'Lugemine 2. Töökuulutus.', 'Loe kuulutust ja vasta küsimustele.', 'Hotell „Meri” otsib administraatorit',
-        'Hotell „Meri” Pärnus otsib administraatorit. Töö on vahetustega: üks päev 8–20, siis kaks päeva vaba. Sa pead võtma vastu külalisi, vastama telefonile ja kontrollima broneeringuid. Vajalik: eesti ja inglise keel, arvutioskus. Kasuks tuleb vene või soome keel. Kogemust ei pea olema, me õpetame sind. Palk on 1500 eurot kuus. Töötajad saavad tasuta lõunat. Leping on kõigepealt üheks aastaks. Praktika kestab kaks nädalat. Tööle saab tulla juunist. Saada CV ja lühike kiri kuni 15. maini. Küsimuste korral helista juhatajale Kati Saarele.',
+        'Hotell „Meri” Pärnus otsib administraatorit. Töö on vahetustega: üks päev 8–20, siis kaks päeva vaba. Sa pead võtma vastu külalisi, vastama telefonile ja kontrollima broneeringuid. Vajalik: eesti ja inglise keel, arvutioskus. Kasuks tuleb vene või soome keel. Kogemust ei pea olema, me õpetame sind. Palk on 1500 eurot kuus. Töötajad saavad tasuta lõunat. Leping on kõigepealt üheks aastaks. Praktika kestab kaks nädalat. Tööle saab tulla juunist. Saada CV ja lühike kiri kuni 15. maini. Küsimuste korral helista juhatajale Helen Saarele.',
         [['Mis linnas hotell on?', 'Pärnus'], ['Kui pikk on üks vahetus?', '12 tundi|kaksteist tundi|kella kaheksast kaheksani'], ['Mis keeli on vaja?', 'eesti ja inglise keelt|eesti ja inglise'], ['Kas kogemus on vajalik?', 'ei|ei ole|kogemust ei pea olema'], ['Mida saavad töötajad tasuta?', 'lõunat|lõuna'], ['Kuni mis kuupäevani saab kandideerida?', '15. maini|viieteistkümnenda maini']]),
       // reading 3: signs at work
       B.match('065_p_signs', 'Lugemine 3. Kuhu minna?', 'Ühenda olukord ja silt.', [
@@ -569,7 +569,7 @@ export const LESSONS = {
       ], 'full', 'g_read'),
       // reading 4: a ~150-word text
       B.reading('065_p_read', 'Lugemine 4. Praktika apteegis.', 'Loe teksti. Vasta lühidalt.', 'Sofia praktika',
-        'Sofia õpib kutsekoolis farmaatsiat. Eelmisel kuul oli tal praktika apteegis. Praktika kestis neli nädalat. Sofia pidi tulema tööle kell kaheksa. Kõigepealt pidi ta kontrollima, kas kõik ravimid on riiulis. Siis aitas ta kolleegil kliente teenindada. Ravimeid ise müüa ta veel ei saanud. Seda teevad ainult apteekrid. Sofia oskas hästi vene ja inglise keelt. Seepärast küsisid kolleegid tihti tema abi. Mõned kliendid olid haiged ja väsinud. Sofia pidi olema rahulik ja viisakas. Lõunapaus oli pool tundi. Neljapäeviti oli töötajate koosolek. Seal rääkis juhataja, mida järgmisel nädalal teha. Praktika lõpus sai Sofia hea hinde. Juhataja ütles: „Kui kool on läbi, tule meile tööle!” Sofia on väga õnnelik. Nüüd ta teab, et see on tema amet.',
+        'Sofia õpib ülikoolis farmaatsiat. Eelmisel kuul oli tal praktika apteegis. Praktika kestis neli nädalat. Sofia pidi tulema tööle kell kaheksa. Kõigepealt pidi ta kontrollima, kas kõik ravimid on riiulis. Siis aitas ta kolleegil kliente teenindada. Ravimeid ise müüa ta veel ei saanud. Seda teevad ainult apteekrid. Sofia oskas hästi vene ja inglise keelt. Seepärast küsisid kolleegid tihti tema abi. Mõned kliendid olid haiged ja väsinud. Sofia pidi olema rahulik ja viisakas. Lõunapaus oli pool tundi. Neljapäeviti oli töötajate koosolek. Seal rääkis juhataja, mida järgmisel nädalal teha. Praktika lõpus sai Sofia hea hinde. Juhataja ütles: „Kui ülikool on läbi, tule meile tööle!” Sofia on väga õnnelik. Nüüd ta teab, et see on tema amet.',
         [['Kui kaua praktika kestis?', 'neli nädalat|4 nädalat'], ['Mis kell pidi Sofia tööle tulema?', 'kell kaheksa|kaheksa|8'], ['Millal oli töötajate koosolek?', 'neljapäeviti|neljapäeval']]),
       B.choice('065_p_readmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali igale küsimusele üks vastus.', [
         ['Mida Sofia kõigepealt tegi?', 'kontrollis ravimeid', 'müüs ravimeid', 'läks koosolekule'], ['Miks küsisid kolleegid Sofia abi?', 'ta oskas vene ja inglise keelt', 'ta oli juba apteeker', 'ta tuli tööle varem'],
@@ -577,10 +577,10 @@ export const LESSONS = {
         ['Mida juhataja Sofiale pakkus?', 'tööd pärast kooli', 'uut praktikat', 'pikemat lõunat'],
       ]),
       // reading 5: a letter with 8 option gaps
-      B.cloze('065_p_cloze', 'Lugemine 5. Kiri ülemusele.', 'Vali igasse lünka sobiv sõna.', 'Tere, Liis!', [
+      B.cloze('065_p_cloze', 'Lugemine 5. Kiri ülemusele.', 'Vali igasse lünka sobiv sõna.', 'Tere, Ülle!', [
         'Kahjuks ma {*olen|on|oled} täna haige ja ei {*saa|saan|saab} tööle tulla. Arst ütles, et ma pean kolm päeva kodus {*olema|olla|olen}.',
         '',
-        'Arve kliendile on valmis. Palun {*saada|saatma|saadab} see Annale. Homme on koosolek. Kas ma {*võin|pean|oskan} osaleda telefoni teel?',
+        'Arve on valmis. Palun {*saada|saatma|saadab} see kliendile. Homme on koosolek. Kas ma {*võin|pean|oskan} osaleda telefoni teel?',
         '',
         'Kui vaja, ma {*saan|pean|tahan} kodus arvutiga töötada. Ma {*helistan|helistasin|helistama} sulle lõuna ajal. Tööle {*tulen|tulin|tulema} ma tagasi esmaspäeval.',
         '',
@@ -588,11 +588,11 @@ export const LESSONS = {
       ]),
       // listening 1: instructions for the first day
       B.listening('065_p_listen', 'Kuulamine 1. Juhataja sõnum.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin on Kati Saar, hotelli juhataja.', 'Teie esimene tööpäev on esmaspäeval, kolmandal juunil.', 'Palun tulge kell seitse, mitte kell kaheksa.', 'Kõigepealt minge teisele korrusele personaliosakonda ja allkirjastage leping.',
+        'Tere! Siin on Helen Saar, hotelli juhataja.', 'Teie esimene tööpäev on esmaspäeval, kolmandal juunil.', 'Palun tulge kell seitse, mitte kell kaheksa.', 'Kõigepealt minge teisele korrusele personaliosakonda ja allkirjastage leping.',
         'Võtke kaasa ID-kaart ja pangakonto number.', 'Vormiriided saate meilt. Kingad peavad olema mustad.', 'Kui teil on küsimusi, helistage mulle.',
       ], ['Esimene tööpäev on [esmaspäeval|kolmandal juunil].', 'Tööle tuleb tulla kell [seitse|7].', 'Personaliosakond on [teisel] korrusel.', 'Seal tuleb allkirjastada [leping].', 'Kaasa tuleb võtta ID-kaart ja [pangakonto number].', 'Kingad peavad olema [mustad].']),
       // listening 2: a dialogue between two colleagues
-      B.listening('065_p_listen2', 'Kuulamine 2. Kaks kolleegi.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
+      B.listening('065_p_listen2', 'Kuulamine 2. Kaks sõpra.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
         '— Tere, Anna! Kuidas uus töö on?', '— Tere, Jaan! Väga hea. Ma töötan nüüd raamatupidajana.', '— Kas sa pead ka laupäeval töötama?', '— Ei pea. Ma töötan esmaspäevast reedeni, kella üheksast viieni.',
         '— Ja reedel saad kodust töötada?', '— Jah. Aga homme on koosolek, siis pean kontoris olema.', '— Mis kell koosolek algab?', '— Kell kümme. Pärast koosolekut on meil koos lõuna.',
         '— Tore! Kas sul on suvel ka puhkus?', '— Jah, juulis on mul kaks nädalat puhkust.',
@@ -610,16 +610,16 @@ export const LESSONS = {
       ]),
       B.wordorder('065_p_order', 'Keeleosa. Pane lause kokku.', 'Kirjuta laused õigesti.', ['Tööle saab tulla juunist.', 'Kõigepealt minge personaliosakonda.', 'Kingad peavad olema mustad.', 'Reedel saan ma kodust töötada.', 'Juulis on mul kaks nädalat puhkust.']),
       B.speaking('065_p_say', 'Räägi kuuldust.', 'Räägi paarilisele Anna tööst.', ['Kellena Anna töötab?', 'Mis päevadel ja mis kellast?', 'Millal ta saab kodust töötada?', 'Millal on tema puhkus?'], [45, 90], ['Anna töötab…', 'Ta ei pea…', 'Juulis…']),
-      B.selfcheck('065_p_self', ['Lugemine: leian töökuulutusest tööaja, nõuded ja palga.', 'Lugemine: valin kirja lünka õige vormi.', 'Kuulamine: kirjutan juhisest aja ja koha.', 'Kuulamine: saan aru kahe kolleegi vestlusest.'], 'Lugemine ja kuulamine tehtud'),
+      B.selfcheck('065_p_self', ['Lugemine: leian töökuulutusest tööaja, nõuded ja palga.', 'Lugemine: valin kirja lünka õige vormi.', 'Kuulamine: kirjutan juhisest aja ja koha.', 'Kuulamine: saan aru kahe sõbra vestlusest.'], 'Lugemine ja kuulamine tehtud'),
     ],
     transfer: [
       B.text('065_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See osa on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
-      B.notice('065_t_card', 'Visiitkaart', ['Kati Saar — hotelli „Meri” juhataja', 'Aadress: Ranna puiestee 5, Pärnu', 'Tööaeg: esmaspäevast reedeni 9–17', 'Telefon: 5566 7788', 'E-post: kati@hotellmeri.ee'], 'full', 'g_read'),
+      B.notice('065_t_card', 'Visiitkaart', ['Helen Saar — hotelli „Meri” juhataja', 'Aadress: Ranna puiestee 5, Pärnu', 'Tööaeg: esmaspäevast reedeni 9–17', 'Telefon: 5566 7788', 'E-post: helen@hotellmeri.ee'], 'full', 'g_read'),
       // writing 1: information transfer, at least 25 words
-      B.letter('065_t_info', 'Kirjutamine 1. Anna sõbrale infot.', 'Sõber otsib tööd hotellis. Kirjuta visiitkaardi järgi: kellele, kuhu ja millal helistada.', 'Tere, Jaan!', 'Edu!', [25, 40]),
+      B.letter('065_t_info', 'Kirjutamine 1. Anna sõbrale infot.', 'Sõber otsib tööd hotellis. Kirjuta visiitkaardi järgi: kellele, kuhu ja millal helistada.', 'Tere, Andrei!', 'Edu!', [25, 40]),
       B.planning('065_t_plan', 'Enne kirja.', 'Mõtle läbi ja kirjuta märksõnad.', ['Mis tööd sa tahad?', 'Mida sa oskad?', 'Millal sa saad töötada?', 'Mida sa küsid?']),
       // writing 2: a letter, at least 30 words
-      B.letter('065_t_letter', 'Kirjutamine 2. Kandideerimiskiri.', 'Kirjuta hotellile: mida sa oskad, millal saad töötada, üks küsimus.', 'Tere, Kati Saar!', 'Lugupidamisega', [30, 50]),
+      B.letter('065_t_letter', 'Kirjutamine 2. Kandideerimiskiri.', 'Kirjuta hotellile: mida sa oskad, millal saad töötada, üks küsimus.', 'Tere, Helen Saar!', 'Lugupidamisega', [30, 50]),
       B.writing('065_t_text', 'Kirjutamine 2 (teine valik). Minu töö.', 'Kirjuta 4–6 lauset: kus ja kellena sa töötad, mida pead tegema.', [4, 6], ['töötan', 'pean', 'oskan'], 2),
       B.table('065_t_form', 'Tööankeet.', 'Täida hotelli tööankeet.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Telefon ja e-post | ', 'Soovitud amet | ', 'Keeled, mida oskad | ', 'Millal saad alustada? | ', 'Mis päevadel saad töötada? | ']),
       // speaking: getting to know, picture description (task 1), idea card and role play (task 2)

@@ -1,3 +1,15 @@
+## 2026-10-13 · agent/cast-all-courses — one cast across A2, B1, B2 and C1
+
+- Owner: „сверь героев между всеми курсами”. Canon = `docs/TEXTBOOK_ART_BIBLE.md` §4 + the A2 decisions (Anna 28
+  office, husband Igor, mother Tiina in Pärnu; Markus 34 warehouse; Liis 45 teacher/official/service; Viktor 63
+  pensioner, wife Galina; Sofia 19 student, brother Mart; Jaan 38 café owner in Tallinn, wife Kristel, dog Muki;
+  Oksana Bondar = Mia's mother; Olga = accountant from Narva).
+- Sub-agent passes over A2 modules 12–20, B1 (17 modules), B2 (15 modules), C1 (10 files): contradicting roles moved
+  to extras (experts, journalists, other parents, other ages…), canon names of extras (Mart, Tiina, Kristel) not
+  reused for other people; answer keys, transcripts and translations updated together; no task removed.
+- Audio: 50 recordings re-made. Tests: worksheet-generator 597 passed, 1 skipped (course gate passes).
+- Known: Viktor's city is Tartu in some A2 texts, „neighbour” in Tallinn elsewhere — one more small pass if the owner wants.
+
 ## 2026-10-13 · agent/diagram-redesign — „Skeem” v2: rows and cards instead of curved maps
 
 - Owner: „нужно сделать новый формат схем, нынешние не понятны от слова совсем”. Seen: mind maps with loose blank
