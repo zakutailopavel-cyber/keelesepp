@@ -1,3 +1,16 @@
+## 2026-10-13 · agent/crossword-grid — „Ristsõna” is a real crossword
+
+- Base: `main` 8f8d125. Gap 7 of `docs/COURSE_SYSTEM_GAPS.md` („Ristsõnal pole ruudustikku”).
+- `engine/crosswordLayout.js`: deterministic layout from the rows — longest word first, each next word crosses a
+  placed one where letters match (no clashes, no letters alongside another word, ends free; smallest grid wins); a word
+  that crosses nothing goes on its own line below. Start cells numbered in reading order.
+- `blocks/advanced.jsx` crossword View: the grid (one input per cell, a shared cell writes both words' answers, focus
+  moves on along the word), clues under „Paremale →” / „Alla ↓” with the word length; print = empty numbered grid;
+  review = letters with ✓/✗ colour. Answer keys unchanged (`String(i)` per row, letters of the first variant); scoring
+  compares letters only (spaces, hyphens ignored). Data format unchanged — every existing crossword gets the grid.
+- Tests: `crosswordLayout.test.js` (4), crossword cases in `test/blockAnswerCases.jsx` and `blocksRoundtrip` updated;
+  worksheet-studio + homework 288 passed, worksheet-generator 570 passed.
+
 ## 2026-10-13 · agent/board-sheet-scroll — „Samm-sammult” visible: teacher's switch in the side panel, student's notice on the sheet
 
 - Base: `main` after #592. Owner during a live lesson: „ученик не может прокрутить задание на доске”. The student's
