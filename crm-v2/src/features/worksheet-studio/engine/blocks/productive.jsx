@@ -8,7 +8,7 @@ import { Text, Area, Num, ImagePick } from '../../editor/fields.jsx';
 // Speaking, writing and self-assessment: open tasks. The system measures what it can (duration,
 // sentence count, required words) and leaves the judgement to the teacher.
 
-function Recorder({ ctx, target }) {
+export function Recorder({ ctx, target }) {
   const [rec, setRec] = useState(null);
   const [secs, setSecs] = useState(0);
   const timer = useRef(null);

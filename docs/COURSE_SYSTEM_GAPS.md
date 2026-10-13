@@ -23,7 +23,7 @@ Kursuse tootmise ajal (`docs/B1_B2_COURSE_PRODUCTION.md`) kirjutatakse siia, mid
 
 7. ✓ (agent/crossword-grid) **Ristsõnal pole ruudustikku.** Plokk „Ristsõna” näitab ainult vihjeid ja ridu, mitte päris ristsõna.
    - Ettepanek: automaatne ruudustik vastustest.
-8. **Rollikaardid on hindamata.** Need jäävad ainult õpetaja hinnata ja õpilase vastus ei salvestu.
+8. ✓ (agent/rolecards-record) **Rollikaardid on hindamata.** Need jäävad ainult õpetaja hinnata ja õpilase vastus ei salvestu.
    - Ettepanek: lühike kirjalik „mida ma ütlesin” väli või häälsalvestus nagu plokis `speaking`.
 9. **Avalikku eelvaadet pole.** Kursuse tootmise eelvaade on ainult adminile.
    - Ettepanek: õpetaja saaks enne avaldamist lehte kommenteerida.

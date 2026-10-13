@@ -1,3 +1,12 @@
+## 2026-10-13 · agent/rolecards-record — role cards keep the student's recording
+
+- Base: `agent/crossword-grid` (#594). Gap 8 of `docs/COURSE_SYSTEM_GAPS.md` („Rollikaardid on hindamata”): the
+  student's part was not saved. `rolecards` now has the „Räägi” recorder under the cards (target 1–3 min, keys
+  `audioUrl` / `seconds`, `evidence` like `speaking`); review / the teacher's check window plays it. `Recorder` is
+  exported from `blocks/productive.jsx`. No data change for existing sheets.
+- `LessonWorksheetStudioPage.test.jsx` „regenerates locally…”: timeout 20 s (failed at 5 s on CI twice today).
+- Tests: worksheet-studio + homework + worksheet-generator 858 passed, 1 skipped.
+
 ## 2026-10-13 · agent/crossword-grid — „Ristsõna” is a real crossword
 
 - Base: `main` 8f8d125. Gap 7 of `docs/COURSE_SYSTEM_GAPS.md` („Ristsõnal pole ruudustikku”).

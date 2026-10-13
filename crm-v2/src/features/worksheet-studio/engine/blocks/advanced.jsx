@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Md, Line } from '../ui.jsx';
 import { norm, splitList } from '../schema.js';
+import { Recorder } from './productive.jsx';
 import { crosswordClean, crosswordLayout, crosswordWord, withLetter } from '../crosswordLayout.js';
 import { Area, Num, Rows, Text } from '../../editor/fields.jsx';
 
@@ -141,7 +142,13 @@ export const crossword = {
 export const rolecards = {
   type: 'rolecards', label: 'Rollikaardid A/B', group: 'Kõne ja kirjutamine', icon: 'UsersRound', task: true, width: 'full', tone: 'peach',
   create: () => ({ title: 'Rääkige paarilisega.', instruction: 'Lugege oma rolli ja pidage dialoog.', roleA: 'Oled linnakodanik. Kirjelda probleemi ja paku lahendus.', roleB: 'Oled linnavalitsuse töötaja. Küsi täpsustavaid küsimusi.', phrasesA: 'Soovin juhtida tähelepanu…\nTeen ettepaneku…', phrasesB: 'Palun täpsustage…\nMillal see algas?' }),
-  View: ({ data }) => <div className="ws-rolecards"><section><b>ROLL A</b><p><Md text={data.roleA} /></p>{lines(data.phrasesA).map((x) => <span key={x}>{x}</span>)}</section><section><b>ROLL B</b><p><Md text={data.roleB} /></p>{lines(data.phrasesB).map((x) => <span key={x}>{x}</span>)}</section></div>,
+  // the student records his part (homework, a lesson on line): the teacher hears it in the check window, like „Räägi”
+  View: ({ data, ctx }) => <>
+    <div className="ws-rolecards"><section><b>ROLL A</b><p><Md text={data.roleA} /></p>{lines(data.phrasesA).map((x) => <span key={x}>{x}</span>)}</section><section><b>ROLL B</b><p><Md text={data.roleB} /></p>{lines(data.phrasesB).map((x) => <span key={x}>{x}</span>)}</section></div>
+    {ctx.interactive ? <Recorder ctx={ctx} target={[60, 180]} /> : null}
+    {ctx.review ? (ctx.get('audioUrl') ? <div className="ws-rec"><audio controls src={ctx.get('audioUrl')} /><span className="ws-pill">{ctx.get('seconds') || 0} s</span></div> : <div className="ws-hint">Salvestus puudub.</div>) : null}
+  </>,
+  evidence: (data, get) => ({ recorded: !!get('audioUrl'), seconds: get('seconds') || 0 }),
   Editor: ({ data, set }) => <><Area label="Roll A" value={data.roleA} onChange={(roleA) => set({ roleA })} /><Area label="A väljendid" value={data.phrasesA} onChange={(phrasesA) => set({ phrasesA })} /><Area label="Roll B" value={data.roleB} onChange={(roleB) => set({ roleB })} /><Area label="B väljendid" value={data.phrasesB} onChange={(phrasesB) => set({ phrasesB })} /></>,
 };
 
