@@ -1,3 +1,10 @@
+## 2026-10-13 · agent/b2-c1-fixes — B2 and C1 sheets: errors fixed (keys, Estonian, false errors, guessable / unsolvable tasks)
+
+- Same check as B1 (#571) for B2 (b1b2-001…090) and C1 (est-c1-001…100), from `docs/level-audit-2026-10-12/b2-part*.md`, `c1-part*.md` + a full read: wrong keys and missing accepted variants, Estonian errors, correct Estonian marked as an error, unsolvable word forms / prompts, absurd distractors, banks without extras, copy-one-word reading questions; one word-order rule per course (seetõttu / mistõttu / kuna). C1 093 now has the data to describe; Harno B2 topic-card speaking = 2 min prep, 1 min talk.
+- 463 of 570 B2/C1 sheets changed; block ids, order, types and goals unchanged (dump comparison). Quality baseline 82 → 19 known problems, none added. Per-lesson change lists: `docs/level-audit-2026-10-12/b2-c1-fixes/`.
+- Not fixed (redesign): Harno B2/C1 reading lengths and formats, listening, B2/C1 grammar axis, C1 writing 250–300 words and 4–5-min monologues (levels.js now says 180–260 / 90–180 s), mock exams 089/090 (B2) and 100 (C1).
+- Production: republish B2 and C1 on „Kursuse tootmine”.
+
 ## 2026-10-13 · agent/book-progressive — the textbook appears a few sheets at a time
 
 - After #579 the book no longer froze for good, but opening „Õpik” still blocked the browser ~40 s (a whole level, 200+ sheets, each measuring itself at once).
