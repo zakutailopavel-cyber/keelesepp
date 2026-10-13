@@ -91,6 +91,7 @@
 .ws-card.is-part-stack .ws-passage:empty { display: none; }
 .ws-card:is(.is-part-first, .is-part-cont) .ws-guidedletter textarea { min-height: 0; }
 .ws-gapline { margin: 0 1mm; }
+.ws-line--grow.ws-gapline { margin: 1mm 0; } /* a sentence-long gap on its own line */
 
 /* choice */
 .ws-choice li { margin-bottom: 2.4mm; }

@@ -22,6 +22,14 @@ export function Photo({ img, aspect = '4:3', alt = '', children, className = '' 
 // a full-width answer grows downwards with what is written (owner 2026-10-10: a long answer was cut off on one line)
 const grow = (node) => { if (node) { node.style.height = 'auto'; node.style.height = `${node.scrollHeight}px`; } };
 
+// a gap whose answer is a whole sentence („vali lause” tasks) gets its own growing line instead of a 2–3 cm field
+// (owner 2026-10-13: the answer did not fit and was hard to read); short gaps keep their width
+export const LONG_GAP = 24;
+export function gapWidth(accept, base) {
+  const answers = (Array.isArray(accept) ? accept : String(accept || '').split(/[|/]/)).map((a) => String(a).trim());
+  return Math.max(0, ...answers.map((a) => a.length)) > LONG_GAP ? '100%' : base;
+}
+
 export function Line({ value, onChange, interactive, state, width, label, className = '' }) {
   if (width === '100%') {
     return (
@@ -42,7 +50,8 @@ export function Line({ value, onChange, interactive, state, width, label, classN
   return (
     <input
       className={`ws-line ${state ? 'is-' + state : ''} ${className}`}
-      style={width ? { width } : undefined}
+      // a short field widens with what is written (never past its line), so a longer answer stays readable
+      style={width ? { width: `max(${width}, ${String(value || '').length + 2}ch)`, maxWidth: '100%' } : undefined}
       value={value || ''}
       readOnly={!interactive}
       tabIndex={interactive ? 0 : -1}

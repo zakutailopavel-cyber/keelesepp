@@ -1,7 +1,8 @@
 /* global setTimeout */
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
-import SheetAnnotations from './SheetAnnotations.jsx';
+import SheetAnnotations, { correctedAnswer } from './SheetAnnotations.jsx';
+import { liveWordTools, threeForms } from './liveWordTools.js';
 import { offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
@@ -65,5 +66,61 @@ describe('SheetAnnotations', () => {
     input.setSelectionRange(5, 9);
     fireEvent.mouseUp(input);
     expect(screen.getByRole('dialog', { name: 'Uus märkus' })).toHaveTextContent('„koer”');
+  });
+});
+
+describe('word tools in the live lesson', () => {
+  const words = () => ({
+    lookup: vi.fn().mockResolvedValue({ word: 'koer', translation: 'собака', forms: ['koer', 'koera', 'koera'], formItems: [] }),
+    add: vi.fn().mockResolvedValue({ id: 'w1' }),
+    addError: vi.fn().mockResolvedValue({ id: 'e1' }),
+  });
+
+  it('a double-clicked word of the task shows its three forms and goes to the student\'s words', async () => {
+    const tools = words();
+    const { container } = render(<SheetAnnotations annotations={[]} editable onChange={vi.fn()} words={tools}>{page()}</SheetAnnotations>);
+    const bold = container.querySelector('b').firstChild;
+    const range = document.createRange(); range.setStart(bold, 0); range.setEnd(bold, 4);
+    const selection = window.getSelection(); selection.removeAllRanges(); selection.addRange(range);
+    fireEvent.mouseUp(container.querySelector('b'));
+    expect(screen.getByRole('button', { name: 'Sõna' })).toHaveAttribute('aria-pressed', 'true');
+    expect(await screen.findByLabelText('Kolm põhivormi')).toHaveTextContent('koerkoerakoera');
+    expect(tools.lookup).toHaveBeenCalledWith('koer');
+    fireEvent.change(screen.getByLabelText('Tõlge'), { target: { value: 'пёс' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Lisa õpilase sõnadesse/ })); });
+    expect(tools.add).toHaveBeenCalledWith({ word: 'koer', translation: 'пёс', forms: 'koer, koera, koera', formItems: [] });
+    expect(screen.getByRole('button', { name: /Lisatud/ })).toBeDisabled();
+  });
+
+  it('a corrected word in the answer is a mark and, by default, a sentence in „Minu vead”', async () => {
+    const tools = words();
+    const onChange = vi.fn().mockResolvedValue([]);
+    const { container } = render(<SheetAnnotations annotations={[]} editable onChange={onChange} words={tools}>{page('Mul on koer')}</SheetAnnotations>);
+    const input = container.querySelector('input.ws-line');
+    input.setSelectionRange(7, 11);
+    fireEvent.mouseUp(input);
+    await flush();
+    expect(screen.getByRole('button', { name: 'Viga' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('Lisa õpilase „Minu vigadesse”')).toBeChecked();
+    fireEvent.change(screen.getByLabelText('Õige variant'), { target: { value: 'koera' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Lisa märkus' })); });
+    expect(onChange.mock.calls[0][0][0]).toMatchObject({ kind: 'field', selectedText: 'koer', parandus: 'koera' });
+    expect(onChange.mock.calls[0][0][0].value).toBeUndefined();
+    expect(tools.addError).toHaveBeenCalledWith({ said: 'Mul on koer', corrected: 'Mul on koera' });
+  });
+
+  it('builds the corrected answer and the three key forms', () => {
+    expect(correctedAnswer('Ma näen  koer.', 9, 13, 'koera')).toBe('Ma näen koera.');
+    expect(threeForms([{ code: 'Sup', value: 'tegema' }, { code: 'Inf', value: 'teha' }, { code: 'IndPrSg3', value: 'teeb' }])).toEqual(['tegema', 'teha', 'teeb']);
+    expect(threeForms([{ code: 'SgN', value: 'kass' }, { code: 'SgG', value: 'kassi' }])).toEqual([]);
+  });
+
+  it('adds a word once and saves a corrected answer as an error card', async () => {
+    const service = { listForStudent: vi.fn().mockResolvedValue([{ word: 'Koer' }]), add: vi.fn().mockResolvedValue({ id: 'x' }) };
+    const tools = liveWordTools({ studentId: 's1', invitationId: 'room', user: { uid: 't' }, tools: { lookupWord: vi.fn().mockResolvedValue({ translation: 'есть', forms: { found: true, headword: 'sööma', forms: [{ code: 'Sup', label: 'ma', value: 'sööma' }, { code: 'Inf', label: 'da', value: 'süüa' }, { code: 'IndPrSg3', label: 'b', value: 'sööb' }] } }) }, words: service });
+    expect(await tools.lookup('sõin')).toMatchObject({ word: 'sööma', translation: 'есть', forms: ['sööma', 'süüa', 'sööb'] });
+    expect(await tools.add({ word: 'koer' })).toEqual({ already: true });
+    await tools.addError({ said: 'Mul on koer', corrected: 'Mul on koera' });
+    expect(service.add).toHaveBeenCalledWith({ studentId: 's1', invitationId: 'room', user: { uid: 't' }, word: 'Mul on koera', translation: 'Sinu lause: Mul on koer' });
   });
 });

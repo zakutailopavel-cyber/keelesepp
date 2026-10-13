@@ -1,3 +1,21 @@
+## 2026-10-13 · agent/live-word-card-and-fields — live lesson: word card, corrections to „Minu vead”, answers that fit
+
+- Owner: double-click a word during a live worksheet → three forms → into the student's dictionary; corrections as
+  annotations; long answers did not fit their field.
+- `SheetAnnotations.jsx`: the teacher's composer (opened by a double click / selection) has „Viga | Märkus | Sõna”.
+  „Sõna” (default for a single word of the task text): headword, three key forms (SgN/SgG/SgP or Sup/Inf/IndPrSg3),
+  editable translation → „Lisa õpilase sõnadesse” (no duplicate; „Juba sõnavaras”). „Viga” in the student's answer:
+  the mark as before + „Lisa õpilase „Minu vigadesse”” (on by default) = the answer and the corrected answer saved as
+  an error card (`Sinu lause:` prefix, the same as „Pärast tundi”).
+- `liveWordTools.js`: `languageToolsService.lookupWord` (staff /word: EKI forms + TartuNLP) and `studentWordsService.add`
+  with the room's `invitationId`. `LiveWorksheetView` passes them (page and board). No server or rules change.
+- Answer fields: `ui.gapWidth` — a gap whose answer is longer than 24 characters („vali lause” tasks) is a full-width
+  growing line; short fields widen with the written answer up to their line (`Line`). Gaps, dialogue gaps, picture gaps.
+- Tests: `SheetAnnotations.test.jsx` (+4), `engine/longGap.test.jsx` (2). worksheet-studio 279/279. Full run: the same
+  10 local Node 26 failures in live-classroom/calendar (CI green) + studentWorksheetFlow timing out only under load.
+- Next safe step: in a live lesson double-click a word in the task and in the student's answer; check the student's
+  „Sõnad” and „Minu vead”.
+
 ## 2026-10-13 · agent/opik-edit — editing from the Õpik
 
 - Owner: „Надо добавить возможность редактирования и в opik тоже”.

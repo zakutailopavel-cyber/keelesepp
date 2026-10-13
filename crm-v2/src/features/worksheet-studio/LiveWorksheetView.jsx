@@ -8,18 +8,20 @@ import GoalEvidence from './GoalEvidence.jsx';
 import LiveTaskPanel from './LiveTaskPanel.jsx';
 import { taskStats } from './engine/liveLesson.js';
 import SheetAnnotations from './SheetAnnotations.jsx';
+import { liveWordTools } from './liveWordTools.js';
 import { setPath } from './engine/inlineEdit.js';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { BOARD_SHEET_SCALE, useFitScale } from './useFitScale.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 
+const NO_SERVICES = {};
 const time = (iso) => (iso ? new Date(iso).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '—');
 
 // Live lesson on a structured worksheet: the teacher watches the learner's answers arrive (autosaved by the
 // student player), sees the marks per task and per lesson goal, and points at the task the class works on.
 // Uses the assignment document only; no Firestore rule change. Rendered as a page and inside the Live Classroom room.
-export default function LiveWorksheetView({ assignmentId, repository = homeworkService, back = { to: '/homework', label: 'Kodutööd' }, embedded = false, board = false }) {
+export default function LiveWorksheetView({ assignmentId, repository = homeworkService, back = { to: '/homework', label: 'Kodutööd' }, embedded = false, board = false, wordServices = NO_SERVICES }) {
   const [assignment, setAssignment] = useState(null);
   const [error, setError] = useState('');
   const [focusError, setFocusError] = useState('');
@@ -95,6 +97,9 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     : <Sheet doc={doc} mode="review" answers={answers} results={marks} focusId={focusId} onPick={point} blockClasses={blockClasses} blockNotes={blockNotes} />;
 
   // marks go to the assignment; the student's player is subscribed and shows them at once
+  // double-click a word: „Viga”, „Märkus” or „Sõna” (three key forms → the student's „Sõnad”); a corrected answer can go
+  // to the student's „Minu vead”
+  const words = useMemo(() => liveWordTools({ studentId: assignment?.studentId, invitationId: assignment?.liveRoomKey || '', user, ...wordServices }), [assignment?.studentId, assignment?.liveRoomKey, user, wordServices]);
   const saveMarks = (annotations) => repository.saveSubmissionAnnotations({ submission: { ...assignment, submissionKind: 'worksheet' }, annotations, user });
 
   if (error) return <div className="ws-studio-error" role="alert">{error} {!embedded && <Link to={back.to}>Tagasi</Link>}</div>;
@@ -113,7 +118,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     return (
       <div className="ws-studio ws-live is-embedded is-board">
         <div className="st-canvas" ref={fitRef}>
-          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks}>
+          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks} words={words}>
             <div className="st-zoom" style={{ zoom: scale }}>
               {sheet}
             </div>
@@ -141,11 +146,11 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
         </div>
       </header>
       {editBanner}
-      <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Vali tekst või klõpsa vastusel, et lisada viga või märkus.</div>
+      <div className="st-banner">Klõpsa ülesandel: see süttib õpilase lehel ja leht kerib selleni. Topeltklõps sõnal: viga, märkus või sõna õpilase sõnavarasse (kolm põhivormi ja tõlge).</div>
       {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
       <div className="st-body ws-live-body">
         <main className="st-canvas" ref={fitRef}>
-          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks}>
+          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks} words={words}>
             <div className="st-zoom" style={{ zoom: scale }}>
               {sheet}
             </div>

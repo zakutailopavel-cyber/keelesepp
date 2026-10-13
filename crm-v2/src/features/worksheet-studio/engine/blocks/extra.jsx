@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- block definitions are plain objects that carry View/Editor components */
 import { useRef, useState } from 'react';
-import { Line, Md } from '../ui.jsx';
+import { Line, Md, gapWidth } from '../ui.jsx';
 import { norm, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
 import { Text, Area, Rows } from '../../editor/fields.jsx';
@@ -17,7 +17,7 @@ function GapText({ text, ctx, prefix, width = '24mm' }) {
     if (!p.gap) return <Md key={i} text={p.text} />;
     gi += 1;
     const key = `${prefix}.${gi}`;
-    return <Line key={i} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={width} label="Lünk" className="ws-gapline" />;
+    return <Line key={i} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth(p.gap, width)} label="Lünk" className="ws-gapline" />;
   });
 }
 const gapKeys = (text, prefix) => parts(text).filter((p) => p.gap).map((p, gi) => ({ key: `${prefix}.${gi}`, accept: p.gap }));
