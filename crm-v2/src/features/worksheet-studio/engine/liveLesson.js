@@ -17,6 +17,13 @@ export function stepView(doc, liveStep) {
   return { doc: { ...doc, blocks }, hidden: doc.blocks.length - blocks.length };
 }
 
+// how many tasks the learner sees in step mode: { open, total }
+export function stepCounts(doc, liveStep) {
+  const tasks = (doc?.blocks || []).filter(isTask);
+  const open = new Set(liveStep?.open || []);
+  return { open: tasks.filter((block) => open.has(block.id)).length, total: tasks.length };
+}
+
 export const nextToOpen = (doc, liveStep) => (doc?.blocks || []).find((block) => isTask(block) && !(liveStep?.open || []).includes(block.id))?.id || '';
 
 // ✓ / ✗ of the shown tasks only

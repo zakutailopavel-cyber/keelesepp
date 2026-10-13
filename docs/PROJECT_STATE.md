@@ -1,3 +1,18 @@
+## 2026-10-13 · agent/board-sheet-scroll — „Samm-sammult” visible: teacher's switch in the side panel, student's notice on the sheet
+
+- Base: `main` after #592. Owner during a live lesson: „ученик не может прокрутить задание на доске”. The student's
+  screenshot: only the text and the picture of the sheet, „0/52 vastust” — step mode (`liveStep.on`) was on with no
+  task opened. The teacher's task list (with „Samm-sammult” / „Ava järgmine”) lies under the sheet on the board, out of
+  sight; the student's „Õpetaja avab ülesandeid ükshaaval” notice was under the sheet too.
+- `RoomWorksheetPanel`: `RoomStepControl` in the „Ülesanded” side panel for the teacher when step mode is on —
+  „õpilane näeb N/M ülesannet”, „Ava järgmine”, „Näita kõiki” (step mode off). `engine/liveLesson.js` `stepCounts`.
+- `DocWorksheetPlayer` (board): the notice lies over the top of the sheet (`.ws-live-wait.is-over`, absolute, so the
+  sheet keeps its place for the teacher's pointer).
+- Storage: bucket `keelesepp-5136b.firebasestorage.app` CORS got a second entry (owner's OK): origin
+  `https://crm.epkoolitus.ee`, GET/HEAD — the generator's level lexicon `eesti_soned.json` was blocked by CORS.
+- Tests: RoomWorksheetPanel +1; worksheet-studio + board 265 passed. live-classroom: 9 local failures under Node 26
+  (localStorage, untouched files; CI uses Node 24).
+
 ## 2026-10-13 · agent/teacher-sheet-fixes — take back a sheet given by mistake; the sheet's own level on the assignment
 
 - Base: `main` f753f30. Production health check today (read-only): Firestore + Storage rules live = repo (released
