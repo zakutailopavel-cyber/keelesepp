@@ -52,9 +52,9 @@ export function crosswordLayout(rows = []) {
   const grid = new Map();
   const placed = [];
   // long words first: they give the most letters to cross
-  const order = [...words].sort((a, b) => b.letters.length - a.letters.length || a.i - b.i);
-  for (const word of order) {
-    if (!placed.length) { put(grid, word.letters, 0, 0, 'across', word.i); placed.push({ i: word.i, x: 0, y: 0, dir: 'across', length: word.letters.length }); continue; }
+  let queue = [...words].sort((a, b) => b.letters.length - a.letters.length || a.i - b.i);
+  // a word that crosses nothing yet waits until the others are placed: lying alone too early it blocks their crossings
+  const crossing = (word) => {
     let best = null;
     for (const other of placed) {
       const dir = other.dir === 'across' ? 'down' : 'across';
@@ -79,12 +79,26 @@ export function crosswordLayout(rows = []) {
         });
       }
     }
-    if (!best) {
-      const b = box(grid);
-      best = { x: b.x1, y: b.y2 + 2, dir: 'across' };
+    return best;
+  };
+  const place = (word, at) => {
+    put(grid, word.letters, at.x, at.y, at.dir, word.i);
+    placed.push({ i: word.i, x: at.x, y: at.y, dir: at.dir, length: word.letters.length });
+  };
+  while (queue.length) {
+    const waiting = [];
+    for (const word of queue) {
+      if (!placed.length) { place(word, { x: 0, y: 0, dir: 'across' }); continue; }
+      const best = crossing(word);
+      if (best) place(word, best); else waiting.push(word);
     }
-    put(grid, word.letters, best.x, best.y, best.dir, word.i);
-    placed.push({ i: word.i, x: best.x, y: best.y, dir: best.dir, length: word.letters.length });
+    if (waiting.length === queue.length) {
+      // nothing more crosses: the first waiting word lies on its own line below, the rest try again
+      const b = box(grid);
+      place(waiting[0], { x: b.x1, y: b.y2 + 2, dir: 'across' });
+      waiting.shift();
+    }
+    queue = waiting;
   }
   if (!placed.length) return { width: 0, height: 0, cells: [], words: [] };
   const b = box(grid);

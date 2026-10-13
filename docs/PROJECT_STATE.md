@@ -1,3 +1,18 @@
+## 2026-10-14 · agent/crossword-crossings — live check of every block; crossword words cross again
+
+- Main checked: 123e459 (2026-10-14). Branch `agent/crossword-crossings`.
+- Live check on crm.epkoolitus.ee (teacher account, constructor `/library/worksheets/new`, loaded from a JSON file, never saved):
+  one sheet with every answerable block (28 types, 8 diagram kinds = 35 blocks), answered through the page the way the
+  student does it (typing, clicking, selecting), „Kontrolli vastuseid”: 110 ✓, 0 ✗; one wrong answer in each of the 28
+  auto-scored blocks: ✗ in 28/28; print view: 0 answers shown in 35/35 blocks. The teacher-graded blocks (writing,
+  translation, planning, letter, picture rows, rubric) keep the text for the teacher, no automatic ✓.
+- Found and fixed: `engine/crosswordLayout.js` put a word that crossed nothing yet on its own line at once, and it took
+  the cells other words needed (kool / õpetaja / õpik came out as three lines). Such a word now waits until the others
+  are placed. Answers stay per row (key = row index), so saved answers are not affected; existing sheets get a tighter grid.
+- Tests: worksheet-studio + worksheet-generator + homework 110 files, 916 passed (1 skipped), new crossword test.
+- Not done here: the same sheet as a real homework of the test student (needs the owner's test-student login).
+- Next: after merge, with the owner logged in as test student, assign the check sheet and submit it once.
+
 ## 2026-10-14 · agent/c1-art-053-100 — C1 textbook pictures 053–100: every C1 lesson has its picture
 
 - Codex (built-in image generation, no paid API) finished C1 after the daily limit reset (run at 23:02); imported
