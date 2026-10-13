@@ -1,3 +1,13 @@
+## 2026-10-13 · agent/a2-missing-13 — the last 13 A2 lessons as full course sheets: A2 complete
+
+- Base: `main` 787afb6. Lessons a2-059, 060, 062, 064, 065, 068, 070, 072, 076, 077, 080, 081, 085 added into
+  `admin/course/a2/module12…17.js` (they still had the old generated 5-task sheets); goals in `a2/lessonGoals.js`.
+  39 sheets, 12–17 blocks, 40–48 min; control lessons in Harno A2 form. All 100 A2 lessons are now course sheets.
+- Characters per the owner's canon (art bible §4; Mia's mother is Oksana). Older lessons of modules 12–20 still
+  contradict the canon (e.g. 061 Sofia accountant, Jaan bus driver; 063 Viktor job hunting; 066 teacher Tiina) — next pass.
+- Audio: 25 new recordings, 361 in total.
+- Tests: course gate passes; worksheet-generator 597 passed, 1 skipped.
+
 ## 2026-10-13 · agent/review-sheet — „Kordamisleht”: a review sheet from the course's own tasks
 
 - Base: `main` after #600–#602. Step 1 of „the generator on the course material” (owner agreed: course first, then the
