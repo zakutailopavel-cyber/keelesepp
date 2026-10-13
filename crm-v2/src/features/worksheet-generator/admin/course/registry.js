@@ -3,6 +3,7 @@
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
 import { withLessonArt } from '../../art/textbookArt.js';
+import { withListeningAudio } from './listeningAudio.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import { A2_LESSON_GOALS } from './a2/lessonGoals.js';
 import * as a2m12 from './a2/module12.js';
@@ -98,7 +99,8 @@ export function lessonOrder(blocks = []) {
   return [...head, ...rest.sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)];
 }
 
-// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text
+// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text;
+// listening blocks get their recorded audio (listeningAudio.json, tools/listening-audio)
 export function buildCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
@@ -121,7 +123,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: lessonOrder(lesson[phase]),
+    blocks: withListeningAudio(lessonOrder(lesson[phase]), lessonId),
   }, lessonId, phase);
 }
 

@@ -1,3 +1,24 @@
+## 2026-10-13 · agent/listening-audio — real audio for every listening task of the course sheets
+
+- Why (owner): the 155 listening blocks of the course (A2 / B1 / B2 / C1, ~16 600 words) said „Õpetaja loeb teksti kaks korda” — the teacher had to read every text aloud.
+- Audio: TartuNLP Neurokõne (free public Estonian TTS, `api.tartunlp.ai/text-to-speech/v2`), built by `tools/listening-audio/build.mjs` (+ `plan.mjs`, README there): „Name: text” lines are dialogue turns with a voice per speaker (female mari / liivika / külli / vesta, male albert / kalev / tambet / indrek / meelis / peeter), narration one more voice; speed 0.9 for A2 levels, 1.0 from B1; 0.45 s between turns; loudness −16 LUFS; mono MP3 22.05 kHz 32 kbps.
+- Output: `crm-v2/public/audio/<lessonId>/<blockId>.mp3` — 155 files, 157.6 min, 36 MB; manifest `admin/course/listeningAudio.json` (`src`, `seconds`, `hash` = sha1 of the transcript).
+- Wiring: `buildCourseSheet` → `withListeningAudio` (`admin/course/listeningAudio.js`) sets `data.audio = { src, name, seconds }` and rewrites „Õpetaja loeb X kaks korda” → „Kuula X kaks korda” (object in the partitive: teate → teadet …). Module files unchanged.
+- Regenerate after a transcript edit: `node tools/listening-audio/build.mjs` (only changed hashes; `--force` all, `--only <key>`); `listeningAudio.test.js` fails while a recording is missing or stale. TTS pieces are cached in `tools/listening-audio/.cache/` (git-ignored). Full run ≈ 30 min, 1 request/s.
+- Limits: synthetic voices; numbers / abbreviations are read as the TTS guesses (fix the transcript, rebuild). `src` is a site path (`/audio/…`) — works where the CRM app is served; published sheets keep it once republished. Already published sheets get audio only after republishing the module on „Kursuse tootmine”.
+- Checks: worksheet-generator + worksheet-studio 803/803 (+1 skipped); eslint 0 errors (10 old warnings); `npm run build` OK (dist/audio included). Production: none.
+- Next: listen to a sample per level in the browser, then republish the course modules on „Kursuse tootmine”.
+## 2026-10-13 · agent/student-flow-vocab-teacher — exercise blocks checked from the student's side
+
+- Base: `main` 512dcc5. `crm-v2/src/features/homework/studentWorksheetFlow.test.jsx`: a sheet with one block of every answerable type (28 types + all diagram variants), four of them with one mistake. Through the real screens with fake services: „Kodutööd” → student opens the sheet → answers through the UI → autosave gets exactly those answers → „Sulge” and reopen shows them (resume) → „Esita” sends those answers, `checkDocument` score and the error log → ✓/✗ per item for the student → the teacher opens the submission (`normalizeSubmission` of the stored record) and sees every answer, ✓/✗ and the auto-error list. Live lesson: the inline player autosaves, „Näita vastuseid” marks only the shown task, `LiveWorksheetView` shows all answers with marks. The answering cases moved to `src/test/blockAnswerCases.jsx` (shared with `engine/blocksRoundtrip.test.jsx`).
+- Bugs fixed: (1) reopening a sheet after autosave (no page reload) showed it empty and the next keystroke autosaved over the stored answers — `HomeworkPage` reloads on close, `DocWorksheetPlayer` takes the stored answers from its subscription until the student types; (2) a writing task never counted as answered (its scored counters sentences/keywords were counted as fields: 114/116, „Kas esitad ikkagi?” on a finished sheet; „idle” in the live task panel) — `answerProgress` / `taskStats` count a block's `answerKeys`.
+- Checks: homework + students + vocabulary + worksheet-studio 81 files / 404 tests pass; lint 0 errors; build ok. Full run: 10 failures in calendar/live-classroom tests also fail on the base (Node 26 `localStorage.clear`), untouched. Production: none.
+
+## 2026-10-13 · agent/student-flow-vocab-teacher — „Sõnavara → Teemad” for staff (student card)
+
+- `vocabulary/StudentTopicsCard.jsx` on the student card → „Areng”, read only: topics of the student's level (else the first level with words) in course order, state läbitud / avatud / lukus, known/all words, passed/all, date of the last passed topic (newest `createdAt` of its words). `topicModel.topicReport` (reuses `topicStates`). Reads `curriculumLessons` and the student's `studentWords` (staff may read); writes nothing. `StudentProfilePage` takes `topicsApi` for tests. Test: `StudentTopicsCard.test.jsx`.
+- Next safe step: owner review of the draft PR; then push and open it.
+
 ## 2026-10-13 · agent/art-b2-c1-batch4 — the rest of the Codex night batch (B2 061–090, C1 001–018)
 
 - Codex batch 2 stopped at 06:10 („workspace is out of credits”) after est-c1-018. Imported (from a copy of the inbox): B2 lessons up to 090 and C1 001–018 with briefs (`art/visuals/b2-module-14…18.js`, `c1-module-01…03.js`). Lessons Codex skipped after 3 tries have no picture (listed by `import_art.py`).
