@@ -3,7 +3,7 @@ import { memo, useEffect, useMemo, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Icons } from './icons.js';
 import { lessonWorksheetsService, libraryService } from '../../services/firebase/index.js';
-import { assembleProgramBook, BOOK_PHASES, programLevels, programModules, programProgress } from './bookProgram.js';
+import { assembleProgramBook, BOOK_PHASES, programLevels, programModules, programProgress, publishedPhaseDoc, sheetEditorPath } from './bookProgram.js';
 import Sheet from './engine/Sheet.jsx';
 
 // A book holds hundreds of sheets: a sheet redraws only when its own props change (its first page number), not on
@@ -43,6 +43,7 @@ import './engine/sheet.css';
 import './worksheetStudio.css';
 
 const DRAFT_KEY = 'ks-worksheet-book-draft';
+
 const norm = (v) => String(v || '').toLocaleLowerCase('et').normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 function readDraft() {
@@ -139,6 +140,34 @@ export default function BookPage({ repository = libraryService, worksheetReposit
       if (latestBuild.current === key) setBuilt({ loading: false, error: error.message || 'Õpikut ei saanud koostada.', sheets: [], missing: [], key });
     }
   };
+  // „✎ Muuda lehte” opens the sheet in its editor in a new tab; when the book tab is shown again the edited sheets are
+  // read again, so a published change appears in place (the book keeps its scroll position and does not rebuild)
+  const edited = useRef(new Set());
+  useEffect(() => {
+    const refresh = async () => {
+      if (globalThis.document?.visibilityState === 'hidden' || !edited.current.size) return;
+      const lessonIds = [...edited.current];
+      edited.current = new Set();
+      if (mode === 'manual') {
+        repository.list().then((res) => setState((current) => ({ ...current, all: res.curriculumLessons || [], lessons: (res.curriculumLessons || []).filter((l) => l?.worksheetDoc?.blocks?.length) }))).catch(() => {});
+        return;
+      }
+      const fresh = Object.fromEntries(await Promise.all(lessonIds.map((id) => worksheetRepository.list(id).then((list) => [id, list]).catch(() => [id, null]))));
+      setBuilt((current) => ({
+        ...current,
+        sheets: current.sheets.map((sheet) => {
+          const records = fresh[sheet.lessonId];
+          if (!records) return sheet;
+          const doc = publishedPhaseDoc(records.find((record) => (record.worksheetId || record.id) === sheet.phase));
+          return doc && doc !== sheet.doc ? { ...sheet, doc } : sheet;
+        }),
+      }));
+    };
+    globalThis.document?.addEventListener('visibilitychange', refresh);
+    globalThis.addEventListener?.('focus', refresh);
+    return () => { globalThis.document?.removeEventListener('visibilitychange', refresh); globalThis.removeEventListener?.('focus', refresh); };
+  }, [mode, repository, worksheetRepository]);
+
   // the book assembles itself for the chosen level / module (owner, 2026-10-10: an empty book until a button press
   // looked broken); „Koosta õpik” stays to rebuild after sheets were published
   useEffect(() => {
@@ -241,7 +270,14 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           <div className="st-zoom ws-book" style={{ zoom: scale }}>
             <Cover book={book} />
             <Contents entries={entries} />
-            {items.slice(0, shown).map((item, i) => <BookSheet key={item.id} doc={item.doc} mode="print" startPage={entries[i].page} onPageCount={counter.setter(item.id)} />)}
+            {items.slice(0, shown).map((item, i) => (
+              <div className="ws-book-item" key={item.id}>
+                <Link className="st-btn ws-book-edit" to={sheetEditorPath(item)} target="_blank" rel="noopener" title="Avaneb uues vahelehel. Õpikusse jõuab muudatus pärast „Avalda”." onClick={() => edited.current.add(item.lessonId || item.id)}>
+                  <Icons.PenLine size={15} aria-hidden="true" /> Muuda lehte<span className="sr-only">: {item.title}</span>
+                </Link>
+                <BookSheet doc={item.doc} mode="print" startPage={entries[i].page} onPageCount={counter.setter(item.id)} />
+              </div>
+            ))}
             {building ? <p className="ws-studio-loading">Koostan õpikut… {Math.min(shown, items.length)}/{items.length} lehte</p> : null}
           </div>
         </main>

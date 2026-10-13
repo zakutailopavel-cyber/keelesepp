@@ -73,7 +73,9 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
     <WorksheetStudioPage
       key={worksheetId}
       repository={adapter}
-      backTo="/library"
+      // opened from the Õpik („?tagasi=opik”): back leads to the book
+      backTo={searchParams.get('tagasi') === 'opik' ? '/library/worksheets/book' : '/library'}
+      backLabel={searchParams.get('tagasi') === 'opik' ? 'Õpik' : 'Õppevara'}
       allowCopy={false}
       initialMode={searchParams.get('vaade') === 'opilane' ? 'interactive' : 'edit'}
       draftId={`${lessonId}:${worksheetId}`}

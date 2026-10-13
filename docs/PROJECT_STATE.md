@@ -1,3 +1,17 @@
+## 2026-10-13 · agent/opik-edit — editing from the Õpik
+
+- Owner: „Надо добавить возможность редактирования и в opik тоже”.
+- Decision: the Õpik stays assembled from the lesson sheets (one source); every sheet in the book gets „✎ Muuda lehte”
+  (hover / keyboard focus, always visible on touch screens, never printed). It opens the sheet in its editor in a new tab
+  (`bookProgram.sheetEditorPath`: phase sheet → `/library/lessons/<id>/worksheets/<phase>?tagasi=opik`, an old single
+  lesson sheet → `/library/worksheets/<id>`). When the book tab is shown again, only the edited lessons are read again
+  and the published change replaces the sheet in place (no rebuild, scroll kept). The editor's back arrow leads to the
+  Õpik when opened from it (`LessonWorksheetStudioPage`, `?tagasi=opik`).
+- A draft („Salvesta”) does not change the book — the book shows published sheets only (tooltip says so).
+- Files: `worksheet-studio/BookPage.jsx`, `bookProgram.js`, `worksheetStudio.css`, `BookPage.test.jsx`,
+  `worksheet-generator/ui/LessonWorksheetStudioPage.jsx`. Tests: worksheet-studio + generator ui 279/279; eslint 0 errors.
+- Next safe step: after deploy open Õpik → B2 → hover a sheet → „Muuda lehte” → publish → back to the book tab.
+
 ## 2026-10-13 · agent/b2-c1-lesson-goals — B2 and C1: a real goal for every lesson
 
 - Owner: „Надо исправить все листы б2 и С1” (after the course audit: 0 of 90 B2 and 0 of 100 C1 lessons passed).
