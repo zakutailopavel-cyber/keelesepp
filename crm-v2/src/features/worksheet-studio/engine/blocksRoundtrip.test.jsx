@@ -7,6 +7,7 @@ import { DocWorksheetSubmissionPreview } from '../DocWorksheetPlayer.jsx';
 import { rightAnswers } from './liveLesson.js';
 import {
   CASES, EXPECTED, answerRight, answerWrong, byText, doc, inputKeys, make, mount, mountPart, ownAnswers, reviewShows, values,
+  crosswordCells,
 } from '../../../test/blockAnswerCases.jsx';
 
 // Every answerable block, end to end, the way people use it: the student answers through the sheet (typing, clicking,
@@ -148,9 +149,9 @@ describe('details found while checking the blocks', () => {
     const block = make('crossword');
     const h = mount(block);
     CASES.crossword.drive(h.card, block);
-    const cells = () => [...h.card().querySelectorAll('.ws-crossword > li')[0].querySelectorAll('input')];
+    const cells = () => crosswordCells(h.card(), block, 0);
     fireEvent.change(cells()[1], { target: { value: '' } });
-    expect(cells().map((c) => c.value)).toEqual(['K', '', 'o', 'l']);
+    expect(cells().map((c) => c.value)).toEqual(['k', '', 'o', 'l']);
     fireEvent.change(cells()[1], { target: { value: 'o' } });
     expect(scoreDocument(h.doc, h.store.answers).perBlock[block.id][0].ok).toBe(true);
   });

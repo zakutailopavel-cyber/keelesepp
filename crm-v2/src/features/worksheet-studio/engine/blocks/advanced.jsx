@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { Md, Line } from '../ui.jsx';
 import { norm, splitList } from '../schema.js';
+import { crosswordClean, crosswordLayout, crosswordWord, withLetter } from '../crosswordLayout.js';
 import { Area, Num, Rows, Text } from '../../editor/fields.jsx';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
@@ -78,11 +80,61 @@ export const wordsearch = {
   Editor: ({ data, set }) => <><Area label="Peidetud sõnad (komaga)" value={data.words} onChange={(words) => set({ words })} /><Num label="Ruudustiku suurus" value={data.size} min={8} max={16} onChange={(size) => set({ size })} /></>,
 };
 
+// a real crossword: words cross on a grid (crosswordLayout.js), numbered clues „Paremale” / „Alla” below; a shared cell
+// writes both words' answers; on paper the empty grid with the numbers
+function CrosswordView({ data, ctx }) {
+  const layout = useMemo(() => crosswordLayout(data.rows), [data.rows]);
+  const rows = data.rows || [];
+  const lengthOf = (i) => crosswordWord(rows[i]?.answer).length;
+  const letterAt = (cell) => { const { i, k } = cell.refs[0]; return (String(ctx.get(String(i)) || '')[k] || '').trim(); };
+  const stateOf = (cell) => {
+    const states = cell.refs.map(({ i }) => ctx.state(String(i))).filter(Boolean);
+    if (!states.length) return '';
+    return states.includes('wrong') ? 'wrong' : states.every((x) => x === 'right') ? 'right' : states[0];
+  };
+  const type = (cell, value, input) => {
+    const letter = [...String(value || '').toLocaleLowerCase('et').replace(/\s/g, '')].pop() || '';
+    cell.refs.forEach(({ i, k }) => ctx.set(String(i), withLetter(ctx.get(String(i)), lengthOf(i), k, letter)));
+    if (!letter) return;
+    // on to the next cell of the first word through this cell
+    const { i, k } = cell.refs[0];
+    const word = layout.words.find((w) => w.i === i);
+    if (!word || k + 1 >= word.length) return;
+    const [dx, dy] = word.dir === 'across' ? [1, 0] : [0, 1];
+    input.closest('.ws-cw-grid')?.querySelector(`[data-cell="${word.x + dx * (k + 1)},${word.y + dy * (k + 1)}"]`)?.focus();
+  };
+  if (!layout.cells.length) return <p className="ws-hint">Lisa sõnad ja vihjed.</p>;
+  const clues = (dir) => layout.words.filter((w) => w.dir === dir);
+  return (
+    <div className="ws-cw">
+      <div className="ws-cw-grid" style={{ gridTemplateColumns: `repeat(${layout.width}, 1fr)`, maxWidth: `${layout.width * 8}mm` }}>
+        {layout.cells.map((cell) => {
+          const state = stateOf(cell);
+          return (
+            <span key={`${cell.x},${cell.y}`} className={`ws-cw-cell ${state ? 'is-' + state : ''}`} style={{ gridColumn: cell.x + 1, gridRow: cell.y + 1 }}>
+              {cell.number ? <small>{cell.number}</small> : null}
+              {ctx.interactive
+                ? <input data-cell={`${cell.x},${cell.y}`} value={letterAt(cell)} onChange={(e) => type(cell, e.target.value, e.target)} maxLength={2} autoComplete="off" spellCheck={false} aria-label={`Ruut ${cell.number || ''} (${cell.x + 1}, ${cell.y + 1})`.replace('  ', ' ')} />
+                : <b>{letterAt(cell)}</b>}
+            </span>
+          );
+        })}
+      </div>
+      <div className="ws-cw-clues">
+        {['across', 'down'].map((dir) => clues(dir).length ? (
+          <section key={dir}><h4>{dir === 'across' ? 'Paremale →' : 'Alla ↓'}</h4><ol>{clues(dir).map((w) => <li key={w.i} value={w.number}><Md text={rows[w.i]?.clue || ''} /> <small>({w.length})</small></li>)}</ol></section>
+        ) : null)}
+      </div>
+    </div>
+  );
+}
+
 export const crossword = {
   type: 'crossword', label: 'Ristsõna', group: 'Grammatika ja sõnavara', icon: 'Grid2X2', task: true, width: 'full', tone: 'blue',
   create: () => ({ title: 'Lahenda ristsõna.', instruction: 'Kirjuta vastused vihjete järgi.', rows: [{ clue: 'Koht, kus õpitakse', answer: 'kool' }, { clue: 'Inimene, kes õpetab', answer: 'õpetaja' }] }),
-  View: ({ data, ctx }) => <ol className="ws-crossword">{(data.rows || []).map((row, i) => <li key={i}><span>{row.clue}</span><div className="ws-crossword-cells">{[...String(row.answer || '')].map((_, ci) => <Line key={ci} interactive={ctx.interactive} value={(String(ctx.get(String(i)) || '')[ci] || '').trim()} onChange={(v) => { const old = [...String(ctx.get(String(i)) || '').padEnd(String(row.answer || '').length, ' ')]; old[ci] = v.slice(-1) || ' '; ctx.set(String(i), old.join('').trimEnd()); }} state={ctx.state(String(i))} width="8mm" label={`${i + 1}.${ci + 1}`} />)}</div></li>)}</ol>,
-  score: (data, get) => scoreRows(data.rows, get),
+  View: CrosswordView,
+  // letters only: a shared cell, a space or a hyphen in the answer does not make a right word wrong
+  score: (data, get) => (data.rows || []).map((row, i) => ({ key: String(i), ok: splitList(row.answer).map(crosswordClean).includes(crosswordClean(get(String(i)))) })),
   Editor: ({ data, set }) => <Rows label="Vihjed ja vastused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ clue: '', answer: '' })} addLabel="Lisa sõna" render={(row, patch) => <><Text label="Vihje" value={row.clue} onChange={(clue) => patch({ clue })} /><Text label="Vastus" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
 };
 

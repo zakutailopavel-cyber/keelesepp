@@ -21,7 +21,7 @@ Kursuse tootmise ajal (`docs/B1_B2_COURSE_PRODUCTION.md`) kirjutatakse siia, mid
 
 ## Konstruktor ja ülesandetüübid
 
-7. **Ristsõnal pole ruudustikku.** Plokk „Ristsõna” näitab ainult vihjeid ja ridu, mitte päris ristsõna.
+7. ✓ (agent/crossword-grid) **Ristsõnal pole ruudustikku.** Plokk „Ristsõna” näitab ainult vihjeid ja ridu, mitte päris ristsõna.
    - Ettepanek: automaatne ruudustik vastustest.
 8. **Rollikaardid on hindamata.** Need jäävad ainult õpetaja hinnata ja õpilase vastus ei salvestu.
    - Ettepanek: lühike kirjalik „mida ma ütlesin” väli või häälsalvestus nagu plokis `speaking`.

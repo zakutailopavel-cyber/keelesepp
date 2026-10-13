@@ -5,6 +5,7 @@ import { BLOCKS, createBlock } from '../features/worksheet-studio/engine/registr
 import Sheet, { SheetCard } from '../features/worksheet-studio/engine/Sheet.jsx';
 import { sampleDocument } from '../features/worksheet-studio/engine/sample.js';
 import { picmatchOrder } from '../features/worksheet-studio/engine/blocks/picture.jsx';
+import { crosswordLayout } from '../features/worksheet-studio/engine/crosswordLayout.js';
 
 // How the learner answers every answerable block through the sheet (typing, clicking, selecting) and what the teacher
 // must see afterwards. Shared by the block round trip (engine/blocksRoundtrip.test.jsx) and the student flow tests
@@ -172,13 +173,12 @@ export const CASES = {
       block.data.rows.forEach((row, i) => {
         if (wrong && i > 0) return;
         [...row.answer].forEach((ch, ci) => {
-          const cell = card().querySelectorAll('.ws-crossword > li')[i].querySelectorAll('input')[ci];
           if (wrong && ci !== 0) return;
-          fireEvent.change(cell, { target: { value: wrong ? 'x' : ci === 0 ? ch.toUpperCase() : ch } });
+          fireEvent.change(crosswordCells(card(), block, i)[ci], { target: { value: wrong ? 'x' : ci === 0 ? ch.toUpperCase() : ch } });
         });
       });
     },
-    review: (card, block) => block.data.rows.forEach((row, i) => expect([...card.querySelectorAll('.ws-crossword > li')[i].querySelectorAll('input')].map((x) => x.value).join('').toLowerCase()).toBe(row.answer)),
+    review: (card, block) => block.data.rows.forEach((row, i) => expect(crosswordCells(card, block, i).map((x) => x.textContent || x.value).join('').toLowerCase()).toBe(row.answer)),
   },
   planning: { right: () => (key) => `Plaan ${key}` },
   guidedletter: { right: () => ({ text: 'Lugupeetud esindaja, kirjutan teile pargi pärast.' }) },
@@ -262,3 +262,14 @@ export function reviewShows(card, block, answers) {
   const shown = values(card);
   Object.values(answers).forEach((v) => expect(shown, `${block.type}: the teacher sees „${v}”`).toContain(v));
 }
+
+// the cells of row i on the crossword grid (inputs while answering, letters in review)
+export function crosswordCells(root, block, i) {
+  const word = crosswordLayout(block.data.rows).words.find((w) => w.i === i);
+  return Array.from({ length: word.length }, (_, k) => {
+    const x = word.dir === 'across' ? word.x + k : word.x;
+    const y = word.dir === 'down' ? word.y + k : word.y;
+    return root.querySelector(`input[data-cell="${x},${y}"]`) || [...root.querySelectorAll('.ws-cw-cell')].find((c) => c.style.gridColumn === String(x + 1) && c.style.gridRow === String(y + 1))?.querySelector('b');
+  });
+}
+

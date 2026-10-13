@@ -282,6 +282,19 @@
 .ws-crossword li { display: grid; grid-template-columns: minmax(45mm, 1fr) auto; gap: 4mm; align-items: center; }
 .ws-crossword-cells { display: flex; gap: .7mm; }
 .ws-crossword-cells .ws-line { text-align: center; text-transform: uppercase; padding: 0; }
+/* Ristsõna: a real grid (crosswordLayout.js), clues by direction below */
+.ws-cw { display: grid; gap: 4mm; }
+.ws-cw-grid { display: grid; gap: 0; width: 100%; }
+.ws-cw-cell { position: relative; aspect-ratio: 1; border: .3mm solid #1d2939; margin: 0 -.3mm -.3mm 0; background: #fff; display: grid; place-items: center; }
+.ws-cw-cell small { position: absolute; top: .2mm; left: .5mm; font-size: 2.1mm; line-height: 1; color: #344054; }
+.ws-cw-cell input, .ws-cw-cell b { width: 100%; height: 100%; border: 0; background: transparent; text-align: center; text-transform: uppercase; font: 600 4mm/1 inherit; padding: 0; color: #1d2939; }
+.ws-cw-cell input:focus { outline: .5mm solid #4c7cf3; outline-offset: -.5mm; background: #eef4ff; }
+.ws-cw-cell.is-right { background: #ecfdf3; }
+.ws-cw-cell.is-wrong { background: #fef3f2; }
+.ws-cw-clues { display: grid; grid-template-columns: repeat(auto-fit, minmax(55mm, 1fr)); gap: 3mm 6mm; }
+.ws-cw-clues h4 { margin: 0 0 1mm; font-size: 3.4mm; }
+.ws-cw-clues ol { margin: 0; padding-left: 6mm; display: grid; gap: 1mm; }
+.ws-cw-clues small { color: #667085; }
 .ws-rolecards { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
 .ws-rolecards section { border: .45mm solid var(--ks-line); border-radius: 3mm; padding: 4mm; display: grid; gap: 2mm; }
 .ws-rolecards section > b { color: var(--ks-green); font: 900 12pt var(--font-head); }
