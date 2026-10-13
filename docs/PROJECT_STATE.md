@@ -1,3 +1,13 @@
+## 2026-10-13 · agent/a2-modules-08-11 — A2 modules 8–11 (a2-036…055) as full course sheets
+
+- Base: `main` 604c6ac. Written by sub-agents on the module 1 pattern, checked here (course gate).
+- `admin/course/a2/module08.js` „Teenused ja asjaajamine”, `09` „Tervis ja kehahooldus”, `10` „Vaba aeg ja
+  meelelahutus”, `11` „Ilm, aastaajad ja riided”; goals in `a2/lessonGoals.js`. 60 sheets, 13–17 blocks, 40–47 min,
+  didactic score 100; control lessons 040, 045, 050, 055.
+- Audio: 36 new listening recordings (TartuNLP), 336 in total.
+- Tests: course gate passes; worksheet-generator 596 passed, 1 skipped.
+- Next safe step: publish „A2 · moodul 8…11”; then the 13 missing lessons of modules 12–20 (in progress).
+
 ## 2026-10-13 · agent/a2-modules-04-05 — A2 modules 2–7 (a2-006…035) as full course sheets
 
 - Base: `main` a73f6c0. Written by a sub-agent on the module 1 pattern, checked here (gate + sample reading).
