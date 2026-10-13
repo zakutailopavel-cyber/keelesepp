@@ -25,6 +25,7 @@ import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
 import AutoSkillsCard from './AutoSkillsCard.jsx';
+import StudentTopicsCard from '../vocabulary/StudentTopicsCard.jsx';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
@@ -49,7 +50,7 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, petApi, teacherApi, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, petApi, teacherApi, topicsApi, actor }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -180,6 +181,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           <div className="profile-grid">
             <AutoSkillsCard student={student} user={currentUser} isAdmin={canAssignTeacher} homeworkApi={homeworkApi} recordingApi={recordingApi} />
             <StudentRecordingsPanel student={student} user={currentUser} isAdmin={canAssignTeacher} service={recordingApi} />
+            {/* the student's „Sõnavara → Teemad”, read only; topicsApi: { catalogApi, wordsApi, loadWords } (tests) */}
+            <StudentTopicsCard student={student} {...(topicsApi || {})} />
           </div>
         ) : null}
 

@@ -39,5 +39,6 @@ taken unchanged from PR #519 (`agent/lesson-vocabulary`, not merged; only the da
 
 - The unlock is enforced in the app only: `firestore.rules` are unchanged and allow a student to create own words
   with box 0 anyway.
-- The staff view of a student (profile) does not show topic progress yet: it would need the curriculum catalog and
-  the word files in the profile; topic progress can be derived from the `lw_` word ids.
+- Staff see the topic progress read only on the student card → „Areng” (`StudentTopicsCard.jsx`, `topicReport`):
+  state, known/all words per topic, passed/all and the date of the last passed topic (newest `createdAt` of its words).
+  The repetition cycle lives on the student's device and is not visible to staff.
