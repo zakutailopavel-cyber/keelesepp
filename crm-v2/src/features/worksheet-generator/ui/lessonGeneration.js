@@ -8,6 +8,17 @@ export const CORE_SHEETS = Object.freeze([
   { id: 'transfer', label: '3 Kasuta', slot: 3, hint: 'Kasuta iseseisvalt' },
 ]);
 
+// A sheet published from the course code (admin/course, „Kursuse tootmine”): its document id is ws_<lesson>_<phase>.
+// The generator never replaces it — a generated sheet is 5 short tasks, a course sheet a whole lesson (owner
+// 2026-10-13: „а2 листы прям очень маленькие” — regenerated sheets had replaced full ones).
+export function isCourseSheet(record, lessonId) {
+  const id = record?.worksheetId || record?.id;
+  const doc = record?.publishedWorksheetDoc || record?.worksheetDoc;
+  return Boolean(id && doc?.id && doc.id === `ws_${lessonId}_${id}`);
+}
+export const courseSheetIds = (sheets = [], lessonId) => new Set(sheets.filter((sheet) => isCourseSheet(sheet, lessonId)).map((sheet) => sheet.worksheetId || sheet.id));
+export const COURSE_SHEET_KEPT = 'See on kursuse leht (terve tund). Generaator seda ei asenda — loo lisaleht.';
+
 export const coreSheetMeta = (worksheetId) => CORE_SHEETS.find((meta) => meta.id === worksheetId) || null;
 
 export function generationMeta(sheet, { scope, variant, size = 'standard', levelVocabulary = null }) {
@@ -54,6 +65,7 @@ export async function generateCoreSheets({ repository, lessonId, lesson, profile
     const meta = CORE_SHEETS[index];
     const current = byId.get(meta.id);
     if (onlyMissing && current) return null;
+    if (current && isCourseSheet(current, lessonId)) return null;
     return repository.saveDraft({
       lessonId,
       worksheetId: meta.id,
@@ -66,7 +78,7 @@ export async function generateCoreSheets({ repository, lessonId, lesson, profile
       generation: generationMeta(sheet, { scope: 'lesson-bundle', variant, levelVocabulary }),
     });
   }));
-  return { variant };
+  return { variant, docs: result.sheets.map((sheet) => sheet.worksheetDoc) };
 }
 
 // Generates one focus sheet and saves it as a draft. Returns its id, label and variant.
@@ -110,6 +122,7 @@ export function previewCoreSheet({ lessonId, lesson, profile, sheets, levelVocab
   const index = CORE_SHEETS.findIndex((meta) => meta.id === worksheetId);
   if (index < 0) throw new Error('Seda lehte ei saa eraldi genereerida.');
   const byId = new Map(sheets.map((sheet) => [sheet.worksheetId || sheet.id, sheet]));
+  if (isCourseSheet(byId.get(worksheetId), lessonId)) throw new Error(COURSE_SHEET_KEPT);
   const existing = CORE_SHEETS.map(({ id }) => byId.get(id)).filter(Boolean);
   const variant = Math.max(0, ...existing.map((sheet) => Number(sheet?.generation?.variant) || Number(sheet?.worksheetDocVersion) || 0)) + 1;
   const result = generateLessonBundle({

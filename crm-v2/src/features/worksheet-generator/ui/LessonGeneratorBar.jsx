@@ -9,7 +9,8 @@ import { lessonWorksheetsService, levelVocabularyService } from '../../../servic
 import { generatorFlagsService } from '../../../services/firebase/generatorFlags.js';
 import { FOCUS_PHASES } from '../engine/focusWorksheet.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
-import { CORE_SHEETS, generateCoreSheets, generateFocusSheet, previewCoreSheet } from './lessonGeneration.js';
+import { sheetMinutes, SHEET_MINUTES } from '../../worksheet-studio/didactics/timeEstimate.js';
+import { CORE_SHEETS, courseSheetIds, generateCoreSheets, generateFocusSheet, previewCoreSheet } from './lessonGeneration.js';
 import '../generator.css';
 
 const UNSAVED = 'Töölehel on salvestamata muudatusi. Genereerimine laadib uue mustandi ja need muudatused lähevad kaotsi. Jätkata?';
@@ -42,6 +43,10 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
   const ids = new Set(sheets.map((sheet) => sheet.worksheetId || sheet.id));
   const focusSheets = sheets.filter((sheet) => sheet.role === 'focus');
   const hasCore = CORE_SHEETS.some(({ id }) => ids.has(id));
+  // course sheets (whole lessons) stay: the generator then only fills a missing phase or makes an extra sheet
+  const course = courseSheetIds(sheets, lessonId);
+  const missingCore = CORE_SHEETS.filter(({ id }) => !ids.has(id));
+  const onCourseSheet = course.has(worksheetId);
   const selectedFocusId = focusId || profile?.focuses?.[0]?.id || '';
   const sheetPath = (id) => `/library/lessons/${encodeURIComponent(lessonId)}/worksheets/${encodeURIComponent(id)}`;
   const deps = () => ({ repository, lessonId, lesson, profile, sheets, levelVocabulary, difficulty, user, blockedSentences: (flags.data || []).map((f) => f.text) });
@@ -60,10 +65,13 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
   };
 
   const generate = () => {
-    if (hasCore && !globalThis.confirm('Genereerimine loob kolmest põhitöölehest uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?')) return;
+    if (!course.size && hasCore && !globalThis.confirm('Genereerimine loob kolmest põhitöölehest uue mustandiversiooni; avaldatud versioon jääb alles. Jätkata?')) return;
     run('core', async () => {
-      const { variant } = await generateCoreSheets(deps());
-      setNotice(`Kolm töölehte genereeriti (variant ${variant}).`);
+      const { variant, docs = [] } = await generateCoreSheets({ ...deps(), onlyMissing: course.size > 0 });
+      // the course's lesson rule (40–55 min a sheet): a short generated sheet is said to be an extra exercise
+      const minutes = docs.map((d) => sheetMinutes(d));
+      const short = minutes.some((m) => m < SHEET_MINUTES.min);
+      setNotice(`${course.size ? 'Puuduv leht genereeriti' : 'Kolm töölehte genereeriti'} (variant ${variant}).${short ? ` Lehed on lühikesed (≈ ${Math.min(...minutes)}–${Math.max(...minutes)} min; tunni põhileht ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min) — sobivad lisaharjutuseks; enne avaldamist täienda.` : ''}`);
       if (CORE_SHEETS.some(({ id }) => id === worksheetId)) onGenerated?.();
       else navigate(sheetPath('discover'));
     });
@@ -130,10 +138,11 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
         {profile ? (
           <>
             <select aria-label="Töölehtede raskus" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} disabled={Boolean(busy)}><option value="support">Support</option><option value="core">Core</option><option value="challenge">Challenge</option></select>
-            <button type="button" className="st-btn primary" onClick={generate} disabled={Boolean(busy)}><Sparkles size={15} aria-hidden="true" /> {busy === 'core' ? 'Genereerin…' : hasCore ? 'Genereeri 3 lehte uuesti' : 'Genereeri 3 töölehte'}</button>
-            {currentCore && onPreviewSheet ? <button type="button" className="st-btn" onClick={previewThisSheet} disabled={Boolean(busy)} title="Ainult see leht; enne salvestamist näed tulemust ja saad tagasi võtta"><Sparkles size={15} aria-hidden="true" /> Ainult see leht</button> : null}
+            {course.size ? <span className="lgb-course" title="Kursuse lehed on terved tunnid; generaator neid ei asenda.">Kursuse lehed · generaator teeb lisalehe</span> : null}
+            {!course.size || missingCore.length ? <button type="button" className="st-btn primary" onClick={generate} disabled={Boolean(busy)}><Sparkles size={15} aria-hidden="true" /> {busy === 'core' ? 'Genereerin…' : course.size ? `Genereeri puuduv leht (${missingCore.length})` : hasCore ? 'Genereeri 3 lehte uuesti' : 'Genereeri 3 töölehte'}</button> : null}
+            {currentCore && onPreviewSheet && !onCourseSheet ? <button type="button" className="st-btn" onClick={previewThisSheet} disabled={Boolean(busy)} title="Ainult see leht; enne salvestamist näed tulemust ja saad tagasi võtta"><Sparkles size={15} aria-hidden="true" /> Ainult see leht</button> : null}
             <details className="st-more lgb-focus">
-              <summary className="st-btn"><Target size={15} aria-hidden="true" /> {busy === 'focus' ? 'Genereerin…' : 'Fookuse leht ▾'}</summary>
+              <summary className="st-btn"><Target size={15} aria-hidden="true" /> {busy === 'focus' ? 'Genereerin…' : course.size ? 'Lisaleht ▾' : 'Fookuse leht ▾'}</summary>
               <div className="st-menu lgb-focus-menu">
                 <label><span>Fookus</span><select aria-label="Töölehe fookus" value={selectedFocusId} onChange={(event) => setFocusId(event.target.value)}>{(profile.focuses || []).map((focus) => <option value={focus.id} key={focus.id}>{focus.label}</option>)}</select></label>
                 <label><span>Etapp</span><select aria-label="Fookuse töölehe etapp" value={focusPhase} onChange={(event) => setFocusPhase(event.target.value)}>{FOCUS_PHASES.map((phase) => <option value={phase.id} key={phase.id}>{phase.label}</option>)}</select></label>
