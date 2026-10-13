@@ -22,8 +22,8 @@ export const LESSONS = {
         ['B', 'Anna Tamm. Minu telefon on 5234 6789.'], ['A', 'Aitäh! Ma [kinnitan]: laupäeval kell kaksteist.'], ['B', 'Suurepärane. Aitäh ja nägemist!'],
       ]),
       B.reading('036_d_read', 'Loe: Anna nädal.', 'Loe Anna sõnumit ja vasta küsimustele lühidalt.', 'Kolm uut aega',
-        'Tere, Liis! Mul on sel nädalal palju asju ajada. Esmaspäeval helistasin juuksurisse. Ma tahtsin aega reedeks, aga reede oli kinni. Administraator pakkus laupäeva kell kümme. Kell kümme ma ei saa, sest siis on Mia trenn. Seepärast küsisin, kas on võimalik tulla hiljem. Nüüd on mul aeg laupäeval kell kaksteist. Teisipäeval broneerisin aja ka hambaarstile. Hambaarstil oli vaba aeg alles järgmisel kolmapäeval kell kaheksa. See on vara, aga ma võtsin selle. Täna helistas autoteenindus. Minu aeg oli neljapäeval, aga meister on haige. Me muutsime aja järgmisele esmaspäevale. Nüüd on minu kalendris kolm uut aega. Administraator küsis ka, kas ma tahan juukseid värvida. Ma ütlesin, et seekord ainult lõikus. Kas sa tahad laupäeval pärast juuksurit kohvi juua? Ma olen vaba kell üks. Anna',
-        [['Miks Anna ei saanud reedel juuksurisse minna?', 'reede oli kinni|reedel ei olnud vaba aega'], ['Miks kell kümme Annale ei sobi?', 'siis on Mia trenn|Mia trenn'], ['Mis kell on Anna aeg juuksuris?', 'kell kaksteist|kell 12|laupäeval kell kaksteist'],
+        'Tere, Liis! Mul on sel nädalal palju asju ajada. Esmaspäeval helistasin juuksurisse. Ma tahtsin aega reedeks, aga reede oli kinni. Administraator pakkus laupäeva kell kümme. Kell kümme ma ei saa, sest siis on mul trenn. Seepärast küsisin, kas on võimalik tulla hiljem. Nüüd on mul aeg laupäeval kell kaksteist. Teisipäeval broneerisin aja ka hambaarstile. Hambaarstil oli vaba aeg alles järgmisel kolmapäeval kell kaheksa. See on vara, aga ma võtsin selle. Täna helistas autoteenindus. Minu aeg oli neljapäeval, aga meister on haige. Me muutsime aja järgmisele esmaspäevale. Nüüd on minu kalendris kolm uut aega. Administraator küsis ka, kas ma tahan juukseid värvida. Ma ütlesin, et seekord ainult lõikus. Kas sa tahad laupäeval pärast juuksurit kohvi juua? Ma olen vaba kell üks. Anna',
+        [['Miks Anna ei saanud reedel juuksurisse minna?', 'reede oli kinni|reedel ei olnud vaba aega'], ['Miks kell kümme Annale ei sobi?', 'siis on tal trenn|tal on trenn|trenn'], ['Mis kell on Anna aeg juuksuris?', 'kell kaksteist|kell 12|laupäeval kell kaksteist'],
           ['Millal on Anna aeg hambaarstil?', 'järgmisel kolmapäeval kell kaheksa|kolmapäeval kell kaheksa|kolmapäeval kell 8'], ['Miks autoteenindus aega muutis?', 'meister on haige|sest meister on haige'], ['Millal on Anna laupäeval vaba?', 'kell üks|kell 1|kell 13']]),
       B.truefalse('036_d_tf', 'Õige või vale?', 'Loe Anna sõnumit uuesti.', [
         ['Anna helistas juuksurisse esmaspäeval.', true], ['Laupäev kell kümme sobis Annale hästi.', false], ['Hambaarsti aeg on hommikul vara.', true],
@@ -286,7 +286,7 @@ export const LESSONS = {
       B.selfcheck('038_p_self', ['Ma teen juhise teie-vormis: täitke, valige.', 'Ma saan aru juhendi sammudest.', 'Ma leian vormis vea.', 'Ma kirjutan sõbrale juhise.'], 'Juhised selged'),
     ],
     transfer: [
-      B.text('038_t_situation', 'Uus olukord', 'Sinu laps Mia tahab minna muusikakooli. Kooli kodulehel on taotluse vorm ja juhend. Sa pead vormi täitma ja kooli sekretärile kirjutama.'),
+      B.text('038_t_situation', 'Uus olukord', 'Sinu laps Emma tahab minna muusikakooli. Kooli kodulehel on taotluse vorm ja juhend. Sa pead vormi täitma ja kooli sekretärile kirjutama.'),
       B.reading('038_t_info', 'Loe kooli juhendit.', 'Loe juhendit ja vasta küsimustele.', 'Muusikakooli vastuvõtt',
         'Muusikakooli võetakse lapsi vanuses 6–12 aastat. Taotluse peab täitma lapsevanem. Taotluse tähtaeg on 31. mai. Täitke kõik tärniga lahtrid. Kirjutage lapse nimi, isikukood ja aadress. Valige pill: klaver, viiul või kitarr. Võite valida kaks pilli. Märkige, kas laps on varem muusikat õppinud. Kirjutage lapsevanema nimi, telefon ja e-post. Lõpus andke allkiri. Taotluse võite saata e-postiga või tuua kooli kantseleisse. Katsed on 5. juunil kell 10. Lapsel ei pea olema oma pilli. Kuu tasu on 40 eurot. Õppetöö algab 1. septembril. Tunnid on kaks korda nädalas pärast tavakooli. Kui teil on küsimusi, kirjutage kooli sekretärile.',
         [['Mis vanuses lapsi kooli võetakse?', '6–12 aastat|kuuest kaheteistkümneni'], ['Mis on taotluse tähtaeg?', '31. mai|31. mail'], ['Mitu pilli võib valida?', 'kaks|2'], ['Kuidas taotlust saata?', 'e-postiga või tuua kantseleisse|e-postiga'], ['Millal on katsed?', '5. juunil kell 10|5. juunil']]),
@@ -300,7 +300,7 @@ export const LESSONS = {
       B.speaking('038_t_say', 'Räägi teisele lapsevanemale.', 'Teine lapsevanem küsib, kuidas taotlus täita. Selgita.', ['Mis andmeid on vaja?', 'Mis on tähtaeg?', 'Kuidas taotlust saata?', 'Millal on katsed?'], [45, 90]),
       B.errorfix('038_t_fix', 'Kontrolli e-kirja.', 'E-kirjas on vead. Kirjuta õigesti.', [['Palun vaatke minu taotlus.', 'Palun vaadake minu taotlust.|Palun vaadake minu taotlus.'], ['Ma unustasin kirjutama isikukoodi.', 'Ma unustasin isikukoodi kirjutada.|Ma unustasin kirjutada isikukoodi.'], ['Kas laps peab pilli kaasa võtta?', 'Kas laps peab pilli kaasa võtma?'], ['Ma ootan teie vastus.', 'Ma ootan teie vastust.']]),
       B.translation('038_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Я заполнил заявление.', 'Я забыл написать личный код.', 'Ребёнку не нужен свой инструмент.', 'Когда прослушивание?', 'Где мне расписаться?']),
-      B.writing('038_t_write', 'Sõnum lapsele.', 'Kirjuta Miale 5–7 lauset: millal on katsed ja mida kaasa võtta.', [5, 7], ['kool', 'katsed', 'pead', 'võid'], 2),
+      B.writing('038_t_write', 'Sõnum lapsele.', 'Kirjuta Emmale 5–7 lauset: millal on katsed ja mida kaasa võtta.', [5, 7], ['kool', 'katsed', 'pead', 'võid'], 2),
       B.rubric('038_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Vormis on kõik kohustuslikud lahtrid täidetud.', 'Andmed on õiges kohas ja loetavad.', 'E-kirjas on tervitus, puuduv info, küsimus ja lõpp.', 'Rollimängus küsib lapsevanem ja saab vastuse.']),
       B.selfcheck('038_t_self', ['Ma loen kooli juhendit.', 'Ma täidan taotluse ilma tühja lahtrita.', 'Ma saadan puuduva info e-postiga.', 'Ma küsin kantseleis, kui ma ei saa aru.'], 'Taotlus esitatud'),
     ],
@@ -313,16 +313,16 @@ export const LESSONS = {
       B.text('039_d_situation', 'Internet ei tööta', 'Jaani kodus ei tööta internet juba kaks päeva. Ta helistab interneti klienditeenindusse. Kõigepealt räägib automaat, siis vastab teenindaja.'),
       B.vocab('039_d_vocab', 'Telefonis', ['helistama — звонить', 'klienditeenindus — служба поддержки', 'teenindaja — сотрудник', 'kõne — звонок', 'ootel olema — ждать на линии', 'ühendama — соединять', 'kordama — повторять', 'kuulma — слышать', 'tähthaaval ütlema — сказать по буквам', 'sõnumit jätma — оставить сообщение', 'tagasi helistama — перезвонить', 'lahendama — решать']),
       B.listening('039_d_listen', 'Kuula kõnet.', 'Õpetaja loeb kõne kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Automaat: Tere! Teie kõne on meile oluline. Palun oodake.', 'Teenindaja: Tere! Siin Kati. Mis küsimuses te helistate?', 'Jaan: Tere! Minu kodus ei tööta internet.',
-        'Kati: Mis on teie nimi ja aadress?', 'Jaan: Jaan Kask, Pärna tänav 8, Tartu.', 'Kati: Vabandust, ma ei kuulnud. Palun korrake tänavat.', 'Jaan: Pärna. P, Ä, R, N, A.',
-        'Kati: Aitäh. Ma ühendan teid tehnikuga.', 'Kati: Tehnik helistab teile tagasi täna kell kolm.',
-      ], ['Teenindaja nimi on [Kati].', 'Jaani kodus ei tööta [internet].', 'Jaan elab [Pärna] tänaval.', 'Kati palub Jaanil tänavat [korrata].', 'Kati ühendab Jaani [tehnikuga].', 'Tehnik helistab tagasi kell [kolm|3|15].']),
+        'Automaat: Tere! Teie kõne on meile oluline. Palun oodake.', 'Teenindaja: Tere! Siin Anneli. Mis küsimuses te helistate?', 'Jaan: Tere! Minu kodus ei tööta internet.',
+        'Anneli: Mis on teie nimi ja aadress?', 'Jaan: Jaan Kask, Pärna tänav 8, Tallinn.', 'Anneli: Vabandust, ma ei kuulnud. Palun korrake tänavat.', 'Jaan: Pärna. P, Ä, R, N, A.',
+        'Anneli: Aitäh. Ma ühendan teid tehnikuga.', 'Anneli: Tehnik helistab teile tagasi täna kell kolm.',
+      ], ['Teenindaja nimi on [Anneli].', 'Jaani kodus ei tööta [internet].', 'Jaan elab [Pärna] tänaval.', 'Anneli palub Jaanil tänavat [korrata].', 'Anneli ühendab Jaani [tehnikuga].', 'Tehnik helistab tagasi kell [kolm|3|15].']),
       B.reading('039_d_read', 'Loe klienditeeninduse infot.', 'Loe teksti ja vasta küsimustele.', 'Kuidas meile helistada?',
         'Meie klienditeenindus on avatud iga päev kell 8–20. Helistage numbril 1717. Kõigepealt kuulete automaati. Valige number. Interneti küsimused: vajutage 1. Arve küsimused: vajutage 2. Uus leping: vajutage 3. Siis palun oodake. Tavaliselt vastab teenindaja viie minuti jooksul. Kui ootamine on liiga pikk, võite jätta sõnumi. Siis helistame teile tagasi samal päeval. Enne kõnet otsige üles lepingu number. Teenindaja küsib ka teie nime ja aadressi. Me räägime eesti, vene ja inglise keeles. Kui teenindaja ei saa probleemi lahendada, ühendab ta teid tehnikuga. Lihtsaid küsimusi saate lahendada ka meie kodulehel.',
         [['Millal on klienditeenindus avatud?', 'iga päev kell 8–20|kell 8–20'], ['Mis numbrit vajutad arve küsimusega?', '2|kaks'], ['Millal vastab tavaliselt teenindaja?', 'viie minuti jooksul'], ['Mida teha, kui ootamine on pikk?', 'jätta sõnum|jäta sõnum'], ['Mida peab enne kõnet üles otsima?', 'lepingu numbri|lepingu number'], ['Kellega ühendab teenindaja, kui ta ei saa aidata?', 'tehnikuga']]),
       B.notice('039_d_notice', 'Märka: telefonis', ['Teenindaja: **Mis küsimuses** te helistate?', 'Teenindaja: **Palun oodake.** · **Ma ühendan** teid…', 'Klient: **Ma helistan**, sest internet ei tööta.', 'Kui ei kuule: **Palun korrake!** · **Palun öelge tähthaaval.**', 'Lõpus: **Kas ma saan veel aidata?** · **Aitäh, head päeva!**']),
       B.dialogue('039_d_dialog', 'Kõne panka.', 'Täida dialoog sobivate sõnadega.', 'Teenindaja', 'Olga', [
-        ['A', 'Tere! Pank, Markus kuuleb. Mis [küsimuses] te helistate?'], ['B', 'Tere! Ma ei saa oma [kaarti] kasutada.'], ['A', 'Palun [oodake], ma vaatan.'],
+        ['A', 'Tere! Pank, Raul kuuleb. Mis [küsimuses] te helistate?'], ['B', 'Tere! Ma ei saa oma [kaarti] kasutada.'], ['A', 'Palun [oodake], ma vaatan.'],
         ['B', 'Vabandust, ma ei [kuule] teid hästi.'], ['A', 'Palun öelge oma nimi [tähthaaval].'], ['B', 'O, L, G, A. Olga Ivanova.'], ['A', 'Aitäh. Ma [ühendan] teid kaardiosakonnaga.'],
       ]),
       B.match('039_d_match', 'Mida see tähendab?', 'Ühenda lause ja tähendus.', [
@@ -346,14 +346,14 @@ export const LESSONS = {
     ],
     practice: [
       B.listening('039_p_call1', 'Kuulamine 1. Kõne arstikeskusse.', 'Õpetaja loeb kõne kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Arstikeskus Tervis, tere! Siin Olga.', 'Tere! Siin Viktor Orlov. Ma helistan aja pärast.', 'Mis küsimuses täpsemalt?', 'Mul on homme aeg perearstile, aga ma olen tööl.',
+        'Arstikeskus Tervis, tere! Siin Margit.', 'Tere! Siin Viktor Orlov. Ma helistan aja pärast.', 'Mis küsimuses täpsemalt?', 'Mul on homme aeg perearstile, aga ma olen maal.',
         'Selge. Palun oodake hetk. Ma vaatan kalendrit.', 'Kas neljapäeval kell kaheksa sobib?', 'Jah, sobib. Aitäh!', 'Palun tulge kabinetti number 14.',
-      ], ['Teenindaja nimi on [Olga].', 'Helistaja nimi on Viktor [Orlov].', 'Tal on aeg [perearstile].', 'Homme on Viktor [tööl].', 'Uus aeg on [neljapäeval] kell kaheksa.', 'Kabineti number on [14|neliteist].']),
+      ], ['Teenindaja nimi on [Margit].', 'Helistaja nimi on Viktor [Orlov].', 'Tal on aeg [perearstile].', 'Homme on Viktor [maal].', 'Uus aeg on [neljapäeval] kell kaheksa.', 'Kabineti number on [14|neliteist].']),
       B.listening('039_p_call2', 'Kuulamine 2. Häälsõnum.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin Markus postkontorist.', 'See sõnum on Sofia Melnikule.', 'Teie pakk on postkontoris juba kolm päeva.', 'Pakk on Saksamaalt.',
+        'Tere! Siin Priit postkontorist.', 'See sõnum on Sofia Melnikule.', 'Teie pakk on postkontoris juba kolm päeva.', 'Pakk on Saksamaalt.',
         'Palun tulge pakile järele kuni laupäevani.', 'Võtke kaasa ID-kaart või pass.', 'Postkontor on avatud kella kuueni.',
       ], ['Helistaja töötab [postkontoris].', 'Pakk on postkontoris [kolm] päeva.', 'Pakk on [Saksamaalt].', 'Pakile peab järele tulema kuni [laupäevani].', 'Kaasa on vaja ID-kaarti või [passi].']),
-      B.table('039_p_notes', 'Kõne märkmed.', 'Kirjuta kuulatud kõnede info tabelisse.', 'Kõne, Kes helistab?, Mis küsimuses?, Järgmine samm', ['Kõne 1 | [Viktor|Viktor Orlov] | [aja pärast|perearsti aeg] | [neljapäeval kell kaheksa|tulla neljapäeval]', 'Kõne 2 | [Markus] | [pakk|pakk on postkontoris] | [tulla pakile järele|tulla postkontorisse]']),
+      B.table('039_p_notes', 'Kõne märkmed.', 'Kirjuta kuulatud kõnede info tabelisse.', 'Kõne, Kes helistab?, Mis küsimuses?, Järgmine samm', ['Kõne 1 | [Viktor|Viktor Orlov] | [aja pärast|perearsti aeg] | [neljapäeval kell kaheksa|tulla neljapäeval]', 'Kõne 2 | [Priit] | [pakk|pakk on postkontoris] | [tulla pakile järele|tulla postkontorisse]']),
       B.categorize('039_p_who', 'Kes ütleb?', 'Pane laused õigesse rühma.', [
         ['Teenindaja', ['Mis küsimuses te helistate?', 'Palun oodake', 'Ma ühendan teid', 'Kas ma saan veel aidata?']],
         ['Klient', ['Ma helistan arve pärast', 'Vabandust, ma ei kuule', 'Millal te helistate tagasi?', 'Minu nimi on Kask']],
@@ -389,9 +389,9 @@ export const LESSONS = {
       B.planning('039_t_plan', 'Enne kõnet.', 'Kirjuta märksõnad: mida sa telefonis ütled.', ['Kes sa oled ja mis on tellimuse number?', 'Mis on probleem?', 'Mis aeg sulle sobib?'], 2),
       B.rolecards('039_t_roles', 'Kõne klienditeenindusse.', 'Üks on klient, teine on teenindaja.', 'Oled klient. Neljapäeval kell 12–16 oled tööl. Palu uut aega: reede pärast kella viit või laupäev. Ütle tellimuse number.', 'Oled teenindaja. Küsi nimi ja tellimuse number. Paku reede kell 17–20. Ütle, et kuller helistab tund enne.', ['Ma helistan tellimuse pärast.', 'Kas on võimalik…?', 'Palun korrake!'], ['Mis küsimuses te helistate?', 'Palun oodake.', 'Kas reede sobib?']),
       B.listening('039_t_listen', 'Kuula kulleri häälsõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin Jaan, kuller.', 'Ma toon teie diivani reedel.', 'Ma olen teie juures umbes kell kuus.', 'Kas teie majas on lift?', 'Palun helistage mulle tagasi numbril 5550 1122.',
-      ], ['Kulleri nimi on [Jaan].', 'Diivan tuleb [reedel].', 'Kuller tuleb umbes kell [kuus|6|18].', 'Kuller küsib, kas majas on [lift].']),
-      B.letter('039_t_letter', 'Vastus kullerile.', 'Kirjuta kullerile 25–40 sõna: aeg sobib või ei sobi, korrus ja lift.', 'Tere, Jaan!', 'Tervitades', [25, 40]),
+        'Tere! Siin Sander, kuller.', 'Ma toon teie diivani reedel.', 'Ma olen teie juures umbes kell kuus.', 'Kas teie majas on lift?', 'Palun helistage mulle tagasi numbril 5550 1122.',
+      ], ['Kulleri nimi on [Sander].', 'Diivan tuleb [reedel].', 'Kuller tuleb umbes kell [kuus|6|18].', 'Kuller küsib, kas majas on [lift].']),
+      B.letter('039_t_letter', 'Vastus kullerile.', 'Kirjuta kullerile 25–40 sõna: aeg sobib või ei sobi, korrus ja lift.', 'Tere, Sander!', 'Tervitades', [25, 40]),
       B.speaking('039_t_say', 'Räägi sõbrale.', 'Räägi sõbrale, mis diivaniga juhtus.', ['Mida sa tellisid?', 'Mis oli probleem?', 'Kellega sa rääkisid?', 'Mis on uus aeg?'], [45, 90]),
       B.manymatch('039_t_phr', 'Mida vastata?', 'Ühenda teenindaja lause ja sinu vastus.', ['Mis küsimuses te helistate?', 'Mis on tellimuse number?', 'Kas reede sobib?', 'Kas ma saan veel aidata?', 'Palun oodake.'], ['Minu diivan ei tulnud.', 'Number on 4521.', 'Jah, reede sobib.', 'Ei, aitäh. Head päeva!', 'Hästi, ma ootan.']),
       B.wordorder('039_t_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Ma helistan tellimuse pärast.', 'Neljapäeval olen ma tööl.', 'Kas on võimalik reedel tuua?', 'Minu majas on lift.']),
@@ -442,9 +442,9 @@ export const LESSONS = {
         'Mulle {*sobib|sobivad|sobin} reede või esmaspäev. Palun {*kinnitage|kinnitama|kinnitan} uus aeg e-postiga. Aitäh!',
       ]),
       B.listening('040_p_listen', 'Kuulamine 1. Häälsõnum.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Siin Sofia autoteenindusest Kiire.', 'See sõnum on Jaan Kasele.', 'Teie aeg oli homme kell kaheksa.', 'Kahjuks ei ole meil homme vajalikku osa.',
+        'Tere! Siin Piret autoteenindusest Kiire.', 'See sõnum on Jaan Kasele.', 'Teie aeg oli homme kell kaheksa.', 'Kahjuks ei ole meil homme vajalikku osa.',
         'Me pakume uut aega: esmaspäeval kell üks.', 'Töö kestab umbes kaks tundi.', 'Palun kinnitage aeg telefonil 640 2020.',
-      ], ['Helistaja nimi on [Sofia].', 'Jaani vana aeg oli homme kell [kaheksa|8].', 'Uus aeg on [esmaspäeval] kell üks.', 'Töö kestab umbes [kaks|2] tundi.', 'Aeg tuleb kinnitada [telefonil|telefoni teel].']),
+      ], ['Helistaja nimi on [Piret].', 'Jaani vana aeg oli homme kell [kaheksa|8].', 'Uus aeg on [esmaspäeval] kell üks.', 'Töö kestab umbes [kaks|2] tundi.', 'Aeg tuleb kinnitada [telefonil|telefoni teel].']),
       B.listening('040_p_listen2', 'Kuulamine 2. Kõne pangas.', 'Õpetaja loeb kõne kaks korda. Täida märkmed.', [
         '— Pank, tere! Mis küsimuses te helistate?', '— Tere! Siin Olga Ivanova. Minu kaart ei tööta.', '— Palun öelge oma perekonnanimi tähthaaval.', '— I, V, A, N, O, V, A.',
         '— Aitäh. Teie kaart on vana. Uus kaart on kontoris.', '— Kus kontor asub?', '— Narva maanteel 15. Võtke kaasa pass.',

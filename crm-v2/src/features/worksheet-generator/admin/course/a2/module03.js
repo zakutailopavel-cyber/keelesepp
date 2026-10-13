@@ -15,16 +15,16 @@ export const LESSONS = {
     title: 'Minu päev',
     canDo: 'Ma räägin oma tavalisest päevast umbes poolteist minutit ja kasutan vähemalt kuut ajamarkerit (hommikul, päeval, õhtul, öösel, kell …, pärast tööd).',
     discover: [
-      B.text('011_d_situation', 'Kaks erinevat päeva', 'Viktor on bussijuht ja ta ärkab väga vara. Tema naaber Kati on üliõpilane ja ta magab hommikul kaua. Nad elavad samas majas, aga nende päevad on väga erinevad.'),
+      B.text('011_d_situation', 'Kaks erinevat päeva', 'Urmas on bussijuht ja ta ärkab väga vara. Tema naaber Kati on üliõpilane ja ta magab hommikul kaua. Nad elavad samas majas, aga nende päevad on väga erinevad.'),
       B.vocab('011_d_vocab', 'Minu päev', ['päev — день', 'hommikul — утром', 'päeval — днём', 'õhtul — вечером', 'öösel — ночью', 'ärkama — просыпаться', 'minema (lähen) — идти', 'tulema (tulen) — приходить', 'sööma (söön) — есть', 'puhkama — отдыхать', 'magama — спать', 'tavaline — обычный', 'hommikusöök — завтрак']),
-      B.reading('011_d_read', 'Loe: Viktori päev.', 'Loe teksti ja vasta küsimustele lühidalt.', 'Bussijuhi päev',
-        'Viktor ärkab iga päev kell viis. Ta joob kohvi ja sööb võileiba. Kell pool kuus läheb ta bussiparki. Hommikul on bussis palju inimesi. Nad sõidavad tööle ja kooli. Kell kaksteist on Viktoril lõuna. Ta sööb sööklas suppi. Päeval sõidab ta jälle. Kell kolm lõpeb tema tööpäev ja ta tuleb koju. Pärastlõunal ta puhkab natuke diivanil. Õhtul teeb ta koos naisega süüa. Pärast õhtusööki nad jalutavad pargis või vaatavad telekat. Viktor läheb magama vara, kell kümme. Öösel ta magab hästi, sest ta on väsinud. Laupäeval ja pühapäeval ei ärka Viktor kell viis. Siis ta magab kaheksani ja sõidab kalale.',
-        [['Mis kell Viktor ärkab?', 'kell viis|viis|5'], ['Mida ta hommikul sööb?', 'võileiba|võileib'], ['Kus Viktor lõunat sööb?', 'sööklas'], ['Millal lõpeb tööpäev?', 'kell kolm|kolm|15'], ['Mida Viktor õhtul teeb?', 'teeb süüa|jalutab pargis|vaatab telekat'], ['Mida ta nädalavahetusel teeb?', 'sõidab kalale|magab kaheksani']]),
-      B.truefalse('011_d_tf', 'Õige või vale?', 'Loe Viktori teksti uuesti.', [
-        ['Viktor joob hommikul teed.', false], ['Lõuna on kell kaksteist.', true], ['Viktor tuleb koju kell viis.', false], ['Õhtul teeb Viktor naisega süüa.', true], ['Viktor läheb magama kell kümme.', true],
+      B.reading('011_d_read', 'Loe: Urmase päev.', 'Loe teksti ja vasta küsimustele lühidalt.', 'Bussijuhi päev',
+        'Urmas ärkab iga päev kell viis. Ta joob kohvi ja sööb võileiba. Kell pool kuus läheb ta bussiparki. Hommikul on bussis palju inimesi. Nad sõidavad tööle ja kooli. Kell kaksteist on Urmasel lõuna. Ta sööb sööklas suppi. Päeval sõidab ta jälle. Kell kolm lõpeb tema tööpäev ja ta tuleb koju. Pärastlõunal ta puhkab natuke diivanil. Õhtul teeb ta koos naisega süüa. Pärast õhtusööki nad jalutavad pargis või vaatavad telekat. Urmas läheb magama vara, kell kümme. Öösel ta magab hästi, sest ta on väsinud. Laupäeval ja pühapäeval ei ärka Urmas kell viis. Siis ta magab kaheksani ja sõidab kalale.',
+        [['Mis kell Urmas ärkab?', 'kell viis|viis|5'], ['Mida ta hommikul sööb?', 'võileiba|võileib'], ['Kus Urmas lõunat sööb?', 'sööklas'], ['Millal lõpeb tööpäev?', 'kell kolm|kolm|15'], ['Mida Urmas õhtul teeb?', 'teeb süüa|jalutab pargis|vaatab telekat'], ['Mida ta nädalavahetusel teeb?', 'sõidab kalale|magab kaheksani']]),
+      B.truefalse('011_d_tf', 'Õige või vale?', 'Loe Urmase teksti uuesti.', [
+        ['Urmas joob hommikul teed.', false], ['Lõuna on kell kaksteist.', true], ['Urmas tuleb koju kell viis.', false], ['Õhtul teeb Urmas naisega süüa.', true], ['Urmas läheb magama kell kümme.', true],
       ]),
       B.notice('011_d_notice', 'Märka: päeva osad ja tegusõnad', ['**hommikul** ärkan, **päeval** töötan, **õhtul** puhkan, **öösel** magan', 'minema: ma **lähen**, ta **läheb**, nad **lähevad**', 'tulema: ma **tulen**, ta **tuleb**', 'sööma: ma **söön**, ta **sööb**; jooma: ma **joon**, ta **joob**', 'tegema: ma **teen**, ta **teeb**', '**Kell viis** ärkan. **Kell pool kuus** lähen tööle.']),
-      B.categorize('011_d_sort', 'Millal Viktor seda teeb?', 'Pane tegevused õigesse rühma.', [
+      B.categorize('011_d_sort', 'Millal Urmas seda teeb?', 'Pane tegevused õigesse rühma.', [
         ['Hommikul', ['ärkab kell viis', 'joob kohvi', 'läheb bussiparki']], ['Päeval', ['sööb sööklas suppi', 'sõidab bussiga']], ['Õhtul', ['teeb süüa', 'jalutab pargis', 'vaatab telekat']], ['Öösel', ['magab hästi']],
       ], 'full', 'g_read'),
       B.wordforms('011_d_forms', 'Pööra tegusõna.', 'Kirjuta tegusõna õiges vormis.', [
@@ -68,7 +68,7 @@ export const LESSONS = {
         ['___ ma magan.', 'Öösel', 'Ööl', 'Öö'], ['Mis kell sa koju ___?', 'tuled', 'tuleb', 'tulen'], ['Pärast tööd ta ___ diivanil.', 'puhkab', 'puhkan', 'puhkame'],
       ], 'full', 'g_notice'),
       B.transformation('011_p_he', 'Ma → tema.', 'Kirjuta lause uue alusega.', [
-        ['Ma ärkan kell kuus.', 'Viktor …', 'Viktor ärkab kell kuus.'], ['Ma lähen ülikooli.', 'Kati …', 'Kati läheb ülikooli.'], ['Ma söön putru.', 'Laps …', 'Laps sööb putru.'],
+        ['Ma ärkan kell kuus.', 'Urmas …', 'Urmas ärkab kell kuus.'], ['Ma lähen ülikooli.', 'Kati …', 'Kati läheb ülikooli.'], ['Ma söön putru.', 'Laps …', 'Laps sööb putru.'],
         ['Ma joon teed.', 'Mu ema …', 'Mu ema joob teed.'], ['Ma teen kodutööd.', 'Me …', 'Me teeme kodutööd.'], ['Ma tulen hilja koju.', 'Nad …', 'Nad tulevad hilja koju.'],
       ]),
       B.wordorder('011_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Kell seitse ma joon kohvi.', 'Pärast lõunat ma töötan edasi.', 'Õhtul me jalutame pargis.', 'Laupäeval ma magan kaua.', 'Mis kell sa tavaliselt ärkad?']),
@@ -92,9 +92,9 @@ export const LESSONS = {
     transfer: [
       B.text('011_t_situation', 'Üks päev minu elus', 'Keelekursuse ajakiri teeb rubriiki „Üks päev minu elus”. Toimetaja Liis otsib inimesi, kes kirjutavad oma tavalisest päevast. Sina tahad ka kirjutada.'),
       B.reading('011_t_read', 'Loe Markuse lugu.', 'Loe ajakirja teksti ja vasta küsimustele.', 'Üks päev minu elus: Markus',
-        'Minu päev algab kell seitse. Kõigepealt ma joon kohvi ja loen uudiseid. Kell kaheksa sõidan ma rattaga tööle. Tööl ma istun arvuti taga ja kirjutan programme. Kell kaksteist on lõuna. Me sööme kolleegidega kontori köögis. Pärastlõunal on meil sageli koosolekud. Kell viis lõpeb mu tööpäev. Siis ma lähen jõusaali. Kell seitse tulen ma koju ja teen õhtusööki. Õhtul ma helistan oma perele Ukrainasse. Mõnikord ma mängin arvutimänge. Kell üksteist lähen ma magama. Minu päev on tavaline, aga mulle meeldib see. Nädalavahetusel on mu päev hoopis teistsugune.',
-        [['Kuidas Markus tööle sõidab?', 'rattaga'], ['Mida Markus tööl teeb?', 'kirjutab programme|istub arvuti taga'], ['Kus ta lõunat sööb?', 'kontori köögis|köögis'], ['Kuhu ta läheb pärast tööd?', 'jõusaali'], ['Kellele ta õhtul helistab?', 'perele|oma perele|oma perele Ukrainasse']]),
-      B.truefalse('011_t_tf', 'Õige või vale?', 'Loe Markuse teksti uuesti.', [['Markus sõidab tööle bussiga.', false], ['Lõuna on kell kaksteist.', true], ['Pärast tööd läheb Markus koju.', false], ['Õhtul helistab ta perele.', true], ['Markus läheb magama kell üksteist.', true]]),
+        'Minu päev algab kell seitse. Kõigepealt ma joon kohvi ja loen uudiseid. Kell kaheksa sõidan ma rattaga tööle. Ma töötan laos. Tööl ma kontrollin kaste ja pakin kaupa. Kell kaksteist on lõuna. Me sööme kolleegidega lao köögis. Pärastlõunal tulevad sageli uued autod kaubaga. Kell viis lõpeb mu tööpäev. Siis ma lähen jõusaali. Kell seitse tulen ma koju ja teen õhtusööki. Õhtul ma helistan oma emale. Mõnikord ma mängin arvutimänge. Kell üksteist lähen ma magama. Minu päev on tavaline, aga mulle meeldib see. Nädalavahetusel on mu päev hoopis teistsugune.',
+        [['Kuidas Markus tööle sõidab?', 'rattaga'], ['Mida Markus tööl teeb?', 'kontrollib kaste ja pakib kaupa|kontrollib kaste|pakib kaupa|töötab laos'], ['Kus ta lõunat sööb?', 'lao köögis|köögis'], ['Kuhu ta läheb pärast tööd?', 'jõusaali'], ['Kellele ta õhtul helistab?', 'emale|oma emale']]),
+      B.truefalse('011_t_tf', 'Õige või vale?', 'Loe Markuse teksti uuesti.', [['Markus sõidab tööle bussiga.', false], ['Lõuna on kell kaksteist.', true], ['Pärast tööd läheb Markus koju.', false], ['Õhtul helistab ta emale.', true], ['Markus läheb magama kell üksteist.', true]]),
       B.listening('011_t_listen', 'Kuula Liisi sõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Tere! Siin Liis ajakirjast.', 'Aitäh, et tahad ajakirja kirjutada!', 'Palun saada tekst reedeks.', 'Tekst peab olema umbes viiskümmend sõna pikk.',
         'Lisa ka üks foto oma päevast.', 'Intervjuu on teisipäeval kell neli.',
@@ -118,16 +118,16 @@ export const LESSONS = {
     title: 'Kellaaeg ja ajaväljendid',
     canDo: 'Ma ütlen ja saan aru, mis kell midagi algab ja lõpeb ning kui kaua see kestab (pool kolm, kella üheksast viieni, enne / pärast) vähemalt 8 olukorras 10-st.',
     discover: [
-      B.text('012_d_situation', 'Sofia kiire päev', 'Sofial on täna palju asju teha: raamatukogu, juuksur, apteek ja lasteaed. Igal kohal on oma lahtiolekuaeg. Sofia vaatab kella ja plaanib päeva.'),
+      B.text('012_d_situation', 'Oksana kiire päev', 'Oksanal on täna palju asju teha: raamatukogu, juuksur, apteek ja lasteaed. Igal kohal on oma lahtiolekuaeg. Oksana vaatab kella ja plaanib päeva.'),
       B.vocab('012_d_vocab', 'Kell ja aeg', ['kell — час, часы', 'pool — половина', 'veerand — четверть', 'kolmveerand — три четверти', 'alates — начиная с', 'kuni — до', 'enne — до, перед', 'pärast — после', 'algama — начинаться', 'lõppema — заканчиваться', 'kestma — длиться', 'tund — час, урок', 'minut — минута']),
       B.clock('012_d_clock', 'Mis kell on?', 'Kirjuta, mis kell on. Kasuta: Kell on …', [
         { time: '07:00', extra: '' }, { time: '08:30', extra: '' }, { time: '09:15', extra: 'veerand kümme' }, { time: '12:00', extra: '' },
         { time: '14:30', extra: '' }, { time: '16:45', extra: 'kolmveerand viis' }, { time: '18:15', extra: 'veerand seitse' }, { time: '21:30', extra: '' },
       ]),
-      B.reading('012_d_read', 'Loe: Sofia päev.', 'Loe teksti ja vasta küsimustele lühidalt.', 'Kõik õigel ajal',
-        'Sofia tahab täna teha palju asju. Kõigepealt läheb ta raamatukokku. Raamatukogu on avatud kella kümnest kuni kuueni. Sofia läheb sinna kohe kell kümme, sest siis on seal vaikne. Kell pool kaksteist on tal aeg juuksuris. Juuksur töötab ainult kella üheksast kella kolmeni. Lõikus kestab umbes tund aega. Pärast juuksurit läheb Sofia apteeki. Apteek on lahti kogu päeva, kella kaheksast kuni kaheksani. Mia lasteaiapäev lõpeb kell kolm. Sofia peab olema lasteaias enne kella nelja, sest kell neli läheb lasteaed kinni. Õhtul kell seitse algab Sofia eesti keele tund. Tund kestab poolteist tundi ja lõpeb kell pool üheksa. Pärast tundi läheb Sofia koju ja puhkab.',
-        [['Mis kellast mis kellani on raamatukogu avatud?', 'kella kümnest kuni kuueni|kümnest kuueni|10–18'], ['Mis kell on Sofial aeg juuksuris?', 'kell pool kaksteist|pool kaksteist|11.30'], ['Kui kaua lõikus kestab?', 'umbes tund aega|tund aega|tund'], ['Millal peab Sofia olema lasteaias?', 'enne kella nelja|enne nelja'], ['Mis kell algab eesti keele tund?', 'kell seitse|19|kell 19'], ['Kui kaua tund kestab?', 'poolteist tundi|90 minutit']]),
-      B.truefalse('012_d_tf', 'Õige või vale?', 'Loe Sofia teksti uuesti.', [
+      B.reading('012_d_read', 'Loe: Oksana päev.', 'Loe teksti ja vasta küsimustele lühidalt.', 'Kõik õigel ajal',
+        'Oksana tahab täna teha palju asju. Kõigepealt läheb ta raamatukokku. Raamatukogu on avatud kella kümnest kuni kuueni. Oksana läheb sinna kohe kell kümme, sest siis on seal vaikne. Kell pool kaksteist on tal aeg juuksuris. Juuksur töötab ainult kella üheksast kella kolmeni. Lõikus kestab umbes tund aega. Pärast juuksurit läheb Oksana apteeki. Apteek on lahti kogu päeva, kella kaheksast kuni kaheksani. Mia lasteaiapäev lõpeb kell kolm. Oksana peab olema lasteaias enne kella nelja, sest kell neli läheb lasteaed kinni. Õhtul kell seitse algab Oksana eesti keele tund. Tund kestab poolteist tundi ja lõpeb kell pool üheksa. Pärast tundi läheb Oksana koju ja puhkab.',
+        [['Mis kellast mis kellani on raamatukogu avatud?', 'kella kümnest kuni kuueni|kümnest kuueni|10–18'], ['Mis kell on Oksanal aeg juuksuris?', 'kell pool kaksteist|pool kaksteist|11.30'], ['Kui kaua lõikus kestab?', 'umbes tund aega|tund aega|tund'], ['Millal peab Oksana olema lasteaias?', 'enne kella nelja|enne nelja'], ['Mis kell algab eesti keele tund?', 'kell seitse|19|kell 19'], ['Kui kaua tund kestab?', 'poolteist tundi|90 minutit']]),
+      B.truefalse('012_d_tf', 'Õige või vale?', 'Loe Oksana teksti uuesti.', [
         ['Raamatukogu on avatud kella kümnest.', true], ['Juuksur töötab kella kaheksani õhtul.', false], ['Apteek on lahti kogu päeva.', true], ['Lasteaed läheb kinni kell kuus.', false], ['Eesti keele tund lõpeb kell pool üheksa.', true],
       ]),
       B.notice('012_d_notice', 'Märka: kellaaeg', ['Kell on **pool kolm** (2.30). Kell on **veerand neli** (3.15). Kell on **kolmveerand neli** (3.45).', '**Mis kell** tund algab? — **Kell** seitse.', '**alates** kella kümne**st** — **kuni** kella kuue**ni**', 'kella üheksa**st** kella kolme**ni** (9–15)', '**enne** kella nelja, **pärast** kella kolme; **enne** tööd, **pärast** tundi', 'Tund **algab** kell 7, **lõpeb** kell 8.30 ja **kestab** poolteist tundi.']),
@@ -190,14 +190,14 @@ export const LESSONS = {
       B.selfcheck('012_p_self', ['Ma kirjutan kellaaja sõnadega.', 'Ma moodustan: kella üheksast, kella viieni.', 'Ma saan aru teadaandest ja lahtiolekuaegadest.', 'Ma lepin telefonis aja kokku.'], 'Aeg on kokku lepitud'),
     ],
     transfer: [
-      B.text('012_t_situation', 'Kinno!', 'Anna ja Liis tahavad koos kinno minna. Aga Anna töötab palju ja Liisil on tunnid ja töö kohvikus. Nad vaatavad kalendrit ja otsivad aega. Sina aitad neil sobiva aja leida.'),
+      B.text('012_t_situation', 'Kinno!', 'Anna ja Liis tahavad koos kinno minna. Aga Anna töötab palju ja Liisil on tunnid ja töö raamatukogus. Nad vaatavad kalendrit ja otsivad aega. Sina aitad neil sobiva aja leida.'),
       B.reading('012_t_read', 'Loe kino kava.', 'Loe kava ja vasta küsimustele.', 'Kino „Sõprus” sel nädalal',
         'Film „Suvi” on draama ja kestab kaks tundi. Kinos on kaks saali. Neljapäeval on seansid kell 18.15 ja 20.30. Reedel on seansid kell 19.00 ja 21.15. Laupäeval on need kell 15.00 ja 18.45. Pilet maksab 8 eurot, õpilastele 6 eurot. Kassa on avatud pool tundi enne esimest seanssi. Kohvik on avatud kella neljast kuni kümneni. Palun tulge kinno vähemalt kümme minutit enne filmi algust. Pärast kella üheksat on parkimine tasuta. Laupäeva hommikul kell 11 näitame lastefilmi. See kestab tund aega. Head vaatamist!',
         [['Kui kaua film „Suvi” kestab?', 'kaks tundi|2 tundi'], ['Mis kell on reedel esimene seanss?', 'kell 19.00|kell seitse|seitse'], ['Kui palju maksab õpilase pilet?', '6 eurot|kuus eurot'], ['Millal on kassa avatud?', 'pool tundi enne esimest seanssi'], ['Mis kellast on kohvik avatud?', 'kella neljast|16.00'], ['Millal on parkimine tasuta?', 'pärast kella üheksat|pärast üheksat']]),
       B.listening('012_t_listen', 'Kuula Liisi sõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Tere, Anna! Siin Liis.', 'Neljapäeval ma ei saa, mul on tunnid kella kuueni.', 'Reedel olen ma vaba pärast kella viit.',
-        'Laupäeval töötan ma kohvikus kella kaheteistkümnest kuni neljani.', 'Kas reede õhtu sobib? Seanss on kell seitse.', 'Helista mulle pärast lõunat!',
-      ], ['Neljapäeval on Liisil tunnid kella [kuueni].', 'Reedel on Liis vaba pärast kella [viit|viite|viie].', 'Laupäeval töötab Liis [kohvikus].', 'Liis pakub [reede] õhtut.', 'Seanss on kell [seitse|7|19].']),
+        'Laupäeval töötan ma raamatukogus kella kaheteistkümnest kuni neljani.', 'Kas reede õhtu sobib? Seanss on kell seitse.', 'Helista mulle pärast lõunat!',
+      ], ['Neljapäeval on Liisil tunnid kella [kuueni].', 'Reedel on Liis vaba pärast kella [viit|viite|viie].', 'Laupäeval töötab Liis [raamatukogus].', 'Liis pakub [reede] õhtut.', 'Seanss on kell [seitse|7|19].']),
       B.clock('012_t_clock', 'Seansside ajad.', 'Kirjuta kino kava kellaajad sõnadega.', [
         { time: '18:15', extra: 'veerand seitse' }, { time: '20:30', extra: '' }, { time: '19:00', extra: '' }, { time: '21:15', extra: 'veerand kümme' }, { time: '15:00', extra: '' }, { time: '18:45', extra: 'kolmveerand seitse' },
       ]),
@@ -342,7 +342,7 @@ export const LESSONS = {
       B.wordorder('014_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Esmaspäeval ma lähen tööle.', 'Pärast seda ma lähen koju.', 'Laupäeval me koristame kodu.', 'Kõigepealt ma joon kohvi.', 'Nädal on kiire, aga mulle meeldib see.']),
       B.listening('014_d_listen', 'Kuulamine. Markuse nädal.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Markus: Esmaspäeval ja kolmapäeval käin ma jõusaalis.', 'Teisipäeval on mul eesti keele kursus.', 'Neljapäeval kohtun ma sõpradega kohvikus.',
-        'Reede õhtul mängin ma arvutimänge.', 'Laupäeval sõidan ma rattaga järve äärde.', 'Pühapäeval helistan ma emale Ukrainasse.',
+        'Reede õhtul mängin ma arvutimänge.', 'Laupäeval sõidan ma rattaga järve äärde.', 'Pühapäeval helistan ma emale.',
       ], ['Markus käib jõusaalis esmaspäeval ja [kolmapäeval].', '[Teisipäeval] on tal eesti keele kursus.', 'Neljapäeval kohtub ta sõpradega [kohvikus].', 'Laupäeval sõidab ta [rattaga] järve äärde.', 'Pühapäeval helistab ta [emale].']),
       B.errorfix('014_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Esmaspäev ma lähen tööle.', 'Esmaspäeval ma lähen tööle.'], ['Reedeel on pidu.', 'Reedel on pidu.'], ['Nädalavahetuses me puhkame.', 'Nädalavahetusel me puhkame.'],
@@ -413,11 +413,11 @@ export const LESSONS = {
       B.text('015_d_situation', 'Kordame', 'Enne kontrolli kordame mooduli tähtsamat: päeva osad, kellaaeg, alates–kuni, enne–pärast, kui tihti, nädalapäevad ja seosesõnad.'),
       B.notice('015_d_notice', 'Mooduli kokkuvõte', ['Päev: **hommikul** ärkan, **õhtul** puhkan; ma **lähen**, **tulen**, **söön**', 'Kell: kell on **pool kolm**, **veerand neli**; **kella üheksast kuni viieni**', '**enne** kella kümmet, **pärast** tööd; tund **kestab** poolteist tundi', 'Kui tihti: **alati, tavaliselt, sageli, mõnikord, harva**, ei … **mitte kunagi**', 'Nädal: **esmaspäeval**, **nädalavahetusel**; **kõigepealt, siis, pärast seda**']),
       B.vocab('015_d_vocab', 'Uued sõnad', ['päevakava — распорядок дня', 'argipäev — будний день', 'vaba aeg — свободное время', 'vara — рано', 'hilja — поздно', 'kiire — быстрый, занятый', 'lõuna — обед', 'õhtusöök — ужин', 'tööpäev — рабочий день']),
-      B.reading('015_d_read', 'Loe: Sofia päevakava.', 'Loe teksti ja vasta küsimustele.', 'Minu argipäev',
+      B.reading('015_d_read', 'Loe: Oksana päevakava.', 'Loe teksti ja vasta küsimustele.', 'Minu argipäev',
         'Minu argipäev algab vara. Ma ärkan kell pool seitse. Kõigepealt teen ma hommikusöögi ja äratan Mia. Kell pool kaheksa viin ma Mia lasteaeda. Siis sõidan ma bussiga keelekursusele. Kursus on esmaspäevast neljapäevani kella üheksast kuni kaheteistkümneni. Lõuna on mul tavaliselt kell üks. Pärastlõunal õpin ma kodus eesti keelt ja teen kodutööd. Kell viis lähen ma Miale järele. Õhtusöök on meil kell seitse, siis on ka mu mees kodus. Pärast õhtusööki mängime Miaga ja loeme raamatut. Mia läheb magama kell üheksa. Mina lähen magama hilja, tavaliselt kell üksteist. Reedel on mul vaba päev. Siis käin ma poes ja koristan. Mul on kiire elu, aga ma olen õnnelik.',
-        [['Mis kell Sofia ärkab?', 'kell pool seitse|pool seitse|6.30'], ['Kuidas Sofia kursusele sõidab?', 'bussiga'], ['Mis päevadel on kursus?', 'esmaspäevast neljapäevani'], ['Mis kellast mis kellani on kursus?', 'kella üheksast kuni kaheteistkümneni|üheksast kaheteistkümneni|9–12'], ['Mis kell on õhtusöök?', 'kell seitse|seitse|19'], ['Mida Sofia reedel teeb?', 'käib poes ja koristab|käib poes|koristab']]),
-      B.truefalse('015_d_tf', 'Õige või vale?', 'Loe Sofia teksti uuesti.', [['Sofia ärkab kell seitse.', false], ['Sofia sõidab kursusele bussiga.', true], ['Kursus on ka reedel.', false], ['Mia läheb magama kell üheksa.', true], ['Sofia läheb magama vara.', false]]),
-      B.clock('015_d_clock', 'Sofia kellaajad.', 'Kirjuta kellaaeg sõnadega.', [
+        [['Mis kell Oksana ärkab?', 'kell pool seitse|pool seitse|6.30'], ['Kuidas Oksana kursusele sõidab?', 'bussiga'], ['Mis päevadel on kursus?', 'esmaspäevast neljapäevani'], ['Mis kellast mis kellani on kursus?', 'kella üheksast kuni kaheteistkümneni|üheksast kaheteistkümneni|9–12'], ['Mis kell on õhtusöök?', 'kell seitse|seitse|19'], ['Mida Oksana reedel teeb?', 'käib poes ja koristab|käib poes|koristab']]),
+      B.truefalse('015_d_tf', 'Õige või vale?', 'Loe Oksana teksti uuesti.', [['Oksana ärkab kell seitse.', false], ['Oksana sõidab kursusele bussiga.', true], ['Kursus on ka reedel.', false], ['Mia läheb magama kell üheksa.', true], ['Oksana läheb magama vara.', false]]),
+      B.clock('015_d_clock', 'Oksana kellaajad.', 'Kirjuta kellaaeg sõnadega.', [
         { time: '06:30', extra: '' }, { time: '07:30', extra: '' }, { time: '09:00', extra: '' }, { time: '13:00', extra: '' }, { time: '17:15', extra: 'veerand kuus' }, { time: '22:45', extra: 'kolmveerand üksteist' },
       ]),
       B.wordforms('015_d_forms', 'Kordame vorme.', 'Kirjuta sõna õiges vormis.', [
@@ -437,10 +437,10 @@ export const LESSONS = {
       B.gaps('015_d_gaps', 'Täida lüngad.', 'Vali sõnapangast sobiv sõna.', [
         'Ma ärkan väga [vara], kell viis.', 'Ma lähen magama [hilja], kell üks öösel.', 'Täna on mul [kiire] päev, mul ei ole aega.', '[Lõuna] on kell kaksteist.', 'Minu [tööpäev] lõpeb kell viis.', '[Vabal ajal] ma loen raamatuid.',
       ], ['vara', 'hilja', 'kiire', 'Lõuna', 'tööpäev', 'Vabal ajal', 'õhtusöök', 'argipäev']),
-      B.listening('015_d_listen', 'Kuulamine. Viktori nädal.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Viktor: Minu tööpäev algab kell pool kuus.', 'Ma töötan esmaspäevast reedeni.', 'Lõuna on mul kell kaksteist, see kestab pool tundi.',
+      B.listening('015_d_listen', 'Kuulamine. Urmase nädal.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Urmas: Minu tööpäev algab kell pool kuus.', 'Ma töötan esmaspäevast reedeni.', 'Lõuna on mul kell kaksteist, see kestab pool tundi.',
         'Kolmapäeviti käin ma pärast tööd saunas.', 'Laupäeval sõidan ma tavaliselt kalale.', 'Pühapäeval me ei tee midagi, me puhkame.',
-      ], ['Viktori tööpäev algab kell [pool kuus|5.30].', 'Ta töötab esmaspäevast [reedeni].', 'Lõuna kestab [pool tundi].', 'Kolmapäeviti käib ta [saunas].', 'Laupäeval sõidab ta tavaliselt [kalale].']),
+      ], ['Urmase tööpäev algab kell [pool kuus|5.30].', 'Ta töötab esmaspäevast [reedeni].', 'Lõuna kestab [pool tundi].', 'Kolmapäeviti käib ta [saunas].', 'Laupäeval sõidab ta tavaliselt [kalale].']),
       B.wordorder('015_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Minu argipäev algab vara.', 'Kõigepealt ma teen hommikusöögi.', 'Reedel on mul vaba päev.', 'Tavaliselt ma lähen magama kell üksteist.']),
       B.translation('015_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Мой рабочий день начинается в восемь.', 'Обед в двенадцать.', 'Я иногда хожу в сауну.', 'В субботу я сплю долго.', 'Сначала я убираю, потом отдыхаю.']),
       B.speaking('015_d_say', 'Proovieksam: minu päev.', 'Räägi oma tavalisest päevast ja nädalast.', ['Mis kell sinu päev algab?', 'Mida sa teed hommikul, päeval ja õhtul?', 'Kui tihti sa sporti teed?', 'Mida sa teed nädalavahetusel?'], [60, 90]),
@@ -494,8 +494,8 @@ export const LESSONS = {
         'Reedel tunde ei ole.', 'Kontrolltöö on kahe nädala pärast, kolmapäeval.',
       ], ['Uus tunniplaan algab [esmaspäeval].', 'Tunnid on kella kuuest kuni [pool kaheksani|19.30].', 'Vestlusklubi on [neljapäeviti|neljapäeval].', 'Vestlusklubi kestab [tund aega|tund].', 'Kontrolltöö on [kolmapäeval].']),
       B.reading('015_t_read', 'Lugemine. Liisi sõnum.', 'Loe sõnumit ja vasta küsimustele.', 'Tere, Sofia!',
-        'Kas sa nägid uut tunniplaani? Mulle sobib see väga. Esmaspäeval ja kolmapäeval olen ma vaba kella viiest. Neljapäeviti töötan ma kohvikus kella kuueni. Vestlusklubi algab kell seitse, nii et ma jõuan. Kas me joome enne tundi koos kohvi? Kohvik keelekooli kõrval on avatud kella kaheksani. Ma söön seal tavaliselt lõunat. Kas Mia tuleb ka mõnikord kaasa? Ta on nii armas! Tunnid on nüüd hiljem, see on mulle hea. Ma ostsin juba uue vihiku ja pastaka. Kirjuta mulle, mis päev sulle sobib. Liis',
-        [['Mis kellast on Liis esmaspäeval vaba?', 'kella viiest|viiest|17'], ['Kus Liis neljapäeviti töötab?', 'kohvikus'], ['Mis kell algab vestlusklubi?', 'kell seitse|seitse|19'], ['Mida Liis tahab enne tundi teha?', 'koos kohvi juua|juua kohvi'], ['Mis kellani on kohvik avatud?', 'kella kaheksani|kaheksani|20']]),
+        'Kas sa nägid uut tunniplaani? Mulle sobib see väga. Esmaspäeval ja kolmapäeval olen ma vaba kella viiest. Neljapäeviti töötan ma raamatukogus kella kuueni. Vestlusklubi algab kell seitse, nii et ma jõuan. Kas me joome enne tundi koos kohvi? Kohvik keelekooli kõrval on avatud kella kaheksani. Ma söön seal tavaliselt lõunat. Kas Kati tuleb ka mõnikord kaasa? Ta on nii tore! Tunnid on nüüd hiljem, see on mulle hea. Ma ostsin juba uue vihiku ja pastaka. Kirjuta mulle, mis päev sulle sobib. Liis',
+        [['Mis kellast on Liis esmaspäeval vaba?', 'kella viiest|viiest|17'], ['Kus Liis neljapäeviti töötab?', 'raamatukogus'], ['Mis kell algab vestlusklubi?', 'kell seitse|seitse|19'], ['Mida Liis tahab enne tundi teha?', 'koos kohvi juua|juua kohvi'], ['Mis kellani on kohvik avatud?', 'kella kaheksani|kaheksani|20']]),
       B.clock('015_t_clock', 'Kontrolli kellaaegu.', 'Kirjuta kellaaeg sõnadega.', [
         { time: '18:00', extra: '' }, { time: '19:30', extra: '' }, { time: '17:00', extra: '' }, { time: '19:00', extra: '' }, { time: '20:00', extra: '' }, { time: '16:45', extra: 'kolmveerand viis' },
       ]),

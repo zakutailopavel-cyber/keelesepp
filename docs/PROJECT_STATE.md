@@ -8,6 +8,16 @@
   cross-course character pass (A2 ↔ B1 ↔ B2 ↔ C1) is still open.
 - Tests: worksheet-generator passes (see below).
 - Next safe step: publish „B1 · moodul 2” and „B1 · moodul 3” (replaces the hand-made Avasta of 006–015; owner agreed).
+## 2026-10-13 · agent/a2-cast-canon — A2 modules 1–11: the recurring characters as in the textbook pictures
+
+- Owner: „исправить” (texts vs `docs/TEXTBOOK_ART_BIBLE.md` §4). Canon = the art bible: Anna 28 office (husband Igor),
+  Markus 34 warehouse, Liis 45 teacher/official/service, Viktor 63 pensioner (wife Galina), Sofia 19 student (brother
+  Mart), Jaan 38 café owner (dog Muki). Roles that did not fit went to extras (Taras, Liene, Kaspar, Urmas, Tõnis…);
+  Mia (6, kindergarten) is the daughter of Oksana Bondar (35, from Ukraine, Tartu); Olga = accountant from Narva.
+- Three sub-agent passes (modules 1–5, 6–11, then one consistency pass over 1–11), checked here by the course gate.
+- Audio: 46 listening recordings re-made (changed transcripts), 361 in total.
+- Known: modules 12–20 (older lessons) still contradict the canon in places (061, 063, 066…) — next pass.
+- Tests: worksheet-generator 597 passed, 1 skipped.
 
 ## 2026-10-13 · agent/a2-missing-13 — the last 13 A2 lessons as full course sheets: A2 complete
 

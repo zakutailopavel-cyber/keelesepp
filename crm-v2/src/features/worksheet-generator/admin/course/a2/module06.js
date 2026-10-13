@@ -20,8 +20,8 @@ export const LESSONS = {
         ['Puuviljad', ['õun', 'banaan', 'pirn', 'apelsin']], ['Muu toit', ['leib', 'juust', 'kala', 'liha']],
       ]),
       B.reading('026_d_read', 'Loe: Mida me sööme?', 'Loe teksti ja vasta küsimustele lühidalt.', 'Anna ja tema sõbrad',
-        'Minu nimi on Anna. Mulle meeldib süüa teha. Hommikul söön ma tavaliselt leiba juustuga ja joon kohvi. Mõnikord söön ma ka putru. Lõunal söön ma tööl suppi või salatit. Õhtul teen ma kodus sooja sööki: kala või kana ja köögivilju. Liha ma söön harva. Minu sõber Jaan on kokk. Tal on väike kohvik. Jaan sööb palju liha ja kartulit. Ta joob päevas viis tassi kohvi! Sofia on taimetoitlane. Ta ei söö liha ega kala. Talle meeldivad puuviljad ja köögiviljad. Sofia joob teed, kohvi ta ei joo. Täna õhtul tulevad Jaan ja Sofia minu juurde. Ma teen köögiviljasuppi ja salatit. Magustoiduks on õunakook. Joogiks on mahl, vesi ja tee. Jaanile ostan ma natuke kala, sest ta armastab kala. Sofiale ostan ma puuvilju. Poes on täna värske leib ja maitsev juust. Ma ostan ka piima ja kohvi.',
-        [['Mida Anna hommikul joob?', 'kohvi'], ['Mida Anna lõunal sööb?', 'suppi või salatit|suppi|salatit'], ['Kes on Jaan?', 'kokk|ta on kokk|Anna sõber'], ['Mitu tassi kohvi Jaan päevas joob?', 'viis|viis tassi|5'], ['Miks Sofia ei söö liha?', 'ta on taimetoitlane|sest ta on taimetoitlane'], ['Mis on magustoiduks?', 'õunakook']]),
+        'Minu nimi on Anna. Mulle meeldib süüa teha. Hommikul söön ma tavaliselt leiba juustuga ja joon kohvi. Mõnikord söön ma ka putru. Lõunal söön ma tööl suppi või salatit. Õhtul teen ma kodus sooja sööki: kala või kana ja köögivilju. Liha ma söön harva. Minu sõber Jaan on kohviku omanik. Tema kohvik on väike, aga hubane. Jaan sööb palju liha ja kartulit. Ta joob päevas viis tassi kohvi! Sofia on taimetoitlane. Ta ei söö liha ega kala. Talle meeldivad puuviljad ja köögiviljad. Sofia joob teed, kohvi ta ei joo. Täna õhtul tulevad Jaan ja Sofia minu juurde. Ma teen köögiviljasuppi ja salatit. Magustoiduks on õunakook. Joogiks on mahl, vesi ja tee. Jaanile ostan ma natuke kala, sest ta armastab kala. Sofiale ostan ma puuvilju. Poes on täna värske leib ja maitsev juust. Ma ostan ka piima ja kohvi.',
+        [['Mida Anna hommikul joob?', 'kohvi'], ['Mida Anna lõunal sööb?', 'suppi või salatit|suppi|salatit'], ['Kes on Jaan?', 'kohviku omanik|ta on kohviku omanik|Anna sõber'], ['Mitu tassi kohvi Jaan päevas joob?', 'viis|viis tassi|5'], ['Miks Sofia ei söö liha?', 'ta on taimetoitlane|sest ta on taimetoitlane'], ['Mis on magustoiduks?', 'õunakook']]),
       B.truefalse('026_d_tf', 'Õige või vale?', 'Loe Anna teksti uuesti.', [
         ['Anna sööb hommikul leiba juustuga.', true], ['Anna sööb palju liha.', false], ['Jaan joob palju kohvi.', true],
         ['Sofia joob kohvi.', false], ['Õhtul teeb Anna köögiviljasuppi.', true],
@@ -67,7 +67,7 @@ export const LESSONS = {
       ]),
       B.choice('026_p_menu', 'Mida nad võtavad?', 'Loe, mida inimene tahab. Vali sobiv toit või jook.', [
         ['Sofia on taimetoitlane. Mida ta sööb?', 'köögiviljasuppi', 'kanasuppi', 'kalasalatit'],
-        ['Mia on viieaastane. Mida ta joob?', 'piima', 'kohvi', 'õlut'],
+        ['Mia on kuueaastane. Mida ta joob?', 'piima', 'kohvi', 'õlut'],
         ['Markus ei joo kohvi. Mida ta hommikul joob?', 'teed', 'kohvi', 'kohvi piimaga'],
         ['Kati tahab midagi magusat. Mida ta sööb?', 'õunakooki', 'kalasuppi', 'kartulit'],
         ['Viktor on väga näljane. Mida ta sööb?', 'praadi ja kartulit', 'ühe õuna', 'klaasi vett'],
@@ -124,10 +124,10 @@ export const LESSONS = {
     title: 'Kui palju? Partitiiv',
     canDo: 'Ma ütlen koguseid (kilo, liiter, pakk, pudel, tass, klaas; palju, vähe, kaks, kolm) koos osastavaga ja kirjutan lihtsa retsepti või ostunimekirja.',
     discover: [
-      B.text('027_d_situation', 'Pannkoogid', 'Laupäeval tahab Sofia teha pannkooke. Tütar Mia aitab. Retsept on vanas vihikus. Aga kui palju piima on vaja? Kas mune on piisavalt?'),
+      B.text('027_d_situation', 'Pannkoogid', 'Laupäeval tahab Oksana teha pannkooke. Tütar Mia aitab. Retsept on vanas vihikus. Aga kui palju piima on vaja? Kas mune on piisavalt?'),
       B.reading('027_d_read', 'Loe retsepti.', 'Loe retsepti ja vasta küsimustele.', 'Pannkoogid neljale inimesele',
-        'Vaja on pool liitrit piima, kolm muna ja kaks klaasi jahu. Veel on vaja üks lusikas suhkrut, natuke soola ja natuke õli. Kõigepealt pane kaussi munad, suhkur ja sool. Sega hästi. Siis vala kaussi pool piima. Lisa jahu ja sega jälle. Lõpuks lisa teine pool piima. Tainas peab olema vedel. Pane pannile natuke õli. Prae pannkooke mõlemalt poolt üks või kaks minutit. Pannkoogid on kõige paremad soojalt. Söö neid moosi või hapukoorega. Mia sööb alati kolm pannkooki ja joob klaasi piima. Sofia joob tassi teed. Kui külalisi on rohkem, võta kõike kaks korda rohkem.',
-        [['Mitmele inimesele on retsept?', 'neljale|neljale inimesele|4'], ['Kui palju piima on vaja?', 'pool liitrit|pool liitrit piima'], ['Mitu muna on vaja?', 'kolm|kolm muna|3'], ['Kui palju jahu on vaja?', 'kaks klaasi|kaks klaasi jahu'], ['Millega pannkooke süüa?', 'moosi või hapukoorega|moosiga|hapukoorega'], ['Mida Sofia joob?', 'tassi teed|teed']]),
+        'Vaja on pool liitrit piima, kolm muna ja kaks klaasi jahu. Veel on vaja üks lusikas suhkrut, natuke soola ja natuke õli. Kõigepealt pane kaussi munad, suhkur ja sool. Sega hästi. Siis vala kaussi pool piima. Lisa jahu ja sega jälle. Lõpuks lisa teine pool piima. Tainas peab olema vedel. Pane pannile natuke õli. Prae pannkooke mõlemalt poolt üks või kaks minutit. Pannkoogid on kõige paremad soojalt. Söö neid moosi või hapukoorega. Mia sööb alati kolm pannkooki ja joob klaasi piima. Oksana joob tassi teed. Kui külalisi on rohkem, võta kõike kaks korda rohkem.',
+        [['Mitmele inimesele on retsept?', 'neljale|neljale inimesele|4'], ['Kui palju piima on vaja?', 'pool liitrit|pool liitrit piima'], ['Mitu muna on vaja?', 'kolm|kolm muna|3'], ['Kui palju jahu on vaja?', 'kaks klaasi|kaks klaasi jahu'], ['Millega pannkooke süüa?', 'moosi või hapukoorega|moosiga|hapukoorega'], ['Mida Oksana joob?', 'tassi teed|teed']]),
       B.vocab('027_d_vocab', 'Kui palju?', ['palju — много', 'vähe — мало', 'natuke — немного', 'kilo — килограмм', 'liiter — литр', 'pool — половина', 'klaas — стакан', 'tass — чашка', 'pudel — бутылка', 'pakk — пачка', 'lusikas — ложка', 'jahu — мука', 'suhkur — сахар', 'sool — соль', 'muna — яйцо', 'retsept — рецепт']),
       B.notice('027_d_notice', 'Märka: kogus + osastav', ['liiter **piima**, pakk **võid**, pudel **mahla**', 'tass **teed**, klaas **vett**, tükk **kooki**', 'kilo **kartuleid**, kilo **õunu** (palju tükke)', '**palju** suhkrut, **vähe** soola, **natuke** juustu', '**kaks** muna, **kolm** õuna (2, 3, 4 … + osastav)', 'Külmkapis **on piima**. (natuke, mitte kogu piim)']),
       B.choice('027_d_choice', 'Vali õige vorm.', 'Vali lünka sobiv sõna.', [
@@ -140,7 +140,7 @@ export const LESSONS = {
       ]),
       B.match('027_d_match', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus retsepti järgi.', [
         ['Kui palju piima on vaja?', 'Pool liitrit.'], ['Mitu muna on vaja?', 'Kolm muna.'], ['Kas suhkrut on palju?', 'Ei, ainult üks lusikas.'],
-        ['Mida Mia joob?', 'Klaasi piima.'], ['Mida Sofia joob?', 'Tassi teed.'], ['Mitu pannkooki Mia sööb?', 'Kolm pannkooki.'],
+        ['Mida Mia joob?', 'Klaasi piima.'], ['Mida Oksana joob?', 'Tassi teed.'], ['Mitu pannkooki Mia sööb?', 'Kolm pannkooki.'],
       ], 'full', 'g_read'),
       B.gaps('027_d_gaps', 'Täida lüngad.', 'Vali sõnapangast sobiv sõna.', [
         'Jaan joob päevas [palju] kohvi: viis tassi.', 'Mia sööb [vähe] liha, ainult natuke.', 'Retseptis on pool [liitrit] piima.',
@@ -173,7 +173,7 @@ export const LESSONS = {
         'Palun pudel [mahla]. (mahl)', 'Mul on vaja pakk [võid]. (või)', 'Klaasis on natuke [vett]. (vesi)', 'Ma joon päevas kolm tassi [kohvi]. (kohv)',
         'Retseptis on kaks [muna]. (muna)', 'Pane supi sisse natuke [soola]. (sool)', 'Kilo [õunu] maksab kaks eurot. (õunad)',
       ]),
-      B.cloze('027_p_cloze', 'Ostunimekiri.', 'Vali igasse lünka sobiv sõna.', 'Sofia sõnum mehele', [
+      B.cloze('027_p_cloze', 'Ostunimekiri.', 'Vali igasse lünka sobiv sõna.', 'Oksana sõnum mehele', [
         'Täna on vaja osta {*liiter|kilo|tükk} piima ja {*pakk|liiter|klaas} võid.', 'Pannkookide jaoks on vaja kuus {*muna|munad|munaga}.',
         'Sa jood palju {*kohvi|kohv|kohvid}, osta suur pakk.', 'Mia tahab {*mahla|mahl|mahlad}, osta kaks pudelit.', 'Ja ära unusta {*leiba|leib|leivad}!',
       ]),
@@ -391,11 +391,11 @@ export const LESSONS = {
     ],
     practice: [
       B.listening('029_p_listen', 'Kuulamine 1. Tellimus muutub.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Liis: Tere! Mida te soovite?', 'Sofia: Tere! Palun kaks teed ja kaks pannkooki.', 'Liis: Kas pannkoogid moosiga või hapukoorega?',
-        'Sofia: Moosiga, palun. Oot, ma muudan tellimust.', 'Sofia: Üks tee ilma suhkruta ja üks kakao lapsele.', 'Liis: Hästi. Kas veel midagi?',
-        'Sofia: Palun veel üks klaas vett juurde.', 'Liis: Kokku on üheksa eurot kakskümmend senti.',
+        'Liis: Tere! Mida te soovite?', 'Olga: Tere! Palun kaks teed ja kaks pannkooki.', 'Liis: Kas pannkoogid moosiga või hapukoorega?',
+        'Olga: Moosiga, palun. Oot, ma muudan tellimust.', 'Olga: Üks tee ilma suhkruta ja üks kakao lapsele.', 'Liis: Hästi. Kas veel midagi?',
+        'Olga: Palun veel üks klaas vett juurde.', 'Liis: Kokku on üheksa eurot kakskümmend senti.',
       ], [
-        'Pannkoogid on [moosiga].', 'Sofia muudab [tellimust].', 'Üks tee on ilma [suhkruta].', 'Lapsele on [kakao].', 'Juurde tuleb klaas [vett].', 'Kokku on üheksa eurot kakskümmend [senti].',
+        'Pannkoogid on [moosiga].', 'Olga muudab [tellimust].', 'Üks tee on ilma [suhkruta].', 'Lapsele on [kakao].', 'Juurde tuleb klaas [vett].', 'Kokku on üheksa eurot kakskümmend [senti].',
       ]),
       B.listening('029_p_listen2', 'Kuulamine 2. Kolm lauda.', 'Õpetaja loeb tellimused kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Laud üks: kaks kohvi piimaga ja üks juustusai. Kokku kuus eurot.', 'Laud kaks: kanasupp ilma sibulata ja klaas mahla. Kokku seitse eurot viiskümmend senti.',

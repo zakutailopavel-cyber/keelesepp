@@ -231,10 +231,10 @@ export const LESSONS = {
     title: 'Ilmateade',
     canDo: 'Ma kuulan lühikest ilmateadet kaks korda ja kirjutan üles vähemalt 3 asja 4-st: temperatuuri, sademed, tuule ja aja (hommikul, päeval, öösel).',
     discover: [
-      B.text('053_d_situation', 'Hommikul raadios', 'Kell on seitse hommikul. Sofia joob kohvi ja kuulab raadiot. Kohe tuleb ilmateade. Sofia tahab teada, kas võtta kaasa vihmavari ja mis riided Miale selga panna.'),
+      B.text('053_d_situation', 'Hommikul raadios', 'Kell on seitse hommikul. Sofia joob kohvi ja kuulab raadiot. Kohe tuleb ilmateade. Sofia tahab teada, kas võtta kaasa vihmavari ja mis riided selga panna.'),
       B.vocab('053_d_vocab', 'Ilmateade', ['ilmateade — прогноз погоды', 'temperatuur — температура', 'kraad — градус', 'pluss — плюс', 'miinus — минус', 'sadama — идти (о дожде, снеге)', 'puhuma — дуть', 'tugev — сильный', 'nõrk — слабый', 'pakane — мороз', 'hommikul — утром', 'päeval — днём', 'õhtul — вечером', 'öösel — ночью']),
       B.listening('053_d_listen', 'Kuula ilmateadet.', 'Õpetaja loeb ilmateate kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere hommikust! Mina olen Jaan ja nüüd on ilmateade.', 'Täna hommikul on pilvine ja jahe, pluss kolm kraadi.', 'Päeval hakkab sadama vihma.',
+        'Tere hommikust! Mina olen Tarmo ja nüüd on ilmateade.', 'Täna hommikul on pilvine ja jahe, pluss kolm kraadi.', 'Päeval hakkab sadama vihma.',
         'Temperatuur tõuseb kuni kaheksa kraadini.', 'Puhub tugev tuul läänest.', 'Öösel on selge taevas ja külm, miinus kaks kraadi.',
       ], [
         'Hommikul on [pilvine] ja jahe.', 'Hommikul on pluss [kolm|3] kraadi.', 'Päeval hakkab sadama [vihma].',
@@ -265,13 +265,13 @@ export const LESSONS = {
       B.wordorder('053_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Päeval hakkab sadama vihma.', 'Öösel on selge taevas.', 'Puhub tugev tuul läänest.', 'Temperatuur tõuseb kaheksa kraadini.', 'Teed on libedad.']),
       B.translation('053_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Сегодня плюс пять градусов.', 'Ночью мороз.', 'Вечером пойдёт снег.', 'Дует сильный ветер.', 'Температура поднимается.']),
       B.dictation('053_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused numbritega.', ['Täna on +6 kraadi.', 'Öösel on −3 kraadi.', 'Puhub tugev tuul.', 'Õhtul hakkab sadama lund.', 'Homme on 10 kraadi sooja.'], 5),
-      B.speaking('053_d_say', 'Mida võtta kaasa?', 'Kuulasid ilmateadet. Ütle paarilisele, mida täna kaasa võtta.', ['Mis ilm on hommikul?', 'Mis ilm on päeval?', 'Mida Sofia peab kaasa võtma?', 'Mis riided Mia peaks selga panema?'], [60, 90], ['Päeval sajab…, seepärast…', 'On … kraadi.']),
-      B.writing('053_d_write', 'Sõnum Miale.', 'Kirjuta Miale 4–6 lauset: mis ilm täna on ja mida kaasa võtta.', [4, 6], ['täna', 'kraadi', 'sajab', 'võta'], 2),
+      B.speaking('053_d_say', 'Mida võtta kaasa?', 'Kuulasid ilmateadet. Ütle paarilisele, mida täna kaasa võtta.', ['Mis ilm on hommikul?', 'Mis ilm on päeval?', 'Mida Sofia peab kaasa võtma?', 'Mis riided Sofia peaks selga panema?'], [60, 90], ['Päeval sajab…, seepärast…', 'On … kraadi.']),
+      B.writing('053_d_write', 'Sõnum Sofiale.', 'Kirjuta Sofiale 4–6 lauset: mis ilm täna on ja mida kaasa võtta.', [4, 6], ['täna', 'kraadi', 'sajab', 'võta'], 2),
       B.selfcheck('053_d_self', ['Ma kuulen ilmateatest temperatuuri.', 'Ma kuulen, kas sajab ja kas puhub tuul.', 'Ma loen ja kirjutan pluss- ja miinuskraade.', 'Ma ütlen ilmateate järgi, mida kaasa võtta.'], 'Ilmateade on selge'),
     ],
     practice: [
       B.listening('053_p_listen', 'Kuulamine 1. Ilm Eestis.', 'Õpetaja loeb ilmateate kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere õhtust! Mina olen Liis ja räägin homsest ilmast.', 'Tallinnas on homme päikeseline, kuni kümme kraadi sooja.', 'Tartus on pilvine ja päeval sajab vihma.',
+        'Tere õhtust! Mina olen Maret ja räägin homsest ilmast.', 'Tallinnas on homme päikeseline, kuni kümme kraadi sooja.', 'Tartus on pilvine ja päeval sajab vihma.',
         'Pärnus puhub mere ääres tugev tuul.', 'Narvas on kõige külmem, ainult viis kraadi.', 'Öösel on kõikjal null kraadi. Head ööd!',
       ], ['Tallinnas on homme [päikeseline].', 'Tallinnas on kuni [kümme|10] kraadi.', 'Tartus sajab päeval [vihma].', 'Pärnus puhub tugev [tuul].', 'Kõige külmem on [Narvas].', 'Öösel on [null|0] kraadi.']),
       B.listening('053_p_listen2', 'Kuulamine 2. Häälsõnum.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
@@ -335,8 +335,8 @@ export const LESSONS = {
     title: 'Mida selga panna?',
     canDo: 'Ma annan sõbrale ilma järgi 4 nõuannet riiete ja asjade kohta (pane jope selga, võta vihmavari kaasa, ära unusta mütsi) ja ütlen sõnaga sest, miks.',
     discover: [
-      B.text('054_d_situation', 'Hommik enne kooli', 'Kell on pool kaheksa. Mia seisab riidekapi ees. Ta tahab panna selga kerge kleidi. Aga aknast on näha, et sajab vihma ja puhub tuul. Anna on Mia tädi. Ta ulatab Miale jope.'),
-      B.dialogue('054_d_dialog', 'Riidekapi ees.', 'Loe dialoogi. Täida lüngad.', 'Anna', 'Mia', [
+      B.text('054_d_situation', 'Hommik enne lasteaeda', 'Kell on pool kaheksa. Mia seisab riidekapi ees. Ta tahab panna selga kerge kleidi. Aga aknast on näha, et sajab vihma ja puhub tuul. Oksana on Mia ema. Ta ulatab Miale jope.'),
+      B.dialogue('054_d_dialog', 'Riidekapi ees.', 'Loe dialoogi. Täida lüngad.', 'Oksana', 'Mia', [
         ['A', 'Mia, vaata aknast välja! Väljas [sajab] vihma.'], ['B', 'Aga ma tahan seda kleiti [selga] panna!'], ['A', 'Pane kleit selga, aga võta ka [jope]. Täna on külm.'],
         ['B', 'Kas ma pean mütsi [pähe] panema?'], ['A', 'Jah, sest puhub tugev [tuul]. Ja pane kummikud jalga.'], ['B', 'Hea küll. Kas vihmavari on vaja ka [kaasa] võtta?'],
         ['A', 'Muidugi! Ära [unusta] vihmavarju!'],
@@ -372,8 +372,8 @@ export const LESSONS = {
     ],
     practice: [
       B.listening('054_p_listen', 'Kuulamine. Ema nõuanded.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Olga: Mia, homme on kooli matk. Kuulasin ilmateadet.', 'Olga: Hommikul on ainult kaks kraadi sooja. Pane soe kampsun selga.',
-        'Olga: Päeval sajab vihma. Võta vihmavari kaasa.', 'Olga: Metsas on märg. Pane kummikud jalga.', 'Olga: Ja ära unusta võileiba!', 'Mia: Hea küll, emme. Aitäh!',
+        'Oksana: Mia, homme on lasteaia matk. Kuulasin ilmateadet.', 'Oksana: Hommikul on ainult kaks kraadi sooja. Pane soe kampsun selga.',
+        'Oksana: Päeval sajab vihma. Võta vihmavari kaasa.', 'Oksana: Metsas on märg. Pane kummikud jalga.', 'Oksana: Ja ära unusta võileiba!', 'Mia: Hea küll, emme. Aitäh!',
       ], ['Hommikul on [kaks|2] kraadi sooja.', 'Mia peab panema selga [kampsuni|soe kampsuni].', 'Päeval sajab [vihma].', 'Kaasa on vaja [vihmavari|vihmavarju].', 'Jalga peab panema [kummikud].', 'Mia ei tohi unustada [võileiba].']),
       B.wordforms('054_p_forms', 'Käskiv vorm.', 'Kirjuta käskiv vorm sõbrale (sina).', [['panema', 'sina', 'pane'], ['võtma', 'sina', 'võta'], ['unustama (eitus)', 'sina', 'ära unusta'], ['kandma', 'sina', 'kanna'], ['tulema', 'sina', 'tule'], ['minema', 'sina', 'mine']]),
       B.manymatch('054_p_where', 'Kuhu paned?', 'Ühenda riie ja koht.', ['müts', 'kindad', 'saapad', 'jope', 'sall'], ['pähe', 'kätte', 'jalga', 'selga', 'kaela']),
@@ -483,13 +483,13 @@ export const LESSONS = {
         'Talv tuleb! Spordipoes Talveke on suur talvemüük. Kõik talvejoped on 30% odavamad. Sooja jope saab nüüd osta alates 49 eurost. Lastele on kindad ja mütsid kaks ühe hinnaga. Talvesaapad on 20% odavamad. Uus kaup on suusad. Suuski saab ka laenutada: üks päev maksab kümme eurot. Müük kestab 1. kuni 15. detsembrini. Pood on avatud iga päev kella kümnest kaheksani. Me asume kaubanduskeskuse teisel korrusel. Meie müüjad aitavad valida õiget suurust. Maksta saab sularahas ja kaardiga. Kauba saab tagastada 14 päeva jooksul. Kui ostad üle saja euro, saad tasuta termose. Tule varakult, sest head asjad lõpevad kiiresti!',
         [['Kui palju odavamad on talvejoped?', '30%|kolmkümmend protsenti'], ['Kui palju maksab suuskade laenutus päevas?', 'kümme eurot|10 eurot'], ['Millal müük lõpeb?', '15. detsembril|15. detsembrini'], ['Kus pood asub?', 'kaubanduskeskuse teisel korrusel|teisel korrusel'], ['Mida saab tasuta?', 'termose|termos']]),
       B.listening('055_p_listen', 'Kuulamine 1. Ilmateade.', 'Õpetaja loeb ilmateate kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere õhtust! Mina olen Markus ja nüüd on ilmateade.', 'Homme hommikul on udu, eriti Ida-Eestis.', 'Päeval on pilvine ja temperatuur on kuni viis kraadi.',
+        'Tere õhtust! Mina olen Tarmo ja nüüd on ilmateade.', 'Homme hommikul on udu, eriti Ida-Eestis.', 'Päeval on pilvine ja temperatuur on kuni viis kraadi.',
         'Õhtul hakkab sadama lörtsi.', 'Puhub tugev tuul põhjast.', 'Öösel langeb temperatuur kuni miinus neli kraadi.',
       ], ['Hommikul on [udu].', 'Udu on eriti [Ida-Eestis].', 'Päeval on kuni [viis|5] kraadi.', 'Õhtul hakkab sadama [lörtsi].', 'Tuul puhub [põhjast].', 'Öösel on [miinus] neli kraadi.']),
       B.listening('055_p_listen2', 'Kuulamine 2. Vestlus.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Anna: Mia, kas sa oled valmis? Väljas on miinus kümme.', 'Mia: Jah! Mul on jope seljas ja müts peas.', 'Anna: Aga kus on su kindad?',
-        'Mia: Kindad on koolikotis.', 'Anna: Pane need kätte. Ja võta sall ka, tuul on täna külmem kui eile.', 'Mia: Hea küll. Lähme!',
-      ], ['Väljas on [miinus] kümme.', 'Mial on peas [müts].', 'Kindad on [koolikotis].', 'Anna ütleb, et võta ka [sall].', 'Tuul on külmem kui [eile].']),
+        'Oksana: Mia, kas sa oled valmis? Väljas on miinus kümme.', 'Mia: Jah! Mul on jope seljas ja müts peas.', 'Oksana: Aga kus on su kindad?',
+        'Mia: Kindad on seljakotis.', 'Oksana: Pane need kätte. Ja võta sall ka, tuul on täna külmem kui eile.', 'Mia: Hea küll. Lähme!',
+      ], ['Väljas on [miinus] kümme.', 'Mial on peas [müts].', 'Kindad on [seljakotis].', 'Oksana ütleb, et võta ka [sall].', 'Tuul on külmem kui [eile].']),
       B.gaps('055_p_mix', 'Keel. Viis punkti.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
         'Täna on [tuuline] ilm. (tuul)', 'Homme on [soojem] kui täna. (soe)', '[Talvel] sajab lund. (talv)', 'Öösel on kolm [kraadi] külma. (kraad)', '[Pane] kindad kätte! (panema)',
       ]),
@@ -508,10 +508,10 @@ export const LESSONS = {
     transfer: [
       B.text('055_t_situation', 'Kontroll: kirjutamine ja rääkimine', 'Sinu sõber Markus tuleb järgmisel nädalal Tartusse. Ta küsib, mis ilm siin on ja mida kaasa võtta. Kirjuta talle, räägi ilmast ja anna nõu. Eesmärk on vähemalt 70%.'),
       B.reading('055_t_read', 'Lugemine. Markuse kiri.', 'Loe kirja ja vasta küsimustele.', 'Markuse kiri',
-        'Tere! Ma tulen järgmisel teisipäeval Tartusse kolmeks päevaks. Mul on ülikoolis konverents. Kolmapäeva õhtul tahan minna jooksma, sest ma jooksen iga päev. Neljapäeval tahan näha linna ja muuseumi. Ma ei tea, mis ilm Tartus novembris on. Kas seal on juba lumi? Kas mul on vaja talvejopet või piisab sügisjopest? Mul on kaasas ainult väike kohver, sest ma sõidan bussiga. Palun kirjuta, mida kaasa võtta. Kas Tartus on külmem kui Tallinnas? Ma elan praegu Pärnus, siin on üsna soe. Aitäh! Markus',
-        [['Millal Markus Tartusse tuleb?', 'järgmisel teisipäeval|teisipäeval'], ['Miks ta Tartusse tuleb?', 'konverentsile|ülikoolis on konverents'], ['Mida ta tahab kolmapäeva õhtul teha?', 'jooksma minna|joosta'], ['Miks on tal väike kohver?', 'ta sõidab bussiga|sest ta sõidab bussiga'], ['Kus Markus praegu elab?', 'Pärnus']]),
+        'Tere! Ma tulen järgmisel teisipäeval Tartusse kolmeks päevaks. Mul on seal töö pärast koolitus. Kolmapäeva õhtul tahan minna jooksma, sest ma jooksen iga päev. Neljapäeval tahan näha linna ja muuseumi. Ma ei tea, mis ilm Tartus novembris on. Kas seal on juba lumi? Kas mul on vaja talvejopet või piisab sügisjopest? Mul on kaasas ainult väike kohver, sest ma sõidan bussiga. Palun kirjuta, mida kaasa võtta. Kas Tartus on külmem kui Tallinnas? Ma elan praegu Pärnus, siin on üsna soe. Aitäh! Markus',
+        [['Millal Markus Tartusse tuleb?', 'järgmisel teisipäeval|teisipäeval'], ['Miks ta Tartusse tuleb?', 'koolitusele|tal on koolitus|töö pärast koolitusele'], ['Mida ta tahab kolmapäeva õhtul teha?', 'jooksma minna|joosta'], ['Miks on tal väike kohver?', 'ta sõidab bussiga|sest ta sõidab bussiga'], ['Kus Markus praegu elab?', 'Pärnus']]),
       B.listening('055_t_listen', 'Kuulamine. Tartu ilmateade.', 'Õpetaja loeb ilmateate kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Mina olen Jaan ja nüüd on Tartu ilm järgmiseks nädalaks.', 'Teisipäeval on pilvine ja kolm kraadi sooja.', 'Kolmapäeval sajab vihma ja puhub tugev tuul.',
+        'Tere! Mina olen Tarmo ja nüüd on Tartu ilm järgmiseks nädalaks.', 'Teisipäeval on pilvine ja kolm kraadi sooja.', 'Kolmapäeval sajab vihma ja puhub tugev tuul.',
         'Neljapäeval on päikeseline, aga külm, miinus kaks kraadi.', 'Lund veel ei ole. Head nädalat!',
       ], ['Teisipäeval on [pilvine].', 'Teisipäeval on [kolm|3] kraadi sooja.', 'Kolmapäeval sajab [vihma].', 'Neljapäeval on [miinus] kaks kraadi.', 'Lund veel [ei ole].']),
       B.table('055_t_table', 'Kirjutamine 1. Nõuanded.', 'Täida tabel: ilm ja nõuanne igaks päevaks.', 'Päev, Ilm, Nõuanne Markusele', ['Teisipäev | | ', 'Kolmapäev | | ', 'Neljapäev | | ']),
