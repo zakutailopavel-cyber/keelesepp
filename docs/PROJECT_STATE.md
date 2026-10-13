@@ -1,3 +1,12 @@
+## 2026-10-13 · agent/c1-art-019-052 — C1 textbook pictures 019–052
+
+- Base: `main` de36b40. Codex (built-in image generation, no paid API) drew C1 lessons 019–052 before the team's
+  daily image limit (reset 2026-10-13 22:59 EEST; resume point est-c1-053 in `~/KeeleSeppArt/inbox/progress.log`).
+- Imported with `~/KeeleSeppArt/import_art.py` from a copy of the inbox (the inbox stays the resume marker):
+  33 pictures → `crm-v2/public/textbook-art/c1/est-c1-0xx/*.webp`, briefs in `art/visuals/c1-module-02/03.js`.
+- Checks: worksheet-generator 570 passed, 1 skipped.
+- Next safe step: after deploy republish C1 modules 2–6; after 23:00 run `~/KeeleSeppArt/run-resume-c1.sh` for 053–100.
+
 ## 2026-10-13 · agent/audio-in-review — the audio player stays on a checked sheet
 
 - Base: `main` 6369db2. Live check with the test student (a2b1-010 Harjuta assigned from the sheet page with the
