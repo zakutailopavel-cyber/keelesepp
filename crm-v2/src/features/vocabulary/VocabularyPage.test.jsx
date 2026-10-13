@@ -109,4 +109,16 @@ describe('study modes', () => {
     expect(screen.getByText(/Tulemus: 0\/4/)).toBeInTheDocument();
     expect(screen.getAllByText(/Õige vastus:/).length).toBeGreaterThan(0);
   });
+
+  it('shows the course words by topic („Teemad”) for my level', async () => {
+    renderPage({
+      studentRepository: { listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari', level: 'A2' }]) },
+      catalogRepository: { listCurriculum: vi.fn().mockResolvedValue([
+        { id: 'a2-001', title: 'Tutvumine', level: 'A2', topic: '01. Mina', roadmapManaged: true, roadmapLessonNumber: 1 },
+      ]) },
+      loadWords: vi.fn().mockResolvedValue({ 'a2-001': ['nimi', 'vanus', 'pere', 'ema'].map((et) => ({ et, ru: `ru-${et}` })) }),
+    });
+    expect(await screen.findByRole('heading', { name: 'Kõik kursuse sõnad' })).toBeInTheDocument();
+    expect(await screen.findByText('4 sõna · avatud')).toBeInTheDocument();
+  });
 });

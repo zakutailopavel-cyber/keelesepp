@@ -14,7 +14,7 @@ export function expectedAnswer(block, key) {
   const def = BLOCKS[block?.type];
   if (!def) return '';
   if (typeof def.answers === 'function') {
-    const hit = def.answers(block.data || {}).find((item) => item.key === key);
+    const hit = def.answers(block.data || {}, block).find((item) => item.key === key);
     if (hit?.accept?.length) return hit.accept.join(' / ');
   }
   const index = Number(key);
