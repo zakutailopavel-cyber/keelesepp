@@ -186,6 +186,7 @@ export const libraryService = {
         batch.set(assignmentRef, {
           lessonId: item.sourceId,
           lessonTitle: item.title,
+          ...(item.phase ? { phase: item.phase } : {}),
           subject: item.subject,
           level: item.level,
           topic: item.topic,

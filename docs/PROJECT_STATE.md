@@ -1,3 +1,16 @@
+## 2026-10-13 · agent/assign-phase-sheet — „Määra õpilastele” on an Avasta / Harjuta / Kasuta sheet assigns that sheet
+
+- Base: `main` 6c47f57. Found in a live check with the test student: „Määra õpilastele” on
+  `/library/lessons/<id>/worksheets/<phase>` opened `/library?assign=<id>` and assigned the lesson plan (Russian teacher
+  plan „Ход урока…”) as a plain homework; the student never got the sheet or its audio.
+- Fix: the link adds `&leht=<discover|practice|transfer>`; `LibraryPage` loads the lesson's sheets
+  (`worksheetRepository.list`), takes the published version (`publishedPhaseDoc`) and opens the assignment of
+  `phaseSheetItem` („<lesson> · Harjuta”, type worksheet). No published version → message, no dialog.
+  `libraryService.assign` stores `phase` on the `worksheetAssignments` record when given (rules allow staff creates).
+- Tests: `LibraryPage.test.jsx` +2. library + services 181 passed; worksheet-generator + worksheet-studio 806 passed, 1 skipped.
+- Live data: one test assignment „Kontroll 2 — pere ja suhted” (lesson plan) was given to „Test Õpilane” during the check.
+- Next safe step: after deploy, assign a2b1-010 Harjuta to the test student from the sheet page and do it as the student.
+
 ## 2026-10-13 · agent/avasta-b1-audio — sheets with audio no longer say the teacher reads aloud
 
 - Base: `main` e543b93. All 51 course modules republished after #587 (299 sheets, no errors).

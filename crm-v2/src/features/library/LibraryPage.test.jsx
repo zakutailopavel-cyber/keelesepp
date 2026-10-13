@@ -17,7 +17,7 @@ const data = {
   ],
 };
 
-function renderPage(libraryData = data, path = '/library') {
+function renderPage(libraryData = data, path = '/library', worksheetRepository = undefined) {
   const repository = {
     list: vi.fn().mockResolvedValue(libraryData),
     assign: vi.fn().mockResolvedValue({ count: 1 }),
@@ -29,7 +29,7 @@ function renderPage(libraryData = data, path = '/library') {
   const studentRepository = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1', name: 'Mari', subject: 'Eesti keel', level: 'A1', group: 'A1 õhturühm', active: true }, { id: 'student-2', name: 'Jaan', subject: 'Eesti keel', level: 'A1', group: 'A1 õhturühm', active: true }] }) };
   const groupRepository = { list: vi.fn().mockResolvedValue([{ id: 'group-1', name: 'A1 õhturühm', students: ['student-1', 'student-2'] }]) };
   const user = { uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] };
-  render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} /></AuthContext.Provider></MemoryRouter>);
+  render(<MemoryRouter initialEntries={[path]}><AuthContext.Provider value={{ user }}><LibraryPage repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} {...(worksheetRepository ? { worksheetRepository } : {})} /></AuthContext.Provider></MemoryRouter>);
   return { repository, studentRepository, groupRepository, user };
 }
 
@@ -47,6 +47,29 @@ describe('LibraryPage', () => {
     renderPage(data, '/library?assign=lesson-1');
     const dialog = await screen.findByRole('dialog');
     expect(dialog).toHaveTextContent('Pere tunnikava');
+  });
+
+  it('assigns the published Avasta / Harjuta / Kasuta sheet, not the lesson plan, from the sheet constructor (&leht=)', async () => {
+    const sheet = sampleDocument();
+    const worksheetRepository = { list: vi.fn().mockResolvedValue([{ worksheetId: 'discover', publishedWorksheetDoc: { blocks: [] } }, { worksheetId: 'practice', worksheetDocStatus: 'published', publishedWorksheetDoc: sheet }]) };
+    const { repository } = renderPage(data, '/library?assign=lesson-1&leht=practice', worksheetRepository);
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('Pere tunnikava · Harjuta');
+    expect(within(dialog).getByText(/Tööleht ilmub õpilase kabinetti/)).toBeInTheDocument();
+    fireEvent.click(await within(dialog).findByText('Mari'));
+    fireEvent.click(within(dialog).getByRole('button', { name: /^Määra 1 õpilasele/ }));
+    await waitFor(() => expect(repository.assign).toHaveBeenCalled());
+    const { item } = repository.assign.mock.calls[0][0];
+    expect(item).toMatchObject({ type: 'worksheet', phase: 'practice', sourceId: 'lesson-1' });
+    expect(item.source.publishedWorksheetDoc).toBe(sheet);
+    expect(worksheetRepository.list).toHaveBeenCalledWith('lesson-1');
+  });
+
+  it('says so when the chosen sheet has no published version', async () => {
+    const worksheetRepository = { list: vi.fn().mockResolvedValue([{ worksheetId: 'transfer', worksheetDocStatus: 'draft', worksheetDoc: sampleDocument() }]) };
+    renderPage(data, '/library?assign=lesson-1&leht=transfer', worksheetRepository);
+    expect(await screen.findByText(/pole avaldatud versiooni/)).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('shows a never-published worksheet as Tööleht, labels its preview Mustand and offers publishing from assignment', async () => {

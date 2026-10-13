@@ -46,6 +46,7 @@ import {
   sortLibrary,
   typeFacets,
 } from './libraryModel.js';
+import { publishedPhaseDoc } from '../worksheet-studio/bookProgram.js';
 import MaterialPreview from './MaterialPreview.jsx';
 import MaterialEditor from './MaterialEditor.jsx';
 import ExerciseEditor from './ExerciseEditor.jsx';
@@ -79,6 +80,17 @@ const shortDate = (iso) => (iso && /^\d{4}-\d{2}-\d{2}/.test(iso) ? `${iso.slice
 const hasStudioDoc = (item) => item.kind !== 'exercise' && (item.source?.worksheetDoc?.blocks?.length || item.source?.worksheetData?.blocks?.length);
 // a roadmap lesson keeps its Avasta / Harjuta / Kasuta chips even when an older single worksheet was saved on it
 const usesLessonEngine = (item) => item?.kind === 'curriculum' && item?.source?.roadmapManaged === true && (!hasStudioDoc(item) || Boolean(item?.source?.worksheetPhases));
+
+const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta' };
+// one published sheet of a lesson (Avasta / Harjuta / Kasuta) as an assignable worksheet: the student gets the sheet,
+// not the teacher's lesson plan
+export function phaseSheetItem(item, sheetId, doc) {
+  const label = SHEET_LABEL[sheetId] || sheetId;
+  return {
+    ...item, type: 'worksheet', phase: sheetId, title: `${item.title} · ${label}`,
+    source: { ...item.source, worksheetData: null, worksheetDoc: doc, publishedWorksheetDoc: doc, worksheetDocStatus: 'published' },
+  };
+}
 
 function AssignmentModal({ item, user, repository, studentRepository, groupRepository, onClose, onAssigned }) {
   const [query, setQuery] = useState('');
@@ -221,15 +233,24 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
   const items = useMemo(() => state.data ? buildLibraryItems(state.data.curriculumLessons, state.data.exercises).map((item) => ({ ...item, withPhases: usesLessonEngine(item) })) : [], [state.data]);
   // „Määra õpilastele” in the worksheet constructor opens Õppevara with ?assign=<lesson id>
+  // (&leht=<discover|practice|transfer>: that published sheet of the lesson, not the lesson plan)
   const assignId = searchParams.get('assign') || '';
+  const assignSheet = searchParams.get('leht') || '';
   useEffect(() => {
     if (!assignId || !items.length) return;
     const item = items.find((entry) => entry.sourceId === assignId && entry.kind !== 'exercise');
-    if (item) setAssigning(item);
     const next = new globalThis.URLSearchParams(searchParams);
     next.delete('assign');
+    next.delete('leht');
     setSearchParams(next, { replace: true });
-  }, [assignId, items, searchParams, setSearchParams]);
+    if (!item) return;
+    if (!assignSheet) { setAssigning(item); return; }
+    Promise.resolve().then(() => worksheetRepository.list(assignId)).then((records) => {
+      const doc = publishedPhaseDoc((records || []).find((record) => (record.worksheetId || record.id) === assignSheet));
+      if (!doc) { setInstallError('Sellel töölehel pole avaldatud versiooni: avalda see enne õpilasele määramist.'); return; }
+      setAssigning(phaseSheetItem(item, assignSheet, doc));
+    }).catch((error) => setInstallError(error.message || 'Töölehte ei saanud laadida.'));
+  }, [assignId, assignSheet, items, searchParams, setSearchParams, worksheetRepository]);
   const favFilter = onlyFav ? favorites : null;
   const mineUid = onlyMine ? user?.uid || '' : '';
   const levels = useMemo(() => levelFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
