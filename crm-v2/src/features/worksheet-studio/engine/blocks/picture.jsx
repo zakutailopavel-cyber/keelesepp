@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
-import { Photo, Line, Md, gapWidth } from '../ui.jsx';
+import { Photo, Line, Md } from '../ui.jsx';
+import { gapWidth } from '../gapWidth.js';
 import { norm, splitList } from '../schema.js';
 import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
 import { seededShuffle } from './tasks.jsx';

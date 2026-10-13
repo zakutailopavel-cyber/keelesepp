@@ -1,7 +1,7 @@
 /* global ResizeObserver */
 import { Suspense, lazy, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { dragId, dropId } from './dragIds.js';
+import { dragId, dropId, lastBlockOf } from './dragIds.js';
 import { BLOCKS, exampleAnswers, numberTasks } from './registry.js';
 import { TONES } from './schema.js';
 import { Md, Target } from './ui.jsx';
@@ -134,6 +134,12 @@ function DndCard(props) {
   const drop = useDroppable({ id: dropId(block.id), data: { kind: 'block', id: block.id, full: spanOf(block) >= COLUMNS } });
   const setRef = (node) => { drag.setNodeRef(node); drop.setNodeRef(node); };
   return <Card {...props} dndRef={setRef} dndListeners={drag.listeners} dragging={drag.isDragging} />;
+}
+// the free space under the last block of a page (owner 2026-10-13: a block dragged into the empty bottom of page 1
+// did nothing): it lights up and a dropped block goes after the page's last block — it stays on this page if it fits
+function PageTailDrop({ page, lastId }) {
+  const { setNodeRef, isOver, active } = useDroppable({ id: `drop:__page:${page}`, data: { kind: 'pageEnd', id: lastId } });
+  return <div ref={setNodeRef} className={`ws-page-tail ${active ? 'is-dragging' : ''} ${isOver ? 'is-over' : ''}`} aria-hidden="true">{isOver ? <span>Pane siia</span> : null}</div>;
 }
 function EmptyDrop() {
   const { setNodeRef, isOver } = useDroppable({ id: 'drop:__end', data: { kind: 'end' } });
@@ -390,6 +396,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
           {p === 0 ? <Header key={`head:${rev}`} meta={doc.meta} /> : <div className="ws-runhead"><span>{doc.meta.title}</span><span>{doc.meta.level}</span></div>}
           <div className="ws-flow">{idxs.map((e) => (typeof e === 'number' ? rows[e] && rowView(rows[e], e) : rows[e.row] && rowView(rows[e.row], `${e.row}:${e.from}`, false, e)))}</div>
           {mode === 'edit' && idxs.length === 0 && (dnd ? <EmptyDrop /> : <div className="ws-empty">Lisa vasakult esimene plokk.</div>)}
+          {dnd && mode === 'edit' && idxs.length > 0 ? <PageTailDrop page={p} lastId={lastBlockOf(rows, idxs)} /> : null}
           <Footer meta={doc.meta} page={p + 1} pages={pages.length} bookPage={startPage ? startPage + p : undefined} />
         </div>
       ))}

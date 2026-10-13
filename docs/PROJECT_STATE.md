@@ -1,3 +1,16 @@
+## 2026-10-13 · agent/drop-page-space — drop a block into the empty bottom of a page
+
+- Owner (screenshot, a2-002 Harjuta): dragging „Sõnavara” into the empty space at the bottom of page 1 did nothing —
+  only cards were drop targets.
+- `engine/Sheet.jsx` `PageTailDrop`: in the constructor (edit mode with drag & drop) the free space under the last
+  block of every page is a drop target (`kind: 'pageEnd'`, lit with „Pane siia”); `dragIds.hintFor` turns it into
+  „after the page's last block” (`lastBlockOf`), so a new or moved block goes there and stays on that page if it fits
+  (otherwise pagination moves it on). Not printed; theme „Selge” keeps the order.
+- Clean-up: helpers out of component files (`dragIds.lastBlockOf`, `engine/gapWidth.js`, `annotationWords.js`) —
+  the fast-refresh lint warnings from #612 gone.
+- Tests: `engine/dragDrop.test.js` +1; worksheet-studio 264/264; eslint 0 errors (1 old warning in advanced.jsx).
+- Next safe step: in the constructor drag a palette block into the empty bottom of a page.
+
 ## 2026-10-13 · agent/live-word-card-and-fields — live lesson: word card, corrections to „Minu vead”, answers that fit
 
 - Owner: double-click a word during a live worksheet → three forms → into the student's dictionary; corrections as

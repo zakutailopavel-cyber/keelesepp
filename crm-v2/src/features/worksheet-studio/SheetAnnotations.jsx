@@ -2,6 +2,7 @@
 import { BookmarkPlus, Check, Loader2, MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { HIGHLIGHT, fieldTextRects, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
+import { singleWord, correctedAnswer } from './annotationWords.js';
 import './sheetAnnotations.css';
 
 const nextFrame = (fn) => (globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(fn) : setTimeout(fn, 16));
@@ -15,13 +16,6 @@ const cancelFrame = (id) => (globalThis.cancelAnimationFrame ? globalThis.cancel
 // Annotation shape (stored on the assignment, next to the older writing-field annotations):
 //   { id, kind: 'text' | 'field', blockId, start, end, selectedText, fieldIndex?, color: 'error' | 'note',
 //     parandus, selgitus, createdAt }
-
-// one word picked (a double click selects it): the composer also offers „Sõna” — its three key forms and translation,
-// added to the student's „Sõnad” with one click (owner 2026-10-13)
-const LETTERS = /^[^\p{L}]+|[^\p{L}]+$/gu;
-export const singleWord = (text) => { const word = String(text || '').trim().replace(LETTERS, ''); return word && !/\s/.test(word) && word.length <= 60 ? word : ''; };
-// a corrected answer for „Minu vead”: the student's sentence with the marked part replaced by the right form
-export const correctedAnswer = (value, start, end, fix) => `${String(value).slice(0, start)}${fix}${String(value).slice(end)}`.replace(/\s+/g, ' ').trim();
 
 // words (optional, Live Classroom): { lookup(word) → { word, translation, forms: [3] }, add(card), addError({ said, corrected }) }
 export default function SheetAnnotations({ annotations = [], editable = false, onChange, words = null, children }) {
