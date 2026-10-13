@@ -9,6 +9,8 @@ import Sheet from './engine/Sheet.jsx';
 // A book holds hundreds of sheets: a sheet redraws only when its own props change (its first page number), not on
 // every page count another sheet reports (a B1 book of 270 sheets froze the browser, 2026-10-13).
 const BookSheet = memo(Sheet);
+const BOOK_FIRST = 8;
+const BOOK_STEP = 4;
 
 // Page counts reported by the sheets, applied to the book in one batch per task (not one book redraw per sheet), and one
 // stable callback per sheet so a memoized sheet is not redrawn for a new function.
@@ -159,6 +161,17 @@ export default function BookPage({ repository = libraryService, worksheetReposit
   // the sheets report their page counts while they lay out; applied once per frame (pageCounter below)
   const [counter] = useState(() => pageCounter(setCounts));
   useEffect(() => () => counter.cancel(), [counter]);
+  // a whole level is 200+ sheets: they appear a few at a time so the page answers while the book lays out
+  // (every sheet measures itself once; all at once blocked the browser for ~40 s)
+  const itemsKey = items.map((item) => item.id).join('|');
+  const [growth, setGrowth] = useState({ key: '', shown: BOOK_FIRST });
+  const shown = growth.key === itemsKey ? growth.shown : BOOK_FIRST;
+  useEffect(() => {
+    if (shown >= items.length) return undefined;
+    const timer = globalThis.setTimeout(() => setGrowth({ key: itemsKey, shown: shown + BOOK_STEP }), 40);
+    return () => globalThis.clearTimeout(timer);
+  }, [itemsKey, shown, items.length]);
+  const building = shown < items.length;
   const move = (i, dir) => { const j = i + dir; if (j < 0 || j >= ids.length) return; const n = [...ids]; [n[i], n[j]] = [n[j], n[i]]; setIds(n); };
 
   if (state.loading) return <div className="page-content"><p className="ws-studio-loading">Laen töölehti…</p></div>;
@@ -173,7 +186,7 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           {[['program', 'Õppekava järgi'], ['manual', 'Vali käsitsi']].map(([m, l]) => <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => setMode(m)}>{l}</button>)}
         </div>
         <div className="st-actions">
-          <button type="button" className="st-btn primary" disabled={!items.length} onClick={() => setTimeout(() => window.print(), 200)}>PDF / Prindi</button>
+          <button type="button" className="st-btn primary" disabled={!items.length || building} title={building ? 'Õpik koostatakse veel' : undefined} onClick={() => setTimeout(() => window.print(), 200)}>PDF / Prindi</button>
         </div>
       </header>
       <div className="st-body">
@@ -228,7 +241,8 @@ export default function BookPage({ repository = libraryService, worksheetReposit
           <div className="st-zoom ws-book" style={{ zoom: scale }}>
             <Cover book={book} />
             <Contents entries={entries} />
-            {items.map((item, i) => <BookSheet key={item.id} doc={item.doc} mode="print" startPage={entries[i].page} onPageCount={counter.setter(item.id)} />)}
+            {items.slice(0, shown).map((item, i) => <BookSheet key={item.id} doc={item.doc} mode="print" startPage={entries[i].page} onPageCount={counter.setter(item.id)} />)}
+            {building ? <p className="ws-studio-loading">Koostan õpikut… {Math.min(shown, items.length)}/{items.length} lehte</p> : null}
           </div>
         </main>
       </div>
