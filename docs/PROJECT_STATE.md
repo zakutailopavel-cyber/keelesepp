@@ -1,3 +1,11 @@
+## 2026-10-14 · agent/c1-art-053-100 — C1 textbook pictures 053–100: every C1 lesson has its picture
+
+- Codex (built-in image generation, no paid API) finished C1 after the daily limit reset (run at 23:02); imported
+  with `~/KeeleSeppArt/import_art.py` from a copy of the inbox: 48 pictures → `crm-v2/public/textbook-art/c1/`,
+  briefs in `art/visuals/c1-module-*.js`. C1: 100/100 lessons with a picture.
+- Also done before this PR: all 65 course modules republished after the cast PR #608 (375 lessons, no errors).
+- Next safe step: publish C1 modules 6–10 (pictures appear on the sheets after publishing).
+
 ## 2026-10-13 · agent/a2-b1-audit-fixes — A2 and B1 pass the lesson quality contract
 
 - Owner: „исправь B1 и A2” after the audit (A2 96/100, B1 46/90).
