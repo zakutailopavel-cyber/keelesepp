@@ -87,7 +87,8 @@ const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta
 export function phaseSheetItem(item, sheetId, doc) {
   const label = SHEET_LABEL[sheetId] || sheetId;
   return {
-    ...item, type: 'worksheet', phase: sheetId, title: `${item.title} · ${label}`,
+    // the sheet's own level (a2b1 control lessons are A2 sheets in the B1 course)
+    ...item, type: 'worksheet', phase: sheetId, title: `${item.title} · ${label}`, level: doc.meta?.level || item.level,
     source: { ...item.source, worksheetData: null, worksheetDoc: doc, publishedWorksheetDoc: doc, worksheetDocStatus: 'published' },
   };
 }

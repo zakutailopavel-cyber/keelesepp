@@ -304,6 +304,16 @@ export const homeworkService = {
     const { db } = requireFirebaseClient();
     await deleteDoc(doc(db, 'homework', id));
   },
+  // a worksheet given by mistake, taken back before the student hands it in (staff only under the rules); a handed-in
+  // sheet stays as the student's result
+  async removeWorksheetAssignment(id) {
+    const { db } = requireFirebaseClient();
+    const reference = doc(db, 'worksheetAssignments', id);
+    const snapshot = await getDoc(reference);
+    if (!snapshot.exists()) return;
+    if (snapshot.data().status === 'done') throw new Error('Esitatud tööd ei saa eemaldada: see on õpilase tulemus.');
+    await deleteDoc(reference);
+  },
   async reviewSubmission({ submission, teacherGrade, teacherFeedback, user, skillGrades = null }) {
     const collectionName = submission?.submissionKind === 'worksheet' ? 'worksheetAssignments' : 'exerciseResults';
     const grade = teacherGrade === '' || teacherGrade == null ? null : Number(teacherGrade);

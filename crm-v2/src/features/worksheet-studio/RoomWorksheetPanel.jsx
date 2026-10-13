@@ -36,7 +36,7 @@ async function placeChoice({ choice, studentId, studentName, roomKey, note, user
       if (!doc) throw new Error('Sellel lehel pole avaldatud versiooni.');
       source = { id: choice.lessonId, title: choice.title, subject: choice.subject, level: choice.level, topic: choice.topic, publishedWorksheetDoc: doc, worksheetDocStatus: 'published', files: [] };
     }
-    const item = { kind: 'curriculum', type: 'worksheet', sourceId: choice.lessonId, title: choice.title, subject: source.subject || '', level: source.level || '', topic: source.topic || '', source };
+    const item = { kind: 'curriculum', type: 'worksheet', sourceId: choice.lessonId, title: choice.title, subject: source.subject || '', level: source.publishedWorksheetDoc?.meta?.level || source.level || '', topic: source.topic || '', source, ...(choice.kind === 'phase' ? { phase: choice.phase } : {}) };
     const result = await library.assign({ item, students: [{ id: studentId, name: studentName }], note, user });
     assignmentId = result.assignments?.[0]?.id;
     if (!assignmentId) throw new Error('Töölehte ei saanud avada.');

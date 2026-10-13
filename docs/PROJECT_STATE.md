@@ -1,3 +1,16 @@
+## 2026-10-13 · agent/teacher-sheet-fixes — take back a sheet given by mistake; the sheet's own level on the assignment
+
+- Base: `main` f753f30. Production health check today (read-only): Firestore + Storage rules live = repo (released
+  2026-10-12 18:19Z / 09:58Z); all 22 functions deployed after their last code change; every active student card ↔
+  account link mirrored (`users.linkedStudentIds`); 24 admin pages open without console errors. Found: 3 student
+  accounts with no card, 3 inactive cards not linked back (Lana Polišuk, Milan Grozovski, duplicate Konstantin), 0 groups.
+- „Eemalda õpilaselt” (student card → Tööd → a sheet given but not handed in → „praegune seis”): confirm, then
+  `homeworkService.removeWorksheetAssignment(id)` deletes the `worksheetAssignments` doc; a handed-in sheet (`status
+  done`) is refused — it is the student's result. Rules already allow staff deletes.
+- An Avasta / Harjuta / Kasuta assignment carries the sheet's own level (`doc.meta.level`), not the course's
+  (a2b1 control lessons showed „B1” on an A2 sheet). Same for sheets put on the Live Classroom board (+ `phase`).
+- Tests: StudentProfilePage +1, LibraryPage level check; students + library + worksheet-studio + homework + services 535 passed.
+
 ## 2026-10-13 · agent/c1-art-019-052 — C1 textbook pictures 019–052
 
 - Base: `main` de36b40. Codex (built-in image generation, no paid API) drew C1 lessons 019–052 before the team's

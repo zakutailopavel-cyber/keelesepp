@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterAll, beforeAll, vi } from 'vitest';
 import StudentProfilePage from './StudentProfilePage.jsx';
@@ -250,4 +250,33 @@ describe('student profile tabs and role access', () => {
     expect(dialog).toHaveTextContent('ei ole tööd veel esitanud');
     expect(homeworkApi.subscribeWorksheetAssignment).toHaveBeenCalledWith('a1', expect.any(Function), expect.any(Function));
   });
+
+  it('takes back a sheet given by mistake before it is handed in („Eemalda õpilaselt”)', async () => {
+    const doc = { schema: 'keelesepp.worksheet/1', meta: { title: 'Vale leht', level: 'A2', goals: {} }, blocks: [{ id: 'b1', type: 'gaps', data: { title: 'Täida', sentences: 'Minu [ema] nimi on Mari.' } }] };
+    const assignment = { id: 'a1', studentId: 's1', title: 'Vale leht', status: 'new', assignedAt: '2026-10-01T10:00:00.000Z', answers: {}, worksheetDoc: doc };
+    let list = [assignment];
+    const homeworkApi = {
+      listSubmissionsByStudentIds: vi.fn().mockResolvedValue([]),
+      listWorksheetAssignmentsByStudentIds: vi.fn(() => Promise.resolve(list)),
+      subscribeWorksheetAssignment: vi.fn((id, onData) => { onData(assignment); return () => {}; }),
+      removeWorksheetAssignment: vi.fn(async () => { list = []; }),
+    };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    render(
+      <MemoryRouter initialEntries={['/students/s1']}>
+        <Routes><Route path="/students/:studentId" element={<StudentProfilePage studentApi={{ getById: vi.fn().mockResolvedValue({ id: 's1', name: 'Mari Maas', teacher: 'Pavel', active: true, skillMap: {} }) }} lessonApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} invoiceApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} scheduleApi={{ listByStudent: vi.fn().mockResolvedValue([]) }} homeworkApi={homeworkApi} actor={{ uid: 'a', roles: ['admin'], displayName: 'Admin' }} />} /></Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(await screen.findByRole('tab', { name: 'Tööd' }, { timeout: 4000 }));
+    const open = await screen.findByRole('region', { name: 'Määratud, veel esitamata' });
+    fireEvent.click(within(open).getByRole('button', { name: /Vale leht/ }));
+    const dialog = await screen.findByRole('dialog', { name: 'Vale leht · praegune seis' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Eemalda õpilaselt' }));
+    expect(await screen.findByText('„Vale leht” eemaldati õpilaselt.')).toBeInTheDocument();
+    expect(homeworkApi.removeWorksheetAssignment).toHaveBeenCalledWith('a1');
+    expect(confirm).toHaveBeenCalled();
+    await waitFor(() => expect(screen.queryByRole('region', { name: 'Määratud, veel esitamata' })).toBeNull());
+    confirm.mockRestore();
+  });
 });
+
