@@ -1,3 +1,14 @@
+## 2026-10-13 · agent/b2-c1-harno — B2 and C1 train the Harno exam formats; audio for every listening task
+
+- Why (owner's goal): the lessons must be a complete course; B2/C1 lacked the Harno formats (`docs/level-audit-2026-10-12/b2-c1-fixes/` „Не исправлено”).
+- B2 (`admin/course/b2/module01…18.js`): every control lesson (005…085) is a Harno B2 check — Harjuta: long article with 4-option questions, statements ↔ paragraphs, 4-option cloze, sentence bank with one extra, listening (short notices once, interview twice); Kasuta: ~140-word (semi-)formal letter, ~180-word argument or data summary, 1-min work talk after 2 min preparation + pair discussion with pro/contra cards, rubric 10/15/10/15, pass rule. 089 and 090 = two parallel full B2 mocks. Below-level grammar drills replaced in several lessons (-vat, nominalisation, tingiv minevik, kesksõnad, des/mata).
+- C1 (`admin/course/c1/module01…10(b).js`): writing 220–260 words everywhere (was 250–300), talks 2 min after 3 min preparation (were 4–5 min) + ~7-min discussion; a listening task (lecture / interview with implicit attitudes) in every module; exam-length texts in paragraphs A–D with statements ↔ paragraphs and sentence-gap texts; data summaries ~180 words with the data on the sheet; control lessons in Harno C1 form; 099 and 100 = two parallel full C1 mocks.
+- Listening audio: 206 blocks, 304 min, 70 MB (`crm-v2/public/audio`, TartuNLP Neurokõne); instructions „Õpetaja loeb … kaks korda / üks kord / veel kord” → „Kuula …” on every block of a sheet with audio.
+- Quality baseline: 19 → 1 known problems; none added. Reports: `docs/level-audit-2026-10-12/b2-c1-harno/`.
+- Checks: worksheet-generator + worksheet-studio 804/804 (+1 skipped); lint 0 errors; build ok.
+- Limits: some cloze / sentence-gap texts shorter than the exam's; a few sheets at the 40-min floor; Estonian of sub-agent texts proofread only in samples; listening audio is synthetic (TartuNLP).
+- Production: republish all course modules (A2, B1, B2, C1) so the sheets get the new content and the audio.
+
 ## 2026-10-13 · agent/listening-audio — real audio for every listening task of the course sheets
 
 - Why (owner): the 155 listening blocks of the course (A2 / B1 / B2 / C1, ~16 600 words) said „Õpetaja loeb teksti kaks korda” — the teacher had to read every text aloud.
