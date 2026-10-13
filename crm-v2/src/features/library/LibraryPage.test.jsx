@@ -60,7 +60,7 @@ describe('LibraryPage', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: /^Määra 1 õpilasele/ }));
     await waitFor(() => expect(repository.assign).toHaveBeenCalled());
     const { item } = repository.assign.mock.calls[0][0];
-    expect(item).toMatchObject({ type: 'worksheet', phase: 'practice', sourceId: 'lesson-1' });
+    expect(item).toMatchObject({ type: 'worksheet', phase: 'practice', sourceId: 'lesson-1', level: sheet.meta.level || 'A1' });
     expect(item.source.publishedWorksheetDoc).toBe(sheet);
     expect(worksheetRepository.list).toHaveBeenCalledWith('lesson-1');
   });

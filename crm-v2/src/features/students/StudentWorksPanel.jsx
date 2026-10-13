@@ -1,7 +1,7 @@
 import { ClipboardCheck, Eye, FileText } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
+import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, Modal } from '../../components/ui/index.js';
 import LiveWorksheetView from '../worksheet-studio/LiveWorksheetView.jsx';
 import { answerProgress } from '../worksheet-studio/engine/registry.js';
 import '../homework/reviewLayout.css';
@@ -29,6 +29,8 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
   const [watching, setWatching] = useState(null);
   const [opened, setOpened] = useState(null);
   const [notice, setNotice] = useState('');
+  const [removing, setRemoving] = useState(false);
+  const [removeError, setRemoveError] = useState('');
 
   const [version, setVersion] = useState(0);
   useEffect(() => {
@@ -45,6 +47,24 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
     return () => { alive = false; };
   }, [homeworkApi, privateWorksheetApi, student.id, version]);
   const load = () => { setState((current) => ({ ...current, loading: true, error: '' })); setVersion((value) => value + 1); };
+
+  // a sheet given by mistake: taken back before it is handed in (the student's answers on it go too)
+  const removeWatching = async () => {
+    if (!watching || !homeworkApi.removeWorksheetAssignment) return;
+    if (!globalThis.confirm(`Eemaldada „${watching.title}” õpilaselt? Tööleht kaob tema töölehtede alt koos tehtud vastustega.`)) return;
+    setRemoving(true);
+    setRemoveError('');
+    try {
+      await homeworkApi.removeWorksheetAssignment(watching.id);
+      setNotice(`„${watching.title}” eemaldati õpilaselt.`);
+      setWatching(null);
+      load();
+    } catch (error) {
+      setRemoveError(error.message || 'Töölehte ei saanud eemaldada.');
+    } finally {
+      setRemoving(false);
+    }
+  };
 
   const pending = state.items.filter((item) => item.reviewStatus !== 'reviewed').length;
 
@@ -95,9 +115,11 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
         </div>
       ) : <EmptyState title="Esitatud töid veel ei ole" description="Kui õpilane esitab töölehe või harjutuse, ilmub see siia." />}
       {watching ? (
-        <Modal open title={`${watching.title} · praegune seis`} onClose={() => { setWatching(null); load(); }} className="modal--review">
+        <Modal open title={`${watching.title} · praegune seis`} onClose={() => { setWatching(null); setRemoveError(''); load(); }} className="modal--review"
+          footer={homeworkApi.removeWorksheetAssignment ? <Button variant="secondary" loading={removing} onClick={removeWatching}>Eemalda õpilaselt</Button> : null}>
           <div className="review-layout review-layout--single">
             <div className="review-layout__work">
+              {removeError ? <p className="action-error" role="alert">{removeError}</p> : null}
               <p className="form-hint">Õpilane ei ole tööd veel esitanud. Näed tema vastuseid nii, nagu need praegu on — uued vastused ilmuvad kohe.</p>
               <LiveWorksheetView assignmentId={watching.id} repository={homeworkApi} embedded />
             </div>
