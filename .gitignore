@@ -10,3 +10,6 @@ functions/.env.*
 
 # Firebase emulator logs
 *-debug.log
+
+# listening audio TTS cache (tools/listening-audio/build.mjs)
+tools/listening-audio/.cache/

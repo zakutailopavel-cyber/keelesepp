@@ -1,3 +1,14 @@
+## 2026-10-13 · agent/listening-audio — real audio for every listening task of the course sheets
+
+- Why (owner): the 155 listening blocks of the course (A2 / B1 / B2 / C1, ~16 600 words) said „Õpetaja loeb teksti kaks korda” — the teacher had to read every text aloud.
+- Audio: TartuNLP Neurokõne (free public Estonian TTS, `api.tartunlp.ai/text-to-speech/v2`), built by `tools/listening-audio/build.mjs` (+ `plan.mjs`, README there): „Name: text” lines are dialogue turns with a voice per speaker (female mari / liivika / külli / vesta, male albert / kalev / tambet / indrek / meelis / peeter), narration one more voice; speed 0.9 for A2 levels, 1.0 from B1; 0.45 s between turns; loudness −16 LUFS; mono MP3 22.05 kHz 32 kbps.
+- Output: `crm-v2/public/audio/<lessonId>/<blockId>.mp3` — 155 files, 157.6 min, 36 MB; manifest `admin/course/listeningAudio.json` (`src`, `seconds`, `hash` = sha1 of the transcript).
+- Wiring: `buildCourseSheet` → `withListeningAudio` (`admin/course/listeningAudio.js`) sets `data.audio = { src, name, seconds }` and rewrites „Õpetaja loeb X kaks korda” → „Kuula X kaks korda” (object in the partitive: teate → teadet …). Module files unchanged.
+- Regenerate after a transcript edit: `node tools/listening-audio/build.mjs` (only changed hashes; `--force` all, `--only <key>`); `listeningAudio.test.js` fails while a recording is missing or stale. TTS pieces are cached in `tools/listening-audio/.cache/` (git-ignored). Full run ≈ 30 min, 1 request/s.
+- Limits: synthetic voices; numbers / abbreviations are read as the TTS guesses (fix the transcript, rebuild). `src` is a site path (`/audio/…`) — works where the CRM app is served; published sheets keep it once republished. Already published sheets get audio only after republishing the module on „Kursuse tootmine”.
+- Checks: worksheet-generator + worksheet-studio 803/803 (+1 skipped); eslint 0 errors (10 old warnings); `npm run build` OK (dist/audio included). Production: none.
+- Next: listen to a sample per level in the browser, then republish the course modules on „Kursuse tootmine”.
+
 ## 2026-10-13 · agent/art-b2-c1-batch4 — the rest of the Codex night batch (B2 061–090, C1 001–018)
 
 - Codex batch 2 stopped at 06:10 („workspace is out of credits”) after est-c1-018. Imported (from a copy of the inbox): B2 lessons up to 090 and C1 001–018 with briefs (`art/visuals/b2-module-14…18.js`, `c1-module-01…03.js`). Lessons Codex skipped after 3 tries have no picture (listed by `import_art.py`).
