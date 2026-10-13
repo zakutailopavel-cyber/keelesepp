@@ -1,47 +1,15 @@
 {
- "b1b2-module-02": [
-  "b1b2-007|practice|did-choice-length-007_p_choice",
-  "b1b2-010|practice|did-choice-length-010_p_choice"
- ],
  "b1b2-module-05": [
-  "b1b2-021|practice|did-choice-length-021_p_choice",
-  "b1b2-021|practice|didactic",
-  "b1b2-025|discover|did-errorfix-none-025_d_fix",
-  "b1b2-025|practice|did-choice-length-025_p_choice"
- ],
- "b1b2-module-06": [
-  "b1b2-029|practice|did-choice-length-029_p_choice"
- ],
- "b1b2-module-07": [
-  "b1b2-032|practice|did-choice-length-032_p_choice"
- ],
- "b1b2-module-09": [
-  "b1b2-042|practice|did-choice-length-042_p_choice"
- ],
- "b1b2-module-10": [
-  "b1b2-048|discover|did-errorfix-none-048_d_fix",
-  "b1b2-048|discover|didactic",
-  "b1b2-048|practice|did-errorfix-none-048_p_fix"
- ],
- "b1b2-module-11": [
-  "b1b2-054|practice|did-errorfix-none-054_p_fix",
-  "b1b2-054|practice|didactic"
- ],
- "b1b2-module-12": [
-  "b1b2-057|practice|did-choice-length-057_p_choice"
+  "b1b2-025|discover|did-errorfix-none-025_d_fix"
  ],
  "b1b2-module-13": [
   "*|*|harno-reading"
  ],
  "b1b2-module-14": [
-  "*|*|harno-reading",
-  "b1b2-067|practice|did-choice-length-067_p_choice",
-  "b1b2-067|practice|didactic"
+  "*|*|harno-reading"
  ],
  "b1b2-module-15": [
-  "*|*|harno-reading",
-  "b1b2-073|practice|did-choice-length-073_p_choice",
-  "b1b2-073|practice|didactic"
+  "*|*|harno-reading"
  ],
  "b1b2-module-16": [
   "*|*|harno-reading"
@@ -54,79 +22,34 @@
   "*|*|harno-reading"
  ],
  "est-c1-module-01": [
-  "*|*|harno-listening",
-  "est-c1-002|practice|did-choice-length-c1_002_p_choice",
-  "est-c1-002|practice|didactic",
-  "est-c1-004|practice|did-choice-length-c1_004_p_choice",
-  "est-c1-004|practice|didactic",
-  "est-c1-007|practice|did-choice-length-c1_007_p_choice",
-  "est-c1-007|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-02": [
-  "*|*|harno-listening",
-  "est-c1-012|practice|did-choice-length-c1_012_p_choice",
-  "est-c1-012|practice|didactic",
-  "est-c1-016|practice|did-choice-length-c1_016_p_choice",
-  "est-c1-016|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-03": [
-  "*|*|harno-listening",
-  "est-c1-026|practice|did-choice-length-c1_026_p_choice",
-  "est-c1-026|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-04": [
-  "*|*|harno-listening",
-  "est-c1-032|practice|did-choice-length-c1_032_p_choice",
-  "est-c1-032|practice|didactic",
-  "est-c1-034|discover|did-choice-length-c1_034_d_choice",
-  "est-c1-034|discover|didactic",
-  "est-c1-036|practice|did-choice-length-c1_036_p_choice",
-  "est-c1-036|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-05": [
-  "*|*|harno-listening",
-  "est-c1-042|practice|did-choice-length-c1_042_p_choice",
-  "est-c1-042|practice|didactic",
-  "est-c1-044|discover|did-choice-length-c1_044_d_choice",
-  "est-c1-044|discover|didactic",
-  "est-c1-046|practice|did-choice-length-c1_046_p_choice",
-  "est-c1-046|practice|didactic",
-  "est-c1-048|practice|did-choice-length-c1_048_p_choice",
-  "est-c1-048|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-06": [
-  "*|*|harno-listening",
-  "est-c1-052|practice|did-choice-length-c1_052_p_choice",
-  "est-c1-052|practice|didactic",
-  "est-c1-056|practice|did-choice-length-c1_056_p_choice",
-  "est-c1-056|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-07": [
-  "*|*|harno-listening",
-  "est-c1-066|practice|did-choice-length-c1_066_p_choice",
-  "est-c1-066|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-08": [
   "*|*|harno-listening",
-  "est-c1-072|practice|did-choice-length-c1_072_p_choice",
-  "est-c1-072|practice|didactic",
-  "est-c1-074|discover|did-choice-length-c1_074_d_choice",
-  "est-c1-074|discover|didactic",
-  "est-c1-076|practice|did-choice-length-c1_076_p_choice",
-  "est-c1-076|practice|didactic",
-  "est-c1-078|practice|did-choice-length-c1_078_p_choice",
-  "est-c1-078|practice|didactic"
+  "est-c1-074|discover|didactic"
  ],
  "est-c1-module-09": [
-  "*|*|harno-listening",
-  "est-c1-086|practice|did-choice-length-c1_086_p_choice",
-  "est-c1-086|practice|didactic"
+  "*|*|harno-listening"
  ],
  "est-c1-module-10": [
-  "*|*|harno-listening",
-  "est-c1-094|discover|did-choice-length-c1_094_d_choice",
-  "est-c1-094|discover|didactic",
-  "est-c1-096|practice|did-choice-length-c1_096_p_choice",
-  "est-c1-096|practice|didactic"
+  "*|*|harno-listening"
  ]
 }
