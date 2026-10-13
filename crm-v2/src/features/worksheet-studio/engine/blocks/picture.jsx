@@ -147,7 +147,8 @@ export const profiles = {
     <div className="ws-profiles" style={{ gridTemplateColumns: `repeat(${Number(data.columns) || 3}, 1fr)` }}>
       {(data.people || []).map((p, pi) => (
         <div className="ws-profile" key={pi}>
-          <Photo img={p.img} aspect="1:1" alt={p.name} />
+          {/* a card without a photo is an ID card (personal data), not an empty „Foto” frame */}
+          {p.img?.src ? <Photo img={p.img} aspect="1:1" alt={p.name} /> : null}
           <b className="ws-profile-name">{p.name}</b>
           {lines(p.facts).length ? <ul className="ws-profile-facts">{lines(p.facts).map((f, i) => <li key={i}>{f}</li>)}</ul> : null}
           {lines(p.sentences).length ? (

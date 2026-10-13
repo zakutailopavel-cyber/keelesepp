@@ -36,6 +36,11 @@ export const B = {
   dialogue: (id, title, instruction, speakerA, speakerB, lines, goal = 'g_use') => block(id, 'dialogue', 'green', goal, { title, instruction, speakerA, speakerB, lines: lines.map(([who, text]) => ({ who, text })) }),
   diagram: (id, kind, data, width = 'half', goal = 'g_notice') => block(id, 'diagram', 'white', goal, { kind, ...data }, width),
   crossword: (id, title, instruction, rows, width = 'half', goal = 'g_vocab') => block(id, 'crossword', 'cream', goal, { title, instruction, rows: rows.map(([clue, answer]) => ({ clue, answer })) }, width),
+  // character / ID cards (Tegelaskaardid): people [[name, facts, sentences with [gaps]], …] — a card without a photo is
+  // an ID card (personal data, A2 module 1)
+  profiles: (id, title, instruction, people, columns = '3', goal = 'g_read') => block(id, 'profiles', 'peach', goal, {
+    title, instruction, columns, people: people.map(([name, facts, sentences]) => ({ img: null, name, facts: join(facts), sentences: join(sentences) })),
+  }),
   // reading: questions [[q, answer|alternatives], …]; {{word}} marks a word of the lesson in the passage
   reading: (id, title, instruction, passageTitle, passage, questions, goal = 'g_read') => block(id, 'reading', 'cream', goal, {
     title, instruction, passageTitle, passage: join(passage), questions: questions.map(([q, a]) => (a ? `${q} [${a}]` : q)).join('\n'), lineWidth: 'wide',
