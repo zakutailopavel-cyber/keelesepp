@@ -37,7 +37,7 @@ describe('Skeem block', () => {
     render(<diagram.View data={{ kind: 'mind', center: 'Minu päev', nodes: 'hommikul\n[päeval]' }} ctx={ctx()} id="b1" />);
     expect(screen.getByText('Minu päev')).toBeInTheDocument();
     expect(screen.getByText('hommikul')).toBeInTheDocument();
-    expect(screen.getByLabelText('Skeemi lünk 2')).toBeInTheDocument();
+    expect(screen.getByLabelText('Skeemi haru 2')).toBeInTheDocument();
   });
 });
 
@@ -123,7 +123,30 @@ describe('Mind map with sub-branches', () => {
     expect(diagram.answers(data).map((a) => a.key)).toEqual(['n1', 'n2']);
     expect(diagram.answers({ kind: 'mind', center: '[päev]', nodes: 'a\n[b]' }).map((a) => a.key)).toEqual(['c', 'n1']);
     render(<diagram.View data={data} ctx={ctx()} id="b" />);
-    expect(screen.getByLabelText('Haru 1 lünk 1')).toBeInTheDocument();
+    expect(screen.getByLabelText('hommikul: lünk 1')).toBeInTheDocument();
     expect(screen.getByLabelText('Skeemi haru 2')).toBeInTheDocument();
   });
 });
+
+describe('Skeem v2 — rows and cards (owner 2026-10-13)', () => {
+  it('a map where every branch has one blank is a table: cue → blank', () => {
+    const { container } = render(<diagram.View data={{ kind: 'mind', center: 'elama', nodes: 'ma\n- [elan]\nsa\n- [elad]' }} ctx={ctx()} id="b" />);
+    expect(container.querySelectorAll('.ws-dg2-pair')).toHaveLength(2);
+    expect(screen.getByLabelText('ma: lünk')).toBeInTheDocument();
+  });
+
+  it('names the blanks of every branch with the row labels', () => {
+    render(<diagram.View data={{ kind: 'mind', center: 'sees', labels: 'kus?, kuhu?, kust?', nodes: 'kool\n- [koolis]\n- [kooli]\n- [koolist]\nkino\n- [kinos]\n- [kinno]\n- [kinost]' }} ctx={ctx()} id="b" />);
+    expect(screen.getAllByText('kuhu?')).toHaveLength(2);
+    expect(screen.getByLabelText('kino: kust?')).toBeInTheDocument();
+  });
+
+  it('a chain of steps and a timeline are numbered rows', () => {
+    const steps = render(<diagram.View data={{ kind: 'flow', nodes: '[Mine] otse.\n[Pööra] paremale.' }} ctx={ctx()} id="b" />);
+    expect(steps.container.querySelectorAll('.ws-dg2-steps li')).toHaveLength(2);
+    steps.unmount();
+    const line = render(<diagram.View data={{ kind: 'timeline', nodes: '7.00 | ta [ärkas]\n9.00 | ta [sõi]' }} ctx={ctx()} id="b" />);
+    expect(line.container.querySelectorAll('.ws-dg2-time li')).toHaveLength(2);
+  });
+});
+

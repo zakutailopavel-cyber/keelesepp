@@ -1,3 +1,15 @@
+## 2026-10-13 · agent/diagram-redesign — „Skeem” v2: rows and cards instead of curved maps
+
+- Owner: „нужно сделать новый формат схем, нынешние не понятны от слова совсем”. Seen: mind maps with loose blank
+  lines (no cue which form goes where), tiny flow boxes, a cramped horizontal timeline, much empty space.
+- `engine/blocks/diagramViews.jsx`: mind map → `Cards` (topic pill, a card per branch, rows with bullets) and, when
+  every branch has exactly one blank (forms, family), a two-column table „cue → blank” filled top-down; tree → cards;
+  flow / cycle → `Steps` (numbered rows top-down with ↓, a cycle says „↻ ja jälle algusest”); timeline → vertical
+  rows (time badge · dot · sentence). Formula, Venn, T-chart unchanged. Answer keys unchanged (c, n0…, t0…).
+- New optional `labels` („kus?, kuhu?, kust?”) for mind maps: each blank of a branch shows its row name; editor field
+  „Ridade nimed”. Used in a2-017 „Kus? Kuhu? Kust?”.
+- `sheet.css` `.ws-dg2-*`. Tests: diagram.test.jsx labels updated + 3 new; worksheet-studio + generator 853 passed.
+
 ## 2026-10-13 · agent/b1-avasta-006-015 — B1 Avasta a2b1-006…015 as full course sheets
 
 - Owner: „перепиши эти 10 листов B1” (they were DB-only hand-made Avasta sheets, ≈ 9.5 blocks).

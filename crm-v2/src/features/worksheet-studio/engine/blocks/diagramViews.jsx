@@ -1,6 +1,6 @@
-import { Fragment, useId } from 'react';
+import { Fragment } from 'react';
 import { Line, Md } from '../ui.jsx';
-import { MAX_NODES, cellParts, curve, cycleArcs, diagramKind, diagramLayout, mindMapLayout, mindTree, pairLines, zoneItems } from './diagramModel.js';
+import { MAX_NODES, cellParts, diagramKind, mindTree, pairLines, zoneItems } from './diagramModel.js';
 
 // The drawings of the „Skeem” block, one per kind (diagram.jsx holds the block definition).
 
@@ -9,94 +9,80 @@ const BRANCH = ['#173a63', '#2f7d4c', '#7f582a', '#1f6fa8', '#8a3b5c', '#4b5f1e'
 const gapWidth = (accept) => `${Math.min(40, Math.max(12, Math.max(...accept.map((a) => a.length), 4) * 2.6))}mm`;
 
 // text with inline gaps (a plain render helper: block files export only block definitions)
-function Cell({ raw, keyName, ctx, label }) {
+function Cell({ raw, keyName, ctx, label, wide = false }) {
   const parts = cellParts(raw, keyName);
   return parts.map((p, i) => (p.gap
-    ? <Line key={i} interactive={ctx.interactive} value={ctx.get(p.key)} onChange={(v) => ctx.set(p.key, v)} state={ctx.state(p.key)} width={gapWidth(p.gap)} label={label} className="ws-gapline" />
+    ? <Line key={i} interactive={ctx.interactive} value={ctx.get(p.key)} onChange={(v) => ctx.set(p.key, v)} state={ctx.state(p.key)} width={wide && parts.length === 1 ? '45mm' : gapWidth(p.gap)} label={label} className="ws-gapline" />
     : <Md key={i} text={p.text} />));
 }
 
-const box = ({ raw, at, h, ctx, keyName, label, main = false, color, step = 0, branch = false, leaf = '', edit = '' }) => {
-  const whole = cellParts(raw, keyName);
-  const gap = whole.length === 1 && whole[0].gap;
-  return (
-    <div className={`ws-dg-node ${main ? 'is-main' : ''} ${gap ? 'is-gap' : ''} ${branch ? 'is-branch' : ''} ${leaf ? `is-leaf is-${leaf}` : ''}`} style={{ left: `${at.x}%`, top: `${(at.y / h) * 100}%`, ...(color ? { '--dg-c': color } : {}) }} data-edit={edit || undefined}>
-      {step ? <span className="ws-dg-step" aria-hidden="true">{step}</span> : null}
-      <Cell raw={raw} keyName={keyName} ctx={ctx} label={label} />
-    </div>
-  );
-};
-
 const rawNodes = (data) => String(data.nodes || '').split('\n').map((l) => l.trim()).filter(Boolean).slice(0, MAX_NODES);
+const gapOnly = (raw, key) => { const parts = cellParts(raw, key); return parts.length === 1 && Boolean(parts[0].gap); };
+// optional names of the rows under every branch („kus?, kuhu?, kust?”): a blank line always says what goes in it
+const rowLabels = (data) => String(data.labels || '').split(',').map((x) => x.trim()).filter(Boolean);
 
-function Positioned({ data, ctx, kind }) {
-  // the sheet is drawn twice (a hidden copy measures the pages): every arrowhead needs its own id
-  const head = `ws-dg-head-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`;
-  const raws = rawNodes(data);
-  const layout = diagramLayout(kind, raws.length);
-  const center = layout.center && data.center ? data.center : '';
-  const pos = (ref) => (ref === 'c' ? layout.center : layout.points[ref]);
-  const colored = kind === 'mind' || kind === 'tree';
+// The schemes are drawn as rows and cards across the whole width (owner 2026-10-13: the curved maps with loose blank
+// lines were „не понятны от слова совсем”): every blank stands next to the word, question or step it belongs to.
+// Answer keys are the old ones (c, n0, n1 …, t0 …), so saved answers stay where they were.
+
+// topic → branches (→ rows): a table when every branch has one blank (forms, family), else a card per branch
+function Cards({ data, ctx, branches, kind }) {
+  const labels = rowLabels(data);
+  const center = data.center ? <div className="ws-dg2-topic" data-edit="center"><Cell raw={data.center} keyName="c" ctx={ctx} label="Skeemi keskmine lünk" /></div> : null;
+  const oneBlank = branches.length > 1 && branches.every((b) => b.children.length === 1 && gapOnly(b.children[0].raw, b.children[0].key));
+  if (oneBlank) {
+    return (
+      <div className={`ws-diagram ws-dg2 is-${kind}`}>
+        {center}
+        <div className="ws-dg2-pairs" style={{ gridTemplateRows: `repeat(${Math.ceil(branches.length / 2)}, auto)` }}>
+          {branches.map((b, i) => (
+            <div key={b.key} className="ws-dg2-pair" style={{ '--dg-c': BRANCH[i % BRANCH.length] }}>
+              <span className="ws-dg2-cue" data-edit={`nodes#${b.key.slice(1)}`}><Cell raw={b.raw} keyName={b.key} ctx={ctx} label={`Skeemi haru ${i + 1}`} /></span>
+              <span className="ws-dg2-to" aria-hidden="true">→</span>
+              <span className="ws-dg2-fill" data-edit={`nodes#${b.children[0].key.slice(1)}`}><Cell raw={b.children[0].raw} keyName={b.children[0].key} ctx={ctx} label={`${b.raw}: lünk`} wide /></span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
-    <div className={`ws-diagram is-${kind}`} style={{ aspectRatio: `100 / ${layout.h}` }}>
-      <svg className="ws-dg-lines" viewBox={`0 0 100 ${layout.h}`} preserveAspectRatio="none" aria-hidden="true">
-        <defs><marker id={head} viewBox="0 0 10 10" refX="8" refY="5" markerWidth="1.7" markerHeight="1.7" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor" /></marker></defs>
-        {kind === 'cycle' ? cycleArcs(layout).map((d, i) => <path key={i} d={d} className="ws-dg-arc" markerEnd={`url(#${head})`} vectorEffect="non-scaling-stroke" />) : null}
-        {kind === 'tree' ? layout.links.filter(() => center).map(([, b]) => {
-          const to = pos(b);
-          const mid = (layout.center.y + to.y) / 2;
-          return <path key={b} d={`M${layout.center.x},${layout.center.y} V${mid} H${to.x} V${to.y}`} fill="none" style={{ stroke: BRANCH[b % BRANCH.length] }} vectorEffect="non-scaling-stroke" />;
-        }) : null}
-        {kind === 'mind' ? layout.links.filter(() => center).map(([, b]) => {
-          const to = pos(b);
-          const c = layout.center;
-          return <path key={b} d={`M${c.x},${c.y} Q${(c.x + to.x) / 2},${c.y} ${to.x},${to.y}`} fill="none" style={{ stroke: BRANCH[b % BRANCH.length] }} vectorEffect="non-scaling-stroke" />;
-        }) : null}
-        {kind === 'flow' ? layout.links.map(([a, b]) => {
-          const from = pos(a);
-          const to = pos(b);
-          return <line key={`${a}-${b}`} x1={from.x} y1={from.y} x2={to.x} y2={to.y} vectorEffect="non-scaling-stroke" />;
-        }) : null}
-      </svg>
-      {kind === 'flow' ? layout.links.map(([a, b]) => {
-        const from = pos(a);
-        const to = pos(b);
-        const angle = Math.abs(to.y - from.y) > 0.5 ? (to.y > from.y ? 90 : -90) : (to.x > from.x ? 0 : 180);
-        return <span key={`arrow-${a}`} className="ws-dg-arrow" aria-hidden="true" style={{ left: `${(from.x + to.x) / 2}%`, top: `${(((from.y + to.y) / 2) / layout.h) * 100}%`, transform: `translate(-50%, -50%) rotate(${angle}deg)` }}>➜</span>;
-      }) : null}
-      {center ? box({ raw: center, at: layout.center, h: layout.h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true, edit: 'center' }) : null}
-      {raws.map((raw, i) => <Fragment key={i}>{box({ raw, at: layout.points[i], h: layout.h, ctx, keyName: `n${i}`, label: `Skeemi lünk ${i + 1}`, color: colored ? BRANCH[i % BRANCH.length] : null, step: kind === 'flow' ? i + 1 : 0, edit: `nodes#${i}` })}</Fragment>)}
+    <div className={`ws-diagram ws-dg2 is-${kind}`}>
+      {center}
+      <div className="ws-dg2-cards">
+        {branches.map((b, i) => (
+          <section key={b.key} className="ws-dg2-card" style={{ '--dg-c': BRANCH[i % BRANCH.length] }}>
+            <header data-edit={`nodes#${b.key.slice(1)}`}><Cell raw={b.raw} keyName={b.key} ctx={ctx} label={`Skeemi haru ${i + 1}`} wide /></header>
+            {b.children.length ? (
+              <ul>{b.children.map((c, j) => (
+                <li key={c.key} data-edit={`nodes#${c.key.slice(1)}`}>
+                  {labels[j] && gapOnly(c.raw, c.key) ? <span className="ws-dg2-row-label">{labels[j]}</span> : null}
+                  <Cell raw={c.raw} keyName={c.key} ctx={ctx} label={`${b.raw}: ${labels[j] || `lünk ${j + 1}`}`} wide={gapOnly(c.raw, c.key)} />
+                </li>
+              ))}</ul>
+            ) : null}
+          </section>
+        ))}
+      </div>
     </div>
   );
 }
 
-// a mind map with sub-branches: topic in the middle, branches right and left, sub-branches outside, one colour per branch
-function MindMap({ data, ctx, branches }) {
-  const layout = mindMapLayout(branches);
-  const { h, center } = layout;
+// a chain of steps or a cycle: numbered rows top-down, an arrow between them (a cycle returns to step 1)
+function Steps({ data, ctx, kind }) {
+  const raws = rawNodes(data);
   return (
-    <div className="ws-diagram is-mind is-map" style={{ aspectRatio: `100 / ${h}` }}>
-      <svg className="ws-dg-lines" viewBox={`0 0 100 ${h}`} preserveAspectRatio="none" aria-hidden="true">
-        {layout.branches.map((b) => {
-          const color = BRANCH[b.index % BRANCH.length];
-          return (
-            <g key={b.key} style={{ stroke: color }}>
-              {data.center ? <path d={curve(center, b.at)} className="is-trunk" fill="none" vectorEffect="non-scaling-stroke" /> : null}
-              {b.children.map((c) => <path key={c.key} d={curve(b.at, c.at)} fill="none" vectorEffect="non-scaling-stroke" />)}
-            </g>
-          );
-        })}
-      </svg>
-      {data.center ? box({ raw: data.center, at: center, h, ctx, keyName: 'c', label: 'Skeemi keskmine lünk', main: true, edit: 'center' }) : null}
-      {layout.branches.map((b, i) => {
-        const color = BRANCH[b.index % BRANCH.length];
-        return (
-          <Fragment key={b.key}>
-            {box({ raw: b.raw, at: b.at, h, ctx, keyName: b.key, label: `Skeemi haru ${i + 1}`, color, branch: true, edit: `nodes#${b.key.slice(1)}` })}
-            {b.children.map((c, j) => <Fragment key={c.key}>{box({ raw: c.raw, at: c.at, h, ctx, keyName: c.key, label: `Haru ${i + 1} lünk ${j + 1}`, color, leaf: b.side, edit: `nodes#${c.key.slice(1)}` })}</Fragment>)}
-          </Fragment>
-        );
-      })}
+    <div className={`ws-diagram ws-dg2 is-${kind}`}>
+      {kind === 'cycle' && data.center ? <div className="ws-dg2-topic" data-edit="center"><Cell raw={data.center} keyName="c" ctx={ctx} label="Ringi nimi" /></div> : null}
+      <ol className="ws-dg2-steps">
+        {raws.map((raw, i) => (
+          <li key={i} data-edit={`nodes#${i}`}>
+            <span className="ws-dg2-num" aria-hidden="true">{i + 1}</span>
+            <span className="ws-dg2-text"><Cell raw={raw} keyName={`n${i}`} ctx={ctx} label={`Samm ${i + 1}`} wide={gapOnly(raw, `n${i}`)} /></span>
+          </li>
+        ))}
+      </ol>
+      {kind === 'cycle' && raws.length ? <p className="ws-dg2-again" aria-hidden="true">↻ ja jälle algusest: 1</p> : null}
     </div>
   );
 }
@@ -104,14 +90,16 @@ function MindMap({ data, ctx, branches }) {
 function Timeline({ data, ctx }) {
   const rows = pairLines(data.nodes);
   return (
-    <div className="ws-diagram ws-dg-timeline" style={{ '--dg-n': Math.min(Math.max(rows.length, 1), 6) }}>
-      {rows.map((row, i) => (
-        <div key={i} className={`ws-dg-tl-item ${i === rows.length - 1 ? 'is-last' : ''}`} data-edit={`nodes#${i}`}>
-          <div className="ws-dg-tl-when"><Cell raw={row.label} keyName={`t${i}`} ctx={ctx} label={`Ajajoone aeg ${i + 1}`} /></div>
-          <div className="ws-dg-tl-axis" aria-hidden="true"><span /></div>
-          <div className="ws-dg-tl-what"><Cell raw={row.text} keyName={`n${i}`} ctx={ctx} label={`Ajajoone lünk ${i + 1}`} /></div>
-        </div>
-      ))}
+    <div className="ws-diagram ws-dg2 is-timeline">
+      <ol className="ws-dg2-time">
+        {rows.map((row, i) => (
+          <li key={i} data-edit={`nodes#${i}`}>
+            <span className="ws-dg2-when"><Cell raw={row.label} keyName={`t${i}`} ctx={ctx} label={`Ajajoone aeg ${i + 1}`} /></span>
+            <span className="ws-dg2-dot" aria-hidden="true" />
+            <span className="ws-dg2-text"><Cell raw={row.text} keyName={`n${i}`} ctx={ctx} label={`Ajajoone lünk ${i + 1}`} /></span>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
@@ -170,10 +158,9 @@ const VIEWS = { timeline: Timeline, formula: Formula, venn: Venn, compare: Compa
 
 export function DiagramView({ data, ctx }) {
   const kind = diagramKind(data);
-  if (kind === 'mind') {
-    const branches = mindTree(data.nodes);
-    if (branches.some((b) => b.children.length)) return <MindMap data={data} ctx={ctx} branches={branches} />;
-  }
+  if (kind === 'mind') return <Cards data={data} ctx={ctx} branches={mindTree(data.nodes)} kind="mind" />;
+  if (kind === 'tree') return <Cards data={data} ctx={ctx} branches={rawNodes(data).map((raw, i) => ({ key: `n${i}`, raw, children: [] }))} kind="tree" />;
+  if (kind === 'flow' || kind === 'cycle') return <Steps data={data} ctx={ctx} kind={kind} />;
   const View = VIEWS[kind];
-  return View ? <View data={data} ctx={ctx} /> : <Positioned data={data} ctx={ctx} kind={kind} />;
+  return View ? <View data={data} ctx={ctx} /> : <Steps data={data} ctx={ctx} kind="flow" />;
 }
