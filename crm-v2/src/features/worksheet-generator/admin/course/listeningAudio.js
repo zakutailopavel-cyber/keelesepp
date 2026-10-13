@@ -12,19 +12,43 @@ const PARTITIVE = {
   teate: 'teadet', teated: 'teateid', ilmateate: 'ilmateadet', teadaande: 'teadaannet', vestluse: 'vestlust',
   sõnumi: 'sõnumit', sõnumid: 'sõnumeid', häälsõnumi: 'häälsõnumit', intervjuu: 'intervjuud', loo: 'lugu',
   lõigu: 'lõiku', kuus: 'kuut', telefonikõne: 'telefonikõnet', uudise: 'uudist', saate: 'saadet', vastused: 'vastuseid',
-  uudised: 'uudiseid', loengu: 'loengut', arutelu: 'arutelu', raadiosaate: 'raadiosaadet',
+  uudised: 'uudiseid', loengu: 'loengut', arutelu: 'arutelu', raadiosaate: 'raadiosaadet', kuulamistekstid: 'kuulamistekste', klipid: 'klippe', klipi: 'klippi',
+  katkendi: 'katkendit', lühikese: 'lühikest',
   teadaanded: 'teadaandeid', tekstid: 'tekste', teadaanne: 'teadaannet', dialoogi: 'dialoogi', aruande: 'aruannet', kõne: 'kõnet',
 };
+const TIMES = '(kaks korda|üks kord|ühe korra|veel kord|teist korda)';
+const partitive = (w) => {
+  const bare = w.replace(/,$/, '');
+  const low = bare.toLowerCase();
+  const form = PARTITIVE[low] ? (bare === low ? PARTITIVE[low] : PARTITIVE[low][0].toUpperCase() + PARTITIVE[low].slice(1)) : bare;
+  return form + (w.endsWith(',') ? ',' : '');
+};
+// only the head of the object changes form („raadiosaate teksti” → „raadiosaate teksti”, „iga klipi” → „iga klippi”);
+// a numeral or adjective before it agrees („kuus lühikest teadet” → „kuut lühikest teadet”)
+const AGREE = new Set(['kuus', 'lühikese']);
+const objectWords = (object) => {
+  const words = object.trim().split(' ').filter(Boolean);
+  const head = words.map((w) => w !== 'ainult').lastIndexOf(true);
+  return words.map((w, i) => (i === head || w.endsWith(',') || AGREE.has(w) ? partitive(w) : w));
+};
+const once = (times) => (times === 'ühe korra' ? 'üks kord' : times);
+
 export function listenInstruction(text) {
-  // at the start of any sentence of the instruction („Loe küsimused läbi. Õpetaja loeb …”)
-  return String(text || '').replace(/(^|[.!?]\s+)Õpetaja loeb ((?:[^.]*? )?)(kaks korda|üks kord|ühe korra|veel kord|teist korda)/g, (_, lead, object, times) => {
-    const words = object.trim().split(' ').filter(Boolean).map((w) => {
-      const bare = w.replace(/,$/, '');
-      return (PARTITIVE[bare] || bare) + (w.endsWith(',') ? ',' : '');
-    });
-    return lead + ['Kuula', ...words, times === 'ühe korra' ? 'üks kord' : times].join(' ');
-  });
+  return String(text || '')
+    // „Õpetaja loeb tekstid ette.” → „Kuula tekste.”
+    .replace(/(^|[.!?]\s+)Õpetaja loeb ([^.]*?) ette\b/g, (_, lead, object) => lead + ['Kuula', ...objectWords(object)].join(' '))
+    // „Õpetaja loeb X kaks korda.” at the start of a sentence → „Kuula X kaks korda.”
+    .replace(new RegExp(`(^|[.!?]\\s+)Õpetaja loeb ((?:[^.]*? )?)${TIMES}`, 'g'),
+      (_, lead, object, times) => lead + ['Kuula', ...objectWords(object), once(times)].join(' '))
+    // „Kuulamine (20 min): õpetaja loeb loengu üks kord, …” / „mida õpetaja loeb ainult üks kord” → „kuulad …”
+    .replace(new RegExp(`([:;,] |mida )õpetaja loeb ((?:[^.;]*? )?)${TIMES}`, 'g'),
+      (_, lead, object, times) => lead + ['kuulad', ...objectWords(object), once(times)].join(' '))
+    // „Kuulamistekstid loeb õpetaja kaks korda” / „Küsimuste 6–10 ajal loeb õpetaja intervjuu teist korda”
+    .replace(new RegExp(`([\\p{L}\\d–-]+) loeb õpetaja ((?:[^.]*? )?)${TIMES}([^.]*)`, 'gu'),
+      (_, before, object, times, rest) => [partitive(before), 'kuulad', ...objectWords(object), once(times)].join(' ') + rest.replace(/ühe korra/g, 'üks kord'));
 }
+
+export const TEACHER_READS = /õpetaja loeb|loeb õpetaja/i;
 
 // listening blocks with recorded audio get it attached; the teacher no longer has to read the text aloud — the
 // instructions of the sheet's other tasks on that recording („Õpetaja loeb intervjuu veel kord”) say „Kuula …” too
@@ -39,7 +63,14 @@ export function withListeningAudio(blocks, lessonId) {
     return { ...block, data: { ...block.data, audio: { src: entry.src, name: `${block.id}.mp3`, seconds: entry.seconds }, instruction: listenInstruction(block.data.instruction) } };
   });
   if (!heard) return withAudio;
-  return withAudio.map((block) => (block.type !== 'listening' && /(^|[.!?]\s+)Õpetaja loeb /.test(block.data?.instruction || '')
-    ? { ...block, data: { ...block.data, instruction: listenInstruction(block.data.instruction) } }
-    : block));
+  // the instruction of other tasks and the sheet's notes („Kuulamistekstid loeb õpetaja kaks korda”) too
+  return withAudio.map((block) => {
+    if (block.type === 'listening' || block.type === 'dictation') return block;
+    const data = { ...block.data };
+    let changed = false;
+    for (const key of ['instruction', 'text']) {
+      if (typeof data[key] === 'string' && TEACHER_READS.test(data[key])) { data[key] = listenInstruction(data[key]); changed = true; }
+    }
+    return changed ? { ...block, data } : block;
+  });
 }
