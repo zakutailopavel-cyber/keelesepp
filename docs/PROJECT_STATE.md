@@ -19,7 +19,10 @@
   Avasta of the B1 checks → three goals.
 - Simulated audit before publishing: A2 100/100, B1 90/90 (only the stray lesson „Mina” without sheets is left).
 - Tests: worksheet-generator 605 passed, 1 skipped.
-- Production after merge: republish 81 sheets (38 from code, 43 patched published sheets).
+- Production (after merge c50c3a2): 81 sheets published as new versions. Audit on production: A2 100/100, B1 90/90,
+  B2 90/90, C1 100/100 course lessons. Left: two stray lessons without sheets („Mina” A2, „LUGEMINE” B2) — owner decides.
+- Next safe step: progress view by sub-goals (owner agreed: teacher rating of speaking/writing, teacher override,
+  traffic lights for the student) — mockups first.
 
 ## 2026-10-13 · agent/drop-page-space — drop a block into the empty bottom of a page
 
