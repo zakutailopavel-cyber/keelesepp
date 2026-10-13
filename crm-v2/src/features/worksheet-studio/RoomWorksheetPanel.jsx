@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { FileText } from 'lucide-react';
+import { FileText, Footprints, SkipForward } from 'lucide-react';
 import { Button, Card } from '../../components/ui/index.js';
 import { homeworkService, lessonWorksheetsService, lessonsService, libraryService } from '../../services/firebase/index.js';
 import { publishedPhaseDoc } from './bookProgram.js';
 import { curriculumSheetChoices, filterChoices, nextLessonSuggestion, prepRoomKey, studentSheetChoices } from './roomWorksheetChoices.js';
 import DocWorksheetPlayer from './DocWorksheetPlayer.jsx';
+import { nextToOpen, stepCounts } from './engine/liveLesson.js';
 import LiveWorksheetView from './LiveWorksheetView.jsx';
 import './worksheetStudio.css';
 
@@ -137,6 +138,35 @@ export function RoomWorksheetPicker({ studentId, studentName = '', studentLevel 
 
 // `showSheet`: false when the room shows the worksheet on the board and this panel only picks/announces it.
 // onSheetsChange: every worksheet of this room, newest first (the board shows each on its own page).
+// „Samm-sammult” in the side panel: on the board the task list lies under the sheet, out of sight (owner 2026-10-13:
+// the student saw only the text and the picture and thought the sheet was broken)
+export function RoomStepControl({ current, homework = homeworkService }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const step = current?.liveStep;
+  if (!step?.on || current?.status === 'done' || !homework.setWorksheetLiveStep) return null;
+  const doc = current.worksheetDoc;
+  const counts = stepCounts(doc, step);
+  const nextId = nextToOpen(doc, step);
+  const run = async (task) => {
+    setBusy(true); setError('');
+    try { await task(); } catch (err) { setError(err.message || 'Ei õnnestunud.'); } finally { setBusy(false); }
+  };
+  return (
+    <div className="live-step-control" role="status">
+      <p><Footprints size={16} aria-hidden="true" /> <b>Samm-sammult</b>: õpilane näeb {counts.open}/{counts.total} ülesannet.</p>
+      <div>
+        <Button variant="secondary" disabled={busy || !nextId} onClick={() => run(async () => {
+          await homework.setWorksheetLiveStep({ assignmentId: current.id, on: true, open: [...(step.open || []), nextId] });
+          if (homework.setWorksheetLiveFocus) await homework.setWorksheetLiveFocus({ assignmentId: current.id, blockId: nextId });
+        })}><SkipForward size={15} aria-hidden="true" /> Ava järgmine</Button>
+        <Button disabled={busy} onClick={() => run(() => homework.setWorksheetLiveStep({ assignmentId: current.id, on: false, open: step.open || [] }))}>Näita kõiki</Button>
+      </div>
+      {error ? <p className="action-error" role="alert">{error}</p> : null}
+    </div>
+  );
+}
+
 export default function RoomWorksheetPanel({ invitation, role, user, homework = homeworkService, library = libraryService, lessonWorksheets = lessonWorksheetsService, lessons = lessonsService, onCurrentChange, onSheetsChange, showSheet = true }) {
   const roomKey = invitation.roomKey || invitation.id;
   const [items, setItems] = useState(null);
@@ -174,6 +204,7 @@ export default function RoomWorksheetPanel({ invitation, role, user, homework = 
       </div>
       {error ? <div className="action-error" role="alert">{error}</div> : null}
       {!showSheet && items?.length ? <p className="form-hint">Tahvlil: {items.map((item) => item.title || item.worksheetDoc?.meta?.title || 'Tööleht').join(' · ')}</p> : null}
+      {role === 'teacher' ? <RoomStepControl current={current} homework={homework} /> : null}
       {role === 'teacher' ? <RoomWorksheetPicker studentId={invitation.studentId} studentName={invitation.studentName} roomKey={roomKey} note={invitation.title ? `Live Classroom: ${invitation.title}` : 'Live Classroom'} user={user} homework={homework} library={library} lessonWorksheets={lessonWorksheets} lessons={lessons} /> : null}
       {showSheet ? <RoomWorksheetContent current={current} role={role} homework={homework} /> : null}
     </Card>

@@ -100,3 +100,21 @@ describe('RoomWorksheetPanel', () => {
     return screen.findByRole('alert').then((alert) => expect(alert).toHaveTextContent('Firebase ei ole seadistatud.'));
   });
 });
+
+describe('Samm-sammult in the side panel (the task list lies under the sheet on the board)', () => {
+  it('shows how many tasks the student sees and opens the next or all of them', async () => {
+    const { RoomStepControl } = await import('./RoomWorksheetPanel.jsx');
+    const doc = { ...worksheetDoc, blocks: [{ id: 'txt', type: 'text', data: { text: 'Loe.' } }, ...worksheetDoc.blocks, { id: 'tf2', type: 'truefalse', data: { statements: [{ text: 'Öösel on pime.', answer: 'true' }] } }] };
+    const homework = { setWorksheetLiveStep: vi.fn().mockResolvedValue({}), setWorksheetLiveFocus: vi.fn().mockResolvedValue({}) };
+    const current = { id: 'a1', status: 'new', worksheetDoc: doc, liveStep: { on: true, open: [] } };
+    const view = render(<RoomStepControl current={current} homework={homework} />);
+    expect(screen.getByRole('status')).toHaveTextContent('õpilane näeb 0/2 ülesannet');
+    fireEvent.click(screen.getByRole('button', { name: /Ava järgmine/ }));
+    await waitFor(() => expect(homework.setWorksheetLiveStep).toHaveBeenCalledWith({ assignmentId: 'a1', on: true, open: ['tf'] }));
+    expect(homework.setWorksheetLiveFocus).toHaveBeenCalledWith({ assignmentId: 'a1', blockId: 'tf' });
+    fireEvent.click(screen.getByRole('button', { name: 'Näita kõiki' }));
+    await waitFor(() => expect(homework.setWorksheetLiveStep).toHaveBeenLastCalledWith({ assignmentId: 'a1', on: false, open: [] }));
+    view.rerender(<RoomStepControl current={{ ...current, liveStep: { on: false, open: [] } }} homework={homework} />);
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+});

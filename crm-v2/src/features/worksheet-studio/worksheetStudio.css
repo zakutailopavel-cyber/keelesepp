@@ -201,6 +201,9 @@ textarea.ed-input { resize: vertical; }
 
 /* Worksheet inside the Live Classroom room */
 .live-room-worksheet { display: grid; gap: 12px; margin-top: 16px; }
+.live-step-control { display: grid; gap: 8px; padding: 12px 14px; border-radius: 12px; background: #fff7e6; border: 1px solid #f5d38a; }
+.live-step-control p { display: flex; align-items: center; gap: 6px; margin: 0; }
+.live-step-control > div { display: flex; flex-wrap: wrap; gap: 8px; }
 .live-room-worksheet__head { display: flex; gap: 10px; align-items: flex-start; }
 .live-room-worksheet__head > div { display: grid; gap: 2px; } .live-room-worksheet__head small { color: var(--muted); }
 .live-room-worksheet__pick { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
@@ -408,6 +411,8 @@ textarea.ed-input { resize: vertical; }
 .ws-live-hard { padding: 10px; border-radius: 10px; background: #fff4e5; color: #6b3d00; font-size: 13px; }
 .ws-live-hard b { display: inline-flex; align-items: center; gap: 5px; }
 .ws-live-hard ul { margin: 6px 0 0; padding-left: 18px; }
+.ws-doc-player.is-board { position: relative; }
+.ws-live-wait.is-over { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 5; margin: 0; font-size: 1.05rem; box-shadow: 0 6px 18px rgba(23, 58, 99, .18); white-space: nowrap; }
 .ws-live-wait { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; padding: 10px 14px; border-radius: 12px; background: #eef6ff; color: #173a63; font-weight: 700; }
 @media (max-width: 900px) { .ws-studio.ws-live .st-body.ws-live-body:has(.ws-live-tasks) { grid-template-columns: 1fr; } .ws-live-tasks { border-left: 0; border-top: 1px solid var(--st-line); } }
 .ws-live.is-embedded .ws-live-tasks { max-height: 75vh; }

@@ -194,6 +194,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   // on the board: the sheet first and nothing above it, so it lies exactly like the teacher's copy; the rest below
   if (board) {
     const sheetFirst = <article className={`worksheet-player ws-studio ws-doc-player is-inline is-board ${mark ? 'is-marked' : ''}`} style={watermarkStyle(mark)} onCopy={onCopy}>
+      {/* over the sheet, not above it (the sheet lies exactly like the teacher's copy): the student sees why tasks are missing */}
+      {stepped.hidden > 0 ? <div className="ws-live-wait is-over" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
@@ -201,7 +203,6 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
         </div>
         </SheetAnnotations>
       </div>
-      {stepped.hidden > 0 ? <div className="ws-live-wait" role="status"><Clock3 size={17} aria-hidden="true" /> Õpetaja avab ülesandeid ükshaaval. Järgmine tuleb peagi.</div> : null}
       {error ? <div className="action-error" role="alert">{error}<button onClick={() => setError('')}>×</button></div> : null}
       {submitted && score ? <div className="worksheet-result"><CheckCircle2 size={24} /><div><strong>{score.pct}% · {score.correct}/{score.total} õiget</strong></div></div> : null}
       {checked ? <GoalEvidence doc={doc} evidence={checked} /> : null}
