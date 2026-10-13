@@ -1,8 +1,10 @@
-// A2 course (A1 → A2 roadmap), module 14 „Õppimine, kool ja keel”, stage A2. New lessons a2-066, a2-067, a2-069
-// (the other lessons of the module are already published). All three phases: Avasta → Harjuta → Kasuta.
+// A2 course (A1 → A2 roadmap), module 14 „Õppimine, kool ja keel”, stage A2. All five lessons a2-066…a2-070
+// (068 tahan / proovin + da, hakkan + ma; 070 the module check in the Harno A2 form). All three phases: Avasta → Harjuta → Kasuta.
 // The course and the timetable (kus? kuhu? kust? with study words, esmaspäeviti, kaks korda nädalas), asking for help
 // in Estonian (käskiv kõneviis sina / teie, „Kas te saaksite…?”) and a two-week study plan (tahan + da, pean / hakkan
 // + ma, frequency markers). Cast: Anna, Viktor, Liis, Markus, Sofia, Jaan.
+// Cast by docs/TEXTBOOK_ART_BIBLE.md §4 in the lessons added 2026-10-13 (Anna office, Markus warehouse, Liis teacher /
+// official, Viktor pensioner, Sofia student, Jaan café owner; Oksana + Mia 6, Olga accountant, Kati, Igor as extras).
 import { B } from '../blocks.js';
 
 export const MODULE = { id: 'a2-module-14', course: 'a2', title: 'Õppimine, kool ja keel', level: 'A2' };
@@ -257,6 +259,112 @@ export const LESSONS = {
     ],
   },
 
+  'a2-068': {
+    title: 'Ma tahan õppida / hakkan õppima',
+    canDo: 'Ma räägin oma õppimise eesmärgist ja plaanist mustritega tahan / proovin + da-vorm ja hakkan + ma-vorm ning moodustan vähemalt 8 sagedast ühendit 10-st õigesti.',
+    discover: [
+      B.text('068_d_situation', 'Uued eesmärgid', 'Jaanuaris istuvad Anna ja Jaan kohvikus. Mõlemal on uus eesmärk: sooritada suvel A2 eksam. Anna ütleb: „Ma hakkan iga päev lugema.” Jaan naerab: „Mina proovin rääkida ainult eesti keeles!”'),
+      B.vocab('068_d_vocab', 'Eesmärk ja õppimine', ['eesmärk — цель', 'hakkama (hakkan + ma) — начинать', 'proovima (proovin + da) — пробовать', 'tahtma (tahan + da) — хотеть', 'õppima — учить(ся)', 'lugema — читать', 'kuulama — слушать', 'kirjutama — писать', 'eksam — экзамен', 'sooritama — сдавать (экзамен)', 'unustama — забывать', 'meelde jätma — запоминать'], '2'),
+      B.reading('068_d_read', 'Loe: Anna plaan.', 'Loe teksti ja vasta küsimustele.', 'Minu eesmärk',
+        'Minu eesmärk on sooritada juunis A2 eksam. Ma tahan eesti keeles paremini rääkida ja kirjutada. Tööl kontoris pean ma klientidega suhtlema. Mõnikord ma ei saa aru, mida nad küsivad. Seepärast hakkan ma iga päev eesti keelt õppima. Hommikul bussis hakkan kuulama eesti raadiot. Õhtul proovin lugeda lühikesi uudiseid. Uued sõnad kirjutan vihikusse. Ma unustan sõnad kiiresti. Seepärast proovin neid kohe lauses kasutada. Laupäeviti hakkan käima keelekohvikus. Seal saab rääkida eestlastega. Ma ei taha enam vigu karta. Ma tahan julgelt rääkida! Kuu pärast proovin teha proovieksami. Siis näen, mida pean veel harjutama.',
+        [['Mis on Anna eesmärk?', 'sooritada A2 eksam|sooritada juunis A2 eksam|A2 eksam'], ['Miks on eesti keel tööl vajalik?', 'ta peab klientidega suhtlema|ta suhtleb klientidega'], ['Mida hakkab Anna bussis tegema?', 'kuulama eesti raadiot|kuulama raadiot'], ['Mida proovib Anna õhtul teha?', 'lugeda lühikesi uudiseid|lugeda uudiseid'], ['Kus saab Anna eestlastega rääkida?', 'keelekohvikus'], ['Mida teeb Anna kuu pärast?', 'proovieksami|ta teeb proovieksami']]),
+      B.notice('068_d_notice', 'Märka: kolm mustrit', ['**tahan** + da: Ma tahan **rääkida**. Ma tahan eksami **sooritada**.', '**proovin** + da: Ma proovin **lugeda** uudiseid.', '**hakkan** + ma: Ma hakkan raadiot **kuulama**. (= alustan)', 'Meeles: **pean** + ma (pean harjutama), **oskan / saan** + da', 'hakkan = alustan; proovin = teen katse; tahan = mul on soov'], 'full'),
+      B.wordforms('068_d_forms', 'da-vorm', 'Kirjuta tegusõna da-vormis.', [
+        ['lugema', 'ma tahan …', 'lugeda'], ['kuulama', 'ma proovin …', 'kuulata'], ['kirjutama', 'ma tahan …', 'kirjutada'], ['rääkima', 'ma proovin …', 'rääkida'],
+        ['sooritama', 'ma tahan eksami …', 'sooritada'], ['tegema', 'ma proovin …', 'teha'], ['jätma', 'ma proovin meelde …', 'jätta'],
+      ]),
+      B.choice('068_d_choice', 'ma-vorm või da-vorm?', 'Vali lausesse sobiv vorm.', [
+        ['Ma hakkan iga päev ___.', 'lugema', 'lugeda', 'loen'], ['Ma proovin eesti keeles ___.', 'rääkida', 'rääkima', 'räägin'], ['Jaan tahab eksami ___.', 'sooritada', 'sooritama', 'sooritab'],
+        ['Homsest hakkame raadiot ___.', 'kuulama', 'kuulata', 'kuulame'], ['Ma ___ uusi sõnu meelde jätta.', 'proovin', 'hakkan', 'pean'], ['Ma ___ päevikut kirjutama.', 'hakkan', 'tahan', 'proovin'],
+      ], 'full', 'g_notice'),
+      B.match('068_d_mean', 'Mis see tähendab?', 'Ühenda lause ja tähendus.', [
+        ['Ma hakkan lugema.', 'Ma alustan lugemist.'], ['Ma proovin lugeda.', 'Ma teen katse.'], ['Ma tahan lugeda.', 'Mul on soov.'],
+        ['Ma pean lugema.', 'See on minu kohustus.'], ['Ma oskan lugeda.', 'Mul on see oskus.'], ['Ma ei pea lugema.', 'See ei ole vajalik.'],
+      ], 'full', 'g_notice'),
+      B.manymatch('068_d_plan', 'Probleem ja lahendus.', 'Ühenda probleem ja sobiv plaan.', ['Ma unustan sõnad kiiresti.', 'Ma ei saa raadiost aru.', 'Ma kardan rääkida.', 'Mul on vähe aega.', 'Ma teen kirjas palju vigu.'], ['Ma hakkan sõnu kaartidelt kordama.', 'Ma proovin kuulata aeglast raadiot.', 'Ma hakkan käima keelekohvikus.', 'Ma proovin õppida bussis 15 minutit.', 'Ma tahan saada õpetajalt tagasisidet.'], 'full', 'g_use'),
+      B.gaps('068_d_gaps', 'Jaani plaan.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
+        'Jaan tahab eesti keeles julgemalt [rääkida] (rääkima).', 'Ta hakkab iga päev raadiot [kuulama] (kuulama).', 'Ta proovib uusi sõnu meelde [jätta] (jätma).', 'Õhtuti hakkab ta päevikut [kirjutama] (kirjutama).',
+        'Ta tahab juunis eksami [sooritada] (sooritama).', 'Ta proovib tööl vähem vene keeles [rääkida] (rääkima).',
+      ]),
+      B.transformation('068_d_trans', 'Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+        ['Ma loen iga päev.', 'hakkan', 'Ma hakkan iga päev lugema.'], ['Ma räägin eesti keeles.', 'proovin', 'Ma proovin eesti keeles rääkida.|Ma proovin rääkida eesti keeles.'], ['Ma sooritan eksami.', 'tahan', 'Ma tahan eksami sooritada.'],
+        ['Ma kuulan raadiot.', 'hakkan', 'Ma hakkan raadiot kuulama.'], ['Ma kirjutan e-kirja eesti keeles.', 'proovin', 'Ma proovin e-kirja eesti keeles kirjutada.|Ma proovin kirjutada e-kirja eesti keeles.'], ['Ma jätan sõnad meelde.', 'tahan', 'Ma tahan sõnad meelde jätta.'],
+      ]),
+      B.cloze('068_d_cloze', 'Jaani sõnum.', 'Vali igasse lünka sobiv sõna.', 'Tere, Anna!', [
+        'Ma mõtlesin sinu plaani peale. Ka mina hakkan iga päev {*õppima|õppida|õpin}. Hommikul proovin uudiseid {*lugeda|lugema|loen}.',
+        '',
+        'Õhtul hakkan {*kuulama|kuulata|kuulan} eesti laule. Laupäeval tahan keelekohvikusse {*tulla|tulema|tulen}. Kas me {*saame|peame|hakkame} koos minna?',
+        '',
+        'Ma {*unustan|unustama|unustada} sõnad kiiresti, aga ma ei {*taha|tahan|tahtma} lõpetada. Jaan',
+      ]),
+      B.translation('068_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Я начну читать каждый день.', 'Я попробую говорить по-эстонски.', 'Я хочу сдать экзамен.', 'Я быстро забываю слова.', 'Моя цель — говорить смелее.']),
+      B.dictation('068_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Minu eesmärk on eksam.', 'Ma hakkan iga päev lugema.', 'Ma proovin rääkida eesti keeles.', 'Ma tahan eksami sooritada.', 'Ma ei taha sõnu unustada.']),
+      B.speaking('068_d_say', 'Minu eesmärk.', 'Räägi paarilisele oma keeleõppe eesmärgist.', ['Mis on sinu eesmärk?', 'Mida sa hakkad tegema?', 'Mida sa proovid teha?', 'Mida sa tahad hästi osata?'], [60, 90], ['Ma tahan …-da.', 'Ma hakkan …-ma.', 'Ma proovin …-da.']),
+      B.writing('068_d_write', 'Minu kolm eesmärki.', 'Kirjuta 6–8 lauset: mida sa tahad, hakkad ja proovid teha.', [6, 8], ['tahan', 'hakkan', 'proovin'], 3),
+      B.selfcheck('068_d_self', ['Ma tean: tahan / proovin + da, hakkan + ma.', 'Ma tean, mis vahe on: hakkan, proovin, tahan.', 'Ma leian tekstist eesmärgi ja plaani.', 'Ma räägin oma eesmärgist.'], 'Eesmärk on olemas'),
+    ],
+    practice: [
+      B.crossword('068_p_cross', 'Õppimise sõnad.', 'Kirjuta sõna vihje järgi.', [['цель', 'eesmärk'], ['Seda teed raamatuga.', 'lugema'], ['Seda teed raadioga.', 'kuulama'], ['„meelde jätma” vastand', 'unustama'], ['Test kursuse lõpus', 'eksam'], ['Ma … proovieksami. (proovima)', 'proovin']]),
+      B.categorize('068_p_sort', 'Mis vorm järgneb?', 'Pane tegusõnad õigesse rühma.', [['+ ma-vorm (lugema)', ['hakkan', 'pean', 'lähen']], ['+ da-vorm (lugeda)', ['tahan', 'proovin', 'oskan', 'saan']]], 'full', 'g_notice'),
+      B.gaps('068_p_gaps', 'Viktori plaan.', 'Kirjuta sulgudes olev tegusõna ma- või da-vormis.', [
+        'Viktor hakkab esmaspäeviti kursusel [käima] (käima).', 'Ta tahab naabritest paremini aru [saada] (saama).', 'Ta proovib iga päev ühte laulu [kuulata] (kuulama).', 'Poes hakkab ta müüjatega eesti keeles [rääkima] (rääkima).',
+        'Ta proovib kümme sõna päevas meelde [jätta] (jätma).', 'Ta ei taha vanu sõnu [unustada] (unustama).', 'Aasta pärast tahab ta eksami [sooritada] (sooritama).',
+      ]),
+      B.reading('068_p_read', 'Loe: kolm õpilast.', 'Loe teksti ja vasta küsimustele.', 'Meie eesmärgid', [
+        'Sofia: Minu eesmärk on rääkida ülikoolis ainult eesti keeles. Ma hakkan iga päev lõunal kursusekaaslastega eesti keeles rääkima. Õhtul proovin vaadata eesti seriaale. Nii kuulen palju uusi sõnu.',
+        'Markus: Mina tahan kirjutada ilma vigadeta. Ma hakkan iga nädal kirjutama ühe lühikese teksti. Õpetaja kontrollib seda. Sõnad kirjutan kaartidele ja proovin need meelde jätta.',
+        'Oksana: Minu tütar Mia käib eesti lasteaias. Ma tahan tema kasvatajaga ise rääkida. Ma hakkan käima keelekohvikus kaks korda nädalas. Ma proovin tütrega ka eesti raamatuid lugeda. Tütar on minu parim õpetaja!',
+      ], [['Kus tahab Sofia eesti keelt rääkida?', 'ülikoolis'], ['Mida hakkab Sofia lõunal tegema?', 'kursusekaaslastega eesti keeles rääkima|eesti keeles rääkima'], ['Mida tahab Markus?', 'kirjutada ilma vigadeta'], ['Kes kontrollib Markuse teksti?', 'õpetaja'], ['Kellega tahab Oksana rääkida?', 'tütre kasvatajaga|Mia kasvatajaga|kasvatajaga'], ['Kui tihti hakkab Oksana keelekohvikus käima?', 'kaks korda nädalas']]),
+      B.truefalse('068_p_tf', 'Õige või vale?', 'Loe teksti uuesti.', [['Sofia proovib vaadata eesti seriaale.', true], ['Markus tahab rohkem rääkida.', false], ['Markus kirjutab sõnad kaartidele.', true], ['Oksana tütar käib vene lasteaias.', false], ['Oksana proovib tütrega raamatuid lugeda.', true]]),
+      B.table('068_p_table', 'Kes mida teeb?', 'Kirjuta tekstist tegusõna õiges vormis.', 'Inimene, hakkab … (ma-vorm), proovib … (da-vorm)', [
+        'Sofia | [rääkima] | [vaadata]', 'Markus | [kirjutama] | [meelde jätta/jätta]', 'Oksana | [käima] | [lugeda]',
+      ], 'g_notice'),
+      B.listening('068_p_listen', 'Kuulamine. Õpetaja nõuanded.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen õpetaja Liis.', 'Kui te tahate eksami sooritada, peate harjutama iga päev.', 'Hakake kuulama eesti raadiot vähemalt kümme minutit päevas.', 'Proovige lugeda lastele mõeldud raamatuid. Need on lihtsad.',
+        'Uued sõnad kirjutage kaartidele.', 'Ärge kartke vigu teha. Vigadest me õpime!',
+      ], ['Harjutada tuleb iga [päev].', 'Raadiot tuleb kuulata vähemalt [kümme|10] minutit päevas.', 'Lihtsad on lastele mõeldud [raamatud].', 'Uued sõnad tuleb kirjutada [kaartidele].', 'Vigu ei pea [kartma].', 'Vigadest me [õpime].']),
+      B.errorfix('068_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Ma hakkan lugeda iga päev.', 'Ma hakkan iga päev lugema.|Ma hakkan lugema iga päev.'], ['Ta tahab eksam sooritama.', 'Ta tahab eksami sooritada.'], ['Me proovime rääkima ainult eesti keeles.', 'Me proovime rääkida ainult eesti keeles.|Me proovime ainult eesti keeles rääkida.'],
+        ['Nad hakkavad kursusel käia.', 'Nad hakkavad kursusel käima.'], ['Ma ei taha unustama sõnu.', 'Ma ei taha sõnu unustada.'], ['Ma lähen keelekohvikusse rääkida.', 'Ma lähen keelekohvikusse rääkima.'],
+      ]),
+      B.wordorder('068_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Ma hakkan iga päev raadiot kuulama.', 'Ta proovib lugeda lihtsaid raamatuid.', 'Me tahame juunis eksami sooritada.', 'Sofia hakkab tööl eesti keelt rääkima.', 'Ma proovin uued sõnad meelde jätta.']),
+      B.dictation('068_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Hakake kuulama eesti raadiot.', 'Proovige lugeda lihtsaid raamatuid.', 'Ma hakkan käima keelekohvikus.', 'Ta tahab ilma vigadeta kirjutada.', 'Ärge kartke vigu teha.']),
+      B.speaking('068_p_say', 'Kes mida teeb?', 'Räägi tekstist: Sofia, Markuse ja Oksana plaanid.', ['Mida Sofia tahab?', 'Mida Markus hakkab tegema?', 'Mida Oksana proovib?', 'Kelle plaan sulle meeldib? Miks?'], [60, 90]),
+      B.rolecards('068_p_roles', 'Õppimise nõuanne.', 'A räägib probleemist, B annab nõu. Siis vahetage.',
+        'Sul on keeleõppes probleem: sõnad, kuulamine või rääkimine. Räägi sellest.', 'Kuula ja anna kaks nõu: Proovi…! Hakka…!',
+        ['Ma ei saa aru…', 'Ma unustan…', 'Mida ma pean tegema?'], ['Proovi …-da!', 'Hakka …-ma!', 'Mina hakkasin ka…']),
+      B.writing('068_p_write', 'Sõnum sõbrale.', 'Kirjuta sõbrale 5–7 lauset: mida sa hakkad tegema ja mida proovid.', [5, 7], ['hakkan', 'proovin', 'tahan'], 2),
+      B.selfcheck('068_p_self', ['Ma valin ma- või da-vormi õigesti.', 'Ma saan aru teiste õppimise plaanist.', 'Ma parandan vea: hakkan lugeda → hakkan lugema.', 'Ma annan sõbrale nõu.'], 'Vormid on selged'),
+    ],
+    transfer: [
+      B.text('068_t_situation', 'Uus olukord', 'Sinu naaber Viktor on pensionär. Ta tahab hakata eesti keelt õppima, aga ta ei tea, kust alustada. Aega tal on, aga raha on vähe. Raamatukogus on uus kuulutus. Aita Viktoril valida ja teha eesmärkide kaart.'),
+      B.reading('068_t_ad', 'Loe raamatukogu kuulutust.', 'Loe kuulutust ja vasta küsimustele.', 'Õpi eesti keelt raamatukogus!',
+        'Tartu linnaraamatukogu kutsub kõiki eesti keelt õppima! Esmaspäeviti kell 18 on keelekohvik. Seal saab rääkida eestlastega ja proovida uusi sõnu. Keelekohvik on tasuta. Kolmapäeviti kell 17 on raamatuklubi algajatele. Me loeme koos lühikesi raamatuid ja räägime neist. Raamatu saad raamatukogust. Reedeti kell 16 on filmiõhtu. Filmid on eesti keeles, eesti subtiitritega. Kui sa tahad õppida kodus, proovi meie veebikursust. Seal on igal nädalal uued harjutused. Veebikursus maksab 10 eurot kuus. Kõikidele üritustele tuleb registreeruda. Registreeru infoletis või telefonil. Tule ja hakka julgelt rääkima!',
+        [['Mis päeval on keelekohvik?', 'esmaspäeviti|esmaspäeval'], ['Kui palju keelekohvik maksab?', 'tasuta|see on tasuta'], ['Kellele on raamatuklubi?', 'algajatele'], ['Mis keeles on filmide subtiitrid?', 'eesti keeles'], ['Kui palju maksab veebikursus?', '10 eurot kuus|kümme eurot kuus|10 eurot'], ['Kus saab registreeruda?', 'infoletis või telefonil|infoletis|telefonil']]),
+      B.choice('068_t_choice', 'Mis sobib?', 'Vali igale inimesele sobiv võimalus.', [
+        ['Viktor tahab rääkida, aga tal pole raha.', 'keelekohvik', 'veebikursus', 'filmiõhtu'], ['Liis armastab lugeda.', 'raamatuklubi', 'keelekohvik', 'filmiõhtu'],
+        ['Jaan töötab õhtuti ja tahab õppida kodus.', 'veebikursus', 'raamatuklubi', 'keelekohvik'], ['Kati tahab vaadata filme eesti keeles.', 'filmiõhtu', 'raamatuklubi', 'veebikursus'],
+        ['Olga on vaba ainult kolmapäeval.', 'raamatuklubi', 'keelekohvik', 'filmiõhtu'],
+      ], 'full', 'g_read'),
+      B.transformation('068_t_trans', 'Viktori plaan.', 'Kirjuta lause antud sõnaga.', [
+        ['Viktor räägib naabritega.', 'hakkab', 'Viktor hakkab naabritega rääkima.'], ['Ta loeb raamatut.', 'proovib', 'Ta proovib raamatut lugeda.'], ['Ta mõistab uudiseid.', 'tahab', 'Ta tahab uudiseid mõista.'],
+        ['Ta käib keelekohvikus.', 'hakkab', 'Ta hakkab keelekohvikus käima.'], ['Ta vaatab filme eesti keeles.', 'proovib', 'Ta proovib filme eesti keeles vaadata.|Ta proovib vaadata filme eesti keeles.'],
+      ]),
+      B.errorfix('068_t_fix', 'Kontrolli Viktori sõnumit.', 'Viktori sõnumis on vead. Kirjuta lause õigesti.', [
+        ['Ma hakkan õppida eesti keelt.', 'Ma hakkan eesti keelt õppima.|Ma hakkan õppima eesti keelt.'], ['Ma tahan naabritest aru saama.', 'Ma tahan naabritest aru saada.'], ['Me proovime iga päev kirjutama.', 'Me proovime iga päev kirjutada.'],
+        ['Kas sa hakkad raamatuklubis käia?', 'Kas sa hakkad raamatuklubis käima?'], ['Ma tahan eksam sooritada.', 'Ma tahan eksami sooritada.'],
+      ]),
+      B.translation('068_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Я начну ходить в языковое кафе.', 'Попробуй читать короткие книги.', 'Он хочет понимать соседей.', 'Это бесплатно.', 'Моя цель — сдать экзамен.']),
+      B.table('068_t_card', 'Viktori eesmärkide kaart.', 'Täida kaart Viktori jaoks.', 'Küsimus, Viktori vastus', ['Mis on eesmärk? | ', 'Mida ta hakkab tegema? | ', 'Mida ta proovib? | ', 'Kui tihti? | ', 'Kuidas ta kontrollib, et õppimine aitab? | ']),
+      B.planning('068_t_plan', 'Enne kirja.', 'Mõtle läbi ja kirjuta märksõnad.', ['Mida Viktor tahab?', 'Mis võimalus talle sobib ja miks?', 'Mida ta hakkab tegema ja kui tihti?', 'Mida ta proovib?']),
+      B.letter('068_t_letter', 'Kiri Viktorile.', 'Kirjuta Viktorile 40–60 sõna: mis talle sobib ja miks.', 'Tere, Viktor!', 'Edu!', [40, 60]),
+      B.writing('068_t_goal', 'Minu eesmärkide kaart.', 'Kirjuta oma eesmärgid 6–8 lausega: tahan, hakkan, proovin.', [6, 8], ['tahan', 'hakkan', 'proovin', 'eesmärk'], 3),
+      B.speaking('068_t_say', 'Räägi grupile.', 'Räägi grupile oma eesmärgist ja plaanist 1–2 minutit.', ['Mis on sinu eesmärk?', 'Mida sa hakkad tegema?', 'Mida sa proovid?', 'Kuidas sa kontrollid?'], [60, 120]),
+      B.rubric('068_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Kirjas Viktorile on valik ja põhjus (sest…).', 'tahan / proovin + da ja hakkan + ma on õiged.', 'Eesmärgid on konkreetsed: mida, millal, kui tihti.', 'Suuline plaan on selge ja kestab umbes minuti.']),
+      B.selfcheck('068_t_self', ['Ma leian kuulutusest õppimise võimalused.', 'Ma valin sõbrale sobiva võimaluse ja põhjendan.', 'Ma kirjutan oma eesmärgid.', 'Ma räägin grupile oma plaanist.'], 'Plaan on tehtud'),
+    ],
+  },
+
   'a2-069': {
     title: 'Minu keeleõppe plaan',
     canDo: 'Ma kirjutan oma kahe nädala keeleõppe plaani 80–100 sõnaga ja kasutan vähemalt viit ajamarkerit (iga päev, kaks korda nädalas…).',
@@ -366,6 +474,136 @@ export const LESSONS = {
       B.speaking('069_t_mono', 'Minu eesmärk.', 'Räägi 1–2 minutit oma keeleõppe eesmärgist ja plaanist.', ['Mis on sinu eesmärk?', 'Mis on sinu jaoks kõige raskem?', 'Mida sa teed iga päev?', 'Kuidas sa kontrollid, et läheb hästi?'], [60, 120]),
       B.rubric('069_t_rubric', 'Kontrolli oma kirja.', 'Märgi, mis on olemas.', ['Kirjas on eesmärk.', 'Kirjas on vähemalt viis ajamarkerit.', 'Iga tegevus on konkreetne: mida, millal, kui kaua.', 'Kirjas on kontroll: kuidas Sofia teab, et läheb hästi.', 'Kirjas on 80–100 sõna.']),
       B.selfcheck('069_t_self', ['Ma oskan kasutada plaani sõnu: eesmärk, harjutama, kordama.', 'Ma oskan häälsõnumist leida, mis on raske ja kui palju on aega.', 'Ma oskan kasutada tahan + da ja pean + ma plaanis.', 'Ma oskan kirjutada 80–100-sõnalise plaani viie ajamarkeriga.'], 'Plaan Sofiale'),
+    ],
+  },
+
+  'a2-070': {
+    title: 'Kontroll 14 — õppimine ja keel',
+    canDo: 'Ma näitan kontrollis, et saan aru tunniplaanist ja õpetaja juhistest, küsin ise, kui ei saa aru, ja kirjutan oma õppeplaani (vähemalt 70%).',
+    discover: [
+      B.text('070_d_situation', 'Kordamine: kursuse viimane nädal', 'Anna kursus lõpeb. Viimasel nädalal on kordamine ja kontroll. Õpetaja Liis annab juhiseid kiiresti. Anna ei saa kõigest aru, aga nüüd ta teab, kuidas küsida.'),
+      B.truefalse('070_d_tf', 'Mis on õige?', 'Loe olukorda. Õige või vale?', [
+        ['Anna kursus algab.', false], ['Viimasel nädalal on kontroll.', true], ['Õpetaja räägib aeglaselt.', false], ['Anna saab kõigest aru.', false], ['Anna teab, kuidas küsida.', true],
+      ]),
+      B.reading('070_d_read', 'Loe: Anna kursus.', 'Loe teksti ja vasta küsimustele.', 'Kolm kuud kursusel',
+        'Anna käis kolm kuud eesti keele kursusel. Tunnid olid kaks korda nädalas, esmaspäeviti ja kolmapäeviti. Rühmas oli kaheksa õpilast. Nende emakeeled olid vene, ukraina, inglise ja hispaania keel. Alguses oli Annal raske. Ta ei saanud õpetajast aru ja kartis küsida. Siis õppis ta kolm lauset: „Palun korrake!”, „Mida see sõna tähendab?” ja „Kas te saaksite aeglasemalt rääkida?” Nüüd küsib ta julgelt. Anna puudus tunnist ainult kaks korda, sest ta oli haige. Pausil rääkisid õpilased omavahel eesti keeles. Kodus hakkas Anna iga päev lugema. Ta proovis ka sõnaraamatut vähem kasutada. Kursuse lõpus on test. Kui Anna saab hea hinde, saab ta tunnistuse. Järgmisel aastal tahab ta ülikoolis õppida.',
+        [['Kui kaua Anna kursusel käis?', 'kolm kuud|3 kuud'], ['Mitu õpilast oli rühmas?', 'kaheksa|8'], ['Mida Anna alguses kartis?', 'küsida|ta kartis küsida'], ['Miks Anna kaks korda puudus?', 'ta oli haige|sest ta oli haige'], ['Mis keeles rääkisid õpilased pausil?', 'eesti keeles'], ['Mida Anna saab, kui test läheb hästi?', 'tunnistuse|tunnistus']]),
+      B.notice('070_d_notice', 'Mooduli kokkuvõte', [
+        'Kursus: **kursusel, kursusele, kursuselt**; **esmaspäeviti, kaks korda nädalas**', 'Ma ei saa aru: **Palun korrake! Mida see sõna tähendab? Kas te saaksite aeglasemalt rääkida?**', 'Palve: **korda — korrake, räägi — rääkige**', 'Infinitiiv: **tahan / proovin + da**, **pean / hakkan + ma**', 'Plaan: **iga päev, kaks korda nädalas, kuu pärast**',
+      ], 'full'),
+      B.dialogue('070_d_dialog', 'Tunnis.', 'Täida õpetaja ja Anna vestlus.', 'Õpetaja', 'Anna', [
+        ['A', 'Palun tehke harjutus kolm leheküljel kakskümmend.'], ['B', 'Vabandust, palun [korrake]! Mis leheküljel?'], ['A', 'Leheküljel kakskümmend.'], ['B', 'Aitäh. Mida see sõna „tunnistus” [tähendab]?'],
+        ['A', 'See on paber, mille saad kursuse lõpus.'], ['B', 'Selge. Kas te [saaksite] natuke aeglasemalt [rääkida]?'], ['A', 'Muidugi. Kas nüüd on [selge]?'], ['B', 'Jah, nüüd ma saan [aru]. Aitäh!'],
+      ]),
+      B.manymatch('070_d_strategy', 'Mida küsida?', 'Ühenda probleem ja küsimus.', ['Sa ei kuulnud hästi.', 'Õpetaja räägib liiga kiiresti.', 'Sa ei tea sõna tähendust.', 'Sa ei tea, kuidas üht sõna eesti keeles öelda.', 'Sa tahad näidet.'], ['Palun korrake!', 'Kas te saaksite aeglasemalt rääkida?', 'Mida see sõna tähendab?', 'Kuidas seda eesti keeles öeldakse?', 'Kas te saate näite tuua?'], 'full', 'g_use'),
+      B.match('070_d_match', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus.', [
+        ['Kus sa eesti keelt õpid?', 'Keelekursusel.'], ['Kui tihti tunnid on?', 'Kaks korda nädalas.'], ['Mis su emakeel on?', 'Vene keel.'],
+        ['Mitu õpilast on rühmas?', 'Kaheksa.'], ['Mida sa tahad õppida?', 'Ma tahan paremini rääkida.'], ['Mida sa hakkad kodus tegema?', 'Ma hakkan iga päev lugema.'],
+      ], 'full', 'g_use'),
+      B.gaps('070_d_gaps', 'Mooduli vormid.', 'Kirjuta lünka sobiv sõna. Kuus sõna jääb üle.', [
+        'Ma lähen [kursusele] kell kuus.', 'Tunnid on [esmaspäeviti] ja kolmapäeviti.', 'Palun [korrake] aeglaselt!', 'Ma tahan eksami [sooritada].', 'Ma hakkan iga päev [lugema].', 'Mida see sõna [tähendab]?',
+      ], ['kursusele', 'kursusel', 'esmaspäeviti', 'esmaspäev', 'korrake', 'kordama', 'sooritada', 'sooritama', 'lugema', 'lugeda', 'tähendab', 'tähendama']),
+      B.wordforms('070_d_forms', 'Palve sina → teie.', 'Kirjuta palve teie-vormis.', [['korda!', 'teie', 'korrake'], ['räägi!', 'teie', 'rääkige'], ['seleta!', 'teie', 'seletage'], ['kirjuta!', 'teie', 'kirjutage'], ['näita!', 'teie', 'näidake'], ['oota!', 'teie', 'oodake']]),
+      B.transformation('070_d_trans', 'Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+        ['Ma loen iga päev.', 'hakkan', 'Ma hakkan iga päev lugema.'], ['Ma räägin eesti keeles.', 'proovin', 'Ma proovin eesti keeles rääkida.|Ma proovin rääkida eesti keeles.'], ['Korda palun!', 'teie', 'Palun korrake!|Korrake palun!'],
+        ['Ma käin kursusel.', 'kuhu?', 'Ma lähen kursusele.'], ['Ma õpin iga päev 20 minutit.', 'pean', 'Ma pean iga päev 20 minutit õppima.'],
+      ]),
+      B.errorfix('070_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Ma tahan õppima ülikoolis.', 'Ma tahan õppida ülikoolis.|Ma tahan ülikoolis õppida.'], ['Palun korda, õpetaja!', 'Palun korrake, õpetaja!'], ['Mida see sõna tähendama?', 'Mida see sõna tähendab?'],
+        ['Ma lähen kursusel.', 'Ma lähen kursusele.'], ['Ma hakkan lugeda iga päev.', 'Ma hakkan iga päev lugema.|Ma hakkan lugema iga päev.'],
+      ]),
+      B.translation('070_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Повторите, пожалуйста!', 'Что значит это слово?', 'Вы не могли бы говорить медленнее?', 'Я хожу на курс два раза в неделю.', 'Я начну читать каждый день.']),
+      B.dictation('070_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Palun korrake!', 'Mida see sõna tähendab?', 'Tunnid on kaks korda nädalas.', 'Ma tahan eksami sooritada.', 'Ma hakkan iga päev lugema.']),
+      B.speaking('070_d_say', 'Kordame suuliselt.', 'Vasta paarilise küsimustele.', ['Kus ja kui tihti sa eesti keelt õpid?', 'Mida sa teed, kui sa ei saa aru?', 'Mida sa hakkad järgmisel kuul tegema?', 'Mis on sinu eesmärk?'], [60, 120]),
+      B.writing('070_d_write', 'Minu kursus.', 'Kirjuta 5–7 lauset oma kursusest või õppimisest.', [5, 7], ['kursusel', 'tunnid', 'tahan', 'hakkan'], 2),
+      B.selfcheck('070_d_self', ['Ma mäletan kursuse ja kooli sõnu.', 'Ma küsin, kui ma ei saa aru.', 'Ma kasutan tahan / proovin + da, pean / hakkan + ma.', 'Ma räägin oma õppimisest.'], 'Valmis kontrolliks'),
+    ],
+    practice: [
+      B.tip('070_p_how', 'Lugemine ja kuulamine (eksami vormis)', 'See osa on nagu Harno A2 eksam: viis lugemisülesannet ja kaks kuulamisülesannet. Teema on moodul 14. Tee kõik ilma abita. Kuulamistekstid loeb õpetaja kaks korda.', 'full'),
+      // reading 1: what to say in class
+      B.choice('070_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
+        ['Õpetaja räägib liiga kiiresti. Mida ütled?', 'Kas te saaksite aeglasemalt rääkida?', 'Kas te saaksite kiiremini rääkida?', 'Kas te saaksite mulle helistada?'],
+        ['Sa ei tea sõna „hinne” tähendust.', 'Mida tähendab sõna „hinne”?', 'Kus on sõna „hinne”?', 'Kes ütles sõna „hinne”?'],
+        ['Sa jääd homme tunnist ära. Mida kirjutad õpetajale?', 'Kahjuks ma puudun homme tunnist.', 'Homme tulen ma tundi varem.', 'Homme on tund väga tore.'],
+        ['Sa tuled tundi hiljem. Mida ütled?', 'Vabandust, et ma hilinesin!', 'Head pausi kõigile!', 'Palun korrake kõike!'],
+        ['Sa ei kuulnud, mis on kodutöö. Mida küsid?', 'Mis on kodutöö?', 'Kus on minu kodu?', 'Kes on täna kodus?'],
+      ], 'full', 'g_use'),
+      // reading 2: a timetable notice
+      B.reading('070_p_timetable', 'Lugemine 2. Tunniplaan.', 'Loe teadet ja vasta küsimustele.', 'Keelekool „Sõna” — A2 rühm, mai', [
+        'Esmaspäev 18.00–19.30 — rääkimine, ruum 12, õpetaja Liis.', 'Kolmapäev 18.00–19.30 — grammatika, ruum 12, õpetaja Liis.', 'Neljapäev 17.00–18.00 — kuulamine arvutiklassis, ruum 5.', 'Laupäev 10.00–12.00 — keelekohvik raamatukogus (tasuta).',
+        'Tähelepanu! 15. mail tundi ei ole, sest õpetaja on koolitusel. Selle asemel on tund reedel, 17. mail, kell 18. Proovieksam on 22. mail kell 17 ruumis 5. Võtke kaasa pastakas ja ID-kaart. Sõnaraamatut eksamil kasutada ei tohi. Kui te puudute, andke teada vähemalt päev enne. Pärast proovieksamit saate hinde ja õpetaja tagasiside. Kursuse lõpus saavad kõik õpilased tunnistuse.',
+      ], [['Mis ruumis on grammatika?', '12|ruumis 12'], ['Kus on kuulamise tund?', 'arvutiklassis|ruumis 5'], ['Kui palju keelekohvik maksab?', 'tasuta|see on tasuta'], ['Miks 15. mail tundi ei ole?', 'õpetaja on koolitusel'], ['Millal on proovieksam?', '22. mail|22. mail kell 17|kahekümne teisel mail'], ['Mida ei tohi eksamil kasutada?', 'sõnaraamatut']]),
+      // reading 3: signs at school
+      B.match('070_p_signs', 'Lugemine 3. Kuhu minna?', 'Ühenda soov ja silt.', [
+        ['Tahad kodutööd printida.', 'Printer — 1. korrus, 10 senti leht'], ['Tahad laenata raamatut.', 'Raamatukogu — E–R 10–18'], ['Tahad maksta kursuse eest.', 'Kantselei — arved ja tunnistused'],
+        ['Tahad teha kuulamisharjutust.', 'Arvutiklass — ruum 5'], ['Tahad pausil kohvi juua.', 'Õpilaste kohvik — 2. korrus'], ['Tahad leida oma õpetajat.', 'Õpetajate tuba — ruum 8'],
+      ], 'full', 'g_read'),
+      // reading 4: a ~150-word text
+      B.reading('070_p_read', 'Lugemine 4. Kuidas keelt õppida?', 'Loe teksti. Vasta lühidalt.', 'Viis nõuannet',
+        'Paljud täiskasvanud õpivad eesti keelt. Mõned käivad kursusel, teised õpivad üksi. Mis aitab kõige rohkem? Kõigepealt on vaja selget eesmärki. „Ma tahan õppida eesti keelt” ei ole hea eesmärk. Parem eesmärk on kuu pärast arstiga eesti keeles rääkida. Teiseks on tähtis harjutada iga päev. Viisteist minutit päevas on parem kui kaks tundi üks kord nädalas. Kolmandaks ära karda vigu. Kõik teevad vigu, ka eestlased. Kui sa ei saa aru, küsi uuesti. Eestlased aitavad hea meelega. Neljandaks kasuta keelt päris elus. Räägi poes ja apteegis eesti keeles. Loe kuulutusi ja vaata filme eesti subtiitritega. Ja lõpuks: kiida ennast! Iga uus sõna on väike võit.',
+        [['Kui palju võiks iga päev harjutada?', 'viisteist minutit|15 minutit'], ['Kes teevad ka vigu?', 'eestlased|kõik|kõik, ka eestlased'], ['Mis subtiitritega võiks filme vaadata?', 'eesti subtiitritega|eesti'], ['Mida teha iga uue sõna eest?', 'ennast kiita|kiida ennast|kiita ennast']]),
+      B.choice('070_p_readmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali igale küsimusele üks vastus.', [
+        ['Milline eesmärk on hea?', 'kuu pärast arstiga rääkida', 'lihtsalt eesti keelt õppida', 'kaks tundi korraga õppida'], ['Mis on parem?', 'iga päev natuke', 'üks kord nädalas palju', 'ainult kursusel'],
+        ['Mida teha, kui ei saa aru?', 'uuesti küsida', 'vait olla', 'vene keeles rääkida'], ['Kus saab keelt päris elus kasutada?', 'poes ja apteegis', 'ainult klassis', 'ainult kodus'],
+        ['Mis on tekstis „väike võit”?', 'iga uus sõna', 'hea hinne', 'uus kursus'],
+      ]),
+      // reading 5: a letter with 8 option gaps
+      B.cloze('070_p_cloze', 'Lugemine 5. Kiri õpetajale.', 'Vali igasse lünka sobiv sõna.', 'Tere, õpetaja Liis!', [
+        'Kahjuks ma {*puudun|puudusin|puuduma} homme tunnist, sest mu tütar Mia on haige. Kas te {*saaksite|saate|saama} mulle kodutöö saata?',
+        '',
+        'Ma tahan grammatikat kodus {*korrata|kordama|kordan}. Järgmisel nädalal hakkan jälle tundides {*käima|käia|käin}.',
+        '',
+        'Mul on ka küsimus. Mida {*tähendab|tähendama|tähendada} sõna „tunnistus”? Kas me {*saame|saama|saada} selle kursuse lõpus?',
+        '',
+        'Ma proovin kõik ise {*teha|tegema|teen}. Ootan teie {*vastust|vastus|vastuse}! Lugupidamisega, Oksana',
+      ]),
+      // listening 1: the teacher's notice
+      B.listening('070_p_listen', 'Kuulamine 1. Õpetaja teade.', 'Õpetaja loeb teate kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Head õpilased! Mina olen õpetaja Liis. Mul on teile paar teadet.', 'Proovieksam on kahekümne teisel mail kell viis.', 'Eksam kestab kaks tundi.', 'Kõigepealt on lugemine ja kuulamine, siis kirjutamine.',
+        'Rääkimine on järgmisel päeval, paaris.', 'Sõnaraamatut kasutada ei tohi.', 'Kodutöö on harjutus neli leheküljel kolmkümmend.',
+      ], ['Proovieksam on [22.|kahekümne teisel] mail.', 'Eksam algab kell [viis|5|17].', 'Eksam kestab [kaks|2] tundi.', 'Rääkimine on järgmisel [päeval].', 'Eksamil ei tohi kasutada [sõnaraamatut].', 'Kodutöö on leheküljel [kolmkümmend|30].']),
+      // listening 2: registering for a course on the phone
+      B.listening('070_p_listen2', 'Kuulamine 2. Registreerimine.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
+        '— Keelekool Sõna, tere!', '— Tere! Ma tahan registreeruda B1 kursusele.', '— Hea küll. Mis teie nimi on?', '— Jaan Kask.', '— Kas te olete meie koolis varem õppinud?',
+        '— Jah, ma lõpetasin A2 kursuse eelmisel kuul.', '— Väga hea. B1 kursus algab neljandal septembril.', '— Mis päevadel on tunnid?', '— Teisipäeviti ja neljapäeviti kell kuus õhtul.',
+        '— Kui palju kursus maksab?', '— Kakssada kakskümmend eurot. Õpik on hinna sees.',
+      ], ['Jaan tahab registreeruda [B1] kursusele.', 'Jaan lõpetas A2 kursuse eelmisel [kuul].', 'Kursus algab [4. septembril|neljandal septembril].', 'Tunnid on teisipäeviti ja [neljapäeviti].', 'Kursus maksab [220|kakssada kakskümmend] eurot.', 'Hinna sees on [õpik].']),
+      B.gaps('070_p_mix', 'Keeleosa. Kirjuta õige vorm.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Ma käin [kursusel] (kursus) kaks korda nädalas.', 'Palun [rääkige] (rääkima, teie) aeglasemalt!', 'Ma tahan eksami [sooritada] (sooritama).', 'Ma proovin sõnad meelde [jätta] (jätma).', 'Tunnid on [neljapäeviti] (neljapäev).', 'Mida see sõna [tähendab] (tähendama)?', 'Me hakkame laupäeviti keelekohvikus [käima] (käima).',
+      ]),
+      B.errorfix('070_p_fix', 'Keeleosa. Paranda viga.', 'Kirjuta laused õigesti.', [
+        ['Palun korda, õpetaja Liis!', 'Palun korrake, õpetaja Liis!'], ['Ma tahan õppima ülikoolis.', 'Ma tahan ülikoolis õppida.|Ma tahan õppida ülikoolis.'], ['Ma hakkan rääkida eesti keeles.', 'Ma hakkan eesti keeles rääkima.|Ma hakkan rääkima eesti keeles.'],
+        ['Ma lähen kursusel.', 'Ma lähen kursusele.'], ['Tunnid on esmaspäevad.', 'Tunnid on esmaspäeviti.|Tunnid on esmaspäeval.'], ['Kas te saaksite aeglasemalt rääkima?', 'Kas te saaksite aeglasemalt rääkida?'],
+      ]),
+      B.transformation('070_p_trans', 'Keeleosa. Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+        ['Korda palun!', 'teie', 'Korrake palun!|Palun korrake!'], ['Ma loen raamatut.', 'proovin', 'Ma proovin raamatut lugeda.'], ['Ma õpin eesti keelt.', 'hakkan', 'Ma hakkan eesti keelt õppima.'],
+        ['Räägi aeglasemalt!', 'Kas te saaksite…?', 'Kas te saaksite aeglasemalt rääkida?'], ['Ma olen kursusel.', 'kuhu?', 'Ma lähen kursusele.'],
+      ]),
+      B.wordorder('070_p_order', 'Keeleosa. Pane lause kokku.', 'Kirjuta laused õigesti.', ['Proovieksam on kahekümne teisel mail.', 'Sõnaraamatut kasutada ei tohi.', 'Kas te saaksite aeglasemalt rääkida?', 'Tunnid on teisipäeviti ja neljapäeviti.', 'Ma tahan registreeruda B1 kursusele.']),
+      B.speaking('070_p_say', 'Räägi kuuldust.', 'Räägi paarilisele Jaani uuest kursusest.', ['Mis kursusele Jaan läheb?', 'Millal kursus algab?', 'Mis päevadel on tunnid?', 'Kui palju kursus maksab?'], [45, 90], ['Jaan läheb…', 'Kursus algab…', 'Tunnid on…']),
+      B.selfcheck('070_p_self', ['Lugemine: leian tunniplaanist aja, ruumi ja muudatuse.', 'Lugemine: valin kirja lünka õige vormi.', 'Kuulamine: kirjutan õpetaja teatest kuupäeva ja kellaaja.', 'Kuulamine: saan aru registreerimise vestlusest.'], 'Lugemine ja kuulamine tehtud'),
+    ],
+    transfer: [
+      B.text('070_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See osa on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil. Kui sa ei saa ülesandest aru, küsi õpetajalt eesti keeles.'),
+      B.notice('070_t_card', 'Kuulutus', ['Keelekohvik „Räägime!” — eesti keel täiskasvanutele', 'Iga laupäev kell 11–13, Tartu raamatukogu, 2. korrus', 'Tasuta, registreerimine pole vajalik', 'Teemad: töö, pere, reisimine, vaba aeg', 'Info: telefon 5321 4567'], 'full', 'g_read'),
+      // writing 1: information transfer, at least 25 words
+      B.letter('070_t_info', 'Kirjutamine 1. Kutsu sõber.', 'Kutsu sõber keelekohvikusse. Kirjuta: kus, millal, hind ja mida seal tehakse.', 'Tere, Sofia!', 'Kohtumiseni!', [25, 40]),
+      B.planning('070_t_plan', 'Enne kirja.', 'Mõtle läbi ja kirjuta märksõnad.', ['Mis on sinu eesmärk?', 'Mida sa hakkad tegema?', 'Mida sa proovid?', 'Mida sa küsid õpetajalt?']),
+      // writing 2: a letter, at least 30 words
+      B.letter('070_t_letter', 'Kirjutamine 2. Kiri õpetajale.', 'Kirjuta õpetajale oma õppeplaanist: eesmärk, mida hakkad tegema, üks küsimus.', 'Tere, õpetaja!', 'Lugupidamisega', [30, 50]),
+      B.writing('070_t_text', 'Kirjutamine 2 (teine valik). Minu kursus.', 'Kirjuta 4–6 lauset: kus ja kui tihti sa õpid, mis on raske.', [4, 6], ['kursusel', 'tunnid', 'raske'], 2),
+      B.table('070_t_form', 'Kursuse registreerimine.', 'Täida keelekooli registreerimisvorm.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Emakeel | ', 'Telefon ja e-post | ', 'Mis tasemel sa oled? | ', 'Mis päevadel saad tundides käia? | ', 'Miks sa õpid eesti keelt? | ']),
+      // speaking: getting to know, picture description (task 1), idea card and role play (task 2)
+      B.speaking('070_t_intro', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Mis su nimi on?', 'Mis su emakeel on?', 'Kus ja kui kaua sa eesti keelt õpid?', 'Mis on eesti keeles kõige raskem?'], [45, 60]),
+      B.speaking('070_t_mono', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab pildi: klass, raamatukogu või keelekohvik. Kirjelda üks minut.', ['Kus inimesed on?', 'Mida nad teevad?', 'Kes on õpetaja?', 'Mida nad õpivad?'], [60, 90], ['Pildil on…', 'Õpilased…', 'Õpetaja…']),
+      B.rolecards('070_t_s1', 'Rääkimine 2. Ideekaart „Õppimine”.', 'A küsib kaardi märksõnade järgi, B vastab. Siis vahetage.',
+        'Küsi paarilisel viis küsimust: kus õpib, kui tihti, mis on raske, mis aitab, eesmärk.', 'Vasta igale küsimusele 2–3 lausega.',
+        ['Kus sa eesti keelt õpid?', 'Mis on sinu jaoks raske?', 'Mis on sinu eesmärk?'], ['Ma käin…', 'Raske on…', 'Ma tahan…']),
+      B.rolecards('070_t_s2', 'Rääkimine 2. Rollimäng „Ma ei saa aru”.', 'A on õpetaja, B on õpilane. Siis vahetage.',
+        'Oled õpetaja. Anna kiiresti kodutöö juhis: harjutus, lehekülg, tähtaeg. Kasuta üht uut sõna.', 'Oled õpilane. Sa ei saa juhisest aru. Küsi kolm korda, kuni kõik on selge.',
+        ['Kodutöö on…', 'Tähtaeg on…', 'Kas nüüd on selge?'], ['Palun korrake!', 'Mida see sõna tähendab?', 'Kas te saaksite aeglasemalt rääkida?']),
+      B.rubric('070_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Ülesanne on täidetud: kõik küsitud info on olemas.', 'Plaanis on eesmärk ja tegevused (tahan, hakkan, proovin).', 'Rollimängus küsib õpilane ise, kuni juhis on selge.', 'Kirjutamine 1: vähemalt 25 sõna; kirjutamine 2: 30–50 sõna.', 'Rääkimine: küsisin ja vastasin lõpuni.']),
+      B.selfcheck('070_t_self', ['Ma kirjutan kuulutuse järgi sõbrale kutse.', 'Ma kirjutan õpetajale oma õppeplaani.', 'Ma küsin ise, kui ma juhisest aru ei saa.', 'Ma räägin oma õppimisest ideekaardi järgi.'], 'Moodul 14 on tehtud'),
     ],
   },
 };

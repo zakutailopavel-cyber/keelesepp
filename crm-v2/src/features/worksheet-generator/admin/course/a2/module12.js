@@ -1,8 +1,10 @@
-// A2 course (A1 → A2 roadmap), module 12 „Reisimine ja transport”, lessons a2-056, a2-057, a2-058 (the other lessons
-// of the module are already in the database). Transport and the ticket (millega? -ga, kus/kuhu/kust), the timetable and
+// A2 course (A1 → A2 roadmap), module 12 „Reisimine ja transport”, all five lessons a2-056…a2-060 (059 the simple
+// past for a finished trip, 060 the module check in the Harno A2 form). Transport and the ticket (millega? -ga, kus/kuhu/kust), the timetable and
 // the departure board (väljub, saabub, hilineb, platvorm, ümberistumine), buying a ticket and asking about the trip.
 // Harno A2 formats: listening with 1–2-word answers (read twice), notices and timetables, a short message (30–50 words),
 // picture description and an idea card.
+// Cast by docs/TEXTBOOK_ART_BIBLE.md §4 in the lessons added 2026-10-13 (Anna office, Markus warehouse, Liis teacher /
+// official, Viktor pensioner, Sofia student, Jaan café owner; Oksana + Mia 6, Olga accountant, Kati, Igor as extras).
 import { B } from '../blocks.js';
 
 export const MODULE = { id: 'a2-module-12', course: 'a2', title: 'Reisimine ja transport', level: 'A2' };
@@ -423,6 +425,251 @@ export const LESSONS = {
       // Harno A2 writing 2: a short message, at least 30 words
       B.letter('058_t_letter', 'Kiri bussifirmale.', 'Buss hilines kaks tundi. Kirjuta bussifirmale ja küsi raha tagasi.', 'Tere!', 'Lugupidamisega', [30, 50]),
       B.selfcheck('058_t_self', ['Ma oskan küsida aega, platvormi, hinda ja ümberistumist.', 'Ma oskan leida tekstist piletireegleid.', 'Ma oskan öelda: palun kaks piletit Narva, kas ma saan…?', 'Ma oskan lahendada probleemi kassas, kui buss on täis.'], 'Reis on korraldatud'),
+    ],
+  },
+
+  'a2-059': {
+    title: 'Lihtminevik — teekond',
+    canDo: 'Ma räägin 6–8 lausega lõppenud reisist: kuhu ja millega ma sõitsin, kui kaua teekond kestis, mida nägin ja millal tagasi tulin.',
+    discover: [
+      B.text('059_d_situation', 'Esmaspäeva hommik', 'Esmaspäeva hommikul läheb üliõpilane Sofia enne loenguid Jaani kohvikusse. Jaan küsib: „Kuidas nädalavahetus läks?” Sofia naeratab. Ta käis laupäeval Pärnus ja tal on palju rääkida.'),
+      B.vocab('059_d_vocab', 'Reis minevikus', ['käima (käisin) — бывать, ездить', 'minema (läksin) — идти, ехать', 'tulema (tulin) — приходить', 'olema (olin) — быть', 'nägema (nägin) — видеть', 'sõitma (sõitsin) — ехать', 'jõudma (jõudsin) — добираться', 'lahkuma (lahkusin) — уезжать', 'ööbima (ööbisin) — ночевать', 'teekond — путь, дорога', 'tagasi — обратно', 'eile, eelmisel nädalal — вчера, на прошлой неделе'], '2'),
+      B.reading('059_d_read', 'Loe: Sofia reis.', 'Loe teksti ja vasta küsimustele.', 'Minu laupäev Pärnus',
+        'Eelmisel laupäeval käisin Pärnus. Hommikul läksin kell kuus bussijaama. Buss väljus kell 6.45. Teekond kestis peaaegu kolm tundi. Bussis lugesin raamatut ja magasin natuke. Pärnusse jõudsin kell 9.40. Kõigepealt läksin randa. Ilm oli ilus, aga vesi oli veel külm. Siis jalutasin vanalinnas ja nägin Tallinna väravat. Lõunat sõin väikeses kohvikus. Pärastlõunal tuli minu sõbranna Kati. Ta tuli Tartust oma autoga. Öösel ööbisime väikeses hotellis mere lähedal. Pühapäeva hommikul käisime muuseumis. Hotellist lahkusime kell kaksteist. Ma tahtsin tagasi sõita bussiga. Aga Kati pakkus, et sõidame koos. Nii tulin tagasi Kati autoga. Tartusse jõudsime kell neli. Ma olin väsinud, aga väga rahul.',
+        [['Millal Sofia Pärnus käis?', 'eelmisel laupäeval|laupäeval'], ['Kui kaua teekond kestis?', 'peaaegu kolm tundi|kolm tundi'], ['Kuhu Sofia kõigepealt läks?', 'randa'], ['Mida Sofia vanalinnas nägi?', 'Tallinna väravat|väravat'], ['Kus Sofia ja Kati ööbisid?', 'väikeses hotellis|hotellis|hotellis mere lähedal'], ['Kuidas Sofia tagasi tuli?', 'Kati autoga|autoga']]),
+      B.truefalse('059_d_tf', 'Õige või vale?', 'Loe Sofia teksti uuesti.', [
+        ['Sofia sõitis Pärnusse bussiga.', true], ['Vesi oli juba soe.', false], ['Kati tuli Pärnusse rongiga.', false], ['Pühapäeval käisid nad muuseumis.', true], ['Õhtul oli Sofia väsinud.', true],
+      ]),
+      B.notice('059_d_notice', 'Märka: lihtminevik', ['ma **käisin**, sa **käisid**, ta **käis**', 'me **käisime**, te **käisite**, nad **käisid**', 'minema → ma **läksin**, ta **läks**', 'tulema → ma **tulin**, ta **tuli**', 'olema → ma **olin**, ta **oli**; nägema → ma **nägin**, ta **nägi**', 'Aeg: **eile, eelmisel laupäeval, aasta tagasi**']),
+      B.wordforms('059_d_forms', 'Eile…', 'Kirjuta tegusõna lihtminevikus.', [
+        ['käima', 'ma (eile)', 'käisin'], ['minema', 'ma (eile)', 'läksin'], ['tulema', 'ta (eile)', 'tuli'], ['olema', 'me (eile)', 'olime'],
+        ['nägema', 'nad (eile)', 'nägid'], ['sõitma', 'sa (eile)', 'sõitsid'], ['jõudma', 'ta (eile)', 'jõudis'],
+      ]),
+      B.diagram('059_d_line', 'timeline', { title: 'Sofia laupäev.', instruction: 'Kirjuta tegusõna lihtminevikus.', nodes: '6.00 | Sofia [läks] bussijaama (minema)\n9.40 | ta [jõudis] Pärnusse (jõudma)\n10.00 | ta [käis] rannas (käima)\n12.00 | ta [nägi] Tallinna väravat (nägema)\n15.00 | Kati [tuli] Tartust (tulema)\n21.00 | nad [olid] hotellis (olema)' }, 'full'),
+      B.choice('059_d_choice', 'Vali õige vorm.', 'Vali lausesse sobiv tegusõna vorm.', [
+        ['Eelmisel nädalal ___ ma Riias.', 'käisin', 'käin', 'käima'], ['Eile ___ Kati rongiga Tartusse.', 'sõitis', 'sõidab', 'sõitsin'],
+        ['Me ___ hotellist kell kümme.', 'lahkusime', 'lahkume', 'lahkusid'], ['Kas sa ___ eile vanalinna?', 'nägid', 'näed', 'nägi'],
+        ['Nad ___ koju alles öösel.', 'jõudsid', 'jõudis', 'jõuavad'], ['Eile ___ ilm väga ilus.', 'oli', 'on', 'olid'],
+      ], 'full', 'g_notice'),
+      B.transformation('059_d_trans', 'Täna → eile.', 'Kirjuta lause minevikus.', [
+        ['Täna sõidan ma bussiga.', 'Eile …', 'Eile sõitsin ma bussiga.|Eile ma sõitsin bussiga.'], ['Täna läheb Kati jaama.', 'Eile …', 'Eile läks Kati jaama.|Eile Kati läks jaama.'],
+        ['Täna tuleme hilja koju.', 'Eile …', 'Eile tulime hilja koju.|Eile me tulime hilja koju.|Eile tulime me hilja koju.'], ['Täna olen ma Pärnus.', 'Eile …', 'Eile olin ma Pärnus.|Eile ma olin Pärnus.'],
+        ['Täna näevad nad merd.', 'Eile …', 'Eile nägid nad merd.|Eile nad nägid merd.'], ['Täna ööbib ta hotellis.', 'Eile …', 'Eile ööbis ta hotellis.|Eile ta ööbis hotellis.'],
+      ]),
+      B.errorfix('059_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Eile ma lähen Tartusse.', 'Eile läksin ma Tartusse.|Eile ma läksin Tartusse.'], ['Ta tulis koju hilja.', 'Ta tuli koju hilja.'], ['Me nägisime merd.', 'Me nägime merd.'],
+        ['Laupäeval ma käis Pärnus.', 'Laupäeval käisin ma Pärnus.|Laupäeval ma käisin Pärnus.'], ['Nad olisid väsinud.', 'Nad olid väsinud.'],
+      ]),
+      B.wordorder('059_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Eelmisel laupäeval käisin ma Pärnus.', 'Teekond kestis peaaegu kolm tundi.', 'Kõigepealt läksin ma randa.', 'Me ööbisime väikeses hotellis.', 'Tagasi sõitsin ma Kati autoga.']),
+      B.translation('059_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Вчера я была в Тарту.', 'На прошлой неделе мы ездили в Ригу.', 'Дорога заняла два часа.', 'Мы ночевали в гостинице.', 'Домой я приехала поздно вечером.']),
+      B.dictation('059_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Eile käisin ma Pärnus.', 'Buss väljus kell seitse.', 'Kõigepealt läksin randa.', 'Me ööbisime hotellis.', 'Tagasi sõitsin autoga.']),
+      B.speaking('059_d_say', 'Minu viimane reis.', 'Räägi paarilisele oma viimasest reisist.', ['Kuhu sa sõitsid ja millal?', 'Millega sa sõitsid?', 'Kui kaua teekond kestis?', 'Mida sa seal nägid ja tegid?', 'Millal sa tagasi tulid?'], [60, 90], ['Eelmisel … käisin…', 'Ma sõitsin …-ga.', 'Seal ma nägin…']),
+      B.writing('059_d_write', 'Minu nädalavahetus.', 'Kirjuta 6–8 lauset: kuhu sa eelmisel nädalavahetusel läksid.', [6, 8], ['käisin', 'läksin', 'sõitsin', 'nägin', 'tulin'], 3),
+      B.selfcheck('059_d_self', ['Ma tean vorme käisin, läksin, tulin, olin, nägin.', 'Ma leian tekstist, kuhu ja millega inimene sõitis.', 'Ma muudan lause olevikust minevikku.', 'Ma räägin oma reisist 6 lausega.'], 'Reis on räägitud'),
+    ],
+    practice: [
+      B.tip('059_p_how', 'Lihtminevik: kuidas teha?', ['Võta tegusõna: käi-ma → käi-', 'Lisa lõpp: ma käi**sin**, ta käi**s**, me käi**sime**', 'Jäta meelde: **läksin, tulin, nägin, olin, sõin, jõin**', 'Küsi: **Kuhu sa sõitsid? Millal sa tagasi tulid?**'], 'full'),
+      B.categorize('059_p_sort', 'Täna või eile?', 'Pane tegusõnad õigesse rühma.', [
+        ['Täna (olevik)', ['lähen', 'tulen', 'näen', 'sõidan', 'olen', 'jõuan']], ['Eile (minevik)', ['läksin', 'tulin', 'nägin', 'sõitsin', 'olin', 'jõudsin']],
+      ], 'full', 'g_notice'),
+      B.gaps('059_p_gaps', 'Jaani reis Riiga.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', [
+        'Eelmisel nädalal [käis] (käima) Jaan Riias.', 'Ta [sõitis] (sõitma) sinna bussiga.', 'Teekond [kestis] (kestma) neli tundi.', 'Riias [ööbis] (ööbima) ta sõbra juures.',
+        'Jaan ja sõber [nägid] (nägema) vanalinna.', 'Pühapäeval [tuli] (tulema) Jaan tagasi.', 'Ta [oli] (olema) väga rõõmus.',
+      ]),
+      B.choice('059_p_time', 'Eile või homme?', 'Vali lausesse sobiv ajasõna.', [
+        ['___ sõitsin ma Tartusse.', 'Eile', 'Homme', 'Ülehomme'], ['___ lähen ma Pärnusse.', 'Homme', 'Eile', 'Eelmisel nädalal'],
+        ['___ käisime me Riias.', 'Aasta tagasi', 'Järgmisel aastal', 'Varsti'], ['Kati tuli ___ tagasi.', 'eile õhtul', 'homme õhtul', 'järgmisel reedel'],
+        ['___ olin ma Narvas.', 'Eelmisel suvel', 'Järgmisel suvel', 'Homme hommikul'], ['Me sõidame Valka ___.', 'järgmisel nädalal', 'eelmisel nädalal', 'eile'],
+      ], 'full', 'g_notice'),
+      B.listening('059_p_listen', 'Kuulamine. Liisi teekond.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Liis.', 'Eelmisel reedel sõitsin ema juurde Valka.', 'Rong väljus Tallinnast kell üheksa viisteist.', 'Rong hilines kümme minutit, aga see ei olnud probleem.',
+        'Tartus istusin ümber bussile.', 'Valka jõudsin kell kolm päeval. Ema ootas mind bussijaamas.', 'Ma olin ema juures kaks päeva.', 'Pühapäeva õhtul tulin tagasi bussiga.',
+      ], ['Liis sõitis Valka eelmisel [reedel].', 'Rong hilines [kümme|10] minutit.', 'Tartus istus Liis ümber [bussile].', 'Valka jõudis ta kell [kolm|3|15].', 'Ema ootas teda [bussijaamas].', 'Liis oli Valgas [kaks|2] päeva.', 'Tagasi tuli ta [bussiga].']),
+      B.transformation('059_p_ask', 'Küsi minevikus.', 'Kirjuta küsimus. Vastus on antud.', [
+        ['Ma käisin Riias.', 'Kus …?', 'Kus sa käisid?|Kus te käisite?'], ['Ma sõitsin rongiga.', 'Millega …?', 'Millega sa sõitsid?|Millega te sõitsite?'],
+        ['Me jõudsime kell kuus.', 'Mis kell …?', 'Mis kell te jõudsite?|Mis kell te kohale jõudsite?'], ['Ta ööbis hotellis.', 'Kus …?', 'Kus ta ööbis?'],
+        ['Teekond kestis kaks tundi.', 'Kui kaua …?', 'Kui kaua teekond kestis?'], ['Nad tulid tagasi pühapäeval.', 'Millal …?', 'Millal nad tagasi tulid?'],
+      ]),
+      B.errorfix('059_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Eelmisel nädalal ma käin Riias.', 'Eelmisel nädalal käisin ma Riias.|Eelmisel nädalal ma käisin Riias.'], ['Eile ta tulis koju kell kuus.', 'Eile tuli ta koju kell kuus.|Eile ta tuli koju kell kuus.'],
+        ['Kas sa nägisid merd?', 'Kas sa nägid merd?'], ['Me jõudsime Tartu kell neli.', 'Me jõudsime Tartusse kell neli.'],
+        ['Ma ei käisin eile poes.', 'Ma ei käinud eile poes.'], ['Sofia lahkus hotellis kell kaksteist.', 'Sofia lahkus hotellist kell kaksteist.'],
+      ]),
+      B.wordorder('059_p_order', 'Pane küsimus kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Kuhu sa eelmisel nädalal sõitsid?', 'Millega sa Tartusse sõitsid?', 'Kui kaua teekond kestis?', 'Kus te ööbisite?', 'Millal sa tagasi tulid?']),
+      B.dialogue('059_p_dialog', 'Kuidas nädalavahetus läks?', 'Täida dialoog. Kirjuta tegusõna minevikus.', 'Jaan', 'Sofia', [
+        ['A', 'Tere, Sofia! Kuidas nädalavahetus [läks]?'], ['B', 'Väga hästi! Ma [käisin] Pärnus.'], ['A', 'Tore! Millega sa [sõitsid]?'], ['B', 'Bussiga. Teekond kestis peaaegu kolm tundi.'],
+        ['A', 'Mida sa seal [nägid]?'], ['B', 'Randa ja vanalinna. Öösel [ööbisime] Katiga hotellis.'], ['A', 'Millal sa tagasi [tulid]?'], ['B', 'Pühapäeval. Me [jõudsime] Tartusse kell neli.'],
+      ]),
+      B.translation('059_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['В прошлую субботу я была в Пярну.', 'Автобус отправился в семь часов.', 'Мы приехали в Тарту вечером.', 'Где вы ночевали?', 'Я вернулась домой в воскресенье.']),
+      B.dictation('059_p_dict', 'Etteütlus.', 'Kuula ja kirjuta küsimused.', ['Kuhu sa eile läksid?', 'Millega sa sõitsid?', 'Kui kaua teekond kestis?', 'Kus te ööbisite?', 'Millal te tagasi tulite?']),
+      B.speaking('059_p_say', 'Intervjuu reisist.', 'Küsi paarilisel viis küsimust tema reisi kohta.', ['Kuhu sa sõitsid?', 'Millal see oli?', 'Millega sa sõitsid?', 'Kus sa ööbisid?', 'Mida sa nägid?'], [60, 90], ['Kuhu sa…?', 'Millega sa…?', 'Ma käisin…']),
+      B.writing('059_p_write', 'Liisi reis.', 'Kirjuta Liisi reisist 6–8 lauset. Kasuta kuulamise infot.', [6, 8], ['sõitis', 'jõudis', 'oli', 'tuli'], 2),
+      B.selfcheck('059_p_self', ['Ma eristan olevikku ja minevikku.', 'Ma kirjutan lihtmineviku vormi ilma abita.', 'Ma küsin: Kuhu sa sõitsid? Millal sa tagasi tulid?', 'Ma saan aru lühikesest reisijutust.'], 'Minevik on selge'),
+    ],
+    transfer: [
+      B.text('059_t_situation', 'Uus olukord', 'Sinu keelekursusel on teema „Minu reis”. Iga õpilane kirjutab kursuse lehele lühikese loo ja räägib sellest grupile. Kõigepealt loed Markuse lugu.'),
+      B.reading('059_t_read', 'Loe Markuse lugu.', 'Loe lugu ja vasta küsimustele.', 'Rattaga Saaremaale',
+        'Eelmisel kuul käisin rattaga Saaremaal. Kõigepealt sõitsin bussiga Virtsu. Ratas oli bussis kaasas. Virtsus läksin praamile. Praam sõitis Muhu saarele umbes pool tundi. Siis sõitsin rattaga Kuressaarde. Teekond oli pikk, aga ilus. Esimesel õhtul ööbisin telgis mere ääres. Teisel päeval nägin Kaali kraatrit ja vana tuuleveskit. Kuressaares käisin lossis. Seal oli palju turiste. Kolmandal päeval hakkas sadama ja ma olin terve päeva hotellis. Neljandal päeval oli jälle päike. Tagasi tulin bussiga. Ratas tuli ka kaasa. Tallinnasse jõudsin hilja õhtul. Järgmisel suvel tahan sõita Hiiumaale.',
+        [['Millega sõitis Markus Virtsu?', 'bussiga'], ['Kui kaua praam sõitis?', 'umbes pool tundi|pool tundi'], ['Kus ta esimesel õhtul ööbis?', 'telgis mere ääres|telgis|mere ääres'], ['Mida ta teisel päeval nägi?', 'Kaali kraatrit ja vana tuuleveskit|Kaali kraatrit|tuuleveskit'], ['Miks oli ta kolmandal päeval hotellis?', 'hakkas sadama|sadas vihma'], ['Kuhu ta tahab järgmisel suvel sõita?', 'Hiiumaale']]),
+      B.table('059_t_table', 'Markuse reis lühidalt.', 'Kirjuta tekstist 1–3 sõna.', 'Küsimus, Markus', [
+        'Kuhu ta sõitis? | [Saaremaale]', 'Millega ta sõitis? | [bussiga ja rattaga/rattaga]', 'Kus ta ööbis? | [telgis ja hotellis/telgis]', 'Mida ta nägi? | [Kaali kraatrit/lossi/tuuleveskit]', 'Kuidas ta tagasi tuli? | [bussiga]',
+      ], 'g_read'),
+      B.transformation('059_t_trans', 'Markus → mina.', 'Kirjuta lause ma-vormis.', [
+        ['Markus sõitis bussiga Virtsu.', 'Ma …', 'Ma sõitsin bussiga Virtsu.'], ['Ta läks praamile.', 'Ma …', 'Ma läksin praamile.'], ['Ta ööbis telgis.', 'Ma …', 'Ma ööbisin telgis.'],
+        ['Ta nägi Kaali kraatrit.', 'Ma …', 'Ma nägin Kaali kraatrit.'], ['Ta oli terve päeva hotellis.', 'Ma …', 'Ma olin terve päeva hotellis.'], ['Ta tuli tagasi bussiga.', 'Ma …', 'Ma tulin tagasi bussiga.|Ma tulin bussiga tagasi.'],
+      ]),
+      B.errorfix('059_t_fix', 'Paranda Jaani lugu.', 'Jaani loos on vead. Kirjuta lause õigesti.', [
+        ['Eelmisel suvel ma käin Soomes.', 'Eelmisel suvel käisin ma Soomes.|Eelmisel suvel ma käisin Soomes.'], ['Me sõitsime laevaga Helsingis.', 'Me sõitsime laevaga Helsingisse.'],
+        ['Laev väljus Tallinnas kell kümme.', 'Laev väljus Tallinnast kell kümme.'], ['Helsingis me nägisime vana kirikut.', 'Helsingis nägime me vana kirikut.|Helsingis me nägime vana kirikut.'],
+        ['Õhtul me tulid tagasi.', 'Õhtul me tulime tagasi.|Õhtul tulime me tagasi.'],
+      ]),
+      B.dictation('059_t_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Eelmisel kuul käisin Saaremaal.', 'Praam sõitis pool tundi.', 'Esimesel õhtul ööbisin telgis.', 'Kuressaares käisin lossis.', 'Tagasi tulin bussiga.']),
+      B.planning('059_t_plan', 'Minu loo plaan.', 'Kirjuta märksõnad.', ['Kuhu ja millal sa sõitsid?', 'Millega sa sõitsid? Kui kaua teekond kestis?', 'Kus sa ööbisid?', 'Mida sa nägid ja tegid?', 'Kuidas sa tagasi tulid?']),
+      B.writing('059_t_write', 'Minu reis kursuse lehele.', 'Kirjuta oma reisist 6–8 lauset.', [6, 8], ['käisin', 'sõitsin', 'jõudsin', 'nägin', 'tulin'], 3),
+      B.speaking('059_t_tell', 'Räägi grupile.', 'Räägi oma reisist 1–2 minutit. Ära loe paberilt.', ['Kuhu ja millal?', 'Millega?', 'Kus sa ööbisid?', 'Mida sa nägid?', 'Kuidas sa tagasi tulid?'], [60, 120], ['kõigepealt', 'siis', 'lõpuks']),
+      B.rolecards('059_t_roles', 'Küsimused pärast lugu.', 'A räägib reisist, B küsib detaile. Siis vahetage.',
+        'Räägi oma reisist. Vasta küsimustele täislausega.', 'Kuula ja küsi vähemalt neli küsimust minevikus.',
+        ['Ma käisin…', 'Me sõitsime…', 'Seal ma nägin…'], ['Millal sa seal käisid?', 'Kus sa ööbisid?', 'Mis sulle kõige rohkem meeldis?']),
+      B.letter('059_t_card', 'Postkaart sõbrale.', 'Kirjuta sõbrale postkaart: kus sa olid, mida nägid ja millal tuled tagasi.', 'Tere, Kati!', 'Kallistan!', [30, 50]),
+      B.rubric('059_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Lugu vastab küsimustele kuhu, millal, millega ja mida tegin.', 'Tegusõnad on lihtminevikus (käisin, läksin, tulin, nägin).', 'Ajasõnad näitavad järjekorda (kõigepealt, siis, lõpuks).', 'Suuline lugu on 6–8 lauset ja kuulaja saab aru.']),
+      B.selfcheck('059_t_self', ['Ma saan aru teise inimese reisijutust.', 'Ma kirjutan oma reisist 6–8 lauset.', 'Ma räägin reisist grupile ilma paberita.', 'Ma küsin teiselt reisi kohta minevikus.'], 'Minu reis on kirjas'),
+    ],
+  },
+
+  'a2-060': {
+    title: 'Kontroll 12 — reisimine',
+    canDo: 'Ma näitan kontrollis, et saan aru tablost, teadaandest ja kassavestlusest, ostan pileti ja räägin lõppenud reisist (vähemalt 70%, aeg ja koht vähemalt 80%).',
+    discover: [
+      B.text('060_d_situation', 'Kordamine: Anna sõidab Riiga', 'Anna sõidab nädalavahetusel Riiga sõbranna juurde. Ta ostab pileti, vaatab tablood ja kuulab teadaandeid. Pühapäeva õhtul kirjutab ta Markusele, kuidas reis läks.'),
+      B.truefalse('060_d_tf', 'Mis on õige?', 'Loe olukorda. Õige või vale?', [
+        ['Anna sõidab Riiga.', true], ['Anna sõidab sinna tööle.', false], ['Anna vaatab tablood.', true], ['Anna kirjutab Markusele reedel.', false], ['Riias elab Anna sõbranna.', true],
+      ]),
+      B.reading('060_d_read', 'Loe: Anna sõnum.', 'Loe sõnumit ja vasta küsimustele.', 'Tere, Markus!',
+        'Tere, Markus! Ma olen jälle Tallinnas. Reis Riiga oli tore, aga mitte lihtne. Reedel ostsin pileti internetist. Buss pidi väljuma kell 8.30. Hommikul läksin bussijaama trammiga. Seal kuulsin teadaannet: buss hilineb pool tundi. Ma jõin kohvi ja ootasin. Bussis oli palju reisijaid. Juht oli väga sõbralik. Riiga jõudsime kell kaks. Sõbranna Ilze ootas mind bussijaamas. Laupäeval nägime vanalinna ja käisime turul. Pühapäeval tahtsin tagasi sõita bussiga, aga buss oli täis. Siis sõitsin tagasi rongiga. Valgas pidin ümber istuma. Teekond kestis kuus tundi, aga rongis oli mugav. Koju jõudsin kell üksteist õhtul. Kohver oli raske ja ma olin väga väsinud. Järgmine kord ostan ka tagasisõidu pileti varem! Anna',
+        [['Kus Anna pileti ostis?', 'internetist'], ['Kuidas Anna bussijaama sõitis?', 'trammiga'], ['Mida Anna bussijaamas kuulis?', 'buss hilineb pool tundi|teadaannet|et buss hilineb'], ['Mis kell buss Riiga jõudis?', 'kell kaks|kaks|14'], ['Miks ei sõitnud Anna tagasi bussiga?', 'buss oli täis'], ['Kus Anna ümber istus?', 'Valgas']]),
+      B.table('060_d_find', 'Leia tekstist.', 'Leia tekstist tegusõna minevikus.', 'Tegusõna, Anna sõnumis', [
+        'ostma | [ostsin]', 'minema | [läksin]', 'kuulma | [kuulsin]', 'jõudma | [jõudsime/jõudsin]', 'nägema | [nägime]', 'sõitma | [sõitsin]',
+      ], 'g_notice'),
+      B.notice('060_d_notice', 'Mooduli kokkuvõte', [
+        'Millega? **bussiga, rongiga, trammiga** — aga **jalgsi**', 'Kus? kuhu? kust? **jaamas — jaama — jaamast**', 'Tablo: buss **väljub** Tartu**st**, **saabub** Pärnu**sse**, **hilineb** 10 minuti**t**', 'Kassas: **Palun üks pilet Narva. Mis kell…? Kust…?**', 'Minevik: **käisin, läksin, tulin, sõitsin, olin, nägin**',
+      ], 'full'),
+      B.categorize('060_d_sort', 'Kus seda kuuled või loed?', 'Pane laused õigesse rühma.', [
+        ['Kassas', ['Üks ots või edasi-tagasi?', 'Kas soovite sooduspiletit?', 'See maksab kaheksa eurot.']], ['Teadaanne jaamas', ['Rong hilineb kümme minutit.', 'Buss väljub viiendalt platvormilt.', 'Lend on tühistatud.']], ['Sõbra sõnum', ['Ma jõudsin hästi kohale!', 'Reis oli tore.', 'Ootan sind bussijaamas.']],
+      ], 'full', 'g_vocab'),
+      B.match('060_d_match', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus.', [
+        ['Millega sa Riiga sõitsid?', 'Bussiga.'], ['Mis kell rong väljub?', 'Kell 9.15.'], ['Kust buss läheb?', 'Viiendalt platvormilt.'],
+        ['Kui kaua teekond kestis?', 'Neli tundi.'], ['Kus sa ööbisid?', 'Sõbranna juures.'], ['Millal sa tagasi tulid?', 'Pühapäeva õhtul.'],
+      ], 'full', 'g_use'),
+      B.gaps('060_d_gaps', 'Mooduli vormid.', 'Kirjuta lünka sobiv sõna. Kuus sõna jääb üle.', [
+        'Ma sõidan tööle [bussiga].', 'Homme rong [väljub] kell kaheksa.', 'Palun üks pilet [Tartusse].', 'Buss väljub [teiselt] platvormilt.', 'Eile [käisin] ma Narvas.', 'Me [jõudsime] eile koju hilja.',
+      ], ['bussiga', 'buss', 'väljub', 'väljus', 'Tartusse', 'Tartus', 'teiselt', 'teine', 'käisin', 'käin', 'jõudsime', 'jõuame']),
+      B.transformation('060_d_trans', 'Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+        ['Täna sõidan ma rongiga.', 'eile', 'Eile sõitsin ma rongiga.|Eile ma sõitsin rongiga.'], ['Ma lähen jaama.', 'eile', 'Eile läksin ma jaama.|Eile ma läksin jaama.'],
+        ['Buss väljub kell kaks.', 'küsimus: Mis kell…?', 'Mis kell buss väljub?'], ['Pilet maksab 8 eurot.', 'küsimus: Kui palju…?', 'Kui palju pilet maksab?'], ['Me oleme Pärnus.', 'eile', 'Eile olime me Pärnus.|Eile me olime Pärnus.'],
+      ]),
+      B.errorfix('060_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Ma sõidan tööle buss.', 'Ma sõidan tööle bussiga.'], ['Palun üks pilet Tartus.', 'Palun üks pilet Tartusse.'], ['Rong hilineb kümme minutid.', 'Rong hilineb kümme minutit.'],
+        ['Eile ma lähen Riiga.', 'Eile läksin ma Riiga.|Eile ma läksin Riiga.'], ['Ma lähen jalgsiga.', 'Ma lähen jalgsi.'],
+      ]),
+      B.dialogue('060_d_dialog', 'Kassas.', 'Täida Anna ja kassapidaja vestlus.', 'Anna', 'Kassapidaja', [
+        ['A', 'Tere! Palun üks [pilet] Riiga.'], ['B', 'Tere! Üks ots või [edasi-tagasi]?'], ['A', 'Üks ots. Mis kell buss [väljub]?'],
+        ['B', 'Kell 8.30. Buss väljub kolmandalt [platvormilt].'], ['A', 'Kas ma saan [kaardiga] maksta?'], ['B', 'Jah. Pilet maksab 25 eurot. Head [reisi]!'],
+      ]),
+      B.wordorder('060_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Hommikul läksin trammiga bussijaama.', 'Buss hilines pool tundi.', 'Riiga jõudsime kell kaks.', 'Tagasi sõitsin rongiga.', 'Kohver oli väga raske.']),
+      B.translation('060_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Я езжу на работу на трамвае.', 'Один билет до Тарту, пожалуйста.', 'Поезд опаздывает на десять минут.', 'Вчера я была в Риге.', 'Мы приехали домой поздно.']),
+      B.dictation('060_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Palun üks pilet Riiga.', 'Buss hilineb pool tundi.', 'Rong väljub teiselt platvormilt.', 'Eile käisin ma Pärnus.', 'Me jõudsime koju hilja.']),
+      B.speaking('060_d_say', 'Kordame suuliselt.', 'Vasta paarilise küsimustele.', ['Millega sa tavaliselt tööle sõidad?', 'Kus sa pileti ostad?', 'Kuhu sa viimati sõitsid?', 'Mis reisil juhtus?'], [60, 120]),
+      B.writing('060_d_write', 'Minu teekond.', 'Kirjuta 5–7 lauset: kuidas sa eile tööle või kooli sõitsid.', [5, 7], ['sõitsin', 'väljus', 'jõudsin'], 2),
+      B.selfcheck('060_d_self', ['Ma mäletan transpordi ja pileti sõnu.', 'Ma loen tablood ja saan aru teadaandest.', 'Ma ostan pileti ja küsin aega ning platvormi.', 'Ma räägin reisist minevikus.'], 'Valmis kontrolliks'),
+    ],
+    practice: [
+      B.tip('060_p_how', 'Lugemine ja kuulamine (eksami vormis)', 'See osa on nagu Harno A2 eksam: viis lugemisülesannet ja kaks kuulamisülesannet. Teema on moodul 12. Tee kõik ilma abita. Kuulamistekstid loeb õpetaja kaks korda. Eesmärk on 70%, aeg ja koht vähemalt 80%.', 'full'),
+      // reading 1: what to say
+      B.choice('060_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
+        ['Sa tahad piletit Tartusse. Mida ütled kassas?', 'Palun üks pilet Tartusse.', 'Palun üks pilet Tartus.', 'Palun üks pilet Tartust.'],
+        ['Sa ei tea, kust rong väljub. Mida küsid?', 'Kust rong väljub?', 'Kuhu rong eile läks?', 'Kus rong eile oli?'],
+        ['Bussis seisab keegi ukse ees. Sa tahad väljuda.', 'Vabandust, kas te väljute?', 'Head isu, palun!', 'Palun üks pilet!'],
+        ['Sõber tuli reisilt tagasi. Mida küsid?', 'Kuidas reis läks?', 'Kuhu sa homme lähed?', 'Mis kell rong väljub?'],
+        ['Kassapidaja küsib: „Üks ots või edasi-tagasi?”', 'Edasi-tagasi, palun.', 'Kaardiga, palun.', 'Akna all, palun.'],
+      ], 'full', 'g_use'),
+      // reading 2: a departure board
+      B.reading('060_p_board', 'Lugemine 2. Tablo.', 'Loe bussijaama tablood ja vasta küsimustele.', 'Tartu bussijaam — väljumised', [
+        'Kell 10.05 — Tallinn — platvorm 3 — väljub õigel ajal.', 'Kell 10.20 — Pärnu — platvorm 5 — hilineb 15 minutit.', 'Kell 10.30 — Narva — platvorm 1 — väljub õigel ajal.',
+        'Kell 10.45 — Valga — platvorm 2 — tühistatud.', 'Kell 11.00 — Riia — platvorm 4 — väljub õigel ajal.', 'Kell 11.15 — Viljandi — platvorm 6 — ümberistumine Elvas.',
+        'Tähelepanu! Buss Valka on täna tühistatud. Järgmine buss Valka väljub kell 13.45. Pileti saab vahetada kassas tasuta. Kassa on avatud iga päev kella seitsmest üheksani õhtul. Pakihoid on esimese platvormi kõrval. Ootesaalis on kohvik ja tasuta internet. Head reisi!',
+      ], [['Mis kell väljub buss Tallinnasse?', '10.05|kell 10.05'], ['Mis platvormilt läheb buss Narva?', 'esimeselt|platvormilt 1|1'], ['Kui palju hilineb buss Pärnusse?', '15 minutit|viisteist minutit'], ['Mis kell väljub järgmine buss Valka?', '13.45|kell 13.45'], ['Kus peab Viljandi reisija ümber istuma?', 'Elvas'], ['Kui palju maksab pileti vahetamine?', 'tasuta|see on tasuta']]),
+      // reading 3: signs
+      B.match('060_p_signs', 'Lugemine 3. Kuhu minna?', 'Ühenda soov ja silt.', [
+        ['Tahad osta piletit.', 'Kassa — avatud 7–21'], ['Tahad jätta kohvri mõneks tunniks.', 'Pakihoid — 2 € päev'], ['Tahad teada, kust rong väljub.', 'Tablo — väljumised ja platvormid'],
+        ['Tahad sõita lennujaama.', 'Tramm nr 4 — lennujaam'], ['Tahad sõita laevaga Helsingisse.', 'Sadam — A-terminal'], ['Kaotasid bussis kindad.', 'Leitud asjad — infoletis'],
+      ], 'full', 'g_read'),
+      // reading 4: a ~140-word text, short answers and 3-option questions
+      B.reading('060_p_read', 'Lugemine 4. Puhkus ilma autota.', 'Loe teksti. Vasta lühidalt.', 'Puhkus ilma autota',
+        'Eestis saab hästi reisida ka ilma autota. Linnade vahel sõidavad bussid ja rongid. Rongid on mugavad ja seal on tasuta internet. Rongipiletit saab osta ka rongis, aga kassas või internetis on see odavam. Bussipileti on kõige parem osta internetist, sest suvel on bussid tihti täis. Saartele sõidavad praamid. Kui sul on auto, osta praamipilet suvel varem. Jalgsi reisija pääseb praamile tavaliselt ilma probleemita. Tallinnast saab laevaga sõita ka Helsingisse ja Stockholmi. Lennujaam on Tallinna kesklinna lähedal. Sinna sõidab tramm number neli. Linnades on mugav sõita rattaga. Kui sa sõidad bussiga või rongiga, võta kaasa ID-kaart või pilet telefonis. Kontrolör võib seda küsida. Hea reisija planeerib teekonna ette. Aga ta jätab natuke aega ka üllatusteks.',
+        [['Mis on rongis tasuta?', 'internet'], ['Millega saab Tallinnast Helsingisse sõita?', 'laevaga'], ['Mis tramm sõidab lennujaama?', 'number neli|neli|4|tramm number neli']]),
+      B.choice('060_p_readmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali igale küsimusele üks vastus.', [
+        ['Kus on rongipilet odavam?', 'kassas või internetis', 'rongis', 'bussis'], ['Miks on hea osta bussipilet internetist?', 'suvel on bussid täis', 'internetis on pilet tasuta', 'kassa on suvel kinni'],
+        ['Kes peab praamipileti suvel varem ostma?', 'autoga reisija', 'jalgsi reisija', 'rattaga reisija'], ['Kus on lennujaam?', 'kesklinna lähedal', 'Helsingis', 'sadama kõrval'],
+        ['Mida võib kontrolör küsida?', 'piletit või ID-kaarti', 'raha ja kohvrit', 'aadressi ja telefoni'],
+      ]),
+      // reading 5: a personal letter with 8 option gaps
+      B.cloze('060_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Olga!', [
+        'Ma {*käisin|käin|käima} eelmisel nädalal Narvas. Ma sõitsin {*rongiga|rong|rongis} ja teekond kestis kolm tundi.',
+        '',
+        'Rong {*väljus|väljub|väljuma} Tallinnast kell kaheksa. Narva {*jõudsin|jõuan|jõudma} ma kell üksteist.',
+        '',
+        'Kahjuks ma ei {*näinud|nägin|näe} sind, sest sa olid {*puhkusel|puhkus|puhkusele}. Järgmine kord helistan sulle {*varem|hiljem|eile}.',
+        '',
+        'Kas sa tuled suvel {*Tallinnasse|Tallinnas|Tallinnast}? Kirjuta mulle! Kallistan, Viktor',
+      ]),
+      // listening 1: a station announcement, answers of 1–2 words
+      B.listening('060_p_listen', 'Kuulamine 1. Teadaanne jaamas.', 'Õpetaja loeb teadaande kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tähelepanu, reisijad!', 'Rong Tallinnast Tartusse väljub täna kell kümme kakskümmend.', 'Rong hilineb viisteist minutit.', 'Rong väljub teiselt platvormilt, mitte esimeselt.',
+        'Tartus saab ümber istuda Valga rongile.', 'Rongis on kohvik kolmandas vagunis.', 'Pileteid saab osta ka rongis, aga kassas on piletid odavamad. Vabandame!',
+      ], ['Rong sõidab Tallinnast [Tartusse].', 'Sõiduplaani järgi väljub rong kell [10.20|kümme kakskümmend].', 'Rong hilineb [15|viisteist] minutit.', 'Rong väljub [teiselt] platvormilt.', 'Tartus saab ümber istuda [Valga] rongile.', 'Kohvik on [kolmandas] vagunis.']),
+      // listening 2: a dialogue at the ticket office
+      B.listening('060_p_listen2', 'Kuulamine 2. Kassas.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
+        '— Tere! Palun kaks piletit Pärnusse.', '— Tere! Mis kellaks?', '— Mis kell järgmine buss väljub?', '— Kell 12.15. Aga see buss on täis. Järgmine on kell 13.40.',
+        '— Hästi, siis kell 13.40. Kas see buss sõidab otse?', '— Ei, Viljandis on ümberistumine. Kas soovite sooduspileteid?', '— Üks täispilet ja üks sooduspilet. Minu ema on pensionär.',
+        '— Kokku kakskümmend üks eurot. Buss väljub kuuendalt platvormilt.', '— Aitäh! Kas ma saan kohvri bussi panna?', '— Jah, juht aitab teid.',
+      ], ['Reisija ostab [kaks|2] piletit.', 'Buss kell 12.15 on [täis].', 'Reisija sõidab bussiga kell [13.40].', 'Ümberistumine on [Viljandis].', 'Piletid maksavad kokku [21|kakskümmend üks] eurot.', 'Buss väljub [kuuendalt] platvormilt.', 'Kohvriga aitab [juht|bussijuht].']),
+      B.gaps('060_p_mix', 'Keeleosa. Kirjuta õige vorm.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Ma sõidan tööle [trammiga] (tramm).', 'Palun üks pilet [Narva|Narvasse] (Narva).', 'Rong saabub [Tartusse] (Tartu) kell 11.', 'Buss hilineb kümme [minutit] (minut).',
+        'Eile [läksin] (minema) ma jalgsi koju.', 'Eelmisel nädalal [käisime] (käima) me Riias.',
+      ]),
+      B.errorfix('060_p_fix', 'Keeleosa. Paranda viga.', 'Kirjuta laused õigesti.', [
+        ['Palun kaks pilet Tartusse.', 'Palun kaks piletit Tartusse.'], ['Rong väljub teine platvormilt.', 'Rong väljub teiselt platvormilt.'], ['Eile ma nägisin sõpra.', 'Eile ma nägin sõpra.|Eile nägin ma sõpra.'],
+        ['Me jõudsime Riias kell kaks.', 'Me jõudsime Riiga kell kaks.'], ['Kust kell buss väljub?', 'Mis kell buss väljub?'],
+      ]),
+      B.transformation('060_p_trans', 'Keeleosa. Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+        ['Täna sõidan ma rongiga.', 'eile', 'Eile sõitsin ma rongiga.|Eile ma sõitsin rongiga.'], ['Buss väljub kell kaks.', 'küsimus: Mis kell…?', 'Mis kell buss väljub?'],
+        ['Pilet maksab kümme eurot.', 'küsimus: Kui palju…?', 'Kui palju pilet maksab?'], ['Ma käisin Narvas.', 'eitus', 'Ma ei käinud Narvas.'], ['Me tulime bussiga.', 'küsimus: Millega…?', 'Millega te tulite?'],
+      ]),
+      B.wordorder('060_p_order', 'Keeleosa. Pane lause kokku.', 'Kirjuta laused õigesti.', ['Rong hilineb täna viisteist minutit.', 'Tartus saab ümber istuda Valga rongile.', 'Kas see buss sõidab otse?', 'Eelmisel nädalal käisin ma Narvas.', 'Kohvik on kolmandas vagunis.']),
+      B.speaking('060_p_say', 'Räägi kuuldust.', 'Räägi paarilisele, mida reisija kassas ostis.', ['Kuhu reisija sõidab?', 'Miks ta ei sõida kell 12.15?', 'Kas buss sõidab otse?', 'Kui palju piletid maksavad?'], [45, 90], ['Reisija ostab…', 'Buss on…', 'Ta peab … ümber istuma.']),
+      B.selfcheck('060_p_self', ['Lugemine: leian tablolt aja, platvormi ja muutuse.', 'Lugemine: valin kirja lünka õige vormi.', 'Kuulamine: kirjutan teadaandest aja ja koha.', 'Kuulamine: saan aru kassavestlusest.'], 'Lugemine ja kuulamine tehtud'),
+    ],
+    transfer: [
+      B.text('060_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See osa on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
+      B.notice('060_t_card', 'Kuulutus', ['Rattarent „Ratas” — rattad päevaks või nädalaks', 'Hind: 15 € päev, 60 € nädal', 'Aadress: Sadama 4, Pärnu (bussijaama kõrval)', 'Avatud: maist septembrini, iga päev 9–20', 'Broneerimine: telefon 5544 3322'], 'full', 'g_read'),
+      // writing 1: information transfer, at least 25 words
+      B.letter('060_t_info', 'Kirjutamine 1. Soovita rattarenti.', 'Sõber tahab Pärnus rattaga sõita. Kirjuta: kus, millal, hind, kuidas broneerida.', 'Tere, Jaan!', 'Head reisi!', [25, 40]),
+      B.planning('060_t_plan', 'Enne kirja.', 'Mõtle läbi ja kirjuta märksõnad.', ['Kuhu ja millal sa sõitsid?', 'Millega sa sõitsid?', 'Mis teel juhtus?', 'Mis sulle meeldis?']),
+      // writing 2: a letter, at least 30 words
+      B.letter('060_t_letter', 'Kirjutamine 2. Kiri reisist.', 'Kirjuta sõbrale oma viimasest reisist: kuhu, millega, mida nägid.', 'Tere, Kati!', 'Kallistan!', [30, 50]),
+      B.writing('060_t_text', 'Kirjutamine 2 (teine valik). Rong hilines.', 'Rong hilines tund. Kirjuta raudteefirmale 4–6 lauset ja küsi raha tagasi.', [4, 6], ['rong', 'hilines', 'pilet', 'palun'], 2),
+      B.table('060_t_form', 'Pileti broneerimine.', 'Täida bussipileti broneerimise vorm.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Kust? | ', 'Kuhu? | ', 'Kuupäev ja kellaaeg | ', 'Mitu piletit? Täis- või sooduspilet? | ', 'Telefon või e-post | ']),
+      // speaking: getting to know, picture description (task 1), idea card and role play (task 2)
+      B.speaking('060_t_intro', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Mis su nimi on?', 'Kus sa elad?', 'Millega sa tööle või kooli sõidad?', 'Kuhu sa tahad suvel sõita?'], [45, 60]),
+      B.speaking('060_t_mono', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab pildi: jaam, lennujaam või sadam. Kirjelda üks minut.', ['Kus inimesed on?', 'Mida nad teevad?', 'Kuhu nad sõidavad?', 'Mis kell võib olla?'], [60, 90], ['Pildil on…', 'Vasakul / paremal…', 'Nad ootavad…']),
+      B.rolecards('060_t_s1', 'Rääkimine 2. Ideekaart „Reis”.', 'A küsib kaardi märksõnade järgi, B vastab. Siis vahetage.',
+        'Küsi paarilisel viis küsimust: kuhu, millega, kui kaua, kus ööbis, mida nägi.', 'Vasta igale küsimusele 2–3 lausega. Räägi oma viimasest reisist.',
+        ['Kuhu sa viimati sõitsid?', 'Millega sa sõitsid?', 'Kus sa ööbisid?'], ['Ma käisin…', 'Ma sõitsin …-ga.', 'Ma ööbisin…']),
+      B.rolecards('060_t_s2', 'Rääkimine 2. Rollimäng „Kassas”.', 'A on reisija, B on kassapidaja. Siis vahetage.',
+        'Osta kaks piletit Tartusse homseks hommikuks. Küsi aega, platvormi ja hinda.', 'Buss kell 8 on täis. Paku teist aega. Küsi: üks ots või edasi-tagasi?',
+        ['Palun kaks piletit…', 'Mis kell…?', 'Kust buss väljub?'], ['Kahjuks on buss täis.', 'Järgmine buss väljub…', 'Üks ots või edasi-tagasi?']),
+      B.rubric('060_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Ülesanne on täidetud: kõik küsitud info on olemas.', 'Aeg, koht ja transport on täpsed.', 'Minevik on õiges vormis (käisin, sõitsin, nägin).', 'Kirjutamine 1: vähemalt 25 sõna; kirjutamine 2: 30–50 sõna.', 'Rääkimine: küsisin ja vastasin lõpuni.']),
+      B.selfcheck('060_t_self', ['Ma kirjutan kuulutuse järgi sõbrale lühikese soovituse.', 'Ma kirjutan oma reisist 30–50 sõna.', 'Ma kirjeldan jaama või sadama pilti.', 'Ma ostan rollimängus pileti ja lahendan probleemi.'], 'Moodul 12 on tehtud'),
     ],
   },
 };
