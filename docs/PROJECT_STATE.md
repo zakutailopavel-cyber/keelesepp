@@ -1,3 +1,12 @@
+## 2026-10-13 · agent/a2-modules-04-05 — A2 modules 4–5 (a2-016…025) as full course sheets
+
+- Base: `main` a73f6c0. Written by a sub-agent on the module 1 pattern, checked here (gate + sample reading).
+- `admin/course/a2/module04.js` „Kodu ja ümbrus”, `module05.js` „Linn, kohad ja tee”; goals in `a2/lessonGoals.js`;
+  registered after a2m01. 30 sheets, 13–17 blocks, 41–47 min, didactic score 100; 020 and 025 control lessons.
+- Audio: 29 new listening recordings (TartuNLP), 245 in total.
+- Tests: course gate passes; worksheet-generator 576 passed, 1 skipped.
+- Next safe step: publish „A2 · moodul 4” and „A2 · moodul 5” on „Kursuse tootmine”.
+
 ## 2026-10-13 · agent/a2-module-01 — A2 module 1 (a2-001…005) as full course sheets
 
 - Base: `main` 0e1b283. Owner: „а2 листы прям очень маленькие” — checked in production: 68 A2 lessons (001–055 and
