@@ -1,4 +1,4 @@
-import * as Icons from 'lucide-react';
+import { Icons } from '../icons.js';
 import BarMenu from './BarMenu.jsx';
 import { BLOCKS } from '../engine/registry.js';
 import { TONES, TONE_ORDER } from '../engine/schema.js';

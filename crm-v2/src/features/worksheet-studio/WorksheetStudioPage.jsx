@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { autoUpdate, flip, offset, shift, size, useFloating } from '@floating-ui/react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
-import * as Icons from 'lucide-react';
+import { Icons } from './icons.js';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { homeworkService, lessonWorksheetsService, libraryService, worksheetDocsService, worksheetTemplatesService } from '../../services/firebase/index.js';
 import { mediaBankService } from '../../services/firebase/mediaBank.js';
