@@ -1,3 +1,9 @@
+## 2026-10-13 · agent/art-b2-c1-batch4 — the rest of the Codex night batch (B2 061–090, C1 001–018)
+
+- Codex batch 2 stopped at 06:10 („workspace is out of credits”) after est-c1-018. Imported (from a copy of the inbox): B2 lessons up to 090 and C1 001–018 with briefs (`art/visuals/b2-module-14…18.js`, `c1-module-01…03.js`). Lessons Codex skipped after 3 tries have no picture (listed by `import_art.py`).
+- b1b2-090: the picture goes on Avasta (`phase: discover`) — on the Kasuta exam sheet it made the sheet 56 min.
+- Next: C1 019–100 pictures when Codex has credits again (`~/KeeleSeppArt/run-resume-0305.sh` resumes where it stopped).
+
 ## 2026-10-13 · agent/art-b2-batch3 — B2 pictures b1b2-021…060 (Codex night batch)
 
 - Codex batch 2 resumed at 03:05 (`~/KeeleSeppArt/run-resume-0305.sh`); imported what was ready (from a copy of the inbox, the batch keeps running): B2 lessons 021–060 → `crm-v2/public/textbook-art/b2/…`, briefs `art/visuals/b2-module-05…12.js`. Some lessons were skipped by Codex after 3 tries (no png) — listed by `import_art.py`.
