@@ -1,3 +1,16 @@
+## 2026-10-13 · agent/avasta-b1-audio — sheets with audio no longer say the teacher reads aloud
+
+- Base: `main` e543b93. All 51 course modules republished after #587 (299 sheets, no errors).
+- Checked live: the 50 B1 Avasta sheets (a2b1-001…050, DB-only) contain no listening tasks — nothing to record there.
+- Found live (a2b1-010 Harjuta): the sheet notes still said „Kuulamistekstid loeb õpetaja kaks korda” next to the audio.
+  `admin/course/listeningAudio.js` `listenInstruction` now also rewrites „X loeb õpetaja …” („Kuulamistekste kuulad …”),
+  „…: õpetaja loeb …” / „mida õpetaja loeb …” („kuulad …”), „Õpetaja loeb tekstid ette” („Kuula tekste”); only the head
+  of the object takes the partitive („raadiosaate teksti”, „iga klippi”). Applied to `instruction` and `text` of every
+  block except `listening` / `dictation` on sheets with audio. Module files unchanged.
+- Test: `listeningAudio.test.js` — new cases + „no sheet with recorded audio still says the teacher reads aloud”.
+- Checks: worksheet-generator + worksheet-studio 806 passed, 1 skipped.
+- Next safe step: after deploy republish A2 15/18–20, B1 2–9/13–16, B2 1–8/10/12/16/18, C1 1–3/7–8/10 (sheets with these notes).
+
 ## 2026-10-13 · agent/b2-c1-harno — B2 and C1 train the Harno exam formats; audio for every listening task
 
 - Why (owner's goal): the lessons must be a complete course; B2/C1 lacked the Harno formats (`docs/level-audit-2026-10-12/b2-c1-fixes/` „Не исправлено”).
