@@ -1,12 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { buildLibrary, searchLibrary, SKILLS, suggestedTags } from './blockLibrary.js';
+import { loadCourseLibrary, searchLibrary, SKILLS, suggestedTags } from './blockLibrary.js';
 import Sheet from './engine/Sheet.jsx';
 
-// the course is big (thousands of blocks): read only when the teacher opens „Kogu”
-const loadCourse = async () => {
-  const { COURSE_MODULES, buildCourseSheet } = await import('../worksheet-generator/admin/course/registry.js');
-  return buildLibrary(COURSE_MODULES, buildCourseSheet);
-};
 const LEVEL_TAGS = ['a2', 'b1', 'b2', 'c1'];
 const PHASES = [['avasta', 'Avasta'], ['harjuta', 'Harjuta'], ['kasuta', 'Kasuta']];
 
@@ -14,7 +9,7 @@ const PHASES = [['avasta', 'Avasta'], ['harjuta', 'Harjuta'], ['kasuta', 'Kasuta
  * Constructor „Kogu”: every task of the course sheets (A2…C1) by level, skill, topic and lesson. Words and #tags in one
  * search field („#A2 #rääkimine pere”, also „#говорение семья”); a click shows the task, „Lisa” puts it on the sheet.
  */
-export default function BlockLibraryPanel({ level = '', onInsert, load = loadCourse }) {
+export default function BlockLibraryPanel({ level = '', onInsert, load = loadCourseLibrary }) {
   const [state, setState] = useState({ loading: true, error: '', entries: [] });
   const startLevel = String(level || '').toLowerCase().replace(/[^abc12]/g, '').slice(0, 2);
   const [query, setQuery] = useState(LEVEL_TAGS.includes(startLevel) ? `#${startLevel} ` : '');

@@ -1,3 +1,27 @@
+## 2026-10-13 · agent/a2-missing-13 — the last 13 A2 lessons as full course sheets: A2 complete
+
+- Base: `main` 787afb6. Lessons a2-059, 060, 062, 064, 065, 068, 070, 072, 076, 077, 080, 081, 085 added into
+  `admin/course/a2/module12…17.js` (they still had the old generated 5-task sheets); goals in `a2/lessonGoals.js`.
+  39 sheets, 12–17 blocks, 40–48 min; control lessons in Harno A2 form. All 100 A2 lessons are now course sheets.
+- Characters per the owner's canon (art bible §4; Mia's mother is Oksana). Older lessons of modules 12–20 still
+  contradict the canon (e.g. 061 Sofia accountant, Jaan bus driver; 063 Viktor job hunting; 066 teacher Tiina) — next pass.
+- Audio: 25 new recordings, 361 in total.
+- Tests: course gate passes; worksheet-generator 597 passed, 1 skipped.
+
+## 2026-10-13 · agent/review-sheet — „Kordamisleht”: a review sheet from the course's own tasks
+
+- Base: `main` after #600–#602. Step 1 of „the generator on the course material” (owner agreed: course first, then the
+  generator). No AI, no invented sentences: only checked course tasks from „Kogu”.
+- `worksheet-studio/reviewSheet.js` `buildReviewSheet(entries, lessonId, { variant })`: tasks of this and the 4
+  previous lessons of the same course (not Kasuta; types that work out of context), plan words 2 → reading 1 →
+  listening 1 → forms/sentences 5 → speaking 1, filled round-robin over the lessons, then more form/word tasks up to
+  40–50 min (≤ 14 tasks); seeded by lesson + variant; self-check of the lesson titles at the end; meta.review.
+- `blockLibrary.js` `loadCourseLibrary()` (lazy registry import) shared by „Kogu” and the review.
+- `LessonGeneratorBar`: on course lessons a „Kordamisleht” button (also without a generator profile): saves the draft
+  `worksheetId: 'review'` (role focus, „Kordamine”), next variant each time; the „generator not ready” note is hidden
+  on course lessons.
+- Tests: `reviewSheet.test.js` (7: five levels 40–50 min, no constructor error, deterministic, variant changes, no
+  tasks → message), LessonGeneratorBar +1.
 ## 2026-10-13 · agent/test-timeouts — no random PR failures from the 5 s test timeout
 
 - `crm-v2/vite.config.js` `test.testTimeout: 20000`: page and whole-course tests (studio, gold standard, course gate)

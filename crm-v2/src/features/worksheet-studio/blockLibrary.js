@@ -4,6 +4,12 @@
 // (Estonian, also Russian names of the skills), e.g. „#A2 #rääkimine #pere” or „#говорение семья”.
 import { BLOCKS } from './engine/registry.js';
 
+// the whole course as library entries; the course modules are big, so they are read only when needed
+export async function loadCourseLibrary() {
+  const { COURSE_MODULES, buildCourseSheet } = await import('../worksheet-generator/admin/course/registry.js');
+  return buildLibrary(COURSE_MODULES, buildCourseSheet);
+}
+
 export const SKILLS = {
   rääkimine: 'Rääkimine', kirjutamine: 'Kirjutamine', lugemine: 'Lugemine', kuulamine: 'Kuulamine', grammatika: 'Grammatika', sõnavara: 'Sõnavara',
 };

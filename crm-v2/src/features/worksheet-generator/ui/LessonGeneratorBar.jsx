@@ -10,6 +10,8 @@ import { generatorFlagsService } from '../../../services/firebase/generatorFlags
 import { FOCUS_PHASES } from '../engine/focusWorksheet.js';
 import { generatorProfileForLesson } from '../profiles/index.js';
 import { sheetMinutes, SHEET_MINUTES } from '../../worksheet-studio/didactics/timeEstimate.js';
+import { loadCourseLibrary } from '../../worksheet-studio/blockLibrary.js';
+import { buildReviewSheet } from '../../worksheet-studio/reviewSheet.js';
 import { CORE_SHEETS, courseSheetIds, generateCoreSheets, generateFocusSheet, previewCoreSheet } from './lessonGeneration.js';
 import '../generator.css';
 
@@ -76,6 +78,16 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
       else navigate(sheetPath('discover'));
     });
   };
+
+  // „Kordamisleht”: the course's own tasks of this and the last lessons, 40–50 min (reviewSheet.js)
+  const makeReview = (loadLibrary = loadCourseLibrary) => run('review', async () => {
+    const current = sheets.find((sheet) => (sheet.worksheetId || sheet.id) === 'review');
+    const variant = (Number(current?.worksheetDoc?.meta?.review?.variant) || 0) + 1;
+    const doc = buildReviewSheet(await loadLibrary(), lessonId, { variant });
+    await repository.saveDraft({ lessonId, worksheetId: 'review', role: 'focus', slot: null, displayLabel: 'Kordamine', worksheetDoc: doc, user, baseUpdatedAt: current?.worksheetDocUpdatedAt || '' });
+    setNotice(`Kordamisleht on valmis (≈ ${sheetMinutes(doc)} min, ${doc.blocks.length - 1} ülesannet kursuse tundidest). Vaata üle ja avalda.`);
+    if (worksheetId === 'review') onGenerated?.(); else navigate(sheetPath('review'));
+  });
 
   const currentCore = CORE_SHEETS.find((meta) => meta.id === worksheetId);
   // only this sheet, shown in the editor first (not saved, undoable)
@@ -150,7 +162,8 @@ export default function LessonGeneratorBar({ lessonId, worksheetId, doc = null, 
               </div>
             </details>
           </>
-        ) : <span className="lgb-muted">Generaator pole selle tunni jaoks valmis</span>}
+        ) : course.size ? null : <span className="lgb-muted">Generaator pole selle tunni jaoks valmis</span>}
+        {course.size ? <button type="button" className="st-btn" onClick={() => makeReview()} disabled={Boolean(busy)} title="Selle ja eelmiste tundide kursuse ülesanded, 40–50 min"><Sparkles size={15} aria-hidden="true" /> {busy === 'review' ? 'Koostan…' : 'Kordamisleht'}</button> : null}
         {words.length && onInsertBlocks ? (
           <details className="st-more lgb-focus">
             <summary className="st-btn"><BookA size={15} aria-hidden="true" /> Tunni sõnad ▾</summary>

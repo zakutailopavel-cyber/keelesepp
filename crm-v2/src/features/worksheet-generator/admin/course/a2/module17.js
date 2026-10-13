@@ -1,14 +1,111 @@
-// A2 course (A1 → A2 roadmap), module 17 „Plaanid, kokkulepped ja tulevik”, new lessons a2-082…084 (stage A2).
+// A2 course (A1 → A2 roadmap), module 17 „Plaanid, kokkulepped ja tulevik”, all five lessons a2-081…a2-085 (stage A2).
 // All three phases: Avasta → Harjuta → Kasuta, each a whole lesson (40–55 min). 082 arranges and moves a meeting until
 // the day, time and place are exact, 083 adds the simple condition „kui + olevik, siis …” to plans, 084 writes the
 // confirming or changing message (40–70 words) that needs no follow-up question. Time phrases (kell kuus, alates
-// kella kuuest) and place forms (kohviku ees, kinos) come back from the earlier modules. The other lessons of the
-// module are in the database already.
+// kella kuuest) and place forms (kohviku ees, kinos) come back from the earlier modules. 081 says the future with the present
+// and time markers (homme teen…, kavatsen + da); 085 is the module check in the Harno A2 form.
+// Cast by docs/TEXTBOOK_ART_BIBLE.md §4 in the lessons added 2026-10-13 (Anna office, Markus warehouse, Liis teacher /
+// official, Viktor pensioner, Sofia student, Jaan café owner; Oksana + Mia 6, Olga accountant, Kati, Igor as extras).
 import { B } from '../blocks.js';
 
 export const MODULE = { id: 'a2-module-17', course: 'a2', title: 'Plaanid, kokkulepped ja tulevik', level: 'A2' };
 
 export const LESSONS = {
+  'a2-081': {
+    title: 'Homme teen…',
+    canDo: 'Ma räägin vähemalt 8 tulevasest tegevusest olevikuvormi ja selge ajamärgiga (homme, ülehomme, järgmisel nädalal, kuu pärast, varsti) ja ütlen, mida ma kavatsen teha.',
+    discover: [
+      B.text('081_d_situation', 'Anna kalender', 'Anna elab Tallinnas alles kaks kuud. Järgmine nädal on tal väga kiire. Pühapäeva õhtul vaatab ta kalendrit ja kirjutab emale oma plaanidest.'),
+      B.vocab('081_d_vocab', 'Tulevik', ['homme — завтра', 'ülehomme — послезавтра', 'täna õhtul — сегодня вечером', 'järgmisel nädalal — на следующей неделе', 'nädalavahetus — выходные', 'kuu pärast — через месяц', 'järgmisel aastal — в следующем году', 'varsti — скоро', 'hiljem — позже', 'tulevik — будущее', 'plaanima — планировать', 'kavatsema (kavatsen + da) — собираться', 'kalender — календарь'], '2'),
+      B.reading('081_d_read', 'Loe: Anna kiri emale.', 'Loe kirja ja vasta küsimustele.', 'Tere, ema!',
+        'Tere, ema! Järgmine nädal on mul väga kiire. Esmaspäeval alustan tööl uue projektiga. Teisipäeva õhtul lähen esimest korda joogatrenni. Kolmapäeval tuleb mulle külla Sofia, minu nõbu. Ta õpib Tartus ja tal on Tallinnas eksam. Ta ööbib minu juures kaks ööd. Neljapäeval on töö juures koosolek. Pärast seda kavatseme kolleegidega kinno minna. Reedel töötan kodus. Laupäeval aitan naabrit Viktorit, sest ta kolib uude korterisse. Pühapäeval puhkan. Kuu pärast tulen sinu juurde Tartusse. Järgmisel aastal kavatsen osta auto. Siis saan sind tihemini vaatama tulla. Varsti näeme! Anna',
+        [['Mida teeb Anna esmaspäeval?', 'alustab tööl uue projektiga|alustab uue projektiga'], ['Kuhu läheb Anna teisipäeva õhtul?', 'joogatrenni|trenni'], ['Miks tuleb Sofia Tallinnasse?', 'tal on eksam|eksamile'], ['Mida kavatsevad kolleegid pärast koosolekut teha?', 'kinno minna|minna kinno'], ['Miks Anna laupäeval Viktorit aitab?', 'Viktor kolib|ta kolib uude korterisse'], ['Millal tuleb Anna ema juurde?', 'kuu pärast'], ['Mida kavatseb Anna järgmisel aastal osta?', 'auto|autot']]),
+      B.notice('081_d_notice', 'Märka: tulevik = olevik + ajasõna', ['**Homme lähen** ma tööle. (olevik + homme)', '**Järgmisel nädalal sõidan** Tartusse.', '**Kuu pärast tulen** sinu juurde. **Varsti** näeme!', 'Plaan: Ma **kavatsen** kinno **minna**. (kavatsema + da)', 'Ajasõna on ees → tegusõna on teisel kohal: **Homme lähen ma…**'], 'full'),
+      B.table('081_d_week', 'Anna nädal.', 'Kirjuta tekstist, mida Anna teeb.', 'Päev, Plaan', [
+        'esmaspäev | [alustab uue projektiga/uus projekt]', 'teisipäev | [läheb joogatrenni/jooga]', 'kolmapäev | [Sofia tuleb külla/Sofia tuleb]', 'neljapäev | [koosolek ja kino/koosolek]', 'reede | [töötab kodus]', 'laupäev | [aitab Viktorit/aitab naabrit]',
+      ], 'g_read'),
+      B.categorize('081_d_sort', 'Minevik, praegu või tulevik?', 'Pane ajasõnad õigesse rühma.', [['Minevik', ['eile', 'eelmisel nädalal', 'aasta tagasi']], ['Praegu', ['täna', 'praegu', 'just nüüd']], ['Tulevik', ['homme', 'ülehomme', 'järgmisel aastal', 'kuu pärast', 'varsti']]], 'full', 'g_vocab'),
+      B.transformation('081_d_trans', 'Eile → homme.', 'Kirjuta lause tulevikus antud sõnaga.', [
+        ['Eile läksin kinno.', 'Homme …', 'Homme lähen ma kinno.|Homme lähen kinno.'], ['Eile töötasin kodus.', 'Homme …', 'Homme töötan ma kodus.|Homme töötan kodus.'],
+        ['Eelmisel nädalal sõitsime Tartusse.', 'Järgmisel nädalal …', 'Järgmisel nädalal sõidame Tartusse.|Järgmisel nädalal sõidame me Tartusse.'], ['Eile tuli Sofia külla.', 'Ülehomme …', 'Ülehomme tuleb Sofia külla.'],
+        ['Aasta tagasi õppisin soome keelt.', 'Järgmisel aastal …', 'Järgmisel aastal õpin ma soome keelt.|Järgmisel aastal õpin soome keelt.'], ['Eile õhtul vaatasin filmi.', 'Täna õhtul …', 'Täna õhtul vaatan ma filmi.|Täna õhtul vaatan filmi.'],
+      ]),
+      B.manymatch('081_d_match', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus.', ['Mida sa homme teed?', 'Millal sa Tartusse sõidad?', 'Mida sa nädalavahetusel plaanid?', 'Kas sa tuled täna õhtul?', 'Mida sa järgmisel aastal kavatsed?'], ['Homme töötan kodus.', 'Kuu pärast.', 'Laupäeval aitan naabrit.', 'Kahjuks ei, ma tulen hiljem.', 'Ma kavatsen auto osta.'], 'full', 'g_use'),
+      B.gaps('081_d_gaps', 'Millal?', 'Vali sõnapangast sobiv ajasõna. Kaks sõna jääb üle.', [
+        '[Homme] hommikul on mul koosolek.', 'Täna on esmaspäev, [ülehomme] on kolmapäev.', 'Ma ei saa praegu, ma helistan [hiljem|varsti].', 'Oota natuke, buss tuleb [varsti].', '[Järgmisel aastal] kavatsen ma Soome sõita.', 'Mida sa [täna õhtul] teed?', 'Laupäeval kolib Viktor, [homme] hakkab ta asju pakkima.',
+      ], ['homme', 'ülehomme', 'hiljem', 'varsti', 'järgmisel aastal', 'täna õhtul', 'eile', 'eelmisel aastal']),
+      B.cloze('081_d_cloze', 'Sofia sõnum.', 'Vali igasse lünka sobiv sõna.', 'Tere, Anna!', [
+        'Ma {*tulen|tulin|tulema} kolmapäeval kell kuus. Rong {*saabub|saabus|saabuma} Balti jaama.',
+        '',
+        'Neljapäeval {*on|oli|olema} mul eksam. Pärast eksamit {*kavatsen|kavatsesin|kavatseda} vanalinnas jalutada.',
+        '',
+        'Reedel {*sõidan|sõitsin|sõitma} tagasi Tartusse. {*Varsti|Eile|Eelmisel nädalal} näeme! Sofia',
+      ]),
+      B.translation('081_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Завтра я работаю дома.', 'На следующей неделе мы поедем в Тарту.', 'Я собираюсь пойти в кино.', 'Скоро увидимся!', 'Что ты делаешь сегодня вечером?', 'Через месяц я приеду к тебе.']),
+      B.dictation('081_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Homme lähen ma tööle.', 'Ülehomme tuleb Sofia külla.', 'Järgmisel nädalal on mul koosolek.', 'Kuu pärast sõidan Tartusse.', 'Varsti näeme!']),
+      B.speaking('081_d_say', 'Minu järgmine nädal.', 'Räägi paarilisele oma plaanidest.', ['Mida sa homme teed?', 'Mida sa ülehomme teed?', 'Mida sa nädalavahetusel plaanid?', 'Mida sa kuu pärast teed?', 'Mida sa järgmisel aastal kavatsed?'], [60, 90], ['Homme…', 'Järgmisel nädalal…', 'Ma kavatsen…']),
+      B.writing('081_d_write', 'Minu plaanid.', 'Kirjuta 6–8 lauset: mida sa järgmisel nädalal teed.', [6, 8], ['homme', 'järgmisel nädalal', 'kavatsen', 'varsti'], 3),
+      B.selfcheck('081_d_self', ['Ma ütlen tulevikku olevikuga: homme lähen.', 'Ma tean ajasõnu: ülehomme, kuu pärast, varsti.', 'Ma leian kirjast, mida inimene millal teeb.', 'Ma räägin oma järgmisest nädalast.'], 'Plaanid on kalendris'),
+    ],
+    practice: [
+      B.crossword('081_p_cross', 'Aja sõnad.', 'Kirjuta sõna vihje järgi.', [['завтра', 'homme'], ['послезавтра', 'ülehomme'], ['Seal on kirjas sinu plaanid.', 'kalender'], ['будущее', 'tulevik'], ['Laupäev ja pühapäev', 'nädalavahetus'], ['скоро', 'varsti']]),
+      B.listening('081_p_listen', 'Kuulamine. Viktori plaanid.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Viktor. Ma olen pensionär, aga mul on palju plaane.', 'Homme hommikul lähen arsti juurde.', 'Ülehomme tuleb mulle külla minu lapselaps.', 'Laupäeval kolin uude korterisse. Anna ja Markus aitavad mind.',
+        'Järgmisel nädalal hakkan käima eesti keele kursusel.', 'Kuu pärast sõidan laevaga Helsingisse.', 'Ja järgmisel aastal kavatsen õppida ujuma!',
+      ], ['Homme läheb Viktor [arsti juurde|arsti].', 'Ülehomme tuleb külla tema [lapselaps].', 'Laupäeval [kolib] Viktor uude korterisse.', 'Teda aitavad Anna ja [Markus].', 'Kuu pärast sõidab ta [Helsingisse].', 'Järgmisel aastal kavatseb ta õppida [ujuma].']),
+      B.truefalse('081_p_tf', 'Õige või vale?', 'Kuula uuesti. Õige või vale?', [['Viktor läheb homme arsti juurde.', true], ['Viktor kolib pühapäeval.', false], ['Anna ja Markus aitavad Viktorit.', true], ['Viktor sõidab Helsingisse rongiga.', false], ['Viktor oskab juba hästi ujuda.', false]]),
+      B.table('081_p_cal', 'Viktori kalender.', 'Kirjuta, millal Viktor seda teeb.', 'Plaan, Millal?', [
+        'arsti juurde | [homme/homme hommikul]', 'lapselaps tuleb | [ülehomme]', 'kolimine | [laupäeval]', 'kursus algab | [järgmisel nädalal]', 'Helsingisse | [kuu pärast]', 'ujuma õppima | [järgmisel aastal]',
+      ], 'g_read'),
+      B.gaps('081_p_gaps', 'Kirjuta olevikus.', 'Tegevus on tulevikus. Kirjuta tegusõna olevikus.', [
+        'Homme [lähen] (minema) ma arsti juurde.', 'Ülehomme [tuleb] (tulema) Sofia külla.', 'Järgmisel nädalal [sõidame] (sõitma) me Tartusse.', 'Kuu pärast [algab] (algama) kursus.',
+        'Täna õhtul [vaatavad] (vaatama) nad filmi.', 'Varsti [näeme] (nägema)!', 'Mida te homme [teete] (tegema)?',
+      ]),
+      B.choice('081_p_choice', 'Millal see on?', 'Loe lauset. Vali, kas see on minevik, praegu või tulevik.', [
+        ['Homme lähen ma tööle.', 'tulevik', 'minevik', 'praegu'], ['Eile läksin ma tööle.', 'minevik', 'tulevik', 'praegu'], ['Praegu ma töötan.', 'praegu', 'minevik', 'tulevik'],
+        ['Järgmisel nädalal on mul puhkus.', 'tulevik', 'minevik', 'praegu'], ['Aasta tagasi elasin Narvas.', 'minevik', 'tulevik', 'praegu'], ['Kuu pärast kolin Tartusse.', 'tulevik', 'minevik', 'praegu'],
+      ], 'full', 'g_notice'),
+      B.transformation('081_p_trans', 'Küsi plaani kohta.', 'Kirjuta küsimus. Vastus on antud.', [
+        ['Homme lähen ma arsti juurde.', 'Kuhu …?', 'Kuhu sa homme lähed?'], ['Ülehomme tuleb lapselaps.', 'Kes …?', 'Kes ülehomme tuleb?'], ['Laupäeval kolin ma.', 'Millal …?', 'Millal sa kolid?'],
+        ['Kuu pärast sõidan Helsingisse.', 'Kuhu …?', 'Kuhu sa kuu pärast sõidad?'], ['Järgmisel aastal õpin ujuma.', 'Mida …?', 'Mida sa järgmisel aastal õpid?'],
+      ]),
+      B.errorfix('081_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Homme ma läksin kinno.', 'Homme lähen ma kinno.|Homme ma lähen kinno.'], ['Järgmisel nädalal me sõitsime Tartusse.', 'Järgmisel nädalal sõidame me Tartusse.|Järgmisel nädalal me sõidame Tartusse.'], ['Homme Sofia tuleb külla.', 'Homme tuleb Sofia külla.'],
+        ['Ma kavatsen kinno minema.', 'Ma kavatsen kinno minna.'], ['Mida sa homme tegid?', 'Mida sa homme teed?'], ['Kuu pärast ma kolisin Tartusse.', 'Kuu pärast kolin ma Tartusse.|Kuu pärast ma kolin Tartusse.'],
+      ]),
+      B.wordorder('081_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Homme lähen ma arsti juurde.', 'Järgmisel nädalal algab kursus.', 'Laupäeval aitavad Anna ja Markus Viktorit.', 'Kuu pärast sõidab ta Helsingisse.', 'Mida sa nädalavahetusel teed?']),
+      B.translation('081_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Послезавтра ко мне придёт внук.', 'В субботу я переезжаю.', 'Через месяц я поеду в Хельсинки.', 'Что ты делаешь в выходные?', 'Я собираюсь учиться плавать.', 'Позже я позвоню.']),
+      B.dictation('081_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Homme lähen arsti juurde.', 'Laupäeval kolin uude korterisse.', 'Järgmisel nädalal algab kursus.', 'Kuu pärast sõidan Helsingisse.', 'Ma kavatsen ujuma õppida.']),
+      B.speaking('081_p_say', 'Küsi plaane.', 'Küsi paarilisel tema plaanide kohta.', ['Mida sa homme teed?', 'Mida sa nädalavahetusel plaanid?', 'Mida sa järgmisel kuul teed?', 'Mida sa järgmisel aastal kavatsed?'], [60, 90]),
+      B.writing('081_p_write', 'Viktori plaanid.', 'Kirjuta Viktori plaanidest 6–8 lauset.', [6, 8], ['homme', 'ülehomme', 'kuu pärast', 'kavatseb'], 2),
+      B.selfcheck('081_p_self', ['Ma eristan minevikku, praegust ja tulevikku.', 'Ma kirjutan plaani olevikus ajasõnaga.', 'Ma küsin teise inimese plaanide kohta.', 'Ma saan aru kuuldud plaanidest.'], 'Tulevik on selge'),
+    ],
+    transfer: [
+      B.text('081_t_situation', 'Uus olukord', 'Sinu sõber Igor tuleb järgmisel nädalal esimest korda Tallinna. Ta on linnas neljapäevast pühapäevani. Ta küsib: „Mida me teeme?” Tee plaan ja saada see talle.'),
+      B.notice('081_t_events', 'Tallinn järgmisel nädalal', ['Neljapäeval kell 19 — džässikontsert vanalinnas, 15 €', 'Reedel kell 10–18 — kunstimuuseum Kumu, õpilastele soodustus', 'Laupäeval kell 9–14 — talupäev Balti jaama turul', 'Laupäeval kell 20 — uus Eesti film kinos Sõprus', 'Pühapäeval — laevasõit Naissaarele, laev kell 11'], 'full', 'g_read'),
+      B.listening('081_t_listen', 'Kuula Igori häälsõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Siin Igor.', 'Ma saabun neljapäeval kell kolm bussiga.', 'Reedel pean ma hommikul töötama, aga pärastlõunal olen vaba.', 'Ma tahan väga minna muuseumi ja merele.', 'Kontserte ma ei armasta.', 'Pühapäeval kell viis sõidan tagasi. Kirjuta mulle plaan!',
+      ], ['Igor saabub [neljapäeval].', 'Ta tuleb [bussiga].', 'Reedel hommikul peab ta [töötama].', 'Igor tahab minna muuseumi ja [merele].', 'Igorile ei meeldi [kontserdid].', 'Tagasi sõidab ta pühapäeval kell [viis|5|17].']),
+      B.manymatch('081_t_match', 'Mis Igorile sobib?', 'Ühenda aeg ja sobiv plaan.', ['Neljapäeva õhtu', 'Reede pärastlõuna', 'Laupäeva hommik', 'Laupäeva õhtu', 'Pühapäeva hommik'], ['Igor puhkab, kontserdile ei lähe.', 'Kunstimuuseum Kumu.', 'Talupäev turul.', 'Film kinos.', 'Laev Naissaarele kell 11.'], 'full', 'g_read'),
+      B.table('081_t_plan', 'Igori plaan.', 'Täida plaan: mida te teete ja mis kell.', 'Päev, Mida teeme?, Mis kell?', ['neljapäev | | ', 'reede | | ', 'laupäev | | ', 'pühapäev | | ']),
+      B.errorfix('081_t_fix', 'Kontrolli plaani.', 'Plaanis on vead. Kirjuta lause õigesti.', [
+        ['Neljapäeval ma tulin sulle bussijaama vastu.', 'Neljapäeval tulen ma sulle bussijaama vastu.|Neljapäeval tulen sulle bussijaama vastu.'], ['Reedel me lähme muuseumi.', 'Reedel läheme me muuseumi.|Reedel me läheme muuseumi.'],
+        ['Laupäeva hommikul me käisime turul.', 'Laupäeva hommikul käime me turul.|Laupäeva hommikul me käime turul.'], ['Pühapäeval laev väljub kell üksteist.', 'Pühapäeval väljub laev kell üksteist.'], ['Ma kavatsen sulle vanalinna näitama.', 'Ma kavatsen sulle vanalinna näidata.'],
+      ]),
+      B.wordorder('081_t_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Neljapäeval tulen ma sulle bussijaama vastu.', 'Reede pärastlõunal läheme Kumusse.', 'Laupäeva hommikul käime turul.', 'Pühapäeval sõidame laevaga Naissaarele.', 'Kell viis sõidad sa tagasi.']),
+      B.translation('081_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['В пятницу мы пойдём в музей.', 'В субботу утром мы пойдём на рынок.', 'В воскресенье мы поплывём на остров.', 'Скоро увидимся!', 'Что ты хочешь делать в воскресенье?']),
+      B.dictation('081_t_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Neljapäeval tulen sulle vastu.', 'Reedel läheme muuseumi.', 'Laupäeval käime turul.', 'Pühapäeval sõidame laevaga.', 'Varsti näeme!']),
+      B.planning('081_t_planning', 'Enne kirja.', 'Mõtle läbi ja kirjuta märksõnad.', ['Millal ja kus sa Igorit ootad?', 'Mida te reedel teete?', 'Mida te laupäeval teete?', 'Mida te pühapäeval teete?']),
+      B.letter('081_t_letter', 'Plaan Igorile.', 'Kirjuta Igorile 40–60 sõna: mida te igal päeval teete.', 'Tere, Igor!', 'Varsti näeme!', [40, 60]),
+      B.speaking('081_t_say', 'Räägi plaanist.', 'Räägi paarilisele, mida sa Igoriga järgmisel nädalal teed.', ['Millal Igor tuleb?', 'Mida te reedel teete?', 'Mida te nädalavahetusel teete?', 'Millal ta tagasi sõidab?'], [60, 120]),
+      B.rolecards('081_t_roles', 'Igor helistab.', 'A on Igor, B on võõrustaja. Siis vahetage.',
+        'Oled Igor. Küsi plaani kohta: mis kell, kus, kui palju maksab. Ütle, mis sulle ei sobi.', 'Selgita plaani. Kui midagi ei sobi, paku muud.',
+        ['Mida me reedel teeme?', 'Mis kell…?', 'Kahjuks mulle ei meeldi…'], ['Reedel läheme…', 'Kell … algab…', 'Siis võime hoopis…']),
+      B.rubric('081_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Plaanis on päev, kellaaeg ja tegevus.', 'Tulevik on olevikuga ja ajasõnaga (homme lähen, reedel läheme).', 'Ajasõna järel on tegusõna teisel kohal.', 'Plaan arvestab Igori soove.']),
+      B.selfcheck('081_t_self', ['Ma leian kavast aja ja koha.', 'Ma saan aru sõbra soovidest.', 'Ma kirjutan sõbrale nädala plaani.', 'Ma selgitan plaani telefonis.'], 'Plaan on saadetud'),
+    ],
+  },
+
   'a2-082': {
     title: 'Saame kokku',
     canDo: 'Ma lepin sõbra või kolleegiga kokku kohtumise, pakun uue aja, kui aeg ei sobi, ja kinnitan lõpuks täpse päeva, kellaaja ja koha.',
@@ -445,6 +542,132 @@ export const LESSONS = {
       B.speaking('084_t_say', 'Häälsõnum.', 'Jäta Viktorile 1-minutiline häälsõnum: kinnita aeg ja koht.', ['Kes räägib?', 'Mis kell ja kuhu tuled?', 'Mida palud?'], [45, 75]),
       B.rubric('084_t_rubric', 'Kas sõnumis on kõik?', 'Kontrolli oma vastust Viktorile.', ['Kas tuled ja kellega.', 'Mis kellast mis kellani.', 'Kuhu tuled: vana või uus korter.', 'Üks küsimus või palve.', '40–60 sõna, tervitus ja lõpp.']),
       B.selfcheck('084_t_self', ['Ma leian sõnumist kogu vajaliku info.', 'Ma kinnitan kokkuleppe kirjalikult.', 'Ma kirjutan, kui plaan muutub.', 'Ma kinnitan kokkuleppe telefonis.'], 'Viktor teab kõike'),
+    ],
+  },
+
+  'a2-085': {
+    title: 'Kontroll 17 — plaanid',
+    canDo: 'Ma näitan kontrollis, et räägin oma plaanidest, lepin kokku täpse aja ja koha, kasutan lihtsat kui–siis-lauset ja kirjutan kohtumise muutmise sõnumi (vähemalt 70%).',
+    discover: [
+      B.text('085_d_situation', 'Kordamine: kohviku sünnipäev', 'Jaani kohvik saab järgmisel kuul viis aastat vanaks. Jaan plaanib peo. Ta peab leidma aja, mis sobib kõigile, ja saatma kutse. Kui ilm on ilus, on pidu õues.'),
+      B.truefalse('085_d_tf', 'Mis on õige?', 'Loe olukorda. Õige või vale?', [
+        ['Jaani kohvik on viis aastat vana.', false], ['Jaan plaanib peo.', true], ['Jaan otsib aega, mis sobib kõigile.', true], ['Pidu on igal juhul sees.', false], ['Jaan peab saatma kutse.', true],
+      ]),
+      B.reading('085_d_read', 'Loe: Jaani plaan.', 'Loe teksti ja vasta küsimustele.', 'Pidu kohvikus „Muki”',
+        'Jaani kohvik „Muki” saab 14. mail viis aastat vanaks. Jaan tahab teha suure peo. Kõigepealt küsis ta sõpradelt, mis päev sobib. Anna ütles, et reede õhtu sobib talle hästi. Markus vastas, et reedel töötab ta kella kaheksani. Talle sobib laupäev. Sofial on reedel eksam, seega eelistab ka tema laupäeva. Jaan otsustas: pidu on laupäeval, 17. mail kell kuus. Kui ilm on ilus, on pidu kohviku terrassil. Kui sajab vihma, jäävad kõik sisse. Viktor lubas tuua oma kitarri. Liis kavatseb küpsetada tordi. Jaan loodab, et tuleb vähemalt kolmkümmend külalist. Kutsed peab ta saatma nädal enne pidu. Tähtaeg on 10. mai. Jaani unistus on avada järgmisel aastal teine kohvik Tartus.',
+        [['Mitu aastat saab kohvik vanaks?', 'viis|5'], ['Miks Markusele reede ei sobi?', 'ta töötab kella kaheksani|ta töötab'], ['Millal on pidu?', 'laupäeval, 17. mail kell kuus|laupäeval|17. mail'], ['Kus on pidu, kui sajab vihma?', 'sees|kohviku sees|kohvikus'], ['Mida lubas Viktor tuua?', 'kitarri|oma kitarri'], ['Mis on Jaani unistus?', 'avada teine kohvik Tartus|teine kohvik Tartus'], ['Mida Liis teeb?', 'küpsetab tordi|tordi']]),
+      B.notice('085_d_notice', 'Mooduli kokkuvõte', [
+        'Tulevik: **Homme lähen…, Järgmisel nädalal sõidame…**', 'Kokkulepe: **Kas … sobib? — Kahjuks ei saa. — Aga kuidas oleks…? — Sobib! Näeme!**', 'Tingimus: **Kui** ilm **on** ilus, **siis** on pidu õues.', 'Sõnum: **Kinnitan: laupäeval, 17. mail kell 18, kohvik „Muki”.**', 'Muutus: **Kahjuks … ei sobi. Kas saaksime … edasi lükata?**',
+      ], 'full'),
+      B.match('085_d_match', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus.', [
+        ['Kas laupäev sobib?', 'Jah, laupäev sobib hästi.'], ['Mis kell me kohtume?', 'Kell kuus.'], ['Kus me kokku saame?', 'Kohviku ees.'],
+        ['Mida sa homme teed?', 'Homme töötan kodus.'], ['Mis siis, kui sajab vihma?', 'Siis jääme sisse.'], ['Kas sa saad tulla?', 'Kahjuks ei saa, mul on eksam.'],
+      ], 'full', 'g_use'),
+      B.gaps('085_d_gaps', 'Mooduli vormid.', 'Kirjuta lünka sobiv sõna. Kuus sõna jääb üle.', [
+        '[Homme] lähen ma Tartusse.', '[Kui] sajab vihma, jääme koju.', 'Kas reede [sobib] sulle?', 'Kahjuks ma ei [saa] tulla.', 'Me [kohtume] homme kohviku ees.', 'Ma [kinnitan] homme, kas saan tulla.',
+      ], ['homme', 'eile', 'kui', 'siis', 'sobib', 'sobis', 'saa', 'saan', 'kohtume', 'kohtusime', 'kinnitan', 'kinnitasin']),
+      B.transformation('085_d_trans', 'Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+        ['Eile läksin kinno.', 'homme', 'Homme lähen ma kinno.|Homme lähen kinno.'], ['Ilm on ilus. Me läheme randa.', 'kui … siis', 'Kui ilm on ilus, siis läheme randa.|Kui ilm on ilus, siis me läheme randa.'],
+        ['Reede ei sobi.', 'Kuidas oleks …? (laupäev)', 'Kuidas oleks laupäeval?'], ['Me kohtume kell kuus kohvikus.', 'Kinnitan: …', 'Kinnitan: me kohtume kell kuus kohvikus.|Kinnitan: kohtume kell kuus kohvikus.'], ['Ma tulen.', 'Kahjuks …', 'Kahjuks ma ei tule.|Kahjuks ma ei saa tulla.'],
+      ]),
+      B.errorfix('085_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Homme ma läksin Tartusse.', 'Homme lähen ma Tartusse.|Homme ma lähen Tartusse.'], ['Kui sajab vihma, siis me jääme kodus.', 'Kui sajab vihma, siis me jääme koju.|Kui sajab vihma, siis jääme koju.'], ['Kas laupäeval sobib sulle?', 'Kas laupäev sobib sulle?'],
+        ['Kahjuks ma ei saan tulla.', 'Kahjuks ma ei saa tulla.'], ['Me kohtume kohvik ees.', 'Me kohtume kohviku ees.'], ['Ma kavatsen peole tulema.', 'Ma kavatsen peole tulla.'],
+      ]),
+      B.dialogue('085_d_dialog', 'Kutse peole.', 'Täida Jaani ja Anna vestlus.', 'Jaan', 'Anna', [
+        ['A', 'Tere, Anna! Kas sa tuled laupäeval [peole]?'], ['B', 'Hea meelega! Mis [kell] pidu algab?'], ['A', 'Kell kuus. [Kui] ilm on ilus, on pidu terrassil.'], ['B', 'Tore! Kas ma pean midagi [kaasa] võtma?'],
+        ['A', 'Ei pea. Liis [küpsetab] tordi.'], ['B', 'Kahjuks ma [jään] natuke hiljaks. Kas see sobib?'], ['A', 'Muidugi [sobib]! Näeme laupäeval!'],
+      ]),
+      B.wordorder('085_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Pidu on laupäeval kell kuus.', 'Kui ilm on ilus, on pidu õues.', 'Viktor lubas tuua kitarri.', 'Kutsed peab saatma nädal enne pidu.', 'Järgmisel aastal avab Jaan teise kohviku.']),
+      B.translation('085_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Завтра я еду в Тарту.', 'Если будет дождь, мы останемся дома.', 'Суббота тебе подходит?', 'Подтверждаю: в шесть у кафе.', 'К сожалению, я опоздаю.', 'Встречаемся у кафе в шесть.']),
+      B.dictation('085_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Pidu on laupäeval kell kuus.', 'Kui sajab vihma, jääme sisse.', 'Kas laupäev sobib sulle?', 'Kahjuks ma jään hiljaks.', 'Näeme laupäeval!']),
+      B.speaking('085_d_say', 'Kordame suuliselt.', 'Vasta paarilise küsimustele.', ['Mida sa järgmisel nädalal teed?', 'Kuidas sa kohtumise aega muudad?', 'Mida sa teed, kui sajab vihma?', 'Mis on sinu unistus?'], [60, 120]),
+      B.writing('085_d_write', 'Kinnitus.', 'Kirjuta Jaanile 4–6 lauset: kinnita, et tuled, ja küsi üks küsimus.', [4, 6], ['kinnitan', 'laupäeval', 'kell'], 2),
+      B.selfcheck('085_d_self', ['Ma räägin plaanidest olevikuga ja ajasõnaga.', 'Ma lepin kokku päeva, kellaaja ja koha.', 'Ma kasutan kui … siis.', 'Ma kinnitan või muudan kokkulepet.'], 'Valmis kontrolliks'),
+    ],
+    practice: [
+      B.tip('085_p_how', 'Lugemine ja kuulamine (eksami vormis)', 'See osa on nagu Harno A2 eksam: viis lugemisülesannet ja kaks kuulamisülesannet. Teema on moodul 17. Tee kõik ilma abita. Kuulamistekstid loeb õpetaja kaks korda. Aeg ja koht peavad olema täpsed.', 'full'),
+      // reading 1: what to say
+      B.choice('085_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
+        ['Sõber kutsub kinno, aga sul on trenn.', 'Kahjuks ei saa, mul on trenn.', 'Jah, ma tulin eile kinno.', 'Palju õnne, see on tore!'], ['Sa tahad teada kohtumise kohta.', 'Kus me kokku saame?', 'Kus sa eile olid?', 'Kus sa sündisid?'],
+        ['Sa jääd kümme minutit hiljaks.', 'Vabandust, ma jään natuke hiljaks.', 'Vabandust, ma tulin varem.', 'Vabandust, ma ei mäleta.'], ['Pakutud aeg sobib sulle.', 'Sobib, näeme siis!', 'Ei, see ei sobinud.', 'Head reisi sulle!'],
+        ['Sa tahad kohtumise teisele päevale viia.', 'Kas saaksime kohtumise reedele lükata?', 'Kas sa said eile kohtumisele?', 'Kas kohtumine oli tore?'],
+      ], 'full', 'g_use'),
+      // reading 2: a day programme
+      B.reading('085_p_programme', 'Lugemine 2. Päevakava.', 'Loe päevakava ja vasta küsimustele.', 'Ekskursioon Lahemaale — päevakava', [
+        'Kell 8.00 — buss väljub Viru hotelli eest.', 'Kell 9.30 — Palmse mõis, ringkäik giidiga (1 tund).', 'Kell 11.00 — matk Viru rabas (3 km, võta kaasa kummikud!).', 'Kell 13.00 — lõuna Altja kõrtsis.',
+        'Kell 15.00 — vaba aeg Käsmu külas, võimalik ujuda.', 'Kell 17.30 — buss sõidab tagasi, Tallinnas oleme umbes kell 19.',
+        'NB! Kui sajab tugevat vihma, siis rabamatka ei toimu. Siis külastame Sagadi metsamuuseumi. Registreerimise tähtaeg on reede. Hind on 45 eurot, lõuna on hinna sees. Kohtade arv on piiratud: bussis on 40 kohta. Küsimuste korral helistage giidile.',
+      ], [['Kust buss väljub?', 'Viru hotelli eest'], ['Kui kaua kestab ringkäik mõisas?', 'üks tund|1 tund|tund'], ['Mida tuleb matkale kaasa võtta?', 'kummikud'], ['Kus süüakse lõunat?', 'Altja kõrtsis'], ['Mis juhtub, kui sajab tugevat vihma?', 'rabamatka ei toimu|külastame Sagadi metsamuuseumi|minnakse metsamuuseumi'], ['Mis on registreerimise tähtaeg?', 'reede|reedel']]),
+      // reading 3: where to turn
+      B.match('085_p_signs', 'Lugemine 3. Kuhu pöörduda?', 'Ühenda soov ja kuulutus.', [
+        ['Tahad muuta arsti aega.', 'Perearstikeskus: aja muutmine telefonil'], ['Tahad broneerida laua reedeks.', 'Restoran „Laud”: broneerimine internetis'], ['Tahad teada, millal kontsert algab.', 'Kontserdimaja: kava ja piletid'],
+        ['Tahad osta piletit homseks rongiks.', 'Raudtee: piletid ja sõiduplaan'], ['Tahad registreeruda keelekursusele.', 'Keelekool: registreerimine kuni 1. septembrini'], ['Tahad lapsele sünnipäevapeo teha.', 'Mängutuba: peod lastele, broneeri ette'],
+      ], 'full', 'g_read'),
+      // reading 4: a ~150-word text
+      B.reading('085_p_read', 'Lugemine 4. Sofia plaanid.', 'Loe teksti. Vasta lühidalt.', 'Unistuste plaan',
+        'Sofia on üheksateist aastat vana ja õpib Tartu ülikoolis. Tal on palju plaane. Järgmisel kuul on tal kaks eksamit. Kui eksamid lähevad hästi, sõidab ta suvel Itaaliasse. Seal kavatseb ta töötada ühes väikeses hotellis. Ta tahab õppida itaalia keelt. Sügisel tuleb ta tagasi Tartusse. Siis hakkab ta käima laulukooris. Sofia unistus on saada arstiks. Selleks peab ta õppima veel kuus aastat. See on pikk aeg, aga Sofia ei karda. Loodetavasti on ta kümne aasta pärast lastearst. Tema ema arvab, et see on hea plaan. Vanaema on natuke mures, sest Itaalia on kaugel. Sofia lubas, et helistab talle igal pühapäeval. Järgmisel nädalal räägib ta oma plaanist ka ülikooli nõustajaga.',
+        [['Mitu eksamit on Sofial järgmisel kuul?', 'kaks|2'], ['Kus kavatseb Sofia suvel töötada?', 'Itaalias|väikeses hotellis|hotellis'], ['Mitu aastat peab ta veel õppima?', 'kuus|6|kuus aastat'], ['Mida Sofia sügisel hakkab tegema?', 'käima laulukooris|laulukooris käima']]),
+      B.choice('085_p_readmc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti uuesti. Vali igale küsimusele üks vastus.', [
+        ['Millal sõidab Sofia Itaaliasse?', 'kui eksamid lähevad hästi', 'järgmisel nädalal', 'kümne aasta pärast'], ['Mida Sofia sügisel teeb?', 'hakkab käima laulukooris', 'sõidab Itaaliasse', 'töötab hotellis'],
+        ['Kelleks tahab Sofia saada?', 'lastearstiks', 'õpetajaks', 'lauljaks'], ['Miks on vanaema mures?', 'Itaalia on kaugel', 'eksamid on rasked', 'Sofia ei helista'],
+        ['Mida Sofia lubas?', 'helistada igal pühapäeval', 'jääda Tartusse', 'õppida laulma'],
+      ]),
+      // reading 5: a message with 8 option gaps
+      B.cloze('085_p_cloze', 'Lugemine 5. Sõnum.', 'Vali igasse lünka sobiv sõna.', 'Tere, Markus!', [
+        'Kahjuks ma ei {*saa|saanud|saama} homme kell viis tulla, sest mul {*on|oli|olema} arsti juures aeg.',
+        '',
+        'Kas saaksime kohtumise {*neljapäevale|neljapäeval|neljapäevast} lükata? {*Kui|Siis|Sest} neljapäev sobib, siis kohtume kell kuus kohviku „Muki” ees.',
+        '',
+        '{*Loodetavasti|Eile|Kahjuks} sobib see sulle. Ma {*võtan|võtsin|võtma} kaasa sinu raamatu. Palun anna {*teada|teadma|tean}, kas sa {*saad|said|saama} tulla! Anna',
+      ]),
+      // listening 1: a voice message about a changed meeting
+      B.listening('085_p_listen', 'Kuulamine 1. Häälsõnum.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere, Markus! Siin Liis.', 'Meie kohtumine homme kell kaks ei sobi mulle.', 'Mul on just sel ajal koosolek.', 'Kas me saaksime kokku saada ülehomme, reedel?',
+        'Reedel olen vaba alates kella neljast.', 'Kohtumispaik võiks olla raamatukogu ees.', 'Kui sobib, saada mulle sõnum. Aitäh!',
+      ], ['Kohtumine pidi olema homme kell [kaks|2|14].', 'Liisil on sel ajal [koosolek].', 'Uus päev on [reede|reedel].', 'Reedel on Liis vaba alates kella [neljast|4st|16st].', 'Kohtumispaik on [raamatukogu] ees.', 'Kui aeg sobib, tuleb saata [sõnum].']),
+      // listening 2: two friends arrange a film
+      B.listening('085_p_listen2', 'Kuulamine 2. Kinno!', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
+        '— Tere, Sofia! Kas lähme laupäeval kinno?', '— Tere, Anna! Laupäeval ma kahjuks ei saa. Ma sõidan Tartusse.', '— Aga pühapäeval?', '— Pühapäeval sobib. Mis kell?',
+        '— Seanss algab kell seitse. Kas kohtume pool seitse kino ees?', '— Pool seitse on natuke vara. Ma tulen rongiga.', '— Hästi, siis kohtume kümme minutit enne seitset.',
+        '— Sobib! Kas sa ostad piletid?', '— Jah, ostan homme internetist.', '— Super, aitäh! Näeme pühapäeval!',
+      ], ['Laupäeval sõidab Sofia [Tartusse].', 'Nad lähevad kinno [pühapäeval].', 'Seanss algab kell [seitse|7|19].', 'Sofia tuleb [rongiga].', 'Nad kohtuvad kino [ees].', 'Piletid ostab [Anna].']),
+      B.gaps('085_p_mix', 'Keeleosa. Kirjuta õige vorm.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Homme [lähen] (minema) ma Tartusse.', 'Järgmisel nädalal [algab] (algama) kursus.', 'Kui ilm [on] (olema) ilus, läheme randa.', 'Kas reede [sobib] (sobima) sulle?', 'Ma [kavatsen] (kavatsema) kinno minna.', 'Ma tahan sind homme [näha] (nägema).',
+      ]),
+      B.errorfix('085_p_fix', 'Keeleosa. Paranda viga.', 'Kirjuta laused õigesti.', [
+        ['Homme ma tulin hiljem.', 'Homme tulen ma hiljem.|Homme ma tulen hiljem.'], ['Kas neljapäeval sobib sulle?', 'Kas neljapäev sobib sulle?'], ['Kui sajab vihma, siis me jääme kodus.', 'Kui sajab vihma, siis me jääme koju.|Kui sajab vihma, siis jääme koju.'],
+        ['Ma kavatsen Soome sõitma.', 'Ma kavatsen Soome sõita.'], ['Kohtume kino ees kell seitse pool.', 'Kohtume kino ees kell pool seitse.|Kohtume kino ees pool seitse.'],
+      ]),
+      B.transformation('085_p_trans', 'Keeleosa. Ütle teisiti.', 'Kirjuta lause antud sõnaga.', [
+        ['Eile läksin Tartusse.', 'homme', 'Homme lähen Tartusse.|Homme lähen ma Tartusse.'], ['Ilm on ilus. Me sõidame randa.', 'kui … siis', 'Kui ilm on ilus, siis sõidame randa.|Kui ilm on ilus, siis me sõidame randa.'],
+        ['Homme ei sobi.', 'Kuidas oleks …? (reede)', 'Kuidas oleks reedel?'], ['Ma lähen kinno.', 'kavatsen', 'Ma kavatsen kinno minna.'], ['Kohtume kell kuus.', 'küsimus: Mis kell…?', 'Mis kell me kohtume?'],
+      ]),
+      B.wordorder('085_p_order', 'Keeleosa. Pane lause kokku.', 'Kirjuta laused õigesti.', ['Laupäeval ma kahjuks ei saa.', 'Kohtume pühapäeval kino ees.', 'Reedel olen vaba alates kella neljast.', 'Kui sobib, saada mulle sõnum.', 'Kui eksamid lähevad hästi, sõidab ta Itaaliasse.', 'Piletid ostab Anna homme internetist.']),
+      B.speaking('085_p_say', 'Räägi kuuldust.', 'Räägi paarilisele Liisi sõnumist.', ['Miks Liis kohtumist muudab?', 'Mis on uus päev ja kellaaeg?', 'Kus nad kohtuvad?', 'Mida peab Markus tegema?'], [45, 90], ['Liisil on…', 'Uus aeg on…', 'Nad kohtuvad…']),
+      B.selfcheck('085_p_self', ['Lugemine: leian päevakavast aja, koha ja muudatuse.', 'Lugemine: valin sõnumi lünka õige vormi.', 'Kuulamine: kirjutan uue aja ja koha täpselt.', 'Kuulamine: saan aru kokkuleppest.'], 'Lugemine ja kuulamine tehtud'),
+    ],
+    transfer: [
+      B.text('085_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See osa on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil. Aeg ja koht peavad olema täpsed.'),
+      B.notice('085_t_card', 'Kuulutus', ['Kohvik „Muki” — 5. sünnipäev!', 'Laupäeval, 17. mail kell 18', 'Aadress: Kalamaja 7, Tallinn', 'Kui on ilus ilm, on pidu terrassil', 'Muusika: Viktor ja kitarr. Tasuta kook!'], 'full', 'g_read'),
+      // writing 1: information transfer, at least 25 words
+      B.letter('085_t_info', 'Kirjutamine 1. Kutsu sõber.', 'Kutsu sõber kuulutuse järgi peole: millal, kus, mis seal toimub.', 'Tere, Kati!', 'Loodan, et tuled!', [25, 40]),
+      B.planning('085_t_plan', 'Enne sõnumit.', 'Mõtle läbi ja kirjuta märksõnad.', ['Mis kohtumine see oli?', 'Miks aeg ei sobi?', 'Mis on uus päev, kell ja koht?', 'Mida sa palud?']),
+      // writing 2: a message about moving a meeting, at least 30 words
+      B.letter('085_t_letter', 'Kirjutamine 2. Kohtumise muutmine.', 'Sa ei saa homme kohtuda. Kirjuta: miks, uus aeg ja koht, palve vastata.', 'Tere, Markus!', 'Vabandust ja tervitades', [30, 50]),
+      B.writing('085_t_text', 'Kirjutamine 2 (teine valik). Minu plaanid.', 'Kirjuta 4–6 lauset: mida sa järgmisel aastal teha kavatsed.', [4, 6], ['järgmisel aastal', 'kavatsen', 'kui'], 2),
+      B.table('085_t_form', 'Minu nädala kalender.', 'Kirjuta oma järgmise nädala plaan.', 'Päev, Mida teen?, Mis kell ja kus?', ['esmaspäev | | ', 'teisipäev | | ', 'kolmapäev | | ', 'neljapäev | | ', 'reede | | ', 'nädalavahetus | | ']),
+      // speaking: getting to know, picture description (task 1), idea card and role play (task 2)
+      B.speaking('085_t_intro', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Mis su nimi on?', 'Mida sa homme teed?', 'Mida sa nädalavahetusel plaanid?', 'Mis on sinu unistus?'], [45, 60]),
+      B.speaking('085_t_mono', 'Rääkimine 1. Kirjelda pilti.', 'Õpetaja annab pildi: inimesed kohtuvad, ootavad või vaatavad kalendrit. Kirjelda üks minut.', ['Kus inimesed on?', 'Mida nad teevad?', 'Mida nad plaanivad?', 'Mis võib edasi juhtuda?'], [60, 90], ['Pildil on…', 'Nad ootavad…', 'Võib-olla…']),
+      B.rolecards('085_t_s1', 'Rääkimine 2. Ideekaart „Plaanid”.', 'A küsib kaardi märksõnade järgi, B vastab. Siis vahetage.',
+        'Küsi paarilisel viis küsimust: homme, nädalavahetus, puhkus, järgmine aasta, unistus.', 'Vasta igale küsimusele 2–3 lausega. Kasuta ajasõnu.',
+        ['Mida sa homme teed?', 'Kuhu sa puhkusel sõidad?', 'Mis on sinu unistus?'], ['Homme…', 'Kui ilm on ilus, siis…', 'Ma kavatsen…']),
+      B.rolecards('085_t_s2', 'Rääkimine 2. Rollimäng „Saame kokku”.', 'Leppige kokku kohtumine. Lõpus korrake päev, kell ja koht.',
+        'Paku kohtumist reedel kell viis. Kui see ei sobi, otsi uus aeg ja vali koht.', 'Reedel sa ei saa. Ütle põhjus ja paku teist aega. Lõpus kinnita kõik.',
+        ['Kas reedel kell viis sobib?', 'Aga kuidas oleks…?', 'Kus me kohtume?'], ['Kahjuks reedel ei saa, sest…', 'Kuidas oleks…?', 'Kinnitan: …']),
+      B.rubric('085_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Ülesanne on täidetud: kõik küsitud info on olemas.', 'Kokkulepe on täpne: päev, kellaaeg ja koht.', 'Tulevik ajasõnaga ja kui–siis-lause on õiged.', 'Kirjutamine 1: vähemalt 25 sõna; kirjutamine 2: 30–50 sõna.', 'Rääkimine: küsisin ja vastasin lõpuni.']),
+      B.selfcheck('085_t_self', ['Ma kirjutan kuulutuse järgi kutse.', 'Ma kirjutan kohtumise muutmise sõnumi.', 'Ma räägin oma plaanidest ja unistusest.', 'Ma lepin kokku täpse aja ja koha.'], 'Moodul 17 on tehtud'),
     ],
   },
 };

@@ -1,9 +1,11 @@
-// A2 course (A1 → A2 roadmap), module 15 „Suhted, külaskäik ja viisakus”, stage A2. New lessons a2-071, a2-073,
-// a2-074 and the module check a2-075 (the other lessons of the module are already published). All three phases.
+// A2 course (A1 → A2 roadmap), module 15 „Suhted, külaskäik ja viisakus”, stage A2. All five lessons a2-071…a2-075
+// (072 the polite request: palun + käsk, Kas sa saad…?, Kas te saaksite…?, Tahaksin…, Kas ma tohin…?). All three phases.
 // A visit (Tule sisse! Võta istet! Kas soovid teed? — käskiv kõneviis, osastav pakkumises), agreeing and refusing
 // with a reason and an alternative (kahjuks ei saa, sest…; Aga kuidas oleks…?), a short personal message (pöördumine,
 // eesmärk, info, lõpp; Aitäh … eest!; sina / teie). 075 is the check in the Harno A2 exam format: Harjuta = reading
 // and listening, Kasuta = writing and speaking. Module 14 („Kas te saaksite…?”, ajamarkerid) comes back.
+// Cast by docs/TEXTBOOK_ART_BIBLE.md §4 in the lessons added 2026-10-13 (Anna office, Markus warehouse, Liis teacher /
+// official, Viktor pensioner, Sofia student, Jaan café owner; Oksana + Mia 6, Olga accountant, Kati, Igor as extras).
 import { B } from '../blocks.js';
 
 export const MODULE = { id: 'a2-module-15', course: 'a2', title: 'Suhted, külaskäik ja viisakus', level: 'A2' };
@@ -119,6 +121,120 @@ export const LESSONS = {
       B.speaking('071_t_mono', 'Külaskäik minu maal.', 'Räägi 1–2 minutit: kuidas sinu kodumaal külla minnakse?', ['Kas külla minnakse kutsega või ilma?', 'Mida külaline kaasa toob?', 'Mida pakutakse?', 'Mis on Eestis teisiti?'], [60, 120]),
       B.writing('071_t_write', 'Tänukiri.', 'Kirjuta pärast külaskäiku Jaani vanematele 5–7 lauset.', [5, 7], ['aitäh', 'maitsev', 'tore', 'külla'], 3),
       B.selfcheck('071_t_self', ['Ma oskan kasutada külaskäigu väljendeid võõraste inimestega.', 'Ma oskan leida kutsest aja, koha ja selle, mida kaasa võtta.', 'Ma oskan pakkuda ja keelduda teie-vormis: Kas soovite…? Aitäh, ei soovi.', 'Ma oskan 2–3 minutit külas viisakalt vestelda ja lahkuda.'], 'Hea külaline'),
+    ],
+  },
+
+  'a2-072': {
+    title: 'Palve ja viisakas soov',
+    canDo: 'Ma palun viisakalt abi kodus, tööl ja teeninduses (palun + käsk, Kas sa saad…?, Kas te saaksite…?, Tahaksin…, Kas ma tohin…?) ja muudan vähemalt 8 otsest lauset 10-st sobivaks palveks.',
+    discover: [
+      B.text('072_d_situation', 'Palun aita!', 'Laupäeval kolib Sofia uude korterisse. Tal on palju kaste ja vähe aega. Ta peab paluma abi sõbralt, naabrilt ja kolimisfirmalt. Igale inimesele räägib ta natuke erinevalt.'),
+      B.vocab('072_d_vocab', 'Palve', ['palve — просьба', 'paluma — просить', 'palun — пожалуйста', 'abi — помощь', 'aitama — помогать', 'laenama — одалживать', 'ulatama — передавать', 'avama — открывать', 'sulgema — закрывать', 'tohtima (tohin) — сметь, можно', 'viisakas — вежливый', 'Tahaksin… — Я бы хотел(а)…'], '2'),
+      B.reading('072_d_read', 'Loe: Sofia kolimispäev.', 'Loe teksti ja vasta küsimustele.', 'Kolimispäev', [
+        'Laupäeva hommikul helistas Sofia kolimisfirmasse.', '„Tere! Tahaksin tellida auto kella kümneks. Kas te saaksite saata ka kaks meest?”', 'Töötaja vastas: „Muidugi, aga see maksab natuke rohkem.”',
+        'Siis kirjutas Sofia sõbrale Jaanile: „Kas sa saad mulle oma auto laenata?”', 'Jaan vastas: „Autot ei saa, aga ma tulen ise appi.”',
+        'Kell kümme tulid mehed. Sofia ütles: „Palun viige need kastid autosse. Olge ettevaatlikud, seal on klaasid.”', 'Trepikojas kohtas ta naabrit Viktorit: „Vabandust, kas te saaksite ukse lahti hoida?”', 'Viktor naeratas: „Hea meelega.”',
+        'Uues korteris oli väga palav. Sofia palus Jaanil: „Ava palun aken!”', 'Õhtul olid kõik väsinud. Sofia küsis: „Kas ma tohin teile pitsa tellida?”', 'Kõik olid nõus. Sofia tänas kõiki abi eest.',
+      ], [['Mida Sofia kolimisfirmast tellis?', 'auto ja kaks meest|auto'], ['Mida Sofia Jaanilt palus?', 'auto laenata|tema autot|autot'], ['Kuidas Jaan aitas?', 'ta tuli ise appi|tuli appi'], ['Miks pidid mehed ettevaatlikud olema?', 'kastides olid klaasid|seal on klaasid'], ['Mida palus Sofia naabril?', 'ukse lahti hoida|hoida ust lahti'], ['Mida Sofia õhtul pakkus?', 'pitsat|pitsa'], ['Miks palus Sofia akna avada?', 'oli palav|korteris oli palav']]),
+      B.notice('072_d_notice', 'Märka: kuidas paluda?', ['Sõbrale: **Ava palun aken!** **Kas sa saad** mind **aidata**?', 'Võõrale: **Avage palun aken!** **Kas te saaksite** mind **aidata**?', 'Teeninduses: **Tahaksin** tellida auto. **Sooviksin** kohvi.', 'Luba: **Kas ma tohin / võin** siin istuda?', 'Vastus: **Hea meelega! Muidugi!** — **Kahjuks ei saa, sest…**'], 'full'),
+      B.choice('072_d_choice', 'Mis sobib?', 'Loe olukorda. Vali sobiv palve.', [
+        ['Bussis räägid võõra inimesega.', 'Kas te saaksite akna sulgeda?', 'Kas sa saad akna sulgeda?', 'Sa pead akna kohe sulgema.'],
+        ['Kohvikus räägid teenindajaga.', 'Tahaksin ühe kohvi, palun.', 'Too mulle kohe kohvi.', 'Ma pean kohvi saama.'],
+        ['Kirjutad uuele ülemusele.', 'Kas te saaksite mulle helistada?', 'Helista mulle kohe tagasi!', 'Kas sa helistad mulle?'],
+        ['Tahad naabri telefoni kasutada.', 'Kas ma tohin teie telefoni kasutada?', 'Anna mulle oma telefon!', 'Ma võtan su telefoni.'],
+        ['Sa ei kuulnud arsti küsimust.', 'Vabandust, kas te saaksite korrata?', 'Mis? Ütle uuesti!', 'Korda, ma ei kuulnud!'],
+        ['Palud sõbralt pliiatsit.', 'Kas sa saad mulle pliiatsi ulatada?', 'Ulatage pliiats, härra!', 'Pliiats siia!'],
+      ], 'full', 'g_use'),
+      B.manymatch('072_d_match', 'Palve ja vastus.', 'Ühenda palve ja vastus.', ['Kas sa saad mind aidata?', 'Kas ma tohin akna avada?', 'Kas te saaksite ukse lahti hoida?', 'Palun ulata mulle sool!', 'Kas sa saad mulle 20 eurot laenata?'], ['Muidugi! Mis sul vaja on?', 'Jah, palun, siin on palav.', 'Jah, muidugi. Kas teil on palju kaste?', 'Palun, siin see on.', 'Kahjuks ei saa, mul pole raha.'], 'full', 'g_use'),
+      B.transformation('072_d_trans', 'Ütle viisakamalt.', 'Muuda käsk viisakaks palveks.', [
+        ['Ava aken!', 'Kas sa saad …?', 'Kas sa saad akna avada?'], ['Aita mind!', 'Kas te saaksite …?', 'Kas te saaksite mind aidata?'], ['Sulge uks!', 'Palun …!', 'Palun sulge uks!|Sulge palun uks!'],
+        ['Ma võtan selle tooli.', 'Kas ma tohin …?', 'Kas ma tohin selle tooli võtta?'], ['Laena mulle raamatut!', 'Kas sa saad …?', 'Kas sa saad mulle raamatut laenata?|Kas sa saad mulle raamatu laenata?'], ['Ma tahan maksta.', 'Tahaksin …', 'Tahaksin maksta.'],
+      ]),
+      B.gaps('072_d_gaps', 'Täida palved.', 'Vali sõnapangast sobiv sõna. Kaks sõna jääb üle.', [
+        '[Palun] ulata mulle leib.', 'Kas te [saaksite] mind homme aidata?', 'Kas ma [tohin] siin suitsetada?', '[Tahaksin] tellida laua kahele.', '[Vabandust], kas see koht on vaba?', 'Kas sa saad mulle oma auto [laenata]?',
+      ], ['palun', 'saaksite', 'tohin', 'tahaksin', 'vabandust', 'laenata', 'saad', 'laenan']),
+      B.crossword('072_d_cross', 'Palve sõnad.', 'Kirjuta sõna vihje järgi.', [['просьба', 'palve'], ['помощь', 'abi'], ['„sulgema” vastand', 'avama'], ['Kas ma … siin istuda? (= võin)', 'tohin'], ['Annan sõbrale raamatu, ta toob selle tagasi.', 'laenama'], ['вежливый', 'viisakas']]),
+      B.translation('072_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Открой, пожалуйста, окно!', 'Вы не могли бы мне помочь?', 'Можно мне здесь сесть?', 'Я бы хотела заказать столик.', 'Ты можешь одолжить мне книгу?']),
+      B.dictation('072_d_dict', 'Etteütlus.', 'Kuula ja kirjuta palved.', ['Ava palun aken!', 'Kas sa saad mind aidata?', 'Kas te saaksite ukse lahti hoida?', 'Kas ma tohin siin istuda?', 'Tahaksin ühe kohvi.']),
+      B.speaking('072_d_say', 'Palu abi.', 'Palu paarilisel neli asja. Paariline vastab.', ['Palu sõbralt abi kolimisel.', 'Palu võõralt inimeselt ust lahti hoida.', 'Palu teenindajalt klaasi vett.', 'Küsi luba aken avada.'], [60, 90], ['Kas sa saad…?', 'Kas te saaksite…?', 'Kas ma tohin…?']),
+      B.rolecards('072_d_roles', 'Naabri juures.', 'A palub naabrilt abi, B vastab. Siis vahetage.',
+        'Sa kolid. Palu naabrilt kolm asja: hoida ust lahti, laenata tooli, aidata kasti tõsta.', 'Oled naaber. Ühele palvele vasta jah, ühele ei ja ütle põhjus.',
+        ['Vabandust, kas te saaksite…?', 'Kas ma tohin…?', 'Suur aitäh!'], ['Hea meelega!', 'Kahjuks ei saa, sest…', 'Pole tänu väärt.']),
+      B.writing('072_d_write', 'Kolm palvet.', 'Kirjuta kolm sõnumit: sõbrale, naabrile ja teenindajale (6–8 lauset).', [6, 8], ['palun', 'kas sa saad', 'kas te saaksite', 'tahaksin'], 2),
+      B.selfcheck('072_d_self', ['Ma palun sõbralt: Kas sa saad…?', 'Ma palun võõralt: Kas te saaksite…?', 'Ma küsin luba: Kas ma tohin…?', 'Ma ütlen teeninduses: Tahaksin…'], 'Palun viisakalt'),
+    ],
+    practice: [
+      B.table('072_p_forms', 'Kolm palvet.', 'Kirjuta puuduvad vormid.', 'Sina, Teie, Kas te saaksite…?', [
+        'ava! | [avage] | Kas te saaksite [avada]?', 'aita! | [aidake] | Kas te saaksite [aidata]?', 'too! | [tooge] | Kas te saaksite [tuua]?',
+        'oota! | [oodake] | Kas te saaksite [oodata]?', 'helista! | [helistage] | Kas te saaksite [helistada]?', 'ulata! | [ulatage] | Kas te saaksite [ulatada]?',
+      ], 'g_notice'),
+      B.match('072_p_where', 'Kus seda öeldakse?', 'Ühenda palve ja koht.', [
+        ['Tahaksin broneerida toa kaheks ööks.', 'hotellis'], ['Kas te saaksite selle kingituseks pakkida?', 'poes'], ['Kas ma tohin siin pilti teha?', 'muuseumis'],
+        ['Palun ulata mulle sool.', 'kodus laua taga'], ['Kas te saaksite mulle retsepti kirjutada?', 'arsti juures'], ['Tahaksin tellida takso lennujaama.', 'telefonis taksofirmaga'],
+      ], 'full', 'g_vocab'),
+      B.reading('072_p_read', 'Loe Liisi e-kirja.', 'Loe kirja ja vasta küsimustele.', 'Palved kolleegidele',
+        'Head kolleegid! Järgmisel nädalal tuleb meile klient Soomest. See on meile väga tähtis klient. Mul on teile mõned palved. Kati, kas sa saaksid kolmapäevaks koosolekuruumi broneerida? Igor, palun kontrolli, kas projektor töötab. Anna, kas sa saad arve enne kolmapäeva valmis teha? Markus, kas sa saaksid kliendi lennujaamast ära tuua? Lend saabub kell 9.40. Palun ärge pange autot maja ette, seal parkida ei tohi. Kui kellelgi on küsimusi, kirjutage mulle. Kui te ei saa midagi teha, andke palun kohe teada. Aitäh teile! Liis',
+        [['Kust klient tuleb?', 'Soomest'], ['Mida peab Kati broneerima?', 'koosolekuruumi'], ['Mida palub Liis Igoril?', 'kontrollida projektorit|kontrollida, kas projektor töötab'], ['Mida peab Anna valmis tegema?', 'arve|arve valmis'], ['Mis kell lend saabub?', '9.40|kell 9.40'], ['Kus ei tohi parkida?', 'maja ees|maja ette']]),
+      B.truefalse('072_p_tf', 'Õige või vale?', 'Loe kirja uuesti.', [['Klient tuleb järgmisel nädalal.', true], ['Igor peab ruumi broneerima.', false], ['Markus toob kliendi lennujaamast.', true], ['Maja ees võib parkida.', false], ['Küsimused tuleb Liisile kirjutada.', true]]),
+      B.gaps('072_p_gaps', 'Kirjuta õige vorm.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
+        'Kas te saaksite akna [sulgeda] (sulgema)?', 'Palun [oodake] (ootama, teie) siin!', 'Kas sa saad mulle pliiatsi [ulatada] (ulatama)?', 'Kas ma [tohin] (tohtima) siin istuda?',
+        '[Tahaksin] (tahtma, viisakalt) üht kohvi.', 'Kas sa [saad] (saama) mind aidata?', 'Palun [helistage] (helistama, teie) homme!',
+      ]),
+      B.transformation('072_p_trans', 'Otse → viisakalt.', 'Kirjuta lause viisaka palvena.', [
+        ['Too mulle vett!', 'Kas sa saad …?', 'Kas sa saad mulle vett tuua?'], ['Oodake siin!', 'Kas te saaksite …?', 'Kas te saaksite siin oodata?'], ['Ma suitsetan siin.', 'Kas ma tohin …?', 'Kas ma tohin siin suitsetada?'],
+        ['Helistage mulle!', 'Kas te saaksite …?', 'Kas te saaksite mulle helistada?'], ['Laena mulle oma ratast!', 'Kas sa saad …?', 'Kas sa saad mulle oma ratast laenata?|Kas sa saad mulle oma ratta laenata?'],
+      ]),
+      B.errorfix('072_p_fix', 'Paranda viga.', 'Kirjuta palve õigesti.', [
+        ['Kas te saaksite mind aitama?', 'Kas te saaksite mind aidata?'], ['Kas sa saad akna avada, härra Tamm?', 'Kas te saaksite akna avada, härra Tamm?|Kas te saate akna avada, härra Tamm?'], ['Kas ma tohin siin istuma?', 'Kas ma tohin siin istuda?'],
+        ['Tahaksin üks kohv.', 'Tahaksin ühe kohvi.|Tahaksin üht kohvi.'], ['Palun tule sisse, proua Mets!', 'Palun tulge sisse, proua Mets!'], ['Kas sa saad mulle raha laenama?', 'Kas sa saad mulle raha laenata?'],
+      ]),
+      B.cloze('072_p_cloze', 'Sõnum naabrile.', 'Vali igasse lünka sobiv sõna.', 'Tere, härra Tamm!', [
+        'Vabandust, et ma {*kirjutan|kirjuta|kirjutama} nii hilja. Homme tuleb meile kolimisauto.',
+        '',
+        'Kas te {*saaksite|saad|saama} oma auto teise kohta panna? Kolimisauto peab {*seisma|seista|seisab} maja ees kella kümnest kaheteistkümneni.',
+        '',
+        'Kas ma {*tohin|tohid|tohtima} teile homme hommikul helistada? Palun {*andke|anna|andma} teada, kui see ei sobi.',
+        '',
+        'Suur {*aitäh|palun|vabandust} abi eest! Sofia, korter 12',
+      ]),
+      B.dialogue('072_p_dialog', 'Kohvikus.', 'Täida Anna ja teenindaja vestlus.', 'Anna', 'Teenindaja', [
+        ['A', 'Tere! [Tahaksin] ühe kohvi ja koogi, palun.'], ['B', 'Muidugi. Kas [soovite] kohvi piimaga?'], ['A', 'Jah, palun. Kas ma [tohin] istuda akna all?'], ['B', 'Jah, see laud on vaba.'],
+        ['A', 'Kas te [saaksite] mulle ka klaasi vett tuua?'], ['B', 'Hea [meelega]!'], ['A', 'Ja kas ma saan kaardiga [maksta]?'], ['B', 'Muidugi.'],
+      ]),
+      B.wordorder('072_p_order', 'Pane palve kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Kas te saaksite akna sulgeda?', 'Kas ma tohin siin istuda?', 'Tahaksin tellida laua kahele.', 'Palun andke kohe teada.', 'Kas sa saad mulle pliiatsi ulatada?']),
+      B.translation('072_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta palve eesti keeles.', ['Вы не могли бы закрыть дверь?', 'Можно мне задать вопрос?', 'Я бы хотел заплатить.', 'Подай, пожалуйста, соль.', 'Ты можешь мне помочь завтра?']),
+      B.speaking('072_p_say', 'Kolm olukorda.', 'Palu abi kolmes olukorras. Vali sina või teie.', ['Kolleeg: printer ei tööta.', 'Võõras tänaval: sa ei leia bussipeatust.', 'Kelner: sa tahad arvet.'], [60, 90], ['Kas sa saad…?', 'Vabandust, kas te saaksite…?', 'Tahaksin…']),
+      B.letter('072_p_letter', 'Palve e-kirjas.', 'Kirjuta majahaldurile: mis on katki ja mida sa palud.', 'Tere!', 'Lugupidamisega', [30, 50]),
+      B.selfcheck('072_p_self', ['Ma teen teie-vormi: avage, aidake, tooge.', 'Ma muudan käsu viisakaks palveks.', 'Ma leian kirjast, kes mida tegema peab.', 'Ma kirjutan viisaka palve e-kirjas.'], 'Palved on viisakad'),
+    ],
+    transfer: [
+      B.text('072_t_situation', 'Uus olukord', 'Sa elad uues korteris esimest nädalat. Pesumasin ei tööta, internet on aeglane ja naaber kuulab öösel valju muusikat. Pead paluma abi korteriomanikult, naabrilt ja internetifirmalt.'),
+      B.listening('072_t_listen', 'Kuula korteriomaniku sõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Siin Viktor, teie korteriomanik.', 'Sain teie kirja pesumasina kohta.', 'Kas te saaksite homme kell neli kodus olla? Siis tuleb meister.', 'Palun tehke pesumasina uks lahti ja võtke riided välja.',
+        'Kas ma tohin meistrile anda teie telefoninumbri?', 'Interneti pärast palun helistage ise firmale. Number on lepingus.', 'Kui teil on veel küsimusi, kirjutage mulle. Head päeva!',
+      ], ['Korteriomaniku nimi on [Viktor].', 'Meister tuleb homme kell [neli|4|16].', 'Enne peab pesumasinast välja võtma [riided].', 'Viktor tahab meistrile anda sinu [telefoninumbri|numbri].', 'Interneti pärast tuleb helistada [firmale|internetifirmale].', 'Firma number on [lepingus].']),
+      B.categorize('072_t_sort', 'Kellele see palve sobib?', 'Pane palved õigesse rühma.', [
+        ['Korteriomanikule (teie)', ['Kas te saaksite meistri saata?', 'Kas ma tohin seina värvida?']], ['Naabrile (sina)', ['Kas sa saad muusika vaiksemaks panna?', 'Kas sa saad mu lilli kasta?']], ['Internetifirmale', ['Tahaksin uut ruuterit.', 'Kas te saaksite kiirust kontrollida?']],
+      ], 'full', 'g_use'),
+      B.transformation('072_t_trans', 'Kirjuta viisakas palve.', 'Kirjuta lause antud alguse järgi.', [
+        ['Saada meister!', 'Kas te saaksite …?', 'Kas te saaksite meistri saata?'], ['Pane muusika vaiksemaks!', 'Kas sa saad …?', 'Kas sa saad muusika vaiksemaks panna?'], ['Ma tahan uut ruuterit.', 'Tahaksin …', 'Tahaksin uut ruuterit.|Tahaksin uue ruuteri.'],
+        ['Ma helistan teile õhtul.', 'Kas ma tohin …?', 'Kas ma tohin teile õhtul helistada?'], ['Kontrollige internetti!', 'Palun …', 'Palun kontrollige internetti!'],
+      ]),
+      B.errorfix('072_t_fix', 'Kontrolli kirja.', 'Kirjas on vead. Kirjuta lause õigesti.', [
+        ['Kas te saaksite meister saata?', 'Kas te saaksite meistri saata?'], ['Kas sa saad muusika vaiksemaks panema?', 'Kas sa saad muusika vaiksemaks panna?'], ['Tahaksin teie homme helistada.', 'Tahaksin teile homme helistada.'],
+        ['Kas ma tohin seina värvima?', 'Kas ma tohin seina värvida?'], ['Palun annab teada!', 'Palun andke teada!|Palun anna teada!'],
+      ]),
+      B.dictation('072_t_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Kas te saaksite meistri saata?', 'Tahaksin uut ruuterit.', 'Kas ma tohin teile helistada?', 'Palun andke teada.', 'Suur aitäh abi eest!']),
+      B.translation('072_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Стиральная машина не работает.', 'Вы не могли бы прислать мастера?', 'Можно мне позвонить вам вечером?', 'Ты можешь сделать музыку тише?', 'Спасибо за помощь!']),
+      B.planning('072_t_plan', 'Enne kirja.', 'Mõtle läbi ja kirjuta märksõnad.', ['Kellele sa kirjutad? Sina või teie?', 'Mis on probleem?', 'Mida sa palud?', 'Millal sul aega on?']),
+      B.letter('072_t_letter', 'Kiri korteriomanikule.', 'Kirjuta Viktorile 40–60 sõna: vasta tema küsimustele ja palu veel üht asja.', 'Tere, Viktor!', 'Lugupidamisega', [40, 60]),
+      B.writing('072_t_neighbour', 'Sõnum naabrile.', 'Kirjuta naabrile 4–6 lauset: palu viisakalt öösel vaiksem olla.', [4, 6], ['palun', 'kas sa saad', 'aitäh'], 2),
+      B.rolecards('072_t_roles', 'Telefonis internetifirmaga.', 'A on klient, B on firma töötaja. Siis vahetage.',
+        'Sinu internet on aeglane. Selgita probleemi ja palu abi. Küsi, millal meister tuleb.', 'Oled firma töötaja. Küsi aadressi ja paku meistri aega.',
+        ['Tahaksin…', 'Kas te saaksite…?', 'Kas ma tohin…?'], ['Mis on teie aadress?', 'Kas teile sobib…?', 'Palun oodake hetk.']),
+      B.speaking('072_t_say', 'Naabriga trepikojas.', 'Räägi naabriga: palu viisakalt ja paku midagi vastu.', ['Tervita naabrit.', 'Ütle, mis on probleem.', 'Palu viisakalt.', 'Täna ja jäta hüvasti.'], [45, 90]),
+      B.rubric('072_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Palved on viisakad: palun, kas sa saad / kas te saaksite, tahaksin.', 'Sina ja teie on õigesti valitud.', 'Kirjas on probleem, palve ja aeg.', 'Telefonis küsib ja vastab õpilane selgelt.']),
+      B.selfcheck('072_t_self', ['Ma saan aru korteriomaniku sõnumist.', 'Ma valin palvele sina või teie.', 'Ma kirjutan viisaka kirja ja sõnumi.', 'Ma palun telefonis abi.'], 'Abi on palutud'),
     ],
   },
 
