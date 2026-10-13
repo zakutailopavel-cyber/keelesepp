@@ -1014,10 +1014,35 @@
     "seconds": 34.1,
     "hash": "367816f01fe104bc305e01942d053858bfbc604c"
   },
+  "a2b1-006:006_d_listen": {
+    "src": "/audio/a2b1-006/006_d_listen.mp3",
+    "seconds": 48.2,
+    "hash": "bc39c54acb3bc4bd018d344711ef80971ef3bf82"
+  },
+  "a2b1-007:007_d_listen": {
+    "src": "/audio/a2b1-007/007_d_listen.mp3",
+    "seconds": 41.5,
+    "hash": "e6564fafeea1f5405b578b6df0f9256f120b82c0"
+  },
+  "a2b1-008:008_d_listen": {
+    "src": "/audio/a2b1-008/008_d_listen.mp3",
+    "seconds": 52.2,
+    "hash": "3bc724ebc0d963be0c11b2863335cb7c020fa7a6"
+  },
   "a2b1-008:008_t_listen": {
     "src": "/audio/a2b1-008/008_t_listen.mp3",
     "seconds": 69.3,
     "hash": "4aa900b4b3009ea03c41329c0611f4f796ff447c"
+  },
+  "a2b1-009:009_d_listen": {
+    "src": "/audio/a2b1-009/009_d_listen.mp3",
+    "seconds": 42.5,
+    "hash": "6e2b9526646b78e32ac2bc32cb3922754dbe259f"
+  },
+  "a2b1-010:010_d_listen": {
+    "src": "/audio/a2b1-010/010_d_listen.mp3",
+    "seconds": 40.3,
+    "hash": "55817fe1cf7e935d3fd9d0dbb729da8b8a79c4f1"
   },
   "a2b1-010:010_p_listen": {
     "src": "/audio/a2b1-010/010_p_listen.mp3",
@@ -1029,10 +1054,35 @@
     "seconds": 68.6,
     "hash": "6ce1eaaa8d8a92b903a334bc4028909599834b5d"
   },
+  "a2b1-011:011_d_listen": {
+    "src": "/audio/a2b1-011/011_d_listen.mp3",
+    "seconds": 45.5,
+    "hash": "26406fcebf82a679ee6f697283c1af0bf46fdabd"
+  },
+  "a2b1-012:012_d_listen": {
+    "src": "/audio/a2b1-012/012_d_listen.mp3",
+    "seconds": 35.1,
+    "hash": "7886ac5f9a0b7425b6c76213e2ddc1ffc3790156"
+  },
+  "a2b1-013:013_d_listen": {
+    "src": "/audio/a2b1-013/013_d_listen.mp3",
+    "seconds": 47.2,
+    "hash": "a6a6380f43d2f827b00f86a9821763e866021dfc"
+  },
+  "a2b1-014:014_d_listen": {
+    "src": "/audio/a2b1-014/014_d_listen.mp3",
+    "seconds": 40,
+    "hash": "68cf21a752bd87f83a605afc7923a35c0a66131f"
+  },
   "a2b1-014:014_p_listen": {
     "src": "/audio/a2b1-014/014_p_listen.mp3",
     "seconds": 73.6,
     "hash": "9eb6fa1bcc89e19470740a9edadf06bbcdc7d3ba"
+  },
+  "a2b1-015:015_d_listen": {
+    "src": "/audio/a2b1-015/015_d_listen.mp3",
+    "seconds": 43.3,
+    "hash": "461a4288aa75a859010d818cf4d95af71d146b14"
   },
   "a2b1-015:015_p_listen": {
     "src": "/audio/a2b1-015/015_p_listen.mp3",

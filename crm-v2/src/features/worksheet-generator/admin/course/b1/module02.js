@@ -1,5 +1,5 @@
 // B1 course (A2 → B1 roadmap), module 2 „Mina, pere ja suhted” (a2b1-006…010), stage A2.
-// Harjuta + Kasuta for the published Avasta sheets: the same core words, the genitive (kelle?), on / tal on and
+// Avasta → Harjuta → Kasuta, each a whole lesson (40–55 min): the same core words, the genitive (kelle?), on / tal on and
 // sest-reasons are practised in different task types, then used in new situations. Material also from the
 // KeeleSepp A2→B1 workbook, lessons 11–12 (Perekond ja suhted; Välimus ja iseloom).
 import { B } from '../blocks.js';
@@ -10,6 +10,50 @@ export const LESSONS = {
   'a2b1-006': {
     title: 'Pere ja lähedased',
     canDo: 'Ma tutvustan 4–5 lähedast inimest ja lisan igaühe kohta vähemalt ühe sisulise detaili.',
+    discover: [
+      B.text('006_d_intro', 'Kes on kes?', 'Anna sai laupäeval 28-aastaseks. Peol oli kogu tema pere. Esmaspäeval näitab Anna kolleegile Evale pilte. Eva küsib: „Kes see on? Kes ta sulle on?” Selles tunnis õpid pere sõnu ja küsimust kelle?'),
+      B.vocab('006_d_vocab', 'Pere sõnad', ['pere — семья', 'vanemad — родители', 'vanaema — бабушка', 'vanaisa — дедушка', 'vend — брат', 'õde — сестра', 'poeg — сын', 'tütar — дочь', 'onu — дядя', 'tädi — тётя', 'õetütar — племянница', 'abikaasa — супруг(а)', 'sugulane — родственник', 'lähedane — близкий человек', 'kelle? — чей?'], '2'),
+      B.reading('006_d_read', 'Loe: Anna pere.', 'Loe teksti ja vasta küsimustele.', 'Anna pere',
+        'Anna on 28 aastat vana ja elab Tallinnas. Tema abikaasa nimi on Martin. Martin on arst. Anna vanemad elavad Tartus. Anna ema on raamatupidaja ja isa on bussijuht. Annal on üks vend ja üks õde. Venna nimi on Rasmus. Ta on 32-aastane ja elab Soomes. Rasmusel on naine ja väike poeg. Anna õde Kati on üliõpilane. Ta on Annast kuus aastat noorem. Anna vanaema ja vanaisa elavad maal. Vanaema on 85, aga ta on väga aktiivne. Anna ema õde, tädi Ülle, elab vanaema lähedal. Tädi aitab vanaemal aias. Anna sünnipäeval oli kogu pere koos. Rasmus ei saanud tulla, sest ta oli tööl. Ta helistas Annale video kaudu. Vanaema tõi Annale kingituseks sooja salli. Anna arvab, et pere on tema jaoks kõige tähtsam.',
+        [['Kus elavad Anna vanemad?', 'Tartus'], ['Mis tööd teeb Anna abikaasa?', 'ta on arst|arst'], ['Mitu õde-venda Annal on?', 'kaks|üks vend ja üks õde'], ['Kes on Rasmus Annale?', 'vend|tema vend'], ['Kes on tädi Ülle?', 'Anna ema õde|ema õde'], ['Miks ei tulnud Rasmus peole?', 'ta oli tööl|sest ta oli tööl']]),
+      B.truefalse('006_d_tf', 'Õige või vale?', 'Loe Anna lugu uuesti.', [
+        ['Anna abikaasa on bussijuht.', false], ['Rasmusel on poeg.', true], ['Kati on Annast vanem.', false], ['Tädi Ülle elab vanaema lähedal.', true], ['Vanaema kinkis Annale salli.', true],
+      ]),
+      B.notice('006_d_notice', 'Märka: kelle?', ['**Kelle** pilt see on? — See on **Anna** pilt.', 'vend → **venna** naine, õde → **õe** tütar', 'tütar → **tütre** kool, poeg → **poja** auto', 'isa õde = **tädi**, ema vend = **onu**', 'Kes ta **sulle** on? — Ta on **minu ema õde**.', 'Mul on vend. → **Minu vend** elab Soomes.'], 'full'),
+      B.categorize('006_d_sort', 'Naine või mees?', 'Sorteeri pere sõnad kolme rühma.', [
+        ['Naised', ['vanaema', 'tädi', 'õde', 'tütar', 'õetütar']], ['Mehed', ['vanaisa', 'onu', 'vend', 'poeg']], ['Mõlemad', ['abikaasa', 'sugulane', 'vanem', 'laps']],
+      ]),
+      B.wordforms('006_d_forms', 'Kelle? Omastav.', 'Kirjuta sõna omastavas.', [
+        ['vend', 'kelle naine?', 'venna'], ['õde', 'kelle tütar?', 'õe'], ['tütar', 'kelle kool?', 'tütre'], ['poeg', 'kelle auto?', 'poja'],
+        ['isa', 'kelle õde?', 'isa'], ['vanaema', 'kelle maja?', 'vanaema'], ['sugulane', 'kelle pulm?', 'sugulase'], ['abikaasa', 'kelle töö?', 'abikaasa'],
+      ]),
+      B.gaps('006_d_gaps', 'Kes ta sulle on?', 'Mõtle ja kirjuta sobiv pere sõna.', [
+        'Minu ema õde on minu [tädi].', 'Minu isa vend on minu [onu].', 'Minu ema ema on minu [vanaema].', 'Minu õe tütar on minu [õetütar].', 'Minu isa isa on minu [vanaisa].', 'Minu mees on minu [abikaasa].',
+      ], ['tädi', 'onu', 'vanaema', 'õetütar', 'vanaisa', 'abikaasa', 'vend', 'poeg']),
+      B.transformation('006_d_trans', 'Ütle kelle-vormiga.', 'Tee kahest lausest üks lause.', [
+        ['Mul on vend. Tal on auto.', 'See on …', 'See on minu venna auto.'], ['Mul on õde. Tal on kass.', 'See on …', 'See on minu õe kass.'],
+        ['Mul on tädi. Tal on maja.', 'See on …', 'See on minu tädi maja.'], ['Mul on tütar. Tal on jalgratas.', 'See on …', 'See on minu tütre jalgratas.'],
+        ['Mul on poeg. Tal on kitarr.', 'See on …', 'See on minu poja kitarr.'],
+      ]),
+      B.errorfix('006_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['See on minu vend naine.', 'See on minu venna naine.'], ['Ta on minu ema õde, minu onu.', 'Ta on minu ema õde, minu tädi.'], ['Minu õde tütar on viieaastane.', 'Minu õe tütar on viieaastane.'],
+        ['Kelle see on pilt?', 'Kelle pilt see on?'], ['Minu poeg kool on lähedal.', 'Minu poja kool on lähedal.'],
+      ]),
+      B.listening('006_d_listen', 'Kuula: Sofia pere.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Sofia. Ma olen 19-aastane ja õpin Tartus ülikoolis.',
+        'Minu pere elab Narvas. Meie peres on kuus inimest.',
+        'Minu ema on õpetaja. Ta töötab koolis ja on väga rahulik.',
+        'Minu isa on autojuht. Tema töö on raske, sest ta sõidab palju.',
+        'Mul on kaks venda. Vanem vend Andrei on 25 ja elab Tallinnas.',
+        'Noorem vend Mark käib veel koolis. Ta on 14 ja mängib jalgpalli.',
+        'Minu vanaema elab meiega koos. Ta teeb kõige paremaid pannkooke.',
+        'Igal õhtul helistan ma emale. Suvel sõidan ma koju.',
+      ], ['Sofia õpib [Tartus].', 'Sofia pere elab [Narvas].', 'Sofia ema töötab [koolis].', 'Sofia isa on [autojuht].', 'Vanem vend elab [Tallinnas].', 'Vanaema teeb häid [pannkooke].']),
+      B.translation('006_d_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Это моя тётя, сестра мамы.', 'Мой брат живёт в Финляндии.', 'Это машина моего мужа.', 'Кто он тебе?', 'У моей сестры есть дочь.']),
+      B.speaking('006_d_say', 'Minu lähedased.', 'Tutvusta nelja lähedast. Ütle igaühe kohta üks detail.', ['Kes ta sulle on?', 'Kus ta elab?', 'Mida ta teeb?', 'Milline ta on?'], [60, 90], ['Minu ema õde on…', 'Ta elab…', 'Ta töötab…']),
+      B.writing('006_d_write', 'Minu pere.', 'Kirjuta 6–8 lauset: kes on sinu peres ja üks detail.', [6, 8], ['minu', 'elab', 'venna', 'õe'], 2),
+      B.selfcheck('006_d_self', ['Ma tean 15 pere sõna.', 'Ma ütlen, kes kellele on.', 'Ma moodustan omastava: venna, õe, tütre.', 'Ma tutvustan nelja lähedast.'], 'Minu pere on sõnades'),
+    ],
     practice: [
       B.match('006_p_words', 'Kes on kes?', 'Ühenda sõna ja seletus.', [
         ['vanaema', 'ema või isa ema'], ['onu', 'ema või isa vend'], ['tädi', 'ema või isa õde'], ['õetütar', 'õe või venna tütar'],
@@ -82,6 +126,48 @@ export const LESSONS = {
   'a2b1-007': {
     title: 'Välimus ja iseloom',
     canDo: 'Ma kirjeldan inimese välimust ja iseloomu vähemalt 8 seotud lausega ning kasutan 10 teemakohast omadussõna.',
+    discover: [
+      B.text('007_d_intro', 'Uued kolleegid', 'Anna töötab kontoris. Sel kuul tuli tööle kolm uut inimest. Anna kirjutab sõbrannale Kristile, millised nad on. Selles tunnis õpid kirjeldama välimust ja iseloomu.'),
+      B.vocab('007_d_vocab', 'Välimus ja iseloom', ['välimus — внешность', 'iseloom — характер', 'pikk — высокий', 'lühike — низкий', 'juuksed — волосы', 'prillid — очки', 'habe — борода', 'sale — стройный', 'sõbralik — дружелюбный', 'rahulik — спокойный', 'abivalmis — отзывчивый', 'tagasihoidlik — скромный', 'naljakas — весёлый', 'kannatlik — терпеливый', 'töökas — трудолюбивый', 'üsna — довольно'], '2'),
+      B.reading('007_d_read', 'Loe: Anna kiri.', 'Loe kirja ja vasta küsimustele.', 'Meie uued kolleegid',
+        'Tere, Kristi! Meie kontoris on kolm uut inimest. Peeter on pikk ja sale. Tal on lühikesed tumedad juuksed ja habe. Ta on üsna tagasihoidlik ja räägib vähe. Aga ta on väga töökas. Eva on keskmist kasvu. Tal on pikad heledad juuksed ja sinised silmad. Ta on väga sõbralik ja naljakas. Lõuna ajal räägib ta palju nalja. Igor on kõige vanem, ta on viiskümmend. Tal on prillid ja hall habe. Ta on rahulik ja kannatlik. Kui mul on arvutiga probleem, aitab mind Igor. Ta on väga abivalmis. Minu ülemus on natuke närviline, aga uued kolleegid on toredad. Reedel läheme kõik koos kohvikusse. Tule ka, siis näed neid ise! Kallistan, Anna',
+        [['Milline on Peetri välimus?', 'pikk ja sale|pikk, lühikesed tumedad juuksed ja habe|pikk'], ['Milline on Peetri iseloom?', 'tagasihoidlik ja töökas|tagasihoidlik|töökas'], ['Mis värvi silmad on Eval?', 'sinised|sinised silmad'], ['Miks on lõunal Evaga lõbus?', 'ta räägib palju nalja|ta on naljakas'], ['Kes aitab Annat arvutiga?', 'Igor'], ['Kes on uutest kolleegidest kõige vanem?', 'Igor']]),
+      B.manymatch('007_d_who', 'Kes on milline?', 'Ühenda inimene ja omadused. Mitu vastust on võimalik.', ['Peeter', 'Eva', 'Igor', 'Anna ülemus'], ['pikk', 'tagasihoidlik', 'naljakas', 'kannatlik', 'prillidega', 'närviline', 'heledate juustega']),
+      B.notice('007_d_notice', 'Märka: ta on või tal on?', ['Iseloom ja kasv: **Ta on** rahulik. **Ta on** pikk.', 'Juuksed, silmad, prillid, habe: **Tal on** habe.', 'Mitmus: Tal on **pikad heledad** juukse**d**.', 'Kui palju? **natuke** < **üsna** < **väga** naljakas', 'Vastand: pikk ↔ lühike, rahulik ↔ närviline'], 'full'),
+      B.gaps('007_d_gaps', 'Tal on … juuksed.', 'Kirjuta omadussõna mitmuses.', [
+        'Tal on [pikad] (pikk) juuksed.', 'Tal on [sinised] (sinine) silmad.', 'Tal on [lühikesed] (lühike) juuksed.', 'Tal on [tumedad] (tume) silmad.', 'Tal on [suured] (suur) prillid.', 'Tal on [heledad] (hele) juuksed.',
+      ]),
+      B.choice('007_d_choice', 'Vali õige lause.', 'Loe küsimust. Vali õige lause.', [
+        ['Millised on Eva juuksed?', 'Tal on pikad heledad juuksed.', 'Ta on pikad heledad juuksed.', 'Tal on pikk hele juuksed.'],
+        ['Milline on Peeter?', 'Ta on üsna tagasihoidlik.', 'Tal on üsna tagasihoidlik.', 'Ta on üsna tagasihoidlikud.'],
+        ['Mis Igoril on?', 'Tal on prillid.', 'Ta on prillid.', 'Tal on prillis.'],
+        ['Millised on Eva silmad?', 'Tal on sinised silmad.', 'Ta on sinised silmad.', 'Tal on sinine silmad.'],
+        ['Milline on Igor?', 'Ta on rahulik ja kannatlik.', 'Tal on rahulik ja kannatlik.', 'Ta on rahulikud ja kannatlik.'],
+      ], 'full', 'g_notice'),
+      B.crossword('007_d_cross', 'Milline ta on?', 'Kirjuta sobiv omadussõna.', [
+        ['Ta ei ole pikk. Ta on…', 'lühike'], ['Ta ei ole närviline. Ta on…', 'rahulik'], ['Ta töötab palju. Ta on…', 'töökas'],
+        ['Ta räägib palju nalja. Ta on…', 'naljakas'], ['Ta aitab kõiki. Ta on…', 'abivalmis'], ['Ta ootab rahulikult. Ta on…', 'kannatlik'],
+      ]),
+      B.wordorder('007_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Minu kolleegil on lühikesed tumedad juuksed.', 'Eva on väga sõbralik ja naljakas.', 'Igor on rahulik ja kannatlik.', 'Peeter on pikk, aga tagasihoidlik.', 'Minu õel on sinised silmad.']),
+      B.listening('007_d_listen', 'Kuula: Markuse kolleegid.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Markus. Ma töötan suures laos.',
+        'Meie tiimis on viis inimest. Täna räägin kahest kolleegist.',
+        'Esimene on Toomas. Ta on väga pikk, umbes kaks meetrit.',
+        'Tal on punased juuksed ja suur habe. Ta on tugev ja töökas.',
+        'Toomas räägib vähe, aga ta on väga abivalmis.',
+        'Teine on Kati. Ta on lühike ja sale. Tal on prillid.',
+        'Kati on meie tiimi juht. Ta on natuke tõsine, aga sõbralik.',
+        'Pärast tööd mängime vahel koos korvpalli.',
+      ], ['Toomas on umbes [kaks|2] meetrit pikk.', 'Toomasel on punased juuksed ja suur [habe].', 'Toomas räägib vähe, aga on väga [abivalmis].', 'Kati on lühike ja [sale].', 'Katil on [prillid].', 'Kati on natuke [tõsine].']),
+      B.errorfix('007_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Peeter on habe.', 'Peetril on habe.'], ['Tal on väga naljakas.', 'Ta on väga naljakas.'], ['Evale on sinised silmad.', 'Eval on sinised silmad.'],
+        ['Tal on pikk juuksed.', 'Tal on pikad juuksed.'], ['Igor on rahulik ja kannatlikud.', 'Igor on rahulik ja kannatlik.'], ['Kati on lühike juuksed.', 'Katil on lühikesed juuksed.'],
+      ]),
+      B.dictation('007_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Ta on pikk ja sale.', 'Tal on lühikesed juuksed.', 'Eva on väga sõbralik.', 'Igoril on prillid.', 'Peeter on natuke tagasihoidlik.']),
+      B.speaking('007_d_say', 'Minu kolleeg või sõber.', 'Kirjelda üht inimest 1 minut: välimus ja iseloom.', ['Milline ta välja näeb?', 'Milline ta iseloomult on?', 'Mida ta hästi oskab?'], [45, 90], ['Ta on…', 'Tal on…', 'Ta on üsna…']),
+      B.writing('007_d_write', 'Vasta Annale.', 'Kirjuta Annale 6–8 lauset oma kolleegist või sõbrast.', [6, 8], ['ta on', 'tal on', 'väga', 'aga'], 2),
+      B.selfcheck('007_d_self', ['Ma tean 15 välimuse ja iseloomu sõna.', 'Ma eristan „ta on” ja „tal on”.', 'Ma ütlen: natuke, üsna, väga.', 'Ma kirjeldan inimest 6–8 lausega.'], 'Kirjeldan inimesi'),
+    ],
     practice: [
       B.categorize('007_p_sort', 'Välimus või iseloom?', 'Sorteeri sõnad kahte rühma.', [
         ['Välimus', ['pikk', 'lühike', 'heledate juustega', 'prillidega', 'habemega', 'sale']], ['Iseloom', ['sõbralik', 'rahulik', 'abivalmis', 'tagasihoidlik', 'naljakas', 'kannatlik']],
@@ -153,6 +239,50 @@ export const LESSONS = {
   'a2b1-008': {
     title: 'Kelle? Kelle oma?',
     canDo: 'Ma küsin ja vastan kuuluvuse kohta ning kasutan genitiivi õigesti vähemalt 8 juhul 10-st.',
+    discover: [
+      B.text('008_d_intro', 'Kelle oma see on?', 'Liis on õpetaja. Reedel koristab ta õpetajate tuba. Toas on palju asju, aga kelle omad need on? Selles tunnis õpid küsima ja vastama: kelle oma?'),
+      B.vocab('008_d_vocab', 'Asjad ja omanikud', ['kelle oma? — чей?', 'kuuluma — принадлежать', 'omanik — владелец', 'kolleeg — коллега', 'kruus — кружка', 'vihmavari — зонт', 'müts — шапка', 'võti — ключ', 'kott — сумка', 'rahakott — кошелёк', 'leidma — находить', 'kaotama — терять', 'unustama — забывать'], '2'),
+      B.reading('008_d_read', 'Loe: õpetajate toas.', 'Loe teksti ja vasta küsimustele.', 'Kelle asjad?',
+        'Reedel pärast tunde koristab Liis õpetajate tuba. Laual on viis kruusi. Sinine kruus on Peetri oma, sest sellel on tema nimi. Punane kruus on direktori oma. Aknal on must vihmavari. Liis teab, et see on Kaja oma. Kaja unustab oma vihmavarju tihti kooli. Tooli peal on väike roheline müts. See on vist mõne lapse oma. Kapi juures on suur spordikott. Liis ei tea, kelle oma see on. Ta küsib kolleeg Markolt, kas see on tema kott. Marko vastab, et see ei ole tema oma. See on spordiõpetaja oma. Lõpuks leiab Liis laua alt võtmed. Need on Liisi võtmed! Ta otsis neid terve nädala.',
+        [['Kelle oma on sinine kruus?', 'Peetri oma|Peetri'], ['Kuidas Liis seda teab?', 'kruusil on Peetri nimi|sellel on tema nimi'], ['Kelle oma on must vihmavari?', 'Kaja oma|Kaja'], ['Kelle oma võib olla roheline müts?', 'mõne lapse oma|lapse oma'], ['Kelle oma on spordikott?', 'spordiõpetaja oma|spordiõpetaja'], ['Mida leidis Liis laua alt?', 'oma võtmed|võtmed|Liisi võtmed']]),
+      B.choice('008_d_choice', 'Kelle? Vali vorm.', 'Vali lünka õige vorm.', [
+        ['See on … kruus. (Peeter)', 'Peetri', 'Peeter', 'Peetrile'], ['See on … vihmavari. (Kaja)', 'Kaja', 'Kajale', 'Kajal'],
+        ['Kas see on … kott? (sina)', 'sinu', 'sina', 'sind'], ['Need on … võtmed. (nemad)', 'nende', 'nemad', 'neil'], ['See ei ole … oma. (mina)', 'minu', 'mina', 'mul'],
+      ], 'full', 'g_notice'),
+      B.notice('008_d_notice', 'Märka: kelle oma?', ['**Kelle** kruus see on? — See on **Peetri** kruus.', '**Kelle oma** see on? — See on **Kaja oma**.', 'mina → **minu**, sina → **sinu**, tema → **tema**', 'meie → **meie**, teie → **teie**, nemad → **nende**', 'Raamat **kuulub** Marile. = See on **Mari** raamat.', 'Ma võtan **oma** koti. (minu enda kott)'], 'full'),
+      B.wordforms('008_d_forms', 'Kelle?', 'Kirjuta sõna omastavas.', [
+        ['Peeter', 'kelle kruus?', 'Peetri'], ['õpetaja', 'kelle laud?', 'õpetaja'], ['naaber', 'kelle kass?', 'naabri'], ['sõber', 'kelle jope?', 'sõbra'],
+        ['kolleeg', 'kelle arvuti?', 'kolleegi'], ['laps', 'kelle müts?', 'lapse'], ['direktor', 'kelle kabinet?', 'direktori'], ['Liis', 'kelle võtmed?', 'Liisi'],
+      ]),
+      B.gaps('008_d_gaps', 'Minu, sinu, nende…', 'Vali sobiv sõna.', [
+        'Mina olen Kaja. See on [minu] vihmavari.', 'Marko, kas see on [sinu] kott?', 'Peeter otsib [oma] kruusi.', 'Meil on uus klass. See on [meie] klass.',
+        'Lapsed, kas need on [teie] mütsid?', 'Õpetajad joovad kohvi. Need on [nende] kruusid.',
+      ], ['minu', 'sinu', 'oma', 'meie', 'teie', 'nende', 'mina', 'nemad']),
+      B.profiles('008_d_cards', 'Kelle asjad?', 'Loe kaarte. Kirjuta lünka sobiv sõna.', [
+        ['Peeter', ['matemaatikaõpetaja', 'sinine kruus', 'must jalgratas'], ['See on [Peetri] kruus.', 'Jalgratas [kuulub] Peetrile.']],
+        ['Kaja', ['inglise keele õpetaja', 'must vihmavari', 'punane kott'], ['Vihmavari on [Kaja] oma.', '[Kaja] kott on punane.']],
+        ['Marko', ['kunstiõpetaja', 'roheline sall', 'vanad võtmed'], ['Sall [kuulub] Markole.', 'Need on [Marko] võtmed.']],
+      ]),
+      B.wordorder('008_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Kelle oma see punane kott on?', 'See vihmavari ei ole minu oma.', 'Need on minu naabri võtmed.', 'Kas see on sinu õe müts?', 'Raamat kuulub minu kolleegile.']),
+      B.errorfix('008_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['See on Peeter kruus.', 'See on Peetri kruus.'], ['Kelle oma see on? — See on mina oma.', 'See on minu oma.'], ['See on nemad laud.', 'See on nende laud.'],
+        ['Raamat kuulub Mari.', 'Raamat kuulub Marile.'], ['Ma otsin minu võtmeid.', 'Ma otsin oma võtmeid.'],
+      ]),
+      B.listening('008_d_listen', 'Kuula: asjad autos.', 'Õpetaja loeb häälsõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere, Olga! Siin Viktor, sinu naaber. Eile viisin oma lapselapse ja sinu lapsed randa.',
+        'Täna leidsin autost palju asju. Ma ei tea, kelle omad need on.',
+        'Seal on sinine rätik. Ma arvan, et see on sinu poja oma.',
+        'Siis on seal väike roosa müts. See ei ole minu lapselapse oma, tema müts on valge.',
+        'Tagaistmel on ka päikeseprillid. Need on vist sinu tütre omad.',
+        'Ja üks pall. Pall on minu lapselapse oma, sest sellel on tema nimi.',
+        'Ma panin teie asjad kotti. Kott on minu ukse ees.',
+        'Tule õhtul järele, kui sul on aega. Head päeva!',
+      ], ['Viktor viis lapsed eile [randa].', 'Asjad olid Viktori [autos].', 'Sinine rätik on Olga [poja] oma.', 'Viktori lapselapse müts on [valge].', 'Päikeseprillid on vist Olga [tütre] omad.', 'Kott on Viktori [ukse] ees.']),
+      B.translation('008_d_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Чья это кружка?', 'Это не моё.', 'Это ключи моего коллеги.', 'Зонт принадлежит Кае.', 'Я ищу свою сумку.']),
+      B.speaking('008_d_say', 'Pere asjad.', 'Räägi 1 minut: mis asjad on kodus kelle omad?', ['Kelle oma on auto?', 'Kelle oma on arvuti?', 'Kelle tuba on kõige suurem?'], [45, 90], ['See on minu…', 'Auto on meie pere oma.', 'Arvuti kuulub…']),
+      B.writing('008_d_write', 'Sõnum kolleegile.', 'Sa leidsid asja. Kirjuta 5–6 lauset: mis, kus, kelle oma.', [5, 6], ['leidsin', 'kelle', 'oma'], 2),
+      B.selfcheck('008_d_self', ['Ma küsin: kelle oma see on?', 'Ma moodustan omastava: Peetri, naabri, sõbra.', 'Ma tean minu, sinu, tema, meie, teie, nende.', 'Ma kasutan sõna „oma”.'], 'Tean, kelle oma'),
+    ],
     practice: [
       B.table('008_p_table', 'Omastav vorm.', 'Kirjuta puuduv vorm.', 'nimetav, omastav (kelle?), näide', [
         'ema | [ema] | ema auto', 'õde | [õe] | õe tuba', 'vend | [venna] | venna ratas', 'sõber | [sõbra] | sõbra kass', 'laps | [lapse] | lapse mänguasi', 'õpetaja | [õpetaja] | õpetaja laud',
@@ -233,6 +363,50 @@ export const LESSONS = {
   'a2b1-009': {
     title: 'Koos veedetud aeg',
     canDo: 'Ma räägin 1,5–2 minutit ühest lähedasest inimesest ja meie ühistest tegevustest ning põhjendan vähemalt kahte eelistust.',
+    discover: [
+      B.text('009_d_intro', 'Pühapäev on pere päev', 'Jaan on 38-aastane. Tal on Pärnus väike kohvik. Nädala sees on tal väga vähe vaba aega. Pühapäeval on kohvik kinni. See päev on pere ja koera Muki jaoks.'),
+      B.vocab('009_d_vocab', 'Ühine aeg', ['koos — вместе', 'aega veetma — проводить время', 'süüa tegema — готовить еду', 'jalutama — гулять', 'matkama — ходить в поход', 'uisutama — кататься на коньках', 'lauamäng — настольная игра', 'filmi vaatama — смотреть фильм', 'igatsema — скучать', 'tavaliselt — обычно', 'vahel — иногда', 'harva — редко', 'sest — потому что', 'ühine — общий', 'ettepanek — предложение'], '2'),
+      B.reading('009_d_read', 'Loe: Jaani pühapäev.', 'Loe teksti ja vasta küsimustele.', 'Jaani pühapäev',
+        'Jaanil on kohvik ja ta töötab palju. Pühapäeval on kohvik kinni. Siis veedab Jaan aega perega. Hommikul jalutab ta koos koera Mukiga pargis. Muki on väike ja väga rõõmsameelne koer. Pärast jalutuskäiku teeb Jaan pannkooke. Tavaliselt aitab teda tütar Laura. Laura on kümneaastane. Talle meeldib koos isaga süüa teha. Lõuna ajal sõidavad nad vahel Jaani ema juurde. Ema elab maal ja tal on suur aed. Talvel käib pere tihti uisutamas. Õhtul mängivad nad lauamänge. Filme vaatavad nad harva, sest Jaanile meeldib rohkem rääkida. Jaani naine Helen ütleb: „Pühapäev on meie kõige tähtsam päev.” Jaan arvab sama. Ta igatseb pühapäeva juba esmaspäeval!',
+        [['Miks on Jaanil nädala sees vähe aega?', 'ta töötab palju|ta töötab kohvikus'], ['Kellega jalutab Jaan hommikul?', 'koera Mukiga|Mukiga'], ['Mida teeb Jaan pärast jalutuskäiku?', 'pannkooke|teeb pannkooke'], ['Kes aitab Jaani köögis?', 'tütar Laura|Laura'], ['Miks vaatab pere harva filme?', 'Jaanile meeldib rohkem rääkida|Jaan räägib meelsamini'], ['Mida teeb pere talvel?', 'käib uisutamas|uisutab']]),
+      B.truefalse('009_d_tf', 'Õige või vale?', 'Loe Jaani lugu uuesti.', [
+        ['Jaani kohvik on pühapäeval avatud.', false], ['Muki on rõõmsameelne koer.', true], ['Laura on viieaastane.', false], ['Jaani ema elab maal.', true], ['Pere vaatab tihti filme.', false], ['Talvel käib pere uisutamas.', true],
+      ]),
+      B.notice('009_d_notice', 'Märka: koos, tavaliselt, sest', ['Mulle **meeldib koos** isa**ga** süüa **teha**. (meeldib + da-vorm)', 'Kellega? koos tütre**ga**, koos koera Muki**ga**', 'Me jalutame **tavaliselt** pargis. **Vahel** sõidame maale.', 'Filme vaatame **harva**, **sest** Jaanile meeldib rääkida.', 'Ettepanek: **Kas lähme** …? **Äkki** …? — **Hea mõte!** / **Kahjuks ei saa, sest** …'], 'full'),
+      B.categorize('009_d_sort', 'Kui tihti?', 'Sorteeri sõnad kolme rühma.', [
+        ['Tihti', ['alati', 'tavaliselt', 'sageli', 'iga päev']], ['Mõnikord', ['vahel', 'mõnikord', 'aeg-ajalt']], ['Harva või mitte', ['harva', 'peaaegu kunagi', 'mitte kunagi']],
+      ]),
+      B.wordforms('009_d_forms', 'Mulle meeldib…', 'Kirjuta tegusõna da-vormis.', [
+        ['jalutama', 'da-vorm', 'jalutada'], ['mängima', 'da-vorm', 'mängida'], ['ujuma', 'da-vorm', 'ujuda'], ['vaatama', 'da-vorm', 'vaadata'],
+        ['tegema', 'da-vorm', 'teha'], ['sõitma', 'da-vorm', 'sõita'], ['uisutama', 'da-vorm', 'uisutada'], ['matkama', 'da-vorm', 'matkata'],
+      ]),
+      B.dialogue('009_d_dialog', 'Ettepanek.', 'Täida dialoog sobivate sõnadega.', 'Helen', 'Jaan', [
+        ['A', 'Jaan, [kas] lähme pühapäeval metsa matkama?'], ['B', 'Hea [mõte]! Võtame Muki ka kaasa.'], ['A', 'Muidugi. Kas me [sõidame] ka sinu ema juurde?'],
+        ['B', 'Kahjuks mitte, [sest] ema on sel nädalal Soomes.'], ['A', 'Siis teeme õhtul [koos] süüa?'], ['B', 'Jah! Ja pärast mängime [lauamänge].'],
+      ]),
+      B.choice('009_d_choice', 'Mida vastata?', 'Vali sobiv vastus.', [
+        ['Kas lähme laupäeval kinno?', 'Hea mõte! Mis kell?', 'Jah, ma käisin seal eile.', 'Kino on kesklinnas.'],
+        ['Äkki teeme pühapäeval pannkooke?', 'Jah, mina ostan jahu.', 'Pannkoogid olid eile.', 'Ma ei tea, kus pood on.'],
+        ['Kas sa tuled meiega matkama?', 'Kahjuks ei saa, sest olen tööl.', 'Ma matkasin eile kaua.', 'Mets on linnast kaugel.'],
+        ['Kui tihti te perega kohtute?', 'Tavaliselt iga pühapäev.', 'Eile õhtul kell viis.', 'Meie pere on suur.'],
+        ['Miks sulle meeldib vennaga aega veeta?', 'Sest temaga on lõbus.', 'Ta elab Tartus.', 'Vend on 30-aastane.'],
+      ], 'full', 'g_use'),
+      B.listening('009_d_listen', 'Kuula: Liisi nädalavahetus.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Liis. Ma töötan koolis õpetajana.',
+        'Mul on vähe vaba aega, aga nädalavahetus on pere jaoks.',
+        'Laupäeval käin tavaliselt ema juures. Ema on 70 ja elab üksi.',
+        'Me joome koos kohvi ja räägime pikalt. Vahel teeme ka aiatööd.',
+        'Mu õde elab Pärnus. Me näeme harva, sest tee on pikk.',
+        'Aga me helistame teineteisele iga päev.',
+        'Suvel läheme õega koos mere äärde. See on meie ühine traditsioon.',
+        'Mulle meeldib õega aega veeta, sest temaga on alati lõbus.',
+      ], ['Laupäeval käib Liis tavaliselt [ema] juures.', 'Liis ja ema joovad koos [kohvi].', 'Vahel teevad nad [aiatööd].', 'Liisi õde elab [Pärnus].', 'Õed helistavad teineteisele iga [päev].', 'Suvel lähevad õed mere [äärde].']),
+      B.dictation('009_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Me veedame pühapäeva koos.', 'Tavaliselt jalutame pargis.', 'Vahel sõidame vanaema juurde.', 'Filme vaatame harva.', 'Mulle meeldib koos isaga süüa teha.', 'Õhtul mängime lauamänge.']),
+      B.translation('009_d_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Мне нравится гулять с собакой.', 'Обычно мы обедаем вместе.', 'Иногда мы играем в настольные игры.', 'Мы редко смотрим фильмы.', 'Я скучаю по брату.', 'Давай пойдём в кино?']),
+      B.speaking('009_d_say', 'Minu lähedane.', 'Räägi 1,5 minutit inimesest, kellega veedad palju aega.', ['Kes ta on?', 'Mida te tavaliselt koos teete?', 'Mida te teete vahel?', 'Miks see sulle meeldib?'], [60, 120], ['Me tavaliselt…', 'Vahel me…', 'Mulle meeldib, sest…']),
+      B.writing('009_d_write', 'Minu pühapäev.', 'Kirjuta 6–8 lauset: kellega veedad pühapäeva ja miks.', [6, 8], ['koos', 'tavaliselt', 'vahel', 'sest'], 3),
+      B.selfcheck('009_d_self', ['Ma nimetan 8 ühist tegevust.', 'Ma ütlen, kui tihti: tavaliselt, vahel, harva.', 'Ma põhjendan sõnaga „sest”.', 'Ma teen ettepaneku ja vastan sellele.'], 'Koos on tore'),
+    ],
     practice: [
       B.diagram('009_p_map', 'mind', { title: 'Mida me koos teeme?', instruction: 'Kirjuta puuduvad tegusõnad.', center: 'Koos', nodes: 'kodus\n- [teeme] süüa\n- vaatame filmi\nõues\n- [jalutame]\n- sõidame rattaga\nreisil\n- [ujume]\n- pildistame' }),
       B.match('009_p_why', 'Tegevus ja põhjus.', 'Ühenda lause algus ja põhjus.', [
@@ -302,6 +476,43 @@ export const LESSONS = {
   'a2b1-010': {
     title: 'Kontroll 2 — pere ja suhted',
     canDo: 'Ma saan pere ja suhete teemalisest tekstist aru ning kasutan kirjeldusi ja kuuluvuse vorme iseseisvalt.',
+    discover: [
+      B.text('010_d_intro', 'Kordame moodulit', 'Järgmises tunnis on kontroll. Täna kordad mooduli 2 teemasid: pere, välimus ja iseloom, kelle oma ja ühine aeg. Loe, kuula, räägi ja kirjuta.'),
+      B.vocab('010_d_vocab', 'Kordamise sõnad', ['silm — глаз', 'rõõmsameelne — жизнерадостный', 'hooliv — заботливый', 'vaikne — тихий', 'korralik — аккуратный', 'osav — умелый', 'tõsine — серьёзный', 'põlvkond — поколение', 'kaugel — далеко', 'tähtis — важный', 'sarnane — похожий', 'erinev — разный'], '2'),
+      B.reading('010_d_read', 'Loe: suur pere.', 'Loe teksti ja vasta küsimustele.', 'Kolm põlvkonda ühes majas',
+        'Viktor on 63-aastane ja elab Tartus suures majas. Majas elab kolm põlvkonda. Esimesel korrusel elavad Viktor ja tema naine Tiina. Teisel korrusel elab nende poeg Marko koos perega. Marko naine on Kersti ja neil on kaks last. Viktor on vaikne, aga väga osav. Ta parandab kõike, mis on katki. Tiina on rõõmsameelne ja hooliv. Ta teeb pühapäeval kogu perele lõunat. Marko on Viktoriga väga sarnane. Tal on samuti sinised silmad ja ta on vaikne. Lapsed on aga väga erinevad. Poeg Rasmus on tõsine ja korralik. Tütar Mia on naljakas ja räägib palju. Vahel on majas lärmakas, aga keegi ei ole üksi. Viktori tütar elab Saksamaal. Ta elab kaugel, aga helistab iga nädal. Viktor ütleb: „Pere on mulle kõige tähtsam.”',
+        [['Mitu põlvkonda majas elab?', 'kolm|3'], ['Kes elab teisel korrusel?', 'Marko pere|Marko koos perega|poeg Marko'], ['Mida Viktor hästi oskab?', 'parandada|ta parandab kõike'], ['Kellega on Marko sarnane?', 'Viktoriga|isaga'], ['Milline on Rasmus?', 'tõsine ja korralik'], ['Kus elab Viktori tütar?', 'Saksamaal']]),
+      B.match('010_d_match', 'Kes on milline?', 'Ühenda inimene ja kirjeldus.', [
+        ['Viktor', 'vaikne, aga osav'], ['Tiina', 'rõõmsameelne ja hooliv'], ['Marko', 'isaga sarnane'], ['Rasmus', 'tõsine ja korralik'], ['Mia', 'naljakas ja jutukas'], ['Viktori tütar', 'elab kaugel'],
+      ], 'full', 'g_read'),
+      B.notice('010_d_notice', 'Mooduli 2 mustrid', ['Kelle? ema → **ema**, vend → **venna**, õde → **õe**, poeg → **poja**', '**Ta on** rõõmsameelne. **Tal on** sinised silmad.', 'Kes ta sulle on? — Ta on minu **isa õde**.', 'Kelle oma? — See on **minu** / **nende** oma.', 'Me kohtume **harva**, **sest** elame kaugel.'], 'full'),
+      B.table('010_d_table', 'Omastav.', 'Kirjuta puuduv vorm.', 'nimetav, omastav (kelle?), näide', [
+        'vend | [venna] | venna auto', 'õde | [õe] | õe tuba', 'poeg | [poja] | poja kool', 'tütar | [tütre] | tütre sünnipäev', 'naaber | [naabri] | naabri koer', 'nemad | [nende] | nende maja',
+      ], 'g_notice'),
+      B.gaps('010_d_gaps', 'Täida lüngad.', 'Loe teksti uuesti. Kirjuta sobiv sõna.', [
+        'Marko on Viktori ja Tiina [poeg].', 'Rasmus ja Mia on Viktori [lapselapsed].', 'Markol [on] sinised silmad.', 'Tiina teeb lõunat, [sest] pere on talle tähtis.', 'Viktori tütar elab [kaugel], Saksamaal.', 'Marko on isaga väga [sarnane].',
+      ], ['poeg', 'lapselapsed', 'on', 'sest', 'kaugel', 'sarnane', 'erinev', 'aga']),
+      B.errorfix('010_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Minu vend naine on arst.', 'Minu venna naine on arst.'], ['Minu tädi on pikad heledad juuksed.', 'Minu tädil on pikad heledad juuksed.'], ['See on meie naaber koer.', 'See on meie naabri koer.'],
+        ['Me kohtume harva, sest me elame kaugele.', 'Me kohtume harva, sest me elame kaugel.'], ['Tal on väga hooliv.', 'Ta on väga hooliv.'],
+      ]),
+      B.wordorder('010_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Minu venna tütar on väga rõõmsameelne.', 'Me kohtume harva, sest elame kaugel.', 'Vanaisal on sinised silmad.', 'Kelle oma see punane auto on?', 'Pühapäeval sööme tavaliselt koos.']),
+      B.listening('010_d_listen', 'Kuula: parim sõbranna.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Anna. Täna räägin oma parimast sõbrannast.',
+        'Tema nimi on Kristi. Me tunneme teineteist juba koolist.',
+        'Kristi on lühike ja tal on lokkis punased juuksed.',
+        'Ta on väga rõõmsameelne, aga natuke hajameelne.',
+        'Kristi elab nüüd Tartus ja mina Tallinnas. Me kohtume harva.',
+        'Aga me helistame tavaliselt kaks korda nädalas.',
+        'Suvel läheme koos matkama, sest mõlemale meeldib loodus.',
+        'Kristi on mulle nagu õde.',
+      ], ['Anna ja Kristi tunnevad teineteist [koolist].', 'Kristil on lokkis punased [juuksed].', 'Kristi on rõõmsameelne, aga natuke [hajameelne].', 'Kristi elab praegu [Tartus].', 'Sõbrannad helistavad [kaks|2] korda nädalas.', 'Suvel lähevad nad koos [matkama].']),
+      B.dictation('010_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Majas elab kolm põlvkonda.', 'Vanaema on rõõmsameelne ja hooliv.', 'Tal on sinised silmad.', 'See on minu venna auto.', 'Me kohtume harva, sest elame kaugel.']),
+      B.translation('010_d_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Это дом моих родителей.', 'У неё голубые глаза.', 'Мой дедушка тихий, но умелый.', 'Мы обычно встречаемся в воскресенье.', 'Семья для меня очень важна.']),
+      B.speaking('010_d_say', 'Pere pilt.', 'Kirjelda oma pere või sõprade fotot 1 minut.', ['Kes on pildil?', 'Kes ta sulle on?', 'Milline ta on?', 'Mida te koos teete?'], [60, 90], ['Pildil on minu…', 'Ta on…', 'Tal on…']),
+      B.writing('010_d_write', 'Kiri sõbrale.', 'Kirjuta 6–8 lauset ühest pereliikmest: kes, milline, mida koos teete.', [6, 8], ['ta on', 'tal on', 'koos', 'sest'], 3),
+      B.selfcheck('010_d_self', ['Ma tutvustan oma peret.', 'Ma kirjeldan välimust ja iseloomu.', 'Ma kasutan kelle-vormi õigesti.', 'Ma räägin ühisest ajast ja põhjendan.'], 'Valmis kontrolliks'),
+    ],
     practice: [
       B.tip('010_p_how', 'Lugemine ja kuulamine (eksami vormis)', 'See leht on nagu Harno A2 eksam: viis lugemisülesannet ja kaks kuulamisülesannet. Tee kõik ilma abita. Kuulamistekstid loeb õpetaja kaks korda.', 'full'),
       // reading 1: everyday phrases and politeness
