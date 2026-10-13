@@ -609,9 +609,9 @@ export const LESSONS = {
       ]),
       // listening 1: a monologue about childhood
       B.listening('080_p_listen', 'Kuulamine 1. Viktori lapsepõlv.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Mina olen Viktor. Ma sündisin Tartus.', 'Lapsena elasin vanavanematega maal.', 'Meil oli kaks lehma ja palju kanu.', 'Igal hommikul tõin ma kanadelt mune.',
-        'Koolis käisin bussiga, sest kool oli kaugel.', 'Kaheteistkümneaastaselt kolisime linna, Tartusse.', 'Linnas oli kõik uus ja huvitav, aga ma igatsesin maad.',
-      ], ['Viktor sündis [Tartus].', 'Lapsena elas ta [vanavanematega] maal.', 'Neil oli [kaks|2] lehma.', 'Hommikul tõi Viktor [mune].', 'Kooli sõitis ta [bussiga].', 'Tartusse kolisid nad, kui Viktor oli [12|kaksteist] aastat vana.']),
+        'Tere! Mina olen Viktor. Ma sündisin Narva lähedal.', 'Lapsena elasin vanavanematega maal.', 'Meil oli kaks lehma ja palju kanu.', 'Igal hommikul tõin ma kanadelt mune.',
+        'Koolis käisin bussiga, sest kool oli kaugel.', 'Kaheteistkümneaastaselt kolisime linna, Narva.', 'Linnas oli kõik uus ja huvitav, aga ma igatsesin maad.',
+      ], ['Viktor sündis [Narva] lähedal.', 'Lapsena elas ta [vanavanematega] maal.', 'Neil oli [kaks|2] lehma.', 'Hommikul tõi Viktor [mune].', 'Kooli sõitis ta [bussiga].', 'Narva kolisid nad, kui Viktor oli [12|kaksteist] aastat vana.']),
       // listening 2: a dialogue between two friends
       B.listening('080_p_listen2', 'Kuulamine 2. Kaks sõpra.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
         '— Tere, Markus! Kuidas nädalavahetus läks?', '— Tere, Anna! Väga hästi. Ma käisin Hiiumaal.', '— Oi! Kas sa oled seal varem käinud?', '— Ei, see oli esimene kord. Me sõitsime praamiga.',

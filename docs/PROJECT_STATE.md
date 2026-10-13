@@ -109,7 +109,7 @@
   to extras (experts, journalists, other parents, other ages…), canon names of extras (Mart, Tiina, Kristel) not
   reused for other people; answer keys, transcripts and translations updated together; no task removed.
 - Audio: 50 recordings re-made. Tests: worksheet-generator 597 passed, 1 skipped (course gate passes).
-- Known: Viktor's city is Tartu in some A2 texts, „neighbour” in Tallinn elsewhere — one more small pass if the owner wants.
+- Viktor's city made consistent (2026-10-14, branch `agent/viktor-tallinn`): from Narva, lives in Tallinn (neighbour), country house near Tartu, wife Galina. Changed a2-005 (Tallinn; choir friends Maret and Ljuba), a2-052 discover (Tartu speaker is now Kati), a2-055 reading, a2-080 listening (born near Narva; audio rebuilt). worksheet-generator tests 605 passed. Next: republish A2 modules 1, 11, 16.
 
 ## 2026-10-13 · agent/diagram-redesign — „Skeem” v2: rows and cards instead of curved maps
 
