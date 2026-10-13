@@ -1,3 +1,14 @@
+## 2026-10-13 · agent/audio-in-review — the audio player stays on a checked sheet
+
+- Base: `main` 6369db2. Live check with the test student (a2b1-010 Harjuta assigned from the sheet page with the
+  #589 link): the sheet arrived as „Kontroll 2 — pere ja suhted · Harjuta”, both recordings load (1:09, 1:08), no
+  „õpetaja loeb”, transcript not shown, autosave works, submit scored 6/62 correctly (one wrong answer marked red).
+- Found: after submitting, the listening block showed the paper note „heli on veebis, kuula õpetaja juures” instead
+  of the player, so the student could not listen again while looking at the marks (same in the teacher's review).
+  `engine/blocks/extra.jsx`: `AudioBar` gets `interactive={ctx.interactive || ctx.review}`; print keeps the note.
+- Tests: `engine.test.jsx` +1; worksheet-studio + homework 283 passed.
+- Screens of the live check: `screens-2026-10-13/` (not committed).
+
 ## 2026-10-13 · agent/assign-phase-sheet — „Määra õpilastele” on an Avasta / Harjuta / Kasuta sheet assigns that sheet
 
 - Base: `main` 6c47f57. Found in a live check with the test student: „Määra õpilastele” on
