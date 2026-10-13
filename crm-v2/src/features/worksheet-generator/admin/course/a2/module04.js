@@ -136,7 +136,7 @@ export const LESSONS = {
         ['Õhtul me läheme ___.', 'kinno', 'kinos', 'kinost'], ['Ema töötab ___.', 'haiglas', 'haiglasse', 'haiglast'],
       ], 'full', 'g_notice'),
       B.notice('017_d_notice', 'Märka: sees (-s, -sse, -st)', ['Kus? → **-s**: kodu**s**, poe**s**, kooli**s**, haigla**s**', 'Kuhu? → **-sse**: haigla**sse**, Tartu**sse**', 'Kuhu? sageli lühike vorm: **poodi, kooli, kinno, koju, linna**', 'Kust? → **-st**: kodu**st**, poe**st**, kooli**st**, haigla**st**', 'olema, elama, töötama → **kus?**', 'minema, sõitma → **kuhu?** · tulema … välja → **kust?**']),
-      B.diagram('017_d_map', 'mind', { title: 'Kus? Kuhu? Kust?', instruction: 'Kirjuta vormid järjekorras: kus, kuhu, kust.', center: 'sees', nodes: 'kodu\n- [kodus]\n- [koju]\n- [kodust]\nkool\n- [koolis]\n- [kooli]\n- [koolist]\nkino\n- [kinos]\n- [kinno]\n- [kinost]' }, 'full'),
+      B.diagram('017_d_map', 'mind', { labels: 'kus?, kuhu?, kust?', title: 'Kus? Kuhu? Kust?', instruction: 'Kirjuta vormid järjekorras: kus, kuhu, kust.', center: 'sees', nodes: 'kodu\n- [kodus]\n- [koju]\n- [kodust]\nkool\n- [koolis]\n- [kooli]\n- [koolist]\nkino\n- [kinos]\n- [kinno]\n- [kinost]' }, 'full'),
       B.categorize('017_d_sort', 'Kus? Kuhu? Kust?', 'Pane vormid õigesse rühma.', [
         ['Kus?', ['kodus', 'poes', 'kinos', 'haiglas']], ['Kuhu?', ['koju', 'poodi', 'kinno', 'haiglasse']], ['Kust?', ['kodust', 'poest', 'kinost', 'haiglast']],
       ]),

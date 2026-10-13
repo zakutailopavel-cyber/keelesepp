@@ -37,6 +37,7 @@ export const diagram = {
         ) : (
           <>
             {kind !== 'flow' ? <Text label={kind === 'tree' ? 'Ülemine kast' : 'Keskmine kast'} value={data.center} onChange={(v) => set({ center: v })} placeholder="Minu päev  või  [lünk]" /> : null}
+            {kind === 'mind' ? <Text label="Ridade nimed (valikuline, komaga)" value={data.labels} onChange={(v) => set({ labels: v })} placeholder="kus?, kuhu?, kust?" hint="Igas harus on lünkadel need nimed — õpilane näeb, mis kuhu käib." /> : null}
             {kind === 'mind' ? (
               <Area label="Harud (iga rida üks haru, alamharu algab miinusega)" rows={10} value={data.nodes} onChange={(v) => set({ nodes: v })} hint={`Näide: hommikul ⏎ - ärkan ⏎ - [pesen] hambaid. Kuni ${MAX_MIND_LINES} rida. Lünk nurksulgudes: [päeval] või [päeval|lõunal].`} />
             ) : (

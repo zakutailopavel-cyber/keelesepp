@@ -657,3 +657,31 @@
 .ws-cloze-options li { break-inside: avoid; margin-bottom: 1.2mm; }
 .ws-cloze-options li span { margin-right: 4mm; white-space: nowrap; }
 .ws-cloze-options .ws-dot { display: inline-block; width: 3mm; height: 3mm; border: .3mm solid var(--ks-line); border-radius: 50%; vertical-align: -.3mm; }
+
+/* Skeem v2 (owner 2026-10-13: the curved maps were not understandable): rows and cards across the width, every blank
+   next to the word, question or step it belongs to */
+.ws-dg2 { display: grid; gap: 3mm; }
+.ws-dg2-topic { justify-self: center; padding: 1.5mm 6mm; border: .4mm solid #173a63; border-radius: 99px; background: #eef4ff; font: 700 4.2mm/1.2 var(--font-body); color: #173a63; }
+.ws-dg2-pairs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: column; gap: 2mm 8mm; }
+.ws-dg2-pair { display: grid; grid-template-columns: auto auto 1fr; align-items: end; gap: 2mm; padding: 1mm 0 1mm 2.5mm; border-left: 1.2mm solid var(--dg-c, #173a63); }
+.ws-dg2-cue { font-weight: 700; color: var(--dg-c, #173a63); min-width: 14mm; }
+.ws-dg2-to { color: #98a2b3; }
+.ws-dg2-fill .ws-line { width: 100% !important; }
+.ws-dg2-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(52mm, 1fr)); gap: 3mm; }
+.ws-dg2-card { border: .3mm solid #d0d5dd; border-top: 1.4mm solid var(--dg-c, #173a63); border-radius: 2mm; padding: 2mm 3mm 2.5mm; break-inside: avoid; }
+.ws-dg2-card header { font-weight: 700; color: var(--dg-c, #173a63); margin-bottom: 1.5mm; }
+.ws-dg2-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.8mm; }
+.ws-dg2-card li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1.5mm; line-height: 1.5; }
+.ws-dg2-card li::before { content: '•'; color: var(--dg-c, #173a63); }
+.ws-dg2-row-label { font-size: 3mm; font-weight: 700; color: #667085; min-width: 12mm; }
+.ws-dg2-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.ws-dg2-steps li { position: relative; display: grid; grid-template-columns: 8mm 1fr; align-items: center; gap: 3mm; padding: 1.6mm 0 4.6mm; }
+.ws-dg2-steps li:not(:last-child)::after { content: '↓'; position: absolute; left: 2.6mm; bottom: -.4mm; color: #2f7d4c; font-weight: 700; }
+.ws-dg2-num { display: grid; place-items: center; width: 7mm; height: 7mm; border-radius: 50%; background: #2f7d4c; color: #fff; font-weight: 700; font-size: 3.4mm; }
+.ws-dg2-text { line-height: 1.6; }
+.ws-dg2-again { margin: 0; color: #2f7d4c; font-weight: 700; font-size: 3.2mm; }
+.ws-dg2-time { list-style: none; margin: 0; padding: 0; display: grid; }
+.ws-dg2-time li { display: grid; grid-template-columns: 18mm 5mm 1fr; align-items: center; gap: 2mm; padding: 1.4mm 0; position: relative; }
+.ws-dg2-when { justify-self: end; padding: .6mm 2.4mm; border-radius: 99px; background: #173a63; color: #fff; font-weight: 700; font-size: 3.2mm; }
+.ws-dg2-dot { width: 3mm; height: 3mm; border-radius: 50%; border: .6mm solid #2f7d4c; background: #fff; justify-self: center; position: relative; z-index: 1; }
+.ws-dg2-time li:not(:last-child)::after { content: ''; position: absolute; left: calc(18mm + 2mm + 2.5mm - .2mm); top: 50%; height: 100%; border-left: .4mm solid #cfe3d6; }
