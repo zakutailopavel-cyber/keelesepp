@@ -81,25 +81,25 @@ export const LESSONS = {
     transfer: [
       B.text('076_t_situation', 'Uus olukord', 'Eile õhtul kadus kontorist juhataja sülearvuti. Täna küsib juhataja kõigilt töötajatelt: „Mida te eile tegite? Kus te olite?” Sina olid eile ka tööl.'),
       B.reading('076_t_read', 'Loe kolleegide vastuseid.', 'Loe vastuseid ja vasta küsimustele.', 'Kus te eile olite?', [
-        'Kati: Eile olin tööl kella üheksast viieni. Lõunal sõin kohvikus. Kell viis läksin bussiga koju. Õhtul ma kontoris ei olnud. Ma vaatasin kodus filmi ja läksin vara magama.',
+        'Pille: Eile olin tööl kella üheksast viieni. Lõunal sõin kohvikus. Kell viis läksin bussiga koju. Õhtul ma kontoris ei olnud. Ma vaatasin kodus filmi ja läksin vara magama.',
         'Anna: Mina lõpetasin töö kell kuus. Ma nägin, et juhataja kabineti uks oli lahti. Arvuti oli laual. Siis läksin ma trenni. Trennis olin kella kaheksani.',
-        'Igor: Ma olin kontoris kella seitsmeni. Kell pool seitse tuli koristaja. Ta koristas ka juhataja kabinetti. Ma ei näinud, et keegi arvuti võttis. Kell seitse panin ukse lukku ja läksin koju.',
-      ], [['Mis kell Kati koju läks?', 'kell viis|viis|5'], ['Mida Kati õhtul tegi?', 'vaatas filmi|vaatas kodus filmi'], ['Mida Anna kell kuus nägi?', 'arvuti oli laual|kabineti uks oli lahti'], ['Kuhu Anna pärast tööd läks?', 'trenni'], ['Kes oli kontoris kõige kauem?', 'Igor'], ['Kes tuli kell pool seitse?', 'koristaja']]),
+        'Siim: Ma olin kontoris kella seitsmeni. Kell pool seitse tuli koristaja. Ta koristas ka juhataja kabinetti. Ma ei näinud, et keegi arvuti võttis. Kell seitse panin ukse lukku ja läksin koju.',
+      ], [['Mis kell Pille koju läks?', 'kell viis|viis|5'], ['Mida Pille õhtul tegi?', 'vaatas filmi|vaatas kodus filmi'], ['Mida Anna kell kuus nägi?', 'arvuti oli laual|kabineti uks oli lahti'], ['Kuhu Anna pärast tööd läks?', 'trenni'], ['Kes oli kontoris kõige kauem?', 'Siim'], ['Kes tuli kell pool seitse?', 'koristaja']]),
       B.table('076_t_table', 'Kes, kus, mis kell?', 'Kirjuta tekstist info.', 'Inimene, Kus ta õhtul oli?, Mis kellani ta tööl oli?', [
-        'Kati | [kodus] | [kella viieni/viieni/5-ni]', 'Anna | [trennis] | [kella kuueni/kuueni/6-ni]', 'Igor | [kontoris] | [kella seitsmeni/seitsmeni/7-ni]',
+        'Pille | [kodus] | [kella viieni/viieni/5-ni]', 'Anna | [trennis] | [kella kuueni/kuueni/6-ni]', 'Siim | [kontoris] | [kella seitsmeni/seitsmeni/7-ni]',
       ], 'g_read'),
       B.transformation('076_t_trans', 'Juhataja küsib.', 'Kirjuta küsimus. Vastus on antud.', [
         ['Ma olin tööl.', 'Kus …?', 'Kus te olite?|Kus sa olid?'], ['Ma läksin kell viis koju.', 'Mis kell …?', 'Mis kell te koju läksite?|Mis kell sa koju läksid?'], ['Ma nägin arvutit laual.', 'Mida …?', 'Mida te nägite?|Mida sa nägid?'],
         ['Ma ei näinud kedagi.', 'Keda …?', 'Keda te nägite?|Keda sa nägid?'], ['Ma tegin aruannet.', 'Mida …?', 'Mida te tegite?|Mida sa tegid?'],
       ]),
       B.errorfix('076_t_fix', 'Paranda vastused.', 'Kirjuta lause õigesti.', [
-        ['Ma ei olin eile kontoris.', 'Ma ei olnud eile kontoris.'], ['Anna nägis arvutit laual.', 'Anna nägi arvutit laual.'], ['Kati läks koju ja vaatis filmi.', 'Kati läks koju ja vaatas filmi.'],
-        ['Koristaja tulis kell pool seitse.', 'Koristaja tuli kell pool seitse.'], ['Igor ei võttis arvutit.', 'Igor ei võtnud arvutit.'],
+        ['Ma ei olin eile kontoris.', 'Ma ei olnud eile kontoris.'], ['Anna nägis arvutit laual.', 'Anna nägi arvutit laual.'], ['Pille läks koju ja vaatis filmi.', 'Pille läks koju ja vaatas filmi.'],
+        ['Koristaja tulis kell pool seitse.', 'Koristaja tuli kell pool seitse.'], ['Siim ei võttis arvutit.', 'Siim ei võtnud arvutit.'],
       ]),
       B.wordorder('076_t_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Eile olin ma kontoris kella kuueni.', 'Siis läksin ma bussiga koju.', 'Ma ei näinud juhataja arvutit.', 'Õhtul vaatasin ma kodus filmi.', 'Kus te eile kell seitse olite?']),
       B.translation('076_t_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Вчера я был в офисе до шести.', 'Потом я поехал домой.', 'Я не видел компьютер.', 'Уборщица пришла в половине седьмого.', 'Где вы были вчера вечером?']),
       B.listening('076_t_listen', 'Kuula juhataja sõnumit.', 'Õpetaja loeb sõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere kõigile! Siin Liis, teie juhataja.', 'Mul on hea uudis. Arvuti on leitud!', 'Eile õhtul koristas koristaja minu kabinetti.', 'Ta nägi arvutit laual ja pani selle kappi.', 'Vabandust kõigile! Täna toon ma tööle kooki.',
+        'Tere kõigile! Siin Margit, teie juhataja.', 'Mul on hea uudis. Arvuti on leitud!', 'Eile õhtul koristas koristaja minu kabinetti.', 'Ta nägi arvutit laual ja pani selle kappi.', 'Vabandust kõigile! Täna toon ma tööle kooki.',
       ], ['Arvuti on [leitud].', 'Kabinetti koristas eile [koristaja].', 'Koristaja pani arvuti [kappi].', 'Juhataja toob täna [kooki].']),
       B.planning('076_t_plan', 'Minu eilne päev.', 'Kirjuta märksõnad.', ['Mis kell sa tööle tulid?', 'Mida sa päeval tegid?', 'Mis kell sa lahkusid?', 'Mida sa õhtul tegid? Mida sa ei teinud?']),
       B.rolecards('076_t_roles', 'Juhataja küsimused.', 'A on juhataja, B on töötaja. Siis vahetage.',
@@ -116,19 +116,19 @@ export const LESSONS = {
     title: 'Mis eile juhtus?',
     canDo: 'Ma räägin hiljutisest sündmusest 8 seotud lausega õiges järjekorras (eile, kõigepealt, siis, pärast seda, äkki, lõpuks) ja vastan küsimustele detailide kohta.',
     discover: [
-      B.text('077_d_situation', 'Telefonikõne', 'Õhtul helistab Kati sõbrannale Liisile. „Kas sa kuulsid, mis eile juhtus? Jaan kukkus rattaga!” Liis on ehmunud. Ta tahab kõike täpselt teada.'),
-      B.dialogue('077_d_dialog', 'Mis juhtus?', 'Loe vestlust. Täida lüngad.', 'Liis', 'Kati', [
+      B.text('077_d_situation', 'Telefonikõne', 'Õhtul helistab Kristel sõbrannale Liisile. „Kas sa kuulsid, mis eile juhtus? Jaan kukkus rattaga!” Liis on ehmunud. Ta tahab kõike täpselt teada.'),
+      B.dialogue('077_d_dialog', 'Mis juhtus?', 'Loe vestlust. Täida lüngad.', 'Liis', 'Kristel', [
         ['A', 'Oi! Mis [juhtus]?'], ['B', 'Eile hommikul sõitis Jaan rattaga tööle. [Äkki] jooksis tee peale koer.'], ['A', 'Ja siis?'], ['B', 'Jaan pidurdas, aga [kukkus] ratta pealt maha.'],
         ['A', 'Kas ta sai haiget?'], ['B', 'Natuke. [Kõigepealt] helistas ta mulle. [Siis] viisin ma ta arsti juurde.'], ['A', 'Mida arst ütles?'], ['B', 'Käsi ei ole katki. [Pärast seda] läksime apteeki.'],
         ['A', 'Ja koer?'], ['B', '[Lõpuks] tuli koera omanik. See oli suur [üllatus]: ta oli Jaani vana koolivend!'],
       ]),
       B.vocab('077_d_vocab', 'Lugu järjekorras', ['juhtuma — случаться', 'õnnetus — несчастный случай', 'kukkuma — падать', 'kaotama — терять', 'leidma — находить', 'üllatus — сюрприз', 'äkki — вдруг', 'kõigepealt — сначала', 'siis — потом', 'pärast seda — после этого', 'lõpuks — наконец', 'eile hommikul / õhtul — вчера утром / вечером'], '2'),
       B.reading('077_d_read', 'Loe: Jaani sõnum.', 'Loe sõnumit ja vasta küsimustele.', 'Head kolleegid!',
-        'Head kolleegid! Täna ma tööle ei tule. Eile hommikul juhtus mul väike õnnetus. Ma sõitsin rattaga tööle. Pargi juures jooksis äkki tee peale suur koer. Ma pidurdasin, aga kukkusin. Kõigepealt ei saanud ma aru, mis juhtus. Siis tuli üks naine ja aitas mind üles. Pärast seda helistasin Katile. Kati viis mind arsti juurde. Arst tegi röntgeni. Õnneks ei ole käsi katki, aga see valutab. Ratas on ka natuke katki. Lõpuks tuli koera omanik. See oli suur üllatus. Ta oli minu vana koolivend Peeter! Ta maksab ratta parandamise eest. Homme tulen jälle tööle. Jaan',
-        [['Miks Jaan täna tööle ei tule?', 'tal juhtus õnnetus|ta kukkus rattaga|käsi valutab'], ['Kus õnnetus juhtus?', 'pargi juures'], ['Kes aitas Jaani üles?', 'üks naine|naine'], ['Kellele Jaan helistas?', 'Katile'], ['Mida arst ütles?', 'käsi ei ole katki'], ['Kes oli koera omanik?', 'Jaani vana koolivend|Peeter|tema koolivend Peeter'], ['Kes maksab ratta parandamise eest?', 'Peeter|koera omanik']]),
+        'Head kolleegid! Täna ma tööle ei tule. Eile hommikul juhtus mul väike õnnetus. Ma sõitsin rattaga tööle. Pargi juures jooksis äkki tee peale suur koer. Ma pidurdasin, aga kukkusin. Kõigepealt ei saanud ma aru, mis juhtus. Siis tuli üks naine ja aitas mind üles. Pärast seda helistasin naisele Kristelile. Kristel viis mind arsti juurde. Arst tegi röntgeni. Õnneks ei ole käsi katki, aga see valutab. Ratas on ka natuke katki. Lõpuks tuli koera omanik. See oli suur üllatus. Ta oli minu vana koolivend Peeter! Ta maksab ratta parandamise eest. Homme tulen jälle tööle. Jaan',
+        [['Miks Jaan täna tööle ei tule?', 'tal juhtus õnnetus|ta kukkus rattaga|käsi valutab'], ['Kus õnnetus juhtus?', 'pargi juures'], ['Kes aitas Jaani üles?', 'üks naine|naine'], ['Kellele Jaan helistas?', 'Kristelile|naisele|oma naisele|naisele Kristelile'], ['Mida arst ütles?', 'käsi ei ole katki'], ['Kes oli koera omanik?', 'Jaani vana koolivend|Peeter|tema koolivend Peeter'], ['Kes maksab ratta parandamise eest?', 'Peeter|koera omanik']]),
       B.notice('077_d_notice', 'Märka: kuidas lugu rääkida?', ['Algus: **Eile hommikul…** **Pargi juures…**', 'Järjekord: **kõigepealt → siis → pärast seda → lõpuks**', 'Ootamatu asi: **Äkki** jooksis koer tee peale.', 'Tunne: **Õnneks… / Kahjuks…** See oli suur **üllatus**!', 'Ajasõna järel on tegusõna: **Siis tuli** üks naine. (mitte: Siis üks naine tuli)'], 'full'),
-      B.wordorder('077_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Eile hommikul sõitis Jaan rattaga tööle.', 'Äkki jooksis tee peale koer.', 'Siis tuli üks naine appi.', 'Pärast seda helistas Jaan Katile.', 'Lõpuks tuli koera omanik.']),
-      B.manymatch('077_d_qa', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus loost.', ['Millal see juhtus?', 'Kus see juhtus?', 'Mis juhtus kõigepealt?', 'Kes aitas?', 'Kuidas lugu lõppes?'], ['Eile hommikul.', 'Pargi juures.', 'Koer jooksis tee peale.', 'Üks naine ja Kati.', 'Koera omanik maksab ratta eest.'], 'full', 'g_read'),
+      B.wordorder('077_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Eile hommikul sõitis Jaan rattaga tööle.', 'Äkki jooksis tee peale koer.', 'Siis tuli üks naine appi.', 'Pärast seda helistas Jaan Kristelile.', 'Lõpuks tuli koera omanik.']),
+      B.manymatch('077_d_qa', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus loost.', ['Millal see juhtus?', 'Kus see juhtus?', 'Mis juhtus kõigepealt?', 'Kes aitas?', 'Kuidas lugu lõppes?'], ['Eile hommikul.', 'Pargi juures.', 'Koer jooksis tee peale.', 'Üks naine ja Kristel.', 'Koera omanik maksab ratta eest.'], 'full', 'g_read'),
       B.choice('077_d_choice', 'Vali sobiv sõna.', 'Vali lünka sobiv ajasõna.', [
         ['Ma ärkasin kell seitse. ___ jõin kohvi.', 'Siis', 'Eile', 'Homme'], ['Ma kõndisin pargis. ___ hakkas sadama!', 'Äkki', 'Lõpuks', 'Kõigepealt'], ['___ läksin poodi, siis koju.', 'Kõigepealt', 'Lõpuks', 'Äkki'],
         ['Otsisin võtmeid kaks tundi. ___ leidsin need!', 'Lõpuks', 'Kõigepealt', 'Homme'], ['Kaotasin telefoni. ___ leidis naaber selle.', 'Õnneks', 'Kahjuks', 'Kõigepealt'], ['Läksin poodi, aga ___ oli see kinni.', 'kahjuks', 'õnneks', 'kõigepealt'],
@@ -169,7 +169,7 @@ export const LESSONS = {
       ]),
       B.errorfix('077_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Siis Sofia läks kohvikusse.', 'Siis läks Sofia kohvikusse.'], ['Äkki tuled läksid põlema.', 'Äkki läksid tuled põlema.'], ['Lõpuks me tantsime kella üheni.', 'Lõpuks tantsisime me kella üheni.|Lõpuks me tantsisime kella üheni.'],
-        ['Eile ma kukun trepil.', 'Eile kukkusin ma trepil.|Eile ma kukkusin trepil.'], ['Pärast seda Jaan helistas Katile.', 'Pärast seda helistas Jaan Katile.'],
+        ['Eile ma kukun trepil.', 'Eile kukkusin ma trepil.|Eile ma kukkusin trepil.'], ['Pärast seda Jaan helistas Kristelile.', 'Pärast seda helistas Jaan Kristelile.'],
       ]),
       B.cloze('077_p_cloze', 'Jaani tänukiri.', 'Vali igasse lünka sobiv sõna.', 'Tere, Peeter!', [
         'Aitäh, et sa eile mind {*aitasid|aitad|aitama}! {*Kõigepealt|Lõpuks|Homme} olin ma väga ehmunud, aga sa olid väga lahke.',
@@ -293,18 +293,18 @@ export const LESSONS = {
         'Eelmisel laupäeval [sõitis] (sõitma) Sofia rongiga Tartusse.', 'Rongis [luges] (lugema) ta raamatut.', 'Tartus [ootas] (ootama) teda vana sõbranna.',
         'Nad [jõid] (jooma) kohvikus kohvi.', 'Õhtul [läksid] (minema) nad teatrisse.', 'Sofia [tuli] (tulema) koju alles pühapäeval.',
       ]),
-      B.reading('078_p_read', 'Loe: Viktori halb hommik.', 'Loe lugu ja vasta küsimustele.', 'Halb hommik', [
-        'Teisipäeva hommikul ärkas Viktor liiga hilja. Tema äratuskell ei helisenud, sest telefon oli tühi. Ta pani kiiresti riided selga ja jooksis bussipeatusse. Kahjuks sõitis buss just minema. Järgmine buss tuli alles kahekümne minuti pärast. Viktor helistas oma ülemusele ja ütles, et jääb hiljaks. Ülemus vastas, et see ei ole probleem.',
-        'Bussis märkas Viktor, et tal on jalas eri värvi sokid. Üks oli must, teine sinine. Tööl naersid kolleegid tema üle, aga ka Viktor ise naeris. Lõuna ajal ostis ta poest uued sokid. Õhtul laadis ta telefoni täis ja pani kella helisema kaks korda.',
+      B.reading('078_p_read', 'Loe: Markuse halb hommik.', 'Loe lugu ja vasta küsimustele.', 'Halb hommik', [
+        'Teisipäeva hommikul ärkas Markus liiga hilja. Tema äratuskell ei helisenud, sest telefon oli tühi. Ta pani kiiresti riided selga ja jooksis bussipeatusse. Kahjuks sõitis buss just minema. Järgmine buss tuli alles kahekümne minuti pärast. Markus helistas oma ülemusele ja ütles, et jääb hiljaks. Ülemus vastas, et see ei ole probleem.',
+        'Bussis märkas Markus, et tal on jalas eri värvi sokid. Üks oli must, teine sinine. Tööl naersid kolleegid tema üle, aga ka Markus ise naeris. Lõuna ajal ostis ta poest uued sokid. Õhtul laadis ta telefoni täis ja pani kella helisema kaks korda.',
       ], [
-        ['Miks äratuskell ei helisenud?', 'telefon oli tühi'], ['Miks ei saanud Viktor esimese bussiga sõita?', 'buss sõitis just minema|buss läks ära|ta jäi hiljaks'],
-        ['Kui kaua ootas ta järgmist bussi?', 'kakskümmend minutit|20 minutit'], ['Mida Viktor bussis märkas?', 'tal olid eri värvi sokid|sokid olid eri värvi'],
-        ['Mida tegi Viktor lõuna ajal?', 'ostis uued sokid'], ['Mida tegi Viktor õhtul teisiti?', 'laadis telefoni täis|pani kella helisema kaks korda'],
+        ['Miks äratuskell ei helisenud?', 'telefon oli tühi'], ['Miks ei saanud Markus esimese bussiga sõita?', 'buss sõitis just minema|buss läks ära|ta jäi hiljaks'],
+        ['Kui kaua ootas ta järgmist bussi?', 'kakskümmend minutit|20 minutit'], ['Mida Markus bussis märkas?', 'tal olid eri värvi sokid|sokid olid eri värvi'],
+        ['Mida tegi Markus lõuna ajal?', 'ostis uued sokid'], ['Mida tegi Markus õhtul teisiti?', 'laadis telefoni täis|pani kella helisema kaks korda'],
       ]),
-      B.diagram('078_p_line', 'timeline', { title: 'Viktori päev.', instruction: 'Kirjuta tegusõna lihtminevikus.', nodes: '7.40 | Viktor [ärkas] liiga hilja\n7.50 | ta [jooksis] bussipeatusse\n8.10 | ta [helistas] ülemusele\n12.30 | ta [ostis] uued sokid\n21.00 | ta [laadis] telefoni täis' }, 'full'),
-      B.truefalse('078_p_tf', 'Õige või vale?', 'Loe Viktori lugu uuesti.', [
-        ['Viktor ärkas õigel ajal.', false], ['Viktor helistas ülemusele.', true], ['Ülemus oli väga vihane.', false],
-        ['Viktori sokid olid eri värvi.', true], ['Kolleegid naersid Viktori üle.', true],
+      B.diagram('078_p_line', 'timeline', { title: 'Markuse päev.', instruction: 'Kirjuta tegusõna lihtminevikus.', nodes: '7.40 | Markus [ärkas] liiga hilja\n7.50 | ta [jooksis] bussipeatusse\n8.10 | ta [helistas] ülemusele\n12.30 | ta [ostis] uued sokid\n21.00 | ta [laadis] telefoni täis' }, 'full'),
+      B.truefalse('078_p_tf', 'Õige või vale?', 'Loe Markuse lugu uuesti.', [
+        ['Markus ärkas õigel ajal.', false], ['Markus helistas ülemusele.', true], ['Ülemus oli väga vihane.', false],
+        ['Markuse sokid olid eri värvi.', true], ['Kolleegid naersid Markuse üle.', true],
       ]),
       B.transformation('078_p_trans', 'Täna → eile.', 'Kirjuta lause minevikus.', [
         ['Täna ärkan ma vara.', 'Eile …', 'Eile ärkasin ma vara.|Eile ma ärkasin vara.'],
@@ -314,7 +314,7 @@ export const LESSONS = {
         ['Täna nad naeravad palju.', 'Eile …', 'Eile naersid nad palju.|Eile nad naersid palju.'],
       ]),
       B.errorfix('078_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
-        ['Eile Viktor ärkas hilja.', 'Eile ärkas Viktor hilja.'], ['Ta ei ärkasin õigel ajal.', 'Ta ei ärganud õigel ajal.'],
+        ['Eile Markus ärkas hilja.', 'Eile ärkas Markus hilja.'], ['Ta ei ärkasin õigel ajal.', 'Ta ei ärganud õigel ajal.'],
         ['Bussis ta märkas sokke.', 'Bussis märkas ta sokke.'], ['Kolleegid naeravad eile.', 'Kolleegid naersid eile.'],
         ['Lõpuks ta laadis telefoni.', 'Lõpuks laadis ta telefoni.'],
       ]),
@@ -326,28 +326,28 @@ export const LESSONS = {
         ['Katkine telefon', 'Telefon kukkus maha. Ekraan läks katki.'],
       ], 'full', 'g_read'),
       B.translation('078_p_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Утром я проснулся слишком поздно.', 'К сожалению, автобус уже уехал.', 'Я позвонил начальнику.', 'Коллеги смеялись.', 'Вечером я зарядил телефон.']),
-      B.dictation('078_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Viktor ärkas liiga hilja.', 'Telefon oli tühi.', 'Buss sõitis just minema.', 'Ta helistas ülemusele.', 'Kolleegid naersid tema üle.', 'Õhtul laadis ta telefoni.']),
+      B.dictation('078_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Markus ärkas liiga hilja.', 'Telefon oli tühi.', 'Buss sõitis just minema.', 'Ta helistas ülemusele.', 'Kolleegid naersid tema üle.', 'Õhtul laadis ta telefoni.']),
       B.speaking('078_p_say', 'Mis sinuga juhtus?', 'Räägi paarilisele hommikust, kui kõik läks valesti.', ['Millal see oli?', 'Mis juhtus kõigepealt?', 'Mida sa tegid?', 'Kuidas päev lõppes?'], [60, 90], ['kõigepealt', 'kahjuks', 'siis', 'lõpuks']),
-      B.writing('078_p_write', 'Viktori lugu minu nimel.', 'Kirjuta Viktori hommik ma-vormis: Ma ärkasin…', [6, 8], ['ärkasin', 'kahjuks', 'siis', 'lõpuks'], 3),
+      B.writing('078_p_write', 'Markuse lugu minu nimel.', 'Kirjuta Markuse hommik ma-vormis: Ma ärkasin…', [6, 8], ['ärkasin', 'kahjuks', 'siis', 'lõpuks'], 3),
       B.selfcheck('078_p_self', ['Ma moodustan lihtmineviku vormi.', 'Ma panen tegusõna teisele kohale.', 'Ma leian loost vajaliku info.', 'Ma jutustan oma halvast hommikust.'], 'Minevik töötab'),
     ],
     transfer: [
       B.text('078_t_situation', 'Uus olukord', 'Kursusel on „Lugude õhtu”. Iga õpilane räägib ühe lühikese loo, mis temaga päriselt juhtus. Kõigepealt kuulad Jaani lugu. Siis valmistad ette oma loo.'),
       B.listening('078_t_listen', 'Kuula: Jaani lugu.', 'Õpetaja loeb loo kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Tere! Mina olen Jaan. Ma räägin teile ühe loo.',
-        'Eelmisel pühapäeval läksin oma koeraga parki. Koera nimi on Muri. Ilm oli ilus ja pargis oli palju inimesi.',
-        'Ma võtsin Murilt rihma ära. Äkki nägi Muri oravat ja jooksis metsa poole. Ma hüüdsin teda, aga ta ei tulnud tagasi.',
+        'Eelmisel pühapäeval läksin oma koeraga parki. Koera nimi on Muki. Ilm oli ilus ja pargis oli palju inimesi.',
+        'Ma võtsin Mukilt rihma ära. Äkki nägi Muki oravat ja jooksis metsa poole. Ma hüüdsin teda, aga ta ei tulnud tagasi.',
         'Kõigepealt otsisin teda üksi. Siis helistasin oma naabrile Markusele. Markus tuli appi ja me otsisime koos üks tund. Ma olin väga mures.',
-        'Lõpuks helistas mulle üks võõras naine. Muri oli tema aias ja sõi kassi toitu! Naine luges minu numbrit koera kaelarihmalt.',
-        'Õnneks lõppes kõik hästi. Nüüd hoian Murit pargis alati rihma otsas.',
+        'Lõpuks helistas mulle üks võõras naine. Muki oli tema aias ja sõi kassi toitu! Naine luges minu numbrit koera kaelarihmalt.',
+        'Õnneks lõppes kõik hästi. Nüüd hoian Mukit pargis alati rihma otsas.',
       ], [
-        'Jaan läks eelmisel [pühapäeval] parki.', 'Muri jooksis ära, sest ta nägi [oravat].', 'Abi saamiseks helistas Jaan [naabrile|Markusele].',
+        'Jaan läks eelmisel [pühapäeval] parki.', 'Muki jooksis ära, sest ta nägi [oravat].', 'Abi saamiseks helistas Jaan [naabrile|Markusele].',
         'Mehed otsisid koera [üks tund|tund aega|tund].', 'Lõpuks oli koer võõra naise [aias].', 'Naine leidis numbri koera [kaelarihmalt|kaelarihmast].',
       ]),
       B.categorize('078_t_parts', 'Loo osad.', 'Pane Jaani loo osad õigesse rühma.', [
         ['Algus: kes, kus, millal', ['eelmisel pühapäeval', 'pargis', 'mina ja mu koer']],
-        ['Keskel: mis juhtus', ['äkki nägi Muri oravat', 'ta ei tulnud tagasi', 'me otsisime üks tund']],
-        ['Lõpp', ['lõpuks helistas naine', 'õnneks lõppes kõik hästi', 'nüüd hoian Murit rihmas']],
+        ['Keskel: mis juhtus', ['äkki nägi Muki oravat', 'ta ei tulnud tagasi', 'me otsisime üks tund']],
+        ['Lõpp', ['lõpuks helistas naine', 'õnneks lõppes kõik hästi', 'nüüd hoian Mukit rihmas']],
       ], 'full', 'g_read'),
       B.gaps('078_t_gaps', 'Jaani lugu lühidalt.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', [
         'Pühapäeval [läks] (minema) Jaan koeraga parki.', 'Koer [nägi] (nägema) oravat.', 'Muri [jooksis] (jooksma) metsa poole.',
@@ -373,30 +373,30 @@ export const LESSONS = {
     title: 'Kogemus: olen käinud',
     canDo: 'Ma räägin oma kogemustest 4–5 mudeliga (olen käinud, olen näinud, olen proovinud, ei ole veel …) ja küsin kaaslaselt „Kas sa oled kunagi …?”.',
     discover: [
-      B.text('079_d_intro', 'Lõunapausil', 'Markus küsib uuelt kolleegilt Sofialt: „Kas sa oled kunagi Saaremaal käinud?” Sofia vastab: „Jah, olen käinud kaks korda. Viimati käisin seal eelmisel suvel. Aga talisuplust ma ei ole veel proovinud.”'),
-      B.truefalse('079_d_tf', 'Mida Sofia ütles?', 'Loe vestlust. Õige või vale?', [
-        ['Sofia on Saaremaal käinud.', true], ['Sofia käis Saaremaal üks kord.', false], ['Viimane reis oli eelmisel suvel.', true],
-        ['Sofia on talisuplust proovinud.', false], ['Markus küsib Sofia kogemuse kohta.', true],
+      B.text('079_d_intro', 'Lõunapausil', 'Markus küsib uuelt kolleegilt Andreilt: „Kas sa oled kunagi Saaremaal käinud?” Andrei vastab: „Jah, olen käinud kaks korda. Viimati käisin seal eelmisel suvel. Aga talisuplust ma ei ole veel proovinud.”'),
+      B.truefalse('079_d_tf', 'Mida Andrei ütles?', 'Loe vestlust. Õige või vale?', [
+        ['Andrei on Saaremaal käinud.', true], ['Andrei käis Saaremaal üks kord.', false], ['Viimane reis oli eelmisel suvel.', true],
+        ['Andrei on talisuplust proovinud.', false], ['Markus küsib Andrei kogemuse kohta.', true],
       ]),
       B.vocab('079_d_vocab', 'Kogemuse sõnad', ['kogemus — опыт', 'kunagi — когда-нибудь', 'juba — уже', 'veel mitte — ещё нет', 'mitte kunagi — никогда', 'üks kord — один раз', 'mitu korda — несколько раз', 'viimati — в последний раз', 'esimest korda — впервые', 'proovima — пробовать', 'käima — бывать', 'tagasi — назад (aega tagasi)'], '2'),
       B.reading('079_d_read', 'Loe: lõunapausi jutt.', 'Loe vestlust ja vasta küsimustele.', 'Kas sa oled kunagi…?', [
-        'Markus: Sofia, kas sa oled kunagi Saaremaal käinud?',
-        'Sofia: Jah, olen käinud kaks korda. Viimati käisin seal eelmisel suvel.',
+        'Markus: Andrei, kas sa oled kunagi Saaremaal käinud?',
+        'Andrei: Jah, olen käinud kaks korda. Viimati käisin seal eelmisel suvel.',
         'Markus: Mis sulle seal meeldis?',
-        'Sofia: Meri ja vanad tuuleveskid. Seal sõin ma esimest korda suitsukala.',
+        'Andrei: Meri ja vanad tuuleveskid. Seal sõin ma esimest korda suitsukala.',
         'Markus: Kas sa oled Kihnus ka käinud?',
-        'Sofia: Ei, seal ma ei ole veel käinud. Aga ma tahan minna.',
+        'Andrei: Ei, seal ma ei ole veel käinud. Aga ma tahan minna.',
         'Markus: Mina olen Kihnus käinud üks kord. See oli kümme aastat tagasi.',
-        'Sofia: Kas sa oled talisuplust proovinud?',
-        'Markus: Ei, mitte kunagi! Vesi on liiga külm. Aga mu naine Anna on proovinud mitu korda.',
-        'Sofia: Kas sa oled metsas hunti näinud?',
+        'Andrei: Kas sa oled talisuplust proovinud?',
+        'Markus: Ei, mitte kunagi! Vesi on liiga külm. Aga mu õde Kersti on proovinud mitu korda.',
+        'Andrei: Kas sa oled metsas hunti näinud?',
         'Markus: Ei ole. Aga ma olen näinud põtra. See oli väga suur!',
       ], [
-        ['Mitu korda on Sofia Saaremaal käinud?', 'kaks korda|2 korda'],
-        ['Millal käis Sofia viimati Saaremaal?', 'eelmisel suvel'],
-        ['Mida proovis Sofia Saaremaal esimest korda?', 'suitsukala|ta sõi suitsukala'],
-        ['Kas Sofia on Kihnus käinud?', 'ei|ei ole|ei, veel mitte'],
-        ['Kes Markuse perest on talisuplust proovinud?', 'Anna|tema naine|naine Anna'],
+        ['Mitu korda on Andrei Saaremaal käinud?', 'kaks korda|2 korda'],
+        ['Millal käis Andrei viimati Saaremaal?', 'eelmisel suvel'],
+        ['Mida proovis Andrei Saaremaal esimest korda?', 'suitsukala|ta sõi suitsukala'],
+        ['Kas Andrei on Kihnus käinud?', 'ei|ei ole|ei, veel mitte'],
+        ['Kes Markuse perest on talisuplust proovinud?', 'Kersti|tema õde|õde Kersti'],
         ['Millist looma on Markus metsas näinud?', 'põtra|põder'],
       ]),
       B.notice('079_d_notice', 'Märka: kogemus või kindel aeg?', ['Kas sa **oled** kunagi Saaremaal **käinud**? — kogemus elus', 'Jah, **olen käinud** kaks korda.', 'Viimati **käisin** seal **eelmisel suvel**. — kindel aeg', 'Seal ma **ei ole** veel **käinud**.', 'Ma **olen näinud** põtra.'], 'full'),
@@ -431,7 +431,7 @@ export const LESSONS = {
         ['Me oleme käinud Saaremaal eelmisel suvel.', 'Me käisime Saaremaal eelmisel suvel.|Eelmisel suvel käisime Saaremaal.'],
       ]),
       B.translation('079_d_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Ты когда-нибудь был в Тарту?', 'Я ещё не пробовал этот суп.', 'Я видел этот фильм два раза.', 'В прошлом году я был в Риге.', 'Мы никогда не жили в деревне.']),
-      B.dictation('079_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Kas sa oled kunagi Kihnus käinud?', 'Jah, olen käinud üks kord.', 'Viimati käisin seal eelmisel suvel.', 'Ma ei ole veel talisuplust proovinud.', 'Anna on proovinud mitu korda.', 'Ma olen näinud põtra.']),
+      B.dictation('079_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Kas sa oled kunagi Kihnus käinud?', 'Jah, olen käinud üks kord.', 'Viimati käisin seal eelmisel suvel.', 'Ma ei ole veel talisuplust proovinud.', 'Kersti on proovinud mitu korda.', 'Ma olen näinud põtra.']),
       B.speaking('079_d_say', 'Kas sa oled kunagi…?', 'Küsi paarilisel 5 küsimust. Vasta ka ise.', ['Kas sa oled kunagi Saaremaal käinud?', 'Kas sa oled talisuplust proovinud?', 'Kas sa oled põtra näinud?', 'Kas sa oled maal elanud?', 'Kas sa oled lennukiga lennanud?'], [60, 90], ['Jah, olen … kaks korda.', 'Ei, veel mitte.', 'Ei, mitte kunagi.', 'Viimati … eelmisel aastal.']),
       B.writing('079_d_write', 'Minu kogemused.', 'Kirjuta 5–7 lauset: mida oled teinud ja mida veel mitte.', [5, 7], ['olen käinud', 'olen proovinud', 'ei ole veel', 'viimati'], 3),
       B.selfcheck('079_d_self', ['Ma küsin: Kas sa oled kunagi…?', 'Ma vastan: olen käinud / ei ole veel käinud.', 'Ma eristan kogemust ja kindlat aega.', 'Ma moodustan 6 nud-vormi.'], 'Kogemus on kirjas'),
@@ -481,7 +481,7 @@ export const LESSONS = {
       B.selfcheck('079_p_self', ['Ma moodustan nud-vormi.', 'Ma ütlen eituse: ma ei ole käinud.', 'Ma valin olen käinud või käisin.', 'Ma teen klassis küsitluse.'], 'Kogemused kogutud'),
     ],
     transfer: [
-      B.text('079_t_situation', 'Uus olukord', 'Sa tahad suvel tööle turismiinfosse. Loe kuulutust. Siis valmistu vestluseks: juht Viktor küsib sinu kogemuste kohta.'),
+      B.text('079_t_situation', 'Uus olukord', 'Sa tahad suvel tööle turismiinfosse. Loe kuulutust. Siis valmistu vestluseks: juht Kaido küsib sinu kogemuste kohta.'),
       B.reading('079_t_read', 'Loe kuulutust.', 'Loe kuulutus ja vasta küsimustele.', 'Suvetöö turismiinfos', [
         'Tallinna vanalinna turismiinfo otsib suveks kahte töötajat. Töö kestab juunist augustini. Tööpäev on kella kümnest kella kuueni. Sinu ülesanne on aidata turiste ja vastata nende küsimustele. Sa räägid turistidega eesti, vene ja inglise keeles. Sa müüd ka kaarte ja pileteid.',
         'Kas sa oled varem klientidega töötanud? Kas sa oled vanalinnas palju käinud? Kas sa tunned Tallinna muuseume ja kohvikuid? Siis oled sa meile õige inimene! Turismi kogemus ei ole kohustuslik. Saada oma CV ja lühike kiri 15. maiks. Kirjuta, mida sa oled varem teinud ja miks see töö sulle sobib.',
@@ -490,7 +490,7 @@ export const LESSONS = {
         ['Mida teeb töötaja peale turistide aitamise?', 'müüb kaarte ja pileteid|müüb pileteid'], ['Kas turismi kogemus on vajalik?', 'ei|ei ole kohustuslik'],
         ['Mida peab kirjas kirjutama?', 'mida oled varem teinud ja miks töö sobib|mida oled teinud|miks töö sobib'],
       ]),
-      B.choice('079_t_answer', 'Mida vastata?', 'Viktor küsib. Vali sobiv vastus.', [
+      B.choice('079_t_answer', 'Mida vastata?', 'Kaido küsib. Vali sobiv vastus.', [
         ['Kas te olete varem klientidega töötanud?', 'Jah, olen töötanud kaks aastat poes.', 'Jah, ma töötan homme poes.', 'Ei, ma ei tööta poes homme.'],
         ['Kas te olete vanalinnas palju käinud?', 'Jah, olen seal mitu korda käinud.', 'Jah, ma käin seal homme.', 'Ei, vanalinn on kinni.'],
         ['Millal te viimati muuseumis käisite?', 'Eelmisel kuul käisin Kumus.', 'Olen käinud muuseumis.', 'Ma lähen muuseumi.'],
@@ -512,11 +512,11 @@ export const LESSONS = {
       ]),
       B.translation('079_t_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Я два года работал в магазине.', 'Прошлым летом я работал в кафе.', 'Я ещё не продавал билеты.', 'Я часто бывал в Старом городе.']),
       B.planning('079_t_plan', 'Enne vestlust.', 'Kirjuta märksõnad oma kogemuste kohta.', ['Kus oled varem töötanud?', 'Milliseid keeli oled kasutanud?', 'Mida oled Tallinnas näinud?', 'Mida sa ei ole veel teinud?']),
-      B.rolecards('079_t_roles', 'Töövestlus.', 'A on Viktor, B on kandidaat. Rääkige 3 minutit.',
-        'Oled Viktor. Küsi 5 küsimust kandidaadi kogemuste kohta.', 'Oled kandidaat. Vasta ja lisa igale vastusele üks detail.',
+      B.rolecards('079_t_roles', 'Töövestlus.', 'A on Kaido, B on kandidaat. Rääkige 3 minutit.',
+        'Oled Kaido. Küsi 5 küsimust kandidaadi kogemuste kohta.', 'Oled kandidaat. Vasta ja lisa igale vastusele üks detail.',
         ['Kas te olete varem…?', 'Millal te…?', 'Kas te olete kunagi…?'], ['Jah, olen … töötanud.', 'Eelmisel suvel ma…', 'Veel mitte, aga…']),
       B.speaking('079_t_say', 'Räägi endast.', 'Räägi 1 minut oma kogemustest.', ['Kus oled töötanud?', 'Mida oled proovinud?', 'Mida sa veel ei ole teinud?'], [60, 90]),
-      B.letter('079_t_letter', 'Kiri Viktorile.', 'Kirjuta: kes oled, mida oled teinud, miks töö sobib.', 'Tere, Viktor!', 'Lugupidamisega', [30, 50]),
+      B.letter('079_t_letter', 'Kiri Kaidole.', 'Kirjuta: kes oled, mida oled teinud, miks töö sobib.', 'Tere, Kaido!', 'Lugupidamisega', [30, 50]),
       B.writing('079_t_write', 'Kogemus, mida ma ei unusta.', 'Kirjuta 5–7 lauset ühest kogemusest. Millal see oli?', [5, 7], ['olen', 'esimest korda', 'käisin'], 2),
       B.selfcheck('079_t_self', ['Ma saan aru töökuulutusest.', 'Ma räägin oma kogemustest töövestlusel.', 'Ma ütlen kindla aja lihtminevikus.', 'Ma kirjutan lühikese kirja.'], 'Kandidaat on valmis'),
     ],
@@ -609,9 +609,9 @@ export const LESSONS = {
       ]),
       // listening 1: a monologue about childhood
       B.listening('080_p_listen', 'Kuulamine 1. Viktori lapsepõlv.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere! Mina olen Viktor. Ma sündisin Narvas.', 'Lapsena elasin vanavanematega maal.', 'Meil oli kaks lehma ja palju kanu.', 'Igal hommikul tõin ma kanadelt mune.',
-        'Koolis käisin bussiga, sest kool oli kaugel.', 'Kaheteistkümneaastaselt kolisime Tallinnasse.', 'Linnas oli kõik uus ja huvitav, aga ma igatsesin maad.',
-      ], ['Viktor sündis [Narvas].', 'Lapsena elas ta [vanavanematega] maal.', 'Neil oli [kaks|2] lehma.', 'Hommikul tõi Viktor [mune].', 'Kooli sõitis ta [bussiga].', 'Tallinnasse kolisid nad, kui Viktor oli [12|kaksteist] aastat vana.']),
+        'Tere! Mina olen Viktor. Ma sündisin Tartus.', 'Lapsena elasin vanavanematega maal.', 'Meil oli kaks lehma ja palju kanu.', 'Igal hommikul tõin ma kanadelt mune.',
+        'Koolis käisin bussiga, sest kool oli kaugel.', 'Kaheteistkümneaastaselt kolisime linna, Tartusse.', 'Linnas oli kõik uus ja huvitav, aga ma igatsesin maad.',
+      ], ['Viktor sündis [Tartus].', 'Lapsena elas ta [vanavanematega] maal.', 'Neil oli [kaks|2] lehma.', 'Hommikul tõi Viktor [mune].', 'Kooli sõitis ta [bussiga].', 'Tartusse kolisid nad, kui Viktor oli [12|kaksteist] aastat vana.']),
       // listening 2: a dialogue between two friends
       B.listening('080_p_listen2', 'Kuulamine 2. Kaks sõpra.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
         '— Tere, Markus! Kuidas nädalavahetus läks?', '— Tere, Anna! Väga hästi. Ma käisin Hiiumaal.', '— Oi! Kas sa oled seal varem käinud?', '— Ei, see oli esimene kord. Me sõitsime praamiga.',
@@ -637,7 +637,7 @@ export const LESSONS = {
       B.text('080_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See osa on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
       B.notice('080_t_card', 'Kutse', ['Klassikokkutulek! Narva 6. kool, 2010. aasta lõpetajad', 'Millal: laupäeval, 14. juunil kell 17', 'Kus: kohvik „Mälestus”, Puškini 10, Narva', 'Hind: 25 €, söök on hinna sees', 'Registreeru kuni 1. juunini: telefon 5512 7788 (Olga)'], 'full', 'g_read'),
       // writing 1: information transfer, at least 25 words
-      B.letter('080_t_info', 'Kirjutamine 1. Kutsu klassivenda.', 'Kirjuta vanale klassivennale kutse järgi: millal, kus, hind, kuidas registreeruda.', 'Tere, Igor!', 'Loodan sind näha!', [25, 40]),
+      B.letter('080_t_info', 'Kirjutamine 1. Kutsu klassivenda.', 'Kirjuta vanale klassivennale kutse järgi: millal, kus, hind, kuidas registreeruda.', 'Tere, Dmitri!', 'Loodan sind näha!', [25, 40]),
       B.planning('080_t_plan', 'Enne lugu.', 'Mõtle läbi ja kirjuta märksõnad.', ['Millal ja kus see oli?', 'Kes olid seal?', 'Mis juhtus kõigepealt, siis, lõpuks?', 'Miks sa seda mäletad?']),
       // writing 2: a short story, 70–90 words (roadmap)
       B.letter('080_t_story', 'Kirjutamine 2. Minu mälestus.', 'Kirjuta Olgale 70–90 sõna: üks ilus mälestus kooliajast.', 'Kallis Olga!', 'Kohtumiseni kokkutulekul!', [70, 90]),

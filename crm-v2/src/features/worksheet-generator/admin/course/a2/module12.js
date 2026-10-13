@@ -20,9 +20,9 @@ export const LESSONS = {
         ['Markus tuleb peatusesse jalgsi.', false], ['Markus küsib Annalt küsimuse.', true],
       ]),
       B.vocab('056_d_vocab', 'Transport ja pilet', ['buss — автобус', 'tramm — трамвай', 'rong — поезд', 'lennuk — самолёт', 'takso — такси', 'peatus — остановка', 'jaam — станция, вокзал', 'pilet — билет', 'üks ots — в одну сторону', 'edasi-tagasi — туда и обратно', 'piletiautomaat — билетный автомат', 'jalgsi / jala — пешком'], '2'),
-      B.reading('056_d_read', 'Loe: Viktori teekond.', 'Loe tekst ja vasta küsimustele.', 'Kuidas Viktor Tartusse sõidab',
-        'Viktor elab Tallinnas Mustamäel. Laupäeval sõidab ta Tartusse oma vanemate juurde. Kõigepealt läheb ta jalgsi bussipeatusesse. Peatus on maja lähedal, ainult viis minutit jala. Siis sõidab ta bussiga kesklinna. Kesklinnas läheb ta trammi peale ja sõidab Balti jaama. Balti jaam on suur ja seal on ka turg. Jaamas ostab ta piletiautomaadist rongipileti. Pilet Tartusse maksab üksteist eurot. Viktor ostab edasi-tagasi pileti, sest pühapäeva õhtul tuleb ta tagasi. Rong väljub kell kümme ja sõit kestab umbes kaks tundi. Rongis loeb Viktor raamatut ja joob kohvi. Mõnikord vaatab ta lihtsalt aknast välja. Tartusse saab ka bussiga, aga Viktorile meeldib rong rohkem. Autot tal ei ole. Kui ilm on ilus, sõidab ta kesklinna jalgrattaga. Talvel ja vihmaga sõidab ta alati bussiga. Ta ütleb alati: „Rongis saan ma lugeda ja puhata.”',
-        [['Kuidas läheb Viktor bussipeatusesse?', 'jalgsi|jala|ta läheb jalgsi|ta läheb jala'], ['Millega sõidab Viktor kesklinnast jaama?', 'trammiga|ta sõidab trammiga'], ['Kust ostab Viktor rongipileti?', 'piletiautomaadist|automaadist|jaamast'], ['Miks ostab Viktor edasi-tagasi pileti?', 'ta tuleb pühapäeval tagasi|sest ta tuleb pühapäeva õhtul tagasi|ta tuleb tagasi'], ['Mis kell jõuab rong umbes Tartusse?', 'kell kaksteist|kaksteist|12|umbes kell kaksteist|keskpäeval'], ['Miks meeldib Viktorile rong?', 'rongis saab lugeda ja puhata|ta saab rongis lugeda ja puhata|seal saab puhata']]),
+      B.reading('056_d_read', 'Loe: Markuse teekond.', 'Loe tekst ja vasta küsimustele.', 'Kuidas Markus Tartusse sõidab',
+        'Markus elab Tallinnas Mustamäel. Laupäeval sõidab ta Tartusse oma vanemate juurde. Kõigepealt läheb ta jalgsi bussipeatusesse. Peatus on maja lähedal, ainult viis minutit jala. Siis sõidab ta bussiga kesklinna. Kesklinnas läheb ta trammi peale ja sõidab Balti jaama. Balti jaam on suur ja seal on ka turg. Jaamas ostab ta piletiautomaadist rongipileti. Pilet Tartusse maksab üksteist eurot. Markus ostab edasi-tagasi pileti, sest pühapäeva õhtul tuleb ta tagasi. Rong väljub kell kümme ja sõit kestab umbes kaks tundi. Rongis loeb Markus raamatut ja joob kohvi. Mõnikord vaatab ta lihtsalt aknast välja. Tartusse saab ka bussiga, aga Markusele meeldib rong rohkem. Autot tal ei ole. Kui ilm on ilus, sõidab ta kesklinna jalgrattaga. Talvel ja vihmaga sõidab ta alati bussiga. Ta ütleb alati: „Rongis saan ma lugeda ja puhata.”',
+        [['Kuidas läheb Markus bussipeatusesse?', 'jalgsi|jala|ta läheb jalgsi|ta läheb jala'], ['Millega sõidab Markus kesklinnast jaama?', 'trammiga|ta sõidab trammiga'], ['Kust ostab Markus rongipileti?', 'piletiautomaadist|automaadist|jaamast'], ['Miks ostab Markus edasi-tagasi pileti?', 'ta tuleb pühapäeval tagasi|sest ta tuleb pühapäeva õhtul tagasi|ta tuleb tagasi'], ['Mis kell jõuab rong umbes Tartusse?', 'kell kaksteist|kaksteist|12|umbes kell kaksteist|keskpäeval'], ['Miks meeldib Markusele rong?', 'rongis saab lugeda ja puhata|ta saab rongis lugeda ja puhata|seal saab puhata']]),
       B.notice('056_d_notice', 'Märka: millega? kuhu? kus?', ['Ma sõidan **bussiga**. (buss → buss**iga**)', 'Ta sõidab **trammiga** jaama.', 'Me sõidame **rongiga** Tartusse.', 'Aga: ma lähen **jalgsi** või **jala**.', 'Pilet **Tartusse**: üks ots või edasi-tagasi?', 'Ma ootan **peatuses**. Ma lähen **peatusesse**.'], 'full'),
       B.wordforms('056_d_forms', 'Millega sa sõidad?', 'Kirjuta sõna -ga vormis.', [
         ['buss', 'millega?', 'bussiga'], ['tramm', 'millega?', 'trammiga'], ['rong', 'millega?', 'rongiga'], ['lennuk', 'millega?', 'lennukiga'],
@@ -50,7 +50,7 @@ export const LESSONS = {
         ['Palun üks pilet Tartu.', 'Palun üks pilet Tartusse.'], ['Ma ootan bussi peatusesse.', 'Ma ootan bussi peatuses.'],
         ['Me sõidame Pärnusse rongil.', 'Me sõidame Pärnusse rongiga.'], ['Ma ostan pilet automaadist.', 'Ma ostan pileti automaadist.'],
       ]),
-      B.wordorder('056_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Viktor sõidab laupäeval rongiga Tartusse.', 'Bussipeatus on maja lähedal.', 'Ma ostan pileti piletiautomaadist.', 'Kesklinnas läheb ta trammi peale.', 'Talvel sõidan ma tööle bussiga.']),
+      B.wordorder('056_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Markus sõidab laupäeval rongiga Tartusse.', 'Bussipeatus on maja lähedal.', 'Ma ostan pileti piletiautomaadist.', 'Kesklinnas läheb ta trammi peale.', 'Talvel sõidan ma tööle bussiga.']),
       B.speaking('056_d_say', 'Minu teekond.', 'Räägi paarilisele, kuidas sa tööle või kooli sõidad.', [
         'Millega sa sõidad?', 'Kui kaua sõit kestab?', 'Kus sa pileti ostad?', 'Mis sulle selles sõidus meeldib?',
       ], [60, 120], ['Ma sõidan …-ga.', 'Kõigepealt…, siis…', 'Sõit kestab … minutit.']),
@@ -107,7 +107,7 @@ export const LESSONS = {
       B.selfcheck('056_p_self', ['Ma kirjutan -ga vormi: bussiga, trammiga.', 'Ma eristan: peatuses, peatusesse, peatusest.', 'Ma ütlen: palun üks ots või edasi-tagasi.', 'Ma selgitan teed kodust jaama.'], 'Sõidan ja küsin õigesti'),
     ],
     transfer: [
-      B.text('056_t_situation', 'Uus olukord', 'Sinu sõber Sofia tuleb esimest korda Tallinna. Ta saabub lennukiga. Sa oled tööl ja ei saa teda lennujaamas oodata. Selgita, kuidas ta sinu juurde saab.'),
+      B.text('056_t_situation', 'Uus olukord', 'Sinu sõbranna Maria tuleb esimest korda Tallinna. Ta saabub lennukiga. Sa oled tööl ja ei saa teda lennujaamas oodata. Selgita, kuidas ta sinu juurde saab.'),
       B.reading('056_t_info', 'Loe infot.', 'Loe lennujaama infot ja vasta küsimustele.', 'Lennujaamast kesklinna',
         'Tallinna lennujaamast saab kesklinna mitmel viisil. Tramm number neli väljub lennujaama eest iga kümne minuti järel. Peatus on otse terminali ees. Tramm sõidab kella kuuest hommikul kaheteistkümneni öösel. Trammis on ruumi ka suurele kohvrile. Sõit kesklinna kestab umbes kakskümmend minutit. Ka bussid number kaks ja kuus sõidavad kesklinna. Piletit saab osta telefoniga või piletiautomaadist peatuses. Üks sõit maksab kaks eurot. Lastel on sõit tasuta. Kui sul on suur kohver, võid sõita taksoga. Taksod ootavad lennujaama ukse ees. Sõit kesklinna maksab umbes viisteist eurot. Öösel trammid ei sõida. Siis saab sõita taksoga või öise bussiga.',
         [['Millega saab lennujaamast kesklinna?', 'trammi, bussi või taksoga|trammiga, bussiga või taksoga|trammiga|bussiga|taksoga'], ['Kui tihti tramm väljub?', 'iga kümne minuti järel|iga 10 minuti järel|iga kümne minuti tagant'], ['Kust saab trammipileti?', 'telefoniga või automaadist|piletiautomaadist|automaadist|telefoniga'], ['Kui palju on takso kallim kui tramm?', 'kolmteist eurot|13 eurot|13'], ['Millega saab öösel kesklinna?', 'taksoga või öise bussiga|taksoga|öise bussiga']]),
@@ -118,24 +118,24 @@ export const LESSONS = {
         'Pileti saab osta telefoniga või automaadist peatuses.', 'Üks sõit maksab kaks eurot. Lastele on sõit tasuta.',
         'Taksod ootavad välisukse juures paremal pool.', 'Viimane tramm väljub täna kell kaksteist öösel. Head reisi!',
       ], ['Tramm väljub iga [kümne|10] minuti järel.', 'Täna sõidab tramm ainult [kesklinnani|kesklinna].', 'Kadriorus on [teetööd|remont].', 'Kadriorgu saab bussiga number [viis|5].', 'Lastele on sõit [tasuta].', 'Viimane tramm väljub kell [kaksteist|12|24].']),
-      B.choice('056_t_choose', 'Mis on Sofiale parim?', 'Loe olukorda. Vali sobiv vastus.', [
-        ['Sofial on väike kott ja ta tahab raha säästa.', 'Ta sõidab trammiga.', 'Ta sõidab taksoga.', 'Ta lendab lennukiga.'],
+      B.choice('056_t_choose', 'Mis on Mariale parim?', 'Loe olukorda. Vali sobiv vastus.', [
+        ['Marial on väike kott ja ta tahab raha säästa.', 'Ta sõidab trammiga.', 'Ta sõidab taksoga.', 'Ta lendab lennukiga.'],
         ['Lennuk saabub kell kaks öösel.', 'Ta sõidab taksoga.', 'Ta sõidab trammiga.', 'Ta läheb jalgsi.'],
-        ['Sofia sõidab Tartusse ja tuleb pühapäeval tagasi.', 'edasi-tagasi pilet', 'üks ots', 'trammipilet'],
-        ['Sofia ei tea, kus on peatus.', 'Vabandust, kus on trammipeatus?', 'Vabandust, kus on lennuk?', 'Vabandust, mis pilet see on?'],
-        ['Sofia tahab teada hinda.', 'Kui palju üks sõit maksab?', 'Kui kaua sõit kestab?', 'Kus sõit maksab?'],
+        ['Maria sõidab Tartusse ja tuleb pühapäeval tagasi.', 'edasi-tagasi pilet', 'üks ots', 'trammipilet'],
+        ['Maria ei tea, kus on peatus.', 'Vabandust, kus on trammipeatus?', 'Vabandust, kus on lennuk?', 'Vabandust, mis pilet see on?'],
+        ['Maria tahab teada hinda.', 'Kui palju üks sõit maksab?', 'Kui kaua sõit kestab?', 'Kus sõit maksab?'],
       ], 'full', 'g_use'),
-      B.transformation('056_t_trans', 'Märksõnadest lauseks.', 'Kirjuta märksõnade järgi lause Sofiale.', [
+      B.transformation('056_t_trans', 'Märksõnadest lauseks.', 'Kirjuta märksõnade järgi lause Mariale.', [
         ['tramm number neli', 'Sõida …', 'Sõida trammiga number neli.'], ['peatus: Hobujaama', 'Tule maha …', 'Tule maha Hobujaama peatuses.'],
         ['pilet: telefon', 'Osta …', 'Osta pilet telefoniga.'], ['sõit: 20 minutit', 'Sõit kestab …', 'Sõit kestab kakskümmend minutit.|Sõit kestab 20 minutit.'],
         ['kohtumine: peatuses, kell 18', 'Ma ootan sind …', 'Ma ootan sind peatuses kell kuus.|Ma ootan sind kell kuus peatuses.'],
       ]),
       B.table('056_t_compare', 'Võrdle transporti.', 'Kirjuta tabelisse oma arvamus.', 'Transport, Kiire või aeglane?, Odav või kallis?, Millal sa sellega sõidad?', ['buss | | |', 'tramm | | |', 'rong | | |', 'takso | | |', 'lennuk | | |']),
-      B.planning('056_t_plan', 'Enne kirjutamist.', 'Mõtle teekond läbi. Kirjuta märksõnad.', ['Millega Sofia sõidab?', 'Kus on peatus?', 'Kus ta pileti ostab?', 'Kus ta maha tuleb?', 'Kus sa teda ootad?']),
+      B.planning('056_t_plan', 'Enne kirjutamist.', 'Mõtle teekond läbi. Kirjuta märksõnad.', ['Millega Maria sõidab?', 'Kus on peatus?', 'Kus ta pileti ostab?', 'Kus ta maha tuleb?', 'Kus sa teda ootad?']),
       // Harno A2 writing 2: a short message, at least 30 words
-      B.letter('056_t_msg', 'Sõnum Sofiale.', 'Kirjuta Sofiale, kuidas ta lennujaamast sinu juurde saab.', 'Tere, Sofia!', 'Kohtumiseni!', [30, 50]),
-      B.rolecards('056_t_roles', 'Telefonikõne.', 'Üks on Sofia, teine tema sõber. Rääkige 2 minutit.',
-        'Oled Sofia. Oled lennujaamas. Küsi, millega sõita, kus osta pilet ja kus maha tulla.', 'Oled Sofia sõber. Selgita teed: transport, pilet, peatus. Ütle, kus sa ootad.',
+      B.letter('056_t_msg', 'Sõnum Mariale.', 'Kirjuta Mariale, kuidas ta lennujaamast sinu juurde saab.', 'Tere, Maria!', 'Kohtumiseni!', [30, 50]),
+      B.rolecards('056_t_roles', 'Telefonikõne.', 'Üks on Maria, teine tema sõber. Rääkige 2 minutit.',
+        'Oled Maria. Oled lennujaamas. Küsi, millega sõita, kus osta pilet ja kus maha tulla.', 'Oled Maria sõber. Selgita teed: transport, pilet, peatus. Ütle, kus sa ootad.',
         ['Millega ma sõidan?', 'Kus ma pileti ostan?', 'Kus ma maha tulen?'], ['Sõida trammiga number neli.', 'Pileti saad osta…', 'Ma ootan sind peatuses.']),
       // Harno A2 speaking 1: describe a picture
       B.speaking('056_t_pic', 'Kirjelda pilti.', 'Õpetaja näitab pilti bussipeatusest. Kirjelda pilti 1 minut.', [
@@ -150,15 +150,15 @@ export const LESSONS = {
     title: 'Sõiduplaan ja väljumine',
     canDo: 'Ma leian sõiduplaanist ja tablolt väljumise aja, platvormi ja ümberistumise vähemalt neljas ülesandes viiest.',
     discover: [
-      B.text('057_d_situation', 'Jaamas', 'Liis on Balti jaamas. Ta sõidab vanaema juurde Valka. Rong Tartusse väljub kell 9.15 teiselt platvormilt. Täna hilineb rong kümme minutit. Tartus peab Liis bussile ümber istuma.'),
+      B.text('057_d_situation', 'Jaamas', 'Liis on Balti jaamas. Ta sõidab ema juurde Valka. Rong Tartusse väljub kell 9.15 teiselt platvormilt. Täna hilineb rong kümme minutit. Tartus peab Liis bussile ümber istuma.'),
       B.truefalse('057_d_tf', 'Mis toimub?', 'Loe olukorda. Kas lause on õige või vale?', [
         ['Liis on lennujaamas.', false], ['Liis sõidab Valka.', true], ['Rong väljub teiselt platvormilt.', true],
         ['Rong väljub täpselt kell 9.15.', false], ['Tartus läheb Liis rongist bussi.', true],
       ]),
       B.vocab('057_d_vocab', 'Sõiduplaani sõnad', ['väljuma (väljub) — отправляться', 'saabuma (saabub) — прибывать', 'hilinema (hilineb) — опаздывать', 'platvorm — платформа', 'ümber istuma — пересаживаться', 'ümberistumine — пересадка', 'sõiduplaan — расписание', 'tabloo — табло', 'väljumine — отправление', 'saabumine — прибытие', 'tühistatud — отменён', 'otse — без пересадки'], '2'),
-      B.reading('057_d_read', 'Loe: Liisi reis.', 'Loe sõiduplaani ja Liisi kirja. Vasta küsimustele.', 'Liisi reis vanaema juurde',
-        'Rong Tallinn – Tartu: väljub 9.15, platvorm 2. Saabub Tartusse 11.20.\nBuss Tartu – Valga: väljub Tartu bussijaamast 11.50. Saabub Valka 13.15.\n\nKallis vanaema! Ma tulen laupäeval sinu juurde. Rong väljub Tallinnast veerand kümme. Tartusse jõuan kakskümmend minutit üle üheteistkümne. Tartus pean ma ümber istuma. Rongijaamast lähen bussijaama jalgsi. See võtab umbes viisteist minutit. Buss Valka väljub kümme minutit enne kaheteistkümmet. Valka saabub buss veerand kaks. Palun ära tule bussijaama liiga vara! Kui rong hilineb, kirjutan sulle kohe. Siis sõidan järgmise bussiga. Järgmine buss väljub Tartust kell kaks. Kallistan! Liis',
-        [['Mis kell väljub rong Tallinnast?', '9.15|veerand kümme|kell 9.15'], ['Kus peab Liis ümber istuma?', 'Tartus'], ['Kui palju aega on Liisil Tartus rongi ja bussi vahel?', 'pool tundi|30 minutit|kolmkümmend minutit'], ['Kuidas läheb Liis rongijaamast bussijaama?', 'jalgsi|jala'], ['Mis kell peab vanaema Valga bussijaamas olema?', 'veerand kaks|13.15|kell 13.15'], ['Mida teeb Liis, kui rong hilineb?', 'kirjutab vanaemale|ta kirjutab vanaemale|sõidab järgmise bussiga']]),
+      B.reading('057_d_read', 'Loe: Liisi reis.', 'Loe sõiduplaani ja Liisi kirja. Vasta küsimustele.', 'Liisi reis ema juurde',
+        'Rong Tallinn – Tartu: väljub 9.15, platvorm 2. Saabub Tartusse 11.20.\nBuss Tartu – Valga: väljub Tartu bussijaamast 11.50. Saabub Valka 13.15.\n\nKallis ema! Ma tulen laupäeval sinu juurde. Rong väljub Tallinnast veerand kümme. Tartusse jõuan kakskümmend minutit üle üheteistkümne. Tartus pean ma ümber istuma. Rongijaamast lähen bussijaama jalgsi. See võtab umbes viisteist minutit. Buss Valka väljub kümme minutit enne kaheteistkümmet. Valka saabub buss veerand kaks. Palun ära tule bussijaama liiga vara! Kui rong hilineb, kirjutan sulle kohe. Siis sõidan järgmise bussiga. Järgmine buss väljub Tartust kell kaks. Kallistan! Liis',
+        [['Mis kell väljub rong Tallinnast?', '9.15|veerand kümme|kell 9.15'], ['Kus peab Liis ümber istuma?', 'Tartus'], ['Kui palju aega on Liisil Tartus rongi ja bussi vahel?', 'pool tundi|30 minutit|kolmkümmend minutit'], ['Kuidas läheb Liis rongijaamast bussijaama?', 'jalgsi|jala'], ['Mis kell peab ema Valga bussijaamas olema?', 'veerand kaks|13.15|kell 13.15'], ['Mida teeb Liis, kui rong hilineb?', 'kirjutab emale|ta kirjutab emale|sõidab järgmise bussiga']]),
       B.notice('057_d_notice', 'Märka: väljub, saabub, hilineb', ['Rong **väljub** Tallinna**st** kell 9.15.', 'Rong **saabub** Tartu**sse** kell 11.20.', 'Rong **hilineb** kümme minuti**t**.', 'Rong väljub **teiselt** platvormilt. (mis platvormilt?)', 'Tartus pean ma **ümber istuma**.', 'Buss väljub **kümme minutit enne** kaheteistkümmet.'], 'full'),
       B.clock('057_d_clock', 'Mis kell?', 'Kirjuta kellaaeg numbrite või sõnadega.', [
         { time: '09:15', extra: 'veerand kümme' }, { time: '11:20', extra: 'kakskümmend minutit üle üheteistkümne' }, { time: '11:50', extra: 'kümme minutit enne kaheteistkümmet' },
@@ -214,11 +214,11 @@ export const LESSONS = {
         ['Viljandi', 'kust?', 'Viljandist'], ['Rakvere', 'kus?', 'Rakveres'], ['jaam', 'kuhu?', 'jaama, jaamasse'],
       ]),
       // Harno A2 reading 5: a personal letter with option gaps
-      B.cloze('057_p_cloze', 'Sõnum sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Markus!', [
+      B.cloze('057_p_cloze', 'Sõnum sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Kati!', [
         'Ma tulen homme {*rongiga|rongi|rongis}. Rong väljub Tallinnast kell kaheksa. Tartusse {*saabub|saabuma|saabus} see kell kümme. Palun oota mind {*jaamas|jaama|jaamast}. Kui rong {*hilineb|hilinema|hilineda}, saadan sulle sõnumi.',
         'Pärast lõunat pean ma bussile {*ümber istuma|ümber istuda|ümber istun}, sest sõidan edasi Valka. Bussipileti {*ostsin|ostis|ostma} juba internetist.',
         '',
-        'Nägemiseni! Viktor',
+        'Nägemiseni! Liis',
       ]),
       B.errorfix('057_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Rong saabub kell kümme Tartus.', 'Rong saabub kell kümme Tartusse.'], ['Mis kella rong väljub?', 'Mis kell rong väljub?'],
@@ -613,14 +613,14 @@ export const LESSONS = {
         ['Mida võib kontrolör küsida?', 'piletit või ID-kaarti', 'raha ja kohvrit', 'aadressi ja telefoni'],
       ]),
       // reading 5: a personal letter with 8 option gaps
-      B.cloze('060_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Olga!', [
+      B.cloze('060_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Ira!', [
         'Ma {*käisin|käin|käima} eelmisel nädalal Narvas. Ma sõitsin {*rongiga|rong|rongis} ja teekond kestis kolm tundi.',
         '',
         'Rong {*väljus|väljub|väljuma} Tallinnast kell kaheksa. Narva {*jõudsin|jõuan|jõudma} ma kell üksteist.',
         '',
         'Kahjuks ma ei {*näinud|nägin|näe} sind, sest sa olid {*puhkusel|puhkus|puhkusele}. Järgmine kord helistan sulle {*varem|hiljem|eile}.',
         '',
-        'Kas sa tuled suvel {*Tallinnasse|Tallinnas|Tallinnast}? Kirjuta mulle! Kallistan, Viktor',
+        'Kas sa tuled suvel {*Tallinnasse|Tallinnas|Tallinnast}? Kirjuta mulle! Kallistan, Sofia',
       ]),
       // listening 1: a station announcement, answers of 1–2 words
       B.listening('060_p_listen', 'Kuulamine 1. Teadaanne jaamas.', 'Õpetaja loeb teadaande kaks korda. Kirjuta lünka 1–2 sõna.', [

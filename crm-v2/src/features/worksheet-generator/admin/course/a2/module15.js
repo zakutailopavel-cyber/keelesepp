@@ -133,7 +133,7 @@ export const LESSONS = {
       B.reading('072_d_read', 'Loe: Sofia kolimispäev.', 'Loe teksti ja vasta küsimustele.', 'Kolimispäev', [
         'Laupäeva hommikul helistas Sofia kolimisfirmasse.', '„Tere! Tahaksin tellida auto kella kümneks. Kas te saaksite saata ka kaks meest?”', 'Töötaja vastas: „Muidugi, aga see maksab natuke rohkem.”',
         'Siis kirjutas Sofia sõbrale Jaanile: „Kas sa saad mulle oma auto laenata?”', 'Jaan vastas: „Autot ei saa, aga ma tulen ise appi.”',
-        'Kell kümme tulid mehed. Sofia ütles: „Palun viige need kastid autosse. Olge ettevaatlikud, seal on klaasid.”', 'Trepikojas kohtas ta naabrit Viktorit: „Vabandust, kas te saaksite ukse lahti hoida?”', 'Viktor naeratas: „Hea meelega.”',
+        'Kell kümme tulid mehed. Sofia ütles: „Palun viige need kastid autosse. Olge ettevaatlikud, seal on klaasid.”', 'Trepikojas kohtas ta naabrit Antsu: „Vabandust, kas te saaksite ukse lahti hoida?”', 'Ants naeratas: „Hea meelega.”',
         'Uues korteris oli väga palav. Sofia palus Jaanil: „Ava palun aken!”', 'Õhtul olid kõik väsinud. Sofia küsis: „Kas ma tohin teile pitsa tellida?”', 'Kõik olid nõus. Sofia tänas kõiki abi eest.',
       ], [['Mida Sofia kolimisfirmast tellis?', 'auto ja kaks meest|auto'], ['Mida Sofia Jaanilt palus?', 'auto laenata|tema autot|autot'], ['Kuidas Jaan aitas?', 'ta tuli ise appi|tuli appi'], ['Miks pidid mehed ettevaatlikud olema?', 'kastides olid klaasid|seal on klaasid'], ['Mida palus Sofia naabril?', 'ukse lahti hoida|hoida ust lahti'], ['Mida Sofia õhtul pakkus?', 'pitsat|pitsa'], ['Miks palus Sofia akna avada?', 'oli palav|korteris oli palav']]),
       B.notice('072_d_notice', 'Märka: kuidas paluda?', ['Sõbrale: **Ava palun aken!** **Kas sa saad** mind **aidata**?', 'Võõrale: **Avage palun aken!** **Kas te saaksite** mind **aidata**?', 'Teeninduses: **Tahaksin** tellida auto. **Sooviksin** kohvi.', 'Luba: **Kas ma tohin / võin** siin istuda?', 'Vastus: **Hea meelega! Muidugi!** — **Kahjuks ei saa, sest…**'], 'full'),
@@ -172,10 +172,10 @@ export const LESSONS = {
         ['Tahaksin broneerida toa kaheks ööks.', 'hotellis'], ['Kas te saaksite selle kingituseks pakkida?', 'poes'], ['Kas ma tohin siin pilti teha?', 'muuseumis'],
         ['Palun ulata mulle sool.', 'kodus laua taga'], ['Kas te saaksite mulle retsepti kirjutada?', 'arsti juures'], ['Tahaksin tellida takso lennujaama.', 'telefonis taksofirmaga'],
       ], 'full', 'g_vocab'),
-      B.reading('072_p_read', 'Loe Liisi e-kirja.', 'Loe kirja ja vasta küsimustele.', 'Palved kolleegidele',
-        'Head kolleegid! Järgmisel nädalal tuleb meile klient Soomest. See on meile väga tähtis klient. Mul on teile mõned palved. Kati, kas sa saaksid kolmapäevaks koosolekuruumi broneerida? Igor, palun kontrolli, kas projektor töötab. Anna, kas sa saad arve enne kolmapäeva valmis teha? Markus, kas sa saaksid kliendi lennujaamast ära tuua? Lend saabub kell 9.40. Palun ärge pange autot maja ette, seal parkida ei tohi. Kui kellelgi on küsimusi, kirjutage mulle. Kui te ei saa midagi teha, andke palun kohe teada. Aitäh teile! Liis',
-        [['Kust klient tuleb?', 'Soomest'], ['Mida peab Kati broneerima?', 'koosolekuruumi'], ['Mida palub Liis Igoril?', 'kontrollida projektorit|kontrollida, kas projektor töötab'], ['Mida peab Anna valmis tegema?', 'arve|arve valmis'], ['Mis kell lend saabub?', '9.40|kell 9.40'], ['Kus ei tohi parkida?', 'maja ees|maja ette']]),
-      B.truefalse('072_p_tf', 'Õige või vale?', 'Loe kirja uuesti.', [['Klient tuleb järgmisel nädalal.', true], ['Igor peab ruumi broneerima.', false], ['Markus toob kliendi lennujaamast.', true], ['Maja ees võib parkida.', false], ['Küsimused tuleb Liisile kirjutada.', true]]),
+      B.reading('072_p_read', 'Loe Margiti e-kirja.', 'Loe kirja ja vasta küsimustele.', 'Palved kolleegidele',
+        'Head kolleegid! Järgmisel nädalal tuleb meile klient Soomest. See on meile väga tähtis klient. Mul on teile mõned palved. Pille, kas sa saaksid kolmapäevaks koosolekuruumi broneerida? Siim, palun kontrolli, kas projektor töötab. Anna, kas sa saad arve enne kolmapäeva valmis teha? Rasmus, kas sa saaksid kliendi lennujaamast ära tuua? Lend saabub kell 9.40. Palun ärge pange autot maja ette, seal parkida ei tohi. Kui kellelgi on küsimusi, kirjutage mulle. Kui te ei saa midagi teha, andke palun kohe teada. Aitäh teile! Margit',
+        [['Kust klient tuleb?', 'Soomest'], ['Mida peab Pille broneerima?', 'koosolekuruumi'], ['Mida palub Margit Siimul?', 'kontrollida projektorit|kontrollida, kas projektor töötab'], ['Mida peab Anna valmis tegema?', 'arve|arve valmis'], ['Mis kell lend saabub?', '9.40|kell 9.40'], ['Kus ei tohi parkida?', 'maja ees|maja ette']]),
+      B.truefalse('072_p_tf', 'Õige või vale?', 'Loe kirja uuesti.', [['Klient tuleb järgmisel nädalal.', true], ['Siim peab ruumi broneerima.', false], ['Rasmus toob kliendi lennujaamast.', true], ['Maja ees võib parkida.', false], ['Küsimused tuleb Margitile kirjutada.', true]]),
       B.gaps('072_p_gaps', 'Kirjuta õige vorm.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', [
         'Kas te saaksite akna [sulgeda] (sulgema)?', 'Palun [oodake] (ootama, teie) siin!', 'Kas sa saad mulle pliiatsi [ulatada] (ulatama)?', 'Kas ma [tohin] (tohtima) siin istuda?',
         '[Tahaksin] (tahtma, viisakalt) üht kohvi.', 'Kas sa [saad] (saama) mind aidata?', 'Palun [helistage] (helistama, teie) homme!',
@@ -242,15 +242,15 @@ export const LESSONS = {
     title: 'Nõustumine ja keeldumine',
     canDo: 'Ma nõustun või keeldun viisakalt, ütlen põhjuse sõnaga „sest” ja pakun alternatiivi vähemalt kolmes dialoogis.',
     discover: [
-      B.text('073_d_situation', 'Kiire nädal', 'Viktoril on sel nädalal palju tööd. Sõbrad kutsuvad teda kinno, sauna ja jalgpalli. Ta ei saa igale poole minna. Aga ta tahab vastata viisakalt.'),
+      B.text('073_d_situation', 'Kiire nädal', 'Markusel on sel nädalal palju tööd. Sõbrad kutsuvad teda kinno, sauna ja jalgpalli. Ta ei saa igale poole minna. Aga ta tahab vastata viisakalt.'),
       B.truefalse('073_d_tf', 'Mis on õige?', 'Loe olukorda. Õige või vale?', [
-        ['Viktoril on sel nädalal vähe tööd.', false], ['Sõbrad kutsuvad Viktorit kolme kohta.', true], ['Viktor saab igale poole minna.', false], ['Viktor tahab vastata viisakalt.', true], ['Üks kutse on kinno.', true],
+        ['Markusel on sel nädalal vähe tööd.', false], ['Sõbrad kutsuvad Markust kolme kohta.', true], ['Markus saab igale poole minna.', false], ['Markus tahab vastata viisakalt.', true], ['Üks kutse on kinno.', true],
       ]),
       B.vocab('073_d_vocab', 'Jah ja ei', ['nõustuma — соглашаться', 'keelduma — отказываться', 'sobib — подходит', 'muidugi — конечно', 'kahjuks — к сожалению', 'ma ei saa — я не могу', 'ma ei jõua — я не успею', 'sest — потому что', 'põhjus — причина', 'võib-olla — может быть', 'hea meelega — с удовольствием', 'Kuidas oleks…? — Как насчёт…?']),
-      B.reading('073_d_read', 'Loe: Viktori sõnumid.', 'Loe sõnumeid ja vasta küsimustele.', 'Viktori telefon',
-        'Liis: Tere, Viktor! Kas tuled reede õhtul kinno? Film algab kell seitse.\nViktor: Kahjuks ma ei saa, sest reedel töötan hilja. Aga kuidas oleks laupäeval?\nLiis: Laupäev sobib! Kohtume kino ees.\n\nJaan: Viktor, kas aitad mul pühapäeval kolida?\nViktor: Muidugi! Hea meelega. Mis kell?\nJaan: Kell kümme. Ma ostan pärast pitsat.\nViktor: Sobib, olen kohal.\n\nMarkus: Kas tuled teisipäeval jalgpalli mängima?\nViktor: Võib-olla. Ma ei tea veel, sest mu jalg valutab natuke.\nMarkus: Selge. Anna esmaspäeval teada.\nViktor: Hästi, kirjutan esmaspäeva õhtul.\n\nSofia: Viktor, kas tuled kolmapäeval meie sauna?\nViktor: Aitäh kutse eest, aga kolmapäeval ma tõesti ei jõua. Mul on eksam. Võib-olla teisel ajal?\nSofia: Muidugi, järgmisel nädalal!',
-        [['Miks ei lähe Viktor reedel kinno?', 'ta töötab hilja|reedel töötab ta hilja'], ['Mis päeval lähevad Liis ja Viktor kinno?', 'laupäeval'], ['Kellega on Viktor kohe nõus?', 'Jaaniga|Jaan'], ['Miks ei tea Viktor, kas ta läheb jalgpalli?', 'jalg valutab|tal valutab jalg'], ['Mida Viktor kolmapäeval teeb?', 'tal on eksam|teeb eksamit'], ['Kellele pakub Viktor teist aega?', 'Liisile ja Sofiale|Liisile|Sofiale']]),
-      B.table('073_d_find', 'Leia tekstist.', 'Kirjuta igasse ritta näide tekstist.', 'Mida Viktor teeb?, Lause tekstist', [
+      B.reading('073_d_read', 'Loe: Markuse sõnumid.', 'Loe sõnumeid ja vasta küsimustele.', 'Markuse telefon',
+        'Liis: Tere, Markus! Kas tuled reede õhtul kinno? Film algab kell seitse.\nMarkus: Kahjuks ma ei saa, sest reedel töötan hilja. Aga kuidas oleks laupäeval?\nLiis: Laupäev sobib! Kohtume kino ees.\n\nJaan: Markus, kas aitad mul pühapäeval kolida?\nMarkus: Muidugi! Hea meelega. Mis kell?\nJaan: Kell kümme. Ma ostan pärast pitsat.\nMarkus: Sobib, olen kohal.\n\nAndrei: Kas tuled teisipäeval jalgpalli mängima?\nMarkus: Võib-olla. Ma ei tea veel, sest mu jalg valutab natuke.\nAndrei: Selge. Anna esmaspäeval teada.\nMarkus: Hästi, kirjutan esmaspäeva õhtul.\n\nSofia: Markus, kas tuled kolmapäeval meie sauna?\nMarkus: Aitäh kutse eest, aga kolmapäeval ma tõesti ei jõua. Mul on eksam. Võib-olla teisel ajal?\nSofia: Muidugi, järgmisel nädalal!',
+        [['Miks ei lähe Markus reedel kinno?', 'ta töötab hilja|reedel töötab ta hilja'], ['Mis päeval lähevad Liis ja Markus kinno?', 'laupäeval'], ['Kellega on Markus kohe nõus?', 'Jaaniga|Jaan'], ['Miks ei tea Markus, kas ta läheb jalgpalli?', 'jalg valutab|tal valutab jalg'], ['Mida Markus kolmapäeval teeb?', 'tal on eksam|teeb eksamit'], ['Kellele pakub Markus teist aega?', 'Liisile ja Sofiale|Liisile|Sofiale']]),
+      B.table('073_d_find', 'Leia tekstist.', 'Kirjuta igasse ritta näide tekstist.', 'Mida Markus teeb?, Lause tekstist', [
         'nõustub | [Muidugi! Hea meelega./Sobib, olen kohal.]', 'keeldub | [Kahjuks ma ei saa./Kolmapäeval ma tõesti ei jõua.]', 'ütleb põhjuse | [sest reedel töötan hilja/sest mu jalg valutab natuke/Mul on eksam.]', 'pakub teist aega | [Aga kuidas oleks laupäeval?/Võib-olla teisel ajal?]', 'ei tea veel | [Võib-olla. Ma ei tea veel.]',
       ], 'g_notice'),
       B.notice('073_d_notice', 'Märka: jah, ei ja põhjus', [
@@ -326,7 +326,7 @@ export const LESSONS = {
     transfer: [
       B.text('073_t_situation', 'Uus olukord', 'Sul on järgmisel nädalal kolm kutset ja palvet. Aega on ainult ühel õhtul. Loe sõnumeid ja vasta kõigile viisakalt.'),
       B.reading('073_t_read', 'Kolm sõnumit.', 'Loe sõnumeid. Vasta sõnumi tähega või lühidalt.', 'Sinu sõnumid',
-        'A. Tere! Ma kolin reedel uude korterisse. Kas sa saaksid mind kella viiest aidata? Mul on palju raskeid kaste. Uus korter on teisel korrusel, lifti ei ole. Pärast teen pitsat ja ostan jooke. Jaan\n\nB. Tere, naaber! Ma sõidan neljapäeval kaheks päevaks Pärnusse. Kas sa saaksid mu kassi toita? Võti on postkastis. Kassi toit on köögis kapis. Kass sööb kaks korda päevas. Sofia\n\nC. Tere! Laupäeval on meie kursuse lõpupidu kohvikus „Kask”. Algus on kell kuus. Iga külaline toob kaasa ühe salati või koogi. Palun anna teada kolmapäevaks. Õpetaja Tiina',
+        'A. Tere! Ma kolin reedel uude korterisse. Kas sa saaksid mind kella viiest aidata? Mul on palju raskeid kaste. Uus korter on teisel korrusel, lifti ei ole. Pärast teen pitsat ja ostan jooke. Jaan\n\nB. Tere, naaber! Ma sõidan neljapäeval kaheks päevaks Pärnusse. Kas sa saaksid mu kassi toita? Võti on postkastis. Kassi toit on köögis kapis. Kass sööb kaks korda päevas. Sofia\n\nC. Tere! Laupäeval on meie kursuse lõpupidu kohvikus „Kask”. Algus on kell kuus. Iga külaline toob kaasa ühe salati või koogi. Palun anna teada kolmapäevaks. Õpetaja Liis',
         [['Kes vajab abi kolimisel?', 'A|Jaan'], ['Kuhu Sofia sõidab?', 'Pärnusse|Pärnu'], ['Kus on Sofia võti?', 'postkastis'], ['Mida peab peole kaasa võtma?', 'salati või koogi|salatit või kooki'], ['Millal pead õpetajale vastama?', 'kolmapäevaks'], ['Kes pakub pärast tööd süüa?', 'A|Jaan']]),
       B.choice('073_t_choice', 'Mis on viisakas?', 'Vali parim vastus.', [
         ['Ülemus küsib: „Kas saad laupäeval tööle tulla?” Sa ei saa.', 'Kahjuks ei saa, mul on pereüritus. Kas pühapäev sobib?', 'Ei saa, ma ei taha laupäeval töötada.', 'Muidugi, ma tulen laupäeval tööle.'],
@@ -336,12 +336,12 @@ export const LESSONS = {
         ['Kolleeg kutsub sünnipäevale, aga sa oled haige.', 'Aitäh kutse eest, aga ma olen haige.', 'Aitäh, ma tulen kindlasti!', 'Ma ei tule, mulle ei meeldi peod.'],
         ['Sa pead kokkulepitud kohtumise ära jätma.', 'Vabandust, mul tuli midagi vahele. Kas homme sobib?', 'Ma ei tule. Head aega.', 'Ma ei tea, võib-olla tulen.'],
       ], 'full', 'g_use'),
-      B.cloze('073_t_cloze', 'Vastus õpetajale.', 'Vali igasse lünka sobiv sõna.', 'Tere, õpetaja Tiina!', [
+      B.cloze('073_t_cloze', 'Vastus õpetajale.', 'Vali igasse lünka sobiv sõna.', 'Tere, õpetaja Liis!', [
         'Aitäh kutse {*eest|ees|eesse}! Ma tulen lõpupeole {*hea|heal|head} meelega. Ma võtan kaasa {*kartulisalati|kartulisalat|kartulisalatiga}.',
         'Kahjuks ma ei {*saa|saan|saama} tulla kell kuus, {*sest|aga|ja} ma töötan kella kuueni. Kas {*sobib|sobi|sobivad}, kui ma tulen pool tundi hiljem?',
         '',
         'Tervitades',
-        'Viktor',
+        'Andrei',
       ]),
       B.wordorder('073_t_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', [
         'Muidugi, ma toidan su kassi.', 'Kahjuks ma ei saa reedel aidata.', 'Kas laupäeva hommik sobib?', 'Ma tulen peole hea meelega.', 'Ma võtan kaasa ühe salati.',
@@ -368,13 +368,13 @@ export const LESSONS = {
       ]),
       B.vocab('074_d_vocab', 'Sõnumi sõnad', ['sõnum — сообщение', 'kutse — приглашение', 'tänama — благодарить', 'Aitäh … eest! — Спасибо за…!', 'muutma — менять', 'edasi lükkama — переносить', 'teada andma — сообщать', 'Tervitades — С приветом', 'Kallistan — Обнимаю', 'Kohtumiseni! — До встречи!', 'Lugupidamisega — С уважением', 'adressaat — адресат']),
       B.reading('074_d_read', 'Loe Anna sõnumeid.', 'Loe sõnumeid ja vasta küsimustele.', 'Anna sõnumid',
-        '1. Tere, Liis! Mul on laupäeval sünnipäev. Kutsun sind külla kell kuus. Tulevad ka Markus ja Sofia. Teen ise süüa, aga võid tuua magustoitu. Aadress on Tamme 12–5. Palun anna reedeks teada, kas tuled. Kallistan! Anna\n\n2. Tere, naaber! Suur aitäh abi eest! Sa aitasid mul eile kappi tuppa tuua. Üksi ma ei saanud seda teha. Ma küpsetasin sulle pirukaid. Toon need täna õhtul. Tervitades, Anna\n\n3. Tere, Jaan! Kahjuks ma ei saa homme kell kümme koosolekule tulla, sest mu laps on haige. Kas saaksime kohtumise neljapäevale lükata? Neljapäeval olen vaba terve päeva. Aruande saadan sulle täna õhtul e-kirjaga. Vabandust ja aitäh! Anna',
+        '1. Tere, Liis! Mul on laupäeval sünnipäev. Kutsun sind külla kell kuus. Tulevad ka Markus ja Sofia. Teen ise süüa, aga võid tuua magustoitu. Aadress on Tamme 12–5. Palun anna reedeks teada, kas tuled. Kallistan! Anna\n\n2. Tere, naaber! Suur aitäh abi eest! Sa aitasid mul eile kappi tuppa tuua. Üksi ma ei saanud seda teha. Ma küpsetasin sulle pirukaid. Toon need täna õhtul. Tervitades, Anna\n\n3. Tere, Siim! Kahjuks ma ei saa homme kell kümme koosolekule tulla, sest mu laps on haige. Kas saaksime kohtumise neljapäevale lükata? Neljapäeval olen vaba terve päeva. Aruande saadan sulle täna õhtul e-kirjaga. Vabandust ja aitäh! Anna',
         [['Mis on esimese sõnumi eesmärk?', 'kutse|kutsuda külla|kutsuda sünnipäevale'], ['Mida võib Liis kaasa tuua?', 'magustoitu|magustoidu'], ['Mille eest Anna naabrit tänab?', 'abi eest|et ta aitas kappi tuppa tuua'], ['Miks ei saa Anna koosolekule tulla?', 'laps on haige|tema laps on haige'], ['Millise päeva Anna pakub?', 'neljapäeva|neljapäeval'], ['Millise sõnumi lõpp on kõige isiklikum?', 'esimese|1|Kallistan']]),
       B.table('074_d_find', 'Sõnumi osad.', 'Leia sõnumitest 1 ja 3 osad.', 'Osa, Sõnum 1, Sõnum 3', [
-        'Pöördumine | [Tere, Liis!] | [Tere, Jaan!]', 'Eesmärk | [kutse/kutsun sind külla] | [aja muutmine/ei saa tulla]', 'Palve | [anna reedeks teada] | [lükata neljapäevale/kas saaksime kohtumise neljapäevale lükata]', 'Lõpp | [Kallistan!] | [Vabandust ja aitäh!]',
+        'Pöördumine | [Tere, Liis!] | [Tere, Siim!]', 'Eesmärk | [kutse/kutsun sind külla] | [aja muutmine/ei saa tulla]', 'Palve | [anna reedeks teada] | [lükata neljapäevale/kas saaksime kohtumise neljapäevale lükata]', 'Lõpp | [Kallistan!] | [Vabandust ja aitäh!]',
       ], 'g_notice'),
       B.notice('074_d_notice', 'Märka: sõnumi plaan', [
-        '1. **Pöördumine**: Tere, Liis! / Tere, Jaan!', '2. **Eesmärk**: Kutsun sind… / Aitäh … **eest**! / Kahjuks ma ei saa…', '3. **Info**: millal? kus? mida kaasa võtta?', '4. **Palve või küsimus**: Palun anna teada… / Kas saaksime…?', '5. **Lõpp**: Kallistan! (sõber) / Tervitades (tuttav)',
+        '1. **Pöördumine**: Tere, Liis! / Tere, Siim!', '2. **Eesmärk**: Kutsun sind… / Aitäh … **eest**! / Kahjuks ma ei saa…', '3. **Info**: millal? kus? mida kaasa võtta?', '4. **Palve või küsimus**: Palun anna teada… / Kas saaksime…?', '5. **Lõpp**: Kallistan! (sõber) / Tervitades (tuttav)',
       ], 'full'),
       B.crossword('074_d_words', 'Sõnumi sõnad.', 'Kirjuta sõnad vihjete järgi.', [
         ['Sõnum, kus sa kutsud külla.', 'kutse'], ['Lõpp parimale sõbrale.', 'kallistan'], ['Lõpp tuttavale.', 'tervitades'], ['Ütled aitäh.', 'tänama'], ['Inimene, kellele sa kirjutad.', 'adressaat'],
@@ -415,8 +415,8 @@ export const LESSONS = {
         'Tere, härra Tamm! Kas [teil] on laupäeval aega?', 'Ma [kutsun] teid meile kohvile.', 'Kas te [saaksite] tulla kell neli?', 'Palun [andke] teada, kas sobib.', '[Tervitades], Anna',
       ], ['teil', 'sul', 'kutsun', 'kutsud', 'saaksite', 'saaksid', 'andke', 'anna', 'tervitades', 'kallistan']),
       B.reading('074_p_read', 'Loe vestlust.', 'Loe sõnumeid ja vasta küsimustele.', 'Sofia ja Jaan',
-        'Sofia (10.15): Tere, Jaan! Kas sa oled reede õhtul vaba? Meil on kodus väike pidu, sest Viktor kolib Tallinnasse.\nJaan (10.40): Tere! Reedel olen tööl kella seitsmeni. Mis kell pidu algab?\nSofia (10.42): Kell kuus. Aga tule pärast tööd, see sobib.\nJaan (10.45): Hästi! Kas ma pean midagi kaasa võtma?\nSofia (10.50): Kui saad, too leiba või salatit. Me teeme Viktorile ka väikese kingituse. Igaüks paneb viis eurot.\nJaan (11.05): Muidugi! Aitäh kutse eest! Kas aadress on sama?\nSofia (11.07): Ei, me elame nüüd Kase tänav 3. Uksekood on 1234.\nJaan (11.10): Selge. Kohtumiseni!',
-        [['Miks Sofia peo teeb?', 'Viktor kolib Tallinnasse|Viktor kolib ära'], ['Miks tuleb Jaan hiljem?', 'ta on tööl kella seitsmeni|ta töötab'], ['Mida võib Jaan kaasa tuua?', 'leiba või salatit'], ['Kui palju raha paneb Jaan kingitusse?', 'viis eurot|5 eurot'], ['Kus Sofia nüüd elab?', 'Kase tänav 3|Kase tänaval'], ['Mitu minutit ootas Sofia Jaani esimest vastust?', '25|kakskümmend viis']]),
+        'Sofia (10.15): Tere, Jaan! Kas sa oled reede õhtul vaba? Meil on kodus väike pidu, sest Kalev kolib Tartusse.\nJaan (10.40): Tere! Reedel olen tööl kella seitsmeni. Mis kell pidu algab?\nSofia (10.42): Kell kuus. Aga tule pärast tööd, see sobib.\nJaan (10.45): Hästi! Kas ma pean midagi kaasa võtma?\nSofia (10.50): Kui saad, too leiba või salatit. Me teeme Kalevile ka väikese kingituse. Igaüks paneb viis eurot.\nJaan (11.05): Muidugi! Aitäh kutse eest! Kas aadress on sama?\nSofia (11.07): Ei, me elame nüüd Kase tänav 3. Uksekood on 1234.\nJaan (11.10): Selge. Kohtumiseni!',
+        [['Miks Sofia peo teeb?', 'Kalev kolib Tartusse|Kalev kolib ära'], ['Miks tuleb Jaan hiljem?', 'ta on tööl kella seitsmeni|ta töötab'], ['Mida võib Jaan kaasa tuua?', 'leiba või salatit'], ['Kui palju raha paneb Jaan kingitusse?', 'viis eurot|5 eurot'], ['Kus Sofia nüüd elab?', 'Kase tänav 3|Kase tänaval'], ['Mitu minutit ootas Sofia Jaani esimest vastust?', '25|kakskümmend viis']]),
       B.transformation('074_p_trans', 'Kirjuta võõrale.', 'Muuda lause teie-vormiks.', [
         ['Kas sa tuled laupäeval?', 'teie', 'Kas te tulete laupäeval?'], ['Palun anna teada!', 'teie', 'Palun andke teada!'], ['Kas sul on aega?', 'teie', 'Kas teil on aega?'], ['Kutsun sind külla.', 'teie', 'Kutsun teid külla.'], ['Aitäh sulle!', 'teie', 'Aitäh teile!'],
       ]),
@@ -464,15 +464,15 @@ export const LESSONS = {
     title: 'Kontroll 15 — suhted ja viisakus',
     canDo: 'Ma näitan kontrollis, et oskan külalist vastu võtta, viisakalt nõustuda või keelduda ja kirjutada lühikese isikliku sõnumi (vähemalt 70%).',
     discover: [
-      B.text('075_d_situation', 'Kordamine: Viktor kolib', 'Viktor kolib Tallinnasse. Enne ärasõitu kutsub ta sõbrad oma koju. Liis tuleb, aga Jaan ei saa tulla. Jaan saadab Viktorile sõnumi.'),
+      B.text('075_d_situation', 'Kordamine: Kalev kolib', 'Kalev kolib Tartusse. Enne ärasõitu kutsub ta sõbrad oma koju. Liis tuleb, aga Jaan ei saa tulla. Jaan saadab Kalevile sõnumi.'),
       B.truefalse('075_d_tf', 'Mis on õige?', 'Loe olukorda. Õige või vale?', [
-        ['Viktor kolib Tartusse.', false], ['Viktor kutsub sõbrad külla.', true], ['Liis ei tule.', false], ['Jaan ei saa tulla.', true], ['Jaan kirjutab Viktorile.', true],
+        ['Kalev kolib Pärnusse.', false], ['Kalev kutsub sõbrad külla.', true], ['Liis ei tule.', false], ['Jaan ei saa tulla.', true], ['Jaan kirjutab Kalevile.', true],
       ]),
-      B.reading('075_d_read', 'Loe: Viktori ärasaatmine.', 'Loe tekst ja vasta küsimustele.', 'Viktori ärasaatmine',
-        'Reede õhtul tulid Viktori juurde sõbrad. Kõigepealt tuli Liis. Ta tõi kaasa koogi ja kaardi. Viktor ütles: „Tule sisse! Võta istet!” Siis tulid Sofia ja Markus. Viktor pakkus kõigile teed ja võileibu. Markus ei joonud teed, sest talle ei meeldi tee. Ta palus vett. Jaan ei saanud tulla, sest tal oli öövahetus. Ta saatis sõnumi: „Kahjuks ma ei saa täna tulla. Kuidas oleks pühapäeval? Ma tahan sind rongile viia.” Viktor vastas: „Sobib! Rong läheb kell kümme.” Sõbrad rääkisid ja naersid kaua. Kell üksteist ütles Sofia: „Oi, kell on palju. Mul on aeg minna.” Kõik tänasid Viktorit. Liis ütles: „Aitäh kutsumast! Kirjuta meile Tallinnast!” Viktor oli natuke kurb, aga ka õnnelik.',
-        [['Mida Liis kaasa tõi?', 'koogi ja kaardi|kooki ja kaarti'], ['Miks jõi Markus vett?', 'talle ei meeldi tee'], ['Miks Jaan ei tulnud?', 'tal oli öövahetus|ta oli tööl'], ['Mida Jaan pakkus?', 'viia Viktor pühapäeval rongile|pühapäeval rongile viia'], ['Kes lahkus esimesena ja mida ta ütles?', 'Sofia, Mul on aeg minna|Sofia'], ['Miks oli Viktor kurb?', 'ta kolib ära|ta lahkub sõprade juurest']]),
+      B.reading('075_d_read', 'Loe: Kalevi ärasaatmine.', 'Loe tekst ja vasta küsimustele.', 'Kalevi ärasaatmine',
+        'Reede õhtul tulid Kalevi juurde sõbrad. Kõigepealt tuli Liis. Ta tõi kaasa koogi ja kaardi. Kalev ütles: „Tule sisse! Võta istet!” Siis tulid Sofia ja Markus. Kalev pakkus kõigile teed ja võileibu. Markus ei joonud teed, sest talle ei meeldi tee. Ta palus vett. Jaan ei saanud tulla, sest tema kohvikus oli pidu. Ta saatis sõnumi: „Kahjuks ma ei saa täna tulla. Kuidas oleks pühapäeval? Ma tahan sind rongile viia.” Kalev vastas: „Sobib! Rong läheb kell kümme.” Sõbrad rääkisid ja naersid kaua. Kell üksteist ütles Sofia: „Oi, kell on palju. Mul on aeg minna.” Kõik tänasid Kalevit. Liis ütles: „Aitäh kutsumast! Kirjuta meile Tartust!” Kalev oli natuke kurb, aga ka õnnelik.',
+        [['Mida Liis kaasa tõi?', 'koogi ja kaardi|kooki ja kaarti'], ['Miks jõi Markus vett?', 'talle ei meeldi tee'], ['Miks Jaan ei tulnud?', 'tema kohvikus oli pidu|kohvikus oli pidu|ta oli kohvikus'], ['Mida Jaan pakkus?', 'viia Kalev pühapäeval rongile|pühapäeval rongile viia'], ['Kes lahkus esimesena ja mida ta ütles?', 'Sofia, Mul on aeg minna|Sofia'], ['Miks oli Kalev kurb?', 'ta kolib ära|ta lahkub sõprade juurest']]),
       B.table('075_d_find', 'Leia tekstist.', 'Kirjuta tekstist lause.', 'Mida inimene teeb?, Lause tekstist', [
-        'võõrustaja kutsub sisse | [Tule sisse!]', 'keeldub põhjusega | [Kahjuks ma ei saa täna tulla./Jaan ei saanud tulla, sest tal oli öövahetus.]', 'pakub teist aega | [Kuidas oleks pühapäeval?]', 'nõustub | [Sobib!]', 'lahkub | [Mul on aeg minna.]', 'tänab | [Aitäh kutsumast!]',
+        'võõrustaja kutsub sisse | [Tule sisse!]', 'keeldub põhjusega | [Kahjuks ma ei saa täna tulla./Jaan ei saanud tulla, sest tema kohvikus oli pidu.]', 'pakub teist aega | [Kuidas oleks pühapäeval?]', 'nõustub | [Sobib!]', 'lahkub | [Mul on aeg minna.]', 'tänab | [Aitäh kutsumast!]',
       ], 'g_notice'),
       B.notice('075_d_notice', 'Mooduli kokkuvõte', [
         'Külas: **Tule sisse! Võta istet! Kas soovid teed?** — **Aitäh kutsumast!**', 'Jah / ei: **Hea meelega!** — **Kahjuks ei saa, sest…** — **Kuidas oleks…?**', 'Sõnum: **pöördumine → eesmärk → info → palve → lõpp**', 'Võõrale: **tulge, võtke, andke**; **Aitäh … eest!**',
@@ -492,12 +492,12 @@ export const LESSONS = {
       B.errorfix('075_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Kas soovid tee?', 'Kas soovid teed?'], ['Ma ei saa tulema.', 'Ma ei saa tulla.'], ['Aitäh kutsest!', 'Aitäh kutse eest!'], ['Mul on aega minna.', 'Mul on aeg minna.'], ['Kuidas oleks pühapäev?', 'Kuidas oleks pühapäeval?'],
       ]),
-      B.dialogue('075_d_dialog', 'Jaani sõnum.', 'Täida Jaani ja Viktori vestlus.', 'Jaan', 'Viktor', [
-        ['A', '[Kahjuks] ma ei saa täna tulla, [sest] mul on öövahetus.'], ['B', 'Kahju! Aga ma saan aru.'], ['A', 'Aga kuidas [oleks] pühapäeval? Ma viin sind rongile.'],
+      B.dialogue('075_d_dialog', 'Jaani sõnum.', 'Täida Jaani ja Kalevi vestlus.', 'Jaan', 'Kalev', [
+        ['A', '[Kahjuks] ma ei saa täna tulla, [sest] mu kohvikus on pidu.'], ['B', 'Kahju! Aga ma saan aru.'], ['A', 'Aga kuidas [oleks] pühapäeval? Ma viin sind rongile.'],
         ['B', 'Pühapäev [sobib]! Rong läheb kell kümme.'], ['A', 'Hästi. Olen kell üheksa sinu juures.'], ['B', 'Suur [aitäh]! Kohtumiseni!'],
       ]),
       B.wordorder('075_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', [
-        'Liis tõi kaasa koogi ja kaardi.', 'Markus ei joonud teed.', 'Jaan ei saanud tulla, sest tal oli öövahetus.', 'Kuidas oleks pühapäeval?', 'Aitäh kutsumast, kirjuta meile!',
+        'Liis tõi kaasa koogi ja kaardi.', 'Markus ei joonud teed.', 'Jaan ei saanud tulla, sest tema kohvikus oli pidu.', 'Kuidas oleks pühapäeval?', 'Aitäh kutsumast, kirjuta meile!',
       ]),
       TR('075_d_tr', ['Заходи, садись!', 'Хочешь чаю?', 'К сожалению, я не могу, потому что работаю.', 'Как насчёт воскресенья?', 'Спасибо за приглашение!']),
       D('075_d_dict', ['Tule sisse ja võta istet.', 'Kahjuks ma ei saa tulla.', 'Kuidas oleks pühapäeval?', 'Aitäh kutsumast!', 'Palun anna teada.']),

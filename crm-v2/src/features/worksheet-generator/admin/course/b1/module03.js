@@ -84,7 +84,7 @@ export const LESSONS = {
         'Anname üürile valgusküllase kahetoalise korteri Tartus, Karlova linnaosas. Korter on kolmandal korrusel, majas on lift. Esikus on suur riidekapp. Köök on väike, aga seal on uus pliit ja nõudepesumasin. Elutoas on diivan, raamaturiiul ja suur aken lõuna poole. Magamistoas on lai voodi ja kirjutuslaud akna all. Vannitoas on dušš ja pesumasin. Rõdu ei ole, aga hoovis on väike aed pinkidega. Maja kõrval on pood ja bussipeatus. Kesklinna sõidab buss kümme minutit, jalgsi jõuab sinna veerand tunniga. Hoovis on parkla ja jalgrattahoidla. Hind on 550 eurot kuus, kommunaalkulud lisaks. Internet on hinna sees. Naabrid on vaiksed ja sõbralikud. Talvel on need umbes 120 eurot. Lemmikloomad on lubatud, aga korteris ei tohi suitsetada. Korter on vaba alates esimesest novembrist. Helista õhtuti pärast kella kuut!',
         [['Mitu tuba korteris on?', 'kaks|2'], ['Mis on köögis uus?', 'pliit ja nõudepesumasin|pliit'], ['Kus on kirjutuslaud?', 'magamistoas akna all|akna all'], ['Mis on maja kõrval?', 'pood ja bussipeatus'], ['Kas koera võib kaasa võtta?', 'jah|jah, lemmikloomad on lubatud']]),
       B.choice('011_t_fit', 'Kas korter sobib?', 'Kes võiks selle korteri üürida? Vali.', [
-        ['Annal on koer ja ta töötab kodus.', 'Sobib: loomad on lubatud ja on kirjutuslaud.', 'Ei sobi: loomad ei ole lubatud.', 'Ei sobi: korteris pole lauda.'],
+        ['Merlel on koer ja ta töötab kodus.', 'Sobib: loomad on lubatud ja on kirjutuslaud.', 'Ei sobi: loomad ei ole lubatud.', 'Ei sobi: korteris pole lauda.'],
         ['Peeter sõidab iga päev kesklinna.', 'Sobib: maja kõrval on bussipeatus.', 'Ei sobi: kesklinna sõidab buss üks tund.', 'Ei sobi: bussipeatus on kaugel.'],
         ['Liisal on kolm last.', 'Ilmselt ei sobi: korter on kahetoaline.', 'Sobib väga hästi: korter on suur.', 'Sobib: seal on kolm magamistuba.'],
         ['Marko tahab maksta alla 500 euro.', 'Ei sobi: hind on 550 eurot.', 'Sobib: hind on 450 eurot.', 'Sobib: kommunaalkulud on hinna sees.'],
@@ -128,14 +128,14 @@ export const LESSONS = {
         ['Markus töötab lattu.', 'Markus töötab laos.'], ['Ta võtab kasti autosse.', 'Ta võtab kasti autost.'], ['Pane piim külmkapis.', 'Pane piim külmkappi.'], ['Ma lähen poes.', 'Ma lähen poodi.'], ['Ta on täna kodust.', 'Ta on täna kodus.'], ['Võta raamat riiulile.', 'Võta raamat riiulilt.'],
       ]),
       B.listening('012_d_listen', 'Kuula häälsõnumit.', 'Õpetaja loeb häälsõnumi kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere, Martin! Siin Anna. Ma olen veel tööl ja tulen koju kell seitse.',
+        'Tere, Igor! Siin Anna. Ma olen veel tööl ja tulen koju kell seitse.',
         'Palun mine pärast tööd poodi. Osta piima ja leiba.',
-        'Minu ema tuleb täna Tartust. Too ta kell kuus jaamast koju.',
+        'Minu ema tuleb täna Pärnust. Too ta kell kuus jaamast koju.',
         'Kodus võta kana külmkapist välja.',
         'Pane kana ahju, umbes tunniks.',
         'Minu prillid on autos. Palun too need tuppa.',
         'Aitäh! Näeme õhtul.',
-      ], ['Anna tuleb koju kell [seitse|7].', 'Martin peab minema [poodi].', 'Anna ema tuleb [Tartust].', 'Martin toob ema [jaamast].', 'Kana tuleb võtta [külmkapist].', 'Anna prillid on [autos].']),
+      ], ['Anna tuleb koju kell [seitse|7].', 'Igor peab minema [poodi].', 'Anna ema tuleb [Pärnust].', 'Igor toob ema [jaamast].', 'Kana tuleb võtta [külmkapist].', 'Anna prillid on [autos].']),
       B.wordorder('012_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Markus sõidab hommikul bussiga tööle.', 'Ta võtab kastid suurest autost.', 'Väikesed kastid lähevad ülemisele riiulile.', 'Pärast tööd läheb ta poodi.', 'Kell viis tuleb ta töölt koju.', 'Lõuna ajal läheb Markus sööklasse.']),
       B.dictation('012_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Markus läheb kodust kell seitse.', 'Ta sõidab bussiga tööle.', 'Ta võtab kastid autost.', 'Ta paneb kastid riiulile.', 'Õhtul tuleb ta töölt koju.']),
       B.translation('012_d_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Я на работе.', 'Вечером я иду домой.', 'Возьми молоко из холодильника.', 'Отнеси коробки на склад.', 'Он приходит с работы в пять.', 'Положи ключи на стол.']),
@@ -218,7 +218,7 @@ export const LESSONS = {
         ['Ma pean paki saatma.', 'postkontor', 'Ma lähen postkontorisse.'], ['Ma tahan ujuda.', 'spordikeskus', 'Ma lähen spordikeskusesse.'],
       ]),
       B.listening('013_d_listen', 'Kuula: kohviku lähedal.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
-        'Tere, Mia! Mina olen Jaan, kohviku omanik. Tere tulemast meie meeskonda!',
+        'Tere, Mirjam! Mina olen Jaan, kohviku omanik. Tere tulemast meie meeskonda!',
         'Räägin sulle, mis on meie kohviku lähedal.',
         'Kui sul on vaja raha, siis pank on kohe nurga peal.',
         'Apteek on panga kõrval. Seal on väga abivalmis apteeker.',
@@ -286,13 +286,13 @@ export const LESSONS = {
     title: 'Tee küsimine ja juhatamine',
     canDo: 'Ma annan vähemalt nelja järjestatud juhise abil arusaadava teekirjelduse.',
     discover: [
-      B.text('014_d_intro', 'Turist küsib teed', 'Viktor on 63-aastane pensionär. Ta elab Tartus ja tunneb linna hästi. Tänaval küsivad turistid temalt tihti teed. Selles tunnis õpid teed küsima ja juhatama.'),
+      B.text('014_d_intro', 'Turist küsib teed', 'Viktor on 63-aastane pensionär. Ta elab Tallinnas ja tunneb linna hästi. Tänaval küsivad turistid temalt tihti teed. Selles tunnis õpid teed küsima ja juhatama.'),
       B.vocab('014_d_vocab', 'Tee sõnad', ['otse — прямо', 'paremale — направо', 'vasakule — налево', 'pöörama — поворачивать', 'ületama — переходить', 'jätkama — продолжать', 'ristmik — перекрёсток', 'valgusfoor — светофор', 'ülekäigurada — пешеходный переход', 'nurga peal — на углу', 'vastas — напротив', 'sissepääs — вход', 'jalgsi — пешком', 'ära eksima — заблудиться', 'teed juhatama — показывать дорогу'], '2'),
       B.reading('014_d_read', 'Loe: Viktor juhatab teed.', 'Loe teksti ja vasta küsimustele.', 'Kuidas ma saan jaama?',
-        'Laupäeva hommikul läks Viktor raekoja platsile. Seal küsis noor naine: „Vabandage, kuidas ma saan jaama?” Ta oli ära eksinud. Viktor naeratas ja juhatas teed. „Minge otse kuni valgusfoorini. Siis pöörake vasakule. Ületage tee ülekäigurajal. Jätkake mööda Riia tänavat umbes kolmsada meetrit. Paremal näete suurt poodi. Jaam on poe vastas.” Naine küsis, kas see on kaugel. Viktor vastas, et jalgsi on umbes viisteist minutit. Naine tänas ja läks. Pärastlõunal nägi Viktor sama naist uuesti. Ta istus pargis pingil. „Rong läks ära,” ütles naine. „Järgmine on alles õhtul.” Viktor kutsus ta kohvikusse kohvi jooma.',
+        'Laupäeva hommikul läks Viktor raekoja platsile. Seal küsis noor naine: „Vabandage, kuidas ma saan jaama?” Ta oli ära eksinud. Viktor naeratas ja juhatas teed. „Minge otse kuni valgusfoorini. Siis pöörake vasakule. Ületage tee ülekäigurajal. Jätkake mööda Toompuiesteed umbes kolmsada meetrit. Paremal näete suurt poodi. Jaam on poe vastas.” Naine küsis, kas see on kaugel. Viktor vastas, et jalgsi on umbes viisteist minutit. Naine tänas ja läks. Pärastlõunal nägi Viktor sama naist uuesti. Ta istus pargis pingil. „Rong läks ära,” ütles naine. „Järgmine on alles õhtul.” Viktor kutsus ta kohvikusse kohvi jooma.',
         [['Kuhu tahtis noor naine minna?', 'jaama'], ['Kus tuli pöörata vasakule?', 'valgusfoori juures|pärast valgusfoori'], ['Kus tuli tee ületada?', 'ülekäigurajal'], ['Mis on jaama vastas?', 'suur pood|pood'], ['Kui kaua on jalgsi jaama?', 'umbes viisteist minutit|15 minutit|viisteist minutit'], ['Miks istus naine pärastlõunal pargis?', 'rong läks ära|ta jäi rongist maha']]),
       B.truefalse('014_d_tf', 'Õige või vale?', 'Loe Viktori lugu uuesti.', [
-        ['Naine tundis Tartut hästi.', false], ['Tee tuli ületada ülekäigurajal.', true], ['Jaam on poe kõrval.', false], ['Jalgsi on jaama umbes veerand tundi.', true], ['Naine jõudis hommikul rongile.', false], ['Viktor kutsus naise kohvikusse.', true],
+        ['Naine tundis Tallinna hästi.', false], ['Tee tuli ületada ülekäigurajal.', true], ['Jaam on poe kõrval.', false], ['Jalgsi on jaama umbes veerand tundi.', true], ['Naine jõudis hommikul rongile.', false], ['Viktor kutsus naise kohvikusse.', true],
       ]),
       B.notice('014_d_notice', 'Märka: käsk', ['sõbrale (sa): **mine**, **pööra**, **ületa**, **jätka**', 'võõrale (te): **minge**, **pöörake**, **ületage**, **jätkake**', 'pööra**ma** → **pööra** (ma-vorm ilma -ma)', 'Kuni kuhu? kuni valgusfoori**ni**, kuni ristmiku**ni**', 'Kus? poe **vastas**, panga **kõrval**, **nurga peal**'], 'full'),
       B.table('014_d_table', 'Sa või te?', 'Kirjuta puuduv käsk.', 'tegusõna, sõbrale (sa), võõrale (te)', [
@@ -397,11 +397,11 @@ export const LESSONS = {
     discover: [
       B.text('015_d_intro', 'Kordame moodulit', 'Järgmises tunnis on kontroll. Täna kordad mooduli 3 teemasid: kodu, kus-kuhu-kust, linnakohad ja tee juhatamine.'),
       B.vocab('015_d_vocab', 'Minu kodukoht', ['kodukoht — родные места', 'kesklinn — центр города', 'tänav — улица', 'sadam — порт', 'mere ääres — у моря', 'kaubanduskeskus — торговый центр', 'pagariäri — пекарня', 'park — парк', 'mööda — вдоль, по', 'loodus — природа', 'lillepood — цветочный магазин'], '2'),
-      B.reading('015_d_read', 'Loe: Jaani kodukoht.', 'Loe teksti ja vasta küsimustele.', 'Jaani Pärnu',
-        'Jaan on pärit Pärnust. Ta elab seal ka praegu. Tema kohvik on vanalinnas, Kuninga tänaval. Jaani korter on kohviku kohal, teisel korrusel. Hommikul läheb ta trepist alla ja on kohe tööl. Kohviku kõrval on pagariäri. Sealt ostab Jaan iga hommik värsket leiba. Kohviku vastas on lillepood. Pärast lõunat jalutab Jaan koos Mukiga mere äärde. Ta läheb pargi kaudu ja siis mööda Ranna puiesteed. Rannas on Muki kõige õnnelikum. Suvel on Pärnus palju turiste. Siis on kohvik õhtuni täis. Talvel on linn vaikne. Kesklinnas on ka kaubanduskeskus, aga Jaan käib seal harva. Talle meeldivad väikesed poed ja loodus. Jaan ütleb: „Minu kodukoht on väike, aga siin on kõik olemas.”',
-        [['Kus on Jaani kohvik?', 'vanalinnas|Kuninga tänaval|vanalinnas Kuninga tänaval'], ['Kus on Jaani korter?', 'kohviku kohal|teisel korrusel|kohviku kohal teisel korrusel'], ['Mis on kohviku kõrval?', 'pagariäri'], ['Kuhu jalutab Jaan pärast lõunat?', 'mere äärde|randa'], ['Milline on Pärnu talvel?', 'vaikne'], ['Miks käib Jaan harva kaubanduskeskuses?', 'talle meeldivad väikesed poed|talle meeldivad väikesed poed ja loodus']]),
+      B.reading('015_d_read', 'Loe: Jaani kodukoht.', 'Loe teksti ja vasta küsimustele.', 'Jaani Tallinn',
+        'Jaan on pärit Tallinnast. Ta elab seal ka praegu. Tema kohvik on vanalinnas, Vene tänaval. Jaani korter on kohviku kohal, teisel korrusel. Hommikul läheb ta trepist alla ja on kohe tööl. Kohviku kõrval on pagariäri. Sealt ostab Jaan iga hommik värsket leiba. Kohviku vastas on lillepood. Pärast lõunat jalutab Jaan koos Mukiga mere äärde. Ta läheb pargi kaudu ja siis mööda Pirita teed. Rannas on Muki kõige õnnelikum. Suvel on Tallinnas palju turiste. Siis on kohvik õhtuni täis. Talvel on vanalinn vaikne. Kesklinnas on ka kaubanduskeskus, aga Jaan käib seal harva. Talle meeldivad väikesed poed ja loodus. Jaan ütleb: „Vanalinn on väike, aga siin on kõik olemas.”',
+        [['Kus on Jaani kohvik?', 'vanalinnas|Vene tänaval|vanalinnas Vene tänaval'], ['Kus on Jaani korter?', 'kohviku kohal|teisel korrusel|kohviku kohal teisel korrusel'], ['Mis on kohviku kõrval?', 'pagariäri'], ['Kuhu jalutab Jaan pärast lõunat?', 'mere äärde|randa'], ['Milline on vanalinn talvel?', 'vaikne'], ['Miks käib Jaan harva kaubanduskeskuses?', 'talle meeldivad väikesed poed|talle meeldivad väikesed poed ja loodus']]),
       B.match('015_d_match', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus.', [
-        ['Kus Jaan elab?', 'Kohviku kohal.'], ['Kuhu ta pärast lõunat jalutab?', 'Mere äärde.'], ['Kust ta ostab leiba?', 'Pagariärist.'], ['Kus on lillepood?', 'Kohviku vastas.'], ['Kust Jaan pärit on?', 'Pärnust.'], ['Kuhu turistid suvel tulevad?', 'Pärnusse.'],
+        ['Kus Jaan elab?', 'Kohviku kohal.'], ['Kuhu ta pärast lõunat jalutab?', 'Mere äärde.'], ['Kust ta ostab leiba?', 'Pagariärist.'], ['Kus on lillepood?', 'Kohviku vastas.'], ['Kust Jaan pärit on?', 'Tallinnast.'], ['Kuhu turistid suvel tulevad?', 'Tallinna.'],
       ], 'full', 'g_read'),
       B.notice('015_d_notice', 'Mooduli 3 mustrid', ['Kus? kohviku**s**, tänava**l**, kohviku **kõrval**', 'Kuhu? kohviku**sse**, mere **äärde**, tänava**le**', 'Kust? kohviku**st**, Pärnu**st**, pagariäri**st**', 'Linnas: lähen **apteeki**, **panka**, **raamatukokku**', 'Tee: **mine** otse, **pööra** paremale; võõrale: **minge**, **pöörake**'], 'full'),
       B.wordforms('015_d_forms', 'Kolm vormi.', 'Kirjuta vorm küsimuse järgi.', [
@@ -412,14 +412,14 @@ export const LESSONS = {
         ['Siin ostad lilli.', 'lillepood'], ['Siin ostad leiba ja saia.', 'pagariäri'], ['Siin on laevad.', 'sadam'], ['Siin on palju poode koos.', 'kaubanduskeskus'], ['Linna keskel.', 'kesklinn'], ['Siin on puud ja pingid.', 'park'],
       ]),
       B.dialogue('015_d_dialog', 'Turist kohvikus.', 'Täida dialoog sobivate sõnadega.', 'Turist', 'Jaan', [
-        ['A', 'Vabandage, kuidas ma saan [sadamasse]?'], ['B', 'Minge [otse] mööda Kuninga tänavat.'], ['A', 'Ja siis?'],
+        ['A', 'Vabandage, kuidas ma saan [sadamasse]?'], ['B', 'Minge [otse] mööda Vene tänavat.'], ['A', 'Ja siis?'],
         ['B', 'Pargi juures [pöörake] vasakule.'], ['A', 'Kas sadam on [kaugel]?'], ['B', 'Ei, kümme minutit [jalgsi]. Sadama [vastas] on ka hea kohvik.'],
       ]),
       B.errorfix('015_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Ma lähen apteegis.', 'Ma lähen apteeki.'], ['Raamat on laud peal.', 'Raamat on laua peal.'], ['Minge otse ja pöörake vasak.', 'Minge otse ja pöörake vasakule.'],
         ['Ma tulen töös kell viis.', 'Ma tulen töölt kell viis.'], ['Kohvik on pargi vastu.', 'Kohvik on pargi vastas.'],
       ]),
-      B.wordorder('015_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Jaani kohvik on vanalinnas Kuninga tänaval.', 'Pagariäri on kohviku kõrval.', 'Pärast lõunat jalutab Jaan mere äärde.', 'Minge otse ja pöörake pargi juures vasakule.', 'Bussipeatus on minu maja ees.']),
+      B.wordorder('015_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Jaani kohvik on vanalinnas Vene tänaval.', 'Pagariäri on kohviku kõrval.', 'Pärast lõunat jalutab Jaan mere äärde.', 'Minge otse ja pöörake pargi juures vasakule.', 'Bussipeatus on minu maja ees.']),
       B.listening('015_d_listen', 'Kuula: Markuse kodukoht.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Tere! Mina olen Markus. Ma olen pärit Narvast.',
         'Nüüd elan ma Tallinnas, Lasnamäel. Minu korter on üheksandal korrusel.',
@@ -468,7 +468,7 @@ export const LESSONS = {
         ['Millises kodus tahaks kirjutaja tulevikus elada?', 'majas, kus on oma aed', 'suures korteris kesklinnas', 'korteris sadama lähedal'],
       ]),
       // reading 5: a personal letter with 8 option gaps
-      B.cloze('015_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Mart!', [
+      B.cloze('015_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Vali igasse lünka sobiv sõna.', 'Tere, Rein!', [
         'Ma kolisin lõpuks uude {*korterisse|korteris|korterist}! See asub kesklinnas, Kase tänaval. Maja {*kõrval|kõrvale|kõrvalt} on väike park ja pagariäri. Hommikul ostan sealt värsket saia.',
         '',
         'Minu tuba on väike, aga hele. Voodi on akna {*all|alla|alt} ja kapp on nurgas. Korteris on ka väike rõdu. Tööle lähen nüüd jalgsi, sest töö on ainult kümne minuti {*kaugusel|kaugele|kaugelt}. Õhtul tulen {*töölt|tööle|tööl} koju läbi pargi.',
@@ -489,12 +489,12 @@ export const LESSONS = {
       ], ['Pidu algab kell [kümme|10].', 'Laste jooksuvõistlus on [pargis].', 'Lõuna ajal saab turul tasuta [suppi].', 'Paadisõit algab [sadamas].', 'Täiskasvanu pilet maksab [viis|5] eurot.', 'Vihma korral on kontsert [spordihallis].', 'Bussid sõidavad iga [kümne|10] minuti järel.']),
       // a conversation (A2 listening 2 and 4), answers of 1–2 words
       B.listening('015_p_listen2', 'Kuulamine 2. Uus korter.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
-        '— Tere, Jaan! Kuulsin, et sa kolisid.', '— Jah, eelmisel nädalal. Nüüd elan Supilinnas.', '— Kas korter on suur?',
+        '— Tere, Andres! Kuulsin, et sa kolisid.', '— Jah, eelmisel nädalal. Nüüd elan Supilinnas.', '— Kas korter on suur?',
         '— Ei ole, ainult kaks tuba. Aga köök on suur ja seal on palju valgust.', '— Mis korrusel sa elad?', '— Neljandal. Lifti kahjuks ei ole.',
         '— Oi! Kas sul on rõdu?', '— Jah, väike rõdu jõe poole. Hommikul joon seal kohvi.', '— Kui kaugel on sinu töö?',
         '— Tööle sõidan rattaga, see võtab viisteist minutit.', '— Ja pood?', '— Pood on kohe maja kõrval. Apteek on kahjuks kaugel, kesklinnas.',
         '— Kas naabrid on toredad?', '— Jah, all elab vana proua. Ta tõi mulle eile kooki.', '— Kas mööbel on juba olemas?', '— Voodi ja laud on olemas, diivanit veel ei ole.', '— Millal ma saan külla tulla?', '— Tule reedel õhtul. Ma teen sooja toitu.', '— Mida ma kaasa võtan?', '— Võta kaasa head tuju ja natuke leiba!',
-      ], ['Jaan elab nüüd [Supilinnas].', 'Korteris on [kaks|2] tuba.', 'Korter on [neljandal] korrusel.', 'Rõdu on [jõe] poole.', 'Tööle sõidab Jaan [rattaga].', 'Sõber tuleb külla [reedel|reede õhtul].']),
+      ], ['Andres elab nüüd [Supilinnas].', 'Korteris on [kaks|2] tuba.', 'Korter on [neljandal] korrusel.', 'Rõdu on [jõe] poole.', 'Tööle sõidab Andres [rattaga].', 'Sõber tuleb külla [reedel|reede õhtul].']),
       B.table('015_p_cases', 'Keeleosa. Kaheksa vormi.', 'Kirjuta puuduv vorm.', 'Kus?, Kuhu?, Kust?', [
         'poes | [poodi] | [poest]', '[tööl] | tööle | [töölt]', '[apteegis] | [apteeki] | apteegist', 'kodus | [koju] | [kodust]',
       ]),
@@ -511,7 +511,7 @@ export const LESSONS = {
       B.text('015_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See leht on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
       B.notice('015_t_card', 'Visiitkaart', ['Kolimisfirma „Kiire Kast”', 'Kolime kodusid ja kontoreid üle Eesti', 'Aadress: Tähe 12, Tartu', 'Avatud: E–L 8–18', 'Telefon: 5600 1234'], 'full', 'g_read'),
       // writing 1: information transfer (what, where, when, contact), at least 25 words
-      B.letter('015_t_info', 'Kirjutamine 1. Soovita kolimisfirmat.', 'Sõber kolib. Kirjuta visiitkaardi põhjal: mis firma, kus, millal avatud, kontakt.', 'Tere, Mart! Sa kolid varsti.', 'Edu kolimisel!', [25, 40]),
+      B.letter('015_t_info', 'Kirjutamine 1. Soovita kolimisfirmat.', 'Sõber kolib. Kirjuta visiitkaardi põhjal: mis firma, kus, millal avatud, kontakt.', 'Tere, Rein! Sa kolid varsti.', 'Edu kolimisel!', [25, 40]),
       B.planning('015_t_plan', 'Enne kutset.', 'Mõtle läbi ja kirjuta märksõnad.', ['Kuhu sa kutsud?', 'Millal?', 'Kuidas sinu juurde tulla?', 'Mida te teete?']),
       // writing 2: an invitation, at least 30 words
       B.letter('015_t_letter', 'Kirjutamine 2. Kutse uude koju.', 'Kutsu sõber uude koju: millal, kuidas tulla, mida teete.', 'Tere!', 'Kohtumiseni!', [30, 50]),

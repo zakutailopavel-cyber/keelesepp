@@ -193,7 +193,7 @@ export const LESSONS = {
       B.choice('044_t_check', 'Milline vastus on parem?', 'Vali tugevam vastus.', [
         ['Mis on teie tugevus?', 'Olen täpne: laos kontrollisin iga päev kõik tellimused.', 'Olen täpne, kiire, sõbralik ja väga hea inimene.', 'Minu eelmine töökoht oli laos ja palk oli hea.'],
         ['Miks te tahate siin töötada?', 'Mulle meeldib teie pood ja töö inimestega.', 'Teie pood on minu kodu lähedal, see on mugav.', 'Eelmises töökohas maksti mulle liiga vähe.'],
-        ['Rääkige endast.', 'Olen Anna, töötanud kaks aastat kohvikus klienditeenindajana.', 'Olen Anna, olen kolmkümmend aastat vana ja mul on kass.', 'Olen Anna, mul on kaks last ja ma elan Tartus.'],
+        ['Rääkige endast.', 'Olen Marta, töötanud kaks aastat kohvikus klienditeenindajana.', 'Olen Marta, olen kolmkümmend aastat vana ja mul on kass.', 'Olen Marta, mul on kaks last ja ma elan Tartus.'],
         ['Kuidas lahendate kaebuse?', 'Kuulan kliendi rahulikult ära ja pakun lahenduse.', 'Kutsun kohe juhataja, sest kaebused ei ole minu töö.', 'Selgitan kliendile, et pood selle eest ei vastuta.'],
         ['Kas teil on küsimusi?', 'Jah, kas uutele töötajatele on väljaõpe?', 'Ei, mul ei ole küsimusi, kõik on selge.', 'Jah, millal ma saan esimest korda puhkusele minna?'],
       ], 'full', 'g_use'),
@@ -221,10 +221,10 @@ export const LESSONS = {
         'F. Töötukassa korraldab tasuta CV kirjutamise koolituse. Neljapäeval kell 10, registreeru töötukassa kodulehel.',
       ], 'full', 'g_read'),
       B.gaps('045_p_match', 'Kes leiab mida?', 'Millise kuulutuse (A–F) leiab inimene? Kirjuta täht. Üks kuulutus sobib mitmele.', [
-        'Anna õpib päeval ülikoolis ja tahab õhtuti raha teenida. → [C]',
+        'Kertu õpib päeval ülikoolis ja tahab õhtuti raha teenida. → [C]',
         'Mihkel on kokk, aga tahab töötada ainult laupäeviti ja pühapäeviti. → [A]',
-        'Olga on tõlkinud kümme aastat ja tahaks töötada kodus. → [D]',
-        'Igor otsib tööd, aga ei tea, kuidas head CV-d kirjutada. → [F]',
+        'Natalja on tõlkinud kümme aastat ja tahaks töötada kodus. → [D]',
+        'Sergei otsib tööd, aga ei tea, kuidas head CV-d kirjutada. → [F]',
         'Liisale meeldivad väikesed lapsed ja tema eesti keel on B1 tasemel. → [B]',
         'Tarmol on juhiluba ja ta ei taha terve päeva kontoris istuda. → [E]',
         'Jelena tahaks köögis töötada, aga tal pole veel töökogemust. → [A]',
@@ -272,7 +272,7 @@ export const LESSONS = {
       ], ['Messil osaleb üle [kuuekümne|60] firma.', 'Laupäeval on mess avatud kella [kolmeni|15-ni|kolmeni päeval].', 'Kaasa tasub võtta mitu paberil [CV-d|CV|CVd].', 'Uus CV-foto maksab [kaks eurot|2 eurot|2 €].', 'Reedel räägib personalijuht [töövestlusest|töövestlusel esinemisest].', 'Kiirvestlus tööandjaga kestab [viis minutit|5 minutit].', 'Eelmisel aastal leidis messil töö umbes [kolmsada|300] inimest.', 'Korraldajad soovitavad messile tulla [hommikul|juba hommikul].']),
       B.listening('045_p_short', 'Kuula lühiteateid.', 'Õpetaja loeb kuus lühikest teadet, igaüht kaks korda. Kirjuta lünka 1–2 sõna või arv.', [
         'Teade 1. Head kolleegid! Homne koosolek ei alga kell üheksa, vaid kell kümme, sest juhataja on hommikul arsti juures.',
-        'Teade 2. Tere, Tiina! Siin Mart laost. Tellimus jõuab meile alles neljapäeval, seega saame selle kliendile saata reedel.',
+        'Teade 2. Tere, Tiiu! Siin Markus laost. Tellimus jõuab meile alles neljapäeval, seega saame selle kliendile saata reedel.',
         'Teade 3. Lugupeetud töötajad! Alates esmaspäevast on söökla avatud kella üheteistkümnest kaheni.',
         'Teade 4. Tere, siin Kaia personaliosakonnast. Palun tooge oma uus pangakonto number hiljemalt kuu lõpuks, muidu ei saa me palka maksta.',
         'Teade 5. Keeltekool „Sõna” alustab septembris õhtuseid eesti keele kursusi töötajatele. Kursus kestab kolm kuud ja toimub kaks korda nädalas.',
