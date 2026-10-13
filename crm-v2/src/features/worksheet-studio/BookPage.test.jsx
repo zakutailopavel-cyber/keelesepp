@@ -69,6 +69,29 @@ describe('BookPage by the curriculum', () => {
   });
 });
 
+describe('BookPage editing', () => {
+  beforeEach(() => window.localStorage.clear());
+
+  it('opens a sheet in its editor and shows the published change when the book tab is back', async () => {
+    const repository = { list: vi.fn().mockResolvedValue({ curriculumLessons: [
+      { id: 'b1b2-002', title: 'Minu tavaline päev', level: 'B2', roadmapManaged: true, roadmapModuleNumber: 1, roadmapModuleTitle: 'Igapäevaelu', roadmapLessonNumber: 2, worksheetPhases: { discover: { publishedVersion: 1 } } },
+    ], exercises: [] }) };
+    let sheets = [{ worksheetId: 'discover', publishedWorksheetDoc: doc('Vana pealkiri', 'B2'), worksheetDocStatus: 'published' }];
+    const worksheetRepository = { list: vi.fn(() => Promise.resolve(sheets)) };
+    const { container } = render(<MemoryRouter><BookPage repository={repository} worksheetRepository={worksheetRepository} /></MemoryRouter>);
+    await waitForToc(container);
+    const edit = await screen.findByRole('link', { name: /Muuda lehte: 2\. Minu tavaline päev · Avasta/ });
+    expect(edit).toHaveAttribute('href', '/library/lessons/b1b2-002/worksheets/discover?tagasi=opik');
+    expect(edit).toHaveAttribute('target', '_blank');
+    fireEvent.click(edit);
+    sheets = [{ worksheetId: 'discover', publishedWorksheetDoc: doc('Uus pealkiri', 'B2'), worksheetDocStatus: 'published' }];
+    fireEvent(window, new window.Event('focus'));
+    expect((await screen.findAllByText('Uus pealkiri')).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Vana pealkiri')).toBeNull();
+    expect(worksheetRepository.list).toHaveBeenLastCalledWith('b1b2-002');
+  });
+});
+
 async function waitForToc(container) {
   const { waitFor } = await import('@testing-library/react');
   let toc;

@@ -170,6 +170,11 @@ textarea.ed-input { resize: vertical; }
 .ws-book-order button { border: 0; background: transparent; color: var(--st-muted); cursor: pointer; padding: 3px; border-radius: 6px; }
 .ws-book-order button:hover { background: var(--st-bg); color: var(--st-ink); }
 .ws-book { display: flex; flex-direction: column; align-items: center; gap: 10mm; }
+/* „✎ Muuda lehte” on each book sheet: shown on hover / keyboard focus, always on touch screens, never printed */
+.ws-book-item { position: relative; }
+.ws-book-edit { position: absolute; top: 4mm; right: 4mm; z-index: 3; opacity: 0; transition: opacity .15s; box-shadow: 0 2px 8px rgba(15, 35, 60, .18); }
+.ws-book-item:hover .ws-book-edit, .ws-book-edit:focus-visible { opacity: 1; }
+@media (hover: none) { .ws-book-edit { opacity: 1; } }
 .ws-book-cover { justify-content: space-between; padding: 22mm 20mm; background: linear-gradient(160deg, #edf5fd 0%, #fff 55%, #fff4d6 100%); }
 .ws-book-cover-title .ws-big { display: inline-block; font: 900 40pt/1 var(--font-head); color: #fff; background: var(--ks-green); border-radius: 4mm; padding: 3mm 7mm; margin-bottom: 8mm; }
 .ws-book-cover-title h1 { font: 900 44pt/1.05 var(--font-head); color: var(--ks-navy); margin: 0 0 5mm; }
@@ -182,6 +187,8 @@ textarea.ed-input { resize: vertical; }
 @media print {
   body.ws-studio-open .ws-book, body.ws-studio-open .ws-book * { visibility: visible; }
   .ws-book { position: absolute; left: 0; top: 0; display: block; zoom: 1 !important; }
+  .ws-book .ws-book-edit { display: none !important; }
+  .ws-book-item { position: static; }
   .ws-book .ws-root { position: static !important; }
   .ws-book .ws-page { break-after: page; }
   .ws-book > .ws-root:last-child .ws-page:last-child { break-after: auto; }

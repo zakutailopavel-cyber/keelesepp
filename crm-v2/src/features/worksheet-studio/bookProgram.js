@@ -83,3 +83,8 @@ export function assembleProgramBook(lessons = [], sheetsByLesson = {}, phases = 
   }
   return { sheets, missing };
 }
+
+// where a book sheet is edited: a phase sheet in the lesson constructor, an old single lesson sheet in the studio
+export const sheetEditorPath = (item) => (item.phase && item.phase !== 'lesson'
+  ? `/library/lessons/${encodeURIComponent(item.lessonId)}/worksheets/${item.phase}?tagasi=opik`
+  : `/library/worksheets/${encodeURIComponent(item.lessonId || item.id)}`);
