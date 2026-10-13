@@ -1,3 +1,9 @@
+## 2026-10-13 · agent/art-b2-batch3 — B2 pictures b1b2-021…060 (Codex night batch)
+
+- Codex batch 2 resumed at 03:05 (`~/KeeleSeppArt/run-resume-0305.sh`); imported what was ready (from a copy of the inbox, the batch keeps running): B2 lessons 021–060 → `crm-v2/public/textbook-art/b2/…`, briefs `art/visuals/b2-module-05…12.js`. Some lessons were skipped by Codex after 3 tries (no png) — listed by `import_art.py`.
+- The course sheets show them automatically (`withLessonArt`); republish the B2 modules on „Kursuse tootmine”.
+- Checks: worksheet-generator tests pass (art test: every brief has its file). Production: none until published.
+
 ## 2026-10-13 · agent/a2-missing-lessons — the 32 A2 lessons that had no sheets
 
 - Why (owner): „проверь чтобы каждый урок выходил один за другим” — the A2 textbook skipped 32 lessons (056–058, 061, 063, 066, 067, 069, 071, 073–075, 078, 079, 082–084, 086–100).
