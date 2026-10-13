@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- block definitions are plain objects that carry View/Editor components */
 import { Fragment } from 'react';
-import { Photo, Line, Md, Clock } from '../ui.jsx';
+import { Photo, Line, Md, Clock, gapWidth } from '../ui.jsx';
 import { norm, splitList } from '../schema.js';
 import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
 
@@ -50,7 +50,7 @@ export const gaps = {
                   if (!p.gap) return <Fragment key={pi}><Md text={p.text} /></Fragment>;
                   gi += 1;
                   const key = `${li}.${gi}`;
-                  return <Line key={pi} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width="26mm" label={`Lünk ${li + 1}`} className="ws-gapline" />;
+                  return <Line key={pi} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth(p.gap, '26mm')} label={`Lünk ${li + 1}`} className="ws-gapline" />;
                 })}
               </li>
             );

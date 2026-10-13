@@ -1,5 +1,5 @@
 /* global ResizeObserver, Highlight, CSS, setTimeout, clearTimeout */
-import { MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
+import { BookmarkPlus, Check, Loader2, MessageCircleWarning, StickyNote, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { HIGHLIGHT, fieldTextRects, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 import './sheetAnnotations.css';
@@ -16,7 +16,15 @@ const cancelFrame = (id) => (globalThis.cancelAnimationFrame ? globalThis.cancel
 //   { id, kind: 'text' | 'field', blockId, start, end, selectedText, fieldIndex?, color: 'error' | 'note',
 //     parandus, selgitus, createdAt }
 
-export default function SheetAnnotations({ annotations = [], editable = false, onChange, children }) {
+// one word picked (a double click selects it): the composer also offers „Sõna” — its three key forms and translation,
+// added to the student's „Sõnad” with one click (owner 2026-10-13)
+const LETTERS = /^[^\p{L}]+|[^\p{L}]+$/gu;
+export const singleWord = (text) => { const word = String(text || '').trim().replace(LETTERS, ''); return word && !/\s/.test(word) && word.length <= 60 ? word : ''; };
+// a corrected answer for „Minu vead”: the student's sentence with the marked part replaced by the right form
+export const correctedAnswer = (value, start, end, fix) => `${String(value).slice(0, start)}${fix}${String(value).slice(end)}`.replace(/\s+/g, ' ').trim();
+
+// words (optional, Live Classroom): { lookup(word) → { word, translation, forms: [3] }, add(card), addError({ said, corrected }) }
+export default function SheetAnnotations({ annotations = [], editable = false, onChange, words = null, children }) {
   const wrapRef = useRef(null);
   const justPicked = useRef(false);
   const [marks, setMarks] = useState([]);
@@ -103,7 +111,7 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
       // answer is marked as a whole
       if (!hasSel && value.trim().split(/\s+/).length > 1) return;
       markPicked();
-      setDraft({ kind: 'field', blockId: card.dataset.block, fieldIndex: fieldsOf(card).indexOf(target), start: hasSel ? target.selectionStart : 0, end: hasSel ? target.selectionEnd : value.length, selectedText: hasSel ? value.slice(target.selectionStart, target.selectionEnd) : value, color: 'error', parandus: '', selgitus: '', at });
+      setDraft({ kind: 'field', blockId: card.dataset.block, fieldIndex: fieldsOf(card).indexOf(target), start: hasSel ? target.selectionStart : 0, end: hasSel ? target.selectionEnd : value.length, selectedText: hasSel ? value.slice(target.selectionStart, target.selectionEnd) : value, value, color: 'error', parandus: '', selgitus: '', toErrors: true, at });
       setError('');
       return;
     }
@@ -115,16 +123,40 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
     const selectedText = range.toString();
     if (!offsets || !selectedText.trim()) return;
     markPicked();
-    setDraft({ kind: 'text', blockId: card.dataset.block, ...offsets, selectedText, color: 'error', parandus: '', selgitus: '', at });
+    // a word of the task text is most often a word to learn; a mistake is marked in the student's answer
+    setDraft({ kind: 'text', blockId: card.dataset.block, ...offsets, selectedText, color: words && singleWord(selectedText) ? 'word' : 'error', parandus: '', selgitus: '', at });
     setError('');
+  };
+
+  // „Sõna”: looked up once per picked word
+  const [word, setWord] = useState(null);
+  const picked = draft && words ? singleWord(draft.selectedText) : '';
+  useEffect(() => {
+    if (!picked || draft?.color !== 'word') return undefined;
+    let alive = true;
+    setWord({ asked: picked, loading: true });
+    Promise.resolve().then(() => words.lookup(picked))
+      .then((found) => { if (alive) setWord({ asked: picked, ...found, loading: false }); })
+      .catch((caught) => { if (alive) setWord({ asked: picked, word: picked, translation: '', forms: [], loading: false, error: caught.message || 'Sõna ei leitud.' }); });
+    return () => { alive = false; };
+  }, [picked, draft?.color]); // eslint-disable-line react-hooks/exhaustive-deps
+  const addWord = async () => {
+    setSaving(true); setError('');
+    try {
+      const result = await words.add({ word: word.word || picked, translation: word.translation || '', forms: (word.forms || []).join(', '), formItems: word.formItems || [] });
+      setWord({ ...word, saved: true, already: Boolean(result?.already) });
+    } catch (caught) { setError(caught.message || 'Sõna ei saanud lisada.'); } finally { setSaving(false); }
   };
 
   const save = async () => {
     if (!draft.parandus.trim() && !draft.selgitus.trim()) { setError('Lisa õige variant või selgitus.'); return; }
     setSaving(true); setError('');
     try {
-      const { at, ...rest } = draft; // eslint-disable-line no-unused-vars
+      const { at, value, toErrors, ...rest } = draft; // eslint-disable-line no-unused-vars
       await onChange([...annotations, { ...rest, id: `a${Date.now()}`, createdAt: new Date().toISOString() }]);
+      if (words?.addError && toErrors && draft.kind === 'field' && draft.color === 'error' && draft.parandus.trim() && String(value || '').trim()) {
+        await words.addError({ said: String(value).trim(), corrected: correctedAnswer(value, draft.start, draft.end, draft.parandus.trim()) });
+      }
       setDraft(null);
       globalThis.getSelection?.()?.removeAllRanges();
     } catch (caught) { setError(caught.message || 'Salvestamine ebaõnnestus.'); } finally { setSaving(false); }
@@ -162,12 +194,27 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
           <div className="sa-colors" role="group" aria-label="Märkuse liik">
             <button type="button" aria-pressed={draft.color === 'error'} className={draft.color === 'error' ? 'on is-error' : ''} onClick={() => setDraft({ ...draft, color: 'error' })}>Viga</button>
             <button type="button" aria-pressed={draft.color === 'note'} className={draft.color === 'note' ? 'on is-note' : ''} onClick={() => setDraft({ ...draft, color: 'note' })}>Märkus</button>
+            {picked ? <button type="button" aria-pressed={draft.color === 'word'} className={draft.color === 'word' ? 'on is-word' : ''} onClick={() => setDraft({ ...draft, color: 'word' })}>Sõna</button> : null}
           </div>
-          <p className="sa-quote">„{draft.selectedText || '(tühi vastus)'}”</p>
-          {draft.color === 'error' ? <input aria-label="Õige variant" placeholder="Õige variant (nt osastav: koera)" value={draft.parandus} onChange={(e) => setDraft({ ...draft, parandus: e.target.value })} /> : null}
-          <textarea aria-label="Selgitus" rows={2} placeholder={draft.color === 'error' ? 'Selgitus (valikuline)' : 'Mida õpilane peaks märkama?'} value={draft.selgitus} onChange={(e) => setDraft({ ...draft, selgitus: e.target.value })} />
+          {draft.color === 'word' ? <div className="sa-word-card" aria-live="polite">
+            {word?.loading ? <p className="sa-muted"><Loader2 size={14} className="spin" aria-hidden="true" /> Otsin vorme ja tõlget…</p> : null}
+            {word && !word.loading ? <>
+              <p className="sa-headword"><b>{word.word || picked}</b>{word.word && word.word !== picked ? <span> ← {picked}</span> : null}</p>
+              {(word.forms || []).length ? <ol className="sa-forms" aria-label="Kolm põhivormi">{word.forms.map((form, i) => <li key={i}>{form}</li>)}</ol> : <p className="sa-muted">Vorme ei leitud.</p>}
+              <input aria-label="Tõlge" placeholder="Tõlge" value={word.translation || ''} onChange={(e) => setWord({ ...word, translation: e.target.value })} />
+            </> : null}
+          </div> : <>
+            <p className="sa-quote">„{draft.selectedText || '(tühi vastus)'}”</p>
+            {draft.color === 'error' ? <input aria-label="Õige variant" placeholder="Õige variant (nt osastav: koera)" value={draft.parandus} onChange={(e) => setDraft({ ...draft, parandus: e.target.value })} /> : null}
+            <textarea aria-label="Selgitus" rows={2} placeholder={draft.color === 'error' ? 'Selgitus (valikuline)' : 'Mida õpilane peaks märkama?'} value={draft.selgitus} onChange={(e) => setDraft({ ...draft, selgitus: e.target.value })} />
+            {words?.addError && draft.kind === 'field' && draft.color === 'error' ? <label className="sa-check"><input type="checkbox" checked={draft.toErrors !== false} onChange={(e) => setDraft({ ...draft, toErrors: e.target.checked })} /> Lisa õpilase „Minu vigadesse”</label> : null}
+          </>}
           {error ? <p className="sa-error" role="alert">{error}</p> : null}
-          <div className="sa-actions"><button type="button" onClick={() => setDraft(null)}>Loobu</button><button type="button" className="primary" disabled={saving} onClick={save}>Lisa märkus</button></div>
+          <div className="sa-actions"><button type="button" onClick={() => { setDraft(null); setWord(null); }}>{word?.saved ? 'Sulge' : 'Loobu'}</button>
+            {draft.color === 'word'
+              ? <button type="button" className="primary" disabled={saving || !word || word.loading || word.saved} onClick={addWord}>{word?.saved ? <><Check size={14} aria-hidden="true" /> {word.already ? 'Juba sõnavaras' : 'Lisatud'}</> : <><BookmarkPlus size={14} aria-hidden="true" /> Lisa õpilase sõnadesse</>}</button>
+              : <button type="button" className="primary" disabled={saving} onClick={save}>Lisa märkus</button>}
+          </div>
         </div>
       ) : null}
     </div>

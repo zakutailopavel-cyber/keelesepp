@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import { Photo, Line, Md } from '../ui.jsx';
+import { Photo, Line, Md, gapWidth } from '../ui.jsx';
 import { norm, splitList } from '../schema.js';
 import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
 import { seededShuffle } from './tasks.jsx';
@@ -160,7 +160,7 @@ export const profiles = {
                     if (!('gap' in part)) return <Fragment key={k}><Md text={part.text} /></Fragment>;
                     gi += 1;
                     const key = `${pi}.${si}.${gi}`;
-                    return <Line key={k} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width="18mm" label={`${p.name}: lünk`} className="ws-gapline" />;
+                    return <Line key={k} interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth(part.gap, '18mm')} label={`${p.name}: lünk`} className="ws-gapline" />;
                   })}</li>
                 );
               })}
