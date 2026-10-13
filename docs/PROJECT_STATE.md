@@ -1,3 +1,18 @@
+## 2026-10-13 · agent/a2-b1-audit-fixes — A2 and B1 pass the lesson quality contract
+
+- Owner: „исправь B1 и A2” after the audit (A2 96/100, B1 46/90).
+- Checks and mock exams (A2 070/080/085/099; B1 005/010/020/025/035/040/045/050/089/090) have three sub-goals —
+  form, reading, use — as in B2/C1 (contract D: no new vocabulary); their vocabulary tasks count as form
+  (`registry.withLessonGoals`). `a2/lessonGoals.js`, `b1/lessonGoals.js`; `b1/lessonGoals.test.js` knows the checks.
+- B1 Avasta 016–050: the opening choice task had 3 questions → 5 (`admin/avastaModule4…10.js`, 70 new questions on
+  the lesson text and pattern). B1 009/017 Harjuta „Pane lause kokku” 3 → 5 sentences (`b1/module02.js`, `module04.js`).
+- Published only (not in code), patched as new versions: B1 001–004 Kasuta got a 5th task (001 error fix, 002 time
+  gaps, 003 reading „Meie grupi harjumused”, 004 match „Millal see on?”), 002 Avasta word order 3 → 5, B1 005 and the
+  Avasta of the B1 checks → three goals.
+- Simulated audit before publishing: A2 100/100, B1 90/90 (only the stray lesson „Mina” without sheets is left).
+- Tests: worksheet-generator 605 passed, 1 skipped.
+- Production after merge: republish 81 sheets (38 from code, 43 patched published sheets).
+
 ## 2026-10-13 · agent/drop-page-space — drop a block into the empty bottom of a page
 
 - Owner (screenshot, a2-002 Harjuta): dragging „Sõnavara” into the empty space at the bottom of page 1 did nothing —

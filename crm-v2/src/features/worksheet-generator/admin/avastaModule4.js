@@ -37,6 +37,8 @@ const SPECS = {
           { q: 'Milline info näitab tegevuse kestust?', options: '*kella üheksast kella üheteistkümneni\nkell üheksa\nhommikul kell üheksa' },
           { q: 'Milline sõna näitab esimest sammu?', options: '*kõigepealt\nlõpuks\npärast' },
           { q: 'Milline sõna sobib viimase tegevuse ette?', options: '*lõpuks\nenne\nalates' },
+          { q: 'Milline lause näitab, et üks tegevus on enne teist?', options: '*Enne lõunat helistan klientidele.\nLõunat söön kell kaksteist.\nKlientidele helistan sageli.' },
+          { q: 'Kuidas küsida tegevuse algust?', options: '*Mis kell koosolek algab?\nKui kaua koosolek kestab?\nKus koosolek on?' },
         ],
       }),
       notice: block('a2b1_016_av_notice', 'notice', 'white', 'g_notice', {
@@ -111,6 +113,8 @@ const SPECS = {
           { q: '„Tööl peab kandma turvajalatseid.”', options: '*kohustus\nluba\nvõimalus' },
           { q: '„Siin võib telefoni kasutada.”', options: '*luba\nkohustus\nkeeld' },
           { q: '„Seda saab teha internetis.”', options: '*võimalus\nkohustus\nkeeld' },
+          { q: '„Siin ei tohi suitsetada.”', options: '*keeld\nluba\nvõimalus' },
+          { q: '„Sa ei pea homme tulema.”', options: '*ei ole kohustust\non keelatud\non võimatu' },
         ],
       }),
       notice: block('a2b1_017_av_notice', 'notice', 'white', 'g_notice', {
@@ -183,6 +187,8 @@ const SPECS = {
           { q: '„Mul on vaja arve täna ära maksta.”', options: '*vajadus\nlihtne soov\nluba' },
           { q: '„Ma tahan õhtul trenni minna.”', options: '*soov\nkohustus\nkeeld' },
           { q: '„Ma ei saa praegu helistada.”', options: '*takistus või võimatus\nkohustus\nluba' },
+          { q: '„Ma pean enne kella kümmet meili saatma.”', options: '*kohustus kindla ajaga\nsoov ilma ajata\nluba' },
+          { q: 'Mida saab edasi lükata, kui päev on tihe?', options: '*koristamise\ntähtsa töömeili\narve maksmise tähtaja' },
         ],
       }),
       notice: block('a2b1_018_av_notice', 'notice', 'white', 'g_notice', {
@@ -255,6 +261,8 @@ const SPECS = {
           { q: 'Mida teha, kui pakutud aeg ei sobi?', options: '*Keelduda viisakalt ja pakkuda alternatiiv.\nÖelda ainult „ei”.\nVestlus lõpetada.' },
           { q: 'Milline fraas pakub uut aega?', options: '*Aga kuidas oleks neljapäeval kell kuus?\nKahjuks ei saa.\nNeljapäeval kell kuus mul ei sobi.' },
           { q: 'Milline vastus lõpetab kokkuleppe?', options: '*Sobib küll, lepime nii kokku.\nEks näis.\nVõib-olla kunagi.' },
+          { q: 'Kuidas viisakalt keelduda?', options: '*Kahjuks ma siis ei saa.\nEi, see ei sobi üldse.\nMa ei taha.' },
+          { q: 'Mida tasub kokkuleppe lõpus korrata?', options: '*päeva, kellaaega ja kohta\nainult oma nime\nmiks esimene aeg ei sobinud' },
         ],
       }),
       notice: block('a2b1_019_av_notice', 'notice', 'white', 'g_notice', {
@@ -338,6 +346,8 @@ const SPECS = {
           { q: 'Mis on teksti peamine probleem?', options: '*Inimene peab ühe päeva jooksul mitu asja ümber planeerima.\nInimene tahab kolida teise riiki.\nInimene otsib uut töökohta.' },
           { q: 'Mis aitab tal päeva lahendada?', options: '*Ta seab prioriteedid ja lepib ajad ümber.\nTa jätab kõik tegemata.\nTa palub teistel kõik ära teha.' },
           { q: 'Milline oskus on tekstis kõige rohkem vajalik?', options: '*aja, koha ja kohustuste selge väljendamine\nainult välimuse kirjeldamine\nainult numbrite lugemine' },
+          { q: 'Miks kirjutab Mari abikaasale?', options: '*et küsida, kas tema toob lapse trennist\net öelda, et ta on haige\net kutsuda teda kinno' },
+          { q: 'Mida teeb Mari, kui ei jõua sõbraga kohtuma?', options: '*kirjutab ja pakub uue aja\nei ütle midagi\njätab töö pooleli' },
         ],
       }),
       notice: block('a2b1_020_av_notice', 'notice', 'white', 'g_notice', {
