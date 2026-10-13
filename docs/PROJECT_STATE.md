@@ -1,11 +1,14 @@
-## 2026-10-13 · agent/a2-modules-04-05 — A2 modules 4–5 (a2-016…025) as full course sheets
+## 2026-10-13 · agent/a2-modules-04-05 — A2 modules 2–7 (a2-006…035) as full course sheets
 
 - Base: `main` a73f6c0. Written by a sub-agent on the module 1 pattern, checked here (gate + sample reading).
-- `admin/course/a2/module04.js` „Kodu ja ümbrus”, `module05.js` „Linn, kohad ja tee”; goals in `a2/lessonGoals.js`;
-  registered after a2m01. 30 sheets, 13–17 blocks, 41–47 min, didactic score 100; 020 and 025 control lessons.
-- Audio: 29 new listening recordings (TartuNLP), 245 in total.
-- Tests: course gate passes; worksheet-generator 576 passed, 1 skipped.
-- Next safe step: publish „A2 · moodul 4” and „A2 · moodul 5” on „Kursuse tootmine”.
+- `admin/course/a2/module02.js` „Pere, inimesed ja kirjeldamine”, `03` „Päev, kell ja harjumused”, `04` „Kodu ja ümbrus”,
+  `05` „Linn, kohad ja tee”, `06` „Söök, jook ja kohvik”, `07` „Pood, raha ja ostud”; goals in `a2/lessonGoals.js`.
+  90 sheets, 12–17 blocks, 40–47 min, didactic score 100; control lessons 010, 015, 020, 025, 030, 035.
+- Audio: 84 new listening recordings (TartuNLP), 300 in total.
+- Known: the recurring characters' facts in the texts (module01: Markus programmer 29, Viktor bus driver 52, Sofia 35)
+  differ from `docs/TEXTBOOK_ART_BIBLE.md` §4 (Markus warehouse worker 34, Viktor pensioner 63, Sofia 19) — owner decides.
+- Tests: course gate passes; worksheet-generator 584 passed, 1 skipped.
+- Next safe step: publish „A2 · moodul 2…7” on „Kursuse tootmine”.
 
 ## 2026-10-13 · agent/a2-module-01 — A2 module 1 (a2-001…005) as full course sheets
 
