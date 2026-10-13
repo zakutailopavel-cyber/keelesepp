@@ -22,7 +22,11 @@
   from a build before #608. Republishing from this code brings the one cast in.
 - Production after merge: republish all B2 and C1 sheets from code; write C1 `successCriteria`; fill b1b2-035 card
   (title „Kontroll 7 — haridus”, teacher note) and the Estonian titles of b1b2-001/020/040/060/080 (were Russian).
-- Next safe step: re-run `tools/course-audit` on production and check one B2 and one C1 sheet in the CRM.
+- Production 2026-10-13 (after merge 7e3212c): 570 B2/C1 sheets republished from code (new versions + worksheetVersions);
+  105 lesson cards: C1 `successCriteria` ×100, Estonian titles b1b2-001/020/040/060/080; b1b2-035 had `type: material`
+  (hidden from the course path) → `lesson`. Audit on production: B2 90/90 course lessons, C1 100/100. Left: lesson
+  `Qaj1NCxfH2LeoeT6GHbM` „LUGEMINE” (B2, no sheets, not in the course) — owner decides whether to delete.
+- Next safe step: open one B2 and one C1 sheet in the CRM and look at „Kas ma oskan?” goals on the page.
 
 ## 2026-10-13 · agent/cast-all-courses — one cast across A2, B1, B2 and C1
 
