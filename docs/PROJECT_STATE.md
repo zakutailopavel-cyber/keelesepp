@@ -1,3 +1,11 @@
+## 2026-10-13 · agent/a2-missing-lessons — the 32 A2 lessons that had no sheets
+
+- Why (owner): „проверь чтобы каждый урок выходил один за другим” — the A2 textbook skipped 32 lessons (056–058, 061, 063, 066, 067, 069, 071, 073–075, 078, 079, 082–084, 086–100).
+- New course „A2” in code: `admin/course/a2/module12…20.js` (only the missing lessons; the others are published already), `COURSES.a2`, goals `a2/lessonGoals.js` (merged into the course sheets). 32 lessons × Avasta / Harjuta / Kasuta, Harno A2 formats; module 20 = exam strategies, two full Harno A2 mocks (80 points, 20 per skill) and the final check with an A2 → B1 plan.
+- Option-gap texts reviewed (95 gaps, 15 fixed). Quality gate: 0 problems; baseline unchanged. Reports: `docs/level-audit-2026-10-12/a2-lessons-056-100/`.
+- `CourseProductionPage.test.jsx`: the A2 modules come first; the test opens B1 module 2.
+- Checks: worksheet-generator + worksheet-studio 747/747 (+1 skipped); lint 0 errors. Production: publish only the missing A2 lessons on „Kursuse tootmine”.
+
 ## 2026-10-13 · agent/book-progressive — the textbook appears a few sheets at a time
 
 - After #579 the book no longer froze for good, but opening „Õpik” still blocked the browser ~40 s (a whole level, 200+ sheets, each measuring itself at once).
