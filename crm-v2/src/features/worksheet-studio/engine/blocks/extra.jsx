@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- block definitions are plain objects that carry View/Editor components */
 import { useRef, useState } from 'react';
-import { Line, Md, gapWidth } from '../ui.jsx';
+import { Line, Md } from '../ui.jsx';
+import { gapWidth } from '../gapWidth.js';
 import { norm, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
 import { Text, Area, Rows } from '../../editor/fields.jsx';

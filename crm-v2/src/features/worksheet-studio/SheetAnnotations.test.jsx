@@ -1,7 +1,8 @@
 /* global setTimeout */
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
-import SheetAnnotations, { correctedAnswer } from './SheetAnnotations.jsx';
+import SheetAnnotations from './SheetAnnotations.jsx';
+import { correctedAnswer } from './annotationWords.js';
 import { liveWordTools, threeForms } from './liveWordTools.js';
 import { offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 

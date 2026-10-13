@@ -1,4 +1,4 @@
-import { dropAction, hintFor } from './dragIds.js';
+import { dropAction, hintFor, lastBlockOf } from './dragIds.js';
 import { dropSide } from './look.js';
 
 const over = { kind: 'block', id: 'b2', full: false, rect: { left: 100, top: 100, width: 400, height: 200 } };
@@ -18,5 +18,18 @@ describe('drag & drop on the sheet', () => {
     expect(dropAction({ active: { kind: 'block', id: 'b2' }, hint })).toBeNull();
     expect(dropAction({ active: { kind: 'new', type: 'text' }, overKind: 'end', hint: null })).toEqual({ op: 'new', type: 'text', toId: null, side: 'after' });
     expect(dropAction({ active: { kind: 'block', id: 'b1' }, hint: null })).toBeNull();
+  });
+
+  it('the empty space at the bottom of a page takes a block after the page\'s last block', () => {
+    const tail = { kind: 'pageEnd', id: 'b7' };
+    const hint = hintFor({ active: { kind: 'new', type: 'vocab' }, over: tail, pointer: { x: 0, y: 0 }, dropSide });
+    expect(hint).toEqual({ id: 'b7', side: 'after' });
+    expect(dropAction({ active: { kind: 'new', type: 'vocab' }, overKind: 'pageEnd', hint })).toEqual({ op: 'new', type: 'vocab', toId: 'b7', side: 'after' });
+    expect(dropAction({ active: { kind: 'block', id: 'b3' }, overKind: 'pageEnd', hint })).toEqual({ op: 'move', fromId: 'b3', toId: 'b7', side: 'after' });
+    expect(hintFor({ active: { kind: 'block', id: 'b7' }, over: tail, pointer: { x: 0, y: 0 }, dropSide })).toBeNull();
+    const rows = [[{ id: 'a' }], [{ id: 'img' }, { id: 'note' }], [{ id: 'read' }]];
+    expect(lastBlockOf(rows, [0, 1])).toBe('note');
+    expect(lastBlockOf(rows, [{ row: 2, from: 0, to: 3 }])).toBe('read');
+    expect(lastBlockOf(rows, [])).toBe('');
   });
 });

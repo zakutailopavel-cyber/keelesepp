@@ -3,7 +3,7 @@ import { render } from '@testing-library/react';
 globalThis.ResizeObserver = globalThis.ResizeObserver || class { observe() {} disconnect() {} };
 import Sheet from './Sheet.jsx';
 import { newDocument } from './schema.js';
-import { gapWidth, LONG_GAP } from './ui.jsx';
+import { gapWidth, LONG_GAP } from './gapWidth.js';
 
 // owner 2026-10-13: a sentence written into a 2–3 cm gap did not fit and was hard to read
 const docWith = (sentences) => ({ ...newDocument(), blocks: [{ id: 'g', type: 'gaps', width: 'full', data: { title: 'Vali lause.', instruction: '', sentences, bank: '', showBank: 'no' } }] });

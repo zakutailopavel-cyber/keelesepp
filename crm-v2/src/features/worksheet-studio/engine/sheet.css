@@ -222,6 +222,10 @@
 .mode-edit .ws-card:hover { outline-color: rgba(47,125,76,.35); }
 .mode-edit .ws-card.selected { outline-color: var(--ks-green-2); }
 .mode-edit .ws-line, .mode-edit .ws-ruled, .mode-edit .ws-circ { pointer-events: none; }
+.ws-page-tail { flex: 1 1 auto; min-height: 0; border-radius: var(--radius); display: grid; place-items: center; color: #3a7d5c; font: 700 13pt var(--font-head); }
+.ws-page-tail.is-over { background: rgba(58, 125, 92, .08); outline: 2px dashed #3a7d5c; outline-offset: -2mm; }
+.ws-root.theme-selge .ws-page > .ws-page-tail { order: 2; }
+@media print { .ws-page-tail { display: none; } }
 .ws-empty { border: 2px dashed #cfc8b8; border-radius: var(--radius); padding: 20mm; text-align: center; color: #9a9384; font-size: 14pt; }
 
 /* print (A4): the 270 mm canvas is zoomed to 210 mm */
