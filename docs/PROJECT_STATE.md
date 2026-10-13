@@ -1,3 +1,10 @@
+## 2026-10-13 · agent/test-timeouts — no random PR failures from the 5 s test timeout
+
+- `crm-v2/vite.config.js` `test.testTimeout: 20000`: page and whole-course tests (studio, gold standard, course gate)
+  timed out at the 5 s default on busy CI runners and locally — PR checks failed at random several times today.
+- Sheet audit (read-only, production): every A2 lesson except the 13 being written, all B1 Harjuta/Kasuta, all B2 and
+  C1 are course sheets; B1 Avasta a2b1-006…015 (10 sheets, ≈ 9.5 blocks) are still DB-only Avasta-upgrade sheets.
+
 ## 2026-10-13 · agent/a2-modules-08-11 — A2 modules 8–11 (a2-036…055) as full course sheets
 
 - Base: `main` 604c6ac. Written by sub-agents on the module 1 pattern, checked here (course gate).
