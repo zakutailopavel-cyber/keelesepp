@@ -10,8 +10,15 @@
   the cells other words needed (kool / õpetaja / õpik came out as three lines). Such a word now waits until the others
   are placed. Answers stay per row (key = row index), so saved answers are not affected; existing sheets get a tighter grid.
 - Tests: worksheet-studio + worksheet-generator + homework 110 files, 916 passed (1 skipped), new crossword test.
-- Not done here: the same sheet as a real homework of the test student (needs the owner's test-student login).
-- Next: after merge, with the owner logged in as test student, assign the check sheet and submit it once.
+- Merged as #619 (62a2e4e), deployed.
+- Student side (2026-10-14): the check sheet was assigned to the test student „Test Õpilane” (private sheet
+  jsgeGnywNkFJU2yFyvRn), answered in all 35 blocks inside the test-student session and submitted: the student sees
+  „100% · 99/99 õiget”, status Esitatud.
+- Teacher side: the stored submission (worksheetAssignments/jsgeGnywNkFJU2yFyvRn, read only: status done, score 99/99)
+  drawn with the teacher's review component (DocWorksheetSubmissionPreview): 35/35 blocks shown, 108 ✓, 0 ✗, the
+  student's typed answers visible; the six teacher-graded blocks show the text without automatic marks.
+- The check sheet stays with the test student; remove it with „Eemalda õpilaselt” if it is in the way.
+- Next: nothing open from this check.
 
 ## 2026-10-14 · agent/c1-art-053-100 — C1 textbook pictures 053–100: every C1 lesson has its picture
 
