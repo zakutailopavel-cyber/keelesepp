@@ -566,3 +566,23 @@ Rääkimine ja kirjutamine jäävad lehele, aga nad ei asenda harjutusi.
 Näidis (piloot 2026-10-14): `b2/module01.js` tund **b1b2-004** — iga suletud ülesanne 10–11 punkti, Avasta/Harjuta
 ≈ 35 min harjutusi, kirjutamine 6–8 lauset (mitte 10–12), Kasuta + kaks lauseülesannet (arutluse laused ja tüüpvead);
 kõik kolm lehte depth 100, 51–53 min.
+
+## 14. Kvaliteediväravad (gates) — normatiivne alates 2026-10-14
+
+Tund on valmis, kui kõik kolm lehte läbivad kõik väravad (`worksheet-studio/didactics/gates.js`, vaade
+„Õppevara → Kursuse tootmine → Kursuse valmidus”):
+
+| Värav | Mida kontrollib | Kus |
+|---|---|---|
+| struktuur | faasid, eesmärgid, ülesandetüübid, aeg | `admin/course/quality.js` |
+| sügavus | §13 | `didactics/depth.js` |
+| vastused | valikus üks õige ja erinevad variandid, parandus ≠ vale lause, lünk pole tühi, sõnapangas on vastus, sõna ühes rühmas, õige/vale märgitud | `gates.js keysProblems` — **viga kogu kursuses** (`course.test.js`) |
+| tase (Harno) | Avasta/Kasuta tekst ≥ A2 80 / B1 140 / B2 220 / C1 350 sõna; kiri ≥ 40 / 70 / 140 / 220 sõna; üks rääkimine ≥ 60 / 120 / 240 / 300 s | `gates.js levelProblems` |
+| kordused | sama lause (≥ 4 sõna) ei ole mooduli kahel lehel | `gates.js moduleGates` |
+| sõnavara | igal tunnil sõnavaraplokk; tunni sõnad esinevad mooduli lehtedel vähemalt 3 korda | `gates.js moduleGates` |
+| keel | iga eestikeelne sõna (tekstid, ülesanded, vastused, õiged variandid, etteütlus, sõnavara) läbib Vabamorfi õigekirjakontrolli; teadlikult valed laused ja valikute valed variandid jäävad välja | `tools/course-audit/language.py` (+ `language-allow.txt`) |
+
+Valmis moodul lisatakse `admin/course/strictModules.json`-i: siis on kõik väravad testis kohustuslikud.
+
+Lause, mis sisaldab koma, on sorteerimis- või sõnapangaülesandes üks üksus (`lines: true` / `bankLines: true`;
+enne lõikas mootor selle komast kaheks).

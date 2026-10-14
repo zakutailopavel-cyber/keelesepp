@@ -3,6 +3,7 @@
 // level's reading speed. Rates are calibrated on the owner's observation (first course sheets, ~10–15 min of real
 // work): a gap ≈ 20 s, a choice ≈ 15 s, a written sentence ≈ 1 min.
 import { levelKey } from './levels.js';
+import { groupItems } from '../engine/schema.js';
 
 export const SHEET_MINUTES = { min: 40, max: 55 };
 const WPM = { A1: 50, A2: 60, 'A2+': 70, 'B1-': 80, B1: 90, 'B1+': 100, 'B2-': 105, B2: 110, C1: 130 };
@@ -26,7 +27,7 @@ export function blockMinutes(block, level = 'A2') {
     case 'truefalse': return (d.statements || []).length * 0.2;
     case 'match': return (d.pairs || []).length * 0.2;
     case 'manymatch': return lines(d.left).length * 0.3;
-    case 'categorize': return (d.groups || []).reduce((n, g) => n + list(g.words).length, 0) * 0.12;
+    case 'categorize': return (d.groups || []).reduce((n, g) => n + groupItems(g).length, 0) * 0.12;
     case 'wordforms': return (d.rows || []).length * 0.3;
     case 'errorfix': return (d.rows || []).length * 0.6;
     case 'transformation': return (d.rows || []).length * 0.6;

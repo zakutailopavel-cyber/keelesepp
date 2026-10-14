@@ -4,10 +4,10 @@
 // five-item tasks because speaking and writing blocks filled the minutes. These rules look at the work itself.
 // Pure: { meta: { level, phase }, blocks: [{ type, data }] } → [{ code, level: 'error' | 'warning', text }].
 import { blockMinutes } from './timeEstimate.js';
+import { groupItems } from '../engine/schema.js';
 
 // closed, checked tasks and how their items are counted
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
-const list = (v) => String(v || '').split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 const ITEMS = {
   choice: (d) => (d.questions || []).length,
   truefalse: (d) => (d.statements || []).length,
@@ -20,7 +20,7 @@ const ITEMS = {
   wordorder: (d) => lines(d.sentences).length,
   translation: (d) => (d.rows || []).length,
   dictation: (d) => lines(d.sentences).length,
-  categorize: (d) => (d.groups || []).reduce((n, g) => n + (Array.isArray(g?.words) ? g.words.length : list(g?.words || g?.items).length), 0),
+  categorize: (d) => (d.groups || []).reduce((n, g) => n + (Array.isArray(g?.words) ? g.words.length : groupItems(g || {}).length), 0),
 };
 // the learner writes a whole sentence
 const SENTENCE_WRITING = ['errorfix', 'transformation', 'translation', 'dictation'];

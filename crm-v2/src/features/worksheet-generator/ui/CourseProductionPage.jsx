@@ -7,6 +7,7 @@ import { analyzeWorksheet } from '../../worksheet-studio/quality.js';
 import { sheetMinutes } from '../../worksheet-studio/didactics/timeEstimate.js';
 import { COURSE_MODULES, COURSES, PHASES, moduleNumber, moduleSheets } from '../admin/course/registry.js';
 import { moduleProblems, splitByBaseline } from '../admin/course/quality.js';
+import { courseReadiness, GATE_LABEL } from '../admin/course/readiness.js';
 
 const StudioSheetPreview = lazy(() => import('../../library/StudioSheetPreview.jsx'));
 const MISSING = 'Töölehte ei leitud.';
@@ -27,6 +28,9 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(null);
+  // quality gates over the whole course (computed once): ready lessons per level and module
+  const readiness = useMemo(() => courseReadiness(modules), [modules]);
+  const report = readiness[mod?.MODULE.course]?.modules.find((m) => m.id === mod?.MODULE.id);
 
   const load = useCallback(async () => {
     setLoading(true); setError('');
@@ -66,12 +70,25 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
 
   return (
     <div className="page-stack">
-      <PageHeader eyebrow="Õppevara · kursuse tootmine" title="B1 ja B2 töölehed" description="Töölehed on kirjutatud koodis, läbivad kvaliteedikontrolli (konstruktori kontroll, taseme normid, vaheldus) ja avaldatakse tund haaval." />
+      <PageHeader eyebrow="Õppevara · kursuse tootmine" title="Kursuse töölehed" description="Töölehed on kirjutatud koodis, läbivad kvaliteedikontrolli (konstruktori kontroll, taseme normid, vaheldus) ja avaldatakse tund haaval." />
+      <Card>
+        <h2 style={{ marginTop: 0 }}>Kursuse valmidus</h2>
+        <p className="form-hint">Tund on valmis, kui kõik kolm lehte läbivad kõik väravad: {Object.values(GATE_LABEL).join(', ')} ja keelekontroll (tools/course-audit/language.py).</p>
+        <div role="table" aria-label="Kursuse valmidus" style={{ display: 'grid', gap: 6 }}>
+          {Object.values(readiness).map((c) => (
+            <div role="row" key={c.course} style={{ display: 'grid', gridTemplateColumns: '160px 120px 1fr', gap: 12, alignItems: 'center' }}>
+              <b role="cell">{COURSES[c.course]?.label.split(' ·')[0] || c.course}</b>
+              <span role="cell"><strong>{c.ready}</strong> / {c.total} tundi</span>
+              <span role="cell" className="form-hint">{Object.entries(c.gates).sort((a, b) => b[1] - a[1]).map(([gate, n]) => `${GATE_LABEL[gate] || gate} ${n}`).join(' · ') || '✓ kõik väravad läbitud'}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
       <Card>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} role="radiogroup" aria-label="Moodul">
           {modules.map((m) => (
             <Button key={m.MODULE.id} variant={m.MODULE.id === mod.MODULE.id ? 'primary' : 'secondary'} role="radio" aria-checked={m.MODULE.id === mod.MODULE.id} onClick={() => setModuleId(m.MODULE.id)}>
-              {COURSES[m.MODULE.course].label.split(' ·')[0]} · moodul {moduleNumber(m)} · {m.MODULE.title}
+              {COURSES[m.MODULE.course].label.split(' ·')[0]} · moodul {moduleNumber(m)} · {m.MODULE.title}{(() => { const r = readiness[m.MODULE.course]?.modules.find((x) => x.id === m.MODULE.id); return r ? ` · ${r.ready}/${r.total}` : ''; })()}
             </Button>
           ))}
         </div>
@@ -91,9 +108,10 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
         <Card key={lessonId}>
           <div style={{ display: 'grid', gap: 10 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-              <div><h3 style={{ margin: 0 }}>{lessonId} · {mod.LESSONS[lessonId].title}</h3><span className="form-hint">{mod.LESSONS[lessonId].canDo}</span></div>
+              <div><h3 style={{ margin: 0 }}>{lessonId} · {mod.LESSONS[lessonId].title} {report?.lessons[lessonId]?.ready ? <span title="Kõik väravad läbitud">✓</span> : null}</h3><span className="form-hint">{mod.LESSONS[lessonId].canDo}</span></div>
               <Button onClick={() => publishLesson(lessonId)} disabled={Boolean(busy) || problems.length > 0} loading={busy === lessonId}>Avalda tund</Button>
             </div>
+            {report?.lessons[lessonId]?.module.length ? <ul className="form-hint" style={{ margin: 0 }}>{report.lessons[lessonId].module.map((p, i) => <li key={i}><b>{GATE_LABEL[p.gate] || p.gate}</b>: {p.text}</li>)}</ul> : null}
             {Object.entries(phases).map(([phase, doc]) => {
               const record = records[`${lessonId}:${phase}`];
               const score = analyzeWorksheet(doc).didactics.score;
@@ -103,6 +121,12 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
                   <span className="form-hint">{doc.blocks.length} plokki · {[...new Set(doc.blocks.map((b) => b.type))].join(', ')} · didaktika {score} · ≈ {sheetMinutes(doc)} min</span>
                   <span>{record ? `olemas v${record.worksheetDocVersion || 0}${record.publishedWorksheetDocVersion ? ' · avaldatud' : ''}` : 'uus'}</span>
                   <Button variant="secondary" onClick={() => setPreview({ lessonId, phase, doc })}>Vaata</Button>
+                  {report?.lessons[lessonId]?.sheets[phase]?.length ? (
+                    <details style={{ gridColumn: '1 / -1' }}>
+                      <summary className="form-hint">Väravad: {report.lessons[lessonId].sheets[phase].length} märkust</summary>
+                      <ul className="form-hint">{report.lessons[lessonId].sheets[phase].map((p, i) => <li key={i}><b>{GATE_LABEL[p.gate] || p.gate}</b>: {p.text}</li>)}</ul>
+                    </details>
+                  ) : null}
                 </div>
               );
             })}

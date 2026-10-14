@@ -2,7 +2,7 @@
 import { Fragment } from 'react';
 import { Photo, Line, Md, Clock } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
-import { norm, splitList } from '../schema.js';
+import { norm, bankItems, splitList } from '../schema.js';
 import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
 
 // Task blocks: numbered cards with a title + instruction (drawn by the page), an answer area and scoring.
@@ -30,7 +30,7 @@ export const gaps = {
   create: () => ({ title: 'Täienda laused.', instruction: 'Kasuta sobivat sõna.', bank: 'hommikul, päeval, õhtul', showBank: 'yes', sentences: 'Ma ärkan [hommikul] kell 7.\nMa söön lõunat [päeval].' }),
   View: ({ data, ctx, id }) => {
     const lines = String(data.sentences || '').split('\n').filter((l) => l.trim());
-    const bank = splitList(data.bank);
+    const bank = bankItems(data);
     const put = (w) => {
       if (!ctx.interactive) return;
       const keys = lines.flatMap((l, li) => gapParts(l).filter((p) => p.gap).map((_, gi) => `${li}.${gi}`));

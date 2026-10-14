@@ -48,6 +48,17 @@ export const norm = (s) =>
     .replace(/\s+/g, ' ')
     .trim();
 
+// the items of a sort group: one per line when the group says so (items that contain a comma: whole sentences),
+// otherwise the usual comma / semicolon / line list
+export const groupItems = (group = {}) => (group.lines
+  ? String(group.words || '').split('\n').map((x) => x.trim()).filter(Boolean)
+  : splitList(group.words));
+
+// a word bank: one entry per line when it says so (sentence banks: an entry may contain a comma)
+export const bankItems = (data = {}) => (data.bankLines
+  ? String(data.bank || '').split('\n').map((x) => x.trim()).filter(Boolean)
+  : splitList(data.bank));
+
 export const splitList = (s) =>
   String(s || '')
     .split(/[,;\n]/)

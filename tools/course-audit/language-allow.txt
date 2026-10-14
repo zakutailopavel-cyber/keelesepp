@@ -1,0 +1,23 @@
+# Correct words the Vabamorf speller does not know (checked by hand). One per line.
+# compounds
+digivaba
+koolipäeviti
+proovitest
+vahetesti
+hotelliketid
+# loans, terms
+ruuteri
+ruuterit
+diktoglossi
+nominaliseerimine
+hedoonilise
+vintage-stiil
+vintage-stiili
+# correct but rare
+kergendunud
+millegita
+# „broneerimis- ja …”: the shared part of two compounds
+broneerimis
+kuulamis
+liikumis
+nägemis

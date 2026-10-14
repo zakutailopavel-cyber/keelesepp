@@ -21,11 +21,18 @@ export const B = {
     title, instruction, statements: statements.map(([text, ok]) => ({ text, answer: ok ? 'true' : 'false' })),
   }, width),
   gaps: (id, title, instruction, sentences, bank = '', width = 'full', goal = 'g_notice') => block(id, 'gaps', 'blue', goal, {
-    title, instruction, sentences: join(sentences), bank: Array.isArray(bank) ? bank.join(', ') : bank, showBank: bank ? 'yes' : 'no',
+    title, instruction, sentences: join(sentences),
+    // a bank of sentences (entries with commas) keeps one entry per line
+    ...(Array.isArray(bank) && bank.some((w) => /[,;]/.test(w)) ? { bank: bank.join('\n'), bankLines: true } : { bank: Array.isArray(bank) ? bank.join(', ') : bank }),
+    showBank: (Array.isArray(bank) ? bank.length : bank) ? 'yes' : 'no',
   }, width),
   match: (id, title, instruction, pairs, width = 'full', goal = 'g_vocab') => block(id, 'match', 'peach', goal, { title, instruction, pairs: pairs.map(([left, right]) => ({ left, right })) }, width),
   manymatch: (id, title, instruction, left, right, width = 'full', goal = 'g_vocab') => block(id, 'manymatch', 'peach', goal, { title, instruction, left: join(left), right: join(right) }, width),
-  categorize: (id, title, instruction, groups, width = 'full', goal = 'g_vocab') => block(id, 'categorize', 'peach', goal, { title, instruction, groups: groups.map(([name, words]) => ({ name, words: Array.isArray(words) ? words.join(', ') : words })) }, width),
+  // an item with a comma (a whole sentence) cannot live in a comma list: such groups keep one item per line
+  categorize: (id, title, instruction, groups, width = 'full', goal = 'g_vocab') => {
+    const perLine = groups.some(([, words]) => Array.isArray(words) && words.some((w) => /[,;]/.test(w)));
+    return block(id, 'categorize', 'peach', goal, { title, instruction, groups: groups.map(([name, words]) => (Array.isArray(words) ? (perLine ? { name, words: words.join('\n'), lines: true } : { name, words: words.join(', ') }) : { name, words })) }, width);
+  },
   wordforms: (id, title, instruction, rows, width = 'half', goal = 'g_notice') => block(id, 'wordforms', 'blue', goal, { title, instruction, rows: rows.map(([base, prompt, answer]) => ({ base, prompt, answer })) }, width),
   errorfix: (id, title, instruction, rows, width = 'full', goal = 'g_notice') => block(id, 'errorfix', 'peach', goal, { title, instruction, rows: rows.map(([wrong, answer]) => ({ wrong, answer })) }, width),
   transformation: (id, title, instruction, rows, width = 'full', goal = 'g_notice') => block(id, 'transformation', 'blue', goal, { title, instruction, rows: rows.map(([from, prompt, answer]) => ({ from, prompt, answer })) }, width),
