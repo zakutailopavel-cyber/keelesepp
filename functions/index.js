@@ -7469,6 +7469,58 @@ async function testStudentSession({ actor, studentId = "" }) {
   return { token, studentId: card.id, studentName: card.data().name || "Testõpilane" };
 }
 
+// „Saada kutse” on the student card (functions/student-invite-core.js): an account without a password, linked to the
+// card as the student, and an e-mail with a link to set the password. On a card that already has this student's
+// account the same call sends a new password link (a student who forgot the password).
+async function inviteStudentAccount({ actor, studentId, email, requestId }) {
+  const { inviteEmailAddress, invitePlan, composeInviteEmail, CRM_URL } = require("./student-invite-core");
+  const cleanStudentId = cleanText(studentId, 180);
+  if (!cleanStudentId) throw httpError(400, "Õpilase kaart puudub.");
+  const studentSnap = await db.collection("students").doc(cleanStudentId).get();
+  const student = studentSnap.exists ? studentSnap.data() : null;
+  const studentIds = student ? studentAccountIds(student) : [];
+  let address = String(email || "").trim();
+  // „Saada parooli link” on a linked card: the student's own account e-mail
+  if (!address && studentIds.length) {
+    try { address = (await admin.auth().getUser(studentIds[0])).email || ""; } catch (error) { address = ""; }
+  }
+  let plan;
+  let cleanEmail;
+  try {
+    cleanEmail = inviteEmailAddress(address);
+    let existing = null;
+    try { existing = await admin.auth().getUserByEmail(cleanEmail); } catch (error) { existing = null; }
+    plan = invitePlan({ student, email: cleanEmail, existing, studentIds, parentIds: student ? parentAccountIds(student) : [] });
+  } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+  let uid = plan.uid || "";
+  if (plan.action === "create") {
+    const created = await admin.auth().createUser({ email: cleanEmail, emailVerified: false, displayName: cleanText(student.name, 160) || undefined });
+    uid = created.uid;
+    const nowIso = new Date().toISOString();
+    await db.collection("users").doc(uid).set({
+      uid, role: "student", displayName: cleanText(student.name, 160), email: cleanEmail,
+      createdAt: nowIso.slice(0, 10), approvalStatus: "approved", approvalDecidedAt: nowIso, approvalDecidedBy: actorSnapshot(actor),
+      invitedAt: nowIso, invitedBy: actorSnapshot(actor), registrationSource: "invite", updatedAt: nowIso,
+    }, { merge: true });
+    await linkAccountToStudent({ actor, uid, studentId: cleanStudentId, relationship: "student", requestId: requestId || `invite-${uid}` });
+    if (!student.email) await studentSnap.ref.set({ email: cleanEmail, updatedAt: nowIso }, { merge: true });
+  }
+  const link = await admin.auth().generatePasswordResetLink(cleanEmail, { url: `${CRM_URL}/login` });
+  let timer;
+  const limit = new Promise((resolve) => { timer = setTimeout(() => resolve({ status: "timeout" }), APPROVAL_MAIL_LIMIT_MS); });
+  const mail = await Promise.race([
+    deliverEmail(composeInviteEmail({ name: student.name || "", email: cleanEmail, link, resend: plan.action === "resend" }), { kind: "student-invite", uid, studentId: cleanStudentId })
+      .catch((error) => { console.error("invite e-mail failed", uid, error); return { status: "failed" }; }),
+    limit,
+  ]).finally(() => clearTimeout(timer));
+  await db.collection("activityLog").add({
+    action: plan.action === "create" ? "account_invited" : "account_password_link", targetUid: uid, studentId: cleanStudentId,
+    studentName: student.name || "", email: cleanEmail, mail: mail.status || "", actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
+  });
+  // the link is returned too: the administrator can pass it on another way when the e-mail does not arrive
+  return { uid, studentId: cleanStudentId, email: cleanEmail, created: plan.action === "create", mailed: mail.status === "sent", mailStatus: mail.status || "", link };
+}
+
 exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -7715,6 +7767,11 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounts/invite") {
+      const result = await inviteStudentAccount({ actor, studentId: req.body?.studentId, email: req.body?.email, requestId: req.body?.requestId });
+      res.status(result.created ? 201 : 200).json(result);
       return;
     }
     if (req.path === "/accounts/link") {

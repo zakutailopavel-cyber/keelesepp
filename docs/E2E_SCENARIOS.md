@@ -30,6 +30,7 @@ Olga who is a student and a parent), their cards (Kristi's card carries her moth
 | --- | --- |
 | `roles.spec.cjs` | the menu of each role: student, parent, student + parent, teacher (no finance/accounts), admin |
 | `registration.spec.cjs` | a new student registers → admin approves → own card on first login; a mother whose e-mail is on her child's card gets a review `email_on_child_card` → „Seo lapsevanemana” |
+| `invite.spec.cjs` | „Saada kutse” on Kaarel's card (he used his parent's login): the parent e-mail is refused, an own account is created and linked, the password is set from the e-mail link, he logs in to his own studies; a second click sends a new password link, never a second account |
 | `homework.spec.cjs` | teacher assigns the sheet from Õppevara → student opens it in Ülesanded, answers, hands in → stored `done` with score ≥ 90% → teacher sees it in Kodutööd |
 
 ## Bugs these scenarios found (fixed)
