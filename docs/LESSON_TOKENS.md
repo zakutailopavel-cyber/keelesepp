@@ -18,7 +18,7 @@ administrator confirms and the child gets N lessons; every lesson takes one; the
 4. **Lessons**: trigger `syncLessonTokens` (lessons/{id} onWrite) → `syncLessonPackageConsumption` (existing ledger):
    a held lesson (`Toimunud`) and a no-show without notice (`Puudus_eta`, unless the plan has `chargeNoShow: false` or
    the lesson `billingWaived`) take one credit; another mark or a removed mark (the lesson is deleted) gives it back.
-   Runs only for cards with a package or lessons that took a credit.
+   Runs only for CRM v2 marks (`accountingSource: crm_v2`; the server lesson journal syncs packages itself), for cards with a package or lessons that took a credit.
 5. **Visible**: student card → Finantsid → „Tunnipakett” (`LessonTokensCard`: left, granted, used, every movement);
    parent dashboard (per child with a package); „Lõppemas” at ≤ 2 lessons.
 

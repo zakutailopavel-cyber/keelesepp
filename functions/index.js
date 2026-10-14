@@ -10501,6 +10501,8 @@ exports.syncLessonTokens = functions.firestore
     const after = change.after.exists ? change.after.data() : null;
     const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived)]) : "deleted");
     if (markOf(before) === markOf(after)) return null;
+    // only CRM v2 marks (calendar / lesson panel); the server lesson journal syncs packages itself
+    if ((after || before)?.accountingSource !== "crm_v2") return null;
     const lessonId = context.params.lessonId;
     try {
       const stateSnap = await db.collection("lessonPackageStates").doc(lessonId).get();
