@@ -10,8 +10,17 @@ import './liveRoom.css';
 
 const STATE = { connected: 'ühendatud', connecting: 'ühendan…', new: 'ühendan…', disconnected: 'ühendus katkes', failed: 'ühendus katkes', closed: 'ühendus katkes' };
 
+// no answer this long: say why instead of waiting forever
+const SILENT_MS = 20000;
+
 function Tile({ name, stream, state, onBlocked }) {
   const ref = useRef(null);
+  const [silent, setSilent] = useState(false);
+  useEffect(() => {
+    if (stream) return undefined;
+    const timer = globalThis.setTimeout(() => setSilent(true), SILENT_MS);
+    return () => globalThis.clearTimeout(timer);
+  }, [stream]);
   useEffect(() => {
     const video = ref.current;
     if (!video || !stream) return;
@@ -20,7 +29,11 @@ function Tile({ name, stream, state, onBlocked }) {
     video.play?.()?.catch?.((error) => { if (error?.name === 'NotAllowedError') onBlocked(); });
   }, [onBlocked, stream]);
   return <figure className="lo-tile">
-    {stream ? <video ref={ref} autoPlay playsInline /> : <div className="lo-tile__wait">Ootan pilti…<small>Kui kaamera pole veel sees, ilmub pilt kõne alguses.</small></div>}
+    {stream ? <video ref={ref} autoPlay playsInline />
+      : silent && !stream ? <div className="lo-tile__wait" role="status">Ei vasta
+        <small>Kui tunniruum avati enne CRM-i uuendust, töötab vaatlus alates järgmisest tunnist (või kui leht uuesti avatakse).
+          Kui tund käib Google Meetis või Zoomis, siin pilti ei ole: vaatlus töötab ainult CRM-i kõnega.</small></div>
+      : <div className="lo-tile__wait">Ootan pilti…<small>Kui kaamera pole veel sees, ilmub pilt kõne alguses.</small></div>}
     <figcaption>{name} · {STATE[state] || 'ühendan…'}</figcaption>
   </figure>;
 }

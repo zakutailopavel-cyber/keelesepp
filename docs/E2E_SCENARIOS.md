@@ -32,6 +32,7 @@ Olga who is a student and a parent), their cards (Kristi's card carries her moth
 | `registration.spec.cjs` | a new student registers → admin approves → own card on first login; a mother whose e-mail is on her child's card gets a review `email_on_child_card` → „Seo lapsevanemana” |
 | `invite.spec.cjs` | „Saada kutse” on Kaarel's card (he used his parent's login): the parent e-mail is refused, an own account is created and linked, the password is set from the e-mail link, he logs in to his own studies; a second click sends a new password link, never a second account |
 | `observer.spec.cjs` | real WebRTC in three browsers (fake cameras): teacher invites Anna, she joins, the call starts; the admin opens „Käimasolevad tunnid” → „Vaata tundi”, receives both video+audio streams, never opens a camera or microphone; teacher and student see the eye badge and „Administraator vaatab tundi”; it disappears when the admin leaves, the call goes on |
+| `room-bar.spec.cjs` | teacher in a recorded call: the lesson room's top bar has no overlapping buttons and nothing past its edge at 1920 / 1600 / 1440 / 1366 / 1280 / 1024 / 820 / 390 px (the phone's call row scrolls sideways by design) |
 | `homework.spec.cjs` | teacher assigns the sheet from Õppevara → student opens it in Ülesanded, answers, hands in → stored `done` with score ≥ 90% → teacher sees it in Kodutööd |
 
 ## Bugs these scenarios found (fixed)

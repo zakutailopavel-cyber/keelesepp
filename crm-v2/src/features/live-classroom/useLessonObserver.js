@@ -39,22 +39,31 @@ export function useObserverPeers({
   const observers = liveObservers(entries, now);
   const peersRef = useRef(new Map());
   const pendingRef = useRef(new Map());
+  // the observer's ICE candidates follow its offer at once, while this side is still fetching TURN or has no camera
+  // yet: they wait here by session, or the connection would only work on one network (owner's first real use)
+  const earlyRef = useRef(new Map());
   const streamRef = useRef(localStream);
   const me = user?.uid || '';
 
   const close = useCallback((observerUid) => {
     const entry = peersRef.current.get(observerUid);
-    if (entry) { try { entry.pc.close(); } catch { /* closed */ } peersRef.current.delete(observerUid); }
+    if (entry) { try { entry.pc?.close(); } catch { /* closed */ } peersRef.current.delete(observerUid); }
   }, []);
 
   const answer = useCallback(async (signal) => {
     const stream = streamRef.current;
     if (!stream) { pendingRef.current.set(signal.observerUid, signal); return; }
     pendingRef.current.delete(signal.observerUid);
+    const current = peersRef.current.get(signal.observerUid);
+    if (current?.sessionId === signal.sessionId) return; // this offer is already being answered
     close(signal.observerUid);
-    const pc = peerFactory(await iceServersFor(turnService, invitationId));
-    const entry = { pc, sessionId: signal.sessionId, candidates: [] };
+    // registered before any await: candidates of this session that arrive meanwhile are kept, not dropped
+    const entry = { pc: null, sessionId: signal.sessionId, candidates: earlyRef.current.get(signal.sessionId) || [] };
+    earlyRef.current.delete(signal.sessionId);
     peersRef.current.set(signal.observerUid, entry);
+    const pc = peerFactory(await iceServersFor(turnService, invitationId));
+    if (peersRef.current.get(signal.observerUid) !== entry) { try { pc.close(); } catch { /* closed */ } return; }
+    entry.pc = pc;
     const send = (type, payload) => service.sendSignal(invitationId, { type, sessionId: signal.sessionId, observerUid: signal.observerUid, fromUid: me, toUid: signal.observerUid, payload }).catch(() => {});
     pc.onicecandidate = (event) => { if (event.candidate) send('candidate', event.candidate.toJSON ? event.candidate.toJSON() : event.candidate); };
     await pc.setRemoteDescription(parse(signal));
@@ -81,10 +90,16 @@ export function useObserverPeers({
       if (!fresh(signal)) return;
       if (signal.type === 'offer') { answer(signal).catch(() => close(signal.observerUid)); return; }
       const entry = peersRef.current.get(signal.observerUid);
-      if (!entry || entry.sessionId !== signal.sessionId) return;
+      if (!entry || entry.sessionId !== signal.sessionId) {
+        if (signal.type === 'candidate') {
+          const early = earlyRef.current.get(signal.sessionId) || [];
+          if (early.length < 200) earlyRef.current.set(signal.sessionId, [...early, parse(signal)]);
+        }
+        return;
+      }
       if (signal.type === 'hangup') { close(signal.observerUid); return; }
       if (signal.type === 'candidate') {
-        if (entry.pc.remoteDescription) entry.pc.addIceCandidate(parse(signal)).catch(() => {});
+        if (entry.pc?.remoteDescription) entry.pc.addIceCandidate(parse(signal)).catch(() => {});
         else entry.candidates.push(parse(signal));
       }
     }, () => {}); } catch { return undefined; }
@@ -97,6 +112,7 @@ export function useObserverPeers({
     streamRef.current = localStream;
     if (!localStream) return;
     peersRef.current.forEach(({ pc }) => {
+      if (!pc) return;
       localStream.getTracks().forEach((track) => {
         const sender = pc.getSenders?.().find((item) => item.track?.kind === track.kind);
         if (sender?.replaceTrack) sender.replaceTrack(track).catch(() => {});
