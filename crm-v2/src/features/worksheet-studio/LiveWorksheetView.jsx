@@ -67,7 +67,20 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   const showTask = (blockId, show) => live(() => repository.setWorksheetShown({ assignmentId, shown: show ? [...shown, blockId] : shown.filter((id) => id !== blockId) }));
   // on the teacher's sheet: tasks the learner does not see yet are dimmed, shown answers are labelled
   const blockClasses = useMemo(() => (step?.on ? Object.fromEntries(stats.filter((s) => !(step.open || []).includes(s.id)).map((s) => [s.id, 'is-live-closed'])) : null), [step, stats]);
-  const blockNotes = useMemo(() => Object.fromEntries(shown.map((id) => [id, <span key={id} className="ws-live-shown"><Icons.Eye size={14} aria-hidden="true" /> Õiged vastused on õpilasele näha</span>])), [shown]);
+  // the teacher's notes under the blocks: answers shown to the learner, and the dictation text to read aloud (the
+  // learner never sees it; before, it lived only in the editor and the teacher had nothing to read from)
+  const blockNotes = useMemo(() => {
+    const notes = {};
+    (doc?.blocks || []).filter((b) => b.type === 'dictation').forEach((b) => {
+      const sentences = String(b.data?.sentences || '').split('\n').map((line) => line.trim()).filter(Boolean);
+      notes[b.id] = <div key={`${b.id}-read`} className="ws-dictation-read" role="note" aria-label="Loe ette">
+        <strong><Icons.AudioLines size={14} aria-hidden="true" /> Loe ette (õpilane ei näe)</strong>
+        {sentences.length ? <ol>{sentences.map((line, i) => <li key={i}>{line}</li>)}</ol> : <p>Etteütluse lauseid pole lisatud: lisa need lehe muutmises.</p>}
+      </div>;
+    });
+    shown.forEach((id) => { notes[id] = <>{notes[id] || null}<span key={id} className="ws-live-shown"><Icons.Eye size={14} aria-hidden="true" /> Õiged vastused on õpilasele näha</span></>; });
+    return notes;
+  }, [doc, shown]);
 
   const point = async (blockId) => {
     setFocusError('');

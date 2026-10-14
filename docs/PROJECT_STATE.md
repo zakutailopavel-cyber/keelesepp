@@ -13,6 +13,15 @@
   owner accepts the norms).
 - Tests: depth.test.js 5/5.
 - Next: owner confirms the norms → fix sheets in batches, starting with the levels being taught (B1→B2, C1).
+## 2026-10-14 · agent/dictation-teacher — the teacher has the dictation text in the lesson
+
+- Owner after a live lesson: „блок с диктантом ерунда, потому что текст заранее не готов”. The dictation sentences
+  were only in the sheet editor; in the lesson room the teacher had nothing to read from (no audio either).
+- `LiveWorksheetView` (teacher's sheet in the room, the student's works, the live page): under every dictation block
+  a teacher-only note „Loe ette (õpilane ei näe)” with the numbered sentences, or a hint when none were added.
+  Style `.ws-dictation-read` in `engine/sheet.css`. The learner's player is unchanged (test).
+- Audio for dictations (paid TTS) not added — owner decision.
+- Tests: worksheet-studio live + students 86/86 (+2).
 
 ## 2026-10-14 · agent/room-topbar — lesson room top bar never overlaps; observer explains silence
 
