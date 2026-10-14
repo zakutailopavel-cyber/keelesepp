@@ -1,3 +1,12 @@
+## 2026-10-15 · agent/codex-course-tasks — tasks for Codex: B1→B2 modules 2–18 to every gate
+
+- Owner: „дай задания для кодекса”. `docs/CODEX_TASKS_B1B2_IDEAL.md`: the full contract (scope, allowed files,
+  definition of done = every lesson READY + strict + 0 unknown words + 40–55 min, how to rewrite a lesson after
+  `b2/module01.js`, check lessons, listening audio, Estonian quality, PR hand-over; Claude publishes after merge).
+  AGENTS.md points to it.
+- `admin/course/courseTools.test.js` (skipped normally): `COURSE_REPORT=<module>` prints the gates per lesson,
+  `COURSE_DUMP=<file>` writes built sheets for `tools/course-audit/language.py`.
+
 ## 2026-10-14 · agent/b1b2-module-01-ideal — first module at every quality gate (strict)
 
 - B1→B2 module 1 (b1b2-001…005) rewritten to all gates (structure, depth, keys, level, uniqueness, vocabulary,
