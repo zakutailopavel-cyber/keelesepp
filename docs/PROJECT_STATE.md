@@ -1,3 +1,18 @@
+## 2026-10-14 · agent/sheet-depth-audit — new quality rules: is there real work on the sheet?
+
+- Owner after a live lesson: sheets empty, tasks done in two minutes; asked by which criteria sheets pass QA. Answer:
+  only structure (audit.py) and estimated minutes (quality.js) — speaking/writing blocks filled the minutes.
+- New `crm-v2/src/features/worksheet-studio/didactics/depth.js` (`depthProblems`, `depthScore`, `DEPTH` norms):
+  items per closed task, exercise minutes without speaking/writing (error), live pace with the teacher, average task
+  sentence length, base-form hints / word bank / 2-option choices, ≥ 2 whole-sentence tasks, dictation sentences.
+  Calibrated on the published course. Norms in `docs/CEFR_A2_B1_LEARNING_STANDARD.md` §13 (normative).
+- `tools/course-audit/depth.mjs` runs it over the read-only export; report `docs/SHEET_DEPTH_AUDIT_2026-10-14.md`:
+  1140 published sheets, 0 clean; blocking „thin” A2 72, B1 141, B2 196, C1 287. A task has 5–6 items at every level;
+  a C1 sheet ≈ 2 closed tasks, ≈ 10 min of exercises.
+- Only checks; no sheet changed. Not yet wired into the constructor's check or into quality.js (next step after the
+  owner accepts the norms).
+- Tests: depth.test.js 5/5.
+- Next: owner confirms the norms → fix sheets in batches, starting with the levels being taught (B1→B2, C1).
 ## 2026-10-14 · agent/dictation-teacher — the teacher has the dictation text in the lesson
 
 - Owner after a live lesson: „блок с диктантом ерунда, потому что текст заранее не готов”. The dictation sentences
