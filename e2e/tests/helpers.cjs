@@ -35,7 +35,7 @@ async function login(page, who) {
   await expect(page).not.toHaveURL(/\/login/);
   // the app settles (home redirect, profile, first data) before the scenario goes on
   await expect(page.getByRole('navigation').first()).toBeVisible();
-  await page.waitForLoadState('networkidle').catch(() => {});
+  await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
   return person;
 }
 

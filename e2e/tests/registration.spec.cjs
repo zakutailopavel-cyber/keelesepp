@@ -40,9 +40,15 @@ test('a new student registers, the admin approves, the student gets her own card
   await register(studentPage, { role: 'student', name: 'Uus Õpilane', email: 'uus.opilane@e2e.test' });
   await approve(adminPage, 'Uus Õpilane');
   await login(studentPage, { email: 'uus.opilane@e2e.test' });
+  // her new card asks the one-time recording consent; the answer is stored with her own uid (rules)
+  await studentPage.getByRole('button', { name: /Nõustun/ }).click();
+  await expect(studentPage.getByRole('button', { name: /Nõustun/ })).toHaveCount(0);
   await expect(studentPage.getByRole('navigation').first().getByRole('link', { name: 'Minu vead' })).toBeVisible();
   const user = await adminSdk().auth().getUserByEmail('uus.opilane@e2e.test');
   await expect.poll(async () => (await adminSdk().firestore().doc(`students/self_${user.uid}`).get()).data()?.name).toBe('Uus Õpilane');
+  const card = (await adminSdk().firestore().doc(`students/self_${user.uid}`).get()).data();
+  expect(card.recordingConsent).toBe(true);
+  expect(card.recordingConsentByUid).toBe(user.uid);
   expect(problems).toEqual([]);
 });
 

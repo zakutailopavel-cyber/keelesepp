@@ -39,7 +39,8 @@ module.exports = async function seed() {
   }
   for (const card of Object.values(CARDS)) {
     const { id, ...data } = card;
-    await db.doc(`students/${id}`).set({ ...data, createdAt: now.slice(0, 10), updatedAt: now });
+    // the one-time recording consent is already answered, so the question does not cover the pages
+    await db.doc(`students/${id}`).set({ recordingConsent: false, recordingConsentAt: now, ...data, createdAt: now.slice(0, 10), updatedAt: now });
   }
   await db.doc('securityConfig/teacherDirectoryV1').set({ teachers: { pavel: PEOPLE.teacher.uid } });
   await db.doc('curriculumLessons/e2e-001').set({ type: 'lesson', title: 'Minu päev', level: 'A2', subject: 'Eesti keel', roadmapManaged: true, roadmapModuleNumber: 1, roadmapModuleTitle: 'Igapäevaelu', roadmapLessonNumber: 1, worksheetPhases: { discover: { title: 'Minu päev', status: 'published', version: 1, publishedVersion: 1, updatedAt: now } }, createdAt: now });
