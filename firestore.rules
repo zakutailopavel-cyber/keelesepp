@@ -1022,7 +1022,9 @@ service cloud.firestore {
     }
 
     match /lessons/{lessonId} {
-      allow read: if isAdmin() || teacherCanRead(resource.data) || ownsStudent(resource.data.studentId);
+      // marking a lesson first reads its id (the transaction makes sure it is not marked twice): a teacher reading a
+      // lesson that does not exist yet is allowed, not an evaluation error (owner 2026-10-14, Yelyzaveta Lukiianchuk)
+      allow read: if isAdmin() || (resource == null && isStaff()) || teacherCanRead(resource.data) || ownsStudent(resource.data.studentId);
       allow create: if (isAdmin() || teacherCanCreate(request.resource.data))
         && createsNoLessonPackageSource()
         && financialDateOpen(request.resource.data.get('date', ''));
