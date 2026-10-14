@@ -5,7 +5,7 @@ import { canonicalTeacherName } from '../../utils/teachers.js';
 import { STUDENT_LEVELS } from './studentOptions.js';
 import { facebookContact, instagramContact } from '../../utils/socialLinks.js';
 
-const emptyForm = { name: '', parentName: '', email: '', phone: '', facebook: '', instagram: '', level: 'A1', targetLevel: 'B1', subject: 'Eesti keel', grade: '', group: '', teacher: '', active: true };
+const emptyForm = { name: '', parentName: '', parentEmail: '', email: '', phone: '', facebook: '', instagram: '', level: 'A1', targetLevel: 'B1', subject: 'Eesti keel', grade: '', group: '', teacher: '', active: true };
 
 function validate(values) {
   const errors = {};
@@ -61,6 +61,8 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
       <form id="student-form" className="form-grid" onSubmit={submit} noValidate>
         <Input label="Õpilase nimi *" name="name" value={values.name} onChange={change} error={errors.name} />
         <Input label="Lapsevanema nimi" name="parentName" value={values.parentName} onChange={change} />
+        {/* new invoices go here (functions index.js: parentEmail → payerEmail); issued invoices keep their address */}
+        <Input label="Lapsevanema e-post (arved)" name="parentEmail" type="email" value={values.parentEmail || ''} onChange={change} />
         <Input label="E-post" name="email" type="email" value={values.email} onChange={change} error={errors.email} />
         <Input label="Telefon" name="phone" value={values.phone} onChange={change} error={errors.phone} />
         {canAssignTeacher ? <Input label="Facebook (kasutajanimi või link)" name="facebook" value={values.facebook || ''} onChange={change} error={errors.facebook} /> : null}
