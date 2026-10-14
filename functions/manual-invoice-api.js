@@ -7,6 +7,7 @@ const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-co
 const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('./monthly-invoice-core');
 const { invoiceCancellationError } = require('./invoice-cancellation-core');
 const { sameCardsInput, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
+const { tokenInvoiceInput, tokenInvoiceLines } = require('./lesson-tokens-core');
 
 const db = admin.firestore();
 const ALLOWED_ROLES = new Set(['admin', 'finance']);
@@ -401,6 +402,62 @@ async function createCombinedManualInvoice({ actor, values, requestId }) {
   });
 }
 
+// Lesson tokens (functions/lesson-tokens-core.js): an invoice for N lessons at the card's plan price. The credits
+// reach the card only after payment, when the administrator confirms (financeApi /invoices/tokens/credit).
+async function createTokenInvoice({ actor, values, requestId }) {
+  let input;
+  try { input = tokenInvoiceInput(values); } catch (error) { throw httpError(error.status || 400, error.message); }
+  const mutationId = cleanRequestId(requestId);
+  const signature = crypto.createHash('sha256').update(JSON.stringify(input)).digest('hex');
+  const invoiceRef = db.collection('invoices').doc(mutationId);
+  const counterRef = db.collection('meta').doc('invoiceCounter');
+  const nowIso = new Date().toISOString();
+  const todayIso = appToday(nowIso);
+  return db.runTransaction(async (transaction) => {
+    const existing = await transaction.get(invoiceRef);
+    if (existing.exists) {
+      if (existing.data().creationSignature !== signature) throw httpError(409, 'requestId already used for a different invoice');
+      return { invoice: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const [studentSnap, planSnap, counterSnap, dateLockSnap] = await Promise.all([
+      transaction.get(db.collection('students').doc(input.studentId)),
+      transaction.get(db.collection('studentRevenuePlans').doc(input.studentId)),
+      transaction.get(counterRef),
+      transaction.get(db.collection('financialLockedDates').doc(todayIso)),
+    ]);
+    if (!studentSnap.exists) throw httpError(404, 'Student not found');
+    if (dateLockSnap.exists) throw httpError(409, `Financial period ${todayIso.slice(0, 7)} is closed`);
+    const student = studentSnap.data();
+    let priced;
+    try { priced = tokenInvoiceLines({ lessons: input.lessons, plan: planSnap.exists ? planSnap.data() : {}, subject: String(student.subject || '').trim() }); } catch (error) { throw httpError(error.status || 400, error.message); }
+    const { invoiceNum, nextSequence } = await nextInvoiceNumber(transaction, counterSnap, todayIso);
+    const base = manualInvoiceRecord({
+      input: { studentId: input.studentId, description: priced.description, amountCents: priced.amountCents, amount: priced.amountCents / 100, due: input.due, note: input.note },
+      student, invoiceNum, nowIso, actor, requestId: mutationId, signature,
+    });
+    const invoice = {
+      ...base,
+      lines: priced.lines,
+      billingMode: 'lesson_tokens_v1',
+      pricingMode: 'plan',
+      lessonCount: input.lessons,
+      lessonPriceCents: priced.priceCents,
+      lessonPrice: priced.priceCents / 100,
+      lessonMinutes: priced.minutes,
+      tokenCredits: input.lessons,
+      tokenStatus: 'pending',
+    };
+    transaction.create(invoiceRef, invoice);
+    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
+    transaction.create(db.collection('financialAudit').doc(mutationId), {
+      entityType: 'invoice', entityId: mutationId, action: 'invoice.created_lesson_tokens', invoiceId: mutationId, invoiceNum,
+      studentId: input.studentId, studentName: invoice.studentName, amountCents: priced.amountCents, amount: priced.amountCents / 100,
+      tokenCredits: input.lessons, actor, reason: input.note || priced.description, createdAt: nowIso, requestId: mutationId,
+    });
+    return { invoice: { id: mutationId, ...invoice }, idempotent: false };
+  });
+}
+
 async function cancelInvoice({ actor, invoiceId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanInvoiceId = String(invoiceId || '').trim();
@@ -465,6 +522,11 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    if (req.path === '/create-tokens') {
+      const result = await createTokenInvoice({ actor, values: req.body || {}, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     if (req.path === '/create-combined') {
       const result = await createCombinedManualInvoice({ actor, values: req.body || {}, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
@@ -495,4 +557,4 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
   }
 });
 
-module.exports = { manualInvoiceApi, createManualInvoice, createMonthlyInvoice, cancelInvoice, listInvoiceStudents };
+module.exports = { manualInvoiceApi, createManualInvoice, createMonthlyInvoice, createTokenInvoice, cancelInvoice, listInvoiceStudents };

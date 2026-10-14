@@ -15,13 +15,14 @@ import './monthlyInvoicePanel.css';
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
 const num = (value) => String(Math.round(value * 100) / 100).replace('.', ',');
 const dateLabel = (iso) => (iso ? new Date(`${iso}T12:00:00`).toLocaleDateString('et-EE') : '—');
-const MODES = [['all', 'Kõik'], ['advance', 'Kuu ette'], ['actual', 'Toimunud tunnid'], ['current', 'Jooksev kuu']];
+const MODES = [['all', 'Kõik'], ['advance', 'Kuu ette'], ['actual', 'Toimunud tunnid'], ['current', 'Jooksev kuu'], ['package', 'Tunnipakett']];
 const STATUS = {
   ready: { label: 'Valmis', tone: 'info' },
   invoiced: { label: 'Arve olemas', tone: 'success' },
   'no-price': { label: 'Hind puudub', tone: 'danger' },
   'no-lessons': { label: 'Tunde pole', tone: 'neutral' },
   'nothing-to-pay': { label: 'Tasaarveldus katab', tone: 'neutral' },
+  package: { label: 'Tunnipakett', tone: 'neutral' },
 };
 
 // Finance v2 §2, tab "Kuuarved": one invoice per student for the lessons planned in the chosen month, with last

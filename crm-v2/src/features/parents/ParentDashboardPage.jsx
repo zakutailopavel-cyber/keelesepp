@@ -1,5 +1,6 @@
 import { BookOpen, CalendarDays, ChevronRight, MessageSquareText, UsersRound, WalletCards } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import LessonTokensCard from '../students/LessonTokensCard.jsx';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
@@ -27,7 +28,7 @@ function money(cents) {
   return (Number(cents || 0) / 100).toLocaleString('et-EE', { style: 'currency', currency: 'EUR' });
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, petRepository }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, petRepository, tokensApi }) {
   const { user } = useAuth();
   const [rescheduling, setRescheduling] = useState(null);
   const state = useAsyncData(async () => {
@@ -74,6 +75,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       <LessonSummariesCard studentIds={studentRecords.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
       <MyWordsCard studentIds={studentRecords.map((student) => student.id)} readOnly {...(wordsService ? { service: wordsService } : {})} />
       <Card><div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div></div>{upcoming.length ? <div className="simple-list parent-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{new Date(`${lesson.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'short' })} · {lesson.time}</strong><span>{studentMap.get(lesson.studentId)?.name || lesson.studentName || 'Õpilane'} · {lesson.teacher || 'Õpetaja'}</span></div>{(() => { const request = requestFor(state.data.requests, lesson); return request?.status === 'pending' ? <Badge tone="warning">Palve saadetud</Badge> : <Button variant="secondary" onClick={() => setRescheduling(lesson)}>Ei saa tulla?</Button>; })()}</div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" />}</Card>
+      {/* lesson tokens of each child (shown only for a child with a package) */}{studentRecords.map((record) => <LessonTokensCard key={`tokens-${record.id}`} student={record} compact {...(tokensApi ? { service: tokensApi } : {})} />)}
       <Card><div className="section-heading"><div><span className="eyebrow">Kodutööd</span><h2>Pooleli ülesanded</h2></div><Link to="/homework">Kõik ülesanded <ChevronRight size={15} /></Link></div>{pendingHomework.length ? <div className="simple-list">{pendingHomework.slice(0, 6).map((item) => <div key={item.id}><div><strong>{item.task}</strong><span>{item.studentName || studentMap.get(item.studentId)?.name || 'Õpilane'}</span></div><Badge tone={item.due && item.due < today ? 'danger' : 'neutral'}>{item.due || 'Tähtajata'}</Badge></div>)}</div> : <EmptyState title="Kõik ülesanded on tehtud" />}</Card>
       <Card><div className="section-heading"><div><span className="eyebrow">Kontakt</span><h2>Kiirviited</h2></div></div><div className="parent-quick-links"><Link to="/messages"><MessageSquareText size={21} /><span><strong>Sõnumid</strong><small>Kirjuta õpetajale</small></span><ChevronRight size={18} /></Link><Link to="/homework"><BookOpen size={21} /><span><strong>Kodutööd</strong><small>Ava ülesanded ja tagasiside</small></span><ChevronRight size={18} /></Link></div></Card>
     </div>}

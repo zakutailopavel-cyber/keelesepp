@@ -51,6 +51,10 @@ export const manualInvoiceApi = {
       requestId: values.requestId || financeRequestId('manual_invoice'),
     });
   },
+  // lesson tokens: an invoice for N lessons at the card's plan price (the lessons reach the card after payment)
+  createTokens({ studentId, lessons, due, note = '', requestId }) {
+    return post('/create-tokens', { studentId, lessons: Number(lessons), due, note, requestId: requestId || financeRequestId('lesson_tokens') });
+  },
   create(values) {
     return post('/create', {
       studentId: values.studentId,

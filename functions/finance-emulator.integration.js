@@ -3491,3 +3491,75 @@ test("automatic payment reminders are off until an admin switches them on", asyn
   assert.equal(stored.data().autoEnabled, false);
   assert.equal(stored.data().updatedByEmail, "zakutailo.pavel@gmail.com");
 });
+
+test("lesson tokens: an invoice for N lessons, credited after payment, consumed and given back by the lesson marks", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const studentId = "tokens-student";
+  await Promise.all([
+    db.collection("students").doc(studentId).set({ name: "Paketi Õpilane", subject: "Eesti keel", active: true, parentName: "Paketi Ema", parentEmail: "pakett@example.com" }),
+    db.collection("studentRevenuePlans").doc(studentId).set({ studentId, studentName: "Paketi Õpilane", lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 2, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  const balance = async () => (await db.collection("studentPackages").doc("tokens_tokens-invoice-0001").get()).data()?.balanceCredits;
+
+  // 1. the invoice: 9 lessons at the plan price (the request's price is never used)
+  const created = await post("manualInvoiceApi", "/create-tokens", { studentId, lessons: 9, due: "2031-10-10", requestId: "tokens-invoice-0001", lessonPriceCents: 1 });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  assert.equal(created.body.invoice.amountCents, 18000);
+  assert.equal(created.body.invoice.tokenCredits, 9);
+  assert.equal(created.body.invoice.tokenStatus, "pending");
+  assert.equal(created.body.invoice.payerEmail, "pakett@example.com");
+
+  // 2. not paid yet: nothing is credited
+  const early = await post("financeApi", "/invoices/tokens/credit", { invoiceId: "tokens-invoice-0001" });
+  assert.equal(early.status, 409, JSON.stringify(early.body));
+
+  // a lesson held while the payment was on its way: the package covers it when it is credited
+  await db.collection("lessons").doc("tokens-lesson-0").set({ studentId, studentName: "Paketi Õpilane", date: "2031-09-30", status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  // 3. paid (as a recorded payment leaves it) → the administrator confirms → 9 credits, once
+  await db.collection("invoices").doc("tokens-invoice-0001").set({ status: "Makstud", paymentStatus: "paid", paidAmountCents: 18000, balanceDueCents: 0 }, { merge: true });
+  const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId: "tokens-invoice-0001" });
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  assert.equal(credited.body.studentPackage.balanceCredits, 9);
+  assert.equal(credited.body.backlog.consumed, 1);
+  assert.equal(await balance(), 8);
+  const again = await post("financeApi", "/invoices/tokens/credit", { invoiceId: "tokens-invoice-0001" });
+  assert.equal(again.status, 200);
+  assert.equal(again.body.idempotent, true);
+  assert.equal((await db.collection("invoices").doc("tokens-invoice-0001").get()).data().tokenStatus, "credited");
+
+  // 4. a held lesson takes one credit (the trigger), a no-show without notice too, a notified absence does not
+  const lesson = db.collection("lessons").doc("tokens-lesson-1");
+  await lesson.set({ studentId, studentName: "Paketi Õpilane", date: "2031-10-01", status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  await waitFor(balance, (b) => b === 7, "held lesson consumed");
+  await lesson.set({ status: "Puudus_p" }, { merge: true });
+  await waitFor(balance, (b) => b === 8, "notified absence gives the credit back");
+  await lesson.set({ status: "Puudus_eta" }, { merge: true });
+  await waitFor(balance, (b) => b === 7, "no-show without notice consumed");
+
+  // 5. a removed mark (crm-v2 deletes the lesson) gives the credit back and the lesson is not recreated
+  await lesson.delete();
+  await waitFor(balance, (b) => b === 8, "removed mark restored");
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  assert.equal((await lesson.get()).exists, false);
+
+  // 6. the ledger has the grant, three consumptions and two restorations
+  const ledger = (await db.collection("packageLedger").where("studentPackageId", "==", "tokens_tokens-invoice-0001").get()).docs.map((doc) => doc.data().entryType).sort();
+  assert.deepEqual(ledger, ["grant", "lesson_consumption", "lesson_consumption", "lesson_consumption", "lesson_restoration", "lesson_restoration"]);
+});

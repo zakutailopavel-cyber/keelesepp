@@ -14,7 +14,7 @@ export function normalizeRevenuePlan(id, data = {}) {
     lessonPriceCents: Math.max(0, Math.round(Number(data.lessonPriceCents) || 0)),
     weeklyLessons: Math.max(0, Number(data.weeklyLessons) || 0),
     lessonMinutes: LESSON_MINUTES.includes(Number(data.lessonMinutes)) ? Number(data.lessonMinutes) : 60,
-    billingMode: ['advance', 'actual', 'current'].includes(data.billingMode) ? data.billingMode : 'advance',
+    billingMode: ['advance', 'actual', 'current', 'package'].includes(data.billingMode) ? data.billingMode : 'advance',
     chargeNoShow: data.chargeNoShow !== false,
     validFrom: clean(data.validFrom),
     priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
@@ -27,6 +27,8 @@ export const BILLING_MODES = [
   { id: 'advance', label: 'Kuu ette (vaikimisi)' },
   { id: 'actual', label: 'Pärast toimunud tunde' },
   { id: 'current', label: 'Jooksev kuu (vana leping)' },
+  // lesson tokens (owner 2026-10-14): a paid invoice for N lessons, every lesson takes one; no monthly invoice
+  { id: 'package', label: 'Tunnipakett (ettemaks N tunni eest)' },
 ];
 
 // A new price or lesson length starts from `validFrom`; the previous one is kept so earlier lessons keep their price.
@@ -77,7 +79,7 @@ export const revenuePlansService = {
     const updatedBy = user.displayName || user.email || '';
     const billing = {
       lessonMinutes: LESSON_MINUTES.includes(Number(values.lessonMinutes)) ? Number(values.lessonMinutes) : (previous?.lessonMinutes || 60),
-      billingMode: ['advance', 'actual', 'current'].includes(values.billingMode) ? values.billingMode : (previous?.billingMode || 'advance'),
+      billingMode: ['advance', 'actual', 'current', 'package'].includes(values.billingMode) ? values.billingMode : (previous?.billingMode || 'advance'),
       chargeNoShow: values.chargeNoShow === undefined ? previous?.chargeNoShow !== false : Boolean(values.chargeNoShow),
       validFrom: /^\d{4}-\d{2}-\d{2}$/.test(String(values.validFrom || '')) ? values.validFrom : updatedAt.slice(0, 10),
     };

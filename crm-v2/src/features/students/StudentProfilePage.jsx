@@ -22,6 +22,7 @@ import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
 import StudentAccountCard from './StudentAccountCard.jsx';
+import LessonTokensCard from './LessonTokensCard.jsx';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
@@ -51,7 +52,7 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, petApi, teacherApi, topicsApi, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -194,6 +195,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         {activeTab === 'finance' && canViewFinance ? <>
           <BillingSettingsCard student={student} plan={state.plan} canEdit={canAssignTeacher}
             onSave={async (values) => { const plan = await planApi.save(student, values, currentUser, state.plan); setState((current) => ({ ...current, plan })); }} />
+          <LessonTokensCard student={student} {...(tokensApi ? { service: tokensApi } : {})} />
           <StudentFinancePanel student={student} invoices={state.invoices} />
         </> : null}
       </div>
