@@ -1,3 +1,26 @@
+## 2026-10-14 · agent/combined-invoice — one invoice for all subjects of a student and all children of a parent
+
+- Owner / Oleksiy (#high_priority): „один счёт за все уроки (англ, эст, математика)” and „родителю нескольких детей все
+  счета в одном”. Before: one invoice per card (a subject is a card), „Mõlemad ained” made two invoices.
+- Data (new, additive): an invoice with `combined: true`, `studentIds` (all cards; `studentId` = first card for the old
+  readers and the rules), `lines[]` each with `studentId`, `studentName`, `subject`, `cardParts[]` (per card: units,
+  correction, price, amount), `invoiceTargetType` 'parent' when several children, `studentName` the names joined.
+  One number, one PDF, one e-mail, one payment. Old invoices untouched.
+- Server: `functions/combined-invoice-core.js` (payer key: linked parent → payer/parent e-mail → name; refuses mixed
+  payers; monthly and manual records; `billsCardForMonth`); `manualInvoiceApi` `POST /monthly-combined` (deterministic
+  id per month + cards, refuses a card already billed for the month) and `POST /create-combined`; `/monthly` now also
+  returns an existing combined invoice of the card instead of billing it again. CORS also reads `ALLOWED_ORIGINS`.
+- CRM: „Kuuarved” checkbox „Üks arve maksja kohta” (default on) groups the chosen rows by payer; a row on a combined
+  invoice shows „(ühisarve)” and its own part; next month's correction uses the card's part. „Lisa arve”: „Kõik ained
+  ühel arvel (N)” makes one invoice. `invoicesService.listByStudent` also finds combined invoices (staff; parents and
+  students get them through the first card); parent balance counts `studentIds`.
+- Found by e2e: a parent cannot run the `studentIds array-contains` query (rules cannot prove it) — it would have
+  broken the parent dashboard; the query is now tolerant.
+- Tests: functions 280/280 (+8), crm-v2 finance/parents/students/payments/services 354/354, e2e 13/13 (+1).
+- Production: deploy `manualInvoiceApi` after merge; CRM via Vercel.
+- Not done: payer choice when a child's cards have different payers (refused with a message); combined invoices in the
+  older „Lesson accounting” batch panel (still one per card).
+
 ## 2026-10-14 · agent/sheet-depth-gate — depth warnings in the sheet constructor
 
 - `worksheet-studio/quality.js` `analyzeWorksheet`: a lesson sheet (meta.level + meta.phase, not shortSheet) gets the

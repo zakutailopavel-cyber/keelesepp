@@ -20,7 +20,8 @@ export function invoiceMatchesParent(invoice, parent, children = []) {
   if (parentIds.includes(parent.id)) return true;
   const parentEmail = normalize(parent.email);
   if (parentEmail && [invoice.parentEmailLower, invoice.payerEmailLower, invoice.parentEmail, invoice.payerEmail].some((value) => normalize(value) === parentEmail)) return true;
-  return children.some((student) => (student.recordIds || [student.id]).includes(invoice.studentId) || (normalize(invoice.studentName) && normalize(invoice.studentName) === normalize(student.name)));
+  const invoiceCards = [invoice.studentId, ...(Array.isArray(invoice.studentIds) ? invoice.studentIds : [])].filter(Boolean);
+  return children.some((student) => (student.recordIds || [student.id]).some((id) => invoiceCards.includes(id)) || (normalize(invoice.studentName) && normalize(invoice.studentName) === normalize(student.name)));
 }
 
 export function buildParentRows(parents = [], students = [], invoices = []) {

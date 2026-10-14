@@ -71,6 +71,7 @@ test('a cancelled monthly invoice can be replaced with a new numbered revision',
           if (target.collection === 'studentRevenuePlans') return { exists: true, data: () => ({ lessonPriceCents: 2500, lessonMinutes: 60 }) };
           if (target.collection === 'meta') return { exists: true, data: () => ({ seq: 84 }) };
           if (target.collection === 'invoices' && target.field === 'studentId') return { docs: [cancelled] };
+          if (target.collection === 'invoices' && target.field === 'studentIds') return { docs: [] };
           if (target.collection === 'invoices' && target.field === 'num') return { empty: true };
           return { exists: false };
         },
@@ -96,4 +97,35 @@ test('the invoice keeps the subject of the student card (one student, two subjec
   const record = manualInvoiceRecord({ input, student: { name: 'Aleksandr Smirnov', subject: ' Inglise keel ' }, invoiceNum: 'KS-2026-500', nowIso: '2026-10-12T10:00:00Z', actor: 'admin', requestId: 'r1', signature: 's' });
   assert.equal(record.subject, 'Inglise keel');
   assert.equal(manualInvoiceRecord({ input, student: { name: 'Anna' }, invoiceNum: 'KS-2026-501', nowIso: '2026-10-12T10:00:00Z', actor: 'admin', requestId: 'r2', signature: 's' }).subject, '');
+});
+
+test('a card already on a combined invoice for the month is not billed again by its own monthly invoice', async () => {
+  const writes = [];
+  const combined = { id: 'monthly_combined_2026-10_abc', data: () => ({ combined: true, studentId: 's0', studentIds: ['s0', 's1'], planMonth: '2026-10', status: 'Ootel', num: 'KS-2026-090' }) };
+  const db = {
+    collection(name) {
+      return { doc: (id) => ({ collection: name, id }), where: (field, operator, value) => ({ collection: name, field, operator, value, limit: () => ({ collection: name, field, operator, value }) }) };
+    },
+    async runTransaction(callback) {
+      return callback({
+        async get(target) {
+          if (target.collection === 'students') return { exists: true, data: () => ({ name: 'Mari' }) };
+          if (target.collection === 'studentRevenuePlans') return { exists: true, data: () => ({ lessonPriceCents: 2500, lessonMinutes: 60 }) };
+          if (target.collection === 'meta') return { exists: true, data: () => ({ seq: 1 }) };
+          if (target.collection === 'invoices' && target.field === 'studentId') return { docs: [] };
+          if (target.collection === 'invoices' && target.field === 'studentIds') return { docs: [combined] };
+          return { exists: false };
+        },
+        create: (target, value) => writes.push({ target, value }),
+        set: (target, value) => writes.push({ target, value }),
+      });
+    },
+  };
+  const restore = api.__set__('db', db);
+  try {
+    const result = await api.createMonthlyInvoice({ actor: { uid: 'admin', role: 'admin' }, values: { studentId: 's1', month: '2026-10', due: '2026-10-10', plannedUnits: 4 } });
+    assert.equal(result.idempotent, true);
+    assert.equal(result.invoice.num, 'KS-2026-090');
+    assert.equal(writes.length, 0);
+  } finally { restore(); }
 });
