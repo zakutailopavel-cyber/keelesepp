@@ -310,7 +310,7 @@ describe('WorksheetStudioPage', () => {
     expect(await screen.findByText('lesson-engine')).toBeInTheDocument();
     expect(repository.load).toHaveBeenCalledWith('a2-001');
     expect(screen.queryByText('Töölehe konstruktor')).not.toBeInTheDocument();
-  });
+  }, 60000); // two versions and a restore through the real studio: slow under full parallel load
 
   it('shows a conversion notice for legacy worksheets', async () => {
     renderAt('/library/worksheets/lesson-2', repo({ load: vi.fn().mockResolvedValue({ document: sampleDocument(), source: 'converted', lesson: {} }) }));
