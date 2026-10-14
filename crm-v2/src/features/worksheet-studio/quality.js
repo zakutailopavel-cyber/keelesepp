@@ -1,3 +1,4 @@
+import { depthProblems } from './didactics/depth.js';
 import { BLOCKS } from './engine/registry.js';
 import { diagramHasContent } from './engine/blocks/diagramModel.js';
 import { SHEET_MINUTES, sheetMinutes } from './didactics/timeEstimate.js';
@@ -42,6 +43,11 @@ export function analyzeWorksheet(document, { forms = null } = {}) {
   // how long the learner works on it (didactics/timeEstimate.js); a lesson sheet takes 40–55 min
   const minutes = sheetMinutes(document || {});
   if (document?.blocks?.length && minutes < SHEET_MINUTES.min) issues.push({ level: 'tip', code: 'minutes', text: `Nõuanne: töö võtab umbes ${minutes} min. Terve tunni leht on ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min — lisa ülesandeid või punkte.` });
+  // depth (didactics/depth.js, owner 2026-10-14): is there enough real work at the level? A lesson sheet only (a level
+  // and a lesson phase); never blocking here — the course modules enforce it in admin/course/quality.js
+  if (document?.meta?.level && document?.meta?.phase && !document.meta.shortSheet) {
+    depthProblems(document).forEach((problem) => issues.push({ level: 'warning', code: `depth:${problem.code}`, text: `Sügavus: ${problem.text}`, blocks: problem.blocks || [] }));
+  }
   const errors = issues.filter((issue) => issue.level === 'error');
   return { ready: errors.length === 0, minutes, issues, errors, warnings: issues.filter((issue) => issue.level === 'warning'), tips: issues.filter((issue) => issue.level === 'tip'), didactics };
 }

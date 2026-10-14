@@ -1,3 +1,9 @@
+## 2026-10-14 · agent/sheet-depth-gate — depth warnings in the sheet constructor
+
+- `worksheet-studio/quality.js` `analyzeWorksheet`: a lesson sheet (meta.level + meta.phase, not shortSheet) gets the
+  `didactics/depth.js` problems as warnings (`depth:<code>`, „Sügavus: …”), never errors — no sheet meets the norms
+  yet, publishing must not stop. The course modules will enforce depth module by module as they are fixed.
+- Tests: qualityDepth.test.js 2/2; worksheet-studio + worksheet-generator 878 passed.
 ## 2026-10-14 · agent/parent-edit — the administrator edits a parent's name, e-mail and phone
 
 - Owner: „админ должен менять данные родителей”. Before: „Muuda” on Lapsevanemad changed only CRM fields and phone;
