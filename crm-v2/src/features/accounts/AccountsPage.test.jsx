@@ -101,4 +101,22 @@ describe('AccountsPage: possible duplicates', () => {
     await waitFor(() => expect(svc.createCardForReview).toHaveBeenCalledWith('r1'));
     expect(await screen.findByText('Polina: loodi uus õpilase kaart.')).toBeInTheDocument();
   });
+
+  it('links a parent\'s account to the child\'s card as the parent', async () => {
+    const childCase = { ...review, id: 'r2', uid: 'u-olena', displayName: 'Olena Polishchuk', reason: 'email_on_child_card', reasonText: 'Sama e-post on lapse kaardil',
+      candidates: [{ id: 'lana', name: 'Lana Polišuk', email: 'len.mur86@gmail.com', parentEmail: '' }] };
+    const svc = service({ listReviews: vi.fn().mockResolvedValueOnce([childCase]).mockResolvedValue([]), linkToStudent: vi.fn().mockResolvedValue({}) });
+    render(<AccountsPage service={svc} />);
+    const item = await screen.findByRole('article', { name: 'Otsus: Olena Polishchuk' });
+    fireEvent.click(within(item).getByRole('button', { name: /Seo lapsevanemana/ }));
+    await waitFor(() => expect(svc.linkToStudent).toHaveBeenCalledWith({ uid: 'u-olena', studentId: 'lana', relationship: 'parent' }));
+    expect(await screen.findByText(/on nüüd „Lana Polišuk” lapsevanem/)).toBeInTheDocument();
+  });
+
+  it('offers „Seo lapsevanemana” only for a child\'s card', async () => {
+    const svc = service({ listReviews: vi.fn().mockResolvedValue([review]) });
+    render(<AccountsPage service={svc} />);
+    const item = await screen.findByRole('article', { name: 'Otsus: Polina' });
+    expect(within(item).queryByRole('button', { name: /Seo lapsevanemana/ })).toBeNull();
+  });
 });

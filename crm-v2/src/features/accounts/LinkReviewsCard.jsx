@@ -1,4 +1,4 @@
-import { Link2, UserPlus, X } from 'lucide-react';
+import { HeartHandshake, Link2, UserPlus, X } from 'lucide-react';
 import { useState } from 'react';
 import { Badge, Button, Card } from '../../components/ui/index.js';
 
@@ -42,6 +42,10 @@ export default function LinkReviewsCard({ reviews = [], service, onChanged }) {
                 onClick={() => run(`${review.id}:${candidate.id}`, () => service.linkToStudent({ uid: review.uid, studentId: candidate.id, relationship: review.relationship }), `${review.displayName} on seotud kaardiga „${candidate.name}”.`)}>
                 <Link2 size={15} /> Seo selle kaardiga
               </Button>
+              {review.reason === 'email_on_child_card' ? <Button variant="secondary" disabled={Boolean(busy)} loading={busy === `${review.id}:${candidate.id}:parent`}
+                onClick={() => run(`${review.id}:${candidate.id}:parent`, () => service.linkToStudent({ uid: review.uid, studentId: candidate.id, relationship: 'parent' }), `${review.displayName} on nüüd „${candidate.name}” lapsevanem. Kui ta õpib ka ise, vajuta „Loo uus kaart”.`)}>
+                <HeartHandshake size={15} /> Seo lapsevanemana
+              </Button> : null}
             </li>
           ))}</ul> : null}
           <div className="link-review__actions">

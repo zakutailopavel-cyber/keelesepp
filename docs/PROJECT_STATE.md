@@ -1,3 +1,21 @@
+## 2026-10-14 · agent/account-link-safety — registration never links a parent as a child or makes a silent duplicate
+
+- Owner: „Надо все это исправить чтобы не было проблем” after Olena Polishchuk could not be found or invited: her account
+  had three cards — the teacher's „Elena Polischuk”, an empty „Olena Polishchuk” made by registration, and her daughter
+  Lana's card, which the mother's account was linked to as the student (Lana's card had the mother's e-mail).
+- `functions/account-bootstrap-core.js` `planStudentAccountBootstrap`: an exact e-mail on a child's card (a parent is
+  named, a school class / kindergarten grade, or it is the parent e-mail) whose name shares no word with the account
+  name → review `email_on_child_card`; before creating `self_<uid>` any card with this login, this e-mail (also as
+  parent e-mail, also inactive) or the same full name (≥ 2 words) → review `possible_existing_card`.
+  `planParentChildBootstrap`: an inactive card of the child with this parent → review. Reason texts in `index.js`.
+- `linkAccountToStudent` keeps the roles the account already has (a student who is also a parent keeps both).
+- „Uued kontod” → „Vajab otsust”: for `email_on_child_card` the candidate card also has „Seo lapsevanemana”.
+- Data (owner's approval): Olena — card renamed to „Olena Polishchuk”, empty duplicate deleted, Lana's card linked to her
+  as parent, account roles student + parent. Base audit (199 cards): 4 empty inactive duplicates deleted (Anna Krupenya,
+  Milan Grozovski, Konstantin, „Влад Повжик”); backups in the session scratchpad; activityLog entries written.
+- Tests: functions 263/263 (+3 bootstrap cases), AccountsPage 11/11 (+2).
+- Production: `staffOperationsApi` must be deployed for the new rules.
+
 ## 2026-10-14 · agent/crossword-crossings — live check of every block; crossword words cross again
 
 - Main checked: 123e459 (2026-10-14). Branch `agent/crossword-crossings`.
