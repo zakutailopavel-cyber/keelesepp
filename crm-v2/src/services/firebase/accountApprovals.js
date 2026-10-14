@@ -50,6 +50,11 @@ export const accountApprovalsService = {
     const requestId = `review-link-${uid}-${studentId}-${relationship}`.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120);
     return staffPost('/accounts/link', { uid, studentId, relationship, requestId });
   },
+  // „Saada kutse”: an account without a password for the student on this card + an e-mail with the password link;
+  // on a card that has the student's account already (no e-mail given) a new password link
+  inviteStudent({ studentId, email = '' }) {
+    return staffPost('/accounts/invite', { studentId, email });
+  },
   createCardForReview(reviewId) {
     return staffPost('/accounts/reviews/create-card', { reviewId });
   },

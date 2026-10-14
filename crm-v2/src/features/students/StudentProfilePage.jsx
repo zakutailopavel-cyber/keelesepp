@@ -21,6 +21,7 @@ import { homeworkService } from '../../services/firebase/homework.js';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
 import { revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import StudentForm from './StudentForm.jsx';
+import StudentAccountCard from './StudentAccountCard.jsx';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
@@ -50,7 +51,7 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, petApi, teacherApi, topicsApi, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, petApi, teacherApi, topicsApi, actor }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -154,6 +155,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           <div className="profile-grid">
             <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>{tracks.length > 1 ? 'Õppesuunad' : 'Õpetaja'}</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : tracks.length > 1 ? tracks.map((track) => <span className="profile-track" key={track.id || track.subject}>{track.subject} — {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}</span>) : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
             <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{student.level || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
+            {canAssignTeacher ? <StudentAccountCard student={student} {...(accountApi ? { service: accountApi } : {})}
+              onInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, studentUid: data.uid, linkedUserId: data.uid, linkedUserIds: [data.uid], email: current.student.email || data.email } }))} /> : null}
             <PetOverview studentIds={[student.id]} lessons={state.lessons} {...(petApi ? { repository: petApi } : {})} />
           </div>
         ) : null}

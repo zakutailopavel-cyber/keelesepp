@@ -1,3 +1,22 @@
+## 2026-10-14 · agent/student-invite — „Saada kutse” on the student card
+
+- Main checked: 11f61d3 (2026-10-14). Owner: Mihhail Smirnov forgot the password — he had no login of his own (his card
+  is reached through his mother's account) → „дай ему аккаунт”, „сделай кнопку Saada kutse”.
+- Server: `functions/student-invite-core.js` (pure: e-mail check, plan, et+ru e-mail) and `inviteStudentAccount` +
+  `POST /accounts/invite` in `staffOperationsApi` (admin only): creates a Firebase account without a password
+  (`users/{uid}` role student, approved, `registrationSource: invite`), links it to the card as the student
+  (`linkAccountToStudent`, parent stays), sends the password link (`generatePasswordResetLink`, continue to
+  /login) and returns the link too. On a card with the student's own account (no e-mail given) it sends a new
+  password link. Refuses: the parent's login, an e-mail that has another account, a second student account.
+  activityLog `account_invited` / `account_password_link`.
+- CRM: `StudentAccountCard` on the student page (Ülevaade, admin only): account status, „Saada kutse” / „Saada
+  parooli link”, „Kopeeri link” when the e-mail is not confirmed. Service `accountApprovalsService.inviteStudent`.
+- Tests: functions 268/268 (+5 invite core), students 74/74 (+3 card), e2e 9/9 (+1 invite: create → set password →
+  login → resend). Production: `staffOperationsApi` deployed after merge.
+- Not done (owner decision): Mihhail's second card iKF14KI2BpPeQscYgfno (English, teacher Anhelina Korotka, 8. klass,
+  no lessons/invoices) is probably the same boy's English course, not a copy — left as is.
+- Next: invite Mihhail from his card (needs his own e-mail).
+
 ## 2026-10-14 · agent/e2e-scenarios — browser scenarios on emulators; three bugs they found
 
 - Main checked: 9e9f79d (2026-10-14, after #624). Owner: „надо проверить чтобы система работала без единой ошибки”.
