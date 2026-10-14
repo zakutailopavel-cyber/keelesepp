@@ -24,12 +24,44 @@ describe('MonthlyInvoicePanel', () => {
     render(<MonthlyInvoicePanel {...p} />);
     const table = await screen.findByRole('table', { name: 'Kuuarved 2031-10' });
     expect(within(table).getByText('Hind puudub')).toBeInTheDocument();
-    expect(await screen.findByText(/Valitud 1 \/ 1 arvet/)).toBeInTheDocument();
+    expect(await screen.findByText(/Valitud 1 \/ 1 rida/)).toBeInTheDocument();
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta ja saada/ })); });
     expect(p.invoiceApi.createMonthly).toHaveBeenCalledWith({ studentId: 's1', month: '2031-10', due: '2031-10-10', plannedUnits: 5, correctionUnits: 0, correctionNote: '' });
     expect(p.deliveryApi.send).toHaveBeenCalledWith('inv1');
     expect(screen.getByRole('status')).toHaveTextContent('Valmis: 1 arvet, e-postiga saadetud 1');
     expect(p.onChanged).toHaveBeenCalled();
+  });
+
+  it('two subjects of one student (two cards, one payer) go on one invoice', async () => {
+    const p = props();
+    p.students = [
+      { id: 'en', name: 'Aleksandr', subject: 'Inglise keel', active: true, parentEmail: 'ema@example.com' },
+      { id: 'et', name: 'Aleksandr', subject: 'Eesti keel', active: true, parentEmail: 'ema@example.com' },
+    ];
+    p.plans = [{ studentId: 'en', lessonPriceCents: 2500, lessonMinutes: 60, billingMode: 'current' }, { studentId: 'et', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'current' }];
+    p.lessons = [];
+    p.invoices = [];
+    p.scheduleRepository = { list: vi.fn().mockResolvedValue([{ id: 'e1', studentId: 'en', recurring: true, day: 'Wed', startDate: '2031-09-03', duration: 60 }, { id: 'e2', studentId: 'et', recurring: true, day: 'Fri', startDate: '2031-09-03', duration: 60 }]) };
+    p.invoiceApi = { createMonthly: vi.fn(), createMonthlyCombined: vi.fn().mockResolvedValue({ invoice: { id: 'combined1' } }) };
+    render(<MonthlyInvoicePanel {...p} />);
+    expect(await screen.findByText(/Valitud 2 \/ 2 rida → 1 arvet/)).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta ja saada/ })); });
+    expect(p.invoiceApi.createMonthlyCombined).toHaveBeenCalledWith(expect.objectContaining({ month: '2031-10', items: [expect.objectContaining({ studentId: 'en', plannedUnits: 5 }), expect.objectContaining({ studentId: 'et', plannedUnits: 5 })] }));
+    expect(p.invoiceApi.createMonthly).not.toHaveBeenCalled();
+    expect(p.deliveryApi.send).toHaveBeenCalledWith('combined1');
+    expect(p.deliveryApi.send).toHaveBeenCalledTimes(1);
+  });
+
+  it('a card already on a combined invoice shows its own part and is not billed again', async () => {
+    const p = props();
+    p.students = [{ id: 'en', name: 'Aleksandr', subject: 'Inglise keel', active: true, parentEmail: 'ema@example.com' }];
+    p.plans = [{ studentId: 'en', lessonPriceCents: 2500, lessonMinutes: 60, billingMode: 'current' }];
+    p.lessons = [];
+    p.invoices = [{ id: 'c', num: 'KS-2031-010', combined: true, studentId: 'et', studentIds: ['et', 'en'], planMonth: '2031-10', status: 'Ootel', amountCents: 22500, cardParts: [{ studentId: 'et', plannedUnits: 5, amountCents: 10000 }, { studentId: 'en', plannedUnits: 5, amountCents: 12500 }] }];
+    render(<MonthlyInvoicePanel {...p} />);
+    const table = await screen.findByRole('table', { name: 'Kuuarved 2031-10' });
+    expect(within(table).getByText(/KS-2031-010 \(ühisarve\)/)).toBeInTheDocument();
+    expect(within(table).getByText(/125,00/)).toBeInTheDocument();
   });
 
   it('lets the admin waive last month no-show and the correction follows', async () => {
@@ -58,7 +90,7 @@ describe('MonthlyInvoicePanel', () => {
     await act(async () => { fireEvent.click(within(emailForm).getByRole('button', { name: 'Salvesta e-post' })); });
     expect(p.studentRepository.update).toHaveBeenCalledWith('s2', { parentEmail: 'jaan.isa@example.com' });
     await waitFor(() => expect(screen.queryByRole('form', { name: /Jaan/ })).not.toBeInTheDocument());
-    expect(screen.getByText(/Valitud 2 \/ 2 arvet/)).toBeInTheDocument();
+    expect(screen.getByText(/Valitud 2 \/ 2 rida/)).toBeInTheDocument();
   });
 
   it('keeps completed invoices and shows progress when a batch stops on an error', async () => {
@@ -70,7 +102,7 @@ describe('MonthlyInvoicePanel', () => {
       .mockRejectedValueOnce(new Error('Teine arve ebaõnnestus'));
     render(<MonthlyInvoicePanel {...p} />);
     await screen.findByRole('table', { name: 'Kuuarved 2031-10' });
-    await screen.findByText(/Valitud 2 \/ 2 arvet/);
+    await screen.findByText(/Valitud 2 \/ 2 rida/);
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta kõik/ })); });
     expect(p.invoiceApi.createMonthly).toHaveBeenCalledTimes(2);
     expect(screen.getByRole('alert')).toHaveTextContent('Juba loodud arved (1) jäid alles');
@@ -81,12 +113,12 @@ describe('MonthlyInvoicePanel', () => {
     p.plans.push({ studentId: 's2', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'current' });
     p.students[1].parentEmail = 'jaan@example.com';
     render(<MonthlyInvoicePanel {...p} />);
-    await screen.findByText(/Valitud 2 \/ 2 arvet/);
+    await screen.findByText(/Valitud 2 \/ 2 rida/);
     fireEvent.change(screen.getByLabelText('Otsi õpilast või maksjat'), { target: { value: 'JAAN@EXAMPLE.COM' } });
     const table = screen.getByRole('table', { name: 'Kuuarved 2031-10' });
     expect(within(table).getByText('Jaan')).toBeInTheDocument();
     expect(within(table).queryByText('Mari')).not.toBeInTheDocument();
-    expect(screen.getByText(/Valitud 1 \/ 1 arvet/)).toBeInTheDocument();
+    expect(screen.getByText(/Valitud 1 \/ 1 rida/)).toBeInTheDocument();
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Koosta kõik/ })); });
     expect(p.invoiceApi.createMonthly).toHaveBeenCalledTimes(1);
     expect(p.invoiceApi.createMonthly).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's2' }));

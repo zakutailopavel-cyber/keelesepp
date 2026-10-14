@@ -37,6 +37,20 @@ export const manualInvoiceApi = {
       correctionNote: values.correctionNote || '',
     });
   },
+  // one invoice for the month's lessons of several cards of one payer (subjects of one student, children of a parent)
+  createMonthlyCombined({ month, due, items }) {
+    return post('/monthly-combined', { month, due, items });
+  },
+  // one manual charge for several cards of one payer: items [{ studentId, amount }]
+  createCombined(values) {
+    return post('/create-combined', {
+      items: values.items.map((item) => ({ studentId: item.studentId, amount: Number(item.amount) })),
+      description: values.description,
+      due: values.due,
+      note: values.note || '',
+      requestId: values.requestId || financeRequestId('manual_invoice'),
+    });
+  },
   create(values) {
     return post('/create', {
       studentId: values.studentId,

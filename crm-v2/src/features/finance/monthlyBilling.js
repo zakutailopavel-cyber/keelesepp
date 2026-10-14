@@ -83,7 +83,15 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
   const events = [...schedule, ...groupCalendarEvents(groups)];
   const occurrences = occurrencesForDates(events, dates);
   const planByStudent = new Map(plans.map((plan) => [plan.studentId || plan.id, plan]));
-  const invoiceFor = (studentId, forMonth) => invoices.find((invoice) => invoice.studentId === studentId && invoice.planMonth === forMonth && invoice.status !== 'Tühistatud');
+  // a card's invoice for a month: its own, or its part of a combined invoice (several cards of one payer) — then the
+  // part's units, so next month's difference is counted per card
+  const invoiceFor = (studentId, forMonth) => {
+    const found = invoices.find((invoice) => invoice.planMonth === forMonth && invoice.status !== 'Tühistatud'
+      && (invoice.studentId === studentId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(studentId))));
+    if (!found?.combined) return found;
+    const part = (found.cardParts || []).find((item) => item.studentId === studentId) || {};
+    return { ...found, plannedUnits: part.plannedUnits || 0, correctionUnits: part.correctionUnits || 0, amountCents: part.amountCents ?? found.amountCents, partOfCombined: true };
+  };
 
   return students
     .filter((student) => student.active !== false && !student.mergedIntoStudentId)
@@ -130,5 +138,34 @@ export function monthlyInvoicePayload(row, month, due = row.due) {
     plannedUnits: row.plannedUnits,
     correctionUnits: row.correction.units,
     correctionNote: row.correction.note,
+  };
+}
+
+// who pays for the card (the server checks the same: functions/combined-invoice-core.js payerKey)
+export function payerKey(student = {}) {
+  const parentUid = String(student.linkedParentId || student.parentUid || student.guardianUid || '').trim();
+  if (parentUid) return `parent:${parentUid}`;
+  const email = String(student.payerEmail || student.parentEmail || student.contactEmail || student.email || '').trim().toLowerCase();
+  if (email) return `email:${email}`;
+  return `name:${String(student.name || '').trim().toLocaleLowerCase('et')}`;
+}
+
+// the chosen rows as invoices: one per payer when `combine` (owner 2026-10-14: English and Estonian of one student, or
+// all children of one parent, on one invoice), else one per card. → [{ rows, payerKey }]
+export function invoiceGroups(rows = [], combine = true) {
+  if (!combine) return rows.map((row) => ({ rows: [row], payerKey: payerKey(row.student) }));
+  const groups = new Map();
+  rows.forEach((row) => {
+    const key = payerKey(row.student);
+    groups.set(key, [...(groups.get(key) || []), row]);
+  });
+  return [...groups.entries()].map(([key, list]) => ({ rows: list, payerKey: key }));
+}
+
+export function combinedMonthlyPayload(rows, month, due = rows[0]?.due) {
+  return {
+    month,
+    due,
+    items: rows.map((row) => ({ studentId: row.student.id, plannedUnits: row.plannedUnits, correctionUnits: row.correction.units, correctionNote: row.correction.note })),
   };
 }

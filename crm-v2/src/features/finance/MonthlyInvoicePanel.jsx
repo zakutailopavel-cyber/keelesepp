@@ -9,7 +9,7 @@ import { scheduleService } from '../../services/firebase/schedule.js';
 import { parentsService } from '../../services/firebase/parents.js';
 import { LESSON_MINUTES, revenuePlansService } from '../../services/firebase/revenuePlans.js';
 import { studentsService } from '../../services/firebase/students.js';
-import { defaultBillingMonth, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
+import { combinedMonthlyPayload, defaultBillingMonth, invoiceGroups, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
 import './monthlyInvoicePanel.css';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
@@ -97,6 +97,8 @@ export default function MonthlyInvoicePanel({
   const [progress, setProgress] = useState('');
   const [error, setError] = useState('');
   const [waived, setWaived] = useState({});
+  // owner 2026-10-14: all subjects of a student and all children of a parent on one invoice (default)
+  const [combine, setCombine] = useState(true);
   // prices and e-mails entered in the table count at once, without reloading the finance page
   const [planFixes, setPlanFixes] = useState({});
   const [emailFixes, setEmailFixes] = useState({});
@@ -121,6 +123,7 @@ export default function MonthlyInvoicePanel({
   const ready = visible.filter((row) => row.status === 'ready');
   const chosen = ready.filter((row) => selected.has(row.student.id));
   const totalCents = chosen.reduce((sum, row) => sum + row.totalCents, 0);
+  const groups = invoiceGroups(chosen, combine);
 
   useEffect(() => { setSelected(new Set(ready.map((row) => row.student.id))); }, [month, mode, calendar.loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -130,11 +133,14 @@ export default function MonthlyInvoicePanel({
     setBusy(send ? 'send' : 'create'); setError('');
     let done = 0; let sent = 0;
     try {
-      for (const row of chosen) {
-        const { invoice } = await invoiceApi.createMonthly(monthlyInvoicePayload(row, month));
+      for (const group of groups) {
+        const [first] = group.rows;
+        const { invoice } = group.rows.length > 1
+          ? await invoiceApi.createMonthlyCombined(combinedMonthlyPayload(group.rows, month))
+          : await invoiceApi.createMonthly(monthlyInvoicePayload(first, month));
         done += 1;
-        if (send && row.payerEmail) { await deliveryApi.send(invoice.id); sent += 1; }
-        setProgress(`Loodud ${done} / ${chosen.length}${send ? `, saadetud ${sent}` : ''}`);
+        if (send && first.payerEmail) { await deliveryApi.send(invoice.id); sent += 1; }
+        setProgress(`Loodud ${done} / ${groups.length}${send ? `, saadetud ${sent}` : ''}`);
       }
       setProgress(`Valmis: ${done} arvet${send ? `, e-postiga saadetud ${sent}` : ''}.`);
       await onChanged?.();
@@ -178,12 +184,12 @@ export default function MonthlyInvoicePanel({
               <div key={row.student.id} className="monthly-invoices__group">
                 <div className="monthly-invoices__row" role="row">
                   <span>{row.status === 'ready' ? <input type="checkbox" aria-label={`Vali ${row.student.name}`} checked={selected.has(row.student.id)} onChange={() => toggle(row.student.id)} /> : null}</span>
-                  <span><strong>{row.student.name}</strong><small>{row.mode === 'advance' ? 'Kuu ette' : row.mode === 'actual' ? 'Toimunud tunnid' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.payerEmail ? '' : ' · e-post puudub'}</small></span>
+                  <span><strong>{row.student.name}</strong><small>{row.student.subject ? `${row.student.subject} · ` : ''}{row.mode === 'advance' ? 'Kuu ette' : row.mode === 'actual' ? 'Toimunud tunnid' : 'Jooksev kuu'} · {row.priceCents ? `${money(row.priceCents)} / ${row.plan?.lessonMinutes || 60} min` : 'hind määramata'}{row.payerEmail ? '' : ' · e-post puudub'}</small></span>
                   <span>{row.lessonCount}{row.plan && row.plannedUnits !== row.lessonCount ? <small>{num(row.plannedUnits)} ühikut</small> : null}</span>
                   <span>{row.correction.units ? <button type="button" className="linklike" aria-expanded={open === row.student.id} onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>{row.correction.units > 0 ? '+' : ''}{num(row.correction.units)}</button> : noShows.length ? <button type="button" className="linklike" onClick={() => setOpen(open === row.student.id ? '' : row.student.id)}>0</button> : '—'}</span>
                   <span><strong>{row.existing ? money(row.existing.amountCents) : row.priceCents ? money(row.totalCents) : '—'}</strong></span>
                   <span>{dateLabel(row.existing?.due || row.due)}</span>
-                  <span><Badge tone={status.tone}>{row.existing ? `${status.label} ${row.existing.num || ''}` : status.label}</Badge></span>
+                  <span><Badge tone={status.tone}>{row.existing ? `${status.label} ${row.existing.num || ''}${row.existing.partOfCombined ? ' (ühisarve)' : ''}` : status.label}</Badge></span>
                 </div>
                 {!row.existing && user?.roles?.includes('admin') ? (
                   <RowFix
@@ -208,7 +214,8 @@ export default function MonthlyInvoicePanel({
         </div>
       )}
       <div className="monthly-invoices__footer">
-        <span aria-live="polite">{busy ? progress : ready.length ? `Valitud ${chosen.length} / ${ready.length} arvet · ${money(totalCents)}` : ''}</span>
+        <span aria-live="polite">{busy ? progress : ready.length ? `Valitud ${chosen.length} / ${ready.length} rida → ${groups.length} arvet · ${money(totalCents)}` : ''}</span>
+        <label className="checkbox-field monthly-invoices__combine"><input type="checkbox" checked={combine} onChange={(event) => setCombine(event.target.checked)} /> <span>Üks arve maksja kohta (õpilase kõik ained ja lapsevanema kõik lapsed ühel arvel)</span></label>
         {rows.some((row) => row.status === 'no-price') ? <span className="monthly-invoices__warn"><TriangleAlert size={16} /> Osal õpilastel puudub hind: sisesta see õpilase real (või profiilis → Arveldus).</span> : null}
         <div>
           <Button variant="secondary" disabled={!chosen.length || Boolean(busy)} loading={busy === 'create'} onClick={() => create(false)}><FileText size={17} /> Koosta kõik</Button>
