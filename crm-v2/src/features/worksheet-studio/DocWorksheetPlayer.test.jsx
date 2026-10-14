@@ -1,4 +1,4 @@
-/* global Blob */
+/* global Blob, setTimeout */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 import WorksheetPlayer from '../homework/WorksheetPlayer.jsx';
@@ -49,6 +49,22 @@ describe('structured worksheet player', () => {
     expect(await screen.findByText('Tulemus tunni eesmärkide kaupa')).toBeInTheDocument();
     expect(screen.getByText('salvestus puudub')).toBeInTheDocument();
     expect(onSubmitted).toHaveBeenCalled();
+  });
+
+  it('an autosave never lands while the sheet is being submitted (it would write in_progress over done)', async () => {
+    const repository = repo();
+    let finish;
+    repository.submitWorksheet = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+    const { container } = render(<WorksheetPlayer assignment={assignment()} repository={repository} onClose={() => {}} />);
+    fireEvent.click(container.querySelectorAll('.ws-page .ws-tfbox')[1]);
+    window.confirm = vi.fn().mockReturnValue(true);
+    fireEvent.click(screen.getByRole('button', { name: /Esita tööleht/ }));
+    await waitFor(() => expect(repository.submitWorksheet).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => { setTimeout(resolve, 900); });
+    expect(repository.saveWorksheetDraft).not.toHaveBeenCalled();
+    finish({});
+    expect(await screen.findByText('Tulemus tunni eesmärkide kaupa')).toBeInTheDocument();
+    expect(repository.saveWorksheetDraft).not.toHaveBeenCalled();
   });
 
   it('uploads a local voice recording before saving the draft', async () => {

@@ -1,3 +1,18 @@
+## 2026-10-14 · agent/e2e-scenarios — browser scenarios on emulators; three bugs they found
+
+- Main checked: 9e9f79d (2026-10-14, after #624). Owner: „надо проверить чтобы система работала без единой ошибки”.
+- New `e2e/` (Playwright 1.62.1, Chromium) on Auth/Firestore/Functions/Storage emulators with the real rules; see
+  `docs/E2E_SCENARIOS.md`. 8 scenarios: 5 role menus, 2 registration/linking, 1 homework round trip — all pass locally
+  (`cd e2e && ./run.sh`). Not in CI yet.
+- Fixed: `LoginPage` late `navigate('/')` after the bootstrap call (bounced the user home); `DocWorksheetPlayer`
+  autosave during submit overwrote `done` with `in_progress`; `linkAccountToStudent` now also signs the roles as
+  custom claims when an account is both student and parent (before: set by hand for Olena);
+  `auth.js` staff operations URL from `VITE_STAFF_OPERATIONS_API_URL` (default unchanged).
+- Tests: LoginPage 6/6 (+1), DocWorksheetPlayer 10/10 (+1), both fail without the fix; account-link-review emulator
+  test +1 (both roles as claims).
+- Production: Firestore rules from #624 deployed 2026-10-14. After merge `staffOperationsApi` must be deployed (claims).
+- Next: live lesson, reschedule and parent-invoice scenarios; then an e2e CI job.
+
 ## 2026-10-14 · agent/account-link-safety — registration never links a parent as a child or makes a silent duplicate
 
 - Owner: „Надо все это исправить чтобы не было проблем” after Olena Polishchuk could not be found or invited: her account

@@ -1,0 +1,12 @@
+{
+  "name": "keelesepp-e2e",
+  "private": true,
+  "description": "Browser scenarios against local Firebase emulators and the CRM dev server (never production)",
+  "scripts": {
+    "test": "playwright test",
+    "emulated": "bash ./run.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.62.1"
+  }
+}

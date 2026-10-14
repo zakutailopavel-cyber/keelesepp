@@ -7015,8 +7015,16 @@ async function linkAccountToStudent({ actor, uid, studentId, relationship, reque
       createdAt: nowIso,
       requestId: mutationId,
     });
-    return { uid: cleanUid, studentId: cleanStudentId, studentName: student.name || "", relationship: cleanRelationship, idempotent: false };
+    return { uid: cleanUid, studentId: cleanStudentId, studentName: student.name || "", relationship: cleanRelationship, idempotent: false, roles: profileRoles };
   });
+  // a second role (a student who is also a parent) only counts when it is signed: the client and the server read
+  // multi-role access from custom claims, never from the client-readable profile (owner 2026-10-14, Olena Polishchuk)
+  const signedRoles = (result.roles || []).filter(role => role === "student" || role === "parent");
+  if (!result.idempotent && signedRoles.length > 1) {
+    const claims = authUser.customClaims || {};
+    const merged = uniqueIds([Array.isArray(claims.roles) ? claims.roles : [], signedRoles]);
+    if (merged.length !== (claims.roles || []).length) await admin.auth().setCustomUserClaims(cleanUid, { ...claims, roles: merged });
+  }
   const pendingReviews = await db.collection("accountLinkReviews").where("uid", "==", cleanUid).get();
   const resolvedAt = new Date().toISOString();
   const reviewBatch = db.batch();

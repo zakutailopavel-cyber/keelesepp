@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { BookOpenCheck, GraduationCap, ShieldCheck } from 'lucide-react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Card, ErrorState, Input, Select } from '../../components/ui/index.js';
@@ -35,13 +35,17 @@ export default function LoginPage({ initialMode }) {
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // sign-in resolves only after the account bootstrap call; the app may already have let the user in and they may
+  // have moved on — a late navigate('/') would throw them back to the home page
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
   if (!configured) return <main className="standalone-state"><ErrorState title="Firebase ei ole seadistatud" message="Lisa .env faili KeeleSepp Firebase veebikonfiguratsioon." /></main>;
   if (user) return <Navigate to="/" replace />;
 
   const set = (key) => (event) => setForm({ ...form, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value });
   const switchMode = (next) => { setMode(next); setError(''); setInfo(''); setForm((current) => ({ ...EMPTY, email: current.email })); };
-  const done = () => navigate(location.state?.from?.pathname || '/', { replace: true });
+  const done = () => { if (mounted.current) navigate(location.state?.from?.pathname || '/', { replace: true }); };
 
   const run = async (action) => {
     setSubmitting(true); setError(''); setInfo('');

@@ -37,7 +37,7 @@ export function testSessionName() { try { return globalThis.sessionStorage?.getI
 export function clearTestSession() { try { globalThis.sessionStorage?.removeItem(TEST_SESSION_KEY); } catch { /* storage blocked */ } }
 export const REGISTRATION_TEACHERS = ['Pavel', 'Jelena', 'Elizaveta', 'Angelina'];
 export const SELF_ROLES = ['parent', 'student'];
-const STAFF_OPERATIONS_URL = 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi';
+const STAFF_OPERATIONS_URL = String(import.meta.env.VITE_STAFF_OPERATIONS_API_URL || 'https://us-central1-keelesepp-5136b.cloudfunctions.net/staffOperationsApi').replace(/\/$/, '');
 
 export class ProfileMissingError extends Error {
   constructor() {
