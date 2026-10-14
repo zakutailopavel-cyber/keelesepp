@@ -1,3 +1,13 @@
+## 2026-10-14 · agent/rules-lesson-mark — teachers can mark lessons again
+
+- Teacher Yelyzaveta Lukiianchuk: „не могу отмечать провелся урок или нет — Missing or insufficient permissions”.
+- Cause: `lessonsService.completeFromSchedule` reads the lesson id in a transaction before creating it; the lessons
+  read rule evaluated `teacherCanRead(resource.data)` on a missing document → evaluation error → denied for every
+  teacher (admins passed through `isAdmin()`). Same pattern as the registration fix (#624).
+- Fix: `firestore.rules` lessons read also allows staff when `resource == null` (reading nothing reveals nothing).
+- Check: her real schedule, cards and lessons copied read-only into the emulator; all 78 marks with a student now pass
+  (before: all denied). Rules deployed after merge.
+
 ## 2026-10-14 · agent/student-invite — „Saada kutse” on the student card
 
 - Main checked: 11f61d3 (2026-10-14). Owner: Mihhail Smirnov forgot the password — he had no login of his own (his card
