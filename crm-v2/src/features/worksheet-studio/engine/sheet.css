@@ -690,3 +690,8 @@
 .ws-dg2-when { justify-self: end; padding: .6mm 2.4mm; border-radius: 99px; background: #173a63; color: #fff; font-weight: 700; font-size: 3.2mm; }
 .ws-dg2-dot { width: 3mm; height: 3mm; border-radius: 50%; border: .6mm solid #2f7d4c; background: #fff; justify-self: center; position: relative; z-index: 1; }
 .ws-dg2-time li:not(:last-child)::after { content: ''; position: absolute; left: calc(18mm + 2mm + 2.5mm - .2mm); top: 50%; height: 100%; border-left: .4mm solid #cfe3d6; }
+/* live lesson, teacher only: the dictation text to read aloud */
+.ws-dictation-read { display: grid; gap: 1.5mm; margin-bottom: 2mm; padding: 2.5mm 3.5mm; border-radius: 2.5mm; background: #fff8e6; border: .35mm solid #f5d48a; color: #5c3d00; font-size: 10.5pt; }
+.ws-dictation-read strong { display: inline-flex; align-items: center; gap: 1.5mm; }
+.ws-dictation-read ol { margin: 0; padding-left: 5mm; display: grid; gap: 1mm; }
+.ws-dictation-read p { margin: 0; }
