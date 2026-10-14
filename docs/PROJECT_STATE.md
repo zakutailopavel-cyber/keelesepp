@@ -1,3 +1,18 @@
+## 2026-10-15 · agent/lesson-tokens — lesson tokens (Tunnipakett)
+
+- Owner's queued request (memory lesson-tokens-request): invoice for N lessons → paid → admin confirms → the child gets
+  N lessons → lessons use them → balance visible. Built on the existing package ledger (studentPackages, packageLedger,
+  syncLessonPackageConsumption), which had no UI and was never triggered by CRM v2 lesson marks.
+- Server: `functions/lesson-tokens-core.js`; `manualInvoiceApi /create-tokens`; `financeApi /invoices/tokens/credit`
+  (+ backlog of lessons marked since the invoice date); trigger `syncLessonTokens`; the ledger sync now charges a
+  no-show without notice like the monthly invoices and gives the credit back when a mark is removed (deleted lesson),
+  stores lessonDate on the state; token invoices can be cancelled while not credited.
+- CRM: Finantsid „Tunnipakett” dialog, invoice rows „Tunnipakett · N tundi” + „Lisa tunnid (N)”, plan mode
+  „Tunnipakett” (no monthly invoice), `LessonTokensCard` on the student card and the parent dashboard.
+- Rules: studentPackages / packageLedger readable by finance and the card's own student / parent.
+- Tests: functions 285/285 (+5), finance emulator 31/31 (+1 full flow), crm-v2 +4, e2e 14/14 (+1). Docs: `docs/LESSON_TOKENS.md`.
+- Production after merge: deploy rules + functions manualInvoiceApi, financeApi, syncLessonTokens (new). No package data existed.
+
 ## 2026-10-15 · agent/codex-course-tasks — tasks for Codex: B1→B2 modules 2–18 to every gate
 
 - Owner: „дай задания для кодекса”. `docs/CODEX_TASKS_B1B2_IDEAL.md`: the full contract (scope, allowed files,

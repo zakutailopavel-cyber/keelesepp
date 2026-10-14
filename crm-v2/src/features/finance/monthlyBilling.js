@@ -98,7 +98,7 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
     .map((student) => {
       const plan = planByStudent.get(student.id) || null;
       const mine = occurrences.filter((event) => event.studentId === student.id || (event.studentIds || []).includes(student.id));
-      const mode = plan?.billingMode === 'actual' ? 'actual' : plan?.billingMode === 'current' ? 'current' : 'advance';
+      const mode = plan?.billingMode === 'actual' ? 'actual' : plan?.billingMode === 'current' ? 'current' : plan?.billingMode === 'package' ? 'package' : 'advance';
       const actualLessons = mode === 'actual' && plan ? lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${month}-`) && isChargeable(lesson, plan)) : [];
       const plannedUnits = plan ? round2((mode === 'actual' ? actualLessons : mine).reduce((sum, event) => sum + unitsOf(event.duration, plan), 0)) : 0;
       const previousLessons = lessons.filter((lesson) => lesson.studentId === student.id && String(lesson.date || '').startsWith(`${previousMonth}-`));
@@ -108,6 +108,8 @@ export function monthlyBillingRows({ month, students = [], plans = [], schedule 
       const existing = invoiceFor(student.id, month);
       let status = 'ready';
       if (existing) status = 'invoiced';
+      // a lesson-package card pays by package invoices (Tunnipakett), its lessons take credits — never a monthly invoice
+      else if (mode === 'package') status = 'package';
       else if (!plan || !priceCents) status = 'no-price';
       else if (!plannedUnits && correction.units <= 0) status = 'no-lessons';
       else if (totalCents <= 0) status = 'nothing-to-pay';

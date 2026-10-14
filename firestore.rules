@@ -1337,13 +1337,14 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // lesson tokens (functions/lesson-tokens-core.js): finance and the card's own student / parent see the balance
     match /studentPackages/{packageId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isFinance() || ownsStudent(resource.data.studentId);
       allow create, update, delete: if false;
     }
 
     match /packageLedger/{entryId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isFinance() || ownsStudent(resource.data.studentId);
       allow create, update, delete: if false;
     }
 

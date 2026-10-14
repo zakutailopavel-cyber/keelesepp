@@ -19,6 +19,7 @@ const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
 const { google } = require("googleapis");
 const nodemailer = require("nodemailer");
+const { lessonTakesToken, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -941,6 +942,75 @@ function lessonPackageLedgerEntryId(lessonId, cycle, movement) {
   return `lesson_${hash}`;
 }
 
+// Lesson tokens (functions/lesson-tokens-core.js): the administrator confirms a paid lesson package invoice and the card
+// gets its credits — one package per invoice (id from the invoice, so a second click changes nothing), a grant entry in
+// the package ledger, the invoice marked credited, an audit record.
+async function creditInvoiceTokens({ actor, invoiceId }) {
+  const cleanInvoiceId = cleanText(invoiceId, 180);
+  if (!cleanInvoiceId) throw httpError(400, "invoiceId required");
+  const packageId = tokenPackageId(cleanInvoiceId);
+  const invoiceRef = db.collection("invoices").doc(cleanInvoiceId);
+  const packageRef = db.collection("studentPackages").doc(packageId);
+  const ledgerRef = db.collection("packageLedger").doc(packageId);
+  const auditRef = db.collection("financialAudit").doc(`credit_${packageId}`.slice(0, 150));
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const result = await db.runTransaction(async transaction => {
+    const [invoiceSnap, packageSnap] = await Promise.all([transaction.get(invoiceRef), transaction.get(packageRef)]);
+    if (packageSnap.exists) return { studentPackage: { id: packageSnap.id, ...packageSnap.data() }, idempotent: true };
+    const invoice = invoiceSnap.exists ? invoiceSnap.data() : null;
+    const blocker = creditBlocker(invoice);
+    if (blocker) throw httpError(invoice ? 409 : 404, blocker);
+    if (invoice.tokenStatus === "credited") throw httpError(409, "Tunnid on juba lisatud, kuid paketti ei leitud — kontrolli auditit.");
+    const studentSnap = await transaction.get(db.collection("students").doc(String(invoice.studentId)));
+    if (!studentSnap.exists) throw httpError(404, "Student not found");
+    // valid from the invoice date: lessons held while the payment was on its way are covered too
+    const studentPackage = tokenPackageRecord({ invoice, invoiceId: cleanInvoiceId, student: studentSnap.data(), issuedAt: String(invoice.date || appToday(nowIso)).slice(0, 10), nowIso, actor: actorData });
+    const credits = studentPackage.grantedCredits;
+    transaction.create(packageRef, studentPackage);
+    transaction.create(ledgerRef, {
+      studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
+      packageProductId: "", packageProductName: studentPackage.packageProductName,
+      entryType: "grant", sourceType: "invoice_payment", sourceInvoiceId: cleanInvoiceId, sourceInvoiceNum: invoice.num || "",
+      creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+      reason: `Paid lesson package invoice ${invoice.num || cleanInvoiceId}`, actor: actorData, createdAt: nowIso, requestId: packageId,
+    });
+    transaction.set(invoiceRef, { tokenStatus: "credited", tokenPackageId: packageId, tokensCreditedAt: nowIso, tokensCreditedBy: actorData, updatedAt: nowIso }, { merge: true });
+    transaction.create(auditRef, {
+      entityType: "student_package", entityId: packageId, action: "student.package_credited_from_invoice",
+      studentPackageId: packageId, studentId: studentPackage.studentId, studentName: studentPackage.studentName,
+      invoiceId: cleanInvoiceId, invoiceNum: invoice.num || "", creditsDelta: credits, balanceBefore: 0, balanceAfter: credits,
+      actor: actorData, reason: "Lesson package credited after payment", createdAt: nowIso, requestId: packageId,
+    });
+    return { studentPackage: { id: packageId, ...studentPackage }, idempotent: false };
+  });
+  if (!result.idempotent) result.backlog = await consumeTokenBacklog(result.studentPackage);
+  return result;
+}
+
+// lessons marked since the invoice date, before the package existed (the trigger skips a card without a package):
+// they take their credits now, oldest first
+async function consumeTokenBacklog(studentPackage) {
+  const lessons = (await db.collection("lessons").where("studentId", "==", studentPackage.studentId).get()).docs
+    .filter(doc => String(doc.data().date || "") >= studentPackage.issuedAt)
+    .sort((a, b) => String(a.data().date).localeCompare(String(b.data().date)));
+  let consumed = 0;
+  for (const doc of lessons) {
+    const state = await db.collection("lessonPackageStates").doc(doc.id).get();
+    if (state.exists && state.data().status === "consumed") continue;
+    try {
+      const outcome = await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId: doc.id, requestId: `tokens-backlog-${studentPackage.id}-${doc.id}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
+      if (outcome.status === "consumed" && outcome.changed) consumed += 1;
+    } catch (error) {
+      console.error(`Lesson tokens backlog failed for ${doc.id}:`, error.message);
+    }
+  }
+  return { consumed };
+}
+
+// the lesson trigger acts as this actor (it may write every lesson's package fields)
+const LESSON_TOKENS_ACTOR = { decoded: { uid: "system-lesson-tokens", email: "", name: "Tunnipakett (automaatne)" }, profile: { displayName: "Tunnipakett (automaatne)" }, roles: new Set(["admin"]) };
+
 async function syncLessonPackageConsumption({
   actor,
   lessonId,
@@ -966,19 +1036,27 @@ async function syncLessonPackageConsumption({
       transaction.get(lessonRef),
       transaction.get(stateRef),
     ]);
+    // a removed mark deletes the lesson (crm-v2 lessons.removeMark): a credit it took comes back, nothing is recreated
+    const lessonDeleted = !lessonSnap.exists;
+    const priorState = stateSnap.exists ? stateSnap.data() : {};
     if (existingRequest.exists) {
       if (existingRequest.data().creationSignature !== signature) {
         throw httpError(409, "requestId already used for a different lesson package sync");
       }
       return { ...(existingRequest.data().result || {}), idempotent: true };
     }
-    if (!lessonSnap.exists) throw httpError(404, "Lesson not found");
-    const lesson = lessonSnap.data();
+    if (lessonDeleted && priorState.status !== "consumed") throw httpError(404, "Lesson not found");
+    const lesson = lessonDeleted
+      ? { studentId: priorState.studentId || "", date: priorState.lessonDate || "", status: "deleted", teacherUid: priorState.teacherUid || "" }
+      : lessonSnap.data();
+    // the card's plan decides whether a no-show without notice is charged (lesson tokens, functions/lesson-tokens-core.js)
+    const planSnap = lesson.studentId ? await transaction.get(db.collection("studentRevenuePlans").doc(String(lesson.studentId))) : null;
+    const plan = planSnap?.exists ? planSnap.data() : {};
     if (!lessonActorCanWrite(actor, { lesson })) {
       throw httpError(403, "Lesson belongs to another teacher");
     }
     const state = stateSnap.exists ? stateSnap.data() : {};
-    const completed = lesson.status === "Toimunud";
+    const completed = !lessonDeleted && lessonTakesToken(lesson, plan);
     const lessonDate = validIsoDate(lesson.date, "lesson date");
     await assertFinancialDateOpen(transaction, lessonDate);
     const requestRecord = result => ({
@@ -1141,6 +1219,8 @@ async function syncLessonPackageConsumption({
         packageProductId: selectedPackage.packageProductId || "",
         packageProductName: selectedPackage.packageProductName || "—",
         status: "consumed",
+        lessonDate,
+        teacherUid: String(lesson.teacherUid || ""),
         cycle,
         consumptionEntryId: ledgerEntryId,
         restorationEntryId: "",
@@ -1204,7 +1284,7 @@ async function syncLessonPackageConsumption({
           packageSyncError: "",
         },
       };
-      transaction.set(lessonRef, lessonFields, { merge: true });
+      if (!lessonDeleted) transaction.set(lessonRef, lessonFields, { merge: true });
       transaction.create(requestRef, requestRecord(result));
       return { ...result, idempotent: false };
     }
@@ -1277,7 +1357,7 @@ async function syncLessonPackageConsumption({
       updatedAt: nowIso,
       updatedBy: actorData,
     }, { merge: true });
-    transaction.set(lessonRef, lessonFields, { merge: true });
+    if (!lessonDeleted) transaction.set(lessonRef, lessonFields, { merge: true });
     transaction.create(auditRef, {
       entityType: "lesson_package_restoration",
       entityId: ledgerEntryId,
@@ -8581,6 +8661,11 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    if (req.path === "/invoices/tokens/credit") {
+      const result = await creditInvoiceTokens({ actor, invoiceId: req.body?.invoiceId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     if (req.path === "/student-packages/adjust") {
       const result = await adjustStudentPackage({
         actor,
@@ -10405,6 +10490,35 @@ async function syncTeacherGroupsToGoogle(uid, connection) {
   await updateCalendarGroupPushMetadata(uid, { error: errors[0] || "" });
   return total;
 }
+
+// Lesson tokens: every change of a lesson's mark (held, no-show, corrected, removed) moves the card's package credits
+// through the existing ledger (syncLessonPackageConsumption). Runs only for cards that have a package or for a lesson
+// that took a credit, and only when the mark itself changed (its own package fields never re-trigger it).
+exports.syncLessonTokens = functions.firestore
+  .document("lessons/{lessonId}")
+  .onWrite(async (change, context) => {
+    const before = change.before.exists ? change.before.data() : null;
+    const after = change.after.exists ? change.after.data() : null;
+    const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived)]) : "deleted");
+    if (markOf(before) === markOf(after)) return null;
+    // only CRM v2 marks (calendar / lesson panel); the server lesson journal syncs packages itself
+    if ((after || before)?.accountingSource !== "crm_v2") return null;
+    const lessonId = context.params.lessonId;
+    try {
+      const stateSnap = await db.collection("lessonPackageStates").doc(lessonId).get();
+      const consumed = stateSnap.exists && stateSnap.data().status === "consumed";
+      if (!consumed) {
+        const studentId = String(after?.studentId || "").trim();
+        if (!after || !studentId) return null;
+        const packages = await db.collection("studentPackages").where("studentId", "==", studentId).limit(1).get();
+        if (packages.empty) return null;
+      }
+      await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `lesson-tokens-${context.eventId}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
+    } catch (error) {
+      console.error(`Lesson tokens sync failed for ${lessonId}:`, error.message);
+    }
+    return null;
+  });
 
 exports.syncGroupToGoogleCalendar = functions.firestore
   .document("groups/{groupId}")

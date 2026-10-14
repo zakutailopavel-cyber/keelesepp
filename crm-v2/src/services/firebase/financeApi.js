@@ -169,6 +169,10 @@ export const financeApi = {
       requestId: financeRequestId("credit_note"),
     });
   },
+  // lesson tokens: a paid package invoice → the card gets its lesson credits (once; the server checks the payment)
+  creditInvoiceTokens(invoiceId) {
+    return post("/invoices/tokens/credit", { invoiceId });
+  },
   recordPayment(invoiceId, payment) {
     return post("/payments", {
       invoiceId,

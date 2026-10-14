@@ -35,6 +35,7 @@ import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import { displayDate, validatePayment } from './finance.js';
 import { filterFinanceRows, financeRowState, sortFinanceRows, summarizeFinanceRows } from './financeRows.js';
 import ManualInvoiceDialog from './ManualInvoiceDialog.jsx';
+import TokenInvoiceDialog from './TokenInvoiceDialog.jsx';
 import MonthlyInvoicePanel from './MonthlyInvoicePanel.jsx';
 import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { currentMonth, defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
@@ -202,6 +203,15 @@ export default function FinanceMonthPage({
   };
 
   const announce = (value) => { setMessage(value); setError(''); };
+  // lesson tokens: the paid package invoice → the card gets its lessons (the server checks the payment, once only)
+  const creditTokens = async (invoice) => {
+    setActionBusy(`tokens-${invoice.id}`); setError('');
+    try {
+      const { studentPackage } = await financeRepository.creditInvoiceTokens(invoice.id);
+      announce(`${invoice.studentName || 'Õpilane'}: lisati ${studentPackage?.grantedCredits ?? invoice.tokenCredits} tundi.`);
+      await state.reload();
+    } catch (caught) { setError(caught.message || 'Tunde ei saanud lisada.'); } finally { setActionBusy(''); }
+  };
   const deliver = async (invoice, mode) => {
     setActionBusy(`${mode}-${invoice.id}`); setError('');
     try {
@@ -243,7 +253,7 @@ export default function FinanceMonthPage({
       {showPrivacyBanner ? <PricePrivacyBanner /> : null}
       <header className="finance-month-hero">
         <div><span className="eyebrow">Finantsid</span><h1>Kuu arveldus</h1><p>Koosta arved, jälgi laekumisi ja lahenda erandid ühes vaates.</p></div>
-        <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog studentCards={state.data.students} onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}</div>
+        <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link><Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog studentCards={state.data.students} onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}{canManage ? <TokenInvoiceDialog studentCards={state.data.students} plans={state.data.plans} onCreated={async (invoice, { sent }) => { announce(`Tunnipaketi arve ${invoice.num || ''} loodi${sent ? ' ja saadeti' : ''}. Tunnid lisatakse pärast makset.`); await state.reload(); }} /> : null}</div>
       </header>
 
       <div className="finance-month-switcher">
@@ -279,9 +289,9 @@ export default function FinanceMonthPage({
         {!rows.length ? <EmptyState title={activeView === 'paid' ? 'Laekunud makseid ei ole' : activeView === 'unpaid' ? 'Selle kuu võlgnevusi ei ole' : 'Selle kuu arveid ei ole'} description={activeView === 'invoices' ? 'Koosta arved eraldi vaates või vali teine kuu.' : 'Vali teine kuu või muuda filtrit.'} /> : <div className="finance-month-table" role="table" aria-label={`Arved ${month}`}>
           <div className="finance-month-table__head" role="row"><span>Õpilane</span><span>Arve</span><span>Tähtaeg</span><span>Summa</span><span>Jääk</span><span>Olek</span><span>Tegevused</span></div>
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id}>
-            <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoice.payerEmail].filter(Boolean).join(' · ')}</small></span>
+            <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoice.payerEmail].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? <small className="finance-tokens">Tunnipakett · {invoice.tokenCredits} tundi{invoice.tokenStatus === 'credited' ? ' · ✓ lisatud õpilasele' : ''}</small> : null}</span>
             <span>{invoice.num || invoice.number || invoice.invoiceNumber || '—'}</span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
-            <span className="finance-month-table__actions">{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
+            <span className="finance-month-table__actions">{canManage && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus !== 'credited' && !row.balanceCents && row.status !== 'cancelled' ? <Button loading={actionBusy === `tokens-${invoice.id}`} onClick={() => creditTokens(invoice)}>Lisa tunnid ({invoice.tokenCredits})</Button> : null}{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
         </div>}
       </Card> : null}
