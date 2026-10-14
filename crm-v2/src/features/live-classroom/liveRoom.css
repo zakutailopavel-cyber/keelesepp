@@ -1,7 +1,7 @@
 /* Live Classroom room — full-screen lesson (top bar, board, video column). */
 .lr { position: fixed; inset: 0; z-index: 1300; display: flex; flex-direction: column; gap: 12px; padding: 12px 14px 14px; background: linear-gradient(180deg, #f6f5fd 0%, #eef0fa 100%); color: #24294a; }
 .lr * { box-sizing: border-box; }
-.lr-top { position: relative; display: flex; align-items: center; gap: 10px; min-height: 58px; padding: 8px 10px; border: 1px solid #e7e8f3; border-radius: 20px; background: rgba(255, 255, 255, .96); box-shadow: 0 8px 26px rgba(36, 41, 74, .07); }
+.lr-top { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 58px; padding: 8px 10px; border: 1px solid #e7e8f3; border-radius: 20px; background: rgba(255, 255, 255, .96); box-shadow: 0 8px 26px rgba(36, 41, 74, .07); }
 .lr-top__group { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .lr-top__center { margin: 0 auto; }
 .lr-top__right { margin-left: auto; }
@@ -94,6 +94,12 @@
 .lr-sheet__head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px 4px 18px; }
 .lr-sheet__body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 14px 14px; }
 .lr-sheet__body .live-room-worksheet { margin: 0; box-shadow: none; border: 0; padding: 4px; }
+/* medium screens: the room buttons on the right become icons (name in the tooltip), the subject pill goes */
+@media (max-width: 1680px) {
+  .lr-top__right .lr-text-btn { padding: 0 11px; }
+  .lr-top__right .lr-text-btn .lr-label { display: none; }
+  .lr-subject { display: none; }
+}
 @media (max-width: 1180px) {
   .lr-top { flex-wrap: wrap; }
   .lr-top__center { order: 3; width: 100%; justify-content: center; margin: 0; }
@@ -123,6 +129,8 @@
 }
 .lr-rec { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer; font: inherit; color: #b42318; background: #fee4e2; }
 .lr-rec.is-off { color: #475467; background: #f2f4f7; }
+.lr-rec__warn { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #f79009; color: #fff; font-size: .72rem; font-weight: 800; }
+.lr-text-btn .lr-label { display: inline; }
 .lr-observer { display: inline-flex; align-items: center; gap: 6px; color: #175cd3; background: #eff8ff; }
 .lr-follow { border: 0; cursor: pointer; font: inherit; color: #1849a9; background: #eff4ff; }
 .lr-transcriber { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; font-size: 13px; }

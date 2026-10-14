@@ -1,3 +1,15 @@
+## 2026-10-14 · agent/room-topbar — lesson room top bar never overlaps; observer explains silence
+
+- Owner: „поправь панель урока” (hang-up overlapped the people icon while recording, 1440 px).
+- `LiveRoom.jsx` + `liveRoom.css`: one recording pill („Salvestan”, an orange „!” inside when the Mac does not
+  transcribe; the reason in its tooltip and aria-label) instead of two pills; Materjalid / Sõnad / Ülesanded keep
+  their names as aria-label/tooltip and show only icons below 1680 px; subject pill hidden below 1680 px (it is in
+  „Tunni info”); `.lr-top` wraps instead of overlapping as the last resort.
+- `LiveObserverPage`: a participant that does not answer in 20 s shows why (room opened before the update, or the
+  lesson is on Google Meet / Zoom). First real use 2026-10-14 (Jegor Fjodorov · Anna Jerjemeeva): both pages had
+  been opened at 17:14, before the observer release — offers sent, no answers; works from their next room.
+- Tests: crm-v2 live-classroom 81/81; e2e room-bar (8 widths, recording) + observer pass.
+
 ## 2026-10-14 · agent/live-observer — administrator watches a lesson going on now
 
 - Owner: „мне как администратору к учителю зайти во время урока для проверки” → „именно подключиться”. Badge visible
