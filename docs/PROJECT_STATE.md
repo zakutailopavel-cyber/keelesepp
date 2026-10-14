@@ -1,3 +1,26 @@
+## 2026-10-14 · agent/live-observer — administrator watches a lesson going on now
+
+- Owner: „мне как администратору к учителю зайти во время урока для проверки” → „именно подключиться”. Badge visible
+  to both sides (school's GDPR safety; recommended, not objected).
+- Live Classroom (admin): „Käimasolevad tunnid (N)” (`ActiveLessonsMenu`: accepted rooms younger than 4 h) →
+  „Vaata tundi” → `/live-classroom/vaatle/:invitationId` (`LiveObserverPage`, ADMIN route + accessPolicy).
+- Call: the 1:1 teacher↔student call is unchanged. The observer opens one receive-only RTCPeerConnection to each
+  participant (`useObserveLesson`: offers recvonly audio+video, re-offers every 15 s while not connected); each
+  participant answers with its local camera+mic (`useObserverPeers` in `LiveRoom`, `useLiveCall` now exposes
+  `localStream`; device switches replace the tracks). Screen share is not forwarded to the observer (camera only).
+- Data: `liveLessonInvitations/{id}/observers/{uid}` (admin's own entry, heartbeat 20 s, stale after 60 s, `active`
+  false on leave/pagehide) and `observerSignals` (offer/answer/candidate/hangup, `toUid` addressed).
+  Rules: only an admin writes its own observer entry while the room is accepted; the admin signals only to the
+  teacher/student; participants answer only an active observer; each reads only signals addressed to them.
+- TURN: `liveTurnApi` gives relay credentials also to an admin (not disabled) for an accepted room
+  (`turnAccessDecision(..., { observer })`).
+- Room: eye badge (aria „Administraator vaatab tundi”, name in tooltip) + a toast when someone starts watching.
+- Tests: functions 269/269 (+1 TURN), rules emulator live-lesson-invitations 9/9 (+1 observer), crm-v2
+  live-classroom+app 105/105 (+3), e2e 10/10 (+1 three-browser WebRTC).
+- Production after merge: Firestore rules + `liveTurnApi` deploy; CRM via Vercel.
+- Known: the room's top bar is already crowded at 1440 px with recording pills (hang-up overlaps the people icon);
+  separate UI fix.
+
 ## 2026-10-14 · agent/rules-lesson-mark — teachers can mark lessons again
 
 - Teacher Yelyzaveta Lukiianchuk: „не могу отмечать провелся урок или нет — Missing or insufficient permissions”.
