@@ -40,6 +40,9 @@ Lubatud failid: `crm-v2/src/features/worksheet-generator/production/*`, `factory
 lähteülesanded `worksheet-generator/art/visuals/*` (+ rida `MODULES`-is `art/textbookArt.js`-is) ja nende testid; käsitsi töölehed CRM-is aadressil
 `/library/lessons/<ID>/worksheets/<discover|practice|transfer>` („✎ Muuda lehte” → „Salvesta” → „Avalda”).
 
+B1→B2 kursuse moodulite ümbertegemine kõigi kvaliteediväravateni (moodulid 2–18, `admin/course/b2/moduleNN.js`):
+täielik leping, lubatud failid ja kontrollid on `docs/CODEX_TASKS_B1B2_IDEAL.md`-s (näidis: `b2/module01.js`).
+
 Keelatud: liides (Õppevara, konstruktor, kalender, finants, menüü), `routes.jsx`, `services/firebase/*`,
 `firestore.rules`, `functions/*`, CSS; production-andmebaasi skriptiga kirjutamine või kustutamine; deploy;
 B1 Harjuta/Kasuta ilma omaniku loata. Vajadus liidese järele kirjelda PR-is.
