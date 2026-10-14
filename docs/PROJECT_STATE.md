@@ -8,7 +8,11 @@
 - `LiveObserverPage`: a participant that does not answer in 20 s shows why (room opened before the update, or the
   lesson is on Google Meet / Zoom). First real use 2026-10-14 (Jegor Fjodorov · Anna Jerjemeeva): both pages had
   been opened at 17:14, before the observer release — offers sent, no answers; works from their next room.
-- Tests: crm-v2 live-classroom 81/81; e2e room-bar (8 widths, recording) + observer pass.
+- Fixed after the first real use (teacher reloaded, answered, picture stayed black): the participant dropped the
+  observer's ICE candidates that arrived while it was still loading TURN (or had no camera yet), so the connection
+  only worked on one network. `useObserverPeers` now registers the session before any await and keeps early
+  candidates per session (`earlyRef`); regression test fails without the fix.
+- Tests: crm-v2 live-classroom 82/82; e2e room-bar (8 widths, recording) + observer pass.
 
 ## 2026-10-14 · agent/live-observer — administrator watches a lesson going on now
 

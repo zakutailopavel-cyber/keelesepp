@@ -39,3 +39,41 @@ describe('administrator watching a lesson', () => {
     expect(screen.getByRole('link', { name: /Vaata tundi/ })).toHaveAttribute('href', '/live-classroom/vaatle/inv-1');
   });
 });
+
+describe('participant answering an observer', () => {
+  it('keeps the observer\'s candidates that arrive while TURN is still loading (they were dropped before)', async () => {
+    const { renderHook } = await import('@testing-library/react');
+    const { useObserverPeers } = await import('./useLessonObserver.js');
+    let onSignal = () => {};
+    const sent = [];
+    const service = {
+      subscribeObservers: (id, onChange) => { onChange([{ uid: 'adm', active: true, lastSeenIso: new Date().toISOString() }]); return () => {}; },
+      subscribeSignals: (id, uid, listener) => { onSignal = listener; return () => {}; },
+      sendSignal: vi.fn(async (id, signal) => { sent.push(signal); }),
+    };
+    let releaseTurn;
+    const turnService = { iceServers: () => new Promise((resolve) => { releaseTurn = () => resolve({ iceServers: [] }); }) };
+    const added = [];
+    const peerFactory = () => ({
+      remoteDescription: null,
+      async setRemoteDescription(d) { this.remoteDescription = d; },
+      addTrack() {}, getSenders: () => [],
+      async createAnswer() { return { type: 'answer', sdp: 'a' }; },
+      async setLocalDescription() {},
+      async addIceCandidate(c) { added.push(c.candidate); },
+      close() {},
+    });
+    const stream = { getTracks: () => [] };
+    renderHook(() => useObserverPeers({ invitationId: 'inv', user: { uid: 'teach' }, localStream: stream, service, turnService, peerFactory }));
+    const at = new Date().toISOString();
+    const base = { sessionId: 's1', observerUid: 'adm', fromUid: 'adm', toUid: 'teach', createdAtIso: at };
+    await act(async () => {
+      onSignal({ ...base, type: 'offer', payload: JSON.stringify({ type: 'offer', sdp: 'o' }) });
+      onSignal({ ...base, type: 'candidate', payload: JSON.stringify({ candidate: 'relay-1' }) });
+      onSignal({ ...base, type: 'candidate', payload: JSON.stringify({ candidate: 'host-2' }) });
+    });
+    await act(async () => { releaseTurn(); });
+    await vi.waitFor(() => expect(sent.some((item) => item.type === 'answer')).toBe(true));
+    await vi.waitFor(() => expect(added).toEqual(['relay-1', 'host-2']));
+  });
+});
