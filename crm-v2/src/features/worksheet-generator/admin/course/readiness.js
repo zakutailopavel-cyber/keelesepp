@@ -2,6 +2,7 @@
 // Computed from the sheets in code (admin/course/*); a sheet edited by hand in the CRM is checked in its constructor.
 import { moduleGates, sheetGates } from '../../../worksheet-studio/didactics/gates.js';
 import { moduleSheets } from './registry.js';
+import { moduleProblems as structureProblems } from './quality.js';
 
 export function lessonReport(phases = {}, moduleProblems = [], lessonId = '') {
   const sheets = Object.fromEntries(Object.entries(phases).map(([phase, doc]) => [phase, sheetGates(doc)]));
@@ -12,8 +13,14 @@ export function lessonReport(phases = {}, moduleProblems = [], lessonId = '') {
 
 export function moduleReport(mod) {
   const sheets = moduleSheets(mod);
-  const moduleProblems = moduleGates(sheets);
-  const lessons = Object.fromEntries(Object.entries(sheets).map(([lessonId, phases]) => [lessonId, lessonReport(phases, moduleProblems, lessonId)]));
+  // structure (quality.js: constructor errors, level norms, 6–18 blocks, 40–55 min, variety, phase jobs) is a gate too
+  const structure = structureProblems(sheets).map((p) => ({ gate: 'structure', level: 'error', ...p }));
+  const moduleProblems = [...moduleGates(sheets), ...structure.filter((p) => p.phase === '*' || p.lessonId === '*')];
+  const lessons = Object.fromEntries(Object.entries(sheets).map(([lessonId, phases]) => {
+    const report = lessonReport(phases, moduleProblems, lessonId);
+    structure.filter((p) => p.lessonId === lessonId && p.phase !== '*').forEach((p) => { (report.sheets[p.phase] ||= []).push(p); report.count += 1; report.ready = false; });
+    return [lessonId, report];
+  }));
   const gates = {};
   Object.values(lessons).forEach((lesson) => [...Object.values(lesson.sheets).flat(), ...lesson.module].forEach((p) => { gates[p.gate] = (gates[p.gate] || 0) + 1; }));
   const values = Object.values(lessons);
@@ -32,4 +39,4 @@ export function courseReadiness(modules = []) {
   return byCourse;
 }
 
-export const GATE_LABEL = { depth: 'sügavus', keys: 'vastused', level: 'tase (Harno)', unique: 'kordused', vocab: 'sõnavara' };
+export const GATE_LABEL = { structure: 'struktuur', depth: 'sügavus', keys: 'vastused', level: 'tase (Harno)', unique: 'kordused', vocab: 'sõnavara' };

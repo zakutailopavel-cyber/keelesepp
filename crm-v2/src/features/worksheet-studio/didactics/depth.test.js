@@ -38,3 +38,11 @@ describe('worksheet depth', () => {
     expect(DEPTH.C1.items).toBe(10);
   });
 });
+
+describe('check lessons', () => {
+  it('the Kasuta of a check lesson is the exam writing and speaking part, not an exercise sheet', () => {
+    const doc = { meta: { level: 'B1', phase: 'transfer', assessment: true }, blocks: [{ id: 'l', type: 'guidedletter', data: { minWords: 140 } }] };
+    expect(depthProblems(doc)).toEqual([]);
+    expect(depthProblems({ ...doc, meta: { ...doc.meta, assessment: false } }).length).toBeGreaterThan(0);
+  });
+});
