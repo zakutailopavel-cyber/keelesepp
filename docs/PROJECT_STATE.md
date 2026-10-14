@@ -1,3 +1,18 @@
+## 2026-10-14 · agent/depth-pilot-b1b2-004 — first lesson brought to the depth norms (pilot)
+
+- Owner: „да, делай пилот листов”. Lesson b1b2-004 „Argipäev vs nädalavahetus” (B1→B2 module 1, taught that day).
+- Before: depth Avasta 55 / Harjuta 70 / Kasuta 65 (tasks of 5–6 items, writing 10–12 sentences filling the time,
+  Kasuta ≈ 9 min of exercises and no whole-sentence task, practice repeated discover's error sentences).
+- `b2/module01.js`: every closed task 10–11 items (old items kept), new error sentences in practice, writing 6–8
+  sentences, dictations 6, Kasuta + `004_t_trans` (opinion → argument sentence with a connector) and `004_t_fix`
+  (essay word-order / form errors). After: depth 100/100/100, 51/53/52 min, quality.js clean.
+- Rules refined (`didactics/depth.js`, standard §13): dictation outside the items norm (own norm A2 ≥ 4, B1+ ≥ 6);
+  Kasuta exercise norm 12 min / live 8; a forms task's base form is not a hint.
+- Published to production (owner's delegation for course fixes): curriculumLessons/b1b2-004 worksheets v8 (v7 kept in
+  worksheetVersions; v7 was the previous code publish, no manual edits after it).
+- Tests: worksheet-generator + worksheet-studio 881 passed.
+- Next: owner looks at the pilot in the CRM; then the rest of module 1 and the modules being taught (B1→B2, C1).
+
 ## 2026-10-14 · agent/combined-invoice — one invoice for all subjects of a student and all children of a parent
 
 - Owner / Oleksiy (#high_priority): „один счёт за все уроки (англ, эст, математика)” and „родителю нескольких детей все
