@@ -80,10 +80,13 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   // A throttle, not a debounce: while the student types, the teacher sees the text about every 0.6 s instead of only after
   // a pause (owner, 2026-10-10). Firestore takes ~1 sustained write per second per document, short bursts are fine.
   const lastAutosave = useRef(0);
+  // set while Esita runs: an autosave timer firing then would write status 'in_progress' over the submitted work
+  const submitting = useRef(false);
   useEffect(() => {
     if (review || !edited.current) return undefined;
     const wait = Math.max(AUTOSAVE_MIN_DELAY_MS, AUTOSAVE_EVERY_MS - (Date.now() - lastAutosave.current));
     const timer = setTimeout(() => {
+      if (submitting.current) return;
       lastAutosave.current = Date.now();
       const clean = Object.fromEntries(Object.entries(answers).filter(([k, v]) => !k.endsWith(':error') && !(typeof v === 'string' && v.startsWith('blob:'))));
       repository.saveWorksheetDraft({ assignmentId: assignment.id, answers: clean })
@@ -135,7 +138,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
   const submit = async () => {
     if (progress.answered < progress.total && !window.confirm(`Vastatud ${progress.answered}/${progress.total}. Kas esitad töölehe ikkagi?`)) return;
-    setSaving(true); setError('');
+    setSaving(true); setError(''); submitting.current = true;
     try {
       const stored = await persistRecordings({ doc, answers, assignment, repository });
       const result = checkDocument(doc, stored);
@@ -145,7 +148,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       setAnswers(stored); setScore(result.score); setSubmitted(true); onSubmitted?.();
       const goals = Object.entries(result.perGoal || {}).filter(([id, g]) => id !== '_none' && g.total > 0 && g.ok === g.total).length;
       petCelebrate({ xp: 15 + goals * 5, goals });
-    } catch (submitError) { setError(submitError.message || 'Töölehe esitamine ebaõnnestus.'); }
+    } catch (submitError) { submitting.current = false; setError(submitError.message || 'Töölehe esitamine ebaõnnestus.'); }
     finally { setSaving(false); }
   };
 

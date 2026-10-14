@@ -1,5 +1,6 @@
+/* global setTimeout */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import LoginPage from './LoginPage.jsx';
 import { modeFromLocation } from './loginMode.js';
@@ -15,6 +16,30 @@ function renderLogin(authValue, { entry = '/login', initialMode } = {}) {
 }
 
 describe('login page', () => {
+  it('a late sign-in does not throw a user who already moved on back to the home page', async () => {
+    let finish;
+    const signIn = vi.fn(() => new Promise((resolve) => { finish = resolve; }));
+    const Away = () => { const navigate = useNavigate(); return <button type="button" onClick={() => navigate('/homework')}>Ülesanded</button>; };
+    render(
+      <AuthContext.Provider value={{ configured: true, user: null, signIn, signInWithGoogle: vi.fn(), register: vi.fn(), resetPasswordFor: vi.fn() }}>
+        <MemoryRouter initialEntries={['/login']}>
+          <Away />
+          <Routes><Route path="/login" element={<LoginPage />} /><Route path="/homework" element={<p>Kodutööd</p>} /><Route path="/" element={<p>Avaleht</p>} /></Routes>
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    fireEvent.change(screen.getByLabelText('E-post'), { target: { value: 'anna@example.ee' } });
+    fireEvent.change(screen.getByLabelText('Parool'), { target: { value: 'salasona1' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Logi sisse' }));
+    await waitFor(() => expect(signIn).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole('button', { name: 'Ülesanded' }));
+    expect(screen.getByText('Kodutööd')).toBeInTheDocument();
+    finish({});
+    await new Promise((resolve) => { setTimeout(resolve, 0); });
+    expect(screen.getByText('Kodutööd')).toBeInTheDocument();
+    expect(screen.queryByText('Avaleht')).toBeNull();
+  });
+
   it('uses the existing Firebase Google provider', async () => {
     const signInWithGoogle = vi.fn().mockRejectedValue({ code: 'auth/popup-closed-by-user' });
     renderLogin({ signInWithGoogle });

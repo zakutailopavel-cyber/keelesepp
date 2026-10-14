@@ -67,3 +67,22 @@ test('pending link reviews: listed for admins only, a new card resolves the revi
   assert.equal((await api(owner, '/accounts/reviews/dismiss', { reviewId: otherId })).status, 200);
   assert.equal((await db.doc(`accountLinkReviews/${otherId}`).get()).data().status, 'dismissed');
 });
+
+// owner 2026-10-14 (Olena Polishchuk): a student who is also a parent — linking her as the parent of a child's card
+// gives her both roles as signed claims, which the client and the server read (the profile keeps its one `role`)
+test('a student linked as a parent keeps both roles as signed claims', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const db = admin.firestore();
+  const owner = await signUp('claims-admin');
+  await db.doc(`users/${owner.uid}`).set({ role: 'admin', roles: ['admin'] });
+  const olena = await signUp('claims-olena');
+  await db.doc(`users/${olena.uid}`).set({ role: 'student', displayName: 'Olena Test', email: olena.email, approvalStatus: 'approved' });
+  await db.doc('students/claims-lana').set({ name: 'Lana Test', grade: '1. klass', active: true });
+  const linked = await api(owner, '/accounts/link', { uid: olena.uid, studentId: 'claims-lana', relationship: 'parent', requestId: `claims-${olena.uid}` });
+  assert.ok(linked.status >= 200 && linked.status < 300, JSON.stringify(linked.body));
+  const card = (await db.doc('students/claims-lana').get()).data();
+  assert.equal(card.parentUid, olena.uid);
+  assert.equal((await db.doc(`users/${olena.uid}`).get()).data().role, 'student', 'the protected one-role field stays');
+  const claims = (await admin.auth().getUser(olena.uid)).customClaims || {};
+  assert.deepEqual([...claims.roles].sort(), ['parent', 'student']);
+});
