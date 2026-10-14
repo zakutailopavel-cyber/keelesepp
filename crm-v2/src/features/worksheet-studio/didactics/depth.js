@@ -66,9 +66,14 @@ export function depthProblems(doc) {
   const blocks = doc?.blocks || [];
   const out = [];
   const closed = blocks.filter((b) => ITEMS[b.type]);
+  // the Kasuta sheet of a check lesson is the exam's writing and speaking part: letters, essay, speech, discussion —
+  // measured by the level gate (lengths), not by exercise depth
+  if (doc?.meta?.assessment && doc?.meta?.phase === 'transfer') return out;
 
   // a dictation has its own norm below (ten dictated sentences would be ten minutes of dictating)
-  const short = closed.filter((b) => b.type !== 'dictation' && ITEMS[b.type](b.data || {}) < norm.items);
+  // the exam parts of a check lesson have the exam's own sizes (6, 8, 9 points): the items norm does not apply there
+  const examParts = doc?.meta?.assessment && doc?.meta?.phase === 'practice';
+  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && ITEMS[b.type](b.data || {}) < norm.items);
   if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${norm.items} punkti (${level})`, blocks: short.map((b) => b.id) });
 
   // Kasuta (transfer) is for using the language: writing, speaking, role play carry it; the exercises only prepare

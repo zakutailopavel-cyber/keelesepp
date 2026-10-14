@@ -1,3 +1,16 @@
+## 2026-10-14 · agent/b1b2-module-01-ideal — first module at every quality gate (strict)
+
+- B1→B2 module 1 (b1b2-001…005) rewritten to all gates (structure, depth, keys, level, uniqueness, vocabulary,
+  language): every closed task ≥ 10 items (old items kept), writing 6–8 sentences instead of 10–12, a lesson
+  vocabulary block in every lesson whose words come back on ≥ 3 sheets, Kasuta sheets with two whole-sentence tasks,
+  speaking ≥ 120 s at B1, dictations ≥ 6 sentences, no sentence repeated across sheets; 001's self-assessment is a
+  selfcheck (no „right” answer); 44–54 min per sheet. Vabamorf: 0 unknown words.
+- Check lessons: `assessment: true` on the lesson → `meta.assessment`; depth does not apply to the Kasuta sheet (exam
+  writing/speaking part, measured by the level gate) nor the items norm to the practice exam parts (exam sizes 6/8/9).
+- Readiness now includes the structure gate (quality.js). `strictModules.json` = ["b1b2-module-01"].
+- Published v8/v9 of the 12 changed sheets (no manual edits on them). Tests: 953 passed.
+- Next: module 2 (b1b2-006…010), then on through B1→B2.
+
 ## 2026-10-14 · agent/curriculum-gates — quality gates and course readiness (ideal curriculum, step 1)
 
 - Owner: „нужен идеальный учебный план и рабочие листы которые обеспечат это” → „начинай с ворот и B1→B2 и ведёшь

@@ -143,6 +143,8 @@ export function buildCourseSheet(mod, lessonId, phase) {
       displayLabel: PHASES[phase].label,
       // modules written before the 40–55 min rule are marked until they are expanded (docs/B1_B2_COURSE_PRODUCTION.md)
       ...(mod.MODULE.shortSheets ? { shortSheet: true } : {}),
+      // a check lesson (Kontroll): its Kasuta sheet is the exam's writing and speaking part (gates.js / depth.js)
+      ...(lesson.assessment ? { assessment: true } : {}),
       badge: `${course.badge} · moodul ${moduleNumber(mod)}`,
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
