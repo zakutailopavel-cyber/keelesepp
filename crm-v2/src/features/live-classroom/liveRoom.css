@@ -123,6 +123,7 @@
 }
 .lr-rec { display: inline-flex; align-items: center; gap: 6px; border: 0; cursor: pointer; font: inherit; color: #b42318; background: #fee4e2; }
 .lr-rec.is-off { color: #475467; background: #f2f4f7; }
+.lr-observer { display: inline-flex; align-items: center; gap: 6px; color: #175cd3; background: #eff8ff; }
 .lr-follow { border: 0; cursor: pointer; font: inherit; color: #1849a9; background: #eff4ff; }
 .lr-transcriber { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
 .lr-transcriber.is-on { color: #067647; background: #ecfdf3; }
@@ -201,3 +202,14 @@
 .lw-guest { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; background: #eef2ff; color: #3730a3; border-radius: 12px; padding: 6px 10px; max-width: 100%; }
 .lw-guest__text { font-weight: 600; font-size: .88rem; }
 .lw-guest__url { min-width: 220px; flex: 1 1 260px; border: 1px solid #c7d2fe; border-radius: 8px; padding: 6px 8px; font: inherit; font-size: .85rem; background: #fff; color: #1e1b4b; }
+
+/* administrator watching a lesson (LiveObserverPage, ActiveLessonsMenu) */
+.lw-active { position: relative; }
+.lw-active__list { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; display: grid; gap: 8px; min-width: 320px; max-width: min(92vw, 460px); padding: 12px; border-radius: 12px; background: #fff; box-shadow: 0 12px 32px rgba(16, 24, 40, .16); }
+.lw-active__list [role="listitem"] { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lw-active__list small { display: block; color: #667085; }
+.lo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 16px; }
+.lo-tile { margin: 0; display: grid; gap: 6px; }
+.lo-tile video, .lo-tile__wait { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #101828; object-fit: cover; }
+.lo-tile__wait { display: grid; place-content: center; text-align: center; gap: 4px; color: #d0d5dd; padding: 12px; }
+.lo-tile figcaption { font-weight: 600; color: #344054; }

@@ -52,6 +52,7 @@ const TeachersPage = lazy(() => import('../features/teachers/TeachersPage.jsx'))
 const AccountsPage = lazy(() => import('../features/accounts/AccountsPage.jsx'));
 const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
 const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
+const LiveObserverPage = lazy(() => import('../features/live-classroom/LiveObserverPage.jsx'));
 const staffPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen…" />}>{element}</Suspense></PageErrorBoundary>;
 const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
 
@@ -97,6 +98,8 @@ export default function AppRoutes() {
             <Route path="live-classroom" element={<LiveClassroomPage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
+            {/* administrator watching a lesson going on now (receive-only; both sides see it) */}
+            <Route path="live-classroom/vaatle/:invitationId" element={staffPage(<LiveObserverPage />)} />
             <Route path="teachers" element={staffPage(<TeachersPage />)} />
             <Route path="accounts" element={staffPage(<AccountsPage />)} />
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />

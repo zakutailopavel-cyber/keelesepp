@@ -6,6 +6,7 @@ import { imageSize } from '../board/boardModel.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { RoomWorksheetContent, RoomWorksheetPicker } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import { prepRoomKey } from '../worksheet-studio/roomWorksheetChoices.js';
+import ActiveLessonsMenu from './ActiveLessonsMenu.jsx';
 import { homeworkService } from '../../services/firebase/index.js';
 import { fileKind } from './roomMaterials.js';
 import './liveRoom.css';
@@ -15,7 +16,7 @@ import './liveRoom.css';
 export default function TeacherWorkspace({
   user, studentsState, selectedId, onSelect, title, onTitle, onInvite, inviting = false, onGuestLink, linking = false, pending = null, onCancel,
   cancelling = false, resumable = null, onResume, onBack, error = '', boardService, library,
-  groupIds = [], onToggleGroup, onInviteGroup, invitingGroup = false, openGroups = [], onOpenGroup, homework = homeworkService,
+  groupIds = [], onToggleGroup, onInviteGroup, invitingGroup = false, openGroups = [], onOpenGroup, homework = homeworkService, observerService,
 }) {
   const [mode, setMode] = useState('single');
   const group = mode === 'group';
@@ -77,6 +78,7 @@ export default function TeacherWorkspace({
             <button type="button" className={`lr-text-btn ${panel === 'worksheets' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'worksheets' ? '' : 'worksheets')}><ClipboardList size={17} /> Töölehed{prepared.length ? ` (${prepared.length})` : ''}</button>
             <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button>
           </> : null}
+          {user?.roles?.includes('admin') ? <ActiveLessonsMenu {...(observerService ? { service: observerService } : {})} /> : null}
           {resumable ? <Button variant="secondary" onClick={onResume}><Video size={17} /> Tagasi tundi: {resumable.studentName}</Button> : null}
           {openGroups.map((item) => <Button key={item.id} variant="secondary" onClick={() => onOpenGroup?.(item.id)}><Users size={16} /> Tagasi grupitundi: {item.title}</Button>)}
           {group ? <>

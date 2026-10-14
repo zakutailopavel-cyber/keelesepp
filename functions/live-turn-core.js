@@ -7,9 +7,10 @@ const CLOUDFLARE_TURN_API = "https://rtc.live.cloudflare.com/v1/turn/keys";
 const TURN_TTL_SECONDS = 4 * 60 * 60; // longer than the longest lesson; the client refreshes before it runs out
 const ALLOWED_HOSTS = /^(stun|turns?):(stun|turn)\.cloudflare\.com(:\d+)?(\?transport=(udp|tcp))?$/;
 
-function turnAccessDecision(invitation, uid) {
+// `observer`: an administrator watching the lesson (Live Classroom „Vaata tundi”) gets the relay too
+function turnAccessDecision(invitation, uid, { observer = false } = {}) {
   if (!invitation) return { allowed: false, status: 404, reason: "Invitation not found" };
-  if (!uid || (invitation.teacherUid !== uid && invitation.studentUid !== uid)) {
+  if (!uid || (invitation.teacherUid !== uid && invitation.studentUid !== uid && !observer)) {
     return { allowed: false, status: 403, reason: "Not a participant of this lesson" };
   }
   if (invitation.status !== "accepted") return { allowed: false, status: 409, reason: "Lesson room is not open" };

@@ -7948,7 +7948,13 @@ exports.liveTurnApi = functions
       const invitationId = String(req.body?.invitationId || "").trim();
       if (!/^[A-Za-z0-9_-]{1,128}$/.test(invitationId)) throw httpError(400, "invitationId required");
       const snapshot = await db.collection("liveLessonInvitations").doc(invitationId).get();
-      const decision = liveTurnCore.turnAccessDecision(snapshot.exists ? snapshot.data() : null, decoded.uid);
+      const invitation = snapshot.exists ? snapshot.data() : null;
+      let observer = false;
+      if (invitation && invitation.teacherUid !== decoded.uid && invitation.studentUid !== decoded.uid) {
+        const profile = (await db.collection("users").doc(decoded.uid).get()).data() || {};
+        observer = !isDisabledProfile(profile) && (isSuperAdmin(decoded) || profile.role === "admin");
+      }
+      const decision = liveTurnCore.turnAccessDecision(invitation, decoded.uid, { observer });
       if (!decision.allowed) throw httpError(decision.status, decision.reason);
       const result = await liveTurnCore.fetchCloudflareIceServers({
         keyId: String(process.env.CLOUDFLARE_TURN_KEY_ID || "").trim(),
