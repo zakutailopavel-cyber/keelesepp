@@ -1,3 +1,25 @@
+## 2026-10-14 · agent/curriculum-gates — quality gates and course readiness (ideal curriculum, step 1)
+
+- Owner: „нужен идеальный учебный план и рабочие листы которые обеспечат это” → „начинай с ворот и B1→B2 и ведёшь
+  все сам” (memory: curriculum-quality-gates).
+- `worksheet-studio/didactics/gates.js`: keys (answer-key sanity), level (Harno text / writing / speaking lengths),
+  module uniqueness and vocabulary recycling, `sheetGates` = depth + keys + level. `admin/course/readiness.js` +
+  „Kursuse valmidus” on Kursuse tootmine (ready lessons per course and module, gate notes per sheet).
+  `course.test.js`: key errors forbidden in every module; `strictModules.json` (empty) = modules held to all gates.
+- `tools/course-audit/language.py`: Vabamorf speller (repo `.venv`, EstNLTK 1.7.5) over learner-facing Estonian;
+  `language-allow.txt` for checked compounds/loans. B1→B2: 12 real errors found and fixed (valvesid→valveid,
+  kordanud→korranud, toade→tubade, hotelliketidele→hotellikettidele, lasteaiasid→lasteaedasid, lõputest→lõpptest,
+  sadakakskümmend→sada kakskümmend, igal jõulul→igal aastal jõulude ajal, (üksteine)→(üksteise)); listening audio of
+  070_p_listen rebuilt (free TartuNLP TTS, tools/listening-audio).
+- Engine bug found by the gates: sort items and word-bank entries containing a comma were cut in two on the sheet
+  (`splitList` splits on commas). `groupItems` / `bankItems` (schema.js): course builders now write such lists one
+  per line with `lines: true` / `bankLines: true`; old and hand-made sheets unchanged.
+- First readiness (B1→B2 in code): 0/90 lessons pass all gates; most common: short tasks, thin sheets, no
+  whole-sentence tasks, speaking shorter than the level, no lesson vocabulary.
+- Tests: worksheet-studio + worksheet-generator 950 passed.
+- Not yet: the fixed lessons are not republished (next step: publish the changed lessons whose last DB version is a
+  code publish); module 1 rewrite to all gates.
+
 ## 2026-10-14 · agent/depth-pilot-b1b2-004 — first lesson brought to the depth norms (pilot)
 
 - Owner: „да, делай пилот листов”. Lesson b1b2-004 „Argipäev vs nädalavahetus” (B1→B2 module 1, taught that day).

@@ -2,7 +2,7 @@
 import { useRef, useState } from 'react';
 import { Line, Md } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
-import { norm, splitList } from '../schema.js';
+import { norm, groupItems, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
 import { Text, Area, Rows } from '../../editor/fields.jsx';
 import { SpeakPanel } from '../../editor/Speak.jsx';
@@ -206,7 +206,7 @@ export const categorize = {
   View: ({ data, ctx, id }) => {
     const groups = data.groups || [];
     // words shown in a stable mixed order (alphabetical), learner assigns each to a group
-    const all = groups.flatMap((g) => splitList(g.words)).sort((a, b) => a.localeCompare(b, 'et'));
+    const all = groups.flatMap((g) => groupItems(g)).sort((a, b) => a.localeCompare(b, 'et'));
     const pick = ctx.focus?.[id];
     return (
       <div className="ws-cat">
@@ -228,7 +228,7 @@ export const categorize = {
                   role={ctx.interactive ? 'button' : undefined} tabIndex={ctx.interactive ? 0 : -1} title={ctx.interactive ? 'Klõpsa, et sõna tagasi võtta' : undefined}
                   onClick={(e) => { if (!ctx.interactive) return; e.stopPropagation(); ctx.set(`w${i}`, ''); }}
                   onKeyDown={(e) => { if (ctx.interactive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); ctx.set(`w${i}`, ''); } }}>{w}</span> : null))}
-                {!ctx.interactive && Array.from({ length: Math.max(3, splitList(g.words).length) }).map((_, k) => <div key={k} className="ws-cat-line" />)}
+                {!ctx.interactive && Array.from({ length: Math.max(3, groupItems(g).length) }).map((_, k) => <div key={k} className="ws-cat-line" />)}
               </div>
             </div>
           ))}
@@ -238,12 +238,12 @@ export const categorize = {
   },
   answers: (data) => {
     const groups = data.groups || [];
-    const all = groups.flatMap((g) => splitList(g.words).map((w) => ({ w, name: g.name }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));
+    const all = groups.flatMap((g) => groupItems(g).map((w) => ({ w, name: g.name }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));
     return all.map((x, i) => ({ key: `w${i}`, accept: [`${x.w} → ${x.name}`] }));
   },
   score: (data, get) => {
     const groups = data.groups || [];
-    const all = groups.flatMap((g, gi) => splitList(g.words).map((w) => ({ w, gi }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));
+    const all = groups.flatMap((g, gi) => groupItems(g).map((w) => ({ w, gi }))).sort((a, b) => a.w.localeCompare(b.w, 'et'));
     return all.map((x, i) => ({ key: `w${i}`, ok: get(`w${i}`) === String(x.gi) }));
   },
   Editor: ({ data, set }) => (
@@ -251,7 +251,7 @@ export const categorize = {
       render={(row, patch) => (
         <>
           <input className="ed-input" placeholder="Grupi nimi" value={row.name} onChange={(e) => patch({ name: e.target.value })} />
-          <textarea className="ed-input" rows={2} placeholder="sõnad komaga" value={row.words} onChange={(e) => patch({ words: e.target.value })} />
+          <textarea className="ed-input" rows={2} placeholder={row.lines ? 'üks lause reale' : 'sõnad komaga'} value={row.words} onChange={(e) => patch({ words: e.target.value })} />
         </>
       )} />
   ),

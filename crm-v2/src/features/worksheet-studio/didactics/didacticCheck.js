@@ -1,3 +1,4 @@
+import { groupItems } from '../engine/schema.js';
 // The didactic check of a worksheet against its level's norms (levels.js). Used by the constructor (quality list),
 // the generator's self-check and, later, to filter what the local models write. It measures what can be measured
 // without a morphological analyser: sentence length, items per task, reading length and question types, writing and
@@ -113,7 +114,7 @@ export function measureBlock(block) {
     case 'wordforms': case 'translation': case 'transformation': items = (d.rows || []).length; (d.rows || []).forEach((r) => { if (r.answer && wordsIn(r.answer) > 2) s.push(r.answer); }); break;
     case 'match': items = (d.pairs || []).length; break;
     case 'manymatch': items = lines(d.left).length; break;
-    case 'categorize': items = (d.groups || []).reduce((n, g) => n + String(g.words || '').split(',').filter((w) => w.trim()).length, 0); break;
+    case 'categorize': items = (d.groups || []).reduce((n, g) => n + groupItems(g).length, 0); break;
     case 'reading': sentencesIn(d.passage).forEach((x) => s.push(x)); items = lines(d.questions).length; break;
     // a text with option gaps: the solved text (right options), one answer per gap
     case 'cloze': sentencesIn(String(d.passage || '').replace(/\{([^}]*)\}/g, (_, o) => (o.split('|').find((x) => x.trim().startsWith('*')) || '').replace('*', '').trim())).forEach((x) => s.push(x)); items = (String(d.passage || '').match(/\{/g) || []).length; break;
