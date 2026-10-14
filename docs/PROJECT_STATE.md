@@ -19,6 +19,8 @@
   student's typed answers visible; the six teacher-graded blocks show the text without automatic marks.
 - The check sheet stays with the test student; remove it with „Eemalda õpilaselt” if it is in the way.
 - Next: nothing open from this check.
+- Re-checked 2026-10-14: the A2 modules 12–20 canon conflicts noted below (061, 063, 066) are gone (Anna office/accountant,
+  Markus warehouse, Liis service/teacher, Sofia student, Jaan café, Viktor pensioner); the older „next pass” notes are closed.
 
 ## 2026-10-14 · agent/c1-art-053-100 — C1 textbook pictures 053–100: every C1 lesson has its picture
 
