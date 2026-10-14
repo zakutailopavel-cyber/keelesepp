@@ -1,3 +1,10 @@
+## 2026-10-14 · agent/sheet-depth-gate — depth warnings in the sheet constructor
+
+- `worksheet-studio/quality.js` `analyzeWorksheet`: a lesson sheet (meta.level + meta.phase, not shortSheet) gets the
+  `didactics/depth.js` problems as warnings (`depth:<code>`, „Sügavus: …”), never errors — no sheet meets the norms
+  yet, publishing must not stop. The course modules will enforce depth module by module as they are fixed.
+- Tests: qualityDepth.test.js 2/2; worksheet-studio + worksheet-generator 878 passed.
+
 ## 2026-10-14 · agent/sheet-depth-audit — new quality rules: is there real work on the sheet?
 
 - Owner after a live lesson: sheets empty, tasks done in two minutes; asked by which criteria sheets pass QA. Answer:
