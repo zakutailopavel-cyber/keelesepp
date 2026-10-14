@@ -550,11 +550,19 @@ hinnanguline aeg ei piisa: rääkimis- ja kirjutamisplokid täitsid minutid. Iga
 | sama tunnis koos õpetajaga (äratundmine ≈ 9 s, terve lause ≈ 25 s punkti kohta) | ≥ 12 min | ≥ 15 min | ≥ 15 min | ≥ 15 min |
 | ülesannete lausete keskmine pikkus | ≥ 4 sõna | ≥ 5 | ≥ 6 | ≥ 8 |
 
+**Kasuta** (transfer) lehel kannavad tunni kirjutamine, rääkimine ja rollimäng; seal on harjutuste norm ≥ 12 min
+(tunnis ≥ 8 min). Etteütlus ei kuulu „punkte ülesandes” normi alla (vt allpool).
+
 Lisaks:
 - vähemalt **2 ülesannet, kus õpilane kirjutab terve lause** (viga, teisendus, tõlge, etteütlus);
-- B1-st alates ei anta lünga järel sõna algvormi sulgudes (rohkem kui pooltes lausetes); B2-st alates pole lünkadel
+- B1-st alates ei anta lünga järel sõna algvormi sulgudes (rohkem kui pooltes lausetes), välja arvatud vormiülesandes
+  („Kirjuta sulgudes olev sõna õiges vormis”), kus algvorm on ülesande lähtepunkt; B2-st alates pole lünkadel
   sõnapanka; valikküsimusel on vähemalt 3 varianti;
-- **etteütlus**: vähemalt 4 lauset; ilma lauseteta etteütlus on **viga** (õpetaja näeb lauseid tunnis „Loe ette” all,
+- **etteütlus**: A2 vähemalt 4, B1-st alates vähemalt 6 lauset; ilma lauseteta etteütlus on **viga** (õpetaja näeb lauseid tunnis „Loe ette” all,
   õpilane mitte).
 
 Rääkimine ja kirjutamine jäävad lehele, aga nad ei asenda harjutusi.
+
+Näidis (piloot 2026-10-14): `b2/module01.js` tund **b1b2-004** — iga suletud ülesanne 10–11 punkti, Avasta/Harjuta
+≈ 35 min harjutusi, kirjutamine 6–8 lauset (mitte 10–12), Kasuta + kaks lauseülesannet (arutluse laused ja tüüpvead);
+kõik kolm lehte depth 100, 51–53 min.

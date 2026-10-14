@@ -22,6 +22,9 @@ describe('worksheet depth', () => {
   it('flags base forms given in brackets from B1 on, not at A2', () => {
     expect(codes({ meta: { level: 'B1' }, blocks: [gaps(10, true)] })).toContain('hinted');
     expect(codes({ meta: { level: 'A2' }, blocks: [gaps(10, true)] })).not.toContain('hinted');
+    // a forms task: the base form is what the learner works from, not a hint
+    const formTask = { ...gaps(10, true), data: { ...gaps(10, true).data, instruction: 'Kirjuta sulgudes olev sõna õiges vormis.' } };
+    expect(codes({ meta: { level: 'B1' }, blocks: [formTask] })).not.toContain('hinted');
   });
 
   it('a dictation without sentences leaves the teacher nothing to read', () => {

@@ -37,6 +37,8 @@ const band = (level) => {
 // per level: items in one closed task, minutes of exercises (without speaking/writing), average words in a task
 // sentence, minutes of the same exercises when the class does them aloud with the teacher
 // (calibrated on the published course 2026-10-14: a task had 5–6 items at every level, a C1 sheet 2 closed tasks)
+// Kasuta (transfer) sheets: the use tasks are the lesson; exercises prepare them
+export const TRANSFER = { exerciseMin: 12, liveMin: 8 };
 export const DEPTH = {
   A2: { items: 8, exerciseMin: 20, sentenceWords: 4, liveMin: 12 },
   B1: { items: 10, exerciseMin: 25, sentenceWords: 5, liveMin: 15 },
@@ -65,17 +67,22 @@ export function depthProblems(doc) {
   const out = [];
   const closed = blocks.filter((b) => ITEMS[b.type]);
 
-  const short = closed.filter((b) => ITEMS[b.type](b.data || {}) < norm.items);
+  // a dictation has its own norm below (ten dictated sentences would be ten minutes of dictating)
+  const short = closed.filter((b) => b.type !== 'dictation' && ITEMS[b.type](b.data || {}) < norm.items);
   if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${norm.items} punkti (${level})`, blocks: short.map((b) => b.id) });
 
+  // Kasuta (transfer) is for using the language: writing, speaking, role play carry it; the exercises only prepare
+  const transfer = doc?.meta?.phase === 'transfer';
+  const exerciseMin = transfer ? TRANSFER.exerciseMin : norm.exerciseMin;
+  const liveMin = transfer ? TRANSFER.liveMin : norm.liveMin;
   const exercise = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level), 0);
-  if (exercise < norm.exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${norm.exerciseMin}; rääkimine ja kirjutamine ei loe)` });
+  if (exercise < exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${exerciseMin}; rääkimine ja kirjutamine ei loe)` });
 
   // aloud with the teacher: a recognised item goes in ~9 s, a whole sentence written or rebuilt in ~25 s; a text is
   // still read at the learner's pace
   const liveRate = (type) => (SENTENCE_WRITING.includes(type) || type === 'wordorder' ? 0.4 : 0.15);
   const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level)), 0);
-  if (live < norm.liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${norm.liveMin})` });
+  if (live < liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${liveMin})` });
 
   const sentences = blocks.flatMap(taskSentences).filter(Boolean);
   if (sentences.length >= 4) {
@@ -85,7 +92,9 @@ export function depthProblems(doc) {
 
   if (level !== 'A2') {
     // „Ma [ärkan] (ärkama)”: the base form after the gap gives the word away
-    const hinted = blocks.filter((b) => b.type === 'gaps' && lines(b.data?.sentences).filter((s) => /\][^[]*\([^)]+\)/.test(s)).length > lines(b.data?.sentences).length / 2);
+    // …unless the task itself is the form („Kirjuta sulgudes olev sõna õiges vormis”): then the base form is the stimulus
+    const formTask = (b) => /vorm/i.test(`${b.data?.title || ''} ${b.data?.instruction || ''}`);
+    const hinted = blocks.filter((b) => b.type === 'gaps' && !formTask(b) && lines(b.data?.sentences).filter((s) => /\][^[]*\([^)]+\)/.test(s)).length > lines(b.data?.sentences).length / 2);
     if (hinted.length) out.push({ code: 'hinted', level: 'warning', text: `${hinted.length} lünkülesannet annab sõna algvormi sulgudes ette`, blocks: hinted.map((b) => b.id) });
     const banked = blocks.filter((b) => b.type === 'gaps' && b.data?.showBank === 'yes' && ['B2', 'C1'].includes(level));
     if (banked.length) out.push({ code: 'bank', level: 'warning', text: `${banked.length} lünkülesannet näitab sõnapanka (${level})`, blocks: banked.map((b) => b.id) });
@@ -99,7 +108,7 @@ export function depthProblems(doc) {
   blocks.filter((b) => b.type === 'dictation').forEach((b) => {
     const n = lines(b.data?.sentences).length;
     if (!n) out.push({ code: 'dictation-empty', level: 'error', text: 'etteütlusel pole lauseid (õpetajal pole midagi ette lugeda)', blocks: [b.id] });
-    else if (n < 4) out.push({ code: 'dictation-short', level: 'warning', text: `etteütluses ${n} lauset (vähemalt 4)`, blocks: [b.id] });
+    else if (n < (level === 'A2' ? 4 : 6)) out.push({ code: 'dictation-short', level: 'warning', text: `etteütluses ${n} lauset (vähemalt ${level === 'A2' ? 4 : 6})`, blocks: [b.id] });
   });
 
   return out;
