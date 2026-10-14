@@ -1,0 +1,111 @@
+// Depth of a worksheet: is there enough real work in it, at the level's difficulty? (owner 2026-10-14, after a live
+// lesson: „многие листы откровенно пустые, задания настолько простые, что заканчиваются за пару минут”.)
+// The older checks look at the structure (block count, task types, estimated minutes); a sheet passed them with a few
+// five-item tasks because speaking and writing blocks filled the minutes. These rules look at the work itself.
+// Pure: { meta: { level, phase }, blocks: [{ type, data }] } → [{ code, level: 'error' | 'warning', text }].
+import { blockMinutes } from './timeEstimate.js';
+
+// closed, checked tasks and how their items are counted
+const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
+const list = (v) => String(v || '').split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
+const ITEMS = {
+  choice: (d) => (d.questions || []).length,
+  truefalse: (d) => (d.statements || []).length,
+  gaps: (d) => lines(d.sentences).length,
+  match: (d) => (d.pairs || []).length,
+  manymatch: (d) => lines(d.left).length,
+  errorfix: (d) => (d.rows || []).length,
+  transformation: (d) => (d.rows || []).length,
+  wordforms: (d) => (d.rows || []).length,
+  wordorder: (d) => lines(d.sentences).length,
+  translation: (d) => (d.rows || []).length,
+  dictation: (d) => lines(d.sentences).length,
+  categorize: (d) => (d.groups || []).reduce((n, g) => n + (Array.isArray(g?.words) ? g.words.length : list(g?.words || g?.items).length), 0),
+};
+// the learner writes a whole sentence
+const SENTENCE_WRITING = ['errorfix', 'transformation', 'translation', 'dictation'];
+// speaking / writing / reflection: they matter, but they cannot stand in for the exercises
+const OPEN = new Set(['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'selfcheck', 'rubric', 'phrasebank', 'vocab', 'text', 'tip', 'notice', 'image', 'heading']);
+
+const band = (level) => {
+  const l = String(level || '').toUpperCase();
+  if (l.startsWith('C')) return 'C1';
+  if (l.startsWith('B2')) return 'B2';
+  if (l.startsWith('B1')) return 'B1';
+  return 'A2';
+};
+// per level: items in one closed task, minutes of exercises (without speaking/writing), average words in a task
+// sentence, minutes of the same exercises when the class does them aloud with the teacher
+// (calibrated on the published course 2026-10-14: a task had 5–6 items at every level, a C1 sheet 2 closed tasks)
+export const DEPTH = {
+  A2: { items: 8, exerciseMin: 20, sentenceWords: 4, liveMin: 12 },
+  B1: { items: 10, exerciseMin: 25, sentenceWords: 5, liveMin: 15 },
+  B2: { items: 10, exerciseMin: 25, sentenceWords: 6, liveMin: 15 },
+  C1: { items: 10, exerciseMin: 25, sentenceWords: 8, liveMin: 15 },
+};
+
+const words = (v) => String(v || '').replace(/\[[^\]]*\]|\([^)]*\)|\{[^}]*\}/g, ' x ').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
+function taskSentences(block) {
+  const d = block.data || {};
+  switch (block.type) {
+    case 'gaps': case 'dictation': case 'wordorder': return lines(d.sentences);
+    case 'errorfix': return (d.rows || []).map((r) => r?.wrong || r?.text || r?.sentence || '');
+    case 'transformation': return (d.rows || []).map((r) => r?.source || r?.text || r?.from || '');
+    case 'translation': return (d.rows || []).map((r) => r?.source || '');
+    case 'truefalse': return (d.statements || []).map((s) => s?.text || '');
+    case 'choice': return (d.questions || []).map((q) => q?.q || '');
+    default: return [];
+  }
+}
+
+export function depthProblems(doc) {
+  const level = band(doc?.meta?.level);
+  const norm = DEPTH[level];
+  const blocks = doc?.blocks || [];
+  const out = [];
+  const closed = blocks.filter((b) => ITEMS[b.type]);
+
+  const short = closed.filter((b) => ITEMS[b.type](b.data || {}) < norm.items);
+  if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${norm.items} punkti (${level})`, blocks: short.map((b) => b.id) });
+
+  const exercise = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level), 0);
+  if (exercise < norm.exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${norm.exerciseMin}; rääkimine ja kirjutamine ei loe)` });
+
+  // aloud with the teacher: a recognised item goes in ~9 s, a whole sentence written or rebuilt in ~25 s; a text is
+  // still read at the learner's pace
+  const liveRate = (type) => (SENTENCE_WRITING.includes(type) || type === 'wordorder' ? 0.4 : 0.15);
+  const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level)), 0);
+  if (live < norm.liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${norm.liveMin})` });
+
+  const sentences = blocks.flatMap(taskSentences).filter(Boolean);
+  if (sentences.length >= 4) {
+    const avg = sentences.reduce((n, s) => n + words(s), 0) / sentences.length;
+    if (avg < norm.sentenceWords) out.push({ code: 'short-sentences', level: 'warning', text: `ülesannete laused keskmiselt ${avg.toFixed(1)} sõna (${level}: vähemalt ${norm.sentenceWords})` });
+  }
+
+  if (level !== 'A2') {
+    // „Ma [ärkan] (ärkama)”: the base form after the gap gives the word away
+    const hinted = blocks.filter((b) => b.type === 'gaps' && lines(b.data?.sentences).filter((s) => /\][^[]*\([^)]+\)/.test(s)).length > lines(b.data?.sentences).length / 2);
+    if (hinted.length) out.push({ code: 'hinted', level: 'warning', text: `${hinted.length} lünkülesannet annab sõna algvormi sulgudes ette`, blocks: hinted.map((b) => b.id) });
+    const banked = blocks.filter((b) => b.type === 'gaps' && b.data?.showBank === 'yes' && ['B2', 'C1'].includes(level));
+    if (banked.length) out.push({ code: 'bank', level: 'warning', text: `${banked.length} lünkülesannet näitab sõnapanka (${level})`, blocks: banked.map((b) => b.id) });
+    const twoOptions = blocks.filter((b) => b.type === 'choice' && (b.data?.questions || []).some((q) => lines(q?.options).length < 3 && (q?.opts || []).length < 3));
+    if (twoOptions.length) out.push({ code: 'two-options', level: 'warning', text: `${twoOptions.length} valikülesannet, kus on alla 3 vastusevariandi`, blocks: twoOptions.map((b) => b.id) });
+  }
+
+  const writing = closed.filter((b) => SENTENCE_WRITING.includes(b.type));
+  if (writing.length < 2) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
+
+  blocks.filter((b) => b.type === 'dictation').forEach((b) => {
+    const n = lines(b.data?.sentences).length;
+    if (!n) out.push({ code: 'dictation-empty', level: 'error', text: 'etteütlusel pole lauseid (õpetajal pole midagi ette lugeda)', blocks: [b.id] });
+    else if (n < 4) out.push({ code: 'dictation-short', level: 'warning', text: `etteütluses ${n} lauset (vähemalt 4)`, blocks: [b.id] });
+  });
+
+  return out;
+}
+
+// 0–100: errors weigh more than warnings; for sorting the audit, not a grade
+export function depthScore(problems = []) {
+  return Math.max(0, 100 - problems.reduce((n, p) => n + (p.level === 'error' ? 25 : 10), 0));
+}

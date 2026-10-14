@@ -535,3 +535,26 @@ Reject the module if:
 - the student could predict the whole worksheet layout after seeing one lesson.
 
 A module passes only if it has **content continuity + format diversity**.
+
+## 13. Lehe sügavus (depth) — normatiivne alates 2026-10-14
+
+Omaniku tähelepanek elavast tunnist: lehed olid tühjad ja ülesanded said paari minutiga tehtud. Struktuurikontroll ja
+hinnanguline aeg ei piisa: rääkimis- ja kirjutamisplokid täitsid minutid. Iga uus või parandatud leht peab läbima
+`crm-v2/src/features/worksheet-studio/didactics/depth.js` (`depthProblems`). Audit kogu kursusele:
+`node tools/course-audit/depth.mjs <export.json>` (viimane: `docs/SHEET_DEPTH_AUDIT_2026-10-14.md`).
+
+| Norm | A2 | B1 | B2 | C1 |
+|---|---|---|---|---|
+| punkte ühes suletud ülesandes (valik, õige/vale, lüngad, paarid, viga, teisendus, vormid, sõnajärg, tõlge, etteütlus, sorteerimine) | ≥ 8 | ≥ 10 | ≥ 10 | ≥ 10 |
+| harjutuste aeg ilma rääkimise, kirjutamise, rubriigi ja tekstiplokkideta (**viga**, kui alla) | ≥ 20 min | ≥ 25 min | ≥ 25 min | ≥ 25 min |
+| sama tunnis koos õpetajaga (äratundmine ≈ 9 s, terve lause ≈ 25 s punkti kohta) | ≥ 12 min | ≥ 15 min | ≥ 15 min | ≥ 15 min |
+| ülesannete lausete keskmine pikkus | ≥ 4 sõna | ≥ 5 | ≥ 6 | ≥ 8 |
+
+Lisaks:
+- vähemalt **2 ülesannet, kus õpilane kirjutab terve lause** (viga, teisendus, tõlge, etteütlus);
+- B1-st alates ei anta lünga järel sõna algvormi sulgudes (rohkem kui pooltes lausetes); B2-st alates pole lünkadel
+  sõnapanka; valikküsimusel on vähemalt 3 varianti;
+- **etteütlus**: vähemalt 4 lauset; ilma lauseteta etteütlus on **viga** (õpetaja näeb lauseid tunnis „Loe ette” all,
+  õpilane mitte).
+
+Rääkimine ja kirjutamine jäävad lehele, aga nad ei asenda harjutusi.
