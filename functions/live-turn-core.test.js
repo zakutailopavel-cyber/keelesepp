@@ -53,3 +53,10 @@ test("not configured → empty list; Cloudflare error or no relay → 502", asyn
   await assert.rejects(fetchCloudflareIceServers({ keyId: "k", apiToken: "t", fetchImpl: async () => ({ ok: false, status: 401 }) }), (error) => error.status === 502);
   await assert.rejects(fetchCloudflareIceServers({ keyId: "k", apiToken: "t", fetchImpl: async () => ({ ok: true, json: async () => ({ iceServers: [{ urls: ["stun:stun.cloudflare.com:3478"] }] }) }) }), (error) => error.status === 502);
 });
+
+test("an administrator watching the lesson gets the relay; nobody else outside the lesson does", () => {
+  const invitation = { teacherUid: "t1", studentUid: "s1", status: "accepted" };
+  assert.equal(turnAccessDecision(invitation, "a1", { observer: true }).allowed, true);
+  assert.equal(turnAccessDecision(invitation, "a1").status, 403);
+  assert.equal(turnAccessDecision({ ...invitation, status: "closed" }, "a1", { observer: true }).status, 409);
+});

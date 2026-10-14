@@ -35,6 +35,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/library/worksheets/:lessonId': ACCESS.STAFF,
   '/parents': ACCESS.STAFF,
   '/live-classroom': ACCESS.LIVE_CLASSROOM,
+  '/live-classroom/vaatle/:invitationId': ACCESS.ADMIN,
   '/teachers': ACCESS.ADMIN,
   '/accounts': ACCESS.ADMIN,
   '/teachers/:teacherId': ACCESS.ADMIN,

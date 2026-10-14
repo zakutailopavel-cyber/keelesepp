@@ -616,3 +616,86 @@ test("live lesson whiteboard is limited to the accepted teacher and student", as
   ]);
   assert.equal(studentOwnDelete.status, 403, "missing documents must not be deletable");
 });
+
+function observerWrite(invitationId, uid, active = true) {
+  return {
+    update: {
+      name: documentName(`liveLessonInvitations/${invitationId}/observers/${uid}`),
+      fields: {
+        uid: { stringValue: uid },
+        displayName: { stringValue: "Watching Admin" },
+        active: { booleanValue: active },
+        lastSeenIso: { stringValue: new Date().toISOString() },
+      },
+    },
+    updateTransforms: [{ fieldPath: "lastSeen", setToServerValue: "REQUEST_TIME" }],
+  };
+}
+
+function observerSignalWrite(invitationId, signalId, { type = "offer", observerUid, fromUid, toUid }) {
+  return {
+    update: {
+      name: documentName(`liveLessonInvitations/${invitationId}/observerSignals/${signalId}`),
+      fields: {
+        type: { stringValue: type },
+        sessionId: { stringValue: "observe-1" },
+        observerUid: { stringValue: observerUid },
+        fromUid: { stringValue: fromUid },
+        toUid: { stringValue: toUid },
+        payload: { stringValue: JSON.stringify({ type, sdp: "x" }) },
+        createdAtIso: { stringValue: new Date().toISOString() },
+      },
+    },
+    currentDocument: { exists: false },
+    updateTransforms: [{ fieldPath: "createdAt", setToServerValue: "REQUEST_TIME" }],
+  };
+}
+
+test("only an administrator can watch a lesson; the participants answer only an active observer", async () => {
+  requireSafeEmulatorEnvironment();
+  const ctx = await seedUsersAndStudents("observer");
+  const adminToken = await createUserToken("invite-admin-observer@example.com");
+  const adminUid = tokenUid(adminToken);
+  const outsiderToken = await createUserToken("invite-outsider-observer@example.com");
+  const outsiderUid = tokenUid(outsiderToken);
+  await ctx.db.collection("users").doc(adminUid).set({ role: "admin", displayName: "Watching Admin" });
+  await ctx.db.collection("users").doc(outsiderUid).set({ role: "teacher", displayName: "Outside Teacher" });
+  const invitationId = "invite-observer";
+  const created = admin.firestore.Timestamp.fromMillis(Date.now() - 30000);
+  await ctx.db.collection("liveLessonInvitations").doc(invitationId).set({
+    teacherUid: ctx.teacherUid, teacherName: "Invite Teacher", studentId: ctx.ownStudentId, studentUid: ctx.studentUid,
+    studentName: "Invite Student", title: "Watched", status: "accepted", roomKey: invitationId, createdAt: created,
+    createdAtIso: created.toDate().toISOString(), expiresAt: created, respondedAt: created, cancelledAt: null, closedAt: null,
+  });
+
+  // a teacher of another class, the student's parent, or someone writing another uid cannot become an observer
+  assert.equal((await firestoreCommitRequest(outsiderToken, [observerWrite(invitationId, outsiderUid)])).status, 403);
+  assert.equal((await firestoreCommitRequest(ctx.parentToken, [observerWrite(invitationId, ctx.parentUid)])).status, 403);
+  assert.equal((await firestoreCommitRequest(adminToken, [observerWrite(invitationId, ctx.parentUid)])).status, 403);
+  // before the admin is an active observer, a participant cannot send media to them
+  const early = await firestoreCommitRequest(ctx.teacherToken, [observerSignalWrite(invitationId, "early", { type: "answer", observerUid: adminUid, fromUid: ctx.teacherUid, toUid: adminUid })]);
+  assert.equal(early.status, 403, JSON.stringify(early.body));
+
+  const joined = await firestoreCommitRequest(adminToken, [observerWrite(invitationId, adminUid)]);
+  assert.equal(joined.status, 200, JSON.stringify(joined.body));
+  // the teacher and the student see the observer (badge)
+  assert.equal((await firestoreDocumentRequest(ctx.studentToken, "GET", `liveLessonInvitations/${invitationId}/observers/${adminUid}`)).status, 200);
+
+  const offer = await firestoreCommitRequest(adminToken, [observerSignalWrite(invitationId, "offer-t", { observerUid: adminUid, fromUid: adminUid, toUid: ctx.teacherUid })]);
+  assert.equal(offer.status, 200, JSON.stringify(offer.body));
+  // the admin offers only to the lesson's participants
+  const stray = await firestoreCommitRequest(adminToken, [observerSignalWrite(invitationId, "offer-x", { observerUid: adminUid, fromUid: adminUid, toUid: ctx.parentUid })]);
+  assert.equal(stray.status, 403);
+  const answer = await firestoreCommitRequest(ctx.teacherToken, [observerSignalWrite(invitationId, "answer-t", { type: "answer", observerUid: adminUid, fromUid: ctx.teacherUid, toUid: adminUid })]);
+  assert.equal(answer.status, 200, JSON.stringify(answer.body));
+  // nobody else can answer in the teacher's name or read the signals addressed to someone else
+  const forged = await firestoreCommitRequest(outsiderToken, [observerSignalWrite(invitationId, "answer-f", { type: "answer", observerUid: adminUid, fromUid: outsiderUid, toUid: adminUid })]);
+  assert.equal(forged.status, 403);
+  assert.equal((await firestoreDocumentRequest(ctx.teacherToken, "GET", `liveLessonInvitations/${invitationId}/observerSignals/offer-t`)).status, 200);
+  assert.equal((await firestoreDocumentRequest(ctx.studentToken, "GET", `liveLessonInvitations/${invitationId}/observerSignals/offer-t`)).status, 403);
+  assert.equal((await firestoreDocumentRequest(outsiderToken, "GET", `liveLessonInvitations/${invitationId}/observerSignals/answer-t`)).status, 403);
+
+  // after the lesson is closed nobody can start watching
+  await ctx.db.collection("liveLessonInvitations").doc(invitationId).update({ status: "closed" });
+  assert.equal((await firestoreCommitRequest(adminToken, [observerWrite(invitationId, adminUid)])).status, 403);
+});

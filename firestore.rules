@@ -1943,6 +1943,64 @@ service cloud.firestore {
         allow delete: if isAdmin();
       }
 
+      // Administrator watching the lesson (Live Classroom „Vaata tundi”, owner 2026-10-14): the observer's own entry
+      // (teacher and student see „Administraator vaatab tundi”) and the receive-only call signals between the
+      // observer and each participant. The 1:1 call itself (signals) is unchanged.
+      match /observers/{observerUid} {
+        allow read: if isAdmin() || canReadLiveLessonRoom(invitationId);
+        allow create, update: if isAdmin()
+          && observerUid == uid()
+          && get(liveLessonInvitationPath(invitationId)).data.status == 'accepted'
+          && request.resource.data.keys().hasOnly(['uid', 'displayName', 'active', 'joinedAt', 'lastSeen', 'lastSeenIso'])
+          && request.resource.data.keys().hasAll(['uid', 'displayName', 'active', 'lastSeen', 'lastSeenIso'])
+          && request.resource.data.uid == uid()
+          && request.resource.data.displayName is string
+          && request.resource.data.displayName.size() <= 160
+          && request.resource.data.active is bool
+          && request.resource.data.lastSeen == request.time
+          && request.resource.data.lastSeenIso is string
+          && request.resource.data.lastSeenIso.size() <= 40;
+        allow delete: if isAdmin();
+      }
+
+      match /observerSignals/{signalId} {
+        allow read: if signedIn()
+          && resource.data.toUid == uid()
+          && (isAdmin() || canUseLiveLessonInvitation(invitationId));
+        allow create: if signedIn()
+          && get(liveLessonInvitationPath(invitationId)).data.status == 'accepted'
+          && request.resource.data.keys().hasOnly(['type', 'sessionId', 'observerUid', 'fromUid', 'toUid', 'payload', 'createdAt', 'createdAtIso'])
+          && request.resource.data.keys().hasAll(['type', 'sessionId', 'observerUid', 'fromUid', 'toUid', 'payload', 'createdAt', 'createdAtIso'])
+          && request.resource.data.type in ['offer', 'answer', 'candidate', 'hangup']
+          && request.resource.data.sessionId is string
+          && request.resource.data.sessionId.size() > 0
+          && request.resource.data.sessionId.size() <= 120
+          && request.resource.data.fromUid == uid()
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() <= 64000
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.createdAtIso is string
+          && request.resource.data.createdAtIso.size() <= 40
+          && (
+            (
+              isAdmin()
+              && request.resource.data.observerUid == uid()
+              && request.resource.data.toUid in [
+                get(liveLessonInvitationPath(invitationId)).data.teacherUid,
+                get(liveLessonInvitationPath(invitationId)).data.studentUid
+              ]
+            )
+            || (
+              canUseLiveLessonInvitation(invitationId)
+              && request.resource.data.toUid == request.resource.data.observerUid
+              && exists(/databases/$(database)/documents/liveLessonInvitations/$(invitationId)/observers/$(request.resource.data.observerUid))
+              && get(/databases/$(database)/documents/liveLessonInvitations/$(invitationId)/observers/$(request.resource.data.observerUid)).data.active == true
+            )
+          );
+        allow update: if false;
+        allow delete: if isAdmin();
+      }
+
       match /whiteboardElements/{elementId} {
         allow read: if canReadLiveLessonRoom(invitationId);
         allow create: if canUseLiveLessonInvitation(invitationId)

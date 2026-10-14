@@ -1,5 +1,5 @@
 import {
-  ArrowLeft, ClipboardList, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
+  ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
   MoreHorizontal, Phone, PhoneOff, Redo2, RefreshCw, Send, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -15,6 +15,7 @@ import RoomPet from '../pet/RoomPet.jsx';
 import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/transcriberStatus.js';
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
+import { useObserverPeers } from './useLessonObserver.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { fileKind } from './roomMaterials.js';
@@ -134,10 +135,12 @@ function DevicesPanel({ call, stream }) {
  */
 export default function LiveRoom({
   invitation, role, user, student = null, callProps, boardService, messagesRepository, library, worksheetProps = {},
-  recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false,
+  recordingService, wordsService, homeworkService, summaryService, petRepository, streams, onLeave, onEndLesson, ending = false, observerProps,
 }) {
   const teacher = role === 'teacher';
   const call = useLiveCall({ autoAnswer: role === 'student', ...callProps, invitation, role, user });
+  // an administrator watching the lesson receives this side's camera and microphone; both sides see it
+  const watching = useObserverPeers({ ...observerProps, invitationId: invitation.id, user, localStream: call.localStream, enabled: invitation.status === 'accepted' });
   // a guest by lesson link (functions/live-guest.js) has this room only: no chat history, words, pet or uploads of the card
   const guest = user?.guest === true;
   const boardRef = useRef(null);
@@ -150,6 +153,13 @@ export default function LiveRoom({
   const [chatError, setChatError] = useState('');
   const [seenCount, setSeenCount] = useState(null);
   const [notice, setNotice] = useState('');
+  // the badge in the top bar is only an eye: when an administrator starts watching, it is also said in words
+  const watchingCount = watching.observers.length;
+  const watchedBefore = useRef(0);
+  useEffect(() => {
+    if (watchingCount > watchedBefore.current) setNotice('Administraator vaatab tundi');
+    watchedBefore.current = watchingCount;
+  }, [watchingCount]);
   const [now, setNow] = useState(() => Date.now());
   // recording starts by itself with the call when the student card has consent
   const [recState, setRecState] = useState({ recording: false, error: '' });
@@ -288,6 +298,7 @@ export default function LiveRoom({
           {teacher && recState.recording ? <button type="button" className="lr-pill lr-rec" onClick={() => { setMenu(''); setPanel('record'); }} aria-label="Tundi salvestatakse — ava salvestamine"><span className="lr-rec__dot" aria-hidden="true" />Salvestan</button> : null}
           {teacher && recState.recording && transcriber.known && !transcriber.online ? <button type="button" className="lr-pill lr-rec is-off" title={transcriberLabel(transcriber)} onClick={() => { setMenu(''); setPanel('record'); }}>Mac ei transkribeeri</button> : null}
           {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
+          {watching.observers.length ? <span className="lr-pill lr-observer" role="img" aria-label="Administraator vaatab tundi" title={`Administraator vaatab tundi: ${watching.observers.map((item) => item.displayName).join(', ')}`}><Eye size={16} /></span> : null}
           {awayFromTeacher ? <button type="button" className="lr-pill lr-follow" onClick={() => boardRef.current?.selectPage?.(teacherPage || null)}>Mine õpetaja lehele</button> : null}
           {call.canReconnect ? <IconButton label="Taasta ühendus" disabled={call.busy} onClick={call.startTeacherCall}><RefreshCw size={18} /></IconButton> : null}
           {callButton}

@@ -155,7 +155,10 @@ export function useLiveCall({
   const onMediaStreamsRef = useRef(onMediaStreams);
   useEffect(() => { onMediaStreamsRef.current = onMediaStreams; }, [onMediaStreams]);
   const streamsRef = useRef({ local: null, remote: null });
+  // the local camera + microphone as state: the administrator watching the lesson gets the same tracks
+  const [localStream, setLocalStream] = useState(null);
   const reportStreams = useCallback((patch) => {
+    if ('local' in patch) setLocalStream(patch.local || null);
     streamsRef.current = { ...streamsRef.current, ...patch };
     onMediaStreamsRef.current?.(streamsRef.current);
   }, []);
@@ -711,6 +714,6 @@ export function useLiveCall({
     audioEnabled, videoEnabled, screenSharing, teacherReady, peerOnline, peerName, connected, canReconnect,
     localVideoRef, remoteVideoRef, startTeacherCall, joinStudentCall, hangUp, toggleAudio, toggleVideo,
     startScreenShare, stopScreenShare, devices, selectedDevices: currentIds, switchDevice, deviceBusy,
-    roomChannelOpen, sendRoom, onRoomMessage,
+    roomChannelOpen, sendRoom, onRoomMessage, localStream,
   };
 }
