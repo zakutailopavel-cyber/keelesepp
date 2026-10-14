@@ -4,6 +4,20 @@
   `didactics/depth.js` problems as warnings (`depth:<code>`, „Sügavus: …”), never errors — no sheet meets the norms
   yet, publishing must not stop. The course modules will enforce depth module by module as they are fixed.
 - Tests: qualityDepth.test.js 2/2; worksheet-studio + worksheet-generator 878 passed.
+## 2026-10-14 · agent/parent-edit — the administrator edits a parent's name, e-mail and phone
+
+- Owner: „админ должен менять данные родителей”. Before: „Muuda” on Lapsevanemad changed only CRM fields and phone;
+  the name and e-mail could not be changed, the invoice e-mail on a child's card (`parentEmail`) had no field.
+- Server: `functions/parent-profile-core.js` (input check, `cardPatch`) + `updateParentProfile` / `POST
+  /accounts/parent-profile` in `staffOperationsApi` (admin): Firebase account name and login e-mail (password stays;
+  refuses an e-mail of another account, non-parent accounts and super admins), `users/{uid}` name/e-mail/phone, and the
+  linked children's cards where they still show the old name/e-mail or nothing (`parentName`, `parentEmail`,
+  `payerEmail` if it was the old e-mail). Issued invoices unchanged. activityLog `parent.profile_updated` (before/after,
+  cards).
+- CRM: `ParentsPage` edit modal: Nimi, E-post (ka sisselogimiseks) with a hint, „Uuenda ka laste kaartidel” (on);
+  identity via the server, CRM fields as before. `StudentForm`: „Lapsevanema e-post (arved)” for card-only parents.
+- Tests: functions 272/272 (+3), crm-v2 parents+students 87/87 (+2), e2e 12/12 (+1 parent-edit).
+- Production: deploy `staffOperationsApi` after merge.
 
 ## 2026-10-14 · agent/sheet-depth-audit — new quality rules: is there real work on the sheet?
 

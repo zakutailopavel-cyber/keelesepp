@@ -50,6 +50,40 @@ describe('ParentsPage', () => {
     expect(await screen.findByRole('status')).toHaveTextContent('salvestati');
   });
 
+  it('an administrator changes a parent\'s name and e-mail: the account and the children\'s cards follow', async () => {
+    const data = repositories();
+    data.accountApi = { updateParentProfile: vi.fn().mockResolvedValue({ uid: 'parent-1', displayName: 'Mari Tamm', email: 'mari.tamm@example.com', phone: '555', loginEmailChanged: true, cards: [{ id: 'student-1', name: 'Mari', fields: ['parentName', 'parentEmail'] }] }) };
+    const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
+    renderPage(user, data);
+    await screen.findByText('Mari Ema');
+    fireEvent.click(screen.getAllByRole('button', { name: /Muuda/ })[0]);
+    const dialog = screen.getByRole('dialog', { name: 'Muuda: Mari Ema' });
+    fireEvent.change(within(dialog).getByLabelText('Nimi'), { target: { value: 'Mari Tamm' } });
+    fireEvent.change(within(dialog).getByLabelText('E-post (ka sisselogimiseks)'), { target: { value: 'mari.tamm@example.com' } });
+    expect(within(dialog).getByText(/parool jääb samaks/)).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(data.accountApi.updateParentProfile).toHaveBeenCalledWith({ uid: 'parent-1', displayName: 'Mari Tamm', email: 'mari.tamm@example.com', phone: '555', applyToCards: true }));
+    // the CRM fields still go through the old path, without the identity fields
+    await waitFor(() => expect(data.repository.updateCrm).toHaveBeenCalledWith(expect.objectContaining({ displayName: 'Mari Tamm' }), expect.not.objectContaining({ email: expect.anything() }), user));
+    const status = await screen.findByRole('status');
+    expect(status).toHaveTextContent('Sisselogimise e-post on nüüd mari.tamm@example.com');
+    expect(status).toHaveTextContent('Uuendatud laste kaardid: Mari');
+  });
+
+  it('only CRM fields changed: the account is not touched', async () => {
+    const data = repositories();
+    data.accountApi = { updateParentProfile: vi.fn() };
+    const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
+    renderPage(user, data);
+    await screen.findByText('Mari Ema');
+    fireEvent.click(screen.getAllByRole('button', { name: /Muuda/ })[0]);
+    const dialog = screen.getByRole('dialog', { name: 'Muuda: Mari Ema' });
+    fireEvent.change(within(dialog).getByLabelText('Lapsevanema märkmed'), { target: { value: 'Helistada reedel.' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(data.repository.updateCrm).toHaveBeenCalled());
+    expect(data.accountApi.updateParentProfile).not.toHaveBeenCalled();
+  });
+
   it('shows linked children and lets an administrator add several children without closing the manager', async () => {
     const data = repositories();
     const user = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };

@@ -55,6 +55,11 @@ export const accountApprovalsService = {
   inviteStudent({ studentId, email = '' }) {
     return staffPost('/accounts/invite', { studentId, email });
   },
+  // administrator: a parent's name, e-mail (also the login; the password stays) and phone, and the children's cards
+  // that still show the old values (new invoices); issued invoices are not changed
+  updateParentProfile({ uid, displayName, email, phone, applyToCards = true }) {
+    return staffPost('/accounts/parent-profile', { uid, displayName, email, phone, applyToCards });
+  },
   createCardForReview(reviewId) {
     return staffPost('/accounts/reviews/create-card', { reviewId });
   },
