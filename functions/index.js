@@ -6397,6 +6397,8 @@ const LINK_REVIEW_REASONS = {
   parent_child_name_variant: "Lapse nimi sarnaneb olemasoleva kaardiga",
   parent_email_not_verified: "Lapse kaart on olemas, kuid vanema e-post ei ole kinnitatud",
   parent_email_and_name_multiple_students: "Mitu sobivat lapse kaarti",
+  email_on_child_card: "Sama e-post on lapse kaardil: kas see on lapsevanema konto? Siis seo lapsevanemana",
+  possible_existing_card: "Sarnane kaart on juba olemas (ka mitteaktiivne): kas see on sama inimene?",
 };
 
 // Administrator: registrations the automatic linking did not decide (possible duplicates). Shown in „Uued kontod”.
@@ -6977,7 +6979,8 @@ async function linkAccountToStudent({ actor, uid, studentId, relationship, reque
     const student = studentSnap.data();
     const profile = userSnap.exists ? userSnap.data() : {};
     const existingRole = String(profile.role || "").toLowerCase();
-    const profileRoles = uniqueIds([existingRole, profile.studentRole === true ? "student" : "", cleanRelationship]);
+    // keep the roles the account already has (a student who is also a parent keeps both)
+    const profileRoles = uniqueIds([...(Array.isArray(profile.roles) ? profile.roles : []), existingRole, profile.studentRole === true ? "student" : "", cleanRelationship]);
     const nextRole = STAFF_ROLES.has(existingRole) ? existingRole : existingRole || cleanRelationship;
     const studentPatch = cleanRelationship === "student" ? {
       linkedUserIds: uniqueIds([studentAccountIds(student), cleanUid]),

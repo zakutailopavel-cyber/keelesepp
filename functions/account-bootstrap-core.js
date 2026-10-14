@@ -47,6 +47,37 @@ function namesAreShortAndFullVariants(left, right) {
   return a.startsWith(`${b} `) || b.startsWith(`${a} `);
 }
 
+// words of a name (≥ 3 letters): two names belong to the same person only if they share one (Uljana / Ulyana Kazak do,
+// Lana Polišuk / Olena Polishchuk do not)
+function nameTokens(value) {
+  return normalizeName(value).split(" ").filter(token => token.length >= 3);
+}
+
+function namesOverlap(left, right) {
+  const a = nameTokens(left);
+  const b = nameTokens(right);
+  if (!a.length || !b.length) return true;
+  return a.some(x => b.some(y => x === y || (x.length >= 4 && y.length >= 4 && (x.startsWith(y) || y.startsWith(x)))));
+}
+
+// a child's card: a parent is named on it or the grade is a school class / kindergarten
+function looksLikeChildCard(student = {}, email = "") {
+  return Boolean(String(student.parentName || "").trim())
+    || (email && parentEmails(student).includes(email))
+    || /klass|lasteaed|kindergarten/i.test(String(student.grade || ""));
+}
+
+// a card that may already be this person although it is not active or not linked: same login, same e-mail (also as the
+// parent's e-mail) or the same full name (two words or more — a first name alone is too common)
+function possibleExistingCards(students = [], { uid = "", email = "", displayName = "" } = {}) {
+  const fullName = nameTokens(displayName).length >= 2 ? normalizeName(displayName) : "";
+  return students.filter(student => student?.id && !student.mergedIntoStudentId && (
+    (uid && studentUserIds(student).includes(uid))
+    || (email && (studentEmails(student).includes(email) || parentEmails(student).includes(email)))
+    || (fullName && normalizeName(student.name) === fullName)
+  ));
+}
+
 function candidateSummary(student) {
   return {
     id: student.id,
@@ -89,8 +120,24 @@ function planStudentAccountBootstrap({ uid, email, emailVerified = false, displa
       reason: "student_has_another_login",
       candidates: [candidateSummary(candidate)],
     };
+    // the parent's e-mail written on a child's card: the parent's own account must not become the child's login
+    // (owner 2026-10-14: a mother was linked to her daughter's card as the student)
+    const accountName = String(displayName || "").includes("@") ? "" : displayName;
+    if (accountName && looksLikeChildCard(candidate, cleanEmail) && !namesOverlap(accountName, candidate.name)) return {
+      status: "review",
+      reason: "email_on_child_card",
+      candidates: [candidateSummary(candidate)],
+    };
     return { status: "link", studentId: candidate.id, source: "exact_email" };
   }
+  // never a silent duplicate: an inactive card, a child card with this e-mail or the same full name goes to the
+  // administrator first (owner 2026-10-14: „Elena” and a new „Olena” card for the same person)
+  const existing = possibleExistingCards(students, { uid: cleanUid, email: cleanEmail, displayName });
+  if (existing.length) return {
+    status: "review",
+    reason: "possible_existing_card",
+    candidates: existing.map(candidateSummary),
+  };
   return {
     status: "create",
     source: "no_exact_match",
@@ -139,12 +186,23 @@ function planParentChildBootstrap({ uid, email, emailVerified = false, childName
       plans.push({ childName, status: "review", reason: "parent_email_and_name_multiple_students", candidates: exactMatches.map(candidateSummary) });
       return;
     }
+    // an inactive card of this child with this parent's e-mail or login: the administrator decides, no duplicate
+    const inactive = students.filter(student => student?.id && student.active === false && !student.mergedIntoStudentId
+      && normalizeName(student.name) === nameKey
+      && (parentEmails(student).includes(cleanEmail) || studentParentIds(student).includes(cleanUid)));
+    if (inactive.length) {
+      plans.push({ childName, status: "review", reason: "possible_existing_card", candidates: inactive.map(candidateSummary) });
+      return;
+    }
     plans.push({ childName, status: "create", source: "no_exact_match", student: { name: childName, parentEmail: cleanEmail } });
   });
   return plans;
 }
 
 module.exports = {
+  looksLikeChildCard,
+  namesOverlap,
+  possibleExistingCards,
   normalizeEmail,
   normalizeName,
   namesAreShortAndFullVariants,
