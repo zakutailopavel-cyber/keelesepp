@@ -7872,6 +7872,8 @@ exports.liveTurnApi = functions
   .https.onRequest(async (req, res) => {
     applyCors(req, res);
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+    // the room's warm-up call only wakes the function (no credentials, no 404 in the log)
+    if (req.method === "POST" && req.path === "/ping") { res.status(204).send(""); return; }
     if (req.method !== "POST" || req.path !== "/ice") {
       res.status(404).json({ error: "Not found" });
       return;

@@ -155,7 +155,7 @@ describe('student flow: every answerable block in the real homework screens', ()
       else expect(card.querySelectorAll('.is-bad'), `${b.type}: no ✗ for the teacher`).toHaveLength(0);
       expect(card.querySelectorAll('.is-ok').length, `${b.type}: ✓ for the teacher`).toBeGreaterThan(0);
     });
-  }, 30000);
+  }, 90000); // a whole flow through the real screens: slow when the full suite runs in parallel
 });
 
 describe('live lesson: the student and the teacher on the same sheet', () => {
@@ -203,7 +203,7 @@ describe('live lesson: the student and the teacher on the same sheet', () => {
       if (WRONG.includes(b.type)) expect(card.querySelectorAll('.is-bad').length, `${b.type}: ✗ live`).toBeGreaterThan(0);
       else expect(card.querySelectorAll('.is-bad'), `${b.type}: no ✗ live`).toHaveLength(0);
     });
-  }, 30000);
+  }, 90000); // a whole flow through the real screens: slow when the full suite runs in parallel
 });
 
 describe('resume from an older copy of the assignment', () => {
