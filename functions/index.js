@@ -7469,6 +7469,59 @@ async function testStudentSession({ actor, studentId = "" }) {
   return { token, studentId: card.id, studentName: card.data().name || "Testõpilane" };
 }
 
+// Administrator edits a parent's name, e-mail and phone (functions/parent-profile-core.js): the account (login e-mail —
+// the password stays), users/{uid} and, when asked, the children's cards that still show the old values (new invoices
+// go there). Issued invoices are not changed.
+async function updateParentProfile({ actor, uid, displayName, email, phone, applyToCards = true }) {
+  const { parentProfileInput, cardPatch } = require("./parent-profile-core");
+  const cleanUid = cleanText(uid, 180);
+  if (!cleanUid) throw httpError(400, "Lapsevanema konto puudub.");
+  let next;
+  try { next = parentProfileInput({ displayName, email, phone }); } catch (error) { throw httpError(error.status || 400, error.message); }
+  let authUser;
+  try { authUser = await admin.auth().getUser(cleanUid); } catch (error) { throw httpError(404, "Lapsevanema kontot ei leitud."); }
+  const userRef = db.collection("users").doc(cleanUid);
+  const profile = (await userRef.get()).data() || {};
+  const roles = new Set([profile.role, ...(Array.isArray(profile.roles) ? profile.roles : []), ...(Array.isArray(authUser.customClaims?.roles) ? authUser.customClaims.roles : [])]);
+  if (!roles.has("parent")) throw httpError(409, "See konto ei ole lapsevanema konto.");
+  if (SUPER_ADMIN_EMAILS.has(String(authUser.email || "").toLowerCase())) throw httpError(409, "Administraatori kontot siin ei muudeta.");
+  const before = { displayName: profile.displayName || authUser.displayName || "", email: String(authUser.email || profile.email || "").toLowerCase(), phone: profile.phone || "" };
+  const emailChanged = next.email !== before.email;
+  if (emailChanged) {
+    let other = null;
+    try { other = await admin.auth().getUserByEmail(next.email); } catch (error) { other = null; }
+    if (other && other.uid !== cleanUid) throw httpError(409, "See e-post on juba teise konto oma.");
+  }
+  await admin.auth().updateUser(cleanUid, { displayName: next.displayName, ...(emailChanged ? { email: next.email } : {}) });
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  await userRef.set({ displayName: next.displayName, email: next.email, phone: next.phone, parentProfileUpdatedAt: nowIso, parentProfileUpdatedBy: actorData, updatedAt: nowIso }, { merge: true });
+  const cardDocs = new Map();
+  if (applyToCards) {
+    const queries = [
+      db.collection("students").where("parentUid", "==", cleanUid).get(),
+      db.collection("students").where("linkedParentId", "==", cleanUid).get(),
+      db.collection("students").where("linkedParentIds", "array-contains", cleanUid).get(),
+    ];
+    (await Promise.all(queries)).forEach((snap) => snap.docs.forEach((doc) => cardDocs.set(doc.id, doc)));
+  }
+  const cards = [];
+  const batch = db.batch();
+  cardDocs.forEach((doc) => {
+    const patch = cardPatch(doc.data(), before, next);
+    if (!Object.keys(patch).length) return;
+    batch.set(doc.ref, { ...patch, updatedAt: nowIso }, { merge: true });
+    cards.push({ id: doc.id, name: doc.data().name || "", fields: Object.keys(patch) });
+  });
+  batch.set(db.collection("activityLog").doc(), {
+    type: "parent.profile_updated", action: "parent.profile_updated", label: `${next.displayName}: lapsevanema andmed muudetud`,
+    targetUid: cleanUid, before, after: next, loginEmailChanged: emailChanged, cards,
+    byUid: actorData.uid, byName: actorData.name, byRole: "admin", actor: actorData, createdAt: nowIso, date: nowIso.slice(0, 10),
+  });
+  await batch.commit();
+  return { uid: cleanUid, ...next, loginEmailChanged: emailChanged, cards };
+}
+
 // „Saada kutse” on the student card (functions/student-invite-core.js): an account without a password, linked to the
 // card as the student, and an e-mail with a link to set the password. On a card that already has this student's
 // account the same call sends a new password link (a student who forgot the password).
@@ -7767,6 +7820,10 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
         requestId: req.body?.requestId,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounts/parent-profile") {
+      res.json(await updateParentProfile({ actor, uid: req.body?.uid, displayName: req.body?.displayName, email: req.body?.email, phone: req.body?.phone, applyToCards: req.body?.applyToCards !== false }));
       return;
     }
     if (req.path === "/accounts/invite") {

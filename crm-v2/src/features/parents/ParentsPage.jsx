@@ -6,6 +6,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal
 import PeopleOverview from '../../components/PeopleOverview.jsx';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { invoicesService, parentsService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { ROLES } from '../../utils/roles.js';
 import { STUDENT_LEVELS } from '../students/studentOptions.js';
 import { buildParentRows, exactParentDuplicateClusters, filterParentRows } from './parentModel.js';
@@ -33,10 +34,13 @@ function editValues(parent) {
     parentContactOwner: parent.parentContactOwner || '',
     parentContactNotes: parent.parentContactNotes || '',
     phone: parent.phone || '',
+    displayName: parent.displayName || '',
+    email: parent.email || '',
+    applyToCards: true,
   };
 }
 
-export default function ParentsPage({ repository = parentsService, studentRepository = studentsService, invoiceRepository = invoicesService, teacherRepository = teachersService }) {
+export default function ParentsPage({ repository = parentsService, studentRepository = studentsService, invoiceRepository = invoicesService, teacherRepository = teachersService, accountApi = accountApprovalsService }) {
   const { user } = useAuth();
   const admin = user.roles.includes(ROLES.ADMIN);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !admin;
@@ -85,10 +89,18 @@ export default function ParentsPage({ repository = parentsService, studentReposi
     setSaving('edit');
     setActionError('');
     try {
-      await repository.updateCrm(editingRow.parent, editForm, user);
+      const parent = editingRow.parent;
+      const identityChanged = editForm.displayName.trim() !== (parent.displayName || '') || editForm.email.trim().toLowerCase() !== (parent.email || '').toLowerCase() || editForm.phone.trim() !== (parent.phone || '');
+      let result = null;
+      // name, e-mail and phone on the server: the account, the profile and the children's cards together
+      if (identityChanged) result = await accountApi.updateParentProfile({ uid: parent.id, displayName: editForm.displayName, email: editForm.email, phone: editForm.phone, applyToCards: editForm.applyToCards });
+      const { displayName: _name, email: _email, applyToCards: _cards, ...crm } = editForm;
+      await repository.updateCrm(result ? { ...parent, displayName: result.displayName } : parent, result ? { ...crm, phone: result.phone } : crm, user);
       setEditingId('');
       setEditForm(null);
-      setSuccess('Lapsevanema kontaktandmed salvestati.');
+      setSuccess(result
+        ? `Lapsevanema andmed salvestati.${result.loginEmailChanged ? ` Sisselogimise e-post on nüüd ${result.email} (parool jäi samaks).` : ''}${result.cards.length ? ` Uuendatud laste kaardid: ${result.cards.map((card) => card.name).join(', ')}.` : ''}`
+        : 'Lapsevanema kontaktandmed salvestati.');
       await state.reload();
     } catch (error) {
       setActionError(error.message || 'Lapsevanema andmete salvestamine ebaõnnestus.');
@@ -210,7 +222,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
     })}</div> : <Card><EmptyState title="Lapsevanemaid ei leitud" description={query || status !== 'all' ? 'Muuda otsingut või filtrit.' : 'Sinu tööalas ei ole seotud lapsevanemaid.'} /></Card>}
 
     <Modal open={Boolean(editingRow && editForm)} title={`Muuda: ${editingRow?.parent.displayName || editingRow?.parent.email || ''}`} onClose={() => !saving && setEditingId('')} footer={<><Button variant="secondary" disabled={Boolean(saving)} onClick={() => setEditingId('')}>Loobu</Button><Button type="submit" form="parent-edit-form" loading={saving === 'edit'}>Salvesta</Button></>}>
-      {editForm ? <form id="parent-edit-form" className="form-grid" onSubmit={saveParent}><Select id="parent-status" label="Kontakti staatus" value={editForm.parentContactStatus} onChange={(event) => setEditForm({ ...editForm, parentContactStatus: event.target.value })}>{Object.entries(statuses).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}</Select><Select id="parent-channel" label="Suhtluskanal" value={editForm.parentContactChannel} onChange={(event) => setEditForm({ ...editForm, parentContactChannel: event.target.value })}>{Object.entries(channels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</Select><Input id="parent-phone" label="Telefon" value={editForm.phone} onChange={(event) => setEditForm({ ...editForm, phone: event.target.value })} /><Input id="parent-next-contact" label="Järgmine kontakt" type="date" value={editForm.parentNextContactAt} onChange={(event) => setEditForm({ ...editForm, parentNextContactAt: event.target.value })} /><Input id="parent-owner" className="form-grid__wide" label="Vastutaja" value={editForm.parentContactOwner} onChange={(event) => setEditForm({ ...editForm, parentContactOwner: event.target.value })} /><label className="textarea-field form-grid__wide"><span>Märkmed</span><textarea aria-label="Lapsevanema märkmed" rows="5" value={editForm.parentContactNotes} onChange={(event) => setEditForm({ ...editForm, parentContactNotes: event.target.value })} /></label></form> : null}
+      {editForm ? <form id="parent-edit-form" className="form-grid" onSubmit={saveParent}><Input id="parent-name" label="Nimi" required value={editForm.displayName} onChange={(event) => setEditForm({ ...editForm, displayName: event.target.value })} /><Input id="parent-email" label="E-post (ka sisselogimiseks)" type="email" required value={editForm.email} onChange={(event) => setEditForm({ ...editForm, email: event.target.value })} />{editForm.email.trim().toLowerCase() !== (editingRow?.parent.email || '').toLowerCase() ? <p className="form-hint form-grid__wide">Lapsevanem logib edaspidi sisse uue e-postiga, parool jääb samaks. Juba saadetud arved jäävad vana aadressiga.</p> : null}<label className="checkbox-field form-grid__wide"><input type="checkbox" checked={editForm.applyToCards} onChange={(event) => setEditForm({ ...editForm, applyToCards: event.target.checked })} /> <span>Uuenda ka laste kaartidel (uued arved lähevad uuele nimele ja e-postile)</span></label><Select id="parent-status" label="Kontakti staatus" value={editForm.parentContactStatus} onChange={(event) => setEditForm({ ...editForm, parentContactStatus: event.target.value })}>{Object.entries(statuses).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}</Select><Select id="parent-channel" label="Suhtluskanal" value={editForm.parentContactChannel} onChange={(event) => setEditForm({ ...editForm, parentContactChannel: event.target.value })}>{Object.entries(channels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</Select><Input id="parent-phone" label="Telefon" value={editForm.phone} onChange={(event) => setEditForm({ ...editForm, phone: event.target.value })} /><Input id="parent-next-contact" label="Järgmine kontakt" type="date" value={editForm.parentNextContactAt} onChange={(event) => setEditForm({ ...editForm, parentNextContactAt: event.target.value })} /><Input id="parent-owner" className="form-grid__wide" label="Vastutaja" value={editForm.parentContactOwner} onChange={(event) => setEditForm({ ...editForm, parentContactOwner: event.target.value })} /><label className="textarea-field form-grid__wide"><span>Märkmed</span><textarea aria-label="Lapsevanema märkmed" rows="5" value={editForm.parentContactNotes} onChange={(event) => setEditForm({ ...editForm, parentContactNotes: event.target.value })} /></label></form> : null}
     </Modal>
 
     <Modal open={Boolean(linkingRow)} title={`Lisa laps: ${linkingRow?.parent.displayName || linkingRow?.parent.email || ''}`} onClose={() => !saving && setLinkingId('')} className="modal--parent-link" footer={<Button variant="secondary" disabled={Boolean(saving)} onClick={() => setLinkingId('')}>Valmis</Button>}>
