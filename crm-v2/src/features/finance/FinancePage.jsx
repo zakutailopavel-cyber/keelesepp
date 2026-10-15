@@ -37,6 +37,7 @@ import {
   bankTransactionsService,
   creditNotesService,
   financeApi,
+  financeRequestId,
   financialAuditService,
   financialPeriodsService,
   invoiceDeliveryApi,
@@ -284,7 +285,8 @@ export default function FinancePage({
   const openInvoice = (invoice) => {
     setSelected(invoice);
     setPaymentMode(false);
-    setForm(paymentDraft(invoice));
+    // one request id per opened form: a double click never records the payment twice
+    setForm({ ...paymentDraft(invoice), requestId: financeRequestId("payment") });
     setErrors({});
     setActionError("");
   };

@@ -11,6 +11,7 @@ import {
   Search,
   Send,
   Settings2,
+  ShieldCheck,
   Trash2,
   WalletCards,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ import {
   bankTransactionsService,
   creditNotesService,
   financeApi,
+  financeRequestId,
   financialAuditService,
   financialPeriodsService,
   invoiceDeliveryApi,
@@ -42,6 +44,7 @@ import { currentMonth, defaultBillingMonth, shiftMonth } from './monthlyBilling.
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
 import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
+import PaymentCheckPanel from './PaymentCheckPanel.jsx';
 import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
@@ -54,7 +57,8 @@ const STATUS = {
   unpaid: ['Tasumata', 'neutral'], partial: ['Osaliselt', 'info'], overdue: ['Üle tähtaja', 'danger'],
   paid: ['Makstud', 'success'], credit: ['Krediteeritud', 'neutral'], 'email-failed': ['E-post ebaõnnestus', 'danger'], 'no-show': ['Puudumine', 'warning'],
 };
-const VIEWS = ['invoices', 'paid', 'unpaid', 'credits', 'prepare'];
+// „check” (Kontroll, admin): invoices against payment records and the bank (owner 2026-10-15)
+const VIEWS = ['invoices', 'paid', 'unpaid', 'credits', 'prepare', 'check'];
 const creditAvailableCents = (credit) => Number.isInteger(credit?.availableAmountCents)
   ? credit.availableAmountCents : Math.round(Number(credit?.availableAmount || 0) * 100);
 
@@ -106,6 +110,8 @@ function PaymentDialog({ invoice, busy, error, onClose, onSubmit }) {
   const [form, setForm] = useState(() => ({
     amount: (state.balanceCents / 100).toFixed(2), paidAt: today(), method: 'bank',
     reference: invoice?.paymentReference || invoice?.num || invoice?.number || '', note: '',
+    // one request id per opened dialog: a double click never records the payment twice
+    requestId: financeRequestId('payment'),
   }));
   const [errors, setErrors] = useState({});
   const submit = (event) => {
@@ -141,6 +147,7 @@ export default function FinanceMonthPage({
   creditRepository = payerCreditsService,
   creditNoteRepository = creditNotesService,
   auditRepository = financialAuditService,
+  paymentRepository,
   monthlyInvoiceProps,
   showPrivacyBanner = true,
 }) {
@@ -157,7 +164,7 @@ export default function FinanceMonthPage({
   const [activeView, setActiveView] = useState(() => {
     const params = new globalThis.URLSearchParams(location.search);
     const requested = params.get('status') === 'overdue' ? 'unpaid' : (VIEWS.includes(params.get('view')) ? params.get('view') : 'invoices');
-    return requested === 'prepare' && !canManage ? 'invoices' : requested;
+    return ['prepare', 'check'].includes(requested) && !canManage ? 'invoices' : requested;
   });
   const [query, setQuery] = useState('');
   const [paymentInvoice, setPaymentInvoice] = useState(null);
@@ -279,12 +286,14 @@ export default function FinanceMonthPage({
           ['paid', <CheckCircle2 size={18} />, 'Laekunud', money(summary.paidCents), `${summary.byStatus.paid} täielikult makstud`],
           ['unpaid', <Clock3 size={18} />, 'Laekumata', money(summary.balanceCents), `${summary.byStatus.overdue} üle tähtaja`],
           ['credits', <WalletCards size={18} />, 'Ette makstud', money(creditTotal), 'kantakse järgmisele arvele'],
-          ...(canManage ? [['prepare', <FilePlus2 size={18} />, 'Koosta arved', '', 'Kuuarvete ettevalmistus']] : []),
-        ].map(([view, icon, label, value, caption], index) => <button key={view} ref={(node) => { tabRefs.current[index] = node; }} id={`finance-tab-${view}`} type="button" role="tab" aria-selected={activeView === view} aria-controls="finance-view-panel" tabIndex={activeView === view ? 0 : -1} className={`finance-month-metric ${view === 'prepare' ? 'finance-month-metric--prepare' : ''}`} onClick={() => selectView(view)} onKeyDown={(event) => moveTab(event, index)}><span>{icon}{label}</span>{value !== '' ? <strong>{value}</strong> : null}<small>{caption}</small></button>)}
+          ...(canManage ? [['prepare', <FilePlus2 size={18} />, 'Koosta arved', '', 'Kuuarvete ettevalmistus'], ['check', <ShieldCheck size={18} />, 'Kontroll', '', 'Arved ja maksed, pank']] : []),
+        ].map(([view, icon, label, value, caption], index) => <button key={view} ref={(node) => { tabRefs.current[index] = node; }} id={`finance-tab-${view}`} type="button" role="tab" aria-selected={activeView === view} aria-controls="finance-view-panel" tabIndex={activeView === view ? 0 : -1} className={`finance-month-metric ${['prepare', 'check'].includes(view) ? 'finance-month-metric--prepare' : ''}`} onClick={() => selectView(view)} onKeyDown={(event) => moveTab(event, index)}><span>{icon}{label}</span>{value !== '' ? <strong>{value}</strong> : null}<small>{caption}</small></button>)}
       </section>
 
       <section ref={viewRef} id="finance-view-panel" className="finance-month-view" role="tabpanel" aria-labelledby={`finance-tab-${activeView}`}>
       {activeView === 'prepare' && canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={invoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
+
+      {activeView === 'check' && canManage ? <PaymentCheckPanel invoices={invoices} transactions={state.data.bankTransactions || []} students={state.data.students} financeRepository={financeRepository} {...(paymentRepository ? { paymentRepository } : {})} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onOpenCredits={() => selectView('credits', true)} onNotice={announce} /> : null}
 
       {activeView === 'credits' ? (canManage ? <AdvanceManagementPanel credits={state.data.credits || []} refunds={state.data.refunds || []} invoices={invoices} onApply={(creditId, invoiceId, amount, note) => financeRepository.applyPayerCredit(creditId, invoiceId, amount, note)} onRefund={(creditId, refund) => financeRepository.refundPayerCredit(creditId, refund)} onReload={state.reload} /> : <Card><EmptyState title="Ettemaksude haldamine" description="See vaade on administraatorile." /></Card>) : null}
 

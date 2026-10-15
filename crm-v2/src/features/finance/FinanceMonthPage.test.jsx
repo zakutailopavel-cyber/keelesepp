@@ -103,9 +103,27 @@ describe('FinanceMonthPage', () => {
     fireEvent.click(within(table).getByRole('button', { name: 'Makse' }));
     const dialog = screen.getByRole('dialog');
     await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Registreeri' })); });
-    expect(value.financeRepository.recordPayment).toHaveBeenCalledWith('i1', expect.objectContaining({ amount: 100, method: 'bank' }));
+    expect(value.financeRepository.recordPayment).toHaveBeenCalledWith('i1', expect.objectContaining({ amount: 100, method: 'bank', requestId: expect.stringMatching(/^payment-/) }));
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Makse registreeriti'));
     expect(value.invoiceRepository.list).toHaveBeenCalledTimes(2);
+  });
+
+  it('the same dialog sends one request id: a double click never records the payment twice', async () => {
+    const value = props(); renderPage(value);
+    const table = await screen.findByRole('table', { name: 'Arved 2031-10' });
+    fireEvent.click(within(table).getByRole('button', { name: 'Makse' }));
+    const form = screen.getByRole('dialog').querySelector('form');
+    await act(async () => { fireEvent.submit(form); fireEvent.submit(form); });
+    const ids = value.financeRepository.recordPayment.mock.calls.map(([, payment]) => payment.requestId);
+    expect(ids.length).toBeGreaterThan(0);
+    expect(new Set(ids).size).toBe(1);
+  });
+
+  it('the administrator opens „Kontroll”: invoices against payments', async () => {
+    const value = props();
+    renderPage({ ...value, paymentRepository: { listAll: vi.fn().mockResolvedValue([]) } });
+    fireEvent.click(await screen.findByRole('tab', { name: /Kontroll/ }));
+    expect(await screen.findByRole('heading', { name: 'Arved ja maksed' })).toBeInTheDocument();
   });
 
   it('sends an overdue reminder from the invoice row', async () => {

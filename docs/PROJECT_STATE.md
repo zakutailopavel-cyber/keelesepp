@@ -1,3 +1,25 @@
+## 2026-10-15 · agent/payment-reconciliation — „Kontroll”: invoices against payments and the LHV statement
+
+- Owner: „надо сделать так чтобы админ мог сверять счета по оплатам”; chose „выписка банка + отчёт”, bank LHV.
+  Main checked: 5eb3aef (2026-10-15).
+- Production found (read-only): 23 invoices KS-2026-001…043 marked „Makstud” without a payment record (the new
+  finance page counts them as unpaid); KS-2026-066 paid twice (two records 2 s apart from the old haldus.html, 360 €
+  on a 180 € invoice); 7 bank transactions (567 €) still unapplied.
+- CRM: Finantsid → tab „Kontroll” (admin) = `PaymentCheckPanel.jsx` + pure `paymentReconciliation.js`: duplicates
+  (same amount and day, entered ≤ 10 min apart) → „Tühista korduv” (financeApi /payments/void); overpaid →
+  „Ülejääk ettemaksuks” (/invoices/resolve-overpayment); paid without a record → „Lisa makse kirje” / „Lisa kõigile”
+  (/payments with requestId `reconcile-missing-<invoiceId>`, amount and day from the invoice); status ≠ payments;
+  payments on cancelled or missing invoices; bank money not on an invoice → „Ette makstud”. „Impordi LHV väljavõte”
+  opens the existing bank import. `paymentsService.listAll()` (admin rules).
+- Bank import (`bankReconciliation.js`): LHV CSV headers in Estonian, English and Russian; outgoing (D) and non-EUR
+  rows skipped; a match also by the parent's name in another word order or the child's name in the explanation.
+- Payment dialogs (month page and the old page) send one requestId per opened form: a double click never records
+  a payment twice.
+- Tests: crm-v2 1887 passed (+12), build OK, e2e 16/16 (+1 `payment-check.spec.cjs`). No server or rules change.
+- Production after merge: nothing to deploy beyond Vercel (automatic). The fixes in „Kontroll” are the admin's
+  clicks; nothing was changed in the production data by the agent.
+- Next safe step: the admin opens „Kontroll”, voids the KS-2026-066 duplicate and adds the 23 missing records.
+
 ## 2026-10-15 · agent/parent-accounts — the administrator creates parent logins
 
 - Owner: „дай админам возможность создавать аккаунты родителей”. Main checked: 0bea9f8 (2026-10-15).

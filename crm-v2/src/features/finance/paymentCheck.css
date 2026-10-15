@@ -1,0 +1,24 @@
+.payment-check { padding: 0; overflow: hidden; }
+.payment-check__heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 22px; padding: 24px 26px 16px; }
+.payment-check__heading h2 { margin: 4px 0 5px; }
+.payment-check__heading p { margin: 0; color: #71807b; }
+.payment-check__heading > div:last-child { display: flex; align-items: center; gap: 10px; }
+.payment-check__summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0 26px 18px; }
+.payment-check__summary div { padding: 12px 14px; border-radius: 12px; background: #f5f7f5; }
+.payment-check__summary dt { color: #73817d; font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.payment-check__summary dd { margin: 4px 0 0; font-size: 1.25rem; font-weight: 800; }
+.payment-check__notice { margin: 0 26px 14px; color: #176553; font-weight: 700; }
+.payment-check .action-error { margin: 0 26px 14px; }
+.payment-check__section { border-top: 1px solid #edf0ed; }
+.payment-check__section > header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 26px 8px; }
+.payment-check__section h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1rem; }
+.payment-check__section header p { margin: 4px 0 0; color: #71807b; font-size: .85rem; }
+.payment-check__row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 26px; border-top: 1px solid #f3f5f3; }
+.payment-check__row small { display: block; margin-top: 3px; color: #81908b; overflow-wrap: anywhere; }
+.payment-check__actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.payment-check__actions .button { min-height: 34px; padding: 7px 10px; font-size: .78rem; }
+@media (max-width: 680px) {
+  .payment-check__heading, .payment-check__section > header, .payment-check__row { align-items: stretch; flex-direction: column; padding-inline: 16px; }
+  .payment-check__summary { grid-template-columns: 1fr; padding-inline: 16px; }
+  .payment-check__actions { justify-content: flex-start; }
+}
