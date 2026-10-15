@@ -26,7 +26,7 @@ describe('TeacherProfilePage', () => {
     const { studentRepository } = renderPage();
     expect(await screen.findByText('2 õpilast on määratud ainult nime järgi')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Seo õpetaja kontoga/ }));
-    await waitFor(() => expect(studentRepository.linkTeacher).toHaveBeenCalledWith(['s-name', 's-enrollment'], { teacherUid: 'teacher-uid', teacherName: 'Anhelina Korotka' }));
+    await waitFor(() => expect(studentRepository.linkTeacher).toHaveBeenCalledWith(['s-enrollment', 's-name'], { teacherUid: 'teacher-uid', teacherName: 'Anhelina Korotka' }));
     expect(await screen.findByText(/2 õpilast seoti õpetaja kontoga/)).toBeInTheDocument();
   });
 

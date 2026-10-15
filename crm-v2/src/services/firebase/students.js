@@ -42,6 +42,16 @@ function normalizedEnrollment(value = {}, fallback = {}) {
   };
 }
 
+// the stored study tracks with the main one moved to the new teacher (the only track, or the one matching the card's
+// main subject and teacher); null when the card stores no tracks or none is the main one
+export function withMainTrackTeacher(stored, current, teacher, teacherUid) {
+  if (!Array.isArray(stored) || !stored.length) return null;
+  const mainKey = enrollmentKey(normalizedEnrollment(current, current));
+  const index = stored.length === 1 ? 0 : stored.findIndex((item) => enrollmentKey(normalizedEnrollment(item, current)) === mainKey);
+  if (index < 0) return null;
+  return stored.map((item, at) => (at === index ? { ...item, teacher, teacherUid: teacherUid || '' } : item));
+}
+
 export function enrollmentKey(value = {}) {
   const enrollment = normalizedEnrollment(value);
   return [enrollment.subject, enrollment.teacherUid || enrollment.teacher].map((item) => cleanText(item).toLocaleLowerCase('et')).join('|');
@@ -320,8 +330,16 @@ export const studentsService = {
       payload.teacherUid = current?.teacherUid && isSameTeacher(current.teacher, payload.teacher)
         ? current.teacherUid
         : await resolveTeacherUid(db, payload.teacher);
+      // the card's main study track follows the new teacher (owner 2026-10-15: the student list shows the tracks, the
+      // teacher pages the main teacher — changing only one made them disagree): the only track, or the track that was
+      // the main one
+      const raw = await getDoc(doc(db, 'students', id));
+      const stored = raw.exists() && Array.isArray(raw.data().enrollments) ? raw.data().enrollments : null;
+      const synced = withMainTrackTeacher(stored, current, payload.teacher, payload.teacherUid);
+      if (synced) payload.enrollments = synced;
       // the previous teacher loses access: only the new teacher and the teachers of active enrollments stay
-      const enrollmentUids = (current?.enrollments || []).filter((item) => item?.active !== false).map((item) => item.teacherUid).filter(Boolean);
+      const tracks = payload.enrollments || current?.enrollments || [];
+      const enrollmentUids = tracks.filter((item) => item?.active !== false).map((item) => item.teacherUid).filter(Boolean);
       payload.teacherUids = [...new Set([payload.teacherUid, ...enrollmentUids].filter(Boolean))];
     }
     const candidate = current ? normalizeStudent(id, { ...current, ...payload }) : null;
