@@ -233,3 +233,10 @@
 .lp-admin-note textarea { width: 100%; resize: vertical; }
 .lp-admin-note__actions { display: flex; align-items: center; gap: 10px; color: #176553; font-size: .85rem; }
 .lp-admin-note textarea { font: inherit; padding: 8px 10px; border-radius: 8px; }
+
+/* online vs on-site at a glance (Oleksiy 2026-10-15: several lessons at once — which are online?): an online lesson
+   has a camera icon by its time, a dashed outline and a striped background; an on-site lesson stays solid */
+.tg-block.is-online { border-left-style: dashed; outline: 1.5px dashed var(--tone-strong); outline-offset: -1.5px; background-image: repeating-linear-gradient(135deg, transparent 0 7px, rgba(255, 255, 255, .55) 7px 12px); }
+.tg-online-icon { flex: none; margin-right: 3px; vertical-align: -2px; color: #0b5c9e; }
+.tg-cluster-item.is-online { outline: 1.5px dashed var(--tone-strong); outline-offset: -1.5px; }
+.tg-cluster-item .tg-online-icon { margin-right: 2px; }

@@ -67,6 +67,16 @@ function LiveLocation() {
 const summary = () => screen.getByText((_, element) => element?.classList?.contains('calendar-filter-summary'));
 
 describe('calendar v2', () => {
+  it('online and on-site lessons at the same time are told apart: a camera, a dashed outline, „veebitund” in the name', async () => {
+    renderCalendar({ events: [lesson({ online: true }), lesson({ id: 'schedule-2', studentId: 's2', studentName: 'Jaan Tamm', online: false })] });
+    const online = await screen.findByRole('button', { name: /10:00 Mari Maas, veebitund/ });
+    const onsite = screen.getByRole('button', { name: /10:00 Jaan Tamm$/ });
+    expect(online.closest('.tg-block')).toHaveClass('is-online');
+    expect(online.querySelector('.tg-online-icon')).not.toBeNull();
+    expect(onsite.closest('.tg-block')).toHaveClass('is-onsite');
+    expect(onsite.querySelector('.tg-online-icon')).toBeNull();
+  });
+
   it('admin notes: a note icon on the lesson, the note in the panel, the admin saves a note for the whole series', async () => {
     const event = lesson({ recurring: true, day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()] });
     const props = renderCalendar({ events: [event], notes: [{ id: 'schedule-1', scheduleId: 'schedule-1', date: '', teacherUid: 't1', text: 'Maksab isa' }] });
