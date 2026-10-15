@@ -213,7 +213,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                         aria-label={`${item.time} ${item.studentName || 'Tund'}${item.isGroup ? ' (grupp)' : ''}${item.online ? ', veebitund' : ''}${status === 'done' ? ', toimunud' : status === 'absent' ? ', puudus' : ''}`}
                         onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}
                       >
-                        <span className="tg-time">{item.online ? <Video className="tg-online-icon" size={13} aria-hidden="true" /> : null}{item.time}{item.adminNote ? <span className="tg-note" title={`Admini märkus: ${item.adminNote}`} aria-label="Admini märkus"><StickyNote size={12} /></span> : null}{status === 'done' ? <Check size={12} /> : status === 'absent' ? <X size={12} /> : null}</span>
+                        <span className="tg-time">{item.online ? <Video className="tg-online-icon" size={13} aria-hidden="true" /> : null}{item.time}{item.adminNote ? <span className="tg-note" title={`Admini märkus: ${item.adminNote}`} aria-label="Admini märkus"><StickyNote size={12} /></span> : null}{!item.online && item.roomName ? <span className="tg-room" title={`Kabinet: ${item.roomName}`}>{item.roomName}</span> : null}{status === 'done' ? <Check size={12} /> : status === 'absent' ? <X size={12} /> : null}</span>
                         <strong>{item.studentName || 'Õpilane'}{item.online ? <span className="tg-online" title="Veebitund"> · veeb</span> : null}</strong>
                         {item.recordTopic ? <small className="tg-topic">{item.recordTopic}</small> : showTeacher && manyTeachers ? <small>{item.teacher}</small> : null}
                       </button>

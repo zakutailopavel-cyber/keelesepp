@@ -1,3 +1,22 @@
+## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
+
+- Oleksiy #improvement #low_priority: a room field when booking; when all rooms are taken, a lesson without
+  „Veebitund” cannot be saved. Main checked: a35a554.
+- Data: `classrooms/{id}` { name, active, order, updatedAt, updatedBy } — admin writes (Kalender → „Kabinetid”, a
+  room is switched off, never deleted), staff read. `roomBookings/{scheduleId}` — written only by the new trigger
+  `syncRoomBooking` (functions/room-booking-core.js) on every schedule write: room, time, date / weekly series,
+  excluded and cancelled dates, teacher; no student data; staff read (teachers see only their own schedule, so the
+  occupancy of all lessons lives here). Schedule entries get `roomId`, `roomName`.
+- CRM: lesson form „Kabinet” (on-site lessons, when rooms exist): „Vaba kabinet automaatselt” or a room; taken rooms
+  are disabled; a weekly lesson is checked for 12 weeks (`roomModel.js`: candidateDates, roomConflict, roomChoices,
+  assignRoom). Saving on site with every room taken fails („märgi tund veebitunniks”); online lessons take no room.
+  Dragging a lesson to a time its room is taken is refused. The room name is shown next to the time on the block.
+  Bookings saved in the session count at once (the server's booking follows a moment later).
+- Not covered: group lessons take no room yet.
+- Tests: functions +3 (core), rules emulator `rooms-rules-emulator.integration.js`, crm-v2 +5, e2e `rooms.spec.cjs`.
+- Production after merge: deploy firestore rules and the function `syncRoomBooking`. No rooms exist until the admin
+  adds them (until then nothing changes for anyone).
+
 ## 2026-10-15 · agent/calendar-cell-status — a click on an empty cell sets its status
 
 - Oleksiy #improvement: every half-hour cell can be „free / online only / busy / a lesson”. Main checked: dc7e0d5.

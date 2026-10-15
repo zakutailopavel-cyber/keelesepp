@@ -43,3 +43,4 @@ export { teacherAvailabilityService } from './teacherAvailability.js';
 export { emailQueueService } from './emailQueue.js';
 export { lessonChangeRequestsService } from './lessonChangeRequests.js';
 export { lessonNotesService } from './lessonNotes.js';
+export { classroomsService } from './classrooms.js';

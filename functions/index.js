@@ -10613,6 +10613,18 @@ exports.syncScheduleToGoogle = functions.firestore
     return null;
   });
 
+// Rooms: every schedule write keeps its room booking in step (functions/room-booking-core.js)
+exports.syncRoomBooking = functions.firestore
+  .document("schedule/{scheduleId}")
+  .onWrite(async (change, context) => {
+    const { roomBookingFor } = require("./room-booking-core");
+    const booking = roomBookingFor(context.params.scheduleId, change.after.exists ? change.after.data() : null);
+    const ref = db.collection("roomBookings").doc(context.params.scheduleId);
+    if (booking) await ref.set({ ...booking, updatedAt: new Date().toISOString() });
+    else if (change.before.exists && change.before.data()?.roomId) await ref.delete();
+    return null;
+  });
+
 // ── SCHEDULED: sync all connected teachers every hour ─────────
 exports.syncAllCalendars = functions.pubsub
   .schedule("every 60 minutes")
