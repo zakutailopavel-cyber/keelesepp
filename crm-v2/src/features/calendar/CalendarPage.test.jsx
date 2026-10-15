@@ -21,9 +21,10 @@ const curriculum = [
   { id: 'b1-2', title: 'Sagedus', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 2 },
 ];
 
-function repositories({ events = [], records = [], groups = [], windows = [], notes = [] } = {}) {
+function repositories({ events = [], records = [], groups = [], windows = [], notes = [], roomList = [], roomBookings = [] } = {}) {
   return {
     noteRepository: { list: vi.fn().mockResolvedValue(notes), save: vi.fn().mockResolvedValue({}) },
+    roomRepository: { list: vi.fn().mockResolvedValue(roomList), bookings: vi.fn().mockResolvedValue(roomBookings), save: vi.fn().mockResolvedValue({}) },
     availabilityRepository: { list: vi.fn().mockResolvedValue(windows), save: vi.fn().mockResolvedValue({}) },
     scheduleRepository: {
       list: vi.fn().mockResolvedValue(events),
@@ -67,6 +68,39 @@ function LiveLocation() {
 const summary = () => screen.getByText((_, element) => element?.classList?.contains('calendar-filter-summary'));
 
 describe('calendar v2', () => {
+  it('rooms: a lesson on site gets a free room; when all are taken it can only be saved as an online lesson', async () => {
+    const roomList = [{ id: 'r1', name: 'Kabinet 1' }, { id: 'r2', name: 'Kabinet 2' }];
+    const taken = (roomId, scheduleId) => ({ scheduleId, roomId, recurring: false, date: today, day: 'x', time: '10:00', duration: 60, status: 'Planeeritud' });
+    const props = renderCalendar({ roomList, roomBookings: [taken('r1', 'other-1')] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    const dialog = await screen.findByRole('dialog', { name: /Uus tund/ });
+    fireEvent.change(within(dialog).getByLabelText('Kellaaeg'), { target: { value: '10:00' } });
+    const select = within(dialog).getByLabelText('Kabinet');
+    expect(within(select).getByRole('option', { name: /Kabinet 1 — hõivatud/ })).toBeDisabled();
+    // a student and save: the free room is taken automatically
+    fireEvent.change(within(dialog).getByRole('combobox', { name: /Õpilane/ }), { target: { value: 'Mari' } });
+    fireEvent.click(await within(dialog).findByRole('option', { name: /Mari Maas/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ roomId: 'r2', roomName: 'Kabinet 2', online: false })));
+  });
+
+  it('rooms: all taken → the form says so and saving fails until it is an online lesson', async () => {
+    const roomList = [{ id: 'r1', name: 'Kabinet 1' }];
+    const props = renderCalendar({ roomList, roomBookings: [{ scheduleId: 'o1', roomId: 'r1', recurring: false, date: today, time: '10:00', duration: 60, status: 'Planeeritud' }] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    const dialog = await screen.findByRole('dialog', { name: /Uus tund/ });
+    fireEvent.change(within(dialog).getByLabelText('Kellaaeg'), { target: { value: '10:00' } });
+    expect(within(dialog).getByText(/Kõik kabinetid on sel ajal hõivatud/)).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByRole('combobox', { name: /Õpilane/ }), { target: { value: 'Mari' } });
+    fireEvent.click(await within(dialog).findByRole('option', { name: /Mari Maas/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    expect(await within(dialog).findByText(/Kõik kabinetid on 10:00 ajal hõivatud/)).toBeInTheDocument();
+    expect(props.scheduleRepository.create).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByLabelText('Veebitund (online)'));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ online: true, roomId: '' })));
+  });
+
   it('online and on-site lessons at the same time are told apart: a camera, a dashed outline, „veebitund” in the name', async () => {
     renderCalendar({ events: [lesson({ online: true }), lesson({ id: 'schedule-2', studentId: 's2', studentName: 'Jaan Tamm', online: false })] });
     const online = await screen.findByRole('button', { name: /10:00 Mari Maas, veebitund/ });

@@ -1023,6 +1023,21 @@ service cloud.firestore {
 
     // the administrator's note on a calendar lesson (Oleksiy 2026-10-15): the administrator writes, the administrator
     // and the lesson's teacher read; never students or parents (they can read their own schedule entries)
+    // rooms („Kabinet”, Oleksiy 2026-10-15): the administrator keeps the list; every staff member reads it and the
+    // room bookings (written only by the server trigger syncRoomBooking, no student data)
+    match /classrooms/{roomId} {
+      allow read: if isStaff();
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasOnly(['name', 'active', 'order', 'updatedAt', 'updatedBy'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 60;
+    }
+    match /roomBookings/{scheduleId} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
     match /lessonNotes/{noteId} {
       allow read: if isAdmin() || (isStaff() && resource.data.teacherUid == uid());
       allow create, update: if isAdmin()
