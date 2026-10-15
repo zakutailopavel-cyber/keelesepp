@@ -1,4 +1,4 @@
-import { Check, StickyNote, X } from 'lucide-react';
+import { Check, StickyNote, Video, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PX_PER_MIN, SNAP, canMove, gridRange, layoutColumn, snapMinutes, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 
@@ -189,8 +189,8 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                     {group.items.map(({ item }) => {
                       const status = statusOf(item);
                       return (
-                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${toneOf(item)} is-${status}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.teacher ? ` · ${item.teacher}` : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
-                          <span>{item.time}</span><strong>{item.studentName || 'Õpilane'}{item.adminNote ? <StickyNote className="tg-note" size={11} aria-label="Admini märkus" /> : null}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
+                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.online ? 'is-online' : 'is-onsite'}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
+                          <span>{item.online ? <Video className="tg-online-icon" size={11} aria-hidden="true" /> : null}{item.time}</span><strong>{item.studentName || 'Õpilane'}{item.adminNote ? <StickyNote className="tg-note" size={11} aria-label="Admini märkus" /> : null}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
                         </button>
                       );
                     })}
@@ -202,18 +202,18 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                   return (
                     <div
                       key={item.occurrenceId}
-                      className={`tg-block tone-${toneOf(item)} is-${status} ${item.isGroup ? 'is-group' : ''} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
+                      className={`tg-block tone-${toneOf(item)} is-${status} ${item.isGroup ? 'is-group' : ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
                       style={{ top: top * PX_PER_MIN, height: Math.max(22, blockHeight * PX_PER_MIN - 2), left: `calc(${(lane / lanes) * 100}% + 2px)`, width: `calc(${100 / lanes}% - 4px)` }}
                       onPointerDown={(event) => startDrag(event, item, column, 'move')}
-                      title={`${item.time} · ${item.studentName || 'Õpilane'}${item.teacher ? ` · ${item.teacher}` : ''}`}
+                      title={`${item.time} · ${item.studentName || 'Õpilane'}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`}
                     >
                       <button
                         type="button"
                         className="tg-open"
-                        aria-label={`${item.time} ${item.studentName || 'Tund'}${item.isGroup ? ' (grupp)' : ''}${status === 'done' ? ', toimunud' : status === 'absent' ? ', puudus' : ''}`}
+                        aria-label={`${item.time} ${item.studentName || 'Tund'}${item.isGroup ? ' (grupp)' : ''}${item.online ? ', veebitund' : ''}${status === 'done' ? ', toimunud' : status === 'absent' ? ', puudus' : ''}`}
                         onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}
                       >
-                        <span className="tg-time">{item.time}{item.adminNote ? <span className="tg-note" title={`Admini märkus: ${item.adminNote}`} aria-label="Admini märkus"><StickyNote size={12} /></span> : null}{status === 'done' ? <Check size={12} /> : status === 'absent' ? <X size={12} /> : null}</span>
+                        <span className="tg-time">{item.online ? <Video className="tg-online-icon" size={13} aria-hidden="true" /> : null}{item.time}{item.adminNote ? <span className="tg-note" title={`Admini märkus: ${item.adminNote}`} aria-label="Admini märkus"><StickyNote size={12} /></span> : null}{status === 'done' ? <Check size={12} /> : status === 'absent' ? <X size={12} /> : null}</span>
                         <strong>{item.studentName || 'Õpilane'}{item.online ? <span className="tg-online" title="Veebitund"> · veeb</span> : null}</strong>
                         {item.recordTopic ? <small className="tg-topic">{item.recordTopic}</small> : showTeacher && manyTeachers ? <small>{item.teacher}</small> : null}
                       </button>

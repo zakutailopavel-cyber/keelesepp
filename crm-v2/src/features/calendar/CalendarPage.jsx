@@ -574,7 +574,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {list.filter((item) => item.occurrenceDate === date).map((item) => (
         <button type="button" className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher)}`} key={item.occurrenceId} onClick={() => openPanel(item)}>
           <time>{item.time}</time>
-          <span><strong>{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
+          <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} {item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
           {item.lessonRecordId || item.status === 'Toimunud' ? <Badge tone="success">✓</Badge> : null}
         </button>
       ))}

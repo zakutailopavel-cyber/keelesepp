@@ -1,3 +1,11 @@
+## 2026-10-15 · agent/calendar-online-visible — online and on-site lessons told apart
+
+- Oleksiy #bug #high_priority: „если одновременно несколько уроков висит — не видно где онлайн, а где оффлайн”.
+- TimeGrid: an online lesson has a camera icon before its time, a dashed outline and a striped background
+  (`is-online`), on-site lessons stay solid (`is-onsite`); the same in crowded clusters; the block's label says
+  „veebitund”; the phone list shows a „veeb” badge. CSS only in calendarV2.css.
+- Tests: calendar 85 passed (+1). Queued from Oleksiy: rooms („кабинет”, low priority), half-hour cell status menu.
+
 ## 2026-10-15 · agent/lesson-admin-notes — the administrator's note on a calendar lesson
 
 - Oleksiy (#improvement): „поле админ записей, которые видит только админ и учителя … пиктограмма на поле урока”.
