@@ -8,6 +8,12 @@ function timestampValue(value) {
 }
 
 export const paymentsService = {
+  // admin (rules): every payment record, for „Kontroll” (invoices against payments)
+  async listAll() {
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(collection(db, 'payments'));
+    return snapshot.docs.map((item) => ({ id: item.id, ...item.data(), paidAt: timestampValue(item.data().paidAt), createdAt: timestampValue(item.data().createdAt) }));
+  },
   async listByInvoice(invoiceId) {
     const { db } = requireFirebaseClient();
     const snapshot = await getDocs(query(collection(db, 'payments'), where('invoiceId', '==', invoiceId)));

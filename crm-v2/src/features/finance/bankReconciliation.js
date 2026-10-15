@@ -1,45 +1,24 @@
 import { invoiceBalanceCents } from "../students/studentFinance.js";
 
+// column names of bank CSV exports; LHV „Konto väljavõte” (owner 2026-10-15) in Estonian, English and Russian, plus
+// generic names. Compared after headerKey(): accents, spaces and punctuation removed.
 const HEADER_ALIASES = {
-  date: [
-    "date",
-    "kuupaev",
-    "tehingukuupaev",
-    "vaartuspaev",
-    "bookingdate",
-    "valuedate",
-  ],
-  amount: ["amount", "summa", "tehingusumma", "credit", "creditamount"],
+  date: ["date", "kuupäev", "tehingukuupäev", "väärtuspäev", "bookingdate", "valuedate", "дата"],
+  amount: ["amount", "summa", "tehingusumma", "credit", "creditamount", "сумма"],
   payerName: [
-    "payer",
-    "payername",
-    "maksja",
-    "maksjanimi",
-    "nimi",
-    "sender",
-    "counterparty",
-    "vastaspool",
-    "saajamaksja",
-    "maksesaajamaksja",
+    "payer", "payername", "maksja", "maksjanimi", "nimi", "sender", "counterparty", "vastaspool", "saajamaksja",
+    "maksesaajamaksja", "saaja/maksja nimi", "beneficiary's name", "имя получателя/плательщика",
   ],
   reference: [
-    "reference",
-    "paymentreference",
-    "viide",
-    "viitenumber",
-    "selgitus",
-    "makseselgitus",
-    "description",
-    "details",
+    "reference", "paymentreference", "viide", "viitenumber", "selgitus", "makseselgitus", "description", "details",
+    "reference number", "ссылочный номер", "пояснение",
   ],
   externalId: [
-    "externalid",
-    "transactionid",
-    "archiveid",
-    "arhiveerimistunnus",
-    "tehinguid",
-    "id",
+    "externalid", "transactionid", "archiveid", "arhiveerimistunnus", "tehinguid", "id", "archiving code",
+    "архивный признак",
   ],
+  direction: ["deebet/kreedit (d/c)", "debit/credit (d/c)", "дебет/кредит (d/c)", "d/c", "deebetkreedit"],
+  currency: ["valuuta", "currency", "валюта"],
 };
 
 function headerKey(value) {
@@ -47,7 +26,7 @@ function headerKey(value) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
+    .replace(/[^\p{L}\p{N}]/gu, "");
 }
 
 function separatorCount(line, separator) {
@@ -98,7 +77,7 @@ function columnIndexes(headers) {
   return Object.fromEntries(
     Object.entries(HEADER_ALIASES).map(([field, aliases]) => [
       field,
-      normalized.findIndex((header) => aliases.includes(header)),
+      normalized.findIndex((header) => aliases.map(headerKey).includes(header)),
     ]),
   );
 }
@@ -147,7 +126,7 @@ export function parseBankStatement(text) {
   const referenceIndexes = headers
     .map(headerKey)
     .map((header, index) =>
-      HEADER_ALIASES.reference.includes(header) ? index : -1,
+      HEADER_ALIASES.reference.map(headerKey).includes(header) ? index : -1,
     )
     .filter((index) => index >= 0);
   if (indexes.date < 0 || indexes.amount < 0) {
@@ -165,7 +144,10 @@ export function parseBankStatement(text) {
     const cells = parseDelimitedLine(line, separator);
     const paidAt = normalizeBankDate(cells[indexes.date]);
     const amount = parseBankAmount(cells[indexes.amount]);
-    if (amount !== null && amount <= 0) {
+    // outgoing payments (D) and other currencies are not invoice payments
+    const outgoing = indexes.direction >= 0 && /^d/i.test(cells[indexes.direction] || "");
+    const foreign = indexes.currency >= 0 && cells[indexes.currency] && !/^eur$/i.test(cells[indexes.currency]);
+    if (outgoing || foreign || (amount !== null && amount <= 0)) {
       skipped += 1;
       return;
     }
@@ -198,6 +180,12 @@ function matchKey(value) {
     .replace(/[^a-z0-9äöõüšž]/g, "");
 }
 
+// „SMIRNOVA JEKATERINA” and „Jekaterina Smirnova”: the same words in another order
+function sameWords(left, rightKey) {
+  const words = String(left || "").toLocaleLowerCase("et").split(/[^a-z0-9äöõüšž]+/).filter((word) => word.length >= 3);
+  return words.length >= 2 && words.every((word) => rightKey.includes(word));
+}
+
 export function suggestInvoice(row, invoices) {
   const available = (invoices || []).filter(
     (invoice) => invoiceBalanceCents(invoice) > 0,
@@ -210,21 +198,16 @@ export function suggestInvoice(row, invoices) {
       const number = matchKey(
         invoice.num || invoice.number || invoice.invoiceNumber,
       );
-      const invoicePayer = matchKey(
-        invoice.payerName || invoice.parentName || invoice.studentName,
-      );
+      // the payer is the parent or the payer on the card; the explanation often names the child
+      const names = [invoice.payerName, invoice.parentName, invoice.studentName].map(matchKey).filter((name) => name.length >= 4);
       const balance = invoiceBalanceCents(invoice);
       let score = 0;
       if (paymentReference && reference.includes(paymentReference))
         score += 120;
       if (number && reference.includes(number)) score += 100;
-      if (
-        payer &&
-        invoicePayer &&
-        (payer.includes(invoicePayer) || invoicePayer.includes(payer))
-      ) {
-        score += 35;
-      }
+      if (payer && names.some((name) => payer.includes(name) || name.includes(payer))) score += 35;
+      else if (names.some((name) => reference.includes(name))) score += 35;
+      else if (payer && names.some((name) => sameWords(row.payerName, name))) score += 35;
       if (row.amountCents === balance) score += 30;
       return { invoice, score };
     })
