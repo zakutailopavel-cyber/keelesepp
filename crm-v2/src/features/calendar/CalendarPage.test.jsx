@@ -21,8 +21,9 @@ const curriculum = [
   { id: 'b1-2', title: 'Sagedus', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 2 },
 ];
 
-function repositories({ events = [], records = [], groups = [], windows = [] } = {}) {
+function repositories({ events = [], records = [], groups = [], windows = [], notes = [] } = {}) {
   return {
+    noteRepository: { list: vi.fn().mockResolvedValue(notes), save: vi.fn().mockResolvedValue({}) },
     availabilityRepository: { list: vi.fn().mockResolvedValue(windows), save: vi.fn().mockResolvedValue({}) },
     scheduleRepository: {
       list: vi.fn().mockResolvedValue(events),
@@ -66,6 +67,32 @@ function LiveLocation() {
 const summary = () => screen.getByText((_, element) => element?.classList?.contains('calendar-filter-summary'));
 
 describe('calendar v2', () => {
+  it('admin notes: a note icon on the lesson, the note in the panel, the admin saves a note for the whole series', async () => {
+    const event = lesson({ recurring: true, day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()] });
+    const props = renderCalendar({ events: [event], notes: [{ id: 'schedule-1', scheduleId: 'schedule-1', date: '', teacherUid: 't1', text: 'Maksab isa' }] });
+    expect(await screen.findByLabelText('Admini märkus')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /10:00 Mari Maas/ }));
+    const box = await screen.findByRole('region', { name: 'Admini märkus' });
+    expect(within(box).getByLabelText('Admini märkuse tekst')).toHaveValue('Maksab isa');
+    fireEvent.change(within(box).getByLabelText('Admini märkuse tekst'), { target: { value: 'Maksab isa, tuleb vennaga' } });
+    fireEvent.click(within(box).getByRole('button', { name: 'Salvesta märkus' }));
+    await waitFor(() => expect(props.noteRepository.save).toHaveBeenCalledWith(expect.objectContaining({ scheduleId: 'schedule-1', date: '', teacherUid: 't1', text: 'Maksab isa, tuleb vennaga' })));
+    fireEvent.click(within(box).getByRole('radio', { name: 'Ainult see tund' }));
+    expect(within(box).getByLabelText('Admini märkuse tekst')).toHaveValue('');
+    expect(within(box).getByText(/Sarja märkus: Maksab isa/)).toBeInTheDocument();
+  });
+
+  it('a teacher reads the admin note of own lessons and cannot change it', async () => {
+    auth.user = { uid: 't1', displayName: 'Pavel', roles: ['teacher'] };
+    const props = renderCalendar({ events: [lesson()], notes: [{ id: `schedule-1_${today}`, scheduleId: 'schedule-1', date: today, teacherUid: 't1', text: 'Sel nädalal veebis' }] });
+    await waitFor(() => expect(props.noteRepository.list).toHaveBeenCalledWith({ teacherUid: 't1' }));
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const box = await screen.findByRole('region', { name: 'Admini märkus' });
+    expect(box).toHaveTextContent('Sel nädalal veebis');
+    expect(within(box).queryByRole('textbox')).not.toBeInTheDocument();
+    auth.user = null;
+  });
+
   it('shows a light toolbar with the week view and the period count', async () => {
     renderCalendar();
     await waitFor(() => expect(summary()).toHaveTextContent('0 tundi valitud perioodil'));

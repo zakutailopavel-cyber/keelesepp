@@ -218,3 +218,18 @@
 .tg-block.is-group { border-style: solid; border-width: 1px; box-shadow: inset 3px 0 0 var(--tone-strong); }
 .tg-block.is-absent { border-color: #f1b8b2; color: #8a1c13; }
 .tg-cluster-item { border-left-width: 0; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tone-strong, #087e6b) 25%, transparent); color: color-mix(in srgb, var(--tone-strong, #087e6b) 62%, #14243a); }
+
+/* admin note on a lesson (Oleksiy 2026-10-15): an icon on the lesson block and in the phone list, the box in the panel */
+.tg-note { display: inline-flex; vertical-align: -1px; margin-left: 4px; color: #b7791f; }
+.tg-note svg { fill: #fdecc8; }
+.cal-note-icon { margin-left: 6px; vertical-align: -2px; color: #b7791f; fill: #fdecc8; }
+.lp-admin-note { display: grid; gap: 8px; margin: 12px 0; padding: 12px 14px; border: 1px solid #f1d9a7; border-radius: 12px; background: #fffaf0; }
+.lp-admin-note h3 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: .95rem; color: #8a5a12; }
+.lp-admin-note h3 small { margin-left: auto; color: #9a8a6a; font-weight: 600; font-size: .72rem; }
+.lp-admin-note__text { margin: 0; white-space: pre-wrap; }
+.lp-admin-note__text small { display: block; margin-top: 2px; color: #9a8a6a; }
+.lp-admin-note__scope { display: flex; flex-wrap: wrap; gap: 14px; font-size: .85rem; }
+.lp-admin-note__scope label { display: inline-flex; align-items: center; gap: 6px; }
+.lp-admin-note textarea { width: 100%; resize: vertical; }
+.lp-admin-note__actions { display: flex; align-items: center; gap: 10px; color: #176553; font-size: .85rem; }
+.lp-admin-note textarea { font: inherit; padding: 8px 10px; border-radius: 8px; }
