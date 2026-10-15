@@ -132,6 +132,21 @@ describe('FinanceMonthPage', () => {
     expect(within(table).getByText('Jaan Tamm')).toBeInTheDocument();
   });
 
+  it('cancels an e-mailed unpaid invoice (wrong address) only after the administrator confirms it was sent', async () => {
+    const value = props();
+    value.invoiceRepository.list.mockResolvedValue([
+      { id: 'i2', planMonth: '2031-10', billingMode: 'manual_charge_v1', status: 'Ootel', studentName: 'Mykyta', num: 'KS-94', amountCents: 7500, due: '2031-10-20', emailStatus: 'sent', emailSentAt: '2031-10-14T18:18:00Z', emailRecipient: 'raninyana9@gmail.com' },
+    ]);
+    renderPage(value);
+    fireEvent.click(await screen.findByRole('button', { name: 'Tühista arve KS-94' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Tühistamise põhjus'), { target: { value: 'Vale e-post, arve ei jõudnud kohale' } });
+    expect(within(dialog).getByRole('button', { name: 'Tühista arve' })).toBeDisabled();
+    fireEvent.click(within(dialog).getByRole('checkbox', { name: /aadressile raninyana9@gmail.com/ }));
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Tühista arve' })); });
+    expect(value.manualInvoiceRepository.cancel).toHaveBeenCalledWith('i2', 'Vale e-post, arve ei jõudnud kohale', { afterSending: true });
+  });
+
   it('cancels an unsent unpaid invoice with a reason and removes it from the active list', async () => {
     const value = props();
     value.invoiceRepository.list.mockResolvedValueOnce([
@@ -144,16 +159,20 @@ describe('FinanceMonthPage', () => {
     const dialog = screen.getByRole('dialog');
     fireEvent.change(within(dialog).getByLabelText('Tühistamise põhjus'), { target: { value: 'Arve koostati ekslikult' } });
     await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Tühista arve' })); });
-    expect(value.manualInvoiceRepository.cancel).toHaveBeenCalledWith('i1', 'Arve koostati ekslikult');
+    expect(value.manualInvoiceRepository.cancel).toHaveBeenCalledWith('i1', 'Arve koostati ekslikult', { afterSending: false });
     await waitFor(() => expect(screen.queryByText('Mari Maasikas')).not.toBeInTheDocument());
     expect(screen.getByRole('button', { name: /Väljastatud arved 0/ })).toBeInTheDocument();
   });
 
-  it('does not offer cancellation for a sent invoice', async () => {
+  it('offers cancellation for a sent unpaid invoice, never for a paid one', async () => {
     const value = props();
-    value.invoiceRepository.list.mockResolvedValue([{ id: 'i1', planMonth: '2031-10', billingMode: 'monthly_plan_v1', status: 'Ootel', emailStatus: 'sent', studentName: 'Mari Maasikas', num: 'AR-31', amountCents: 10000, due: '2031-10-10' }]);
-    renderPage(value);
+    value.invoiceRepository.list.mockResolvedValue([
+      { id: 'i1', planMonth: '2031-10', billingMode: 'monthly_plan_v1', status: 'Ootel', emailStatus: 'sent', studentName: 'Mari Maasikas', num: 'AR-31', amountCents: 10000, due: '2031-10-10' },
+      { id: 'i3', planMonth: '2031-10', billingMode: 'monthly_plan_v1', status: 'Makstud', emailStatus: 'sent', studentName: 'Jaan Tamm', num: 'AR-32', amountCents: 10000, paidAmountCents: 10000, balanceDueCents: 0, due: '2031-10-10' },
+    ]);
+    renderPage(value, '/finance?status=all');
     await screen.findByText('Mari Maasikas');
-    expect(screen.queryByRole('button', { name: 'Tühista arve AR-31' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Tühista arve AR-31' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Tühista arve AR-32' })).not.toBeInTheDocument();
   });
 });

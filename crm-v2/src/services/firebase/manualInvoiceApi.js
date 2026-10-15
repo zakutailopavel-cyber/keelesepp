@@ -65,7 +65,8 @@ export const manualInvoiceApi = {
       requestId: values.requestId || financeRequestId('manual_invoice'),
     });
   },
-  cancel(invoiceId, reason) {
-    return post('/cancel', { invoiceId, reason, requestId: financeRequestId('invoice_cancel') });
+  // afterSending: the invoice was already e-mailed (wrong address, wrong invoice); the admin confirmed it
+  cancel(invoiceId, reason, { afterSending = false } = {}) {
+    return post('/cancel', { invoiceId, reason, afterSending, requestId: financeRequestId('invoice_cancel') });
   },
 };

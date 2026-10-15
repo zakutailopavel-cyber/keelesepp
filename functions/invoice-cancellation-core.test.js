@@ -10,6 +10,9 @@ test('a newly prepared unpaid monthly invoice can be cancelled', () => {
 
 test('sent, paid, credited and lesson-linked invoices need their own correction flows', () => {
   assert.match(invoiceCancellationError({ ...invoice, emailStatus: 'sent' }), /Sent/);
+  // a sent invoice (wrong address, wrong invoice) once the administrator confirms; a paid one never
+  assert.equal(invoiceCancellationError({ ...invoice, emailStatus: 'sent' }, [], [], { afterSending: true }), '');
+  assert.match(invoiceCancellationError({ ...invoice, emailStatus: 'sent', status: 'Makstud' }, [], [], { afterSending: true }), /Paid/);
   assert.match(invoiceCancellationError({ ...invoice, emailStatus: 'sending' }), /Sent/);
   assert.match(invoiceCancellationError({ ...invoice, invoiceEmailSentAt: '2026-10-08' }), /Sent/);
   assert.match(invoiceCancellationError(invoice, [{ status: 'active', amountCents: 1000 }]), /Paid/);

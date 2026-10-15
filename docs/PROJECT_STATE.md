@@ -1,3 +1,14 @@
+## 2026-10-15 · agent/cancel-sent-invoice — an e-mailed unpaid invoice can be cancelled
+
+- Owner: Mykyta's mother registered with a wrong e-mail; invoice KS-2026-094 went there and could not be cancelled
+  („Sent invoices need a separate correction”), the corrected KS-2026-098 exists.
+- `invoice-cancellation-core.js`: a sent invoice is cancellable with `afterSending: true` (the admin's confirmation);
+  paid / credited / lesson-linked / credit-noted invoices still never. `manualInvoiceApi /cancel` takes `afterSending`,
+  marks `cancelledAfterSending`, the audit keeps `wasSent` + `sentTo`. Never deleted: the number and the reason stay.
+- CRM: „Tühista” also on sent unpaid invoices (and unpaid lesson-package invoices); the dialog requires the checkbox
+  „Arve on juba saadetud aadressile … Kinnitan tühistamise”.
+- Tests: functions 285/285, crm-v2 finance 118/118 (+1, 1 rewritten). Production: deploy manualInvoiceApi.
+
 ## 2026-10-15 · agent/lesson-tokens — lesson tokens (Tunnipakett)
 
 - Owner's queued request (memory lesson-tokens-request): invoice for N lessons → paid → admin confirms → the child gets
