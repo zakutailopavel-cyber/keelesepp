@@ -168,6 +168,7 @@
 .cal2-dot { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
 .cal2-dot.is-free { background: rgba(8, 126, 107, .35); border: 1px solid #0f8a73; }
 .cal2-dot.is-busy { background: rgba(180, 35, 24, .3); border: 1px solid #b42318; margin-left: 8px; }
+.cal-cell-menu .cal2-dot.is-busy { margin-left: 0; }
 .cal2-paint .cal2-dot.is-busy { margin-left: 0; }
 
 /* students with no lesson ahead */
@@ -240,3 +241,20 @@
 .tg-online-icon { flex: none; margin-right: 3px; vertical-align: -2px; color: #0b5c9e; }
 .tg-cluster-item.is-online { outline: 1.5px dashed var(--tone-strong); outline-offset: -1.5px; }
 .tg-cluster-item .tg-online-icon { margin-right: 2px; }
+
+/* a click on an empty half-hour cell: its status or a new lesson (Oleksiy 2026-10-15) */
+.cal-cell-menu { position: fixed; z-index: 60; display: grid; gap: 8px; padding: 12px; border: 1px solid #dfe5e1; border-radius: 14px; background: #fff; box-shadow: 0 14px 40px rgba(16, 35, 57, .22); }
+.cal-cell-menu header { display: grid; gap: 2px; }
+.cal-cell-menu header strong { font-size: .9rem; text-transform: capitalize; }
+.cal-cell-menu header small { color: #66756f; }
+.cal-cell-menu__kinds { display: grid; gap: 4px; }
+.cal-cell-menu__kinds button { display: flex; align-items: center; gap: 10px; padding: 7px 9px; border: 1px solid transparent; border-radius: 10px; background: #f6f8f7; font: inherit; text-align: left; cursor: pointer; }
+.cal-cell-menu__kinds button:hover { border-color: #b9d3c9; }
+.cal-cell-menu__kinds button.is-current { border-color: #2f5d50; background: #eaf3ef; }
+.cal-cell-menu__kinds button span { display: grid; }
+.cal-cell-menu__kinds button small { color: #71807b; font-size: .74rem; }
+.cal-cell-menu__kinds .cal2-dot:not([class*="is-"]) { border: 1.5px dashed #9aa5a1; background: transparent; }
+.cal-cell-menu__weekly { display: flex; align-items: center; gap: 8px; font-size: .82rem; color: #44534e; }
+.cal-cell-menu__hint { margin: 0; color: #71807b; font-size: .85rem; }
+.cal-cell-menu__lesson { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; border: 0; border-radius: 10px; background: #0f6b57; color: #fff; font: inherit; font-weight: 800; cursor: pointer; }
+.cal-cell-menu:focus { outline: none; }

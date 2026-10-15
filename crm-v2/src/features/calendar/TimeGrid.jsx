@@ -143,7 +143,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
     if (paint || drag || event.target !== event.currentTarget) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const minutes = GRID_START + snapMinutes((event.clientY - rect.top) / PX_PER_MIN, 30);
-    onSlot(column, toClock(Math.min(minutes, GRID_END - 30)));
+    onSlot(column, toClock(Math.min(minutes, GRID_END - 30)), { x: event.clientX, y: event.clientY });
   };
 
   const height = (GRID_END - GRID_START) * PX_PER_MIN;

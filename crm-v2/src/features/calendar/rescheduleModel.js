@@ -1,7 +1,7 @@
 // „Ei saa tulla?” (owner 2026-10-12): a student or parent asks to move one lesson; the teacher confirms or declines.
 // The lesson stays in place until the teacher confirms. Times offered come from the teacher's green („free”) windows;
 // the teacher still checks them against the calendar, because a student cannot see other students' lessons.
-import { slotsOn } from './availabilityModel.js';
+import { effectiveSlots } from './availabilityModel.js';
 import { toMinutes } from './calendarGrid.js';
 
 export const LATE_HOURS = 24;
@@ -28,8 +28,8 @@ export function proposalSlots({ availability, lesson, from, days = 14, limit = 6
   const out = [];
   for (let i = 0; i < days && out.length < limit; i += 1) {
     const date = addDays(from, i);
-    const windows = slotsOn(availability, date).filter((slot) => slot.kind === 'free')
-      .map((slot) => ({ start: toMinutes(slot.start), end: toMinutes(slot.end) })).sort((a, b) => a.start - b.start);
+    const windows = effectiveSlots(availability, date).filter((slot) => slot.kind === 'free')
+      .map((slot) => ({ start: slot.start, end: slot.end })).sort((a, b) => a.start - b.start);
     for (const window of windows) {
       let start = Math.ceil(window.start / 30) * 30;
       let found = null;

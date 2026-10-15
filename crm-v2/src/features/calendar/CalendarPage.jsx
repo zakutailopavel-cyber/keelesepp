@@ -14,11 +14,12 @@ import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, resolveOccurrenceRecord, shiftDate, toIsoDate } from './calendarView.js';
-import { canMove, planDelete, planMove, teacherTone, toClock } from './calendarGrid.js';
+import { canMove, planDelete, planMove, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
-import { DAY_IDS, bandsOn, paintSlot, slotsOn, windowProblem } from './availabilityModel.js';
+import { DAY_IDS, bandsOn, cellStatus, paintSlot, setCellStatus, slotsOn, windowProblem } from './availabilityModel.js';
+import CellStatusMenu from './CellStatusMenu.jsx';
 import LessonPanel from './LessonPanel.jsx';
 import AdminNoteBox from './AdminNoteBox.jsx';
 import { notesFor } from '../../services/firebase/lessonNotes.js';
@@ -149,6 +150,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   // painting a teacher's green (free) / red (busy) windows
   const [paint, setPaint] = useState(null);
   const [paintSaving, setPaintSaving] = useState(false);
+  // a click on an empty cell: { column, date, start, end, x, y } — its status menu (Oleksiy 2026-10-15)
+  const [cellMenu, setCellMenu] = useState(null);
   // students with no lesson ahead (`?unplanned=1` opens the list, e.g. from Ülevaade)
   const [showUnplanned, setShowUnplanned] = useState(() => searchParams.get('unplanned') === '1');
   const [pausing, setPausing] = useState('');
@@ -257,13 +260,39 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const paintTeacher = teacherOnly
     ? { uid: user.uid, name: user.displayName }
     : isAdmin && filters.teacher ? { uid: filters.teacher, name: teachers.find((teacher) => teacher.id === filters.teacher)?.name || '' } : null;
-  const saveWindows = async (slots) => {
-    if (!paintTeacher) return;
+  const saveWindows = async (slots, owner = paintTeacher) => {
+    if (!owner) return false;
     setPaintSaving(true); setActionError('');
     try {
-      await availabilityRepository.save({ teacherUid: paintTeacher.uid, teacherName: paintTeacher.name, slots, user });
+      await availabilityRepository.save({ teacherUid: owner.uid, teacherName: owner.name, slots, user });
       await availabilityState.reload();
-    } catch (error) { setActionError(error.message || 'Aegu ei saanud salvestada.'); } finally { setPaintSaving(false); }
+      return true;
+    } catch (error) { setActionError(error.message || 'Aegu ei saanud salvestada.'); return false; } finally { setPaintSaving(false); }
+  };
+  // whose time a cell is: the teacher's own column (an administrator's day view), the teacher, or the chosen teacher
+  const cellTeacher = (column) => {
+    if (column.key.startsWith('t:')) {
+      const uid = column.key.slice(2);
+      if (uid === '—') return paintTeacher;
+      if (!isAdmin && uid !== user.uid) return null;
+      // a column keyed by a teacher's name (an old lesson without the account) has no windows to set
+      const known = uid === user.uid || teachers.some((teacher) => teacher.id === uid) || availabilityList.some((entry) => entry.teacherUid === uid);
+      return known ? { uid, name: teachers.find((teacher) => teacher.id === uid)?.name || column.title || '' } : null;
+    }
+    return paintTeacher;
+  };
+  const openCell = (column, time, point = {}) => {
+    const start = time;
+    const end = toClock(Math.min(toMinutes(time) + 30, 24 * 60));
+    setCellMenu({ column, date: column.date, start, end, x: point.x, y: point.y });
+  };
+  const setCell = async (kind, weekly) => {
+    const menu = cellMenu;
+    const owner = cellTeacher(menu.column);
+    if (!owner) return;
+    let slots;
+    try { slots = setCellStatus(availabilityFor(owner.uid)?.slots || [], { date: menu.date, weekly, start: menu.start, end: menu.end, kind }); } catch (error) { setActionError(error.message); return; }
+    if (await saveWindows(slots, owner)) setCellMenu(null);
   };
   const onPaint = (column, start, end) => {
     if (!paintTeacher || !paint) return;
@@ -660,7 +689,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
                 allowColumnChange={view === 'week'}
                 showTeacher={!filters.teacher && !teacherOnly && view === 'week'}
                 canDrag={(item) => canMove(item) && (!item.isGroup || isAdmin) && !isGoogleOwned(item)}
-                onSlot={(column, time) => openCreate(column.date, time)}
+                onSlot={openCell}
                 onOpen={openPanel}
                 onQuickDone={quickDone}
                 onMove={onMove}
@@ -672,6 +701,14 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
               {!occurrences.length ? <p className="cal2-empty">{hasActiveFilters ? <>Filtritele vastavaid tunde ei leitud · <button type="button" className="link-button" onClick={() => setFilters(emptyFilters())}>Tühjenda filtrid</button></> : 'Valitud perioodil tunde ei ole — klõpsa kalendris vabal ajal, et lisada tund.'}</p> : null}
             </>}
       </div>
+      {cellMenu ? (() => {
+        const owner = cellTeacher(cellMenu.column);
+        return <CellStatusMenu key={`${cellMenu.date}${cellMenu.start}${cellMenu.column.key}`} cell={cellMenu} teacherName={owner?.name || ''} saving={paintSaving}
+          current={owner ? cellStatus(availabilityFor(owner.uid), cellMenu) : { kind: 'open', weekly: false }}
+          onStatus={owner ? setCell : null}
+          onLesson={() => { const { date, start } = cellMenu; setCellMenu(null); openCreate(date, start); }}
+          onClose={() => setCellMenu(null)} />;
+      })() : null}
       {autoMarkReady ? <RunOnce run={autoMark} /> : null}
       {panelItem ? (
         <LessonPanel
