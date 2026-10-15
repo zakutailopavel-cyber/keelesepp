@@ -1,3 +1,17 @@
+## 2026-10-15 · agent/lhv-sender-header — the real LHV export + the owner's statement recorded
+
+- The owner's LHV export (May–15.10.2026, 197 incoming rows, 15 571,12 €) names the payer column „Sender/receiver
+  name”: added to `bankReconciliation.js` (+ test). Main checked: d0e67c3.
+- With the owner's approval 26 payments (1 263 €) were recorded in production through financeApi /payments (the
+  „Makse” path, requestId `lhv-<archiving code>`, note „LHV väljavõte …”): 17 by the invoice number in the
+  explanation, 9 by the child's / payer's name and the exact amount. 28 rows were already entered by hand (skipped).
+  KS-2026-022, -067, -078, -083, -103 became paid; the old paid invoices got their records.
+- Not recorded (owner: „не вносить, дать список”): 143 rows, 11 160,12 € (lessons paid before CRM invoices,
+  Töötukassa, companies with the old „arve nr 260xx” numbers, payments with a wrong invoice number). The list is a local
+  file for the owner (not in git). Still open: KS-2026-004 and -042 (paid, no matching bank row), -030, -049, -050 and
+  the October invoices.
+- Next safe step: the admin checks „Kontroll” (KS-2026-066 duplicate, the 2 remaining paid-without-record invoices).
+
 ## 2026-10-15 · agent/payment-reconciliation — „Kontroll”: invoices against payments and the LHV statement
 
 - Owner: „надо сделать так чтобы админ мог сверять счета по оплатам”; chose „выписка банка + отчёт”, bank LHV.

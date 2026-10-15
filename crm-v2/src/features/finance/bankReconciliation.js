@@ -7,7 +7,7 @@ const HEADER_ALIASES = {
   amount: ["amount", "summa", "tehingusumma", "credit", "creditamount", "сумма"],
   payerName: [
     "payer", "payername", "maksja", "maksjanimi", "nimi", "sender", "counterparty", "vastaspool", "saajamaksja",
-    "maksesaajamaksja", "saaja/maksja nimi", "beneficiary's name", "имя получателя/плательщика",
+    "maksesaajamaksja", "saaja/maksja nimi", "beneficiary's name", "sender/receiver name", "имя получателя/плательщика",
   ],
   reference: [
     "reference", "paymentreference", "viide", "viitenumber", "selgitus", "makseselgitus", "description", "details",
