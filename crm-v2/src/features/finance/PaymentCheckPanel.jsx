@@ -5,6 +5,7 @@ import { paymentsService } from '../../services/firebase/payments.js';
 import { displayDate } from './finance.js';
 import { missingPaymentRecord, reconcilePayments } from './paymentReconciliation.js';
 import BankReconciliationPanel from './BankReconciliationPanel.jsx';
+import PaymentLedger from './PaymentLedger.jsx';
 import './paymentCheck.css';
 
 const money = (value) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(value || 0) / 100);
@@ -21,13 +22,18 @@ const SECTIONS = [
 ];
 
 // „Kontroll”: invoices against payment records and the bank (owner 2026-10-15). Fixes go through the finance API.
-export default function PaymentCheckPanel({ invoices = [], transactions = [], students = [], financeRepository, paymentRepository = paymentsService, onAllocate, onReload, onOpenCredits, onNotice }) {
+export default function PaymentCheckPanel({ invoices = [], transactions = [], students = [], financeRepository, paymentRepository = paymentsService, onAllocate, onReload, onOpenCredits, onNotice, tab: tabProp, onTabChange }) {
   const [payments, setPayments] = useState(null);
   const [loadError, setLoadError] = useState('');
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [importOpen, setImportOpen] = useState(false);
+  // „Laekumised” (the bank-like list) first; „Erinevused” holds the findings to fix
+  // the page may keep the tab (a reload of the finance data re-mounts this panel)
+  const [ownTab, setOwnTab] = useState('ledger');
+  const tab = tabProp || ownTab;
+  const setTab = (value) => { setOwnTab(value); onTabChange?.(value); };
 
   const load = useCallback(async () => {
     setLoadError('');
@@ -70,7 +76,7 @@ export default function PaymentCheckPanel({ invoices = [], transactions = [], st
 
   return <Card className="payment-check">
     <div className="payment-check__heading">
-      <div><span className="eyebrow">Kontroll</span><h2>Arved ja maksed</h2><p>Iga arve võrreldakse maksete kirjetega; pangast laekunud raha, mis ei ole arvel, on eraldi.</p></div>
+      <div><span className="eyebrow">Kontroll</span><h2>Arved ja maksed</h2><p>Kõik laekumised nagu pangas — kes maksis, mille eest ja millisele arvele; erinevustes iga arve võrreldakse maksetega.</p></div>
       <div><Button variant="secondary" onClick={() => setImportOpen(true)}><FileUp size={17} /> Impordi LHV väljavõte</Button><Button variant="secondary" aria-label="Värskenda" onClick={refresh}><RefreshCw size={16} /></Button></div>
     </div>
     {loadError ? <p className="action-error" role="alert">{loadError}</p> : null}
@@ -81,10 +87,15 @@ export default function PaymentCheckPanel({ invoices = [], transactions = [], st
         <div><dt>Maksete kirjed</dt><dd>{money(report.recordedCents)}</dd></div>
         <div><dt>Leitud erinevusi</dt><dd>{report.count}</dd></div>
       </dl>
+      <div className="payment-check__tabs" role="tablist" aria-label="Kontrolli vaated">
+        <button type="button" role="tab" aria-selected={tab === 'ledger'} onClick={() => setTab('ledger')}>Laekumised</button>
+        <button type="button" role="tab" aria-selected={tab === 'issues'} onClick={() => setTab('issues')}>Erinevused <Badge tone={report.count ? 'danger' : 'success'}>{report.count}</Badge></button>
+      </div>
       {notice ? <p className="payment-check__notice" role="status">{notice}</p> : null}
       {error ? <p className="action-error" role="alert">{error}</p> : null}
-      {!report.count ? <EmptyState title="Kõik klapib" description="Iga arve olek vastab maksetele ja kogu laekunud raha on arvetel." action={<CheckCircle2 size={28} />} /> : null}
-      {SECTIONS.filter(([kind]) => report.issues[kind].length).map(([kind, title, hint]) => <section key={kind} className="payment-check__section" aria-label={title}>
+      {tab === 'ledger' ? <PaymentLedger payments={payments} transactions={transactions} invoices={invoices} /> : null}
+      {tab === 'issues' && !report.count ? <EmptyState title="Kõik klapib" description="Iga arve olek vastab maksetele ja kogu laekunud raha on arvetel." action={<CheckCircle2 size={28} />} /> : null}
+      {tab === 'issues' && SECTIONS.filter(([kind]) => report.issues[kind].length).map(([kind, title, hint]) => <section key={kind} className="payment-check__section" aria-label={title}>
         <header><div><h3>{title} <Badge tone={kind === 'unapplied' || kind === 'missingPayment' ? 'info' : 'danger'}>{report.issues[kind].length}</Badge></h3><p>{hint}</p></div>
           {kind === 'missingPayment' && report.issues[kind].length > 1 ? <Button loading={busy === 'missing-all'} disabled={Boolean(busy)} onClick={() => addAllMissing(report.issues[kind])}>Lisa kõigile ({report.issues[kind].length})</Button> : null}</header>
         {report.issues[kind].map((item) => <div className="payment-check__row" key={item.invoice?.id || item.payment?.id || item.transaction?.id}>

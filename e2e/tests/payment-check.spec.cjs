@@ -34,6 +34,9 @@ test('the admin checks invoices against payments: adds a missing record, voids a
 
   await login(page, 'admin');
   await page.goto('/finance?view=check');
+  // the bank-like list shows who paid what
+  await expect(page.getByRole('table', { name: 'Laekumised' })).toContainText('KS-2026-902');
+  await page.getByRole('tab', { name: /Erinevused/ }).click();
   const duplicate = page.getByRole('region', { name: /kaks korda/ });
   await expect(duplicate).toContainText('KS-2026-902');
   page.once('dialog', (dialog) => dialog.accept());

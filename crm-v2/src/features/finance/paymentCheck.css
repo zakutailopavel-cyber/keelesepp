@@ -22,3 +22,31 @@
   .payment-check__summary { grid-template-columns: 1fr; padding-inline: 16px; }
   .payment-check__actions { justify-content: flex-start; }
 }
+.payment-check__tabs { display: flex; gap: 8px; padding: 0 26px 14px; }
+.payment-check__tabs button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid #dfe5e1; border-radius: 999px; background: #fff; color: #44534e; font: inherit; font-weight: 700; cursor: pointer; }
+.payment-check__tabs button[aria-selected="true"] { border-color: #2f5d50; background: #2f5d50; color: #fff; }
+.payment-ledger { border-top: 1px solid #edf0ed; }
+.payment-ledger__filters { display: grid; grid-template-columns: minmax(220px, 1fr) 200px auto; align-items: end; gap: 14px; padding: 16px 26px; }
+.payment-ledger__filters .search-field { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; border: 1px solid #dfe5e1; border-radius: 12px; background: #fff; }
+.payment-ledger__filters .search-field input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; background: transparent; }
+.payment-ledger__total { display: grid; justify-items: end; margin: 0; color: #71807b; font-size: .82rem; }
+.payment-ledger__total strong { color: #176553; font-size: 1.2rem; }
+.payment-ledger__table { overflow-x: auto; }
+.payment-ledger__head, .payment-ledger__row { display: grid; grid-template-columns: 96px minmax(150px, 1fr) minmax(160px, 1.2fr) minmax(170px, 1.1fr) 110px; gap: 12px; align-items: center; min-width: 760px; padding: 11px 26px; }
+.payment-ledger__head { color: #73817d; background: #f5f7f5; font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.payment-ledger__row { border-top: 1px solid #f1f4f2; font-size: .9rem; }
+.payment-ledger__row small { display: block; color: #66756f; }
+.payment-ledger__reference { color: #55645f; overflow-wrap: anywhere; }
+.payment-ledger__amount { justify-self: end; color: #176553; font-weight: 800; white-space: nowrap; }
+.payment-ledger__advance { color: #9a6a12 !important; font-weight: 700; }
+.payment-ledger__more { display: flex; justify-content: center; padding: 14px; }
+@media (max-width: 680px) {
+  .payment-check__tabs { padding-inline: 16px; }
+  .payment-ledger__filters { grid-template-columns: 1fr; padding-inline: 16px; }
+  .payment-ledger__total { justify-items: start; }
+  .payment-ledger__head { display: none; }
+  .payment-ledger__row { grid-template-columns: 1fr auto; min-width: 0; padding-inline: 16px; }
+  .payment-ledger__row > :nth-child(1) { grid-column: 1; color: #73817d; font-size: .8rem; }
+  .payment-ledger__row > :nth-child(5) { grid-column: 2; grid-row: 1 / span 2; }
+  .payment-ledger__row > :nth-child(n+2):nth-child(-n+4) { grid-column: 1; }
+}

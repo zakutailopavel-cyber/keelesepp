@@ -167,6 +167,7 @@ export default function FinanceMonthPage({
     return ['prepare', 'check'].includes(requested) && !canManage ? 'invoices' : requested;
   });
   const [query, setQuery] = useState('');
+  const [checkTab, setCheckTab] = useState('ledger');
   const [paymentInvoice, setPaymentInvoice] = useState(null);
   const [cancelInvoice, setCancelInvoice] = useState(null);
   const [cancelBusy, setCancelBusy] = useState(false);
@@ -293,7 +294,7 @@ export default function FinanceMonthPage({
       <section ref={viewRef} id="finance-view-panel" className="finance-month-view" role="tabpanel" aria-labelledby={`finance-tab-${activeView}`}>
       {activeView === 'prepare' && canManage ? <MonthlyInvoicePanel students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} invoices={invoices} user={user} month={month} onMonthChange={setMonth} planRepository={planRepository} studentRepository={studentRepository} lessonRepository={lessonRepository} deliveryApi={deliveryRepository} onChanged={state.reload} {...monthlyInvoiceProps} /> : null}
 
-      {activeView === 'check' && canManage ? <PaymentCheckPanel invoices={invoices} transactions={state.data.bankTransactions || []} students={state.data.students} financeRepository={financeRepository} {...(paymentRepository ? { paymentRepository } : {})} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onOpenCredits={() => selectView('credits', true)} onNotice={announce} /> : null}
+      {activeView === 'check' && canManage ? <PaymentCheckPanel invoices={invoices} transactions={state.data.bankTransactions || []} students={state.data.students} financeRepository={financeRepository} {...(paymentRepository ? { paymentRepository } : {})} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onOpenCredits={() => selectView('credits', true)} onNotice={announce} tab={checkTab} onTabChange={setCheckTab} /> : null}
 
       {activeView === 'credits' ? (canManage ? <AdvanceManagementPanel credits={state.data.credits || []} refunds={state.data.refunds || []} invoices={invoices} onApply={(creditId, invoiceId, amount, note) => financeRepository.applyPayerCredit(creditId, invoiceId, amount, note)} onRefund={(creditId, refund) => financeRepository.refundPayerCredit(creditId, refund)} onReload={state.reload} /> : <Card><EmptyState title="Ettemaksude haldamine" description="See vaade on administraatorile." /></Card>) : null}
 

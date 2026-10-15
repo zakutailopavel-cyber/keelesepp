@@ -1,3 +1,15 @@
+## 2026-10-15 · agent/payment-ledger — „Laekumised”: the incoming money like a bank statement
+
+- Owner (screenshot of Kontroll): „вид как в банке чтобы админ видел кто оплатил и поиск по имени и счету”.
+  Main checked: 5c7c8b6.
+- Kontroll opens on „Laekumised” (`PaymentLedger.jsx`; `paymentLedger` / `filterLedger` in `paymentReconciliation.js`):
+  one row per bank transaction (several invoices + advance) and per hand-entered payment, newest first: day, payer
+  (the bank's name: bank import, or „LHV väljavõte <day>, <name> (…)” in the note), explanation, invoice + child,
+  amount; search by every word (payer, child, invoice number, explanation, amount), month filter, total of the rows.
+  Voided payments are not listed. The findings moved to the tab „Erinevused (N)”; the page keeps the tab on reload.
+- Bank rows that were never imported (the owner's 143 unmatched LHV rows) are not in this list.
+- Tests: crm-v2 1889 passed (+2), build OK, e2e payment-check passes. No server or rules change.
+
 ## 2026-10-15 · agent/lhv-sender-header — the real LHV export + the owner's statement recorded
 
 - The owner's LHV export (May–15.10.2026, 197 incoming rows, 15 571,12 €) names the payer column „Sender/receiver
