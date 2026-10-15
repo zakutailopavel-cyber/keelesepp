@@ -3,6 +3,7 @@ import { Copy, Send } from 'lucide-react';
 import { Button, Card, Input } from '../../components/ui/index.js';
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { studentAccess } from '../../services/firebase/students.js';
+import ParentInviteDialog from '../parents/ParentInviteDialog.jsx';
 
 const STATUS = {
   student: 'Õpilasel on oma konto.',
@@ -12,7 +13,7 @@ const STATUS = {
 
 // Admin: give the student a login of their own („Saada kutse”: an account without a password + an e-mail with the
 // link to set it), or send a new password link to the student's account (owner, 2026-10-14).
-export default function StudentAccountCard({ student, service = accountApprovalsService, onInvited }) {
+export default function StudentAccountCard({ student, service = accountApprovalsService, onInvited, onParentInvited }) {
   const access = studentAccess(student);
   const own = access === 'student';
   const suggested = student.email && student.email !== student.parentEmail ? student.email : '';
@@ -22,6 +23,8 @@ export default function StudentAccountCard({ student, service = accountApprovals
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [parentOpen, setParentOpen] = useState(false);
+  const hasParent = Boolean(student.linkedParentId || student.parentUid || student.guardianUid || (student.linkedParentIds || []).length);
 
   const send = async (event) => {
     event?.preventDefault();
@@ -55,5 +58,11 @@ export default function StudentAccountCard({ student, service = accountApprovals
         {result.mailed ? 'Kiri on saadetud.' : 'Kirja ei õnnestunud kinnitada — saada link õpilasele ise.'}</span>
       {result.link ? <Button type="button" variant="secondary" onClick={copy}><Copy size={15} /> {copied ? 'Kopeeritud' : 'Kopeeri link'}</Button> : null}
     </div> : null}
+    {/* „Lisa lapsevanem” (owner 2026-10-15): a parent login for this card, prefilled from the card */}
+    {hasParent ? <p className="form-hint">Lapsevanema konto on kaardiga seotud.</p>
+      : <Button variant="secondary" onClick={() => setParentOpen(true)}><Send size={16} /> Loo lapsevanema konto</Button>}
+    {parentOpen ? <ParentInviteDialog open onClose={() => setParentOpen(false)} students={[student]} service={service}
+      initial={{ displayName: student.parentName || '', email: student.parentEmail || '', phone: '', studentIds: [student.id] }}
+      onDone={(data) => onParentInvited?.(data)} /> : null}
   </Card>;
 }

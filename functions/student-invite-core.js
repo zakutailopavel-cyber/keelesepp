@@ -30,19 +30,21 @@ function invitePlan({ student, email, existing = null, studentIds = [], parentId
 }
 
 // Estonian + Russian (most families are Russian-speaking). `link` sets the password and then opens the CRM login.
-function composeInviteEmail({ name = "", email, link, resend = false }) {
+// `children`: the children a parent account sees (a parent invite)
+function composeInviteEmail({ name = "", email, link, resend = false, children = [] }) {
   const subject = resend
     ? "KeeleSepp: määra uus parool / задайте новый пароль"
     : "Sinu KeeleSeppi konto / Ваш аккаунт KeeleSepp";
   const etLead = resend ? "Siin on link uue parooli määramiseks." : "Sulle on loodud KeeleSeppi konto. Määra endale parool:";
   const ruLead = resend ? "Ссылка, чтобы задать новый пароль." : "Для вас создан аккаунт KeeleSepp. Задайте пароль:";
-  const text = `Tere${name ? `, ${name}` : ""}!\n${etLead}\n${link}\nKasutajanimi: ${email}\nSeejärel logi sisse: ${CRM_URL}/login\n\n`
-    + `Здравствуйте${name ? `, ${name}` : ""}!\n${ruLead}\n${link}\nЛогин: ${email}\nПотом войдите: ${CRM_URL}/login\n\nKeeleSepp`;
+  const kids = children.filter(Boolean).join(", ");
+  const text = `Tere${name ? `, ${name}` : ""}!\n${etLead}\n${link}\nKasutajanimi: ${email}\n${kids ? `Lapsed: ${kids}\n` : ""}Seejärel logi sisse: ${CRM_URL}/login\n\n`
+    + `Здравствуйте${name ? `, ${name}` : ""}!\n${ruLead}\n${link}\nЛогин: ${email}\n${kids ? `Дети: ${kids}\n` : ""}Потом войдите: ${CRM_URL}/login\n\nKeeleSepp`;
   const html = `<div style="font-family:Arial,sans-serif;color:#1C2B3A;line-height:1.5">
   <p>Tere${name ? `, ${esc(name)}` : ""}!<br>${esc(etLead)}</p>
   <p>Здравствуйте${name ? `, ${esc(name)}` : ""}!<br>${esc(ruLead)}</p>
   <p><a href="${esc(link)}" style="display:inline-block;background:#2F5D50;color:#fff;text-decoration:none;padding:10px 14px;border-radius:8px;font-weight:700">Määra parool / Задать пароль</a></p>
-  <p>Kasutajanimi / Логин: <strong>${esc(email)}</strong><br>Sisselogimine / Вход: <a href="${CRM_URL}/login">${CRM_URL}/login</a></p>
+  <p>Kasutajanimi / Логин: <strong>${esc(email)}</strong><br>${kids ? `Lapsed / Дети: ${esc(kids)}<br>` : ""}Sisselogimine / Вход: <a href="${CRM_URL}/login">${CRM_URL}/login</a></p>
   <p style="font-size:12px;color:#64748b">KeeleSepp · info@epkoolitus.ee · +372 5434 4155</p>
 </div>`;
   return { to: email, subject, text, html };

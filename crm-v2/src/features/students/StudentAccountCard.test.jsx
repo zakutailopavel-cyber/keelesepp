@@ -38,3 +38,22 @@ describe('student account card', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Sellel e-postil on juba konto.');
   });
 });
+
+describe('student account card: parent login', () => {
+  it('creates a parent login from the card\'s parent name and e-mail', async () => {
+    const service = { inviteParent: vi.fn().mockResolvedValue({ uid: 'p1', email: 'olga@example.ee', created: true, mailed: true, link: 'l' }) };
+    const onParentInvited = vi.fn();
+    render(<StudentAccountCard student={{ id: 'misha', name: 'Misha', parentName: 'Olga', parentEmail: 'olga@example.ee' }} service={service} onParentInvited={onParentInvited} />);
+    fireEvent.click(screen.getByRole('button', { name: /Loo lapsevanema konto/ }));
+    expect(screen.getByLabelText('Lapsevanema nimi')).toHaveValue('Olga');
+    fireEvent.click(screen.getByRole('button', { name: /Loo ja saada kutse/ }));
+    await waitFor(() => expect(service.inviteParent).toHaveBeenCalledWith(expect.objectContaining({ email: 'olga@example.ee', studentIds: ['misha'] })));
+    expect(onParentInvited).toHaveBeenCalledWith(expect.objectContaining({ uid: 'p1' }));
+  });
+
+  it('a card with a parent login offers no second one', () => {
+    render(<StudentAccountCard student={childCard} service={{}} />);
+    expect(screen.queryByRole('button', { name: /Loo lapsevanema konto/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/Lapsevanema konto on kaardiga seotud/)).toBeInTheDocument();
+  });
+});
