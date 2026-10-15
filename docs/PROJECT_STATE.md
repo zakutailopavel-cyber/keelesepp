@@ -1,3 +1,19 @@
+## 2026-10-15 · agent/parent-accounts — the administrator creates parent logins
+
+- Owner: „дай админам возможность создавать аккаунты родителей”. Main checked: 0bea9f8 (2026-10-15).
+- Server: `staffOperationsApi /accounts/invite-parent` (admin only) + pure `functions/parent-invite-core.js`: a new
+  e-mail → Firebase account without a password, `users/{uid}` role parent (approved, `registrationSource: invite`),
+  linked to the chosen cards through `linkAccountToStudent` (relationship parent), cards without parentName /
+  parentEmail get them, e-mail with the password link (ET+RU, names the children; `composeInviteEmail` got `children`).
+  An e-mail that already has a parent (or student-and-parent) login → that login is linked to the cards it is not on
+  and gets a new password link. Staff logins and a child's own login are refused (409). 0–10 cards per call.
+- CRM: „Lapsevanemad” → „Lisa lapsevanem” (`features/parents/ParentInviteDialog.jsx`: name, e-mail, phone, children
+  search; the first child fills an empty name / e-mail from its card; copy link when the mail is not confirmed);
+  student card „Konto” → „Loo lapsevanema konto” (prefilled from the card) when no parent login is linked.
+- Tests: functions 291/291 (+6), crm-v2 1875 passed (+5), build OK, e2e 15/15 (+1 `parent-invite.spec.cjs`).
+- Production after merge: deploy functions `staffOperationsApi`. No rules change.
+- Next safe step: after deploy, create one real parent login from a card whose parent has none and check the e-mail.
+
 ## 2026-10-15 · agent/cancel-sent-invoice — an e-mailed unpaid invoice can be cancelled
 
 - Owner: Mykyta's mother registered with a wrong e-mail; invoice KS-2026-094 went there and could not be cancelled

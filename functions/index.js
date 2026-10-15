@@ -7654,6 +7654,59 @@ async function inviteStudentAccount({ actor, studentId, email, requestId }) {
   return { uid, studentId: cleanStudentId, email: cleanEmail, created: plan.action === "create", mailed: mail.status === "sent", mailStatus: mail.status || "", link };
 }
 
+// „Lisa lapsevanem” (owner 2026-10-15): a parent's login without a password, linked to the children's cards, and an
+// e-mail with the password link (functions/parent-invite-core.js). An e-mail that already has a parent login links
+// that login to the cards and sends a new password link; staff logins and a child's own login are refused.
+async function inviteParentAccount({ actor, email, displayName, phone, studentIds, requestId }) {
+  const { parentInviteInput, parentInvitePlan, parentCardPatch } = require("./parent-invite-core");
+  const { composeInviteEmail, CRM_URL } = require("./student-invite-core");
+  let input;
+  let plan;
+  const snaps = [];
+  try {
+    input = parentInviteInput({ email, displayName, phone, studentIds });
+    for (const id of input.studentIds) snaps.push(await db.collection("students").doc(id).get());
+    const cards = snaps.map((snap) => (snap.exists ? { id: snap.id, ...snap.data() } : null));
+    let existing = null;
+    try { existing = await admin.auth().getUserByEmail(input.email); } catch (error) { existing = null; }
+    const existingProfile = existing ? ((await db.collection("users").doc(existing.uid).get()).data() || {}) : {};
+    plan = parentInvitePlan({ cards, existing, existingProfile });
+  } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
+  const nowIso = new Date().toISOString();
+  let uid = plan.uid || "";
+  if (plan.action === "create") {
+    const created = await admin.auth().createUser({ email: input.email, emailVerified: false, displayName: input.displayName });
+    uid = created.uid;
+    await db.collection("users").doc(uid).set({
+      uid, role: "parent", roles: ["parent"], displayName: input.displayName, email: input.email, ...(input.phone ? { phone: input.phone } : {}),
+      createdAt: nowIso.slice(0, 10), approvalStatus: "approved", approvalDecidedAt: nowIso, approvalDecidedBy: actorSnapshot(actor),
+      invitedAt: nowIso, invitedBy: actorSnapshot(actor), registrationSource: "invite", updatedAt: nowIso,
+    }, { merge: true });
+  }
+  const base = cleanRequestId(requestId || `invite-parent-${uid}-${Date.now()}`).slice(0, 80);
+  for (const studentId of plan.link) {
+    await linkAccountToStudent({ actor, uid, studentId, relationship: "parent", requestId: `${base}-${studentId}`.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 120) });
+  }
+  for (const snap of snaps) {
+    const patch = parentCardPatch(snap.data(), input);
+    if (Object.keys(patch).length) await snap.ref.set({ ...patch, updatedAt: nowIso }, { merge: true });
+  }
+  const children = snaps.map((snap) => cleanText(snap.data().name, 160)).filter(Boolean);
+  const link = await admin.auth().generatePasswordResetLink(input.email, { url: `${CRM_URL}/login` });
+  let timer;
+  const limit = new Promise((resolve) => { timer = setTimeout(() => resolve({ status: "timeout" }), APPROVAL_MAIL_LIMIT_MS); });
+  const mail = await Promise.race([
+    deliverEmail(composeInviteEmail({ name: input.displayName, email: input.email, link, resend: plan.action !== "create", children }), { kind: "parent-invite", uid })
+      .catch((error) => { console.error("parent invite e-mail failed", uid, error); return { status: "failed" }; }),
+    limit,
+  ]).finally(() => clearTimeout(timer));
+  await db.collection("activityLog").add({
+    action: plan.action === "create" ? "parent_account_invited" : "parent_account_linked", targetUid: uid, studentIds: input.studentIds,
+    email: input.email, displayName: input.displayName, mail: mail.status || "", actor: actorSnapshot(actor), createdAt: FieldValue.serverTimestamp(),
+  });
+  return { uid, email: input.email, created: plan.action === "create", linkedStudentIds: plan.link, mailed: mail.status === "sent", mailStatus: mail.status || "", link };
+}
+
 exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -7908,6 +7961,11 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     }
     if (req.path === "/accounts/invite") {
       const result = await inviteStudentAccount({ actor, studentId: req.body?.studentId, email: req.body?.email, requestId: req.body?.requestId });
+      res.status(result.created ? 201 : 200).json(result);
+      return;
+    }
+    if (req.path === "/accounts/invite-parent") {
+      const result = await inviteParentAccount({ actor, email: req.body?.email, displayName: req.body?.displayName, phone: req.body?.phone, studentIds: req.body?.studentIds, requestId: req.body?.requestId });
       res.status(result.created ? 201 : 200).json(result);
       return;
     }

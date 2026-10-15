@@ -9,6 +9,7 @@ import { invoicesService, parentsService, studentsService, teachersService } fro
 import { accountApprovalsService } from '../../services/firebase/accountApprovals.js';
 import { ROLES } from '../../utils/roles.js';
 import { STUDENT_LEVELS } from '../students/studentOptions.js';
+import ParentInviteDialog from './ParentInviteDialog.jsx';
 import { buildParentRows, exactParentDuplicateClusters, filterParentRows } from './parentModel.js';
 
 const statuses = {
@@ -55,6 +56,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   const [saving, setSaving] = useState('');
   const [success, setSuccess] = useState('');
   const [actionError, setActionError] = useState('');
+  const [inviting, setInviting] = useState(false);
 
   const state = useAsyncData(async () => {
     const [parents, studentResult, invoices, teachers] = await Promise.all([
@@ -200,7 +202,9 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   const balance = admin ? scopedRows.reduce((sum, row) => sum + row.balanceCents, 0) : 0;
 
   return <div className="page-content">
-    <PageHeader eyebrow="CRM" title="Lapsevanemad" description={teacherOnly ? 'Sinu õpilastega seotud lapsevanemad ja kontaktid.' : 'Lapsevanemate kontaktid, seotud lapsed ja registreeringute kontroll.'} />
+    <PageHeader eyebrow="CRM" title="Lapsevanemad" description={teacherOnly ? 'Sinu õpilastega seotud lapsevanemad ja kontaktid.' : 'Lapsevanemate kontaktid, seotud lapsed ja registreeringute kontroll.'}
+      actions={admin ? <Button onClick={() => setInviting(true)}><UserPlus size={16} /> Lisa lapsevanem</Button> : null} />
+    {admin ? <ParentInviteDialog open={inviting} onClose={() => { setInviting(false); state.reload(); }} students={state.data.students} service={accountApi} /> : null}
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
     <PeopleOverview label="Lapsevanemate kokkuvõte" eyebrow="Suhete ülevaade" title="Lapsevanemate töölaud" description="Seosed, järgmised kontaktid ja tähelepanu vajavad registreeringud." metrics={[
