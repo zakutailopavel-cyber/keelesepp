@@ -105,6 +105,14 @@ describe('LHV statement', () => {
     expect(parsed.rows).toEqual([expect.objectContaining({ paidAt: '2026-10-03', amountCents: 10500, payerName: 'SMIRNOVA JEKATERINA', reference: 'KS-2026-053 Aleksandr', externalId: '2026100300012345' })]);
   });
 
+  it('reads the current LHV English export (Sender/receiver name)', () => {
+    const text = '"Customer account no","Document no","Date","Sender/receiver account","Sender/receiver name","Debit/Credit (D/C)","Amount","Reference number","Archiving code","Description","Currency","Personal code or register code","Sender/receiver bank BIC","Ultimate debtor name","Transaction reference","Account servicer reference"\n'
+      + '"EE1","",2026-07-10,"EE2","KRISTINA TITOVA","C",14.00,"","2026071000000001","KS-2026-025","EUR","","HABAEE2XXXX","","1","X"';
+    const { rows, errors } = parseBankStatement(text);
+    expect(errors).toEqual([]);
+    expect(rows[0]).toMatchObject({ paidAt: '2026-07-10', amountCents: 1400, payerName: 'KRISTINA TITOVA', reference: 'KS-2026-025', externalId: '2026071000000001' });
+  });
+
   it('reads the English and Russian LHV headers', () => {
     const en = '"Customer account no","Document no","Date","Beneficiary\'s account no","Beneficiary\'s name","Beneficiary\'s bank code","Empty","Debit/Credit (D/C)","Amount","Reference number","Archiving code","Description","Fee","Currency"\n"EE1","1","2026-10-03","EE2","OLGA","","","C","40.00","","A1","KS-2026-080","0","EUR"';
     const ru = '"Номер счета клиента","Номер документа","Дата","Счет получателя/плательщика","Имя получателя/плательщика","Код банка получателя","Пусто","Дебет/Кредит (D/C)","Сумма","Ссылочный номер","Архивный признак","Пояснение","Комиссия","Валюта"\n"EE1","1","03.10.2026","EE2","OLGA","","","C","40,00","","A2","KS-2026-080","0","EUR"';
