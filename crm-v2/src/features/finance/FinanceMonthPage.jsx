@@ -71,11 +71,14 @@ export function invoiceEmailLine(invoice = {}) {
   return { text: 'Saatmata', tone: 'neutral' };
 }
 
+const invoiceWasSent = (invoice = {}) => ['sent', 'queued', 'sending'].includes(invoice.emailStatus) || Boolean(invoice.emailSentAt || invoice.invoiceEmailSentAt || invoice.emailQueuedAt);
+
+// an unpaid invoice can be cancelled, also an e-mailed one (wrong address or wrong invoice, owner 2026-10-15) — with a
+// confirmation in the dialog; a credited lesson package is corrected on the package instead
 function canCancelInvoice(invoice) {
-  return ['manual_charge_v1', 'monthly_plan_v1'].includes(invoice.billingMode) &&
+  return ['manual_charge_v1', 'monthly_plan_v1', 'lesson_tokens_v1'].includes(invoice.billingMode) &&
     !['Tühistatud', 'Makstud'].includes(invoice.status) &&
-    !['sent', 'queued', 'sending'].includes(invoice.emailStatus) &&
-    !invoice.emailSentAt && !invoice.invoiceEmailSentAt && !invoice.emailQueuedAt &&
+    !(invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus === 'credited') &&
     !invoice.lessonIds?.length && !invoice.lines?.some((line) => line.lessonId) &&
     !Number(invoice.paidAmountCents || invoice.paidAmount * 100 || 0) &&
     !Number(invoice.creditedAmountCents || 0);
@@ -83,10 +86,15 @@ function canCancelInvoice(invoice) {
 
 function CancelInvoiceDialog({ invoice, busy, error, onClose, onSubmit }) {
   const [reason, setReason] = useState('');
+  const [confirmed, setConfirmed] = useState(false);
+  const sent = invoiceWasSent(invoice || {});
+  const recipient = invoice?.emailRecipient || invoice?.payerEmail || invoice?.parentEmail || '';
+  const ready = reason.trim().length >= 10 && (!sent || confirmed);
   return <Modal open={Boolean(invoice)} title={`Tühista arve · ${invoice?.num || invoice?.number || ''}`} onClose={onClose}
-    footer={<><Button variant="secondary" disabled={busy} onClick={onClose}>Tagasi</Button><Button variant="danger" type="submit" form="finance-month-cancel" loading={busy} disabled={reason.trim().length < 10}>Tühista arve</Button></>}>
-    <form id="finance-month-cancel" onSubmit={(event) => { event.preventDefault(); if (reason.trim().length >= 10) onSubmit(reason.trim()); }}>
+    footer={<><Button variant="secondary" disabled={busy} onClick={onClose}>Tagasi</Button><Button variant="danger" type="submit" form="finance-month-cancel" loading={busy} disabled={!ready}>Tühista arve</Button></>}>
+    <form id="finance-month-cancel" onSubmit={(event) => { event.preventDefault(); if (ready) onSubmit(reason.trim(), { afterSending: sent }); }}>
       <p>Arve eemaldatakse aktiivsest nimekirjast ja summadest. Arve number ning tühistamise põhjus jäävad ajalukku. Seda toimingut ei saa tagasi võtta.</p>
+      {sent ? <label className="checkbox-field" style={{ paddingTop: 0, marginBottom: 10 }}><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /> <span>Arve on juba saadetud{recipient ? ` aadressile ${recipient}` : ''}. Kinnitan tühistamise (nt vale e-post või vale arve); kui maksja arve kätte sai, teatan talle.</span></label> : null}
       <div className="field"><label className="field__label" htmlFor="finance-month-cancel-reason">Tühistamise põhjus</label><textarea id="finance-month-cancel-reason" className="field__textarea" rows="3" minLength="10" maxLength="500" required value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Kirjelda, miks arve tühistatakse (vähemalt 10 märki)" />{reason.trim().length < 10 ? <small className="field__hint">Põhjus peab olema vähemalt 10 märki — veel {10 - reason.trim().length}.</small> : null}</div>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
     </form>
@@ -236,10 +244,10 @@ export default function FinanceMonthPage({
     } catch (caught) { setError(caught.message || 'Makse registreerimine ebaõnnestus.'); }
     finally { setPaymentBusy(false); }
   };
-  const confirmCancellation = async (reason) => {
+  const confirmCancellation = async (reason, options = {}) => {
     setCancelBusy(true); setError('');
     try {
-      await manualInvoiceRepository.cancel(cancelInvoice.id, reason);
+      await manualInvoiceRepository.cancel(cancelInvoice.id, reason, options);
       setCancelInvoice(null); announce('Arve tühistati. Number ja põhjus säilitati ajaloos.'); await state.reload();
     } catch (caught) { setError(caught.message || 'Arve tühistamine ebaõnnestus.'); }
     finally { setCancelBusy(false); }

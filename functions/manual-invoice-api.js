@@ -5,7 +5,7 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 const { manualInvoiceInput, manualInvoiceRecord } = require('./manual-invoice-core');
 const { monthlyInvoiceInput, monthlyInvoiceLines, monthlyInvoiceId } = require('./monthly-invoice-core');
-const { invoiceCancellationError } = require('./invoice-cancellation-core');
+const { invoiceCancellationError, wasSent } = require('./invoice-cancellation-core');
 const { sameCardsInput, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
 const { tokenInvoiceInput, tokenInvoiceLines } = require('./lesson-tokens-core');
 
@@ -458,7 +458,7 @@ async function createTokenInvoice({ actor, values, requestId }) {
   });
 }
 
-async function cancelInvoice({ actor, invoiceId, reason, requestId }) {
+async function cancelInvoice({ actor, invoiceId, reason, requestId, afterSending = false }) {
   const mutationId = cleanRequestId(requestId);
   const cleanInvoiceId = String(invoiceId || '').trim();
   const cleanReason = String(reason || '').trim().slice(0, 500);
@@ -484,17 +484,19 @@ async function cancelInvoice({ actor, invoiceId, reason, requestId }) {
       transaction.get(db.collection('financialLockedDates').doc(appToday(nowIso))),
     ]);
     if (issueLockSnap.exists || todayLockSnap.exists) throw httpError(409, 'Financial period is closed');
-    const reasonBlocked = invoiceCancellationError(invoice, paymentsSnap.docs.map(doc => doc.data()), creditNotesSnap.docs.map(doc => doc.data()));
+    const reasonBlocked = invoiceCancellationError(invoice, paymentsSnap.docs.map(doc => doc.data()), creditNotesSnap.docs.map(doc => doc.data()), { afterSending: afterSending === true });
     if (reasonBlocked) throw httpError(409, reasonBlocked);
     transaction.set(invoiceRef, {
       status: 'Tühistatud', paymentStatus: 'voided', effectiveAmountCents: 0, effectiveAmount: 0,
       balanceDueCents: 0, balanceDue: 0, parentPaymentStatus: 'voided', cancelledAt: nowIso, cancelledBy: actor,
       cancellationReason: cleanReason, cancellationRequestId: mutationId,
+      ...(wasSent(invoice) ? { cancelledAfterSending: true } : {}),
     }, { merge: true });
     transaction.create(auditRef, {
       entityType: 'invoice', entityId: cleanInvoiceId, invoiceId: cleanInvoiceId,
       invoiceNum: invoice.num || '', action: 'invoice.cancelled', actor,
       originalAmountCents: Number(invoice.amountCents || 0), reason: cleanReason,
+      ...(wasSent(invoice) ? { wasSent: true, sentTo: invoice.emailRecipient || invoice.payerEmail || invoice.parentEmail || '' } : {}),
       createdAt: nowIso, requestId: mutationId,
     });
     return { invoiceId: cleanInvoiceId, idempotent: false };
@@ -538,7 +540,7 @@ const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
       return;
     }
     if (req.path === '/cancel') {
-      const result = await cancelInvoice({ actor, invoiceId: req.body?.invoiceId, reason: req.body?.reason, requestId: req.body?.requestId });
+      const result = await cancelInvoice({ actor, invoiceId: req.body?.invoiceId, reason: req.body?.reason, requestId: req.body?.requestId, afterSending: req.body?.afterSending === true });
       res.status(200).json(result);
       return;
     }
