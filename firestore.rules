@@ -1021,6 +1021,19 @@ service cloud.firestore {
       allow delete: if isAdmin() || teacherCanUpdate(resource.data, resource.data);
     }
 
+    // the administrator's note on a calendar lesson (Oleksiy 2026-10-15): the administrator writes, the administrator
+    // and the lesson's teacher read; never students or parents (they can read their own schedule entries)
+    match /lessonNotes/{noteId} {
+      allow read: if isAdmin() || (isStaff() && resource.data.teacherUid == uid());
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['scheduleId', 'date', 'teacherUid', 'studentName', 'text', 'updatedAt', 'updatedBy', 'updatedByName'])
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.updatedBy == uid();
+      allow delete: if isAdmin();
+    }
+
     match /lessons/{lessonId} {
       // marking a lesson first reads its id (the transaction makes sure it is not marked twice): a teacher reading a
       // lesson that does not exist yet is allowed, not an evaluation error (owner 2026-10-14, Yelyzaveta Lukiianchuk)

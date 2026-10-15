@@ -1,11 +1,11 @@
-import { CalendarRange, ChevronLeft, ChevronRight, Plus, Search, Undo2, UserRoundX, X, XCircle } from 'lucide-react';
+import { CalendarRange, ChevronLeft, ChevronRight, Plus, Search, StickyNote, Undo2, UserRoundX, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { isSameTeacher } from '../../utils/teachers.js';
-import { groupsService, lessonChangeRequestsService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
+import { groupsService, lessonChangeRequestsService, lessonNotesService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import ChangeRequestsPanel from './ChangeRequestsPanel.jsx';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, looseLessonKey, parseHeld, rememberLessonLink } from '../live-classroom/lessonLink.js';
@@ -20,6 +20,8 @@ import TimeGrid from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
 import { DAY_IDS, bandsOn, paintSlot, slotsOn, windowProblem } from './availabilityModel.js';
 import LessonPanel from './LessonPanel.jsx';
+import AdminNoteBox from './AdminNoteBox.jsx';
+import { notesFor } from '../../services/firebase/lessonNotes.js';
 import QuickAttendanceAction from './QuickAttendanceAction.jsx';
 import CalendarGoogleChip from '../google-calendar/CalendarGoogleChip.jsx';
 import { isGoogleOwned } from '../google-calendar/googleCalendarModel.js';
@@ -110,7 +112,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -166,6 +168,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   // Admin can give a lesson to another teacher (substitution); teachers always plan their own lessons.
   const teacherState = useAsyncData(() => (isAdmin && teacherRepository?.list ? teacherRepository.list() : Promise.resolve([])), [isAdmin, teacherRepository]);
   const availabilityState = useAsyncData(() => (availabilityRepository?.list ? availabilityRepository.list().catch(() => []) : Promise.resolve([])), [availabilityRepository]);
+  // admin notes on lessons (Oleksiy 2026-10-15): all for an administrator, the own lessons' notes for a teacher
+  const notesState = useAsyncData(() => (noteRepository?.list ? noteRepository.list(teacherOnly ? { teacherUid: user.uid } : {}).catch(() => []) : Promise.resolve([])), [noteRepository, teacherOnly, user.uid]);
   const libraryState = useAsyncData(() => (libraryRepository?.list ? libraryRepository.list() : Promise.resolve(null)), [libraryRepository]);
   const catalog = useMemo(() => (libraryState.data ? buildTopicCatalog(libraryState.data.curriculumLessons) : null), [libraryState.data]);
   const dates = useMemo(() => datesForView(anchor, view), [anchor, view]);
@@ -184,7 +188,13 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const filteredEvents = filterCalendarEvents(events, filters);
   const withRecord = (item) => {
     const resolved = resolveOccurrenceRecord(item, lessonRecords);
-    return resolved.record ? { ...resolved, recordTopic: topicLine(resolved.record) || resolved.record.topic || '' } : resolved;
+    const notes = notesFor(notesState.data || [], item);
+    const noted = notes.length ? { ...resolved, adminNote: notes.map((note) => note.text).join('\n') } : resolved;
+    return resolved.record ? { ...noted, recordTopic: topicLine(resolved.record) || resolved.record.topic || '' } : noted;
+  };
+  const saveAdminNote = async (item, { date, text }) => {
+    await noteRepository.save({ scheduleId: item.id, date, teacherUid: item.teacherUid || '', studentName: item.studentName || '', text, user });
+    await notesState.reload();
   };
   const occurrences = occurrencesForDates(filteredEvents, dates).map(withRecord);
   // teachers of the lessons plus (admin) every active staff account, so a new teacher without lessons can be chosen
@@ -564,7 +574,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {list.filter((item) => item.occurrenceDate === date).map((item) => (
         <button type="button" className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher)}`} key={item.occurrenceId} onClick={() => openPanel(item)}>
           <time>{item.time}</time>
-          <span><strong>{item.studentName}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
+          <span><strong>{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
           {item.lessonRecordId || item.status === 'Toimunud' ? <Badge tone="success">✓</Badge> : null}
         </button>
       ))}
@@ -689,6 +699,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           liveBlocked={panelItem.isGroup ? '' : !studentMap.get(panelItem.studentId) ? 'Õpilase kaarti ei leitud.' : studentAccountUid(studentMap.get(panelItem.studentId)) ? '' : 'Õpilasel pole veel sisselogimiskontot: seo konto õpilase kaardil, siis saab tunni alustada.'}
           today={today}
         >
+          <AdminNoteBox key={`note-${panelItem.occurrenceId}`} item={panelItem} notes={notesFor(notesState.data || [], panelItem)} canEdit={isAdmin} onSave={(value) => saveAdminNote(panelItem, value)} />
           {panelItem.isGroup ? (
             <div className="attendance-sheet lp-attendance">
               {students.items.filter((student) => panelItem.studentIds.includes(student.id)).map((student) => {

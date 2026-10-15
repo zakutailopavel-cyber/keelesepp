@@ -1,3 +1,19 @@
+## 2026-10-15 · agent/lesson-admin-notes — the administrator's note on a calendar lesson
+
+- Oleksiy (#improvement): „поле админ записей, которые видит только админ и учителя … пиктограмма на поле урока”.
+  Main checked: 049de70.
+- New collection `lessonNotes/{scheduleId}` (every lesson of the series) or `{scheduleId}_{date}` (one lesson):
+  { scheduleId, date, teacherUid, studentName, text ≤ 1000, updatedAt, updatedBy, updatedByName }. Kept out of
+  `schedule` because students and parents can read their own schedule entries. Rules: the admin writes / deletes;
+  the admin and the lesson's teacher (`teacherUid` on the note) read; nobody else.
+- CRM: `lessonNotesService` (services/firebase/lessonNotes.js, `notesFor`); calendar loads the notes (teacher: own);
+  a note icon next to the time on the lesson block, in crowded clusters and in the phone list; `AdminNoteBox` in the
+  lesson panel: the admin edits (recurring: „Kõik selle sarja tunnid” / „Ainult see tund”), the teacher reads.
+- Limitation: a note keeps the teacher it was saved with; after a lesson moves to another teacher, saving it again
+  gives it to the new teacher.
+- Tests: crm-v2 1891 passed (+2), rules emulator `lesson-notes-emulator.integration.js` (in test:emulator) passes,
+  build OK. Production after merge: deploy firestore rules (Vercel deploys the page).
+
 ## 2026-10-15 · agent/payment-ledger — „Laekumised”: the incoming money like a bank statement
 
 - Owner (screenshot of Kontroll): „вид как в банке чтобы админ видел кто оплатил и поиск по имени и счету”.
