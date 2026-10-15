@@ -1,3 +1,16 @@
+## 2026-10-15 · agent/calendar-cell-status — a click on an empty cell sets its status
+
+- Oleksiy #improvement: every half-hour cell can be „free / online only / busy / a lesson”. Main checked: dc7e0d5.
+- A click on an empty cell opens `CellStatusMenu`: Vaba / Ainult veebitunnid / Hõivatud / Eemalda märge (current
+  status marked), „Iga nädal” (else this day only), „+ Lisa tund” (the lesson form as before). The teacher: own
+  time; an administrator: the teacher chosen in the filter or the teacher's column of the day view; an administrator
+  with all teachers gets only „Lisa tund”. Same data as „Minu ajad” (`teacherAvailability`, same rules).
+- `availabilityModel.js`: `setCellStatus` cuts same-scope windows around the cell (a 9–17 window stays 9–12 and
+  12:30–17) and joins neighbours; `effectiveSlots`: a one-day window overrides the weekly ones where they overlap
+  (also a stored „open” = unmarked that day); `availabilityAt`, `bandsOn` and the reschedule proposals use it.
+- Tests: crm-v2 1900 passed (+5), build OK; clicked through in a browser on the emulators.
+- Queued: rooms („кабинет”, Oleksiy, low priority).
+
 ## 2026-10-15 · agent/teacher-students-consistent — one rule for „whose student is this”
 
 - Owner: the teacher in the student list and on the teacher's card did not match. Cause: the student list shows the

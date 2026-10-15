@@ -383,6 +383,37 @@ describe('calendar v2', () => {
     expect(within(filter).getAllByRole('option', { name: 'Pavel' })).toHaveLength(1);
   });
 
+  it('a teacher clicks an empty cell: busy for this day only, then a new lesson from the same menu', async () => {
+    auth.user = { uid: 't1', displayName: 'Pavel', roles: ['teacher'] };
+    const props = renderCalendar({ events: [lesson()] });
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    const column = [...document.querySelectorAll('.tg-col')].find((col) => col.querySelector('.tg-block'));
+    // jsdom: the column starts at the top; 0 px = the grid's first half hour
+    fireEvent.click(column, { clientY: 0 });
+    const menu = screen.getByRole('dialog', { name: /Aeg/ });
+    expect(within(menu).getByText('Pavel')).toBeInTheDocument();
+    expect(within(menu).getByRole('checkbox')).not.toBeChecked();
+    fireEvent.click(within(menu).getByRole('button', { name: /Hõivatud/ }));
+    await waitFor(() => expect(props.availabilityRepository.save).toHaveBeenCalledTimes(1));
+    const saved = props.availabilityRepository.save.mock.calls[0][0];
+    expect(saved).toMatchObject({ teacherUid: 't1' });
+    expect(saved.slots).toEqual([expect.objectContaining({ kind: 'busy', date: today })]);
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: /Aeg/ })).toBeNull());
+    fireEvent.click(column, { clientY: 0 });
+    fireEvent.click(within(screen.getByRole('dialog', { name: /Aeg/ })).getByRole('button', { name: /Lisa tund/ }));
+    expect(await screen.findByRole('dialog', { name: /Lisa tund|Uus tund/ })).toBeInTheDocument();
+    auth.user = null;
+  });
+
+  it('an admin without a chosen teacher gets only „Lisa tund” in the cell menu', async () => {
+    renderCalendar({ events: [lesson()] });
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    fireEvent.click(document.querySelector('.tg-col'), { clientY: 0 });
+    const menu = screen.getByRole('dialog', { name: /Aeg/ });
+    expect(within(menu).queryByRole('button', { name: /Hõivatud/ })).toBeNull();
+    expect(within(menu).getByText(/vali ülevalt õpetaja/)).toBeInTheDocument();
+  });
+
   it('the admin marks a teacher\'s green window by dragging in the week grid', async () => {
     const props = renderCalendar({ events: [lesson()] });
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });
