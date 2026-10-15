@@ -1,3 +1,15 @@
+## 2026-10-15 · agent/teacher-students-consistent — one rule for „whose student is this”
+
+- Owner: the teacher in the student list and on the teacher's card did not match. Cause: the student list shows the
+  card's study tracks (`enrollments`), while Õpetajad (counter) and the teacher's card used the main `teacher` /
+  `teacherUid` / old `teacherUids`; „Muuda” changed only the main teacher, so 7 production cards disagree.
+- `utils/teachers.js`: `teachesStudent(student, teacher)` / `tracksTaughtBy` (active tracks by name, by account
+  when a track names nobody); the bare „Jegor” = Jegor Fjodorov (exact alias only). TeachersPage counter and
+  TeacherProfilePage use it; the teacher's card lists all students (was the first 12), sorted, with subject · level.
+- `studentsService.update`: changing the teacher also moves the only / main stored track (`withMainTrackTeacher`);
+  `teacherUids` are rebuilt from the updated tracks.
+- Data not changed: 7 cards whose main teacher differs from the track wait for the owner's decision.
+- Tests: crm-v2 1894 passed (+3), build OK.
 ## 2026-10-15 · agent/calendar-online-visible — online and on-site lessons told apart
 
 - Oleksiy #bug #high_priority: „если одновременно несколько уроков висит — не видно где онлайн, а где оффлайн”.

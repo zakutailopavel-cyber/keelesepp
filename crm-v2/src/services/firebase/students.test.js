@@ -60,3 +60,16 @@ describe('students service mapping', () => {
     expect(hasDuplicateStudent(records.slice(0, 1), candidate, 'editing')).toBe(false);
   });
 });
+
+describe('teacher change keeps the study track in step', () => {
+  it('moves the only track, or the main one, to the new teacher; other subjects keep theirs', async () => {
+    const { withMainTrackTeacher } = await import('./students.js');
+    const current = { subject: 'Eesti keel', teacher: 'Anhelina Korotka', teacherUid: 'ang' };
+    expect(withMainTrackTeacher([{ subject: 'Eesti keel', teacher: 'Pavel Zakutailo', teacherUid: 'pav' }], current, 'Jegor Fjodorov', 'jeg'))
+      .toEqual([{ subject: 'Eesti keel', teacher: 'Jegor Fjodorov', teacherUid: 'jeg' }]);
+    const two = [{ subject: 'Eesti keel', teacher: 'Anhelina Korotka', teacherUid: 'ang' }, { subject: 'Inglise keel', teacher: 'Elena Zakutailo', teacherUid: 'ele' }];
+    expect(withMainTrackTeacher(two, current, 'Jegor Fjodorov', 'jeg')).toEqual([{ subject: 'Eesti keel', teacher: 'Jegor Fjodorov', teacherUid: 'jeg' }, two[1]]);
+    expect(withMainTrackTeacher(two, { subject: 'Matemaatika', teacher: 'X', teacherUid: 'x' }, 'Jegor Fjodorov', 'jeg')).toBeNull();
+    expect(withMainTrackTeacher([], current, 'Jegor Fjodorov', 'jeg')).toBeNull();
+  });
+});
