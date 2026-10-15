@@ -78,3 +78,53 @@ export function missingPaymentRecord(invoice) {
     requestId: `reconcile-missing-${invoice.id}`.replace(/[^A-Za-z0-9_-]/g, '_').slice(0, 120),
   };
 }
+
+// ---------- „Laekumised”: the incoming money like a bank statement ----------
+// One row per bank transaction (it may pay several invoices and leave an advance) and one row per payment entered by
+// hand. The payer is the name from the bank where it is known (the bank import, or „LHV väljavõte <day>, <name> (…)”
+// in the note of a payment recorded from the statement), otherwise the invoice's payer.
+const notePayer = (note) => String(note || '').match(/^LHV väljavõte [\d-]+, (.+?) \(/)?.[1] || '';
+const searchKey = (value) => String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLocaleLowerCase('et');
+
+export function paymentLedger({ payments = [], transactions = [], invoices = [] } = {}) {
+  const invoiceById = new Map(invoices.map((invoice) => [invoice.id, invoice]));
+  const link = (payment) => {
+    const invoice = invoiceById.get(payment.invoiceId) || {};
+    return { invoiceId: payment.invoiceId || '', label: payment.invoiceNum || invoice.num || '', studentName: payment.studentName || invoice.studentName || '', amountCents: cents(payment) };
+  };
+  const active = payments.filter(activePayment);
+  const rows = transactions.map((transaction) => {
+    const parts = active.filter((payment) => payment.bankTransactionId === transaction.id);
+    return {
+      id: `bank-${transaction.id}`,
+      paidAt: String(transaction.paidAt || '').slice(0, 10),
+      payerName: transaction.payerName || parts[0]?.payerName || '',
+      reference: transaction.reference || '',
+      amountCents: Number(transaction.amountCents) || Math.round(Number(transaction.amount || 0) * 100),
+      links: parts.map(link),
+      advanceCents: Number(transaction.unappliedAmountCents) || 0,
+      advanceFor: transaction.creditStudentName || '',
+      source: 'bank',
+    };
+  });
+  active.filter((payment) => !payment.bankTransactionId).forEach((payment) => rows.push({
+    id: payment.id,
+    paidAt: String(payment.paidAt || '').slice(0, 10),
+    payerName: notePayer(payment.note) || payment.payerName || '',
+    reference: payment.reference || '',
+    amountCents: cents(payment),
+    links: [link(payment)],
+    advanceCents: 0,
+    advanceFor: '',
+    source: notePayer(payment.note) ? 'statement' : (payment.method || 'bank'),
+  }));
+  return rows
+    .map((row) => ({ ...row, search: searchKey([row.payerName, row.reference, row.advanceFor, ...row.links.flatMap((item) => [item.label, item.studentName]), (row.amountCents / 100).toFixed(2), (row.amountCents / 100).toFixed(2).replace('.', ',')].join(' ')) }))
+    .sort((a, b) => `${b.paidAt}${b.id}`.localeCompare(`${a.paidAt}${a.id}`));
+}
+
+// every word of the query must appear (name, invoice number, child, explanation or amount); month „2026-09” or „all”
+export function filterLedger(rows = [], { query = '', month = 'all' } = {}) {
+  const words = searchKey(query).split(/\s+/).filter(Boolean);
+  return rows.filter((row) => (month === 'all' || row.paidAt.startsWith(month)) && words.every((word) => row.search.includes(word)));
+}
