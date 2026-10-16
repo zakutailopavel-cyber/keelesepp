@@ -51,7 +51,15 @@
 - **Module 17** (a2b1-081…085, stage B1: input texts 200–400 words): patched to v2 — 6th items, notes as `writing`,
   vocab blocks for 082/083/085, rubrics, new openers (083 Harjuta text parts, 084 Kasuta percentages), 085 marked
   `assessment` with a reading input; 5/5 READY, language 0 unknown. Tests: 968 passed, 3 skipped.
-- Next safe step: B1 module 18 (a2b1-086…090) in v2, same approach.
+- **Module 18** (a2b1-086…090, the last B1 module): patched to v2 — 6th items, new 086 Harjuta dictation and
+  Kasuta translations (086, 088), 087 vocab and new openers (Avasta sorting, Harjuta errorfix, Kasuta idea-card
+  choice), 088 vocab without one-off words; the mocks 089 „B1 proovitund” and 090 „Lõpphindamine — B1” marked
+  `assessment`, a language part in Avasta (089 errorfix + dictation, 090 transformation + translation), a reading
+  input (~200 words) that feeds the 50-word note (now a `writing` block), speaking 1a with 3 questions so Kasuta fits
+  55 min, the B1 result table and pass rule in 090 Kasuta; selfchecks only in Kasuta. 5/5 READY, language 0 unknown,
+  audio unchanged; v1 in `archive/v1/b1/module18.js`. Tests: 969 passed, 3 skipped.
+- B1 (modules 02–18) is complete in v2. Not published to production — the owner publishes in „Kursuse tootmine”.
+- Next safe step: B2 module 01–18 (`admin/course/b2/`) in v2 on a new branch `agent/course-v2-b2`, same approach.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
