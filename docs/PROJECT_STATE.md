@@ -35,7 +35,10 @@
   selfchecks per lesson, no Kasuta rubric, repeated openings): rewritten to v2 from the v1 texts, exam 055 „Eksam 11”
   in Harno B1 form, 5/5 READY, language 0 unknown, new audio 055_p_clips (053_p_listen, 055_p_listen kept). Lesson 055
   keeps 4 goals (it is not in the lessonGoals ASSESSMENTS set, like 015 and 030). Tests: 963 passed, 3 skipped.
-- Next safe step: B1 module 12 (a2b1-056…060) in v2, same process.
+- **Module 12** (a2b1-056…060; v1 had three phases but failed the v2 gates like module 11): rewritten to v2 from
+  the v1 texts, mid-term check 060 „Vahehindamine 3 — B1- algus” in Harno B1 form, 5/5 READY, language 0 unknown, no
+  new audio (058_p_listen, 060_p_listen, 060_p_listen2 kept, transcripts unchanged). Tests: 964 passed, 3 skipped.
+- Next safe step: B1 module 13 professor review (already v2, pilot #650), then modules 14–18 in v2.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
