@@ -11,7 +11,13 @@
   Harjuta translations). 010 „Kontroll 2” marked `assessment`; its 180-word essay gave way to two sentence tasks
   (typical errors + argument sentences) so Kasuta fits 55 min; the rubric and score lines follow. 5/5 READY, language
   0 unknown, audio unchanged. Tests: 970 passed, 3 skipped.
-- Next safe step: B2 module 03 (b1b2-011…015) in v2, same approach.
+- **Module 03** (b1b2-011…015, level B1): patched to v2 — 6th items, vocab in every lesson, selfchecks only in
+  Kasuta, gap instructions name the form, varied openers (012 Avasta errorfix, 014 Avasta feelings match, 012/014
+  Kasuta match first), new tasks (012 Kasuta motivation-letter errors, 014 Avasta and Kasuta story errors, 015 Avasta
+  tense transformation), the 012 crossword removed (one-word items), two cross-sheet duplicates reworded. 015
+  „Kontroll 3” marked `assessment`: the essay gave way to typical errors + argument sentences. 5/5 READY, language 0
+  unknown. Tests: 971 passed, 3 skipped.
+- Next safe step: B2 module 04 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
