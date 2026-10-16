@@ -43,7 +43,9 @@
   ≥6 sentences, input text ≥140 words, every letter ≥70 words; the Harno B1 50-word note is therefore a `writing`
   block): rewritten to v2, exam 070 in Harno B1 form, 5/5 READY, language checked (talisuplema is kept), audio
   070_p_listen and 070_p_listen2 kept. Tests: 965 passed, 3 skipped.
-- Next safe step: B1 module 15 (a2b1-071…075) in v2, same process.
+- **Module 15** (a2b1-071…075, B1-): rewritten to v2, exam 075 in Harno B1 form, 5/5 READY, language checked
+  (coach → elutreener, ühiskööki), audio 075_p_listen and 075_p_listen2 kept. Tests: 966 passed, 3 skipped.
+- Next safe step: B1 module 16 (a2b1-076…080) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
