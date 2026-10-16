@@ -29,7 +29,12 @@
   rubric for 023 Kasuta, varied openers (022 Avasta/Kasuta match), an errorfix row without an error replaced. 025
   „Kontroll 5” marked `assessment`: the essay gave way to typical errors + argument sentences. 5/5 READY, language 0
   unknown. Tests: 973 passed, 3 skipped.
-- Next safe step: B2 module 06 in v2, same approach.
+- **Module 06** (b1b2-026…030, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  five cross-sheet duplicates in 030 reworded, new tasks (026 Harjuta dictation, 026/028/029/030 Kasuta errorfix, 027
+  Harjuta errorfix, 027 Kasuta translation, 029 Avasta errorfix + translation, 029 Kasuta dictation, 030 Avasta
+  translation + transformation), the 027 crossword removed, varied openers. 030 „Kontroll 6” marked `assessment`:
+  the 180-word summary gave way to typical errors + summary sentences. 5/5 READY, language 0 unknown. Tests: 974 passed, 3 skipped.
+- Next safe step: B2 module 07 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
