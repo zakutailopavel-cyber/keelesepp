@@ -1204,6 +1204,11 @@
     "seconds": 138.9,
     "hash": "97ce3e050c8a974067d466e5a9169a6b6c5dc615"
   },
+  "a2b1-050:050_p_clips": {
+    "src": "/audio/a2b1-050/050_p_clips.mp3",
+    "seconds": 62.4,
+    "hash": "360cfebe0c3f2f527bcdbc16c7970c3722c10be9"
+  },
   "a2b1-050:050_p_listen": {
     "src": "/audio/a2b1-050/050_p_listen.mp3",
     "seconds": 132.8,

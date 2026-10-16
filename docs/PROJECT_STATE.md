@@ -28,7 +28,10 @@
   exam 045 „Eksam 9 — tööelu” in Harno B1 form): all three phases, 5/5 READY, language 0 unknown, new audio
   042_d_radio (044_p_listen, 045_p_listen, 045_p_short kept, transcripts unchanged); v1 in `archive/v1/b1/module09.js`.
   Tests: 961 passed, 3 skipped.
-- Next safe step: B1 module 10 (a2b1-046…050) in v2, same process.
+- **Module 10** (a2b1-046…050, B1- norms, exam 050 „Eksam 10 — reisimine” in Harno B1 form): all three phases,
+  5/5 READY, language 0 unknown, new audio 050_p_clips (049_p_listen and 050_p_listen kept, transcripts unchanged);
+  v1 in `archive/v1/b1/module10.js`. Tests: 962 passed, 3 skipped.
+- Next safe step: B1 module 11 (a2b1-051…055) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
