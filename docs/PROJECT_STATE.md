@@ -71,7 +71,14 @@
   (with the consumer-survey numbers) replaces the table, the essay gave way to letter errors + argument translation.
   5/5 READY, language 0 unknown. Tests: 979 passed, 3 skipped (run with `--maxWorkers=3 --testTimeout=60000`: on a loaded machine
   some UI tests exceed the default 20 s; they pass alone).
-- Next safe step: B2 module 12 in v2, same approach.
+- **Module 12** (b1b2-056…060, level B1+/B2-): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, gap instruction names the form, one cross-sheet duplicate reworded, new tasks (057/059 Avasta errorfix,
+  057/059 Harjuta dictation, 057/059 Kasuta errorfix, 059 Avasta word order, 059 Kasuta transformation, 060 Avasta
+  translation + transformation, 060 Harjuta translation), the 058 Kasuta sort and three speaking blocks removed,
+  short errorfix rows lengthened, longer true/false statements, varied openers. 060 „Vahehindamine 3” marked
+  `assessment`: a 250-word IT-manager letter (with the digital-habits numbers) replaces the table, the essay gave
+  way to letter errors + argument translation. 5/5 READY, language 0 unknown. Tests: 980 passed, 3 skipped.
+- Next safe step: B2 module 13 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
