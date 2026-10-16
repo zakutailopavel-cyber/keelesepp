@@ -14,9 +14,13 @@ const gapsIn = (v) => (String(v || '').match(/\[[^\]]*\]/g) || []).length;
 const list = (v) => String(v || '').split(/[,\n]/).map((x) => x.trim()).filter(Boolean);
 
 // minutes for one block at a level
-export function blockMinutes(block, level = 'A2') {
+// design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): speaking and role play are pair work in class — both partners talk on
+// every question and the roles are swapped, so they take longer than one learner's answer
+export function blockMinutes(block, level = 'A2', design = '') {
   const d = block?.data || {};
   const wpm = WPM[levelKey(level)] || 70;
+  if (design === 'v2' && block?.type === 'speaking') return Math.min(10, lines(d.questions).length * Math.max(1, (Number(d.maxSec) || 120) / 60 / 2) * 2 + 1);
+  if (design === 'v2' && block?.type === 'rolecards') return 9;
   switch (block?.type) {
     case 'reading': return (words(d.passage) / wpm) * 1.5 + lines(d.questions).length * 0.6;
     case 'listening': return (words(d.transcript || d.sentences) / 110) * 2 + Math.max(gapsIn(d.sentences), lines(d.sentences).length) * 0.4;
@@ -59,5 +63,5 @@ export function blockMinutes(block, level = 'A2') {
 // the whole sheet, rounded to whole minutes
 export function sheetMinutes(doc) {
   const level = doc?.meta?.level || 'A2';
-  return Math.round((doc?.blocks || []).reduce((n, b) => n + blockMinutes(b, level), 0));
+  return Math.round((doc?.blocks || []).reduce((n, b) => n + blockMinutes(b, level, doc?.meta?.design), 0));
 }

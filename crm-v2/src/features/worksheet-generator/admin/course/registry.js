@@ -145,6 +145,8 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(mod.MODULE.shortSheets ? { shortSheet: true } : {}),
       // a check lesson (Kontroll): its Kasuta sheet is the exam's writing and speaking part (gates.js / depth.js)
       ...(lesson.assessment ? { assessment: true } : {}),
+      // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): its own variety and depth norms
+      ...(mod.MODULE.design ? { design: mod.MODULE.design } : {}),
       badge: `${course.badge} · moodul ${moduleNumber(mod)}`,
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },

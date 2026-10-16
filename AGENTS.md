@@ -40,7 +40,8 @@ Lubatud failid: `crm-v2/src/features/worksheet-generator/production/*`, `factory
 lähteülesanded `worksheet-generator/art/visuals/*` (+ rida `MODULES`-is `art/textbookArt.js`-is) ja nende testid; käsitsi töölehed CRM-is aadressil
 `/library/lessons/<ID>/worksheets/<discover|practice|transfer>` („✎ Muuda lehte” → „Salvesta” → „Avalda”).
 
-B1→B2 kursuse moodulite ümbertegemine kõigi kvaliteediväravateni (moodulid 2–18, `admin/course/b2/moduleNN.js`):
+Uus B1/B2 kursuse disain (õpijakeskne, kommunikatiivne, mooduli lõpus eksam): `docs/COURSE_DESIGN_COMMUNICATIVE.md`
+(`MODULE.design: 'v2'`, näidis `b1/module13.js`). B1→B2 kursuse moodulite ümbertegemine kõigi kvaliteediväravateni (moodulid 2–18, `admin/course/b2/moduleNN.js`):
 täielik leping, lubatud failid ja kontrollid on `docs/CODEX_TASKS_B1B2_IDEAL.md`-s (näidis: `b2/module01.js`).
 
 Keelatud: liides (Õppevara, konstruktor, kalender, finants, menüü), `routes.jsx`, `services/firebase/*`,
