@@ -48,7 +48,10 @@
 - **Module 16** (a2b1-076…080, already a rich Harno-B1 module): patched to v2 instead of rewritten — a 6th item in
   every 5-item task, selfchecks only in Kasuta, a rubric in every Kasuta, varied openings, 080 marked `assessment`,
   the 50-word note as a `writing` block; 5/5 READY, audio kept. Tests: 967 passed, 3 skipped.
-- Next safe step: B1 module 17 (a2b1-081…085) in v2, same approach (patch if the v1 is rich, rewrite if thin).
+- **Module 17** (a2b1-081…085, stage B1: input texts 200–400 words): patched to v2 — 6th items, notes as `writing`,
+  vocab blocks for 082/083/085, rubrics, new openers (083 Harjuta text parts, 084 Kasuta percentages), 085 marked
+  `assessment` with a reading input; 5/5 READY, language 0 unknown. Tests: 968 passed, 3 skipped.
+- Next safe step: B1 module 18 (a2b1-086…090) in v2, same approach.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
