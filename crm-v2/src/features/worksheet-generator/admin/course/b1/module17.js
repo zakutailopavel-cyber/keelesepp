@@ -5,9 +5,11 @@
 // story) in depth: 081 functional reading, 082 e-mail and message, 083 opinion text, 084 describing data, 085 Kontroll.
 // Grammar inside the functions: impersonal present/past in notices, polite conditional and indirect speech in letters,
 // kuigi / sest / des-form in opinions, plural cases and agreement (enamik sõidab, pooled sõidavad) in data.
+// Design v2 (2026-10-16): 6+ items per closed task, one selfcheck per lesson, rubrics in Kasuta, the 50-word notes as
+// writing blocks, varied openings; the v1 file is in archive/v1/b1/module17.js.
 import { B } from '../blocks.js';
 
-export const MODULE = { id: 'a2b1-module-17', course: 'b1', title: 'B1 lugemine ja kirjutamine', level: 'B1' };
+export const MODULE = { id: 'a2b1-module-17', course: 'b1', title: 'B1 lugemine ja kirjutamine', level: 'B1', design: 'v2' };
 
 const W = (id, title, instruction, keywords, size = [8, 10]) => B.writing(id, title, instruction, size, keywords, 3);
 const TR = (id, rows) => B.translation(id, 'Tõlgi.', 'Kirjuta eesti keeles.', rows);
@@ -19,7 +21,7 @@ export const LESSONS = {
     canDo: 'Ma leian teadetest, kuulutustest ja 200–250-sõnalisest artiklist vajaliku info ning vastan õigesti vähemalt 75% küsimustest.',
     discover: [
       B.text('081_d_intro', 'Kuidas lugeda kiiresti?', 'Teadet, kuulutust või artiklit ei pea mõistma iga sõna kaupa. Loe kõigepealt pealkirja ja küsimust, siis otsi tekstist vajalik koht: aeg, koht, hind või tingimus. Harno B1 eksamil on lugemiseks 50 minutit ja 33 küsimust.'),
-      B.vocab('081_d_vocab', 'Teadete sõnad', ['avatud — открыто', 'suletud — закрыто', 'remondi tõttu — из-за ремонта', 'registreerimine — регистрация', 'ette registreeruma — регистрироваться заранее', 'soodustus — скидка', 'tasuta — бесплатно', 'kehtima — действовать', 'kohtade arv on piiratud — количество мест ограничено', 'lisainfo — дополнительная информация', 'tähtaeg — срок', 'tagastama — возвращать'], '2'),
+      B.vocab('081_d_vocab', 'Teadete sõnad', ['avatud — открыто', 'suletud — закрыто', 'registreeruma — регистрироваться', 'registreerimine — регистрация', 'ette registreeruma — регистрироваться заранее', 'pilet — билет', 'tasuta — бесплатно', 'kehtima — действовать', 'kuulutus — объявление', 'lisainfo — дополнительная информация', 'teade — объявление', 'korraldama — организовывать'], '2'),
       B.text('081_d_ads', 'Teated A–F', [
         '**A** Linnaraamatukogu. Alates 1. novembrist on raamatukogu avatud ka pühapäeviti kell 11–16. Raamatuid saab tagastada ööpäevaringselt maja ees olevasse kasti.',
         '**B** Ujula „Laine”. Basseini remonditakse 10.–20. märtsini. Sel ajal on avatud saun ja jõusaal. Kuukaarte pikendatakse automaatselt.',
@@ -79,12 +81,14 @@ export const LESSONS = {
         ['Eelmisel aastal küsitlesime tuhat lugejat.', 'küsitleti', 'Eelmisel aastal küsitleti tuhat lugejat.; Tuhat lugejat küsitleti eelmisel aastal.'],
         ['Siin ei tohi keegi suitsetada.', 'ei suitsetata', 'Siin ei suitsetata.'],
       ]),
-      B.errorfix('081_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Raamatukogu suletatakse kell kuus.', 'Raamatukogu suletakse kell kuus.'], ['Basseini remonditakse eelmisel kuul.', 'Basseini remonditi eelmisel kuul.'], ['Siin ei suitsetatakse.', 'Siin ei suitsetata.'], ['Lapsed oodatakse kell kümme.', 'Lapsi oodatakse kell kümme.'], ['Pileteid müüdakse ka bussis.', 'Pileteid müüakse ka bussis.']]),
+      B.errorfix('081_d_fix', 'Paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [['Raamatukogu suletatakse reedel juba kell kuus.', 'Raamatukogu suletakse reedel juba kell kuus.'], ['Linna basseini remonditakse eelmisel kuul kaks nädalat.', 'Linna basseini remonditi eelmisel kuul kaks nädalat.'], ['Maja trepikojas ei suitsetatakse.', 'Maja trepikojas ei suitsetata.'], ['Lapsed oodatakse lugemistundi kell kümme.', 'Lapsi oodatakse lugemistundi kell kümme.'], ['Pileteid müüdakse ka bussis kaardiga.', 'Pileteid müüakse ka bussis kaardiga.'], ['Kõik ruumid koristakse igal õhtul.', 'Kõik ruumid koristatakse igal õhtul.']]),
+
       B.speaking('081_d_say', 'Selgita teadet sõbrale.', 'Vali kaks teadet A–F. Räägi sõbrale 2–3 minutit, mis seal kirjas on ja mida ta peab tegema.', ['Kus ja millal see kehtib?', 'Mida tuleb teha või mida ei tohi teha?', 'Kellele see teade kasulik on?'], [120, 180], ['suletakse', 'avatakse', 'tuleb registreeruda', 'kehtib kuni']),
       W('081_d_write', 'Teade majaelanikele.', 'Kirjuta 6–8 lauset: teade maja elanikele (remont, koristuspäev või koosolek). Kasuta umbisikulist tegumoodi.', ['remonditakse', 'palutakse', 'suletakse', 'lisainfo'], [6, 8]),
-      TR('081_d_tr', ['Библиотека будет закрыта в пятницу.', 'Билеты продаются также в автобусе.', 'Бассейн ремонтировали в прошлом месяце.', 'Здесь не курят.', 'Количество мест ограничено, зарегистрируйтесь заранее.']),
-      D('081_d_dict', ['Raamatukogu on avatud ka pühapäeviti.', 'Basseini remonditakse märtsis.', 'Pileteid müüakse ka bussis.', 'Kohtade arv on piiratud.', 'Suuri kodumasinaid vastu ei võeta.']),
-      B.selfcheck('081_d_self', ['Ma leian teatest aja, koha ja tingimuse.', 'Ma seon olukorra sobiva teatega.', 'Ma mõistan umbisikulist tegumoodi: suletakse, remonditi.', 'Ma selgitan teadet sõbrale.'], 'Teated loetud'),
+      TR('081_d_tr', ['Библиотека будет закрыта в пятницу.', 'Билеты продаются также в автобусе.', 'Бассейн ремонтировали в прошлом месяце.', 'Здесь не курят.', 'Количество мест ограничено, зарегистрируйтесь заранее.', 'Регистрация открыта до пятницы.']),
+      D('081_d_dict', ['Raamatukogu on nüüd avatud ka pühapäeviti kella üheteistkümnest neljani.', 'Basseini remonditakse märtsis kümme päeva järjest.', 'Pileteid saab bussis osta nii sularahas kui ka kaardiga.', 'Kursusel on kohtade arv kahjuks piiratud.', 'Suuri kodumasinaid kogumispunktis vastu ei võeta.', 'Registreerimine on avatud kuni reede õhtuni.']),
+
+
     ],
     practice: [
       B.text('081_p_ads', 'Kuulutused A–F', [
@@ -152,14 +156,15 @@ export const LESSONS = {
         'Mullu [küsitleti] (küsitlema) tuhat lugejat.',
       ]),
       B.match('081_p_head', 'Pealkiri ja lõik.', 'Ühenda kirja lause ja sobiv pealkiri.', [['Kõigis korterites vahetatakse veetorud.', 'Vesi on kinni'], ['Trepikojad saavad uue värvi.', 'Tugev lõhn'], ['Riisutakse lehti ja istutatakse lilli.', 'Ühine töö'], ['Tööde eest makstakse remondifondist.', 'Raha'], ['Küsimustega helistage esimehele.', 'Kontakt'], ['Rattad ja vankrid viiakse keldrisse.', 'Trepikoda peab olema tühi']], 'full', 'g_read'),
-      B.wordorder('081_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Remondi tõttu suletakse raamatukogu reedel kell kolm.', 'Pileteid müüakse ka bussis sularahas ja kaardiga.', 'Trepikojas ei tohi hoida jalgrattaid ega lapsevankreid.', 'Lisainfot saab juhatuse esimehelt telefoni teel.', 'Laupäeval korraldatakse maja ees kevadine koristuspäev.']),
-      B.errorfix('081_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Kevadlaadal müüdakse taimi.', 'Kevadlaadal müüakse taimi.'], ['Eelmisel aastal küsitletakse tuhat lugejat.', 'Eelmisel aastal küsitleti tuhat lugejat.'], ['Trepikojas ei hoitakse rattaid.', 'Trepikojas ei hoita rattaid.'], ['Kõik elanikud palutakse koristuspäevale.', 'Kõiki elanikke palutakse koristuspäevale.'], ['Vastused on valmis, palun helistage meid.', 'Vastused on valmis, palun helistage meile.']]),
+      B.wordorder('081_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Remondi tõttu suletakse raamatukogu reedel kell kolm.', 'Pileteid müüakse ka bussis sularahas ja kaardiga.', 'Trepikojas ei tohi hoida jalgrattaid ega lapsevankreid.', 'Lisainfot saab juhatuse esimehelt telefoni teel.', 'Laupäeval korraldatakse maja ees kevadine koristuspäev.', 'Koristuspäeval pakutakse kõigile kuuma suppi.']),
+      B.errorfix('081_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Kevadlaadal müüdakse taimi.', 'Kevadlaadal müüakse taimi.'], ['Eelmisel aastal küsitletakse tuhat lugejat.', 'Eelmisel aastal küsitleti tuhat lugejat.'], ['Trepikojas ei hoitakse rattaid.', 'Trepikojas ei hoita rattaid.'], ['Kõik elanikud palutakse koristuspäevale.', 'Kõiki elanikke palutakse koristuspäevale.'], ['Vastused on valmis, palun helistage meid.', 'Vastused on valmis, palun helistage meile.'], ['Kevadlaadal ostetakse palju lilled.', 'Kevadlaadal ostetakse palju lilli.']]),
+      TR('081_p_tr', ['Из-за ремонта библиотека в пятницу закрыта.', 'Билеты продаются и в автобусе.', 'На лестнице нельзя держать велосипеды.', 'В субботу перед домом будет день уборки.', 'Дополнительную информацию можно получить по телефону.', 'Всех жильцов приглашают на день уборки.']),
       B.rolecards('081_p_roles', 'Telefonikõne korteriühistule.', 'Rääkige 3–4 minutit. A helistab juhatuse esimehele, B on esimees.',
         'Sa elad Tamme 14. Küsi: 1) millal sinu korteris tööd tehakse; 2) mida teha, kui oled tööreisil; 3) kuhu panna lapsevanker; 4) kas koristuspäevale võib tulla lastega.',
         'Oled Jaan Ilves. Vasta: tööd 7.–11. aprillil kell 9–16; võtme võib jätta naabrile või sulle; vanker keldrisse, ruum nr 2; lapsed on oodatud, neile pakutakse mahla ja kooki.',
         ['Tere, mina olen …, korter nr …', 'Ma lugesin teadet ja tahaksin küsida…', 'Kas ma sain õigesti aru, et…?'], ['Jah, see on õige.', 'Tööd tehakse…', 'Kas teil on veel küsimusi?']),
       W('081_p_write', 'Teade kolleegidele.', 'Kirjuta 6–8 lauset: kontoris tehakse remonti. Mis, millal ja mida töötajad tegema peavad? Kasuta umbisikulist tegumoodi.', ['remonditakse', 'palutakse', 'suletakse', 'viiakse'], [6, 8]),
-      B.selfcheck('081_p_self', ['Ma seon olukorra ja kuulutuse.', 'Ma leian ühistu kirjast tähtajad ja kohustused.', 'Ma kuulan lühiteateid ja kirjutan olulise info.', 'Ma kirjutan teate umbisikulises tegumoes.'], 'Info käes'),
+
     ],
     transfer: [
       B.text('081_t_situation', 'Uus olukord', 'Sinu pere kolis äsja Viljandisse. Postkastis on linnaleht. Sa loed selle läbi ja otsustad, mis on kasulik sulle, lastele ja vanaemale.'),
@@ -189,23 +194,24 @@ export const LESSONS = {
         ['Mis juhtub reedel hommikul Posti tänava piirkonnas?', 'Remonditakse veetorustikku.', 'Peetakse sügislaata.', 'Avatakse uus bussiliin.'],
       ]),
       B.categorize('081_t_sort', 'Kellele see info on?', 'Sorteeri info pereliikmete järgi.', [['Mina (uus elanik, töötan)', ['infopäev kultuurimajas', 'seljatreening', 'joogatrenn', 'tõlge infopäeval']], ['Lapsed (8 ja 11 aastat)', ['korvpall', 'judo', 'ponisõit', 'meisterdamise töötuba']], ['Vanaema (72 aastat)', ['arvutikursus', 'digiretsept', 'internetipank', 'liin haigla juurde']]], 'full', 'g_read'),
-      B.truefalse('081_t_tf', 'Õige või vale?', 'Loe linnalehte uuesti.', [['Uute tulijate infopäev toimub neljapäeval linnaraamatukogus.', false], ['Kooliõpilased sõidavad ka uue sõiduplaani järgi linnabussiga tasuta.', true], ['Pärast tasuta esimest trenni maksab spordihoone kuukaart kakskümmend eurot.', true], ['Vanalinna sügislaat kestab laupäeval hommikust hilisõhtuni.', false], ['Eakate arvutikursusele saab registreeruda ainult telefoni teel.', true]]),
+      B.truefalse('081_t_tf', 'Õige või vale?', 'Loe linnalehte uuesti.', [['Uute tulijate infopäev toimub neljapäeval linnaraamatukogus.', false], ['Kooliõpilased sõidavad ka uue sõiduplaani järgi linnabussiga tasuta.', true], ['Pärast tasuta esimest trenni maksab spordihoone kuukaart kakskümmend eurot.', true], ['Vanalinna sügislaat kestab laupäeval hommikust hilisõhtuni.', false], ['Eakate arvutikursusele saab registreeruda ainult telefoni teel.', true], ['Kõik teated on mõeldud ainult turistidele.', false]]),
       B.transformation('081_t_trans', 'Kirjuta teade.', 'Kirjuta lause umbisikulises tegumoes.', [
         ['Talunikud müüvad laadal mett ja leiba.', 'müüakse', 'Laadal müüakse mett ja leiba.'],
         ['Treenerid pakuvad lastele korvpalli ja judot.', 'pakutakse', 'Lastele pakutakse korvpalli ja judot.'],
         ['Linnavalitsus ootab uusi elanikke infopäevale.', 'oodatakse', 'Uusi elanikke oodatakse infopäevale.; Infopäevale oodatakse uusi elanikke.'],
         ['Töömehed remondivad reedel veetorustikku.', 'remonditakse', 'Reedel remonditakse veetorustikku.; Veetorustikku remonditakse reedel.'],
-        ['Kursusel õpime e-posti kasutama.', 'õpitakse', 'Kursusel õpitakse e-posti kasutama.; Kursusel õpitakse kasutama e-posti.'],
-      ]),
+        ['Kursusel õpime e-posti kasutama.', 'õpitakse', 'Kursusel õpitakse e-posti kasutama.; Kursusel õpitakse kasutama e-posti.'], ['Raamatukoguhoidjad korraldavad lastele lugemistunni.', 'korraldatakse', 'Lastele korraldatakse lugemistund.|Lugemistund korraldatakse lastele.']]),
       B.planning('081_t_plan', 'Plaan.', 'Kirjuta märksõnad enne rääkimist ja kirjutamist.', ['Mis on sulle kasulik?', 'Mis on lastele kasulik?', 'Mis on vanaemale kasulik?']),
       B.speaking('081_t_say', 'Räägi perele.', 'Õhtusöögil räägid perele, mida sa linnalehest lugesid. Räägi 2–3 minutit, igale pereliikmele midagi.', ['Mis toimub sel nädalal?', 'Mida soovitad lastele ja vanaemale?', 'Mida tuleb kindlasti meeles pidada?'], [120, 180]),
-      B.letter('081_t_note', 'Sõnum naabrile (umbes 50 sõna).', 'Naaber ei loe eesti keelt hästi. Kirjuta talle: mis juhtub reedel, millal, mida teha ja kust saab lisainfot.', 'Tere, naaber!', 'Sinu naaber', [40, 60]),
+      B.writing('081_t_note', 'Sõnum naabrile (umbes 50 sõna).', 'Naaber ei loe eesti keelt hästi. Kirjuta talle: mis juhtub reedel, millal, mida teha ja kust saab lisainfot.', [5, 7], ['reedel', 'sel ajal', 'palun', 'lisainfot'], 3),
+
       B.rolecards('081_t_roles', 'Telefonikõne raamatukokku.', 'Rääkige 3–4 minutit. A registreerib vanaema arvutikursusele, B on raamatukoguhoidja.',
         'Helista raamatukokku ja küsi: 1) millal kursus algab ja mitu korda nädalas see toimub; 2) kas vanaema vajab oma arvutit; 3) kas kohti on veel; 4) registreeri vanaema (nimi, telefon).',
         'Oled raamatukoguhoidja. Kursus algab 4. novembril, esmaspäeviti ja kolmapäeviti kell 11–13. Arvutid on raamatukogus olemas. Vabu kohti on veel kolm. Küsi õppija nime ja telefoni.',
         ['Tere, ma helistan arvutikursuse pärast.', 'Ma sooviksin registreerida oma vanaema.', 'Kas ma sain õigesti aru, et…?'], ['Raamatukogu, tere!', 'Kursus toimub…', 'Palun öelge nimi ja telefoninumber.']),
-      TR('081_t_tr', ['Информационный день проводится в четверг в доме культуры.', 'Первая тренировка для всех бесплатная.', 'На ярмарке продают мёд и хлеб.', 'На курсе только двенадцать мест.', 'В пятницу на улице Пости ремонтируют водопровод.']),
-      D('081_t_dict', ['Linnabussid sõidavad uue sõiduplaani järgi.', 'Pensionärid sõidavad bussiga tasuta.', 'Lastele korraldatakse meisterdamise töötuba.', 'Palume registreeruda telefoni teel.', 'Sel ajal on vesi kinni.']),
+      TR('081_t_tr', ['Информационный день проводится в четверг в доме культуры.', 'Первая тренировка для всех бесплатная.', 'На ярмарке продают мёд и хлеб.', 'На курсе только двенадцать мест.', 'В пятницу на улице Пости ремонтируют водопровод.', 'Регистрироваться можно только по телефону.']),
+      D('081_t_dict', ['Linnabussid sõidavad uue sõiduplaani järgi.', 'Pensionärid sõidavad bussiga tasuta.', 'Lastele korraldatakse meisterdamise töötuba.', 'Palume registreeruda telefoni teel.', 'Sel ajal on vesi kinni.', 'Laadal müüakse talunike mett ja leiba.']),
+      B.rubric('081_t_rubric', 'Kas naaber saab aru?', 'Paariline loeb sõnumit.', ['Kirjas on, mis juhtub ja millal.', 'Kirjas on, mida naaber peab tegema.', 'Kirjas on, kust saab lisainfot.', 'Sõnum on lühike, selge ja viisakas.']),
       B.selfcheck('081_t_self', ['Ma mõistan teadete sõnu: tasuta, registreerimine, kehtib.', 'Ma leian linnalehest info oma pere jaoks.', 'Ma kasutan umbisikulist tegumoodi: müüakse, remonditakse.', 'Ma räägin perele ja kirjutan naabrile, mis toimub.'], 'Viljandi on tuttav'),
     ],
   },
@@ -233,6 +239,7 @@ export const LESSONS = {
         ['Mida peab Liis nüüd tegema?', 'kinnitama selle nädala jooksul, kas võtab koha vastu|vastama selle nädala jooksul'],
         ['Miks ei saa Liis tunnis veebi kaudu osaleda?', 'klassides ei ole selleks tehnikat|koolis puudub tehnika'],
       ]),
+      B.vocab('082_d_vocab', 'E-kirja sõnad', ['e-kiri — электронное письмо', 'pöördumine — обращение', 'seoses — в связи с', 'sooviksin — я бы хотел', 'kas te saaksite — не могли бы вы', 'palun — пожалуйста', 'vastus — ответ', 'lugupidamisega — с уважением', 'kursus — курс', 'registreeruma — регистрироваться', 'arve — счёт', 'tänan — благодарю']),
       B.diagram('082_d_flow', 'flow', { title: 'Liisi kirja ülesehitus.', instruction: 'Kirjuta tekstist puuduv sõna.', nodes: '1. Pöördumine: [Lugupeetud] Kadri Mets!\n2. Eesmärk: Kirjutan teile [seoses] oma kursusega.\n3. Põhjus: alates järgmisest kuust muutub minu [tööaeg]\n4. Palve: kas oleks [võimalik] minna üle teise gruppi?\n5. Küsimus: kas uues grupis kasutatakse sama [õpikut]?\n6. Lõpp: Ette [tänades]' }, 'full', 'g_read'),
       B.notice('082_d_notice', 'Kirja fraasid.', [
         '**Ametlik pöördumine:** Lugupeetud härra Tamm! / Lugupeetud proua Mets! — **sõbrale:** Tere, Anna! / Hei!',
@@ -242,7 +249,7 @@ export const LESSONS = {
         '**Lõpp:** Ette tänades / Lugupidamisega / Parimate soovidega — **sõbrale:** Kallistusi! / Kohtumiseni!',
       ], 'full'),
       B.categorize('082_d_sort', 'Ametlik kiri või sõbrale?', 'Sorteeri fraasid.', [['Ametlik kiri', ['Lugupeetud proua Mets!', 'Kirjutan teile seoses arvega.', 'Kas te saaksite mulle vastata?', 'Lugupidamisega', 'Ootan teie vastust.']], ['Kiri sõbrale', ['Hei, Markus!', 'Kuidas sul läheb?', 'Kirjuta ruttu!', 'Kallistusi!', 'Mul on sulle uudis.']]]),
-      B.gaps('082_d_gaps', 'Viisakas palve.', 'Kirjuta sulgudes oleva verbi tingiv kõneviis.', [
+      B.gaps('082_d_gaps', 'Viisakas palve.', 'Kirjuta sulgudes olev tegusõna tingiva kõneviisi vormis.', [
         'Kas te [saaksite] (saama) mulle arve uuesti saata?',
         '[Sooviksin] (soovima) registreeruda laupäevasele kursusele.',
         'Kas [oleks] (olema) võimalik kohtumine edasi lükata?',
@@ -265,8 +272,7 @@ export const LESSONS = {
         ['Kas te saaksite mulle saata arvet?', 'Kas te saaksite mulle arve saata?; Kas te saaksite saata mulle arve?'],
         ['Kirjutan teile seoses minu kursuse.', 'Kirjutan teile seoses oma kursusega.; Kirjutan teile seoses minu kursusega.'],
         ['Ma ei saa homme tulla, sest ma olen haigeks.', 'Ma ei saa homme tulla, sest ma olen haige.; Ma ei saa homme tulla, sest ma jäin haigeks.'],
-        ['Palun helistage mind pärast kella viit.', 'Palun helistage mulle pärast kella viit.'],
-      ]),
+        ['Palun helistage mind pärast kella viit.', 'Palun helistage mulle pärast kella viit.'], ['Ma tahaksin teada, kas tund toimub homme on.', 'Ma tahaksin teada, kas tund toimub homme.']]),
       B.choice('082_d_choice', 'Mis sobib?', 'Vali olukorda sobiv lause.', [
         ['Kirjutad võõrale ametnikule. Kuidas alustad?', 'Lugupeetud härra Kask!', 'Hei, Kask!', 'Kallis sõber!'],
         ['Kirjutad sõbrale. Kuidas lõpetad?', 'Kallistusi!', 'Lugupidamisega', 'Ette tänades'],
@@ -275,12 +281,13 @@ export const LESSONS = {
         ['Ootad ametlikult vastust. Mida kirjutad?', 'Ootan teie vastust.', 'Kirjuta ruttu!', 'Vasta mulle kohe!'],
         ['Sa ei saa tulla ja vabandad.', 'Vabandust, aga ma ei saa tulla.', 'Ma tulen kindlasti.', 'Tule sina minu asemel!'],
       ], 'full', 'g_vocab'),
-      B.wordorder('082_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kirjutan teile seoses oma eesti keele kursusega.', 'Kas oleks võimalik minna üle teise gruppi?', 'Mulle sobiksid teisipäeva ja neljapäeva õhtud.', 'Palun andke teada selle nädala jooksul.', 'Ootan teie vastust ja tänan juba ette.']),
-      TR('082_d_tr', ['Пишу вам в связи с курсом.', 'Не могли бы вы прислать мне счёт?', 'Можно ли перенести встречу?', 'Мне подошёл бы вечер четверга.', 'Заранее благодарю.']),
+      B.wordorder('082_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kirjutan teile seoses oma eesti keele kursusega.', 'Kas oleks võimalik minna üle teise gruppi?', 'Mulle sobiksid teisipäeva ja neljapäeva õhtud.', 'Palun andke teada selle nädala jooksul.', 'Ootan teie vastust ja tänan juba ette.', 'Kas te saaksite mulle arve e-postiga saata?']),
+      TR('082_d_tr', ['Пишу вам в связи с курсом.', 'Не могли бы вы прислать мне счёт?', 'Можно ли перенести встречу?', 'Мне подошёл бы вечер четверга.', 'Заранее благодарю.', 'Не могли бы вы ответить до пятницы?']),
       B.planning('082_d_plan', 'Teate plaan.', 'Sa ei saa homme kursusele tulla. Kirjuta märksõnad.', ['Miks sa ei saa tulla?', 'Millal sa jälle tuled?', 'Mida sa palud õpetajalt?', 'Kuidas õpetaja sinuga ühendust saab?']),
-      B.letter('082_d_note', 'Teade õpetajale (umbes 50 sõna).', 'Kirjuta õpetajale: miks sa homme ei tule, millal tuled, mida palud ja kuidas sinuga ühendust saab.', 'Tere, Kadri!', 'Parimate soovidega', [40, 60]),
+      B.writing('082_d_note', 'Teade õpetajale (umbes 50 sõna).', 'Kirjuta õpetajale: miks sa homme ei tule, millal tuled, mida palud ja kuidas sinuga ühendust saab.', [5, 7], ['kahjuks', 'sest', 'kas te saaksite', 'minuga saab'], 3),
+
       B.speaking('082_d_say', 'Kiri, sõnum või kõne?', 'Räägi 2–2,5 minutit: millal sa kirjutad e-kirja, millal sõnumi ja millal helistad? Too näiteid.', ['Kellele sa kirjutad ametlikult?', 'Millal on parem helistada?', 'Milline oli sinu viimane tähtis kiri?'], [120, 150]),
-      B.selfcheck('082_d_self', ['Ma tunnen kirja viit osa.', 'Ma valin ametliku või sõbraliku fraasi.', 'Ma palun viisakalt tingiva kõneviisiga.', 'Ma kirjutan 50-sõnalise teate nelja punktiga.'], 'Kiri on teel'),
+
     ],
     practice: [
       B.reading('082_p_read', 'Loe e-kirja.', 'Loe kiri ja vasta küsimustele.', 'Veekeskus küsib tagasisidet', [
@@ -323,9 +330,9 @@ export const LESSONS = {
         ['Ma ei olnud rahul, sest vesi oli külmad.', 'Ma ei olnud rahul, sest vesi oli külm.'],
       ]),
       B.match('082_p_match', 'Kirja osa ja lause.', 'Ühenda kirja osa ja sobiv lause.', [['pöördumine', 'Lugupeetud veekeskuse meeskond!'], ['eesmärk', 'Kirjutan seoses teie küsitlusega.'], ['detailid', 'Käisin veekeskuses laupäeval kahe lapsega.'], ['probleem', 'Kahjuks oli lastebasseinis vesi külm.'], ['palve', 'Kas te saaksite seda kontrollida?'], ['lõpp', 'Ette tänades, Markus Kivi']]),
-      TR('082_p_tr', ['Я бываю в аквапарке два раза в месяц.', 'Мне больше всего нравятся сауны.', 'Цены для семьи слишком высокие.', 'Я бы посоветовал аквапарк другу.', 'Не могли бы вы проверить температуру воды?']),
+      TR('082_p_tr', ['Я бываю в аквапарке два раза в месяц.', 'Мне больше всего нравятся сауны.', 'Цены для семьи слишком высокие.', 'Я бы посоветовал аквапарк другу.', 'Не могли бы вы проверить температуру воды?', 'Я пишу вам в связи с ценами.']),
       B.letter('082_p_letter', 'E-kiri veekeskusele (100–130 sõna).', 'Kirjuta veekeskusele: millal käisid, mis meeldis, mis oli probleem, mida soovitad. Küsi ka kohviku kohta.', 'Lugupeetud veekeskuse „Lainela” meeskond!', 'Lugupidamisega', [100, 130]),
-      B.selfcheck('082_p_self', ['Ma mõistan, mida kiri minult palub.', 'Ma täidan 10 küsimusega ankeedi põhjendustega.', 'Ma kasutan tingivat kõneviisi: sooviksin, saaksite.', 'Ma kirjutan 100–130-sõnalise e-kirja.'], 'Ankeet täidetud'),
+
     ],
     transfer: [
       B.text('082_t_situation', 'Uus olukord', 'Sinu kolleeg Tarmo jättis sulle reedel kaks häälsõnumit. Pühapäeval jääd sa haigeks ega saa esmaspäeval tööle minna. Kuula sõnumeid ja kirjuta talle teade ning restoranile e-kiri.'),
@@ -354,10 +361,11 @@ export const LESSONS = {
         ['„Koosolek on teisel korrusel.”', 'Ta lisas, et', 'Ta lisas, et koosolek on teisel korrusel.'],
         ['„Saada esitlus pühapäeva õhtuks!”', 'Ta palus, et', 'Ta palus, et ma saadaksin esitluse pühapäeva õhtuks.; Ta palus, et saadaksin esitluse pühapäeva õhtuks.'],
         ['„Üks külaline ei söö liha.”', 'Ta ütles, et', 'Ta ütles, et üks külaline ei söö liha.'],
-        ['„Kas sa saaksid laua broneerida?”', 'Ta küsis, kas', 'Ta küsis, kas ma saaksin laua broneerida.; Ta küsis, kas ma saaksin broneerida laua.'],
-      ]),
+        ['„Kas sa saaksid laua broneerida?”', 'Ta küsis, kas', 'Ta küsis, kas ma saaksin laua broneerida.; Ta küsis, kas ma saaksin broneerida laua.'], ['„Ma tulen koosolekule hiljem.”', 'Ta ütles, et', 'Ta ütles, et ta tuleb koosolekule hiljem.']]),
+      B.errorfix('082_t_fix', 'Paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [['Tarmo ütles, et klient tuli homme kell üheksa.', 'Tarmo ütles, et klient tuleb homme kell üheksa.'], ['Kas te saaksite mind homme helistada?', 'Kas te saaksite mulle homme helistada?'], ['Ma sooviks koosoleku edasi lükata.', 'Ma sooviksin koosoleku edasi lükata.'], ['Kirjutan teile seoses homne koosolek.', 'Kirjutan teile seoses homse koosolekuga.'], ['Ta palus, et ma saadan esitluse pühapäevaks.', 'Ta palus, et ma saadaksin esitluse pühapäevaks.'], ['Ootan teie vastus.', 'Ootan teie vastust.']]),
       B.planning('082_t_plan', 'Kaks kirja.', 'Kirjuta enne kirjutamist märksõnad.', ['Teade Tarmole: miks, millal oled tagasi, kes asendab, kontakt?', 'E-kiri restoranile: kuupäev, kellaaeg, mitu inimest?', 'Mida küsid restoranilt?', 'Kuidas alustad ja lõpetad ametlikku kirja?']),
-      B.letter('082_t_note', 'Kirjutamine 1: teade Tarmole (umbes 50 sõna).', 'Sa jäid haigeks. Kirjuta Tarmole: miks sa ei tule, millal oled tagasi, kes sind asendab, kuidas sinuga ühendust saab.', 'Tere, Tarmo!', 'Parimate soovidega', [40, 60]),
+      B.writing('082_t_note', 'Kirjutamine 1: teade Tarmole (umbes 50 sõna).', 'Sa jäid haigeks. Kirjuta Tarmole: miks sa ei tule, millal oled tagasi, kes sind asendab, kuidas sinuga ühendust saab.', [5, 7], ['kahjuks', 'sest', 'minu asemel', 'helista'], 3),
+
       B.letter('082_t_mail', 'Kirjutamine 2: e-kiri restoranile (100–130 sõna).', 'Broneeri laud: kuupäev, kellaaeg, inimeste arv, taimetoit. Küsi ka parkimise ja arve kohta.', 'Lugupeetud restorani „Kalamaja” meeskond!', 'Lugupidamisega', [100, 130]),
       B.rolecards('082_t_roles', 'Telefonikõne restorani.', 'Rääkige 3–4 minutit. A broneerib laua, B on restorani administraator.',
         'Helista restorani: broneeri laud esmaspäevaks kell 12 kuuele inimesele. Küsi taimetoidu, parkimise ja arve kohta (arve firmale).',
@@ -372,7 +380,7 @@ export const LESSONS = {
     canDo: 'Ma kirjutan 110–140-sõnalise arvamusteksti, kus on seisukoht, kaks põhjust, näide ja kokkuvõte.',
     discover: [
       B.text('083_d_intro', 'Mida sina arvad?', 'Kas kodus töötamine on parem kui kontoris? Mõtle üks minut: mis on sinu arvamus ja miks? Hea arvamustekst ei ole lihtsalt „mulle meeldib”. Sellel on seisukoht, põhjused, näide ja kokkuvõte.'),
-      B.reading('083_d_read', 'Loe Olga arvamust.', 'Loe tekst ja vasta küsimustele.', 'Kodukontor — rohkem plusse kui miinuseid', [
+      B.categorize('083_d_sort', 'Mis osa?', 'Sorteeri väljendid teksti osade järgi.', [['Seisukoht', ['minu arvates', 'ma olen kindel, et', 'minu meelest']], ['Põhjus', ['esiteks', 'teiseks', 'lisaks']], ['Näide', ['näiteks', 'minu kogemus näitab', 'eriti']], ['Vastuargument', ['muidugi', 'teisalt', 'samas']], ['Kokkuvõte', ['kokkuvõttes', 'seega', 'lõpuks võib öelda']]]),      B.reading('083_d_read', 'Loe Olga arvamust.', 'Loe tekst ja vasta küsimustele.', 'Kodukontor — rohkem plusse kui miinuseid', [
         'Viimastel aastatel töötavad paljud inimesed osaliselt või täielikult kodus. Mõned arvavad, et see on mugav, teised, et see teeb inimesed üksildaseks. Minu arvates on kodus töötamisel rohkem plusse kui miinuseid.',
         'Esiteks säästab kodus töötamine palju aega. Varem sõitsin ma iga päev bussiga tööle ja tagasi ning see võttis kokku poolteist tundi. Nüüd kasutan seda aega hommikuseks jooksuks või õhtul perega olemiseks. Kodus töötades ei pea ma ka hommikul kiirustama ega ummikus seisma.',
         'Teiseks saan ma kodus paremini keskenduda. Meie avatud kontoris helises pidevalt kellegi telefon ja kolleegid tulid iga natukese aja tagant küsimustega. Kodus on vaikne ja ma teen keerulise töö palju kiiremini valmis. Näiteks kirjutasin eelmisel kuul projekti aruande kahe päevaga, kuigi kontoris kulus selleks varem terve nädal.',
@@ -387,6 +395,7 @@ export const LESSONS = {
         ['Kuidas vähendab Olga kodutöö miinuseid?', 'käib kaks korda nädalas kontoris ja töötab eraldi toas'],
         ['Kas sa oled Olgaga nõus? Miks?'],
       ]),
+      B.vocab('083_d_vocab', 'Arvamusteksti sõnad', ['arvamus — мнение', 'minu arvates — по-моему', 'esiteks — во-первых', 'teiseks — во-вторых', 'kuigi — хотя', 'kokkuvõttes — в итоге', 'pluss — плюс', 'miinus — минус', 'nõus — согласен', 'põhjus — причина', 'näiteks — например', 'seetõttu — поэтому']),
       B.diagram('083_d_flow', 'flow', { title: 'Olga teksti ülesehitus.', instruction: 'Kirjuta tekstist puuduv sõna.', nodes: 'Sissejuhatus: paljud töötavad [kodus]\nSeisukoht: [minu arvates] on rohkem plusse\nPõhjus 1: [esiteks] säästab see aega\nPõhjus 2: [teiseks] saab paremini keskenduda\nNäide: aruanne valmis kahe [päevaga]\nVastuargument: [muidugi] on ka miinuseid\nKokkuvõte: [kokkuvõttes] sobib segamudel' }, 'full', 'g_read'),
       B.notice('083_d_notice', 'Arvamusteksti tööriistad.', [
         '**Seisukoht:** Minu arvates… / Ma olen kindel, et… / Minu meelest…',
@@ -395,31 +404,26 @@ export const LESSONS = {
         '**des-vorm** = samal ajal või kuidas: kodus **töötades**, bussiga **sõites** (töötada → töötades, sõita → sõites).',
         '**Kokkuvõte:** Kokkuvõttes… / Seega… / Seepärast arvan, et…',
       ], 'full'),
-      B.categorize('083_d_sort', 'Mis osa?', 'Sorteeri väljendid teksti osade järgi.', [['Seisukoht', ['minu arvates', 'ma olen kindel, et', 'minu meelest']], ['Põhjus', ['esiteks', 'teiseks', 'lisaks']], ['Näide', ['näiteks', 'minu kogemus näitab', 'eriti']], ['Vastuargument', ['muidugi', 'teisalt', 'samas']], ['Kokkuvõte', ['kokkuvõttes', 'seega', 'lõpuks võib öelda']]]),
+
       B.wordforms('083_d_forms', 'des-vorm.', 'Kirjuta des-vorm.', [['töötama', 'des-vorm', 'töötades'], ['lugema', 'des-vorm', 'lugedes'], ['sõitma', 'des-vorm', 'sõites'], ['tegema', 'des-vorm', 'tehes'], ['jooksma', 'des-vorm', 'joostes'], ['vaatama', 'des-vorm', 'vaadates'], ['õppima', 'des-vorm', 'õppides']]),
-      B.transformation('083_d_trans', 'Ühenda laused.', 'Ühenda kaks lauset antud sõnaga.', [
-        ['Ma töötan kodus. Ma säästan aega.', 'des-vorm', 'Kodus töötades säästan ma aega.; Kodus töötades säästan aega.'],
-        ['Ma sõidan bussiga. Ma loen raamatut.', 'des-vorm', 'Bussiga sõites loen ma raamatut.; Bussiga sõites loen raamatut.'],
-        ['Kodus on vaikne. Mõnikord tunnen kolleegidest puudust.', 'kuigi', 'Kuigi kodus on vaikne, tunnen mõnikord kolleegidest puudust.; Mõnikord tunnen kolleegidest puudust, kuigi kodus on vaikne.'],
-        ['Kontoris on lärm. Ma ei saa keskenduda.', 'sest', 'Ma ei saa kontoris keskenduda, sest seal on lärm.; Ma ei saa keskenduda, sest kontoris on lärm.'],
-        ['See on minu esimene põhjus. Kodus töötamine säästab aega.', 'esiteks', 'Esiteks säästab kodus töötamine aega.'],
-        ['Kõike arvestades on segamudel parim.', 'kokkuvõttes', 'Kokkuvõttes on segamudel parim.'],
-      ]),
+      B.match('083_d_match', 'Väljend ja ülesanne.', 'Ühenda väljend ja selle ülesanne arvamustekstis.', [['minu arvates', 'arvamus'], ['esiteks', 'esimene põhjus'], ['näiteks', 'näide'], ['kuigi', 'vastuargument'], ['muidugi', 'järeleandmine'], ['kokkuvõttes', 'lõpp']], 'full', 'g_notice'),
+
       B.errorfix('083_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Kodus töötamas säästan ma aega.', 'Kodus töötades säästan ma aega.'],
         ['Ma olen nõus selle mõte.', 'Ma olen selle mõttega nõus.; Ma olen nõus selle mõttega.'],
         ['Teiseks saan ma kodus paremini keskendada.', 'Teiseks saan ma kodus paremini keskenduda.'],
         ['Kuigi kodus on vaikne, aga mõnikord on üksildane.', 'Kuigi kodus on vaikne, on mõnikord üksildane.; Kodus on vaikne, aga mõnikord on üksildane.'],
-        ['Bussiga sõitedes loen ma raamatut.', 'Bussiga sõites loen ma raamatut.'],
-      ]),
-      B.wordorder('083_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Minu arvates on kodus töötamisel rohkem plusse.', 'Esiteks säästab kodus töötamine palju aega.', 'Kodus töötades ei pea ma ummikus seisma.', 'Muidugi on kodus töötamisel ka miinuseid.', 'Kokkuvõttes sobib kõige paremini segamudel.']),
+        ['Bussiga sõitedes loen ma raamatut.', 'Bussiga sõites loen ma raamatut.'], ['Kokkuvõttes sobib mulle kõige paremini segamudelit.', 'Kokkuvõttes sobib mulle kõige paremini segamudel.']]),
+      D('083_d_dict', ['Minu arvates on kodus töötamisel rohkem plusse kui miinuseid.', 'Esiteks säästab kodus töötamine iga päev aega.', 'Kodus töötades ei pea ma ummikus seisma.', 'Kuigi kodus on vaikne, puuduvad mõnikord kolleegid.', 'Muidugi on kodus töötamisel ka miinuseid.', 'Kokkuvõttes sobib kõige paremini segamudel.']),
+
       B.truefalse('083_d_tf', 'Õige või vale?', 'Loe Olga teksti uuesti.', [['Olga sõitis varem tööle ja tagasi poolteist tundi päevas.', true], ['Kontoris oli Olgal vaikne ja rahulik.', false], ['Kodus kirjutas Olga aruande kiiremini.', true], ['Olga ei käi enam üldse kontoris.', false], ['Olga hoiab tööasju eraldi toas.', true], ['Olga arvates sobib kodukontor igaühele.', false]]),
-      TR('083_d_tr', ['По-моему, у работы из дома больше плюсов.', 'Во-первых, она экономит время.', 'Работая дома, я лучше сосредотачиваюсь.', 'Хотя дома тихо, иногда мне не хватает коллег.', 'В итоге лучше всего смешанная модель.']),
+      TR('083_d_tr', ['По-моему, у работы из дома больше плюсов.', 'Во-первых, она экономит время.', 'Работая дома, я лучше сосредотачиваюсь.', 'Хотя дома тихо, иногда мне не хватает коллег.', 'В итоге лучше всего смешанная модель.', 'Конечно, у работы из дома есть и минусы.']),
       B.speaking('083_d_say', 'Minu arvamus.', 'Räägi 2–3 minutit: kas eelistad kodus või kontoris töötamist? Ütle seisukoht, kaks põhjust ja näide.', ['Mis on sinu seisukoht?', 'Millised on sinu kaks põhjust?', 'Milline näide sinu elust seda näitab?'], [120, 180], ['minu arvates', 'esiteks', 'teiseks', 'näiteks', 'kokkuvõttes']),
       W('083_d_write', 'Minu arvamus.', 'Kirjuta 8–10 lauset teemal „Kas eesti keelt on parem õppida kursusel või iseseisvalt?”. Kasuta sidesõnu.', ['minu arvates', 'esiteks', 'teiseks', 'näiteks', 'kokkuvõttes']),
-      B.selfcheck('083_d_self', ['Ma leian tekstist seisukoha, põhjused ja näite.', 'Ma tunnen arvamusteksti sidesõnu.', 'Ma moodustan des-vormi.', 'Ma ütlen oma arvamuse kahe põhjusega.'], 'Arvamus on olemas'),
+
     ],
     practice: [
+      B.categorize('083_p_parts', 'Arvamusteksti osad.', 'Sorteeri laused teksti osa järgi.', [['Sissejuhatus', ['Viimasel ajal räägitakse palju laste telefonidest.', 'Kas lapsel on telefoni vaja?']], ['Põhjendus', ['Esiteks aitab telefon lapsel vanematega ühendust hoida.', 'Teiseks saab telefonis õppida.']], ['Vastuargument', ['Kuigi telefon on kasulik, kasutavad lapsed seda liiga palju.', 'Teisest küljest segab telefon und.']], ['Kokkuvõte', ['Kokkuvõttes on reeglid tähtsamad kui telefon.', 'Seega vajab laps telefoni, aga ka selgeid reegleid.']]]),
       B.reading('083_p_read', 'Loe foorumit.', 'Loe kahte arvamust ja vasta küsimustele.', 'Kas lapsel peab olema nutitelefon?', [
         'Jaan, kahe lapse isa:',
         'Minu arvates ei vaja alla kaheteistkümneaastane laps nutitelefoni. Esiteks veedavad lapsed niigi liiga palju aega ekraani ees. Kui telefon on kogu aeg taskus, ei mängi nad enam õues sõpradega ega loe raamatuid nagu meie lapsepõlves. Teiseks on internetis palju ohte, millest laps veel aru ei saa. Näiteks sai minu poja sõber võõralt inimeselt kummalisi sõnumeid. Muidugi peab laps saama vanematele helistada, kui trenn jääb ära või buss hilineb. Selleks piisab aga lihtsast telefonist, millega saab helistada ja sõnumeid saata. Kokkuvõttes arvan, et nutitelefoni võiks laps saada alles gümnaasiumis.',
@@ -454,19 +458,18 @@ export const LESSONS = {
         ['Ma olen nõus Jaani arvamus.', 'Ma olen Jaani arvamusega nõus.; Ma olen nõus Jaani arvamusega.'],
         ['Telefoni kasutamas söögilauas on ebaviisakas.', 'Telefoni kasutamine söögilauas on ebaviisakas.'],
         ['Lapsed peavad õppima kasutada telefoni targalt.', 'Lapsed peavad õppima telefoni targalt kasutama.; Lapsed peavad õppima kasutama telefoni targalt.'],
-        ['Lapsel ei ole nutitelefoni vaja kuni gümnaasiumisse.', 'Lapsel ei ole nutitelefoni vaja enne gümnaasiumi.; Laps ei vaja nutitelefoni enne gümnaasiumi.'],
-      ]),
+        ['Lapsel ei ole nutitelefoni vaja kuni gümnaasiumisse.', 'Lapsel ei ole nutitelefoni vaja enne gümnaasiumi.; Laps ei vaja nutitelefoni enne gümnaasiumi.'], ['Kokkuvõttes on reeglid tähtsam kui telefon.', 'Kokkuvõttes on reeglid tähtsamad kui telefon.']]),
+      D('083_p_dict', ['Kuigi telefon on kasulik, vajab see reegleid.', 'Söögilauas telefoni kasutamine on ebaviisakas.', 'Lapsed peavad õppima telefoni targalt kasutama.', 'Liisi peres on selged reeglid.', 'Kokkuvõttes on reeglid tähtsamad kui telefon.', 'Bussiga sõites mängib laps telefonis.']),
       B.transformation('083_p_trans', 'Kirjuta teisiti.', 'Kirjuta lause antud sõnaga.', [
         ['Ma arvan, et telefon on lapsele vajalik.', 'minu arvates', 'Minu arvates on telefon lapsele vajalik.'],
         ['Laps sõidab bussiga. Ta mängib telefonis.', 'des-vorm', 'Bussiga sõites mängib laps telefonis.'],
         ['Telefon on kasulik. Selle kasutamine vajab reegleid.', 'kuigi', 'Kuigi telefon on kasulik, vajab selle kasutamine reegleid.; Telefoni kasutamine vajab reegleid, kuigi telefon on kasulik.'],
         ['Liisi peres on selged reeglid. Seetõttu ei ole probleeme.', 'sest', 'Liisi peres ei ole probleeme, sest seal on selged reeglid.; Probleeme ei ole, sest Liisi peres on selged reeglid.'],
-        ['Kõike arvestades on reeglid tähtsamad kui telefon.', 'kokkuvõttes', 'Kokkuvõttes on reeglid tähtsamad kui telefon.'],
-      ]),
+        ['Kõike arvestades on reeglid tähtsamad kui telefon.', 'kokkuvõttes', 'Kokkuvõttes on reeglid tähtsamad kui telefon.'], ['Õhtul loeb laps raamatut. Ta ei vaata telefoni.', 'des-vorm', 'Õhtul raamatut lugedes ei vaata laps telefoni.|Raamatut lugedes ei vaata laps õhtul telefoni.']]),
       B.planning('083_p_plan', 'Arvamusteksti plaan.', 'Teema: „Kas lapsel peab olema nutitelefon?” Kirjuta märksõnad.', ['Seisukoht', 'Põhjus 1 ja põhjus 2', 'Näide oma elust', 'Vastuargument ja kokkuvõte']),
       B.speaking('083_p_say', 'Arutelu.', 'Arutage paaris 2–3 minutit: kumb, Jaan või Liis, on õigem? Kumbki ütleb seisukoha ja kaks põhjust.', ['Kellega sa oled nõus?', 'Mis on sinu kaks põhjust?', 'Mis on teie ühine järeldus?'], [120, 180]),
       B.letter('083_p_letter', 'Arvamustekst (110–140 sõna).', 'Kirjuta foorumisse oma arvamus: seisukoht, kaks põhjust, näide, vastuargument ja kokkuvõte.', 'Kas lapsel peab olema nutitelefon?', '(nimi)', [110, 140]),
-      B.selfcheck('083_p_self', ['Ma eristan foorumis kahte arvamust.', 'Ma valin teksti sobiva sidesõna.', 'Ma kasutan kuigi-, sest- ja des-konstruktsiooni.', 'Ma kirjutan 110–140-sõnalise arvamusteksti.'], 'Arvamus kirjas'),
+
     ],
     transfer: [
       B.text('083_t_situation', 'Uus olukord', 'Ajaleht „Linnaelu” korraldab lugejate kirjutamisvõistluse. Võistlusel on kaks osa: arvamus teemal „Kas kesklinn peaks olema autovaba?” ning lugu või kiri. Parimad tekstid avaldatakse ajalehes.'),
@@ -490,10 +493,10 @@ export const LESSONS = {
         ['Kesklinnas jalutamas tunnen ma end hästi.', 'Kesklinnas jalutades tunnen ma end hästi.'],
         ['Ma olen nõus selle plaani.', 'Ma olen selle plaaniga nõus.; Ma olen nõus selle plaaniga.'],
         ['Eakad inimesed on vastu sellele plaanile.', 'Eakad inimesed on selle plaani vastu.'],
-        ['Linn peab ehitama rohkem parklad.', 'Linn peab ehitama rohkem parklaid.'],
-      ]),
+        ['Linn peab ehitama rohkem parklad.', 'Linn peab ehitama rohkem parklaid.'], ['Minu arvates autovaba kesklinn on hea idee.', 'Minu arvates on autovaba kesklinn hea idee.']]),
+      TR('083_t_tr', ['По-моему, центр без машин — хорошая идея.', 'Хотя план хороший, магазины пострадают.', 'Гуляя по центру, я чувствую себя хорошо.', 'Пожилые люди против этого плана.', 'Городу нужно строить больше парковок.', 'В итоге нужен компромисс.']),
       B.letter('083_t_opinion', 'Kirjutamine 1: arvamus ajalehele (110–140 sõna).', 'Kas kesklinn peaks olema autovaba? Kirjuta seisukoht, kaks põhjust, näide, vastuargument ja kokkuvõte.', 'Lugupeetud toimetus!', 'Lugupidamisega', [110, 140]),
-      B.letter('083_t_story', 'Kirjutamine 2: vali A või B (umbes 100 sõna).', 'A) Lugu pealkirjaga „Päev, mil buss ei tulnud”. B) Kiri sõbrale: kuidas sa linnas liigud, mis meeldib, mis mitte; kutsu ta külla.', 'A) Päev, mil buss ei tulnud / B) Tere, …!', 'B) Sinu sõber', [90, 120]),
+
       B.speaking('083_t_agree', 'Rääkimine: jõudke kokkuleppele.', 'Te olete linnaelanikud. Linnal on raha ainult üheks projektiks. Arutage 2–3 minutit ja otsustage koos.', ['Tasuta elektribuss kesklinna ümber.', 'Uus rattatee kooli juurde.', 'Mis on kummagi pluss ja miinus?', 'Mille kasuks te otsustate ja miks?'], [150, 210], ['Minu arvates…', 'Ma olen nõus, kuigi…', 'Teisalt…', 'Otsustame siis nii.']),
       B.rubric('083_t_rubric', 'Hindamine.', 'Märgi, mis su tekstides on olemas.', ['Arvamus: selge seisukoht ja vähemalt kaks põhjust.', 'Arvamus: näide, vastuargument ja kokkuvõte.', 'Lugu: algus, sündmus ja lõpp; kiri: pöördumine, sisu ja kutse.', 'Sidesõnad: esiteks, näiteks, kuigi, kokkuvõttes.', 'Pikkus: 110–140 ja umbes 100 sõna.']),
       B.selfcheck('083_t_self', ['Ma kasutan arvamusteksti sidesõnu.', 'Ma leian artiklist poolt- ja vastuargumendid.', 'Ma kasutan kuigi-lauset ja des-vormi õigesti.', 'Ma kirjutan arvamusteksti ning loo või kirja.'], 'Tekst saadetud'),
@@ -558,19 +561,17 @@ export const LESSONS = {
         ['Pooled noored sõidavad rattaga.', 'Pooled noortest sõidavad rattaga.'],
         ['Rattaga sõitjaid on kolm korda rohkem kui 2015. aasta.', 'Rattaga sõitjaid on kolm korda rohkem kui 2015. aastal.'],
         ['Kõige rohkem inimesi sõidab autoga kui bussiga.', 'Kõige rohkem inimesi sõidab autoga.; Rohkem inimesi sõidab autoga kui bussiga.'],
-        ['Uuringus küsitlesid 800 inimest.', 'Uuringus küsitleti 800 inimest.'],
-      ]),
+        ['Uuringus küsitlesid 800 inimest.', 'Uuringus küsitleti 800 inimest.'], ['Ühistranspordiga on rahul kaks kolmandik vastajatest.', 'Ühistranspordiga on rahul kaks kolmandikku vastajatest.']]),
       B.choice('084_d_choice', 'Vali õige.', 'Vali teksti ja tabeli põhjal õige vastus.', [
         ['Milline liiklusvahend on kõige populaarsem?', 'auto', 'buss', 'jalgratas'],
         ['Kuidas on muutunud ühistranspordi kasutajate osa?', 'Peaaegu ei muutunud.', 'See kahekordistus.', 'See vähenes poole võrra.'],
         ['Kelle arv kasvas kõige kiiremini?', 'ratturite', 'jalakäijate', 'autojuhtide'],
         ['Kes sõidavad autoga kõige rohkem?', 'üle 50-aastased', 'kuni 30-aastased', 'õpilased'],
-        ['Mis on linnavalitsuse eesmärk?', 'vähem autosid tööteel', 'rohkem parklaid kesklinnas', 'kallimad bussipiletid'],
-      ]),
-      D('084_d_dict', ['Kõige populaarsem on endiselt auto.', 'Ühistransporti kasutab umbes kolmandik vastajatest.', 'Ratturite arv on kasvanud peaaegu kolm korda.', 'Enamik õpilasi käib koolis jalgsi.', 'Kaks kolmandikku on bussidega rahul.']),
+        ['Mis on linnavalitsuse eesmärk?', 'vähem autosid tööteel', 'rohkem parklaid kesklinnas', 'kallimad bussipiletid'], ['Mitu inimest uuringus küsitleti?', '800 inimest', '80 inimest', '8000 inimest']]),
+      D('084_d_dict', ['Kõige populaarsem on endiselt auto.', 'Ühistransporti kasutab umbes kolmandik vastajatest.', 'Ratturite arv on kasvanud peaaegu kolm korda.', 'Enamik õpilasi käib koolis jalgsi.', 'Kaks kolmandikku on bussidega rahul.', 'Uuringus küsitleti kaheksasada inimest.']),
       B.speaking('084_d_say', 'Viis fakti.', 'Kirjelda tabelit 2–3 minutit: viis fakti, kaks võrdlust ja üks järeldus.', ['Mis on kõige populaarsem?', 'Mis on kümne aastaga muutunud?', 'Mis on sinu järeldus?'], [120, 180], ['kõige rohkem', 'rohkem kui', 'umbes', 'enamik', 'kokkuvõttes']),
       W('084_d_write', 'Tabeli kirjeldus.', 'Kirjuta 8–10 lauset: viis fakti tabelist, kaks võrdlust ja üks järeldus.', ['kõige', 'rohkem kui', 'umbes', 'enamik', 'vähenenud']),
-      B.selfcheck('084_d_self', ['Ma loen tabelist ja tekstist arve.', 'Ma kasutan sõnu enamik, pooled, kolmandik.', 'Ma ühildan tegusõna: enamik sõidab, pooled sõidavad.', 'Ma sõnastan viis fakti ja järelduse.'], 'Andmed kirjeldatud'),
+
     ],
     practice: [
       B.text('084_p_sched', 'Sõiduplaan: Tallinn–Tartu', '**Buss:** väljub kell 7.00, 9.30, 12.00, 15.30 ja 18.00. Sõit kestab 2 h 30 min. Pilet maksab 12–15 eurot.\n**Rong:** väljub kell 6.40, 10.15, 14.20 ja 17.45. Sõit kestab 2 h 05 min, kell 17.45 väljuv kiirrong 1 h 50 min. Pilet maksab 11–17 eurot.\n**Auto:** sõit kestab umbes 2 h 15 min. Kütus maksab umbes 18 eurot, parkimine Tartus 4 eurot päevas.'),
@@ -614,27 +615,26 @@ export const LESSONS = {
         ['Miks ei olnud osa inimesi rahul?', 'grupid olid liiga suured'],
         ['Kuidas võivad korraldajate plaanid tuua rohkem noori? Mida sina arvad?'],
       ]),
-      B.wordorder('084_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kõige rohkem osalejaid oli veebruaris.', 'Enamik osalejatest on kolmkümmend kuni viiskümmend aastat vanad.', 'Rohkem kui pooled ütlesid, et julgus on kasvanud.', 'Noori oli vähe, ainult kümme protsenti.', 'Järgmisel aastal plaanitakse kohtuda kaks korda nädalas.']),
+      B.wordorder('084_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kõige rohkem osalejaid oli veebruaris.', 'Enamik osalejatest on kolmkümmend kuni viiskümmend aastat vanad.', 'Rohkem kui pooled ütlesid, et julgus on kasvanud.', 'Noori oli vähe, ainult kümme protsenti.', 'Järgmisel aastal plaanitakse kohtuda kaks korda nädalas.', 'Keelekohvikus käis rohkem naisi kui mehi.']),
       B.errorfix('084_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Kõige rohkem osalejad oli veebruaris.', 'Kõige rohkem osalejaid oli veebruaris.'],
         ['Rohkem kui pooled ütles, et julgus on kasvanud.', 'Rohkem kui pooled ütlesid, et julgus on kasvanud.'],
         ['Kohvikus käis rohkem naised kui mehed.', 'Kohvikus käis rohkem naisi kui mehi.'],
         ['Enamik osalejad on rahul.', 'Enamik osalejaid on rahul.; Enamik osalejatest on rahul.'],
-        ['Järgmisel aastal plaanitakse kohtuma kaks korda nädalas.', 'Järgmisel aastal plaanitakse kohtuda kaks korda nädalas.'],
-      ]),
+        ['Järgmisel aastal plaanitakse kohtuma kaks korda nädalas.', 'Järgmisel aastal plaanitakse kohtuda kaks korda nädalas.'], ['Noori oli kohvikus kõige vähe.', 'Noori oli kohvikus kõige vähem.']]),
       B.transformation('084_p_trans', 'Võrdle.', 'Kirjuta võrdlus antud sõnaga.', [
         ['Naistest loeb 60%, meestest 35%.', 'rohkem kui', 'Naised loevad rohkem kui mehed.'],
         ['Veebruaris oli 40 osalejat, suvel 10.', 'kõige rohkem', 'Kõige rohkem osalejaid oli veebruaris.'],
         ['Bussipilet 12 €, rongipilet 11 €.', 'odavam', 'Rongipilet on odavam kui bussipilet.; Rongipilet on bussipiletist odavam.'],
         ['Rong 2 h 05 min, buss 2 h 30 min.', 'kiirem', 'Rong on kiirem kui buss.; Rong on bussist kiirem.'],
-        ['Spordiga tegeleb 50% inimestest.', 'iga teine', 'Spordiga tegeleb iga teine inimene.'],
-      ]),
+        ['Spordiga tegeleb 50% inimestest.', 'iga teine', 'Spordiga tegeleb iga teine inimene.'], ['Kohvikus käis 30 naist ja 10 meest.', 'kolm korda', 'Naisi käis kolm korda rohkem kui mehi.|Kohvikus käis kolm korda rohkem naisi kui mehi.']]),
       B.speaking('084_p_say', 'Kuidas sõita Tartusse?', 'Võrdle sõiduplaani põhjal 2–3 minutit bussi, rongi ja autot. Ütle, mida sina valiksid ja miks.', ['Mis on kõige kiirem?', 'Mis on kõige odavam?', 'Mida sina valiksid ja miks?'], [120, 180], ['kõige kiirem', 'odavam kui', 'umbes', 'valiksin']),
       W('084_p_write', 'Keelekohviku aasta.', 'Kirjuta 8–10 lauset: aruande viis tähtsamat fakti, üks võrdlus ja järeldus.', ['enamik', 'rohkem kui', 'kõige', 'umbes', 'kokkuvõttes']),
-      B.selfcheck('084_p_self', ['Ma leian sõiduplaanist aja ja hinna.', 'Ma kuulan raadiouudisest arve.', 'Ma ühildan: enamik on, pooled ütlesid.', 'Ma kirjutan aruande põhjal fakte ja järelduse.'], 'Numbrid on selged'),
+
     ],
     transfer: [
       B.text('084_t_situation', 'Uus olukord', 'Sa töötad firmas „Kiirkuller”. Juhataja palus sul töötajate küsitluse tulemusi koosolekul tutvustada ja kirjutada talle lühike kokkuvõte.\n**Mis teile tööl kõige rohkem meeldib?** kolleegid 45%, paindlik tööaeg 30%, palk 15%, muu 10%\n**Mis vajab parandamist?** puhkeruum 40%, parkimine 25%, koolitused 20%, info liikumine 15%\n**Kui sageli tahaksite kodus töötada?** mitte kunagi 20%, üks päev nädalas 50%, 2–3 päeva 25%, iga päev 5%\nVastajaid: 60 töötajat 75-st.'),
+      B.match('084_t_pct', 'Protsendid sõnadega.', 'Ühenda arv ja sõnad.', [['50%', 'pooled'], ['25%', 'veerand'], ['33%', 'kolmandik'], ['66%', 'kaks kolmandikku'], ['10%', 'iga kümnes'], ['100%', 'kõik']], 'full', 'g_vocab'),
       B.reading('084_t_read', 'Loe kolleegi kirja.', 'Loe kiri ja vasta küsimustele.', 'E-kiri personalijuhilt', [
         'Tere!',
         'Saadan sulle küsitluse kohta veel mõned andmed, mis tabelisse ei mahtunud. Küsitlusele vastas kuuskümmend töötajat seitsmekümne viiest. See on hea tulemus, sest eelmisel aastal vastasid ainult pooled töötajatest.',
@@ -672,11 +672,11 @@ export const LESSONS = {
         ['Puhkeruum 40%, parkimine 25%.', 'Kõigepealt tuleks parandada puhkeruumi.', 'Kõigepealt tuleks ehitada parkla.', 'Midagi ei ole vaja parandada.'],
         ['Kodus töötamine: üks päev 50%, iga päev 5%.', 'Enamik ei taha kodus iga päev töötada.', 'Enamik tahab kodus iga päev töötada.', 'Keegi ei taha kodus töötada.'],
         ['Vastas 60 töötajat 75-st.', 'Vastas neli viiendikku töötajatest.', 'Vastasid pooled töötajatest.', 'Vastas veerand töötajatest.'],
-        ['Mullu vastas pool, nüüd 80%.', 'Huvi küsitluse vastu on kasvanud.', 'Huvi küsitluse vastu on vähenenud.', 'Huvi küsitluse vastu ei muutunud.'],
-      ]),
-      TR('084_t_tr', ['На опрос ответили шестьдесят сотрудников.', 'Больше всего им нравятся коллеги.', 'Половина респондентов хочет работать из дома один день в неделю.', 'Примерно две трети довольны зарплатой.', 'Поэтому я предлагаю сначала улучшить комнату отдыха.']),
-      B.planning('084_t_plan', 'Ettekande plaan.', 'Kirjuta märksõnad.', ['Viis tähtsamat fakti', 'Kaks võrdlust (rohkem kui, kõige)', 'Järeldus: mida tuleks kõigepealt muuta?', 'Põhjendus: miks?']),
-      B.speaking('084_t_say', 'Ettekanne koosolekul.', 'Tutvusta 2,5–3,5 minutit küsitluse tulemusi: viis fakti, kaks võrdlust, järeldus ja ettepanek.', ['Kui paljud vastasid?', 'Mis meeldib ja mis vajab parandamist?', 'Mida tuleks kõigepealt muuta ja miks?'], [150, 210], ['Küsitlusele vastas…', 'Kõige rohkem…', 'Enamik…', 'Seega teen ettepaneku…']),
+        ['Mullu vastas pool, nüüd 80%.', 'Huvi küsitluse vastu on kasvanud.', 'Huvi küsitluse vastu on vähenenud.', 'Huvi küsitluse vastu ei muutunud.'], ['Kohvimasin 70%, tasuta lõuna 30%.', 'Enamik eelistab kohvimasinat.', 'Enamik eelistab tasuta lõunat.', 'Mõlemat eelistab sama palju inimesi.']]),
+      TR('084_t_tr', ['На опрос ответили шестьдесят сотрудников.', 'Больше всего им нравятся коллеги.', 'Половина респондентов хочет работать из дома один день в неделю.', 'Примерно две трети довольны зарплатой.', 'Поэтому я предлагаю сначала улучшить комнату отдыха.', 'Почти каждый третий хочет более гибкий график.']),
+      B.errorfix('084_t_fix', 'Paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [['Enamik töötajad on palgaga rahul.', 'Enamik töötajaid on palgaga rahul.|Enamik töötajatest on palgaga rahul.'], ['Pooled vastajad tahab kodus töötada.', 'Pooled vastajatest tahavad kodus töötada.'], ['Küsitlusele vastasid kuuskümmend töötajat seitsekümmend viis.', 'Küsitlusele vastas kuuskümmend töötajat seitsmekümne viiest.'], ['Kõige tähtsam on töötajatele kolleegid.', 'Kõige tähtsamad on töötajatele kolleegid.'], ['Puhkeruum tuleks parandada kõigepealt.', 'Kõigepealt tuleks puhkeruumi parandada.|Puhkeruumi tuleks kõigepealt parandada.'], ['Mullu vastas pool töötajad.', 'Mullu vastas pool töötajatest.']]),
+
+
       B.letter('084_t_mail', 'Kokkuvõte juhatajale (90–120 sõna).', 'Kirjuta juhatajale e-kiri: viis fakti, üks võrdlus, järeldus ja sinu ettepanek.', 'Lugupeetud juhataja!', 'Lugupidamisega', [90, 120]),
       B.rolecards('084_t_roles', 'Arutelu kolleegiga.', 'Rääkige 3–4 minutit ja leppige kokku üks ettepanek juhatajale.',
         'Sinu arvates tuleb kõigepealt parandada puhkeruumi: 40% vastajatest nimetas seda ja seal käivad kõik iga päev.',
@@ -688,6 +688,7 @@ export const LESSONS = {
   },
   'a2b1-085': {
     title: 'Kontroll 17 — lugemine ja kirjutamine',
+    assessment: true,
     canDo: 'Ma lahendan Harno B1 lugemise neli ülesannet ning kirjutan teate või ankeedi ja isikliku kirja või loo; tulemus vähemalt 70%.',
     discover: [
       B.text('085_d_intro', 'Kontroll 17', 'See leht kordab mooduli 17 mustreid: teadete lugemine, kirja fraasid, arvamusteksti sidesõnad ja andmete kirjeldamine. Tee kõik ilma abita.'),
@@ -708,6 +709,7 @@ export const LESSONS = {
         ['Miks viiakse muinasjututunnid eraldi saali?', 'mõned lugejad kurtsid lärmi üle|laste üritused olid liiga lärmakad'],
         ['Miks palutakse keelekohvikusse registreeruda?', 'kohtade arv on piiratud|kohti on vähe'],
       ]),
+      B.vocab('085_d_vocab', 'Mooduli võtmesõnad', ['kuulutus — объявление', 'avatud — открыт', 'registreeruma — регистрироваться', 'enamik — большинство', 'pooled — половина', 'minu arvates — по-моему', 'kuigi — хотя', 'kokkuvõttes — в итоге', 'sooviksin — я бы хотел', 'broneerima — бронировать', 'raamatukogu — библиотека', 'keelekohvik — языковое кафе']),
       B.notice('085_d_notice', 'Viimane pilk.', [
         '**Teade:** Raamatukogu **avatakse** / **suletakse**; ruumi **saab broneerida**; palume **registreeruda**.',
         '**Kiri:** Lugupeetud… / Kirjutan **seoses** keelekohvikuga / Kas te **saaksite**…? / Ta ütles, **et**… / Ette tänades.',
@@ -739,13 +741,12 @@ export const LESSONS = {
         ['Ma sooviks registreeruda keelekohvikusse.', 'Ma sooviksin registreeruda keelekohvikusse.; Sooviksin registreeruda keelekohvikusse.'],
         ['Kuigi lapsed on oodatud, aga üritused on lärmakad.', 'Kuigi lapsed on oodatud, on üritused lärmakad.; Lapsed on oodatud, aga üritused on lärmakad.'],
         ['Enamik lugejad käib raamatukogus kord kuus.', 'Enamik lugejaid käib raamatukogus kord kuus.; Enamik lugejatest käib raamatukogus kord kuus.'],
-        ['Palun helistage mind homme.', 'Palun helistage mulle homme.'],
-      ]),
-      TR('085_d_tr', ['Библиотека открыта по будням до восьми.', 'Не могли бы вы забронировать мне комнату?', 'По-моему, языковое кафе — отличная идея.', 'Большинство читателей приходят раз в месяц.', 'Хотя дети всегда желанны, мероприятия будут в отдельном зале.']),
-      B.wordorder('085_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Alates jaanuarist on raamatukogu kauem avatud.', 'Kas te saaksite mulle ruumi broneerida?', 'Minu arvates on keelekohvik suurepärane idee.', 'Rohkem kui pooled lugejatest kasutavad internetti.', 'Kokkuvõttes on lugejad raamatukoguga rahul.']),
+        ['Palun helistage mind homme.', 'Palun helistage mulle homme.'], ['Raamatukogu on avatud tööpäeviti kaheksa.', 'Raamatukogu on avatud tööpäeviti kaheksani.']]),
+      TR('085_d_tr', ['Библиотека открыта по будням до восьми.', 'Не могли бы вы забронировать мне комнату?', 'По-моему, языковое кафе — отличная идея.', 'Большинство читателей приходят раз в месяц.', 'Хотя дети всегда желанны, мероприятия будут в отдельном зале.', 'Регистрация в языковое кафе открыта до пятницы.']),
+      B.wordorder('085_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Alates jaanuarist on raamatukogu kauem avatud.', 'Kas te saaksite mulle ruumi broneerida?', 'Minu arvates on keelekohvik suurepärane idee.', 'Rohkem kui pooled lugejatest kasutavad internetti.', 'Kokkuvõttes on lugejad raamatukoguga rahul.', 'Keelekohvik toimub igal kolmapäeva õhtul.']),
       B.speaking('085_d_say', 'Soojendus.', 'Räägi 2–2,5 minutit ilma abita: mis sulle raamatukogus või keelekursusel meeldib ja mida sa muudaksid.', ['Mis sulle meeldib?', 'Mida sa muudaksid ja miks?', 'Mida arvavad teised?'], [120, 150]),
       W('085_d_write', 'Minu ettepanek.', 'Kirjuta raamatukogule 6–8 lauset: üks arvamus, kaks põhjust ja viisakas palve.', ['minu arvates', 'esiteks', 'kas te saaksite', 'kokkuvõttes'], [6, 8]),
-      B.selfcheck('085_d_self', ['Ma tean mooduli mustreid.', 'Ma loen teadet ja andmeid ilma abita.', 'Ma tean, mida enne kontrolli korrata.', 'Olen valmis kontrolliks.'], 'Valmis'),
+
     ],
     // Harno B1 reading in exam form: situations ↔ notices (reading 1, 9 items), a 270-word article with 6 multiple-choice
     // items (reading 2), a 10-gap option cloze (reading 3), a phrase bank with extras (reading 4, 8 gaps) = 33 items;
@@ -833,12 +834,15 @@ export const LESSONS = {
       ]),
       B.translation('085_p_tr', 'Keel 4: andmed.', 'Kirjuta eesti keeles.', ['Большинство жильцов знают своих соседей.', 'Больше половины участников группы — молодые.', 'Примерно четверть жильцов — пожилые люди.', 'Число участников выросло почти в два раза.', 'Меньше всего людей приходит зимой.', 'Две трети жильцов довольны садом.']),
       B.speaking('085_p_say', 'Rääkimine: arutle artikli üle.', 'Räägi 2,5–3,5 minutit: kas sina tunned oma naabreid? Kas naabrite grupp oleks sinu majas hea idee?', ['Kas sa tunned oma naabreid?', 'Mis on naabrite grupi plussid ja miinused?', 'Mida sina oma majas teeksid?'], [150, 210]),
-      B.selfcheck('085_p_self', ['Seon olukorra ja kuulutuse (lugemine 1).', 'Mõistan artikli peamõtet ja detaile (lugemine 2).', 'Valin lünka õige sõna või lauseosa (lugemine 3–4).', 'Kasutan vorme õigesti: umbisikuline, tingiv, kaudne kõne, enamik.'], 'Lugemine tehtud'),
+
     ],
     // Harno B1 writing in exam form: writing 1 = a 10-question questionnaire (A) or a ~50-word note on 4 points (B),
     // writing 2 = a ~100-word personal letter (A) or a story on a title (B); a rubric per text (8 + 12 points, as Harno)
     transfer: [
       B.text('085_t_situation', 'Kirjutamine (eksami vormis)', 'See leht on nagu Harno B1 eksami kirjutamise osa (35 minutit). Kirjutamine 1: vali A (ankeet) või B (teade). Kirjutamine 2: vali A (isiklik kiri) või B (lugu). Kirjuta ilma sõnastikuta.'),
+      B.reading('085_t_read', 'Loe keelekohviku teadet.', 'Loe ja vasta küsimustele.', 'Keelekohvik otsib vabatahtlikke',
+        'Linnaraamatukogu keelekohvik on avatud juba kaks aastat ja selle aja jooksul on seal käinud üle kolmesaja eesti keele õppija. Kohvik toimub igal neljapäeval kella kuuest kaheksani raamatukogu teisel korrusel. Iga laua taga istub üks vabatahtlik, kes räägib õppijatega eesti keeles. Teemad on igapäevased: töö, pere, reisimine, toit ja vaba aeg. Sel sügisel on õppijaid nii palju, et vajame uusi vabatahtlikke. Vabatahtlik ei pea olema õpetaja, aga ta peab rääkima eesti keelt hästi ja olema kannatlik. Kui sa oled ise kunagi eesti keelt õppinud, siis tead, kui tähtis on julgustus. Vabatahtlikud saavad enne alustamist lühikese koolituse ja tasuta kohvi. Kui sa ei saa mõnel neljapäeval tulla, anna sellest korraldajale vähemalt päev varem teada. Siis leiame sinu asemele kellegi teise. Registreeruda saab raamatukogu kodulehel või infoletis. Ootame ka tagasisidet: täida pärast külastust lühike ankeet, sest sinu arvamus aitab meil kohvikut paremaks teha. Eelmisel aastal tuli kohvikusse ka mitu perekonda, kes olid Eestisse alles hiljuti kolinud. Lapsed mängisid samal ajal raamatukogu lastenurgas. Paljud õppijad on öelnud, et just kohvikus julgesid nad esimest korda eesti keeles rääkida. Mõned vabatahtlikud on nüüd õppijatega sõbrad ja käivad koos matkamas. Raamatukogu plaanib järgmisel aastal avada teise keelekohviku ka laupäeva hommikuti, sest paljud õppijad töötavad õhtuti ega saa neljapäeval tulla.',
+        [['Kui kaua on keelekohvik avatud olnud?', 'kaks aastat|2 aastat'], ['Millal kohvik toimub?', 'igal neljapäeval kella kuuest kaheksani|neljapäeviti kell 18–20'], ['Miks otsitakse uusi vabatahtlikke?', 'õppijaid on palju|õppijaid on nii palju'], ['Milline peab vabatahtlik olema?', 'rääkima hästi eesti keelt ja olema kannatlik|kannatlik'], ['Mida teha, kui ei saa neljapäeval tulla?', 'anda teada vähemalt päev varem|teatada korraldajale päev varem'], ['Miks palutakse ankeeti täita?', 'arvamus aitab kohvikut paremaks teha|et kohvikut parandada']]),
       B.table('085_t_form', 'Kirjutamine 1A: ankeet (10 küsimust).', 'Sa käisid linna keelekohvikus. Täida korraldajate ankeet. Küsimustele „Miks?” vasta põhjendusega.', 'Küsimus, Sinu vastus', [
         '1. Kui kaua te olete eesti keelt õppinud? | ',
         '2. Kust te keelekohvikust kuulsite? | ',
@@ -852,7 +856,8 @@ export const LESSONS = {
         '10. Mida te korraldajatele veel soovitaksite? | ',
       ], 'g_use'),
       B.planning('085_t_plan', 'Plaan.', 'Kirjuta enne kirjutamist märksõnad.', ['1B teade: miks, millal, kes asendab, kontakt?', '2A kiri: kellele, millest, nõuanne, kutse?', '2B lugu: algus, sündmus, lõpp?', 'Millised sidesõnad kasutan?']),
-      B.letter('085_t_note', 'Kirjutamine 1B: teade (umbes 50 sõna).', 'Sa ei saa neljapäeval keelekohvikusse vabatahtlikuks tulla. Kirjuta korraldajale: miks, millal saad tulla, kes tuleb sinu asemel, sinu kontakt.', 'Tere, Kati!', 'Parimate soovidega', [40, 60]),
+      B.writing('085_t_note', 'Kirjutamine 1B: teade (umbes 50 sõna).', 'Sa ei saa neljapäeval keelekohvikusse vabatahtlikuks tulla. Kirjuta korraldajale: miks, millal saad tulla, kes tuleb sinu asemel, sinu kontakt.', [5, 7], ['kahjuks', 'sest', 'minu asemel', 'kas sobiks'], 3),
+
       B.letter('085_t_letter', 'Kirjutamine 2A: isiklik kiri (umbes 100 sõna).', 'Sinu sõber plaanib Eestisse kolida. Kirjuta: kuidas sina eesti keelt õppisid, mis aitas, mis oli raske, sinu nõuanne ja kutse külla.', 'Tere, Maksim!', 'Sinu sõber', [90, 120]),
       B.letter('085_t_story', 'Kirjutamine 2B: lugu (umbes 100 sõna).', 'Kirjuta lugu pealkirjaga „Kiri, mis muutis minu päeva”. Kirjelda, mis juhtus, mida sa tundsid ja kuidas lugu lõppes.', 'Kiri, mis muutis minu päeva', '', [90, 120]),
       B.rubric('085_t_rubric1', 'Hindamine: kirjutamine 1 (8 punkti).', 'Õpetaja märgib iga rea: 2 = täidetud, 1 = osaliselt, 0 = ei ole.', ['Ülesanne: kõik 4 punkti või 10 vastust, põhjendused olemas.', 'Sõnavara: sobivad sõnad ja fraasid, kirja algus ja lõpp.', 'Grammatika: vead ei sega mõistmist.', 'Pikkus ja vorm: umbes 50 sõna või vastused täislausetega.']),

@@ -1,3 +1,66 @@
+## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
+
+- Base: `main` 48347ce (2026-10-16). Branch `agent/course-v2-b1`, no PR yet (one PR when the B1 modules are done, or per few modules).
+- Goal (owner): rewrite every B1 module 02–18 in design v2 (`docs/COURSE_DESIGN_COMMUNICATIVE.md`), then B2 01–18; review
+  every sheet for didactics and Estonian; keep the old versions.
+- Done: **module 02** (a2b1-006…010) — 5/5 READY, language check 0 unknown words, audio built (006_t_voice, 008_d_office,
+  010_p_clips), lessonGoals 006–010 rewritten, `a2b1-module-02` in `strictModules.json`. Module 13 was the pilot (#650).
+- Old versions: `crm-v2/src/features/worksheet-generator/admin/course/archive/v1/b1/moduleNN.js` (not imported, README
+  says how to restore); old mp3 files stay in `public/audio/` so the published v1 sheets keep their sound.
+- quality.js: `openingOf` skips the textbook picture and its card (`data.artFor`).
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` → 954 passed, 3 skipped.
+- Not published to production: the owner publishes each lesson in „Kursuse tootmine” (the CRM keeps the published
+  version in `worksheetVersions`, restorable with „Versioonid ja taastamine…”).
+- **Module 03** (a2b1-011…015) done the same way: 5/5 READY, language 0 unknown, audio 012_d_listen, 013_p_listen,
+  014_t_voice, 015_p_clips; v1 in `archive/v1/b1/module03.js`. Tests: 955 passed, 3 skipped.
+- **Module 04** (a2b1-016…020): all three phases written (v1 had only Harjuta + Kasuta; its Avasta sheets exist only
+  in production), 5/5 READY, language 0 unknown, audio 018_d_voice and 020_p_clips; v1 in `archive/v1/b1/module04.js`.
+- **Module 05** (a2b1-021…025, stage A2+: reading texts 120–250 words, no copyable word banks): all three phases,
+  5/5 READY, language 0 unknown, audio 022_d_voice and 025_p_clips; v1 in `archive/v1/b1/module05.js`.
+- **Module 06** (a2b1-026…030): all three phases, 5/5 READY, language 0 unknown, audio 028_d_recipe, 030_p_clips,
+  030_p_dialog; v1 in `archive/v1/b1/module06.js`. Draft PR #652 collects the B1 modules.
+- **Module 07** (a2b1-031…035): all three phases, 5/5 READY, language 0 unknown, audio 033_d_radio, 035_p_clips;
+  v1 in `archive/v1/b1/module07.js`.
+- **Module 08** (a2b1-036…040, exam 040 = „Vahehindamine 2 — A2+”): all three phases, 5/5 READY, language 0
+  unknown, audio 038_d_radio, 040_p_clips (040_p_listen and 040_p_dialog kept, transcripts unchanged); v1 in
+  `archive/v1/b1/module08.js`. Tests: 960 passed, 3 skipped.
+- **Module 09** (a2b1-041…045, stage A2+/B1- = B1- norms: sentences ≥6 words on average, reading 150–320 words,
+  exam 045 „Eksam 9 — tööelu” in Harno B1 form): all three phases, 5/5 READY, language 0 unknown, new audio
+  042_d_radio (044_p_listen, 045_p_listen, 045_p_short kept, transcripts unchanged); v1 in `archive/v1/b1/module09.js`.
+  Tests: 961 passed, 3 skipped.
+- **Module 10** (a2b1-046…050, B1- norms, exam 050 „Eksam 10 — reisimine” in Harno B1 form): all three phases,
+  5/5 READY, language 0 unknown, new audio 050_p_clips (049_p_listen and 050_p_listen kept, transcripts unchanged);
+  v1 in `archive/v1/b1/module10.js`. Tests: 962 passed, 3 skipped.
+- **Module 11** (a2b1-051…055; v1 already had all three phases but failed the v2 gates: 5-item tasks, three
+  selfchecks per lesson, no Kasuta rubric, repeated openings): rewritten to v2 from the v1 texts, exam 055 „Eksam 11”
+  in Harno B1 form, 5/5 READY, language 0 unknown, new audio 055_p_clips (053_p_listen, 055_p_listen kept). Lesson 055
+  keeps 4 goals (it is not in the lessonGoals ASSESSMENTS set, like 015 and 030). Tests: 963 passed, 3 skipped.
+- **Module 12** (a2b1-056…060; v1 had three phases but failed the v2 gates like module 11): rewritten to v2 from
+  the v1 texts, mid-term check 060 „Vahehindamine 3 — B1- algus” in Harno B1 form, 5/5 READY, language 0 unknown, no
+  new audio (058_p_listen, 060_p_listen, 060_p_listen2 kept, transcripts unchanged). Tests: 964 passed, 3 skipped.
+- Module 13 (pilot) re-checked: 5/5 READY, no change.
+- **Module 14** (a2b1-066…070, stage B1-: the gates use B1 depth — closed tasks ≥25 min on Avasta/Harjuta, dictation
+  ≥6 sentences, input text ≥140 words, every letter ≥70 words; the Harno B1 50-word note is therefore a `writing`
+  block): rewritten to v2, exam 070 in Harno B1 form, 5/5 READY, language checked (talisuplema is kept), audio
+  070_p_listen and 070_p_listen2 kept. Tests: 965 passed, 3 skipped.
+- **Module 15** (a2b1-071…075, B1-): rewritten to v2, exam 075 in Harno B1 form, 5/5 READY, language checked
+  (coach → elutreener, ühiskööki), audio 075_p_listen and 075_p_listen2 kept. Tests: 966 passed, 3 skipped.
+- **Module 16** (a2b1-076…080, already a rich Harno-B1 module): patched to v2 instead of rewritten — a 6th item in
+  every 5-item task, selfchecks only in Kasuta, a rubric in every Kasuta, varied openings, 080 marked `assessment`,
+  the 50-word note as a `writing` block; 5/5 READY, audio kept. Tests: 967 passed, 3 skipped.
+- **Module 17** (a2b1-081…085, stage B1: input texts 200–400 words): patched to v2 — 6th items, notes as `writing`,
+  vocab blocks for 082/083/085, rubrics, new openers (083 Harjuta text parts, 084 Kasuta percentages), 085 marked
+  `assessment` with a reading input; 5/5 READY, language 0 unknown. Tests: 968 passed, 3 skipped.
+- **Module 18** (a2b1-086…090, the last B1 module): patched to v2 — 6th items, new 086 Harjuta dictation and
+  Kasuta translations (086, 088), 087 vocab and new openers (Avasta sorting, Harjuta errorfix, Kasuta idea-card
+  choice), 088 vocab without one-off words; the mocks 089 „B1 proovitund” and 090 „Lõpphindamine — B1” marked
+  `assessment`, a language part in Avasta (089 errorfix + dictation, 090 transformation + translation), a reading
+  input (~200 words) that feeds the 50-word note (now a `writing` block), speaking 1a with 3 questions so Kasuta fits
+  55 min, the B1 result table and pass rule in 090 Kasuta; selfchecks only in Kasuta. 5/5 READY, language 0 unknown,
+  audio unchanged; v1 in `archive/v1/b1/module18.js`. Tests: 969 passed, 3 skipped.
+- B1 (modules 02–18) is complete in v2. Not published to production — the owner publishes in „Kursuse tootmine”.
+- Next safe step: B2 module 01–18 (`admin/course/b2/`) in v2 on a new branch `agent/course-v2-b2`, same approach.
+
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
 - Oleksiy #improvement #low_priority: a room field when booking; when all rooms are taken, a lesson without

@@ -1,5 +1,7 @@
 // B1 course (A2 → B1 roadmap), module 16 „Arvamus, võrdlemine ja põhjendamine” (a2b1-076…080), stage B1- (roadmap levelStage).
-// All three phases: Avasta → Harjuta → Kasuta, each a whole lesson (40–55 min).
+// All three phases: Avasta → Harjuta → Kasuta, each a whole lesson (40–55 min). Design v2 (2026-10-16): every closed task
+// has at least 6 items, one selfcheck per lesson (Kasuta), a rubric in every Kasuta, varied openings; the v1 file is in
+// archive/v1/b1/module16.js.
 // The module builds a short argument step by step: an opinion as a full sentence (minu arvates + verb), a comparison
 // (keskvõrre + kui, võrreldes + -ga, samas), the scheme opinion → reason → example → conclusion (kuna, näiteks, seetõttu,
 // seega; des-vorm, umbisikuline tegumood) and a mini-discussion (nõus / päris nõus / vastuküsimus; kaudne kõne, tingiv).
@@ -7,7 +9,7 @@
 // warm-up; Harjuta = reading and listening; Kasuta = writing and speaking. Readiness: 70 % overall, 65 % in writing and speaking.
 import { B } from '../blocks.js';
 
-export const MODULE = { id: 'a2b1-module-16', course: 'b1', title: 'Arvamus, võrdlemine ja põhjendamine', level: 'B1-' };
+export const MODULE = { id: 'a2b1-module-16', course: 'b1', title: 'Arvamus, võrdlemine ja põhjendamine', level: 'B1-', design: 'v2' };
 
 const W = (id, title, instruction, keywords) => B.writing(id, title, instruction, [8, 10], keywords, 3);
 const TR = (id, rows) => B.translation(id, 'Tõlgi.', 'Kirjuta eesti keeles.', rows);
@@ -67,21 +69,19 @@ export const LESSONS = {
         ['Ma ei arvan, et see on õige.', 'Ma ei arva, et see on õige.'],
         ['Mina tundub, et ta on väsinud.', 'Mulle tundub, et ta on väsinud.'],
         ['Ma arvan, et see film igav.', 'Ma arvan, et see film on igav.'],
-        ['Minu arvamus, linnas on parem elada.', 'Minu arvates on linnas parem elada.; Minu arvamus on, et linnas on parem elada.'],
-      ]),
+        ['Minu arvamus, linnas on parem elada.', 'Minu arvates on linnas parem elada.; Minu arvamus on, et linnas on parem elada.'], ['Mulle tundub, et see reegel on liiga ranged.', 'Mulle tundub, et see reegel on liiga range.']]),
       B.transformation('076_d_trans', 'Ütle arvamusena.', 'Kirjuta lause antud algusega.', [
         ['Bussiga on mugavam.', 'minu arvates', 'Minu arvates on bussiga mugavam.'],
         ['See film on liiga pikk.', 'mulle tundub, et', 'Mulle tundub, et see film on liiga pikk.'],
         ['Kodus töötamine sobib kõigile.', 'ma ei arva, et', 'Ma ei arva, et kodus töötamine sobib kõigile.'],
         ['Eesti suvi on ilus.', 'minu meelest', 'Minu meelest on Eesti suvi ilus.'],
-        ['Ta tuleb homme.', 'ma olen kindel, et', 'Ma olen kindel, et ta tuleb homme.'],
-      ]),
-      B.wordorder('076_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Minu arvates on maal elada rahulikum.', 'Mulle tundub, et see restoran on liiga kallis.', 'Ma arvan, et sport on igale inimesele vajalik.', 'Ma ei ole nõus, sest see ei ole õiglane.', 'Minu meelest peaks koolipäev algama hiljem.']),
-      D('076_d_dict', ['Minu arvates on kodus töötamine mugav.', 'Mulle tundub, et kõige parem on segu.', 'Ma ei arva, et see sobib kõigile.', 'Ma olen kindel, et see on hea võimalus.', 'Ma käin kontoris, sest mulle meeldib kolleegidega rääkida.']),
+        ['Ta tuleb homme.', 'ma olen kindel, et', 'Ma olen kindel, et ta tuleb homme.'], ['Kodus on parem töötada.', 'mulle tundub, et', 'Mulle tundub, et kodus on parem töötada.']]),
+      B.wordorder('076_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Minu arvates on maal elada rahulikum.', 'Mulle tundub, et see restoran on liiga kallis.', 'Ma arvan, et sport on igale inimesele vajalik.', 'Ma ei ole nõus, sest see ei ole õiglane.', 'Minu meelest peaks koolipäev algama hiljem.', 'Ma olen kindel, et see idee meeldib kõigile.']),
+      D('076_d_dict', ['Minu arvates on kodus töötamine mugav.', 'Mulle tundub, et kõige parem on segu.', 'Ma ei arva, et see sobib kõigile.', 'Ma olen kindel, et see on hea võimalus.', 'Ma käin kontoris, sest mulle meeldib kolleegidega rääkida.', 'Minu meelest on kõige tähtsam rahulik töökoht.']),
       B.speaking('076_d_say', 'Mis sa arvad?', 'Vasta igale küsimusele täislausega: arvamus ja põhjus.', ['Kas kodus on parem töötada kui kontoris?', 'Kas lapsed peaksid koolis telefoni kasutama?', 'Kas talv on parem kui suvi?', 'Kas eesti keelt on raske õppida?', 'Kas raamat on parem kui film?'], [90, 150], ['minu arvates', 'mulle tundub, et', 'sest']),
       W('076_d_write', 'Minu arvamus.', 'Kirjuta 8–10 lauset: kas töötada kodus või kontoris? Anna arvamus ja kaks põhjust.', ['minu arvates', 'mulle tundub', 'sest', 'samas']),
-      TR('076_d_tr', ['По-моему, это хорошая идея.', 'Мне кажется, что он устал.', 'Я не думаю, что это подходит всем.', 'Я уверен, что она придёт.', 'Я хожу пешком, потому что это полезно.']),
-      B.selfcheck('076_d_self', ['Ma ütlen arvamuse täislausega.', 'Pärast „minu arvates” tuleb kohe tegusõna.', 'Ma lisan arvamusele põhjuse sõnaga „sest”.', 'Ma oskan öelda, et ma ei ole nõus.'], 'Arvamus on olemas'),
+      TR('076_d_tr', ['По-моему, это хорошая идея.', 'Мне кажется, что он устал.', 'Я не думаю, что это подходит всем.', 'Я уверен, что она придёт.', 'Я хожу пешком, потому что это полезно.', 'По-моему, работать дома удобнее.']),
+
     ],
     practice: [
       B.categorize('076_p_sort', 'Kui kindel sa oled?', 'Sorteeri väljendid.', [
@@ -134,20 +134,18 @@ export const LESSONS = {
         ['Ma olen nõus sinu.', 'Ma olen sinuga nõus.; Ma olen nõus sinuga.'],
         ['Mulle tundub, et lapsed peavad liikuda rohkem.', 'Mulle tundub, et lapsed peavad rohkem liikuma.; Mulle tundub, et lapsed peavad liikuma rohkem.'],
         ['Ma ei ole nõus, sest et keeld ei aita.', 'Ma ei ole nõus, sest keeld ei aita.'],
-        ['Mina arvates on see õige.', 'Minu arvates on see õige.'],
-      ]),
+        ['Mina arvates on see õige.', 'Minu arvates on see õige.'], ['Ma arvan, et telefonid peaks olema kotis.', 'Ma arvan, et telefonid peaksid olema kotis.']]),
       B.transformation('076_p_trans', 'Ütle vastupidi.', 'Kirjuta eitav lause antud sõnadega.', [
         ['Ma olen nõus.', 'ei ole', 'Ma ei ole nõus.'],
         ['Ma arvan, et see on hea mõte.', 'ei arva', 'Ma ei arva, et see on hea mõte.'],
         ['Minu arvates on telefon kasulik.', 'ei ole', 'Minu arvates ei ole telefon kasulik.'],
         ['Ma olen kindel, et keeld aitab.', 'ei ole kindel', 'Ma ei ole kindel, et keeld aitab.; Ma ei ole kindel, kas keeld aitab.'],
-        ['Mulle meeldib see reegel.', 'ei meeldi', 'Mulle ei meeldi see reegel.'],
-      ]),
+        ['Mulle meeldib see reegel.', 'ei meeldi', 'Mulle ei meeldi see reegel.'], ['Minu meelest on keeld õiglane.', 'ei ole', 'Minu meelest ei ole keeld õiglane.']]),
       B.speaking('076_p_say', 'Väited.', 'Õpetaja loeb väite. Ütle, kas oled nõus, ja põhjenda.', ['Linnas on parem elada kui maal.', 'Iga inimene peaks oskama ujuda.', 'Kodus süüa teha on odavam kui väljas süüa.', 'Telefon teeb inimesed üksikuks.', 'Kõik peaksid õppima kahte võõrkeelt.', 'Lemmikloom teeb elu õnnelikumaks.'], [120, 180], ['Ma olen nõus, sest…', 'Ma ei ole nõus, sest…', 'Minu arvates…']),
       W('076_p_write', 'Foorumisse.', 'Kirjuta foorumisse 8–10 lauset: kas koolis peaks telefon keelatud olema?', ['minu arvates', 'mulle tundub', 'sest', 'nõus']),
-      TR('076_p_tr', ['Мне кажется, что телефон мешает учёбе.', 'Я не совсем согласен.', 'По-моему, дети должны больше двигаться.', 'Я был бы согласен, если бы правила были ясными.', 'Я уверен, что запрет поможет.']),
-      D('076_p_dict', ['Minu arvates on telefonide keeld hea mõte.', 'Ma ei ole päris nõus.', 'Mulle tundub, et probleem on reeglites.', 'Ma olen kindel, et keeld aitab.', 'Lapsed peaksid vahetunnis rohkem liikuma.']),
-      B.selfcheck('076_p_self', ['Ma tean, kui kindel on iga väljend.', 'Ma leian tekstist, kes mida arvab.', 'Ma kasutan tingivat vormi: peaksid, oleksin.', 'Ma annan viis vastust: arvamus + põhjus.'], 'Arvamus põhjendatud'),
+      TR('076_p_tr', ['Мне кажется, что телефон мешает учёбе.', 'Я не совсем согласен.', 'По-моему, дети должны больше двигаться.', 'Я был бы согласен, если бы правила были ясными.', 'Я уверен, что запрет поможет.', 'По-моему, правила должны быть одинаковыми для всех.']),
+      D('076_p_dict', ['Minu arvates on telefonide keeld hea mõte.', 'Ma ei ole päris nõus.', 'Mulle tundub, et probleem on reeglites.', 'Ma olen kindel, et keeld aitab.', 'Lapsed peaksid vahetunnis rohkem liikuma.', 'Minu meelest peaksid reeglid olema kõigile samad.']),
+
     ],
     transfer: [
       B.text('076_t_situation', 'Uus olukord', 'Sinu linnaosa valitsus küsib elanike arvamust: kas pargi kõrvale ehitada uus parkla või mänguväljak? Sa kirjutad oma arvamuse ja räägid sellest elanike koosolekul.'),
@@ -180,15 +178,15 @@ export const LESSONS = {
         ['Ma toetan teine idee.', 'Ma toetan teist ideed.'],
         ['Mulle tundub, et lapsed vajavad rohkem ruum.', 'Mulle tundub, et lapsed vajavad rohkem ruumi.'],
         ['Ma ei ole nõus sellega idee.', 'Ma ei ole selle ideega nõus.; Ma ei ole nõus selle ideega.'],
-        ['Parkla oleks hea, sest et autosid on palju.', 'Parkla oleks hea, sest autosid on palju.'],
-      ]),
+        ['Parkla oleks hea, sest et autosid on palju.', 'Parkla oleks hea, sest autosid on palju.'], ['Ma arvan, et parkla on vajalikum kui mänguväljakut.', 'Ma arvan, et parkla on vajalikum kui mänguväljak.']]),
       B.planning('076_t_plan', 'Plaan.', 'Kirjuta enne kirjutamist märksõnad.', ['Mida sa toetad? (minu arvates…)', 'Esimene põhjus (sest…)', 'Teine põhjus', 'Sinu ettepanek']),
       B.letter('076_t_letter', 'Kiri linnaosa valitsusele (90–120 sõna).', 'Kirjuta, kumba ideed toetad, too kaks põhjust ja üks ettepanek.', 'Lugupeetud linnaosa valitsus!', 'Lugupidamisega', [90, 120]),
       B.speaking('076_t_say', 'Elanike koosolek.', 'Räägi koosolekul umbes 2 minutit: mida toetad, kaks põhjust ja üks ettepanek.', ['Kumba ideed sa toetad?', 'Miks? Too kaks põhjust.', 'Mida sa veel pakuksid?'], [120, 150], ['minu arvates', 'ma olen kindel, et', 'sest', 'ma pakuksin']),
       B.rolecards('076_t_roles', 'Naabrid räägivad.', 'Rääkige 3–4 minutit. Öelge oma arvamus ja põhjus. Küsige teiselt, mida ta arvab.',
         'Sul on auto ja sa ei leia õhtuti maja juurest kohta. Sinu arvates on parkla vajalik.', 'Sul on kaks väikest last. Sinu arvates on mänguväljak palju tähtsam.',
         ['Minu arvates on parkla…', 'Ma ei arva, et…', 'Mis sina arvad?'], ['Mulle tundub, et lastel…', 'Ma ei ole nõus, sest…', 'Ma olen kindel, et…']),
-      TR('076_t_tr', ['По-моему, детская площадка важнее.', 'Мне кажется, что машин становится всё больше.', 'Я не думаю, что парковка решит проблему.', 'Я поддерживаю вторую идею, потому что у нас двое детей.', 'Я был бы согласен на маленькую парковку.']),
+      TR('076_t_tr', ['По-моему, детская площадка важнее.', 'Мне кажется, что машин становится всё больше.', 'Я не думаю, что парковка решит проблему.', 'Я поддерживаю вторую идею, потому что у нас двое детей.', 'Я был бы согласен на маленькую парковку.', 'Мне кажется, что детям нужно больше места для игр.']),
+      B.rubric('076_t_rubric', 'Kas arvamus on selge?', 'Paariline loeb kirja.', ['Arvamus on täislausega (minu arvates on…).', 'Vähemalt kaks põhjust (sest…).', 'On öeldud, millega ei olda nõus.', 'Kiri on viisakas ja õige pikkusega.']),
       B.selfcheck('076_t_self', ['Ma mõistan ametlikku teadet.', 'Ma kirjutan arvamuse koos kahe põhjusega.', 'Ma räägin koosolekul 2 minutit.', 'Ma vaidlen naabriga viisakalt.'], 'Hääl on antud'),
     ],
   },
@@ -198,6 +196,7 @@ export const LESSONS = {
     canDo: 'Ma võrdlen kahte võimalust nelja võrdlusega (keskvõrre + kui, võrreldes + -ga, samas) ja põhjendan oma valikut.',
     discover: [
       B.text('077_d_intro', 'Kumb on parem?', 'Kui me valime, siis me võrdleme. „Buss on odavam kui takso.” „Võrreldes autoga on rong mugavam.” Lõpuks ütleme, mida me valime ja miks.'),
+      B.match('077_d_match', 'Vastand.', 'Ühenda sõna ja vastand.', [['odavam', 'kallim'], ['kiirem', 'aeglasem'], ['parem', 'halvem'], ['lähemal', 'kaugemal'], ['vaiksem', 'lärmakam'], ['suurem', 'väiksem']]),
       B.reading('077_d_read', 'Loe: linn või maa?', 'Loe tekst ja vasta küsimustele.', 'Mihkli kaks elu', [
         'Mihkel elas kümme aastat Tallinnas. Kaks aastat tagasi kolis ta perega Viljandimaale väikesesse külla. Nüüd võrdleb ta oma kahte elu.',
         '„Võrreldes Tallinnaga on maal elu palju rahulikum,” ütleb Mihkel. „Hommikul ei ole ummikuid ja õhk on puhtam. Lapsed saavad õues mängida ka ilma minuta.”',
@@ -216,8 +215,8 @@ export const LESSONS = {
         ['Miks ei taha Mihkel praegu tagasi linna kolida?', 'nad on maal õnnelikumad|maal on pere õnnelikum'],
       ]),
       B.notice('077_d_notice', 'Kuidas võrrelda?', [
-        '**Keskvõrre (-m):** odav → odav**am**, mugav → mugav**am**, suur → suur**em**, pikk → pik**em**, hea → **parem**, halb → **halvem**',
-        '**… kui …:** Maal on elu rahuli**kum kui** linnas. Buss on odavam **kui takso** (nimetav).',
+        '**Keskvõrre (-m):** odav → **odavam**, mugav → **mugavam**, suur → **suurem**, pikk → **pikem**, hea → **parem**, halb → **halvem**',
+        '**… kui …:** Maal on elu **rahulikum kui** linnas. Buss on odavam **kui takso** (nimetav).',
         '**võrreldes + -ga:** **Võrreldes linnaga** on maal korterid odavamad.',
         '**palju / veidi / natuke + keskvõrre:** Rong on **palju** kiirem. Takso on **veidi** kallim.',
         '**Ülivõrre:** **kõige** odavam, **kõige parem** = **parim** (mitte: kõige parim)',
@@ -228,11 +227,8 @@ export const LESSONS = {
         ['odav', 'keskvõrre', 'odavam'], ['hea', 'keskvõrre', 'parem'], ['halb', 'keskvõrre', 'halvem'], ['pikk', 'keskvõrre', 'pikem'],
         ['kerge', 'keskvõrre', 'kergem'], ['hea', 'ülivõrre', 'kõige parem, parim'], ['suur', 'ülivõrre', 'kõige suurem, suurim'], ['lähedal', 'keskvõrre', 'lähemal'],
       ]),
-      B.match('077_d_match', 'Vastand.', 'Ühenda sõna ja vastand.', [['odavam', 'kallim'], ['kiirem', 'aeglasem'], ['parem', 'halvem'], ['lähemal', 'kaugemal'], ['vaiksem', 'lärmakam'], ['suurem', 'väiksem']]),
-      B.truefalse('077_d_tf', 'Õige või vale?', 'Loe teksti uuesti.', [
-        ['Mihkel kolis maale kaks aastat tagasi.', true], ['Maal on hommikuti rohkem ummikuid.', false], ['Laenumakse on väiksem kui endine üür.', true],
-        ['Lähim pood on küla keskel.', false], ['Mihkel sõidab Tallinnasse iga päev.', false], ['Mihkli arvates on linnas rohkem kultuuri.', true],
-      ], 'full'),
+
+
       B.gaps('077_d_gaps', 'Võrdle.', 'Kirjuta sulgudes oleva sõna õige vorm.', [
         'Rong on [kiirem] (kiire) kui buss.',
         'Maal on õhk [puhtam] (puhas) kui linnas.',
@@ -250,14 +246,21 @@ export const LESSONS = {
         ['See on kõige parim valik.', 'See on kõige parem valik.; See on parim valik.'],
         ['Minu korter on suurem kui sinu korterist.', 'Minu korter on suurem kui sinu korter.; Minu korter on suurem kui sinu oma.'],
       ]),
-      D('077_d_dict', ['Maal on õhk puhtam kui linnas.', 'Võrreldes Tallinnaga on maal elu rahulikum.', 'Lähim pood on kaheksa kilomeetri kaugusel.', 'Linnas oli mugavam, aga maal oleme õnnelikumad.', 'See on minu jaoks kõige tähtsam.']),
+      D('077_d_dict', ['Maal on õhk puhtam kui linnas.', 'Võrreldes Tallinnaga on maal elu rahulikum.', 'Lähim pood on kaheksa kilomeetri kaugusel.', 'Linnas oli mugavam, aga maal oleme õnnelikumad.', 'See on minu jaoks kõige tähtsam.', 'Võrreldes linnaga on maal kõik kaugemal.']),
       B.speaking('077_d_say', 'Kaks kohta.', 'Võrdle kahte kohta, kus oled elanud. Ütle neli võrdlust ja oma valik.', ['Kus oli elu odavam?', 'Kus oli mugavam ja miks?', 'Mis oli seal parem, mis halvem?', 'Kumma sa valiksid praegu?'], [90, 150], ['… on odavam kui …', 'võrreldes …-ga', 'samas']),
       W('077_d_write', 'Linn või maa?', 'Kirjuta 8–10 lauset: kus on parem elada? Tee vähemalt neli võrdlust.', ['kui', 'võrreldes', 'samas', 'kõige']),
-      TR('077_d_tr', ['В деревне жизнь спокойнее, чем в городе.', 'По сравнению с Таллинном жильё в деревне дешевле.', 'Ближайший магазин находится в восьми километрах.', 'В то же время в городе больше культуры.', 'Для меня это самое важное.']),
-      B.selfcheck('077_d_self', ['Ma moodustan keskvõrde: odavam, parem, halvem.', 'Ma ütlen „… kui …” ja „võrreldes …-ga”.', 'Ma ei ütle „kõige parim”.', 'Ma võrdlen kahte kohta neljas lauses.'], 'Võrdlus on selge'),
+      TR('077_d_tr', ['В деревне жизнь спокойнее, чем в городе.', 'По сравнению с Таллинном жильё в деревне дешевле.', 'Ближайший магазин находится в восьми километрах.', 'В то же время в городе больше культуры.', 'Для меня это самое важное.', 'Деревня мне нравится больше, чем город.']),
+
     ],
     practice: [
-      B.categorize('077_p_sort', 'E-pood või tavaline pood?', 'Sorteeri eelised.', [
+      B.choice('077_p_choice', 'Vali õige vorm.', 'Vali lausesse sobiv vorm.', [
+        ['Rong on … kui buss.', 'kiirem', 'kiire', 'kiiremini'],
+        ['Võrreldes … on maja suurem.', 'korteriga', 'korter', 'korterist'],
+        ['See on kõige … pood linnas.', 'odavam', 'odav', 'odavamat'],
+        ['Tallinnas on korterid … kui Tartus.', 'kallimad', 'kallim', 'kallimaid'],
+        ['Jalgratas on … odavam kui auto.', 'palju', 'väga', 'rohkem'],
+        ['Annelinnas on üür … kui kesklinnas.', 'madalam', 'madal', 'madalamat'],
+      ], 'full', 'g_notice'),      B.categorize('077_p_sort', 'E-pood või tavaline pood?', 'Sorteeri eelised.', [
         ['E-pood', ['saab osta ka öösel', 'suurem valik', 'kaup tuuakse koju']],
         ['Tavaline pood', ['saab asja katsuda', 'müüja annab nõu', 'ostu saab kohe kaasa']],
         ['Mõlemad', ['saab maksta kaardiga', 'on sooduspakkumisi']],
@@ -283,21 +286,13 @@ export const LESSONS = {
         'tööle | [jala/jalgsi/jala 10 minutit] | [bussiga/bussiga 15 minutit]',
         'parkimine | [ei ole/pole/puudub] | [oma parkla/parkla/on]',
       ], 'g_read'),
-      B.choice('077_p_choice', 'Vali õige vorm.', 'Vali lausesse sobiv vorm.', [
-        ['Rong on … kui buss.', 'kiirem', 'kiire', 'kiiremini'],
-        ['Võrreldes … on maja suurem.', 'korteriga', 'korter', 'korterist'],
-        ['See on kõige … pood linnas.', 'odavam', 'odav', 'odavamat'],
-        ['Tallinnas on korterid … kui Tartus.', 'kallimad', 'kallim', 'kallimaid'],
-        ['Jalgratas on … odavam kui auto.', 'palju', 'väga', 'rohkem'],
-        ['Annelinnas on üür … kui kesklinnas.', 'madalam', 'madal', 'madalamat'],
-      ], 'full', 'g_notice'),
+
       B.transformation('077_p_trans', 'Võrdle ühe lausega.', 'Kirjuta üks lause antud sõnaga.', [
         ['Takso on kallis. Buss on odav.', 'kui', 'Takso on kallim kui buss.; Buss on odavam kui takso.'],
         ['Maal on vaikne. Linnas on lärmakas.', 'võrreldes', 'Võrreldes linnaga on maal vaiksem.; Võrreldes maaga on linnas lärmakam.'],
         ['Rong on mugav. Buss ei ole nii mugav.', 'mugavam', 'Rong on mugavam kui buss.'],
         ['Korter A on 50 m². Korter B on 70 m².', 'väiksem', 'Korter A on väiksem kui korter B.'],
-        ['Kõik teised poed on kallimad.', 'kõige', 'See pood on kõige odavam.; See on kõige odavam pood.'],
-      ]),
+        ['Kõik teised poed on kallimad.', 'kõige', 'See pood on kõige odavam.; See on kõige odavam pood.'], ['Rattaga on odav ja tervislik. Autoga ei ole.', 'tervislikum', 'Rattaga sõita on tervislikum kui autoga.|Ratas on tervislikum kui auto.']]),
       B.listening('077_p_listen', 'Kuula: raadiosaade „Tarbija nõuanne”.', 'Õpetaja loeb saate kaks korda. Kirjuta lünka 1–2 sõna või number.', [
         'Saatejuht: Tere, kuulajad! Täna võrdleme, kas tööle on odavam sõita autoga või bussiga. Stuudios on tarbijanõustaja Kadri Lepp. Kadri, kumb on odavam?',
         'Kadri: Kui arvestada kõiki kulusid, on buss palju odavam. Meie linnas maksab bussi kuukaart kolmkümmend eurot.',
@@ -321,15 +316,15 @@ export const LESSONS = {
         'Lastega peredele soovitab Kadri üht autot ja [bussikaarti|bussikaart].',
         'Jalgratast soovitab Kadri, kui tööle on alla [viie kilomeetri|5 km|viie].',
       ]),
-      B.wordorder('077_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Võrreldes bussiga on auto hommikul palju kiirem.', 'Samas ei saa autoroolis raamatut lugeda.', 'Jalgratas on kõige odavam ja tervislikum valik.', 'Kesklinna korter on väiksem, aga tööle lähemal.', 'Mina valiksin Annelinna korteri, sest see on soojem.']),
+      B.wordorder('077_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Võrreldes bussiga on auto hommikul palju kiirem.', 'Samas ei saa autoroolis raamatut lugeda.', 'Jalgratas on kõige odavam ja tervislikum valik.', 'Kesklinna korter on väiksem, aga tööle lähemal.', 'Mina valiksin Annelinna korteri, sest see on soojem.', 'Võrreldes autoga on buss hommikul aeglasem.']),
       B.speaking('077_p_say', 'Mida sa valiksid?', 'Vali kaks teemat. Võrdle kaht võimalust ja ütle, mida valiksid.', ['Buss või auto tööle sõitmiseks?', 'E-pood või tavaline pood riiete ostmiseks?', 'Linn või maa lastega perele?', 'Paberraamat või audioraamat?'], [120, 180], ['… on mugavam kui …', 'võrreldes …-ga', 'samas', 'mina valiksin …, sest …']),
       W('077_p_write', 'Kristiina valik.', 'Kirjuta 8–10 lauset: võrdle Kristiina kaht korterit ja ütle, kumma valiksid.', ['kui', 'võrreldes', 'samas', 'valiksin']),
-      TR('077_p_tr', ['Поезд намного быстрее автобуса.', 'По сравнению с центром квартиры в Аннелинне дешевле.', 'В то же время в центре жизнь интереснее.', 'Велосипед — самый дешёвый вариант.', 'Я бы выбрал квартиру побольше.']),
-      B.selfcheck('077_p_self', ['Ma leian tekstist kahe võimaluse erinevused.', 'Ma täidan võrdlustabeli.', 'Ma kuulan saadet ja kirjutan numbrid õigesti.', 'Ma ütlen, mida valiksin ja miks.'], 'Valik on tehtud'),
+      TR('077_p_tr', ['Поезд намного быстрее автобуса.', 'По сравнению с центром квартиры в Аннелинне дешевле.', 'В то же время в центре жизнь интереснее.', 'Велосипед — самый дешёвый вариант.', 'Я бы выбрал квартиру побольше.', 'Утром на машине быстрее, чем на автобусе.']),
+
     ],
     transfer: [
       B.text('077_t_situation', 'Uus olukord', 'Sa tahad sügisel eesti keele kursusele minna. Keelekoolis on kaks võimalust. Sinu sõber Jaan küsib samuti nõu. Sa võrdled kursusi ja aitad tal valida.'),
-      B.reading('077_t_read', 'Loe kuulutusi.', 'Loe kuulutused ja vasta küsimustele.', 'Eesti keele kursused sügisel', [
+      B.table('077_t_table', 'Võrdlustabel.', 'Kirjuta igasse lahtrisse lühike võrdlus.', 'Mida võrdlen?, Veebikursus, Klassikursus, Kumb on parem?', ['hind | | | ', 'aeg | | | ', 'rääkimine | | | ', 'õpetaja abi | | | ']),      B.reading('077_t_read', 'Loe kuulutusi.', 'Loe kuulutused ja vasta küsimustele.', 'Eesti keele kursused sügisel', [
         'A. Veebikursus „Eesti keel kodust”',
         'Õpi siis, kui sulle sobib! Kursus kestab kaksteist nädalat. Igal nädalal on üks otsetund videos kell 19 ja palju iseseisvaid harjutusi. Harjutusi saad teha telefonis või arvutis. Õpetaja kontrollib kirjalikke töid nädala jooksul. Grupis on kuni kakskümmend õppijat. Hind on 180 eurot. Õpikut ei ole vaja osta, kõik materjalid on veebis. Kui oled otsetunnist puudunud, saad salvestuse hiljem järele vaadata.',
         'B. Kursus klassis „Räägime eesti keelt”',
@@ -351,21 +346,17 @@ export const LESSONS = {
         ['Liis elab maal ja sõit kesklinna võtab kaks tundi.', 'veebikursus', 'klassikursus', 'kumbki ei sobi'],
         ['Markus tahab alustada juba septembri alguses.', 'kumbki ei sobi', 'veebikursus', 'klassikursus'],
       ], 'full', 'g_read'),
-      B.table('077_t_table', 'Võrdlustabel.', 'Kirjuta igasse lahtrisse lühike võrdlus.', 'Mida võrdlen?, Veebikursus, Klassikursus, Kumb on parem?', ['hind | | | ', 'aeg | | | ', 'rääkimine | | | ', 'õpetaja abi | | | ']),
-      B.wordorder('077_t_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Võrreldes klassikursusega on veebikursus palju odavam.', 'Klassis saad sa rohkem rääkida kui veebis.', 'Samas on veebikursuse aeg paindlikum.', 'Minu arvates sobiks sulle paremini klassikursus.', 'Ma valiksin selle kursuse, sest see on lähemal.']),
-      B.errorfix('077_t_fix', 'Paranda vead.', 'Kirjuta lause õigesti.', [
-        ['Veebikursus on odavam kui klassikursust.', 'Veebikursus on odavam kui klassikursus.'],
-        ['Võrreldes veebikursus on klassis rohkem rääkimist.', 'Võrreldes veebikursusega on klassis rohkem rääkimist.'],
-        ['Klassikursus on rohkem kallis.', 'Klassikursus on kallim.'],
-        ['Minu arvates veebikursus on mugavam.', 'Minu arvates on veebikursus mugavam.'],
-        ['See on kõige parim valik sulle.', 'See on sulle kõige parem valik.; See on sulle parim valik.'],
-      ]),
+
+
+      B.transformation('077_t_trans', 'Võrdle kursusi.', 'Kirjuta võrdluslause antud sõnaga.', [['Veebikursus: 120 €, klassikursus: 200 €.', 'odavam', 'Veebikursus on odavam kui klassikursus.'], ['Klassis räägitakse palju, veebis vähe.', 'rohkem', 'Klassis räägitakse rohkem kui veebis.'], ['Veebikursuse aeg on vaba. Klassikursuse aeg on kindel.', 'võrreldes', 'Võrreldes klassikursusega on veebikursus paindlikum.|Võrreldes klassikursusega on veebikursuse aeg vabam.'], ['Veebikursus on odav. Klassis aitab õpetaja kohe.', 'samas', 'Veebikursus on odav. Samas aitab klassis õpetaja kohe.|Veebikursus on odav, samas aitab klassis õpetaja kohe.'], ['Kursus kodu lähedal on mugav. Kursus kesklinnas ei ole.', 'mugavam', 'Kursus kodu lähedal on mugavam kui kesklinnas.'], ['Kolm kursust, see on kõige parem.', 'kõige', 'See on kõige parem kursus.|See kursus on kõige parem.']]),
+
       B.letter('077_t_mail', 'Kiri Jaanile (90–120 sõna).', 'Jaan küsib, kumma kursuse ta peaks valima. Võrdle kursusi ja anna soovitus.', 'Tere, Jaan!', 'Kõike head!', [90, 120]),
       B.rolecards('077_t_roles', 'Telefonikõne keelekooli.', 'Rääkige 3–4 minutit. A helistab keelekooli, B on kooli töötaja.',
         'Sa ei tea, kumba kursust valida. Küsi: mis on erinevus, kui suur on grupp, kas saab arve, kas on proovitund.', 'Sa oled keelekooli töötaja. Vasta kuulutuse põhjal. Proovitund on mõlemal kursusel tasuta.',
         ['Kumb kursus on…?', 'Mis vahe on…?', 'Kas klassikursusel on…?'], ['Võrreldes veebikursusega…', 'Klassis on grupp väiksem.', 'Proovitund on tasuta.']),
       B.speaking('077_t_say', 'Minu valik.', 'Räägi 2 minutit: kaks võimalust, neli võrdlust ja sinu valik.', ['elada linnas või maal', 'sõita tööle bussi või autoga', 'osta riideid e-poest või poest', 'õppida veebis või klassis'], [120, 180], ['… on …-m kui …', 'võrreldes …-ga', 'samas', 'seepärast valin …']),
-      D('077_t_dict', ['Veebikursus on odavam ja mugavam.', 'Klassis räägitakse rohkem.', 'Võrreldes veebikursusega on klassikursus kallim.', 'Samas saad klassis õpetajalt kohe abi.', 'Mina valiksin klassikursuse.']),
+      D('077_t_dict', ['Veebikursus on odavam ja mugavam.', 'Klassis räägitakse rohkem.', 'Võrreldes veebikursusega on klassikursus kallim.', 'Samas saad klassis õpetajalt kohe abi.', 'Mina valiksin klassikursuse.', 'Samas on veebikursuse aeg palju paindlikum.']),
+      B.rubric('077_t_rubric', 'Kas soovitus on põhjendatud?', 'Paariline loeb kirja.', ['Vähemalt neli võrdlust (…-m kui…, võrreldes…).', 'On öeldud, mis on kummagi pluss.', 'Lõpus on selge soovitus.', 'Kiri on viisakas ja õige pikkusega.']),
       B.selfcheck('077_t_self', ['Ma võrdlen kaht kuulutust.', 'Ma valin igale inimesele sobiva kursuse.', 'Ma kirjutan sõbrale soovituse.', 'Ma küsin telefonis infot.'], 'Kursus on valitud'),
     ],
   },
@@ -419,24 +410,22 @@ export const LESSONS = {
         ['Ma tahan tööd leida. Ma õpin eesti keelt.', 'sest', 'Ma õpin eesti keelt, sest ma tahan tööd leida.; Ma õpin eesti keelt, sest tahan tööd leida.'],
         ['Hommikul on ummikud. Ma sõidan rattaga.', 'seetõttu', 'Hommikul on ummikud. Seetõttu sõidan ma rattaga.; Hommikul on ummikud, seetõttu sõidan ma rattaga.'],
         ['Ma sõidan rattaga. Samal ajal kuulan muusikat.', 'sõites', 'Rattaga sõites kuulan ma muusikat.; Rattaga sõites kuulan muusikat.'],
-        ['Ma loen bussis. Aeg läheb kiiresti.', 'lugedes', 'Bussis lugedes läheb aeg kiiresti.'],
-      ]),
+        ['Ma loen bussis. Aeg läheb kiiresti.', 'lugedes', 'Bussis lugedes läheb aeg kiiresti.'], ['Pargis on pingid. Vanad inimesed saavad puhata.', 'seega', 'Pargis on pingid. Seega saavad vanad inimesed puhata.|Pargis on pingid, seega saavad vanad inimesed puhata.']]),
       B.errorfix('078_d_fix', 'Leia viga.', 'Kirjuta lause õigesti.', [
         ['Seetõttu ma arvan, et see on hea.', 'Seetõttu arvan ma, et see on hea.; Seetõttu arvan, et see on hea.'],
         ['Kuna ma olin haige, sest ma ei tulnud.', 'Kuna ma olin haige, ei tulnud ma.; Ma ei tulnud, sest ma olin haige.'],
         ['Rattaga sõitma ma kuulan muusikat.', 'Rattaga sõites kuulan ma muusikat.; Rattaga sõites ma kuulan muusikat.'],
         ['Kuna ma ei ole aega, ma ei tule.', 'Kuna mul ei ole aega, ei tule ma.; Ma ei tule, sest mul ei ole aega.'],
-        ['Eestis lugetakse palju raamatuid.', 'Eestis loetakse palju raamatuid.'],
-      ]),
+        ['Eestis lugetakse palju raamatuid.', 'Eestis loetakse palju raamatuid.'], ['Näiteks minu naaber käis seal iga päev eile.', 'Näiteks minu naaber käis seal eile.|Näiteks käib minu naaber seal iga päev.']]),
       B.truefalse('078_d_tf', 'Õige või vale?', 'Loe kirja uuesti.', [
         ['Jaani ema on 78-aastane.', true], ['Jaani ema istub poe juures pingil.', false], ['Naaberlinnas istutati sada puud.', true],
         ['Jaani arvates on pingid liiga kallid.', false], ['Üks pink on kallim kui uus parkla.', false], ['Jaan soovitab panna peatänavale vähemalt kakskümmend pinki.', true],
       ], 'full'),
-      B.wordorder('078_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kuna buss on odav, sõidan ma iga päev bussiga.', 'Seetõttu arvan ma, et pingid on vajalikud.', 'Pargis jalutades unustan ma oma mured.', 'Näiteks minu naaber käib seal iga päev.', 'Seega peaks linn istutama rohkem puid.']),
-      D('078_d_dict', ['Kuna ema ei suuda pikalt kõndida, peab ta puhkama.', 'Näiteks minu ema on 78-aastane.', 'Seetõttu istub ta vahel trepil.', 'Pargis jalutades stress väheneb.', 'Seega teen ma ettepaneku.']),
+      B.wordorder('078_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kuna buss on odav, sõidan ma iga päev bussiga.', 'Seetõttu arvan ma, et pingid on vajalikud.', 'Pargis jalutades unustan ma oma mured.', 'Näiteks minu naaber käib seal iga päev.', 'Seega peaks linn istutama rohkem puid.', 'Kuna pinke on vähe, peavad eakad seisma.']),
+      D('078_d_dict', ['Kuna ema ei suuda pikalt kõndida, peab ta puhkama.', 'Näiteks minu ema on 78-aastane.', 'Seetõttu istub ta vahel trepil.', 'Pargis jalutades stress väheneb.', 'Seega teen ma ettepaneku.', 'Kuna pinke on vähe, ei saa eakad puhata.']),
       B.speaking('078_d_say', 'Neli sammu.', 'Vali üks väide. Räägi: arvamus, põhjus, näide ja järeldus.', ['Linnas peaks olema rohkem parke.', 'Bussisõit peaks olema tasuta.', 'Lapsed peaksid õppima koolis süüa tegema.', 'Poed peaksid pühapäeval kinni olema.'], [90, 150], ['minu arvates', 'kuna / sest', 'näiteks', 'seetõttu / seega']),
       W('078_d_write', 'Minu argument.', 'Kirjuta 8–10 lauset: mida peaks sinu linnas muutma? Kasuta skeemi.', ['kuna', 'näiteks', 'seetõttu', 'seega']),
-      B.selfcheck('078_d_self', ['Ma tean argumendi nelja osa.', 'Pärast „seetõttu” tuleb kohe tegusõna.', 'Ma moodustan des-vormi: sõites, lugedes.', 'Ma räägin ühe argumendi skeemi järgi.'], 'Argument on üles ehitatud'),
+
     ],
     practice: [
       B.reading('078_p_read', 'Loe arvamuslugu.', 'Loe tekst ja vasta küsimustele.', 'Autovaba päev — kas sellest on kasu?', [
@@ -484,15 +473,14 @@ export const LESSONS = {
         ['Kuna linnas on palju autosid, sest õhk on halb.', 'Kuna linnas on palju autosid, on õhk halb.; Linnas on õhk halb, sest seal on palju autosid.'],
         ['Linnas ehitavatakse uusi teid.', 'Linnas ehitatakse uusi teid.'],
         ['Bussis loedes ma õpin sõnu.', 'Bussis lugedes õpin ma sõnu.; Bussis lugedes õpin sõnu.'],
-        ['Seetõttu on vaja rohkem rattateed.', 'Seetõttu on vaja rohkem rattateid.'],
-      ]),
-      B.wordorder('078_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kuna kesklinnas on palju autosid, on õhk seal halb.', 'Näiteks meie linnas suletakse laupäeviti vanalinna tänavad.', 'Seetõttu arvan ma, et autovaba päev on hea mõte.', 'Rattaga sõites näed sa linna hoopis teistmoodi.', 'Seega võiks selliseid päevi olla rohkem.']),
+        ['Seetõttu on vaja rohkem rattateed.', 'Seetõttu on vaja rohkem rattateid.'], ['Kuna bussid on tasuta, sellepärast sõidab rohkem inimesi.', 'Kuna bussid on tasuta, sõidab rohkem inimesi.']]),
+      B.wordorder('078_p_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kuna kesklinnas on palju autosid, on õhk seal halb.', 'Näiteks meie linnas suletakse laupäeviti vanalinna tänavad.', 'Seetõttu arvan ma, et autovaba päev on hea mõte.', 'Rattaga sõites näed sa linna hoopis teistmoodi.', 'Seega võiks selliseid päevi olla rohkem.', 'Kuna õhk on puhtam, on lastel parem mängida.']),
       B.planning('078_p_plan', 'Argumendi skeem.', 'Kirjuta enne rääkimist märksõnad.', ['Arvamus: minu arvates…', 'Põhjus: sest / kuna…', 'Näide: näiteks…', 'Järeldus: seetõttu / seega…']),
       B.speaking('078_p_say', 'Kolm argumenti.', 'Vali kolm väidet. Iga kohta: arvamus, põhjus, näide, järeldus.', ['Linnas peaks olema autovaba päev.', 'Kooli söök peaks olema tasuta.', 'Lapsed peaksid kooli minema jala või rattaga.', 'Poed peaksid olema avatud ka öösel.', 'Iga töötaja peaks saama kodus töötada.'], [120, 210], ['kuna', 'näiteks', 'seetõttu', 'seega']),
       W('078_p_write', 'Arvamuslugu.', 'Kirjuta 8–10 lauset: kas sinu linnas peaks olema autovaba päev?', ['kuna', 'näiteks', 'seetõttu', 'seega']),
-      TR('078_p_tr', ['Так как машин меньше, воздух чище.', 'Например, в соседнем городе было вдвое меньше пыли.', 'Поэтому я думаю, что это хорошая идея.', 'Таким образом, город должен предложить бесплатный автобус.', 'Катаясь на велосипеде, я слушаю музыку.']),
-      D('078_p_dict', ['Autovabal päeval suletakse kesklinna tänavad.', 'Kuna autosid on vähem, on õhk puhtam.', 'Tänavatel mängitakse muusikat.', 'Seetõttu muutub linn rahulikumaks.', 'Seega arvan ma, et see päev on kasulik.']),
-      B.selfcheck('078_p_self', ['Ma leian tekstist arvamuse, põhjuse, näite ja järelduse.', 'Ma kasutan üldises näites umbisikulist vormi.', 'Ma ehitan kolm argumenti skeemi järgi.', 'Ma kirjutan arvamusloo lõigu.'], 'Kolm argumenti valmis'),
+      TR('078_p_tr', ['Так как машин меньше, воздух чище.', 'Например, в соседнем городе было вдвое меньше пыли.', 'Поэтому я думаю, что это хорошая идея.', 'Таким образом, город должен предложить бесплатный автобус.', 'Катаясь на велосипеде, я слушаю музыку.', 'Например, в нашем городе закрывают улицы по субботам.']),
+      D('078_p_dict', ['Autovabal päeval suletakse kesklinna tänavad.', 'Kuna autosid on vähem, on õhk puhtam.', 'Tänavatel mängitakse muusikat.', 'Seetõttu muutub linn rahulikumaks.', 'Seega arvan ma, et see päev on kasulik.', 'Rattaga sõites näeb linna teistmoodi.']),
+
     ],
     transfer: [
       B.text('078_t_situation', 'Uus olukord', 'Sinu firma juht kaalub neljapäevast töönädalat. Ta palub igal töötajal kirjutada oma arvamuse ja seda koosolekul põhjendada.'),
@@ -530,15 +518,16 @@ export const LESSONS = {
         ['Päevad on pikad. Me oleme väsinud.', 'seetõttu', 'Päevad on pikad. Seetõttu oleme me väsinud.; Päevad on pikad. Seetõttu oleme väsinud.'],
         ['Islandil proovisid firmad seda süsteemi.', 'umbisikuline', 'Islandil prooviti seda süsteemi.'],
         ['Ma töötan kodus. Samal ajal säästan aega.', 'töötades', 'Kodus töötades säästan ma aega.; Kodus töötades säästan aega.'],
-        ['Kõik olid nõus. Me proovime uut süsteemi.', 'seega', 'Kõik olid nõus. Seega proovime me uut süsteemi.; Kõik olid nõus. Seega proovime uut süsteemi.'],
-      ]),
+        ['Kõik olid nõus. Me proovime uut süsteemi.', 'seega', 'Kõik olid nõus. Seega proovime me uut süsteemi.; Kõik olid nõus. Seega proovime uut süsteemi.'], ['Töötajad on vähem väsinud. Nad on õnnelikumad.', 'kuna', 'Kuna töötajad on vähem väsinud, on nad õnnelikumad.']]),
       B.planning('078_t_plan', 'Plaan.', 'Kirjuta enne kirjutamist märksõnad.', ['Arvamus: kas toetad plaani?', 'Põhjus 1 ja näide', 'Põhjus 2 või võimalik probleem', 'Järeldus ja ettepanek']),
       B.letter('078_t_letter', 'Vastus juhile (100–130 sõna).', 'Kirjuta Viktorile: arvamus, kaks põhjust, üks näide, järeldus ja ettepanek.', 'Tere, Viktor!', 'Parimate soovidega', [100, 130]),
       B.speaking('078_t_say', 'Koosolekul.', 'Räägi koosolekul 2 minutit skeemi järgi: arvamus, põhjus, näide, järeldus.', ['Kas sa toetad neljapäevast töönädalat?', 'Miks? Too näide.', 'Mis võiks olla probleem?', 'Mida sa soovitad?'], [120, 180], ['minu arvates', 'kuna', 'näiteks', 'seega']),
       B.rolecards('078_t_roles', 'Kaks kolleegi.', 'Rääkige 3–4 minutit. Kumbki põhjendab oma seisukohta skeemi järgi.',
         'Sa toetad neljapäevast nädalat. Sul on kaks väikest last ja pikk tööteekond.', 'Sa kahtled. Sa töötad klientidega ja kardad, et reedel jääb töö tegemata.',
         ['Kuna mul on…', 'Näiteks eelmisel nädalal…', 'Seetõttu arvan ma…'], ['Ma kardan, et…', 'Näiteks reedel…', 'Seega oleks parem…']),
-      D('078_t_dict', ['Kuna reede on vaba, on mul rohkem aega.', 'Näiteks Islandil prooviti seda süsteemi.', 'Seetõttu toetan ma seda plaani.', 'Kodus töötades säästan ma aega.', 'Seega võiksime proovida kolm kuud.']),
+      TR('078_t_tr', ['Так как пятница свободна, у меня больше времени.', 'Например, в Исландии эту систему уже попробовали.', 'Поэтому я поддерживаю этот план.', 'Работая дома, я экономлю время.', 'Таким образом, мы могли бы попробовать три месяца.', 'Отдохнувшие работники делают меньше ошибок.']),
+
+      B.rubric('078_t_rubric', 'Kas argument on terve?', 'Paariline loeb kirja.', ['Arvamus, põhjus, näide ja järeldus on olemas.', 'Kasutatud on kuna, näiteks, seetõttu või seega.', 'Pärast seetõttu / seega on tegusõna teisel kohal.', 'Kiri on viisakas ja õige pikkusega.']),
       B.selfcheck('078_t_self', ['Ma mõistan juhi kirja ja tema küsimusi.', 'Ma kirjutan vastuse skeemi järgi.', 'Ma põhjendan arvamust koosolekul.', 'Ma vaidlen kolleegiga argumentidega.'], 'Arvamus on kirjas'),
     ],
   },
@@ -548,7 +537,10 @@ export const LESSONS = {
     canDo: 'Ma osalen 4–5-minutilises arutelus: nõustun, vaidlen osaliselt vastu, toon näite ja esitan vastuküsimuse.',
     discover: [
       B.text('079_d_intro', 'Arutelu reeglid', 'Arutelus ei piisa oma arvamusest. Kuula teist, reageeri ja küsi vastu: „Olen nõus, aga…”, „Ma ei ole päris nõus.”, „Kuidas sina arvad?”'),
-      B.reading('079_d_read', 'Loe raadioarutelu.', 'Loe tekst ja vasta küsimustele.', 'Kas lemmikloom sobib korterisse?', [
+      B.match('079_d_match', 'Mis see on?', 'Ühenda väljend ja selle ülesanne arutelus.', [
+        ['Olen sinuga täiesti nõus.', 'täielik nõustumine'], ['Jah, aga koer vajab liikumist.', 'osaline nõustumine'], ['Ma näen seda teisiti.', 'viisakas vastuväide'],
+        ['Kuidas sina arvad?', 'vastuküsimus'], ['Mida sa selle all mõtled?', 'täpsustav küsimus'], ['Näiteks minu naabril on kass.', 'näide'],
+      ]),      B.reading('079_d_read', 'Loe raadioarutelu.', 'Loe tekst ja vasta küsimustele.', 'Kas lemmikloom sobib korterisse?', [
         'Saatejuht: Tere! Täna arutame, kas koer või kass sobib linnakorterisse. Stuudios on Sofia, Jaan ja Viktor. Sofia, sinul on kass. Kuidas sina arvad?',
         'Sofia: Minu arvates sobib kass korterisse väga hästi. Kass ei vaja aeda ja saab päeval üksi hakkama. Pealegi on loomaga kodus vähem üksildane.',
         'Jaan: Kassi puhul olen sinuga nõus. Aga koera osas ma ei ole päris nõus. Koer vajab palju liikumist. Kui pere on terve päeva tööl, on koer üksi ja kurb.',
@@ -577,16 +569,13 @@ export const LESSONS = {
         '**Kes mida ütles (kaudne kõne):** Jaan ütles, **et** koer vajab liikumist. Sofia küsis, **kas** kass sobib.',
         '**Rektsioon:** nõus **kellega** (sinuga), nõustuma **millega** (sinu arvamusega)',
       ], 'full'),
-      B.vocab('079_d_vocab', 'Arutelu väljendid', ['olen täiesti nõus — полностью согласен', 'ma ei ole päris nõus — я не совсем согласен', 'sul on õigus — ты прав', 'ma näen seda teisiti — я вижу это иначе', 'ühest küljest — с одной стороны', 'teisest küljest — с другой стороны', 'kuidas sina arvad? — а ты как думаешь?', 'mida sa selle all mõtled? — что ты имеешь в виду?', 'kokkulepe — договорённость', 'vastuküsimus — встречный вопрос'], '2'),
+      B.vocab('079_d_vocab', 'Arutelu väljendid', ['nõus — согласен', 'ma ei ole päris nõus — я не совсем согласен', 'sul on õigus — ты прав', 'arvama — думать', 'arutelu — обсуждение', 'kolleeg — коллега', 'kuidas sina arvad? — а ты как думаешь?', 'pakkuma — предлагать', 'kokkulepe — договорённость', 'küsima — спрашивать'], '2'),
       B.categorize('079_d_sort', 'Nõus, osaliselt või vastu?', 'Sorteeri väljendid.', [
         ['Nõus', ['Sul on õigus.', 'Just nii!', 'Täpselt.']],
         ['Osaliselt', ['Osaliselt küll.', 'Ma ei ole päris nõus.', 'Mõnes mõttes jah.']],
         ['Vastu', ['Ma ei ole nõus.', 'Ma arvan vastupidi.', 'Kindlasti mitte.']],
       ]),
-      B.match('079_d_match', 'Mis see on?', 'Ühenda väljend ja selle ülesanne arutelus.', [
-        ['Olen sinuga täiesti nõus.', 'täielik nõustumine'], ['Jah, aga koer vajab liikumist.', 'osaline nõustumine'], ['Ma näen seda teisiti.', 'viisakas vastuväide'],
-        ['Kuidas sina arvad?', 'vastuküsimus'], ['Mida sa selle all mõtled?', 'täpsustav küsimus'], ['Näiteks minu naabril on kass.', 'näide'],
-      ]),
+
       B.dialogue('079_d_dialogue', 'Täida arutelu.', 'Kirjuta lünka üks sobiv sõna.', 'Anna', 'Markus', [
         ['A', 'Minu arvates peaks igal perel olema koer.'],
         ['B', 'Ma ei ole [päris] nõus. Koer vajab palju aega.'],
@@ -601,24 +590,22 @@ export const LESSONS = {
         ['Sofia: „Kass sobib korterisse hästi.”', 'Sofia arvab, et', 'Sofia arvab, et kass sobib korterisse hästi.'],
         ['Jaan: „Kas naabrid ei kurda?”', 'Jaan küsis, kas', 'Jaan küsis, kas naabrid ei kurda.'],
         ['Viktor: „Ma näen seda teisiti.”', 'Viktor ütles, et', 'Viktor ütles, et ta näeb seda teisiti.'],
-        ['Viktor: „Mida sina, Sofia, sellest arvad?”', 'Viktor küsis Sofialt, mida', 'Viktor küsis Sofialt, mida ta sellest arvab.'],
-      ]),
+        ['Viktor: „Mida sina, Sofia, sellest arvad?”', 'Viktor küsis Sofialt, mida', 'Viktor küsis Sofialt, mida ta sellest arvab.'], ['Sofia: „Ma olen sinuga päris nõus.”', 'Sofia ütles, et', 'Sofia ütles, et ta on temaga päris nõus.|Sofia ütles, et ta on sellega päris nõus.']]),
       B.errorfix('079_d_fix', 'Leia viga.', 'Kirjuta lause õigesti.', [
         ['Ma ei ole päris nõus sinu.', 'Ma ei ole sinuga päris nõus.; Ma ei ole päris nõus sinuga.'],
         ['Sofia küsis, et kas kass sobib korterisse.', 'Sofia küsis, kas kass sobib korterisse.'],
         ['Jaan ütles, et koer vajab palju liikumine.', 'Jaan ütles, et koer vajab palju liikumist.'],
         ['Ma nõustun sinu arvamust.', 'Ma nõustun sinu arvamusega.'],
-        ['Kuidas sina arvate?', 'Kuidas sina arvad?; Kuidas teie arvate?'],
-      ]),
+        ['Kuidas sina arvate?', 'Kuidas sina arvad?; Kuidas teie arvate?'], ['Viktor ütles, et tema koer on nüüd vaikne on.', 'Viktor ütles, et tema koer on nüüd vaikne.']]),
       B.truefalse('079_d_tf', 'Õige või vale?', 'Loe arutelu uuesti.', [
         ['Sofial on koer.', false], ['Jaan on kassi osas Sofiaga nõus.', true], ['Viktor elab majas, millel on suur aed.', false],
         ['Viktori koer käis koolitusel.', true], ['Viktor küsib Sofia arvamust.', true], ['Arutelu lõpus ei jõutud kokkuleppele.', false],
       ], 'full'),
-      B.wordorder('079_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Ma ei ole sinuga päris nõus.', 'Jah, aga koer vajab palju liikumist.', 'Viktor ütles, et tema koer on nüüd vaikne.', 'Kuidas sina selle probleemi lahendaksid?', 'Ühest küljest on kass mugavam lemmikloom.']),
+      B.wordorder('079_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Ma ei ole sinuga päris nõus.', 'Jah, aga koer vajab palju liikumist.', 'Viktor ütles, et tema koer on nüüd vaikne.', 'Kuidas sina selle probleemi lahendaksid?', 'Ühest küljest on kass mugavam lemmikloom.', 'Teisest küljest vajab koer rohkem aega.']),
       B.speaking('079_d_say', 'Reageeri ja küsi vastu.', 'Paariline ütleb väite. Reageeri: nõus, osaliselt või vastu. Siis küsi vastu.', ['Koer on parem sõber kui kass.', 'Lapsele peaks ostma lemmiklooma.', 'Linnas ei tohiks suuri koeri pidada.', 'Lemmikloom on kallis hobi.'], [90, 150], ['Olen nõus, sest…', 'Jah, aga…', 'Ma näen seda teisiti.', 'Kuidas sina arvad?']),
       W('079_d_write', 'Kes mida ütles?', 'Kirjuta 8–10 lauset: mida arutelus ütlesid Sofia, Jaan ja Viktor?', ['ütles', 'arvab', 'küsis', 'nõus']),
-      TR('079_d_tr', ['Я не совсем с тобой согласен.', 'Да, но собаке нужно много движения.', 'Яан сказал, что собаке нужно много движения.', 'София спросила, подходит ли кошка для квартиры.', 'А ты как думаешь?']),
-      B.selfcheck('079_d_self', ['Ma ütlen: nõus, osaliselt nõus, ei ole nõus.', 'Ma küsin vastu: „Kuidas sina arvad?”', 'Ma kirjutan, kes mida ütles (et / kas).', 'Ma ütlen „nõus sinuga”, „nõustun arvamusega”.'], 'Valmis aruteluks'),
+      TR('079_d_tr', ['Я не совсем с тобой согласен.', 'Да, но собаке нужно много движения.', 'Яан сказал, что собаке нужно много движения.', 'София спросила, подходит ли кошка для квартиры.', 'А ты как думаешь?', 'С одной стороны, кошка удобнее.']),
+
     ],
     practice: [
       B.listening('079_p_listen', 'Kuula raadioarutelu.', 'Õpetaja loeb arutelu kaks korda. Kirjuta lünka 1–2 sõna või number.', [
@@ -663,25 +650,25 @@ export const LESSONS = {
         ['Toomas: „Kodutöö ei tohi olla karistus.”', 'Toomas arvab, et', 'Toomas arvab, et kodutöö ei tohi olla karistus.'],
         ['Saatejuht: „Kas lapsele peaks maksma?”', 'Saatejuht küsis, kas', 'Saatejuht küsis, kas lapsele peaks maksma.'],
         ['Marina: „Taskuraha ei ole palk.”', 'Marina ütles, et', 'Marina ütles, et taskuraha ei ole palk.'],
-        ['Marina: „Kuidas te ise kodus teete?”', 'Marina küsis Toomaselt, kuidas', 'Marina küsis Toomaselt, kuidas ta ise kodus teeb.; Marina küsis Toomaselt, kuidas nad ise kodus teevad.'],
-      ]),
+        ['Marina: „Kuidas te ise kodus teete?”', 'Marina küsis Toomaselt, kuidas', 'Marina küsis Toomaselt, kuidas ta ise kodus teeb.; Marina küsis Toomaselt, kuidas nad ise kodus teevad.'], ['Toomas: „Taskuraha aitab lapsel säästa.”', 'Toomas arvab, et', 'Toomas arvab, et taskuraha aitab lapsel säästa.']]),
       B.errorfix('079_p_fix', 'Leia viga.', 'Kirjuta lause õigesti.', [
         ['Ma ei ole päris nõus sinuga, sest et kodu on ühine.', 'Ma ei ole sinuga päris nõus, sest kodu on ühine.'],
         ['Toomas küsis, et kuidas me kodus teeme.', 'Toomas küsis, kuidas me kodus teeme.'],
         ['Lapsed peaksid aidata kodus.', 'Lapsed peaksid kodus aitama.; Lapsed peaksid aitama kodus.'],
         ['Ma nõustun sinuga selle.', 'Ma nõustun sinuga selles.'],
-        ['Mida sina selle arvad?', 'Mida sina sellest arvad?; Mida sa sellest arvad?'],
-      ]),
+        ['Mida sina selle arvad?', 'Mida sina sellest arvad?; Mida sa sellest arvad?'], ['Marina ütles, et tema lapsed kastavad lilli iga päev on.', 'Marina ütles, et tema lapsed kastavad iga päev lilli.|Marina ütles, et tema lapsed kastavad lilli iga päev.']]),
       B.rolecards('079_p_roles', 'Mini-arutelu: taskuraha.', 'Rääkige 4–5 minutit. Reageerige teise arvamusele ja küsige vähemalt kaks korda vastu.',
         'Sinu arvates peaks lapsele maksma kodutööde eest. Raha õpetab vastutust. Too näide oma lapsepõlvest.', 'Sinu arvates on kodu ühine ja tasu ei ole vaja. Paku teisi lahendusi, näiteks perekoosolek.',
         ['Minu arvates…', 'Jah, aga…', 'Kuidas sina seda teeksid?'], ['Ma ei ole päris nõus.', 'Sul on õigus, et…', 'Aga mis siis, kui…?']),
-      B.speaking('079_p_say', 'Kolm mini-arutelu.', 'Arutage paaris iga teemat umbes minut. Iga kord küsi vähemalt korra vastu.', ['Kas kodus peaks olema telefonivaba õhtu?', 'Kas pühapäeval peaksid poed kinni olema?', 'Kas koolipäev peaks algama hiljem, kell üheksa?'], [150, 210], ['Olen nõus, aga…', 'Ma näen seda teisiti.', 'Kuidas sina arvad?', 'Ühest küljest…, teisest küljest…']),
+
       W('079_p_write', 'Kiri raadiosaatele.', 'Kirjuta saatele 8–10 lauset: kellega sa oled nõus, kellega mitte ja miks?', ['nõus', 'ütles', 'aga', 'minu arvates']),
-      TR('079_p_tr', ['Я полностью согласен, что дети должны помогать.', 'Здесь я не совсем согласен.', 'Ты прав, что дом общий.', 'Виктор сказал, что домашняя работа не должна быть наказанием.', 'А как вы делаете дома?']),
-      B.selfcheck('079_p_self', ['Ma kuulan arutelu ja leian, kes mida arvab.', 'Ma teen viisaka ettepaneku tingiva vormiga.', 'Ma kirjutan kaudse kõne õigesti.', 'Ma arutan 4–5 minutit ja küsin vastu.'], 'Arutelu käib'),
+      TR('079_p_tr', ['Я полностью согласен, что дети должны помогать.', 'Здесь я не совсем согласен.', 'Ты прав, что дом общий.', 'Виктор сказал, что домашняя работа не должна быть наказанием.', 'А как вы делаете дома?', 'Марина спросила, как Томас делает это дома.']),
+      B.dictation('079_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Ma olen täiesti nõus, et lapsed peaksid kodus aitama.', 'Siin ma ei ole sinuga päris nõus.', 'Sul on õigus, et kodu on ühine.', 'Toomas arvab, et kodutöö ei tohi olla karistus.', 'Marina küsis, kuidas me kodus teeme.', 'Mida sina sellest arvad?']),
+
     ],
     transfer: [
       B.text('079_t_situation', 'Uus olukord', 'Sinu firma korraldab suvel ühise päeva. Kolm kolleegi saatsid oma ettepaneku. Nüüd arutate koosolekul ja peate jõudma ühise otsuseni.'),
+      B.translation('079_t_tr', 'Koosoleku laused.', 'Tõlgi enne lugemist eesti keelde.', ['На собрании обсуждали три предложения.', 'Лиз предложила поехать на Сааремаа.', 'Маркус сказал, что два дня — это слишком долго.', 'Наталья спросила, подойдёт ли всем поездка на автобусе.', 'В конце решили поехать в Южную Эстонию.', 'Я полностью согласен с этим решением.']),
       B.reading('079_t_read', 'Loe kolleegide ettepanekuid.', 'Loe kirjad ja vasta küsimustele.', 'Ettepanekud suvepäevadeks', [
         'Liis: Minu arvates võiksime minna kaheks päevaks Saaremaale. Seal on ilus loodus ja meri. Esimesel päeval sõidaksime rattaga, õhtul oleks saun ja grillimine. Teisel päeval külastaksime Kuressaare linnust. See maksaks inimese kohta umbes sada kakskümmend eurot, sest peame ööbima hotellis. Ma usun, et ühine õhtu aitab meil üksteist paremini tundma õppida.',
         'Markus: Ma ei ole päris kindel, et kaks päeva on hea mõte. Paljudel kolleegidel on väikesed lapsed ja nad ei taha ööseks kodust ära olla. Ma pakun ühte päeva Tallinna lähedal. Näiteks võiksime minna seiklusparki ja pärast seda mere äärde piknikule. Hind oleks umbes nelikümmend eurot. Pealegi on ühepäevast üritust lihtsam korraldada.',
@@ -706,7 +693,7 @@ export const LESSONS = {
       B.rolecards('079_t_roles', 'Koosolek: jõudke otsusele.', 'Rääkige 4–5 minutit. Kumbki kaitseb üht ettepanekut. Lõpus tehke ühine otsus.',
         'Sa toetad Liisi ideed: kaks päeva Saaremaal. Sinu arvates on ühine öö ja saun parim viis meeskonda liita.', 'Sa toetad Natalja ideed: bussireis Lõuna-Eestisse. Sinu arvates peab päev sobima kõigile, ka neile, kes ei saa sporti teha.',
         ['Ühest küljest…, teisest küljest…', 'Ma ei ole päris nõus, sest…', 'Kuidas sina arvad?'], ['Sul on õigus, aga…', 'Mis siis, kui…?', 'Kas oleme siis nõus, et…?']),
-      B.gaps('079_t_gaps', 'Koosoleku protokoll.', 'Kirjuta umbisikuline minevik (-ti / -di).', [
+      B.gaps('079_t_gaps', 'Koosoleku protokoll.', 'Kirjuta sulgudes olev tegusõna umbisikulise mineviku vormis (-ti / -di).', [
         'Koosolekul [arutati] (arutama) kolme ettepanekut.',
         'Kõigepealt [räägiti] (rääkima) hindadest.',
         'Liisi ideed [peeti] (pidama) liiga kalliks.',
@@ -714,22 +701,23 @@ export const LESSONS = {
         'Lõpuks [otsustati] (otsustama) minna Lõuna-Eestisse.',
         'Buss [telliti] (tellima) juba järgmisel päeval.',
       ]),
-      B.wordorder('079_t_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Liis pakkus, et võiksime minna Saaremaale.', 'Markus ütles, et kaks päeva on liiga pikk aeg.', 'Natalja küsis, kas bussireis sobiks kõigile.', 'Koosolekul otsustati minna Lõuna-Eestisse.', 'Ma olen selle otsusega täiesti nõus.']),
+
       B.errorfix('079_t_fix', 'Paranda vead.', 'Kirjuta lause õigesti.', [
         ['Liis pakkus, et me võiksime minna Saaremaal.', 'Liis pakkus, et me võiksime minna Saaremaale.'],
         ['Eile koosolekul arutatakse kolme ideed.', 'Eile koosolekul arutati kolme ideed.; Eile arutati koosolekul kolme ideed.'],
         ['Natalja küsis, et kas see sobib kõigile.', 'Natalja küsis, kas see sobib kõigile.'],
         ['Ma olen nõus selle otsus.', 'Ma olen selle otsusega nõus.; Ma olen nõus selle otsusega.'],
-        ['Markus ütles, et paljudel kolleegidel on väikesed lapsed on.', 'Markus ütles, et paljudel kolleegidel on väikesed lapsed.'],
-      ]),
-      B.speaking('079_t_report', 'Teata juhile.', 'Räägi juhile umbes 2 minutit: mida kolleegid pakkusid ja mis otsustati.', ['Mida pakkusid Liis, Markus ja Natalja?', 'Millega olid kolleegid nõus, millega mitte?', 'Mis otsustati ja miks?'], [120, 180], ['Liis pakkus, et…', 'Markus ütles, et…', 'Koosolekul otsustati, et…']),
+        ['Markus ütles, et paljudel kolleegidel on väikesed lapsed on.', 'Markus ütles, et paljudel kolleegidel on väikesed lapsed.'], ['Koosolekul otsustatakse eile minna Lõuna-Eestisse.', 'Koosolekul otsustati eile minna Lõuna-Eestisse.|Eile koosolekul otsustati minna Lõuna-Eestisse.']]),
+      B.speaking('079_t_report', 'Teata juhile.', 'Räägi juhile umbes 2 minutit: mida kolleegid pakkusid ja mis otsustati.', ['Mida pakkusid Liis, Markus ja Natalja?', 'Mis otsustati ja miks?'], [120, 180], ['Liis pakkus, et…', 'Markus ütles, et…', 'Koosolekul otsustati, et…']),
       B.letter('079_t_mail', 'Kokkuvõte kolleegidele (90–120 sõna).', 'Kirjuta: millised olid ettepanekud, mida arutati ja mis otsustati.', 'Head kolleegid!', 'Parimate soovidega', [90, 120]),
+      B.rubric('079_t_rubric', 'Kas kiri annab arutelu edasi?', 'Paariline loeb kirja.', ['On kirjas, mida kolleegid pakkusid (ütles, et…).', 'On kirjas, mis otsustati ja miks.', 'Kasutatud on umbisikulist minevikku (otsustati).', 'Kiri on viisakas ja õige pikkusega.']),
       B.selfcheck('079_t_self', ['Ma mõistan kolleegide ettepanekuid.', 'Ma arutan 4–5 minutit ja jõuan otsuseni.', 'Ma räägin, kes mida ütles.', 'Ma kirjutan koosoleku kokkuvõtte.'], 'Otsus on tehtud'),
     ],
   },
 
   'a2b1-080': {
     title: 'Vahehindamine 4 — B1 valmisolek',
+    assessment: true,
     canDo: 'Ma lahendan B1 eksami vormis lugemise, kuulamise, kirjutamise ja rääkimise ülesanded; kokku vähemalt 70% ning kirjutamises ja rääkimises vähemalt 65%.',
     // exam overview, strategies and a mixed grammar warm-up of the module (opinion, comparison, argument, discussion)
     discover: [
@@ -756,6 +744,7 @@ export const LESSONS = {
         ['Milline nõuanne on sinu jaoks kõige kasulikum ja miks?'],
       ]),
       B.tip('080_d_tips', 'Strateegiad lühidalt', ['Lugemine: küsimused enne teksti.', 'Kuulamine: 1. kord mõte, 2. kord vastused.', 'Kirjutamine: kõik punktid + 5 min kontrolli.', 'Rääkimine: arvamus + põhjus + vastuküsimus.']),
+      B.vocab('080_d_vocab', 'Eksami ja mooduli sõnad', ['strateegia — стратегия', 'lugemine — чтение', 'kuulamine — аудирование', 'kirjutamine — письмо', 'rääkimine — говорение', 'kokkulepe — договорённость', 'arvamus — мнение', 'võrreldes — по сравнению', 'seega — таким образом', 'näiteks — например', 'kuna — так как', 'minu arvates — по-моему']),
       B.choice('080_d_choice', 'Eksami strateegia.', 'Vali teksti põhjal õige vastus.', [
         ['Mida teha, kui lugemises on tundmatu sõna?', 'Ära peatu, arva tähendust lausest.', 'Otsi sõna kohe sõnaraamatust.', 'Jäta kogu ülesanne vahele.'],
         ['Mis võib muuta vastust kuulutuste ülesandes?', 'üks detail, näiteks hind', 'kuulutuse pikkus', 'kuulutuse pealkirja värv'],
@@ -772,7 +761,7 @@ export const LESSONS = {
       ]),
       B.gaps('080_d_gaps', 'Mooduli grammatika.', 'Kirjuta sulgudes oleva sõna õige vorm.', [
         'Minu arvates [on] (olema) see kursus kasulik.',
-        'Rong on [mugavam] (mugav) kui buss.',
+        'Lennuk on [kiirem] (kiire) kui rong.',
         'Võrreldes [eelmise aastaga] (eelmine aasta) on hinnad kõrgemad.',
         '[Kuna] (sest / kuna) mul on vähe aega, õpin ma bussis.',
         'Bussis [sõites] (sõitma, des-vorm) kuulan ma raadiot.',
@@ -793,13 +782,12 @@ export const LESSONS = {
         ['Ma loen bussis. Samal ajal õpin sõnu.', 'lugedes', 'Bussis lugedes õpin ma sõnu.; Bussis lugedes õpin sõnu.'],
         ['Eksamit tehakse mais.', 'minevik', 'Eksamit tehti mais.'],
         ['Jaan: „Ma olen valmis.”', 'Jaan ütles, et', 'Jaan ütles, et ta on valmis.'],
-        ['Mul ei ole aega. Ma ei käi kursusel.', 'kui mul oleks', 'Kui mul oleks aega, käiksin ma kursusel.; Ma käiksin kursusel, kui mul oleks aega.'],
-      ]),
-      B.wordorder('080_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kõigepealt loe küsimused hoolikalt läbi.', 'Teisel kuulamisel kirjuta vastused lünka.', 'Minu arvates on rääkimine kõige raskem osa.', 'Kokkuleppe ülesandes peate jõudma ühise otsuseni.', 'Kui ma ei saa aru, palun ma korrata.']),
+        ['Mul ei ole aega. Ma ei käi kursusel.', 'kui mul oleks', 'Kui mul oleks aega, käiksin ma kursusel.; Ma käiksin kursusel, kui mul oleks aega.'], ['Kati: „Kas eksam on raske?”', 'Kati küsis, kas', 'Kati küsis, kas eksam on raske.']]),
+      B.wordorder('080_d_order', 'Pane lause kokku.', 'Kirjuta laused õigesti.', ['Kõigepealt loe küsimused hoolikalt läbi.', 'Teisel kuulamisel kirjuta vastused lünka.', 'Minu arvates on rääkimine kõige raskem osa.', 'Kokkuleppe ülesandes peate jõudma ühise otsuseni.', 'Kui ma ei saa aru, palun ma korrata.', 'Kirjutamise lõpus loe oma tekst veel kord üle.']),
       B.speaking('080_d_say', 'Soojendus.', 'Räägi umbes 2 minutit ilma abita.', ['Milline eksami osa on sinu jaoks kõige raskem? Miks?', 'Kuidas sa eksamiks valmistud?', 'Võrdle: kas on parem õppida üksi või grupis?'], [120, 150]),
       W('080_d_write', 'Minu eksamiplaan.', 'Kirjuta 8–10 lauset: mida sa enne eksamit veel harjutad ja miks?', ['minu arvates', 'sest', 'näiteks', 'seetõttu']),
-      TR('080_d_tr', ['Сначала прочитай вопросы.', 'Каждый текст звучит два раза.', 'По-моему, говорение — самая трудная часть.', 'Если бы у меня было время, я бы больше читал.', 'Мы должны прийти к общему решению.']),
-      B.selfcheck('080_d_self', ['Ma tean B1 eksami nelja osa: lugemine, kuulamine, kirjutamine, rääkimine.', 'Ma tean iga osa strateegiat.', 'Mooduli grammatika on kontrollitud.', 'Minu eesmärk: kokku 70%, kirjutamises ja rääkimises 65%.'], 'Valmis vahehindamiseks'),
+      TR('080_d_tr', ['Сначала прочитай вопросы.', 'Каждый текст звучит два раза.', 'По-моему, говорение — самая трудная часть.', 'Если бы у меня было время, я бы больше читал.', 'Мы должны прийти к общему решению.', 'В конце ещё раз прочитай свой текст.']),
+
     ],
     // Harno B1 reading and listening in exam form: situations ↔ ads (reading 1), a 280-word article with 3-option
     // questions (reading 2), a 10-gap option cloze (reading 3), a phrase bank with extras (reading 4), listening 1, 3 and 4
@@ -919,10 +907,9 @@ export const LESSONS = {
         ['Talvel kohvik on lahti neli päeva.', 'Talvel on kohvik lahti neli päeva.'],
         ['Kohvikus küpsetakse kõik ise.', 'Kohvikus küpsetatakse kõik ise.'],
         ['Seetõttu nad on talvel vähem lahti.', 'Seetõttu on nad talvel vähem lahti.'],
-        ['Minu arvates on maal elu kõige parim.', 'Minu arvates on maal elu kõige parem.; Minu arvates on maal elu parim.'],
-      ]),
+        ['Minu arvates on maal elu kõige parim.', 'Minu arvates on maal elu kõige parem.; Minu arvates on maal elu parim.'], ['Kohviku omanik ütles, et talvel kliente on vähem.', 'Kohviku omanik ütles, et talvel on kliente vähem.']]),
       B.speaking('080_p_say', 'Rääkimine: lühike arutelu.', 'Arutage paaris. Põhjendage ja küsige vastu.', ['Kas sina julgeksid oma äri alustada? Miks?', 'Kas väikelinnas on parem elada kui pealinnas?', 'Mida sa Irinale soovitaksid?'], [120, 180], ['Minu arvates…', 'Ma ei ole päris nõus, sest…', 'Kuidas sina arvad?']),
-      B.selfcheck('080_p_self', ['Leian kuulutustest olukorrale sobiva info (lugemine 1).', 'Mõistan artikli peamõtet ja detaile (lugemine 2).', 'Valin lünka õige vormi või lauseosa (lugemine 3–4).', 'Kuulan teateid ja intervjuud ning kirjutan vastuse (kuulamine).', 'Mul on õigeid vastuseid vähemalt 70%.'], 'Lugemine ja kuulamine tehtud'),
+
     ],
     // Harno B1 writing and speaking in exam form: a 50-word note on 4 points, a 100–130-word opinion letter, examiner
     // questions, a 2-minute monologue on a topic card, reaching an agreement, a phone role-play with cards
@@ -943,17 +930,18 @@ export const LESSONS = {
         ['Kumb projekt on odavam ja kui palju?', 'raamatukogu, kaks miljonit eurot odavam|raamatukogu|kahe miljoni võrra'],
         ['Kumb projekt tooks sinu arvates rohkem kasu ja kellele?'],
       ]),
-      B.planning('080_t_plan', 'Plaan.', 'Kirjuta enne kirjutamist märksõnad.', ['Teade: miks ei saa tulla, kes tuleb asemele, millal kohtuda, kontakt?', 'Arvamuskiri: kumba projekti toetad?', 'Kaks põhjust ja üks näide.', 'Võrdlus teise projektiga ja järeldus.']),
-      B.letter('080_t_note', 'Kirjutamine 1: teade (umbes 50 sõna).', 'Sa ei saa 10. mai arutelule tulla. Kirjuta korraldajale: miks, kes tuleb asemele, millal saaksid kohtuda, sinu kontakt.', 'Tere!', 'Lugupidamisega', [40, 60]),
+
+      B.writing('080_t_note', 'Kirjutamine 1: teade (umbes 50 sõna).', 'Sa ei saa 10. mai arutelule tulla. Kirjuta korraldajale: miks, kes tuleb asemele, millal saaksid kohtuda, sinu kontakt.', [5, 7], ['kahjuks', 'sest', 'minu asemel', 'kas sobiks'], 3),
+
       B.letter('080_t_letter', 'Kirjutamine 2: arvamuskiri ajalehele (100–130 sõna).', 'Kirjuta: kumba projekti toetad, kaks põhjust, üks näide, võrdlus teise projektiga ja järeldus.', 'Lugupeetud toimetus!', 'Lugupidamisega', [100, 130]),
-      B.speaking('080_t_q', 'Rääkimine 1a: küsimused teemalehelt.', 'Eksamineerija küsib, sina vastad. Räägi iga küsimuse kohta umbes pool minutit.', ['Mida sa vabal ajal teed? Kas see on muutunud?', 'Kas sinu linnas on piisavalt võimalusi sportimiseks?', 'Kas sa käid raamatukogus? Miks või miks mitte?', 'Kumb on parem: lugeda raamatut või vaadata filmi?', 'Mida sa oma linnas muudaksid?'], [150, 210]),
-      B.speaking('080_t_mono', 'Rääkimine: monoloog teemakaardi järgi.', 'Võta teemakaart. Mõtle 1 minut ja räägi 2 minutit.', ['Teemakaart: „Linn või maa — kus on parem elada?”', '• minu arvamus', '• kaks põhjust ja näide', '• võrdlus: plussid ja miinused', '• järeldus'], [120, 150], ['minu arvates', 'võrreldes …-ga', 'näiteks', 'seega']),
+      B.speaking('080_t_q', 'Rääkimine 1a: küsimused teemalehelt.', 'Eksamineerija küsib, sina vastad. Räägi iga küsimuse kohta umbes pool minutit.', ['Kas sinu linnas on piisavalt võimalusi sportimiseks?', 'Mida sa oma linnas muudaksid ja miks?'], [120, 180]),
+
       B.speaking('080_t_agree', 'Rääkimine 1b: jõudke kokkuleppele.', 'Teie keelegrupp saab 300 eurot. Arutage kolme võimalust ja otsustage koos, mida teha.', ['Teatrikülastus kogu grupiga: 25 eurot inimese kohta.', 'Ühine õhtusöök Eesti restoranis: 20 eurot inimese kohta.', 'Raamatud grupi raamatukokku: 300 eurot korraga.', 'Mis on iga võimaluse pluss ja miinus?', 'Mille kasuks te otsustate?'], [120, 180], ['Minu arvates…', 'Ma ei ole päris nõus, aga…', 'Võrreldes …-ga…', 'Kas oleme siis nõus, et…?']),
       B.rolecards('080_t_roles', 'Rääkimine 2: telefonikõne.', 'Rääkige 4–5 minutit. A helistab spordihalli, B on administraator.',
         'Küsimuste kaart. Helista spordihalli ja küsi: 1) millal ujula avatud on; 2) kui palju maksab kuukaart; 3) kas lastele on soodustus; 4) kas trenni saab tasuta proovida.', 'Vastuste kaart. Ujula: E–R 7–21, L–P 9–18. Kuukaart: 45 eurot. Lapsed kuni 16 aastat: 25 eurot. Esimene proovitrenn on tasuta, broneerida tuleb päev ette.',
         ['Tere, mina olen…', 'Ma sooviksin teada…', 'Kas te saaksite seda korrata?'], ['Spordihall, tere!', 'Jah, see on võimalik…', 'Kas teil on veel küsimusi?']),
       B.rubric('080_t_rubric', 'Hindamise tingimused (Harno B1).', 'Märgi, mis on täidetud.', ['Teade: kõik neli punkti, umbes 50 sõna.', 'Arvamuskiri: arvamus, kaks põhjust, näide, võrdlus ja järeldus; 100–130 sõna.', 'Kirjutamises vähemalt 65% punktidest.', 'Monoloog: 2 minutit seotult, põhjendused ja võrdlus.', 'Paaris jõudsime kokkuleppele.', 'Telefonis küsisin ja andsin kogu info.', 'Rääkimises vähemalt 65% punktidest.']),
-      B.selfcheck('080_t_self', ['Kirjutan 50-sõnalise teate nelja punktiga.', 'Kirjutan 100–130-sõnalise arvamuskirja.', 'Räägin 2 minutit teemakaardi järgi ja jõuan paarilisega kokkuleppele.', 'Kirjutamises ja rääkimises on mul vähemalt 65%, kokku vähemalt 70%.'], 'Moodul 16 tehtud'),
+
     ],
   },
 };

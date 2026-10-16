@@ -11,7 +11,7 @@
 // polite conditional in a dialogue (087), the impersonal past and the past conditional in a complaint (088).
 import { B } from '../blocks.js';
 
-export const MODULE = { id: 'a2b1-module-18', course: 'b1', title: 'B1 rääkimine ja lõpphindamine', level: 'B1' };
+export const MODULE = { id: 'a2b1-module-18', course: 'b1', title: 'B1 rääkimine ja lõpphindamine', level: 'B1', design: 'v2' };
 
 const W = (id, title, instruction, keywords) => B.writing(id, title, instruction, [8, 10], keywords, 3);
 const TR = (id, rows) => B.translation(id, 'Tõlgi.', 'Kirjuta eesti keeles.', rows);
@@ -72,7 +72,7 @@ export const LESSONS = {
         ['Me jalutame metsas. Samal ajal räägime juttu.', 'jalutades', 'Metsas jalutades räägime juttu.; Metsas jalutades räägime me juttu.'],
         ['Ma olen väsinud. Siis ma ei räägi palju.', 'olles', 'Väsinud olles ei räägi ma palju.; Väsinud olles ma ei räägi palju.'],
       ]),
-      B.gaps('086_d_gaps', 'Kuidas Eestis puhatakse?', 'Kirjuta umbisikuline olevik.', [
+      B.gaps('086_d_gaps', 'Kuidas Eestis puhatakse?', 'Kirjuta umbisikulise oleviku vorm.', [
         'Jaanipäeval [tehakse] (tegema) lõket ja [lauldakse] (laulma) laule.',
         'Suvel [sõidetakse] (sõitma) sageli maale vanavanemate juurde.',
         'Talvel [käiakse] (käima) nädalavahetustel suusatamas.',
@@ -94,12 +94,11 @@ export const LESSONS = {
         'Ujudes unustan ma kõik oma mured.',
         'Nädalavahetusel tehakse meie peres midagi koos.',
         'Teisest küljest veedan ma liiga palju aega telefonis.',
-        'Kokkuvõtteks võin öelda, et olen oma vaba ajaga rahul.',
-      ]),
+        'Kokkuvõtteks võin öelda, et olen oma vaba ajaga rahul.', 'Esiteks käin ma igal hommikul enne tööd ujumas.']),
       B.planning('086_d_plan', 'Minu plaan.', 'Kirjuta igasse ritta 2–3 märksõna.', ['Algus: millest ma räägin?', 'Esimene mõte ja näide', 'Teine mõte ja näide', 'Teine külg või probleem', 'Kokkuvõte']),
       B.speaking('086_d_say', 'Minu vaba aeg.', 'Räägi plaani järgi 2,5–3 minutit. Kasuta siduvaid väljendeid.', ['Kuidas sa oma vaba aega veedad?', 'Mis on sinu jaoks kõige tähtsam? Miks?', 'Mida sa teeksid, kui sul oleks rohkem aega?'], [150, 180], ['esiteks', 'näiteks', 'seetõttu', 'kokkuvõtteks']),
       W('086_d_write', 'Monoloogi algus ja lõpp.', 'Kirjuta oma monoloogi algus, üks mõte näitega ja kokkuvõte (8–10 lauset).', ['kõigepealt', 'esiteks', 'näiteks', 'kokkuvõtteks']),
-      B.selfcheck('086_d_self', ['Ma tean monoloogi viit osa.', 'Ma kasutan väljendeid esiteks, näiteks, kokkuvõtteks.', 'Ma moodustan des-vormi: sõites, lugedes, tehes.', 'Ma kirjeldan tava umbisikulise olevikuga.'], 'Plaan on olemas'),
+
     ],
     // Harno B1 listening 2: a 2–3-minute monologue, notes on the first listening, six 3-option questions on the second
     practice: [
@@ -164,13 +163,14 @@ export const LESSONS = {
         ['Milline on sinu jaoks hea puhkus?', 'Räägin, milline puhkus annab mulle kõige rohkem jõudu.'],
         ['Mida sa teed oma tervise heaks?', 'Räägin oma harjumustest, mis hoiavad mind tervena.'],
       ], 'full', 'g_use'),
-      TR('086_p_tr', ['Сегодня я расскажу о том, почему мы переехали в деревню.', 'Во-первых, у детей не было своей комнаты.', 'Работая дома, я слышу только птиц.', 'С другой стороны, без машины здесь трудно.', 'В заключение могу сказать, что мы ни о чём не жалеем.']),
+      TR('086_p_tr', ['Сегодня я расскажу о том, почему мы переехали в деревню.', 'Во-первых, у детей не было своей комнаты.', 'Работая дома, я слышу только птиц.', 'С другой стороны, без машины здесь трудно.', 'В заключение могу сказать, что мы ни о чём не жалеем.', 'Например, по вечерам мы гуляем с собакой по лесу.']),
+      D('086_p_dict', ['Kõigepealt tahaksin rääkida oma uuest kodust.', 'Esiteks on meie külas väga puhas õhk.', 'Hommikuti metsas jalutades kuulen ma ainult linde.', 'Teisest küljest on poodi sõita pool tundi.', 'Seetõttu käime suures poes ainult kord nädalas.', 'Kokkuvõtteks võin öelda, et oleme siin väga õnnelikud.']),
       B.planning('086_p_plan', 'Kolm teemat.', 'Vali üks teema ja kirjuta märksõnaplaan.', ['Teema: kodukoht, töö või eesti keel', 'Algus', 'Kaks-kolm mõtet ja näited', 'Teine külg', 'Kokkuvõte']),
       B.speaking('086_p_mono', 'Monoloog 3–4 minutit.', 'Räägi märksõnaplaani järgi. Paariline mõõdab aega.', ['Millest sa räägid ja miks?', 'Millised on sinu kaks-kolm mõtet ja näited?', 'Milline on sinu kokkuvõte?'], [180, 240], ['Täna räägin ma sellest…', 'Esiteks…', 'Teisest küljest…', 'Kokkuvõtteks…']),
-      B.speaking('086_p_again', 'Küsimused ja kordus.', 'Paariline esitab kolm küsimust. Siis räägi monoloog parandatult uuesti.', ['Kas sa võiksid tuua veel ühe näite?', 'Mis sulle selles kõige vähem meeldib?', 'Mida sa muudaksid, kui saaksid?'], [120, 180]),
+
       W('086_p_write', 'Minu monoloog kirjas.', 'Kirjuta oma 3-minutilise monoloogi tekst (8–10 lauset). Kasuta plaani.', ['esiteks', 'teiseks', 'näiteks', 'kokkuvõtteks']),
       B.rubric('086_p_rubric', 'Tagasiside paarilisele.', 'Märgi, mis monoloogis oli.', ['Selge algus: millest räägin.', 'Vähemalt kaks mõtet koos näitega.', 'Siduvad väljendid: esiteks, näiteks, seetõttu.', 'Kokkuvõte lõpus.', 'Rääkis 3 minutit ilma pika pausita.']),
-      B.selfcheck('086_p_self', ['Ma mõistan raadiomonoloogi peamõtet ja detaile.', 'Ma ühendan laused siduvate väljenditega.', 'Ma räägin plaani järgi 3–4 minutit.', 'Ma parandan monoloogi pärast tagasisidet.'], 'Monoloog on valmis'),
+
     ],
     transfer: [
       B.text('086_t_situation', 'Uus olukord', 'Raamatukogu korraldab õhtu „Elav raamat”: inimesed räägivad 3–4 minutit oma kogemusest ja kuulajad esitavad küsimusi. Sina oled üks „raamatutest”. Õhtu jooksul muutub aga tingimus: sul on ühel korral ainult kaks minutit.'),
@@ -211,22 +211,21 @@ export const LESSONS = {
         ['Meie firmas joodakse hommikul koos kohvi.', 'Meie firmas juuakse hommikul koos kohvi.'],
         ['Esimesel päeval mulle näidatud kogu maja.', 'Esimesel päeval näidati mulle kogu maja.'],
         ['Ma kartsin, et ma ei saa aru kolleegid.', 'Ma kartsin, et ma ei saa kolleegidest aru.; Ma kartsin, et ma ei saa aru kolleegidest.'],
-        ['Esimesel kuul olen ma õppinud palju uued sõnad.', 'Esimesel kuul olen ma õppinud palju uusi sõnu.'],
-      ]),
+        ['Esimesel kuul olen ma õppinud palju uued sõnad.', 'Esimesel kuul olen ma õppinud palju uusi sõnu.'], ['Lõunat sööde rääkisime me kolleegidega oma peredest.', 'Lõunat süües rääkisime me kolleegidega oma peredest.']]),
       B.wordorder('086_tx_order', 'Pane lause kokku.', 'Kirjuta laused õiges järjekorras.', [
         'Tööle minnes olin ma väga närvis.',
         'Esimesel päeval tutvustati mulle kõiki kolleege.',
         'Meie firmas juuakse hommikul koos kohvi.',
         'Kolleegidega rääkides õppisin ma palju uusi sõnu.',
-        'Kokkuvõtteks võin öelda, et see päev muutis mu elu.',
-      ]),
-      B.planning('086_t_plan', 'Sinu lugu.', 'Kirjuta märksõnaplaan.', ['Pealkiri: minu lugu', 'Algus: kes ma olen', 'Kolm hetke või mõtet koos näidetega', 'Mis oli raske?', 'Kokkuvõte: mida ma õppisin?']),
+        'Kokkuvõtteks võin öelda, et see päev muutis mu elu.', 'Esimesel nädalal kutsuti mind kolleegi sünnipäevale.']),
+      TR('086_t_tr', ['Сегодня я расскажу, как я начал учить эстонский язык.', 'Во-первых, я хотел понимать своих соседей.', 'Слушая радио, я выучил много новых слов.', 'Самым трудным было говорить по телефону.', 'Например, однажды я не понял ни одного слова врача.', 'В заключение могу сказать, что язык изменил мою жизнь.']),
+
       B.speaking('086_t_story', 'Elav raamat: sinu lugu.', 'Räägi oma lugu 3–4 minutit. Kuulajad esitavad pärast kaks küsimust.', ['Kuidas sa Eestisse tulid või eesti keelt õppima hakkasid?', 'Mis oli kõige raskem?', 'Mida sa sellest õppisid?'], [180, 240]),
-      B.speaking('086_t_change', 'Tingimus muutub!', 'Korraldaja palub: räägi sama lugu uuele kuulajale ainult 2 minutiga.', ['Mis on sinu loo kõige tähtsam mõte?', 'Milline näide jääb alles?', 'Kuidas sa lõpetad?'], [110, 130]),
+
       B.rolecards('086_t_roles', 'Küsimused jutustajale.', 'Kuulaja küsib, jutustaja vastab. Siis vahetage rollid.',
         'Oled kuulaja. Esita kolm küsimust: üks täpsustav, üks arvamuse ja üks isiklik küsimus.', 'Oled jutustaja. Vasta täislausetega ja too igale vastusele näide.',
         ['Kas te võiksite rääkida veel…?', 'Mida te arvate…?', 'Kuidas teil…?'], ['Hea küsimus. Näiteks…', 'Ausalt öeldes…', 'Mulle tundub, et…']),
-      B.letter('086_t_letter', 'Registreerimine (umbes 60 sõna).', 'Kirjuta raamatukogule: kes oled, mis on sinu teema ja paar lauset loost.', 'Tere!', 'Parimate soovidega', [50, 70]),
+      B.letter('086_t_letter', 'Registreerimine (umbes 80 sõna).', 'Kirjuta raamatukogule: kes oled, mis on sinu teema ja paar lauset loost.', 'Tere!', 'Parimate soovidega', [70, 90]),
       B.rubric('086_t_rubric', 'Kas lugu oli hea?', 'Kuulaja märgib, mis oli olemas.', ['Algus ütles, millest lugu räägib.', 'Kolm mõtet või hetke koos näitega.', 'Siduvad väljendid ja des-vorm.', 'Kokkuvõte: mida jutustaja õppis.', 'Lühendatud lugu mahtus kahte minutisse.']),
       B.selfcheck('086_t_self', ['Ma oskan kasutada siduvaid väljendeid: esiteks, näiteks, kokkuvõtteks.', 'Ma oskan leida kutsest ja raadiomonoloogist peamõtte ja põhjused.', 'Ma oskan kasutada des-vormi ja umbisikulist olevikku.', 'Ma oskan rääkida plaani järgi 3–4 minutit ja vastata küsimustele.'], 'Elav raamat'),
     ],
@@ -237,6 +236,12 @@ export const LESSONS = {
     canDo: 'Ma hoian 5-minutilist vestlust käigus: esitan vähemalt kolm täpsustavat või vastuküsimust, reageerin ja ütlen viisakalt, kas olen nõus.',
     discover: [
       B.text('087_d_intro', 'Vestlus ei ole intervjuu', 'Kui vastad ainult „jah” või „ei”, siis vestlus lõpeb. B1-tasemel küsid ka ise: täpsustad (Kas sa mõtled…?), küsid vastu (Aga sina?), reageerid (Tõesti? Kui tore!) ja ütled, kas oled nõus.'),
+      B.categorize('087_d_sort', 'Mis on väljendi ülesanne?', 'Sorteeri väljendid.', [
+        ['Täpsustamine', ['Kas sa mõtled', 'Kas ma sain õigesti aru', 'Mida sa selle all mõtled']],
+        ['Vastuküsimus', ['Aga sina', 'Ja kuidas sinul on']],
+        ['Reaktsioon', ['Tõesti', 'Tean seda tunnet', 'Kui tore']],
+        ['Mittenõustumine', ['Ma ei ole päris nõus', 'Ma kahtlen selles']],
+      ]),
       B.reading('087_d_read', 'Loe: vestlus keelekohvikus.', 'Loe dialoogi ja vasta küsimustele.', 'Uus tuttav', [
         'Olga: Tere! Vabandust, kas siin laua juures on veel üks vaba koht?',
         'Markus: Muidugi, palun istu. Kas sa käid siin keelekohvikus esimest korda?',
@@ -273,12 +278,8 @@ export const LESSONS = {
         '**Kaudne küsimus:** Kas sa tead, **millal** kohvik avatakse? / Ma tahaksin teada, **kas** …',
         '**Kaudne kõne:** Markus ütles, **et** raadio aitab. Olga küsis, **kas** Markus tuleb jälle.',
       ], 'full'),
-      B.categorize('087_d_sort', 'Mis on väljendi ülesanne?', 'Sorteeri väljendid.', [
-        ['Täpsustamine', ['Kas sa mõtled', 'Kas ma sain õigesti aru', 'Mida sa selle all mõtled']],
-        ['Vastuküsimus', ['Aga sina', 'Ja kuidas sinul on']],
-        ['Reaktsioon', ['Tõesti', 'Tean seda tunnet', 'Kui tore']],
-        ['Mittenõustumine', ['Ma ei ole päris nõus', 'Ma kahtlen selles']],
-      ]),
+      B.vocab('087_d_vocab', 'Vestluse sõnad', ['vestlus — разговор', 'täpsustama — уточнять', 'küsimus — вопрос', 'nõus olema — быть согласным', 'arvama — считать', 'eelistama — предпочитать', 'kokku leppima — договориться', 'idee — идея', 'pakkuma — предлагать', 'sobima — подходить'], '2'),
+
       B.match('087_d_match', 'Mis sobib vastuseks?', 'Ühenda lause ja sobiv reaktsioon koos küsimusega.', [
         ['Ma alustasin uues töökohas.', 'Palju õnne! Mis tööd sa seal teed?'],
         ['Mul on telefonikõnedega raske.', 'Tean seda tunnet. Kas kliendid räägivad kiiresti?'],
@@ -328,16 +329,23 @@ export const LESSONS = {
         'Ma tahaksin teada, kas sul on homme aega.',
         'Markus ütles, et raadio aitab tal õppida.',
         'Kas ma sain õigesti aru, et sa töötad Tartus?',
-        'Ma ei ole päris nõus, sest uudiseid saab mitu korda kuulata.',
-      ]),
-      TR('087_d_tr', ['Ты знаешь, когда начинается курс?', 'Я правильно понял, что ты работаешь в Тарту?', 'Он сказал, что радио помогает ему учиться.', 'Она спросила, придёт ли он в четверг.', 'Я не совсем согласен, потому что это дорого.']),
+        'Ma ei ole päris nõus, sest uudiseid saab mitu korda kuulata.', 'Ta küsis, kas ma tulen neljapäeval keelekohvikusse.']),
+      TR('087_d_tr', ['Ты знаешь, когда начинается курс?', 'Я правильно понял, что ты работаешь в Тарту?', 'Он сказал, что радио помогает ему учиться.', 'Она спросила, придёт ли он в четверг.', 'Я не совсем согласен, потому что это дорого.', 'Аня спросила, где можно купить билеты на концерт.']),
       B.speaking('087_d_say', 'Küsi vastu.', 'Rääkige 3 minutit. Iga vastuse järel esita üks küsimus.', ['Mis tõi sind eesti keele juurde?', 'Mis on sinu töös või õpingutes kõige raskem?', 'Kuidas sa vaba aega veedad?'], [150, 180], ['Aga sina?', 'Kas sa mõtled, et…?', 'Tõesti?']),
       W('087_d_write', 'Vestluse kokkuvõte.', 'Kirjuta 8–10 lausega, millest Olga ja Markus rääkisid. Kasuta kaudset kõnet.', ['ütles', 'küsis', 'et', 'kas']),
-      B.selfcheck('087_d_self', ['Ma esitan täpsustava küsimuse.', 'Ma küsin vastu: Aga sina?', 'Ma moodustan kaudse küsimuse.', 'Ma annan edasi, mida keegi ütles.'], 'Vestlus käib'),
+
     ],
     // Harno B1 listening 1 (seven short clips, 3 options) and 4 (an interview, nine true/false statements)
     practice: [
       B.tip('087_p_how', 'Kuulamine 1 ja 4 (eksami vormis)', 'Harno B1 kuulamise 1. osas on seitse lühikest teksti ja kolm valikut iga küsimuse juures. 4. osas kuulad intervjuud ja märgid, kas väide on õige või vale. Õpetaja loeb iga teksti kaks korda.', 'full'),
+      B.errorfix('087_p_fix', 'Paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [
+        ['Kas te võiksite seda sõna selgitama?', 'Kas te võiksite seda sõna selgitada?'],
+        ['Kadri ütles, et programm kestab kolm kuu.', 'Kadri ütles, et programm kestab kolm kuud.'],
+        ['Paljud õppijad ei julge ise küsima.', 'Paljud õppijad ei julge ise küsida.'],
+        ['Eestlased hakkavad kohe inglise keelt rääkida.', 'Eestlased hakkavad kohe inglise keelt rääkima.'],
+        ['Ma olen selle ideele täiesti nõus.', 'Ma olen selle ideega täiesti nõus.'],
+        ['Vabandust, ma ei saa aru see sõna.', 'Vabandust, ma ei saa sellest sõnast aru.; Vabandust, ma ei saa aru sellest sõnast.'],
+      ]),
       B.listening('087_p_clips', 'Kuulamine 1: lühikesed tekstid.', 'Esimesel kuulamisel kirjuta lünka 1–2 sõna.', [
         '1. — Vabandage, kas see buss sõidab kesklinna? — Ei, kesklinna sõidab number viis. Selle peatus on üle tee.',
         '2. — Tere, ma tahaksin aega perearsti juurde. — Kas teile sobib neljapäev kell kaks? — Kahjuks mitte. Kas reedel on midagi vaba?',
@@ -409,14 +417,7 @@ export const LESSONS = {
         ['„Me palume eestlastel rääkida rahulikult.”', 'Kadri ütles, et …', 'Kadri ütles, et nad paluvad eestlastel rääkida rahulikult.; Kadri ütles, et nad paluvad eestlastel rahulikult rääkida.'],
         ['„Kuidas saab osaleda?”', 'Saatejuht küsis, …', 'Saatejuht küsis, kuidas saab osaleda.'],
       ]),
-      B.errorfix('087_p_fix', 'Paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [
-        ['Kas te võiksite seda sõna selgitama?', 'Kas te võiksite seda sõna selgitada?'],
-        ['Kadri ütles, et programm kestab kolm kuu.', 'Kadri ütles, et programm kestab kolm kuud.'],
-        ['Paljud õppijad ei julge ise küsima.', 'Paljud õppijad ei julge ise küsida.'],
-        ['Eestlased hakkavad kohe inglise keelt rääkida.', 'Eestlased hakkavad kohe inglise keelt rääkima.'],
-        ['Ma olen selle ideele täiesti nõus.', 'Ma olen selle ideega täiesti nõus.'],
-        ['Vabandust, ma ei saa aru see sõna.', 'Vabandust, ma ei saa sellest sõnast aru.; Vabandust, ma ei saa aru sellest sõnast.'],
-      ]),
+
       B.gaps('087_p_gaps', 'Viisakas küsimus.', 'Kirjuta tingiva kõneviisi vorm.', [
         'Kas te [võiksite] (võima) seda veel kord korrata?',
         'Kas sa [saaksid] (saama) mulle õhtul helistada?',
@@ -425,14 +426,14 @@ export const LESSONS = {
         'Mida te [soovitaksite] (soovitama) algajale õppijale?',
         'Me [sooviksime] (soovima) registreeruda kahekesi.',
       ]),
-      D('087_p_dict', ['Kadri ütles, et osalemine on tasuta.', 'Saatejuht küsis, kes on vabatahtlikud.', 'Kas te võiksite seda selgitada?', 'Ma tahaksin teada, millal voor algab.', 'Ma ei ole päris nõus, sest see on kallis.']),
+      D('087_p_dict', ['Kadri ütles, et osalemine on tasuta.', 'Saatejuht küsis, kes on vabatahtlikud.', 'Kas te võiksite seda selgitada?', 'Ma tahaksin teada, millal voor algab.', 'Ma ei ole päris nõus, sest see on kallis.', 'Ta küsis, kui tihti keelesõbrad omavahel kohtuvad.']),
       B.planning('087_p_plan', 'Sinu küsimused.', 'Kirjuta enne kõnet oma küsimused.', ['Küsimus 1: kes võib osaleda?', 'Küsimus 2: kui tihti kohtutakse?', 'Küsimus 3: mis see maksab?', 'Küsimus 4: kuidas registreeruda?', 'Täpsustav küsimus']),
       B.rolecards('087_p_roles', 'Telefonikõne: küsimuste ja vastuste kaart.', 'Rääkige 4–5 minutit. A helistab, B vastab kaardi järgi.',
         'Küsimuste kaart. Helista keelesõbra programmi ja küsi: 1) kes võib osaleda; 2) kui tihti kohtutakse; 3) kas see maksab; 4) kuidas registreeruda. Täpsusta vähemalt üht vastust.',
         'Vastuste kaart. Osaleda võib igaüks alates A2 tasemest. Kohtumine kord nädalas, kolm kuud. Osalemine on tasuta. Registreerimine kodulehel detsembri lõpuni.',
         ['Tere, ma helistan seoses…', 'Kas ma sain õigesti aru, et…?', 'Kas te võiksite korrata…?'], ['Keelesõbra programm, tere!', 'Jah, täpselt nii.', 'Kas teil on veel küsimusi?']),
       B.speaking('087_p_say', 'Viis minutit vestlust.', 'Vestelge 5 minutit. Kumbki esitab vähemalt kolm küsimust.', ['Kuidas sa eesti keelt harjutad?', 'Mis on sulle kõige raskem: rääkida, kuulata või küsida?', 'Kas keelesõbra programm sobiks sulle? Miks?'], [150, 240], ['Aga sina?', 'Mida sa selle all mõtled?', 'Ma olen nõus, aga…']),
-      B.selfcheck('087_p_self', ['Ma mõistan lühikeste tekstide põhiinfot (kuulamine 1).', 'Ma eristan intervjuus õiget ja valet väidet (kuulamine 4).', 'Ma annan kaudse kõnega edasi, mida keegi ütles.', 'Ma küsin telefonis kaardi järgi ja täpsustan.'], 'Küsimused on esitatud'),
+
     ],
     transfer: [
       B.text('087_t_situation', 'Uus olukord', 'Sinu meeskond (12 inimest) saab 600 eurot ühiseks ürituseks. Sina ja kolleeg peate valima ühe idee ja jõudma kokkuleppele. Seejärel helistad korraldajale ja küsid infot. Kirjuta lõpuks kolleegidele.'),
@@ -442,6 +443,12 @@ export const LESSONS = {
         '**C** Põgenemistuba ja pitsaõhtu: kaks võistkonda, üks tund mängu. 30 eurot inimese kohta.',
         '**D** Spaapäev Pärnus: rong, saunad ja õhtusöök. 60 eurot inimese kohta, ainult nädalavahetusel.',
       ].join('\n\n')),
+      B.choice('087_t_check', 'Mida ideekaart ütleb?', 'Vali ideekaardi põhjal õige vastus.', [
+        ['Meeskonnas on 12 inimest. Milline idee ei mahu eelarvesse?', 'spaapäev Pärnus', 'kokakursus restoranis', 'matk Lahemaal'],
+        ['Milline idee sõltub kõige rohkem ilmast?', 'matk Lahemaal', 'põgenemistuba', 'kokakursus'],
+        ['Kus saab kolleegidega koos süüa teha?', 'kokakursusel', 'põgenemistoas', 'spaas'],
+        ['Milline idee on kõige odavam?', 'matk Lahemaal', 'põgenemistuba', 'kokakursus'],
+        ['Milline idee sobib ainult nädalavahetusele?', 'spaapäev', 'matk', 'kokakursus'], ['Milline idee on kallim kui kokakursus?', 'spaapäev Pärnus', 'põgenemistuba', 'matk Lahemaal']], 'full', 'g_read'),
       B.reading('087_t_read', 'Loe artiklit.', 'Loe artiklit ja vasta küsimustele.', 'Kas ühine üritus teeb meeskonna tugevamaks?', [
         'Paljud Eesti firmad korraldavad töötajatele kord või kaks aastas ühise ürituse. Mõni meeskond läheb matkale, teine valib kokakursuse või spordipäeva. Personalijuht Maria Kask ütleb, et selline päev ei ole ainult lõbu. Tema sõnul hakkavad inimesed ka tööl paremini suhtlema, kui nad näevad üksteist väljaspool kontorit.',
         'Kask soovitab ürituse valida koos töötajatega. Kui juht otsustab üksi, võib juhtuda, et pooled inimesed ei taha üldse tulla. Näiteks korraldas üks tema endine firma talvel kahepäevase matka, kuigi mitmel töötajal olid väikesed lapsed. Tulid ainult kuus inimest kahekümnest.',
@@ -457,13 +464,7 @@ export const LESSONS = {
         ['Mida tasub teha pärast üritust?', 'küsida tagasisidet'],
         ['Kas sinu arvates on sellised üritused vajalikud? Miks?'],
       ]),
-      B.choice('087_t_check', 'Mida ideekaart ütleb?', 'Vali ideekaardi põhjal õige vastus.', [
-        ['Meeskonnas on 12 inimest. Milline idee ei mahu eelarvesse?', 'spaapäev Pärnus', 'kokakursus restoranis', 'matk Lahemaal'],
-        ['Milline idee sõltub kõige rohkem ilmast?', 'matk Lahemaal', 'põgenemistuba', 'kokakursus'],
-        ['Kus saab kolleegidega koos süüa teha?', 'kokakursusel', 'põgenemistoas', 'spaas'],
-        ['Milline idee on kõige odavam?', 'matk Lahemaal', 'põgenemistuba', 'kokakursus'],
-        ['Milline idee sobib ainult nädalavahetusele?', 'spaapäev', 'matk', 'kokakursus'],
-      ], 'full', 'g_read'),
+
       B.table('087_t_compare', 'Võrdle ideid.', 'Kirjuta igale ideele üks pluss ja üks miinus.', 'Idee, Pluss, Miinus', ['A matk | | ', 'B kokakursus | | ', 'C põgenemistuba | | ', 'D spaapäev | | ']),
       B.dialogue('087_t_dialog', 'Kokkulepe.', 'Täida lüngad sobiva sõnaga.', 'Anna', 'Markus', [
         ['A', 'Mida sa [arvad], kas matk oleks hea mõte?'],
@@ -479,15 +480,13 @@ export const LESSONS = {
         ['„Joogid tuleb eraldi maksta.”', 'Nad ütlesid, et …', 'Nad ütlesid, et joogid tuleb eraldi maksta.'],
         ['„Kas teil on taimetoitlasi?”', 'Restoran küsis, …', 'Restoran küsis, kas meil on taimetoitlasi.'],
         ['„Millal teile sobib?”', 'Nad küsisid, …', 'Nad küsisid, millal meile sobib.'],
-        ['„Taimetoidust tuleb ette teatada.”', 'Restoran ütles, et …', 'Restoran ütles, et taimetoidust tuleb ette teatada.'],
-      ]),
+        ['„Taimetoidust tuleb ette teatada.”', 'Restoran ütles, et …', 'Restoran ütles, et taimetoidust tuleb ette teatada.'], ['„Kursus algab kell kuus õhtul.”', 'Restoran teatas, et …', 'Restoran teatas, et kursus algab kell kuus õhtul.']]),
       B.errorfix('087_tx_fix', 'Paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [
         ['Mis me teeme, kui laupäeval sadab?', 'Mis me teeme, kui laupäeval sajab?'],
         ['Restoran ütles, et meil on vaja ette helistama.', 'Restoran ütles, et meil on vaja ette helistada.'],
         ['Kas me oleme nüüd kokku leppitud?', 'Kas me oleme nüüd kokku leppinud?'],
         ['Ma pakun kokakursust, sest see on rohkem huvitav.', 'Ma pakun kokakursust, sest see on huvitavam.'],
-        ['Kursus maksab nelikümmend viis eurot igaüks inimene.', 'Kursus maksab nelikümmend viis eurot inimese kohta.'],
-      ]),
+        ['Kursus maksab nelikümmend viis eurot igaüks inimene.', 'Kursus maksab nelikümmend viis eurot inimese kohta.'], ['Ma arvan, et matk on parem idee kui põgenemistuba on.', 'Ma arvan, et matk on parem idee kui põgenemistuba.']]),
       B.speaking('087_t_agree', 'Rääkimine 1b: jõudke kokkuleppele.', 'Arutage ideekaarti 4–5 minutit. Kumbki esitab kolm küsimust. Lõpus öelge, mille valisite.', ['Mis on iga idee pluss ja miinus?', 'Mida meeskond eelistaks?', 'Mille kasuks te otsustate ja miks?'], [150, 240], ['Mida sina arvad…?', 'Ma olen nõus, aga…', 'Kuidas oleks, kui…?', 'Otsustame siis nii.']),
       B.rolecards('087_t_phone', 'Rääkimine 2: telefonikõne restorani.', 'Rääkige 4–5 minutit. Kasutage kaarte.',
         'Küsimuste kaart. Helista restorani ja küsi: 1) kas kursus on võimalik 12 inimesele; 2) millised kuupäevad on vabad; 3) kas saab taimetoitu; 4) mis on hinnas. Esita üks täpsustav küsimus.',
@@ -528,9 +527,9 @@ export const LESSONS = {
         '**Muutunud tingimus:** Mis siis, kui …? / Kui see ei sobi, siis …',
         '**Kokkulepe:** Lepime siis kokku, et … / Kas ma sain õigesti aru, et …?',
       ], 'full'),
-      B.vocab('088_d_vocab', 'Probleemi sõnad', ['kaebus — жалоба', 'tellimus — заказ', 'pakiautomaat — посылочный автомат', 'hüvitama — возмещать', 'tühistama — отменять', 'tagasi maksma — вернуть деньги', 'ettepanek — предложение', 'variant — вариант', 'kokku leppima — договориться', 'tarbijakaitseamet — защита прав потребителей'], '2'),
+      B.vocab('088_d_vocab', 'Probleemi sõnad', ['probleem — проблема', 'tellimus — заказ', 'lahendus — решение', 'hüvitama — возмещать', 'tühistama — отменять', 'tagasi maksma — вернуть деньги', 'lubama — обещать', 'variant — вариант', 'kokku leppima — договориться', 'vabandama — извиняться'], '2'),
       B.wordforms('088_d_forms', 'Umbisikuline minevik.', 'Kirjuta umbisikulise mineviku vorm.', [['saatma', 'umbisikuline minevik', 'saadeti'], ['ütlema', 'umbisikuline minevik', 'öeldi'], ['lubama', 'umbisikuline minevik', 'lubati'], ['tooma', 'umbisikuline minevik', 'toodi'], ['tühistama', 'umbisikuline minevik', 'tühistati'], ['tegema', 'umbisikuline minevik', 'tehti'], ['võtma', 'umbisikuline minevik', 'võeti']]),
-      B.gaps('088_d_gaps', 'Mis juhtus?', 'Kirjuta umbisikuline minevik.', [
+      B.gaps('088_d_gaps', 'Mis juhtus?', 'Kirjuta umbisikulise mineviku vorm.', [
         'Minu tellimus [saadeti] (saatma) kogemata valesse linna.',
         'Telefonis [öeldi] (ütlema) mulle, et pakk tuleb homme.',
         'Õhtune rong Tartusse [tühistati] (tühistama) tormi tõttu.',
@@ -563,10 +562,10 @@ export const LESSONS = {
         ['Rong tühistati ja ma pidin võtta takso.', 'Rong tühistati ja ma pidin takso võtma.; Rong tühistati ja ma pidin võtma takso.'],
         ['Lepime kokku, et te helistate mind homme.', 'Lepime kokku, et te helistate mulle homme.'],
       ]),
-      TR('088_d_tr', ['Мне сказали, что посылку отправили не по тому адресу.', 'Если бы мне сказали сразу, я бы купил велосипед в другом месте.', 'Первый вариант: вы вернёте все деньги.', 'Можно ли было бы поменять время?', 'Давайте договоримся, что вы позвоните мне завтра.']),
+      TR('088_d_tr', ['Мне сказали, что посылку отправили не по тому адресу.', 'Если бы мне сказали сразу, я бы купил велосипед в другом месте.', 'Первый вариант: вы вернёте все деньги.', 'Можно ли было бы поменять время?', 'Давайте договоримся, что вы позвоните мне завтра.', 'Мне обещали, что деньги вернут в течение недели.']),
       B.speaking('088_d_say', 'Mis juhtus?', 'Räägi 2–3 minutit probleemist, mis sul on olnud.', ['Mis juhtus ja millal?', 'Mida sulle öeldi?', 'Kuidas probleem lahendati?', 'Mida sa oleksid teinud teisiti?'], [120, 180]),
       W('088_d_write', 'Lühike kaebus.', 'Kirjuta 8–10 lauset: probleem, detailid ja kaks varianti.', ['saadeti', 'öeldi', 'esimene variant', 'teine variant']),
-      B.selfcheck('088_d_self', ['Ma ütlen umbisikulise minevikuga, mis juhtus.', 'Ma ütlen, mida oleksin teinud teisiti.', 'Ma pakun kaks varianti.', 'Ma lepin lahenduse kokku.'], 'Probleem on kirjeldatud'),
+
     ],
     // Harno B1 listening 3: a 3-minute phone dialogue, eight answers of 1–2 words; then problems with a changed condition
     practice: [
@@ -627,7 +626,7 @@ export const LESSONS = {
         'Viimane koht müüdi ära, [nii et pidime uue lahenduse leidma].',
         'Lepime siis kokku, [et te saadate pileti sõnumiga].',
       ], ['siis on veel üks võimalus', 'aga see ei sobinud mulle', 'oleksin pileti varem ostnud', 'et uus pilet on tasuta', 'nii et pidime uue lahenduse leidma', 'et te saadate pileti sõnumiga', 'sest buss on alati täpne', 'kuna ma ei taha üldse sõita']),
-      TR('088_p_tr', ['Автобус отменили из-за технической неисправности.', 'Мне предложили два варианта.', 'Если бы я знал, я бы купил билет раньше.', 'Я правильно понял, что новый билет бесплатный?', 'Давайте договоримся, что вы пришлёте билет сообщением.']),
+      TR('088_p_tr', ['Автобус отменили из-за технической неисправности.', 'Мне предложили два варианта.', 'Если бы я знал, я бы купил билет раньше.', 'Я правильно понял, что новый билет бесплатный?', 'Давайте договоримся, что вы пришлёте билет сообщением.', 'К сожалению, следующий автобус уходит только вечером.']),
       B.rolecards('088_p_school', 'Probleem 1: kool.', 'Rääkige 4 minutit. Kahe minuti pärast loeb B ette muutuse.',
         'Lapsevanem. Klassi ekskursiooni buss ei välju kell 8, vaid kell 6.30. Sa ei saa last nii vara kooli tuua, sest töötad öösel. Selgita ja küsi variante.',
         'Klassijuhataja. Paku: teine lapsevanem võib lapse kaasa võtta või laps tuleb hiljem rongiga järele. MUUTUS: teine lapsevanem jäi haigeks — leidke koos uus lahendus.',
@@ -636,7 +635,7 @@ export const LESSONS = {
         'Töötaja. Juht muutis graafikut: pead laupäeval töötama, aga sul on ema juubel. Selgita ja paku kaks varianti.',
         'Juht. Laupäeval on vaja üht inimest kassasse. Paku: vahetus kolleegiga või ületunnitasu. MUUTUS: kolleeg ei saa vahetada — leidke koos uus lahendus.',
         ['Mul on laupäeval…', 'Esimene variant oleks…', 'Kui see ei sobi, siis…'], ['Saan aru.', 'Kas te saaksite…?', 'Lepime siis kokku, et…']),
-      B.selfcheck('088_p_self', ['Ma kirjutan telefonikõnest 1–2-sõnalise vastuse (kuulamine 3).', 'Ma ütlen umbisikulise minevikuga, mis juhtus.', 'Ma pakun kaks varianti ja reageerin muutusele.', 'Ma viin kaks probleemi lahenduseni eesti keeles.'], 'Lahendus on leitud'),
+
     ],
     transfer: [
       B.text('088_t_situation', 'Uus olukord', 'Sa broneerisid perele kolmeks ööks puhkemaja Saaremaal. Kohale jõudes selgub, et maja ei ole koristatud ja saun ei tööta. Sa helistad omanikule. Kõne ajal muutub olukord veel kord.'),
@@ -678,14 +677,14 @@ export const LESSONS = {
         ['Telefonis lubati mulle, et saun parandakse homme.', 'Telefonis lubati mulle, et saun parandatakse homme.'],
         ['Palun makske meile tagasi üks öö hind.', 'Palun makske meile tagasi ühe öö hind.'],
         ['Kui saun oleks töötanud, oleksime iga õhtu saunas käima.', 'Kui saun oleks töötanud, oleksime iga õhtu saunas käinud.'],
-        ['Omanik vabandas meie ees ja lubas raha tagasi maksma.', 'Omanik vabandas meie ees ja lubas raha tagasi maksta.'],
-      ]),
+        ['Omanik vabandas meie ees ja lubas raha tagasi maksma.', 'Omanik vabandas meie ees ja lubas raha tagasi maksta.'], ['Me ootasime omanikku kaks tundi, aga keegi ei tulnud mitte.', 'Me ootasime omanikku kaks tundi, aga keegi ei tulnud.']]),
+      TR('088_t_tr', ['Когда мы приехали, дом не был убран.', 'Сауна не работала все три дня.', 'Хозяин извинился и пообещал прислать уборщицу.', 'Если бы нам сказали раньше, мы бы выбрали другой дом.', 'Мы просим вернуть деньги за одну ночь.', 'Давайте договоримся, что вы ответите до пятницы.']),
       B.planning('088_t_plan', 'Kõne plaan.', 'Kirjuta enne helistamist märksõnad.', ['Mis juhtus? (kaks probleemi)', 'Detailid: millal saabusid, mis täpselt on valesti', 'Minu variant 1 ja variant 2', 'Mida teen, kui omanik ütleb „ei”?']),
       B.rolecards('088_t_call', 'Kõne omanikule.', 'Rääkige 4–5 minutit. Omaniku kaart muutub poole kõne pealt.',
         'Külaline. Maja ei ole koristatud ja saun ei tööta. Selgita, täpsusta ja paku kaks varianti. Ära mine üle teisele keelele.',
         'Omanik. Vabanda. Koristaja saab tulla alles homme. Paku: koristus homme ja saun tasuta. MUUTUS: kahe minuti pärast ütle, et ka homme ei saa keegi tulla — paku teist maja või hüvitist.',
         ['Mul on kaks probleemi…', 'Esimene variant oleks…', 'Mis siis, kui…?', 'Lepime siis kokku, et…'], ['Vabandan väga!', 'Kahjuks selgus, et…', 'Kas teile sobiks…?']),
-      B.speaking('088_t_change', 'Uus muutus!', 'Lahkumise päeval on torm ja praam ei sõida. Räägi 2–3 minutit, kuidas olukorra lahendad.', ['Kellele sa helistad?', 'Millised variandid sul on?', 'Mille sa valid ja miks?'], [120, 180]),
+
       B.letter('088_t_letter', 'Kiri omanikule (umbes 100 sõna).', 'Kirjuta pärast puhkust: mis juhtus, mida lubati, mis jäi tegemata ja mida soovid.', 'Lugupeetud omanik!', 'Lugupidamisega', [90, 120]),
       B.rubric('088_t_rubric', 'Kas probleem sai lahendatud?', 'Märgi, mis kõnes ja kirjas oli olemas.', ['Ütlesin selgelt, mis juhtus.', 'Andsin detailid: aeg, koht, mis on valesti.', 'Pakkusin kaks varianti.', 'Kui tingimus muutus, leidsin uue lahenduse.', 'Lõpus kordasin kokkulepet ja ei läinud üle teisele keelele.']),
       B.selfcheck('088_t_self', ['Ma oskan kasutada väljendeid: Kas oleks võimalik…? Teine variant oleks… Lepime kokku, et…', 'Ma oskan leida tingimustest ja kõnest probleemi, põhjuse ja lahenduse.', 'Ma oskan öelda, mis juhtus (saadeti, öeldi) ja mis oleks olnud (oleksin teinud).', 'Ma oskan lahendada probleemi lõpuni ka siis, kui tingimus muutub.'], 'Puhkus on päästetud'),
@@ -694,11 +693,13 @@ export const LESSONS = {
 
   'a2b1-089': {
     title: 'B1 proovitund',
+    assessment: true,
     canDo: 'Ma sooritan Harno B1 eksami vormis proovitöö kõigis neljas osaoskuses ajapiiri sees ja saan kokku vähemalt 70%.',
     // Harno B1 listening (30 items, ~35 min): 1) seven clips, 3 options; 2) a monologue, 6 × 3 options;
     // 3) a dialogue, 8 short answers; 4) an interview, 9 × true/false. First listening: notes; second: the exam items.
     discover: [
       B.tip('089_d_how', 'B1 proovitund: kuulamine (35 min)', 'Kuulamises on neli osa. Õpetaja loeb iga teksti kaks korda: esimesel korral kirjuta märksõnad, teisel korral vasta eksami küsimustele. Aeg: osa 1 – 7 min, osa 2 – 8 min, osa 3 – 10 min, osa 4 – 10 min. Punkte annavad osa 1 ja 2 valikvastused, osa 3 lüngad ja osa 4 õige/vale (kokku 30).', 'full'),
+      B.vocab('089_d_vocab', 'Eksami sõnad', ['kuulutus — объявление', 'teade — сообщение', 'vastus — ответ', 'küsimus — вопрос', 'õige — правильный', 'vale — неправильный', 'punkt — балл', 'osa — часть', 'lünk — пропуск', 'valik — выбор'], '2'),
       B.listening('089_d_l1', 'Osa 1: seitse lühiteksti (märksõnad).', 'Esimesel kuulamisel kirjuta iga teksti juurde 1–2 sõna.', [
         '1. — Vabandust, kas te teate, kus on postkontor? — Postkontor koliti eelmisel kuul kaubanduskeskusesse. See on teisel korrusel, apteegi kõrval.',
         '2. Hea klient! Teie retseptiravim on Kesklinna apteegis valmis. Palun tulge sellele järele kolme päeva jooksul ja võtke kaasa isikut tõendav dokument. Kui te ei saa ise tulla, võib ravimi võtta ka teie pereliige.',
@@ -830,8 +831,17 @@ export const LESSONS = {
         ['Öise väljakutse korral tuleb mõne minutiga valmis olla.', true],
         ['Komando lahtiste uste päev toimub igal aastal sügisel septembris.', false],
       ], 'full'),
+      B.errorfix('089_d_fix', 'Keeleosa: paranda viga.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [
+        ['Raadios öeldakse eile, et homme tuleb tugev tuul.', 'Raadios öeldi eile, et homme tuleb tugev tuul.'],
+        ['Ma ei saanud aru, mis kell buss väljuma.', 'Ma ei saanud aru, mis kell buss väljub.'],
+        ['Kas te võiksite seda veel üks kord korrata?', 'Kas te võiksite seda veel ühe korra korrata?|Kas te võiksite seda veel kord korrata?'],
+        ['Intervjuus rääkis kokk, et ta armastab kalaga.', 'Intervjuus rääkis kokk, et ta armastab kala.'],
+        ['Pood on remondi tõttu suletud kuni järgmisest esmaspäevani.', 'Pood on remondi tõttu suletud kuni järgmise esmaspäevani.'],
+        ['Saatejuht küsis, kus kuulajad oma puhkust veedaks.', 'Saatejuht küsis, kus kuulajad oma puhkust veedavad.'],
+      ]),
+      D('089_d_dict', ['Rong Tallinna väljub täna kümme minutit hiljem.', 'Palun võtke kõik oma asjad bussist kaasa.', 'Raamatukogu on pühapäeviti kella kümnest neljani avatud.', 'Ilmateade lubab nädalavahetuseks sooja ja päikest.', 'Kontsert lükati haigestumise tõttu järgmisele kuule.', 'Saatejuht küsis külaliselt, miks ta Eestisse kolis.']),
       B.rubric('089_d_score', 'Kuulamise punktid.', 'Loe kokku õiged vastused osade kaupa.', ['Osa 1 (valikvastused): … / 7', 'Osa 2 (valikvastused): … / 6', 'Osa 3 (lüngad): … / 8', 'Osa 4 (õige/vale): … / 9', 'Kokku: … / 30 (lävend 60% = 18 punkti)']),
-      B.selfcheck('089_d_self', ['Ma mõistan lühikeste teadete ja dialoogide põhiinfot.', 'Ma jälgin 2–3-minutilist monoloogi ja valin õige vastuse.', 'Ma kirjutan dialoogist 1–2-sõnalise vastuse.', 'Ma eristan intervjuus õiget ja valet väidet.'], 'Kuulamine tehtud'),
+
     ],
     // Harno B1 reading (33 items, 50 min): 1) 9 situations ↔ 6 ads; 2) an article, 6 × 3 options; 3) an option cloze,
     // 10 gaps; 4) 8 clause gaps from a bank with three extra. Then KeeleSepp's language block and a short retelling.
@@ -912,24 +922,33 @@ export const LESSONS = {
       B.speaking('089_p_say', 'Lisaks: räägi loetust (3 min).', 'Räägi artiklist: neljapäevase nädala plussid ja miinused ning sinu arvamus.', ['Mida firmas „Koodikoda” muudeti?', 'Kellele süsteem ei sobi ja miks?', 'Kas sina tahaksid neljapäevast töönädalat?'], [150, 180]),
       W('089_p_write', 'Lisaks: lühike arvamus.', 'Kirjuta 8–10 lauset: kas neljapäevane töönädal on hea mõte? Too kaks põhjust ja näide.', ['esiteks', 'teisest küljest', 'näiteks', 'kokkuvõtteks']),
       B.rubric('089_p_score', 'Lugemise punktid.', 'Loe kokku õiged vastused osade kaupa.', ['Osa 1: … / 9', 'Osa 2: … / 6', 'Osa 3: … / 10', 'Osa 4: … / 8', 'Kokku: … / 33 (lävend 60% = 20 punkti)', 'Keeleosa: … / 12']),
-      B.selfcheck('089_p_self', ['Ma leian kuulutustest olukorrale sobiva info.', 'Ma mõistan artikli peamõtet ja detaile.', 'Ma valin lünka õige vormi või lauseosa.', 'Ma parandan tüüpilisi B1 vigu.'], 'Lugemine tehtud'),
+
     ],
     // Harno B1 writing (35 min: a ~50-word note, a ~100-word personal letter) and speaking (~15 min in pairs:
     // a get-to-know-you start, 1a topic-sheet questions, 1b reaching an agreement with an idea card, 2 a phone call)
     transfer: [
       B.text('089_t_situation', 'B1 proovitund: kirjutamine ja rääkimine', 'Kirjutamine kestab 35 minutit: osa 1 (teade, umbes 50 sõna) – 12 minutit, osa 2 (isiklik kiri, umbes 100 sõna) – 23 minutit. Rääkimine kestab paaris umbes 15 minutit: tutvumine, osa 1a ja 1b, osa 2. Olukord: sinu majas korraldatakse kevadel ühine koristuspäev ja sa kolisid hiljuti uude koju.'),
-      B.errorfix('089_tx_fix', 'Enne kirjutamist: tüüpvead.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [
-        ['Kahjuks ma ei saa laupäeval tulla, aga ma saan aidata pühapäeva.', 'Kahjuks ma ei saa laupäeval tulla, aga ma saan aidata pühapäeval.'],
-        ['Minu asemel tulevad koristuspäevale minu poeg, kes elab samas majas.', 'Minu asemel tuleb koristuspäevale minu poeg, kes elab samas majas.'],
-        ['Kui teil on küsimusi, helistage mind numbril 5123 4567.', 'Kui teil on küsimusi, helistage mulle numbril 5123 4567.'],
-        ['Eelmisel kuul kolisin ma uues korteris, mis asub kesklinnas.', 'Eelmisel kuul kolisin ma uude korterisse, mis asub kesklinnas.'],
-        ['Tule mulle järgmisel kuul külla, kui sul on vaba aeg.', 'Tule mulle järgmisel kuul külla, kui sul on vaba aega.'],
+      B.reading('089_t_read', 'Loe majaühistu teadet.', 'Loe teadet ja vasta küsimustele. Teadet on vaja kirjutamise 1. osas.', 'Kevadine koristuspäev', [
+        'Head naabrid! Majaühistu korraldab laupäeval, 26. aprillil kevadise koristuspäeva. Alustame kell kümme hommikul hoovis. Kõigepealt koristatakse hoovi ja lillepeenraid, pärast lõunat pestakse trepikodade aknad.',
+        'Töökindad ja prügikotid saab majaühistult, aga reha või labida võiks igaüks ise kaasa võtta. Kella ühe ajal pakutakse kõigile suppi ja kooki. Lapsed on väga oodatud: nende jaoks korraldatakse hoovis väike võistlus ja parimad saavad auhinna. Kui sul on kodus aiatööriistu, mida sa enam ei vaja, võid need majale kinkida.',
+        'Suured asjad, näiteks vanad toolid ja kapid, palume tuua prügiauto juurde enne kella kolme, sest siis auto lahkub. Kes laupäeval tulla ei saa, võib aidata pühapäeval, kui värvitakse hoovi pinke.',
+        'Palun andke esimehele hiljemalt neljapäevaks teada, kas tulete ja mitu inimest teie korterist osaleb. Eelmisel aastal osales kolmkümmend naabrit ja kõik oli valmis juba kella kolmeks. Kui teeme töö koos ära, saame suvel istuda puhtas ja ilusas hoovis. Majaühistu juhatus arutas ka, kas tellida koristamiseks firma. See oleks maksnud umbes 1200 eurot ja seda raha tuleks maksta kõigil korteritel. Ühistu otsustas, et see raha kulub paremini uutele pinkidele ja lilledele. Lisaks on koristuspäev hea võimalus uute naabritega tuttavaks saada. Meie majja kolis sel talvel viis uut peret ja paljud vanemad elanikud ei tea veel nende nimesid.',
+        'Tervitades, majaühistu esimees Andres Kask, telefon 5345 6789.',
+      ].join('\n\n'), [
+        ['Mis kell koristuspäev algab?', '10.00|10'],
+        ['Mida peaks igaüks ise kaasa võtma?', 'oma aiatööriista|tööriista'],
+        ['Miks ei tellinud ühistu koristamiseks firmat?', 'see oleks olnud kallis|raha kulub paremini pinkidele ja lilledele|liiga kallis'],
+        ['Miks tuleb vanad kapid tuua enne kella kolme?', 'prügiauto sõidab ära|hiljem pole autot'],
+        ['Kuidas saab aidata naaber, kes laupäeval tulla ei saa?', 'pinke värvides järgmisel päeval|järgmisel päeval pinke värvides'],
+        ['Mida tuleb esimehele neljapäevaks öelda?', 'kas tuled ja mitmekesi|mitmekesi tullakse'],
+        ['Mida sa arvad: miks koristavad naabrid hoovi koos, mitte ei telli firmat?'],
       ]),
-      B.planning('089_t_plan', 'Plaan (3 minutit).', 'Kirjuta märksõnad mõlema kirjutamisülesande jaoks.', ['Teade: miks ei saa tulla, millal saad aidata, kes tuleb asemel, kontakt', 'Kiri: kuhu kolisid, milline on uus kodu', 'Kiri: naabrid, mis meeldib, mis on raske', 'Kiri: kutse külla']),
-      B.letter('089_t_w1', 'Kirjutamine 1: teade (umbes 50 sõna, 12 minutit).', 'Sa ei saa laupäeval koristuspäevale tulla. Kirjuta majaühistu esimehele: miks, millal aitad, kes tuleb asemel, kontakt.', 'Tere, härra Kask!', 'Lugupidamisega', [40, 60]),
+
+
+      B.writing('089_t_w1', 'Kirjutamine 1: teade esimehele (5–7 lauset, 12 minutit).', 'Sa ei saa laupäeval koristuspäevale tulla. Kirjuta esimehele Andres Kasele: miks, millal aitad, kes tuleb sinu asemel, sinu kontakt. Alusta „Tere, härra Kask!”.', [5, 7], ['kahjuks', 'sest', 'asemel', 'helistage'], 3),
       B.letter('089_t_w2', 'Kirjutamine 2: isiklik kiri (umbes 100 sõna, 23 minutit).', 'Kirjuta sõbrale: kuhu kolisid, milline on uus kodu, millised on naabrid, mis on raske. Kutsu ta külla.', 'Tere, Sofia!', 'Kallistades', [90, 120]),
-      B.speaking('089_t_intro', 'Rääkimine: tutvumine (1–2 minutit).', 'Eksamineerija küsib, sina vastad lühidalt ja selgelt.', ['Kuidas on teie nimi ja kus te elate?', 'Millega te tegelete?', 'Miks te eesti keelt õpite?'], [90, 120]),
-      B.speaking('089_t_s1a', 'Rääkimine 1a: teemalehe küsimused (3 minutit).', 'Teema: kodu ja naabrid. Vasta igale küsimusele 30–40 sekundit.', ['Kirjeldage oma kodu.', 'Kas te tunnete oma naabreid? Kuidas te suhtlete?', 'Mis on hea naabri omadused?', 'Kas te elaksite pigem linnas või maal? Miks?', 'Mida võiks teie kodukohas paremaks muuta?'], [150, 210]),
+
+      B.speaking('089_t_s1a', 'Rääkimine 1a: teemalehe küsimused (3 minutit).', 'Teema: kodu ja naabrid. Vasta igale küsimusele umbes minut: vastus, põhjus ja näide.', ['Kas te tunnete oma naabreid? Kuidas te suhtlete?', 'Kas te elaksite pigem linnas või maal? Miks?', 'Mida võiks teie kodukohas paremaks muuta?'], [90, 120]),
       B.speaking('089_t_s1b', 'Rääkimine 1b: jõudke kokkuleppele (3–4 minutit).', 'Majaühistul on 1500 eurot. Valige ideekaardilt üks asi ja põhjendage.', ['Ideekaart: A) pingid ja lillepeenrad hoovi; B) lukustatav jalgrattaruum; C) laste mänguväljak; D) trepikoja värvimine.', 'Mis on iga idee pluss ja miinus?', 'Kes majas sellest kõige rohkem võidab?', 'Milles te kokku leppisite?'], [150, 240], ['Minu meelest…', 'Ma olen nõus, aga…', 'Kui me valime…, siis…', 'Otsustame siis nii.']),
       B.rolecards('089_t_s2', 'Rääkimine 2: telefonikõne (4–5 minutit).', 'A helistab majahalduse firmasse, B on firma töötaja. Kasutage kaarte.',
         'Küsimuste kaart. Helista majahaldusesse ja küsi: 1) millal tuleb koristuspäeval prügiauto; 2) kas saab tellida suure konteineri; 3) kui palju see maksab; 4) kas firma toob ka töökindad. Täpsusta üht vastust.',
@@ -942,11 +961,13 @@ export const LESSONS = {
 
   'a2b1-090': {
     title: 'Lõpphindamine — B1',
+    assessment: true,
     canDo: 'Ma näitan B1 taset kõigis neljas osaoskuses: saan igas osas vähemalt 60% ja kokku vähemalt 70% ning tean oma järgmised eesmärgid.',
     // A parallel second Harno B1 mock (new texts and situations). Listening: T1 clips + 3 options, T2 monologue +
     // 3 options, T3 a dialogue with short answers to questions (the other T3 format), T4 interview + true/false.
     discover: [
       B.tip('090_d_how', 'Lõpphindamine: kuulamine (35 min)', 'Kuulamises on neli osa ja 30 punkti. Õpetaja loeb iga teksti kaks korda: esimesel korral kirjuta märksõnad, teisel korral vasta eksami küsimustele. Aeg: osa 1 – 7 min, osa 2 – 8 min, osa 3 – 10 min, osa 4 – 10 min. Lõpus kirjuta oma punktid tabelisse.', 'full'),
+      B.vocab('090_d_vocab', 'Hindamise sõnad', ['tulemus — результат', 'lävend — порог', 'sooritama — сдавать экзамен', 'hindama — оценивать', 'osaoskus — языковой навык', 'kuulutus — объявление', 'teade — сообщение', 'vastus — ответ', 'punkt — балл', 'osa — часть'], '2'),
       B.listening('090_d_l1', 'Osa 1: seitse lühiteksti (märksõnad).', 'Esimesel kuulamisel kirjuta iga teksti juurde 1–2 sõna.', [
         '1. — Vabandage, kas see rong peatub Kehras? — Ei, see on kiirrong ja peatub ainult Tapal. Kehrasse sõidab järgmine rong, mis väljub kahekümne minuti pärast samalt platvormilt.',
         '2. Tere! Teile helistatakse hambaravikliinikust. Teie homne aeg tuleb kahjuks ära jätta, sest arst on haige. Palun helistage meile tagasi, et uus aeg kokku leppida.',
@@ -1068,8 +1089,21 @@ export const LESSONS = {
         ['Telefonireeglid kirjutas õpilasesindus ise.', true],
         ['Enne otsust korraldati koolis mitu koosolekut.', true],
       ], 'full'),
-      B.table('090_d_result', 'Minu tulemus: kuulamine.', 'Kirjuta oma punktid. Kas said kokku vähemalt 18?', 'Osa, Minu punktid, Maksimum', ['Osa 1 (valikvastused) | | 7', 'Osa 2 (valikvastused) | | 6', 'Osa 3 (lühivastused) | | 8', 'Osa 4 (õige/vale) | | 9', 'Kokku (lävend 18 = 60%) | | 30']),
-      B.selfcheck('090_d_self', ['Kuulamine: sain vähemalt 18 punkti 30-st.', 'Mõistan teateid ja lühidialooge ilma sõnastikuta.', 'Jälgin monoloogi ja intervjuud kaks korda kuulates.', 'Vastan dialoogi põhjal lühidalt ja täpselt.'], 'Kuulamine hinnatud'),
+      B.transformation('090_d_trans', 'Keeleosa: ütle teisiti.', 'Kirjuta lause antud sõnadega.', [
+        ['„Rong hilineb kakskümmend minutit.”', 'Teadaandes öeldi, et …', 'Teadaandes öeldi, et rong hilineb kakskümmend minutit.'],
+        ['„Kas te tulete homme koosolekule?”', 'Sekretär küsis, …', 'Sekretär küsis, kas me tuleme homme koosolekule.|Sekretär küsis, kas ma tulen homme koosolekule.'],
+        ['Kontsert jääb ära, sest lauljad on haiged.', 'tõttu', 'Kontsert jääb lauljate haiguse tõttu ära.|Lauljate haiguse tõttu jääb kontsert ära.'],
+        ['Ma ei teadnud sinu numbrit. Seepärast ma ei helistanud.', 'Kui ma oleksin …', 'Kui ma oleksin sinu numbrit teadnud, oleksin ma helistanud.|Kui ma oleksin sinu numbrit teadnud, oleksin helistanud.'],
+        ['Saatejuht: „Kus te puhkust veedate?”', 'Saatejuht küsis, …', 'Saatejuht küsis, kus me puhkust veedame.|Saatejuht küsis, kus nad puhkust veedavad.'],
+        ['Raamatukogus töötades õppis Mari palju uusi sõnu.', 'Kui …', 'Kui Mari raamatukogus töötas, õppis ta palju uusi sõnu.'],
+      ]),
+      TR('090_d_tr', ['Поезд в Тарту сегодня опаздывает на полчаса.', 'Пожалуйста, говорите немного медленнее.', 'В интервью тренер рассказал, как он работает с молодёжью.', 'Магазин закрыт из-за ремонта до понедельника.', 'Ведущий спросил слушателей, нужны ли ещё наличные.', 'Завтра утром ожидается густой туман.']),
+
+
+
+      B.rubric('090_d_result', 'Minu tulemus: kuulamine.', 'Loe kokku oma punktid. Kas said kokku vähemalt 18?', ['Osa 1 (valikvastused): … / 7', 'Osa 2 (valikvastused): … / 6', 'Osa 3 (lühivastused): … / 8', 'Osa 4 (õige/vale): … / 9', 'Kokku: … / 30 (lävend 60% = 18 punkti)']),
+
+
     ],
     // reading in Harno form (33 points) with new texts, KeeleSepp's language block and a result table
     practice: [
@@ -1150,25 +1184,40 @@ export const LESSONS = {
       ]),
       W('090_p_write', 'Minu arvamus: sularaha.', 'Kirjuta 8–10 lauset: kas sularaha on vaja? Too kaks põhjust ja näide.', ['esiteks', 'teisest küljest', 'näiteks', 'kokkuvõtteks']),
       B.table('090_p_result', 'Minu tulemus: lugemine.', 'Kirjuta oma punktid. Kas said kokku vähemalt 20?', 'Osa, Minu punktid, Maksimum', ['Osa 1 (kuulutused) | | 9', 'Osa 2 (artikkel) | | 6', 'Osa 3 (valiklünktekst) | | 10', 'Osa 4 (lauseosad) | | 8', 'Kokku (lävend 20 = 60%) | | 33', 'Keeleosa | | 14']),
-      B.selfcheck('090_p_self', ['Lugemine: sain vähemalt 20 punkti 33-st.', 'Leian kuulutustest olukorrale sobiva info.', 'Mõistan artikli peamõtet ja eri arvamusi.', 'Valin lünka õige vormi või lauseosa.'], 'Lugemine hinnatud'),
+
     ],
     // writing (note + story, the other Harno T2 option) and speaking in a new situation, the pass rule, a result
     // table per skill and the learner's first B1 → B2 goals
     transfer: [
       B.text('090_t_situation', 'Lõpphindamine: kirjutamine ja rääkimine', 'Kirjutamine kestab 35 minutit: osa 1 (teade, umbes 50 sõna) – 12 minutit, osa 2 (lugu, umbes 100 sõna) – 23 minutit. Rääkimine kestab paaris umbes 15 minutit. Olukord: sinu linnaosas avatakse uus kogukonnamaja ja sina lubasid avamisel aidata.'),
-      B.tip('090_t_rule', 'Kuidas tulemust arvestatakse?', 'Harno B1 eksamil on igas osaoskuses 25 punkti. Eksam on sooritatud, kui saad igas osas vähemalt 60% (15 punkti 25-st). KeeleSepa eesmärk on kokku vähemalt 70% (70 punkti 100-st). Siis on B1 kindel ja võid alustada B1 → B2 õpiteed. Kui mõni osa jääb alla 60%, kordame seda osa enne edasiminekut.', 'full'),
-      B.table('090_t_result', 'Minu B1 tulemus.', 'Kirjuta punktid (iga osa 25-st). Kontrolli, kas iga osa on vähemalt 15.', 'Osaoskus, Minu punktid, Vähemalt 15?, Mida korrata?', ['Kuulamine | | | ', 'Lugemine | | | ', 'Kirjutamine | | | ', 'Rääkimine | | | ', 'Kokku (eesmärk 70) | | | ']),
-      B.letter('090_t_w1', 'Kirjutamine 1: teade (umbes 50 sõna, 12 minutit).', 'Sa lubasid avamisel aidata, aga ei saa tulla. Kirjuta korraldajale: miks, millal aitad, kes tuleb asemel, kontakt.', 'Tere, Kadri!', 'Vabandusega', [40, 60]),
-      B.writing('090_t_w2', 'Kirjutamine 2: lugu „Päev, mil kõik läks valesti” (umbes 100 sõna, 23 minutit).', 'Kirjuta lugu: millal ja kus see juhtus, mis läks valesti, mida sa tegid ja kuidas päev lõppes.', [10, 12], ['kõigepealt', 'siis', 'kui ma oleksin', 'lõpuks'], 3),
-      B.speaking('090_t_intro', 'Rääkimine: tutvumine (1–2 minutit).', 'Eksamineerija küsib, sina vastad lühidalt ja selgelt.', ['Kuidas on teie nimi ja millega te tegelete?', 'Kui kaua te olete eesti keelt õppinud?', 'Mis teile eesti keeles kõige rohkem meeldib?'], [90, 120]),
-      B.speaking('090_t_s1a', 'Rääkimine 1a: teemalehe küsimused (3 minutit).', 'Teema: vaba aeg ja kogukond. Vasta igale küsimusele 30–40 sekundit.', ['Kuidas te tavaliselt nädalavahetust veedate?', 'Kas te olete kunagi olnud vabatahtlik? Kus?', 'Mida võiks teie linnaosas noortele pakkuda?', 'Kas te eelistate puhata üksi või koos teistega? Miks?', 'Milline üritus on teile hästi meelde jäänud?'], [150, 210]),
-      B.speaking('090_t_s1b', 'Rääkimine 1b: jõudke kokkuleppele (3–4 minutit).', 'Kogukonnamaja esimese kuu programmi mahub üks sari. Valige koos üks idee ja põhjendage.', ['Ideekaart: A) keelekohvik; B) laste käsitööring; C) eakate arvutiõpe; D) filmiõhtud noortele.', 'Kes iga ideest kõige rohkem võidab?', 'Mis on teie linnaosale kõige vajalikum?', 'Milles te kokku leppisite?'], [150, 240], ['Minu arvates…', 'Ma olen sinuga nõus, aga…', 'Mis siis, kui…?', 'Lepime siis kokku, et…']),
+      B.reading('090_t_read', 'Loe kutset.', 'Loe kutset ja vasta küsimustele. Kutset on vaja kirjutamise 1. osas.', 'Kogukonnamaja „Kask” avamine', [
+        'Kallid naabrid! Pärast kahte aastat ehitust avatakse meie linnaosas laupäeval, 14. septembril uus kogukonnamaja. Majas on suur saal, köök, väike raamatukogu ja ruum lastele. Maja ehitati linna ja elanike ühise rahaga: kaks aastat tagasi hääletasid elanikud kaasava eelarve konkursil just selle idee poolt.',
+        'Avamine algab kell kaksteist, kui linnaosa vanem lõikab läbi lindi. Seejärel esinevad kohaliku kooli koor ja tantsurühm. Kella ühest kolmeni saab majaga tutvuda: igas ruumis räägivad vabatahtlikud, mida seal tulevikus tehakse. Köögis pakutakse suppi ja pirukaid, mida küpsetavad naabrid ise.',
+        'Kõik, kes soovivad avamisel aidata, võiksid tulla juba kell kümme, sest siis tuleb saali toolid tuua ja lauad katta. Kes soovib korraldada majas oma ringi või kursust, saab ideest rääkida kella kolmest viieni. Maja juhataja Kadri Saar ootab uusi ettepanekuid kogu sügise ja talve jooksul.',
+        'Ruumi saab rentida ka sünnipäevaks või koosolekuks, linnaosa elanikele on hind soodsam. Tulge kogu perega! Parkimiskohti on vähe, seepärast palume tulla jala või rattaga. Esimesel kuul on kõik ringid tasuta, et iga elanik saaks proovida. Novembrist alates maksab ring kuus kümme eurot, pensionäridele ja õpilastele viis eurot. Kui ringi ei tule vähemalt kuut inimest, siis see kahjuks suletakse. Kõik küsimused ja ettepanekud saatke e-postiga maja juhatajale Kadri Saarele, kes vastab tavaliselt kahe tööpäeva jooksul.',
+      ].join('\n\n'), [
+        ['Kas maja ehitamise üle otsustasid ainult ametnikud?', 'ei, elanikud hääletasid|ei|elanikud said hääletada'],
+        ['Kui palju maksab novembris ringis käimine õpilasele?', '5 eurot kuus|5 eurot'],
+        ['Mida saab teha kella ühest kolmeni?', 'ruume vaadata|kuulata vabatahtlikke'],
+        ['Miks peaksid abilised tulema juba kell kümme?', 'saali ette valmistama|saali ettevalmistamiseks'],
+        ['Mis juhtub ringiga, kuhu tuleb neli inimest?', 'see suletakse|ring lõpetatakse|ringi ei toimu'],
+        ['Miks palutakse tulla jala või rattaga?', 'parkida pole kuskil|autot pole kuhugi panna'],
+        ['Mida sa arvad: millist ringi oleks sinu linnaosas kõige rohkem vaja ja miks?'],
+      ]),
+
+
+      B.writing('090_t_w1', 'Kirjutamine 1: teade korraldajale (5–7 lauset, 12 minutit).', 'Sa lubasid avamisel aidata, aga ei saa tulla. Kirjuta maja juhatajale Kadri Saarele: miks, millal aitad, kes tuleb sinu asemel, sinu kontakt. Alusta „Tere, Kadri!”.', [5, 7], ['kahjuks', 'sest', 'asemel', 'kirjutage'], 3),
+      B.writing('090_t_w2', 'Kirjutamine 2: lugu „Päev, mil kõik läks valesti” (umbes 100 sõna, 23 minutit).', 'Kirjuta lugu: millal ja kus see juhtus, mis läks valesti, mida sa tegid ja kuidas päev lõppes.', [8, 10], ['kõigepealt', 'siis', 'kui ma oleksin', 'lõpuks'], 3),
+
+      B.speaking('090_t_s1a', 'Rääkimine 1a: teemalehe küsimused (3 minutit).', 'Teema: vaba aeg ja kogukond. Vasta igale küsimusele umbes minut: vastus, põhjus ja näide.', ['Kas te olete kunagi olnud vabatahtlik? Kus?', 'Mida võiks teie linnaosas noortele pakkuda?', 'Kas te eelistate puhata üksi või koos teistega? Miks?'], [90, 120]),
+      B.speaking('090_t_s1b', 'Rääkimine 1b: jõudke kokkuleppele (3–4 minutit).', 'Kogukonnamaja esimese kuu programmi mahub üks sari. Valige koos üks idee ja põhjendage.', ['Ideekaart: A) keelekohvik; B) laste käsitööring; C) eakate arvutiõpe; D) filmiõhtud noortele.', 'Kes iga ideest kõige rohkem võidab ja mis on teie linnaosale kõige vajalikum?', 'Milles te kokku leppisite?'], [90, 120], ['Minu arvates…', 'Ma olen sinuga nõus, aga…', 'Mis siis, kui…?', 'Lepime siis kokku, et…']),
       B.rolecards('090_t_s2', 'Rääkimine 2: telefonikõne (4–5 minutit).', 'A helistab kogukonnamajja, B on maja töötaja. Kasutage kaarte.',
         'Küsimuste kaart. Helista kogukonnamajja ja küsi: 1) kas saab laupäevaks ruumi rentida; 2) mitu inimest sinna mahub; 3) kui palju see maksab; 4) kas köök on kasutamiseks. Täpsusta üht vastust.',
         'Vastuste kaart. Laupäeval on ruum vaba kella 12–18. Mahub 30 inimest. Hind on 15 eurot tunnis, linnaosa elanikele 10 eurot. Köök on olemas, nõud tuleb ise pesta. Broneerida saab e-postiga.',
         ['Tere, ma helistan seoses…', 'Ma sooviksin teada…', 'Kas ma sain õigesti aru, et…?'], ['Kogukonnamaja, tere!', 'Jah, see on võimalik.', 'Kas saan veel kuidagi aidata?']),
-      B.planning('090_t_map', 'Minu B1 → B2 eesmärkide kaart.', 'Kirjuta igasse ritta 2–3 märksõna.', ['Minu tugevaim osaoskus ja miks', 'Osaoskus, mida pean kõige rohkem harjutama', 'Kolm grammatikateemat, mida korrata', 'Minu eesmärk järgmiseks kolmeks kuuks']),
-      B.rubric('090_t_rubric', 'Õpetaja hindab (Harno B1).', 'Õpetaja märgib, mis on täidetud.', ['Teade: kõik 4 punkti, umbes 50 sõna (8 punkti).', 'Lugu: vastab pealkirjale; algus, sündmused ja lõpp; umbes 100 sõna (12 punkti).', 'Rääkimine 1a: seotud vastused põhjenduste ja näidetega.', 'Rääkimine 1b: kokkulepe saavutati.', 'Rääkimine 2: kogu info küsiti ja anti.', 'Igas osas vähemalt 60%, kokku vähemalt 70%.']),
+      B.table('090_t_result', 'Minu B1 tulemus.', 'Kirjuta punktid (iga osa 25-st). Harno B1 eksam on sooritatud, kui igas osas on vähemalt 15 punkti (60%). KeeleSepa eesmärk on kokku vähemalt 70 punkti. Kui mõni osa jääb alla 15, kordame seda enne B2 õpiteed.', 'Osaoskus, Minu punktid, Vähemalt 15?, Mida korrata?', ['Kuulamine | | | ', 'Lugemine | | | ', 'Kirjutamine | | | ', 'Rääkimine | | | ', 'Kokku (eesmärk 70) | | | ']),
+
+      B.rubric('090_t_rubric', 'Õpetaja hindab (Harno B1).', 'Õpetaja märgib, mis on täidetud.', ['Teade: kõik 4 punkti, umbes 50 sõna (8 punkti).', 'Lugu: vastab pealkirjale; algus, sündmused ja lõpp; umbes 100 sõna (12 punkti).', 'Rääkimine 1a: seotud vastused põhjenduste ja näidetega.', 'Rääkimine 1b: kokkulepe saavutati.', 'Rääkimine 2: kogu info küsiti ja anti.', 'Igas osas vähemalt 60% (15 punkti), kokku vähemalt 70%.']),
       B.selfcheck('090_t_self', ['Ma oskan mõista uusi eksamitekste ilma sõnastikuta.', 'Ma oskan saada kuulamises ja lugemises vähemalt 60%.', 'Ma oskan kasutada kirjutades ja rääkides B1 grammatikat: umbisikuline, tingiv kõneviis, kaudne kõne, des-vorm.', 'Ma oskan kirjutada teate ja loo, rääkida nõutud aja ning seada oma B1 → B2 eesmärgid.'], 'B1 on käes'),
     ],
   },

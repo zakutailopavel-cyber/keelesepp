@@ -85,7 +85,8 @@ export function moduleProblems(sheets) {
 // phase differently, neighbours share at most 60 % of the task types, the module uses ≥ 16 block types, at most one
 // self-check per lesson. Modules written before v2 are not checked here.
 const OPENERS = new Set(['text', 'tip', 'image', 'heading']);
-const openingOf = (doc) => (doc.blocks || []).find((b) => !OPENERS.has(b.type))?.type || '';
+// the textbook picture and its „Vaata pilti” card (art/textbookArt.js) are added to the sheet, not its opening task
+const openingOf = (doc) => (doc.blocks || []).find((b) => !OPENERS.has(b.type) && !b.data?.artFor)?.type || '';
 export function varietyProblems(sheets) {
   const ids = Object.keys(sheets);
   const first = Object.values(sheets[ids[0]] || {})[0];

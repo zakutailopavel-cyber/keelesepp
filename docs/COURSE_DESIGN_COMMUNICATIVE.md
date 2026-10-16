@@ -98,7 +98,9 @@ the pilot in a lesson before the rest of the course follows.
 - **B1 module 13** (`b1/module13.js`, a2b1-061…065) — done 2026-10-16: 5/5 lessons READY (all gates incl. variety),
   language check 0 unknown words, new listening audio built (062_d_call, 064_p_announce, 064_t_voice, 065_p_radio,
   065_p_listen). Not published yet — the owner reviews it in „Kursuse tootmine” and publishes with „Avalda tund”.
-- **B2 module 02** — next, after the owner's feedback on the B1 pilot.
+- **B1 module 02** (`b1/module02.js`, a2b1-006…010, stage A2, exam in Harno A2 form) — done 2026-10-16, 5/5 READY;
+  the v1 file is kept in `admin/course/archive/v1/b1/`.
+- Then the remaining B1 modules 03–18, then B2 01–18 (owner 2026-10-16).
 
 ## 9. Gate and tool changes for v2 (code)
 
