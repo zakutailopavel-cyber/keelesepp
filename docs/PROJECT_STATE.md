@@ -45,7 +45,10 @@
   070_p_listen and 070_p_listen2 kept. Tests: 965 passed, 3 skipped.
 - **Module 15** (a2b1-071…075, B1-): rewritten to v2, exam 075 in Harno B1 form, 5/5 READY, language checked
   (coach → elutreener, ühiskööki), audio 075_p_listen and 075_p_listen2 kept. Tests: 966 passed, 3 skipped.
-- Next safe step: B1 module 16 (a2b1-076…080) in v2, same process.
+- **Module 16** (a2b1-076…080, already a rich Harno-B1 module): patched to v2 instead of rewritten — a 6th item in
+  every 5-item task, selfchecks only in Kasuta, a rubric in every Kasuta, varied openings, 080 marked `assessment`,
+  the 50-word note as a `writing` block; 5/5 READY, audio kept. Tests: 967 passed, 3 skipped.
+- Next safe step: B1 module 17 (a2b1-081…085) in v2, same approach (patch if the v1 is rich, rewrite if thin).
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
