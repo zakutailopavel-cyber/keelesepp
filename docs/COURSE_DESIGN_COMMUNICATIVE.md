@@ -1,0 +1,109 @@
+# B1 / B2 course design v2: learner-centred, communicative, exam at the end of every module
+
+Owner 2026-10-16: „сделать интересный и эффективный курс B1 и B2, чтобы листы были разные и разнообразные, по
+принципу õpijakeskne tund и коммуникативному методу, с экзаменационными заданиями в конце модуля”. Decisions: pilot
+first (B1 module 13, B2 module 02), the topics and the grammar line stay, the module ends with a mini Harno exam in
+all four skills. This file is the contract for every module written in design v2 (`MODULE.design: 'v2'`).
+
+## 1. Why the old sheets felt like templates (measured 2026-10-16, 1090 course sheets)
+
+- 3 of 4 Avasta / Kasuta sheets opened with „text → reading questions” or „text → Märka!”: the level gate demanded a
+  140 / 220-word text in both phases, so every phase got one.
+- Every sheet had a self-check (1091) and a speaking block (1050); 12 block types made ~70 % of all blocks; the
+  picture blocks, the word search, the clock, phrase banks, profiles, diagrams, dialogues were (almost) never used.
+- The depth gate (≥ 10 items per closed task, ≥ 25 min of drills) added one more drill instead of one more kind of
+  thinking. Phases repeated the same facts (questions + true/false on one text) and Kasuta asked for 2–3 similar texts.
+
+## 2. Principles
+
+**Õpijakeskne (learner-centred).** The learner's own life, opinions and choices are the material: they choose (one of
+two situations, a role, a topic card), compare with a partner, set and check their own goal. The sheet asks „what do
+*you* …”, not only „what did Anna …”. Self-assessment is concrete (one can-do, one next step), not a ritual on every
+sheet. Personal data is never required: „you may invent the details”.
+
+**Communicative.** Language is used to do something with someone: an information gap (A knows what B needs), a
+decision to reach, a problem to solve, a message with a real addressee. Accuracy work serves that task and comes right
+before it. Every lesson ends with the learner doing the can-do, observably.
+
+**Variety by design.** The phase decides the *job*; the input and the tasks rotate. No two consecutive lessons of a
+module open the same phase the same way; one module uses most of the constructor's block families.
+
+## 3. The three phases
+
+| Phase | Job | Typical length | Ends with |
+|---|---|---|---|
+| **Avasta** (discover) | meet the situation, understand it, *notice* the language that does the job | 40–50 min | the learner states the rule / pattern in their own example |
+| **Harjuta** (practise) | make the new form and the phrases automatic, in *varied* operations (form → choice → sentence → mini-dialogue) | 40–50 min | a short guided interaction or text using the pattern |
+| **Kasuta** (use) | one realistic task with a result: agree, decide, complain, plan, advise, apply | 40–55 min | one assessed product (rubric), optionally one oral and one written, with different functions |
+
+**Avasta — input menu (rotate, one per lesson):** reading text · dialogue in bubbles (`dialogue`) · listening
+(TartuNLP audio) · people profiles to compare (`profiles`) · a timetable / price list / table · a message thread
+(dialogue or reading in chat form) · an ad or notice set (`manymatch`) · a diagram of a process (`diagram`) · a short
+story told in pictures · a quiz on the learner's own habits (`choice` about themselves, then a text).
+After the input: **one** comprehension task (gist or detail — not both on the same facts), **one** noticing task
+(`notice` + `categorize` / `match` / `table`), a first guided use (`transformation`, `dialogue` gaps, a mini speaking
+turn about themselves).
+
+**Harjuta — operation families (use ≥ 4 different families, ≥ 6 items each):**
+form (`wordforms`, `table`, `crossword`) · choice (`choice`, `cloze`, `gaps` with a bank) · order and structure
+(`wordorder`, `categorize`, `manymatch`) · whole sentence (`transformation`, `errorfix`, `translation`) · listening and
+writing (`dictation`, `listening` with gaps) · interaction (`dialogue` gaps, `rolecards` short).
+Errors in `errorfix` are only errors Russian speakers really make and that are wrong in standard Estonian (check EKI:
+*sest et*, *kell kolmel*, *terve päev* are correct — never mark them).
+
+**Kasuta — task menu (rotate):** role play with an information gap (`rolecards`) · negotiation to one decision
+(`profiles` / options + speaking) · problem → solution (`planning` → `letter`) · complaint or request (`letter`) ·
+choose and justify (`table` of options → speaking) · survey a partner and report (`table` → writing) · advice column
+(reading → letter) · a mini-project (plan + present). Each Kasuta has a short preparation (phrase bank or planning),
+the task, one rubric for the product(s) actually produced. No new long reading text in Kasuta unless the task needs it
+(a notice, an offer, a short letter to answer).
+
+## 4. Module shape (5 lessons)
+
+Lessons 1–4: topic lessons (Avasta → Harjuta → Kasuta each). Lesson 5: **„Eksam”** — the mini Harno exam of the
+module, in the module's topic and vocabulary:
+
+| Sheet | B1 (Harno B1 formats) | B2 (Harno B2 formats) |
+|---|---|---|
+| Avasta = *Korda ja valmistu* | a fast, game-like review of the module (crossword, match, quiz about the learner), the exam's format explained | same |
+| Harjuta = *Lugemine ja kuulamine* | reading: situations ↔ notices (6–9), text + 6 multiple choice, cloze 8–10; listening: 2–3-min monologue + 6 choices, dialogue + gap sentences | reading: article + 6–7 choices, 8 statements ↔ paragraphs, cloze with 4 options; listening: talk + 5 choices, lecture + gap sentences (1–2 words), interview + T/F |
+| Kasuta = *Kirjutamine ja rääkimine* | writing T1 note ~50 words (4 points) and T2 personal letter ~100 words; speaking: questions + agreement task + phone role play | writing T1 semi-formal letter ~140 words and T2 argument / summary ~180 words; speaking: 1-min monologue + discussion to a joint position |
+
+Every exam part shows its points; the closed parts are scored by the sheet, writing and speaking by the rubric
+(4 criteria × 0–3 points). The module's aim: **≥ 60 % in each skill**; below that the teacher repeats that skill's
+part of the module (the sheet's per-goal score shows it: `g_read` = reading and listening, `g_use` = writing and speaking).
+
+## 5. Variety rules (checked by `didactics/variety.js` for `design: 'v2'` modules)
+
+- No two consecutive lessons open the same phase with the same block type (after an optional `text` / `tip`).
+- Two lessons of a module share at most 60 % of the same block-type sequence in one phase.
+- A module uses ≥ 16 different block types; every phase type has ≥ 4 operation families.
+- A self-check at most once per lesson (Kasuta); speaking where the task needs it, not on every sheet.
+- The input-text rule accepts any input of the length: reading, listening transcript, dialogue, profiles, cloze.
+
+## 6. Depth norms for v2
+
+Closed tasks ≥ 6 items (B1) / ≥ 6 (B2) — several shorter, different operations are better than one long drill;
+exercises ≥ 25 min in Avasta and Harjuta still hold (interaction tasks with a key — dialogue gaps — count). Kasuta:
+≥ 12 min of preparation exercises, the task carries the rest. Sheets 40–55 min.
+
+## 7. Process
+
+One module = one branch and PR; module report READY (structure, depth v2, keys, level, uniqueness, vocabulary,
+variety); language check 0 unknown words; listening audio built with `tools/listening-audio/build.mjs`; the owner tries
+the pilot in a lesson before the rest of the course follows.
+
+## 8. Pilot status
+
+- **B1 module 13** (`b1/module13.js`, a2b1-061…065) — done 2026-10-16: 5/5 lessons READY (all gates incl. variety),
+  language check 0 unknown words, new listening audio built (062_d_call, 064_p_announce, 064_t_voice, 065_p_radio,
+  065_p_listen). Not published yet — the owner reviews it in „Kursuse tootmine” and publishes with „Avalda tund”.
+- **B2 module 02** — next, after the owner's feedback on the B1 pilot.
+
+## 9. Gate and tool changes for v2 (code)
+
+`MODULE.design: 'v2'` → `meta.design` on every sheet (registry.js). quality.js: a v2 sheet may end with the task
+itself; Kasuta needs a rubric; the exam lesson's Harjuta skips practice-job rules; `varietyProblems` (module).
+depth.js: closed tasks ≥ 6 items; exam parts need no sentence writing. gates.js level: a dialogue, profiles or a cloze
+counts as the phase's input text. timeEstimate.js: v2 speaking and role play are pair work (both partners, roles
+swapped). Modules without `design` keep every old norm.

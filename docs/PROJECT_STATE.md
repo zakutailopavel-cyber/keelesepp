@@ -30,6 +30,25 @@
 - Tests: crm-v2 1900 passed (+5), build OK; clicked through in a browser on the emulators.
 - Queued: rooms („кабинет”, Oleksiy, low priority).
 
+## 2026-10-16 · agent/course-design-v2-pilot — B1 / B2 course design v2, pilot B1 module 13
+
+- Owner: „интересный и эффективный курс B1 и B2… õpijakeskne tund и коммуникативный метод… экзаменационные
+  задания в конце модуля”; decisions: pilot first, topics stay, mini Harno exam (4 skills). Main checked: 8309e1b.
+- Contract: `docs/COURSE_DESIGN_COMMUNICATIVE.md` (why the old sheets were templates — measured on 1090 sheets —,
+  principles, phase jobs and input/task menus, module shape with the exam lesson, variety rules, v2 norms).
+- Gates (only for `MODULE.design: 'v2'`): quality.js `varietyProblems` (consecutive lessons open a phase
+  differently, neighbours ≤ 60 % same types, ≥ 16 block types a module, one self-check a lesson), v2 end rule,
+  Kasuta rubric; depth.js closed tasks ≥ 6; level gate accepts dialogue / profiles / cloze as input;
+  timeEstimate.js counts pair speaking and role play as pair work. Old modules unchanged (all course tests pass).
+- B1 module 13 rewritten (a2b1-061…065): each phase opens differently (chat, phone call audio, neighbours' profiles,
+  story; sentence building, crossword, conflict flow, station announcement; friends' cards, hotel e-mail, residents'
+  meeting, voice message); each Kasuta = one assessed task (rubric); lesson 065 = mini Harno B1 exam (reading 33,
+  listening 32, writing 20, speaking 20 points, aim ≥ 60 % each). Lesson goals updated (no unverifiable „70 %”).
+  5/5 READY, strict; language check 0 unknown words; 5 listening audios built (TartuNLP).
+- Tests: worksheet-generator + worksheet-studio 953 passed. Not published (owner reviews first).
+- Next safe step: the owner reviews the pilot in „Kursuse tootmine” (moodul 13) and tries it in a lesson; then
+  B2 module 02 in the same design, then the Codex contract moves to v2.
+
 ## 2026-10-15 · agent/teacher-students-consistent — one rule for „whose student is this”
 
 - Owner: the teacher in the student list and on the teacher's card did not match. Cause: the student list shows the

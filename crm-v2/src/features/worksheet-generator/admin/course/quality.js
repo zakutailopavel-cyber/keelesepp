@@ -36,9 +36,13 @@ export function sheetProblems(doc) {
   if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > SHEET_MINUTES.max)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
   if (typeSet(doc).size < 5) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt 5)` });
   const last = doc.blocks[n - 1]?.type;
-  if (last !== 'selfcheck' && last !== 'rubric') out.push({ code: 'end', text: 'leht lõpeb enesehinnangu või rubriigiga' });
+  // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): a sheet may end with the task itself; a self-check only once a lesson
+  const v2 = doc.meta?.design === 'v2';
+  const endsWell = last === 'selfcheck' || last === 'rubric' || (v2 && PRODUCTIVE.includes(last));
+  if (!endsWell) out.push({ code: 'end', text: v2 ? 'leht lõpeb ülesande, rubriigi või enesehinnanguga' : 'leht lõpeb enesehinnangu või rubriigiga' });
   const phase = doc.meta?.phase;
-  if (phase === 'practice') {
+  // v2: the Harjuta sheet of an exam lesson is the exam's reading and listening part — exam formats, not practice jobs
+  if (phase === 'practice' && !(v2 && doc.meta?.assessment)) {
     if (!has(doc, FORM)) out.push({ code: 'practice-form', text: 'Harjuta: puudub vormiülesanne' });
     if (!has(doc, MEANING)) out.push({ code: 'practice-meaning', text: 'Harjuta: puudub tähendusülesanne' });
     if (!has(doc, SENTENCE)) out.push({ code: 'practice-sentence', text: 'Harjuta: puudub lause tasandi ülesanne (viga / sõnajärg / teisendus)' });
@@ -48,6 +52,8 @@ export function sheetProblems(doc) {
     if (!SITUATION.includes(doc.blocks[0]?.type)) out.push({ code: 'transfer-situation', text: 'Kasuta: leht algab uue olukorraga' });
     const productive = new Set(tasks(doc).filter((b) => PRODUCTIVE.includes(b.type)).map((b) => b.type));
     if (productive.size < 2) out.push({ code: 'transfer-use', text: 'Kasuta: vähemalt kaks eri tüüpi suulist / kirjalikku ülesannet' });
+    // v2: the use task has one assessed result
+    if (v2 && !(doc.blocks || []).some((b) => b.type === 'rubric')) out.push({ code: 'transfer-rubric', text: 'Kasuta: ülesande tulemust hindab rubriik' });
   }
   return out;
 }
@@ -71,6 +77,35 @@ export function moduleProblems(sheets) {
     }
   }
   out.push(...harnoProblems(sheets));
+  out.push(...varietyProblems(sheets));
+  return out;
+}
+
+// Design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md §5): a module is varied on purpose — consecutive lessons open a
+// phase differently, neighbours share at most 60 % of the task types, the module uses ≥ 16 block types, at most one
+// self-check per lesson. Modules written before v2 are not checked here.
+const OPENERS = new Set(['text', 'tip', 'image', 'heading']);
+const openingOf = (doc) => (doc.blocks || []).find((b) => !OPENERS.has(b.type))?.type || '';
+export function varietyProblems(sheets) {
+  const ids = Object.keys(sheets);
+  const first = Object.values(sheets[ids[0]] || {})[0];
+  if (first?.meta?.design !== 'v2') return [];
+  const out = [];
+  const docs = ids.flatMap((id) => Object.values(sheets[id]));
+  const types = new Set(docs.flatMap((d) => (d.blocks || []).map((b) => b.type)));
+  if (types.size < 16) out.push({ lessonId: '*', phase: '*', code: 'module-variety', text: `moodulis on ${types.size} plokitüüpi (v2: vähemalt 16)` });
+  for (const id of ids) {
+    const checks = Object.values(sheets[id]).filter((d) => (d.blocks || []).some((b) => b.type === 'selfcheck')).length;
+    if (checks > 1) out.push({ lessonId: id, phase: '*', code: 'selfcheck-once', text: `enesehinnang ${checks} lehel (v2: üks kord tunnis)` });
+  }
+  for (const phase of ['discover', 'practice', 'transfer']) {
+    const list = ids.filter((id) => sheets[id][phase] && !sheets[id][phase].meta?.assessment).map((id) => [id, sheets[id][phase]]);
+    for (let i = 1; i < list.length; i += 1) {
+      if (openingOf(list[i - 1][1]) === openingOf(list[i][1])) out.push({ lessonId: list[i][0], phase, code: 'same-opening', text: `algab samamoodi kui eelmine tund (${openingOf(list[i][1])})` });
+      const o = overlap(list[i - 1][1], list[i][1]);
+      if (o > 0.6) out.push({ lessonId: list[i][0], phase, code: 'neighbour-v2', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe, v2: kuni 60%)` });
+    }
+  }
   return out;
 }
 

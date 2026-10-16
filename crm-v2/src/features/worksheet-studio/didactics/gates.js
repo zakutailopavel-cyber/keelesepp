@@ -99,7 +99,12 @@ export function levelProblems(doc) {
   const phase = doc?.meta?.phase;
   // Avasta and Kasuta start from a text of the level (Harno: every closed task works on a text)
   if (phase === 'discover' || phase === 'transfer') {
-    const longest = Math.max(0, ...blocks.filter((b) => ['reading', 'listening'].includes(b.type)).map((b) => words(b.data?.passage || b.data?.transcript || lines(b.data?.sentences).join(' '))));
+    // design v2: any input of that length starts the phase — a dialogue, people profiles or a gapped exam text too
+    const inputs = doc?.meta?.design === 'v2' ? ['reading', 'listening', 'dialogue', 'profiles', 'cloze'] : ['reading', 'listening'];
+    const inputText = (b) => (b.type === 'dialogue' ? (b.data?.lines || []).map((l) => l?.text).join(' ')
+      : b.type === 'profiles' ? (b.data?.people || []).map((p) => `${p?.facts || ''} ${p?.sentences || ''}`).join(' ')
+        : b.data?.passage || b.data?.transcript || lines(b.data?.sentences).join(' '));
+    const longest = Math.max(0, ...blocks.filter((b) => inputs.includes(b.type)).map((b) => words(inputText(b))));
     if (longest < want.text) out.push({ gate: 'level', code: 'text-short', level: 'warning', text: `pikim tekst ${longest} sõna (${level}: vähemalt ${want.text})`, blocks: [] });
   }
   const letters = blocks.filter((b) => b.type === 'guidedletter');

@@ -21,3 +21,4 @@ broneerimis
 kuulamis
 liikumis
 nägemis
+ksi

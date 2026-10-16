@@ -39,6 +39,7 @@ const band = (level) => {
 // (calibrated on the published course 2026-10-14: a task had 5–6 items at every level, a C1 sheet 2 closed tasks)
 // Kasuta (transfer) sheets: the use tasks are the lesson; exercises prepare them
 export const TRANSFER = { exerciseMin: 12, liveMin: 8 };
+export const V2_ITEMS = 6;
 export const DEPTH = {
   A2: { items: 8, exerciseMin: 20, sentenceWords: 4, liveMin: 12 },
   B1: { items: 10, exerciseMin: 25, sentenceWords: 5, liveMin: 15 },
@@ -73,8 +74,10 @@ export function depthProblems(doc) {
   // a dictation has its own norm below (ten dictated sentences would be ten minutes of dictating)
   // the exam parts of a check lesson have the exam's own sizes (6, 8, 9 points): the items norm does not apply there
   const examParts = doc?.meta?.assessment && doc?.meta?.phase === 'practice';
-  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && ITEMS[b.type](b.data || {}) < norm.items);
-  if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${norm.items} punkti (${level})`, blocks: short.map((b) => b.id) });
+  // design v2: several shorter, different operations instead of one long drill (docs/COURSE_DESIGN_COMMUNICATIVE.md §6)
+  const minItems = doc?.meta?.design === 'v2' ? V2_ITEMS : norm.items;
+  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && ITEMS[b.type](b.data || {}) < minItems);
+  if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${minItems} punkti (${level})`, blocks: short.map((b) => b.id) });
 
   // Kasuta (transfer) is for using the language: writing, speaking, role play carry it; the exercises only prepare
   const transfer = doc?.meta?.phase === 'transfer';
@@ -108,7 +111,8 @@ export function depthProblems(doc) {
   }
 
   const writing = closed.filter((b) => SENTENCE_WRITING.includes(b.type));
-  if (writing.length < 2) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
+  // v2 exam parts (reading and listening in exam form) have no sentence writing by design
+  if (writing.length < 2 && !(examParts && doc?.meta?.design === 'v2')) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
 
   blocks.filter((b) => b.type === 'dictation').forEach((b) => {
     const n = lines(b.data?.sentences).length;
