@@ -38,7 +38,12 @@
 - **Module 12** (a2b1-056…060; v1 had three phases but failed the v2 gates like module 11): rewritten to v2 from
   the v1 texts, mid-term check 060 „Vahehindamine 3 — B1- algus” in Harno B1 form, 5/5 READY, language 0 unknown, no
   new audio (058_p_listen, 060_p_listen, 060_p_listen2 kept, transcripts unchanged). Tests: 964 passed, 3 skipped.
-- Next safe step: B1 module 13 professor review (already v2, pilot #650), then modules 14–18 in v2.
+- Module 13 (pilot) re-checked: 5/5 READY, no change.
+- **Module 14** (a2b1-066…070, stage B1-: the gates use B1 depth — closed tasks ≥25 min on Avasta/Harjuta, dictation
+  ≥6 sentences, input text ≥140 words, every letter ≥70 words; the Harno B1 50-word note is therefore a `writing`
+  block): rewritten to v2, exam 070 in Harno B1 form, 5/5 READY, language checked (talisuplema is kept), audio
+  070_p_listen and 070_p_listen2 kept. Tests: 965 passed, 3 skipped.
+- Next safe step: B1 module 15 (a2b1-071…075) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
