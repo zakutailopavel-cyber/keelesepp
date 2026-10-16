@@ -23,7 +23,13 @@
   transformation + case choice, 019 Harjuta polite transformation, 019 Kasuta errorfix + dictation, 020 Avasta
   translation). 020 „Vahehindamine 1” marked `assessment`: the essay gave way to typical errors + argument sentences.
   5/5 READY, language 0 unknown. Tests: 972 passed, 3 skipped.
-- Next safe step: B2 module 05 in v2, same approach.
+- **Module 05** (b1b2-021…025, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  cross-sheet duplicates reworded (five sentences), new tasks (021 Harjuta dictation, 021 Kasuta letter errors, 022
+  Harjuta argument errors, 024 Kasuta comparison transformation as opener, 025 Avasta and Harjuta translations), a
+  rubric for 023 Kasuta, varied openers (022 Avasta/Kasuta match), an errorfix row without an error replaced. 025
+  „Kontroll 5” marked `assessment`: the essay gave way to typical errors + argument sentences. 5/5 READY, language 0
+  unknown. Tests: 973 passed, 3 skipped.
+- Next safe step: B2 module 06 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
