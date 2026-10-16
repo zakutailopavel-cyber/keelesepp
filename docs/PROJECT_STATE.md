@@ -1,3 +1,18 @@
+## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
+
+- Base: `main` 48347ce (2026-10-16). Branch `agent/course-v2-b1`, no PR yet (one PR when the B1 modules are done, or per few modules).
+- Goal (owner): rewrite every B1 module 02–18 in design v2 (`docs/COURSE_DESIGN_COMMUNICATIVE.md`), then B2 01–18; review
+  every sheet for didactics and Estonian; keep the old versions.
+- Done: **module 02** (a2b1-006…010) — 5/5 READY, language check 0 unknown words, audio built (006_t_voice, 008_d_office,
+  010_p_clips), lessonGoals 006–010 rewritten, `a2b1-module-02` in `strictModules.json`. Module 13 was the pilot (#650).
+- Old versions: `crm-v2/src/features/worksheet-generator/admin/course/archive/v1/b1/moduleNN.js` (not imported, README
+  says how to restore); old mp3 files stay in `public/audio/` so the published v1 sheets keep their sound.
+- quality.js: `openingOf` skips the textbook picture and its card (`data.artFor`).
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` → 954 passed, 3 skipped.
+- Not published to production: the owner publishes each lesson in „Kursuse tootmine” (the CRM keeps the published
+  version in `worksheetVersions`, restorable with „Versioonid ja taastamine…”).
+- Next safe step: B1 module 03 (a2b1-011…015) in v2, same process.
+
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
 - Oleksiy #improvement #low_priority: a room field when booking; when all rooms are taken, a lesson without

@@ -1014,35 +1014,20 @@
     "seconds": 33.1,
     "hash": "ef5aa71b1864acbaa4e16d5d6522143ef62ed343"
   },
-  "a2b1-006:006_d_listen": {
-    "src": "/audio/a2b1-006/006_d_listen.mp3",
+  "a2b1-006:006_t_voice": {
+    "src": "/audio/a2b1-006/006_t_voice.mp3",
     "seconds": 52.1,
     "hash": "ef578f0771f7559e7358b0141a5f26c962b94069"
   },
-  "a2b1-007:007_d_listen": {
-    "src": "/audio/a2b1-007/007_d_listen.mp3",
-    "seconds": 44.3,
-    "hash": "bcfd8c70040c2a2ca57ee44fb0918f370b591379"
+  "a2b1-008:008_d_office": {
+    "src": "/audio/a2b1-008/008_d_office.mp3",
+    "seconds": 66.1,
+    "hash": "fc514a1d7c448c91be8eebb696e0009f4e0fb425"
   },
-  "a2b1-008:008_d_listen": {
-    "src": "/audio/a2b1-008/008_d_listen.mp3",
-    "seconds": 49.3,
-    "hash": "c1e33171a7afce886e3744e9ca0ca9bfb24ebc49"
-  },
-  "a2b1-008:008_t_listen": {
-    "src": "/audio/a2b1-008/008_t_listen.mp3",
-    "seconds": 69.6,
-    "hash": "1284eb83c4fd8a19a4fd522944bd4e9c2cf66b26"
-  },
-  "a2b1-009:009_d_listen": {
-    "src": "/audio/a2b1-009/009_d_listen.mp3",
-    "seconds": 42.5,
-    "hash": "6e2b9526646b78e32ac2bc32cb3922754dbe259f"
-  },
-  "a2b1-010:010_d_listen": {
-    "src": "/audio/a2b1-010/010_d_listen.mp3",
-    "seconds": 40.3,
-    "hash": "55817fe1cf7e935d3fd9d0dbb729da8b8a79c4f1"
+  "a2b1-010:010_p_clips": {
+    "src": "/audio/a2b1-010/010_p_clips.mp3",
+    "seconds": 73.7,
+    "hash": "c43ec34a67468e80c9fa812021efdc567c669c55"
   },
   "a2b1-010:010_p_listen": {
     "src": "/audio/a2b1-010/010_p_listen.mp3",
