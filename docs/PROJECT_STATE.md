@@ -54,7 +54,16 @@
   crossword and four speaking blocks removed to fit 55 min, varied openers. 045 „Kontroll 9” marked `assessment`: a
   250-word HR letter (with the survey numbers) replaces the table, the essay gave way to letter errors + argument
   translation. 5/5 READY, language 0 unknown. Tests: 977 passed, 3 skipped.
-- Next safe step: B2 module 10 in v2, same approach.
+- **Module 10** (b1b2-046…050, level B1+/B2-): patched to v2 — vocab in every lesson (046/047 lists cleaned:
+  no comma splits, one-off words removed or woven into new items), selfchecks only in Kasuta, one cross-sheet
+  duplicate reworded, new tasks (047 Avasta errorfix instead of a dictation, 047 Harjuta dictation of feelings,
+  047/049/050 Kasuta errorfix, 047 Kasuta I-message transformation, 048 Avasta translation, 049 Kasuta dictation,
+  050 Avasta translation + transformation, 050 Harjuta translation), the 047 crossword and five speaking/planning
+  blocks removed to fit 55 min and vary sheets, varied openers. 050 „Kontroll 10” marked `assessment`: a 250-word
+  HR letter (with the survey numbers) replaces the table, the essay gave way to letter errors + argument
+  translation. 5/5 READY, language 0 unknown. Tests: 978 passed, 3 skipped (one LiveWorksheetPage step-mode test is timing-flaky
+  under the full run; it passes alone).
+- Next safe step: B2 module 11 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
