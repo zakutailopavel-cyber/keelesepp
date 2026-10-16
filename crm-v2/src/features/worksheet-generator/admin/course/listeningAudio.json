@@ -1159,6 +1159,16 @@
     "seconds": 87,
     "hash": "8d640d71a09006184edab1dc88c50815dc6b2b3a"
   },
+  "a2b1-038:038_d_radio": {
+    "src": "/audio/a2b1-038/038_d_radio.mp3",
+    "seconds": 54.5,
+    "hash": "6b994f64ed22273029caee18d723b5831470d75f"
+  },
+  "a2b1-040:040_p_clips": {
+    "src": "/audio/a2b1-040/040_p_clips.mp3",
+    "seconds": 66.1,
+    "hash": "1d50e5895a2b35844773d1d5cca9039802b903db"
+  },
   "a2b1-040:040_p_dialog": {
     "src": "/audio/a2b1-040/040_p_dialog.mp3",
     "seconds": 79.1,

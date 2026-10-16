@@ -21,7 +21,10 @@
   030_p_dialog; v1 in `archive/v1/b1/module06.js`. Draft PR #652 collects the B1 modules.
 - **Module 07** (a2b1-031…035): all three phases, 5/5 READY, language 0 unknown, audio 033_d_radio, 035_p_clips;
   v1 in `archive/v1/b1/module07.js`.
-- Next safe step: B1 module 08 (a2b1-036…040) in v2, same process.
+- **Module 08** (a2b1-036…040, exam 040 = „Vahehindamine 2 — A2+”): all three phases, 5/5 READY, language 0
+  unknown, audio 038_d_radio, 040_p_clips (040_p_listen and 040_p_dialog kept, transcripts unchanged); v1 in
+  `archive/v1/b1/module08.js`. Tests: 960 passed, 3 skipped.
+- Next safe step: B1 module 09 (a2b1-041…045) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
