@@ -40,7 +40,14 @@
   blocks and one sort removed to fit 55 min. 035 „Kontroll 7” marked `assessment`: a 250-word HR letter (with the
   survey numbers) replaces the data table, the essay gave way to letter errors + argument translation. 5/5 READY,
   language 0 unknown. Tests: 975 passed, 3 skipped.
-- Next safe step: B2 module 08 in v2, same approach.
+- **Module 08** (b1b2-036…040, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  three cross-sheet duplicates reworded, new tasks (036/038/039 Avasta errorfix, 039 Avasta translation, 036/038/039
+  Kasuta errorfix, 039 Kasuta transformation, 037 Kasuta word order → dictation, 040 Avasta translation +
+  transformation, 040 Harjuta translation), the 039 crossword and three speaking blocks removed to fit 55 min, two
+  Avasta reviews shortened to 120–140 words, varied openers. 040 „Vahehindamine 2” marked `assessment`: a 250-word
+  HR letter (with the travel data) replaces the table, the essay gave way to letter errors + argument translation.
+  5/5 READY, language 0 unknown. Tests: 976 passed, 3 skipped.
+- Next safe step: B2 module 09 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
