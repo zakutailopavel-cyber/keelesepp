@@ -63,7 +63,15 @@
   HR letter (with the survey numbers) replaces the table, the essay gave way to letter errors + argument
   translation. 5/5 READY, language 0 unknown. Tests: 978 passed, 3 skipped (one LiveWorksheetPage step-mode test is timing-flaky
   under the full run; it passes alone).
-- Next safe step: B2 module 11 in v2, same approach.
+- **Module 11** (b1b2-051…055, level B1+/B2-): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, two cross-sheet duplicates reworded, the 3-item reader match (054) turned into a sort, new tasks (052 Avasta
+  translation, 052 Harjuta dictation, 052/054 Kasuta errorfix, 052/054 Kasuta transformation, 053 Kasuta word order →
+  dictation, 055 Avasta translation + transformation, 055 Harjuta translation), the 054 crossword and four speaking
+  blocks removed to fit 55 min, varied openers. 055 „Kontroll 11” marked `assessment`: a 250-word manager letter
+  (with the consumer-survey numbers) replaces the table, the essay gave way to letter errors + argument translation.
+  5/5 READY, language 0 unknown. Tests: 979 passed, 3 skipped (run with `--maxWorkers=3 --testTimeout=60000`: on a loaded machine
+  some UI tests exceed the default 20 s; they pass alone).
+- Next safe step: B2 module 12 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
