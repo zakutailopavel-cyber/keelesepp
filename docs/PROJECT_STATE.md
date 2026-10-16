@@ -13,7 +13,9 @@
   version in `worksheetVersions`, restorable with „Versioonid ja taastamine…”).
 - **Module 03** (a2b1-011…015) done the same way: 5/5 READY, language 0 unknown, audio 012_d_listen, 013_p_listen,
   014_t_voice, 015_p_clips; v1 in `archive/v1/b1/module03.js`. Tests: 955 passed, 3 skipped.
-- Next safe step: B1 module 04 (a2b1-016…020) in v2, same process.
+- **Module 04** (a2b1-016…020): all three phases written (v1 had only Harjuta + Kasuta; its Avasta sheets exist only
+  in production), 5/5 READY, language 0 unknown, audio 018_d_voice and 020_p_clips; v1 in `archive/v1/b1/module04.js`.
+- Next safe step: B1 module 05 (a2b1-021…025) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
