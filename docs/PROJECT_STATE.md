@@ -34,7 +34,13 @@
   Harjuta errorfix, 027 Kasuta translation, 029 Avasta errorfix + translation, 029 Kasuta dictation, 030 Avasta
   translation + transformation), the 027 crossword removed, varied openers. 030 „Kontroll 6” marked `assessment`:
   the 180-word summary gave way to typical errors + summary sentences. 5/5 READY, language 0 unknown. Tests: 974 passed, 3 skipped.
-- Next safe step: B2 module 07 in v2, same approach.
+- **Module 07** (b1b2-031…035, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  new tasks (031/033/034 Kasuta errorfix, 032 Harjuta errorfix, 034 Avasta errorfix + translation, 034 Kasuta
+  transformation, 035 Avasta translation + transformation, 035 Harjuta translation), varied openers, two speaking
+  blocks and one sort removed to fit 55 min. 035 „Kontroll 7” marked `assessment`: a 250-word HR letter (with the
+  survey numbers) replaces the data table, the essay gave way to letter errors + argument translation. 5/5 READY,
+  language 0 unknown. Tests: 975 passed, 3 skipped.
+- Next safe step: B2 module 08 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
