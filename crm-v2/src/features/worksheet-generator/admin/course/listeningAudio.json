@@ -1179,6 +1179,11 @@
     "seconds": 78.6,
     "hash": "38c3c1cc647f54a2a78ae4496890c094de625541"
   },
+  "a2b1-042:042_d_radio": {
+    "src": "/audio/a2b1-042/042_d_radio.mp3",
+    "seconds": 68.2,
+    "hash": "4717a0577af28d790852f62450e912cc14dbaddf"
+  },
   "a2b1-044:044_p_listen": {
     "src": "/audio/a2b1-044/044_p_listen.mp3",
     "seconds": 115.3,

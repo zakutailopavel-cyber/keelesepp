@@ -24,7 +24,11 @@
 - **Module 08** (a2b1-036…040, exam 040 = „Vahehindamine 2 — A2+”): all three phases, 5/5 READY, language 0
   unknown, audio 038_d_radio, 040_p_clips (040_p_listen and 040_p_dialog kept, transcripts unchanged); v1 in
   `archive/v1/b1/module08.js`. Tests: 960 passed, 3 skipped.
-- Next safe step: B1 module 09 (a2b1-041…045) in v2, same process.
+- **Module 09** (a2b1-041…045, stage A2+/B1- = B1- norms: sentences ≥6 words on average, reading 150–320 words,
+  exam 045 „Eksam 9 — tööelu” in Harno B1 form): all three phases, 5/5 READY, language 0 unknown, new audio
+  042_d_radio (044_p_listen, 045_p_listen, 045_p_short kept, transcripts unchanged); v1 in `archive/v1/b1/module09.js`.
+  Tests: 961 passed, 3 skipped.
+- Next safe step: B1 module 10 (a2b1-046…050) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
