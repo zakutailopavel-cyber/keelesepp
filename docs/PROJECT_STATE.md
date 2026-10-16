@@ -1,3 +1,18 @@
+## 2026-10-16 · agent/course-v2-b2 — the B1→B2 course in design v2 (in progress)
+
+- Base: branch `agent/course-v2-b1` (#652, B1 02–18 in v2, not merged yet; it carries the `quality.js` opener fix).
+  Branch `agent/course-v2-b2`, draft PR stacked on #652. Main checked: d869b31.
+- Goal (owner): after B1, bring every B2 module 02–18 (`admin/course/b2/`) to design v2 and review every sheet for
+  didactics and Estonian; old versions kept in `archive/v1/b2/moduleNN.js` (see `archive/README.md`).
+- **Module 02** (b1b2-006…010, level B1): patched to v2 — `design: 'v2'`, 6th items in every 5-item task, a vocab block
+  in every lesson, selfchecks only in Kasuta, varied openers (007/009 Kasuta start with the genre's typical errors, 009
+  Avasta with the reaction match), cross-sheet duplicates reworded (the „laadija” sentence, two Russian sources),
+  new whole-sentence tasks (006/008 Kasuta errorfix, 008 Harjuta dictation, 008 Kasuta transformation, 010 Avasta and
+  Harjuta translations). 010 „Kontroll 2” marked `assessment`; its 180-word essay gave way to two sentence tasks
+  (typical errors + argument sentences) so Kasuta fits 55 min; the rubric and score lines follow. 5/5 READY, language
+  0 unknown, audio unchanged. Tests: 970 passed, 3 skipped.
+- Next safe step: B2 module 03 (b1b2-011…015) in v2, same approach.
+
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
 - Base: `main` 48347ce (2026-10-16). Branch `agent/course-v2-b1`, no PR yet (one PR when the B1 modules are done, or per few modules).
