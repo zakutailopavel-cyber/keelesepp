@@ -1,4 +1,5 @@
 import { BLOCKS, COLUMN_BLOCKS, SHUFFLE_BLOCKS } from '../engine/registry.js';
+import { goalEntries } from '../engine/goals.js';
 import { TONES } from '../engine/schema.js';
 import { Text, Area, Select } from './fields.jsx';
 import { DEFAULT_THEME, THEMES, sheetTheme } from '../engine/look.js';
@@ -21,7 +22,7 @@ export function BlockInspector({ block, doc, update }) {
     const { opts, ...rest } = block; // eslint-disable-line no-unused-vars
     update(Object.keys(next).length ? { ...rest, opts: next } : rest);
   };
-  const goals = Object.entries(doc.meta.goals || {});
+  const goals = goalEntries(doc.meta.goals);
   return (
     <div className="ed-inspector">
       {def.task && (COLUMN_BLOCKS.has(block.type) || def.example || SHUFFLE_BLOCKS.has(block.type)) && (
@@ -67,7 +68,7 @@ const newGoalId = () => `g_${Date.now().toString(36)}`;
 
 export function SheetInspector({ doc, setMeta }) {
   const m = doc.meta;
-  const goals = Object.entries(m.goals || {});
+  const goals = goalEntries(m.goals);
   const setGoals = (entries) => setMeta({ goals: Object.fromEntries(entries.filter(([, g]) => g !== null)) });
   return (
     <div className="ed-inspector">
