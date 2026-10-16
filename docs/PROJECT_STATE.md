@@ -1,3 +1,85 @@
+## 2026-10-16 · agent/course-v2-b2 — the B1→B2 course in design v2 (in progress)
+
+- Base: branch `agent/course-v2-b1` (#652, B1 02–18 in v2, not merged yet; it carries the `quality.js` opener fix).
+  Branch `agent/course-v2-b2`, draft PR stacked on #652. Main checked: d869b31.
+- Goal (owner): after B1, bring every B2 module 02–18 (`admin/course/b2/`) to design v2 and review every sheet for
+  didactics and Estonian; old versions kept in `archive/v1/b2/moduleNN.js` (see `archive/README.md`).
+- **Module 02** (b1b2-006…010, level B1): patched to v2 — `design: 'v2'`, 6th items in every 5-item task, a vocab block
+  in every lesson, selfchecks only in Kasuta, varied openers (007/009 Kasuta start with the genre's typical errors, 009
+  Avasta with the reaction match), cross-sheet duplicates reworded (the „laadija” sentence, two Russian sources),
+  new whole-sentence tasks (006/008 Kasuta errorfix, 008 Harjuta dictation, 008 Kasuta transformation, 010 Avasta and
+  Harjuta translations). 010 „Kontroll 2” marked `assessment`; its 180-word essay gave way to two sentence tasks
+  (typical errors + argument sentences) so Kasuta fits 55 min; the rubric and score lines follow. 5/5 READY, language
+  0 unknown, audio unchanged. Tests: 970 passed, 3 skipped.
+- **Module 03** (b1b2-011…015, level B1): patched to v2 — 6th items, vocab in every lesson, selfchecks only in
+  Kasuta, gap instructions name the form, varied openers (012 Avasta errorfix, 014 Avasta feelings match, 012/014
+  Kasuta match first), new tasks (012 Kasuta motivation-letter errors, 014 Avasta and Kasuta story errors, 015 Avasta
+  tense transformation), the 012 crossword removed (one-word items), two cross-sheet duplicates reworded. 015
+  „Kontroll 3” marked `assessment`: the essay gave way to typical errors + argument sentences. 5/5 READY, language 0
+  unknown. Tests: 971 passed, 3 skipped.
+- **Module 04** (b1b2-016…020, level B1): patched to v2 — 6th items, vocab in every lesson, selfchecks only in
+  Kasuta, gap instructions name the form, varied openers (017 Avasta match, 017 Harjuta errorfix, 017 Kasuta match,
+  019 Avasta gaps, 019 Kasuta letter errors), new tasks (017 Kasuta infinitive errors, 018 Avasta verb-government
+  transformation + case choice, 019 Harjuta polite transformation, 019 Kasuta errorfix + dictation, 020 Avasta
+  translation). 020 „Vahehindamine 1” marked `assessment`: the essay gave way to typical errors + argument sentences.
+  5/5 READY, language 0 unknown. Tests: 972 passed, 3 skipped.
+- **Module 05** (b1b2-021…025, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  cross-sheet duplicates reworded (five sentences), new tasks (021 Harjuta dictation, 021 Kasuta letter errors, 022
+  Harjuta argument errors, 024 Kasuta comparison transformation as opener, 025 Avasta and Harjuta translations), a
+  rubric for 023 Kasuta, varied openers (022 Avasta/Kasuta match), an errorfix row without an error replaced. 025
+  „Kontroll 5” marked `assessment`: the essay gave way to typical errors + argument sentences. 5/5 READY, language 0
+  unknown. Tests: 973 passed, 3 skipped.
+- **Module 06** (b1b2-026…030, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  five cross-sheet duplicates in 030 reworded, new tasks (026 Harjuta dictation, 026/028/029/030 Kasuta errorfix, 027
+  Harjuta errorfix, 027 Kasuta translation, 029 Avasta errorfix + translation, 029 Kasuta dictation, 030 Avasta
+  translation + transformation), the 027 crossword removed, varied openers. 030 „Kontroll 6” marked `assessment`:
+  the 180-word summary gave way to typical errors + summary sentences. 5/5 READY, language 0 unknown. Tests: 974 passed, 3 skipped.
+- **Module 07** (b1b2-031…035, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  new tasks (031/033/034 Kasuta errorfix, 032 Harjuta errorfix, 034 Avasta errorfix + translation, 034 Kasuta
+  transformation, 035 Avasta translation + transformation, 035 Harjuta translation), varied openers, two speaking
+  blocks and one sort removed to fit 55 min. 035 „Kontroll 7” marked `assessment`: a 250-word HR letter (with the
+  survey numbers) replaces the data table, the essay gave way to letter errors + argument translation. 5/5 READY,
+  language 0 unknown. Tests: 975 passed, 3 skipped.
+- **Module 08** (b1b2-036…040, level B1+): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  three cross-sheet duplicates reworded, new tasks (036/038/039 Avasta errorfix, 039 Avasta translation, 036/038/039
+  Kasuta errorfix, 039 Kasuta transformation, 037 Kasuta word order → dictation, 040 Avasta translation +
+  transformation, 040 Harjuta translation), the 039 crossword and three speaking blocks removed to fit 55 min, two
+  Avasta reviews shortened to 120–140 words, varied openers. 040 „Vahehindamine 2” marked `assessment`: a 250-word
+  HR letter (with the travel data) replaces the table, the essay gave way to letter errors + argument translation.
+  5/5 READY, language 0 unknown. Tests: 976 passed, 3 skipped.
+- **Module 09** (b1b2-041…045, level B1+/B2-): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, gap instructions name the form, two cross-sheet duplicates reworded, rubrics for 042/043 Kasuta, new tasks
+  (042/044 Kasuta errorfix, 043 Harjuta errorfix, 044 Avasta errorfix, 044 Kasuta transformation, 045 Avasta and
+  Harjuta translations), 042 Avasta dictation → word order and 044 Avasta dictation → errorfix for variety, the 044
+  crossword and four speaking blocks removed to fit 55 min, varied openers. 045 „Kontroll 9” marked `assessment`: a
+  250-word HR letter (with the survey numbers) replaces the table, the essay gave way to letter errors + argument
+  translation. 5/5 READY, language 0 unknown. Tests: 977 passed, 3 skipped.
+- **Module 10** (b1b2-046…050, level B1+/B2-): patched to v2 — vocab in every lesson (046/047 lists cleaned:
+  no comma splits, one-off words removed or woven into new items), selfchecks only in Kasuta, one cross-sheet
+  duplicate reworded, new tasks (047 Avasta errorfix instead of a dictation, 047 Harjuta dictation of feelings,
+  047/049/050 Kasuta errorfix, 047 Kasuta I-message transformation, 048 Avasta translation, 049 Kasuta dictation,
+  050 Avasta translation + transformation, 050 Harjuta translation), the 047 crossword and five speaking/planning
+  blocks removed to fit 55 min and vary sheets, varied openers. 050 „Kontroll 10” marked `assessment`: a 250-word
+  HR letter (with the survey numbers) replaces the table, the essay gave way to letter errors + argument
+  translation. 5/5 READY, language 0 unknown. Tests: 978 passed, 3 skipped (one LiveWorksheetPage step-mode test is timing-flaky
+  under the full run; it passes alone).
+- **Module 11** (b1b2-051…055, level B1+/B2-): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, two cross-sheet duplicates reworded, the 3-item reader match (054) turned into a sort, new tasks (052 Avasta
+  translation, 052 Harjuta dictation, 052/054 Kasuta errorfix, 052/054 Kasuta transformation, 053 Kasuta word order →
+  dictation, 055 Avasta translation + transformation, 055 Harjuta translation), the 054 crossword and four speaking
+  blocks removed to fit 55 min, varied openers. 055 „Kontroll 11” marked `assessment`: a 250-word manager letter
+  (with the consumer-survey numbers) replaces the table, the essay gave way to letter errors + argument translation.
+  5/5 READY, language 0 unknown. Tests: 979 passed, 3 skipped (run with `--maxWorkers=3 --testTimeout=60000`: on a loaded machine
+  some UI tests exceed the default 20 s; they pass alone).
+- **Module 12** (b1b2-056…060, level B1+/B2-): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, gap instruction names the form, one cross-sheet duplicate reworded, new tasks (057/059 Avasta errorfix,
+  057/059 Harjuta dictation, 057/059 Kasuta errorfix, 059 Avasta word order, 059 Kasuta transformation, 060 Avasta
+  translation + transformation, 060 Harjuta translation), the 058 Kasuta sort and three speaking blocks removed,
+  short errorfix rows lengthened, longer true/false statements, varied openers. 060 „Vahehindamine 3” marked
+  `assessment`: a 250-word IT-manager letter (with the digital-habits numbers) replaces the table, the essay gave
+  way to letter errors + argument translation. 5/5 READY, language 0 unknown. Tests: 980 passed, 3 skipped.
+- Next safe step: B2 module 13 in v2, same approach.
+
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
 - Base: `main` 48347ce (2026-10-16). Branch `agent/course-v2-b1`, no PR yet (one PR when the B1 modules are done, or per few modules).
