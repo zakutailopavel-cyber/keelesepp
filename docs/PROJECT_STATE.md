@@ -47,7 +47,14 @@
   Avasta reviews shortened to 120–140 words, varied openers. 040 „Vahehindamine 2” marked `assessment`: a 250-word
   HR letter (with the travel data) replaces the table, the essay gave way to letter errors + argument translation.
   5/5 READY, language 0 unknown. Tests: 976 passed, 3 skipped.
-- Next safe step: B2 module 09 in v2, same approach.
+- **Module 09** (b1b2-041…045, level B1+/B2-): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, gap instructions name the form, two cross-sheet duplicates reworded, rubrics for 042/043 Kasuta, new tasks
+  (042/044 Kasuta errorfix, 043 Harjuta errorfix, 044 Avasta errorfix, 044 Kasuta transformation, 045 Avasta and
+  Harjuta translations), 042 Avasta dictation → word order and 044 Avasta dictation → errorfix for variety, the 044
+  crossword and four speaking blocks removed to fit 55 min, varied openers. 045 „Kontroll 9” marked `assessment`: a
+  250-word HR letter (with the survey numbers) replaces the table, the essay gave way to letter errors + argument
+  translation. 5/5 READY, language 0 unknown. Tests: 977 passed, 3 skipped.
+- Next safe step: B2 module 10 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
