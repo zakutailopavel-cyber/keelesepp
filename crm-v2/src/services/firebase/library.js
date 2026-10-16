@@ -1,7 +1,8 @@
-import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { isUnpublishedWorksheet } from '../../features/library/libraryModel.js';
+import { publishedPhaseDoc } from '../../features/worksheet-studio/bookProgram.js';
 
 export class WorksheetPublicationError extends Error {
   constructor(id) {
@@ -14,6 +15,15 @@ export class WorksheetPublicationError extends Error {
 const MAX_MATERIAL_FILE_SIZE = 19 * 1024 * 1024;
 const SAFE_MATERIAL_TYPE = /^(image\/|application\/pdf$|text\/|audio\/|video\/|application\/vnd\.|application\/msword$)/;
 const EXERCISE_TYPES = new Set(['fill', 'choice', 'writing', 'order', 'match', 'reading', 'translate']);
+
+const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta' };
+// A course lesson keeps its sheets per phase (curriculumLessons/{id}/worksheets/{phase}), not on the lesson record: assigning
+// the lesson gives the student its published sheets (owner 2026-10-16: the lesson arrived as an empty homework title).
+const publishedSheetIds = (source = {}) => Object.entries(source.worksheetPhases || {})
+  .filter(([, phase]) => phase?.status === 'published' || phase?.publishedVersion).map(([id]) => id)
+  .sort((a, b) => Object.keys(SHEET_LABEL).indexOf(a) - Object.keys(SHEET_LABEL).indexOf(b));
+export const lessonSheetChoices = (item) => (item?.kind === 'curriculum' && !item.phase && !item.source?.worksheetDoc?.blocks?.length
+  && !item.source?.publishedWorksheetDoc?.blocks?.length ? publishedSheetIds(item.source).map((id) => ({ id, label: SHEET_LABEL[id] || id })) : []);
 
 function records(snapshot) {
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
@@ -161,8 +171,25 @@ export const libraryService = {
       exercises: records(exercises),
     };
   },
-  async assign({ item, students, dueDate = '', note = '', user }) {
+  async assign({ item, students, dueDate = '', note = '', user, sheets }) {
     if (!students.length) throw new Error('Vali vähemalt üks õpilane.');
+    const choices = lessonSheetChoices(item);
+    if (choices.length) {
+      const wanted = choices.filter((choice) => !sheets || sheets.includes(choice.id));
+      if (!wanted.length) throw new Error('Vali vähemalt üks tööleht.');
+      const { db } = requireFirebaseClient();
+      const merged = { count: 0, mode: 'worksheet', assignments: [], sheets: [] };
+      for (const choice of wanted) {
+        const snapshot = await getDoc(doc(db, 'curriculumLessons', item.sourceId, 'worksheets', choice.id));
+        const sheet = publishedPhaseDoc(snapshot.exists() ? snapshot.data() : null);
+        if (!sheet) throw new Error(`Lehel „${choice.label}” pole avaldatud versiooni.`);
+        const result = await this.assign({ item: { ...item, type: 'worksheet', phase: choice.id, title: `${item.title} · ${choice.label}`, level: sheet.meta?.level || item.level, source: { ...item.source, worksheetData: null, worksheetDoc: sheet, publishedWorksheetDoc: sheet, worksheetDocStatus: 'published' } }, students, dueDate, note, user });
+        merged.count = result.count;
+        merged.assignments.push(...(result.assignments || []));
+        merged.sheets.push(choice.label);
+      }
+      return merged;
+    }
     if (students.length > 450) throw new Error('Ühe korraga saab materjali määrata kuni 450 õpilasele.');
     if (isUnpublishedWorksheet(item.source)) throw new WorksheetPublicationError(item.sourceId);
     const { db } = requireFirebaseClient();

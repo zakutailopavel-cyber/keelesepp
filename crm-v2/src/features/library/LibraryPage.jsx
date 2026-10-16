@@ -28,6 +28,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { curriculumInstallerService, groupsService, lessonWorksheetsService, libraryService, studentsService } from '../../services/firebase/index.js';
+import { lessonSheetChoices } from '../../services/firebase/library.js';
 import { studentAccess } from '../../services/firebase/students.js';
 import { legacyUrl } from '../../utils/legacyUrls.js';
 import { ROLES } from '../../utils/roles.js';
@@ -102,6 +103,12 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const unpublished = isUnpublishedWorksheet(item.source);
+  // a course lesson: the student gets its published Avasta / Harjuta / Kasuta sheets, the teacher picks which
+  const sheetChoices = lessonSheetChoices(item);
+  const lessonWithoutSheets = item.kind === 'curriculum' && item.source?.roadmapManaged === true && !item.phase && !sheetChoices.length
+    && !item.source?.worksheetDoc?.blocks?.length && !item.source?.worksheetData?.blocks?.length;
+  const [sheets, setSheets] = useState(() => sheetChoices.map((choice) => choice.id));
+  const toggleSheet = (id) => setSheets((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !user.roles.includes(ROLES.ADMIN);
   const state = useAsyncData(async () => {
     const [studentResult, groups] = await Promise.all([
@@ -133,7 +140,7 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
     setError('');
     try {
       const selectedStudents = students.filter((student) => selectedIds.includes(student.id));
-      const result = await repository.assign({ item, students: selectedStudents, dueDate, note: note.trim(), user });
+      const result = await repository.assign({ item, students: selectedStudents, dueDate, note: note.trim(), user, ...(sheetChoices.length ? { sheets } : {}) });
       onAssigned(result);
     } catch (assignmentError) {
       setError(assignmentError.message || 'Materjali määramine ebaõnnestus.');
@@ -147,10 +154,12 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
       open
       title={`Määra: ${item.title}`}
       onClose={onClose}
-      footer={<><Button variant="secondary" disabled={saving} onClick={onClose}>Tühista</Button>{unpublished ? <Link className="button button--primary" to={`/library/worksheets/${item.sourceId}`}>Ava konstruktoris ja avalda</Link> : <Button loading={saving} disabled={!selectedIds.length} onClick={assign}>Määra {selectedIds.length || ''} õpilasele</Button>}</>}
+      footer={<><Button variant="secondary" disabled={saving} onClick={onClose}>Tühista</Button>{unpublished ? <Link className="button button--primary" to={`/library/worksheets/${item.sourceId}`}>Ava konstruktoris ja avalda</Link> : <Button loading={saving} disabled={!selectedIds.length || lessonWithoutSheets || (sheetChoices.length > 0 && !sheets.length)} onClick={assign}>Määra {selectedIds.length || ''} õpilasele</Button>}</>}
     >
       <div className="assignment-form">
-        <p className="form-hint">{item.type === 'worksheet' ? 'Tööleht ilmub õpilase kabinetti ja tulemus salvestatakse õpetajale.' : 'Materjal lisatakse õpilase kodutööde hulka.'}</p>
+        <p className="form-hint">{item.type === 'worksheet' || sheetChoices.length ? 'Tööleht ilmub õpilase kabinetti ja tulemus salvestatakse õpetajale.' : 'Materjal lisatakse õpilase kodutööde hulka.'}</p>
+        {sheetChoices.length ? <fieldset className="assignment-sheets"><legend>Töölehed</legend>{sheetChoices.map((choice) => <label key={choice.id}><input type="checkbox" checked={sheets.includes(choice.id)} onChange={() => toggleSheet(choice.id)} /> {choice.label}</label>)}<small>Iga valitud leht on õpilasel eraldi töö.</small></fieldset> : null}
+        {lessonWithoutSheets ? <p role="status">Sellel tunnil pole veel avaldatud töölehti (Avasta, Harjuta, Kasuta). Avalda leht enne õpilasele määramist.</p> : null}
         {error ? <div className="action-error" role="alert">{error}</div> : null}
         {unpublished ? <p role="status">See tööleht on mustand ja sellel pole avaldatud versiooni. Avalda see konstruktoris enne õpilasele määramist.</p> : null}
         {state.loading ? <LoadingState label="Laen õpilasi…" /> : state.error ? <ErrorState message={state.error.message} onRetry={state.reload} /> : (
@@ -494,9 +503,9 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
       {editing !== undefined ? <MaterialEditor item={editing} repository={repository} user={user} onOpenWorksheet={openWorksheet} onOpenPhase={openPhase} onPreview={(item) => { setEditing(undefined); setPreviewing(item); }} onClose={() => setEditing(undefined)} onSaved={(result) => { setEditing(undefined); setSuccess(`„${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {exerciseEditing !== undefined ? <ExerciseEditor item={exerciseEditing} repository={repository} user={user} onClose={() => setExerciseEditing(undefined)} onSaved={(result) => { setExerciseEditing(undefined); setSuccess(`Harjutus „${result.title}” ${result.created ? 'loodi' : 'salvestati'}.`); state.reload(); }} /> : null}
       {assigning ? <AssignmentModal item={assigning} user={user} repository={repository} studentRepository={studentRepository} groupRepository={groupRepository} onClose={() => setAssigning(null)} onAssigned={(result) => {
-        const live = assigning.source?.worksheetDoc?.blocks?.length ? (result.assignments || []).slice(0, 6) : [];
+        const live = assigning.source?.worksheetDoc?.blocks?.length || result.sheets?.length ? (result.assignments || []).slice(0, 6) : [];
         setAssigning(null);
-        setSuccess(<>„{assigning.title}” määrati {result.count} õpilasele.{live.length ? <span className="assign-live-links"> Jälgi tunnis otse: {live.map((a) => <Link key={a.id} to={`/library/worksheets/live/${a.id}`}>{a.studentName || 'õpilane'}</Link>)}</span> : null}</>);
+        setSuccess(<>„{assigning.title}”{result.sheets?.length ? ` (${result.sheets.join(', ')})` : ''} määrati {result.count} õpilasele.{live.length ? <span className="assign-live-links"> Jälgi tunnis otse: {live.map((a) => <Link key={a.id} to={`/library/worksheets/live/${a.id}`}>{a.studentName || 'õpilane'}</Link>)}</span> : null}</>);
       }} /> : null}
     </div>
   );

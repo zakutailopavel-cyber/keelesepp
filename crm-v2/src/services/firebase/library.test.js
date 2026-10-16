@@ -2,8 +2,9 @@ import { beforeEach } from 'vitest';
 
 const firestore = vi.hoisted(() => ({
   collection: vi.fn((_db, name) => name),
-  doc: vi.fn((name) => `${name}-new-document`),
+  doc: vi.fn((name, ...path) => (path.length > 1 ? [name, ...path].join('/') : `${name}-new-document`)),
   getDocs: vi.fn(),
+  getDoc: vi.fn(),
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
 }));
@@ -82,6 +83,30 @@ describe('libraryService', () => {
       meta: { studentIds: ['student-1', 'student-2'] },
     });
     expect(firestore.batch.commit).toHaveBeenCalledOnce();
+  });
+
+  it('a course lesson gives the student its published sheets, not an empty homework title', async () => {
+    const sheet = (phase) => ({ schema: 'x', meta: { title: `Minu kodu ${phase}`, level: 'A2' }, blocks: [{ id: `${phase}-1`, type: 'gaps' }] });
+    firestore.getDoc.mockImplementation(async (path) => {
+      const phase = String(path).split('/').pop();
+      return { exists: () => phase !== 'transfer', data: () => ({ publishedWorksheetDoc: sheet(phase) }) };
+    });
+    const item = { kind: 'curriculum', type: 'plan', sourceId: 'a2b1-011', title: 'Minu kodu', subject: 'Eesti keel', level: 'B1', topic: 'Kodu',
+      source: { roadmapManaged: true, worksheetPhases: { practice: { status: 'published' }, discover: { status: 'published' }, transfer: { status: 'draft' } } } };
+    const result = await libraryService.assign({ item, students: [{ id: 'student-1', name: 'Matvei' }], user: { uid: 'teacher-1', displayName: 'Õpetaja' } });
+
+    expect(result).toMatchObject({ count: 1, mode: 'worksheet', sheets: ['Avasta', 'Harjuta'] });
+    const assignments = firestore.batch.set.mock.calls.filter(([ref]) => ref === 'worksheetAssignments-new-document').map(([, data]) => data);
+    expect(assignments.map((entry) => [entry.phase, entry.lessonTitle, entry.worksheetDoc.blocks[0].id, entry.level])).toEqual([
+      ['discover', 'Minu kodu · Avasta', 'discover-1', 'A2'], ['practice', 'Minu kodu · Harjuta', 'practice-1', 'A2'],
+    ]);
+    expect(firestore.batch.set.mock.calls.some(([ref]) => ref === 'homework-new-document')).toBe(false);
+
+    vi.clearAllMocks();
+    firestore.writeBatch.mockReturnValue(firestore.batch);
+    await libraryService.assign({ item, sheets: ['practice'], students: [{ id: 'student-1', name: 'Matvei' }], user: { uid: 'teacher-1' } });
+    expect(firestore.getDoc).toHaveBeenCalledTimes(1);
+    await expect(libraryService.assign({ item, sheets: [], students: [{ id: 'student-1' }], user: { uid: 't' } })).rejects.toThrow('Vali vähemalt üks tööleht.');
   });
 
   it('snapshots a Worksheet Studio document into every assignment', async () => {
