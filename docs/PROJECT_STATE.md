@@ -15,7 +15,9 @@
   014_t_voice, 015_p_clips; v1 in `archive/v1/b1/module03.js`. Tests: 955 passed, 3 skipped.
 - **Module 04** (a2b1-016…020): all three phases written (v1 had only Harjuta + Kasuta; its Avasta sheets exist only
   in production), 5/5 READY, language 0 unknown, audio 018_d_voice and 020_p_clips; v1 in `archive/v1/b1/module04.js`.
-- Next safe step: B1 module 05 (a2b1-021…025) in v2, same process.
+- **Module 05** (a2b1-021…025, stage A2+: reading texts 120–250 words, no copyable word banks): all three phases,
+  5/5 READY, language 0 unknown, audio 022_d_voice and 025_p_clips; v1 in `archive/v1/b1/module05.js`.
+- Next safe step: B1 module 06 (a2b1-026…030) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 

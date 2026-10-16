@@ -1099,10 +1099,15 @@
     "seconds": 76.6,
     "hash": "0f5de97e63d6ed58129b0e452c939959fe076da0"
   },
-  "a2b1-022:022_t_listen": {
-    "src": "/audio/a2b1-022/022_t_listen.mp3",
+  "a2b1-022:022_d_voice": {
+    "src": "/audio/a2b1-022/022_d_voice.mp3",
     "seconds": 76.1,
     "hash": "9c9eea784fe7b4e489928f184f4c05478d6e30e8"
+  },
+  "a2b1-025:025_p_clips": {
+    "src": "/audio/a2b1-025/025_p_clips.mp3",
+    "seconds": 62.8,
+    "hash": "14263b085f477de729d4b6b2b3e7e3baeffb6184"
   },
   "a2b1-025:025_p_dialog": {
     "src": "/audio/a2b1-025/025_p_dialog.mp3",
