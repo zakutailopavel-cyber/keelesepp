@@ -1119,15 +1119,20 @@
     "seconds": 86,
     "hash": "910e34e9e837032805f516f3c475edc15f8db027"
   },
-  "a2b1-028:028_t_recipe": {
-    "src": "/audio/a2b1-028/028_t_recipe.mp3",
+  "a2b1-028:028_d_recipe": {
+    "src": "/audio/a2b1-028/028_d_recipe.mp3",
     "seconds": 76.8,
     "hash": "42323b6b1d25a47246e4201e7a049531d4a5cbd2"
   },
+  "a2b1-030:030_p_clips": {
+    "src": "/audio/a2b1-030/030_p_clips.mp3",
+    "seconds": 62.5,
+    "hash": "9475b6a540bfe1f6a2544783aaf67990c4671a4a"
+  },
   "a2b1-030:030_p_dialog": {
     "src": "/audio/a2b1-030/030_p_dialog.mp3",
-    "seconds": 81.4,
-    "hash": "7c5c83338e73db9c82e0b1ead3142edcc568bc08"
+    "seconds": 82.2,
+    "hash": "8d011de6216c7369eb727caaf35111d17deb1419"
   },
   "a2b1-030:030_p_listen": {
     "src": "/audio/a2b1-030/030_p_listen.mp3",

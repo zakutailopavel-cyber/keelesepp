@@ -17,7 +17,9 @@
   in production), 5/5 READY, language 0 unknown, audio 018_d_voice and 020_p_clips; v1 in `archive/v1/b1/module04.js`.
 - **Module 05** (a2b1-021…025, stage A2+: reading texts 120–250 words, no copyable word banks): all three phases,
   5/5 READY, language 0 unknown, audio 022_d_voice and 025_p_clips; v1 in `archive/v1/b1/module05.js`.
-- Next safe step: B1 module 06 (a2b1-026…030) in v2, same process.
+- **Module 06** (a2b1-026…030): all three phases, 5/5 READY, language 0 unknown, audio 028_d_recipe, 030_p_clips,
+  030_p_dialog; v1 in `archive/v1/b1/module06.js`. Draft PR #652 collects the B1 modules.
+- Next safe step: B1 module 07 (a2b1-031…035) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
