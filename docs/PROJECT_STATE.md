@@ -31,7 +31,11 @@
 - **Module 10** (a2b1-046…050, B1- norms, exam 050 „Eksam 10 — reisimine” in Harno B1 form): all three phases,
   5/5 READY, language 0 unknown, new audio 050_p_clips (049_p_listen and 050_p_listen kept, transcripts unchanged);
   v1 in `archive/v1/b1/module10.js`. Tests: 962 passed, 3 skipped.
-- Next safe step: B1 module 11 (a2b1-051…055) in v2, same process.
+- **Module 11** (a2b1-051…055; v1 already had all three phases but failed the v2 gates: 5-item tasks, three
+  selfchecks per lesson, no Kasuta rubric, repeated openings): rewritten to v2 from the v1 texts, exam 055 „Eksam 11”
+  in Harno B1 form, 5/5 READY, language 0 unknown, new audio 055_p_clips (053_p_listen, 055_p_listen kept). Lesson 055
+  keeps 4 goals (it is not in the lessonGoals ASSESSMENTS set, like 015 and 030). Tests: 963 passed, 3 skipped.
+- Next safe step: B1 module 12 (a2b1-056…060) in v2, same process.
 
 ## 2026-10-15 · agent/calendar-rooms — rooms („Kabinet”)
 
