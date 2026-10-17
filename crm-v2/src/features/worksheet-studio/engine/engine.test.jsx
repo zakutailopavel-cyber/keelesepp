@@ -205,7 +205,7 @@ describe('sentence answers', () => {
     review.unmount();
     const print = render(<Sheet doc={doc} mode="print" />);
     expect(print.container.querySelector('audio')).toBeNull();
-    expect(print.container.textContent).toContain('heli on veebis');
+    expect(print.container.textContent).toContain('õpetaja mängib salvestuse');
   });
 });
 

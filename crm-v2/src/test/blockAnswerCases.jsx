@@ -135,8 +135,8 @@ export const CASES = {
     right: () => ({ 0: 'Kell seitse.', 1: 'Ta loeb raamatut', 2: 'Mulle meeldib lugeda.', 3: 'tüdruk' }),
   },
   listening: {
-    data: { sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].\nSiis ta [läheb] tööle.' },
-    right: () => ({ '0.0': '7', '1.0': 'kohvi', '2.0': 'läheb' }),
+    data: { sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].\nSiis ta [läheb] tööle.\nTööl on ta [kaheksa|8] tundi.' },
+    right: () => ({ '0.0': '7', '1.0': 'kohvi', '2.0': 'läheb', '3.0': '8' }),
   },
   table: {
     data: { headers: 'Nimetav, Omastav, Osastav', rows: 'maja | [maja] | [maja]\nkool | [kooli] | [kooli]\nlaud | laua | [lauda/lauad]\nsõber | sõbra | Ma näen [sõpra].' },

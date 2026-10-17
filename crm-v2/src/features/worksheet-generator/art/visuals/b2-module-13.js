@@ -12,6 +12,8 @@ export default [
     learningJob: "kirjeldada keskkonnaprobleemi põhjuse, tagajärje ja realistliku lahenduse ahelana",
     alt: "Markus ja Anna võrdlevad jäätmeahelat biojäätmete eraldi kogumise lahendusega.",
     caption: "Pilt 1. Keskkonnaprobleemi ahelat saab katkestada konkreetse lahendusega.",
+    // the questions beside the picture (owner 2026-10-18: the generic ones had nothing to do with it)
+    prompts: ["Millist ahelat näitavad ringid pildi ülaosas? Kirjelda seda: põhjus → tagajärg.", "Kus saavad Markus ja Anna ahelat katkestada? Miks just seal?", "Milline prügikast on sinu kodus kõige täiem ja miks?"],
   },
   {
     id: "b1b2-062-avasta-1",

@@ -73,6 +73,13 @@ function v3Problems(doc, phase) {
   const out = [];
   const any = (list) => (doc.blocks || []).some((b) => list.includes(b.type));
   const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
+  // the picture's questions are about this picture (its brief's `prompts`), not the generic set
+  need(!(doc.blocks || []).some((b) => b.data?.artFor && b.data?.generic), 'v3-art-prompts', 'pildi kõrval on üldküsimused — pildi lähteülesandes on vaja oma küsimusi (prompts)');
+  // a long text is in paragraphs: easier to read, and the page can break between them
+  (doc.blocks || []).filter((b) => ['reading', 'cloze', 'formtext', 'insertion'].includes(b.type)).forEach((b) => {
+    const text = String(b.data?.passage || '');
+    if (text.split(/\s+/).length > 180 && !/\n\s*\n/.test(text)) out.push({ code: 'v3-paragraphs', text: `${b.id}: pikk tekst ühe lõiguna — jaga lõikudeks` });
+  });
   if (phase === 'discover') {
     need(any(['reading', 'listening']), 'v3-text', 'Avasta: tekst, mille üle mõelda (lugemine või kuulamine)');
     need(any(['notice']), 'v3-notice', 'Avasta: keele märkamine tekstist (notice)');

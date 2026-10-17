@@ -104,7 +104,7 @@ export const formtext = {
           <p key={pi}>{para.map((piece, k) => {
             if (!('gap' in piece)) return <Fragment key={k}><Md text={piece.text} /></Fragment>;
             const key = `${piece.gap}`;
-            return <span key={k} className="ws-formtext-gap"><sup>{piece.gap + 1}</sup><Line interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth(piece.accept, '26mm')} label={`Lünk ${piece.gap + 1}`} className="ws-gapline" /> ({piece.base})</span>;
+            return <span key={k} className="ws-formtext-gap"><b>({piece.gap + 1})</b><Line interactive={ctx.interactive} value={ctx.get(key)} onChange={(v) => ctx.set(key, v)} state={ctx.state(key)} width={gapWidth(piece.accept, '26mm')} label={`Lünk ${piece.gap + 1}`} className="ws-gapline" /> ({piece.base})</span>;
           })}</p>
         ))}
       </div>

@@ -113,7 +113,7 @@ export const Check = () => (
 // sheet cannot play).
 export function AudioBar({ audio, interactive, label = 'Kuula' }) {
   if (!audio?.src) return null;
-  if (!interactive) return <div className="ws-audio is-print"><Headphones aria-hidden="true" /><span>{label}: heli on veebis, kuula õpetaja juures.</span></div>;
+  if (!interactive) return <div className="ws-audio is-print"><Headphones aria-hidden="true" /><span>{label}: õpetaja mängib salvestuse või loeb teksti ette.</span></div>;
   return (
     <div className="ws-audio">
       <span className="ws-audio-ico" aria-hidden="true"><Headphones /></span>
