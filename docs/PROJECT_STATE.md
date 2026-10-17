@@ -1,3 +1,12 @@
+## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
+
+- main checked: 5521e1a (2026-10-17). Owner: a learner registered as a parent (Veronika Bistrova); the admins must be able to fix this themselves.
+- Server: `POST staffOperationsApi /accounts/parent-to-student` (admin only, `requestId` idempotent) in `functions/index.js`; plan in `functions/parent-to-student-core.js` (+ test). The account leaves `linkedParentIds/linkedParentId/parentUid/guardianUid` of that card and joins `linkedUserIds/linkedUserId/studentUid`; `parentName/parentEmail` stay (payer). Role → student, unless the account has other active children (then parent stays and student is added). Claims follow. Audit: `activityLog/parent-to-student-<id>` with before-values. Staff and super-admin accounts are refused.
+- UI: „Lapsevanemad” card footer (admin) → „See on õpilane” → choose the card → „Muuda õpilaseks”. Service: `accountApprovalsService.convertParentToStudent`.
+- Checks: functions `npm test` 297 pass; vitest parents + accountApprovals 27 pass.
+- Manual gate: deploy `staffOperationsApi`, then convert Veronika (card `tFW4vNY28JemXO58qQxm`) with the button.
+- Next safe step: owner approves deploy + merge.
+
 ## 2026-10-16 · agent/course-v2-b2 — the B1→B2 course in design v2 (in progress)
 
 - Base: branch `agent/course-v2-b1` (#652, B1 02–18 in v2, not merged yet; it carries the `quality.js` opener fix).

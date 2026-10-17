@@ -7707,6 +7707,59 @@ async function inviteParentAccount({ actor, email, displayName, phone, studentId
   return { uid, email: input.email, created: plan.action === "create", linkedStudentIds: plan.link, mailed: mail.status === "sent", mailStatus: mail.status || "", link };
 }
 
+// „See on õpilane” (Lapsevanemad): a parent account that is really the learner becomes the learner's own login on
+// that card (functions/parent-to-student-core.js). Old values are kept in the audit entry.
+async function convertParentToStudent({ actor, uid, studentId, requestId }) {
+  const { parentToStudentPlan } = require("./parent-to-student-core");
+  const mutationId = cleanRequestId(requestId);
+  const cleanUid = cleanText(uid, 180);
+  const cleanStudentId = cleanText(studentId, 180);
+  if (!cleanUid || !cleanStudentId) throw httpError(400, "Konto ja õpilase kaart on vajalikud.");
+  let authUser;
+  try { authUser = await admin.auth().getUser(cleanUid); } catch (error) { throw httpError(404, "Kontot ei leitud."); }
+  if (SUPER_ADMIN_EMAILS.has(String(authUser.email || "").toLowerCase())) throw httpError(409, "Administraatori kontot siin ei muudeta.");
+  const otherCards = await db.collection("students").where("linkedParentIds", "array-contains", cleanUid).get();
+  const otherChildren = otherCards.docs.filter(doc => doc.id !== cleanStudentId && doc.data().active !== false && !doc.data().mergedInto).length;
+  const studentRef = db.collection("students").doc(cleanStudentId);
+  const userRef = db.collection("users").doc(cleanUid);
+  const auditRef = db.collection("activityLog").doc(`parent-to-student-${mutationId}`);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const asWrite = patch => Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined)
+    .map(([key, value]) => [key, value === null ? FieldValue.delete() : value]));
+  const result = await db.runTransaction(async transaction => {
+    const [auditSnap, studentSnap, userSnap] = await Promise.all([transaction.get(auditRef), transaction.get(studentRef), transaction.get(userRef)]);
+    if (auditSnap.exists) return { uid: cleanUid, studentId: cleanStudentId, idempotent: true, keepParent: auditSnap.data().keepParent === true };
+    if (!studentSnap.exists) throw httpError(404, "Õpilase kaarti ei leitud.");
+    const student = { id: cleanStudentId, ...studentSnap.data() };
+    const profile = userSnap.exists ? userSnap.data() : {};
+    let plan;
+    try {
+      plan = parentToStudentPlan({ uid: cleanUid, student, profile, email: authUser.email || profile.email || "", otherChildren, staffRoles: [...STAFF_ROLES] });
+    } catch (error) { throw httpError(error.status || 400, error.message); }
+    transaction.set(studentRef, { ...asWrite(plan.studentPatch), accountLinkedAt: nowIso, accountLinkedBy: actorData, updatedAt: nowIso }, { merge: true });
+    transaction.set(userRef, { ...asWrite(plan.userPatch), uid: cleanUid, accountLinkedAt: nowIso, accountLinkedBy: actorData, updatedAt: nowIso }, { merge: true });
+    transaction.create(auditRef, {
+      type: "account.parent_to_student", action: "account.parent_to_student", uid: cleanUid, email: authUser.email || "",
+      studentId: cleanStudentId, studentName: student.name || "", keepParent: plan.keepParent,
+      before: {
+        role: profile.role || "", roles: Array.isArray(profile.roles) ? profile.roles : [], childName: profile.childName || "",
+        linkedParentIds: parentAccountIds(student), linkedUserIds: studentAccountIds(student),
+      },
+      actor: actorData, createdAt: nowIso, requestId: mutationId,
+    });
+    return { uid: cleanUid, studentId: cleanStudentId, studentName: student.name || "", idempotent: false, keepParent: plan.keepParent };
+  });
+  // signed roles follow the profile: the parent role goes away unless the account still has other children
+  if (!result.idempotent) {
+    const claims = authUser.customClaims || {};
+    const before = Array.isArray(claims.roles) ? claims.roles : [];
+    const next = result.keepParent ? uniqueIds([before, "parent", "student"]) : uniqueIds([before.filter(role => role !== "parent"), "student"]);
+    if (JSON.stringify(before) !== JSON.stringify(next)) await admin.auth().setCustomUserClaims(cleanUid, { ...claims, roles: next });
+  }
+  return result;
+}
+
 exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -7967,6 +8020,11 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
     if (req.path === "/accounts/invite-parent") {
       const result = await inviteParentAccount({ actor, email: req.body?.email, displayName: req.body?.displayName, phone: req.body?.phone, studentIds: req.body?.studentIds, requestId: req.body?.requestId });
       res.status(result.created ? 201 : 200).json(result);
+      return;
+    }
+    if (req.path === "/accounts/parent-to-student") {
+      const result = await convertParentToStudent({ actor, uid: req.body?.uid, studentId: req.body?.studentId, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
     if (req.path === "/accounts/link") {
