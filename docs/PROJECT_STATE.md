@@ -110,7 +110,15 @@
   and drop the role play or planning to fit 55 min, varied openers. 080 „Vahehindamine 4” marked `assessment`:
   listening part 1 now 6 questions with 4 options (Harno B2), speaking parts 3–4 min, letters 140–160 words, a 300-word
   article on short-term rentals feeds the letter and replaces the essay. 5/5 READY, language 0 unknown. Tests: 987 passed, 3 skipped.
-- Next safe step: B2 module 17 in v2, same approach.
+- **Module 17** (b1b2-081…085, level B2: reading 350+ words in the didactic check): patched to v2 — vocab in
+  every lesson, selfchecks only in Kasuta, speaking 3–4 min, Avasta/Kasuta letters at 140–160 words (B2 minimum) so
+  sheets fit 55 min, short „weak sentence” sources rewritten longer, new tasks (081 Avasta translation + errorfix, 081
+  Harjuta translation + dictation, 081 Kasuta transformation, 082 Avasta translation, 082 Kasuta word order →
+  dictation, 083 Avasta translation, 083 Harjuta dictation, 083 Kasuta translation → transformation, 084 Kasuta
+  gaps → dictation + errorfix + rubric), planning/speaking/role blocks trimmed, varied openers. 085 „Kontroll 17”
+  marked `assessment`: speaking parts 3–4 min, letter 140–160 words, a 350-word school-newspaper article on a later
+  school start replaces the data summary essay. 5/5 READY, language 0 unknown. Tests: 988 passed, 3 skipped.
+- Next safe step: B2 module 18 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
