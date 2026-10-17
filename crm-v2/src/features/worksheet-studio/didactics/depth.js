@@ -81,7 +81,7 @@ export function depthProblems(doc) {
   const examParts = doc?.meta?.assessment && doc?.meta?.phase === 'practice';
   // design v2: several shorter, different operations instead of one long drill (docs/COURSE_DESIGN_COMMUNICATIVE.md §6)
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11): fewer, fuller tasks — the level's full item count again
-  const v3 = doc?.meta?.template === 'v3';
+  const v3 = doc?.meta?.template === 'v3' && !doc?.meta?.assessment;
   const minItems = doc?.meta?.design === 'v2' && !v3 ? V2_ITEMS : norm.items;
   // a sentence-insertion text has the exam's 5–8 gaps
   const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && ITEMS[b.type](b.data || {}) < minItems);
