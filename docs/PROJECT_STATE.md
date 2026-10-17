@@ -92,7 +92,13 @@
   four speaking/planning blocks removed to fit 55 min, varied openers. 065 „Kontroll 13” marked `assessment`:
   reading part 4 became option gaps (no bank at B2), the speaking parts 3–4 min, a 300-word manager letter feeds the
   explanation letter (140 words) and replaces the essay. 5/5 READY, language 0 unknown. Tests: 984 passed, 3 skipped.
-- Next safe step: B2 module 14 in v2, same approach.
+- **Module 14** (b1b2-066…070, level B2-): patched to v2 — vocab in every lesson (066/068 lists cleaned of comma
+  splits and one-off words), selfchecks only in Kasuta, speaking 3.5–4 min, short task sentences rewritten longer,
+  new tasks (067/069 Kasuta translation, 068 Kasuta errorfix, 069 Avasta errorfix instead of a dictation, 069 Harjuta
+  dictation, 066 Kasuta word order → dictation), planning/speaking blocks removed to fit 55 min, varied openers. 070
+  „Kontroll 14” marked `assessment`: speaking parts 3–4 min, letter 140–160 words, a 300-word council article with
+  the e-services numbers replaces the data summary essay. 5/5 READY, language 0 unknown. Tests: 985 passed, 3 skipped.
+- Next safe step: B2 module 15 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
