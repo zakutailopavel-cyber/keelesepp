@@ -78,7 +78,21 @@
   short errorfix rows lengthened, longer true/false statements, varied openers. 060 „Vahehindamine 3” marked
   `assessment`: a 250-word IT-manager letter (with the digital-habits numbers) replaces the table, the essay gave
   way to letter errors + argument translation. 5/5 READY, language 0 unknown. Tests: 980 passed, 3 skipped.
-- Next safe step: B2 module 13 in v2, same approach.
+- Merged as #652 (B1), #653 (B2 02–12), #654 (goals list fix) on 2026-10-16; Vercel production deploy of 807ece5.
+- **Published 2026-10-17** (owner: „это тоже сделай”): 420 sheets of B1 02–18 and B2 02–12 written to
+  `curriculumLessons/{id}/worksheets/{phase}` with a new `worksheetVersions` entry each (old versions kept). 194 sheets
+  whose last version carried the owner's name were compared with the v1 code first: only audio, goal tags and sort
+  format differed (no hand edits), so they were replaced too. 11 B1 check lessons renamed „Kontroll N” → „Eksam N”
+  on the lesson card. A dry run afterwards shows all 420 identical to code. Sheets already given to students keep their copy.
+- **Module 13** (b1b2-061…065, level B2-: sentences ≥6 words on average, one speaking task up to 4 min, texts
+  ≥220 words, letters ≥140 words, no visible word banks): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, speaking 3.5–4 min, short task sentences rewritten longer (slogans, dictations, errorfix rows, translations),
+  new tasks (061/064 Kasuta errorfix or translation, 063 Avasta errorfix instead of a dictation, 063 Kasuta word order
+  → dictation as opener, 064 Avasta translation + errorfix, 064 Harjuta dictation + translation), the 061 table and
+  four speaking/planning blocks removed to fit 55 min, varied openers. 065 „Kontroll 13” marked `assessment`:
+  reading part 4 became option gaps (no bank at B2), the speaking parts 3–4 min, a 300-word manager letter feeds the
+  explanation letter (140 words) and replaces the essay. 5/5 READY, language 0 unknown. Tests: 984 passed, 3 skipped.
+- Next safe step: B2 module 14 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
