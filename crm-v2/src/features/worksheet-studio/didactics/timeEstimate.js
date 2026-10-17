@@ -28,6 +28,10 @@ export function blockMinutes(block, level = 'A2', design = '') {
     case 'choice': return (d.questions || []).length * 0.3;
     // a text with option gaps: read the text, then about 20 s per gap
     case 'cloze': return (words(String(d.passage || '').replace(/\{[^}]*\}/g, 'x')) / wpm) * 1.5 + (String(d.passage || '').match(/\{/g) || []).length * 0.35;
+    // a text with form gaps: read it, about 25 s per written form
+    case 'formtext': return (words(String(d.passage || '').replace(/\[[^\]]*\]\s*\([^)]*\)/g, 'x')) / wpm) * 1.5 + (String(d.passage || '').match(/\]\s*\(/g) || []).length * 0.4;
+    // a text with sentence gaps: read the text and the sentences, then about 40 s per gap
+    case 'insertion': return (words(String(d.passage || '').replace(/\[\[|\]\]/g, '') + ' ' + (d.extra || '')) / wpm) * 1.5 + (String(d.passage || '').match(/\[\[/g) || []).length * 0.7;
     case 'truefalse': return (d.statements || []).length * 0.2;
     case 'match': return (d.pairs || []).length * 0.2;
     case 'manymatch': return lines(d.left).length * 0.3;

@@ -661,6 +661,10 @@
 .ws-cloze-options { margin: 3mm 0 0; padding-left: 7mm; columns: 2; column-gap: 8mm; }
 .ws-cloze-options li { break-inside: avoid; margin-bottom: 1.2mm; }
 .ws-cloze-options li span { margin-right: 4mm; white-space: nowrap; }
+.ws-formtext-gap { white-space: nowrap; }
+.ws-formtext-gap sup { font-size: .7em; color: var(--ks-navy); font-weight: 700; margin-right: .5mm; }
+.ws-insertion-options { margin: 3mm 0 0; padding-left: 7mm; }
+.ws-insertion-options li { break-inside: avoid; margin-bottom: 1.2mm; }
 .ws-cloze-options .ws-dot { display: inline-block; width: 3mm; height: 3mm; border: .3mm solid var(--ks-line); border-radius: 50%; vertical-align: -.3mm; }
 
 /* Skeem v2 (owner 2026-10-13: the curved maps were not understandable): rows and cards across the width, every blank

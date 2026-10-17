@@ -87,8 +87,10 @@ export function keysProblems(doc) {
 export const LEVEL_LENGTHS = {
   A2: { text: 80, write: 40, speakSec: 60 },
   B1: { text: 140, write: 70, speakSec: 120 },
-  B2: { text: 220, write: 140, speakSec: 240 },
-  C1: { text: 350, write: 220, speakSec: 300 },
+  // speaking: within the didactic norm (levels.js: B2 60–180 s, C1 90–180 s, +25 %) — the gate asked for 240 / 300 s,
+  // so every B2 sheet failed one of the two checks (owner 2026-10-18, lesson template v3)
+  B2: { text: 220, write: 140, speakSec: 180 },
+  C1: { text: 350, write: 220, speakSec: 210 },
 };
 
 export function levelProblems(doc) {
@@ -100,10 +102,11 @@ export function levelProblems(doc) {
   // Avasta and Kasuta start from a text of the level (Harno: every closed task works on a text)
   if (phase === 'discover' || phase === 'transfer') {
     // design v2: any input of that length starts the phase — a dialogue, people profiles or a gapped exam text too
-    const inputs = doc?.meta?.design === 'v2' ? ['reading', 'listening', 'dialogue', 'profiles', 'cloze'] : ['reading', 'listening'];
+    const inputs = doc?.meta?.design === 'v2' ? ['reading', 'listening', 'dialogue', 'profiles', 'cloze', 'formtext', 'insertion'] : ['reading', 'listening'];
     const inputText = (b) => (b.type === 'dialogue' ? (b.data?.lines || []).map((l) => l?.text).join(' ')
       : b.type === 'profiles' ? (b.data?.people || []).map((p) => `${p?.facts || ''} ${p?.sentences || ''}`).join(' ')
-        : b.data?.passage || b.data?.transcript || lines(b.data?.sentences).join(' '));
+        : b.type === 'insertion' ? String(b.data?.passage || '').replace(/\[\[|\]\]/g, '')
+          : b.data?.passage || b.data?.transcript || lines(b.data?.sentences).join(' '));
     const longest = Math.max(0, ...blocks.filter((b) => inputs.includes(b.type)).map((b) => words(inputText(b))));
     if (longest < want.text) out.push({ gate: 'level', code: 'text-short', level: 'warning', text: `pikim tekst ${longest} sõna (${level}: vähemalt ${want.text})`, blocks: [] });
   }

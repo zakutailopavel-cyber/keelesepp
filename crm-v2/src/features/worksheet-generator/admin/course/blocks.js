@@ -54,6 +54,10 @@ export const B = {
   }),
   // a text with option gaps (Harno B1 reading 3): „… {*õige|vale|vale} …”
   cloze: (id, title, instruction, passageTitle, passage, goal = 'g_read') => block(id, 'cloze', 'cream', goal, { title, instruction, passageTitle, passage: join(passage) }),
+  // „Pane sõnad õigesse vormi” in a text: „Eile [käisin] (käima) poes.”
+  formtext: (id, title, instruction, passageTitle, passage, goal = 'g_notice') => block(id, 'formtext', 'blue', goal, { title, instruction, passageTitle, passage: join(passage) }),
+  // „Lünka sobiv lause”: the whole text, taken-out sentences in [[…]], extra sentences apart
+  insertion: (id, title, instruction, passageTitle, passage, extra, goal = 'g_read') => block(id, 'insertion', 'cream', goal, { title, instruction, passageTitle, passage: join(passage), extra: join(extra) }),
   listening: (id, title, instruction, transcript, sentences, goal = 'g_read') => block(id, 'listening', 'sky', goal, { title, instruction, audio: null, sentences: join(sentences), transcript: join(transcript) }),
   dictation: (id, title, instruction, sentences, lines = 6) => block(id, 'dictation', 'sky', 'g_use', { title, instruction, sentences: join(sentences), lines }),
   speaking: (id, title, instruction, questions, [minSec, maxSec], tipText = '', goal = 'g_use') => block(id, 'speaking', 'green', goal, {

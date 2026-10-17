@@ -3,7 +3,7 @@
 // no two sheets of one phase share the same task sequence, neighbours differ, and each phase does its own job.
 import { BLOCKS } from '../../../worksheet-studio/engine/registry.js';
 import { analyzeWorksheet } from '../../../worksheet-studio/quality.js';
-import { SHEET_MINUTES, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
+import { SHEET_MINUTES, blockMinutes, sheetMinutes } from '../../../worksheet-studio/didactics/timeEstimate.js';
 import { harnoFor } from '../../../worksheet-studio/didactics/levels.js';
 import BASELINE from './qualityBaseline.json';
 
@@ -30,11 +30,16 @@ export function sheetProblems(doc) {
   const ids = (doc.blocks || []).map((b) => b.id);
   if (new Set(ids).size !== ids.length) out.push({ code: 'ids', text: 'korduvad ploki id-d' });
   const n = doc.blocks.length;
+  // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
+  // tasks a sheet; the textbook picture added to the sheet is not counted
+  const v3 = doc.meta?.template === 'v3';
+  const own = (doc.blocks || []).filter((b) => !b.data?.artFor).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
-  if (n < 6 || n > 18) out.push({ code: 'length', text: `${n} plokki (lubatud 6–18)` });
+  if (v3 ? own < V3.blocks[0] || own > V3.blocks[1] : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (v3: ${V3.blocks[0]}–${V3.blocks[1]})` : `${n} plokki (lubatud 6–18)` });
   const minutes = sheetMinutes(doc);
   if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > SHEET_MINUTES.max)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
-  if (typeSet(doc).size < 5) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt 5)` });
+  const minTypes = v3 ? V3.types : 5;
+  if (typeSet(doc).size < minTypes) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt ${minTypes})` });
   const last = doc.blocks[n - 1]?.type;
   // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): a sheet may end with the task itself; a self-check only once a lesson
   const v2 = doc.meta?.design === 'v2';
@@ -42,7 +47,8 @@ export function sheetProblems(doc) {
   if (!endsWell) out.push({ code: 'end', text: v2 ? 'leht lõpeb ülesande, rubriigi või enesehinnanguga' : 'leht lõpeb enesehinnangu või rubriigiga' });
   const phase = doc.meta?.phase;
   // v2: the Harjuta sheet of an exam lesson is the exam's reading and listening part — exam formats, not practice jobs
-  if (phase === 'practice' && !(v2 && doc.meta?.assessment)) {
+  if (v3 && !doc.meta?.assessment) out.push(...v3Problems(doc, phase));
+  else if (phase === 'practice' && !(v2 && doc.meta?.assessment)) {
     if (!has(doc, FORM)) out.push({ code: 'practice-form', text: 'Harjuta: puudub vormiülesanne' });
     if (!has(doc, MEANING)) out.push({ code: 'practice-meaning', text: 'Harjuta: puudub tähendusülesanne' });
     if (!has(doc, SENTENCE)) out.push({ code: 'practice-sentence', text: 'Harjuta: puudub lause tasandi ülesanne (viga / sõnajärg / teisendus)' });
@@ -54,6 +60,35 @@ export function sheetProblems(doc) {
     if (productive.size < 2) out.push({ code: 'transfer-use', text: 'Kasuta: vähemalt kaks eri tüüpi suulist / kirjalikku ülesannet' });
     // v2: the use task has one assessed result
     if (v2 && !(doc.blocks || []).some((b) => b.type === 'rubric')) out.push({ code: 'transfer-rubric', text: 'Kasuta: ülesande tulemust hindab rubriik' });
+  }
+  return out;
+}
+
+// Lesson template v3 (§11): every phase has its fixed jobs — Avasta: a text to think about, the language noticed in it,
+// one full language task, a conversation; Harjuta: the exam's text tasks and a monologue; Kasuta: a situation with
+// arguments, a speech, a letter or an essay, a rubric.
+export const V3 = { blocks: [5, 9], types: 4, moduleTypes: 12, neighbour: 0.85, drillShare: 0.4, useShare: 0.25 };
+const V3_EXAM_TEXT = ['insertion', 'listening', 'choice', 'manymatch', 'truefalse'];
+function v3Problems(doc, phase) {
+  const out = [];
+  const any = (list) => (doc.blocks || []).some((b) => list.includes(b.type));
+  const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
+  if (phase === 'discover') {
+    need(any(['reading', 'listening']), 'v3-text', 'Avasta: tekst, mille üle mõelda (lugemine või kuulamine)');
+    need(any(['notice']), 'v3-notice', 'Avasta: keele märkamine tekstist (notice)');
+    need(tasks(doc).some((b) => FORM.includes(b.type) || SENTENCE.includes(b.type) || ['cloze', 'formtext'].includes(b.type)), 'v3-language', 'Avasta: üks täis keeleülesanne');
+    need(any(['speaking', 'dialogue', 'rolecards']), 'v3-talk', 'Avasta: vestlus teksti teemal');
+  }
+  if (phase === 'practice') {
+    need(any(['cloze']), 'v3-cloze', 'Harjuta: valiklünktekst (Harno lugemise 3. ülesanne)');
+    need(any(['formtext']), 'v3-formtext', 'Harjuta: „Pane sõnad õigesse vormi” tekstis');
+    need(any(V3_EXAM_TEXT), 'v3-exam-text', 'Harjuta: teine eksamiformaat (lause lünka, kuulamine, valik- või sobitusülesanne)');
+    need(any(['speaking']), 'v3-monologue', 'Harjuta: monoloog plaani järgi');
+  }
+  if (phase === 'transfer') {
+    need(any(['rolecards']), 'v3-situation', 'Kasuta: olukord poolt- ja vastuargumentidega (rollikaardid)');
+    need(any(['speaking']), 'v3-speech', 'Kasuta: sõnavõtt');
+    need(any(['guidedletter', 'writing']), 'v3-writing', 'Kasuta: kiri või arutlus');
   }
   return out;
 }
@@ -73,7 +108,7 @@ export function moduleProblems(sheets) {
     if (new Set(seqs).size !== seqs.length) out.push({ lessonId: '*', phase, code: 'module-same', text: 'mooduli kahel lehel on sama ülesannete jada' });
     for (let i = 1; i < list.length; i += 1) {
       const o = overlap(list[i - 1][1], list[i][1]);
-      if (o > 0.75) out.push({ lessonId: list[i][0], phase, code: 'neighbour', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe)` });
+      if (o > (list[i][1].meta?.template === 'v3' ? V3.neighbour : 0.75)) out.push({ lessonId: list[i][0], phase, code: 'neighbour', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe)` });
     }
   }
   out.push(...harnoProblems(sheets));
@@ -94,7 +129,10 @@ export function varietyProblems(sheets) {
   const out = [];
   const docs = ids.flatMap((id) => Object.values(sheets[id]));
   const types = new Set(docs.flatMap((d) => (d.blocks || []).map((b) => b.type)));
-  if (types.size < 16) out.push({ lessonId: '*', phase: '*', code: 'module-variety', text: `moodulis on ${types.size} plokitüüpi (v2: vähemalt 16)` });
+  const v3 = first?.meta?.template === 'v3';
+  const minTypes = v3 ? V3.moduleTypes : 16;
+  if (types.size < minTypes) out.push({ lessonId: '*', phase: '*', code: 'module-variety', text: `moodulis on ${types.size} plokitüüpi (${v3 ? 'v3' : 'v2'}: vähemalt ${minTypes})` });
+  out.push(...balanceProblems(sheets));
   for (const id of ids) {
     const checks = Object.values(sheets[id]).filter((d) => (d.blocks || []).some((b) => b.type === 'selfcheck')).length;
     if (checks > 1) out.push({ lessonId: id, phase: '*', code: 'selfcheck-once', text: `enesehinnang ${checks} lehel (v2: üks kord tunnis)` });
@@ -104,8 +142,28 @@ export function varietyProblems(sheets) {
     for (let i = 1; i < list.length; i += 1) {
       if (openingOf(list[i - 1][1]) === openingOf(list[i][1])) out.push({ lessonId: list[i][0], phase, code: 'same-opening', text: `algab samamoodi kui eelmine tund (${openingOf(list[i][1])})` });
       const o = overlap(list[i - 1][1], list[i][1]);
-      if (o > 0.6) out.push({ lessonId: list[i][0], phase, code: 'neighbour-v2', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe, v2: kuni 60%)` });
+      const limit = v3 ? V3.neighbour : 0.6;
+      if (o > limit) out.push({ lessonId: list[i][0], phase, code: 'neighbour-v2', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe, kuni ${Math.round(limit * 100)}%)` });
     }
+  }
+  return out;
+}
+
+// v3 balance (Nation's four strands: about a quarter of the time each): in a lesson the sentence and form drills take at
+// most 40 % of the minutes, speaking and writing at least 25 %. Exam text tasks (option gaps, forms in a text) count as
+// reading, not as drill.
+const DRILL = [...FORM, ...SENTENCE, 'choice', 'match', 'manymatch', 'categorize', 'crossword', 'truefalse'];
+export function balanceProblems(sheets) {
+  const out = [];
+  for (const [lessonId, phases] of Object.entries(sheets)) {
+    const docs = Object.values(phases);
+    if (docs.some((d) => d.meta?.assessment) || !docs.some((d) => d.meta?.template === 'v3')) continue;
+    const minutes = (pick) => docs.reduce((n, d) => n + (d.blocks || []).filter(pick).reduce((m, b) => m + blockMinutes(b, d.meta?.level, d.meta?.design), 0), 0);
+    const all = minutes(() => true) || 1;
+    const drill = minutes((b) => DRILL.includes(b.type)) / all;
+    const use = minutes((b) => PRODUCTIVE.includes(b.type)) / all;
+    if (drill > V3.drillShare) out.push({ lessonId, phase: '*', code: 'v3-drill', text: `harjutused ${Math.round(drill * 100)}% tunni ajast (v3: kuni ${V3.drillShare * 100}%)` });
+    if (use < V3.useShare) out.push({ lessonId, phase: '*', code: 'v3-use', text: `rääkimine ja kirjutamine ${Math.round(use * 100)}% tunni ajast (v3: vähemalt ${V3.useShare * 100}%)` });
   }
   return out;
 }
