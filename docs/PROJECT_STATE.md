@@ -127,7 +127,10 @@
   a 350-word text (manager's letter / article on language courses) replaces the second essay. `lõputest` and
   `lõpptest` added to the language allow-list (valid compounds). 5/5 READY, language 0 unknown. Tests: 989 passed, 3 skipped.
 - **B2 (modules 02–18) is complete in v2.**
-- Next safe step: owner review of #652 and #653; then publish the modules in „Kursuse tootmine”.
+- Merged as #655 (73113e9), Vercel production deploy. **Published 2026-10-17**: the 90 sheets of B2 13–18 (all last
+  written by the publish script, no hand edits) with a new `worksheetVersions` entry each; a dry run afterwards shows
+  all 90 identical to code. Together with the earlier publish, B1 02–18 and B2 02–18 are live in v2.
+- Next safe step: watch the first lessons taught with the v2 sheets and collect teacher feedback per sheet.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
