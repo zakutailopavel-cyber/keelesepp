@@ -1,3 +1,13 @@
+## 2026-10-18 · agent/lesson-template-v3 — lesson template v3 (fewer, fuller tasks; Harno exam formats), pilot B2 lesson 061
+
+- main checked: f9b9fbb (2026-10-18). Owner: B2 starts too low, too many small same-type blocks, little speaking, few situations and texts to think about, no exam-style lünkharjutus / „pane sõnad õigesse vormi”; „столько блоков не надо” — build the lesson on didactic norms.
+- Measured: 30–35 blocks a lesson, ~5 items a drill, 11–18 drills a lesson; B1 modules 2–8 are A2/A2+, B2 modules 1–4 B1, only B2 17–18 B2.
+- Norm: docs/COURSE_DESIGN_COMMUNICATIVE.md §10 (level map, to do) and §11 (template v3, sources: three-part lesson, Willis, Nation's four strands, Harno B2 booklet).
+- Code: new blocks `formtext` and `insertion` (engine/blocks/exam.jsx, builders in course/blocks.js, sheet.css, time, depth, didactic measure, review list); `template: 'v3'` (lesson or MODULE) → `meta.template`; quality.js v3 rules (5–9 blocks, ≥ 4 task types, fixed phase jobs, lesson balance drills ≤ 40 % / use ≥ 25 %, module ≥ 12 types, neighbours ≤ 85 %); depth.js v3 (full item count, Avasta ≥ 12 min / Kasuta ≥ 6 min exercises); gates.js speaking length B2 180 s / C1 210 s (was above the didactic norm).
+- Content: B2 lesson b1b2-061 rewritten in v3 (Avasta 8, Harjuta 7, Kasuta 7 blocks; cloze 12 gaps A–D, formtext 12, Harno info reading, insertion 6+1, argument cards). Not published — the CRM still shows the published v2 sheet until the owner allows publishing.
+- Checks: vitest worksheet-generator + worksheet-studio + homework 1037 pass, 3 skipped.
+- Next safe step: owner looks at lesson 061 (local preview or after publishing) → then rewrite by the level map, module by module.
+
 ## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
 
 - main checked: 5521e1a (2026-10-17). Owner: a learner registered as a parent (Veronika Bistrova); the admins must be able to fix this themselves.

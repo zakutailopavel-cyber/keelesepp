@@ -20,6 +20,8 @@ const ITEMS = {
   wordorder: (d) => lines(d.sentences).length,
   translation: (d) => (d.rows || []).length,
   dictation: (d) => lines(d.sentences).length,
+  formtext: (d) => (String(d.passage || '').match(/\]\s*\(/g) || []).length,
+  insertion: (d) => (String(d.passage || '').match(/\[\[/g) || []).length,
   categorize: (d) => (d.groups || []).reduce((n, g) => n + (Array.isArray(g?.words) ? g.words.length : groupItems(g || {}).length), 0),
 };
 // the learner writes a whole sentence
@@ -40,6 +42,9 @@ const band = (level) => {
 // Kasuta (transfer) sheets: the use tasks are the lesson; exercises prepare them
 export const TRANSFER = { exerciseMin: 12, liveMin: 8 };
 export const V2_ITEMS = 6;
+export const V3_DISCOVER = { exerciseMin: 12, liveMin: 6 };
+// v3 Kasuta: the situation text is the only exercise; the sheet is the speech, the discussion and the letter
+export const V3_TRANSFER = { exerciseMin: 6, liveMin: 5 };
 export const DEPTH = {
   A2: { items: 8, exerciseMin: 20, sentenceWords: 4, liveMin: 12 },
   B1: { items: 10, exerciseMin: 25, sentenceWords: 5, liveMin: 15 },
@@ -75,21 +80,27 @@ export function depthProblems(doc) {
   // the exam parts of a check lesson have the exam's own sizes (6, 8, 9 points): the items norm does not apply there
   const examParts = doc?.meta?.assessment && doc?.meta?.phase === 'practice';
   // design v2: several shorter, different operations instead of one long drill (docs/COURSE_DESIGN_COMMUNICATIVE.md §6)
-  const minItems = doc?.meta?.design === 'v2' ? V2_ITEMS : norm.items;
-  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && ITEMS[b.type](b.data || {}) < minItems);
+  // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11): fewer, fuller tasks — the level's full item count again
+  const v3 = doc?.meta?.template === 'v3';
+  const minItems = doc?.meta?.design === 'v2' && !v3 ? V2_ITEMS : norm.items;
+  // a sentence-insertion text has the exam's 5–8 gaps
+  const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && ITEMS[b.type](b.data || {}) < minItems);
   if (short.length) out.push({ code: 'short-tasks', level: 'warning', text: `${short.length} ülesannet alla ${minItems} punkti (${level})`, blocks: short.map((b) => b.id) });
 
   // Kasuta (transfer) is for using the language: writing, speaking, role play carry it; the exercises only prepare
   const transfer = doc?.meta?.phase === 'transfer';
-  const exerciseMin = transfer ? TRANSFER.exerciseMin : norm.exerciseMin;
-  const liveMin = transfer ? TRANSFER.liveMin : norm.liveMin;
+  // v3 Avasta: the text and its discussion are the lesson's input; one full language task follows it
+  const exerciseMin = transfer ? (v3 ? V3_TRANSFER : TRANSFER).exerciseMin : v3 && doc?.meta?.phase === 'discover' ? V3_DISCOVER.exerciseMin : norm.exerciseMin;
+  const liveMin = transfer ? (v3 ? V3_TRANSFER : TRANSFER).liveMin : v3 && doc?.meta?.phase === 'discover' ? V3_DISCOVER.liveMin : norm.liveMin;
   const exercise = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level), 0);
   if (exercise < exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${exerciseMin}; rääkimine ja kirjutamine ei loe)` });
 
   // aloud with the teacher: a recognised item goes in ~9 s, a whole sentence written or rebuilt in ~25 s; a text is
   // still read at the learner's pace
   const liveRate = (type) => (SENTENCE_WRITING.includes(type) || type === 'wordorder' ? 0.4 : 0.15);
-  const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level)), 0);
+  // a text task (forms or sentences in a text) is read at the learner's pace like any text
+  const TEXT_TASKS = ['formtext', 'insertion'];
+  const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] && !TEXT_TASKS.includes(b.type) ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level)), 0);
   if (live < liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${liveMin})` });
 
   const sentences = blocks.flatMap(taskSentences).filter(Boolean);
@@ -112,7 +123,8 @@ export function depthProblems(doc) {
 
   const writing = closed.filter((b) => SENTENCE_WRITING.includes(b.type));
   // v2 exam parts (reading and listening in exam form) have no sentence writing by design
-  if (writing.length < 2 && !(examParts && doc?.meta?.design === 'v2')) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
+  // v3: Harjuta is the exam's text tasks (option gaps, forms in a text, sentence gaps); Avasta has one language task
+  if (writing.length < 2 && !(examParts && doc?.meta?.design === 'v2') && !v3) out.push({ code: 'no-sentences', level: 'warning', text: `ainult ${writing.length} ülesannet, kus õpilane kirjutab terve lause (vähemalt 2)` });
 
   blocks.filter((b) => b.type === 'dictation').forEach((b) => {
     const n = lines(b.data?.sentences).length;
