@@ -46,6 +46,11 @@ export const accountApprovalsService = {
   mergeStudents({ keepId, sourceId, apply = false, includeFinance = false, includeSchedule = false }) {
     return staffPost('/students/merge-cards', { keepId, sourceId, apply, includeFinance, includeSchedule });
   },
+  // „See on õpilane”: a parent account that is really the learner becomes the learner's own login on that card
+  convertParentToStudent({ uid, studentId }) {
+    const requestId = `parent-to-student-${uid}-${studentId}`.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120);
+    return staffPost('/accounts/parent-to-student', { uid, studentId, requestId });
+  },
   linkToStudent({ uid, studentId, relationship }) {
     const requestId = `review-link-${uid}-${studentId}-${relationship}`.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 120);
     return staffPost('/accounts/link', { uid, studentId, relationship, requestId });

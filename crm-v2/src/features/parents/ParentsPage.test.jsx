@@ -70,6 +70,19 @@ describe('ParentsPage', () => {
     expect(status).toHaveTextContent('Uuendatud laste kaardid: Mari');
   });
 
+  it('an administrator turns a parent account that is really the learner into the learner\'s own login', async () => {
+    const data = repositories();
+    data.accountApi = { convertParentToStudent: vi.fn().mockResolvedValue({ keepParent: false }) };
+    renderPage({ uid: 'admin-1', displayName: 'Admin', roles: ['admin'] }, data);
+    await screen.findByText('Mari Ema');
+    fireEvent.click(screen.getByRole('button', { name: /See on õpilane/ }));
+    const dialog = screen.getByRole('dialog', { name: 'See on õpilane: Mari Ema' });
+    expect(within(dialog).getByLabelText('Mari')).toBeChecked();
+    fireEvent.click(within(dialog).getByRole('button', { name: /Muuda õpilaseks/ }));
+    await waitFor(() => expect(data.accountApi.convertParentToStudent).toHaveBeenCalledWith({ uid: 'parent-1', studentId: 'student-1' }));
+    expect(await screen.findByRole('status')).toHaveTextContent('Mari Ema on nüüd õpilane kaardil „Mari”.');
+  });
+
   it('only CRM fields changed: the account is not touched', async () => {
     const data = repositories();
     data.accountApi = { updateParentProfile: vi.fn() };
