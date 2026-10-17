@@ -22,3 +22,5 @@ kuulamis
 liikumis
 nägemis
 ksi
+lõputest
+lõpptest

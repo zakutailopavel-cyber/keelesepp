@@ -78,7 +78,56 @@
   short errorfix rows lengthened, longer true/false statements, varied openers. 060 „Vahehindamine 3” marked
   `assessment`: a 250-word IT-manager letter (with the digital-habits numbers) replaces the table, the essay gave
   way to letter errors + argument translation. 5/5 READY, language 0 unknown. Tests: 980 passed, 3 skipped.
-- Next safe step: B2 module 13 in v2, same approach.
+- Merged as #652 (B1), #653 (B2 02–12), #654 (goals list fix) on 2026-10-16; Vercel production deploy of 807ece5.
+- **Published 2026-10-17** (owner: „это тоже сделай”): 420 sheets of B1 02–18 and B2 02–12 written to
+  `curriculumLessons/{id}/worksheets/{phase}` with a new `worksheetVersions` entry each (old versions kept). 194 sheets
+  whose last version carried the owner's name were compared with the v1 code first: only audio, goal tags and sort
+  format differed (no hand edits), so they were replaced too. 11 B1 check lessons renamed „Kontroll N” → „Eksam N”
+  on the lesson card. A dry run afterwards shows all 420 identical to code. Sheets already given to students keep their copy.
+- **Module 13** (b1b2-061…065, level B2-: sentences ≥6 words on average, one speaking task up to 4 min, texts
+  ≥220 words, letters ≥140 words, no visible word banks): patched to v2 — vocab in every lesson, selfchecks only in
+  Kasuta, speaking 3.5–4 min, short task sentences rewritten longer (slogans, dictations, errorfix rows, translations),
+  new tasks (061/064 Kasuta errorfix or translation, 063 Avasta errorfix instead of a dictation, 063 Kasuta word order
+  → dictation as opener, 064 Avasta translation + errorfix, 064 Harjuta dictation + translation), the 061 table and
+  four speaking/planning blocks removed to fit 55 min, varied openers. 065 „Kontroll 13” marked `assessment`:
+  reading part 4 became option gaps (no bank at B2), the speaking parts 3–4 min, a 300-word manager letter feeds the
+  explanation letter (140 words) and replaces the essay. 5/5 READY, language 0 unknown. Tests: 984 passed, 3 skipped.
+- **Module 14** (b1b2-066…070, level B2-): patched to v2 — vocab in every lesson (066/068 lists cleaned of comma
+  splits and one-off words), selfchecks only in Kasuta, speaking 3.5–4 min, short task sentences rewritten longer,
+  new tasks (067/069 Kasuta translation, 068 Kasuta errorfix, 069 Avasta errorfix instead of a dictation, 069 Harjuta
+  dictation, 066 Kasuta word order → dictation), planning/speaking blocks removed to fit 55 min, varied openers. 070
+  „Kontroll 14” marked `assessment`: speaking parts 3–4 min, letter 140–160 words, a 300-word council article with
+  the e-services numbers replaces the data summary essay. 5/5 READY, language 0 unknown. Tests: 985 passed, 3 skipped.
+- **Module 15** (b1b2-071…075, level B2-): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  speaking 3.5–4 min, short task sentences rewritten longer, new tasks (072 Avasta errorfix instead of a dictation +
+  word order, 072 Kasuta errorfix, 074 Kasuta translation, 071/073 Kasuta word order → dictation), planning/speaking/
+  role blocks removed to fit 55 min and vary sheets, varied openers. 075 „Kontroll 15” marked `assessment`: speaking
+  parts 3–4 min, letter 140–160 words, a 300-word newspaper article (paywall + the wrong layoff story) feeds the letter
+  and replaces the essay. 5/5 READY, language 0 unknown. Tests: 986 passed, 3 skipped.
+- **Module 16** (b1b2-076…080, level B2-): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  speaking 3.5–4 min, short task sentences rewritten longer (choice stems, dictations, errorfix rows), new tasks (076
+  Kasuta word order → errorfix, 078 Kasuta word order → dictation + translation), Kasuta sheets keep one speaking task
+  and drop the role play or planning to fit 55 min, varied openers. 080 „Vahehindamine 4” marked `assessment`:
+  listening part 1 now 6 questions with 4 options (Harno B2), speaking parts 3–4 min, letters 140–160 words, a 300-word
+  article on short-term rentals feeds the letter and replaces the essay. 5/5 READY, language 0 unknown. Tests: 987 passed, 3 skipped.
+- **Module 17** (b1b2-081…085, level B2: reading 350+ words in the didactic check): patched to v2 — vocab in
+  every lesson, selfchecks only in Kasuta, speaking 3–4 min, Avasta/Kasuta letters at 140–160 words (B2 minimum) so
+  sheets fit 55 min, short „weak sentence” sources rewritten longer, new tasks (081 Avasta translation + errorfix, 081
+  Harjuta translation + dictation, 081 Kasuta transformation, 082 Avasta translation, 082 Kasuta word order →
+  dictation, 083 Avasta translation, 083 Harjuta dictation, 083 Kasuta translation → transformation, 084 Kasuta
+  gaps → dictation + errorfix + rubric), planning/speaking/role blocks trimmed, varied openers. 085 „Kontroll 17”
+  marked `assessment`: speaking parts 3–4 min, letter 140–160 words, a 350-word school-newspaper article on a later
+  school start replaces the data summary essay. 5/5 READY, language 0 unknown. Tests: 988 passed, 3 skipped.
+- **Module 18** (b1b2-086…090, level B2): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  speaking 3–4 min, short task sentences rewritten longer, new tasks (087 Harjuta dictation, 087 Kasuta errorfix +
+  word order → dictation, 088 Avasta dictation, 088 Kasuta errorfix + translation), role/planning/speaking blocks
+  trimmed to fit 55 min, varied openers. The mocks 089 „Täismahus B2 simulatsioon” and 090 „Lõpphindamine” marked
+  `assessment`: a language part in Avasta (089 errorfix + dictation, 090 errorfix + translation, the listening
+  result as a rubric), reading part 4 as option gaps (no bank at B2), speaking parts 3–4 min, letters 140–160 words,
+  a 350-word text (manager's letter / article on language courses) replaces the second essay. `lõputest` and
+  `lõpptest` added to the language allow-list (valid compounds). 5/5 READY, language 0 unknown. Tests: 989 passed, 3 skipped.
+- **B2 (modules 02–18) is complete in v2.**
+- Next safe step: owner review of #652 and #653; then publish the modules in „Kursuse tootmine”.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
