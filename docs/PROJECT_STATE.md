@@ -118,7 +118,16 @@
   gaps → dictation + errorfix + rubric), planning/speaking/role blocks trimmed, varied openers. 085 „Kontroll 17”
   marked `assessment`: speaking parts 3–4 min, letter 140–160 words, a 350-word school-newspaper article on a later
   school start replaces the data summary essay. 5/5 READY, language 0 unknown. Tests: 988 passed, 3 skipped.
-- Next safe step: B2 module 18 in v2, same approach.
+- **Module 18** (b1b2-086…090, level B2): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  speaking 3–4 min, short task sentences rewritten longer, new tasks (087 Harjuta dictation, 087 Kasuta errorfix +
+  word order → dictation, 088 Avasta dictation, 088 Kasuta errorfix + translation), role/planning/speaking blocks
+  trimmed to fit 55 min, varied openers. The mocks 089 „Täismahus B2 simulatsioon” and 090 „Lõpphindamine” marked
+  `assessment`: a language part in Avasta (089 errorfix + dictation, 090 errorfix + translation, the listening
+  result as a rubric), reading part 4 as option gaps (no bank at B2), speaking parts 3–4 min, letters 140–160 words,
+  a 350-word text (manager's letter / article on language courses) replaces the second essay. `lõputest` and
+  `lõpptest` added to the language allow-list (valid compounds). 5/5 READY, language 0 unknown. Tests: 989 passed, 3 skipped.
+- **B2 (modules 02–18) is complete in v2.**
+- Next safe step: owner review of #652 and #653; then publish the modules in „Kursuse tootmine”.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
