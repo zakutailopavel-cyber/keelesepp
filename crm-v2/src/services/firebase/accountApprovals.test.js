@@ -60,3 +60,14 @@ describe('approval response recovery', () => {
     expect(mocks.getDocFromServer).not.toHaveBeenCalled();
   });
 });
+
+describe('merge two cards of one learner', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('posts to its own path, not the finance duplicate merge that requires a requestId', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ waiting: [] }) }));
+    await accountApprovalsService.mergeStudents({ keepId: 'keep-1', sourceId: 'dup-1' });
+    const [url, init] = globalThis.fetch.mock.calls[0];
+    expect(url).toMatch(/\/students\/merge-cards$/);
+    expect(JSON.parse(init.body)).toMatchObject({ keepId: 'keep-1', sourceId: 'dup-1', apply: false });
+  });
+});

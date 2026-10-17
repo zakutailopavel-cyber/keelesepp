@@ -7980,8 +7980,10 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
-    // two cards of one learner: preview, then merge (functions/student-merge.js)
-    if (req.path === "/students/merge") {
+    // two cards of one learner: preview, then merge (functions/student-merge.js). Its own path: "/students/merge"
+    // above is the finance duplicate merge (requestId required), which answered first (owner 2026-10-17:
+    // „Liida kaardid” showed "Valid requestId required").
+    if (req.path === "/students/merge-cards") {
       const { mergeStudentCards } = require("./student-merge");
       try {
         res.json(await mergeStudentCards(db, {
