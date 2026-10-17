@@ -104,7 +104,13 @@
   role blocks removed to fit 55 min and vary sheets, varied openers. 075 „Kontroll 15” marked `assessment`: speaking
   parts 3–4 min, letter 140–160 words, a 300-word newspaper article (paywall + the wrong layoff story) feeds the letter
   and replaces the essay. 5/5 READY, language 0 unknown. Tests: 986 passed, 3 skipped.
-- Next safe step: B2 module 16 in v2, same approach.
+- **Module 16** (b1b2-076…080, level B2-): patched to v2 — vocab in every lesson, selfchecks only in Kasuta,
+  speaking 3.5–4 min, short task sentences rewritten longer (choice stems, dictations, errorfix rows), new tasks (076
+  Kasuta word order → errorfix, 078 Kasuta word order → dictation + translation), Kasuta sheets keep one speaking task
+  and drop the role play or planning to fit 55 min, varied openers. 080 „Vahehindamine 4” marked `assessment`:
+  listening part 1 now 6 questions with 4 options (Harno B2), speaking parts 3–4 min, letters 140–160 words, a 300-word
+  article on short-term rentals feeds the letter and replaces the essay. 5/5 READY, language 0 unknown. Tests: 987 passed, 3 skipped.
+- Next safe step: B2 module 17 in v2, same approach.
 
 ## 2026-10-16 · agent/course-v2-b1 — the whole B1 course in design v2 (in progress)
 
