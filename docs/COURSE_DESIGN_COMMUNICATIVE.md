@@ -110,11 +110,23 @@ depth.js: closed tasks ≥ 6 items; exam parts need no sentence writing. gates.j
 counts as the phase's input text. timeEstimate.js: v2 speaking and role play are pair work (both partners, roles
 swapped). Modules without `design` keep every old norm.
 
-## 10. Level map (owner 2026-10-18, to do)
+## 10. Level map (owner 2026-10-18)
 
 Measured 2026-10-18: B1 modules 2–8 are A2/A2+, B2 modules 1–4 are B1 and only B2 17–18 are B2. Target: the B1 course
 goes A2+ → B1 → B1+ and its last 3–4 modules bridge to B2; the B2 course starts at B1+/B2-, is B2 from about module 3
 and ends with exam modules. Rewriting follows this map, module by module, in template v3 (§11).
+
+As built (`MODULE.level`, branch `agent/course-v3-b2`, 2026-10-18):
+
+| course | modules | stage | norms the gate applies |
+|---|---|---|---|
+| B1 | 15–17, 18 (086–088) | B1, B1+ | B1 texts, letters ≥ 100 words |
+| B2 | 1 (002–004), 2–4 | B1+ (001 entry diagnostic B1) | B1 texts and items |
+| B2 | 5–8 | B2- | reading 300–600 words, letters 140–160, 10+ items, task sentences ≥ 6 words |
+| B2 | 9–18 | B2 | reading 350–700 words in paragraphs, letters 140–170, one speech 150–210 s, 10+ items |
+
+Assessment lessons (every fifth) keep the Harno form; B2 089–090 are two full Harno B2 mocks. B1 modules 2–14 are
+still design v2 and are the next part of the rewrite.
 
 ## 11. Lesson template v3 (owner 2026-10-18: „столько блоков не надо”)
 
