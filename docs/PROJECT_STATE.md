@@ -1,3 +1,14 @@
+## 2026-10-18 · agent/calendar-student-link — calendar: the student's current name and a link to the card; student card: next lessons of a weekly series
+
+- main checked: f9b9fbb (2026-10-18). Requests from the team chat (Oleksiy, 2026-10-17): #bug #high_priority #calender „сделать кликабельным ученика в занятии… имя обновляется, если обновил карточку”; #bug #low_priority #student_card „не отображаются будущие часы занятий, если карточка ученика была изменена”.
+- Cause 1: a `schedule` lesson keeps `studentName` from the day it was planned (24 of 666 lessons had an old name, e.g. „Agata” → „Agata Kuzina”). Now `calendarView.withCurrentStudentNames()` shows the name on the student card (by `studentId`; the stored name stays as fallback; groups untouched). No data rewrite.
+- The lesson panel title is a link to `/students/<id>` (individual lessons with a known card).
+- Cause 2 (not the rename): the card's „Tulevased tunnid” dropped every weekly series whose start date was in the past. Now it lists the dated occurrences of the next 8 weeks (`occurrencesForDates`, cancelled and marked ones left out); undated entries stay one weekly line.
+- Files: `features/calendar/calendarView.js`, `CalendarPage.jsx`, `LessonPanel.jsx`, `calendarV2.css`, `features/students/StudentLessonsPanel.jsx`, tests (`calendarView.test.js`, `LessonPanel.integrity.test.jsx`, new `StudentLessonsPanel.test.jsx`).
+- Checks: `npx vitest run src/features/students src/features/calendar` → 32 files, 174 passed.
+- Production: none (read-only Firestore query to find the cause). Needs a frontend deploy to show.
+- Next safe step: owner merges and deploys; then the next calendar item (subject icon on a lesson).
+
 ## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
 
 - main checked: 5521e1a (2026-10-17). Owner: a learner registered as a parent (Veronika Bistrova); the admins must be able to fix this themselves.
