@@ -12,6 +12,8 @@ export default [
     learningJob: "valida üks realistlik terviseharjumus ning selgitada selle põhjust ja oodatavat mõju",
     alt: "Markus ja Jaan seovad tervisekuu väikese harjumuse selle oodatava mõjuga.",
     caption: "Pilt 1. Väike harjumus, nähtav mõju.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid harjumusi Markus ja Jaan tervisekuu koosolekul valivad?", "Mida näitab nool kõnni kaardilt energia sümbolini?", "Millise ühe väikese harjumuse valiksid sina järgmiseks kuuks ja miks?"],
   },
   {
     id: "b1b2-042-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "moodustada viisakas tingivas kõneviisis nõuanne ja põhjendada, miks see on realistlik",
     alt: "Anna pakub Viktorile kolm viisakat ja realistlikku võimalust väsimuse ning üksilduse leevendamiseks.",
     caption: "Pilt 1. Pehme nõuanne jätab inimesele valiku.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Miks on Viktor väsinud ja üksildane?", "Millised kolm võimalust on valikukaardil?", "Millist esimest sammu soovitaksid sina Viktorile ja miks?"],
   },
   {
     id: "b1b2-043-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "analüüsida stressi mitut põhjust, valida teostatavad muutused ja põhjendada nende prioriteeti",
     alt: "Anna ja Markus seovad läbipõlemise põhjused teostatava muudatuste plaaniga.",
     caption: "Pilt 1. Mitmest stressipõhjusest teostatava plaanini.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis näitab, et Markusel on läbipõlemise oht?", "Milliseid muudatusi Anna aitab tal valida?", "Mida teeksid sina, kui kolleeg oleks samas olukorras?"],
   },
   {
     id: "b1b2-044-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "siduda algseisund, eesmärk, konkreetsed tegevused, ajakava ja oodatav tulemus üheks plaaniks",
     alt: "Markus ja Jaan ühendavad halvad harjumused kolme kuu elustiiliplaaniga.",
     caption: "Pilt 1. Nimekirjast seotud elustiiliplaanini.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milline on algseis ja milline on eesmärk pildil?", "Miks on rada jagatud väikesteks sammudeks?", "Milline samm oleks sinu enda elus kõige raskem?"],
   },
   {
     id: "b1b2-045-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "anda pehme ja realistlik nõuanne, mis lähtub inimese konkreetsest olukorrast ning selgitab mõju",
     alt: "Anna ja Jaan koostavad ülekoormatud õpetajale olukorraga sobiva nõuande.",
     caption: "Pilt 1. Hea nõuanne sobib inimese tegeliku olukorraga.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millest räägib lugejakiri, mida Anna ja Jaan arutavad?", "Mida tähendavad vastusekaardi kolm osa?", "Mida vastaksid sina ülekoormatud õpetajale?"],
   },
 ];
