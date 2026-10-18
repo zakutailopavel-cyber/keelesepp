@@ -40,3 +40,17 @@ it('shows the name on the student card, not the one stored when the lesson was p
   expect(gone.studentName).toBe('Kustutatud');
   expect(group.studentName).toBe('Grupp A');
 });
+
+it('finds the subject of a lesson and its short code', async () => {
+  const { lessonSubjectOf, subjectCode, withLessonSubjects } = await import('./calendarView.js');
+  const student = { subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel', teacherUid: 't1' }, { subject: 'Inglise keel', teacherUid: 't2' }] };
+  expect(lessonSubjectOf({ subject: 'Matemaatika' }, student)).toBe('Matemaatika');
+  expect(lessonSubjectOf({ teacherUid: 't2' }, student)).toBe('Inglise keel');
+  expect(lessonSubjectOf({ teacherUid: 'x' }, { subject: 'Eesti keel' })).toBe('Eesti keel');
+  expect(subjectCode('Inglise Keel')).toBe('EN');
+  expect(subjectCode('Eesti keel')).toBe('ET');
+  expect(subjectCode('Muu')).toBe('');
+  const [lesson, group] = withLessonSubjects([{ id: 'a', studentId: 's', teacherUid: 't1' }, { id: 'g', isGroup: true }], new Map([['s', student]]));
+  expect(lesson.subject).toBe('Eesti keel');
+  expect(group.subject).toBeUndefined();
+});
