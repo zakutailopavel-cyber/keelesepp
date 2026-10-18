@@ -12,6 +12,8 @@ export default [
     learningJob: "kirjeldada kandidaadi iseloomu täpse omadussõnaga ja tõendada seda konkreetse käitumisega",
     alt: "Anna ja Liis seovad kahe juhikandidaadi iseloomuomadused käitumise tõenditega.",
     caption: "Pilt 1. Omadus vajab käitumise tõendit.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Keda Anna ja Liis valikukomisjonis võrdlevad?", "Millised käitumise tõendid on laual ja mida need kandidaatide kohta näitavad?", "Millist iseloomuomadust peaksid sina meeskonnajuhi puhul kõige tähtsamaks?"],
   },
   {
     id: "b1b2-047-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "nimetada täpne emotsioon ning siduda see põhjuse ja sellele järgnenud reaktsiooniga",
     alt: "Sofia ja Markus seovad tööolukorra täpse emotsiooni ning sellele järgnenud reaktsiooniga.",
     caption: "Pilt 1. Sündmus, tunne ja reaktsioon moodustavad terviku.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millest Sofia ja Markus pärast pingelist nädalat räägivad?", "Mida näitab skeemi kolm osa: sündmus, tunne ja reaktsioon?", "Kirjelda üht olukorda, kus sinu tunne mõjutas sinu reaktsiooni."],
   },
   {
     id: "b1b2-048-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "anda kahe osapoole sõnad neutraalselt edasi kaudses kõnes ja vältida uut arusaamatust",
     alt: "Liis vahendab Anna ja Jaani trepikojavaidlust ning koondab mõlema ütlused neutraalselt.",
     caption: "Pilt 1. Vahendaja annab mõlema poole sõnad täpselt edasi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on Anna ja Jaani vaidluse põhjus?", "Kuidas Liis nende sõnad neutraalselt kokku võtab?", "Kuidas sina lahendaksid naabritevahelise vaidluse trepikojas?"],
   },
   {
     id: "b1b2-049-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "selgitada kolme osapoole tegelikke huvisid ja koostada konkreetne kompromiss, millega kõik saavad elada",
     alt: "Anna, Jaan ja Sofia ühendavad mere, matka ning linna tasakaalustatud puhkusekavaks.",
     caption: "Pilt 1. Kolm huvi, üks toimiv kompromiss.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid soove Anna, Jaan ja Sofia puhkuse kohta avaldavad?", "Kuidas ühendab reisikava kõigi kolme huvid?", "Millise kompromissi oled ise kunagi perega teinud?"],
   },
   {
     id: "b1b2-050-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "rakendada kuulamist, tunnete põhjendamist, kaudset kõnet ja kompromissi ühe konflikti lahendamisel",
     alt: "Liis juhib raamatukogus Anna ja Markuse neljaastmelist konfliktiharjutust.",
     caption: "Pilt 1. Konflikti lahendamise neli sammu.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida harjutavad Anna ja Markus konfliktikoolitusel?", "Millised on harjutusraja neli sammu?", "Milline neist sammudest on sinu jaoks kõige raskem ja miks?"],
   },
 ];
