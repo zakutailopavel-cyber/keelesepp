@@ -1,3 +1,18 @@
+## 2026-10-18 · agent/course-v3-b1 + agent/course-v3-b2 — the B1 and B2 courses rewritten in lesson template v3 (both done)
+
+- main checked: f9b9fbb (2026-10-18). Draft PRs: #660 (`agent/course-v3-b1`, on #659) and #661 (`agent/course-v3-b2`, stacked on #660). Owner (2026-10-18): „переделывай теперь под новые критерии курсы Б1 и Б2”.
+- Level map as built: docs/COURSE_DESIGN_COMMUNICATIVE.md §10 (B1 2–5 A2+, 6–10 B1-, 11–14 B1, 15–18 B1/B1+; B2 1–4 B1+, 5–8 B2-, 9–18 B2).
+- B1 commits on `agent/course-v3-b1`: 44b3d12 (quality.js / depth.js: the textbook picture is not a task block, assessment sheets have no upper time limit, depth v3 not for assessment), 4bc6425 (2), 5d79a64 (3), adec6e7 (4), b48e40c (5), 15372dd (6), 3b9f759 (7), a2c11d2 (8), a74cc65 (9), a649c5e + 78ad309 (10), cb93d2f (11), 8ff4289 (12), 7367c1f (13), abe6a54 (14). B1 15–18 were rebuilt earlier on the same branch.
+- B2 commits on `agent/course-v3-b2`: 03bd25b (1), 8fb9820 (2), be57201 (3), 8b36796 (4), 9ff22ce (5), 22bd1ca (6), 200ed8d (7), 090d704 (8), 685ec95 (9), 5502d3c (10), 0eb980d (11), 8844f3c (12), b9685a7 (13), 458ac89 (14), 7e003ae (15), 81e43b0 (16), 9e5668a (17), 0e2cd54 (18), 042c5d1 (docs).
+- Per module: `MODULE.level` raised, `template: 'v3'`; every non-assessment lesson rebuilt to 7–9 blocks a sheet — Avasta: a text or a listening at the stage's length in paragraphs + notice + full language tasks (10 items at B1-/B1) + speaking + writing; Harjuta: cloze A–D (g_vocab) + formtext + a second exam text (truefalse / choice / manymatch / listening) + a monologue with a plan; Kasuta: situation + reading + role cards + a speech + letter + rubric. B2 and B1 2–10 picture prompts (`prompts`) in `art/visuals/*-module-NN.js`. Assessment lessons keep the Harno form (see §10).
+- B1 module 13 (the design-v2 sample named in AGENTS.md) is still `design: 'v2'`, now also `template: 'v3'`: 061 Avasta got a reading on talgud, 063 three residents' letters instead of the profile cards, Kasuta sheets a speech each.
+- Changed files: `admin/course/b1/module02–14.js`, `admin/course/b2/module01–18.js`, `art/visuals/b1-module-02–10.js`, `art/visuals/b2-module-01–18.js`, `admin/course/listeningAudio.json`, `crm-v2/public/audio/a2b1-*` and `b1b2-*` (rebuilt listening clips, free TartuNLP TTS via `tools/listening-audio/build.mjs --only`), `quality.js`, `depth.js`, docs §10.
+- Gate per module: `quality.js` sheet + module problems, `course.test.js`, `b1/` and `b2/lessonGoals.test.js` (each sub-goal ≥ 2 tasks), no sentence repeated across sheets, neighbours ≤ 85 % task types, no same opening in consecutive lessons, phase type sequences differ inside a module, lesson drills ≤ 40 %.
+- Checks after B1 module 14: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` → 104 files passed, 1 skipped; 992 tests passed, 3 skipped.
+- Known limits: B1 modules 11–14 have no textbook pictures (no `art/visuals/b1-module-11…14.js` yet, so no picture prompts there); a few Harno-form exam sheets are 56–59 min (assessment sheets have no upper limit).
+- Not published: the CRM keeps the published v2 sheets until the owner allows publishing (production Firestore write). No deploy, no production data touched.
+- Next safe step: the owner reviews a few B1 11–14 and B2 sheets locally and decides about publishing; then pictures for B1 11–14.
+
 ## 2026-10-18 · agent/lesson-template-v3 — lesson template v3 (fewer, fuller tasks; Harno exam formats), pilot B2 lesson 061
 
 - main checked: f9b9fbb (2026-10-18). Owner: B2 starts too low, too many small same-type blocks, little speaking, few situations and texts to think about, no exam-style lünkharjutus / „pane sõnad õigesse vormi”; „столько блоков не надо” — build the lesson on didactic norms.

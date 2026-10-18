@@ -110,11 +110,28 @@ depth.js: closed tasks ≥ 6 items; exam parts need no sentence writing. gates.j
 counts as the phase's input text. timeEstimate.js: v2 speaking and role play are pair work (both partners, roles
 swapped). Modules without `design` keep every old norm.
 
-## 10. Level map (owner 2026-10-18, to do)
+## 10. Level map (owner 2026-10-18)
 
 Measured 2026-10-18: B1 modules 2–8 are A2/A2+, B2 modules 1–4 are B1 and only B2 17–18 are B2. Target: the B1 course
 goes A2+ → B1 → B1+ and its last 3–4 modules bridge to B2; the B2 course starts at B1+/B2-, is B2 from about module 3
 and ends with exam modules. Rewriting follows this map, module by module, in template v3 (§11).
+
+As built (`MODULE.level`, branches `agent/course-v3-b1` and `agent/course-v3-b2`, 2026-10-18):
+
+| course | modules | stage | norms the gate applies |
+|---|---|---|---|
+| B1 | 2–5 | A2+ | reading 120–250 words, ≤ 8 items, speech 60–120 s, writing 6–10 sentences |
+| B1 | 6–10 | B1- | reading 150–320 words in paragraphs, 10 items, speech 120–180 s, letters 70–90 words |
+| B1 | 11–14 | B1 | reading 200–400 words in paragraphs, 10 items, task sentences ≥ 7 words on average, speech 120–180 s, writing ≥ 70 words |
+| B1 | 15–17, 18 (086–088) | B1, B1+ | B1 texts, letters ≥ 100 words |
+| B2 | 1 (002–004), 2–4 | B1+ (001 entry diagnostic B1) | B1 texts and items |
+| B2 | 5–8 | B2- | reading 300–600 words, letters 140–160, 10+ items, task sentences ≥ 6 words |
+| B2 | 9–18 | B2 | reading 350–700 words in paragraphs, letters 140–170, one speech 150–210 s, 10+ items |
+
+Assessment lessons (every fifth) keep the Harno form; B2 089–090 are two full Harno B2 mocks. The B1 module exams of
+modules 6–8 (030, 035, 040) keep the Harno A2 form and carry `level: 'A2+'` on the lesson; from module 9 on (045, 050,
+055, 060, 065, 070) they are in Harno B1 form at the module's stage, writing 1 raised to 70–80 words (the B1- / B1 gate
+asks 70+), and from module 11 on each has a written summary of reading 2 (at most 45 % recognition tasks at B1).
 
 ## 11. Lesson template v3 (owner 2026-10-18: „столько блоков не надо”)
 
