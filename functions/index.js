@@ -2666,7 +2666,7 @@ async function createInvoiceLessonCreditNote({
   });
 }
 
-async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId }) {
+async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, reference, note, requestId, cash = null, receivedByUid = "" }) {
   const mutationId = cleanRequestId(requestId);
   const amountCents = toCents(amount);
   const invoiceRef = db.collection("invoices").doc(String(invoiceId || ""));
@@ -2695,6 +2695,20 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
     if (invoice.status === "Tühistatud") throw httpError(409, "Cancelled invoice cannot receive payments");
     const payments = await activeInvoicePayments(transaction, invoiceRef.id);
     await assertFinancialDateOpen(transaction, paymentDate);
+    // cash (owner 2026-10-18): the payment names who took the money; a cash payment typed in here (not from a cash
+    // receipt) also puts the money into that person's cash box, so the box and the invoices agree
+    const isCash = cleanText(method, 40) === "cash";
+    let cashHolder = null;
+    let cashReceiptRef = null;
+    if (isCash && cash?.receiptId) {
+      cashHolder = { uid: String(cash.holderUid || ""), name: cleanText(cash.holderName, 120) };
+    } else if (isCash) {
+      const holderUid = String(receivedByUid || actor.decoded.uid);
+      const holderSnap = await transaction.get(db.collection("users").doc(holderUid));
+      if (!holderSnap.exists) throw httpError(404, "Raha saaja kontot ei leitud");
+      cashHolder = { uid: holderUid, name: cleanText(holderSnap.data().displayName || holderSnap.data().email, 120) };
+      cashReceiptRef = db.collection("cashLedger").doc(`cashpay_${mutationId}`);
+    }
     const payment = {
       invoiceId: invoiceRef.id,
       invoiceNum: invoice.num || "",
@@ -2711,10 +2725,19 @@ async function recordInvoicePayment({ actor, invoiceId, amount, paidAt, method, 
       createdAt: nowIso,
       createdBy: actorData,
       requestId: mutationId,
+      ...(cashHolder ? { receivedBy: cashHolder, cashReceiptId: cash?.receiptId || cashReceiptRef.id } : {}),
     };
     const patch = invoiceFinancialPatch(invoice, [...payments, payment], nowIso);
 
     transaction.create(paymentRef, payment);
+    if (cashReceiptRef) {
+      transaction.create(cashReceiptRef, {
+        type: "receipt", holderUid: cashHolder.uid, holderName: cashHolder.name, amountCents, receivedAt: paymentDate,
+        studentId: payment.studentId, studentName: payment.studentName, payerName: payment.payerName, note: payment.note,
+        status: "allocated", invoiceId: invoiceRef.id, paymentId: paymentRef.id, createdAt: nowIso,
+        createdBy: { uid: actorData.uid, name: actorData.name },
+      });
+    }
     transaction.set(invoiceRef, patch, { merge: true });
     transaction.create(auditRef, {
       entityType: "payment",
@@ -4257,6 +4280,139 @@ async function applyPayerCredit({ actor, creditId, allocations, lessonAllocation
   });
 }
 
+// Cash box (owner 2026-10-18; functions/cash-core.js): any staff member records cash they took and hands it over;
+// an administrator links a receipt to an invoice (an ordinary payment with method „cash”) or voids an entry.
+const cashCore = require("./cash-core");
+
+function cashActor(actor) {
+  return {
+    uid: actor.decoded.uid,
+    name: actor.profile.displayName || actor.decoded.name || actor.decoded.email || "",
+    isAdmin: isSuperAdmin(actor.decoded) || actor.roles.has("admin"),
+  };
+}
+
+async function cashStaffPeople() {
+  const snap = await db.collection("users").get();
+  return snap.docs
+    .map(doc => ({ uid: doc.id, profile: doc.data() }))
+    .filter(({ profile }) => !isDisabledProfile(profile) && [...collectTrustedRoles(profile, { roles: profile.roles })].some(role => STAFF_ROLES.has(role)))
+    .map(({ uid, profile }) => ({ uid, name: profile.displayName || profile.email || uid }))
+    .sort((left, right) => left.name.localeCompare(right.name, "et"));
+}
+
+async function cashSummary({ actor }) {
+  const who = cashActor(actor);
+  const snap = await db.collection("cashLedger").get();
+  const all = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  const balances = cashCore.cashBalances(all);
+  const entries = cashCore.visibleEntries(all, who).sort((left, right) => String(right.createdAt || "").localeCompare(String(left.createdAt || "")));
+  return {
+    isAdmin: who.isAdmin,
+    entries,
+    balances: who.isAdmin ? Object.values(balances).filter(row => row.cents !== 0) : [balances[who.uid] || { uid: who.uid, name: who.name, cents: 0 }],
+    people: await cashStaffPeople(),
+  };
+}
+
+async function recordCashReceipt({ actor, values = {}, requestId }) {
+  const id = cleanRequestId(requestId);
+  const who = cashActor(actor);
+  const ref = db.collection("cashLedger").doc(id);
+  const nowIso = new Date().toISOString();
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(ref);
+    if (existing.exists) return { entry: { id, ...existing.data() }, idempotent: true };
+    const studentId = String(values.studentId || "").trim();
+    if (!studentId) throw httpError(400, "Vali õpilane.");
+    const studentSnap = await transaction.get(db.collection("students").doc(studentId));
+    const holderUid = who.isAdmin && values.holderUid ? String(values.holderUid) : who.uid;
+    const holderSnap = await transaction.get(db.collection("users").doc(holderUid));
+    if (!holderSnap.exists) throw httpError(404, "Raha saaja kontot ei leitud.");
+    const holder = { uid: holderUid, name: holderSnap.data().displayName || holderSnap.data().email || "" };
+    const entry = cashCore.receiptEntry({ actor: who, isAdmin: who.isAdmin, values, studentId, student: studentSnap.exists ? studentSnap.data() : null, holder, nowIso });
+    transaction.create(ref, { ...entry, requestId: id });
+    transaction.create(db.collection("financialAudit").doc(`cashbox_${id}`), {
+      entityType: "cash", entityId: id, action: "cash.receipt", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
+      studentId, holderUid: holder.uid, actor: actorSnapshot(actor), reason: entry.note || "Sularaha vastu võetud", createdAt: nowIso, requestId: id,
+    });
+    return { entry: { id, ...entry }, idempotent: false };
+  });
+}
+
+async function recordCashHandover({ actor, values = {}, requestId }) {
+  const id = cleanRequestId(requestId);
+  const who = cashActor(actor);
+  const ref = db.collection("cashLedger").doc(id);
+  const nowIso = new Date().toISOString();
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(ref);
+    if (existing.exists) return { entry: { id, ...existing.data() }, idempotent: true };
+    const fromUid = who.isAdmin && values.fromUid ? String(values.fromUid) : who.uid;
+    const toUid = String(values.toUid || "");
+    if (!toUid) throw httpError(400, "Vali, kellele raha anned.");
+    const [ledgerSnap, fromSnap, toSnap] = await Promise.all([
+      transaction.get(db.collection("cashLedger")),
+      transaction.get(db.collection("users").doc(fromUid)),
+      transaction.get(db.collection("users").doc(toUid)),
+    ]);
+    if (!fromSnap.exists || !toSnap.exists) throw httpError(404, "Kontot ei leitud.");
+    const toProfile = toSnap.data();
+    if (isDisabledProfile(toProfile) || ![...collectTrustedRoles(toProfile, { roles: toProfile.roles })].some(role => STAFF_ROLES.has(role))) {
+      throw httpError(409, "Raha saab anda ainult koolitöötajale.");
+    }
+    const balances = cashCore.cashBalances(ledgerSnap.docs.map(doc => doc.data()));
+    const entry = cashCore.handoverEntry({
+      actor: who, isAdmin: who.isAdmin, values, nowIso,
+      from: { uid: fromUid, name: fromSnap.data().displayName || fromSnap.data().email || "" },
+      to: { uid: toUid, name: toProfile.displayName || toProfile.email || "" },
+      balanceCents: balances[fromUid]?.cents || 0,
+    });
+    transaction.create(ref, { ...entry, requestId: id });
+    transaction.create(db.collection("financialAudit").doc(`cashbox_${id}`), {
+      entityType: "cash", entityId: id, action: "cash.handover", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
+      fromUid, toUid, actor: actorSnapshot(actor), reason: entry.note || "Sularaha üle antud", createdAt: nowIso, requestId: id,
+    });
+    return { entry: { id, ...entry }, idempotent: false };
+  });
+}
+
+async function allocateCashReceipt({ actor, receiptId, invoiceId }) {
+  const ref = db.collection("cashLedger").doc(String(receiptId || ""));
+  const snap = await ref.get();
+  if (!snap.exists || snap.data().type !== "receipt") throw httpError(404, "Sularaha kirjet ei leitud.");
+  const receipt = snap.data();
+  if (receipt.status === "void") throw httpError(409, "Kirje on tühistatud.");
+  if (receipt.status === "allocated" && receipt.invoiceId !== String(invoiceId || "")) throw httpError(409, "Raha on juba teise arvega seotud.");
+  const result = await recordInvoicePayment({
+    actor, invoiceId, amount: centsToAmount(receipt.amountCents), paidAt: receipt.receivedAt, method: "cash", reference: "Sularaha",
+    note: `Sularaha: ${receipt.holderName || ""}${receipt.note ? ` · ${receipt.note}` : ""}`, requestId: `cashalloc_${ref.id}`.slice(0, 120),
+    cash: { receiptId: ref.id, holderUid: receipt.holderUid, holderName: receipt.holderName },
+  });
+  await ref.set({ status: "allocated", invoiceId: String(invoiceId), paymentId: result.payment.id, allocatedAt: new Date().toISOString(), allocatedBy: actorSnapshot(actor) }, { merge: true });
+  return { ...result, receiptId: ref.id };
+}
+
+async function voidCashEntry({ actor, entryId, reason }) {
+  const cleanReason = cleanText(reason);
+  if (!cleanReason) throw httpError(400, "Kirjuta põhjus.");
+  const ref = db.collection("cashLedger").doc(String(entryId || ""));
+  const nowIso = new Date().toISOString();
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    if (!snap.exists) throw httpError(404, "Kirjet ei leitud.");
+    const entry = snap.data();
+    if (entry.status === "void") return { entryId: ref.id, idempotent: true };
+    if (entry.type === "receipt" && entry.status === "allocated") throw httpError(409, "Raha on arvega seotud: tühista kõigepealt makse.");
+    transaction.set(ref, { status: "void", voidedAt: nowIso, voidedBy: actorSnapshot(actor), voidReason: cleanReason }, { merge: true });
+    transaction.create(db.collection("financialAudit").doc(`cashbox_void_${ref.id}`.slice(0, 150)), {
+      entityType: "cash", entityId: ref.id, action: "cash.voided", amountCents: entry.amountCents, amount: centsToAmount(entry.amountCents),
+      actor: actorSnapshot(actor), reason: cleanReason, createdAt: nowIso,
+    });
+    return { entryId: ref.id, idempotent: false };
+  });
+}
+
 async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanPaymentId = String(paymentId || "").trim();
@@ -4284,6 +4440,8 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
     if (!paymentSnap.exists) throw httpError(404, "Payment not found");
     const payment = paymentSnap.data();
     if (payment.status === "voided") throw httpError(409, "Payment is already voided");
+    const cashReceiptRef = payment.cashReceiptId ? db.collection("cashLedger").doc(String(payment.cashReceiptId)) : null;
+    const cashReceiptSnap = cashReceiptRef ? await transaction.get(cashReceiptRef) : null;
     if (payment.kind === "direct_lesson") {
       const lessonRef = db.collection("lessons").doc(String(payment.lessonId || ""));
       const lessonSnap = await transaction.get(lessonRef);
@@ -4576,6 +4734,9 @@ async function voidSinglePayment({ actor, paymentId, reason, requestId }) {
       }, { merge: true });
     }
 
+    if (cashReceiptSnap?.exists) {
+      transaction.set(cashReceiptRef, { status: "open", invoiceId: null, paymentId: null, reopenedAt: nowIso, reopenedReason: cleanReason }, { merge: true });
+    }
     transaction.create(auditRef, {
       entityType: "payment",
       entityId: paymentRef.id,
@@ -8688,6 +8849,20 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    if (req.path === "/cash/summary") {
+      res.json(await cashSummary({ actor: await requireStaffUser(req) }));
+      return;
+    }
+    if (req.path === "/cash/receipts") {
+      const result = await recordCashReceipt({ actor: await requireStaffUser(req), values: req.body, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/cash/handover") {
+      const result = await recordCashHandover({ actor: await requireStaffUser(req), values: req.body, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
     const actor = await requireAdminUser(req);
     if (req.path === "/students/price-privacy/preview" || req.path === "/students/price-privacy/apply") {
       res.json(await studentPricePrivacy({ actor, apply: req.path.endsWith("/apply") }));
@@ -8830,6 +9005,15 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
+    if (req.path === "/cash/allocate") {
+      const result = await allocateCashReceipt({ actor, receiptId: req.body?.receiptId, invoiceId: req.body?.invoiceId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/cash/void") {
+      res.json(await voidCashEntry({ actor, entryId: req.body?.entryId, reason: req.body?.reason }));
+      return;
+    }
     if (req.path === "/payments") {
       const result = await recordInvoicePayment({
         actor,
@@ -8840,6 +9024,7 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         reference: req.body?.reference,
         note: req.body?.note,
         requestId: req.body?.requestId,
+        receivedByUid: req.body?.receivedByUid,
       });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;

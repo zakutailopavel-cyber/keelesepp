@@ -44,6 +44,7 @@ const ConversionQueuePage = lazy(() => import('../features/worksheet-studio/Conv
 const BookPage = lazy(() => import('../features/worksheet-studio/BookPage.jsx'));
 const LiveWorksheetPage = lazy(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
 const ParentsPage = lazy(() => import('../features/parents/ParentsPage.jsx'));
+const CashPage = lazy(() => import('../features/cash/CashPage.jsx'));
 const PayrollPage = lazy(() => import('../features/payroll/PayrollPage.jsx'));
 const StudentsPage = lazy(() => import('../features/students/StudentsPage.jsx'));
 const StudentProfilePage = lazy(() => import('../features/students/StudentProfilePage.jsx'));
@@ -91,6 +92,7 @@ export default function AppRoutes() {
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
             <Route path="parents" element={staffPage(<ParentsPage />)} />
+            <Route path="kassa" element={staffPage(<CashPage />)} />
             <Route path="board/:studentId" element={<BoardPage />} />
             <Route path="leads" element={staffPage(<LeadsPage />)} />
           </Route>

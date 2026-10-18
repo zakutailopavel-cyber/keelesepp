@@ -3563,3 +3563,74 @@ test("lesson tokens: an invoice for N lessons, credited after payment, consumed 
   const ledger = (await db.collection("packageLedger").where("studentPackageId", "==", "tokens_tokens-invoice-0001").get()).docs.map((doc) => doc.data().entryType).sort();
   assert.deepEqual(ledger, ["grant", "lesson_consumption", "lesson_consumption", "lesson_consumption", "lesson_restoration", "lesson_restoration"]);
 });
+
+test("cash box: a teacher takes cash, hands it over, an admin links it to the invoice; a voided payment reopens it", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const adminUid = tokenUid(adminToken);
+  const teacherToken = await createUserToken("cash-teacher@example.com");
+  const teacherUid = tokenUid(teacherToken);
+  const otherToken = await createUserToken("cash-other-teacher@example.com");
+  const otherUid = tokenUid(otherToken);
+  await Promise.all([
+    db.collection("users").doc(adminUid).set({ role: "admin", displayName: "Pavel Admin", email: "zakutailo.pavel@gmail.com" }, { merge: true }),
+    db.collection("users").doc(teacherUid).set({ role: "teacher", displayName: "Cash Teacher", email: "cash-teacher@example.com" }),
+    db.collection("users").doc(otherUid).set({ role: "teacher", displayName: "Other Teacher", email: "cash-other-teacher@example.com" }),
+    db.collection("students").doc("cash-student").set({ name: "Cash Student", parentName: "Cash Parent", teacherUid, active: true, payerMethod: "cash" }),
+    db.collection("invoices").doc("cash-invoice").set({
+      num: "KS-CASH-001", date: "2026-10-01", due: "2026-10-10", amountCents: 6000, amount: 60, paidAmountCents: 0, paidAmount: 0,
+      balanceDueCents: 6000, balanceDue: 60, paymentStatus: "unpaid", status: "Ootel", studentId: "cash-student", studentName: "Cash Student",
+    }),
+  ]);
+
+  // a teacher of another student cannot record cash for this one
+  const foreign = await financeRequest(otherToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", requestId: "emulator_cash_foreign_0001" });
+  assert.equal(foreign.status, 403, JSON.stringify(foreign.body));
+
+  const receipt = await financeRequest(teacherToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", note: "oktoober", requestId: "emulator_cash_receipt_0001" });
+  assert.equal(receipt.status, 201, JSON.stringify(receipt.body));
+  const again = await financeRequest(teacherToken, "/cash/receipts", { studentId: "cash-student", amount: 60, receivedAt: "2026-10-15", requestId: "emulator_cash_receipt_0001" });
+  assert.equal(again.status, 200);
+
+  // the teacher sees only their part; cannot hand over more than they hold
+  let mine = await financeRequest(teacherToken, "/cash/summary", {});
+  assert.equal(mine.status, 200, JSON.stringify(mine.body));
+  assert.equal(mine.body.balances[0].cents, 6000);
+  const tooMuch = await financeRequest(teacherToken, "/cash/handover", { toUid: adminUid, amount: 70, requestId: "emulator_cash_handover_0000" });
+  assert.equal(tooMuch.status, 409, JSON.stringify(tooMuch.body));
+  const handover = await financeRequest(teacherToken, "/cash/handover", { toUid: adminUid, amount: 60, handedAt: "2026-10-16", requestId: "emulator_cash_handover_0001" });
+  assert.equal(handover.status, 201, JSON.stringify(handover.body));
+  mine = await financeRequest(teacherToken, "/cash/summary", {});
+  assert.equal(mine.body.balances[0].cents, 0);
+
+  // the teacher cannot link money to an invoice; the admin can
+  const teacherAllocate = await financeRequest(teacherToken, "/cash/allocate", { receiptId: "emulator_cash_receipt_0001", invoiceId: "cash-invoice" });
+  assert.equal(teacherAllocate.status, 403);
+  const allocated = await financeRequest(adminToken, "/cash/allocate", { receiptId: "emulator_cash_receipt_0001", invoiceId: "cash-invoice" });
+  assert.equal(allocated.status, 201, JSON.stringify(allocated.body));
+  const payment = (await db.collection("payments").doc(allocated.body.payment.id).get()).data();
+  assert.equal(payment.method, "cash");
+  assert.equal(payment.receivedBy.uid, teacherUid);
+  assert.equal((await db.collection("invoices").doc("cash-invoice").get()).data().status, "Makstud");
+  assert.equal((await db.collection("cashLedger").doc("emulator_cash_receipt_0001").get()).data().status, "allocated");
+  const all = await financeRequest(adminToken, "/cash/summary", {});
+  assert.equal(all.body.balances.find(row => row.uid === adminUid).cents, 6000);
+
+  // voiding the payment leaves the money in the box and opens the receipt again
+  const voided = await financeRequest(adminToken, "/payments/void", { paymentId: allocated.body.payment.id, reason: "vale arve", requestId: "emulator_cash_void_payment_0001" });
+  assert.equal(voided.status, 200, JSON.stringify(voided.body));
+  assert.equal((await db.collection("cashLedger").doc("emulator_cash_receipt_0001").get()).data().status, "open");
+
+  // a cash payment typed by the admin names who took the money and enters that person's box
+  const direct = await financeRequest(adminToken, "/payments", { invoiceId: "cash-invoice", amount: 60, paidAt: "2026-10-17", method: "cash", receivedByUid: otherUid, requestId: "emulator_cash_direct_payment_0001" });
+  assert.equal(direct.status, 201, JSON.stringify(direct.body));
+  const directReceipt = (await db.collection("cashLedger").doc("cashpay_emulator_cash_direct_payment_0001").get()).data();
+  assert.equal(directReceipt.holderUid, otherUid);
+  assert.equal(directReceipt.status, "allocated");
+
+  // clients never write the ledger
+  const clientWrite = await firestoreDocumentRequest(adminToken, "PATCH", "cashLedger/emulator_cash_receipt_0001?updateMask.fieldPaths=amountCents", { fields: { amountCents: { integerValue: "1" } } });
+  assert.equal(clientWrite.status, 403);
+});

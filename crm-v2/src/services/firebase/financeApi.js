@@ -182,7 +182,24 @@ export const financeApi = {
       reference: payment.reference || "",
       note: payment.note || "",
       requestId: payment.requestId || financeRequestId("payment"),
+      ...(payment.method === "cash" && payment.receivedByUid ? { receivedByUid: payment.receivedByUid } : {}),
     });
+  },
+  // cash box (owner 2026-10-18): staff record cash they took and hand it over; an admin links it to an invoice
+  cashSummary() {
+    return post("/cash/summary", {});
+  },
+  recordCashReceipt(values) {
+    return post("/cash/receipts", { ...values, requestId: values.requestId || financeRequestId("cash_receipt") });
+  },
+  recordCashHandover(values) {
+    return post("/cash/handover", { ...values, requestId: values.requestId || financeRequestId("cash_handover") });
+  },
+  allocateCashReceipt(receiptId, invoiceId) {
+    return post("/cash/allocate", { receiptId, invoiceId });
+  },
+  voidCashEntry(entryId, reason) {
+    return post("/cash/void", { entryId, reason });
   },
   allocateBankTransaction(transaction) {
     const amount = Number(transaction.amountCents) / 100;
