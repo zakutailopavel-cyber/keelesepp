@@ -12,6 +12,8 @@ export default [
     learningJob: "järeldada, kes on üksteisele lähedased, kirjeldada inimesi ja nimetada nende ühiseid tegevusi",
     alt: "Jaan ja Viktor parandavad jalgratast, Sofia katab lauda ning Muki istub kõrval.",
     caption: "Pilt 1. Lähedased inimesed tegutsevad koos.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes on pildil ja kes nad üksteisele võiksid olla?", "Mida pere pildil koos teeb?", "Mida teeb sinu pere koos?"],
   },
   {
     id: "a2b1-007-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "eristada välimuse ja iseloomu kirjeldusi ning põhjendada iseloomuomadusi nähtavate tegudega",
     alt: "Kontoris aitavad Sofia, Jaan ja Markus kaustu korrastada, Liis juhendab ning Anna vaatab.",
     caption: "Pilt 1. Iseloom avaldub inimese tegudes.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milline on pildil inimeste välimus?", "Mida nende teod räägivad nende iseloomust?", "Kirjelda üht inimest pildilt kolme lausega."],
   },
   {
     id: "a2b1-008-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "määrata esemete omanikud ning küsida ja vastata, kelle oma iga ese on",
     alt: "Anna ja Viktor uurivad piknikulauale jäänud asju ning otsivad nende omanikke.",
     caption: "Pilt 1. Kelle asjad jäid pärast piknikku lauale?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis asjad jäid pärast piknikku lauale?", "Kelle asjad need võiksid olla ja miks sa nii arvad?", "Mida sina oled kunagi kuhugi unustanud?"],
   },
   {
     id: "a2b1-010-avasta-1",
@@ -48,5 +54,7 @@ export default [
     learningJob: "järeldada, kes mida teeb ja kellele album kuulub, kirjeldada iseloomu tegude kaudu ning selgitada plaani muutust",
     alt: "Anna toob koogi, Viktor vaatab perealbumit ja Jaan valmistab sünnipäevalaua joogid.",
     caption: "Pilt 1. Pere valmistab muudetud ajaga sünnipäevaüllatust.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida pere pildil ette valmistab?", "Kelle sünnipäev see võiks olla?", "Kuidas sinu pere sünnipäevi tähistab?"],
   },
 ];
