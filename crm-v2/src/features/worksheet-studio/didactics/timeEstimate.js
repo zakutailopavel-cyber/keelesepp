@@ -46,6 +46,8 @@ export function blockMinutes(block, level = 'A2', design = '') {
     case 'crossword': return (d.rows || []).length * 0.3;
     case 'dialogue': return Math.max(gapsIn(JSON.stringify(d.lines || [])) * 0.3, (d.lines || []).length * 0.15);
     case 'clock': return (d.items || []).length * 0.25;
+    // reading a data chart before writing about it
+    case 'chart': return 2;
     case 'diagram': return Math.max(0.5, gapsIn(JSON.stringify(d)) * 0.3);
     case 'pictures': return (d.items || []).length * 0.25;
     // character / ID cards: read the facts, fill the gaps of the sentences

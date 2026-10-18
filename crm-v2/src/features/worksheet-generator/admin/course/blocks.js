@@ -42,6 +42,8 @@ export const B = {
   translation: (id, title, instruction, rows, width = 'half', goal = 'g_vocab') => block(id, 'translation', 'cream', goal, { title, instruction, rows: rows.map((source) => ({ source, hint: '' })) }, width),
   dialogue: (id, title, instruction, speakerA, speakerB, lines, goal = 'g_use') => block(id, 'dialogue', 'green', goal, { title, instruction, speakerA, speakerB, lines: lines.map(([who, text]) => ({ who, text })) }),
   diagram: (id, kind, data, width = 'half', goal = 'g_notice') => block(id, 'diagram', 'white', goal, { kind, ...data }, width),
+  // „Andmediagramm” (Harno C1 writing 1): series 'A, B'; rows ['2015 | 62 | 8', …]; kind 'bar' | 'line'
+  chart: (id, chartTitle, { kind = 'bar', unit = '', series = '', rows = [], source = '' } = {}, goal = 'g_read') => block(id, 'chart', 'white', goal, { chartTitle, kind, unit, series: Array.isArray(series) ? series.join(', ') : series, rows: join(rows), source }),
   crossword: (id, title, instruction, rows, width = 'half', goal = 'g_vocab') => block(id, 'crossword', 'cream', goal, { title, instruction, rows: rows.map(([clue, answer]) => ({ clue, answer })) }, width),
   // character / ID cards (Tegelaskaardid): people [[name, facts, sentences with [gaps]], …] — a card without a photo is
   // an ID card (personal data, A2 module 1)

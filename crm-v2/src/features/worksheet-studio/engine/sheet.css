@@ -700,3 +700,15 @@
 .ws-dictation-read strong { display: inline-flex; align-items: center; gap: 1.5mm; }
 .ws-dictation-read ol { margin: 0; padding-left: 5mm; display: grid; gap: 1mm; }
 .ws-dictation-read p { margin: 0; }
+
+/* Andmediagramm (chart block): the data of a summary task; prints as drawn */
+.ws-chart { margin: 0; display: grid; gap: 2mm; break-inside: avoid; }
+.ws-chart-title { font: 800 11pt var(--font-head); color: var(--ks-navy); }
+.ws-chart-svg { width: 100%; height: auto; max-height: 95mm; }
+.ws-chart-tick, .ws-chart-cat { font: 600 11px var(--font-body, sans-serif); fill: var(--ks-muted); }
+.ws-chart-cat { fill: var(--ks-ink); }
+.ws-chart-value { font: 800 10.5px var(--font-body, sans-serif); fill: var(--ks-ink); }
+.ws-chart-legend { display: flex; flex-wrap: wrap; gap: 2mm 6mm; margin: 0; padding: 0; list-style: none; font-size: 9.5pt; }
+.ws-chart-legend li { display: flex; align-items: center; gap: 1.6mm; }
+.ws-chart-legend i { display: inline-block; width: 4mm; height: 4mm; border-radius: 1mm; }
+.ws-chart-source { margin: 0; font-size: 8.5pt; color: var(--ks-muted); }
