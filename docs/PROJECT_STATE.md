@@ -10,8 +10,9 @@
 - Gate per module: `quality.js` sheet + module problems, `course.test.js`, `b1/` and `b2/lessonGoals.test.js` (each sub-goal ≥ 2 tasks), no sentence repeated across sheets, neighbours ≤ 85 % task types, no same opening in consecutive lessons, phase type sequences differ inside a module, lesson drills ≤ 40 %.
 - Checks after B1 module 14: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` → 104 files passed, 1 skipped; 992 tests passed, 3 skipped.
 - Known limits: B1 modules 11–14 have no textbook pictures (no `art/visuals/b1-module-11…14.js` yet, so no picture prompts there); a few Harno-form exam sheets are 56–59 min (assessment sheets have no upper limit).
-- Not published: the CRM keeps the published v2 sheets until the owner allows publishing (production Firestore write). No deploy, no production data touched.
-- Next safe step: the owner reviews a few B1 11–14 and B2 sheets locally and decides about publishing; then pictures for B1 11–14.
+- Published 2026-10-18 with the owner's permission („Публикуй в CRM”): all 525 B1 + B2 sheets (175 lessons × 3) built from branch `agent/course-v3-b2` at 9b77690, written to `curriculumLessons/<id>/worksheets/<phase>` as a new published version; every old version stays in `worksheetVersions`. b1b2-002 Avasta had a manual edit (v10, Pavel Zakutailo) and was overwritten on the owner's request (v11; v10 kept in history). Check: a second dry run reports 525 same, 0 to publish. No deploy, no other production data touched.
+- Risk: the CRM now shows the v3 sheets while the code is still on draft PRs #660/#661; if a PR changes a sheet before merge, publish again.
+- Next safe step: owner merges #659 → #660 → #661; then pictures for B1 11–14.
 
 ## 2026-10-18 · agent/lesson-template-v3 — lesson template v3 (fewer, fuller tasks; Harno exam formats), pilot B2 lesson 061
 
