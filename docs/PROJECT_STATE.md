@@ -6,7 +6,8 @@
 - Files: `crm-v2/src/features/board/{StudentBoard.jsx,boardModel.js,board.css,board.test.jsx}`.
 - Checks: `npx vitest run src/features/live-classroom src/features/board` passed, 16 files and 111 tests (2 of them new); `eslint src/features/board` is clean. Not checked by eye in a real lesson.
 - Risk: the bar sits 2 px from the right edge; the video tiles (right 14px) and the style panel do not cover it.
-- Next safe step: the owner checks the bar on a test lesson (mouse and iPad) and decides on the deploy.
+- **Deployed to production 2026-10-18 with the owner's permission:** `vercel deploy --prod` from this branch (origin/main f9b9fbb + this commit). crm.epkoolitus.ee serves the bar. The PR is NOT merged: until it is merged, the next deploy from main would remove the bar again.
+- Next safe step: the owner merges #666 (then main and production match) and checks the bar in a lesson.
 
 ## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
 
