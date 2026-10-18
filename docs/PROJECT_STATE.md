@@ -1,11 +1,27 @@
-## 2026-10-18 · agent/course-v3-c1 — C1 module 1 in template v3 (Harno C1), in progress
+## 2026-10-18 · agent/course-v3-c1 — C1 module 1 in template v3 (Harno C1)
 
-- main checked: f9b9fbb. Branch `agent/course-v3-c1`, stacked on #660/#661, with agent/board-scrollbar (#666) merged in. No PR yet.
-- Done: the chart block „Andmediagramm” (01311e9). Lessons est-c1-001…007 are rewritten in template v3 to the Harno C1 formats and pass the v3 gate. 008–010 are still the old content, so the course gate fails for them until they are rewritten.
-- Audio: TartuNLP for 001–007 (8 files, `listeningAudio.json`).
-- **Production (owner's permission, 2026-10-18):** `vercel deploy --prod` of c2952dd from a clean worktree. crm.epkoolitus.ee serves the chart block, the C1 and B1/B2 audio and the board scrollbar. The CRM publish (`publish-v2.cjs`) put out all 21 sheets of 001–007 (v9/v10). Their v8 was a batch write of 2026-10-13 22:09, not a hand edit, so they were marked as vetted; old versions stay in `worksheetVersions`.
-- Risk: production now runs this unmerged branch. A deploy from main before #660, #661, #666 and this branch are merged removes the audio, the chart and the scrollbar.
-- Next safe step: rewrite est-c1-008…010, run the full gate and vitest, publish them, then open a draft PR.
+- main checked: f9b9fbb (2026-10-18). Branch `agent/course-v3-c1` is stacked on #660/#661 and has agent/board-scrollbar (#666) merged in. Draft PR.
+- Done:
+  - the chart block „Andmediagramm” (`chart`, `B.chart`; 01311e9);
+  - module 1 (est-c1-001…010) in lesson template v3, for the Harno C1 exam:
+    - reading formats: statements to lettered paragraphs; sentence-option cloze; forms in a text;
+    - listening formats: news heard twice with short answers; a debate or lecture heard once;
+    - writing: a data summary of about 180 words from a chart, and a 220–260-word piece;
+    - speaking: a 2–3-minute talk after 3 minutes of preparation, and a discussion on role cards;
+    - every Kasuta ends with a rubric of the Harno criteria;
+  - 008 is the object case (sihitis), 009 is government (rektsioon); 010 is the module exam (`assessment: true`).
+- Generator: scratchpad scripts c1m01_NNN.py, rebuilt from the pre-rewrite snapshot. They are not in the repo; the result is the module files.
+- Audio: TartuNLP for every listening block of the module (`listeningAudio.json`, `public/audio/est-c1-0NN`).
+- Checks:
+  - `npx vitest run src/features/worksheet-generator`: 51 files and 705 tests pass;
+  - the module gate (quality.js) has no problems;
+  - board and studio tests pass (1020 passed before the last fixes).
+- **Production (owner's permission, 2026-10-18):**
+  - `vercel deploy --prod` of a4249f1 from a clean worktree;
+  - all 30 sheets of module 1 are published with `publish-v2.cjs` (v9–v11). Their v8 was a batch write on 2026-10-13 22:09, not a hand edit, so they were marked as vetted; old versions stay in `worksheetVersions`.
+- Risk: production runs this unmerged branch. A deploy from main before #660, #661, #666 and this PR are merged removes the audio, the chart block and the board scrollbar.
+- Not done: C1 modules 2–N are still the old design.
+- Next safe step: the owner merges #660 → #661 → #666 → this PR in that order; after that, rewrite C1 module 2 the same way.
 
 ## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
 
