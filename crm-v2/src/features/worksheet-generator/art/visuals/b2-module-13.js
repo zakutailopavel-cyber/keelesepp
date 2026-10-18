@@ -26,6 +26,8 @@ export default [
     learningJob: "jutustada keskkonnamuutusest erinevate põhjuse ja tagajärje sidesõnade abil",
     alt: "Liis ja Jüri uurivad, kuidas ehitamine mõjutab linnapuid ja tänava keskkonda.",
     caption: "Pilt 1. Põhjus viib tagajärjeni, lahendus vajab aega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millist põhjuste ja tagajärgede ahelat Liis ja Jüri tänaval näevad?", "Mida muudab istutatud noor puu?", "Milliseid rohealasid on sinu linnas vähemaks jäänud või juurde tulnud?"],
   },
   {
     id: "b1b2-063-kasuta-1",
@@ -38,6 +40,8 @@ export default [
     learningJob: "võrrelda keskkonnalahendusi nelja kriteeriumi järgi ja põhjendada eelarvevalikut",
     alt: "Liis ja Markus valivad mõju, hinna, aja ja mugavuse põhjal ettevõtte keskkonnalahendused.",
     caption: "Pilt 1. Tõhus valik arvestab mõju ja piiratud eelarvet.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid nelja keskkonnainvesteeringut Liis ja Markus võrdlevad?", "Mille järgi hindamismaatriks investeeringuid hindab?", "Millise investeeringu valiksid sina oma töökohas ja miks?"],
   },
   {
     id: "b1b2-064-avasta-1",
@@ -50,6 +54,8 @@ export default [
     learningJob: "siduda probleemi põhjused ja tagajärjed neile vastavate realistlike lahendustega",
     alt: "Anna ja Markus koostavad toidu raiskamise põhjuste, tagajärgede ja lahenduste skeemi.",
     caption: "Pilt 1. Hea lahendus vastab probleemi tegelikule põhjusele.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas tekivad skeemi järgi toidujäätmed?", "Milline lahendus on skeemil ja kuidas see ahela katkestab?", "Mida teed sina, et kodus vähem toitu ära visata?"],
   },
   {
     id: "b1b2-065-kasuta-1",
@@ -62,5 +68,7 @@ export default [
     learningJob: "kasutada kontrolli tagasisidet keskkonnateema nõrgema oskuse sihipäraseks harjutamiseks",
     alt: "Igor ja Jüri kavandavad keskkonnamooduli kontrolli järel järgmist harjutussammu.",
     caption: "Pilt 1. Kontrolli tulemus aitab valida järgmise harjutuse.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millist teemat meenutavad pildi ikoonid?", "Millise oskuse seab Igor järgmiseks eesmärgiks?", "Millise oskuse sina pärast seda moodulit kõige rohkem harjutaksid?"],
   },
 ];
