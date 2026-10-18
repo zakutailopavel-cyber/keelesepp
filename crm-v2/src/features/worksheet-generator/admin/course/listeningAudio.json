@@ -1799,6 +1799,16 @@
     "seconds": 167,
     "hash": "e8ad2e7946dcc2bd1f75313cb5d1aae85c67493b"
   },
+  "est-c1-008:c1_008_p_news": {
+    "src": "/audio/est-c1-008/c1_008_p_news.mp3",
+    "seconds": 63.5,
+    "hash": "1a2a7156b84d4b22fd07881c855ebd772c4c7edc"
+  },
+  "est-c1-009:c1_009_p_radio": {
+    "src": "/audio/est-c1-009/c1_009_p_radio.mp3",
+    "seconds": 85.6,
+    "hash": "103357b1a9e24225042ce418b8fc56480e398529"
+  },
   "est-c1-010:c1_010_p_l1": {
     "src": "/audio/est-c1-010/c1_010_p_l1.mp3",
     "seconds": 190.1,
