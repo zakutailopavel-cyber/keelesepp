@@ -1,3 +1,12 @@
+## 2026-10-18 · agent/course-v3-c1 — C1 module 1 in template v3 (Harno C1), in progress
+
+- main checked: f9b9fbb. Branch `agent/course-v3-c1`, stacked on #660/#661, with agent/board-scrollbar (#666) merged in. No PR yet.
+- Done: the chart block „Andmediagramm” (01311e9). Lessons est-c1-001…007 are rewritten in template v3 to the Harno C1 formats and pass the v3 gate. 008–010 are still the old content, so the course gate fails for them until they are rewritten.
+- Audio: TartuNLP for 001–007 (8 files, `listeningAudio.json`).
+- **Production (owner's permission, 2026-10-18):** `vercel deploy --prod` of c2952dd from a clean worktree. crm.epkoolitus.ee serves the chart block, the C1 and B1/B2 audio and the board scrollbar. The CRM publish (`publish-v2.cjs`) put out all 21 sheets of 001–007 (v9/v10). Their v8 was a batch write of 2026-10-13 22:09, not a hand edit, so they were marked as vetted; old versions stay in `worksheetVersions`.
+- Risk: production now runs this unmerged branch. A deploy from main before #660, #661, #666 and this branch are merged removes the audio, the chart and the scrollbar.
+- Next safe step: rewrite est-c1-008…010, run the full gate and vitest, publish them, then open a draft PR.
+
 ## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
 
 - main checked: f9b9fbb (2026-10-18). Branch `agent/board-scrollbar`, draft PR.
