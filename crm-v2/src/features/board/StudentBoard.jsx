@@ -2,7 +2,7 @@ import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eras
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
   BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds } from './boardModel.js';
 import './board.css';
 
@@ -286,6 +286,20 @@ export default function StudentBoard({
     return () => observer.disconnect();
   }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
+  // the stage's height for the worksheet scrollbar
+  const [stageHeight, setStageHeight] = useState(0);
+  useEffect(() => {
+    const node = svgRef.current;
+    if (!onWorksheet || !node) return undefined;
+    const measure = () => setStageHeight(Math.round(node.getBoundingClientRect().height || 0));
+    measure();
+    if (!globalThis.ResizeObserver) return undefined;
+    const observer = new globalThis.ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onWorksheet, pageId]);
+  const scrollDrag = useRef(null);
+  const scrollTo = (scrolled) => { userMoved.current = true; setView((current) => scrollView(current, bounds, stageHeight, scrolled)); };
   // the pointer disappears for the student when the teacher puts it away
   useEffect(() => { if (tool !== 'laser') onPointer?.(null); }, [onPointer, tool]);
 
@@ -509,6 +523,7 @@ export default function StudentBoard({
   const touches = useRef(new Map());
   const nav = useRef(null);
   const navDown = (event) => {
+    if (event.target?.closest?.('.sb-scrollbar')) return; // the scrollbar handles its own drag
     const point = local(event);
     if (event.pointerType === 'mouse') {
       if (event.button !== 1) return;
@@ -657,9 +672,10 @@ export default function StudentBoard({
   const selectionBounds = tool === 'select' ? unionBounds(shownSelection) : null;
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
   const filling = onWorksheet && tool === 'fill';
+  const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
   const stage = <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
-    {onWorksheet ? <div ref={setUnderlayNode} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
+    {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs>
         <pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern>
@@ -684,6 +700,18 @@ export default function StudentBoard({
         </g> : null}
       </g>
     </svg>
+    {onWorksheet && scrollbar ? <div className="sb-scrollbar" role="scrollbar" aria-label="Kerimine" aria-orientation="vertical" aria-controls="sb-worksheet" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((scrollbar.scrolled / scrollbar.max) * 100)}
+      onPointerDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        // a click on the rail moves one screen towards it
+        const y = event.clientY - event.currentTarget.getBoundingClientRect().top;
+        scrollTo(scrollbar.scrolled + (y < scrollbar.top ? -1 : 1) * stageHeight * 0.9);
+      }}>
+      <span className="sb-scrollbar__thumb" data-testid="worksheet-scroll-thumb" style={{ top: scrollbar.top, height: scrollbar.thumb }}
+        onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); event.currentTarget.setPointerCapture?.(event.pointerId); scrollDrag.current = { y: event.clientY, scrolled: scrollbar.scrolled, ratio: scrollbar.max / Math.max(1, scrollbar.track) }; }}
+        onPointerMove={(event) => { const drag = scrollDrag.current; if (!drag) return; event.stopPropagation(); scrollTo(drag.scrolled + (event.clientY - drag.y) * drag.ratio); }}
+        onPointerUp={() => { scrollDrag.current = null; }} onPointerCancel={() => { scrollDrag.current = null; }} />
+    </div> : null}
     {editingElement ? <textarea
       ref={editorRef}
       className={editBox ? 'sb-editor sb-editor--text' : 'sb-editor'}

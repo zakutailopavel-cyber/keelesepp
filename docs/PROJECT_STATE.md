@@ -1,3 +1,13 @@
+## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
+
+- main checked: f9b9fbb (2026-10-18). Branch `agent/board-scrollbar`, draft PR.
+- Why: in a Live Classroom lesson a student using a mouse could not see the questions below the screen and found no scrollbar to drag. A worksheet page is a page of the board, so it moved only with the wheel, a trackpad, the middle button or a finger.
+- Done: a worksheet page shows a vertical scrollbar at the right edge of the board (`.sb-scrollbar`, `role="scrollbar"`). The thumb can be dragged, and a click on the rail moves one screen. Pure helpers `scrollbarFor` and `scrollView` are in `boardModel.js`; the stage height comes from a ResizeObserver; `navDown` ignores the bar. Nothing is saved and there is no data change.
+- Files: `crm-v2/src/features/board/{StudentBoard.jsx,boardModel.js,board.css,board.test.jsx}`.
+- Checks: `npx vitest run src/features/live-classroom src/features/board` passed, 16 files and 111 tests (2 of them new); `eslint src/features/board` is clean. Not checked by eye in a real lesson.
+- Risk: the bar sits 2 px from the right edge; the video tiles (right 14px) and the style panel do not cover it.
+- Next safe step: the owner checks the bar on a test lesson (mouse and iPad) and decides on the deploy.
+
 ## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
 
 - main checked: 5521e1a (2026-10-17). Owner: a learner registered as a parent (Veronika Bistrova); the admins must be able to fix this themselves.
