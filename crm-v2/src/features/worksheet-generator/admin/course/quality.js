@@ -33,11 +33,13 @@ export function sheetProblems(doc) {
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
   // tasks a sheet; the textbook picture added to the sheet is not counted
   const v3 = doc.meta?.template === 'v3' && !doc.meta?.assessment;
-  const own = (doc.blocks || []).filter((b) => !b.data?.artFor).length;
+  const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
   if (v3 ? own < V3.blocks[0] || own > V3.blocks[1] : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (v3: ${V3.blocks[0]}–${V3.blocks[1]})` : `${n} plokki (lubatud 6–18)` });
   const minutes = sheetMinutes(doc);
-  if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > SHEET_MINUTES.max)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
+  // an exam lesson's sheet is the exam part itself (Harno's written part takes 2–3 hours): no upper bound there
+  const maxMinutes = doc.meta?.assessment ? Infinity : SHEET_MINUTES.max;
+  if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > maxMinutes)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
   const minTypes = v3 ? V3.types : 5;
   if (typeSet(doc).size < minTypes) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt ${minTypes})` });
   const last = doc.blocks[n - 1]?.type;
