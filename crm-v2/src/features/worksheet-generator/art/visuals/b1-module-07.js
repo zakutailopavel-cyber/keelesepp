@@ -12,6 +12,8 @@ export default [
     learningJob: "tuvastada kehaosad ja sümptomid ning selgitada, miks Anna töölt koju läheb",
     alt: "Haige Anna kasutab taskurätti, hoiab kurku ja valmistub kontorist lahkuma.",
     caption: "Pilt 1. Anna kirjeldab halba enesetunnet.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas inimene pildil end tunneb?", "Mis tal võib valutada ja miks?", "Mida sina teed, kui tunned end halvasti?"],
   },
   {
     id: "a2b1-032-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "esitada ja mõista küsimusi sümptomite alguse, kestuse, palaviku, ravimite ja allergia kohta ning järeldada soovitus",
     alt: "Liis kuulab köhiva Markuse kopse ja uurib sümptomite ajalugu.",
     caption: "Pilt 1. Vestlus perearsti vastuvõtul.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes on pildil ja kus nad on?", "Mida arst küsib ja mida patsient vastab?", "Kuidas sina arsti juurde aja broneerid?"],
   },
   {
     id: "a2b1-033-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "anda jaatavaid ja eitavaid käskiva kõneviisi nõuandeid ning põhjendada head unerutiini",
     alt: "Anna soovitab väsinud Markusel telefoni kõrvale panna ja unerutiini muuta.",
     caption: "Pilt 1. Nõuanded parema une jaoks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis probleem inimesel pildil on?", "Millist nõu sa talle annaksid?", "Mis aitab sinul hästi magada?"],
   },
   {
     id: "a2b1-034-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "võrrelda tervislikke ja ebatervislikke harjumusi ning valida realistlikud väikesed muutused",
     alt: "Jaan paneb telefoni ära, joob vett, tõuseb tööl püsti ja läheb jalutama.",
     caption: "Pilt 1. Väikesed tervislikud muutused tööpäevas.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised harjumused on pildil tervislikud?", "Mida inimene peaks muutma?", "Mis on sinu kõige tervislikum harjumus?"],
   },
   {
     id: "a2b1-035-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "kirjeldada sümptomeid ja kestust, küsida ning anda nõu ja valida, millal pöörduda abi saamiseks",
     alt: "Viktor küsib telefonis nõu haige Sofia kohta, teised aitavad sümptomeid kirjeldada.",
     caption: "Pilt 1. Haigestumine reisil ja abi küsimine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimesed pildil teevad?", "Kuidas nad end tunnevad?", "Kirjelda pilti kolme lausega."],
   },
 ];
