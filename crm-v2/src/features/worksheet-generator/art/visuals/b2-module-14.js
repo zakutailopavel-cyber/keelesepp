@@ -12,6 +12,8 @@ export default [
     learningJob: "hinnata avaliku teenuse vajalikkust ja kättesaadavust ning pakkuda täpset parandust",
     alt: "Olga ja Liis võrdlevad avalike teenuste kättesaadavust linnas ja maal.",
     caption: "Pilt 1. Hea avalik teenus peab jõudma ka kaugel elava inimeseni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliste avalike teenuste kättesaadavust Olga ja Liis võrdlevad?", "Mida näitab pikk teekond perearstini ja kuidas aitab mobiilne vastuvõtt?", "Milline avalik teenus on sinu kodukohas kõige raskemini kättesaadav?"],
   },
   {
     id: "b1b2-067-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "võrrelda kogukonnaalgatuste mõju ja veenda naabreid põhjendatud valiku kasuks",
     alt: "Sofia ja Markus valivad kaasava eelarve kolme kogukonnaalgatuse vahel.",
     caption: "Pilt 1. Kogukonna otsus sünnib mõju ja osaluse võrdlemisest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme elanike algatust Sofia ja Markus võrdlevad?", "Mille järgi nad algatusi hindavad?", "Millise algatuse poolt sina hääletaksid ja miks?"],
   },
   {
     id: "b1b2-068-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "eristada kohustust, võimalust, piirangut ja mittekohustuslikku tegevust",
     alt: "Anna ja Igor võrdlevad kortermaja kohustusi, lubasid ja keelde.",
     caption: "Pilt 1. Ei pea ja ei tohi väljendavad erinevat reeglit.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid nelja kodukorra tüüpi Anna ja Igor eristavad?", "Mis vahe on kohustuslikul, lubatud ja keelatud tegevusel?", "Milline sinu maja või töökoha reegel on sinu arvates kõige vajalikum?"],
   },
   {
     id: "b1b2-069-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "esitleda kohaliku probleemi lahendust, võrrelda ressursse ja riske ning kaitsta lõplikku valikut",
     alt: "Liis esitleb komisjonile kooli tänava ohutuma liikluskorralduse ettepanekut.",
     caption: "Pilt 1. Põhjendatud ettepanek arvestab ressursse, riske ja mõju.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milline probleem on kooli tänaval?", "Mille poolest erinevad kaks alternatiivi ja valitud lahendus?", "Mida küsiksid sina komisjoni liikmena Liisilt?"],
   },
   {
     id: "b1b2-070-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "muuta kontrolli tagasiside abstraktsete mõistete selgitamise harjutusplaaniks",
     alt: "Anna selgitab Jürile usalduse mõistet ja valib järgmise harjutuse.",
     caption: "Pilt 1. Abstraktne mõiste muutub selgemaks seoste ja näidete abil.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas selgitab Anna mõistet usaldus?", "Kuidas on skeemil seotud inimene, avalik teenus, reeglid ja koostöö?", "Kas sina usaldad avalikke teenuseid? Too üks näide."],
   },
 ];
