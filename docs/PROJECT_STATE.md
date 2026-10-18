@@ -20,8 +20,9 @@
   - `vercel deploy --prod` of a4249f1 from a clean worktree;
   - all 30 sheets of module 1 are published with `publish-v2.cjs` (v9–v11). Their v8 was a batch write on 2026-10-13 22:09, not a hand edit, so they were marked as vetted; old versions stay in `worksheetVersions`.
 - Risk: production runs this unmerged branch. A deploy from main before #660, #661, #666 and this PR are merged removes the audio, the chart block and the board scrollbar.
-- Not done: C1 modules 2–N are still the old design.
-- Next safe step: the owner merges #660 → #661 → #666 → this PR in that order; after that, rewrite C1 module 2 the same way.
+- **C1 module 2** (est-c1-011…020) is done the same way. The scripts are c1m02_NNN.py; there are art prompts for all 10 pictures. 018 is word order and information structure, 019 is the more complex uses of the cases, 020 is the module exam (`assessment`, writing part 1 from two charts). Audio is built for the new listening blocks. Checks: `vitest src/features/worksheet-generator` passes 705 tests; the module gate has no problems. Module 2 is **not yet deployed or published**: that waits for the owner's permission.
+- Not done: C1 modules 3–10 are still the old design.
+- Next safe step: with the owner's permission, deploy from this branch and publish the 30 sheets of module 2 (`publish-v2.cjs`); then module 3.
 
 ## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
 
