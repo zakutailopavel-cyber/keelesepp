@@ -1,3 +1,13 @@
+## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
+
+- main checked: f9b9fbb (2026-10-18). Branch `agent/board-scrollbar`, draft PR.
+- Why: in a Live Classroom lesson a student using a mouse could not see the questions below the screen and found no scrollbar to drag. A worksheet page is a page of the board, so it moved only with the wheel, a trackpad, the middle button or a finger.
+- Done: a worksheet page shows a vertical scrollbar at the right edge of the board (`.sb-scrollbar`, `role="scrollbar"`). The thumb can be dragged, and a click on the rail moves one screen. Pure helpers `scrollbarFor` and `scrollView` are in `boardModel.js`; the stage height comes from a ResizeObserver; `navDown` ignores the bar. Nothing is saved and there is no data change.
+- Files: `crm-v2/src/features/board/{StudentBoard.jsx,boardModel.js,board.css,board.test.jsx}`.
+- Checks: `npx vitest run src/features/live-classroom src/features/board` passed, 16 files and 111 tests (2 of them new); `eslint src/features/board` is clean. Not checked by eye in a real lesson.
+- Risk: the bar sits 2 px from the right edge; the video tiles (right 14px) and the style panel do not cover it.
+- **Deployed to production 2026-10-18 with the owner's permission:** `vercel deploy --prod` from this branch (origin/main f9b9fbb + this commit). crm.epkoolitus.ee serves the bar. The PR is NOT merged: until it is merged, the next deploy from main would remove the bar again.
+- Next safe step: the owner merges #666 (then main and production match) and checks the bar in a lesson.
 ## 2026-10-18 · agent/course-v3-b1 + agent/course-v3-b2 — the B1 and B2 courses rewritten in lesson template v3 (both done)
 
 - main checked: f9b9fbb (2026-10-18). Draft PRs: #660 (`agent/course-v3-b1`, on #659) and #661 (`agent/course-v3-b2`, stacked on #660). Owner (2026-10-18): „переделывай теперь под новые критерии курсы Б1 и Б2”.

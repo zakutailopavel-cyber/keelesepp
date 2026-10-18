@@ -84,6 +84,10 @@
 /* a worksheet page: the worksheet lies under the drawing layer and moves/zooms with the board */
 .sb-underlay { position: absolute; top: 0; left: 0; transform-origin: 0 0; padding: 24px 28px; border-radius: 8px; background: #fff; box-shadow: 0 4px 14px rgba(30, 34, 70, .10); box-sizing: border-box; }
 .sb-stage.has-worksheet > svg { position: absolute; inset: 0; }
+.sb-scrollbar { position: absolute; top: 0; right: 2px; bottom: 0; z-index: 5; width: 12px; border-radius: 6px; background: rgba(36, 41, 74, .06); cursor: pointer; touch-action: none; }
+.sb-scrollbar__thumb { position: absolute; left: 2px; right: 2px; border-radius: 4px; background: rgba(36, 41, 74, .38); cursor: grab; }
+.sb-scrollbar__thumb:hover, .sb-scrollbar__thumb:active { background: rgba(36, 41, 74, .6); }
+.sb-scrollbar__thumb:active { cursor: grabbing; }
 .sb-stage.tool-fill > svg { cursor: default; }
 .sb-pages button.is-worksheet, .sb-room-pages button.is-worksheet { display: inline-flex; align-items: center; gap: 5px; }
 

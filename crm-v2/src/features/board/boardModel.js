@@ -148,6 +148,23 @@ export function clampView(view, bounds, width, height, keep = 80) {
   if (top > height - keep) y -= top - (height - keep);
   return x === view.x && y === view.y ? view : { ...view, x, y };
 }
+// A worksheet page scrolls like a page: the bar beside it shows where the sheet is and can be dragged (owner
+// 2026-10-18: a student with a mouse looked for a scrollbar and did not find the questions below). `scrolled` is how far
+// the sheet's top is above the screen, 0 … max; null when the whole sheet fits.
+export function scrollbarFor(view, bounds, height, minThumb = 36) {
+  const content = (bounds.y2 - bounds.y1) * view.scale;
+  if (!height || content <= height + 1) return null;
+  const max = content - height;
+  const scrolled = Math.min(max, Math.max(0, -(view.y + bounds.y1 * view.scale)));
+  const thumb = Math.max(minThumb, Math.round((height * height) / content));
+  return { max, scrolled, thumb, top: Math.round((scrolled / max) * (height - thumb)), track: height - thumb };
+}
+export function scrollView(view, bounds, height, scrolled) {
+  const bar = scrollbarFor(view, bounds, height);
+  if (!bar) return view;
+  const next = Math.min(bar.max, Math.max(0, scrolled));
+  return { ...view, y: -next - bounds.y1 * view.scale };
+}
 // new content stays on the sheet
 export function clampPoint(point, bounds) {
   return { x: Math.min(bounds.x2, Math.max(bounds.x1, point.x)), y: Math.min(bounds.y2, Math.max(bounds.y1, point.y)) };

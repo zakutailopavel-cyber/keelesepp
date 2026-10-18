@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
+import { textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -280,6 +280,37 @@ describe('StudentBoard with several lesson worksheets', () => {
     expect(screen.getByRole('tab', { name: /Tööleht: Avasta/ })).toHaveClass('is-worksheet');
     expect(screen.getByRole('tab', { name: /Tööleht: Harjuta/ })).toHaveClass('is-worksheet');
     expect(service.addPage).not.toHaveBeenCalled();
+  });
+});
+
+describe('the worksheet scrollbar', () => {
+  const bounds = { x1: 0, y1: 0, x2: 900, y2: 2000 };
+  it('shows where the sheet is and scrolls it within its height', () => {
+    expect(scrollbarFor({ x: 0, y: 0, scale: 1 }, { x1: 0, y1: 0, x2: 900, y2: 300 }, 400)).toBeNull();
+    const top = scrollbarFor({ x: 0, y: 0, scale: 1 }, bounds, 500);
+    expect(top).toMatchObject({ max: 1500, scrolled: 0, top: 0, thumb: 125 });
+    const bottom = scrollbarFor({ x: 0, y: -1500, scale: 1 }, bounds, 500);
+    expect(bottom.top).toBe(bottom.track);
+    expect(scrollView({ x: 7, y: 0, scale: 1 }, bounds, 500, 600)).toEqual({ x: 7, y: -600, scale: 1 });
+    expect(scrollView({ x: 0, y: 0, scale: 1 }, bounds, 500, 99999).y).toBe(-1500);
+    expect(scrollView({ x: 0, y: -400, scale: 1 }, bounds, 500, -50).y).toBe(-0);
+  });
+
+  it('a student drags the bar with the mouse to reach the questions below', async () => {
+    const rect = vi.spyOn(globalThis.Element.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, left: 0, top: 0, right: 900, bottom: 400, width: 900, height: 400 });
+    try {
+      const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+      const student = { uid: 's1', displayName: 'Polina', roles: ['student'] };
+      render(<StudentBoard studentId="s1" user={student} variant="room" service={service} worksheets={[{ id: 'as-1', title: 'Avasta', content: <div>Küsimused</div> }]} />);
+      const thumb = await screen.findByTestId('worksheet-scroll-thumb');
+      const sheet = () => document.getElementById('sb-worksheet').style.transform;
+      const before = sheet();
+      fireEvent.pointerDown(thumb, { clientY: 10, pointerId: 1 });
+      fireEvent.pointerMove(thumb, { clientY: 200, pointerId: 1 });
+      fireEvent.pointerUp(thumb, { pointerId: 1 });
+      expect(sheet()).not.toBe(before);
+      expect(Number(screen.getByRole('scrollbar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+    } finally { rect.mockRestore(); }
   });
 });
 
