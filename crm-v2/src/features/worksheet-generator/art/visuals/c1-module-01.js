@@ -12,6 +12,8 @@ export default [
     learningJob: "võrrelda neutraalset, hinnangulist ja kujundlikku enesekirjeldust ning valida nüansirikas sõnastus",
     alt: "Anna uurib raadiovestluses, kuidas kolm sõnastusviisi kujundavad tema mitmekeelset enesepilti.",
     caption: "Pilt 1. Sõnavalik ei kirjelda ainult identiteeti, vaid kujundab seda.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna pildil teeb ja milliseid kolme sõnastust ta võrdleb?", "Milline neist kolmest kirjeldab sinu arvates mitmekeelset inimest kõige täpsemalt ja miks?", "Kuidas muutub enesepilt, kui sama fakti öelda neutraalselt, hinnanguliselt või kujundlikult?"],
   },
   {
     id: "est-c1-002-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "sõnastada kaalutletud otsus, mis tunnistab väärtuskonflikti ja seab professionaalsed tingimused",
     alt: "Markus ja Liis kaaluvad edutamise kasu, koormust ja paindliku tööaja tingimust.",
     caption: "Pilt 1. Kaalutletud jah võib sõltuda selgelt sõnastatud tingimusest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Markus ja Liis pildil kaaluvad ning millised plussid ja miinused on paberil?", "Millise tingimuse seaksid sina enne edutamisega nõustumist?", "Kas kaalutletud „jah” on sinu kogemuse järgi parem kui kiire otsus? Põhjenda."],
   },
   {
     id: "est-c1-003-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "märgata kaudseid ootusi, eristada kavatsust tõlgendusest ja sõnastada soe, kuid selge kokkulepe",
     alt: "Anna ja Markus muudavad majapidamistööde vaikivad ootused selgeks ühiskokkuleppeks.",
     caption: "Pilt 1. Nähtav kokkulepe vähendab nähtamatute ootuste konflikti.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised ootused on pildil kokkuleppeks muudetud ja kuidas see on vormistatud?", "Milliseid ütlemata ootusi esineb sinu arvates kõige sagedamini kodus või tööl?", "Mis teeb kirjaliku kokkuleppe toimivaks ja millal võib see suhet hoopis kahjustada?"],
   },
   {
     id: "est-c1-004-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "seada rahulikult piir, tunnistada mõlema poole vajadusi ja pakkuda tasakaalustatud reeglit",
     alt: "Anna ja Markus lepivad kokku remondiaja, mis arvestab töö ja puhkuse vajadusega.",
     caption: "Pilt 1. Selge piir võib säilitada nii rahu kui ka suhte.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mille üle Anna ja Markus pildil kokku lepivad ning milliseid vajadusi nad arvestavad?", "Kuidas seada piir nii, et teine pool ei tunneks end tõrjutuna?", "Millal on kompromiss hea lahendus ja millal mitte?"],
   },
   {
     id: "est-c1-005-avasta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "tuvastada iroonia ja varjatud hoiak sõnavaliku, konteksti, intonatsiooni ning liialduse põhjal",
     alt: "Anna ja Liis uurivad, kuidas kiitva vormiga sõnum väljendab tegelikult teravat kriitikat.",
     caption: "Pilt 1. Iroonia tegeliku tähenduse avab kontekst.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on pildil oleva sõnumi tegelik tähendus ja mille põhjal Anna ja Liis seda järeldavad?", "Millised keelevahendid annavad eesti keeles irooniale märku?", "Kas kirjalikus suhtluses on irooniat lihtsam või raskem mõista kui suulises? Miks?"],
   },
   {
     id: "est-c1-006-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "kohandada sama täpne teave ametlikku, neutraalsesse ja argisemasse registrisse",
     alt: "Liis ja Markus kohandavad heategevusjooksu info kolmele erinevale adressaadile.",
     caption: "Pilt 1. Sobiv register muutub, kuid põhifaktid jäävad täpseks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kellele kolmele adressaadile Liis ja Markus pildil sama infot kohandavad?", "Mis jääb sõnumis samaks ja mis muutub, kui register muutub?", "Millise adressaadiga on sinul kõige raskem õiget tooni leida?"],
   },
   {
     id: "est-c1-007-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "esitada põhjendatud avalik seisukoht, reageerida vastuväitele ja teha neutraalne kokkuvõte",
     alt: "Liis põhjendab kultuurikeskuse asukohta, vastab Markusele ja koondab arutelu mõlemad pooled neutraalselt.",
     caption: "Pilt 1. Tugev avalik sõnavõtt lõpeb ausa sünteesiga.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas Liis pildil oma seisukohta põhjendab ja kuidas ta Markuse vastuväitele reageerib?", "Mis teeb avalikust sõnavõtust veenva, kui kuulajad on eri meelt?", "Kuidas teha arutelu lõpus neutraalne kokkuvõte, mis on aus mõlema poole suhtes?"],
   },
   {
     id: "est-c1-008-kasuta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "parandada sihitise vorme ja põhjendada valikut eituse, piiritletuse ning terviklikkuse abil",
     alt: "Anna selgitab Igorile motivatsioonikirja sihitise parandusi kahe tegevusraja abil.",
     caption: "Pilt 1. Sihitise vorm näitab, kas tegevus on lõpetatud ja piiritletud.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid sihitise vigu Anna pildil Igori kirjas parandab?", "Kuidas mõjutab sihitise vorm lause tähendust: kas tegevus on lõpetatud või kestev?", "Milline sihitise reegel on sinu jaoks kõige raskem ja miks?"],
   },
   {
     id: "est-c1-009-avasta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "õppida rektsiooni tervikkonstruktsioonina ning võrrelda lähedaste ühendite tähenduserinevusi",
     alt: "Anna ja Jüri ühendavad sõnad nende nõutavate käändevormidega isiklikus rektsioonikogus.",
     caption: "Pilt 1. Rektsiooni õpitakse sõna ja käände püsiva ühendina.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas Anna ja Jüri pildil rektsiooni õpivad?", "Too näide kahest lähedasest ühendist, mille tähendus erineb käände tõttu.", "Kuidas võiks oma isiklikku rektsioonikogu kõige paremini korraldada?"],
   },
   {
     id: "est-c1-010-kasuta-1",
@@ -120,5 +138,7 @@ export default [
     learningJob: "analüüsida eraldi sisulisi ja grammatilisi tulemusi ning koostada järgmise mooduli plaan",
     alt: "Anna ja Liis ühendavad progressikontrolli grammatikatulemuse järgmise mooduli sihtharjutusega.",
     caption: "Pilt 1. Järgmine plaan lähtub oskuste profiili täpsest nõrgast kohast.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid tulemusi Anna ja Liis pildil analüüsivad ja mida nad järgmiseks plaanivad?", "Milline oskus oli sinu jaoks selles moodulis kõige raskem ja kuidas seda harjutad?", "Kuidas sõnastada endale järgmise mooduli eesmärk nii, et see oleks mõõdetav?"],
   },
 ];
