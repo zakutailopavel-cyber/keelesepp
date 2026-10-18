@@ -12,6 +12,8 @@ export default [
     learningJob: "kaaluda eluasemevaliku pikaajalisi mõjusid ja põhjendada eelistust mitme elukvaliteedi kriteeriumiga",
     alt: "Liis ja Markus võrdlevad uue elurajooni kahte plaani pikaajalise elukvaliteedi järgi.",
     caption: "Pilt 1. Eluaseme väärtus ei piirdu ruutmeetrite ja hinnaga.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kahte elurajooni plaani Liis ja Markus pildil võrdlevad?", "Millist plaani eelistaksid sina ja millise kriteeriumi järgi?", "Mis võiks olla kahe plaani vahel mõistlik kompromiss?"],
   },
   {
     id: "est-c1-012-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "pakkuda kogukonnaalgatus, mis ühendab vastastikuse toe vabatahtlikkuse ja privaatsuse kaitsega",
     alt: "Anna ja Igor kavandavad Jüri jaoks vabatahtlikku ning privaatsust austavat naabrite tugivõrgustikku.",
     caption: "Pilt 1. Turvaline kogukond sünnib vabatahtlikust ja taktitundelisest kontaktist.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida pakub pildil kujutatud naabrite võrgustik ja kuidas on kaitstud privaatsus?", "Millist abi oleksid sina valmis naabritele pakkuma ja millist mitte?", "Kuidas saaks eakat naabrit aidata nii, et ta ei tunneks end jälgituna?"],
   },
   {
     id: "est-c1-013-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "lugeda linnaruumi kujundust käitumist suunava tekstina ja põhjendada kaasava eskiisi mõju",
     alt: "Liis ja Markus võrdlevad, kuidas kaks tänavaeskiisi suunavad inimeste liikumist ja peatumist.",
     caption: "Pilt 1. Tänava kujundus ütleb vaikides, kellele ruum kuulub.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas erinevad pildil kaks tänava eskiisi ja kuidas inimesed neis liiguvad?", "Kumb tänav sobiks paremini sinu kodukohta ja miks?", "Kes võiks rajade vähendamise vastu olla ja kuidas talle vastata?"],
   },
   {
     id: "est-c1-014-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "hinnata teenuse kompromisse mitme kriteeriumi alusel ja pakkuda tasakaalustatud hübriidlahendus",
     alt: "Anna ja Jüri hindavad raamatukogu iseteeninduse mõju ning valivad hübriidse ajakava.",
     caption: "Pilt 1. Ühe teenusemõõtme paranemine võib teist halvendada.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliste kriteeriumide järgi hinnatakse pildil raamatukogu iseteenindust?", "Kes võidab ja kes kaotab, kui teenus muutub täielikult iseteeninduseks?", "Milline hübriidlahendus oleks sinu arvates õiglane ja miks?"],
   },
   {
     id: "est-c1-015-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "vahendada kriisiinfot kiiresti, üheselt ja paanikat tekitamata ka nõrgema keeleoskusega inimestele",
     alt: "Liis ja Igor tutvustavad piltide abil selget evakuatsiooniteed ja kogunemiskohta.",
     caption: "Pilt 1. Kriisis peab juhis olema kohe arusaadav ja tegevuseks valmis.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised sammud on pildil kriisiplaanis ja miks on neid kujutatud piltidena?", "Kuidas edastaksid sama info kolleegile, kes oskab eesti keelt algtasemel?", "Mis võib kriisi ajal valesti minna, kui info on liiga keeruline?"],
   },
   {
     id: "est-c1-016-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "Koondada eri osapoolte seisukohad neutraalseks ülevaateks ning eristada fakte hinnangutest.",
     alt: "Anna juhib Markuse ja Jüri arutelu pargi, elamute ja lasteaia üle; lime rõhutab osapoolte ühist huvi.",
     caption: "Eri seisukohtade ühisosa aitab juhtida neutraalset kohalikku arutelu.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme vaadet pargi tulevikule pildil esitatakse?", "Millised huvid on kõigil osapooltel ühised?", "Kuidas kirjutada neist vaadetest kokkuvõte nii, et keegi ei tunneks end ebaõiglaselt koheldud?"],
   },
   {
     id: "est-c1-017-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "Kirjutada ametlikule vastusele kindel, viisakas ja lahendusele suunatud jätk.",
     alt: "Liis ja Jüri kavandavad vallale vastust ning tegevusrada viib toetustaotlusest ajutise valgustuseni.",
     caption: "Hea pöördumine seob probleemi, lahenduse ja konkreetse palve.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida pakub vald pildil seltsile ja mis on tähtaeg?", "Mida peaks selts oma vastuses kindlasti kinnitama või täpsustama?", "Kuidas olla vastuses kindel, kuid jääda viisakaks?"],
   },
   {
     id: "est-c1-018-avasta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "Mõista, kuidas sõnajärg ja teema-reema jaotus loovad tekstis selge infovoo.",
     alt: "Anna ja Igor järjestavad aastaaruande infokaardid sidusaks ahelaks; lime näitab liikumist tuttavalt infolt uuele.",
     caption: "Sõnajärg juhib lugeja tuttavalt teemalt uue info juurde.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis vahe on pildi vasaku ja parema poole infokaartidel?", "Kuidas viib tuttav teema lugeja uue infoni?", "Miks on hästi järjestatud tekst lugejale kergem kui sama info suvalises järjekorras?"],
   },
   {
     id: "est-c1-019-avasta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "infer how spatial case relations extend to abstract states and roles, then explain each paired meaning",
     alt: "Sofia ja Viktor võrdlevad tahvlil ruumilisi olukordi abstraktsete seisundite ja rollidega.",
     caption: "Pilt 1. Ruumisuhe kandub üle seisundile ja rollile.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme pildipaari Sofia ja Viktor võrdlevad?", "Kuidas on füüsiline liikumine (majja, majast välja) seotud abstraktsete olukordadega?", "Too oma näide, kus sama kääne kirjeldab nii kohta kui ka seisundit."],
   },
   {
     id: "est-c1-020-kasuta-1",
@@ -120,5 +138,7 @@ export default [
     learningJob: "analyse strengths and gaps in the progress check, then choose a targeted next learning step",
     alt: "Anna ja Markus uurivad progressikaarti ning valivad järgmiseks sõnajärje ja käänete harjutamise.",
     caption: "Pilt 1. Tulemusest kasvab konkreetne järgmine samm.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised moodulite rajad on pildil valmis ja mis on veel pooleli?", "Milline oskus on sinu jaoks moodulis 2 kõige rohkem arenenud?", "Mis on sinu järgmine konkreetne õppimise samm ja kuidas sa seda kontrollid?"],
   },
 ];
