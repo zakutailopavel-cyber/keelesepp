@@ -1,3 +1,14 @@
+## 2026-10-18 · agent/course-v3-b1 + agent/course-v3-b2 — the B1 and B2 courses rewritten in lesson template v3 (in progress)
+
+- main checked: see `git log origin/main -1` at the start of the next session (last seen f9b9fbb). Draft PRs: #660 (`agent/course-v3-b1`, on #659) and #661 (`agent/course-v3-b2`, stacked on #660). Owner (2026-10-18): „переделывай теперь под новые критерии курсы Б1 и Б2”.
+- Level map as built: B1 modules 15–17 B1; B1 module 18 lessons 086–088 B1+ (mocks 089–090 B1); B2 module 1 lessons 002–004 B1+ (001 entry diagnostic B1); B2 modules 2–4 B1+; **B2 modules 5–8 B2-** (done, commits 9ff22ce, 22bd1ca, 200ed8d, 090d704); B2 modules 9–18 planned at B2. B1 modules 2–14 still in design v2.
+- Per module: `MODULE.level` raised, `template: 'v3'`; every non-assessment lesson rebuilt to 7–9 blocks a sheet — Avasta: text 300+ words in paragraphs + notice + one full language task (10+ items) + speaking (up to 210 s) + writing; Harjuta: cloze A–D (g_vocab) + formtext + a second exam text (listening / truefalse / choice with 4 options / manymatch) + a monologue; Kasuta: situation + a controlled opener + reading + role cards + a speech (120–180 s) + letter 140–160 + rubric + selfcheck. Picture prompts (`prompts`) added to `art/visuals/b2-module-NN.js`. Assessment lessons keep the Harno form; their sentence bank became `insertion`, letters 140–160, speech 120–180 s.
+- Listening texts that grew got new audio (free TartuNLP TTS, `tools/listening-audio/build.mjs --only`), `listeningAudio.json` pruned.
+- Gate per module: `quality.js` sheet + module problems, `course.test.js`, `b2/lessonGoals.test.js` (each sub-goal ≥ 2 tasks); B2 sentence average ≥ 6 words, texts ≥ 300 words (B2-) / 350 (B2), neighbours ≤ 85 % types, no same opening in consecutive lessons, no sentence repeated across sheets.
+- Checks after module 8: vitest worksheet-generator + worksheet-studio 992 pass, 3 skipped.
+- Not published: the CRM keeps the published v2 sheets until the owner allows publishing (production Firestore write).
+- Next safe step: B2 module 9 at B2 (texts 350–700), then 10–18, then B1 modules 2–14; update §10 of docs/COURSE_DESIGN_COMMUNICATIVE.md with this map.
+
 ## 2026-10-18 · agent/lesson-template-v3 — lesson template v3 (fewer, fuller tasks; Harno exam formats), pilot B2 lesson 061
 
 - main checked: f9b9fbb (2026-10-18). Owner: B2 starts too low, too many small same-type blocks, little speaking, few situations and texts to think about, no exam-style lünkharjutus / „pane sõnad õigesse vormi”; „столько блоков не надо” — build the lesson on didactic norms.
