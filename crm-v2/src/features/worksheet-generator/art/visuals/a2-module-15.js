@@ -12,5 +12,7 @@ export default [
     learningJob: "form a polite request and explain household instructions",
     alt: "Anna palub Viktoril viisakalt tema lillede eest hoolitseda.",
     caption: "Pilt 1. Viisakas palve naabrile.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna Viktorilt palub?", "Mida Anna Viktorile ulatab?", "Kuidas sa palud naabrilt viisakalt abi?"],
   },
 ];
