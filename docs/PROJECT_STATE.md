@@ -5,9 +5,9 @@
 - 053, 058 and 059 got new Kasuta readings (team workload materials, the clinic's hard patient guide, a draft medicine leaflet); 058 and 059 have a rubric in Kasuta now.
 - No new audio: 057 keeps its radio listening; the transcript is unchanged, two questions were added.
 - Checks: `moduleProblems` has no problems for module 6. `npx vitest run src/features/worksheet-generator` gives 705 passed.
-- Not deployed, not published (needs the owner's permission).
+- Production (owner's permission, 2026-10-19 „да, деплой и публикуй оба”): `vercel deploy --prod` of 9182376 + board tab menu (#672) + „Lause lahti” (#674) + the calendar fix, `dpl_4sQDrN8mg2e6vF83H3H24EL5F2nY`; `firebase deploy --only functions:languageApi` from agent/sentence-breakdown. All 30 sheets of module 6 published with `publish-v2.cjs` (earlier v7 = batch write of 2026-10-13 22:10; dry check same=30).
 - Not done: C1 modules 7–10.
-- Next safe step: owner's permission → deploy and publish module 6; then C1 module 7 the same way.
+- Next safe step: C1 module 7 the same way.
 
 ## 2026-10-19 · agent/course-v3-c1-m5 — C1 module 5 in template v3
 
