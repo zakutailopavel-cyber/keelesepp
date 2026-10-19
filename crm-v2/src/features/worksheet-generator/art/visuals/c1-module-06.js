@@ -12,6 +12,8 @@ export default [
     learningJob: "mediate medical information, ask clarifying questions and confirm the next steps",
     alt: "Anna aitab Viktoril eriarsti vastuvõtul sümptomeid kirjeldada ja juhiseid mõista.",
     caption: "Pilt 1. Selge patsiendisuhtlus kontrollib, kas juhistest saadi aru.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes pildil mida teeb ja milline on Anna roll?", "Millised kolm küsimust peaks naaber arstilt kindlasti küsima?", "Kuidas kontrolliksid, et naaber on arsti juhistest õigesti aru saanud?"],
   },
   {
     id: "est-c1-052-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "choose non-coercive workplace changes, predict their effects and decide how to measure results",
     alt: "Töörühm valib vabatahtlikud ja mõõdetavad muudatused istuva töö terviseriskide vähendamiseks.",
     caption: "Pilt 1. Tervisekäitumist toetab läbimõeldud töökeskkond.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid tervislikumaid muudatusi pildil olevas kontoris näha on?", "Milline muudatus aitaks sinu arvates kõige rohkem ja miks?", "Kuidas tagada, et keegi ei tunneks end survestatuna?"],
   },
   {
     id: "est-c1-053-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "identify organisational causes of overload and propose respectful, concrete workload changes",
     alt: "Anna ja Liis muudavad ülekoormuse kaardi realistlikuks tööplaaniks koos toetusmeetmega.",
     caption: "Pilt 1. Vaimset heaolu toetavad konkreetsed töökorralduse muutused.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida näitab Anna koormuskaart meeskonna kohta?", "Milline kolmest töökorralduse muudatusest aitaks sinu arvates kõige rohkem?", "Kuidas reageerib Liis ja mida see vestluse kohta ütleb?"],
   },
   {
     id: "est-c1-054-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "extract services, costs and next actions from an official decision and explain them empathetically",
     alt: "Anna ja Liis selgitavad Viktori hooldusotsuse teenuseid, omaosalust ning järgmist sammu.",
     caption: "Pilt 1. Ametlik otsus muutub selgeks tegevusteeks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna kolleegile selgitab ja kuidas ta seda teeb?", "Milliseid teenuseid näitab Liisi skeem ja millist neist vajaks Viktor kõige rohkem?", "Mida peaks pere järgmise sammuna tegema?"],
   },
   {
     id: "est-c1-055-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "interpret demographic change, infer service pressures and prioritise an intergenerational response",
     alt: "Viktor, Sofia ja Liis seovad rahvastiku vananemise kogukonna teenuste ning koostöövajadusega.",
     caption: "Pilt 1. Demograafiline muutus nõuab põlvkondi ühendavaid lahendusi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida näitab tahvlil olev diagramm vanemate ja tööealiste elanike kohta?", "Milliseid lahendusi pildil olevad inimesed arutavad?", "Milline lahendus sobiks sinu arvates kõige paremini väikesele vallale ja miks?"],
   },
   {
     id: "est-c1-056-kasuta-1",
