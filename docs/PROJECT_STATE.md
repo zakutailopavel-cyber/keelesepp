@@ -25,8 +25,10 @@
 - Checks: `npx vitest run` — 1951 passed, 2 failed in `CourseProductionPage.test.jsx` only under the full run (pass alone,
   85/85 with live-classroom; timeout under load, unrelated). eslint on changed files clean; `vite build` ok.
 - Limits: on the student's own board page (`/board`) „Määra õpilasele” is not shown (no lesson to attach homework to).
-- Not deployed. Next safe step: owner approves → deploy onto the current production chain (cherry-pick), then delete the
-  empty duplicate pages with the new menu.
+- Deployed 2026-10-19 15:16 (owner: «деплой»): production = 512a852 + this branch (15c5f21, 5efb5a0, 0eabbec, 18d1708)
+  + calendar 1019c2a, `dpl_BjwhCWwLd6M1AeowQ3teN8K2VcAH` on crm.epkoolitus.ee (bundle contains „Lehe toimingud”).
+  Rebased on `agent/board-scrollbar` (PR #666, already in production); PR #672 base is that branch.
+- Next safe step: the teacher removes the old empty duplicate pages with „⋯” → „Kustuta leht”.
 ## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
 
 - main checked: f9b9fbb (2026-10-18). Branch `agent/board-scrollbar`, draft PR.
