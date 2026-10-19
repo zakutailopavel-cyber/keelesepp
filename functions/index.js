@@ -191,7 +191,7 @@ const SMTP_DEFAULTS = {
   user: "info@epkoolitus.ee",
   from: "KeeleSepp <info@epkoolitus.ee>",
 };
-const APP_BASE_URL = process.env.APP_BASE_URL || "https://www.epkoolitus.ee/haldus/";
+const APP_BASE_URL = process.env.APP_BASE_URL || "https://crm.epkoolitus.ee/";
 const CRM_ORIGIN = process.env.CRM_ORIGIN || "https://crm.epkoolitus.ee";
 const INVOICE_REMINDER_INTERVAL_DAYS = Number(process.env.INVOICE_REMINDER_INTERVAL_DAYS || 3);
 

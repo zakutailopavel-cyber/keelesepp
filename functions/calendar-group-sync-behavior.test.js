@@ -143,8 +143,8 @@ test("attendance marks do not change the group's calendar signature", () => {
   assert.notEqual(groupCalendarSignature(group), groupCalendarSignature({ ...group, name: "B1+" }));
 });
 
-test("the OAuth callback returns to CRM v2 when it started there, else to v1", () => {
+test("the OAuth callback returns to CRM v2 where it started, else to the CRM home (v1 is retired)", () => {
   assert.equal(calendarReturnUrl("connected", "https://crm.epkoolitus.ee/settings"), "https://crm.epkoolitus.ee/settings?gcal=connected");
-  assert.equal(calendarReturnUrl("error", "https://evil.example/"), "https://www.epkoolitus.ee/haldus/?gcal=error");
-  assert.equal(calendarReturnUrl("connected"), "https://www.epkoolitus.ee/haldus/?gcal=connected");
+  assert.equal(calendarReturnUrl("error", "https://evil.example/"), "https://crm.epkoolitus.ee/?gcal=error");
+  assert.equal(calendarReturnUrl("connected"), "https://crm.epkoolitus.ee/?gcal=connected");
 });

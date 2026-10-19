@@ -5,8 +5,8 @@
   "redirects": [
     {
       "source": "/haldus:rest(.*)",
-      "destination": "https://www.epkoolitus.ee/haldus:rest",
-      "permanent": false
+      "destination": "/login",
+      "permanent": true
     },
     {
       "source": "/tasemetest:rest(.*)",
@@ -30,13 +30,13 @@
     },
     {
       "source": "/interactive-lesson/:rest(.*)",
-      "destination": "https://www.epkoolitus.ee/interactive-lesson/:rest",
-      "permanent": false
+      "destination": "/",
+      "permanent": true
     },
     {
       "source": "/live-classroom.html",
-      "destination": "https://www.epkoolitus.ee/live-classroom.html",
-      "permanent": false
+      "destination": "/live-classroom",
+      "permanent": true
     }
   ],
   "rewrites": [
