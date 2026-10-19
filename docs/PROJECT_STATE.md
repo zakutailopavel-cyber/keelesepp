@@ -1,3 +1,19 @@
+## 2026-10-19 · agent/teacher-no-money — teachers see no invoices or amounts (port of #516)
+
+- main checked: 7686fb4 (2026-10-19). Owner 2026-10-19: „Учитель не должен видеть сумму и счета”.
+- Found: the live rules still let any teacher read every invoice of the school, edit an invoice description and read
+  `emailQueue` (invoice / reminder e-mails with amounts); `invoiceApi` `/send` and `/remind` accepted a teacher.
+- `firestore.rules`: `invoices` read = admin, bookkeeper (`isFinance`) or the invoice's own family; update = admin only;
+  `emailQueue` read = admin or bookkeeper. `functions/index.js` `invoiceApi`: staff routes now require the administrator.
+- Checked that nothing else gives a teacher money: student cards hold only lesson counts (production read: no price or
+  balance fields), prices are in admin-only plans, payments / packages / ledgers are admin-only, CRM v2 loads invoices
+  only for admin / bookkeeper. Kept on purpose: Kassa — a teacher records cash they took and sees only their own cash
+  (owner: „принимать деньги от учителя может каждый”).
+- Tests: `security-finance-emulator.integration.js` — teacher cannot read / edit an invoice, cannot send or remind even
+  an own student's invoice, cannot list `emailQueue`; admin can edit the description. Runs in CI.
+- Deploy after merge (owner permission): `firebase deploy --only firestore:rules,functions:invoiceApi`.
+- Next safe step: after deploy, open the CRM as a teacher and check the calendar, student card and Kassa still work.
+
 ## 2026-10-19 · agent/school-covered-lesson — „Kooli kulul”: a held lesson the school pays itself
 
 - main checked: eef5885 (2026-10-19, after #679). Asked by Oleksiy in the team chat, plan approved by the owner 2026-10-19.
@@ -17,8 +33,7 @@
 - Checks: functions node --test finance-core + lesson-tokens-core 55/55; vitest finance/calendar/parents/students 65 files
   327 tests + LessonPanel 7/7; eslint 0 errors. New emulator test in finance-emulator.integration.js — NOT run locally
   (local Java < 21), runs in CI.
-- Deploy needed after merge: `firebase deploy --only functions:financeApi,functions:syncLessonTokens` (owner permission);
-  the frontend goes with main.
+- Deployed 2026-10-19 (owner „да”): #680 merged, `financeApi` + `syncLessonTokens` deployed, frontend via main.
 - Next safe step: after merge + functions deploy, mark one real lesson in the calendar and check the package balance.
 
 ## 2026-10-19 · agent/www-public-only — www.epkoolitus.ee served the whole repository
