@@ -82,6 +82,8 @@ export default [
     learningJob: "identify competing interests, respond to objections and formulate a balanced planning proposal",
     alt: "Liis aitab Viktoril ja Sofial leida rattatee jaoks turvalise ning ligipääsu arvestava trassi.",
     caption: "Pilt 1. Avalik arutelu muudab eri huvid paremaks planeeringuks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid huve Viktor ja Sofia arutelul esindavad?", "Kuidas Liis aitab neil kompromissi leida?", "Millise rattatee trassi valiksid sina ja kuidas põhjendaksid seda mõlemale poolele?"],
   },
   {
     id: "est-c1-067-kasuta-1",
