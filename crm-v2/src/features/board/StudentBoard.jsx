@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
@@ -35,7 +35,7 @@ const HISTORY_LIMIT = 50;
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
   controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null,
-  onPageChange, onPointer, pointer = null,
+  onPageChange, onPointer, pointer = null, onAssignPage,
 }) {
   const room = variant === 'room';
   const [pages, setPages] = useState([]);
@@ -106,7 +106,15 @@ export default function StudentBoard({
   // the board, and what is drawn on top of it is stored on its own lesson page „Tööleht: <title>”.
   // Several worksheets can be open in one lesson (newest first); each has its own page „Tööleht: <title>”.
   const sheets = useMemo(() => (worksheetList?.length ? worksheetList : singleWorksheet ? [singleWorksheet] : []), [worksheetList, singleWorksheet]);
-  const sheetPageOf = useCallback((sheet) => (sheet ? pages.find((page) => page.title === worksheetPageTitle(sheet.title)) || null : null), [pages]);
+  // a sheet placed before the phase was part of its title keeps its old page „Tööleht: <title>” — only the newest of the
+  // sheets sharing that title, so the others get a page of their own instead of an empty duplicate
+  const sheetPageOf = useCallback((sheet) => {
+    if (!sheet) return null;
+    const own = pages.find((page) => page.title === worksheetPageTitle(sheet.title));
+    if (own || !sheet.legacyTitle || sheet.legacyTitle === sheet.title) return own || null;
+    const heir = sheets.find((item) => item.legacyTitle === sheet.legacyTitle && !pages.some((page) => page.title === worksheetPageTitle(item.title)));
+    return heir?.id === sheet.id ? pages.find((page) => page.title === worksheetPageTitle(sheet.legacyTitle)) || null : null;
+  }, [pages, sheets]);
   const sheetPageIds = useMemo(() => new Set(sheets.map(sheetPageOf).filter(Boolean).map((page) => page.id)), [sheets, sheetPageOf]);
   // the newest sheet takes over the board when it opens; the page on screen decides which sheet lies under the drawing
   const worksheet = sheets[0] || null;
@@ -314,8 +322,29 @@ export default function StudentBoard({
   }, [sheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet }), [insertFile, newPage, openWorksheet, redo, undo]);
 
-  // rename a lesson page: double click its tab or the pencil next to the open page
+  // rename a lesson page: double click its tab or „Nimeta ümber” in the ⋯ menu next to the open page
   const [renaming, setRenaming] = useState(null);
+  // the ⋯ menu of the open page: rename; staff also delete it and give it to the student as homework
+  const [pageMenu, setPageMenu] = useState(null);
+  useEffect(() => {
+    if (!pageMenu) return undefined;
+    const close = (event) => { if (event.type === 'keydown' ? event.key === 'Escape' : !event.target.closest?.('.sb-page-menu, .sb-page-more')) setPageMenu(null); };
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('keydown', close);
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', close); };
+  }, [pageMenu]);
+  useEffect(() => { setPageMenu(null); }, [pageId]);
+  const openPageMenu = (event) => {
+    if (pageMenu) { setPageMenu(null); return; }
+    const rect = event.currentTarget.getBoundingClientRect();
+    setPageMenu({ id: pageId, x: Math.max(8, Math.min(rect.left, (globalThis.innerWidth || 1200) - 228)), y: rect.bottom + 6 });
+  };
+  const deletePage = (page) => {
+    setPageMenu(null);
+    if (!globalThis.confirm(`Kustuta leht „${page.title || 'Leht'}” koos kõigega, mis sellel on?`)) return;
+    choosePage(null);
+    service.deletePage(studentId, page.id).catch(fail('Lehte ei saanud kustutada.'));
+  };
   const saveRename = () => {
     const current = renaming;
     setRenaming(null);
@@ -323,6 +352,7 @@ export default function StudentBoard({
     if (!page || !current.title.trim() || current.title.trim() === page.title) return;
     service.renamePage(studentId, page.id, current.title, user).catch(fail('Lehte ei saanud ümber nimetada.'));
   };
+  const openPage = pages.find((item) => item.id === pageId) || null;
   const pageTabs = (className) => <div className={className} role="tablist" aria-label="Tahvli lehed">
     <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
     {pages.map((page) => (renaming?.id === page.id
@@ -330,7 +360,12 @@ export default function StudentBoard({
         onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
         onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
       : <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>))}
-    {pageId && !renaming ? <button type="button" className="sb-page-tool" aria-label="Nimeta leht ümber" title="Nimeta leht ümber" onClick={() => { const page = pages.find((item) => item.id === pageId); if (page) setRenaming({ id: page.id, title: page.title || '' }); }}><Pencil size={14} /></button> : null}
+    {pageId && !renaming && openPage ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title="Lehe toimingud" aria-haspopup="menu" aria-expanded={Boolean(pageMenu)} onClick={openPageMenu}><MoreHorizontal size={16} /></button> : null}
+    {pageMenu && openPage ? <div className="sb-page-menu" role="menu" aria-label={`Leht „${openPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
+      <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: openPage.id, title: openPage.title || '' }); }}>Nimeta ümber</button>
+      {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: openPage.id, title: openPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
+      {staff && service.deletePage && openPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(openPage)}>Kustuta leht</button> : null}
+    </div> : null}
     <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
     <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
   </div>;

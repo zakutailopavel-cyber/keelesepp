@@ -91,9 +91,11 @@ export function nextLessonSuggestion({ curriculum = [], lessonRecords = [], assi
     next = order.find((choice) => !level || choice.level === level) || null;
   }
   if (!next) return null;
-  const onBoard = new Set(assignments.filter((item) => roomKey && item.liveRoomKey === roomKey && item.lessonId === next.lessonId).map((item) => item.title));
+  // the sheets of a lesson often share a title, so a sheet on the board is known by its phase
+  const placed = assignments.filter((item) => roomKey && item.liveRoomKey === roomKey && item.lessonId === next.lessonId);
+  const onBoard = (choice) => placed.some((item) => (item.phase && choice.phase ? item.phase === choice.phase : item.title === choice.title));
   return {
     lessonId: next.lessonId, lessonTitle: next.lessonTitle, level: next.level, module: next.module, number: next.number,
-    choices: curriculum.filter((choice) => choice.lessonId === next.lessonId && !onBoard.has(choice.title)),
+    choices: curriculum.filter((choice) => choice.lessonId === next.lessonId && !onBoard(choice)),
   };
 }

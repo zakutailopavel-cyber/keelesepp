@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
+import { sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -311,6 +311,52 @@ describe('the worksheet scrollbar', () => {
       expect(sheet()).not.toBe(before);
       expect(Number(screen.getByRole('scrollbar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
     } finally { rect.mockRestore(); }
+
+describe('the ⋯ menu of a board page', () => {
+  const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
+  it('renames, deletes and gives the open page to the student', async () => {
+    const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', status: 'active' }] }), deletePage: vi.fn(async () => {}) };
+    const onAssignPage = vi.fn();
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} onAssignPage={onAssignPage} />);
+    expect(screen.queryByRole('button', { name: 'Lehe toimingud' })).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: 'Tund 3' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Määra õpilasele õppimiseks' }));
+    expect(onAssignPage).toHaveBeenCalledWith({ id: 'pg1', title: 'Tund 3' });
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Nimeta ümber' }));
+    expect(screen.getByRole('textbox', { name: 'Lehe nimi' })).toHaveValue('Tund 3');
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Lehe nimi' }), { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Kustuta leht' }));
+    expect(confirm).toHaveBeenCalled();
+    await waitFor(() => expect(service.deletePage).toHaveBeenCalledWith('s1', 'pg1'));
+    expect(screen.getByRole('tab', { name: 'Tahvel' })).toHaveAttribute('aria-selected', 'true');
+    confirm.mockRestore();
+  });
+
+  it('a student may only rename', () => {
+    const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', status: 'active' }] }), deletePage: vi.fn() };
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={service} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Tund 3' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Nimeta ümber']);
+  });
+});
+
+describe('sheets of one lesson that share a title', () => {
+  it('get a page each (the phase is in the title); the old shared page stays with the newest sheet', async () => {
+    expect(sheetBoardTitle({ title: 'Kontroll 1', phase: 'practice' })).toBe('Kontroll 1 · Harjuta');
+    expect(sheetBoardTitle({ title: 'Kontroll 1 — Harjuta', phase: 'practice' })).toBe('Kontroll 1 — Harjuta');
+    expect(sheetBoardTitle({ worksheetDoc: { meta: { title: 'Vana' } } })).toBe('Vana');
+    const service = { ...fakeService({ pages: [{ id: 'old', title: 'Tööleht: Kontroll 1' }] }), addWorksheetPage: vi.fn(async () => 'new') };
+    const worksheets = ['transfer', 'practice', 'discover'].map((phase, index) => ({ id: `as-${index}`, title: sheetBoardTitle({ title: 'Kontroll 1', phase }), legacyTitle: 'Kontroll 1', content: <div>{phase} sisu</div> }));
+    const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} worksheets={worksheets} />);
+    expect(await screen.findByText('transfer sisu')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Tööleht: Kontroll 1/ })).toHaveClass('is-worksheet');
+    expect(service.addWorksheetPage).not.toHaveBeenCalled();
   });
 });
 

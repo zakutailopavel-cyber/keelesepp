@@ -2,7 +2,7 @@ import { ArrowLeft, ClipboardList, Copy, GraduationCap, Link2, LibraryBig, Redo2
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorState, Input, LoadingState } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
-import { imageSize } from '../board/boardModel.js';
+import { imageSize, sheetBoardTitle } from '../board/boardModel.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { RoomWorksheetContent, RoomWorksheetPicker } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import { prepRoomKey } from '../worksheet-studio/roomWorksheetChoices.js';
@@ -52,7 +52,8 @@ export default function TeacherWorkspace({
   }, [homework, student?.id]);
   const boardSheets = useMemo(() => (student ? prepared.map((item) => ({
     id: item.id,
-    title: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
+    title: sheetBoardTitle(item),
+    legacyTitle: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
     content: <RoomWorksheetContent current={item} role="teacher" homework={homework} />,
   })) : []), [homework, prepared, student]);
 

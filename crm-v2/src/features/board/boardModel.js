@@ -111,6 +111,14 @@ export function fitView(elements, width, height, padding = 40) {
 export const PAGE = Object.freeze({ w: 1600, h: 1000 });
 // a worksheet page is as wide as the worksheet and as tall as it is
 export const WORKSHEET_WIDTH = 1000;
+// the title a worksheet has on the board: the phase is added, since the three sheets of a lesson often share a title
+// and shared one page (owner 2026-10-19: three „Tööleht: Kontroll 1 — igapäevaelu” tabs, two of them empty)
+const PHASE_LABELS = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta' };
+export function sheetBoardTitle(item = {}) {
+  const title = String(item.title || item.worksheetDoc?.meta?.title || 'Tööleht').trim();
+  const label = PHASE_LABELS[item.phase];
+  return label && !title.toLocaleLowerCase('et').includes(label.toLocaleLowerCase('et')) ? `${title} · ${label}` : title;
+}
 export const worksheetPageTitle = (title) => `Tööleht: ${String(title || 'Tööleht').trim()}`.slice(0, 200);
 export function pageBounds(elements = [], margin = 40, base = PAGE) {
   const boxes = elements.map(elementBounds).filter(Boolean);
