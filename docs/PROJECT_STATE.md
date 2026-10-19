@@ -11,8 +11,22 @@
   (owner: „принимать деньги от учителя может каждый”).
 - Tests: `security-finance-emulator.integration.js` — teacher cannot read / edit an invoice, cannot send or remind even
   an own student's invoice, cannot list `emailQueue`; admin can edit the description. Runs in CI.
-- Deploy after merge (owner permission): `firebase deploy --only firestore:rules,functions:invoiceApi`.
+- Deployed 2026-10-19 (owner „сливай оба”): #681 merged; live rules were checked equal to main first, then
+  `firebase deploy --only firestore:rules,functions:invoiceApi`.
 - Next safe step: after deploy, open the CRM as a teacher and check the calendar, student card and Kassa still work.
+## 2026-10-19 · agent/raamatukogu — „Raamatukogu” in Õppevara (port of #505)
+
+- main checked: 7686fb4. Owner 2026-10-19: „Библиотеку нужно внедрить”; next the owner sends photos of the school's
+  textbooks to digitise (separate task, copyright of each book to be checked first).
+- Page `/library/raamatukogu` (button „Raamatukogu” in Õppevara, staff only): free external sources by category and the
+  Harno level-exam links A2–C1; only one file is hosted (Peace Corps Estonian, US government work, public domain).
+- Files: `crm-v2/src/features/library/raamatukogu/*`, `crm-v2/public/raamatukogu/*.pdf`, `routes.jsx` (lazy route),
+  `LibraryPage.jsx` (button). Checks: vitest library + app 67/67, eslint 0 errors, vite build OK. External links not
+  re-checked since 2026-10-11.
+- Merged 2026-10-19 (owner „сливай оба”), frontend deploys with main. Owner: the textbooks are not ours, the school has
+  the publisher's permission; plan — page photos + recognised text in Raamatukogu „Õpikud” (signed-in school users
+  only, no download), then exercises as CRM sheets, then links from course lessons.
+- Next safe step: the owner sends the photos and any limits of the permission.
 
 ## 2026-10-19 · agent/school-covered-lesson — „Kooli kulul”: a held lesson the school pays itself
 
