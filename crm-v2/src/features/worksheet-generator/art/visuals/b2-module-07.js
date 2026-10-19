@@ -12,6 +12,8 @@ export default [
     learningJob: "seostada selge eesmärk, regulaarne harjumus ja tagasiside püsiva motivatsiooniga",
     alt: "Anna ja Sofia ehitavad väikestest regulaarsetest sammudest õpiteed.",
     caption: "Pilt 1. Motivatsioon kasvab väikeste sammudega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Sofia õpiteel teevad?", "Miks koosneb tee väikestest astmetest, mitte ühest suurest hüppest?", "Milline väike samm aitab sind keele õppimisel iga päev?"],
   },
   {
     id: "b1b2-032-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "võrrelda ülelugemist ja enesekontrolli ning selgitada, miks aktiivne meenutamine on tõhusam",
     alt: "Sofia ja Liis võrdlevad raamatukogus ülelugemist ning enesekontrolli.",
     caption: "Pilt 1. Milline õppimisviis annab parema tulemuse?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kahte õppimisviisi Sofia ja Liis võrdlevad?", "Miks viivad küsimuskaardid parema tulemuseni kui raamatu ülelugemine?", "Kuidas sina eksamiks õpid ja kas see töötab?"],
   },
   {
     id: "b1b2-033-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "eristada haridustekstis põhimõtet, argumente ja autori seisukohta ning teha kokkuvõte",
     alt: "Anna ja Liis leiavad haridustekstist põhimõtte, argumendid ja autori seisukoha.",
     caption: "Pilt 1. Arvamusloo kolm analüüsikihti.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millest räägib arvamuslugu, mida Anna ja Liis analüüsivad?", "Mida tähendavad tahvli kolm kihti?", "Kas sina eelistad numbrilist hinnet või sõnalist tagasisidet? Miks?"],
   },
   {
     id: "b1b2-034-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "järjestada ettepaneku probleem, põhjused, lahendused ja oodatav mõju",
     alt: "Anna ja Liis esitavad raamatukogu õpiruumi parandamiseks neljaosalise ettepaneku.",
     caption: "Pilt 1. Probleemist põhjendatud ettepanekuni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milline probleem on raamatukogu õpinurgas?", "Kuidas viib Liisa näidatud seos lahenduselt mõjuni?", "Mida muudaksid sina oma kooli või töökoha õpiruumis?"],
   },
   {
     id: "b1b2-035-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "koostada töötajate vajadustest lähtuv põhjendatud koolitusettepanek ja selgitada selle mõju",
     alt: "Liis ja Markus esitavad juhtkonnale praktilise koolitusplaani.",
     caption: "Pilt 1. Vajadusest toimiva koolitusplaanini.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Liis ja Markus juhtkonnale esitavad?", "Millised sammud on tegevustahvlil ja miks just selles järjekorras?", "Millist koolitust vajaksid sina oma töös kõige rohkem?"],
   },
 ];

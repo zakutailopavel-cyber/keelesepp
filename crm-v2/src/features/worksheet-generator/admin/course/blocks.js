@@ -42,6 +42,8 @@ export const B = {
   translation: (id, title, instruction, rows, width = 'half', goal = 'g_vocab') => block(id, 'translation', 'cream', goal, { title, instruction, rows: rows.map((source) => ({ source, hint: '' })) }, width),
   dialogue: (id, title, instruction, speakerA, speakerB, lines, goal = 'g_use') => block(id, 'dialogue', 'green', goal, { title, instruction, speakerA, speakerB, lines: lines.map(([who, text]) => ({ who, text })) }),
   diagram: (id, kind, data, width = 'half', goal = 'g_notice') => block(id, 'diagram', 'white', goal, { kind, ...data }, width),
+  // „Andmediagramm” (Harno C1 writing 1): series 'A, B'; rows ['2015 | 62 | 8', …]; kind 'bar' | 'line'
+  chart: (id, chartTitle, { kind = 'bar', unit = '', series = '', rows = [], source = '' } = {}, goal = 'g_read') => block(id, 'chart', 'white', goal, { chartTitle, kind, unit, series: Array.isArray(series) ? series.join(', ') : series, rows: join(rows), source }),
   crossword: (id, title, instruction, rows, width = 'half', goal = 'g_vocab') => block(id, 'crossword', 'cream', goal, { title, instruction, rows: rows.map(([clue, answer]) => ({ clue, answer })) }, width),
   // character / ID cards (Tegelaskaardid): people [[name, facts, sentences with [gaps]], …] — a card without a photo is
   // an ID card (personal data, A2 module 1)
@@ -54,6 +56,10 @@ export const B = {
   }),
   // a text with option gaps (Harno B1 reading 3): „… {*õige|vale|vale} …”
   cloze: (id, title, instruction, passageTitle, passage, goal = 'g_read') => block(id, 'cloze', 'cream', goal, { title, instruction, passageTitle, passage: join(passage) }),
+  // „Pane sõnad õigesse vormi” in a text: „Eile [käisin] (käima) poes.”
+  formtext: (id, title, instruction, passageTitle, passage, goal = 'g_notice') => block(id, 'formtext', 'blue', goal, { title, instruction, passageTitle, passage: join(passage) }),
+  // „Lünka sobiv lause”: the whole text, taken-out sentences in [[…]], extra sentences apart
+  insertion: (id, title, instruction, passageTitle, passage, extra, goal = 'g_read') => block(id, 'insertion', 'cream', goal, { title, instruction, passageTitle, passage: join(passage), extra: join(extra) }),
   listening: (id, title, instruction, transcript, sentences, goal = 'g_read') => block(id, 'listening', 'sky', goal, { title, instruction, audio: null, sentences: join(sentences), transcript: join(transcript) }),
   dictation: (id, title, instruction, sentences, lines = 6) => block(id, 'dictation', 'sky', 'g_use', { title, instruction, sentences: join(sentences), lines }),
   speaking: (id, title, instruction, questions, [minSec, maxSec], tipText = '', goal = 'g_use') => block(id, 'speaking', 'green', goal, {

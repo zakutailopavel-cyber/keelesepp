@@ -12,6 +12,8 @@ export default [
     learningJob: "translate prior work experience into a new professional field and sequence three realistic career steps",
     alt: "Liis aitab Annal siduda senised töökogemused uue karjäärisuuna pädevustega.",
     caption: "Pilt 1. Ülekantavad oskused loovad silla uude valdkonda.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid raamatupidaja kogemusi paigutab Anna pildil uude pädevuskaarti?", "Milline ülekantav oskus on sinu arvates personalitöös kõige väärtuslikum?", "Milliseid kolme esimest sammu soovitaksid sina valdkonna vahetajale?"],
   },
   {
     id: "est-c1-042-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "distinguish required from desirable qualifications and justify a fair candidate choice",
     alt: "Liis ja Markus võrdlevad kandidaatide pädevusi töökoha kohustuslike ning soovitavate nõuetega.",
     caption: "Pilt 1. Selged nõuded toetavad põhjendatud värbamisotsust.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida võrdlevad Liis ja Markus kandidaadikaartidel?", "Kumb kandidaat sobiks sinu arvates paremini ja millele sa oma valikus tugined?", "Kuidas peaks kuulutus eristama kohustuslikke ja soovitavaid nõudeid?"],
   },
   {
     id: "est-c1-043-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "compare the audience and purpose of a customer reply and an internal memo, then formulate both appropriately",
     alt: "Anna vastab kliendile lahendusega ja Jaan koostab meeskonnale ennetava memo.",
     caption: "Pilt 1. Sama juhtum vajab kaht eri eesmärgiga tööteksti.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mille poolest erinevad Anna ja Jaani kirjutatavad dokumendid?", "Mida peaks kliendikiri kindlasti sisaldama, et klient jääks rahule?", "Millise konkreetse muudatuse paneksid sina memosse ja kes selle eest vastutab?"],
   },
   {
     id: "est-c1-044-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "weigh opposing arguments, identify the decision and assign responsibility and timing",
     alt: "Liis juhib koosoleku selge otsuse, vastutaja ja tähtajani.",
     caption: "Pilt 1. Hea koosolek lõpeb täpse tegevusotsusega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida juhataja pildil teeb, et arutelu otsuseni jõuaks?", "Milliseid argumente on poolt ja milliseid vastu?", "Millise kompromissi pakuksid sina ja kuidas sõnastaksid otsuse?"],
   },
   {
     id: "est-c1-045-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "identify both sides' interests, trade conditional concessions and formulate a workable compromise",
     alt: "Markus ja Jaan seovad hinna, tellimuse mahu ja lepingu pikkuse kompromissiks.",
     caption: "Pilt 1. Läbirääkimisel sünnib kokkulepe tingimuste vahetamisest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mille üle pildil läbi räägitakse ja millised on mõlema poole huvid?", "Millise möönduse võiks ostja teha ja mida vastu küsida?", "Millal oleks mõistlik läbirääkimistest loobuda ja alternatiivi kasutada?"],
   },
   {
     id: "est-c1-046-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "infer how psychological safety is created and propose one concrete feedback routine",
     alt: "Anna kuulab meeskonna tagasisidet ja valib ühe muudatuse järgmisel nädalal katsetamiseks.",
     caption: "Pilt 1. Turvaline tagasisidering annab kõigile sõna.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas uus juht pildil meeskonnaga suhtleb?", "Mida teeksid sina, et vaiksemad meeskonnaliikmed julgeksid sõna võtta?", "Kuidas alustaksid vestlust kolleegiga, kes kandideeris samale kohale?"],
   },
   {
     id: "est-c1-047-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "balance efficiency with employee impact and recommend an ethically defensible implementation plan",
     alt: "Töörühm kaalub tehisarusüsteemi kasu, töökohtade riski ja ümberõppe lahendust.",
     caption: "Pilt 1. Eetiline muutus arvestab tõhususe kõrval inimestega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kahte rada Anna ja Markus pildil näitavad?", "Kuidas ühendab Liis kulude kokkuhoiu ja töötajate huvid?", "Mida soovitaksid sina juhtkonnale ja mis oleks selle lahenduse hind?"],
   },
   {
     id: "est-c1-048-kasuta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "compare impersonal and personal expression and choose forms that make responsibility clear",
     alt: "Anna muudab umbisikulise teate selgeks kirjaks, milles ettevõte võtab vastutuse.",
     caption: "Pilt 1. Tegumoe valik näitab, kes vastutab.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida kolleegi vabanduskirjas pildil parandatakse?", "Miks kõlab lause „vigu tehti” kliendile külmalt?", "Millal sobib umbisikuline tegumood ka vabandusse?"],
   },
   {
     id: "est-c1-049-kasuta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "compare two audience-specific versions and decide when nominalisation clarifies or obscures information",
     alt: "Liis ja Anna loovad aastaaruandest tiheda investoriversiooni ja selge töötajaversiooni.",
     caption: "Pilt 1. Info tihedus sõltub lugejast ja eesmärgist.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on pildil aruande kahe versiooni erinevus?", "Millised laused oleksid investoritele tihedad, kuid ikkagi selged?", "Kuidas selgitaksid finantsjuhile, miks lihtne keel ei ole ebaprofessionaalne?"],
   },
   {
     id: "est-c1-050-kasuta-1",
@@ -120,5 +138,7 @@ export default [
     learningJob: "interpret progress feedback, select one grammar target and plan its transfer to a new topic",
     alt: "Markus valib progressikaardilt järgmise grammatikaharjutuse ja seob selle terviseteemaga.",
     caption: "Pilt 1. Progressikaart muudab tagasiside järgmiseks sammuks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised mooduli 5 oskused on Markuse kaardil juba läbitud?", "Kumb grammatikateema vajab sinu arvates rohkem harjutamist ja miks?", "Kuidas rakendaksid seda oskust järgmise mooduli tekstis?"],
   },
 ];

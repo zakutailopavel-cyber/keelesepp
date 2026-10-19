@@ -12,6 +12,8 @@ export default [
     learningJob: "seostada konkreetne digiharjumus selle mõjuga tähelepanule, unele ja suhtlemisele ning pakkuda realistlik muutus",
     alt: "Sofia ja Anna võrdlevad katkestavaid teavitusi ning rahulikku digivaba lõunat.",
     caption: "Pilt 1. Üks digiharjumus muudab tähelepanu ja suhtlemist.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kahte digiharjumust Sofia ja Anna võrdlevad?", "Kuidas mõjutavad teavitused keskendumist ja und?", "Milline neist harjumustest sarnaneb sinu omaga?"],
   },
   {
     id: "b1b2-057-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "võrrelda tehisintellekti kasu ja riske ning otsustada, millal peab vastutuse võtma inimene",
     alt: "Liis ja Markus kavandavad, millal vastab kliendile robot ja millal päris teenindaja.",
     caption: "Pilt 1. Tehisaru aitab, kuid vastutus jääb inimesele.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida hindavad Liis ja Markus vestlusroboti juures?", "Millal sobib automaatvastus ja millal on vaja inimest?", "Kas sina eelistad suhelda vestlusroboti või inimesega? Miks?"],
   },
   {
     id: "b1b2-058-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "seostada umbisikulise tegumoe vormid ettevõtte digiturvalisuse üldiste reeglitega",
     alt: "Liis tutvustab digiturvalisuse reegleid ja Markus kinnitab telefonis kaheastmelist sisselogimist.",
     caption: "Pilt 1. Turvalisuse nimel järgitakse ühiseid reegleid.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised digiturvalisuse reeglid on seinal?", "Miks on kaheastmeline sisselogimine oluline?", "Milliseid neist reeglitest sa ise järgid ja milliseid mitte?"],
   },
   {
     id: "b1b2-059-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "eristada tõendamata väidet kontrollitud faktist ja hinnata allika usaldusväärsust",
     alt: "Sofia ja Anna võrdlevad anonüümset postitust kontrollitud ametliku allikaga.",
     caption: "Pilt 1. Enne jagamist kontrolli autorit, kuupäeva ja teisi allikaid.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Sofia ja Anna telefonis kontrollivad?", "Mille poolest erineb usaldusväärne allikas anonüümsest postitusest?", "Kuidas sina kontrollid, kas internetist loetud uudis on tõsi?"],
   },
   {
     id: "b1b2-060-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "tõlgendada vahehindamise tagasisidet ja koostada järgmise kursuseosa arenguplaan",
     alt: "Olga ja Jüri koostavad vahehindamise tulemuste põhjal õppimise järgmise sammu.",
     caption: "Pilt 1. Tagasisidest sünnib konkreetne arenguplaan.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida vaatavad Olga ja õpetaja Jüri koos?", "Milline oskus vajab Olga arvates kõige rohkem harjutamist?", "Millise järgmise sammu valiksid sina oma keeleõppes?"],
   },
 ];

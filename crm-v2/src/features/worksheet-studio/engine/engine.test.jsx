@@ -13,7 +13,7 @@ const answer = (b, map) => Object.fromEntries(Object.entries(map).map(([k, v]) =
 
 describe('block registry', () => {
   it('every block type can be created and rendered in edit, interactive and print modes', () => {
-    expect(Object.keys(BLOCKS)).toHaveLength(39);
+    expect(Object.keys(BLOCKS)).toHaveLength(42);
     for (const type of Object.keys(BLOCKS)) {
       const b = createBlock(type);
       for (const mode of ['edit', 'interactive', 'print']) {
@@ -205,7 +205,7 @@ describe('sentence answers', () => {
     review.unmount();
     const print = render(<Sheet doc={doc} mode="print" />);
     expect(print.container.querySelector('audio')).toBeNull();
-    expect(print.container.textContent).toContain('heli on veebis');
+    expect(print.container.textContent).toContain('õpetaja mängib salvestuse');
   });
 });
 

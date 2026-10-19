@@ -113,6 +113,15 @@ export function createBoardService(root = 'whiteboards') {
     });
     return value;
   },
+  // Staff remove a lesson page (e.g. an empty or doubled one): its elements first, then the page. A locked material the
+  // rules keep is left behind unseen; completed lesson records stay (firestore.rules refuse them).
+  async deletePage(studentId, pageId) {
+    if (!pageId) throw new Error('Tahvlit ennast ei saa kustutada.');
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(elementsRef(db, studentId, pageId));
+    await Promise.allSettled(snapshot.docs.map((item) => deleteDoc(item.ref)));
+    await deleteDoc(doc(db, root, studentId, 'lessonPages', pageId));
+  },
   // The paper of each page: { board: 'lines', <pageId>: 'grid' } on the board document (dots when not set).
   subscribeBackgrounds(studentId, onChange, onError) {
     const { db } = requireFirebaseClient();

@@ -20,7 +20,7 @@ describe('textbook illustrations', () => {
     const withArt = withLessonArt(doc, 'a2-001', 'discover');
     expect(withArt.blocks.map((block) => block.type)).toEqual(['text', 'image', 'notice', 'gap']);
     expect(withArt.blocks[1]).toMatchObject({ span: 8, data: { artId: 'a2-001-avasta-1', aspect: '3:2', img: { src: '/textbook-art/a2/a2-001/a2-001-avasta-1.webp' } } });
-    expect(withArt.blocks[2]).toMatchObject({ span: 4, data: { title: 'Vaata pilti', lines: 'Kes on pildil?\nKus nad on?\nMis toimub?' } });
+    expect(withArt.blocks[2]).toMatchObject({ span: 4, data: { title: 'Vaata pilti', lines: 'Kus Anna ja Liis on?\nMida Anna Liisile ütleb?\nMida sina ütled, kui tutvustad ennast uues kohas?' } });
     expect(withLessonArt(withArt, 'a2-001', 'discover')).toBe(withArt);
     expect(missingArt(withArt, 'a2-001', 'discover')).toEqual([]);
     expect(withLessonArt(doc, 'a2-001', 'practice')).toBe(doc);
@@ -33,7 +33,7 @@ describe('older sheets with a half-width picture', () => {
     const old = { blocks: [{ id: 'p', type: 'image', width: 'half', data: { artId: 'a2-004-kasuta-1' } }, { id: 't', type: 'table', width: 'full', data: {} }] };
     const fixed = withArtLayout(old);
     expect(fixed.blocks.map((block) => [block.type, block.span])).toEqual([['image', 8], ['notice', 4], ['table', undefined]]);
-    expect(fixed.blocks[1].data.lines).toBe('Mis olukord see on?\nMida sina selles olukorras teeksid?\nRäägi paarilisega.');
+    expect(fixed.blocks[1].data.lines).toBe('Mida Sofia teeninduslaual täidab?\nMida Liis kontrollib?\nMilliseid andmeid tuleb ankeeti kirjutada?');
     expect(withArtLayout(fixed)).toBe(fixed);
     const plain = { blocks: [{ id: 'x', type: 'text', data: {} }] };
     expect(withArtLayout(plain)).toBe(plain);

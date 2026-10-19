@@ -12,6 +12,8 @@ export default [
     learningJob: "nimetada toiduaineid, valida sobivad kogused ning otsustada, kuidas vältida liigset ostmist",
     alt: "Liis võrdleb külmkapi sisu toidulaual olevate ostudega.",
     caption: "Pilt 1. Liis planeerib nädala toiduostu.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimesed pildil ostavad ja kui palju?", "Mis on nende ostukorvis?", "Mida sina ostad iga nädal?"],
   },
   {
     id: "a2b1-027-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "valida viisakad tellimisfraasid, küsida koostisainete kohta, muuta tellimust ja paluda arvet",
     alt: "Anna täpsustab Jaani juures salati koostist ja palub kastme eraldi.",
     caption: "Pilt 1. Lõunatellimuse täpsustamine kohvikus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimesed pildil tellivad?", "Kuidas ettekandja ja klient suhtlevad?", "Mida sina kohvikus tavaliselt tellid?"],
   },
   {
     id: "a2b1-028-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "nimetada, mida ja kui palju on vaja, ning kasutada toidusõnu koguse järel osastavas käändes",
     alt: "Anna mõõdab nelja inimese õhtusöögi koostisosi.",
     caption: "Pilt 1. Õhtusöögi koostisosad ja kogused.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis toiduaineid näed pildil?", "Mida neist saab valmistada?", "Mida sina hommikul sööd ja mida mitte?"],
   },
   {
     id: "a2b1-029-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "tuvastada tellimuse ja arve vead, esitada viisakas lahenduspalve ning kontrollida tulemust",
     alt: "Markus saab kohvikus vale roa ja Jaan vahetab selle õigeks.",
     caption: "Pilt 1. Vale tellimuse rahulik lahendamine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis probleem on pildil?", "Kuidas klient sellest viisakalt räägib?", "Mis lahendust sina sooviksid?"],
   },
   {
     id: "a2b1-030-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "valida sobiv toit ja kogused, selgitada erivajadusi, tellida viisakalt ning lahendada teenindusolukordi",
     alt: "Kuus inimest tellivad restorani lõuna, arvestades taimetoitu ja piimaallergiat.",
     caption: "Pilt 1. Ühine lõuna erinevate toiduvajadustega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus inimesed pildil on ja mida nad teevad?", "Mida nad söövad või joovad?", "Kirjelda oma lemmikkohvikut."],
   },
 ];
