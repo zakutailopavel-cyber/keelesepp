@@ -1,3 +1,13 @@
+## 2026-10-19 · agent/course-v3-c1-m5 — C1 module 5 in template v3
+
+- Branch `agent/course-v3-c1-m5` is stacked on agent/course-v3-c1-m4 (#670). Draft PR.
+- Done: C1 module 5 (est-c1-041…050) in lesson template v3, the same way as module 4. 050 is the module exam (`assessment: true`).
+- No new audio: 044 keeps its existing meeting listening.
+- Checks: `moduleProblems` has no problems for module 5. `npx vitest run src/features/worksheet-generator` gives 705 passed.
+- Not deployed or published: that needs the owner's permission.
+- Not done: C1 modules 6–10.
+- Next safe step: ask the owner about deploying and publishing module 5; then C1 module 6 the same way.
+
 ## 2026-10-19 · agent/course-v3-c1-m4 (#670) — C1 module 4 in template v3
 
 - main checked: see `git log origin/main` (2026-10-19). Branch `agent/course-v3-c1-m4` is stacked on agent/course-v3-a2 (#668). Draft PR #670.
