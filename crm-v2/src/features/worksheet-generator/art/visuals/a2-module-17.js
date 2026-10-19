@@ -12,6 +12,8 @@ export default [
     learningJob: "describe at least five plans for tomorrow in a clear sequence",
     alt: "Sofia kavandab õhtul oma homseid tegevusi.",
     caption: "Pilt 1. Homme teen need asjad.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Sofia laual planeerib?", "Mis asjad on laual ja milleks need homme on?", "Mida sina homme teed?"],
   },
   {
     id: "a2-085-kasuta-1",
@@ -24,5 +26,7 @@ export default [
     learningJob: "compare future plans and agree on a suitable meeting time",
     alt: "Anna ja Sofia võrdlevad suure kalendri ees järgmise nädala plaane.",
     caption: "Pilt 1. Plaanide kontrollülesanne.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Sofia kalendris vaatavad?", "Millal on Annal tööpäev ja millal on Sofia vaba?", "Millal sina järgmisel nädalal vaba oled?"],
   },
 ];

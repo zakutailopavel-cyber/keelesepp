@@ -12,6 +12,8 @@ export default [
     learningJob: "kirjeldada õppeaineid, tunniplaani, ülesandeid, vahetunde ja kontrolltööks valmistumist",
     alt: "Sofia ja Liis vaatavad pika koolipäeva aineid ning ülesandeid.",
     caption: "Pilt 1. Kolmapäevane koolipäev ja õppeained.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis tund pildil käib?", "Mida õpilased teevad?", "Mis oli sinu lemmikaine koolis?"],
   },
   {
     id: "a2b1-037-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "valida juhtverbi järgi ma- või da-infinitiiv ning selgitada mitme tegevusega õppimisplaani",
     alt: "Anna kavandab raamatukogus eksamiks õppimist ja Liisiga rääkimist.",
     caption: "Pilt 1. Keeleeksamiks õppimise tegevusplaan.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimene pildil peab tegema ja mida tahab?", "Kuidas ta õpib?", "Mida sina tahad eesti keeles osata?"],
   },
   {
     id: "a2b1-038-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "selgitada õppimisrutiini probleeme, motivatsiooni ja lahendusi sest- ja kuna-lausetega",
     alt: "Anna muudab hilisõhtuse õppimise hommikuseks ning küsib Liisilt abi.",
     caption: "Pilt 1. Põhjused, miks uus õppimisrutiin toimib paremini.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Miks need inimesed õpivad?", "Kus ja millal nad õpivad?", "Miks sina õpid eesti keelt?"],
   },
   {
     id: "a2b1-039-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "sõnastada õppimisprobleem, pakkuda jõukohaseid lahendusi ja koostada õpetajale konkreetne küsimus",
     alt: "Liis aitab Markuselt maha jäänud õppimise kolmeks väikeseks ülesandeks jagada.",
     caption: "Pilt 1. Õppimisprobleemile realistliku lahenduse leidmine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis mure on pildil õppijal?", "Mis võiks teda aidata?", "Millist nõu sa talle annaksid?"],
   },
   {
     id: "a2b1-040-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "ühendada aja, kohustuse, varasema kogemuse, põhjuse ja õppimisplaani keel ning hinnata plaani tasakaalu",
     alt: "Anna paigutab töö, õppimise, puhkuse ja ostud tasakaalustatud nädalaplaani.",
     caption: "Pilt 1. Anna uus tasakaalustatud nädalaplaan.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus inimesed pildil on?", "Mida nad õpivad või teevad?", "Kirjelda pilti kolme lausega."],
   },
 ];

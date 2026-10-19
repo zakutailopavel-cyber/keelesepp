@@ -243,7 +243,7 @@
 .tg-cluster-item .tg-online-icon { margin-right: 2px; }
 
 /* a click on an empty half-hour cell: its status or a new lesson (Oleksiy 2026-10-15) */
-.cal-cell-menu { position: fixed; z-index: 60; display: grid; gap: 8px; padding: 12px; border: 1px solid #dfe5e1; border-radius: 14px; background: #fff; box-shadow: 0 14px 40px rgba(16, 35, 57, .22); }
+.cal-cell-menu { position: fixed; z-index: 60; max-height: calc(100vh - 16px); overflow-y: auto; display: grid; gap: 8px; padding: 12px; border: 1px solid #dfe5e1; border-radius: 14px; background: #fff; box-shadow: 0 14px 40px rgba(16, 35, 57, .22); }
 .cal-cell-menu header { display: grid; gap: 2px; }
 .cal-cell-menu header strong { font-size: .9rem; text-transform: capitalize; }
 .cal-cell-menu header small { color: #66756f; }

@@ -12,6 +12,8 @@ export default [
     learningJob: "distinguish what a worker must do, may do and knows how to do",
     alt: "Liis selgitab Markusele laotöö ülesandeid ja reegleid.",
     caption: "Pilt 1. Mida töötaja peab ja oskab teha?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Liis Markusele näitab?", "Mida Markus oskab teha?", "Mida sa pead oma tööl iga päev tegema?"],
   },
   {
     id: "a2-065-kasuta-1",
@@ -24,5 +26,7 @@ export default [
     learningJob: "explain what each person must, may and can do during the day",
     alt: "Anna ja Markus võrdlevad oma töö- ja koolipäeva kohustusi.",
     caption: "Pilt 1. Tööpäeva kontrollülesanne.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Markus võrdlevad?", "Mis asjad on laual?", "Mida sina pead tööl või koolis tegema?"],
   },
 ];

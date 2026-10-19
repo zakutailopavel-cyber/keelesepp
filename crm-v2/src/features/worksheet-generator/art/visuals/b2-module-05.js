@@ -12,6 +12,8 @@ export default [
     learningJob: "võrrelda kaht vastandlikku seisukohta ning sõnastada kummagi arvamus, põhjendus ja näide",
     alt: "Sofia ja Jaan arutavad kooli aulas kohustusliku koolivormi poolt- ja vastuargumente.",
     caption: "Pilt 1. Kaks seisukohta koolivormi kohta.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised kaks seisukohta Sofia ja Jaan koolivormi kohta esitavad?", "Milline argument tundub sulle tugevam? Miks?", "Kas sinu koolis oli koolivorm? Mida sa sellest arvasid?"],
   },
   {
     id: "b1b2-022-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "järjestada seisukoht, põhjus, näide ja järeldus terviklikuks argumendiks",
     alt: "Anna ja Viktor ehitavad bussipeatuses neljaosalist argumendisilda tasuta ühistranspordi teemal.",
     caption: "Pilt 1. Terviklik argument kannab nagu sild.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millest koosneb pildil olev sild? Mida iga osa tähendab?", "Milline osa teeb argumendi kõige tugevamaks?", "Ehita oma argument tasuta ühistranspordi kohta neljast osast."],
   },
   {
     id: "b1b2-023-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "tõlgendada viisakat kehakeelt ning moodustada nõustumise või mittenõustumise vastus",
     alt: "Liis ja Markus vaidlevad koosolekul viisakalt ning kuulavad teineteise erinevaid seisukohti.",
     caption: "Pilt 1. Erinev arvamus, lugupidav vestlus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas Liis ja Markus pildil teineteisega suhtlevad?", "Mis näitab, et nad vaidlevad viisakalt?", "Kuidas sina ütled kolleegile viisakalt, et oled eri meelt?"],
   },
   {
     id: "b1b2-024-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "võrrelda autot ja ühistransporti nelja kriteeriumi järgi ning põhjendada valikut",
     alt: "Anna ja Jaan võrdlevad auto ja ühistranspordi hinda, aega, mugavust ning keskkonnamõju.",
     caption: "Pilt 1. Kaks lahendust nelja kriteeriumi järgi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Jaan pildil võrdlevad?", "Mis on auto ja bussi plussid ning miinused nende jaoks?", "Mida sina valiksid oma pere jaoks ja miks?"],
   },
   {
     id: "b1b2-025-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "valida staadioni ja raamatukogu vahel ning esitada terviklik põhjendatud argument",
     alt: "Sofia ja Markus võrdlevad noortekeskuse arutelul uue staadioni ja raamatukogu projekte.",
     caption: "Pilt 1. Milline projekt saab tugevama argumendi?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kahte projekti noortekeskuses võrreldakse?", "Mis on kummagi projekti tugevad küljed?", "Kumma projekti poolt sina hääletaksid ja miks?"],
   },
 ];

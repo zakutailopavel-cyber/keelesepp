@@ -12,6 +12,8 @@ export default [
     learningJob: "sequence an earlier journey and retell it in the simple past",
     alt: "Anna järjestab pilte oma eilsest teekonnast.",
     caption: "Pilt 1. Eilse teekonna jutustamine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis pilte Anna vaatab?", "Kuhu Anna eile läks ja millega?", "Kuhu sina eile läksid?"],
   },
   {
     id: "a2-060-kasuta-1",
@@ -24,5 +26,7 @@ export default [
     learningJob: "review routes and past actions using where, to where and from where",
     alt: "Markus ja Anna kirjeldavad kaardil linnas liikumist.",
     caption: "Pilt 1. Reisimise ja liikumise kontrollülesanne.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Markus kirjeldab?", "Kuhu Anna osutab?", "Kuidas sa eile koju sõitsid?"],
   },
 ];

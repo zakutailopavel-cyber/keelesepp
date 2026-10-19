@@ -12,6 +12,8 @@ export default [
     learningJob: "identify barriers to adult learning and propose a usable training programme with measurable success",
     alt: "Anna ja Markus muudavad ajapuuduse takistuse planeeritud õppeajaks ning kavandavad koolitusprogrammi.",
     caption: "Pilt 1. Koolitusprogrammi kasutatakse siis, kui õppimiseks on päriselt aega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millise takistuse muudavad Anna ja Markus pildil lahenduseks?", "Milline kolmest lahendusest aitaks kõige rohkem sinu töökohas ja miks?", "Kuidas saaks aasta pärast mõõta, kas koolitusprogramm toimis?"],
   },
   {
     id: "est-c1-032-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "compare passive and active study habits, then build a realistic weekly language-learning plan",
     alt: "Sofia ja Liis näitavad, kuidas meenutamine, kordamine ja tagasiside moodustavad nädalaplaani.",
     caption: "Pilt 1. Tõhus õppimine ühendab meenutamise, kordamise ja tagasiside.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme õpiteed Sofia tahvlil näitab?", "Milline neist sobiks sinu nädalasse kõige paremini ja miks?", "Mida ütleksid õppijale, kes usub, et ülelugemine on parim viis?"],
   },
   {
     id: "est-c1-033-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "extract the main claim, argument structure and omissions from a complex analysis before making a decision",
     alt: "Anna võtab raamatukogu analüüsi kokku ning Viktor märkab kahte küsimust, mida tuleb veel uurida.",
     caption: "Pilt 1. Hea kokkuvõte näitab ka seda, mis allikast puudub.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid osi kokkuvõttest näeb Viktor Anna tahvlil?", "Kuidas eraldaks sina kokkuvõttes analüüsi sisu ja oma arvamuse?", "Millise kahe küsimuse peaks volikogu enne otsust veel uurima?"],
   },
   {
     id: "est-c1-034-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "trace a viral claim to independent evidence, separate known from unknown, and formulate a calm recommendation",
     alt: "Sofia ja Jaan kontrollivad koolivee väidet ametliku teate ning sõltumatu laboritulemuse abil.",
     caption: "Pilt 1. Enne jagamist kontrollitakse väidet sõltumatutest allikatest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimesed pildil kontrollivad ja milliseid allikaid nad kasutavad?", "Millise küsimuse esitaksid sina enne, kui sõnumit edasi jagad?", "Kuidas rahustaks mures lapsevanemat ilma tema muret pisendamata?"],
   },
   {
     id: "est-c1-035-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "combine overlaps, differences and gaps from three sources, then distinguish evidence from recommendation",
     alt: "Anna ja Liis koondavad kolm neljapäevase töönädala allikat ühiseks sünteesiks.",
     caption: "Pilt 1. Süntees ühendab allikad teemade, mitte järjekorra järgi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas Anna ja Liis tahvlil kolme allikat koondavad?", "Mis jääb allikate vahel lahtiseks ja miks see on oluline?", "Millise soovituse teeksid sina juhile ja kuidas eraldaksid selle sünteesist?"],
   },
   {
     id: "est-c1-036-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "select essential seminar information and explain it accurately in simpler language for colleagues",
     alt: "Markus muudab andmekaitseseminari keerulise info neljaks lihtsaks tegevuseks ning Liis kontrollib arusaamist.",
     caption: "Pilt 1. Vahendamisel säilib sisu, kuid keel muutub lihtsamaks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas muudab Markus pika esitluse Liisi jaoks lihtsamaks?", "Kuidas kontrollib Liis, et ta sai õigesti aru?", "Kuidas selgitaksid sina sõna „andmeleke” kolleegile, kelle eesti keel on B1 tasemel?"],
   },
   {
     id: "est-c1-037-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "weigh evidence for and against a smartphone ban, concede a valid point and propose a practical policy",
     alt: "Jaan ja Sofia kaaluvad telefonikeelu plusse ja miinuseid ning koostavad praktilise kompromissi.",
     caption: "Pilt 1. Hea seisukoht tunnistab vastaspoole põhjendatud muret.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid argumente näeb tahvli kahel poolel?", "Milline kompromissi osa tundub sulle kõige õiglasem ja miks?", "Mida ütleksid lapsevanemale, kes kardab, et laps ei saa hädaolukorras helistada?"],
   },
   {
     id: "est-c1-038-kasuta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "choose natural infinitive constructions and replace artificial compressed forms in a customer email",
     alt: "Anna ja Markus korrastavad kliendikirja tegevused ning muudavad infinitiivikasutuse loomulikuks.",
     caption: "Pilt 1. Loomulik infinitiiv teeb kliendikirja selgeks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid vigu kolleegi kirjas pildil parandatakse?", "Miks kõlab „tagamaks kiiret tarnet” kliendikirjas liiga ametlikult?", "Kuidas selgitaksid kolleegile lühidalt, millal kasutada ma- ja millal da-infinitiivi?"],
   },
   {
     id: "est-c1-039-kasuta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "unpack a dense participial construction into short sentences that a B1 reader can act on",
     alt: "Liis muudab Viktorile pika jäätmeveoteate kolmeks selgeks tegevussammuks.",
     caption: "Pilt 1. Selge teade näitab kiiresti, mis muutub ja mida teha.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on pildil algses teates valesti ja kuidas see muutub?", "Millise pika täiendi asendaksid sina kõrvallausega ja miks?", "Kuidas veenaksid kolleegi, et lihtne keel ei ole ebaprofessionaalne?"],
   },
   {
     id: "est-c1-040-kasuta-1",
@@ -120,5 +138,7 @@ export default [
     learningJob: "use progress feedback to select one grammar target and plan its application in professional communication",
     alt: "Sofia ja Liis valivad progressikaardilt infinitiivide ning kesksõnade järgmise harjutuse.",
     caption: "Pilt 1. Tagasiside seob grammatika järgmise suhtluseesmärgiga.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised mooduli 4 oskused on Sofia kaardil juba valmis?", "Milline osaoskus vajab sinu arvates veel kõige rohkem harjutamist ja miks?", "Millise konkreetse harjutuse valiksid sina järgmiseks nädalaks?"],
   },
 ];

@@ -123,8 +123,8 @@ export const listening = {
   create: () => ({ title: 'Kuula.', instruction: 'Kuula ja täida laused.', audio: null, sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].', transcript: '' }),
   View: ({ data, ctx }) => (
     <div className="ws-listen">
-      {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" /> : <div className="ws-hint">Helifail puudub.</div>}
-      <ol className="ws-gaps">{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i} data-edit={`sentences#${i}`}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
+      {data.partOf ? null : data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" /> : <div className="ws-hint">Helifail puudub.</div>}
+      <ol className="ws-gaps" start={(ctx.start || 0) + 1}>{String(data.sentences || '').split('\n').filter((l) => l.trim()).map((l, i) => <li key={i} data-edit={`sentences#${i}`}><GapText text={l} ctx={ctx} prefix={`${i}`} /></li>)}</ol>
     </div>
   ),
   answers: (data) => String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, i) => gapKeys(l, `${i}`)),

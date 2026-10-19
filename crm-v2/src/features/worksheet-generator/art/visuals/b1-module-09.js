@@ -12,6 +12,8 @@ export default [
     learningJob: "siduda ametid nende tüüpiliste tööülesannete ja vastutusega",
     alt: "Liis, Jaan ja Markus täidavad administraatori, koka ja autojuhi tööülesandeid.",
     caption: "Pilt 1. Kolm ametit ja nende tööülesanded.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kellena inimesed pildil töötavad?", "Mille eest nad vastutavad?", "Kellena sina töötad või tahaksid töötada?"],
   },
   {
     id: "a2b1-042-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "jutustada töökogemusest ajaliselt järjestatud tegevuste ja prioriteetide kaudu",
     alt: "Anna korrastab projektikoordinaatori kiire tööpäeva ülesanded prioriteeditahvlil.",
     caption: "Pilt 1. Anna tööpäeva järjestus ja prioriteedid.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimene pildil teeb ja kus ta varem töötas?", "Mis on tema tööpäeva järjekord?", "Kus sina varem töötasid?"],
   },
   {
     id: "a2b1-043-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "seostada tööelu tegevused ma- ja da-infinitiivi kasutusega",
     alt: "Anna ja Liis uurivad administraatori töökuulutuse ülesandeid, nõudeid ja CV saatmist.",
     caption: "Pilt 1. Administraatori töökuulutus ja kandideerimine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida uus töötaja pildil peab tegema?", "Mida ta juba oskab ja mida tahab õppida?", "Mida sina oskad tööl hästi?"],
   },
   {
     id: "a2b1-044-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "kujundada tööintervjuu vastuseid kogemuse, tugevuste ja motivatsiooni põhjal",
     alt: "Anna näitab Liisile tööintervjuul oma klienditeeninduse ja probleemilahenduse kogemust.",
     caption: "Pilt 1. Lihtne tööintervjuu koos näidetega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes on pildil töövestlusel?", "Mida kandidaat juhatajale räägib?", "Mis on sinu suurim tugevus?"],
   },
   {
     id: "a2b1-045-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "koondada töökuulutuse, kogemuse, intervjuu ja klienditeeninduse tõendid",
     alt: "Markus kandideerib tööle ja näitab intervjuul, kuidas ta kliendiprobleemi lahendab.",
     caption: "Pilt 1. Tööellu kandideerimise terviklik rada.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis tööd inimesed pildil teevad?", "Kuidas nad end tunnevad?", "Kirjelda pilti kolme lausega."],
   },
 ];

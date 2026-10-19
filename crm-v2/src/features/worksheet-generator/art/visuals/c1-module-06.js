@@ -12,6 +12,8 @@ export default [
     learningJob: "mediate medical information, ask clarifying questions and confirm the next steps",
     alt: "Anna aitab Viktoril eriarsti vastuvõtul sümptomeid kirjeldada ja juhiseid mõista.",
     caption: "Pilt 1. Selge patsiendisuhtlus kontrollib, kas juhistest saadi aru.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes pildil mida teeb ja milline on Anna roll?", "Millised kolm küsimust peaks naaber arstilt kindlasti küsima?", "Kuidas kontrolliksid, et naaber on arsti juhistest õigesti aru saanud?"],
   },
   {
     id: "est-c1-052-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "choose non-coercive workplace changes, predict their effects and decide how to measure results",
     alt: "Töörühm valib vabatahtlikud ja mõõdetavad muudatused istuva töö terviseriskide vähendamiseks.",
     caption: "Pilt 1. Tervisekäitumist toetab läbimõeldud töökeskkond.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid tervislikumaid muudatusi pildil olevas kontoris näha on?", "Milline muudatus aitaks sinu arvates kõige rohkem ja miks?", "Kuidas tagada, et keegi ei tunneks end survestatuna?"],
   },
   {
     id: "est-c1-053-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "identify organisational causes of overload and propose respectful, concrete workload changes",
     alt: "Anna ja Liis muudavad ülekoormuse kaardi realistlikuks tööplaaniks koos toetusmeetmega.",
     caption: "Pilt 1. Vaimset heaolu toetavad konkreetsed töökorralduse muutused.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida näitab Anna koormuskaart meeskonna kohta?", "Milline kolmest töökorralduse muudatusest aitaks sinu arvates kõige rohkem?", "Kuidas reageerib Liis ja mida see vestluse kohta ütleb?"],
   },
   {
     id: "est-c1-054-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "extract services, costs and next actions from an official decision and explain them empathetically",
     alt: "Anna ja Liis selgitavad Viktori hooldusotsuse teenuseid, omaosalust ning järgmist sammu.",
     caption: "Pilt 1. Ametlik otsus muutub selgeks tegevusteeks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna kolleegile selgitab ja kuidas ta seda teeb?", "Milliseid teenuseid näitab Liisi skeem ja millist neist vajaks Viktor kõige rohkem?", "Mida peaks pere järgmise sammuna tegema?"],
   },
   {
     id: "est-c1-055-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "interpret demographic change, infer service pressures and prioritise an intergenerational response",
     alt: "Viktor, Sofia ja Liis seovad rahvastiku vananemise kogukonna teenuste ning koostöövajadusega.",
     caption: "Pilt 1. Demograafiline muutus nõuab põlvkondi ühendavaid lahendusi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida näitab tahvlil olev diagramm vanemate ja tööealiste elanike kohta?", "Milliseid lahendusi pildil olevad inimesed arutavad?", "Milline lahendus sobiks sinu arvates kõige paremini väikesele vallale ja miks?"],
   },
   {
     id: "est-c1-056-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "compare alarmist and proportionate risk communication and formulate a trustworthy public message",
     alt: "Liis ja Sofia valivad paanikat vältiva terviseteate, mis näitab riski ja tegevussamme.",
     caption: "Pilt 1. Usaldusväärne riskiinfo on täpne, rahulik ja praktiline.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mille poolest erinevad kaks riskiteadet, mida Liis ja Sofia võrdlevad?", "Miks valib Sofia rahulikuma versiooni?", "Mida peaks hea riskiteade alati sisaldama?"],
   },
   {
     id: "est-c1-057-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "distinguish anecdote, opinion and research evidence and build a proportionate health argument",
     alt: "Anna ja Jaan kaaluvad terviseväite toetuseks kogemust, uuringut ja eksperdi arvamust.",
     caption: "Pilt 1. Tugev terviseargument eristab arvamust ja tõendit.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid tõendeid Jaan ja Anna laual võrdlevad?", "Miks paigutab Anna isikliku kogemuse tõendiskaalal madalale?", "Kuidas sõnastaksid Jaani ettevaatliku järelduse?"],
   },
   {
     id: "est-c1-058-kasuta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "resolve ambiguous references and combine related health information with precise relative clauses",
     alt: "Liis parandab Viktoriga patsiendijuhendi ebaselge viite ning seob info õige teenusega.",
     caption: "Pilt 1. Selge relatiivlause näitab täpselt, millele viidatakse.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Liis Viktorile näitab ja miks on üks viitenool ebaselge?", "Kuidas aitab selge viide patsiendil õige teenuse leida?", "Millise lause patsiendijuhendist kirjutaksid sina ümber ja kuidas?"],
   },
   {
     id: "est-c1-059-kasuta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "identify the hierarchy of a complex sentence and attach cause, condition and consequence unambiguously",
     alt: "Anna ja Liis seavad terviseteate põhisõnumi ning kõrvallaused selgesse hierarhiasse.",
     caption: "Pilt 1. Keeruka lause mõte püsib selgel põhistruktuuril.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on Anna ja Liisi lausestruktuuri keskel ja miks?", "Milliseid seoseid näitavad eri kõrgustel plokid?", "Kuhu paigutaksid sina viimase kõrvallause ja miks?"],
   },
   {
     id: "est-c1-060-kasuta-1",
