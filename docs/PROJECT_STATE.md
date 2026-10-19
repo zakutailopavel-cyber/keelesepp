@@ -1,3 +1,17 @@
+## 2026-10-19 · agent/www-public-only — www.epkoolitus.ee served the whole repository
+
+- Found during the v1 retirement: the Vercel project „keelesepp” (www.epkoolitus.ee, output directory „.”, not deployed
+  from git) served every uploaded file: `functions/index.js`, `firestore.rules`, `crm-v2/` sources, `AGENTS.md`, `docs/`
+  (incl. PROJECT_STATE with some student names and card ids) and the v1 `api/` AI proxy (staff-only, rate-limited).
+- Fix: `.vercelignore` uploads only the public website (index, ru, oppematerjalid, tasemetest, kutse, privaatsus,
+  tingimused, icons, robots, sitemap, vercel.json). Deployed to production 2026-10-19 by CLI (owner: «старых убрать»,
+  «чистим»): source files now 404, public pages 200, `/haldus*`, `/live-classroom*`, `/interactive-lesson*`, `/api/*`
+  redirect to crm.epkoolitus.ee (`/haldus#registreeru` opens registration).
+- How to deploy www from now on: from a checkout of `main`, `VERCEL_ORG_ID=team_QrqSG3j8wACTFZY4TFpKqRuQ
+  VERCEL_PROJECT_ID=prj_ABArYIixd2dkQkF3JTAdKL2xBvTr npx vercel deploy --prod` (the project has no git integration).
+- Next safe step: the owner decides whether the past exposure of internal docs needs any notice; consider git-linking
+  the „keelesepp” project with root „.” and this `.vercelignore`.
+
 ## 2026-10-19 · agent/retire-v1 — the first CRM (v1) retired, repository cleaned
 
 - main checked: origin/main after #676 (main = production, 2026-10-19). Owner: «всех надо перенести на новую а старых убрать», «чистим».
