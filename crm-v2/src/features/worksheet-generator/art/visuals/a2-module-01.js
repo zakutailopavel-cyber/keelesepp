@@ -12,6 +12,8 @@ export default [
     learningJob: 'infer that Anna is introducing herself, then introduce yourself and identify what information Liis may ask for next',
     alt: 'Anna tutvustab end keelekeskuse vastuvõtus Liisile, kelle käes on kursuseankeet.',
     caption: 'Pilt 1. Anna tutvustab ennast keelekeskuses.',
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus Anna ja Liis on?", "Mida Anna Liisile ütleb?", "Mida sina ütled, kui tutvustad ennast uues kohas?"],
   },
   {
     id: 'a2-002-harjuta-1',
@@ -24,6 +26,8 @@ export default [
     learningJob: 'choose a suitable reply and continue a six-to-eight-line introduction dialogue',
     alt: 'Anna ja Markus tutvuvad keelekursuse vaheajal ning küsivad nime ja päritolu.',
     caption: 'Pilt 2. Uued kursusekaaslased tutvuvad.',
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus Anna ja Markus kohtuvad?", "Mida nad teineteiselt küsivad?", "Mida sina küsid uuelt kursusekaaslaselt?"],
   },
   {
     id: 'a2-003-harjuta-1',
@@ -36,6 +40,8 @@ export default [
     learningJob: 'describe each person with the correct present-tense verb and then make affirmative and negative sentences',
     alt: 'Anna töötab kontoris, Sofia õpib ning Jaan räägib kohvikus kliendiga.',
     caption: 'Pilt 3. Kes töötab, õpib või räägib?',
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes pildil töötab, kes õpib ja kes räägib kliendiga?", "Kus need inimesed on?", "Mida sina teed: töötad või õpid? Kus?"],
   },
   {
     id: 'a2-004-kasuta-1',
@@ -48,6 +54,8 @@ export default [
     learningJob: 'transfer personal data from a profile card into the correct form fields and check numbers and spelling',
     alt: 'Sofia täidab Liisi juures ankeeti, kus küsitakse nime, sünniaega, telefoni ja e-posti.',
     caption: 'Pilt 4. Isikuandmete ankeedi täitmine.',
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Sofia teeninduslaual täidab?", "Mida Liis kontrollib?", "Milliseid andmeid tuleb ankeeti kirjutada?"],
   },
   {
     id: 'a2-005-kasuta-1',
@@ -60,5 +68,7 @@ export default [
     learningJob: 'perform an independent introduction, ask one follow-up question and decide whether all key personal information was communicated',
     alt: 'Anna tutvustab ennast kontrolltunnis Markusele, kes kuulab ja valmistub lisaküsimuseks.',
     caption: 'Pilt 5. Iseseisev tutvumine kontrolltunnis.',
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Markus teevad?", "Miks on Markusel kontrollkaart?", "Kuidas sina ennast tutvustad, kui sul ei ole märkmeid?"],
   },
 ];
