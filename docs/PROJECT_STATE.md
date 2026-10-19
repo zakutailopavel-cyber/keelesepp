@@ -1,24 +1,24 @@
-## 2026-10-19 · agent/course-v3-a2 (#668) — the A2 course in template v3 (in progress) + agent/calendar-menu-fit (#669)
+## 2026-10-19 · agent/course-v3-a2 (#668) — the A2 course in template v3 (all 20 modules) + agent/calendar-menu-fit (#669)
 
 - main checked: see `git log origin/main` (2026-10-19). Branch `agent/course-v3-a2` is stacked on agent/course-v3-c1 (#667). Draft PR #668.
 - Owner 2026-10-19: „Давай сначала а2”: the A2 course goes before C1 modules 4–10.
-- Done: A2 modules 1–10 (a2-001…a2-050), one commit per module. Each lesson:
+- Done: all A2 modules 1–20 (a2-001…a2-100), one commit per module. Each lesson:
   - 5–9 blocks a sheet and 40–55 minutes;
   - 8 items a task (A2 norm): short tasks of the old sheets were merged;
   - every Harjuta has a new cloze text (3 options, 8 gaps) and a „Pane sõnad õigesse vormi” text with 8 gaps;
   - every Kasuta has role cards, a speech and a rubric. Letters are at least 40 words;
   - openers and task sequences vary inside each module;
-  - Kontroll N (a2-005, 010 … 050) is `assessment: true` with only the Kasuta selfcheck;
-  - every art visual has its own questions (`prompts` in art/visuals/a2-module-NN.js).
+  - Kontroll N (a2-005, 010 … 100) and the two Harno mocks a2-097 and a2-099 are `assessment: true` with only the Kasuta selfcheck;
+  - every art visual has its own questions (`prompts` in art/visuals/a2-module-NN.js). Modules 18–20 have no art.
 - Removed listening blocks are pruned from listeningAudio.json and public/audio. The textbookArt tests follow the new a2-001 and a2-004 prompts.
 - Generator: scratchpad scripts a2mNN_NNN.py, rebuilt from the pre-rewrite snapshot. They are not in the repo; the result is the module files.
-- Checks: module gate (`moduleProblems`) has no problems for modules 1–10. `npx vitest run src/features/worksheet-generator` gives 705 passed.
+- Checks: module gate (`moduleProblems`) has no problems for modules 1–20. `npx vitest run src/features/worksheet-generator` gives 705 passed (after module 20, be59932).
 - Known: some sheets keep the soft warning „short-sentences” (avg 3–4 words in imperative or price tasks); it is not a gate error.
 - Not published: the A2 sheets in Firestore are still the old ones. Publishing needs the owner's permission.
 - Calendar (#669, owner 2026-10-19): the cell menu („Vaba / Hõivatud / Lisa tund”) measures its own height, so the menu stays on screen for late hours. Deployed to production on 2026-10-19 with the owner's permission, together with this A2 branch (4ae104b + 1019c2a, built from a detached worktree).
 - Risk: production runs unmerged branches (C1, A2, calendar fix). A deploy from main before #667, #668, #669 are merged removes them.
-- Not done: A2 modules 11–20, C1 modules 4–10.
-- Next safe step: A2 module 11 the same way.
+- Not done: C1 modules 4–10. The A2 sheets are not deployed or published.
+- Next safe step: ask the owner whether to deploy and publish the A2 sheets; then C1 module 4 the same way.
 
 ## 2026-10-18 · agent/course-v3-c1 — C1 module 1 in template v3 (Harno C1)
 
