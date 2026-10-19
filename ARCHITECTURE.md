@@ -4,8 +4,13 @@
 
 The primary CRM is the React application in `crm-v2/`: routes are in `src/app/routes.jsx`,
 domain screens in `src/features/`, and Firebase adapters in `src/services/firebase/`.
-`haldus.html` and the older learning entry points remain compatibility surfaces; they are not
-the architectural description of the current primary CRM.
+The first CRM (v1: `haldus*.html`, the old `live-classroom.html`, `interactive-lesson/` and about a hundred
+browser modules in the repository root) was retired on 2026-10-19 (owner: move everyone to the new CRM). Its
+addresses on www.epkoolitus.ee redirect to crm.epkoolitus.ee (`vercel.json`); the repository root now holds only the
+public website (index, `ru/`, `oppematerjalid/`, `tasemetest`, `kutse`, `privaatsus`, `tingimused`). Old modules that
+server tests still use live in `functions/test-fixtures/legacy/`. The v1 server endpoints (`lessonDraftsApi`,
+`learningSessionApi`, `learningProfileEvidenceApi`) are still deployed; removing them is a separate, owner-approved step.
+Sections below that describe v1 surfaces are history.
 
 ### Calendar accounting integrity (2026-10-07)
 

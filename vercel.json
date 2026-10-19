@@ -6,78 +6,6 @@
       "destination": "/ru/index.html"
     },
     {
-      "source": "/haldus-lesson-builder",
-      "destination": "/haldus-lesson-builder/index.html"
-    },
-    {
-      "source": "/haldus-lesson-builder/",
-      "destination": "/haldus-lesson-builder/index.html"
-    },
-    {
-      "source": "/haldus",
-      "destination": "/haldus.html"
-    },
-    {
-      "source": "/haldus/",
-      "destination": "/haldus.html"
-    },
-    {
-      "source": "/live-classroom",
-      "destination": "/live-classroom.html"
-    },
-    {
-      "source": "/live-classroom/",
-      "destination": "/live-classroom.html"
-    },
-    {
-      "source": "/haldus-calendar/",
-      "destination": "/haldus-calendar.html"
-    },
-    {
-      "source": "/haldus-calendar",
-      "destination": "/haldus-calendar.html"
-    },
-    {
-      "source": "/haldus-exercises",
-      "destination": "/haldus-exercises/index.html"
-    },
-    {
-      "source": "/haldus-exercises/",
-      "destination": "/haldus-exercises/index.html"
-    },
-    {
-      "source": "/haldus-worksheet",
-      "destination": "/haldus-worksheet/index.html"
-    },
-    {
-      "source": "/haldus-worksheet/",
-      "destination": "/haldus-worksheet/index.html"
-    },
-    {
-      "source": "/haldus-whiteboard",
-      "destination": "/haldus-whiteboard/index.html"
-    },
-    {
-      "source": "/haldus-whiteboard/",
-      "destination": "/haldus-whiteboard/index.html"
-    },
-    {
-      "source": "/haldus-adaptive-lesson",
-      "destination": "/haldus-adaptive-lesson/index.html"
-    },
-    {
-      "source": "/haldus-adaptive-lesson/",
-      "destination": "/haldus-adaptive-lesson/index.html"
-    },
-    {
-      "source": "/haldus-learning-profile",
-      "destination": "/haldus-learning-profile/index.html"
-    },
-    {
-      "source": "/haldus-learning-profile/",
-      "destination": "/haldus-learning-profile/index.html"
-    },
-    {
       "source": "/tasemetest",
       "destination": "/tasemetest.html"
     },
@@ -316,6 +244,53 @@
           "value": "nosniff"
         }
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/haldus",
+      "destination": "https://crm.epkoolitus.ee/login",
+      "permanent": true
+    },
+    {
+      "source": "/haldus/",
+      "destination": "https://crm.epkoolitus.ee/login",
+      "permanent": true
+    },
+    {
+      "source": "/haldus.html",
+      "destination": "https://crm.epkoolitus.ee/login",
+      "permanent": true
+    },
+    {
+      "source": "/haldus-calendar:rest(.*)",
+      "destination": "https://crm.epkoolitus.ee/calendar",
+      "permanent": true
+    },
+    {
+      "source": "/haldus-:rest(.*)",
+      "destination": "https://crm.epkoolitus.ee/",
+      "permanent": true
+    },
+    {
+      "source": "/haldus/:rest(.*)",
+      "destination": "https://crm.epkoolitus.ee/",
+      "permanent": true
+    },
+    {
+      "source": "/live-classroom:rest(.*)",
+      "destination": "https://crm.epkoolitus.ee/live-classroom",
+      "permanent": true
+    },
+    {
+      "source": "/interactive-lesson:rest(.*)",
+      "destination": "https://crm.epkoolitus.ee/",
+      "permanent": true
+    },
+    {
+      "source": "/api/:rest(.*)",
+      "destination": "https://crm.epkoolitus.ee/",
+      "permanent": false
     }
   ]
 }

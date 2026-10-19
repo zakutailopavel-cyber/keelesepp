@@ -1,5 +1,4 @@
 import {
-  ArrowRight,
   ChevronDown,
   Plus,
   BookCopy,
@@ -30,7 +29,6 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { curriculumInstallerService, groupsService, lessonWorksheetsService, libraryService, studentsService } from '../../services/firebase/index.js';
 import { lessonSheetChoices } from '../../services/firebase/library.js';
 import { studentAccess } from '../../services/firebase/students.js';
-import { legacyUrl } from '../../utils/legacyUrls.js';
 import { ROLES } from '../../utils/roles.js';
 import { A2_LESSON_COUNT, a2InstalledCount } from '../curriculum/a2Curriculum.js';
 import {
@@ -495,7 +493,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         open={Boolean(selected)}
         title={selected?.title || 'Õppematerjal'}
         onClose={() => setSelected(null)}
-        footer={<>{selected?.kind === 'exercise' ? <a className="button button--secondary" href={legacyUrl(`/haldus-exercises/?exercise=${encodeURIComponent(selected.sourceId)}`)}>Ava töövahend <ArrowRight size={16} /></a> : null}{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/lessons/${encodeURIComponent(selected.sourceId)}/worksheets/discover`)}><Sparkles size={16} /> Tunni töölehed</Button> : null}{selected?.kind !== 'exercise' && selected?.sourceId && (!usesLessonEngine(selected) || hasStudioDoc(selected)) ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>{hasStudioDoc(selected) ? 'Muuda töölehte' : 'Loo tööleht'}</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
+        footer={<>{selected?.kind !== 'exercise' && selected?.sourceId ? <Button variant="secondary" onClick={() => navigate(`/library/lessons/${encodeURIComponent(selected.sourceId)}/worksheets/discover`)}><Sparkles size={16} /> Tunni töölehed</Button> : null}{selected?.kind !== 'exercise' && selected?.sourceId && (!usesLessonEngine(selected) || hasStudioDoc(selected)) ? <Button variant="secondary" onClick={() => navigate(`/library/worksheets/${encodeURIComponent(selected.sourceId)}`)}>{hasStudioDoc(selected) ? 'Muuda töölehte' : 'Loo tööleht'}</Button> : null}<Button variant="secondary" onClick={() => { if (selected?.kind === 'exercise') setExerciseEditing(selected); else setEditing(selected); setSelected(null); }}>Muuda</Button><Button variant="secondary" onClick={() => { setPreviewing(selected); setSelected(null); }}>Eelvaade</Button><Button onClick={() => { setAssigning(selected); setSelected(null); }}>Määra õpilastele</Button></>}
       >
         {selected ? <div className="library-detail"><Badge tone={LIBRARY_TYPES[selected.type]?.tone}>{selected.typeLabel}</Badge><p className="library-detail__plan">{selected.description || 'Materjalil ei ole kirjeldust.'}</p><dl><div><dt>Tase</dt><dd>{selected.level || selected.ageGroup || '—'}</dd></div><div><dt>Moodul</dt><dd>{selected.moduleTitle || selected.curriculum || selected.topic || '—'}</dd></div>{selected.languageFocus ? <div><dt>Keelefookus</dt><dd>{selected.languageFocus}</dd></div> : null}{selected.source?.goal ? <div><dt>Eesmärk</dt><dd>{selected.source.goal}</dd></div> : null}<div><dt>Failid</dt><dd>{selected.fileCount || '—'}</dd></div><div><dt>Muudetud</dt><dd>{shortDate(selected.updatedAt) || '—'}{selected.authorName ? ` · ${selected.authorName}` : ''}</dd></div></dl></div> : null}
       </Modal>

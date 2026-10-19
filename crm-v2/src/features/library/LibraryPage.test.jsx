@@ -131,7 +131,9 @@ describe('LibraryPage', () => {
 
     const dialog = screen.getByRole('dialog', { name: 'Family match' });
     expect(dialog).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Ava töövahend/ })).toHaveAttribute('href', 'https://www.epkoolitus.ee/haldus-exercises/?exercise=exercise-1');
+    // the old v1 exercise tool is retired: an exercise is edited („Muuda”) and assigned in this CRM
+    expect(screen.queryByRole('link', { name: /Ava töövahend/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Muuda' })).toBeInTheDocument();
   });
 
   it('assigns a material only to students in the teacher UID scope', async () => {

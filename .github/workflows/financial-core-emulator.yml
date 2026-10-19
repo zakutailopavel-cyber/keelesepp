@@ -159,43 +159,8 @@ jobs:
         run: npm ci --prefix functions
       - name: Run unit tests
         run: npm test --prefix functions
-      - name: Run CRM, accounting, calendar and learning tests
-        run: node --test tools/lesson-transcriber/lib.test.js interactive-lesson-core.test.js haldus-quality.test.js calendar-core.test.js learning-library-core.test.js live-classroom-core.test.js staff-activity.test.js staff-time-core.test.js accounting-ledger-core.test.js teacher-scope-ui.test.js terms-registration-ui.test.js initial-assessment-core.test.js initial-assessment-ui.test.js student-portal-scope-ui.test.js learning-profile-core.test.js learning-profile-evidence-store.test.js learning-profile-ui.test.js learning-profile-routing.test.js curriculum-goal-core.test.js adaptive-lesson-core.test.js adaptive-vocabulary-lesson.test.js real-curriculum-lesson.test.js adaptive-skill-engine.test.js activity-contract-core.test.js lesson-authoring-core.test.js lesson-builder-ux-core.test.js lesson-workspace-core.test.js learning-session-core.test.js learning-session-ui.test.js teacher-home-core.test.js teacher-home-ui.test.js
-      - name: Install isolated Builder browser test dependencies
-        run: npm ci --prefix tests/lesson-builder --ignore-scripts
-      - name: Run Builder browser behavior tests
-        run: npm test --prefix tests/lesson-builder
-      - name: Check browser JavaScript syntax
-        run: |
-          node --check lesson-cloud-store.js
-          node --check haldus-lesson-builder/cloud.js
-          node --check haldus-quality.js
-          node --check calendar-core.js
-          node --check learning-library-core.js
-          node --check learning-profile-core.js
-          node --check learning-profile-evidence-store.js
-          node --check curriculum-goal-core.js
-          node --check curriculum-goals/b1-city.js
-          node --check adaptive-lesson-core.js
-          node --check adaptive-lessons/est-b1-city-vocabulary.js
-          node --check adaptive-skill-engine.js
-          node --check lesson-block-templates.js
-          node --check lesson-builder-ux-core.js
-          node --check lesson-authoring-presentation.js
-          node --check lesson-authoring-core.js
-          node --check lesson-authoring-preview.js
-          node --check haldus-lesson-builder/app.js
-          node --check activity-contract-core.js
-          node --check lesson-workspace-core.js
-          node --check learning-session-core.js
-          node --check learning-session-store.js
-          node --check teacher-home-core.js
-          node --check live-classroom-core.js
-          node --check live-classroom.js
-          node --check staff-activity.js
-          node --check staff-time-core.js
-          node --check accounting-ledger-core.js
-          node --check initial-assessment-core.js
+      - name: Run tool tests (the v1 root modules were retired 2026-10-19)
+        run: node --test tools/lesson-transcriber/lib.test.js
       - name: Run emulator integration tests
         run: >-
           npx --yes firebase-tools@15.22.3 emulators:exec
