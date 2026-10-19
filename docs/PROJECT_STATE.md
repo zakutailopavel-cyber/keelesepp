@@ -17,6 +17,11 @@
     the task „Õpi tahvlilehe „…” materjal.” — the existing homework with `boardPageId` (student opens it from „Kodutööd”).
   - `roomWorksheetChoices.js`: curriculum sheets sorted by level, then lesson number (module title only as a tie-break);
     „Järgmine tund” therefore follows the course (after 5 comes 6). A sheet on the board is matched by phase, not title.
+  - Student scrolling the sheet (owner 2026-10-19: „ученик мог сам листать лист”): a focused answer field (iPad
+    keyboard) or the teacher's pointed task (`scrollIntoView`) scrolled the overflow-hidden board stage, the sheet stayed
+    shifted and its top / end could not be reached. `StudentBoard` now turns any stage scroll into a move of the view and
+    keeps the stage at 0; `DocWorksheetPlayer` on the board sends `ws-reveal` instead of `scrollIntoView`, the board
+    moves to the pointed task once.
 - Checks: `npx vitest run` — 1951 passed, 2 failed in `CourseProductionPage.test.jsx` only under the full run (pass alone,
   85/85 with live-classroom; timeout under load, unrelated). eslint on changed files clean; `vite build` ok.
 - Limits: on the student's own board page (`/board`) „Määra õpilasele” is not shown (no lesson to attach homework to).

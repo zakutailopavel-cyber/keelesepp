@@ -539,18 +539,46 @@ export default function StudentBoard({
   // does not stop the browser from zooming the whole page (tabs and the video tiles went off screen). A native
   // non-passive listener on the stage stops the page zoom; the board zooms itself through `wheel` as before.
   // a callback ref (React 19 cleanup): the stage is rendered in two layouts, so the listeners follow the element
+  // The stage never scrolls itself: the view moves the board. A focused answer field (the iPad keyboard) or the
+  // teacher's pointed task made the browser scroll the stage (overflow: hidden still scrolls from code), the sheet then
+  // stayed shifted and the student could not reach its top or end (owner 2026-10-19). The scroll is turned into a move
+  // of the view; a pointed task (`ws-reveal` from the sheet) is brought into view the same way.
+  const moveViewRef = useRef(null);
+  moveViewRef.current = moveView;
   const stageRef = useCallback((el) => {
     if (!el) return undefined;
     const stopPageZoom = (event) => { if (event.ctrlKey || event.metaKey) event.preventDefault(); };
     const stopGesture = (event) => event.preventDefault();
+    const unscroll = () => {
+      const dx = el.scrollLeft;
+      const dy = el.scrollTop;
+      if (!dx && !dy) return;
+      el.scrollLeft = 0;
+      el.scrollTop = 0;
+      moveViewRef.current?.((current) => ({ ...current, x: current.x - dx, y: current.y - dy }));
+    };
+    const reveal = (event) => {
+      const target = event.target?.getBoundingClientRect?.();
+      const box = el.getBoundingClientRect();
+      if (!target || !box.height) return;
+      event.stopPropagation();
+      // the task's top a fifth from the top of the board, unless it is already well in view
+      if (target.top >= box.top + 8 && target.top <= box.top + box.height * 0.6) return;
+      const dy = box.top + box.height * 0.2 - target.top;
+      moveViewRef.current?.((current) => ({ ...current, y: current.y + dy }));
+    };
     el.addEventListener('wheel', stopPageZoom, { passive: false });
     // Safari sends its own gesture events for a pinch
     el.addEventListener('gesturestart', stopGesture);
     el.addEventListener('gesturechange', stopGesture);
+    el.addEventListener('scroll', unscroll);
+    el.addEventListener('ws-reveal', reveal);
     return () => {
       el.removeEventListener('wheel', stopPageZoom);
       el.removeEventListener('gesturestart', stopGesture);
       el.removeEventListener('gesturechange', stopGesture);
+      el.removeEventListener('scroll', unscroll);
+      el.removeEventListener('ws-reveal', reveal);
     };
   }, []);
   // Moving the board without the hand tool: two fingers (pan + pinch) with any tool, one finger on a worksheet page

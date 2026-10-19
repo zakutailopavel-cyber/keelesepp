@@ -345,6 +345,22 @@ describe('the ⋯ menu of a board page', () => {
   });
 });
 
+describe('the student scrolls the sheet', () => {
+  it('a scroll of the stage itself (focused field) becomes a move of the view and the stage stays unscrolled', async () => {
+    const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+    const worksheets = [{ id: 'as-1', title: 'Avasta', content: <div>Avasta sisu</div> }];
+    const { container } = render(<StudentBoard studentId="s1" user={user} variant="room" service={service} worksheets={worksheets} initialPageId="pg-a" />);
+    await screen.findByText('Avasta sisu');
+    const stage = container.querySelector('.sb-stage');
+    const underlay = container.querySelector('.sb-underlay');
+    const before = underlay.style.transform;
+    stage.scrollTop = 120;
+    act(() => { stage.dispatchEvent(new globalThis.Event('scroll')); });
+    expect(stage.scrollTop).toBe(0);
+    expect(underlay.style.transform).not.toBe(before);
+  });
+});
+
 describe('sheets of one lesson that share a title', () => {
   it('get a page each (the phase is in the title); the old shared page stays with the newest sheet', async () => {
     expect(sheetBoardTitle({ title: 'Kontroll 1', phase: 'practice' })).toBe('Kontroll 1 · Harjuta');
