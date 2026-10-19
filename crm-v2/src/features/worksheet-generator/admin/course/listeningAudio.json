@@ -1864,10 +1864,50 @@
     "seconds": 200.8,
     "hash": "de8abe4e44b1ec9ea86dc7941661d14b448f921e"
   },
+  "est-c1-021:c1_021_p_news": {
+    "src": "/audio/est-c1-021/c1_021_p_news.mp3",
+    "seconds": 67.2,
+    "hash": "895eed0126b5febd5cfa106e0461e8f91e372ee0"
+  },
+  "est-c1-022:c1_022_p_news": {
+    "src": "/audio/est-c1-022/c1_022_p_news.mp3",
+    "seconds": 62,
+    "hash": "134a92898d7be1f60c4e246a22a8403fca7a7ac7"
+  },
+  "est-c1-023:c1_023_p_radio": {
+    "src": "/audio/est-c1-023/c1_023_p_radio.mp3",
+    "seconds": 66.5,
+    "hash": "e665394bfbf1662739de33155f018f374f19b743"
+  },
   "est-c1-024:c1_024_p_radio": {
     "src": "/audio/est-c1-024/c1_024_p_radio.mp3",
     "seconds": 190.1,
     "hash": "692c379a61ed499d1a0291a8d107112dbf53485b"
+  },
+  "est-c1-025:c1_025_p_radio": {
+    "src": "/audio/est-c1-025/c1_025_p_radio.mp3",
+    "seconds": 77.9,
+    "hash": "6b8433a291671ac2f48a77fbfcbe1f8cea1d697d"
+  },
+  "est-c1-026:c1_026_p_news": {
+    "src": "/audio/est-c1-026/c1_026_p_news.mp3",
+    "seconds": 58.4,
+    "hash": "eb60e52144d25a362dc09e044c8e161ee5fd57cf"
+  },
+  "est-c1-027:c1_027_p_news": {
+    "src": "/audio/est-c1-027/c1_027_p_news.mp3",
+    "seconds": 58.2,
+    "hash": "4f7abe60780c189c59231619e82fd7e35a39a97d"
+  },
+  "est-c1-028:c1_028_p_radio": {
+    "src": "/audio/est-c1-028/c1_028_p_radio.mp3",
+    "seconds": 66,
+    "hash": "1b12dd0d731c5da2b57de066f352f304fb1a7db7"
+  },
+  "est-c1-029:c1_029_p_news": {
+    "src": "/audio/est-c1-029/c1_029_p_news.mp3",
+    "seconds": 47.3,
+    "hash": "d5c5786c9cd85ed57c6618d991fd50f57810e619"
   },
   "est-c1-030:c1_030_p_l1": {
     "src": "/audio/est-c1-030/c1_030_p_l1.mp3",
