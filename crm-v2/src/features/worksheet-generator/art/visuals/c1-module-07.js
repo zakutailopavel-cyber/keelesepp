@@ -96,6 +96,8 @@ export default [
     learningJob: "turn a sustainability goal into sequenced actions with responsibility, timing and measurable outcomes",
     alt: "Anna, Markus ja Jaan muudavad jäätmete vähendamise eesmärgi mõõdetavaks tegevuskavaks.",
     caption: "Pilt 1. Kestlik lahendus vajab vastutajat, tähtaega ja mõõdikut.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida iga töörühma liige tegevuskava juures teeb?", "Miks on tegevuskavas vaja vastutajat, tähtaega ja mõõdikut?", "Millise kestliku algatuse kava koostaksid sina oma kodukohas?"],
   },
   {
     id: "est-c1-068-kasuta-1",
