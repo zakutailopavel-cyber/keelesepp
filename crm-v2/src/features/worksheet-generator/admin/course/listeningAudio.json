@@ -354,11 +354,6 @@
     "seconds": 31.3,
     "hash": "9f3084f7e59939c3a43f935a26eaaf4653fdf53f"
   },
-  "a2-032:032_p_listen2": {
-    "src": "/audio/a2-032/032_p_listen2.mp3",
-    "seconds": 23.6,
-    "hash": "f7b0f778f474fdf075ced7f3a74b309cf4ed8036"
-  },
   "a2-032:032_t_listen": {
     "src": "/audio/a2-032/032_t_listen.mp3",
     "seconds": 35.2,
