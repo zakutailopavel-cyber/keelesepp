@@ -12,6 +12,8 @@ export default [
     learningJob: "compare transport modes across several criteria and justify a realistic daily mobility plan",
     alt: "Anna ja Markus võrdlevad töötee liikumisviise ning valivad kombineeritud marsruudi.",
     caption: "Pilt 1. Liikumisviisi valik sõltub ajast, hinnast ja olukorrast.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme töötee varianti Anna ja Markus võrdlevad?", "Milliste kriteeriumide järgi nad valikut teevad?", "Miks valivad nad eri päevadeks kombineeritud lahenduse ja kas see sobiks ka sulle?"],
   },
   {
     id: "est-c1-062-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "infer the travel disruption, prioritise actions and explain an alternative plan clearly",
     alt: "Sofia ja Viktor valivad katkenud rongireisi järel alternatiivse bussi ning järgmised sammud.",
     caption: "Pilt 1. Ootamatu reisimuutus vajab selget tegevusjärjekorda.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis juhtus Sofia ja Viktori reisiga?", "Milliseid võimalusi näitab otsustuskaart ja millise neist valiksid sina?", "Mida peaks reisija teenindajalt kindlasti kirjalikult küsima?"],
   },
   {
     id: "est-c1-063-kasuta-1",
