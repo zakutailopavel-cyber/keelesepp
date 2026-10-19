@@ -1814,6 +1814,11 @@
     "seconds": 160.4,
     "hash": "388eb7140f28962c4ae3221502c9f1d674b88f52"
   },
+  "est-c1-035:c1_035_p_news": {
+    "src": "/audio/est-c1-035/c1_035_p_news.mp3",
+    "seconds": 68.3,
+    "hash": "c38be1d6c4a17ed6a5eac30eed61ba7d56afcb74"
+  },
   "est-c1-036:c1_036_d_listen": {
     "src": "/audio/est-c1-036/c1_036_d_listen.mp3",
     "seconds": 249.1,
