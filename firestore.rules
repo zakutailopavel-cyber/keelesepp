@@ -1125,46 +1125,14 @@ service cloud.firestore {
     }
 
     match /invoices/{invoiceId} {
-      allow read: if isStaff() || isFinance() || ownsInvoice(resource.data);
+      // Teachers only mark lessons; money is the administrator's and the bookkeeper's (owner decision 2026-10-11).
+      allow read: if isAdmin() || isFinance() || ownsInvoice(resource.data);
       // invoices are made by the finance functions (CRM v2); a direct create is left to the administrator (old haldus)
       allow create: if isAdmin() && financialDateOpen(request.resource.data.get('date', ''));
-      allow update: if (
-          isAdmin()
-          && !changesInvoiceFinancialSource()
-          && financialDateOpen(resource.data.get('date', ''))
-          && financialDateOpen(request.resource.data.get('date', ''))
-        )
-        || (
-          isStaff()
-          && !changesInvoiceFinancialSource()
-          && financialDateOpen(resource.data.get('date', ''))
-          && financialDateOpen(request.resource.data.get('date', ''))
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-            // number and recipient: who the invoice is for and where it is e-mailed
-            'num',
-            'studentId',
-            'invoiceTargetType',
-            'parentUid',
-            'linkedParentId',
-            'guardianUid',
-            'parentEmail',
-            'parentEmailLower',
-            'payerEmail',
-            'payerEmailLower',
-            'email',
-            'paidAmountCents',
-            'paidAmount',
-            'balanceDueCents',
-            'balanceDue',
-            'overpaidAmountCents',
-            'overpaidAmount',
-            'paymentStatus',
-            'paymentCount',
-            'financialUpdatedAt',
-            'status',
-            'paidAt'
-          ])
-        );
+      allow update: if isAdmin()
+        && !changesInvoiceFinancialSource()
+        && financialDateOpen(resource.data.get('date', ''))
+        && financialDateOpen(request.resource.data.get('date', ''));
       allow delete: if isAdmin()
         && financialDateOpen(resource.data.get('date', ''))
         && (
@@ -2890,7 +2858,8 @@ service cloud.firestore {
     }
 
     match /emailQueue/{entryId} {
-      allow read: if isStaff();
+      // invoice and reminder e-mails (amounts, payers): administrator and bookkeeper only
+      allow read: if isAdmin() || isFinance();
       allow write: if false;
     }
 

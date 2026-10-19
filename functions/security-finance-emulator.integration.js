@@ -90,8 +90,13 @@ test("a teacher cannot create an invoice directly or redirect one; the administr
   assert.equal(redirect.status, 403, JSON.stringify(redirect.body));
   const renumber = await documentRequest(teacher, "PATCH", "invoices/sec-admin-invoice?updateMask.fieldPaths=num", { fields: { num: str("KS-2026-001") } });
   assert.equal(renumber.status, 403, JSON.stringify(renumber.body));
+  // teachers only mark lessons: no invoice is readable or editable for them, not even its description
   const description = await documentRequest(teacher, "PATCH", "invoices/sec-admin-invoice?updateMask.fieldPaths=desc", { fields: { desc: str("Täpsustatud selgitus") } });
-  assert.equal(description.status, 200, JSON.stringify(description.body));
+  assert.equal(description.status, 403, JSON.stringify(description.body));
+  const read = await documentRequest(teacher, "GET", "invoices/sec-admin-invoice");
+  assert.equal(read.status, 403, JSON.stringify(read.body));
+  const adminDescription = await documentRequest(await adminToken(), "PATCH", "invoices/sec-admin-invoice?updateMask.fieldPaths=desc", { fields: { desc: str("Täpsustatud selgitus") } });
+  assert.equal(adminDescription.status, 200, JSON.stringify(adminDescription.body));
 });
 
 test("an unverified e-mail does not open an invoice addressed to it; a verified one does", async () => {
@@ -107,7 +112,7 @@ test("an unverified e-mail does not open an invoice addressed to it; a verified 
   assert.equal(verified.status, 200, JSON.stringify(verified.body));
 });
 
-test("batch reminders are for the administrator; a teacher sends only invoices of their own students", async () => {
+test("invoice e-mails are for the administrator; a teacher sends none, not even of their own students", async () => {
   requireSafeEmulatorEnvironment();
   const teacher = await account("sec-teacher2@example.com", { role: "teacher", roles: ["teacher"], displayName: "Second Teacher" });
   const overdue = await api("invoiceApi", teacher, "/overdue-reminders", { force: true });
@@ -121,6 +126,18 @@ test("batch reminders are for the administrator; a teacher sends only invoices o
   ]);
   const send = await api("invoiceApi", teacher, "/send", { invoiceId: "sec-other-invoice" });
   assert.equal(send.status, 403, JSON.stringify(send.body));
+
+  const teacherUid = tokenUid(teacher);
+  await Promise.all([
+    db().collection("students").doc("sec-own-student").set({ name: "Own Student", teacher: "Second Teacher", teacherUid, teacherUids: [teacherUid], parentEmail: "own@example.com", active: true }),
+    db().collection("invoices").doc("sec-own-invoice").set({ num: "KS-2026-995", studentId: "sec-own-student", parentEmail: "own@example.com", amountCents: 2500, status: "Ootel", date: "2026-10-01" }),
+  ]);
+  for (const route of ["/send", "/remind"]) {
+    const own = await api("invoiceApi", teacher, route, { invoiceId: "sec-own-invoice" });
+    assert.equal(own.status, 403, `${route} ${JSON.stringify(own.body)}`);
+  }
+  const queue = await documentRequest(teacher, "GET", "emailQueue");
+  assert.equal(queue.status, 403, JSON.stringify(queue.body));
 });
 
 test("the status of a server-journal lesson changes only through the journal", async () => {
