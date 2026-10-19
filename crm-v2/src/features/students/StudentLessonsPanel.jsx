@@ -99,6 +99,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
                   <button type="button" className="student-lessons__open" onClick={() => setOpened(lesson)} aria-label={`Ava tund ${lesson.date || ''}`}>
                     <strong>{lesson.date || 'Kuupäev puudub'}{lesson.time ? ` · ${lesson.time}` : ''}</strong>
                     <span>{[lesson.subject || student.subject, lesson.topic, lesson.teacher].filter(Boolean).join(' · ')}</span>
+                    {lesson.billingStatus === 'school_covered' ? <small>Tasuta (kooli kulul){lesson.billingDispositionReason && canManage ? ` · ${lesson.billingDispositionReason}` : ''}</small> : null}
                     {lesson.verified && lesson.verifiedByName ? <small className="student-lessons__verified"><CheckCheck size={13} aria-hidden="true" /> Kontrollis {lesson.verifiedByName}</small> : null}
                   </button>
                   {canManage ? (

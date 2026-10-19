@@ -1,3 +1,26 @@
+## 2026-10-19 · agent/school-covered-lesson — „Kooli kulul”: a held lesson the school pays itself
+
+- main checked: eef5885 (2026-10-19, after #679). Asked by Oleksiy in the team chat, plan approved by the owner 2026-10-19.
+- What: a 4th way to close a lesson. The lesson stays **Toimunud** (the teacher's hour counts — payroll is workSessions,
+  untouched), but the student pays nothing: `lessons.billingStatus = "school_covered"` + required reason
+  (`billingDispositionReason`), set through the existing audited `POST /lessons/billing-disposition` (financeApi,
+  admin only, financialAudit `lesson.billing_disposition_changed`, refused when the month is closed or the lesson is invoiced).
+- Credits: `lessonTakesToken` (functions/lesson-tokens-core.js) returns false for it; `syncLessonTokens` now also reacts
+  to this flag, so a credit the lesson already took is restored through the package ledger (`lesson_restoration`);
+  undoing („Tühista „kooli kulul””, `billingStatus unset`, reason required) takes it again. `lessonBillingDispositionPatch`
+  allows `school_covered` (only that) on a package-consumed lesson.
+- Billing: not billable (`lessonIsBillable`), not chargeable in the monthly invoice (`monthlyBilling.isChargeable`),
+  correction note counts „N kooli kulul”; Finance disposition dialog has the option too.
+- UI: calendar lesson panel (admin, individual lessons) „Kooli kulul (õpilane ei maksa)” → reason → confirm; badge
+  „Toimunud · kooli kulul”. Student card history and the parent home show „Tasuta (kooli kulul)”.
+- Not yet: group lessons (attendance has no billing record per student); student portal wording beyond the parent home.
+- Checks: functions node --test finance-core + lesson-tokens-core 55/55; vitest finance/calendar/parents/students 65 files
+  327 tests + LessonPanel 7/7; eslint 0 errors. New emulator test in finance-emulator.integration.js — NOT run locally
+  (local Java < 21), runs in CI.
+- Deploy needed after merge: `firebase deploy --only functions:financeApi,functions:syncLessonTokens` (owner permission);
+  the frontend goes with main.
+- Next safe step: after merge + functions deploy, mark one real lesson in the calendar and check the package balance.
+
 ## 2026-10-19 · agent/www-public-only — www.epkoolitus.ee served the whole repository
 
 - Found during the v1 retirement: the Vercel project „keelesepp” (www.epkoolitus.ee, output directory „.”, not deployed

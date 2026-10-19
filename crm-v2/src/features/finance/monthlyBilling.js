@@ -44,7 +44,8 @@ export function defaultDue(month, mode) {
 const unitsOf = (minutes, plan) => (Number(minutes) || plan.lessonMinutes || 60) / (plan.lessonMinutes || 60);
 
 export function isChargeable(lesson, plan) {
-  if (lesson.status === 'Toimunud') return true;
+  // „Kooli kulul”: held, the teacher's hour counts, the student is not charged (owner 2026-10-19)
+  if (lesson.status === 'Toimunud') return lesson.billingStatus !== 'school_covered';
   if (lesson.status === 'Puudus_eta') return plan.chargeNoShow !== false && !lesson.billingWaived;
   return false;
 }
@@ -57,8 +58,10 @@ function correctionFor({ student, plan, previousInvoice, previousLessons }) {
   const units = round2(heldUnits - billed);
   const notified = previousLessons.filter((lesson) => lesson.status === 'Puudus_p').length;
   const waived = previousLessons.filter((lesson) => lesson.status === 'Puudus_eta' && !isChargeable(lesson, plan)).length;
+  const covered = previousLessons.filter((lesson) => lesson.status === 'Toimunud' && lesson.billingStatus === 'school_covered').length;
   const parts = [];
   if (notified) parts.push(`${notified} ette teatatud puudumist`);
+  if (covered) parts.push(`${covered} kooli kulul`);
   if (waived) parts.push(`${waived} erandit`);
   if (units && !parts.length) parts.push(units < 0 ? 'tunde toimus vähem' : 'lisatunnid');
   return {
