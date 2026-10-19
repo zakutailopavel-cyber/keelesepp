@@ -1,3 +1,14 @@
+## 2026-10-19 · agent/course-v3-c1-m6 — C1 module 6 in template v3
+
+- Branch `agent/course-v3-c1-m6` is stacked on agent/course-v3-c1-m5 (#671). Draft PR.
+- Done: C1 module 6 (est-c1-051…060, health and society) in lesson template v3, the same way as modules 4–5. 060 is the module exam (`assessment: true`).
+- 053, 058 and 059 got new Kasuta readings (team workload materials, the clinic's hard patient guide, a draft medicine leaflet); 058 and 059 have a rubric in Kasuta now.
+- No new audio: 057 keeps its radio listening; the transcript is unchanged, two questions were added.
+- Checks: `moduleProblems` has no problems for module 6. `npx vitest run src/features/worksheet-generator` gives 705 passed.
+- Not deployed, not published (needs the owner's permission).
+- Not done: C1 modules 7–10.
+- Next safe step: owner's permission → deploy and publish module 6; then C1 module 7 the same way.
+
 ## 2026-10-19 · agent/course-v3-c1-m5 — C1 module 5 in template v3
 
 - Branch `agent/course-v3-c1-m5` is stacked on agent/course-v3-c1-m4 (#670). Draft PR.

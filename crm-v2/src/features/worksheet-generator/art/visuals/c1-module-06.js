@@ -124,6 +124,8 @@ export default [
     learningJob: "identify the hierarchy of a complex sentence and attach cause, condition and consequence unambiguously",
     alt: "Anna ja Liis seavad terviseteate põhisõnumi ning kõrvallaused selgesse hierarhiasse.",
     caption: "Pilt 1. Keeruka lause mõte püsib selgel põhistruktuuril.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on Anna ja Liisi lausestruktuuri keskel ja miks?", "Milliseid seoseid näitavad eri kõrgustel plokid?", "Kuhu paigutaksid sina viimase kõrvallause ja miks?"],
   },
   {
     id: "est-c1-060-kasuta-1",
