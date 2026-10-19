@@ -1,0 +1,8 @@
+/* A finance document (invoice, credit note, receipt) shown large enough to read; without these rules the PDF frame
+   kept the browser default of 300×150 px (owner 2026-10-19) */
+.modal.modal--financial-document { width: min(1000px, 96vw); }
+.modal--financial-document .modal__body { padding: 12px; }
+.financial-document-preview { height: min(78vh, 1100px); }
+.financial-document-preview iframe { display: block; width: 100%; height: 100%; border: 0; border-radius: 8px; background: #f4f6f8; }
+.financial-document-preview img { display: block; max-width: 100%; max-height: 100%; margin: 0 auto; object-fit: contain; }
+.document-loading { display: flex; align-items: center; gap: 10px; padding: 40px; color: var(--muted, #667085); }
