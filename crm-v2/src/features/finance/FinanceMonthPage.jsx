@@ -105,7 +105,7 @@ function CancelInvoiceDialog({ invoice, busy, error, onClose, onSubmit }) {
   </Modal>;
 }
 
-function PaymentDialog({ invoice, busy, error, onClose, onSubmit }) {
+function PaymentDialog({ invoice, busy, error, onClose, onSubmit, cashApi = financeApi }) {
   const state = financeRowState(invoice || {});
   const [form, setForm] = useState(() => ({
     amount: (state.balanceCents / 100).toFixed(2), paidAt: today(), method: 'bank',
@@ -114,6 +114,14 @@ function PaymentDialog({ invoice, busy, error, onClose, onSubmit }) {
     requestId: financeRequestId('payment'),
   }));
   const [errors, setErrors] = useState({});
+  // cash (owner 2026-10-18): who took the money — it goes into that person's cash box („Kassa”)
+  const [people, setPeople] = useState(null);
+  useEffect(() => {
+    if (form.method !== 'cash' || people) return undefined;
+    let live = true;
+    cashApi.cashSummary?.().then((summary) => { if (live) setPeople(summary.people || []); }).catch(() => { if (live) setPeople([]); });
+    return () => { live = false; };
+  }, [cashApi, form.method, people]);
   const submit = (event) => {
     event.preventDefault();
     const validation = validatePayment(form);
@@ -127,6 +135,7 @@ function PaymentDialog({ invoice, busy, error, onClose, onSubmit }) {
         <Input label="Summa (€)" type="number" min="0.01" step="0.01" value={form.amount} error={errors.amount} onChange={(event) => setForm({ ...form, amount: event.target.value })} />
         <Input label="Makse kuupäev" type="date" value={form.paidAt} error={errors.paidAt} onChange={(event) => setForm({ ...form, paidAt: event.target.value })} />
         <Select label="Makseviis" value={form.method} onChange={(event) => setForm({ ...form, method: event.target.value })}><option value="bank">Pangaülekanne</option><option value="cash">Sularaha</option><option value="card">Kaardimakse</option><option value="other">Muu</option></Select>
+        {form.method === 'cash' ? <Select label="Kes raha sai" value={form.receivedByUid || ''} onChange={(event) => setForm({ ...form, receivedByUid: event.target.value })}><option value="">Mina</option>{(people || []).map((person) => <option key={person.uid} value={person.uid}>{person.name}</option>)}</Select> : null}
         <Input label="Viide" value={form.reference} onChange={(event) => setForm({ ...form, reference: event.target.value })} />
         {error ? <p className="form-error form-grid__wide" role="alert">{error}</p> : null}
       </form>

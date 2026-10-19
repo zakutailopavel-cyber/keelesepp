@@ -214,6 +214,16 @@
 - Checks: `npx vitest run src/features/students src/features/calendar` → 32 files, 174 passed.
 - Production: none (read-only Firestore query to find the cause). Needs a frontend deploy to show.
 - Next safe step: owner merges and deploys; then the next calendar item (subject icon on a lesson).
+## 2026-10-18 · agent/cash-payers — cash payers and the cash box („Kassa”)
+
+- main checked: f9b9fbb (2026-10-18). Team chat (Oleksiy, 2026-10-17) #improvement #database: a separate category of payers who pay in cash; confirmed by hand who received the money (and handed it over later). Owner 2026-10-18: any teacher may take cash; the cash box is needed.
+- Data: `cashLedger/{id}` (server writes only, rules: admin read, no client writes). `receipt` {holderUid/Name, amountCents, receivedAt, studentId/Name, payerName, note, status open|allocated|void, invoiceId, paymentId}; `handover` {fromUid, toUid, amountCents, handedAt, status active|void}. A person's cash = receipts + handovers in − handovers out. Payer flag `payerMethod: 'cash'|'bank'` on the parent account (`users`) and copied to the children's cards (`students`).
+- Server (`functions/cash-core.js` + `financeApi`): staff `POST /cash/summary` (admin all, teacher own entries and own balance), `/cash/receipts` (a teacher only for own students — `teacherUid` or a study track — and only as holder), `/cash/handover` (only own cash, never more than held, only to staff); admin `/cash/allocate` (receipt → ordinary invoice payment, method `cash`, `receivedBy`, `cashReceiptId`; requestId `cashalloc_<id>`), `/cash/void` (not an allocated receipt). `recordInvoicePayment` with method `cash` takes `receivedByUid` and enters the money in that person's box (`cashpay_<requestId>`); `voidSinglePayment` reopens the linked receipt. Every entry has a `financialAudit` record (`cashbox_…`).
+- UI: menu „Kassa” (`/kassa`, admin + teacher): balances, „Sain sularaha”, „Andsin raha üle”, entries; admin „Seo arvega” (open invoices of the student, same sum first) and void. Parents: „Makseviis” in the edit dialog, badge „sularaha”, filter „Maksab sularahas”. Student card: „Makseviis” row with a link to the cash box. Finance → payment dialog: „Kes raha sai” when the method is cash.
+- Checks: `functions npm test` → 303 pass (+ `cash-core.test.js` 6); emulator `finance-emulator.integration.js` + `security-finance-emulator.integration.js` → 37 pass (new cash box flow test); `crm-v2 npx vitest run` → 1948 passed, 3 skipped; `npm run build` ok. Emulator needs JDK 21: `PATH=/opt/homebrew/opt/openjdk@21/bin:$PATH`.
+- Not decided: whether a cash payer's invoice e-mail drops the bank details / LinkPay link (asked, no answer) — invoices unchanged.
+- Production: none. Manual gate: deploy `financeApi` + `firestore:rules` + frontend (owner's permission).
+- Next safe step: owner merges and allows the deploy; then marks cash payers in „Lapsevanemad”.
 
 ## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
 
