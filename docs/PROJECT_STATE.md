@@ -19,8 +19,9 @@
 - Checks: `node --test` in functions 301 passed; `npx vitest run` 1948 passed; eslint on changed UI files clean;
   `vite build` ok. Checked live against EKI and TartuNLP from a local script (3 sentences: lemmas, forms, „maha jätma”,
   „kätte saama”, „ühendust võtma”). Visual check at desktop and 375 px width.
-- Limits: the expression list is ours and finite; EKI may mis-analyse rare words; `/analyze` is not deployed yet.
-- Next safe step: owner approves → deploy the function `languageApi` (firebase) and the frontend onto the production chain.
+- Limits: the expression list is ours and finite; EKI may mis-analyse rare words.
+- Deployed 2026-10-19 (owner: «да, деплой и публикуй оба»): `firebase deploy --only functions:languageApi` (no other open branch changes languageApi) and the frontend in `dpl_4sQDrN8mg2e6vF83H3H24EL5F2nY` (bundle contains „Võta lause lahti”).
+- Next safe step: the owner tries „Võta lause lahti” as a student; add expressions to `PHRASES` when one is missing.
 
 ## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
 
