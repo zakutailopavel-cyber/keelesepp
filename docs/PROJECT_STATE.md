@@ -5,9 +5,9 @@
 - Every Kasuta has a new reading of 400+ words (office move, Paris strike, rural municipality, coastal adaptation plan, wind park, logistics centre, housing association, draft news story, bus line 7). 068 and 069 now have a Kasuta rubric.
 - No new audio: 061 keeps its radio interview; the transcript is unchanged, one question was added.
 - Checks: `moduleProblems` has no problems for module 7. `npx vitest run src/features/worksheet-generator`: 704 passed; `CourseProductionPage.test.jsx` timed out once in the full run and passes alone (2/2).
-- Not deployed, not published (needs the owner's permission).
+- Production (owner's permission, 2026-10-19 „да, деплой и публикуй”): `vercel deploy --prod` of 8ca61d8 + board tab menu + „Lause lahti” + the calendar fix, `dpl_8Lxcx5iV459SQEmS8uWGyqiADKa5`. All 30 sheets of module 7 published with `publish-v2.cjs` (earlier v7 = batch write of 2026-10-13 22:10; dry check same=30).
 - Not done: C1 modules 8–10.
-- Next safe step: owner's permission → deploy and publish module 7; then C1 module 8 the same way.
+- Next safe step: C1 module 8 the same way.
 
 ## 2026-10-19 · agent/course-v3-c1-m6 — C1 module 6 in template v3
 
