@@ -14,11 +14,14 @@
 - Generator: scratchpad scripts a2mNN_NNN.py, rebuilt from the pre-rewrite snapshot. They are not in the repo; the result is the module files.
 - Checks: module gate (`moduleProblems`) has no problems for modules 1–20. `npx vitest run src/features/worksheet-generator` gives 705 passed (after module 20, be59932).
 - Known: some sheets keep the soft warning „short-sentences” (avg 3–4 words in imperative or price tasks); it is not a gate error.
-- Not published: the A2 sheets in Firestore are still the old ones. Publishing needs the owner's permission.
 - Calendar (#669, owner 2026-10-19): the cell menu („Vaba / Hõivatud / Lisa tund”) measures its own height, so the menu stays on screen for late hours. Deployed to production on 2026-10-19 with the owner's permission, together with this A2 branch (4ae104b + 1019c2a, built from a detached worktree).
 - Risk: production runs unmerged branches (C1, A2, calendar fix). A deploy from main before #667, #668, #669 are merged removes them.
-- Not done: C1 modules 4–10. The A2 sheets are not deployed or published.
-- Next safe step: ask the owner whether to deploy and publish the A2 sheets; then C1 module 4 the same way.
+- **Production (owner's permission, 2026-10-19):**
+  - `vercel deploy --prod` of d6309c4 plus the calendar fix (cherry-pick of 1019c2a), built from the detached worktree `keelesepp-deploy`;
+  - 299 of the 300 A2 sheets are published with `publish-v2.cjs`. Their earlier versions were batch writes on 2026-10-13 (17:46–17:51 and 22:24), so they were marked as vetted;
+  - a2-002 Avasta is **not** published: it has a real hand edit by Yelyzaveta Lukiianchuk (v8, 2026-10-14). The owner decides whether to overwrite it.
+- Not done: C1 modules 4–10.
+- Next safe step: C1 module 4 the same way.
 
 ## 2026-10-18 · agent/course-v3-c1 — C1 module 1 in template v3 (Harno C1)
 
