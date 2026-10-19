@@ -13,11 +13,12 @@ function inDays(days, from = new Date()) {
  * Live Classroom „Kodutöö” (teacher): give homework from the lesson. It lands in the student's homework list
  * („Kodutööd”, dashboard); the open board page and the room's worksheet can be attached with one tick.
  */
-export default function LessonHomeworkPanel({ invitation, user, boardPage = null, worksheet = null, service = homeworkService }) {
-  const [task, setTask] = useState('');
+export default function LessonHomeworkPanel({ invitation, user, boardPage = null, worksheet = null, assignPage = false, service = homeworkService }) {
+  // assignPage: opened from the page's ⋯ menu („Määra õpilasele”) — the page is attached and the task written
+  const [task, setTask] = useState(() => (assignPage && boardPage ? `Õpi tahvlilehe „${boardPage.title}” materjal.` : ''));
   const [due, setDue] = useState(() => inDays(7));
-  const [withPage, setWithPage] = useState(false);
-  const [withSheet, setWithSheet] = useState(Boolean(worksheet));
+  const [withPage, setWithPage] = useState(Boolean(assignPage && boardPage));
+  const [withSheet, setWithSheet] = useState(Boolean(worksheet) && !assignPage);
   const [given, setGiven] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');

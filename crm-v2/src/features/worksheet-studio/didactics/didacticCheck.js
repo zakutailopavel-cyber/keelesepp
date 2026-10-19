@@ -118,6 +118,10 @@ export function measureBlock(block) {
     case 'reading': sentencesIn(d.passage).forEach((x) => s.push(x)); items = lines(d.questions).length; break;
     // a text with option gaps: the solved text (right options), one answer per gap
     case 'cloze': sentencesIn(String(d.passage || '').replace(/\{([^}]*)\}/g, (_, o) => (o.split('|').find((x) => x.trim().startsWith('*')) || '').replace('*', '').trim())).forEach((x) => s.push(x)); items = (String(d.passage || '').match(/\{/g) || []).length; break;
+    // „Pane sõnad õigesse vormi” on a text: the solved text, one answer per gap
+    case 'formtext': sentencesIn(String(d.passage || '').replace(/\[([^\]]*)\]\s*\([^)]*\)/g, (_, a) => a.split('|')[0].trim())).forEach((x) => s.push(x)); items = (String(d.passage || '').match(/\]\s*\(/g) || []).length; break;
+    // „Lünka sobiv lause”: the whole text, one answer per taken-out sentence
+    case 'insertion': sentencesIn(String(d.passage || '').replace(/\[\[|\]\]/g, '')).forEach((x) => s.push(x)); items = (String(d.passage || '').match(/\[\[/g) || []).length; break;
     default: break;
   }
   return { sentences: s.filter((x) => wordsIn(x) >= 2), items };

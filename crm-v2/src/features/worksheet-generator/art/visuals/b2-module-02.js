@@ -12,6 +12,8 @@ export default [
     learningJob: "eristada kuhu-, kus- ja kust-suunda linnas liikumise kaudu",
     alt: "Anna liigub mööda Tartu kaarti jaama, kodu, turu, pagariäri ja raamatukogu vahel.",
     caption: "Pilt 1. Anna teekond Tartus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kirjelda Anna teekonda: kust ta tuleb, kuhu läheb ja kus ta on?", "Kus asub raamatukogu turu ja silla suhtes?", "Milline koht pildil on sinu kodulinnas sarnane? Kuidas sinna kõige paremini jõuab?"],
   },
   {
     id: "b1b2-007-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "alustada, täpsustada ja lõpetada ametlik teenindusvestlus viisakalt",
     alt: "Liis suhtleb järjest perearsti, pangatöötaja ja linnavalitsuse teenindajaga.",
     caption: "Pilt 1. Kolm viisakat teenindusvestlust.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus Liis pildil on ja mida ta igas kohas ajab?", "Milline neist kolmest asutusest on sinu jaoks kõige keerulisem? Miks?", "Kuidas alustada viisakat vestlust teenindajaga? Too näide."],
   },
   {
     id: "b1b2-008-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "koostada rahulik ja täpne kaebus nelja kohustusliku sammuga",
     alt: "Markus dokumenteerib katkise jalgratta ning jõuab asenduse või tagasimakse soovini.",
     caption: "Pilt 1. Kaebuse neli sammu.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised on Markuse kaebuse neli sammu?", "Mis on jalgrattaga valesti ja mida Markus soovib?", "Kas oled kunagi kaevanud? Mis aitas probleemi lahendada?"],
   },
   {
     id: "b1b2-009-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "reageerida mitmele ootamatule teatele, küsida täpsustusi ja pakkuda toimiv alternatiiv",
     alt: "Anna seab suletud muuseumi, hilinenud rongi, vihma ja toidusoovi järel päeva uude järjekorda.",
     caption: "Pilt 1. Ootamatult muutunud Tallinna päev.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis läks Anna päeval plaanist erinevalt? Nimeta neli muutust.", "Kuidas Anna oma päeva ümber planeeris?", "Mida sina teeksid, kui sinu plaan sajab vihma tõttu läbi?"],
   },
   {
     id: "b1b2-010-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "korrata kohakäändeid, viisakat dialoogi, kaebust ja ootamatule olukorrale reageerimist",
     alt: "Liis läbib linna teenused ning leiab suletud asutuse järel uue lahenduse.",
     caption: "Pilt 1. Linna teenuste kontrollrada.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuhu Liis pildil läheb ja mis teda ees ootab?", "Mida Liis teeb, kui uks on suletud?", "Kas sinuga on juhtunud midagi sarnast? Kuidas lahenduse leidsid?"],
   },
 ];

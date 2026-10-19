@@ -12,6 +12,8 @@ export default [
     learningJob: "compare transport modes across several criteria and justify a realistic daily mobility plan",
     alt: "Anna ja Markus võrdlevad töötee liikumisviise ning valivad kombineeritud marsruudi.",
     caption: "Pilt 1. Liikumisviisi valik sõltub ajast, hinnast ja olukorrast.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme töötee varianti Anna ja Markus võrdlevad?", "Milliste kriteeriumide järgi nad valikut teevad?", "Miks valivad nad eri päevadeks kombineeritud lahenduse ja kas see sobiks ka sulle?"],
   },
   {
     id: "est-c1-062-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "infer the travel disruption, prioritise actions and explain an alternative plan clearly",
     alt: "Sofia ja Viktor valivad katkenud rongireisi järel alternatiivse bussi ning järgmised sammud.",
     caption: "Pilt 1. Ootamatu reisimuutus vajab selget tegevusjärjekorda.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis juhtus Sofia ja Viktori reisiga?", "Milliseid võimalusi näitab otsustuskaart ja millise neist valiksid sina?", "Mida peaks reisija teenindajalt kindlasti kirjalikult küsima?"],
   },
   {
     id: "est-c1-063-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "compare urban and rural living, recognise trade-offs and recommend a choice for a specific household",
     alt: "Jaan ja Anna võrdlevad linna ja maa elukeskkonda ning tasakaalustavad valikut kaugtööga.",
     caption: "Pilt 1. Elukeskkonna valik on väärtuste ja praktiliste võimaluste tasakaal.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Jaan ja Anna linna ja maa vaates võrdlevad?", "Mis on kaugtöö lahenduse eelised ja puudused?", "Kumba elukohta valiksid sina praeguses elu etapis ja miks?"],
   },
   {
     id: "est-c1-064-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "connect climate hazards with local consequences and prioritise an adaptation measure",
     alt: "Markus ja Liis seovad kliimaohud kohalike mõjudega ning valivad esimese kohanemismeetme.",
     caption: "Pilt 1. Kliimamõju hindamine viib kohaliku kohanemisotsuseni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kliimamuutuse mõjusid Markus ja Liis linnaga seovad?", "Millise meetme paneks sina esikohale ja miks?", "Kuidas selgitada elanikele, miks valmistuda tasub ka ebakindluse korral?"],
   },
   {
     id: "est-c1-065-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "interpret resource use, compare interventions and justify the most effective first investment",
     alt: "Jaan ja Sofia leiavad energiaauditist suurima soojuskao ning valivad soojustuse parandamise.",
     caption: "Pilt 1. Tõhus ressursikasutus algab suurima kao leidmisest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Jaan ja Sofia kogukonnamaja energiaauditil võrdlevad?", "Milline investeering vähendab suurimat soojuskadu ja miks?", "Millise energiasäästu meetme valiksid sina oma kodus ja miks?"],
   },
   {
     id: "est-c1-066-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "identify competing interests, respond to objections and formulate a balanced planning proposal",
     alt: "Liis aitab Viktoril ja Sofial leida rattatee jaoks turvalise ning ligipääsu arvestava trassi.",
     caption: "Pilt 1. Avalik arutelu muudab eri huvid paremaks planeeringuks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid huve Viktor ja Sofia arutelul esindavad?", "Kuidas Liis aitab neil kompromissi leida?", "Millise rattatee trassi valiksid sina ja kuidas põhjendaksid seda mõlemale poolele?"],
   },
   {
     id: "est-c1-067-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "turn a sustainability goal into sequenced actions with responsibility, timing and measurable outcomes",
     alt: "Anna, Markus ja Jaan muudavad jäätmete vähendamise eesmärgi mõõdetavaks tegevuskavaks.",
     caption: "Pilt 1. Kestlik lahendus vajab vastutajat, tähtaega ja mõõdikut.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida iga töörühma liige tegevuskava juures teeb?", "Miks on tegevuskavas vaja vastutajat, tähtaega ja mõõdikut?", "Millise kestliku algatuse kava koostaksid sina oma kodukohas?"],
   },
   {
     id: "est-c1-068-kasuta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "choose logical connectors and reconstruct a coherent environmental argument",
     alt: "Anna ja Liis ühendavad keskkonnaettepaneku mõtted põhjuse, vastanduse, näite ning järelduse rajaks.",
     caption: "Pilt 1. Sidendid teevad mõtetevahelised suhted nähtavaks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid seoseid näitavad Anna kaartide vahelised nooled?", "Millised sidendid sobiksid põhjuse, vastanduse ja järelduse väljendamiseks?", "Kuidas muutub argument, kui seosed on selgelt nimetatud?"],
   },
   {
     id: "est-c1-069-kasuta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "distinguish spatial, causal and purposive relations and choose the precise case or adposition",
     alt: "Markus ja Sofia täpsustavad kaardil peatuse ja sihtkoha vahelist suhet.",
     caption: "Pilt 1. Käände või kaassõna valik täpsustab suhte tähendust.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida näitab Markuse ja Sofia kaart peatuse, kooli ja töökoha vahel?", "Millist kaassõnaühendust Sofia parandab ja miks?", "Kuidas kirjeldaksid sina oma teed kodust tööle või kooli kaassõnade abil?"],
   },
   {
     id: "est-c1-070-kasuta-1",

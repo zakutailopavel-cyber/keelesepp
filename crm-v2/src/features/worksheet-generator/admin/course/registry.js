@@ -147,6 +147,8 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(lesson.assessment ? { assessment: true } : {}),
       // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): its own variety and depth norms
       ...(mod.MODULE.design ? { design: mod.MODULE.design } : {}),
+      // lesson template v3 (owner 2026-10-18, §11): 5–9 full tasks a sheet in a fixed lesson shape
+      ...(lesson.template || mod.MODULE.template ? { template: lesson.template || mod.MODULE.template } : {}),
       badge: `${course.badge} · moodul ${moduleNumber(mod)}`,
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },

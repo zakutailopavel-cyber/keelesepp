@@ -12,6 +12,8 @@ export default [
     learningJob: "jutustada lihtminevikus, mida Markus eile tegi ja mida ta ei teinud",
     alt: "Markuse hommik, tööpäev ja õhtu moodustavad ühe ajaliselt järjestatud loo.",
     caption: "Pilt 1. Markuse tavaline eilne tööpäev.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimene pildil eile tegi?", "Mis kell see võis olla ja kus?", "Mida sina eile hommikul tegid?"],
   },
   {
     id: "a2b1-022-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "järjestada hiljutised sündmused ja jutustada neist ajamarkeritega kõigepealt, siis, pärast seda ja lõpuks",
     alt: "Anna nädalavahetuse tegevused on kujutatud algusest lõpuni noolega ühendatud hetkedena.",
     caption: "Pilt 1. Anna meenutab eelmist nädalavahetust.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis juhtus pildil eelmisel nädalal?", "Mis järjekorras sündmused toimusid?", "Mis oli sinu eelmise nädala parim hetk?"],
   },
   {
     id: "a2b1-023-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "kirjeldada erandlike lihtminevikuvormidega, kes tuli, läks, tegi, nägi, sõi, jõi, sai, jäi ja viis",
     alt: "Jaan töötab vihmasel toidufestivalil vabatahtlikuna ja Sofia jälgib esinejaid.",
     caption: "Pilt 1. Sündmused Tartu toidufestivalil.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus inimesed pildil käisid ja mida nad nägid?", "Mida nad sõid ja jõid?", "Kus sina viimati festivalil käisid?"],
   },
   {
     id: "a2b1-024-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "moodustada piltide põhjal terviklik minevikulugu, kasutada järjekorrasid ja kirjeldada muutuvat tunnet",
     alt: "Anna otsib turul kadunud kotti ja saab selle kohvikust tagasi.",
     caption: "Pilt 1. Kadunud koti lugu turul.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis juhtus pildil kõigepealt ja mis siis?", "Mis oli loo probleem ja kuidas see lahenes?", "Mis ootamatu asi sinuga juhtus?"],
   },
   {
     id: "a2b1-025-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "jutustada meeldejäävast päevast lihtminevikus, säilitada sündmuste järjekord ning näidata, kuidas raske algus lõppes hästi",
     alt: "Sofia esialgne lennuhirm muutub reisi järel rõõmuks.",
     caption: "Pilt 1. Sofia esimene lennureis.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimene pildil kirjutab või räägib?", "Mis temaga eelmisel nädalal juhtus?", "Millest sina sõbrale kirjutaksid?"],
   },
 ];

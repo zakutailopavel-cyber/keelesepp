@@ -13,7 +13,7 @@ import { crosswordLayout } from '../features/worksheet-studio/engine/crosswordLa
 
 // a new answerable block must be added here (and get a case below) — a missing one fails the first test
 export const EXPECTED = [
-  'gaps', 'choice', 'truefalse', 'match', 'pictures', 'clock', 'cloze', 'picmatch', 'scenelabel', 'profiles', 'picrows',
+  'gaps', 'choice', 'truefalse', 'match', 'pictures', 'clock', 'cloze', 'formtext', 'insertion', 'picmatch', 'scenelabel', 'profiles', 'picrows',
   'dialogue', 'reading', 'listening', 'table', 'categorize', 'wordorder', 'writing', 'wordforms', 'errorfix',
   'transformation', 'dictation', 'translation', 'crossword', 'planning', 'guidedletter', 'rubric', 'diagram',
 ];
@@ -97,6 +97,23 @@ export const CASES = {
       expect(shown.map((g) => g.textContent)).toEqual([expect.stringContaining('alustasin'), expect.stringContaining('tutvustas'), expect.stringContaining('meeldib')]);
     },
   },
+  // forms in a text: capitals and punctuation are accepted like in the gaps
+  formtext: { right: () => ({ 0: 'Kolisime', 1: 'raamatute', 2: 'kesklinnas.' }) },
+  insertion: {
+    drive: (card, block, { wrong = false } = {}) => {
+      [...card().querySelectorAll('select.ws-cloze-sel')].forEach((sel, gi) => {
+        if (wrong && gi > 0) return;
+        // the value of a sentence is its place in the source: gap n is sentence n, the extra ones come last
+        fireEvent.change(sel, { target: { value: String(wrong ? gi + 1 : gi) } });
+      });
+    },
+    // the teacher sees the letter the learner chose in each gap, marked
+    review: (card) => {
+      const shown = [...card.querySelectorAll('.ws-cloze-gap')];
+      expect(shown).toHaveLength(2);
+      shown.forEach((g) => expect(g.textContent).toMatch(/\([12]\) [A-C]/));
+    },
+  },
   picmatch: {
     right: (b) => (key) => 'abcdefgh'[picmatchOrder(b.data.items, b.id).indexOf(Number(key))],
   },
@@ -118,8 +135,8 @@ export const CASES = {
     right: () => ({ 0: 'Kell seitse.', 1: 'Ta loeb raamatut', 2: 'Mulle meeldib lugeda.', 3: 'tüdruk' }),
   },
   listening: {
-    data: { sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].\nSiis ta [läheb] tööle.' },
-    right: () => ({ '0.0': '7', '1.0': 'kohvi', '2.0': 'läheb' }),
+    data: { sentences: 'Mari ärkab kell [seitse|7].\nTa joob [kohvi].\nSiis ta [läheb] tööle.\nTööl on ta [kaheksa|8] tundi.' },
+    right: () => ({ '0.0': '7', '1.0': 'kohvi', '2.0': 'läheb', '3.0': '8' }),
   },
   table: {
     data: { headers: 'Nimetav, Omastav, Osastav', rows: 'maja | [maja] | [maja]\nkool | [kooli] | [kooli]\nlaud | laua | [lauda/lauad]\nsõber | sõbra | Ma näen [sõpra].' },

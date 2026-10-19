@@ -12,6 +12,8 @@ export default [
     learningJob: "kirjeldada ruume ja esemete asukohti ning põhjendada, miks aknaäärne tugitool on lemmikkoht",
     alt: "Korteri ruumid ja mööbel on nähtavad ning aknaäärne tugitool on esile tõstetud.",
     caption: "Pilt 1. Väikese korteri ruumid ja lemmikkoht.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis tuba on pildil?", "Mis asjad seal on ja kus need asuvad?", "Mis on sinu toas akna all?"],
   },
   {
     id: "a2b1-012-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "eristada asukohta, liikumise sihti ja lähtekohta ning kirjeldada, kust kastid tulevad ja kuhu need viiakse",
     alt: "Markus ja Jaan viivad kolimiskaste toast kaubikusse ja sealt uude korterisse.",
     caption: "Pilt 1. Kastide teekond vanast kodust uude.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimesed pildil teevad?", "Kust nad asju võtavad ja kuhu viivad?", "Kuhu sina paneksid raamatud?"],
   },
   {
     id: "a2b1-013-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "siduda vajadused õigete linnakohtadega ja kavandada asjaajamiseks loogiline järjekord",
     alt: "Liis ja Anna uurivad linnakaarti, millel on vajalikud kohad ja neid ühendav marsruut.",
     caption: "Pilt 1. Asjaajamise marsruut uues linnas.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis kohti näed pildil?", "Mida inimesed nendes kohtades teevad?", "Kuhu sa lähed, kui sul on vaja ravimit?"],
   },
   {
     id: "a2b1-014-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "järjestada teejuhise sammud ning kasutada maamärke õige sihtkoha kontrollimiseks",
     alt: "Anna näitab Sofiale kaardil teed valgusfoori juurest tervisekeskuseni.",
     caption: "Pilt 1. Tee küsimine ja selge juhatamine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes küsib pildil teed ja kes juhatab?", "Kuhu inimene minna tahab?", "Kuidas juhataksid teed sina?"],
   },
   {
     id: "a2b1-015-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "leida kodu asukoht ja vajalikud linnakohad ning jutustada terviklik teekond algusest lõpuni",
     alt: "Anna näitab Viktorile rongijaamast koduni viivat marsruuti ja teeäärseid maamärke.",
     caption: "Pilt 1. Külalise tee rongijaamast koduni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis kohti näed pildil?", "Kus see inimene elab ja mis on tema kodu lähedal?", "Mis on sinu kodu lähedal?"],
   },
 ];

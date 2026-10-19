@@ -109,3 +109,57 @@ itself; Kasuta needs a rubric; the exam lesson's Harjuta skips practice-job rule
 depth.js: closed tasks ≥ 6 items; exam parts need no sentence writing. gates.js level: a dialogue, profiles or a cloze
 counts as the phase's input text. timeEstimate.js: v2 speaking and role play are pair work (both partners, roles
 swapped). Modules without `design` keep every old norm.
+
+## 10. Level map (owner 2026-10-18)
+
+Measured 2026-10-18: B1 modules 2–8 are A2/A2+, B2 modules 1–4 are B1 and only B2 17–18 are B2. Target: the B1 course
+goes A2+ → B1 → B1+ and its last 3–4 modules bridge to B2; the B2 course starts at B1+/B2-, is B2 from about module 3
+and ends with exam modules. Rewriting follows this map, module by module, in template v3 (§11).
+
+As built (`MODULE.level`, branches `agent/course-v3-b1` and `agent/course-v3-b2`, 2026-10-18):
+
+| course | modules | stage | norms the gate applies |
+|---|---|---|---|
+| B1 | 2–5 | A2+ | reading 120–250 words, ≤ 8 items, speech 60–120 s, writing 6–10 sentences |
+| B1 | 6–10 | B1- | reading 150–320 words in paragraphs, 10 items, speech 120–180 s, letters 70–90 words |
+| B1 | 11–14 | B1 | reading 200–400 words in paragraphs, 10 items, task sentences ≥ 7 words on average, speech 120–180 s, writing ≥ 70 words |
+| B1 | 15–17, 18 (086–088) | B1, B1+ | B1 texts, letters ≥ 100 words |
+| B2 | 1 (002–004), 2–4 | B1+ (001 entry diagnostic B1) | B1 texts and items |
+| B2 | 5–8 | B2- | reading 300–600 words, letters 140–160, 10+ items, task sentences ≥ 6 words |
+| B2 | 9–18 | B2 | reading 350–700 words in paragraphs, letters 140–170, one speech 150–210 s, 10+ items |
+
+Assessment lessons (every fifth) keep the Harno form; B2 089–090 are two full Harno B2 mocks. The B1 module exams of
+modules 6–8 (030, 035, 040) keep the Harno A2 form and carry `level: 'A2+'` on the lesson; from module 9 on (045, 050,
+055, 060, 065, 070) they are in Harno B1 form at the module's stage, writing 1 raised to 70–80 words (the B1- / B1 gate
+asks 70+), and from module 11 on each has a written summary of reading 2 (at most 45 % recognition tasks at B1).
+
+## 11. Lesson template v3 (owner 2026-10-18: „столько блоков не надо”)
+
+Why: a lesson had 30–35 blocks of ~5 items, 11–18 of them drills; little monologue, few situations, almost no exam
+text tasks. Sources: the three-part lesson (häälestus → põhiosa → kokkuvõte; Integratsiooni Sihtasutus
+„Keeleõpetaja metoodikavihik”), Willis' task cycle (language focus after the task, on its text), Nation's four
+strands (≈ a quarter of the time each for input, output, language study, fluency), Harno B2 consultation booklet
+(reading 3: a text with 12 gaps, options A–D; reading 4: sentences into a text, one extra; listening: 1–2 words;
+writing ~140 + ~180 words; speaking: a speech, questions, a situation with pro / contra cards).
+
+`template: 'v3'` on the lesson or `MODULE.template: 'v3'` (registry → `meta.template`; the module keeps
+`design: 'v2'`). Pilot: B2 lesson b1b2-061.
+
+| Sheet | 5–9 blocks (the textbook picture not counted), ≥ 4 task types, 40–55 min |
+|---|---|
+| Avasta | opening → a text to think about (B2: 300–450 words, fact questions) → the language noticed in it (notice) → one full language task (10–12 items) → a pair discussion with opinion questions → (short writing) |
+| Harjuta | the exam's text tasks: `cloze` (12 gaps, A–D) + `formtext` („Pane sõnad õigesse vormi” in a text) + one more exam text (`insertion`, listening, Harno info reading, choice / matching) → plan → monologue |
+| Kasuta | situation → input text → `rolecards` with pro / contra arguments (Harno style) → a speech (`speaking`) → letter or essay → rubric (→ the lesson's one self-check) |
+
+Lesson balance (quality.js `balanceProblems`): sentence and form drills ≤ 40 % of the lesson's minutes, speaking and
+writing ≥ 25 %; exam text tasks count as reading. Closed tasks have the level's full item count (B1 / B2 ≥ 10).
+Module: ≥ 12 block types, neighbours share ≤ 85 % of task types (the template repeats on purpose; the order and the
+third exam task rotate), consecutive lessons open differently.
+
+New blocks (engine/blocks/exam.jsx): `formtext` — „Eile [käisin] (käima) poes.”, accepted forms in brackets, the base
+form after them; `insertion` — the whole text with taken-out sentences in `[[…]]` and `extra` sentences, letters A–…
+on paper, a select per gap on screen. Builders `B.formtext`, `B.insertion` (course/blocks.js).
+
+Gate changes: gates.js speaking length B2 180 s, C1 210 s (was 240 / 300 — above the didactic norm, every B2 sheet
+with a monologue failed one of the two checks). depth.js v3: Avasta exercises ≥ 12 min, Kasuta ≥ 6 min (the sheet is
+speaking and writing), no sentence-writing rule (the exam text tasks replace it).

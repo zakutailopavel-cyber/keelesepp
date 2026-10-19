@@ -12,6 +12,8 @@ export default [
     learningJob: "request a new appointment and agree on a suitable time",
     alt: "Anna muudab Liisi juures broneeritud aega.",
     caption: "Pilt 1. Broneeringu aja muutmine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna Liisile näitab?", "Mida Liis võrdleb?", "Mida sa ütled, kui pakutud aeg ei sobi?"],
   },
   {
     id: "a2-037-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "classify office actions as required, possible, allowed or forbidden",
     alt: "Liis selgitab Markusele teenindusbüroo reegleid.",
     caption: "Pilt 1. Mida teenindusbüroos peab ja tohib teha?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis pilte Markus vaatab?", "Mida siin peab tegema ja mida ei tohi?", "Mis reeglid on sinu töökohas või koolis?"],
   },
   {
     id: "a2-038-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "sequence the steps for filling in and checking a form",
     alt: "Liis juhendab Sofiat blanketti täitma.",
     caption: "Pilt 1. Vormi täitmise juhis.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Sofia täidab?", "Kuhu Liis osutab?", "Mis andmeid sa blanketti kirjutad?"],
   },
   {
     id: "a2-039-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "identify why a call must be transferred and continue the service dialogue",
     alt: "Liis suunab Anna kõne klienditeeninduses edasi.",
     caption: "Pilt 1. Kõne suunamine klienditeeninduses.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuhu Anna helistab?", "Mida Liis teeb?", "Mida sa ütled, kui helistad klienditeenindusse?"],
   },
   {
     id: "a2-040-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "choose the correct service action and explain the steps",
     alt: "Viktor lahendab Liisi abiga teenindusbüroos asjaajamise ülesannet.",
     caption: "Pilt 1. Teenuste kontrollülesanne.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis asjad on Viktori ees?", "Mida Liis aitab valida?", "Mida sina teeksid: helistaksid, täidaksid vormi või broneeriksid aja?"],
   },
 ];

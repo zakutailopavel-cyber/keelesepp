@@ -12,6 +12,8 @@ export default [
     learningJob: "state what Sofia wants to learn and what she will start doing",
     alt: "Sofia ja Liis koostavad keeleõppe plaani.",
     caption: "Pilt 1. Mida Sofia tahab ja hakkab õppima?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Sofia koostab?", "Mis asjad on vihiku kõrval?", "Mida sina tahad järgmisel nädalal õppida?"],
   },
   {
     id: "a2-070-kasuta-1",
@@ -24,5 +26,7 @@ export default [
     learningJob: "review obligations, permissions and learning actions",
     alt: "Liis ja Sofia arutavad keelekursuse õppimisreegleid.",
     caption: "Pilt 1. Õppimise ja keele kontrollülesanne.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Liis Sofiale näitab?", "Mida Sofia peab tegema ja mida võib teha?", "Mis aitab sul eesti keelt õppida?"],
   },
 ];

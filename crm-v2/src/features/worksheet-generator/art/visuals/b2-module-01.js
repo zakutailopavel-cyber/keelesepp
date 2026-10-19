@@ -12,6 +12,8 @@ export default [
     learningJob: "muuta B1 algdiagnostika nähtavaks oskuste ja õpieesmärkide kaardiks",
     alt: "Anna hindab nelja B1 oskust ja Liis koostab tulemuse põhjal õpitee.",
     caption: "Pilt 1. B1 algdiagnostika oskuste kaart.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid nelja oskust Anna pildil hindab?", "Milline oskus on sinu jaoks praegu kõige tugevam ja milline kõige nõrgem?", "Mida näitab Liisi joonistatud õpitee? Kuhu sina tahad jõuda?"],
   },
   {
     id: "b1b2-002-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "siduda päeva tegevused ajamarkerite, põhjuste ja tunnetega terviklikuks looks",
     alt: "Anna tavalise neljapäeva sündmused moodustavad ühe katkematu ajajoone.",
     caption: "Pilt 1. Anna tavaline päev sidusa loona.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kirjelda Anna neljapäeva pildi järgi: mis juhtub kõigepealt, seejärel ja lõpuks?", "Millal on Anna päeval kiire ja millal rahulik? Miks?", "Mille poolest erineb sinu tavaline päev Anna päevast?"],
   },
   {
     id: "b1b2-003-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "eristada sagedust, toimumisaega ja kestust ning paigutada need lausesse",
     alt: "Anna võrdleb sageduse, aja ja kestuse ikoone kolmeks jagatud ajakettal.",
     caption: "Pilt 1. Sagedus, aeg ja kestus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida näitavad Anna plaanis nooled, kalendripunkt ja riba?", "Ütle iga märgi kohta üks lause oma nädalast: kui tihti, millal, kui kaua.", "Milline Anna tegevus kordub kõige sagedamini?"],
   },
   {
     id: "b1b2-004-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "võrrelda argipäeva ja nädalavahetust, tuues välja sarnasuse, erinevuse ja eelistuse",
     alt: "Kaalul on Liisi haiglatöö ja puhkus ning Markuse paindlik töö ja nädalavahetuse üritused.",
     caption: "Pilt 1. Kaks vastandlikku nädalarütmi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kumma nädalarütm on kiirem, Liisi või Markuse? Miks?", "Mis on nende argipäevas sarnast ja mis erinevat?", "Kumma nädal sobiks sulle rohkem? Põhjenda."],
   },
   {
     id: "b1b2-005-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "korrata sidusust, aega, sagedust ja võrdlust aeglase elu muutuse kaudu",
     alt: "Anna vahetab kiirustava argipäeva rahulikuma liikumise, lugemise, suhtlemise ja une vastu.",
     caption: "Pilt 1. Kiirustamisest aeglasema eluni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis muutub Anna elus pildi vasakult paremale?", "Millised harjumused aitavad Annal aeglasemalt elada?", "Mida sina oma päevas muudaksid, et vähem kiirustada?"],
   },
 ];
