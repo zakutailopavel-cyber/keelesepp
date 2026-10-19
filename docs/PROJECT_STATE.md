@@ -1,3 +1,27 @@
+## 2026-10-19 · agent/sentence-breakdown — „Lause lahti”: a sentence taken apart (like sonastik.app)
+
+- Checked `main` f9b9fbb (2026-10-19). Branch `agent/sentence-breakdown`, draft PR (see GitHub).
+- Owner 2026-10-19 („Нам тоже такое надо”, screenshot of sonastik.app): every word with its base form, the
+  multi-word verb („aru saama”, rektsioon) and the translation.
+- Done:
+  - `functions/sentence-core.js` (pure, tested in `sentence-core.test.js`): EKI etLex morphology → tokens with lemma,
+    part of speech (et + ru), form (et + ru: cases with the question words, verb forms), level; our list of ~140
+    multi-word verbs / verb phrases with Russian and government (`PHRASES`), found by verb lemma + particle anywhere in
+    the sentence; punctuation spacing.
+  - `functions/index.js` languageApi `POST /analyze` (any signed-in user): etLex (public) + TartuNLP translation of the
+    sentence and of each content lemma (public, `x-api-key: public`); cached in `languageCache` by the sentence.
+    Only the sentence is sent out.
+  - UI `features/vocabulary/SentenceBreakdown.jsx` (+ `sentenceBreakdown.css`): words coloured by part of speech
+    (noun blue, verb green, adjective red, expression amber) with the base form under them; a tap shows form + gloss;
+    „Väljendid” with government; „Tõlge”. Entry points: the worksheet word card (double click / double tap) →
+    „Võta lause lahti” opens the sentence around the word (`sentenceAt`, `sentenceAround` in WordLookup.jsx); and a
+    card „Võta lause lahti” on the student's „Sõnavara” page. Service `languageToolsService.analyzeSentence`.
+- Checks: `node --test` in functions 301 passed; `npx vitest run` 1948 passed; eslint on changed UI files clean;
+  `vite build` ok. Checked live against EKI and TartuNLP from a local script (3 sentences: lemmas, forms, „maha jätma”,
+  „kätte saama”, „ühendust võtma”). Visual check at desktop and 375 px width.
+- Limits: the expression list is ours and finite; EKI may mis-analyse rare words; `/analyze` is not deployed yet.
+- Next safe step: owner approves → deploy the function `languageApi` (firebase) and the frontend onto the production chain.
+
 ## 2026-10-17 · agent/parent-to-student — „See on õpilane”: a parent account that is really the learner
 
 - main checked: 5521e1a (2026-10-17). Owner: a learner registered as a parent (Veronika Bistrova); the admins must be able to fix this themselves.

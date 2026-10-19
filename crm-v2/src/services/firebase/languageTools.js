@@ -41,6 +41,11 @@ export const languageToolsService = {
   lookupStudentWord({ studentId, word, tgt = 'ru' }) {
     return post('/student-word', { studentId, word, tgt });
   },
+  // „Lause lahti”: { text, translation, tokens: [{ text, lemma, pos, posEt, posRu, formEt, formRu, gloss, level, punct, space }],
+  // expressions: [{ phrase, ru, government, tokens }] } (EKI etLex morphology + TartuNLP, cached on the server)
+  analyzeSentence({ text, tgt = 'ru' }) {
+    return post('/analyze', { text, tgt });
+  },
   // Estonian speech (TartuNLP Neurokõne) → a WAV Blob; the constructor saves it like an uploaded audio file.
   async speak({ text, speaker = 'mari', speed = 1 }) {
     const response = await request('/speak', { text, speaker, speed });
