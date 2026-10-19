@@ -11,7 +11,7 @@
 - Audio: TartuNLP for the new 035 news listening (`public/audio/est-c1-035`).
 - The scratchpad helper `to_insertion` (c1lib.py) turns the old sentence-gap tasks into `B.insertion`. It is not in the repo; the result is in the module files.
 - Checks: `moduleProblems` has no problems for module 4. `npx vitest run src/features/worksheet-generator` gives 705 passed.
-- Not deployed or published: that needs the owner's permission.
+- Production (owner's permission, 2026-10-19): `vercel deploy --prod` of 8fa835c plus the calendar fix; all 30 sheets of module 4 are published with `publish-v2.cjs`. Their earlier v7 was the batch write of 2026-10-13 22:09, so the sheets were marked as vetted.
 - Not done: C1 modules 5–10.
 - Next safe step: C1 module 5 the same way.
 
