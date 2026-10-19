@@ -1,3 +1,14 @@
+## 2026-10-19 · agent/raamatukogu — „Raamatukogu” in Õppevara (port of #505)
+
+- main checked: 7686fb4. Owner 2026-10-19: „Библиотеку нужно внедрить”; next the owner sends photos of the school's
+  textbooks to digitise (separate task, copyright of each book to be checked first).
+- Page `/library/raamatukogu` (button „Raamatukogu” in Õppevara, staff only): free external sources by category and the
+  Harno level-exam links A2–C1; only one file is hosted (Peace Corps Estonian, US government work, public domain).
+- Files: `crm-v2/src/features/library/raamatukogu/*`, `crm-v2/public/raamatukogu/*.pdf`, `routes.jsx` (lazy route),
+  `LibraryPage.jsx` (button). Checks: vitest library + app 67/67, eslint 0 errors, vite build OK. External links not
+  re-checked since 2026-10-11.
+- Next safe step: owner merges (frontend deploys with main), then the textbook photos.
+
 ## 2026-10-19 · agent/school-covered-lesson — „Kooli kulul”: a held lesson the school pays itself
 
 - main checked: eef5885 (2026-10-19, after #679). Asked by Oleksiy in the team chat, plan approved by the owner 2026-10-19.

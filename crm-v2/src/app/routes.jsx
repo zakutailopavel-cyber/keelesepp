@@ -40,6 +40,7 @@ const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettin
 const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage.jsx'));
 const GroupsPage = lazy(() => import('../features/groups/GroupsPage.jsx'));
 const LibraryPage = lazy(() => import('../features/library/LibraryPage.jsx'));
+const RaamatukoguPage = lazy(() => import('../features/library/raamatukogu/RaamatukoguPage.jsx'));
 const ConversionQueuePage = lazy(() => import('../features/worksheet-studio/ConversionQueuePage.jsx'));
 const BookPage = lazy(() => import('../features/worksheet-studio/BookPage.jsx'));
 const LiveWorksheetPage = lazy(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
@@ -81,6 +82,7 @@ export default function AppRoutes() {
             <Route path="tasks" element={staffPage(<TasksPage />)} />
             <Route path="groups" element={staffPage(<GroupsPage />)} />
             <Route path="library" element={staffPage(<LibraryPage />)} />
+            <Route path="library/raamatukogu" element={staffPage(<RaamatukoguPage />)} />
             <Route path="library/worksheets/convert" element={staffPage(<ConversionQueuePage />)} />
             <Route path="library/worksheets/book" element={staffPage(<BookPage />)} />
             <Route path="library/worksheets/live/:assignmentId" element={staffPage(<LiveWorksheetPage />)} />
