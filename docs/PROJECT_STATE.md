@@ -1,3 +1,34 @@
+## 2026-10-19 · agent/board-tab-menu — Live Classroom: page ⋯ menu, one page per phase sheet, course order
+
+- Checked `main` f9b9fbb (2026-10-19). Branch `agent/board-tab-menu`, draft PR (see GitHub).
+- Owner 2026-10-19: empty duplicate board pages, no way to delete a page; the pencil should become „⋯” with rename / delete /
+  give to the student; the sheet picker listed lesson 5, then 16, …, 90, then 56.
+- Done:
+  - `StudentBoard.jsx`: the pencil next to the open page is now „⋯” (`Lehe toimingud`): „Nimeta ümber” (everyone), „Määra
+    õpilasele õppimiseks” (when the host passes `onAssignPage`; Live Classroom teacher), „Kustuta leht” (staff, confirm,
+    not for completed pages). New service method `deletePage(studentId, pageId)` in `services/firebase/studentBoard.js`
+    (elements best-effort, then the page). `firestore.rules` already allow staff to delete a non-completed lesson page
+    (whiteboards and groupBoards) — no rules change.
+  - Empty duplicates: the Avasta / Harjuta / Kasuta sheets of a lesson share a title, the board found a sheet's page by
+    title, so only one page showed a sheet and the others stayed empty. `boardModel.sheetBoardTitle(item)` adds the phase
+    („Kontroll 1 · Harjuta”); LiveRoom / TeacherWorkspace pass it plus `legacyTitle`; the old shared page stays with the
+    newest sheet of that title, the others get their own page. Old empty duplicates are removed by hand with „Kustuta leht”.
+  - „Määra õpilasele”: LiveRoom opens „Kodutöö” (`LessonHomeworkPanel`, new prop `assignPage`) with the page ticked and
+    the task „Õpi tahvlilehe „…” materjal.” — the existing homework with `boardPageId` (student opens it from „Kodutööd”).
+  - `roomWorksheetChoices.js`: curriculum sheets sorted by level, then lesson number (module title only as a tie-break);
+    „Järgmine tund” therefore follows the course (after 5 comes 6). A sheet on the board is matched by phase, not title.
+  - Student scrolling the sheet (owner 2026-10-19: „ученик мог сам листать лист”): a focused answer field (iPad
+    keyboard) or the teacher's pointed task (`scrollIntoView`) scrolled the overflow-hidden board stage, the sheet stayed
+    shifted and its top / end could not be reached. `StudentBoard` now turns any stage scroll into a move of the view and
+    keeps the stage at 0; `DocWorksheetPlayer` on the board sends `ws-reveal` instead of `scrollIntoView`, the board
+    moves to the pointed task once.
+- Checks: `npx vitest run` — 1951 passed, 2 failed in `CourseProductionPage.test.jsx` only under the full run (pass alone,
+  85/85 with live-classroom; timeout under load, unrelated). eslint on changed files clean; `vite build` ok.
+- Limits: on the student's own board page (`/board`) „Määra õpilasele” is not shown (no lesson to attach homework to).
+- Deployed 2026-10-19 15:16 (owner: «деплой»): production = 512a852 + this branch (15c5f21, 5efb5a0, 0eabbec, 18d1708)
+  + calendar 1019c2a, `dpl_BjwhCWwLd6M1AeowQ3teN8K2VcAH` on crm.epkoolitus.ee (bundle contains „Lehe toimingud”).
+  Rebased on `agent/board-scrollbar` (PR #666, already in production); PR #672 base is that branch.
+- Next safe step: the teacher removes the old empty duplicate pages with „⋯” → „Kustuta leht”.
 ## 2026-10-19 · agent/course-v3-c1-m7 — C1 module 7 in template v3
 
 - Branch `agent/course-v3-c1-m7` is stacked on agent/course-v3-c1-m6 (#673). Draft PR.
