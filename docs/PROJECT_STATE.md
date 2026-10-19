@@ -1,3 +1,14 @@
+## 2026-10-19 · agent/course-v3-c1-m7 — C1 module 7 in template v3
+
+- Branch `agent/course-v3-c1-m7` is stacked on agent/course-v3-c1-m6 (#673). Draft PR.
+- Done: C1 module 7 (est-c1-061…070, mobility, environment and planning) in lesson template v3, the same way as modules 4–6. 070 is the module exam (`assessment: true`).
+- Every Kasuta has a new reading of 400+ words (office move, Paris strike, rural municipality, coastal adaptation plan, wind park, logistics centre, housing association, draft news story, bus line 7). 068 and 069 now have a Kasuta rubric.
+- No new audio: 061 keeps its radio interview; the transcript is unchanged, one question was added.
+- Checks: `moduleProblems` has no problems for module 7. `npx vitest run src/features/worksheet-generator`: 704 passed; `CourseProductionPage.test.jsx` timed out once in the full run and passes alone (2/2).
+- Not deployed, not published (needs the owner's permission).
+- Not done: C1 modules 8–10.
+- Next safe step: owner's permission → deploy and publish module 7; then C1 module 8 the same way.
+
 ## 2026-10-19 · agent/course-v3-c1-m6 — C1 module 6 in template v3
 
 - Branch `agent/course-v3-c1-m6` is stacked on agent/course-v3-c1-m5 (#671). Draft PR.

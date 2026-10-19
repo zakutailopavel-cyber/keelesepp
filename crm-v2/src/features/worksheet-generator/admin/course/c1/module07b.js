@@ -370,7 +370,8 @@ export const LESSONS_B = {
   },
 
   'est-c1-070': {
-    title: 'Mooduli 7 progressikontroll',
+    title: 'Mooduli 7 eksam (Harno C1 vormis)',
+    assessment: true,
     canDo: 'Ma näitan mooduli 7 oskusi Harno C1 formaadis: mõistan pikka liikuvuse ja keskkonna teksti ning raadiovestluse varjatud hoiakuid, võtan andmed neutraalselt kokku, kirjutan omavalitsusele arvamusloo ning esinen ja arutlen elukeskkonna teemadel.',
     discover: [
       B.text('c1_070_d_intro', 'Kordamine enne kontrolli', 'Progressikontroll kontrollib moodulit 7: transport ja liikuvus, reisimine, linn ja maa, kliimamuutus, energia, planeerimine ja avalik arutelu, tegevuskava ning grammatika (sidendid ja tekstisisesed seosed, kaassõnad ja määruslikud suhted). See leht on proov ja kordamine.'),
@@ -379,9 +380,8 @@ export const LESSONS_B = {
         [['Miks ei tähenda rongireisijate arvu kasv, et autosõite jäi sama palju vähemaks?', 'osa uusi rongisõitjaid sõitis varem bussiga|kõik uued reisijad ei olnud varem autojuhid'], ['Millised on rongi populaarsuse kolm põhjust?', 'kiirem ja usaldusväärsem, sõiduaja produktiivne kasutamine, keskkonnasõbralikkus'], ['Millised on raudtee väljakutsed?', 'kaugus asulatest, hinna tajumine, Rail Balticu kulud ja viivitused'], ['Miks peavad paljud autot odavamaks?', 'ei arvesta püsikulusid'], ['Kuidas hindab Kask Rail Balticut?', 'pikas perspektiivis oluline, kuid kulud on kasvanud ja kohalikke oleks pidanud rohkem kaasama'], ['Mida on vaja, et rong muutuks igapäevase liikumise osaks?', 'tervik süsteem: ümberistumised, ühtne pilet, jaamad, usaldusväärne graafik'], ['Miks rõhutab Kask investeeringute järjepidevust?', 'raudtee arendamine nõuab aastakümneid']]),
       B.gaps('c1_070_d_gram', 'Grammatika (proov): sidendid ja kaassõnad.', 'Kirjuta sobiv sidend või kaassõna.', ['Rong on tipptunnil kiirem kui auto, [seetõttu|mistõttu|seega] eelistavad paljud töötajad nüüd raudteed.', 'Rail Balticu kulud on kasvanud, [sellest hoolimata|siiski|ometi] peab Kask projekti Eestile oluliseks.', 'Raudtee elektrifitseerimine on käimas [alates] eelmisest aastast.', 'Rail Baltic ühendab Eesti Kesk-Euroopaga Läti ja Leedu [kaudu].', 'Projekti ajakava on mitu korda edasi lükkunud rahastusprobleemide [tõttu].', 'Rongis saab sõidu [ajal] töötada, mis autoga ei ole võimalik.', 'Linnas on rongiühendus hea, maal [seevastu] on jaamad sageli kaugel.', 'Kase sõnul on vaja terviklikku süsteemi, [nimelt] ühtset piletit ja kiireid ümberistumisi.']),
       B.errorfix('c1_070_d_fix', 'Sõnavara ja register (proov).', 'Kirjuta lause sobivamaks C1 tasemel.', [['Rongid on super.', 'Uued rongid ja sagedasem graafik on toonud raudteele tagasi tuhandeid reisijaid.'], ['Rail Baltic on raha raiskamine.', 'Rail Balticu kulud on kasvanud oodatust suuremaks, mistõttu osa avalikkusest kahtleb selle vajalikkuses.'], ['Auto on odavam.', 'Paljud autojuhid peavad autot odavamaks, sest nad ei arvesta selle püsikulusid.'], ['Külades pole ronge.', 'Paljud väiksemad asulad on raudteest kaugel, mistõttu on vaja busside ja rongide kooskõlastatud graafikut.'], ['Šveitsis on kõik parem.', 'Šveitsis ja Austrias on terviklik raudteesüsteem toiminud juba aastakümneid.'], ['Valitsused muudavad kõike.', 'Raudtee arendamine nõuab järjepidevaid investeeringuid, mis ei tohiks valitsuse vahetudes katkeda.']]),
-      B.speaking('c1_070_d_mono', 'Suuline ülevaade (proov).', 'Valmistu 3 minutit ja tee 2 minutiga neutraalne ülevaade raudtee arengust Eestis: muutused, põhjused, väljakutsed ja tulevik. Lõpus ütle eraldi oma arvamus.', ['Mis on muutunud?', 'Miks?', 'Millised on väljakutsed?', 'Mis on sinu arvamus?'], [120, 180]),
+      B.speaking('c1_070_d_mono', 'Suuline ülevaade (proov).', 'Valmistu 3 minutit ja tee 2–3 minutiga neutraalne ülevaade raudtee arengust Eestis: muutused, põhjused, väljakutsed ja tulevik. Lõpus ütle eraldi oma arvamus.', ['Mis on muutunud?', 'Miks?', 'Millised on väljakutsed?', 'Mis on sinu arvamus?'], [120, 210]),
       B.letter('c1_070_d_letter', 'Kirjutamine (proov, 220–260 sõna).', 'Kirjuta lühike tegevuskava oma valla jaoks: kuidas muuta rongiga sõitmine elanikele mugavamaks. Lisa eesmärk, kolm sammu koos vastutajatega, üks risk ja kuidas edu mõõta.', 'Tegevuskava:', '', [220, 260]),
-      B.selfcheck('c1_070_d_self', ['Lugemine: vähemalt 5 vastust 7-st.', 'Grammatika: vähemalt 6 punkti 8-st.', 'Ma tegin suulise ülevaate.', 'Ma tean, mida veel korrata.'], 'Proov tehtud'),
     ],
     practice: [
       B.tip('c1_070_p_how', 'Progressikontroll: lugemine ja kuulamine',
@@ -491,12 +491,6 @@ export const LESSONS_B = {
         'Kuulamine 25 punkti skaalal: tulemus / 12 × 25 = __ / 25.',
         'Eksamil on lävend 60 % kogusummast ja ükski osaoskus ei tohi olla 0 punkti. Hea märk on vähemalt 15 / 25 kummaski osas.',
       ]),
-      B.selfcheck('c1_070_p_self', [
-        'Ma leian pikast tekstist ümber sõnastatud mõtted.',
-        'Ma taastan teksti loogika puuduvate lausete abil.',
-        'Ma taban vestluses varjatud hoiakuid ja kavatsusi pärast ühte kuulamist.',
-        'Ma arutlen elukeskkonna teemal eri huvirühmi arvestades.',
-      ], 'Lugemine ja kuulamine kontrollitud'),
     ],
     transfer: [
       B.text('c1_070_t_situation', 'Progressikontroll: kirjutamine ja rääkimine',
@@ -516,12 +510,12 @@ export const LESSONS_B = {
         'Arendus: 2–3 mõtet ning igaühele näide või arv.',
         'Lühike kokkuvõte ja järgmine samm.',
       ], 3),
-      B.speaking('c1_070_t_say', 'Rääkimine 1: ettekanne (2 minutit) ja küsimused.', 'Esita valitud teema 2 minutiga. Seejärel vastab sinu partner või õpetaja 1–2 küsimusega, millele vastad lühidalt ja täpselt.', [
+      B.speaking('c1_070_t_say', 'Rääkimine 1: ettekanne (2 minutit) ja küsimused.', 'Esita valitud teema 2–3 minutiga. Seejärel vastab sinu partner või õpetaja 1–2 küsimusega, millele vastad lühidalt ja täpselt.', [
         'Kui palju see plaan maksab ja kes selle kinni maksab?',
         'Kuidas te mõõdate, kas plaan toimis?',
         'Mida teete töötajate või elanikega, kellele lahendus ei sobi?',
         'Mis on plaani suurim risk?',
-      ], [120, 180], ['esiteks', 'näiteks', 'seetõttu', 'kokkuvõttes']),
+      ], [120, 210], ['esiteks', 'näiteks', 'seetõttu', 'kokkuvõttes']),
       B.rolecards('c1_070_t_peer', 'Rääkimine 2: arutelu (umbes 7 minutit).', 'Lugege teemakaarti. Arutlege kordamööda, reageerige partneri mõtetele ja jõudke lõpuks kokkuvõtteni.',
         'Teemakaart: „Kas vald peaks lubama tuulepargi rajamise, kui osa elanikke on selle vastu?” Sinu lähtekoht: tuulepark tooks vallale tulu ja vähendaks sõltuvust imporditud energiast, kuid elanikud peavad sellest otseselt kasu saama.',
         'Sama teemakaart. Sinu lähtekoht: elukeskkond, maastik ja elanike usaldus on olulisemad kui kiire tulu, seega tuleb enne otsust põhjalikult kaasata ja kaaluda väiksemaid lahendusi.',
