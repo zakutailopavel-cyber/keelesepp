@@ -324,7 +324,7 @@ export const LESSONS = {
         ['Õpilane kasutab tehisintellekti. Ta ei mõtle ise.', 'kuna', 'Kuna õpilane kasutab tehisintellekti, ei mõtle ta ise.'],
         ['Õpetaja selgitas reegleid. Õpilased said aru.', 'pärast seda kui', 'Pärast seda kui õpetaja oli reegleid selgitanud, said õpilased aru.'],
         ['Mind huvitab väga see uus õppemeetod.', 'huvituma', 'Ma huvitun väga sellest uuest õppemeetodist.'],
-        ['Sa pead iga päev vähemalt natuke harjutama.', 'tasub', 'Tasub iga päev vähemalt natuke harjutada.'],,
+        ['Sa pead iga päev vähemalt natuke harjutama.', 'tasub', 'Tasub iga päev vähemalt natuke harjutada.'],
         ['Ta õppis kogu öö. Ta ei mäletanud midagi.', 'kuigi', 'Kuigi ta õppis kogu öö, ei mäletanud ta midagi.'],
         ['Kas teil on võimalik koolitus korraldada?', 'kas te saaksite', 'Kas te saaksite koolituse korraldada?'],
       ]),

@@ -27,6 +27,8 @@ export default function CellStatusMenu({ cell, teacherName = '', current = { kin
   // the menu is taller than a guess when the cell has a status („Eemalda märge”): measure it, so a click on a late
   // hour does not push „Lisa tund” below the screen (owner 2026-10-19)
   const [height, setHeight] = useState(330);
+  // a layout measurement: the height is known only after the menu is drawn, and it settles after one more render
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useLayoutEffect(() => { const h = ref.current?.offsetHeight; if (h && h !== height) setHeight(h); });
   const top = Math.max(8, Math.min((cell.y || 0) + 8, (globalThis.innerHeight || 800) - height - 8));
   const day = new Date(`${cell.date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'numeric' });
