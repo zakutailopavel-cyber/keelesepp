@@ -22,10 +22,12 @@
 - Risk: production runs this unmerged branch. A deploy from main before #660, #661, #666 and this PR are merged removes the audio, the chart block and the board scrollbar.
 - **C1 module 2** (est-c1-011…020) is done the same way. The scripts are c1m02_NNN.py; there are art prompts for all 10 pictures. 018 is word order and information structure, 019 is the more complex uses of the cases, 020 is the module exam (`assessment`, writing part 1 from two charts). Audio is built for the new listening blocks. Checks: `vitest src/features/worksheet-generator` passes 705 tests; the module gate has no problems. Module 2 is **not yet deployed or published**: that waits for the owner's permission.
 - Module 2 was deployed and published 2026-10-18 with the owner's permission (30 sheets).
-- **C1 module 3** (est-c1-021…030) is done the same way. 025 has a data summary from a chart; 028 is past tenses in coherent text, 029 is moods and modality, 030 is the module exam (`assessment`). Audio is built. Checks: `vitest src/features/worksheet-generator` passes 705 tests; the module gate has no problems. Module 3 is **not yet deployed or published**.
+- **C1 module 3** (est-c1-021…030) is done the same way. 025 has a data summary from a chart; 028 is past tenses in coherent text, 029 is moods and modality, 030 is the module exam (`assessment`). Audio is built. Checks: `vitest src/features/worksheet-generator` passes 705 tests; the module gate has no problems. 
 - Personal sheet: a B1 test (reading and writing, 90 min) for Mihhail Smirnov was saved and published on the owner's request (`studentWorksheetDrafts/zuB96TFbpLCCqf0a919V`, assignment with the same id).
 - Not done: C1 modules 4–10 are still the old design.
-- Next safe step: with the owner's permission, deploy from this branch and publish the 30 sheets of module 3; then module 4.
+- Module 3 was deployed (2526b0b) and its 30 sheets were published on 2026-10-19 with the owner's permission.
+- Queue (owner, 2026-10-19): C1 modules 4–10, then the A2 course in template v3.
+- Next safe step: C1 module 4 the same way.
 
 ## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
 
