@@ -10350,6 +10350,43 @@ async function studentWordLookup({ decoded, studentId = "", word = "", tgt = "ru
   return { ...result, saved: true, wordId: ref.id };
 }
 
+// One sentence → words with base form, part of speech and form (EKI etLex), multi-word verbs, a gloss per word and the
+// translation of the sentence (TartuNLP). Each translation may fail alone; the morphology must answer.
+async function analyzeSentence(input) {
+  const { analysisRequest, tokensFromEvaluation, findExpressions, glossLemmas } = require("./sentence-core");
+  const { cacheKey } = require("./language-core");
+  const { text } = analysisRequest(input);
+  const tgt = ["ru", "en", "uk"].includes(input?.tgt) ? input.tgt : "ru";
+  return cachedLanguageAnswer(cacheKey("sentence", tgt, text), async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
+    let data;
+    try {
+      const response = await fetch("https://etlex.eki.ee/etLex/api/v1.0/projects/etLex/evaluation", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal: controller.signal });
+      if (!response.ok) throw httpError(502, "EKI morphology unavailable");
+      data = await response.json();
+    } catch (error) {
+      throw error.status ? error : httpError(502, error.name === "AbortError" ? "EKI morphology did not answer in time" : "EKI morphology unavailable");
+    } finally {
+      clearTimeout(timer);
+    }
+    const tokens = tokensFromEvaluation(data);
+    const lemmas = glossLemmas(tokens);
+    const [sentence, ...glosses] = await Promise.allSettled([
+      translateText({ text, src: "et", tgt }),
+      ...lemmas.map(lemma => translateText({ text: lemma, src: "et", tgt })),
+    ]);
+    const gloss = Object.fromEntries(lemmas.map((lemma, i) => [lemma, glosses[i].status === "fulfilled" ? glosses[i].value.result : ""]));
+    return {
+      text, tgt,
+      translation: sentence.status === "fulfilled" ? sentence.value.result : "",
+      tokens: tokens.map(t => ({ ...t, gloss: gloss[t.lemma] || "" })),
+      expressions: findExpressions(tokens),
+      source: "EKI etLex, TartuNLP Neurotõlge",
+    };
+  });
+}
+
 exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSeconds: 60 }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -10370,6 +10407,13 @@ exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSe
         });
       }
       res.json({ forms });
+      return;
+    }
+    if (req.path === "/analyze") {
+      // „Lause lahti” (owner 2026-10-19): any signed-in user; only the sentence is sent out (EKI etLex morphology and
+      // TartuNLP translation, both public); the whole answer is cached by the sentence
+      await requireFirebaseUser(req);
+      res.json(await analyzeSentence(req.body || {}));
       return;
     }
     if (req.path === "/student-word") {

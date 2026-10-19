@@ -1,0 +1,39 @@
+/* „Lause lahti”: words with the base form under them, coloured by part of speech; multi-word verbs in warm amber */
+.sb-lause-box { display: grid; gap: 12px; }
+.sb-lause__form { display: grid; gap: 8px; }
+.sb-lause__label { font-weight: 700; font-size: .9rem; color: #3c4257; }
+.sb-lause__form textarea { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #d9dceb; border-radius: 12px; font: inherit; resize: vertical; }
+.sb-lause__form .vw-btn { justify-self: start; display: inline-flex; align-items: center; gap: 6px; }
+.sb-lause { display: grid; gap: 10px; }
+.sb-lause__heading { margin: 6px 0 0; font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; color: #7a7f99; }
+.sb-lause__words { display: flex; flex-wrap: wrap; gap: 6px 4px; align-items: flex-start; }
+.sb-lause__group { display: inline-flex; align-items: flex-start; white-space: nowrap; }
+.sb-lause__word { display: inline-grid; gap: 2px; padding: 4px 6px 3px; border: 0; border-radius: 10px; background: transparent; cursor: pointer; text-align: left; font: inherit; color: #1f2440; }
+.sb-lause__text { font-size: 1.25rem; font-weight: 600; padding-bottom: 3px; border-bottom: 3px solid #b8bccd; }
+.sb-lause__lemma { font-size: .82rem; color: #8a8fa8; }
+.sb-lause__word.is-noun .sb-lause__text { border-color: #3a5bd0; }
+.sb-lause__word.is-verb .sb-lause__text { border-color: #3a9a4f; }
+.sb-lause__word.is-adj .sb-lause__text { border-color: #d0552c; }
+.sb-lause__word.is-phrase { background: #fdf0de; }
+.sb-lause__word.is-phrase .sb-lause__text { border-color: #c27a2c; }
+.sb-lause__word.is-picked { outline: 2px solid #24294a; outline-offset: 1px; }
+.sb-lause__punct { align-self: flex-start; padding-top: 4px; font-size: 1.25rem; color: #1f2440; }
+.sb-lause__detail { padding: 10px 12px; border-radius: 12px; background: #f4f6fb; }
+.sb-lause__detail p { margin: 0 0 4px; }
+.sb-lause__muted, .sb-lause__hint, .sb-lause__source { color: #6b7090; font-size: .86rem; }
+.sb-lause__hint, .sb-lause__source { margin: 0; }
+.sb-lause__level { margin-left: 8px; padding: 1px 7px; border-radius: 999px; background: #e7eaf6; font-size: .74rem; font-weight: 700; }
+.sb-lause__phrases { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.sb-lause__phrases li { display: flex; gap: 12px; align-items: center; padding: 10px 12px; border: 2px solid #d7a466; border-radius: 14px; background: #fdf5ea; }
+.sb-lause__phrases strong { display: block; font-size: 1.05rem; }
+.sb-lause__phrases small { display: block; color: #6b7090; }
+.sb-lause__phrases .sb-lause__gov { color: #9a5a17; }
+.sb-lause__phrase-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 9px; background: #c27a2c; color: #fff; font-weight: 700; }
+.sb-lause__translation { margin: 0; font-style: italic; color: #3b4170; }
+.sb-lause__error { margin: 0; color: #c0362c; }
+/* opened from a word on a worksheet */
+.sb-lause-dialog { position: fixed; inset: 0; z-index: 1500; display: grid; place-items: center; padding: 16px; background: rgba(20, 30, 60, .35); }
+.sb-lause-dialog__panel { position: relative; width: min(640px, 100%); max-height: calc(100vh - 32px); overflow: auto; box-sizing: border-box; padding: 18px 18px 14px; border-radius: 18px; background: #fff; box-shadow: 0 18px 50px rgba(20, 30, 60, .25); }
+.sb-lause-dialog__panel h2 { margin: 0 32px 10px 0; font-size: 1.1rem; }
+.sb-lause-dialog__close { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: #f2f3f8; color: #5c6185; cursor: pointer; }
+@media (max-width: 560px) { .sb-lause__text { font-size: 1.1rem; } }
