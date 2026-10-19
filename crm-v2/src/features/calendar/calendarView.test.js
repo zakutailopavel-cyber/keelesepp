@@ -1,4 +1,4 @@
-import { datesForView, eventOccursOn, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, startOfWeek } from './calendarView.js';
+import { datesForView, eventOccursOn, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, startOfWeek, withCurrentStudentNames } from './calendarView.js';
 
 describe('calendar view helpers', () => {
   it('builds Monday-based week and six-week month grids', () => {
@@ -27,4 +27,16 @@ describe('calendar view helpers', () => {
     expect(filterCalendarEvents(events, { student: 'student-2' })).toHaveLength(0);
     expect(occurrencesForDates(events, ['2026-08-04'])).toHaveLength(1);
   });
+});
+
+it('shows the name on the student card, not the one stored when the lesson was planned', () => {
+  const map = new Map([['s1', { id: 's1', name: 'Anna Uus' }]]);
+  const [renamed, gone, group] = withCurrentStudentNames([
+    { id: 'a', studentId: 's1', studentName: 'Anna Vana' },
+    { id: 'b', studentId: 's2', studentName: 'Kustutatud' },
+    { id: 'c', studentId: 's1', studentName: 'Grupp A', isGroup: true },
+  ], map);
+  expect(renamed.studentName).toBe('Anna Uus');
+  expect(gone.studentName).toBe('Kustutatud');
+  expect(group.studentName).toBe('Grupp A');
 });
