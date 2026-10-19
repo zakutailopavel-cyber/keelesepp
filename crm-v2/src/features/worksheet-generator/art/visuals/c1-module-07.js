@@ -54,6 +54,8 @@ export default [
     learningJob: "connect climate hazards with local consequences and prioritise an adaptation measure",
     alt: "Markus ja Liis seovad kliimaohud kohalike mõjudega ning valivad esimese kohanemismeetme.",
     caption: "Pilt 1. Kliimamõju hindamine viib kohaliku kohanemisotsuseni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kliimamuutuse mõjusid Markus ja Liis linnaga seovad?", "Millise meetme paneks sina esikohale ja miks?", "Kuidas selgitada elanikele, miks valmistuda tasub ka ebakindluse korral?"],
   },
   {
     id: "est-c1-065-kasuta-1",
