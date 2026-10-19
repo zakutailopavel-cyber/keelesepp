@@ -12,6 +12,8 @@ export default [
     learningJob: "retell yesterday in the simple past and identify one action not done",
     alt: "Jaan järjestab eilseid tegevusi ja näitab, mida ta ei teinud.",
     caption: "Pilt 1. Eilsed tehtud ja tegemata tegevused.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Jaan laual järjestab?", "Mida Jaan eile tegi ja mida ei teinud?", "Mida sina eile tegid?"],
   },
   {
     id: "a2-077-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "infer what happened yesterday and retell events in order",
     alt: "Sofia jutustab Annale telefonipiltide järgi, mis eile juhtus.",
     caption: "Pilt 1. Mis eile juhtus?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Sofia Annale näitab?", "Mis Sofial eile juhtus?", "Mis sinuga eile juhtus?"],
   },
   {
     id: "a2-080-kasuta-1",
@@ -36,5 +40,7 @@ export default [
     learningJob: "review past-tense narration and explain what did not happen",
     alt: "Anna ja Markus järjestavad nädalavahetuse sündmusi.",
     caption: "Pilt 1. Mineviku kontrollülesanne.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Markus teevad?", "Mis pildid on laual?", "Mida te eelmisel nädalavahetusel tegite?"],
   },
 ];
