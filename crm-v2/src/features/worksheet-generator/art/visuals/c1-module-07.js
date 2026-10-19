@@ -40,6 +40,8 @@ export default [
     learningJob: "compare urban and rural living, recognise trade-offs and recommend a choice for a specific household",
     alt: "Jaan ja Anna võrdlevad linna ja maa elukeskkonda ning tasakaalustavad valikut kaugtööga.",
     caption: "Pilt 1. Elukeskkonna valik on väärtuste ja praktiliste võimaluste tasakaal.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Jaan ja Anna linna ja maa vaates võrdlevad?", "Mis on kaugtöö lahenduse eelised ja puudused?", "Kumba elukohta valiksid sina praeguses elu etapis ja miks?"],
   },
   {
     id: "est-c1-064-kasuta-1",
