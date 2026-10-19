@@ -73,6 +73,32 @@ export function withCurrentStudentNames(events, studentMap) {
   });
 }
 
+// the subject a lesson teaches (owner chat 2026-10-17: „в календаре нигде не отображается, какой предмет ведёт учитель”):
+// the lesson's own subject, else the student's study track with this teacher, else the only track, else the card's subject
+export function lessonSubjectOf(event, student) {
+  if (event.subject) return String(event.subject);
+  const tracks = (student?.enrollments || []).filter((track) => track && track.active !== false && track.subject);
+  return tracks.find((track) => track.teacherUid && track.teacherUid === event.teacherUid)?.subject
+    || (tracks.length === 1 ? tracks[0].subject : '')
+    || String(student?.subject || '');
+}
+
+export function withLessonSubjects(events, studentMap) {
+  return events.map((event) => {
+    if (event.isGroup) return event;
+    const subject = lessonSubjectOf(event, studentMap.get(event.studentId));
+    return subject && subject !== event.subject ? { ...event, subject } : event;
+  });
+}
+
+// a short pictogram for the subject: ET / EN / MA / RU / FI / DE, else the first two letters
+const SUBJECT_CODES = [[/^eesti/, 'ET'], [/^inglise/, 'EN'], [/^mate/, 'MA'], [/^vene/, 'RU'], [/^soome/, 'FI'], [/^saksa/, 'DE']];
+export function subjectCode(subject) {
+  const text = String(subject || '').trim().toLocaleLowerCase('et');
+  if (!text || text === 'muu') return '';
+  return SUBJECT_CODES.find(([pattern]) => pattern.test(text))?.[1] || text.slice(0, 2).toUpperCase();
+}
+
 export function occurrencesForDates(events, dates) {
   return dates.flatMap((date) => events.filter((event) => eventOccursOn(event, date)).map((event) => ({ ...event, status: occurrenceStatus(event, date), occurrenceDate: date, occurrenceId: `${event.id}:${date}` })))
     .sort((left, right) => `${left.occurrenceDate} ${left.time}`.localeCompare(`${right.occurrenceDate} ${right.time}`, 'et'));

@@ -193,6 +193,17 @@
 - Content: B2 lesson b1b2-061 rewritten in v3 (Avasta 8, Harjuta 7, Kasuta 7 blocks; cloze 12 gaps A–D, formtext 12, Harno info reading, insertion 6+1, argument cards). Not published — the CRM still shows the published v2 sheet until the owner allows publishing.
 - Checks: vitest worksheet-generator + worksheet-studio + homework 1037 pass, 3 skipped.
 - Next safe step: owner looks at lesson 061 (local preview or after publishing) → then rewrite by the level map, module by module.
+## 2026-10-18 · agent/calendar-subject — calendar: the lesson's subject, the half hour under the pointer, the cell menu stays on screen
+
+- Base: `agent/calendar-student-link` (#663, same files). main checked: f9b9fbb. Team chat (Oleksiy, 2026-10-17): #improvement #high_priority #calender „не отображается, какой предмет ведёт учитель — пиктограмма или поле в окне урока”; #improvement #low_priority #calender „рамка на полчаса под курсором; окно выбора часов уходит под экран внизу”.
+- Subject: only 115 of 666 `schedule` lessons store `subject`; `calendarView.lessonSubjectOf()` takes the lesson's subject, else the student's study track with this teacher, else the only track, else the card's subject (`withLessonSubjects`, groups untouched, no data rewrite). `SubjectTag` shows ET / EN / MA (RU / FI / DE, else two letters; „Muu” none) on week blocks, crowded clusters, month chips and agenda rows; the lesson panel shows the tag and the full subject name.
+- TimeGrid: a thin frame (`.tg-hover`) on the half hour under the pointer, not over lessons, not while dragging or painting.
+- CellStatusMenu: measured after render; opens above the pointer when it does not fit below, never leaves the window (max-height + scroll).
+- Files: `features/calendar/calendarView.js`, `SubjectTag.jsx` (new), `TimeGrid.jsx`, `CellStatusMenu.jsx`, `CalendarPage.jsx`, `LessonPanel.jsx`, `calendarV2.css`, tests (`calendarView.test.js`, `LessonPanel.integrity.test.jsx`, new `CellStatusMenu.test.jsx`).
+- Checks: `npx vitest run src/features/calendar src/features/students` → 33 files, 177 passed; eslint clean. Not checked in a browser (needs a logged-in session).
+- Production: none (read-only query of subject values). Needs a frontend deploy.
+- Next safe step: owner merges #663 then this PR and deploys; then the cash-payer category (finance, plan first).
+
 ## 2026-10-18 · agent/calendar-student-link — calendar: the student's current name and a link to the card; student card: next lessons of a weekly series
 
 - main checked: f9b9fbb (2026-10-18). Requests from the team chat (Oleksiy, 2026-10-17): #bug #high_priority #calender „сделать кликабельным ученика в занятии… имя обновляется, если обновил карточку”; #bug #low_priority #student_card „не отображаются будущие часы занятий, если карточка ученика была изменена”.

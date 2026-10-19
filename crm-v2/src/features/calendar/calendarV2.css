@@ -269,3 +269,13 @@
 .rooms-list li.is-off strong { color: #98a2b3; text-decoration: line-through; }
 .rooms-add { display: flex; align-items: flex-end; gap: 10px; }
 .rooms-add .field { flex: 1; }
+
+/* the lesson's subject pictogram (ET / EN / MA …) */
+.subject-tag { display: inline-flex; align-items: center; justify-content: center; min-width: 1.9em; margin-right: 4px; padding: 0 3px; border-radius: 4px; font: 800 0.66rem/1.45 Manrope, sans-serif; letter-spacing: 0.02em; color: #fff; background: #5b6b80; vertical-align: 1px; }
+.subject-tag--et { background: #0072ce; }
+.subject-tag--en { background: #c8102e; }
+.subject-tag--ma { background: #6b4fbb; }
+.lp-subject { display: inline-flex; align-items: center; margin-right: 8px; font-weight: 700; color: #14243a; }
+
+/* the half-hour cell under the pointer */
+.tg-hover { position: absolute; left: 1px; right: 1px; z-index: 1; border: 1.5px solid rgba(20, 36, 58, .55); border-radius: 4px; pointer-events: none; }

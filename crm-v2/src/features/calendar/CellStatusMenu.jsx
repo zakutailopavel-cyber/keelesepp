@@ -24,13 +24,16 @@ export default function CellStatusMenu({ cell, teacherName = '', current = { kin
   }, [onClose]);
   const width = 280;
   const left = Math.max(8, Math.min((cell.x || 0) + 8, (globalThis.innerWidth || 1200) - width - 8));
-  // the menu is taller than a guess when the cell has a status („Eemalda märge”): measure it, so a click on a late
-  // hour does not push „Lisa tund” below the screen (owner 2026-10-19)
-  const [height, setHeight] = useState(330);
-  // a layout measurement: the height is known only after the menu is drawn, and it settles after one more render
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useLayoutEffect(() => { const h = ref.current?.offsetHeight; if (h && h !== height) setHeight(h); });
-  const top = Math.max(8, Math.min((cell.y || 0) + 8, (globalThis.innerHeight || 800) - height - 8));
+  // the menu opens below the pointer; when its real height does not fit there (a cell near the bottom of the screen,
+  // Oleksiy 2026-10-17) it opens above the pointer, and it never leaves the window
+  const top = Math.max(8, (cell.y || 0) + 8);
+  useLayoutEffect(() => {
+    const height = ref.current?.getBoundingClientRect().height || 0;
+    const view = globalThis.innerHeight || 800;
+    const below = (cell.y || 0) + 8;
+    const next = below + height <= view - 8 ? below : Math.max(8, Math.min((cell.y || 0) - height - 8, view - height - 8));
+    if (ref.current) ref.current.style.top = `${next}px`;
+  }, [cell.y, current.kind, onStatus]);
   const day = new Date(`${cell.date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'numeric' });
 
   return <div ref={ref} tabIndex={-1} className="cal-cell-menu" role="dialog" aria-label={`Aeg ${cell.start}–${cell.end}`} style={{ left, top, width }}>
