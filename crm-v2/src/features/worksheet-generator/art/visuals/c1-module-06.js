@@ -82,6 +82,8 @@ export default [
     learningJob: "compare alarmist and proportionate risk communication and formulate a trustworthy public message",
     alt: "Liis ja Sofia valivad paanikat vältiva terviseteate, mis näitab riski ja tegevussamme.",
     caption: "Pilt 1. Usaldusväärne riskiinfo on täpne, rahulik ja praktiline.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mille poolest erinevad kaks riskiteadet, mida Liis ja Sofia võrdlevad?", "Miks valib Sofia rahulikuma versiooni?", "Mida peaks hea riskiteade alati sisaldama?"],
   },
   {
     id: "est-c1-057-kasuta-1",
@@ -94,6 +96,8 @@ export default [
     learningJob: "distinguish anecdote, opinion and research evidence and build a proportionate health argument",
     alt: "Anna ja Jaan kaaluvad terviseväite toetuseks kogemust, uuringut ja eksperdi arvamust.",
     caption: "Pilt 1. Tugev terviseargument eristab arvamust ja tõendit.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid tõendeid Jaan ja Anna laual võrdlevad?", "Miks paigutab Anna isikliku kogemuse tõendiskaalal madalale?", "Kuidas sõnastaksid Jaani ettevaatliku järelduse?"],
   },
   {
     id: "est-c1-058-kasuta-1",
@@ -106,6 +110,8 @@ export default [
     learningJob: "resolve ambiguous references and combine related health information with precise relative clauses",
     alt: "Liis parandab Viktoriga patsiendijuhendi ebaselge viite ning seob info õige teenusega.",
     caption: "Pilt 1. Selge relatiivlause näitab täpselt, millele viidatakse.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Liis Viktorile näitab ja miks on üks viitenool ebaselge?", "Kuidas aitab selge viide patsiendil õige teenuse leida?", "Millise lause patsiendijuhendist kirjutaksid sina ümber ja kuidas?"],
   },
   {
     id: "est-c1-059-kasuta-1",
