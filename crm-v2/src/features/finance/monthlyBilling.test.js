@@ -1,4 +1,4 @@
-import { currentMonth, defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
+import { currentMonth, isChargeable, defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
 
 const students = [
   { id: 's1', name: 'Mari', active: true, parentEmail: 'mari@example.com' },
@@ -88,5 +88,12 @@ describe('payer e-mail', () => {
     expect(payerEmailOf({ guardianUid: 'p1' }, parents)).toBe('ema@example.com');
     expect(payerEmailOf({ linkedParentId: 'p2' }, parents)).toBe('');
     expect(payerEmailOf({}, parents)).toBe('');
+  });
+});
+
+describe('„Kooli kulul”', () => {
+  it('a held lesson the school pays is not charged; other held lessons are', () => {
+    expect(isChargeable({ status: 'Toimunud', billingStatus: 'school_covered' }, {})).toBe(false);
+    expect(isChargeable({ status: 'Toimunud' }, {})).toBe(true);
   });
 });

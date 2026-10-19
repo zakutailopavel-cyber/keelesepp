@@ -1279,13 +1279,15 @@ function lessonBillingDispositionPatch(lesson = {}, nextStatus, nowIso) {
     "cancelled_on_time",
     "late_cancel_billable",
     "written_off",
+    "school_covered",
   ]);
   if (!allowed.has(nextStatus)) {
     const error = new Error("unsupported lesson billing status");
     error.status = 400;
     throw error;
   }
-  if (lesson.packageConsumptionStatus === "consumed") {
+  // „Kooli kulul” is allowed on a package lesson: the credit it took is given back by syncLessonTokens
+  if (lesson.packageConsumptionStatus === "consumed" && nextStatus !== "school_covered") {
     const error = new Error("package-covered lesson billing status cannot be changed");
     error.status = 409;
     throw error;
@@ -1295,7 +1297,7 @@ function lessonBillingDispositionPatch(lesson = {}, nextStatus, nowIso) {
     error.status = 409;
     throw error;
   }
-  if (["unbilled", "free"].includes(nextStatus) && lesson.status !== "Toimunud") {
+  if (["unbilled", "free", "school_covered"].includes(nextStatus) && lesson.status !== "Toimunud") {
     const error = new Error(`${nextStatus} requires a completed lesson`);
     error.status = 409;
     throw error;

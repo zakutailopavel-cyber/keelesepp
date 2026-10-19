@@ -1085,7 +1085,7 @@ async function syncLessonPackageConsumption({
       completed
       && (
         String(lesson.invoiceId || "").trim()
-        || ["invoiced", "free", "written_off"].includes(lesson.billingStatus)
+        || ["invoiced", "free", "written_off", "school_covered"].includes(lesson.billingStatus)
       )
     ) {
       const result = {
@@ -10846,7 +10846,8 @@ exports.syncLessonTokens = functions.firestore
   .onWrite(async (change, context) => {
     const before = change.before.exists ? change.before.data() : null;
     const after = change.after.exists ? change.after.data() : null;
-    const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived)]) : "deleted");
+    // „Kooli kulul” (billingStatus school_covered) changes whether the lesson takes a credit, so it is part of the mark
+    const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived), lesson.billingStatus === "school_covered"]) : "deleted");
     if (markOf(before) === markOf(after)) return null;
     // only CRM v2 marks (calendar / lesson panel); the server lesson journal syncs packages itself
     if ((after || before)?.accountingSource !== "crm_v2") return null;

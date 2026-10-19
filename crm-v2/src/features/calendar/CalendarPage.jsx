@@ -5,6 +5,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { isSameTeacher } from '../../utils/teachers.js';
+import { financeApi } from '../../services/firebase/financeApi.js';
 import { classroomsService, groupsService, lessonChangeRequestsService, lessonNotesService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import ChangeRequestsPanel from './ChangeRequestsPanel.jsx';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
@@ -116,7 +117,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -594,6 +595,20 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       setPanelError(error.code === 'permission-denied' ? 'Seda märget ei saa siin muuta: tund on arvel või periood on suletud. Paranda see Finantsides.' : (error.message || 'Parandamine ebaõnnestus.'));
     } finally { setPanelSaving(false); }
   };
+  // „Kooli kulul” (owner 2026-10-19): admin marks a held lesson as paid by the school, or undoes it; server-side audit
+  const setSchoolCovered = async (billingStatus, reason) => {
+    const item = panelItem;
+    if (!item?.record?.id) return false;
+    setPanelSaving(true); setPanelError('');
+    try {
+      await financeRepository.setLessonBillingDisposition(item.record.id, billingStatus, reason);
+      await state.reload();
+      return true;
+    } catch (error) {
+      setPanelError(/closed|suletud/i.test(error.message || '') ? 'Periood on suletud: seda tundi ei saa enam muuta.' : (error.message || 'Muutmine ebaõnnestus.'));
+      return false;
+    } finally { setPanelSaving(false); }
+  };
   const setAttendance = async (studentId, status) => {
     if (!panelGroup || !panelItem?.occurrenceDate) return;
     setAttendanceSaving(studentId); setPanelError('');
@@ -753,6 +768,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           onDeleteLesson={() => setDeleteAsk(panelItem)}
           onChangeMark={(status) => fixMark('change', status)}
           onRemoveMark={() => fixMark('remove')}
+          onSchoolCovered={isAdmin && !panelItem.isGroup ? setSchoolCovered : undefined}
           onCancelGroupLesson={isAdmin && panelItem.isGroup ? cancelGroupOccurrence : undefined}
           onStartLive={startLive}
           startingLive={startingLive}

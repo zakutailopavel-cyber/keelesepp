@@ -3634,3 +3634,35 @@ test("cash box: a teacher takes cash, hands it over, an admin links it to the in
   const clientWrite = await firestoreDocumentRequest(adminToken, "PATCH", "cashLedger/emulator_cash_receipt_0001?updateMask.fieldPaths=amountCents", { fields: { amountCents: { integerValue: "1" } } });
   assert.equal(clientWrite.status, 403);
 });
+
+test("„Kooli kulul”: an admin marks a package lesson as paid by the school and the credit comes back", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  await db.collection("students").doc("student-school-covered").set({ name: "School Covered Student", lessonsSinceInvoice: 0, active: true });
+  const product = await financeRequest(adminToken, "/package-products", { name: "Two lessons", lessonCredits: 2, totalPrice: 60, effectiveFrom: "2026-07-01", requestId: "emulator_school_covered_product_0001" });
+  assert.equal(product.status, 201, JSON.stringify(product.body));
+  const issued = await financeRequest(adminToken, "/student-packages", { studentId: "student-school-covered", packageProductId: "emulator_school_covered_product_0001", issuedAt: "2026-07-01", requestId: "emulator_school_covered_issue_0001" });
+  assert.equal(issued.status, 201, JSON.stringify(issued.body));
+  await db.collection("lessons").doc("lesson-school-covered").set({ studentId: "student-school-covered", studentName: "School Covered Student", date: "2026-07-29", status: "Toimunud", requestedStudentPackageId: "emulator_school_covered_issue_0001" });
+  const consumed = await financeRequest(adminToken, "/lessons/package-consumption/sync", { lessonId: "lesson-school-covered", requestId: "emulator_school_covered_consume_0001" });
+  assert.equal(consumed.body.status, "consumed", JSON.stringify(consumed.body));
+  assert.equal(consumed.body.balanceAfter, 1);
+
+  const noReason = await financeRequest(adminToken, "/lessons/billing-disposition", { lessonId: "lesson-school-covered", billingStatus: "school_covered", reason: "", requestId: "emulator_school_covered_mark_0000" });
+  assert.equal(noReason.status, 400, JSON.stringify(noReason.body));
+  const marked = await financeRequest(adminToken, "/lessons/billing-disposition", { lessonId: "lesson-school-covered", billingStatus: "school_covered", reason: "õpetaja hilines", requestId: "emulator_school_covered_mark_0001" });
+  assert.ok([200, 201].includes(marked.status), JSON.stringify(marked.body));
+  const restored = await financeRequest(adminToken, "/lessons/package-consumption/sync", { lessonId: "lesson-school-covered", requestId: "emulator_school_covered_restore_0001" });
+  assert.equal(restored.body.status, "restored", JSON.stringify(restored.body));
+  assert.equal(restored.body.balanceAfter, 2);
+  const [lessonSnap, auditSnap] = await Promise.all([
+    db.collection("lessons").doc("lesson-school-covered").get(),
+    db.collection("financialAudit").doc("emulator_school_covered_mark_0001").get(),
+  ]);
+  assert.equal(lessonSnap.data().status, "Toimunud");
+  assert.equal(lessonSnap.data().billingStatus, "school_covered");
+  assert.equal(lessonSnap.data().billingDispositionReason, "õpetaja hilines");
+  assert.equal(auditSnap.data().afterBillingStatus, "school_covered");
+});

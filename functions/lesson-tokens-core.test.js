@@ -45,3 +45,8 @@ test('a held lesson and a charged no-show take a credit; a notified absence or a
   assert.equal(lessonTakesToken({ status: 'Puudus_eta', billingWaived: true }), false);
   assert.equal(lessonTakesToken({ status: 'Puudus_p' }), false);
 });
+
+test('„Kooli kulul”: a held lesson the school pays takes no credit', () => {
+  assert.equal(lessonTakesToken({ status: 'Toimunud', billingStatus: 'school_covered' }), false);
+  assert.equal(lessonTakesToken({ status: 'Toimunud', billingStatus: 'free' }), true);
+});

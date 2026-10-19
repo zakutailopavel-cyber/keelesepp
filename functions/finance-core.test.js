@@ -1084,3 +1084,17 @@ test("new tariff assignments close the latest interval without rewriting its pri
     /must start after/,
   );
 });
+
+test("„Kooli kulul”: a held lesson leaves billing, also when a package credit was taken", () => {
+  const held = lessonBillingDispositionPatch({ id: "a", status: "Toimunud" }, "school_covered", "now");
+  assert.equal(held.billingStatus, "school_covered");
+  assert.equal(held.counterDelta, -1);
+  const fromPackage = lessonBillingDispositionPatch({ id: "b", status: "Toimunud", packageConsumptionStatus: "consumed" }, "school_covered", "now");
+  assert.equal(fromPackage.counterDelta, 0);
+  assert.throws(() => lessonBillingDispositionPatch({ status: "Puudus_eta" }, "school_covered", "now"), /completed lesson/);
+  assert.throws(() => lessonBillingDispositionPatch({ status: "Toimunud", invoiceId: "inv" }, "school_covered", "now"), /invoiced/);
+  assert.throws(() => lessonBillingDispositionPatch({ status: "Toimunud", packageConsumptionStatus: "consumed" }, "free", "now"), /package-covered/);
+  const undo = lessonBillingDispositionPatch({ status: "Toimunud", billingStatus: "school_covered" }, "unset", "now");
+  assert.equal(undo.billingStatus, null);
+  assert.equal(undo.counterDelta, 1);
+});

@@ -484,6 +484,7 @@ export default function LessonAccountingPanel({
               ) : (
                 <>
                   <option value="free">Tasuta tund</option>
+                  <option value="school_covered">Kooli kulul — õpetajale arvesse</option>
                   <option value="written_off">Mahakantud</option>
                   <option value="unbilled">Taasta arveldamiseks</option>
                 </>
