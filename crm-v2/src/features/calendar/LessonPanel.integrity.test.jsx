@@ -23,3 +23,14 @@ it('a lesson with its journal entry keeps the delete buttons hidden', () => {
   expect(screen.queryByRole('button', { name: /Kustuta/ })).toBeNull();
   expect(screen.queryByText(/ilma päevikukandeta/)).toBeNull();
 });
+
+it('the student name opens the student card (admin, 2026-10-17)', () => {
+  render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', status: 'Planeeritud', occurrenceDate: '2026-10-05', time: '15:00' }} student={{ id: 'p', name: 'Maria' }} />);
+  expect(screen.getByRole('link', { name: 'Maria' })).toHaveAttribute('href', '/students/p');
+});
+
+it('the lesson panel names the subject (owner chat 2026-10-17)', () => {
+  render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', subject: 'Inglise keel', teacher: 'Kati', status: 'Planeeritud', occurrenceDate: '2026-10-05', time: '15:00' }} student={{ id: 'p', name: 'Maria' }} />);
+  expect(screen.getByLabelText('Õppeaine: Inglise keel')).toHaveTextContent('EN');
+  expect(screen.getByText('Inglise keel')).toBeInTheDocument();
+});

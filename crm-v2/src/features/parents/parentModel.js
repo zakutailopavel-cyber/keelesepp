@@ -47,7 +47,7 @@ export function buildParentRows(parents = [], students = [], invoices = []) {
 export function filterParentRows(rows, { query = '', status = 'all' } = {}) {
   const needle = normalize(query);
   return rows.filter((row) => {
-    if (status !== 'all' && row.parent.parentContactStatus !== status) return false;
+    if (status === 'cash') { if (row.parent.payerMethod !== 'cash') return false; } else if (status !== 'all' && row.parent.parentContactStatus !== status) return false;
     if (!needle) return true;
     return [row.parent.displayName, row.parent.email, row.parent.phone, row.parent.parentContactOwner, row.parent.parentContactNotes, ...row.requestedNames, ...row.children.map((child) => `${child.name} ${child.teacher} ${child.subject}`)]
       .some((value) => normalize(value).includes(needle));

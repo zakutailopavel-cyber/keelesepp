@@ -13,7 +13,7 @@ import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff
 import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
-import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, resolveOccurrenceRecord, shiftDate, toIsoDate } from './calendarView.js';
+import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, toIsoDate } from './calendarView.js';
 import { canMove, planDelete, planMove, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
@@ -30,6 +30,7 @@ import CalendarGoogleChip from '../google-calendar/CalendarGoogleChip.jsx';
 import { isGoogleOwned } from '../google-calendar/googleCalendarModel.js';
 import './calendarUx.css';
 import './calendarV2.css';
+import SubjectTag from './SubjectTag.jsx';
 
 const blankLesson = () => ({ studentId: '', teacherUid: '', subject: '', date: toIsoDate(), time: '09:00', duration: 60, recurring: false, online: false, roomId: '', status: 'Planeeritud' });
 const viewLabels = { day: 'Päev', week: 'Nädal', month: 'Kuu' };
@@ -95,7 +96,7 @@ function LessonButton({ item, compact = false, onClick, onComplete, completing }
     <div className={`lesson-chip-wrap ${compact ? 'lesson-chip-wrap--compact' : ''}`}>
       <button className={`lesson-chip ${compact ? 'lesson-chip--compact' : ''}`} onClick={() => onClick(item)}>
         <time>{item.time}</time>
-        <strong>{item.studentName || 'Õpilane'}</strong>
+        <strong><SubjectTag subject={item.subject} />{item.studentName || 'Õpilane'}</strong>
         {compact ? null : <small>{item.teacher || 'Õpetaja'} · {item.duration} min</small>}
       </button>
       {compact ? null : <QuickAttendanceAction item={item} saving={completing} onComplete={onComplete} />}
@@ -194,7 +195,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const [scheduleEvents, students, groups, lessonRecords] = state.data;
   const studentMap = new Map(students.items.map((student) => [student.id, student]));
-  const events = [...scheduleEvents, ...groupCalendarEvents(groups)];
+  const events = [...withLessonSubjects(withCurrentStudentNames(scheduleEvents, studentMap), studentMap), ...groupCalendarEvents(groups)];
   const filteredEvents = filterCalendarEvents(events, filters);
   const withRecord = (item) => {
     const resolved = resolveOccurrenceRecord(item, lessonRecords);
@@ -623,7 +624,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {list.filter((item) => item.occurrenceDate === date).map((item) => (
         <button type="button" className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher)}`} key={item.occurrenceId} onClick={() => openPanel(item)}>
           <time>{item.time}</time>
-          <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} {item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
+          <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} <SubjectTag subject={item.subject} />{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
           {item.lessonRecordId || item.status === 'Toimunud' ? <Badge tone="success">✓</Badge> : null}
         </button>
       ))}

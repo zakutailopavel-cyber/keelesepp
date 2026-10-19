@@ -2,7 +2,7 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),admin=require('firebase-admin');
 const PROJECT='demo-keelesepp-finance',authHost=process.env.FIREBASE_AUTH_EMULATOR_HOST,dbHost=process.env.FIRESTORE_EMULATOR_HOST,fnHost=process.env.FUNCTIONS_EMULATOR_HOST||'127.0.0.1:5001';
 function safe(){assert.equal(process.env.GCLOUD_PROJECT||process.env.GOOGLE_CLOUD_PROJECT,PROJECT);for(const h of [authHost,dbHost,fnHost])assert.match(h||'',/^(127\.0\.0\.1|localhost):\d+$/);}
-const ux=require('../lesson-builder-ux-core');
+const ux=require('./test-fixtures/legacy/lesson-builder-ux-core');
 function fixture(){let n=0;return ux.lessonTemplate('language60','draft-cloud-test',()=>`act-${n++}`);}
 async function token(role){const r=await fetch(`http://${authHost}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:`cloud-${role}-${Date.now()}@example.com`,password:'emulator-only-password',returnSecureToken:true})});const b=await r.json();assert.ok(b.idToken);const uid=JSON.parse(Buffer.from(b.idToken.split('.')[1],'base64url')).sub;await admin.firestore().doc('users/'+uid).set({role});return b.idToken;}
 async function api(token,body){const r=await fetch(`http://${fnHost}/${PROJECT}/us-central1/lessonDraftsApi`,{method:'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify(body)});return {...await r.json(),status:r.status};}

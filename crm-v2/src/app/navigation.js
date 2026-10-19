@@ -1,4 +1,4 @@
-import { BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, LayoutDashboard, LibraryBig, ListTodo, MessageSquareText, PenLine, Settings, UserRoundCog, UserRoundPlus, Users, Video } from 'lucide-react';
+import { BookOpen, BookOpenCheck, PawPrint, SpellCheck, CalendarDays, CircleDollarSign, GraduationCap, HeartHandshake, Inbox, Languages, Layers3, LayoutDashboard, LibraryBig, ListTodo, MessageSquareText, PenLine, Settings, UserRoundCog, UserRoundPlus, Users, Video, Wallet } from 'lucide-react';
 import { ACCESS } from './accessPolicy.js';
 
 // Grouped so the menu stays short on a laptop screen: own pages first, then teaching, people, communication and money.
@@ -21,6 +21,7 @@ export const navigation = [
   { to: '/messages', label: 'Suhtlus', icon: MessageSquareText, roles: ACCESS.MESSAGES, group: 'Suhtlus ja raha' },
   { to: '/leads', label: 'Päringud', icon: Inbox, roles: ACCESS.LEADS, group: 'Suhtlus ja raha' },
   { to: '/finance', label: 'Finantsid', icon: CircleDollarSign, roles: ACCESS.FINANCE, group: 'Suhtlus ja raha' },
+  { to: '/kassa', label: 'Kassa', icon: Wallet, roles: ACCESS.STAFF, group: 'Suhtlus ja raha' },
 ];
 
 // A student's own short menu (owner 2026-10-12): exactly four things to do — interactive tasks, words, my mistakes and

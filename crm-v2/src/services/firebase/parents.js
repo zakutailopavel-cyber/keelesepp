@@ -84,6 +84,21 @@ export const parentsService = {
     return normalizeParent(parent.id, { ...parent, ...payload });
   },
 
+  // cash payers (owner 2026-10-18): the payer's way of paying, copied to the children's cards, where teachers see it
+  async setPayerMethod(parent, method, children = [], user) {
+    requireAdmin(user);
+    if (!parent?.id) throw new Error('Lapsevanema kontot ei leitud.');
+    const payerMethod = method === 'cash' ? 'cash' : 'bank';
+    const now = new Date().toISOString();
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'users', parent.id), { payerMethod, parentCrmUpdatedAt: now, parentCrmUpdatedBy: user.displayName || user.email || '' }, { merge: true });
+    children.filter((child) => child?.id).forEach((child) => batch.set(doc(db, 'students', child.id), { payerMethod, updatedAt: now }, { merge: true }));
+    writeActivity(batch, db, 'parent.payer_method', `${parent.displayName || parent.email || 'Lapsevanem'} maksab ${payerMethod === 'cash' ? 'sularahas' : 'pangaülekandega'}`, parent, user, { payerMethod, studentIds: children.map((child) => child.id) });
+    await batch.commit();
+    return payerMethod;
+  },
+
   async markReviewed(parent, user) {
     requireAdmin(user);
     if (!parent?.id) throw new Error('Lapsevanema kontot ei leitud.');

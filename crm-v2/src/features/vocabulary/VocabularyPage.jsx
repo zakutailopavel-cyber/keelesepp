@@ -7,6 +7,7 @@ import { lessonsService, lessonWorksheetsService, libraryService, studentsServic
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { deckFromSheets, deckFromWords, lessonDecks } from './deckModel.js';
+import SentenceAnalyzer from './SentenceBreakdown.jsx';
 import StudySession from './StudySession.jsx';
 import TopicsSection from './TopicsSection.jsx';
 import { loadWordsForLessons } from './lessonWords.js';
@@ -115,6 +116,10 @@ export default function VocabularyPage({
             {dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: dueDeck.length >= 4 ? 'learn' : 'cards' })}><Play size={18} /> Korda nüüd</button>
               : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
           </section>
+          <Card>
+            <div className="section-heading"><div><span className="eyebrow">Lause lahti</span><h2>Võta lause lahti</h2></div></div>
+            <SentenceAnalyzer />
+          </Card>
           <TopicsSection catalog={catalog} studentId={students[0]?.id || ''} studentLevel={studentLevel} words={words.filter((word) => word.studentId === students[0]?.id)}
             wordsService={wordsService} user={user} preview={Boolean(preview)} loadWords={loadWords} />
           <Card>

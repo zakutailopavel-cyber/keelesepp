@@ -5,6 +5,7 @@ import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/librar
 import { INDIVIDUAL_TOPIC, pickFromRecord, suggestTopic, topicFromPick, topicLine } from './lessonTopic.js';
 import { isGoogleOwned, lessonSyncState } from '../google-calendar/googleCalendarModel.js';
 import '../google-calendar/googleCalendar.css';
+import SubjectTag from './SubjectTag.jsx';
 
 const STATUS_LABEL = { Toimunud: 'Toimunud', Puudus_eta: 'Puudus (ei teatanud)', Puudus_p: 'Puudus (teatas ette)', Planeeritud: 'Planeeritud' };
 
@@ -105,8 +106,8 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
       <header className="lp-head">
         <div>
           <span className="eyebrow">{new Date(`${item.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })} · {item.time} · {item.duration} min</span>
-          <h2>{item.studentName || 'Õpilane'}{item.isGroup ? <Badge tone="success">Grupp</Badge> : null}</h2>
-          <p>{[item.teacher, student?.level].filter(Boolean).join(' · ')}</p>
+          <h2>{!item.isGroup && student?.id ? <a className="lp-student-link" href={`/students/${encodeURIComponent(student.id)}`} title="Ava õpilase kaart">{item.studentName || student.name || 'Õpilane'}</a> : item.studentName || 'Õpilane'}{item.isGroup ? <Badge tone="success">Grupp</Badge> : null}</h2>
+          <p>{item.subject && !item.isGroup ? <span className="lp-subject"><SubjectTag subject={item.subject} />{item.subject}</span> : null}{[item.teacher, student?.level].filter(Boolean).join(' · ')}</p>
         </div>
         <button type="button" className="lp-close" aria-label="Sulge" onClick={onClose}><X size={18} /></button>
       </header>
