@@ -68,6 +68,8 @@ export default [
     learningJob: "interpret resource use, compare interventions and justify the most effective first investment",
     alt: "Jaan ja Sofia leiavad energiaauditist suurima soojuskao ning valivad soojustuse parandamise.",
     caption: "Pilt 1. Tõhus ressursikasutus algab suurima kao leidmisest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Jaan ja Sofia kogukonnamaja energiaauditil võrdlevad?", "Milline investeering vähendab suurimat soojuskadu ja miks?", "Millise energiasäästu meetme valiksid sina oma kodus ja miks?"],
   },
   {
     id: "est-c1-066-kasuta-1",
