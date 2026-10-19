@@ -12,6 +12,8 @@ export default [
     learningJob: "compare cultural experiences, negotiate preferences and justify a shared choice",
     alt: "Viktor ja Sofia võrdlevad kultuurisündmusi ning valivad mõlemale sobiva kogemuse.",
     caption: "Pilt 1. Kultuurivalik sünnib eri kogemuste võrdlemisest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kultuurisündmusi Viktor ja Sofia võrdlevad?", "Kuidas mõjutavad valikut hind, ligipääs ja huvi?", "Millise sündmuse valiksid sina eri põlvkondade jaoks ja miks?"],
   },
   {
     id: "est-c1-072-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "compare interpretations, cite a concrete artistic detail and defend a nuanced reading",
     alt: "Anna ja Jaan esitavad samast etendusest kaks tõlgendust ning toetavad neid ühise stseenidetailiga.",
     caption: "Pilt 1. Tõlgendus vajab teosest pärit tõendit.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas tõlgendavad Anna ja Jaan sama stseeni erinevalt?", "Millist ühist tõendit nad mõlemad kasutavad?", "Kuidas põhjendaksid sina oma tõlgendust?"],
   },
   {
     id: "est-c1-073-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "explain how language shapes identity, compare generational experiences and find shared belonging",
     alt: "Anna, Viktor ja Sofia ühendavad eri keelekogemused ühise kogukonnatundega.",
     caption: "Pilt 1. Keel seob isikliku identiteedi ja kogukonda kuulumise.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kogemusi lisavad Anna, Viktor ja Sofia mosaiiki?", "Mida tähendab pildil olev ühine kogukonnaring?", "Mis aitab sinu arvates uuel elanikul end kogukonda kuuluvana tunda?"],
   },
   {
     id: "est-c1-074-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "mediate complex information across language levels, preserve meaning and confirm understanding",
     alt: "Anna vahendab Liisi ametliku selgituse Viktorile selgeks tegevusjuhiseks.",
     caption: "Pilt 1. Hea vahendamine säilitab sisu ja teeb selle arusaadavaks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas aitab Anna Viktoril ametlikust infost aru saada?", "Mis muutub, kui keeruline tekst sõnastatakse selge skeemina?", "Millal oled sina pidanud kellelegi midagi keerulist lihtsalt selgitama?"],
   },
   {
     id: "est-c1-075-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "distinguish media genres and reshape the same message for purpose, audience and channel",
     alt: "Sofia ja Liis kohandavad sama sündmuse uudiseks, arvamuslooks ning sotsiaalmeediapostituseks.",
     caption: "Pilt 1. Žanr määrab sõnumi fookuse ja esituse.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas erinevad uudis, arvamuslugu ja sotsiaalmeediapostitus?", "Millise fookuse valiksid igale žanrile?", "Milline žanr jõuab sinu arvates kõige paremini noorteni ja miks?"],
   },
   {
     id: "est-c1-076-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "trace a public claim, separate reaction from evidence and decide whether it should be shared",
     alt: "Sofia ja Jaan peatavad kontrollimata väite jagamise ning otsivad algallikat.",
     caption: "Pilt 1. Avalikus diskursuses eelneb jagamisele allikakontroll.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis juhtub pildil oleva sotsiaalmeediaväitega?", "Miks peatab Sofia jagamise ja mida ta seejärel teeb?", "Kuidas kontrollid sina väidet enne, kui seda jagad?"],
   },
   {
     id: "est-c1-077-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "separate description from evaluation and support a cultural judgement with a concrete example",
     alt: "Anna ja Viktor muudavad isikliku kultuurimulje näitega põhjendatud arvustuseks.",
     caption: "Pilt 1. Arvustus seob hinnangu teosest pärit näitega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised arvustuse osad tahvlil eristuvad?", "Kuidas seob Anna Viktori isikliku mulje argumendiga?", "Mis teeb sinu arvates arvustuse usaldusväärseks?"],
   },
   {
     id: "est-c1-078-kasuta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "transform direct speech into accurate indirect reporting while preserving source and stance",
     alt: "Liis ja Sofia muudavad intervjuu otsekõne täpseks ning neutraalseks refereeringuks.",
     caption: "Pilt 1. Kaudne kõne säilitab allika mõtte ja näitab vahendamist.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas muutub otsene kõne neutraalseks refereeringuks?", "Miks on täpne viide allikale oluline?", "Millised vead tekivad sageli, kui kellegi sõnu edasi antakse?"],
   },
   {
     id: "est-c1-079-kasuta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "compare formal and informal variants, detect style mixing and choose context-appropriate forms",
     alt: "Anna ja Jaan esitavad sama kultuurisõnumi ametlikus ning vabas stiilis.",
     caption: "Pilt 1. Stiil muutub olukorra järgi, põhisõnum jääb samaks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas muutub sama sõnum ametlikus kirjas ja vabas vestluses?", "Mis jääb mõlemas versioonis samaks?", "Millist stiilisegu tuleks sinu arvates vältida?"],
   },
   {
     id: "est-c1-080-kasuta-1",
