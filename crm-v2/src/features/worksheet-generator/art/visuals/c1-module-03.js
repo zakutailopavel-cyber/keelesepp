@@ -12,6 +12,8 @@ export default [
     learningJob: "Eristada teenuse fakte ja kliendikogemust ning sõnastada professionaalne vastus konkreetsete muudatustega.",
     alt: "Liis ja Markus parandavad keelekooli kolmest probleemist koosnevat klienditeekonda; lime rada ühendab lahendused.",
     caption: "Hea teenusevastus tunnistab vea ja seob selle mõõdetava parandusega.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised kolm kokkupuutepunkti on pildil katki ja kuidas neid parandatakse?", "Milline neist mõjutaks sinu kui kliendi kogemust kõige rohkem?", "Kuidas saaks keelekool mõõta, kas parandused töötasid?"],
   },
   {
     id: "est-c1-022-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "compare price, total cost, conditions and risk, then justify the most suitable package for an older neighbour",
     alt: "Sofia aitab Viktoril võrrelda kolme elektripaketi hinda, tingimusi ja riski.",
     caption: "Pilt 1. Otsus arvestab hinda, tingimusi ja riski.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme elektripaketti Sofia ja Viktor võrdlevad?", "Millist paketti valiksid sina ja millise riski oled valmis võtma?", "Miks ei tasu valida paketti ainult algushinna järgi?"],
   },
   {
     id: "est-c1-023-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "distinguish normal wear from damage and negotiate a justified compromise using contract terms and evidence",
     alt: "Anna ja Markus võrdlevad korteri kahjustusi lepingu ning sissekolimise fotodega.",
     caption: "Pilt 1. Vaidluses aitavad täpne tingimus ja tõend.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Markus korteri üleandmisel võrdlevad?", "Millise nõude tunnistab Anna põhjendatuks ja miks?", "Kuidas aitavad fotod ja leping vaidlust lahendada?"],
   },
   {
     id: "est-c1-024-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "construct a fact-based response that recognises the defect, offers a concrete remedy and preserves the customer relationship",
     alt: "Liis ja Jaan lahendavad lekkiva kohvimasina pretensiooni tõendi, lahenduse ja tähtaja abil.",
     caption: "Pilt 1. Selge lahendus aitab vaidluse lõpetada.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised tõendid on pildil laual ja milleks neid vaja on?", "Mida võib klient seadusega nõuda, kui toode on vigane?", "Kuidas vastaksid müüjana kliendile nii, et ta jääks rahule?"],
   },
   {
     id: "est-c1-025-kasuta-1",
@@ -60,6 +68,8 @@ export default [
     learningJob: "interpret the loan figures, explain the total cost and risk, and make a reasoned recommendation",
     alt: "Sofia ja Markus jälgivad laenuteekonda algsummast kogumakseni ning võrdlevad seda säästupuhvriga.",
     caption: "Pilt 1. Laenu tegelik hind selgub kogumaksest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas muutub laenusumma pildil maksete kaudu suuremaks kogusummaks?", "Kas sina võtaksid auto ostmiseks laenu või kasutaksid hädaabifondi? Miks?", "Mida peaks inimene enne laenulepingu allkirjastamist kontrollima?"],
   },
   {
     id: "est-c1-026-kasuta-1",
@@ -72,6 +82,8 @@ export default [
     learningJob: "separate justified and disputed parts of an insurance decision, then judge whether an appeal is worthwhile",
     alt: "Liis ja Markus uurivad kindlustusotsuse osi ning võrdlevad vaidlustatavat tingimust fototõendiga.",
     caption: "Pilt 1. Kindlustusotsust hinnatakse poliisi ja tõendite järgi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised kolm kihti on pildil kindlustuse otsuse kohta?", "Kumba osa keeldumisest peaks Markus sinu arvates vaidlustama?", "Kuidas kirjutada kindlustusseltsile vaie nii, et see oleks veenev?"],
   },
   {
     id: "est-c1-027-kasuta-1",
@@ -84,6 +96,8 @@ export default [
     learningJob: "argue for a repair-and-sharing centre with evidence while acknowledging costs and counterarguments",
     alt: "Anna ja Viktor näitavad avalikul arutelul paranduse, vahetuse ja laenutuse ringi.",
     caption: "Pilt 1. Parandus- ja jagamiskeskus hoiab esemed kasutuses.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas liiguvad asjad pildil kasutatud asjade keskuse ringteel?", "Milliseid asju oleksid sina valmis parandama, vahetama või laenutama?", "Kes võiks sellise keskuse vastu olla ja mida talle vastata?"],
   },
   {
     id: "est-c1-028-kasuta-1",
@@ -96,6 +110,8 @@ export default [
     learningJob: "sequence events and choose past-tense viewpoints that create a coherent newsletter story",
     alt: "Anna ja Markus korrastavad uudisloo ajajoont varasemast planeerimisest praeguse tulemuseni.",
     caption: "Pilt 1. Ajavormid näitavad, mis juhtus enne ja mis on tähtis praegu.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on pildil ajajoonel varasem, mis järjestikune ja mis praegu oluline?", "Miks on uudisloos õige ajavormi valik tähtis?", "Too näide, kuidas vale ajavorm muudab lause tähendust."],
   },
   {
     id: "est-c1-029-kasuta-1",
@@ -108,6 +124,8 @@ export default [
     learningJob: "distinguish fact, reported information and uncertainty, then choose an appropriate mood and polite inquiry",
     alt: "Liis ja Sofia muudavad kinnitamata tehaseuudise ettevaatlikuks ning koostavad järelepärimise.",
     caption: "Pilt 1. Kõneviis näitab, kui kindel info on.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis vahe on pildil kuulujutul ja viisakal järelepärimisel?", "Kuidas muudab kõneviis kinnitamata info lugeja jaoks ausaks?", "Millal peab ajakirjanik kirjutama „väidetavalt” või „olevat”?"],
   },
   {
     id: "est-c1-030-kasuta-1",
@@ -120,5 +138,7 @@ export default [
     learningJob: "compare progress-check results and turn one grammar gap into a concrete study plan for the next module",
     alt: "Anna ja Liis vaatavad progressikaarti ning valivad ajavormide ja kõneviiside järgmise harjutuse.",
     caption: "Pilt 1. Progressikontroll suunab järgmise õpisammuni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised rajad on pildil valmis ja mis vajab veel harjutamist?", "Milline oskus on sinu jaoks moodulis 3 kõige rohkem arenenud?", "Mis on sinu järgmine konkreetne samm ja kuidas sa seda kontrollid?"],
   },
 ];

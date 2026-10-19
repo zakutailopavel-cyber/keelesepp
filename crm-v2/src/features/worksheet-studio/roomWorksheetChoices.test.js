@@ -13,6 +13,19 @@ describe('worksheets for the lesson board', () => {
     expect(filterChoices(choices, { level: 'B1', query: 'kasuta' }).map((choice) => choice.title)).toEqual(['Kasuta 2']);
   });
 
+  it('orders a level by lesson number, not by the module title', () => {
+    const phases = { discover: { publishedVersion: 1 } };
+    const choices = curriculumSheetChoices([
+      { id: 'l90', title: 'Lõpphindamine — B1', level: 'B1', roadmapModuleTitle: 'Lõpphindamine', roadmapLessonNumber: 90, worksheetPhases: phases },
+      { id: 'l16', title: 'Ajamäärused', level: 'B1', roadmapModuleTitle: 'Aeg, plaanid ja kohustused', roadmapLessonNumber: 16, worksheetPhases: phases },
+      { id: 'l56', title: 'Ilm ja aastaajad', level: 'B1', roadmapModuleTitle: 'Ilm ja loodus', roadmapLessonNumber: 56, worksheetPhases: phases },
+      { id: 'l5', title: 'Kontroll 1', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapLessonNumber: 5, worksheetPhases: phases },
+      { id: 'l6', title: 'Kuues', level: 'B1', roadmapModuleTitle: 'Kodu ja pere', roadmapLessonNumber: 6, worksheetPhases: phases },
+    ]);
+    expect(choices.map((choice) => choice.number)).toEqual([5, 6, 16, 56, 90]);
+    expect(nextLessonSuggestion({ curriculum: choices, lessonRecords: [{ topicLessonId: 'l5', date: '2026-10-18', status: 'Toimunud' }] }).lessonId).toBe('l6');
+  });
+
   it('offers the student\'s unfinished sheets that are not in this room yet', () => {
     const own = studentSheetChoices([
       { id: 'x', title: 'Kodutöö', status: 'new', worksheetDoc: doc, dueDate: '2026-10-12' },

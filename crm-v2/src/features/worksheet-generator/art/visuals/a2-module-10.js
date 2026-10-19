@@ -12,6 +12,8 @@ export default [
     learningJob: "compare leisure activities and choose one with a reason",
     alt: "Anna ja Sofia valivad jalgrattasõidu, lugemise ja spordi vahel.",
     caption: "Pilt 1. Vaba aja tegevuse valimine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis asjad on Anna ja Sofia ees?", "Mida nad valivad?", "Mida sina vabal ajal teed?"],
   },
   {
     id: "a2-047-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "say which hobbies each person likes or dislikes and compare preferences",
     alt: "Jaan ja Viktor räägivad oma erinevatest hobidest.",
     caption: "Pilt 1. Mis mulle vabal ajal meeldib?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on Jaani hobi?", "Mida Viktor käes hoiab?", "Mis sulle meeldib ja mis ei meeldi?"],
   },
   {
     id: "a2-048-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "respond politely to an invitation and explain acceptance or refusal",
     alt: "Sofia kutsub Annat kontserdile ja Anna kontrollib oma kalendrit.",
     caption: "Pilt 1. Kutse kontserdile.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuhu Sofia Annat kutsub?", "Mida Anna vaatab?", "Kuidas sa ütled kutsele jah või ei?"],
   },
   {
     id: "a2-049-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "extract event time, place and price clues and recommend the event",
     alt: "Jaan tutvustab Annale laupäevase töötoa piletit.",
     caption: "Pilt 1. Laupäevase töötoa valimine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Jaan Annale näitab?", "Mida Anna võrdleb?", "Mis üritusele sa tahaksid minna?"],
   },
   {
     id: "a2-050-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "compare leisure preferences and state likes and dislikes",
     alt: "Sofia ja Viktor võrdlevad pargis oma vaba aja eelistusi.",
     caption: "Pilt 1. Vaba aja kontrollülesanne.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus Sofia ja Viktor istuvad?", "Mida neile meeldib teha?", "Räägi paarilisele oma lemmikhobist."],
   },
 ];

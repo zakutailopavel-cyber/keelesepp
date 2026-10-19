@@ -12,6 +12,8 @@ export default [
     learningJob: "võrrelda kolme ostuvarianti hinna, kvaliteedi, garantii ja kasutuskulu järgi ning põhjendada valikut",
     alt: "Anna ja Markus võrdlevad poes kolme pesumasina hinda, kvaliteeti, garantiid ning kasutuskulu.",
     caption: "Pilt 1. Ostuotsus ei sõltu ainult hinnast.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Markus kodumasinapoes võrdlevad?", "Milliseid kulusid peale ostuhinna näitavad sümbolid?", "Mille järgi valiksid sina pesumasina ja miks?"],
   },
   {
     id: "b1b2-052-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "tuvastada reklaamis tunde, ajasurve ja sotsiaalse tõendi võtted ning arutada nende mõju ostuotsusele",
     alt: "Sofia ja Jaan analüüsivad telefonireklaami kolme mõjutamisvõtet.",
     caption: "Pilt 1. Millise võttega reklaam ostjat mõjutab?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kolme võtet telefonireklaam kasutab?", "Kuidas mõjutavad tunne, ajasurve ja grupp ostjat?", "Millist reklaami oled hiljuti näinud ja kuidas see sind mõjutas?"],
   },
   {
     id: "b1b2-053-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "kirjeldada tarbijaprobleemi täpselt, esitada tõendid ja sõnastada konkreetne nõue",
     alt: "Anna esitab Liisile kahjustatud diivani kohta tõenditega kaebuse ja soovitud lahenduse.",
     caption: "Pilt 1. Probleem, tõend ja selge nõue.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis on Anna kaebuse põhjus?", "Millised kolm osa on kaebusekaardil ja miks on tõendid olulised?", "Mida sina klienditeenindajale ütleksid ja millist lahendust nõuaksid?"],
   },
   {
     id: "b1b2-054-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "võrrelda kohe saadavat kasu ja tuleviku turvalisust ning põhjendada isiklikku rahalist valikut",
     alt: "Markus ja Liis kaaluvad kohe saadava preemia ning tulevikus kasvava säästu eeliseid.",
     caption: "Pilt 1. Praegune vajadus või tuleviku turvalisus?",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kahte preemiavalikut Markus ja Liis võrdlevad?", "Mida näitab keskel olev kaal?", "Kas sina kasutaksid preemia kohe või säästaksid selle? Miks?"],
   },
   {
     id: "b1b2-055-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "jagada raha püsikuludeks, vajalikeks ostudeks ja tagavaraks ning otsustada, mida osta uut või kasutatult",
     alt: "Anna ja Sofia koostavad esimese üürikorteri eelarve ning eristavad vajalikud ja mittevajalikud ostud.",
     caption: "Pilt 1. Esimese kodu eelarve ja ostuvalikud.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kulusid Sofia esimese üürikorteri juures planeerib?", "Kuidas jagunevad vahendid eelarvetahvlil?", "Milline ost on sinu jaoks vajalik ja milline ainult ahvatlev?"],
   },
 ];

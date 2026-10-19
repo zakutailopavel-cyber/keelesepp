@@ -18,7 +18,7 @@ function rng(seedText) {
 const shuffle = (list, random) => list.map((x) => [random(), x]).sort((a, b) => a[0] - b[0]).map(([, x]) => x);
 
 // tasks that work on another sheet without their lesson's context (no long writing, no role play, no planning)
-const REVIEW_TYPES = new Set(['vocab', 'match', 'manymatch', 'categorize', 'crossword', 'translation', 'gaps', 'wordforms', 'transformation', 'errorfix', 'wordorder', 'choice', 'truefalse', 'cloze', 'reading', 'listening', 'dictation', 'speaking', 'profiles']);
+const REVIEW_TYPES = new Set(['vocab', 'match', 'manymatch', 'categorize', 'crossword', 'translation', 'gaps', 'wordforms', 'transformation', 'errorfix', 'wordorder', 'choice', 'truefalse', 'cloze', 'formtext', 'insertion', 'reading', 'listening', 'dictation', 'speaking', 'profiles']);
 // the order of the sheet and how many of each skill
 const PLAN = [['sõnavara', 2], ['lugemine', 1], ['kuulamine', 1], ['grammatika', 5], ['rääkimine', 1]];
 const ORDER = ['sõnavara', 'lugemine', 'kuulamine', 'grammatika', 'rääkimine'];

@@ -113,8 +113,10 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   useEffect(() => {
     if (!focusId) return;
     const el = canvasRef.current?.querySelector(`.ws-page [data-block="${focusId}"]`);
-    if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  }, [focusId]);
+    // on the board the board moves to the task (scrolling would shift the sheet inside it, see StudentBoard)
+    if (el && board) el.dispatchEvent(new globalThis.CustomEvent('ws-reveal', { bubbles: true }));
+    else if (el && typeof el.scrollIntoView === 'function') el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusId, board]);
 
   const stepped = useMemo(() => (review ? { doc, hidden: 0 } : stepView(doc, liveStep)), [doc, liveStep, review]);
   const shownMarks = useMemo(() => (review ? {} : shownResults(doc, answers, liveShown)), [doc, answers, liveShown, review]);

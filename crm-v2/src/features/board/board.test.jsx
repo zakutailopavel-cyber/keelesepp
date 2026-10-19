@@ -4,7 +4,7 @@ import { vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
-import { textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
+import { sheetBoardTitle, textBox, textBoxOf, TEXT_MAX_WIDTH, arrowHead, clampPoint, clampView, fitPage, fitView, movable, pageBounds, screenToWorld, shapeFromDrag, zoomAt, wheelView, pinchView, backgroundOf, copyData, growBounds, isMarker, markerColor, movePatch, resizePatch, scrollbarFor, scrollView, teacherMaterial, touchesBox, unionBounds } from './boardModel.js';
 
 globalThis.PointerEvent = globalThis.PointerEvent || class PointerEvent extends globalThis.MouseEvent {};
 
@@ -280,6 +280,101 @@ describe('StudentBoard with several lesson worksheets', () => {
     expect(screen.getByRole('tab', { name: /Tööleht: Avasta/ })).toHaveClass('is-worksheet');
     expect(screen.getByRole('tab', { name: /Tööleht: Harjuta/ })).toHaveClass('is-worksheet');
     expect(service.addPage).not.toHaveBeenCalled();
+  });
+});
+
+describe('the worksheet scrollbar', () => {
+  const bounds = { x1: 0, y1: 0, x2: 900, y2: 2000 };
+  it('shows where the sheet is and scrolls it within its height', () => {
+    expect(scrollbarFor({ x: 0, y: 0, scale: 1 }, { x1: 0, y1: 0, x2: 900, y2: 300 }, 400)).toBeNull();
+    const top = scrollbarFor({ x: 0, y: 0, scale: 1 }, bounds, 500);
+    expect(top).toMatchObject({ max: 1500, scrolled: 0, top: 0, thumb: 125 });
+    const bottom = scrollbarFor({ x: 0, y: -1500, scale: 1 }, bounds, 500);
+    expect(bottom.top).toBe(bottom.track);
+    expect(scrollView({ x: 7, y: 0, scale: 1 }, bounds, 500, 600)).toEqual({ x: 7, y: -600, scale: 1 });
+    expect(scrollView({ x: 0, y: 0, scale: 1 }, bounds, 500, 99999).y).toBe(-1500);
+    expect(scrollView({ x: 0, y: -400, scale: 1 }, bounds, 500, -50).y).toBe(-0);
+  });
+
+  it('a student drags the bar with the mouse to reach the questions below', async () => {
+    const rect = vi.spyOn(globalThis.Element.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, left: 0, top: 0, right: 900, bottom: 400, width: 900, height: 400 });
+    try {
+      const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+      const student = { uid: 's1', displayName: 'Polina', roles: ['student'] };
+      render(<StudentBoard studentId="s1" user={student} variant="room" service={service} worksheets={[{ id: 'as-1', title: 'Avasta', content: <div>Küsimused</div> }]} />);
+      const thumb = await screen.findByTestId('worksheet-scroll-thumb');
+      const sheet = () => document.getElementById('sb-worksheet').style.transform;
+      const before = sheet();
+      fireEvent.pointerDown(thumb, { clientY: 10, pointerId: 1 });
+      fireEvent.pointerMove(thumb, { clientY: 200, pointerId: 1 });
+      fireEvent.pointerUp(thumb, { pointerId: 1 });
+      expect(sheet()).not.toBe(before);
+      expect(Number(screen.getByRole('scrollbar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
+    } finally { rect.mockRestore(); }
+  });
+});
+
+describe('the ⋯ menu of a board page', () => {
+  const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
+  it('renames, deletes and gives the open page to the student', async () => {
+    const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', status: 'active' }] }), deletePage: vi.fn(async () => {}) };
+    const onAssignPage = vi.fn();
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} onAssignPage={onAssignPage} />);
+    expect(screen.queryByRole('button', { name: 'Lehe toimingud' })).toBeNull();
+    fireEvent.click(screen.getByRole('tab', { name: 'Tund 3' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Määra õpilasele õppimiseks' }));
+    expect(onAssignPage).toHaveBeenCalledWith({ id: 'pg1', title: 'Tund 3' });
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Nimeta ümber' }));
+    expect(screen.getByRole('textbox', { name: 'Lehe nimi' })).toHaveValue('Tund 3');
+    fireEvent.keyDown(screen.getByRole('textbox', { name: 'Lehe nimi' }), { key: 'Escape' });
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Kustuta leht' }));
+    expect(confirm).toHaveBeenCalled();
+    await waitFor(() => expect(service.deletePage).toHaveBeenCalledWith('s1', 'pg1'));
+    expect(screen.getByRole('tab', { name: 'Tahvel' })).toHaveAttribute('aria-selected', 'true');
+    confirm.mockRestore();
+  });
+
+  it('a student may only rename', () => {
+    const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', status: 'active' }] }), deletePage: vi.fn() };
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={service} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Tund 3' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Lehe toimingud' }));
+    expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Nimeta ümber']);
+  });
+});
+
+describe('the student scrolls the sheet', () => {
+  it('a scroll of the stage itself (focused field) becomes a move of the view and the stage stays unscrolled', async () => {
+    const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+    const worksheets = [{ id: 'as-1', title: 'Avasta', content: <div>Avasta sisu</div> }];
+    const { container } = render(<StudentBoard studentId="s1" user={user} variant="room" service={service} worksheets={worksheets} initialPageId="pg-a" />);
+    await screen.findByText('Avasta sisu');
+    const stage = container.querySelector('.sb-stage');
+    const underlay = container.querySelector('.sb-underlay');
+    const before = underlay.style.transform;
+    stage.scrollTop = 120;
+    act(() => { stage.dispatchEvent(new globalThis.Event('scroll')); });
+    expect(stage.scrollTop).toBe(0);
+    expect(underlay.style.transform).not.toBe(before);
+  });
+});
+
+describe('sheets of one lesson that share a title', () => {
+  it('get a page each (the phase is in the title); the old shared page stays with the newest sheet', async () => {
+    expect(sheetBoardTitle({ title: 'Kontroll 1', phase: 'practice' })).toBe('Kontroll 1 · Harjuta');
+    expect(sheetBoardTitle({ title: 'Kontroll 1 — Harjuta', phase: 'practice' })).toBe('Kontroll 1 — Harjuta');
+    expect(sheetBoardTitle({ worksheetDoc: { meta: { title: 'Vana' } } })).toBe('Vana');
+    const service = { ...fakeService({ pages: [{ id: 'old', title: 'Tööleht: Kontroll 1' }] }), addWorksheetPage: vi.fn(async () => 'new') };
+    const worksheets = ['transfer', 'practice', 'discover'].map((phase, index) => ({ id: `as-${index}`, title: sheetBoardTitle({ title: 'Kontroll 1', phase }), legacyTitle: 'Kontroll 1', content: <div>{phase} sisu</div> }));
+    const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} worksheets={worksheets} />);
+    expect(await screen.findByText('transfer sisu')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Tööleht: Kontroll 1/ })).toHaveClass('is-worksheet');
+    expect(service.addWorksheetPage).not.toHaveBeenCalled();
   });
 });
 

@@ -80,19 +80,25 @@ export function visualsFor(lessonId, phase, visuals = ALL_VISUALS) {
   return visuals.filter((visual) => visualLessonId(visual) === lessonId && (!phase || visual.phase === phase));
 }
 
-// Picture questions beside the illustration (a brief may give its own `prompts`), by phase, simple A2 Estonian.
+// Picture questions beside the illustration. A brief gives its own `prompts` (owner 2026-10-18: „вопросы рядом с
+// картинкой никак не связаны с ней” — every picture had the same three A2 questions). Without them: at A2 the simple
+// phase questions, from B1 on questions that tie the picture to the lesson; both are marked `generic` and a v3 sheet
+// does not pass with them (quality.js).
 const PHASE_PROMPTS = {
   discover: ['Kes on pildil?', 'Kus nad on?', 'Mis toimub?'],
   practice: ['Mida inimesed teevad?', 'Mida nad ütlevad?', 'Kirjelda pilti 2–3 lausega.'],
   transfer: ['Mis olukord see on?', 'Mida sina selles olukorras teeksid?', 'Räägi paarilisega.'],
 };
+const LEVEL_PROMPTS = ['Mida pilt näitab? Nimeta kaks detaili.', 'Kuidas on pilt seotud tunni teemaga?', 'Kas oled pildiallkirjaga nõus? Miks?'];
 const ART_SPAN = 8;
 const PROMPT_SPAN = 4;
 
 // the „Vaata pilti” card that sits beside the picture: the picture's learning job for the learner
 export function artPromptBlock(visual) {
-  const prompts = Array.isArray(visual.prompts) && visual.prompts.length ? visual.prompts : PHASE_PROMPTS[visual.phase] || PHASE_PROMPTS.discover;
-  return { id: `artq_${visual.id}`, type: 'notice', span: PROMPT_SPAN, width: 'half', data: { title: 'Vaata pilti', lines: prompts.join('\n'), artFor: visual.id } };
+  const own = Array.isArray(visual.prompts) && visual.prompts.length;
+  const level = artLevel(visualLessonId(visual));
+  const prompts = own ? visual.prompts : level && level !== 'a2' ? LEVEL_PROMPTS : PHASE_PROMPTS[visual.phase] || PHASE_PROMPTS.discover;
+  return { id: `artq_${visual.id}`, type: 'notice', span: PROMPT_SPAN, width: 'half', data: { title: 'Vaata pilti', lines: prompts.join('\n'), artFor: visual.id, ...(own ? {} : { generic: true }) } };
 }
 
 // the worksheet image block for one illustration (artId marks it so it is never added twice); ⅔ of the row

@@ -46,6 +46,26 @@ export const SPLITTABLE = Object.freeze({
       };
     },
   },
+  // a listening task: its gap sentences; the audio bar stays with the first part
+  listening: {
+    items: '.ws-listen .ws-gaps > li',
+    count: (d) => lineList(d.sentences).length,
+    slice: (d, from, to) => ({ data: { ...d, sentences: lineList(d.sentences).slice(from, to).join('\n'), audio: from === 0 ? d.audio : null, partOf: from > 0 }, start: from }),
+  },
+  // free writing: its ruled lines, on paper only (owner 2026-10-18: a 12-line task took a page of its own)
+  writing: {
+    printOnly: true,
+    items: (card, block) => {
+      const area = card.querySelector('textarea');
+      const n = Number(block.data?.lines) || 7;
+      if (!area) return [];
+      const r = area.getBoundingClientRect();
+      const step = r.height / n;
+      return Array.from({ length: n }, (_, i) => ({ top: r.top + i * step, bottom: r.top + (i + 1) * step }));
+    },
+    count: (d) => Number(d.lines) || 7,
+    slice: (d, from, to) => ({ data: { ...d, lines: to - from, img: from === 0 ? d.img : null, partOf: true }, start: 0 }),
+  },
   guidedletter: {
     printOnly: true,
     // one item per ruled line of the text field

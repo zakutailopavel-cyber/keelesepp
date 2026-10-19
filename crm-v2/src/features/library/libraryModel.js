@@ -30,6 +30,18 @@ export const PHASE_FILTERS = Object.freeze({
   ready: 'Kõik valmis',
 });
 
+// a date as an ISO string: Firestore keeps some lessons' updatedAt as a Timestamp, which String() turns into
+// „Timestamp(seconds=…)” — that sorted after every ISO date and hid the date in the library list
+export function isoDate(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value.toDate === 'function') return value.toDate().toISOString();
+  const seconds = value.seconds ?? value._seconds;
+  if (Number.isFinite(seconds)) return new Date(seconds * 1000).toISOString();
+  if (value instanceof Date) return value.toISOString();
+  return '';
+}
+
 export function lessonPhases(source) {
   const summary = source?.worksheetPhases || {};
   return LESSON_PHASES.map(({ id, label }) => {
@@ -44,7 +56,7 @@ export function lessonPhases(source) {
       title: String(entry.title || ''),
       version,
       publishedVersion,
-      updatedAt: String(entry.updatedAt || ''),
+      updatedAt: isoDate(entry.updatedAt),
       newerDraft: Boolean(publishedVersion) && entry.status !== 'published' && version > publishedVersion,
     };
   });
@@ -138,7 +150,7 @@ function libraryItem(kind, source) {
   else if (!item.moduleNumber) item.moduleNumber = 800;
   item.lessonNumber = Number(source.roadmapLessonNumber) || Number(source.order) || 0;
   item.phases = lessonPhases(source);
-  item.updatedAt = [String(source.worksheetDocUpdatedAt || source.updatedAt || source.createdAt || ''), ...item.phases.map((phase) => phase.updatedAt)].sort().at(-1);
+  item.updatedAt = [isoDate(source.worksheetDocUpdatedAt || source.updatedAt || source.createdAt), ...item.phases.map((phase) => phase.updatedAt)].sort().at(-1);
   item.authorUid = source.authorUid || '';
   item.authorName = source.authorName || '';
   item.fileCount = (source.files || []).length;
