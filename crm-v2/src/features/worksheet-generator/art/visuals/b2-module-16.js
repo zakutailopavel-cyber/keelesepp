@@ -12,6 +12,8 @@ export default [
     learningJob: "ühendada kolimispakkumise vastandused, tagajärjed ja tingimused loogilisteks liitlauseteks",
     alt: "Liis ja Markus seovad Tartusse kolimise plussid, tagajärjed ja tingimused üheks otsuseks.",
     caption: "Pilt 1. Sidendid näitavad, kuidas keeruka otsuse mõtted on seotud.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millist pakkumist Liis ja Markus arutavad?", "Milliseid seoseid näitavad pildikaardid: vastandus, tagajärg ja tingimus?", "Mis tingimustel oleksid sina valmis töö pärast teise linna kolima?"],
   },
   {
     id: "b1b2-077-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "jutustada täiskasvanu keeleõppe lugu, hoides keerukates lausetes tegusõna õiges kohas",
     alt: "Anna jutustab Igorile ajajoone abil oma teest eesti keeleni.",
     caption: "Pilt 1. Selge sõnajärg aitab õppimise teekonda jälgida.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised etapid on Anna ajajoonel?", "Miks paikneb tegevuse ikoon kohe ajamääruse järel?", "Jutusta oma keeleõppe teest kolme etapi kaudu."],
   },
   {
     id: "b1b2-078-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "kirjeldada protsessi kesksõnade ja des-vormi abil lühemalt ning täpsemalt",
     alt: "Anna ja Markus jälgivad juuretisest valminud rukkileiva etappe taluköögis.",
     caption: "Pilt 1. Juuretisest valmib üleöö kerkinud ja ahjus küpsetatud leib.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised etapid on rukkileiva valmistamisel?", "Mida tehti eelmisel päeval ja mida tehakse täna?", "Kirjelda üht toitu, mida su peres valmistatakse, umbisikulises tegumoes."],
   },
   {
     id: "b1b2-079-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "ühendada tehtud otsuse umbisikuline kirjeldus, kolleegide kaudne kõne ja tingimuslik lahendus",
     alt: "Liis ja Markus koostavad tasulise parkimise otsusele töötajate arvamusi arvestava kompromissi.",
     caption: "Pilt 1. Otsus, teiste arvamused ja tingimuslik ettepanek moodustavad terviku.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millest Liis ja Markus parkla teate kohta räägivad?", "Mis vahe on tehtud otsusel, kolleegide arvamustel ja kompromissil?", "Kuidas annaksid sina edasi kolleegide erinevaid arvamusi juhile?"],
   },
   {
     id: "b1b2-080-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "tõlgendada vahehindamise profiili ja kavandada kirjutamise ning rääkimise viimane õpietapp",
     alt: "Anna ja Liis koostavad vahehindamise põhjal kursuse viimase etapi harjutusplaani.",
     caption: "Pilt 1. Viimane õpietapp keskendub kirjutamisele ja rääkimisele.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised oskused on Annal tugevad ja millised vajavad harjutamist?", "Milliseid kahte sammu paneb Anna kalendrisse?", "Milliseid kahte sammu planeerid sina enne lõpphindamist?"],
   },
 ];

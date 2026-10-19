@@ -12,6 +12,8 @@ export default [
     learningJob: "ehitada lõppenud sündmustest sidus lihtminevikulugu",
     alt: "Markus kaotab metsas koera, otsib teda ja saab Viktori abil koera tagasi.",
     caption: "Pilt 1. Kadunud koera lugu lihtminevikus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Jutusta pildi järgi, mis Markusega juhtus: kõigepealt, siis, lõpuks.", "Mida tegi Markus, kui koer põgenes? Kes teda aitas?", "Kas sinuga on juhtunud midagi sarnast? Mis juhtus?"],
   },
   {
     id: "b1b2-012-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "eristada ajata kogemust ja kindlal ajal toimunud sündmust",
     alt: "Anna üldised kogemused viivad ühe konkreetse mäkketõusu näiteni.",
     caption: "Pilt 1. Täismineviku kogemus ja lihtmineviku näide.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid kogemusi on Annal elus olnud? Mida ta on teinud?", "Mis juhtus ühel konkreetsel päeval mäel?", "Mida sina oled elus teinud, mida paljud ei ole teinud?"],
   },
   {
     id: "b1b2-013-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "näidata enneminevikuga, mis oli juhtunud enne teist minevikusündmust",
     alt: "Liis seab kadunud maali, valvuri, koristaja ja jalajäljed täpsele ajajoonele.",
     caption: "Pilt 1. Muuseumimüsteeriumi varasem ja hilisem tegevus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Pane sündmused õigesse järjekorda: mis oli juhtunud enne, mis juhtus pärast?", "Kus oli valvur siis, kui maal kadus?", "Kuidas varas sinu arvates muuseumist lahkus? Põhjenda pildi järgi."],
   },
   {
     id: "b1b2-014-avasta-1",
@@ -48,5 +54,7 @@ export default [
     learningJob: "muuta lihtne kogemus olukorra, tunnete, põhjuse ja tagajärjega meeldejäävaks looks",
     alt: "Markus ja Viktor töötavad talus ning vaatavad hiljem koos tähesadu.",
     caption: "Pilt 1. Meeldejääv öö vanaisa talus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Miks ei tahtnud Markus alguses tallu minna?", "Mis muutis tema meeleolu?", "Milline kogemus on sinu elus olnud ootamatult ilus?"],
   },
 ];

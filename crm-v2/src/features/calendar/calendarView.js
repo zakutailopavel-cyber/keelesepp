@@ -64,6 +64,15 @@ export function resolveOccurrenceRecord(item, records = []) {
   return { ...item, recordProblem: candidates.length > 1 ? 'duplicate' : RESULT_STATUSES.has(item.status) ? 'missing' : '' };
 }
 
+// a lesson keeps the student's name from the day it was planned; the calendar shows the name on the student's card
+// now, so a renamed student is shown with the new name (the stored name stays as a fallback for a deleted card)
+export function withCurrentStudentNames(events, studentMap) {
+  return events.map((event) => {
+    const name = event.studentId && !event.isGroup ? String(studentMap.get(event.studentId)?.name || '').trim() : '';
+    return name && name !== event.studentName ? { ...event, studentName: name } : event;
+  });
+}
+
 export function occurrencesForDates(events, dates) {
   return dates.flatMap((date) => events.filter((event) => eventOccursOn(event, date)).map((event) => ({ ...event, status: occurrenceStatus(event, date), occurrenceDate: date, occurrenceId: `${event.id}:${date}` })))
     .sort((left, right) => `${left.occurrenceDate} ${left.time}`.localeCompare(`${right.occurrenceDate} ${right.time}`, 'et'));

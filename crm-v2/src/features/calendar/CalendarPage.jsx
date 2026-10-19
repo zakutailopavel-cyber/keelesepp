@@ -13,7 +13,7 @@ import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff
 import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
-import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, resolveOccurrenceRecord, shiftDate, toIsoDate } from './calendarView.js';
+import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, withCurrentStudentNames, resolveOccurrenceRecord, shiftDate, toIsoDate } from './calendarView.js';
 import { canMove, planDelete, planMove, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
@@ -194,7 +194,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const [scheduleEvents, students, groups, lessonRecords] = state.data;
   const studentMap = new Map(students.items.map((student) => [student.id, student]));
-  const events = [...scheduleEvents, ...groupCalendarEvents(groups)];
+  const events = [...withCurrentStudentNames(scheduleEvents, studentMap), ...groupCalendarEvents(groups)];
   const filteredEvents = filterCalendarEvents(events, filters);
   const withRecord = (item) => {
     const resolved = resolveOccurrenceRecord(item, lessonRecords);

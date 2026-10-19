@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
-import { imageSize } from '../board/boardModel.js';
+import { imageSize, sheetBoardTitle } from '../board/boardModel.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
@@ -146,6 +146,8 @@ export default function LiveRoom({
   const boardRef = useRef(null);
   const [history, setHistory] = useState({ canUndo: false, canRedo: false });
   const [panel, setPanel] = useState('');
+  // „Määra õpilasele” from a page's ⋯ menu: the homework panel opens with that page attached
+  const [assignPage, setAssignPage] = useState(null);
   const [menu, setMenu] = useState('');
   const [sheet, setSheet] = useState(null);
   const [sheetList, setSheetList] = useState([]);
@@ -198,12 +200,12 @@ export default function LiveRoom({
     setSheet(current);
     if (current) setPanel((open) => (open === 'tasks' ? '' : open));
   }, []);
-  const sheetTitle = (item) => item.title || item.worksheetDoc?.meta?.title || 'Tööleht';
-  const worksheet = useMemo(() => (sheet ? { id: sheet.id, title: sheetTitle(sheet) } : null), [sheet]);
+  const worksheet = useMemo(() => (sheet ? { id: sheet.id, title: sheetBoardTitle(sheet) } : null), [sheet]);
   // every worksheet of the lesson lies on the board on its own page (newest first)
   const boardSheets = useMemo(() => sheetList.map((item) => ({
     id: item.id,
-    title: sheetTitle(item),
+    title: sheetBoardTitle(item),
+    legacyTitle: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
     content: <RoomWorksheetContent current={item} role={role} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} />,
   })), [role, sheetList, worksheetProps.homework]);
 
@@ -351,6 +353,7 @@ export default function LiveRoom({
             uploadImage={teacher ? uploadImage : guest ? undefined : studentUpload}
             worksheets={boardSheets}
             onPageChange={onPageChange}
+            {...(teacher ? { onAssignPage: (page) => { setMenu(''); setAssignPage(page); setPanel('homework'); } } : {})}
             {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}
             {...(boardService ? { service: boardService } : {})}
           />
@@ -381,8 +384,8 @@ export default function LiveRoom({
           </Drawer> : null}
           {panel === 'devices' ? <Drawer title="Kaamera ja mikrofon" onClose={() => setPanel('')}><DevicesPanel call={call} stream={streams?.local} /></Drawer> : null}
           {panel === 'words' ? <Drawer title="Sõnad" onClose={() => setPanel('')}><LessonWordsPanel studentId={invitation.studentId} invitationId={invitation.id} user={user} teacher={teacher} lang={/inglise|english/i.test(subject) ? 'en' : 'et'} {...(wordsService ? { service: wordsService } : {})} /></Drawer> : null}
-          {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => setPanel('')}><LessonHomeworkPanel invitation={invitation} user={user} boardPage={myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
-          {panel === 'end' && teacher ? <Drawer title="Tunni lõpp" onClose={() => setPanel('')}><LessonEndPanel invitation={invitation} user={user} subject={subject} startedAt={new Date(startedAt).toISOString()} pages={pagesSeen} sheets={sheetList.map((item) => ({ id: item.id, title: sheetTitle(item), status: item.status, completedAt: item.completedAt, lessonId: item.lessonId || '' }))} ending={ending} onEnd={() => onEndLesson({ confirmed: true })}
+          {panel === 'homework' && teacher ? <Drawer title="Kodutöö" onClose={() => { setPanel(''); setAssignPage(null); }}><LessonHomeworkPanel key={assignPage?.id || 'homework'} invitation={invitation} user={user} boardPage={assignPage || (myPage ? { id: myPage, title: myPageTitle || 'Tahvlileht' } : null)} assignPage={Boolean(assignPage)} worksheet={sheet ? { id: sheet.id, title: worksheet?.title || 'Tööleht' } : null} {...(homeworkService ? { service: homeworkService } : {})} /></Drawer> : null}
+          {panel === 'end' && teacher ? <Drawer title="Tunni lõpp" onClose={() => setPanel('')}><LessonEndPanel invitation={invitation} user={user} subject={subject} startedAt={new Date(startedAt).toISOString()} pages={pagesSeen} sheets={sheetList.map((item) => ({ id: item.id, title: sheetBoardTitle(item), status: item.status, completedAt: item.completedAt, lessonId: item.lessonId || '' }))} ending={ending} onEnd={() => onEndLesson({ confirmed: true })}
             {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /></Drawer> : null}
           {panel === 'materials' && teacher ? <Drawer title="Materjalid" onClose={() => setPanel('')}><MaterialsPanel library={library} onPlace={place} /></Drawer> : null}
           {/* always mounted: it follows the room's worksheet for both and lets the teacher open one */}

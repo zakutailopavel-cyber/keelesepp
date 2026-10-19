@@ -12,6 +12,8 @@ export default [
     learningJob: "võrrelda transpordiühendusi ning teha piletiostu otsus",
     alt: "Sofia valib kahe rongiühenduse vahel otserongi ja ostab telefoni kaudu pileti.",
     caption: "Pilt 1. Kahe rongiühenduse võrdlus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus inimesed pildil on ja kuhu nad sõidavad?", "Kuidas nad pileti ostavad?", "Millega sina tavaliselt reisid?"],
   },
   {
     id: "a2b1-047-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "koostada järjestatud reisiplaan transpordi, majutuse, tegevuste ja eelarve valikutest",
     alt: "Anna ja Markus valivad Riia-reisiks bussi ning kavandavad majutuse ja tegevused.",
     caption: "Pilt 1. Kahepäevase Riia-reisi plaan.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimesed pildil planeerivad?", "Mida nad võrdlevad ja miks?", "Kuhu sina tahaksid nädalavahetusel sõita?"],
   },
   {
     id: "a2b1-048-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "jutustada möödunud reisist kronoloogilise sündmusterea abil",
     alt: "Anna ja Sofia meenutavad pildireana oma Helsingi laevareisi sündmusi.",
     caption: "Pilt 1. Helsingi-reisi sündmused minevikus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus see inimene reisis ja mida ta nägi?", "Mida ta seal tegi?", "Räägi oma viimasest reisist."],
   },
   {
     id: "a2b1-049-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "selgitada ootamatut reisiolukorda ning mõista pakutud lahendust",
     alt: "Liis annab ühendusbussist maha jäänud Markusele uue pileti ja näitab peatust.",
     caption: "Pilt 1. Mahajäänud ühendus ja uus pilet.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis probleem on pildil reisijal?", "Kellelt ta abi küsib?", "Mis juhtus sinuga kord reisil?"],
   },
   {
     id: "a2b1-050-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "ühendada hilinemise teade, alternatiivne transport, tagasimakse ja reisijale saadetud sõnum",
     alt: "Liis aitab Sofial hilinenud rongi asemel bussi leida ning korraldab tagasimakse ja teate.",
     caption: "Pilt 1. Hilinenud rongi alternatiivne reisilahendus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus inimesed pildil on?", "Millega nad sõidavad ja kuhu?", "Kirjelda pilti kolme lausega."],
   },
 ];

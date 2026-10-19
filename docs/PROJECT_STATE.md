@@ -1,3 +1,208 @@
+## 2026-10-19 · agent/sentence-breakdown — „Lause lahti”: a sentence taken apart (like sonastik.app)
+
+- Checked `main` f9b9fbb (2026-10-19). Branch `agent/sentence-breakdown`, draft PR (see GitHub).
+- Owner 2026-10-19 („Нам тоже такое надо”, screenshot of sonastik.app): every word with its base form, the
+  multi-word verb („aru saama”, rektsioon) and the translation.
+- Done:
+  - `functions/sentence-core.js` (pure, tested in `sentence-core.test.js`): EKI etLex morphology → tokens with lemma,
+    part of speech (et + ru), form (et + ru: cases with the question words, verb forms), level; our list of ~140
+    multi-word verbs / verb phrases with Russian and government (`PHRASES`), found by verb lemma + particle anywhere in
+    the sentence; punctuation spacing.
+  - `functions/index.js` languageApi `POST /analyze` (any signed-in user): etLex (public) + TartuNLP translation of the
+    sentence and of each content lemma (public, `x-api-key: public`); cached in `languageCache` by the sentence.
+    Only the sentence is sent out.
+  - UI `features/vocabulary/SentenceBreakdown.jsx` (+ `sentenceBreakdown.css`): words coloured by part of speech
+    (noun blue, verb green, adjective red, expression amber) with the base form under them; a tap shows form + gloss;
+    „Väljendid” with government; „Tõlge”. Entry points: the worksheet word card (double click / double tap) →
+    „Võta lause lahti” opens the sentence around the word (`sentenceAt`, `sentenceAround` in WordLookup.jsx); and a
+    card „Võta lause lahti” on the student's „Sõnavara” page. Service `languageToolsService.analyzeSentence`.
+- Checks: `node --test` in functions 301 passed; `npx vitest run` 1948 passed; eslint on changed UI files clean;
+  `vite build` ok. Checked live against EKI and TartuNLP from a local script (3 sentences: lemmas, forms, „maha jätma”,
+  „kätte saama”, „ühendust võtma”). Visual check at desktop and 375 px width.
+- Limits: the expression list is ours and finite; EKI may mis-analyse rare words.
+- Deployed 2026-10-19 (owner: «да, деплой и публикуй оба»): `firebase deploy --only functions:languageApi` (no other open branch changes languageApi) and the frontend in `dpl_4sQDrN8mg2e6vF83H3H24EL5F2nY` (bundle contains „Võta lause lahti”).
+- Next safe step: the owner tries „Võta lause lahti” as a student; add expressions to `PHRASES` when one is missing.
+## 2026-10-19 · agent/board-tab-menu — Live Classroom: page ⋯ menu, one page per phase sheet, course order
+
+- Checked `main` f9b9fbb (2026-10-19). Branch `agent/board-tab-menu`, draft PR (see GitHub).
+- Owner 2026-10-19: empty duplicate board pages, no way to delete a page; the pencil should become „⋯” with rename / delete /
+  give to the student; the sheet picker listed lesson 5, then 16, …, 90, then 56.
+- Done:
+  - `StudentBoard.jsx`: the pencil next to the open page is now „⋯” (`Lehe toimingud`): „Nimeta ümber” (everyone), „Määra
+    õpilasele õppimiseks” (when the host passes `onAssignPage`; Live Classroom teacher), „Kustuta leht” (staff, confirm,
+    not for completed pages). New service method `deletePage(studentId, pageId)` in `services/firebase/studentBoard.js`
+    (elements best-effort, then the page). `firestore.rules` already allow staff to delete a non-completed lesson page
+    (whiteboards and groupBoards) — no rules change.
+  - Empty duplicates: the Avasta / Harjuta / Kasuta sheets of a lesson share a title, the board found a sheet's page by
+    title, so only one page showed a sheet and the others stayed empty. `boardModel.sheetBoardTitle(item)` adds the phase
+    („Kontroll 1 · Harjuta”); LiveRoom / TeacherWorkspace pass it plus `legacyTitle`; the old shared page stays with the
+    newest sheet of that title, the others get their own page. Old empty duplicates are removed by hand with „Kustuta leht”.
+  - „Määra õpilasele”: LiveRoom opens „Kodutöö” (`LessonHomeworkPanel`, new prop `assignPage`) with the page ticked and
+    the task „Õpi tahvlilehe „…” materjal.” — the existing homework with `boardPageId` (student opens it from „Kodutööd”).
+  - `roomWorksheetChoices.js`: curriculum sheets sorted by level, then lesson number (module title only as a tie-break);
+    „Järgmine tund” therefore follows the course (after 5 comes 6). A sheet on the board is matched by phase, not title.
+  - Student scrolling the sheet (owner 2026-10-19: „ученик мог сам листать лист”): a focused answer field (iPad
+    keyboard) or the teacher's pointed task (`scrollIntoView`) scrolled the overflow-hidden board stage, the sheet stayed
+    shifted and its top / end could not be reached. `StudentBoard` now turns any stage scroll into a move of the view and
+    keeps the stage at 0; `DocWorksheetPlayer` on the board sends `ws-reveal` instead of `scrollIntoView`, the board
+    moves to the pointed task once.
+- Checks: `npx vitest run` — 1951 passed, 2 failed in `CourseProductionPage.test.jsx` only under the full run (pass alone,
+  85/85 with live-classroom; timeout under load, unrelated). eslint on changed files clean; `vite build` ok.
+- Limits: on the student's own board page (`/board`) „Määra õpilasele” is not shown (no lesson to attach homework to).
+- Deployed 2026-10-19 15:16 (owner: «деплой»): production = 512a852 + this branch (15c5f21, 5efb5a0, 0eabbec, 18d1708)
+  + calendar 1019c2a, `dpl_BjwhCWwLd6M1AeowQ3teN8K2VcAH` on crm.epkoolitus.ee (bundle contains „Lehe toimingud”).
+  Rebased on `agent/board-scrollbar` (PR #666, already in production); PR #672 base is that branch.
+- Next safe step: the teacher removes the old empty duplicate pages with „⋯” → „Kustuta leht”.
+## 2026-10-19 · agent/course-v3-c1-m7 — C1 module 7 in template v3
+
+- Branch `agent/course-v3-c1-m7` is stacked on agent/course-v3-c1-m6 (#673). Draft PR.
+- Done: C1 module 7 (est-c1-061…070, mobility, environment and planning) in lesson template v3, the same way as modules 4–6. 070 is the module exam (`assessment: true`).
+- Every Kasuta has a new reading of 400+ words (office move, Paris strike, rural municipality, coastal adaptation plan, wind park, logistics centre, housing association, draft news story, bus line 7). 068 and 069 now have a Kasuta rubric.
+- No new audio: 061 keeps its radio interview; the transcript is unchanged, one question was added.
+- Checks: `moduleProblems` has no problems for module 7. `npx vitest run src/features/worksheet-generator`: 704 passed; `CourseProductionPage.test.jsx` timed out once in the full run and passes alone (2/2).
+- Not deployed, not published (needs the owner's permission).
+- Not done: C1 modules 8–10.
+- Next safe step: owner's permission → deploy and publish module 7; then C1 module 8 the same way.
+
+## 2026-10-19 · agent/course-v3-c1-m6 — C1 module 6 in template v3
+
+- Branch `agent/course-v3-c1-m6` is stacked on agent/course-v3-c1-m5 (#671). Draft PR.
+- Done: C1 module 6 (est-c1-051…060, health and society) in lesson template v3, the same way as modules 4–5. 060 is the module exam (`assessment: true`).
+- 053, 058 and 059 got new Kasuta readings (team workload materials, the clinic's hard patient guide, a draft medicine leaflet); 058 and 059 have a rubric in Kasuta now.
+- No new audio: 057 keeps its radio listening; the transcript is unchanged, two questions were added.
+- Checks: `moduleProblems` has no problems for module 6. `npx vitest run src/features/worksheet-generator` gives 705 passed.
+- Production (owner's permission, 2026-10-19 „да, деплой и публикуй оба”): `vercel deploy --prod` of 9182376 + board tab menu (#672) + „Lause lahti” (#674) + the calendar fix, `dpl_4sQDrN8mg2e6vF83H3H24EL5F2nY`; `firebase deploy --only functions:languageApi` from agent/sentence-breakdown. All 30 sheets of module 6 published with `publish-v2.cjs` (earlier v7 = batch write of 2026-10-13 22:10; dry check same=30).
+- Not done: C1 modules 7–10.
+- Next safe step: C1 module 7 the same way.
+
+## 2026-10-19 · agent/course-v3-c1-m5 — C1 module 5 in template v3
+
+- Branch `agent/course-v3-c1-m5` is stacked on agent/course-v3-c1-m4 (#670). Draft PR.
+- Done: C1 module 5 (est-c1-041…050) in lesson template v3, the same way as module 4. 050 is the module exam (`assessment: true`).
+- No new audio: 044 keeps its existing meeting listening.
+- Checks: `moduleProblems` has no problems for module 5. `npx vitest run src/features/worksheet-generator` gives 705 passed.
+- Production (owner's permission, 2026-10-19): `vercel deploy --prod` of 512a852 plus the calendar fix; all 30 sheets of module 5 are published (their earlier v7 was the batch write of 2026-10-13 22:10).
+- Not done: C1 modules 6–10.
+- Next safe step: C1 module 6 the same way.
+
+## 2026-10-19 · agent/course-v3-c1-m4 (#670) — C1 module 4 in template v3
+
+- main checked: see `git log origin/main` (2026-10-19). Branch `agent/course-v3-c1-m4` is stacked on agent/course-v3-a2 (#668). Draft PR #670.
+- Owner 2026-10-19: „продолжай C1” after the A2 course was published.
+- Done: C1 module 4 (est-c1-031…040) in lesson template v3, in the same way as modules 1–3:
+  - Avasta: the long text lettered A–G with a 10-item „Millises lõigus?” task, a notice block, 10-item language tasks, a 2–3-minute talk and an 8–12-sentence writing task;
+  - Harjuta: sentence insertion (`B.insertion`) or a news listening, a 3-option cloze, a forms-in-text task, 10-item tasks, a translation and a monologue;
+  - Kasuta: a reading of about 400 words, a letter or a writing task, role cards, a speech and a rubric; the task order varies between lessons;
+  - 040 is the module exam (`assessment: true`).
+- 038: the old text listed *pean minema* among the da-infinitive verbs; fixed.
+- Audio: TartuNLP for the new 035 news listening (`public/audio/est-c1-035`).
+- The scratchpad helper `to_insertion` (c1lib.py) turns the old sentence-gap tasks into `B.insertion`. It is not in the repo; the result is in the module files.
+- Checks: `moduleProblems` has no problems for module 4. `npx vitest run src/features/worksheet-generator` gives 705 passed.
+- Production (owner's permission, 2026-10-19): `vercel deploy --prod` of 8fa835c plus the calendar fix; all 30 sheets of module 4 are published with `publish-v2.cjs`. Their earlier v7 was the batch write of 2026-10-13 22:09, so the sheets were marked as vetted.
+- Not done: C1 modules 5–10.
+- Next safe step: C1 module 5 the same way.
+
+## 2026-10-19 · agent/course-v3-a2 (#668) — the A2 course in template v3 (all 20 modules) + agent/calendar-menu-fit (#669)
+
+- main checked: see `git log origin/main` (2026-10-19). Branch `agent/course-v3-a2` is stacked on agent/course-v3-c1 (#667). Draft PR #668.
+- Owner 2026-10-19: „Давай сначала а2”: the A2 course goes before C1 modules 4–10.
+- Done: all A2 modules 1–20 (a2-001…a2-100), one commit per module. Each lesson:
+  - 5–9 blocks a sheet and 40–55 minutes;
+  - 8 items a task (A2 norm): short tasks of the old sheets were merged;
+  - every Harjuta has a new cloze text (3 options, 8 gaps) and a „Pane sõnad õigesse vormi” text with 8 gaps;
+  - every Kasuta has role cards, a speech and a rubric. Letters are at least 40 words;
+  - openers and task sequences vary inside each module;
+  - Kontroll N (a2-005, 010 … 100) and the two Harno mocks a2-097 and a2-099 are `assessment: true` with only the Kasuta selfcheck;
+  - every art visual has its own questions (`prompts` in art/visuals/a2-module-NN.js). Modules 18–20 have no art.
+- Removed listening blocks are pruned from listeningAudio.json and public/audio. The textbookArt tests follow the new a2-001 and a2-004 prompts.
+- Generator: scratchpad scripts a2mNN_NNN.py, rebuilt from the pre-rewrite snapshot. They are not in the repo; the result is the module files.
+- Checks: module gate (`moduleProblems`) has no problems for modules 1–20. `npx vitest run src/features/worksheet-generator` gives 705 passed (after module 20, be59932).
+- Known: some sheets keep the soft warning „short-sentences” (avg 3–4 words in imperative or price tasks); it is not a gate error.
+- Calendar (#669, owner 2026-10-19): the cell menu („Vaba / Hõivatud / Lisa tund”) measures its own height, so the menu stays on screen for late hours. Deployed to production on 2026-10-19 with the owner's permission, together with this A2 branch (4ae104b + 1019c2a, built from a detached worktree).
+- Risk: production runs unmerged branches (C1, A2, calendar fix). A deploy from main before #667, #668, #669 are merged removes them.
+- **Production (owner's permission, 2026-10-19):**
+  - `vercel deploy --prod` of d6309c4 plus the calendar fix (cherry-pick of 1019c2a), built from the detached worktree `keelesepp-deploy`;
+  - 299 of the 300 A2 sheets are published with `publish-v2.cjs`. Their earlier versions were batch writes on 2026-10-13 (17:46–17:51 and 22:24), so they were marked as vetted;
+  - a2-002 Avasta is **not** published: it has a real hand edit by Yelyzaveta Lukiianchuk (v8, 2026-10-14). The owner decides whether to overwrite it.
+- Not done: C1 modules 4–10.
+- Next safe step: C1 module 4 the same way.
+
+## 2026-10-18 · agent/course-v3-c1 — C1 module 1 in template v3 (Harno C1)
+
+- main checked: f9b9fbb (2026-10-18). Branch `agent/course-v3-c1` is stacked on #660/#661 and has agent/board-scrollbar (#666) merged in. Draft PR.
+- Done:
+  - the chart block „Andmediagramm” (`chart`, `B.chart`; 01311e9);
+  - module 1 (est-c1-001…010) in lesson template v3, for the Harno C1 exam:
+    - reading formats: statements to lettered paragraphs; sentence-option cloze; forms in a text;
+    - listening formats: news heard twice with short answers; a debate or lecture heard once;
+    - writing: a data summary of about 180 words from a chart, and a 220–260-word piece;
+    - speaking: a 2–3-minute talk after 3 minutes of preparation, and a discussion on role cards;
+    - every Kasuta ends with a rubric of the Harno criteria;
+  - 008 is the object case (sihitis), 009 is government (rektsioon); 010 is the module exam (`assessment: true`).
+- Generator: scratchpad scripts c1m01_NNN.py, rebuilt from the pre-rewrite snapshot. They are not in the repo; the result is the module files.
+- Audio: TartuNLP for every listening block of the module (`listeningAudio.json`, `public/audio/est-c1-0NN`).
+- Checks:
+  - `npx vitest run src/features/worksheet-generator`: 51 files and 705 tests pass;
+  - the module gate (quality.js) has no problems;
+  - board and studio tests pass (1020 passed before the last fixes).
+- **Production (owner's permission, 2026-10-18):**
+  - `vercel deploy --prod` of a4249f1 from a clean worktree;
+  - all 30 sheets of module 1 are published with `publish-v2.cjs` (v9–v11). Their v8 was a batch write on 2026-10-13 22:09, not a hand edit, so they were marked as vetted; old versions stay in `worksheetVersions`.
+- Risk: production runs this unmerged branch. A deploy from main before #660, #661, #666 and this PR are merged removes the audio, the chart block and the board scrollbar.
+- **C1 module 2** (est-c1-011…020) is done the same way. The scripts are c1m02_NNN.py; there are art prompts for all 10 pictures. 018 is word order and information structure, 019 is the more complex uses of the cases, 020 is the module exam (`assessment`, writing part 1 from two charts). Audio is built for the new listening blocks. Checks: `vitest src/features/worksheet-generator` passes 705 tests; the module gate has no problems. Module 2 is **not yet deployed or published**: that waits for the owner's permission.
+- Module 2 was deployed and published 2026-10-18 with the owner's permission (30 sheets).
+- **C1 module 3** (est-c1-021…030) is done the same way. 025 has a data summary from a chart; 028 is past tenses in coherent text, 029 is moods and modality, 030 is the module exam (`assessment`). Audio is built. Checks: `vitest src/features/worksheet-generator` passes 705 tests; the module gate has no problems. 
+- Personal sheet: a B1 test (reading and writing, 90 min) for Mihhail Smirnov was saved and published on the owner's request (`studentWorksheetDrafts/zuB96TFbpLCCqf0a919V`, assignment with the same id).
+- Not done: C1 modules 4–10 are still the old design.
+- Module 3 was deployed (2526b0b) and its 30 sheets were published on 2026-10-19 with the owner's permission.
+- Queue (owner, 2026-10-19): C1 modules 4–10, then the A2 course in template v3.
+- Next safe step: C1 module 4 the same way.
+
+## 2026-10-18 · agent/board-scrollbar — a scrollbar on a worksheet page of the board
+
+- main checked: f9b9fbb (2026-10-18). Branch `agent/board-scrollbar`, draft PR.
+- Why: in a Live Classroom lesson a student using a mouse could not see the questions below the screen and found no scrollbar to drag. A worksheet page is a page of the board, so it moved only with the wheel, a trackpad, the middle button or a finger.
+- Done: a worksheet page shows a vertical scrollbar at the right edge of the board (`.sb-scrollbar`, `role="scrollbar"`). The thumb can be dragged, and a click on the rail moves one screen. Pure helpers `scrollbarFor` and `scrollView` are in `boardModel.js`; the stage height comes from a ResizeObserver; `navDown` ignores the bar. Nothing is saved and there is no data change.
+- Files: `crm-v2/src/features/board/{StudentBoard.jsx,boardModel.js,board.css,board.test.jsx}`.
+- Checks: `npx vitest run src/features/live-classroom src/features/board` passed, 16 files and 111 tests (2 of them new); `eslint src/features/board` is clean. Not checked by eye in a real lesson.
+- Risk: the bar sits 2 px from the right edge; the video tiles (right 14px) and the style panel do not cover it.
+- **Deployed to production 2026-10-18 with the owner's permission:** `vercel deploy --prod` from this branch (origin/main f9b9fbb + this commit). crm.epkoolitus.ee serves the bar. The PR is NOT merged: until it is merged, the next deploy from main would remove the bar again.
+- Next safe step: the owner merges #666 (then main and production match) and checks the bar in a lesson.
+## 2026-10-18 · agent/course-v3-b1 + agent/course-v3-b2 — the B1 and B2 courses rewritten in lesson template v3 (both done)
+
+- main checked: f9b9fbb (2026-10-18). Draft PRs: #660 (`agent/course-v3-b1`, on #659) and #661 (`agent/course-v3-b2`, stacked on #660). Owner (2026-10-18): „переделывай теперь под новые критерии курсы Б1 и Б2”.
+- Level map as built: docs/COURSE_DESIGN_COMMUNICATIVE.md §10 (B1 2–5 A2+, 6–10 B1-, 11–14 B1, 15–18 B1/B1+; B2 1–4 B1+, 5–8 B2-, 9–18 B2).
+- B1 commits on `agent/course-v3-b1`: 44b3d12 (quality.js / depth.js: the textbook picture is not a task block, assessment sheets have no upper time limit, depth v3 not for assessment), 4bc6425 (2), 5d79a64 (3), adec6e7 (4), b48e40c (5), 15372dd (6), 3b9f759 (7), a2c11d2 (8), a74cc65 (9), a649c5e + 78ad309 (10), cb93d2f (11), 8ff4289 (12), 7367c1f (13), abe6a54 (14). B1 15–18 were rebuilt earlier on the same branch.
+- B2 commits on `agent/course-v3-b2`: 03bd25b (1), 8fb9820 (2), be57201 (3), 8b36796 (4), 9ff22ce (5), 22bd1ca (6), 200ed8d (7), 090d704 (8), 685ec95 (9), 5502d3c (10), 0eb980d (11), 8844f3c (12), b9685a7 (13), 458ac89 (14), 7e003ae (15), 81e43b0 (16), 9e5668a (17), 0e2cd54 (18), 042c5d1 (docs).
+- Per module: `MODULE.level` raised, `template: 'v3'`; every non-assessment lesson rebuilt to 7–9 blocks a sheet — Avasta: a text or a listening at the stage's length in paragraphs + notice + full language tasks (10 items at B1-/B1) + speaking + writing; Harjuta: cloze A–D (g_vocab) + formtext + a second exam text (truefalse / choice / manymatch / listening) + a monologue with a plan; Kasuta: situation + reading + role cards + a speech + letter + rubric. B2 and B1 2–10 picture prompts (`prompts`) in `art/visuals/*-module-NN.js`. Assessment lessons keep the Harno form (see §10).
+- B1 module 13 (the design-v2 sample named in AGENTS.md) is still `design: 'v2'`, now also `template: 'v3'`: 061 Avasta got a reading on talgud, 063 three residents' letters instead of the profile cards, Kasuta sheets a speech each.
+- Changed files: `admin/course/b1/module02–14.js`, `admin/course/b2/module01–18.js`, `art/visuals/b1-module-02–10.js`, `art/visuals/b2-module-01–18.js`, `admin/course/listeningAudio.json`, `crm-v2/public/audio/a2b1-*` and `b1b2-*` (rebuilt listening clips, free TartuNLP TTS via `tools/listening-audio/build.mjs --only`), `quality.js`, `depth.js`, docs §10.
+- Gate per module: `quality.js` sheet + module problems, `course.test.js`, `b1/` and `b2/lessonGoals.test.js` (each sub-goal ≥ 2 tasks), no sentence repeated across sheets, neighbours ≤ 85 % task types, no same opening in consecutive lessons, phase type sequences differ inside a module, lesson drills ≤ 40 %.
+- Checks after B1 module 14: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` → 104 files passed, 1 skipped; 992 tests passed, 3 skipped.
+- Known limits: B1 modules 11–14 have no textbook pictures (no `art/visuals/b1-module-11…14.js` yet, so no picture prompts there); a few Harno-form exam sheets are 56–59 min (assessment sheets have no upper limit).
+- Published 2026-10-18 with the owner's permission („Публикуй в CRM”): all 525 B1 + B2 sheets (175 lessons × 3) built from branch `agent/course-v3-b2` at 9b77690, written to `curriculumLessons/<id>/worksheets/<phase>` as a new published version; every old version stays in `worksheetVersions`. b1b2-002 Avasta had a manual edit (v10, Pavel Zakutailo) and was overwritten on the owner's request (v11; v10 kept in history). Check: a second dry run reports 525 same, 0 to publish. No deploy, no other production data touched.
+- Risk: the CRM now shows the v3 sheets while the code is still on draft PRs #660/#661; if a PR changes a sheet before merge, publish again.
+- Next safe step: owner merges #659 → #660 → #661; then pictures for B1 11–14.
+
+## 2026-10-18 · agent/lesson-template-v3 — lesson template v3 (fewer, fuller tasks; Harno exam formats), pilot B2 lesson 061
+
+- main checked: f9b9fbb (2026-10-18). Owner: B2 starts too low, too many small same-type blocks, little speaking, few situations and texts to think about, no exam-style lünkharjutus / „pane sõnad õigesse vormi”; „столько блоков не надо” — build the lesson on didactic norms.
+- Measured: 30–35 blocks a lesson, ~5 items a drill, 11–18 drills a lesson; B1 modules 2–8 are A2/A2+, B2 modules 1–4 B1, only B2 17–18 B2.
+- Norm: docs/COURSE_DESIGN_COMMUNICATIVE.md §10 (level map, to do) and §11 (template v3, sources: three-part lesson, Willis, Nation's four strands, Harno B2 booklet).
+- Code: new blocks `formtext` and `insertion` (engine/blocks/exam.jsx, builders in course/blocks.js, sheet.css, time, depth, didactic measure, review list); `template: 'v3'` (lesson or MODULE) → `meta.template`; quality.js v3 rules (5–9 blocks, ≥ 4 task types, fixed phase jobs, lesson balance drills ≤ 40 % / use ≥ 25 %, module ≥ 12 types, neighbours ≤ 85 %); depth.js v3 (full item count, Avasta ≥ 12 min / Kasuta ≥ 6 min exercises); gates.js speaking length B2 180 s / C1 210 s (was above the didactic norm).
+- Content: B2 lesson b1b2-061 rewritten in v3 (Avasta 8, Harjuta 7, Kasuta 7 blocks; cloze 12 gaps A–D, formtext 12, Harno info reading, insertion 6+1, argument cards). Not published — the CRM still shows the published v2 sheet until the owner allows publishing.
+- Checks: vitest worksheet-generator + worksheet-studio + homework 1037 pass, 3 skipped.
+- Next safe step: owner looks at lesson 061 (local preview or after publishing) → then rewrite by the level map, module by module.
+## 2026-10-18 · agent/calendar-student-link — calendar: the student's current name and a link to the card; student card: next lessons of a weekly series
+
+- main checked: f9b9fbb (2026-10-18). Requests from the team chat (Oleksiy, 2026-10-17): #bug #high_priority #calender „сделать кликабельным ученика в занятии… имя обновляется, если обновил карточку”; #bug #low_priority #student_card „не отображаются будущие часы занятий, если карточка ученика была изменена”.
+- Cause 1: a `schedule` lesson keeps `studentName` from the day it was planned (24 of 666 lessons had an old name, e.g. „Agata” → „Agata Kuzina”). Now `calendarView.withCurrentStudentNames()` shows the name on the student card (by `studentId`; the stored name stays as fallback; groups untouched). No data rewrite.
+- The lesson panel title is a link to `/students/<id>` (individual lessons with a known card).
+- Cause 2 (not the rename): the card's „Tulevased tunnid” dropped every weekly series whose start date was in the past. Now it lists the dated occurrences of the next 8 weeks (`occurrencesForDates`, cancelled and marked ones left out); undated entries stay one weekly line.
+- Files: `features/calendar/calendarView.js`, `CalendarPage.jsx`, `LessonPanel.jsx`, `calendarV2.css`, `features/students/StudentLessonsPanel.jsx`, tests (`calendarView.test.js`, `LessonPanel.integrity.test.jsx`, new `StudentLessonsPanel.test.jsx`).
+- Checks: `npx vitest run src/features/students src/features/calendar` → 32 files, 174 passed.
+- Production: none (read-only Firestore query to find the cause). Needs a frontend deploy to show.
+- Next safe step: owner merges and deploys; then the next calendar item (subject icon on a lesson).
 ## 2026-10-18 · agent/cash-payers — cash payers and the cash box („Kassa”)
 
 - main checked: f9b9fbb (2026-10-18). Team chat (Oleksiy, 2026-10-17) #improvement #database: a separate category of payers who pay in cash; confirmed by hand who received the money (and handed it over later). Owner 2026-10-18: any teacher may take cash; the cash box is needed.

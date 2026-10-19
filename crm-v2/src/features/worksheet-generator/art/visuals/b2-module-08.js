@@ -12,6 +12,8 @@ export default [
     learningJob: "võrrelda sihtkoha, transpordi, majutuse ja tegevuste variante ning põhjendada ühist valikut",
     alt: "Anna, Sofia ja Jaan lepivad kaardi ääres kokku reisi marsruudi ning eelarve.",
     caption: "Pilt 1. Ühine reisiplaan sünnib kompromissidest.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna, Sofia ja Jaan köögilaua ääres planeerivad?", "Milliseid kompromisse näitavad lennuki, rongi ja majutuse sümbolid?", "Kuidas sina reisi planeerides eelarve, mugavuse ja huvide vahel valid?"],
   },
   {
     id: "b1b2-037-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "kirjeldada reisiprobleeme täpselt, nimetada tõendid ja nõuda konkreetset lahendust",
     alt: "Anna teatab Liisile räpasest korterist, mittetöötavast internetist ja topeltmaksest.",
     caption: "Pilt 1. Kolm probleemi ja üks selge nõue.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millised kolm probleemi on Anna Rooma üürikorteris?", "Mida pakub klienditeenindaja Liis kliendigarantii abil?", "Mida ütleksid sina klienditeenindajale, kui majutus ei vasta kirjeldusele?"],
   },
   {
     id: "b1b2-038-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "võrrelda sama käitumise tähendust eri olukordades ja muuta lihtne üldistus nüansirikkaks",
     alt: "Sofia ja Viktor võrdlevad vaikset bussisõitu ning avatud vestlust kodusel külaskäigul.",
     caption: "Pilt 1. Käitumise tähendus sõltub olukorrast.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kuidas käituvad Sofia ja Viktor bussis ja kuidas külaskäigul?", "Mida tähendab keskel olev kaart vaikuse kohta?", "Millise kultuurierinevuse oled ise Eestis märganud?"],
   },
   {
     id: "b1b2-039-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "siduda konkreetsed reisikogemused põhjendatud positiivse või kriitilise hinnanguga",
     alt: "Anna ja Jaan seovad Kihnu reisi sündmused tasakaalustatud hinnanguga.",
     caption: "Pilt 1. Hea arvustus ühendab kogemuse ja hinnangu.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Millest Anna ja Jaan oma Kihnu arvustuses kirjutavad?", "Miks on pluss ja miinus hinnangukaanel tasakaalus?", "Millise koha kohta kirjutaksid sina arvustuse ja mis hinnangu annaksid?"],
   },
   {
     id: "b1b2-040-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "seostada vahehindamise tulemused nelja teemavaldkonnaga ja valida kordamise prioriteedid",
     alt: "Anna ja Liis koostavad nelja teemavaldkonna põhjal isikliku kordamisplaani.",
     caption: "Pilt 1. Vahehindamise tulemusest kordamisplaanini.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid teemasid näitavad õpitee neli peatust?", "Mida Anna märgib ja kuidas Liis teda aitab?", "Milline teema on sinu jaoks praegu kõige ebakindlam ja miks?"],
   },
 ];

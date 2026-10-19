@@ -105,7 +105,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
       <header className="lp-head">
         <div>
           <span className="eyebrow">{new Date(`${item.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })} · {item.time} · {item.duration} min</span>
-          <h2>{item.studentName || 'Õpilane'}{item.isGroup ? <Badge tone="success">Grupp</Badge> : null}</h2>
+          <h2>{!item.isGroup && student?.id ? <a className="lp-student-link" href={`/students/${encodeURIComponent(student.id)}`} title="Ava õpilase kaart">{item.studentName || student.name || 'Õpilane'}</a> : item.studentName || 'Õpilane'}{item.isGroup ? <Badge tone="success">Grupp</Badge> : null}</h2>
           <p>{[item.teacher, student?.level].filter(Boolean).join(' · ')}</p>
         </div>
         <button type="button" className="lp-close" aria-label="Sulge" onClick={onClose}><X size={18} /></button>

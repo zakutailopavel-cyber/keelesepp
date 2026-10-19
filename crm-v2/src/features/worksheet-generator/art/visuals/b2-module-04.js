@@ -12,6 +12,8 @@ export default [
     learningJob: "valida täis- või osasihitis tegevuse lõpetatuse, hulga ja eituse järgi",
     alt: "Liis eristab tühja ja osaliselt täis supikaussi ning valmis ja pooleliolevat koristust.",
     caption: "Pilt 1. Täissihitise ja osasihitise tähendus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mille poolest erinevad kaks supikaussi pildil?", "Kuidas öelda: „Liis sõi supi” või „Liis sõi suppi”? Mis on vahe?", "Mida sina tegid eile lõpuni ja mida jätsid pooleli?"],
   },
   {
     id: "b1b2-017-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "siduda sagedad tegusõnad õige ma- või da-infinitiiviga",
     alt: "Anna plaanid hargnevad kaheks infinitiivimudeliks.",
     caption: "Pilt 1. ma- ja da-infinitiivi valik.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna plaanib pildil teha?", "Milliseid tegevusi ta tahab teha ja milliseid ta peab tegema?", "Mida sina tahaksid sel nädalal õppida või proovida?"],
   },
   {
     id: "b1b2-018-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "õppida tegusõna rektsiooni tervikuna: tegusõna, küsimus ja näide",
     alt: "Liisi kolm vabatahtlikku tegevust ühenduvad sobivate rektsioonipaaridega.",
     caption: "Pilt 1. Tegusõna ja käände sobitus.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kus Liis pildil vabatahtlikuna aitab?", "Keda ta aitab ja millega?", "Kas sina oled kunagi vabatahtlikuna kedagi aidanud? Kus?"],
   },
   {
     id: "b1b2-019-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "lahendada kiire probleem sihitise, infinitiivi ja rektsiooni kasutades",
     alt: "Markus lahendab kadunud dokumendi probleemi ja jõuab ajutise dokumendiga laevale.",
     caption: "Pilt 1. Kiire dokumendilahendus enne reisi.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis probleem Markusel enne reisi tekkis?", "Millised sammud ta astus, et probleemi lahendada?", "Mida sina teeksid, kui kaotaksid enne reisi dokumendi?"],
   },
   {
     id: "b1b2-020-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "muuta vahehindamise tulemused nähtavaks kordamisplaaniks",
     alt: "Anna ja Liis seovad kuus õpioskust üheks isiklikuks kordamisrajaks.",
     caption: "Pilt 1. Vahehindamise õpitee ja kordamisplaan.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid teemasid Anna ja Liis hindamisrajal kordavad?", "Milline jaam tundub sulle kõige raskem? Miks?", "Mida tahad enne kontrolltööd veel harjutada?"],
   },
 ];

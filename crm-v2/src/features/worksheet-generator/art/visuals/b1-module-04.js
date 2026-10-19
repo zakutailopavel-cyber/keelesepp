@@ -12,6 +12,8 @@ export default [
     learningJob: "järjestada terve päev ning kirjeldada tegevusi väljenditega enne, pärast, kõigepealt, siis ja lõpuks",
     alt: "Anna ja Sofia vaatavad kellade ja tegevusikoonidega laagri päevakava.",
     caption: "Pilt 1. Keelelaagri päev algusest öörahuni.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis kell on pildil ja mida inimesed teevad?", "Mida nad teevad enne ja pärast seda?", "Mida sina teed tavaliselt sel kellaajal?"],
   },
   {
     id: "a2b1-017-avasta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "järeldada pildilt, mida töötaja peab tegema, mida võib teha, mida ei või teha ja mida saab teha",
     alt: "Liis tutvustab Markusele lao ohutusreegleid ja töökorraldust.",
     caption: "Pilt 1. Uue töötaja reeglid laos.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mis silte näed pildil?", "Mida seal peab, võib või ei tohi teha?", "Milline reegel on sinu kodus kõige tähtsam?"],
   },
   {
     id: "a2b1-018-avasta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "seada kohustused ja soovid tähtsuse järjekorda, otsustada, mis võib oodata, ning selgitada oma valikut",
     alt: "Markus järjestab kiireid, hilisemaid ja edasi lükatavaid ülesandeid.",
     caption: "Pilt 1. Kiire päeva prioriteetide seadmine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida inimene pildil peab tegema?", "Mis on tema jaoks kõige kiirem?", "Mida sina pead täna kindlasti tegema?"],
   },
   {
     id: "a2b1-019-avasta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "leida ettepanek, keeldumine, alternatiiv ja kinnitatud kokkulepe ning sõnastada viisakas ajamuutus",
     alt: "Anna ja Sofia tühistavad ühe kohtumisaja ning lepivad kokku uue.",
     caption: "Pilt 1. Kohtumisaja viisakas muutmine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Kes pildil kokku lepivad ja mida?", "Miks võib aeg muutuda?", "Kuidas sina ütled viisakalt, et aeg ei sobi?"],
   },
   {
     id: "a2b1-020-avasta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "ühendada päevakava, kohustused, linnakohad ja muudetud kohtumisaeg ning selgitada, kuidas tähtsad asjad tehtud saavad",
     alt: "Anna kavandab ümber kiire päeva, kuhu mahuvad kool, töö, apteek ja kohtumine.",
     caption: "Pilt 1. Muudetud plaan keeruliseks neljapäevaks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida pildil olevad inimesed planeerivad?", "Mis kell ja kus nad kohtuvad?", "Kuidas sina oma nädalat planeerid?"],
   },
 ];

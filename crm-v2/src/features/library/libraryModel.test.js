@@ -105,4 +105,12 @@ describe('lesson phases', () => {
     expect(matchesPhaseFilter(phases, 'ready')).toBe(false);
     expect(matchesPhaseFilter(lessonPhases({}), 'none')).toBe(true);
   });
+  it('shows the newest date even when the lesson keeps updatedAt as a Firestore Timestamp', async () => {
+    const { isoDate } = await import('./libraryModel.js');
+    expect(isoDate({ toDate: () => new Date('2026-09-14T10:00:00Z') })).toBe('2026-09-14T10:00:00.000Z');
+    expect(isoDate({ seconds: 1789392599, nanoseconds: 0 })).toMatch(/^2026-/);
+    const [item] = buildLibraryItems([{ id: 'a2b1-007', title: 'Välimus', level: 'B1', updatedAt: { seconds: 1789392599, nanoseconds: 0 },
+      worksheetPhases: { discover: { status: 'published', version: 10, publishedVersion: 10, updatedAt: '2026-10-18T06:26:48.914Z' } } }]);
+    expect(item.updatedAt).toBe('2026-10-18T06:26:48.914Z');
+  });
 });

@@ -12,6 +12,8 @@ export default [
     learningJob: "compare catalogue items and choose one suitable product",
     alt: "Anna ja Liis valivad poe kataloogist sobivat kaupa.",
     caption: "Pilt 1. Kauba valimine kataloogist.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Anna ja Liis vaatavad?", "Mis kaubad on kataloogis?", "Mida sina uude koju ostaksid?"],
   },
   {
     id: "a2-032-kasuta-1",
@@ -24,6 +26,8 @@ export default [
     learningJob: "state quantities, calculate a total and check the purchase at the till",
     alt: "Markus ja Liis loendavad kassas kaupu ja kontrollivad ostu.",
     caption: "Pilt 1. Kogused ja hind kassas.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Markus letile paneb?", "Mida Liis teeb?", "Kui palju maksavad kolm õuna ja kaks leiba?"],
   },
   {
     id: "a2-033-kasuta-1",
@@ -36,6 +40,8 @@ export default [
     learningJob: "compare two clothing options and justify which one fits better",
     alt: "Sofia ja Anna võrdlevad riidepoes kahte jopet.",
     caption: "Pilt 1. Kahe variandi proovimine ja valimine.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Sofia võrdleb?", "Kumb jope on pikem?", "Kumb jope sulle rohkem meeldib ja miks?"],
   },
   {
     id: "a2-034-kasuta-1",
@@ -48,6 +54,8 @@ export default [
     learningJob: "infer the return problem and explain what should happen next",
     alt: "Viktor näitab teeninduslauas katkist kaupa ja kviitungit.",
     caption: "Pilt 1. Kauba tagastamine kviitungiga.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida Viktor käes hoiab?", "Mida Liis kontrollib?", "Mida on vaja, kui sa tahad kaupa tagastada?"],
   },
   {
     id: "a2-035-kasuta-1",
@@ -60,5 +68,7 @@ export default [
     learningJob: "request a size exchange and choose the correct replacement",
     alt: "Anna vahetab teeninduslauas vale suurusega jopet.",
     caption: "Pilt 1. Suuruse vahetamine poes.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Miks Anna on teeninduslauas?", "Mida Liis käes hoiab?", "Mida sa ütled, kui jope on liiga väike?"],
   },
 ];

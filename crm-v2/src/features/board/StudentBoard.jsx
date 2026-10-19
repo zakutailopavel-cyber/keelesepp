@@ -1,8 +1,8 @@
-import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, Pencil, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
+import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
 import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
-import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
+import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
   BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds } from './boardModel.js';
 import './board.css';
 
@@ -35,7 +35,7 @@ const HISTORY_LIMIT = 50;
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
   controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null,
-  onPageChange, onPointer, pointer = null,
+  onPageChange, onPointer, pointer = null, onAssignPage,
 }) {
   const room = variant === 'room';
   const [pages, setPages] = useState([]);
@@ -106,7 +106,15 @@ export default function StudentBoard({
   // the board, and what is drawn on top of it is stored on its own lesson page „Tööleht: <title>”.
   // Several worksheets can be open in one lesson (newest first); each has its own page „Tööleht: <title>”.
   const sheets = useMemo(() => (worksheetList?.length ? worksheetList : singleWorksheet ? [singleWorksheet] : []), [worksheetList, singleWorksheet]);
-  const sheetPageOf = useCallback((sheet) => (sheet ? pages.find((page) => page.title === worksheetPageTitle(sheet.title)) || null : null), [pages]);
+  // a sheet placed before the phase was part of its title keeps its old page „Tööleht: <title>” — only the newest of the
+  // sheets sharing that title, so the others get a page of their own instead of an empty duplicate
+  const sheetPageOf = useCallback((sheet) => {
+    if (!sheet) return null;
+    const own = pages.find((page) => page.title === worksheetPageTitle(sheet.title));
+    if (own || !sheet.legacyTitle || sheet.legacyTitle === sheet.title) return own || null;
+    const heir = sheets.find((item) => item.legacyTitle === sheet.legacyTitle && !pages.some((page) => page.title === worksheetPageTitle(item.title)));
+    return heir?.id === sheet.id ? pages.find((page) => page.title === worksheetPageTitle(sheet.legacyTitle)) || null : null;
+  }, [pages, sheets]);
   const sheetPageIds = useMemo(() => new Set(sheets.map(sheetPageOf).filter(Boolean).map((page) => page.id)), [sheets, sheetPageOf]);
   // the newest sheet takes over the board when it opens; the page on screen decides which sheet lies under the drawing
   const worksheet = sheets[0] || null;
@@ -286,6 +294,20 @@ export default function StudentBoard({
     return () => observer.disconnect();
   }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
+  // the stage's height for the worksheet scrollbar
+  const [stageHeight, setStageHeight] = useState(0);
+  useEffect(() => {
+    const node = svgRef.current;
+    if (!onWorksheet || !node) return undefined;
+    const measure = () => setStageHeight(Math.round(node.getBoundingClientRect().height || 0));
+    measure();
+    if (!globalThis.ResizeObserver) return undefined;
+    const observer = new globalThis.ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [onWorksheet, pageId]);
+  const scrollDrag = useRef(null);
+  const scrollTo = (scrolled) => { userMoved.current = true; setView((current) => scrollView(current, bounds, stageHeight, scrolled)); };
   // the pointer disappears for the student when the teacher puts it away
   useEffect(() => { if (tool !== 'laser') onPointer?.(null); }, [onPointer, tool]);
 
@@ -300,8 +322,29 @@ export default function StudentBoard({
   }, [sheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet }), [insertFile, newPage, openWorksheet, redo, undo]);
 
-  // rename a lesson page: double click its tab or the pencil next to the open page
+  // rename a lesson page: double click its tab or „Nimeta ümber” in the ⋯ menu next to the open page
   const [renaming, setRenaming] = useState(null);
+  // the ⋯ menu of the open page: rename; staff also delete it and give it to the student as homework
+  const [pageMenu, setPageMenu] = useState(null);
+  useEffect(() => {
+    if (!pageMenu) return undefined;
+    const close = (event) => { if (event.type === 'keydown' ? event.key === 'Escape' : !event.target.closest?.('.sb-page-menu, .sb-page-more')) setPageMenu(null); };
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('keydown', close);
+    return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', close); };
+  }, [pageMenu]);
+  useEffect(() => { setPageMenu(null); }, [pageId]);
+  const openPageMenu = (event) => {
+    if (pageMenu) { setPageMenu(null); return; }
+    const rect = event.currentTarget.getBoundingClientRect();
+    setPageMenu({ id: pageId, x: Math.max(8, Math.min(rect.left, (globalThis.innerWidth || 1200) - 228)), y: rect.bottom + 6 });
+  };
+  const deletePage = (page) => {
+    setPageMenu(null);
+    if (!globalThis.confirm(`Kustuta leht „${page.title || 'Leht'}” koos kõigega, mis sellel on?`)) return;
+    choosePage(null);
+    service.deletePage(studentId, page.id).catch(fail('Lehte ei saanud kustutada.'));
+  };
   const saveRename = () => {
     const current = renaming;
     setRenaming(null);
@@ -309,6 +352,7 @@ export default function StudentBoard({
     if (!page || !current.title.trim() || current.title.trim() === page.title) return;
     service.renamePage(studentId, page.id, current.title, user).catch(fail('Lehte ei saanud ümber nimetada.'));
   };
+  const openPage = pages.find((item) => item.id === pageId) || null;
   const pageTabs = (className) => <div className={className} role="tablist" aria-label="Tahvli lehed">
     <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
     {pages.map((page) => (renaming?.id === page.id
@@ -316,7 +360,12 @@ export default function StudentBoard({
         onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
         onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
       : <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>))}
-    {pageId && !renaming ? <button type="button" className="sb-page-tool" aria-label="Nimeta leht ümber" title="Nimeta leht ümber" onClick={() => { const page = pages.find((item) => item.id === pageId); if (page) setRenaming({ id: page.id, title: page.title || '' }); }}><Pencil size={14} /></button> : null}
+    {pageId && !renaming && openPage ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title="Lehe toimingud" aria-haspopup="menu" aria-expanded={Boolean(pageMenu)} onClick={openPageMenu}><MoreHorizontal size={16} /></button> : null}
+    {pageMenu && openPage ? <div className="sb-page-menu" role="menu" aria-label={`Leht „${openPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
+      <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: openPage.id, title: openPage.title || '' }); }}>Nimeta ümber</button>
+      {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: openPage.id, title: openPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
+      {staff && service.deletePage && openPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(openPage)}>Kustuta leht</button> : null}
+    </div> : null}
     <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
     <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
   </div>;
@@ -490,18 +539,46 @@ export default function StudentBoard({
   // does not stop the browser from zooming the whole page (tabs and the video tiles went off screen). A native
   // non-passive listener on the stage stops the page zoom; the board zooms itself through `wheel` as before.
   // a callback ref (React 19 cleanup): the stage is rendered in two layouts, so the listeners follow the element
+  // The stage never scrolls itself: the view moves the board. A focused answer field (the iPad keyboard) or the
+  // teacher's pointed task made the browser scroll the stage (overflow: hidden still scrolls from code), the sheet then
+  // stayed shifted and the student could not reach its top or end (owner 2026-10-19). The scroll is turned into a move
+  // of the view; a pointed task (`ws-reveal` from the sheet) is brought into view the same way.
+  const moveViewRef = useRef(null);
+  moveViewRef.current = moveView;
   const stageRef = useCallback((el) => {
     if (!el) return undefined;
     const stopPageZoom = (event) => { if (event.ctrlKey || event.metaKey) event.preventDefault(); };
     const stopGesture = (event) => event.preventDefault();
+    const unscroll = () => {
+      const dx = el.scrollLeft;
+      const dy = el.scrollTop;
+      if (!dx && !dy) return;
+      el.scrollLeft = 0;
+      el.scrollTop = 0;
+      moveViewRef.current?.((current) => ({ ...current, x: current.x - dx, y: current.y - dy }));
+    };
+    const reveal = (event) => {
+      const target = event.target?.getBoundingClientRect?.();
+      const box = el.getBoundingClientRect();
+      if (!target || !box.height) return;
+      event.stopPropagation();
+      // the task's top a fifth from the top of the board, unless it is already well in view
+      if (target.top >= box.top + 8 && target.top <= box.top + box.height * 0.6) return;
+      const dy = box.top + box.height * 0.2 - target.top;
+      moveViewRef.current?.((current) => ({ ...current, y: current.y + dy }));
+    };
     el.addEventListener('wheel', stopPageZoom, { passive: false });
     // Safari sends its own gesture events for a pinch
     el.addEventListener('gesturestart', stopGesture);
     el.addEventListener('gesturechange', stopGesture);
+    el.addEventListener('scroll', unscroll);
+    el.addEventListener('ws-reveal', reveal);
     return () => {
       el.removeEventListener('wheel', stopPageZoom);
       el.removeEventListener('gesturestart', stopGesture);
       el.removeEventListener('gesturechange', stopGesture);
+      el.removeEventListener('scroll', unscroll);
+      el.removeEventListener('ws-reveal', reveal);
     };
   }, []);
   // Moving the board without the hand tool: two fingers (pan + pinch) with any tool, one finger on a worksheet page
@@ -509,6 +586,7 @@ export default function StudentBoard({
   const touches = useRef(new Map());
   const nav = useRef(null);
   const navDown = (event) => {
+    if (event.target?.closest?.('.sb-scrollbar')) return; // the scrollbar handles its own drag
     const point = local(event);
     if (event.pointerType === 'mouse') {
       if (event.button !== 1) return;
@@ -657,9 +735,10 @@ export default function StudentBoard({
   const selectionBounds = tool === 'select' ? unionBounds(shownSelection) : null;
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
   const filling = onWorksheet && tool === 'fill';
+  const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
   const stage = <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
-    {onWorksheet ? <div ref={setUnderlayNode} className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
+    {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs>
         <pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern>
@@ -684,6 +763,18 @@ export default function StudentBoard({
         </g> : null}
       </g>
     </svg>
+    {onWorksheet && scrollbar ? <div className="sb-scrollbar" role="scrollbar" aria-label="Kerimine" aria-orientation="vertical" aria-controls="sb-worksheet" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round((scrollbar.scrolled / scrollbar.max) * 100)}
+      onPointerDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        // a click on the rail moves one screen towards it
+        const y = event.clientY - event.currentTarget.getBoundingClientRect().top;
+        scrollTo(scrollbar.scrolled + (y < scrollbar.top ? -1 : 1) * stageHeight * 0.9);
+      }}>
+      <span className="sb-scrollbar__thumb" data-testid="worksheet-scroll-thumb" style={{ top: scrollbar.top, height: scrollbar.thumb }}
+        onPointerDown={(event) => { event.preventDefault(); event.stopPropagation(); event.currentTarget.setPointerCapture?.(event.pointerId); scrollDrag.current = { y: event.clientY, scrolled: scrollbar.scrolled, ratio: scrollbar.max / Math.max(1, scrollbar.track) }; }}
+        onPointerMove={(event) => { const drag = scrollDrag.current; if (!drag) return; event.stopPropagation(); scrollTo(drag.scrolled + (event.clientY - drag.y) * drag.ratio); }}
+        onPointerUp={() => { scrollDrag.current = null; }} onPointerCancel={() => { scrollDrag.current = null; }} />
+    </div> : null}
     {editingElement ? <textarea
       ref={editorRef}
       className={editBox ? 'sb-editor sb-editor--text' : 'sb-editor'}

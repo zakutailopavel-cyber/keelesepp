@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState } from '../../components/ui/index.js';
 import LessonDetailModal from './LessonDetailModal.jsx';
+import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
 
 // Student card „Tunnid”: the timetable (planned lessons) and the lesson journal (held / absent) in one place.
 // Admins change the mark of a held lesson here, including „Toimunud ja kontrollitud”.
@@ -19,6 +20,8 @@ const markOf = (lesson) => (lesson.status === 'Toimunud' || !lesson.status ? (le
 const markLabel = (lesson) => LESSON_MARKS.find((mark) => mark.value === markOf(lesson))?.label || lesson.status || 'Toimunud';
 const markTone = (mark) => (mark === 'verified' ? 'success' : mark === 'Toimunud' ? 'info' : mark === 'Tühistatud' ? 'neutral' : 'warning');
 const today = () => new Date().toISOString().slice(0, 10);
+const UPCOMING_DAYS = 56;
+const CLOSED = new Set(['Tühistatud', 'Toimunud', 'Puudus_eta', 'Puudus_p']);
 
 export default function StudentLessonsPanel({ student, lessons, schedule, canManage = false, lessonApi, user, onChanged, detailApis = {} }) {
   const [busy, setBusy] = useState('');
@@ -28,9 +31,13 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
   const [opened, setOpened] = useState(null);
 
   const now = today();
-  const upcoming = schedule
-    .filter((item) => item.status !== 'Tühistatud' && (!item.date || item.date >= now) && !['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item.status))
-    .sort((a, b) => `${a.date || '9'}${a.time || ''}`.localeCompare(`${b.date || '9'}${b.time || ''}`));
+  // the next lessons as dated occurrences: a weekly series that started in the past still has future lessons (before,
+  // the series was hidden by its start date — owner 2026-10-17); a series without any start date stays one weekly line
+  const upcoming = [
+    ...occurrencesForDates(schedule, Array.from({ length: UPCOMING_DAYS }, (_, index) => shiftDate(now, index)))
+      .filter((item) => !CLOSED.has(item.status)),
+    ...schedule.filter((item) => !item.date && !item.startDate && item.status !== 'Tühistatud' && (!item.endDate || item.endDate >= now)),
+  ];
   const markedIds = new Set(lessons.map((lesson) => lesson.scheduleId).filter(Boolean));
   const unmarked = schedule.filter((item) => item.date && item.date < now && !item.recurring && (item.status || 'Planeeritud') === 'Planeeritud' && !markedIds.has(item.id));
   const shownLessons = showAll ? lessons : lessons.slice(0, 15);
@@ -69,8 +76,8 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
         {upcoming.length ? (
           <div className="simple-list">
             {upcoming.slice(0, 12).map((item) => (
-              <div key={item.id}>
-                <div><strong>{item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{item.teacher || student.teacher || 'Õpetaja määramata'}</span></div>
+              <div key={item.occurrenceId || item.id}>
+                <div><strong>{item.occurrenceDate || item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{item.teacher || student.teacher || 'Õpetaja määramata'}</span></div>
                 <Badge tone="info">{item.status || 'Planeeritud'}</Badge>
               </div>
             ))}
