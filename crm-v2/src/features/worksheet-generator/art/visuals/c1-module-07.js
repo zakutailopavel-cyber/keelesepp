@@ -110,6 +110,8 @@ export default [
     learningJob: "choose logical connectors and reconstruct a coherent environmental argument",
     alt: "Anna ja Liis ühendavad keskkonnaettepaneku mõtted põhjuse, vastanduse, näite ning järelduse rajaks.",
     caption: "Pilt 1. Sidendid teevad mõtetevahelised suhted nähtavaks.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Milliseid seoseid näitavad Anna kaartide vahelised nooled?", "Millised sidendid sobiksid põhjuse, vastanduse ja järelduse väljendamiseks?", "Kuidas muutub argument, kui seosed on selgelt nimetatud?"],
   },
   {
     id: "est-c1-069-kasuta-1",
