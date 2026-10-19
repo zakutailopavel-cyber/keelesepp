@@ -51,7 +51,10 @@ export function curriculumSheetChoices(lessons = []) {
   }
   const levelRank = (level) => ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].indexOf(String(level).toUpperCase()) + 1 || 99;
   const phaseRank = (choice) => PHASES.findIndex((phase) => phase.id === choice.phase);
-  return choices.sort((a, b) => levelRank(a.level) - levelRank(b.level) || a.module.localeCompare(b.module, 'et', { numeric: true }) || a.number - b.number || phaseRank(a) - phaseRank(b) || a.title.localeCompare(b.title, 'et'));
+  // the lesson number runs through the whole level, so it orders the course; module titles are words and sorting by
+  // them first mixed the course up (owner 2026-10-19: lesson 5, then 16, …, 90, then 56)
+  const numberRank = (choice) => choice.number || Number.MAX_SAFE_INTEGER;
+  return choices.sort((a, b) => levelRank(a.level) - levelRank(b.level) || numberRank(a) - numberRank(b) || a.module.localeCompare(b.module, 'et', { numeric: true }) || phaseRank(a) - phaseRank(b) || a.title.localeCompare(b.title, 'et'));
 }
 
 export function filterChoices(choices = [], { query = '', level = '' } = {}) {
