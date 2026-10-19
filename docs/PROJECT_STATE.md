@@ -1,3 +1,20 @@
+## 2026-10-19 · agent/course-v3-c1-m4 (#670) — C1 module 4 in template v3
+
+- main checked: see `git log origin/main` (2026-10-19). Branch `agent/course-v3-c1-m4` is stacked on agent/course-v3-a2 (#668). Draft PR #670.
+- Owner 2026-10-19: „продолжай C1” after the A2 course was published.
+- Done: C1 module 4 (est-c1-031…040) in lesson template v3, in the same way as modules 1–3:
+  - Avasta: the long text lettered A–G with a 10-item „Millises lõigus?” task, a notice block, 10-item language tasks, a 2–3-minute talk and an 8–12-sentence writing task;
+  - Harjuta: sentence insertion (`B.insertion`) or a news listening, a 3-option cloze, a forms-in-text task, 10-item tasks, a translation and a monologue;
+  - Kasuta: a reading of about 400 words, a letter or a writing task, role cards, a speech and a rubric; the task order varies between lessons;
+  - 040 is the module exam (`assessment: true`).
+- 038: the old text listed *pean minema* among the da-infinitive verbs; fixed.
+- Audio: TartuNLP for the new 035 news listening (`public/audio/est-c1-035`).
+- The scratchpad helper `to_insertion` (c1lib.py) turns the old sentence-gap tasks into `B.insertion`. It is not in the repo; the result is in the module files.
+- Checks: `moduleProblems` has no problems for module 4. `npx vitest run src/features/worksheet-generator` gives 705 passed.
+- Not deployed or published: that needs the owner's permission.
+- Not done: C1 modules 5–10.
+- Next safe step: C1 module 5 the same way.
+
 ## 2026-10-19 · agent/course-v3-a2 (#668) — the A2 course in template v3 (all 20 modules) + agent/calendar-menu-fit (#669)
 
 - main checked: see `git log origin/main` (2026-10-19). Branch `agent/course-v3-a2` is stacked on agent/course-v3-c1 (#667). Draft PR #668.
