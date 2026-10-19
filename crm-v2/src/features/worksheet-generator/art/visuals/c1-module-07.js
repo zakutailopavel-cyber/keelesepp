@@ -124,6 +124,8 @@ export default [
     learningJob: "distinguish spatial, causal and purposive relations and choose the precise case or adposition",
     alt: "Markus ja Sofia täpsustavad kaardil peatuse ja sihtkoha vahelist suhet.",
     caption: "Pilt 1. Käände või kaassõna valik täpsustab suhte tähendust.",
+    // the questions beside the picture (owner 2026-10-18)
+    prompts: ["Mida näitab Markuse ja Sofia kaart peatuse, kooli ja töökoha vahel?", "Millist kaassõnaühendust Sofia parandab ja miks?", "Kuidas kirjeldaksid sina oma teed kodust tööle või kooli kaassõnade abil?"],
   },
   {
     id: "est-c1-070-kasuta-1",
