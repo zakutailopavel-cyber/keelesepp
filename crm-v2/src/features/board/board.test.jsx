@@ -311,6 +311,8 @@ describe('the worksheet scrollbar', () => {
       expect(sheet()).not.toBe(before);
       expect(Number(screen.getByRole('scrollbar').getAttribute('aria-valuenow'))).toBeGreaterThan(0);
     } finally { rect.mockRestore(); }
+  });
+});
 
 describe('the ⋯ menu of a board page', () => {
   const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
