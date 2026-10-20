@@ -196,6 +196,25 @@ service cloud.firestore {
         );
     }
 
+    // Homework, submissions and messages of a student: the administrator, or a teacher of that student's card
+    // (teacherUid / teacherUids; by name while teacher scope is not enforced). Owner decision 2026-10-11:
+    // a teacher sees only their own students' correspondence and homework.
+    // Cheap uid checks first, the name comparison last: these rules also run inside large Live Classroom batches.
+    function staffCanAccessStudent(studentId) {
+      return isAdmin()
+        || (
+          isTeacher()
+          && studentId is string
+          && studentId != ''
+          && exists(studentPath(studentId))
+          && (
+            studentDoc(studentId).get('teacherUid', '') == uid()
+            || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
+            || (!teacherScopeReadEnforced() && teacherOwnsStudentData(studentDoc(studentId)))
+          )
+        );
+    }
+
     function liveLessonInvitationPath(invitationId) {
       return /databases/$(database)/documents/liveLessonInvitations/$(invitationId);
     }
@@ -1099,9 +1118,9 @@ service cloud.firestore {
     }
 
     match /homework/{homeworkId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff();
-      allow update: if isStaff()
+      allow read: if staffCanAccessStudent(resource.data.studentId) || ownsStudent(resource.data.studentId);
+      allow create: if staffCanAccessStudent(request.resource.data.get('studentId', ''));
+      allow update: if (staffCanAccessStudent(resource.data.studentId) && staffCanAccessStudent(request.resource.data.get('studentId', '')))
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -1121,7 +1140,7 @@ service cloud.firestore {
           && (!('studentFiles' in request.resource.data) || (request.resource.data.studentFiles is list && request.resource.data.studentFiles.size() <= 10))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) || request.resource.data.status in ['Ootel', 'Tehtud'])
         );
-      allow delete: if isStaff();
+      allow delete: if staffCanAccessStudent(resource.data.studentId);
     }
 
     match /invoices/{invoiceId} {
@@ -1360,14 +1379,14 @@ service cloud.firestore {
     }
 
     match /messages/{messageId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff()
+      allow read: if staffCanAccessStudent(resource.data.get('studentId', '')) || ownsStudent(resource.data.studentId);
+      allow create: if staffCanAccessStudent(request.resource.data.get('studentId', ''))
         || (
           ownsStudent(request.resource.data.studentId)
           && request.resource.data.get('fromUid', '') == uid()
           && request.resource.data.get('fromRole', '') in ['', 'student', 'parent']
         );
-      allow update: if isStaff()
+      allow update: if (staffCanAccessStudent(resource.data.get('studentId', '')) && request.resource.data.get('studentId', '') == resource.data.get('studentId', ''))
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
@@ -1405,8 +1424,8 @@ service cloud.firestore {
     }
 
     match /worksheetAssignments/{assignmentId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data);
-      allow create: if (isStaff()
+      allow read: if staffCanAccessStudent(resource.data.studentId) || ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data);
+      allow create: if (staffCanAccessStudent(request.resource.data.get('studentId', ''))
         && (
           request.resource.data.get('source', '') != 'student_private_worksheet'
           || (
@@ -1414,9 +1433,9 @@ service cloud.firestore {
           )
         ))
         || selfStudySheet(request.resource.data);
-      allow delete: if isStaff();
+      allow delete: if staffCanAccessStudent(resource.data.studentId);
       allow update: if request.resource.data.studentId == resource.data.studentId
-        && (isStaff()
+        && (staffCanAccessStudent(resource.data.studentId)
         || (
           (ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data))
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -1445,14 +1464,14 @@ service cloud.firestore {
     }
 
     match /exerciseResults/{resultId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff()
+      allow read: if staffCanAccessStudent(resource.data.get('studentId', '')) || ownsStudent(resource.data.studentId);
+      allow create: if staffCanAccessStudent(request.resource.data.get('studentId', ''))
         || (
           ownsStudent(request.resource.data.studentId)
           && !request.resource.data.keys().hasAny(teacherReviewFields())
           && request.resource.data.get('reviewStatus', 'pending') == 'pending'
         );
-      allow update: if isStaff()
+      allow update: if (staffCanAccessStudent(resource.data.get('studentId', '')) && request.resource.data.get('studentId', '') == resource.data.get('studentId', ''))
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.studentId == resource.data.studentId

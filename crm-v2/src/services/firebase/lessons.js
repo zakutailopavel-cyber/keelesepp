@@ -182,9 +182,10 @@ export const lessonsService = {
     });
     await batch.commit();
   },
-  async listByStudent(studentId) {
+  // a teacher passes their uid: with teacher scope enforced the rules let a teacher read only their own entries
+  async listByStudent(studentId, { teacherUid = '' } = {}) {
     const { db } = requireFirebaseClient();
-    const snapshot = await getDocs(query(collection(db, 'lessons'), where('studentId', '==', studentId)));
+    const snapshot = await getDocs(query(collection(db, 'lessons'), where('studentId', '==', studentId), ...(teacherUid ? [where('teacherUid', '==', teacherUid)] : [])));
     return snapshot.docs.map((item) => normalizeLesson(item.id, item.data())).sort(newestFirst);
   },
 };
