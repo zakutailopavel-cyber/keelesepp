@@ -338,6 +338,21 @@ describe('the ⋯ menu of a board page', () => {
     confirm.mockRestore();
   });
 
+  it('a right click on the tab of another page opens the menu of that page and deletes it, not the open one', async () => {
+    const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Leht 3', status: 'active' }, { id: 'pg2', title: 'Tööleht: B1 · Avasta', status: 'active' }] }), deletePage: vi.fn(async () => {}) };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Leht 3' }));
+    // the ⋯ button stands next to the open page and names it
+    expect(screen.getByRole('button', { name: 'Lehe toimingud' })).toHaveAttribute('title', 'Lehe „Leht 3” toimingud');
+    fireEvent.contextMenu(screen.getByRole('tab', { name: 'Tööleht: B1 · Avasta' }));
+    expect(screen.getByRole('menu')).toHaveAccessibleName('Leht „Tööleht: B1 · Avasta”');
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Kustuta leht' }));
+    await waitFor(() => expect(service.deletePage).toHaveBeenCalledWith('s1', 'pg2'));
+    expect(screen.getByRole('tab', { name: 'Leht 3' })).toHaveAttribute('aria-selected', 'true');
+    confirm.mockRestore();
+  });
+
   it('a student may only rename', () => {
     const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', status: 'active' }] }), deletePage: vi.fn() };
     render(<StudentBoard studentId="s1" user={user} variant="room" service={service} />);

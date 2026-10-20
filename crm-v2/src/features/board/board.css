@@ -121,3 +121,9 @@
 .sb-pages .sb-page-menu button, .sb-room-pages .sb-page-menu button { border: 0; border-radius: 8px; background: transparent; padding: 8px 12px; text-align: left; font-size: .86rem; font-weight: 600; color: #24294a; backdrop-filter: none; }
 .sb-pages .sb-page-menu button:hover, .sb-room-pages .sb-page-menu button:hover { background: #f1f3fa; }
 .sb-pages .sb-page-menu button.is-danger, .sb-room-pages .sb-page-menu button.is-danger { color: #c0362c; }
+/* the page menu lives in document.body (a portal), so it is styled on its own, never clipped by the tab strip */
+.sb-page-menu button { border: 0; border-radius: 8px; background: transparent; padding: 8px 12px; text-align: left; font: inherit; font-size: .86rem; font-weight: 600; color: #24294a; cursor: pointer; }
+.sb-page-menu button:hover { background: #f1f3fa; }
+.sb-page-menu button.is-danger { color: #c0362c; }
+.sb-page-menu__title { margin: 2px 12px 6px; font-size: .74rem; font-weight: 700; color: #6b7088; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.sb-page-menu__note { margin: 4px 12px; font-size: .78rem; color: #6b7088; }
