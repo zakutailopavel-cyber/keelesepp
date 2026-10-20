@@ -3670,3 +3670,38 @@ test("„Kooli kulul”: an admin marks a package lesson as paid by the school a
   assert.equal(lessonSnap.data().billingDispositionReason, "õpetaja hilines");
   assert.equal(auditSnap.data().afterBillingStatus, "school_covered");
 });
+
+test("one card, two subjects: one monthly invoice with a line per subject at its own price (owner 2026-10-20)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await Promise.all([
+    db.collection("students").doc("two-subjects").set({ name: "Kahe Aine Laps", active: true, subject: "Eesti keel", parentEmail: "pere@example.com",
+      enrollments: [{ subject: "Eesti keel", teacher: "Pavel" }, { subject: "Matemaatika", teacher: "Yelyzaveta" }] }),
+    db.collection("studentRevenuePlans").doc("two-subjects").set({ studentId: "two-subjects", studentName: "Kahe Aine Laps", lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 2, billingMode: "current", currency: "EUR", active: true, updatedAt: "2026-10-01T00:00:00.000Z", updatedByUid: "seed-admin",
+      subjectPrices: { Matemaatika: { lessonPriceCents: 2800, lessonMinutes: 45 } } }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const call = (path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/manualInvoiceApi${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const created = await call("/monthly-combined", { month: "2031-12", due: "2031-12-10", items: [
+    { studentId: "two-subjects", subject: "Eesti keel", plannedUnits: 4, correctionUnits: 0 },
+    { studentId: "two-subjects", subject: "Matemaatika", plannedUnits: 3, correctionUnits: 0 },
+  ] });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const invoice = created.body.invoice;
+  assert.equal(invoice.amountCents, 4 * 2000 + 3 * 2800);
+  assert.deepEqual(invoice.studentIds, ["two-subjects"]);
+  assert.deepEqual(invoice.lines.map((line) => line.subject), ["Eesti keel", "Matemaatika"]);
+  assert.match(invoice.lines[1].description, /^Matemaatika: Tunnid/);
+  // the same card cannot be billed for the month again, and one subject alone gets its own price
+  const again = await call("/monthly", { studentId: "two-subjects", month: "2031-12", due: "2031-12-10", plannedUnits: 2, subject: "Matemaatika" });
+  assert.equal(again.status, 200, JSON.stringify(again.body));
+  assert.equal(again.body.idempotent, true);
+  const single = await call("/monthly", { studentId: "two-subjects", month: "2032-01", due: "2032-01-10", plannedUnits: 2, subject: "Matemaatika" });
+  assert.equal(single.status, 201, JSON.stringify(single.body));
+  assert.equal(single.body.invoice.amountCents, 2 * 2800);
+  assert.equal(single.body.invoice.subject, "Matemaatika");
+});
