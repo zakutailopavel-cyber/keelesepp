@@ -33,6 +33,20 @@ const HISTORY_LIMIT = 50;
  * variant="room" is the Live Classroom layout: floating tool dock, style panel, zoom badge; the room drives undo/redo
  * and inserts materials through `controllerRef`, and gets the history state through `onHistoryChange`.
  */
+// a phone (or a narrow window): a worksheet page is read as a one-column page with the finger's own scrolling
+const NARROW = '(max-width: 700px)';
+function useNarrowScreen() {
+  const [narrow, setNarrow] = useState(() => Boolean(globalThis.matchMedia?.(NARROW).matches));
+  useEffect(() => {
+    const query = globalThis.matchMedia?.(NARROW);
+    if (!query) return undefined;
+    const change = () => setNarrow(query.matches);
+    query.addEventListener?.('change', change);
+    return () => query.removeEventListener?.('change', change);
+  }, []);
+  return narrow;
+}
+
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
   controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null,
@@ -122,6 +136,14 @@ export default function StudentBoard({
   const worksheetPage = sheetPageOf(worksheet);
   const activeSheet = sheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
   const onWorksheet = Boolean(activeSheet);
+  // on a phone the worksheet is read as a one-column page (owner 2026-10-20: the A4 sheet shrunk to a third could not be
+  // read or moved); „Tahvlivaade” brings back the board with the teacher's drawings
+  const narrow = useNarrowScreen();
+  const [boardView, setBoardView] = useState(false);
+  const reading = onWorksheet && narrow && !boardView;
+  // the student who follows the teacher onto a worksheet page fills it in: one finger moves the sheet and taps the
+  // answer fields instead of drawing over them (a pen left on from the board page did that on tablets)
+  useEffect(() => { if (onWorksheet && !staff) setTool('fill'); }, [pageId, onWorksheet, staff]);
   // the sheet's height bounds how far the board pans down. The stage is rendered in two layouts, so the underlay may
   // be a new element (a reconnect, the layout switching on a tablet): the observer follows the element itself, else
   // the old height stayed and the student could not scroll past it (owner 2026-10-11, Monika on an iPad)
@@ -564,6 +586,7 @@ export default function StudentBoard({
       moveViewRef.current?.((current) => ({ ...current, x: current.x - dx, y: current.y - dy }));
     };
     const reveal = (event) => {
+      if (el.classList.contains('is-reading')) { event.stopPropagation(); event.target?.scrollIntoView?.({ block: 'center', behavior: 'smooth' }); return; }
       const target = event.target?.getBoundingClientRect?.();
       const box = el.getBoundingClientRect();
       if (!target || !box.height) return;
@@ -592,6 +615,7 @@ export default function StudentBoard({
   const touches = useRef(new Map());
   const nav = useRef(null);
   const navDown = (event) => {
+    if (reading) return; // the reading page scrolls by itself
     if (event.target?.closest?.('.sb-scrollbar')) return; // the scrollbar handles its own drag
     const point = local(event);
     if (event.pointerType === 'mouse') {
@@ -742,8 +766,13 @@ export default function StudentBoard({
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
   const filling = onWorksheet && tool === 'fill';
   const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
-  const stage = <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
+  const readingStage = <div ref={stageRef} className="sb-stage has-worksheet is-reading">
+    <div className="sb-reading ws-narrow" data-testid="worksheet-reading">{activeSheet?.content}</div>
+    <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(true)}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
+  </div>;
+  const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
+    {onWorksheet && narrow ? <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(false)}>Lugemisvaade</button> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs>
@@ -808,8 +837,8 @@ export default function StudentBoard({
         {pageTabs('sb-room-pages')}
         {stage}
         {error ? <p className="sb-room-error" role="alert">{error}</p> : null}
-        <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>
-        <div className="sb-dock" role="toolbar" aria-label="Tahvli tööriistad">
+        {reading ? null : <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>}
+        <div className="sb-dock" role="toolbar" aria-label="Tahvli tööriistad" hidden={reading}>
           {onWorksheet ? toolButton(FILL_TOOL) : null}
           {TOOLS.filter(([key]) => ['select', 'hand'].includes(key)).map(toolButton)}
           {staff && onPointer ? toolButton(LASER_TOOL) : null}

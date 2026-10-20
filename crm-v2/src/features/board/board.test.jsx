@@ -522,3 +522,34 @@ describe('board objects, paper and marker', () => {
     expect(screen.getByRole('button', { name: 'Pilt' })).toHaveAttribute('title', 'Lisa foto (nt vihikust)');
   });
 });
+
+describe('a worksheet on a phone', () => {
+  const sheets = [{ id: 'ws1', title: 'B2 · Avasta', content: <p>Loe teksti</p> }];
+  const pages = [{ id: 'p1', title: 'Leht 1', status: 'active' }, { id: 'ws', title: 'Tööleht: B2 · Avasta', status: 'active' }];
+  const phone = (matches) => vi.spyOn(globalThis, 'matchMedia').mockImplementation(() => ({ matches, addEventListener: () => {}, removeEventListener: () => {} }));
+  beforeEach(() => { if (!globalThis.matchMedia) globalThis.matchMedia = () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }); });
+
+  it('is read as one scrolling column, the board view is one tap away', () => {
+    const media = phone(true);
+    const controllerRef = { current: null };
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={fakeService({ pages })} worksheets={sheets} controllerRef={controllerRef} />);
+    act(() => { controllerRef.current.selectPage('ws'); });
+    expect(screen.getByTestId('worksheet-reading')).toHaveTextContent('Loe teksti');
+    expect(screen.getByRole('toolbar', { hidden: true })).not.toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: /Tahvlivaade/ }));
+    expect(screen.queryByTestId('worksheet-reading')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Lugemisvaade' }));
+    expect(screen.getByTestId('worksheet-reading')).toBeInTheDocument();
+    media.mockRestore();
+  });
+
+  it('on a large screen the student who follows the teacher onto the sheet fills it in, the pen is put away', () => {
+    const media = phone(false);
+    const controllerRef = { current: null };
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={fakeService({ pages })} worksheets={sheets} controllerRef={controllerRef} />);
+    act(() => { controllerRef.current.selectPage('ws'); });
+    expect(screen.queryByTestId('worksheet-reading')).toBeNull();
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-fill');
+    media.mockRestore();
+  });
+});

@@ -8,7 +8,16 @@
   the open one.
 - Files: `crm-v2/src/features/board/StudentBoard.jsx`, `board.css`, `board.test.jsx`. Checks: vitest board +
   live-classroom 117/117, eslint clean.
-- Next safe step: merge (frontend deploys with main); the owner tries deleting a page in a lesson.
+- Same PR, owner 2026-10-20 („ученик с телефона нормально не может видеть лист…”): on a phone the A4 sheet (1000 px)
+  was shrunk to ~33 % and could not be read or moved; a student who followed the teacher onto the sheet kept the pen,
+  so one finger drew instead of moving or tapping fields. Now: under 700 px a worksheet page is a reading page — the
+  sheet in one column (`.ws-narrow` rules at the end of `worksheet-studio/engine/sheet.css`: page/rows/grids single
+  column, theme paddings, headers/footers hidden, 16 px inputs) in a native finger-scrolling box; the drawing dock and
+  zoom are hidden; „Tahvlivaade” switches back to the board (teacher's drawings), „Lugemisvaade” returns. A pointed
+  task scrolls into view. The student following onto a worksheet page gets the fill tool on any screen.
+- Checked on a local stand at 375×812 (sheet readable, no sideways scroll, answer fields full width); vitest board +
+  live-classroom + worksheet-studio 407/407 + 2 new phone tests, eslint clean. Not tried on a real phone yet.
+- Next safe step: merge (frontend deploys with main); the owner deletes a page and a student opens a sheet on a phone.
 
 ## 2026-10-20 · agent/merge-subjects — one learner, several subjects: step 1 (merging cards keeps both subjects)
 
