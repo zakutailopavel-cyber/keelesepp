@@ -21,12 +21,12 @@ const TEXT = {
     quick: 'Kiirvalik:', presets: { weekdayEvenings: 'Tööpäeva õhtud 17–21', weekdayDays: 'Tööpäeviti 9–17', weekend: 'Nädalavahetus 10–18' }, clear: 'Tühjenda',
     legendOk: 'sobib', legendBest: 'sobib kõige paremini', marked: (n) => (n ? `Märgitud ${n} h nädalas` : 'Midagi pole veel märgitud'),
     summary: 'Sinu ajad', you: 'Sinu andmed',
-    name: 'Nimi', phone: 'Telefon', email: 'E-post', subject: 'Mida soovid õppida?', perWeek: 'Mitu tundi nädalas?', format: 'Kuidas sulle sobib?', comment: 'Kommentaar (valikuline)', commentHint: 'Nt alates millal uus aeg sobib, puhkus, muu oluline',
+    name: 'Õpilase (lapse) ees- ja perekonnanimi', parent: 'Lapsevanema ees- ja perekonnanimi', phone: 'Telefon', email: 'E-post', subject: 'Mida soovid õppida?', perWeek: 'Mitu tundi nädalas?', format: 'Kuidas sulle sobib?', comment: 'Kommentaar (valikuline)', commentHint: 'Nt alates millal uus aeg sobib, puhkus, muu oluline',
     formats: { online: 'Veebis', kohapeal: 'Kohapeal', mõlemad: 'Mõlemad sobivad' },
     subjects: { 'Eesti keel': 'Eesti keel', 'Inglise keel': 'Inglise keel', Matemaatika: 'Matemaatika', Muu: 'Muu' },
     send: 'Saada ajad', sending: 'Saadan…', contactHint: 'Piisab telefonist või e-postist.',
     privacy: 'Kasutame andmeid ainult tunniaja leidmiseks.', privacyLink: 'Privaatsus',
-    needSlots: 'Märgi tabelisse vähemalt üks sobiv aeg.', needName: 'Kirjuta oma nimi.', needContact: 'Kirjuta telefon või e-post.', failed: 'Saatmine ebaõnnestus. Proovi uuesti või kirjuta info@epkoolitus.ee.',
+    needSlots: 'Märgi tabelisse vähemalt üks sobiv aeg.', needName: 'Kirjuta õpilase ees- ja perekonnanimi.', needParent: 'Kirjuta lapsevanema ees- ja perekonnanimi.', needContact: 'Kirjuta telefon või e-post.', failed: 'Saatmine ebaõnnestus. Proovi uuesti või kirjuta info@epkoolitus.ee.',
     tooMany: 'Liiga palju saatmisi. Proovi tunni aja pärast uuesti.',
     done: 'Aitäh! Saime sinu ajad kätte.', doneMore: 'Anname uue tunniaja teada, kui tunniplaan on valmis.', again: 'Saada veel üks vastus',
   },
@@ -45,12 +45,12 @@ const TEXT = {
     quick: 'Быстрый выбор:', presets: { weekdayEvenings: 'Будни вечером 17–21', weekdayDays: 'Будни днём 9–17', weekend: 'Выходные 10–18' }, clear: 'Очистить',
     legendOk: 'подходит', legendBest: 'подходит лучше всего', marked: (n) => (n ? `Отмечено ${n} ч в неделю` : 'Пока ничего не отмечено'),
     summary: 'Ваше время', you: 'Ваши данные',
-    name: 'Имя', phone: 'Телефон', email: 'E-mail', subject: 'Что хотите изучать?', perWeek: 'Сколько уроков в неделю?', format: 'Как вам удобнее?', comment: 'Комментарий (по желанию)', commentHint: 'Например: с какого числа подходит новое время, отпуск, другое важное',
+    name: 'Имя и фамилия ученика (ребёнка)', parent: 'Имя и фамилия родителя', phone: 'Телефон', email: 'E-mail', subject: 'Что хотите изучать?', perWeek: 'Сколько уроков в неделю?', format: 'Как вам удобнее?', comment: 'Комментарий (по желанию)', commentHint: 'Например: с какого числа подходит новое время, отпуск, другое важное',
     formats: { online: 'Онлайн', kohapeal: 'Очно', mõlemad: 'Подходит и так, и так' },
     subjects: { 'Eesti keel': 'Эстонский язык', 'Inglise keel': 'Английский язык', Matemaatika: 'Математика', Muu: 'Другое' },
     send: 'Отправить время', sending: 'Отправляю…', contactHint: 'Достаточно телефона или e-mail.',
     privacy: 'Данные используются только для подбора времени урока.', privacyLink: 'Конфиденциальность',
-    needSlots: 'Отметьте в таблице хотя бы одно подходящее время.', needName: 'Напишите ваше имя.', needContact: 'Укажите телефон или e-mail.', failed: 'Не удалось отправить. Попробуйте ещё раз или напишите на info@epkoolitus.ee.',
+    needSlots: 'Отметьте в таблице хотя бы одно подходящее время.', needName: 'Напишите имя и фамилию ученика.', needParent: 'Напишите имя и фамилию родителя.', needContact: 'Укажите телефон или e-mail.', failed: 'Не удалось отправить. Попробуйте ещё раз или напишите на info@epkoolitus.ee.',
     tooMany: 'Слишком много отправок. Попробуйте через час.',
     done: 'Спасибо! Ваше время получено.', doneMore: 'Мы сообщим новое время урока, когда расписание будет готово.', again: 'Отправить ещё один ответ',
   },
@@ -61,7 +61,7 @@ export default function AvailabilityPollPage({ post = (body) => globalThis.fetch
   const t = TEXT[lang];
   const [cells, setCells] = useState({});
   // current students (owner 2026-10-20): only who they are and the times — no subject, goals or lesson count
-  const blank = { name: '', phone: '', email: '', message: '', website: '' };
+  const blank = { name: '', parentName: '', phone: '', email: '', message: '', website: '' };
   const [form, setForm] = useState(blank);
   const [state, setState] = useState({ busy: false, error: '', done: false });
   const marked = Object.values(cells).filter(Boolean).length;
@@ -71,7 +71,10 @@ export default function AvailabilityPollPage({ post = (body) => globalThis.fetch
   const submit = async (event) => {
     event.preventDefault();
     if (!marked) { setState({ busy: false, error: t.needSlots, done: false }); return; }
-    if (form.name.trim().length < 2) { setState({ busy: false, error: t.needName, done: false }); return; }
+    // first and last name of the student and of the parent (owner 2026-10-20): both required, at least two words
+    const fullName = (value) => value.trim().split(/\s+/).filter((part) => part.length >= 2).length >= 2;
+    if (!fullName(form.name)) { setState({ busy: false, error: t.needName, done: false }); return; }
+    if (!fullName(form.parentName)) { setState({ busy: false, error: t.needParent, done: false }); return; }
     if (!form.email.trim() && form.phone.replace(/\D/g, '').length < 5) { setState({ busy: false, error: t.needContact, done: false }); return; }
     setState({ busy: true, error: '', done: false });
     try {
@@ -125,7 +128,8 @@ export default function AvailabilityPollPage({ post = (body) => globalThis.fetch
             <section className="poll-card">
               <h2>{t.you}</h2>
               <div className="poll-fields">
-                <label className="is-wide"><span>{t.name}</span><input value={form.name} autoComplete="name" maxLength={120} onChange={(e) => set({ name: e.target.value })} /></label>
+                <label className="is-wide"><span>{t.name} *</span><input value={form.name} autoComplete="off" maxLength={120} onChange={(e) => set({ name: e.target.value })} /></label>
+                <label className="is-wide"><span>{t.parent} *</span><input value={form.parentName} autoComplete="off" maxLength={120} onChange={(e) => set({ parentName: e.target.value })} /></label>
                 <label><span>{t.phone}</span><input value={form.phone} type="tel" autoComplete="tel" maxLength={40} onChange={(e) => set({ phone: e.target.value })} /></label>
                 <label><span>{t.email}</span><input value={form.email} type="email" autoComplete="email" maxLength={200} onChange={(e) => set({ email: e.target.value })} /></label>
                 <p className="poll-hint is-wide">{t.contactHint}</p>

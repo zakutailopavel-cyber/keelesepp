@@ -1,3 +1,11 @@
+## 2026-10-20 · agent/availability-names — „Sobivad ajad”: student's and parent's full name required
+
+- main checked: origin/main after #691. Owner: add the parent's first and last name and make it and the child's
+  required. The page asks „Õpilase (lapse) ees- ja perekonnanimi *” and „Lapsevanema ees- ja perekonnanimi *” (two
+  words each, checked in the page and in functions/website-lead-core.js: `parentName`, errors `name` / `parentName`).
+  Päringud and the e-mail show „Lapsevanem”. Checks: vitest 4/4, functions 9/9, eslint clean.
+- Note: an adult learner has to write a parent's name too (owner's choice); a „learner is an adult” option can be added.
+
 ## 2026-10-20 · agent/availability-design — „Sobivad ajad”: better look, texts and its own link preview
 
 - main checked: origin/main after #689 (2026-10-20). Owner: improve quality, look and description; anyone with the link
