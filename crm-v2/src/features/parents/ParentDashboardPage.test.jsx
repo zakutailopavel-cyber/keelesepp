@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -45,5 +45,30 @@ describe('ParentDashboardPage', () => {
     expect(screen.getByText('Harjutasime tellimist kohvikus.')).toBeInTheDocument();
     expect(screen.getByText('Individuaalne tund')).toBeInTheDocument();
     expect(screen.getAllByText('Toimus')).toHaveLength(2);
+  });
+
+  it('one child with two subjects: one card, a subject switcher, each subject with its own lessons and homework', async () => {
+    const today = toIsoDate();
+    const studentRepository = { listOwned: vi.fn().mockResolvedValue([{ id: 's1', name: 'Stefania', subject: 'Eesti keel', teacher: 'Pavel', enrollments: [
+      { subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1', level: 'A2' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta', teacherUid: 'y1', level: '5. klass' }] }]) };
+    const homeworkRepository = { listByStudentIds: vi.fn().mockResolvedValue([
+      { id: 'h1', studentId: 's1', task: 'Õpi sõnad', subject: 'Eesti keel', due: shiftDate(today, 2), status: 'Ootel' },
+      { id: 'h2', studentId: 's1', task: 'Murrud lk 12', subject: 'Matemaatika', due: shiftDate(today, 2), status: 'Ootel' }]) };
+    // an old schedule entry without a subject is placed by its teacher
+    const scheduleRepository = { listByStudent: vi.fn().mockResolvedValue([
+      { id: 'e1', studentId: 's1', teacher: 'Pavel', teacherUid: 'p1', date: shiftDate(today, 1), time: '15:00', duration: 60, status: 'Planeeritud' },
+      { id: 'm1', studentId: 's1', teacher: 'Yelyzaveta', teacherUid: 'y1', date: shiftDate(today, 2), time: '17:00', duration: 60, status: 'Planeeritud' }]) };
+    const empty = { listByStudent: vi.fn().mockResolvedValue([]) };
+    const user = { uid: 'parent-1', displayName: 'Ema', roles: ['parent'] };
+    render(<MemoryRouter><AuthContext.Provider value={{ user }}><ParentDashboardPage studentRepository={studentRepository} homeworkRepository={homeworkRepository} scheduleRepository={scheduleRepository} invoiceRepository={empty} /></AuthContext.Provider></MemoryRouter>);
+    const tabs = await screen.findByRole('tablist', { name: 'Näita õppeainet' });
+    expect(within(tabs).getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Kõik', 'Eesti keel', 'Matemaatika']);
+    expect(screen.getByText('Õpi sõnad')).toBeInTheDocument();
+    expect(screen.getByText('Murrud lk 12')).toBeInTheDocument();
+    fireEvent.click(within(tabs).getByRole('tab', { name: 'Matemaatika' }));
+    expect(screen.queryByText('Õpi sõnad')).toBeNull();
+    expect(screen.getByText('Murrud lk 12')).toBeInTheDocument();
+    expect(screen.getByText(/17:00/)).toBeInTheDocument();
+    expect(screen.queryByText(/15:00/)).toBeNull();
   });
 });
