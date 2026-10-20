@@ -33,6 +33,21 @@ function renderProfile({
 }
 
 describe('student profile tabs and role access', () => {
+  it('a card with two subjects shows both tracks and the lessons of one subject at a time', async () => {
+    renderProfile({
+      student: { id: 's1', name: 'Stefania', teacher: 'Pavel', active: true, skillMap: {}, enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta', teacherUid: 'y1' }] },
+      schedule: [{ id: 'e1', date: '2026-10-10', time: '15:00', teacher: 'Pavel', teacherUid: 'p1' }, { id: 'm1', date: '2026-10-11', time: '17:00', teacher: 'Yelyzaveta', subject: 'Matemaatika' }],
+    });
+    const tabs = await screen.findByRole('tablist', { name: 'Õpilase õppeained' }, { timeout: 4000 });
+    expect(screen.getByText(/Matemaatika · Yelyzaveta/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: 'Tunnid' }));
+    expect(await screen.findByText('2026-10-10 · 15:00', {}, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.getByText('2026-10-11 · 17:00')).toBeInTheDocument();
+    fireEvent.click(within(tabs).getByRole('tab', { name: 'Matemaatika' }));
+    expect(screen.queryByText('2026-10-10 · 15:00')).toBeNull();
+    expect(screen.getByText('2026-10-11 · 17:00')).toBeInTheDocument();
+  });
+
   it('an admin archives the student from the card after a confirmation, and can restore them', async () => {
     const apis = renderProfile();
     apis.studentApi.archive = vi.fn().mockResolvedValue({ active: false });

@@ -1,3 +1,21 @@
+## 2026-10-20 · agent/subject-switcher — one learner, several subjects: step 2 (subject switcher)
+
+- main checked: origin/main after #684 (2026-10-20). Production data done earlier today with the owner's permission:
+  subject backfill (136 lessons, 121 Google-synced schedule entries, 51 homework; 352 never-synced schedule entries left
+  untouched so no write pushes old lessons into teachers' Google calendars — the CRM places them by teacher), 8 pairs of
+  cards merged (`functions/student-merge.js`, schedule moved, finance left on the archived cards): Stefania, Georg,
+  Aleksandr and Mihhail Smirnov now have two subjects on one card; Artur Karpovits, Timur, Mariam, Monika lost a
+  duplicate. The two Marias are two children (owner). Script logs: activityLog `subject.backfilled`, `student.cards_merged`.
+- This step: `crm-v2/src/features/students/subjects.js` (subject of a record: own field → teacher's track → the card's
+  only subject) and `SubjectSwitcher.jsx` („Kõik · Eesti keel · Matemaatika”, shown only with 2+ subjects).
+  Parent home: switcher filters upcoming lessons, done lessons, homework and the child's tracks; a lesson shows its
+  subject under „Kõik”. Student home: switcher filters next lesson / lessons / homework; „Minu areng” (Estonian course)
+  only for Eesti keel or „Kõik”. Student card (staff): subject tracks in the header, switcher filters the Tunnid tab.
+  Invoices are not filtered (one invoice per family).
+- Checks: vitest students + parents 97/97 + subjects.test 2/2, eslint 0 errors.
+- Next steps: teacher sees only their subject (UI + firestore.rules) → price per subject + one invoice with lines per
+  subject (Stefania maths and Aleksandr English prices stayed on the archived cards) → remove packages.
+
 ## 2026-10-20 · agent/board-page-menu — Live Classroom: the page ⋯ menu names its page; right click on any tab
 
 - Owner 2026-10-20 (screenshot): could not delete a sheet in the lesson. The ⋯ button stood after all tabs (next to the
