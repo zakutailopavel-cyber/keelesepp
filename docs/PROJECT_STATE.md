@@ -1,3 +1,14 @@
+## 2026-10-20 · agent/student-sheet-full — Live Classroom: the student sees the whole worksheet
+
+- main checked: origin/main (2026-10-20). Owner screenshot: the student saw only the top of the sheet (title, picture)
+  and the „Salvesta / Esita tööleht” bar right under it; the teacher saw the whole sheet.
+- Cause: the student's player (DocWorksheetPlayer, board mode) carries `.ws-studio`, the constructor's full-screen frame
+  (`height: calc(100dvh - 96px); overflow: hidden`). On the board the sheet was clipped at the window's height and the
+  board measured only that much, so the student could not move further down. The teacher's player has no such frame.
+- Fix (board.css): `.sb-underlay .ws-studio` and `.sb-reading .ws-studio` get `height: auto; overflow: visible`, and the
+  phone reading page drops the inline canvas's 75vh limit. Checked on a local stand (1280×650): the student's sheet
+  grew from 682 px to its full 6654 px and scrolls down to the tasks.
+- Next safe step: merge (frontend deploys with main); the owner checks a student's sheet in a lesson.
 ## 2026-10-20 · agent/availability-poll — „Sobivad ajad”: a page the school sends to learners to mark suitable times
 
 - main checked: origin/main (2026-10-20). Owner: a Mon–Sun table to send to anyone who wants lessons, as simple as
