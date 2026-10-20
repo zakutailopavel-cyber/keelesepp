@@ -6,6 +6,12 @@
 // loses its account links, so the learner sees one card. Every collection is searched for `studentId` (and
 // `studentIds` arrays). Finance and the calendar schedule move only when asked for explicitly: invoices carry their
 // own client data and the Google Calendar sync finds the student by id. Preview first, then apply.
+//
+// Several subjects (owner 2026-10-20): the other card's subject and teacher become an enrollment of the kept card,
+// and its moved lessons, schedule and work without a subject are marked with that subject, so a maths card merged
+// into an Estonian card stays maths inside the one card.
+
+const { mergeEnrollments, cardSubject } = require("./student-enrollments-core");
 
 const FINANCE = new Set(["invoices", "payments", "creditNotes", "bankTransactions", "studentRevenuePlans", "expenses", "manualInvoices", "financialAudit", "financialPeriods", "refunds"]);
 const SCHEDULE = new Set(["schedule"]);
@@ -23,9 +29,9 @@ async function mergePlan(db, sourceId) {
     if (NEVER.has(col.id)) continue;
     const kind = FINANCE.has(col.id) ? "finance" : SCHEDULE.has(col.id) ? "schedule" : "learner";
     const single = await col.where("studentId", "==", sourceId).get().catch(() => null);
-    if (single?.size) out.push({ collection: col.id, field: "studentId", count: single.size, kind, refs: single.docs.map((d) => d.ref) });
+    if (single?.size) out.push({ collection: col.id, field: "studentId", count: single.size, kind, refs: single.docs.map((d) => d.ref), docs: single.docs });
     const many = await col.where("studentIds", "array-contains", sourceId).get().catch(() => null);
-    if (many?.size) out.push({ collection: col.id, field: "studentIds", count: many.size, kind, refs: many.docs.map((d) => d.ref) });
+    if (many?.size) out.push({ collection: col.id, field: "studentIds", count: many.size, kind, refs: many.docs.map((d) => d.ref), docs: many.docs });
   }
   return out;
 }
@@ -49,12 +55,17 @@ async function mergeStudentCards(db, { FieldValue, keepId, sourceId, actor = {},
     if (p.collection === "petProfiles" && keepPet?.size) { skipped.push({ ...p, reason: "kept card already has a pet" }); return null; }
     return p;
   }).filter(Boolean);
+  const tracks = mergeEnrollments(keep, source);
+  // the other card's records belong to its subject; only learner and schedule records carry it (invoices keep theirs)
+  const sourceSubject = cardSubject(source);
   const summary = {
     keep: { id: keepId, name: keep.name || "", accounts: accountIds(keep) },
     source: { id: sourceId, name: source.name || "", accounts: accountIds(source) },
     move: steps.map(({ collection, field, count, kind }) => ({ collection, field, count, kind })),
     waiting: plan.filter((p) => !moving.includes(p)).map(({ collection, field, count, kind }) => ({ collection, field, count, kind })),
     skipped: skipped.map(({ collection, count, reason }) => ({ collection, count, reason })),
+    subjects: tracks.enrollments.map(({ subject, teacher }) => ({ subject, teacher })),
+    addedSubjects: tracks.added.map(({ subject, teacher }) => ({ subject, teacher })),
   };
   if (!apply) return { ...summary, applied: false };
 
@@ -63,8 +74,11 @@ async function mergeStudentCards(db, { FieldValue, keepId, sourceId, actor = {},
   let n = 0;
   const flush = async () => { if (n) { await batch.commit(); batch = db.batch(); n = 0; } };
   for (const step of steps) {
-    for (const ref of step.refs) {
-      if (step.field === "studentId") batch.update(ref, { studentId: keepId, mergedFromStudentId: sourceId });
+    const tagSubject = sourceSubject && step.kind !== "finance";
+    for (const [index, ref] of step.refs.entries()) {
+      const data = step.docs?.[index]?.data?.() || {};
+      const subject = tagSubject && !data.subject ? { subject: sourceSubject } : {};
+      if (step.field === "studentId") batch.update(ref, { studentId: keepId, mergedFromStudentId: sourceId, ...subject });
       else batch.update(ref, { studentIds: FieldValue.arrayUnion(keepId) });
       n += 1;
       if (n >= BATCH) await flush();
@@ -85,6 +99,8 @@ async function mergeStudentCards(db, { FieldValue, keepId, sourceId, actor = {},
     ...(parents.length ? { linkedParentIds: parents, linkedParentId: keep.linkedParentId || source.linkedParentId || parents[0] } : {}),
     ...(!keep.email && source.email ? { email: source.email } : {}),
     ...(!keep.phone && source.phone ? { phone: source.phone } : {}),
+    enrollments: tracks.enrollments,
+    ...(tracks.teacherUids.length ? { teacherUids: tracks.teacherUids } : {}),
     mergedStudentIds: FieldValue.arrayUnion(sourceId),
     updatedAt: nowIso,
   };

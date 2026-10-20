@@ -1,3 +1,24 @@
+## 2026-10-20 · agent/merge-subjects — one learner, several subjects: step 1 (merging cards keeps both subjects)
+
+- main checked: origin/main after #682 (2026-10-20). Owner decisions 2026-10-20: one card per child with one enrollment
+  per subject (own teacher, level, lessons, homework, progress, **own price**); lesson packages are dropped (production
+  had 0 studentPackages / 0 ledger entries); one invoice per payer with a line per subject; a teacher sees only their
+  own subject; parent and student get a subject switcher.
+- Found: enrollments already exist in the CRM (calendar picks a track, card lists „Õppesuunad”), but production has no
+  card with >1 enrollment: 9 children have two cards instead (4 genuinely two subjects, 5 duplicates of one subject).
+  148 of 305 lessons and 550 of 674 schedule entries have no subject.
+- This step: `functions/student-enrollments-core.js` (subject names, enrollments of old and new cards, merge of tracks);
+  `student-merge.js` writes the union of enrollments + `teacherUids` to the kept card and marks the other card's moved
+  lessons / schedule / work without a subject with that card's subject (finance records untouched). „Liida kaardid”
+  preview shows „uus õppesuund” and the subjects after merging.
+- Checks: functions unit (enrollments + merge core) 14/14; vitest students 78/78; eslint clean; new emulator test in
+  student-merge-emulator.integration.js runs in CI (local Java < 21).
+- Deploy after merge: `firebase deploy --only functions:staffOperationsApi` (owner permission). Then the admin merges the
+  9 pairs (list for the owner first).
+- Next steps (separate PRs): subject backfill on lessons/schedule (dry run first) → subject switcher for parent/student
+  and subject tabs on the card → per-subject teacher scoping in rules → price per subject + one invoice with lines per
+  subject → remove packages UI/trigger.
+
 ## 2026-10-19 · agent/teacher-no-money — teachers see no invoices or amounts (port of #516)
 
 - main checked: 7686fb4 (2026-10-19). Owner 2026-10-19: „Учитель не должен видеть сумму и счета”.

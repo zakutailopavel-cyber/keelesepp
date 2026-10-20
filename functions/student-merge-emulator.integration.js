@@ -44,3 +44,27 @@ test('merge two student cards', async () => {
   assert.deepEqual((await db.doc('users/uid-v').get()).data().linkedStudentIds, [keepId]);
   await assert.rejects(() => mergeStudentCards(db, { FieldValue, keepId, sourceId, apply: true }), /already merged/);
 });
+
+test('merging a maths card into an Estonian card keeps both subjects in one card', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: 'demo-keelesepp-finance' });
+  const db = admin.firestore();
+  const keepId = `est-${Date.now()}`;
+  const sourceId = `math-${Date.now()}`;
+  await db.doc(`students/${keepId}`).set({ name: 'Milan', active: true, subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1', teacherUids: ['p1'] });
+  await db.doc(`students/${sourceId}`).set({ name: 'Milan', active: true, subject: 'Matemaatika', teacher: 'Yelyzaveta', teacherUid: 'y1' });
+  const lesson = await db.collection('lessons').add({ studentId: sourceId, date: '2026-10-01', status: 'Toimunud' });
+  const tagged = await db.collection('lessons').add({ studentId: sourceId, date: '2026-10-02', status: 'Toimunud', subject: 'Matemaatika' });
+  const plan = await db.collection('schedule').add({ studentId: sourceId, time: '15:00' });
+
+  const preview = await mergeStudentCards(db, { FieldValue, keepId, sourceId, includeSchedule: true });
+  assert.deepEqual(preview.addedSubjects, [{ subject: 'Matemaatika', teacher: 'Yelyzaveta' }]);
+
+  await mergeStudentCards(db, { FieldValue, keepId, sourceId, includeSchedule: true, apply: true, actor: { uid: 'admin' } });
+  const keep = (await db.doc(`students/${keepId}`).get()).data();
+  assert.deepEqual(keep.enrollments.map((item) => [item.subject, item.teacherUid]), [['Eesti keel', 'p1'], ['Matemaatika', 'y1']]);
+  assert.deepEqual([...keep.teacherUids].sort(), ['p1', 'y1']);
+  assert.equal((await lesson.get()).data().subject, 'Matemaatika');
+  assert.equal((await lesson.get()).data().studentId, keepId);
+  assert.equal((await tagged.get()).data().subject, 'Matemaatika');
+  assert.equal((await plan.get()).data().subject, 'Matemaatika');
+});
