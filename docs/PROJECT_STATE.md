@@ -1,3 +1,24 @@
+## 2026-10-20 · agent/board-page-menu — Live Classroom: the page ⋯ menu names its page; right click on any tab
+
+- Owner 2026-10-20 (screenshot): could not delete a sheet in the lesson. The ⋯ button stood after all tabs (next to the
+  worksheet tab) while it acted on the open page („Leht 3”), and the menu was rendered inside the scrolling tab strip.
+- Now: ⋯ stands right after the open page's tab and its title names the page; a right click on any page tab opens the
+  menu of that page (delete it without opening it); the menu shows the page name, is rendered in `document.body`
+  (portal, own styles in board.css) and tells when a completed lesson page cannot be deleted. Deleting another page keeps
+  the open one.
+- Files: `crm-v2/src/features/board/StudentBoard.jsx`, `board.css`, `board.test.jsx`. Checks: vitest board +
+  live-classroom 117/117, eslint clean.
+- Same PR, owner 2026-10-20 („ученик с телефона нормально не может видеть лист…”): on a phone the A4 sheet (1000 px)
+  was shrunk to ~33 % and could not be read or moved; a student who followed the teacher onto the sheet kept the pen,
+  so one finger drew instead of moving or tapping fields. Now: under 700 px a worksheet page is a reading page — the
+  sheet in one column (`.ws-narrow` rules at the end of `worksheet-studio/engine/sheet.css`: page/rows/grids single
+  column, theme paddings, headers/footers hidden, 16 px inputs) in a native finger-scrolling box; the drawing dock and
+  zoom are hidden; „Tahvlivaade” switches back to the board (teacher's drawings), „Lugemisvaade” returns. A pointed
+  task scrolls into view. The student following onto a worksheet page gets the fill tool on any screen.
+- Checked on a local stand at 375×812 (sheet readable, no sideways scroll, answer fields full width); vitest board +
+  live-classroom + worksheet-studio 407/407 + 2 new phone tests, eslint clean. Not tried on a real phone yet.
+- Next safe step: merge (frontend deploys with main); the owner deletes a page and a student opens a sheet on a phone.
+
 ## 2026-10-20 · agent/merge-subjects — one learner, several subjects: step 1 (merging cards keeps both subjects)
 
 - main checked: origin/main after #682 (2026-10-20). Owner decisions 2026-10-20: one card per child with one enrollment
@@ -13,8 +34,9 @@
   preview shows „uus õppesuund” and the subjects after merging.
 - Checks: functions unit (enrollments + merge core) 14/14; vitest students 78/78; eslint clean; new emulator test in
   student-merge-emulator.integration.js runs in CI (local Java < 21).
-- Deploy after merge: `firebase deploy --only functions:staffOperationsApi` (owner permission). Then the admin merges the
-  9 pairs (list for the owner first).
+- Merged + `functions:staffOperationsApi` deployed 2026-10-20 (owner „сливай и деплой”). Production data 2026-10-20 (owner:
+  „Muu это математика”): subject „Muu” → „Matemaatika” on the 8 cards that had it (activityLog `student.subject_renamed`).
+  Waiting for the owner: subject backfill on lessons/schedule/homework and merging the 8 pairs (Maria: one child or two?).
 - Next steps (separate PRs): subject backfill on lessons/schedule (dry run first) → subject switcher for parent/student
   and subject tabs on the card → per-subject teacher scoping in rules → price per subject + one invoice with lines per
   subject → remove packages UI/trigger.

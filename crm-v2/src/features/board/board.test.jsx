@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { vi } from 'vitest';
+import { beforeEach, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import BoardPage from './BoardPage.jsx';
 import StudentBoard from './StudentBoard.jsx';
@@ -338,6 +338,21 @@ describe('the ⋯ menu of a board page', () => {
     confirm.mockRestore();
   });
 
+  it('a right click on the tab of another page opens the menu of that page and deletes it, not the open one', async () => {
+    const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Leht 3', status: 'active' }, { id: 'pg2', title: 'Tööleht: B1 · Avasta', status: 'active' }] }), deletePage: vi.fn(async () => {}) };
+    const confirm = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Leht 3' }));
+    // the ⋯ button stands next to the open page and names it
+    expect(screen.getByRole('button', { name: 'Lehe toimingud' })).toHaveAttribute('title', 'Lehe „Leht 3” toimingud');
+    fireEvent.contextMenu(screen.getByRole('tab', { name: 'Tööleht: B1 · Avasta' }));
+    expect(screen.getByRole('menu')).toHaveAccessibleName('Leht „Tööleht: B1 · Avasta”');
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Kustuta leht' }));
+    await waitFor(() => expect(service.deletePage).toHaveBeenCalledWith('s1', 'pg2'));
+    expect(screen.getByRole('tab', { name: 'Leht 3' })).toHaveAttribute('aria-selected', 'true');
+    confirm.mockRestore();
+  });
+
   it('a student may only rename', () => {
     const service = { ...fakeService({ pages: [{ id: 'pg1', title: 'Tund 3', status: 'active' }] }), deletePage: vi.fn() };
     render(<StudentBoard studentId="s1" user={user} variant="room" service={service} />);
@@ -505,5 +520,36 @@ describe('board objects, paper and marker', () => {
   it('a student gets the photo button when the board can take their pictures', () => {
     render(<StudentBoard studentId="s-1" user={user} service={fakeService()} variant="room" uploadImage={vi.fn()} />);
     expect(screen.getByRole('button', { name: 'Pilt' })).toHaveAttribute('title', 'Lisa foto (nt vihikust)');
+  });
+});
+
+describe('a worksheet on a phone', () => {
+  const sheets = [{ id: 'ws1', title: 'B2 · Avasta', content: <p>Loe teksti</p> }];
+  const pages = [{ id: 'p1', title: 'Leht 1', status: 'active' }, { id: 'ws', title: 'Tööleht: B2 · Avasta', status: 'active' }];
+  const phone = (matches) => vi.spyOn(globalThis, 'matchMedia').mockImplementation(() => ({ matches, addEventListener: () => {}, removeEventListener: () => {} }));
+  beforeEach(() => { if (!globalThis.matchMedia) globalThis.matchMedia = () => ({ matches: false, addEventListener: () => {}, removeEventListener: () => {} }); });
+
+  it('is read as one scrolling column, the board view is one tap away', () => {
+    const media = phone(true);
+    const controllerRef = { current: null };
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={fakeService({ pages })} worksheets={sheets} controllerRef={controllerRef} />);
+    act(() => { controllerRef.current.selectPage('ws'); });
+    expect(screen.getByTestId('worksheet-reading')).toHaveTextContent('Loe teksti');
+    expect(screen.getByRole('toolbar', { hidden: true })).not.toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: /Tahvlivaade/ }));
+    expect(screen.queryByTestId('worksheet-reading')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Lugemisvaade' }));
+    expect(screen.getByTestId('worksheet-reading')).toBeInTheDocument();
+    media.mockRestore();
+  });
+
+  it('on a large screen the student who follows the teacher onto the sheet fills it in, the pen is put away', () => {
+    const media = phone(false);
+    const controllerRef = { current: null };
+    render(<StudentBoard studentId="s1" user={user} variant="room" service={fakeService({ pages })} worksheets={sheets} controllerRef={controllerRef} />);
+    act(() => { controllerRef.current.selectPage('ws'); });
+    expect(screen.queryByTestId('worksheet-reading')).toBeNull();
+    expect(document.querySelector('.sb-stage')).toHaveClass('tool-fill');
+    media.mockRestore();
   });
 });

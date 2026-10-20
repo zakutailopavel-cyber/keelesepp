@@ -712,3 +712,30 @@
 .ws-chart-legend li { display: flex; align-items: center; gap: 1.6mm; }
 .ws-chart-legend i { display: inline-block; width: 4mm; height: 4mm; border-radius: 1mm; }
 .ws-chart-source { margin: 0; font-size: 8.5pt; color: var(--ks-muted); }
+
+/* ===== a narrow screen (phone, `.ws-narrow` around the sheet): the A4 page becomes one readable column ===== */
+.ws-narrow .st-zoom { zoom: 1 !important; }
+.ws-narrow .ws-root { gap: 3mm; align-items: stretch; }
+.ws-narrow .ws-page, .ws-narrow .ws-page.is-tall { width: auto; height: auto; min-height: 0; overflow: visible; padding: 14px 12px; font-size: 16px; box-shadow: 0 2px 10px rgba(0,0,0,.08); border-radius: 10px; }
+.ws-narrow .ws-row { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.ws-narrow .ws-row > * { grid-column: 1 / -1 !important; }
+.ws-narrow .ws-hdr, .ws-narrow .ws-root.theme-klassika .ws-hdr { grid-template-columns: minmax(0, 1fr); }
+.ws-narrow .ws-slogan, .ws-narrow .ws-ftr, .ws-narrow .ws-page-tail { display: none; }
+.ws-narrow .ws-match, .ws-narrow .ws-many, .ws-narrow .ws-reading, .ws-narrow .ws-rolecards, .ws-narrow .ws-planning,
+.ws-narrow .ws-phrasebank, .ws-narrow .ws-rubric, .ws-narrow .ws-self, .ws-narrow .ws-self-items, .ws-narrow .ws-speak.has-img,
+.ws-narrow .ws-dg-compare, .ws-narrow .ws-formrow, .ws-narrow .ws-card[data-cols] .ws-tf { grid-template-columns: minmax(0, 1fr); }
+.ws-narrow .ws-crossword li { grid-template-columns: minmax(0, 1fr); }
+.ws-narrow .ws-cw-clues { grid-template-columns: minmax(0, 1fr); }
+.ws-narrow img, .ws-narrow svg { max-width: 100%; height: auto; }
+.ws-narrow input, .ws-narrow textarea, .ws-narrow select { font-size: 16px; max-width: 100%; }
+.ws-narrow .ws-page * { min-width: 0; overflow-wrap: break-word; }
+.ws-narrow .ws-page h1, .ws-narrow .ws-page h2 { font-size: clamp(20px, 7vw, 30px); line-height: 1.15; overflow-wrap: anywhere; }
+.ws-narrow .ws-page::before, .ws-narrow .ws-page::after { display: none; }
+.ws-narrow .ws-page { border: 0; outline: 0; }
+.ws-narrow .ws-card { padding: 10px !important; }
+.ws-narrow .ws-passage, .ws-narrow .ws-notice, .ws-narrow .ws-box { padding: 8px; }
+/* the themes set their own page and box paddings; on a phone the column keeps its width */
+.ws-narrow .ws-page, .ws-narrow .ws-page.is-tall { padding: 12px 10px !important; }
+.ws-narrow .ws-passage { padding: 8px !important; }
+.ws-narrow .ws-runhead { display: none; }
+.ws-narrow .ws-root { gap: 10px; }

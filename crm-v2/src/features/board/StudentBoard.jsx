@@ -1,5 +1,6 @@
 import { ArrowUpRight, ChevronDown, Circle, ClipboardList, Copy, Crosshair, Eraser, Highlighter, FilePlus2, FileText, MousePointerClick, MoreHorizontal, Hand, ImagePlus, Maximize, Minus, MousePointer2, PenLine, Plus, Shapes, Square, StickyNote, Trash2, Type } from 'lucide-react';
-import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
@@ -32,6 +33,20 @@ const HISTORY_LIMIT = 50;
  * variant="room" is the Live Classroom layout: floating tool dock, style panel, zoom badge; the room drives undo/redo
  * and inserts materials through `controllerRef`, and gets the history state through `onHistoryChange`.
  */
+// a phone (or a narrow window): a worksheet page is read as a one-column page with the finger's own scrolling
+const NARROW = '(max-width: 700px)';
+function useNarrowScreen() {
+  const [narrow, setNarrow] = useState(() => Boolean(globalThis.matchMedia?.(NARROW).matches));
+  useEffect(() => {
+    const query = globalThis.matchMedia?.(NARROW);
+    if (!query) return undefined;
+    const change = () => setNarrow(query.matches);
+    query.addEventListener?.('change', change);
+    return () => query.removeEventListener?.('change', change);
+  }, []);
+  return narrow;
+}
+
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
   controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null,
@@ -121,6 +136,14 @@ export default function StudentBoard({
   const worksheetPage = sheetPageOf(worksheet);
   const activeSheet = sheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
   const onWorksheet = Boolean(activeSheet);
+  // on a phone the worksheet is read as a one-column page (owner 2026-10-20: the A4 sheet shrunk to a third could not be
+  // read or moved); „Tahvlivaade” brings back the board with the teacher's drawings
+  const narrow = useNarrowScreen();
+  const [boardView, setBoardView] = useState(false);
+  const reading = onWorksheet && narrow && !boardView;
+  // the student who follows the teacher onto a worksheet page fills it in: one finger moves the sheet and taps the
+  // answer fields instead of drawing over them (a pen left on from the board page did that on tablets)
+  useEffect(() => { if (onWorksheet && !staff) setTool('fill'); }, [pageId, onWorksheet, staff]);
   // the sheet's height bounds how far the board pans down. The stage is rendered in two layouts, so the underlay may
   // be a new element (a reconnect, the layout switching on a tablet): the observer follows the element itself, else
   // the old height stayed and the student could not scroll past it (owner 2026-10-11, Monika on an iPad)
@@ -334,15 +357,16 @@ export default function StudentBoard({
     return () => { document.removeEventListener('pointerdown', close); document.removeEventListener('keydown', close); };
   }, [pageMenu]);
   useEffect(() => { setPageMenu(null); }, [pageId]);
-  const openPageMenu = (event) => {
-    if (pageMenu) { setPageMenu(null); return; }
+  // the ⋯ button sits right after the open page's tab; a right click on any page tab opens the same menu for that page
+  const openPageMenu = (event, id = pageId) => {
+    if (pageMenu?.id === id && event.type !== 'contextmenu') { setPageMenu(null); return; }
     const rect = event.currentTarget.getBoundingClientRect();
-    setPageMenu({ id: pageId, x: Math.max(8, Math.min(rect.left, (globalThis.innerWidth || 1200) - 228)), y: rect.bottom + 6 });
+    setPageMenu({ id, x: Math.max(8, Math.min(rect.left, (globalThis.innerWidth || 1200) - 228)), y: rect.bottom + 6 });
   };
   const deletePage = (page) => {
     setPageMenu(null);
     if (!globalThis.confirm(`Kustuta leht „${page.title || 'Leht'}” koos kõigega, mis sellel on?`)) return;
-    choosePage(null);
+    if (page.id === pageId) choosePage(null);
     service.deletePage(studentId, page.id).catch(fail('Lehte ei saanud kustutada.'));
   };
   const saveRename = () => {
@@ -352,20 +376,24 @@ export default function StudentBoard({
     if (!page || !current.title.trim() || current.title.trim() === page.title) return;
     service.renamePage(studentId, page.id, current.title, user).catch(fail('Lehte ei saanud ümber nimetada.'));
   };
-  const openPage = pages.find((item) => item.id === pageId) || null;
+  const menuPage = pages.find((item) => item.id === pageMenu?.id) || null;
   const pageTabs = (className) => <div className={className} role="tablist" aria-label="Tahvli lehed">
     <button type="button" role="tab" aria-selected={pageId === null} onClick={() => choosePage(null)}>Tahvel</button>
     {pages.map((page) => (renaming?.id === page.id
       ? <input key={page.id} className="sb-page-rename" aria-label="Lehe nimi" autoFocus maxLength={200} value={renaming.title}
         onChange={(event) => setRenaming({ ...renaming, title: event.target.value })} onBlur={saveRename}
         onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); if (event.key === 'Escape') setRenaming(null); }} />
-      : <button type="button" role="tab" key={page.id} aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>))}
-    {pageId && !renaming && openPage ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title="Lehe toimingud" aria-haspopup="menu" aria-expanded={Boolean(pageMenu)} onClick={openPageMenu}><MoreHorizontal size={16} /></button> : null}
-    {pageMenu && openPage ? <div className="sb-page-menu" role="menu" aria-label={`Leht „${openPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
-      <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: openPage.id, title: openPage.title || '' }); }}>Nimeta ümber</button>
-      {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: openPage.id, title: openPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
-      {staff && service.deletePage && openPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(openPage)}>Kustuta leht</button> : null}
-    </div> : null}
+      : <Fragment key={page.id}>
+        <button type="button" role="tab" aria-selected={pageId === page.id} className={sheetPageIds.has(page.id) ? 'is-worksheet' : ''} title="Topeltklõps: nimeta ümber · paremklõps: lehe toimingud" onClick={() => { choosePage(page.id); if (sheetPageIds.has(page.id)) setTool('fill'); }} onDoubleClick={() => setRenaming({ id: page.id, title: page.title || '' })} onContextMenu={(event) => { event.preventDefault(); openPageMenu(event, page.id); }}>{sheetPageIds.has(page.id) ? <ClipboardList size={13} aria-hidden="true" /> : null}{page.title || 'Leht'}</button>
+        {pageId === page.id && !renaming ? <button type="button" className="sb-page-tool sb-page-more" aria-label="Lehe toimingud" title={`Lehe „${page.title || 'Leht'}” toimingud`} aria-haspopup="menu" aria-expanded={pageMenu?.id === page.id} onClick={(event) => openPageMenu(event, page.id)}><MoreHorizontal size={16} /></button> : null}
+      </Fragment>))}
+    {menuPage ? createPortal(<div className="sb-page-menu" role="menu" aria-label={`Leht „${menuPage.title || 'Leht'}”`} style={{ left: pageMenu.x, top: pageMenu.y }}>
+      <p className="sb-page-menu__title">{menuPage.title || 'Leht'}</p>
+      <button type="button" role="menuitem" onClick={() => { setPageMenu(null); setRenaming({ id: menuPage.id, title: menuPage.title || '' }); }}>Nimeta ümber</button>
+      {onAssignPage ? <button type="button" role="menuitem" onClick={() => { setPageMenu(null); onAssignPage({ id: menuPage.id, title: menuPage.title || 'Tahvlileht' }); }}>Määra õpilasele õppimiseks</button> : null}
+      {staff && service.deletePage && menuPage.status !== 'completed' ? <button type="button" role="menuitem" className="is-danger" onClick={() => deletePage(menuPage)}>Kustuta leht</button> : null}
+      {staff && menuPage.status === 'completed' ? <p className="sb-page-menu__note">Lõpetatud tunni lehte ei saa kustutada.</p> : null}
+    </div>, document.body) : null}
     <button type="button" className="sb-page-tool sb-room-newpage" aria-label="Uus leht" title="Uus leht" onClick={() => newPage().catch(fail('Uut lehte ei saanud luua.'))}><FilePlus2 size={15} /></button>
     <span className={ready ? 'sb-sync is-ready' : 'sb-sync'}>{ready ? 'Sünkroonitud' : 'Ühendan…'}</span>
   </div>;
@@ -558,6 +586,7 @@ export default function StudentBoard({
       moveViewRef.current?.((current) => ({ ...current, x: current.x - dx, y: current.y - dy }));
     };
     const reveal = (event) => {
+      if (el.classList.contains('is-reading')) { event.stopPropagation(); event.target?.scrollIntoView?.({ block: 'center', behavior: 'smooth' }); return; }
       const target = event.target?.getBoundingClientRect?.();
       const box = el.getBoundingClientRect();
       if (!target || !box.height) return;
@@ -586,6 +615,7 @@ export default function StudentBoard({
   const touches = useRef(new Map());
   const nav = useRef(null);
   const navDown = (event) => {
+    if (reading) return; // the reading page scrolls by itself
     if (event.target?.closest?.('.sb-scrollbar')) return; // the scrollbar handles its own drag
     const point = local(event);
     if (event.pointerType === 'mouse') {
@@ -736,8 +766,13 @@ export default function StudentBoard({
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
   const filling = onWorksheet && tool === 'fill';
   const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
-  const stage = <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
+  const readingStage = <div ref={stageRef} className="sb-stage has-worksheet is-reading">
+    <div className="sb-reading ws-narrow" data-testid="worksheet-reading">{activeSheet?.content}</div>
+    <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(true)}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
+  </div>;
+  const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
     onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
+    {onWorksheet && narrow ? <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(false)}>Lugemisvaade</button> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs>
@@ -802,8 +837,8 @@ export default function StudentBoard({
         {pageTabs('sb-room-pages')}
         {stage}
         {error ? <p className="sb-room-error" role="alert">{error}</p> : null}
-        <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>
-        <div className="sb-dock" role="toolbar" aria-label="Tahvli tööriistad">
+        {reading ? null : <div className="sb-zoombar" aria-label="Suum">{zoomControls}</div>}
+        <div className="sb-dock" role="toolbar" aria-label="Tahvli tööriistad" hidden={reading}>
           {onWorksheet ? toolButton(FILL_TOOL) : null}
           {TOOLS.filter(([key]) => ['select', 'hand'].includes(key)).map(toolButton)}
           {staff && onPointer ? toolButton(LASER_TOOL) : null}
