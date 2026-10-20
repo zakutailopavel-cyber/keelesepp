@@ -1,5 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Nunito+Sans:wght@400;600;700&display=swap');
-.poll-page { --g: #087e6b; --g-2: #0b9a82; --g-soft: #d7f0e8; --ink: #142433; --muted: #5b6b79; --line: #e1e7ec; --bg: #f3f6f4; min-height: 100vh; background: radial-gradient(1200px 400px at 50% -120px, #dff3ec 0%, transparent 70%), var(--bg); color: var(--ink); font-family: 'Nunito Sans', system-ui, sans-serif; }
+/* the colours also on the grid alone: Päringud shows the answers' grid outside the poll page */
+.poll-page, .poll-grid { --g: #087e6b; --g-2: #0b9a82; --g-soft: #d7f0e8; --ink: #142433; --muted: #5b6b79; --line: #e1e7ec; --bg: #f3f6f4; }
+.poll-page { min-height: 100vh; background: radial-gradient(1200px 400px at 50% -120px, #dff3ec 0%, transparent 70%), var(--bg); color: var(--ink); font-family: 'Nunito Sans', system-ui, sans-serif; }
 .poll-top { position: sticky; top: 0; z-index: 5; background: rgba(255, 255, 255, .86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .poll-top__inner { max-width: 820px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; }
 .poll-brand { display: grid; line-height: 1; }
