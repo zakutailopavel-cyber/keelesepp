@@ -9,6 +9,14 @@ describe('„Sobivad ajad”', () => {
     expect(cellsOf(['Mon-16:00', 'Mon-16:30', 'Wed-10:00'], ['Wed-10:00'])).toEqual({ 'Mon-16': 'ok', 'Wed-10': 'best' });
   });
 
+  it('no subject, goals or lesson count are asked (current students)', () => {
+    render(<AvailabilityPollPage post={vi.fn()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'ET' }));
+    expect(screen.queryByText('Mida soovid õppida?')).toBeNull();
+    expect(screen.queryByText('Mitu tundi nädalas?')).toBeNull();
+    expect(screen.queryByText('Kuidas sulle sobib?')).toBeNull();
+  });
+
   it('the learner marks hours, gives a phone and sends; nothing goes without a time or a contact', async () => {
     const post = vi.fn().mockResolvedValue({ ok: true, status: 201 });
     render(<AvailabilityPollPage post={post} />);
@@ -23,9 +31,8 @@ describe('„Sobivad ajad”', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Saada ajad/ })); });
     expect(screen.getByRole('alert')).toHaveTextContent('telefon või e-post');
     fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '+372 5555 5555' } });
-    fireEvent.click(screen.getByRole('radio', { name: 'Matemaatika' }));
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Saada ajad/ })); });
-    expect(post).toHaveBeenCalledWith(expect.objectContaining({ source: 'availability', name: 'Mari', language: 'Matemaatika', slots: ['Mon-16:00', 'Mon-16:30', 'Wed-10:00', 'Wed-10:30'], preferred: ['Wed-10:00', 'Wed-10:30'] }));
+    expect(post).toHaveBeenCalledWith(expect.objectContaining({ source: 'availability', name: 'Mari', slots: ['Mon-16:00', 'Mon-16:30', 'Wed-10:00', 'Wed-10:30'], preferred: ['Wed-10:00', 'Wed-10:30'] }));
     expect(screen.getByRole('status')).toHaveTextContent('Aitäh');
   });
 

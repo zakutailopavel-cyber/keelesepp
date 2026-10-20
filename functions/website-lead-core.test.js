@@ -57,8 +57,19 @@ test("„Sobivad ajad”: the half hours that really suit the learner, a phone i
   assert.deepEqual(result.lead.preferred, ["Mon-16:30"]);
   assert.equal(slotSummary(result.lead.slots, result.lead.preferred), "E 16:00–17:30 (★ 16:30–17:00); K 10:00–10:30");
   const mail = composeWebsiteLeadEmail(result.lead);
-  assert.match(mail.subject, /^Sobivad ajad: Matemaatika — Mari/);
+  assert.match(mail.subject, /^Sobivad ajad: Mari \(Matemaatika\)/);
   assert.equal(mail.replyTo, undefined);
   assert.deepEqual(normalizeWebsiteLead({ source: "availability", name: "Mari", language: "Eesti keel", slots: ["Mon-16:00"] }).errors, ["email"]);
   assert.deepEqual(normalizeWebsiteLead({ source: "availability", name: "Mari", phone: "55555555", language: "Eesti keel", slots: [] }).errors, ["slots"]);
+});
+
+test("„Sobivad ajad” for current students: only a name, a contact and the times", () => {
+  const { normalizeWebsiteLead, composeWebsiteLeadEmail } = require("./website-lead-core");
+  const result = normalizeWebsiteLead({ source: "availability", name: "Mari", phone: "55555555", slots: ["Mon-17:00", "Mon-17:30"] });
+  assert.ok(result.lead, JSON.stringify(result));
+  assert.equal(result.lead.lessonsPerWeek, undefined);
+  assert.equal(result.lead.format, undefined);
+  const mail = composeWebsiteLeadEmail(result.lead);
+  assert.equal(mail.subject, "Sobivad ajad: Mari");
+  assert.doesNotMatch(mail.text, /Tase|Tunde nädalas|Vorm|Keel:/);
 });

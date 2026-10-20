@@ -11,7 +11,14 @@
   privacy line, success screen with „send another”. Model helpers `withPreset`, `summaryOf` (pollModel.js).
 - Checks: vitest availability-poll + leads 3/3, app/hostingHeaders 2/2, eslint clean, vite build makes dist/ajad.html;
   looked at 375×812 and desktop on a local stand.
-- Next safe step: merge (frontend deploys with main); the owner sends the link to one learner as a try.
+- Owner 2026-10-20: the page is mostly for CURRENT students now (too many to fit the times by hand): one general link,
+  answers in Päringud as before, but without what current students do not need — no subject, lesson count, format or
+  goals. The form asks only name, phone or e-mail, the times and an optional comment; texts speak of a new timetable.
+  `website-lead-core.js`: availability needs no subject; lesson count / format only when sent; the e-mail drops
+  „Tase”, „Keel”, „Tunde nädalas”, „Vorm”. Päringud: „Kommentaar” instead of „Eesmärk”, no empty fields; ★ cells keep
+  their colour outside the poll page; times per day as text above the grid.
+- Deploy after merge: `functions:websiteLeadApi` (the page goes with main).
+- Next: match the answers with the teachers' free windows and the calendar to propose a timetable (owner confirms).
 
 ## 2026-10-20 · agent/student-sheet-full — Live Classroom: the student sees the whole worksheet
 
