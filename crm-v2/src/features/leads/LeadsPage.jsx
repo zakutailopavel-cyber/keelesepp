@@ -5,10 +5,11 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { websiteLeadsService } from '../../services/firebase/index.js';
 import './leads.css';
 import PollGrid from '../availability-poll/PollGrid.jsx';
-import { cellsOf } from '../availability-poll/pollModel.js';
+import { cellsOf, summaryOf } from '../availability-poll/pollModel.js';
 import '../availability-poll/availabilityPoll.css';
 
 const POLL_DAYS = { Mon: 'E', Tue: 'T', Wed: 'K', Thu: 'N', Fri: 'R', Sat: 'L', Sun: 'P' };
+const POLL_DAY_NAMES = { Mon: 'Esmaspäev', Tue: 'Teisipäev', Wed: 'Kolmapäev', Thu: 'Neljapäev', Fri: 'Reede', Sat: 'Laupäev', Sun: 'Pühapäev' };
 
 const STATUS = { new: 'Uus', contacted: 'Ühendust võetud', converted: 'Õppijaks saanud', closed: 'Suletud' };
 
@@ -32,8 +33,15 @@ export default function LeadsPage({ service = websiteLeadsService }) {
         <div className="lead-row__main">
           <div className="lead-row__head"><strong>{lead.name}</strong><Badge>{STATUS[lead.status] || lead.status}</Badge><Badge>{lead.source === 'level-test' ? 'Tasemetest' : lead.source === 'availability' ? 'Sobivad ajad' : 'Veebivorm'}</Badge></div>
           <div className="lead-row__contact">{lead.email ? <a href={`mailto:${lead.email}`}>{lead.email}</a> : null}{lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : null}</div>
-          <dl><dt>Keel ja tase</dt><dd>{lead.language} · {lead.level}</dd><dt>Saabus</dt><dd>{lead.createdAt || '—'}</dd>{lead.assessment ? <><dt>Test</dt><dd>{lead.assessment.score}/100 · {lead.assessment.answered} vastust · {lead.assessment.diagnosticId}</dd></> : null}{lead.message ? <><dt>Eesmärk</dt><dd>{lead.message}</dd></> : null}{lead.source === 'availability' ? <><dt>Tunde nädalas</dt><dd>{lead.lessonsPerWeek || 1} · {lead.format === 'online' ? 'veebis' : lead.format === 'kohapeal' ? 'kohapeal' : 'veebis või kohapeal'}</dd></> : null}</dl>
-          {lead.source === 'availability' && lead.slots?.length ? <div className="lead-row__poll"><PollGrid cells={cellsOf(lead.slots, lead.preferred)} dayNames={POLL_DAYS} label={`${lead.name}: sobivad ajad`} /><small>Heleroheline = sobib, tumeroheline ★ = sobib kõige paremini.</small></div> : null}
+          <dl>{lead.source === 'availability' ? (lead.language ? <><dt>Õppeaine</dt><dd>{lead.language}</dd></> : null) : <><dt>Keel ja tase</dt><dd>{lead.language} · {lead.level}</dd></>}<dt>Saabus</dt><dd>{lead.createdAt || '—'}</dd>{lead.assessment ? <><dt>Test</dt><dd>{lead.assessment.score}/100 · {lead.assessment.answered} vastust · {lead.assessment.diagnosticId}</dd></> : null}{lead.message ? <><dt>{lead.source === 'availability' ? 'Kommentaar' : 'Eesmärk'}</dt><dd>{lead.message}</dd></> : null}{lead.source === 'availability' && lead.lessonsPerWeek ? <><dt>Tunde nädalas</dt><dd>{lead.lessonsPerWeek || 1} · {lead.format === 'online' ? 'veebis' : lead.format === 'kohapeal' ? 'kohapeal' : 'veebis või kohapeal'}</dd></> : null}</dl>
+          {lead.source === 'availability' && lead.slots?.length ? (() => {
+            const cells = cellsOf(lead.slots, lead.preferred);
+            return <div className="lead-row__poll">
+              <ul className="lead-row__times">{summaryOf(cells).map((row) => <li key={row.day}><b>{POLL_DAY_NAMES[row.day]}</b> {row.ranges.join(', ')}{row.best.length ? <em> · ★ {row.best.join(', ')}</em> : null}</li>)}</ul>
+              <PollGrid cells={cells} dayNames={POLL_DAYS} label={`${lead.name}: sobivad ajad`} />
+              <small>✓ sobib · ★ sobib kõige paremini</small>
+            </div>;
+          })() : null}
         </div>
         <div className="lead-row__actions">
           {lead.status === 'new' ? <Button loading={busy === lead.id} onClick={() => changeStatus(lead, 'contacted')}>Märgi kontakteerituks</Button> : null}

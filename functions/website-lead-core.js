@@ -47,8 +47,8 @@ function normalizeWebsiteLead(body = {}) {
     const list = (value) => [...new Set((Array.isArray(value) ? value : []).slice(0, 7 * 48).map(slot).filter(Boolean))];
     lead.slots = list(body.slots);
     lead.preferred = list(body.preferred).filter((item) => lead.slots.includes(item));
-    lead.format = FORMATS.includes(body.format) ? body.format : "mõlemad";
-    lead.lessonsPerWeek = Math.max(1, Math.min(7, Math.round(Number(body.lessonsPerWeek) || 1)));
+    if (FORMATS.includes(body.format)) lead.format = body.format;
+    if (Number(body.lessonsPerWeek) > 0) lead.lessonsPerWeek = Math.max(1, Math.min(7, Math.round(Number(body.lessonsPerWeek))));
   }
   const errors = [];
   if (lead.name.length < 2) errors.push("name");
@@ -56,7 +56,8 @@ function normalizeWebsiteLead(body = {}) {
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lead.email);
   if (lead.source === "availability" ? (!emailOk && lead.phone.replace(/\D/g, "").length < 5) || (lead.email && !emailOk) : !emailOk) errors.push("email");
   if (lead.phone && lead.phone.replace(/\D/g, "").length < 5) errors.push("phone");
-  if (!(lead.source === "availability" ? POLL_SUBJECTS : LANGUAGES).includes(lead.language)) errors.push("language");
+  // the availability page is for current students: no subject asked (the school knows it)
+  if (lead.source === "availability" ? lead.language && !POLL_SUBJECTS.includes(lead.language) : !LANGUAGES.includes(lead.language)) errors.push("language");
   if (lead.source === "availability" && lead.slots.length < 1) errors.push("slots");
   if (!LEVELS.includes(lead.level)) lead.level = "Määramata";
   return errors.length ? { errors } : { lead };
@@ -92,12 +93,12 @@ function composeWebsiteLeadEmail(lead, { to = "info@epkoolitus.ee" } = {}) {
     ["Nimi", lead.name],
     ["E-post", lead.email],
     ["Telefon", lead.phone || "—"],
-    ["Keel", lead.language],
-    ["Tase", lead.level],
+    ...(lead.language ? [["Keel", lead.language]] : []),
+    ...(lead.source === "availability" ? [] : [["Tase", lead.level]]),
     ["Allikas", lead.source === "level-test" ? "Tasemetest" : lead.source === "availability" ? "Sobivad ajad" : "Kodulehe registreerimisvorm"],
     ...(lead.source === "availability" ? [
-      ["Tunde nädalas", String(lead.lessonsPerWeek)],
-      ["Vorm", lead.format],
+      ...(lead.lessonsPerWeek ? [["Tunde nädalas", String(lead.lessonsPerWeek)]] : []),
+      ...(lead.format ? [["Vorm", lead.format]] : []),
       ["Sobivad ajad", slotSummary(lead.slots, lead.preferred)],
     ] : []),
     ...(lead.assessment ? [
@@ -108,7 +109,7 @@ function composeWebsiteLeadEmail(lead, { to = "info@epkoolitus.ee" } = {}) {
     ["Lehe keel", lead.locale.toUpperCase()],
     ["Lisainfo", lead.message || "—"],
   ];
-  const subject = lead.source === "availability" ? `Sobivad ajad: ${lead.language} — ${lead.name}` : `Uus päring kodulehelt: ${lead.language} ${lead.level} — ${lead.name}`;
+  const subject = lead.source === "availability" ? `Sobivad ajad: ${lead.name}${lead.language ? ` (${lead.language})` : ""}` : `Uus päring kodulehelt: ${lead.language} ${lead.level} — ${lead.name}`;
   const text = rows.map(([k, v]) => `${k}: ${v}`).join("\n");
   const html = `<div style="font-family:Arial,sans-serif;color:#1C2B3A">
   <h2 style="margin:0 0 12px">Uus päring kodulehelt</h2>

@@ -1,8 +1,8 @@
-import { useRef } from 'react';
-import { DAYS, HOURS, NEXT, cellKey } from './pollModel.js';
+import { Fragment, useRef } from 'react';
+import { DAYS, HOURS, NEXT, PARTS, cellKey } from './pollModel.js';
 
 // the week as a table; with `onChange` a tap cycles a cell and a drag paints the cells it passes with the same mark
-export default function PollGrid({ cells, onChange, dayNames, label = 'Nädala ajad' }) {
+export default function PollGrid({ cells, onChange, dayNames, partNames = null, label = 'Nädala ajad' }) {
   const paint = useRef(null);
   const readOnly = !onChange;
   const set = (key, value) => onChange({ ...cells, [key]: value });
@@ -14,7 +14,7 @@ export default function PollGrid({ cells, onChange, dayNames, label = 'Nädala a
     set(key, value);
   };
   const over = (event) => {
-    if (readOnly || paint.current === null) return;
+    if (readOnly || !paint.current) return;
     const target = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-cell]');
     const key = target?.getAttribute('data-cell');
     if (!key || key === paint.current.last) return;
@@ -37,16 +37,22 @@ export default function PollGrid({ cells, onChange, dayNames, label = 'Nädala a
   return (
     <div className={`poll-grid ${readOnly ? 'is-readonly' : ''}`} role="grid" aria-label={label} onPointerMove={over} onPointerUp={end} onPointerCancel={end} onPointerLeave={end}>
       <div className="poll-grid__corner" />
-      {DAYS.map((day) => <button type="button" key={day} className="poll-grid__day" disabled={readOnly} onClick={() => toggleDay(day)}>{dayNames[day]}</button>)}
-      {HOURS.map((hour) => [
-        <div key={`h${hour}`} className="poll-grid__hour">{hour}:00</div>,
-        ...DAYS.map((day) => {
-          const key = cellKey(day, hour);
-          const value = cells[key] || '';
-          return <button type="button" key={key} data-cell={key} className={`poll-grid__cell ${value ? `is-${value}` : ''}`} aria-label={`${dayNames[day]} ${hour}:00`} aria-pressed={Boolean(value)} disabled={readOnly}
-            onPointerDown={(event) => start(key, event)} onKeyDown={(event) => { if (!readOnly && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); set(key, NEXT[value]); } }}>{value === 'best' ? '★' : ''}</button>;
-        }),
-      ])}
+      {DAYS.map((day) => <button type="button" key={day} className="poll-grid__day" disabled={readOnly} title={readOnly ? undefined : dayNames[day]} onClick={() => toggleDay(day)}>{dayNames[day]}</button>)}
+      {HOURS.map((hour) => {
+        const part = PARTS.find((item) => item.from === hour);
+        return (
+          <Fragment key={hour}>
+            {part && partNames ? <div className="poll-grid__part">{partNames[part.key]}</div> : null}
+            <div className="poll-grid__hour">{hour}:00</div>
+            {DAYS.map((day) => {
+              const key = cellKey(day, hour);
+              const value = cells[key] || '';
+              return <button type="button" key={key} data-cell={key} className={`poll-grid__cell ${value ? `is-${value}` : ''}`} aria-label={`${dayNames[day]} ${hour}:00`} aria-pressed={Boolean(value)} disabled={readOnly}
+                onPointerDown={(event) => start(key, event)} onKeyDown={(event) => { if (!readOnly && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); set(key, NEXT[value]); } }}>{value === 'best' ? '★' : value === 'ok' ? '✓' : ''}</button>;
+            })}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
