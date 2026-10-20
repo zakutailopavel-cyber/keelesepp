@@ -29,4 +29,20 @@ describe('merge student cards', () => {
     expect(service.mergeStudents).toHaveBeenLastCalledWith({ keepId: 'keep', sourceId: 'self_v', apply: true, includeFinance: true, includeSchedule: false });
     expect(onMerged).toHaveBeenCalled();
   });
+
+  it('shows the subject the other card brings', async () => {
+    const service = {
+      mergeStudents: vi.fn(async () => ({
+        applied: false, source: { accounts: [] }, move: [{ collection: 'lessons', field: 'studentId', count: 5, kind: 'learner' }], waiting: [], skipped: [],
+        subjects: [{ subject: 'Eesti keel', teacher: 'Pavel' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta' }],
+        addedSubjects: [{ subject: 'Matemaatika', teacher: 'Yelyzaveta' }],
+      })),
+    };
+    const students = { list: vi.fn().mockResolvedValue({ items: [{ id: 'keep', name: 'Milan' }, { id: 'math', name: 'Milan' }] }) };
+    render(<MergeCardsModal open student={{ id: 'keep', name: 'Milan' }} onClose={() => {}} onMerged={() => {}} service={service} students={students} />);
+    const option = await screen.findByRole('radio');
+    await act(async () => { fireEvent.click(option); });
+    expect(screen.getByText(/uus õppesuund/)).toHaveTextContent('Matemaatika — Yelyzaveta');
+    expect(screen.getByText(/Pärast liitmist on kaardil õppesuunad/)).toHaveTextContent('Eesti keel (Pavel), Matemaatika (Yelyzaveta)');
+  });
 });

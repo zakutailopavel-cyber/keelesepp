@@ -79,10 +79,12 @@ export default function MergeCardsModal({ student, open, onClose, onMerged, serv
           <div role="status">
             <b>Siia tuleb:</b>
             <ul>
+              {(preview.addedSubjects || []).map((track) => <li key={`subject:${track.subject}:${track.teacher}`}>uus õppesuund: <b>{track.subject}</b>{track.teacher ? ` — ${track.teacher}` : ''}</li>)}
               {preview.source.accounts.length ? <li>konto ({preview.source.accounts.length})</li> : null}
               {preview.move.map((m) => <li key={`${m.collection}:${m.field}`}>{m.collection}: {m.count} ({LABEL[m.kind]})</li>)}
               {!preview.move.length && !preview.source.accounts.length ? <li>teisel kaardil pole midagi liita</li> : null}
             </ul>
+            {(preview.subjects || []).length > 1 ? <p className="form-hint">Pärast liitmist on kaardil õppesuunad: {preview.subjects.map((track) => track.subject + (track.teacher ? ` (${track.teacher})` : '')).join(', ')}. Teise kaardi tunnid ja tööd jäävad oma õppesuuna alla.</p> : null}
             {waiting.length ? <div>
               <b>Vajab eraldi kinnitust:</b>
               {waiting.some((m) => m.kind === 'finance') ? <label style={{ display: 'flex', gap: 8 }}><input type="checkbox" checked={flags.includeFinance} onChange={(e) => setFlags({ ...flags, includeFinance: e.target.checked })} /> Tõsta ka finantsid ({waiting.filter((m) => m.kind === 'finance').map((m) => `${m.collection} ${m.count}`).join(', ')})</label> : null}
