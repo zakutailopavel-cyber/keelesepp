@@ -28,6 +28,23 @@
 - After merge (owner permission): deploy `firestore:rules` and `functions:manualInvoiceApi`; then copy the maths price
   of Stefania and the English price of Aleksandr Smirnov from their archived cards' plans into `subjectPrices`.
 - Next: remove packages (step 5).
+## 2026-10-20 · agent/availability-poll — „Sobivad ajad”: a page the school sends to learners to mark suitable times
+
+- main checked: origin/main (2026-10-20). Owner: a Mon–Sun table to send to anyone who wants lessons, as simple as
+  possible, asking for every time that REALLY suits a lesson, not only the preferred one.
+- Public page `https://crm.epkoolitus.ee/ajad` (no login; ET/RU, Russian browsers start in RU): hours 8–22 × Mon–Sun,
+  tap = sobib (light green), tap again = ★ best, third tap clears; a finger drag paints (skipped hours in one day are
+  filled); a day name marks the whole day. Then name, phone or e-mail (one is enough), subject (Eesti keel, Inglise
+  keel, Matemaatika, Muu), lessons per week, online/kohapeal, comment; honeypot.
+- Sent through the existing public `websiteLeadApi` (per-IP limit, honeypot, e-mail to info@): source `availability`,
+  `slots` / `preferred` as half hours ("Mon-16:00"), `format`, `lessonsPerWeek` (functions/website-lead-core.js,
+  `slotSummary` in the e-mail: „E 16:00–19:00 (★ 17:00–18:00)”). It lands in Päringud with a read-only week grid.
+- Files: `crm-v2/src/features/availability-poll/*`, routes.jsx (lazy public route), leads/LeadsPage.jsx + leads.css,
+  functions/website-lead-core.js (+ test). Checks: vitest availability-poll 3/3, functions website-lead-core 8/8,
+  eslint clean; tried on a local stand at 375×812 (marking, ★, drag, form).
+- Deploy after merge (owner permission): `functions:websiteLeadApi`; the page itself goes with main. The link carries
+  no personal data — the learner types name and contact.
+- Next: match the answers with the teachers' free windows (Õpetaja ajad) when choosing a teacher.
 
 ## 2026-10-20 · agent/teacher-own-subject — one learner, several subjects: step 3 (a teacher sees only their subject)
 

@@ -47,3 +47,18 @@ test("the e-mail to the school escapes visitor text and replies to the visitor",
   assert.ok(!mail.html.includes("<img src=x>"));
   assert.ok(mail.html.includes("&lt;img src=x&gt;"));
 });
+
+test("„Sobivad ajad”: the half hours that really suit the learner, a phone is enough", () => {
+  const { normalizeWebsiteLead, composeWebsiteLeadEmail, slotSummary } = require("./website-lead-core");
+  const result = normalizeWebsiteLead({ source: "availability", name: "Mari", phone: "+372 5555 5555", language: "Matemaatika", format: "online", lessonsPerWeek: 2,
+    slots: ["Mon-16:00", "Mon-16:30", "Mon-17:00", "Wed-10:00", "Fri-25:00", "Xyz-10:00"], preferred: ["Mon-16:30", "Sun-12:00"] });
+  assert.ok(result.lead, JSON.stringify(result));
+  assert.deepEqual(result.lead.slots, ["Mon-16:00", "Mon-16:30", "Mon-17:00", "Wed-10:00"]);
+  assert.deepEqual(result.lead.preferred, ["Mon-16:30"]);
+  assert.equal(slotSummary(result.lead.slots, result.lead.preferred), "E 16:00–17:30 (★ 16:30–17:00); K 10:00–10:30");
+  const mail = composeWebsiteLeadEmail(result.lead);
+  assert.match(mail.subject, /^Sobivad ajad: Matemaatika — Mari/);
+  assert.equal(mail.replyTo, undefined);
+  assert.deepEqual(normalizeWebsiteLead({ source: "availability", name: "Mari", language: "Eesti keel", slots: ["Mon-16:00"] }).errors, ["email"]);
+  assert.deepEqual(normalizeWebsiteLead({ source: "availability", name: "Mari", phone: "55555555", language: "Eesti keel", slots: [] }).errors, ["slots"]);
+});
