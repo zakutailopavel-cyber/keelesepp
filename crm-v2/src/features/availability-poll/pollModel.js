@@ -3,10 +3,23 @@
 // format of functions/website-lead-core.js.
 export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const HOURS = Array.from({ length: 14 }, (_, index) => 8 + index); // 8:00 … 21:00 (the last hour ends at 22)
+export const PARTS = [{ key: 'morning', from: 8, to: 12 }, { key: 'day', from: 12, to: 17 }, { key: 'evening', from: 17, to: 22 }];
 export const cellKey = (day, hour) => `${day}-${String(hour).padStart(2, '0')}`;
 
 // a tap: empty → suits → best → empty
 export const NEXT = { '': 'ok', ok: 'best', best: '' };
+
+// quick choices: weekday evenings, weekday daytime, weekends — added to what is marked (never removes)
+export const PRESETS = {
+  weekdayEvenings: { days: DAYS.slice(0, 5), from: 17, to: 21 },
+  weekdayDays: { days: DAYS.slice(0, 5), from: 9, to: 17 },
+  weekend: { days: DAYS.slice(5), from: 10, to: 18 },
+};
+export function withPreset(cells = {}, preset) {
+  const next = { ...cells };
+  preset.days.forEach((day) => HOURS.filter((hour) => hour >= preset.from && hour < preset.to).forEach((hour) => { const key = cellKey(day, hour); next[key] = next[key] || 'ok'; }));
+  return next;
+}
 
 // { "Mon-16": "ok" | "best" } → what the server takes
 export function pollPayload(cells = {}) {
@@ -24,4 +37,18 @@ export function cellsOf(slots = [], preferred = []) {
   slots.forEach((slot) => { cells[slot.slice(0, 6)] = cells[slot.slice(0, 6)] || 'ok'; });
   preferred.forEach((slot) => { cells[slot.slice(0, 6)] = 'best'; });
   return cells;
+}
+
+// per day the marked hours as ranges: [{ day, ranges: ["16–19"], best: ["17–18"] }]
+export function summaryOf(cells = {}) {
+  const ranges = (hours) => {
+    const out = [];
+    hours.forEach((hour) => { const last = out[out.length - 1]; if (last && last[1] === hour) last[1] = hour + 1; else out.push([hour, hour + 1]); });
+    return out.map(([from, to]) => `${from}–${to}`);
+  };
+  return DAYS.map((day) => ({
+    day,
+    ranges: ranges(HOURS.filter((hour) => cells[cellKey(day, hour)])),
+    best: ranges(HOURS.filter((hour) => cells[cellKey(day, hour)] === 'best')),
+  })).filter((row) => row.ranges.length);
 }

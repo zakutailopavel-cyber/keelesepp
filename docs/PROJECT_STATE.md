@@ -1,3 +1,18 @@
+## 2026-10-20 · agent/availability-design — „Sobivad ajad”: better look, texts and its own link preview
+
+- main checked: origin/main after #689 (2026-10-20). Owner: improve quality, look and description; anyone with the link
+  must open it.
+- Checked: `/ajad` opens without a login (built-in browser, signed out). Added `crm-v2/ajad.html` (second Vite entry,
+  same app) with its own title, description and og:image, and a Vercel rewrite `/ajad → /ajad.html`, so WhatsApp /
+  Telegram / e-mail show „Millal sulle tund sobib? · Когда вам удобно заниматься?” instead of the CRM's bare title.
+- Page: sticky header with brand and ET/RU switch, 3 steps, a highlighted „mark EVERY time that really works” note,
+  quick choices (weekday evenings 17–21, weekday days 9–17, weekend 10–18, clear), the grid with sticky day row and
+  morning / day / evening sections, ✓ / ★ marks, a live summary per day, chips for subject / lessons per week / format,
+  privacy line, success screen with „send another”. Model helpers `withPreset`, `summaryOf` (pollModel.js).
+- Checks: vitest availability-poll + leads 3/3, app/hostingHeaders 2/2, eslint clean, vite build makes dist/ajad.html;
+  looked at 375×812 and desktop on a local stand.
+- Next safe step: merge (frontend deploys with main); the owner sends the link to one learner as a try.
+
 ## 2026-10-20 · agent/student-sheet-full — Live Classroom: the student sees the whole worksheet
 
 - main checked: origin/main (2026-10-20). Owner screenshot: the student saw only the top of the sheet (title, picture)
