@@ -27,12 +27,18 @@ describe('„Sobivad ajad”', () => {
     fireEvent.pointerDown(screen.getByRole('button', { name: 'K 10:00' }));
     fireEvent.pointerDown(screen.getByRole('button', { name: 'K 10:00' }));
     expect(screen.getAllByText('Märgitud 2 h nädalas').length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByLabelText('Nimi'), { target: { value: 'Mari' } });
+    fireEvent.change(screen.getByLabelText(/Õpilase \(lapse\)/), { target: { value: 'Mari' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Saada ajad/ })); });
+    expect(screen.getByRole('alert')).toHaveTextContent('õpilase ees- ja perekonnanimi');
+    fireEvent.change(screen.getByLabelText(/Õpilase \(lapse\)/), { target: { value: 'Mari Maasikas' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Saada ajad/ })); });
+    expect(screen.getByRole('alert')).toHaveTextContent('lapsevanema ees- ja perekonnanimi');
+    fireEvent.change(screen.getByLabelText(/Lapsevanema/), { target: { value: 'Olga Maasikas' } });
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Saada ajad/ })); });
     expect(screen.getByRole('alert')).toHaveTextContent('telefon või e-post');
     fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '+372 5555 5555' } });
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Saada ajad/ })); });
-    expect(post).toHaveBeenCalledWith(expect.objectContaining({ source: 'availability', name: 'Mari', slots: ['Mon-16:00', 'Mon-16:30', 'Wed-10:00', 'Wed-10:30'], preferred: ['Wed-10:00', 'Wed-10:30'] }));
+    expect(post).toHaveBeenCalledWith(expect.objectContaining({ source: 'availability', name: 'Mari Maasikas', parentName: 'Olga Maasikas', slots: ['Mon-16:00', 'Mon-16:30', 'Wed-10:00', 'Wed-10:30'], preferred: ['Wed-10:00', 'Wed-10:30'] }));
     expect(screen.getByRole('status')).toHaveTextContent('Aitäh');
   });
 

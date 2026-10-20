@@ -22,6 +22,7 @@ function normalizeWebsiteLead(body = {}) {
   if (clean(body.website, 200)) return { spam: true };
   const lead = {
     name: clean(body.name, 120),
+    ...(body.source === "availability" ? { parentName: clean(body.parentName, 120) } : {}),
     email: clean(body.email, 200).toLowerCase(),
     phone: clean(body.phone, 40),
     language: clean(body.language, 40),
@@ -52,6 +53,10 @@ function normalizeWebsiteLead(body = {}) {
   }
   const errors = [];
   if (lead.name.length < 2) errors.push("name");
+  // „Sobivad ajad”: the student's and the parent's first and last name (owner 2026-10-20)
+  const fullName = (value) => String(value || "").split(/\s+/).filter((part) => part.length >= 2).length >= 2;
+  if (lead.source === "availability" && lead.name.length >= 2 && !fullName(lead.name)) errors.push("name");
+  if (lead.source === "availability" && !fullName(lead.parentName)) errors.push("parentName");
   // the availability page asks for an e-mail or a phone (a learner often has only a phone)
   const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(lead.email);
   if (lead.source === "availability" ? (!emailOk && lead.phone.replace(/\D/g, "").length < 5) || (lead.email && !emailOk) : !emailOk) errors.push("email");
@@ -90,7 +95,8 @@ const esc = value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp
 
 function composeWebsiteLeadEmail(lead, { to = "info@epkoolitus.ee" } = {}) {
   const rows = [
-    ["Nimi", lead.name],
+    [lead.source === "availability" ? "Õpilane" : "Nimi", lead.name],
+    ...(lead.parentName ? [["Lapsevanem", lead.parentName]] : []),
     ["E-post", lead.email],
     ["Telefon", lead.phone || "—"],
     ...(lead.language ? [["Keel", lead.language]] : []),
