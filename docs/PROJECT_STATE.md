@@ -4,7 +4,8 @@
   required. The page asks „Õpilase (lapse) ees- ja perekonnanimi *” and „Lapsevanema ees- ja perekonnanimi *” (two
   words each, checked in the page and in functions/website-lead-core.js: `parentName`, errors `name` / `parentName`).
   Päringud and the e-mail show „Lapsevanem”. Checks: vitest 4/4, functions 9/9, eslint clean.
-- Note: an adult learner has to write a parent's name too (owner's choice); a „learner is an adult” option can be added.
+- Then (owner): a box „Olen täiskasvanud õpilane / Я взрослый ученик” hides the parent field; `adult: true` lets the
+  server accept no parent; Päringud / e-mail show „Lapsevanem: — täiskasvanud õpilane”. vitest 5/5, functions 10/10.
 
 ## 2026-10-20 · agent/availability-design — „Sobivad ajad”: better look, texts and its own link preview
 

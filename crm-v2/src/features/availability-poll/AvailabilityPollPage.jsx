@@ -21,6 +21,7 @@ const TEXT = {
     quick: 'Kiirvalik:', presets: { weekdayEvenings: 'Tööpäeva õhtud 17–21', weekdayDays: 'Tööpäeviti 9–17', weekend: 'Nädalavahetus 10–18' }, clear: 'Tühjenda',
     legendOk: 'sobib', legendBest: 'sobib kõige paremini', marked: (n) => (n ? `Märgitud ${n} h nädalas` : 'Midagi pole veel märgitud'),
     summary: 'Sinu ajad', you: 'Sinu andmed',
+    adult: 'Olen täiskasvanud õpilane (lapsevanemat pole vaja)', adultName: 'Sinu ees- ja perekonnanimi',
     name: 'Õpilase (lapse) ees- ja perekonnanimi', parent: 'Lapsevanema ees- ja perekonnanimi', phone: 'Telefon', email: 'E-post', subject: 'Mida soovid õppida?', perWeek: 'Mitu tundi nädalas?', format: 'Kuidas sulle sobib?', comment: 'Kommentaar (valikuline)', commentHint: 'Nt alates millal uus aeg sobib, puhkus, muu oluline',
     formats: { online: 'Veebis', kohapeal: 'Kohapeal', mõlemad: 'Mõlemad sobivad' },
     subjects: { 'Eesti keel': 'Eesti keel', 'Inglise keel': 'Inglise keel', Matemaatika: 'Matemaatika', Muu: 'Muu' },
@@ -45,6 +46,7 @@ const TEXT = {
     quick: 'Быстрый выбор:', presets: { weekdayEvenings: 'Будни вечером 17–21', weekdayDays: 'Будни днём 9–17', weekend: 'Выходные 10–18' }, clear: 'Очистить',
     legendOk: 'подходит', legendBest: 'подходит лучше всего', marked: (n) => (n ? `Отмечено ${n} ч в неделю` : 'Пока ничего не отмечено'),
     summary: 'Ваше время', you: 'Ваши данные',
+    adult: 'Я взрослый ученик (родитель не нужен)', adultName: 'Ваше имя и фамилия',
     name: 'Имя и фамилия ученика (ребёнка)', parent: 'Имя и фамилия родителя', phone: 'Телефон', email: 'E-mail', subject: 'Что хотите изучать?', perWeek: 'Сколько уроков в неделю?', format: 'Как вам удобнее?', comment: 'Комментарий (по желанию)', commentHint: 'Например: с какого числа подходит новое время, отпуск, другое важное',
     formats: { online: 'Онлайн', kohapeal: 'Очно', mõlemad: 'Подходит и так, и так' },
     subjects: { 'Eesti keel': 'Эстонский язык', 'Inglise keel': 'Английский язык', Matemaatika: 'Математика', Muu: 'Другое' },
@@ -61,7 +63,7 @@ export default function AvailabilityPollPage({ post = (body) => globalThis.fetch
   const t = TEXT[lang];
   const [cells, setCells] = useState({});
   // current students (owner 2026-10-20): only who they are and the times — no subject, goals or lesson count
-  const blank = { name: '', parentName: '', phone: '', email: '', message: '', website: '' };
+  const blank = { name: '', parentName: '', adult: false, phone: '', email: '', message: '', website: '' };
   const [form, setForm] = useState(blank);
   const [state, setState] = useState({ busy: false, error: '', done: false });
   const marked = Object.values(cells).filter(Boolean).length;
@@ -74,11 +76,11 @@ export default function AvailabilityPollPage({ post = (body) => globalThis.fetch
     // first and last name of the student and of the parent (owner 2026-10-20): both required, at least two words
     const fullName = (value) => value.trim().split(/\s+/).filter((part) => part.length >= 2).length >= 2;
     if (!fullName(form.name)) { setState({ busy: false, error: t.needName, done: false }); return; }
-    if (!fullName(form.parentName)) { setState({ busy: false, error: t.needParent, done: false }); return; }
+    if (!form.adult && !fullName(form.parentName)) { setState({ busy: false, error: t.needParent, done: false }); return; }
     if (!form.email.trim() && form.phone.replace(/\D/g, '').length < 5) { setState({ busy: false, error: t.needContact, done: false }); return; }
     setState({ busy: true, error: '', done: false });
     try {
-      const response = await post({ source: 'availability', locale: lang, page: '/ajad', ...form, ...pollPayload(cells) });
+      const response = await post({ source: 'availability', locale: lang, page: '/ajad', ...form, parentName: form.adult ? '' : form.parentName, ...pollPayload(cells) });
       if (response.status === 429) throw new Error(t.tooMany);
       if (!response.ok) throw new Error(t.failed);
       setState({ busy: false, error: '', done: true });
@@ -128,8 +130,9 @@ export default function AvailabilityPollPage({ post = (body) => globalThis.fetch
             <section className="poll-card">
               <h2>{t.you}</h2>
               <div className="poll-fields">
-                <label className="is-wide"><span>{t.name} *</span><input value={form.name} autoComplete="off" maxLength={120} onChange={(e) => set({ name: e.target.value })} /></label>
-                <label className="is-wide"><span>{t.parent} *</span><input value={form.parentName} autoComplete="off" maxLength={120} onChange={(e) => set({ parentName: e.target.value })} /></label>
+                <label className="poll-adult is-wide"><input type="checkbox" checked={form.adult} onChange={(e) => set({ adult: e.target.checked })} /> {t.adult}</label>
+                <label className="is-wide"><span>{form.adult ? t.adultName : t.name} *</span><input value={form.name} autoComplete="off" maxLength={120} onChange={(e) => set({ name: e.target.value })} /></label>
+                {form.adult ? null : <label className="is-wide"><span>{t.parent} *</span><input value={form.parentName} autoComplete="off" maxLength={120} onChange={(e) => set({ parentName: e.target.value })} /></label>}
                 <label><span>{t.phone}</span><input value={form.phone} type="tel" autoComplete="tel" maxLength={40} onChange={(e) => set({ phone: e.target.value })} /></label>
                 <label><span>{t.email}</span><input value={form.email} type="email" autoComplete="email" maxLength={200} onChange={(e) => set({ email: e.target.value })} /></label>
                 <p className="poll-hint is-wide">{t.contactHint}</p>

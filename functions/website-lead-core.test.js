@@ -75,3 +75,11 @@ test("„Sobivad ajad” for current students: only a name, a contact and the ti
   assert.deepEqual(normalizeWebsiteLead({ source: "availability", name: "Mari", parentName: "Olga", phone: "55555555", slots: ["Mon-17:00"] }).errors, ["name", "parentName"]);
   assert.doesNotMatch(mail.text, /Tase|Tunde nädalas|Vorm|Keel:/);
 });
+
+test("„Sobivad ajad”: an adult learner needs no parent", () => {
+  const { normalizeWebsiteLead, composeWebsiteLeadEmail } = require("./website-lead-core");
+  const result = normalizeWebsiteLead({ source: "availability", adult: true, name: "Viktoria Tamm", phone: "55555555", slots: ["Mon-17:00"] });
+  assert.ok(result.lead, JSON.stringify(result));
+  assert.match(composeWebsiteLeadEmail(result.lead).text, /täiskasvanud õpilane/);
+  assert.deepEqual(normalizeWebsiteLead({ source: "availability", name: "Viktoria Tamm", phone: "55555555", slots: ["Mon-17:00"] }).errors, ["parentName"]);
+});
