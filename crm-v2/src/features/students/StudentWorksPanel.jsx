@@ -24,7 +24,8 @@ function openState(assignment) {
     overdue,
   };
 }
-export default function StudentWorksPanel({ student, user, homeworkApi, privateWorksheetApi = studentWorksheetsService, onSkillMap }) {
+// `keep`: which works this viewer sees (a teacher of one subject of a shared child sees only their subject's works)
+export default function StudentWorksPanel({ student, user, homeworkApi, privateWorksheetApi = studentWorksheetsService, onSkillMap, keep = null }) {
   const [state, setState] = useState({ loading: true, error: '', items: [], open: [], drafts: [], draftError: '' });
   const [watching, setWatching] = useState(null);
   const [opened, setOpened] = useState(null);
@@ -66,7 +67,10 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
     }
   };
 
-  const pending = state.items.filter((item) => item.reviewStatus !== 'reviewed').length;
+  // what this viewer may see: filtered when shown, so a new filter never reloads the works
+  const items = keep ? state.items.filter(keep) : state.items;
+  const open = keep ? state.open.filter(keep) : state.open;
+  const pending = items.filter((item) => item.reviewStatus !== 'reviewed').length;
 
   return (
     <Card className="profile-wide student-works">
@@ -79,11 +83,11 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
           <div className="submission-list">{state.drafts.map((draft) => <Link className="submission-row" key={draft.id} to={`/students/${encodeURIComponent(student.id)}/worksheets/${encodeURIComponent(draft.id)}`}><i><FileText size={20} /></i><span className="submission-row__main"><strong>{draft.title}</strong><small>Nähtav ainult õpetajatele, kuni määrad selle õpilasele</small></span><Badge tone="neutral">Mustand</Badge></Link>)}</div>
         </section>
       ) : null}
-      {!state.loading && !state.error && state.open.length ? (
+      {!state.loading && !state.error && open.length ? (
         <section className="student-works__open" aria-label="Määratud, veel esitamata">
-          <h3>Määratud, veel esitamata ({state.open.length})</h3>
+          <h3>Määratud, veel esitamata ({open.length})</h3>
           <div className="submission-list">
-            {state.open.map((assignment) => {
+            {open.map((assignment) => {
               const info = openState(assignment);
               return (
                 <button type="button" className="submission-row" key={assignment.id} onClick={() => setWatching(assignment)}>
@@ -97,10 +101,10 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
           </div>
         </section>
       ) : null}
-      {!state.loading && !state.error && state.open.length ? <h3 className="student-works__subhead">Esitatud tööd</h3> : null}
-      {state.loading ? <LoadingState label="Laen töid…" /> : state.error ? <ErrorState message={state.error} onRetry={load} /> : state.items.length ? (
+      {!state.loading && !state.error && open.length ? <h3 className="student-works__subhead">Esitatud tööd</h3> : null}
+      {state.loading ? <LoadingState label="Laen töid…" /> : state.error ? <ErrorState message={state.error} onRetry={load} /> : items.length ? (
         <div className="submission-list">
-          {state.items.map((item) => {
+          {items.map((item) => {
             const reviewed = item.reviewStatus === 'reviewed';
             const deltas = Object.entries(item.skillGrades || {});
             return (

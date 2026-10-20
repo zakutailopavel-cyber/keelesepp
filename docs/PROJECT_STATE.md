@@ -1,3 +1,22 @@
+## 2026-10-20 · agent/teacher-own-subject — one learner, several subjects: step 3 (a teacher sees only their subject)
+
+- main checked: origin/main after #685 (2026-10-20). Owner: a teacher of another subject must not see what is not theirs.
+- Found: teacher-scoped reads exist in the rules but are OFF in production — `securityMigrations/teacherUidV1` has
+  `backfillComplete: true` and no `readEnforced`, so any teacher could read any student card, lesson and schedule entry
+  directly (the CRM only hid them). Backfill is done: 0 lessons / 0 schedule entries without teacherUid; 4 active cards
+  have no teacher (Viktoria, Aleksei Merzin, Михаил Мач, Mihhail). Also: the student card refused the second subject's
+  teacher („Ligipääs puudub”) because it compared only the card's main `teacher`.
+- This PR: port of #517 — `staffCanAccessStudent()` for homework, messages, worksheetAssignments, exerciseResults (a
+  teacher only of cards with their uid in teacherUid/teacherUids; by name until enforcement); messages unread count and
+  sheet results query by own students; calibration card admin-only. Subject level: `lessons/schedule.listByStudent(id,
+  { teacherUid })`; the student card lets in a teacher of any track (`teacherTracks` in subjects.js), loads only their
+  lessons and schedule, shows only their subject (header, overview) and only works they gave or of their subject.
+- Tests: vitest 581 (students, parents, services, components, worksheet-studio, generator ui), eslint clean; emulator
+  tests: #517 ones + „two teachers of one child” (security-access-emulator.integration.js) — CI.
+- After merge (owner permission): `firebase deploy --only firestore:rules`; then turn on `readEnforced` in Seaded →
+  teacher scope (reversible switch, `functions/index.js` checks the backfill first); give the 4 cards a teacher first.
+- Next: price per subject + one invoice with lines per subject → remove packages.
+
 ## 2026-10-20 · agent/subject-switcher — one learner, several subjects: step 2 (subject switcher)
 
 - main checked: origin/main after #684 (2026-10-20). Production data done earlier today with the owner's permission:

@@ -2417,6 +2417,10 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
     db.collection("students").doc("live-student-record").set({
       name: "Live Student",
       linkedUserId: studentUid,
+      // the room's teacher teaches this student: homework and messages of a student are for their own teacher only
+      teacher: "Live Teacher",
+      teacherUid,
+      teacherUids: [teacherUid],
       active: true,
     }),
     db.collection("students").doc("outside-student-record").set({

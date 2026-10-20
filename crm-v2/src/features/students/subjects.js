@@ -42,3 +42,8 @@ export function onlySubject(items = [], subject = '', studentOf = () => null) {
   if (!subject) return items;
   return items.filter((item) => itemSubject(item, studentOf(item)) === subject);
 }
+
+// the tracks of the card a teacher teaches (by uid, else by name); the admin gets []
+export function teacherTracks(student = {}, user = {}) {
+  return tracksOf(student).filter((track) => (user.uid && track.teacherUid === user.uid) || (track.teacher && user.displayName && isSameTeacher(track.teacher, user.displayName)));
+}

@@ -33,6 +33,20 @@ function renderProfile({
 }
 
 describe('student profile tabs and role access', () => {
+  it('the second subject\'s teacher opens the shared card, reads only their lessons and sees only their subject', async () => {
+    const apis = renderProfile({
+      actor: { uid: 'y1', roles: ['teacher'], displayName: 'Yelyzaveta' },
+      student: { id: 's1', name: 'Stefania', teacher: 'Pavel', active: true, skillMap: {}, enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta', teacherUid: 'y1' }] },
+    });
+    expect(await screen.findByRole('heading', { name: 'Stefania' }, { timeout: 4000 })).toBeInTheDocument();
+    expect(screen.queryByText('Ligipääs puudub')).toBeNull();
+    expect(apis.lessonApi.listByStudent).toHaveBeenCalledWith('s1', { teacherUid: 'y1' });
+    expect(apis.scheduleApi.listByStudent).toHaveBeenCalledWith('s1', { teacherUid: 'y1' });
+    expect(screen.queryByRole('tablist', { name: 'Õpilase õppeained' })).toBeNull();
+    expect(screen.queryByText(/Eesti keel/)).toBeNull();
+    expect(screen.getByText(/Matemaatika · Yelyzaveta/)).toBeInTheDocument();
+  });
+
   it('a card with two subjects shows both tracks and the lessons of one subject at a time', async () => {
     renderProfile({
       student: { id: 's1', name: 'Stefania', teacher: 'Pavel', active: true, skillMap: {}, enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta', teacherUid: 'y1' }] },
