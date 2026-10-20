@@ -8,6 +8,7 @@
 
 const { manualInvoiceRecord } = require('./manual-invoice-core');
 const { monthlyInvoiceLines, monthLabel } = require('./monthly-invoice-core');
+const { subjectName } = require('./student-enrollments-core');
 
 const clean = (value, max = 160) => String(value || '').trim().slice(0, max);
 const fail = (status, message) => Object.assign(new Error(message), { status });
@@ -28,14 +29,31 @@ function sameCardsInput(items = []) {
   return ids;
 }
 
+// monthly items: one per card and subject (owner 2026-10-20: one child, several subjects, each its own price and
+// line) → [{ studentId, subject }]; a card may come twice with different subjects
+function monthlyItemsInput(items = []) {
+  if (!Array.isArray(items) || items.length < 2 || items.length > 12) throw fail(400, 'Ühisarvele vali 2–12 rida.');
+  const list = items.map((item) => ({ studentId: clean(item?.studentId), subject: subjectName(item?.subject) }));
+  const keys = list.map((item) => `${item.studentId}|${item.subject}`);
+  if (list.some((item) => !item.studentId) || new Set(keys).size !== keys.length) throw fail(400, 'Iga kaart ja õppeaine võib ühisarvel olla üks kord.');
+  return list;
+}
+
+// the price of one subject of a card: its own price in the plan (`subjectPrices`), else the card's price
+function planForSubject(plan = {}, subject = '') {
+  const own = subject && plan.subjectPrices && typeof plan.subjectPrices === 'object' ? plan.subjectPrices[subject] : null;
+  if (!own) return plan;
+  return { ...plan, lessonPriceCents: own.lessonPriceCents, lessonMinutes: own.lessonMinutes || plan.lessonMinutes };
+}
+
 function checkOnePayer(cards = []) {
   const keys = new Set(cards.map(payerKey));
   if (keys.size > 1) throw fail(409, 'Kaartidel on erinev maksja: ühisarve on ühe maksja kaartidele (sama õpilane või ühe lapsevanema lapsed).');
 }
 
 const nameList = (cards) => [...new Set(cards.map((card) => clean(card.name)).filter(Boolean))];
-const subjectOf = (card) => clean(card.subject, 80);
-const lineLabel = (card, many) => [many ? clean(card.name) : '', subjectOf(card)].filter(Boolean).join(' · ');
+const subjectOf = (card, subject = '') => clean(subject || card.subject, 80);
+const lineLabel = (card, many, subject = '') => [many ? clean(card.name) : '', subjectOf(card, subject)].filter(Boolean).join(' · ');
 
 // the fields every combined invoice carries on top of the one-card record
 function combinedFields(cards, lines, cardParts) {
@@ -47,7 +65,7 @@ function combinedFields(cards, lines, cardParts) {
     studentIds: cards.map((card) => card.id),
     studentName: names.join(', '),
     subject: '',
-    subjects: [...new Set(cards.map(subjectOf).filter(Boolean))],
+    subjects: [...new Set([...cardParts.map((part) => part.subject), ...cards.map((card) => subjectOf(card))].filter(Boolean))],
     lines: lines.map((line) => ({ ...line, amount: line.amountCents / 100 })),
     cardParts,
     amountCents,
@@ -58,8 +76,9 @@ function combinedFields(cards, lines, cardParts) {
 }
 
 // month: [{ card, plan, plannedUnits, correctionUnits, correctionNote }] → { record, amountCents }
+// a part may name its subject: then the subject's price and a line of its own (one card, several subjects)
 function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, requestId, signature }) {
-  const cards = parts.map((part) => part.card);
+  const cards = [...new Map(parts.map((part) => [part.card.id, part.card])).values()];
   checkOnePayer(cards);
   const many = nameList(cards).length > 1;
   const lines = [];
@@ -67,13 +86,17 @@ function combinedMonthlyRecord({ month, due, parts, invoiceNum, nowIso, actor, r
   for (const part of parts) {
     let priced;
     try {
-      priced = monthlyInvoiceLines({ month, plannedUnits: part.plannedUnits, correctionUnits: part.correctionUnits, correctionNote: part.correctionNote }, part.plan || {});
+      const subjectPlan = part.subject ? planForSubject(part.plan || {}, part.subject) : (part.plan || {});
+      // a subject that is not a language is billed as „Tunnid”, not „Keeletunnid”
+      const title = part.subject && !/keel/i.test(part.subject) ? 'Tunnid' : '';
+      priced = monthlyInvoiceLines({ month, plannedUnits: part.plannedUnits, correctionUnits: part.correctionUnits, correctionNote: part.correctionNote, title }, subjectPlan);
     } catch (error) {
-      throw fail(400, `${lineLabel(part.card, true)}: ${error.message === 'Lesson price missing' ? 'tunnihind puudub' : 'summa peab olema positiivne'}`);
+      throw fail(400, `${lineLabel(part.card, true, part.subject)}: ${error.message === 'Lesson price missing' ? 'tunnihind puudub' : 'summa peab olema positiivne'}`);
     }
-    const label = lineLabel(part.card, many);
-    priced.lines.forEach((line) => lines.push({ ...line, description: label ? `${label}: ${line.description}` : line.description, studentId: part.card.id, studentName: clean(part.card.name), subject: subjectOf(part.card) }));
-    cardParts.push({ studentId: part.card.id, studentName: clean(part.card.name), subject: subjectOf(part.card), plannedUnits: part.plannedUnits, correctionUnits: part.correctionUnits, priceCents: priced.priceCents, minutes: priced.minutes, amountCents: priced.amountCents });
+    const label = lineLabel(part.card, many, part.subject);
+    const subject = subjectOf(part.card, part.subject);
+    priced.lines.forEach((line) => lines.push({ ...line, description: label ? `${label}: ${line.description}` : line.description, studentId: part.card.id, studentName: clean(part.card.name), subject }));
+    cardParts.push({ studentId: part.card.id, studentName: clean(part.card.name), subject, plannedUnits: part.plannedUnits, correctionUnits: part.correctionUnits, priceCents: priced.priceCents, minutes: priced.minutes, amountCents: priced.amountCents });
   }
   const fields = combinedFields(cards, lines, cardParts);
   const base = manualInvoiceRecord({
@@ -115,4 +138,4 @@ function billsCardForMonth(invoice = {}, cardId, month) {
   return invoice.studentId === cardId || (Array.isArray(invoice.studentIds) && invoice.studentIds.includes(cardId));
 }
 
-module.exports = { payerKey, sameCardsInput, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth };
+module.exports = { payerKey, sameCardsInput, monthlyItemsInput, planForSubject, checkOnePayer, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth };

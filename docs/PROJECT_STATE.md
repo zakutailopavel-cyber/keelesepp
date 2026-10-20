@@ -9,6 +9,25 @@
   phone reading page drops the inline canvas's 75vh limit. Checked on a local stand (1280×650): the student's sheet
   grew from 682 px to its full 6654 px and scrolls down to the tasks.
 - Next safe step: merge (frontend deploys with main); the owner checks a student's sheet in a lesson.
+## 2026-10-20 · agent/subject-prices — one learner, several subjects: step 4 (price per subject, one invoice)
+
+- main checked: origin/main after #687 (2026-10-20). Owner: subjects may have different prices; one invoice per payer
+  with a line per subject; no packages; billing by agreement (by the 10th or after lessons) stays.
+- Data: `studentRevenuePlans/{studentId}.subjectPrices = { "Matemaatika": { lessonPriceCents, lessonMinutes } }` — the
+  card's own price is its main subject's (`mainSubject` in students/subjects.js); a subject without a price is billed
+  at the card's price. firestore.rules allow the field (map, ≤ 8). Saved with `mergeFields` so a removed price goes.
+- Billing: `monthlyBillingRows` gives a multi-subject card `subjectParts` (lessons by subject via `itemSubject`, own
+  price and length, own correction against its part of last month's invoice — an invoice from before subjects counts
+  for the main subject). `invoiceItems` → one item per subject; 2+ items go to `/monthly-combined` (now accepts one card
+  twice with different subjects: `monthlyItemsInput`, `planForSubject` in functions/combined-invoice-core.js), one item
+  to `/monthly` with `subject`. A non-language subject's line says „Tunnid”, not „Keeletunnid”.
+- UI: Finantsid → card „Arveldus” has a price and length per further subject; Kuuarved shows the subjects of a row.
+- Not changed: per-lesson invoices from „Tunnid → arve” (LessonAccountingPanel) still use the card's price.
+- Checks: vitest finance/students/services/parents 390/390, eslint clean, functions node --test 316/316; emulator
+  test „one card, two subjects” in finance-emulator.integration.js (CI).
+- After merge (owner permission): deploy `firestore:rules` and `functions:manualInvoiceApi`; then copy the maths price
+  of Stefania and the English price of Aleksandr Smirnov from their archived cards' plans into `subjectPrices`.
+- Next: remove packages (step 5).
 
 ## 2026-10-20 · agent/teacher-own-subject — one learner, several subjects: step 3 (a teacher sees only their subject)
 

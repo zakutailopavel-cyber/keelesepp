@@ -1281,8 +1281,11 @@ service cloud.firestore {
           'billingMode',
           'chargeNoShow',
           'validFrom',
-          'priceHistory'
+          'priceHistory',
+          'subjectPrices'
         ])
+        // the price of a second subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } }
+        && (!('subjectPrices' in request.resource.data) || (request.resource.data.subjectPrices is map && request.resource.data.subjectPrices.size() <= 8))
         && request.resource.data.keys().hasAll([
           'studentId',
           'studentName',

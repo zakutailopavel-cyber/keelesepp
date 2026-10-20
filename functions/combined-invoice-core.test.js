@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { payerKey, sameCardsInput, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
+const { payerKey, sameCardsInput, monthlyItemsInput, planForSubject, combinedMonthlyRecord, combinedManualRecord, billsCardForMonth } = require('./combined-invoice-core');
 
 const actor = { uid: 'admin', name: 'Admin' };
 const en = { id: 'en', name: 'Aleksandr Smirnov', subject: 'Inglise keel', parentEmail: 'ema@example.ee', parentName: 'Jekaterina' };
@@ -72,4 +72,26 @@ test('the PDF of a combined invoice renders every line', async () => {
   });
   const pdf = await buildInvoicePdf({ invoice: record, student: en, paymentDetails: { company: 'EP Koolitus' } });
   assert.ok(Buffer.isBuffer(pdf) && pdf.length > 1000);
+});
+
+test('one card, two subjects (owner 2026-10-20): a line per subject at its own price', () => {
+  assert.deepEqual(monthlyItemsInput([{ studentId: 'st', subject: 'Eesti keel' }, { studentId: 'st', subject: 'matemaatika' }]), [{ studentId: 'st', subject: 'Eesti keel' }, { studentId: 'st', subject: 'Matemaatika' }]);
+  assert.throws(() => monthlyItemsInput([{ studentId: 'st', subject: 'Eesti keel' }, { studentId: 'st', subject: 'Eesti keel' }]), { status: 400 });
+  const plan = { lessonPriceCents: 2000, lessonMinutes: 60, subjectPrices: { Matemaatika: { lessonPriceCents: 2800, lessonMinutes: 45 } } };
+  assert.equal(planForSubject(plan, 'Matemaatika').lessonPriceCents, 2800);
+  assert.equal(planForSubject(plan, 'Eesti keel').lessonPriceCents, 2000);
+  const stefania = { id: 'st', name: 'Stefania', subject: 'Eesti keel', parentEmail: 'ema@example.ee' };
+  const record = combinedMonthlyRecord({
+    month: '2026-11', due: '2026-11-10', invoiceNum: 'KS-2026-300', nowIso: '2026-10-20T10:00:00.000Z', actor, requestId: 'r', signature: 's',
+    parts: [
+      { card: stefania, plan, subject: 'Eesti keel', plannedUnits: 4, correctionUnits: 0, correctionNote: '' },
+      { card: stefania, plan, subject: 'Matemaatika', plannedUnits: 3, correctionUnits: 0, correctionNote: '' },
+    ],
+  });
+  assert.deepEqual(record.studentIds, ['st']);
+  assert.equal(record.amountCents, 4 * 2000 + 3 * 2800);
+  assert.match(record.lines[0].description, /^Eesti keel: Keeletunnid/);
+  assert.match(record.lines[1].description, /^Matemaatika: Tunnid, .*3 × 45 min × 28,00 €/);
+  assert.deepEqual(record.cardParts.map((part) => [part.studentId, part.subject, part.plannedUnits]), [['st', 'Eesti keel', 4], ['st', 'Matemaatika', 3]]);
+  assert.deepEqual(record.subjects, ['Eesti keel', 'Matemaatika']);
 });
