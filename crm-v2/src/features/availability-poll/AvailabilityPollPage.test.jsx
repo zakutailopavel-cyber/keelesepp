@@ -9,6 +9,19 @@ describe('„Sobivad ajad”', () => {
     expect(cellsOf(['Mon-16:00', 'Mon-16:30', 'Wed-10:00'], ['Wed-10:00'])).toEqual({ 'Mon-16': 'ok', 'Wed-10': 'best' });
   });
 
+  it('an adult learner ticks the box and gives no parent', async () => {
+    const post = vi.fn().mockResolvedValue({ ok: true, status: 201 });
+    render(<AvailabilityPollPage post={post} />);
+    fireEvent.click(screen.getByRole('button', { name: 'ET' }));
+    fireEvent.click(screen.getByLabelText(/täiskasvanud õpilane/));
+    expect(screen.queryByLabelText(/Lapsevanema/)).toBeNull();
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'E 16:00' }));
+    fireEvent.change(screen.getByLabelText(/Sinu ees- ja perekonnanimi/), { target: { value: 'Viktoria Tamm' } });
+    fireEvent.change(screen.getByLabelText('Telefon'), { target: { value: '55555555' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Saada ajad/ })); });
+    expect(post).toHaveBeenCalledWith(expect.objectContaining({ adult: true, name: 'Viktoria Tamm', parentName: '' }));
+  });
+
   it('no subject, goals or lesson count are asked (current students)', () => {
     render(<AvailabilityPollPage post={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: 'ET' }));

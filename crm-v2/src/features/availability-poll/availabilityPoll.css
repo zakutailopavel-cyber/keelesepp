@@ -89,3 +89,4 @@
   .poll-fields { grid-template-columns: 1fr; }
   .poll-legend b { margin-left: 0; width: 100%; }
 }
+.poll-adult { display: flex !important; align-items: center; gap: 10px; font-weight: 700; padding: 10px 12px; border-radius: 12px; background: #f3f6f4; cursor: pointer; } .poll-adult input { width: 20px; height: 20px; accent-color: #087e6b; }
