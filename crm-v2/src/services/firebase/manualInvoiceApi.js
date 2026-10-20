@@ -35,6 +35,8 @@ export const manualInvoiceApi = {
       plannedUnits: values.plannedUnits,
       correctionUnits: values.correctionUnits || 0,
       correctionNote: values.correctionNote || '',
+      // one subject of a card with several: billed at that subject's price
+      ...(values.subject ? { subject: values.subject } : {}),
     });
   },
   // one invoice for the month's lessons of several cards of one payer (subjects of one student, children of a parent)

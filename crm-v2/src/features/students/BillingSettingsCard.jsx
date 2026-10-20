@@ -1,7 +1,8 @@
 import { Check, Lock, WalletCards } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Button, Card, Input, Select } from '../../components/ui/index.js';
-import { BILLING_MODES, LESSON_MINUTES, validateRevenuePlan } from '../../services/firebase/revenuePlans.js';
+import { BILLING_MODES, LESSON_MINUTES, validateRevenuePlan, validateSubjectPrices } from '../../services/firebase/revenuePlans.js';
+import { mainSubject, subjectsOf } from './subjects.js';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
 const today = () => new Date().toLocaleDateString('sv-SE');
@@ -14,6 +15,11 @@ function formOf(plan, student) {
     billingMode: plan?.billingMode || 'advance',
     chargeNoShow: plan ? plan.chargeNoShow !== false : true,
     validFrom: today(),
+    // further subjects of the card with their own price (owner 2026-10-20); empty = the card's price
+    subjectPrices: Object.fromEntries(subjectsOf(student || {}).filter((subject) => subject !== mainSubject(student || {})).map((subject) => {
+      const own = plan?.subjectPrices?.[subject];
+      return [subject, { lessonPrice: own?.lessonPriceCents ? String(own.lessonPriceCents / 100).replace('.', ',') : '', lessonMinutes: String(own?.lessonMinutes || plan?.lessonMinutes || 60) }];
+    })),
   };
 }
 
@@ -30,14 +36,16 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
   const save = async (event) => {
     event.preventDefault();
     const validation = validateRevenuePlan(form);
-    setErrors(validation.errors);
-    if (!validation.valid) return;
+    const subjects = validateSubjectPrices(form.subjectPrices);
+    setErrors({ ...validation.errors, ...Object.fromEntries(Object.entries(subjects.errors).map(([subject, message]) => [`subject:${subject}`, message])) });
+    if (!validation.valid || !subjects.valid) return;
     setSaving(true);
     try { await onSave(form); setMessage('Arveldusseaded salvestatud.'); }
     catch (error) { setErrors({ form: error.message || 'Salvestamine ebaõnnestus.' }); }
     finally { setSaving(false); }
   };
   const history = [...(plan?.priceHistory || [])].reverse();
+  const extraSubjects = Object.keys(form.subjectPrices || {});
 
   return (
     <Card className="profile-wide billing-settings">
@@ -46,10 +54,16 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
         {plan?.lessonPriceCents ? <strong className="billing-settings__price">{money(plan.lessonPriceCents)} / {plan.lessonMinutes || 60} min</strong> : <span className="billing-settings__missing">Hind määramata</span>}
       </div>
       <form className="billing-settings__form" onSubmit={save}>
-        <Input label="Tunni hind (€)" inputMode="decimal" value={form.lessonPrice} error={errors.lessonPrice} disabled={!canEdit} onChange={(e) => set({ lessonPrice: e.target.value })} />
+        <Input label={extraSubjects.length ? `Tunni hind (€) · ${mainSubject(student || {})}` : 'Tunni hind (€)'} inputMode="decimal" value={form.lessonPrice} error={errors.lessonPrice} disabled={!canEdit} onChange={(e) => set({ lessonPrice: e.target.value })} />
         <Select label="Tunni pikkus" value={form.lessonMinutes} disabled={!canEdit} onChange={(e) => set({ lessonMinutes: e.target.value })}>
           {LESSON_MINUTES.map((minutes) => <option key={minutes} value={minutes}>{minutes} min</option>)}
         </Select>
+        {extraSubjects.map((subject) => <div className="billing-settings__subject" key={subject}>
+          <Input label={`Tunni hind (€) · ${subject}`} inputMode="decimal" placeholder="sama hind" value={form.subjectPrices[subject]?.lessonPrice || ''} error={errors[`subject:${subject}`]} disabled={!canEdit} onChange={(e) => set({ subjectPrices: { ...form.subjectPrices, [subject]: { ...form.subjectPrices[subject], lessonPrice: e.target.value } } })} />
+          <Select label={`Tunni pikkus · ${subject}`} value={form.subjectPrices[subject]?.lessonMinutes || '60'} disabled={!canEdit} onChange={(e) => set({ subjectPrices: { ...form.subjectPrices, [subject]: { ...form.subjectPrices[subject], lessonMinutes: e.target.value } } })}>
+            {LESSON_MINUTES.map((minutes) => <option key={minutes} value={minutes}>{minutes} min</option>)}
+          </Select>
+        </div>)}
         <Input label="Tunde nädalas" inputMode="decimal" value={form.weeklyLessons} error={errors.weeklyLessons} disabled={!canEdit} onChange={(e) => set({ weeklyLessons: e.target.value })} />
         <Select label="Arveldus" value={form.billingMode} disabled={!canEdit} onChange={(e) => set({ billingMode: e.target.value })}>
           {BILLING_MODES.map((mode) => <option key={mode.id} value={mode.id}>{mode.label}</option>)}

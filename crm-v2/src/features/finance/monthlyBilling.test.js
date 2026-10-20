@@ -1,4 +1,4 @@
-import { currentMonth, isChargeable, defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
+import { combinedMonthlyPayload, invoiceItems, currentMonth, isChargeable, defaultBillingMonth, defaultDue, monthlyBillingRows, monthlyInvoicePayload, shiftMonth } from './monthlyBilling.js';
 
 const students = [
   { id: 's1', name: 'Mari', active: true, parentEmail: 'mari@example.com' },
@@ -95,5 +95,40 @@ describe('„Kooli kulul”', () => {
   it('a held lesson the school pays is not charged; other held lessons are', () => {
     expect(isChargeable({ status: 'Toimunud', billingStatus: 'school_covered' }, {})).toBe(false);
     expect(isChargeable({ status: 'Toimunud' }, {})).toBe(true);
+  });
+});
+
+describe('one card, two subjects (owner 2026-10-20)', () => {
+  const stefania = { id: 'st', name: 'Stefania', active: true, subject: 'Eesti keel', parentEmail: 'ema@example.com', enrollments: [
+    { subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta', teacherUid: 'y1' }] };
+  const plan = { studentId: 'st', lessonPriceCents: 2000, lessonMinutes: 60, billingMode: 'current', subjectPrices: { Matemaatika: { lessonPriceCents: 2800, lessonMinutes: 45 } } };
+  // October 2031: Wednesdays (Estonian, 60 min) and Thursdays 2, 9, 16, 23, 30 (maths, 45 min, old entry without subject)
+  const lessons = [
+    { id: 'est', studentId: 'st', teacherUid: 'p1', recurring: true, day: 'Wed', startDate: '2031-09-03', time: '16:00', duration: 60, subject: 'Eesti keel' },
+    { id: 'mat', studentId: 'st', teacherUid: 'y1', recurring: true, day: 'Thu', startDate: '2031-09-04', time: '16:00', duration: 45 },
+  ];
+  it('counts each subject at its own price and makes one invoice with a line per subject', () => {
+    const [row] = monthlyBillingRows({ month: '2031-10', students: [stefania], plans: [plan], schedule: lessons, groups: [], lessons: [], invoices: [] });
+    expect(row.subjectParts.map((part) => [part.subject, part.plannedUnits, part.priceCents])).toEqual([['Eesti keel', 5, 2000], ['Matemaatika', 5, 2800]]);
+    expect(row.totalCents).toBe(5 * 2000 + 5 * 2800);
+    expect(row.status).toBe('ready');
+    expect(invoiceItems([row]).map((item) => [item.studentId, item.subject, item.plannedUnits])).toEqual([['st', 'Eesti keel', 5], ['st', 'Matemaatika', 5]]);
+    expect(combinedMonthlyPayload([row], '2031-10').items).toHaveLength(2);
+  });
+  it('next month counts the difference of each subject against its own part of the invoice', () => {
+    const invoice = { id: 'i', planMonth: '2031-10', status: 'Saadetud', combined: true, studentIds: ['st'], cardParts: [
+      { studentId: 'st', subject: 'Eesti keel', plannedUnits: 5 }, { studentId: 'st', subject: 'Matemaatika', plannedUnits: 5 }] };
+    const held = [
+      ...['01', '08', '15', '22', '29'].map((day) => ({ id: `e${day}`, studentId: 'st', date: `2031-10-${day}`, status: 'Toimunud', duration: 60, subject: 'Eesti keel' })),
+      ...['02', '09', '16'].map((day) => ({ id: `m${day}`, studentId: 'st', date: `2031-10-${day}`, status: 'Toimunud', duration: 45, teacherUid: 'y1' })),
+      { id: 'm23', studentId: 'st', date: '2031-10-23', status: 'Puudus_p', duration: 45, subject: 'Matemaatika' },
+    ];
+    const [row] = monthlyBillingRows({ month: '2031-11', students: [stefania], plans: [plan], schedule: lessons, groups: [], lessons: held, invoices: [invoice] });
+    expect(row.subjectParts.find((part) => part.subject === 'Eesti keel').correction.units).toBe(0);
+    expect(row.subjectParts.find((part) => part.subject === 'Matemaatika').correction.units).toBe(-2);
+  });
+  it('a subject without its own price is billed at the price of the card', () => {
+    const [row] = monthlyBillingRows({ month: '2031-10', students: [stefania], plans: [{ ...plan, subjectPrices: {} }], schedule: lessons, groups: [], lessons: [], invoices: [] });
+    expect(row.subjectParts.map((part) => part.priceCents)).toEqual([2000, 2000]);
   });
 });

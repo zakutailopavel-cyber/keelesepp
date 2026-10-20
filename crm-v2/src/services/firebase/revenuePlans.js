@@ -18,8 +18,32 @@ export function normalizeRevenuePlan(id, data = {}) {
     chargeNoShow: data.chargeNoShow !== false,
     validFrom: clean(data.validFrom),
     priceHistory: Array.isArray(data.priceHistory) ? data.priceHistory : [],
+    subjectPrices: subjectPricesOf(data.subjectPrices),
     active: data.active !== false,
   };
+}
+
+// the price of each further subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } };
+// the card's own price is its main subject's
+export function subjectPricesOf(value) {
+  if (!value || typeof value !== 'object') return {};
+  return Object.fromEntries(Object.entries(value).slice(0, 8)
+    .map(([subject, price]) => [clean(subject), { lessonPriceCents: Math.max(0, Math.round(Number(price?.lessonPriceCents) || 0)), lessonMinutes: LESSON_MINUTES.includes(Number(price?.lessonMinutes)) ? Number(price.lessonMinutes) : 60 }])
+    .filter(([subject, price]) => subject && price.lessonPriceCents > 0));
+}
+
+// form values { "Matemaatika": { lessonPrice: "28", lessonMinutes: "45" } } → stored prices, or an error per subject
+export function validateSubjectPrices(values = {}) {
+  const errors = {};
+  const prices = {};
+  Object.entries(values || {}).forEach(([subject, entry]) => {
+    const text = String(entry?.lessonPrice ?? '').trim();
+    if (!text) return; // no own price: the subject is billed at the card's price
+    const price = Number(text.replace(',', '.'));
+    if (!Number.isFinite(price) || price <= 0 || price > 10000) { errors[subject] = 'Sisesta tunni hind vahemikus 0,01–10 000 eurot.'; return; }
+    prices[subject] = { lessonPriceCents: Math.round(price * 100), lessonMinutes: LESSON_MINUTES.includes(Number(entry?.lessonMinutes)) ? Number(entry.lessonMinutes) : 60 };
+  });
+  return { valid: Object.keys(errors).length === 0, errors, prices };
 }
 
 export const LESSON_MINUTES = [30, 45, 60, 75, 90, 120];
@@ -74,6 +98,8 @@ export const revenuePlansService = {
     if (!student?.id) throw new Error('Õpilast ei leitud.');
     const validation = validateRevenuePlan(values);
     if (!validation.valid) throw new Error(Object.values(validation.errors)[0]);
+    const subjects = validateSubjectPrices(values.subjectPrices);
+    if (!subjects.valid) throw new Error(Object.values(subjects.errors)[0]);
     const { db } = requireFirebaseClient();
     const updatedAt = new Date().toISOString();
     const updatedBy = user.displayName || user.email || '';
@@ -95,11 +121,13 @@ export const revenuePlansService = {
       updatedByUid: user.uid,
       ...billing,
       priceHistory: nextPriceHistory(previous, { lessonPriceCents: validation.lessonPriceCents, ...billing }),
+      ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}),
     };
     // The price lives only here (admin / finance can read it). It is no longer copied to the student card,
     // which teachers and parents can read.
     const batch = writeBatch(db);
-    batch.set(doc(db, 'studentRevenuePlans', student.id), plan, { merge: true });
+    // mergeFields: every written field is replaced whole (a removed subject price really goes), the rest stays
+    batch.set(doc(db, 'studentRevenuePlans', student.id), plan, { mergeFields: Object.keys(plan) });
     batch.set(doc(collection(db, 'activityLog')), {
       type: 'finance.revenue_plan_updated',
       label: `${student.name || 'Õpilane'} tuluprognoos uuendatud`,
@@ -108,7 +136,7 @@ export const revenuePlansService = {
       byRole: 'admin',
       createdAt: updatedAt,
       date: updatedAt.slice(0, 10),
-      meta: { studentId: student.id, studentName: student.name || '', lessonPriceCents: validation.lessonPriceCents, weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode },
+      meta: { studentId: student.id, studentName: student.name || '', lessonPriceCents: validation.lessonPriceCents, weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}) },
     });
     await batch.commit();
     return normalizeRevenuePlan(student.id, plan);

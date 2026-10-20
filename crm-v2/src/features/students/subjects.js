@@ -47,3 +47,11 @@ export function onlySubject(items = [], subject = '', studentOf = () => null) {
 export function teacherTracks(student = {}, user = {}) {
   return tracksOf(student).filter((track) => (user.uid && track.teacherUid === user.uid) || (track.teacher && user.displayName && isSameTeacher(track.teacher, user.displayName)));
 }
+
+// the card's main subject: its own `subject` when it is one of its tracks, else the first track's (its price is the
+// card's price; further subjects may have their own in studentRevenuePlans.subjectPrices)
+export function mainSubject(student = {}) {
+  const subjects = subjectsOf(student);
+  const own = subjectName(student.subject);
+  return subjects.includes(own) ? own : subjects[0] || own || 'Eesti keel';
+}
