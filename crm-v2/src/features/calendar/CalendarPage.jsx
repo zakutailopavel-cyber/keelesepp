@@ -488,8 +488,14 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!panelItem) return;
     setPanelSaving(true); setPanelError('');
     try {
-      const { homework, ...fields } = details;
-      await lessonRepository.completeFromSchedule(panelItem, user, fields);
+      const { homework, schoolCoveredReason = '', ...fields } = details;
+      const lesson = await lessonRepository.completeFromSchedule(panelItem, user, fields);
+      // „Kooli kulul” right away (Oleksiy 2026-10-19: a fourth way to close a lesson): held for the teacher, free for the
+      // student; the audited finance route also gives back a credit the lesson took
+      if (schoolCoveredReason && lesson?.id) {
+        try { await financeRepository.setLessonBillingDisposition(lesson.id, 'school_covered', schoolCoveredReason); }
+        catch (coverError) { await state.reload(); setPanelError(`Tund märgiti toimunuks, kuid „kooli kulul” ei salvestunud (${coverError.message || 'viga'}). Ava tund ja vajuta „Kooli kulul” uuesti.`); return false; }
+      }
       const student = studentMap.get(panelItem.studentId);
       if (homework && student) await libraryRepository.assign({ item: homework, students: [student], dueDate: '', note: fields.topic ? `Tund: ${fields.topic}` : '', user });
       setPanelKey('');
