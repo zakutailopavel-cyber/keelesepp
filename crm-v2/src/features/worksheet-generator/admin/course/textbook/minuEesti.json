@@ -390,7 +390,7 @@
       "title": "СКУЧАТЬ → IGATSEMA",
       "instruction": "Скучать по кому? — Но! По-эстонски: Keda? Кого? Kelle järele? За кем?",
       "headers": "по-русски, по-эстонски, неправильно",
-      "rows": "По кому ты скучаешь? | **Keda sa igatsed?** | {red}✗ Kellest sa igatsed?{/red}\nЯ скучаю по тебе. | **Ma igatsen sind.** | {red}✗ Ma igatsen sinust / sinu peale{/red}\nЯ скучаю по тебе. | **Ma igatsen sinu järele.** | {red}✗ Ma igatsen sinust / sinu peale{/red}"
+      "rows": "По кому ты скучаешь? | **Keda sa igatsed?** | ~~Kellest sa igatsed?~~\nЯ скучаю по тебе. | **Ma igatsen sind.** | ~~Ma igatsen sinust / sinu peale~~\nЯ скучаю по тебе. | **Ma igatsen sinu järele.** | ~~Ma igatsen sinust / sinu peale~~"
      }
     },
     {
@@ -404,7 +404,7 @@
       "title": "БРАТЬ → VÕTMA",
       "instruction": "Брать у кого? — Но! По-эстонски: Kellelt? От кого? Kelle käest? Из чьих рук?",
       "headers": "по-русски, по-эстонски, неправильно",
-      "rows": "У кого Тийт взял? | **Kellelt Tiit võttis?** | {red}✗ Kellest Tiit võttis?{/red}\nТийт взял у меня. | **Tiit võttis minult.** | {red}✗ Tiit võttis minust{/red}\nТийт взял у Ханса. | **Tiit võttis Hansult.** | {red}✗ Tiit võttis Hansust{/red}\nУ кого Тийт взял? | **Kelle käest Tiit võttis?** | {red}✗ Kellest Tiit võttis?{/red}\nТийт взял у меня. | **Tiit võttis minu käest.** | {red}✗ Tiit võttis minust{/red}\nТийт взял у Ханса. | **Tiit võttis Hansu käest.** | {red}✗ Tiit võttis Hansust{/red}"
+      "rows": "У кого Тийт взял? | **Kellelt Tiit võttis?** | ~~Kellest Tiit võttis?~~\nТийт взял у меня. | **Tiit võttis minult.** | ~~Tiit võttis minust~~\nТийт взял у Ханса. | **Tiit võttis Hansult.** | ~~Tiit võttis Hansust~~\nУ кого Тийт взял? | **Kelle käest Tiit võttis?** | ~~Kellest Tiit võttis?~~\nТийт взял у меня. | **Tiit võttis minu käest.** | ~~Tiit võttis minust~~\nТийт взял у Ханса. | **Tiit võttis Hansu käest.** | ~~Tiit võttis Hansust~~"
      }
     },
     {
@@ -418,7 +418,7 @@
       "title": "ПРОСИТЬ → PALUMA",
       "instruction": "Просить кого? кого что сделать? у кого что? — Но! По-эстонски: Keda? Кого? Kellel mida teha? У кого что делать? Kellelt mida? От кого что?",
       "headers": "по-русски, по-эстонски, неправильно",
-      "rows": "Кого ты попросил? | **Keda sa palusid?** | {red}✗ Kellele sa palusid?{/red}\nЯ попросил соседа. | **Ma palusin naabrit.** | {red}✗ Ma palusin naabrile{/red}\nКого ты попросил это сделать? | **Kellel sa palusid seda teha?** | {red}✗ Kellele sa palusid seda teha?{/red}\nЯ попросил соседа это сделать. | **Ma palusin naabril seda teha.** | {red}✗ Ma palusin naabrile seda teha{/red}\nУ кого ты попросил помощь? | **Kellelt sa abi palusid?** | {red}✗ Kellel sa abi palusid?{/red}\nЯ попросил помощь у соседа. | **Ma palusin naabrilt abi.** | {red}✗ Ma palusin naabril abi{/red}"
+      "rows": "Кого ты попросил? | **Keda sa palusid?** | ~~Kellele sa palusid?~~\nЯ попросил соседа. | **Ma palusin naabrit.** | ~~Ma palusin naabrile~~\nКого ты попросил это сделать? | **Kellel sa palusid seda teha?** | ~~Kellele sa palusid seda teha?~~\nЯ попросил соседа это сделать. | **Ma palusin naabril seda teha.** | ~~Ma palusin naabrile seda teha~~\nУ кого ты попросил помощь? | **Kellelt sa abi palusid?** | ~~Kellel sa abi palusid?~~\nЯ попросил помощь у соседа. | **Ma palusin naabrilt abi.** | ~~Ma palusin naabril abi~~"
      }
     },
     {
@@ -432,7 +432,7 @@
       "title": "ПРИВЫКАТЬ → HARJUMA",
       "instruction": "Привыкать к кому? к чему? — Но! По-эстонски: Kellega? С кем? Millega? С чем?",
       "headers": "по-русски, по-эстонски, неправильно",
-      "rows": "К кому ты привык? | **Kellega sa oled harjunud?** | {red}✗ Kellele sa oled harjunud?{/red}\nЯ привык к Андрею. | **Ma olen harjunud Andreiga.** | {red}✗ Ma olen harjunud Andreile{/red}\nК чему ты привык? | **Millega sa oled harjunud?** | {red}✗ Milleks sa oled harjunud?{/red}\nЯ привык к этому. | **Ma harjusin / olen harjunud sellega.** | {red}✗ Ma harjusin / olen harjunud selleks{/red}"
+      "rows": "К кому ты привык? | **Kellega sa oled harjunud?** | ~~Kellele sa oled harjunud?~~\nЯ привык к Андрею. | **Ma olen harjunud Andreiga.** | ~~Ma olen harjunud Andreile~~\nК чему ты привык? | **Millega sa oled harjunud?** | ~~Milleks sa oled harjunud?~~\nЯ привык к этому. | **Ma harjusin / olen harjunud sellega.** | ~~Ma harjusin / olen harjunud selleks~~"
      }
     },
     {

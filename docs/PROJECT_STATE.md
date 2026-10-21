@@ -15,6 +15,11 @@
   - `docs/TEXTBOOKS.md` maps the grammar book's whole table of contents to course lessons, with gaps marked „—”.
 - Checks: library, services, worksheet-generator, worksheet-studio and board suites: 1234 passed, 3 skipped. eslint: 0
   errors.
+- Later the same day:
+  - grammar book 1.2–1.5 (pp. 11–17) went into a2-003, a2-006, a2-007 and a2b1-008;
+  - the sheets show only „Õpik, lk …”;
+  - the inline markup gained ~~struck out~~ and ***bold italic*** (richText.js, ui.jsx Md; button „S” in the on-sheet editor bar), so textbook pages copy 1:1;
+  - `textbook.test.js` fails if any markup shows as text.
 - Not done: nothing is published. The sheets carry no title, author or source line (owner 2026-10-21).
 - Next safe step: the owner reviews, merges and publishes the three Õpik sheets from Kursuse tootmine.
 

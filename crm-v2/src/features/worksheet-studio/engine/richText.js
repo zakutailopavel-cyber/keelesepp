@@ -1,19 +1,22 @@
 // Formatting inside worksheet texts (instructions, text blocks, reading passages), stored as short markup so the
-// documents stay plain strings: **bold**, *italic*, ==highlight==, {red}coloured{/red}. {{term}} = a curriculum
+// documents stay plain strings: **bold**, *italic*, ***bold italic***, ~~struck out~~, ==highlight==, {red}coloured{/red}. {{term}} = a curriculum
 // keyword (kept as it was). Rendered by <Md>; edited on the sheet with Tiptap (RichInlineEditor).
 
 export const MARK_COLORS = Object.freeze({ red: '#B42318', blue: '#175CD3', green: '#067647', orange: '#B54708', purple: '#6941C6' });
 const COLOR_BY_HEX = Object.fromEntries(Object.entries(MARK_COLORS).map(([name, hex]) => [hex.toLowerCase(), name]));
 const COLOR_NAMES = Object.keys(MARK_COLORS).join('|');
 
-// one inline token: keyword, colour, bold, highlight, italic (in this order: ** before *)
-export const MARK_TOKEN = new RegExp(`(\\{\\{[^{}]+\\}\\}|\\{(?:${COLOR_NAMES})\\}[\\s\\S]+?\\{\\/(?:${COLOR_NAMES})\\}|\\*\\*[^*]+\\*\\*|==[^=]+==|\\*[^*]+\\*)`, 'g');
+// one inline token: keyword, colour, bold italic, bold, struck out, highlight, italic (in this order: *** before ** before *).
+// Struck-out text shows a wrong form next to the right one (textbook „Lõks” pages, owner 2026-10-21).
+export const MARK_TOKEN = new RegExp(`(\\{\\{[^{}]+\\}\\}|\\{(?:${COLOR_NAMES})\\}[\\s\\S]+?\\{\\/(?:${COLOR_NAMES})\\}|\\*\\*\\*[^*]+\\*\\*\\*|\\*\\*[^*]+\\*\\*|~~[^~]+~~|==[^=]+==|\\*[^*]+\\*)`, 'g');
 
 // the visible text without the markup (search, matching the sheet text to the data)
 export function stripMarks(text) {
   return String(text ?? '')
     .replace(new RegExp(`\\{(?:${COLOR_NAMES})\\}([\\s\\S]+?)\\{\\/(?:${COLOR_NAMES})\\}`, 'g'), '$1')
+    .replace(/\*\*\*([^*]+)\*\*\*/g, '$1')
     .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/~~([^~]+)~~/g, '$1')
     .replace(/==([^=]+)==/g, '$1')
     .replace(/\*([^*]+)\*/g, '$1');
 }
@@ -24,7 +27,9 @@ const escapeHtml = (value) => String(value).replace(/&/g, '&amp;').replace(/</g,
 export function markupToHtml(markup) {
   const inline = (text) => escapeHtml(text)
     .replace(new RegExp(`\\{(${COLOR_NAMES})\\}([\\s\\S]+?)\\{\\/\\1\\}`, 'g'), (_, name, inner) => `<span style="color: ${MARK_COLORS[name]}">${inner}</span>`)
+    .replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/~~([^~]+)~~/g, '<s>$1</s>')
     .replace(/==([^=]+)==/g, '<mark>$1</mark>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     .replace(/\n/g, '<br>');
@@ -40,7 +45,7 @@ const colorName = (value) => {
   return COLOR_BY_HEX[asHex] || '';
 };
 
-// Tiptap JSON → markup (bold / italic / highlight / colour; anything else becomes plain text)
+// Tiptap JSON → markup (bold / italic / strike / highlight / colour; anything else becomes plain text)
 export function docToMarkup(doc) {
   const textOf = (node) => {
     if (node.type === 'hardBreak') return '\n';
@@ -48,6 +53,7 @@ export function docToMarkup(doc) {
     let text = node.text || '';
     const marks = node.marks || [];
     const has = (type) => marks.some((mark) => mark.type === type);
+    if (has('strike')) text = `~~${text}~~`;
     if (has('italic')) text = `*${text}*`;
     if (has('bold')) text = `**${text}**`;
     if (has('highlight')) text = `==${text}==`;
