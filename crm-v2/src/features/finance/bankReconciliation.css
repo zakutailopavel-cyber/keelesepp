@@ -157,3 +157,39 @@
   }
 }
 .bank-import-preview__counts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.bank-row-split{color:#0b5f50;font-weight:700}
+/* the statement as a bank feed (owner 2026-10-21): one card per payment, a stripe by how sure the match is */
+.bank-import-preview__counts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.bank-import-preview__counts button { border: 1px solid var(--border, #e2e8f0); background: #fff; border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 700; color: var(--text, #1f2937); cursor: pointer; }
+.bank-import-preview__counts button.is-sure { color: #067647; } .bank-import-preview__counts button.is-likely { color: #b54708; } .bank-import-preview__counts button.is-manual { color: #475467; }
+.bank-import-preview__counts button.is-on { background: #101828; border-color: #101828; color: #fff; }
+.bank-feed { display: grid; gap: 8px; padding: 12px; background: #f8fafc; max-height: 62vh; overflow: auto; }
+.bank-feed__row { position: relative; display: grid; grid-template-columns: 28px minmax(170px, 1.1fr) 110px minmax(220px, 1.6fr) auto; gap: 6px 14px; align-items: center; padding: 12px 14px 12px 18px; background: #fff; border: 1px solid var(--border, #e4e7ec); border-radius: 14px; box-shadow: 0 1px 2px rgba(16, 24, 40, .04); transition: border-color .12s, box-shadow .12s; }
+.bank-feed__row::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: #d0d5dd; }
+.bank-feed__row.is-sure::before { background: #12b76a; } .bank-feed__row.is-likely::before { background: #f79009; } .bank-feed__row.is-saved::before { background: #12b76a; } .bank-feed__row.is-error::before { background: #f04438; }
+.bank-feed__row.is-selected { border-color: #a6f4c5; box-shadow: 0 0 0 3px rgba(18, 183, 106, .10); }
+.bank-feed__row.is-saved, .bank-feed__row.is-imported { opacity: .7; }
+.bank-feed__check input { width: 18px; height: 18px; accent-color: #079455; }
+.bank-feed__who { display: grid; gap: 2px; min-width: 0; }
+.bank-feed__who strong { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bank-feed__who small { color: var(--text-muted, #667085); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bank-feed__who q { quotes: "«" "»"; }
+.bank-feed__amount { font: 800 17px Manrope, system-ui, sans-serif; color: #067647; text-align: right; white-space: nowrap; }
+.bank-feed__target { display: grid; gap: 4px; min-width: 0; }
+.bank-feed__invoices { display: flex; flex-wrap: wrap; gap: 5px; }
+.bank-feed__pill { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; background: #ecfdf3; color: #05603a; font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+.bank-feed__row.is-likely .bank-feed__pill { background: #fffaeb; color: #93370d; }
+.bank-feed__pill.is-credit { background: #eff8ff; color: #175cd3; }
+.bank-feed__none { color: #667085; font-size: 13px; font-style: italic; }
+.bank-feed__reason { color: #667085; font-size: 12px; }
+.bank-feed__state { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.bank-feed__edit { border: 0; background: none; color: var(--primary, #087e6b); font-weight: 700; font-size: 12.5px; cursor: pointer; padding: 0; }
+.bank-feed__choose { grid-column: 2 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding-top: 8px; border-top: 1px dashed var(--border, #e4e7ec); }
+.bank-feed__choose[hidden] { display: none; }
+.bank-feed__row .bank-row-error { grid-column: 2 / -1; color: #b42318; }
+.bank-import-preview__footer { position: sticky; bottom: 0; border-top: 1px solid var(--border, #e4e7ec); }
+@media (max-width: 860px) {
+  .bank-feed__row { grid-template-columns: 24px 1fr auto; }
+  .bank-feed__target { grid-column: 2 / -1; }
+  .bank-feed__state { grid-column: 2 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
+  .bank-feed__choose { grid-template-columns: 1fr; }
+}
