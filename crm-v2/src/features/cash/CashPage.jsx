@@ -54,12 +54,13 @@ export default function CashPage({ api = financeApi, studentApi = studentsServic
     await run(`void-${entry.id}`, () => api.voidCashEntry(entry.id, reason), 'Kirje on tühistatud.');
   };
 
-  if (state.loading) return <LoadingState label="Laen kassat…" />;
+  if (state.loading && !state.data) return <LoadingState label="Laen kassat…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const waiting = openReceipts(summary.entries);
 
   return (
     <div className="cash-page">
+      {state.loading ? <p className="page-refreshing" role="status">Uuendan andmeid…</p> : null}
       <PageHeader eyebrow="Raha" title="Kassa" description={isAdmin ? 'Kelle käes on sularaha, mis on veel arvega sidumata ja kes kellele raha andis.' : 'Märgi siia sularaha, mille said maksjalt, ja kellele selle edasi andsid.'} />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {notice ? <p className="form-hint cash-notice" role="status">{notice}</p> : null}

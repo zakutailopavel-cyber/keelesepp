@@ -517,7 +517,8 @@ async function cancelInvoice({ actor, invoiceId, reason, requestId, afterSending
   });
 }
 
-const manualInvoiceApi = functions.https.onRequest(async (req, res) => {
+// 1 GB like financeApi / invoiceApi (index.js): the monthly invoice preview took up to 8 s on the default instance
+const manualInvoiceApi = functions.runWith({ memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === 'OPTIONS') {
     res.status(204).send('');

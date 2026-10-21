@@ -570,7 +570,8 @@ export default function FinancePage({
     }
   };
 
-  if (state.loading) return <LoadingState label="Laen finantsandmeid…" />;
+  // only the first load shows the loading screen; a reload after an action keeps the page as it is
+  if (state.loading && !state.data) return <LoadingState label="Laen finantsandmeid…" />;
   if (state.error)
     return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const {
@@ -602,6 +603,7 @@ export default function FinancePage({
 
   return (
     <div className="page-content finance-page" data-active-finance-section={canRegisterPayment && !section ? activeFinanceSection : undefined}>
+      {state.loading ? <p className="page-refreshing" role="status">Uuendan andmeid…</p> : null}
       <PageHeader
         compact
         eyebrow="Finantsid"

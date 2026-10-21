@@ -17,7 +17,10 @@ const functions = require("firebase-functions/v1");
 const { appToday } = require("./local-date-core");
 const admin = require("firebase-admin");
 const { FieldValue } = require("firebase-admin/firestore");
-const { google } = require("googleapis");
+// googleapis is heavy (~0.5 s to load locally, several seconds on a small function instance) and only the calendar
+// code uses it: it loads on first use, so the cold start of every other function (finance, lessons…) is shorter
+let googleModule = null;
+const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
 const { lessonTakesToken, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice } = require("./lesson-tokens-core");
 const crypto = require("crypto");
@@ -207,7 +210,7 @@ const getConfig = () => ({
 // ── OAUTH CLIENT ──────────────────────────────────────────────
 function getOAuthClient() {
   const cfg = getConfig();
-  return new google.auth.OAuth2(cfg.clientId, cfg.clientSecret, cfg.redirectUri);
+  return new (googleApis().auth.OAuth2)(cfg.clientId, cfg.clientSecret, cfg.redirectUri);
 }
 
 const calendarConnectionRef = uid => db.collection("calendarConnections").doc(uid);
@@ -332,7 +335,7 @@ async function authorizedGoogleCalendar(uid, connection) {
       updatedAt: new Date().toISOString(),
     }, { merge: true });
   }
-  return google.calendar({ version: "v3", auth: oauth2 });
+  return googleApis().calendar({ version: "v3", auth: oauth2 });
 }
 
 // ── HELPERS ───────────────────────────────────────────────────
@@ -8473,8 +8476,10 @@ exports.linkpayApi = functions
   }
   });
 
+// finance functions run on 1 GB (≈1.4 GHz instead of the 256 MB default's ≈0.4 GHz): an action took 3–9 s (owner
+// 2026-10-21); the few calls a day stay inside the free tier
 exports.invoiceApi = functions
-  .runWith({ secrets: ["SMTP_PASS"] })
+  .runWith({ secrets: ["SMTP_PASS"], memory: "1GB" })
   .https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -8819,7 +8824,7 @@ async function attachExpenseDocument({ actor, expenseId, document, requestId }) 
 // ── API: transactional payment register ──────────────────────
 // Payment and invoice aggregates are changed in one transaction. Every
 // mutation also creates an immutable financialAudit document.
-exports.financeApi = functions.https.onRequest(async (req, res) => {
+exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") {

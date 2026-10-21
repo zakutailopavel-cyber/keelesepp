@@ -258,3 +258,7 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 .my-progress__hints li small{color:#98a2b3}
 .my-progress__hints a{display:grid;place-items:center;flex:0 0 36px;height:36px;border-radius:10px;background:#fff;border:1px solid #f5d796;color:#b54708}
 @media(max-width:560px){.my-progress__skills>div{grid-template-columns:96px minmax(0,1fr)}}
+
+/* a page that refreshes after an action keeps its content; a small pill says it is updating (owner 2026-10-21: every
+   finance action blanked the page behind „Laen finantsandmeid…”) */
+.page-refreshing { position: fixed; right: 18px; bottom: 18px; z-index: 50; margin: 0; padding: 8px 14px; border-radius: 999px; background: #1d2330; color: #fff; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.18); }

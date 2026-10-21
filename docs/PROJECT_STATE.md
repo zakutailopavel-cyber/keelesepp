@@ -1,3 +1,24 @@
+## 2026-10-21 · agent/finance-speed — finance actions took 3–10 s
+
+- Owner: every action in Finantsid takes long.
+- Measured:
+  - The page reloads 9 collections after each action; that is about 770 KB and ~0.6 s with the admin SDK, so it is
+    not the cause.
+  - Function logs: financeApi 3–10 s, invoiceApi 6–6.5 s, manualInvoiceApi 8 s first / 1 s next. The preceding OPTIONS
+    took ~40 ms, so the time is spent in the handler on a cold instance, not only in the cold start.
+  - The functions run on gen1's default 256 MB (≈0.4 GHz CPU).
+  - Every function also loaded googleapis at start (local main.js load 425 → 152 ms after the fix).
+  - Each reload replaced the whole page with „Laen finantsandmeid…”.
+- Fix:
+  - financeApi, invoiceApi and manualInvoiceApi `runWith({ memory: "1GB" })` (≈1.4 GHz). Usage stays inside the free
+    tier (400 000 GB-s a month).
+  - googleapis loads lazily (calendar only).
+  - Finance, Kuu arveldus and Kassa keep the page during a reload and show a small „Uuendan andmeid…” pill.
+- Checks:
+  - finance + cash + hooks vitest: 144/144;
+  - functions `node --test`: 319/319.
+- Production: frontend with the merge (Vercel). The functions change needs a functions deploy (owner's yes).
+
 ## 2026-10-21 · production data — Timur Varik and Timur Saipov: one card each (owner)
 
 - Owner: the invoice student picker showed two cards for each Timur. Timur Varik has Estonian (Elena), English and
