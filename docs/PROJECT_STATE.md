@@ -1,3 +1,16 @@
+## 2026-10-21 · agent/ek9-install — 9. klass emakeel: the 30-lesson curriculum and its installation
+
+- Owner: yes to both steps (install the grade 9 lessons and publish module 1).
+- `crm-v2/src/features/curriculum/ek9Curriculum.js` (+ test):
+  - 6 modules × 5 lessons (ek9-001…030), each fifth lesson a check;
+  - module topics from the exam description and the PRÕK grade 7–9 spelling topics;
+  - `ek9CurriculumRecords()` gives curriculumLessons records: subject „Eesti keel”, level „9. klass emakeel”, topic
+    „NN. module”, curriculumId `est-ek9-emakeel-v1`, roadmapManaged, and a Russian lesson plan for the teacher.
+- The test checks that module 1 in code (ek9/module01.js) has the same ids, titles and module.
+- Production (with the owner's yes): one-off creation of the 30 records (existing ones are skipped) and publishing of
+  module 1 (15 sheets) with publish-v2. The result is recorded below when done.
+- Next safe step: modules 2–6 by the same pattern.
+
 ## 2026-10-21 · agent/native-ek9 — Estonian as a mother tongue: grade 9 module 1 and the native-level norms
 
 - Owner: start without textbooks; take the curriculum and material from official sources.
