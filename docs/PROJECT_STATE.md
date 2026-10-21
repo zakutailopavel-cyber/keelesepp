@@ -1,3 +1,18 @@
+## 2026-10-21 · agent/student-availability — „Sobivad ajad” in the student's and parent's pages, on the card, notifications
+
+- main checked: origin/main. Owner: put the /ajad table into the student and parent cards, notify us when a student's
+  times change so we can offer a time quickly, and let the admin open „Sobivad ajad” on the student's card.
+- Data: `studentAvailability/{studentId}` — slots / preferred (half hours „Mon-16:00”), message, changedAt / By / Role,
+  previousSlots / previousPreferred, reviewedAt / ByName. Rules: the card's student or parent writes their own (never the
+  review mark, changedByUid = self), the admin writes any and marks reviewed, the student's teacher reads.
+- UI: `AvailabilityCard` (features/availability-poll): student home „Millal sulle tund sobib?”, parent home one per
+  child, student card (admin edits and „Vaadatud”, shows „Mis oli enne”; teacher reads). Notification bell (admin):
+  „<name> muutis sobivaid aegu” until reviewed, links to /students/<id>#sobivad-ajad. The public /ajad page and
+  Päringud are unchanged.
+- Checks: vitest students/parents/components/notifications/availability 122 + card 3/3, eslint clean; emulator rules
+  test in security-access-emulator.integration.js (CI).
+- Deploy after merge (owner permission): `firestore:rules`; the pages go with main.
+
 ## 2026-10-21 · decision — lesson packages (tokens) stay
 
 - Owner 2026-10-21: lesson packages are the lesson token system (Tunnipakett: studentPackages, packageLedger, token

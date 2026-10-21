@@ -84,6 +84,19 @@ export function lessonChangeNotifications(requests = []) {
   }));
 }
 
+// „Sobivad ajad” changed by the student or parent and not yet reviewed (owner 2026-10-21): offer a new time quickly
+export function availabilityNotifications(items = [], names = new Map()) {
+  return items.filter((item) => item.changedAt && item.changedByRole !== 'admin' && (!item.reviewedAt || item.reviewedAt < item.changedAt)).map((item) => ({
+    id: `availability:${item.studentId}:${item.changedAt}`,
+    category: 'lesson',
+    severity: 'warning',
+    title: `${names.get(item.studentId) || 'Õpilane'} muutis sobivaid aegu`,
+    detail: item.changedByName ? `Muutis ${item.changedByName}${item.changedByRole === 'parent' ? ' (lapsevanem)' : ''}` : 'Paku vajadusel uus tunniaeg',
+    meta: 'sobivad ajad',
+    to: `/students/${encodeURIComponent(item.studentId)}#sobivad-ajad`,
+  }));
+}
+
 export function sortNotifications(items) {
   return [...items].sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 9) - (SEVERITY_ORDER[b.severity] ?? 9));
 }
