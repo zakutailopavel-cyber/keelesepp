@@ -15,7 +15,7 @@
   - `docs/TEXTBOOKS.md` maps the grammar book's whole table of contents to course lessons, with gaps marked „—”.
 - Checks: library, services, worksheet-generator, worksheet-studio and board suites: 1234 passed, 3 skipped. eslint: 0
   errors.
-- Not done: nothing is published; the grammar book's exact title is still to come from the owner.
+- Not done: nothing is published. The owner does not need the grammar book's title on the sheets; the source line names the authors.
 - Next safe step: the owner reviews, merges and publishes the three Õpik sheets from Kursuse tootmine.
 
 ## 2026-10-21 · agent/native-estonian-plan — plan: Estonian as a mother tongue, 9. and 12. klass

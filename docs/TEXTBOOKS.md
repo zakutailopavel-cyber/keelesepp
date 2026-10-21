@@ -37,7 +37,7 @@ lesson that teaches the same grammar, next to Avasta / Harjuta / Kasuta. Those t
 | 39–41 (15 -I- verbs, minema, ex. 8, 10) | a2b1-023 I-lihtminevik ja sagedased erandid | done (draft in code) |
 | 42–43 (Lõks: igatsema, võtma, paluma, harjuma; ex. 11–16) | b1b2-018 Tegusõna rektsioon | done (draft in code) |
 
-### Grammar book (Russian explanations, 276 pp.) — Inga Mangus, Merge Simmul (exact title to confirm)
+### Grammar book (Russian explanations, 276 pp.) — Inga Mangus, Merge Simmul
 
 The map below comes from the table of contents (owner's photos 2026-10-21). „—” means the course has no lesson for the
 topic yet; the owner decides whether to add one or attach it to the nearest lesson.
