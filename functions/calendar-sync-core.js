@@ -334,6 +334,14 @@ function isGoogleGoneError(error) {
   return status === 404 || status === 410;
 }
 
+// Google refuses the request itself (400 Bad Request, 403 Forbidden): an event that came into the teacher's calendar
+// from someone else's calendar cannot be deleted with the events.owned scope. Retrying never helps (owner 2026-10-21:
+// nine such deletions kept the calendar chip red for two weeks).
+function isGoogleRejectedError(error) {
+  const status = Number(error?.code || error?.response?.status || 0);
+  return status === 400 || status === 403;
+}
+
 function explicitlyDeletedGoogleEventIds(events = []) {
   return new Set((Array.isArray(events) ? events : [])
     .filter(event => event?.status === "cancelled" && event?.id && !event?.recurringEventId)
@@ -562,6 +570,7 @@ module.exports = {
   managedGoogleScheduleId,
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
+  isGoogleRejectedError,
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
   preserveLessonResultDuringGoogleImport,

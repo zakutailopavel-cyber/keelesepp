@@ -18,6 +18,7 @@ const {
   managedGoogleScheduleId,
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
+  isGoogleRejectedError,
   explicitlyDeletedGoogleEventIds,
   shouldApplyExplicitGoogleDeletion,
   preserveLessonResultDuringGoogleImport,
@@ -355,6 +356,10 @@ test("managed origin ids are validated and Google deletion errors are idempotent
   }), "");
   assert.equal(isGoogleGoneError({ response: { status: 410 } }), true);
   assert.equal(isGoogleGoneError({ code: 403 }), false);
+  assert.equal(isGoogleRejectedError({ code: 400 }), true);
+  assert.equal(isGoogleRejectedError({ response: { status: 403 } }), true);
+  assert.equal(isGoogleRejectedError({ code: 500 }), false);
+  assert.equal(isGoogleRejectedError({ code: 404 }), false);
 });
 
 test("calendar reconciliation acts only on an explicit Google tombstone", () => {

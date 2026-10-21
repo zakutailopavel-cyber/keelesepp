@@ -14,6 +14,14 @@ export function formatSyncTime(iso, now = new Date()) {
   return sameDay ? `täna ${time}` : `${value.toLocaleDateString('et-EE', { day: 'numeric', month: 'short' })} ${time}`;
 }
 
+/** The last time KeeleSepp and Google exchanged anything: lessons only go to Google now, so the import time alone
+ * (lastSyncAt) stood still since import was switched off (owner 2026-10-21: „5. okt” on the chip). */
+export function lastActivityAt(status) {
+  const times = [status?.lastPushAt, status?.lastGroupPushAt, status?.lastSyncAt].filter(Boolean);
+  if (!times.length) return null;
+  return times.reduce((latest, value) => (new Date(value).getTime() > new Date(latest).getTime() ? value : latest));
+}
+
 /** One-line summary of the connection for the settings card and the calendar chip. */
 export function describeConnection(status) {
   if (!status?.connected) return { tone: 'neutral', label: 'Ühendamata', short: 'Google: ühendamata' };
