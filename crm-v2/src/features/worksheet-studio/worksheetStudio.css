@@ -665,3 +665,22 @@ textarea.ed-input { resize: vertical; }
 .ws-doc-player.is-marked { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .ws-mark-line { margin: 10px 0 0; color: #98a2b3; font-size: 11px; text-align: center; }
 @media print { .ws-doc-player.is-marked { -webkit-print-color-adjust: exact; print-color-adjust: exact; } .ws-mark-line { display: block !important; } }
+
+/* „Õpetaja võti”: the teacher's answer key with explanations (AnswerKeyView.jsx) — a printable A4-width page */
+.ws-key { width: 210mm; max-width: 100%; margin: 0 auto; background: #fff; color: #1d2330; padding: 14mm 14mm 18mm; box-shadow: 0 1px 3px rgba(0,0,0,.08); font: 11pt/1.45 Georgia, 'Times New Roman', serif; }
+.ws-key-head { border-bottom: 2px solid #1d2330; padding-bottom: 4mm; margin-bottom: 5mm; }
+.ws-key-head > span { font: 700 9pt/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: #a33a2b; }
+.ws-key-head h2 { margin: 2mm 0 1mm; font-size: 17pt; }
+.ws-key-head p { margin: 0; color: #4a5568; }
+.ws-key-head small { color: #6b7280; font-family: system-ui, sans-serif; }
+.ws-key-task { break-inside: avoid; margin-bottom: 6mm; }
+.ws-key-task h3 { display: flex; gap: 2.5mm; align-items: center; margin: 0 0 1mm; font: 700 11.5pt/1.3 system-ui, sans-serif; }
+.ws-key-task h3 b { display: inline-grid; place-items: center; min-width: 6mm; height: 6mm; background: #1d2330; color: #fff; font-size: 9.5pt; }
+.ws-key-instr { margin: 0 0 2mm; font-style: italic; color: #4a5568; }
+.ws-key-task ol { margin: 0; padding-left: 7mm; }
+.ws-key-task li { margin: 0 0 2mm; break-inside: avoid; }
+.ws-key-prompt { display: block; color: #4a5568; }
+.ws-key-answer { display: block; font-weight: 700; color: #14532d; }
+.ws-key-why { display: block; margin-top: .6mm; padding-left: 3mm; border-left: 2px solid #c7d7a6; color: #2d3748; font-size: 10pt; }
+.ws-key-empty { color: #6b7280; }
+@media print { .ws-key { box-shadow: none; padding: 0; width: auto; } }

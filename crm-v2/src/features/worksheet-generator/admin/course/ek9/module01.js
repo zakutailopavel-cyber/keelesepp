@@ -6,6 +6,9 @@
 import { B } from '../blocks.js';
 import { LESSONS_B } from './module01b.js';
 
+// the teacher's answer key explanations (Õpetaja võti)
+export { EXPLAIN } from './module01Key.js';
+
 export const MODULE = { id: 'ek9-module-01', course: 'ek9', title: 'Tekstimõistmine', level: '9. klass emakeel' };
 
 const LESSONS_A = {
@@ -76,7 +79,7 @@ const LESSONS_A = {
         ['Vanaisa parandas paati. Vanaema oli seda soovinud.', 'sest', 'Vanaisa parandas paati, sest vanaema oli seda soovinud.'],
         ['Mattias ei teadnud. Miks on tuule suund oluline?', 'miks', 'Mattias ei teadnud, miks on tuule suund oluline.'],
         ['Levi kadus. Mattias läks randa.', 'kui', 'Kui levi kadus, läks Mattias randa.'],
-        ['Vanaisa vaatas merele. Ta vastas alles siis.', 'enne kui', 'Vanaisa vaatas tükk aega merele, enne kui vastas.'],
+        ['Vanaisa vaatas merele. Ta vastas alles siis.', 'enne kui', 'Vanaisa vaatas merele, enne kui vastas.'],
         ['Aerud olid rasked. Mattias tahtis ise sõuda.', 'kuigi', 'Mattias tahtis ise sõuda, kuigi aerud olid rasked.'],
         ['Paat lekkis natuke. See pidas vee peal.', 'kuid', 'Paat lekkis natuke, kuid see pidas vee peal.'],
         ['Vanaisa ei kallistanud poissi. Ta võttis tema koti.', 'vaid', 'Vanaisa ei kallistanud poissi, vaid võttis tema koti.'],
@@ -213,7 +216,7 @@ const LESSONS_A = {
       B.errorfix('ek9_001_t_fix', 'Paranda vastuste vead.', 'Need on õpilaste vastused samale tekstile. Paranda õigekirjavead, nagu teeks seda eksamil enne töö äraandmist.', [
         ['Kalju laskis õunu mädaneda sest tema naine oli surnud.', 'Kalju laskis õunu mädaneda, sest tema naine oli surnud.'],
         ['Lapsed müüsid õunu viiekümne sendi eest kilo ja kogusid raha palli jaoks', 'Lapsed müüsid õunu viiekümne sendi eest kilo ja kogusid raha palli jaoks.'],
-        ['Kalju ütles „need on talveõunad“ ja pani õuna tagasi.', 'Kalju ütles: „Need on talveõunad,” ja pani õuna tagasi.'],
+        ['Kalju ütles „need on talveõunad“', 'Kalju ütles: „Need on talveõunad.”'],
         ['Jõulude eel tõi Kalju korvi täie õunu ja jäi poole tunniks külla.', 'Jõulude eel tõi Kalju korvitäie õunu ja jäi pooleks tunniks külla.'],
         ['Talveõunad pidid seisma keldris kuni Jõuludeni.', 'Talveõunad pidid seisma keldris kuni jõuludeni.'],
         ['Kalju ei olnud kuri vaid üksik.', 'Kalju ei olnud kuri, vaid üksik.'],

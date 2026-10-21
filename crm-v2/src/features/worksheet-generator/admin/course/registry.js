@@ -136,6 +136,13 @@ function strictSpelling(blocks, level) {
   return blocks.map((b) => (STRICT_TYPES.has(b.type) ? { ...b, data: { ...b.data, strict: true } } : b));
 }
 
+// the teacher's answer key explains why each answer is right (engine/answerKey.js): a module may export EXPLAIN =
+// { blockId: [one line per item] }, kept apart from the tasks so the sheet file stays readable
+function withExplanations(blocks, explain) {
+  if (!explain) return blocks;
+  return blocks.map((b) => (explain[b.id] ? { ...b, data: { ...b.data, explain: explain[b.id].join('\n') } } : b));
+}
+
 // the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text;
 // listening blocks get their recorded audio (listeningAudio.json, tools/listening-audio)
 export function buildCourseSheet(mod, lessonId, phase) {
@@ -166,7 +173,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level),
+    blocks: withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN),
   }, lessonId, phase);
 }
 

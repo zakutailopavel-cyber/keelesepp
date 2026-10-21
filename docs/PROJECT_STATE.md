@@ -12,6 +12,32 @@
 - Files: grammarIndex.js, LibraryPage.jsx, libraryWorkspace.css, LibraryPage.test.jsx (+2 tests).
 - Checks: library suite 48/48; eslint 0 errors; checked on a local stand with mocked data.
 - Next safe step: add topics when new grammar lessons or textbook chapters arrive (docs/TEXTBOOKS.md).
+## 2026-10-21 · agent/answer-explanations — „Õpetaja võti”: the teacher's answer key with explanations
+
+- Owner: answers for teachers with an explanation of why the answer is right.
+- `worksheet-studio/engine/answerKey.js` (`answerKeyOf(doc)`, + test):
+  - every task with its items, the right answer and `data.explain` (one line per item);
+  - covers gaps, choice, truefalse, match, errorfix, transformation, wordforms, categorize, reading, table, and any
+    block with `answers()`.
+- `AnswerKeyView.jsx` + the studio tab „Õpetaja võti” (next to Trükivaade). It is printable and teachers only: students
+  play sheets in DocWorksheetPlayer, which never renders it.
+- Course files:
+  - a module may export `EXPLAIN = { blockId: [lines] }`; `registry.buildCourseSheet` puts it into `data.explain`
+    (`withExplanations`);
+  - `blocks.js` also has `why(block, lines)`.
+- 9. klass emakeel module 1 has explanations for all 84 tasks (~690 answers) in `ek9/module01Key.js`.
+  `module01Key.test.js` checks one line per item and full coverage.
+- Content fixes found while writing:
+  - 005: „märjal mätal” → „mättal”;
+  - 001: an answer with a word not in the task;
+  - 001: a disputed quote-comma sentence;
+  - 005: a semantically odd lauselühend row.
+- Checks:
+  - module gates: no problems;
+  - answerKey + module01Key tests pass.
+  - Broad suites locally: 1091 passed; only 5 page tests timed out under machine load, and they pass in isolation
+    (25/25). CI decides.
+- Next safe step: republish ek9 module 1 so the explanations reach the published sheets.
 
 ## 2026-10-21 · agent/opik-sheet — textbook pages as a 4th lesson sheet „Õpik”
 

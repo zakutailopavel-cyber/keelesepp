@@ -7,6 +7,10 @@ const join = (v) => (Array.isArray(v) ? v.join('\n') : String(v || ''));
 
 // default sub-goal of each task type (lesson quality contract A3, owner 2026-10-12): form tasks train the form
 // (g_notice), word tasks the vocabulary (g_vocab), speaking/writing/dialogue the use (g_use)
+// the teacher's answer key explains every answer (owner 2026-10-21): one line per item, in the order the key lists them
+// (engine/answerKey.js); students never see it
+export const why = (block, lines) => ({ ...block, data: { ...block.data, explain: lines.join('\n') } });
+
 export const B = {
   text: (id, heading, text, width = 'full') => block(id, 'text', 'white', '', { heading, text }, width),
   tip: (id, title, text, width = 'half') => block(id, 'tip', 'white', '', { title, text: join(text) }, width),
