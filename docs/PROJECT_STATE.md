@@ -1,3 +1,11 @@
+## 2026-10-21 · agent/functions-1gb — the functions people wait on run on 1 GB
+
+- Owner's payment test went through linkpayApi: 6.2 s on the first call after a pause, then 0.15–0.17 s. On a 256 MB
+  gen1 instance the first call loads the Firestore client on a ≈0.4 GHz CPU.
+- These functions moved to `memory: "1GB"` (≈1.4 GHz), still inside the free tier: linkpayApi, interactiveLessonApi,
+  gcalApi, staffOperationsApi, languageApi (financeApi, invoiceApi and manualInvoiceApi earlier today).
+- Checks: functions `node --test` 319/319. Deploy with the owner's yes.
+
 ## 2026-10-21 · agent/grammar-index-look — „Grammatika” looks like the module lists
 
 - Owner screenshot: the Grammatika block in Õppevara was ragged compared to the module lists. The Määra button

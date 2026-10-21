@@ -82,7 +82,7 @@ async function execute(a,b){
     tx.update(ref,{...patch,revision:r.revision+1,updatedBy:a.uid,updatedAt:FieldValue.serverTimestamp()});return{id:ref.id,revision:r.revision+1,status:patch.status||r.status};
   });
 }
-exports.interactiveLessonApi=functions.runWith({timeoutSeconds:30,memory:'256MB'}).https.onRequest(async(req,res)=>{
+exports.interactiveLessonApi=functions.runWith({timeoutSeconds:30,memory:'1GB'}).https.onRequest(async(req,res)=>{
   const origin=req.get('Origin');res.set('Cache-Control','no-store');res.set('Vary','Origin');res.set('X-Content-Type-Options','nosniff');if(origin&&!allowedOrigin(origin))return res.status(403).json({error:'Origin denied'});if(origin)res.set('Access-Control-Allow-Origin',origin);res.set('Access-Control-Allow-Methods','POST, OPTIONS');res.set('Access-Control-Allow-Headers','Authorization, Content-Type');if(req.method==='OPTIONS')return res.status(204).send('');if(req.method!=='POST')return res.status(405).json({error:'POST required'});
   try{if(!req.body||typeof req.body!=='object'||Array.isArray(req.body))fail(400,'JSON required');if(Buffer.byteLength(JSON.stringify(req.body))>150000)fail(413,'Request too large');res.json(wire(await execute(await actor(req),req.body)));}catch(e){if(!e.status)console.error('interactiveLessonApi',e);res.status(e.status||500).json({error:e.status?e.message:'Internal error'});}
 });
