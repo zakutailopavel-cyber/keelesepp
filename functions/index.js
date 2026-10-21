@@ -84,6 +84,7 @@ const {
   managedGoogleScheduleId,
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
+  isGoogleRejectedError,
   googleRecurrenceExcludedDates,
   googleOriginalOccurrenceDate,
   managedGoogleOccurrenceExceptionId,
@@ -242,6 +243,10 @@ function publicCalendarMetadata(connection = {}) {
   };
 }
 
+// users/{uid} is readable by every teacher: the old OAuth tokens kept there before the move to calendarConnections are
+// removed whenever the public metadata is written (a merge alone kept them, owner 2026-10-21)
+const LEGACY_TOKEN_FIELDS_DELETE = () => Object.fromEntries(["accessToken", "refreshToken", "expiryDate", "access_token", "refresh_token", "expiry_date", "id_token", "scope", "token_type"].map(key => [key, FieldValue.delete()]));
+
 async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
   const privateRef = calendarConnectionRef(uid);
   const userRef = db.collection("users").doc(uid);
@@ -249,7 +254,7 @@ async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
   if (privateSnap.exists && privateSnap.data()?.refreshToken) {
     const connection = privateSnap.data();
     if (migrateLegacy) {
-      await userRef.set({ gcal: publicCalendarMetadata(connection) }, { merge: true });
+      await userRef.set({ gcal: { ...publicCalendarMetadata(connection), ...LEGACY_TOKEN_FIELDS_DELETE() } }, { merge: true });
     }
     return connection;
   }
@@ -280,7 +285,7 @@ async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
   };
   if (migrateLegacy) {
     await privateRef.set(migrated, { merge: true });
-    await userRef.set({ gcal: publicCalendarMetadata(migrated) }, { merge: true });
+    await userRef.set({ gcal: { ...publicCalendarMetadata(migrated), ...LEGACY_TOKEN_FIELDS_DELETE() } }, { merge: true });
   }
   return migrated;
 }
@@ -307,7 +312,7 @@ async function saveCalendarConnection(uid, connection, { merge = true } = {}) {
   };
   await calendarConnectionRef(uid).set(next, { merge });
   await db.collection("users").doc(uid).set({
-    gcal: publicCalendarMetadata(next),
+    gcal: { ...publicCalendarMetadata(next), ...LEGACY_TOKEN_FIELDS_DELETE() },
   }, { merge: true });
   return next;
 }
@@ -10077,6 +10082,12 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
     } catch (error) {
       if (isGoogleGoneError(error)) {
         successfulDeletion = true;
+      } else if (isGoogleRejectedError(error)) {
+        // a refused deletion never succeeds on retry: drop the job
+        console.warn(`Google refused to delete queued event ${entry.eventId}:`, error.message || error);
+        await doc.ref.delete();
+        failed++;
+        continue;
       } else {
         failed++;
         await doc.ref.set({
@@ -10160,6 +10171,11 @@ async function syncScheduleRecordToGoogle(
       return { deleted: true };
     } catch (error) {
       if (isGoogleGoneError(error)) return { deleted: true, alreadyGone: true };
+      if (isGoogleRejectedError(error)) {
+        // not retried and not shown as a sync failure: the event stays in Google, the teacher removes it there
+        console.warn(`Google refused to delete event ${schedule.gcalEventId} of ${scheduleId}:`, error.message || error);
+        return { rejected: true };
+      }
       await queueGoogleEventDeletion(scheduleId, schedule, error.message || "Google deletion failed");
       await updateCalendarPushMetadata(uid, { error: error.message || "Google deletion failed" });
       return { queued: true, error: error.message || String(error) };
@@ -10209,7 +10225,9 @@ async function syncScheduleRecordToGoogle(
             eventId: after.gcalEventId,
           });
         } catch (error) {
-          if (!isGoogleGoneError(error)) {
+          if (isGoogleRejectedError(error)) {
+            console.warn(`Google refused to delete event ${after.gcalEventId} of cancelled ${scheduleId}:`, error.message || error);
+          } else if (!isGoogleGoneError(error)) {
             await queueGoogleEventDeletion(scheduleId, after, error.message || "Google deletion failed during cancellation");
           }
         }

@@ -1,3 +1,29 @@
+## 2026-10-21 · agent/gcal-cleanup — Google chip error, refused deletions, old tokens out of users/{uid}
+
+- Owner: what is the „Google: viga” error? Found:
+  - KeeleSepp → Google push works (last successful push 2026-10-21).
+  - The red chip came from deleting three weekly lessons that had once been imported from Pavel's Google calendar
+    (Mon 9:00, Wed 16:00, Thu 9:00). Their events come from another calendar, so Google answers 400 Bad Request.
+    Each new attempt set `lastPushError` again, and 9 delete jobs piled up in `calendarSyncOutbox` (Oct 5–21).
+  - The chip date „5. okt” was `lastSyncAt`, the import time; import has been off since 2026-10-05.
+  - **Security:** users/{uid}.gcal of Pavel and Anhelina Korotka still held the old OAuth access/refresh tokens.
+    Every teacher can read users docs (`isStaff`). The migration to calendarConnections wrote the public metadata with
+    a merge, which kept the token fields.
+- Changes:
+  - functions `isGoogleRejectedError` (400/403, calendar-sync-core.js + test). A refused deletion of a deleted or
+    cancelled lesson is logged, not queued and not shown as a sync error. A refused outbox job is dropped.
+  - `LEGACY_TOKEN_FIELDS_DELETE` removes accessToken/refreshToken/expiryDate (and snake_case forms) from users.gcal
+    on every public-metadata write (load/migrate/save).
+  - The CRM chip shows the latest of lastPushAt / lastGroupPushAt / lastSyncAt (`lastActivityAt`).
+- Checks:
+  - functions `node --test` 319/319;
+  - `npx vitest run src/features/google-calendar` 12/12;
+  - eslint on google-calendar: 0 problems.
+- Manual: the refused events probably still sit in Pavel's Google calendar; remove them there. Pavel and Anhelina
+  should reconnect Google in CRM settings so the exposed tokens are replaced.
+- Next safe step: after the functions deploy, the one-off production cleanup (token fields in 2 users docs, 9 outbox
+  jobs) with a backup.
+
 ## 2026-10-21 · agent/match-layout — „Ühenda paarid”: the answer slot stands in front of its question
 
 - Owner (screenshot of Kontroll 12, task „Küsimus ja vastus”): unclear how to do it, and crooked. The letter slot sat at

@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 import GoogleCalendarCard from './GoogleCalendarCard.jsx';
 import CalendarGoogleChip from './CalendarGoogleChip.jsx';
-import { describeConnection, formatSyncTime, isGoogleOwned, lessonSyncState, shouldAutoSync, syncResultMessage } from './googleCalendarModel.js';
+import { describeConnection, formatSyncTime, isGoogleOwned, lastActivityAt, lessonSyncState, shouldAutoSync, syncResultMessage } from './googleCalendarModel.js';
 
 const user = { uid: 'teacher-1', displayName: 'Pavel', roles: ['teacher'] };
 const now = new Date('2026-10-01T12:00:00Z');
@@ -21,6 +21,12 @@ function repository(status = connected, extra = {}) {
 }
 
 describe('Google Calendar model', () => {
+  it('dates the chip by the latest push, not the import that stopped', () => {
+    expect(lastActivityAt({ lastSyncAt: '2026-10-05T20:00:19Z', lastPushAt: '2026-10-21T08:50:29Z', lastGroupPushAt: '2026-10-21T09:03:43Z' })).toBe('2026-10-21T09:03:43Z');
+    expect(lastActivityAt({ lastSyncAt: '2026-10-05T20:00:19Z' })).toBe('2026-10-05T20:00:19Z');
+    expect(lastActivityAt({})).toBeNull();
+  });
+
   it('describes the connection in one line', () => {
     expect(describeConnection(null).label).toBe('Ühendamata');
     expect(describeConnection(connected)).toMatchObject({ tone: 'success', label: 'Ühendatud' });

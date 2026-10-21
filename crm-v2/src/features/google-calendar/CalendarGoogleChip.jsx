@@ -2,7 +2,7 @@ import { CalendarSync, RefreshCw } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { googleCalendarService } from '../../services/firebase/googleCalendar.js';
-import { describeConnection, formatSyncTime, shouldAutoSync, syncResultMessage } from './googleCalendarModel.js';
+import { describeConnection, formatSyncTime, lastActivityAt, shouldAutoSync, syncResultMessage } from './googleCalendarModel.js';
 import './googleCalendar.css';
 
 /**
@@ -60,12 +60,12 @@ export default function CalendarGoogleChip({ user, repository = googleCalendarSe
       setStatus((current) => ({ ...current, lastSyncError: error.message || 'Sünkroonimine ebaõnnestus.' }));
     } finally { setSyncing(false); }
   };
-  const title = [summary.error || summary.label, `Viimane sünkroonimine: ${formatSyncTime(status.lastSyncAt)}`, message].filter(Boolean).join('\n');
+  const title = [summary.error || summary.label, `Viimane sünkroonimine: ${formatSyncTime(lastActivityAt(status))}`, message].filter(Boolean).join('\n');
 
   return (
     <span className={`gcal-chip is-${summary.tone}`} title={title} role="status" aria-live="polite">
       <Link to="/settings#google-calendar" className="gcal-chip__label">{summary.short}</Link>
-      <small>{syncing ? 'sünkroonin…' : formatSyncTime(status.lastSyncAt)}</small>
+      <small>{syncing ? 'sünkroonin…' : formatSyncTime(lastActivityAt(status))}</small>
       <button type="button" aria-label="Sünkrooni Google Calendariga" disabled={syncing} onClick={syncNow}><RefreshCw size={14} className={syncing ? 'is-spinning' : ''} /></button>
     </span>
   );
