@@ -1,3 +1,26 @@
+## 2026-10-21 · agent/native-ek9 — Estonian as a mother tongue: grade 9 module 1 and the native-level norms
+
+- Owner: start without textbooks; take the curriculum and material from official sources.
+- Read the official sources:
+  - Harno's 2026/2027 exam descriptions for grade 9 and grade 12;
+  - PRÕK 2011 lisa 1 spelling topics;
+  - Harno postponed the grade 9 e-exam by a year (ERR).
+  The facts are recorded in `docs/NATIVE_ESTONIAN_9_12_PLAN.md`.
+- Built:
+  - native levels EK9 / EK12 in the didactics norms;
+  - strict scoring of spelling tasks (commas and capitals count);
+  - course `ek9` with module 1 „Tekstimõistmine” (5 lessons × 3 sheets, original texts), in strictModules.
+  Details are in the plan doc, section „State”.
+- Checks:
+  - module gates: no problems;
+  - `course.test.js -t ek9`: 4/4;
+  - worksheet-generator + worksheet-studio + library + test + homework: 1090 passed, 3 skipped;
+  - nativeLevels.test.js: 5/5;
+  - eslint: 0 errors.
+- Not done: the curriculumLessons installer and publishing (production; owner's yes); modules 2–6; grade 12.
+- Owner: the level is named „9. klass emakeel” (and „12. klass emakeel”); `nativeStage` reads both forms.
+- Next safe step: the owner reviews module 1 in the course production page preview.
+
 ## 2026-10-21 · agent/native-estonian-plan — plan: Estonian as a mother tongue, 9. and 12. klass
 
 - Owner: prepare Õppevara for Estonian as a mother tongue (9. and 12. grade).
