@@ -21,7 +21,27 @@
   - the inline markup gained ~~struck out~~ and ***bold italic*** (richText.js, ui.jsx Md; button „S” in the on-sheet editor bar), so textbook pages copy 1:1;
   - `textbook.test.js` fails if any markup shows as text.
 - Not done: nothing is published. The sheets carry no title, author or source line (owner 2026-10-21).
-- Next safe step: the owner reviews, merges and publishes the three Õpik sheets from Kursuse tootmine.
+- Published 2026-10-21 (owner „заливай”): the 7 Õpik sheets (a2b1-021, a2b1-023, b1b2-018, a2-003, a2-006, a2-007, a2b1-008) went to production as v1 with a script like publish-v2.cjs (role focus, slot 4, worksheetVersions snapshot, lesson summary). A dry run afterwards found all 7 the same.
+- Next safe step: further chapters go the same way: the textbook JSON, then tests, then the dry run, then publishing.
+## 2026-10-21 · agent/ek9-install — 9. klass emakeel: the 30-lesson curriculum and its installation
+
+- Owner: yes to both steps (install the grade 9 lessons and publish module 1).
+- `crm-v2/src/features/curriculum/ek9Curriculum.js` (+ test):
+  - 6 modules × 5 lessons (ek9-001…030), each fifth lesson a check;
+  - module topics from the exam description and the PRÕK grade 7–9 spelling topics;
+  - `ek9CurriculumRecords()` gives curriculumLessons records: subject „Eesti keel”, level „9. klass emakeel”, topic
+    „NN. module”, curriculumId `est-ek9-emakeel-v1`, roadmapManaged, and a Russian lesson plan for the teacher.
+- The test checks that module 1 in code (ek9/module01.js) has the same ids, titles and module.
+- Production (with the owner's yes): one-off creation of the 30 records (existing ones are skipped) and publishing of
+  module 1 (15 sheets) with publish-v2.
+- Done 2026-10-21:
+  - `curriculumLessons/ek9-001…030` created (dry run 30 new / 0 existing; a re-run shows 30 existing; the script only
+    `create()`s, never overwrites);
+  - module 1 published as v1 (dry run 15 new, apply 15, re-run 15 „same”, 0 manual/draft/missing).
+  The scripts and JSON are in the session scratchpad (ek9-install.cjs, publish-v2.cjs); the records come from
+  `ek9CurriculumRecords()` at this commit.
+- Next safe step: modules 2–6 by the same pattern.
+
 ## 2026-10-21 · agent/native-ek9 — Estonian as a mother tongue: grade 9 module 1 and the native-level norms
 
 - Owner: start without textbooks; take the curriculum and material from official sources.
