@@ -270,11 +270,12 @@ export default function FinanceMonthPage({
     finally { setCancelBusy(false); }
   };
 
-  if (state.loading) return <LoadingState label="Laen finantsandmeid…" />;
+  if (state.loading && !state.data) return <LoadingState label="Laen finantsandmeid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
   return (
     <div className="page-content finance-month-page">
+      {state.loading ? <p className="page-refreshing" role="status">Uuendan andmeid…</p> : null}
       {showPrivacyBanner ? <PricePrivacyBanner /> : null}
       <header className="finance-month-hero">
         <div><span className="eyebrow">Finantsid</span><h1>Kuu arveldus</h1><p>Koosta arved, jälgi laekumisi ja lahenda erandid ühes vaates.</p></div>
