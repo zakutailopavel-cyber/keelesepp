@@ -8,6 +8,7 @@ import { homeworkService, lessonWorksheetsService, libraryService, worksheetDocs
 import { mediaBankService } from '../../services/firebase/mediaBank.js';
 import { languageToolsService } from '../../services/firebase/languageTools.js';
 import MediaBankPanel from './MediaBankPanel.jsx';
+import AnswerKeyView from './AnswerKeyView.jsx';
 // „Kogu” reads the whole course: its own chunk, loaded when the tab opens
 const BlockLibraryPanel = lazy(() => import('./BlockLibraryPanel.jsx'));
 import { assetKey, gapsFromText, tagsOf, vocabFromText, wordOrderFromText } from './mediaBank.js';
@@ -768,7 +769,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           <Link className="st-back" to={backTo} title={backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel} aria-label={backTo.startsWith('/library/lessons/') ? 'Tunni töölehed' : backLabel}><Icons.ArrowLeft size={18} aria-hidden="true" /></Link>
           <div className="st-title"><span className="st-kicker">Töölehe konstruktor</span><b title={doc.meta.title}>{doc.meta.title}</b><span className={`st-status ${dirty ? 'is-dirty' : ''}`}>{statusText}{version ? ` · v${version}` : ''}</span></div>
           <div className="st-seg" role="tablist" aria-label="Vaade">
-            {[['edit', 'Koosta', Icons.PenLine], ['interactive', 'Õpilase vaade', Icons.MonitorSmartphone], ['print', 'Trükivaade', Icons.Printer]].map(([m, l, Ico]) => (
+            {[['edit', 'Koosta', Icons.PenLine], ['interactive', 'Õpilase vaade', Icons.MonitorSmartphone], ['print', 'Trükivaade', Icons.Printer], ['key', 'Õpetaja võti', Icons.ListChecks]].map(([m, l, Ico]) => (
               <button type="button" role="tab" key={m} aria-pressed={mode === m} onClick={() => switchMode(m)}><Ico size={15} aria-hidden="true" /><span>{l}</span></button>
             ))}
           </div>
@@ -888,7 +889,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
 
           <main className="st-canvas" ref={canvasRef}>
             <div className="st-zoom" style={{ zoom: scale }}>
-              <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter} />
+              {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter}  />}
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}
           </main>
