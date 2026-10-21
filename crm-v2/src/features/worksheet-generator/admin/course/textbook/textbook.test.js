@@ -12,7 +12,7 @@ describe('Õpik sheets', () => {
     expect(() => validateWorksheetDoc(entry.doc)).not.toThrow();
     expect(keysProblems(entry.doc).filter((p) => p.level === 'error')).toEqual([]);
     expect(entry.doc.id).toBe(`ws_${lessonId}_opik`);
-    expect(entry.doc.blocks.at(-1).data.text).toContain(entry.book.authors);
+    expect(JSON.stringify(entry.doc)).not.toContain('©');
   });
   it('gives each lesson one Õpik sheet', () => {
     const ids = TEXTBOOK_SHEETS.map((entry) => entry.lessonId);

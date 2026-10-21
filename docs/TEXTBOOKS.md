@@ -10,7 +10,7 @@ lesson that teaches the same grammar, next to Avasta / Harjuta / Kasuta. Those t
   authors) and sheets `{ lessonId, title, pages, level, canDo, blocks }`. `textbook/index.js` builds the documents:
   - `id ws_<lesson>_opik`, which the generator never replaces;
   - `meta.phase opik`;
-  - a source line with the authors and pages.
+  - no author or source line on the sheet (owner 2026-10-21).
 - Publishing: „Kursuse tootmine” → section „Õpik” → „Avalda” (with a confirmation). It writes
   `curriculumLessons/{lesson}/worksheets/opik` (role `focus`, slot 4) and the summary `worksheetPhases.opik`. Only the
   answer key is checked; the textbook's content is not measured against our lesson norms.

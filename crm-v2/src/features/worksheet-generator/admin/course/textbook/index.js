@@ -1,6 +1,6 @@
 // „Õpik” sheets (owner 2026-10-21): the rule and exercises of a licensed textbook, copied 1:1 into the lesson of our
 // course that teaches the same grammar. One sheet per lesson (worksheetId „opik”, slot 4) next to Avasta / Harjuta /
-// Kasuta; the course's own three sheets stay unchanged. Published from „Kursuse tootmine” like the course sheets.
+// Kasuta; the course's own three sheets stay unchanged. No author or source line on the sheet (owner 2026-10-21). Published from „Kursuse tootmine” like the course sheets.
 import minuEesti from './minuEesti.json';
 
 export const TEXTBOOK_SHEET_ID = 'opik';
@@ -24,11 +24,7 @@ export const TEXTBOOK_SHEETS = BOOKS.flatMap(({ book, sheets }) => sheets.map((s
       phase: TEXTBOOK_SHEET_ID,
       displayLabel: 'Õpik',
       badge: `Õpik · ${book.title}`,
-      footer: { tagline: `© ${book.authors}`, url: '' },
     },
-    blocks: [...sheet.blocks, {
-      id: `${TEXTBOOK_SHEET_ID}_src`, type: 'text', width: 'full', span: 12, tone: 'white', goal: '',
-      data: { heading: 'Allikas', text: `© ${book.authors}, „${book.title}”, lk ${sheet.pages}. Kasutatud kirjastuse loal KeeleSepa õpilastele.` },
-    }],
+    blocks: sheet.blocks,
   },
 })));
