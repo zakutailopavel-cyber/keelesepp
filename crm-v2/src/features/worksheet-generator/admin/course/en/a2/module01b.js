@@ -747,7 +747,7 @@ export const LESSONS_B = {
       ]),
       B.speaking('en_005_t_aloud', 'Speaking 0: read aloud (4 points).', 'Read Karl\'s forum post aloud. Read clearly.', ['Read slowly and clearly.', 'Stop at every full stop.', 'Say the numbers in words.'], [45, 90]),
       B.speaking('en_005_t_say1', 'Speaking 1: answer the questions (6 points).', 'Answer the questions in full sentences.', ['Where do you live?', 'What do you usually do after school?', 'Who is your best friend? What is he or she like?', 'What are you doing this weekend?'], [60, 120]),
-      B.speaking('en_005_t_say2', 'Speaking 2: describe a picture (6 points).', 'Look at the teacher\'s picture. Describe the people.', ['Where are they?', 'What do they look like?', 'What are they doing?', 'Do you like this place? Why?'], [60, 120]),
+      B.speaking('en_005_t_say2', 'Speaking 2: describe a picture (6 points).', 'Choose a photo of people on your phone. Describe them.', ['Where are they?', 'What do they look like?', 'What are they doing?', 'Do you like this place? Why?'], [60, 120]),
       B.speaking('en_005_t_say3', 'Speaking 3: a voice message (4 points).', 'Leave a voice message to a friend.', ['Where are you?', 'What are you doing?', 'Ask your friend to meet you.'], [45, 90]),
       B.rolecards('en_005_t_questions', 'Speaking 4: make questions (6 points).', 'Work in pairs. Ask questions and find out the information.',
         'You want to know about your partner\'s cousin: name, age, home, looks, character, hobby. Make six questions.', 'Think of a cousin or friend. Answer your partner\'s questions.',

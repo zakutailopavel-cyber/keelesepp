@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-22.1';
+export const EN_A2_VERSION = '2026-10-22.2';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -16,6 +16,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['Right now', 'Present continuous for now; present simple vs present continuous; -ing spelling; verbs not used with -ing.'],
       ['People I know', 'Looks and character, has got, adjective order, What is he like? / What does he look like?'],
       ['Module 1 check: Me and my world', 'Reading, listening, language tasks, an e-mail and speaking in the exam\'s task types.'],
+    ],
+  },
+  {
+    number: 2, title: 'Home and my town', goal: 'Describing your home and town, finding the way and comparing places.',
+    lessons: [
+      ['My home', 'Rooms and furniture; there is / there are; a / some / any; questions Is there…? Are there any…?'],
+      ['Where is it?', 'Prepositions of place (in, on, under, behind, in front of, next to, between, opposite, above); It is / They are.'],
+      ['Around town', 'Places in town; asking the way politely; directions with the imperative; first / second / third.'],
+      ['Town or country?', 'Comparatives (-er, more, better, worse) with than; spelling; giving an opinion with reasons.'],
+      ['Module 2 check: Home and my town', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types.'],
     ],
   },
 ]);

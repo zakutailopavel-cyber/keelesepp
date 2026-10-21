@@ -1,3 +1,16 @@
+## 2026-10-22 · agent/english-a2-m2 — English A2 module 2 „Home and my town”
+
+- Main checked: 54bee4d. Owner: „Сливай и выкладывай в Õppevara, потом модуль 2”.
+- Module 2: en-a2-006 My home (there is / are, some / any), 007 Where is it? (prepositions of place), 008 Around town
+  (places, asking the way, imperative directions, ordinals), 009 Town or country? (comparatives with than), 010 the
+  check in exam form. 15 sheets of 39–44 min; teacher key module02Key.js (Russian, every item).
+- en-a2-005 speaking 2 no longer needs a teacher's picture (a photo on the phone), like the new lessons.
+- curriculum/enA2Curriculum.js: module 2 records (en-a2-006…010), version 2026-10-22.2.
+- Tests: moduleKeys.test.js covers modules 1 and 2 (replaces module01.test.js); strictModules +en-a2-module-02.
+- Checks: `gate_s.sh en/a2/module02` clean; vitest admin/course + curriculum 310 passed.
+- Production (owner's yes): records 006–010 created create-only; sheets of modules 1–2 published with publish-v2.cjs.
+- Next safe step: A2 module 3 „School and learning” (can / have to, past simple regular).
+
 ## 2026-10-22 · agent/english-a2-curriculum — English A2 module 1 in Õppevara
 
 - Owner: „Сливай и выкладывай в Õppevara, потом модуль 2”. #719 merged (main ec1bc43).
