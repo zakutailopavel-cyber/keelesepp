@@ -1,3 +1,18 @@
+## 2026-10-21 · agent/grammar-index — „Grammatika” at the top of each level in Õppevara
+
+- Owner: add a separate grammar block at the beginning of each level. The owner chose a topic index.
+- `features/library/grammarIndex.js` lists the grammar topics per level in course order with their lessons:
+  - A2: 17 topics;
+  - B1: 15;
+  - B2: 14;
+  - C1: 18.
+- LibraryPage shows a „Grammatika” card first when a level is chosen (no search, module or phase filter). Each topic
+  shows its lesson(s) (opens the preview), a chip „Õpik” when the lesson's textbook sheet is published (opens it) and
+  „Määra”.
+- Files: grammarIndex.js, LibraryPage.jsx, libraryWorkspace.css, LibraryPage.test.jsx (+2 tests).
+- Checks: library suite 48/48; eslint 0 errors; checked on a local stand with mocked data.
+- Next safe step: add topics when new grammar lessons or textbook chapters arrive (docs/TEXTBOOKS.md).
+
 ## 2026-10-21 · agent/opik-sheet — textbook pages as a 4th lesson sheet „Õpik”
 
 - Owner: digitise the licensed textbooks, but inside our course: a grammar lesson gets the textbook's rule and

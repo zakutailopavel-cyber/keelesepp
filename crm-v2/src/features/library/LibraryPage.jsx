@@ -48,6 +48,7 @@ import {
 } from './libraryModel.js';
 import { publishedPhaseDoc } from '../worksheet-studio/bookProgram.js';
 import MaterialPreview from './MaterialPreview.jsx';
+import { grammarTopics } from './grammarIndex.js';
 import MaterialEditor from './MaterialEditor.jsx';
 import ExerciseEditor from './ExerciseEditor.jsx';
 import './libraryWorkspace.css';
@@ -392,6 +393,8 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const shown = results.slice(0, limit);
   const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
   const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine || phaseFilter);
+  // „Grammatika” first in a level (owner 2026-10-21): the level's grammar topics with their lessons and Õpik sheets
+  const grammar = level && !q && !module && !onlyFav && !onlyMine && !phaseFilter ? grammarTopics(level, items) : [];
 
   const row = ({ item, snippet }) => {
     const Icon = typeIcons[item.type] || BookOpen;
@@ -503,6 +506,26 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
           </div>
           <p className="lib2-count" aria-live="polite">{results.length} materjali{filtersOn ? <> · <button type="button" onClick={() => setSearchParams(new globalThis.URLSearchParams())}>Tühjenda filtrid</button></> : null}</p>
 
+          {grammar.length ? (
+            <details className="lib2-grammar" open>
+              <summary><BookOpen size={18} aria-hidden="true" /> Grammatika <small>{grammar.length} teemat · {level}</small></summary>
+              <ol>{grammar.map(({ topic, lessons }) => (
+                <li key={topic}>
+                  <strong>{topic}</strong>
+                  <span className="lib2-grammar-lessons">{lessons.map((item) => {
+                    const opik = item.phases?.find((phase) => phase.id === 'opik' && phase.state === 'published');
+                    return (
+                      <span key={item.key} className="lib2-grammar-lesson">
+                        <button type="button" onClick={() => open(item)} title="Ava tund">{item.sourceId.replace(/^est-/, '')} · {item.title}</button>
+                        {opik ? <button type="button" className="lib2-phase is-published" onClick={() => openPhase(item, 'opik')} title="Õpiku reegel ja harjutused">Õpik</button> : null}
+                        <button type="button" className="lib2-act lib2-act--assign" onClick={() => setAssigning(item)} title="Määra õpilastele"><Send size={14} /> Määra</button>
+                      </span>
+                    );
+                  })}</span>
+                </li>
+              ))}</ol>
+            </details>
+          ) : null}
           {results.length ? sections.map((section) => (
             <div className="lib2-section" key={section.key}>
               {section.label ? <h3>{section.level ? <span>{section.level}</span> : null}{section.label}<small>{section.results.length}</small>{moduleProgress.get(section.key) ? <em className="lib2-module-progress">{moduleProgress.get(section.key)}</em> : null}{isAdmin && moduleProgress.get(section.key) ? <button type="button" className="lib2-module-drafts" disabled={Boolean(moduleDrafts.key)} onClick={() => prepareModuleSheets(section)} title="Loob puuduvad lehed, lisab tunni pildid ja avaldab kvaliteedikontrolli läbinud lehed">{moduleDrafts.key === section.key ? moduleDrafts.text || 'Töötan…' : 'Valmista moodul ette'}</button> : null}</h3> : null}

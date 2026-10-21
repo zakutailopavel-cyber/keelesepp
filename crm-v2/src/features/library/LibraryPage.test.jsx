@@ -43,6 +43,26 @@ describe('LibraryPage', () => {
     expect(curriculumInstaller.refreshLessonPlans).toHaveBeenCalledWith({ user: expect.objectContaining({ uid: 'a' }) });
   });
 
+  it('shows the grammar topics of a level first, with the lesson and its Õpik sheet', async () => {
+    const published = { status: 'published', version: 1, publishedVersion: 1 };
+    const grammar = { curriculumLessons: [
+      { id: 'a2-003', title: 'Olen, elan, räägin', level: 'A2', roadmapManaged: true, worksheetPhases: { discover: published, opik: published } },
+      { id: 'a2-007', title: 'Kelle oma? Genitiiv', level: 'A2', roadmapManaged: true, worksheetPhases: { discover: published } },
+    ], exercises: [] };
+    renderPage(grammar, '/library?tase=A2');
+    const block = (await screen.findByText('Grammatika')).closest('details');
+    expect(within(block).getByText('Olema, olevik ja eitus')).toBeInTheDocument();
+    expect(within(block).getByText('Omastav: kelle? kelle oma?')).toBeInTheDocument();
+    expect(within(block).getAllByRole('button', { name: 'Õpik' })).toHaveLength(1);
+    expect(within(block).queryByText('Käskiv kõneviis')).not.toBeInTheDocument();
+  });
+
+  it('shows no grammar block without a level', async () => {
+    renderPage(data, '/library');
+    await screen.findByText('Pere tunnikava');
+    expect(screen.queryByText('Grammatika')).not.toBeInTheDocument();
+  });
+
   it('opens the assignment of a material straight from the constructor link (?assign=)', async () => {
     renderPage(data, '/library?assign=lesson-1');
     const dialog = await screen.findByRole('dialog');
