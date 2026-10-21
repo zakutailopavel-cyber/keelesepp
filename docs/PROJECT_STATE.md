@@ -1,3 +1,17 @@
+## 2026-10-21 · agent/native-estonian-plan — plan: Estonian as a mother tongue, 9. and 12. klass
+
+- Owner: prepare Õppevara for Estonian as a mother tongue (9. and 12. grade).
+- Added `docs/NATIVE_ESTONIAN_9_12_PLAN.md`:
+  - the exam goals: põhikooli lõpueksam, an e-exam from spring 2027; riigieksam with a reading part and an essay of
+    at least 400 words;
+  - a draft outline (2 × 6 modules × 5 lessons);
+  - the technical steps: data manifests, registry `ek9` / `ek12`, level `9. klass` / `12. klass`, a native norm set,
+    the installer, task types;
+  - four open owner questions.
+- No code, data or rules changed. The exam facts come from open sources and must be checked against Harno's exam
+  description.
+- Next safe step: the owner's answers, then `ek9` module 1 as a sample.
+
 ## 2026-10-21 · agent/course-v3-c1-m8 — C1 module 8 rewritten to the v3 lesson pattern
 
 - Owner: make the courses complete, start with C1 module 8. Lessons est-c1-071…079 are now `template: 'v3'`, and the
