@@ -76,8 +76,9 @@ import * as c1m08 from './c1/module08.js';
 import * as c1m09 from './c1/module09.js';
 import * as c1m10 from './c1/module10.js';
 import * as ek9m01 from './ek9/module01.js';
+import * as ena2m01 from './en/a2/module01.js';
 
-export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01];
+export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01, ena2m01];
 
 export const COURSES = {
   a2: { label: 'A2 · A1 → A2 õpitee', badge: 'KeeleSepp A1 → A2' },
@@ -87,6 +88,8 @@ export const COURSES = {
   // Estonian as a mother tongue (docs/NATIVE_ESTONIAN_9_12_PLAN.md): exam preparation for grades 9 and 12
   ek9: { label: '9. klass emakeel · eesti keel emakeelena', badge: 'KeeleSepp · 9. klass emakeel' },
   ek12: { label: '12. klass emakeel · eesti keel emakeelena', badge: 'KeeleSepp · 12. klass emakeel' },
+  // English (docs/ENGLISH_COURSE_PLAN.md): A1 → B1 by CEFR level, the B1 aim of the Estonian basic school exam
+  en: { label: 'English · A1 → B1', badge: 'KeeleSepp English' },
 };
 
 export const PHASES = {
@@ -167,6 +170,8 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(lesson.assessment ? { assessment: true } : {}),
       // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): its own variety and depth norms
       ...(mod.MODULE.design ? { design: mod.MODULE.design } : {}),
+      // the sheet's language (default Estonian): Estonian-only checks (EKI word lists) skip other languages
+      ...(mod.MODULE.language ? { language: mod.MODULE.language } : {}),
       // lesson template v3 (owner 2026-10-18, §11): 5–9 full tasks a sheet in a fixed lesson shape
       ...(lesson.template || mod.MODULE.template ? { template: lesson.template || mod.MODULE.template } : {}),
       badge: `${course.badge} · moodul ${moduleNumber(mod)}`,

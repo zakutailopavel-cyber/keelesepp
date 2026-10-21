@@ -4,7 +4,8 @@ import { COURSE_MODULES, buildCourseSheet, PHASES } from './registry.js';
 import { LISTENING_AUDIO, TEACHER_READS, listenInstruction } from './listeningAudio.js';
 
 // every listening block of the course, read from the module files (run from crm-v2)
-const blocks = COURSE_MODULES.flatMap((mod) => Object.entries(mod.LESSONS).flatMap(([lessonId, lesson]) => Object.keys(PHASES)
+// the TTS is Estonian (TartuNLP): an English module's transcripts are read by the teacher until it has its own voices
+const blocks = COURSE_MODULES.filter((mod) => (mod.MODULE.language || 'et') === 'et').flatMap((mod) => Object.entries(mod.LESSONS).flatMap(([lessonId, lesson]) => Object.keys(PHASES)
   .flatMap((phase) => (lesson[phase] || []).filter((b) => b.type === 'listening').map((block) => ({ mod, lessonId, phase, block })))));
 
 describe('listening audio of the course (tools/listening-audio/build.mjs)', () => {

@@ -1,0 +1,33 @@
+import { describe, expect, it } from 'vitest';
+import * as mod from './module01.js';
+import { moduleSheets } from '../../registry.js';
+import { answerKeyOf } from '../../../../../worksheet-studio/engine/answerKey.js';
+import { norm } from '../../../../../worksheet-studio/engine/schema.js';
+
+describe('English A2 module 1', () => {
+  const sheets = Object.values(moduleSheets(mod)).flatMap((phases) => Object.values(phases));
+  const tasks = sheets.flatMap((doc) => answerKeyOf(doc));
+
+  it('marks every sheet as an English sheet (no Estonian word-list check)', () => {
+    sheets.forEach((doc) => expect(doc.meta.language).toBe('en'));
+  });
+
+  it('has one teacher explanation for every item of every task', () => {
+    Object.entries(mod.EXPLAIN).forEach(([id, lines]) => {
+      const task = tasks.find((t) => t.id === id);
+      expect(task, id).toBeTruthy();
+      expect(lines.length, id).toBe(task.items.length);
+      lines.forEach((line) => expect(line.trim().length, id).toBeGreaterThan(5));
+    });
+    expect(tasks.filter((t) => !mod.EXPLAIN[t.id]).map((t) => t.id)).toEqual([]);
+  });
+
+  it('accepts phone apostrophes and full forms of contractions', () => {
+    expect(norm('She doesn’t live in Tartu.')).toBe(norm("She doesn't live in Tartu"));
+    expect(norm('She does not live in Tartu')).toBe(norm("She doesn't live in Tartu."));
+    expect(norm("I'm eating")).toBe(norm('I am eating'));
+    expect(norm("They're playing")).toBe(norm('They are playing'));
+    expect(norm("I can't swim")).toBe(norm('I cannot swim'));
+    expect(norm('Mia’s dog')).toBe(norm("Mia's dog"));
+  });
+});

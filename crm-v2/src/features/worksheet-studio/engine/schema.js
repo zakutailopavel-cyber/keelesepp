@@ -41,9 +41,14 @@ export function newDocument() {
 }
 
 // Normalised, deterministic answer comparison for Estonian.
+// English course (owner 2026-10-21): a phone keyboard types ’ for ', and „doesn't” and „does not” are the same answer,
+// so apostrophes are unified and the n't / 'm / 're / 've contractions are written out on both sides
 export const norm = (s) =>
   String(s ?? '')
     .toLocaleLowerCase('et-EE')
+    .replace(/[’‘`´]/g, "'")
+    .replace(/\bcan't\b|\bcan not\b/g, 'cannot').replace(/\bwon't\b/g, 'will not').replace(/n't\b/g, ' not')
+    .replace(/'m\b/g, ' am').replace(/'re\b/g, ' are').replace(/'ve\b/g, ' have')
     .replace(/[.,!?;:]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
