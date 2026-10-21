@@ -1,3 +1,9 @@
+## 2026-10-21 · decision — lesson packages (tokens) stay
+
+- Owner 2026-10-21: lesson packages are the lesson token system (Tunnipakett: studentPackages, packageLedger, token
+  invoices, `syncLessonTokens`); they stay untouched. The earlier plan's step 5 „remove packages” (2026-10-20) is
+  cancelled — ignore it in the entries below. Production has 0 packages in use; nothing was removed.
+
 ## 2026-10-21 · agent/bank-visual — the statement import as a bank feed
 
 - main checked: origin/main after #694. Owner: make the last update look pleasant. The import preview is no longer a
@@ -85,7 +91,7 @@
   test „one card, two subjects” in finance-emulator.integration.js (CI).
 - After merge (owner permission): deploy `firestore:rules` and `functions:manualInvoiceApi`; then copy the maths price
   of Stefania and the English price of Aleksandr Smirnov from their archived cards' plans into `subjectPrices`.
-- Next: remove packages (step 5).
+- Next: (step 5 „remove packages” cancelled 2026-10-21 — packages/tokens stay.)
 ## 2026-10-20 · agent/availability-poll — „Sobivad ajad”: a page the school sends to learners to mark suitable times
 
 - main checked: origin/main (2026-10-20). Owner: a Mon–Sun table to send to anyone who wants lessons, as simple as
