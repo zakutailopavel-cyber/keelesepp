@@ -1,3 +1,13 @@
+## 2026-10-21 · agent/board-sheet-align — the student's sheet lies exactly like the teacher's
+
+- Owner: check that the student sees the sheet as the teacher does and that a task the teacher clicks is highlighted.
+- Checked on a local stand with both boards side by side (shared worksheet, live focus): the whole sheet on both (10
+  tasks), a teacher's click marks the task on both and moves the student's view to it. Found: the student's sheet sat
+  9 px lower (the inline player's 1 px border + 8 px canvas margin from worksheetStudio.css won over board.css), so the
+  teacher's drawings landed slightly off. board.css now removes them on the board with a stronger selector; afterwards
+  every task had the same position on both boards.
+- Next safe step: merge (frontend deploys with main).
+
 ## 2026-10-21 · decision — lesson packages (tokens) stay
 
 - Owner 2026-10-21: lesson packages are the lesson token system (Tunnipakett: studentPackages, packageLedger, token
