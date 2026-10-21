@@ -888,7 +888,8 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
           )}
 
           <main className="st-canvas" ref={canvasRef}>
-            <div className="st-zoom" style={{ zoom: scale }}>
+            {/* the answer key is a plain page at its own size, not the A4 sheet scaled to the canvas */}
+            <div className="st-zoom" style={{ zoom: mode === 'key' ? 1 : scale }}>
               {mode === 'key' ? <AnswerKeyView doc={doc} /> : <Sheet doc={doc} mode={mode} answers={answers} setAnswer={setAnswer} results={results} selectedId={selectedId} onSelect={setSelectedId} dnd dropHint={dropHint} onResize={resizeBlock} onAddItem={addItemTo} onMarks={setMarks} onEditText={editText} renderToolbar={renderToolbar} onInsertAfter={insertAfter}  />}
             </div>
             {evidence && <GoalEvidence doc={doc} evidence={evidence} />}

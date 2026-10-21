@@ -37,7 +37,7 @@
 .ws-studio .st-menu button { text-align: left; border: 0; background: transparent; color: var(--st-ink); font: 600 13px inherit; padding: 8px 10px; border-radius: 8px; cursor: pointer; }
 .ws-studio .st-menu button:hover { background: var(--st-bg); }
 .ws-studio .st-body { flex: 1; display: grid; grid-template-columns: 240px 1fr; min-height: 0; }
-.ws-studio.mode-interactive .st-body, .ws-studio.mode-print .st-body { grid-template-columns: 1fr; }
+.ws-studio.mode-interactive .st-body, .ws-studio.mode-print .st-body, .ws-studio.mode-key .st-body { grid-template-columns: 1fr; }
 .ws-studio .st-palette, .ws-studio .st-inspector { background: var(--st-panel); overflow-y: auto; padding: 10px; }
 .ws-studio .st-palette { border-right: 1px solid var(--st-line); } .st-inspector { border-left: 1px solid var(--st-line); }
 .ws-studio .st-group { margin-bottom: 12px; }

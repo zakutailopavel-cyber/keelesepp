@@ -1,3 +1,15 @@
+## 2026-10-21 · agent/fix-ek9-library — „Õpetaja võti” at full width
+
+- Owner screenshot: the answer key opened as a tiny column on the left. The studio body grid kept the 240 px palette
+  column in key mode and the A4 fit-zoom was applied. Fix: `.mode-key .st-body` is one column and the key is not
+  zoomed.
+- Owner screenshot 2: Õppevara „9. klass emakeel” showed „Cannot read properties of undefined (reading 'slice')”. Not
+  reproduced on main with the full production library data:
+  - the level page, a lesson click, all 15 ek9 sheets in every mode and the key all render;
+  - every main deploy succeeded.
+  It was probably a tab that was open across the deploy. The owner is asked to reload and say what was clicked if it
+  comes back.
+
 ## 2026-10-21 · agent/grammar-index — „Grammatika” at the top of each level in Õppevara
 
 - Owner: add a separate grammar block at the beginning of each level. The owner chose a topic index.
