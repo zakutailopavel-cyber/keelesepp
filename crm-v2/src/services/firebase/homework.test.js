@@ -67,7 +67,7 @@ describe('homeworkService submissions', () => {
     expect(() => sanitizeSubmissionAnnotations([{ kind: 'text', blockId: 'b2', start: 0, end: 0, selectedText: '', parandus: 'x' }])).toThrow('vigane');
   });
 
-  it('loads completed worksheets and exercise results in ten-student query chunks', async () => {
+  it('loads completed worksheets and exercise results in five-student query chunks (rules get() limit)', async () => {
     firestore.getDocs.mockImplementation(async ({ name, constraints }) => {
       const ids = constraints[0].value;
       if (name === 'worksheetAssignments' && ids.includes('student-1')) return {
@@ -84,7 +84,7 @@ describe('homeworkService submissions', () => {
 
     const result = await homeworkService.listSubmissionsByStudentIds(Array.from({ length: 11 }, (_, index) => `student-${index + 1}`));
 
-    expect(firestore.getDocs).toHaveBeenCalledTimes(4);
+    expect(firestore.getDocs).toHaveBeenCalledTimes(6);
     expect(result.map((item) => item.id)).toEqual(['exercise-1', 'worksheet-done']);
     expect(result).not.toEqual(expect.arrayContaining([expect.objectContaining({ id: 'worksheet-open' })]));
   });

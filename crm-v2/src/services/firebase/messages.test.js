@@ -59,7 +59,7 @@ describe('messagesService', () => {
   it('loads only owned student conversations in Firestore query chunks', async () => {
     firestore.getDocs.mockImplementation(async ({ constraints }) => ({ docs: constraints[0].value.map((studentId) => ({ id: `message-${studentId}`, data: () => ({ studentId, studentName: studentId, text: 'Tere', createdAt: studentId }) })) }));
     const result = await messagesService.listByStudentIds(Array.from({ length: 11 }, (_, index) => `student-${index + 1}`));
-    expect(firestore.getDocs).toHaveBeenCalledTimes(2);
+    expect(firestore.getDocs).toHaveBeenCalledTimes(3);
     expect(result).toHaveLength(11);
     expect(firestore.where).toHaveBeenCalledWith('studentId', 'in', expect.any(Array));
   });
