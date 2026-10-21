@@ -74,10 +74,11 @@ my place and Estonia; school and work; free time; countries and cultures; daily 
 
 ## Status
 
-- A2 module 1 (en-a2-001…005) is built with its teacher key and passes every gate (2026-10-22).
+- A2 modules 1–2 (en-a2-001…010) are built with their teacher keys, pass every gate and are published in Õppevara
+  (2026-10-22).
 - Listening: the course TTS is Estonian, so English transcripts are read by the teacher for now. English audio needs
   a TTS choice (a paid service needs the owner's yes).
 
 ## Next safe step
 
-The owner reviews module 1. Then A2 module 2 „Home and my town” in the same shape.
+A2 module 3 „School and learning” in the same shape.
