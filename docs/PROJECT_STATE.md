@@ -1,3 +1,13 @@
+## 2026-10-22 · agent/english-a2-curriculum — English A2 module 1 in Õppevara
+
+- Owner: „Сливай и выкладывай в Õppevara, потом модуль 2”. #719 merged (main ec1bc43).
+- curriculum/enA2Curriculum.js: `enA2CurriculumRecords()` → curriculumLessons/en-a2-001…005 (subject „Inglise keel”,
+  level „English A2”, Russian lesson plans, lesson 5 = Kontroll). A module is added there when its sheets are built.
+- Production (owner's yes): records created create-only, the 15 sheets published from buildCourseSheet (scratchpad
+  scripts ek9-install.cjs / publish-v2.cjs; a manually edited sheet is never overwritten).
+- Checks: enA2Curriculum.test.js 2/2.
+- Next safe step: A2 module 2 „Home and my town”.
+
 ## 2026-10-22 · agent/english-a2-m1 — English course A2, module 1 „Me and my world”
 
 - Main checked: 749893c (2026-10-21). Owner 2026-10-21: an English course by level A1 → B1; English instructions with a
