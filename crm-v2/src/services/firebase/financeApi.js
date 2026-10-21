@@ -208,11 +208,14 @@ export const financeApi = {
       externalId: transaction.externalId || "",
       paidAt: transaction.paidAt,
       payerName: transaction.payerName || "",
+      payerAccount: transaction.payerAccount || "",
       creditStudentId: transaction.studentId || "",
       reference: transaction.reference || "",
       amount,
-      allocations:
-        transaction.invoiceId && allocationAmount > 0
+      // one payment may pay several invoices of a family (owner 2026-10-21)
+      allocations: Array.isArray(transaction.allocations) && transaction.allocations.length
+        ? transaction.allocations.map((item) => ({ invoiceId: item.invoiceId, amount: Number(item.amountCents) / 100 }))
+        : transaction.invoiceId && allocationAmount > 0
           ? [{ invoiceId: transaction.invoiceId, amount: allocationAmount }]
           : [],
       lessonAllocations: [],

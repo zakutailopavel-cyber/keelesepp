@@ -105,7 +105,7 @@ export default function PaymentCheckPanel({ invoices = [], transactions = [], st
     </> : null}
     <Modal open={importOpen} title="Impordi LHV pangaväljavõte (CSV)" className="finance-bank-modal" onClose={() => { setImportOpen(false); refresh(); }} footer={<Button variant="secondary" onClick={() => { setImportOpen(false); refresh(); }}>Sulge</Button>}>
       <p className="form-hint">LHV internetipank → Konto → Väljavõte → vali periood → „Laadi alla CSV”. Süsteem leiab arve viitenumbri, arve numbri, maksja või lapse nime ja summa järgi; kontrolli ja kinnita.</p>
-      <BankReconciliationPanel invoices={invoices} students={students} transactions={transactions} onAllocate={onAllocate} onReload={refresh} />
+      <BankReconciliationPanel invoices={invoices} students={students} transactions={transactions} payments={payments || []} onAllocate={onAllocate} onReload={refresh} />
     </Modal>
   </Card>;
 }

@@ -5,6 +5,8 @@ import {
   parseBankAmount,
   parseBankStatement,
   prepareBankRows,
+  payerMemory,
+  matchBankRow,
   suggestInvoice,
 } from "./bankReconciliation.js";
 
@@ -64,7 +66,7 @@ describe("bank statement reconciliation", () => {
       invoiceId: "invoice-1",
       studentId: "student-1",
       allocationCents: 5000,
-      match: "automatic",
+      match: "sure",
       selected: true,
     });
   });
@@ -131,5 +133,45 @@ describe('LHV statement', () => {
     expect(suggestInvoice({ payerName: 'SMIRNOVA JEKATERINA', reference: 'oktoober', amountCents: 10500 }, invoices)?.id).toBe('a');
     expect(suggestInvoice({ payerName: 'P. Petrov', reference: 'Maksim Ivanov oktoober', amountCents: 8000 }, invoices)?.id).toBe('b');
     expect(suggestInvoice({ payerName: 'Tundmatu', reference: 'kingitus', amountCents: 8000 }, invoices)).toBeNull();
+  });
+});
+
+describe("bank matching with memory (owner 2026-10-21)", () => {
+  const inv = (id, studentId, cents, extra = {}) => ({ id, num: `KS-2026-${id}`, studentId, studentName: extra.studentName || `Laps ${studentId}`, amountCents: cents, amount: cents / 100, paidAmountCents: 0, status: "Saadetud", date: `2026-10-0${id.length}`, paymentReference: `9${id}7`, ...extra });
+  const invoices = [inv("101", "s1", 6300), inv("102", "s2", 4500), inv("103", "s2", 3000), inv("104", "s3", 8000, { parentName: "Olga Smirnova" }), inv("105", "s4", 8000, { parentName: "Olga Smirnova" })];
+
+  it("remembers who pays for whom: an account that paid for a child before is matched for sure, even with „Ülekanne”", () => {
+    const memory = payerMemory({ transactions: [{ id: "t1", payerName: "LILIIA KRYZHEVSKA", payerAccount: "EE12 7700 0000 1111", paidStudentIds: ["s1"] }] });
+    const found = matchBankRow({ amountCents: 6300, payerName: "LILIIA KRYZHEVSKA", payerAccount: "EE1277000000 1111", reference: "Ülekanne" }, invoices, memory);
+    expect(found).toMatchObject({ confidence: "sure", allocations: [{ invoiceId: "101", amountCents: 6300 }] });
+    // the same name from another account is only a suggestion
+    const byName = matchBankRow({ amountCents: 6300, payerName: "Kryzhevska Liliia", payerAccount: "EE99", reference: "Ülekanne" }, invoices, memory);
+    expect(byName.confidence).toBe("likely");
+  });
+
+  it("the payments recorded from the LHV statement on 2026-10-15 teach the memory too", () => {
+    const memory = payerMemory({ payments: [{ studentId: "s1", note: "LHV väljavõte 2026-06-26, LILIIA KRYZHEVSKA (nimi ja summa)", status: "active" }] });
+    expect(matchBankRow({ amountCents: 6300, payerName: "LILIIA KRYZHEVSKA", reference: "" }, invoices, memory)).toMatchObject({ confidence: "likely", allocations: [{ invoiceId: "101" }] });
+  });
+
+  it("one payment for two invoices of a child is split when the sum is exact", () => {
+    const memory = payerMemory({ transactions: [{ id: "t2", payerName: "Ema Kaks", payerAccount: "EE22", paidStudentIds: ["s2"] }] });
+    const found = matchBankRow({ amountCents: 7500, payerName: "Ema Kaks", payerAccount: "EE22", reference: "oktoober" }, invoices, memory);
+    expect(found.confidence).toBe("sure");
+    expect(found.allocations.map((item) => [item.invoiceId, item.amountCents])).toEqual([["102", 4500], ["103", 3000]]);
+  });
+
+  it("several invoice numbers in the explanation pay them all; a family pays two children's invoices", () => {
+    expect(matchBankRow({ amountCents: 7500, payerName: "X", reference: "KS-2026-102 ja KS-2026-103" }, invoices).allocations.map((item) => item.invoiceId)).toEqual(["102", "103"]);
+    const family = matchBankRow({ amountCents: 16000, payerName: "OLGA SMIRNOVA", reference: "arved" }, invoices);
+    expect(family).toMatchObject({ confidence: "likely" });
+    expect(family.allocations.map((item) => item.invoiceId)).toEqual(["104", "105"]);
+  });
+
+  it("only sure rows come ticked; a statement's payer account column is read", () => {
+    const rows = prepareBankRows([{ sourceLine: 2, paidAt: "2026-10-20", amountCents: 6300, payerName: "Keegi", reference: "KS-2026-101" }, { sourceLine: 3, paidAt: "2026-10-20", amountCents: 1234, payerName: "Tundmatu", reference: "" }], invoices);
+    expect(rows.map((row) => [row.match, row.selected])).toEqual([["sure", true], ["manual", false]]);
+    const parsed = parseBankStatement("Kuupäev;Saaja/maksja konto;Saaja/maksja nimi;Summa;Selgitus\n20.10.2026;EE12 7700 0000 1111;LILIIA;63,00;Ülekanne");
+    expect(parsed.rows[0].payerAccount).toBe("EE12770000001111");
   });
 });

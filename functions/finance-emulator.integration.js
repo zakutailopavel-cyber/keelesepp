@@ -3705,3 +3705,29 @@ test("one card, two subjects: one monthly invoice with a line per subject at its
   assert.equal(single.body.invoice.amountCents, 2 * 2800);
   assert.equal(single.body.invoice.subject, "Matemaatika");
 });
+
+test("one bank payment pays two invoices of a child and remembers the payer's account (owner 2026-10-21)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  await Promise.all([
+    db.collection("students").doc("bank-memory-child").set({ name: "Mälu Laps", active: true }),
+    db.collection("invoices").doc("bank-memory-inv-a").set({ num: "KS-2031-901", studentId: "bank-memory-child", studentName: "Mälu Laps", amountCents: 4500, amount: 45, balanceDueCents: 4500, balanceDue: 45, paidAmountCents: 0, paidAmount: 0, status: "Saadetud", date: "2031-10-01" }),
+    db.collection("invoices").doc("bank-memory-inv-b").set({ num: "KS-2031-902", studentId: "bank-memory-child", studentName: "Mälu Laps", amountCents: 3000, amount: 30, balanceDueCents: 3000, balanceDue: 30, paidAmountCents: 0, paidAmount: 0, status: "Saadetud", date: "2031-10-02" }),
+  ]);
+  const allocated = await financeRequest(token, "/bank-transactions/allocate", {
+    externalId: "MEMORY-001", paidAt: "2031-10-05", payerName: "Ema Mälu", payerAccount: "EE12 7700 0000 1111", reference: "Ülekanne",
+    amount: 75, allocations: [{ invoiceId: "bank-memory-inv-a", amount: 45 }, { invoiceId: "bank-memory-inv-b", amount: 30 }], lessonAllocations: [],
+    requestId: "emulator_bank_memory_0001",
+  });
+  assert.equal(allocated.status, 201, JSON.stringify(allocated.body));
+  const bank = (await db.collection("bankTransactions").doc("emulator_bank_memory_0001").get()).data();
+  assert.equal(bank.payerAccount, "EE12770000001111");
+  assert.deepEqual(bank.paidStudentIds, ["bank-memory-child"]);
+  assert.equal(bank.allocatedAmountCents, 7500);
+  for (const id of ["bank-memory-inv-a", "bank-memory-inv-b"]) {
+    const invoice = (await db.collection("invoices").doc(id).get()).data();
+    assert.equal(invoice.balanceDueCents, 0, `${id} ${JSON.stringify(invoice)}`);
+  }
+});
