@@ -120,12 +120,11 @@
 .ws-match ul, .ws-many ul { margin: 0; padding-left: 5mm; list-style: disc; }
 .ws-match ul { list-style: none; padding-left: 0; }
 .ws-match li, .ws-many li { padding: .8mm 0; }
-/* the answer slot stands in front of the question it belongs to (owner 2026-10-21: a slot at the far end of the
-   left column read as part of the right column) */
+/* numbered questions on the left; on the right the student writes a question's number in front of each lettered answer
+   (owner 2026-10-21). .is-legacy: older answers kept a letter in front of each question */
 .ws-match .ws-hint { grid-column: 1 / -1; }
-.ws-match ol { list-style: none; padding-left: 0; counter-reset: ws-match; }
-.ws-match ol li { display: flex; justify-content: flex-start; gap: 2.5mm; align-items: baseline; counter-increment: ws-match; }
-.ws-match ol li::before { content: counter(ws-match) "."; min-width: 5mm; flex: none; }
+.ws-match:not(.is-legacy) { grid-template-columns: 1fr 1fr; }
+.ws-match ul li, .ws-match.is-legacy ol li { display: flex; justify-content: flex-start; gap: 2.5mm; align-items: baseline; }
 .ws-letterbox { width: 8mm; height: 6.5mm; border-bottom: 1px solid var(--ks-line); flex: none; text-align: center; font-weight: 700; }
 .ws-sel { font: 700 12pt var(--font-body); border: 1px solid rgba(23,58,99,.3); border-radius: 2mm; background: #fff; color: var(--ks-navy); }
 .ws-many li.pick { cursor: pointer; border-radius: 1.5mm; } .ws-many li.pick:hover { background: rgba(23,58,99,.07); }
@@ -335,7 +334,7 @@
 .ws-card.is-tall:not([data-cols]) :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq, .ws-tf, .ws-self-items, .ws-dialog) { display: flex; flex-direction: column; justify-content: space-evenly; }
 .ws-card.is-tall:not([data-cols]) :is(.ws-gaps, .ws-choice, .ws-order, .ws-rq) > li { display: list-item; }
 .ws-card.is-tall :is(.ws-match, .ws-many) > * { display: flex; flex-direction: column; justify-content: space-evenly; }
-.ws-card.is-tall .ws-many li, .ws-card.is-tall .ws-match ul li { display: list-item; }
+.ws-card.is-tall .ws-many li, .ws-card.is-tall .ws-match:not(.is-legacy) ol li, .ws-card.is-tall .ws-match.is-legacy ul li { display: list-item; }
 .ws-card.is-tall .ws-write { display: flex; flex-direction: column; }
 .ws-card.is-tall .ws-ruled { flex: 1 1 auto; }
 .ws-add { justify-self: start; margin-top: 2mm; border: 1.5px dashed var(--ks-green-2); background: rgba(47,125,76,.06); color: var(--ks-green-2); font: 800 10pt var(--font-body); border-radius: 2mm; padding: 1.2mm 3mm; cursor: pointer; }

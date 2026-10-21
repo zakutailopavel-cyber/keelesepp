@@ -171,36 +171,45 @@ const rotate = (arr) => (arr.length > 2 ? [...arr.slice(2), ...arr.slice(0, 2)] 
 export const match = {
   type: 'match', label: 'Ühenda paarid', group: 'Grammatika ja sõnavara', icon: 'Link', task: true, width: 'half', tone: 'peach',
   create: () => ({ title: 'Ühenda.', instruction: 'Leia paar.', pairs: [{ left: 'hommikul', right: 'morning' }, { left: 'õhtul', right: 'evening' }, { left: 'öösel', right: 'night' }] }),
+  // the questions are numbered, the answers lettered; the student writes the question's number in front of each answer
+  // (owner 2026-10-21). Answers saved before that are letters per question (keys 0, 1, …) and still show and score so.
   View: ({ data, ctx }) => {
     const pairs = data.pairs || [];
     const right = rotate(pairs.map((p, i) => ({ text: p.right, i })));
     const letter = (k) => String.fromCharCode(65 + k);
+    const legacy = pairs.some((_, i) => ctx.get(`${i}`));
+    const slot = (key, options, label) => (ctx.interactive ? (
+      <select className={`ws-sel ${ctx.state(key) ? 'is-' + ctx.state(key) : ''}`} value={ctx.get(key) ?? ''} onChange={(e) => ctx.set(key, e.target.value)} aria-label={label}>
+        <option value="">–</option>{options.map((value) => <option key={value} value={value}>{value}</option>)}
+      </select>
+    ) : <span className={`ws-letterbox ${ctx.state(key) ? 'is-' + ctx.state(key) : ''}`}>{ctx.get(key) || ''}</span>);
+    if (legacy) {
+      return (
+        <div className="ws-match is-legacy">
+          <ol>{pairs.map((p, i) => <li key={i}>{slot(`${i}`, right.map((_, k) => letter(k)), `Paar ${i + 1}`)}<span><Md text={p.left} /></span></li>)}</ol>
+          <ul>{right.map((r, k) => <li key={k}><b>{letter(k)}.</b> <Md text={r.text} /></li>)}</ul>
+        </div>
+      );
+    }
+    const numbers = pairs.map((_, i) => String(i + 1));
     return (
       <div className="ws-match">
-        {ctx.interactive ? <div className="ws-hint">Vali iga rea ees parempoolse vastuse täht.</div> : null}
-        <ol>{pairs.map((p, i) => (
-          <li key={i}>
-            {ctx.interactive ? (
-              <select className={`ws-sel ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} value={ctx.get(`${i}`) ?? ''} onChange={(e) => ctx.set(`${i}`, e.target.value)} aria-label={`Paar ${i + 1}`}>
-                <option value="">–</option>{right.map((_, k) => <option key={k} value={letter(k)}>{letter(k)}</option>)}
-              </select>
-            ) : <span className={`ws-letterbox ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`}>{ctx.get(`${i}`) || ''}</span>}
-            <span><Md text={p.left} /></span>
-          </li>
-        ))}</ol>
-        <ul>{right.map((r, k) => <li key={k}><b>{letter(k)}.</b> <Md text={r.text} /></li>)}</ul>
+        {ctx.interactive ? <div className="ws-hint">Kirjuta iga vastuse ette sobiva küsimuse number.</div> : null}
+        <ol>{pairs.map((p, i) => <li key={i}><Md text={p.left} /></li>)}</ol>
+        <ul>{right.map((r, k) => <li key={k}>{slot(`r${k}`, numbers, `Vastus ${letter(k)}`)}<span><b>{letter(k)}.</b> <Md text={r.text} /></span></li>)}</ul>
       </div>
     );
   },
   answers: (data) => {
     const pairs = data.pairs || [];
     const right = rotate(pairs.map((p, i) => ({ i })));
-    return pairs.map((p, i) => ({ key: `${i}`, accept: [`${String.fromCharCode(65 + right.findIndex((r) => r.i === i))} (${p.right})`] }));
+    return right.map((r, k) => ({ key: `r${k}`, accept: [`${r.i + 1}`] }));
   },
   score: (data, get) => {
     const pairs = data.pairs || [];
     const right = rotate(pairs.map((p, i) => ({ i })));
-    return pairs.map((_, i) => ({ key: `${i}`, ok: get(`${i}`) === String.fromCharCode(65 + right.findIndex((r) => r.i === i)) }));
+    if (pairs.some((_, i) => get(`${i}`))) return pairs.map((_, i) => ({ key: `${i}`, ok: get(`${i}`) === String.fromCharCode(65 + right.findIndex((r) => r.i === i)) }));
+    return right.map((r, k) => ({ key: `r${k}`, ok: get(`r${k}`) === String(r.i + 1) }));
   },
   Editor: ({ data, set }) => (
     <Rows label="Paarid (paremad segatakse automaatselt)" rows={data.pairs || []} onChange={(pairs) => set({ pairs })} make={() => ({ left: '', right: '' })} addLabel="Lisa paar"

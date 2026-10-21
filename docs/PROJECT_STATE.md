@@ -3,10 +3,13 @@
 - Owner (screenshot of Kontroll 12, task „Küsimus ja vastus”): unclear how to do it, and crooked. The letter slot sat at
   the far end of the left column, next to the A–F list, so it read as part of the right column, and the rows of the two
   columns did not line up (an is-tall card also turned the rows back into list items).
-- Now every row is „1. [slot] question”: an explicit number (CSS counter), then the slot, then the text. The interactive
-  sheet has the hint „Vali iga rea ees parempoolse vastuse täht.” Answers, keys and scoring are unchanged.
+- Owner then: the student should write numbers at the letters. Now the questions are numbered (1, 2, …) on the left;
+  on the right each lettered answer (A, B, …) has a slot in front where the student picks the question's number.
+  Answer keys are `r<k>` (k = position of the answer, value = question number). Answers saved before this (keys 0, 1, …
+  with letters) are recognised and still shown and scored the old way (`.ws-match.is-legacy`). Interactive hint: „Kirjuta
+  iga vastuse ette sobiva küsimuse number.”
 - Files: worksheet-studio/engine/blocks/tasks.jsx (match View), worksheet-studio/engine/sheet.css.
-- Checks: `npx vitest run src/features/worksheet-studio src/test` 290/290. Print and interactive views were checked on
+- Checks: `npx vitest run src/features/worksheet-studio src/test src/features/library` 335/335. Print and interactive views were checked on
   the local stand.
 - Next safe step: none needed after merge (frontend deploys with main).
 
