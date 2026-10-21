@@ -48,6 +48,16 @@ export const norm = (s) =>
     .replace(/\s+/g, ' ')
     .trim();
 
+// spelling tasks of the mother-tongue course (data.strict, owner 2026-10-21): commas, capitals and letters are the point
+// of the task, so only spaces and the quote style („…” / "…") are forgiven
+export const strictNorm = (s) =>
+  String(s ?? '')
+    .replace(/[“”"«»]/g, '”').replace(/„/g, '„')
+    .replace(/\s+([.,!?;:])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+export const normFor = (data) => (data?.strict ? strictNorm : norm);
+
 // the items of a sort group: one per line when the group says so (items that contain a comma: whole sentences),
 // otherwise the usual comma / semicolon / line list
 export const groupItems = (group = {}) => (group.lines

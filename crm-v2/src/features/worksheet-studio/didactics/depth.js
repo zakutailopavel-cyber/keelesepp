@@ -4,6 +4,7 @@
 // five-item tasks because speaking and writing blocks filled the minutes. These rules look at the work itself.
 // Pure: { meta: { level, phase }, blocks: [{ type, data }] } → [{ code, level: 'error' | 'warning', text }].
 import { blockMinutes } from './timeEstimate.js';
+import { nativeStage } from './levels.js';
 import { groupItems } from '../engine/schema.js';
 
 // closed, checked tasks and how their items are counted
@@ -30,6 +31,8 @@ const SENTENCE_WRITING = ['errorfix', 'transformation', 'translation', 'dictatio
 const OPEN = new Set(['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'selfcheck', 'rubric', 'phrasebank', 'vocab', 'text', 'tip', 'notice', 'image', 'heading']);
 
 const band = (level) => {
+  const native = nativeStage(level);
+  if (native) return native;
   const l = String(level || '').toUpperCase();
   if (l.startsWith('C')) return 'C1';
   if (l.startsWith('B2')) return 'B2';
@@ -50,6 +53,10 @@ export const DEPTH = {
   B1: { items: 10, exerciseMin: 25, sentenceWords: 5, liveMin: 15 },
   B2: { items: 10, exerciseMin: 25, sentenceWords: 6, liveMin: 15 },
   C1: { items: 10, exerciseMin: 25, sentenceWords: 8, liveMin: 15 },
+  // mother tongue (docs/NATIVE_ESTONIAN_9_12_PLAN.md): school pupils, exam-length tasks
+  // language tasks of the grade 9 exam are short sentences (spelling, word forms): 5 words on average is the norm there
+  EK9: { items: 8, exerciseMin: 25, sentenceWords: 5, liveMin: 15 },
+  EK12: { items: 6, exerciseMin: 25, sentenceWords: 9, liveMin: 15 },
 };
 
 const words = (v) => String(v || '').replace(/\[[^\]]*\]|\([^)]*\)|\{[^}]*\}/g, ' x ').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
@@ -113,7 +120,8 @@ export function depthProblems(doc) {
     // „Ma [ärkan] (ärkama)”: the base form after the gap gives the word away
     // …unless the task itself is the form („Kirjuta sulgudes olev sõna õiges vormis”): then the base form is the stimulus
     const formTask = (b) => /vorm/i.test(`${b.data?.title || ''} ${b.data?.instruction || ''}`);
-    const hinted = blocks.filter((b) => b.type === 'gaps' && !formTask(b) && lines(b.data?.sentences).filter((s) => /\][^[]*\([^)]+\)/.test(s)).length > lines(b.data?.sentences).length / 2);
+    // a spelling gap shows the word with the letter masked („(kor_a)”): that is the task itself, not a base-form hint
+    const hinted = blocks.filter((b) => b.type === 'gaps' && !formTask(b) && lines(b.data?.sentences).filter((s) => /\][^[]*\([^)_]+\)/.test(s)).length > lines(b.data?.sentences).length / 2);
     if (hinted.length) out.push({ code: 'hinted', level: 'warning', text: `${hinted.length} lünkülesannet annab sõna algvormi sulgudes ette`, blocks: hinted.map((b) => b.id) });
     const banked = blocks.filter((b) => b.type === 'gaps' && b.data?.showBank === 'yes' && ['B2', 'C1'].includes(level));
     if (banked.length) out.push({ code: 'bank', level: 'warning', text: `${banked.length} lünkülesannet näitab sõnapanka (${level})`, blocks: banked.map((b) => b.id) });
