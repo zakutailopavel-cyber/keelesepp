@@ -50,7 +50,7 @@ describe('LibraryPage', () => {
       { id: 'a2-007', title: 'Kelle oma? Genitiiv', level: 'A2', roadmapManaged: true, worksheetPhases: { discover: published } },
     ], exercises: [] };
     renderPage(grammar, '/library?tase=A2');
-    const block = (await screen.findByText('Grammatika')).closest('details');
+    const block = (await screen.findByText('Grammatika')).closest('.lib2-grammar');
     expect(within(block).getByText('Olema, olevik ja eitus')).toBeInTheDocument();
     expect(within(block).getByText('Omastav: kelle? kelle oma?')).toBeInTheDocument();
     expect(within(block).getAllByRole('button', { name: 'Õpik' })).toHaveLength(1);

@@ -1,3 +1,19 @@
+## 2026-10-21 · agent/grammar-index-look — „Grammatika” looks like the module lists
+
+- Owner screenshot: the Grammatika block in Õppevara was ragged compared to the module lists. The Määra button
+  followed the title's length, and there was no icon and no preview.
+- Now it is a `lib2-section` with the same header as a module and one `lib2-row` per topic and lesson:
+  - a topic number column;
+  - a book icon;
+  - the topic, with „Tund N · lesson · module” under it;
+  - the Õpik chip in the meta column;
+  - Vaata and Määra in the actions column.
+  On a phone the number takes the star's place.
+- Files: library/LibraryPage.jsx (+ test selector), library/libraryWorkspace.css.
+- Checks: library vitest 48/48; the B2 level checked on the local stand with the production library data.
+- Also deployed today with the owner's yes: functions from main 290cd08. financeApi, invoiceApi and manualInvoiceApi
+  now run on 1024 MB (checked with functions:list).
+
 ## 2026-10-21 · agent/finance-speed — finance actions took 3–10 s
 
 - Owner: every action in Finantsid takes long.
