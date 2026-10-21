@@ -7,7 +7,8 @@
   - a draft outline (2 × 6 modules × 5 lessons);
   - the technical steps: data manifests, registry `ek9` / `ek12`, level `9. klass` / `12. klass`, a native norm set,
     the installer, task types;
-  - four open owner questions.
+  - four open owner questions; three are answered: both pupil groups (bilingual core plus „Raskem” tasks), 30
+    lessons a grade, subject „Eesti keel” + level. The textbooks are still open.
 - No code, data or rules changed. The exam facts come from open sources and must be checked against Harno's exam
   description.
 - Next safe step: the owner's answers, then `ek9` module 1 as a sample.

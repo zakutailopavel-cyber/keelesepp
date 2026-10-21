@@ -72,14 +72,14 @@ exam form. Phases stay Avasta / Harjuta / Kasuta, as in the CEFR courses.
 6. **Students.** A pupil's track gets `subject: 'Eesti keel'` and `level: '9. klass'`. The subject switcher and teacher
    scope already work by subject.
 
-## Open questions (owner)
+## Owner decisions (2026-10-21)
 
-1. Who are the pupils: native speakers, or bilingual pupils of Estonian-medium schools? This sets the text difficulty
-   and how much grammar is explained.
-2. Course length: 30 lessons a grade (one per week), or a shorter intensive (e.g. 10–15 lessons before the exam)?
-3. Textbooks: which school textbooks or workbooks (and the permission's limits) should the content follow?
-4. Price and subject name in the CRM: „Eesti keel” with level „9. klass”, or a separate subject „Eesti keel
-   (emakeel)”?
+1. **Pupils:** both groups. The core is written for bilingual pupils of Estonian-medium schools: rules are explained
+   and texts are a little easier. Every lesson also has harder tasks for native speakers (a „Raskem” block).
+2. **Length:** 30 lessons a grade (6 modules × 5, one lesson a week, lesson 5 = check in exam form).
+3. **CRM subject:** „Eesti keel” with level „9. klass” / „12. klass”. Price and teacher are set per track, as now.
+4. **Still open:** which school textbooks or workbooks to follow, and the limits of the permission. The owner will
+   photograph them.
 
 ## Next safe step
 
