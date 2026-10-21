@@ -1,3 +1,12 @@
+## 2026-10-21 · agent/bank-visual — the statement import as a bank feed
+
+- main checked: origin/main after #694. Owner: make the last update look pleasant. The import preview is no longer a
+  wide table: one card per payment (stripe green = sure, amber = suggestion, grey = manual), payer and date with the
+  explanation, the amount, the invoice(s) as pills (split payments as several pills, the rest as „… ettemaksuks”), the
+  reason, the badge and „Muuda” that opens the invoice / advance choosers. The counts are a filter (Kõik · Kindel ·
+  Kinnita soovitus · Vali käsitsi); the sticky footer shows „Valitud N makset · summa” and „Seo valitud maksed (N)”.
+  Same labels for screen readers and tests. vitest finance 141/141, eslint clean, looked at on a local stand.
+
 ## 2026-10-21 · agent/bank-matching — bank statement: payer memory, split payments, sure vs suggested matches
 
 - main checked: origin/main (2026-10-21). Owner: points 1–3 — remember the payer's account, one payment for several
