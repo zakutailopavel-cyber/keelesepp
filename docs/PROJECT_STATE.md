@@ -1,3 +1,13 @@
+## 2026-10-21 · agent/school-covered-button — „Kooli kulul” as the fourth way to close a lesson
+
+- Oleksiy (team chat 2026-10-19): next to „Tund toimus / Puudus (teatas ette) / Puudus (ei teatanud)” a fourth button
+  „refund from the school”. Since #680 an admin could only set „Kooli kulul” on an already held lesson.
+- Now the unmarked lesson panel (admin) has „Kooli kulul” → reason → „Tund toimus kooli kulul”: the lesson is marked
+  held (teacher's hour counts) and right away `setLessonBillingDisposition(id, 'school_covered', reason)` (audited; the
+  token trigger gives back a credit). If the second step fails, the panel says so and the existing link on the held
+  lesson finishes it. Teachers do not see the button. Frontend only (no function change).
+- Checks: vitest calendar 104/104, eslint clean.
+
 ## 2026-10-21 · decision — lesson packages (tokens) stay
 
 - Owner 2026-10-21: lesson packages are the lesson token system (Tunnipakett: studentPackages, packageLedger, token

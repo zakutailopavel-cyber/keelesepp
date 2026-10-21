@@ -54,3 +54,19 @@ it('„Kooli kulul” is not offered without the admin handler', () => {
   render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', status: 'Toimunud', lessonRecordId: 'r1', record: { id: 'r1', status: 'Toimunud' }, occurrenceDate: '2026-10-05', time: '15:00' }} />);
   expect(screen.queryByRole('button', { name: /Kooli kulul/ })).toBeNull();
 });
+
+it('„Kooli kulul” is the fourth way to close an unmarked lesson (admin), with a reason', async () => {
+  const onDone = vi.fn().mockResolvedValue(true);
+  render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', status: 'Planeeritud', occurrenceDate: '2026-10-05', time: '15:00' }} today="2026-10-05" onDone={onDone} onSchoolCovered={vi.fn()} />);
+  fireEvent.click(screen.getByRole('button', { name: /^Kooli kulul$/ }));
+  const confirm = screen.getByRole('button', { name: 'Tund toimus kooli kulul' });
+  expect(confirm).toBeDisabled();
+  fireEvent.change(screen.getByLabelText(/Põhjus/), { target: { value: 'õpetaja hilines' } });
+  fireEvent.click(confirm);
+  await waitFor(() => expect(onDone).toHaveBeenCalledWith(expect.objectContaining({ status: 'Toimunud', schoolCoveredReason: 'õpetaja hilines' })));
+});
+
+it('a teacher has no „Kooli kulul” button', () => {
+  render(<LessonPanel item={{ id: 's', studentId: 'p', studentName: 'Maria', status: 'Planeeritud', occurrenceDate: '2026-10-05', time: '15:00' }} today="2026-10-05" onDone={vi.fn()} />);
+  expect(screen.queryByRole('button', { name: /^Kooli kulul$/ })).toBeNull();
+});

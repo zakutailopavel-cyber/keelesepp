@@ -90,9 +90,9 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
   // "Last time" is the lesson before this one, never this lesson's own mark.
   const last = history.find((lesson) => lesson.id !== item.lessonRecordId && (lesson.date < item.occurrenceDate || (lesson.date === item.occurrenceDate && !item.lessonRecordId)));
   const record = item.record;
-  const save = async (status) => {
+  const save = async (status, schoolCoveredReason = '') => {
     const ok = await (status === 'Toimunud'
-      ? onDone({ status, ...topicFromPick(catalog, topic, notes), homework })
+      ? onDone({ status, ...topicFromPick(catalog, topic, notes), homework, ...(schoolCoveredReason ? { schoolCoveredReason } : {}) })
       : onDone({ status, ...topicFromPick(null, {}, notes), topic: '', homework: null }));
     if (ok) { try { window.localStorage.removeItem(draftKey(item)); } catch { /* storage may be disabled */ } }
   };
@@ -195,7 +195,15 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
             {future ? null : <Button loading={saving} onClick={() => save('Toimunud')}><Check size={17} /> Tund toimus</Button>}
             <Button variant="secondary" disabled={saving} onClick={() => save('Puudus_p')}><UserRoundX size={16} /> Puudus (teatas ette)</Button>
             {future ? null : <Button variant="secondary" disabled={saving} onClick={() => save('Puudus_eta')}><UserRoundX size={16} /> Puudus (ei teatanud)</Button>}
+            {future || !onSchoolCovered ? null : <Button variant="secondary" disabled={saving} onClick={() => setCovering(covering === null ? '' : null)}><HandCoins size={16} /> Kooli kulul</Button>}
           </div>
+          {!future && onSchoolCovered && covering !== null ? (
+            <div className="lp-notes-edit" role="group" aria-label="Kooli kulul">
+              <label className="lp-notes"><span>Põhjus (kohustuslik, jääb auditisse)</span><textarea rows={2} maxLength={500} placeholder="Nt: proovitund, õpetaja hilines, kompensatsioon…" value={covering} onChange={(event) => setCovering(event.target.value)} /></label>
+              <p className="lp-hint">Tund märgitakse toimunuks ja läheb õpetajale arvesse. Õpilaselt tasu ei võeta ega paketist tundi maha arvata.</p>
+              <div className="lp-actions"><Button loading={saving} disabled={!covering.trim()} onClick={() => save('Toimunud', covering.trim())}>Tund toimus kooli kulul</Button><Button variant="secondary" disabled={saving} onClick={() => setCovering(null)}>Loobu</Button></div>
+            </div>
+          ) : null}
         </section>
       ) : null}
 
