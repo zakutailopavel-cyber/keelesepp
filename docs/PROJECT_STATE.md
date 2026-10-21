@@ -1,3 +1,25 @@
+## 2026-10-21 · production data — Timur Varik and Timur Saipov: one card each (owner)
+
+- Owner: the invoice student picker showed two cards for each Timur. Timur Varik has Estonian (Elena), English and
+  maths (Liza), all 20 €; Timur Saipov has Estonian with Pavel, 25 €.
+- **Varik.**
+  - The „(matem)” card (wrongly subject „Inglise keel”) and its 8 records were tagged Matemaatika, then the card was
+    merged into the English card `aoesCvGrQLxN7GEFMp1L` (student-merge.js: 5 lessons, 3 schedule).
+  - Kept card: name „Timur Varik”, enrollments Inglise keel + Matemaatika (Yelyzaveta), Eesti keel (Elena),
+    teacherUids both.
+  - studentRevenuePlans: 2000 cents with subjectPrices Matemaatika and Eesti keel at 2000; the merged card's plan was
+    set inactive.
+  - Liza's 3 lessons tagged „Eesti keel” (Oct 2, 6, 9) and 4 schedule entries without a subject became „Inglise keel”.
+    Result: 7 English and 5 maths lessons.
+- **Saipov.**
+  - The card without an account `WA4gQD348heNl4ekkwTD` was merged into the card with the account
+    `CJHcCsxtMnxZF17Rh947` (2 schedule entries).
+  - Kept card: name „Timur Saipov”, Eesti keel B1 with Pavel only; a new revenue plan at 2500 cents for 60 min,
+    1 lesson a week.
+  - Elena's 3 past lessons keep their own teacher.
+- Invoices were not moved; both kept cards already had them.
+- Backup (cards, plans, record subjects): /Users/pavel/KeeleSeppTranscriber/backup-timur-2026-10-21.json.
+
 ## 2026-10-21 · agent/teacher-query-chunks — teachers' Kodutööd / Ülevaade „no permission”
 
 - Owner: teachers say they have no rights on some tabs (homework, the main screen).
