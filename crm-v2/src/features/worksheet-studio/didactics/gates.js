@@ -7,7 +7,8 @@
 // The Estonian language check (Vabamorf) runs offline: tools/course-audit/language.py.
 // Pure: docs are { meta: { level, phase }, blocks: [{ id, type, data }] }; problems { gate, code, level, text, blocks }.
 import { depthProblems } from './depth.js';
-import { bankItems, groupItems } from '../engine/schema.js';
+import { nativeStage } from './levels.js';
+import { bankItems, groupItems, strictNorm } from '../engine/schema.js';
 
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
 const list = (v) => (Array.isArray(v) ? v : String(v || '').split(/[,\n]/)).map((x) => String(x).trim()).filter(Boolean);
@@ -17,6 +18,8 @@ const first = (answer) => String(answer || '').split('|')[0].trim();
 const exact = (v) => String(v || '').toLocaleLowerCase('et').replace(/\s+/g, ' ').trim();
 const words = (v) => String(v || '').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 const band = (level) => {
+  const native = nativeStage(level);
+  if (native) return native;
   const l = String(level || '').toUpperCase();
   return l.startsWith('C') ? 'C1' : l.startsWith('B2') ? 'B2' : l.startsWith('B1') ? 'B1' : 'A2';
 };
@@ -51,7 +54,7 @@ export function keysProblems(doc) {
       case 'errorfix':
         (d.rows || []).forEach((r, i) => {
           if (!first(r?.answer)) add(block, 'fix-no-answer', `rida ${i + 1}: parandus puudub`);
-          else if (exact(first(r.answer)) === exact(r.wrong)) add(block, 'fix-same', `rida ${i + 1}: parandus on sama mis vale lause`);
+          else if ((block.data?.strict ? strictNorm : exact)(first(r.answer)) === (block.data?.strict ? strictNorm : exact)(r.wrong)) add(block, 'fix-same', `rida ${i + 1}: parandus on sama mis vale lause`);
         });
         break;
       case 'transformation':
@@ -91,6 +94,9 @@ export const LEVEL_LENGTHS = {
   // so every B2 sheet failed one of the two checks (owner 2026-10-18, lesson template v3)
   B2: { text: 220, write: 140, speakSec: 180 },
   C1: { text: 350, write: 220, speakSec: 210 },
+  // mother tongue: the exams have no speaking part (speakSec 0 = not checked); writing = the exam's minimum
+  EK9: { text: 400, write: 200, speakSec: 0 },
+  EK12: { text: 500, write: 400, speakSec: 0 },
 };
 
 export function levelProblems(doc) {
@@ -100,7 +106,8 @@ export function levelProblems(doc) {
   const out = [];
   const phase = doc?.meta?.phase;
   // Avasta and Kasuta start from a text of the level (Harno: every closed task works on a text)
-  if (phase === 'discover' || phase === 'transfer') {
+  // the Kasuta sheet of a check lesson is the exam's writing part: it has no reading text of its own
+  if (phase === 'discover' || (phase === 'transfer' && !doc?.meta?.assessment)) {
     // design v2: any input of that length starts the phase — a dialogue, people profiles or a gapped exam text too
     const inputs = doc?.meta?.design === 'v2' ? ['reading', 'listening', 'dialogue', 'profiles', 'cloze', 'formtext', 'insertion'] : ['reading', 'listening'];
     const inputText = (b) => (b.type === 'dialogue' ? (b.data?.lines || []).map((l) => l?.text).join(' ')

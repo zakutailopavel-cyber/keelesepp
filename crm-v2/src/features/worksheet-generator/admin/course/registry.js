@@ -4,6 +4,7 @@
 // module says so.
 import { withLessonArt } from '../../art/textbookArt.js';
 import { withListeningAudio } from './listeningAudio.js';
+import { nativeStage } from '../../../worksheet-studio/didactics/levels.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
 import { A2_LESSON_GOALS } from './a2/lessonGoals.js';
 import { B2_LESSON_GOALS } from './b2/lessonGoals.js';
@@ -74,14 +75,18 @@ import * as c1m07 from './c1/module07.js';
 import * as c1m08 from './c1/module08.js';
 import * as c1m09 from './c1/module09.js';
 import * as c1m10 from './c1/module10.js';
+import * as ek9m01 from './ek9/module01.js';
 
-export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10];
+export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01];
 
 export const COURSES = {
   a2: { label: 'A2 · A1 → A2 õpitee', badge: 'KeeleSepp A1 → A2' },
   b1: { label: 'B1 · A2 → B1 õpitee', badge: 'KeeleSepp A2 → B1' },
   b2: { label: 'B2 · B1 → B2 õpitee', badge: 'KeeleSepp B1 → B2' },
   c1: { label: 'C1 · B2 → C1 õpitee', badge: 'KeeleSepp B2 → C1' },
+  // Estonian as a mother tongue (docs/NATIVE_ESTONIAN_9_12_PLAN.md): exam preparation for grades 9 and 12
+  ek9: { label: '9. klass · eesti keel emakeelena', badge: 'KeeleSepp · eesti keel 9. klass' },
+  ek12: { label: '12. klass · eesti keel emakeelena', badge: 'KeeleSepp · eesti keel 12. klass' },
 };
 
 export const PHASES = {
@@ -123,6 +128,14 @@ export function lessonOrder(blocks = []) {
   return [...head, ...rest.sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)];
 }
 
+// the mother-tongue course (9. / 12. klass) checks commas, capitals and letters: its gap, fix and rewrite tasks are
+// scored strictly (engine/schema.js strictNorm)
+const STRICT_TYPES = new Set(['gaps', 'errorfix', 'transformation']);
+function strictSpelling(blocks, level) {
+  if (!nativeStage(level)) return blocks;
+  return blocks.map((b) => (STRICT_TYPES.has(b.type) ? { ...b, data: { ...b.data, strict: true } } : b));
+}
+
 // the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text;
 // listening blocks get their recorded audio (listeningAudio.json, tools/listening-audio)
 export function buildCourseSheet(mod, lessonId, phase) {
@@ -153,7 +166,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
-    blocks: withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId),
+    blocks: strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level),
   }, lessonId, phase);
 }
 

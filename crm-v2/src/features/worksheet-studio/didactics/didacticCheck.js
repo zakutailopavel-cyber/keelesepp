@@ -26,6 +26,8 @@ const ABSOLUTE = /\b(alati|ainult|üksnes|mitte kunagi|mitte keegi|iial|kõik|ko
 const answersOf = (line) => (String(line).match(/\[([^\]]*)\]/)?.[1] || '').split('|').map((x) => x.trim()).filter(Boolean);
 
 function solvabilityChecks(tasks, { key, norm: level, name, add }) {
+  // the mother-tongue course fixes commas and capitals too: there sentences are compared as written
+  const cmp = key.startsWith('EK') ? (v) => String(v || '').replace(/\s+/g, ' ').trim() : normText;
   const severity = EASY_LEVELS.has(key) ? 'tip' : 'warning';
   const harno = HARNO[{ 'B2-': 'B2', B2: 'B2', C1: 'C1' }[key]];
   tasks.forEach((b) => {
@@ -66,12 +68,12 @@ function solvabilityChecks(tasks, { key, norm: level, name, add }) {
         { detail: `${name(b)}: ${given} real on vastus juba vihjes kirjas.`, severity: 'warning', blockId: b.id });
     }
     if (b.type === 'errorfix') {
-      const same = (d.rows || []).filter((r) => normText(r.wrong) && normText(r.wrong) === normText(r.answer)).length;
+      const same = (d.rows || []).filter((r) => cmp(r.wrong) && cmp(r.wrong) === cmp(r.answer)).length;
       add(`errorfix-none-${b.id}`, `${name(b)}: igas reas on viga`, same === 0,
         { detail: `${name(b)}: ${same} real on „vale” ja „õige” lause samad — seal pole midagi parandada.`, severity: 'warning', blockId: b.id });
     }
     if (b.type === 'transformation') {
-      const same = (d.rows || []).filter((r) => normText(r.from) && normText(r.from) === normText(r.answer)).length;
+      const same = (d.rows || []).filter((r) => cmp(r.from) && cmp(r.from) === cmp(r.answer)).length;
       add(`transform-none-${b.id}`, `${name(b)}: lauset tuleb muuta`, same === 0,
         { detail: `${name(b)}: ${same} real on vastus sama mis lähtelause.`, severity: 'warning', blockId: b.id });
     }

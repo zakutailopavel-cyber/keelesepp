@@ -2,7 +2,7 @@
 import { Fragment } from 'react';
 import { Photo, Line, Md, Clock } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
-import { norm, bankItems, splitList } from '../schema.js';
+import { norm, normFor, bankItems, splitList } from '../schema.js';
 import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
 
 // Task blocks: numbered cards with a title + instruction (drawn by the page), an answer area and scoring.
@@ -61,7 +61,7 @@ export const gaps = {
     );
   },
   answers: (data) => String(data.sentences || '').split('\n').filter((l) => l.trim()).flatMap((l, li) => gapParts(l).filter((p) => p.gap).map((p, gi) => ({ key: `${li}.${gi}`, accept: p.gap }))),
-  score: (data, get) => gaps.answers(data).map(({ key, accept }) => ({ key, ok: accept.map(norm).includes(norm(get(key))) })),
+  score: (data, get) => { const cmp = normFor(data); return gaps.answers(data).map(({ key, accept }) => ({ key, ok: accept.map(cmp).includes(cmp(get(key))) })); },
   // first sentence shown solved as an example ("Näide")
   example: (data) => Object.fromEntries(gaps.answers(data).filter(({ key }) => key.startsWith('0.')).map(({ key, accept }) => [key, accept[0]])),
   Editor: ({ data, set }) => (
