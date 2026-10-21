@@ -37,7 +37,8 @@
   - answerKey + module01Key tests pass.
   - Broad suites locally: 1091 passed; only 5 page tests timed out under machine load, and they pass in isolation
     (25/25). CI decides.
-- Next safe step: republish ek9 module 1 so the explanations reach the published sheets.
+- Done 2026-10-21: ek9 module 1 republished v1 → v2 with the explanations (dry run 15, 0 manual edits; apply 15; re-run 15 „same”).
+- Next safe step: write module 2 with its EXPLAIN file from the start.
 
 ## 2026-10-21 · agent/opik-sheet — textbook pages as a 4th lesson sheet „Õpik”
 
