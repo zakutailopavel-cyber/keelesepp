@@ -39,6 +39,10 @@ function dateLabel(value) {
 }
 
 
+import SubjectSwitcher from './SubjectSwitcher.jsx';
+import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
+import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
+
 export default function StudentDashboardPage({
   studentRepository = studentsService,
   homeworkRepository = homeworkService,
@@ -54,6 +58,8 @@ export default function StudentDashboardPage({
 }) {
   const { user, preview } = useAuth();
   const [rescheduling, setRescheduling] = useState(false);
+  // several subjects on one card (owner 2026-10-20): the next lesson and the work of one subject, or all
+  const [subject, setSubject] = useState('');
   const state = useAsyncData(async () => {
     const students = preview?.studentId
       ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
@@ -110,9 +116,14 @@ export default function StudentDashboardPage({
   if (state.loading) return <LoadingState label="Laen sinu õpinguid…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
-  const { students, homework, submissions, schedule, invoices, lessons } = state.data;
+  const { students, submissions, invoices } = state.data;
   const studentMap = new Map(students.map((student) => [student.id, student]));
-  const upcoming = occurrencesForDates(schedule, nextDates).slice(0, 6);
+  const subjects = subjectsOf(students);
+  const chosen = subjects.length > 1 ? subject : '';
+  const studentOf = (item) => studentMap.get(item.studentId) || null;
+  const homework = onlySubject(state.data.homework, chosen, studentOf);
+  const lessons = onlySubject(state.data.lessons, chosen, studentOf);
+  const upcoming = onlySubject(occurrencesForDates(state.data.schedule, nextDates), chosen, studentOf).slice(0, 6);
   const reviewedSubmissions = submissions.filter((item) => item.reviewStatus === 'reviewed').slice(0, 5);
   const nextLesson = upcoming[0] || null;
   const nextRequest = requestFor(state.data.requests, nextLesson);
@@ -141,7 +152,9 @@ export default function StudentDashboardPage({
     {!preview?.studentId ? <RecordingConsentPrompt students={students} user={user} role="student" {...(consentService ? { service: consentService } : {})} /> : null}
 
     {/* „Minu areng” first, then „Täna” (owner 2026-10-12) */}
-    {students.length ? <MyProgressCard progress={progress} /> : null}
+    <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
+    {/* „Minu areng” follows the Estonian course; another subject has its own teacher's plan */}
+    {students.length && (!chosen || chosen === 'Eesti keel') ? <MyProgressCard progress={progress} /> : null}
     {students.length ? <section className="student-path" aria-label="Täna">
       <header className="student-path__head">
         <div><span className="eyebrow">Täna</span><h2>{path.done === path.total ? 'Kõik tänased sammud tehtud!' : `${path.done}/${path.total} sammu tehtud`}</h2></div>
@@ -151,7 +164,7 @@ export default function StudentDashboardPage({
       <div className="student-today">
         <Link className="student-today__card is-lesson" to={nextLesson?.occurrenceDate === today ? '/live-classroom' : '/homework'}>
           <i>{nextLesson?.occurrenceDate === today ? <Video size={22} /> : <CalendarDays size={22} />}</i>
-          <span><small>Järgmine tund</small><strong>{nextLesson ? `${nextLesson.occurrenceDate === today ? 'Täna' : dateLabel(nextLesson.occurrenceDate)} · ${nextLesson.time}` : 'Tunde ei ole plaanis'}</strong><em>{nextLesson ? (nextLesson.occurrenceDate === today ? 'Ava Live Classroom' : `${nextLesson.teacher || 'Õpetaja'} · ${nextLesson.duration || 60} min`) : 'Õpetaja lisab tunni kalendrisse'}</em></span>
+          <span><small>Järgmine tund</small><strong>{nextLesson ? `${nextLesson.occurrenceDate === today ? 'Täna' : dateLabel(nextLesson.occurrenceDate)} · ${nextLesson.time}` : 'Tunde ei ole plaanis'}</strong><em>{nextLesson ? (nextLesson.occurrenceDate === today ? 'Ava Live Classroom' : [subjects.length > 1 ? itemSubject(nextLesson, studentOf(nextLesson)) : '', nextLesson.teacher || 'Õpetaja', `${nextLesson.duration || 60} min`].filter(Boolean).join(' · ')) : 'Õpetaja lisab tunni kalendrisse'}</em></span>
         </Link>
         {path.steps.map((step, index) => {
           const Icon = step.done ? Check : STEP_ICON[step.key];
@@ -176,6 +189,9 @@ export default function StudentDashboardPage({
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
       <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} />
+
+      {/* „Millal sulle tund sobib?” — the student keeps the times that suit up to date (owner 2026-10-21) */}
+      {students.slice(0, 1).map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} user={user} mode={preview ? 'view' : 'own'} compact />)}
 
       <LessonSummariesCard studentIds={students.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
 

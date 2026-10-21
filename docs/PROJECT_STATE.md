@@ -1,3 +1,354 @@
+## 2026-10-21 · agent/gcal-cleanup — Google chip error, refused deletions, old tokens out of users/{uid}
+
+- Owner: what is the „Google: viga” error? Found:
+  - KeeleSepp → Google push works (last successful push 2026-10-21).
+  - The red chip came from deleting three weekly lessons that had once been imported from Pavel's Google calendar
+    (Mon 9:00, Wed 16:00, Thu 9:00). Their events come from another calendar, so Google answers 400 Bad Request.
+    Each new attempt set `lastPushError` again, and 9 delete jobs piled up in `calendarSyncOutbox` (Oct 5–21).
+  - The chip date „5. okt” was `lastSyncAt`, the import time; import has been off since 2026-10-05.
+  - **Security:** users/{uid}.gcal of Pavel and Anhelina Korotka still held the old OAuth access/refresh tokens.
+    Every teacher can read users docs (`isStaff`). The migration to calendarConnections wrote the public metadata with
+    a merge, which kept the token fields.
+- Changes:
+  - functions `isGoogleRejectedError` (400/403, calendar-sync-core.js + test). A refused deletion of a deleted or
+    cancelled lesson is logged, not queued and not shown as a sync error. A refused outbox job is dropped.
+  - `LEGACY_TOKEN_FIELDS_DELETE` removes accessToken/refreshToken/expiryDate (and snake_case forms) from users.gcal
+    on every public-metadata write (load/migrate/save).
+  - The CRM chip shows the latest of lastPushAt / lastGroupPushAt / lastSyncAt (`lastActivityAt`).
+- Checks:
+  - functions `node --test` 319/319;
+  - `npx vitest run src/features/google-calendar` 12/12;
+  - eslint on google-calendar: 0 problems.
+- Manual: the refused events probably still sit in Pavel's Google calendar; remove them there. Pavel and Anhelina
+  should reconnect Google in CRM settings so the exposed tokens are replaced.
+- Done 2026-10-21 (owner: „то что лучше”):
+  - functions deployed from main 937b3ea.
+  - Production cleanup: accessToken/refreshToken/expiryDate removed from users.gcal of the 2 users, and the 9 „Bad
+    Request” outbox jobs deleted. Backup (outbox jobs and the removed field names, no tokens):
+    /Users/pavel/KeeleSeppTranscriber/backup-gcal-cleanup-2026-10-21.json.
+  - Pavel's stale lastPushError cleared.
+  - A re-run of the dry run shows 0 / 0.
+- Next safe step: Pavel and Anhelina reconnect Google in CRM settings.
+
+## 2026-10-21 · agent/match-layout — „Ühenda paarid”: the answer slot stands in front of its question
+
+- Owner (screenshot of Kontroll 12, task „Küsimus ja vastus”): unclear how to do it, and crooked. The letter slot sat at
+  the far end of the left column, next to the A–F list, so it read as part of the right column, and the rows of the two
+  columns did not line up (an is-tall card also turned the rows back into list items).
+- Owner then: the student should write numbers at the letters. Now the questions are numbered (1, 2, …) on the left;
+  on the right each lettered answer (A, B, …) has a slot in front where the student picks the question's number.
+  Answer keys are `r<k>` (k = position of the answer, value = question number). Answers saved before this (keys 0, 1, …
+  with letters) are recognised and still shown and scored the old way (`.ws-match.is-legacy`). Interactive hint: „Kirjuta
+  iga vastuse ette sobiva küsimuse number.”
+- Files: worksheet-studio/engine/blocks/tasks.jsx (match View), worksheet-studio/engine/sheet.css.
+- Checks: `npx vitest run src/features/worksheet-studio src/test src/features/library` 335/335. Print and interactive views were checked on
+  the local stand.
+- Next safe step: none needed after merge (frontend deploys with main).
+
+## 2026-10-21 · agent/assign-single-task — assign one task of a sheet
+
+- Owner: be able to assign a single task, not only the whole sheet.
+- The block bar of a published, saved sheet in the constructor has „Määra” on every task block. It opens Õppevara with
+  `?assign=<lesson>&leht=<phase>&plokk=<block id>`. LibraryPage `singleTaskItem` narrows the published doc to that one
+  block (meta kept) and the usual assignment dialog opens. The title is „<lesson> · <sheet> · <task title>”. A block that
+  is not on the published version gives an error and no dialog. The assignment is a normal worksheetAssignment with that
+  one-block worksheetDoc. No schema, rules or service change.
+- Files: worksheet-studio/WorksheetStudioPage.jsx, worksheet-studio/icons.js (Send), library/LibraryPage.jsx (+ test).
+- Checks: `npx vitest run src/features/library src/features/worksheet-studio/WorksheetStudioPage.test.jsx` 68/68;
+  eslint 0 errors.
+- Next safe step: merge (frontend deploys with main).
+
+## 2026-10-21 · agent/board-sheet-align — the student's sheet lies exactly like the teacher's
+
+- Owner: check that the student sees the sheet as the teacher does and that a task the teacher clicks is highlighted.
+- Checked on a local stand with both boards side by side (shared worksheet, live focus): the whole sheet on both (10
+  tasks), a teacher's click marks the task on both and moves the student's view to it. Found: the student's sheet sat
+  9 px lower (the inline player's 1 px border + 8 px canvas margin from worksheetStudio.css won over board.css), so the
+  teacher's drawings landed slightly off. board.css now removes them on the board with a stronger selector; afterwards
+  every task had the same position on both boards.
+- Next safe step: merge (frontend deploys with main).
+## 2026-10-21 · agent/school-covered-button — „Kooli kulul” as the fourth way to close a lesson
+
+- Oleksiy (team chat 2026-10-19): next to „Tund toimus / Puudus (teatas ette) / Puudus (ei teatanud)” a fourth button
+  „refund from the school”. Since #680 an admin could only set „Kooli kulul” on an already held lesson.
+- Now the unmarked lesson panel (admin) has „Kooli kulul” → reason → „Tund toimus kooli kulul”: the lesson is marked
+  held (teacher's hour counts) and right away `setLessonBillingDisposition(id, 'school_covered', reason)` (audited; the
+  token trigger gives back a credit). If the second step fails, the panel says so and the existing link on the held
+  lesson finishes it. Teachers do not see the button. Frontend only (no function change).
+- Checks: vitest calendar 104/104, eslint clean.
+## 2026-10-21 · agent/self-payer-parents — „Lapsevanemad” keeps a learner who pays for themselves
+
+- main checked: origin/main. Oleksiy (team chat 2026-10-20, #bug #high_priority): „See on õpilane” (parent → own
+  learner) removed the person from Lapsevanemad, the main tab for watching payers.
+- Fix: `parent-to-student-core.js` marks the account `selfPayer: true`; `parentsService.list` lists self-payers too;
+  `parentMatchesStudent` gives them their own card (linkedUserId / studentUid / linkedUserIds); badge „Õpib ise”.
+- Production: one account was converted before the fix (Olena Polishchuk, 2026-10-20) — gets `selfPayer: true` after
+  deploy with the owner's permission.
+- Checks: vitest parents + services 172/172, functions parent-to-student-core 3/3.
+- Deploy after merge: `functions:staffOperationsApi`.
+## 2026-10-21 · agent/student-availability — „Sobivad ajad” in the student's and parent's pages, on the card, notifications
+
+- main checked: origin/main. Owner: put the /ajad table into the student and parent cards, notify us when a student's
+  times change so we can offer a time quickly, and let the admin open „Sobivad ajad” on the student's card.
+- Data: `studentAvailability/{studentId}` — slots / preferred (half hours „Mon-16:00”), message, changedAt / By / Role,
+  previousSlots / previousPreferred, reviewedAt / ByName. Rules: the card's student or parent writes their own (never the
+  review mark, changedByUid = self), the admin writes any and marks reviewed, the student's teacher reads.
+- UI: `AvailabilityCard` (features/availability-poll): student home „Millal sulle tund sobib?”, parent home one per
+  child, student card (admin edits and „Vaadatud”, shows „Mis oli enne”; teacher reads). Notification bell (admin):
+  „<name> muutis sobivaid aegu” until reviewed, links to /students/<id>#sobivad-ajad. The public /ajad page and
+  Päringud are unchanged.
+- Checks: vitest students/parents/components/notifications/availability 122 + card 3/3, eslint clean; emulator rules
+  test in security-access-emulator.integration.js (CI).
+- Deploy after merge (owner permission): `firestore:rules`; the pages go with main.
+
+## 2026-10-21 · decision — lesson packages (tokens) stay
+
+- Owner 2026-10-21: lesson packages are the lesson token system (Tunnipakett: studentPackages, packageLedger, token
+  invoices, `syncLessonTokens`); they stay untouched. The earlier plan's step 5 „remove packages” (2026-10-20) is
+  cancelled — ignore it in the entries below. Production has 0 packages in use; nothing was removed.
+
+## 2026-10-21 · agent/bank-visual — the statement import as a bank feed
+
+- main checked: origin/main after #694. Owner: make the last update look pleasant. The import preview is no longer a
+  wide table: one card per payment (stripe green = sure, amber = suggestion, grey = manual), payer and date with the
+  explanation, the amount, the invoice(s) as pills (split payments as several pills, the rest as „… ettemaksuks”), the
+  reason, the badge and „Muuda” that opens the invoice / advance choosers. The counts are a filter (Kõik · Kindel ·
+  Kinnita soovitus · Vali käsitsi); the sticky footer shows „Valitud N makset · summa” and „Seo valitud maksed (N)”.
+  Same labels for screen readers and tests. vitest finance 141/141, eslint clean, looked at on a local stand.
+
+## 2026-10-21 · agent/bank-matching — bank statement: payer memory, split payments, sure vs suggested matches
+
+- main checked: origin/main (2026-10-21). Owner: points 1–3 — remember the payer's account, one payment for several
+  invoices, auto-apply only sure matches and show the rest as suggestions to confirm.
+- Statement: the payer's account column („Saaja/maksja konto”, „Sender/receiver account”…) is read (`payerAccount`).
+- `matchBankRow` (bankReconciliation.js): sure = invoice reference or number in the explanation (several numbers →
+  several invoices), or the payer's account paid for the child before and the amount equals that child's open invoice or
+  an exact set of them; likely = name + amount, the payer's name paid for the child before, or a family's invoices that
+  add up exactly. `payerMemory` learns from bank transactions (`payerAccount`, `paidStudentIds`), payments made from them
+  and the 2026-10-15 LHV payments (their note names the bank payer). Sure rows come ticked, likely rows show the
+  suggestion unticked („Kinnita soovitus”, „Vali kõik soovitused”), the rest „Vali käsitsi”. A split shows „Jagatakse:”.
+- Server `allocateBankTransaction`: stores `payerAccount` (IBAN, no spaces) and `paidStudentIds`; financeApi sends
+  `payerAccount` and several `allocations`. Nothing was changed in existing data.
+- Checks: vitest finance 141/141, functions node --test 319/319, eslint clean; emulator test „one bank payment pays two
+  invoices … remembers the payer's account” (CI).
+- Deploy after merge (owner permission): `functions:financeApi`.
+- Next: LHV Connect for automatic statements (the owner asks LHV first).
+
+## 2026-10-20 · agent/availability-names — „Sobivad ajad”: student's and parent's full name required
+
+- main checked: origin/main after #691. Owner: add the parent's first and last name and make it and the child's
+  required. The page asks „Õpilase (lapse) ees- ja perekonnanimi *” and „Lapsevanema ees- ja perekonnanimi *” (two
+  words each, checked in the page and in functions/website-lead-core.js: `parentName`, errors `name` / `parentName`).
+  Päringud and the e-mail show „Lapsevanem”. Checks: vitest 4/4, functions 9/9, eslint clean.
+- Then (owner): a box „Olen täiskasvanud õpilane / Я взрослый ученик” hides the parent field; `adult: true` lets the
+  server accept no parent; Päringud / e-mail show „Lapsevanem: — täiskasvanud õpilane”. vitest 5/5, functions 10/10.
+
+## 2026-10-20 · agent/availability-design — „Sobivad ajad”: better look, texts and its own link preview
+
+- main checked: origin/main after #689 (2026-10-20). Owner: improve quality, look and description; anyone with the link
+  must open it.
+- Checked: `/ajad` opens without a login (built-in browser, signed out). Added `crm-v2/ajad.html` (second Vite entry,
+  same app) with its own title, description and og:image, and a Vercel rewrite `/ajad → /ajad.html`, so WhatsApp /
+  Telegram / e-mail show „Millal sulle tund sobib? · Когда вам удобно заниматься?” instead of the CRM's bare title.
+- Page: sticky header with brand and ET/RU switch, 3 steps, a highlighted „mark EVERY time that really works” note,
+  quick choices (weekday evenings 17–21, weekday days 9–17, weekend 10–18, clear), the grid with sticky day row and
+  morning / day / evening sections, ✓ / ★ marks, a live summary per day, chips for subject / lessons per week / format,
+  privacy line, success screen with „send another”. Model helpers `withPreset`, `summaryOf` (pollModel.js).
+- Checks: vitest availability-poll + leads 3/3, app/hostingHeaders 2/2, eslint clean, vite build makes dist/ajad.html;
+  looked at 375×812 and desktop on a local stand.
+- Owner 2026-10-20: the page is mostly for CURRENT students now (too many to fit the times by hand): one general link,
+  answers in Päringud as before, but without what current students do not need — no subject, lesson count, format or
+  goals. The form asks only name, phone or e-mail, the times and an optional comment; texts speak of a new timetable.
+  `website-lead-core.js`: availability needs no subject; lesson count / format only when sent; the e-mail drops
+  „Tase”, „Keel”, „Tunde nädalas”, „Vorm”. Päringud: „Kommentaar” instead of „Eesmärk”, no empty fields; ★ cells keep
+  their colour outside the poll page; times per day as text above the grid.
+- Deploy after merge: `functions:websiteLeadApi` (the page goes with main).
+- Next: match the answers with the teachers' free windows and the calendar to propose a timetable (owner confirms).
+
+## 2026-10-20 · agent/student-sheet-full — Live Classroom: the student sees the whole worksheet
+
+- main checked: origin/main (2026-10-20). Owner screenshot: the student saw only the top of the sheet (title, picture)
+  and the „Salvesta / Esita tööleht” bar right under it; the teacher saw the whole sheet.
+- Cause: the student's player (DocWorksheetPlayer, board mode) carries `.ws-studio`, the constructor's full-screen frame
+  (`height: calc(100dvh - 96px); overflow: hidden`). On the board the sheet was clipped at the window's height and the
+  board measured only that much, so the student could not move further down. The teacher's player has no such frame.
+- Fix (board.css): `.sb-underlay .ws-studio` and `.sb-reading .ws-studio` get `height: auto; overflow: visible`, and the
+  phone reading page drops the inline canvas's 75vh limit. Checked on a local stand (1280×650): the student's sheet
+  grew from 682 px to its full 6654 px and scrolls down to the tasks.
+- Next safe step: merge (frontend deploys with main); the owner checks a student's sheet in a lesson.
+## 2026-10-20 · agent/subject-prices — one learner, several subjects: step 4 (price per subject, one invoice)
+
+- main checked: origin/main after #687 (2026-10-20). Owner: subjects may have different prices; one invoice per payer
+  with a line per subject; no packages; billing by agreement (by the 10th or after lessons) stays.
+- Data: `studentRevenuePlans/{studentId}.subjectPrices = { "Matemaatika": { lessonPriceCents, lessonMinutes } }` — the
+  card's own price is its main subject's (`mainSubject` in students/subjects.js); a subject without a price is billed
+  at the card's price. firestore.rules allow the field (map, ≤ 8). Saved with `mergeFields` so a removed price goes.
+- Billing: `monthlyBillingRows` gives a multi-subject card `subjectParts` (lessons by subject via `itemSubject`, own
+  price and length, own correction against its part of last month's invoice — an invoice from before subjects counts
+  for the main subject). `invoiceItems` → one item per subject; 2+ items go to `/monthly-combined` (now accepts one card
+  twice with different subjects: `monthlyItemsInput`, `planForSubject` in functions/combined-invoice-core.js), one item
+  to `/monthly` with `subject`. A non-language subject's line says „Tunnid”, not „Keeletunnid”.
+- UI: Finantsid → card „Arveldus” has a price and length per further subject; Kuuarved shows the subjects of a row.
+- Not changed: per-lesson invoices from „Tunnid → arve” (LessonAccountingPanel) still use the card's price.
+- Checks: vitest finance/students/services/parents 390/390, eslint clean, functions node --test 316/316; emulator
+  test „one card, two subjects” in finance-emulator.integration.js (CI).
+- After merge (owner permission): deploy `firestore:rules` and `functions:manualInvoiceApi`; then copy the maths price
+  of Stefania and the English price of Aleksandr Smirnov from their archived cards' plans into `subjectPrices`.
+- Next: (step 5 „remove packages” cancelled 2026-10-21 — packages/tokens stay.)
+## 2026-10-20 · agent/availability-poll — „Sobivad ajad”: a page the school sends to learners to mark suitable times
+
+- main checked: origin/main (2026-10-20). Owner: a Mon–Sun table to send to anyone who wants lessons, as simple as
+  possible, asking for every time that REALLY suits a lesson, not only the preferred one.
+- Public page `https://crm.epkoolitus.ee/ajad` (no login; ET/RU, Russian browsers start in RU): hours 8–22 × Mon–Sun,
+  tap = sobib (light green), tap again = ★ best, third tap clears; a finger drag paints (skipped hours in one day are
+  filled); a day name marks the whole day. Then name, phone or e-mail (one is enough), subject (Eesti keel, Inglise
+  keel, Matemaatika, Muu), lessons per week, online/kohapeal, comment; honeypot.
+- Sent through the existing public `websiteLeadApi` (per-IP limit, honeypot, e-mail to info@): source `availability`,
+  `slots` / `preferred` as half hours ("Mon-16:00"), `format`, `lessonsPerWeek` (functions/website-lead-core.js,
+  `slotSummary` in the e-mail: „E 16:00–19:00 (★ 17:00–18:00)”). It lands in Päringud with a read-only week grid.
+- Files: `crm-v2/src/features/availability-poll/*`, routes.jsx (lazy public route), leads/LeadsPage.jsx + leads.css,
+  functions/website-lead-core.js (+ test). Checks: vitest availability-poll 3/3, functions website-lead-core 8/8,
+  eslint clean; tried on a local stand at 375×812 (marking, ★, drag, form).
+- Deploy after merge (owner permission): `functions:websiteLeadApi`; the page itself goes with main. The link carries
+  no personal data — the learner types name and contact.
+- Next: match the answers with the teachers' free windows (Õpetaja ajad) when choosing a teacher.
+
+## 2026-10-20 · agent/teacher-own-subject — one learner, several subjects: step 3 (a teacher sees only their subject)
+
+- main checked: origin/main after #685 (2026-10-20). Owner: a teacher of another subject must not see what is not theirs.
+- Correction (2026-10-20, after checking): teacher-scoped reads are ON in production since 2026-08-05
+  (`securityMigrations/teacherUidV1.readEnforced: true`, enforced by the owner); an earlier note here said OFF — that
+  was a truncated read. Lessons, schedule and student cards were already per teacher; homework, messages, worksheets
+  and results were readable by any teacher until this PR. Also: the student card refused the second subject's
+  teacher („Ligipääs puudub”) because it compared only the card's main `teacher`.
+- This PR: port of #517 — `staffCanAccessStudent()` for homework, messages, worksheetAssignments, exerciseResults (a
+  teacher only of cards with their uid in teacherUid/teacherUids; by name until enforcement); messages unread count and
+  sheet results query by own students; calibration card admin-only. Subject level: `lessons/schedule.listByStudent(id,
+  { teacherUid })`; the student card lets in a teacher of any track (`teacherTracks` in subjects.js), loads only their
+  lessons and schedule, shows only their subject (header, overview) and only works they gave or of their subject.
+- Tests: vitest 581 (students, parents, services, components, worksheet-studio, generator ui), eslint clean; emulator
+  tests: #517 ones + „two teachers of one child” (security-access-emulator.integration.js) — CI.
+- Deployed 2026-10-20 (owner „сливай и выкладывай”): #686 merged, live rules checked equal to main, then
+  `firebase deploy --only firestore:rules`. The 4 cards without a teacher got one (owner): Viktoria and Aleksei Merzin —
+  Pavel Zakutailo; „Михаил Мач” and „Mihhail” — Jegor Fjodorov (probably one boy; not merged, owner: do not touch).
+- Verified in production as two teachers (custom-token sign-in, reads only): own students, schedule, lessons, homework,
+  worksheets, results and messages load; a foreign card is refused; on a shared child the teacher's own lessons load
+  and „all lessons of the child” is refused.
+- Next: price per subject + one invoice with lines per subject → remove packages.
+
+## 2026-10-20 · agent/subject-switcher — one learner, several subjects: step 2 (subject switcher)
+
+- main checked: origin/main after #684 (2026-10-20). Production data done earlier today with the owner's permission:
+  subject backfill (136 lessons, 121 Google-synced schedule entries, 51 homework; 352 never-synced schedule entries left
+  untouched so no write pushes old lessons into teachers' Google calendars — the CRM places them by teacher), 8 pairs of
+  cards merged (`functions/student-merge.js`, schedule moved, finance left on the archived cards): Stefania, Georg,
+  Aleksandr and Mihhail Smirnov now have two subjects on one card; Artur Karpovits, Timur, Mariam, Monika lost a
+  duplicate. The two Marias are two children (owner). Script logs: activityLog `subject.backfilled`, `student.cards_merged`.
+- This step: `crm-v2/src/features/students/subjects.js` (subject of a record: own field → teacher's track → the card's
+  only subject) and `SubjectSwitcher.jsx` („Kõik · Eesti keel · Matemaatika”, shown only with 2+ subjects).
+  Parent home: switcher filters upcoming lessons, done lessons, homework and the child's tracks; a lesson shows its
+  subject under „Kõik”. Student home: switcher filters next lesson / lessons / homework; „Minu areng” (Estonian course)
+  only for Eesti keel or „Kõik”. Student card (staff): subject tracks in the header, switcher filters the Tunnid tab.
+  Invoices are not filtered (one invoice per family).
+- Checks: vitest students + parents 97/97 + subjects.test 2/2, eslint 0 errors.
+- Next steps: teacher sees only their subject (UI + firestore.rules) → price per subject + one invoice with lines per
+  subject (Stefania maths and Aleksandr English prices stayed on the archived cards) → remove packages.
+
+## 2026-10-20 · agent/board-page-menu — Live Classroom: the page ⋯ menu names its page; right click on any tab
+
+- Owner 2026-10-20 (screenshot): could not delete a sheet in the lesson. The ⋯ button stood after all tabs (next to the
+  worksheet tab) while it acted on the open page („Leht 3”), and the menu was rendered inside the scrolling tab strip.
+- Now: ⋯ stands right after the open page's tab and its title names the page; a right click on any page tab opens the
+  menu of that page (delete it without opening it); the menu shows the page name, is rendered in `document.body`
+  (portal, own styles in board.css) and tells when a completed lesson page cannot be deleted. Deleting another page keeps
+  the open one.
+- Files: `crm-v2/src/features/board/StudentBoard.jsx`, `board.css`, `board.test.jsx`. Checks: vitest board +
+  live-classroom 117/117, eslint clean.
+- Same PR, owner 2026-10-20 („ученик с телефона нормально не может видеть лист…”): on a phone the A4 sheet (1000 px)
+  was shrunk to ~33 % and could not be read or moved; a student who followed the teacher onto the sheet kept the pen,
+  so one finger drew instead of moving or tapping fields. Now: under 700 px a worksheet page is a reading page — the
+  sheet in one column (`.ws-narrow` rules at the end of `worksheet-studio/engine/sheet.css`: page/rows/grids single
+  column, theme paddings, headers/footers hidden, 16 px inputs) in a native finger-scrolling box; the drawing dock and
+  zoom are hidden; „Tahvlivaade” switches back to the board (teacher's drawings), „Lugemisvaade” returns. A pointed
+  task scrolls into view. The student following onto a worksheet page gets the fill tool on any screen.
+- Checked on a local stand at 375×812 (sheet readable, no sideways scroll, answer fields full width); vitest board +
+  live-classroom + worksheet-studio 407/407 + 2 new phone tests, eslint clean. Not tried on a real phone yet.
+- Next safe step: merge (frontend deploys with main); the owner deletes a page and a student opens a sheet on a phone.
+
+## 2026-10-20 · agent/merge-subjects — one learner, several subjects: step 1 (merging cards keeps both subjects)
+
+- main checked: origin/main after #682 (2026-10-20). Owner decisions 2026-10-20: one card per child with one enrollment
+  per subject (own teacher, level, lessons, homework, progress, **own price**); lesson packages are dropped (production
+  had 0 studentPackages / 0 ledger entries); one invoice per payer with a line per subject; a teacher sees only their
+  own subject; parent and student get a subject switcher.
+- Found: enrollments already exist in the CRM (calendar picks a track, card lists „Õppesuunad”), but production has no
+  card with >1 enrollment: 9 children have two cards instead (4 genuinely two subjects, 5 duplicates of one subject).
+  148 of 305 lessons and 550 of 674 schedule entries have no subject.
+- This step: `functions/student-enrollments-core.js` (subject names, enrollments of old and new cards, merge of tracks);
+  `student-merge.js` writes the union of enrollments + `teacherUids` to the kept card and marks the other card's moved
+  lessons / schedule / work without a subject with that card's subject (finance records untouched). „Liida kaardid”
+  preview shows „uus õppesuund” and the subjects after merging.
+- Checks: functions unit (enrollments + merge core) 14/14; vitest students 78/78; eslint clean; new emulator test in
+  student-merge-emulator.integration.js runs in CI (local Java < 21).
+- Merged + `functions:staffOperationsApi` deployed 2026-10-20 (owner „сливай и деплой”). Production data 2026-10-20 (owner:
+  „Muu это математика”): subject „Muu” → „Matemaatika” on the 8 cards that had it (activityLog `student.subject_renamed`).
+  Waiting for the owner: subject backfill on lessons/schedule/homework and merging the 8 pairs (Maria: one child or two?).
+- Next steps (separate PRs): subject backfill on lessons/schedule (dry run first) → subject switcher for parent/student
+  and subject tabs on the card → per-subject teacher scoping in rules → price per subject + one invoice with lines per
+  subject → remove packages UI/trigger.
+
+## 2026-10-19 · agent/teacher-no-money — teachers see no invoices or amounts (port of #516)
+
+- main checked: 7686fb4 (2026-10-19). Owner 2026-10-19: „Учитель не должен видеть сумму и счета”.
+- Found: the live rules still let any teacher read every invoice of the school, edit an invoice description and read
+  `emailQueue` (invoice / reminder e-mails with amounts); `invoiceApi` `/send` and `/remind` accepted a teacher.
+- `firestore.rules`: `invoices` read = admin, bookkeeper (`isFinance`) or the invoice's own family; update = admin only;
+  `emailQueue` read = admin or bookkeeper. `functions/index.js` `invoiceApi`: staff routes now require the administrator.
+- Checked that nothing else gives a teacher money: student cards hold only lesson counts (production read: no price or
+  balance fields), prices are in admin-only plans, payments / packages / ledgers are admin-only, CRM v2 loads invoices
+  only for admin / bookkeeper. Kept on purpose: Kassa — a teacher records cash they took and sees only their own cash
+  (owner: „принимать деньги от учителя может каждый”).
+- Tests: `security-finance-emulator.integration.js` — teacher cannot read / edit an invoice, cannot send or remind even
+  an own student's invoice, cannot list `emailQueue`; admin can edit the description. Runs in CI.
+- Deployed 2026-10-19 (owner „сливай оба”): #681 merged; live rules were checked equal to main first, then
+  `firebase deploy --only firestore:rules,functions:invoiceApi`.
+- Next safe step: after deploy, open the CRM as a teacher and check the calendar, student card and Kassa still work.
+## 2026-10-19 · agent/raamatukogu — „Raamatukogu” in Õppevara (port of #505)
+
+- main checked: 7686fb4. Owner 2026-10-19: „Библиотеку нужно внедрить”; next the owner sends photos of the school's
+  textbooks to digitise (separate task, copyright of each book to be checked first).
+- Page `/library/raamatukogu` (button „Raamatukogu” in Õppevara, staff only): free external sources by category and the
+  Harno level-exam links A2–C1; only one file is hosted (Peace Corps Estonian, US government work, public domain).
+- Files: `crm-v2/src/features/library/raamatukogu/*`, `crm-v2/public/raamatukogu/*.pdf`, `routes.jsx` (lazy route),
+  `LibraryPage.jsx` (button). Checks: vitest library + app 67/67, eslint 0 errors, vite build OK. External links not
+  re-checked since 2026-10-11.
+- Merged 2026-10-19 (owner „сливай оба”), frontend deploys with main. Owner: the textbooks are not ours, the school has
+  the publisher's permission; plan — page photos + recognised text in Raamatukogu „Õpikud” (signed-in school users
+  only, no download), then exercises as CRM sheets, then links from course lessons.
+- Next safe step: the owner sends the photos and any limits of the permission.
+
+## 2026-10-19 · agent/school-covered-lesson — „Kooli kulul”: a held lesson the school pays itself
+
+- main checked: eef5885 (2026-10-19, after #679). Asked by Oleksiy in the team chat, plan approved by the owner 2026-10-19.
+- What: a 4th way to close a lesson. The lesson stays **Toimunud** (the teacher's hour counts — payroll is workSessions,
+  untouched), but the student pays nothing: `lessons.billingStatus = "school_covered"` + required reason
+  (`billingDispositionReason`), set through the existing audited `POST /lessons/billing-disposition` (financeApi,
+  admin only, financialAudit `lesson.billing_disposition_changed`, refused when the month is closed or the lesson is invoiced).
+- Credits: `lessonTakesToken` (functions/lesson-tokens-core.js) returns false for it; `syncLessonTokens` now also reacts
+  to this flag, so a credit the lesson already took is restored through the package ledger (`lesson_restoration`);
+  undoing („Tühista „kooli kulul””, `billingStatus unset`, reason required) takes it again. `lessonBillingDispositionPatch`
+  allows `school_covered` (only that) on a package-consumed lesson.
+- Billing: not billable (`lessonIsBillable`), not chargeable in the monthly invoice (`monthlyBilling.isChargeable`),
+  correction note counts „N kooli kulul”; Finance disposition dialog has the option too.
+- UI: calendar lesson panel (admin, individual lessons) „Kooli kulul (õpilane ei maksa)” → reason → confirm; badge
+  „Toimunud · kooli kulul”. Student card history and the parent home show „Tasuta (kooli kulul)”.
+- Not yet: group lessons (attendance has no billing record per student); student portal wording beyond the parent home.
+- Checks: functions node --test finance-core + lesson-tokens-core 55/55; vitest finance/calendar/parents/students 65 files
+  327 tests + LessonPanel 7/7; eslint 0 errors. New emulator test in finance-emulator.integration.js — NOT run locally
+  (local Java < 21), runs in CI.
+- Deployed 2026-10-19 (owner „да”): #680 merged, `financeApi` + `syncLessonTokens` deployed, frontend via main.
+- Next safe step: after merge + functions deploy, mark one real lesson in the calendar and check the package balance.
+
 ## 2026-10-19 · agent/www-public-only — www.epkoolitus.ee served the whole repository
 
 - Found during the v1 retirement: the Vercel project „keelesepp” (www.epkoolitus.ee, output directory „.”, not deployed

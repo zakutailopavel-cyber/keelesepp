@@ -1,4 +1,4 @@
-import { CalendarClock, Check, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
+import { CalendarClock, Check, HandCoins, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
@@ -63,7 +63,7 @@ function readDraft(item) {
   try { return JSON.parse(window.localStorage.getItem(draftKey(item)) || 'null'); } catch { return null; }
 }
 
-export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
+export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
   const done = Boolean(item?.recordProblem || item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
   const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
   const [draft] = useState(() => readDraft(item));
@@ -71,6 +71,8 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
   const [notes, setNotes] = useState(draft?.notes || '');
   const [homework, setHomework] = useState(draft?.homework || null);
   const [fixing, setFixing] = useState(false);
+  // „Kooli kulul”: the reason the admin is typing, or null when the form is closed
+  const [covering, setCovering] = useState(null);
   // editing the topic and the note of a marked lesson: { pick, notes } or null
   const [editing, setEditing] = useState(null);
   useEffect(() => {
@@ -88,9 +90,9 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
   // "Last time" is the lesson before this one, never this lesson's own mark.
   const last = history.find((lesson) => lesson.id !== item.lessonRecordId && (lesson.date < item.occurrenceDate || (lesson.date === item.occurrenceDate && !item.lessonRecordId)));
   const record = item.record;
-  const save = async (status) => {
+  const save = async (status, schoolCoveredReason = '') => {
     const ok = await (status === 'Toimunud'
-      ? onDone({ status, ...topicFromPick(catalog, topic, notes), homework })
+      ? onDone({ status, ...topicFromPick(catalog, topic, notes), homework, ...(schoolCoveredReason ? { schoolCoveredReason } : {}) })
       : onDone({ status, ...topicFromPick(null, {}, notes), topic: '', homework: null }));
     if (ok) { try { window.localStorage.removeItem(draftKey(item)); } catch { /* storage may be disabled */ } }
   };
@@ -99,6 +101,9 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
   // booked for it, so the lesson may still be cancelled or deleted like a planned one
   const orphanMark = done && !item.isGroup && !record && item.recordProblem !== 'duplicate';
   const sync = lessonSyncState(item);
+  const schoolCovered = record?.billingStatus === 'school_covered';
+  // only a held lesson that is not yet on an invoice or otherwise settled (admin only: the prop is passed for admins)
+  const canCover = Boolean(onSchoolCovered && record && record.status === 'Toimunud' && !record.billingStatus && !record.invoiceId);
   const absent = item.status === 'Puudus_eta' || item.status === 'Puudus_p' || ['Puudus_eta', 'Puudus_p'].includes(record?.status);
 
   return (
@@ -137,7 +142,8 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
 
       {!item.isGroup && done ? (
         <section className="lp-done">
-          <Badge tone={absent ? 'danger' : 'success'}>{STATUS_LABEL[record?.status || item.status] || 'Arvestatud'}</Badge>
+          <Badge tone={absent ? 'danger' : 'success'}>{STATUS_LABEL[record?.status || item.status] || 'Arvestatud'}{schoolCovered ? ' · kooli kulul' : ''}</Badge>
+          {schoolCovered ? <p className="lp-hint">Õpilaselt tasu ei võeta ja paketist tundi maha ei arvata; õpetajale läheb tund arvesse.{record.billingDispositionReason ? ` Põhjus: ${record.billingDispositionReason}` : ''}</p> : null}
           {record && !editing ? <><strong>{topicLine(record) || INDIVIDUAL_TOPIC}</strong>{record.notes ? <p>{record.notes}</p> : null}</> : null}
           {record && onUpdateDetails && !editing ? <button type="button" className="link-button" onClick={() => setEditing({ pick: pickFromRecord(catalog, record), notes: record.notes || '' })}><Pencil size={13} /> Muuda teemat või märkust</button> : null}
           {record && editing ? (
@@ -149,7 +155,16 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
             </div>
           ) : null}
           {orphanMark ? <p className="lp-hint lp-orphan">See märge on ilma päevikukandeta — arvele midagi ei läinud. Kui tund on vale, tühista või kustuta see allpool.</p> : null}
-          {record && onChangeMark && !fixing ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
+          {canCover && covering === null ? <button type="button" className="link-button" onClick={() => setCovering('')}><HandCoins size={13} /> Kooli kulul (õpilane ei maksa)</button> : null}
+          {canCover && covering !== null ? (
+            <div className="lp-notes-edit" role="group" aria-label="Kooli kulul">
+              <label className="lp-notes"><span>Põhjus (kohustuslik, jääb auditisse)</span><textarea rows={2} maxLength={500} placeholder="Nt: proovitund, õpetaja hilines, kompensatsioon…" value={covering} onChange={(event) => setCovering(event.target.value)} /></label>
+              <p className="lp-hint">Tund jääb toimunuks ja õpetajale arvesse. Õpilaselt ei võeta tasu; kui paketist arvati tund juba maha, tuleb see tagasi.</p>
+              <div className="lp-actions"><Button loading={saving} disabled={!covering.trim()} onClick={async () => { if (await onSchoolCovered('school_covered', covering.trim())) setCovering(null); }}>Kinnita: kooli kulul</Button><Button variant="secondary" disabled={saving} onClick={() => setCovering(null)}>Loobu</Button></div>
+            </div>
+          ) : null}
+          {schoolCovered && onSchoolCovered ? <button type="button" className="link-button" disabled={saving} onClick={() => { const reason = globalThis.prompt('Miks õpilane siiski maksab? (põhjus jääb auditisse)'); if (reason && reason.trim()) onSchoolCovered('unset', reason.trim()); }}><RotateCcw size={13} /> Tühista „kooli kulul”</button> : null}
+          {record && onChangeMark && !fixing && !record.billingStatus ? <button type="button" className="link-button" onClick={() => setFixing(true)}>Märkisid valesti? Paranda</button> : null}
           {record && fixing ? (
             <div className="lp-fix" role="group" aria-label="Paranda märge">
               {['Toimunud', 'Puudus_p', 'Puudus_eta'].filter((status) => status !== record.status && !(future && status !== 'Puudus_p')).map((status) => (
@@ -180,7 +195,15 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
             {future ? null : <Button loading={saving} onClick={() => save('Toimunud')}><Check size={17} /> Tund toimus</Button>}
             <Button variant="secondary" disabled={saving} onClick={() => save('Puudus_p')}><UserRoundX size={16} /> Puudus (teatas ette)</Button>
             {future ? null : <Button variant="secondary" disabled={saving} onClick={() => save('Puudus_eta')}><UserRoundX size={16} /> Puudus (ei teatanud)</Button>}
+            {future || !onSchoolCovered ? null : <Button variant="secondary" disabled={saving} onClick={() => setCovering(covering === null ? '' : null)}><HandCoins size={16} /> Kooli kulul</Button>}
           </div>
+          {!future && onSchoolCovered && covering !== null ? (
+            <div className="lp-notes-edit" role="group" aria-label="Kooli kulul">
+              <label className="lp-notes"><span>Põhjus (kohustuslik, jääb auditisse)</span><textarea rows={2} maxLength={500} placeholder="Nt: proovitund, õpetaja hilines, kompensatsioon…" value={covering} onChange={(event) => setCovering(event.target.value)} /></label>
+              <p className="lp-hint">Tund märgitakse toimunuks ja läheb õpetajale arvesse. Õpilaselt tasu ei võeta ega paketist tundi maha arvata.</p>
+              <div className="lp-actions"><Button loading={saving} disabled={!covering.trim()} onClick={() => save('Toimunud', covering.trim())}>Tund toimus kooli kulul</Button><Button variant="secondary" disabled={saving} onClick={() => setCovering(null)}>Loobu</Button></div>
+            </div>
+          ) : null}
         </section>
       ) : null}
 

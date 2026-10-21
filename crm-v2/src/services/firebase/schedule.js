@@ -68,9 +68,10 @@ export const scheduleService = {
     const snapshot = await getDocs(filters.teacherUid ? query(reference, where('teacherUid', '==', filters.teacherUid)) : reference);
     return sort(snapshot.docs.map((item) => normalizeScheduleEvent(item.id, item.data())));
   },
-  async listByStudent(studentId) {
+  // a teacher passes their uid: with teacher scope enforced the rules let a teacher read only their own entries
+  async listByStudent(studentId, { teacherUid = '' } = {}) {
     const { db } = requireFirebaseClient();
-    const snapshot = await getDocs(query(collection(db, 'schedule'), where('studentId', '==', studentId)));
+    const snapshot = await getDocs(query(collection(db, 'schedule'), where('studentId', '==', studentId), ...(teacherUid ? [where('teacherUid', '==', teacherUid)] : [])));
     return sort(snapshot.docs.map((item) => normalizeScheduleEvent(item.id, item.data())));
   },
   async create(data) {

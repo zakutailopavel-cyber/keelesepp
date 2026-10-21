@@ -128,6 +128,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
   const bothLines = allSubjects ? sameName.map((card) => ({ card, amount: form.amounts[card.id] || '' })) : [];
   const bothTotal = bothLines.reduce((sum, line) => sum + (Number(line.amount) || 0), 0);
   const pickName = (value) => {
+    setError('');
     setPickedName(value);
     const cards = students.filter((student) => student.name === value);
     setForm((current) => ({ ...current, studentId: cards.length === 1 ? cards[0].id : '' }));
@@ -199,6 +200,9 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
         onClose={close}
         footer={(
           <>
+            {/* by the buttons, always in view: at the end of the long form it sat under the footer's edge and looked
+                white (owner 2026-10-19) */}
+            {error ? <p className="action-error manual-invoice-error" role="alert">{error}</p> : null}
             <Button variant="secondary" disabled={saving} onClick={close}>Loobu</Button>
             <Button
               variant="secondary"
@@ -247,7 +251,7 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
               className="form-grid__wide"
               label="Aine"
               value={form.studentId}
-              onChange={(event) => setForm({ ...form, studentId: event.target.value })}
+              onChange={(event) => { setError(''); setForm({ ...form, studentId: event.target.value }); }}
               required
             >
               <option value="">Vali aine ({sameName.length})</option>
@@ -313,7 +317,6 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
               Arve koostatakse õpilasele <strong>{selectedStudent.name}</strong>{subjectOf(selectedStudent) ? <> ({subjectOf(selectedStudent)})</> : null} ja lisatakse kohe arvete nimekirja.
             </p>
           ) : null}
-          {error ? <p className="action-error form-grid__wide" role="alert">{error}</p> : null}
         </form>
         <aside className="manual-invoice-preview" aria-label="Arve eelvaade">
           <div className="manual-invoice-preview__label">Arve eelvaade</div>

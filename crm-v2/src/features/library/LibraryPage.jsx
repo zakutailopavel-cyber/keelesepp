@@ -9,6 +9,7 @@ import {
   Eye,
   FilePenLine,
   House,
+  Library,
   LayoutTemplate,
   Paperclip,
   Presentation,
@@ -89,6 +90,19 @@ export function phaseSheetItem(item, sheetId, doc) {
     // the sheet's own level (a2b1 control lessons are A2 sheets in the B1 course)
     ...item, type: 'worksheet', phase: sheetId, title: `${item.title} · ${label}`, level: doc.meta?.level || item.level,
     source: { ...item.source, worksheetData: null, worksheetDoc: doc, publishedWorksheetDoc: doc, worksheetDocStatus: 'published' },
+  };
+}
+
+// one task of a published sheet (owner 2026-10-21): the student gets a worksheet with only that block
+export function singleTaskItem(item, blockId) {
+  const doc = item.source?.publishedWorksheetDoc || item.source?.worksheetDoc;
+  const block = doc?.blocks?.find((entry) => entry.id === blockId);
+  if (!block) return null;
+  const one = { ...doc, blocks: [block] };
+  const name = String(block.data?.title || '').trim() || 'ülesanne';
+  return {
+    ...item, type: 'worksheet', block: blockId, title: `${item.title} · ${name}`,
+    source: { ...item.source, worksheetData: null, worksheetDoc: one, publishedWorksheetDoc: one, worksheetDocStatus: 'published' },
   };
 }
 
@@ -244,21 +258,29 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   // (&leht=<discover|practice|transfer>: that published sheet of the lesson, not the lesson plan)
   const assignId = searchParams.get('assign') || '';
   const assignSheet = searchParams.get('leht') || '';
+  const assignBlock = searchParams.get('plokk') || '';
   useEffect(() => {
     if (!assignId || !items.length) return;
     const item = items.find((entry) => entry.sourceId === assignId && entry.kind !== 'exercise');
     const next = new globalThis.URLSearchParams(searchParams);
     next.delete('assign');
     next.delete('leht');
+    next.delete('plokk');
     setSearchParams(next, { replace: true });
     if (!item) return;
-    if (!assignSheet) { setAssigning(item); return; }
+    const open = (sheetItem) => {
+      if (!assignBlock) { setAssigning(sheetItem); return; }
+      const task = singleTaskItem(sheetItem, assignBlock);
+      if (task) setAssigning(task);
+      else setInstallError('Seda ülesannet pole avaldatud lehel: avalda leht uuesti ja proovi siis.');
+    };
+    if (!assignSheet) { open(item); return; }
     Promise.resolve().then(() => worksheetRepository.list(assignId)).then((records) => {
       const doc = publishedPhaseDoc((records || []).find((record) => (record.worksheetId || record.id) === assignSheet));
       if (!doc) { setInstallError('Sellel töölehel pole avaldatud versiooni: avalda see enne õpilasele määramist.'); return; }
-      setAssigning(phaseSheetItem(item, assignSheet, doc));
+      open(phaseSheetItem(item, assignSheet, doc));
     }).catch((error) => setInstallError(error.message || 'Töölehte ei saanud laadida.'));
-  }, [assignId, assignSheet, items, searchParams, setSearchParams, worksheetRepository]);
+  }, [assignBlock, assignId, assignSheet, items, searchParams, setSearchParams, worksheetRepository]);
   const favFilter = onlyFav ? favorites : null;
   const mineUid = onlyMine ? user?.uid || '' : '';
   const levels = useMemo(() => levelFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
@@ -401,6 +423,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         title="Õppevara"
         actions={<>
           <Button variant="secondary" onClick={() => navigate('/library/worksheets/book')}><BookCopy size={17} /> Õpik</Button>
+          <Button variant="secondary" onClick={() => navigate('/library/raamatukogu')}><Library size={17} /> Raamatukogu</Button>
           <details className="lib2-menu">
             <summary className="button button--primary"><Plus size={17} /> Loo uus <ChevronDown size={15} /></summary>
             <div className="lib2-menu__list">

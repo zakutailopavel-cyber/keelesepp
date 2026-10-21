@@ -4,6 +4,7 @@ const firestore = vi.hoisted(() => ({
   collection: vi.fn((_db, name) => name),
   doc: vi.fn((...parts) => parts.length === 1 ? { id: 'generated-message', path: `${parts[0]}:generated-message` } : parts.join(':')),
   getDocs: vi.fn(),
+  onSnapshot: vi.fn(),
   query: vi.fn((name, ...constraints) => ({ name, constraints })),
   updateDoc: vi.fn(),
   where: vi.fn((field, operator, value) => ({ field, operator, value })),
@@ -99,6 +100,30 @@ describe('messagesService', () => {
       }),
     );
     fetchMock.mockRestore();
+  });
+
+  it('counts a teacher\'s unread badge only over their own students (the rules allow nothing else)', async () => {
+    const listeners = [];
+    firestore.onSnapshot.mockImplementation((target, next) => { listeners.push({ target, next }); return vi.fn(); });
+    const students = { list: vi.fn().mockResolvedValue({ items: [{ id: 'student-1' }, { id: 'student-2' }] }) };
+    const onCount = vi.fn();
+    const stop = messagesService.subscribeUnreadCount({ uid: 'teacher-1', students }, onCount);
+    await vi.waitFor(() => expect(listeners).toHaveLength(1));
+    expect(students.list).toHaveBeenCalledWith(expect.objectContaining({ scopeTeacherUid: 'teacher-1' }));
+    expect(listeners[0].target.constraints).toEqual([{ field: 'studentId', operator: 'in', value: ['student-1', 'student-2'] }]);
+    listeners[0].next({ docs: [
+      { id: 'a', data: () => ({ studentId: 'student-1', fromUid: 'parent-1', read: false }) },
+      { id: 'b', data: () => ({ studentId: 'student-1', fromUid: 'teacher-1', read: false }) },
+      { id: 'c', data: () => ({ studentId: 'student-2', fromUid: 'parent-2', read: true }) },
+    ] });
+    expect(onCount).toHaveBeenLastCalledWith(1);
+    stop();
+  });
+
+  it('counts every unread message for an administrator', () => {
+    firestore.onSnapshot.mockImplementation(() => vi.fn());
+    messagesService.subscribeUnreadCount({ uid: 'admin-1', all: true }, vi.fn());
+    expect(firestore.onSnapshot.mock.calls[0][0].constraints).toEqual([{ field: 'read', operator: '==', value: false }]);
   });
 
   it('marks only unread incoming messages as read', async () => {

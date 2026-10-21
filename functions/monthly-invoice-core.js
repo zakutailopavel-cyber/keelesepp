@@ -41,7 +41,7 @@ function monthlyInvoiceLines(input, plan = {}) {
   if (input.plannedUnits > 0) {
     lines.push({
       type: 'monthly_planned_lessons',
-      description: `Keeletunnid, ${monthLabel(input.month)}: ${String(input.plannedUnits).replace('.', ',')} × ${minutes} min × ${euros(priceCents)} €`,
+      description: `${input.title || 'Keeletunnid'}, ${monthLabel(input.month)}: ${String(input.plannedUnits).replace('.', ',')} × ${minutes} min × ${euros(priceCents)} €`,
       quantity: input.plannedUnits,
       unitPriceCents: priceCents,
       amountCents: Math.round(input.plannedUnits * priceCents),

@@ -6,6 +6,8 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 600,
     rollupOptions: {
+      // ajad.html: the „Sobivad ajad” link with its own preview (title, description, picture), the same app
+      input: { main: 'index.html', ajad: 'ajad.html' },
       output: {
         manualChunks(id) {
           if (id.includes('node_modules/firebase') || id.includes('node_modules/@firebase')) return 'firebase';

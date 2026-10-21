@@ -16,6 +16,7 @@ test("an adult registered as her own parent becomes the learner on her card", ()
   assert.equal(studentPatch.email, "vero@mail.com");
   assert.equal(userPatch.role, "student");
   assert.deepEqual(userPatch.roles, ["student"]);
+  assert.equal(userPatch.selfPayer, true);
   assert.equal(userPatch.childName, null);
   assert.deepEqual(userPatch.linkedStudentIds, ["card-1"]);
 });

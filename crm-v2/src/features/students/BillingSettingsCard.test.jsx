@@ -28,4 +28,15 @@ describe('BillingSettingsCard', () => {
     expect(onSave).not.toHaveBeenCalled();
     expect(screen.getByText(/Sisesta tunni hind/)).toBeInTheDocument();
   });
+
+  it('a card with two subjects: the second subject gets its own price and lesson length', async () => {
+    const onSave = vi.fn().mockResolvedValue({});
+    const student = { id: 'st', name: 'Stefania', subject: 'Eesti keel', enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel' }, { subject: 'Matemaatika', teacher: 'Yelyzaveta' }] };
+    render(<BillingSettingsCard student={student} plan={plan} canEdit onSave={onSave} />);
+    expect(screen.getByLabelText('Tunni hind (€) · Eesti keel')).toHaveValue('25');
+    fireEvent.change(screen.getByLabelText('Tunni hind (€) · Matemaatika'), { target: { value: '28' } });
+    fireEvent.change(screen.getByLabelText('Tunni pikkus · Matemaatika'), { target: { value: '45' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Salvesta/ })); });
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ lessonPrice: '25', subjectPrices: { Matemaatika: { lessonPrice: '28', lessonMinutes: '45' } } }));
+  });
 });

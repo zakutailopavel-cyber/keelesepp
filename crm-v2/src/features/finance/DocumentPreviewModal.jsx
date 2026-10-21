@@ -2,6 +2,7 @@ import { Download, FileText, Printer } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { Button, Modal } from "../../components/ui/index.js";
 import { base64DocumentBlob } from "../../services/firebase/paymentDocuments.js";
+import "./documentPreview.css";
 
 export default function DocumentPreviewModal({ document, onClose, printable = false }) {
   const url = useMemo(() => {

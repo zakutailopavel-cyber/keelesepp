@@ -219,7 +219,8 @@ describe('FinancePage', () => {
       text: vi.fn().mockResolvedValue('Kuupäev;Maksja;Selgitus;Summa;Tehingu ID\n03.08.2026;Maarika Tamm;Arve KS-101;80,00;TX-101'),
     };
     fireEvent.change(document.querySelector('input[type="file"]'), { target: { files: [file] } });
-    expect(await screen.findByText('Leitud automaatselt')).toBeInTheDocument();
+    expect(await screen.findByText('arve number või viitenumber selgituses')).toBeInTheDocument();
+    expect(screen.getAllByText(/^Kindel/).length).toBeGreaterThan(0);
     fireEvent.click(screen.getByRole('button', { name: /Seo valitud maksed/ }));
     await waitFor(() => expect(financeRepository.allocateBankTransaction).toHaveBeenCalledWith(expect.objectContaining({
       invoiceId: 'invoice-1', studentId: 'student-1', allocationCents: 8000, amountCents: 8000,

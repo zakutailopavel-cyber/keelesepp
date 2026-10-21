@@ -7,6 +7,8 @@ const normalize = (value) => String(value || '').trim().toLocaleLowerCase('et');
 export function parentMatchesStudent(parent, student) {
   const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
   if (linkedParentId && linkedParentId === parent.id) return true;
+  // a learner who pays for themselves: their own card
+  if (parent.selfPayer && (student.linkedUserId === parent.id || student.studentUid === parent.id || (student.linkedUserIds || []).includes(parent.id))) return true;
   const parentEmail = normalize(parent.email);
   const studentParentEmail = normalize(student.parentEmail || student.contactEmail || student.guardianEmail);
   if (parentEmail && studentParentEmail && parentEmail === studentParentEmail) return true;

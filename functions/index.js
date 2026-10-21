@@ -84,6 +84,7 @@ const {
   managedGoogleScheduleId,
   isKeeleSeppManagedGoogleEvent,
   isGoogleGoneError,
+  isGoogleRejectedError,
   googleRecurrenceExcludedDates,
   googleOriginalOccurrenceDate,
   managedGoogleOccurrenceExceptionId,
@@ -242,6 +243,10 @@ function publicCalendarMetadata(connection = {}) {
   };
 }
 
+// users/{uid} is readable by every teacher: the old OAuth tokens kept there before the move to calendarConnections are
+// removed whenever the public metadata is written (a merge alone kept them, owner 2026-10-21)
+const LEGACY_TOKEN_FIELDS_DELETE = () => Object.fromEntries(["accessToken", "refreshToken", "expiryDate", "access_token", "refresh_token", "expiry_date", "id_token", "scope", "token_type"].map(key => [key, FieldValue.delete()]));
+
 async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
   const privateRef = calendarConnectionRef(uid);
   const userRef = db.collection("users").doc(uid);
@@ -249,7 +254,7 @@ async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
   if (privateSnap.exists && privateSnap.data()?.refreshToken) {
     const connection = privateSnap.data();
     if (migrateLegacy) {
-      await userRef.set({ gcal: publicCalendarMetadata(connection) }, { merge: true });
+      await userRef.set({ gcal: { ...publicCalendarMetadata(connection), ...LEGACY_TOKEN_FIELDS_DELETE() } }, { merge: true });
     }
     return connection;
   }
@@ -280,7 +285,7 @@ async function loadCalendarConnection(uid, { migrateLegacy = true } = {}) {
   };
   if (migrateLegacy) {
     await privateRef.set(migrated, { merge: true });
-    await userRef.set({ gcal: publicCalendarMetadata(migrated) }, { merge: true });
+    await userRef.set({ gcal: { ...publicCalendarMetadata(migrated), ...LEGACY_TOKEN_FIELDS_DELETE() } }, { merge: true });
   }
   return migrated;
 }
@@ -307,7 +312,7 @@ async function saveCalendarConnection(uid, connection, { merge = true } = {}) {
   };
   await calendarConnectionRef(uid).set(next, { merge });
   await db.collection("users").doc(uid).set({
-    gcal: publicCalendarMetadata(next),
+    gcal: { ...publicCalendarMetadata(next), ...LEGACY_TOKEN_FIELDS_DELETE() },
   }, { merge: true });
   return next;
 }
@@ -1085,7 +1090,7 @@ async function syncLessonPackageConsumption({
       completed
       && (
         String(lesson.invoiceId || "").trim()
-        || ["invoiced", "free", "written_off"].includes(lesson.billingStatus)
+        || ["invoiced", "free", "written_off", "school_covered"].includes(lesson.billingStatus)
       )
     ) {
       const result = {
@@ -3728,6 +3733,7 @@ async function allocateBankTransaction({
   externalId,
   paidAt,
   payerName,
+  payerAccount,
   creditStudentId,
   reference,
   amount,
@@ -3736,6 +3742,9 @@ async function allocateBankTransaction({
   note,
 }) {
   const mutationId = cleanRequestId(requestId);
+  // the payer's bank account (IBAN) from the statement: the next payment from it is matched to the same child
+  // (owner 2026-10-21, bank matching). Kept as the bank wrote it, without spaces.
+  const cleanPayerAccount = String(payerAccount || "").replace(/\s+/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 34);
   const cleanExternalId = cleanText(externalId, 160);
   const normalized = normalizeBankDistribution(amount, allocations, lessonAllocations);
   const sortedAllocations = [...normalized.invoiceAllocations]
@@ -3876,6 +3885,9 @@ async function allocateBankTransaction({
       paidAt: transactionDate,
       payerName: cleanPayerName,
       payerKey: payerKey(cleanPayerName),
+      ...(cleanPayerAccount ? { payerAccount: cleanPayerAccount } : {}),
+      // whose invoices this payment paid: the memory for the next statement
+      paidStudentIds: [...new Set(invoiceSnaps.map(snap => String(snap.data()?.studentId || "")).filter(Boolean))].slice(0, 20),
       creditStudentId: normalized.unappliedAmountCents > 0 ? derivedCreditStudentId : "",
       creditStudentName: normalized.unappliedAmountCents > 0 ? creditStudentName : "",
       reference: cleanReference,
@@ -8536,7 +8548,8 @@ exports.invoiceApi = functions
       return;
     }
 
-    const actor = await requireStaffUser(req);
+    // sending invoices and reminders is finance work: administrator only, never a teacher (owner decision 2026-10-11)
+    const actor = await requireAdminUser(req);
 
     if (path === "/send") {
       const result = await sendInvoiceMessage(req.body?.invoiceId, { type: "invoice", actor });
@@ -9138,6 +9151,7 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         externalId: req.body?.externalId,
         paidAt: req.body?.paidAt,
         payerName: req.body?.payerName,
+        payerAccount: req.body?.payerAccount,
         creditStudentId: req.body?.creditStudentId,
         reference: req.body?.reference,
         amount: req.body?.amount,
@@ -10068,6 +10082,12 @@ async function flushCalendarSyncOutbox(uid, connection, calendarOverride = null)
     } catch (error) {
       if (isGoogleGoneError(error)) {
         successfulDeletion = true;
+      } else if (isGoogleRejectedError(error)) {
+        // a refused deletion never succeeds on retry: drop the job
+        console.warn(`Google refused to delete queued event ${entry.eventId}:`, error.message || error);
+        await doc.ref.delete();
+        failed++;
+        continue;
       } else {
         failed++;
         await doc.ref.set({
@@ -10151,6 +10171,11 @@ async function syncScheduleRecordToGoogle(
       return { deleted: true };
     } catch (error) {
       if (isGoogleGoneError(error)) return { deleted: true, alreadyGone: true };
+      if (isGoogleRejectedError(error)) {
+        // not retried and not shown as a sync failure: the event stays in Google, the teacher removes it there
+        console.warn(`Google refused to delete event ${schedule.gcalEventId} of ${scheduleId}:`, error.message || error);
+        return { rejected: true };
+      }
       await queueGoogleEventDeletion(scheduleId, schedule, error.message || "Google deletion failed");
       await updateCalendarPushMetadata(uid, { error: error.message || "Google deletion failed" });
       return { queued: true, error: error.message || String(error) };
@@ -10200,7 +10225,9 @@ async function syncScheduleRecordToGoogle(
             eventId: after.gcalEventId,
           });
         } catch (error) {
-          if (!isGoogleGoneError(error)) {
+          if (isGoogleRejectedError(error)) {
+            console.warn(`Google refused to delete event ${after.gcalEventId} of cancelled ${scheduleId}:`, error.message || error);
+          } else if (!isGoogleGoneError(error)) {
             await queueGoogleEventDeletion(scheduleId, after, error.message || "Google deletion failed during cancellation");
           }
         }
@@ -10846,7 +10873,8 @@ exports.syncLessonTokens = functions.firestore
   .onWrite(async (change, context) => {
     const before = change.before.exists ? change.before.data() : null;
     const after = change.after.exists ? change.after.data() : null;
-    const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived)]) : "deleted");
+    // „Kooli kulul” (billingStatus school_covered) changes whether the lesson takes a credit, so it is part of the mark
+    const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived), lesson.billingStatus === "school_covered"]) : "deleted");
     if (markOf(before) === markOf(after)) return null;
     // only CRM v2 marks (calendar / lesson panel); the server lesson journal syncs packages itself
     if ((after || before)?.accountingSource !== "crm_v2") return null;

@@ -10,6 +10,7 @@ import {
   GENERATOR_COVERAGE_STATUSES,
 } from '../coverage.js';
 import CalibrationCard from './CalibrationCard.jsx';
+import { useAuth } from '../../../app/AuthContext.jsx';
 import '../generator.css';
 
 const STATUS_OPTIONS = [
@@ -38,6 +39,9 @@ const PHASES = [
 const normalized = (value) => String(value || '').toLocaleLowerCase('et');
 
 export default function GeneratorCoveragePage({ repository = lessonWorksheetsService }) {
+  const { user } = useAuth();
+  // the calibration reads every submitted sheet of the school: administrator only (teachers see their own students)
+  const isAdmin = Boolean(user?.roles?.includes?.('admin'));
   const [queryText, setQueryText] = useState('');
   const [status, setStatus] = useState('all');
   const [level, setLevel] = useState('all');
@@ -132,7 +136,7 @@ export default function GeneratorCoveragePage({ repository = lessonWorksheetsSer
           </div>
         ) : <div className="generator-coverage-empty">Valitud filtritega tunde ei leitud.</div>}
       </Card>
-      <CalibrationCard />
+      {isAdmin ? <CalibrationCard /> : null}
     </div>
   );
 }

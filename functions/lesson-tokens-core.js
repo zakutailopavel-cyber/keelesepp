@@ -91,8 +91,10 @@ function tokenPackageRecord({ invoice, invoiceId, student = {}, issuedAt, nowIso
 
 // one credit for a held lesson, and for a no-show without notice when the card's plan charges it (the same rule as
 // the monthly invoices: crm-v2 finance/monthlyBilling.js isChargeable)
+// A held lesson the school pays itself („Kooli kulul”, owner 2026-10-19) takes no credit: the teacher's hour counts, the
+// student pays nothing; a credit it already took comes back.
 function lessonTakesToken(lesson = {}, plan = {}) {
-  if (lesson.status === 'Toimunud') return true;
+  if (lesson.status === 'Toimunud') return lesson.billingStatus !== 'school_covered';
   if (lesson.status === 'Puudus_eta') return plan.chargeNoShow !== false && !lesson.billingWaived;
   return false;
 }

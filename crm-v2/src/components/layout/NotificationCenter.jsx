@@ -4,10 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonChangeRequestsService, messagesService, studentsService } from '../../services/firebase/index.js';
 import { tasksService } from '../../services/firebase/tasks.js';
+import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import {
   CATEGORY_LABEL,
   homeworkNotifications,
   invoiceNotifications,
+  availabilityNotifications,
   lessonChangeNotifications,
   messageNotifications,
   sortNotifications,
@@ -17,7 +19,7 @@ import { useTasks } from '../../features/tasks/useTasks.js';
 import IconButton from '../ui/IconButton.jsx';
 import '../../features/notifications/notifications.css';
 
-const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService };
+const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService };
 const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, invoice: ReceiptText };
 const quiet = (promise) => Promise.resolve(promise).catch(() => []);
 
@@ -31,17 +33,19 @@ async function loadSources(user, repositories) {
     : { items: [] };
   const ids = studentResult.items.map((student) => student.id);
   const names = new Map(studentResult.items.map((student) => [student.id, student.name]));
-  const [messages, submissions, invoices, lessonRequests] = await Promise.all([
+  const [messages, submissions, invoices, lessonRequests, availability] = await Promise.all([
     staff ? quiet(admin ? repositories.messages.list() : repositories.messages.listByStudentIds(ids)) : [],
     staff ? quiet(repositories.homework.listSubmissionsByStudentIds(ids)) : [],
     admin || finance ? quiet(repositories.invoices.list()) : [],
     staff && repositories.changeRequests?.listPending ? quiet(repositories.changeRequests.listPending({ teacherUid: user.uid, all: admin })) : [],
+    admin && repositories.availability?.list ? quiet(repositories.availability.list()) : [],
   ]);
   return {
     messages,
     submissions: submissions.map((item) => ({ ...item, studentName: item.studentName || names.get(item.studentId) || 'Õpilane' })),
     invoices,
     lessonRequests,
+    availability: availabilityNotifications(availability, names),
   };
 }
 
@@ -60,6 +64,7 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     ...messageNotifications(sources.data?.messages || [], user),
     ...homeworkNotifications(sources.data?.submissions || []),
     ...lessonChangeNotifications(sources.data?.lessonRequests || []),
+    ...(sources.data?.availability || []),
     ...invoiceNotifications(sources.data?.invoices || []),
   ]), [sources.data, staff, tasks, user]);
   // the bell counts only what is new since the panel was last opened (remembered per user in this browser);

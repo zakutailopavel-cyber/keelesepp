@@ -2417,6 +2417,10 @@ test("Live Classroom keeps the teacher desk private and scopes student interacti
     db.collection("students").doc("live-student-record").set({
       name: "Live Student",
       linkedUserId: studentUid,
+      // the room's teacher teaches this student: homework and messages of a student are for their own teacher only
+      teacher: "Live Teacher",
+      teacherUid,
+      teacherUids: [teacherUid],
       active: true,
     }),
     db.collection("students").doc("outside-student-record").set({
@@ -3633,4 +3637,97 @@ test("cash box: a teacher takes cash, hands it over, an admin links it to the in
   // clients never write the ledger
   const clientWrite = await firestoreDocumentRequest(adminToken, "PATCH", "cashLedger/emulator_cash_receipt_0001?updateMask.fieldPaths=amountCents", { fields: { amountCents: { integerValue: "1" } } });
   assert.equal(clientWrite.status, 403);
+});
+
+test("„Kooli kulul”: an admin marks a package lesson as paid by the school and the credit comes back", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  await db.collection("students").doc("student-school-covered").set({ name: "School Covered Student", lessonsSinceInvoice: 0, active: true });
+  const product = await financeRequest(adminToken, "/package-products", { name: "Two lessons", lessonCredits: 2, totalPrice: 60, effectiveFrom: "2026-07-01", requestId: "emulator_school_covered_product_0001" });
+  assert.equal(product.status, 201, JSON.stringify(product.body));
+  const issued = await financeRequest(adminToken, "/student-packages", { studentId: "student-school-covered", packageProductId: "emulator_school_covered_product_0001", issuedAt: "2026-07-01", requestId: "emulator_school_covered_issue_0001" });
+  assert.equal(issued.status, 201, JSON.stringify(issued.body));
+  await db.collection("lessons").doc("lesson-school-covered").set({ studentId: "student-school-covered", studentName: "School Covered Student", date: "2026-07-29", status: "Toimunud", requestedStudentPackageId: "emulator_school_covered_issue_0001" });
+  const consumed = await financeRequest(adminToken, "/lessons/package-consumption/sync", { lessonId: "lesson-school-covered", requestId: "emulator_school_covered_consume_0001" });
+  assert.equal(consumed.body.status, "consumed", JSON.stringify(consumed.body));
+  assert.equal(consumed.body.balanceAfter, 1);
+
+  const noReason = await financeRequest(adminToken, "/lessons/billing-disposition", { lessonId: "lesson-school-covered", billingStatus: "school_covered", reason: "", requestId: "emulator_school_covered_mark_0000" });
+  assert.equal(noReason.status, 400, JSON.stringify(noReason.body));
+  const marked = await financeRequest(adminToken, "/lessons/billing-disposition", { lessonId: "lesson-school-covered", billingStatus: "school_covered", reason: "õpetaja hilines", requestId: "emulator_school_covered_mark_0001" });
+  assert.ok([200, 201].includes(marked.status), JSON.stringify(marked.body));
+  const restored = await financeRequest(adminToken, "/lessons/package-consumption/sync", { lessonId: "lesson-school-covered", requestId: "emulator_school_covered_restore_0001" });
+  assert.equal(restored.body.status, "restored", JSON.stringify(restored.body));
+  assert.equal(restored.body.balanceAfter, 2);
+  const [lessonSnap, auditSnap] = await Promise.all([
+    db.collection("lessons").doc("lesson-school-covered").get(),
+    db.collection("financialAudit").doc("emulator_school_covered_mark_0001").get(),
+  ]);
+  assert.equal(lessonSnap.data().status, "Toimunud");
+  assert.equal(lessonSnap.data().billingStatus, "school_covered");
+  assert.equal(lessonSnap.data().billingDispositionReason, "õpetaja hilines");
+  assert.equal(auditSnap.data().afterBillingStatus, "school_covered");
+});
+
+test("one card, two subjects: one monthly invoice with a line per subject at its own price (owner 2026-10-20)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  await Promise.all([
+    db.collection("students").doc("two-subjects").set({ name: "Kahe Aine Laps", active: true, subject: "Eesti keel", parentEmail: "pere@example.com",
+      enrollments: [{ subject: "Eesti keel", teacher: "Pavel" }, { subject: "Matemaatika", teacher: "Yelyzaveta" }] }),
+    db.collection("studentRevenuePlans").doc("two-subjects").set({ studentId: "two-subjects", studentName: "Kahe Aine Laps", lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 2, billingMode: "current", currency: "EUR", active: true, updatedAt: "2026-10-01T00:00:00.000Z", updatedByUid: "seed-admin",
+      subjectPrices: { Matemaatika: { lessonPriceCents: 2800, lessonMinutes: 45 } } }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const call = (path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/manualInvoiceApi${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const created = await call("/monthly-combined", { month: "2031-12", due: "2031-12-10", items: [
+    { studentId: "two-subjects", subject: "Eesti keel", plannedUnits: 4, correctionUnits: 0 },
+    { studentId: "two-subjects", subject: "Matemaatika", plannedUnits: 3, correctionUnits: 0 },
+  ] });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const invoice = created.body.invoice;
+  assert.equal(invoice.amountCents, 4 * 2000 + 3 * 2800);
+  assert.deepEqual(invoice.studentIds, ["two-subjects"]);
+  assert.deepEqual(invoice.lines.map((line) => line.subject), ["Eesti keel", "Matemaatika"]);
+  assert.match(invoice.lines[1].description, /^Matemaatika: Tunnid/);
+  // the same card cannot be billed for the month again, and one subject alone gets its own price
+  const again = await call("/monthly", { studentId: "two-subjects", month: "2031-12", due: "2031-12-10", plannedUnits: 2, subject: "Matemaatika" });
+  assert.equal(again.status, 200, JSON.stringify(again.body));
+  assert.equal(again.body.idempotent, true);
+  const single = await call("/monthly", { studentId: "two-subjects", month: "2032-01", due: "2032-01-10", plannedUnits: 2, subject: "Matemaatika" });
+  assert.equal(single.status, 201, JSON.stringify(single.body));
+  assert.equal(single.body.invoice.amountCents, 2 * 2800);
+  assert.equal(single.body.invoice.subject, "Matemaatika");
+});
+
+test("one bank payment pays two invoices of a child and remembers the payer's account (owner 2026-10-21)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const token = await createAdminToken();
+  await Promise.all([
+    db.collection("students").doc("bank-memory-child").set({ name: "Mälu Laps", active: true }),
+    db.collection("invoices").doc("bank-memory-inv-a").set({ num: "KS-2031-901", studentId: "bank-memory-child", studentName: "Mälu Laps", amountCents: 4500, amount: 45, balanceDueCents: 4500, balanceDue: 45, paidAmountCents: 0, paidAmount: 0, status: "Saadetud", date: "2031-10-01" }),
+    db.collection("invoices").doc("bank-memory-inv-b").set({ num: "KS-2031-902", studentId: "bank-memory-child", studentName: "Mälu Laps", amountCents: 3000, amount: 30, balanceDueCents: 3000, balanceDue: 30, paidAmountCents: 0, paidAmount: 0, status: "Saadetud", date: "2031-10-02" }),
+  ]);
+  const allocated = await financeRequest(token, "/bank-transactions/allocate", {
+    externalId: "MEMORY-001", paidAt: "2031-10-05", payerName: "Ema Mälu", payerAccount: "EE12 7700 0000 1111", reference: "Ülekanne",
+    amount: 75, allocations: [{ invoiceId: "bank-memory-inv-a", amount: 45 }, { invoiceId: "bank-memory-inv-b", amount: 30 }], lessonAllocations: [],
+    requestId: "emulator_bank_memory_0001",
+  });
+  assert.equal(allocated.status, 201, JSON.stringify(allocated.body));
+  const bank = (await db.collection("bankTransactions").doc("emulator_bank_memory_0001").get()).data();
+  assert.equal(bank.payerAccount, "EE12770000001111");
+  assert.deepEqual(bank.paidStudentIds, ["bank-memory-child"]);
+  assert.equal(bank.allocatedAmountCents, 7500);
+  for (const id of ["bank-memory-inv-a", "bank-memory-inv-b"]) {
+    const invoice = (await db.collection("invoices").doc(id).get()).data();
+    assert.equal(invoice.balanceDueCents, 0, `${id} ${JSON.stringify(invoice)}`);
+  }
 });

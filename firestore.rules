@@ -196,6 +196,25 @@ service cloud.firestore {
         );
     }
 
+    // Homework, submissions and messages of a student: the administrator, or a teacher of that student's card
+    // (teacherUid / teacherUids; by name while teacher scope is not enforced). Owner decision 2026-10-11:
+    // a teacher sees only their own students' correspondence and homework.
+    // Cheap uid checks first, the name comparison last: these rules also run inside large Live Classroom batches.
+    function staffCanAccessStudent(studentId) {
+      return isAdmin()
+        || (
+          isTeacher()
+          && studentId is string
+          && studentId != ''
+          && exists(studentPath(studentId))
+          && (
+            studentDoc(studentId).get('teacherUid', '') == uid()
+            || studentDoc(studentId).get('teacherUids', []).hasAny([uid()])
+            || (!teacherScopeReadEnforced() && teacherOwnsStudentData(studentDoc(studentId)))
+          )
+        );
+    }
+
     function liveLessonInvitationPath(invitationId) {
       return /databases/$(database)/documents/liveLessonInvitations/$(invitationId);
     }
@@ -1099,9 +1118,9 @@ service cloud.firestore {
     }
 
     match /homework/{homeworkId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff();
-      allow update: if isStaff()
+      allow read: if staffCanAccessStudent(resource.data.studentId) || ownsStudent(resource.data.studentId);
+      allow create: if staffCanAccessStudent(request.resource.data.get('studentId', ''));
+      allow update: if (staffCanAccessStudent(resource.data.studentId) && staffCanAccessStudent(request.resource.data.get('studentId', '')))
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -1121,50 +1140,18 @@ service cloud.firestore {
           && (!('studentFiles' in request.resource.data) || (request.resource.data.studentFiles is list && request.resource.data.studentFiles.size() <= 10))
           && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['status']) || request.resource.data.status in ['Ootel', 'Tehtud'])
         );
-      allow delete: if isStaff();
+      allow delete: if staffCanAccessStudent(resource.data.studentId);
     }
 
     match /invoices/{invoiceId} {
-      allow read: if isStaff() || isFinance() || ownsInvoice(resource.data);
+      // Teachers only mark lessons; money is the administrator's and the bookkeeper's (owner decision 2026-10-11).
+      allow read: if isAdmin() || isFinance() || ownsInvoice(resource.data);
       // invoices are made by the finance functions (CRM v2); a direct create is left to the administrator (old haldus)
       allow create: if isAdmin() && financialDateOpen(request.resource.data.get('date', ''));
-      allow update: if (
-          isAdmin()
-          && !changesInvoiceFinancialSource()
-          && financialDateOpen(resource.data.get('date', ''))
-          && financialDateOpen(request.resource.data.get('date', ''))
-        )
-        || (
-          isStaff()
-          && !changesInvoiceFinancialSource()
-          && financialDateOpen(resource.data.get('date', ''))
-          && financialDateOpen(request.resource.data.get('date', ''))
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny([
-            // number and recipient: who the invoice is for and where it is e-mailed
-            'num',
-            'studentId',
-            'invoiceTargetType',
-            'parentUid',
-            'linkedParentId',
-            'guardianUid',
-            'parentEmail',
-            'parentEmailLower',
-            'payerEmail',
-            'payerEmailLower',
-            'email',
-            'paidAmountCents',
-            'paidAmount',
-            'balanceDueCents',
-            'balanceDue',
-            'overpaidAmountCents',
-            'overpaidAmount',
-            'paymentStatus',
-            'paymentCount',
-            'financialUpdatedAt',
-            'status',
-            'paidAt'
-          ])
-        );
+      allow update: if isAdmin()
+        && !changesInvoiceFinancialSource()
+        && financialDateOpen(resource.data.get('date', ''))
+        && financialDateOpen(request.resource.data.get('date', ''));
       allow delete: if isAdmin()
         && financialDateOpen(resource.data.get('date', ''))
         && (
@@ -1294,8 +1281,11 @@ service cloud.firestore {
           'billingMode',
           'chargeNoShow',
           'validFrom',
-          'priceHistory'
+          'priceHistory',
+          'subjectPrices'
         ])
+        // the price of a second subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } }
+        && (!('subjectPrices' in request.resource.data) || (request.resource.data.subjectPrices is map && request.resource.data.subjectPrices.size() <= 8))
         && request.resource.data.keys().hasAll([
           'studentId',
           'studentName',
@@ -1392,18 +1382,42 @@ service cloud.firestore {
     }
 
     match /messages/{messageId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff()
+      allow read: if staffCanAccessStudent(resource.data.get('studentId', '')) || ownsStudent(resource.data.studentId);
+      allow create: if staffCanAccessStudent(request.resource.data.get('studentId', ''))
         || (
           ownsStudent(request.resource.data.studentId)
           && request.resource.data.get('fromUid', '') == uid()
           && request.resource.data.get('fromRole', '') in ['', 'student', 'parent']
         );
-      allow update: if isStaff()
+      allow update: if (staffCanAccessStudent(resource.data.get('studentId', '')) && request.resource.data.get('studentId', '') == resource.data.get('studentId', ''))
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read'])
         );
+      allow delete: if isAdmin();
+    }
+
+    // „Sobivad ajad” on a student's card (owner 2026-10-21): the student or the parent writes their own; the
+    // administrator writes any and marks it reviewed; the student's teacher reads it
+    function availabilityValid(data, studentId) {
+      return data.keys().hasOnly(['studentId', 'slots', 'preferred', 'message', 'changedAt', 'changedByUid', 'changedByName',
+          'changedByRole', 'previousSlots', 'previousPreferred', 'updatedAt', 'reviewedAt', 'reviewedByName'])
+        && data.studentId == studentId
+        && data.slots is list && data.slots.size() <= 336
+        && data.preferred is list && data.preferred.size() <= 336
+        && (!('message' in data) || (data.message is string && data.message.size() <= 1000))
+        && (!('previousSlots' in data) || (data.previousSlots is list && data.previousSlots.size() <= 336))
+        && (!('previousPreferred' in data) || (data.previousPreferred is list && data.previousPreferred.size() <= 336));
+    }
+    match /studentAvailability/{studentId} {
+      allow read: if isAdmin() || staffCanAccessStudent(studentId) || ownsStudent(studentId);
+      allow create: if availabilityValid(request.resource.data, studentId)
+        && (isAdmin() || (ownsStudent(studentId) && !request.resource.data.keys().hasAny(['reviewedAt', 'reviewedByName'])
+          && request.resource.data.changedByUid == uid()));
+      allow update: if availabilityValid(request.resource.data, studentId)
+        && (isAdmin() || (ownsStudent(studentId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['reviewedAt', 'reviewedByName'])
+          && request.resource.data.changedByUid == uid()));
       allow delete: if isAdmin();
     }
 
@@ -1437,8 +1451,8 @@ service cloud.firestore {
     }
 
     match /worksheetAssignments/{assignmentId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data);
-      allow create: if (isStaff()
+      allow read: if staffCanAccessStudent(resource.data.studentId) || ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data);
+      allow create: if (staffCanAccessStudent(request.resource.data.get('studentId', ''))
         && (
           request.resource.data.get('source', '') != 'student_private_worksheet'
           || (
@@ -1446,9 +1460,9 @@ service cloud.firestore {
           )
         ))
         || selfStudySheet(request.resource.data);
-      allow delete: if isStaff();
+      allow delete: if staffCanAccessStudent(resource.data.studentId);
       allow update: if request.resource.data.studentId == resource.data.studentId
-        && (isStaff()
+        && (staffCanAccessStudent(resource.data.studentId)
         || (
           (ownsStudent(resource.data.studentId) || liveGuestRoomSheet(resource.data))
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
@@ -1477,14 +1491,14 @@ service cloud.firestore {
     }
 
     match /exerciseResults/{resultId} {
-      allow read: if isStaff() || ownsStudent(resource.data.studentId);
-      allow create: if isStaff()
+      allow read: if staffCanAccessStudent(resource.data.get('studentId', '')) || ownsStudent(resource.data.studentId);
+      allow create: if staffCanAccessStudent(request.resource.data.get('studentId', ''))
         || (
           ownsStudent(request.resource.data.studentId)
           && !request.resource.data.keys().hasAny(teacherReviewFields())
           && request.resource.data.get('reviewStatus', 'pending') == 'pending'
         );
-      allow update: if isStaff()
+      allow update: if (staffCanAccessStudent(resource.data.get('studentId', '')) && request.resource.data.get('studentId', '') == resource.data.get('studentId', ''))
         || (
           ownsStudent(resource.data.studentId)
           && request.resource.data.studentId == resource.data.studentId
@@ -2890,7 +2904,8 @@ service cloud.firestore {
     }
 
     match /emailQueue/{entryId} {
-      allow read: if isStaff();
+      // invoice and reminder e-mails (amounts, payers): administrator and bookkeeper only
+      allow read: if isAdmin() || isFinance();
       allow write: if false;
     }
 

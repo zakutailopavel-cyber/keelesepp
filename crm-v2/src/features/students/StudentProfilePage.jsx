@@ -16,6 +16,9 @@ import { facebookContact, instagramContact } from '../../utils/socialLinks.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import StudentFinancePanel from './StudentFinancePanel.jsx';
 import StudentLessonsPanel from './StudentLessonsPanel.jsx';
+import SubjectSwitcher from './SubjectSwitcher.jsx';
+import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
+import { onlySubject, subjectName, subjectsOf, teacherTracks } from './subjects.js';
 import StudentWorksPanel from './StudentWorksPanel.jsx';
 import { homeworkService } from '../../services/firebase/homework.js';
 import BillingSettingsCard from './BillingSettingsCard.jsx';
@@ -69,6 +72,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   const [archiving, setArchiving] = useState(false);
   const [archiveError, setArchiveError] = useState('');
   const [notice, setNotice] = useState('');
+  // several subjects on one card (owner 2026-10-20): the lessons of one subject, or all
+  const [subject, setSubject] = useState('');
   const [activeTab, setActiveTab] = useState(() => PROFILE_TABS.some((tab) => tab.id === searchParams.get('tab')) ? searchParams.get('tab') : 'overview');
 
   const load = useCallback(async () => {
@@ -79,13 +84,15 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         setState({ loading: false, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [] });
         return;
       }
-      if (!canAssignTeacher && !isSameTeacher(student.teacher, teacherScope)) {
+      // a teacher of any subject of the card opens it (the second subject's teacher was refused before, owner 2026-10-20)
+      if (!canAssignTeacher && !isSameTeacher(student.teacher, teacherScope) && !teacherTracks(student, currentUser).length) {
         setState({ loading: false, error: null, forbidden: true, student: null, lessons: [], invoices: [], schedule: [] });
         return;
       }
       const [lessons, schedule, invoices, plan] = await Promise.all([
-        lessonApi.listByStudent(studentId),
-        scheduleApi.listByStudent(studentId),
+        // a teacher reads only their own lessons and schedule of the child (the rules allow nothing else)
+        lessonApi.listByStudent(studentId, canAssignTeacher ? {} : { teacherUid: currentUser.uid }),
+        scheduleApi.listByStudent(studentId, canAssignTeacher ? {} : { teacherUid: currentUser.uid }),
         canViewFinance ? invoiceApi.listByStudent(studentId) : Promise.resolve([]),
         canViewFinance ? planApi.get(studentId).catch(() => null) : Promise.resolve(null),
       ]);
@@ -93,7 +100,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
     } catch (error) {
       setState((current) => ({ ...current, loading: false, error: new Error(firebaseErrorMessage(error)) }));
     }
-  }, [canAssignTeacher, canViewFinance, invoiceApi, lessonApi, planApi, scheduleApi, studentApi, studentId, teacherScope]);
+  }, [canAssignTeacher, canViewFinance, currentUser, invoiceApi, lessonApi, planApi, scheduleApi, studentApi, studentId, teacherScope]);
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => {
@@ -108,7 +115,16 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   if (!state.student) return <div className="page-content"><Card><EmptyState title="Õpilast ei leitud" action={<Link className="button button--secondary" to="/students">Tagasi nimekirja</Link>} /></Card></div>;
 
   const { student } = state;
-  const tracks = (student.enrollments || []).filter((track) => track.active !== false && track.subject);
+  // a teacher sees only their own subjects of the child (owner 2026-10-20)
+  const ownTracks = canAssignTeacher ? null : teacherTracks(student, currentUser);
+  const tracks = (student.enrollments || []).filter((track) => track.active !== false && track.subject && (!ownTracks?.length || ownTracks.some((own) => own.subject === subjectName(track.subject))));
+  const subjects = ownTracks?.length ? [...new Set(ownTracks.map((track) => track.subject))] : subjectsOf(student);
+  const chosen = subjects.length > 1 ? subject : '';
+  const subjectLessons = onlySubject(state.lessons, chosen, () => student);
+  const subjectSchedule = onlySubject(state.schedule, chosen, () => student);
+  // a teacher of one subject of a shared child: only the works they gave or of their subject
+  const ownSubjects = ownTracks?.length && subjectsOf(student).length > 1 ? new Set(ownTracks.map((track) => track.subject)) : null;
+  const keepWork = ownSubjects ? (item) => { const by = item.assignedBy || item.teacherUid || ''; if (by) return by === currentUser.uid; const own = subjectName(item.subject); return !own || ownSubjects.has(own); } : null;
   const tabPanelId = `student-profile-panel-${activeTab}`;
   const initials = String(student.name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
@@ -117,7 +133,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
       <Link className="back-link" to="/students"><ArrowLeft size={17} /> Kõik õpilased</Link>
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       <header className="student-profile-hero">
-        <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1><p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p></span></div>
+        <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1>{tracks.length > 1 || (ownTracks?.length && subjectsOf(student).length > 1) ? <p className="subject-tracks">{tracks.map((track) => <span key={track.id || track.subject}>{track.subject} · {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>)}</p> : <p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p>}</span></div>
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
         <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
         {merging ? <MergeCardsModal open student={student} onClose={() => setMerging(false)} onMerged={() => { setMerging(false); window.location.reload(); }} /> : null}
@@ -134,6 +150,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         </Modal>
       </header>
 
+      <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Õpilase õppeained" />
       <nav className="student-profile-tabs" role="tablist" aria-label="Õpilase profiili jaotised">
         {visibleTabs.map((tab) => (
           <button
@@ -155,10 +172,12 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         {activeTab === 'overview' ? (
           <div className="profile-grid">
             <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}</dd></div><div><dt>Makseviis</dt><dd>{student.payerMethod === 'cash' ? <>Sularaha · <Link to={`/kassa?student=${encodeURIComponent(student.id)}`}>märgi saadud raha</Link></> : 'Pangaülekanne'}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>{tracks.length > 1 ? 'Õppesuunad' : 'Õpetaja'}</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : tracks.length > 1 ? tracks.map((track) => <span className="profile-track" key={track.id || track.subject}>{track.subject} — {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}</span>) : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
-            <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{student.level || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
+            <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{(ownTracks?.length === 1 ? ownTracks[0].level : student.level) || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{tracks.length ? [...new Set(tracks.map((track) => subjectName(track.subject)))].join(', ') : student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
             {canAssignTeacher ? <StudentAccountCard student={student} {...(accountApi ? { service: accountApi } : {})}
               onInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, studentUid: data.uid, linkedUserId: data.uid, linkedUserIds: [data.uid], email: current.student.email || data.email } }))}
               onParentInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, linkedParentIds: [...new Set([...(current.student.linkedParentIds || []), data.uid])], linkedParentId: current.student.linkedParentId || data.uid, parentEmail: current.student.parentEmail || data.email } }))} /> : null}
+            {/* „Sobivad ajad” the student / parent marked (owner 2026-10-21): the admin edits and marks a change reviewed */}
+            <AvailabilityCard studentId={student.id} user={currentUser} mode={canAssignTeacher ? 'admin' : 'view'} />
             <PetOverview studentIds={[student.id]} lessons={state.lessons} {...(petApi ? { repository: petApi } : {})} />
           </div>
         ) : null}
@@ -166,19 +185,20 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         {activeTab === 'lessons' ? (
           <StudentLessonsPanel
             student={student}
-            lessons={state.lessons}
-            schedule={state.schedule}
+            lessons={subjectLessons}
+            schedule={subjectSchedule}
             canManage={canAssignTeacher}
             lessonApi={lessonApi}
             user={currentUser}
-            onChanged={(lessons) => setState((current) => ({ ...current, lessons }))}
+            // the panel may hold one subject's lessons: the changed ones replace theirs, the other subjects stay
+            onChanged={(lessons) => setState((current) => { const byId = new Map(lessons.map((lesson) => [lesson.id, lesson])); const shown = new Set(subjectLessons.map((lesson) => lesson.id)); return { ...current, lessons: current.lessons.filter((lesson) => !shown.has(lesson.id) || byId.has(lesson.id)).map((lesson) => byId.get(lesson.id) || lesson) }; })}
           />
         ) : null}
 
         {activeTab === 'works' ? (
           <div className="profile-grid">
             {studentAccess(student) === 'none' ? <p className="action-error" role="alert">Selle kaardiga pole seotud ühtegi kontot: õpilane ei näe siia määratud töid. Seo õpilase konto (Muuda → konto) või kontrolli, kas tal on teine sama nimega kaart.</p> : null}
-            <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
+            <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
           </div>
         ) : null}
 

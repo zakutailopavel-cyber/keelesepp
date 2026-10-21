@@ -5,6 +5,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { isSameTeacher } from '../../utils/teachers.js';
+import { financeApi } from '../../services/firebase/financeApi.js';
 import { classroomsService, groupsService, lessonChangeRequestsService, lessonNotesService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import ChangeRequestsPanel from './ChangeRequestsPanel.jsx';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
@@ -116,7 +117,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -487,8 +488,14 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!panelItem) return;
     setPanelSaving(true); setPanelError('');
     try {
-      const { homework, ...fields } = details;
-      await lessonRepository.completeFromSchedule(panelItem, user, fields);
+      const { homework, schoolCoveredReason = '', ...fields } = details;
+      const lesson = await lessonRepository.completeFromSchedule(panelItem, user, fields);
+      // „Kooli kulul” right away (Oleksiy 2026-10-19: a fourth way to close a lesson): held for the teacher, free for the
+      // student; the audited finance route also gives back a credit the lesson took
+      if (schoolCoveredReason && lesson?.id) {
+        try { await financeRepository.setLessonBillingDisposition(lesson.id, 'school_covered', schoolCoveredReason); }
+        catch (coverError) { await state.reload(); setPanelError(`Tund märgiti toimunuks, kuid „kooli kulul” ei salvestunud (${coverError.message || 'viga'}). Ava tund ja vajuta „Kooli kulul” uuesti.`); return false; }
+      }
       const student = studentMap.get(panelItem.studentId);
       if (homework && student) await libraryRepository.assign({ item: homework, students: [student], dueDate: '', note: fields.topic ? `Tund: ${fields.topic}` : '', user });
       setPanelKey('');
@@ -592,6 +599,20 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       await state.reload();
     } catch (error) {
       setPanelError(error.code === 'permission-denied' ? 'Seda märget ei saa siin muuta: tund on arvel või periood on suletud. Paranda see Finantsides.' : (error.message || 'Parandamine ebaõnnestus.'));
+    } finally { setPanelSaving(false); }
+  };
+  // „Kooli kulul” (owner 2026-10-19): admin marks a held lesson as paid by the school, or undoes it; server-side audit
+  const setSchoolCovered = async (billingStatus, reason) => {
+    const item = panelItem;
+    if (!item?.record?.id) return false;
+    setPanelSaving(true); setPanelError('');
+    try {
+      await financeRepository.setLessonBillingDisposition(item.record.id, billingStatus, reason);
+      await state.reload();
+      return true;
+    } catch (error) {
+      setPanelError(/closed|suletud/i.test(error.message || '') ? 'Periood on suletud: seda tundi ei saa enam muuta.' : (error.message || 'Muutmine ebaõnnestus.'));
+      return false;
     } finally { setPanelSaving(false); }
   };
   const setAttendance = async (studentId, status) => {
@@ -753,6 +774,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           onDeleteLesson={() => setDeleteAsk(panelItem)}
           onChangeMark={(status) => fixMark('change', status)}
           onRemoveMark={() => fixMark('remove')}
+          onSchoolCovered={isAdmin && !panelItem.isGroup ? setSchoolCovered : undefined}
           onCancelGroupLesson={isAdmin && panelItem.isGroup ? cancelGroupOccurrence : undefined}
           onStartLive={startLive}
           startingLive={startingLive}

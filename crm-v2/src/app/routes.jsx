@@ -40,6 +40,8 @@ const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettin
 const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage.jsx'));
 const GroupsPage = lazy(() => import('../features/groups/GroupsPage.jsx'));
 const LibraryPage = lazy(() => import('../features/library/LibraryPage.jsx'));
+const AvailabilityPollPage = lazy(() => import('../features/availability-poll/AvailabilityPollPage.jsx'));
+const RaamatukoguPage = lazy(() => import('../features/library/raamatukogu/RaamatukoguPage.jsx'));
 const ConversionQueuePage = lazy(() => import('../features/worksheet-studio/ConversionQueuePage.jsx'));
 const BookPage = lazy(() => import('../features/worksheet-studio/BookPage.jsx'));
 const LiveWorksheetPage = lazy(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
@@ -68,6 +70,8 @@ export default function AppRoutes() {
       <Route path="/tund/:token" element={<GuestLessonPage />} />
       {/* LHV LinkPay: public pay link from the invoice PDF / e-mail and the bank's return page */}
       <Route path="/maksa/:invoiceId" element={<PayInvoicePage />} />
+      {/* „Sobivad ajad”: a public page the school sends to a learner to mark every hour that really suits a lesson */}
+      <Route path="/ajad" element={<Suspense fallback={null}><AvailabilityPollPage /></Suspense>} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
@@ -81,6 +85,7 @@ export default function AppRoutes() {
             <Route path="tasks" element={staffPage(<TasksPage />)} />
             <Route path="groups" element={staffPage(<GroupsPage />)} />
             <Route path="library" element={staffPage(<LibraryPage />)} />
+            <Route path="library/raamatukogu" element={staffPage(<RaamatukoguPage />)} />
             <Route path="library/worksheets/convert" element={staffPage(<ConversionQueuePage />)} />
             <Route path="library/worksheets/book" element={staffPage(<BookPage />)} />
             <Route path="library/worksheets/live/:assignmentId" element={staffPage(<LiveWorksheetPage />)} />

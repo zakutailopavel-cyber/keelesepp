@@ -44,7 +44,7 @@ describe('revenuePlansService', () => {
     await expect(revenuePlansService.save({ id: 'student-1', name: 'Mari' }, { lessonPrice: '25', weeklyLessons: '2', lessonMinutes: '45', billingMode: 'advance', chargeNoShow: false, validFrom: '2026-10-01' }, admin))
       .resolves.toMatchObject({ studentId: 'student-1', lessonPriceCents: 2500, weeklyLessons: 2, lessonMinutes: 45, billingMode: 'advance', chargeNoShow: false });
     expect(firestore.batch.set).toHaveBeenCalledTimes(2);
-    expect(firestore.batch.set.mock.calls[0]).toEqual(['firebase-db:studentRevenuePlans:student-1', expect.objectContaining({ lessonPriceCents: 2500, validFrom: '2026-10-01', priceHistory: [] }), { merge: true }]);
+    expect(firestore.batch.set.mock.calls[0]).toEqual(['firebase-db:studentRevenuePlans:student-1', expect.objectContaining({ lessonPriceCents: 2500, validFrom: '2026-10-01', priceHistory: [] }), { mergeFields: expect.arrayContaining(['lessonPriceCents', 'priceHistory']) }]);
     expect(firestore.batch.set.mock.calls.some(([path]) => String(path).includes(':students:'))).toBe(false);
     expect(firestore.batch.set.mock.calls[1][1]).toMatchObject({ type: 'finance.revenue_plan_updated', byUid: 'admin-1' });
   });
