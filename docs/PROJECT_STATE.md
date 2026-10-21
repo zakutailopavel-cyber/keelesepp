@@ -1,3 +1,27 @@
+## 2026-10-22 · agent/english-a2-m1 — English course A2, module 1 „Me and my world”
+
+- Main checked: 749893c (2026-10-21). Owner 2026-10-21: an English course by level A1 → B1; English instructions with a
+  Russian hint for hard rules; start with A2 module 1. Plan, exam source and module list: docs/ENGLISH_COURSE_PLAN.md.
+- Module 1 is built: en-a2-001 Meet the class (present simple, be), 002 My day (routines, adverbs of frequency, time),
+  003 Right now (present continuous vs simple), 004 People I know (looks, character, has got), 005 the check in the
+  exam's task types (reading, listening, language tasks, e-mail, speaking). 15 sheets, 40–45 min each.
+- Teacher key: every task item has a Russian explanation (module01Key.js, 88 tasks); test checks one line per item.
+- System changes:
+  - `MODULE.language: 'en'` → `meta.language`; the EKI (Estonian) word-list check skips non-Estonian sheets
+    (didacticCheck.js). `COURSES.en` added to the registry.
+  - Answer check (`engine/schema.js` `norm`): ’ = ', and n't / 'm / 're / 've and can not are written out on both
+    sides, so „doesn’t” from a phone and „does not” are accepted. Estonian answers are unaffected.
+  - listeningAudio.test.js covers Estonian modules only: the TTS (TartuNLP) is Estonian, so English transcripts are
+    read by the teacher (the instructions say so).
+- Files: admin/course/en/a2/module01.js, module01b.js, module01Key.js, module01.test.js; registry.js;
+  strictModules.json (+en-a2-module-01); didacticCheck.js; engine/schema.js; listeningAudio.test.js;
+  docs/ENGLISH_COURSE_PLAN.md.
+- Checks: `gate_s.sh en/a2/module01` no blocking lines; vitest worksheet-generator + worksheet-studio 1029 passed,
+  1 failed under load (CourseProductionPage, 2/2 passed alone).
+- Not done / limits: no curriculum records and no publishing (production write, needs the owner's yes); no English
+  audio (needs a choice of English TTS); sheet chrome labels (Kontrolli end. etc.) stay Estonian.
+- Next safe step: the owner reviews lesson en-a2-001 in Kursused → English; then curriculum records for A2 module 1.
+
 ## 2026-10-21 · agent/functions-1gb — the functions people wait on run on 1 GB
 
 - Owner's payment test went through linkpayApi: 6.2 s on the first call after a pause, then 0.15–0.17 s. On a 256 MB

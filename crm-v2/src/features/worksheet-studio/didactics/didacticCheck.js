@@ -248,7 +248,8 @@ export function didacticCheck(doc, { level = doc?.meta?.level, phase = sheetPhas
 
   // vocabulary above the level (EKI etLex A1–C1 lists, every form): names (a capital inside a sentence) and numbers
   // are skipped; on C1 only words outside all lists are counted
-  const allowed = VOCABULARY_FOR[key];
+  // the EKI word lists are Estonian: an English (or other) course sheet is not checked against them
+  const allowed = (doc?.meta?.language || 'et') === 'et' ? VOCABULARY_FOR[key] : null;
   if (forms && allowed && allowed.every((level) => forms[level])) {
     const texts = [...all, ...tasks.filter((b) => b.type === 'reading').flatMap((b) => [b.data?.passageTitle || ''])];
     const tokens = texts.flatMap((sentence) => String(sentence).split(/\s+/).map((raw, i) => ({ raw, i })))
