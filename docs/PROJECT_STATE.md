@@ -1,3 +1,21 @@
+## 2026-10-21 · agent/board-sheet-align — the student's sheet lies exactly like the teacher's
+
+- Owner: check that the student sees the sheet as the teacher does and that a task the teacher clicks is highlighted.
+- Checked on a local stand with both boards side by side (shared worksheet, live focus): the whole sheet on both (10
+  tasks), a teacher's click marks the task on both and moves the student's view to it. Found: the student's sheet sat
+  9 px lower (the inline player's 1 px border + 8 px canvas margin from worksheetStudio.css won over board.css), so the
+  teacher's drawings landed slightly off. board.css now removes them on the board with a stronger selector; afterwards
+  every task had the same position on both boards.
+- Next safe step: merge (frontend deploys with main).
+## 2026-10-21 · agent/school-covered-button — „Kooli kulul” as the fourth way to close a lesson
+
+- Oleksiy (team chat 2026-10-19): next to „Tund toimus / Puudus (teatas ette) / Puudus (ei teatanud)” a fourth button
+  „refund from the school”. Since #680 an admin could only set „Kooli kulul” on an already held lesson.
+- Now the unmarked lesson panel (admin) has „Kooli kulul” → reason → „Tund toimus kooli kulul”: the lesson is marked
+  held (teacher's hour counts) and right away `setLessonBillingDisposition(id, 'school_covered', reason)` (audited; the
+  token trigger gives back a credit). If the second step fails, the panel says so and the existing link on the held
+  lesson finishes it. Teachers do not see the button. Frontend only (no function change).
+- Checks: vitest calendar 104/104, eslint clean.
 ## 2026-10-21 · agent/self-payer-parents — „Lapsevanemad” keeps a learner who pays for themselves
 
 - main checked: origin/main. Oleksiy (team chat 2026-10-20, #bug #high_priority): „See on õpilane” (parent → own

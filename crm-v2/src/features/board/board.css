@@ -138,3 +138,8 @@
    saw it all (owner 2026-10-20). On the board and on the phone reading page the sheet is as long as it is. */
 .sb-underlay .ws-studio, .sb-reading .ws-studio { height: auto; min-height: 0; overflow: visible; }
 .sb-reading .st-canvas { max-height: none; overflow: visible; }
+/* the student's sheet lies exactly where the teacher's does (owner 2026-10-21: „the student sees the sheet as I do”): the
+   inline player's border and the 8 px canvas margin (worksheetStudio.css, loaded later, won the equal-specificity rule
+   above) moved the student's sheet 9 px down, so the teacher's marks sat a line too high */
+.sb-underlay .ws-doc-player.is-inline.is-board { border: 0; padding: 0; background: transparent; box-shadow: none; }
+.sb-underlay .ws-doc-player.is-inline.is-board .st-canvas { margin: 0; padding: 0; }
