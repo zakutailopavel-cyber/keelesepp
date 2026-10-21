@@ -1,3 +1,21 @@
+## 2026-10-21 · agent/bank-matching — bank statement: payer memory, split payments, sure vs suggested matches
+
+- main checked: origin/main (2026-10-21). Owner: points 1–3 — remember the payer's account, one payment for several
+  invoices, auto-apply only sure matches and show the rest as suggestions to confirm.
+- Statement: the payer's account column („Saaja/maksja konto”, „Sender/receiver account”…) is read (`payerAccount`).
+- `matchBankRow` (bankReconciliation.js): sure = invoice reference or number in the explanation (several numbers →
+  several invoices), or the payer's account paid for the child before and the amount equals that child's open invoice or
+  an exact set of them; likely = name + amount, the payer's name paid for the child before, or a family's invoices that
+  add up exactly. `payerMemory` learns from bank transactions (`payerAccount`, `paidStudentIds`), payments made from them
+  and the 2026-10-15 LHV payments (their note names the bank payer). Sure rows come ticked, likely rows show the
+  suggestion unticked („Kinnita soovitus”, „Vali kõik soovitused”), the rest „Vali käsitsi”. A split shows „Jagatakse:”.
+- Server `allocateBankTransaction`: stores `payerAccount` (IBAN, no spaces) and `paidStudentIds`; financeApi sends
+  `payerAccount` and several `allocations`. Nothing was changed in existing data.
+- Checks: vitest finance 141/141, functions node --test 319/319, eslint clean; emulator test „one bank payment pays two
+  invoices … remembers the payer's account” (CI).
+- Deploy after merge (owner permission): `functions:financeApi`.
+- Next: LHV Connect for automatic statements (the owner asks LHV first).
+
 ## 2026-10-20 · agent/availability-names — „Sobivad ajad”: student's and parent's full name required
 
 - main checked: origin/main after #691. Owner: add the parent's first and last name and make it and the child's

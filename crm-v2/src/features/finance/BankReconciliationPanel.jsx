@@ -15,7 +15,7 @@ import {
 } from "../../components/ui/index.js";
 import { invoiceBalanceCents } from "../students/studentFinance.js";
 import { displayDate } from "./finance.js";
-import { parseBankStatement, prepareBankRows } from "./bankReconciliation.js";
+import { parseBankStatement, payerMemory, prepareBankRows } from "./bankReconciliation.js";
 import "./bankReconciliation.css";
 
 const money = (value) =>
@@ -29,10 +29,18 @@ const transactionStatus = {
   unapplied: { label: "Ettemaks", tone: "info" },
 };
 
+const MATCH = {
+  sure: { label: "Kindel", tone: "success" },
+  likely: { label: "Kinnita soovitus", tone: "warning" },
+  manual: { label: "Vali käsitsi", tone: "neutral" },
+};
+
+// `payments` (optional): the recorded payments, so the memory of who pays for whom also knows the older statements
 export default function BankReconciliationPanel({
   invoices,
   students,
   transactions,
+  payments = [],
   onAllocate,
   onReload,
 }) {
@@ -65,6 +73,7 @@ export default function BankReconciliationPanel({
           ? {
               ...row,
               invoiceId,
+              allocations: [],
               studentId: invoice?.studentId || row.studentId || "",
               allocationCents: invoice
                 ? Math.min(row.amountCents, invoiceBalanceCents(invoice))
@@ -102,7 +111,7 @@ export default function BankReconciliationPanel({
       const parsed = parseBankStatement(await file.text());
       const existingIds = new Set((transactions || []).map((item) => item.id));
       setRows(
-        prepareBankRows(parsed.rows, invoices).map((row) =>
+        prepareBankRows(parsed.rows, invoices, payerMemory({ transactions, payments })).map((row) =>
           existingIds.has(row.requestId)
             ? { ...row, status: "imported", selected: false }
             : row,
@@ -219,7 +228,18 @@ export default function BankReconciliationPanel({
                 {rows.length} laekumist
                 {skipped ? ` · ${skipped} väljaminekut jäeti vahele` : ""}
               </span>
+              <span className="bank-import-preview__counts">
+                {["sure", "likely", "manual"].map((kind) => {
+                  const count = rows.filter((row) => row.status === "ready" && row.match === kind).length;
+                  return count ? <Badge key={kind} tone={MATCH[kind].tone}>{MATCH[kind].label}: {count}</Badge> : null;
+                })}
+              </span>
             </div>
+            {rows.some((row) => row.status === "ready" && row.match === "likely" && !row.selected) ? (
+              <Button variant="secondary" disabled={saving} onClick={() => setRows((current) => current.map((row) => (row.status === "ready" && row.match === "likely" ? { ...row, selected: true } : row)))}>
+                Vali kõik soovitused
+              </Button>
+            ) : null}
             <Button
               variant="secondary"
               disabled={saving}
@@ -299,9 +319,12 @@ export default function BankReconciliationPanel({
                             </option>
                           ))}
                         </Select>
-                        {row.match === "automatic" ? (
-                          <small>Leitud automaatselt</small>
+                        {row.allocations?.length > 1 ? (
+                          <small className="bank-row-split">
+                            Jagatakse: {row.allocations.map((item) => `${item.label || "arve"} ${money(item.amountCents)}`).join(" + ")}
+                          </small>
                         ) : null}
+                        {row.reason ? <small>{row.reason}</small> : null}
                       </td>
                       <td>
                         <Select
@@ -338,14 +361,8 @@ export default function BankReconciliationPanel({
                           <Badge tone="neutral">Juba imporditud</Badge>
                         ) : null}
                         {row.status === "ready" ? (
-                          <Badge
-                            tone={
-                              row.match === "automatic" ? "success" : "neutral"
-                            }
-                          >
-                            {row.match === "automatic"
-                              ? "Sobivus leitud"
-                              : "Kontrolli"}
+                          <Badge tone={(MATCH[row.match] || MATCH.manual).tone}>
+                            {(MATCH[row.match] || MATCH.manual).label}
                           </Badge>
                         ) : null}
                         {row.status === "error" ? (

@@ -3728,6 +3728,7 @@ async function allocateBankTransaction({
   externalId,
   paidAt,
   payerName,
+  payerAccount,
   creditStudentId,
   reference,
   amount,
@@ -3736,6 +3737,9 @@ async function allocateBankTransaction({
   note,
 }) {
   const mutationId = cleanRequestId(requestId);
+  // the payer's bank account (IBAN) from the statement: the next payment from it is matched to the same child
+  // (owner 2026-10-21, bank matching). Kept as the bank wrote it, without spaces.
+  const cleanPayerAccount = String(payerAccount || "").replace(/\s+/g, "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 34);
   const cleanExternalId = cleanText(externalId, 160);
   const normalized = normalizeBankDistribution(amount, allocations, lessonAllocations);
   const sortedAllocations = [...normalized.invoiceAllocations]
@@ -3876,6 +3880,9 @@ async function allocateBankTransaction({
       paidAt: transactionDate,
       payerName: cleanPayerName,
       payerKey: payerKey(cleanPayerName),
+      ...(cleanPayerAccount ? { payerAccount: cleanPayerAccount } : {}),
+      // whose invoices this payment paid: the memory for the next statement
+      paidStudentIds: [...new Set(invoiceSnaps.map(snap => String(snap.data()?.studentId || "")).filter(Boolean))].slice(0, 20),
       creditStudentId: normalized.unappliedAmountCents > 0 ? derivedCreditStudentId : "",
       creditStudentName: normalized.unappliedAmountCents > 0 ? creditStudentName : "",
       reference: cleanReference,
@@ -9139,6 +9146,7 @@ exports.financeApi = functions.https.onRequest(async (req, res) => {
         externalId: req.body?.externalId,
         paidAt: req.body?.paidAt,
         payerName: req.body?.payerName,
+        payerAccount: req.body?.payerAccount,
         creditStudentId: req.body?.creditStudentId,
         reference: req.body?.reference,
         amount: req.body?.amount,

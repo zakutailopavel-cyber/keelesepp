@@ -13,6 +13,11 @@ const HEADER_ALIASES = {
     "reference", "paymentreference", "viide", "viitenumber", "selgitus", "makseselgitus", "description", "details",
     "reference number", "ссылочный номер", "пояснение",
   ],
+  // the payer's own account (not the school's „Kliendi konto”): the memory of who pays for whom
+  payerAccount: [
+    "saaja/maksja konto", "saajamaksja konto", "vastaspoole konto", "counterparty account", "sender/receiver account",
+    "beneficiary's account", "payer account", "payeraccount", "iban", "счёт получателя/плательщика", "счет получателя/плательщика",
+  ],
   externalId: [
     "externalid", "transactionid", "archiveid", "arhiveerimistunnus", "tehinguid", "id", "archiving code",
     "архивный признак",
@@ -169,9 +174,20 @@ export function parseBankStatement(text) {
         .join(" · "),
       externalId:
         indexes.externalId >= 0 ? cells[indexes.externalId] || "" : "",
+      payerAccount: indexes.payerAccount >= 0 ? accountKey(cells[indexes.payerAccount]) : "",
     });
   });
   return { rows, skipped, errors };
+}
+
+// "EE12 7700 …" → "EE127700…"
+export function accountKey(value) {
+  return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 34);
+}
+
+// "SMIRNOVA JEKATERINA" = "Jekaterina Smirnova": the name's words, sorted
+export function nameKeyOf(value) {
+  return String(value || "").toLocaleLowerCase("et").split(/[^a-z0-9äöõüšžа-яё]+/i).filter((word) => word.length >= 2).sort().join(" ");
 }
 
 function matchKey(value) {
@@ -238,20 +254,113 @@ export function bankRequestId(row) {
   return `bank_${hashText(signature, 2166136261)}_${hashText(signature, 2246822519)}`;
 }
 
-export function prepareBankRows(rows, invoices) {
+// sure matches come ticked; likely ones come with the suggestion but unticked (to confirm); the rest are manual
+export function prepareBankRows(rows, invoices, memory = new Map()) {
   return rows.map((row) => {
-    const invoice = suggestInvoice(row, invoices);
-    const balanceCents = invoice ? invoiceBalanceCents(invoice) : 0;
+    const found = matchBankRow(row, invoices, memory);
+    const first = found.allocations[0];
     return {
       ...row,
       requestId: bankRequestId(row),
-      invoiceId: invoice?.id || "",
-      studentId: invoice?.studentId || "",
-      allocationCents: invoice ? Math.min(row.amountCents, balanceCents) : 0,
-      match: invoice ? "automatic" : "manual",
-      selected: Boolean(invoice),
+      invoiceId: first?.invoiceId || "",
+      studentId: first?.studentId || "",
+      allocationCents: found.allocations.reduce((sum, item) => sum + item.amountCents, 0),
+      allocations: found.allocations.length > 1 ? found.allocations : [],
+      match: found.confidence,
+      reason: found.reason,
+      selected: found.confidence === "sure",
       status: "ready",
       error: "",
     };
   });
+}
+
+// ── Bank matching with memory (owner 2026-10-21) ──────────────────────────────────────────────────────────────────────
+// Who has paid for whom before: the payer's account (IBAN) and name → the children whose invoices they paid. Built from
+// the bank transactions (payerAccount, paidStudentIds), the payments made from them, and the payments recorded from the
+// LHV statement on 2026-10-15 (their note names the bank payer: „LHV väljavõte 2026-06-19, NAME (…)”).
+export function payerMemory({ transactions = [], payments = [] } = {}) {
+  const memory = new Map();
+  const add = (key, studentId) => {
+    if (!key || !studentId) return;
+    if (!memory.has(key)) memory.set(key, new Set());
+    memory.get(key).add(studentId);
+  };
+  const byId = new Map(transactions.map((item) => [item.id, item]));
+  const keysOf = (item) => [item.payerAccount ? `acct:${accountKey(item.payerAccount)}` : "", nameKeyOf(item.payerName) ? `name:${nameKeyOf(item.payerName)}` : ""];
+  transactions.forEach((item) => (item.paidStudentIds || []).concat(item.creditStudentId || []).forEach((studentId) => keysOf(item).forEach((key) => add(key, studentId))));
+  payments.filter((payment) => payment.status !== "voided").forEach((payment) => {
+    const source = payment.bankTransactionId ? byId.get(payment.bankTransactionId) : null;
+    if (source) keysOf(source).forEach((key) => add(key, payment.studentId));
+    const legacy = String(payment.note || "").match(/^LHV väljavõte \d{4}-\d{2}-\d{2}, (.+?) \(/);
+    if (legacy) add(`name:${nameKeyOf(legacy[1])}`, payment.studentId);
+  });
+  return memory;
+}
+
+// open invoices whose balances add up exactly to the amount (2–4 of at most 8, oldest first)
+function exactSet(invoices, amountCents) {
+  const list = [...invoices].sort((a, b) => String(a.date || "").localeCompare(String(b.date || ""))).slice(0, 8);
+  let found = null;
+  const walk = (start, picked, sum) => {
+    if (found || picked.length > 4) return;
+    if (sum === amountCents && picked.length >= 2) { found = picked; return; }
+    for (let index = start; index < list.length; index += 1) {
+      const balance = invoiceBalanceCents(list[index]);
+      if (sum + balance <= amountCents) walk(index + 1, [...picked, list[index]], sum + balance);
+    }
+  };
+  walk(0, [], 0);
+  return found;
+}
+
+const allocationsOf = (invoices, amountCents) => {
+  let left = amountCents;
+  return invoices.map((invoice) => {
+    const cents = Math.min(left, invoiceBalanceCents(invoice));
+    left -= cents;
+    return { invoiceId: invoice.id, studentId: invoice.studentId || "", label: invoice.num || invoice.number || "", amountCents: cents };
+  }).filter((item) => item.amountCents > 0);
+};
+
+// → { allocations, confidence: "sure" | "likely" | "manual", reason }
+// sure: the invoice's reference or number in the explanation; or the payer's account paid for the child before and the
+// amount is exactly that child's open invoice (or several of them). likely: name and amount, or the payer's name paid
+// for the child before — shown as a suggestion to confirm.
+export function matchBankRow(row, invoices, memory = new Map()) {
+  const open = (invoices || []).filter((invoice) => invoiceBalanceCents(invoice) > 0);
+  const reference = matchKey(row.reference);
+  const named = open.filter((invoice) => {
+    const paymentReference = matchKey(invoice.paymentReference);
+    const number = matchKey(invoice.num || invoice.number || invoice.invoiceNumber);
+    return (paymentReference && reference.includes(paymentReference)) || (number && reference.includes(number));
+  });
+  if (named.length) return { allocations: allocationsOf(named, row.amountCents), confidence: "sure", reason: named.length > 1 ? `${named.length} arve numbrit selgituses` : "arve number või viitenumber selgituses" };
+
+  const remembered = (key) => (key && memory.get(key)) || null;
+  const byStudents = (students) => open.filter((invoice) => students.has(invoice.studentId) || (invoice.studentIds || []).some((id) => students.has(id)));
+  const fromMemory = (students, confidence, why) => {
+    if (!students) return null;
+    const theirs = byStudents(students);
+    const exact = theirs.filter((invoice) => invoiceBalanceCents(invoice) === row.amountCents);
+    if (exact.length === 1) return { allocations: allocationsOf(exact, row.amountCents), confidence, reason: why };
+    const set = exactSet(theirs, row.amountCents);
+    if (set) return { allocations: allocationsOf(set, row.amountCents), confidence, reason: `${why}; ${set.length} arvet kokku täpselt` };
+    return null;
+  };
+  const account = row.payerAccount ? accountKey(row.payerAccount) : "";
+  const byAccount = fromMemory(remembered(account ? `acct:${account}` : ""), "sure", "sama konto on maksnud selle õpilase eest");
+  if (byAccount) return byAccount;
+
+  const single = suggestInvoice(row, open);
+  if (single) return { allocations: allocationsOf([single], row.amountCents), confidence: "likely", reason: "nimi ja summa" };
+  const byName = fromMemory(remembered(nameKeyOf(row.payerName) ? `name:${nameKeyOf(row.payerName)}` : ""), "likely", "sama maksja on maksnud selle õpilase eest");
+  if (byName) return byName;
+
+  // one family, several invoices: invoices that name the payer and add up exactly
+  const payer = matchKey(row.payerName);
+  const family = open.filter((invoice) => [invoice.payerName, invoice.parentName].map(matchKey).some((name) => name.length >= 4 && payer && (payer.includes(name) || name.includes(payer) || sameWords(row.payerName, name))));
+  const set = exactSet(family, row.amountCents);
+  if (set) return { allocations: allocationsOf(set, row.amountCents), confidence: "likely", reason: `${set.length} pere arvet kokku täpselt` };
+  return { allocations: [], confidence: "manual", reason: "" };
 }

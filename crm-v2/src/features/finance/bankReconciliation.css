@@ -156,3 +156,4 @@
     justify-self: start;
   }
 }
+.bank-import-preview__counts{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.bank-row-split{color:#0b5f50;font-weight:700}
