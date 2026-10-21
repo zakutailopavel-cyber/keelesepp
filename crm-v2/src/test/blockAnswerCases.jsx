@@ -67,15 +67,16 @@ export const CASES = {
     review: (card, block) => expect(card.querySelectorAll('.ws-tfbox.on')).toHaveLength(block.data.statements.length),
   },
   match: {
+    // in front of each lettered answer the student picks the number of its question
     drive: (card, block, { wrong = false } = {}) => {
-      const letters = Object.fromEntries([...card().querySelectorAll('.ws-match ul li')].map((li) => [li.textContent.slice(3).trim(), li.querySelector('b').textContent[0]]));
-      [...card().querySelectorAll('.ws-match select')].forEach((sel, i) => {
-        if (wrong && i > 0) return;
-        const right = letters[block.data.pairs[i].right];
-        fireEvent.change(sel, { target: { value: wrong ? Object.values(letters).find((l) => l !== right) : right } });
+      [...card().querySelectorAll('.ws-match ul li')].forEach((li, k) => {
+        if (wrong && k > 0) return;
+        const text = li.textContent.replace(/^[–\d\s]*[A-Z]\.\s*/, '').trim();
+        const right = String(block.data.pairs.findIndex((p) => p.right === text) + 1);
+        fireEvent.change(li.querySelector('select'), { target: { value: wrong ? (right === '1' ? '2' : '1') : right } });
       });
     },
-    review: (card, block, answers) => expect([...card.querySelectorAll('.ws-letterbox')].map((x) => x.textContent)).toEqual(block.data.pairs.map((_, i) => answers[`${i}`])),
+    review: (card, block, answers) => expect([...card.querySelectorAll('.ws-letterbox')].map((x) => x.textContent)).toEqual(block.data.pairs.map((_, k) => answers[`r${k}`])),
   },
   pictures: {
     data: { items: [{ img: null, caption: 'Söön.', answer: '2' }, { img: null, caption: 'Ärkan.', answer: '1' }, { img: null, caption: 'Lähen tööle.', answer: '3' }] },

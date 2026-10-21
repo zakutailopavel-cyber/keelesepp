@@ -95,6 +95,10 @@ describe('scoring', () => {
     const right = [...m.data.pairs.slice(2), ...m.data.pairs.slice(0, 2)];
     const ans = Object.fromEntries(m.data.pairs.map((p, i) => [i, String.fromCharCode(65 + right.indexOf(p))]));
     expect(scoreDocument(doc([m]), answer(m, ans)).perBlock[m.id].every((x) => x.ok)).toBe(true);
+    // now: the question's number in front of each lettered answer
+    const nums = Object.fromEntries(right.map((p, k) => [`r${k}`, String(m.data.pairs.indexOf(p) + 1)]));
+    expect(scoreDocument(doc([m]), answer(m, nums)).perBlock[m.id].every((x) => x.ok)).toBe(true);
+    expect(scoreDocument(doc([m]), answer(m, { ...nums, r0: nums.r1 })).perBlock[m.id].some((x) => !x.ok)).toBe(true);
 
     const wo = createBlock('wordorder');
     expect(scoreDocument(doc([wo]), answer(wo, { 0: 'ma ärkan tavaliselt kell seitse', 1: 'õhtul ma vaatan filmi.' })).perBlock[wo.id].every((x) => x.ok)).toBe(true);
