@@ -10,7 +10,7 @@ const COLOR_LABEL = { red: 'Punane', blue: 'Sinine', green: 'Roheline', orange: 
 
 /**
  * Edits one formatted text right where it is on the sheet: the field lies over the text with the same font; selecting
- * words shows a small bar (bold, italic, colours, highlight). Enter or a click away saves, Esc cancels,
+ * words shows a small bar (bold, italic, strike, colours, highlight). Enter or a click away saves, Esc cancels,
  * Shift+Enter makes a new line (two = a new paragraph where the field allows it).
  */
 export default function RichInlineEditor({ rect, value, multiline = true, textStyle = {}, onCommit, onCancel }) {
@@ -58,6 +58,7 @@ export default function RichInlineEditor({ rect, value, multiline = true, textSt
       <BubbleMenu editor={editor} className="ws-tiptap-bar" options={{ placement: 'top' }}>
         <button type="button" onMouseDown={keep} aria-label="Paks kiri" className={editor.isActive('bold') ? 'is-on' : ''} onClick={() => editor.chain().focus().toggleBold().run()}><b>B</b></button>
         <button type="button" onMouseDown={keep} aria-label="Kaldkiri" className={editor.isActive('italic') ? 'is-on' : ''} onClick={() => editor.chain().focus().toggleItalic().run()}><i>I</i></button>
+        <button type="button" onMouseDown={keep} aria-label="Läbikriipsutus" className={editor.isActive('strike') ? 'is-on' : ''} onClick={() => editor.chain().focus().toggleStrike().run()}><s>S</s></button>
         <button type="button" onMouseDown={keep} aria-label="Marker" className={editor.isActive('highlight') ? 'is-on' : ''} onClick={() => editor.chain().focus().toggleHighlight().run()}><span className="ws-tiptap-hl">ab</span></button>
         <span className="ws-tiptap-sep" aria-hidden="true" />
         {Object.keys(MARK_COLORS).map((name) => (

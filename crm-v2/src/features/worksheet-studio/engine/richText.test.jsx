@@ -20,6 +20,16 @@ describe('formatted worksheet texts', () => {
     expect(roundTrip('<b>pole</b> HTML & ohutu')).toBe('<b>pole</b> HTML & ohutu');
   });
 
+  it('keeps struck-out and bold italic text (textbook pages)', () => {
+    expect(roundTrip('Ma igatsen ~~sinust~~ sind.')).toBe('Ma igatsen ~~sinust~~ sind.');
+    expect(roundTrip('***NIMETAV*** ja **OMASTAV**')).toBe('***NIMETAV*** ja **OMASTAV**');
+    const { container } = render(<p><Md text={'~~Kellest sa igatsed?~~ ***Keda*** sa igatsed?'} /></p>);
+    expect(container.querySelector('s').textContent).toBe('Kellest sa igatsed?');
+    expect(container.querySelector('strong em').textContent).toBe('Keda');
+    expect(container.textContent).not.toContain('*');
+    expect(stripMarks('~~vale~~ ***õige***')).toBe('vale õige');
+  });
+
   it('shows the formatting on the sheet and finds the text again without the markup', () => {
     const { container } = render(<p><Md text={'Loe **hoolikalt**, ==märgi== ja {blue}vasta{/blue}. {{võtmesõna}}'} /></p>);
     expect(container.querySelector('strong').textContent).toBe('hoolikalt');

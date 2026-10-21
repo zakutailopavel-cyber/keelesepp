@@ -5,6 +5,10 @@ import { validateWorksheetDoc } from './worksheetDocs.js';
 export const LESSON_WORKSHEET_SCHEMA = 'keelesepp.lesson-worksheet/1';
 const ROLES = new Set(['discover', 'practice', 'transfer', 'focus']);
 const CORE_IDS = new Set(['discover', 'practice', 'transfer']);
+// „Õpik” (owner 2026-10-21): a lesson's textbook sheet — the rule and exercises of a licensed textbook for the lesson's
+// grammar, next to the three core sheets. Its state is kept on the lesson like theirs.
+export const TEXTBOOK_SHEET_ID = 'opik';
+const SUMMARY_IDS = new Set([...CORE_IDS, TEXTBOOK_SHEET_ID]);
 const ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 
 const clean = (value) => JSON.parse(JSON.stringify(value));
@@ -77,7 +81,7 @@ async function persist({
   const normalizedRole = normalizeRole(role, worksheetId);
   const normalizedStatus = status === 'published' ? 'published' : 'draft';
   if (source !== undefined && !['generated', 'manual'].includes(source)) throw new Error('Töölehe allikas on vigane.');
-  if (slot !== undefined && slot !== null && ![1, 2, 3].includes(slot)) throw new Error('Töölehe järjekorranumber on vigane.');
+  if (slot !== undefined && slot !== null && ![1, 2, 3, 4].includes(slot)) throw new Error('Töölehe järjekorranumber on vigane.');
 
   const { db } = requireFirebaseClient();
   const { lesson, worksheet } = refs(db, lessonId, worksheetId);
@@ -147,7 +151,7 @@ async function persist({
       createdByName: userName(user),
       source: 'lesson-worksheet-v1',
     });
-    if (CORE_IDS.has(worksheetId)) transaction.set(lesson, { worksheetPhases: { [worksheetId]: phaseSummary(record) } }, { merge: true });
+    if (SUMMARY_IDS.has(worksheetId)) transaction.set(lesson, { worksheetPhases: { [worksheetId]: phaseSummary(record) } }, { merge: true });
     return { ...record, created: !current };
   });
 }
@@ -238,7 +242,7 @@ export const lessonWorksheetsService = {
       const phases = {};
       for (const entry of snapshot.docs) {
         const data = entry.data();
-        if (data.schema === LESSON_WORKSHEET_SCHEMA && CORE_IDS.has(entry.id)) phases[entry.id] = phaseSummary(data);
+        if (data.schema === LESSON_WORKSHEET_SCHEMA && SUMMARY_IDS.has(entry.id)) phases[entry.id] = phaseSummary(data);
       }
       if (!Object.keys(phases).length || JSON.stringify(phases) === JSON.stringify(lesson.worksheetPhases || {})) continue;
       await setDoc(doc(db, 'curriculumLessons', lesson.id), { worksheetPhases: phases }, { merge: true });

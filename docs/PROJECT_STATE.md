@@ -1,3 +1,28 @@
+## 2026-10-21 · agent/opik-sheet — textbook pages as a 4th lesson sheet „Õpik”
+
+- Owner: digitise the licensed textbooks, but inside our course: a grammar lesson gets the textbook's rule and
+  exercises 1:1, not a separate module. Owner picked a 4th sheet „Õpik” next to Avasta / Harjuta / Kasuta.
+- Service: `lessonWorksheets` keeps a summary for `opik` too (`worksheetPhases.opik`) and allows slot 4. No rules
+  change: staff already write any sheet id.
+- Õppevara:
+  - the chip „Õpik” shows only when a lesson has one and is not counted in the phase filters;
+  - assignment offers it, unticked by default;
+  - board, homework and the live-room sheet list label it „Õpik”.
+- Kursuse tootmine: new section „Õpik” lists `admin/course/textbook` sheets with preview and „Avalda” (confirmation);
+  only the answer key gates publishing.
+- Content (code only, not published):
+  - „Minu Eesti” (Mangus, Simmul) pp. 38–43, split into a2b1-021, a2b1-023 and b1b2-018;
+  - `docs/TEXTBOOKS.md` maps the grammar book's whole table of contents to course lessons, with gaps marked „—”.
+- Checks: library, services, worksheet-generator, worksheet-studio and board suites: 1234 passed, 3 skipped. eslint: 0
+  errors.
+- Later the same day:
+  - grammar book 1.2–1.5 (pp. 11–17) went into a2-003, a2-006, a2-007 and a2b1-008;
+  - the sheets show only „Õpik, lk …”;
+  - the inline markup gained ~~struck out~~ and ***bold italic*** (richText.js, ui.jsx Md; button „S” in the on-sheet editor bar), so textbook pages copy 1:1;
+  - `textbook.test.js` fails if any markup shows as text.
+- Not done: nothing is published. The sheets carry no title, author or source line (owner 2026-10-21).
+- Published 2026-10-21 (owner „заливай”): the 7 Õpik sheets (a2b1-021, a2b1-023, b1b2-018, a2-003, a2-006, a2-007, a2b1-008) went to production as v1 with a script like publish-v2.cjs (role focus, slot 4, worksheetVersions snapshot, lesson summary). A dry run afterwards found all 7 the same.
+- Next safe step: further chapters go the same way: the textbook JSON, then tests, then the dry run, then publishing.
 ## 2026-10-21 · agent/ek9-install — 9. klass emakeel: the 30-lesson curriculum and its installation
 
 - Owner: yes to both steps (install the grade 9 lessons and publish module 1).

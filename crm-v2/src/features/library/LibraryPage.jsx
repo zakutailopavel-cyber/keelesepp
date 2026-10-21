@@ -81,7 +81,7 @@ const hasStudioDoc = (item) => item.kind !== 'exercise' && (item.source?.workshe
 // a roadmap lesson keeps its Avasta / Harjuta / Kasuta chips even when an older single worksheet was saved on it
 const usesLessonEngine = (item) => item?.kind === 'curriculum' && item?.source?.roadmapManaged === true && (!hasStudioDoc(item) || Boolean(item?.source?.worksheetPhases));
 
-const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta' };
+const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta', opik: 'Õpik' };
 // one published sheet of a lesson (Avasta / Harjuta / Kasuta) as an assignable worksheet: the student gets the sheet,
 // not the teacher's lesson plan
 export function phaseSheetItem(item, sheetId, doc) {
@@ -119,7 +119,8 @@ function AssignmentModal({ item, user, repository, studentRepository, groupRepos
   const sheetChoices = lessonSheetChoices(item);
   const lessonWithoutSheets = item.kind === 'curriculum' && item.source?.roadmapManaged === true && !item.phase && !sheetChoices.length
     && !item.source?.worksheetDoc?.blocks?.length && !item.source?.worksheetData?.blocks?.length;
-  const [sheets, setSheets] = useState(() => sheetChoices.map((choice) => choice.id));
+  // the textbook sheet („Õpik”) is offered but not ticked: the lesson's own three sheets are the default
+  const [sheets, setSheets] = useState(() => sheetChoices.map((choice) => choice.id).filter((id) => id !== 'opik'));
   const toggleSheet = (id) => setSheets((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !user.roles.includes(ROLES.ADMIN);
   const state = useAsyncData(async () => {

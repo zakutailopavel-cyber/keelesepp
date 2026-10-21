@@ -23,6 +23,9 @@ export const LESSON_PHASES = Object.freeze([
   { id: 'transfer', label: 'Kasuta' },
 ]);
 
+// the textbook sheet („Õpik”): shown when a lesson has one, not counted in „Kõik valmis” or the module progress
+export const EXTRA_PHASES = Object.freeze([{ id: 'opik', label: 'Õpik' }]);
+
 export const PHASE_FILTERS = Object.freeze({
   none: 'Lehti pole',
   drafts: 'On mustandeid',
@@ -44,7 +47,8 @@ export function isoDate(value) {
 
 export function lessonPhases(source) {
   const summary = source?.worksheetPhases || {};
-  return LESSON_PHASES.map(({ id, label }) => {
+  return [...LESSON_PHASES, ...EXTRA_PHASES.filter(({ id }) => summary[id])].map(({ id, label }) => {
+    const extra = EXTRA_PHASES.some((phase) => phase.id === id);
     const entry = summary[id];
     if (!entry) return { id, label, state: 'none', title: '', version: 0, publishedVersion: 0, updatedAt: '', newerDraft: false };
     const publishedVersion = Number(entry.publishedVersion) || 0;
@@ -58,14 +62,16 @@ export function lessonPhases(source) {
       publishedVersion,
       updatedAt: isoDate(entry.updatedAt),
       newerDraft: Boolean(publishedVersion) && entry.status !== 'published' && version > publishedVersion,
+      ...(extra ? { extra: true } : {}),
     };
   });
 }
 
 export const phasesDone = (phases) => phases.filter((phase) => phase.state === 'published').length;
 
-export function matchesPhaseFilter(phases, filter) {
+export function matchesPhaseFilter(allPhases, filter) {
   if (!filter) return true;
+  const phases = allPhases.filter((phase) => !phase.extra);
   const done = phasesDone(phases);
   if (filter === 'none') return phases.every((phase) => phase.state === 'none');
   if (filter === 'drafts') return phases.some((phase) => phase.state === 'draft' || phase.newerDraft);

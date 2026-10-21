@@ -7,6 +7,7 @@ export const PHASES = [
   { id: 'discover', label: 'Avasta' },
   { id: 'practice', label: 'Harjuta' },
   { id: 'transfer', label: 'Kasuta' },
+  { id: 'opik', label: 'Õpik' },
 ];
 
 // the room key a worksheet carries while the teacher prepares the lesson before inviting (taken over by the room)

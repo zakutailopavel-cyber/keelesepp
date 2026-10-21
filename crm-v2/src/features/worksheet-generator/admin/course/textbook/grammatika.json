@@ -1,0 +1,951 @@
+{
+ "book": {
+  "id": "grammatika",
+  "title": "Grammatika",
+  "authors": "Inga Mangus ja Merge Simmul"
+ },
+ "sheets": [
+  {
+   "lessonId": "a2-003",
+   "title": "Nimetav (ainsus)",
+   "pages": "11",
+   "level": "A2",
+   "canDo": "Ma tunnen nimetavat käänet ja moodustan lause olema-verbiga.",
+   "blocks": [
+    {
+     "id": "g12_intro",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "1.2. КТО? ребёнок KES? laps · ЧТО? тетрадь, стол MIS? vihik, laud",
+      "text": "Падеж **nimetav** (единственное число). Nimetav kääne (ainsus)."
+     }
+    },
+    {
+     "id": "g12_t",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "NIMETAV — OMASTAV — OSASTAV",
+      "instruction": "",
+      "headers": "NIMETAV (Kes? Кто? Mis? Что?), OMASTAV, OSASTAV",
+      "rows": "laps | *lapse* | last\nvihik | *vihiku* | vihikut\nlaud | *laua* | lauda"
+     }
+    },
+    {
+     "id": "g12_ref",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "Для справки",
+      "lines": "**Падеж** – это грамматическая форма слова, которая указывает на отношение данного слова к другим. Падеж нужен для того, чтобы передавать через форму значение слова. В русском языке 6 падежей. В эстонском языке 14 падежей.\n**Именительный падеж** – это начальная / исходная форма слова и отвечает на вопросы: кто? что? В любом словаре слова представлены в форме именительного падежа."
+     }
+    },
+    {
+     "id": "g12_rule",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "Nimetav",
+      "text": "Падеж I **nimetav** соответствует русскому именительному падежу и отвечает на вопросы: кто? **kes?** что? **mis?**\n\n• Kes see on? **Кто** это? See on laps. Это ребёнок.\n\n• Mis see on? **Что** это? See on vihik. Это тетрадь. *See on laud.* Это стол.\n\nСамыми важными являются 3 первых падежа: ***NIMETAV, OMASTAV*** и ***OSASTAV***. От них образуются другие формы слов (*множественный падеж, остальные падежи и др.*)."
+     }
+    },
+    {
+     "id": "g12_1",
+     "type": "transformation",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "1. Koosta lause (olevikus).",
+      "instruction": "Moodusta lause olevikus.",
+      "rows": [
+       {
+        "from": "See / olema / maja.",
+        "prompt": "lause",
+        "answer": "See on maja."
+       },
+       {
+        "from": "Millal / olema / ekskursioon?",
+        "prompt": "lause",
+        "answer": "Millal on ekskursioon?"
+       },
+       {
+        "from": "Homme / olema / laupäev.",
+        "prompt": "lause",
+        "answer": "Homme on laupäev."
+       },
+       {
+        "from": "Kas / sa / olema / üliõpilane?",
+        "prompt": "lause",
+        "answer": "Kas sa oled üliõpilane?"
+       },
+       {
+        "from": "Mina / olema / tüdruk.",
+        "prompt": "lause",
+        "answer": "Mina olen tüdruk."
+       },
+       {
+        "from": "Kus / olema / koer?",
+        "prompt": "lause",
+        "answer": "Kus on koer?"
+       },
+       {
+        "from": "Kas / teie / olema / arst?",
+        "prompt": "lause",
+        "answer": "Kas teie olete arst?"
+       },
+       {
+        "from": "Praegu / olema / juuli.",
+        "prompt": "lause",
+        "answer": "Praegu on juuli."
+       },
+       {
+        "from": "Vasakul / olema / turg.",
+        "prompt": "lause",
+        "answer": "Vasakul on turg."
+       },
+       {
+        "from": "Kes / olema / müüja?",
+        "prompt": "lause",
+        "answer": "Kes on müüja?"
+       },
+       {
+        "from": "Siin / olema / köök.",
+        "prompt": "lause",
+        "answer": "Siin on köök."
+       },
+       {
+        "from": "Tema / olema / kunstnik.",
+        "prompt": "lause",
+        "answer": "Tema on kunstnik."
+       },
+       {
+        "from": "Paremal / olema / jõgi.",
+        "prompt": "lause",
+        "answer": "Paremal on jõgi."
+       },
+       {
+        "from": "Seal / olema / ülikool.",
+        "prompt": "lause",
+        "answer": "Seal on ülikool."
+       },
+       {
+        "from": "Siin / olema / laud.",
+        "prompt": "lause",
+        "answer": "Siin on laud."
+       },
+       {
+        "from": "Täna / olema / pidu.",
+        "prompt": "lause",
+        "answer": "Täna on pidu."
+       },
+       {
+        "from": "Kas / see / olema / kook?",
+        "prompt": "lause",
+        "answer": "Kas see on kook?"
+       },
+       {
+        "from": "Juba / olema / pühapäev.",
+        "prompt": "lause",
+        "answer": "Juba on pühapäev."
+       },
+       {
+        "from": "Kas / tema / olema / baleriin?",
+        "prompt": "lause",
+        "answer": "Kas tema on baleriin?"
+       },
+       {
+        "from": "Milline / ilm / täna / olema?",
+        "prompt": "lause",
+        "answer": "Milline ilm täna on?|Milline on ilm täna?|Milline ilm on täna?"
+       }
+      ]
+     }
+    },
+    {
+     "id": "g12_2",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "2. Tõlgi.",
+      "instruction": "Tõlgi eesti keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Что это?",
+        "hint": ""
+       },
+       {
+        "source": "Кто это?",
+        "hint": ""
+       },
+       {
+        "source": "Это книга?",
+        "hint": ""
+       },
+       {
+        "source": "Это машина.",
+        "hint": ""
+       },
+       {
+        "source": "Дай карандаш!",
+        "hint": ""
+       },
+       {
+        "source": "Он ученик.",
+        "hint": ""
+       },
+       {
+        "source": "Здесь класс.",
+        "hint": ""
+       },
+       {
+        "source": "Слева море.",
+        "hint": ""
+       },
+       {
+        "source": "Где больница?",
+        "hint": ""
+       },
+       {
+        "source": "Кто учитель?",
+        "hint": ""
+       },
+       {
+        "source": "Сейчас осень.",
+        "hint": ""
+       },
+       {
+        "source": "Там магазин.",
+        "hint": ""
+       },
+       {
+        "source": "Сегодня пятница.",
+        "hint": ""
+       },
+       {
+        "source": "Возьми словарь!",
+        "hint": ""
+       },
+       {
+        "source": "Она бабушка.",
+        "hint": ""
+       },
+       {
+        "source": "Я мальчик.",
+        "hint": ""
+       },
+       {
+        "source": "Вы певец?",
+        "hint": ""
+       },
+       {
+        "source": "Когда экзамен?",
+        "hint": ""
+       },
+       {
+        "source": "Справа школа.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это сумка?",
+        "hint": ""
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "lessonId": "a2-006",
+   "title": "Nimetav (mitmus): see või need",
+   "pages": "11–13",
+   "level": "A2",
+   "canDo": "Ma moodustan nimetava mitmuse ja kasutan sõnu see ja need.",
+   "blocks": [
+    {
+     "id": "g13_intro",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "1.3. КТО? дети KES? lapsed · ЧТО? тетради, столы MIS? vihikud, lauad",
+      "text": "Падеж **nimetav** (множественное число). Nimetav kääne (mitmus)."
+     }
+    },
+    {
+     "id": "g13_t",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "NIMETAV → OMASTAV + -D",
+      "instruction": "",
+      "headers": "NIMETAV, OMASTAV, + -D NIMETAV (MITMUS)",
+      "rows": "laps | *lapse* | **lapsed**\nvihik | *vihiku* | **vihikud**\nlaud | *laua* | **lauad**"
+     }
+    },
+    {
+     "id": "g13_rule",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "Mitmus",
+      "text": "Множественное число в эстонском языке помогает образовывать падеж ***II omastav*** (см. тему 1.4.). Сначала слово надо поставить в падеж ***II omastav*** единственного числа и затем добавить окончание **-d**.\n\n• ***Kes need on?*** **Кто** это? Need on lapse**d**. Это **дети**.\n\n• ***Mis need on?*** **Что** это? Need on vihiku**d**. Это **тетради**. Need on laua**d**. Это **столы**."
+     }
+    },
+    {
+     "id": "g13_nb",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "NB!",
+      "lines": "В эстонском языке слово \"ЭТО\" может быть выражено двумя словами.\nВ единственном числе употребляется **SEE**. *See on kott.* Это сумка (*одна!*).\nВо множественном числе употребляется **NEED**. *Need on kotid.* Это сумки (*несколько!*)."
+     }
+    },
+    {
+     "id": "g13_see",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "ЭТО: SEE — NEED",
+      "instruction": "",
+      "headers": "SEE, NEED",
+      "rows": "Kes **see** on? Кто это? | Kes **need** on? Кто это?\nSee on **inimene**. Это человек. | Need on **inimesed**. Это люди.\nMis **see** on? Что это? | Mis **need** on? Что это?\nSee on **kott**. Это сумка. | Need on **kotid**. Это сумки."
+     }
+    },
+    {
+     "id": "g13_pl",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "Единственное и множественное число",
+      "lines": "Иногда встречаются расхождения в употреблении единственного и множественного числа в русском и эстонском языках. Например, в русском языке некоторые существительные ВСЕГДА употребляются во множественном числе, а в эстонском языке у них есть единственное число:\nвесы – **kaal** · ворота – **värav** · дрожжи – **pärm** · каникулы – **koolivaheaeg** · качели – **kiik** · обои – **tapeet** · санки – **kelk** · сливки – **rõõsk koor** · сутки – **ööpäev** · часы – **kell** · щи – **kapsasupp** · деньги – **raha**\nА есть и такие слова, которые в русском языке имеют только множественное число, а в эстонском языке только единственное число. Их надо запомнить!\nшахматы – **male** (только единственное число) · шашки – **kabe** (только единственное число)\nТакже в русском языке некоторые существительные ВСЕГДА употребляются в единственном числе, а в эстонском языке у них есть множественное число:\nжемчуг – **pärlid** (pärl) · лапша – **nuudlid** (nuudel) · обувь – **jalatsid** (jalats) · одежда – **riided** (riietusese) · сирень – **sirelid** (sirelipõõsas, sirelioks, sireliõis)\nОсобенно это относится к овощам и ягодам, которые в отличие от русского языка в эстонском языке употребляются как в единственном, так и во множественном числе:\nбрусника – **pohl / pohlad** · брюква – **kaalikas / kaalikad** · горох – **hernes / herned** · изюм – **rosin / rosinad** · капуста – **kapsas / kapsad** · картофель – **kartul / kartulid**\nклюква – **jõhvikas / jõhvikad** · лук – **sibul / sibulad** · малина – **vaarikas / vaarikad** · редис – **redis / redised** · свёкла – **peet / peedid** · фасоль – **uba / oad** · черника – **mustikas / mustikad**\nклубника – **maasikas / maasikad** · виноград – **viinamari / viinamarjad** · крыжовник – **karusmari / karusmarjad** · морковь – **porgand / porgandid**"
+     }
+    },
+    {
+     "id": "g13_1",
+     "type": "gaps",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "1. Kirjuta SEE või NEED.",
+      "instruction": "Kirjuta lünka see või need.",
+      "sentences": "[See] on male.\n[Need] on sibulad.\n[Need] on autod.\n[See] on kabe.\n[See] on kelk.\n[Need] on jalatsid.\n[See] on pood.\n[Need] on väravad.\n[Need] on riided.\n[See] on raha.\n[See] on lasteaed.\n[Need] on juuksed.\n[Need] on kingad.\n[Need] on lapsed.\n[See] on lõbus.\n[See] on kell.\n[Need] on püksid.\n[See] on praad.\n[See] on pastakas.\n[See] on laud.\n[Need] on lilled.\n[Need] on mäed.\n[Need] on maasikad.\n[Need] on nõud.",
+      "bank": "",
+      "showBank": "no"
+     }
+    },
+    {
+     "id": "g13_2",
+     "type": "gaps",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "2. Kirjuta õiges vormis.",
+      "instruction": "Kirjuta sulgudes olev sõna õiges vormis.",
+      "sentences": "Need on [redised] (redis).\nNeed on [mustikad] (mustikas).\nNeed on [sibulad] (sibul).\nNeed on [kaalud] (kaal).\nNeed on [oad] (uba).\nNeed on [kirjad] (kiri).\nNeed on [varbad] (varvas).\nNeed on [õed] (õde).\nNeed on [vennad] (vend).\nNeed on [kohad] (koht).\nNeed on [ajad] (aeg).\nNeed on [kinod] (kino).\nNeed on [kapsad] (kapsas).\nNeed on [käed] (käsi).\nNeed on [juuksed] (juus).\nNeed on [kapid] (kapp).\nNeed on [lauad] (laud).\nNeed on [leivad] (leib).\nNeed on [mantlid] (mantel).\nNeed on [mered] (meri).\nNeed on [mehed] (mees).\nNeed on [õlad] (õlg).\nNeed on [tütred] (tütar).\nNeed on [tunnid] (tund).\nNeed on [peod] (pidu).\nNeed on [sõbrad] (sõber).",
+      "bank": "",
+      "showBank": "no"
+     }
+    },
+    {
+     "id": "g13_3",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "3. Tõlgi.",
+      "instruction": "Tõlgi eesti keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Кто эти люди?",
+        "hint": ""
+       },
+       {
+        "source": "Это деньги.",
+        "hint": ""
+       },
+       {
+        "source": "Это учебник, а это тетради.",
+        "hint": ""
+       },
+       {
+        "source": "Это ребёнок, а это родители.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это вещи?",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это часы?",
+        "hint": ""
+       },
+       {
+        "source": "Это шахматы или шашки?",
+        "hint": ""
+       },
+       {
+        "source": "Это твои санки?",
+        "hint": ""
+       },
+       {
+        "source": "Это ваша обувь?",
+        "hint": ""
+       },
+       {
+        "source": "Это стол, а это стулья.",
+        "hint": ""
+       },
+       {
+        "source": "Это музыка.",
+        "hint": ""
+       },
+       {
+        "source": "Это книги.",
+        "hint": ""
+       },
+       {
+        "source": "Это дочь, а это сын.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это одежда?",
+        "hint": ""
+       },
+       {
+        "source": "Это окна, а это дверь.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это щи?",
+        "hint": ""
+       },
+       {
+        "source": "Это каникулы.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это очки?",
+        "hint": ""
+       },
+       {
+        "source": "Это кофе, а это сливки.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это перчатка?",
+        "hint": ""
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "lessonId": "a2-007",
+   "title": "Omastav (ainsus): kelle? mille?",
+   "pages": "13–15",
+   "level": "A2",
+   "canDo": "Ma moodustan omastava ainsuse ja ütlen, kelle oma asi on.",
+   "blocks": [
+    {
+     "id": "g14_intro",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "1.4. КОГО? ЧЕЙ / ЧЬЯ / ЧЬЁ / ЧЬИ? ребёнка KELLE? lapse · ЧЕГО? тетради, стола MILLE? vihiku, laua",
+      "text": "Падеж **omastav** (единственное число). Omastav kääne (ainsus)."
+     }
+    },
+    {
+     "id": "g14_t",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "NIMETAV — OMASTAV — OSASTAV",
+      "instruction": "",
+      "headers": "NIMETAV, OMASTAV (Kelle? Кого? Чей / Чья / Чьё / Чьи? Mille? Чего?), OSASTAV",
+      "rows": "laps | ***lapse*** | last\nvihik | ***vihiku*** | vihikut\nlaud | ***laua*** | lauda"
+     }
+    },
+    {
+     "id": "g14_rule",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "Omastav",
+      "text": "Падеж **omastav** отвечает на вопросы: ***kelle?*** кого? чей? ***mille?*** чего?\n\nСлова в этом падеже всегда оканчиваются на любой **гласный звук**: -A (*kella*), -I (*kooli*), -E (*nime*), -U (*turu*), -O (*loo*), -Õ (*nõõ*), -Ü (*süü*), -Ö (*öö*), -Ä (*hää*).\n\nВ словаре всегда можно найти правильное написание падежа **omastav** (сразу после падежа **nimetav**).\n\nЭто очень важный падеж, т.к. от него образуются **ВСЕ остальные падежи**, кроме падежа **osastav**."
+     }
+    },
+    {
+     "id": "g14_when",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "КОГДА УПОТРЕБЛЯЕТСЯ И ЧТО ОБОЗНАЧАЕТ?",
+      "lines": "**1) обозначает предмет или существо, которому что-либо принадлежит:** *õe raamat – книга **сестры** · auto number – номер **машины** · õe oma* – сестры (см. тему 1.6.)\n**NB!** В эстонском языке слово, обозначающее предмет или существо, которому что-либо принадлежит, находится **на первом месте**, в русском языке – на втором.\n**2) обозначает предмет или существо, на которое направлено какое-либо законченное действие** (см. тему 3.14.): Он нарисовал (что сделал?) **картину**. Ta joonistas **pildi**. · Он нарисует (что сделает?) **картину**. Ta joonistab **pildi**.\n**3) употребляется со многими предлогами и послелогами** (см. тему 1.7.) – *juures, taga, ees, kõrval, käes* и др.: *arsti juures* – у врача · *puu all* – под деревом\n**NB!** Обратите внимание на очередность слов в русском и эстонском языках!\n**4) используется как первый компонент сложного слова:** lillepood – **цветочный** магазин · põrandalamp – **напольная** лампа\n**5) используется для образования множественного числа (+ окончание -D):** *arstid* – врачи\nЛюбопытно, что иногда существительное в падеже **omastav** можно перевести на русский язык прилагательным: arsti viga – **врачебная** ошибка (ошибка врача) · mere kallas – **морской** берег (берег моря)\n**6) используется для образования всех остальных падежей (+ падежное окончание):** *arstil* – у врача · *arstile* – врачу · *arstilt* – от врача"
+     }
+    },
+    {
+     "id": "g14_1",
+     "type": "transformation",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "1. Kelle oma see on?",
+      "instruction": "Moodusta lause. Näide: direktor + arvuti → See on direktori arvuti.",
+      "rows": [
+       {
+        "from": "näitleja + lilled",
+        "prompt": "lause",
+        "answer": "Need on näitleja lilled."
+       },
+       {
+        "from": "juuksur + kamm",
+        "prompt": "lause",
+        "answer": "See on juuksuri kamm."
+       },
+       {
+        "from": "kirjanik + raamat",
+        "prompt": "lause",
+        "answer": "See on kirjaniku raamat."
+       },
+       {
+        "from": "politseinik + auto",
+        "prompt": "lause",
+        "answer": "See on politseiniku auto."
+       },
+       {
+        "from": "koer + pall",
+        "prompt": "lause",
+        "answer": "See on koera pall."
+       },
+       {
+        "from": "kokk + lusikas",
+        "prompt": "lause",
+        "answer": "See on koka lusikas."
+       },
+       {
+        "from": "laulja + ülikond",
+        "prompt": "lause",
+        "answer": "See on laulja ülikond."
+       },
+       {
+        "from": "baleriin + kleit",
+        "prompt": "lause",
+        "answer": "See on baleriini kleit."
+       },
+       {
+        "from": "sportlane + tossud",
+        "prompt": "lause",
+        "answer": "Need on sportlase tossud."
+       },
+       {
+        "from": "laps + lennuk",
+        "prompt": "lause",
+        "answer": "See on lapse lennuk."
+       },
+       {
+        "from": "meremees + laev",
+        "prompt": "lause",
+        "answer": "See on meremehe laev."
+       },
+       {
+        "from": "ettekandja + käterätik",
+        "prompt": "lause",
+        "answer": "See on ettekandja käterätik."
+       },
+       {
+        "from": "raamatupidaja + raha",
+        "prompt": "lause",
+        "answer": "See on raamatupidaja raha."
+       },
+       {
+        "from": "õmbleja + kindad",
+        "prompt": "lause",
+        "answer": "Need on õmbleja kindad."
+       },
+       {
+        "from": "arst + pliiats",
+        "prompt": "lause",
+        "answer": "See on arsti pliiats."
+       },
+       {
+        "from": "medõde + tool",
+        "prompt": "lause",
+        "answer": "See on medõe tool."
+       },
+       {
+        "from": "helilooja + klaver",
+        "prompt": "lause",
+        "answer": "See on helilooja klaver."
+       },
+       {
+        "from": "naine + vihmavari",
+        "prompt": "lause",
+        "answer": "See on naise vihmavari."
+       },
+       {
+        "from": "müüja + kott",
+        "prompt": "lause",
+        "answer": "See on müüja kott."
+       }
+      ]
+     }
+    },
+    {
+     "id": "g14_2",
+     "type": "gaps",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "2. Kirjuta õiges vormis.",
+      "instruction": "Kirjuta sulgudes olev sõna õiges vormis.",
+      "sentences": "See on [lapse] (laps) vihik.\nNeed on [tõlgi] (tõlk) sõnastikud.\nNeed on [laua] (laud) jalad.\nNeed on [kunstniku] (kunstnik) pliiatsid.\nSee on [toa] (tuba) uks.\nSee on [ärimehe] (ärimees) rahakott.\nSee on [bussi] (buss) aken.\nNeed on [Toomase] (Toomas) prillid.\nSee on [neiu] (neiu) seelik.\nNeed on [õpiku] (õpik) leheküljed.\nNeed on [juhi] (juht) võtmed.\nSee on [teadlase] (teadlane) tugitool.\nSee on [ajakirjaniku] (ajakirjanik) artikkel.\nNeed on [laulja] (laulja) kingad.\nSee on [kooli] (kool) hoov.\nNeed on [linna] (linn) tänavad.\nNeed on [köögi] (köök) riiulid.\nSee on [seina]lamp (sein).\nSee on [ehitaja] (ehitaja) kell.\nSee on [šokolaadi] (šokolaad) kook.\nSee on [naabri] (naaber) telefon.\nNeed on [kohviku] (kohvik) toolid.\nSee on [poe] (pood) hind.\nSee on [korteri] (korter) number.",
+      "bank": "",
+      "showBank": "no"
+     }
+    },
+    {
+     "id": "g14_3",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "3. Tõlgi.",
+      "instruction": "Tõlgi eesti keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Чей это компьютер? Это компьютер мамы.",
+        "hint": ""
+       },
+       {
+        "source": "Чей это телефон? Это телефон папы.",
+        "hint": ""
+       },
+       {
+        "source": "Чей это дом? Это дом соседа.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это машина? Это машина врача.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это тетрадь? Это тетрадь ученика.",
+        "hint": ""
+       },
+       {
+        "source": "Чьё это пальто? Это пальто подруги.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это ручка? Это ручка учительницы.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это фотографии? Это фотографии соседа.",
+        "hint": ""
+       },
+       {
+        "source": "Чей это кофе? Это кофе сестры.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это комната? Это комната брата.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это обувь? Это обувь тёти.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это деньги? Это деньги дедушки.",
+        "hint": ""
+       }
+      ]
+     }
+    },
+    {
+     "id": "g14_4",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "4. Tõlgi.",
+      "instruction": "Tõlgi eesti keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Чьё это старое пианино? Это пианино моей бабушки.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это картина? Это картина одного известного художника.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это ножницы? Это ножницы одного парикмахера.",
+        "hint": ""
+       },
+       {
+        "source": "Чья это кухонная мебель? Это мебель моего родственника.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это леденцы? Это конфеты моей любимой дочери.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это мягкие игрушки? Это игрушки маленького сына Софии.",
+        "hint": ""
+       },
+       {
+        "source": "Чей это грязный стакан? Это стакан моего брата.",
+        "hint": ""
+       },
+       {
+        "source": "Чьё это длинное письмо? Это письмо его дяди.",
+        "hint": ""
+       },
+       {
+        "source": "Чей ребёнок болен? Дочь этой женщины больна.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это кулинарные книги? Это кулинарные книги моего знакомого.",
+        "hint": ""
+       },
+       {
+        "source": "Чьи это вещи? Мы не знаем, чьи они.",
+        "hint": ""
+       },
+       {
+        "source": "Чья грязная посуда здесь в раковине? Это посуда Урмаса.",
+        "hint": ""
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "lessonId": "a2b1-008",
+   "title": "Omastav (mitmus)",
+   "pages": "16–17",
+   "level": "A2+",
+   "canDo": "Ma moodustan omastava mitmuse lõpuga -de või -te.",
+   "blocks": [
+    {
+     "id": "g15_intro",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "1.5. КОГО? ЧЕЙ / ЧЬЯ / ЧЬЁ / ЧЬИ? детей KELLE? laste · ЧЕГО? тетрадей, столов MILLE? vihikute, laudade",
+      "text": "Падеж **omastav** (множественное число). Omastav kääne (mitmus)."
+     }
+    },
+    {
+     "id": "g15_t",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "MITMUS",
+      "instruction": "",
+      "headers": "NIMETAV, OMASTAV (Kelle? Кого? Чей / Чья / Чьё / Чьи? Mille? Чего?), OSASTAV",
+      "rows": "lapsed | ***laste*** | lapsi\nvihikud | ***vihikute*** | vihikuid\nlauad | ***laudade*** | laudu"
+     }
+    },
+    {
+     "id": "g15_rule",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "Omastav mitmus",
+      "text": "Падеж **omastav** множественного числа отвечает на вопросы ***kelle?*** кого? чей? ***mille?*** чего?\n\nПадеж **omastav** множественного числа образуется от падежа **osastav** единственного числа (см. тему 1.8.)."
+     }
+    },
+    {
+     "id": "g15_form",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "AINSUS → MITMUS",
+      "instruction": "Omastav mitmus = osastav ainsus + -E / -DE",
+      "headers": "Nimetav, Omastav (ainsus), Osastav (ainsus), Omastav (mitmus)",
+      "rows": "kursus | *kursuse* | kursust | *kursust+E*\npuu | *puu* | puud | *puud+E*\nkott | *koti* | kotti | *kotti+DE*"
+     }
+    },
+    {
+     "id": "g15_end",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "-DE või -TE?",
+      "lines": "Падеж **omastav** множественного числа всегда имеет окончания **-de** или **-te**.\nОкончание **-te** употребляется в падеже **omastav** множественного числа, если падеж **osastav** единственного числа оканчивается на **-t**.\nОкончание **-de** употребляется в падеже **omastav** множественного числа, если падеж **osastav** единственного числа оканчивается на **-d** или гласную букву.\nõpik – õpiku – õpikut → **õpiku-te** · idee – idee – ideed → **idee-de** · pesa – pesa – pesa → **pesa-de**\nИсключения: *kõne, kõne, kõnet – kõnede; mure, mure, muret – murede; auto, auto, autot – autode; poiss, poisi, poissi – poiste.*"
+     }
+    },
+    {
+     "id": "g15_when",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "КОГДА УПОТРЕБЛЯЕТСЯ И ЧТО ОБОЗНАЧАЕТ?",
+      "lines": "**1) обозначает предметы или существ, которым что-либо принадлежит:** õde**de** raamat – книга **сестёр** · venda**de** maja – дом **братьев** · raamatu**te** leheküljed – страницы **книг** · lauda**de** jalad – ножки **столов** · inimes**te** majad – дома **людей** · naabri**te** auto – машина **соседей**\n**NB!** В эстонском языке слово, обозначающее предмет или существо, которому что-либо принадлежит, находится **на первом месте**, в русском языке – на втором.\n**2) употребляется со многими предлогами и послелогами** – *juures, taga, ees, kõrval, käes* и др.: arsti**de** juures – у врачей · puu**de** all – под деревьями · töökaaslas**te** käes – (в руках) у коллег · pesa**de** lähedal – недалеко от гнёзд\n**NB!** Обратите внимание на очередность слов в русском и эстонском языках!\n**3) используется как первый компонент сложного слова:** las**te**tuba – детская комната · keel**te**kool – школа языков · ema**de**päev – день матерей · isa**de**päev – день отцов\n**4) является основой всех падежей множественного числа** (кроме падежа **osastav**) (см. тему 1.39.).\nЕсли в падеже **osastav** единственного числа слово оканчивается на **-kku** (напр., ajakirjanikku), то в падеже **omastav** множественного числа можно использовать как длинную, так и краткую форму: ajakirjanikkude / ajakirjanike."
+     }
+    },
+    {
+     "id": "g15_1",
+     "type": "transformation",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "1. Kelle asjad need on?",
+      "instruction": "Moodusta lause. Näide: lapsed + arvutid → Need on laste arvutid.",
+      "rows": [
+       {
+        "from": "ärimehed + autod",
+        "prompt": "lause",
+        "answer": "Need on ärimeeste autod."
+       },
+       {
+        "from": "kassid + pallid",
+        "prompt": "lause",
+        "answer": "Need on kasside pallid."
+       },
+       {
+        "from": "klassikaaslased + fotod",
+        "prompt": "lause",
+        "answer": "Need on klassikaaslaste fotod."
+       },
+       {
+        "from": "naabrid + koer",
+        "prompt": "lause",
+        "answer": "See on naabrite koer."
+       },
+       {
+        "from": "näitlejad + kingad",
+        "prompt": "lause",
+        "answer": "Need on näitlejate kingad."
+       },
+       {
+        "from": "juristid + raha",
+        "prompt": "lause",
+        "answer": "See on juristide raha."
+       },
+       {
+        "from": "kirjanikud + raamatud",
+        "prompt": "lause",
+        "answer": "Need on kirjanike raamatud.|Need on kirjanikkude raamatud."
+       },
+       {
+        "from": "lauljad + lilled",
+        "prompt": "lause",
+        "answer": "Need on lauljate lilled."
+       },
+       {
+        "from": "müüjad + õunad",
+        "prompt": "lause",
+        "answer": "Need on müüjate õunad."
+       }
+      ]
+     }
+    },
+    {
+     "id": "g15_2",
+     "type": "gaps",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "2. Kirjuta õiges vormis.",
+      "instruction": "Kirjuta sulgudes olev sõna õiges vormis.",
+      "sentences": "Ta käib kogu aeg [arstide] (arstid) juures.\n[Öökappide] (öökapid) vahel on voodi.\nMa elan [poodide] (poed) kõrval.\n[Lampide] (lambid) all on laud.\n[Puude] (puud) taga on mänguväljak.\n[Tugitoolide] (tugitoolid) ees on televiisor.\nLennukid lendavad [linnade] (linnad) kohal.\nMa käin [konsultantide] (konsultandid) juures.\nNeed on [sõjaväelaste] (sõjaväelased) käes.\nSiin on [piltide] (pildid) tellimine.\nSee on [mänguasjade] (mänguasjad) pood.\nKoerad on [inimeste] (inimesed) sõbrad.\nMilline on tema [juuste] (juuksed) värv?\nSee on [muusikute] (muusikud) unistus.\nKui suur on [tõlkide] (tõlgid) palk?\nSelline on [õpilaste] (õpilased) arvamus.\n[Tubade] (toad) vahel on õhuke sein.\n[Riiulite] (riiulid) taga on ruumi.\nPolikliinik on [haiglate] (haiglad) kõrval.\nSiin on [ülesannete] (ülesanded) vastused.",
+      "bank": "",
+      "showBank": "no"
+     }
+    }
+   ]
+  }
+ ]
+}
