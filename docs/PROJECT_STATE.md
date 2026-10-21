@@ -21,8 +21,14 @@
   - eslint on google-calendar: 0 problems.
 - Manual: the refused events probably still sit in Pavel's Google calendar; remove them there. Pavel and Anhelina
   should reconnect Google in CRM settings so the exposed tokens are replaced.
-- Next safe step: after the functions deploy, the one-off production cleanup (token fields in 2 users docs, 9 outbox
-  jobs) with a backup.
+- Done 2026-10-21 (owner: „то что лучше”):
+  - functions deployed from main 937b3ea.
+  - Production cleanup: accessToken/refreshToken/expiryDate removed from users.gcal of the 2 users, and the 9 „Bad
+    Request” outbox jobs deleted. Backup (outbox jobs and the removed field names, no tokens):
+    /Users/pavel/KeeleSeppTranscriber/backup-gcal-cleanup-2026-10-21.json.
+  - Pavel's stale lastPushError cleared.
+  - A re-run of the dry run shows 0 / 0.
+- Next safe step: Pavel and Anhelina reconnect Google in CRM settings.
 
 ## 2026-10-21 · agent/match-layout — „Ühenda paarid”: the answer slot stands in front of its question
 
