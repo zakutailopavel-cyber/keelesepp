@@ -65,7 +65,8 @@ export const parentsService = {
     const snapshot = await getDocs(collection(db, 'users'));
     return snapshot.docs
       .map((item) => normalizeParent(item.id, item.data()))
-      .filter((parent) => parent.active && (parent.role === 'parent' || parent.parentRole === true || parent.roles?.includes('parent')))
+      // payers: parents, and learners who pay for themselves (a parent account turned into the learner's own)
+      .filter((parent) => parent.active && (parent.role === 'parent' || parent.parentRole === true || parent.roles?.includes('parent') || parent.selfPayer === true))
       .sort((left, right) => (left.displayName || left.email).localeCompare(right.displayName || right.email, 'et', { sensitivity: 'base' }));
   },
 

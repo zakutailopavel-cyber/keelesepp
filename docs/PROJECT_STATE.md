@@ -1,3 +1,14 @@
+## 2026-10-21 · agent/self-payer-parents — „Lapsevanemad” keeps a learner who pays for themselves
+
+- main checked: origin/main. Oleksiy (team chat 2026-10-20, #bug #high_priority): „See on õpilane” (parent → own
+  learner) removed the person from Lapsevanemad, the main tab for watching payers.
+- Fix: `parent-to-student-core.js` marks the account `selfPayer: true`; `parentsService.list` lists self-payers too;
+  `parentMatchesStudent` gives them their own card (linkedUserId / studentUid / linkedUserIds); badge „Õpib ise”.
+- Production: one account was converted before the fix (Olena Polishchuk, 2026-10-20) — gets `selfPayer: true` after
+  deploy with the owner's permission.
+- Checks: vitest parents + services 172/172, functions parent-to-student-core 3/3.
+- Deploy after merge: `functions:staffOperationsApi`.
+
 ## 2026-10-21 · decision — lesson packages (tokens) stay
 
 - Owner 2026-10-21: lesson packages are the lesson token system (Tunnipakett: studentPackages, packageLedger, token

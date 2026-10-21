@@ -40,6 +40,8 @@ function parentToStudentPlan({ uid, student = {}, profile = {}, email = "", othe
     roles,
     linkedStudentIds: uniqueIds([Array.isArray(profile.linkedStudentIds) ? profile.linkedStudentIds : [], student.id || ""]),
     childName: keepParent ? (profile.childName || null) : null,
+    // the person still pays (for their own lessons): „Lapsevanemad” keeps them as a payer (Oleksiy 2026-10-20)
+    selfPayer: true,
   };
   return { studentPatch, userPatch, keepParent };
 }

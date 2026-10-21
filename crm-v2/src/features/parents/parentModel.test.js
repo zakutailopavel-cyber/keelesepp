@@ -37,3 +37,12 @@ describe('parent model', () => {
     expect(clusters[0]).toMatchObject({ email: 'ema@example.com', primary: expect.objectContaining({ id: 'parent-2' }), duplicates: [expect.objectContaining({ id: 'parent-1' })], linkedStudentCount: 1 });
   });
 });
+
+describe('a learner who pays for themselves (Oleksiy 2026-10-20)', () => {
+  it('stays among the payers with their own card', () => {
+    const payer = { id: 'u1', displayName: 'Viktoria Tamm', email: 'v@example.com', role: 'student', selfPayer: true };
+    const rows = buildParentRows([payer], [{ id: 's1', name: 'Viktoria Tamm', active: true, linkedUserId: 'u1' }, { id: 's2', name: 'Other', active: true }], [{ id: 'i1', studentId: 's1', amountCents: 5000, status: 'Saadetud' }]);
+    expect(rows[0].children.map((child) => child.id)).toEqual(['s1']);
+    expect(parentMatchesStudent({ id: 'u2', role: 'parent' }, { linkedUserId: 'u2' })).toBe(false);
+  });
+});
