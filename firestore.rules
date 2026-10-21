@@ -1397,6 +1397,30 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // „Sobivad ajad” on a student's card (owner 2026-10-21): the student or the parent writes their own; the
+    // administrator writes any and marks it reviewed; the student's teacher reads it
+    function availabilityValid(data, studentId) {
+      return data.keys().hasOnly(['studentId', 'slots', 'preferred', 'message', 'changedAt', 'changedByUid', 'changedByName',
+          'changedByRole', 'previousSlots', 'previousPreferred', 'updatedAt', 'reviewedAt', 'reviewedByName'])
+        && data.studentId == studentId
+        && data.slots is list && data.slots.size() <= 336
+        && data.preferred is list && data.preferred.size() <= 336
+        && (!('message' in data) || (data.message is string && data.message.size() <= 1000))
+        && (!('previousSlots' in data) || (data.previousSlots is list && data.previousSlots.size() <= 336))
+        && (!('previousPreferred' in data) || (data.previousPreferred is list && data.previousPreferred.size() <= 336));
+    }
+    match /studentAvailability/{studentId} {
+      allow read: if isAdmin() || staffCanAccessStudent(studentId) || ownsStudent(studentId);
+      allow create: if availabilityValid(request.resource.data, studentId)
+        && (isAdmin() || (ownsStudent(studentId) && !request.resource.data.keys().hasAny(['reviewedAt', 'reviewedByName'])
+          && request.resource.data.changedByUid == uid()));
+      allow update: if availabilityValid(request.resource.data, studentId)
+        && (isAdmin() || (ownsStudent(studentId)
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['reviewedAt', 'reviewedByName'])
+          && request.resource.data.changedByUid == uid()));
+      allow delete: if isAdmin();
+    }
+
     match /websiteLeads/{leadId} {
       allow read: if isStaff();
       allow update: if isStaff()

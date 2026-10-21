@@ -40,6 +40,7 @@ function dateLabel(value) {
 
 
 import SubjectSwitcher from './SubjectSwitcher.jsx';
+import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
 import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
 
 export default function StudentDashboardPage({
@@ -188,6 +189,9 @@ export default function StudentDashboardPage({
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
       <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} />
+
+      {/* „Millal sulle tund sobib?” — the student keeps the times that suit up to date (owner 2026-10-21) */}
+      {students.slice(0, 1).map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} user={user} mode={preview ? 'view' : 'own'} compact />)}
 
       <LessonSummariesCard studentIds={students.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
 

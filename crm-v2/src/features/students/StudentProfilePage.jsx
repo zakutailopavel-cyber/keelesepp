@@ -17,6 +17,7 @@ import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
 import StudentFinancePanel from './StudentFinancePanel.jsx';
 import StudentLessonsPanel from './StudentLessonsPanel.jsx';
 import SubjectSwitcher from './SubjectSwitcher.jsx';
+import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
 import { onlySubject, subjectName, subjectsOf, teacherTracks } from './subjects.js';
 import StudentWorksPanel from './StudentWorksPanel.jsx';
 import { homeworkService } from '../../services/firebase/homework.js';
@@ -175,6 +176,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
             {canAssignTeacher ? <StudentAccountCard student={student} {...(accountApi ? { service: accountApi } : {})}
               onInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, studentUid: data.uid, linkedUserId: data.uid, linkedUserIds: [data.uid], email: current.student.email || data.email } }))}
               onParentInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, linkedParentIds: [...new Set([...(current.student.linkedParentIds || []), data.uid])], linkedParentId: current.student.linkedParentId || data.uid, parentEmail: current.student.parentEmail || data.email } }))} /> : null}
+            {/* „Sobivad ajad” the student / parent marked (owner 2026-10-21): the admin edits and marks a change reviewed */}
+            <AvailabilityCard studentId={student.id} user={currentUser} mode={canAssignTeacher ? 'admin' : 'view'} />
             <PetOverview studentIds={[student.id]} lessons={state.lessons} {...(petApi ? { repository: petApi } : {})} />
           </div>
         ) : null}

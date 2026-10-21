@@ -224,3 +224,23 @@ test("two teachers of one child: each reads only their own subject's lessons and
   assert.equal((await documentRequest(maths, "GET", "lessons/sec-shared-math")).status, 200);
   await db().collection("securityMigrations").doc("teacherUidV1").set({ readEnforced: false }, { merge: true });
 });
+
+// „Sobivad ajad” on the card (owner 2026-10-21): the student writes their own times, never the review mark
+test("a student writes their own available times; only the administrator marks them reviewed", async () => {
+  requireSafeEmulatorEnvironment();
+  const learner = await account("sec-avail-student@example.com", { role: "student", roles: ["student"], displayName: "Avail Student" });
+  const learnerUid = tokenUid(learner);
+  const other = await account("sec-avail-other@example.com", { role: "student", roles: ["student"], displayName: "Other Student" });
+  await Promise.all([
+    db().collection("students").doc("sec-avail-card").set({ name: "Avail Student", active: true, linkedUserId: learnerUid, studentUid: learnerUid, linkedUserIds: [learnerUid], teacherUid: "t-x", teacherUids: ["t-x"] }),
+  ]);
+  const list = (values) => ({ arrayValue: { values: values.map(str) } });
+  const fields = (extra = {}) => ({ fields: { studentId: str("sec-avail-card"), slots: list(["Mon-17:00", "Mon-17:30"]), preferred: list([]), changedAt: str("2026-10-21T10:00:00.000Z"), changedByUid: str(learnerUid), changedByName: str("Avail Student"), changedByRole: str("student"), ...extra } });
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields())).status, 200);
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ reviewedAt: str("2026-10-21T11:00:00.000Z") }))).status, 403);
+  assert.equal((await documentRequest(learner, "GET", "studentAvailability/sec-avail-card")).status, 200);
+  assert.equal((await documentRequest(other, "GET", "studentAvailability/sec-avail-card")).status, 403);
+  assert.equal((await documentRequest(other, "PATCH", "studentAvailability/sec-avail-card", fields())).status, 403);
+  const adminReview = await documentRequest(await adminToken(), "PATCH", "studentAvailability/sec-avail-card?updateMask.fieldPaths=reviewedAt&updateMask.fieldPaths=reviewedByName", { fields: { reviewedAt: str("2026-10-21T11:00:00.000Z"), reviewedByName: str("Admin") } });
+  assert.equal(adminReview.status, 200, JSON.stringify(adminReview.body));
+});
