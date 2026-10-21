@@ -45,8 +45,11 @@ topic yet; the owner decides whether to add one or attach it to the nearest less
 | Topic (book) | Pages | Course lesson(s) |
 |-|-|-|
 | 1.1 Vene nimede kirjutamine | 10 | — |
-| 1.2–1.3 Nimetav (ainsus, mitmus) | 11–13 | A2 module 2 (a2-006…a2-010), a2-009 |
-| 1.4–1.6 Omastav, kelle oma | 13–19 | a2-007, a2b1-008 |
+| 1.2 Nimetav (ainsus) | 11 | a2-003 — **done** (pp. 11) |
+| 1.3 Nimetav (mitmus), see / need | 11–13 | a2-006 — **done** (pp. 11–13) |
+| 1.4 Omastav (ainsus) | 13–15 | a2-007 — **done** (pp. 13–15) |
+| 1.5 Omastav (mitmus) | 16–17 | a2b1-008 — **done** (pp. 16–17; ex. 2 has 5 words cut off in the photo, see PR) |
+| 1.6 Kelle oma | 19 | a2-007, a2b1-008 |
 | 1.7 Kätte, käes, käest; omastavaga eessõnad ja tagasõnad | 20 | a2b1-014, a2-022 |
 | 1.8–1.9 Osastav (ainsus, mitmus) | 26–29 | a2-027, a2b1-028 |
 | 1.10 Osastavaga eessõnad ja tagasõnad | 34 | — |
