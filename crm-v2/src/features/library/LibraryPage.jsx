@@ -507,24 +507,29 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
           <p className="lib2-count" aria-live="polite">{results.length} materjali{filtersOn ? <> · <button type="button" onClick={() => setSearchParams(new globalThis.URLSearchParams())}>Tühjenda filtrid</button></> : null}</p>
 
           {grammar.length ? (
-            <details className="lib2-grammar" open>
-              <summary><BookOpen size={18} aria-hidden="true" /> Grammatika <small>{grammar.length} teemat · {level}</small></summary>
-              <ol>{grammar.map(({ topic, lessons }) => (
-                <li key={topic}>
-                  <strong>{topic}</strong>
-                  <span className="lib2-grammar-lessons">{lessons.map((item) => {
-                    const opik = item.phases?.find((phase) => phase.id === 'opik' && phase.state === 'published');
-                    return (
-                      <span key={item.key} className="lib2-grammar-lesson">
-                        <button type="button" onClick={() => open(item)} title="Ava tund">{item.sourceId.replace(/^est-/, '')} · {item.title}</button>
-                        {opik ? <button type="button" className="lib2-phase is-published" onClick={() => openPhase(item, 'opik')} title="Õpiku reegel ja harjutused">Õpik</button> : null}
-                        <button type="button" className="lib2-act lib2-act--assign" onClick={() => setAssigning(item)} title="Määra õpilastele"><Send size={14} /> Määra</button>
-                      </span>
-                    );
-                  })}</span>
-                </li>
-              ))}</ol>
-            </details>
+            // „Grammatika” looks like a module section (owner 2026-10-21: the first version was a ragged list): one row a
+            // topic with its lesson, the Õpik sheet and the same actions column as the lessons below
+            <div className="lib2-section lib2-grammar">
+              <h3><span>{level}</span>Grammatika<small>{grammar.length} teemat</small></h3>
+              <ul className="lib2-list">{grammar.flatMap(({ topic, lessons }, index) => lessons.map((item, li) => {
+                const opik = item.phases?.find((phase) => phase.id === 'opik' && phase.state === 'published');
+                return (
+                  <li className="lib2-row lib2-grammar-row" key={`${topic}-${item.key}`}>
+                    <span className="lib2-grammar-num" aria-hidden="true">{li === 0 ? `${index + 1}.` : ''}</span>
+                    <i className="lib2-icon tone-grammar" aria-hidden="true"><BookOpen size={18} /></i>
+                    <button type="button" className="lib2-main" onClick={() => setSelected(item)}>
+                      <strong>{topic}</strong>
+                      <small>{[`Tund ${item.lessonNumber || item.sourceId.replace(/^est-/, '')}`, item.title, item.moduleTitle].filter(Boolean).join(' · ')}</small>
+                    </button>
+                    <span className="lib2-meta">{opik ? <button type="button" className="lib2-phase is-published" onClick={() => openPhase(item, 'opik')} title="Õpiku reegel ja harjutused">Õpik</button> : null}</span>
+                    <span className="lib2-actions">
+                      <button type="button" className="lib2-act" aria-label={`Vaata: ${item.title}`} title="Vaata" onClick={() => open(item)}><Eye size={16} /></button>
+                      <button type="button" className="lib2-act lib2-act--assign" title="Määra õpilastele" onClick={() => setAssigning(item)}><Send size={15} /> Määra</button>
+                    </span>
+                  </li>
+                );
+              }))}</ul>
+            </div>
           ) : null}
           {results.length ? sections.map((section) => (
             <div className="lib2-section" key={section.key}>
