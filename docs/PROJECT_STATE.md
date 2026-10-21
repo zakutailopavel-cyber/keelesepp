@@ -18,6 +18,7 @@
   - nativeLevels.test.js: 5/5;
   - eslint: 0 errors.
 - Not done: the curriculumLessons installer and publishing (production; owner's yes); modules 2–6; grade 12.
+- Owner: the level is named „9. klass emakeel” (and „12. klass emakeel”); `nativeStage` reads both forms.
 - Next safe step: the owner reviews module 1 in the course production page preview.
 
 ## 2026-10-21 · agent/native-estonian-plan — plan: Estonian as a mother tongue, 9. and 12. klass

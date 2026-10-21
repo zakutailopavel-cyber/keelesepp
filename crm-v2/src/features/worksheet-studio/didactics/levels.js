@@ -66,21 +66,21 @@ export const LEVELS = Object.freeze({
   // at least 200 words; grade 12 reads up to 1000 words, answers in 50–100 words and writes an essay of about 400 words.
   // Neither exam has a speaking part; translation into Estonian does not belong here.
   EK9: {
-    label: '9. klass', sentence: { avg: 14, max: 28 }, items: [6, 12], reading: { words: [400, 800], questions: [5, 10], inference: true },
+    label: '9. klass emakeel', sentence: { avg: 14, max: 28 }, items: [6, 12], reading: { words: [400, 800], questions: [5, 10], inference: true },
     writing: { words: [200, 300] }, speaking: [60, 180], bank: 'extra', closedShare: 0.35, instructionWords: 35, example: 'no',
     can: 'Mõistab ja tõlgendab ilukirjandus-, tarbe-, teabe- ja meediatekste; kirjutab sidusa jutustava-arutleva teksti ja järgib õigekirja põhireegleid.',
   },
   EK12: {
-    label: '12. klass', sentence: { avg: 17, max: 34 }, items: [6, 12], reading: { words: [600, 1000], questions: [3, 6], inference: true },
+    label: '12. klass emakeel', sentence: { avg: 17, max: 34 }, items: [6, 12], reading: { words: [600, 1000], questions: [3, 6], inference: true },
     writing: { words: [400, 450] }, speaking: [90, 180], bank: 'extra', closedShare: 0.25, instructionWords: 45, example: 'no',
     can: 'Analüüsib ja hindab kriitiliselt avalikke tekste, seob mitme teksti teavet ning kirjutab umbes 400-sõnalise arutleva kirjandi normikirjakeeles.',
   },
 });
 
-// a school grade of the mother-tongue course („9. klass”, „12. klass”, „EK9”) → its LEVELS key, else ''
+// a school grade of the mother-tongue course („9. klass emakeel”, „9. klass”, „EK9”) → its LEVELS key, else ''
 export function nativeStage(value) {
   const v = String(value || '').toUpperCase().replace(/\s+/g, '');
-  const grade = v.match(/^EK(\d+)$/)?.[1] || v.match(/^(\d+)\.?KL(ASS)?$/)?.[1];
+  const grade = v.match(/^EK(\d+)$/)?.[1] || v.match(/^(\d+)\.?KL(ASS)?(EMAKEEL)?$/)?.[1];
   if (grade === '9') return 'EK9';
   if (grade === '12') return 'EK12';
   return '';
@@ -96,8 +96,8 @@ export const HARNO = Object.freeze({
   B2: { level: 'B2', longestText: 550, writing: [[120, 160], [160, 200]], monologue: 60, options: 4, listening: true },
   C1: { level: 'C1', longestText: 575, writing: [[160, 200], [220, 260]], monologue: 120, options: 4, listening: true },
   // mother tongue: põhikooli lõpueksam and riigieksam (eristuskirjad 2026/2027) — written exams, no listening or speaking
-  EK9: { level: '9. klass', longestText: 800, writing: [[200, 300]], monologue: 0, options: 3, listening: false },
-  EK12: { level: '12. klass', longestText: 1000, writing: [[400, 450]], monologue: 0, options: 4, listening: false },
+  EK9: { level: '9. klass emakeel', longestText: 800, writing: [[200, 300]], monologue: 0, options: 3, listening: false },
+  EK12: { level: '12. klass emakeel', longestText: 1000, writing: [[400, 450]], monologue: 0, options: 4, listening: false },
 });
 // the exam a stage prepares for (A2+ still meets the A2 exam; B1- already reads toward B1)
 const HARNO_STAGE = { EK9: 'EK9', EK12: 'EK12', A1: 'A2', A2: 'A2', 'A2+': 'A2', 'B1-': 'B1', B1: 'B1', 'B1+': 'B1', 'B2-': 'B2', B2: 'B2', C1: 'C1' };

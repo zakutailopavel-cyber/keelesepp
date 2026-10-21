@@ -6,7 +6,7 @@
 import { B } from '../blocks.js';
 import { LESSONS_B } from './module01b.js';
 
-export const MODULE = { id: 'ek9-module-01', course: 'ek9', title: 'Tekstimõistmine', level: '9. klass' };
+export const MODULE = { id: 'ek9-module-01', course: 'ek9', title: 'Tekstimõistmine', level: '9. klass emakeel' };
 
 const LESSONS_A = {
   'ek9-001': {

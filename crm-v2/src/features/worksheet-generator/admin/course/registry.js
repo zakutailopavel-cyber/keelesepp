@@ -85,8 +85,8 @@ export const COURSES = {
   b2: { label: 'B2 · B1 → B2 õpitee', badge: 'KeeleSepp B1 → B2' },
   c1: { label: 'C1 · B2 → C1 õpitee', badge: 'KeeleSepp B2 → C1' },
   // Estonian as a mother tongue (docs/NATIVE_ESTONIAN_9_12_PLAN.md): exam preparation for grades 9 and 12
-  ek9: { label: '9. klass · eesti keel emakeelena', badge: 'KeeleSepp · eesti keel 9. klass' },
-  ek12: { label: '12. klass · eesti keel emakeelena', badge: 'KeeleSepp · eesti keel 12. klass' },
+  ek9: { label: '9. klass emakeel · eesti keel emakeelena', badge: 'KeeleSepp · 9. klass emakeel' },
+  ek12: { label: '12. klass emakeel · eesti keel emakeelena', badge: 'KeeleSepp · 12. klass emakeel' },
 };
 
 export const PHASES = {

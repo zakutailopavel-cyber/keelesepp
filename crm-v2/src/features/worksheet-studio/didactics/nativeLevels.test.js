@@ -10,6 +10,8 @@ describe('mother-tongue grades', () => {
     expect(nativeStage('9. klass')).toBe('EK9');
     expect(nativeStage('12. klass')).toBe('EK12');
     expect(nativeStage('EK9')).toBe('EK9');
+    expect(nativeStage('9. klass emakeel')).toBe('EK9');
+    expect(nativeStage('12. klass emakeel')).toBe('EK12');
     expect(nativeStage('B1')).toBe('');
     expect(levelKey('9. klass')).toBe('EK9');
     expect(levelKey('12.klass')).toBe('EK12');
@@ -17,7 +19,7 @@ describe('mother-tongue grades', () => {
   });
 
   it('follows the Harno exam descriptions: no listening, essay of 200 / ~400 words', () => {
-    expect(harnoFor('9. klass')).toMatchObject({ longestText: 800, listening: false, writing: [[200, 300]] });
+    expect(harnoFor('9. klass emakeel')).toMatchObject({ longestText: 800, listening: false, writing: [[200, 300]] });
     expect(harnoFor('12. klass')).toMatchObject({ longestText: 1000, listening: false, writing: [[400, 450]] });
   });
 

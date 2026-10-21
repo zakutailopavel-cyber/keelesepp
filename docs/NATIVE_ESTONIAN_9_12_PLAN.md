@@ -84,14 +84,14 @@ Built: module 1 „Tekstimõistmine” (ek9-001…005), see „State” below.
      9. klass close to the B2 text lengths, 12. klass close to C1.
    - Its own rules: the share of spelling tasks, essay length 250+ (9) / 400+ (12), and no RU→ET translation tasks.
 4. **Installer.**
-   - Writes `curriculumLessons/{ek9-NNN}` with `subject: 'Eesti keel'`, `level: '9. klass'`, a module `topic`,
+   - Writes `curriculumLessons/{ek9-NNN}` with `subject: 'Eesti keel'`, `level: '9. klass emakeel'`, a module `topic`,
      `curriculumId`, and `roadmapManaged: true`, like `a2CurriculumRecords`.
    - It writes to the production database, so it needs the owner's yes.
 5. **Task types.** The existing blocks cover the exam: gaps, cloze, errorfix, formtext, reading with questions,
    writing and rubric.
    - New, small: a spelling block with a choice per word (kokku/lahku, suur/väike täht) can reuse `cloze`.
    - The essay rubric follows Harno's marking criteria (content, structure, language, spelling).
-6. **Students.** A pupil's track gets `subject: 'Eesti keel'` and `level: '9. klass'`. The subject switcher and teacher
+6. **Students.** A pupil's track gets `subject: 'Eesti keel'` and `level: '9. klass emakeel'`. The subject switcher and teacher
    scope already work by subject.
 
 ## Owner decisions (2026-10-21)
@@ -99,7 +99,7 @@ Built: module 1 „Tekstimõistmine” (ek9-001…005), see „State” below.
 1. **Pupils:** both groups. The core is written for bilingual pupils of Estonian-medium schools: rules are explained
    and texts are a little easier. Every lesson also has harder tasks for native speakers (a „Raskem” block).
 2. **Length:** 30 lessons a grade (6 modules × 5, one lesson a week, lesson 5 = check in exam form).
-3. **CRM subject:** „Eesti keel” with level „9. klass” / „12. klass”. Price and teacher are set per track, as now.
+3. **CRM subject:** „Eesti keel” with level „9. klass emakeel” / „12. klass emakeel” (owner 2026-10-21: that exact name). Price and teacher are set per track, as now.
 4. **Still open:** which school textbooks or workbooks to follow, and the limits of the permission. The owner will
    photograph them.
 
@@ -132,5 +132,5 @@ Built: module 1 „Tekstimõistmine” (ek9-001…005), see „State” below.
 
 ## Next safe step
 
-The owner reviews module 1. Then the ek9 installer (curriculumLessons records: subject „Eesti keel”, level „9. klass”),
+The owner reviews module 1. Then the ek9 installer (curriculumLessons records: subject „Eesti keel”, level „9. klass emakeel”),
 with the owner's yes for the production write, and modules 2–6 by the same pattern.
