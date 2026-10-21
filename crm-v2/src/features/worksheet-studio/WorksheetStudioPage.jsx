@@ -597,6 +597,9 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
     setVariants({ ...variants, index });
     updateBlock(variants.list[index]);
   };
+  // „Määra õpilastele” opens Õppevara with the published sheet; the block bar's „Määra” sends one task of it (&plokk=)
+  const canAssign = allowAssign && !isNew && worksheetStatus === 'published' && !dirty;
+  const assignUrl = `/library?assign=${encodeURIComponent(lessonId)}${worksheetId ? `&leht=${encodeURIComponent(worksheetId)}` : ''}`;
   const renderToolbar = (block) => {
     const index = doc.blocks.findIndex((b) => b.id === block.id);
     const flipping = variants?.blockId === block.id;
@@ -609,6 +612,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
         <span className="ws-bar-sep" aria-hidden="true" />
         <button type="button" onClick={() => { setSelectedId(block.id); setPanelOpen(true); }} title="Ploki sisu ja ülesande seaded"><Icons.SlidersHorizontal aria-hidden="true" /> Sisu</button>
         <button type="button" onClick={() => duplicateBlock(block.id)} title="Kopeeri (Ctrl+D)" aria-label="Kopeeri"><Icons.Copy aria-hidden="true" /></button>
+        {canAssign && BLOCKS[block.type]?.task ? <button type="button" onClick={() => navigate(`${assignUrl}&plokk=${encodeURIComponent(block.id)}`)} title="Määra ainult see ülesanne õpilastele"><Icons.Send aria-hidden="true" /> Määra</button> : null}
         {canRegenerate && !flipping ? <button type="button" onClick={() => regenerateSelected()} disabled={regenerating} title="Sama fookus ja raskus, kolm uut varianti"><Icons.Sparkles aria-hidden="true" /> {regenerating ? 'Genereerin…' : 'Uus variant'}</button> : null}
         {canRegenerate && flipping ? (
           <>
@@ -802,7 +806,7 @@ export default function WorksheetStudioPage({ repository = worksheetDocsService,
             <input ref={fileRef} type="file" accept="application/json" hidden onChange={(e) => { if (e.target.files?.[0]) importJson(e.target.files[0]); e.target.value = ''; }} />
             <button type="button" className="st-btn st-icon" onClick={toggleFocus} aria-pressed={focus} title={focus ? 'Näita CRM-i menüüd' : 'Konstruktor kogu aknas'} aria-label={focus ? 'Näita menüüd' : 'Täisekraan'}>{focus ? <Icons.Minimize2 size={16} aria-hidden="true" /> : <Icons.Maximize2 size={16} aria-hidden="true" />}</button>
             <button type="button" className="st-btn" disabled={saving || (!dirty && !isNew)} onClick={() => save('draft')}>{saving ? 'Salvestan…' : 'Salvesta'}</button>
-            {allowAssign && !isNew && worksheetStatus === 'published' && !dirty ? <Link className="st-btn" to={`/library?assign=${encodeURIComponent(lessonId)}${worksheetId ? `&leht=${encodeURIComponent(worksheetId)}` : ''}`}>Määra õpilastele</Link> : null}
+            {canAssign ? <Link className="st-btn" to={assignUrl}>Määra õpilastele</Link> : null}
             <button type="button" className="st-btn primary" disabled={saving || !quality.ready || (!dirty && worksheetStatus === 'published')} onClick={() => save('published')}>{privateFor ? 'Määra õpilasele' : 'Avalda'}</button>
           </div>
         </header>

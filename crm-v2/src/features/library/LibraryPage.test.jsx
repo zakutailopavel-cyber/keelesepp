@@ -65,6 +65,29 @@ describe('LibraryPage', () => {
     expect(worksheetRepository.list).toHaveBeenCalledWith('lesson-1');
   });
 
+  it('assigns one task of the published sheet from the block bar (&plokk=)', async () => {
+    const sheet = sampleDocument();
+    const task = sheet.blocks.find((block) => block.data?.title);
+    const worksheetRepository = { list: vi.fn().mockResolvedValue([{ worksheetId: 'practice', worksheetDocStatus: 'published', publishedWorksheetDoc: sheet }]) };
+    const { repository } = renderPage(data, `/library?assign=lesson-1&leht=practice&plokk=${task.id}`, worksheetRepository);
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent(`Pere tunnikava · Harjuta · ${task.data.title}`);
+    fireEvent.click(await within(dialog).findByText('Mari'));
+    fireEvent.click(within(dialog).getByRole('button', { name: /^Määra 1 õpilasele/ }));
+    await waitFor(() => expect(repository.assign).toHaveBeenCalled());
+    const { item } = repository.assign.mock.calls[0][0];
+    expect(item).toMatchObject({ type: 'worksheet', phase: 'practice', block: task.id });
+    expect(item.source.publishedWorksheetDoc.blocks).toEqual([task]);
+    expect(item.source.publishedWorksheetDoc.meta).toBe(sheet.meta);
+  });
+
+  it('says so when the task is not on the published sheet', async () => {
+    const worksheetRepository = { list: vi.fn().mockResolvedValue([{ worksheetId: 'practice', worksheetDocStatus: 'published', publishedWorksheetDoc: sampleDocument() }]) };
+    renderPage(data, '/library?assign=lesson-1&leht=practice&plokk=missing', worksheetRepository);
+    expect(await screen.findByText(/Seda ülesannet pole avaldatud lehel/)).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
   it('says so when the chosen sheet has no published version', async () => {
     const worksheetRepository = { list: vi.fn().mockResolvedValue([{ worksheetId: 'transfer', worksheetDocStatus: 'draft', worksheetDoc: sampleDocument() }]) };
     renderPage(data, '/library?assign=lesson-1&leht=transfer', worksheetRepository);
