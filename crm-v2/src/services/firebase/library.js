@@ -16,7 +16,7 @@ const MAX_MATERIAL_FILE_SIZE = 19 * 1024 * 1024;
 const SAFE_MATERIAL_TYPE = /^(image\/|application\/pdf$|text\/|audio\/|video\/|application\/vnd\.|application\/msword$)/;
 const EXERCISE_TYPES = new Set(['fill', 'choice', 'writing', 'order', 'match', 'reading', 'translate']);
 
-const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta' };
+const SHEET_LABEL = { discover: 'Avasta', practice: 'Harjuta', transfer: 'Kasuta', opik: 'Õpik' };
 // A course lesson keeps its sheets per phase (curriculumLessons/{id}/worksheets/{phase}), not on the lesson record: assigning
 // the lesson gives the student its published sheets (owner 2026-10-16: the lesson arrived as an empty homework title).
 const publishedSheetIds = (source = {}) => Object.entries(source.worksheetPhases || {})

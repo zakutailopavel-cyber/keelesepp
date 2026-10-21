@@ -1,3 +1,23 @@
+## 2026-10-21 · agent/opik-sheet — textbook pages as a 4th lesson sheet „Õpik”
+
+- Owner: digitise the licensed textbooks, but inside our course: a grammar lesson gets the textbook's rule and
+  exercises 1:1, not a separate module. Owner picked a 4th sheet „Õpik” next to Avasta / Harjuta / Kasuta.
+- Service: `lessonWorksheets` keeps a summary for `opik` too (`worksheetPhases.opik`) and allows slot 4. No rules
+  change: staff already write any sheet id.
+- Õppevara:
+  - the chip „Õpik” shows only when a lesson has one and is not counted in the phase filters;
+  - assignment offers it, unticked by default;
+  - board, homework and the live-room sheet list label it „Õpik”.
+- Kursuse tootmine: new section „Õpik” lists `admin/course/textbook` sheets with preview and „Avalda” (confirmation);
+  only the answer key gates publishing.
+- Content (code only, not published):
+  - „Minu Eesti” (Mangus, Simmul) pp. 38–43, split into a2b1-021, a2b1-023 and b1b2-018;
+  - `docs/TEXTBOOKS.md` maps the grammar book's whole table of contents to course lessons, with gaps marked „—”.
+- Checks: library, services, worksheet-generator, worksheet-studio and board suites: 1234 passed, 3 skipped. eslint: 0
+  errors.
+- Not done: nothing is published; the grammar book's exact title is still to come from the owner.
+- Next safe step: the owner reviews, merges and publishes the three Õpik sheets from Kursuse tootmine.
+
 ## 2026-10-21 · agent/native-estonian-plan — plan: Estonian as a mother tongue, 9. and 12. klass
 
 - Owner: prepare Õppevara for Estonian as a mother tongue (9. and 12. grade).

@@ -105,6 +105,16 @@ describe('lesson phases', () => {
     expect(matchesPhaseFilter(phases, 'ready')).toBe(false);
     expect(matchesPhaseFilter(lessonPhases({}), 'none')).toBe(true);
   });
+  it('shows the Õpik sheet only when the lesson has one and does not count it in the filters', async () => {
+    const { lessonPhases, matchesPhaseFilter } = await import('./libraryModel.js');
+    const published = { status: 'published', version: 1, publishedVersion: 1 };
+    expect(lessonPhases({ worksheetPhases: { discover: published } }).map((phase) => phase.id)).toEqual(['discover', 'practice', 'transfer']);
+    const phases = lessonPhases({ worksheetPhases: { discover: published, practice: published, transfer: published, opik: { status: 'draft', version: 1, publishedVersion: 0 } } });
+    expect(phases.map((phase) => phase.label)).toEqual(['Avasta', 'Harjuta', 'Kasuta', 'Õpik']);
+    expect(phases[3].extra).toBe(true);
+    expect(matchesPhaseFilter(phases, 'ready')).toBe(true);
+    expect(matchesPhaseFilter(phases, 'drafts')).toBe(false);
+  });
   it('shows the newest date even when the lesson keeps updatedAt as a Firestore Timestamp', async () => {
     const { isoDate } = await import('./libraryModel.js');
     expect(isoDate({ toDate: () => new Date('2026-09-14T10:00:00Z') })).toBe('2026-09-14T10:00:00.000Z');

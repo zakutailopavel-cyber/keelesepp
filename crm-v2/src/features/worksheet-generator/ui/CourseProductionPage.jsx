@@ -8,6 +8,8 @@ import { sheetMinutes } from '../../worksheet-studio/didactics/timeEstimate.js';
 import { COURSE_MODULES, COURSES, PHASES, moduleNumber, moduleSheets } from '../admin/course/registry.js';
 import { moduleProblems, splitByBaseline } from '../admin/course/quality.js';
 import { courseReadiness, GATE_LABEL } from '../admin/course/readiness.js';
+import { TEXTBOOK_SHEETS, TEXTBOOK_SHEET_ID } from '../admin/course/textbook/index.js';
+import { keysProblems } from '../../worksheet-studio/didactics/gates.js';
 
 const StudioSheetPreview = lazy(() => import('../../library/StudioSheetPreview.jsx'));
 const MISSING = 'Töölehte ei leitud.';
@@ -15,7 +17,7 @@ const MISSING = 'Töölehte ei leitud.';
 // „Kursuse tootmine”: the B1 / B2 course sheets written in code (admin/course/*), checked by the quality gate, previewed
 // as they print and published lesson by lesson into Õppevara. A sheet that already exists is replaced only after an
 // explicit confirmation; nothing is written without the admin's click.
-export default function CourseProductionPage({ repository = lessonWorksheetsService, modules = COURSE_MODULES }) {
+export default function CourseProductionPage({ repository = lessonWorksheetsService, modules = COURSE_MODULES, textbookSheets = TEXTBOOK_SHEETS }) {
   const { user } = useAuth();
   const isAdmin = user?.roles?.includes(ROLES.ADMIN);
   const [moduleId, setModuleId] = useState(modules[0]?.MODULE.id || '');
@@ -46,6 +48,32 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
     } catch (cause) { setError(cause?.message || String(cause)); } finally { setLoading(false); }
   }, [repository, sheets]);
   useEffect(() => { if (isAdmin && mod) load(); }, [isAdmin, mod, load]);
+
+  // „Õpik”: textbook sheets for the lessons of the course (admin/course/textbook); only the answer keys are checked,
+  // the textbook's own content is copied 1:1 and is not measured against our lesson norms
+  const [textbookRecords, setTextbookRecords] = useState({});
+  useEffect(() => {
+    if (!isAdmin || !textbookSheets.length) return;
+    let alive = true;
+    (async () => {
+      const next = {};
+      for (const { lessonId } of textbookSheets) {
+        try { next[lessonId] = await repository.load(lessonId, TEXTBOOK_SHEET_ID); }
+        catch (cause) { next[lessonId] = cause?.message === MISSING ? null : { error: cause?.message || String(cause) }; }
+      }
+      if (alive) setTextbookRecords(next);
+    })();
+    return () => { alive = false; };
+  }, [isAdmin, repository, textbookSheets]);
+  const publishTextbook = async ({ lessonId, doc, book }) => {
+    const current = textbookRecords[lessonId];
+    if (!window.confirm(`Avaldada ${lessonId}: Õpik („${book.title}”)?${current ? '\n\nNB! Olemasolev Õpik-leht asendatakse uue versiooniga.' : ''}`)) return;
+    setBusy(`opik:${lessonId}`); setError('');
+    try {
+      const saved = await repository.publish({ lessonId, worksheetId: TEXTBOOK_SHEET_ID, worksheetDoc: doc, user, baseUpdatedAt: current?.worksheetDocUpdatedAt || '', role: 'focus', slot: 4, displayLabel: 'Õpik', source: 'manual' });
+      setTextbookRecords((r) => ({ ...r, [lessonId]: saved }));
+    } catch (cause) { setError(cause?.message || String(cause)); } finally { setBusy(''); }
+  };
 
   if (!isAdmin) return <ErrorState title="Puudub ligipääs" message="Seda vaadet saab kasutada ainult administraator." />;
   if (!mod) return <ErrorState title="Mooduleid pole" message="Kursuse tootmises pole veel ühtegi moodulit." />;
@@ -84,6 +112,27 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
           ))}
         </div>
       </Card>
+      {textbookSheets.length ? (
+        <Card>
+          <h2 style={{ marginTop: 0 }}>Õpik</h2>
+          <p className="form-hint">Litsentseeritud õpikute reegel ja harjutused (1:1) lisalehena „Õpik” selle tunni juures, mis õpetab sama grammatikat. Kontrollitakse ainult vastuste võtit.</p>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {textbookSheets.map((entry) => {
+              const record = textbookRecords[entry.lessonId];
+              const keys = keysProblems(entry.doc).filter((p) => p.level === 'error');
+              return (
+                <div key={entry.lessonId} style={{ display: 'grid', gridTemplateColumns: '110px 1fr auto auto auto', gap: 12, alignItems: 'center', paddingTop: 8, borderTop: '1px solid var(--border)' }}>
+                  <b>{entry.lessonId}</b>
+                  <span>{entry.doc.meta.title}<span className="form-hint"> · {entry.book.title}, lk {entry.pages} · {entry.doc.blocks.length} plokki{keys.length ? ` · ⚠ võtmes ${keys.length} viga` : ''}</span></span>
+                  <span>{record?.error ? 'viga' : record ? `olemas v${record.worksheetDocVersion || 0}${record.publishedWorksheetDocVersion ? ' · avaldatud' : ''}` : 'uus'}</span>
+                  <Button variant="secondary" onClick={() => setPreview({ lessonId: entry.lessonId, phase: TEXTBOOK_SHEET_ID, doc: entry.doc })}>Vaata</Button>
+                  <Button onClick={() => publishTextbook(entry)} disabled={Boolean(busy) || keys.length > 0 || Boolean(record?.error)} loading={busy === `opik:${entry.lessonId}`}>Avalda</Button>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      ) : null}
       <Card>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} role="radiogroup" aria-label="Moodul">
           {modules.map((m) => (
@@ -133,7 +182,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
           </div>
         </Card>
       ))}
-      <Modal open={Boolean(preview)} title={preview ? `${preview.lessonId} · ${PHASES[preview.phase].label}` : ''} onClose={() => setPreview(null)} className="modal--editor">
+      <Modal open={Boolean(preview)} title={preview ? `${preview.lessonId} · ${PHASES[preview.phase]?.label || 'Õpik'}` : ''} onClose={() => setPreview(null)} className="modal--editor">
         {preview ? <Suspense fallback={<LoadingState label="Laen eelvaadet…" />}><StudioSheetPreview doc={preview.doc} /></Suspense> : null}
       </Modal>
     </div>

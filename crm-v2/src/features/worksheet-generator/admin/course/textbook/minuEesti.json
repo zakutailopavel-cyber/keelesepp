@@ -1,0 +1,670 @@
+{
+ "book": {
+  "id": "minu-eesti",
+  "title": "Minu Eesti",
+  "authors": "Inga Mangus ja Merge Simmul"
+ },
+ "sheets": [
+  {
+   "lessonId": "a2b1-021",
+   "title": "Lihtminevik -SI- (õpikust)",
+   "pages": "38, 40–41",
+   "level": "A2+",
+   "canDo": "Ma moodustan lihtmineviku jaatava (-si-) ja eitava (ei … -nud) vormi.",
+   "blocks": [
+    {
+     "id": "me38_intro",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "LIHTMINEVIK -SI-, -I- · Простое прошедшее время -SI-, -I-",
+      "text": "В русском языке существует только одно прошедшее время: я смотрел, она смотрела, он смотрел и т.д. В эстонском языке 3 формы прошедшего времени:\n\n**I lihtminevik** (простое прошедшее), **II täisminevik** (полное прошедшее) и **III enneminevik** (предпрошедшее / давнопрошедшее).\n\nОбразование разных прошедших времен не так уж сложно, но русскому человеку трудно уяснить, какое прошедшее время когда использовать. Попробуем разобраться."
+     }
+    },
+    {
+     "id": "me38_yes",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "Утвердительная («ДА») форма",
+      "text": "Действия или события **LIHTMINEVIK** (простого прошедшего времени) полностью остались в прошлом и никак не связаны с настоящим.\n\n• *Я работал в Таллинне (больше я там не работаю).* **Ma töötasin Tallinnas.**\n\n• *Я жил в Москве (больше я там не живу).* **Ma elasin Moskvas.**"
+     }
+    },
+    {
+     "id": "me38_nb1",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "NB!",
+      "lines": "Утвердительная («ДА») форма простого прошедшего времени образуется от основы **MA-ИНФИНИТИВА**. К основе прибавляется **-SI-** (-S, -IS) + личное окончание.\n**ÕMBLE**MA – ÕMMELDA – ÕMBLEN"
+     }
+    },
+    {
+     "id": "me38_yes_t",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "ÕMBLEMA – ÕMMELDA – ÕMBLEN",
+      "instruction": "",
+      "headers": "isik, vorm, tõlge",
+      "rows": "MA | õmble + **SI** + n | я шил\nSA | õmble + **SI** + d | ты шил\nTA | õmble + **S** | он шил\nME | õmble + **SI** + me | мы шили\nTE | õmble + **SI** + te | вы шили\nNAD | õmble + **SI** + d | они шили"
+     }
+    },
+    {
+     "id": "me38_nb2",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "NB!",
+      "lines": "В третьем лице (он, она) в конце стоит **-S** или **-IS**. Это зависит от того, какой звук впереди:\nгласный: ta osk**A** + s = **oskas** — он умел\nсогласный: ta an**D** + is = **andis** — он дал"
+     }
+    },
+    {
+     "id": "me38_no",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "Отрицательная («НЕТ») форма",
+      "text": ""
+     }
+    },
+    {
+     "id": "me38_nb3",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "NB!",
+      "lines": "Отрицательная («НЕТ») форма образуется от основы **DA-ИНФИНИТИВА**, к которой прибавляется **-NUD**. Это так называемая **NUD**-форма. Перед словом ставится отрицательная частица **EI** (НЕ).\nÕMBLEMA – **ÕMMEL**DA – ÕMBLEN"
+     }
+    },
+    {
+     "id": "me38_no_t",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "Отрицательная форма: ÕMMEL + -NUD",
+      "instruction": "",
+      "headers": "isik, vorm, tõlge",
+      "rows": "MA | ei õmmel**nud** | я не шил\nSA | ei õmmel**nud** | ты не шил\nTA | ei õmmel**nud** | он не шил\nME | ei õmmel**nud** | мы не шили\nTE | ei õmmel**nud** | вы не шили\nNAD | ei õmmel**nud** | они не шили"
+     }
+    },
+    {
+     "id": "me40_7",
+     "type": "gaps",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "7. Kirjutage õige sõnavorm minevikus.",
+      "instruction": "Kirjutage lünka tegusõna lihtmineviku vorm.",
+      "sentences": "Ma [võrdlesin] (võrdlema – võrrelda) neid asju.\nNad ei [võrrelnud] (võrdlema – võrrelda) neid asju.\nTa [otsustas] (otsustama – otsustada) sõita maale.\nTa ei [otsustanud] (otsustama – otsustada) veel seda küsimust.\nLapsed [puudusid] (puuduma – puududa) koolist.\nPoisid ei [puudunud] (puuduma – puududa) trennist.\nSee [selgus] (selguma – selguda) alles õhtul.\nSee ei [selgunud] (selguma – selguda) päeval.\nNad [unustasid] (unustama – unustada) õpikud koju.\nÕpetaja ei [unustanud] (unustama – unustada) sõnade tööd.\nVäike õde [rikkus] (rikkuma – rikkuda) mu raamatu.\nTüdrukud ei [rikkunud] (rikkuma – rikkuda) kaarti.\nKas sa [kasutasid] (kasutama – kasutada) seda nuga?\nEi, ma ei [kasutanud] (kasutama – kasutada) seda nuga.",
+      "bank": "",
+      "showBank": "no"
+     }
+    },
+    {
+     "id": "me40_9",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "9. Tõlkige.",
+      "instruction": "Tõlkige eesti keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Они снимали природу Эстонии: болота и леса.",
+        "hint": ""
+       },
+       {
+        "source": "Он должен был догадаться, где я.",
+        "hint": ""
+       },
+       {
+        "source": "Привычки эстонцев для иностранцев непривычны и чужды.",
+        "hint": ""
+       },
+       {
+        "source": "Какие э-услуги вы раньше использовали?",
+        "hint": ""
+       },
+       {
+        "source": "Пенсионеры жалуются, что у них маленькая пенсия.",
+        "hint": ""
+       },
+       {
+        "source": "Моя мама обычно сама делает кровяную колбасу.",
+        "hint": ""
+       },
+       {
+        "source": "Девочки не удивились, что мальчики опоздали.",
+        "hint": ""
+       },
+       {
+        "source": "Они беседовали об эстонском климате и похожих традициях.",
+        "hint": ""
+       },
+       {
+        "source": "Почему никто не согласился со мной?",
+        "hint": ""
+       },
+       {
+        "source": "Я чувствовал себя очень защищенным.",
+        "hint": ""
+       },
+       {
+        "source": "Это был особый опыт.",
+        "hint": ""
+       },
+       {
+        "source": "Когда он изменился?",
+        "hint": ""
+       }
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "lessonId": "a2b1-023",
+   "title": "Lihtminevik -I- ja erandid (õpikust)",
+   "pages": "39–41",
+   "level": "A2+",
+   "canDo": "Ma tunnen 15 -i-lihtminevikuga tegusõna ja minema erandit.",
+   "blocks": [
+    {
+     "id": "me38_nb4",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "Исключение! MINEMA, MINNA, LÄHEN (идти)",
+      "lines": "ma **läksin** — я пошел · me **läksime** — мы пошли\nsa **läksid** — ты пошел · te **läksite** — вы пошли\nta **läks** — он пошел · nad **läksid** — они пошли\nma, sa, ta … ei **läinud**"
+     }
+    },
+    {
+     "id": "me38_i",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "Прошедшее время с -I-",
+      "text": "У некоторых слов прошедшее время образуется при помощи буквы **-I-**."
+     }
+    },
+    {
+     "id": "me38_olema",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "OLEMA",
+      "instruction": "",
+      "headers": "eesti, vene, eesti, vene",
+      "rows": "ma ol**i**n | я был / была | me ol**i**me | мы были\nsa ol**i**d | ты был / была | te ol**i**te | вы были\nta ol**i** | он, она был / была | nad ol**i**d | они были"
+     }
+    },
+    {
+     "id": "me38_nb5",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "NB! Есть 15 таких слов.",
+      "lines": "Обратите внимание на то, что отрицательная форма (NUD-форма) этих слов **НЕ** образуется от основы DA-ИНФИНИТИВА!"
+     }
+    },
+    {
+     "id": "me38_15",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "15 слов с -I-",
+      "instruction": "",
+      "headers": "MA-инфинитив, DA-инфинитив, ОН / ОНА (настоящее время), ОН / ОНА (простое прошедшее время), НЕТ-форма (простое прошедшее время)",
+      "rows": "1. **jooma** | juua | joob | jõi | ei joonud\n2. **looma** | luua | loob | lõi | ei loonud\n3. **tooma** | tuua | toob | tõi | ei toonud\n4. **saama** | saada | saab | sai | ei saanud\n5. **jääma** | jääda | jääb | jäi | ei jäänud\n6. **lööma** | lüüa | lööb | lõi | ei löönud\n7. **sööma** | süüa | sööb | sõi | ei söönud\n8. **nägema** | näha | näeb | nägi | ei näinud\n9. **olema** | olla | on | oli | ei olnud\n10. **panema** | panna | paneb | pani | ei pannud\n11. **pesema** | pesta | peseb | pesi | ei pesnud\n12. **surema** | surra | sureb | suri | ei surnud\n13. **tegema** | teha | teeb | tegi | ei teinud\n14. **tulema** | tulla | tuleb | tuli | ei tulnud\n15. **pidama** | pidada | peab | pidi | ei pidanud"
+     }
+    },
+    {
+     "id": "me40_8",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "8. Täitke tabel.",
+      "instruction": "Esimene rida on näidis.",
+      "headers": "MA-инфинитив, DA-инфинитив, Я-форма (olevik), Я-форма (lihtminevik), НЕТ-форма (lihtminevik)",
+      "rows": "*tulema* | *tulla* | *tulen* | *tulin* | *ei tulnud*\n1. jooma | [juua] | [joon] | [jõin] | [ei joonud]\n2. jääma | [jääda] | [jään] | [jäin] | [ei jäänud]\n3. nägema | [näha] | [näen] | [nägin] | [ei näinud]\n4. panema | [panna] | [panen] | [panin] | [ei pannud]\n5. pesema | [pesta] | [pesen] | [pesin] | [ei pesnud]\n6. surema | [surra] | [suren] | [surin] | [ei surnud]\n7. sööma | [süüa] | [söön] | [sõin] | [ei söönud]\n8. tegema | [teha] | [teen] | [tegin] | [ei teinud]\n9. tooma | [tuua] | [toon] | [tõin] | [ei toonud]\n10. pidama | [pidada] | [pean] | [pidin] | [ei pidanud]"
+     }
+    },
+    {
+     "id": "me40_10",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "10. Tõlkige.",
+      "instruction": "Tõlkige eesti keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Я не видела её сегодня.",
+        "hint": ""
+       },
+       {
+        "source": "Я вчера ела чипсы.",
+        "hint": ""
+       },
+       {
+        "source": "Он пришел ночью в три часа.",
+        "hint": ""
+       },
+       {
+        "source": "Что ты сделал?",
+        "hint": ""
+       },
+       {
+        "source": "Куда вы положили эти вещи?",
+        "hint": ""
+       },
+       {
+        "source": "Я не остался там.",
+        "hint": ""
+       },
+       {
+        "source": "Она наклеила картинку на тетрадь.",
+        "hint": ""
+       },
+       {
+        "source": "Кто вчера отсутствовал?",
+        "hint": ""
+       },
+       {
+        "source": "Я давно догадался!",
+        "hint": ""
+       },
+       {
+        "source": "Они поняли это.",
+        "hint": ""
+       },
+       {
+        "source": "Это выяснилось только вчера вечером.",
+        "hint": ""
+       },
+       {
+        "source": "Они пошли вчера вечером в кино.",
+        "hint": ""
+       },
+       {
+        "source": "Я совершенно забыл об этом.",
+        "hint": ""
+       },
+       {
+        "source": "Его папа умер весной.",
+        "hint": ""
+       }
+      ]
+     }
+    },
+    {
+     "id": "me40_words",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "Sõnad",
+      "lines": "**looma, luua, loon** // loodud – создавать\n**lööma, lüüa, löön** // löödud – ударять\n**surema, surra, suren** // surdud – умирать\n**pida/ma, -da, pean** // peetud – проводить, праздновать, содержать\n**pida/ma, -da, pean** – быть должным\n**ära arvama, ära arvata, arvan ära** // ära arvatud – отгадать"
+     }
+    }
+   ]
+  },
+  {
+   "lessonId": "b1b2-018",
+   "title": "Lõks: igatsema, võtma, paluma, harjuma (õpikust)",
+   "pages": "42–43",
+   "level": "B1+",
+   "canDo": "Ma kasutan tegusõnu igatsema, võtma, paluma ja harjuma õige käändega.",
+   "blocks": [
+    {
+     "id": "me42_title",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "LÕKS · Ловушка",
+      "text": "В русском и эстонском языке эти глаголы требуют разных падежей. Слева — как по-русски, справа — как по-эстонски. Красным — типичная ошибка."
+     }
+    },
+    {
+     "id": "me42_igatsema",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "СКУЧАТЬ → IGATSEMA",
+      "instruction": "Скучать по кому? — Но! По-эстонски: Keda? Кого? Kelle järele? За кем?",
+      "headers": "по-русски, по-эстонски, неправильно",
+      "rows": "По кому ты скучаешь? | **Keda sa igatsed?** | {red}✗ Kellest sa igatsed?{/red}\nЯ скучаю по тебе. | **Ma igatsen sind.** | {red}✗ Ma igatsen sinust / sinu peale{/red}\nЯ скучаю по тебе. | **Ma igatsen sinu järele.** | {red}✗ Ma igatsen sinust / sinu peale{/red}"
+     }
+    },
+    {
+     "id": "me42_votma",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "БРАТЬ → VÕTMA",
+      "instruction": "Брать у кого? — Но! По-эстонски: Kellelt? От кого? Kelle käest? Из чьих рук?",
+      "headers": "по-русски, по-эстонски, неправильно",
+      "rows": "У кого Тийт взял? | **Kellelt Tiit võttis?** | {red}✗ Kellest Tiit võttis?{/red}\nТийт взял у меня. | **Tiit võttis minult.** | {red}✗ Tiit võttis minust{/red}\nТийт взял у Ханса. | **Tiit võttis Hansult.** | {red}✗ Tiit võttis Hansust{/red}\nУ кого Тийт взял? | **Kelle käest Tiit võttis?** | {red}✗ Kellest Tiit võttis?{/red}\nТийт взял у меня. | **Tiit võttis minu käest.** | {red}✗ Tiit võttis minust{/red}\nТийт взял у Ханса. | **Tiit võttis Hansu käest.** | {red}✗ Tiit võttis Hansust{/red}"
+     }
+    },
+    {
+     "id": "me42_paluma",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "ПРОСИТЬ → PALUMA",
+      "instruction": "Просить кого? кого что сделать? у кого что? — Но! По-эстонски: Keda? Кого? Kellel mida teha? У кого что делать? Kellelt mida? От кого что?",
+      "headers": "по-русски, по-эстонски, неправильно",
+      "rows": "Кого ты попросил? | **Keda sa palusid?** | {red}✗ Kellele sa palusid?{/red}\nЯ попросил соседа. | **Ma palusin naabrit.** | {red}✗ Ma palusin naabrile{/red}\nКого ты попросил это сделать? | **Kellel sa palusid seda teha?** | {red}✗ Kellele sa palusid seda teha?{/red}\nЯ попросил соседа это сделать. | **Ma palusin naabril seda teha.** | {red}✗ Ma palusin naabrile seda teha{/red}\nУ кого ты попросил помощь? | **Kellelt sa abi palusid?** | {red}✗ Kellel sa abi palusid?{/red}\nЯ попросил помощь у соседа. | **Ma palusin naabrilt abi.** | {red}✗ Ma palusin naabril abi{/red}"
+     }
+    },
+    {
+     "id": "me42_harjuma",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_use",
+     "data": {
+      "title": "ПРИВЫКАТЬ → HARJUMA",
+      "instruction": "Привыкать к кому? к чему? — Но! По-эстонски: Kellega? С кем? Millega? С чем?",
+      "headers": "по-русски, по-эстонски, неправильно",
+      "rows": "К кому ты привык? | **Kellega sa oled harjunud?** | {red}✗ Kellele sa oled harjunud?{/red}\nЯ привык к Андрею. | **Ma olen harjunud Andreiga.** | {red}✗ Ma olen harjunud Andreile{/red}\nК чему ты привык? | **Millega sa oled harjunud?** | {red}✗ Milleks sa oled harjunud?{/red}\nЯ привык к этому. | **Ma harjusin / olen harjunud sellega.** | {red}✗ Ma harjusin / olen harjunud selleks{/red}"
+     }
+    },
+    {
+     "id": "me42_11",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "11. Tõlkige.",
+      "instruction": "Tõlkige vene keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Maire igatseb oma lastelaste järele, kes elavad Austraalias.",
+        "hint": ""
+       },
+       {
+        "source": "Eestlased välismaal igatsevad tavaliselt musta leiva ja kilu järele.",
+        "hint": ""
+       },
+       {
+        "source": "Sooja maa inimesed ei suuda tavaliselt Eesti kliimaga harjuda.",
+        "hint": ""
+       },
+       {
+        "source": "Tööandja palus kolleegidel esmaspäeval täpselt kell 9.00 koosolekul olla.",
+        "hint": ""
+       },
+       {
+        "source": "Miks sa teda palusid, ta on ju alati nii kangekaelne.",
+        "hint": ""
+       },
+       {
+        "source": "Minu naaber palus mul enda juurde tulla.",
+        "hint": ""
+       },
+       {
+        "source": "Ta palus emalt raha.",
+        "hint": ""
+       },
+       {
+        "source": "Näitleja on harjunud sellega, et kõik inimesed vaatavad teda.",
+        "hint": ""
+       },
+       {
+        "source": "Nad küsisid nii politsei kui ka arstide käest.",
+        "hint": ""
+       },
+       {
+        "source": "Kellelt te veel küsisite?",
+        "hint": ""
+       },
+       {
+        "source": "Ma ei tea, kas ma enam armastan oma abikaasat, aga ma olen temaga nii harjunud.",
+        "hint": ""
+       }
+      ]
+     }
+    },
+    {
+     "id": "me42_12",
+     "type": "gaps",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_notice",
+     "data": {
+      "title": "12. Avage sulud.",
+      "instruction": "Kirjutage sulgudes olev sõna lünka õiges vormis.",
+      "sentences": "Minu töö on küll natuke igav, aga ma olen [sellega] (see) harjunud.\nVälismaalased ei ole tavaliselt harjunud [kama ja verivorstidega] (kama ja verivorstid).\n[Kellelt|Kelle käest] (Kes) Mare võtmed võttis?\nMe ei palunud [teil] (teie) seda teha.\nKõigepealt nad võtsid [juhatajalt|juhataja käest] (juhataja), seejärel [tööandjalt|tööandja käest] (tööandja).\nPensionäridel on veidi raske [uue infotehnoloogiaga] (uus infotehnoloogia) harjuda.\nKati igatseb endiselt oma [vana töökoha] (vana töökoht) järele.\nVälismaal elades igatseme tavaliselt [lähedaste ja sõprade] (lähedased ja sõbrad) järele.\nMa ei taha meie [direktorilt|direktori käest] (direktor) midagi küsida, ta on nii ennast täis.\nRain ei tea, [kellelt|kelle käest] (kes) ta võiks veel küsida.\nInimesed on harjunud [mugava eluga] (mugav elu).\nPeo peremees palus [külalistel] (külalised) täpselt kohal olla.\nTa palus [tuttavatelt] (tuttavad) arvutit.",
+      "bank": "",
+      "showBank": "no"
+     }
+    },
+    {
+     "id": "me42_13",
+     "type": "translation",
+     "width": "full",
+     "span": 12,
+     "tone": "cream",
+     "goal": "g_vocab",
+     "data": {
+      "title": "13. Tõlkige.",
+      "instruction": "Tõlkige eesti keelde. Õpetaja kontrollib.",
+      "rows": [
+       {
+        "source": "Я не привык этим заниматься.",
+        "hint": ""
+       },
+       {
+        "source": "Я скучаю по тебе.",
+        "hint": ""
+       },
+       {
+        "source": "Почему ты не возьмёшь у учительницы?",
+        "hint": ""
+       },
+       {
+        "source": "Я только переехал в Эстонию, но уже привык к эстонской жизни.",
+        "hint": ""
+       },
+       {
+        "source": "Можно у вас воды попросить?",
+        "hint": ""
+       },
+       {
+        "source": "Странно, но он абсолютно не скучает по детям.",
+        "hint": ""
+       },
+       {
+        "source": "Я не просил её об этом.",
+        "hint": ""
+       },
+       {
+        "source": "Я спросил у неё, но она не смогла ответить на мой вопрос.",
+        "hint": ""
+       },
+       {
+        "source": "Я попросил друга мне помочь.",
+        "hint": ""
+       },
+       {
+        "source": "Я не хочу у тебя больше брать.",
+        "hint": ""
+       },
+       {
+        "source": "Не помню, я уже спрашивал тебя об этом?",
+        "hint": ""
+       },
+       {
+        "source": "Он её сильно любит и скучает по ней.",
+        "hint": ""
+       }
+      ]
+     }
+    },
+    {
+     "id": "me42_14",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "MEELELAHUTUS · 14. Mõistatus. 1) Lahendage mõistatus.",
+      "text": "Ühes välismaa hotellis elavad kolm inimest: **Mark**, **Hardi** ja **Karl**. Nad on erinevatest rahvustest, erinevatest linnadest ja erinevatest riikidest. Arvake ära, mis number toas elab Mark, mis toas elab Hardi ja mis toas Karl? Mis rahvusest nad on, mis keeli nad räägivad ja missugused iseloomud neil on?"
+     }
+    },
+    {
+     "id": "me42_14clues",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "2) Täitke tabel.",
+      "lines": "1. Üks härradest on eestlane, ta elab toas nr üks.\n2. Eestlane ja soomlane ei ole naabrid.\n3. Eestlane ja sakslane on naabrid.\n4. Soomlase ja sakslase toad on kõrvuti, nad on naabrid.\n5. Soomlane ei ela enam Soomes.\n6. Eestlane ei ela praegu Eestis.\n7. Sakslane ei ela Saksamaal.\n8. Soomlane elab juba ammu Eestis.\n9. Sakslane töötab ja elab Venemaal.\n10. Eestlane elab naaberriigis Soomes.\n11. Soomlane elab ülikoolilinnas Tartus.\n12. Sakslane elab Venemaa pealinnas Moskvas.\n13. Eestlane elab Soome pealinnas Helsingis.\n14. Eestlane räägib vabalt nii eesti keelt kui ka vene keelt.\n15. Sakslane räägib vabalt saksa keelt ning koolis õppis ta ka veel rootsi keelt.\n16. Soomlane räägib soome keelt ja inglise keelt.\n17. Karlil on raske iseloom, ta on kinnine.\n18. Mark on väga kena inimene, kuid liiga tagasihoidlik.\n19. Hardi on väga äge! Ta on lärmakas, kuid samas külalislahke.\n20. Mark on pärit Eestist ja ta on muidugi eestlane.\n21. Hardi ema on soomlane, isa on soomlane ja kõik lähedased on ka soomlased.\n22. Karli sugulased on sakslased ning ta ise on ka sakslane."
+     }
+    },
+    {
+     "id": "me42_14t",
+     "type": "table",
+     "width": "full",
+     "span": 12,
+     "tone": "blue",
+     "goal": "g_read",
+     "data": {
+      "title": "Mõistatuse tabel",
+      "instruction": "Kirjutage vastused tabelisse.",
+      "headers": "TOA NR, NIMI, RIIK, LINN, RAHVUS, KEEL, ISELOOM",
+      "rows": "1. | [Mark] | [Soome] | [Helsingi] | [eestlane] | [eesti, vene/eesti ja vene/vene, eesti] | [kena, tagasihoidlik/kena ja tagasihoidlik]\n2. | [Karl] | [Venemaa] | [Moskva] | [sakslane] | [saksa, rootsi/saksa ja rootsi] | [raske, kinnine/kinnine/raske iseloom, kinnine]\n3. | [Hardi] | [Eesti] | [Tartu] | [soomlane] | [soome, inglise/soome ja inglise] | [äge, lärmakas, külalislahke/lärmakas, külalislahke]"
+     }
+    },
+    {
+     "id": "me42_15",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "15. See selleks, aga samas…",
+      "text": "Jagunege kahte „äärmuslikku” rühma. I rühm nimetab Eestis elamise plusse ning II rühm miinuseid. Arutlege, väidelge ja põhjendage oma seisukohti!\n\n*Alustada võite nii:*\n\n**I rühm:** Eestis on väga hea elada sellepärast, et siin turvaline. Näiteks minul on väike poeg, kes läks sellel aastal esimesse klassi. Esimene kuu viisin ma teda ise kooli, kuid alates oktoobrist hakkas ta ise bussiga käima.\n\n**II rühm:** Turvaline turvaliseks, aga samas on Eesti teedes igal pool augud. Näiteks mina sõidan iga päev autoga tööle ning iga kord mõtlen, kas ma jään täna autoga mõnesse auku kinni või ei jää.\n\n**I rühm:** Augud aukudeks, aga see-eest … ."
+     }
+    },
+    {
+     "id": "me42_15s",
+     "type": "speaking",
+     "width": "full",
+     "span": 12,
+     "tone": "green",
+     "goal": "g_use",
+     "data": {
+      "title": "Arutelu",
+      "instruction": "Arutlege rühmades: Eestis elamise plussid ja miinused.",
+      "questions": "I rühm: plussid\nII rühm: miinused\nPõhjendage näidetega",
+      "img": null,
+      "aspect": "4:3",
+      "bubble": "",
+      "tipTitle": "",
+      "tipText": "",
+      "minSec": 120,
+      "maxSec": 300
+     }
+    },
+    {
+     "id": "me42_16",
+     "type": "text",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "",
+     "data": {
+      "heading": "16. Mis on elus kõige tähtsam? Head vaatamist!",
+      "text": "www.kirjatark.ee — Täispikk saade: ERR Videoarhiiv „Mida teie arvate?” – 30.03.2012 (osa nr 84). http://arhiiv.err.ee/err-videoarhiiv"
+     }
+    },
+    {
+     "id": "me42_words",
+     "type": "notice",
+     "width": "full",
+     "span": 12,
+     "tone": "white",
+     "goal": "g_notice",
+     "data": {
+      "title": "Sõnad",
+      "lines": "**abi, -, -** // abisid – помощь\n**harju/ma, -da, -n** // harjutud – привыкать\n**endiselt** – по-прежнему\n**pere/mees, -mehe, -meest** // peremehi – хозяин\n**imelik, -u, -ku** // imelikke – странный, странно\n**iseloom, iseloomu, iseloomu** // iseloome – характер\n**härra, -, -t** // härrasid – господин\n**kõrvuti** – рядом\n**alates** – начиная с"
+     }
+    }
+   ]
+  }
+ ]
+}
