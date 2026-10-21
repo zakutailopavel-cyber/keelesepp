@@ -177,13 +177,15 @@ export const match = {
     const letter = (k) => String.fromCharCode(65 + k);
     return (
       <div className="ws-match">
+        {ctx.interactive ? <div className="ws-hint">Vali iga rea ees parempoolse vastuse täht.</div> : null}
         <ol>{pairs.map((p, i) => (
-          <li key={i}><span><Md text={p.left} /></span>
+          <li key={i}>
             {ctx.interactive ? (
               <select className={`ws-sel ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`} value={ctx.get(`${i}`) ?? ''} onChange={(e) => ctx.set(`${i}`, e.target.value)} aria-label={`Paar ${i + 1}`}>
                 <option value="">–</option>{right.map((_, k) => <option key={k} value={letter(k)}>{letter(k)}</option>)}
               </select>
             ) : <span className={`ws-letterbox ${ctx.state(`${i}`) ? 'is-' + ctx.state(`${i}`) : ''}`}>{ctx.get(`${i}`) || ''}</span>}
+            <span><Md text={p.left} /></span>
           </li>
         ))}</ol>
         <ul>{right.map((r, k) => <li key={k}><b>{letter(k)}.</b> <Md text={r.text} /></li>)}</ul>

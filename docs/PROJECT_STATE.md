@@ -1,3 +1,15 @@
+## 2026-10-21 · agent/match-layout — „Ühenda paarid”: the answer slot stands in front of its question
+
+- Owner (screenshot of Kontroll 12, task „Küsimus ja vastus”): unclear how to do it, and crooked. The letter slot sat at
+  the far end of the left column, next to the A–F list, so it read as part of the right column, and the rows of the two
+  columns did not line up (an is-tall card also turned the rows back into list items).
+- Now every row is „1. [slot] question”: an explicit number (CSS counter), then the slot, then the text. The interactive
+  sheet has the hint „Vali iga rea ees parempoolse vastuse täht.” Answers, keys and scoring are unchanged.
+- Files: worksheet-studio/engine/blocks/tasks.jsx (match View), worksheet-studio/engine/sheet.css.
+- Checks: `npx vitest run src/features/worksheet-studio src/test` 290/290. Print and interactive views were checked on
+  the local stand.
+- Next safe step: none needed after merge (frontend deploys with main).
+
 ## 2026-10-21 · agent/assign-single-task — assign one task of a sheet
 
 - Owner: be able to assign a single task, not only the whole sheet.
