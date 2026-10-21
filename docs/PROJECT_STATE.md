@@ -1,3 +1,16 @@
+## 2026-10-21 · agent/assign-single-task — assign one task of a sheet
+
+- Owner: be able to assign a single task, not only the whole sheet.
+- The block bar of a published, saved sheet in the constructor has „Määra” on every task block. It opens Õppevara with
+  `?assign=<lesson>&leht=<phase>&plokk=<block id>`. LibraryPage `singleTaskItem` narrows the published doc to that one
+  block (meta kept) and the usual assignment dialog opens. The title is „<lesson> · <sheet> · <task title>”. A block that
+  is not on the published version gives an error and no dialog. The assignment is a normal worksheetAssignment with that
+  one-block worksheetDoc. No schema, rules or service change.
+- Files: worksheet-studio/WorksheetStudioPage.jsx, worksheet-studio/icons.js (Send), library/LibraryPage.jsx (+ test).
+- Checks: `npx vitest run src/features/library src/features/worksheet-studio/WorksheetStudioPage.test.jsx` 68/68;
+  eslint 0 errors.
+- Next safe step: merge (frontend deploys with main).
+
 ## 2026-10-21 · agent/board-sheet-align — the student's sheet lies exactly like the teacher's
 
 - Owner: check that the student sees the sheet as the teacher does and that a task the teacher clicks is highlighted.
