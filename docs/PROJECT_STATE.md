@@ -1,3 +1,21 @@
+## 2026-10-21 · agent/teacher-query-chunks — teachers' Kodutööd / Ülevaade „no permission”
+
+- Owner: teachers say they have no rights on some tabs (homework, the main screen).
+- Checked:
+  - the menu roles: users.role „teacher” for every teacher, no custom claims → the menu is complete;
+  - the live Firestore rules equal main (ruleset of 2026-10-21 07:21 UTC); compared with 2026-10-20 they only add
+    studentAvailability.
+- Cause: since the teacher scope (#686, 2026-10-20) homework, worksheetAssignments, exerciseResults and messages are
+  read only if `staffCanAccessStudent(studentId)` holds. For a query that is one get() per student card, plus the
+  teacher's profile and securityMigrations/teacherUidV1. Firestore allows 10 get() calls a query, and the client asked
+  10 cards per IN query → over the limit → the whole query was refused. Admins pass on `isAdmin()` and never saw it.
+- Fix:
+  - `services/firebase/homework.js` asks 5 cards per query (`RULE_CHECKED_IN`);
+  - `messages.js` asks 5 too.
+- New emulator test in security-access-emulator.integration.js: a teacher with 10 cards reads all four collections in
+  queries of 5. It also logs the status of a 10-card query, to confirm the limit.
+- Next safe step: merge; frontend only (Vercel), no rules or functions deploy.
+
 ## 2026-10-21 · agent/fix-ek9-library — „Õpetaja võti” at full width
 
 - Owner screenshot: the answer key opened as a tiny column on the left. The studio body grid kept the 240 px palette
