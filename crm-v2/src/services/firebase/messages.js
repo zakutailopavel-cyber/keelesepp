@@ -10,7 +10,8 @@ function timestampValue(value) {
   return value || '';
 }
 
-function chunks(values = [], size = 10) {
+// messages are checked per student card like homework (homework.js RULE_CHECKED_IN): 5 cards a query, not 10
+function chunks(values = [], size = 5) {
   return Array.from({ length: Math.ceil(values.length / size) }, (_, index) => values.slice(index * size, index * size + size));
 }
 

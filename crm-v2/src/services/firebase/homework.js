@@ -5,8 +5,13 @@ import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
 
-function chunksOfTen(values = []) {
-  return Array.from({ length: Math.ceil(values.length / 10) }, (_, index) => values.slice(index * 10, index * 10 + 10));
+// Student-scoped reads (homework, worksheetAssignments, exerciseResults) are checked per student card by the rules
+// (staffCanAccessStudent: one get() per card + the teacher's profile + securityMigrations). Firestore allows at most 10
+// get() calls for one query, so an IN of 10 cards was refused for every teacher and Kodutööd / Ülevaade showed
+// „no permission” (owner 2026-10-21). 5 cards a query keep it at 7 calls.
+export const RULE_CHECKED_IN = 5;
+function chunksForRules(values = []) {
+  return Array.from({ length: Math.ceil(values.length / RULE_CHECKED_IN) }, (_, index) => values.slice(index * RULE_CHECKED_IN, index * RULE_CHECKED_IN + RULE_CHECKED_IN));
 }
 
 function timestampValue(value) {
@@ -141,7 +146,7 @@ export function normalizeWorksheetAssignment(id, data = {}) {
 }
 
 async function listCollectionByStudentIds(db, collectionName, studentIds, submissionKind) {
-  const snapshots = await Promise.all(chunksOfTen(studentIds).map((ids) => getDocs(query(
+  const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(
     collection(db, collectionName),
     where('studentId', 'in', ids),
   ))));
@@ -158,7 +163,7 @@ export const homeworkService = {
   async listByStudentIds(studentIds = []) {
     if (!studentIds.length) return [];
     const { db } = requireFirebaseClient();
-    const snapshots = await Promise.all(chunksOfTen(studentIds).map((ids) => getDocs(query(collection(db, 'homework'), where('studentId', 'in', ids)))));
+    const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(collection(db, 'homework'), where('studentId', 'in', ids)))));
     return snapshots.flatMap((snapshot) => snapshot.docs.map((item) => ({ id: item.id, status: 'Ootel', ...item.data() }))).sort((a, b) => String(a.due || '9999').localeCompare(String(b.due || '9999')));
   },
   async listSubmissionsByStudentIds(studentIds = []) {
@@ -180,7 +185,7 @@ export const homeworkService = {
   async listWorksheetAssignmentsByStudentIds(studentIds = []) {
     if (!studentIds.length) return [];
     const { db } = requireFirebaseClient();
-    const snapshots = await Promise.all(chunksOfTen(studentIds).map((ids) => getDocs(query(
+    const snapshots = await Promise.all(chunksForRules(studentIds).map((ids) => getDocs(query(
       collection(db, 'worksheetAssignments'),
       where('studentId', 'in', ids),
     ))));
@@ -479,7 +484,7 @@ export const homeworkService = {
     if (scopeTeacherUid) {
       const { items } = await students.list({ status: 'active', pageSize: 500, exhaustive: true, scopeTeacherUid });
       const ids = [...new Set(items.map((student) => student.id).filter(Boolean))];
-      const snapshots = await Promise.all(chunksOfTen(ids).map((group) => getDocs(query(collection(db, 'worksheetAssignments'), where('studentId', 'in', group)))));
+      const snapshots = await Promise.all(chunksForRules(ids).map((group) => getDocs(query(collection(db, 'worksheetAssignments'), where('studentId', 'in', group)))));
       return snapshots.flatMap((snapshot) => snapshot.docs.map((entry) => ({ id: entry.id, ...entry.data() })))
         .filter((entry) => entry.lessonId === lessonId);
     }

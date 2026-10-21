@@ -199,6 +199,28 @@ test("a teacher reads and writes homework, submissions and messages only of thei
 });
 
 // Owner decision 2026-10-20: a teacher of one subject of a shared child reads only their own lessons and schedule.
+// Owner 2026-10-21: teachers saw „no permission” on Kodutööd and Ülevaade. The rules check every student card of a
+// query (one get() each, plus the teacher's profile and securityMigrations) and Firestore allows 10 get() calls a query,
+// so the client asks 5 cards at a time (crm-v2 services/firebase/homework.js RULE_CHECKED_IN, messages.js).
+test("a teacher with many students reads their homework in queries of 5 cards", async (t) => {
+  requireSafeEmulatorEnvironment();
+  const teacher = await account("sec-many-teacher@example.com", { role: "teacher", roles: ["teacher"], displayName: "Many Teacher" });
+  const uid = tokenUid(teacher);
+  await db().collection("securityMigrations").doc("teacherUidV1").set({ readEnforced: true }, { merge: true });
+  const ids = Array.from({ length: 10 }, (_, i) => `sec-many-${i}`);
+  await Promise.all(ids.flatMap((id) => [
+    db().collection("students").doc(id).set({ name: id, teacher: "Many Teacher", teacherUid: uid, teacherUids: [uid], active: true }),
+    ...["homework", "worksheetAssignments", "exerciseResults", "messages"].map((name) => db().collection(name).doc(`${name}-${id}`).set({ studentId: id, task: "x", text: "x", status: "Ootel" })),
+  ]));
+  const inFilter = (list) => ({ fieldFilter: { field: { fieldPath: "studentId" }, op: "IN", value: { arrayValue: { values: list.map(str) } } } });
+  for (const name of ["homework", "worksheetAssignments", "exerciseResults", "messages"]) {
+    const five = await runQuery(teacher, name, inFilter(ids.slice(0, 5)));
+    assert.deepEqual([five.status, five.count], [200, 5], `${name}: 5 cards a query`);
+    const ten = await runQuery(teacher, name, inFilter(ids));
+    t.diagnostic(`${name}: IN of 10 cards → ${ten.status}`);
+  }
+});
+
 test("two teachers of one child: each reads only their own subject's lessons and schedule", async () => {
   requireSafeEmulatorEnvironment();
   const maths = await account("sec-maths-teacher@example.com", { role: "teacher", roles: ["teacher"], displayName: "Maths Teacher" });
