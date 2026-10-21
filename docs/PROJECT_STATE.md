@@ -1,3 +1,26 @@
+## 2026-10-21 · agent/course-v3-c1-m8 — C1 module 8 rewritten to the v3 lesson pattern
+
+- Owner: make the courses complete, start with C1 module 8. Lessons est-c1-071…079 are now `template: 'v3'`, and the
+  module is `design: 'v2', template: 'v3'`.
+- What every lesson (071–079) now has:
+  - Avasta: the reading is split into paragraphs A–G, followed by a „Millises lõigus?” task (Harno task 1).
+  - Harjuta: a choice cloze (Harno task 3), a sentence insertion with one extra sentence (Harno task 2), „Pane sõnad
+    õigesse vormi” in a text, a 10-sentence RU→ET translation and a 2–3 minute monologue to a plan.
+  - Kasuta: a material reading of at least 400 words (except the grammar lessons 078/079, which work on a longer
+    colleague draft), a writing task of 14–18 sentences (~220–260 words) with a rubric, and speaking [120, 210].
+- Changes per lesson:
+  - 075 / 076 / 077: new transfer materials (course press release, dog park debate, Estonian film funding).
+  - 078: indirect speech, cloze and formtext on the kaudne kõneviis, a longer meeting summary to edit, and a new rubric.
+  - 079: plain-language transformation, „majja / tuppa” formtext, and a longer homepage draft.
+- 080 is marked `assessment: true` („Mooduli 8 eksam (Harno C1 vormis)”), like 070. Its selfchecks are removed and
+  speaking is [120, 210].
+- Generated from scratchpad scripts c1m08_071…080.py (run_c1.sh 08); the files are module08.js and module08b.js only.
+- Checks:
+  - module gates: no blocking „!!” for 071–080; module-same fixed by reordering 077 practice;
+  - `npx vitest run src/features/worksheet-generator`: 705 passed, 3 skipped.
+- Not done: publishing to production (`publish-v2.cjs`) needs the owner's yes.
+- Next safe step: owner review, then the publish dry run.
+
 ## 2026-10-21 · agent/gcal-cleanup — Google chip error, refused deletions, old tokens out of users/{uid}
 
 - Owner: what is the „Google: viga” error? Found:
