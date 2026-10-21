@@ -8,20 +8,40 @@ This is a plan only. No course file, data or rule is written yet. Decisions mark
 
 Two exam-preparation courses for pupils of Estonian-medium schools (not „eesti keel teise keelena”):
 
-- **9. klass:** the basic school final exam „Eesti keel” (written). From spring 2027 it is an e-exam on a computer
-  (HTM). The 2026/2027 date is 28 April 2027 (Harno).
+- **9. klass:** the basic school final exam „Eesti keel” (written), 28 April 2027 (Harno). Still on paper in 2027.
 - **12. klass:** the gymnasium state exam „Eesti keel” (written), with a reading part and a writing part. The writing part
   is an argumentative essay („arutlev kirjand”) of at least 400 words. The 2026/2027 date is 12 April 2027 (Harno).
 
-Exam structure, from open sources; **check against Harno's official exam description (eksamikirjeldus) before
-writing content**:
+### Official exam descriptions (Harno eristuskirjad 2026/2027, read 2026-10-21)
 
-| | 9. klass lõpueksam | 12. klass riigieksam |
-|-|-|-|
-| Reading | text comprehension, ~30 % | functional reading: several texts and tables, short answers |
-| Language | spelling, case forms, sentence structure, punctuation, ~30 % | (inside reading and writing) |
-| Writing | argumentative text, ~40 % | arutlev kirjand ≥ 400 words |
-| Time | ~180 min | two parts |
+Sources:
+- projektid.edu.ee → „Põhikooli lõpueksamite materjalid 2027” → „Lisa 1 Põhikooli eesti keele lõpueksami
+  eristuskiri 26 27 õa.pdf”;
+- „Riigieksamite materjalid 2027” → „Lisa 1_Eesti keele riigieksami eristuskiri 26 27 õa.pdf”;
+- for the grade 9 spelling topics: PRÕK 2011 lisa 1 (riigiteataja.ee aktilisa 1290/8201/4020), pp. 16–17, which the
+  grade 9 exam description names as the source of its language tasks.
+
+**9. klass (põhikooli lõpueksam).**
+- Written exam, 100 points, 180 minutes, no aids.
+- An e-exam was planned for 2027, but Harno postponed it by a year (ERR, 2026-05-04), so 2027 is still on paper.
+- Tasks: 20% recognition, 30% reproduction, 50% application.
+- Part I, reading (30 p, ~50 min):
+  1. a literary text of up to 800 words (15–20 p, 30 min);
+  2. a practical, informative or media text of up to 800 words (10–15 p, 20 min).
+- Part II, writing (70 p):
+  - a narrative-argumentative short essay of at least 200 words (40 p, 90 min);
+  - 3–5 language tasks (30 p, 40 min; 0.5 or 1 p per answer).
+- Essay marks: content 20/15/10/5/1, spelling 10/8/6/3/1 (0–2 / 3–4 / 5–8 / 9–11 / 12+ errors), vocabulary and style 5–1,
+  structure 5–1. Off-topic or under 150 words = 0.
+- Spelling in reading answers costs no points.
+
+**12. klass (riigieksam).**
+- Written exam, 100 points, 360 minutes. The õigekeelsussõnaraamat is allowed.
+- Reading (40 p, ~120 min): a base text or a set of base texts of up to 1000 words (fiction, journalism,
+  (popular) science), four variants, one chosen. Three open tasks, answers of 50–100 words. Each answer scores 8 or 13
+  for content plus 2 for language.
+- Writing (60 p, ~240 min): an argumentative essay of about 400 words with a title (0 if under 250 words).
+  Content ×5, correctness ×4, style ×2, form ×1, each on a 0–5 scale.
 
 ## Course outline (draft)
 
@@ -35,7 +55,9 @@ exam form. Phases stay Avasta / Harjuta / Kasuta, as in the CEFR courses.
 3. Õigekiri II: compound vs separate writing, loanwords, abbreviations, numbers.
 4. Lauseõpetus ja kirjavahemärgid: simple and compound sentence, comma rules, direct speech.
 5. Sõnavara ja vormiõpetus: cases and verb forms, word classes, synonyms, idioms, style; media texts.
-6. Kirjutamine: the argumentative text (claim – reason – example, opening, ending); full mock exam.
+6. Kirjutamine: the narrative-argumentative short essay (≥ 200 words: claim – reason – example, opening, ending); full mock exam.
+
+Built: module 1 „Tekstimõistmine” (ek9-001…005), see „State” below.
 
 **12. klass (`ek12`)**
 
@@ -81,7 +103,34 @@ exam form. Phases stay Avasta / Harjuta / Kasuta, as in the CEFR courses.
 4. **Still open:** which school textbooks or workbooks to follow, and the limits of the permission. The owner will
    photograph them.
 
+## State (2026-10-21)
+
+- **Technical base (worksheet-studio/didactics).**
+  - `nativeStage()`: „9. klass” / „12. klass” are levels EK9 / EK12, no longer read as A2. They have their own
+    LEVELS, HARNO, GRAMMAR, DEPTH, LEVEL_LENGTHS and reading speed.
+  - EK9 tasks need at least 8 items and sentences averaging 5 or more words.
+  - The exams have no speaking part, so speaking length is not checked.
+- **Strict spelling scoring.** In a course sheet whose level is a school grade, gaps, errorfix and transformation get
+  `data.strict`. The answer is then compared with commas, capitals and letters (`strictNorm`); only spaces and the
+  quote style are forgiven. Without it the unfixed sentence was accepted as right.
+- **Other check changes.**
+  - didacticCheck and the fix-same gate compare native sentences as written.
+  - A masked spelling gap „(kor_a)” is not a base-form hint.
+  - A check lesson's Kasuta sheet (the essay) needs no reading text.
+- **Course module `ek9/module01.js` + `module01b.js`.**
+  - Registered as course `ek9` and in strictModules; it passes every gate.
+  - All texts are written for KeeleSepp:
+    - 001: a literary text, character and choices;
+    - 002: imagery and main idea;
+    - 003: an informative text with a chart, numbers and abbreviations;
+    - 004: news vs opinion piece, fact and opinion, influence;
+    - 005: the module check as a full mock exam (two readings, ten language tasks, short essay with the exam rubric).
+- **Not done.**
+  - The installer for `curriculumLessons/ek9-NNN` (production write; owner's yes).
+  - Publishing the sheets.
+  - Modules 2–6 of grade 9 and the whole grade 12 course.
+
 ## Next safe step
 
-The owner answers the four questions. Then build `ek9` module 1 (5 lessons) as a sample in its own branch and PR,
-without the production installer.
+The owner reviews module 1. Then the ek9 installer (curriculumLessons records: subject „Eesti keel”, level „9. klass”),
+with the owner's yes for the production write, and modules 2–6 by the same pattern.
