@@ -7936,7 +7936,7 @@ async function convertParentToStudent({ actor, uid, studentId, requestId }) {
   return result;
 }
 
-exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
+exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 120, memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") {
@@ -8401,7 +8401,7 @@ exports.liveTurnApi = functions
 // ── API: invoice emails and reminders ────────────────────────
 // ── LHV LinkPay: pay links, the bank's notification and the return page (docs/LINKPAY_INTEGRATION.md) ──
 exports.linkpayApi = functions
-  .runWith({ secrets: ["LINKPAY_SANDBOX_USERNAME", "LINKPAY_SANDBOX_SECRET"], timeoutSeconds: 30 })
+  .runWith({ secrets: ["LINKPAY_SANDBOX_USERNAME", "LINKPAY_SANDBOX_SECRET"], timeoutSeconds: 30, memory: "1GB" })
   .https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
@@ -9335,7 +9335,8 @@ exports.metaMessagingApi = functions
   });
 
 // ── API: GET /api/gcal/auth-url ───────────────────────────────
-exports.gcalApi = functions.https.onRequest(async (req, res) => {
+// people wait on these functions: 1 GB (faster CPU) like the finance ones, owner 2026-10-21
+exports.gcalApi = functions.runWith({ memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
 
@@ -10604,7 +10605,7 @@ async function analyzeSentence(input) {
   });
 }
 
-exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSeconds: 60 }).https.onRequest(async (req, res) => {
+exports.languageApi = functions.runWith({ secrets: ["EKILEX_API_KEY"], timeoutSeconds: 60, memory: "1GB" }).https.onRequest(async (req, res) => {
   applyCors(req, res);
   if (req.method === "OPTIONS") { res.status(204).send(""); return; }
   if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
