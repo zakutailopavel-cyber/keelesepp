@@ -50,9 +50,9 @@ export const GRAMMAR_PLAN = {
     { id: 'ma-cases', label: 'ma-vorm käändes (-mas, -mast, -mata)', lessons: ['a2b1-042', 'a2b1-043', 'a2b1-044'], module: 'a2b1-module-09' },
     { id: 'pluperfect', label: 'enneminevik', lessons: ['a2b1-048', 'a2b1-049'], module: 'a2b1-module-10' },
     { id: 'participle-attributes', label: 'kesksõna täiendina', lessons: ['a2b1-053', 'a2b1-054'], module: 'a2b1-module-11' },
-    { id: 'quotative', label: 'kaudne kõneviis ja kaudne kõne', lessons: [], module: 'a2b1-module-13' },
-    { id: 'completion', label: 'ära, läbi, valmis', lessons: [], module: 'a2b1-module-14' },
-    { id: 'jussive', label: 'möönev kõneviis (olgu) — äratundmine', lessons: [], module: 'a2b1-module-15' },
+    { id: 'quotative', label: 'kaudne kõneviis ja kaudne kõne', lessons: ['a2b1-063', 'a2b1-064'], module: 'a2b1-module-13' },
+    { id: 'completion', label: 'ära, läbi, valmis', lessons: ['a2b1-066', 'a2b1-068'], module: 'a2b1-module-14' },
+    { id: 'jussive', label: 'möönev kõneviis (olgu) — äratundmine', lessons: ['a2b1-072', 'a2b1-074'], module: 'a2b1-module-15' },
   ],
   b2: [
     { id: 'locatives', label: 'sise- ja väliskohakäänded', lessons: ['b1b2-006'] },

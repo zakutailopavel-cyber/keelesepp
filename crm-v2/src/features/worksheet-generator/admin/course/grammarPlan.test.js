@@ -19,7 +19,7 @@ describe('grammar plan of the levels (docs/METHODOLOGY_STANDARD.md §5)', () => 
   it('lists the known gaps', () => {
     expect(grammarGaps().map((g) => `${g.level} ${g.id}`)).toEqual([
       'a2 short-illative', 'a2 pluperfect', 'a2 impersonal', 'a2 participles', 'a2 des-form',
-      'b1 quotative', 'b1 completion', 'b1 jussive',
+      
       'b2 nominalisation', 'b2 change', 'b2 essive', 'b2 subject', 'b2 clitics',
       'c1 nuks', 'c1 indirect-questions',
     ]);

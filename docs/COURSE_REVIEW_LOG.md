@@ -127,10 +127,85 @@ problem by phone and write a complaint to the carrier.
 - **049** — a missed connection, a cancelled flight, lost luggage, passenger rights, the complaint. → the official EU
   passenger-rights summary as a document; a lost-luggage form.
 
+## B1 module 12 „Ilm, loodus ja keskkond” (a2b1-056…059)
+
+Viktor's potato day, a hike in Viru raba, a storm on the farm, green week at the office; goal: a Kalamaja talgupäev.
+- **056** — forecast and translative of change (läheb külmemaks). → a real ERR-style forecast recording; a weather map.
+- **057** — Viru raba with Olena and Daria. → a picture of the boardwalk and tower; check trail facts on RMK's page.
+- **058** — storm damage and an insurance call (impersonal in warnings). → a storm-damage picture; a real claim form.
+- **059** — four bins at the office, talgud (object case again). → a real Teeme Ära poster; verify the 2008 figures.
+
+## B1 module 13 „Suhtlemine ja probleemilahendus” (a2b1-061…064)
+
+Block „Männi 8” after the storm and Tuul Logistika; goal: lead a mediation meeting at the office.
+- **061** — swapping a weekend shift. → a photo of the storm-damaged yard; real audio of Viktor's call.
+- **062** — a storm night at a Pärnu hotel: polite complaint, feedback. → a real-looking complaint e-mail layout.
+- **063** — quotative mood (ta olevat…) clearing up a rumour about the new tenant Karl. → a group-chat graphic.
+- **064** — mediation between Markus and Kristjan. → station announcement with real noise; printed role cards; a model
+  agreement letter for the teacher.
+- No art brief exists for B1 module 13. → write `art/visuals/b1-module-13.js` (picture budget).
+
+## B1 module 14 „Minevik, kogemused ja jutustamine” (a2b1-066…069)
+
+Oskar's class collects family stories („Meie pere lood”); goal: a memoir presented at the story evening (12 December).
+- **066** — completion with ära / läbi / valmis in Viktor's sauna story; a class podcast. → a picture of the sauna and
+  an old diary page (no art brief yet); an older male voice for Viktor.
+- **067** — a living-library table; Helgi's call. → a real living-library flyer.
+- **068** — family timelines exhibition; three past tenses together. → a printable timeline template.
+- **069** — the memoir; Viktor's Baltic Way story (23.08.1989). → an archive photo; a printable audience rubric.
+
+## B1 module 15 „Tulevik, plaanid ja eesmärgid” (a2b1-071…074)
+
+New Year at Viktor's farm, everyone names a goal; goal of the module: a personal action plan presented to a mentor.
+- **071** — Sofia's B1 exam plan with Maret. → a picture of the New Year's table; a course page scan.
+- **072** — jussive (olgu, tehku, las ta …) in Sofia's development talk with Liis. → real greeting cards and signs
+  („Koer olgu rihma otsas”) as photos.
+- **073** — Viktor's Peipsi ride, plan A and B. → a route map with overnight stops; a real camp info letter.
+- **074** — mentor programme (mentor Eha Org). → a printable mentor-plan template.
+- No art brief for B1 modules 13–15. → picture briefs for these modules.
+
+## B1 module 16 „Arvamus, võrdlemine ja põhjendamine” (a2b1-076…079)
+
+A week of arguments; goal: the residents' meeting of Männi 8 reaches a decision, and an opinion text.
+- **076** — Oskar wants a smartphone; a school phone locker. → a real school phone-ban letter; the screen-time figures
+  are invented — replace with real data.
+- **077** — remote work vs office; e-Estonia services (media and technology topic, missing before). → eesti.ee /
+  digiretsept screenshots.
+- **078** — playground or parking, participatory budget, a radio call-in on 30 km/h. → the 16+ age limit and accident
+  figures are invented — check.
+- **079** — the meeting with options A, B and compromise C (Harno B1 agreement task). → a courtyard plan picture with
+  the three options; four distinct voices for the debate.
+- No art brief for B1 module 16.
+
+## B1 module 18 „B1 rääkimine ja lõpphindamine” (a2b1-086…088)
+
+The course finale: Sofia's mock exam, the exam day, she passes; the celebration at Viktor's farm as a full mock
+speaking test in real situations, and a letter about the whole course.
+- **086** — Jaan at the Kase kool open day. → a photo of the canteen; an authentic Harno speaking topic sheet.
+- **087** — the development talk with Liis. → a scripted video of a Harno pair task; the real arenguvestlus form.
+- **088** — the farm party: topic questions, agreeing the plan, phoning a bus company. → an authentic delivery note;
+  model answers (audio) for the final speaking test — the most important missing piece.
+
+## B1 module 17 „B1 lugemine ja kirjutamine” (a2b1-081…084)
+
+Sofia prepares the B1 writing and reading parts with real messages in her house in Kalamaja (Valgevase tänav).
+- **081** — the renovation letter; impersonal and participles. → a picture of the stairwell notice board; real signs.
+- **082** — the mock exam on Oskar's birthday; a formal e-mail. → a real Harno B1 writing prompt as a model.
+- **083** — a debate ending in agreement, a reader's letter. → an authentic reader's letter; real radio voices.
+- **084** — meeting minutes, mock results with bar charts. → check the charts in print; a timetable task (the canDo
+  mentions „sõiduplaan”, no lesson uses one yet).
+- Harno reading 1 (9 situations ↔ 6 ads) is done as multiple choice, because `match` is one-to-one. → a many-to-one
+  matching block (the ads can repeat) would train the exact format.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget
   per module (3–4 small pictures) in the art brief.
 - Audio: synthetic voices are clear but flat; children are voiced by adult voices. → record the key dialogues with
   real speakers (2 per module).
-- Time estimate: v4 rates are better, but still a guess. → measure in the pilot.
+- Time estimate: v4 rates are better, but still a guess; many sheets sit right at 40 min. → measure in the pilot.
+- Art briefs are missing for B1 modules 13–18 (no picture is inserted). → write the briefs (Codex art pipeline).
+- Several facts in texts are invented (statistics, rules). → mark them as fictional in the teacher notes or replace with
+  checked public data.
+- Exams (assessment lessons) were not rewritten and still contain the old characters (Kati, Mihkel ja Kadri, Jaan's
+  café). → a v4 pass for the exam lessons with the cast.

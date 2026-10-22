@@ -27,3 +27,19 @@ Keep facts consistent; add new facts here when a module adds them.
   honey at Nõmme market.
 - **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
   from shop customer service); new administrator **Jelena**.
+- **Module 14:** Helgi born 1966 in Kõrvemaa, studied in Tartu 1984–89, village-school teacher, family moved to Tartu
+  in 2000; the father of Jaan and Sofia was a maths teacher; Viktor built his sauna in 1988, repairs bikes since losing
+  his job in 1993; Kristel Saar grew up on Saaremaa; the school story evening is on 12 December.
+- **Module 13:** Jaan's block is **Männi 8**; tenant **Karl** (night shifts at the airport, a dog); housing association
+  head **Urmas**; maintenance company worker **Kerli**.
+- **Module 15:** Sofia aims at the B1 exam in May; Jaan becomes kitchen head at Kase kool from August, dreams of a
+  small family café; Viktor rides along Lake Peipsi (Vasknarva → Värska); Oskar turns 10 in April (football camp in
+  Pärnu, coach **Raivo**); Mia starts school in September; Kadri wants fewer night shifts; mentor **Eha Org** (head of
+  personnel at Tuul Logistika); former learner **Tatjana**. (Module 14's radio host is **Ülle**.)
+- **Module 16:** radio host **Ülle** („Päevateema”, Raadio Linnahääl; also module 14); pensioner neighbour **Rein**
+  (no car); city planner **Siret**; e-services adviser **Eneli**; taxi driver **Kalev**; Anna lives in Saue.
+- **Module 18:** examiner **Reet Kallas**; Sofia's exam partner **Aleksei**, classmate **Inga**; parent **Kristiina**
+  (daughter with a gluten allergy); supplier **Priit** („Värske Toit”); bus company „Kõrve Reisid”. Sofia passes B1 in
+  May; Jaan is kitchen head from August.
+- **Module 17:** Sofia lives on **Valgevase tänav**; new neighbour **Ruslan**; school administrator **Kaire**; Helgi's
+  neighbour **Ilmar**.
