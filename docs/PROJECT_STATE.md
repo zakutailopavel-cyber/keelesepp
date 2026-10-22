@@ -1,3 +1,13 @@
+## 2026-10-23 · agent/monthly-report — „Kuu aruanne vanemale” sent by the admin
+
+- Owner 2026-10-23: the admin presses „send” after checking; never automatic.
+- learner/monthlyReport.js (+test): the last 30 days in Estonian then Russian — lessons held and absences, words learned
+  this month / total / new, the month's lesson steps mastered, homework done, and the two steps to practise next.
+- Student card (admins only): MonthlyReportCard (+test) „Koosta aruanne” → the admin edits the text → „Saada vanemale”
+  with a confirmation → an internal message in the student's conversation (messagesService.send, „Suhtlus”, the family
+  sees it; activityLog records it). No rules or functions change.
+- Checks: verify (eslint errors 0, vitest 2271 passed, 0 failed).
+
 ## 2026-10-23 · agent/placement-test — „Paigutustest”: a 15-minute entry test with a level suggestion
 
 - Owner 2026-10-23: build the entry test. placement/placementTest.js (+test): 30 Estonian multiple-choice questions,
