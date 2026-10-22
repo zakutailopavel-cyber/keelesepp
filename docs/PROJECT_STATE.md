@@ -1,3 +1,19 @@
+## 2026-10-23 · agent/live-room-layout — Live Classroom: the worksheet is no longer covered
+
+- Stacked on agent/live-board-realtime (#737), both change StudentBoard and LiveRoom.
+- Found in the two-account test: the video tiles and the colour panel lay over the worksheet; on a phone the colour
+  panel stayed open over the reading view and both tiles covered the page tabs; the sheet picker in the room had bare
+  browser buttons (its rules were scoped to `.ws-studio`).
+- Now: on a wide screen a worksheet page is fitted beside the video tiles (`insetRight` 250 px); the tiles can be made
+  small („Peida video”: a chip with the other side's name, picture and sound go on); the colour panel closes when a
+  worksheet page opens (it opens again from the dock) and never shows over the phone reading view; on a phone only the
+  other side's picture, 92 px, below the page tabs; the picker's tabs and search have their own styles.
+- Files: board/StudentBoard.jsx, live-classroom/LiveRoom.jsx, liveRoom.css, worksheet-studio/worksheetStudio.css,
+  board.test.jsx (+1), LiveRoom.follow.test.jsx (+1).
+- Checks: vitest crm-v2 2127 passed; eslint clean in the touched folders; manual check on the emulators (teacher at
+  1440 px with a worksheet, student on a 375 px phone).
+- Next safe step: owner review of #737 and this PR together (same lesson room).
+
 ## 2026-10-23 · agent/live-board-realtime — Live Classroom board: live typing, drawing, cursors, „Juhi vaadet”
 
 - Main checked: efd80db (2026-10-22). No open PR touched the board or Live Classroom; other agents work on English

@@ -1,5 +1,5 @@
 import {
-  ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
+  ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Maximize2, Menu, MessageSquare, Mic, MicOff, Minimize2, Monitor, MonitorOff,
   MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -274,6 +274,18 @@ export default function LiveRoom({
   }, [pointer]);
   const awayFromTeacher = !teacher && roomChannelOpen && teacherPage !== null && teacherPage !== myPage;
 
+  // the video tiles float over the board's right edge: they can be made small, and on a wide screen a worksheet is
+  // fitted beside them (owner 2026-10-23: the tiles and the colour panel covered the sheet). Picture and sound go on.
+  const [videoHidden, setVideoHidden] = useState(false);
+  const [wide, setWide] = useState(() => Boolean(globalThis.matchMedia?.('(min-width: 761px)').matches));
+  useEffect(() => {
+    const query = globalThis.matchMedia?.('(min-width: 761px)');
+    if (!query) return undefined;
+    const change = () => setWide(query.matches);
+    query.addEventListener?.('change', change);
+    return () => query.removeEventListener?.('change', change);
+  }, []);
+  const insetRight = wide && !videoHidden ? 250 : 0;
   const toggle = (name) => { setMenu(''); setPanel((current) => (current === name ? '' : name)); };
   const place = async (file) => {
     const kind = fileKind(file);
@@ -380,12 +392,16 @@ export default function LiveRoom({
             live={live}
             {...(teacher ? { presenting: presenting && roomChannelOpen } : { followView: followView && teacherLeads, onFollowBreak: () => setFollowView(false) })}
             {...(boardService ? { service: boardService } : {})}
+            insetRight={insetRight}
           />
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
             {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} {...(homeworkService ? { homeworkService } : {})} /> : null}
         </main>
 
-        <aside className={`lr-side ${panel ? 'has-drawer' : ''}`} aria-label="Video">
+        <aside className={`lr-side ${panel ? 'has-drawer' : ''} ${videoHidden ? 'is-collapsed' : ''}`} aria-label="Video">
+          {videoHidden
+            ? <button type="button" className="lr-video-chip" onClick={() => setVideoHidden(false)} aria-label={`Näita videot: ${call.peerName}`}><Maximize2 size={14} aria-hidden="true" /><span>{call.peerName}</span><Signal status={call.connected ? 'connected' : call.peerOnline ? 'waiting' : 'idle'} label={`${call.peerName} ${peerLabel}`} /></button>
+            : <button type="button" className="lr-video-hide" onClick={() => setVideoHidden(true)} aria-label="Peida video (heli jääb)" title="Peida video — pilt ja heli jäävad alles"><Minimize2 size={14} aria-hidden="true" /></button>}
           <figure className={`lr-tile lr-tile--remote ${call.connected ? 'is-live' : ''}`}>
             <video ref={call.remoteVideoRef} autoPlay playsInline />
             {!call.connected ? <span className="lr-tile__avatar" aria-hidden="true">{initial(call.peerName)}</span> : null}

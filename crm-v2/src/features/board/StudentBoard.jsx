@@ -56,6 +56,8 @@ export default function StudentBoard({
   // `presenting` (teacher) sends the visible part of the board, `followView` (student) shows it, `onFollowBreak` when
   // the student moves the board himself
   live = null, presenting = false, followView = false, onFollowBreak,
+  // Live Classroom: how much of the board's right edge the video tiles cover; a worksheet is fitted beside them
+  insetRight = 0,
 }) {
   const room = variant === 'room';
   const [pages, setPages] = useState([]);
@@ -183,7 +185,7 @@ export default function StudentBoard({
   const userMoved = useRef(false);
   const moveView = (update) => { userMoved.current = true; if (followView && here.view) onFollowBreak?.(); setView((current) => clampView(typeof update === 'function' ? update(current) : update, bounds, ...screenSize())); };
   // a worksheet fits by the sheet itself, not by drawings far beside it (owner 2026-10-10: the sheet was tiny for the student)
-  const sheetFit = (width) => fitWidth({ x1: 0, y1: 0, x2: WORKSHEET_WIDTH, y2: bounds.y2 }, width);
+  const sheetFit = (width) => fitWidth({ x1: 0, y1: 0, x2: WORKSHEET_WIDTH, y2: bounds.y2 }, Math.max(320, width - insetRight));
   const fail = (message) => (nextError) => setError(nextError?.message || message);
   const local = (event) => {
     const rect = svgRef.current.getBoundingClientRect();
@@ -334,6 +336,14 @@ export default function StudentBoard({
     return () => observer.disconnect();
   }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
+  // the video tiles shown or hidden: the sheet takes the free width again (unless the user has moved it himself)
+  useEffect(() => {
+    if (!onWorksheet || userMoved.current) return;
+    const [width] = screenSize();
+    if (width) setView(sheetFit(width));
+  }, [insetRight]); // eslint-disable-line react-hooks/exhaustive-deps
+  // a worksheet is read and filled in: the colour panel does not cover it (it opens again from the dock)
+  useEffect(() => { if (onWorksheet) setStylesOpen(false); }, [onWorksheet, pageId]);
   // the teacher leads the view: the visible part of the board goes to the student while it changes
   useEffect(() => {
     if (!push) return;
@@ -918,7 +928,7 @@ export default function StudentBoard({
           </> : null}
           <button type="button" className={`sb-dock__more ${stylesOpen ? 'is-open' : ''}`} aria-label={stylesOpen ? 'Peida värvid' : 'Näita värve'} aria-pressed={stylesOpen} onClick={() => setStylesOpen(!stylesOpen)}><ChevronDown size={18} /></button>
         </div>
-        {stylesOpen ? <div className="sb-style" aria-label="Värv ja suurus">
+        {stylesOpen && !reading ? <div className="sb-style" aria-label="Värv ja suurus">
           <div className="sb-style__colors">{palette.map((value) => <button type="button" key={value} className={`sb-color ${activeColor === value ? 'is-active' : ''}`} style={{ background: value }} aria-label={`Värv ${value}`} aria-pressed={activeColor === value} onMouseDown={(event) => event.preventDefault()} onClick={() => chooseColor(value)} />)}</div>
           <label className="sb-style__width"><span className="sr-only">Joone paksus</span><input type="range" min="1" max="24" value={width} aria-label="Joone paksus" onChange={(event) => { setWidth(Number(event.target.value)); setSize(''); }} /></label>
           <div className="sb-style__sizes" role="group" aria-label="Suurus">{Object.keys(SIZES).map((key) => <button type="button" key={key} className={size === key ? 'is-active' : ''} aria-pressed={size === key} onMouseDown={(event) => event.preventDefault()} onClick={() => pickSize(key)}>{key}</button>)}</div>
