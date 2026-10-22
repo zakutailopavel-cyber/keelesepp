@@ -1,3 +1,21 @@
+## 2026-10-22 · agent/b1-m5-v4 — sample module in lesson template v4 (variety and situations)
+
+- Owner: „много заданий типа диктант, исправление ошибок… разнообразия не хватает, ситуаций не хватает”; „сделаем образец
+  одного модуля”. Checked `main` efd80db (2026-10-22).
+- B1 module 5 (a2b1-021…024) rewritten as the v4 sample; 025 (exam) unchanged. One storyline (Markus, Anna, Jaan,
+  Sofia, Liis, Viktor), goal on the first sheet, final Kasuta = story for a contest. New task kinds in use: detective
+  cards + interview, information gap, timeline, find-someone-who, predict from the picture then listen, doctor's
+  appointment, radio interview. Errorfix 1, translation 0, dictation 0 in the module (v3: 11 / 9 / 5).
+- Files: `admin/course/b1/module05.js`, `archive/v3/b1/module05.js` (old file), `quality.js` (+test: `fullerTemplate`,
+  `v4Problems`, `v4ModuleProblems`), `worksheet-studio/didactics/depth.js` (v4 = v3 sizes), `listeningAudio.json` +
+  5 new MP3 in `public/audio/a2b1-02x/` (TartuNLP, free), removed `022_d_voice.mp3`, `docs/COURSE_DESIGN_COMMUNICATIVE.md` §12.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` — 113 files, 1064 passed,
+  3 skipped; module 5 stays in `strictModules.json` and passes every gate. Other modules unchanged (v4 rules only for
+  `template: 'v4'`).
+- Not published to Õppevara (production). Screenshots were sent to the owner.
+- Next safe step: owner reviews the sample; on „да” merge, publish module 5 with the publish script, then rewrite the
+  other B1 modules in v4.
+
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 
 - Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch
