@@ -1,3 +1,15 @@
+## 2026-10-23 · agent/daily-review — „Päeva 5 minutit” for the student
+
+- Main checked: efd80db (2026-10-22). Independent of #737–#741.
+- docs/LEARNER_PROFILE.md step 1. New vocabulary/dailyReview.js (+test): about ten cards a day without choosing —
+  own corrected sentences (≤ 2), forgotten words (box 0 after a review), due words (oldest first), ≤ 3 never practised.
+- Student home „Täna”: the words step is „Päeva 5 minutit · N kaarti · X ununeb” and opens
+  /student/sonavara?paev=1, which starts the set at once; done after five cards reviewed today (before: one word).
+  Sõnavara's „Täna” block offers the same set („Alusta”). Answers move the words in their Leitner boxes as before.
+- Fix: Sõnavara showed a white page when loading failed (an Error object was rendered as text); now the message shows.
+- Checks: vitest crm-v2 all green; manual check on the emulators (student on a phone: home step → set opens → an
+  answer moved „eelarve” from box 0 to 1).
+- Next safe step: docs/LEARNER_PROFILE.md step 2 (sheet errors become review cards).
 ## 2026-10-23 · agent/learner-snapshot — „Õpilase pilt”: the student before the lesson
 
 - Main checked: efd80db (2026-10-22). Independent of #737/#738 (live board); other agents work on English content.
