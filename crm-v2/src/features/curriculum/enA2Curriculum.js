@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-23.8';
+export const EN_A2_VERSION = '2026-10-23.9';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -86,6 +86,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['Which one is better?', 'comparatives, as… as'],
       ['I\'d like to return this', 'polite requests, past simple'],
       ['Module 8 check: Shopping and money', 'check'],
+    ],
+  },
+  {
+    number: 9, title: 'Media and technology', goal: 'Present perfect for experiences (ever / never), just / already / yet, online safety advice, present perfect vs past simple.',
+    lessons: [
+      ['Have you ever…?', 'present perfect: experiences'],
+      ['Have you done it yet?', 'just / already / yet, messages'],
+      ['Safe online', 'should / shouldn\'t'],
+      ['Have you seen it? — Yes, I saw it last week', 'present perfect vs past simple'],
+      ['Module 9 check: Media and technology', 'check'],
     ],
   },
 ]);
