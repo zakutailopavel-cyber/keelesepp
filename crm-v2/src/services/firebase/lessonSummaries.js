@@ -1,4 +1,4 @@
-import { collection, doc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, query, setDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 // `lessonSummaries/{invitationId}`: what the student and parents see after a Live Classroom lesson. The teacher's
@@ -41,6 +41,35 @@ export const lessonSummariesService = {
     };
     await setDoc(doc(db, 'lessonSummaries', invitation.id), record);
     return normalizeSummary(invitation.id, record);
+  },
+
+  // „Kokkuvõte vanemale” after the transcript is ready: the teacher's text is added to the lesson's note (a summary saved at
+  // the lesson's end keeps its pages; without one a summary is made). Same shape as save(), so the rules hold.
+  async appendNote({ invitationId, studentId, text: addition, user, title = '', subject = '' }) {
+    if (!invitationId || !studentId) throw new Error('Tund puudub.');
+    const value = text(addition, 2000);
+    if (!value) throw new Error('Kokkuvõte on tühi.');
+    const { db } = requireFirebaseClient();
+    const reference = doc(db, 'lessonSummaries', invitationId);
+    const snapshot = await getDoc(reference);
+    const current = snapshot.exists() ? snapshot.data() : {};
+    const now = new Date().toISOString();
+    const note = [current.note, value].filter(Boolean).join('\n\n').slice(0, 2000);
+    const record = {
+      invitationId,
+      studentId,
+      teacherUid: user.uid,
+      teacherName: text(current.teacherName || user.displayName, 160),
+      title: text(current.title || title, 200),
+      subject: text(current.subject || subject, 200),
+      startedAt: text(current.startedAt, 40),
+      endedAt: text(current.endedAt || now, 40),
+      note,
+      pages: Array.isArray(current.pages) ? current.pages.slice(0, 40) : [],
+      updatedAt: now,
+    };
+    await setDoc(reference, record);
+    return normalizeSummary(invitationId, record);
   },
 
   subscribeForStudent(studentId, onData, onError) {

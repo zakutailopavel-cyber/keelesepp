@@ -1,3 +1,16 @@
+## 2026-10-23 · agent/lesson-summary-parent — „Kokkuvõte vanemale” after the lesson analysis
+
+- Main checked: efd80db (2026-10-22). Independent of #737–#742.
+- The family already sees a lesson summary (teacher's note, board pages, new words, homework). Missing: what the
+  student got wrong. The transcript stays teacher/admin only (owner 2026-10-04, firestore.rules lessonRecordings), so the
+  teacher sends it: „Pärast tundi” → „Kokkuvõte vanemale” prefills plain lines in Estonian and Russian (error topics and
+  the number of corrected sentences, never the sentences), the teacher edits and sends; the text is added to the
+  lesson's note in `lessonSummaries` (same fields as the end-of-lesson save, so the rules hold).
+- Files: lesson-recording/afterLesson.js (`parentNoteFromAnalysis`, +test), TranscriptView.jsx (AfterLesson),
+  AfterLessonParent.test.jsx, lessonRecording.css, services/firebase/lessonSummaries.js (`appendNote`).
+- Checks: vitest crm-v2 all green.
+- Next safe step: voice task between lessons (docs/LEARNER_PROFILE.md roadmap).
+
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 
 - Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch

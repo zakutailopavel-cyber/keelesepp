@@ -68,3 +68,4 @@
 .lesson-ai__topics li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #fff; border: 1px solid #d0eadf; font-size: 13px; }
 .lesson-ai__topics em { font-style: normal; color: #0b6b5a; font-weight: 700; }
 .lesson-ai__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.lesson-ai__parent { display: grid; gap: 8px; margin-top: 8px; }
