@@ -31,3 +31,22 @@
 .ls-muted { margin: 0; color: #667085; font-size: .82rem; }
 .ls-note { font-style: italic; }
 .ls-link { justify-self: start; border: 0; background: none; color: #175cd3; font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
+
+/* „Kuu sammud” (MonthStepsCard) */
+.ms-card { display: grid; gap: 12px; padding: 16px; border: 1px solid #e7e9f3; border-radius: 18px; background: #fff; }
+.ms-card.is-compact { padding: 12px 0 0; border: 0; border-top: 1px solid #f2f4f7; border-radius: 0; }
+.ms-head { display: grid; gap: 6px; }
+.ms-head h3 { margin: 0; font-size: 1.05rem; }
+.ms-head h3 span { font-weight: 500; color: #667085; font-size: .85rem; }
+.ms-head small { color: #667085; }
+.ms-bar { display: block; height: 8px; border-radius: 999px; background: #f2f4f7; overflow: hidden; }
+.ms-bar b { display: block; height: 100%; background: #12b76a; }
+.ms-lesson { display: grid; gap: 4px; }
+.ms-lesson > strong { font-size: .86rem; }
+.ms-lesson ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.ms-lesson li { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: 10px; font-size: .84rem; background: #f9fafb; }
+.ms-lesson li em { flex: none; font-style: normal; font-weight: 700; }
+.ms-lesson li.is-mastered em { color: #067647; }
+.ms-lesson li.is-practise em { color: #b54708; }
+.ms-lesson li.is-review em { color: #b42318; }
+.ms-lesson li.is-todo em { color: #667085; }

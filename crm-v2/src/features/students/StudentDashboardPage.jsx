@@ -14,6 +14,7 @@ import { autoSkills } from './autoSkills.js';
 import { levelProgress, speakingFromStats } from './levelProgress.js';
 import MyProgressCard from './MyProgressCard.jsx';
 import WordGrowthCard from '../vocabulary/WordGrowthCard.jsx';
+import MonthStepsCard from '../learner/MonthStepsCard.jsx';
 import { petProgress } from '../pet/petModel.js';
 import { todayPath } from './todayPath.js';
 import { petReact } from '../pet/petEvents.js';
@@ -158,6 +159,8 @@ export default function StudentDashboardPage({
     {students.length && (!chosen || chosen === 'Eesti keel') ? <MyProgressCard progress={progress} /> : null}
     {/* plain numbers: words learned, new this month, own mistakes fixed (owner 2026-10-23) */}
     {students.length ? <WordGrowthCard words={words} /> : null}
+    {/* „Kuu sammud”: the month's lesson steps and how well each is mastered (owner 2026-10-23) */}
+    {students.length ? <MonthStepsCard assignments={state.data.progressData?.[1] || []} /> : null}
     {students.length ? <section className="student-path" aria-label="Täna">
       <header className="student-path__head">
         <div><span className="eyebrow">Täna</span><h2>{path.done === path.total ? 'Kõik tänased sammud tehtud!' : `${path.done}/${path.total} sammu tehtud`}</h2></div>
