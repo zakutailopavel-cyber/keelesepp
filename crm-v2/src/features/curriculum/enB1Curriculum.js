@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-23.8';
+export const EN_B1_VERSION = '2026-10-23.9';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -87,6 +87,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['Are you allowed to…?', 'be allowed to, let + object + verb, make + object + verb (present and past); online safety phrases.'],
       ['In my opinion…', 'Giving opinions, agreeing and disagreeing; linking words (however, although, on the one hand / on the other hand, firstly, in conclusion); a for-and-against essay.'],
       ['Module 8 check: Technology and media', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 9, title: 'Our world', goal: 'Describing people, places and nature, reporting what others said, and talking about the environment.',
+    lessons: [
+      ['The girl who changed her school', 'Defining relative clauses with who, which and that; leaving out the relative pronoun; young people who help the environment.'],
+      ['A place where nature comes first', 'where and whose; non-defining relative clauses with commas; who\'s vs whose; nature and protected areas.'],
+      ['She said that…', 'Reported statements with said and told; tense, pronoun and time-word changes; reporting a talk or an interview.'],
+      ['Turn it off!', 'Phrasal verbs about energy and waste (turn off, throw away, cut down on, run out of, give up); reported requests with asked / told someone (not) to.'],
+      ['Module 9 check: Our world', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);
