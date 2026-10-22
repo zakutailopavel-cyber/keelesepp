@@ -197,6 +197,59 @@ Sofia prepares the B1 writing and reading parts with real messages in her house 
 - Harno reading 1 (9 situations ↔ 6 ads) is done as multiple choice, because `match` is one-to-one. → a many-to-one
   matching block (the ads can repeat) would train the exact format.
 
+## B2 module 1 „Igapäevaelu ja B1 lähtepunkt” (b1b2-001…004)
+
+One year later: Sofia needs B2 by March to lead the Tartu warehouse project; goal: a learning plan and contract.
+- **001** — diagnostic: course support from Eha Org, a formal request. → an authentic Harno skills-profile sheet.
+- **002** — trainee Laura shadows Sofia; linking words. → the art brief shows Anna with a child — no cast fact; fix the
+  brief.
+- **003** — team day in Pärnu, pro/contra debate (Harno B2 format). → a real team-day handout.
+- **004** — the learning-plan talk with Liis. → the art brief casts Liis in a hospital — fix; a real course price list.
+- `b2/lessonGoals.js` must follow the new content (after the B2 pass).
+
+## B2 module 3 „Minevik ja kogemused” (b1b2-011…014)
+
+Sofia runs projects: a Riga trip that went wrong, the Tartu library move that succeeded, Viktor's 1990s memories for
+the museum; goal: an incident report and an oral retrospective.
+- **011** — refund claim after a bus breakdown; tense choice in a story. → a real bus refund policy; a picture of the
+  broken-down bus (the art brief still shows the old story).
+- **012** — past conditional (oleksin teinud) after a job interview. → an interview picture.
+- **013** — impersonal past (tehti, oli tehtud): explaining the moving-day problem to the town government. → a real
+  permit e-service form; a timeline picture.
+- **014** — retrospective and incident report. → real 1990s photos / oral-history audio; an older male voice for Viktor.
+
+## B2 module 2 „Linn, teenused ja asjaajamine” (b1b2-006…009)
+
+Jaan and Kadri need a bigger flat (rent in Kristiine or buy in Nõmme); goal: an official request to the district
+government and the meeting with the official. Housing topic added (was missing in B2).
+- **006** — total vs partial subject (Keldris on vett / Majas ei ole lifti); rent or buy debate. → the art brief shows
+  Anna's day — new brief (flat ad, Nõmme map); a real flat ad.
+- **007** — parking permit at the district desk; polite conditional. → real bank-loan leaflet / e-service screenshots.
+- **008** — residents' meeting and a complaint to the maintenance company. → a real heating bill as a chart; new brief.
+- **009** — street works, the official request, a meeting that changes halfway. → a real milieu-area document; new brief.
+- The bank adviser was renamed **Allan** (Hendrik Ilves is the coach in module 1, Hannes the debate-club host in module 5).
+
+## B2 module 5 „Arvamus ja põhjendamine” (b1b2-021…024)
+
+Sofia joins a debate club; goal: the public debate on a Kalamaja tram line and an opinion piece for „Kalamaja Leht”.
+- **021** — degrees of certainty (ilmselt, vaevalt, võib-olla vs võib olla) in a school-uniform survey. → a real-looking
+  newsletter page and survey charts.
+- **022** — argument connectors with the verb second; the tram plan on the radio. → a map of the tram route.
+- **023** — kuigi / siiski / ometi and the softening conditional; a four-day week debate (pro/contra → decision). → the
+  article as an authentic magazine page.
+- **024** — the public debate and the opinion text (~180 words, Harno B2). → a tram vs bus-lane map; a model opinion
+  piece.
+
+## B2 module 4 „Sihitis, ma-/da-infinitiiv ja rektsioon” (b1b2-016…019)
+
+Sofia's first big task: a presentation for the Riga furniture firm Silva (Ilze Berg); Jaan's new kitchen helper Pille;
+goal: brief a new colleague (Taavi) and write his work instructions.
+- **016** — object case incl. the nominative object after imperative / „tuleb”. → a status e-mail or Gantt chart.
+- **017** — ma / da infinitive; Riga or video call (pro/contra → decision). → a Terviseamet kitchen-hygiene leaflet.
+- **018** — verb and adjective government (uhke mille üle, rahul millega) on presentation day. → slide images.
+- **019** — briefing Taavi. → a real PPA page on lost documents; a work-instruction template.
+- Two Harjuta sheets sit at 25.2–25.3 exercise minutes (floor 25). The art briefs of 017–018 no longer match.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget

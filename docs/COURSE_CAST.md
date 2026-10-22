@@ -43,3 +43,14 @@ Keep facts consistent; add new facts here when a module adds them.
   May; Jaan is kitchen head from August.
 - **Module 17:** Sofia lives on **Valgevase tänav**; new neighbour **Ruslan**; school administrator **Kaire**; Helgi's
   neighbour **Ilmar**.
+- **B2 module 1 (one year later):** Sofia passed B1; Liis offers her the lead of the new Tartu warehouse project if she
+  reaches B2 by March; trainee **Laura**; warehouse shift leader **Gert**; team coach **Hendrik Ilves**; Markus
+  photographs weddings at weekends; Jelena has a son.
+- **B2 modules 2–5:** Jaan and Kadri move from Männi 8 to an old flat in Nõmme (Vahtra 5, housing association head
+  **Eda**); district official **Ingrid**; estate agent **Evelin**; builder **Rando**; bank adviser **Allan**; Kase kool
+  board chair **Marje Lepp**; debate-club host **Hannes**; Ruslan has a 2-year-old daughter; Tiina is 73 (house built
+  1912); Jelena's son is 3; the Kalamaja tram line Balti jaam–Paljassaare, public debate on 10 December. Module 3:
+  Riga client **Dace**, driver **Urmo**, Tartu official **Merle Kuusk**, bus company „Balti Ekspress”.
+- **B2 module 4:** Riga furniture firm **Silva** (contact **Ilze Berg**, warehouse head **Inese**); new colleague **Taavi**
+  (26); Jaan's kitchen helper **Pille**, cook **Vaike**; coach **Signe Lepp**; Liis volunteers (food bank, library,
+  clean-up days).

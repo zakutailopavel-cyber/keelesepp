@@ -59,7 +59,7 @@ export const GRAMMAR_PLAN = {
     { id: 'pasts', label: 'liht-, täis- ja enneminevik', lessons: ['b1b2-011', 'b1b2-012', 'b1b2-013'] },
     { id: 'object', label: 'täis- ja osasihitis', lessons: ['b1b2-016'] },
     { id: 'infinitives', label: 'ma- ja da-infinitiiv', lessons: ['b1b2-017'] },
-    { id: 'government', label: 'rektsioon (ka omadussõnadel)', lessons: ['b1b2-018'], partial: true },
+    { id: 'government', label: 'rektsioon (ka omadussõnadel)', lessons: ['b1b2-018', 'b1b2-019'] },
     { id: 'conditional', label: 'tingiv pehmendamiseks', lessons: ['b1b2-007', 'b1b2-042'] },
     { id: 'quotative', label: 'kaudne kõneviis', lessons: ['b1b2-048'] },
     { id: 'impersonal', label: 'umbisikuline tegumood', lessons: ['b1b2-058'] },
@@ -69,7 +69,7 @@ export const GRAMMAR_PLAN = {
     { id: 'nominalisation', label: '-mine / -ja nimisõnad', lessons: [] },
     { id: 'change', label: 'hakkama, muutuma, jääma + saav kääne', lessons: [] },
     { id: 'essive', label: 'olev kääne', lessons: [] },
-    { id: 'subject', label: 'täis- ja osaalus', lessons: [] },
+    { id: 'subject', label: 'täis- ja osaalus', lessons: ['b1b2-006', 'b1b2-008'] },
     { id: 'clitics', label: '-ki / -gi', lessons: [] },
   ],
   c1: [
