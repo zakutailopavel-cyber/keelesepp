@@ -1,3 +1,15 @@
+## 2026-10-22 · agent/english-b1-m4 — English B1 module 4 „Plans and the future”
+
+- Main checked: ab99b9b (2026-10-22).
+- Module 4: en-b1-016 What are you going to do? (going to vs will), 017 It's in my diary (present continuous for
+  arrangements, present simple for timetables), 018 What will the future be like? (will / won't / might / probably,
+  a magazine article), 019 If I pass, I'll… (first conditional, unless, when / as soon as, a formal e-mail), 020 the
+  check in the Harno B1 task types. 15 sheets of 41–49 min. Files: en/b1/module04.js, module04b.js, module04Key.js.
+- Teacher key en/b1/module04Key.js (Russian, every item); moduleKeys.test.js covers B1 1–4; strictModules +module 4;
+  registry +enb1m04; curriculum/enB1Curriculum.js module 4 records (version 2026-10-22.4).
+- Checks: `gate_s.sh en/b1/module04` clean; vitest worksheet-generator + curriculum + worksheet-studio 1094 passed.
+- Not published yet (waits for the owner: install en-b1-016…020 records, publish the 15 sheets). Next: B1 module 5.
+
 ## 2026-10-22 · agent/calendar-room-free — a cancelled lesson frees its room at once
 
 - Oleksiy (#bug #high_priority #calender): „При отмене занятия через Tühista не освобождается кабинет”.

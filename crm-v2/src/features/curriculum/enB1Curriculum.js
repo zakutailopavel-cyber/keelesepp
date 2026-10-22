@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-22.3';
+export const EN_B1_VERSION = '2026-10-22.4';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -37,6 +37,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['How long have you…?', 'Present perfect with for and since; How long…?; ago with the past simple.'],
       ['Then or up to now?', 'Present perfect or past simple; follow-up questions; achievements and a scholarship application.'],
       ['Module 3 check: Experiences', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 4, title: 'Plans and the future', goal: 'Talking about plans, arrangements, timetables, predictions and real possibilities.',
+    lessons: [
+      ['What are you going to do?', 'going to for plans and predictions from what you see; will for decisions, offers and promises.'],
+      ['It\'s in my diary', 'Present continuous for arrangements; present simple for timetables and programmes; asking about plans.'],
+      ['What will the future be like?', 'Predictions with will, won\'t, might, may, probably and definitely; I don\'t think… will; a magazine article.'],
+      ['If I pass, I\'ll…', 'The first conditional; unless, when and as soon as with the present simple; a formal e-mail with conditions and questions.'],
+      ['Module 4 check: Plans and the future', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);
