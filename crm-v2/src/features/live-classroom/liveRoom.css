@@ -133,6 +133,9 @@
 .lr-text-btn .lr-label { display: inline; }
 .lr-observer { display: inline-flex; align-items: center; gap: 6px; color: #175cd3; background: #eff8ff; }
 .lr-follow { border: 0; cursor: pointer; font: inherit; color: #1849a9; background: #eff4ff; }
+/* the teacher leads the view (the student sees the same place and size) */
+.lr-lead { cursor: pointer; font: inherit; font-size: .82rem; font-weight: 700; color: #344054; }
+.lr-lead.is-on { color: #fff; background: #7a5af8; border-color: #7a5af8; }
 .lr-transcriber { margin: 12px 0 0; padding: 8px 10px; border-radius: 8px; font-size: 13px; }
 .lr-transcriber.is-on { color: #067647; background: #ecfdf3; }
 .lr-transcriber.is-off { color: #b54708; background: #fffaeb; }

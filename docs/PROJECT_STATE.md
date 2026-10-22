@@ -1,3 +1,26 @@
+## 2026-10-23 · agent/live-board-realtime — Live Classroom board: live typing, drawing, cursors, „Juhi vaadet”
+
+- Main checked: efd80db (2026-10-22). No open PR touched the board or Live Classroom; other agents work on English
+  content (#732/#733) and course health.
+- Problem (tested with two accounts on the emulators): a text typed on the board reached the other side only when the
+  writer left the field (the student saw an empty „Tekst” box); lines and moves only on mouse up; no cursors; teacher and
+  student saw the worksheet at different zoom and place (138 % vs 77 %).
+- Now over the call's data channel (nothing extra is saved, Firestore writes are unchanged): letters while they are
+  typed („Anna kirjutab…”), a line or shape while it is drawn, elements while they are dragged, the other side's
+  cursor with a name. The teacher's „Juhi vaadet” sends the visible part of the board; the student sees the same place
+  (a worksheet: the same width and line); when he moves away, „Jälgi õpetaja vaadet” brings him back.
+- Files: board/liveDrafts.js (+test: messages are checked and cut to size, stale drafts drop after 6 s, throttle 40 ms),
+  board/boardModel.js (viewRect, fitRect), board/StudentBoard.jsx (props live, presenting, followView, onFollowBreak;
+  pointer release no longer stops a line from saving), board/board.css, live-classroom/LiveRoom.jsx (one channel
+  listener fans out to the board), liveRoom.css, LiveRoom.follow.test.jsx (+5 tests).
+- Checks: vitest crm-v2 2125 passed; eslint board + live-classroom clean; manual two-tab run on the emulators (typing,
+  drawing, cursor, view lead on a worksheet, follow break and return).
+- Limits: all live parts need the call's data channel (no camera/microphone → no live layer; the board still syncs on
+  save). Group lessons (GroupRoom) do not have it yet. The phone reading view keeps its own scrolling (view lead not
+  applied there).
+- Next safe step: layout PR — video tiles and the colour panel stop covering the worksheet, the colour panel closed in
+  the phone reading view, the sheet picker's styles loaded in the room.
+
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 
 - Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch
