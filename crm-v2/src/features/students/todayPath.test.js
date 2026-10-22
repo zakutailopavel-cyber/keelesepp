@@ -14,11 +14,17 @@ describe('Täna — four things to do', () => {
       pet: { kind: 'rebane', name: 'Lisa', playedAt: '2026-10-11T10:00:00Z' },
     });
     expect(path.steps.map((step) => [step.key, step.done, step.to])).toEqual([
-      ['work', false, '/homework'], ['words', true, '/student/sonavara'], ['mistakes', false, '/student/vead'], ['pet', false, '/student/lemmik'],
+      // one word today is not yet the day's five minutes (owner 2026-10-23): the step opens the daily set at once
+      ['work', false, '/homework'], ['words', false, '/student/sonavara?paev=1'], ['mistakes', false, '/student/vead'], ['pet', false, '/student/lemmik'],
     ]);
     expect(path.steps[0].detail).toBe('2 ootab');
     expect(path.steps[2].detail).toBe('1 lauset tundidest');
-    expect(path.done).toBe(1);
+    expect(path.done).toBe(0);
+  });
+
+  it('the day\'s five minutes: done after five cards reviewed today', () => {
+    const words = Array.from({ length: 6 }, (_, index) => ({ id: `w${index}`, word: `s${index}`, translation: 't', box: 1, reviews: 1, dueAt: '2026-10-01', reviewedAt: index < 5 ? '2026-10-12T08:00:00Z' : '2026-10-01' }));
+    expect(todayPath({ today, now, words }).steps[1]).toMatchObject({ key: 'words', done: true, detail: '5 sõna korratud' });
   });
 
   it('no mistakes — no mistakes step; the mistakes drill done today closes it', () => {
