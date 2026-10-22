@@ -1,3 +1,19 @@
+## 2026-10-23 · agent/retention-risk — „Riskis õpilased” on the dashboard
+
+- Main checked: efd80db (2026-10-22). Independent of #737/#738/#739; other agents work on English content.
+- Owner: „делай всё” after the learner profile → first the student retention view (docs/LEARNER_PROFILE.md roadmap).
+- New: features/retention/retentionRisk.js (+test) and RetentionCard.jsx (+test). Signals per active card: 2+ absences
+  or cancellations in the last 4 journal lessons; last held lesson over 21 / 35 days ago (a card active for 3+ months
+  without lessons: „võta ühendust või arhiveeri”); no lesson ahead (weak right after a lesson, ignored for self-study
+  cards); words but no own practice for 14 days; an overdue invoice (finance view only). Packages with ≤ 1 lesson left
+  are listed as the moment to talk about the next one.
+- Teachers do not always mark held lessons in the journal (a weekly series ran while the journal stopped in June), so
+  a lesson the calendar had in the last 21 days counts as recent (`recentlyScheduled`).
+- Production run (read only, 2026-10-23): 96 active cards → 7 at risk (2 high), each with a clear reason.
+- Files: features/retention/*, dashboard/DashboardPage.jsx, services/firebase/studentWords.js (`listForStudentIds`).
+- Checks: vitest crm-v2 all green; eslint clean in the touched files.
+- Next safe step: the daily 5-minute review on the student's home (docs/LEARNER_PROFILE.md, step 1).
+
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 
 - Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch
