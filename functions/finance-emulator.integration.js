@@ -3731,3 +3731,96 @@ test("one bank payment pays two invoices of a child and remembers the payer's ac
     assert.equal(invoice.balanceDueCents, 0, `${id} ${JSON.stringify(invoice)}`);
   }
 });
+
+test("bookkeeping: documents become numbered entries once, manual entries balance, corrections are stornos (owner 2026-10-22)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  await db.collection("invoices").doc("acc-invoice-1").set({ num: "KS-2026-901", date: "2026-09-01", amountCents: 10000, amount: 100, status: "Ootel", studentName: "Raamatupidamise test" });
+  await db.collection("payments").doc("acc-payment-1").set({ invoiceId: "acc-invoice-1", invoiceNum: "KS-2026-901", paidAt: "2026-09-02", amountCents: 5000, amount: 50, method: "bank", status: "active" });
+
+  const synced = await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal(synced.status, 200, JSON.stringify(synced.body));
+  const invoiceEntry = (await db.collection("accountingEntries").doc("auto_invoice_acc-invoice-1").get()).data();
+  assert.match(invoiceEntry.number, /^2026-\d{4}$/);
+  assert.deepEqual(invoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 10000, 0], ["3060", 0, 10000]]);
+  assert.equal(invoiceEntry.documentRef, "KS-2026-901");
+  assert.ok((await db.collection("accountingEntries").doc("auto_payment_acc-payment-1").get()).exists);
+  assert.ok((await db.collection("accountingAccounts").doc("3060").get()).exists, "the chart is seeded");
+  const again = await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal(again.body.created, 0, "a second sync creates nothing");
+
+  const salary = { date: "2026-09-30", description: "Septembri palk", documentRef: "Palgaleht 09/2026", lines: [{ account: "4710", debitCents: 120000 }, { account: "2210", creditCents: 120000 }] };
+  const manual = await financeRequest(adminToken, "/accounting/entries", { entry: salary, requestId: "acc_manual_0001" });
+  assert.equal(manual.status, 201, JSON.stringify(manual.body));
+  const repeated = await financeRequest(adminToken, "/accounting/entries", { entry: salary, requestId: "acc_manual_0001" });
+  assert.equal(repeated.body.entry.number, manual.body.entry.number);
+  const unbalanced = await financeRequest(adminToken, "/accounting/entries", { entry: { ...salary, lines: [{ account: "4710", debitCents: 100 }, { account: "2210", creditCents: 90 }] }, requestId: "acc_manual_0002" });
+  assert.equal(unbalanced.status, 400, JSON.stringify(unbalanced.body));
+
+  const storno = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: manual.body.entry.id, date: "2026-10-01", reason: "vale summa", requestId: "acc_reverse_0001" });
+  assert.equal(storno.status, 201, JSON.stringify(storno.body));
+  assert.deepEqual(storno.body.entry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["4710", 0, 120000], ["2210", 120000, 0]]);
+  assert.equal((await db.collection("accountingEntries").doc(manual.body.entry.id).get()).data().reversedBy, storno.body.entry.id);
+  const twice = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: manual.body.entry.id, date: "2026-10-01", reason: "uuesti", requestId: "acc_reverse_0002" });
+  assert.equal(twice.status, 400, JSON.stringify(twice.body));
+  const autoStorno = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: "auto_invoice_acc-invoice-1", date: "2026-10-01", reason: "x", requestId: "acc_reverse_0003" });
+  assert.equal(autoStorno.status, 409, JSON.stringify(autoStorno.body));
+
+  const opening = await financeRequest(adminToken, "/accounting/opening", { balances: [{ account: "1010", debitCents: 50000 }, { account: "2970", creditCents: 50000 }], requestId: "acc_opening_0001" });
+  assert.equal(opening.status, 201, JSON.stringify(opening.body));
+  assert.equal(opening.body.entry.date, "2026-01-01");
+  const secondOpening = await financeRequest(adminToken, "/accounting/opening", { balances: [{ account: "1010", debitCents: 100 }, { account: "2970", creditCents: 100 }], requestId: "acc_opening_0002" });
+  assert.equal(secondOpening.status, 409, JSON.stringify(secondOpening.body));
+});
+
+test("INF 3: personal codes are admin-only, a parent's link fills them, the report builds the e-MTA XML (owner 2026-10-22)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  await db.collection("students").doc("inf3-student").set({ name: "Mia Maksutest", parentName: "Kati Maksutest" });
+  await db.collection("invoices").doc("inf3-invoice").set({ num: "KS-2025-777", studentId: "inf3-student", date: "2025-03-01", amountCents: 12000, status: "Makstud" });
+  await db.collection("payments").doc("inf3-payment").set({ invoiceId: "inf3-invoice", studentId: "inf3-student", paidAt: "2025-03-05", amountCents: 12000, method: "bank", status: "active", payerName: "Kati Maksutest" });
+
+  const invalid = await financeRequest(adminToken, "/tax/identity", { studentId: "inf3-student", identity: { studentCode: "49403136527" } });
+  assert.equal(invalid.status, 400, JSON.stringify(invalid.body));
+  const saved = await financeRequest(adminToken, "/tax/identity", { studentId: "inf3-student", identity: { studentCode: "49403136526", trainingType: 3 } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+
+  const link = await financeRequest(adminToken, "/tax/form-link", { studentId: "inf3-student" });
+  assert.equal(link.status, 201, JSON.stringify(link.body));
+  const token = link.body.url.split("/maksuandmed/")[1];
+  const form = (path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/taxFormApi${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(async (r) => ({ status: r.status, body: await r.json() }));
+  const info = await form("/info", { token });
+  assert.equal(info.status, 200, JSON.stringify(info.body));
+  assert.equal(info.body.studentFirstName, "Mia");
+  assert.equal((await form("/info", { token: "x".repeat(32) })).status, 404);
+  const noConsent = await form("/submit", { token, payerName: "Kati Maksutest", payerCode: "37605030299", studentCode: "49403136526" });
+  assert.equal(noConsent.status, 400);
+  const submitted = await form("/submit", { token, payerName: "Kati Maksutest", payerCode: "37605030299", studentCode: "49403136526", consent: true });
+  assert.equal(submitted.status, 201, JSON.stringify(submitted.body));
+  const identity = (await db.collection("taxIdentities").doc("inf3-student").get()).data();
+  assert.equal(identity.payerCode, "37605030299");
+  assert.equal(identity.trainingType, 3, "the parent's form keeps the school's training type");
+
+  const report = await financeRequest(adminToken, "/tax/inf3", { year: 2025 });
+  assert.equal(report.status, 200, JSON.stringify(report.body));
+  const row = report.body.rows.find((r) => r.studentId === "inf3-student");
+  assert.equal(row.amountCents, 12000);
+  assert.equal(row.ready, true);
+  assert.match(report.body.xml, /<koolitusmaksja_isikukood>37605030299<\/koolitusmaksja_isikukood>/);
+  assert.match(report.body.xml, /<koolituse_liik>3<\/koolituse_liik>/);
+
+  // a second child of the same parent gets the parent's code without entering it again
+  await db.collection("students").doc("inf3-student").set({ linkedParentId: "inf3-parent" }, { merge: true });
+  await db.collection("students").doc("inf3-sibling").set({ name: "Oskar Maksutest", linkedParentId: "inf3-parent" });
+  await financeRequest(adminToken, "/tax/identity", { studentId: "inf3-student", identity: { studentCode: "49403136526", payerCode: "37605030299", payerName: "Kati Maksutest", trainingType: 3 } });
+  await db.collection("invoices").doc("inf3-invoice-2").set({ num: "KS-2025-778", studentId: "inf3-sibling", date: "2025-04-01", amountCents: 5000, status: "Makstud" });
+  await db.collection("payments").doc("inf3-payment-2").set({ invoiceId: "inf3-invoice-2", studentId: "inf3-sibling", paidAt: "2025-04-05", amountCents: 5000, method: "bank", status: "active" });
+  const sibling = (await financeRequest(adminToken, "/tax/inf3", { year: 2025 })).body.rows.find((r) => r.studentId === "inf3-sibling");
+  assert.equal(sibling.payerCode, "37605030299");
+  assert.equal(sibling.payerFromParent, true);
+  assert.deepEqual(sibling.problems, ["Õpilase isikukood puudub"]);
+});

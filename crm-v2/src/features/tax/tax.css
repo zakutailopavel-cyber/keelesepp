@@ -1,0 +1,155 @@
+.inf3-page {
+  max-width: 1300px;
+}
+
+.inf3-page .back-link {
+  margin-bottom: 10px;
+}
+
+.inf3-toolbar {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
+.inf3-toolbar .field {
+  margin: 0;
+  min-width: 160px;
+}
+
+.inf3-toolbar p {
+  margin: 0 0 8px;
+}
+
+.inf3-notes {
+  margin-top: 16px;
+  padding: 14px 18px;
+}
+
+.inf3-notes h2 {
+  font-size: 1rem;
+  margin: 0 0 6px;
+}
+
+.inf3-notes ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.tax-form-page {
+  background: #f3f6f4;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+.tax-form-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(18, 55, 42, .1);
+  max-width: 560px;
+  padding: 24px;
+  width: 100%;
+}
+
+.tax-form-card h1 {
+  font-size: 1.5rem;
+  margin: 0 0 12px;
+}
+
+.tax-form-card form {
+  display: grid;
+  gap: 12px;
+}
+
+.tax-form-card label {
+  display: grid;
+  gap: 4px;
+}
+
+.tax-form-card label span {
+  font-weight: 600;
+}
+
+.tax-form-card input:not([type="checkbox"]) {
+  border: 1px solid #d0d8d4;
+  border-radius: 10px;
+  font-size: 1rem;
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.tax-form-card .tax-form-check {
+  align-items: start;
+  display: flex;
+  gap: 8px;
+}
+
+.tax-form-card .tax-form-check input {
+  margin-top: 4px;
+}
+
+.tax-form-student {
+  font-weight: 700;
+}
+
+.tax-form-note {
+  background: #eef7f2;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.tax-form-error {
+  color: #b42318;
+  font-weight: 600;
+}
+
+.tax-form-submit {
+  background: #12372a;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 700;
+  min-height: 48px;
+}
+
+.tax-form-submit:disabled {
+  opacity: .6;
+}
+
+.tax-form-privacy {
+  color: #667085;
+  font-size: .85rem;
+}
+
+.tax-form-lang {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.tax-form-lang button {
+  background: #f4f6f8;
+  border: 1px solid #e3e8ee;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 4px 10px;
+}
+
+.tax-form-lang button.is-active {
+  background: #12372a;
+  color: #fff;
+}
+
+.inf3-from-parent {
+  color: #0f6b4f;
+  display: block;
+  font-size: .75rem;
+}

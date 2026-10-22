@@ -1,3 +1,63 @@
+## 2026-10-22 · agent/inf3-parent-code — a parent's INF 3 code for all their children
+
+- Owner: „личный код уже родителю можно приписывать чтобы потом автоматически вносилось” → yes, build it.
+- functions/inf3-core.js `payerKeyOf` (the parent's account id, else a hash of the parent's e-mail); saving a payer code
+  (admin or the parents' form) also writes taxPayers/{key}; the INF 3 report uses it for every child of that parent,
+  also new ones; a child's own payer code wins. Rules: taxPayers admin read, no client writes. UI marks such rows
+  „lapsevanema kaardilt”. docs/INF3.md updated.
+- Checks: functions 334/334; emulator INF 3 test (with a sibling) passes; vitest tax 3/3.
+
+## 2026-10-22 · deployed: bookkeeping and INF 3 (owner: „Да, сливай и выкладывай”)
+
+- Merged #724 (core), #725 (Raamatupidamine page), #726 (INF 3); main d4a5f46. Vercel builds the CRM from main.
+- Deployed from main d4a5f46: functions financeApi (update) and taxFormApi (new), firestore.rules.
+- Checked live: taxFormApi refuses an unknown link; /maksuandmed/* is served. Dry run on production data (read-only):
+  214 automatic entries, all balanced; 1010 +8 624 €, 1200 +32 €, 2500 −567 €, 3060 −8 089 €. No entries are written
+  yet: they are created the first time an admin opens Finantsid → Raamatupidamine. INF 3 2026 so far: 45 trainees,
+  8 544 €, no personal codes yet.
+- Owner's gates: opening balances on 01.01.2026 from the accountant's käibeandmik („Algsaldod”); the EHIS
+  majandustegevusteade for täienduskoolitus before filing INF 3; salaries are manual entries for now.
+- Next safe step: the owner enters the opening balances and sends the parents' form links; then English B1 module 3
+  (branch agent/english-b1-m3, lessons 011–013 done).
+
+## 2026-10-22 · agent/accounting-ui — Raamatupidamine page (on top of agent/accounting-core)
+
+- Route /finance/raamatupidamine (admin), linked from Finantsid („Raamatupidamine”). Tabs: Päevaraamat, Pearaamat,
+  Käibeandmik, Bilanss ja kasumiaruanne, Kontoplaan. Period filter, Excel export (SpreadsheetML .xls with the columns
+  of the owner's P2evaraamat.xls and K2ibeandmik_a.xls), manual entry (cannot be edited; storno with a reason), opening
+  balances, add / rename / close an account. Opening the page creates missing automatic entries (/accounting/sync).
+- Files: crm-v2/src/features/accounting/* (AccountingPage, accountingReports, accountingExcel, css, tests),
+  services/firebase/accounting.js + financeApi accounting methods, app/routes.jsx, app/accessPolicy.js, finance links.
+- Checks: vitest accounting + finance + app + services 329 passed; eslint clean on the new files; checked on the local
+  stand with sample entries (trial balance and balance sheet balance; phone width without horizontal scroll).
+- Next safe step: owner review; merge #724 then this PR; deploy functions + rules with the owner's yes; then INF 3.
+
+## 2026-10-22 · agent/accounting-core — bookkeeping core (päevaraamat, käibeandmik) on the server
+
+- Owner: implement Päevaraamat, Käibeandmik (templates P2evaraamat.xls, K2ibeandmik_a.xls), the Merit Aktiva kontoplaan
+  and INF 3 in Finantsid, „как по законам Эстонии”. Decisions (AskUserQuestion): full bookkeeping on the site; not VAT
+  registered; from 2026-01-01 with opening balances; isikukood in the card plus a parents' form.
+- This PR: the server core. functions/accounting-chart.js (207 Merit Aktiva accounts), functions/accounting-core.js
+  (automatic entries from invoices, credit notes, cancellations, payments, voids, payer credits, refunds, expenses;
+  validation; storno; opening balances; numbering), financeApi routes /accounting/*, rules for accountingEntries and
+  accountingAccounts (admin read, no client writes). docs/ACCOUNTING.md: the law (RPS §§ 6–12) and the posting table.
+- Checks: functions node --test 329/329 (accounting-core 10); emulator: the new bookkeeping test passes.
+- Not done: the UI (next PR: Raamatupidamine with päevaraamat, pearaamat, käibeandmik, bilanss, kasumiaruanne, manual
+  entries, opening balances, Excel); INF 3; salaries are manual entries. Nothing deployed.
+- Next safe step: the Raamatupidamine UI on top of this branch; deploy functions with the owner's yes after merge.
+## 2026-10-22 · agent/inf3 — INF 3 (training costs paid by private persons)
+
+- Owner: INF 3 in Finantsid (inf_3_2025.pdf), personal codes in the card + a parents' form (AskUserQuestion).
+- functions/inf3-core.js: isikukood check, `inf3Rows` (money received in the year by trainee, minus refunds; not
+  prepayment use, overpayments, voids, company invoices), `inf3Xml` (emta.ee inf3.xsd). financeApi /tax/identity,
+  /tax/form-link, /tax/inf3; new public function `taxFormApi` (/info, /submit) with one-time 60-day links; rules:
+  taxIdentities admin read, taxFormTokens closed.
+- CRM: /finance/inf3 (admin; masked codes, missing rows, „Vormi link”, XML download, filing notes), /maksuandmed/:token
+  (public parents' form, et / ru). Link „INF 3” in Finantsid. docs/INF3.md.
+- Checks: functions inf3-core 4/4; emulator INF 3 test passes; vitest tax + app 27 passed; eslint clean.
+- Owner's manual gate: E&P Koolitus OÜ needs a majandustegevusteade for täienduskoolitus in EHIS before filing.
+- Not deployed (new function taxFormApi + financeApi + rules need the owner's yes).
+
 ## 2026-10-22 · agent/english-b1-m2 — English B1 module 2 „Life stories”
 
 - Main checked: 198b5f1. B1 module 1 was merged (#722) and published with the owner's yes: records en-b1-001…005

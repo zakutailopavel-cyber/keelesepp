@@ -37,6 +37,9 @@ const CalendarPage = lazy(() => import('../features/calendar/CalendarPage.jsx'))
 const FinanceWorkspacePage = lazy(() => import('../features/finance/FinanceWorkspacePage.jsx'));
 const FinanceMonthPage = lazy(() => import('../features/finance/FinanceMonthPage.jsx'));
 const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettingsPage.jsx'));
+const AccountingPage = lazy(() => import('../features/accounting/AccountingPage.jsx'));
+const Inf3Page = lazy(() => import('../features/tax/Inf3Page.jsx'));
+const TaxFormPage = lazy(() => import('../features/tax/TaxFormPage.jsx'));
 const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage.jsx'));
 const GroupsPage = lazy(() => import('../features/groups/GroupsPage.jsx'));
 const LibraryPage = lazy(() => import('../features/library/LibraryPage.jsx'));
@@ -72,6 +75,8 @@ export default function AppRoutes() {
       <Route path="/maksa/:invoiceId" element={<PayInvoicePage />} />
       {/* „Sobivad ajad”: a public page the school sends to a learner to mark every hour that really suits a lesson */}
       <Route path="/ajad" element={<Suspense fallback={null}><AvailabilityPollPage /></Suspense>} />
+      {/* parents' INF 3 form (docs/INF3.md): no login, a one-time link from the school */}
+      <Route path="/maksuandmed/:token" element={<Suspense fallback={null}><TaxFormPage /></Suspense>} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
@@ -136,6 +141,8 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
             <Route path="finance/payroll" element={staffPage(<PayrollPage />)} />
             <Route path="finance/expenses" element={staffPage(<ExpensesPage />)} />
+            <Route path="finance/raamatupidamine" element={staffPage(<AccountingPage />)} />
+            <Route path="finance/inf3" element={staffPage(<Inf3Page />)} />
           </Route>
         </Route>
       </Route>
