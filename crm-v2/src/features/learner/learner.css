@@ -1,0 +1,33 @@
+/* „Õpilase pilt” before a lesson (LearnerSnapshotCard) */
+.ls-card { display: grid; gap: 14px; padding: 16px; border: 1px solid #e7e9f3; border-radius: 18px; background: #fff; }
+.ls-card.is-compact { padding: 4px 2px; border: 0; }
+.ls-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.ls-head h3 { margin: 2px 0 0; font-size: 1.05rem; }
+.ls-eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #7a5af8; }
+.ls-icon { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid #e4e6f2; border-radius: 50%; background: #fff; color: #475467; cursor: pointer; }
+.ls-signals { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ls-signals li { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; border-radius: 10px; font-size: .86rem; font-weight: 600; }
+.ls-signals li svg { flex: none; margin-top: 2px; }
+.ls-signals .is-warning { color: #93370d; background: #fffaeb; }
+.ls-signals .is-success { color: #05603a; background: #ecfdf3; }
+.ls-facts { display: grid; gap: 8px; margin: 0; }
+.ls-facts > div { display: grid; grid-template-columns: 120px 1fr; gap: 8px; font-size: .86rem; }
+.ls-facts dt { color: #667085; }
+.ls-facts dd { margin: 0; font-weight: 600; color: #101828; }
+.ls-facts dd small { display: block; margin-top: 2px; font-weight: 400; color: #475467; }
+.ls-block { display: grid; gap: 8px; padding-top: 12px; border-top: 1px solid #f2f4f7; }
+.ls-block h4 { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; font-size: .9rem; }
+.ls-block h4 small { font-weight: 500; color: #667085; }
+.ls-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.ls-chips li { padding: 4px 10px; border-radius: 999px; background: #f4f3ff; color: #5925dc; font-size: .84rem; font-weight: 600; }
+.ls-action { justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 0; border-radius: 10px; background: #7a5af8; color: #fff; font: inherit; font-size: .84rem; font-weight: 700; cursor: pointer; }
+.ls-action:disabled { opacity: .6; cursor: default; }
+.ls-sheets { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ls-sheets > li > div { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; }
+.ls-sheets span { flex: none; color: #067647; font-weight: 700; }
+.ls-sheets span.is-low { color: #b42318; }
+.ls-errors { margin: 4px 0 0; padding-left: 18px; color: #475467; font-size: .8rem; }
+.ls-errors li + li { margin-top: 2px; }
+.ls-muted { margin: 0; color: #667085; font-size: .82rem; }
+.ls-note { font-style: italic; }
+.ls-link { justify-self: start; border: 0; background: none; color: #175cd3; font: inherit; font-weight: 700; cursor: pointer; padding: 0; }
