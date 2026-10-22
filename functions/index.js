@@ -8791,6 +8791,11 @@ async function saveTaxIdentity({ actor, studentId, values, source = "admin" }) {
   // the training type is the school's decision; a parent's form never changes it
   if (source === "form") delete record.trainingType;
   await db.collection("taxIdentities").doc(id).set(record, { merge: true });
+  // the payer is usually the parent: their code is kept once and used for all their children (and new ones)
+  const payerKey = inf3Core.payerKeyOf(studentSnap.data());
+  if (payerKey && identity.payerCode) {
+    await db.collection("taxPayers").doc(payerKey).set({ payerName: identity.payerName, payerCode: identity.payerCode, source, updatedAt: nowIso, updatedBy: record.updatedBy, lastStudentId: id }, { merge: true });
+  }
   // the audit keeps that a change happened, never the codes themselves
   await db.collection("financialAudit").add({ entityType: "taxIdentity", entityId: id, action: `tax.identity.${source}`, hasStudentCode: Boolean(identity.studentCode), hasPayerCode: Boolean(identity.payerCode), trainingType: identity.trainingType, createdAt: nowIso, createdBy: record.updatedBy });
   return { identity: record };
@@ -8809,10 +8814,10 @@ async function createTaxFormLink({ actor, studentId }) {
 async function inf3Report({ year }) {
   const y = Number(year);
   if (!Number.isInteger(y) || y < 2020 || y > 2100) throw httpError(400, "Vali aasta.");
-  const names = ["invoices", "payments", "payerCredits", "refunds", "bankTransactions", "taxIdentities", "students"];
+  const names = ["invoices", "payments", "payerCredits", "refunds", "bankTransactions", "taxIdentities", "taxPayers", "students"];
   const snaps = await Promise.all(names.map(name => db.collection(name).get()));
   const data = Object.fromEntries(names.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
-  const report = inf3Core.inf3Rows({ year: y, ...data, identities: data.taxIdentities, students: data.students.map(s => ({ id: s.id, name: s.name, parentName: s.parentName, payerRegCode: s.payerRegCode })) });
+  const report = inf3Core.inf3Rows({ year: y, ...data, identities: data.taxIdentities, payers: data.taxPayers, students: data.students.map(s => ({ id: s.id, name: s.name, parentName: s.parentName, payerRegCode: s.payerRegCode, linkedParentId: s.linkedParentId, parentUid: s.parentUid, guardianUid: s.guardianUid, linkedParentIds: s.linkedParentIds, parentEmail: s.parentEmail })) });
   let xml = "";
   if (report.rows.some(row => row.ready)) xml = inf3Core.inf3Xml({ regCode: PAYMENT_DETAILS.regCode, year: y, rows: report.rows });
   return { year: y, regCode: PAYMENT_DETAILS.regCode, ...report, xml };

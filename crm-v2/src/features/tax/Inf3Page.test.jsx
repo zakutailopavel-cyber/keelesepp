@@ -9,8 +9,8 @@ import { Route, Routes } from 'react-router-dom';
 const report = {
   year: 2025, regCode: '17270880', totalCents: 16000, companyCents: 0, xml: '<deklaratsioon/>',
   rows: [
-    { studentId: 's1', studentName: 'Mia Tamm', studentCode: '49403136526', payerName: 'Kati Tamm', payerCode: '37605030299', amountCents: 12000, trainingType: 2, problems: [], ready: true },
-    { studentId: 's2', studentName: 'Oskar Saar', studentCode: '', payerName: 'Pere Saar', payerCode: '', amountCents: 4000, trainingType: 2, problems: ['Õpilase isikukood puudub', 'Maksja isikukood puudub'], ready: false },
+    { studentId: 's1', studentName: 'Mia Tamm', studentCode: '49403136526', payerName: 'Kati Tamm', payerCode: '37605030299', payerFromParent: true, amountCents: 12000, trainingType: 2, problems: [], ready: true },
+    { studentId: 's2', studentName: 'Oskar Saar', studentCode: '', payerName: 'Pere Saar', payerCode: '', payerFromParent: false, amountCents: 4000, trainingType: 2, problems: ['Õpilase isikukood puudub', 'Maksja isikukood puudub'], ready: false },
   ],
 };
 
@@ -26,6 +26,7 @@ describe('INF 3', () => {
     render(<MemoryRouter><Inf3Page repository={repository} /></MemoryRouter>);
     expect(await screen.findByText('Mia Tamm')).toBeInTheDocument();
     expect(screen.getByText('494•••••526')).toBeInTheDocument();
+    expect(screen.getByText('lapsevanema kaardilt')).toBeInTheDocument();
     expect(screen.queryByText('49403136526')).not.toBeInTheDocument();
     expect(screen.getByText('Õpilase isikukood puudub · Maksja isikukood puudub')).toBeInTheDocument();
     expect(screen.getAllByRole('button', { name: 'Vormi link' })).toHaveLength(1);

@@ -1,6 +1,6 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { cleanIdentity, inf3Rows, inf3Xml, isValidIsikukood } = require("./inf3-core");
+const { cleanIdentity, inf3Rows, inf3Xml, isValidIsikukood, payerKeyOf } = require("./inf3-core");
 
 // well-known valid test codes; the codes in the e-MTA sample file are fictitious and fail the check digit
 test("isikukood: check digit, birth date and century digit are checked", () => {
@@ -64,4 +64,37 @@ test("the XML follows inf3.xsd and declares only complete rows", () => {
   assert.match(xml, /<koolitusmaksja_isikukood>37605030299<\/koolitusmaksja_isikukood>\s*<koolitatava_isikukood>49403136526<\/koolitatava_isikukood>\s*<makstud_summa>123\.45<\/makstud_summa>\s*<koolituse_liik>2<\/koolituse_liik>/);
   assert.throws(() => inf3Xml({ regCode: "1727", year: 2026, rows }), /registrikood/);
   assert.throws(() => inf3Xml({ regCode: "17270880", year: 2026, rows: rows.filter((r) => !r.ready) }), /Deklareerida ei ole midagi/);
+});
+
+test("a parent's code is entered once and used for all their children; a child's own payer code wins", () => {
+  const students = [
+    { id: "k1", name: "Timur", linkedParentId: "parentA" },
+    { id: "k2", name: "Varik", parentUid: "parentA" },
+    { id: "k3", name: "Liis", parentEmail: "Pere@Example.ee" },
+    { id: "k4", name: "Adult" },
+  ];
+  assert.equal(payerKeyOf(students[0]), payerKeyOf(students[1]));
+  assert.match(payerKeyOf(students[2]), /^email_[0-9a-f]{32}$/);
+  assert.equal(payerKeyOf({ parentEmail: " pere@example.ee " }), payerKeyOf(students[2]));
+  assert.equal(payerKeyOf(students[3]), "");
+  const { rows } = inf3Rows({
+    year: 2026,
+    students,
+    invoices: students.map((st) => ({ id: `i-${st.id}`, studentId: st.id })),
+    payments: students.map((st) => ({ id: `p-${st.id}`, invoiceId: `i-${st.id}`, paidAt: "2026-03-01", amountCents: 1000, method: "bank", status: "active" })),
+    identities: [
+      { id: "k1", studentCode: "49403136526" },
+      { id: "k2", studentCode: "37605030299" },
+      { id: "k4", studentCode: "37605030299", payerCode: "49403136526", payerName: "Own Payer" },
+    ],
+    payers: [{ id: payerKeyOf(students[0]), payerCode: "37605030299", payerName: "Ema Mets" }, { id: "uid_other", payerCode: "49403136526" }],
+  });
+  const by = Object.fromEntries(rows.map((r) => [r.studentName, r]));
+  assert.equal(by.Timur.payerCode, "37605030299");
+  assert.equal(by.Timur.payerName, "Ema Mets");
+  assert.equal(by.Timur.payerFromParent, true);
+  assert.equal(by.Varik.ready, true, "the second child gets the code too");
+  assert.equal(by.Liis.payerCode, "", "no parent code yet");
+  assert.equal(by.Adult.payerCode, "49403136526");
+  assert.equal(by.Adult.payerFromParent, false);
 });

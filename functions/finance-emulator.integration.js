@@ -3812,4 +3812,15 @@ test("INF 3: personal codes are admin-only, a parent's link fills them, the repo
   assert.equal(row.ready, true);
   assert.match(report.body.xml, /<koolitusmaksja_isikukood>37605030299<\/koolitusmaksja_isikukood>/);
   assert.match(report.body.xml, /<koolituse_liik>3<\/koolituse_liik>/);
+
+  // a second child of the same parent gets the parent's code without entering it again
+  await db.collection("students").doc("inf3-student").set({ linkedParentId: "inf3-parent" }, { merge: true });
+  await db.collection("students").doc("inf3-sibling").set({ name: "Oskar Maksutest", linkedParentId: "inf3-parent" });
+  await financeRequest(adminToken, "/tax/identity", { studentId: "inf3-student", identity: { studentCode: "49403136526", payerCode: "37605030299", payerName: "Kati Maksutest", trainingType: 3 } });
+  await db.collection("invoices").doc("inf3-invoice-2").set({ num: "KS-2025-778", studentId: "inf3-sibling", date: "2025-04-01", amountCents: 5000, status: "Makstud" });
+  await db.collection("payments").doc("inf3-payment-2").set({ invoiceId: "inf3-invoice-2", studentId: "inf3-sibling", paidAt: "2025-04-05", amountCents: 5000, method: "bank", status: "active" });
+  const sibling = (await financeRequest(adminToken, "/tax/inf3", { year: 2025 })).body.rows.find((r) => r.studentId === "inf3-sibling");
+  assert.equal(sibling.payerCode, "37605030299");
+  assert.equal(sibling.payerFromParent, true);
+  assert.deepEqual(sibling.problems, ["Õpilase isikukood puudub"]);
 });

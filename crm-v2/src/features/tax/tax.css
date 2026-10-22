@@ -147,3 +147,9 @@
   background: #12372a;
   color: #fff;
 }
+
+.inf3-from-parent {
+  color: #0f6b4f;
+  display: block;
+  font-size: .75rem;
+}

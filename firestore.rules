@@ -1198,6 +1198,11 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
+    // a parent's payer code for INF 3, shared by all their children (functions/inf3-core.js payerKeyOf)
+    match /taxPayers/{payerKey} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
     match /taxFormTokens/{token} {
       allow read, create, update, delete: if false;
     }
