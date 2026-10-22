@@ -112,6 +112,22 @@ export const financeApi = {
       requestId: financeRequestId("student_merge"),
     });
   },
+  // bookkeeping (functions/accounting-core.js, docs/ACCOUNTING.md)
+  syncAccounting() {
+    return post("/accounting/sync", {});
+  },
+  createAccountingEntry(entry) {
+    return post("/accounting/entries", { entry, requestId: financeRequestId("accounting_entry") });
+  },
+  reverseAccountingEntry(entryId, date, reason) {
+    return post("/accounting/entries/reverse", { entryId, date, reason, requestId: financeRequestId("accounting_storno") });
+  },
+  setAccountingOpening(balances) {
+    return post("/accounting/opening", { balances, requestId: financeRequestId("accounting_opening") });
+  },
+  saveAccountingAccount(account) {
+    return post("/accounting/accounts", { account });
+  },
   createExpense(values) {
     return post("/expenses", {
       ...values,

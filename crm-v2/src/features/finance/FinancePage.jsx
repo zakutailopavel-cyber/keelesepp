@@ -8,6 +8,7 @@ import {
   Eye,
   FileCheck2,
   FileUp,
+  BookOpen,
   Landmark,
   Mail,
   ReceiptText,
@@ -617,6 +618,9 @@ export default function FinancePage({
               </Link>
               <Link className="button button--secondary" to="/finance/expenses">
                 <ReceiptText size={17} /> Kulud
+              </Link>
+              <Link className="button button--secondary" to="/finance/raamatupidamine">
+                <BookOpen size={17} /> Raamatupidamine
               </Link>
               <Button
                 disabled={!students.length}

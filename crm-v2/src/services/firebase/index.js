@@ -4,6 +4,7 @@ export { creditNotesService } from './creditNotes.js';
 export { curriculumInstallerService } from './curriculumInstaller.js';
 export { financeApi, financeRequestId, invoiceDeliveryApi } from './financeApi.js';
 export { expensesService } from './expenses.js';
+export { accountingService } from './accounting.js';
 export { financialAuditService } from './financialAudit.js';
 export { financialPeriodsService } from './financialPeriods.js';
 export { getFirebaseClient, isFirebaseConfigured } from './client.js';

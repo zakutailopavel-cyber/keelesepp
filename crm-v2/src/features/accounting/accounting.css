@@ -1,0 +1,240 @@
+.accounting-page {
+  max-width: 1500px;
+}
+
+.accounting-page .back-link {
+  margin-bottom: 10px;
+}
+
+.accounting-page > .page-header {
+  margin-bottom: 18px;
+}
+
+.accounting-toolbar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 14px;
+}
+
+.accounting-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.accounting-tabs button {
+  background: #f4f6f8;
+  border: 1px solid #e3e8ee;
+  border-radius: 999px;
+  color: #344054;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 7px 14px;
+}
+
+.accounting-tabs button.is-active {
+  background: #12372a;
+  border-color: #12372a;
+  color: #fff;
+}
+
+.accounting-period {
+  align-items: end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.accounting-period .field {
+  margin: 0;
+  min-width: 160px;
+}
+
+.accounting-card {
+  overflow: hidden;
+  padding: 0;
+}
+
+.accounting-card__search {
+  align-items: center;
+  border-bottom: 1px solid #eef1f4;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.accounting-card__search input {
+  border: 1px solid #dfe5ea;
+  border-radius: 10px;
+  flex: 1;
+  min-height: 40px;
+  padding: 0 12px;
+}
+
+.accounting-card__search .field {
+  margin: 0;
+  min-width: 280px;
+}
+
+.accounting-table td,
+.accounting-table th {
+  vertical-align: top;
+}
+
+.accounting-table .num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.accounting-table .accounting-entry td {
+  background: #f8faf9;
+  border-top: 2px solid #e6ece9;
+}
+
+.accounting-table .accounting-line td {
+  color: #475467;
+  font-size: .92rem;
+}
+
+.accounting-table .is-reversed td {
+  color: #98a2b3;
+}
+
+.accounting-table .link-button {
+  background: none;
+  border: 0;
+  color: #0f6b4f;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0;
+}
+
+.accounting-statements {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.accounting-statement {
+  padding: 16px 18px;
+}
+
+.accounting-statement h2 {
+  align-items: center;
+  display: flex;
+  font-size: 1.05rem;
+  gap: 8px;
+  margin: 0 0 10px;
+}
+
+.accounting-statement h3 {
+  color: #667085;
+  font-size: .75rem;
+  letter-spacing: .03em;
+  margin: 14px 0 4px;
+  text-transform: uppercase;
+}
+
+.accounting-statement p {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 3px 0;
+}
+
+.accounting-statement p span:last-child {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.accounting-statement p.total {
+  border-top: 1px solid #e3e8ee;
+  font-weight: 700;
+  padding-top: 4px;
+}
+
+.accounting-lines {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.accounting-lines__head,
+.accounting-lines__row {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(140px, 1.3fr) 110px 110px minmax(120px, 1fr);
+}
+
+.accounting-lines__head {
+  color: #667085;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.accounting-lines__row input {
+  border: 1px solid #dfe5ea;
+  border-radius: 8px;
+  min-height: 38px;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.accounting-lines__row label small {
+  color: #667085;
+  display: block;
+  font-size: .75rem;
+  margin-top: 2px;
+}
+
+.accounting-lines__foot {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.accounting-lines__foot .is-ok,
+.accounting-statement .is-ok {
+  color: #0f6b4f;
+  font-weight: 700;
+}
+
+.accounting-lines__foot .is-off,
+.accounting-statement .is-off {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.accounting-check {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+@media (max-width: 720px) {
+  .accounting-lines__head {
+    display: none;
+  }
+
+  .accounting-lines__row {
+    border-bottom: 1px solid #eef1f4;
+    grid-template-columns: 1fr 1fr;
+    padding-bottom: 8px;
+  }
+
+  .accounting-lines__row label {
+    grid-column: 1 / -1;
+  }
+
+  .accounting-card__search {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
