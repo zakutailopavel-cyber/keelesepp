@@ -1,3 +1,19 @@
+## 2026-10-23 · agent/learner-snapshot — „Õpilase pilt”: the student before the lesson
+
+- Main checked: efd80db (2026-10-22). Independent of #737/#738 (live board); other agents work on English content.
+- Owner: „то, что выведет платформу на новый уровень” → the learner profile, version 1 (docs/LEARNER_PROFILE.md).
+- Usage check (production, read only, 2026-10-22): 27 of ~65 student accounts have words in „Minu sõnad”, 15 ever
+  practised, 14 this week; „Kordamine” results are browser-only, invisible to teachers.
+- New: features/learner/learnerSnapshot.js (+test) and LearnerSnapshotCard.jsx (+test), learner.css. The teacher sees:
+  last own practice, this week, forgotten words, the last sheets with their auto-check errors in words, overdue homework,
+  the last lesson's topic and notes, and short signals. Live Classroom Tööruum: panel „Õpilane” opens first when a
+  student is picked; „Pane kordamine tahvlile” makes a board page with the forgotten words. Student card → Ülevaade.
+- Files: features/learner/*, live-classroom/TeacherWorkspace.jsx, students/StudentProfilePage.jsx, docs/LEARNER_PROFILE.md.
+- Checks: vitest crm-v2 2121 passed; eslint clean (learner, live-classroom); manual check on the emulators with seeded
+  words, a sheet with errors, overdue homework and a held lesson.
+- No rules, data or production changed.
+- Next safe step: the daily 5-minute review from the profile on the student's home (LEARNER_PROFILE.md, step 1).
+
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 
 - Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch
