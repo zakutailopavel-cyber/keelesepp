@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-23.3';
+export const EN_A2_VERSION = '2026-10-23.4';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -36,6 +36,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['Last week at school', 'The past simple of regular verbs (-ed spelling and pronunciation); was / were.'],
       ['Did you finish the project?', 'Past simple questions and negatives with did / didn\'t; question words; interviews and a project report.'],
       ['Module 3 check: School and learning', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 4, title: 'Free time', goal: 'Talking about hobbies and sports and telling stories about the weekend in the past.',
+    lessons: [
+      ['I love dancing', 'Hobbies; like / love / enjoy / hate / don\'t mind + -ing; spelling of -ing; questions and short answers.'],
+      ['What did you do?', 'The past simple of common irregular verbs (went, saw, had, ate, got, took, bought, met); questions and negatives.'],
+      ['Sports stars', 'play / go / do + sports; won, lost, taught, broke; the story of an athlete; talking about a match.'],
+      ['A weekend to remember', 'Telling a story in order: first, then, after that, suddenly, in the end; feelings; so and but.'],
+      ['Module 4 check: Free time', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
     ],
   },
 ]);
