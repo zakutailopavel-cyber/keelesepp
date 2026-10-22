@@ -1,3 +1,15 @@
+## 2026-10-23 · agent/self-study-course — „Minu kursus” for students (self-study cards open the sheets themselves)
+
+- Owner 2026-10-23: a self-study course is needed, no certificate.
+- New page /student/kursus (student menu „Kursus”; it used to redirect to „Minu vead”): the course of the student's
+  level module by module (buildTopicCatalog), each lesson's Avasta / Harjuta / Kasuta with his progress
+  (selfStudyModel.progressMap), the next lesson on top. A self-study card (`isSelfStudent`) starts a sheet itself
+  (homework.createSelfStudy — already allowed by the rules: own card, the published sheet, unscored at the start) and
+  does it in place (WorksheetPlayer); a student who learns with a teacher sees the map and progress, the sheets stay
+  for the lesson (owner 2026-10-12). Done sheets open for review for both.
+- Files: self-study/StudentCoursePage.jsx (+test), selfStudy.css, app/routes.jsx, app/navigation.js (+test updated).
+- Checks: verify (eslint errors 0, vitest 2273 passed, 0 failed).
+
 ## 2026-10-23 · agent/monthly-report — „Kuu aruanne vanemale” sent by the admin
 
 - Owner 2026-10-23: the admin presses „send” after checking; never automatic.

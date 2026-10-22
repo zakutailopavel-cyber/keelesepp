@@ -17,6 +17,7 @@ import StudentDashboardPage from '../features/students/StudentDashboardPage.jsx'
 import VocabularyPage from '../features/vocabulary/VocabularyPage.jsx';
 import SettingsPage from '../features/settings/SettingsPage.jsx';
 import BoardPage from '../features/board/BoardPage.jsx';
+import StudentCoursePage from '../features/self-study/StudentCoursePage.jsx';
 import TeacherGuidePage from '../features/guide/TeacherGuidePage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 import HomePage from './HomePage.jsx';
@@ -133,7 +134,8 @@ export default function AppRoutes() {
             <Route path="student/lemmik" element={<PetPage />} />
             <Route path="student/vead" element={<MistakesPage />} />
             {/* „Kordamine” became „Minu vead” (+ words in Sõnad), owner 2026-10-12 */}
-            <Route path="student/kursus" element={<Navigate to="/student/vead" replace />} />
+            {/* „Minu kursus” (owner 2026-10-23): the course map; self-study cards open the sheets themselves */}
+            <Route path="student/kursus" element={<StudentCoursePage />} />
           </Route>
           <Route element={<ProtectedRoute roles={ACCESS.FINANCE} />}>
             <Route path="finance" element={staffPage(<FinanceMonthPage />)} />
