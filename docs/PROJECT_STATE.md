@@ -1,3 +1,15 @@
+## 2026-10-22 · agent/accounting-ui — Raamatupidamine page (on top of agent/accounting-core)
+
+- Route /finance/raamatupidamine (admin), linked from Finantsid („Raamatupidamine”). Tabs: Päevaraamat, Pearaamat,
+  Käibeandmik, Bilanss ja kasumiaruanne, Kontoplaan. Period filter, Excel export (SpreadsheetML .xls with the columns
+  of the owner's P2evaraamat.xls and K2ibeandmik_a.xls), manual entry (cannot be edited; storno with a reason), opening
+  balances, add / rename / close an account. Opening the page creates missing automatic entries (/accounting/sync).
+- Files: crm-v2/src/features/accounting/* (AccountingPage, accountingReports, accountingExcel, css, tests),
+  services/firebase/accounting.js + financeApi accounting methods, app/routes.jsx, app/accessPolicy.js, finance links.
+- Checks: vitest accounting + finance + app + services 329 passed; eslint clean on the new files; checked on the local
+  stand with sample entries (trial balance and balance sheet balance; phone width without horizontal scroll).
+- Next safe step: owner review; merge #724 then this PR; deploy functions + rules with the owner's yes; then INF 3.
+
 ## 2026-10-22 · agent/accounting-core — bookkeeping core (päevaraamat, käibeandmik) on the server
 
 - Owner: implement Päevaraamat, Käibeandmik (templates P2evaraamat.xls, K2ibeandmik_a.xls), the Merit Aktiva kontoplaan
