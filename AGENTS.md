@@ -24,6 +24,8 @@ tsoonis. Liides ja arhitektuur on teise agendi töö.
 
 Kohustuslik lugemine enne iga partiid, et töölehtede tase ei langeks:
 
+0. `docs/METHODOLOGY_STANDARD.md` — kursuse metoodiline standard: allikad (Harno, taseme käsiraamatud, CEFR), taseme
+   grammatika ja eksamiformaadid, tunni reeglid ja kursuse hetkeseis. Normatiivne.
 1. `docs/CEFR_A2_B1_LEARNING_STANDARD.md` — tasemete progressioon (levelStage), kolme faasi nõuded, sõnavara
    kordamise reeglid, lugemise ja kontrollitud harjutuse raskus, mooduli grammatikatelg. Normatiivne.
 2. `docs/TEXTBOOK_A2_C1_MASTER_PLAN.md` — mis kuulub täielikku moodulisse ja tunnipaketti; õpik kui väljund.

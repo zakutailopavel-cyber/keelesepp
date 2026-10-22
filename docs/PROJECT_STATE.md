@@ -1,3 +1,17 @@
+## 2026-10-22 · agent/method-standard — methodology standard of the course
+
+- Owner: „создать курс, который соответствует методике, дидактике и методологии” → step 1: one standard with sources and
+  a comparison of the course with it. Checked `main` efd80db (2026-10-22).
+- New `docs/METHODOLOGY_STANDARD.md`: sources (Harno exam pages, the A2 / B1–B2 / C1 handbooks Harno bases its exams on,
+  Keeleseadus lisa 1, CEFR CV 2020, Nation, TBLT, spaced repetition, backward design); course / lesson rules with the
+  gate that checks each (or „planned”); Harno formats per level; grammar inventory per level; status of all 375
+  lessons (grammar yes / partly / no, topics, listening, review, recycling, one-to-one, structure); plan.
+- Main findings: B1 lacks the B1 handbook's core grammar (quotative, object, government, particle verbs, relative
+  clauses); listening in 42 % of B1 and 41 % of C1 lessons; no review at lesson start; no planned recycling; pair /
+  group tasks assume a group; B1 module 1 has no file; C1 modules 9–10 in the old format.
+- AGENTS.md: the standard is item 0 of the content agent's reading list.
+- Docs only; no code, no production. Next safe step: owner reviews the table; then gates from §7.1 in code.
+
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 
 - Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch
