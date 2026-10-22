@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-23.7';
+export const EN_B1_VERSION = '2026-10-23.8';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -77,6 +77,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['What would you do?', 'Difficult situations with would, could, might; I wish + past simple; advice with If I were you, You could, It might help.'],
       ['I don\'t feel well', 'Symptoms (I\'ve got…, my… hurts, I feel…), How long have you had…?, should and had better (not), instructions; at the doctor\'s.'],
       ['Module 7 check: Health and lifestyle', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 8, title: 'Technology and media', goal: 'Talking about how things are made and invented, online rules and safety, and giving opinions.',
+    lessons: [
+      ['How is it made?', 'The present simple passive (is / are + past participle), by + agent, irregular participles; what things are used for.'],
+      ['It was invented in Estonia', 'The past simple passive (was / were + past participle); passive questions (When was it invented? Who was it made by?); present or past passive.'],
+      ['Are you allowed to…?', 'be allowed to, let + object + verb, make + object + verb (present and past); online safety phrases.'],
+      ['In my opinion…', 'Giving opinions, agreeing and disagreeing; linking words (however, although, on the one hand / on the other hand, firstly, in conclusion); a for-and-against essay.'],
+      ['Module 8 check: Technology and media', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);
