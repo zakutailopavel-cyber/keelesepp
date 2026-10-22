@@ -1,3 +1,15 @@
+## 2026-10-22 · agent/method-gates-2 — methodology gates: listening, recycling, exam formats, v4 time rates
+
+- Stacked on agent/method-gates (PR #745).
+- `admin/course/methodGaps.js` (+ test): per course — listening ≥ 2 a module, vocabulary blocks, recycling of the
+  previous module's vocabulary (word stems, ≥ 30 %), Harno exam formats trained at least once (rough block tests).
+  A v4 module must have no gap; older modules' gaps are listed in the test (listening: 15 modules; recycling:
+  a2b1-module-04; A2 and C1 have no vocabulary blocks). All exam formats are met somewhere in every course.
+- `timeEstimate.js`: v4 sheets count meaning items as reading + deciding (choice .4, true/false .3, match .35,
+  categorize .25, crossword .45, scheme gap .5, card gap .5 min); `depth.js` and `quality.js` pass the template.
+  Older templates unchanged.
+- Checks: worksheet-generator + worksheet-studio tests all pass. Not published.
+
 ## 2026-10-22 · agent/method-gates — methodology gates: review, one-to-one, grammar plan
 
 - Stacked on agent/b1-m5-v4 (PR #740); standard in PR #744 (docs/METHODOLOGY_STANDARD.md §7.1).

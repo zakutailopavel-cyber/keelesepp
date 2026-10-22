@@ -239,7 +239,7 @@ export function balanceProblems(sheets) {
   for (const [lessonId, phases] of Object.entries(sheets)) {
     const docs = Object.values(phases);
     if (docs.some((d) => d.meta?.assessment) || !docs.some((d) => fullerTemplate(d.meta))) continue;
-    const minutes = (pick) => docs.reduce((n, d) => n + (d.blocks || []).filter(pick).reduce((m, b) => m + blockMinutes(b, d.meta?.level, d.meta?.design), 0), 0);
+    const minutes = (pick) => docs.reduce((n, d) => n + (d.blocks || []).filter(pick).reduce((m, b) => m + blockMinutes(b, d.meta?.level, d.meta?.design, d.meta?.template), 0), 0);
     const all = minutes(() => true) || 1;
     const drill = minutes((b) => DRILL.includes(b.type)) / all;
     const use = minutes((b) => PRODUCTIVE.includes(b.type)) / all;
