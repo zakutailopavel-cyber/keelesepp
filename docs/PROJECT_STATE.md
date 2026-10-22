@@ -1,3 +1,20 @@
+## 2026-10-22 · agent/book-speed — the textbook („Õpik töölehtedest”) no longer freezes
+
+- Owner: the book is so big that the site hangs for some teachers when they open it. A level is 200–270 sheets, and
+  every sheet is drawn twice (visible pages plus a hidden copy that measures the pages), so the page grew to tens of
+  thousands of elements.
+- BookPage:
+  - a sheet is drawn only when it comes within ~1500 px of the visible part of the canvas (IntersectionObserver);
+    until then it is an empty frame of its page height, and once drawn it stays;
+  - „PDF / Prindi” first draws all sheets 4 at a time with a progress counter („Valmistan… n/N”). The dialog opens
+    when the page counts have been still for a moment, so a sheet that never reports its pages cannot block it;
+  - without IntersectionObserver (tests, old browsers) every sheet is drawn as before.
+- Measured on a local stand with the whole B1 course (255 sheets): after loading 2 sheets were drawn and the page had
+  4,534 elements (before, all 255 sheets ended up drawn). Scrolling draws the sheets that come into view.
+- Checks: BookPage tests 3/3, eslint 0 errors.
+- Next safe step: merge; then make printing a whole level faster (fewer measuring passes) if teachers print whole
+  levels often.
+
 ## 2026-10-22 · agent/calendar-room-free — a cancelled lesson frees its room at once
 
 - Oleksiy (#bug #high_priority #calender): „При отмене занятия через Tühista не освобождается кабинет”.
