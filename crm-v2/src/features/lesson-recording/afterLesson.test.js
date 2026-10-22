@@ -51,3 +51,24 @@ describe('Pärast tundi panel', () => {
     expect(await screen.findByText(/2 parandatud lauset/)).toBeInTheDocument();
   });
 });
+
+describe('Kokkuvõte vanemale (owner 2026-10-23)', () => {
+  it('names the topics and the number of corrected sentences in Estonian and Russian, never the sentences', async () => {
+    const { parentNoteFromAnalysis } = await import('./afterLesson.js');
+    const text = parentNoteFromAnalysis({ analysis: {
+      focus: [{ topic: 'Osastav kääne (partitiiv)', count: 4 }, { topic: 'Minevik: lihtminevik', count: 2 }],
+      errors: [{ said: 'Ma läksin pank', corrected: 'Ma läksin panka' }, { said: 'x', corrected: 'y', unsure: true }],
+    } });
+    expect(text).toBe([
+      'Tunnis rääkisime palju ja parandasime 1 lauset.',
+      'Tähelepanu vajab: Osastav kääne; Minevik.',
+      'Kodus: iga päev „Päeva 5 minutit” (Sõnavara) ja kodutöö.',
+      '',
+      'На уроке много говорили и исправили 1 фраз.',
+      'Над чем поработать: Osastav kääne; Minevik.',
+      'Дома: каждый день «Päeva 5 minutit» (Sõnavara) и домашнее задание.',
+    ].join('\n'));
+    expect(text).not.toContain('läksin');
+    expect(parentNoteFromAnalysis({ analysis: {} })).toBe('');
+  });
+});

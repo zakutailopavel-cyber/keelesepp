@@ -3,6 +3,7 @@
 // the mistakes drill, a pet game); the streak is the pet's learning streak.
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import { isDue } from '../vocabulary/wordsModel.js';
+import { dailyPlan } from '../vocabulary/dailyReview.js';
 
 const dayOf = (value) => String(value || '').slice(0, 10);
 const ERROR_PREFIX = 'Sinu lause:';
@@ -12,6 +13,7 @@ export function todayPath({ words = [], homework = [], submissions = [], assignm
   const mistakes = words.length - own.length;
   const due = own.filter((word) => isDue(word, now)).length;
   const reviewed = own.filter((word) => dayOf(word.reviewedAt) === today).length;
+  const daily = dailyPlan(words, { now, today });
   const openTasks = homework.filter(isHomeworkOpen).length + assignments.filter((item) => item.status !== 'done' && !item.completedAt).length;
   const workToday = submissions.some((item) => dayOf(item.completedAt) === today)
     || homework.some((item) => item.status === 'Tehtud' && dayOf(item.doneAt || item.submittedAt || item.updatedAt) === today);
@@ -20,9 +22,10 @@ export function todayPath({ words = [], homework = [], submissions = [], assignm
       key: 'work', label: 'Tee ülesanded', to: '/homework', done: workToday || (!openTasks && homework.length + assignments.length > 0),
       detail: workToday ? 'Tehtud täna' : openTasks ? `${openTasks} ootab` : 'Uusi ülesandeid ei ole',
     },
+    // „Päeva 5 minutit” (dailyReview.js): one tap starts about ten cards; done after five reviewed today
     {
-      key: 'words', label: 'Korda sõnu', to: '/student/sonavara', done: reviewed > 0,
-      detail: reviewed ? `${reviewed} sõna korratud` : due ? `${due} sõna ootab` : own.length ? 'Kõik sõnad korratud' : 'Õpi tunni sõnu',
+      key: 'words', label: daily.count >= 2 ? 'Päeva 5 minutit' : 'Korda sõnu', to: daily.count >= 2 ? '/student/sonavara?paev=1' : '/student/sonavara', done: daily.done || (reviewed > 0 && daily.count < 2),
+      detail: daily.done ? `${reviewed} sõna korratud` : daily.count >= 2 ? `${daily.count} kaarti${daily.forgotten ? ` · ${daily.forgotten} ununeb` : ''}` : reviewed ? `${reviewed} sõna korratud` : due ? `${due} sõna ootab` : own.length ? 'Kõik sõnad korratud' : 'Õpi tunni sõnu',
     },
   ];
   if (mistakes) {
