@@ -182,4 +182,9 @@ sheet” it pushed every lesson to the same drills (error correction, translatio
 - **Kasuta:** a real situation with someone to talk to and a result (doctor's appointment, radio interview, a story for
   a contest); no form or sentence drills at all.
 
+Added 2026-10-22 (docs/METHODOLOGY_STANDARD.md): Avasta starts with „Mäletad?” — 2–3 min of review of the previous
+lesson (`B.review`, not counted among the tasks; gate `v4-review`); a pair or group task and every role play carries a
+one-to-one note for the teacher (`teach(block, 'Üks-ühele: …')`, shown in the teacher's key „Õpetajale”; gate
+`v4-one-to-one`). The level's grammar and where it is taught: `admin/course/grammarPlan.js` (test lists the gaps).
+
 Sample: `admin/course/b1/module05.js` (the v3 file is in `archive/v3/b1/module05.js`). Set `template: 'v4'` in MODULE.

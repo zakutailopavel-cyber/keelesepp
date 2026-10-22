@@ -15,7 +15,7 @@
 //       happened next; the contest: last year's winner, a plan, the story told, written and sent to the editor.
 // Lesson 5 is the module's mini Harno A2 exam (unchanged). The v3 file is in archive/v3/b1/module05.js, the v1 file
 // in archive/v1/b1/module05.js.
-import { B } from '../blocks.js';
+import { B, teach } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-05', course: 'b1', title: 'Lihtminevik ja kogemused', level: 'A2+', design: 'v2', template: 'v4' };
 
@@ -24,6 +24,7 @@ export const LESSONS = {
     title: 'Lihtmineviku põhivormid',
     canDo: 'Ma moodustan sagedaste tegusõnade lihtmineviku vorme ja jutustan oma eilsest päevast.',
     discover: [
+      B.review('021_d_review', ['Moodul 4: mida sa pead sel nädalal veel tegema?', 'Mida sa homme õhtul teed?', 'Mis kell sa tavaliselt ärkad ja mis kell lähed tööle?']),
       B.text('021_d_goal', 'Moodul 5: mis juhtus?', 'Selles moodulis räägid sellest, mis juba juhtus: eilsest päevast, eelmisest nädalast ja ühest ootamatust päevast. Mooduli lõpus kirjutad loo linnalehe võistlusele „Minu kõige ootamatum päev”. Täna alustame Markusest. Vaata pilti: mida ta eile tegi?'),
       B.vocab('021_d_vocab', 'Tunni sõnad.', ['eile — вчера', 'töötama — работать', 'helistama — звонить', 'vastama — отвечать', 'lõpetama — заканчивать', 'kohtuma — встречаться', 'ostma — покупать', 'valmistama — готовить', 'vaatama — смотреть', 'ärkama — просыпаться']),
       B.listening('021_d_call', 'Markus räägib telefonis.', 'Anna helistab Markusele. Kuula kaks korda ja kirjuta lünka üks sõna.', [
@@ -60,7 +61,7 @@ export const LESSONS = {
       B.reading('021_d_anna', 'Loe Anna vastust.', 'Anna kirjutab Markusele, mida tema eile tegi. Loe ja vasta lühidalt.', 'Minu eilne päev',
         'Tere, Markus! Ära muretse, minul oli ka väga kiire päev. Ma ärkasin juba kell kuus, sest koer tahtis välja minna. Me jalutasime pool tundi pargis. Pargis kohtasin vana naabrit ja me rääkisime natuke ilmast.\n\nSiis sõitsin bussiga tööle. Tööl ma ei istunud hetkegi. Ma vastasin klientidele, kirjutasin aruande ja õpetasin uut kolleegi. Lõuna ajal kohtusin õega ja me rääkisime tema pulmast. Õde abiellub järgmisel kuul ja ta küsis minult palju nõu. Me vaatasime koos pulmakleite ja valisime muusikat.\n\nÕhtul tahtsin sulle helistada, aga sa ei vastanud. Siis küpsetasin õunakoogi ja kuulasin raadiot. Telerit ma ka ei vaadanud, sest see on juba nädal aega katki.\n\nHiljem helistas mulle ema ja me rääkisime pool tundi. Kell üksteist läksin magama. Koogi toon homme kohvikusse kaasa. Seal räägin sulle rohkem!',
         [['Miks Anna ärkas kell kuus?', 'koer tahtis välja minna|koer tahtis välja'], ['Kuidas Anna tööle sõitis?', 'bussiga'], ['Mida Anna tööl tegi?', 'vastas klientidele|kirjutas aruande|õpetas uut kolleegi'], ['Kellega ta lõuna ajal kohtus?', 'õega'], ['Mida Anna õhtul küpsetas?', 'õunakoogi|õunakooki'], ['Miks Anna telerit ei vaadanud?', 'teler on katki|see on katki']]),
-      B.speaking('021_d_game', 'Kaks tõde ja üks vale.', 'Ütle kolm lauset oma eilsest päevast. Üks lause on vale. Paariline arvab, milline.', ['Ütle kolm lauset: mida sa eile tegid ja mida ei teinud?', 'Paariline küsib: Kas sa tõesti …?', 'Paariline arvab: Ma arvan, et sa ei … .', 'Vahetage rollid ja mängige kaks ringi.', 'Lõpuks: kelle eilne päev oli kõige huvitavam?'], [60, 120], ['Eile ma helistasin…', 'Ma ei vaadanud…', 'Kas sa tõesti…?']),
+      teach(B.speaking('021_d_game', 'Kaks tõde ja üks vale.', 'Ütle kolm lauset oma eilsest päevast. Üks lause on vale. Paariline arvab, milline.', ['Ütle kolm lauset: mida sa eile tegid ja mida ei teinud?', 'Paariline küsib: Kas sa tõesti …?', 'Paariline arvab: Ma arvan, et sa ei … .', 'Vahetage rollid ja mängige kaks ringi.', 'Lõpuks: kelle eilne päev oli kõige huvitavam?'], [60, 120], ['Eile ma helistasin…', 'Ma ei vaadanud…', 'Kas sa tõesti…?']), 'Üks-ühele: mängige kordamööda — õpetaja ütleb ka oma kolm lauset ja õpilane arvab, milline on vale.'),
       B.writing('021_d_write', 'Sinu eilne päev.', 'Kirjuta Markusele vastuseks 9–11 lauset: mida sa eile tegid ja mida ei teinud.', [9, 11], ['eile', 'hommikul', 'ei', 'õhtul'], 3),
     ],
     practice: [
@@ -82,9 +83,9 @@ export const LESSONS = {
         ['Sa ärkasid täna kell kuus.', 'ei', 'Ei, ma ei ärganud täna kell kuus.'], ['Sofia lõpetas eile vara.', 'ei', 'Ei, Sofia ei lõpetanud eile vara.'],
         ['Nad küsisid sinult raha.', 'ei', 'Ei, nad ei küsinud minult raha.'], ['Sa vastasid kirjale kohe.', 'ei', 'Ei, ma ei vastanud kirjale kohe.'],
       ], 'half'),
-      B.rolecards('021_p_detective', 'Detektiiv ja tunnistaja.', 'A on detektiiv, B on tunnistaja kaardilt. Siis vahetage.',
+      teach(B.rolecards('021_p_detective', 'Detektiiv ja tunnistaja.', 'A on detektiiv, B on tunnistaja kaardilt. Siis vahetage.',
         'Oled detektiiv. Küsi tunnistajalt 5 küsimust: mida ta eile kell 15–16 tegi? Kas ta märkas midagi?', 'Oled Anna, Jaan või Viktor. Vasta minevikus. Ühes vastuses ütle midagi, mida kaardil ei ole.',
-        ['Mida te kell kolm tegite?', 'Kellega te kohtusite?', 'Kas te helistasite kellelegi?'], ['Kell kolm ma…', 'Ei, ma ei…', 'Pärast seda ma…']),
+        ['Mida te kell kolm tegite?', 'Kellega te kohtusite?', 'Kas te helistasite kellelegi?'], ['Kell kolm ma…', 'Ei, ma ei…', 'Pärast seda ma…']), 'Üks-ühele: õpetaja on detektiiv, õpilane valib ühe tunnistaja; siis vahetage — õpilane küsib õpetajalt kui teiselt tunnistajalt.'),
       B.cloze('021_p_cloze', 'Kook on leitud!', 'Liis kirjutab uuesti. Vali igasse lünka õige vorm.', 'Saladus on lahendatud', [
         'Tere jälle! Kell viis {*helistas|helistasin|helistab} mulle Jaan. Ta {*rääkis|räägib|rääkisin}, et koristas kell neli kööki.',
         '',
@@ -115,11 +116,11 @@ export const LESSONS = {
       ], 'g_read'),
       B.planning('021_t_plan', 'Mida sa Liisile räägid?', 'Kirjuta igale reale märksõnad.', ['Uudis 1: kes? mida tegi?', 'Uudis 2: millal? kus?', 'Uudis 3: mis oli naljakas?', 'Mida ma ei teinud ja miks?', 'Mida ma Liisilt küsin?'], 2),
       B.speaking('021_t_voice', 'Häälsõnum Liisile.', 'Salvesta Liisile 1–2-minutiline häälsõnum. Räägi oma plaani järgi.', ['Tervita Liisi ja küsi, kuidas ta end tunneb.', 'Räägi kolm uudist: mis juhtus tööl ja sõpradega?', 'Ütle, mida sa ei teinud ja miks.', 'Küsi Liisilt üks küsimus tema nädala kohta.', 'Kutsu Liisi kuhugi ja ütle head aega.'], [60, 120], ['Tere, Liis! Kuidas…?', 'Kujuta ette, eile…', 'Kahjuks ma ei…']),
-      B.rolecards('021_t_work', 'Esmaspäev tööl.', 'A on Liis, B on kolleeg. Rääkige kohvipausil 3 minutit. Siis vahetage.',
+      teach(B.rolecards('021_t_work', 'Esmaspäev tööl.', 'A on Liis, B on kolleeg. Rääkige kohvipausil 3 minutit. Siis vahetage.',
         'Oled Liis. Tulid pärast haigust tööle. Küsi kolleegilt vähemalt 4 küsimust: mis tööl juhtus?', 'Oled kolleeg. Räägi kolm uudist eelmisest nädalast. Küsi, kuidas Liis end tunneb.',
-        ['Mis eelmisel nädalal juhtus?', 'Kes seda tegi?', 'Kas ülemus ütles midagi?'], ['Esmaspäeval…', 'Kujuta ette, Markus…', 'Kuidas sa end tunned?']),
+        ['Mis eelmisel nädalal juhtus?', 'Kes seda tegi?', 'Kas ülemus ütles midagi?'], ['Esmaspäeval…', 'Kujuta ette, Markus…', 'Kuidas sa end tunned?']), 'Üks-ühele: õpetaja on Liis ja küsib; siis vahetage — õpilane on Liis ja õpetaja räägib uudiseid.'),
       B.letter('021_t_msg', 'Pikk sõnum Liisile.', 'Kirjuta Liisile: kolm uudist, mida sina tegid ja mida ei teinud.', 'Tere, Liis!', 'Saa ruttu terveks!', [70, 90]),
-      B.rubric('021_t_rubric', 'Kas Liis saab kõigest aru?', 'Paariline loeb sõnumit ja märgib.', ['Sõnumis on kolm uudist.', 'Tegusõnad on lihtminevikus: töötasin, kohtusin, rääkis.', 'Eitus on õige: ma ei käinud, ta ei tulnud.', 'Sõnumis on küsimus Liisile ja head soovid.']),
+      teach(B.rubric('021_t_rubric', 'Kas Liis saab kõigest aru?', 'Paariline loeb sõnumit ja märgib.', ['Sõnumis on kolm uudist.', 'Tegusõnad on lihtminevikus: töötasin, kohtusin, rääkis.', 'Eitus on õige: ma ei käinud, ta ei tulnud.', 'Sõnumis on küsimus Liisile ja head soovid.']), 'Üks-ühele: õpetaja loeb sõnumit ja märgib koos õpilasega; üks asi, mis on hea, ja üks, mida parandada.'),
     ],
   },
 
@@ -127,6 +128,7 @@ export const LESSONS = {
     title: 'Eile ja eelmisel nädalal',
     canDo: 'Ma jutustan 8–10 lausega eilsest või eelmisest nädalast ja kasutan vähemalt nelja ajamarkerit.',
     discover: [
+      B.review('022_d_review', ['Mida Markus eile tegi? Ütle kolm tegusõna minevikus.', 'Kuhu kadus Liisi kook?', 'Mida sina eile ei teinud?']),
       B.text('022_d_hook', 'Mis oli sinu nädala parim hetk?', 'Anna postitas sotsiaalmeediasse oma nädalavahetuse loo. Vaata pilti: mida ta tegi ja mis järjekorras?'),
       B.reading('022_d_post', 'Loe Anna postitust.', 'Loe ja vasta küsimustele lühidalt.', 'Minu aeglane nädalavahetus',
         'Eelmine nädal oli tööl väga kiire. Esmaspäevast reedeni töötasin iga päev hilja õhtuni. Neljapäeval ma isegi ei söönud lõunat. Seepärast otsustasin, et nädalavahetusel ma ei kiirusta.\n\nLaupäeva hommikul magasin kaua. Kõigepealt koristasin korteri ja pesin pesu. Siis käisin turul ja ostsin värskeid köögivilju. Pärast seda kohtusin Sofiaga ja me jõime kohvi. Me rääkisime peaaegu kaks tundi! Õhtul vaatasin vana filmi ja läksin vara magama.\n\nPühapäeval oli ilus ilm. Hommikul jalutasin pargis ja tegin palju pilte. Lõuna ajal helistasin vanematele ja vennale. Vend elab Soomes ja me ei rääkinud juba kaks kuud. Õhtul valmistasin uue nädala jaoks toitu ja lugesin raamatut. Telefoni ma terve päeva ei vaadanud.\n\nEsmaspäeva hommikul ärkasin puhanuna ja läksin tööle hea tujuga. Aeglane nädalavahetus on parim nädalavahetus!',
@@ -147,7 +149,7 @@ export const LESSONS = {
         ['Millal see oli?', ['eile', 'üleeile', 'eelmisel nädalal', 'möödunud suvel', 'kaks päeva tagasi', 'laupäeva hommikul']],
         ['Mis järjekorras?', ['kõigepealt', 'siis', 'pärast seda', 'lõpuks', 'alguses', 'seejärel']],
       ], 'half', 'g_vocab'),
-      B.speaking('022_d_talk', 'Parim ja halvim hetk.', 'Räägi paarilisega 2 minutit. Kasuta ajamarkereid ja järjekorrasõnu.', ['Mis oli sinu eelmise nädala parim hetk?', 'Mis oli kõige halvem või igavam hetk?', 'Mida sa tegid kõigepealt ja mida pärast seda?', 'Kumb nädalavahetus meeldib sulle rohkem: Anna või Sofia oma?', 'Küsi paariliselt: Ja sina? Millal see oli?'], [90, 120], ['Eelmisel nädalal…', 'Kõigepealt…, siis…', 'Kõige toredam oli, kui…']),
+      teach(B.speaking('022_d_talk', 'Parim ja halvim hetk.', 'Räägi paarilisega 2 minutit. Kasuta ajamarkereid ja järjekorrasõnu.', ['Mis oli sinu eelmise nädala parim hetk?', 'Mis oli kõige halvem või igavam hetk?', 'Mida sa tegid kõigepealt ja mida pärast seda?', 'Kumb nädalavahetus meeldib sulle rohkem: Anna või Sofia oma?', 'Küsi paariliselt: Ja sina? Millal see oli?'], [90, 120], ['Eelmisel nädalal…', 'Kõigepealt…, siis…', 'Kõige toredam oli, kui…']), 'Üks-ühele: õpetaja on paariline ja räägib ka oma nädalast; küsige teineteiselt kordamööda.'),
       B.writing('022_d_write', 'Minu nädalavahetus.', 'Kirjuta postitus oma eelmisest nädalavahetusest: 10–12 lauset, vähemalt 4 ajamarkerit.', [10, 12], ['laupäeval', 'kõigepealt', 'pärast seda', 'lõpuks'], 3),
     ],
     practice: [
@@ -205,12 +207,12 @@ export const LESSONS = {
       B.reading('022_t_info', 'Loe perearsti infolehte.', 'Jaan sai arstilt infolehe. Loe ja vasta.', 'Kuidas arsti juures oma haigusest rääkida?',
         'Arst tahab teada, kuidas teie haigus algas ja kuidas see muutus. Seepärast mõelge enne vastuvõttu järgmistele küsimustele.\n\nMillal haigus algas? Öelge võimalikult täpselt: eile õhtul, kolm päeva tagasi, eelmisel nädalal.\n\nMis juhtus kõigepealt ja mis pärast seda? Näiteks: kõigepealt valutas kurk, siis tuli köha ja üleeile tõusis palavik.\n\nMida te juba tegite? Kas te võtsite rohtu? Kui palju ja millal? Kas te käisite tööl või koolis?\n\nKas keegi teie peres oli ka haige? Kas te sõitsite hiljuti välismaale? Kas te sõite midagi uut või harjumatut?\n\nKas haigus algas pärast mingit sündmust, näiteks pärast pikka reisi, pidu või rasket trenni? Ka see on arstile tähtis.\n\nKirjutage vastused enne vastuvõttu paberile. Nii ei unusta te midagi ja arst saab teid kiiremini aidata.',
         [['Mida arst tahab teada?', 'kuidas haigus algas ja muutus|kuidas haigus algas'], ['Kuidas öelda, millal haigus algas?', 'täpselt|eile õhtul|kolm päeva tagasi'], ['Mis juhtus näites kõigepealt?', 'valutas kurk'], ['Mida küsib arst rohu kohta?', 'kui palju ja millal|kas te võtsite rohtu'], ['Miks on hea vastused paberile kirjutada?', 'ei unusta midagi|arst saab kiiremini aidata']]),
-      B.rolecards('022_t_doctor', 'Arsti vastuvõtt.', 'A on arst, B on patsient. Rääkige 3 minutit. Siis vahetage.',
+      teach(B.rolecards('022_t_doctor', 'Arsti vastuvõtt.', 'A on arst, B on patsient. Rääkige 3 minutit. Siis vahetage.',
         'Oled perearst. Küsi vähemalt 5 küsimust: millal see algas, mis juhtus siis, mida patsient juba tegi. Lõpuks anna nõu.', 'Oled patsient. Vali: selg valutab pärast trenni, gripp või kõht valutab pärast pidu. Räägi järjekorras, millal mis juhtus.',
-        ['Millal see algas?', 'Ja mis juhtus pärast seda?', 'Kas te võtsite rohtu?'], ['Kolm päeva tagasi…', 'Kõigepealt…, siis…', 'Eile õhtul…']),
-      B.speaking('022_t_call', 'Helista registratuuri.', 'Paariline on registratuuri töötaja. Helista ja palu aega arsti juurde. Räägi 1–2 minutit.', ['Ütle oma nimi ja palu aega perearsti juurde.', 'Räägi lühidalt, millal haigus algas.', 'Ütle, mis juhtus kõigepealt ja mis pärast seda.', 'Ütle, mida sa juba tegid.', 'Lepi kokku kellaaeg ja täna.'], [60, 120], ['Tere, ma sooviksin aega…', 'See algas üleeile…', 'Aitäh, sobib!']),
+        ['Millal see algas?', 'Ja mis juhtus pärast seda?', 'Kas te võtsite rohtu?'], ['Kolm päeva tagasi…', 'Kõigepealt…, siis…', 'Eile õhtul…']), 'Üks-ühele: õpetaja on kõigepealt arst, siis patsient (teine haigus).'),
+      teach(B.speaking('022_t_call', 'Helista registratuuri.', 'Paariline on registratuuri töötaja. Helista ja palu aega arsti juurde. Räägi 1–2 minutit.', ['Ütle oma nimi ja palu aega perearsti juurde.', 'Räägi lühidalt, millal haigus algas.', 'Ütle, mis juhtus kõigepealt ja mis pärast seda.', 'Ütle, mida sa juba tegid.', 'Lepi kokku kellaaeg ja täna.'], [60, 120], ['Tere, ma sooviksin aega…', 'See algas üleeile…', 'Aitäh, sobib!']), 'Üks-ühele: õpetaja on registratuuri töötaja; lõpus lepib õpilane kokku kellaaja.'),
       B.writing('022_t_boss', 'Sõnum ülemusele.', 'Sa olid kolm päeva haige. Kirjuta ülemusele 9–11 lauset: millal see algas ja mida arst ütles.', [9, 11], ['üleeile', 'eile', 'kõigepealt', 'arst ütles'], 3),
-      B.rubric('022_t_rubric', 'Kas ülemus saab aru?', 'Loe paarilise sõnumit ja märgi.', ['Sõnumis on vähemalt kolm ajamarkerit: üleeile, eile, täna.', 'Sündmused on õiges järjekorras.', 'Tegusõnad on lihtminevikus.', 'Sõnum on viisakas: tervitus, vabandus, lõpp.']),
+      teach(B.rubric('022_t_rubric', 'Kas ülemus saab aru?', 'Loe paarilise sõnumit ja märgi.', ['Sõnumis on vähemalt kolm ajamarkerit: üleeile, eile, täna.', 'Sündmused on õiges järjekorras.', 'Tegusõnad on lihtminevikus.', 'Sõnum on viisakas: tervitus, vabandus, lõpp.']), 'Üks-ühele: õpetaja loeb sõnumit ja märgib koos õpilasega.'),
     ],
   },
 
@@ -218,6 +220,7 @@ export const LESSONS = {
     title: 'I-lihtminevik ja sagedased erandid',
     canDo: 'Ma kasutan vähemalt 8 sagedast erandlikku lihtmineviku vormi õigesti ja kirjeldan üht üritust.',
     discover: [
+      B.review('023_d_review', ['Mida Anna laupäeval kõigepealt tegi?', 'Mis juhtus Viktoriga eelmisel nädalal?', 'Millal sa viimati arsti juures käisid?']),
       B.text('023_d_hook', 'Raadio Tartu: festivalipäev', 'Laupäeval oli Tartus toidufestival. Kohalik raadio tegi sealt reportaaži. Kuula, kes tuli, mida inimesed nägid ja mida nad sõid.'),
       B.listening('023_d_radio', 'Kuula reportaaži.', 'Kuula kaks korda. Kirjuta lünka tegusõna.', [
         'Reporter: Tere, kuulajad! Ma olen Tartu toidufestivalil. Täna tuli siia üle viie tuhande inimese.',
@@ -240,7 +243,7 @@ export const LESSONS = {
       B.reading('023_d_diary', 'Loe Jaani päevikut.', 'Jaan kirjutas õhtul päevikusse. Loe ja vasta lühidalt.', 'Minu esimene päev vabatahtlikuna',
         'Täna oli pikk päev. Ma tulin festivalile juba kell seitse, kui platsil ei olnud veel kedagi. Kõigepealt tõin lattu sada tooli. Siis viisin müüjatele vett ja jääd.\n\nKell kümme tuli esimene suur rahvahulk. Hommikul sadas vihma, aga keegi ei läinud koju. Inimesed tegid vihmavarjudest katuse ja sõid edasi! Üks vanaema tõi mulle termosega kuuma teed. See oli väga armas. Ma ei teadnud isegi tema nime, aga ta naeratas ja läks edasi.\n\nLõuna ajal ma ei söönud midagi, sest mul ei olnud aega. Alles kell kolm sain Ukraina borši. Ma sõin selle viie minutiga ja jõin klaasi õunamahla. See oli päeva parim hetk.\n\nÕhtul nägin, kuidas Sofia laval tantsis. Ta sai tasuta koogi, sest oli tuhandes külaline. Pärast kontserti koristasime vabatahtlikega platsi. Mina jäin platsile kella kümneni ja läksin koju väga väsinuna. Aga järgmisel aastal tulen jälle!',
         [['Mis kell Jaan festivalile tuli?', 'kell seitse|seitse|7'], ['Mida ta tegi kõigepealt?', 'tõi lattu sada tooli|tõi toole'], ['Mida tegid inimesed vihma ajal?', 'tegid vihmavarjudest katuse|sõid edasi'], ['Miks Jaan lõuna ajal ei söönud?', 'tal ei olnud aega'], ['Mis oli Jaani päeva parim hetk?', 'borš|kui ta sõi borši|borš ja õunamahl'], ['Kui kaua Jaan festivalile jäi?', 'kella kümneni|kümneni']]),
-      B.speaking('023_d_find', 'Leia klassist inimene, kes…', 'Käi ringi ja küsi. Kirjuta vastaja nimi. Kes leiab 5 nime kõige kiiremini?', ['Kas sa sõid eile midagi magusat?', 'Kas sa jõid täna hommikul kohvi?', 'Kas sa nägid eelmisel nädalal filmi?', 'Kas sa said hiljuti kingituse?', 'Kas sa käisid sel aastal festivalil?', 'Kas sa jäid kunagi bussist maha?'], [60, 120], ['Jah, ma sõin…', 'Ei, ma ei söönud…', 'Kes sõi…?']),
+      teach(B.speaking('023_d_find', 'Leia klassist inimene, kes…', 'Käi ringi ja küsi. Kirjuta vastaja nimi. Kes leiab 5 nime kõige kiiremini?', ['Kas sa sõid eile midagi magusat?', 'Kas sa jõid täna hommikul kohvi?', 'Kas sa nägid eelmisel nädalal filmi?', 'Kas sa said hiljuti kingituse?', 'Kas sa käisid sel aastal festivalil?', 'Kas sa jäid kunagi bussist maha?'], [60, 120], ['Jah, ma sõin…', 'Ei, ma ei söönud…', 'Kes sõi…?']), 'Üks-ühele: õpilane küsib kõik küsimused õpetajalt; kodus küsib veel kahelt inimeselt ja räägib vastustest järgmise tunni alguses.'),
       B.writing('023_d_write', 'Kus sa viimati käisid?', 'Kirjuta 10–12 lauset: kus sa viimati käisid, mida nägid, sõid ja jõid.', [10, 12], ['käisin', 'nägin', 'sõin', 'jõin', 'sain'], 3),
     ],
     practice: [
@@ -274,10 +277,10 @@ export const LESSONS = {
         '',
         'Õhtul [jäin] (jääma) natuke kauemaks ja [sain] (saama) müüjalt tasuta koogi.',
       ]),
-      B.rolecards('023_p_gap', 'Millal te kohtusite?', 'A on Sofia, B on Jaan. Ärge näidake kaarti! Leidke, millal te kohtusite.',
+      teach(B.rolecards('023_p_gap', 'Millal te kohtusite?', 'A on Sofia, B on Jaan. Ärge näidake kaarti! Leidke, millal te kohtusite.',
         'Oled Sofia. Sinu päev: 10.00 tulid festivalile · 11.00 sõid hatšapurit · 13.00 nägid kunstnikke · 15.00 läksid kontserdile · 17.00 jäid vihma kätte.',
         'Oled Jaan. Sinu päev: 7.00 tulid festivalile · 11.00 viisid müüjatele vett · 13.00 sõid borši · 15.00 läksid kontserdile · 18.00 tõid toolid tagasi.',
-        ['Mida sa kell üksteist tegid?', 'Kas sa nägid ka…?', 'Kus sa olid kell kolm?'], ['Kell üksteist ma…', 'Ei, ma ei näinud…', 'Siis me kohtusime…!']),
+        ['Mida sa kell üksteist tegid?', 'Kas sa nägid ka…?', 'Kus sa olid kell kolm?'], ['Kell üksteist ma…', 'Ei, ma ei näinud…', 'Siis me kohtusime…!']), 'Üks-ühele: õpetaja on Jaan (kaart B), õpilane Sofia (kaart A); õpetaja vastab ainult küsimustele. Õige vastus: kell 15 kontserdil.'),
       B.writing('023_p_post', 'Viktori vanaema sünnipäev.', 'Kirjuta 9–11 lauset: mida Viktor ja tema pere laupäeval tegid. Kasuta 6 lühikest vormi.', [9, 11], ['tegi', 'tõi', 'tulid', 'sõid', 'nägid', 'sai'], 3),
     ],
     transfer: [
@@ -294,12 +297,12 @@ export const LESSONS = {
         ['B', 'Jah, kell kolm me [läksime] koos kontserdile. Ja kujuta ette, ma [sain] tasuta koogi!'],
         ['A', 'Vau! Järgmine kord tulen kindlasti ka.'],
       ], 'g_read'),
-      B.rolecards('023_t_radio', 'Raadiointervjuu.', 'A on saatejuht, B on festivalikülaline. Intervjuu kestab 2–3 minutit. Siis vahetage.',
+      teach(B.rolecards('023_t_radio', 'Raadiointervjuu.', 'A on saatejuht, B on festivalikülaline. Intervjuu kestab 2–3 minutit. Siis vahetage.',
         'Oled saatejuht. Küsi vähemalt 6 küsimust: millal külaline tuli, mida nägi, sõi ja jõi, mis meeldis, mis ei meeldinud.', 'Oled festivalikülaline. Mõtle välja oma festivalipäev. Räägi ka üks naljakas või halb asi, mis juhtus.',
-        ['Millal te festivalile tulite?', 'Mida te seal sõite?', 'Mis teile kõige rohkem meeldis?'], ['Ma tulin…', 'Kõigepealt ma sõin…', 'Kahjuks ma ei saanud…']),
+        ['Millal te festivalile tulite?', 'Mida te seal sõite?', 'Mis teile kõige rohkem meeldis?'], ['Ma tulin…', 'Kõigepealt ma sõin…', 'Kahjuks ma ei saanud…']), 'Üks-ühele: õpetaja on saatejuht, siis vahetage — õpilane küsib ja õpetaja on külaline.'),
       B.speaking('023_t_invite', 'Kutsu sõber kaasa.', 'Helista sõbrale, kes festivalil ei käinud. Räägi 1–2 minutit ja kutsu ta mais kaasa.', ['Räägi, millal ja kellega sa festivalil käisid.', 'Mida sa nägid ja mida sõid?', 'Mis oli kõige toredam hetk?', 'Mis ei meeldinud?', 'Kutsu sõber järgmisele festivalile.'], [60, 120], ['Kujuta ette, laupäeval…', 'Ma nägin…', 'Kas tuled mais kaasa?']),
       B.letter('023_t_comment', 'Kommentaar festivali lehele.', 'Kirjuta festivali kodulehele: mida sa tegid, mis oli hea ja mida järgmisel aastal teha teisiti.', 'Tere, festivali korraldajad!', 'Parimate soovidega', [80, 100]),
-      B.rubric('023_t_rubric', 'Kas kommentaar on hea?', 'Paariline loeb ja märgib.', ['Kommentaaris on vähemalt 4 lühikest vormi: tulin, nägin, sõin, jõin.', 'On selge, mis meeldis ja mis mitte.', 'On üks ettepanek järgmiseks aastaks.', 'Kommentaar on viisakas.']),
+      teach(B.rubric('023_t_rubric', 'Kas kommentaar on hea?', 'Paariline loeb ja märgib.', ['Kommentaaris on vähemalt 4 lühikest vormi: tulin, nägin, sõin, jõin.', 'On selge, mis meeldis ja mis mitte.', 'On üks ettepanek järgmiseks aastaks.', 'Kommentaar on viisakas.']), 'Üks-ühele: õpetaja loeb kommentaari ja märgib koos õpilasega.'),
     ],
   },
 
@@ -307,6 +310,7 @@ export const LESSONS = {
     title: 'Lugu piltide järgi',
     canDo: 'Ma jutustan 2–3 minutit järjestatud sündmustest ja kasutan lihtminevikku ning vähemalt nelja siduvat ajamarkerit.',
     discover: [
+      B.review('024_d_review', ['Mida Jaan festivalil sõi ja jõi?', 'Ütle ta-vorm: tulema, nägema, minema, sööma.', 'Kus sa viimati käisid ja mida seal nägid?']),
       B.text('024_d_hook', 'Kadunud kott', 'Vaata pilti. Annaga juhtus turul midagi ootamatut. Mis juhtus kõigepealt, mis siis ja kuidas lugu lõppes?'),
       B.diagram('024_d_flow', 'flow', { title: 'Anna lugu nooltega.', instruction: 'Vaata pilti ja kirjuta igasse sammu tegusõna. Sõnad: jalutas, märkas, läks, küsis, tuli, andis.', nodes: 'Alguses [jalutas] Anna turul ja ostis puuvilju.\nÄkki [märkas] ta, et väike roheline kott on kadunud.\nKõigepealt [läks] ta tagasi puuviljamüüja juurde.\nSiis [küsis] ta leivamüüjalt, kas ta nägi kotti.\nPärast seda [tuli] ta kohvikusse.\nLõpuks [andis] kohvikutöötaja talle koti tagasi.' }, 'full', 'g_notice'),
       B.listening('024_d_tell', 'Anna räägib Jaanile.', 'Anna räägib Jaanile oma loo. Kuula kaks korda. Mida pildil ei ole? Kirjuta 1–3 sõna.', [
@@ -326,7 +330,7 @@ export const LESSONS = {
         'Eelmisel talvel tulin hilja õhtul trennist koju. Alguses oli kõik tavaline: buss tuli õigel ajal ja ma kuulasin muusikat. Olin väsinud ja mõtlesin ainult soojale teele.\n\nÄkki märkasin maja ukse ees, et võtit ei ole taskus. Ma ehmusin väga. Väljas oli miinus kümme kraadi ja kodus ei olnud kedagi.\n\nKõigepealt otsisin võtit kotist. Siis läksin tagasi bussipeatusse ja otsisin lumest. Võtit ei olnud kuskil. Pärast seda helistasin naabrile, aga ta ei vastanud. Mul hakkas väga külm ja ma olin mures. Mida teha?\n\nLõpuks tuli üks väike poiss koeraga. Koer jooksis lumehange juurde ja hakkas haukuma. Seal oli minu võti! Poiss naeris ja ütles, et tema koer leiab kõike. Ma olin nii rõõmus, et kallistasin koera. Järgmisel päeval viisin talle kingituseks suure kondi.',
         [['Kust Sofia hilja õhtul tuli?', 'trennist'], ['Mis aastaajal see juhtus?', 'talvel'], ['Mis oli loo probleem?', 'võtit ei olnud taskus|ta kaotas võtme'], ['Kuidas Sofia end tundis, kui võti oli kadunud?', 'ehmus|ehmunud'], ['Mida ta tegi kõigepealt?', 'otsis võtit kotist'], ['Kes leidis võtme?', 'koer|poisi koer'], ['Mida Sofia koerale viis?', 'suure kondi|kondi']]),
       B.truefalse('024_d_tf', 'Kas Anna ja Sofia lugu on sarnane?', 'Õige või vale?', [['Anna ja Sofia kaotasid mõlemad midagi tähtsat.', true], ['Mõlemad ehmusid, kui asi oli kadunud.', true], ['Anna kaotas turul oma võtme.', false], ['Sofia otsis võtit kõigepealt lumest.', false], ['Annat aitas lõpuks kohvikutöötaja.', true], ['Sofiat aitas lõpuks tema naaber.', false], ['Mõlemal lool on õnnelik lõpp.', true], ['Sofia viis koerale järgmisel päeval kingituse.', true]]),
-      B.speaking('024_d_chain', 'Lugu ahelas.', 'Rääkige rühmas Anna lugu. Igaüks ütleb ühe lause ja alustab uue järjekorrasõnaga.', ['Alustage: Ühel päeval…', 'Iga järgmine lause algab uue järjekorrasõnaga.', 'Lõpus öelge: kuidas Anna end tundis?', 'Teine ring: rääkige samamoodi Sofia lugu.', 'Kolmas ring: muutke lugu — kott jääb kadunuks!'], [90, 150], ['Alguses…', 'Äkki…', 'Lõpuks…']),
+      teach(B.speaking('024_d_chain', 'Lugu ahelas.', 'Rääkige rühmas Anna lugu. Igaüks ütleb ühe lause ja alustab uue järjekorrasõnaga.', ['Alustage: Ühel päeval…', 'Iga järgmine lause algab uue järjekorrasõnaga.', 'Lõpus öelge: kuidas Anna end tundis?', 'Teine ring: rääkige samamoodi Sofia lugu.', 'Kolmas ring: muutke lugu — kott jääb kadunuks!'], [90, 150], ['Alguses…', 'Äkki…', 'Lõpuks…']), 'Üks-ühele: õpetaja ja õpilane ütlevad lauseid kordamööda; õpetaja alustab.'),
       B.writing('024_d_write', 'Kirjuta Anna lugu.', 'Kirjuta Anna lugu pildi järgi: 10–12 lauset. Ütle ka, mida Anna tundis.', [10, 12], ['alguses', 'äkki', 'kõigepealt', 'lõpuks'], 3),
     ],
     practice: [
@@ -381,12 +385,12 @@ export const LESSONS = {
         '[[Lõpuks jõudsime Tallinna kolm tundi hiljem.]] Ma jäin koosolekule hiljaks, aga ülemus ei olnud pahane. See oli mu elu kõige ilusam rongisõit ja ma mäletan seda siiani.',
       ], ['Järgmisel aastal tahan sõita lennukiga.', 'Rongis ei olnud ühtegi inimest.', 'Ma ostsin piletid juba suvel internetist.']),
       B.planning('024_t_plan', 'Minu loo plaan.', 'Kirjuta igale reale märksõnad.', ['Algus: millal ja kus see oli? Kes olid seal?', 'Probleem: mis juhtus äkki?', 'Tegevus: mida sa tegid kõigepealt, siis, pärast seda?', 'Lõpp: kuidas lugu lõppes?', 'Tunne: kuidas sa end alguses ja lõpus tundsid?'], 2),
-      B.speaking('024_t_tell', 'Räägi oma lugu.', 'Räägi oma lugu rühmale 2 minutit plaani järgi. Kuulajad küsivad kaks küsimust.', ['Alusta: Ühel päeval… / Eelmisel suvel…', 'Räägi probleemist: Äkki…', 'Räägi järjekorras: kõigepealt, siis, pärast seda.', 'Lõpeta: Lõpuks… Ma olin…', 'Vasta kuulajate küsimustele.'], [90, 120], ['Ühel päeval…', 'Äkki…', 'Lõpuks…']),
+      teach(B.speaking('024_t_tell', 'Räägi oma lugu.', 'Räägi oma lugu rühmale 2 minutit plaani järgi. Kuulajad küsivad kaks küsimust.', ['Alusta: Ühel päeval… / Eelmisel suvel…', 'Räägi probleemist: Äkki…', 'Räägi järjekorras: kõigepealt, siis, pärast seda.', 'Lõpeta: Lõpuks… Ma olin…', 'Vasta kuulajate küsimustele.'], [90, 120], ['Ühel päeval…', 'Äkki…', 'Lõpuks…']), 'Üks-ühele: õpilane räägib õpetajale; õpetaja esitab kaks küsimust.'),
       B.writing('024_t_story', 'Minu kõige ootamatum päev.', 'Kirjuta oma lugu võistlusele (80–100 sõna). Kasuta lihtminevikku ja järjekorrasõnu.', [9, 11], ['alguses', 'äkki', 'kõigepealt', 'lõpuks'], 3),
-      B.rolecards('024_t_editor', 'Toimetuses.', 'A on lehe toimetaja, B on loo autor. Siis vahetage.',
+      teach(B.rolecards('024_t_editor', 'Toimetuses.', 'A on lehe toimetaja, B on loo autor. Siis vahetage.',
         'Oled toimetaja. Loe lugu. Küsi 3 küsimust: millal see oli, mis tunne oli, mis juhtus lõpuks. Ütle, mis on loos kõige huvitavam.', 'Oled autor. Vasta toimetaja küsimustele. Ütle, miks see päev oli ootamatu.',
-        ['Millal see juhtus?', 'Mis tunne sul oli?', 'Kõige huvitavam on see, et…'], ['See oli…', 'Ma tundsin…', 'Ootamatu oli see, et…']),
-      B.rubric('024_t_jury', 'Žürii hindab.', 'Lugege rühmas üksteise lugusid. Märkige ja valige võitja.', ['Lool on algus, probleem ja lõpp.', 'Sündmused on järjekorras: alguses, äkki, siis, lõpuks.', 'Tegusõnad on lihtminevikus, ka lühikesed vormid: tuli, läks, nägi.', 'Lugu on huvitav: on tunne ja üllatus.', 'Lugu on 80–100 sõna.']),
+        ['Millal see juhtus?', 'Mis tunne sul oli?', 'Kõige huvitavam on see, et…'], ['See oli…', 'Ma tundsin…', 'Ootamatu oli see, et…']), 'Üks-ühele: õpetaja on toimetaja ja loeb õpilase lugu; siis vahetage — õpetaja loeb oma lühikese loo ja õpilane küsib.'),
+      teach(B.rubric('024_t_jury', 'Žürii hindab.', 'Lugege rühmas üksteise lugusid. Märkige ja valige võitja.', ['Lool on algus, probleem ja lõpp.', 'Sündmused on järjekorras: alguses, äkki, siis, lõpuks.', 'Tegusõnad on lihtminevikus, ka lühikesed vormid: tuli, läks, nägi.', 'Lugu on huvitav: on tunne ja üllatus.', 'Lugu on 80–100 sõna.']), 'Üks-ühele: õpetaja ja õpilane hindavad lugu koos; võitjat ei valita — õpetaja ütleb, mis on loos kõige parem ja mida parandada.'),
       B.selfcheck('024_t_self', ['Ma jutustan oma eilsest päevast.', 'Ma kasutan ajamarkereid ja järjekorrasõnu.', 'Ma tean lühikesi vorme: tuli, läks, tegi, nägi, sõi, jõi.', 'Ma kirjutan loo algusest lõpuni.'], 'Lugu valmis'),
     ],
   },

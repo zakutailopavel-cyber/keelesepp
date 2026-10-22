@@ -36,7 +36,7 @@ export function sheetProblems(doc) {
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
   // tasks a sheet; the textbook picture added to the sheet is not counted
   const v3 = fullerTemplate(doc.meta) && !doc.meta?.assessment;
-  const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId).length;
+  const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !b.data?.review).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
   if (v3 ? own < V3.blocks[0] || own > V3.blocks[1] : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (v3: ${V3.blocks[0]}–${V3.blocks[1]})` : `${n} plokki (lubatud 6–18)` });
   const minutes = sheetMinutes(doc);
@@ -120,13 +120,20 @@ function v3Problems(doc, phase) {
 export const V4 = { practiceDrills: 2, moduleListening: 2, moduleCaps: { errorfix: 2, translation: 1, dictation: 2 } };
 const DRILLS = [...new Set([...FORM, ...SENTENCE])];
 const V4_NOT_DISCOVER = ['errorfix', 'translation', 'dictation'];
+// a task that needs other learners („paariline”, „rühm”, „klass”, „käi ringi”) says how it runs one-to-one (teach())
+const GROUP_WORK = /paarili|paaris|\brühma(?:s|le|ga|töö)|\brühmas|\bgrupis|\bklassis|käi ringi|kursusekaaslas|vahetage|teised küsivad/i;
+const PAIR_TASKS = ['rolecards'];
+const studentText = (b) => Object.entries(b.data || {}).filter(([k, v]) => typeof v === 'string' && !['explain', 'teacher', 'transcript'].includes(k)).map(([, v]) => v).join(' ');
 function v4Problems(doc, phase) {
   const out = fullerProblems(doc);
   const blocks = doc.blocks || [];
   const any = (list) => blocks.some((b) => list.includes(b.type));
   const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
   const drills = tasks(doc).filter((b) => DRILLS.includes(b.type));
+  const solo = tasks(doc).filter((b) => (PAIR_TASKS.includes(b.type) || GROUP_WORK.test(studentText(b))) && !String(b.data?.teacher || '').trim());
+  need(!solo.length, 'v4-one-to-one', `paaris- või rühmatöö ilma üks-ühele variandita (${solo.map((b) => b.id).join(', ')}): lisa teach(block, '…')`);
   if (phase === 'discover') {
+    need(blocks.some((b) => b.data?.review), 'v4-review', 'Avasta: algab kordamisega „Mäletad?” (B.review)');
     need(any(['reading', 'listening', 'dialogue', 'profiles']) || blocks.some((b) => b.data?.artId), 'v4-input', 'Avasta: sisend, mille üle mõelda (tekst, kuulamine, vestlus, pilt)');
     need(any(['notice']), 'v4-notice', 'Avasta: keele märkamine (notice)');
     need(any(['speaking', 'dialogue', 'rolecards']), 'v4-talk', 'Avasta: vestlus teemal');

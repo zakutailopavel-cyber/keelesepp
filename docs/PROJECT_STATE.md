@@ -1,3 +1,18 @@
+## 2026-10-22 · agent/method-gates — methodology gates: review, one-to-one, grammar plan
+
+- Stacked on agent/b1-m5-v4 (PR #740); standard in PR #744 (docs/METHODOLOGY_STANDARD.md §7.1).
+- v4 gates (`quality.js`): `v4-review` (Avasta begins with „Mäletad?”, `B.review`, not counted as a task),
+  `v4-one-to-one` (a pair / group task or a role play has a teacher note `teach(block, …)`).
+- Teacher's key (`engine/answerKey.js`, `AnswerKeyView.jsx`, css `.ws-key-note`): open tasks with a note are listed
+  under „Õpetajale”, tasks numbered as on the sheet.
+- `admin/course/grammarPlan.js` (+ test): the grammar inventory of A2 / B1 / B2 / C1 (handbooks) mapped to lessons;
+  23 known gaps listed in the test (B1: 11, planned into modules 02–15).
+- B1 module 5: four „Mäletad?” reviews, 16 one-to-one notes.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` — all pass (after the update
+  of the v4 tests). Not published.
+- Still planned (§7.1): word recycling across modules, time-estimate recalibration, listening ≥ 2 for every template,
+  exam-format coverage per level.
+
 ## 2026-10-22 · agent/b1-m5-v4 — sample module in lesson template v4 (variety and situations)
 
 - Owner: „много заданий типа диктант, исправление ошибок… разнообразия не хватает, ситуаций не хватает”; „сделаем образец

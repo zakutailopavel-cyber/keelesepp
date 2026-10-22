@@ -26,11 +26,13 @@ describe('quality baseline', () => {
 });
 
 describe('lesson template v4 (variety instead of a fixed task list)', () => {
-  const sheet = (phase, types) => ({ meta: { level: 'A2+', phase, template: 'v4', design: 'v2' }, blocks: types.map((type, i) => ({ id: `b${i}`, type, data: {} })) });
+  // a role play carries its one-to-one note (teach()), a „review” type stands for B.review
+  const make = (type, i) => (type === 'review' ? { id: `b${i}`, type: 'tip', data: { review: true } } : { id: `b${i}`, type, data: type === 'rolecards' ? { teacher: 'Üks-ühele: õpetaja on B.' } : {} });
+  const sheet = (phase, types) => ({ meta: { level: 'A2+', phase, template: 'v4', design: 'v2' }, blocks: types.map(make) });
   const v4 = (phase, types) => sheetProblems(sheet(phase, types)).map((p) => p.code).filter((c) => c.startsWith('v4-'));
   it('Avasta: an input, noticing and a talk; no test-like drills before the form is met', () => {
-    expect(v4('discover', ['text', 'listening', 'notice', 'table', 'speaking'])).toEqual([]);
-    expect(v4('discover', ['text', 'notice', 'errorfix', 'translation', 'writing'])).toEqual(['v4-input', 'v4-talk', 'v4-early-drill']);
+    expect(v4('discover', ['review', 'text', 'listening', 'notice', 'table', 'speaking'])).toEqual([]);
+    expect(v4('discover', ['text', 'notice', 'errorfix', 'translation', 'writing'])).toEqual(['v4-review', 'v4-input', 'v4-talk', 'v4-early-drill']);
   });
   it('Harjuta: a type once, at most two drills, ends in use', () => {
     expect(v4('practice', ['reading', 'profiles', 'wordforms', 'transformation', 'cloze', 'rolecards'])).toEqual([]);
@@ -46,5 +48,17 @@ describe('lesson template v4 (variety instead of a fixed task list)', () => {
     expect(codes).toEqual(['l1 v4-lesson-repeat', '* v4-listening', '* v4-cap']);
     // v3 and older modules are not checked
     expect(v4ModuleProblems({ l1: { practice: { meta: { template: 'v3' }, blocks: [] } } })).toEqual([]);
+  });
+});
+
+describe('v4: one-to-one lessons', () => {
+  it('a pair or group task says how it runs with the teacher as the partner', () => {
+    const doc = (data, type = 'speaking') => ({ meta: { level: 'A2+', phase: 'practice', template: 'v4', design: 'v2' }, blocks: [{ id: 's', type, data }] });
+    const codes = (d) => sheetProblems(d).map((p) => p.code);
+    expect(codes(doc({ instruction: 'Räägi paarilisega 2 minutit.' }))).toContain('v4-one-to-one');
+    expect(codes(doc({ instruction: 'Räägi paarilisega 2 minutit.', teacher: 'Üks-ühele: õpetaja on paariline.' }))).not.toContain('v4-one-to-one');
+    // sorting into groups („kahte rühma”) is not group work; a role play always is
+    expect(codes(doc({ instruction: 'Sorteeri sõnad kahte rühma.' }, 'categorize'))).not.toContain('v4-one-to-one');
+    expect(codes(doc({ instruction: 'A on arst, B on patsient.' }, 'rolecards'))).toContain('v4-one-to-one');
   });
 });

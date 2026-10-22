@@ -23,3 +23,17 @@ describe('teacher answer key', () => {
     expect(key[5].items).toMatchObject([{ prompt: 'Miks?', answer: 'sest' }, { prompt: 'Kus?', answer: '' }]);
   });
 });
+
+describe('teacher notes in the key', () => {
+  it('shows an open task with its note, numbered as on the sheet', () => {
+    const doc = { blocks: [
+      { id: 'i', type: 'text', data: { text: 'Sissejuhatus' } },
+      { id: 'g', type: 'gaps', data: { title: 'Lüngad', sentences: 'Ma [olen] kodus.' } },
+      { id: 'r', type: 'rolecards', data: { title: 'Arsti juures', roleA: 'Arst', roleB: 'Patsient', teacher: 'Üks-ühele: õpetaja on arst.' } },
+      { id: 's', type: 'speaking', data: { title: 'Räägi', questions: 'Mida sa tegid?' } },
+    ] };
+    const key = answerKeyOf(doc);
+    expect(key.map((t) => [t.id, t.num])).toEqual([['g', 1], ['r', 2]]);
+    expect(key[1]).toMatchObject({ note: 'Üks-ühele: õpetaja on arst.', items: [] });
+  });
+});
