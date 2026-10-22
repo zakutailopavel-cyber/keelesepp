@@ -1,5 +1,6 @@
 // „Isiklik tööleht”: a draft made from what the CRM knows about one learner (docs/DIDACTIC_ENGINE.md, step 6):
-//   his own errors from recorded lessons (TartuNLP corrections) → „Leia ja paranda viga”, gaps, word forms
+//   his own errors from recorded lessons (TartuNLP corrections) and his „Sinu lause” cards (wrong sentences from
+//   submitted sheets, not learned yet) → „Leia ja paranda viga”, gaps, word forms
 //   his words due for repetition („Minu sõnad”) → vocabulary + matching
 //   his weakest of speaking / writing (automatic „Areng”) → one task with his level's amounts (didactics/levels.js)
 // Nothing is invented; the teacher checks the draft in the constructor and assigns it.
@@ -8,6 +9,7 @@ import { newDocument } from '../worksheet-studio/engine/schema.js';
 import { isDue } from '../vocabulary/wordsModel.js';
 import { levelProfile } from '../worksheet-studio/didactics/levels.js';
 import { errorsWorksheet } from '../lesson-recording/errorWorksheet.js';
+import { ownErrors } from '../self-study/reviewModel.js';
 
 const MAX_WORDS = 10;
 
@@ -15,10 +17,14 @@ export function personalWorksheet({ student = {}, lessons = [], words = [], skil
   const norm = levelProfile(student.level);
   const level = norm.label.replace('A2+/B1-', 'B1');
   // the newest lessons first, their errors together (at most 8, as said and as corrected)
-  const errors = [...lessons].sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)))
-    .flatMap((lesson) => (Array.isArray(lesson.analysis?.errors) ? lesson.analysis.errors : [])).filter((e) => !e.unsure).slice(0, 8);
+  const spoken = [...lessons].sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)))
+    .flatMap((lesson) => (Array.isArray(lesson.analysis?.errors) ? lesson.analysis.errors : [])).filter((e) => !e.unsure);
+  // his „Sinu lause” cards not learned yet (owner 2026-10-23): wrong sentences from submitted sheets and lessons
+  const written = ownErrors(words.filter((word) => (word.box || 0) < 3));
+  const seen = new Set();
+  const errors = [...spoken, ...written].filter((e) => e?.said && e?.corrected && !seen.has(e.corrected) && seen.add(e.corrected)).slice(0, 8);
   const fromErrors = errorsWorksheet({ errors, studentName: student.name || '' })?.blocks || [];
-  const due = words.filter((w) => w.word && w.translation && isDue(w, now))
+  const due = words.filter((w) => w.word && w.translation && !String(w.translation).startsWith('Sinu lause:') && isDue(w, now))
     .sort((a, b) => (a.box || 0) - (b.box || 0)).slice(0, MAX_WORDS);
   const blocks = [];
   const goals = {};
