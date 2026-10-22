@@ -96,10 +96,11 @@ the exam (an e-mail of 100–120 words and a short message of 40–60 words), sp
 - Listening: the course TTS is Estonian, so English transcripts are read by the teacher for now. English audio needs
   a TTS choice (a paid service needs the owner's yes).
 
-- B1 modules 1–3 (en-b1-001…015) are published (2026-10-22). B1 module 4 „Plans and the future” (en-b1-016…020:
-  going to / will, present continuous and present simple for the future, predictions, the first conditional, the check)
-  is built with its teacher key and passes every gate; not yet published.
+- B1 modules 1–3 (en-b1-001…015) are published (2026-10-22). B1 modules 4–10 (en-b1-016…050) are built with their
+  teacher keys and pass every gate (2026-10-23); not yet published. B1 is complete: 10 modules, 50 lessons, 150 sheets.
+  Module 10 is exam practice: four strategy lessons (reading, listening + language use, writing, speaking) with a B1
+  grammar review, and en-b1-050, a full mock exam.
 
 ## Next safe step
 
-The owner's yes to publish B1 module 4; then B1 module 5. A2 module 3 waits.
+The owner's yes to publish B1 modules 4–10; A2 modules 3–10 are being built.

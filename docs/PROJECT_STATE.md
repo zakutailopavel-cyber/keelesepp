@@ -1,3 +1,16 @@
+## 2026-10-23 · agent/english-b1-m4 — English B1 modules 5–10: the B1 course is complete
+
+- Modules (all with Russian teacher keys, strict gates, curriculum records; enB1Curriculum version 2026-10-23.10):
+  5 Free time and culture (021–025: -ing / to, comparatives, so / such and reviews, suggestions and invitations),
+  6 Travel (026–030: must / have to / should, could / managed to, complaints), 7 Health and lifestyle (031–035:
+  quantifiers, second conditional, I wish, should / had better), 8 Technology and media (036–040: present and past
+  passive, be allowed to / let / make, opinions and linking words), 9 Our world (041–045: relative clauses, reported
+  statements and requests, environment phrasal verbs), 10 Exam practice (046–049 strategy lessons with a grammar review,
+  050 a full mock exam).
+- Tooling in the scratchpad only (not in the repo): scaffold / addlesson / autokey / curr helpers.
+- Checks: `gate_s.sh en/b1/moduleNN` clean for 5–10; vitest admin/course + curriculum 382 passed.
+- Not published (owner's yes needed: install en-b1-016…050 records, publish 105 sheets). Next: A2 modules 3–10.
+
 ## 2026-10-22 · agent/english-b1-m4 — English B1 module 4 „Plans and the future”
 
 - Main checked: ab99b9b (2026-10-22).

@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-23.9';
+export const EN_B1_VERSION = '2026-10-23.10';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -97,6 +97,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['She said that…', 'Reported statements with said and told; tense, pronoun and time-word changes; reporting a talk or an interview.'],
       ['Turn it off!', 'Phrasal verbs about energy and waste (turn off, throw away, cut down on, run out of, give up); reported requests with asked / told someone (not) to.'],
       ['Module 9 check: Our world', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 10, title: 'Exam practice', goal: 'Exam strategies for every part of the basic school English exam, a review of B1 grammar and a full mock exam.',
+    lessons: [
+      ['Reading like a pro', 'Reading strategies (skimming, scanning, key words, synonyms, guessing from context); review of present and past tenses and the present perfect.'],
+      ['Listen carefully', 'Listening strategies (predicting, notes, numbers, spelling); review of future forms, first and second conditionals and modal verbs; exam-style transformations.'],
+      ['Writing that gets points', 'How exam texts are marked; formal and informal e-mails, messages and articles; planning; the passive, relative clauses and linking words.'],
+      ['Speaking with confidence', 'The five speaking tasks: reading aloud, answering questions, describing a photo, forming questions and a voice message; strategies when you don\'t understand.'],
+      ['Final mock exam (B1)', 'A full mock exam in the basic school exam\'s format: reading, listening, language use, an e-mail, a short message and speaking.'],
     ],
   },
 ]);
