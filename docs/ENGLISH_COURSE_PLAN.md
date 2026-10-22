@@ -93,18 +93,18 @@ the exam (an e-mail of 100–120 words and a short message of 40–60 words), sp
 
 - A2 modules 1–2 (en-a2-001…010) are built with their teacher keys, pass every gate and are published in Õppevara
   (2026-10-22).
-- A2 modules 3–10 (en-a2-011…050) are built with their teacher keys and pass every gate (2026-10-23); not yet
-  published. A2 is complete: 10 modules, 50 lessons, 150 sheets. Module 10 is exam practice: four strategy lessons
+- A2 modules 3–10 (en-a2-011…050) are built with their teacher keys, pass every gate and are published in Õppevara
+  (2026-10-23). A2 is complete: 10 modules, 50 lessons, 150 sheets. Module 10 is exam practice: four strategy lessons
   (reading, listening + language, writing, speaking) with an A2 grammar review, and en-a2-050, a full A2 mock exam.
 - Listening: the course TTS is Estonian, so English transcripts are read by the teacher for now. English audio needs
   a TTS choice (a paid service needs the owner's yes).
 
 - B1 modules 1–3 (en-b1-001…015) are published (2026-10-22). B1 modules 4–10 (en-b1-016…050) are built with their
-  teacher keys and pass every gate (2026-10-23); not yet published. B1 is complete: 10 modules, 50 lessons, 150 sheets.
+  teacher keys, pass every gate and are published in Õppevara (2026-10-23). B1 is complete: 10 modules, 50 lessons, 150 sheets.
   Module 10 is exam practice: four strategy lessons (reading, listening + language use, writing, speaking) with a B1
   grammar review, and en-b1-050, a full mock exam.
 
 ## Next safe step
 
-The owner's yes to publish A2 modules 3–10 and B1 modules 4–10 (curriculum records + sheets). A1 is out of scope
-for now (owner, 2026-10-23).
+Both courses are published. English listening audio (a TTS choice; a paid service needs the owner's yes). A1 is out of
+scope for now (owner, 2026-10-23).

@@ -1,3 +1,13 @@
+## 2026-10-23 · agent/english-published — English A2 and B1 are in Õppevara
+
+- Main checked: 15a2343 (all of #732–#743 merged with the owner's yes, Vercel production deployed).
+- Owner: „Делай все” (after „скажите «публикуй английский»”). Production write, create-only: curriculumLessons
+  en-a2-011…050 and en-b1-016…050 (75 records; the 25 existing ones skipped), then 225 sheets published from
+  buildCourseSheet (scratchpad publish script: a sheet edited by hand in the CRM or left as a draft is never
+  overwritten; 0 such). A second dry run: 300 sheets, all equal to the code.
+- Both English courses are complete in Õppevara: A2 50 lessons, B1 50 lessons, 300 sheets.
+- Next safe step: voice task between lessons (docs/LEARNER_PROFILE.md roadmap).
+
 ## 2026-10-23 · agent/english-a2 — English A2 modules 3–10: the A2 course is complete
 
 - Main checked: ab99b9b (2026-10-22). Branch agent/english-a2, draft PR #733 (stacked on #732, B1).
