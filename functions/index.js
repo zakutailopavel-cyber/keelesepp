@@ -37,6 +37,8 @@ const linkpay = require("./linkpay-core");
 const liveTurnCore = require("./live-turn-core");
 const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
+const { DEFAULT_ACCOUNTS } = require("./accounting-chart");
+const accountingCore = require("./accounting-core");
 const inf3Core = require("./inf3-core");
 const {
   classifyAccountIntegrity,
@@ -8590,6 +8592,183 @@ exports.invoiceApi = functions
   }
   });
 
+// ---------- bookkeeping (functions/accounting-core.js) ----------
+// accountingAccounts/{code}: the chart (seeded from DEFAULT_ACCOUNTS); accountingEntries/{id}: numbered entries;
+// meta/accountingCounter_<year>: the next entry number of a year.
+async function accountingAccounts() {
+  const snap = await db.collection("accountingAccounts").get();
+  if (!snap.empty) return snap.docs.map(doc => ({ code: doc.id, ...doc.data() }));
+  return DEFAULT_ACCOUNTS.map(account => ({ ...account, active: true }));
+}
+
+async function seedAccountingAccounts(actor) {
+  const snap = await db.collection("accountingAccounts").limit(1).get();
+  if (!snap.empty) return false;
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  for (let i = 0; i < DEFAULT_ACCOUNTS.length; i += 400) {
+    const batch = db.batch();
+    DEFAULT_ACCOUNTS.slice(i, i + 400).forEach(account => {
+      batch.set(db.collection("accountingAccounts").doc(account.code), { ...account, active: true, source: "merit-aktiva", createdAt: nowIso, createdBy: actorData });
+    });
+    await batch.commit();
+  }
+  return true;
+}
+
+// numbers a group of new entries of one year inside a transaction and writes them
+async function writeNumberedEntries(transaction, entries, { actorData, nowIso }) {
+  const byYear = new Map();
+  entries.forEach(item => {
+    const year = Number(item.entry.date.slice(0, 4));
+    byYear.set(year, [...(byYear.get(year) || []), item]);
+  });
+  const counters = await Promise.all([...byYear.keys()].map(year => transaction.get(db.collection("meta").doc(`accountingCounter_${year}`))));
+  const written = [];
+  [...byYear.entries()].forEach(([year, items], index) => {
+    let next = Number(counters[index].exists ? counters[index].data().next : 1) || 1;
+    items.forEach(({ ref, entry }) => {
+      const record = {
+        ...entry,
+        number: accountingCore.entryNumber(year, next),
+        year,
+        sequence: next,
+        totalCents: entry.totalCents || entry.lines.reduce((sum, item) => sum + item.debitCents, 0),
+        createdAt: nowIso,
+        createdBy: actorData,
+      };
+      next += 1;
+      transaction.create(ref, record);
+      written.push({ id: ref.id, ...record });
+    });
+    transaction.set(db.collection("meta").doc(`accountingCounter_${year}`), { next, updatedAt: nowIso }, { merge: true });
+  });
+  return written;
+}
+
+const accountingSourceCollections = ["invoices", "creditNotes", "payments", "payerCredits", "refunds", "expenses", "bankTransactions"];
+
+// creates the automatic entries that are still missing; existing entries are never changed
+async function syncAccountingEntries({ actor }) {
+  await seedAccountingAccounts(actor);
+  const snaps = await Promise.all(accountingSourceCollections.map(name => db.collection(name).get()));
+  const sources = Object.fromEntries(accountingSourceCollections.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
+  const desired = accountingCore.automaticEntries(sources);
+  const existing = await db.collection("accountingEntries").where("origin", "==", "auto").select("sourceKey").get();
+  const known = new Set(existing.docs.map(doc => doc.get("sourceKey")));
+  const missing = desired.filter(entry => !known.has(entry.sourceKey));
+  const actorData = actorSnapshot(actor);
+  let created = 0;
+  for (let i = 0; i < missing.length; i += 150) {
+    const chunk = missing.slice(i, i + 150);
+    const nowIso = new Date().toISOString();
+    created += await db.runTransaction(async transaction => {
+      const refs = chunk.map(entry => db.collection("accountingEntries").doc(`auto_${entry.sourceKey.replace(/[^A-Za-z0-9_-]/g, "_")}`));
+      const current = await Promise.all(refs.map(ref => transaction.get(ref)));
+      const fresh = chunk.map((entry, index) => ({ ref: refs[index], entry })).filter((item, index) => !current[index].exists);
+      if (!fresh.length) return 0;
+      await writeNumberedEntries(transaction, fresh, { actorData, nowIso });
+      return fresh.length;
+    });
+  }
+  if (created) {
+    await db.collection("financialAudit").add({ entityType: "accounting", action: "accounting.synced", createdEntries: created, createdAt: new Date().toISOString(), createdBy: actorData });
+  }
+  return { created, total: desired.length };
+}
+
+async function createAccountingEntry({ actor, values, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const accounts = await accountingAccounts();
+  const normalized = accountingCore.validateEntry(values, accounts);
+  const ref = db.collection("accountingEntries").doc(`manual_${mutationId}`);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(ref);
+    if (existing.exists) return { entry: { id: existing.id, ...existing.data() }, idempotent: true };
+    await assertFinancialDateOpen(transaction, normalized.date);
+    const [entry] = await writeNumberedEntries(transaction, [{ ref, entry: { ...normalized, origin: "manual", documentType: cleanText(values?.documentType, 40) || "other", requestId: mutationId } }], { actorData, nowIso });
+    transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "accountingEntry", entityId: ref.id, action: "accounting.entry.created", number: entry.number, date: entry.date, totalCents: entry.totalCents, createdAt: nowIso, createdBy: actorData });
+    return { entry };
+  });
+}
+
+async function reverseAccountingEntry({ actor, entryId, date, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const sourceRef = db.collection("accountingEntries").doc(String(entryId || "").trim() || "-");
+  const ref = db.collection("accountingEntries").doc(`reversal_${mutationId}`);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const reversalDate = validIsoDate(String(date || appToday(nowIso)).slice(0, 10), "date");
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(ref);
+    if (existing.exists) return { entry: { id: existing.id, ...existing.data() }, idempotent: true };
+    const sourceSnap = await transaction.get(sourceRef);
+    if (!sourceSnap.exists) throw httpError(404, "Kannet ei leitud.");
+    const source = { id: sourceSnap.id, ...sourceSnap.data() };
+    if (source.origin === "auto") throw httpError(409, "Automaatkannet parandatakse dokumendi kaudu: kreeditarve, arve tühistamine või makse tühistamine.");
+    if (reversalDate < source.date) throw httpError(400, "Storno kuupäev ei saa olla varasem kui kande kuupäev.");
+    let storno;
+    try {
+      storno = accountingCore.reversalOf(source, { date: reversalDate, reason });
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    await assertFinancialDateOpen(transaction, reversalDate);
+    const [entry] = await writeNumberedEntries(transaction, [{ ref, entry: { ...storno, requestId: mutationId } }], { actorData, nowIso });
+    transaction.update(sourceRef, { reversedBy: ref.id, reversedByNumber: entry.number, reversedAt: nowIso });
+    transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "accountingEntry", entityId: source.id, action: "accounting.entry.reversed", number: source.number, reversalNumber: entry.number, reason: storno.reason, createdAt: nowIso, createdBy: actorData });
+    return { entry };
+  });
+}
+
+async function setAccountingOpening({ actor, balances, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  await seedAccountingAccounts(actor);
+  const accounts = await accountingAccounts();
+  let normalized;
+  try {
+    normalized = accountingCore.openingEntry(Array.isArray(balances) ? balances : [], accounts);
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const active = await db.collection("accountingEntries").where("origin", "==", "opening").get();
+  if (active.docs.some(doc => !doc.get("reversedBy"))) throw httpError(409, "Algsaldod on juba sisestatud. Tühista enne vana algsaldode kanne (storno).");
+  const ref = db.collection("accountingEntries").doc(`opening_${mutationId}`);
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(ref);
+    if (existing.exists) return { entry: { id: existing.id, ...existing.data() }, idempotent: true };
+    const [entry] = await writeNumberedEntries(transaction, [{ ref, entry: { ...normalized, origin: "opening", documentType: "opening", requestId: mutationId } }], { actorData, nowIso });
+    transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "accountingEntry", entityId: ref.id, action: "accounting.opening.created", number: entry.number, totalCents: entry.totalCents, createdAt: nowIso, createdBy: actorData });
+    return { entry };
+  });
+}
+
+// a new account, or a rename / close of an existing one; an account with entries is closed, never deleted
+async function saveAccountingAccount({ actor, values }) {
+  await seedAccountingAccounts(actor);
+  const code = String(values?.code || "").trim();
+  if (!/^\d{3,6}$/.test(code)) throw httpError(400, "Konto number on 3–6 numbrit.");
+  const name = cleanText(values?.name, 160);
+  if (!name) throw httpError(400, "Konto nimetus on kohustuslik.");
+  const type = String(values?.type || "");
+  if (!["asset", "liability", "equity", "income", "expense"].includes(type)) throw httpError(400, "Vali konto liik.");
+  const ref = db.collection("accountingAccounts").doc(code);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    const account = { code, name, type, reportLine: cleanText(values?.reportLine, 160), active: values?.active !== false, updatedAt: nowIso, updatedBy: actorData };
+    if (snap.exists && snap.data().type !== type) throw httpError(409, "Olemasoleva konto liiki ei saa muuta; ava uus konto.");
+    transaction.set(ref, snap.exists ? account : { ...account, createdAt: nowIso, createdBy: actorData }, { merge: true });
+    transaction.create(db.collection("financialAudit").doc(), { entityType: "accountingAccount", entityId: code, action: snap.exists ? "accounting.account.updated" : "accounting.account.created", before: snap.exists ? snap.data() : null, after: account, createdAt: nowIso, createdBy: actorData });
+    return { account };
+  });
+}
+
 // ---------- INF 3: training costs paid by private persons (functions/inf3-core.js, docs/INF3.md) ----------
 // taxIdentities/{studentId}: { studentCode, payerName, payerCode, trainingType, source: "admin" | "form", updatedAt }
 // — personal codes, admin-only (teachers can read student cards, so the codes are kept apart).
@@ -8965,6 +9144,29 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     const actor = await requireAdminUser(req);
     if (req.path === "/students/price-privacy/preview" || req.path === "/students/price-privacy/apply") {
       res.json(await studentPricePrivacy({ actor, apply: req.path.endsWith("/apply") }));
+      return;
+    }
+    if (req.path === "/accounting/sync") {
+      res.json(await syncAccountingEntries({ actor }));
+      return;
+    }
+    if (req.path === "/accounting/entries") {
+      const result = await createAccountingEntry({ actor, values: req.body?.entry, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/entries/reverse") {
+      const result = await reverseAccountingEntry({ actor, entryId: req.body?.entryId, date: req.body?.date, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/opening") {
+      const result = await setAccountingOpening({ actor, balances: req.body?.balances, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/accounts") {
+      res.json(await saveAccountingAccount({ actor, values: req.body?.account }));
       return;
     }
     if (req.path === "/tax/identity") {

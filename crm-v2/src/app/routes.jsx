@@ -37,6 +37,7 @@ const CalendarPage = lazy(() => import('../features/calendar/CalendarPage.jsx'))
 const FinanceWorkspacePage = lazy(() => import('../features/finance/FinanceWorkspacePage.jsx'));
 const FinanceMonthPage = lazy(() => import('../features/finance/FinanceMonthPage.jsx'));
 const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettingsPage.jsx'));
+const AccountingPage = lazy(() => import('../features/accounting/AccountingPage.jsx'));
 const Inf3Page = lazy(() => import('../features/tax/Inf3Page.jsx'));
 const TaxFormPage = lazy(() => import('../features/tax/TaxFormPage.jsx'));
 const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage.jsx'));
@@ -140,6 +141,7 @@ export default function AppRoutes() {
           <Route element={<ProtectedRoute roles={ACCESS.ADMIN} />}>
             <Route path="finance/payroll" element={staffPage(<PayrollPage />)} />
             <Route path="finance/expenses" element={staffPage(<ExpensesPage />)} />
+            <Route path="finance/raamatupidamine" element={staffPage(<AccountingPage />)} />
             <Route path="finance/inf3" element={staffPage(<Inf3Page />)} />
           </Route>
         </Route>

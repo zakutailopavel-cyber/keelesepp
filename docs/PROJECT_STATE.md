@@ -1,3 +1,28 @@
+## 2026-10-22 · agent/accounting-ui — Raamatupidamine page (on top of agent/accounting-core)
+
+- Route /finance/raamatupidamine (admin), linked from Finantsid („Raamatupidamine”). Tabs: Päevaraamat, Pearaamat,
+  Käibeandmik, Bilanss ja kasumiaruanne, Kontoplaan. Period filter, Excel export (SpreadsheetML .xls with the columns
+  of the owner's P2evaraamat.xls and K2ibeandmik_a.xls), manual entry (cannot be edited; storno with a reason), opening
+  balances, add / rename / close an account. Opening the page creates missing automatic entries (/accounting/sync).
+- Files: crm-v2/src/features/accounting/* (AccountingPage, accountingReports, accountingExcel, css, tests),
+  services/firebase/accounting.js + financeApi accounting methods, app/routes.jsx, app/accessPolicy.js, finance links.
+- Checks: vitest accounting + finance + app + services 329 passed; eslint clean on the new files; checked on the local
+  stand with sample entries (trial balance and balance sheet balance; phone width without horizontal scroll).
+- Next safe step: owner review; merge #724 then this PR; deploy functions + rules with the owner's yes; then INF 3.
+
+## 2026-10-22 · agent/accounting-core — bookkeeping core (päevaraamat, käibeandmik) on the server
+
+- Owner: implement Päevaraamat, Käibeandmik (templates P2evaraamat.xls, K2ibeandmik_a.xls), the Merit Aktiva kontoplaan
+  and INF 3 in Finantsid, „как по законам Эстонии”. Decisions (AskUserQuestion): full bookkeeping on the site; not VAT
+  registered; from 2026-01-01 with opening balances; isikukood in the card plus a parents' form.
+- This PR: the server core. functions/accounting-chart.js (207 Merit Aktiva accounts), functions/accounting-core.js
+  (automatic entries from invoices, credit notes, cancellations, payments, voids, payer credits, refunds, expenses;
+  validation; storno; opening balances; numbering), financeApi routes /accounting/*, rules for accountingEntries and
+  accountingAccounts (admin read, no client writes). docs/ACCOUNTING.md: the law (RPS §§ 6–12) and the posting table.
+- Checks: functions node --test 329/329 (accounting-core 10); emulator: the new bookkeeping test passes.
+- Not done: the UI (next PR: Raamatupidamine with päevaraamat, pearaamat, käibeandmik, bilanss, kasumiaruanne, manual
+  entries, opening balances, Excel); INF 3; salaries are manual entries. Nothing deployed.
+- Next safe step: the Raamatupidamine UI on top of this branch; deploy functions with the owner's yes after merge.
 ## 2026-10-22 · agent/inf3 — INF 3 (training costs paid by private persons)
 
 - Owner: INF 3 in Finantsid (inf_3_2025.pdf), personal codes in the card + a parents' form (AskUserQuestion).
