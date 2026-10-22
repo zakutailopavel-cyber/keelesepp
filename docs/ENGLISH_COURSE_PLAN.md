@@ -93,6 +93,9 @@ the exam (an e-mail of 100–120 words and a short message of 40–60 words), sp
 
 - A2 modules 1–2 (en-a2-001…010) are built with their teacher keys, pass every gate and are published in Õppevara
   (2026-10-22).
+- A2 modules 3–10 (en-a2-011…050) are built with their teacher keys and pass every gate (2026-10-23); not yet
+  published. A2 is complete: 10 modules, 50 lessons, 150 sheets. Module 10 is exam practice: four strategy lessons
+  (reading, listening + language, writing, speaking) with an A2 grammar review, and en-a2-050, a full A2 mock exam.
 - Listening: the course TTS is Estonian, so English transcripts are read by the teacher for now. English audio needs
   a TTS choice (a paid service needs the owner's yes).
 
@@ -103,4 +106,5 @@ the exam (an e-mail of 100–120 words and a short message of 40–60 words), sp
 
 ## Next safe step
 
-The owner's yes to publish B1 modules 4–10; A2 modules 3–10 are being built.
+The owner's yes to publish A2 modules 3–10 and B1 modules 4–10 (curriculum records + sheets). A1 is out of scope
+for now (owner, 2026-10-23).

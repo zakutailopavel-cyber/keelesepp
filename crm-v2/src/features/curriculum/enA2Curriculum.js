@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-23.9';
+export const EN_A2_VERSION = '2026-10-23.10';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -96,6 +96,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['Safe online', 'should / shouldn\'t'],
       ['Have you seen it? — Yes, I saw it last week', 'present perfect vs past simple'],
       ['Module 9 check: Media and technology', 'check'],
+    ],
+  },
+  {
+    number: 10, title: 'A2 exam practice', goal: 'Exam strategies for reading, listening and language, writing and speaking with an A2 grammar review, and a full A2 mock exam.',
+    lessons: [
+      ['Smart reading', 'reading strategies, A2 tenses review'],
+      ['Listen and use', 'listening strategies, comparatives, much / many, too / enough, prepositions'],
+      ['Writing for points', 'exam e-mail, linking words'],
+      ['Speak with confidence', 'speaking tasks, question forms'],
+      ['Final mock exam (A2)', 'mock exam'],
     ],
   },
 ]);
