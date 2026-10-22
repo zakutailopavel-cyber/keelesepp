@@ -1,3 +1,25 @@
+## 2026-10-22 · agent/studio-teacher-pass — constructor walked through as a teacher
+
+- Owner: go through the lesson constructor as a teacher and fix what is awkward or missing.
+- What I checked on a local stand (mocked services, real course sheets B1 a2b1-021 and C1 est-c1-075, plus a sheet
+  with all 42 block types):
+  - select a task, edit a sentence on the sheet, student view with checking, add a block from the palette, the
+    phone layout;
+  - every block's settings panel was scanned for cut-off text. No page errors.
+- Fixed:
+  - one-line fields cut long sentences off. `SentenceInput` / `Sentence` (editor/fields.jsx) grow with the text, and
+    Enter does not add a line. Used in Õige/vale statements, errorfix, transformation, translation, picture-situation
+    and dialogue lines;
+  - a short choice next to a sentence (Õ / V) took half the row: `.ed-row > .ed-input.small` now keeps its own width;
+  - text areas (instruction, texts, role cards) grow with the text up to ~420 px instead of a small scrolling box;
+  - speaking tip: lines were glued together on the sheet („uudise eesmärk onseevastutoon”) and edited in a one-line
+    field that dropped the line breaks. Now they show joined by „ · ” and are edited in a text area (+ test).
+- Seen, not changed:
+  - the student preview shows ticks but no total score;
+  - at ~1000 px the constructor header gets crowded (title cut, „Määra õpilastele” on two lines).
+- Checks: worksheet-studio + worksheet-generator suites 1059 passed, 3 skipped. eslint 0 errors.
+- Next safe step: merge; then the course-integrity page and the course → textbook work.
+
 ## 2026-10-22 · agent/book-speed — the textbook („Õpik töölehtedest”) no longer freezes
 
 - Owner: the book is so big that the site hangs for some teachers when they open it. A level is 200–270 sheets, and

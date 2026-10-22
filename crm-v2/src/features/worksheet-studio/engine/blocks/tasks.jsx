@@ -3,7 +3,7 @@ import { Fragment } from 'react';
 import { Photo, Line, Md, Clock } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
 import { norm, normFor, bankItems, splitList } from '../schema.js';
-import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
+import { Text, Area, Select, ImagePick, Rows, SentenceInput } from '../../editor/fields.jsx';
 
 // Task blocks: numbered cards with a title + instruction (drawn by the page), an answer area and scoring.
 // ctx = { interactive, get(key), set(key, value), state(key) -> 'ok' | 'bad' | undefined }
@@ -159,7 +159,7 @@ export const truefalse = {
     <Rows label="Väited" rows={data.statements || []} onChange={(statements) => set({ statements })} make={() => ({ text: '', answer: 'true' })} addLabel="Lisa väide"
       render={(row, patch) => (
         <div className="ed-row">
-          <input className="ed-input" value={row.text} placeholder="Väide" onChange={(e) => patch({ text: e.target.value })} />
+          <SentenceInput value={row.text} placeholder="Väide" ariaLabel="Väide" onChange={(text) => patch({ text })} />
           <select className="ed-input small" value={row.answer} onChange={(e) => patch({ answer: e.target.value })}><option value="true">Õ</option><option value="false">V</option></select>
         </div>
       )} />

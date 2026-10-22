@@ -71,6 +71,10 @@
 textarea.ed-input { resize: vertical; }
 .ws-studio .ed-row { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
 .ws-studio .ed-row > .ed-input { flex: 1; min-width: 0; }
+/* a short choice next to a sentence (Õ / V, a gap's answer) keeps its own width; the sentence gets the rest */
+.ws-studio .ed-row > .ed-input.small { flex: none; width: auto; min-width: 58px; }
+/* a sentence field grows with its text (editor/fields.jsx SentenceInput) */
+.ws-studio .ed-sentence { resize: none; overflow: hidden; line-height: 1.35; min-height: 34px; }
 .ws-studio .ed-btn { font: 700 12.5px inherit; border: 1px solid var(--st-accent); background: var(--st-accent); color: #fff; border-radius: 999px; padding: 5px 10px; cursor: pointer; }
 .ws-studio .ed-btn.ghost { background: transparent; color: var(--st-ink); border-color: var(--st-line); }
 .ws-studio .ed-btn.danger { background: transparent; color: var(--st-danger); border-color: var(--st-danger); }
