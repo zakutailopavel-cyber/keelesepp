@@ -256,7 +256,7 @@ export const LESSONS = {
         ['Kristjan: „Kontoris on pärast lõunat väga umbne.”', 'Kristjani sõnul…', 'Kristjani sõnul olevat kontoris pärast lõunat väga umbne.'],
         ['Markus: „Mul on akna kõrval terve päev külm.”', 'Markusel…', 'Markusel olevat akna kõrval terve päev külm.'],
         ['Kristjan: „Ma helistan klientidele hommikust õhtuni.”', 'Kristjan…', 'Kristjan helistavat klientidele hommikust õhtuni.'],
-        ['Markus: „Ma ei kuule kõnede ajal oma mõtteid.”', 'Markus…', 'Markus ei kuulevat kõnede ajal oma mõtteid.'],
+        ['Markus: „Ma ei kuule kõnede ajal oma mõtteid.”', 'Markus…', 'Markus ei kuulvat kõnede ajal oma mõtteid.'],
         ['Markus: „Koosolekuruum on enamasti terve päeva tühi.”', 'Koosolekuruum…', 'Koosolekuruum olevat enamasti terve päeva tühi.'],
         ['Kristjan: „Koosolekuruumis ei ole arvutit ega kliendibaasi.”', 'Koosolekuruumis…', 'Koosolekuruumis ei olevat arvutit ega kliendibaasi.'],
         ['Kristjan: „Markus kuulab lõuna ajal muusikat ilma kõrvaklappideta.”', 'Markus…', 'Markus kuulavat lõuna ajal muusikat ilma kõrvaklappideta.'],

@@ -366,7 +366,7 @@ export const LESSONS = {
         ['Kohtumist ei toimu.', 'Kohtumine jääb ära.'], ['Sa oled nõus.', 'Sobib, panen kalendrisse.'], ['Sa jääd hiljaks.', 'Vabandust, ma hilinen kümme minutit.'], ['Sa kordad kokkuleppe üle.', 'Niisiis: reedel kell kaksteist, eks?'],
       ], 'full', 'g_use'),
       teach(B.rolecards('019_p_calls', 'Kolm kõnet.', 'A helistab kolm korda ja muudab aega. B on vastaja. Siis vahetage.',
-        'Sul on kolm kõnet: juuksur (aeg ei sobi), sõber (kino jääb ära), ülemus (koosolek hiljemaks). Paku igale uus aeg.', 'Oled kordamööda juuksuri töötaja, sõber ja ülemus. Keeldu korra ja paku teine aeg.',
+        'Sul on kolm kõnet: juuksur (aeg ei sobi), sõber (kino jääb ära), ülemus (koosolek lükkub hilisemaks). Paku igale uus aeg.', 'Oled kordamööda juuksuri töötaja, sõber ja ülemus. Keeldu korra ja paku teine aeg.',
         ['Kahjuks mulle ei sobi…', 'Kas saame … edasi lükata?', 'Kuidas oleks…?'], ['Meil on vaba aeg…', 'See ei sobi, aga…', 'Lepime kokku: …']), 'Üks-ühele: õpetaja mängib kolme vastajat järjest; iga kõne lõpus kordab õpilane kokkuleppe üle. Siis vahetage.'),
       B.writing('019_p_write', 'Teade kolleegidele.', 'Kirjuta kolleegidele teade: koosolek muutub. 9–11 lauset: miks, uus aeg ja mida ette valmistada.', [9, 11], ['kahjuks', 'edasi', 'ette', 'uus aeg'], 3),
     ],
@@ -374,7 +374,7 @@ export const LESSONS = {
       B.text('019_t_sit', 'Plaan läks sassi', 'Reede hommik. Jaani pere nädalavahetuse plaan oli valmis, aga siis tulid halvad uudised. Auto on remondis, Kadri peab laupäeval tööle minema ja Sofia peab lattu minema. Oskaril on laupäeval kell üheksa turniir ja Mial kell kaksteist sõbra sünnipäev teises linnaosas. Nüüd on vaja uut plaani. Sina aitad!'),
       B.profiles('019_t_cards', 'Kes mida saab?', 'Loe kaarte ja täienda laused.', [
         ['Jaan', ['auto remondis kuni esmaspäevani', 'reedel vaba pärast kella kolme', 'laupäeval vaba'], ['Jaani auto on [remondis].', 'Reedel on Jaan vaba pärast kella [kolme].', 'Laupäeval saab Jaan Oskari mängu [vaatama] minna.']],
-        ['Kadri', ['laupäeval haiglas kella 8–11', 'sõidab tööle bussiga', 'pärast tööd vaba'], ['Laupäeval töötab Kadri kella kaheksast kella [üheteistkümneni].', 'Haiglasse sõidab ta [bussiga].', 'Pärast kella üheteistkümmet on Kadri [vaba].']],
+        ['Kadri', ['laupäeval haiglas kella 8–11', 'sõidab tööle bussiga', 'pärast tööd vaba'], ['Laupäeval töötab Kadri kella kaheksast kella [üheteistkümneni].', 'Haiglasse sõidab ta [bussiga].', 'Pärast kella 11 on Kadri [vaba].']],
         ['Sofia', ['laupäeval laos kella 9–14', 'reedel tööl kella neljani', 'pühapäeval vaba'], ['Laupäeval on Sofia [laos].', 'Reedel lõpetab ta töö kell [neli].', 'Pühapäeval on Sofial [vaba] päev.']],
         ['Viktor', ['silmaarst reedel kell 15.30', 'pärast tilku ei tohi autot juhtida', 'tahab Oskari mängu näha'], ['Viktori arsti aeg on reedel kell pool [neli].', 'Pärast tilku ei [tohi] ta autot juhtida.', 'Laupäeval tahab ta näha Oskari [mängu].']],
       ], '2'),

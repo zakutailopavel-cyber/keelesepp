@@ -349,7 +349,7 @@ export const LESSONS = {
         'Ülle: Miks see päev teile nii meelde jäi?',
         'Mati: Sest sel päeval sain aru, et minu töö on inimestele tähtis.',
         'Ülle: Kas te olete seda vanaprouat hiljem veel näinud?',
-        'Mati: Jah, viisin talle kirju veel kümme aastat. Igal jõulul küpsetas ta mulle piparkooke ja küsis, kas ma suusatan veel.',
+        'Mati: Jah, viisin talle kirju veel kümme aastat. Igal aastal jõulude ajal küpsetas ta mulle piparkooke ja küsis, kas ma suusatan veel.',
         'Ülle: Mida te sellest õppisite?',
         'Mati: Et väike töö võib kellelegi olla väga suur asi. Sellest ajast peale ei ole ma oma tööd kunagi väikeseks pidanud.',
       ], ['Mati kõige meeldejäävam päev oli [1997]. aasta talvel.', 'Kaheksateistkümneaastane Mati töötas sel ajal oma külas [postiljonina].', 'Ühel hommikul olid suure lume tõttu kõik [teed] kinni.', 'Buss ei sõitnud ja postiauto jäi sügavasse [lumme] kinni.', 'Mati ei jäänud koju, vaid viis kirjad [suuskadega|suuskadel] ise ära.', 'Sel päeval läbis Mati kokku [kakskümmend|20] kilomeetrit.', 'Alguses oli Mati [vihane], sest kott oli raske.', 'Üks vanaproua oli oodanud oma poja kirja terve [kuu].', 'Vanaproua luges kirja kohe Mati juuresolekul [läbi].', 'Mati oli väga näljane ja sõi kõik pirukad [ära].']),
