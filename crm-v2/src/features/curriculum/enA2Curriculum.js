@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-23.6';
+export const EN_A2_VERSION = '2026-10-23.7';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -66,6 +66,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['Booking a room', 'Hotels and hostels; Is there…? / Can I…?; I\'ll for decisions and offers; booking by phone and by e-mail.'],
       ['Greetings from Saaremaa', 'Postcards and holiday e-mails: present continuous for now, past simple for yesterday, going to for tomorrow.'],
       ['Module 6 check: Travel and holidays', 'Reading, listening, language tasks, an e-mail, a postcard and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 7, title: 'People and places', goal: 'Superlatives, countries and nationalities, describing places and people, festivals and dates.',
+    lessons: [
+      ['The tallest, the oldest, the best', 'superlatives'],
+      ['Where are you from?', 'countries, nationalities, languages'],
+      ['What is it like?', 'describing places and people'],
+      ['Festivals and traditions', 'in / on / at, dates'],
+      ['Module 7 check: People and places', 'check'],
     ],
   },
 ]);

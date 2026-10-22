@@ -92,8 +92,9 @@ import * as ena2m03 from './en/a2/module03.js';
 import * as ena2m04 from './en/a2/module04.js';
 import * as ena2m05 from './en/a2/module05.js';
 import * as ena2m06 from './en/a2/module06.js';
+import * as ena2m07 from './en/a2/module07.js';
 
-export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01, ena2m01, ena2m02, enb1m01, enb1m02, enb1m03, enb1m04, enb1m05, enb1m06, enb1m07, enb1m08, enb1m09, enb1m10, ena2m03, ena2m04, ena2m05, ena2m06];
+export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01, ena2m01, ena2m02, enb1m01, enb1m02, enb1m03, enb1m04, enb1m05, enb1m06, enb1m07, enb1m08, enb1m09, enb1m10, ena2m03, ena2m04, ena2m05, ena2m06, ena2m07];
 
 export const COURSES = {
   a2: { label: 'A2 · A1 → A2 õpitee', badge: 'KeeleSepp A1 → A2' },
