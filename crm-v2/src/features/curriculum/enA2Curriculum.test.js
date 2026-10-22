@@ -5,7 +5,7 @@ import { COURSE_MODULES } from '../worksheet-generator/admin/course/registry.js'
 describe('English A2 curriculum records', () => {
   const records = enA2CurriculumRecords();
   it('has one record per built lesson, with the course ids', () => {
-    const built = COURSE_MODULES.filter((mod) => mod.MODULE.course === 'en').flatMap((mod) => Object.keys(mod.LESSONS));
+    const built = COURSE_MODULES.filter((mod) => mod.MODULE.course === 'en' && mod.MODULE.level === 'English A2').flatMap((mod) => Object.keys(mod.LESSONS));
     expect(records.map((r) => r.id)).toEqual(built);
   });
   it('puts the lessons under Inglise keel · English A2 with a check every fifth lesson', () => {

@@ -1,3 +1,18 @@
+## 2026-10-22 · agent/english-b1-m1 — English B1 module 1 „People around me”
+
+- Main checked: 479f88b. Owner: „Дальше начинай Б1 курс”. B1 module list in docs/ENGLISH_COURSE_PLAN.md.
+- Module 1: en-b1-001 Getting to know you (present simple / continuous, stative verbs, subject / object questions),
+  002 What are you like? (personality, adjective + preposition, -ed / -ing, prefixes), 003 Friends and family
+  (phrasal verbs, always + continuous), 004 Asking politely (indirect questions, polite requests, formal e-mail),
+  005 the check in the Harno B1 task types. 15 sheets of 41–54 min; B1 norms (10 items, texts 200–400 words).
+- Teacher key en/b1/module01Key.js (Russian, every item); moduleKeys.test.js covers A2 1–2 and B1 1.
+- curriculum/enB1Curriculum.js (+ test): records en-b1-001…005, „Inglise keel · English B1”.
+- didacticCheck.js: the „inference question” check also knows English (why, explain, do you think…).
+- Translation tasks still have no model answer in the teacher key (the block has no answer field).
+- Checks: `gate_s.sh en/b1/module01` clean; vitest admin/course + curriculum 319 passed.
+- Not done: not published (waits for the owner's yes); no English audio.
+- Next safe step: publish B1 module 1 with the owner's yes, then B1 module 2 „Life stories”.
+
 ## 2026-10-22 · agent/english-a2-m2 — English A2 module 2 „Home and my town”
 
 - Main checked: 54bee4d. Owner: „Сливай и выкладывай в Õppevara, потом модуль 2”.

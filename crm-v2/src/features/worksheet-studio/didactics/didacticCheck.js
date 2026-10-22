@@ -13,7 +13,8 @@ const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).fi
 const solved = (text) => String(text || '').replace(/\[([^\]|]*)(\|[^\]]*)?\]/g, '$1').replace(/^\*/, '').trim();
 const wordsIn = (text) => String(text || '').split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 const sentencesIn = (text) => String(text || '').split(/(?<=[.!?…])\s+|\n+/).map((s) => s.trim()).filter((s) => wordsIn(s) >= 2);
-const INFERENCE = /\b(miks|kuidas|mida (sa )?arvad|mis sa arvad|põhjenda|selgita|mida tähendab|mis on (teksti|loo) (mõte|peamõte)|kas oled nõus)\b/i;
+// Estonian and (English course) English question words that ask for a reason, an opinion or a meaning
+const INFERENCE = /\b(miks|kuidas|mida (sa )?arvad|mis sa arvad|põhjenda|selgita|mida tähendab|mis on (teksti|loo) (mõte|peamõte)|kas oled nõus|why|how do you|what do you think|do you think|explain|what does .+ mean|do you agree)\b/i;
 
 // Can the task be solved without knowing Estonian, or not solved at all? (owner's audit 2026-10-12, docs/DIDACTIC_ENGINE.md
 // „Lahendatavus”). These are the faults the level audit found across all courses; each is a warning from A2+ on.
