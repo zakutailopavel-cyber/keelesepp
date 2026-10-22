@@ -1,3 +1,16 @@
+## 2026-10-23 · agent/sheet-error-cards — a worksheet's wrong sentences become the student's cards
+
+- Main checked: after #749. docs/LEARNER_PROFILE.md step 2.
+- When a student submits a worksheet, up to 5 wrong answers that make a whole sentence become his review cards in the
+  „Minu vead” format (word = the right sentence, translation = „Sinu lause: …”): a wrong gap rebuilds its sentence with
+  the other gaps right; a task whose right answer is a sentence (rewrite, correct, translate) gives that sentence.
+  Empty answers and one-word answers make no card; a sentence he already has is not added twice. They come back in
+  „Minu vead” and in „Päeva 5 minutit” (≤ 2 sentences a day). Staff opening a sheet add nothing.
+- Files: worksheet-studio/engine/errorCards.js (+test), DocWorksheetPlayer.jsx (+test), services/firebase/studentWords.js
+  (`addSheetErrors`). No rules change (a student may create his own words).
+- Checks: verify (eslint errors 0, vitest 2257 passed, 0 failed).
+- Next: the next worksheet gets 2–3 tasks on what this student gets wrong (LEARNER_PROFILE step 3).
+
 ## 2026-10-23 · agent/voice-task — „Häälülesanne”: speaking between lessons
 
 - Main checked: 15a2343+ (all earlier PRs merged). docs/LEARNER_PROFILE.md roadmap, speaking practice.

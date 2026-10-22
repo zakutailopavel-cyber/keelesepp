@@ -2,6 +2,8 @@
 import { CheckCircle2, Clock3, Send, Star } from 'lucide-react';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AuthContext } from '../../app/AuthContext.jsx';
+import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { errorCards } from './engine/errorCards.js';
 import { copyWithMark, markLabel, OWNER, watermarkStyle } from './contentMark.js';
 import { Badge, Button, Modal, Select } from '../../components/ui/index.js';
 import Sheet from './engine/Sheet.jsx';
@@ -37,6 +39,8 @@ const AUTOSAVE_EVERY_MS = 600;
 const AUTOSAVE_MIN_DELAY_MS = 150;
 
 export default function DocWorksheetPlayer({ assignment, repository, readOnly = false, onClose, onSubmitted, inline = false, board = false, wordService }) {
+  const authUser = useContext(AuthContext)?.user || null;
+  const isStudent = Boolean(authUser?.roles?.includes('student'));
   // the teacher may correct a task during the live lesson: the sheet follows the assignment document
   const [doc, setDoc] = useState(assignment.worksheetDoc);
   const [answers, setAnswers] = useState(assignment.answers || {});
@@ -147,6 +151,11 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       const errorLog = Object.entries(result.results).filter(([, v]) => v === 'bad').slice(0, 20)
         .map(([key]) => ({ key, answer: String(stored[key] ?? '') }));
       await repository.submitWorksheet({ assignmentId: assignment.id, answers: stored, score: result.score, errorLog });
+      // the student's wrong sentences come back as his review cards („Minu vead”, „Päeva 5 minutit”)
+      if (isStudent && !readOnly) {
+        const cards = errorCards(doc, errorLog);
+        if (cards.length) Promise.resolve().then(() => (wordService || studentWordsService).addSheetErrors?.({ studentId: assignment.studentId, cards, user: authUser })).catch(() => {});
+      }
       setAnswers(stored); setScore(result.score); setSubmitted(true); onSubmitted?.();
       const goals = Object.entries(result.perGoal || {}).filter(([id, g]) => id !== '_none' && g.total > 0 && g.ok === g.total).length;
       petCelebrate({ xp: 15 + goals * 5, goals });

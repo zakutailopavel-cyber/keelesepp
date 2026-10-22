@@ -71,6 +71,17 @@ export const studentWordsService = {
     return records.map(([id, record]) => normalizeWord(id, record));
   },
 
+  // a submitted worksheet's errors as the student's own sentence cards (engine/errorCards.js); a sentence he already has
+  // is not added twice. Practice only: a failure never stops the submission.
+  async addSheetErrors({ studentId, cards = [], user }) {
+    if (!studentId || !cards.length) return 0;
+    const existing = await this.listForStudent(studentId);
+    const have = new Set(existing.map((word) => String(word.word || '').trim().toLocaleLowerCase('et')));
+    const fresh = cards.filter((card) => !have.has(String(card.word).trim().toLocaleLowerCase('et')));
+    for (const card of fresh) await this.add({ studentId, invitationId: '', user, ...card });
+    return fresh.length;
+  },
+
   // the student keeps a word from a course deck for repetition („Lisa raskemad minu sõnadesse”)
   async addOwn({ studentId, user, ...input }) {
     return this.add({ studentId, invitationId: '', user, ...cleanWord(input) });

@@ -145,3 +145,21 @@ describe('structured worksheet player', () => {
     expect(wordFromSelection({ toString: () => '…' })).toBe('');
   });
 });
+
+describe('a submitted sheet\'s wrong sentences become the student\'s cards (owner 2026-10-23)', () => {
+  it('the student\'s wrong gap comes back as his corrected sentence; staff opening the sheet add nothing', async () => {
+    const { AuthContext } = await import('../../app/AuthContext.jsx');
+    const gapDoc = { schema: SCHEMA, id: 'd2', meta: { title: 'Elukoht' }, blocks: [{ id: 'g', type: 'gaps', data: { title: 'Täida', sentences: 'Ma [elan] Tallinnas.' } }] };
+    const wordService = { addSheetErrors: vi.fn().mockResolvedValue(1), lookupStudentWord: vi.fn() };
+    const repository = repo();
+    const { container } = render(<AuthContext.Provider value={{ user: { uid: 'stu', roles: ['student'] } }}>
+      <DocWorksheetPlayer assignment={assignment({ worksheetDoc: gapDoc })} repository={repository} inline wordService={wordService} />
+    </AuthContext.Provider>);
+    const input = [...container.querySelectorAll('.ws-page input')].find((el) => !el.closest('.ws-measure'));
+    fireEvent.change(input, { target: { value: 'elab' } });
+    fireEvent.click(screen.getByRole('button', { name: /Esita tööleht/ }));
+    await waitFor(() => expect(wordService.addSheetErrors).toHaveBeenCalledWith(expect.objectContaining({
+      studentId: 'st-1', cards: [{ word: 'Ma elan Tallinnas.', translation: 'Sinu lause: Ma elab Tallinnas.' }],
+    })));
+  });
+});
