@@ -1,0 +1,29 @@
+# Course cast (B1 course, template v4)
+
+The same people appear across the B1 modules, so a learner follows one world (docs/METHODOLOGY_STANDARD.md §3).
+Keep facts consistent; add new facts here when a module adds them.
+
+- **Jaan Mets** (35) — café cook (15 years in kitchens), from December in the canteen of Oskar's school Kase kool
+  (module 9); volunteers at festivals, fixes everything; wife **Kadri** (paediatrician at a children's ward); children **Mia** (6,
+  loves drawing, the dog, penguins) and **Oskar** (9, football); dog **Muki**. Lives in Tallinn, apartment block with an
+  online residents' group (module 2).
+- **Sofia** (28) — Jaan's sister, learns Estonian, new office job (boss **Liis**, colleagues **Markus** and **Anna**);
+  has a sister in Tartu (module 5).
+- **Viktor** (63) — uncle of Jaan and Sofia (their mother's brother), pensioner, repairs bicycles, farm (talu) in
+  Kõrvemaa with a sauna; grandchildren visit on Sundays.
+- **Helgi** (59 → 60 in module 2) — mother of Jaan and Sofia, teacher in Tartu, makes the best pancakes.
+- **Liis** — Sofia's calm, precise boss; also a friend of the group (module 5: the lost cake, a sick week).
+- **Markus** — big beard, good humour, office work (module 5: finished a big project).
+- **Anna** — glasses, long curly hair, quiet, trusted; has a dog; her sister marries (module 5: the lost bag).
+- **Sofia's flat** (module 3): moved from a rented room in Mustamäe to a wooden house in Kalamaja; neighbour **Tiina** (72,
+  head of the housing association); housewarming (soolaleivapidu) for the family.
+- **Anna's dog** is **Bruno** (module 4); **Tõnu** is the father of Oskar's friend Rasmus (gives lifts).
+- **Module 7:** Viktor hurt his knee cycling; new colleague **Kristjan** at Sofia's office; family doctor **dr Kask**,
+  nurse **Kati** (advice line), **dr Tamm** (radio sleep expert).
+- **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher
+  **Maret**; Anna learns Finnish (Helsinki office); Markus's English course; Liis studied in Helsinki, learns French;
+  Ukrainian girl **Daria** and her mother **Olena** (new at Oskar's school).
+- **Module 6:** Markus has a milk allergy, Oskar a nut allergy, Mia does not eat fish; Viktor sells apples, eggs and
+  honey at Nõmme market.
+- **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
+  from shop customer service); new administrator **Jelena**.

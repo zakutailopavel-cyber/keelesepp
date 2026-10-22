@@ -1,3 +1,19 @@
+## 2026-10-23 · agent/b1-v4-course — B1 modules 3, 4, 6–11 in template v4
+
+- Stacked on agent/b1-m2-v4 (PR #750). Owner goal: „подгони курсы до финального вида и после каждого урока продумай,
+  что можно улучшить”. Modules rewritten (exams unchanged, old files in `archive/v3/b1/`): 03 (adjective suffixes),
+  04 (particle verbs), 06 (total / partial object), 07 (translative of change), 08 (verb government), 09 (ma-forms with
+  case endings), 10 (pluperfect), 11 (participles as attributes). Each: one storyline with the cast
+  (`docs/COURSE_CAST.md`), a module goal and final project, review at every lesson start, one-to-one notes, ≥ 2
+  listening tasks, almost no errorfix / translation / dictation.
+- `grammarPlan.js`: 7 more B1 items taught (B1 gaps left: quotative → module 13, completion → 14, jussive → 15).
+  `methodGaps.test.js`: listening gaps left in B1 12, 14, 15; no recycling gap.
+- Audio: new listening blocks recorded (TartuNLP, free), 11 stale recordings removed; voices know the new characters.
+- `docs/COURSE_REVIEW_LOG.md`: per-lesson improvement notes (pictures, real documents, real voices, cast clashes);
+  `docs/METHODOLOGY_STANDARD.md` copied from PR #744 so agents can read it.
+- Checks: worksheet-generator + worksheet-studio — 1079 passed, 3 skipped. Not published.
+- Open: `b1/lessonGoals.js` sub-goals of the rewritten lessons are still the old ones; B1 modules 12–18; exams' v4 pass.
+
 ## 2026-10-22 · agent/b1-m2-v4 — B1 module 2 in template v4 with kes/mis relative clauses
 
 - Stacked on agent/method-gates-2 (PR #746). Owner: build the missing B1 grammar into the existing modules.

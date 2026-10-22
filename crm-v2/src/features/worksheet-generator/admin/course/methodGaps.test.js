@@ -13,11 +13,11 @@ describe('methodology across a course (docs/METHODOLOGY_STANDARD.md §2)', () =>
   // known gaps of the older modules; a rewritten module leaves the list (remove it here)
   it('lists the known gaps of the older modules', () => {
     expect(gaps.filter((g) => g.code === 'listening').map((g) => g.module)).toEqual([
-      'a2b1-module-04', 'a2b1-module-06', 'a2b1-module-07', 'a2b1-module-08', 'a2b1-module-10', 'a2b1-module-11', 'a2b1-module-12', 'a2b1-module-14', 'a2b1-module-15',
+      'a2b1-module-12', 'a2b1-module-14', 'a2b1-module-15',
       'b1b2-module-17', 'b1b2-module-18',
       'est-c1-module-05', 'est-c1-module-06', 'est-c1-module-07', 'est-c1-module-08',
     ]);
-    expect(gaps.filter((g) => g.code === 'recycling').map((g) => g.module)).toEqual(['a2b1-module-03', 'a2b1-module-04']);
+    expect(gaps.filter((g) => g.code === 'recycling').map((g) => g.module)).toEqual([]);
     // A2 and C1 have no vocabulary blocks at all
     expect([...new Set(gaps.filter((g) => g.code === 'no-vocabulary').map((g) => g.module.split('-module')[0]))]).toEqual(['a2', 'est-c1']);
   });
