@@ -1,3 +1,16 @@
+## 2026-10-22 · deployed: bookkeeping and INF 3 (owner: „Да, сливай и выкладывай”)
+
+- Merged #724 (core), #725 (Raamatupidamine page), #726 (INF 3); main d4a5f46. Vercel builds the CRM from main.
+- Deployed from main d4a5f46: functions financeApi (update) and taxFormApi (new), firestore.rules.
+- Checked live: taxFormApi refuses an unknown link; /maksuandmed/* is served. Dry run on production data (read-only):
+  214 automatic entries, all balanced; 1010 +8 624 €, 1200 +32 €, 2500 −567 €, 3060 −8 089 €. No entries are written
+  yet: they are created the first time an admin opens Finantsid → Raamatupidamine. INF 3 2026 so far: 45 trainees,
+  8 544 €, no personal codes yet.
+- Owner's gates: opening balances on 01.01.2026 from the accountant's käibeandmik („Algsaldod”); the EHIS
+  majandustegevusteade for täienduskoolitus before filing INF 3; salaries are manual entries for now.
+- Next safe step: the owner enters the opening balances and sends the parents' form links; then English B1 module 3
+  (branch agent/english-b1-m3, lessons 011–013 done).
+
 ## 2026-10-22 · agent/accounting-ui — Raamatupidamine page (on top of agent/accounting-core)
 
 - Route /finance/raamatupidamine (admin), linked from Finantsid („Raamatupidamine”). Tabs: Päevaraamat, Pearaamat,
