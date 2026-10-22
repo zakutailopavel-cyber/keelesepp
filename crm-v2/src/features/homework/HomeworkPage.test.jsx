@@ -348,3 +348,29 @@ describe('HomeworkPage: homework from a Live Classroom lesson', () => {
     expect(screen.getByText(/Tunnist/)).toBeInTheDocument();
   });
 });
+
+describe('HomeworkPage: Häälülesanne (owner 2026-10-23)', () => {
+  const today = new Date().toISOString().slice(0, 10);
+  it('the student of a voice task sees the questions and records instead of „Tehtud”', async () => {
+    const task = { id: 'v1', studentId: 'student-1', studentName: 'Mari', task: 'Räägi oma nädalavahetusest', status: 'Ootel', due: today, kind: 'voice', prompts: ['Kuhu sa läksid?'] };
+    renderPage({ uid: 'student-user-1', displayName: 'Mari', roles: ['student'] }, repositories([], [], [task]));
+    expect(await screen.findByText('Kuhu sa läksid?')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Tehtud$/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: /Salvesta vastus/ }));
+    expect(screen.getByRole('button', { name: /Alusta salvestamist/ })).toBeInTheDocument();
+  });
+
+  it('the teacher hears the answer in the list and gives a voice task', async () => {
+    const task = { id: 'v1', studentId: 'student-1', studentName: 'Mari', task: 'Räägi', status: 'Tehtud', due: today, kind: 'voice', prompts: [], studentFiles: [{ name: 'haalvastus-40s.webm', url: 'https://files.example/v.webm' }] };
+    const data = repositories([], [], [task]);
+    renderPage({ uid: 'teacher-1', displayName: 'Õpetaja', roles: ['teacher'] }, data);
+    expect(await screen.findByLabelText('Häälvastus: haalvastus-40s.webm')).toHaveAttribute('src', 'https://files.example/v.webm');
+    fireEvent.click(screen.getByRole('button', { name: /Lisa kodutöö|Uus kodutöö|Lisa ülesanne/ }));
+    fireEvent.change(screen.getByLabelText('Õpilane'), { target: { value: 'student-1' } });
+    fireEvent.change(screen.getByLabelText('Ülesanne'), { target: { value: 'Räägi oma perest' } });
+    fireEvent.click(screen.getByRole('checkbox', { name: /Häälülesanne/ }));
+    fireEvent.change(screen.getByLabelText(/Abiküsimused/), { target: { value: 'Kes on su pere?\nMis teile meeldib?' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa ülesanne' }));
+    await waitFor(() => expect(data.repository.create).toHaveBeenCalledWith(expect.objectContaining({ task: 'Räägi oma perest', kind: 'voice', prompts: ['Kes on su pere?', 'Mis teile meeldib?'] })));
+  });
+});
