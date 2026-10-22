@@ -167,3 +167,11 @@
 .vt-questions li { display: grid; gap: 6px; }
 .vt-questions small { color: #667085; }
 @media (max-width: 560px) { .vt-match label { grid-template-columns: 1fr; gap: 4px; } }
+
+/* „Minu sõnad ja vead” (WordGrowthCard) on the student's and the parent's home */
+.word-growth { display: grid; gap: 10px; padding: 16px; border: 1px solid #e7e9f3; border-radius: 18px; background: #fff; }
+.word-growth__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.word-growth__grid > div { display: grid; gap: 2px; padding: 12px; border-radius: 14px; background: #f8f7ff; color: #5925dc; }
+.word-growth__grid strong { font-size: 1.6rem; line-height: 1.1; color: #101828; }
+.word-growth__grid small { color: #475467; font-size: .8rem; }
+.word-growth__grid small span { display: block; opacity: .8; }
