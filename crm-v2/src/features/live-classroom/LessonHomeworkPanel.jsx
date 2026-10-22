@@ -19,6 +19,7 @@ export default function LessonHomeworkPanel({ invitation, user, boardPage = null
   const [due, setDue] = useState(() => inDays(7));
   const [withPage, setWithPage] = useState(Boolean(assignPage && boardPage));
   const [withSheet, setWithSheet] = useState(Boolean(worksheet) && !assignPage);
+  const [voice, setVoice] = useState(false);
   const [given, setGiven] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -40,10 +41,12 @@ export default function LessonHomeworkPanel({ invitation, user, boardPage = null
         invitation, user, task, due,
         boardPage: withPage && boardPage ? boardPage : null,
         worksheet: withSheet && worksheet ? worksheet : null,
+        voice,
       });
       setGiven((current) => [...current, item]);
       setTask('');
       setWithPage(false);
+      setVoice(false);
     } catch (next) {
       setError(next?.message || 'Kodutööd ei saanud lisada.');
     } finally {
@@ -60,6 +63,7 @@ export default function LessonHomeworkPanel({ invitation, user, boardPage = null
         <label className="vw-field"><span>Tähtaeg</span><input type="date" value={due} onChange={(event) => setDue(event.target.value)} /></label>
         {boardPage ? <label className="vw-check"><input type="checkbox" checked={withPage} onChange={(event) => setWithPage(event.target.checked)} /> Lisa tahvlileht „{boardPage.title}”</label> : null}
         {worksheet ? <label className="vw-check"><input type="checkbox" checked={withSheet} onChange={(event) => setWithSheet(event.target.checked)} /> Tööleht „{worksheet.title}” kodutööks (sama tähtaeg)</label> : null}
+        <label className="vw-check"><input type="checkbox" checked={voice} onChange={(event) => setVoice(event.target.checked)} /> Häälülesanne: õpilane vastab häälega (kuni 2 min)</label>
         <button type="submit" className="vw-btn is-primary" disabled={busy || !task.trim()}>Anna kodutöö</button>
       </form>
       {error ? <p className="vw-error" role="alert">{error}</p> : null}

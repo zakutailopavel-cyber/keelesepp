@@ -1,4 +1,4 @@
-import { Archive, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Paperclip, PlayCircle, Plus, RotateCcw, Search, Star, Trash2 } from 'lucide-react';
+import { Archive, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Mic, Paperclip, PlayCircle, Plus, RotateCcw, Search, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -17,13 +17,15 @@ import TextAnnotationEditor from './TextAnnotationEditor.jsx';
 import MaterialPreview from '../library/MaterialPreview.jsx';
 import { buildLibraryItems } from '../library/libraryModel.js';
 import '../common/finalReadiness.css';
+import VoiceAnswer from './VoiceAnswer.jsx';
+import { isAudioFile, voicePrompts } from './voiceTask.js';
 import SubmissionReviewModal from './SubmissionReviewModal.jsx';
 import { formatDate } from './submissionFormat.js';
 import { isHomeworkOpen } from './homeworkStatus.js';
 import { quickFeedback, suggestedGrade } from './reviewTemplates.js';
 import { QUICK_MIN_GRADE, isOverdue, selfCompleted, sortHomework, staleHomework } from './homeworkFlow.js';
 
-const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10) };
+const blank = { studentId: '', task: '', due: new Date().toISOString().slice(0, 10), voice: false, prompts: '' };
 
 // The student's answer to a task: a few lines and / or a photo of the notebook (optional), sent with „Tehtud”.
 function AnswerForm({ busy, onSend, onCancel }) {
@@ -155,7 +157,10 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     try {
       const student = students.items.find((item) => item.id === form.studentId);
       if (!student) throw new Error('Vali õpilane.');
-      await repository.create({ ...form, studentName: student.name });
+      // „Häälülesanne”: the student answers by voice; up to three helper questions
+      const { voice, prompts, ...task } = form;
+      const lines = voicePrompts(prompts);
+      await repository.create({ ...task, studentName: student.name, ...(voice ? { kind: 'voice', prompts: lines } : {}) });
       setModal(false);
       setForm(blank);
       setSuccess('Kodutöö lisati.');
@@ -288,9 +293,14 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
             <div><strong className="task-text">{item.task}</strong><span>{item.studentName || 'Õpilane'}{exerciseTask ? ' · Interaktiivne harjutus' : ''}{item.source === 'live-classroom' ? ' · Tunnist' : ''}</span>
               {item.boardPageId ? <Link className="task-link" to={staff ? `/board/${item.studentId}?page=${item.boardPageId}` : `/board?page=${item.boardPageId}`}>Ava tahvlileht „{item.boardPageTitle || 'Tahvlileht'}”</Link> : null}
               {item.worksheetTitle ? <span>Tööleht „{item.worksheetTitle}” on all „Töölehed”</span> : null}
-              {item.studentAnswer || item.studentFiles?.length ? <div className="task-answer"><small>Õpilase vastus</small>{item.studentAnswer ? <p>{item.studentAnswer}</p> : null}{(item.studentFiles || []).map((file) => <a key={file.url} href={file.url} target="_blank" rel="noreferrer"><Paperclip size={13} /> {file.name || 'Fail'}</a>)}</div> : null}
-              {studentCanFinish && answering !== item.id ? <div className="task-actions"><Button loading={answerBusy && answering === null} onClick={() => finishTask(item)}><CheckCircle2 size={16} /> Tehtud</Button><Button variant="secondary" onClick={() => setAnswering(item.id)}><Paperclip size={15} /> Lisa vastus</Button></div> : null}
-              {studentCanFinish && answering === item.id ? <AnswerForm busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} /> : null}</div>
+              {item.kind === 'voice' && !(item.studentFiles || []).some(isAudioFile) && item.prompts?.length ? <ul className="voice-answer__prompts">{item.prompts.map((line) => <li key={line}>{line}</li>)}</ul> : null}
+              {item.studentAnswer || item.studentFiles?.length ? <div className="task-answer"><small>Õpilase vastus</small>{item.studentAnswer ? <p>{item.studentAnswer}</p> : null}{(item.studentFiles || []).map((file) => (isAudioFile(file) ? <audio key={file.url} controls src={file.url} aria-label={`Häälvastus: ${file.name || ''}`} /> : <a key={file.url} href={file.url} target="_blank" rel="noreferrer"><Paperclip size={13} /> {file.name || 'Fail'}</a>))}</div> : null}
+              {studentCanFinish && answering !== item.id ? (item.kind === 'voice'
+                ? <div className="task-actions"><Button onClick={() => setAnswering(item.id)}><Mic size={15} /> Salvesta vastus</Button></div>
+                : <div className="task-actions"><Button loading={answerBusy && answering === null} onClick={() => finishTask(item)}><CheckCircle2 size={16} /> Tehtud</Button><Button variant="secondary" onClick={() => setAnswering(item.id)}><Paperclip size={15} /> Lisa vastus</Button></div>) : null}
+              {studentCanFinish && answering === item.id ? (item.kind === 'voice'
+                ? <VoiceAnswer prompts={item.prompts || []} busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} />
+                : <AnswerForm busy={answerBusy} onSend={(answer) => finishTask(item, answer)} onCancel={() => setAnswering(null)} />) : null}</div>
             <div className="task-due">{exerciseTask ? <Badge tone="info">Harjutus</Badge> : null}{materialTask ? <button className="task-preview-button" aria-label={`Eelvaade: ${item.task}`} disabled={loadingMaterial === item.id} onClick={() => openMaterial(item)}>{loadingMaterial === item.id ? <span className="button__spinner" /> : <Eye size={16} />}<span>Eelvaade</span></button> : null}<Badge tone={done ? 'success' : closed ? 'neutral' : overdue ? 'danger' : 'neutral'}>{done ? 'Tehtud' : closed ? 'Suletud' : `Tähtaeg ${item.due || '—'}`}</Badge>{staff && !done && !closed ? <button className="text-button" aria-label={`Sulge: ${item.task}`} title="Sulge (keegi ei tee seda enam)" onClick={() => closeTasks([item])}><Archive size={17} /></button> : null}{staff ? <button className="text-button danger" aria-label="Kustuta" onClick={async () => { if (window.confirm('Kas kustutada kodutöö?')) { await repository.remove(item.id); await state.reload(); } }}><Trash2 size={17} /></button> : null}</div>
           </article>;
         })}</div> : <EmptyState title="Kodutöid ei leitud" description={staff ? 'Lisa esimene ülesanne või muuda filtrit.' : 'Praegu ei ole siin ühtegi ülesannet.'} />}
@@ -303,7 +313,9 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
     </div>
 
     <Modal open={modal} title="Uus kodutöö" onClose={() => setModal(false)} footer={<><Button variant="secondary" onClick={() => setModal(false)}>Loobu</Button><Button loading={saving} type="submit" form="homework-form">Lisa ülesanne</Button></>}>
-      <form id="homework-form" className="form-grid" onSubmit={submit}><Select id="homework-student" className="form-grid__wide" label="Õpilane" value={form.studentId} onChange={(event) => setForm({ ...form, studentId: event.target.value })} required><option value="">Vali õpilane</option>{students.items.map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}</Select><Input id="homework-task" className="form-grid__wide" label="Ülesanne" value={form.task} onChange={(event) => setForm({ ...form, task: event.target.value })} required /><Input id="homework-due" label="Tähtaeg" type="date" value={form.due} onChange={(event) => setForm({ ...form, due: event.target.value })} required /></form>
+      <form id="homework-form" className="form-grid" onSubmit={submit}><Select id="homework-student" className="form-grid__wide" label="Õpilane" value={form.studentId} onChange={(event) => setForm({ ...form, studentId: event.target.value })} required><option value="">Vali õpilane</option>{students.items.map((student) => <option key={student.id} value={student.id}>{student.name}</option>)}</Select><Input id="homework-task" className="form-grid__wide" label="Ülesanne" value={form.task} onChange={(event) => setForm({ ...form, task: event.target.value })} required /><Input id="homework-due" label="Tähtaeg" type="date" value={form.due} onChange={(event) => setForm({ ...form, due: event.target.value })} required />
+        <label className="form-grid__wide homework-voice-toggle"><input type="checkbox" checked={form.voice} onChange={(event) => setForm({ ...form, voice: event.target.checked })} /> <span><strong>Häälülesanne</strong> — õpilane räägib kuni 2 minutit ja saadab salvestuse</span></label>
+        {form.voice ? <label className="textarea-field form-grid__wide"><span>Abiküsimused (kuni 3, igaüks eraldi real)</span><textarea rows={3} value={form.prompts} onChange={(event) => setForm({ ...form, prompts: event.target.value })} placeholder={'Mida sa eile tegid?\nKuhu sa läksid?\nMis sulle meeldis?'} /></label> : null}</form>
     </Modal>
 
     {reviewing ? <SubmissionReviewModal

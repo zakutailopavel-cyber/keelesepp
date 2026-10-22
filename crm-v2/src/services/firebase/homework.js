@@ -216,7 +216,7 @@ export const homeworkService = {
   },
   // Live Classroom „Kodutöö”: a task given in the lesson. It may point at a board page (the student opens it from the
   // homework list) and may give the room's worksheet a due date (it is already the student's assignment).
-  async createFromLesson({ invitation, user, task, due = '', note = '', boardPage = null, worksheet = null }) {
+  async createFromLesson({ invitation, user, task, due = '', note = '', boardPage = null, worksheet = null, voice = false }) {
     const text = String(task || '').trim();
     if (!invitation?.studentId) throw new Error('Õpilane puudub.');
     if (!text) throw new Error('Kirjuta, mida teha.');
@@ -240,6 +240,8 @@ export const homeworkService = {
       createdAt: now,
       ...(boardPage?.id ? { boardPageId: boardPage.id, boardPageTitle: String(boardPage.title || 'Tahvlileht').slice(0, 200) } : {}),
       ...(worksheet?.id ? { worksheetAssignmentId: worksheet.id, worksheetTitle: String(worksheet.title || 'Tööleht').slice(0, 200) } : {}),
+      // „Häälülesanne”: the student answers by recording his voice (homework/VoiceAnswer.jsx)
+      ...(voice ? { kind: 'voice', prompts: [] } : {}),
     };
     // the homework and the worksheet's deadline are written together: never a task without the sheet's due date
     const reference = doc(collection(db, 'homework'));

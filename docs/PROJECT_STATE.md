@@ -1,3 +1,17 @@
+## 2026-10-23 · agent/voice-task — „Häälülesanne”: speaking between lessons
+
+- Main checked: 15a2343+ (all earlier PRs merged). docs/LEARNER_PROFILE.md roadmap, speaking practice.
+- A homework can be a voice task (`kind: 'voice'`, `prompts` ≤ 3): the teacher ticks „Häälülesanne” in Kodutööd → Uus
+  kodutöö (with helper questions) or in the Live Classroom homework panel. The student sees the questions and
+  „Salvesta vastus”: records up to 2 minutes (MediaRecorder), listens, sends — the file goes with the answer
+  (`submitAnswer`, homework/{studentId}/…; storage rules allow audio) and the task is done. Audio answers play in the
+  task list for the teacher and the student.
+- No rules change: staff create homework freely; the student writes only `studentFiles`/`status` as before.
+- Files: homework/VoiceAnswer.jsx (+test), voiceTask.js (+test), HomeworkPage.jsx (+tests), reviewLayout.css,
+  live-classroom/LessonHomeworkPanel.jsx, services/firebase/homework.js (`createFromLesson` voice).
+- Checks: vitest crm-v2 all green. The browser pane blocks the microphone, so recording is tested with a fake recorder.
+- Next: transcribe voice answers on the school Mac (like lesson recordings) and feed errors into the learner profile.
+
 ## 2026-10-23 · agent/english-published — English A2 and B1 are in Õppevara
 
 - Main checked: 15a2343 (all of #732–#743 merged with the owner's yes, Vercel production deployed).
