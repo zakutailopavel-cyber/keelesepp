@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-23.7';
+export const EN_A2_VERSION = '2026-10-23.8';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -76,6 +76,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['What is it like?', 'describing places and people'],
       ['Festivals and traditions', 'in / on / at, dates'],
       ['Module 7 check: People and places', 'check'],
+    ],
+  },
+  {
+    number: 8, title: 'Shopping and money', goal: 'Prices and quantities, too / enough, comparing products, returns and complaints.',
+    lessons: [
+      ['How much is it?', 'much / many, prices'],
+      ['Too big, not big enough', 'too / enough, clothes'],
+      ['Which one is better?', 'comparatives, as… as'],
+      ['I\'d like to return this', 'polite requests, past simple'],
+      ['Module 8 check: Shopping and money', 'check'],
     ],
   },
 ]);
