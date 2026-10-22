@@ -1,3 +1,18 @@
+## 2026-10-23 · agent/english-a2 — English A2 modules 3–10: the A2 course is complete
+
+- Main checked: ab99b9b (2026-10-22). Branch agent/english-a2, draft PR #733 (stacked on #732, B1).
+- Modules (all with Russian teacher keys, strict gates, curriculum records; enA2Curriculum version 2026-10-23.10):
+  3 School and learning (011–015), 4 Free time (016–020), 5 Food and health (021–025), 6 Travel and holidays
+  (026–030), 7 People and places (031–035: superlatives, nationalities, What is it like?, festivals and in / on / at),
+  8 Shopping and money (036–040: much / many, too / enough, as… as, returns and complaints), 9 Media and technology
+  (041–045: present perfect ever / never, just / already / yet, should for online safety, present perfect vs past
+  simple), 10 A2 exam practice (046–049 strategy lessons with a grammar review, 050 a full A2 mock exam).
+- Files: crm-v2/src/features/worksheet-generator/admin/course/en/a2/module03…10 (.js, b.js, Key.js), registry.js,
+  strictModules.json, en/a2/moduleKeys.test.js, curriculum/enA2Curriculum.js.
+- Checks: `gate_s.sh en/a2/moduleNN` clean for 3–10; vitest worksheet-generator 866 passed, curriculum green.
+- Not published (owner's yes needed: install en-a2-011…050 records, publish 120 sheets). A1 is out of scope (owner).
+- Next safe step: the owner's yes to publish A2 3–10 and B1 4–10.
+
 ## 2026-10-23 · agent/english-b1-m4 — English B1 modules 5–10: the B1 course is complete
 
 - Modules (all with Russian teacher keys, strict gates, curriculum records; enB1Curriculum version 2026-10-23.10):
