@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-22.2';
+export const EN_B1_VERSION = '2026-10-22.3';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -27,6 +27,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['How things used to be', 'used to / didn\'t use to / Did you use to…? for past habits and states; used to vs past simple.'],
       ['Telling a story', 'Time linkers (at first, as soon as, meanwhile, eventually, in the end); strong adjectives; a competition story.'],
       ['Module 2 check: Life stories', 'Reading, listening, language use, a story, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 3, title: 'Experiences', goal: 'Talking about life experiences, recent news, how long things have lasted and achievements.',
+    lessons: [
+      ['Have you ever…?', 'Present perfect for experiences (ever, never, been / gone), past participles; details in the past simple.'],
+      ['Just, already, yet', 'Present perfect with just, already, yet and still; news in the present perfect, details in the past simple.'],
+      ['How long have you…?', 'Present perfect with for and since; How long…?; ago with the past simple.'],
+      ['Then or up to now?', 'Present perfect or past simple; follow-up questions; achievements and a scholarship application.'],
+      ['Module 3 check: Experiences', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);

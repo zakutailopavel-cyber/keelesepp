@@ -1,3 +1,13 @@
+## 2026-10-22 · agent/english-b1-m3 — English B1 module 3 „Experiences”
+
+- Module 3: en-b1-011 Have you ever…? (present perfect for experience, been / gone, participles), 012 Just, already, yet
+  (news vs details), 013 How long have you…? (for / since / ago), 014 Then or up to now? (present perfect vs past simple,
+  follow-up questions, scholarship application), 015 the check in the Harno B1 task types. 15 sheets of 42–51 min.
+- Teacher key en/b1/module03Key.js (Russian, every item); moduleKeys.test.js covers B1 1–3; strictModules +module 3.
+- curriculum/enB1Curriculum.js: module 3 records (version 2026-10-22.3).
+- Checks: `gate_s.sh en/b1/module03` clean; vitest admin/course 304 passed.
+- Not published yet (waits for the owner). Next: B1 module 4 „Plans and the future”.
+
 ## 2026-10-22 · agent/inf3-parent-code — a parent's INF 3 code for all their children
 
 - Owner: „личный код уже родителю можно приписывать чтобы потом автоматически вносилось” → yes, build it.
