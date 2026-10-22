@@ -1,4 +1,4 @@
-import { assignRoom, candidateDates, roomChoices, roomConflict } from './roomModel.js';
+import { assignRoom, candidateDates, mergedBookings, roomChoices, roomConflict } from './roomModel.js';
 
 // 2026-10-15 is a Thursday
 const rooms = [{ id: 'r1', name: 'Kabinet 1' }, { id: 'r2', name: 'Kabinet 2' }, { id: 'r3', name: 'Vana', active: false }];
@@ -29,5 +29,39 @@ describe('rooms (Oleksiy 2026-10-15)', () => {
     expect(assignRoom(rooms, full, { date: '2026-10-15', time: '10:00' }).error).toMatch(/Kõik kabinetid.*veebitunniks/);
     expect(assignRoom(rooms, full, { date: '2026-10-15', time: '10:00', online: true })).toEqual({ roomId: '', roomName: '' });
     expect(assignRoom([], full, { date: '2026-10-15', time: '10:00' })).toEqual({ roomId: '', roomName: '' });
+  });
+});
+
+describe('room bookings follow the lessons on the calendar (Oleksiy 2026-10-22)', () => {
+  const lesson = { id: 's1', roomId: 'r1', roomName: 'Kabinet 1', date: '2026-10-26', time: '16:00', duration: 60, status: 'Planeeritud' };
+  const stale = { scheduleId: 's1', roomId: 'r1', date: '2026-10-26', time: '16:00', duration: 60 };
+  const candidate = { date: '2026-10-26', time: '16:00', duration: 60 };
+
+  it('a lesson cancelled with „Tühista” frees its room at once, although the server booking is still there', () => {
+    const cancelled = { ...lesson, status: 'Tühistatud' };
+    expect(roomConflict(mergedBookings([stale], [cancelled]), candidate, 'r1')).toBe('');
+    expect(roomConflict(mergedBookings([stale], [lesson]), candidate, 'r1')).toBe('2026-10-26');
+  });
+
+  it('a cancelled date of a series frees the room that day only', () => {
+    const series = { ...lesson, recurring: true, startDate: '2026-10-19', day: 'Mon', excludedDates: ['2026-10-26'] };
+    const bookings = mergedBookings([{ ...stale, recurring: true, startDate: '2026-10-19', day: 'Mon' }], [series]);
+    expect(roomConflict(bookings, candidate, 'r1')).toBe('');
+    expect(roomConflict(bookings, { ...candidate, date: '2026-11-02' }, 'r1')).toBe('2026-11-02');
+    const viaStatus = { ...series, excludedDates: [], occurrenceStatuses: { '2026-10-26': { status: 'Tühistatud' } } };
+    expect(roomConflict(mergedBookings([], [viaStatus]), candidate, 'r1')).toBe('');
+  });
+
+  it('a moved lesson frees its old time; a deleted one frees the room; other teachers\' lessons still count', () => {
+    const moved = { ...lesson, time: '18:00' };
+    expect(roomConflict(mergedBookings([stale], [moved]), candidate, 'r1')).toBe('');
+    expect(roomConflict(mergedBookings([stale], [], { s1: null }), candidate, 'r1')).toBe('');
+    const other = { scheduleId: 'other-teacher', roomId: 'r1', date: '2026-10-26', time: '16:30', duration: 60 };
+    expect(roomConflict(mergedBookings([other], [lesson]), { ...candidate, time: '15:00', duration: 60 }, 'r1')).toBe('');
+    expect(roomConflict(mergedBookings([other], []), candidate, 'r1')).toBe('2026-10-26');
+  });
+
+  it('online lessons take no room', () => {
+    expect(mergedBookings([], [{ ...lesson, online: true }])).toEqual([]);
   });
 });

@@ -48,3 +48,36 @@ export function assignRoom(rooms = [], bookings = [], candidate, ignoreScheduleI
   if (!free) return { error: `Kõik kabinetid on ${candidate.time} ajal hõivatud. Märgi tund veebitunniks või vali teine aeg.` };
   return { roomId: free.id, roomName: free.name };
 }
+
+// The booking a lesson makes (the same rule as the server's functions/room-booking-core.js): none when it has no room,
+// is online or cancelled; a cancelled date of a series frees the room that day.
+export function bookingFromEvent(event) {
+  if (!event?.roomId || event.online === true || event.status === 'Tühistatud') return null;
+  const cancelledDates = Object.entries(event.occurrenceStatuses || {}).filter(([, value]) => value?.status === 'Tühistatud').map(([date]) => date);
+  return {
+    scheduleId: event.id,
+    roomId: event.roomId,
+    roomName: event.roomName || '',
+    recurring: event.recurring === true,
+    date: event.date || '',
+    day: event.day || '',
+    startDate: event.startDate || '',
+    endDate: event.endDate || '',
+    excludedDates: [...new Set([...(event.excludedDates || []), ...cancelledDates])],
+    time: event.time || '',
+    duration: Number(event.duration) || 60,
+    status: event.status || '',
+  };
+}
+
+// The bookings the calendar decides with (Oleksiy 2026-10-22: „при отмене занятия через Tühista не освобождается
+// кабинет”): the lessons this calendar has just loaded count as they are now — cancelled, moved or deleted lessons
+// free their room at once; the server's roomBookings (written by a trigger, loaded once) only add the lessons this
+// user cannot see. `overrides` are this session's own saves (scheduleId → booking, or null when deleted).
+export function mergedBookings(serverBookings = [], scheduleEvents = [], overrides = {}) {
+  const visible = new Set(scheduleEvents.map((event) => event.id));
+  const fromServer = serverBookings.filter((booking) => !visible.has(booking.scheduleId) && !(booking.scheduleId in overrides));
+  const fromOverrides = Object.entries(overrides).filter(([id, booking]) => booking && !visible.has(id)).map(([, booking]) => booking);
+  const fromEvents = scheduleEvents.map(bookingFromEvent).filter(Boolean);
+  return [...fromServer, ...fromOverrides, ...fromEvents];
+}

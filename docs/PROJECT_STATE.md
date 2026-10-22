@@ -1,3 +1,13 @@
+## 2026-10-22 · agent/calendar-room-free — a cancelled lesson frees its room at once
+
+- Oleksiy (#bug #high_priority #calender): „При отмене занятия через Tühista не освобождается кабинет”.
+- Cause: the calendar loaded roomBookings once; a save updated them locally, a cancel, move, delete or undo did not, so
+  the room looked taken until the page was reloaded (the server trigger had already freed it).
+- Fix: roomModel `bookingFromEvent` (the server's rule) and `mergedBookings`: lessons this calendar has loaded count as
+  they are after every reload; the server's roomBookings only add lessons the user cannot see; a deleted series is
+  hidden at once. Files: features/calendar/roomModel.js (+tests), CalendarPage.jsx.
+- Checks: vitest calendar 108/108.
+
 ## 2026-10-22 · agent/english-b1-m3 — English B1 module 3 „Experiences”
 
 - Module 3: en-b1-011 Have you ever…? (present perfect for experience, been / gone, participles), 012 Just, already, yet
