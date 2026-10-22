@@ -1183,6 +1183,16 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
+    // bookkeeping (functions/accounting-core.js, RPS §§ 6–12): written only by financeApi; entries are never edited or
+    // deleted, a correction is a storno entry
+    match /accountingEntries/{entryId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /accountingAccounts/{code} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
     // cash box (functions/cash-core.js): written only by financeApi; teachers see their own part through /cash/summary
     match /cashLedger/{entryId} {
       allow read: if isAdmin();

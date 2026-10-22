@@ -3731,3 +3731,46 @@ test("one bank payment pays two invoices of a child and remembers the payer's ac
     assert.equal(invoice.balanceDueCents, 0, `${id} ${JSON.stringify(invoice)}`);
   }
 });
+
+test("bookkeeping: documents become numbered entries once, manual entries balance, corrections are stornos (owner 2026-10-22)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  await db.collection("invoices").doc("acc-invoice-1").set({ num: "KS-2026-901", date: "2026-09-01", amountCents: 10000, amount: 100, status: "Ootel", studentName: "Raamatupidamise test" });
+  await db.collection("payments").doc("acc-payment-1").set({ invoiceId: "acc-invoice-1", invoiceNum: "KS-2026-901", paidAt: "2026-09-02", amountCents: 5000, amount: 50, method: "bank", status: "active" });
+
+  const synced = await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal(synced.status, 200, JSON.stringify(synced.body));
+  const invoiceEntry = (await db.collection("accountingEntries").doc("auto_invoice_acc-invoice-1").get()).data();
+  assert.match(invoiceEntry.number, /^2026-\d{4}$/);
+  assert.deepEqual(invoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 10000, 0], ["3060", 0, 10000]]);
+  assert.equal(invoiceEntry.documentRef, "KS-2026-901");
+  assert.ok((await db.collection("accountingEntries").doc("auto_payment_acc-payment-1").get()).exists);
+  assert.ok((await db.collection("accountingAccounts").doc("3060").get()).exists, "the chart is seeded");
+  const again = await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal(again.body.created, 0, "a second sync creates nothing");
+
+  const salary = { date: "2026-09-30", description: "Septembri palk", documentRef: "Palgaleht 09/2026", lines: [{ account: "4710", debitCents: 120000 }, { account: "2210", creditCents: 120000 }] };
+  const manual = await financeRequest(adminToken, "/accounting/entries", { entry: salary, requestId: "acc_manual_0001" });
+  assert.equal(manual.status, 201, JSON.stringify(manual.body));
+  const repeated = await financeRequest(adminToken, "/accounting/entries", { entry: salary, requestId: "acc_manual_0001" });
+  assert.equal(repeated.body.entry.number, manual.body.entry.number);
+  const unbalanced = await financeRequest(adminToken, "/accounting/entries", { entry: { ...salary, lines: [{ account: "4710", debitCents: 100 }, { account: "2210", creditCents: 90 }] }, requestId: "acc_manual_0002" });
+  assert.equal(unbalanced.status, 400, JSON.stringify(unbalanced.body));
+
+  const storno = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: manual.body.entry.id, date: "2026-10-01", reason: "vale summa", requestId: "acc_reverse_0001" });
+  assert.equal(storno.status, 201, JSON.stringify(storno.body));
+  assert.deepEqual(storno.body.entry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["4710", 0, 120000], ["2210", 120000, 0]]);
+  assert.equal((await db.collection("accountingEntries").doc(manual.body.entry.id).get()).data().reversedBy, storno.body.entry.id);
+  const twice = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: manual.body.entry.id, date: "2026-10-01", reason: "uuesti", requestId: "acc_reverse_0002" });
+  assert.equal(twice.status, 400, JSON.stringify(twice.body));
+  const autoStorno = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: "auto_invoice_acc-invoice-1", date: "2026-10-01", reason: "x", requestId: "acc_reverse_0003" });
+  assert.equal(autoStorno.status, 409, JSON.stringify(autoStorno.body));
+
+  const opening = await financeRequest(adminToken, "/accounting/opening", { balances: [{ account: "1010", debitCents: 50000 }, { account: "2970", creditCents: 50000 }], requestId: "acc_opening_0001" });
+  assert.equal(opening.status, 201, JSON.stringify(opening.body));
+  assert.equal(opening.body.entry.date, "2026-01-01");
+  const secondOpening = await financeRequest(adminToken, "/accounting/opening", { balances: [{ account: "1010", debitCents: 100 }, { account: "2970", creditCents: 100 }], requestId: "acc_opening_0002" });
+  assert.equal(secondOpening.status, 409, JSON.stringify(secondOpening.body));
+});
