@@ -13,6 +13,44 @@
   words, a sheet with errors, overdue homework and a held lesson.
 - No rules, data or production changed.
 - Next safe step: the daily 5-minute review from the profile on the student's home (LEARNER_PROFILE.md, step 1).
+## 2026-10-23 · agent/live-room-layout — Live Classroom: the worksheet is no longer covered
+
+- Stacked on agent/live-board-realtime (#737), both change StudentBoard and LiveRoom.
+- Found in the two-account test: the video tiles and the colour panel lay over the worksheet; on a phone the colour
+  panel stayed open over the reading view and both tiles covered the page tabs; the sheet picker in the room had bare
+  browser buttons (its rules were scoped to `.ws-studio`).
+- Now: on a wide screen a worksheet page is fitted beside the video tiles (`insetRight` 250 px); the tiles can be made
+  small („Peida video”: a chip with the other side's name, picture and sound go on); the colour panel closes when a
+  worksheet page opens (it opens again from the dock) and never shows over the phone reading view; on a phone only the
+  other side's picture, 92 px, below the page tabs; the picker's tabs and search have their own styles.
+- Files: board/StudentBoard.jsx, live-classroom/LiveRoom.jsx, liveRoom.css, worksheet-studio/worksheetStudio.css,
+  board.test.jsx (+1), LiveRoom.follow.test.jsx (+1).
+- Checks: vitest crm-v2 2127 passed; eslint clean in the touched folders; manual check on the emulators (teacher at
+  1440 px with a worksheet, student on a 375 px phone).
+- Next safe step: owner review of #737 and this PR together (same lesson room).
+
+## 2026-10-23 · agent/live-board-realtime — Live Classroom board: live typing, drawing, cursors, „Juhi vaadet”
+
+- Main checked: efd80db (2026-10-22). No open PR touched the board or Live Classroom; other agents work on English
+  content (#732/#733) and course health.
+- Problem (tested with two accounts on the emulators): a text typed on the board reached the other side only when the
+  writer left the field (the student saw an empty „Tekst” box); lines and moves only on mouse up; no cursors; teacher and
+  student saw the worksheet at different zoom and place (138 % vs 77 %).
+- Now over the call's data channel (nothing extra is saved, Firestore writes are unchanged): letters while they are
+  typed („Anna kirjutab…”), a line or shape while it is drawn, elements while they are dragged, the other side's
+  cursor with a name. The teacher's „Juhi vaadet” sends the visible part of the board; the student sees the same place
+  (a worksheet: the same width and line); when he moves away, „Jälgi õpetaja vaadet” brings him back.
+- Files: board/liveDrafts.js (+test: messages are checked and cut to size, stale drafts drop after 6 s, throttle 40 ms),
+  board/boardModel.js (viewRect, fitRect), board/StudentBoard.jsx (props live, presenting, followView, onFollowBreak;
+  pointer release no longer stops a line from saving), board/board.css, live-classroom/LiveRoom.jsx (one channel
+  listener fans out to the board), liveRoom.css, LiveRoom.follow.test.jsx (+5 tests).
+- Checks: vitest crm-v2 2125 passed; eslint board + live-classroom clean; manual two-tab run on the emulators (typing,
+  drawing, cursor, view lead on a worksheet, follow break and return).
+- Limits: all live parts need the call's data channel (no camera/microphone → no live layer; the board still syncs on
+  save). Group lessons (GroupRoom) do not have it yet. The phone reading view keeps its own scrolling (view lead not
+  applied there).
+- Next safe step: layout PR — video tiles and the colour panel stop covering the worksheet, the colour panel closed in
+  the phone reading view, the sheet picker's styles loaded in the room.
 
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 
