@@ -13,6 +13,7 @@ import { readDone } from '../self-study/reviewStore.js';
 import { autoSkills } from './autoSkills.js';
 import { levelProgress, speakingFromStats } from './levelProgress.js';
 import MyProgressCard from './MyProgressCard.jsx';
+import WordGrowthCard from '../vocabulary/WordGrowthCard.jsx';
 import { petProgress } from '../pet/petModel.js';
 import { todayPath } from './todayPath.js';
 import { petReact } from '../pet/petEvents.js';
@@ -155,6 +156,8 @@ export default function StudentDashboardPage({
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
     {/* „Minu areng” follows the Estonian course; another subject has its own teacher's plan */}
     {students.length && (!chosen || chosen === 'Eesti keel') ? <MyProgressCard progress={progress} /> : null}
+    {/* plain numbers: words learned, new this month, own mistakes fixed (owner 2026-10-23) */}
+    {students.length ? <WordGrowthCard words={words} /> : null}
     {students.length ? <section className="student-path" aria-label="Täna">
       <header className="student-path__head">
         <div><span className="eyebrow">Täna</span><h2>{path.done === path.total ? 'Kõik tänased sammud tehtud!' : `${path.done}/${path.total} sammu tehtud`}</h2></div>

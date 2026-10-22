@@ -1,3 +1,10 @@
+## 2026-10-23 · agent/progress-stats — „Minu sõnad ja vead”: plain progress for the student and the family
+
+- docs/LEARNER_PROFILE.md step 4. vocabulary/wordGrowth.js (+test): words learned (box ≥ 3), new in 30 days, own
+  mistakes fixed („Sinu lause” cards in box ≥ 3). WordGrowthCard (+test) on the student's home under „Minu areng” and,
+  per child, on the parent's home (ChildrenWordGrowth, live like „Minu sõnad”). Estonian with a Russian line.
+- Checks: verify (eslint errors 0, vitest 2261 passed, 0 failed).
+
 ## 2026-10-23 · agent/personal-sheet-errors — the personal worksheet works on the student's own wrong sentences
 
 - docs/LEARNER_PROFILE.md step 3. „Isiklik tööleht” (student card → AutoSkillsCard) now also takes his unlearned

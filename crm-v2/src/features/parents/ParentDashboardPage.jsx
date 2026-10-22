@@ -16,6 +16,7 @@ import OpenInvoicesCard from '../payments/OpenInvoicesCard.jsx';
 import { INDIVIDUAL_TOPIC } from '../calendar/lessonTopic.js';
 import RecordingConsentPrompt from '../lesson-recording/RecordingConsentPrompt.jsx';
 import MyWordsCard from '../vocabulary/MyWordsCard.jsx';
+import { ChildrenWordGrowth } from '../vocabulary/WordGrowthCard.jsx';
 import LessonSummariesCard from '../vocabulary/LessonSummariesCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
@@ -85,6 +86,8 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       <PetOverview studentIds={studentRecords.map((student) => student.id)} lessons={lessons} homework={homework} names={Object.fromEntries(studentRecords.map((student) => [student.id, student.name]))} {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} />
       {/* „Millal sobib tund?” for each child (owner 2026-10-21) */}
       {students.map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} studentName={student.name} user={user} mode="own" compact />)}
+      {/* words learned, new this month, mistakes fixed per child (owner 2026-10-23) */}
+      <ChildrenWordGrowth students={studentRecords} {...(wordsService ? { service: wordsService } : {})} />
       <LessonSummariesCard studentIds={studentRecords.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
       <MyWordsCard studentIds={studentRecords.map((student) => student.id)} readOnly {...(wordsService ? { service: wordsService } : {})} />
       <Card><div className="section-heading"><div><span className="eyebrow">Kalender</span><h2>Järgmised tunnid</h2></div></div>{upcoming.length ? <div className="simple-list parent-home-lessons">{upcoming.map((lesson) => <div key={lesson.occurrenceId}><div><strong>{new Date(`${lesson.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'short' })} · {lesson.time}</strong><span>{[subjectTag(lesson), studentMap.get(lesson.studentId)?.name || lesson.studentName || 'Õpilane', lesson.teacher || 'Õpetaja'].filter(Boolean).join(' · ')}</span></div>{(() => { const request = requestFor(state.data.requests, lesson); return request?.status === 'pending' ? <Badge tone="warning">Palve saadetud</Badge> : <Button variant="secondary" onClick={() => setRescheduling(lesson)}>Ei saa tulla?</Button>; })()}</div>)}</div> : <EmptyState title="Lähimaid tunde ei ole" />}</Card>
