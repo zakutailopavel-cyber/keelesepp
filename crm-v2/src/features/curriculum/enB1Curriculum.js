@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-23.6';
+export const EN_B1_VERSION = '2026-10-23.7';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -67,6 +67,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['Everything went wrong', 'Past ability and success: could / couldn\'t, managed to, was able to; had to; telling a story about travel problems.'],
       ['I\'d like to complain', 'Polite complaints; too + adjective, not + adjective + enough; Could you possibly…?, I would be grateful if…; a formal complaint e-mail.'],
       ['Module 6 check: Travel', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 7, title: 'Health and lifestyle', goal: 'Talking about food and habits, imagined changes and wishes, and health problems and advice.',
+    lessons: [
+      ['How much sugar?', 'Countable and uncountable nouns; much, many, a lot of, a few, a little, few, little, plenty of, too much / too many, (not) enough.'],
+      ['If I had more time…', 'The second conditional (If I had…, I would…), If I were…, could / might in the result; first vs second conditional.'],
+      ['What would you do?', 'Difficult situations with would, could, might; I wish + past simple; advice with If I were you, You could, It might help.'],
+      ['I don\'t feel well', 'Symptoms (I\'ve got…, my… hurts, I feel…), How long have you had…?, should and had better (not), instructions; at the doctor\'s.'],
+      ['Module 7 check: Health and lifestyle', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);

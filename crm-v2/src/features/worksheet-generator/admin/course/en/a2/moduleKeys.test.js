@@ -7,11 +7,12 @@ import * as modB3 from '../b1/module03.js';
 import * as modB4 from '../b1/module04.js';
 import * as modB1_05 from '../b1/module05.js';
 import * as modB1_06 from '../b1/module06.js';
+import * as modB1_07 from '../b1/module07.js';
 import { moduleSheets } from '../../registry.js';
 import { answerKeyOf } from '../../../../../worksheet-studio/engine/answerKey.js';
 import { norm } from '../../../../../worksheet-studio/engine/schema.js';
 
-describe.each([['A2 1', mod1], ['A2 2', mod2], ['B1 1', modB1], ['B1 2', modB2], ['B1 3', modB3], ['B1 4', modB4], ['B1 5', modB1_05], ['B1 6', modB1_06]])('English %s', (_, mod) => {
+describe.each([['A2 1', mod1], ['A2 2', mod2], ['B1 1', modB1], ['B1 2', modB2], ['B1 3', modB3], ['B1 4', modB4], ['B1 5', modB1_05], ['B1 6', modB1_06], ['B1 7', modB1_07]])('English %s', (_, mod) => {
   const sheets = Object.values(moduleSheets(mod)).flatMap((phases) => Object.values(phases));
   const tasks = sheets.flatMap((doc) => answerKeyOf(doc));
 
