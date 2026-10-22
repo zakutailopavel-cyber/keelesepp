@@ -30,6 +30,7 @@ export const navigation = [
 export const studentNavigation = [
   { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
   { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT },
+  { to: '/student/kursus', label: 'Kursus', icon: BookOpenCheck, roles: ACCESS.STUDENT },
   { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT },
   { to: '/student/vead', label: 'Minu vead', icon: SpellCheck, roles: ACCESS.STUDENT },
   { to: '/student/lemmik', label: 'Lemmik', icon: PawPrint, roles: ACCESS.STUDENT },
