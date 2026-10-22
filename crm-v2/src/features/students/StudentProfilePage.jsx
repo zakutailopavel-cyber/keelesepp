@@ -35,6 +35,7 @@ import LearnerSnapshotCard from '../learner/LearnerSnapshotCard.jsx';
 import StudentTopicsCard from '../vocabulary/StudentTopicsCard.jsx';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
+import PlacementCard from '../placement/PlacementCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
 
@@ -57,7 +58,7 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -215,6 +216,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           </div>
         ) : null}
 
+        {/* „Paigutustest” (owner 2026-10-23): a 15-minute test with an automatic level suggestion */}
+        {activeTab === 'assessment' ? <PlacementCard student={student} user={currentUser} {...(placementApi ? { repository: placementApi } : {})} /> : null}
         {activeTab === 'assessment' ? <InitialAssessmentPanel student={student} user={currentUser} service={assessmentApi} /> : null}
 
         {activeTab === 'finance' && canViewFinance ? <>
