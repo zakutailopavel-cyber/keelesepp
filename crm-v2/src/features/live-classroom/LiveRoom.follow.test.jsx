@@ -140,3 +140,14 @@ describe('LiveRoom: the live board (owner 2026-10-23, „like Miro”)', () => {
     } finally { rect.mockRestore(); }
   });
 });
+
+describe('LiveRoom: the video tiles can be made small', () => {
+  it('hides the tiles into a chip with the other side’s name and brings them back', () => {
+    renderRoom('teacher');
+    fireEvent.click(screen.getByRole('button', { name: 'Peida video (heli jääb)' }));
+    // the video elements stay (sound goes on), only the chip is in sight
+    expect(document.querySelectorAll('.lr-side video')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: /^Näita videot/ }));
+    expect(screen.getByRole('button', { name: 'Peida video (heli jääb)' })).toBeInTheDocument();
+  });
+});
