@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-22.2';
+export const EN_A2_VERSION = '2026-10-23.3';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -26,6 +26,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['Around town', 'Places in town; asking the way politely; directions with the imperative; first / second / third.'],
       ['Town or country?', 'Comparatives (-er, more, better, worse) with than; spelling; giving an opinion with reasons.'],
       ['Module 2 check: Home and my town', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types.'],
+    ],
+  },
+  {
+    number: 3, title: 'School and learning', goal: 'Talking about school subjects, timetables and rules, and telling about the past at school.',
+    lessons: [
+      ['My timetable', 'School subjects and timetables; can / can\'t for ability; at / on / in with times and days; telling the time.'],
+      ['School rules', 'have to / has to, don\'t have to, can / can\'t for permission; questions and short answers.'],
+      ['Last week at school', 'The past simple of regular verbs (-ed spelling and pronunciation); was / were.'],
+      ['Did you finish the project?', 'Past simple questions and negatives with did / didn\'t; question words; interviews and a project report.'],
+      ['Module 3 check: School and learning', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
     ],
   },
 ]);
