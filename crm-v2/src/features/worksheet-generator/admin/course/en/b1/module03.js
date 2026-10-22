@@ -157,7 +157,7 @@ const LESSONS_A = {
         'We climbed it last August in the rain.',
         'I\'ve never been abroad.',
         'My mum has gone to Japan for work.',
-        'Kaisa has been to eleven countries.',
+        'Her mum works for an airline, so they travel a lot.',
         'I\'ve swum in four different seas.',
         'When did you go to Japan?',
         'I haven\'t tried surfing yet.',

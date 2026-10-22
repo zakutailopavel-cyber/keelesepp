@@ -96,9 +96,9 @@ the exam (an e-mail of 100–120 words and a short message of 40–60 words), sp
 - Listening: the course TTS is Estonian, so English transcripts are read by the teacher for now. English audio needs
   a TTS choice (a paid service needs the owner's yes).
 
-- B1 module 1 (en-b1-001…005) is published (2026-10-22). B1 module 2 (en-b1-006…010) is built and passes every gate;
-  not yet published.
+- B1 modules 1–2 (en-b1-001…010) are published (2026-10-22). B1 module 3 (en-b1-011…015) is built and passes every
+  gate; not yet published.
 
 ## Next safe step
 
-The owner's yes to publish B1 module 2; then B1 module 3 „Experiences”. A2 module 3 waits.
+The owner's yes to publish B1 module 3; then B1 module 4 „Plans and the future”. A2 module 3 waits.
