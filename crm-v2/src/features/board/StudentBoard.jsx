@@ -4,7 +4,8 @@ import { createPortal } from 'react-dom';
 import { Button } from '../../components/ui/index.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { COLORS, FONTS, NOTE_COLORS, ROOM_COLORS, SIZES, arrowHead, clampPoint, clampView, scrollbarFor, scrollView, fitPage, fitView, fitWidth, WORKSHEET_WIDTH, worksheetPageTitle, fontCss, imageSize, movable, pageBounds, pathFor, screenToWorld, shapeFromDrag, teacherMaterial, textAt, textBox, textBoxOf, wheelView, zoomAt, pinchView,
-  BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds } from './boardModel.js';
+  BACKGROUNDS, MARKER_COLORS, backgroundOf, copyData, fitRect, frameFrom, growBounds, isMarker, markerColor, markerWidth, movePatch, resizePatch, touchesBox, unionBounds, viewRect } from './boardModel.js';
+import { EMPTY_REMOTE, createThrottle, cursorMessage, draftMessage, dropStale, moveMessage, reduceRemote, remoteOnPage, typingMessage, viewMessage } from './liveDrafts.js';
 import './board.css';
 
 const TOOLS = [
@@ -51,6 +52,10 @@ export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
   controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null,
   onPageChange, onPointer, pointer = null, onAssignPage,
+  // Live Classroom: the other side's drawing, typing, dragging and cursor over the call (liveDrafts.js);
+  // `presenting` (teacher) sends the visible part of the board, `followView` (student) shows it, `onFollowBreak` when
+  // the student moves the board himself
+  live = null, presenting = false, followView = false, onFollowBreak,
 }) {
   const room = variant === 'room';
   const [pages, setPages] = useState([]);
@@ -89,6 +94,16 @@ export default function StudentBoard({
   const svgRef = useRef(null);
   const gesture = useRef(null);
   const fileInput = useRef(null);
+  // ── live: what the other side is doing right now (nothing of it is saved) ──
+  const [remote, setRemote] = useState(EMPTY_REMOTE);
+  useEffect(() => live?.subscribe?.((message) => setRemote((current) => reduceRemote(current, message))), [live]);
+  useEffect(() => {
+    if (!live) return undefined;
+    const timer = globalThis.setInterval(() => setRemote((current) => dropStale(current)), 1000);
+    return () => globalThis.clearInterval(timer);
+  }, [live]);
+  const push = useMemo(() => (live?.send ? createThrottle(live.send, 40) : null), [live]);
+  useEffect(() => () => push?.dispose(), [push]);
 
   useEffect(() => service.subscribePages(studentId, setPages, () => setPages([])), [service, studentId]);
   const pageKey = `${studentId}/${pageId || 'board'}`;
@@ -114,6 +129,8 @@ export default function StudentBoard({
   const pageTitle = pageId ? pages.find((page) => page.id === pageId)?.title || '' : '';
   useEffect(() => { onPageChange?.(pageId || '', pageTitle); }, [onPageChange, pageId, pageTitle]);
   const ready = loaded.key === pageKey;
+  const livePage = pageId || '';
+  const here = useMemo(() => remoteOnPage(remote, livePage), [remote, livePage]);
   const elements = useMemo(() => (ready ? loaded.items : []), [ready, loaded.items]);
 
   const byId = useMemo(() => new Map(elements.map((element) => [element.id, element])), [elements]);
@@ -164,7 +181,7 @@ export default function StudentBoard({
   // every pan and zoom keeps part of the sheet on screen
   // the user's own pan or zoom; until then a worksheet page keeps fitting its width when the screen changes size
   const userMoved = useRef(false);
-  const moveView = (update) => { userMoved.current = true; setView((current) => clampView(typeof update === 'function' ? update(current) : update, bounds, ...screenSize())); };
+  const moveView = (update) => { userMoved.current = true; if (followView && here.view) onFollowBreak?.(); setView((current) => clampView(typeof update === 'function' ? update(current) : update, bounds, ...screenSize())); };
   // a worksheet fits by the sheet itself, not by drawings far beside it (owner 2026-10-10: the sheet was tiny for the student)
   const sheetFit = (width) => fitWidth({ x1: 0, y1: 0, x2: WORKSHEET_WIDTH, y2: bounds.y2 }, width);
   const fail = (message) => (nextError) => setError(nextError?.message || message);
@@ -317,6 +334,26 @@ export default function StudentBoard({
     return () => observer.disconnect();
   }, [onWorksheet, pageId]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { if (!onWorksheet && tool === 'fill') setTool('pen'); }, [onWorksheet, tool]);
+  // the teacher leads the view: the visible part of the board goes to the student while it changes
+  useEffect(() => {
+    if (!push) return;
+    if (!presenting) return;
+    const [width, height] = screenSize();
+    const rect = viewRect(view, width, height);
+    if (rect) push('view', viewMessage(livePage, rect));
+  }, [push, presenting, view, livePage]);
+  const wasPresenting = useRef(false);
+  useEffect(() => {
+    if (wasPresenting.current && !presenting) push?.('view', viewMessage(livePage, null), { now: true });
+    wasPresenting.current = presenting;
+  }, [presenting, push, livePage]);
+  // the student following the teacher's view sees the same part (a worksheet: the same width, from the same line)
+  useEffect(() => {
+    if (!followView || !here.view) return;
+    const [width, height] = screenSize();
+    const next = fitRect(here.view, width, height, { byWidth: onWorksheet });
+    if (next) { userMoved.current = true; setView(next); }
+  }, [followView, here.view, onWorksheet]);
   // the stage's height for the worksheet scrollbar
   const [stageHeight, setStageHeight] = useState(0);
   useEffect(() => {
@@ -476,11 +513,15 @@ export default function StudentBoard({
       if (Math.hypot(world.x - last.x, world.y - last.y) * view.scale < 3 || current.points.length >= 800) return;
       current.points = [...current.points, { x: Math.round(world.x * 100) / 100, y: Math.round(world.y * 100) / 100 }];
       setDraft({ type: 'stroke', points: current.points, ...current.style });
+      push?.('d', draftMessage(livePage, { type: 'stroke', points: current.points, ...current.style }));
     } else if (current.kind === 'shape') {
-      setDraft({ type: 'shape', shape: tool, ...shapeFromDrag(tool, current.start, world), color, strokeWidth: shapeWidth });
+      const shape = { type: 'shape', shape: tool, ...shapeFromDrag(tool, current.start, world), color, strokeWidth: shapeWidth };
+      setDraft(shape);
+      push?.('d', draftMessage(livePage, shape));
     } else if (current.kind === 'move') {
       current.dx = raw.x - current.start.x; current.dy = raw.y - current.start.y;
       setMoving({ ids: new Set(current.ids), dx: current.dx, dy: current.dy });
+      push?.('move', moveMessage(livePage, current.ids, current.dx, current.dy));
     } else if (current.kind === 'resize') {
       current.patch = resizePatch(current.element, raw.x - current.start.x, raw.y - current.start.y);
       setResizing({ id: current.element.id, patch: current.patch });
@@ -493,20 +534,26 @@ export default function StudentBoard({
   const up = (event) => {
     const current = gesture.current;
     gesture.current = null;
-    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    // a pointer the browser no longer tracks (a lost touch) must not stop the line from being saved
+    try { event.currentTarget.releasePointerCapture?.(event.pointerId); } catch { /* not captured */ }
     setDraft(null);
     if (!current) return;
-    if (current.kind === 'pen' && current.points.length > 1) {
-      add({ type: 'stroke', points: current.points, ...current.style }, 'Joont ei saanud salvestada.');
+    // the other side keeps seeing the draft until the saved element has arrived
+    const endDraft = () => push?.('d', draftMessage(livePage, null), { now: true });
+    const endMove = () => push?.('move', moveMessage(livePage, [], 0, 0), { now: true });
+    if (current.kind === 'pen') {
+      if (current.points.length > 1) add({ type: 'stroke', points: current.points, ...current.style }, 'Joont ei saanud salvestada.').finally(endDraft);
+      else endDraft();
     } else if (current.kind === 'shape') {
       const end = clampPoint(screenToWorld(local(event), view), drawBounds);
       const box = shapeFromDrag(tool, current.start, end);
-      if (Math.abs(box.w) > 4 || Math.abs(box.h) > 4) add({ type: 'shape', shape: tool, ...box, color, strokeWidth: shapeWidth }, 'Kujundit ei saanud salvestada.');
+      if (Math.abs(box.w) > 4 || Math.abs(box.h) > 4) add({ type: 'shape', shape: tool, ...box, color, strokeWidth: shapeWidth }, 'Kujundit ei saanud salvestada.').finally(endDraft);
+      else endDraft();
     } else if (current.kind === 'move') {
       const list = current.ids.map((id) => byId.get(id)).filter((element) => element && movable(element) && canEdit(element));
       if (list.length && (Math.abs(current.dx) > 1 || Math.abs(current.dy) > 1)) {
-        changeMany(list.map((element) => ({ element, patch: movePatch(element, current.dx, current.dy) })), 'Elementi ei saanud liigutada.').finally(() => setMoving(null));
-      } else setMoving(null);
+        changeMany(list.map((element) => ({ element, patch: movePatch(element, current.dx, current.dy) })), 'Elementi ei saanud liigutada.').finally(() => { setMoving(null); endMove(); });
+      } else { setMoving(null); endMove(); }
     } else if (current.kind === 'resize') {
       if (current.patch && Object.keys(current.patch).length) changeMany([{ element: current.element, patch: current.patch }], 'Suurust ei saanud muuta.').finally(() => setResizing(null));
       else setResizing(null);
@@ -636,6 +683,7 @@ export default function StudentBoard({
     }
   };
   const navMove = (event) => {
+    if (push && tool !== 'laser' && svgRef.current) push('cur', cursorMessage(livePage, screenToWorld(local(event), view)));
     const current = nav.current;
     if (!current) return;
     const point = local(event);
@@ -690,12 +738,13 @@ export default function StudentBoard({
     const element = byId.get(editing?.id);
     const text = editing?.text ?? '';
     setEditing(null);
-    if (!element) return;
-    if (!text.trim()) { service.remove(studentId, pageId, element.id).catch(fail('Tühja elementi ei saanud eemaldada.')); return; }
-    if (text === element.text) return;
+    const endTyping = () => push?.('typing', typingMessage(livePage, ''), { now: true });
+    if (!element) { endTyping(); return; }
+    if (!text.trim()) { service.remove(studentId, pageId, element.id).catch(fail('Tühja elementi ei saanud eemaldada.')).finally(endTyping); return; }
+    if (text === element.text) { endTyping(); return; }
     const value = text.slice(0, element.type === 'note' ? 2000 : 4000);
     const box = element.type === 'text' ? measuredBox(element, value) : {};
-    update(element, { text: value, ...box }, 'Teksti ei saanud salvestada.');
+    update(element, { text: value, ...box }, 'Teksti ei saanud salvestada.').finally(endTyping);
   };
   const pickImage = async (file) => {
     if (!file || !uploadImage) return;
@@ -771,7 +820,7 @@ export default function StudentBoard({
     <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(true)}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
-    onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp}>
+    onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
     {onWorksheet && narrow ? <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(false)}>Lugemisvaade</button> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
     <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
@@ -785,8 +834,24 @@ export default function StudentBoard({
           <rect className="sb-sheet" x={bounds.x1} y={bounds.y1} width={bounds.x2 - bounds.x1} height={bounds.y2 - bounds.y1} rx="6" />
           {paper === 'plain' ? null : <rect className={`sb-paper is-${paper}`} x={bounds.x1} y={bounds.y1} width={bounds.x2 - bounds.x1} height={bounds.y2 - bounds.y1} fill={`url(#sb-${paper})`} pointerEvents="none" />}
         </>}
-        {elements.map((element) => <g key={element.id} transform={moving?.ids.has(element.id) ? `translate(${moving.dx} ${moving.dy})` : undefined}>{render(resizing?.id === element.id ? { ...element, ...resizing.patch } : element)}</g>)}
+        {elements.map((element) => {
+          // the other side dragging it or typing into it right now
+          const remoteShift = here.move?.ids.includes(element.id) ? here.move : null;
+          const shift = moving?.ids.has(element.id) ? moving : remoteShift;
+          const typed = here.typing?.id === element.id && editing?.id !== element.id ? { text: here.typing.text } : null;
+          const shown = resizing?.id === element.id ? { ...element, ...resizing.patch } : typed ? { ...element, ...typed } : element;
+          return <g key={element.id} transform={shift ? `translate(${shift.dx} ${shift.dy})` : undefined}>{render(shown)}</g>;
+        })}
+        {here.draft ? <g key="__remote" className="sb-remote-draft" data-testid="remote-draft" pointerEvents="none">{render({ ...here.draft.draft, id: '__remote' })}</g> : null}
         {draft ? <g key="__draft">{render({ ...draft, id: draft.id || '__draft' })}</g> : null}
+        {here.typing && byId.get(here.typing.id) ? (() => {
+          const element = byId.get(here.typing.id);
+          return <text className="sb-typing" data-testid="remote-typing" x={element.x} y={element.y - 6 / view.scale} fontSize={12 / view.scale} pointerEvents="none">{`${live?.peerName || 'Teine'} kirjutab…`}</text>;
+        })() : null}
+        {here.cursor ? <g className="sb-cursor" data-testid="remote-cursor" transform={`translate(${here.cursor.x} ${here.cursor.y}) scale(${1 / view.scale})`} pointerEvents="none">
+          <path d="M0 0 L0 16 L4.5 12 L7.5 19 L10 18 L7 11 L13 11 Z" />
+          <text x="14" y="24">{live?.peerName || 'Teine'}</text>
+        </g> : null}
         {selectionBox ? <g className="sb-selection">
           <rect x={selectionBox.x1 - 6 / view.scale} y={selectionBox.y1 - 6 / view.scale} width={selectionBox.x2 - selectionBox.x1 + 12 / view.scale} height={selectionBox.y2 - selectionBox.y1 + 12 / view.scale} fill="none" stroke="#4f7cff" strokeWidth={1.5 / view.scale} strokeDasharray={`${6 / view.scale} ${4 / view.scale}`} pointerEvents="none" />
           {selectedElements.length === 1 && !moving ? <rect data-handle="se" aria-label="Muuda suurust" x={selectionBox.x2 + 6 / view.scale - 8 / view.scale} y={selectionBox.y2 + 6 / view.scale - 8 / view.scale} width={16 / view.scale} height={16 / view.scale} rx={4 / view.scale} fill="#fff" stroke="#4f7cff" strokeWidth={2 / view.scale} className="sb-handle" /> : null}
@@ -818,7 +883,7 @@ export default function StudentBoard({
       style={{ left: view.x + editingElement.x * view.scale, top: view.y + editingElement.y * view.scale, width: (editBox || editingElement).w * view.scale, height: (editBox || editingElement).h * view.scale, fontSize: (editingElement.type === 'note' ? 15 : editingElement.fontSize || 18) * view.scale, ...(editingElement.type === 'text' ? { fontFamily: fontCss(editingElement.fontFamily), color: editingElement.color } : {}) }}
       value={editing.text}
       maxLength={editingElement.type === 'note' ? 2000 : 4000}
-      onChange={(event) => setEditing({ ...editing, text: event.target.value })}
+      onChange={(event) => { setEditing({ ...editing, text: event.target.value }); push?.('typing', typingMessage(livePage, editing.id, event.target.value)); }}
       onBlur={saveText}
       onKeyDown={(event) => { if (event.key === 'Escape') event.currentTarget.blur(); }}
     /> : null}

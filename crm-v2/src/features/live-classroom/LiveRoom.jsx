@@ -1,6 +1,6 @@
 import {
   ArrowLeft, ClipboardList, Eye, Languages, LibraryBig, Menu, MessageSquare, Mic, MicOff, Monitor, MonitorOff,
-  MoreHorizontal, Phone, PhoneOff, Redo2, RefreshCw, Send, Undo2, Users, Video, VideoOff, X,
+  MoreHorizontal, Phone, PhoneOff, Presentation, Redo2, RefreshCw, Send, Undo2, Users, Video, VideoOff, X,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
@@ -233,16 +233,36 @@ export default function LiveRoom({
   const [teacherPage, setTeacherPage] = useState(null);
   const [follow, setFollow] = useState(true);
   const [pointer, setPointer] = useState(null);
+  // the live board (both sides): drawings, typing, dragging and cursors go to the board; the teacher may lead the view
+  const boardListeners = useRef(new Set());
+  const [presenting, setPresenting] = useState(false);
+  const [teacherLeads, setTeacherLeads] = useState(false);
+  const [followView, setFollowView] = useState(true);
+  const leadsRef = useRef(false);
   useEffect(() => {
-    if (teacher || !onRoomMessage) return undefined;
+    if (!onRoomMessage) return undefined;
     return onRoomMessage((message) => {
-      if (message.t === 'page' && typeof message.pageId === 'string') setTeacherPage(message.pageId.slice(0, 200));
-      if (message.t === 'ptr') {
+      if (!teacher && message.t === 'page' && typeof message.pageId === 'string') setTeacherPage(message.pageId.slice(0, 200));
+      if (!teacher && message.t === 'ptr') {
         const ok = !message.off && Number.isFinite(message.x) && Number.isFinite(message.y);
         setPointer(ok ? { x: message.x, y: message.y, pageId: String(message.pageId || '') } : null);
       }
+      if (!teacher && message.t === 'view') {
+        // a new lead brings the student along again; the end of it leaves him where he is
+        const on = !message.off;
+        if (on && !leadsRef.current) setFollowView(true);
+        leadsRef.current = on;
+        setTeacherLeads(on);
+      }
+      boardListeners.current.forEach((listener) => listener(message));
     });
   }, [teacher, onRoomMessage]);
+  const live = useMemo(() => (roomChannelOpen && sendRoom ? {
+    send: sendRoom,
+    subscribe: (listener) => { boardListeners.current.add(listener); return () => boardListeners.current.delete(listener); },
+    peerName: call.peerName,
+  } : null), [roomChannelOpen, sendRoom, call.peerName]);
+  useEffect(() => { if (!roomChannelOpen) { leadsRef.current = false; setTeacherLeads(false); } }, [roomChannelOpen]);
   useEffect(() => {
     if (teacher || !follow || teacherPage === null || teacherPage === myPageRef.current) return;
     boardRef.current?.selectPage?.(teacherPage || null);
@@ -308,6 +328,8 @@ export default function LiveRoom({
           {teacher && !recState.recording && call.hasLocalMedia && consent === false ? <button type="button" className="lr-pill lr-rec is-off" onClick={() => { setMenu(''); setPanel('record'); }}>Ei salvesta</button> : null}
           {watching.observers.length ? <span className="lr-pill lr-observer" role="img" aria-label="Administraator vaatab tundi" title={`Administraator vaatab tundi: ${watching.observers.map((item) => item.displayName).join(', ')}`}><Eye size={16} /></span> : null}
           {awayFromTeacher ? <button type="button" className="lr-pill lr-follow" onClick={() => boardRef.current?.selectPage?.(teacherPage || null)}>Mine õpetaja lehele</button> : null}
+          {teacher && roomChannelOpen ? <button type="button" className={`lr-pill lr-lead ${presenting ? 'is-on' : ''}`} aria-pressed={presenting} aria-label={presenting ? 'Lõpeta vaate juhtimine' : 'Juhi vaadet: õpilane näeb sama kohta'} title={presenting ? 'Õpilane näeb sama kohta, mida sina. Klõps: lõpeta' : 'Õpilane näeb sama kohta ja suurust, mida sina'} onClick={() => setPresenting(!presenting)}><Presentation size={16} aria-hidden="true" /><span className="lr-label">{presenting ? 'Juhin vaadet' : 'Juhi vaadet'}</span></button> : null}
+          {!teacher && teacherLeads && !followView && !awayFromTeacher ? <button type="button" className="lr-pill lr-follow" onClick={() => setFollowView(true)}>Jälgi õpetaja vaadet</button> : null}
           {call.canReconnect ? <IconButton label="Taasta ühendus" disabled={call.busy} onClick={call.startTeacherCall}><RefreshCw size={18} /></IconButton> : null}
           {callButton}
         </div>
@@ -355,6 +377,8 @@ export default function LiveRoom({
             onPageChange={onPageChange}
             {...(teacher ? { onAssignPage: (page) => { setMenu(''); setAssignPage(page); setPanel('homework'); } } : {})}
             {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}
+            live={live}
+            {...(teacher ? { presenting: presenting && roomChannelOpen } : { followView: followView && teacherLeads, onFollowBreak: () => setFollowView(false) })}
             {...(boardService ? { service: boardService } : {})}
           />
           {!teacher && !guest ? <RoomPet user={user} studentId={invitation.studentId} invitationId={invitation.id}
