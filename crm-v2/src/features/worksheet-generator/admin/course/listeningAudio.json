@@ -914,15 +914,25 @@
     "seconds": 33.1,
     "hash": "ef5aa71b1864acbaa4e16d5d6522143ef62ed343"
   },
-  "a2b1-006:006_p_voice": {
-    "src": "/audio/a2b1-006/006_p_voice.mp3",
-    "seconds": 52.1,
-    "hash": "ef578f0771f7559e7358b0141a5f26c962b94069"
+  "a2b1-006:006_d_photo": {
+    "src": "/audio/a2b1-006/006_d_photo.mp3",
+    "seconds": 78,
+    "hash": "42b33e8a1c2df186e62d4232ae627a52b15230d3"
   },
-  "a2b1-008:008_d_office": {
-    "src": "/audio/a2b1-008/008_d_office.mp3",
-    "seconds": 87.1,
-    "hash": "887a0952bb5b2bfa29200fae1b12df1cff9225a2"
+  "a2b1-007:007_p_mall": {
+    "src": "/audio/a2b1-007/007_p_mall.mp3",
+    "seconds": 58,
+    "hash": "e7df44797605fcc9974a82f1e2a9ebe3f615e09c"
+  },
+  "a2b1-008:008_d_picnic": {
+    "src": "/audio/a2b1-008/008_d_picnic.mp3",
+    "seconds": 58.4,
+    "hash": "c2e2e2660cdb64047a641f02515786bde63712d7"
+  },
+  "a2b1-009:009_d_plans": {
+    "src": "/audio/a2b1-009/009_d_plans.mp3",
+    "seconds": 50.2,
+    "hash": "80317cb3c81e9d0f3af1207fe0c41c086b141d26"
   },
   "a2b1-010:010_p_clips": {
     "src": "/audio/a2b1-010/010_p_clips.mp3",

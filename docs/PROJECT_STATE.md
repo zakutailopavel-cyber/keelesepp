@@ -1,3 +1,16 @@
+## 2026-10-22 · agent/b1-m2-v4 — B1 module 2 in template v4 with kes/mis relative clauses
+
+- Stacked on agent/method-gates-2 (PR #746). Owner: build the missing B1 grammar into the existing modules.
+- `b1/module02.js` (a2b1-006…009; exam 010 unchanged): Jaan's family storyline, goal = a surprise party for Helgi's
+  60th (009 Kasuta). New B1 grammar: kes/kellel/keda/kellega clauses (007), mis/mida/mille clauses for things (008).
+  Every Avasta opens with „Mäletad?”, every pair / group task has a one-to-one note. Errorfix, translation and dictation:
+  0 (v3 file: many). Old file in `archive/v3/b1/module02.js`.
+- `grammarPlan.js`: b1 relative → a2b1-007, a2b1-008 (one gap less). `methodGaps.test.js`: a2b1-module-03 now in the
+  recycling gaps (it uses < 30 % of the new module 2 words) — fixed when module 3 is rewritten.
+- Audio: 4 new MP3 (TartuNLP, free), 2 old removed; `tools/listening-audio/plan.mjs` knows the voices of Mia, Helgi,
+  Maie, Kertu, Oskar, a teadustaja and a turvatöötaja.
+- Checks: worksheet-generator + worksheet-studio — 1079 passed, 3 skipped. Not published.
+
 ## 2026-10-22 · agent/method-gates-2 — methodology gates: listening, recycling, exam formats, v4 time rates
 
 - Stacked on agent/method-gates (PR #745).

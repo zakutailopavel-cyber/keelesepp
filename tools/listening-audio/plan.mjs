@@ -12,8 +12,8 @@ export const MALE_VOICES = ['albert', 'kalev', 'tambet', 'indrek', 'meelis', 'pe
 const NARRATORS = ['mari', 'tambet', 'liivika', 'kalev', 'külli', 'meelis', 'vesta', 'albert'];
 
 // names and roles of the course texts; anything else alternates female / male
-const FEMALE = new Set(['anna', 'liis', 'sofia', 'kati', 'olga', 'kristi', 'kadri', 'irina', 'kersti', 'mari', 'liina', 'sandra', 'anne', 'tiina', 'ema', 'tütar', 'vanaema', 'yuki', 'maria', 'kaja', 'helen', 'piret', 'tiiu', 'ene', 'eva', 'laura', 'kristiina', 'maarja', 'svetlana', 'natalja', 'elena', 'tatjana', 'katrin', 'merike', 'õde']);
-const MALE = new Set(['markus', 'viktor', 'jaan', 'marko', 'rasmus', 'margus', 'toomas', 'peeter', 'jüri', 'tõnu', 'mihkel', 'andres', 'mart', 'isa', 'vanaisa', 'poeg', 'jaanus', 'tarmo', 'priit', 'sergei', 'aleksei', 'dmitri', 'ivan', 'andrei', 'kalle', 'ants', 'rein', 'tiit', 'martin', 'karl', 'oliver']);
+const FEMALE = new Set(['anna', 'liis', 'sofia', 'kati', 'olga', 'kristi', 'kadri', 'irina', 'kersti', 'mari', 'liina', 'sandra', 'anne', 'tiina', 'ema', 'tütar', 'vanaema', 'yuki', 'maria', 'kaja', 'helen', 'piret', 'tiiu', 'ene', 'eva', 'laura', 'kristiina', 'maarja', 'svetlana', 'natalja', 'elena', 'tatjana', 'katrin', 'merike', 'õde', 'mia', 'helgi', 'maie', 'kertu', 'teadustaja']);
+const MALE = new Set(['markus', 'viktor', 'jaan', 'marko', 'rasmus', 'margus', 'toomas', 'peeter', 'jüri', 'tõnu', 'mihkel', 'andres', 'mart', 'isa', 'vanaisa', 'poeg', 'jaanus', 'tarmo', 'priit', 'sergei', 'aleksei', 'dmitri', 'ivan', 'andrei', 'kalle', 'ants', 'rein', 'tiit', 'martin', 'karl', 'oliver', 'oskar', 'turvatöötaja']);
 // „Kordame:”, „Kokkuvõtteks:” … start a sentence of the narrator, they are not people
 const NOT_SPEAKER = new Set(['ja', 'aga', 'kõigepealt', 'esiteks', 'teiseks', 'kolmandaks', 'kokkuvõtteks', 'kordame', 'küsisime', 'üks', 'lõpuks', 'näiteks', 'tähelepanu', 'nb', 'kell', 'märkus']);
 

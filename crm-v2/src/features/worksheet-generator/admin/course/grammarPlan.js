@@ -41,7 +41,7 @@ export const GRAMMAR_PLAN = {
     { id: 'future', label: 'tuleviku väljendamine', lessons: ['a2b1-071'] },
     { id: 'if-clauses', label: 'kui-lause', lessons: ['a2b1-073'] },
     { id: 'impersonal', label: 'umbisikuline tegumood', lessons: ['a2b1-081'] },
-    { id: 'relative', label: 'kes/mis-kõrvallaused', lessons: [], module: 'a2b1-module-02' },
+    { id: 'relative', label: 'kes/mis-kõrvallaused', lessons: ['a2b1-007', 'a2b1-008'], module: 'a2b1-module-02' },
     { id: 'adjective-suffixes', label: 'omadussõnaliited -line, -kas, -lik, -tu, eba-', lessons: [], module: 'a2b1-module-03' },
     { id: 'particle-verbs', label: 'ühendverbid', lessons: [], module: 'a2b1-module-04' },
     { id: 'object', label: 'täis- ja osasihitis', lessons: [], module: 'a2b1-module-06' },
