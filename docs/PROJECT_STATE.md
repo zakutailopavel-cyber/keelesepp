@@ -7,6 +7,13 @@
   they are after every reload; the server's roomBookings only add lessons the user cannot see; a deleted series is
   hidden at once. Files: features/calendar/roomModel.js (+tests), CalendarPage.jsx.
 - Checks: vitest calendar 108/108.
+## 2026-10-22 · agent/student-parent-link — „Ava lapsevanema kaart” on the student's card
+
+- Oleksiy (#improvement #database): a quick way from the student's card to the parent's card.
+- Student card → Põhiandmed → under Lapsevanem: „Ava lapsevanema kaart” (one link per linked parent account; from
+  parentModel `parentCardIds`). It opens /parents?parent=<id>: the parents page shows that parent only, with „Näita kõiki”.
+- Files: students/StudentProfilePage.jsx, studentProfileTabs.css, parents/ParentsPage.jsx, parentModel.js (+tests),
+  styles/index.css. Checks: vitest parents + students 104/104.
 
 ## 2026-10-22 · agent/english-b1-m3 — English B1 module 3 „Experiences”
 

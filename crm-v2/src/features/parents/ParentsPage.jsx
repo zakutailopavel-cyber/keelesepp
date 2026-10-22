@@ -1,6 +1,6 @@
 import { GitMerge, HeartHandshake, Mail, Pencil, Phone, Search, ShieldAlert, UserCheck, UserPlus, WalletCards } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
@@ -47,6 +47,9 @@ export default function ParentsPage({ repository = parentsService, studentReposi
   const { user } = useAuth();
   const admin = user.roles.includes(ROLES.ADMIN);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !admin;
+  const [searchParams, setSearchParams] = useSearchParams();
+  // „Ava lapsevanema kaart” from a student's card (Oleksiy 2026-10-22): /parents?parent=<id> shows that parent only
+  const onlyParent = searchParams.get('parent') || '';
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState('all');
   const [editingId, setEditingId] = useState('');
@@ -75,7 +78,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
 
   const rows = useMemo(() => state.data ? buildParentRows(state.data.parents, state.data.students, state.data.invoices) : [], [state.data]);
   const scopedRows = useMemo(() => teacherOnly ? rows.filter((row) => row.children.length) : rows, [rows, teacherOnly]);
-  const visibleRows = useMemo(() => filterParentRows(scopedRows, { query, status }), [query, scopedRows, status]);
+  const visibleRows = useMemo(() => (onlyParent ? scopedRows.filter((row) => row.parent.id === onlyParent) : filterParentRows(scopedRows, { query, status })), [onlyParent, query, scopedRows, status]);
   const editingRow = rows.find((row) => row.parent.id === editingId) || null;
   const linkingRow = rows.find((row) => row.parent.id === linkingId) || null;
   const creatingRow = rows.find((row) => row.parent.id === creatingId) || null;
@@ -248,6 +251,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
 
     <Card className="parent-toolbar people-directory-toolbar"><div className="search-field"><Search size={18} /><input aria-label="Otsi lapsevanemat" placeholder="Otsi vanema, lapse või õpetaja järgi" value={query} onChange={(event) => setQuery(event.target.value)} /></div><Select aria-label="Lapsevanema staatus" value={status} onChange={(event) => setStatus(event.target.value)}><option value="all">Kõik staatused</option>{Object.entries(statuses).map(([value, meta]) => <option value={value} key={value}>{meta.label}</option>)}<option value="cash">Maksab sularahas</option></Select></Card>
 
+    {onlyParent ? <p className="parent-only-note" role="status">Näitan ühte lapsevanemat. <button type="button" className="link-button" onClick={() => setSearchParams({})}>Näita kõiki</button></p> : null}
     {visibleRows.length ? <div className="parent-grid">{visibleRows.map((row) => {
       const meta = statuses[row.parent.parentContactStatus] || statuses.new;
       return <Card className={row.parent.parentNextContactAt === today ? 'parent-card is-due' : 'parent-card'} key={row.parent.id}><header><div className="parent-avatar">{(row.parent.displayName || row.parent.email || 'LV').split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toLocaleUpperCase('et')}</div><div><h2>{row.parent.displayName || 'Nimetu lapsevanem'}{row.parent.payerMethod === 'cash' ? <> <Badge tone="warning">sularaha</Badge></> : null}{row.parent.selfPayer && !row.parent.roles?.includes('parent') && row.parent.role !== 'parent' ? <> <Badge tone="info">Õpib ise</Badge></> : null}</h2><span>{row.parent.email || 'E-post puudub'}</span></div><Badge tone={meta.tone}>{meta.label}</Badge></header><div className="parent-contact-links">{row.parent.phone ? <a href={`tel:${row.parent.phone}`}><Phone size={16} /> {row.parent.phone}</a> : <span><Phone size={16} /> Telefon puudub</span>}{row.parent.email ? <a href={`mailto:${row.parent.email}`}><Mail size={16} /> Saada e-kiri</a> : null}</div><dl><div><dt>Kanal</dt><dd>{channels[row.parent.parentContactChannel] || 'Muu'}</dd></div><div><dt>Järgmine kontakt</dt><dd>{row.parent.parentNextContactAt || 'Määramata'}</dd></div><div><dt>Vastutaja</dt><dd>{row.parent.parentContactOwner || 'Määramata'}</dd></div>{admin ? <div><dt>Tasumata jääk</dt><dd>{money(row.balanceCents)}</dd></div> : null}</dl><section><div className="parent-section-head"><strong>Lapsed</strong><Badge tone={row.children.length ? 'success' : 'danger'}>{row.children.length || 'Sidumata'}</Badge></div>{row.children.length ? row.children.map((student) => <Link to={`/students/${student.id}`} key={student.personKey || student.id}><span><strong>{student.name}</strong>{(student.enrollments || []).map((enrollment) => <small key={enrollment.id}>{enrollment.subject || 'Õppeaine puudub'} · {enrollment.teacher || 'Õpetaja puudub'} · {enrollment.level || '—'}</small>)}</span><Badge tone="info">{student.enrollments?.length > 1 ? `${student.enrollments.length} ainet` : student.level || '—'}</Badge></Link>) : <p>{row.requestedNames.length ? `Registreerimisel sisestatud: ${row.requestedNames.join(', ')}` : 'Lapse andmed puuduvad.'}</p>}</section><p className="parent-notes"><strong>Märkmed:</strong> {row.parent.parentContactNotes || 'Märkmeid ei ole.'}</p>{admin ? <footer><Button variant="secondary" onClick={() => openEdit(row)}><Pencil size={16} /> Muuda</Button><Button variant="secondary" onClick={() => { setLinkingId(row.parent.id); setStudentQuery(''); }}><UserPlus size={16} /> Lisa laps</Button>{row.children.length ? <Button variant="secondary" onClick={() => openConvert(row)}><UserCheck size={16} /> See on õpilane</Button> : null}{row.needsReview ? <Button onClick={() => reviewParent(row)}>Kontrollitud</Button> : null}</footer> : null}</Card>;

@@ -165,4 +165,13 @@ describe('ParentsPage', () => {
     expect(screen.queryByText('Tasumata jääk')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Muuda/ })).not.toBeInTheDocument();
   });
+
+  it('opened from a student\'s card (/parents?parent=<id>) it shows that parent only, with a way back to all', async () => {
+    const data = repositories();
+    render(<MemoryRouter initialEntries={['/parents?parent=parent-1']}><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><ParentsPage {...data} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByText('Mari Ema')).toBeInTheDocument();
+    expect([...document.querySelectorAll('.parent-card h2')].map((h) => h.textContent)).toEqual(['Mari Ema']);
+    fireEvent.click(screen.getByRole('button', { name: 'Näita kõiki' }));
+    await waitFor(() => expect(document.querySelectorAll('.parent-card').length).toBe(2));
+  });
 });
