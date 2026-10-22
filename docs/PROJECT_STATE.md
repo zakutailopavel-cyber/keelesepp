@@ -1,3 +1,33 @@
+## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
+
+- Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch
+  course files or CourseProductionPage.
+- New read-only admin page `/library/worksheet-generator/health` (Õppevara → Tööriistad → „Kursuste tervis”):
+  - per course, every lesson's quality gates and its sheets (Avasta / Harjuta / Kasuta / Õpik) compared with Õppevara;
+  - states: the same as the code, published but different from the code, a newer draft in progress, only a draft,
+    missing, or only in Õppevara;
+  - „Kontrolli Õppevaraga” reads the lessons six at a time; the list filters to lessons with problems.
+- Files:
+  - `admin/course/health.js` (+ test);
+  - `ui/CourseHealthPage.jsx` (+ test);
+  - `routes.jsx` (one route);
+  - LibraryPage (one menu item).
+- First reading of production 2026-10-22, read-only:
+  - A2: 100 lessons, 303 sheets the same, 1 draft;
+  - B1: 85 lessons, 258 the same;
+  - B2: 90 lessons, 271 the same;
+  - ek9: 15 the same;
+  - en: 75 the same;
+  - C1: 245 the same, 55 different from the code — modules 8–10 (est-c1-071…100) were changed in code and not
+    published;
+  - no sheet missing.
+- Quality gates („all gates pass”):
+  - B1, B2, ek9 and en: all lessons;
+  - A2 and C1: no lesson passes them all. A2: repeated sentences 197, no vocabulary block 96. C1: no vocabulary block
+    100, depth notes.
+- Checks: health + page tests 5/5, eslint 0 errors.
+- Next safe step: the owner decides about publishing C1 modules 8–10 and adding the vocabulary blocks to A2 / C1.
+
 ## 2026-10-22 · agent/studio-teacher-pass — constructor walked through as a teacher
 
 - Owner: go through the lesson constructor as a teacher and fix what is awkward or missing.
