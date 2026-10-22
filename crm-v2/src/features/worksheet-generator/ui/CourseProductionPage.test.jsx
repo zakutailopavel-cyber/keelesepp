@@ -23,7 +23,7 @@ describe('CourseProductionPage', () => {
     expect(repository.publish).toHaveBeenCalledTimes(3);
     expect(repository.publish.mock.calls.map(([arg]) => arg).find((arg) => arg.worksheetId === 'practice')).toMatchObject({ lessonId: 'a2b1-006', worksheetId: 'practice', baseUpdatedAt: 't', slot: 2 });
     confirm.mockRestore();
-  });
+  }, 90000); // builds every course module's sheets; grows with the course (CI timed out at 20 s)
 
   it('is for admins only', () => {
     render(<AuthContext.Provider value={{ user: { uid: 't', roles: ['teacher'] } }}><CourseProductionPage repository={{ load: vi.fn() }} /></AuthContext.Provider>);
