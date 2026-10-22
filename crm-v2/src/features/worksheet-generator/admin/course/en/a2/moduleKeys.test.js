@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import * as mod1 from './module01.js';
 import * as mod2 from './module02.js';
+import * as modB1 from '../b1/module01.js';
 import { moduleSheets } from '../../registry.js';
 import { answerKeyOf } from '../../../../../worksheet-studio/engine/answerKey.js';
 import { norm } from '../../../../../worksheet-studio/engine/schema.js';
 
-describe.each([['1', mod1], ['2', mod2]])('English A2 module %s', (_, mod) => {
+describe.each([['A2 1', mod1], ['A2 2', mod2], ['B1 1', modB1]])('English %s', (_, mod) => {
   const sheets = Object.values(moduleSheets(mod)).flatMap((phases) => Object.values(phases));
   const tasks = sheets.flatMap((doc) => answerKeyOf(doc));
 

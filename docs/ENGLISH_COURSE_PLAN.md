@@ -64,6 +64,23 @@ my place and Estonia; school and work; free time; countries and cultures; daily 
 9. **Media and technology:** present perfect (ever / never), online safety, short messages.
 10. **A2 exam practice:** a full mock in the exam's task types.
 
+### B1 modules (draft)
+
+B1 is the level of the basic school exam itself. Tasks have 10 items, reading texts are 200–400 words, writing follows
+the exam (an e-mail of 100–120 words and a short message of 40–60 words), speaking turns are about two minutes.
+
+1. **People around me:** present simple / continuous and stative verbs, question forms, personality, adjective +
+   preposition, -ed / -ing, relationship phrasal verbs, indirect questions and polite requests.
+2. **Life stories:** past simple and past continuous, used to, time linkers, telling a story.
+3. **Experiences:** present perfect (ever / never, just / already / yet, for / since) vs past simple.
+4. **Plans and the future:** will, going to, present continuous for arrangements, first conditional.
+5. **Free time and culture:** -ing / to-infinitive, comparatives and superlatives, reviews.
+6. **Travel:** modals of obligation and advice (must, have to, should), travel problems, complaints.
+7. **Health and lifestyle:** quantifiers, second conditional, giving advice.
+8. **Technology and media:** the passive (present and past), online safety, opinions.
+9. **Our world:** relative clauses, reported speech (statements), environment.
+10. **B1 exam practice:** a full mock exam.
+
 ## What the system needs
 
 - `MODULE.language: 'en'` puts `meta.language` on the sheets. Estonian-only checks (the EKI word lists) skip it;
@@ -79,6 +96,8 @@ my place and Estonia; school and work; free time; countries and cultures; daily 
 - Listening: the course TTS is Estonian, so English transcripts are read by the teacher for now. English audio needs
   a TTS choice (a paid service needs the owner's yes).
 
+- B1 module 1 (en-b1-001…005) is built with its teacher key and passes every gate (2026-10-22); not yet published.
+
 ## Next safe step
 
-A2 module 3 „School and learning” in the same shape.
+The owner's yes to publish B1 module 1; then B1 module 2 „Life stories”. A2 module 3 waits.
