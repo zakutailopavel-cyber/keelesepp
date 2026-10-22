@@ -30,7 +30,7 @@ Each source loads on its own; one the user may not read (another teacher's journ
 
 ## Next steps (in order)
 
-1. Daily 5-minute review from the profile (forgotten + due words, 2–3 new), shown on the student's home „Täna”.
-2. Sheet errors become review items (the wrong answer → a word or a sentence card), so an error comes back a week later.
+1. Done (#742): „Päeva 5 minutit” on the student's home „Täna”.
+2. Done (agent/sheet-error-cards): a submitted sheet's wrong sentences become „Sinu lause” cards.
 3. The next worksheet gets 2–3 tasks on what this student forgets.
 4. Parent view: words known, growth this month, one weak point.
