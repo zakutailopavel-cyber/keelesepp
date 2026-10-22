@@ -1,3 +1,10 @@
+## 2026-10-23 · agent/personal-sheet-errors — the personal worksheet works on the student's own wrong sentences
+
+- docs/LEARNER_PROFILE.md step 3. „Isiklik tööleht” (student card → AutoSkillsCard) now also takes his unlearned
+  „Sinu lause” cards (wrong sentences from submitted sheets and lessons, box < 3) next to the lesson-recording errors →
+  „Leia ja paranda viga”, gaps, word forms; sentence cards no longer appear in its word list.
+- Files: students/personalWorksheet.js (+test). Checks: verify (eslint errors 0, vitest all passed).
+
 ## 2026-10-23 · agent/sheet-error-cards — a worksheet's wrong sentences become the student's cards
 
 - Main checked: after #749. docs/LEARNER_PROFILE.md step 2.

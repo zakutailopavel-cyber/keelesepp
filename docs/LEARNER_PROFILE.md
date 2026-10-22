@@ -32,5 +32,5 @@ Each source loads on its own; one the user may not read (another teacher's journ
 
 1. Done (#742): „Päeva 5 minutit” on the student's home „Täna”.
 2. Done (agent/sheet-error-cards): a submitted sheet's wrong sentences become „Sinu lause” cards.
-3. The next worksheet gets 2–3 tasks on what this student forgets.
+3. Done (agent/personal-sheet-errors): „Isiklik tööleht” takes his unlearned wrong sentences.
 4. Parent view: words known, growth this month, one weak point.
