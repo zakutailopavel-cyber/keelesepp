@@ -22,7 +22,7 @@ import { unplannedStudents } from './unplannedStudents.js';
 import { DAY_IDS, bandsOn, cellStatus, paintSlot, setCellStatus, slotsOn, windowProblem } from './availabilityModel.js';
 import CellStatusMenu from './CellStatusMenu.jsx';
 import RoomsDialog from './RoomsDialog.jsx';
-import { assignRoom, roomChoices, roomConflict } from './roomModel.js';
+import { assignRoom, mergedBookings, roomChoices, roomConflict } from './roomModel.js';
 import LessonPanel from './LessonPanel.jsx';
 import AdminNoteBox from './AdminNoteBox.jsx';
 import { notesFor } from '../../services/firebase/lessonNotes.js';
@@ -362,7 +362,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   };
   const formStudent = studentMap.get(form.studentId);
   const rooms = roomsState.data?.[0] || [];
-  const bookings = [...(roomsState.data?.[1] || []).filter((booking) => !(booking.scheduleId in localBookings)), ...Object.values(localBookings).filter(Boolean)];
+  const bookings = mergedBookings(roomsState.data?.[1] || [], scheduleEvents, localBookings);
   const activeRooms = rooms.filter((room) => room.active !== false);
   const formRoomChoices = modal && !form.online && activeRooms.length ? roomChoices(rooms, bookings, { ...form, startDate: form.date, excludedDates: editing?.excludedDates || [] }, editing?.id || '') : [];
   const formTracks = tracksOf(formStudent);
@@ -553,6 +553,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         hasRecords: lessonRecords.some((lesson) => lesson.scheduleId === item.id),
       });
       await runOps(plan.apply, item);
+      // a deleted lesson frees its room at once (the server's booking goes away a moment later)
+      setLocalBookings((current) => ({ ...current, [item.id]: null }));
       const when = new Date(`${item.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'short' });
       setUndo({ label: `${item.studentName || 'Tund'} ${when} kustutatud${item.recurring && scope === 'series' ? ' (ja järgmised)' : ''}`, plan, created: {}, item });
       setPanelKey('');
