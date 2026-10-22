@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-23.5';
+export const EN_B1_VERSION = '2026-10-23.6';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -57,6 +57,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['You have to see it!', 'so + adjective, such (a) + adjective + noun, so / such… that; absolutely with strong adjectives, quite; writing a review.'],
       ['How about going out?', 'Suggestions (Shall we, Let\'s, Why don\'t we, How about + -ing); formal and informal invitations; accepting and refusing politely.'],
       ['Module 5 check: Free time and culture', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 6, title: 'Travel', goal: 'Talking about travel rules and advice, telling a story about travel problems and complaining politely.',
+    lessons: [
+      ['You have to show your ticket', 'must / have to (necessary), mustn\'t (not allowed), don\'t have to (not necessary); had to and will have to; airport and travel rules.'],
+      ['You should pack light', 'Advice with should / shouldn\'t, ought to and If I were you, I\'d…; should vs must; travel tips.'],
+      ['Everything went wrong', 'Past ability and success: could / couldn\'t, managed to, was able to; had to; telling a story about travel problems.'],
+      ['I\'d like to complain', 'Polite complaints; too + adjective, not + adjective + enough; Could you possibly…?, I would be grateful if…; a formal complaint e-mail.'],
+      ['Module 6 check: Travel', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);
