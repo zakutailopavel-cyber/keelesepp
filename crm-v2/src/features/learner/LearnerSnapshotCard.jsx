@@ -5,6 +5,7 @@ import { homeworkService, lessonsService } from '../../services/firebase/index.j
 import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';
 import { learnerSnapshot, reviewPageText } from './learnerSnapshot.js';
+import MonthStepsCard from './MonthStepsCard.jsx';
 import './learner.css';
 
 const api = {
@@ -74,6 +75,8 @@ export default function LearnerSnapshotCard({ studentId, studentName = '', repos
         {sheet.details.length ? <ul className="ls-errors">{sheet.details.map((line) => <li key={line}>{line}</li>)}</ul> : null}
       </li>)}</ul>
     </div> : null}
+
+    <MonthStepsCard compact assignments={state.data.assignments} />
 
     {homework.open ? <div className="ls-block">
       <h4><CalendarClock size={15} aria-hidden="true" /> Kodutööd <small>{homework.open} avatud</small></h4>

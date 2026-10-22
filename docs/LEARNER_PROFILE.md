@@ -34,3 +34,4 @@ Each source loads on its own; one the user may not read (another teacher's journ
 2. Done (agent/sheet-error-cards): a submitted sheet's wrong sentences become „Sinu lause” cards.
 3. Done (agent/personal-sheet-errors): „Isiklik tööleht” takes his unlearned wrong sentences.
 4. Done (agent/progress-stats): words learned, new this month and mistakes fixed for the student and the family.
+5. Done (agent/month-steps): „Kuu sammud” — the month's lesson goals and how well each is mastered.

@@ -1,3 +1,13 @@
+## 2026-10-23 · agent/month-steps — „Kuu sammud”: the month's goal is the lessons' own steps
+
+- Owner 2026-10-23: the monthly goal is the mini-steps of the lessons themselves and how well they are mastered.
+- learner/monthSteps.js (+test): the „Ma oskan …” goals (worksheetDoc.meta.goals) of the sheets a student worked on in
+  30 days, the three sheets of a lesson together (lessonTitle), mastery from score.perGoal: Selge ≥ 80 %, Harjuta veel
+  50–79 %, Kordame < 50 %, Veel tegemata (no result yet). MonthStepsCard (+test) on the student's home, per child on the
+  parent's home, and in the teacher's „Õpilase pilt”.
+- Checks: verify (eslint errors 0, vitest 2265 passed, 0 failed; WorksheetStudioPage.test failed once under load and
+  passed alone twice and in the repeated full run).
+
 ## 2026-10-23 · agent/teacher-report — „Õpetajate võrdlus” (administrators only)
 
 - Owner 2026-10-23: the teacher comparison is for the administrator only. On „Õpetajad” an admin sees, per active
