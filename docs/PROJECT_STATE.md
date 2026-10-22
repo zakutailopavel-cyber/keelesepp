@@ -1,3 +1,12 @@
+## 2026-10-23 · agent/teacher-report — „Õpetajate võrdlus” (administrators only)
+
+- Owner 2026-10-23: the teacher comparison is for the administrator only. On „Õpetajad” an admin sees, per active
+  teacher over 30 days: students, lessons held, share missed (absences + cancellations), students practising on their
+  own (words reviewed in 14 days, of those with words), submitted sheets with the average result (≥ 3 sheets), new words
+  per student. Too little data shows „—”. Teachers opening the page do not see it.
+- Files: teachers/teacherReport.js (+test), TeacherReportCard.jsx, TeachersPage.jsx (+test).
+- Checks: verify (eslint errors 0, vitest 2263 passed, 0 failed).
+
 ## 2026-10-23 · agent/progress-stats — „Minu sõnad ja vead”: plain progress for the student and the family
 
 - docs/LEARNER_PROFILE.md step 4. vocabulary/wordGrowth.js (+test): words learned (box ≥ 3), new in 30 days, own

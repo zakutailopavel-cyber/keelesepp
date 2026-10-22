@@ -23,3 +23,22 @@ describe('TeachersPage', () => {
     expect(overview).toHaveTextContent('Täna1');
   });
 });
+
+describe('TeachersPage: „Õpetajate võrdlus” (owner 2026-10-23)', () => {
+  const props = {
+    teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Anna' }]) },
+    studentRepository: { list: vi.fn().mockResolvedValue({ items: [{ id: 's1', name: 'Mari', teacherUid: 't1', active: true }] }) },
+    scheduleRepository: { list: vi.fn().mockResolvedValue([]) },
+    reportRepository: { lessons: vi.fn().mockResolvedValue([]), words: vi.fn().mockResolvedValue([]), assignments: vi.fn().mockResolvedValue([]) },
+  };
+  it('only an administrator sees the comparison', async () => {
+    const { AuthContext } = await import('../../app/AuthContext.jsx');
+    const { unmount } = render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 't1', roles: ['teacher'] } }}><TeachersPage {...props} /></AuthContext.Provider></MemoryRouter>);
+    await screen.findByRole('region', { name: 'Õpetajate kokkuvõte' });
+    expect(screen.queryByText('Õpetajate võrdlus')).toBeNull();
+    unmount();
+    render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><TeachersPage {...props} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByText('Õpetajate võrdlus')).toBeInTheDocument();
+    expect(await screen.findByRole('table', { name: 'Õpetajate võrdlus' })).toHaveTextContent('Anna');
+  });
+});
