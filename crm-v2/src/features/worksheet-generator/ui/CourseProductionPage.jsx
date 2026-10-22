@@ -22,16 +22,17 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
   const isAdmin = user?.roles?.includes(ROLES.ADMIN);
   const [moduleId, setModuleId] = useState(modules[0]?.MODULE.id || '');
   const mod = modules.find((m) => m.MODULE.id === moduleId) || modules[0];
-  const sheets = useMemo(() => (mod ? moduleSheets(mod) : {}), [mod]);
+  // nothing is built for a user who may not open the page (the gates over every course take seconds; CI timed out)
+  const sheets = useMemo(() => (mod && isAdmin ? moduleSheets(mod) : {}), [mod, isAdmin]);
   // a new problem locks publishing; a known one (qualityBaseline.json, the level audit's debt) is shown but does not
-  const { fresh: problems, known } = useMemo(() => (mod ? splitByBaseline(mod.MODULE.id, moduleProblems(sheets)) : { fresh: [], known: [] }), [mod, sheets]);
+  const { fresh: problems, known } = useMemo(() => (mod && isAdmin ? splitByBaseline(mod.MODULE.id, moduleProblems(sheets)) : { fresh: [], known: [] }), [mod, sheets, isAdmin]);
   const [records, setRecords] = useState({});
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(null);
   // quality gates over the whole course (computed once): ready lessons per level and module
-  const readiness = useMemo(() => courseReadiness(modules), [modules]);
+  const readiness = useMemo(() => (isAdmin ? courseReadiness(modules) : {}), [modules, isAdmin]);
   const report = readiness[mod?.MODULE.course]?.modules.find((m) => m.id === mod?.MODULE.id);
 
   const load = useCallback(async () => {
