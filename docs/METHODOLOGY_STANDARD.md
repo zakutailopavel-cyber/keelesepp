@@ -152,5 +152,23 @@ covered at every level.
    baseline first (known problems shown, new ones blocked), as with earlier gates.
 2. **Content:** B1 first — add the missing B1 grammar (§6.1) to the module plan, B1 module 1, listening; then B2 (gaps
    in §6.1, topics), A2, C1 (modules 9–10 into the current format). Every rewritten module uses template v4.
+   B1 grammar placement (owner 2026-10-22: build the missing B1 items into the existing 18 modules, no new modules).
+   Each item gets a notice + practice in its module and returns later (spiral):
+
+   | B1 module | Theme | Added grammar (B12H) |
+   |---|---|---|
+   | 02 | Mina, pere ja suhted | kes/mis relative clauses (inimene, kes…; asi, mida…) |
+   | 03 | Kodu, kohad ja linn | adjective suffixes -line, -kas, -lik, -tu, eba- |
+   | 04 | Aeg, plaanid ja kohustused | particle verbs (kokku leppima, ära minema, ette valmistama) |
+   | 06 | Toit ja teenindus | total vs partial object (sõin leiba / sõin leiva ära) |
+   | 07 | Tervis ja enesetunne | translative of change (jäin haigeks, sain terveks) |
+   | 08 | Õppimine ja kool | verb government with cases and postpositions (huvituma millest, osalema milles) |
+   | 09 | Töö ja ametid | ma-forms with case endings (käin koosolekul / lähen ujuma / tulen tööl…: -mas, -mast, -mata) |
+   | 10 | Reisimine ja transport | pluperfect (kui jõudsime, oli rong juba läinud) |
+   | 11 | Raha, ostlemine ja teenused | participles as attributes (kasutatud auto, tehtud töö, ostetav kaup) |
+   | 13 | Suhtlemine ja probleemilahendus | quotative mood and reported speech (ta olevat…, ta ütles, et…) |
+   | 14 | Minevik, kogemused ja jutustamine | completion with ära / läbi / valmis |
+   | 15 | Tulevik, plaanid ja eesmärgid | jussive (olgu, tehku) — recognition |
+
 3. **Pilot:** one rewritten module with 2–3 real learners; compare real minutes and error rates with the estimates,
    adjust this standard.
