@@ -1,3 +1,17 @@
+## 2026-10-22 · agent/accounting-core — bookkeeping core (päevaraamat, käibeandmik) on the server
+
+- Owner: implement Päevaraamat, Käibeandmik (templates P2evaraamat.xls, K2ibeandmik_a.xls), the Merit Aktiva kontoplaan
+  and INF 3 in Finantsid, „как по законам Эстонии”. Decisions (AskUserQuestion): full bookkeeping on the site; not VAT
+  registered; from 2026-01-01 with opening balances; isikukood in the card plus a parents' form.
+- This PR: the server core. functions/accounting-chart.js (207 Merit Aktiva accounts), functions/accounting-core.js
+  (automatic entries from invoices, credit notes, cancellations, payments, voids, payer credits, refunds, expenses;
+  validation; storno; opening balances; numbering), financeApi routes /accounting/*, rules for accountingEntries and
+  accountingAccounts (admin read, no client writes). docs/ACCOUNTING.md: the law (RPS §§ 6–12) and the posting table.
+- Checks: functions node --test 339/339 (accounting-core 10); emulator: the new bookkeeping test passes.
+- Not done: the UI (next PR: Raamatupidamine with päevaraamat, pearaamat, käibeandmik, bilanss, kasumiaruanne, manual
+  entries, opening balances, Excel); INF 3; salaries are manual entries. Nothing deployed.
+- Next safe step: the Raamatupidamine UI on top of this branch; deploy functions with the owner's yes after merge.
+
 ## 2026-10-22 · agent/english-b1-m2 — English B1 module 2 „Life stories”
 
 - Main checked: 198b5f1. B1 module 1 was merged (#722) and published with the owner's yes: records en-b1-001…005
