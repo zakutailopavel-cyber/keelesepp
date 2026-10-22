@@ -1,3 +1,16 @@
+## 2026-10-22 · agent/inf3 — INF 3 (training costs paid by private persons)
+
+- Owner: INF 3 in Finantsid (inf_3_2025.pdf), personal codes in the card + a parents' form (AskUserQuestion).
+- functions/inf3-core.js: isikukood check, `inf3Rows` (money received in the year by trainee, minus refunds; not
+  prepayment use, overpayments, voids, company invoices), `inf3Xml` (emta.ee inf3.xsd). financeApi /tax/identity,
+  /tax/form-link, /tax/inf3; new public function `taxFormApi` (/info, /submit) with one-time 60-day links; rules:
+  taxIdentities admin read, taxFormTokens closed.
+- CRM: /finance/inf3 (admin; masked codes, missing rows, „Vormi link”, XML download, filing notes), /maksuandmed/:token
+  (public parents' form, et / ru). Link „INF 3” in Finantsid. docs/INF3.md.
+- Checks: functions inf3-core 4/4; emulator INF 3 test passes; vitest tax + app 27 passed; eslint clean.
+- Owner's manual gate: E&P Koolitus OÜ needs a majandustegevusteade for täienduskoolitus in EHIS before filing.
+- Not deployed (new function taxFormApi + financeApi + rules need the owner's yes).
+
 ## 2026-10-22 · agent/english-b1-m2 — English B1 module 2 „Life stories”
 
 - Main checked: 198b5f1. B1 module 1 was merged (#722) and published with the owner's yes: records en-b1-001…005

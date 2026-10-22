@@ -57,6 +57,7 @@ export const ROUTE_ACCESS = Object.freeze({
   '/finance/vana': ACCESS.FINANCE,
   '/finance/payroll': ACCESS.ADMIN,
   '/finance/expenses': ACCESS.ADMIN,
+  '/finance/inf3': ACCESS.ADMIN,
 });
 
 export function rolesForRoute(path) {

@@ -3731,3 +3731,42 @@ test("one bank payment pays two invoices of a child and remembers the payer's ac
     assert.equal(invoice.balanceDueCents, 0, `${id} ${JSON.stringify(invoice)}`);
   }
 });
+
+test("INF 3: personal codes are admin-only, a parent's link fills them, the report builds the e-MTA XML (owner 2026-10-22)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  await db.collection("students").doc("inf3-student").set({ name: "Mia Maksutest", parentName: "Kati Maksutest" });
+  await db.collection("invoices").doc("inf3-invoice").set({ num: "KS-2025-777", studentId: "inf3-student", date: "2025-03-01", amountCents: 12000, status: "Makstud" });
+  await db.collection("payments").doc("inf3-payment").set({ invoiceId: "inf3-invoice", studentId: "inf3-student", paidAt: "2025-03-05", amountCents: 12000, method: "bank", status: "active", payerName: "Kati Maksutest" });
+
+  const invalid = await financeRequest(adminToken, "/tax/identity", { studentId: "inf3-student", identity: { studentCode: "49403136527" } });
+  assert.equal(invalid.status, 400, JSON.stringify(invalid.body));
+  const saved = await financeRequest(adminToken, "/tax/identity", { studentId: "inf3-student", identity: { studentCode: "49403136526", trainingType: 3 } });
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+
+  const link = await financeRequest(adminToken, "/tax/form-link", { studentId: "inf3-student" });
+  assert.equal(link.status, 201, JSON.stringify(link.body));
+  const token = link.body.url.split("/maksuandmed/")[1];
+  const form = (path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/taxFormApi${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(async (r) => ({ status: r.status, body: await r.json() }));
+  const info = await form("/info", { token });
+  assert.equal(info.status, 200, JSON.stringify(info.body));
+  assert.equal(info.body.studentFirstName, "Mia");
+  assert.equal((await form("/info", { token: "x".repeat(32) })).status, 404);
+  const noConsent = await form("/submit", { token, payerName: "Kati Maksutest", payerCode: "37605030299", studentCode: "49403136526" });
+  assert.equal(noConsent.status, 400);
+  const submitted = await form("/submit", { token, payerName: "Kati Maksutest", payerCode: "37605030299", studentCode: "49403136526", consent: true });
+  assert.equal(submitted.status, 201, JSON.stringify(submitted.body));
+  const identity = (await db.collection("taxIdentities").doc("inf3-student").get()).data();
+  assert.equal(identity.payerCode, "37605030299");
+  assert.equal(identity.trainingType, 3, "the parent's form keeps the school's training type");
+
+  const report = await financeRequest(adminToken, "/tax/inf3", { year: 2025 });
+  assert.equal(report.status, 200, JSON.stringify(report.body));
+  const row = report.body.rows.find((r) => r.studentId === "inf3-student");
+  assert.equal(row.amountCents, 12000);
+  assert.equal(row.ready, true);
+  assert.match(report.body.xml, /<koolitusmaksja_isikukood>37605030299<\/koolitusmaksja_isikukood>/);
+  assert.match(report.body.xml, /<koolituse_liik>3<\/koolituse_liik>/);
+});
