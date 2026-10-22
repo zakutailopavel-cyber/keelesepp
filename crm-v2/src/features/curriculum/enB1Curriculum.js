@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-22.4';
+export const EN_B1_VERSION = '2026-10-23.5';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -47,6 +47,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['What will the future be like?', 'Predictions with will, won\'t, might, may, probably and definitely; I don\'t think… will; a magazine article.'],
       ['If I pass, I\'ll…', 'The first conditional; unless, when and as soon as with the present simple; a formal e-mail with conditions and questions.'],
       ['Module 4 check: Plans and the future', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 5, title: 'Free time and culture', goal: 'Talking about hobbies, comparing places and events, reviewing films and books, and making invitations.',
+    lessons: [
+      ['I love doing it', 'Verbs + -ing (enjoy, don\'t mind, can\'t stand, avoid, give up) and verbs + to (want, decide, hope, plan, would like); -ing after prepositions.'],
+      ['The best weekend ever', 'Comparatives and superlatives (regular, irregular, further), (not) as… as, much / a bit + comparative, the more…, the more…'],
+      ['You have to see it!', 'so + adjective, such (a) + adjective + noun, so / such… that; absolutely with strong adjectives, quite; writing a review.'],
+      ['How about going out?', 'Suggestions (Shall we, Let\'s, Why don\'t we, How about + -ing); formal and informal invitations; accepting and refusing politely.'],
+      ['Module 5 check: Free time and culture', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);
