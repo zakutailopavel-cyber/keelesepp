@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardList, Copy, GraduationCap, Link2, LibraryBig, Redo2, Search, Undo2, Users, Video, X, XCircle } from 'lucide-react';
+import { ArrowLeft, ClipboardList, Copy, GraduationCap, Link2, LibraryBig, Redo2, Search, Undo2, UserRound, Users, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorState, Input, LoadingState } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
@@ -8,6 +8,8 @@ import { RoomWorksheetContent, RoomWorksheetPicker } from '../worksheet-studio/R
 import { prepRoomKey } from '../worksheet-studio/roomWorksheetChoices.js';
 import ActiveLessonsMenu from './ActiveLessonsMenu.jsx';
 import { homeworkService } from '../../services/firebase/index.js';
+import { studentBoardService } from '../../services/firebase/studentBoard.js';
+import LearnerSnapshotCard from '../learner/LearnerSnapshotCard.jsx';
 import { fileKind } from './roomMaterials.js';
 import './liveRoom.css';
 
@@ -17,6 +19,7 @@ export default function TeacherWorkspace({
   user, studentsState, selectedId, onSelect, title, onTitle, onInvite, inviting = false, onGuestLink, linking = false, pending = null, onCancel,
   cancelling = false, resumable = null, onResume, onBack, error = '', boardService, library,
   groupIds = [], onToggleGroup, onInviteGroup, invitingGroup = false, openGroups = [], onOpenGroup, homework = homeworkService, observerService,
+  learnerRepository,
 }) {
   const [mode, setMode] = useState('single');
   const group = mode === 'group';
@@ -40,6 +43,14 @@ export default function TeacherWorkspace({
     if (id) { setNotice(`„${file.name || 'Materjal'}” on tahvlil.`); setPanel(''); }
   };
   const uploadImage = library?.uploadFile ? (file) => library.uploadFile({ file, user }) : undefined;
+  // „Pane kordamine tahvlile”: a page „Kordamine” with the forgotten words on a note; the board opens it
+  const reviewPage = async (text) => {
+    const service = boardService || studentBoardService;
+    const lines = String(text || '').split('\n').length;
+    const pageId = await service.addPage(student.id, `Kordamine ${new Intl.DateTimeFormat('et-EE', { day: '2-digit', month: '2-digit' }).format(new Date())}`, 99, user);
+    await service.add(student.id, pageId, { type: 'note', x: 80, y: 80, w: 420, h: Math.min(900, 40 + lines * 26), text: String(text).slice(0, 2000), color: '#FEF3C7', byStaff: true }, user);
+    boardRef.current?.selectPage?.(pageId);
+  };
   // worksheets put on the board while preparing: clickable pages now, taken into the lesson room on invitation
   const [prepared, setPrepared] = useState([]);
   useEffect(() => {
@@ -69,13 +80,14 @@ export default function TeacherWorkspace({
           </div> : null}
           {studentsState.loading ? <LoadingState label="Laen õpilasi…" /> : studentsState.error ? <ErrorState message={studentsState.error} /> : studentsState.items.length ? <>
             {group ? <label className="lr-search lw-search"><Search size={16} /><input aria-label="Otsi õpilast tunniks" placeholder="Otsi õpilast…" value={search} onChange={(event) => setSearch(event.target.value)} /></label>
-              : <StudentPicker student={student} items={visible} search={search} onSearch={setSearch} disabled={Boolean(pending)} onPick={(id) => { onSelect(id); setSearch(''); setPanel(id ? 'worksheets' : ''); }} />}
+              : <StudentPicker student={student} items={visible} search={search} onSearch={setSearch} disabled={Boolean(pending)} onPick={(id) => { onSelect(id); setSearch(''); setPanel(id ? 'learner' : ''); }} />}
           </> : <EmptyState title="Sulle määratud õpilasi ei leitud" description="Kui õpilased on sulle määratud, palu administraatoril avada sinu õpetajaleht ja vajutada „Seo õpetaja kontoga”." />}
         </div>
         <div className="lr-top__group lr-top__right">
           {student ? <>
             <button type="button" aria-label="Võta tagasi" title="Võta tagasi" className="lr-icon" disabled={!history.canUndo} onClick={() => boardRef.current?.undo()}><Undo2 size={18} /></button>
             <button type="button" aria-label="Tee uuesti" title="Tee uuesti" className="lr-icon" disabled={!history.canRedo} onClick={() => boardRef.current?.redo()}><Redo2 size={18} /></button>
+            <button type="button" className={`lr-text-btn ${panel === 'learner' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'learner' ? '' : 'learner')}><UserRound size={17} /> Õpilane</button>
             <button type="button" className={`lr-text-btn ${panel === 'worksheets' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'worksheets' ? '' : 'worksheets')}><ClipboardList size={17} /> Töölehed{prepared.length ? ` (${prepared.length})` : ''}</button>
             <button type="button" className={`lr-text-btn ${panel === 'materials' ? 'is-active' : ''}`} onClick={() => setPanel(panel === 'materials' ? '' : 'materials')}><LibraryBig size={17} /> Materjalid</button>
           </> : null}
@@ -122,6 +134,13 @@ export default function TeacherWorkspace({
             {...(boardService ? { service: boardService } : {})}
           /> : <div className="lw-empty"><EmptyState title="Vali õpilane" description="Tema tahvel avaneb kohe: saad tunni ette valmistada (lehed, materjalid, märkmed) ja siis kutsuda ta tundi. Õpilane näeb kõike, mida siia paned." /></div>}
         </main>
+        {/* „Õpilase pilt” (owner 2026-10-23): what the student did, forgets and got wrong — the lesson starts from him */}
+        {panel === 'learner' && student ? <aside className="lr-side has-drawer" aria-label="Õpilane">
+          <section className="lr-drawer" aria-label="Õpilane">
+            <header><strong>Õpilane enne tundi</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>
+            <div className="lr-drawer__body"><LearnerSnapshotCard compact studentId={student.id} studentName={student.name} onReviewPage={reviewPage} {...(learnerRepository ? { repository: learnerRepository } : {})} /></div>
+          </section>
+        </aside> : null}
         {panel === 'worksheets' && student ? <aside className="lr-side has-drawer" aria-label="Töölehed">
           <section className="lr-drawer" aria-label="Töölehed">
             <header><strong>Lisa tööleht</strong><button type="button" className="lr-icon" aria-label="Sulge" onClick={() => setPanel('')}><X size={18} /></button></header>

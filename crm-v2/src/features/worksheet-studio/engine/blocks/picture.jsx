@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 import { Photo, Line, Md } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
 import { norm, splitList } from '../schema.js';
-import { Text, Area, Select, ImagePick, Rows } from '../../editor/fields.jsx';
+import { Text, Area, Select, ImagePick, Rows, SentenceInput } from '../../editor/fields.jsx';
 import { seededShuffle } from './tasks.jsx';
 
 // Picture tasks (owner 2026-10-12, Pinterest references: „нет возможности вот такие листы делать”): words matched to a
@@ -222,7 +222,7 @@ export const picrows = {
         render={(row, patch) => (
           <>
             <ImagePick label="" value={row.img} aspect="4:3" onChange={(img) => patch({ img })} allowAspect={false} />
-            <input className="ed-input" placeholder="Olukord" value={row.text} onChange={(e) => patch({ text: e.target.value })} />
+            <SentenceInput placeholder="Olukord" ariaLabel="Olukord" value={row.text} onChange={(text) => patch({ text })} />
             <input className="ed-input" placeholder="Küsimus" value={row.question} onChange={(e) => patch({ question: e.target.value })} />
           </>
         )} />

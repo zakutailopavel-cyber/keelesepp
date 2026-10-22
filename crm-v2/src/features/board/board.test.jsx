@@ -553,3 +553,23 @@ describe('a worksheet on a phone', () => {
     media.mockRestore();
   });
 });
+
+describe('the room layout around a worksheet (owner 2026-10-23)', () => {
+  const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
+  it('the colour panel closes on a worksheet page and the sheet is fitted beside the video tiles', async () => {
+    const rect = vi.spyOn(globalThis.Element.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, left: 0, top: 0, right: 1300, bottom: 700, width: 1300, height: 700 });
+    try {
+      const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+      const sheet = () => document.getElementById('sb-worksheet').style.transform;
+      const { rerender } = render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} worksheets={[{ id: 'as-1', title: 'Avasta', content: <div>Küsimused</div> }]} />);
+      await screen.findByText('Küsimused');
+      expect(screen.queryByLabelText('Värv ja suurus')).toBeNull();
+      // 1300 wide: the 1000-unit sheet fills it, less the 16-px margins
+      expect(sheet()).toContain('scale(1.268)');
+      rerender(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} worksheets={[{ id: 'as-1', title: 'Avasta', content: <div>Küsimused</div> }]} insetRight={250} />);
+      expect(sheet()).toContain('scale(1.018)');
+      fireEvent.click(screen.getByRole('button', { name: 'Näita värve' }));
+      expect(screen.getByLabelText('Värv ja suurus')).toBeInTheDocument();
+    } finally { rect.mockRestore(); }
+  });
+});

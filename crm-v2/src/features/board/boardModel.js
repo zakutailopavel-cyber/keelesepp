@@ -128,6 +128,27 @@ export function pageBounds(elements = [], margin = 40, base = PAGE) {
   const y2 = Math.max(base.h, ...boxes.map((box) => box.y2 + margin));
   return { x1, y1, x2, y2 };
 }
+// the part of the board a screen shows (world coordinates): what the teacher sends when leading the view
+export function viewRect(view, width, height) {
+  if (!width || !height || !view?.scale) return null;
+  const a = screenToWorld({ x: 0, y: 0 }, view);
+  const b = screenToWorld({ x: width, y: height }, view);
+  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+}
+// show that part on another screen: all of it, centred (a narrower screen sees the same middle, a wider one more).
+// `byWidth` (a worksheet, read from the top): the part's width fills the screen and its top stays at the top.
+export function fitRect(rect, width, height, { byWidth = false } = {}) {
+  if (!rect || !width || !height) return null;
+  const w = Math.max(1, rect.x2 - rect.x1);
+  const h = Math.max(1, rect.y2 - rect.y1);
+  if (byWidth) {
+    const scale = clampScale(width / w);
+    return { scale, x: -rect.x1 * scale, y: -rect.y1 * scale };
+  }
+  const scale = clampScale(Math.min(width / w, height / h));
+  return { scale, x: width / 2 - ((rect.x1 + rect.x2) / 2) * scale, y: height / 2 - ((rect.y1 + rect.y2) / 2) * scale };
+}
+
 // the whole sheet on screen
 export function fitPage(bounds, width, height, padding = 16) {
   if (!width || !height) return { x: 0, y: 0, scale: 1 };

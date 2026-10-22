@@ -95,6 +95,11 @@
 .sb-stage.tool-laser > svg { cursor: crosshair; }
 .sb-laser__glow { fill: rgba(217, 45, 32, .22); }
 .sb-laser__dot { fill: #d92d20; stroke: #fff; stroke-width: 0; }
+/* Live Classroom: the other side right now — its cursor with a name, a line or shape being drawn, a text being typed */
+.sb-cursor path { fill: #7a5af8; stroke: #fff; stroke-width: 1.5; }
+.sb-cursor text { font: 600 12px Inter, system-ui, sans-serif; fill: #fff; paint-order: stroke; stroke: #7a5af8; stroke-width: 4px; stroke-linejoin: round; }
+.sb-remote-draft { opacity: .75; }
+.sb-typing { font-family: Inter, system-ui, sans-serif; font-weight: 600; fill: #7a5af8; }
 .board-full__title { margin: 0; font-size: .95rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* a worksheet on the board is shown whole: the board itself scrolls and zooms, the sheet has no inner scroll */
 .sb-underlay .st-canvas, .sb-underlay .ws-live.is-embedded .st-canvas, .sb-underlay .ws-doc-player.is-inline .st-canvas { max-height: none; overflow: visible; }

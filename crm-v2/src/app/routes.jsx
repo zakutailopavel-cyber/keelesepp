@@ -32,6 +32,7 @@ const LessonWorksheetStudioPage = lazy(() => import('../features/worksheet-gener
 const AvastaUpgradePage = lazy(() => import('../features/worksheet-generator/ui/AvastaUpgradePage.jsx'));
 const Module1ThreePhasePage = lazy(() => import('../features/worksheet-generator/ui/Module1ThreePhasePage.jsx'));
 const CourseProductionPage = lazy(() => import('../features/worksheet-generator/ui/CourseProductionPage.jsx'));
+const CourseHealthPage = lazy(() => import('../features/worksheet-generator/ui/CourseHealthPage.jsx'));
 // pages only staff open: downloaded when opened, so a student's or parent's first load stays small
 const CalendarPage = lazy(() => import('../features/calendar/CalendarPage.jsx'));
 const FinanceWorkspacePage = lazy(() => import('../features/finance/FinanceWorkspacePage.jsx'));
@@ -98,6 +99,7 @@ export default function AppRoutes() {
             <Route path="library/worksheet-generator/avasta-module-1" element={generatorPage(<AvastaUpgradePage />)} />
             <Route path="library/worksheet-generator/module-1-three-phase" element={generatorPage(<Module1ThreePhasePage />)} />
             <Route path="library/worksheet-generator/course" element={generatorPage(<CourseProductionPage />)} />
+            <Route path="library/worksheet-generator/health" element={generatorPage(<CourseHealthPage />)} />
             <Route path="library/lessons/:lessonId/worksheets" element={generatorPage(<LessonWorksheetSet />)} />
             <Route path="library/lessons/:lessonId/worksheets/:worksheetId" element={generatorPage(<LessonWorksheetStudioPage />)} />
             <Route path="library/worksheets/:lessonId" element={generatorPage(<WorksheetStudioPage />)} />
