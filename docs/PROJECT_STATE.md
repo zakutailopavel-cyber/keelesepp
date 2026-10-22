@@ -1,3 +1,15 @@
+## 2026-10-23 · agent/placement-test — „Paigutustest”: a 15-minute entry test with a level suggestion
+
+- Owner 2026-10-23: build the entry test. placement/placementTest.js (+test): 30 Estonian multiple-choice questions,
+  six per level A1 → C1 (written for KeeleSepp), each level a goal of the sheet, so the normal auto-check gives a result
+  per level; the suggested level is the highest passed (≥ 60 %) with every level below passed; under A1 → „algaja”.
+- Student card → Esmane hindamine: PlacementCard (+test) sends it as a normal worksheet assignment (lessonId
+  `placement-et`, libraryService.assign; the student does it in „Kodutööd”) and shows the latest result per level and
+  the suggested level. The card's level stays the teacher's decision (as for the initial assessment).
+- Files: features/placement/*, students/StudentProfilePage.jsx. No rules change.
+- Checks: verify (eslint errors 0, vitest 2269 passed, 0 failed).
+- Not yet: an English placement test (the English courses would need their own items).
+
 ## 2026-10-23 · agent/month-steps — „Kuu sammud”: the month's goal is the lessons' own steps
 
 - Owner 2026-10-23: the monthly goal is the mini-steps of the lessons themselves and how well they are mastered.
