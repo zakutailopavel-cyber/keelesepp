@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-23.4';
+export const EN_A2_VERSION = '2026-10-23.5';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -46,6 +46,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['Sports stars', 'play / go / do + sports; won, lost, taught, broke; the story of an athlete; talking about a match.'],
       ['A weekend to remember', 'Telling a story in order: first, then, after that, suddenly, in the end; feelings; so and but.'],
       ['Module 4 check: Free time', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 5, title: 'Food and health', goal: 'Talking about food, shopping and cafés, amounts and prices, and giving simple health advice.',
+    lessons: [
+      ['What\'s in the fridge?', 'Countable and uncountable nouns; a / an, some / any; containers (a bottle of, a loaf of).'],
+      ['How much? How many?', 'How much / how many, much / many / a lot of; prices; a school café menu.'],
+      ['At the café', 'Ordering politely: I\'d like, Can I have, Would you like; like vs would like; starters, main courses and desserts.'],
+      ['You should drink more water', 'Health problems (headache, sore throat, a cold); advice with should / shouldn\'t; at the doctor\'s.'],
+      ['Module 5 check: Food and health', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
     ],
   },
 ]);
