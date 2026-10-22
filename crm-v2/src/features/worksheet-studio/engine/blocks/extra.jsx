@@ -4,7 +4,7 @@ import { Line, Md } from '../ui.jsx';
 import { gapWidth } from '../gapWidth.js';
 import { norm, groupItems, splitList } from '../schema.js';
 import { useAssets } from '../assets.jsx';
-import { Text, Area, Rows } from '../../editor/fields.jsx';
+import { Text, Area, Rows, SentenceInput } from '../../editor/fields.jsx';
 import { SpeakPanel } from '../../editor/Speak.jsx';
 import { AudioBar } from '../ui.jsx';
 
@@ -49,7 +49,7 @@ export const dialogue = {
         render={(row, patch) => (
           <div className="ed-row">
             <select className="ed-input small" value={row.who} onChange={(e) => patch({ who: e.target.value })}><option value="A">{data.speakerA || 'A'}</option><option value="B">{data.speakerB || 'B'}</option></select>
-            <input className="ed-input" value={row.text} placeholder="Tere! Kuidas [läheb]?" onChange={(e) => patch({ text: e.target.value })} />
+            <SentenceInput value={row.text} placeholder="Tere! Kuidas [läheb]?" ariaLabel="Repliik" onChange={(text) => patch({ text })} />
           </div>
         )} />
       <AudioPick value={data.audio} onChange={(audio) => set({ audio })} />

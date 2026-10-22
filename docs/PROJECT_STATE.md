@@ -22,6 +22,167 @@
   registry +enb1m04; curriculum/enB1Curriculum.js module 4 records (version 2026-10-22.4).
 - Checks: `gate_s.sh en/b1/module04` clean; vitest worksheet-generator + curriculum + worksheet-studio 1094 passed.
 - Not published yet (waits for the owner: install en-b1-016…020 records, publish the 15 sheets). Next: B1 module 5.
+## 2026-10-23 · agent/retention-risk — „Riskis õpilased” on the dashboard
+
+- Main checked: efd80db (2026-10-22). Independent of #737/#738/#739; other agents work on English content.
+- Owner: „делай всё” after the learner profile → first the student retention view (docs/LEARNER_PROFILE.md roadmap).
+- New: features/retention/retentionRisk.js (+test) and RetentionCard.jsx (+test). Signals per active card: 2+ absences
+  or cancellations in the last 4 journal lessons; last held lesson over 21 / 35 days ago (a card active for 3+ months
+  without lessons: „võta ühendust või arhiveeri”); no lesson ahead (weak right after a lesson, ignored for self-study
+  cards); words but no own practice for 14 days; an overdue invoice (finance view only). Packages with ≤ 1 lesson left
+  are listed as the moment to talk about the next one.
+- Teachers do not always mark held lessons in the journal (a weekly series ran while the journal stopped in June), so
+  a lesson the calendar had in the last 21 days counts as recent (`recentlyScheduled`).
+- Production run (read only, 2026-10-23): 96 active cards → 7 at risk (2 high), each with a clear reason.
+- Files: features/retention/*, dashboard/DashboardPage.jsx, services/firebase/studentWords.js (`listForStudentIds`).
+- Checks: vitest crm-v2 all green; eslint clean in the touched files.
+- Next safe step: the daily 5-minute review on the student's home (docs/LEARNER_PROFILE.md, step 1).
+## 2026-10-23 · agent/lesson-summary-parent — „Kokkuvõte vanemale” after the lesson analysis
+
+- Main checked: efd80db (2026-10-22). Independent of #737–#742.
+- The family already sees a lesson summary (teacher's note, board pages, new words, homework). Missing: what the
+  student got wrong. The transcript stays teacher/admin only (owner 2026-10-04, firestore.rules lessonRecordings), so the
+  teacher sends it: „Pärast tundi” → „Kokkuvõte vanemale” prefills plain lines in Estonian and Russian (error topics and
+  the number of corrected sentences, never the sentences), the teacher edits and sends; the text is added to the
+  lesson's note in `lessonSummaries` (same fields as the end-of-lesson save, so the rules hold).
+- Files: lesson-recording/afterLesson.js (`parentNoteFromAnalysis`, +test), TranscriptView.jsx (AfterLesson),
+  AfterLessonParent.test.jsx, lessonRecording.css, services/firebase/lessonSummaries.js (`appendNote`).
+- Checks: vitest crm-v2 all green.
+- Next safe step: voice task between lessons (docs/LEARNER_PROFILE.md roadmap).
+## 2026-10-23 · agent/daily-review — „Päeva 5 minutit” for the student
+
+- Main checked: efd80db (2026-10-22). Independent of #737–#741.
+- docs/LEARNER_PROFILE.md step 1. New vocabulary/dailyReview.js (+test): about ten cards a day without choosing —
+  own corrected sentences (≤ 2), forgotten words (box 0 after a review), due words (oldest first), ≤ 3 never practised.
+- Student home „Täna”: the words step is „Päeva 5 minutit · N kaarti · X ununeb” and opens
+  /student/sonavara?paev=1, which starts the set at once; done after five cards reviewed today (before: one word).
+  Sõnavara's „Täna” block offers the same set („Alusta”). Answers move the words in their Leitner boxes as before.
+- Fix: Sõnavara showed a white page when loading failed (an Error object was rendered as text); now the message shows.
+- Checks: vitest crm-v2 all green; manual check on the emulators (student on a phone: home step → set opens → an
+  answer moved „eelarve” from box 0 to 1).
+- Next safe step: docs/LEARNER_PROFILE.md step 2 (sheet errors become review cards).
+## 2026-10-23 · agent/learner-snapshot — „Õpilase pilt”: the student before the lesson
+
+- Main checked: efd80db (2026-10-22). Independent of #737/#738 (live board); other agents work on English content.
+- Owner: „то, что выведет платформу на новый уровень” → the learner profile, version 1 (docs/LEARNER_PROFILE.md).
+- Usage check (production, read only, 2026-10-22): 27 of ~65 student accounts have words in „Minu sõnad”, 15 ever
+  practised, 14 this week; „Kordamine” results are browser-only, invisible to teachers.
+- New: features/learner/learnerSnapshot.js (+test) and LearnerSnapshotCard.jsx (+test), learner.css. The teacher sees:
+  last own practice, this week, forgotten words, the last sheets with their auto-check errors in words, overdue homework,
+  the last lesson's topic and notes, and short signals. Live Classroom Tööruum: panel „Õpilane” opens first when a
+  student is picked; „Pane kordamine tahvlile” makes a board page with the forgotten words. Student card → Ülevaade.
+- Files: features/learner/*, live-classroom/TeacherWorkspace.jsx, students/StudentProfilePage.jsx, docs/LEARNER_PROFILE.md.
+- Checks: vitest crm-v2 2121 passed; eslint clean (learner, live-classroom); manual check on the emulators with seeded
+  words, a sheet with errors, overdue homework and a held lesson.
+- No rules, data or production changed.
+- Next safe step: the daily 5-minute review from the profile on the student's home (LEARNER_PROFILE.md, step 1).
+## 2026-10-23 · agent/live-room-layout — Live Classroom: the worksheet is no longer covered
+
+- Stacked on agent/live-board-realtime (#737), both change StudentBoard and LiveRoom.
+- Found in the two-account test: the video tiles and the colour panel lay over the worksheet; on a phone the colour
+  panel stayed open over the reading view and both tiles covered the page tabs; the sheet picker in the room had bare
+  browser buttons (its rules were scoped to `.ws-studio`).
+- Now: on a wide screen a worksheet page is fitted beside the video tiles (`insetRight` 250 px); the tiles can be made
+  small („Peida video”: a chip with the other side's name, picture and sound go on); the colour panel closes when a
+  worksheet page opens (it opens again from the dock) and never shows over the phone reading view; on a phone only the
+  other side's picture, 92 px, below the page tabs; the picker's tabs and search have their own styles.
+- Files: board/StudentBoard.jsx, live-classroom/LiveRoom.jsx, liveRoom.css, worksheet-studio/worksheetStudio.css,
+  board.test.jsx (+1), LiveRoom.follow.test.jsx (+1).
+- Checks: vitest crm-v2 2127 passed; eslint clean in the touched folders; manual check on the emulators (teacher at
+  1440 px with a worksheet, student on a 375 px phone).
+- Next safe step: owner review of #737 and this PR together (same lesson room).
+
+## 2026-10-23 · agent/live-board-realtime — Live Classroom board: live typing, drawing, cursors, „Juhi vaadet”
+
+- Main checked: efd80db (2026-10-22). No open PR touched the board or Live Classroom; other agents work on English
+  content (#732/#733) and course health.
+- Problem (tested with two accounts on the emulators): a text typed on the board reached the other side only when the
+  writer left the field (the student saw an empty „Tekst” box); lines and moves only on mouse up; no cursors; teacher and
+  student saw the worksheet at different zoom and place (138 % vs 77 %).
+- Now over the call's data channel (nothing extra is saved, Firestore writes are unchanged): letters while they are
+  typed („Anna kirjutab…”), a line or shape while it is drawn, elements while they are dragged, the other side's
+  cursor with a name. The teacher's „Juhi vaadet” sends the visible part of the board; the student sees the same place
+  (a worksheet: the same width and line); when he moves away, „Jälgi õpetaja vaadet” brings him back.
+- Files: board/liveDrafts.js (+test: messages are checked and cut to size, stale drafts drop after 6 s, throttle 40 ms),
+  board/boardModel.js (viewRect, fitRect), board/StudentBoard.jsx (props live, presenting, followView, onFollowBreak;
+  pointer release no longer stops a line from saving), board/board.css, live-classroom/LiveRoom.jsx (one channel
+  listener fans out to the board), liveRoom.css, LiveRoom.follow.test.jsx (+5 tests).
+- Checks: vitest crm-v2 2125 passed; eslint board + live-classroom clean; manual two-tab run on the emulators (typing,
+  drawing, cursor, view lead on a worksheet, follow break and return).
+- Limits: all live parts need the call's data channel (no camera/microphone → no live layer; the board still syncs on
+  save). Group lessons (GroupRoom) do not have it yet. The phone reading view keeps its own scrolling (view lead not
+  applied there).
+- Next safe step: layout PR — video tiles and the colour panel stop covering the worksheet, the colour panel closed in
+  the phone reading view, the sheet picker's styles loaded in the room.
+
+## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
+
+- Owner: course integrity. Another agent works in parallel on the English courses (PRs #732/#733), so I did not touch
+  course files or CourseProductionPage.
+- New read-only admin page `/library/worksheet-generator/health` (Õppevara → Tööriistad → „Kursuste tervis”):
+  - per course, every lesson's quality gates and its sheets (Avasta / Harjuta / Kasuta / Õpik) compared with Õppevara;
+  - states: the same as the code, published but different from the code, a newer draft in progress, only a draft,
+    missing, or only in Õppevara;
+  - „Kontrolli Õppevaraga” reads the lessons six at a time; the list filters to lessons with problems.
+- Files:
+  - `admin/course/health.js` (+ test);
+  - `ui/CourseHealthPage.jsx` (+ test);
+  - `routes.jsx` (one route);
+  - LibraryPage (one menu item).
+- First reading of production 2026-10-22, read-only:
+  - A2: 100 lessons, 303 sheets the same, 1 draft;
+  - B1: 85 lessons, 258 the same;
+  - B2: 90 lessons, 271 the same;
+  - ek9: 15 the same;
+  - en: 75 the same;
+  - C1: 245 the same, 55 different from the code — modules 8–10 (est-c1-071…100) were changed in code and not
+    published;
+  - no sheet missing.
+- Quality gates („all gates pass”):
+  - B1, B2, ek9 and en: all lessons;
+  - A2 and C1: no lesson passes them all. A2: repeated sentences 197, no vocabulary block 96. C1: no vocabulary block
+    100, depth notes.
+- Checks: health + page tests 5/5, eslint 0 errors.
+- Next safe step: the owner decides about publishing C1 modules 8–10 and adding the vocabulary blocks to A2 / C1.
+
+## 2026-10-22 · agent/studio-teacher-pass — constructor walked through as a teacher
+
+- Owner: go through the lesson constructor as a teacher and fix what is awkward or missing.
+- What I checked on a local stand (mocked services, real course sheets B1 a2b1-021 and C1 est-c1-075, plus a sheet
+  with all 42 block types):
+  - select a task, edit a sentence on the sheet, student view with checking, add a block from the palette, the
+    phone layout;
+  - every block's settings panel was scanned for cut-off text. No page errors.
+- Fixed:
+  - one-line fields cut long sentences off. `SentenceInput` / `Sentence` (editor/fields.jsx) grow with the text, and
+    Enter does not add a line. Used in Õige/vale statements, errorfix, transformation, translation, picture-situation
+    and dialogue lines;
+  - a short choice next to a sentence (Õ / V) took half the row: `.ed-row > .ed-input.small` now keeps its own width;
+  - text areas (instruction, texts, role cards) grow with the text up to ~420 px instead of a small scrolling box;
+  - speaking tip: lines were glued together on the sheet („uudise eesmärk onseevastutoon”) and edited in a one-line
+    field that dropped the line breaks. Now they show joined by „ · ” and are edited in a text area (+ test).
+- Seen, not changed:
+  - the student preview shows ticks but no total score;
+  - at ~1000 px the constructor header gets crowded (title cut, „Määra õpilastele” on two lines).
+- Checks: worksheet-studio + worksheet-generator suites 1059 passed, 3 skipped. eslint 0 errors.
+- Next safe step: merge; then the course-integrity page and the course → textbook work.
+
+## 2026-10-22 · agent/book-speed — the textbook („Õpik töölehtedest”) no longer freezes
+
+- Owner: the book is so big that the site hangs for some teachers when they open it. A level is 200–270 sheets, and
+  every sheet is drawn twice (visible pages plus a hidden copy that measures the pages), so the page grew to tens of
+  thousands of elements.
+- BookPage:
+  - a sheet is drawn only when it comes within ~1500 px of the visible part of the canvas (IntersectionObserver);
+    until then it is an empty frame of its page height, and once drawn it stays;
+  - „PDF / Prindi” first draws all sheets 4 at a time with a progress counter („Valmistan… n/N”). The dialog opens
+    when the page counts have been still for a moment, so a sheet that never reports its pages cannot block it;
+  - without IntersectionObserver (tests, old browsers) every sheet is drawn as before.
+- Measured on a local stand with the whole B1 course (255 sheets): after loading 2 sheets were drawn and the page had
+  4,534 elements (before, all 255 sheets ended up drawn). Scrolling draws the sheets that come into view.
+- Checks: BookPage tests 3/3, eslint 0 errors.
+- Next safe step: merge; then make printing a whole level faster (fewer measuring passes) if teachers print whole
+  levels often.
 
 ## 2026-10-22 · agent/calendar-room-free — a cancelled lesson frees its room at once
 

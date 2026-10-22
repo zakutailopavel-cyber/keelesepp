@@ -56,7 +56,7 @@ export const speaking = {
     <div className={`ws-speak ${data.img?.src ? 'has-img' : ''}`}>
       <div>
         <ul className="ws-bullets">{String(data.questions || '').split('\n').filter(Boolean).map((q, i) => <li key={i}><Md text={q} /></li>)}</ul>
-        {data.tipTitle && <div className="ws-tip"><Speech /><div><b>{data.tipTitle}</b><br />{data.tipText}</div></div>}
+        {data.tipTitle && <div className="ws-tip"><Speech /><div><b>{data.tipTitle}</b><br />{String(data.tipText || '').split('\n').map((x) => x.trim()).filter(Boolean).join(' · ')}</div></div>}
         {ctx.interactive && <Recorder ctx={ctx} target={[Number(data.minSec) || 60, Number(data.maxSec) || 120]} />}
         {ctx.review && (ctx.get('audioUrl') ? <div className="ws-rec"><audio controls src={ctx.get('audioUrl')} /><span className="ws-pill">{ctx.get('seconds') || 0} s</span></div> : <div className="ws-hint">Salvestus puudub.</div>)}
       </div>
@@ -71,7 +71,7 @@ export const speaking = {
       <ImagePick value={data.img} aspect={data.aspect} onChange={(img) => set({ img })} onAspect={(aspect) => set({ aspect })} />
       <Text label="Jutumull pildil" value={data.bubble} onChange={(v) => set({ bubble: v })} />
       <Text label="Vihje pealkiri" value={data.tipTitle} onChange={(v) => set({ tipTitle: v })} />
-      <Text label="Vihje tekst" value={data.tipText} onChange={(v) => set({ tipText: v })} />
+      <Area label="Vihje tekst (üks väljend reale)" rows={3} value={data.tipText} onChange={(v) => set({ tipText: v })} />
       <div className="ed-row"><Num label="Min sekundit" value={data.minSec} max={600} onChange={(v) => set({ minSec: v })} /><Num label="Max sekundit" value={data.maxSec} max={900} onChange={(v) => set({ maxSec: v })} /></div>
     </>
   ),

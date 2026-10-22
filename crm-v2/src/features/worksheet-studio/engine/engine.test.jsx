@@ -213,3 +213,12 @@ describe('sentence answers', () => {
   });
 });
 
+
+describe('speaking tip', () => {
+  it('shows a tip of several lines with separators, not glued together (owner 2026-10-22)', () => {
+    const block = { ...createBlock('speaking'), id: 'say1' };
+    block.data = { ...block.data, tipTitle: 'Kasuta:', tipText: 'uudise eesmärk on\nseevastu\ntoon muutub' };
+    const { container } = render(<Sheet doc={{ schema: 'keelesepp.worksheet/2', meta: { title: 'T' }, blocks: [block] }} mode="print" />);
+    expect(container.querySelector('.ws-tip').textContent).toContain('uudise eesmärk on · seevastu · toon muutub');
+  });
+});

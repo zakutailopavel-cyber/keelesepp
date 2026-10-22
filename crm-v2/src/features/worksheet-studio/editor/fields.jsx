@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { ASPECTS } from '../engine/schema.js';
 import { objectPosition } from '../engine/image.js';
 import { useAssets } from '../engine/assets.jsx';
@@ -21,11 +21,44 @@ export const Text = ({ label, value, onChange, hint, placeholder }) => (
   </Field>
 );
 
-export const Area = ({ label, value, onChange, hint, rows = 3, placeholder }) => (
+// One sentence that may be long (a statement, a wrong sentence, a sentence to translate): a field that grows with its
+// text so the teacher sees the whole sentence (owner 2026-10-22: one-line fields cut the sentences off). Enter does not
+// add a line — the sentence stays one line on the sheet.
+export function SentenceInput({ value, onChange, placeholder, className = '', ariaLabel }) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [value]);
+  return (
+    <textarea ref={ref} rows={1} className={`ed-input ed-sentence ${className}`} value={value ?? ''} placeholder={placeholder} aria-label={ariaLabel}
+      onChange={(e) => onChange(e.target.value.replace(/\n/g, ' '))} onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }} />
+  );
+}
+
+export const Sentence = ({ label, value, onChange, hint, placeholder }) => (
   <Field label={label} hint={hint}>
-    <textarea className="ed-input" rows={rows} value={value ?? ''} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+    <SentenceInput value={value} onChange={onChange} placeholder={placeholder} />
   </Field>
 );
+
+// a text area grows with its text up to ~420 px (then it scrolls), so an instruction or a short text is seen whole
+export function Area({ label, value, onChange, hint, rows = 3, placeholder }) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(420, el.scrollHeight + 2)}px`;
+  }, [value]);
+  return (
+    <Field label={label} hint={hint}>
+      <textarea ref={ref} className="ed-input" rows={rows} value={value ?? ''} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+    </Field>
+  );
+}
 
 export const Num = ({ label, value, onChange, min = 1, max = 20 }) => (
   <Field label={label}>

@@ -3,7 +3,7 @@ import { Md, Line } from '../ui.jsx';
 import { norm, normFor, splitList } from '../schema.js';
 import { Recorder } from './productive.jsx';
 import { crosswordClean, crosswordLayout, crosswordWord, withLetter } from '../crosswordLayout.js';
-import { Area, Num, Rows, Text } from '../../editor/fields.jsx';
+import { Area, Num, Rows, Sentence, Text } from '../../editor/fields.jsx';
 
 const lines = (value) => String(value || '').split('\n').map((x) => x.trim()).filter(Boolean);
 const scoreRows = (rows, get, answerKey = 'answer') => (rows || []).map((row, i) => ({
@@ -33,7 +33,7 @@ export const errorfix = {
   View: ({ data, ctx }) => <ol className="ws-fix" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt">{row.wrong}</span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Parandus ${i + 1}`} /></li>)}</ol>,
   score: (data, get) => scoreSentences(data.rows, get, data),
   example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
-  Editor: ({ data, set }) => <Rows label="Laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ wrong: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Vigane lause" value={row.wrong} onChange={(wrong) => patch({ wrong })} /><Text label="Õige lause (mitu varianti: a | b)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
+  Editor: ({ data, set }) => <Rows label="Laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ wrong: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Sentence label="Vigane lause" value={row.wrong} onChange={(wrong) => patch({ wrong })} /><Sentence label="Õige lause (mitu varianti: a | b)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
 };
 
 export const transformation = {
@@ -49,7 +49,7 @@ export const transformation = {
   View: ({ data, ctx }) => <ol className="ws-fix" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span className="ws-fix__prompt"><b>{row.from}</b><br /><small>{row.prompt}</small></span><Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} state={ctx.state(String(i))} width="100%" label={`Muudetud lause ${i + 1}`} /></li>)}</ol>,
   score: (data, get) => scoreSentences(data.rows, get, data),
   example: (data) => data.rows?.[0] ? { 0: data.rows[0].answer } : {},
-  Editor: ({ data, set }) => <Rows label="Muudatavad laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ from: '', prompt: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Alglause" value={row.from} onChange={(from) => patch({ from })} /><Text label="Juhis" value={row.prompt} onChange={(prompt) => patch({ prompt })} /><Text label="Õige vastus (mitu varianti: a | b)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
+  Editor: ({ data, set }) => <Rows label="Muudatavad laused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ from: '', prompt: '', answer: '' })} addLabel="Lisa lause" render={(row, patch) => <><Sentence label="Alglause" value={row.from} onChange={(from) => patch({ from })} /><Text label="Juhis" value={row.prompt} onChange={(prompt) => patch({ prompt })} /><Sentence label="Õige vastus (mitu varianti: a | b)" value={row.answer} onChange={(answer) => patch({ answer })} /></>} />,
 };
 
 export const dictation = {
@@ -66,7 +66,7 @@ export const translation = {
   create: () => ({ title: 'Tõlgi eesti keelde.', instruction: 'Õpetaja kontrollib vastust.', rows: [{ source: 'Я живу в Таллине.', hint: '' }, { source: 'Сегодня хорошая погода.', hint: '' }] }),
   View: ({ data, ctx }) => <ol className="ws-translation" start={(ctx.start || 0) + 1}>{(data.rows || []).map((row, i) => <li key={i}><span>{row.source}</span>{row.hint && <small>{row.hint}</small>}<Line interactive={ctx.interactive} value={ctx.get(String(i))} onChange={(v) => ctx.set(String(i), v)} width="100%" label={`Tõlge ${i + 1}`} /></li>)}</ol>,
   answerKeys: (data) => (data.rows || []).map((_, i) => String(i)),
-  Editor: ({ data, set }) => <Rows label="Tõlkelaused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ source: '', hint: '' })} addLabel="Lisa lause" render={(row, patch) => <><Text label="Lähtetekst" value={row.source} onChange={(source) => patch({ source })} /><Text label="Vihje (valikuline)" value={row.hint} onChange={(hint) => patch({ hint })} /></>} />,
+  Editor: ({ data, set }) => <Rows label="Tõlkelaused" rows={data.rows || []} onChange={(rows) => set({ rows })} make={() => ({ source: '', hint: '' })} addLabel="Lisa lause" render={(row, patch) => <><Sentence label="Lähtetekst" value={row.source} onChange={(source) => patch({ source })} /><Text label="Vihje (valikuline)" value={row.hint} onChange={(hint) => patch({ hint })} /></>} />,
 };
 
 function letterGrid(words, size) {

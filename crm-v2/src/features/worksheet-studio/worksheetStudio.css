@@ -71,6 +71,10 @@
 textarea.ed-input { resize: vertical; }
 .ws-studio .ed-row { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
 .ws-studio .ed-row > .ed-input { flex: 1; min-width: 0; }
+/* a short choice next to a sentence (Õ / V, a gap's answer) keeps its own width; the sentence gets the rest */
+.ws-studio .ed-row > .ed-input.small { flex: none; width: auto; min-width: 58px; }
+/* a sentence field grows with its text (editor/fields.jsx SentenceInput) */
+.ws-studio .ed-sentence { resize: none; overflow: hidden; line-height: 1.35; min-height: 34px; }
 .ws-studio .ed-btn { font: 700 12.5px inherit; border: 1px solid var(--st-accent); background: var(--st-accent); color: #fff; border-radius: 999px; padding: 5px 10px; cursor: pointer; }
 .ws-studio .ed-btn.ghost { background: transparent; color: var(--st-ink); border-color: var(--st-line); }
 .ws-studio .ed-btn.danger { background: transparent; color: var(--st-danger); border-color: var(--st-danger); }
@@ -329,6 +333,12 @@ textarea.ed-input { resize: vertical; }
 .room-sheet-picker__levels{display:flex;gap:6px;flex-wrap:wrap}
 .room-sheet-picker__levels button{border:1px solid #d0d5dd;background:#fff;border-radius:999px;padding:3px 10px;font-size:.8rem;cursor:pointer}
 .room-sheet-picker__levels button.is-active{background:#0b5c4d;border-color:#0b5c4d;color:#fff}
+/* the picker lives in the Live Classroom drawer, outside .ws-studio: its source tabs and search have their own look */
+.room-sheet-picker .ed-seg{display:flex;gap:4px;padding:3px;border-radius:12px;background:#f2f4f7}
+.room-sheet-picker .ed-seg button{flex:1;border:0;background:transparent;color:#475467;border-radius:9px;padding:7px 8px;font-family:inherit;font-size:12.5px;font-weight:700;line-height:1.2;cursor:pointer}
+.room-sheet-picker .ed-seg button.is-active{background:#fff;color:#101828;box-shadow:0 1px 3px rgba(16,24,40,.12)}
+.room-sheet-picker .ed-input{width:100%;box-sizing:border-box;font-family:inherit;font-size:13.5px;font-weight:500;color:#101828;background:#fff;border:1px solid #d0d5dd;border-radius:10px;padding:8px 10px}
+.room-sheet-picker .ed-input:focus{outline:none;border-color:#087e6b;box-shadow:0 0 0 3px rgba(8,126,107,.15)}
 .room-sheet-picker__list{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:52vh;overflow:auto}
 .room-sheet-picker__list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 2px;border-bottom:1px solid #eef0f3}
 .room-sheet-picker__list li span{display:grid;min-width:0}
@@ -684,3 +694,6 @@ textarea.ed-input { resize: vertical; }
 .ws-key-why { display: block; margin-top: .6mm; padding-left: 3mm; border-left: 2px solid #c7d7a6; color: #2d3748; font-size: 10pt; }
 .ws-key-empty { color: #6b7280; }
 @media print { .ws-key { box-shadow: none; padding: 0; width: auto; } }
+/* a book sheet not drawn yet: an empty page frame of its height (BookPage BookItem) */
+.ws-book-placeholder { width: 270mm; background: repeating-linear-gradient(#fff 0 381.86mm, transparent 381.86mm 392mm); opacity: .55; }
+@media print { .ws-book-placeholder { display: none; } }
