@@ -27,6 +27,7 @@ with both valid codes go into the XML; the others are listed as missing.
   codes changed, never the codes. The UI shows them masked (`376•••••299`).
 - Isikukood check: 11 digits, century digit 1–8, a real birth date, the check digit (weights 1…9,1, then 3…9,1,2,3).
   The codes in the e-MTA sample file are fictitious and fail this check.
+- Parent's code: a payer code is also kept per parent in `taxPayers/{key}` (key: the parent's account, or a hash of the parent's e-mail; `payerKeyOf`), so all their children, also new ones, get it; a child's own payer code wins. The table marks such rows „lapsevanema kaardilt”.
 - Parents' form: admin → INF 3 → „Vormi link” creates `taxFormTokens/{token}` (random 24 bytes, 60 days, at most 10
   submissions) and copies `https://crm.epkoolitus.ee/maksuandmed/<token>`. The parent (et / ru) enters the payer's name
   and both codes and confirms; `taxFormApi` (public, no login) saves them. The form never changes the training type.

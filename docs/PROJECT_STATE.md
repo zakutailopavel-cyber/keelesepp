@@ -1,3 +1,12 @@
+## 2026-10-22 · agent/inf3-parent-code — a parent's INF 3 code for all their children
+
+- Owner: „личный код уже родителю можно приписывать чтобы потом автоматически вносилось” → yes, build it.
+- functions/inf3-core.js `payerKeyOf` (the parent's account id, else a hash of the parent's e-mail); saving a payer code
+  (admin or the parents' form) also writes taxPayers/{key}; the INF 3 report uses it for every child of that parent,
+  also new ones; a child's own payer code wins. Rules: taxPayers admin read, no client writes. UI marks such rows
+  „lapsevanema kaardilt”. docs/INF3.md updated.
+- Checks: functions 334/334; emulator INF 3 test (with a sibling) passes; vitest tax 3/3.
+
 ## 2026-10-22 · deployed: bookkeeping and INF 3 (owner: „Да, сливай и выкладывай”)
 
 - Merged #724 (core), #725 (Raamatupidamine page), #726 (INF 3); main d4a5f46. Vercel builds the CRM from main.

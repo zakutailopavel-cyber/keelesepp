@@ -72,7 +72,7 @@ export default function Inf3Page({ repository = api }) {
       {report.rows.length ? <div className="students-table-wrap"><table className="students-table accounting-table"><thead><tr><th>Õppija</th><th>Isikukood</th><th>Tasuja</th><th>Isikukood</th><th className="num">Tasutud</th><th>Liik</th><th>Olek</th><th /></tr></thead>
         <tbody>{report.rows.map((row) => <tr key={row.studentId}>
           <td><strong>{row.studentName}</strong></td><td>{maskCode(row.studentCode) || '—'}</td>
-          <td>{row.payerName || '—'}</td><td>{maskCode(row.payerCode) || '—'}</td>
+          <td>{row.payerName || '—'}</td><td>{maskCode(row.payerCode) || '—'}{row.payerFromParent ? <small className="inf3-from-parent">lapsevanema kaardilt</small> : null}</td>
           <td className="num">{money(row.amountCents)}</td><td>{row.trainingType}</td>
           <td>{row.ready ? <Badge tone="success"><FileCheck2 size={13} /> Valmis</Badge> : <Badge tone="warning">{row.problems.join(' · ')}</Badge>}</td>
           <td><div className="expense-actions"><Button variant="secondary" onClick={() => open(row)}><Pencil size={15} /> Muuda</Button>{!row.ready ? <Button variant="secondary" onClick={() => copyLink(row)}><Copy size={15} /> Vormi link</Button> : null}</div></td>
@@ -87,7 +87,7 @@ export default function Inf3Page({ repository = api }) {
 
     <Modal open={Boolean(editing)} title={editing ? `INF 3 · ${editing.studentName}` : ''} onClose={() => !busy && setEditing(null)} footer={<><Button variant="secondary" disabled={busy} onClick={() => setEditing(null)}>Loobu</Button><Button type="submit" form="inf3-form" loading={busy}>Salvesta</Button></>}>
       <form id="inf3-form" className="expense-form" onSubmit={save}>
-        <p className="form-hint">Isikukoodid on nähtavad ainult administraatorile. Tühi väli jätab olemasoleva koodi alles.</p>
+        <p className="form-hint">Isikukoodid on nähtavad ainult administraatorile. Tühi väli jätab olemasoleva koodi alles. Tasuja kood salvestatakse ka lapsevanemale: tema teised (ka uued) lapsed saavad selle automaatselt.</p>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <div className="form-grid">
           <Input id="inf3-student-code" label={`Õppija isikukood${editing?.studentCode ? ` (praegu ${maskCode(editing.studentCode)})` : ''}`} inputMode="numeric" value={form.studentCode || ''} onChange={(event) => setForm({ ...form, studentCode: event.target.value })} />

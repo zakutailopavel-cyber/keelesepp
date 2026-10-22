@@ -1,5 +1,7 @@
 "use strict";
 
+const crypto = require("crypto");
+
 // Vorm INF 3 „Füüsiliste isikute tasutud koolituskulude deklaratsioon” (owner 2026-10-22; form inf_3_2025.pdf, valid from
 // 01.01.2025; tulumaksuseadus § 57¹ lg 6). A training provider declares, by 1 February of the next year, what private
 // persons paid during the calendar year for training: payer and trainee (name, isikukood), the amount in euros with
@@ -46,6 +48,16 @@ function isValidIsikukood(value) {
   return remainder === digits[10];
 }
 
+// The payer of a child's lessons is the parent: their code is kept once per parent (taxPayers/{key}) and used for all
+// their children. The key is the parent's account, or a hash of the parent's e-mail when the parent has no account.
+function payerKeyOf(student = {}) {
+  const uid = student.linkedParentId || student.parentUid || student.guardianUid || (Array.isArray(student.linkedParentIds) ? student.linkedParentIds[0] : "");
+  if (uid) return `uid_${String(uid).replace(/[^A-Za-z0-9_-]/g, "")}`;
+  const email = String(student.parentEmail || "").trim().toLowerCase();
+  if (email) return `email_${crypto.createHash("sha256").update(email).digest("hex").slice(0, 32)}`;
+  return "";
+}
+
 function cleanIdentity(values = {}) {
   const studentCode = String(values.studentCode || "").replace(/\s/g, "");
   const payerCode = String(values.payerCode || "").replace(/\s/g, "");
@@ -61,11 +73,12 @@ function cleanIdentity(values = {}) {
 // The amounts private persons paid in the year, by trainee: money received by bank, card or cash on invoices, money
 // received in advance (bank lines kept as a payer credit), minus refunds. A payment from a prepayment is not counted
 // again. Invoices to a company (with a registry code) are left out: their cost is not the person's.
-function inf3Rows({ year, invoices = [], payments = [], payerCredits = [], refunds = [], bankTransactions = [], identities = [], students = [] } = {}) {
+function inf3Rows({ year, invoices = [], payments = [], payerCredits = [], refunds = [], bankTransactions = [], identities = [], students = [], payers = [] } = {}) {
   const y = String(year);
   const invoiceById = new Map(invoices.map((invoice) => [invoice.id, invoice]));
   const studentById = new Map(students.map((student) => [student.id, student]));
   const identityById = new Map(identities.map((identity) => [identity.id || identity.studentId, identity]));
+  const payerByKey = new Map(payers.map((payer) => [payer.id, payer]));
   const bankById = new Map(bankTransactions.map((tx) => [tx.id, tx]));
   const creditById = new Map(payerCredits.map((credit) => [credit.id, credit]));
   const totals = new Map();
@@ -100,7 +113,11 @@ function inf3Rows({ year, invoices = [], payments = [], payerCredits = [], refun
 
   const rows = [...totals.values()].filter((row) => row.amountCents !== 0).map((row) => {
     const student = studentById.get(row.studentId) || {};
-    const identity = identityById.get(row.studentId) || {};
+    const own = identityById.get(row.studentId) || {};
+    const parent = payerByKey.get(payerKeyOf(student)) || {};
+    // the child's own payer code wins; otherwise the parent's code from any of their children
+    const payerFromParent = !own.payerCode && Boolean(parent.payerCode);
+    const identity = { ...own, payerCode: own.payerCode || parent.payerCode || "", payerName: own.payerCode ? own.payerName : (parent.payerName || own.payerName) };
     const payerName = identity.payerName || [...row.payerNames][0] || student.parentName || student.name || "";
     const problems = [];
     if (!identity.studentCode) problems.push("Õpilase isikukood puudub");
@@ -115,6 +132,7 @@ function inf3Rows({ year, invoices = [], payments = [], payerCredits = [], refun
       payerCode: identity.payerCode || "",
       amountCents: row.amountCents,
       trainingType: Number(identity.trainingType || DEFAULT_TRAINING_TYPE),
+      payerFromParent,
       problems,
       ready: problems.length === 0,
     };
@@ -152,4 +170,4 @@ function inf3Xml({ regCode, year, rows }) {
   ].join("\n");
 }
 
-module.exports = { DEFAULT_TRAINING_TYPE, TRAINING_TYPES, cleanIdentity, inf3Rows, inf3Xml, isValidIsikukood };
+module.exports = { DEFAULT_TRAINING_TYPE, TRAINING_TYPES, cleanIdentity, inf3Rows, inf3Xml, isValidIsikukood, payerKeyOf };
