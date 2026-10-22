@@ -128,6 +128,16 @@ export const financeApi = {
   saveAccountingAccount(account) {
     return post("/accounting/accounts", { account });
   },
+  // INF 3 (functions/inf3-core.js, docs/INF3.md)
+  saveTaxIdentity(studentId, identity) {
+    return post("/tax/identity", { studentId, identity });
+  },
+  createTaxFormLink(studentId) {
+    return post("/tax/form-link", { studentId });
+  },
+  inf3Report(year) {
+    return post("/tax/inf3", { year });
+  },
   createExpense(values) {
     return post("/expenses", {
       ...values,

@@ -1193,6 +1193,14 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
+    // personal codes for INF 3 (functions/inf3-core.js): admin read only, written by financeApi and taxFormApi
+    match /taxIdentities/{studentId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /taxFormTokens/{token} {
+      allow read, create, update, delete: if false;
+    }
     // cash box (functions/cash-core.js): written only by financeApi; teachers see their own part through /cash/summary
     match /cashLedger/{entryId} {
       allow read: if isAdmin();

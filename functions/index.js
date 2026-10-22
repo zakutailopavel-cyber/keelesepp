@@ -39,6 +39,7 @@ const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const { DEFAULT_ACCOUNTS } = require("./accounting-chart");
 const accountingCore = require("./accounting-core");
+const inf3Core = require("./inf3-core");
 const {
   classifyAccountIntegrity,
   classifyLessonDataQuality,
@@ -8768,6 +8769,86 @@ async function saveAccountingAccount({ actor, values }) {
   });
 }
 
+// ---------- INF 3: training costs paid by private persons (functions/inf3-core.js, docs/INF3.md) ----------
+// taxIdentities/{studentId}: { studentCode, payerName, payerCode, trainingType, source: "admin" | "form", updatedAt }
+// — personal codes, admin-only (teachers can read student cards, so the codes are kept apart).
+// taxFormTokens/{token}: { studentId, expiresAt, createdAt, createdBy, submitCount } — a parent's one-time form link.
+const TAX_FORM_DAYS = 60;
+
+async function saveTaxIdentity({ actor, studentId, values, source = "admin" }) {
+  const id = String(studentId || "").trim();
+  if (!/^[A-Za-z0-9_-]{1,160}$/.test(id)) throw httpError(400, "Õpilane puudub.");
+  let identity;
+  try {
+    identity = inf3Core.cleanIdentity(values);
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  const studentSnap = await db.collection("students").doc(id).get();
+  if (!studentSnap.exists) throw httpError(404, "Õpilast ei leitud.");
+  const nowIso = new Date().toISOString();
+  const record = { ...identity, studentId: id, studentName: studentSnap.get("name") || "", source, updatedAt: nowIso, updatedBy: actor ? actorSnapshot(actor) : { role: "parent-form" } };
+  // the training type is the school's decision; a parent's form never changes it
+  if (source === "form") delete record.trainingType;
+  await db.collection("taxIdentities").doc(id).set(record, { merge: true });
+  // the audit keeps that a change happened, never the codes themselves
+  await db.collection("financialAudit").add({ entityType: "taxIdentity", entityId: id, action: `tax.identity.${source}`, hasStudentCode: Boolean(identity.studentCode), hasPayerCode: Boolean(identity.payerCode), trainingType: identity.trainingType, createdAt: nowIso, createdBy: record.updatedBy });
+  return { identity: record };
+}
+
+async function createTaxFormLink({ actor, studentId }) {
+  const id = String(studentId || "").trim();
+  const studentSnap = await db.collection("students").doc(id || "-").get();
+  if (!studentSnap.exists) throw httpError(404, "Õpilast ei leitud.");
+  const token = crypto.randomBytes(24).toString("base64url");
+  const now = new Date();
+  await db.collection("taxFormTokens").doc(token).set({ studentId: id, createdAt: now.toISOString(), expiresAt: new Date(now.getTime() + TAX_FORM_DAYS * 86400000).toISOString(), createdBy: actorSnapshot(actor), submitCount: 0 });
+  return { url: `${APP_BASE_URL.replace(/\/$/, "")}/maksuandmed/${token}`, expiresInDays: TAX_FORM_DAYS };
+}
+
+async function inf3Report({ year }) {
+  const y = Number(year);
+  if (!Number.isInteger(y) || y < 2020 || y > 2100) throw httpError(400, "Vali aasta.");
+  const names = ["invoices", "payments", "payerCredits", "refunds", "bankTransactions", "taxIdentities", "students"];
+  const snaps = await Promise.all(names.map(name => db.collection(name).get()));
+  const data = Object.fromEntries(names.map((name, index) => [name, snaps[index].docs.map(doc => ({ id: doc.id, ...doc.data() }))]));
+  const report = inf3Core.inf3Rows({ year: y, ...data, identities: data.taxIdentities, students: data.students.map(s => ({ id: s.id, name: s.name, parentName: s.parentName, payerRegCode: s.payerRegCode })) });
+  let xml = "";
+  if (report.rows.some(row => row.ready)) xml = inf3Core.inf3Xml({ regCode: PAYMENT_DETAILS.regCode, year: y, rows: report.rows });
+  return { year: y, regCode: PAYMENT_DETAILS.regCode, ...report, xml };
+}
+
+exports.taxFormApi = functions.https.onRequest(async (req, res) => {
+  applyCors(req, res);
+  if (req.method === "OPTIONS") { res.status(204).send(""); return; }
+  if (req.method !== "POST") { res.status(405).json({ error: "POST required" }); return; }
+  try {
+    const token = String(req.body?.token || "");
+    if (!/^[A-Za-z0-9_-]{20,80}$/.test(token)) { res.status(404).json({ error: "Link ei kehti." }); return; }
+    const tokenRef = db.collection("taxFormTokens").doc(token);
+    const tokenSnap = await tokenRef.get();
+    const link = tokenSnap.exists ? tokenSnap.data() : null;
+    if (!link || link.expiresAt < new Date().toISOString() || Number(link.submitCount || 0) >= 10) { res.status(404).json({ error: "Link ei kehti enam. Palun küsi koolilt uus link." }); return; }
+    const studentSnap = await db.collection("students").doc(link.studentId).get();
+    const firstName = String(studentSnap.get("name") || "").split(/\s+/)[0];
+    if (req.path === "/info") {
+      const identity = await db.collection("taxIdentities").doc(link.studentId).get();
+      res.json({ studentFirstName: firstName, school: PAYMENT_DETAILS.company, submitted: identity.exists && identity.get("source") === "form" });
+      return;
+    }
+    if (req.path === "/submit") {
+      if (req.body?.consent !== true) { res.status(400).json({ error: "Kinnita, et andmed on õiged ja et oled koolituse eest tasunud isik." }); return; }
+      await saveTaxIdentity({ actor: null, studentId: link.studentId, values: { studentCode: req.body?.studentCode, payerCode: req.body?.payerCode, payerName: req.body?.payerName, trainingType: inf3Core.DEFAULT_TRAINING_TYPE }, source: "form" });
+      await tokenRef.update({ submitCount: FieldValue.increment(1), lastSubmittedAt: new Date().toISOString() });
+      res.status(201).json({ ok: true });
+      return;
+    }
+    res.status(404).json({ error: "Not found" });
+  } catch (error) {
+    res.status(error.status || 500).json({ error: error.status ? error.message : "Salvestamine ebaõnnestus." });
+  }
+});
+
 async function createExpense({ actor, values, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const normalized = expenseRecord(values);
@@ -9086,6 +9167,18 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     }
     if (req.path === "/accounting/accounts") {
       res.json(await saveAccountingAccount({ actor, values: req.body?.account }));
+      return;
+    }
+    if (req.path === "/tax/identity") {
+      res.json(await saveTaxIdentity({ actor, studentId: req.body?.studentId, values: req.body?.identity || {} }));
+      return;
+    }
+    if (req.path === "/tax/form-link") {
+      res.status(201).json(await createTaxFormLink({ actor, studentId: req.body?.studentId }));
+      return;
+    }
+    if (req.path === "/tax/inf3") {
+      res.json(await inf3Report({ year: req.body?.year }));
       return;
     }
     if (req.path === "/expenses") {

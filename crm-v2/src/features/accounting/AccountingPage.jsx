@@ -135,6 +135,7 @@ export default function AccountingPage({ repository = accountingService }) {
       actions={<>
         <Button variant="secondary" loading={busy === 'sync'} onClick={() => sync(false)}><RefreshCw size={17} /> Uuenda kanded</Button>
         <Button variant="secondary" onClick={openOpening}><Scale size={17} /> Algsaldod</Button>
+        <Link className="button button--secondary" to="/finance/inf3">INF 3</Link>
         <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button>
       </>} />
     {notice ? <div className="success-notice" role="status">{notice}<button aria-label="Sulge teade" onClick={() => setNotice('')}>×</button></div> : null}
