@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-23.5';
+export const EN_A2_VERSION = '2026-10-23.6';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -56,6 +56,16 @@ export const EN_A2_MODULES = Object.freeze([
       ['At the café', 'Ordering politely: I\'d like, Can I have, Would you like; like vs would like; starters, main courses and desserts.'],
       ['You should drink more water', 'Health problems (headache, sore throat, a cold); advice with should / shouldn\'t; at the doctor\'s.'],
       ['Module 5 check: Food and health', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 6, title: 'Travel and holidays', goal: 'Talking about holiday plans, transport and tickets, booking a room and writing postcards.',
+    lessons: [
+      ['Holiday plans', 'going to for plans: positive, negative, questions and short answers; time words for the future; what to pack.'],
+      ['A ticket to Riga, please', 'Timetables with the present simple; by bus / train / plane, on foot; single and return tickets; buying a ticket.'],
+      ['Booking a room', 'Hotels and hostels; Is there…? / Can I…?; I\'ll for decisions and offers; booking by phone and by e-mail.'],
+      ['Greetings from Saaremaa', 'Postcards and holiday e-mails: present continuous for now, past simple for yesterday, going to for tomorrow.'],
+      ['Module 6 check: Travel and holidays', 'Reading, listening, language tasks, an e-mail, a postcard and speaking in the exam\'s task types (A2).'],
     ],
   },
 ]);
