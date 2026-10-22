@@ -59,7 +59,7 @@ export const EXPLAIN = {
     'subject — ед. число → is.',
     'she → is, не are.',
     'Предлог только in: interested in.',
-    'he → is.',
+    'Ответ: he → is.',
     'Present simple без am: I play. am + глагол без -ing невозможно.',
   ],
   en_001_p_s: [

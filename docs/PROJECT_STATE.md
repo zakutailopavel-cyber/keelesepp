@@ -1,3 +1,18 @@
+## 2026-10-22 · agent/english-b1-m2 — English B1 module 2 „Life stories”
+
+- Main checked: 198b5f1. B1 module 1 was merged (#722) and published with the owner's yes: records en-b1-001…005
+  created create-only, 15 sheets published.
+- Module 2: en-b1-006 What happened? (past simple, -ed spelling and sounds), 007 While it was happening (past
+  continuous, when / while), 008 How things used to be (used to vs past simple), 009 Telling a story (time linkers,
+  strong adjectives), 010 the check in the Harno B1 task types. 15 sheets of 41–53 min.
+- Teacher key en/b1/module02Key.js (Russian, every item). Very short key lines in all English keys now start with
+  „Ответ:” (the key test needs more than 5 characters); published English sheets change only in these lines.
+- curriculum/enB1Curriculum.js: module 2 records (version 2026-10-22.2). strictModules + en-b1-module-02.
+- Checks: `gate_s.sh en/b1/module02` clean; vitest worksheet-generator + worksheet-studio + curriculum 1080 passed.
+- Not done: not published (waits for the owner); no English audio.
+- Next safe step: with the owner's yes, install en-b1-006…010 and publish all English sheets; then B1 module 3
+  „Experiences” (present perfect).
+
 ## 2026-10-22 · agent/english-b1-m1 — English B1 module 1 „People around me”
 
 - Main checked: 479f88b. Owner: „Дальше начинай Б1 курс”. B1 module list in docs/ENGLISH_COURSE_PLAN.md.

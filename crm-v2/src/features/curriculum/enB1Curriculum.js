@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-22.1';
+export const EN_B1_VERSION = '2026-10-22.2';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -17,6 +17,16 @@ export const EN_B1_MODULES = Object.freeze([
       ['Friends and family', 'Relationships; phrasal verbs (get on with, fall out, make up, take after, bring up); always + continuous for annoying habits.'],
       ['Asking politely', 'Indirect questions (Could you tell me where…?, Do you know if…?); polite requests (Would you mind -ing?); a formal e-mail asking for information.'],
       ['Module 1 check: People around me', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 2, title: 'Life stories', goal: 'Telling what happened, describing past moments and habits, and writing a story.',
+    lessons: [
+      ['What happened?', 'Past simple: regular and irregular verbs, spelling and pronunciation of -ed, questions and negatives with did.'],
+      ['While it was happening', 'Past continuous for the background; past continuous vs past simple with when and while.'],
+      ['How things used to be', 'used to / didn\'t use to / Did you use to…? for past habits and states; used to vs past simple.'],
+      ['Telling a story', 'Time linkers (at first, as soon as, meanwhile, eventually, in the end); strong adjectives; a competition story.'],
+      ['Module 2 check: Life stories', 'Reading, listening, language use, a story, a short message and speaking in the basic school exam\'s task types.'],
     ],
   },
 ]);
