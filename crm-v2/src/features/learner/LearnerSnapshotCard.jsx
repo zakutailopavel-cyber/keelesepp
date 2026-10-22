@@ -42,7 +42,8 @@ export default function LearnerSnapshotCard({ studentId, studentName = '', repos
 
   return <section className={`ls-card ${compact ? 'is-compact' : ''}`} aria-label={`Õpilase pilt${studentName ? `: ${studentName}` : ''}`}>
     <header className="ls-head">
-      <div><span className="ls-eyebrow">Enne tundi</span><h3>{studentName || 'Õpilane'}</h3></div>
+      {/* the student's page already has his name as its heading: the card names itself there, the lesson panel names him */}
+      <div><span className="ls-eyebrow">Enne tundi</span><h3>{compact ? studentName || 'Õpilane' : 'Õpilase pilt'}</h3></div>
       <button type="button" className="ls-icon" aria-label="Värskenda" title="Värskenda" onClick={state.reload}><RefreshCw size={15} /></button>
     </header>
 
