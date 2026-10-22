@@ -93,6 +93,7 @@ test("an expense goes to the account of its category from the payment account; a
       { id: "e2", expenseDate: "2026-04-01", category: "rent", description: "Aprilli rent", amountCents: 32000, paymentMethod: "bank", status: "active" },
       { id: "e3", expenseDate: "2026-04-02", category: "office", description: "Paber", amountCents: 1250, paymentMethod: "cash", status: "active" },
       { id: "e4", expenseDate: "2026-04-02", category: "unknown", description: "Muu", amountCents: 100, paymentMethod: "other", status: "active" },
+      { id: "e5", expenseDate: "2026-04-02", category: "travel", description: "Vale", amountCents: 700, paymentMethod: "bank", status: "voided", voidedAt: "2026-04-04T10:00:00.000Z", voidReason: "topelt" },
     ],
   });
   const totals = byAccount(entries);
@@ -100,6 +101,8 @@ test("an expense goes to the account of its category from the payment account; a
   assert.equal(totals["4330"], 1250);
   assert.equal(totals["4398"], 100);
   assert.equal(totals["2450"], -100);
+  assert.equal(totals["4510"], 0, "a voided expense is reversed");
+  assert.ok(entries.some((e) => e.sourceKey === "expense-void:e5" && e.date === "2026-04-04"));
   assert.equal(totals["1010"], -32000);
   assert.equal(totals["1000"], -1250);
 });

@@ -183,6 +183,13 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
       description: `Kulu: ${text}`,
       lines: simple(expenseAccount, paidFrom, amount),
     });
+    if (expense.status === "voided" && expense.voidedAt) {
+      add({
+        sourceKey: `expense-void:${expense.id}`, date: isoDate(expense.voidedAt), documentType: "expense", documentRef: String(expense.documentNumber || expense.id),
+        description: `Kulu tühistamine: ${text}${expense.voidReason ? ` · ${String(expense.voidReason).slice(0, 80)}` : ""}`,
+        lines: simple(paidFrom, expenseAccount, amount),
+      });
+    }
     if (expense.status === "corrected" && expense.correctedAt) {
       add({
         sourceKey: `expense-correction:${expense.id}`, date: isoDate(expense.correctedAt), documentType: "expense", documentRef: String(expense.documentNumber || expense.id),

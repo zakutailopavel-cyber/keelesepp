@@ -31,7 +31,7 @@ the accountant's Merit. INF 3 is a separate document (`docs/INF3.md`, next PR).
 | Overpayment moved to a payer credit | its date | 1200 | 2500 |
 | Refund of a prepayment | refund date | 2500 | 1010 or 1000 |
 | Expense | expense date | by category: rent 4210, advertising 4300, software 4320, learning materials 4050, bank fees 4340, taxes 4360, office 4330, travel 4510, other 4398 | 1010 (bank, card), 1000 (cash), 2450 (other) |
-| Expense correction | correction date | the old payment account | the old expense account |
+| Expense correction or void | its date | the old payment account | the old expense account |
 
 Documents dated before the start date are in the opening balances. Without a VAT registration an expense is booked with
 its VAT (input VAT is not deductible).

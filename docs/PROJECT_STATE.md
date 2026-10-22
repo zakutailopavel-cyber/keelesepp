@@ -7,7 +7,7 @@
   (automatic entries from invoices, credit notes, cancellations, payments, voids, payer credits, refunds, expenses;
   validation; storno; opening balances; numbering), financeApi routes /accounting/*, rules for accountingEntries and
   accountingAccounts (admin read, no client writes). docs/ACCOUNTING.md: the law (RPS §§ 6–12) and the posting table.
-- Checks: functions node --test 339/339 (accounting-core 10); emulator: the new bookkeeping test passes.
+- Checks: functions node --test 329/329 (accounting-core 10); emulator: the new bookkeeping test passes.
 - Not done: the UI (next PR: Raamatupidamine with päevaraamat, pearaamat, käibeandmik, bilanss, kasumiaruanne, manual
   entries, opening balances, Excel); INF 3; salaries are manual entries. Nothing deployed.
 - Next safe step: the Raamatupidamine UI on top of this branch; deploy functions with the owner's yes after merge.
