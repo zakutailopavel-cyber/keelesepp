@@ -262,3 +262,20 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
 /* a page that refreshes after an action keeps its content; a small pill says it is updating (owner 2026-10-21: every
    finance action blanked the page behind „Laen finantsandmeid…”) */
 .page-refreshing { position: fixed; right: 18px; bottom: 18px; z-index: 50; margin: 0; padding: 8px 14px; border-radius: 999px; background: #1d2330; color: #fff; font-size: 13px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+
+/* /parents?parent=<id>: one parent opened from a student's card */
+.parent-only-note {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.parent-only-note .link-button {
+  background: none;
+  border: 0;
+  color: #0f6b4f;
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0;
+}

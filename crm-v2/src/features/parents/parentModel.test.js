@@ -1,4 +1,4 @@
-import { buildParentRows, exactParentDuplicateClusters, filterParentRows, parentMatchesStudent } from './parentModel.js';
+import { buildParentRows, exactParentDuplicateClusters, filterParentRows, parentCardIds, parentMatchesStudent } from './parentModel.js';
 
 describe('parent model', () => {
   const parent = { id: 'parent-1', displayName: 'Mari Ema', email: 'ema@example.com', childName: 'Mari', parentReviewStatus: 'checked', parentReviewKey: 'mari', parentContactStatus: 'active' };
@@ -44,5 +44,12 @@ describe('a learner who pays for themselves (Oleksiy 2026-10-20)', () => {
     const rows = buildParentRows([payer], [{ id: 's1', name: 'Viktoria Tamm', active: true, linkedUserId: 'u1' }, { id: 's2', name: 'Other', active: true }], [{ id: 'i1', studentId: 's1', amountCents: 5000, status: 'Saadetud' }]);
     expect(rows[0].children.map((child) => child.id)).toEqual(['s1']);
     expect(parentMatchesStudent({ id: 'u2', role: 'parent' }, { linkedUserId: 'u2' })).toBe(false);
+  });
+});
+
+describe('parentCardIds', () => {
+  it('lists every linked parent account once', () => {
+    expect(parentCardIds({ linkedParentId: 'a', parentUid: 'a', linkedParentIds: ['a', 'b'] })).toEqual(['a', 'b']);
+    expect(parentCardIds({ parentName: 'Kati' })).toEqual([]);
   });
 });

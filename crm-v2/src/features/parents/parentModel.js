@@ -87,3 +87,8 @@ export function exactParentDuplicateClusters(parents = [], students = []) {
     };
   }).sort((left, right) => left.email.localeCompare(right.email, 'et', { sensitivity: 'base' }));
 }
+
+// the parents' accounts linked to the card (Oleksiy 2026-10-22: a quick way from the student's card to the parent's)
+export function parentCardIds(student = {}) {
+  return [...new Set([student.linkedParentId, student.parentUid, student.guardianUid, ...(Array.isArray(student.linkedParentIds) ? student.linkedParentIds : [])].filter(Boolean).map(String))];
+}

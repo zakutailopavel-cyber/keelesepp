@@ -1,3 +1,11 @@
+## 2026-10-22 · agent/student-parent-link — „Ava lapsevanema kaart” on the student's card
+
+- Oleksiy (#improvement #database): a quick way from the student's card to the parent's card.
+- Student card → Põhiandmed → under Lapsevanem: „Ava lapsevanema kaart” (one link per linked parent account; from
+  parentModel `parentCardIds`). It opens /parents?parent=<id>: the parents page shows that parent only, with „Näita kõiki”.
+- Files: students/StudentProfilePage.jsx, studentProfileTabs.css, parents/ParentsPage.jsx, parentModel.js (+tests),
+  styles/index.css. Checks: vitest parents + students 104/104.
+
 ## 2026-10-22 · agent/english-b1-m3 — English B1 module 3 „Experiences”
 
 - Module 3: en-b1-011 Have you ever…? (present perfect for experience, been / gone, participles), 012 Just, already, yet
