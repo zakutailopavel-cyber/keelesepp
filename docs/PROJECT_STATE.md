@@ -1,3 +1,14 @@
+## 2026-10-23 · agent/daily-reminder — „Tuleta mulle iga päev meelde”: a daily reminder for „Päeva 5 minutit”
+
+- Owner 2026-10-23 („делай дальше”): students forget to practise between lessons.
+- On „Minu sõnad” (when the student has words) a small row: choose a time, „Lisa telefoni kalendrisse” downloads a
+  daily repeating calendar event (.ics, floating local time, alarm at the start) whose link opens
+  /student/sonavara?paev=1. The phone reminds; the CRM sends nothing and the file holds no personal data. The chosen
+  time is remembered in the browser only.
+- Files: vocabulary/dailyReminder.js (+test), vocabulary/DailyReminder.jsx (+test), VocabularyPage.jsx, vocabulary.css.
+- Checks: verify (eslint errors 0, vitest 2276 passed, 0 failed).
+- Not done: the teacher's „last login” needs a `lastSeenAt` self-write allowed in firestore.rules (a rules deploy —
+  waits for the owner's yes). Until then the teacher sees „last practised” in „Õpilase pilt”.
 ## 2026-10-23 · agent/auto-mark-lesson — „Märkimata tunnid”: past lessons without a journal mark on the dashboard
 
 - Why: progress, retention, month steps and the parent report read the lesson journal; a production read (2026-10-23,

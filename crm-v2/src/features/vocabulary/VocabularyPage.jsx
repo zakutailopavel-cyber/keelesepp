@@ -15,6 +15,7 @@ import { loadWordsForLessons } from './lessonWords.js';
 import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
 import { dailyPlan } from './dailyReview.js';
+import DailyReminder from './DailyReminder.jsx';
 import './vocabulary.css';
 
 /**
@@ -130,6 +131,7 @@ export default function VocabularyPage({
               : dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: dueDeck.length >= 4 ? 'learn' : 'cards' })}><Play size={18} /> Korda nüüd</button>
               : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
           </section>
+          {!preview && myDeck.length ? <DailyReminder /> : null}
           <Card>
             <div className="section-heading"><div><span className="eyebrow">Lause lahti</span><h2>Võta lause lahti</h2></div></div>
             <SentenceAnalyzer />
