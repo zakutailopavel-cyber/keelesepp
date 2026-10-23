@@ -16,6 +16,13 @@
 - Checks: vitest pet 54/54; whole vitest 2321 passed, 3 skipped, 0 failed; eslint `src/features/pet` clean; `npm run build` OK.
   Not checked in a browser in this round.
 - Next step: owner tries the games with a test student who has an attended lesson with an Õppevara topic, then merges.
+## 2026-10-23 · agent/library-subject-tabs — Õppevara: subject tabs above the levels
+
+- Owner: „надо добавить вкладку предмета”. Õppevara shows „Kõik ained · Eesti keel · Emakeel · Inglise keel” tabs
+  (URL `?aine=et|ek|en`) above the level chips; the tab narrows levels, modules, types and results. The subject is
+  read from the item's level label (`libraryModel.js` `subjectOfLevel`, `subjectFacets`, `SUBJECTS`; + test).
+- Files: `library/LibraryPage.jsx`, `library/libraryModel.js` (+test), `library/libraryWorkspace.css`.
+- Checks: library tests 49 passed; build OK.
 
 ## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
 

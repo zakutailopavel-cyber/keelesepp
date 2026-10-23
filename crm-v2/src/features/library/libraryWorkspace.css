@@ -457,3 +457,11 @@
 .lib2-grammar-num{color:#98a2b3;font-weight:700;font-size:.9rem;text-align:right}
 .lib2-icon.tone-grammar{background:#eef6ff;color:#1d4f91}
 @media(max-width:640px){.lib2-grammar-num{grid-area:star}}
+/* „Aine” tabs above the levels (owner 2026-10-23) */
+.lib2-subjects{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 12px;border-bottom:1.5px solid #e3e8ee}
+.lib2-subjects button{display:inline-flex;align-items:center;gap:7px;margin-bottom:-1.5px;padding:10px 16px;border:0;border-bottom:3px solid transparent;background:none;color:#475467;font:inherit;font-weight:700;font-size:1rem;cursor:pointer}
+.lib2-subjects button span{font-weight:600;color:#98a2b3;font-size:.8rem}
+.lib2-subjects button:hover{color:#14243a}
+.lib2-subjects button.is-active{color:#0b5c4d;border-bottom-color:#087e6b}
+.lib2-subjects button.is-active span{color:#3c8f80}
+@media(max-width:640px){.lib2-subjects{flex-wrap:nowrap;overflow-x:auto}.lib2-subjects button{flex:none;padding:9px 12px}}
