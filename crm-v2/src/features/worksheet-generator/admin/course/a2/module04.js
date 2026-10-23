@@ -32,7 +32,7 @@ export const LESSONS = {
       B.review('016_d_review', ['Mis kell sa tavaliselt hommikul ärkad?', 'Mida sa õhtul pärast tööd või kooli teed?', 'Kui tihti sa käid poes: iga päev, sageli või mõnikord?']),
       B.text('016_d_goal', 'Moodul 4: kodu ja ümbrus', 'Sofia elab nüüd Tallinnas. Ta üürib tuba Malle Pärna juures Mustamäel. Korteris elab ka üliõpilane Grete. Selles moodulis räägid kodust, toast ja mööblist. Sa ütled, kus asjad on ja kuhu sa lähed. Mooduli lõpus otsid koos Sofiaga väikest korterit. Sa loed kuulutusi, helistad ja kirjutad, millist kodu sa tahad.'),
       B.reading('016_d_read', 'Loe Sofia päevikut.', 'Sofia kirjutab päevikusse oma uuest kodust. Loe ja vasta lühidalt.', 'Minu kodu Mustamäel',
-        'Ma elan nüüd Mustamäel, Akadeemia teel. Maja on viiekorruseline. Malle korter on viiendal korrusel. Lifti ei ole, aga see pole probleem.\n\nKorteris on kolm tuba, köök, vannituba ja esik. Ühes toas elab Malle. Malle on korteri omanik. Teises toas elab Grete. Ta on 22 ja õpib ülikoolis. Kolmas tuba on minu tuba.\n\nMinu tuba on väike, aga hele ja hubane. Toas on voodi, kirjutuslaud, tool ja suur riidekapp. Akna all on vana tugitool. See on Malle oma. Aken on pargi poole. Hommikul joon ma tugitoolis kohvi ja vaatan parki.\n\nKöök on meil ühine. Köögis on suur laud, pliit ja külmkapp. Õhtul sööme me seal sageli koos. Vannitoas on dušš ja pesumasin. Kõige rohkem meeldib mulle rõdu. Rõdul on kaks tooli ja palju lilli.\n\nMul on veel vähe asju. Laupäeval lähen ma mööblipoodi. Ma tahan osta riiulit ja lampi.',
+        'Ma elan nüüd Mustamäel, Akadeemia teel. Maja on viiekorruseline. Malle korter on viiendal korrusel. Lifti ei ole, aga see pole probleem. Trepil käimine on hea sport!\n\nKorteris on kolm tuba, köök, vannituba ja esik. Ühes toas elab Malle. Malle on korteri omanik. Teises toas elab Grete. Ta on 22 ja õpib ülikoolis. Kolmas tuba on minu tuba.\n\nMinu tuba on väike, aga hele ja hubane. Toas on voodi, kirjutuslaud, tool ja suur riidekapp. Akna all on vana tugitool. See on Malle oma. Aken on pargi poole. Hommikul joon ma tugitoolis kohvi ja vaatan parki.\n\nKöök on meil ühine. Köögis on suur laud, pliit ja külmkapp. Õhtul sööme me seal sageli koos. Vannitoas on dušš ja pesumasin. Kõige rohkem meeldib mulle rõdu. Rõdul on kaks tooli ja palju lilli.\n\nMul on veel vähe asju. Laupäeval lähen ma mööblipoodi. Ma tahan osta riiulit ja lampi. Siis on minu tuba päris kodu.',
         [['Mitmendal korrusel on Malle korter?', 'viiendal|viiendal korrusel|5. korrusel'], ['Mitu tuba on korteris?', 'kolm|kolm tuba|3'], ['Mida Grete teeb?', 'õpib ülikoolis|ta õpib ülikoolis|õpib'], ['Mis on Sofia toas?', 'voodi, kirjutuslaud, tool ja riidekapp|voodi, kirjutuslaud, tool ja suur riidekapp|voodi ja kirjutuslaud'], ['Kelle oma on tugitool?', 'Malle oma|Malle|Malle tugitool'], ['Mis on köögis?', 'suur laud, pliit ja külmkapp|laud, pliit ja külmkapp'], ['Mida Sofia tahab laupäeval osta?', 'riiulit ja lampi|riiuli ja lambi']]),
       B.listening('016_d_video', 'Videokõne Katiga.', 'Sofia näitab sõbrale Katile kodu. Kuula kaks korda ja kirjuta lünka üks sõna.', [
         'Kati: Tere, Sofia! Näita mulle oma uut kodu!',
@@ -97,6 +97,8 @@ export const LESSONS = {
         'Sofia: Täna ostan ainult riiuli ja lambi. Vaipa ma ei osta.',
         'Müüja: Kas te viite riiuli ise koju?',
         'Sofia: Jah, Grete aitab mind. Me sõidame bussiga.',
+        'Müüja: Hästi. Kassa on väljapääsu juures. Head päeva!',
+        'Grete: Sofia, õhtul paneme riiuli kokku. Ma aitan sind!',
       ], ['Valge riiul on Sofia toa jaoks liiga [suur].', 'Sofia otsib väikest riiulit ja [lampi].', 'Väike riiul maksab [nelikümmend|40] eurot.', 'Lambid on poe teisel [korrusel].', 'Lambid on akna [juures].', 'Grete näeb rohelist [vaipa].', 'Sofia viib riiuli koju koos [Gretega].', 'Nad sõidavad koju [bussiga].']),
       B.match('016_p_signs', 'Mööblipoe sildid.', 'Mida silt tähendab? Ühenda silt ja selgitus.', [
         ['Allahindlus −30%', 'Asjad on praegu odavamad.'], ['Kassa', 'Siin maksad ostu eest.'], ['Tasuta kohaletoomine', 'Pood toob mööbli tasuta koju.'],
@@ -132,7 +134,7 @@ export const LESSONS = {
         'Sa kolisid täna sisse. Küsi vähemalt viis küsimust: kus on …? mis on …? kas meil on …?',
         ['See on …', 'Köögis on …', 'Sinu tuba on …'], ['Kus on …?', 'Mis on …?', 'Kas meil on …?']),
         'Üks-ühele: õpilane näitab oma kodu (plaan paberil või fotod telefonis) ja õpetaja on uus naaber, kes küsib viis küsimust. Siis näitab õpetaja Malle korterit ja õpilane küsib.'),
-      B.writing('016_p_write', 'Kuulutus: tuba üürile.', 'Kirjuta kuulutus: tuba sinu kodus on üürile. Vähemalt 30 sõna.', [6, 8], ['tuba', 'korrusel', 'köögis', 'üür'], 2),
+      B.writing('016_p_write', 'Kuulutus: tuba üürile.', 'Kirjuta kuulutus: tuba sinu kodus on üürile. Vähemalt 30 sõna.', [7, 9], ['tuba', 'korrusel', 'köögis', 'üür'], 2),
     ],
     transfer: [
       B.text('016_t_sit', 'Uus diivan elutoas', 'Malle ostis elutuppa uue diivani. Nüüd tuleb tuba ümber teha. Onu Viktor tuleb appi, sest ta on tugev ja oskab kõike. Sofia joonistab elutoa plaani. Õhtul helistab Sofia emale Tartusse. Ema tahab kõike teada. Vaata pilti.'),
@@ -214,7 +216,7 @@ export const LESSONS = {
         '',
         'Kell kaks tuleb ta [linnast] (linn) tagasi. Pärast lõunat puhkab ta oma [toas] (tuba).',
         '',
-        'Õhtul läheb Malle [sauna] (saun). Kell kaheksa on ta jälle [kodus] (kodu).',
+        'Õhtul läheb Malle [sauna] (saun). Mustamäel on ujula ja saun. Malle käib seal kord nädalas. Kell kaheksa on ta jälle [kodus] (kodu). Enne magamaminekut loeb ta veel raamatut.',
       ]),
       B.listening('017_p_arvo', 'Majahaldur tuleb.', 'Arvo on Sofia juures. Kuula kaks korda ja kirjuta lünka üks sõna.', [
         'Arvo: Tere, Sofia! Mina olen Arvo, majahaldur. Kus on vannituba?',
@@ -228,6 +230,7 @@ export const LESSONS = {
         'Sofia: Kas see on suur probleem?',
         'Arvo: Ei, plekk on väike. Nädala pärast on lagi jälle kuiv.',
         'Sofia: Aitäh! Ma kirjutan kohe Mallele.',
+        'Arvo: Head päeva! Kui on probleem, helistage mulle kohe.',
       ], ['Vannituba on esikus [paremal].', 'Pesumasina [voolik] on katki.', 'Täna ei tohi Sofia kasutada [pesumasinat].', 'Homme hommikul tuleb [meister].', 'Vannitoa põrand on veel [märg].', 'Arvo läheb pärast Helju [juurde].', 'Helju laes on märg [plekk].', 'Nädala pärast on lagi jälle [kuiv].']),
       B.truefalse('017_p_tf', 'Õige või vale?', 'Mõtle kuulamistele ja vestlusele. Kas lause on õige või vale?', [
         ['Vannituba on esikus vasakul.', false], ['Vesi tuleb pesumasina voolikust.', true], ['Sofia võib täna pesumasinat kasutada.', false], ['Homme hommikul tuleb meister.', true],
@@ -257,6 +260,7 @@ export const LESSONS = {
         'Sa lähed hommikul tööle. Pärast tööd tahad minna sauna. Küsi, millal A koju tuleb.',
         ['Ma lähen …', 'Kas sa tuled kaasa?', 'Ma tulen koju kell …'], ['Pärast tööd lähen ma …', 'Millal sa koju tuled?', 'Kust sa tuled?']),
         'Üks-ühele: õpetaja on korterinaaber (B). Õpilane räägib oma plaanist ja küsib; siis vahetage rollid.'),
+      B.planning('017_p_plan', 'Minu nädalavahetus: plaan.', 'Kirjuta märksõnad: kuhu sa lähed, kus oled, kust tuled?', ['Laupäeva hommik: kuhu sa lähed? Mis kell?', 'Päev: kus sa oled? Kellega?', 'Õhtu: kust sa tuled ja millal oled kodus?', 'Pühapäev: kas sa lähed linna, sauna või maale?'], 2),
       B.writing('017_p_write', 'Minu nädalavahetus.', 'Kirjuta 7–9 lauset: kuhu sa nädalavahetusel lähed ja millal koju tuled.', [7, 9], ['koju', 'poodi', 'linna', 'kodus'], 2),
     ],
     transfer: [
@@ -268,9 +272,10 @@ export const LESSONS = {
         'Helju: Palun võta minu ajaleht postkastist. Võti on sinu postkastis.',
         'Grete: Sofia, siin Grete! Ma olen veel tööl. Ma tulen koju kell üheksa.',
         'Grete: Kas sa saad poodi minna? Meil ei ole piima ega leiba.',
+        'Grete: Aitäh! Õhtul teen ma meile süüa.',
       ], ['Homme on majas vesi [kinni].', 'Vesi on kinni kella kümnest [kaheni|kella kaheni].', 'Meister tuleb [keldrisse].', 'Helju läheb homme [maale].', 'Sofia võtab Helju ajalehe [postkastist].', 'Grete on praegu [tööl].', 'Grete tuleb koju kell [üheksa|9].', 'Grete palub Sofial minna [poodi].']),
       B.reading('017_t_notice', 'Teade trepikojas.', 'Majahaldur pani trepikotta teate. Loe ja vasta lühidalt.', 'Teade elanikele',
-        'Head elanikud!\n\nKui teie korteris on probleem, helistage majahaldurile Arvo Lindile. Telefon on 5566 7788. Majahaldur töötab esmaspäevast reedeni kell 8–17. Õhtul ja nädalavahetusel helistage avariitelefonile 5566 0011.\n\nKui korterisse tuleb vett, pange kõigepealt vesi kinni. Kraan on tavaliselt vannitoas või köögis.\n\nJalgrattad ja kelgud viige keldrisse. Trepikojas ei tohi neid hoida. Prügi viige maja taha, prügikasti.\n\nLaupäeval kell 10 on koristuspäev. Tulge kõik õue!\n\nAitäh! Majahaldur',
+        'Head elanikud!\n\nMeie majas on uus majahaldur. Kui teie korteris on probleem, helistage majahaldurile Arvo Lindile. Telefon on 5566 7788. Majahaldur töötab esmaspäevast reedeni kell 8–17. Õhtul ja nädalavahetusel helistage avariitelefonile 5566 0011.\n\nKui korterisse tuleb vett, pange kõigepealt vesi kinni. Kraan on tavaliselt vannitoas või köögis. Siis helistage majahaldurile ja alumisele naabrile.\n\nJalgrattad ja kelgud viige keldrisse. Trepikojas ei tohi neid hoida. Prügi viige maja taha, prügikasti.\n\nLaupäeval kell 10 on koristuspäev. Tulge kõik õue! Me koristame maja ees ja maja taga. Pärast koristamist joome koos teed.\n\nAitäh! Majahaldur Arvo Lind',
         [['Kellele helistate, kui korteris on probleem?', 'majahaldurile|Arvo Lindile|majahaldur Arvo Lindile'], ['Millal majahaldur töötab?', 'esmaspäevast reedeni kell 8–17|esmaspäevast reedeni|E–R 8–17'], ['Kuhu helistate pühapäeval?', 'avariitelefonile|5566 0011'], ['Mida teete kõigepealt, kui korterisse tuleb vett?', 'panen vee kinni|pange vesi kinni|vesi kinni'], ['Kuhu viite jalgrattad?', 'keldrisse'], ['Mis on laupäeval kell kümme?', 'koristuspäev']]),
       teach(B.rolecards('017_t_roles', 'Kõne majahaldurile.', 'A elab majas, B on majahaldur. A helistab ja räägib probleemist.',
         'Sinu kodus on probleem: köögis on kraan katki või vannitoas ei ole sooja vett. Helista majahaldurile. Ütle aadress, probleem ja millal sa kodus oled.',
@@ -345,7 +350,7 @@ export const LESSONS = {
         '',
         'Õhtul sööme {*õues|õuel|õue}. Viktori kass Miisu hüppab {*lauale|laual|laualt} ja tahab kala.',
         '',
-        'Homme hommikul lähen ma otse {*tööle|töösse|tööl}. Sinu juurde tulen õhtul. Grete',
+        'Homme hommikul lähen ma otse {*tööle|töösse|tööl}. Õhtul helistan sulle. Grete',
       ]),
       B.choice('018_p_choice', 'Sees või peal?', 'Vali lausesse õige vorm.', [
         ['Viktor parandab jalgrattaid ___.', 'töökojas', 'töökojal', 'töökoda'],
@@ -390,7 +395,7 @@ export const LESSONS = {
         ['A', 'Puud on [kuuris]. (kuur) Pange need sauna ukse ette.'],
         ['B', 'Hästi. Kas toit läheb [lauale]? (laud)'],
         ['A', 'Jah, aga kõigepealt võtke kass [laualt]! (laud) Ta armastab kala.'],
-        ['B', 'Ha-ha! Millal sa [turult] tuled? (turg)'],
+        ['B', 'Ha-ha! Millal sa turult tuled?'],
         ['A', 'Kell kaks. Kell neli kütan ma sauna.'],
       ], 'g_notice'),
       B.listening('018_t_kadri', 'Kadri häälsõnum.', 'Kadri jätab Sofiale sõnumi. Kuula kaks korda ja kirjuta lünka üks sõna.', [
@@ -405,7 +410,7 @@ export const LESSONS = {
         'Kadri: Palun kirjuta mulle täna õhtul. Aitäh!',
       ], ['Saunaõhtu on [laupäeval].', 'Oskar on hommikul [trennis].', 'Oskar tuleb trennist kell [kaksteist|12].', 'Pere sõidab maale [autoga].', 'Kadri küsib, mida [kaasa] võtta.', 'Mia ei taha minna [sauna].', 'Mia tahab ujuma minna [järve].', 'Jaan küsib, kas [Muki] võib ka tulla.']),
       B.reading('018_t_rules', 'Viktori sauna reeglid.', 'Sauna seinal on Viktori silt. Loe ja vasta lühidalt.', 'Sauna reeglid',
-        'Saun on soe kell viis. Enne seda ära mine sauna!\n\nPuud on kuuris. Ära võta puid ise, küsi Viktorilt.\n\nRätikud on riiulil, ukse kõrval. Märjad rätikud pane õue, nöörile.\n\nJoogivesi on köögis, laual. Saunas ära joo õlut!\n\nLapsed lähevad sauna ainult koos täiskasvanuga.\n\nPärast sauna võib minna järve. Ujuge ainult paadisilla juures.\n\nPärast sauna vii kõik asjad tuppa. Viimane inimene paneb sauna ukse kinni.\n\nHead leili! Viktor',
+        'Tere tulemast minu sauna! Saun on vana, Viktor ehitas selle ise. Palun loe reegleid.\n\nSaun on soe kell viis. Enne seda ära mine sauna!\n\nPuud on kuuris. Ära võta puid ise, küsi Viktorilt.\n\nRätikud on riiulil, ukse kõrval. Märjad rätikud pane õue, nöörile.\n\nJoogivesi on köögis, laual. Saunas ära joo õlut!\n\nLapsed lähevad sauna ainult koos täiskasvanuga.\n\nPärast sauna võib minna järve. Ujuge ainult paadisilla juures. Järv on seal madal ja vesi on puhas.\n\nPärast sauna vii kõik asjad tuppa. Viimane inimene paneb sauna ukse kinni.\n\nHead leili! Viktor',
         [['Mis kell on saun soe?', 'kell viis|viis|17'], ['Kus on rätikud?', 'riiulil|riiulil, ukse kõrval'], ['Kuhu panna märjad rätikud?', 'õue, nöörile|nöörile|õue'], ['Kellega lähevad lapsed sauna?', 'täiskasvanuga|koos täiskasvanuga'], ['Kus võib järves ujuda?', 'paadisilla juures'], ['Kes paneb sauna ukse kinni?', 'viimane inimene']]),
       teach(B.rolecards('018_t_roles', 'Kus see on?', 'A on ära, B on A kodus ja küsib asjade kohta. Siis vahetage.',
         'Sa oled turul. Sõber on sinu kodus ja valmistab peo ette. Ütle, kus asjad on: laual, riiulil, kapis, kuuris. Ütle, kuhu need panna.',
@@ -437,9 +442,10 @@ export const LESSONS = {
         'Sofia: Ja kus on hea kohvik?',
         'Malle: Kohvik on raamatukogu vastas. Seal on parimad saiad!',
         'Malle: Öösel on siin vaikne. Ainult pargis laulavad linnud.',
+        'Sofia: Mulle meeldib siin. Kõik on lähedal!',
       ], ['Toidupood on maja [kõrval].', 'Kool on poe [vastas].', 'Kooli taga on [staadion].', 'Bussipeatusesse on [kaks|2] minutit.', 'Bussiga on kesklinna [kakskümmend|20] minutit.', 'Apteek on panga [kõrval].', 'Malle töötab raamatukogus kaks päeva [nädalas].', 'Kohvik on raamatukogu [vastas].']),
       B.reading('019_d_read', 'Loe: Mustamäe.', 'Loe linnaosa lehest ja vasta lühidalt.', 'Mustamäe – roheline linnaosa',
-        'Mustamäe on Tallinna linnaosa. See asub kesklinnast umbes viie kilomeetri kaugusel. Siin elab üle 60 000 inimese. Enamik inimesi elab suurtes kortermajades. Paljud majad on viie- või üheksakorruselised.\n\nMustamäel on palju rohelust. Majade vahel on pargid ja mänguväljakud. Metsa on ainult kümme minutit jalgsi. Talvel saab seal suusatada.\n\nLinnaosas on mitu kooli ja palju lasteaedu. Ka Tallinna Tehnikaülikool asub Mustamäel. Poode on igal pool. Mustamäe keskus asub Tammsaare teel.\n\nKesklinna sõidavad bussid. Sõit kestab umbes kakskümmend minutit.\n\nMustamäe korterid on odavamad kui kesklinnas. Seepärast elab siin palju noori peresid ja üliõpilasi. Elanikud ütlevad: „Siin on rahulik ja kõik on lähedal.”',
+        'Mustamäe on Tallinna linnaosa. See asub kesklinnast umbes viie kilomeetri kaugusel. Siin elab üle 60 000 inimese. Enamik inimesi elab suurtes kortermajades. Paljud majad on viie- või üheksakorruselised.\n\nMustamäel on palju rohelust. Majade vahel on pargid ja mänguväljakud. Metsa on ainult kümme minutit jalgsi. Talvel saab seal suusatada.\n\nLinnaosas on mitu kooli ja palju lasteaedu. Ka Tallinna Tehnikaülikool asub Mustamäel. Poode on igal pool. Mustamäe keskus asub Tammsaare teel.\n\nKesklinna sõidavad bussid. Sõit kestab umbes kakskümmend minutit.\n\nMustamäe korterid on odavamad kui kesklinnas. Seepärast elab siin palju noori peresid ja üliõpilasi. Paljud vanemad inimesed elavad siin juba 40 või 50 aastat. Nad tunnevad oma naabreid hästi. Elanikud ütlevad: „Siin on rahulik ja kõik on lähedal.”',
         [['Kui kaugel on Mustamäe kesklinnast?', 'umbes viis kilomeetrit|viie kilomeetri kaugusel|viis kilomeetrit'], ['Kus elab enamik inimesi?', 'suurtes kortermajades|kortermajades'], ['Mida saab talvel metsas teha?', 'suusatada'], ['Mis ülikool asub Mustamäel?', 'Tallinna Tehnikaülikool|Tehnikaülikool'], ['Kui kaua sõidab buss kesklinna?', 'umbes kakskümmend minutit|kakskümmend minutit|20 minutit'], ['Miks elab Mustamäel palju noori?', 'korterid on odavamad|sest korterid on odavamad|korterid on odavamad kui kesklinnas']]),
       B.notice('019_d_notice', 'Märka: mille kõrval? — omastav + kaassõna', [
         'Pood on maja **kõrval**. — Mille kõrval? → **maja** kõrval',
@@ -452,7 +458,7 @@ export const LESSONS = {
       B.table('019_d_rule', 'Leia reegel.', 'Kirjuta omastav. Vaata kasti „Märka”.', 'Mis?, Mille …? (omastav), Näide', [
         'pood | [poe] | … kõrval on apteek', 'park | [pargi] | … lähedal on raamatukogu', 'pank | [panga] | … kõrval on apteek', 'kool | [kooli] | … taga on staadion',
         'maja | [maja] | … ees on pink', 'jaam | [jaama] | … lähedal on turg', 'kirik | [kiriku] | … vastas on park', 'raamatukogu | [raamatukogu] | … vastas on kohvik',
-        'tänav | [tänava] | … lõpus on mets', 'peatus | [peatuse] | … kõrval on kiosk',
+        'tänav | [tänava] | … lõpus on mets', 'peatus | [peatuse] | … kõrval on kiosk', 'keskus | [keskuse] | … taga on parkla', 'staadion | [staadioni] | … kõrval on ujula',
       ], 'g_notice'),
       B.transformation('019_d_trans', 'Kus see asub?', 'Kirjuta lause sõnaga „asub”.', [
         ['pood / maja / kõrval', 'Pood asub …', 'Pood asub maja kõrval.'],

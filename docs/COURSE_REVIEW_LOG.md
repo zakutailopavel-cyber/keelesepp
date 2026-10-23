@@ -418,6 +418,17 @@ weekly kitchen and bathroom plan agreed with Malle and Grete.
 - **014** — weekdays and linking words; the flat's weekly plan. → a printable weekly grid.
 - Art briefs still show the B1 cast — new A2 scenes needed. Several sheets sit right at 40 min.
 
+## A2 module 4 „Kodu ja ümbrus” (a2-016…019)
+
+Sofia's room at Malle's, a washing-machine flood, a sauna evening at Viktor's farm; goal: read flat ads, call about
+one and write what home you want.
+- **016** — what is in a flat; Malle's new sofa, a video call with Helgi. → a picture of Malle's flat (the brief shows
+  Anna and Viktor); a furniture leaflet.
+- **017** — short illative (kooli, koju, poodi, pähe, sauna) after the flood; house manager Arvo, neighbour Helju. → a
+  flood picture; a real stairwell notice.
+- **018** — -le forms (tööle, maale) and the farm sauna. → a farm / sauna scene (the brief shows an office).
+- **019** — three ads, a call, a message. → kv.ee-style ad screenshots; a small Mustamäe map.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget

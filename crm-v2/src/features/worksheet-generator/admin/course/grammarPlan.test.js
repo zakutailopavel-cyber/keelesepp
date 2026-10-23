@@ -18,7 +18,7 @@ describe('grammar plan of the levels (docs/METHODOLOGY_STANDARD.md §5)', () => 
   // the course's grammar gaps; when a lesson starts to teach an item, add it to the plan and remove the item here
   it('lists the known gaps', () => {
     expect(grammarGaps().map((g) => `${g.level} ${g.id}`)).toEqual([
-      'a2 short-illative', 'a2 pluperfect', 'a2 impersonal', 'a2 participles', 'a2 des-form',
+      'a2 pluperfect', 'a2 impersonal', 'a2 participles', 'a2 des-form',
        
       'c1 nuks', 'c1 indirect-questions',
     ]);

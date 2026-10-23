@@ -9,7 +9,7 @@ export const GRAMMAR_PLAN = {
     { id: 'genitive', label: 'omastav', lessons: ['a2-007'] },
     { id: 'partitive', label: 'osastav ja kogused', lessons: ['a2-026', 'a2-027'] },
     { id: 'plural-cases', label: '14 käänet ainsuses ja mitmuses', lessons: ['a2-006', 'a2-056', 'a2-061'], partial: true },
-    { id: 'short-illative', label: 'lühike sisseütlev (kooli, pähe)', lessons: [] },
+    { id: 'short-illative', label: 'lühike sisseütlev (kooli, pähe)', lessons: ['a2-017', 'a2-018'] },
     { id: 'agreement', label: 'omadussõna ühildumine', lessons: ['a2-031'], partial: true },
     { id: 'comparison', label: 'võrdlusaste ja ülivõrre', lessons: ['a2-033', 'a2-052'] },
     { id: 'numerals', label: 'järgarvud, arvsõnad käändes', lessons: ['a2-089'], partial: true },
