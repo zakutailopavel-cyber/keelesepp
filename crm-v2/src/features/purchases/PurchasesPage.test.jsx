@@ -59,6 +59,27 @@ describe('PurchasesPage', () => {
     expect(await screen.findByText(/Ostuarve 1576 salvestati/)).toBeInTheDocument();
   });
 
+  it('invoice lines are pasted from Excel: Konto | Kirjeldus | Summa | KM, „1 234,50” amounts', async () => {
+    const repository = repo();
+    renderPage(repository);
+    await screen.findByText('1575');
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa ostuarve' }));
+    fireEvent.change(screen.getByLabelText('Tarnija'), { target: { value: 'Senty Studio OÜ' } });
+    fireEvent.change(screen.getByLabelText('Arve nr'), { target: { value: '1580' } });
+    fireEvent.paste(screen.getByLabelText('Rida 1 konto'), { clipboardData: { getData: () => '4210\tRuumide rent mai\t1 234,50\t\n4330 Kontoritarbed\tPaber\t12,2\t2,20\n' } });
+    expect(screen.getByLabelText('Rida 1 summa')).toHaveValue('1234,50');
+    expect(screen.getByLabelText('Rida 2 konto')).toHaveValue('4330');
+    expect(screen.getByLabelText('Rida 2 KM')).toHaveValue('2,20');
+    expect(screen.queryByLabelText('Rida 3 konto')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta ostuarve' }));
+    await waitFor(() => expect(repository.saveInvoice).toHaveBeenCalledWith('', expect.objectContaining({
+      lines: [
+        { account: '4210', description: 'Ruumide rent mai', amountCents: 123450, vatCents: 0, vatDeductible: false },
+        { account: '4330', description: 'Paber', amountCents: 1220, vatCents: 220, vatDeductible: false },
+      ],
+    }), { paidNow: null }));
+  });
+
   it('„Tasutud kohe” sends the payment with the invoice; an unpaid invoice is paid from its row', async () => {
     const repository = repo();
     renderPage(repository);

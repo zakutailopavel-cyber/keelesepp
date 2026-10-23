@@ -317,10 +317,55 @@ function assertDeletable(entry) {
   if (entry.origin !== "manual") throw accountingError("Kustutada saab ainult käsitsi kannet. Automaatkannet parandatakse ridade muutmisega või dokumendi kaudu.", 409);
 }
 
+// „Asenda konto” (the accountant 2026-10-23: move the old sales entries 3060 → 3000 herself): the entry with the lines
+// of one account moved to another. `lineIndexes` limits it to those lines (an undo moves back exactly what was moved).
+// null when the entry has no such line (already moved — a repeated request changes nothing).
+function replaceAccountValues(entry, fromAccount, toAccount, lineIndexes = null) {
+  const from = String(fromAccount || "").trim();
+  const to = String(toAccount || "").trim();
+  if (!from || !to) throw accountingError("Sisesta mõlemad kontod.");
+  if (from === to) throw accountingError("Kontod on samad.");
+  const only = Array.isArray(lineIndexes) ? new Set(lineIndexes.map(Number)) : null;
+  const changed = [];
+  const lines = (entry.lines || []).map((l, index) => {
+    if (String(l.account) !== from || (only && !only.has(index))) return l;
+    changed.push(index);
+    return { ...l, account: to };
+  });
+  if (!changed.length) return null;
+  return { values: { date: entry.date, description: entry.description, documentRef: entry.documentRef, lines }, lineIndexes: changed };
+}
+
+// the ids of a batch in groups small enough for one Firestore transaction (each entry: an update and an audit record)
+const BATCH_CHUNK = 100;
+const BATCH_MAX = 2000;
+function chunked(list, size = BATCH_CHUNK) {
+  const out = [];
+  for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+  return out;
+}
+
+// the entries of a batch request: unique ids (or { entryId, lineIndexes } targets), at most BATCH_MAX
+function batchTargets({ entryIds, targets } = {}) {
+  const list = Array.isArray(targets) && targets.length
+    ? targets.map((t) => ({ entryId: String(t?.entryId || "").trim(), lineIndexes: Array.isArray(t?.lineIndexes) ? t.lineIndexes.map(Number).filter(Number.isInteger) : null }))
+    : (Array.isArray(entryIds) ? entryIds : []).map((id) => ({ entryId: String(id || "").trim(), lineIndexes: null }));
+  const seen = new Set();
+  const unique = list.filter((t) => t.entryId && !seen.has(t.entryId) && seen.add(t.entryId));
+  if (!unique.length) throw accountingError("Vali kanded.");
+  if (unique.length > BATCH_MAX) throw accountingError(`Korraga kuni ${BATCH_MAX} kannet.`);
+  return unique;
+}
+
 const entryNumber = (year, sequence) => `${year}-${String(sequence).padStart(4, "0")}`;
 
 module.exports = {
   ACCOUNTING_START_DATE,
+  BATCH_CHUNK,
+  BATCH_MAX,
+  batchTargets,
+  chunked,
+  replaceAccountValues,
   assertDeletable,
   correctedEntry,
   isLocked,

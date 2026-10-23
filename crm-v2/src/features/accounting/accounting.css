@@ -456,3 +456,238 @@
   gap: 6px;
   white-space: nowrap;
 }
+
+/* the päevaraamat as a spreadsheet (docs/ACCOUNTING.md „Päevaraamat kui tabel”) */
+.accounting-journal-grid .accounting-grid-wrap:focus {
+  outline: none;
+}
+
+.accounting-journal-grid .accounting-grid-wrap:focus-visible {
+  outline: 2px solid #12372a;
+  outline-offset: 2px;
+}
+
+.accounting-grid.is-sheet td.is-editable {
+  cursor: cell;
+}
+
+.accounting-grid td.is-selected {
+  background: #d9ebe2;
+}
+
+.accounting-grid td.is-active {
+  background: #fff;
+  box-shadow: inset 0 0 0 2px #12372a;
+}
+
+.accounting-grid td.is-bad {
+  color: #b42318;
+}
+
+.accounting-grid tbody.is-dirty td {
+  background: #fffdf2;
+}
+
+.accounting-grid tbody.is-dirty .accounting-grid__entry td {
+  background: #f3efd9;
+}
+
+.accounting-grid tbody.is-invalid td {
+  background: #fef3f2;
+}
+
+.accounting-grid tbody.is-invalid tr:first-child td {
+  border-top: 2px solid #b42318;
+}
+
+.accounting-grid tbody.is-invalid tr:last-child td {
+  border-bottom: 2px solid #b42318;
+}
+
+.accounting-grid .accounting-cell__editor {
+  background: #fff;
+  border: 0;
+  font: inherit;
+  margin: -3px -6px;
+  min-height: 24px;
+  outline: 2px solid #12372a;
+  outline-offset: -2px;
+  padding: 3px 6px;
+  width: calc(100% + 12px);
+}
+
+.accounting-grid td.num .accounting-cell__editor {
+  text-align: right;
+}
+
+.accounting-cell__account {
+  position: relative;
+  display: block;
+}
+
+.accounting-cell__account small {
+  color: #b42318;
+  font-size: 0.72rem;
+}
+
+.accounting-cell__rowtools {
+  display: none;
+  gap: 2px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.accounting-grid tr:hover .accounting-cell__rowtools,
+.accounting-grid tr.is-active-row .accounting-cell__rowtools {
+  display: inline-flex;
+}
+
+.accounting-cell__rowtools button {
+  background: #fff;
+  border: 1px solid #8c96a3;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  height: 16px;
+  line-height: 1;
+  padding: 0 3px;
+}
+
+.accounting-cell__description {
+  font-weight: 400;
+}
+
+.accounting-grid__pending {
+  color: #93370d;
+  font-weight: 400;
+}
+
+.accounting-grid__subtotal .is-off {
+  color: #b42318;
+}
+
+.accounting-grid__subtotal .link-button {
+  margin-left: 8px;
+}
+
+.accounting-grid__hint {
+  align-items: center;
+  color: #667085 !important;
+  cursor: help;
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 10px;
+}
+
+.accounting-sort {
+  align-items: center;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  gap: 3px;
+  padding: 0;
+}
+
+.accounting-grid th.num .accounting-sort {
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.accounting-grid-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.accounting-grid-tools__filters,
+.accounting-grid-tools__edit,
+.accounting-replace {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.accounting-grid-tools input,
+.accounting-replace input {
+  border: 1px solid #c7ced8;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 5px 8px;
+}
+
+.accounting-grid-tools__filters input {
+  width: 120px;
+}
+
+.accounting-grid-tools__reason {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 600;
+  gap: 6px;
+}
+
+.accounting-grid-tools__reason input {
+  width: 300px;
+}
+
+.accounting-replace {
+  background: #f8fafc;
+  border: 1px solid #c7ced8;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  padding: 8px;
+}
+
+.accounting-replace input {
+  width: 150px;
+}
+
+.accounting-replace .is-ok {
+  color: #067647;
+}
+
+.accounting-replace .is-off {
+  color: #b42318;
+}
+
+.accounting-grid-tools__message {
+  align-items: center;
+  color: #b42318;
+  display: flex;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+
+.accounting-grid-tools__message button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.accounting-grid-tools__readonly,
+.accounting-grid-tools__keys {
+  color: #667085;
+  font-size: 0.75rem;
+  margin: 6px 0 0;
+}
+
+@media (max-width: 760px) {
+  .accounting-grid-tools__filters input {
+    width: calc(50% - 6px);
+  }
+}
+
+.accounting-grid tr.is-active-row .accounting-cell__account,
+.accounting-grid tr:hover .accounting-cell__account {
+  padding-right: 40px;
+}

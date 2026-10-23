@@ -79,3 +79,8 @@ export function useAuth() {
 }
 
 export { AuthContext };
+
+// the signed-in user when there is an AuthProvider, otherwise null (a page rendered alone, e.g. in a test)
+export function useOptionalAuth() {
+  return useContext(AuthContext);
+}

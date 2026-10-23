@@ -1,3 +1,44 @@
+## 2026-10-23 · agent/accounting-excel-mode — päevaraamat like Excel (cells, keyboard, paste, „Asenda konto”, undo)
+
+- Base: `main` 7271b5f (2026-10-23). Draft PR from `agent/accounting-excel-mode`. Accounting only.
+- Asked (the accountant via the owner): „функциональность и свобода действий как в Excel” in the bookkeeping, keeping
+  the legal guarantees (history / audit, period lock, D = K, immutable numbers, no client writes).
+- Built (docs/ACCOUNTING.md „Päevaraamat kui tabel”):
+  - crm-v2/src/features/accounting/JournalGrid.jsx (new) + journalGrid.js (new, pure): the päevaraamat grid is the
+    editor — click / Enter / F2 / typing edits a cell (Konto with chart autocomplete, Kirjeldus, Deebet, Kreedit; a
+    manual entry also Kuupäev and Dokument), arrows / Tab / Enter move, Esc cancels, Insert / Ctrl+Shift++ / Ctrl+−
+    and „+ / ×” insert and delete lines; an entry is saved through `/accounting/entries/update` when the cursor leaves
+    it and D = K, otherwise it stays red with the difference; „Paranduse põhjus” once per session (sessionStorage);
+    Ctrl/Cmd+Z undoes the last saved change through the same route; filters Konto / Tekst / Dokument / Summa; header
+    click sorts (Excel export follows); Shift+click selection, Ctrl/Cmd+C as TSV; Ctrl/Cmd+V from Excel into an entry;
+    read-only without the admin role, on a phone and for locked / storno entries. The „Muuda” mode is gone;
+    automatic entries show „ei kustutata” with a tooltip on how to fix them.
+  - Paste from Excel into a new manual entry (JournalDraft) and into ostuarve lines (PurchaseInvoiceDraft);
+    `parseEuro` reads „1 234,50”, „1.234,50”, „1,234.50”, no-break spaces and „€”.
+  - „Asenda konto”: preview (entries, lines, D / K sum, skipped) → new route `/accounting/entries/replace-account`
+    (functions/index.js `replaceAccountInEntries`, accounting-core `replaceAccountValues`, `batchTargets`, `chunked`):
+    the whole request is refused if one entry is locked / closed month / storno; then the same correctedEntry logic per
+    entry in transactions of 100, one history item and one `financialAudit/<requestId>_<entryId>` per entry,
+    idempotent by requestId, max 2000 entries; undo with `targets` (exact line indexes). `correctionPatch` is shared
+    with `/accounting/entries/update`.
+  - crm-v2/src/app/AuthContext.jsx: `useOptionalAuth()` (the page decides read-only without crashing in tests);
+    services: `financeApi.replaceAccountingAccount`, `accountingService.replaceAccount`.
+- Checks: crm-v2 whole vitest 343 files (342 passed, 1 skipped), 2386 passed, 3 skipped, 0 failed (new: journalGrid.test.js 11,
+  JournalGrid.test.jsx 10, PurchasesPage paste 1; AccountingPage tests adapted); eslint 0 errors (18 old warnings
+  elsewhere); `npm run build` ok; functions `npm test` 350/350 (2 new core tests); emulator
+  (`firebase emulators:exec --only auth,firestore,functions --project demo-keelesepp-finance`, JDK 21)
+  finance-emulator.integration.js + security-finance-emulator.integration.js 45/45 (new: replace-account — reason
+  required, locked entry refuses all, history + audit, idempotent, undo by targets, closed / unknown account 400,
+  teacher 403). Visual check on a local mock page in the Browser pane (desktop edit, reason, save, „Asenda konto”
+  preview + apply, Cmd+Z, phone read-only); mock not committed.
+- Deploy needed (owner): functions (financeApi: new route; the update route refactored). No rules change. Nothing was
+  deployed; no production data was read or written; the 3060 → 3000 move was NOT run.
+- Limits: the save happens when the cursor leaves the entry or the grid — closing the tab with a red / unsaved entry
+  loses those unsaved edits (the browser does not warn); undo is per session (the stack is lost on reload, the history
+  stays); „Asenda konto” works on the entries in view (period, kande kood, filters) and only on open periods.
+- Next safe step: deploy functions, then the accountant runs „Asenda konto” 3060 → 3000 for 2026 herself (steps in
+  docs/ACCOUNTING.md „How the accountant moves the old sales entries”).
+
 ## 2026-10-23 · agent/legacy-paid-invoice — an old invoice marked „Makstud” is not a debt
 
 - Base: `main` 5e6bb54 (2026-10-23).

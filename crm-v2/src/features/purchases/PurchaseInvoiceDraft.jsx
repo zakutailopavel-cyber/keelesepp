@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { amount } from '../accounting/accountingReports.js';
+import { pastedPurchaseLines } from '../accounting/journalGrid.js';
 import { PAYMENT_METHODS, blankPurchaseLine, draftProblem, draftTotals } from './purchases.js';
 
 // A purchase invoice typed into the ostuarved grid row by row, like Excel (the accountant 2026-10-23): the first row
@@ -28,10 +29,19 @@ export default function PurchaseInvoiceDraft({ draft, setDraft, lines, setLines,
     setDraft({ ...draft, supplierName: name, supplierId: match?.id || '' });
     if (match?.defaultAccount) setLines(lines.map((l) => (l.account ? l : { ...l, account: match.defaultAccount })));
   };
+  // Ctrl/Cmd+V of rows copied from Excel: Konto | Kirjeldus | Summa (with VAT) | KM — they replace the empty lines
+  const onPaste = (event) => {
+    const text = event.clipboardData?.getData('text/plain') || '';
+    if (!/[\t\n]/.test(text.trim())) return;
+    const pasted = pastedPurchaseLines(text);
+    if (!pasted.length) return;
+    event.preventDefault();
+    setLines([...lines.filter((l) => l.description || l.amount || l.vat), ...pasted]);
+  };
   const totals = draftTotals(lines);
   const problem = draftProblem(draft, lines, accounts);
 
-  return <tbody className="accounting-draft">
+  return <tbody className="accounting-draft" onPaste={onPaste}>
     <datalist id="purchase-supplier-list">{suppliers.filter((s) => s.active !== false).map((s) => <option key={s.id} value={s.name}>{s.regCode}</option>)}</datalist>
     <tr className="accounting-grid__entry">
       <td><input ref={supplierRef} aria-label="Tarnija" list="purchase-supplier-list" value={draft.supplierName} placeholder="tarnija" onChange={(event) => pickSupplier(event.target.value)} />

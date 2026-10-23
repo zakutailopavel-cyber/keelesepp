@@ -1,12 +1,16 @@
-import { ArrowLeft, BookOpen, Download, FilePlus2, History, Lock, Pencil, RefreshCw, Scale, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Download, FilePlus2, Lock, RefreshCw, Scale } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountingService } from '../../services/firebase/index.js';
 import { downloadWorkbook, journalWorkbook, statementsWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
-import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, HISTORY_ACTIONS, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, editableLines, entryActions, euro, incomeStatement, journalReport, ledger, linesText, parseEuro, trialBalance } from './accountingReports.js';
+import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import { useOptionalAuth } from '../../app/AuthContext.jsx';
+import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import JournalDraft from './JournalDraft.jsx';
+import JournalGrid from './JournalGrid.jsx';
+import { SORT_LABELS, sortEntries } from './journalGrid.js';
 import './accounting.css';
 
 // Raamatupidamine (owner 2026-10-22, docs/ACCOUNTING.md): päevaraamat, pearaamat, käibeandmik, bilanss and
@@ -22,6 +26,20 @@ const TABS = [
 const today = () => new Date().toISOString().slice(0, 10);
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
+
+// the päevaraamat is edited like a spreadsheet only on a wide screen; on a phone it is read-only
+function useNarrow(query = '(max-width: 760px)') {
+  const get = () => Boolean(globalThis.matchMedia?.(query).matches);
+  const [narrow, setNarrow] = useState(get);
+  useEffect(() => {
+    const media = globalThis.matchMedia?.(query);
+    if (!media) return undefined;
+    const onChange = () => setNarrow(media.matches);
+    media.addEventListener?.('change', onChange);
+    return () => media.removeEventListener?.('change', onChange);
+  }, [query]);
+  return narrow;
+}
 
 function LinesEditor({ lines, setLines, accounts }) {
   const totals = lines.reduce((t, l) => ({ debit: t.debit + (parseEuro(l.debit) || 0), credit: t.credit + (parseEuro(l.credit) || 0) }), { debit: 0, credit: 0 });
@@ -48,14 +66,17 @@ function LinesEditor({ lines, setLines, accounts }) {
 const toLines = (lines) => lines.map((l) => ({ account: l.account, debitCents: parseEuro(l.debit) || 0, creditCents: parseEuro(l.credit) || 0, note: l.note })).filter((l) => l.account && (l.debitCents || l.creditCents));
 const badAmount = (lines) => lines.some((l) => Number.isNaN(parseEuro(l.debit)) || Number.isNaN(parseEuro(l.credit)));
 
-export default function AccountingPage({ repository = accountingService }) {
+export default function AccountingPage({ repository = accountingService, canEdit }) {
   const state = useAsyncData(() => repository.load(), [repository]);
+  const auth = useOptionalAuth();
+  const narrow = useNarrow();
+  // only an admin changes the books (financeApi checks again); the others and a phone see a read-only grid
+  const readOnly = narrow || !(canEdit ?? (auth?.user ? hasAnyRole(auth.user.roles, [ROLES.ADMIN]) : true));
   const [tab, setTab] = useState('journal');
   const [period, setPeriod] = useState({ from: `${today().slice(0, 4)}-01-01`, to: today() });
   const [ledgerAccount, setLedgerAccount] = useState('1010');
-  const [query, setQuery] = useState('');
   const [journalCode, setJournalCode] = useState('');
-  const [journalSort, setJournalSort] = useState('code');
+  const [journalSort, setJournalSort] = useState({ key: 'code', dir: 'asc' });
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
@@ -64,9 +85,7 @@ export default function AccountingPage({ repository = accountingService }) {
   const [lines, setLines] = useState([blankLine(), blankLine()]);
   const [draft, setDraft] = useState(null);
   const [draftLines, setDraftLines] = useState([]);
-  const [editing, setEditing] = useState(null);
   const [showDeleted, setShowDeleted] = useState(false);
-  const [openHistory, setOpenHistory] = useState(() => new Set());
   const synced = useRef(false);
 
   const allEntries = useMemo(() => state.data?.entries || [], [state.data]);
@@ -74,14 +93,9 @@ export default function AccountingPage({ repository = accountingService }) {
   const entries = useMemo(() => allEntries.filter((e) => !e.deleted), [allEntries]);
   const accounts = useMemo(() => state.data?.accounts || [], [state.data]);
   const lockedThrough = state.data?.lockedThrough || '';
-  const journalFull = useMemo(() => journalReport(allEntries, accounts, { ...period, code: journalCode, sort: journalSort, showDeleted }), [allEntries, accounts, period, journalCode, journalSort, showDeleted]);
-  const journal = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase('et');
-    if (!needle) return journalFull;
-    const list = journalFull.entries.filter((e) => `${e.label} ${e.number} ${e.description} ${e.documentRef} ${e.lines.map((l) => l.account).join(' ')}`.toLocaleLowerCase('et').includes(needle));
-    const live = list.filter((e) => !e.deleted);
-    return { ...journalFull, entries: list, entryCount: live.length, lineCount: live.reduce((n, e) => n + e.lines.length, 0), debitCents: live.reduce((n, e) => n + e.debitCents, 0), creditCents: live.reduce((n, e) => n + e.creditCents, 0) };
-  }, [journalFull, query]);
+  const journalFull = useMemo(() => journalReport(allEntries, accounts, { ...period, code: journalCode, sort: journalSort.key === 'date' ? 'date' : 'code', showDeleted }), [allEntries, accounts, period, journalCode, journalSort, showDeleted]);
+  // a header click sorts by that column; a second click turns the order
+  const sortBy = (key) => setJournalSort((current) => ({ key, dir: current.key === key && current.dir === 'asc' ? 'desc' : 'asc' }));
   const trial = useMemo(() => trialBalance(entries, accounts, period), [entries, accounts, period]);
   const accountLedger = useMemo(() => ledger(entries, ledgerAccount, period, accounts), [entries, ledgerAccount, period, accounts]);
   const statements = useMemo(() => ({ sheet: balanceSheet(entries, accounts, { to: period.to }), result: incomeStatement(entries, accounts, period) }), [entries, accounts, period]);
@@ -108,27 +122,14 @@ export default function AccountingPage({ repository = accountingService }) {
   }, [state.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // a manual entry is typed straight into the päevaraamat grid (JournalDraft)
-  const openEntry = () => { setEditing(null); setTab('journal'); setDraft({ date: today(), description: '', documentRef: '' }); setDraftLines([blankEntryLine(), blankEntryLine()]); setError(''); };
+  const openEntry = () => { setTab('journal'); setDraft({ date: today(), description: '', documentRef: '' }); setDraftLines([blankEntryLine(), blankEntryLine()]); setError(''); };
   const cancelDraft = () => { if (!busy) { setDraft(null); setError(''); } };
   const openOpening = () => { setDialog('opening'); setLines([blankLine(), blankLine(), blankLine()]); setError(''); };
   const openStorno = (entry) => { setDialog('storno'); setForm({ entry, date: today(), reason: '' }); setError(''); };
   const openAccount = (account) => { setDialog('account'); setForm(account ? { ...account, existing: true } : { code: '', name: '', type: 'expense', reportLine: '', active: true }); setError(''); };
   const close = () => { if (!busy) { setDialog(null); setError(''); } };
-  // correction while the period is open (docs/ACCOUNTING.md „Parandamine”): the entry's rows become editable in place
-  const openEdit = (row) => {
-    const entry = row.source;
-    setDraft(null); setError('');
-    setEditing({ id: entry.id, label: `${row.label} (parandus)`, origin: entry.origin, draft: { date: entry.date, description: entry.description || '', documentRef: entry.documentRef || '' }, lines: editableLines(entry.lines), reason: '' });
-  };
-  const cancelEdit = () => { if (!busy) { setEditing(null); setError(''); } };
-  const saveEdit = async () => {
-    if (badAmount(editing.lines)) { setError('Summa peab olema kujul 123,45.'); return; }
-    const ok = await run('save', () => repository.updateEntry(editing.id, { ...editing.draft, lines: toLines(editing.lines) }, editing.reason.trim()), 'Parandus salvestati. Enne ja pärast on kande ajaloos.');
-    if (ok) setEditing(null);
-  };
   const openDelete = (row) => { setDialog('delete'); setForm({ entry: row, reason: '' }); setError(''); };
   const openLock = () => { setDialog('lock'); setForm({ lockedThrough: lockedThrough || `${today().slice(0, 7)}-01`, reason: '' }); setError(''); };
-  const toggleHistory = (id) => setOpenHistory((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
   const saveDraft = async () => {
     if (badAmount(draftLines)) { setError('Summa peab olema kujul 123,45.'); return; }
@@ -164,9 +165,13 @@ export default function AccountingPage({ repository = accountingService }) {
     const stamp = `${period.from || 'algus'}_${period.to || today()}`;
     if (tab === 'trial') downloadWorkbook(trialBalanceWorkbook(trial, { company: COMPANY, period }), `kaibeandmik_${stamp}.xls`);
     else if (tab === 'statements') downloadWorkbook(statementsWorkbook(statements, { company: COMPANY_LABEL, period }), `bilanss_kasumiaruanne_${stamp}.xls`);
-    else downloadWorkbook(journalWorkbook(showDeleted ? journalReport(allEntries, accounts, { ...period, code: journalCode, sort: journalSort }) : journalFull, { company: COMPANY }), `paevaraamat_${stamp}${journalCode ? `_${journalCode}` : ''}.xls`);
+    else {
+      const report = showDeleted ? journalReport(allEntries, accounts, { ...period, code: journalCode }) : journalFull;
+      downloadWorkbook(journalWorkbook({ ...report, entries: sortEntries(report.entries, journalSort), filters: { ...report.filters, sortLabel: sortLabel } }, { company: COMPANY }), `paevaraamat_${stamp}${journalCode ? `_${journalCode}` : ''}.xls`);
+    }
   };
 
+  const sortLabel = `${SORT_LABELS[journalSort.key] || 'Kande kood'}${journalSort.dir === 'desc' ? ' (kahanev)' : ''}`;
   if (state.loading && !state.data) return <LoadingState label="Laen raamatupidamist…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
 
@@ -182,10 +187,10 @@ export default function AccountingPage({ repository = accountingService }) {
         <Button variant="secondary" onClick={openLock}><Lock size={17} /> {lockedThrough ? `Suletud kuni ${dmy(lockedThrough)}` : 'Sulge periood'}</Button>
         <Link className="button button--secondary" to="/finance/ostuarved">Ostuarved</Link>
         <Link className="button button--secondary" to="/finance/inf3">INF 3</Link>
-        <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button>
+        {!readOnly ? <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button> : null}
       </>} />
     {notice ? <div className="success-notice" role="status">{notice}<button aria-label="Sulge teade" onClick={() => setNotice('')}>×</button></div> : null}
-    {error && !dialog && !draft && !editing ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
+    {error && !dialog && !draft ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
     {!trial.balanced ? <div className="expense-error" role="alert">Käibeandmik ei ole tasakaalus — kontrolli kandeid.</div> : null}
 
     <Card className="accounting-toolbar">
@@ -202,55 +207,19 @@ export default function AccountingPage({ repository = accountingService }) {
     {tab === 'journal' ? <Card className="accounting-card">
       <div className="accounting-card__search accounting-journal-filters">
         <Select id="journal-code" label="Kande kood" value={journalCode} onChange={(event) => setJournalCode(event.target.value)}><option value="">Kõik</option>{ENTRY_CODES.map(([code, name]) => <option key={code} value={code}>{code} {name}</option>)}</Select>
-        <Select id="journal-sort" label="Järjestus" value={journalSort} onChange={(event) => setJournalSort(event.target.value)}><option value="code">Kande kood</option><option value="date">Kuupäev</option></Select>
-        <input aria-label="Otsi kannetest" placeholder="Otsi numbri, sisu, dokumendi või konto järgi…" value={query} onChange={(event) => setQuery(event.target.value)} />
+        <Select id="journal-sort" label="Järjestus" value={journalSort.key} onChange={(event) => setJournalSort({ key: event.target.value, dir: 'asc' })}>{Object.entries(SORT_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</Select>
         {journalFull.deletedCount ? <label className="accounting-check"><input type="checkbox" checked={showDeleted} onChange={(event) => setShowDeleted(event.target.checked)} /> Näita kustutatud ({journalFull.deletedCount})</label> : null}
       </div>
-      {journal.entries.length || draft ? <div className="accounting-sheet">
+      {journalFull.entries.length || draft ? <div className="accounting-sheet">
         <h2>Päevaraamat</h2>
         <dl className="accounting-sheet__filters">
           <dt>Periood</dt><dd>{dmy(period.from) || '…'} kuni {dmy(period.to) || '…'}</dd>
-          <dt>Kande kood</dt><dd>{journalCode ? `${journalCode} ${journal.filters.codeName}` : 'Kõik'}</dd>
-          <dt>Järjestus</dt><dd>{journal.filters.sortLabel}</dd>
+          <dt>Kande kood</dt><dd>{journalCode ? `${journalCode} ${journalFull.filters.codeName}` : 'Kõik'}</dd>
+          <dt>Järjestus</dt><dd>{sortLabel}</dd>
         </dl>
-        <div className="accounting-grid-wrap"><table className="accounting-grid accounting-journal">
-          <colgroup><col className="c-account" /><col className="c-date" /><col className="c-doc" /><col /><col className="c-num" /><col className="c-num" /></colgroup>
-          <thead>
-            <tr><th>Kanne</th><th>Kuupäev</th><th>Dokument</th><th /><th /><th /></tr>
-            <tr><th>Konto</th><th>Kuupäev</th><th>Dokument</th><th>Kirjeldus</th><th className="num">Deebet</th><th className="num">Kreedit</th></tr>
-          </thead>
-          {draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null}
-          {journal.entries.map((entry) => {
-            if (editing?.id === entry.id) {
-              return <JournalDraft key={entry.id} label={editing.label} fixedHeader={editing.origin !== 'manual'} draft={editing.draft} setDraft={(next) => setEditing((current) => ({ ...current, draft: next }))} lines={editing.lines} setLines={(next) => setEditing((current) => ({ ...current, lines: next }))}
-                reason={editing.reason} setReason={(next) => setEditing((current) => ({ ...current, reason: next }))} reasonRequired={editing.origin !== 'manual'} saveLabel="Salvesta parandus"
-                accounts={accounts} busy={busy === 'save'} error={error} onSave={saveEdit} onCancel={cancelEdit} />;
-            }
-            const can = entryActions(entry, lockedThrough);
-            const historyOpen = openHistory.has(entry.id);
-            return <tbody key={entry.id} className={entry.reversed || entry.deleted ? 'is-reversed' : ''}>
-              <tr className="accounting-grid__entry"><td title={`CRM kanne ${entry.number}`}>{entry.label}</td><td>{dmy(entry.date)}</td><td>{entry.documentRef}</td><td>{entry.deleted ? <span className="accounting-tag">kustutatud</span> : null}{entry.corrected ? <span className="accounting-tag">parandatud</span> : null}</td><td colSpan="2" className="accounting-grid__actions">
-                {entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}
-                {can.locked && !entry.deleted ? <span title={`Periood suletud kuni ${dmy(lockedThrough)}`}><Lock size={12} /></span> : null}
-                {can.edit && !draft && !editing ? <button type="button" className="link-button" onClick={() => openEdit(entry)}><Pencil size={13} /> Muuda</button> : null}
-                {can.remove && !draft && !editing ? <button type="button" className="link-button" onClick={() => openDelete(entry)}><Trash2 size={13} /> Kustuta</button> : null}
-                {can.storno ? <button type="button" className="link-button" onClick={() => openStorno(entry)}><Undo2 size={13} /> Storno</button> : null}
-                {entry.history.length ? <button type="button" className="link-button" aria-expanded={historyOpen} onClick={() => toggleHistory(entry.id)}><History size={13} /> Ajalugu ({entry.history.length})</button> : null}
-              </td></tr>
-              {entry.lines.map((l, i) => <tr key={i}><td>{l.account} {l.name}</td><td>{dmy(entry.date)}</td><td>{l.documentRef}</td><td>{l.description}</td><td className="num">{amount(l.debitCents)}</td><td className="num">{amount(l.creditCents)}</td></tr>)}
-              <tr className="accounting-grid__subtotal"><td colSpan="4" /><td className="num">{amount(entry.debitCents)}</td><td className="num">{amount(entry.creditCents)}</td></tr>
-              {historyOpen ? entry.history.map((h, i) => <tr key={`h${i}`} className="accounting-grid__history"><td colSpan="6">
-                <strong>{HISTORY_ACTIONS[h.action] || h.action}</strong> {h.at ? new Date(h.at).toLocaleString('et-EE') : ''} · {h.by?.name || h.by?.email || '—'}{h.reason ? ` · „${h.reason}”` : ''}
-                {h.before ? <div>enne: {dmy(h.before.date)} {h.before.documentRef} · {h.before.description} · {linesText(h.before.lines)}</div> : null}
-                {h.after ? <div>pärast: {dmy(h.after.date)} {h.after.documentRef} · {h.after.description} · {linesText(h.after.lines)}</div> : null}
-              </td></tr>) : null}
-            </tbody>;
-          })}
-          <tfoot>
-            <tr><td colSpan="4">Kokku {journal.entryCount} {journal.entryCount === 1 ? 'kanne' : 'kannet'}</td><td className="num">{amount(journal.debitCents)}</td><td className="num">{amount(journal.creditCents)}</td></tr>
-            <tr><td colSpan="6">{journal.lineCount} {journal.lineCount === 1 ? 'kirje' : 'kirjet'}</td></tr>
-          </tfoot>
-        </table></div>
+        <JournalGrid entries={journalFull.entries} accounts={accounts} lockedThrough={lockedThrough} readOnly={readOnly} repository={repository}
+          onChanged={state.reload} onNotice={setNotice} sort={journalSort} onSort={sortBy} onDelete={openDelete} onStorno={openStorno}
+          draftSlot={draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null} />
         <p className="accounting-sheet__footer"><span>{COMPANY.name}</span><span>Rg-kood {COMPANY.regCode}</span></p>
       </div> : <EmptyState title="Perioodis kandeid ei ole" description="Vali teine periood või kande kood või vajuta „Uuenda kanded”." />}
     </Card> : null}

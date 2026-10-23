@@ -3950,6 +3950,58 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal((await financeRequest(teacherToken, "/suppliers", { supplier: { name: "X" }, requestId: "supplier_create_0099" })).status, 403);
 });
 
+test("„Asenda konto” moves an account in many entries with history and audit, refuses a locked period, is idempotent and undoable (the accountant 2026-10-23)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const make = async (date, n) => {
+    const created = await financeRequest(adminToken, "/accounting/entries", { entry: { date, description: `Müük ${n}`, documentRef: `M-${n}`, lines: [{ account: "1010", debitCents: 1000 * n }, { account: "3060", creditCents: 1000 * n }] }, requestId: `acc_replace_make_000${n}` });
+    assert.equal(created.status, 201, JSON.stringify(created.body));
+    return created.body.entry.id;
+  };
+  const january = await make("2028-01-15", 1);
+  const feb1 = await make("2028-02-01", 2);
+  const feb2 = await make("2028-02-02", 3);
+  const accountsOf = async (id) => (await db.collection("accountingEntries").doc(id).get()).data().lines.map((l) => l.account);
+
+  const noReason = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "3000", entryIds: [feb1], requestId: "acc_replace_0000" });
+  assert.equal(noReason.status, 400, JSON.stringify(noReason.body));
+  assert.equal((await financeRequest(adminToken, "/accounting/lock", { lockedThrough: "2028-01-31" })).status, 200);
+  // one entry in the locked period refuses the whole request: nothing changes
+  const refused = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "3000", entryIds: [january, feb1, feb2], reason: "müügitulu 3000", requestId: "acc_replace_0001" });
+  assert.equal(refused.status, 409, JSON.stringify(refused.body));
+  assert.deepEqual(await accountsOf(feb1), ["1010", "3060"]);
+
+  const replaced = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "3000", entryIds: [feb1, feb2], reason: "müügitulu 3000", requestId: "acc_replace_0002" });
+  assert.equal(replaced.status, 201, JSON.stringify(replaced.body));
+  assert.equal(replaced.body.changed.length, 2);
+  assert.deepEqual(replaced.body.changed[0].lineIndexes, [1]);
+  const moved = (await db.collection("accountingEntries").doc(feb1).get()).data();
+  assert.deepEqual(moved.lines.map((l) => l.account), ["1010", "3000"]);
+  assert.equal(moved.history.at(-1).reason, "müügitulu 3000");
+  assert.equal(moved.history.at(-1).before.lines[1].account, "3060");
+  const audit = (await db.collection("financialAudit").doc(`acc_replace_0002_${feb1}`).get()).data();
+  assert.equal(audit.batch, "replace-account");
+  assert.equal(audit.fromAccount, "3060");
+  // the same request again changes nothing
+  const again = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "3000", entryIds: [feb1, feb2], reason: "müügitulu 3000", requestId: "acc_replace_0002" });
+  assert.equal(again.status, 200, JSON.stringify(again.body));
+  assert.equal(again.body.idempotent, true);
+  assert.equal((await db.collection("accountingEntries").doc(feb1).get()).data().history.length, moved.history.length);
+  // undo (Ctrl+Z): exactly the moved lines go back, recorded in the history
+  const undo = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3000", toAccount: "3060", targets: replaced.body.changed.map((c) => ({ entryId: c.entryId, lineIndexes: c.lineIndexes })), reason: "Tagasivõtmine (Ctrl+Z)", requestId: "acc_replace_0003" });
+  assert.equal(undo.status, 201, JSON.stringify(undo.body));
+  assert.deepEqual(await accountsOf(feb2), ["1010", "3060"]);
+  assert.equal((await db.collection("accountingEntries").doc(feb2).get()).data().history.length, 2);
+  const closed = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "9999", entryIds: [feb1], reason: "x", requestId: "acc_replace_0004" });
+  assert.equal(closed.status, 400, JSON.stringify(closed.body));
+  assert.equal((await financeRequest(adminToken, "/accounting/lock", { lockedThrough: "", reason: "emulaatori test" })).status, 200);
+  const teacherToken = await createUserToken("replace-teacher@example.com");
+  await db.collection("users").doc(tokenUid(teacherToken)).set({ role: "teacher", displayName: "Replace Teacher" });
+  assert.equal((await financeRequest(teacherToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "3000", entryIds: [feb1], reason: "x", requestId: "acc_replace_0005" })).status, 403);
+});
+
 test("a whole invoice is credited, or credited and reissued with a corrected amount or payer (owner 2026-10-23)", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
