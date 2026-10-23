@@ -299,6 +299,60 @@ goal: a mediated agreement meeting and an apology / agreement letter.
 - **048** — reported speech after the class-chat video. → a class-chat screenshot.
 - **049** — the house meeting with a mediator. → a house-meeting picture; a printed agreement form.
 
+## B2 module 11 „Raha ja tarbimine” (b1b2-051…054)
+
+Jaan plans „Kohvik Mets” by Nõmme market; goal: present the café budget at the bank and write a formal complaint.
+- **051** — total vs partial subject / object; three offers for an espresso machine. → a real price table; a budget
+  chart.
+- **052** — participles (kehtiv, makstud, tagastatav); advertising tricks and a subscription trap. → an ad / app
+  screenshot.
+- **053** — impersonal in terms, conditional in complaints; consumer rights. → a checkout-page mock-up with the annual
+  plan pre-selected.
+- **054** — bank meeting and complaint. → a bank form or budget spreadsheet.
+- Legal facts (14 / 15 days, 2-year claim period) must be checked against current Estonian law.
+- Minor names renamed to avoid clashes: Joel, Sten, Annika, Hanna, Priidu.
+
+## B2 module 13 „Keskkond ja vastutustundlik elu” (b1b2-061…064)
+
+Tuul Logistika's first environmental overview, a scare post in the village chat, the board's 60 000 €; goal: the public
+hearing on a wind farm near Viktor's farm and an opinion text for the parish paper.
+- **061** — change of state + translative; the environmental overview. → a real-looking data sheet.
+- **062** — cause / effect, impersonal and quotative in news; facts vs claims. → a picture of the village chat post.
+- **063** — nominalisation with comparison; choosing solutions. → a cost / criteria table picture; check van prices.
+- **064** — kuigi / siiski; the hearing, joint proposal, opinion text. → a hearing picture; a model text in the key.
+
+## B2 module 15 „Meedia, info ja kriitiline lugemine” (b1b2-071…074)
+
+A Facebook rumour that the Kase kool kitchen closes, a misleading headline („koondamine”); goal: a fact-check at the
+parents' evening and a correction request to the news site.
+- **071** — certainty and hedging, quotative; a press release questioned on a video call. → a mock Facebook thread.
+- **072** — reported speech; a radio call-in about a column. → a new picture brief (school-kitchen column); real audio.
+- **073** — nominalisation in headlines, impersonal in news; a public debate. → a news-page layout; the article is
+  486 words — extend to 500–600 for the exact Harno size.
+- **074** — the fact-check with a six-source dossier. → the dossier as screenshot cards; a lecture recording.
+
+## B2 module 14 „Ühiskond ja avalikud teenused” (b1b2-066…069)
+
+Viktor's village doctor's office closed, Olena waits for a language course, a dangerous school street; goal: present a
+solution to the Nõmme district commission and write a formal application.
+- **066** — impersonal (suleti, on kehtestatud); social transport. → a real parish notice / transport form.
+- **067** — government of official verbs (taotlema mida, kaebama kelle peale); participatory budget. → photos of
+  real projects.
+- **068** — participles and non-finite clauses in house rules (Anna's block in Saue). → a scan of real house rules.
+- **069** — the commission presentation. → a map of the school street; teacher check of the facts (30-day address
+  registration, 1220, parish fees).
+
+## B2 module 12 „Tehnoloogia ja sotsiaalmeedia” (b1b2-056…059)
+
+Oskar's first social-media account, the AI planning tool „TarkPlaan” and data rules, Viktor's phishing call, a faked
+screenshot in the class chat; goal: a talk at the parents' evening and a ~180-word summary of the rules.
+- **056** — screen time in three families. → a screen-time screenshot; real radio audio.
+- **057** — nominalisation -mine / -ja (andmete kogumine, kasutaja) with the data rules; a lecture with gap fill. →
+  slides for the lecture; the data rules as a document.
+- **058** — impersonal; phishing call and a report to the police web constable. → a real phishing-call recording; a
+  phone-screen picture with a Smart-ID request.
+- **059** — the parents' evening, phone ban or training (decision). → pictures of the three sources; the survey chart.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget

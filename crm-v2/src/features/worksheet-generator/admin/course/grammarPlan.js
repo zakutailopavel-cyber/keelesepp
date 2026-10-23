@@ -66,7 +66,7 @@ export const GRAMMAR_PLAN = {
     { id: 'complex-sentences', label: 'liitlaused ja sõnajärg', lessons: ['b1b2-062', 'b1b2-076', 'b1b2-077'] },
     { id: 'nonfinite', label: 'kesksõnad, des-vorm, lauselühendid', lessons: ['b1b2-078'], partial: true },
     { id: 'moods', label: 'vorm funktsiooni järgi (tingiv, umbisikuline, kaudne)', lessons: ['b1b2-079'] },
-    { id: 'nominalisation', label: '-mine / -ja nimisõnad', lessons: [] },
+    { id: 'nominalisation', label: '-mine / -ja nimisõnad', lessons: ['b1b2-057', 'b1b2-059'] },
     { id: 'change', label: 'hakkama, muutuma, jääma + saav kääne', lessons: ['b1b2-041', 'b1b2-044'] },
     { id: 'essive', label: 'olev kääne', lessons: ['b1b2-026', 'b1b2-028'] },
     { id: 'subject', label: 'täis- ja osaalus', lessons: ['b1b2-006', 'b1b2-008'] },

@@ -59,3 +59,5 @@ Keep facts consistent; add new facts here when a module adds them.
   wants to be a translator); magazine „Linnaelu” (editor **Tuuli Rand**); booking-agent **Laine**; nutritionist **Piia
   Remmel**; Mia vegetarian from September; Kase kool kitchen: no nuts, plant-based Thursday; Vahtra 5 neighbour
   **Valdur Ploom** (71) and **Kai Lill**; mediator **Helve Sild**; psychologist **Elo Vällik**.
+- Minor characters with a full name (first name + surname) are separate people even when a first name repeats (B2
+  module 13: Tarmo Kangur, Kaspar Mägi, Peeter Uibo …). Main and recurring characters keep unique first names.
