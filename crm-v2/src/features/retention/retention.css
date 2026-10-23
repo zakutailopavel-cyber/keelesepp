@@ -13,3 +13,12 @@
 .retention-renewals ul { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .retention-renewals li { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; }
 .retention-renewals li span { color: #667085; }
+/* „Märkimata tunnid” (calendar/UnmarkedLessonsCard) */
+.unmarked-card h2 { display: flex; align-items: center; gap: 6px; }
+.unmarked-list { display: grid; gap: 4px; margin: 8px 0 0; padding: 0; list-style: none; }
+.unmarked-list li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; }
+.unmarked-list li:hover { background: #f9fafb; }
+.unmarked-list strong { display: block; font-size: .92rem; }
+.unmarked-list small { display: block; color: #667085; font-size: .8rem; }
+.unmarked-list a { font-size: .85rem; white-space: nowrap; }
+.unmarked-list .button { min-height: 32px; padding: 0 12px; font-size: .82rem; }
