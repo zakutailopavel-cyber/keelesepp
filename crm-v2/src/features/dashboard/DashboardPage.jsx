@@ -127,7 +127,7 @@ export default function DashboardPage({
   ];
 
   return (
-    <div className="page-content">
+    <div className="page-content dashboard-page">
       <section className="dashboard-welcome">
         <div>
           <span className="eyebrow">{todayLabel()}</span>
