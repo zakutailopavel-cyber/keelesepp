@@ -51,7 +51,7 @@ export const LESSONS = {
         ['Sofia Mets', ['27 aastat vana', 'elas kaheksa aastat Saksamaal', 'elab nüüd Mustamäel', 'räägib saksa, inglise ja vene keelt', 'otsib tööd'], ['Sofia [on] 27 aastat vana.', 'Ta [elab] nüüd Mustamäel.', 'Ta räägib saksa, inglise ja vene [keelt].', 'Ta [otsib] tööd.']],
         ['Jaan Mets', ['34 aastat vana', 'Sofia vend', 'kokk kohvikus', 'elab Tallinnas', 'naine Kadri, lapsed Oskar ja Mia'], ['Jaan on Sofia [vend].', 'Ta on 34 aastat [vana].', 'Jaan [töötab] kohvikus.', 'Tema [naine] on Kadri.']],
         ['Kadri Mets', ['Jaani naine', 'lastearst', 'töötab haiglas', 'räägib eesti ja inglise keelt', 'lapsed Oskar ja Mia'], ['Kadri on Jaani [naine].', 'Ta on [lastearst|arst].', 'Ta töötab [haiglas].', 'Ta räägib eesti ja inglise [keelt].']],
-      ]),
+      ], '3', 'g_vocab'),
       B.vocab('001_d_vocab', 'Tunni sõnad.', ['nimi — имя', 'aastat vana — ... лет (о возрасте)', 'pärit — родом', 'keel — язык', 'emakeel — родной язык', 'kursus — курс', 'küsimus — вопрос', 'vastus — ответ', 'tutvustama — представлять', 'tere tulemast — добро пожаловать']),
       teach(B.speaking('001_d_say', 'Intervjuu.', 'Küsi paariliselt tabeli küsimusi. Siis vasta ise.', ['Mis su nimi on ja kui vana sa oled?', 'Kust sa pärit oled?', 'Kus sa praegu elad?', 'Mis keeli sa räägid? Mis on sinu emakeel?', 'Miks sa õpid eesti keelt?'], [60, 120], ['Minu nimi on…', 'Ma olen pärit …-st.', 'Ma elan …-s.', 'Ma räägin … keelt.']), 'Üks-ühele: õpetaja küsib tabeli küsimusi, õpilane vastab täislausega. Siis küsib õpilane ja õpetaja vastab.'),
       B.writing('001_d_write', 'Mina.', 'Kirjuta endast 6–9 lauset: nimi, vanus, päritolu, elukoht, keeled.', [6, 9], ['nimi', 'pärit', 'elan', 'räägin', 'õpin'], 3),
@@ -73,7 +73,7 @@ export const LESSONS = {
       ], ['Olga elab Tallinnas, [Lasnamäel].', 'Olga on [raamatupidaja].', 'Olga kolleegid on [eestlased].', 'Taras on pärit [Ukrainast|Lvivist].', 'Tööl räägib Taras [inglise] keelt.', 'Tarase tütar käib eesti [lasteaias].', 'Liene õpib [ülikoolis|Tallinna ülikoolis].', 'Liene emakeel on [läti keel|läti].']),
       B.manymatch('001_p_signs', 'Sildid lennujaamas.', 'Kuhu sa lähed? Ühenda olukord ja silt.', [
         'Sa tahad oma kohvrit.', 'Sa näitad oma passi.', 'Sa lähed lennukile.', 'Sa tahad taksoga linna sõita.', 'Sa tahad bussiga kesklinna sõita.', 'Sa tahad kohvi juua.', 'Sa otsid tualetti.', 'Sinu kott ei tulnud lennukist.',
-      ], ['Pagas', 'Passikontroll', 'Väljumine', 'Takso', 'Bussipeatus', 'Kohvik', 'WC', 'Kadunud pagas'], 'full', 'g_read'),
+      ], ['Pagas', 'Passikontroll', 'Väljumine', 'Takso', 'Bussipeatus', 'Kohvik', 'WC', 'Kadunud pagas'], 'full', 'g_vocab'),
       B.choice('001_p_answer', 'Küsimus ja vastus.', 'Vali küsimusele sobiv vastus.', [
         ['Kust te pärit olete?', 'Ma olen pärit Lätist.', 'Ma elan Lätis.', 'Ma olen 22.'], ['Kus Liene elab?', 'Mustamäel.', 'Mustamäelt.', 'Viis aastat.'],
         ['Kui vana su poeg on?', 'Kaheksa aastat.', 'Kaheksandal mail.', 'Koolis.'], ['Mis keeli Olga räägib?', 'Vene ja inglise keelt.', 'Vene keeles.', 'Venemaalt.'],
@@ -307,7 +307,7 @@ export const LESSONS = {
       B.truefalse('003_p_tf', 'Õige või vale?', 'Kuula Grete videot uuesti. Õige või vale?', [
         ['Grete on pärit Tallinnast.', false], ['Grete elab Mustamäel.', true], ['Grete õpib ülikoolis.', true], ['Grete töötab hommikuti.', false],
         ['Nädalavahetusel Grete töötab.', false], ['Grete räägib natuke soome keelt.', true], ['Grete räägib hästi vene keelt.', false], ['Grete laulab kooris.', true],
-      ]),
+      ], 'half', 'g_vocab'),
       B.match('003_p_jobs', 'Kes mida teeb?', 'Ühenda inimene ja tegevus.', [
         ['bussijuht', 'juhib bussi'], ['kokk', 'teeb süüa'], ['õpetaja', 'õpetab inimesi'], ['arst', 'aitab haigeid'],
         ['üliõpilane', 'õpib ülikoolis'], ['pensionär', 'ei tööta enam'], ['ehitaja', 'ehitab maju'], ['müüja', 'töötab poes'],
@@ -408,7 +408,7 @@ export const LESSONS = {
         ['Ankeedis on rida „Isikukood”. Mis see on?', 'Number sinu ID-kaardilt.', 'Sinu telefoninumber.', 'Sinu maja number.'],
         ['Leti peal on silt: „Teenindus on suletud”. Mida see tähendab?', 'Praegu ei saa siin abi.', 'Siin saab kohe abi.', 'Siin on kohvik.'],
         ['Ametnik ütleb: „Palun kirjutage loetavalt!” Mida ta tahab?', 'Kirjuta selgelt ja korralikult.', 'Kirjuta väga kiiresti.', 'Kirjuta ainult numbrid.'],
-      ], 'full', 'g_read'),
+      ], 'full', 'g_vocab'),
       B.formtext('004_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev sõna õiges vormis.', 'Olga raamatukogus', [
         'Olga [läheb] (minema) laupäeval raamatukokku. Ta tahab lugeda raamatuid eesti keeles.',
         '',

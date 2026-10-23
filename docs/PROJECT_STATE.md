@@ -1,3 +1,11 @@
+## 2026-10-23 · agent/a2-c1-v4 — A2 modules 5–8 in template v4, A2 lesson goals 1–4
+
+- A2 modules 5 (city), 6 (food), 7 (shopping; numbers in cases), 8 (services; impersonal present) rewritten in v4;
+  exams unchanged; old files in `archive/v3/a2/`. `a2/lessonGoals.js`: sub-goals of modules 1–4 describe the v4
+  sheets. Audio for the new listening blocks (TartuNLP), stale recordings removed.
+- Stopped by the owner („стоп цель”): A2 modules 9–20 and C1 stay in v3; unfinished drafts of A2 9–11 were discarded.
+- Checks: worksheet-generator + worksheet-studio 1188 passed. Publish after merge.
+
 ## 2026-10-23 · agent/b1-v4-course — courses in template v4: B1 2–18, B2 1–18, A2 1–4 (merge and publish)
 
 - Owner: „подгони курсы до финального вида…”, then „закончить цель, то что готово выложить”.
