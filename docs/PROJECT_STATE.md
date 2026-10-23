@@ -1,3 +1,14 @@
+## 2026-10-23 · agent/b1-v4-course — courses in template v4: B1 2–18, B2 1–18, A2 1–4 (merge and publish)
+
+- Owner: „подгони курсы до финального вида…”, then „закончить цель, то что готово выложить”.
+- This branch contains PRs #740, #745, #746, #750 and the standard from #744, merged with main 16593cc.
+- Rewritten in template v4 (old files in `archive/v3/`): B1 modules 2–18 (B1 grammar plan complete), B2 modules 1–18
+  (B2 grammar plan complete), A2 modules 1–4. Exams (assessment lessons) unchanged. Lesson goals of B1 and B2 updated.
+- Not done: A2 modules 5–20, C1 modules 1–10, a v4 pass of the exam lessons, new art briefs (many pictures show the
+  wrong characters). Remaining gaps are listed in `grammarPlan.test.js` and `methodGaps.test.js`; per-lesson ideas in
+  `docs/COURSE_REVIEW_LOG.md`; cast in `docs/COURSE_CAST.md`.
+- Checks: full crm-v2 vitest 2305 passed, 3 skipped; build OK; language check (EstNLTK) on rewritten modules.
+
 ## 2026-10-23 · agent/b1-v4-course — B1 modules 3, 4, 6–11 in template v4
 
 - Stacked on agent/b1-m2-v4 (PR #750). Owner goal: „подгони курсы до финального вида и после каждого урока продумай,

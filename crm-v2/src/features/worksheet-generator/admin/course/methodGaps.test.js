@@ -15,7 +15,8 @@ describe('methodology across a course (docs/METHODOLOGY_STANDARD.md §2)', () =>
     expect(gaps.filter((g) => g.code === 'listening').map((g) => g.module)).toEqual([
       'est-c1-module-05', 'est-c1-module-06', 'est-c1-module-07', 'est-c1-module-08',
     ]);
-    expect(gaps.filter((g) => g.code === 'recycling').map((g) => g.module)).toEqual([]);
+    // a2-module-05 is still the v3 module after the rewritten module 04: it reuses too few of its words
+    expect(gaps.filter((g) => g.code === 'recycling').map((g) => g.module)).toEqual(['a2-module-05']);
     // A2 and C1 have no vocabulary blocks at all
     expect([...new Set(gaps.filter((g) => g.code === 'no-vocabulary').map((g) => g.module.split('-module')[0]))]).toEqual(['a2', 'est-c1']);
   });
