@@ -1,6 +1,6 @@
 ## 2026-10-23 · agent/accounting-excel-mode — päevaraamat like Excel (cells, keyboard, paste, „Asenda konto”, undo)
 
-- Base: `main` 7271b5f (2026-10-23). Draft PR from `agent/accounting-excel-mode`. Accounting only.
+- Base: `main` 7271b5f (2026-10-23). Draft PR #779 from `agent/accounting-excel-mode`. Accounting only.
 - Asked (the accountant via the owner): „функциональность и свобода действий как в Excel” in the bookkeeping, keeping
   the legal guarantees (history / audit, period lock, D = K, immutable numbers, no client writes).
 - Built (docs/ACCOUNTING.md „Päevaraamat kui tabel”):
