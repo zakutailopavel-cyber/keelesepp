@@ -18,7 +18,7 @@ function noShow(invoice) {
 }
 
 export function financeRowState(invoice = {}, today = new Date()) {
-  if (invoice.status === 'Tühistatud') return { status: 'cancelled', amountCents: 0, paidCents: 0, balanceCents: 0, dueDate: asDate(invoice.dueDate || invoice.due), overdue: false, emailFailed: false, noShow: false };
+  if (invoice.status === 'Tühistatud') return { status: 'cancelled', amountCents: 0, paidCents: 0, balanceCents: 0, dueDate: asDate(invoice.due || invoice.dueDate), overdue: false, emailFailed: false, noShow: false };
   const amountCents = Number.isFinite(Number(invoice.effectiveAmountCents))
     ? Math.max(0, Number(invoice.effectiveAmountCents))
     : invoiceAmountCents(invoice);
@@ -30,7 +30,7 @@ export function financeRowState(invoice = {}, today = new Date()) {
   const balanceCents = credited ? 0 : Number.isFinite(Number(invoice.balanceDueCents))
     ? Math.max(0, Number(invoice.balanceDueCents))
     : Math.max(0, amountCents - paidCents);
-  const dueDate = asDate(invoice.dueDate || invoice.due);
+  const dueDate = asDate(invoice.due || invoice.dueDate);
   const todayDate = asDate(today) || new Date();
   const overdue = balanceCents > 0 && dueDate && dueDate.getTime() < new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate()).getTime();
   let status = 'unpaid';
@@ -81,7 +81,7 @@ export function sortFinanceRows(rows = [], sort = 'dueDate', direction = 'asc', 
     if (sort === 'amount') return financeRowState(row, today).balanceCents;
     if (sort === 'status') return financeRowState(row, today).status;
     if (sort === 'student') return String(row.studentName || row.payerName || '').toLocaleLowerCase('et');
-    return asDate(row.dueDate || row.due)?.getTime() ?? Number.MAX_SAFE_INTEGER;
+    return asDate(row.due || row.dueDate)?.getTime() ?? Number.MAX_SAFE_INTEGER;
   };
   return [...rows].sort((left, right) => {
     const a = value(left); const b = value(right);

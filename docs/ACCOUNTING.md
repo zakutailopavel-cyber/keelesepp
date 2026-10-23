@@ -33,6 +33,12 @@ the accountant's Merit. INF 3 is a separate document (`docs/INF3.md`, next PR).
 | Expense | expense date | by category: rent 4210, advertising 4300, software 4320, learning materials 4050, bank fees 4340, taxes 4360, office 4330, travel 4510, other 4398 | 1010 (bank, card), 1000 (cash), 2450 (other) |
 | Expense correction or void | its date | the old payment account | the old expense account |
 
+**Correcting an issued invoice** (owner 2026-10-23): the invoice is never overwritten. „Krediteeri kogu arve”
+(`/invoices/credit-full`) issues one credit note for the open amount → the credit-note entry above. „Paranda summa
+või maksja” (`/invoices/correct`) issues the same full credit note and a new invoice (next KS number, `correctionOf`
+↔ `correctedBy`) → a credit-note entry and an invoice entry, both on the correction date. The old invoice's own entry
+stays as it was (functions/invoice-correction-core.js).
+
 Documents dated before the start date are in the opening balances. Without a VAT registration an expense is booked with
 its VAT (input VAT is not deductible).
 
@@ -46,7 +52,7 @@ yet linked to an invoice (it is booked when the receipt is linked).
   (`auto` | `manual` | `reversal` | `opening`), `lines[{ account, debitCents, creditCents, note }]`, `totalCents`,
   `reversalOf` / `reversedBy`, `reason`, `createdAt`, `createdBy`.
 - `meta/accountingCounter_<year>.next`: the next number of a year.
-- financeApi (admin only): `/accounting/sync`, `/accounting/entries`, `/accounting/entries/reverse`,
+- financeApi (admin only): `/invoices/credit-full`, `/invoices/correct` (documents above), `/accounting/sync`, `/accounting/entries`, `/accounting/entries/reverse`,
   `/accounting/opening`, `/accounting/accounts`. Manual entries and stornos respect closed months
   (`financialLockedDates`).
 - Firestore rules: admins read `accountingEntries` and `accountingAccounts`; nobody writes them from the client.
