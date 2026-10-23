@@ -408,6 +408,16 @@ retires; goal: a full mock speaking test in real situations and a look back at t
 - **088** — Sofia meets the Tartu team, the café opening speech, the management debate. → a café-opening picture; a
   printable mock-test rubric.
 
+## A2 module 3 „Päev, kell ja harjumused” (a2-011…014)
+
+Sofia's new day at Malle's (course Mon–Thu, job hunting, evenings with Grete), Jaan's family morning rush; goal: a
+weekly kitchen and bathroom plan agreed with Malle and Grete.
+- **011** — present-tense verbs; „Üks päev minu elus” for the school paper. → a real school-paper page.
+- **012** — telling the time, enne / pärast; Kadri's long Tuesday. → an authentic kindergarten timetable.
+- **013** — frequency words; registering with the family nurse. → a real health questionnaire.
+- **014** — weekdays and linking words; the flat's weekly plan. → a printable weekly grid.
+- Art briefs still show the B1 cast — new A2 scenes needed. Several sheets sit right at 40 min.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget
