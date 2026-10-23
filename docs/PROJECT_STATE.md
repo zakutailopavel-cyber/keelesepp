@@ -1,3 +1,17 @@
+## 2026-10-23 · agent/board-past-sheets — HOTFIX: worksheet pages of earlier lessons were empty
+
+- Owner 2026-10-23 (screenshots, Arseni): every „Tööleht: …” page on the board showed „Tühi tahvel”. Cause: a sheet is
+  bound to the lesson room it was opened in (worksheetAssignments.liveRoomKey), its board page stays forever, but the
+  board looked for sheets of the current room only (TeacherWorkspace: `prep_<student>`; LiveRoom: this invitation).
+  Production read: Arseni's sheets carry the room key of the 19.10 lesson. No data was lost.
+- homework.subscribeStudentLiveWorksheets(studentId): all the student's sheets ever opened on a lesson board.
+- live-classroom/usePastSheets.jsx → StudentBoard `pastWorksheets`: a page finds its sheet among them too (this
+  lesson's sheets first); they never take over the board. Wired in TeacherWorkspace, LiveRoom (not for guests) and
+  StudentWorkspace.
+- Checks: verify (eslint errors 0, vitest 2306 passed, 0 failed); regression test in board.test.jsx.
+- Known: the duplicate tabs „Tööleht: Kontroll 1 — igapäevaelu” are separate pages; they now all show the newest sheet
+  with that title. Cleaning them up is manual (⋯ → Kustuta).
+
 ## 2026-10-23 · published: v4 courses in Õppevara (production)
 
 - After #764: 585 sheets published (B1 modules 2–18, B2 modules 1–18, A2 modules 1–4); second dry run: all same.

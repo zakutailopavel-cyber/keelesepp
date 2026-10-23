@@ -453,6 +453,16 @@ export const homeworkService = {
       onData(items);
     }, (error) => onError?.(error));
   },
+  // every worksheet the student ever had on a lesson board (any room key): a board page „Tööleht: …” stays after its
+  // lesson, so the next lesson and the preparation room find the sheet that lies under it (newest first)
+  subscribeStudentLiveWorksheets(studentId, onData, onError) {
+    const { db } = requireFirebaseClient();
+    const q = query(collection(db, 'worksheetAssignments'), where('studentId', '==', studentId));
+    return onSnapshot(q, (snapshot) => {
+      onData(snapshot.docs.map((d) => normalizeWorksheetAssignment(d.id, d.data())).filter((item) => item.liveRoomKey)
+        .sort((a, b) => String(b.liveOpenedAt || '').localeCompare(String(a.liveOpenedAt || ''))));
+    }, (error) => onError?.(error));
+  },
   // Staff only (existing rule): mark an assignment as the worksheet of this lesson room.
   async openWorksheetInRoom({ assignmentId, roomKey }) {
     if (!assignmentId || !roomKey) throw new Error('Töölehte ei leitud.');

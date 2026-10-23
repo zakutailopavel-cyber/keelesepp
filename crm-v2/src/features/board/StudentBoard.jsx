@@ -50,7 +50,7 @@ function useNarrowScreen() {
 
 export default function StudentBoard({
   studentId, user, staff = false, service = studentBoardService, variant = 'page',
-  controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null,
+  controllerRef, onHistoryChange, uploadImage, newPageTitle, initialPageId = '', worksheet: singleWorksheet = null, worksheets: worksheetList = null, pastWorksheets = null,
   onPageChange, onPointer, pointer = null, onAssignPage,
   // Live Classroom: the other side's drawing, typing, dragging and cursor over the call (liveDrafts.js);
   // `presenting` (teacher) sends the visible part of the board, `followView` (student) shows it, `onFollowBreak` when
@@ -140,20 +140,27 @@ export default function StudentBoard({
   // the board, and what is drawn on top of it is stored on its own lesson page „Tööleht: <title>”.
   // Several worksheets can be open in one lesson (newest first); each has its own page „Tööleht: <title>”.
   const sheets = useMemo(() => (worksheetList?.length ? worksheetList : singleWorksheet ? [singleWorksheet] : []), [worksheetList, singleWorksheet]);
+  // the sheets of earlier lessons (pastWorksheets): their pages stay on the board, so a page „Tööleht: …” finds its sheet
+  // among them too — they never take over the board, only this lesson's newest sheet does
+  const allSheets = useMemo(() => {
+    if (!pastWorksheets?.length) return sheets;
+    const ids = new Set(sheets.map((sheet) => sheet.id));
+    return [...sheets, ...pastWorksheets.filter((sheet) => !ids.has(sheet.id))];
+  }, [sheets, pastWorksheets]);
   // a sheet placed before the phase was part of its title keeps its old page „Tööleht: <title>” — only the newest of the
   // sheets sharing that title, so the others get a page of their own instead of an empty duplicate
   const sheetPageOf = useCallback((sheet) => {
     if (!sheet) return null;
     const own = pages.find((page) => page.title === worksheetPageTitle(sheet.title));
     if (own || !sheet.legacyTitle || sheet.legacyTitle === sheet.title) return own || null;
-    const heir = sheets.find((item) => item.legacyTitle === sheet.legacyTitle && !pages.some((page) => page.title === worksheetPageTitle(item.title)));
+    const heir = allSheets.find((item) => item.legacyTitle === sheet.legacyTitle && !pages.some((page) => page.title === worksheetPageTitle(item.title)));
     return heir?.id === sheet.id ? pages.find((page) => page.title === worksheetPageTitle(sheet.legacyTitle)) || null : null;
-  }, [pages, sheets]);
-  const sheetPageIds = useMemo(() => new Set(sheets.map(sheetPageOf).filter(Boolean).map((page) => page.id)), [sheets, sheetPageOf]);
+  }, [pages, allSheets]);
+  const sheetPageIds = useMemo(() => new Set(allSheets.map(sheetPageOf).filter(Boolean).map((page) => page.id)), [allSheets, sheetPageOf]);
   // the newest sheet takes over the board when it opens; the page on screen decides which sheet lies under the drawing
   const worksheet = sheets[0] || null;
   const worksheetPage = sheetPageOf(worksheet);
-  const activeSheet = sheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
+  const activeSheet = allSheets.find((sheet) => sheetPageOf(sheet)?.id === pageId) || null;
   const onWorksheet = Boolean(activeSheet);
   // on a phone the worksheet is read as a one-column page (owner 2026-10-20: the A4 sheet shrunk to a third could not be
   // read or moved); „Tahvlivaade” brings back the board with the teacher's drawings
@@ -383,13 +390,13 @@ export default function StudentBoard({
 
   // opens a worksheet of the lesson (the newest one without an id); its page is created when it does not exist yet
   const openWorksheet = useCallback((sheetId = '') => {
-    const target = sheets.find((sheet) => sheet.id === sheetId) || worksheet;
+    const target = allSheets.find((sheet) => sheet.id === sheetId) || worksheet;
     if (!target) return;
     const page = sheetPageOf(target);
     if (page) { choosePage(page.id); setTool('fill'); return; }
     if (target.id === worksheet?.id) { setWantWorksheet(target.id); return; }
     if (staff) (service.addWorksheetPage || service.addPage).call(service, studentId, worksheetPageTitle(target.title), pages.length + 1, user).then((id) => { choosePage(id); setTool('fill'); }).catch(fail('Töölehe lehte ei saanud luua.'));
-  }, [sheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
+  }, [allSheets, worksheet, sheetPageOf, staff, service, studentId, pages.length, user]);
   useImperativeHandle(controllerRef, () => ({ undo, redo, insertFile, newPage, selectPage: choosePage, openWorksheet }), [insertFile, newPage, openWorksheet, redo, undo]);
 
   // rename a lesson page: double click its tab or „Nimeta ümber” in the ⋯ menu next to the open page

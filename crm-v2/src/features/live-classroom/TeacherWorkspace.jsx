@@ -5,6 +5,7 @@ import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize, sheetBoardTitle } from '../board/boardModel.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { RoomWorksheetContent, RoomWorksheetPicker } from '../worksheet-studio/RoomWorksheetPanel.jsx';
+import { usePastSheets } from './usePastSheets.jsx';
 import { prepRoomKey } from '../worksheet-studio/roomWorksheetChoices.js';
 import ActiveLessonsMenu from './ActiveLessonsMenu.jsx';
 import { homeworkService } from '../../services/firebase/index.js';
@@ -67,6 +68,7 @@ export default function TeacherWorkspace({
     legacyTitle: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
     content: <RoomWorksheetContent current={item} role="teacher" homework={homework} />,
   })) : []), [homework, prepared, student]);
+  const pastSheets = usePastSheets({ homework, studentId: student?.id || '', role: 'teacher' });
 
   return (
     <div className="lr lw" role="region" aria-label="Tööruum">
@@ -131,6 +133,7 @@ export default function TeacherWorkspace({
             onHistoryChange={setHistory}
             uploadImage={uploadImage}
             worksheets={boardSheets}
+            pastWorksheets={pastSheets}
             {...(boardService ? { service: boardService } : {})}
           /> : <div className="lw-empty"><EmptyState title="Vali õpilane" description="Tema tahvel avaneb kohe: saad tunni ette valmistada (lehed, materjalid, märkmed) ja siis kutsuda ta tundi. Õpilane näeb kõike, mida siia paned." /></div>}
         </main>
