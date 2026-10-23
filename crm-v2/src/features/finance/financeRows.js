@@ -24,10 +24,12 @@ export function financeRowState(invoice = {}, today = new Date()) {
     : invoiceAmountCents(invoice);
   const paymentEntriesCents = Array.isArray(invoice.payments) ? invoice.payments.reduce((sum, payment) => sum + Math.max(0, Math.round(Number(payment.amountCents ?? Number(payment.amount || 0) * 100) || 0)), 0) : 0;
   const paidCents = Math.max(invoicePaidCents(invoice), paymentEntriesCents);
+  // an old invoice marked „Makstud” by hand (paidAt, no payment records or paid amount) is paid in full
+  const legacyPaid = invoice.status === 'Makstud' && !Array.isArray(invoice.payments) && invoice.paidAmountCents === undefined && invoice.paidAmount === undefined;
   const credited = invoice.credited === true || invoice.status === 'credited' || invoice.status === 'Krediteeritud' ||
     invoice.paymentStatus === 'credited' || invoice.correctionStatus === 'fully_credited' ||
     invoice.type === 'credit-note' || invoice.kind === 'credit-note' || (amountCents === 0 && invoice.creditNoteId);
-  const balanceCents = credited ? 0 : Number.isFinite(Number(invoice.balanceDueCents))
+  const balanceCents = credited || legacyPaid ? 0 : Number.isFinite(Number(invoice.balanceDueCents))
     ? Math.max(0, Number(invoice.balanceDueCents))
     : Math.max(0, amountCents - paidCents);
   const dueDate = asDate(invoice.due || invoice.dueDate);
