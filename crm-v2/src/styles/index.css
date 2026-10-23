@@ -279,3 +279,8 @@ body:before{content:'';position:fixed;inset:0;pointer-events:none;background:rad
   font-weight: 700;
   padding: 0;
 }
+/* Ülevaade (owner 2026-10-23: „какие интервалы”): the same gap between the stacked sections as inside them, a card
+   alone in its section takes the whole width, and a short card does not stretch to its neighbour's height */
+.dashboard-page>.content-grid{align-items:start}
+.dashboard-page>.content-grid+.content-grid{margin-top:18px}
+.dashboard-page>.content-grid>:only-child{grid-column:1/-1}

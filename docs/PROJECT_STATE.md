@@ -4,6 +4,13 @@
   production `invoices`: about 20 invoices a month, average about 100 €). Letter not sent — the owner sends it and
   chooses the contact phone (+372 5374 0753 personal or +372 5434 4155 public). LinkPay code stays in test mode
   until live keys exist and the owner allows the switch.
+## 2026-10-23 · agent/library-subject-tabs — Õppevara: subject tabs above the levels
+
+- Owner: „надо добавить вкладку предмета”. Õppevara shows „Kõik ained · Eesti keel · Emakeel · Inglise keel” tabs
+  (URL `?aine=et|ek|en`) above the level chips; the tab narrows levels, modules, types and results. The subject is
+  read from the item's level label (`libraryModel.js` `subjectOfLevel`, `subjectFacets`, `SUBJECTS`; + test).
+- Files: `library/LibraryPage.jsx`, `library/libraryModel.js` (+test), `library/libraryWorkspace.css`.
+- Checks: library tests 49 passed; build OK.
 
 ## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
 
