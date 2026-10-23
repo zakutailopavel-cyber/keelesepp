@@ -482,7 +482,7 @@ export const LESSONS = {
 
   'b1b2-074': {
     title: 'Teksti kokkuvõte ja reaktsioon',
-    canDo: 'Ma kirjutan 5–6-lauselise kokkuvõtte, mis ei moonuta teksti, ja lisan oma reaktsiooni nii, et autori sisu ja minu hinnang on selgelt eraldatud.',
+    canDo: 'Ma teen tekstist kokkuvõtte, mis ei moonuta sisu ega numbreid, ja lisan eraldi oma reaktsiooni nii, et autori sisu ja minu hinnang on selgelt lahus.',
     discover: [
       B.review('074_d_review', ['Mis teeb argumendi tugevaks? Nimeta neli osa.', 'Mida tähendas pealkiri „Köökide koondamine” ja miks see eksitas?', 'Millise ettepaneku sa linnavolikogule kirjutasid ja millele see toetus?']),
       B.text('074_d_hook', 'Analüüs on avalikustatud', 'Veebruari alguses avaldas linnaosa valitsus koolitoidu analüüsi kokkuvõtte ja märtsis peeti avalik arutelu. Märtsi lõpus on Kase koolis lastevanemate koosolek. Marje Lepp palub Jaanil ja Kadril teha seal faktikontroll: mis on analüüsis tegelikult kirjas, mis levis grupis ja mis on veel lahtine. Kokkuvõte peab olema täpne ja neutraalne, oma arvamus tuleb eraldi. Vaata pilti: Anna ja Markus jagavad töö samuti kaheks — kõigepealt kokkuvõte, siis reaktsioon.'),
