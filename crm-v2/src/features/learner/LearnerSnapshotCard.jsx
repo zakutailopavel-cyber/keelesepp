@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, lessonsService } from '../../services/firebase/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { presenceService } from '../../services/firebase/presence.js';
 import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';
 import { learnerSnapshot, reviewPageText } from './learnerSnapshot.js';
 import MonthStepsCard from './MonthStepsCard.jsx';
@@ -13,6 +14,7 @@ const api = {
   assignments: (studentId) => homeworkService.listWorksheetAssignmentsByStudentIds([studentId]),
   homework: (studentId) => homeworkService.listByStudentIds([studentId]),
   lessons: (studentId) => lessonsService.listByStudent(studentId),
+  presence: (studentId) => presenceService.forStudent(studentId),
 };
 const dateLabel = (value) => (value ? new Intl.DateTimeFormat('et-EE', { day: 'numeric', month: 'short' }).format(new Date(value)) : '');
 
@@ -21,10 +23,11 @@ const dateLabel = (value) => (value ? new Intl.DateTimeFormat('et-EE', { day: 'n
 export default function LearnerSnapshotCard({ studentId, studentName = '', repository = api, onReviewPage, compact = false }) {
   const state = useAsyncData(async () => {
     const settle = (promise) => Promise.resolve().then(() => promise).catch(() => null);
-    const [words, assignments, homework, lessons] = await Promise.all([
+    const [words, assignments, homework, lessons, presence] = await Promise.all([
       settle(repository.words(studentId)), settle(repository.assignments(studentId)), settle(repository.homework(studentId)), settle(repository.lessons(studentId)),
+      repository.presence ? settle(repository.presence(studentId)) : null,
     ]);
-    return { words: words || [], assignments: assignments || [], homework: homework || [], lessons: lessons || [], partial: [words, assignments, homework, lessons].some((item) => item === null) };
+    return { words: words || [], assignments: assignments || [], homework: homework || [], lessons: lessons || [], presence, partial: [words, assignments, homework, lessons].some((item) => item === null) };
   }, [repository, studentId]);
   const snapshot = useMemo(() => (state.data ? learnerSnapshot({ ...state.data, describe: describeAutoErrors }) : null), [state.data]);
   const [placing, setPlacing] = useState(false);
@@ -39,7 +42,7 @@ export default function LearnerSnapshotCard({ studentId, studentName = '', repos
     setPlacing(true); setPlaced('');
     try { await onReviewPage(review); setPlaced('Kordamise leht on tahvlil.'); } catch (error) { setPlaced(error?.message || 'Lehte ei saanud luua.'); } finally { setPlacing(false); }
   };
-  const { lastActivity, week, words, sheets, homework, lastLesson, signals } = snapshot;
+  const { seen, errorsReview, lastActivity, week, words, sheets, homework, lastLesson, signals } = snapshot;
 
   return <section className={`ls-card ${compact ? 'is-compact' : ''}`} aria-label={`Õpilase pilt${studentName ? `: ${studentName}` : ''}`}>
     <header className="ls-head">
@@ -53,8 +56,10 @@ export default function LearnerSnapshotCard({ studentId, studentName = '', repos
     </ul>
 
     <dl className="ls-facts">
+      {seen ? <div><dt>Viimati sees</dt><dd>{seen.label}</dd></div> : null}
       <div><dt>Viimati õppis ise</dt><dd>{lastActivity ? `${lastActivity.label} · ${lastActivity.kind}` : 'veel mitte'}</dd></div>
       <div><dt>7 päevaga</dt><dd>{week.words} sõna · {week.sheets} töölehte · {week.homework} kodutööd</dd></div>
+      {errorsReview ? <div><dt>Minu vead</dt><dd>{errorsReview.label}{errorsReview.pct !== null ? ` · ${errorsReview.pct}%` : ''} · {errorsReview.days30} päeva 30 päevaga</dd></div> : null}
       {lastLesson ? <div><dt>Eelmine tund</dt><dd>{dateLabel(lastLesson.date)}{lastLesson.topic ? ` · ${lastLesson.topic}` : ''}{lastLesson.notes ? <small>{lastLesson.notes}</small> : null}</dd></div> : null}
     </dl>
 

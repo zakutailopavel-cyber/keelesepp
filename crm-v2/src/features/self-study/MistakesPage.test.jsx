@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import MistakesPage from './MistakesPage.jsx';
 
-const page = (words) => render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1' } }}>
+const page = (words, profile = {}) => render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', profile } }}>
   <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }}
     wordsService={{ subscribeForStudent: vi.fn((id, next) => { next(words); return () => {}; }) }} />
 </AuthContext.Provider></MemoryRouter>);
@@ -22,5 +22,10 @@ describe('Minu vead', () => {
   it('explains where mistakes come from when there are none', async () => {
     page([]);
     expect(await screen.findByText('Vigu veel ei ole')).toBeInTheDocument();
+  });
+
+  it('shows today\'s result saved on the account (another device)', async () => {
+    page([{ id: 'e1', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }], { practice: { errorsDate: new Date().toISOString().slice(0, 10), errorsPct: 90 } });
+    expect(await screen.findByText('Täna tehtud · 90%')).toBeInTheDocument();
   });
 });

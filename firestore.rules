@@ -856,10 +856,13 @@ service cloud.firestore {
         'parentReviewKey',
         'termsAcceptedAt',
         'termsVersion',
-        'pet'
+        'pet',
+        'lastSeenAt',
+        'practice'
       ])
         && validTermsAcceptance(request.resource.data)
         && validPet(request.resource.data)
+        && validPresence(request.resource.data)
         // stars spent on outfits never go back down, bought items are never lost
         && request.resource.data.get('pet', {}).get('spentStars', 0) >= resource.data.get('pet', {}).get('spentStars', 0)
         && request.resource.data.get('pet', {}).get('owned', []).hasAll(resource.data.get('pet', {}).get('owned', []));
@@ -867,6 +870,26 @@ service cloud.firestore {
 
     // Student cabinet pet: the chosen kind and a short name plus three own flags; growth is derived, never stored.
     // playedAt: the last word game (care only, gives no xp or stars).
+    // the teacher sees when the student was last in the CRM and his last „Minu vead” review (owner 2026-10-23):
+    // the visit time is always the server's, the review is a small map with the last result and recent practice days
+    function validPresence(data) {
+      return (
+          !('lastSeenAt' in data)
+          || data.lastSeenAt == resource.data.get('lastSeenAt', null)
+          || data.lastSeenAt == request.time
+        )
+        && (
+          !('practice' in data)
+          || (
+            data.practice is map
+            && data.practice.keys().hasOnly(['errorsDate', 'errorsPct', 'days'])
+            && (!('errorsDate' in data.practice) || (data.practice.errorsDate is string && data.practice.errorsDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')))
+            && (!('errorsPct' in data.practice) || (data.practice.errorsPct is int && data.practice.errorsPct >= 0 && data.practice.errorsPct <= 100))
+            && (!('days' in data.practice) || (data.practice.days is list && data.practice.days.size() <= 60))
+          )
+        );
+    }
+
     function validPet(data) {
       return !('pet' in data)
         || (

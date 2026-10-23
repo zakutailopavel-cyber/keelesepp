@@ -60,3 +60,18 @@ describe('learner snapshot (owner 2026-10-23)', () => {
     expect(isForgotten({ box: 0, reviews: 0 })).toBe(false);
   });
 });
+
+describe('learnerSnapshot presence', () => {
+  it('shows the last visit and the „Minu vead” reviews, which count as own study', async () => {
+    const { learnerSnapshot: snap } = await import('./learnerSnapshot.js');
+    const now = Date.parse('2026-10-23T15:00:00');
+    const result = snap({ now, presence: { hasAccount: true, lastSeenAt: Date.parse('2026-10-22T10:00:00'), practice: { errorsDate: '2026-10-23', errorsPct: 80, days: ['2026-08-01', '2026-10-20', '2026-10-23'] } } });
+    expect(result.seen.label).toBe('eile');
+    expect(result.errorsReview).toEqual({ label: 'täna', pct: 80, days30: 2 });
+    expect(result.lastActivity.kind).toBe('oma vigu');
+    expect(result.signals.some((signal) => /Pole/.test(signal.text))).toBe(false);
+    expect(snap({ now, presence: { hasAccount: false } }).seen.label).toBe('kontot pole');
+    expect(snap({ now, presence: { hasAccount: true, lastSeenAt: 0 } }).seen.label).toBe('andmeid veel pole');
+    expect(snap({ now }).seen).toBeNull();
+  });
+});
