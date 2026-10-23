@@ -61,3 +61,9 @@ Keep facts consistent; add new facts here when a module adds them.
   **Valdur Ploom** (71) and **Kai Lill**; mediator **Helve Sild**; psychologist **Elo Vällik**.
 - Minor characters with a full name (first name + surname) are separate people even when a first name repeats (B2
   module 13: Tarmo Kangur, Kaspar Mägi, Peeter Uibo …). Main and recurring characters keep unique first names.
+- **A2 course (a year before B1):** Sofia (27) rents a room from **Malle Pärn** (66) in Mustamäe (Akadeemia tee 30-12), flatmate **Grete Kuusik** (22); Keelekool Sõna (teacher
+  **Maret**, administrator **Ene**, classmates **Lucía**, **Dmitri**, **Tom**); Kadri's mother **Tiiu**; Viktor 62,
+  Helgi 58, Mia 5, Oskar 8; Sofia's friend abroad **Kati**.
+- **B2 finale:** Sofia passes B2 (exam 7 March), becomes Tartu project manager and moves to Tartu (landlord **Toivo
+  Allik**); Kohvik Mets opens near Nõmme market on 18 April; Helgi (surname Mets) retires in June and bakes Sunday
+  pancakes at the café; **Vaike** takes over the Kase kool kitchen in August.

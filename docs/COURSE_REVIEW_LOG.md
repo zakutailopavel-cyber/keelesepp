@@ -353,6 +353,49 @@ screenshot in the class chat; goal: a talk at the parents' evening and a ~180-wo
   phone-screen picture with a Smart-ID request.
 - **059** — the parents' evening, phone ban or training (decision). → pictures of the three sources; the survey chart.
 
+## A2 module 1 „A2 lähtepunkt ja eneseinfo” (a2-001…004)
+
+Sofia Mets arrives from Berlin, rents a room from Malle Pärn (flatmate Grete), placement at Keelekool Sõna; goal of
+the course (Harno A2) and the module (introduce yourself, fill in a form).
+- **001** — question words; airport arrival; placement talk. → real airport audio.
+- **002** — sina / teie, polite imperative; first evening at Jaan's. → a stairwell-meeting picture.
+- **003** — olema, present tense, negation; Oskar's school poster interview. → a drawn „who lives where” building.
+- **004** — dates; address registration and the first lesson. → real-looking elukohateade and course forms.
+- Exam 005 (unchanged) has no vocab block, a repeated sentence and short tasks (3 strict-gate notes) and contradicts
+  the cast (Viktor from Narva). → exams' v4 pass.
+
+## A2 module 2 „Pere, inimesed ja kirjeldamine” (a2-006…009)
+
+A year before B1: Sofia (27) has just moved to Tallinn, rents a room from Malle Pärn (66) in Mustamäe, learns at Keelekool
+Sõna (Maret, classmates Lucía, Dmitri, Tom), meets Jaan's family; goal: talk about a family photo and write about the
+family.
+- **006** — mul on / ei ole, plural, see / need; Viktor draws the family tree. → a printable family-tree template.
+- **007** — kelle? minu oma; the school lost-and-found box. → a real lost-property notice.
+- **008** — ta on / tal on; meeting Kadri's mother Tiiu at the bus station. → three portrait cards (art brief).
+- **009** — the family-photo evening (Harno A2 picture description). → learners bring their own family photo.
+- The A2 art briefs still show the B1 cast (Anna, Liis, Markus) whom Sofia does not know yet. → redo the A2 briefs.
+
+## B2 module 17 „B2 kirjutamine” (b1b2-081…084)
+
+Sofia trains the B2 writing part with Maret; the café needs real texts; goal: a timed mock writing part (two texts for
+the café opening) and peer assessment with a Harno-like rubric.
+- **081** — bridges and word order; car-free Sundays at the market (opinion text). → a real Harno sample with scoring.
+- **082** — register and polite requests; three draft letters. → real e-mail layouts; the city terrace-permit form.
+- **083** — nominalisation, cause–effect; a city grant pitch. → an authentic grant form; real radio voices.
+- **084** — justified corrections; letter + summary with comment. → a scan of a speech draft with red-pen marks.
+- Aligned with module 18: the café opens in April (not September); the official is Annika Vaht as in module 11.
+
+## B2 module 18 „B2 rääkimine ja lõpphindamine” (b1b2-086…088)
+
+The B2 finale: Sofia's B2 exam on 7 March and the Tartu project-manager job, Kohvik Mets opens (18 April), Helgi
+retires; goal: a full mock speaking test in real situations and a look back at the course.
+- **086** — the internal job interview (1-min intro, 1-min speech after 2-min preparation). → a picture with Sofia (the
+  brief shows Igor and Markus); a real candidate monologue recording.
+- **087** — summer days of the two teams: debate with a budget cut and a decision. → the talk show with three real
+  voices; a real lease extract.
+- **088** — Sofia meets the Tartu team, the café opening speech, the management debate. → a café-opening picture; a
+  printable mock-test rubric.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget

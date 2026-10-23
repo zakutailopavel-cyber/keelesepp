@@ -1,0 +1,383 @@
+// A2 course (A1 → A2 roadmap), module 1 „A2 lähtepunkt ja eneseinfo”, lessons a2-001 … a2-005 (owner 2026-10-13: the
+// old generated sheets had five short tasks each). Personal information and getting to know people: olema and the
+// frequent verbs in the present (ma olen / ei ole, elan, töötan, õpin, räägin), questions (Mis su nimi on? Kust sa
+// pärit oled? Kus sa elad?), numbers, dates, e-mail and the form. Harno A2 formats from the first module: a short
+// listening with 1–2-word answers (read twice), a notice to read, a form, a message of 30–50 words, getting to know
+// the examiner.
+import { B } from '../../../blocks.js';
+
+export const MODULE = { id: 'a2-module-01', course: 'a2', title: 'A2 lähtepunkt ja eneseinfo', level: 'A2', design: 'v2', template: 'v3' };
+
+export const LESSONS = {
+  'a2-001': {
+    title: 'A2 lähtediagnostika',
+    canDo: 'Ma räägin endast 5–6 lausega (nimi, vanus, kust ma pärit olen, kus elan, mis keeli räägin, mida teen) ja kirjutan endast 40–60-sõnalise teksti.',
+    template: 'v3',
+    discover: [
+      B.profiles('001_d_cards', 'Kes on kursusel?', 'Loe kaarte. Kirjuta lünka sobiv sõna.', [
+        ['Olga', ['34 aastat vana', 'pärit Narvast', 'elab Tallinnas', 'raamatupidaja', 'räägib vene ja inglise keelt'], ['Olga [on] 34 aastat vana.', 'Ta on pärit [Narvast].', 'Ta [elab] Tallinnas.']],
+        ['Taras', ['29 aastat vana', 'pärit Ukrainast', 'elab Tartus', 'programmeerija', 'räägib ukraina ja inglise keelt'], ['Taras on pärit [Ukrainast].', 'Ta elab [Tartus].', 'Ta [töötab] programmeerijana.']],
+        ['Liene', ['22 aastat vana', 'pärit Lätist', 'elab Tallinnas', 'üliõpilane', 'räägib läti ja vene keelt'], ['Liene on [22] aastat vana.', 'Ta [õpib] ülikoolis.', 'Ta räägib läti ja vene [keelt].']],
+      ]),
+      B.reading('001_d_read', 'Loe: Olga räägib endast.', 'Loe teksti ja vasta küsimustele lühidalt.', 'Tere, mina olen Olga',
+        'Tere! Minu nimi on Olga Ivanova. Ma olen 34 aastat vana. Ma olen pärit Narvast, aga praegu ma elan Tallinnas, Lasnamäel. Ma elan seal koos abikaasa ja pojaga. Minu poeg on kaheksa aastat vana ja ta käib eesti koolis. Ma töötan raamatupidajana väikeses firmas. Tööl räägin ma vene ja inglise keelt, aga minu kolleegid on eestlased. Seepärast ma õpin eesti keelt. Ma saan juba natuke aru, aga ma räägin veel aeglaselt. Minu emakeel on vene keel. Vabal ajal ma loen raamatuid ja käin pojaga ujumas. Laupäeviti käime me ka Narvas minu ema juures. Minu sünnipäev on kaheteistkümnendal mail. Ma tahan aasta pärast rääkida kolleegidega ainult eesti keeles. Siis ma tahan õppida ka ülikoolis. Minu abikaasa räägib eesti keelt hästi, ta aitab mind kodus. Õhtul me vaatame koos eesti filme.',
+        [['Kust Olga pärit on?', 'Narvast|ta on pärit Narvast'], ['Kus Olga praegu elab?', 'Tallinnas|Lasnamäel|Tallinnas, Lasnamäel'], ['Kui vana on Olga poeg?', 'kaheksa aastat|8 aastat|kaheksa'], ['Kus Olga töötab?', 'väikeses firmas|firmas|ta töötab raamatupidajana'], ['Miks Olga õpib eesti keelt?', 'kolleegid on eestlased|sest tema kolleegid on eestlased'], ['Millal on Olga sünnipäev?', '12. mail|kaheteistkümnendal mail']]),
+      B.truefalse('001_d_tf', 'Õige või vale?', 'Loe Olga teksti uuesti.', [
+        ['Olga elab Narvas.', false], ['Olga emakeel on vene keel.', true], ['Olga poeg käib vene koolis.', false],
+        ['Olga räägib veel aeglaselt.', true], ['Olga töötab õpetajana.', false], ['Olga töötab väikeses firmas.', true], ['Olga poeg on kaheksa aastat vana.', true], ['Olga kolleegid on venelased.', false]]),
+      B.notice('001_d_notice', 'Märka: olema', ['ma **olen** — ma **ei ole**', 'sa **oled** — sa **ei ole**', 'ta **on** — ta **ei ole**', 'me **oleme**, te **olete**, nad **on**', 'Ma **olen pärit** Narva**st**. (kust? → -st)', 'Ma **olen** 34 **aastat vana**.']),
+      B.wordforms('001_d_forms', 'olema', 'Kirjuta olema õiges vormis.', [
+        ['ma', 'olema', 'olen'], ['sa', 'olema', 'oled'], ['ta', 'olema', 'on'], ['me', 'olema', 'oleme'],
+        ['te', 'olema', 'olete'], ['nad', 'olema', 'on'], ['ma (eitus)', 'olema', 'ei ole'], ['ma (eitus)', 'elama', 'ei ela']]),
+      B.errorfix('001_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Ma olen pärit Narva.', 'Ma olen pärit Narvast.'], ['Ma elan Tallinn.', 'Ma elan Tallinnas.'], ['Ta olen raamatupidaja.', 'Ta on raamatupidaja.'], ['Minu nimi olen Olga.', 'Minu nimi on Olga.'], ['Ma räägin vene keel.', 'Ma räägin vene keelt.'], ['Me on pärit Lätist.', 'Me oleme pärit Lätist.'], ['Ma on pärit Narvast.', 'Ma olen pärit Narvast.'], ['Ta olen 30 aastat vana.', 'Ta on 30 aastat vana.']]),
+      B.match('001_d_match', 'Küsimus ja vastus', 'Ühenda küsimus ja vastus.', [
+        ['Mis su nimi on?', 'Minu nimi on Olga.'], ['Kui vana sa oled?', 'Ma olen 34 aastat vana.'], ['Kust sa pärit oled?', 'Ma olen pärit Narvast.'],
+        ['Kus sa elad?', 'Ma elan Tallinnas.'], ['Mis keeli sa räägid?', 'Ma räägin vene ja inglise keelt.'], ['Mida sa teed?', 'Ma töötan raamatupidajana.'], ['Miks sa õpid eesti keelt?', 'Sest ma elan Eestis ja töötan eestlastega.'], ['Mida sa vabal ajal teed?', 'Vabal ajal ma loen raamatuid.']]),
+      B.speaking('001_d_say', 'Räägi endast.', 'Tutvusta ennast paarilisele. Räägi umbes üks minut.', [
+        'Mis su nimi on?', 'Kust sa pärit oled ja kus sa elad?', 'Mida sa teed (töö või kool)?', 'Mis keeli sa räägid?', 'Miks sa õpid eesti keelt?',
+      ], [45, 90], ['Minu nimi on…', 'Ma olen pärit …-st.', 'Ma elan …-s.', 'Ma räägin … keelt.']),
+      B.writing('001_d_write', 'Mina', 'Kirjuta endast 5–7 lauset (40–60 sõna).', [5, 7], ['nimi', 'pärit', 'elan', 'räägin', 'õpin'], 3),
+    ],
+    practice: [
+      B.listening('001_p_listen', 'Kuulamine. Uus kursuslane.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Minu nimi on Kaspar Kask.', 'Ma olen kakskümmend kuus aastat vana.', 'Ma olen pärit Pärnust, aga praegu ma elan Tallinnas.',
+        'Ma töötan hotellis administraatorina.', 'Minu emakeel on eesti keel, aga ma räägin ka soome ja inglise keelt.',
+        'Vabal ajal ma mängin korvpalli.', 'Minu telefoninumber on viis kaks, kolm neli, viis kuus, seitse kaheksa.', ], [
+        'Kaspar on [26|kakskümmend kuus] aastat vana.', 'Ta on pärit [Pärnust].', 'Praegu elab ta [Tallinnas].', 'Ta töötab [hotellis].',
+        'Ta räägib ka soome ja [inglise] keelt.', 'Vabal ajal mängib ta [korvpalli].', 'Kaspari perekonnanimi on [Kask].', 'Kaspari emakeel on [eesti keel|eesti].',
+      ]),
+      B.cloze('001_p_cloze', 'Vali lünka sobiv sõna.', 'Loe Liene teksti. Vali igasse lünka üks variant.', 'Liene tutvustab ennast', [
+        'Tere! Minu nimi {*on|olen|oled} Liene. Ma olen 22 aastat {*vana|vanad|vanus}. Ma olen pärit {*Lätist|Läti|Lätis}, aga praegu ma elan {*Tallinnas|Tallinn|Tallinnast}.',
+        '',
+        'Ma {*õpin|õpib|õpime} ülikoolis. Minu emakeel on läti keel, aga ma räägin ka vene {*keelt|keel|keeles}. Eesti keelt ma {*räägin|räägib|rääkima} veel aeglaselt.',
+        '',
+        'Minu ema ja isa elavad Riias. Ma helistan neile iga pühapäev. Vabal ajal ma käin {*ujumas|ujuma|ujub}.',
+      ], 'g_vocab'),
+      B.formtext('001_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev sõna õiges vormis.', 'Taras tutvustab ennast', [
+        'Tere! Mina [olen] (olema) Taras. Ma [olen] (olema) pärit [Ukrainast] (Ukraina).',
+        '',
+        'Praegu ma [elan] (elama) Tartus. Ma [töötan] (töötama) programmeerijana. Minu naine [on] (olema) õpetaja.',
+        '',
+        'Me [räägime] (rääkima) kodus ukraina keelt. Meie tütar käib eesti lasteaias ja [räägib] (rääkima) juba hästi eesti keelt.',
+      ], 'g_notice'),
+      B.transformation('001_p_question', 'Küsi.', 'Kirjuta küsimus. Vastus on antud.', [
+        ['Minu nimi on Liene.', 'Mis …?', 'Mis su nimi on?|Mis sinu nimi on?|Mis teie nimi on?'], ['Ma olen pärit Lätist.', 'Kust …?', 'Kust sa pärit oled?|Kust te pärit olete?|Kust sa oled pärit?'],
+        ['Ma elan Tallinnas.', 'Kus …?', 'Kus sa elad?|Kus te elate?'], ['Ma olen 22 aastat vana.', 'Kui …?', 'Kui vana sa oled?|Kui vana te olete?'],
+        ['Ma räägin läti ja vene keelt.', 'Mis keeli …?', 'Mis keeli sa räägid?|Mis keeli te räägite?'], ['Ma töötan hotellis.', 'Kus …?', 'Kus sa töötad?|Kus te töötate?'], ['Ma õpin eesti keelt, sest ma elan Eestis.', 'Miks …?', 'Miks sa õpid eesti keelt?|Miks te õpite eesti keelt?'], ['Vabal ajal ma mängin korvpalli.', 'Mida …?', 'Mida sa vabal ajal teed?|Mida te vabal ajal teete?']]),
+      B.wordorder('001_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Kursus algab viieteistkümnendal septembril.', 'Tunnid on esmaspäeviti ja kolmapäeviti.', 'Grupis on kuni kaksteist inimest.', 'Enne kursust on lühike test.', 'Ma tahan registreerida kursusele.', 'Ma olen pärit Narvast.', 'Minu poeg käib eesti koolis.', 'Ma õpin eesti keelt.']),
+      B.translation('001_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Меня зовут Анна.', 'Я из Пярну.', 'Я живу в Таллине.', 'Я говорю по-русски и по-английски.', 'Я учу эстонский язык.', 'Мне 28 лет.', 'Курс начинается в понедельник.', 'Мне 30 лет.']),
+      B.reading('001_p_ad', 'Lugemine. Kuulutus.', 'Loe kuulutust ja vasta küsimustele.', 'Eesti keele kursus algajatele',
+        'Keelekool Sõna kutsub eesti keele kursusele! Kursus on täiskasvanutele, kes oskavad juba natuke eesti keelt. Kursus algab 15. septembril. Tunnid on esmaspäeviti ja kolmapäeviti kell 18.00–19.30. Kursus kestab kümme nädalat. Grupis on kuni kaksteist inimest. Hind on 180 eurot, õpik on hinna sees. Kursus toimub Tallinnas, Narva maanteel 7, teisel korrusel. Enne kursust on lühike test, et teada, mida sa juba oskad. Tundides räägime, loeme, kuulame ja kirjutame. Kursuse lõpus saad tunnistuse. Registreeri kuni 10. septembrini telefonil 5123 4567 või e-postiga info@keelekoolsona.ee.',
+        [['Millal kursus algab?', '15. septembril|viieteistkümnendal septembril'], ['Mis päevadel on tunnid?', 'esmaspäeviti ja kolmapäeviti|esmaspäeval ja kolmapäeval'], ['Kui kaua kursus kestab?', 'kümme nädalat|10 nädalat'], ['Kui palju kursus maksab?', '180 eurot|sada kaheksakümmend eurot'], ['Kuidas saab registreerida?', 'telefonil või e-postiga|telefoni või e-postiga|telefonil|e-postiga']]),
+      B.speaking('001_p_say', 'Tutvumine nagu eksamil.', 'Õpetaja küsib, sina vastad täislausega.', ['Mis teie nimi on?', 'Kust te pärit olete?', 'Kus te elate ja kellega?', 'Mida te teete?', 'Mida te vabal ajal teete?'], [45, 75]),
+    ],
+    transfer: [
+      B.text('001_t_situation', 'Uus olukord', 'Sa tahad minna keelekooli kursusele. Enne kursust tuleb täita registreerimisvorm ja kirjutada õpetajale lühike kiri. Esimeses tunnis tutvustad ennast grupile.'),
+      B.reading('001_t_school', 'Loe keelekooli kirja.', 'Loe kirja ja vasta küsimustele.', 'Tere tulemast keelekooli!',
+        'Tere! Aitäh, et registreerisite meie kursusele. Teie grupp on A2-1. Esimene tund on esmaspäeval, 15. septembril kell 18.00, ruumis 204. Teie õpetaja on Kadri Mets. Palun võtke kaasa pass või ID-kaart, vihik ja pastakas. Enne esimest tundi täitke palun registreerimisvorm ja kirjutage õpetajale lühike kiri endast. Kirjutage, kust te pärit olete, kus te töötate ja miks te õpite eesti keelt. Esimeses tunnis tutvustab iga kursuslane ennast grupile. Pärast tundi on kohvipaus, kus saate rääkida teiste kursuslastega. Kui teil on küsimusi, helistage meile. Kohtumiseni! Keelekool Sõna',
+        [['Mis grupis sa õpid?', 'A2-1'], ['Millal on esimene tund?', 'esmaspäeval kell 18.00|15. septembril kell 18.00|esmaspäeval, 15. septembril'], ['Mis ruumis on tund?', '204|ruumis 204'], ['Mida pead kaasa võtma?', 'pass või ID-kaart, vihik ja pastakas|passi, vihiku ja pastaka'], ['Mida pead kirjutama õpetajale?', 'lühikese kirja endast|kirja endast']]),
+      B.table('001_t_form', 'Registreerimisvorm.', 'Täida vorm oma andmetega.', 'Andmed, Sinu vastus', ['Eesnimi | ', 'Perekonnanimi | ', 'Vanus | ', 'Kust pärit? | ', 'Elukoht (linn) | ', 'Emakeel | ', 'Mis keeli räägid? | ', 'Telefon | ']),
+      B.letter('001_t_letter', 'Kiri õpetajale.', 'Kirjuta õpetajale 40–60 sõna: tutvusta ennast ja ütle, miks sa õpid eesti keelt.', 'Tere, õpetaja!', 'Lugupidamisega', [40, 60]),
+      B.speaking('001_t_intro', 'Esimene tund.', 'Tutvusta ennast grupile. Räägi umbes üks minut.', ['Mis su nimi on ja kust sa pärit oled?', 'Kus sa elad?', 'Mida sa teed?', 'Mis keeli sa räägid?', 'Miks sa õpid eesti keelt?'], [45, 90], ['Tere! Minu nimi on…', 'Ma olen pärit…', 'Ma õpin eesti keelt, sest…']),
+      B.rolecards('001_t_roles', 'Paus kursusel.', 'Kohvipausil tutvute uue kursuslasega. Küsige ja vastake.', 'Oled uus kursuslane. Tutvusta ennast ja küsi teise inimese kohta: nimi, kust pärit, kus elab, mida teeb.', 'Oled kursusel juba teist nädalat. Vasta küsimustele ja küsi vastu.', ['Tere! Mina olen…', 'Kust sa pärit oled?', 'Mida sa teed?'], ['Meeldiv tutvuda!', 'Mina olen pärit…', 'Aga sina?']),
+      B.rubric('001_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Vorm on täidetud: kõik andmed on olemas ja loetavad.', 'Kirjas on tervitus, info endast ja lõpp.', 'Laused on arusaadavad, olema ja tegusõnad on õiges vormis.', 'Suuline tutvustus: vähemalt viis lauset.']),
+      B.selfcheck('001_t_self', ['Ma täidan registreerimisvormi.', 'Ma kirjutan õpetajale lühikese kirja endast.', 'Ma tutvustan ennast grupile.', 'Ma küsin teise inimese kohta.'], 'Valmis kursuseks'),
+    ],
+  },
+
+  'a2-002': {
+    title: 'Tutvumine ja viisakus',
+    canDo: 'Ma tutvun uue inimesega 6–8 repliigiga dialoogis: tervitan, tutvustan ennast, küsin ja vastan, palun korrata ja jätan viisakalt hüvasti.',
+    template: 'v3',
+    discover: [
+      B.dialogue('002_d_dialog', 'Trepikojas.', 'Loe dialoogi. Täida lüngad.', 'Markus', 'Sofia', [
+        ['A', 'Tere [hommikust]! Kas te olete uus naaber?'], ['B', 'Tere! Jah, ma kolisin eile. Minu [nimi] on Sofia.'], ['A', 'Väga [meeldiv]! Mina olen Markus. Ma elan korteris number viis.'],
+        ['B', 'Vabandust, ma ei saanud [aru]. Palun korrake aeglaselt.'], ['A', 'Ma elan korteris number viis. Kas ma saan [aidata]? Kast on raske.'],
+        ['B', 'Aitäh, väga lahke! Kas me võime öelda [sina]?'], ['A', 'Muidugi! Kust sa pärit oled?'], ['B', 'Ma olen pärit Ukrainast, Lvivist.'], ['A', 'Tore! Head [päeva] ja tere tulemast!'],
+      ]),
+      B.reading('002_d_read', 'Loe: Sofia kiri sõbrannale.', 'Loe kirja ja vasta küsimustele.', 'Uus kodu, uued naabrid',
+        'Tere, Ira! Ma elan nüüd Tartus. Eile ma kolisin uude korterisse. Kast oli väga raske, aga naaber Markus aitas mind. Markus on väga viisakas. Ta küsis kõigepealt, kas ta võib öelda sina. Me rääkisime eesti keeles. Ma ei saanud kõigest aru ja ütlesin: „Palun korrake aeglaselt.” Markus kordas ja naeratas. Teisel korrusel elab vanem proua. Temaga ma räägin teie-vormis: „Tere päevast! Kuidas teil läheb?” Ta vastas: „Aitäh, hästi! Tere tulemast meie majja!” Täna ma küpsetan kooki ja viin naabritele. Kirjuta mulle, kuidas sul läheb! Sofia',
+        [['Kes aitas Sofiat?', 'Markus|naaber Markus'], ['Mida Markus kõigepealt küsis?', 'kas ta võib öelda sina|kas võib öelda sina'], ['Mida Sofia ütles, kui ta ei saanud aru?', 'Palun korrake aeglaselt'], ['Kuidas Sofia räägib vanema prouaga?', 'teie-vormis|teie'], ['Mida Sofia täna teeb?', 'küpsetab kooki|ta küpsetab kooki ja viib naabritele']]),
+      B.notice('002_d_notice', 'Märka: sina või teie?', ['Sõbrale, lapsele, kolleegile: **sina** — Kust **sa** pärit **oled**?', 'Võõrale, vanemale inimesele: **teie** — Kust **te** pärit **olete**?', 'Ma ei saa aru: **Palun korrake!** **Palun rääkige aeglasemalt!**', 'Hüvastijätt: **Nägemist! Nägemiseni! Head päeva!**']),
+      B.transformation('002_d_formal', 'Sina → teie.', 'Kirjuta lause viisakalt (teie).', [['Kust sa pärit oled?', 'Kust te …?', 'Kust te pärit olete?|Kust te olete pärit?'], ['Kas sa räägid eesti keelt?', 'Kas te …?', 'Kas te räägite eesti keelt?'], ['Korda palun!', 'Palun …!', 'Palun korrake!'], ['Räägi aeglasemalt!', 'Palun …!', 'Palun rääkige aeglasemalt!'], ['Kus sa elad?', 'Kus te …?', 'Kus te elate?'], ['Mis keeli sa räägid?', 'Mis keeli te …?', 'Mis keeli te räägite?'], ['Kas sa saad aru?', 'Kas te …?', 'Kas te saate aru?'], ['Tule sisse!', 'Palun …!', 'Palun tulge sisse!']]),
+      B.errorfix('002_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Mul on väga meeldiv teiega tutvuma.', 'Mul on väga meeldiv teiega tutvuda.'], ['Vabandust, ma ei saan teist hästi aru.', 'Vabandust, ma ei saa teist hästi aru.'], ['Kust te pärit oled, kui ma tohin küsida?', 'Kust te pärit olete, kui ma tohin küsida?'], ['Proua Tamm, palun korda seda lauset veel kord!', 'Proua Tamm, palun korrake seda lauset veel kord!'], ['Härra Kask, kas sa räägid ka vene keelt?', 'Härra Kask, kas te räägite ka vene keelt?'], ['Hommikul kell kaheksa ütlen ma kolleegile: tere õhtust!', 'Hommikul kell kaheksa ütlen ma kolleegile: tere hommikust!'], ['Palun rääkige natuke aeglasem, ma olen alles algaja.', 'Palun rääkige natuke aeglasemalt, ma olen alles algaja.'], ['Kas me võime öelda teie? Mina olen Siim.', 'Kas me võime öelda sina? Mina olen Siim.']]),
+      B.wordforms('002_d_forms', 'Palun teie-vormis.', 'Kirjuta viisakas palve (teie).', [['korda!', 'teie', 'korrake'], ['räägi!', 'teie', 'rääkige'], ['istu!', 'teie', 'istuge'], ['tule!', 'teie', 'tulge'], ['oota!', 'teie', 'oodake'], ['sa oled', 'te', 'olete'], ['sa elad', 'te', 'elate'], ['sa räägid', 'te', 'räägite']]),
+      B.translation('002_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Приятно познакомиться!', 'Извините, я не понимаю.', 'Повторите, пожалуйста.', 'Говорите медленнее, пожалуйста.', 'Спасибо, до свидания!', 'Я здесь новенький.', 'Кем вы работаете?', 'Если нужно, я помогу.']),
+      B.speaking('002_d_say', 'Tutvume!', 'Tutvu paarilisega. Kasuta dialoogi väljendeid.', ['Tervita ja ütle oma nimi.', 'Küsi, kust ta pärit on.', 'Küsi, kus ta elab.', 'Palun tal korrata üks lause.', 'Jäta hüvasti.'], [60, 90], ['Tere! Mina olen…', 'Meeldiv tutvuda!', 'Palun korrake!']),
+      B.writing('002_d_write', 'Kiri sõbrale.', 'Kirjuta sõbrale 5–7 lauset: kellega sa tutvusid ja mida te rääkisite.', [5, 7], ['tutvusin', 'nimi', 'pärit', 'meeldiv'], 2),
+    ],
+    practice: [
+      B.cloze('002_p_cloze', 'Vali lünka sobiv sõna.', 'Loe dialoogi. Vali igasse lünka üks variant.', 'Uus kolleeg', [
+        'Siim: Tere {*hommikust|õhtust|ööd}! Kas te olete uus kolleeg?',
+        'Olga: Tere! Jah, minu {*nimi|nime|nimes} on Olga. Meeldiv {*tutvuda|tutvuma|tutvun}!',
+        'Siim: Mina olen Siim. Kust te pärit {*olete|oled|on}?',
+        'Olga: Ma olen pärit Narvast. Vabandust, ma ei saanud {*aru|aruta|arus}. Palun {*korrake|korda|kordama} aeglasemalt.',
+        'Siim: Kas me võime öelda {*sina|teie|mina}? Tere tulemast meie {*firmasse|firma|firmas}!',
+      ], 'g_vocab'),
+      B.listening('002_p_listen', 'Kuulamine. Tutvumine peol.', 'Õpetaja loeb vestluse kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Liene: Tere! Mina olen Liene. Ma olen Kati sõbranna.', 'Martin: Tere, Liene! Meeldiv tutvuda. Mina olen Martin, Kati kolleeg.',
+        'Liene: Vabandust, kuidas teie nimi oli?', 'Martin: Martin. Ja võime öelda sina.', 'Liene: Hea küll! Kust sa pärit oled, Martin?',
+        'Martin: Ma olen pärit Viljandist, aga elan Tartus.', 'Liene: Mina olen pärit Riiast. Ma õpin Tartu ülikoolis.', 'Martin: Tore! Mida sa õpid?',
+        'Liene: Ma õpin arstiks. Aga nüüd ma pean minema. Nägemiseni!', 'Martin: Head õhtut, Liene!',
+      ], [
+        'Liene on Kati [sõbranna].', 'Martin on Kati [kolleeg].', 'Martin on pärit [Viljandist].', 'Martin elab [Tartus].', 'Liene on pärit [Riiast].', 'Liene õpib [arstiks].', 'Martin ja Liene otsustavad öelda [sina].', 'Lõpus ütleb Martin: „Head [õhtut]!”']),
+      B.formtext('002_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev sõna õiges vormis.', 'Esimene päev uues kohas', [
+        'Täna on Olga esimene päev uues firmas. Ta [tuleb] (tulema) kontorisse kell kaheksa ja [ütleb] (ütlema) kõigile tere.',
+        '',
+        'Kolleeg Siim [tutvustab] (tutvustama) talle teisi inimesi. Olga [räägib] (rääkima) aeglaselt, aga kõik [saavad] (saama) aru.',
+        '',
+        'Lõunal küsib Siim: „Kas te [joote] (jooma) kohvi?” Olga vastab: „Ma [eelistan] (eelistama) teed.” Õhtul ta [ütleb] (ütlema): „Head õhtut!”',
+      ], 'g_notice'),
+      B.wordorder('002_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Kas teie olete meie uus kolleeg?', 'Ma alustan täna tööd.', 'Kui sul on küsimusi, küsi julgelt.', 'Vabandust, kuidas teie nimi oli?', 'Täna oli minu esimene tööpäev.', 'Ülemus tutvustas mind kolleegidele.', 'Lõunal istusin uute kolleegidega.', 'Anna on pärit Pärnust.']),
+      B.translation('002_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Вы наш новый коллега?', 'Можно на «ты»?', 'Как вас зовут?', 'Если есть вопросы, спрашивай.', 'Большое спасибо за помощь!', 'Приятно познакомиться!', 'Извините, я не понимаю.', 'Повторите, пожалуйста.']),
+      B.choice('002_p_form', 'Vali õige vorm.', 'Vali lünka sobiv sõna.', [['Kust ___ pärit olete?', 'te', 'sa', 'ta'], ['Kas sa ___ vene keelt?', 'räägid', 'räägite', 'räägime'], ['Palun ___ aeglasemalt!', 'rääkige', 'räägin', 'räägib'], ['Mul on väga meeldiv ___.', 'tutvuda', 'tutvun', 'tutvume'], ['Vabandust, ma ei ___ aru.', 'saa', 'saan', 'saad'], ['Sa räägid uue kolleegiga. Ta on sinu vanune.', 'Kust sa pärit oled?', 'Kust te pärit olete, härra?', 'Kust nad pärit on?'], ['Sa räägid vanema naisega poe kassas.', 'Kas te maksate kaardiga?', 'Kas sa maksad kaardiga, sõber?', 'Kas ta maksab kaardiga?'], ['Sa küsid tänaval võõralt inimeselt teed.', 'Vabandage, kus on jaam?', 'Kuule, kus on jaam?', 'Tere, sõber, kus jaam?']], 'full', 'g_notice'),
+      B.dictation('002_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Mul on väga meeldiv tutvuda.', 'Palun rääkige aeglasemalt.', 'Vabandust, ma ei saa aru.', 'Kust te pärit olete?', 'Head päeva ja nägemiseni!'], 5),
+      B.speaking('002_p_say', 'Kolm tutvumist.', 'Tutvu kolme inimesega. Vali iga kord sina või teie.', ['Uus kolleeg tööl (sinu vanune).', 'Uus naaber (vanem härra).', 'Lapsevanem lasteaias.', 'Uus õpetaja keelekursusel.', 'Arst või õde polikliinikus.'], [60, 120], ['Tere! Mina olen…', 'Meeldiv tutvuda!', 'Kust te pärit olete? / Kust sa pärit oled?']),
+    ],
+    transfer: [
+      B.text('002_t_situation', 'Uus olukord', 'Sa alustad uuel töökohal. Esimesel päeval tutvustab ülemus sind kolleegidele. Lõunal istud laua taha, kus on kaks võõrast inimest. Pärast tööd kirjutad sõbrale, kuidas päev läks.'),
+      B.dialogue('002_t_dialog', 'Telefonis.', 'Täida dialoog: uus kolleeg helistab sulle.', 'Kolleeg', 'Sina', [
+        ['A', 'Tere! Siin Anna Tamm. Ma olen teie uus [kolleeg].'], ['B', 'Tere, Anna! Meeldiv [tutvuda]. Kuidas ma saan aidata?'], ['A', 'Vabandust, ma ei leia [kööki|lõunasööki]. Kus see on?'],
+        ['B', 'Köök on teisel [korrusel], koridori lõpus.'], ['A', 'Palun [korrake], ma ei kuulnud hästi.'], ['B', 'Teisel korrusel, koridori lõpus.'], ['A', 'Suur [aitäh]!'], ['B', 'Palun väga! Head [isu]!'],
+      ]),
+      B.reading('002_t_mail', 'Loe e-kirja.', 'Loe ülemuse kirja ja vasta küsimustele.', 'Tere tulemast meie meeskonda!',
+        'Head kolleegid! Esmaspäeval alustab meie osakonnas uus töötaja Anna Tamm. Anna on pärit Pärnust ja ta räägib eesti, vene ja inglise keelt. Ta töötab klienditeenindajana. Anna istub teisel korrusel, akna juures, Siimu kõrval. Ta on varem töötanud hotellis administraatorina, nii et tal on palju kogemust. Esimesel päeval näitab Siim talle kontorit ja arvutiprogramme. Palun tutvuge Annaga ja aidake teda esimesel nädalal. Rääkige temaga eesti keeles, aga aeglaselt. Lõuna on meil kell 12.30 köögis. Reedel on meil koosolek, seal tutvustab Anna ennast kõigile. Parimate soovidega, Kersti',
+        [['Millal Anna alustab?', 'esmaspäeval'], ['Kust Anna pärit on?', 'Pärnust'], ['Mis keeli Anna räägib?', 'eesti, vene ja inglise keelt|eesti, vene ja inglise'], ['Kus Anna istub?', 'teisel korrusel|teisel korrusel, akna juures|akna juures'], ['Mis kell on lõuna?', '12.30|kell 12.30'], ['Kus Anna varem töötas?', 'hotellis|hotellis administraatorina'], ['Mida Siim esimesel päeval teeb?', 'näitab kontorit ja arvutiprogramme|näitab Annale kontorit']]),
+      B.listening('002_t_listen', 'Kuula ülemuse tutvustust.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Head kolleegid! Täna alustab meil uus töötaja.', 'Tema nimi on Anna Tamm. Anna on pärit Pärnust.', 'Ta töötab klienditeenindajana ja istub teisel korrusel.',
+        'Anna räägib eesti, vene ja inglise keelt.', 'Lõuna on täna kell pool üks köögis. Palun tutvuge Annaga ja aidake teda!', 'Reedel on koosolek kell kolm. Seal räägib Anna endast rohkem.',
+      ], ['Uue töötaja nimi on Anna [Tamm].', 'Ta on pärit [Pärnust].', 'Ta töötab [klienditeenindajana].', 'Ta istub [teisel] korrusel.', 'Lõuna on [köögis].', 'Koosolek on [reedel] kell kolm.', 'Anna räägib eesti, vene ja [inglise] keelt.', 'Lõuna on täna kell [pool üks].']),
+      B.rolecards('002_t_roles', 'Lõunalauas.', 'Tutvuge lõunalauas. Üks on uus töötaja, teine on vana kolleeg.', 'Oled uus töötaja. Tervita, tutvusta ennast, küsi kolleegi nime ja ametit. Kui sa ei saa aru, palu korrata.', 'Töötad firmas kaua. Tervita uut kolleegi, küsi, kust ta pärit on ja kus ta elab. Paku abi.', ['Tere! Ma olen siin uus.', 'Vabandust, palun korrake!', 'Mis teie amet on?'], ['Tere tulemast!', 'Kust te pärit olete?', 'Kui vaja, ma aitan.']),
+      B.letter('002_t_write', 'Kiri sõbrale.', 'Kirjuta sõbrale 50–70 sõna oma esimesest tööpäevast ja uutest kolleegidest.', 'Tere!', 'Kallistades', [50, 70]),
+      B.speaking('002_t_intro', 'Tutvustus koosolekul.', 'Ülemus palub sul ennast tutvustada. Räägi kolleegidele umbes üks minut.', ['Kes sa oled ja kust sa pärit oled?', 'Mis keeli sa räägid?', 'Mida sa teed?', 'Mida sa vabal ajal teed?'], [45, 90]),
+      B.rubric('002_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Vestluses on tervitus, tutvustus, küsimused ja hüvastijätt.', 'Sina ja teie on õigesti valitud.', 'Kui ei saa aru, palub õpilane korrata.', 'Sõnumis on vähemalt viis arusaadavat lauset.']),
+      B.selfcheck('002_t_self', ['Ma tutvun uute kolleegidega.', 'Ma tutvustan ennast koosolekul.', 'Ma saan aru lühikesest e-kirjast.', 'Ma kirjutan sõbrale oma päevast.'], 'Tutvumine õnnestus'),
+    ],
+  },
+
+  'a2-003': {
+    title: 'Olen, elan, räägin',
+    canDo: 'Ma kasutan olevikus tegusõnu olema, elama, töötama, õppima ja rääkima jaatavas ja eitavas lauses ning ütlen endast 6 lauset ilma abita.',
+    template: 'v3',
+    discover: [
+      B.reading('003_d_read', 'Loe: Meie maja.', 'Loe teksti ja vasta küsimustele.', 'Kes siin elab?',
+        'Urmas on 52 aastat vana. Ta elab esimesel korrusel koos naisega. Urmas töötab bussijuhina. Ta töötab hommikul vara ja õhtul on ta kodus. Kati elab teisel korrusel. Ta on üliõpilane, ta õpib ülikoolis meditsiini. Kati räägib eesti, inglise ja natuke saksa keelt. Oksana elab kolmandal korrusel koos tütrega. Oksana ei tööta praegu, sest ta õpib eesti keelt. Ta räägib ukraina, vene ja inglise keelt. Eesti keelt ta räägib veel natuke, aga ta õpib iga päev. Õhtul räägivad naabrid trepikojas eesti keeles. Urmas räägib aeglaselt ja Oksana saab temast hästi aru. Kati räägib kiiresti, aga ta kordab, kui Oksana palub.',
+        [['Kus Urmas töötab?', 'bussijuhina|ta on bussijuht|ta töötab bussijuhina'], ['Mida Kati õpib?', 'meditsiini|ta õpib meditsiini'], ['Mis keeli Kati räägib?', 'eesti, inglise ja natuke saksa keelt|eesti, inglise ja saksa'], ['Miks Oksana praegu ei tööta?', 'ta õpib eesti keelt|sest ta õpib eesti keelt'], ['Kellega Oksana elab?', 'tütrega|koos tütrega'], ['Mis keeles naabrid õhtul räägivad?', 'eesti keeles']]),
+      B.notice('003_d_notice', 'Märka: olevik', ['ma **elan**, sa **elad**, ta **elab**', 'me **elame**, te **elate**, nad **elavad**', 'Eitus: ma **ei ela**, sa **ei ela**, ta **ei ela** (ei + tüvi)', 'töötama → ma **töötan** / **ei tööta**', 'rääkima → ma **räägin** / **ei räägi**', 'õppima → ma **õpin** / **ei õpi**']),
+      B.diagram('003_d_table', 'mind', { title: 'Tegusõna ja lõpud', instruction: 'Kirjuta puuduvad vormid.', center: 'elama', nodes: 'ma\n- [elan]\nsa\n- [elad]\nta\n- [elab]\nme\n- [elame]\nte\n- [elate]\nnad\n- [elavad]' }, 'full'),
+      B.wordforms('003_d_forms', 'Pööra tegusõna.', 'Kirjuta tegusõna õiges vormis.', [
+        ['töötama', 'ma', 'töötan'], ['õppima', 'sa', 'õpid'], ['rääkima', 'ta', 'räägib'], ['elama', 'me', 'elame'],
+        ['õppima', 'te', 'õpite'], ['rääkima', 'nad', 'räägivad'], ['töötama', 'ma (eitus)', 'ei tööta'], ['nad', 'õppima', 'õpivad']]),
+      B.transformation('003_d_neg', 'Ei ole nii!', 'Kirjuta eitav lause.', [['Urmas töötab õhtul.', 'Urmas ei …', 'Urmas ei tööta õhtul.'], ['Kati elab esimesel korrusel.', 'Kati ei …', 'Kati ei ela esimesel korrusel.'], ['Oksana räägib soome keelt.', 'Oksana ei …', 'Oksana ei räägi soome keelt.'], ['Me õpime saksa keelt.', 'Me ei …', 'Me ei õpi saksa keelt.'], ['Ma olen bussijuht.', 'Ma ei …', 'Ma ei ole bussijuht.'], ['Ma töötan pühapäeval.', 'Ma ei …', 'Ma ei tööta pühapäeval.'], ['Kati räägib soome keelt.', 'Kati ei …', 'Kati ei räägi soome keelt.'], ['Me elame kesklinnas.', 'Me ei …', 'Me ei ela kesklinnas.']]),
+      B.errorfix('003_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Urmas töötan juba kümme aastat bussijuhina.', 'Urmas töötab juba kümme aastat bussijuhina.'], ['Me elab praegu väikeses korteris Tartus.', 'Me elame praegu väikeses korteris Tartus.'], ['Kati ei õpib ülikoolis saksa keelt.', 'Kati ei õpi ülikoolis saksa keelt.'], ['Kas te räägid ka natuke vene keelt?', 'Kas te räägite ka natuke vene keelt?'], ['Meie naabrid õpib õhtuti eesti keelt.', 'Meie naabrid õpivad õhtuti eesti keelt.'], ['Oksana ei töötab praegu, ta on kodus lapsega.', 'Oksana ei tööta praegu, ta on kodus lapsega.'], ['Ma ei töötan täna, sest on pühapäev.', 'Ma ei tööta täna, sest on pühapäev.'], ['Kati õpin Tartu ülikoolis meditsiini.', 'Kati õpib Tartu ülikoolis meditsiini.']]),
+      B.gaps('003_d_gaps', 'Täida lüngad.', 'Kirjuta sulgudes olev tegusõna õiges vormis.', ['Urmas [töötab] bussijuhina. (töötama)', 'Kati [õpib] ülikoolis. (õppima)', 'Oksana [ei tööta] praegu. (töötama, eitus)', 'Me [elame] Tartus. (elama)', 'Kas te [räägite] eesti keelt? (rääkima)', 'Nad [elavad] samas majas. (elama)', 'Mia [käib] lasteaias. (käima)', 'Oksana mees [töötab] ehitusel. (töötama)']),
+      B.speaking('003_d_say', 'Räägi oma majast.', 'Räägi paarilisele oma naabritest või perest.', ['Kes elab sinu kõrval?', 'Kus ta töötab või õpib?', 'Mis keelt ta räägib?', 'Mida sina teed?', 'Mida te koos teete?'], [45, 90], ['Minu naaber elab…', 'Ta töötab…', 'Ta ei räägi…']),
+      B.writing('003_d_write', 'Minu naabrid.', 'Kirjuta 6–8 lauset oma naabritest või perest.', [6, 8], ['elab', 'töötab', 'õpib', 'räägib'], 2),
+    ],
+    practice: [
+      B.formtext('003_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev tegusõna õiges vormis. Mõnes lauses on eitus.', 'Meie kursus', [
+        'Meie kursusel õpib kaheksa inimest. Me [elame] (elama) kõik Tartus, aga me [oleme] (olema) pärit eri riikidest.',
+        '',
+        'Oksana ei [tööta] (töötama) praegu, ta õpib ainult eesti keelt. Tema mees [töötab] (töötama) ehitusel.',
+        '',
+        'Taras ja Liene [räägivad] (rääkima) juba hästi eesti keelt. Mina [räägin] (rääkima) veel aeglaselt ja ma ei [saa] (saama) alati aru. Aga ma [õpin] (õppima) iga päev.',
+      ], 'g_notice'),
+      B.listening('003_p_listen', 'Kuulamine. Oksana räägib.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Oksana. Ma elan Tartus, Annelinnas.', 'Ma ei tööta praegu, sest ma õpin eesti keelt.', 'Kursus on neli korda nädalas, hommikul kell üheksa.',
+        'Minu tütar Mia käib lasteaias. Ta räägib juba eesti keelt paremini kui mina.', 'Minu mees töötab ehitusel. Ta ei räägi eesti keelt, ta räägib ainult ukraina ja vene keelt.',
+      ], ['Oksana elab [Annelinnas|Tartus].', 'Kursus on [neli|4] korda nädalas.', 'Tund algab kell [üheksa|9].', 'Mia käib [lasteaias].', 'Oksana mees töötab [ehitusel].', 'Oksana ei [tööta] praegu.', 'Mia räägib eesti keelt paremini kui [ema|Oksana].', 'Oksana mees räägib ukraina ja [vene] keelt.']),
+      B.cloze('003_p_cloze', 'Vali lünka sobiv sõna.', 'Loe Pauli teksti. Vali igasse lünka üks variant.', 'Paul räägib endast', [
+        'Tere! Mina {*olen|on|oled} Paul. Ma {*elan|elab|elame} Pärnus koos oma perega. Ma {*töötan|töötab|töötama} kokana väikeses restoranis.',
+        '',
+        'Minu naine Kati ei {*tööta|töötab|töötan} praegu, sest ta õpib ülikoolis. Meie lapsed {*käivad|käib|käime} koolis. Kodus me {*räägime|räägivad|räägin} eesti ja inglise keelt.',
+        '',
+        'Ma ei {*räägi|räägin|räägib} veel hästi vene keelt, aga ma õpin. Kas sina {*räägid|räägin|räägib} vene keelt?',
+      ], 'g_vocab'),
+      B.wordorder('003_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Oksana õpib eesti keelt hommikul.', 'Minu mees ei räägi eesti keelt.', 'Mia käib lasteaias.', 'Me elame Annelinnas.', 'Kas te töötate ehitusel?', 'Kati õpib ülikoolis meditsiini.', 'Urmas töötab hommikul vara.', 'Oksana ei tööta praegu.']),
+      B.translation('003_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Я не работаю, я учусь.', 'Моя дочь ходит в детский сад.', 'Мой муж работает на стройке.', 'Они живут в Тарту.', 'Вы говорите по-английски?', 'Я работаю в больнице.', 'Она учится в университете.', 'Мы живём в Тарту.']),
+      B.dictation('003_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Ma elan Tartus.', 'Ma ei tööta praegu.', 'Kati õpib ülikoolis.', 'Kas te räägite eesti keelt?', 'Nad elavad samas majas.'], 5),
+      B.speaking('003_p_chain', 'Ahelmäng.', 'Rääkige kordamööda. Iga inimene ütleb ühe lause endast ja ühe eelmise kohta.', ['Ma elan…, Viktor elab…', 'Ma töötan / õpin…, tema töötab / õpib…', 'Ma räägin…, tema ei räägi…'], [60, 120]),
+      B.writing('003_p_write', 'Kuus lauset endast.', 'Kirjuta kuus lauset endast. Kasuta tegusõnu olema, elama, töötama, õppima, rääkima. Kaks lauset on eitavad.', [6, 6], ['elan', 'töötan', 'õpin', 'räägin', 'ei'], 4),
+    ],
+    transfer: [
+      B.text('003_t_situation', 'Uus olukord', 'Sinu firma ajakiri kirjutab uutest töötajatest. Ajakirjanik saadab sulle küsimused. Ta tahab ka lühikest videot, kus sa räägid endast.'),
+      B.reading('003_t_article', 'Loe artiklit.', 'Loe artiklit ja vasta küsimustele.', 'Meie uus kolleeg: Taras',
+        'Taras on 29 aastat vana ja ta on pärit Ukrainast. Ta elab Tartus juba kaks aastat. Taras töötab meie firmas programmeerijana. Ta räägib ukraina, vene ja inglise keelt. Eesti keelt ta õpib õhtuti keelekoolis. „Ma ei räägi veel hästi, aga ma saan juba palju aru,” ütleb Taras. Tööl räägib ta kolleegidega inglise keeles, aga lõunal proovib ta rääkida eesti keeles. Kolleegid aitavad teda ja kordavad aeglaselt. Taras elab Tartus koos sõbraga. Vabal ajal ta mängib kitarri ja käib matkamas. Suvel tahab ta minna matkama Soomaale.',
+        [['Kui kaua elab Taras Tartus?', 'kaks aastat|2 aastat'], ['Kus Taras töötab?', 'meie firmas|firmas|programmeerijana'], ['Millal Taras eesti keelt õpib?', 'õhtuti'], ['Mida Taras vabal ajal teeb?', 'mängib kitarri ja käib matkamas|mängib kitarri|käib matkamas']]),
+      B.listening('003_t_listen', 'Kuula video tutvustust.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Mina olen Kati. Ma olen kahekümne aastane.', 'Ma elan Tartus, ühiselamus.', 'Ma õpin ülikoolis meditsiini ja töötan nädalavahetusel apteegis.',
+        'Ma räägin eesti, inglise ja natuke saksa keelt. Vene keelt ma ei räägi.', 'Vabal ajal ma ujun ja laulan kooris.',
+      ], ['Kati elab [ühiselamus|Tartus].', 'Ta õpib [meditsiini].', 'Nädalavahetusel töötab ta [apteegis].', 'Kati ei räägi [vene] keelt.', 'Vabal ajal ta ujub ja [laulab].', 'Kati on [kahekümne] aastane.', 'Kati räägib natuke [saksa] keelt.', 'Kati laulab [kooris].']),
+      B.letter('003_t_letter', 'Kiri uuele kolleegile.', 'Kirjuta Tarasele 40–60 sõna: tutvusta ennast ja küsi kaks küsimust tema kohta.', 'Tere, Taras!', 'Parimate soovidega', [40, 60]),
+      B.writing('003_t_write', 'Tekst ajakirja.', 'Kirjuta endast 6–8 lauset ajakirja jaoks (nagu Tarase tekst).', [6, 8], ['olen', 'elan', 'töötan', 'õpin', 'räägin'], 3),
+      B.rolecards('003_t_roles', 'Intervjuu.', 'Üks on ajakirjanik, teine uus töötaja.', 'Oled ajakirjanik. Küsi uuelt töötajalt viis küsimust: kus elab, kus töötab, mis keeli räägib, mida õpib, mida teeb vabal ajal.', 'Oled uus töötaja. Vasta täislausetega. Ütle vähemalt üks eitav lause.', ['Kus te elate?', 'Mis keeli te räägite?'], ['Ma elan…', 'Ma ei räägi…']),
+      B.speaking('003_t_video', 'Video kolleegidele.', 'Räägi endast üks minut. Kasuta vähemalt viit tegusõna.', ['Kes sa oled?', 'Kus sa elad ja töötad?', 'Mis keeli sa räägid ja mis keelt mitte?', 'Mida sa vabal ajal teed?'], [60, 90]),
+      B.rubric('003_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Tekstis on vähemalt kuus lauset endast.', 'Tegusõnad on õiges vormis (ma elan, ta töötab).', 'Eitus on õige (ma ei tööta).', 'Suuline tekst on arusaadav ja kestab umbes minuti.']),
+      B.selfcheck('003_t_self', ['Ma vastan kirjalikele küsimustele endast.', 'Ma kirjutan endast ajakirja jaoks.', 'Ma räägin endast minuti.', 'Ma küsin ja vastan intervjuus.'], 'Räägin endast'),
+    ],
+  },
+
+  'a2-004': {
+    title: 'Isikuandmed ja lihtne ankeet',
+    canDo: 'Ma täidan ankeedi oma andmetega (nimi, sünniaeg, aadress, telefon, e-post, kodakondsus) ja kirjutan 4–6-lauselise sõnumi oma andmetega.',
+    template: 'v3',
+    discover: [
+      B.profiles('004_d_cards', 'Kelle kaart?', 'Loe isikukaarte ja kirjuta lünka andmed.', [
+        ['Olga Ivanova', ['sündinud 12.05.1991', 'Lasnamäe 25-14, 13912 Tallinn', 'tel 5123 4567', 'olga.ivanova@mail.ee', 'Eesti kodanik'], ['Olga sünniaeg on [12.05.1991|12. mai 1991].', 'Tema postiindeks on [13912].']],
+        ['Kaspar Kask', ['sündinud 03.11.1999', 'Rüütli 8-3, 80010 Pärnu', 'tel 5566 7788', 'kaspar.kask@gmail.com', 'Eesti kodanik'], ['Kaspar elab [Pärnus].', 'Tema telefon on [5566 7788].']],
+        ['Oksana Bondar', ['sündinud 27.08.1991', 'Annelinna 14-6, 50108 Tartu', 'tel 5321 9876', 'oksana.bondar@mail.ee', 'Ukraina kodanik'], ['Oksana on [Ukraina] kodanik.', 'Ta on sündinud [augustis].']],
+      ]),
+      B.reading('004_d_read', 'Loe: Olga raamatukogus.', 'Loe teksti ja vasta küsimustele.', 'Lugejakaart',
+        'Olga läheb laupäeval raamatukokku. Ta tahab laenutada kaks raamatut eesti keeles. Raamatukoguhoidja ütleb, et kõigepealt on vaja lugejakaarti. Olga täidab ankeedi. Ta kirjutab oma ees- ja perekonnanime, sünniaja, aadressi ja telefoninumbri. E-posti aadressi ta ütleb tähthaaval, sest nimi Ivanova on raske. Raamatukoguhoidja kontrollib ID-kaarti ja annab Olgale lugejakaardi. Kaart on tasuta. Raamatud peab tagasi tooma kolme nädala pärast. Olga on rõõmus: nüüd saab ta lugeda iga nädal uut raamatut. Tema poeg võtab ka ühe lasteraamatu. Raamatukogu on avatud iga päev kella kümnest kuueni.',
+        [['Mida Olga raamatukogus tahab?', 'laenutada raamatuid|laenutada kaks raamatut'], ['Mida on kõigepealt vaja?', 'lugejakaarti|lugejakaart'], ['Mida Olga ankeeti kirjutab?', 'nime, sünniaja, aadressi ja telefoninumbri|nime, sünniaja, aadressi, telefoni'], ['Miks ütleb ta e-posti tähthaaval?', 'nimi Ivanova on raske|sest nimi on raske'], ['Millal peab raamatud tagasi tooma?', 'kolme nädala pärast'], ['Kui palju kaart maksab?', 'tasuta|see on tasuta|mitte midagi'], ['Mida võtab Olga poeg?', 'lasteraamatu|ühe lasteraamatu']]),
+      B.notice('004_d_notice', 'Märka: kuupäev ja aadress', ['Kuupäev: **12.05.1991** = kaheteistkümnes mai tuhat üheksasada üheksakümmend üks', 'Ma olen sündinud **12. mail** (millal? → -l)', 'Aadress: tänav, maja number, korter: **Lasnamäe 25-14**', 'E-post: **olga.ivanova@mail.ee** — @ = ätt, . = punkt']),
+      B.table('004_d_form', 'Täida Olga ankeet.', 'Kirjuta ankeeti Olga andmed (vaata kaarti).', 'Rida, Andmed', ['Eesnimi | [Olga]', 'Perekonnanimi | [Ivanova]', 'Sünniaeg | [12.05.1991]', 'Aadress | [Lasnamäe 25-14, Tallinn|Lasnamäe 25-14, 13912 Tallinn]', 'E-post | [olga.ivanova@mail.ee]'], 'g_read'),
+      B.gaps('004_d_gaps', 'Täida lüngad.', 'Vali sõnapangast sobiv sõna.', ['Palun [täitke] ankeet.', 'Kirjutage oma [eesnimi] ja perekonnanimi.', 'Minu [kodakondsus] on Eesti.', 'Ankeedi lõppu pane oma [allkiri].', 'Minu [sünniaeg] on 3. november 1999.', 'Palun [kirjutage] trükitähtedega.', 'Ankeedi lõppu pange oma [allkiri].', 'Minu [sihtnumber] on 50108.'], ['täitke', 'eesnimi', 'kodakondsus', 'allkiri', 'sünniaeg', 'sugu', 'kirjutage', 'sihtnumber', 'tähthaaval', 'sündinud']),
+      B.errorfix('004_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Ma olen sündinud 12. mai.', 'Ma olen sündinud 12. mail.'], ['Minu eesnimi on Ivanova.', 'Minu perekonnanimi on Ivanova.'], ['Ma elan Lasnamäe 25-14, Tallinn.', 'Ma elan Lasnamäel, Lasnamäe 25-14, Tallinnas.|Ma elan aadressil Lasnamäe 25-14, Tallinn.'], ['Palun täida ankeet, proua.', 'Palun täitke ankeet.'], ['Minu e-post on olga ätt mail.', 'Minu e-post on olga ätt mail punkt ee.'], ['Kaart on tasuline.', 'Kaart on tasuta.'], ['Ma elan Tartu.', 'Ma elan Tartus.'], ['Minu perekonnanimi on Olga.', 'Minu eesnimi on Olga.']]),
+      B.wordorder('004_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Olga täidab raamatukogus ankeedi.', 'Kaart on tasuta.', 'Raamatud peab tagasi tooma kolme nädala pärast.', 'Palun kirjutage trükitähtedega.', 'Raamatukoguhoidja kontrollib ID-kaarti.', 'Olga ütleb e-posti tähthaaval.', 'Ma olen sündinud augustis.', 'Minu sihtnumber on 50108.']),
+      B.speaking('004_d_say', 'Küsi andmeid.', 'Küsi paarilise andmeid ja kirjuta need üles. Siis vahetage.', ['Mis on teie perekonnanimi?', 'Mis on teie sünniaeg?', 'Mis on teie aadress?', 'Mis on teie telefoninumber?', 'Mis on teie e-posti aadress?'], [60, 120], ['Kas te saate tähthaaval öelda?', 'Palun korrake numbrit!']),
+      B.writing('004_d_write', 'Minu andmed.', 'Kirjuta oma andmed 6–8 lausega (nimi, sünniaeg, aadress, telefon, e-post).', [6, 8], ['nimi', 'sündinud', 'elan', 'telefon'], 2),
+    ],
+    practice: [
+      B.listening('004_p_listen', 'Kuulamine. Registreerimine telefonis.', 'Õpetaja loeb vestluse kaks korda. Täida lüngad.', [
+        'Administraator: Keelekool Sõna, tere!', 'Viktor: Tere! Ma tahan registreerida eesti keele kursusele.', 'Administraator: Hea küll. Mis on teie nimi?',
+        'Viktor: Viktor Petrov. Petrov: P, E, T, R, O, V.', 'Administraator: Ja teie sünniaeg?', 'Viktor: Seitsmes juuni tuhat üheksasada kuuskümmend kolm.',
+        'Administraator: Teie telefoninumber?', 'Viktor: Viis neli null, kaks kolm üks, kaheksa.', 'Administraator: Ja e-post?', 'Viktor: viktor punkt petrov ätt mail punkt ee.', 'Administraator: Aitäh! Kursus algab esmaspäeval kell kuus.',
+      ], ['Perekonnanimi: [Petrov]', 'Sünniaeg: [07.06.1963|7. juuni 1963]', 'Telefon: [540 2318|5402318]', 'E-post: [viktor.petrov@mail.ee]', 'Kursus algab [esmaspäeval].', 'Eesnimi: [Viktor]', 'Viktor tahab minna [eesti keele] kursusele.', 'Kursus algab kell [kuus|6].']),
+      B.cloze('004_p_cloze', 'Vali lünka sobiv sõna.', 'Loe Sofia sõnumit. Vali igasse lünka üks variant.', 'Sõnum keelekoolile', [
+        'Tere! Minu {*nimi|nime|nimes} on Sofia Bondar. Ma {*tahan|tahab|tahame} registreerida A2 kursusele.',
+        '',
+        'Minu sünniaeg on 12. märts 1990. Ma elan Tallinnas, Pärnu maanteel 15, korter 8. Minu telefoninumber {*on|olen|oled} 5634 2190.',
+        '',
+        'Ma olen pärit Ukrainast, aga ma {*elan|elab|elavad} Eestis juba kaks aastat. Ma {*töötan|töötab|töötama} hotellis. Kas kursus on {*õhtul|õhtu|õhtust}? Ma saan tulla ainult pärast {*tööd|töö|tööl}.',
+        '',
+        'Palun {*vastake|vasta|vastama} e-postiga: sofia.bondar@mail.ee. Aitäh!',
+      ], 'g_vocab'),
+      B.formtext('004_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev sõna õiges vormis.', 'Ankeet perearsti juures', [
+        'Viktor [läheb] (minema) esimest korda uue perearsti juurde. Registratuuris [annab] (andma) õde talle ankeedi.',
+        '',
+        'Viktor [kirjutab] (kirjutama) ankeeti oma nime, sünniaja ja aadressi. Ta [elab] (elama) Tartus, Riia tänaval.',
+        '',
+        'Õde küsib: „Mis [on] (olema) teie telefoninumber?” Viktor [ütleb] (ütlema) numbri ja [kontrollib] (kontrollima), kas kõik on õige. Lõpuks ta [allkirjastab] (allkirjastama) ankeedi.',
+      ], 'g_notice'),
+      B.translation('004_p_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eесti keeles.'.replace('eесti','eesti'), ['Я родился в ноябре.', 'Мой почтовый индекс 80010.', 'Скажите, пожалуйста, по буквам.', 'Где нужно поставить подпись?', 'Заполните, пожалуйста, анкету.', 'Пишите печатными буквами.', 'Моя фамилия Иванова.', 'Я родилась двенадцатого мая.']),
+      B.reading('004_p_read', 'Loe: Hambaarsti kiri.', 'Loe kirja ja vasta küsimustele.', 'Teie aeg hambaarsti juures',
+        'Lugupeetud Markus Koval! Teie aeg hambaarsti juures on esmaspäeval, 20. oktoobril kell 10.00. Palun tulge kümme minutit varem ja täitke ankeet. Ankeeti kirjutage oma nimi, sünniaeg, aadress, telefoninumber ja e-post. Kui te ei saa tulla, helistage meile vähemalt üks päev ette telefonil 742 1100. Võtke kaasa ID-kaart. Esimene visiit kestab umbes pool tundi. Arst vaatab teie hambad üle ja ütleb, kas on vaja ravi. Kliinik asub Rüütli tänaval 12, teisel korrusel. Parkida saab tasuta maja taga. Parimate soovidega, Hambaraviklinik Naeratus',
+        [['Millal on Markuse aeg?', 'esmaspäeval, 20. oktoobril kell 10.00|20. oktoobril|esmaspäeval kell 10'], ['Mida peab enne tegema?', 'täitma ankeedi|täitke ankeet'], ['Mida tuleb ankeeti kirjutada?', 'nimi, sünniaeg, aadress, telefoninumber ja e-post|nime, sünniaja, aadressi, telefoni ja e-posti'], ['Mida teha, kui ei saa tulla?', 'helistada|helistage üks päev ette'], ['Mida võtta kaasa?', 'ID-kaart|ID-kaardi']]),
+      B.dictation('004_p_dict', 'Etteütlus. Andmed.', 'Kuula ja kirjuta andmed.', ['Minu nimi on Markus Koval.', 'Olen sündinud neljateistkümnendal veebruaril.', 'Minu aadress on Rüütli 8-3, Pärnu.', 'Minu telefon on 5566 7788.', 'Minu e-post on markus.koval@mail.ee.'], 5),
+      B.writing('004_p_message', 'Sõnum õpetajale.', 'Õpetaja palub sinu kontaktandmeid. Kirjuta sõnum 4–6 lausega: nimi, sünniaeg, aadress, telefon, e-post.', [4, 6], ['nimi', 'sündinud', 'elan', 'telefon', 'e-post'], 3),
+      B.speaking('004_p_say', 'Tähthaaval.', 'Ütle paarilisele oma perekonnanimi ja e-posti aadress tähthaaval. Paariline kirjutab.', ['Minu perekonnanimi on…: …', 'Minu e-post on…', 'Minu aadress on…', 'Minu sünniaeg on…'], [60, 120]),
+    ],
+    transfer: [
+      B.text('004_t_situation', 'Uus olukord', 'Sinu laps alustab trennis. Treener saadab ankeedi ja palub sul kirjutada lühikese sõnumi: kes sa oled ja kuidas sinuga ühendust võtta.'),
+      B.table('004_t_form', 'Ankeet.', 'Täida ankeet: laps võib olla päris või väljamõeldud.', 'Andmed, Sinu vastus', ['Lapse ees- ja perekonnanimi | ', 'Lapse sünniaeg | ', 'Aadress ja sihtnumber | ', 'Lapsevanema nimi | ', 'Telefon | ', 'E-post | ']),
+      B.reading('004_t_info', 'Loe infot.', 'Loe spordiklubi teadet ja vasta küsimustele.', 'Spordiklubi Kalev: uued lapsed',
+        'Tere tulemast spordiklubisse! Palun täitke ankeet ja tooge see esimesse trenni. Ankeeti kirjutage lapse ees- ja perekonnanimi, sünniaeg ja aadress. Kirjutage ka lapsevanema nimi, telefon ja e-post. Trenn on teisipäeviti ja neljapäeviti kell 17.00. Kuu tasu on 35 eurot. Esimesel korral võtke kaasa spordiriided, puhtad jalanõud ja veepudel. Lapsevanemad võivad esimeses trennis saalis olla. Kui laps on haige, saatke treenerile sõnum. Trenn kestab tund aega ja lõpeb kell 18.00. Lapsed treenivad kahes grupis: nooremad ja vanemad. Küsimuste korral helistage treener Mardile: 5899 1122.',
+        [['Millal ankeet tuleb tuua?', 'esimesse trenni|esimeses trennis'], ['Mis lapse andmed on vaja?', 'nimi, sünniaeg ja aadress|ees- ja perekonnanimi, sünniaeg, aadress'], ['Mis päevadel on trenn?', 'teisipäeviti ja neljapäeviti'], ['Kui palju trenn kuus maksab?', '35 eurot|kolmkümmend viis eurot']]),
+      B.letter('004_t_letter', 'Sõnum treenerile.', 'Kirjuta treenerile 40–60 sõna: tutvusta ennast ja oma last, anna kontaktandmed, küsi üks küsimus.', 'Tere, Marek!', 'Parimate soovidega', [40, 60]),
+      B.dialogue('004_t_dialog', 'Esimeses trennis.', 'Täida dialoog treeneriga.', 'Treener', 'Lapsevanem', [
+        ['A', 'Tere! Mina olen treener [Marek]. Kas te olete Mia ema?'], ['B', 'Jah, tere! Ma tõin [ankeedi].'], ['A', 'Aitäh! Kas siin on lapse [sünniaeg]?'],
+        ['B', 'Jah, ja minu [telefoninumber] ja e-post ka.'], ['A', 'Väga hea. Trenn [lõpeb] kell kuus.'], ['B', 'Selge. [Aitäh] ja head trenni!'],
+      ]),
+      B.rolecards('004_t_roles', 'Telefonikõne.', 'Helista spordiklubisse ja registreeri laps.', 'Oled lapsevanem. Ütle lapse nimi (tähthaaval), sünniaeg ja oma telefon. Küsi trenni aega.', 'Oled treener. Küsi andmed ja kirjuta need üles. Kontrolli: palu korrata numbrit.', ['Ma tahan oma last registreerida.', 'Nimi on … : …'], ['Palun öelge tähthaaval.', 'Palun korrake numbrit.']),
+      B.speaking('004_t_say', 'Räägi lapsest.', 'Treener küsib lapse kohta. Vasta täislausetega.', ['Mis lapse nimi on?', 'Kui vana ta on?', 'Kus te elate?', 'Kuidas teiega ühendust võtta?'], [45, 75]),
+      B.rubric('004_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti.', ['Ankeedis on kõik andmed ja need on loetavad.', 'Kuupäev ja aadress on õiges vormis.', 'Sõnumis on tervitus, info ja küsimus (30–50 sõna).', 'Telefonis on nimi ja number õigesti edasi antud.']),
+      B.selfcheck('004_t_self', ['Ma loen spordiklubi teadet.', 'Ma täidan lapse ankeedi.', 'Ma kirjutan treenerile sõnumi.', 'Ma registreerin lapse telefonis.'], 'Ankeet saadetud'),
+    ],
+  },
+
+  'a2-005': {
+    title: 'Kontroll 1 — eneseinfo',
+    assessment: true,
+    canDo: 'Ma näitan kontrollis, et oskan rääkida ja kirjutada endast, täita ankeeti ning kasutada olema ja olevikuvorme (vähemalt 70%).',
+    discover: [
+      B.text('005_d_situation', 'Kordame', 'Enne kontrolli kordame mooduli tähtsamat: tutvumine, viisakad väljendid, olema ja olevik, kuupäevad ja ankeet.'),
+      B.notice('005_d_notice', 'Mooduli kokkuvõte', ['Tutvumine: **Minu nimi on… Ma olen pärit …-st. Ma elan …-s.**', 'Viisakus: **palun, aitäh, vabandust, palun korrake**', 'Olevik: **ma elan / ei ela**, ta **töötab** / **ei tööta**', 'Sina ↔ teie: **kust sa pärit oled?** ↔ **kust te pärit olete?**', 'Kuupäev: **Ma olen sündinud 12. mail.**']),
+      B.reading('005_d_read', 'Loe: Kooriseltsi uus liige.', 'Loe teksti ja vasta küsimustele.', 'Viktor laulab kooris',
+        'Viktor on 63 aastat vana. Ta on pärit Narvast, aga elab Tallinnas juba kakskümmend aastat. Ta on pensionär. Viktor räägib vene ja eesti keelt, soome keelt ta ei räägi. Kaks kuud tagasi nägi ta kuulutust: kooriselts otsib uusi lauljaid. Viktor kirjutas seltsile sõnumi ja läks esimesse proovi. Seal tutvus ta Mareti ja Ljubaga. Maret on üliõpilane, Ljuba õpib eesti keelt. Nüüd laulavad nad koos igal kolmapäeval. Viktor ütleb: „Kooris ma õpin eesti keelt kõige paremini, sest me laulame ja räägime palju.”',
+        [['Kus Viktor elab?', 'Tallinnas'], ['Mis keelt Viktor ei räägi?', 'soome keelt|soome'], ['Kuidas Viktor kooriseltsi leidis?', 'nägi kuulutust|kuulutusest'], ['Kellega ta proovis tutvus?', 'Mareti ja Ljubaga|Maret ja Ljuba'], ['Millal nad laulavad?', 'igal kolmapäeval|kolmapäeval']]),
+      B.profiles('005_d_cards', 'Kes nad on?', 'Loe kaarte ja kirjuta lünka sobiv sõna.', [
+        ['Kati', ['20 aastat vana', 'pärit Tartust', 'üliõpilane', 'räägib eesti ja inglise keelt'], ['Kati [on] pärit Tartust.', 'Ta [õpib] ülikoolis.']],
+        ['Viktor', ['63 aastat vana', 'pärit Narvast', 'pensionär', 'ei räägi soome keelt'], ['Viktor [on] pensionär.', 'Ta [ei räägi] soome keelt.']],
+        ['Oksana', ['35 aastat vana', 'pärit Lvivist', 'õpib eesti keelt', 'sündinud augustis'], ['Oksana on [35] aastat vana.', 'Ta on sündinud [augustis].']],
+      ]),
+      B.manymatch('005_d_match', 'Mida öelda?', 'Ühenda olukord ja lause.', ['Sa ei saa aru.', 'Sa tutvud.', 'Sa astusid kellelegi jalale.', 'Sa saad abi.', 'Sa lähed ära.'], ['Palun korrake!', 'Meeldiv tutvuda!', 'Vabandust!', 'Suur aitäh!', 'Nägemiseni!'], 'full', 'g_use'),
+      B.wordforms('005_d_forms', 'Olevik.', 'Kirjuta tegusõna õiges vormis.', [
+        ['olema', 'te', 'olete'], ['elama', 'nad', 'elavad'], ['töötama', 'ma (eitus)', 'ei tööta'], ['õppima', 'ta', 'õpib'], ['rääkima', 'me', 'räägime'], ['olema', 'ta (eitus)', 'ei ole'],
+      ]),
+      B.transformation('005_d_trans', 'Küsi viisakalt.', 'Kirjuta küsimus teie-vormis.', [
+        ['Mis su nimi on?', 'Mis teie …?', 'Mis teie nimi on?'], ['Kus sa elad?', 'Kus te …?', 'Kus te elate?'], ['Kust sa pärit oled?', 'Kust te …?', 'Kust te pärit olete?'], ['Mis keeli sa räägid?', 'Mis keeli te …?', 'Mis keeli te räägite?'],
+        ['Mida sa teed?', 'Mida te …?', 'Mida te teete?'], ['Kas sa töötad?', 'Kas te …?', 'Kas te töötate?'],
+      ]),
+      B.errorfix('005_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Ma olen pärit Tartu.', 'Ma olen pärit Tartust.'], ['Ta ei töötab.', 'Ta ei tööta.'], ['Ma olen sündinud mai.', 'Ma olen sündinud mais.|Ma olen sündinud mail.'], ['Kust te pärit oled?', 'Kust te pärit olete?'],
+      ]),
+      B.translation('005_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Меня зовут Виктор.', 'Я из Нарвы, но живу в Таллине.', 'Я не говорю по-фински.', 'Повторите, пожалуйста.', 'Приятно познакомиться!', 'Я пенсионер.']),
+      B.crossword('005_d_cross', 'Mooduli sõnad.', 'Kirjuta sõna vihje järgi.', [['Seda ütled, kui ei saa aru: palun …', 'korrake'], ['Paber, kuhu kirjutad oma andmed', 'ankeet'], ['Sinu esimene keel', 'emakeel'], ['Tänav, maja ja linn', 'aadress'], ['Seda ütled tänuks', 'aitäh'], ['Kuupäev, millal oled sündinud', 'sünniaeg']]),
+      B.gaps('005_d_gaps', 'Kordame vorme.', 'Kirjuta sulgudes olev sõna õiges vormis.', ['Ma [olen] pärit Narvast. (olema)', 'Kati [õpib] ülikoolis. (õppima)', 'Me [ei ela] Tallinnas. (elama, eitus)', 'Kas te [räägite] vene keelt? (rääkima)', 'Ma olen sündinud [augustis]. (august)', 'Nad [töötavad] koos. (töötama)']),
+      B.wordorder('005_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Viktor elab Tallinnas juba kakskümmend aastat.', 'Ta nägi kuulutust kaks kuud tagasi.', 'Nüüd laulavad nad koos.', 'Kooris õpin ma eesti keelt.']),
+      B.truefalse('005_d_tf', 'Õige või vale?', 'Loe Viktori teksti uuesti.', [['Viktor on pärit Tartust.', false], ['Viktor on pensionär.', true], ['Viktor räägib soome keelt.', false], ['Viktor tutvus proovis Mareti ja Ljubaga.', true], ['Koor laulab igal reedel.', false]]),
+      B.speaking('005_d_say', 'Proovieksam: tutvumine.', 'Vasta paarilise küsimustele, nagu eksami alguses.', ['Mis teie nimi on?', 'Kust te pärit olete?', 'Kus te elate?', 'Mida te teete?', 'Miks te õpite eesti keelt?'], [45, 75]),
+      B.writing('005_d_write', 'Kordame kirjutamist.', 'Kirjuta 6–7 lauset uuest tuttavast: nimi, kust pärit, kus elab, mida teeb.', [6, 7], ['on', 'elab', 'töötab', 'räägib'], 2),
+    ],
+    practice: [
+      B.tip('005_p_how', 'Kontroll: lugemine, kuulamine, keel (eksami vormis)', 'See leht on nagu Harno A2 eksami lugemine ja kuulamine. Tee kõik ilma abita. Kuulamisteksti loeb õpetaja kaks korda. Eesmärk on vähemalt 70%.', 'full'),
+      B.choice('005_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
+        ['Uus kolleeg ütleb oma nime. Mida sa vastad?', 'Meeldiv tutvuda!', 'Head isu!', 'Jõudu tööle!'], ['Sa ei kuulnud telefoninumbrit. Mida sa ütled?', 'Palun korrake!', 'Palun võtke!', 'Pole viga!'],
+        ['Sa lähed peolt koju. Mida sa ütled?', 'Aitäh, head ööd!', 'Tere tulemast!', 'Palun istuge!'], ['Vanem naine küsib teed. Kuidas sa alustad?', 'Teie peate minema otse.', 'Sa pead minema otse.', 'Nad peavad minema otse.'],
+      ], 'full', 'g_use'),
+      B.reading('005_p_ad', 'Lugemine 2. Kuulutus.', 'Loe kuulutust ja vasta küsimustele.', 'Otsime uusi liikmeid!',
+        'Tartu kooriselts otsib uusi lauljaid! Proovid on kolmapäeviti kell 19.00 Raatuse koolis, aulas. Laulda võivad kõik vanuses 18–65. Eesti keelt ei pea hästi oskama, aga sa pead tahtma õppida. Me laulame eesti, vene ja inglise keeles. Esimene proov on tasuta, siis maksab kuu 15 eurot. Pärast proovi joome koos teed ja räägime eesti keeles. Nii õpid sa keelt ja leiad uusi sõpru. Kõik on väga sõbralikud. Suvel on meil kontsert Tartu laululaval. Registreeri e-postiga koor@tartulaul.ee. Kirjuta oma nimi, vanus ja telefon.',
+        [['Mis päeval on proovid?', 'kolmapäeviti|kolmapäeval'], ['Kus on proovid?', 'Raatuse koolis'], ['Kes võivad laulda?', 'kõik vanuses 18–65|18–65-aastased'], ['Mis on esimese proovi hind?', 'tasuta|see on tasuta'], ['Mida pead e-kirja kirjutama?', 'nime, vanuse ja telefoni|nimi, vanus ja telefon']]),
+      B.cloze('005_p_cloze', 'Lugemine 3. Sõnum.', 'Vali igasse lünka sobiv sõna.', 'Tere, Kadri!', [
+        'Minu nimi {*on|olen|oled} Oksana. Ma {*olen|on|olete} pärit Ukrainast, aga nüüd ma {*elan|elab|elavad} Tartus.',
+        'Ma {*ei tööta|ei töötan|ei töötab} praegu, sest ma õpin eesti keelt. Minu tütar {*käib|käin|käivad} lasteaias.',
+        'Kas {*te|sa|nad} saate mulle öelda, millal kursus algab? Minu telefon on 5321 9876. {*Aitäh|Vabandust|Tere}!',
+      ]),
+      B.reading('005_p_notice', 'Lugemine 4. Teade majas.', 'Loe teadet ja vasta küsimustele.', 'Head naabrid!',
+        'Head naabrid! Meie majas elab nüüd uus pere: Oksana, tema mees ja tütar Mia. Nad on pärit Ukrainast ja elavad kolmandal korrusel. Oksana õpib eesti keelt ja räägib juba natuke. Laupäeval kell 15 on majas naabrite kohvipaus esimese korruse saalis. Palun tulge ja tutvuge uute naabritega! Kaasa võib võtta kooki või puuvilju. Tee ja kohvi pakub korteriühistu. Lastele on saalis mänguasjad ja joonistamise laud. Tulge julgelt kogu perega. Kui te ei saa tulla, võite Oksanale lihtsalt öelda trepikojas „Tere tulemast!”. Korteriühistu juhatus',
+        [['Kes on uued naabrid?', 'Oksana, tema mees ja tütar Mia|Oksana pere'], ['Kus nad elavad?', 'kolmandal korrusel'], ['Millal on kohvipaus?', 'laupäeval kell 15|laupäeval'], ['Kus on kohvipaus?', 'esimese korruse saalis'], ['Mida võib kaasa võtta?', 'kooki või puuvilju']]),
+      B.listening('005_p_listen', 'Kuulamine 1. Tutvustus.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere! Minu nimi on Anna Tamm.', 'Ma olen kakskümmend kaheksa aastat vana ja olen pärit Pärnust.', 'Praegu ma elan Tallinnas, Kalamajas.',
+        'Ma töötan kontoris.', 'Ma räägin eesti, vene ja inglise keelt.', 'Minu sünnipäev on kolmandal märtsil.', 'Vabal ajal ma joonistan ja käin kinos.',
+      ], ['Anna on [28|kakskümmend kaheksa] aastat vana.', 'Ta on pärit [Pärnust].', 'Ta elab [Kalamajas|Tallinnas].', 'Ta töötab [kontoris].', 'Tema sünnipäev on [3. märtsil|kolmandal märtsil].', 'Vabal ajal ta [joonistab] ja käib kinos.']),
+      B.listening('005_p_listen2', 'Kuulamine 2. Ankeet telefonis.', 'Õpetaja loeb vestluse kaks korda. Täida ankeet.', [
+        '— Hambaraviklinik, tere!', '— Tere! Ma tahan registreerida. Minu nimi on Markus Koval.', '— Kas te ütlete perekonnanime tähthaaval?', '— K, O, V, A, L.',
+        '— Mis on teie sünniaeg?', '— Neljateistkümnes veebruar tuhat üheksasada üheksakümmend kaks.', '— Ja teie telefoninumber?', '— Viis üks üks, neli kaks, kolm null.',
+        '— Aitäh. Teie aeg on esmaspäeval kell kümme. Palun tulge kümme minutit varem.',
+      ], ['Perekonnanimi: [Koval]', 'Sünniaeg: [14.02.1992|14. veebruar 1992]', 'Telefon: [511 4230|5114230]', 'Aeg: [esmaspäeval] kell kümme', 'Tulla [kümme|10] minutit varem']),
+      B.gaps('005_p_mix', 'Keel. Kümme punkti.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Mina [olen] Viktor. (olema)', 'Me [elame] Narvas. (elama)', 'Kati [õpib] ülikoolis. (õppima)', 'Kas te [räägite] inglise keelt? (rääkima)', 'Ma [ei tööta] täna. (töötama, eitus)',
+      ]),
+      B.gaps('005_p_mix2', 'Keel. Veel viis punkti.', 'Kirjuta sulgudes olev sõna õiges vormis.', [
+        'Nad [on] pärit Lätist. (olema)', 'Ma olen pärit [Tartust]. (Tartu)', 'Ma elan [Pärnus]. (Pärnu)', 'Ma olen sündinud [mais]. (mai)', 'Sa [oled] minu sõber. (olema)',
+      ]),
+      B.wordorder('005_p_order', 'Keel. Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Minu tütar käib lasteaias.', 'Ma olen sündinud kolmandal märtsil.', 'Kas te saate mulle helistada?', 'Proovid on kolmapäeviti Raatuse koolis.']),
+      B.errorfix('005_p_fix', 'Keel. Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Ma ei töötan.', 'Ma ei tööta.'], ['Ta on pärit Narva.', 'Ta on pärit Narvast.'], ['Kust te pärit oled?', 'Kust te pärit olete?'], ['Me elab Tartus.', 'Me elame Tartus.'],
+      ]),
+      B.writing('005_p_write', 'Kirjutamine. Sõnum.', 'Kirjuta kooriseltsile 4–6 lauset: kes sa oled ja miks tahad laulda.', [4, 6], ['olen', 'elan', 'tahan'], 2),
+      B.translation('005_p_tr', 'Keel. Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Меня зовут Анна, я из Пярну.', 'Я не работаю, я учусь.', 'Повторите номер, пожалуйста.', 'Я родилась в марте.']),
+      B.speaking('005_p_say', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Mis teie nimi on?', 'Kust te pärit olete ja kus te elate?', 'Mida te teete?', 'Mis keeli te räägite?', 'Mida te vabal ajal teete?'], [45, 75]),
+    ],
+    transfer: [
+      B.text('005_t_situation', 'Kontroll: kirjutamine ja rääkimine', 'Sa tahad minna kooriseltsi laulma. Täida ankeet, kirjuta seltsile sõnum ja tutvusta ennast esimeses proovis. Õpetaja hindab, eesmärk on vähemalt 70%.'),
+      B.table('005_t_form', 'Kirjutamine 1. Ankeet.', 'Täida kooriseltsi ankeet oma andmetega.', 'Andmed, Sinu vastus', ['Eesnimi | ', 'Perekonnanimi | ', 'Sünniaeg | ', 'Elukoht | ', 'Telefon | ', 'E-post | ', 'Mis keeli räägid? | ']),
+      B.letter('005_t_letter', 'Kirjutamine 2. Sõnum.', 'Kirjuta seltsile 40–60 sõna: kes sa oled, miks tahad laulda, üks küsimus.', 'Tere!', 'Parimate soovidega', [40, 60]),
+      B.listening('005_t_listen', 'Kuulamine. Kooriseltsi juht.', 'Õpetaja loeb teksti kaks korda. Kirjuta lünka 1–2 sõna.', [
+        'Tere tulemast, uued lauljad! Mina olen Liina, kooriseltsi juht.', 'Meie proovid on kolmapäeviti kell seitse.', 'Pausil joome teed ja räägime eesti keeles.',
+        'Kuu tasu on viisteist eurot. Esimene proov on tasuta.', 'Suvel on meil kontsert Tartu laululaval. Kõik on oodatud!',
+      ], ['Kooriseltsi juht on [Liina].', 'Proovid on kolmapäeviti kell [seitse|7|19].', 'Pausil joovad lauljad [teed].', 'Kuu tasu on [15|viisteist] eurot.', 'Suvel on [kontsert].']),
+      B.planning('005_t_plan', 'Enne sõnumit.', 'Kirjuta märksõnad: mida sa seltsile kirjutad.', ['Kes sa oled?', 'Miks tahad laulda?', 'Mida küsid proovi kohta?'], 2),
+      B.transformation('005_t_check', 'Kontrolli lauseid.', 'Kirjuta lause viisakalt (teie).', [['Kas sa saad mulle vastata?', 'Kas te …?', 'Kas te saate mulle vastata?'], ['Ütle palun, mis kell proov algab.', 'Öelge …', 'Öelge palun, mis kell proov algab.'], ['Tule kümme minutit varem!', 'Tulge …!', 'Tulge kümme minutit varem!'], ['Kirjuta mulle!', 'Kirjutage …!', 'Kirjutage mulle!']]),
+      B.writing('005_t_write', 'Kirjutamine 3. Sõnum pärast proovi.', 'Kirjuta sõbrale 6–8 lauset: kus sa olid, kellega tutvusid ja mis sulle meeldis.', [6, 8], ['proov', 'tutvusin', 'meeldis'], 2),
+      B.speaking('005_t_intro', 'Rääkimine 1. Tutvustus.', 'Esimene proov. Tutvusta ennast grupile umbes üks minut.', ['Kes sa oled ja kust sa pärit oled?', 'Kus sa elad ja mida sa teed?', 'Mis keeli sa räägid?', 'Miks sa tahad laulda?'], [60, 90]),
+      B.rolecards('005_t_roles', 'Rääkimine 2. Dialoog.', 'Proovi pausil. Tutvuge ja küsige teineteiselt.', 'Oled uus laulja. Tutvusta ennast. Küsi teiselt nimi, kust ta pärit on ja kaua ta laulab. Kui ei saa aru, palu korrata.', 'Laulad kooris kaua. Võta uus liige vastu, küsi, kus ta elab ja mida ta teeb. Kasuta teie-vormi.', ['Meeldiv tutvuda!', 'Palun korrake!'], ['Tere tulemast!', 'Kus te elate?']),
+      B.reading('005_t_reply', 'Lugemine. Seltsi vastus.', 'Loe kooriseltsi vastust ja vasta küsimustele.', 'Tere tulemast kooriseltsi!',
+        'Tere! Aitäh sõnumi eest. Väga tore, et tahad meiega laulda! Esimene proov on kolmapäeval kell 19.00 Raatuse koolis, aulas. Tule palun kümme minutit varem, siis tutvustame sind teistele lauljatele. Noote ei ole vaja kaasa võtta, me anname need proovis. Võta kaasa vesi ja hea tuju! Proov kestab poolteist tundi, pausil joome teed ja tutvume. Riided võivad olla tavalised, eriline riietus ei ole vaja. Esimesel korral sa ainult kuulad ja laulad natuke kaasa. Kui sa ei saa tulla, kirjuta meile. Kohtumiseni! Kooriseltsi juht Liina',
+        [['Kus on proov?', 'Raatuse koolis, aulas|Raatuse koolis|aulas'], ['Mis kell proov algab?', '19.00|kell seitse|kell 19.00'], ['Miks tulla kümme minutit varem?', 'tutvustamiseks|siis tutvustatakse sind teistele|tutvustame sind teistele lauljatele'], ['Mida tuleb kaasa võtta?', 'vesi ja hea tuju|vett'], ['Mida teha, kui ei saa tulla?', 'kirjutada|kirjuta meile']]),
+      B.rubric('005_t_rubric', 'Hindamise tingimused.', 'Õpetaja hindab: iga rida 0–2 punkti. Kokku 70% = kontroll on sooritatud.', ['Ankeet on täidetud ja andmed on õiged.', 'Sõnumis on tervitus, info endast, küsimus ja lõpp (40–60 sõna).', 'Olevik ja olema on õiges vormis.', 'Suuline tutvustus on arusaadav ja kestab umbes minuti.', 'Dialoogis küsib ja vastab õpilane, kasutab viisakaid väljendeid.']),
+      B.selfcheck('005_t_self', ['Ma täidan ankeedi ilma abita.', 'Ma kirjutan 40–60-sõnalise sõnumi endast.', 'Ma tutvustan ennast grupile.', 'Ma pean lühikese tutvumisdialoogi.'], 'Moodul 1 on läbitud'),
+    ],
+  },
+};
