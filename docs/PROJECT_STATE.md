@@ -1,3 +1,15 @@
+## 2026-10-23 · agent/sheet-text-analysis — „Analüüs” in the mark composer of a worksheet
+
+- Owner 2026-10-23 (screenshot of the live lesson, a letter selected on the sheet): „тут тоже должна быть функция
+  анализа текста”.
+- SheetAnnotations `analysis` ({ level }): when the teacher selects 5+ words, the composer has a tab „Analüüs”
+  (TextAnalysisPane) — the same school-Mac check as in the homework review („learnerText”: TartuNLP corrections + EKI
+  levels). Each correction: „Märgi” → a „Viga” mark on its own words (start/end found in the selection) with the
+  corrected text, and (checkbox, default on) a sentence in the student's „Minu vead”; „Märgi kõik vigadeks”.
+- On in LiveWorksheetView (lesson board, both views) and in the editable homework review (DocWorksheetSubmissionPreview).
+- Checks: verify (eslint errors 0, vitest 2312 passed, 0 failed). The school Mac answered learnerText today (4 done).
+- Limit: needs the school Mac on (as in the homework review).
+
 ## 2026-10-23 · agent/observer-speak — „Räägi kaasa”: the administrator joins the lesson call and speaks
 
 - Owner 2026-10-23: „чтобы я мог зайти на урок к учителю и что то говорить тоже, как будто групповой созвон”.

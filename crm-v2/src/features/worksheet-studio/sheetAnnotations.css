@@ -43,3 +43,13 @@
 .sa-check { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12.5px; color: #344054; }
 .sa-check input { width: auto; margin: 0; }
 .sa-actions button { display: inline-flex; align-items: center; gap: 4px; }
+/* „Analüüs” in the mark composer (TextAnalysisPane) */
+.sa-colors .is-analysis.on { background: #ecfccb; color: #3f6212; }
+.sa-analysis { display: grid; gap: 6px; max-height: 320px; overflow: auto; font-size: .8rem; }
+.sa-fixes { display: grid; gap: 6px; margin: 0; padding-left: 18px; }
+.sa-fixes li { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.sa-fixes s { color: #b42318; }
+.sa-fixes ins { color: #067647; text-decoration: none; font-weight: 700; }
+.sa-fixes button, .sa-all { flex: none; border: 1px solid #fecdca; border-radius: 8px; background: #fff; color: #b42318; font: inherit; font-weight: 700; padding: 2px 8px; cursor: pointer; }
+.sa-all { justify-self: start; }
+.sa-done { display: inline-flex; align-items: center; gap: 3px; color: #067647; white-space: nowrap; }
