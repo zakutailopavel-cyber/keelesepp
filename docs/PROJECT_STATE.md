@@ -1,3 +1,28 @@
+## 2026-10-23 · agent/paevaraamat-template — Päevaraamat and käibeandmik like the owner's template; inline entries; sales to 3000
+
+- Base: `main` 5f1c015 (2026-10-23). Draft PR from `agent/paevaraamat-template`.
+- Owner's template (Päevaraamat export, PDF) + the accountant's notes (2026-10-23): a plain ruled grid, Excel is the
+  main format, no PDF, no rate/currency, Kuupäev before Dokument, separate entries for a sales document and the money.
+- Päevaraamat (accountingReports `journalReport`, `entryCode`, `ENTRY_CODES`, `amount`, `dmy`, `COMPANY`): kande kood
+  MA / KR / LK / TG / OA / PR / ST / AS with its own running number per year (counted in the CRM number order, so it
+  never shifts), filters period + kande kood + järjestus (kande kood or kuupäev), entry blocks with totals,
+  „Kokku N kannet”, „M kirjet”, footer company + time + Rg-kood. Screen and Excel (`journalWorkbook`) are the same
+  six-column grid: Konto | Kuupäev | Dokument | Kirjeldus | Deebet | Kreedit, every cell bordered, full page width.
+- Käibeandmik: screen and Excel (`trialBalanceWorkbook`) — Konto | Nimetus | Algsaldo D/K | Käive D/K | Lõppsaldo D/K
+  (two-level header), ruled grid, Kokku.
+- Manual entry (JournalDraft.jsx): „Lisa kanne” opens editable rows inside the grid (no dialog); Tab moves cell to cell,
+  Tab in the last cell adds a row; saving only when D = K and the accounts exist; same route `/accounting/entries`.
+- functions/accounting-core.js: new automatic sales entries credit/debit **3000** instead of 3060. Existing production
+  entries are NOT changed (they keep 3060; credit notes / cancellations of old invoices will now use 3000).
+- Checks: vitest accounting 15/15; whole vitest 337 files, 2316 passed, 0 failed; eslint (accounting) 0 problems;
+  `npm run build` ok; `node --test functions/accounting-core.test.js` 10/10. finance-emulator.integration.js updated
+  (3060 → 3000) but not run (needs the emulator). Visual check on a local mock page (not committed).
+- Open for the owner: (1) migration of existing 3060 lines to 3000 (a storno + new entry per entry, or a single
+  reclassification entry 3060 → 3000 on a date) — not done; (2) 3000's chart name is „Kauba, teenuse müük Eestis 20%”
+  although the company is not VAT registered — rename or confirm; (3) which müügitulu accounts to drop (3000–3099
+  list in docs/ACCOUNTING.md).
+- Next safe step: owner/accountant reviews the Excel files from the draft PR; decide the 3060 → 3000 migration.
+
 ## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
 
 - Owner 2026-10-23 (screenshot): the ⋯ button next to the open page did nothing. The menu (rename, give to the
