@@ -242,3 +242,7 @@
   .lr .sb-room-pages { right: 8px; }
   .lr-video-hide { width: 24px; height: 24px; top: 4px; left: 4px; }
 }
+/* a speaking administrator in the lesson room (ObserverMedia) */
+.lr-tile--observer { aspect-ratio: 16 / 10; width: 62%; align-self: flex-end; border: 2px solid #84cc16; }
+.lo-tile--self video { aspect-ratio: 16 / 9; max-width: 280px; }
+.lr-icon.is-off { color: #d92d20; }

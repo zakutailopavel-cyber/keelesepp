@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Eye } from 'lucide-react';
+import { ArrowLeft, Eye, Mic, MicOff, PhoneOff, Users } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { EmptyState, LoadingState } from '../../components/ui/index.js';
@@ -38,16 +38,46 @@ function Tile({ name, stream, state, onBlocked }) {
   </figure>;
 }
 
-// Administrator watching a lesson: sees and hears the teacher and the student, sends nothing. Both of them see
-// „Administraator vaatab tundi” (owner, 2026-10-14).
-export default function LiveObserverPage({ service = liveLessonObserversService, turnService }) {
+// the observer's microphone and camera for „Räägi kaasa”: the camera only when there is one
+async function openOwnMedia(media = globalThis.navigator?.mediaDevices) {
+  if (!media?.getUserMedia) throw new Error('See brauser ei luba mikrofoni kasutada.');
+  try {
+    return await media.getUserMedia({ audio: true, video: { width: { ideal: 640 }, height: { ideal: 360 } } });
+  } catch (error) {
+    if (error?.name === 'NotAllowedError') throw new Error('Luba brauseris mikrofon (ja kaamera), siis proovi uuesti.');
+    return media.getUserMedia({ audio: true });
+  }
+}
+
+function SelfTile({ stream }) {
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current && stream) { ref.current.srcObject = stream; ref.current.play?.()?.catch?.(() => {}); } }, [stream]);
+  return stream?.getVideoTracks().length ? <figure className="lo-tile lo-tile--self"><video ref={ref} autoPlay playsInline muted /><figcaption>Sina</figcaption></figure> : null;
+}
+
+// Administrator watching a lesson: sees and hears the teacher and the student; both of them see „Administraator vaatab
+// tundi” (owner, 2026-10-14). „Räägi kaasa” (owner 2026-10-23) turns it into a group call: the teacher and the student
+// hear and see the administrator too.
+export default function LiveObserverPage({ service = liveLessonObserversService, turnService, openMedia = openOwnMedia }) {
   const { invitationId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [invitation, setInvitation] = useState(undefined);
   const [blocked, setBlocked] = useState(false);
+  const [own, setOwn] = useState(null);
+  const [muted, setMuted] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [mediaError, setMediaError] = useState('');
   useEffect(() => service.subscribeInvitation(invitationId, setInvitation, () => setInvitation(null)), [invitationId, service]);
-  const watch = useObserveLesson({ invitation: invitation || null, user, service, ...(turnService ? { turnService } : {}) });
+  const watch = useObserveLesson({ invitation: invitation || null, user, localStream: own, service, ...(turnService ? { turnService } : {}) });
+  // the microphone and camera are released when the page closes
+  useEffect(() => () => own?.getTracks().forEach((track) => track.stop()), [own]);
+  const speak = async () => {
+    setJoining(true); setMediaError('');
+    try { const stream = await openMedia(); setMuted(false); setOwn(stream); } catch (error) { setMediaError(error?.message || 'Mikrofoni ei saanud avada.'); } finally { setJoining(false); }
+  };
+  const stopSpeaking = () => setOwn(null);
+  const toggleMute = () => { const next = !muted; own?.getAudioTracks().forEach((track) => { track.enabled = !next; }); setMuted(next); };
   const back = () => navigate('/live-classroom');
 
   if (invitation === undefined) return <div className="page-content"><LoadingState label="Avan tundi…" /></div>;
@@ -63,15 +93,23 @@ export default function LiveObserverPage({ service = liveLessonObserversService,
           <small>{invitation?.title || ''}{started ? ` · algas ${new Date(started).toLocaleTimeString('et-EE', { hour: '2-digit', minute: '2-digit' })}` : ''}</small></div>
       </div>
       <div className="lr-top__group lr-top__right">
-        <span className="lr-pill lr-observer" role="note"><Eye size={15} /> Sinu kaamera ja mikrofon on väljas · õpetaja ja õpilane näevad, et vaatad</span>
+        {own ? <>
+          <span className="lr-pill lr-observer" role="note"><Users size={15} /> Räägid kaasa · õpetaja ja õpilane kuulevad sind</span>
+          <button type="button" className={`lr-icon ${muted ? 'is-off' : ''}`} aria-label={muted ? 'Lülita mikrofon sisse' : 'Lülita mikrofon välja'} title={muted ? 'Mikrofon on väljas' : 'Mikrofon on sees'} onClick={toggleMute}>{muted ? <MicOff size={18} /> : <Mic size={18} />}</button>
+          <button type="button" className="lr-text-btn" onClick={stopSpeaking}><PhoneOff size={16} /> Ainult vaatan</button>
+        </> : <>
+          <span className="lr-pill lr-observer" role="note"><Eye size={15} /> Sinu kaamera ja mikrofon on väljas · õpetaja ja õpilane näevad, et vaatad</span>
+          {open ? <button type="button" className="lr-text-btn" disabled={joining} onClick={speak}><Mic size={16} /> {joining ? 'Avan mikrofoni…' : 'Räägi kaasa'}</button> : null}
+        </>}
       </div>
     </header>
-    {watch.error ? <p className="lr-toast lr-toast--error" role="alert">{watch.error}</p> : null}
+    {watch.error || mediaError ? <p className="lr-toast lr-toast--error" role="alert">{mediaError || watch.error}</p> : null}
     {blocked ? <button type="button" className="lr-toast" onClick={resume}>Puuduta, et heli ja pilt käivituks</button> : null}
     {!open ? <div className="lw-empty"><EmptyState title="Tund on lõppenud" description="Seda tundi praegu ei toimu." /></div>
       : <div className="lo-grid">
         <Tile name={`Õpetaja ${invitation.teacherName}`} stream={watch.streams[invitation.teacherUid]} state={watch.states[invitation.teacherUid]} onBlocked={() => setBlocked(true)} />
         <Tile name={`Õpilane ${invitation.studentName}`} stream={watch.streams[invitation.studentUid]} state={watch.states[invitation.studentUid]} onBlocked={() => setBlocked(true)} />
+        <SelfTile stream={own} />
       </div>}
   </div>;
 }
