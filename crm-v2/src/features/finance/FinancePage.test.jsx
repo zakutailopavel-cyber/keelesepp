@@ -203,6 +203,22 @@ describe('FinancePage', () => {
     await waitFor(() => expect(repositories.financeRepository.creditInvoiceLessonLine).toHaveBeenCalledWith('invoice-1', 'lesson-1', 'Tund sisestati ekslikult'));
   });
 
+  it('credits a whole unpaid invoice from its detail with a reason and a confirmation (owner 2026-10-23)', async () => {
+    const unpaid = { ...invoice, id: 'invoice-2', num: 'KS-102', paidAmountCents: 0, balanceDueCents: 12000, lines: [{ description: 'Kuutasu', amountCents: 12000 }] };
+    const repositories = renderPage(undefined, undefined, { invoices: [unpaid], payments: [] });
+    repositories.financeRepository.creditInvoiceInFull = vi.fn().mockResolvedValue({ creditNote: { num: 'KN-2026-009' } });
+    await openFinanceSection('Arved');
+    fireEvent.click(await screen.findByRole('button', { name: 'KS-102' }));
+    expect(screen.getByRole('button', { name: 'Paranda summa või maksja' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Krediteeri kogu arve' }));
+    const dialog = screen.getByRole('dialog', { name: 'Krediteeri kogu arve · KS-102' });
+    fireEvent.change(within(dialog).getByLabelText('Põhjus'), { target: { value: 'Arve tehti topelt' } });
+    fireEvent.click(within(dialog).getByRole('checkbox'));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Krediteeri kogu arve' }));
+    await waitFor(() => expect(repositories.financeRepository.creditInvoiceInFull).toHaveBeenCalledWith('invoice-2', 'Arve tehti topelt', expect.stringMatching(/^credit_full-/)));
+    expect(await findNotice('KN-2026-009')).toBeTruthy();
+  });
+
   it('imports a bank CSV and allocates an automatically matched payment', async () => {
     const financeRepository = {
       recordPayment: vi.fn(),

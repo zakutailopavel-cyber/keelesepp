@@ -3824,3 +3824,160 @@ test("INF 3: personal codes are admin-only, a parent's link fills them, the repo
   assert.equal(sibling.payerFromParent, true);
   assert.deepEqual(sibling.problems, ["Õpilase isikukood puudub"]);
 });
+
+test("a whole invoice is credited, or credited and reissued with a corrected amount or payer (owner 2026-10-23)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const base = { date: "2026-09-01", due: "2026-09-10", status: "Ootel", billingMode: "manual_charge_v1", studentId: "fix-student", studentName: "Paranduse Õpilane", payerName: "Ema Tamm", payerEmail: "ema@example.com", subject: "Eesti keel", amountCents: 16000, amount: 160, balanceDueCents: 16000, balanceDue: 160, paymentStatus: "unpaid", lines: [{ type: "manual_charge", description: "Septembri tunnid", amountCents: 16000, amount: 160 }] };
+  await Promise.all([
+    db.collection("invoices").doc("fix-credit").set({ ...base, num: "KS-2026-801" }),
+    db.collection("invoices").doc("fix-correct").set({ ...base, num: "KS-2026-802", emailStatus: "sent", emailSentAt: "2026-09-01T09:00:00.000Z" }),
+    db.collection("invoices").doc("fix-cancelled").set({ ...base, num: "KS-2026-803", status: "Tühistatud", cancelledAt: "2026-09-05T09:00:00.000Z" }),
+    db.collection("invoices").doc("fix-paid").set({ ...base, num: "KS-2026-804" }),
+    db.collection("payments").doc("fix-paid-payment").set({ invoiceId: "fix-paid", amountCents: 5000, amount: 50, paidAt: "2026-09-05", method: "bank", status: "active" }),
+    db.collection("invoices").doc("fix-tokens").set({ ...base, num: "KS-2026-805", billingMode: "lesson_tokens_v1", tokenStatus: "pending", tokenCredits: 8 }),
+    db.collection("invoices").doc("fix-lessons").set({ ...base, num: "KS-2026-806", billingMode: "lesson_invoice_v1", amountCents: 5000, amount: 50, balanceDueCents: 5000, lessonIds: ["fix-lesson-a", "fix-lesson-b"], lines: [{ lessonId: "fix-lesson-a", date: "2026-08-03", description: "Tund", amountCents: 2500, amount: 25 }, { lessonId: "fix-lesson-b", date: "2026-08-10", description: "Tund", amountCents: 2500, amount: 25 }] }),
+    db.collection("lessons").doc("fix-lesson-a").set({ studentId: "fix-student", date: "2026-08-03", status: "Toimunud", billingStatus: "invoiced", invoiceId: "fix-lessons" }),
+    db.collection("lessons").doc("fix-lesson-b").set({ studentId: "fix-student", date: "2026-08-10", status: "Toimunud", billingStatus: "invoiced", invoiceId: "fix-lessons" }),
+  ]);
+
+  // only an administrator
+  const teacherToken = await createUserToken("fix-teacher@example.com");
+  await db.collection("users").doc(tokenUid(teacherToken)).set({ role: "teacher", email: "fix-teacher@example.com" });
+  const forbidden = await financeRequest(teacherToken, "/invoices/credit-full", { invoiceId: "fix-credit", reason: "Vale arve perele", requestId: "fix_credit_teacher_01" });
+  assert.equal(forbidden.status, 403, JSON.stringify(forbidden.body));
+  const forbiddenFix = await financeRequest(teacherToken, "/invoices/correct", { invoiceId: "fix-correct", amount: 140, reason: "Vale summa arvel", requestId: "fix_correct_teacher_01" });
+  assert.equal(forbiddenFix.status, 403, JSON.stringify(forbiddenFix.body));
+
+  // A. the whole invoice: one credit note, the invoice keeps its amount, idempotent
+  const shortReason = await financeRequest(adminToken, "/invoices/credit-full", { invoiceId: "fix-credit", reason: "lühike", requestId: "fix_credit_short_01" });
+  assert.equal(shortReason.status, 400, JSON.stringify(shortReason.body));
+  const creditPayload = { invoiceId: "fix-credit", reason: "Arve koostati valele perele", requestId: "fix_credit_full_0001" };
+  const credited = await financeRequest(adminToken, "/invoices/credit-full", creditPayload);
+  assert.equal(credited.status, 201, JSON.stringify(credited.body));
+  assert.equal(credited.body.creditNote.amountCents, 16000);
+  assert.match(credited.body.creditNote.num, /^KN-\d{4}-\d{3}$/);
+  const creditedInvoice = (await db.collection("invoices").doc("fix-credit").get()).data();
+  assert.equal(creditedInvoice.amountCents, 16000, "the issued amount is never overwritten");
+  assert.equal(creditedInvoice.effectiveAmountCents, 0);
+  assert.equal(creditedInvoice.balanceDueCents, 0);
+  assert.equal(creditedInvoice.status, "Krediteeritud");
+  assert.deepEqual(creditedInvoice.creditNoteIds, ["fix_credit_full_0001"]);
+  const creditAudit = (await db.collection("financialAudit").doc("fix_credit_full_0001").get()).data();
+  assert.equal(creditAudit.action, "invoice.fully_credited");
+  assert.equal(creditAudit.reason, creditPayload.reason);
+  assert.equal(creditAudit.actor.email, "zakutailo.pavel@gmail.com");
+  const creditRetry = await financeRequest(adminToken, "/invoices/credit-full", creditPayload);
+  assert.equal(creditRetry.status, 200, JSON.stringify(creditRetry.body));
+  assert.equal(creditRetry.body.idempotent, true);
+  const reused = await financeRequest(adminToken, "/invoices/credit-full", { ...creditPayload, reason: "Teine põhjus samale päringule" });
+  assert.equal(reused.status, 409, JSON.stringify(reused.body));
+  const twice = await financeRequest(adminToken, "/invoices/credit-full", { ...creditPayload, requestId: "fix_credit_full_0002" });
+  assert.equal(twice.status, 409, JSON.stringify(twice.body));
+  assert.match(twice.body.error, /täielikult krediteeritud/);
+  const cancelled = await financeRequest(adminToken, "/invoices/credit-full", { invoiceId: "fix-cancelled", reason: "Arve koostati valele perele", requestId: "fix_credit_full_0003" });
+  assert.equal(cancelled.status, 409, JSON.stringify(cancelled.body));
+  assert.match(cancelled.body.error, /Tühistatud/);
+  const paid = await financeRequest(adminToken, "/invoices/credit-full", { invoiceId: "fix-paid", reason: "Arve koostati valele perele", requestId: "fix_credit_full_0004" });
+  assert.equal(paid.status, 409, JSON.stringify(paid.body));
+  assert.match(paid.body.error, /laekumisi/);
+  // a package invoice that has not given lessons yet never will
+  const tokens = await financeRequest(adminToken, "/invoices/credit-full", { invoiceId: "fix-tokens", reason: "Pakett ei olnud vajalik", requestId: "fix_credit_full_0005" });
+  assert.equal(tokens.status, 201, JSON.stringify(tokens.body));
+  assert.equal((await db.collection("invoices").doc("fix-tokens").get()).data().tokenStatus, "voided");
+  const lateTokens = await financeRequest(adminToken, "/invoices/tokens/credit", { invoiceId: "fix-tokens" });
+  assert.equal(lateTokens.status, 409, JSON.stringify(lateTokens.body));
+
+  // B. amount and payer: a full credit note + a new invoice with the next number, linked both ways
+  const counterBefore = Number((await db.collection("meta").doc("invoiceCounter").get()).data()?.seq || 0);
+  const nothing = await financeRequest(adminToken, "/invoices/correct", { invoiceId: "fix-correct", reason: "Midagi ei muutu siin", requestId: "fix_correct_none_01" });
+  assert.equal(nothing.status, 400, JSON.stringify(nothing.body));
+  const correctPayload = { invoiceId: "fix-correct", amount: 140, payer: { payerName: "Firma OÜ", payerRegCode: "12345678", payerEmail: "arved@firma.ee" }, due: "2031-11-10", reason: "Summa ja maksja olid valed", requestId: "fix_correct_00001" };
+  const corrected = await financeRequest(adminToken, "/invoices/correct", correctPayload);
+  assert.equal(corrected.status, 201, JSON.stringify(corrected.body));
+  const newId = corrected.body.invoice.id;
+  assert.equal(newId, "correction_fix_correct_00001");
+  assert.equal(corrected.body.creditNote.amountCents, 16000);
+  const [oldInvoice, newInvoice, counterAfter] = await Promise.all([
+    db.collection("invoices").doc("fix-correct").get().then((snap) => snap.data()),
+    db.collection("invoices").doc(newId).get().then((snap) => snap.data()),
+    db.collection("meta").doc("invoiceCounter").get().then((snap) => snap.data().seq),
+  ]);
+  assert.equal(oldInvoice.amountCents, 16000);
+  assert.equal(oldInvoice.status, "Krediteeritud");
+  assert.equal(oldInvoice.correctionStatus, "corrected");
+  assert.equal(oldInvoice.correctedBy.invoiceId, newId);
+  assert.equal(oldInvoice.emailStatus, "sent", "the old invoice keeps its delivery history");
+  assert.equal(newInvoice.correctionOf.invoiceId, "fix-correct");
+  assert.equal(newInvoice.correctionOf.creditNoteId, "fix_correct_00001");
+  assert.equal(newInvoice.amountCents, 14000);
+  assert.equal(newInvoice.balanceDueCents, 14000);
+  assert.equal(newInvoice.payerName, "Firma OÜ");
+  assert.equal(newInvoice.payerRegCode, "12345678");
+  assert.equal(newInvoice.subject, "Eesti keel");
+  assert.equal(newInvoice.due, "2031-11-10");
+  assert.equal(newInvoice.emailStatus, "", "the family gets the new invoice as a new document");
+  assert.equal(newInvoice.num, `KS-${newInvoice.date.slice(0, 4)}-${String(counterAfter).padStart(3, "0")}`);
+  assert.equal(counterAfter, counterBefore + 1);
+  assert.equal((await db.collection("financialAudit").doc(newId).get()).data().action, "invoice.created_correction");
+  const correctRetry = await financeRequest(adminToken, "/invoices/correct", correctPayload);
+  assert.equal(correctRetry.status, 200, JSON.stringify(correctRetry.body));
+  assert.equal(correctRetry.body.idempotent, true);
+  assert.equal(correctRetry.body.invoice.id, newId);
+  assert.equal((await db.collection("meta").doc("invoiceCounter").get()).data().seq, counterAfter);
+  const again = await financeRequest(adminToken, "/invoices/correct", { ...correctPayload, requestId: "fix_correct_00002" });
+  assert.equal(again.status, 409, JSON.stringify(again.body));
+
+  // lesson lines: the amount comes from the tariff (refused here), the payer can change and the lessons follow
+  const lessonAmount = await financeRequest(adminToken, "/invoices/correct", { invoiceId: "fix-lessons", amount: 40, reason: "Vale summa arvel", requestId: "fix_correct_00003" });
+  assert.equal(lessonAmount.status, 409, JSON.stringify(lessonAmount.body));
+  const lessonPayer = await financeRequest(adminToken, "/invoices/correct", { invoiceId: "fix-lessons", payer: { payerName: "Isa Tamm" }, reason: "Maksja on isa, mitte ema", requestId: "fix_correct_00004" });
+  assert.equal(lessonPayer.status, 201, JSON.stringify(lessonPayer.body));
+  const movedLesson = (await db.collection("lessons").doc("fix-lesson-a").get()).data();
+  assert.equal(movedLesson.invoiceId, "correction_fix_correct_00004");
+  assert.equal(movedLesson.billingStatus, "invoiced");
+  assert.deepEqual(movedLesson.previousInvoiceIds, ["fix-lessons"]);
+
+  // old debts that „Tühista” cannot close (lead 2026-10-23, shaped like KS-2026-030 / -049 / -050 / -004): no
+  // billingMode, euros only, lessons linked by lessonIds (no billingStatus on the lesson), failed e-mail, a closed month
+  await Promise.all([
+    db.collection("invoices").doc("fix-legacy-ids").set({ num: "KS-2026-830", date: "2026-03-02", due: "2026-03-12", status: "Ootel", studentName: "Jegor", parentName: "Jegori ema", amount: 56, lessonIds: ["fix-old-1", "fix-old-2"], emailStatus: "failed" }),
+    db.collection("lessons").doc("fix-old-1").set({ studentName: "Jegor", date: "2026-02-20", status: "Toimunud", invoiceId: "fix-legacy-ids" }),
+    db.collection("lessons").doc("fix-old-2").set({ studentName: "Jegor", date: "2026-02-27", status: "Toimunud", invoiceId: "fix-legacy-ids" }),
+    db.collection("financialLockedDates").doc("2026-02-20").set({ month: "2026-02" }),
+    db.collection("invoices").doc("fix-legacy-partly").set({ num: "KS-2026-804b", date: "2026-01-20", due: "2026-01-30", status: "Ootel", studentName: "Hanna", amount: 60, amountCents: 6000, creditedAmountCents: 2000, effectiveAmountCents: 4000, balanceDueCents: 4000, correctedLessonIds: ["fix-h1"], lessonIds: ["fix-h1", "fix-h2"], lines: [{ lessonId: "fix-h1", date: "2026-01-05", amountCents: 2000 }, { lessonId: "fix-h2", date: "2026-01-12", amountCents: 4000 }] }),
+    db.collection("lessons").doc("fix-h1").set({ studentName: "Hanna", date: "2026-01-05", status: "Toimunud", invoiceId: "fix-legacy-partly", billingStatus: "credited" }),
+    db.collection("lessons").doc("fix-h2").set({ studentName: "Hanna", date: "2026-01-12", status: "Toimunud", invoiceId: "fix-legacy-partly", billingStatus: "invoiced" }),
+  ]);
+  const legacyIds = await financeRequest(adminToken, "/invoices/credit-full", { invoiceId: "fix-legacy-ids", reason: "Vana võlg suletakse omaniku otsusel", requestId: "fix_credit_legacy_01" });
+  assert.equal(legacyIds.status, 201, JSON.stringify(legacyIds.body));
+  assert.equal(legacyIds.body.creditNote.amountCents, 5600);
+  assert.equal(legacyIds.body.creditNote.payerName, "Jegori ema");
+  const legacyInvoice = (await db.collection("invoices").doc("fix-legacy-ids").get()).data();
+  assert.equal(legacyInvoice.amount, 56, "the old invoice keeps its amount");
+  assert.equal(legacyInvoice.balanceDueCents, 0);
+  assert.equal(legacyInvoice.status, "Krediteeritud");
+  assert.equal((await db.collection("lessons").doc("fix-old-1").get()).data().billingStatus, "credited");
+  assert.equal((await db.collection("lessons").doc("fix-old-2").get()).data().creditNoteId, "fix_credit_legacy_01");
+  const legacyPartly = await financeRequest(adminToken, "/invoices/credit-full", { invoiceId: "fix-legacy-partly", reason: "Vana võlg suletakse omaniku otsusel", requestId: "fix_credit_legacy_02" });
+  assert.equal(legacyPartly.status, 201, JSON.stringify(legacyPartly.body));
+  assert.equal(legacyPartly.body.creditNote.amountCents, 4000, "only the part not credited before");
+  const partlyInvoice = (await db.collection("invoices").doc("fix-legacy-partly").get()).data();
+  assert.equal(partlyInvoice.creditedAmountCents, 6000);
+  assert.deepEqual(partlyInvoice.correctedLessonIds, ["fix-h1", "fix-h2"]);
+  assert.equal((await db.collection("lessons").doc("fix-h1").get()).data().creditNoteId, undefined, "an earlier credited lesson is left alone");
+  assert.equal((await db.collection("lessons").doc("fix-h2").get()).data().billingStatus, "credited");
+
+  // bookkeeping: each document becomes its own automatic entry
+  const synced = await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal(synced.status, 200, JSON.stringify(synced.body));
+  const creditEntry = (await db.collection("accountingEntries").doc("auto_credit-note_fix_credit_full_0001").get()).data();
+  assert.deepEqual(creditEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["3060", 16000, 0], ["1200", 0, 16000]]);
+  const correctionCreditEntry = (await db.collection("accountingEntries").doc("auto_credit-note_fix_correct_00001").get()).data();
+  assert.equal(correctionCreditEntry.totalCents, 16000);
+  const newInvoiceEntry = (await db.collection("accountingEntries").doc(`auto_invoice_${newId}`).get()).data();
+  assert.deepEqual(newInvoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 14000, 0], ["3060", 0, 14000]]);
+  assert.equal(newInvoiceEntry.documentRef, newInvoice.num);
+});
