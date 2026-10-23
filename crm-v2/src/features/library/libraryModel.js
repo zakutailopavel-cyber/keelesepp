@@ -253,6 +253,26 @@ export function sortLibrary(results, sort = 'toc') {
   return list.sort(byToc);
 }
 
+// „Aine” (owner 2026-10-23: a subject tab above the levels): Estonian as a second language, Estonian as the mother
+// tongue (school grades), English. Read from the item's level label: „English A2”, „9. klass emakeel”, „A2” …
+export const SUBJECTS = [
+  { key: 'et', label: 'Eesti keel' },
+  { key: 'ek', label: 'Emakeel' },
+  { key: 'en', label: 'Inglise keel' },
+];
+export function subjectOfLevel(level = '') {
+  const value = String(level || '').toLowerCase();
+  if (!value || value === '—') return '';
+  if (value.startsWith('english') || value.startsWith('en ')) return 'en';
+  if (value.includes('emakeel') || value.includes('klass')) return 'ek';
+  return 'et';
+}
+export function subjectFacets(items) {
+  const counts = new Map();
+  for (const item of items) { const key = subjectOfLevel(item.level); if (key) counts.set(key, (counts.get(key) || 0) + 1); }
+  return SUBJECTS.filter((s) => counts.has(s.key)).map((s) => ({ ...s, count: counts.get(s.key) }));
+}
+
 export function levelFacets(items) {
   const counts = new Map();
   for (const item of items) counts.set(item.level || '—', (counts.get(item.level || '—') || 0) + 1);

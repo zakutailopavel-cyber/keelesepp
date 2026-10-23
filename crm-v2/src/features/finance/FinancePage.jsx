@@ -73,6 +73,8 @@ import EmailDeliveryPanel from "./EmailDeliveryPanel.jsx";
 import "./financeWorkspace.css";
 import MonthlyInvoicePanel from "./MonthlyInvoicePanel.jsx";
 import { useFinanceData } from "./useFinanceData.js";
+import InvoiceCorrectionDialog from "./InvoiceCorrectionDialog.jsx";
+import { fullCorrectionBlocker } from "./invoiceActions.js";
 
 const money = (value) =>
   new Intl.NumberFormat("et-EE", { style: "currency", currency: "EUR" }).format(
@@ -225,6 +227,10 @@ export default function FinancePage({
   const [saving, setSaving] = useState(false);
   const [actionError, setActionError] = useState("");
   const [success, setSuccess] = useState("");
+  // „Krediteeri kogu arve” / „Paranda summa või maksja” (owner 2026-10-23)
+  const [wholeCorrection, setWholeCorrection] = useState(null);
+  const [wholeCorrectionBusy, setWholeCorrectionBusy] = useState(false);
+  const [wholeCorrectionError, setWholeCorrectionError] = useState("");
   const [planOpen, setPlanOpen] = useState(false);
   const [planForm, setPlanForm] = useState({
     studentId: "",
@@ -295,6 +301,34 @@ export default function FinancePage({
     if (!saving) {
       setSelected(null);
       setPaymentMode(false);
+    }
+  };
+  const openWholeCorrection = (mode) => {
+    setWholeCorrection({ invoice: selected, mode });
+    setWholeCorrectionError("");
+    setSelected(null);
+  };
+  const submitWholeCorrection = async (values) => {
+    const { invoice, mode } = wholeCorrection;
+    setWholeCorrectionBusy(true);
+    setWholeCorrectionError("");
+    try {
+      const result =
+        mode === "full"
+          ? await financeRepository.creditInvoiceInFull(invoice.id, values.reason, values.requestId)
+          : await financeRepository.correctIssuedInvoice(invoice.id, values);
+      setWholeCorrection(null);
+      const creditNum = result?.creditNote?.num ? ` ${result.creditNote.num}` : "";
+      setSuccess(
+        mode === "full"
+          ? `Arve krediteeriti täies ulatuses (kreeditarve${creditNum}).`
+          : `Kreeditarve${creditNum} ja uus arve${result?.invoice?.num ? ` ${result.invoice.num}` : ""} on loodud. Saada uus arve perele.`,
+      );
+      await state.reload();
+    } catch (error) {
+      setWholeCorrectionError(error.message || "Arve parandamine ebaõnnestus.");
+    } finally {
+      setWholeCorrectionBusy(false);
     }
   };
   const submitPayment = async (event) => {
@@ -1111,6 +1145,16 @@ export default function FinancePage({
                   <CreditCard size={17} /> Registreeri makse
                 </Button>
               ) : null}
+              {canRegisterPayment && !fullCorrectionBlocker(selected) ? (
+                <Button variant="secondary" onClick={() => openWholeCorrection("full")}>
+                  Krediteeri kogu arve
+                </Button>
+              ) : null}
+              {canRegisterPayment && !fullCorrectionBlocker(selected) ? (
+                <Button variant="secondary" onClick={() => openWholeCorrection("correct")}>
+                  Paranda summa või maksja
+                </Button>
+              ) : null}
               {canRegisterPayment && selectedOverpayment > 0 ? (
                 <Button
                   onClick={() => {
@@ -1728,6 +1772,19 @@ export default function FinancePage({
         document={documentPreview}
         onClose={() => setDocumentPreview(null)}
       />
+      {wholeCorrection ? (
+        <InvoiceCorrectionDialog
+          key={`${wholeCorrection.mode}-${wholeCorrection.invoice.id}`}
+          invoice={wholeCorrection.invoice}
+          mode={wholeCorrection.mode}
+          busy={wholeCorrectionBusy}
+          error={wholeCorrectionError}
+          onClose={() => {
+            if (!wholeCorrectionBusy) setWholeCorrection(null);
+          }}
+          onSubmit={submitWholeCorrection}
+        />
+      ) : null}
     </div>
   );
 }

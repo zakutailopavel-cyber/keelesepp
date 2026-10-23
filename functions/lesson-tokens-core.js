@@ -51,6 +51,8 @@ function creditBlocker(invoice) {
   if (!invoice) return 'Arvet ei leitud.';
   if (!isTokenInvoice(invoice)) return 'See ei ole tunnipaketi arve.';
   if (invoice.tokenStatus === 'credited') return '';
+  // credited in full or replaced by a corrected invoice (invoice-correction-core.js): the new invoice gives the lessons
+  if (invoice.tokenStatus === 'voided' || invoice.status === 'Krediteeritud') return 'Arve on krediteeritud — tunde sellelt arvelt ei lisata.';
   if (!invoicePaid(invoice)) return 'Arve ei ole veel makstud.';
   return '';
 }

@@ -39,13 +39,19 @@ Purchase entries are written by financeApi in the same transaction as the invoic
 ids `auto_purchase-invoice_<id>` and `auto_purchase-payment_<invoiceId>_<paymentId>`.
 
 Sales revenue account: **3000** since 2026-10-23 (the accountant). Until then automatic sales entries used 3060
-Maksuvaba müügitulu; entries already written keep 3060 (entries are never edited, RPS § 10). Moving them needs an
-owner decision: one reclassification entry 3060 → 3000 (manual entry, debit 3060 / credit 3000 for the balance) or
-nothing (both accounts are on the report line „Müügitulu”, so the kasumiaruanne is the same). The chart name of 3000
+Maksuvaba müügitulu; entries already written keep 3060 (nothing rewrites them automatically). Moving them needs an
+owner decision: one reclassification entry 3060 → 3000 (manual entry, debit 3060 / credit 3000 for the balance),
+„Muuda” on each entry while its period is open (with history, see „Parandamine”), or nothing (both accounts are on the report line „Müügitulu”, so the kasumiaruanne is the same). The chart name of 3000
 is „Kauba, teenuse müük Eestis 20%” (Merit), although the company is not VAT registered — to be confirmed.
 
 The sales document and the money are always separate entries: an invoice books 1200 / 3000 only; the payment is its
 own entry (1010 or 1000 / 1200) on the payment date. No sales entry books to the bank.
+
+**Correcting an issued invoice** (owner 2026-10-23): the invoice is never overwritten. „Krediteeri kogu arve”
+(`/invoices/credit-full`) issues one credit note for the open amount → the credit-note entry above. „Paranda summa
+või maksja” (`/invoices/correct`) issues the same full credit note and a new invoice (next KS number, `correctionOf`
+↔ `correctedBy`) → a credit-note entry and an invoice entry, both on the correction date. The old invoice's own entry
+stays as it was (functions/invoice-correction-core.js).
 
 Documents dated before the start date are in the opening balances. Without a VAT registration an expense is booked with
 its VAT (input VAT is not deductible).
@@ -173,11 +179,12 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
   `paidCents`, `payments[{ id, date, amountCents, method, reference, entryId, entryNumber }]`, `removedPayments[]`,
   `status` (`unpaid` | `paid` | `voided`), `documents[]`, `entryId`, `entryNumber`.
 - `meta/accountingCounter_<year>.next`: the next number of a year.
-- financeApi (admin only): `/accounting/sync`, `/accounting/entries`, `/accounting/entries/reverse`,
-  `/accounting/entries/update`, `/accounting/entries/delete`, `/accounting/lock`, `/accounting/opening`,
-  `/accounting/accounts`, `/suppliers`, `/purchase-invoices` (create, or update with `purchaseInvoiceId`),
-  `/purchase-invoices/pay`, `/purchase-invoices/payment/remove`, `/purchase-invoices/void`,
-  `/purchase-invoices/documents`. All bookings and corrections respect the accounting lock and closed months
+- financeApi (admin only): `/invoices/credit-full`, `/invoices/correct` (documents above), `/accounting/sync`,
+  `/accounting/entries`, `/accounting/entries/reverse`, `/accounting/entries/update`, `/accounting/entries/delete`,
+  `/accounting/lock`, `/accounting/opening`, `/accounting/accounts`, `/suppliers`, `/purchase-invoices` (create, or
+  update with `purchaseInvoiceId`), `/purchase-invoices/pay`, `/purchase-invoices/payment/remove`,
+  `/purchase-invoices/void`, `/purchase-invoices/documents`. All bookings and corrections respect the accounting lock
+  and closed months
   (`financialLockedDates`).
 - Firestore rules: admins read `accountingEntries`, `accountingAccounts`, `accountingSettings`, `suppliers`,
   `purchaseInvoices`; nobody writes them from the client. Storage: `financial/purchase-invoices/**` admin read and
