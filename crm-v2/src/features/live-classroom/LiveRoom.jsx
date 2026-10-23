@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import StudentBoard from '../board/StudentBoard.jsx';
 import { imageSize, sheetBoardTitle } from '../board/boardModel.js';
 import RoomWorksheetPanel, { RoomWorksheetContent } from '../worksheet-studio/RoomWorksheetPanel.jsx';
+import { usePastSheets } from './usePastSheets.jsx';
 import RoomRecorder from '../lesson-recording/RoomRecorder.jsx';
 import RecordingIndicator from '../lesson-recording/RecordingIndicator.jsx';
 import LessonWordsPanel from '../vocabulary/LessonWordsPanel.jsx';
@@ -17,6 +18,7 @@ import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
 import { useObserverPeers } from './useLessonObserver.js';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
+import { homeworkService as firebaseHomework } from '../../services/firebase/homework.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
 import { fileKind } from './roomMaterials.js';
 import './liveRoom.css';
@@ -208,6 +210,7 @@ export default function LiveRoom({
     legacyTitle: item.title || item.worksheetDoc?.meta?.title || 'Tööleht',
     content: <RoomWorksheetContent current={item} role={role} {...(worksheetProps.homework ? { homework: worksheetProps.homework } : {})} />,
   })), [role, sheetList, worksheetProps.homework]);
+  const pastSheets = usePastSheets({ homework: worksheetProps.homework || firebaseHomework, studentId: guest ? '' : invitation.studentId || '', role });
 
   // ── the teacher's page and pointer over the call's data channel (nothing is saved) ──
   const [myPage, setMyPage] = useState('');
@@ -386,6 +389,7 @@ export default function LiveRoom({
             newPageTitle={`Tund ${lessonDate}`}
             uploadImage={teacher ? uploadImage : guest ? undefined : studentUpload}
             worksheets={boardSheets}
+            pastWorksheets={pastSheets}
             onPageChange={onPageChange}
             {...(teacher ? { onAssignPage: (page) => { setMenu(''); setAssignPage(page); setPanel('homework'); } } : {})}
             {...(teacher ? { onPointer: sendPointer } : { pointer: roomChannelOpen ? pointer : null })}

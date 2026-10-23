@@ -2,12 +2,14 @@ import { ArrowLeft, PenLine, Redo2, Undo2, Video } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Button, EmptyState, ErrorState, LoadingState, Select } from '../../components/ui/index.js';
 import StudentBoard from '../board/StudentBoard.jsx';
+import { homeworkService } from '../../services/firebase/homework.js';
+import { usePastSheets } from './usePastSheets.jsx';
 import './liveRoom.css';
 
 // Outside a lesson „Tund” first says plainly that the lesson has not started and what happens next (owner 2026-10-12:
 // students saw a board with 45 buttons and did not know what to do); the own board (homework, notes, the same board
 // the teacher uses in the lesson) opens with one button.
-export default function StudentWorkspace({ user, studentRepository, boardService, resumable = null, onResume, onBack, error = '' }) {
+export default function StudentWorkspace({ user, studentRepository, boardService, homework = homeworkService, resumable = null, onResume, onBack, error = '' }) {
   const [state, setState] = useState({ loading: true, items: [], error: '' });
   const [chosen, setChosen] = useState('');
   const [showBoard, setShowBoard] = useState(false);
@@ -21,6 +23,8 @@ export default function StudentWorkspace({ user, studentRepository, boardService
     return () => { alive = false; };
   }, [studentRepository, user.uid]);
   const student = state.items.find((item) => item.id === chosen) || null;
+  // the worksheet pages of earlier lessons show their sheets on the student's own board too
+  const pastSheets = usePastSheets({ homework, studentId: student?.id || '', role: 'student' });
 
   return (
     <div className="lr lw" role="region" aria-label={showBoard ? 'Minu tahvel' : 'Tund'}>
@@ -43,7 +47,7 @@ export default function StudentWorkspace({ user, studentRepository, boardService
         <main className="lr-stage">
           {state.loading ? <LoadingState label="Laen tahvlit…" /> : state.error ? <ErrorState message={state.error} /> : student && !showBoard
             ? <div className="lw-empty"><EmptyState title={resumable ? 'Tund käib' : 'Tund ei ole veel alanud'} description={resumable ? `Õpetaja ${resumable.teacherName || ''} ootab sind tunnis.` : 'Kui õpetaja alustab tundi, ilmub siia kutse. Vajuta siis „Liitu”. Kaamera ja mikrofoni lülitad sisse tunnis.'} action={<div className="form-actions">{resumable ? <Button onClick={onResume}><Video size={17} /> Tagasi tundi</Button> : null}<Button variant="secondary" onClick={() => setShowBoard(true)}><PenLine size={17} /> Ava minu tahvel</Button></div>} /></div>
-            : student ? <StudentBoard key={student.id} studentId={student.id} user={user} variant="room" controllerRef={boardRef} onHistoryChange={setHistory} {...(boardService ? { service: boardService } : {})} />
+            : student ? <StudentBoard key={student.id} studentId={student.id} user={user} variant="room" controllerRef={boardRef} onHistoryChange={setHistory} pastWorksheets={pastSheets} {...(boardService ? { service: boardService } : {})} />
             : <div className="lw-empty"><EmptyState title="Tahvlit ei leitud" description="Konto ei ole veel õpilase kaardiga seotud. Kirjuta õpetajale." /></div>}
         </main>
       </div>

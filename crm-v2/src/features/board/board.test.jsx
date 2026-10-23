@@ -573,3 +573,14 @@ describe('the room layout around a worksheet (owner 2026-10-23)', () => {
     } finally { rect.mockRestore(); }
   });
 });
+
+describe('worksheet pages of earlier lessons', () => {
+  it('a page „Tööleht: …” from an earlier lesson shows its sheet, not an empty board, and does not take over', async () => {
+    const service = fakeService({ pages: [{ id: 'pg-old', title: 'Tööleht: Kontroll 1' }, { id: 'pg-new', title: 'Leht 2' }] });
+    const teacher = { uid: 't1', displayName: 'Pavel', roles: ['teacher'] };
+    render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} initialPageId="pg-old" pastWorksheets={[{ id: 'as-old', title: 'Kontroll 1', content: <div>Vana töölehe küsimused</div> }]} />);
+    expect(await screen.findByText('Vana töölehe küsimused')).toBeInTheDocument();
+    expect(screen.queryByText(/Tühi tahvel/)).toBeNull();
+    expect(service.addWorksheetPage || service.addPage).not.toHaveBeenCalled();
+  });
+});
