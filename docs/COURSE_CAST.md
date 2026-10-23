@@ -67,3 +67,5 @@ Keep facts consistent; add new facts here when a module adds them.
 - **B2 finale:** Sofia passes B2 (exam 7 March), becomes Tartu project manager and moves to Tartu (landlord **Toivo
   Allik**); Kohvik Mets opens near Nõmme market on 18 April; Helgi (surname Mets) retires in June and bakes Sunday
   pancakes at the café; **Vaike** takes over the Kase kool kitchen in August.
+- **A2 modules 6–7:** Grete eats no meat; Lucía is vegetarian; Tom has a milk allergy; in A2 Anna still works in a shop
+  (later Tuul Logistika); Café Pann; department store Kaubahall; second-hand shop „Teine Ring”.

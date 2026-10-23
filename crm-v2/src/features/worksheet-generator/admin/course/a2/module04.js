@@ -235,11 +235,11 @@ export const LESSONS = {
       B.truefalse('017_p_tf', 'Õige või vale?', 'Mõtle kuulamistele ja vestlusele. Kas lause on õige või vale?', [
         ['Vannituba on esikus vasakul.', false], ['Vesi tuleb pesumasina voolikust.', true], ['Sofia võib täna pesumasinat kasutada.', false], ['Homme hommikul tuleb meister.', true],
         ['Sofia ei tohi duši all käia.', false], ['Helju laes on väike plekk.', true], ['Malle on hommikul poes.', true], ['Grete läheb õhtul Sofiaga kinno.', false],
-      ]),
+      ], 'half', 'g_vocab'),
       B.gaps('017_p_gaps', 'Kuhu? Lühike vorm.', 'Kirjuta sulgudes olev sõna kuhu-vormis.', [
         'Pärast tööd lähen ma otse [koju]. (kodu)', 'Laps läheb hommikul kell kaheksa [kooli]. (kool)', 'Laupäeval sõidame bussiga [linna]. (linn)', 'Mul ei ole leiba, ma lähen [poodi]. (pood)',
         'Tule [tuppa], õues on külm! (tuba)', 'Reede õhtul läheme sõpradega [kinno]. (kino)', 'Pane müts [pähe], täna on tuul. (pea)', 'Pärast tööd läheme Viktoriga [sauna]. (saun)',
-      ]),
+      ], '', 'full', 'g_vocab'),
       B.errorfix('017_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Malle läheb hommikul poes.', 'Malle läheb hommikul poodi.'], ['Õhtul olen ma koju.', 'Õhtul olen ma kodus.'], ['Me sõidame laupäeval linnas.', 'Me sõidame laupäeval linna.'],
         ['Laps tuleb kell kaks kooli koju.', 'Laps tuleb kell kaks koolist koju.'], ['Vesi jookseb vannitoast esikus.', 'Vesi jookseb vannitoast esikusse.'], ['Sofia viib asjad vannitoast toas.', 'Sofia viib asjad vannitoast tuppa.'],
@@ -322,7 +322,7 @@ export const LESSONS = {
       B.categorize('018_d_sort', 'Sees või peal?', 'Kuidas ütled „kus?”? Pane iga sõna õigesse rühma.', [
         ['-s (sees): saunas', ['saun', 'järv', 'mets', 'aed', 'töökoda', 'kapp', 'buss']],
         ['-l (peal): laual', ['laud', 'põld', 'töö', 'maa', 'terrass', 'turg', 'katus']],
-      ], 'full', 'g_notice'),
+      ], 'full', 'g_vocab'),
       B.transformation('018_d_trans', 'Kus → kuhu, kust.', 'Kirjuta lause uue tegusõnaga. Vaata kasti „Märka”.', [
         ['Õunad on laual.', 'Pane õunad … (kuhu?)', 'Pane õunad lauale.'],
         ['Viktor on põllul.', 'Viktor tuleb … (kust?)', 'Viktor tuleb põllult.'],
@@ -490,13 +490,13 @@ export const LESSONS = {
       B.truefalse('019_p_tf', 'Õige või vale?', 'Mõtle maakleri jutule. Kas lause on õige või vale?', [
         ['Korter asub kesklinnas.', false], ['Majas ei ole lifti.', false], ['Korteris on üks tuba.', true], ['Mööbel on korteris olemas.', true],
         ['Bussipeatus on maja taga.', false], ['Poodi on viis minutit.', true], ['Üür on 520 eurot kuus.', false], ['Korterit saab vaadata neljapäeval.', true],
-      ]),
+      ], 'half', 'g_vocab'),
       B.match('019_p_ads', 'Kuulutused.', 'Kes mida otsib? Ühenda inimene ja sobiv kuulutus.', [
         ['Üliõpilane, raha on vähe.', 'Tuba Mustamäel, 200 € kuus.'], ['Pere, kaks last ja auto.', 'Kolmetoaline korter, parkla maja taga.'],
         ['Pensionär, trepist käia ei saa.', 'Kahetoaline korter, 1. korrus.'], ['Noor paar, armastab loodust.', 'Väike maja metsa lähedal.'],
         ['Mees, tal on suur koer.', 'Korter aiaga, loomad lubatud.'], ['Naine töötab kesklinnas, autot ei ole.', 'Ühetoaline, trammipeatus maja ees.'],
         ['Muusik, mängib õhtuti klaverit.', 'Eramaja, naabreid lähedal ei ole.'], ['Kokk, töötab öösel ja magab päeval.', 'Vaikne tuba, aken hoovi poole.'],
-      ], 'full', 'g_read'),
+      ], 'full', 'g_vocab'),
       B.cloze('019_p_cloze', 'Sofia kiri Katile.', 'Sofia kirjutab sõbrale. Vali igasse lünka õige sõna.', 'Tere, Kati!', [
         'Tere, Kati! Ma elan nüüd Mustamäel. Minu maja {*asub|asuvad|asun} Akadeemia teel.',
         '',

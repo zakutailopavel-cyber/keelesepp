@@ -429,6 +429,36 @@ one and write what home you want.
 - **018** — -le forms (tööle, maale) and the farm sauna. → a farm / sauna scene (the brief shows an office).
 - **019** — three ads, a call, a message. → kv.ee-style ad screenshots; a small Mustamäe map.
 
+## A2 module 5 „Linn, kohad ja tee” (a2-021…024)
+
+Sofia's first month in Tallinn; goal: guide a classmate by phone to a café and write the directions.
+- **021** — kus / kuhu / kust and the first plural cases (poodides, parkides); a free Saturday with Jaan. → a real
+  events listing; a parcel-machine screen photo.
+- **022** — kuni …-ni, üle + genitive; a closed street. → a drawn map for the information gap; check the tram lines.
+- **023** — imperative sina / teie (ära / ärge); Helgi at the bus station. → recorded tram-stop announcements.
+- **024** — guiding Tom to Kadriorg. → opening-hours signs; a mall floor map.
+
+## A2 module 6 „Söök, jook ja kohvik” (a2-026…029)
+
+Sofia's first months with food: Nõmme market with Jaan and Viktor, Malle's soup, Café Pann with classmates; goal:
+order lunch for a group with an allergy and write a party shopping list.
+- **026** — partitive with food; Sunday lunch at Kadri's. → a market photo; a real radio vox pop.
+- **027** — quantity + partitive; Malle's soup recipe. → Malle's handwritten recipe card; a shop flyer.
+- **028** — ordering; Kati's visit. → a chalkboard menu photo.
+- **029** — -ga / ilma …-ta with prices; lunch for six (vegetarian, milk allergy), Mia's birthday list. → a real bill;
+  a group-lunch picture.
+- Exam 030 (unchanged) says Jaan is 38 and owns a café in Tartu — contradicts the cast.
+
+## A2 module 7 „Pood, raha ja ostud” (a2-031…034)
+
+Sofia's first Estonian winter (only a thin jacket): Kaubahall, Nõmme market, the second-hand shop „Teine Ring”, a
+broken kettle; goal: a return at the counter with the receipt and a message comparing two offers.
+- **031** — partitive in shopping; a present for Malle (40 € budget). → a department-store floor plan.
+- **032** — numbers in cases (kahe euro eest, kümne protsendi); a wrong receipt. → a real receipt and price board.
+- **033** — comparative; three jackets with a discount. → second-hand price tags.
+- **034** — kuni …-ni, jooksul, ilma …-ta; the return and two kettle offers. → a real returns policy and two ads.
+- Art briefs name Anna, Liis, Markus (not yet known to Sofia in A2). → redo.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget

@@ -224,11 +224,11 @@ export const LESSONS = {
       ]),
       B.reading('007_p_notes', 'Trepikoja teated.', 'Sofia loeb oma maja teateid. Loe ja vasta lühidalt.', 'Teated',
         'Leitud! Hoovis seisab väike sinine jalgratas. Kelle laste jalgratas see on? Küsige korterist 3. Aino\n\nKadunud kass! Meie kass Miisu on hall ja paks. Tal on punane kaelarihm. Palun helistage: 5123 4567. Pere Sepp, korter 8\n\nKelle auto? Valge auto seisab juba kaks päeva prügikastide ees. Palun viige auto ära! Maja juhatus\n\nLeitud! Trepil oli võti. Võtmel on väike roheline pall. Võti on minu juures. Sofia, korter 12\n\nTere, naabrid! Laupäeval kell 12 koristame koos hoovi. Pärast on kohv ja kook Aino juures. Kõik on oodatud!',
-        [['Mis värvi on jalgratas hoovis?', 'sinine'], ['Kust saab jalgratast küsida?', 'korterist 3|Ainolt'], ['Milline on kass Miisu?', 'hall ja paks|hall'], ['Mis on kassil kaelas?', 'punane kaelarihm|kaelarihm'], ['Mis seisab prügikastide ees?', 'valge auto|auto'], ['Kelle juures on võti?', 'Sofia|Sofia juures'], ['Kus on pärast koristamist kohv ja kook?', 'Aino juures']]),
+        [['Mis värvi on jalgratas hoovis?', 'sinine'], ['Kust saab jalgratast küsida?', 'korterist 3|Ainolt'], ['Milline on kass Miisu?', 'hall ja paks|hall'], ['Mis on kassil kaelas?', 'punane kaelarihm|kaelarihm'], ['Mis seisab prügikastide ees?', 'valge auto|auto'], ['Kelle juures on võti?', 'Sofia|Sofia juures'], ['Kus on pärast koristamist kohv ja kook?', 'Aino juures']], 'g_vocab'),
       B.truefalse('007_p_tf', 'Õige või vale?', 'Loe teateid uuesti. Kas lause on õige või vale?', [
         ['Hoovis on Aino jalgratas.', false], ['Pere Sepa kass on hall.', true], ['Kassil on sinine kaelarihm.', false], ['Valge auto seisab prügikastide ees.', true],
         ['Sofia leidis trepilt võtme.', true], ['Võtmel on väike kollane pall.', false], ['Laupäeval koristavad naabrid koos hoovi.', true], ['Kohv ja kook on Sofia juures.', false],
-      ]),
+      ], 'half', 'g_vocab'),
       B.transformation('007_p_trans', 'Ütle teisiti.', 'Kirjuta lause omastavaga.', [
         ['Mul on uus telefon.', 'See on …', 'See on minu telefon.|See on mu telefon.|See on minu uus telefon.'],
         ['Viktoril on talu.', 'See on …', 'See on Viktori talu.'],
@@ -298,7 +298,7 @@ export const LESSONS = {
         ['Viktor 1973', ['10 aastat vana', 'pikk ja kõhn poiss', 'lühikesed heledad juuksed', 'suured sinised silmad', 'lõbus ja aktiivne'], ['Viktor on [pikk] ja kõhn.', 'Tal on lühikesed [heledad] juuksed.', 'Ta on lõbus ja [aktiivne].']],
         ['Helgi 1973', ['7 aastat vana', 'väike ja sale tüdruk', 'pikad tumedad patsid', 'pruunid silmad', 'rahulik ja tõsine'], ['Helgi on [väike] ja sale.', 'Tal on pikad [tumedad] patsid.', 'Ta on rahulik ja [tõsine].']],
         ['Viktor täna', ['62 aastat vana', 'pikk ja tugev', 'hallid juuksed ja habe', 'prillid', 'sõbralik ja abivalmis'], ['Viktoril on [hallid] juuksed.', 'Tal on habe ja [prillid].', 'Ta on väga [sõbralik].']],
-      ]),
+      ], '3', 'g_vocab'),
       B.listening('008_d_photo', 'Sofia ja Viktor vaatavad fotot.', 'Kuula kaks korda ja kirjuta lünka üks sõna.', [
         'Sofia: Onu, kas see poiss fotol oled sina?',
         'Viktor: Jah, see olen mina. Ma olin siis kümme aastat vana.',
@@ -330,7 +330,7 @@ export const LESSONS = {
       B.categorize('008_d_sort', 'Ta on … või tal on …?', 'Sorteeri sõnad kahte rühma.', [
         ['Ta on …', ['pikk', 'kõhn', 'rahulik', 'tõsine', 'lõbus', 'sõbralik']],
         ['Tal on …', ['habe', 'prillid', 'hallid juuksed', 'pruunid silmad', 'pikad patsid', 'sinised silmad']],
-      ], 'full', 'g_notice'),
+      ], 'full', 'g_vocab'),
       B.vocab('008_d_vocab', 'Tunni sõnad.', ['välimus — внешность', 'iseloom — характер', 'pikk — высокий или длинный', 'lühike — низкий или короткий', 'juuksed — волосы', 'silmad — глаза', 'hele — светлый', 'tume — тёмный', 'rahulik — спокойный', 'sõbralik — дружелюбный']),
       teach(B.speaking('008_d_say', 'Arva ära!', 'Kirjelda üht pereliiget või sõpra. Paariline küsib ja arvab.', ['Kas ta on pikk või lühike?', 'Millised juuksed tal on?', 'Mis värvi silmad tal on?', 'Milline ta on iseloomult?', 'Kas ta on sinust vanem või noorem?'], [60, 120], ['Ta on üsna …', 'Tal on … juuksed.', 'Ta on pikem kui …']),
         'Üks-ühele: õpilane kirjeldab oma pereliiget, õpetaja küsib ja arvab, kes see on. Siis kirjeldab õpetaja inimest Jaani perest ja õpilane arvab.'),
@@ -458,7 +458,7 @@ export const LESSONS = {
       B.match('009_d_match', 'Küsimus ja vastus.', 'Ühenda küsimus ja vastus.', [
         ['Kes see on?', 'See on minu õpetaja Maret.'], ['Kui vana ta on?', 'Ta on umbes viiskümmend.'], ['Kust ta pärit on?', 'Ta on pärit Pärnust.'], ['Kus ta elab?', 'Ta elab Nõmmel.'],
         ['Mida ta teeb?', 'Ta õpetab eesti keelt.'], ['Milline ta on?', 'Ta on rõõmus ja sõbralik.'], ['Kas ta on abielus?', 'Jah, tal on mees ja kaks last.'], ['Mis on tema huvi?', 'Tema huvi on laulmine.'],
-      ], 'full', 'g_notice'),
+      ], 'full', 'g_vocab'),
       B.transformation('009_d_ask', 'Küsi.', 'Kirjuta küsimus. Vastus on antud.', [
         ['Lucía on 30 aastat vana ja elab Kalamajas.', 'Kui …?', 'Kui vana Lucía on?|Kui vana on Lucía?'],
         ['Dmitri elab Tallinnas, Lasnamäel, koos naisega.', 'Kus …?', 'Kus Dmitri elab?|Kus elab Dmitri?'],
@@ -501,7 +501,7 @@ export const LESSONS = {
         ['Maret Rebane', ['eesti keele õpetaja', 'Keelekool Sõna', 'Pärnu mnt 10, Tallinn', 'tel 5345 6789'], ['Maret on eesti keele [õpetaja].', 'Ta töötab keelekoolis [Sõna].', 'Mareti telefon on [5345 6789].']],
         ['Jaan Mets', ['kokk', 'kohvik Pann', 'avatud iga päev 8–16', 'tel 5512 3344'], ['Jaan Mets on [kokk].', 'Tema kohviku nimi on [Pann].', 'Kohvik on avatud iga [päev].']],
         ['Kadri Mets', ['lastearst', 'lastehaigla, Tallinn', 'vastuvõtt teisipäeval ja neljapäeval', 'tel 5566 1122'], ['Kadri on [lastearst].', 'Ta töötab [lastehaiglas|haiglas].', 'Vastuvõtt on teisipäeval ja [neljapäeval].']],
-      ]),
+      ], '3', 'g_vocab'),
       B.choice('009_p_phrases', 'Mida sa ütled?', 'Vali igasse olukorda sobiv lause.', [
         ['Kolleeg näitab telefonis perefotot. Mida sa küsid?', 'Kes see on?', 'Kus on bussipeatus?', 'Mis kell on?'],
         ['Sa tahad teada naabri vanust. Mida sa küsid?', 'Kui vana te olete?', 'Kus te elate?', 'Kas te olete abielus?'],
