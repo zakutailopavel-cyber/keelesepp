@@ -459,6 +459,15 @@ broken kettle; goal: a return at the counter with the receipt and a message comp
 - **034** — kuni …-ni, jooksul, ilma …-ta; the return and two kettle offers. → a real returns policy and two ads.
 - Art briefs name Anna, Liis, Markus (not yet known to Sofia in A2). → redo.
 
+## A2 module 8 „Teenused ja asjaajamine” (a2-036…039)
+
+Sofia's errands: bank account, ID card, SIM card, library card, the hairdresser before a job interview; goal: book a
+service by phone and confirm it in writing.
+- **036** — changing a bank appointment. → an online booking calendar screenshot.
+- **037** — impersonal present (siin ei suitsetata, avatakse kell 9) in the student-lounge rules. → real sign photos.
+- **038** — teie-imperative; the bank form and a business card (Harno A2 writing 1). → printable forms.
+- **039** — three service ads, booking by phone. → real IVR audio; realistic ads.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget
