@@ -215,3 +215,12 @@ describe('students list states', () => {
     expect(await screen.findByText('Kustutatud 1 varem arhiveeritud duplikaati.')).toBeInTheDocument();
   });
 });
+
+describe('students list: last visit', () => {
+  it('shows when the student was last in the CRM', async () => {
+    const presenceApi = { forStudents: vi.fn(async () => new Map([['s1', { lastSeenAt: Date.now(), practice: null }]])) };
+    render(<MemoryRouter><StudentsPage service={{ list: async () => ({ items: [{ id: 's1', name: 'Mari Maas', active: true, linkedUserId: 'u1', skillMap: {} }], cursor: null, hasMore: false }) }} presenceApi={presenceApi} actor={{ uid: 'admin', roles: ['admin'] }} /></MemoryRouter>);
+    expect((await screen.findAllByText(/sees täna/)).length).toBeGreaterThan(0);
+    expect(presenceApi.forStudents).toHaveBeenCalledWith([expect.objectContaining({ id: 's1' })]);
+  });
+});

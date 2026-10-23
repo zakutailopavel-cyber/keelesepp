@@ -71,6 +71,306 @@
 - Not published to Õppevara (production). Screenshots were sent to the owner.
 - Next safe step: owner reviews the sample; on „да” merge, publish module 5 with the publish script, then rewrite the
   other B1 modules in v4.
+## 2026-10-23 · agent/last-seen-list — „sees eile” in the students list and the last visit in „Riskis õpilased”
+
+- Owner 2026-10-23 („давай”) after #762.
+- presence.js: `forStudents(students)` reads the own accounts of many students at once (users, documentId in ≤30),
+  `accountUid` (card or any card of a person), `lastSeenOf` (newest of the visit and the last „Minu vead” day).
+- „Õpilased”: „· sees eile” after the student's line (desktop and phone), loaded after the list; failures show nothing.
+- „Riskis õpilased” (retentionRisk `seen`): „Minu vead” days count as own practice; once a visit is recorded, „pole N
+  päeva sisse loginud” (no practice for 14 days, or no visit for 21 days). Fixed: the new-student rule („only the
+  calendar gap counts”) now checks that the gap is the only reason instead of comparing the score.
+- No rules change (staff already read accounts); emulator test added: a teacher lists accounts, a student cannot.
+- Checks: verify (eslint errors 0, vitest 2290 passed, 0 failed); emulator presence tests 2/2.
+
+## 2026-10-23 · agent/last-seen — „Viimati sees” and „Minu vead” results in the database for the teacher
+
+- Owner 2026-10-23: „Да, делай вход и Kordamine в базу” (yes to the rules change and its deploy).
+- firestore.rules `validPresence` (in safeSelfUserFields): a user may write on his own account `lastSeenAt` only as the
+  server time (serverTimestamp) and `practice` { errorsDate YYYY-MM-DD, errorsPct int 0–100, days list ≤ 60 }.
+  Emulator test functions/student-presence-emulator.integration.js (in the financial-core-emulator workflow).
+- services/firebase/presence.js: `markSeen` after sign-in for approved students and parents, at most every 6 h (errors
+  ignored); `savePractice` after a „Minu vead” drill (MistakesPage; the browser copy stays as before); `forStudent`
+  reads the card's own account for staff.
+- „Õpilase pilt” (LearnerSnapshotCard / learnerSnapshot.js): „Viimati sees” (or „kontot pole” / „andmeid veel pole”)
+  and „Minu vead: täna · 80% · N päeva 30 päevaga”; the reviews count as own study for „Pole iseseisvalt õppinud”.
+  The student's home and „Minu vead” also take today's result from the account (another device).
+- Checks: verify (eslint errors 0, vitest 2285 passed, 0 failed); emulator rules tests presence + pet green.
+- Until the rules are deployed the writes fail silently and the teacher sees „andmeid veel pole”.
+
+## 2026-10-23 · agent/course-official-only — „Minu kursus” shows only the course; a flaky pet test fixed
+
+- Production check (read-only, 2026-10-23): Liudmila's card is active, self-study, level B2. Her B2 course map showed
+  18 course modules plus 4 old hand-made library modules (11 B2 lessons without `roadmapManaged`, some named after
+  other students — „Konstantin”, „Nika”, „Veronika” — and 7 without sheets). The 90 course lessons have all 270 sheets
+  published.
+- self-study/StudentCoursePage.jsx: `courseLessons` keeps only `roadmapManaged` lessons (falls back to all when the
+  library has none).
+- pet/companion.test.jsx: the invitation mock re-delivered an empty list when the companion re-subscribed (after the
+  pet loaded), wiping the invitation pushed by the test — CI failed „announces a lesson invitation by itself”. The
+  mock now re-delivers the current list, as Firestore does.
+- Checks: verify (eslint errors 0, vitest 2274 passed, 0 failed); pet tests 3 runs in a row green.
+## 2026-10-23 · agent/daily-reminder — „Tuleta mulle iga päev meelde”: a daily reminder for „Päeva 5 minutit”
+
+- Owner 2026-10-23 („делай дальше”): students forget to practise between lessons.
+- On „Minu sõnad” (when the student has words) a small row: choose a time, „Lisa telefoni kalendrisse” downloads a
+  daily repeating calendar event (.ics, floating local time, alarm at the start) whose link opens
+  /student/sonavara?paev=1. The phone reminds; the CRM sends nothing and the file holds no personal data. The chosen
+  time is remembered in the browser only.
+- Files: vocabulary/dailyReminder.js (+test), vocabulary/DailyReminder.jsx (+test), VocabularyPage.jsx, vocabulary.css.
+- Checks: verify (eslint errors 0, vitest 2276 passed, 0 failed).
+- Not done: the teacher's „last login” needs a `lastSeenAt` self-write allowed in firestore.rules (a rules deploy —
+  waits for the owner's yes). Until then the teacher sees „last practised” in „Õpilase pilt”.
+## 2026-10-23 · agent/auto-mark-lesson — „Märkimata tunnid”: past lessons without a journal mark on the dashboard
+
+- Why: progress, retention, month steps and the parent report read the lesson journal; a production read (2026-10-23,
+  read-only) found 71 past calendar lessons of the last 14 days with no journal record (66 events, most of them one
+  teacher's one-off lessons). Live Classroom lessons started from the calendar were already marked via the handoff.
+- calendar/unmarkedLessons.js: individual (not group) calendar lessons of the last 14 days still „Planeeritud” with no
+  journal record (matched by scheduleId+date or studentId+date), teacher-scoped for teachers.
+- calendar/UnmarkedLessonsCard.jsx on the dashboard (above the agenda, hidden when nothing is unmarked): „Toimunud”
+  in one click (lessonsService.completeFromSchedule — the same write as the calendar, with activityLog), „Muu…” opens
+  the lesson in the calendar for absences (their billing choice stays there).
+- Files: calendar/unmarkedLessons.js (+test), calendar/UnmarkedLessonsCard.jsx (+test), retention/retention.css,
+  dashboard/DashboardPage.jsx. No rules, functions or data changes.
+- Checks: verify (eslint errors 0, vitest 2277 passed, 0 failed).
+- Next: a student daily reminder for „Päeva 5 minutit” and the teacher's „last seen”.
+
+## 2026-10-23 · agent/self-study-course — „Minu kursus” for students (self-study cards open the sheets themselves)
+
+- Owner 2026-10-23: a self-study course is needed, no certificate.
+- New page /student/kursus (student menu „Kursus”; it used to redirect to „Minu vead”): the course of the student's
+  level module by module (buildTopicCatalog), each lesson's Avasta / Harjuta / Kasuta with his progress
+  (selfStudyModel.progressMap), the next lesson on top. A self-study card (`isSelfStudent`) starts a sheet itself
+  (homework.createSelfStudy — already allowed by the rules: own card, the published sheet, unscored at the start) and
+  does it in place (WorksheetPlayer); a student who learns with a teacher sees the map and progress, the sheets stay
+  for the lesson (owner 2026-10-12). Done sheets open for review for both.
+- Files: self-study/StudentCoursePage.jsx (+test), selfStudy.css, app/routes.jsx, app/navigation.js (+test updated).
+- Checks: verify (eslint errors 0, vitest 2273 passed, 0 failed).
+
+## 2026-10-23 · agent/monthly-report — „Kuu aruanne vanemale” sent by the admin
+
+- Owner 2026-10-23: the admin presses „send” after checking; never automatic.
+- learner/monthlyReport.js (+test): the last 30 days in Estonian then Russian — lessons held and absences, words learned
+  this month / total / new, the month's lesson steps mastered, homework done, and the two steps to practise next.
+- Student card (admins only): MonthlyReportCard (+test) „Koosta aruanne” → the admin edits the text → „Saada vanemale”
+  with a confirmation → an internal message in the student's conversation (messagesService.send, „Suhtlus”, the family
+  sees it; activityLog records it). No rules or functions change.
+- Checks: verify (eslint errors 0, vitest 2271 passed, 0 failed).
+
+## 2026-10-23 · agent/placement-test — „Paigutustest”: a 15-minute entry test with a level suggestion
+
+- Owner 2026-10-23: build the entry test. placement/placementTest.js (+test): 30 Estonian multiple-choice questions,
+  six per level A1 → C1 (written for KeeleSepp), each level a goal of the sheet, so the normal auto-check gives a result
+  per level; the suggested level is the highest passed (≥ 60 %) with every level below passed; under A1 → „algaja”.
+- Student card → Esmane hindamine: PlacementCard (+test) sends it as a normal worksheet assignment (lessonId
+  `placement-et`, libraryService.assign; the student does it in „Kodutööd”) and shows the latest result per level and
+  the suggested level. The card's level stays the teacher's decision (as for the initial assessment).
+- Files: features/placement/*, students/StudentProfilePage.jsx. No rules change.
+- Checks: verify (eslint errors 0, vitest 2269 passed, 0 failed).
+- Not yet: an English placement test (the English courses would need their own items).
+
+## 2026-10-23 · agent/month-steps — „Kuu sammud”: the month's goal is the lessons' own steps
+
+- Owner 2026-10-23: the monthly goal is the mini-steps of the lessons themselves and how well they are mastered.
+- learner/monthSteps.js (+test): the „Ma oskan …” goals (worksheetDoc.meta.goals) of the sheets a student worked on in
+  30 days, the three sheets of a lesson together (lessonTitle), mastery from score.perGoal: Selge ≥ 80 %, Harjuta veel
+  50–79 %, Kordame < 50 %, Veel tegemata (no result yet). MonthStepsCard (+test) on the student's home, per child on the
+  parent's home, and in the teacher's „Õpilase pilt”.
+- Checks: verify (eslint errors 0, vitest 2265 passed, 0 failed; WorksheetStudioPage.test failed once under load and
+  passed alone twice and in the repeated full run).
+
+## 2026-10-23 · agent/teacher-report — „Õpetajate võrdlus” (administrators only)
+
+- Owner 2026-10-23: the teacher comparison is for the administrator only. On „Õpetajad” an admin sees, per active
+  teacher over 30 days: students, lessons held, share missed (absences + cancellations), students practising on their
+  own (words reviewed in 14 days, of those with words), submitted sheets with the average result (≥ 3 sheets), new words
+  per student. Too little data shows „—”. Teachers opening the page do not see it.
+- Files: teachers/teacherReport.js (+test), TeacherReportCard.jsx, TeachersPage.jsx (+test).
+- Checks: verify (eslint errors 0, vitest 2263 passed, 0 failed).
+
+## 2026-10-23 · agent/progress-stats — „Minu sõnad ja vead”: plain progress for the student and the family
+
+- docs/LEARNER_PROFILE.md step 4. vocabulary/wordGrowth.js (+test): words learned (box ≥ 3), new in 30 days, own
+  mistakes fixed („Sinu lause” cards in box ≥ 3). WordGrowthCard (+test) on the student's home under „Minu areng” and,
+  per child, on the parent's home (ChildrenWordGrowth, live like „Minu sõnad”). Estonian with a Russian line.
+- Checks: verify (eslint errors 0, vitest 2261 passed, 0 failed).
+
+## 2026-10-23 · agent/personal-sheet-errors — the personal worksheet works on the student's own wrong sentences
+
+- docs/LEARNER_PROFILE.md step 3. „Isiklik tööleht” (student card → AutoSkillsCard) now also takes his unlearned
+  „Sinu lause” cards (wrong sentences from submitted sheets and lessons, box < 3) next to the lesson-recording errors →
+  „Leia ja paranda viga”, gaps, word forms; sentence cards no longer appear in its word list.
+- Files: students/personalWorksheet.js (+test). Checks: verify (eslint errors 0, vitest all passed).
+
+## 2026-10-23 · agent/sheet-error-cards — a worksheet's wrong sentences become the student's cards
+
+- Main checked: after #749. docs/LEARNER_PROFILE.md step 2.
+- When a student submits a worksheet, up to 5 wrong answers that make a whole sentence become his review cards in the
+  „Minu vead” format (word = the right sentence, translation = „Sinu lause: …”): a wrong gap rebuilds its sentence with
+  the other gaps right; a task whose right answer is a sentence (rewrite, correct, translate) gives that sentence.
+  Empty answers and one-word answers make no card; a sentence he already has is not added twice. They come back in
+  „Minu vead” and in „Päeva 5 minutit” (≤ 2 sentences a day). Staff opening a sheet add nothing.
+- Files: worksheet-studio/engine/errorCards.js (+test), DocWorksheetPlayer.jsx (+test), services/firebase/studentWords.js
+  (`addSheetErrors`). No rules change (a student may create his own words).
+- Checks: verify (eslint errors 0, vitest 2257 passed, 0 failed).
+- Next: the next worksheet gets 2–3 tasks on what this student gets wrong (LEARNER_PROFILE step 3).
+
+## 2026-10-23 · agent/voice-task — „Häälülesanne”: speaking between lessons
+
+- Main checked: 15a2343+ (all earlier PRs merged). docs/LEARNER_PROFILE.md roadmap, speaking practice.
+- A homework can be a voice task (`kind: 'voice'`, `prompts` ≤ 3): the teacher ticks „Häälülesanne” in Kodutööd → Uus
+  kodutöö (with helper questions) or in the Live Classroom homework panel. The student sees the questions and
+  „Salvesta vastus”: records up to 2 minutes (MediaRecorder), listens, sends — the file goes with the answer
+  (`submitAnswer`, homework/{studentId}/…; storage rules allow audio) and the task is done. Audio answers play in the
+  task list for the teacher and the student.
+- No rules change: staff create homework freely; the student writes only `studentFiles`/`status` as before.
+- Files: homework/VoiceAnswer.jsx (+test), voiceTask.js (+test), HomeworkPage.jsx (+tests), reviewLayout.css,
+  live-classroom/LessonHomeworkPanel.jsx, services/firebase/homework.js (`createFromLesson` voice).
+- Checks: vitest crm-v2 all green. The browser pane blocks the microphone, so recording is tested with a fake recorder.
+- Next: transcribe voice answers on the school Mac (like lesson recordings) and feed errors into the learner profile.
+
+## 2026-10-23 · agent/english-published — English A2 and B1 are in Õppevara
+
+- Main checked: 15a2343 (all of #732–#743 merged with the owner's yes, Vercel production deployed).
+- Owner: „Делай все” (after „скажите «публикуй английский»”). Production write, create-only: curriculumLessons
+  en-a2-011…050 and en-b1-016…050 (75 records; the 25 existing ones skipped), then 225 sheets published from
+  buildCourseSheet (scratchpad publish script: a sheet edited by hand in the CRM or left as a draft is never
+  overwritten; 0 such). A second dry run: 300 sheets, all equal to the code.
+- Both English courses are complete in Õppevara: A2 50 lessons, B1 50 lessons, 300 sheets.
+- Next safe step: voice task between lessons (docs/LEARNER_PROFILE.md roadmap).
+
+## 2026-10-23 · agent/english-a2 — English A2 modules 3–10: the A2 course is complete
+
+- Main checked: ab99b9b (2026-10-22). Branch agent/english-a2, draft PR #733 (stacked on #732, B1).
+- Modules (all with Russian teacher keys, strict gates, curriculum records; enA2Curriculum version 2026-10-23.10):
+  3 School and learning (011–015), 4 Free time (016–020), 5 Food and health (021–025), 6 Travel and holidays
+  (026–030), 7 People and places (031–035: superlatives, nationalities, What is it like?, festivals and in / on / at),
+  8 Shopping and money (036–040: much / many, too / enough, as… as, returns and complaints), 9 Media and technology
+  (041–045: present perfect ever / never, just / already / yet, should for online safety, present perfect vs past
+  simple), 10 A2 exam practice (046–049 strategy lessons with a grammar review, 050 a full A2 mock exam).
+- Files: crm-v2/src/features/worksheet-generator/admin/course/en/a2/module03…10 (.js, b.js, Key.js), registry.js,
+  strictModules.json, en/a2/moduleKeys.test.js, curriculum/enA2Curriculum.js.
+- Checks: `gate_s.sh en/a2/moduleNN` clean for 3–10; vitest worksheet-generator 866 passed, curriculum green.
+- Not published (owner's yes needed: install en-a2-011…050 records, publish 120 sheets). A1 is out of scope (owner).
+- Next safe step: the owner's yes to publish A2 3–10 and B1 4–10.
+
+## 2026-10-23 · agent/english-b1-m4 — English B1 modules 5–10: the B1 course is complete
+
+- Modules (all with Russian teacher keys, strict gates, curriculum records; enB1Curriculum version 2026-10-23.10):
+  5 Free time and culture (021–025: -ing / to, comparatives, so / such and reviews, suggestions and invitations),
+  6 Travel (026–030: must / have to / should, could / managed to, complaints), 7 Health and lifestyle (031–035:
+  quantifiers, second conditional, I wish, should / had better), 8 Technology and media (036–040: present and past
+  passive, be allowed to / let / make, opinions and linking words), 9 Our world (041–045: relative clauses, reported
+  statements and requests, environment phrasal verbs), 10 Exam practice (046–049 strategy lessons with a grammar review,
+  050 a full mock exam).
+- Tooling in the scratchpad only (not in the repo): scaffold / addlesson / autokey / curr helpers.
+- Checks: `gate_s.sh en/b1/moduleNN` clean for 5–10; vitest admin/course + curriculum 382 passed.
+- Not published (owner's yes needed: install en-b1-016…050 records, publish 105 sheets). Next: A2 modules 3–10.
+
+## 2026-10-22 · agent/english-b1-m4 — English B1 module 4 „Plans and the future”
+
+- Main checked: ab99b9b (2026-10-22).
+- Module 4: en-b1-016 What are you going to do? (going to vs will), 017 It's in my diary (present continuous for
+  arrangements, present simple for timetables), 018 What will the future be like? (will / won't / might / probably,
+  a magazine article), 019 If I pass, I'll… (first conditional, unless, when / as soon as, a formal e-mail), 020 the
+  check in the Harno B1 task types. 15 sheets of 41–49 min. Files: en/b1/module04.js, module04b.js, module04Key.js.
+- Teacher key en/b1/module04Key.js (Russian, every item); moduleKeys.test.js covers B1 1–4; strictModules +module 4;
+  registry +enb1m04; curriculum/enB1Curriculum.js module 4 records (version 2026-10-22.4).
+- Checks: `gate_s.sh en/b1/module04` clean; vitest worksheet-generator + curriculum + worksheet-studio 1094 passed.
+- Not published yet (waits for the owner: install en-b1-016…020 records, publish the 15 sheets). Next: B1 module 5.
+## 2026-10-23 · agent/retention-risk — „Riskis õpilased” on the dashboard
+
+- Main checked: efd80db (2026-10-22). Independent of #737/#738/#739; other agents work on English content.
+- Owner: „делай всё” after the learner profile → first the student retention view (docs/LEARNER_PROFILE.md roadmap).
+- New: features/retention/retentionRisk.js (+test) and RetentionCard.jsx (+test). Signals per active card: 2+ absences
+  or cancellations in the last 4 journal lessons; last held lesson over 21 / 35 days ago (a card active for 3+ months
+  without lessons: „võta ühendust või arhiveeri”); no lesson ahead (weak right after a lesson, ignored for self-study
+  cards); words but no own practice for 14 days; an overdue invoice (finance view only). Packages with ≤ 1 lesson left
+  are listed as the moment to talk about the next one.
+- Teachers do not always mark held lessons in the journal (a weekly series ran while the journal stopped in June), so
+  a lesson the calendar had in the last 21 days counts as recent (`recentlyScheduled`).
+- Production run (read only, 2026-10-23): 96 active cards → 7 at risk (2 high), each with a clear reason.
+- Files: features/retention/*, dashboard/DashboardPage.jsx, services/firebase/studentWords.js (`listForStudentIds`).
+- Checks: vitest crm-v2 all green; eslint clean in the touched files.
+- Next safe step: the daily 5-minute review on the student's home (docs/LEARNER_PROFILE.md, step 1).
+## 2026-10-23 · agent/lesson-summary-parent — „Kokkuvõte vanemale” after the lesson analysis
+
+- Main checked: efd80db (2026-10-22). Independent of #737–#742.
+- The family already sees a lesson summary (teacher's note, board pages, new words, homework). Missing: what the
+  student got wrong. The transcript stays teacher/admin only (owner 2026-10-04, firestore.rules lessonRecordings), so the
+  teacher sends it: „Pärast tundi” → „Kokkuvõte vanemale” prefills plain lines in Estonian and Russian (error topics and
+  the number of corrected sentences, never the sentences), the teacher edits and sends; the text is added to the
+  lesson's note in `lessonSummaries` (same fields as the end-of-lesson save, so the rules hold).
+- Files: lesson-recording/afterLesson.js (`parentNoteFromAnalysis`, +test), TranscriptView.jsx (AfterLesson),
+  AfterLessonParent.test.jsx, lessonRecording.css, services/firebase/lessonSummaries.js (`appendNote`).
+- Checks: vitest crm-v2 all green.
+- Next safe step: voice task between lessons (docs/LEARNER_PROFILE.md roadmap).
+## 2026-10-23 · agent/daily-review — „Päeva 5 minutit” for the student
+
+- Main checked: efd80db (2026-10-22). Independent of #737–#741.
+- docs/LEARNER_PROFILE.md step 1. New vocabulary/dailyReview.js (+test): about ten cards a day without choosing —
+  own corrected sentences (≤ 2), forgotten words (box 0 after a review), due words (oldest first), ≤ 3 never practised.
+- Student home „Täna”: the words step is „Päeva 5 minutit · N kaarti · X ununeb” and opens
+  /student/sonavara?paev=1, which starts the set at once; done after five cards reviewed today (before: one word).
+  Sõnavara's „Täna” block offers the same set („Alusta”). Answers move the words in their Leitner boxes as before.
+- Fix: Sõnavara showed a white page when loading failed (an Error object was rendered as text); now the message shows.
+- Checks: vitest crm-v2 all green; manual check on the emulators (student on a phone: home step → set opens → an
+  answer moved „eelarve” from box 0 to 1).
+- Next safe step: docs/LEARNER_PROFILE.md step 2 (sheet errors become review cards).
+## 2026-10-23 · agent/learner-snapshot — „Õpilase pilt”: the student before the lesson
+
+- Main checked: efd80db (2026-10-22). Independent of #737/#738 (live board); other agents work on English content.
+- Owner: „то, что выведет платформу на новый уровень” → the learner profile, version 1 (docs/LEARNER_PROFILE.md).
+- Usage check (production, read only, 2026-10-22): 27 of ~65 student accounts have words in „Minu sõnad”, 15 ever
+  practised, 14 this week; „Kordamine” results are browser-only, invisible to teachers.
+- New: features/learner/learnerSnapshot.js (+test) and LearnerSnapshotCard.jsx (+test), learner.css. The teacher sees:
+  last own practice, this week, forgotten words, the last sheets with their auto-check errors in words, overdue homework,
+  the last lesson's topic and notes, and short signals. Live Classroom Tööruum: panel „Õpilane” opens first when a
+  student is picked; „Pane kordamine tahvlile” makes a board page with the forgotten words. Student card → Ülevaade.
+- Files: features/learner/*, live-classroom/TeacherWorkspace.jsx, students/StudentProfilePage.jsx, docs/LEARNER_PROFILE.md.
+- Checks: vitest crm-v2 2121 passed; eslint clean (learner, live-classroom); manual check on the emulators with seeded
+  words, a sheet with errors, overdue homework and a held lesson.
+- No rules, data or production changed.
+- Next safe step: the daily 5-minute review from the profile on the student's home (LEARNER_PROFILE.md, step 1).
+## 2026-10-23 · agent/live-room-layout — Live Classroom: the worksheet is no longer covered
+
+- Stacked on agent/live-board-realtime (#737), both change StudentBoard and LiveRoom.
+- Found in the two-account test: the video tiles and the colour panel lay over the worksheet; on a phone the colour
+  panel stayed open over the reading view and both tiles covered the page tabs; the sheet picker in the room had bare
+  browser buttons (its rules were scoped to `.ws-studio`).
+- Now: on a wide screen a worksheet page is fitted beside the video tiles (`insetRight` 250 px); the tiles can be made
+  small („Peida video”: a chip with the other side's name, picture and sound go on); the colour panel closes when a
+  worksheet page opens (it opens again from the dock) and never shows over the phone reading view; on a phone only the
+  other side's picture, 92 px, below the page tabs; the picker's tabs and search have their own styles.
+- Files: board/StudentBoard.jsx, live-classroom/LiveRoom.jsx, liveRoom.css, worksheet-studio/worksheetStudio.css,
+  board.test.jsx (+1), LiveRoom.follow.test.jsx (+1).
+- Checks: vitest crm-v2 2127 passed; eslint clean in the touched folders; manual check on the emulators (teacher at
+  1440 px with a worksheet, student on a 375 px phone).
+- Next safe step: owner review of #737 and this PR together (same lesson room).
+
+## 2026-10-23 · agent/live-board-realtime — Live Classroom board: live typing, drawing, cursors, „Juhi vaadet”
+
+- Main checked: efd80db (2026-10-22). No open PR touched the board or Live Classroom; other agents work on English
+  content (#732/#733) and course health.
+- Problem (tested with two accounts on the emulators): a text typed on the board reached the other side only when the
+  writer left the field (the student saw an empty „Tekst” box); lines and moves only on mouse up; no cursors; teacher and
+  student saw the worksheet at different zoom and place (138 % vs 77 %).
+- Now over the call's data channel (nothing extra is saved, Firestore writes are unchanged): letters while they are
+  typed („Anna kirjutab…”), a line or shape while it is drawn, elements while they are dragged, the other side's
+  cursor with a name. The teacher's „Juhi vaadet” sends the visible part of the board; the student sees the same place
+  (a worksheet: the same width and line); when he moves away, „Jälgi õpetaja vaadet” brings him back.
+- Files: board/liveDrafts.js (+test: messages are checked and cut to size, stale drafts drop after 6 s, throttle 40 ms),
+  board/boardModel.js (viewRect, fitRect), board/StudentBoard.jsx (props live, presenting, followView, onFollowBreak;
+  pointer release no longer stops a line from saving), board/board.css, live-classroom/LiveRoom.jsx (one channel
+  listener fans out to the board), liveRoom.css, LiveRoom.follow.test.jsx (+5 tests).
+- Checks: vitest crm-v2 2125 passed; eslint board + live-classroom clean; manual two-tab run on the emulators (typing,
+  drawing, cursor, view lead on a worksheet, follow break and return).
+- Limits: all live parts need the call's data channel (no camera/microphone → no live layer; the board still syncs on
+  save). Group lessons (GroupRoom) do not have it yet. The phone reading view keeps its own scrolling (view lead not
+  applied there).
+- Next safe step: layout PR — video tiles and the colour panel stop covering the worksheet, the colour panel closed in
+  the phone reading view, the sheet picker's styles loaded in the room.
 
 ## 2026-10-22 · agent/course-health — „Kursuste tervis”: is each course whole?
 

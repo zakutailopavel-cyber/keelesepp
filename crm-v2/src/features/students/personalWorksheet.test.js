@@ -18,3 +18,19 @@ describe('personal worksheet', () => {
     expect(personalWorksheet({ student: { level: 'A2' } })).toBeNull();
   });
 });
+
+describe('personal worksheet: the student\'s sentence cards (owner 2026-10-23)', () => {
+  it('his unlearned „Sinu lause” cards become error tasks, learned ones and the words list stay apart', async () => {
+    const { personalWorksheet } = await import('./personalWorksheet.js');
+    const words = [
+      { id: 's1', word: 'Ma elan Tallinnas.', translation: 'Sinu lause: Ma elab Tallinnas.', box: 0 },
+      { id: 's2', word: 'Ta on kodus.', translation: 'Sinu lause: Ta olen kodus.', box: 4 },
+    ];
+    const result = personalWorksheet({ student: { name: 'Mia', level: 'A2' }, words });
+    expect(result.summary.errors).toBe(1);
+    const text = JSON.stringify(result.document.blocks);
+    expect(text).toContain('Ma elab Tallinnas.');
+    expect(text).not.toContain('Ta olen kodus.');
+    expect(result.document.blocks.some((block) => block.type === 'vocab')).toBe(false);
+  });
+});

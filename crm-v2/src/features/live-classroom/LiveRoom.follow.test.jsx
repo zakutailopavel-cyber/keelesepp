@@ -84,3 +84,70 @@ describe('LiveRoom: the student follows the teacher', () => {
     expect(screen.getByRole('button', { name: 'Mine õpetaja lehele' })).toBeInTheDocument();
   });
 });
+
+describe('LiveRoom: the live board (owner 2026-10-23, „like Miro”)', () => {
+  it('a line, a shape or a text being made shows on the other side before it is saved', () => {
+    renderRoom('student');
+    deliver({ t: 'd', pageId: '', draft: { type: 'stroke', points: [{ x: 1, y: 2 }, { x: 30, y: 40 }], color: '#1C2B3A', strokeWidth: 4 } });
+    expect(screen.getByTestId('remote-draft').querySelector('path')).toHaveAttribute('d', 'M 1 2 L 30 40');
+    deliver({ t: 'd', pageId: '', draft: null });
+    expect(screen.queryByTestId('remote-draft')).toBeNull();
+    // a draft on another page is not shown here
+    deliver({ t: 'd', pageId: 'p1', draft: { type: 'shape', shape: 'rect', x: 0, y: 0, w: 10, h: 10 } });
+    expect(screen.queryByTestId('remote-draft')).toBeNull();
+  });
+
+  it('the other side’s cursor carries their name', () => {
+    renderRoom('student');
+    deliver({ t: 'cur', pageId: '', x: 100, y: 50 });
+    expect(screen.getByTestId('remote-cursor')).toHaveTextContent('Pavel');
+    deliver({ t: 'cur', off: true });
+    expect(screen.queryByTestId('remote-cursor')).toBeNull();
+  });
+
+  it('the teacher’s cursor goes to the student while it moves', () => {
+    renderRoom('teacher');
+    fireEvent.pointerMove(screen.getByRole('img', { name: 'Õpilase tahvel' }), { clientX: 40, clientY: 30 });
+    expect(room.state.sent).toContainEqual({ t: 'cur', pageId: '', x: 40, y: 30, typing: false });
+  });
+
+  it('the teacher leads the view; the student follows until he moves the board himself', () => {
+    const rect = vi.spyOn(globalThis.Element.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, left: 0, top: 0, width: 800, height: 500, right: 800, bottom: 500 });
+    try {
+      renderRoom('teacher');
+      fireEvent.click(screen.getByRole('button', { name: 'Juhi vaadet: õpilane näeb sama kohta' }));
+      const lead = room.state.sent.filter((message) => message.t === 'view').at(-1);
+      expect(lead).toMatchObject({ t: 'view', pageId: '' });
+      // the whole 800 × 500 screen of the teacher, in board units
+      expect((lead.x2 - lead.x1) / (lead.y2 - lead.y1)).toBeCloseTo(800 / 500, 2);
+      fireEvent.click(screen.getByRole('button', { name: 'Lõpeta vaate juhtimine' }));
+      expect(room.state.sent.at(-1)).toEqual({ t: 'view', off: true });
+    } finally { rect.mockRestore(); }
+  });
+
+  it('the student is brought to the teacher’s view and can come back after moving away', () => {
+    const rect = vi.spyOn(globalThis.Element.prototype, 'getBoundingClientRect').mockReturnValue({ x: 0, y: 0, left: 0, top: 0, width: 800, height: 500, right: 800, bottom: 500 });
+    try {
+      renderRoom('student');
+      deliver({ t: 'view', pageId: '', x1: 100, y1: 100, x2: 500, y2: 350 });
+      expect(screen.getByText('200%')).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Vähenda' }));
+      expect(screen.getByRole('button', { name: 'Jälgi õpetaja vaadet' })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Jälgi õpetaja vaadet' }));
+      expect(screen.getByText('200%')).toBeInTheDocument();
+      deliver({ t: 'view', off: true });
+      expect(screen.queryByRole('button', { name: 'Jälgi õpetaja vaadet' })).toBeNull();
+    } finally { rect.mockRestore(); }
+  });
+});
+
+describe('LiveRoom: the video tiles can be made small', () => {
+  it('hides the tiles into a chip with the other side’s name and brings them back', () => {
+    renderRoom('teacher');
+    fireEvent.click(screen.getByRole('button', { name: 'Peida video (heli jääb)' }));
+    // the video elements stay (sound goes on), only the chip is in sight
+    expect(document.querySelectorAll('.lr-side video')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: /^Näita videot/ }));
+    expect(screen.getByRole('button', { name: 'Peida video (heli jääb)' })).toBeInTheDocument();
+  });
+});

@@ -11,6 +11,9 @@ import { occurrencesForDates } from '../calendar/calendarView.js';
 import { ROLES } from '../../utils/roles.js';
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
+import RetentionCard from '../retention/RetentionCard.jsx';
+import { recentlyScheduled } from '../retention/retentionRisk.js';
+import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
 
 const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
 const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -74,6 +77,8 @@ async function loadDashboardData(user, repositories) {
 
   return {
     unplanned,
+    schedule,
+    current,
     activeStudents,
     activePeople,
     todayLessons,
@@ -84,6 +89,8 @@ async function loadDashboardData(user, repositories) {
     balance: invoices.reduce((sum, item) => sum + invoiceBalanceCents(item), 0),
     canViewLearning,
     canViewFinance,
+    teacherUid: teacherOnly ? user.uid : '',
+    scheduledIds: [...recentlyScheduled([...schedule, ...groupCalendarEvents(groups)], current)],
   };
 }
 
@@ -147,6 +154,8 @@ export default function DashboardPage({
           </Link>
         ))}
       </section>
+      {/* „Märkimata tunnid”: past lessons without a journal mark, one click to mark held */}
+      {data.canViewLearning ? <section className="content-grid"><UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} {...(repositories.unmarked ? { repository: repositories.unmarked } : {})} /></section> : null}
       <section className="content-grid">
         {data.canViewLearning ? (
           <Card>
@@ -181,6 +190,8 @@ export default function DashboardPage({
           </div>
         </Card>
       </section>
+      {/* „Riskis õpilased” (owner 2026-10-23): who may stop learning soon and why; packages about to end */}
+      {data.canViewLearning ? <section className="content-grid"><RetentionCard students={data.activeStudents} unplanned={data.unplanned} scheduledIds={data.scheduledIds} overdueInvoices={data.overdue} teacherUid={data.teacherUid} {...(repositories.retention ? { repository: repositories.retention } : {})} /></section> : null}
     </div>
   );
 }

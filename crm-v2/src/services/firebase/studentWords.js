@@ -12,6 +12,17 @@ export const studentWordsService = {
       (snapshot) => onData(snapshot.docs.map((d) => normalizeWord(d.id, d.data()))), (error) => onError?.(error));
   },
 
+  // the words of many cards at once (the school's retention view): 30 ids per query, as Firestore allows
+  async listForStudentIds(studentIds = []) {
+    const ids = [...new Set(studentIds.filter(Boolean))];
+    if (!ids.length) return [];
+    const { db } = requireFirebaseClient();
+    const chunks = [];
+    for (let index = 0; index < ids.length; index += 30) chunks.push(ids.slice(index, index + 30));
+    const snapshots = await Promise.all(chunks.map((chunk) => getDocs(query(collection(db, 'studentWords'), where('studentId', 'in', chunk)))));
+    return snapshots.flatMap((snapshot) => snapshot.docs.map((d) => normalizeWord(d.id, d.data())));
+  },
+
   // one read of the student's words (the personal worksheet takes the due ones)
   async listForStudent(studentId) {
     if (!studentId) return [];
@@ -58,6 +69,17 @@ export const studentWordsService = {
       await batch.commit();
     }
     return records.map(([id, record]) => normalizeWord(id, record));
+  },
+
+  // a submitted worksheet's errors as the student's own sentence cards (engine/errorCards.js); a sentence he already has
+  // is not added twice. Practice only: a failure never stops the submission.
+  async addSheetErrors({ studentId, cards = [], user }) {
+    if (!studentId || !cards.length) return 0;
+    const existing = await this.listForStudent(studentId);
+    const have = new Set(existing.map((word) => String(word.word || '').trim().toLocaleLowerCase('et')));
+    const fresh = cards.filter((card) => !have.has(String(card.word).trim().toLocaleLowerCase('et')));
+    for (const card of fresh) await this.add({ studentId, invitationId: '', user, ...card });
+    return fresh.length;
   },
 
   // the student keeps a word from a course deck for repetition („Lisa raskemad minu sõnadesse”)

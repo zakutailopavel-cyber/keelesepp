@@ -6,7 +6,7 @@
 export const EN_B1_CURRICULUM_ID = 'en-b1-v1';
 export const EN_B1_CURRICULUM_TITLE = 'KeeleSepp English B1';
 export const EN_B1_LEVEL = 'English B1';
-export const EN_B1_VERSION = '2026-10-22.3';
+export const EN_B1_VERSION = '2026-10-23.10';
 
 export const EN_B1_MODULES = Object.freeze([
   {
@@ -37,6 +37,76 @@ export const EN_B1_MODULES = Object.freeze([
       ['How long have you…?', 'Present perfect with for and since; How long…?; ago with the past simple.'],
       ['Then or up to now?', 'Present perfect or past simple; follow-up questions; achievements and a scholarship application.'],
       ['Module 3 check: Experiences', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 4, title: 'Plans and the future', goal: 'Talking about plans, arrangements, timetables, predictions and real possibilities.',
+    lessons: [
+      ['What are you going to do?', 'going to for plans and predictions from what you see; will for decisions, offers and promises.'],
+      ['It\'s in my diary', 'Present continuous for arrangements; present simple for timetables and programmes; asking about plans.'],
+      ['What will the future be like?', 'Predictions with will, won\'t, might, may, probably and definitely; I don\'t think… will; a magazine article.'],
+      ['If I pass, I\'ll…', 'The first conditional; unless, when and as soon as with the present simple; a formal e-mail with conditions and questions.'],
+      ['Module 4 check: Plans and the future', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 5, title: 'Free time and culture', goal: 'Talking about hobbies, comparing places and events, reviewing films and books, and making invitations.',
+    lessons: [
+      ['I love doing it', 'Verbs + -ing (enjoy, don\'t mind, can\'t stand, avoid, give up) and verbs + to (want, decide, hope, plan, would like); -ing after prepositions.'],
+      ['The best weekend ever', 'Comparatives and superlatives (regular, irregular, further), (not) as… as, much / a bit + comparative, the more…, the more…'],
+      ['You have to see it!', 'so + adjective, such (a) + adjective + noun, so / such… that; absolutely with strong adjectives, quite; writing a review.'],
+      ['How about going out?', 'Suggestions (Shall we, Let\'s, Why don\'t we, How about + -ing); formal and informal invitations; accepting and refusing politely.'],
+      ['Module 5 check: Free time and culture', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 6, title: 'Travel', goal: 'Talking about travel rules and advice, telling a story about travel problems and complaining politely.',
+    lessons: [
+      ['You have to show your ticket', 'must / have to (necessary), mustn\'t (not allowed), don\'t have to (not necessary); had to and will have to; airport and travel rules.'],
+      ['You should pack light', 'Advice with should / shouldn\'t, ought to and If I were you, I\'d…; should vs must; travel tips.'],
+      ['Everything went wrong', 'Past ability and success: could / couldn\'t, managed to, was able to; had to; telling a story about travel problems.'],
+      ['I\'d like to complain', 'Polite complaints; too + adjective, not + adjective + enough; Could you possibly…?, I would be grateful if…; a formal complaint e-mail.'],
+      ['Module 6 check: Travel', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 7, title: 'Health and lifestyle', goal: 'Talking about food and habits, imagined changes and wishes, and health problems and advice.',
+    lessons: [
+      ['How much sugar?', 'Countable and uncountable nouns; much, many, a lot of, a few, a little, few, little, plenty of, too much / too many, (not) enough.'],
+      ['If I had more time…', 'The second conditional (If I had…, I would…), If I were…, could / might in the result; first vs second conditional.'],
+      ['What would you do?', 'Difficult situations with would, could, might; I wish + past simple; advice with If I were you, You could, It might help.'],
+      ['I don\'t feel well', 'Symptoms (I\'ve got…, my… hurts, I feel…), How long have you had…?, should and had better (not), instructions; at the doctor\'s.'],
+      ['Module 7 check: Health and lifestyle', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 8, title: 'Technology and media', goal: 'Talking about how things are made and invented, online rules and safety, and giving opinions.',
+    lessons: [
+      ['How is it made?', 'The present simple passive (is / are + past participle), by + agent, irregular participles; what things are used for.'],
+      ['It was invented in Estonia', 'The past simple passive (was / were + past participle); passive questions (When was it invented? Who was it made by?); present or past passive.'],
+      ['Are you allowed to…?', 'be allowed to, let + object + verb, make + object + verb (present and past); online safety phrases.'],
+      ['In my opinion…', 'Giving opinions, agreeing and disagreeing; linking words (however, although, on the one hand / on the other hand, firstly, in conclusion); a for-and-against essay.'],
+      ['Module 8 check: Technology and media', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 9, title: 'Our world', goal: 'Describing people, places and nature, reporting what others said, and talking about the environment.',
+    lessons: [
+      ['The girl who changed her school', 'Defining relative clauses with who, which and that; leaving out the relative pronoun; young people who help the environment.'],
+      ['A place where nature comes first', 'where and whose; non-defining relative clauses with commas; who\'s vs whose; nature and protected areas.'],
+      ['She said that…', 'Reported statements with said and told; tense, pronoun and time-word changes; reporting a talk or an interview.'],
+      ['Turn it off!', 'Phrasal verbs about energy and waste (turn off, throw away, cut down on, run out of, give up); reported requests with asked / told someone (not) to.'],
+      ['Module 9 check: Our world', 'Reading, listening, language use, an e-mail, a short message and speaking in the basic school exam\'s task types.'],
+    ],
+  },
+  {
+    number: 10, title: 'Exam practice', goal: 'Exam strategies for every part of the basic school English exam, a review of B1 grammar and a full mock exam.',
+    lessons: [
+      ['Reading like a pro', 'Reading strategies (skimming, scanning, key words, synonyms, guessing from context); review of present and past tenses and the present perfect.'],
+      ['Listen carefully', 'Listening strategies (predicting, notes, numbers, spelling); review of future forms, first and second conditionals and modal verbs; exam-style transformations.'],
+      ['Writing that gets points', 'How exam texts are marked; formal and informal e-mails, messages and articles; planning; the passive, relative clauses and linking words.'],
+      ['Speaking with confidence', 'The five speaking tasks: reading aloud, answering questions, describing a photo, forming questions and a voice message; strategies when you don\'t understand.'],
+      ['Final mock exam (B1)', 'A full mock exam in the basic school exam\'s format: reading, listening, language use, an e-mail, a short message and speaking.'],
     ],
   },
 ]);

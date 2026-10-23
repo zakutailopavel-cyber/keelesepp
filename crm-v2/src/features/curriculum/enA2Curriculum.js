@@ -5,7 +5,7 @@
 export const EN_A2_CURRICULUM_ID = 'en-a2-v1';
 export const EN_A2_CURRICULUM_TITLE = 'KeeleSepp English A2';
 export const EN_A2_LEVEL = 'English A2';
-export const EN_A2_VERSION = '2026-10-22.2';
+export const EN_A2_VERSION = '2026-10-23.10';
 
 export const EN_A2_MODULES = Object.freeze([
   {
@@ -26,6 +26,86 @@ export const EN_A2_MODULES = Object.freeze([
       ['Around town', 'Places in town; asking the way politely; directions with the imperative; first / second / third.'],
       ['Town or country?', 'Comparatives (-er, more, better, worse) with than; spelling; giving an opinion with reasons.'],
       ['Module 2 check: Home and my town', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types.'],
+    ],
+  },
+  {
+    number: 3, title: 'School and learning', goal: 'Talking about school subjects, timetables and rules, and telling about the past at school.',
+    lessons: [
+      ['My timetable', 'School subjects and timetables; can / can\'t for ability; at / on / in with times and days; telling the time.'],
+      ['School rules', 'have to / has to, don\'t have to, can / can\'t for permission; questions and short answers.'],
+      ['Last week at school', 'The past simple of regular verbs (-ed spelling and pronunciation); was / were.'],
+      ['Did you finish the project?', 'Past simple questions and negatives with did / didn\'t; question words; interviews and a project report.'],
+      ['Module 3 check: School and learning', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 4, title: 'Free time', goal: 'Talking about hobbies and sports and telling stories about the weekend in the past.',
+    lessons: [
+      ['I love dancing', 'Hobbies; like / love / enjoy / hate / don\'t mind + -ing; spelling of -ing; questions and short answers.'],
+      ['What did you do?', 'The past simple of common irregular verbs (went, saw, had, ate, got, took, bought, met); questions and negatives.'],
+      ['Sports stars', 'play / go / do + sports; won, lost, taught, broke; the story of an athlete; talking about a match.'],
+      ['A weekend to remember', 'Telling a story in order: first, then, after that, suddenly, in the end; feelings; so and but.'],
+      ['Module 4 check: Free time', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 5, title: 'Food and health', goal: 'Talking about food, shopping and cafés, amounts and prices, and giving simple health advice.',
+    lessons: [
+      ['What\'s in the fridge?', 'Countable and uncountable nouns; a / an, some / any; containers (a bottle of, a loaf of).'],
+      ['How much? How many?', 'How much / how many, much / many / a lot of; prices; a school café menu.'],
+      ['At the café', 'Ordering politely: I\'d like, Can I have, Would you like; like vs would like; starters, main courses and desserts.'],
+      ['You should drink more water', 'Health problems (headache, sore throat, a cold); advice with should / shouldn\'t; at the doctor\'s.'],
+      ['Module 5 check: Food and health', 'Reading, listening, language tasks, an e-mail, a notice and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 6, title: 'Travel and holidays', goal: 'Talking about holiday plans, transport and tickets, booking a room and writing postcards.',
+    lessons: [
+      ['Holiday plans', 'going to for plans: positive, negative, questions and short answers; time words for the future; what to pack.'],
+      ['A ticket to Riga, please', 'Timetables with the present simple; by bus / train / plane, on foot; single and return tickets; buying a ticket.'],
+      ['Booking a room', 'Hotels and hostels; Is there…? / Can I…?; I\'ll for decisions and offers; booking by phone and by e-mail.'],
+      ['Greetings from Saaremaa', 'Postcards and holiday e-mails: present continuous for now, past simple for yesterday, going to for tomorrow.'],
+      ['Module 6 check: Travel and holidays', 'Reading, listening, language tasks, an e-mail, a postcard and speaking in the exam\'s task types (A2).'],
+    ],
+  },
+  {
+    number: 7, title: 'People and places', goal: 'Superlatives, countries and nationalities, describing places and people, festivals and dates.',
+    lessons: [
+      ['The tallest, the oldest, the best', 'superlatives'],
+      ['Where are you from?', 'countries, nationalities, languages'],
+      ['What is it like?', 'describing places and people'],
+      ['Festivals and traditions', 'in / on / at, dates'],
+      ['Module 7 check: People and places', 'check'],
+    ],
+  },
+  {
+    number: 8, title: 'Shopping and money', goal: 'Prices and quantities, too / enough, comparing products, returns and complaints.',
+    lessons: [
+      ['How much is it?', 'much / many, prices'],
+      ['Too big, not big enough', 'too / enough, clothes'],
+      ['Which one is better?', 'comparatives, as… as'],
+      ['I\'d like to return this', 'polite requests, past simple'],
+      ['Module 8 check: Shopping and money', 'check'],
+    ],
+  },
+  {
+    number: 9, title: 'Media and technology', goal: 'Present perfect for experiences (ever / never), just / already / yet, online safety advice, present perfect vs past simple.',
+    lessons: [
+      ['Have you ever…?', 'present perfect: experiences'],
+      ['Have you done it yet?', 'just / already / yet, messages'],
+      ['Safe online', 'should / shouldn\'t'],
+      ['Have you seen it? — Yes, I saw it last week', 'present perfect vs past simple'],
+      ['Module 9 check: Media and technology', 'check'],
+    ],
+  },
+  {
+    number: 10, title: 'A2 exam practice', goal: 'Exam strategies for reading, listening and language, writing and speaking with an A2 grammar review, and a full A2 mock exam.',
+    lessons: [
+      ['Smart reading', 'reading strategies, A2 tenses review'],
+      ['Listen and use', 'listening strategies, comparatives, much / many, too / enough, prepositions'],
+      ['Writing for points', 'exam e-mail, linking words'],
+      ['Speak with confidence', 'speaking tasks, question forms'],
+      ['Final mock exam (A2)', 'mock exam'],
     ],
   },
 ]);

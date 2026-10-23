@@ -1,10 +1,11 @@
 import { Fragment, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BarChart3, BookOpen, FilePlus2, Languages, PenLine, Sparkles } from 'lucide-react';
+import { BarChart3, BookOpen, FilePlus2, Languages, PenLine, Sparkles, Users } from 'lucide-react';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { homeworkService } from '../../services/firebase/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
-import { cardsFromErrors, focusTopics, homeworkFromAnalysis } from './afterLesson.js';
+import { cardsFromErrors, focusTopics, homeworkFromAnalysis, parentNoteFromAnalysis } from './afterLesson.js';
+import { lessonSummariesService } from '../../services/firebase/lessonSummaries.js';
 import { Badge, Button, Card, EmptyState, Input, Modal } from '../../components/ui/index.js';
 import { RECORDING_STATUS } from '../../services/firebase/lessonRecordings.js';
 import { lessonAnalysis, wordDiff } from './lessonTimeline.js';
@@ -102,7 +103,7 @@ function LearnerErrors({ errors }) {
 
 // „Pärast tundi”: the learner's error topics and two next steps — homework on them, word cards from his corrected
 // sentences (owner 2026-10-12). Both are written only when the teacher presses the button.
-export function AfterLesson({ analysis, recording, homework = homeworkService, words = studentWordsService }) {
+export function AfterLesson({ analysis, recording, homework = homeworkService, words = studentWordsService, summaries = lessonSummariesService }) {
   // outside the app (tests, previews) there may be no signed-in user: then the buttons are not shown
   const user = useContext(AuthContext)?.user || null;
   const [busy, setBusy] = useState('');
@@ -111,6 +112,9 @@ export function AfterLesson({ analysis, recording, homework = homeworkService, w
   const topics = focusTopics(analysis);
   const plan = homeworkFromAnalysis({ analysis, recording });
   const cards = cardsFromErrors(analysis?.errors);
+  // „Kokkuvõte vanemale”: the teacher reads and edits the plain text before it goes to the family's lesson summary
+  const [parentText, setParentText] = useState(null);
+  const parentDraft = recording?.invitationId ? parentNoteFromAnalysis({ analysis }) : '';
   if (!user || !recording?.studentId || (!plan && !cards.length)) return null;
   const run = (key, action) => async () => {
     setBusy(key); setError('');
@@ -124,13 +128,28 @@ export function AfterLesson({ analysis, recording, homework = homeworkService, w
     for (const card of cards) await words.add({ studentId: recording.studentId, invitationId: recording.invitationId || '', user, ...card });
     return `${cards.length} parandatud lauset on õpilase sõnakaartidel.`;
   });
+  const sendParent = run('parent', async () => {
+    await summaries.appendNote({ invitationId: recording.invitationId, studentId: recording.studentId, text: parentText, user, title: recording.title || '' });
+    setParentText(null);
+    return 'Kokkuvõte on õpilase ja vanema „Tunnid” all.';
+  });
   return <div className="lesson-ai__after">
     <b>Pärast tundi</b>
     {topics.length ? <ul className="lesson-ai__topics">{topics.map((t) => <li key={t.key || t.topic}><span>{String(t.topic).split('(')[0].trim()}</span><em>{t.count}×{t.teacher ? ` · ${t.teacher} õpetajalt` : ''}</em></li>)}</ul> : null}
     <div className="lesson-ai__actions">
       {plan ? <Button variant="secondary" loading={busy === 'homework'} disabled={Boolean(done.homework)} onClick={giveHomework}><BookOpen size={15} aria-hidden="true" /> {done.homework ? 'Kodutöö antud' : 'Anna kodutöö teemade järgi'}</Button> : null}
+      {parentDraft && parentText === null ? <Button variant="secondary" disabled={Boolean(done.parent)} onClick={() => setParentText(parentDraft)}><Users size={15} aria-hidden="true" /> {done.parent ? 'Kokkuvõte saadetud' : 'Kokkuvõte vanemale'}</Button> : null}
       {cards.length ? <Button variant="secondary" loading={busy === 'cards'} disabled={Boolean(done.cards)} onClick={addCards}><Languages size={15} aria-hidden="true" /> {done.cards ? 'Kaardid lisatud' : `Lisa parandused kaartidele (${cards.length})`}</Button> : null}
     </div>
+    {parentText !== null ? <div className="lesson-ai__parent">
+      <label className="textarea-field"><span>Kokkuvõte vanemale ja õpilasele (ainult teemad, mitte transkriptsioon)</span>
+        <textarea rows="8" maxLength={2000} value={parentText} onChange={(event) => setParentText(event.target.value)} /></label>
+      <div className="lesson-ai__actions">
+        <Button loading={busy === 'parent'} disabled={!parentText.trim()} onClick={sendParent}>Saada</Button>
+        <Button variant="secondary" onClick={() => setParentText(null)}>Loobu</Button>
+      </div>
+    </div> : null}
+    {done.parent ? <p className="form-hint" role="status">{done.parent}</p> : null}
     {done.homework ? <p className="form-hint" role="status">{done.homework}</p> : null}
     {done.cards ? <p className="form-hint" role="status">{done.cards}</p> : null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}

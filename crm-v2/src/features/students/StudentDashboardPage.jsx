@@ -13,6 +13,8 @@ import { readDone } from '../self-study/reviewStore.js';
 import { autoSkills } from './autoSkills.js';
 import { levelProgress, speakingFromStats } from './levelProgress.js';
 import MyProgressCard from './MyProgressCard.jsx';
+import WordGrowthCard from '../vocabulary/WordGrowthCard.jsx';
+import MonthStepsCard from '../learner/MonthStepsCard.jsx';
 import { petProgress } from '../pet/petModel.js';
 import { todayPath } from './todayPath.js';
 import { petReact } from '../pet/petEvents.js';
@@ -98,7 +100,7 @@ export default function StudentDashboardPage({
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
   // the whole day's path done → the walking pet shows a flame, once a day
-  const reviewedToday = readDone(user?.uid).errors?.date === today;
+  const reviewedToday = readDone(user?.uid).errors?.date === today || user?.profile?.practice?.errorsDate === today;
   const pathDone = useMemo(() => {
     if (!state.data) return false;
     const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });
@@ -155,6 +157,10 @@ export default function StudentDashboardPage({
     <SubjectSwitcher subjects={subjects} value={subject} onChange={setSubject} label="Minu õppeained" />
     {/* „Minu areng” follows the Estonian course; another subject has its own teacher's plan */}
     {students.length && (!chosen || chosen === 'Eesti keel') ? <MyProgressCard progress={progress} /> : null}
+    {/* plain numbers: words learned, new this month, own mistakes fixed (owner 2026-10-23) */}
+    {students.length ? <WordGrowthCard words={words} /> : null}
+    {/* „Kuu sammud”: the month's lesson steps and how well each is mastered (owner 2026-10-23) */}
+    {students.length ? <MonthStepsCard assignments={state.data.progressData?.[1] || []} /> : null}
     {students.length ? <section className="student-path" aria-label="Täna">
       <header className="student-path__head">
         <div><span className="eyebrow">Täna</span><h2>{path.done === path.total ? 'Kõik tänased sammud tehtud!' : `${path.done}/${path.total} sammu tehtud`}</h2></div>

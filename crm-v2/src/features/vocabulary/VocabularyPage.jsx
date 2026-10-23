@@ -1,5 +1,6 @@
 import { BookOpen, ChevronRight, GraduationCap, Play, Star } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
@@ -13,6 +14,8 @@ import TopicsSection from './TopicsSection.jsx';
 import { loadWordsForLessons } from './lessonWords.js';
 import { isDue, sameWord } from './wordsModel.js';
 import { useStudentWords } from './useStudentWords.js';
+import { dailyPlan } from './dailyReview.js';
+import DailyReminder from './DailyReminder.jsx';
 import './vocabulary.css';
 
 /**
@@ -61,6 +64,17 @@ export default function VocabularyPage({
   const myDeck = useMemo(() => deckFromWords(words), [words]);
   const byLesson = useMemo(() => lessonDecks(words), [words]);
   const dueDeck = useMemo(() => deckFromWords(words.filter((word) => isDue(word))), [words]);
+  // „Päeva 5 minutit”: one button, about ten cards (dailyReview.js); `?paev=1` (from the home page) starts it at once
+  const daily = useMemo(() => dailyPlan(words), [words]);
+  const openDaily = () => setOpen({ key: 'daily', title: 'Päeva 5 minutit', lessonId: '', deck: daily.deck, mode: daily.deck.length >= 4 ? 'learn' : 'cards' });
+  const [params, setParams] = useSearchParams();
+  const startedDaily = useRef(false);
+  useEffect(() => {
+    if (params.get('paev') !== '1' || startedDaily.current || daily.deck.length < 2) return;
+    startedDaily.current = true;
+    openDaily();
+    setParams((current) => { const next = new globalThis.URLSearchParams(current); next.delete('paev'); return next; }, { replace: true });
+  }, [params, daily.deck.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openLesson = async (lesson) => {
     setNotice('');
@@ -92,7 +106,7 @@ export default function VocabularyPage({
   };
 
   if (state.loading) return <div className="page-content"><LoadingState label="Laen sõnavara…" /></div>;
-  if (state.error) return <div className="page-content"><ErrorState message={state.error} onRetry={state.reload} /></div>;
+  if (state.error) return <div className="page-content"><ErrorState message={state.error?.message || String(state.error)} onRetry={state.reload} /></div>;
 
   return (
     <div className="page-content vocabulary-page">
@@ -110,12 +124,14 @@ export default function VocabularyPage({
           <section className="vd-hero" aria-label="Täna">
             <div>
               <span className="eyebrow">Täna</span>
-              <h2>{dueDeck.length ? `${dueDeck.length} sõna ootab kordamist` : myDeck.length ? 'Kõik sõnad on korratud' : 'Alusta tundide sõnadest'}</h2>
-              <p>{dueDeck.length ? 'Kümme minutit — ja sinu lemmik saab kõhu täis.' : myDeck.length ? 'Tubli! Harjuta veel või vali tunni sõnad allpool.' : 'Vali allpool tund ja õpi selle sõnu.'}</p>
+              <h2>{daily.done ? 'Tänased 5 minutit on tehtud!' : daily.count >= 2 ? `Päeva 5 minutit: ${daily.count} kaarti` : myDeck.length ? 'Kõik sõnad on korratud' : 'Alusta tundide sõnadest'}</h2>
+              <p>{daily.count >= 2 && !daily.done ? [daily.forgotten ? `${daily.forgotten} ununeb` : '', daily.fresh ? `${daily.fresh} uut` : '', 'ülejäänud on kordamise aeg'].filter(Boolean).join(' · ') : daily.done ? 'Tubli! Homme ootavad uued kaardid.' : myDeck.length ? 'Tubli! Harjuta veel või vali tunni sõnad allpool.' : 'Vali allpool tund ja õpi selle sõnu.'}</p>
             </div>
-            {dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: dueDeck.length >= 4 ? 'learn' : 'cards' })}><Play size={18} /> Korda nüüd</button>
+            {daily.count >= 2 && !daily.done ? <button type="button" className="vd-hero__go" onClick={openDaily}><Play size={18} /> Alusta</button>
+              : dueDeck.length >= 2 ? <button type="button" className="vd-hero__go" onClick={() => setOpen({ key: 'due', title: 'Tänased sõnad', lessonId: '', deck: dueDeck, mode: dueDeck.length >= 4 ? 'learn' : 'cards' })}><Play size={18} /> Korda nüüd</button>
               : myDeck.length >= 2 ? <button type="button" className="vd-hero__go is-soft" onClick={() => setOpen({ key: 'all', title: 'Minu sõnad', lessonId: '', deck: myDeck, mode: 'match' })}><Play size={18} /> Mängi paare</button> : null}
           </section>
+          {!preview && myDeck.length ? <DailyReminder /> : null}
           <Card>
             <div className="section-heading"><div><span className="eyebrow">Lause lahti</span><h2>Võta lause lahti</h2></div></div>
             <SentenceAnalyzer />

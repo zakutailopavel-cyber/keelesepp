@@ -1,0 +1,5 @@
+/* „Paigutustest” on the student card */
+.placement-levels { display: flex; flex-wrap: wrap; gap: 8px; }
+.placement-levels span { display: grid; justify-items: center; min-width: 64px; padding: 8px 10px; border-radius: 12px; background: #f2f4f7; color: #475467; font-size: .85rem; }
+.placement-levels span b { font-size: 1rem; color: #101828; }
+.placement-levels span.is-pass { background: #ecfdf3; color: #067647; }

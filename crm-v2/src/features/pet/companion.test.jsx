@@ -22,10 +22,13 @@ describe('companion hints', () => {
 });
 
 function renderCompanion({ roles = ['student'], preview = null, invite, pet = { kind: 'rebane', name: 'Rebu' }, path = '/student' } = {}) {
-  let push = () => {};
+  // like Firestore, a new subscription (the effect re-subscribes when the pet loads) gets the current list again
+  let current = invite ? [invite] : [];
+  let listener = () => {};
+  const push = (list) => { current = list; listener(list); };
   const services = {
     pets: { get: vi.fn().mockResolvedValue(pet), update: vi.fn(async ({ current, ...flags }) => ({ ...(current || {}), ...flags })) },
-    invitationsService: { subscribeIncoming: vi.fn((_uid, onData) => { push = onData; onData(invite ? [invite] : []); return () => {}; }) },
+    invitationsService: { subscribeIncoming: vi.fn((_uid, onData) => { listener = onData; onData(current); return () => {}; }) },
     students: { listSelf: vi.fn().mockResolvedValue([{ id: 'st-1', subject: 'Eesti keel' }]) },
     schedule: { listByStudent: vi.fn().mockResolvedValue([]) },
     homework: { listByStudentIds: vi.fn().mockResolvedValue([]), listWorksheetAssignmentsByStudentIds: vi.fn().mockResolvedValue([]) },

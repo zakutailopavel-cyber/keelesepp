@@ -39,3 +39,23 @@ export function cardsFromErrors(errors = []) {
     .filter((card) => card.word && !seen.has(card.word) && seen.add(card.word))
     .slice(0, 10);
 }
+
+// „Kokkuvõte vanemale” (owner 2026-10-23): the lesson's error topics in a few plain lines for the family, in Estonian and
+// Russian (most families speak Russian). Only topics and a count — never the transcript, which stays with the teacher
+// (firestore.rules, lessonRecordings). The teacher reads and edits it before it goes into the lesson summary.
+export function parentNoteFromAnalysis({ analysis }) {
+  const topics = focusTopics(analysis).map((t) => topicName(t.topic)).filter(Boolean);
+  const fixed = (analysis?.errors || []).filter((e) => !e.unsure && e.said && e.corrected).length;
+  if (!topics.length && !fixed) return '';
+  const et = [
+    fixed ? `Tunnis rääkisime palju ja parandasime ${fixed} lauset.` : 'Tunnis rääkisime palju.',
+    topics.length ? `Tähelepanu vajab: ${topics.slice(0, 3).join('; ')}.` : '',
+    'Kodus: iga päev „Päeva 5 minutit” (Sõnavara) ja kodutöö.',
+  ].filter(Boolean);
+  const ru = [
+    fixed ? `На уроке много говорили и исправили ${fixed} фраз.` : 'На уроке много говорили.',
+    topics.length ? `Над чем поработать: ${topics.slice(0, 3).join('; ')}.` : '',
+    'Дома: каждый день «Päeva 5 minutit» (Sõnavara) и домашнее задание.',
+  ].filter(Boolean);
+  return [...et, '', ...ru].join('\n');
+}

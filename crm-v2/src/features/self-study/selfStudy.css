@@ -67,3 +67,21 @@
 .ss-drill--end { text-align: center; }
 .ss-drill__big { font-size: 48px; }
 @media (max-width: 560px) { .ss-drill { padding: 16px; border-radius: 18px; } .ss-result .ss-btn { width: 100%; } }
+
+/* „Minu kursus” (StudentCoursePage) */
+.course-levels { display: flex; flex-wrap: wrap; gap: 6px; }
+.course-levels button { border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 5px 12px; font: inherit; font-weight: 700; cursor: pointer; }
+.course-levels button.is-active { background: #0b5c4d; border-color: #0b5c4d; color: #fff; }
+.course-next { display: grid; gap: 8px; justify-items: start; }
+.course-next h2 { margin: 0; }
+.course-module__head { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; padding: 0; font: inherit; text-align: left; cursor: pointer; }
+.course-module__head span { margin-left: auto; color: #667085; font-size: .85rem; }
+.course-lessons { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
+.course-lessons li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 10px; border-radius: 12px; background: #f9fafb; }
+.course-lessons li.is-next { background: #ecfdf3; }
+.course-lesson__title { font-weight: 600; font-size: .9rem; }
+.course-phases { display: flex; flex-wrap: wrap; gap: 6px; }
+.course-phase { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e4e7ec; background: #fff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: .8rem; cursor: pointer; }
+.course-phase:disabled { cursor: default; opacity: .6; }
+.course-phase.is-done { color: #067647; border-color: #abefc6; background: #ecfdf3; }
+.course-phase.is-started { color: #b54708; border-color: #fedf89; }

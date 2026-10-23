@@ -31,9 +31,12 @@ import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import './studentProfileTabs.css';
 import StudentRecordingsPanel from '../lesson-recording/StudentRecordingsPanel.jsx';
 import AutoSkillsCard from './AutoSkillsCard.jsx';
+import LearnerSnapshotCard from '../learner/LearnerSnapshotCard.jsx';
+import MonthlyReportCard from '../learner/MonthlyReportCard.jsx';
 import StudentTopicsCard from '../vocabulary/StudentTopicsCard.jsx';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
+import PlacementCard from '../placement/PlacementCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
 
@@ -56,7 +59,7 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor }) {
+export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -173,6 +176,10 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         {activeTab === 'overview' ? (
           <div className="profile-grid">
             <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}{parentCardIds(student).map((id, index, ids) => <Link key={id} className="profile-parent-link" to={`/parents?parent=${encodeURIComponent(id)}`}>{ids.length > 1 ? `Ava lapsevanema kaart ${index + 1}` : 'Ava lapsevanema kaart'}</Link>)}</dd></div><div><dt>Makseviis</dt><dd>{student.payerMethod === 'cash' ? <>Sularaha · <Link to={`/kassa?student=${encodeURIComponent(student.id)}`}>märgi saadud raha</Link></> : 'Pangaülekanne'}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>{tracks.length > 1 ? 'Õppesuunad' : 'Õpetaja'}</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : tracks.length > 1 ? tracks.map((track) => <span className="profile-track" key={track.id || track.subject}>{track.subject} — {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}</span>) : canonicalTeacherName(student.teacher) || 'Määramata'}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
+            {/* „Õpilase pilt” (owner 2026-10-23): practice, forgotten words, sheet errors, open homework */}
+            {/* „Kuu aruanne vanemale” (owner 2026-10-23): the admin checks and sends it */}
+            {currentUser?.roles?.includes(ROLES.ADMIN) ? <MonthlyReportCard student={student} user={currentUser} {...(reportApi ? { repository: reportApi } : {})} /> : null}
+            <LearnerSnapshotCard studentId={student.id} studentName={student.name} {...(learnerRepository ? { repository: learnerRepository } : {})} />
             <Card><h2>Õppeülevaade</h2><dl className="detail-list"><div><dt>Tase</dt><dd>{(ownTracks?.length === 1 ? ownTracks[0].level : student.level) || '—'}</dd></div><div><dt>Sihttase</dt><dd>{student.targetLevel || '—'}</dd></div><div><dt>Õppeaine</dt><dd>{tracks.length ? [...new Set(tracks.map((track) => subjectName(track.subject)))].join(', ') : student.subject || '—'}</dd></div><div><dt>Tunde kokku</dt><dd>{state.lessons.length}</dd></div><div><dt>Graafikukirjeid</dt><dd>{state.schedule.length}</dd></div></dl></Card>
             {canAssignTeacher ? <StudentAccountCard student={student} {...(accountApi ? { service: accountApi } : {})}
               onInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, studentUid: data.uid, linkedUserId: data.uid, linkedUserIds: [data.uid], email: current.student.email || data.email } }))}
@@ -212,6 +219,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
           </div>
         ) : null}
 
+        {/* „Paigutustest” (owner 2026-10-23): a 15-minute test with an automatic level suggestion */}
+        {activeTab === 'assessment' ? <PlacementCard student={student} user={currentUser} {...(placementApi ? { repository: placementApi } : {})} /> : null}
         {activeTab === 'assessment' ? <InitialAssessmentPanel student={student} user={currentUser} service={assessmentApi} /> : null}
 
         {activeTab === 'finance' && canViewFinance ? <>
