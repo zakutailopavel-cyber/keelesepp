@@ -124,3 +124,11 @@ describe('lesson phases', () => {
     expect(item.updatedAt).toBe('2026-10-18T06:26:48.914Z');
   });
 });
+
+describe('subjects', () => {
+  it('reads the subject from the level label and counts it', async () => {
+    const { subjectOfLevel, subjectFacets } = await import('./libraryModel.js');
+    expect(['A2', 'B1', 'C1', '9. klass emakeel', 'English A2', '—', ''].map(subjectOfLevel)).toEqual(['et', 'et', 'et', 'ek', 'en', '', '']);
+    expect(subjectFacets([{ level: 'A2' }, { level: 'B2' }, { level: 'English B1' }]).map((f) => [f.key, f.count])).toEqual([['et', 2], ['en', 1]]);
+  });
+});

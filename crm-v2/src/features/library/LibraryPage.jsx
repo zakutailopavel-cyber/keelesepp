@@ -45,6 +45,8 @@ import {
   sectionsByModule,
   sortLibrary,
   typeFacets,
+  subjectFacets,
+  subjectOfLevel,
 } from './libraryModel.js';
 import { publishedPhaseDoc } from '../worksheet-studio/bookProgram.js';
 import MaterialPreview from './MaterialPreview.jsx';
@@ -226,6 +228,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
   const q = searchParams.get('q') || '';
   const level = searchParams.get('tase') || '';
+  const subject = searchParams.get('aine') || '';
   const module = searchParams.get('moodul') || '';
   const type = searchParams.get('tyyp') || '';
   const onlyFav = searchParams.get('lemmikud') === '1';
@@ -285,11 +288,14 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   }, [assignBlock, assignId, assignSheet, items, searchParams, setSearchParams, worksheetRepository]);
   const favFilter = onlyFav ? favorites : null;
   const mineUid = onlyMine ? user?.uid || '' : '';
-  const levels = useMemo(() => levelFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
-  const modules = useMemo(() => moduleFacets(searchLibrary(items, { query: q, level, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, level, type, favFilter, mineUid]);
-  const types = useMemo(() => typeFacets(searchLibrary(items, { query: q, level, module, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, level, module, favFilter, mineUid]);
-  const results = useMemo(() => sortLibrary(searchLibrary(items, { query: q, level, module, type, favorites: favFilter, mineUid })
-    .filter(({ item }) => !phaseFilter || (item.withPhases && matchesPhaseFilter(item.phases, phaseFilter))), sort), [items, q, level, module, type, sort, favFilter, mineUid, phaseFilter]);
+  // the subject tab narrows everything below it (levels, modules, types, results)
+  const subjects = useMemo(() => subjectFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
+  const subjectItems = useMemo(() => (subject ? items.filter((item) => subjectOfLevel(item.level) === subject) : items), [items, subject]);
+  const levels = useMemo(() => levelFacets(searchLibrary(subjectItems, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [subjectItems, q, type, favFilter, mineUid]);
+  const modules = useMemo(() => moduleFacets(searchLibrary(subjectItems, { query: q, level, type, favorites: favFilter, mineUid }).map((r) => r.item)), [subjectItems, q, level, type, favFilter, mineUid]);
+  const types = useMemo(() => typeFacets(searchLibrary(subjectItems, { query: q, level, module, favorites: favFilter, mineUid }).map((r) => r.item)), [subjectItems, q, level, module, favFilter, mineUid]);
+  const results = useMemo(() => sortLibrary(searchLibrary(subjectItems, { query: q, level, module, type, favorites: favFilter, mineUid })
+    .filter(({ item }) => !phaseFilter || (item.withPhases && matchesPhaseFilter(item.phases, phaseFilter))), sort), [subjectItems, q, level, module, type, sort, favFilter, mineUid, phaseFilter]);
   const moduleProgress = useMemo(() => {
     const byModule = new Map();
     for (const { item } of results) byModule.set(item.moduleKey, [...(byModule.get(item.moduleKey) || []), item]);
@@ -392,7 +398,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const openPhase = (item, phaseId) => navigate(`/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets/${phaseId}`);
   const shown = results.slice(0, limit);
   const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
-  const filtersOn = Boolean(q || level || module || type || onlyFav || onlyMine || phaseFilter);
+  const filtersOn = Boolean(q || subject || level || module || type || onlyFav || onlyMine || phaseFilter);
   // „Grammatika” first in a level (owner 2026-10-21): the level's grammar topics with their lessons and Õpik sheets
   const grammar = level && !q && !module && !onlyFav && !onlyMine && !phaseFilter ? grammarTopics(level, items) : [];
 
@@ -462,6 +468,12 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
         {q ? <button type="button" className="lib2-clear" aria-label="Tühjenda otsing" onClick={() => setParam({ q: '' })}><X size={16} /></button> : <kbd aria-hidden="true">/</kbd>}
       </div>
 
+      {subjects.length > 1 ? (
+        <div className="lib2-subjects" role="tablist" aria-label="Aine">
+          <button type="button" role="tab" aria-selected={!subject} className={!subject ? 'is-active' : ''} onClick={() => setParam({ aine: '', tase: '', moodul: '' })}>Kõik ained <span>{subjects.reduce((sum, facet) => sum + facet.count, 0)}</span></button>
+          {subjects.map((facet) => <button type="button" role="tab" key={facet.key} aria-selected={subject === facet.key} className={subject === facet.key ? 'is-active' : ''} onClick={() => setParam({ aine: facet.key, tase: '', moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
+        </div>
+      ) : null}
       <div className="lib2-levels" role="group" aria-label="Tase">
         <button type="button" className={!level ? 'is-active' : ''} aria-pressed={!level} onClick={() => setParam({ tase: '', moodul: '' })}>Kõik <span>{levels.reduce((sum, facet) => sum + facet.count, 0)}</span></button>
         {levels.map((facet) => <button type="button" key={facet.key} className={level === facet.key ? 'is-active' : ''} aria-pressed={level === facet.key} onClick={() => setParam({ tase: level === facet.key ? '' : facet.key, moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
