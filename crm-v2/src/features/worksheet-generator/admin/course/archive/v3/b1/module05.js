@@ -1,0 +1,441 @@
+// B1 course (A2 → B1 roadmap), module 5 „Lihtminevik ja kogemused” (a2b1-021…025), stage A2+. Design v2
+// (docs/COURSE_DESIGN_COMMUNICATIVE.md): every phase opens differently — Avasta: Anni's diary (021), Rein's voice
+// message (022), three people at a food festival (023), a picture story as a flow chart (024); Harjuta: questions and
+// answers (021), ordering a day (022), a crossword of irregular forms (023), a funny story to read (024); Kasuta: a
+// sick friend's chat (021), a holiday letter (022), a quick quiz before the news (023), planning a contest story (024).
+// Lesson 5 is the module's mini Harno A2 exam. The v1 file (Harjuta + Kasuta only) is in archive/v1/b1/module05.js.
+import { B } from '../../../blocks.js';
+// Lesson template v3 (2026-10-18, docs/COURSE_DESIGN_COMMUNICATIVE.md §10–11): stage A2+ (texts 120–250 words, 8 items
+// a task, sentences and instructions up to 16 words); 021–024 have 9 full tasks a sheet — Avasta with a text or a
+// listening, Harjuta with cloze + formtext + a second exam text + a monologue, Kasuta with role cards, a talk and a
+// letter or story; 025 keeps the Harno A2 form.
+
+export const MODULE = { id: 'a2b1-module-05', course: 'b1', title: 'Lihtminevik ja kogemused', level: 'A2+', design: 'v2', template: 'v3' };
+
+export const LESSONS = {
+  'a2b1-021': {
+    title: 'Lihtmineviku põhivormid',
+    canDo: 'Ma moodustan sagedaste tegusõnade lihtmineviku vorme ja jutustan oma eilsest päevast.',
+    template: 'v3',
+    discover: [
+      B.reading('021_d_read', 'Loe Anni päevikut.', 'Anni kirjutab igal õhtul päevikusse. Loe, mida ta reedel tegi, ja vasta.', 'Anni päevik, reede',
+        'Täna oli pikk päev. Hommikul töötasin kodus, sest meie kontoris remonditi kööki. Kõigepealt vastasin kirjadele ja helistasin kahele kliendile. Kell kümme alustasin uut projekti. Lõuna ajal kohtusin sõbranna Piiaga. Me sõime suppi väikeses kohvikus ja rääkisime tema uuest tööst. Pärastlõunal õppisin kaks tundi hispaania keelt, sest suvel tahan Hispaaniasse sõita. Õhtul ostsin poest köögivilju ja tegin salatit. Ma ei vaadanud telerit, vaid kuulasin raadiot. Kell üksteist lõpetasin päeva ja läksin magama. Olin väsinud, aga rahul. Ainult üks asi jäi tegemata: ma ei helistanud emale, kuigi lubasin. Ema saatis mulle õhtul sõnumi ja küsis, kas kõik on korras. Vastasin talle lühidalt ja lubasin homme hommikul kindlasti helistada. Homme on laupäev ja mul on rohkem aega. Tahan emaga pikalt rääkida, sest me ei ole terve nädala kohtunud.',
+        [['Miks Anni kodus töötas?', 'kontoris remonditi kööki|kontoris oli remont'], ['Mida ta tegi kõigepealt?', 'vastas kirjadele'], ['Kellega ta lõuna ajal kohtus?', 'Piiaga|sõbrannaga'], ['Miks ta hispaania keelt õppis?', 'suvel tahab Hispaaniasse sõita'], ['Miks ei olnud Anni päevaga päris rahul?', 'ta ei helistanud emale|ta ei helistanud emale, kuigi lubas|ta unustas emale helistada']]),
+      B.notice('021_d_notice', 'Märka: lihtminevik', ['ma **töötan** → ma **töötasin**, ta **töötas**', 'ma töötasin, sa töötasid, ta töötas, me töötasime, te töötasite, nad töötasid', 'eitus kõigil: ma **ei töötanud**, ta **ei helistanud**, nad **ei vaadanud**', 'ostma → ma **ostsin**, ta **ostis**; kohtuma → ma **kohtusin**, ta **kohtus**', 'Minevikku näitavad sõnad: eile, reedel, täna hommikul'], 'full'),
+      B.vocab('021_d_vocab', 'Tunni sõnad.', ['eile — вчера', 'töötama — работать', 'helistama — звонить', 'kohtuma — встречаться', 'ostma — покупать', 'vaatama — смотреть', 'küsima — спрашивать', 'lõpetama — заканчивать', 'alustama — начинать', 'puhkama — отдыхать', 'päevik — дневник', 'minevik — прошлое']),
+      B.gaps('021_d_open', 'Ava sulud.', 'Kirjuta tegusõna lihtminevikus.', ['Eile ma [töötasin] (töötama) kodus.', 'Me [vaatasime] (vaatama) õhtul filmi.', 'Ta [helistas] (helistama) emale.', 'Sina [küsisid] (küsima) hea küsimuse.', 'Nad [ostsid] (ostma) uue auto.', 'Mina [lõpetasin] (lõpetama) töö kell viis.', 'Te [puhkasite] (puhkama) maal.', 'Me [kohtusime] (kohtuma) pargis.']),
+      B.transformation('021_d_neg', 'Ütle eitavalt.', 'Kirjuta lause eitavas vormis.', [
+        ['Ma töötasin eile.', 'eitus', 'Ma ei töötanud eile.'], ['Ta helistas mulle.', 'eitus', 'Ta ei helistanud mulle.'], ['Me ostsime leiba.', 'eitus', 'Me ei ostnud leiba.'],
+        ['Nad vaatasid telerit.', 'eitus', 'Nad ei vaadanud telerit.'], ['Sa küsisid õigesti.', 'eitus', 'Sa ei küsinud õigesti.'], ['Ta lõpetas töö varem.', 'eitus', 'Ta ei lõpetanud tööd varem.'], ['Me kohtusime eile kohvikus.', 'eitus', 'Me ei kohtunud eile kohvikus.'], ['Ma vaatasin õhtul uudiseid.', 'eitus', 'Ma ei vaadanud õhtul uudiseid.']], 'full', 'g_notice'),
+      B.errorfix('021_d_fix', 'Paranda vorm.', 'Kirjuta lause õigesti.', [['Eile ma töötan kaua.', 'Eile ma töötasin kaua.|Eile töötasin ma kaua.'], ['Me ei vaatasime filmi.', 'Me ei vaadanud filmi.'], ['Ta helistasin mulle.', 'Ta helistas mulle.'], ['Nad ostis leiba.', 'Nad ostsid leiba.'], ['Kas sa küsis õpetajalt?', 'Kas sa küsisid õpetajalt?'], ['Ta ei töötas eile.', 'Ta ei töötanud eile.'], ['Eile õhtul Anni lugesid raamatut.', 'Eile õhtul luges Anni raamatut.'], ['Me ei ostsime poest midagi.', 'Me ei ostnud poest midagi.']]),
+      B.translation('021_d_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['Вчера я работал дома.', 'Мы смотрели фильм.', 'Она не звонила мне.', 'Что ты делал в субботу?', 'Мы встретились в кафе.', 'Я закончил работу в пять.', 'Утром я ответила на письма и позвонила клиенту.', 'Вечером мы долго гуляли в парке.']),
+      B.speaking('021_d_say', 'Mida sa eile tegid?', 'Vasta paarilisele 1–2 minutit täislausetega. Kasuta 6 tegusõna.', ['Mida sa hommikul tegid?', 'Kellega sa rääkisid või kohtusid?', 'Mida sa õhtul vaatasid või kuulasid?', 'Mida sa eile ei teinud?'], [60, 90], ['Eile ma…', 'Ma ei…', 'Pärast seda ma…']),
+      B.writing('021_d_write', 'Minu eilne päev.', 'Kirjuta 8–10 lauset eilsest päevast. Kasuta 6 tegusõna minevikus.', [8, 10], ['töötasin', 'kohtusin', 'vaatasin', 'ei'], 3),
+    ],
+    practice: [
+      B.truefalse('021_p_check', 'Kas vorm on õige?', 'Õige või vale?', [['Eile ma töötasin kodus.', true], ['Ta ei helistas mulle.', false], ['Me kohtusime kohvikus.', true], ['Nad ostis uue auto.', false], ['Kas sa vaatasid filmi?', true], ['Te puhkasite eile kodus.', true], ['Eile me ei kohtusime.', false], ['Ta lõpetas töö kell viis.', true]], 'full'),
+      B.reading('021_p_read', 'Loe Toomase laupäevast.', 'Loe tekst ja vasta minevikus.', 'Laupäev, mis läks teisiti',
+        'Eelmisel laupäeval ärkas Toomas juba kell seitse, kuigi ta tahtis kaua magada. Naaber puuris seina ja müra oli väga vali. Toomas tõusis üles, keetis kohvi ja vaatas aknast välja. Ilm oli ilus ja päike paistis. Ta otsustas minna rattaga mere äärde. Teel helistas ta sõbrale Andresele ja küsis, kas ta tahab kaasa tulla. Andres ütles, et tal on vaja korterit koristada, aga lubas tulla pärastlõunal. Mere ääres istus Toomas kohvikus ja luges ajalehte. Kell kaks saabus Andres ja nad jalutasid koos rannas. Õhtul ostsid nad poest kala ja grillisid Toomase rõdul. Toomas ütles hiljem, et see oli suve parim laupäev, kuigi see algas halvasti. Järgmisel päeval rääkis ta naabriga ja naaber vabandas müra pärast. Ta ütles, et remont lõppeb varsti ja järgmisel laupäeval võib Toomas rahulikult magada.',
+        [['Miks ärkas Toomas vara?', 'naaber puuris seina|müra oli vali'], ['Kuhu Toomas otsustas minna?', 'rattaga mere äärde|mere äärde'], ['Miks Andres kohe ei tulnud?', 'tal oli vaja korterit koristada'], ['Mida tegi Toomas mere ääres?', 'istus kohvikus ja luges ajalehte|luges ajalehte'], ['Mida nad õhtul tegid?', 'grillisid kala rõdul|grillisid'], ['Kuidas Toomas päeva hindas?', 'suve parim laupäev']]),
+      B.cloze('021_p_cloze', 'Toomase pühapäev.', 'Loe teksti ja vali igasse lünka õige vorm.', 'Pühapäev', [
+        'Pühapäeval {*ärkas|ärkab|ärkasin} Toomas kell üheksa. Ta {*keetis|keedab|keetsid} kohvi ja {*helistas|helistab|helistasid} emale, kes elab Pärnus.',
+        '',
+        'Lõuna ajal {*kohtus|kohtub|kohtusin} ta sõbraga vanalinna kohvikus. Nad {*rääkisid|rääkis|räägivad} kaua oma tööst ja suveplaanidest.',
+        '',
+        'Õhtul Toomas {*ei vaadanud|ei vaatas|ei vaata} telerit, vaid {*luges|loeb|lugesid} uut raamatut, mille ta laupäeval ostis.',
+        '',
+        'Kell üksteist {*lõpetas|lõpetab|lõpetasime} ta päeva ja läks magama. See oli rahulik ja ilus pühapäev.',
+      ], 'g_notice'),
+      B.formtext('021_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', 'Minu eilne päev', [
+        'Eile [ärkasin] (ärkama) ma kell seitse. Kõigepealt [jõin] (jooma) kohvi ja siis [sõitsin] (sõitma) bussiga tööle.',
+        '',
+        'Tööl [vastasin] (vastama) kirjadele ja [helistasin] (helistama) kahele kliendile. Lõuna ajal me kolleegidega [sõime] (sööma) suppi.',
+        '',
+        'Õhtul ma [ei vaadanud] (vaatama, eitus) telerit. Selle asemel [lugesin] (lugema) raamatut ja läksin vara magama.',
+      ]),
+      B.translation('021_p_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['В прошлую субботу Томас проснулся рано.', 'Сосед извинился за шум.', 'Мы жарили рыбу на балконе.', 'Я не читал газету.', 'Андрес пришёл после обеда.', 'Это была лучшая суббота лета.', 'Вечером он не смотрел телевизор, а читал.', 'Мы встретились в кафе и долго разговаривали.']),
+      B.dictation('021_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Eile töötasin ma kodus.', 'Õhtul vaatasime filmi.', 'Ta ei helistanud eile emale.', 'Me kohtusime kohvikus.', 'Nad ostsid poest leiba.', 'Ma lõpetasin tööpäeva kell kuus.']),
+      B.rolecards('021_p_roles', 'Intervjuu.', 'Üks on ajakirjanik, teine kuulus inimene. Rääkige 2 minutit, siis vahetage.',
+        'Oled ajakirjanik. Küsi 6 küsimust: mida inimene eile tegi.', 'Oled kuulus inimene. Räägi oma eilsest päevast. Lisa üks naljakas detail.',
+        ['Mida te hommikul tegite?', 'Kellega te kohtusite?', 'Kas te puhkasite ka?'], ['Hommikul ma…', 'Siis ma…', 'Ma ei…']),
+      B.speaking('021_p_mono', 'Minu eelmine laupäev.', 'Räägi 1–2 minutit plaani järgi oma eelmisest laupäevast.', ['Mis kell sa ärkasid ja mida tegid hommikul?', 'Kellega sa kohtusid?', 'Mida sa tegid õhtul?', 'Mida sa ei teinud, kuigi tahtsid?'], [60, 120], ['Hommikul ma…', 'Siis ma…', 'Õhtul…', 'Ma ei…']),
+      B.writing('021_p_write', 'Minu päevik.', 'Kirjuta päevikusse 8–10 lauset eilsest päevast. Kasuta ka eitust.', [8, 10], ['hommikul', 'siis', 'ei', 'õhtul'], 3),
+    ],
+    transfer: [
+      B.text('021_t_sit', 'Sõber oli haige', 'Sinu sõber Kati oli nädal aega haige. Ta kirjutab sulle ja küsib, mis vahepeal juhtus.'),
+      B.dialogue('021_t_chat', 'Kati sõnumid.', 'Loe sõnumeid ja kirjuta lünka sobiv sõna.', 'Kati', 'Sina', [
+        ['A', 'Tere! Ma olin terve nädala haige. Mida sa eile [tegid]?'],
+        ['B', 'Eile töötasin kodus. Hommikul [vastasin] kirjadele ja helistasin klientidele.'],
+        ['A', 'Kas sa [käisid] ka trennis?'],
+        ['B', 'Ei, ma ei [käinud]. Selle asemel kohtusin Mardiga kohvikus.'],
+        ['A', 'Oi, mida Mart rääkis?'],
+        ['B', 'Ta [rääkis] oma uuest tööst. Ta alustas esmaspäeval suures firmas.'],
+        ['A', 'Tore! Kas sa ostsid mulle raamatu, mida lubasid?'],
+        ['B', 'Jah, ostsin! Aga ma [unustasin] selle kahjuks autosse.'],
+        ['A', 'Pole hullu. Kas tuled homme külla?'],
+        ['B', 'Jah, tulen kell viis ja toon raamatu kaasa. Kas see [sobib]?'],
+      ], 'g_read'),
+      B.reading('021_t_read', 'Loe Kati kirja.', 'Kati kirjutab, kuidas tema haiguse nädal möödus. Loe ja vasta küsimustele.', 'Minu haige nädal',
+        'Tere! Eelmine nädal oli minu jaoks väga igav. Esmaspäeval ärkasin ja mul oli kõrge palavik. Ma helistasin tööle ja ütlesin, et ma ei saa tulla. Siis helistasin perearstile. Arst ütles, et mul on gripp ja ma pean kodus olema terve nädala.\n\nTeisipäeval ja kolmapäeval ma peaaegu ainult magasin ja jõin palju teed meega. Ema tõi mulle suppi ja apelsine ning jäi minu juurde kaheks päevaks. Neljapäeval oli juba parem. Ma lugesin kaks raamatut ja vaatasin palju filme.\n\nReedel helistas mulle ülemus ja küsis, kuidas ma end tunnen. Ta ütles, et kolleegid ootavad mind tagasi. Laupäeval käisin esimest korda õues ja jalutasin pargis. Nüüd olen peaaegu terve ja esmaspäeva hommikul lähen jälle tööle. Ma tahan kõigepealt teada, mis kontoris vahepeal juhtus. Kirjuta, mis sul vahepeal juhtus!',
+        [['Mis juhtus esmaspäeval?', 'Katil oli kõrge palavik'], ['Mida arst ütles?', 'tal on gripp ja ta peab nädal kodus olema'], ['Mida tõi ema?', 'suppi ja apelsine'], ['Mida tegi Kati neljapäeval?', 'luges kaks raamatut ja vaatas filme'], ['Miks helistas ülemus?', 'ta küsis, kuidas Kati end tunneb'], ['Millal käis Kati esimest korda õues?', 'laupäeval']]),
+      B.errorfix('021_t_fix', 'Sõnumi vead.', 'Paranda sõnum Katile.', [
+        ['Eile ma vastan kirjadele.', 'Eile vastasin ma kirjadele.|Eile ma vastasin kirjadele.'], ['Ma ei käisin trennis.', 'Ma ei käinud trennis.'], ['Mart rääkisid oma uuest tööst.', 'Mart rääkis oma uuest tööst.'],
+        ['Me kohtusime kohvikusse.', 'Me kohtusime kohvikus.'], ['Ma ostsin sulle raamat.', 'Ma ostsin sulle raamatu.'], ['Ma unustasid raamatu autosse.', 'Ma unustasin raamatu autosse.'], ['Eile me jalutasid pargis.', 'Eile me jalutasime pargis.'], ['Ta ei helistas mulle eile.', 'Ta ei helistanud mulle eile.']]),
+      B.translation('021_t_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['Вчера я встретил старого друга.', 'Мы долго разговаривали.', 'Я не смотрел телевизор.', 'Вечером я читал книгу.', 'Что ты делала вчера?', 'Я забыл книгу в машине.', 'В пятницу мне позвонил начальник.', 'Мама принесла мне суп и апельсины.']),
+      B.rolecards('021_t_roles', 'Kohvipausil.', 'Kolleegid räägivad, mida nad eelmisel nädalal tegid. Rääkige 3 minutit, siis vahetage.',
+        'Sa olid nädal aega haige. Räägi, mida sa kodus tegid, ja küsi, mis tööl juhtus.', 'Sa olid tööl. Räägi kolm uudist: kes alustas, mis juhtus, mida otsustati.',
+        ['Ma olin terve nädala…', 'Ma lugesin / vaatasin…', 'Mis tööl juhtus?'], ['Esmaspäeval…', 'Mart alustas…', 'Ülemus ütles, et…']),
+      B.speaking('021_t_call', 'Telefonis Katiga.', 'Paariline on Kati. Räägi 1–2 minutit, mis sinu nädalal juhtus.', ['Mida sa eile tegid?', 'Kellega sa kohtusid?', 'Mida sa ei jõudnud teha?', 'Mis oli kõige toredam?'], [90, 120], ['Eile ma…', 'Kahjuks ma ei…', 'Kõige toredam oli…']),
+      B.letter('021_t_msg', 'Pikk sõnum Katile.', 'Kirjuta Katile, mida sa eile tegid: hommik, lõuna, õhtu ja üks asi, mida sa ei teinud.', 'Tere, Kati!', 'Saa ruttu terveks!', [60, 80]),
+      B.rubric('021_t_rubric', 'Kas Kati saab aru?', 'Paariline loeb sõnumit.', ['Sõnumis on hommik, lõuna ja õhtu.', 'Tegusõnad on lihtminevikus: töötasin, kohtusin, vaatasin.', 'Sõnumis on eitus õigesti: ma ei vaadanud.', 'Sõnum on sõbralik: küsimus või soov Katile.']),
+    ],
+  },
+
+  'a2b1-022': {
+    title: 'Eile ja eelmisel nädalal',
+    canDo: 'Ma jutustan 8–10 lausega eilsest või eelmisest nädalast ja kasutan vähemalt nelja ajamarkerit.',
+    template: 'v3',
+    discover: [
+      B.listening('022_d_voice', 'Kuula Reinu häälsõnumit.', 'Rein räägib Katile oma nädalast. Kuula kaks korda ja kirjuta 1–2 sõna.', [
+        'Tere, Kati! Siin Rein. Vabandust, et ma eile ei helistanud.', 'Eelmine nädal oli väga kiire.', 'Esmaspäeva hommikul jäin bussist maha ja jõudsin tööle pool tundi hiljem.', 'Esmaspäeval ja teisipäeval töötasin hilja õhtuni, sest meil oli suur projekt.',
+        'Kolmapäeval käisin hambaarsti juures. Hammas valutas juba mitu päeva, aga nüüd on kõik korras.', 'Neljapäeval sadas terve päeva vihma ja ma jäin õhtul koju.', 'Lugesin raamatut ja tegin seenesuppi.',
+        'Reedel kohtusin vanade koolisõpradega restoranis. Me rääkisime ja naersime kolm tundi.', 'Laupäeval sõitsime perega maale vanaema juurde. Sõit kestis kaks tundi.', 'Vanaema tegi meile pannkooke ja lapsed mängisid aias koeraga.',
+        'Pühapäeval puhkasin terve päeva ja ei teinud midagi.', 'Aga nüüd küsimus: kas sa tahad sel reedel kinno tulla? Film algab kell seitse.', 'Helista mulle täna õhtul! Head aega!',
+      ], ['Esmaspäeval ja teisipäeval töötas Rein [hilja õhtuni|õhtuni|hilja].', 'Kolmapäeval käis ta [hambaarsti] juures.', 'Neljapäeval tegi ta õhtul [seenesuppi|suppi].', 'Reedel kohtus ta [koolisõpradega|sõpradega] restoranis.', 'Laupäeval tegi vanaema [pannkooke].', 'Pühapäeval ta [puhkas].', 'Reedel algab film kell [seitse|7].', 'Esmaspäeval jäi Rein [bussist] maha.']),
+      B.notice('022_d_notice', 'Märka: millal see juhtus?', ['Minevik: **eile**, **üleeile**, **eelmisel nädalal**, **möödunud suvel**, **kaks päeva tagasi**', 'Järjekord: **kõigepealt** → **siis** / **pärast seda** → **lõpuks**', 'Ajamarker lause alguses, tegusõna teisel kohal: **Eile läksin** ma kinno.', 'Millal? **eelmisel** nädalal, **esmaspäeval**, **reedel** (-l)'], 'full'),
+      B.vocab('022_d_vocab', 'Tunni sõnad.', ['eile — вчера', 'üleeile — позавчера', 'eelmisel nädalal — на прошлой неделе', 'möödunud suvel — прошлым летом', 'tagasi — назад', 'kõigepealt — сначала', 'pärast seda — после этого', 'lõpuks — наконец', 'nädalavahetus — выходные', 'juhtuma — случаться', 'käima — ходить, бывать', 'sõitma — ездить']),
+      B.wordorder('022_d_words', 'Ajamarker lause alguses.', 'Pane lause kokku. Alusta ajamarkeriga.', ['Eelmisel nädalal käisin ma vanaema juures.', 'Eile õhtul vaatasime me filmi.', 'Üleeile kohtusin ma vana sõbraga.', 'Möödunud suvel puhkasime me Saaremaal.', 'Kaks päeva tagasi ostsin ma uued kingad.', 'Eile hommikul jäin ma bussist maha.', 'Kaks päeva tagasi helistas mulle vana sõber.', 'Pärast seda läksime koos sööma.']),
+      B.transformation('022_d_past', 'Muuda minevikku.', 'Kirjuta lause minevikus antud sõnaga.', [
+        ['Ma lähen poodi.', 'eile', 'Eile läksin ma poodi.|Eile ma läksin poodi.'], ['Me kohtume sõpradega.', 'eelmisel nädalal', 'Eelmisel nädalal kohtusime me sõpradega.|Eelmisel nädalal me kohtusime sõpradega.'],
+        ['Ta töötab kodus.', 'üleeile', 'Üleeile töötas ta kodus.|Üleeile ta töötas kodus.'], ['Nad sõidavad maale.', 'möödunud suvel', 'Möödunud suvel sõitsid nad maale.|Möödunud suvel nad sõitsid maale.'],
+        ['Ma ei käi trennis.', 'eile', 'Eile ma ei käinud trennis.|Eile ei käinud ma trennis.'], ['Ma kohtun Kristiga.', 'kaks päeva tagasi', 'Kaks päeva tagasi kohtusin ma Kristiga.|Kaks päeva tagasi ma kohtusin Kristiga.'], ['Rein teeb seenesuppi.', 'neljapäeval', 'Neljapäeval tegi Rein seenesuppi.'], ['Lapsed mängivad aias.', 'laupäeval', 'Laupäeval mängisid lapsed aias.']], 'full', 'g_notice'),
+      B.errorfix('022_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Eile ma lähen kinno.', 'Eile läksin ma kinno.|Eile ma läksin kinno.'], ['Eelmine nädalal oli mul kiire.', 'Eelmisel nädalal oli mul kiire.'], ['Üleeile me kohtume sõpradega.', 'Üleeile kohtusime me sõpradega.|Üleeile me kohtusime sõpradega.'],
+        ['Kaks päeva tagasi ma ostan kingad.', 'Kaks päeva tagasi ostsin ma kingad.|Kaks päeva tagasi ma ostsin kingad.'], ['Möödunud suvel me puhkame Pärnus.', 'Möödunud suvel puhkasime me Pärnus.|Möödunud suvel me puhkasime Pärnus.'], ['Esmaspäev ma töötasin hilja.', 'Esmaspäeval töötasin ma hilja.|Esmaspäeval ma töötasin hilja.'], ['Neljapäeval Rein jäi koju.', 'Neljapäeval jäi Rein koju.'], ['Pühapäeval ma ei teinud mitte midagi tegema.', 'Pühapäeval ma ei teinud midagi.|Pühapäeval ei teinud ma midagi.']]),
+      B.translation('022_d_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['На прошлой неделе я был в Таллинне.', 'Позавчера мы ходили в театр.', 'Сначала мы поели, потом гуляли.', 'В конце концов я пошёл домой.', 'Прошлым летом мы отдыхали на море.', 'Позавчера я встретил старого друга.', 'В четверг весь день шёл дождь.', 'В субботу мы поехали к бабушке в деревню.']),
+      B.speaking('022_d_week', 'Minu eelmine nädal.', 'Räägi paarilisele 8–10 lausega. Kasuta 4 ajamarkerit.', ['Mida tegid esmaspäeval?', 'Mis oli nädala tähtsaim sündmus?', 'Kellega kohtusid?', 'Mida tegid nädalavahetusel?'], [60, 120], ['Esmaspäeval…', 'Pärast seda…', 'Nädalavahetusel…', 'Lõpuks…']),
+      B.writing('022_d_write', 'Minu eelmine nädal.', 'Kirjuta 8–10 lauset oma eelmisest nädalast. Kasuta 4 ajamarkerit.', [8, 10], ['esmaspäeval', 'siis', 'pärast seda', 'lõpuks'], 3),
+    ],
+    practice: [
+      B.cloze('022_p_order', 'Järjekord.', 'Loe teksti ja vali igasse lünka sobiv sõna.', 'Minu eilne päev', [
+        'Eile {*hommikul|homme|praegu} ärkasin kell seitse. {*Kõigepealt|Lõpuks|Homme} jõin kohvi ja sõin võileiba.',
+        '',
+        '{*Siis|Eile|Homme} sõitsin bussiga tööle. {*Lõuna ajal|Ülehomme|Järgmisel nädalal} sõin kolleegidega sööklas.',
+        '',
+        '{*Pärast|Enne|Kuni} tööd käisin poes ja ostsin leiba. {*Lõpuks|Alguses|Kõigepealt} tulin koju ja puhkasin diivanil.',
+        '',
+        '{*Üleeile|Ülehomme|Homme} oli samamoodi. Ma loodan, et {*järgmine|eelmine|möödunud} nädal on rahulikum.',
+      ], 'g_notice'),
+      B.reading('022_p_read', 'Loe Liisi nädalast.', 'Loe ja vasta.', 'Liisi kiire nädal',
+        'Eelmine nädal oli Liisi jaoks väga kiire. Esmaspäeval alustas ta uut projekti ja töötas hilja õhtuni. Teisipäeval käis ta pärast tööd hambaarsti juures, sest hammas valutas juba mitu päeva. Kolmapäeval oli tal vaba õhtu ja ta kohtus vana koolisõbraga kohvikus. Nad rääkisid kaks tundi ja naersid palju. Neljapäeval sadas terve päeva vihma ja Liisi jäi pärast tööd koju. Ta luges raamatut ja tegi suppi. Reedel läks ta kolleegidega kinno ja pärast seda sõid nad pitsat. Laupäeval sõitis ta vanematele külla maale. Pühapäeval puhkas ta lõpuks terve päeva ja valmistus uueks nädalaks. Õhtul kirjutas ta oma päevikusse, et nädal oli raske, aga huvitav. Ta otsustas, et järgmine nädal läheb rahulikumalt. Ta lubas endale, et läheb igal õhtul varem magama ja ei tööta enam nii hilja.',
+        [['Mida tegi Liisi esmaspäeval?', 'alustas uut projekti|töötas hilja õhtuni'], ['Miks läks ta hambaarsti juurde?', 'hammas valutas'], ['Kellega kohtus ta kolmapäeval?', 'vana koolisõbraga'], ['Mida tegi ta neljapäeval?', 'jäi koju, luges ja tegi suppi|luges raamatut ja tegi suppi'], ['Kuhu sõitis ta laupäeval?', 'vanematele külla maale|maale'], ['Mida kirjutas Liisi päevikusse?', 'et nädal oli raske, aga huvitav|nädal oli raske, aga huvitav']]),
+      B.choice('022_p_logic', 'Mis on loogiline?', 'Vali sobiv jätk.', [
+        ['Eile hommikul ärkasin hilja, …', 'seega jäin bussist maha.', 'seega olin väga vara tööl.', 'seega jõin rahulikult kaks tassi kohvi.'],
+        ['Eelmisel nädalal olin haige, …', 'seepärast ei käinud ma tööl.', 'seepärast jooksin maratoni.', 'seepärast käisin iga päev trennis.'],
+        ['Kõigepealt ostsin piletid, …', 'siis läksin kinno.', 'siis ostsin piletid.', 'enne seda vaatasin filmi.'],
+        ['Laupäeval sadas vihma, …', 'nii et jäime koju.', 'nii et päevitasime rannas.', 'nii et homme sajab.'],
+        ['Pärast koosolekut …', 'sõin kolleegidega lõunat.', 'algas koosolek.', 'ärkasin hommikul.'],
+        ['Reedel oli mul sünnipäev, …', 'seepärast tulid sõbrad külla.', 'seepärast jäin üksi tööle.', 'seepärast olin terve päeva haige.'],
+        ['Hammas valutas mitu päeva, …', 'seepärast läksin hambaarsti juurde.', 'seepärast sõin palju komme.', 'seepärast läksin ujuma.'],
+        ['Eile oli ilus ilm, …', 'nii et sõitsime randa.', 'nii et jäime terveks päevaks koju.', 'nii et võtsime vihmavarju.'],
+      ], 'full', 'g_use'),
+      B.formtext('022_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', 'Möödunud suvi', [
+        'Möödunud suvel [sõitsime] (sõitma) me perega Saaremaale. Esimesel päeval [vaatasime] (vaatama) Kuressaare linnust.',
+        '',
+        'Teisel päeval [sadas] (sadama) vihma ja lapsed [mängisid] (mängima) hotellis lauamänge. Kolmandal päeval [käisime] (käima) rannas.',
+        '',
+        'Õhtuti [sõime] (sööma) kala ja [jalutasime] (jalutama) mere ääres. Koju [jõudsime] (jõudma) väsinud, aga õnnelikud.',
+      ]),
+      B.errorfix('022_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Teisipäeval käis Liisi hambaarsti juurde.', 'Teisipäeval käis Liisi hambaarsti juures.'], ['Kolmapäeval ta kohtusid koolisõbraga.', 'Kolmapäeval kohtus ta koolisõbraga.|Kolmapäeval ta kohtus koolisõbraga.'], ['Neljapäeval sadas vihma ja Liisi jääb koju.', 'Neljapäeval sadas vihma ja Liisi jäi koju.'],
+        ['Reedel nad sõid pitsa.', 'Reedel sõid nad pitsat.|Reedel nad sõid pitsat.'], ['Pühapäeval ta puhkab terve päeva.', 'Pühapäeval puhkas ta terve päeva.|Pühapäeval ta puhkas terve päeva.'], ['Liisi otsustab, et järgmine nädal läheb rahulikumalt.', 'Liisi otsustas, et järgmine nädal läheb rahulikumalt.'], ['Esmaspäeval Liisi alustab uut projekti.', 'Esmaspäeval alustas Liisi uut projekti.'], ['Teisipäeval hammas valutasid juba mitu päeva.', 'Teisipäeval valutas hammas juba mitu päeva.']]),
+      B.dictation('022_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Eelmisel nädalal oli mul kiire.', 'Esmaspäeval töötasin hilja.', 'Kolmapäeval kohtusin sõbraga.', 'Reedel läksime kinno.', 'Pühapäeval puhkasin.', 'Laupäeval sõitsin vanematele külla.']),
+      B.rolecards('022_p_roles', 'Mida sa tegid?', 'A küsib päevade kaupa, B vastab oma tabeli järgi. Siis vahetage.',
+        'Küsi iga päeva kohta: mida, kellega, kus. Küsi ka üks täpsustav küsimus.', 'Vasta oma tabeli järgi täislausega. Lisa igale päevale üks detail.',
+        ['Mida sa esmaspäeval tegid?', 'Kellega sa…?', 'Kas see oli tore?'], ['Esmaspäeval ma…', 'Pärast seda…', 'See oli…']),
+      B.speaking('022_p_mono', 'Minu möödunud suvi.', 'Räägi 1–2 minutit plaani järgi oma möödunud suvest.', ['Kus sa möödunud suvel käisid?', 'Mida sa kõigepealt tegid?', 'Mis oli kõige toredam?', 'Mida sa järgmisel suvel teeksid teisiti?'], [60, 120], ['Möödunud suvel…', 'Kõigepealt…', 'Kõige toredam oli…', 'Lõpuks…']),
+      B.writing('022_p_write', 'Minu eelmine nädalavahetus.', 'Kirjuta 8–10 lauset. Kasuta vähemalt 5 ajamarkerit.', [8, 10], ['laupäeval', 'kõigepealt', 'siis', 'pärast seda', 'lõpuks'], 3),
+    ],
+    transfer: [
+      B.text('022_t_sit', 'Kiri sõbrannalt', 'Sinu sõbranna Maria saatis kirja oma puhkusest. Loe ja vasta talle oma nädalast.'),
+      B.reading('022_t_read', 'Loe Maria kirja.', 'Loe kirja ja vasta.', 'Kiri Pärnust',
+        'Tere, Kati! Eelmisel nädalal olime perega puhkusel Pärnus. Esmaspäeval sõitsime bussiga kohale ja otsisime üles meie väikese hotelli. Teisipäeval ja kolmapäeval oli ilm väga ilus ja me olime terve päeva rannas. Lapsed ujusid ja ehitasid liivalosse. Neljapäeval sadas vihma, seepärast käisime muuseumis ja veekeskuses. Reedel rentisime jalgrattad ja sõitsime mööda mereäärt. Õhtuti sõime erinevates restoranides. Kõige rohkem meeldis mulle kalasupp sadamakohvikus, mida sõime kaks korda. Laupäeval sõitsime koju. Olime väsinud, aga õnnelikud. Kõige naljakam oli see, kui meie poeg kukkus jalgrattaga lompi. Ta oli märg, aga naeris kõige rohkem. Me pidime talle poest uued riided ostma. Järgmisel aastal tahame kindlasti uuesti Pärnusse minna. Lapsed küsivad juba praegu, millal me jälle randa läheme. Ka mina ootan seda väga. Kuidas sinu nädal läks? Kirjuta mulle! Sinu Maria',
+        [['Miks pidid vanemad pojale uued riided ostma?', 'poeg kukkus jalgrattaga lompi|poeg kukkus lompi ja sai märjaks|ta kukkus lompi'], ['Mida tegid lapsed rannas?', 'ujusid ja ehitasid liivalosse'], ['Miks käisid nad neljapäeval muuseumis?', 'sadas vihma'], ['Mida tegid nad reedel?', 'rentisid rattad ja sõitsid mööda mereäärt'], ['Mis meeldis Mariale kõige rohkem?', 'kalasupp sadamakohvikus|kalasupp']]),
+      B.gaps('022_t_gaps', 'Vastus Mariale.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', ['Eelmisel nädalal [olin] (olema) ma tööl.', 'Teisipäeval [käisin] (käima) teatris.', 'Neljapäeval [sadas] (sadama) ka meil vihma.', 'Reedel [kohtusin] (kohtuma) vana sõbraga.', 'Laupäeval [koristasime] (koristama) kodu.', 'Pühapäeval [puhkasin] (puhkama) terve päeva.', 'Õhtul [vaatasime] (vaatama) koos filmi.', 'Lapsed [mängisid] (mängima) õues palli.']),
+      B.errorfix('022_t_fix', 'Kirja vead.', 'Paranda vastus Mariale.', [
+        ['Eelmisel nädalal me käime Tallinnas.', 'Eelmisel nädalal käisime me Tallinnas.|Eelmisel nädalal me käisime Tallinnas.'], ['Neljapäeval sadas vihma, seepärast me jäi koju.', 'Neljapäeval sadas vihma, seepärast me jäime koju.'], ['Lapsed ujus meres.', 'Lapsed ujusid meres.'],
+        ['Kõige rohkem meeldis mulle muuseumi.', 'Kõige rohkem meeldis mulle muuseum.'], ['Me sõitsime koju laupäev.', 'Me sõitsime koju laupäeval.'], ['Kas sa sõitsid ka mere ääres?', 'Kas sa sõitsid ka mere äärde?'], ['Reedel me rentisime jalgrattad ja sõitsime mere ääres.', 'Reedel rentisime me jalgrattad ja sõitsime mööda mereäärt.|Reedel me rentisime jalgrattad ja sõitsime mööda mereäärt.'], ['Õhtuti me sõime erinevad restoranides.', 'Õhtuti sõime me erinevates restoranides.|Õhtuti me sõime erinevates restoranides.']]),
+      B.translation('022_t_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['Мы вернулись домой в субботу.', 'Погода была хорошая.', 'Мы каждый день купались.', 'Мне больше всего понравился музей.', 'Как прошла твоя неделя?', 'Мы ездили на велосипедах вдоль моря.', 'В четверг шёл дождь, поэтому мы пошли в музей.', 'Самым смешным было падение сына в лужу.']),
+      B.rolecards('022_t_roles', 'Kolleegid köögis.', 'Rääkige 2–3 minutit. Seejärel vahetage.',
+        'Sa olid nädal puhkusel. Räägi, mida tegid päevade kaupa. Lisa üks probleem.', 'Sa olid tööl. Küsi puhkuse kohta. Räägi, mis tööl vahepeal juhtus.',
+        ['Esmaspäeval me…', 'Kahjuks…', 'Lõpuks…'], ['Kuidas puhkus läks?', 'Mida te seal tegite?', 'Tööl juhtus…']),
+      B.speaking('022_t_best', 'Nädala parim hetk.', 'Räägi rühmale 1–2 minutit: mis oli eelmise nädala parim hetk ja miks.', ['Millal see juhtus?', 'Kus sa olid?', 'Kellega?', 'Miks see oli parim?'], [90, 120], ['See juhtus…', 'Ma olin…', 'See oli parim, sest…']),
+      B.letter('022_t_mail', 'Vasta Mariale.', 'Kirjuta Mariale oma eelmisest nädalast. Kasuta vähemalt 4 ajamarkerit ja küsi üks küsimus.', 'Tere, Maria!', 'Kirjuta varsti!', [60, 80]),
+      B.rubric('022_t_rubric', 'Kas Maria saab sinu nädalast aru?', 'Paariline loeb kirja.', ['Kirjas on vähemalt neli päeva või sündmust.', 'Kasutatud on 4 ajamarkerit: eelmisel nädalal, siis, pärast seda, lõpuks.', 'Tegusõnad on lihtminevikus ja tegusõna on ajamarkeri järel teisel kohal.', 'Kirjas on küsimus Mariale.']),
+    ],
+  },
+
+  'a2b1-023': {
+    title: 'I-lihtminevik ja sagedased erandid',
+    canDo: 'Ma kasutan vähemalt 8 sagedast erandlikku lihtmineviku vormi õigesti ja kirjeldan üht üritust.',
+    template: 'v3',
+    discover: [
+      B.gaps('023_d_gaps', 'Ava sulud.', 'Kirjuta tegusõna lihtminevikus.', ['Eile [tuli] (tulema) mu sõber külla.', 'Me [läksime] (minema) koos turule.', 'Seal me [nägime] (nägema) vana klassivenda.', 'Ta [tegi] (tegema) meile kohvi.', 'Me [sõime] (sööma) kooki ja [jõime] (jooma) mahla.', 'Õhtu [oli] (olema) väga tore.', 'Õhtul [jäi] (jääma) sõber meie juurde ööseks.', 'Hommikul [sai] (saama) ma temalt kirja.']),
+      B.reading('023_d_read', 'Loe ema sünnipäevast.', 'Loe, kuidas pere ema sünnipäeva tähistas, ja vasta küsimustele.', 'Ema sünnipäev',
+        'Eelmisel pühapäeval oli minu ema sünnipäev. Hommikul tuli minu õde Tallinnast ja tõi kaasa suure koogi. Isa läks poodi ja ostis lilli. Mina tegin salatit ja vend tegi pilte. Kella kahe paiku tulid ka vanaema ja vanaisa. Me sõime kooki, jõime kohvi ja rääkisime palju. Ema sai kingituseks uue raamatu ja kaks teatripiletit. Ta oli väga õnnelik. Õhtul läksid vanavanemad koju, aga õde jäi meie juurde ööseks. Me vaatasime koos vanu perefotosid ja naersime. Ühel pildil oli ema viieaastane ja tal oli suur punane müts. Ema ütles, et see oli tema parim sünnipäev. Järgmisel päeval läksid ema ja isa koos teatrisse. Pärast teatrit jalutasid nad vanalinnas ja jõid kohvikus kakaod. Neile meeldis etendus väga ja nad tulid koju alles hilja. Ema helistas mulle ja tänas veel kord kõigi eest.',
+        [['Mida tõi õde kaasa?', 'suure koogi|koogi'], ['Mida tegi isa?', 'läks poodi ja ostis lilli'], ['Mis kingitused ema sai?', 'raamatu ja kaks teatripiletit|raamatu ja teatripiletid|uue raamatu ja kaks teatripiletit'], ['Kes jäi ööseks?', 'õde'], ['Mida nad õhtul vaatasid?', 'vanu perefotosid|vanu fotosid|perefotosid'], ['Mida tegid ema ja isa järgmisel päeval?', 'läksid teatrisse|käisid teatris']]),
+      B.notice('023_d_notice', 'Märka: sagedased erandid', ['tulema → **tuli**, minema → **läks**, tegema → **tegi**, nägema → **nägi**', 'sööma → **sõi**, jooma → **jõi**, saama → **sai**, jääma → **jäi**, tooma → **tõi**, viima → **viis**', 'mina: **tulin**, **läksin**, **tegin**, **nägin**, **sõin**, **jõin**', 'eitus: ei **tulnud**, ei **läinud**, ei **teinud**, ei **näinud**, ei **söönud**'], 'full'),
+      B.vocab('023_d_vocab', 'Tunni sõnad.', ['tuli — пришёл', 'läks — пошёл', 'tegi — сделал', 'nägi — увидел', 'sõi — ел', 'jõi — пил', 'sai — получил', 'jäi — остался', 'tõi — принёс', 'oli — был', 'festival — фестиваль', 'vabatahtlik — волонтёр']),
+      B.transformation('023_d_neg', 'Ütle eitavalt.', 'Kirjuta lause eitavas vormis.', [
+        ['Ta tuli peole.', 'eitus', 'Ta ei tulnud peole.'], ['Me läksime turule.', 'eitus', 'Me ei läinud turule.'], ['Ma tegin kodutöö.', 'eitus', 'Ma ei teinud kodutööd.'],
+        ['Nad nägid kontserti.', 'eitus', 'Nad ei näinud kontserti.'], ['Sa sõid hommikust.', 'eitus', 'Sa ei söönud hommikust.'], ['Ta jõi kohvi.', 'eitus', 'Ta ei joonud kohvi.'], ['Me saime kingituse.', 'eitus', 'Me ei saanud kingitust.'], ['Ta jäi koju.', 'eitus', 'Ta ei jäänud koju.']], 'full', 'g_notice'),
+      B.errorfix('023_d_fix', 'Paranda vorm.', 'Igas lauses on üks vale vorm.', [['Eile ma minesin tööle.', 'Eile ma läksin tööle.|Eile läksin ma tööle.'], ['Ta tulis koju hilja.', 'Ta tuli koju hilja.'], ['Me söösime pitsat.', 'Me sõime pitsat.'], ['Nad nägisid tänavakunstnikke.', 'Nad nägid tänavakunstnikke.'], ['Ma tegesin kodutööd.', 'Ma tegin kodutööd.'], ['Joonas toois vett.', 'Joonas tõi vett.'], ['Ema saas kaks teatripiletit.', 'Ema sai kaks teatripiletit.'], ['Me jäisime koju.', 'Me jäime koju.']]),
+      B.translation('023_d_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['Вчера ко мне пришёл друг.', 'Мы пошли в кино.', 'Я ничего не ел утром.', 'Что ты видел в музее?', 'Она получила подарок.', 'Мы выпили сок.', 'Вечером сестра осталась у нас ночевать.', 'Брат сделал много фотографий.']),
+      B.speaking('023_d_chain', 'Ketilugu.', 'Paaris või rühmas: igaüks lisab loole ühe lause erandvormiga.', ['Algus: „Eile läks Mari metsa…”', 'Mida ta nägi?', 'Kes tuli?', 'Kuidas lugu lõppes?'], [60, 120], ['läks', 'nägi', 'tegi', 'tuli', 'sai', 'jäi']),
+      B.writing('023_d_write', 'Minu viimane pidu.', 'Kirjuta 8–10 lauset viimasest peost või sünnipäevast. Kasuta 5 erandvormi.', [8, 10], ['tuli', 'läksime', 'sõime', 'jõime', 'oli'], 3),
+    ],
+    practice: [
+      B.categorize('023_p_sort', 'Tavaline vorm või erand?', 'Sorteeri tegusõnad.', [['Tavaline vorm', ['töötas', 'helistas', 'ostis', 'vaatas']], ['Erand', ['tuli', 'läks', 'sõi', 'tõi']]], 'full', 'g_notice'),
+      B.choice('023_p_quiz', 'Kiire kontroll.', 'Vali õige vorm.', [
+        ['Eile ma … kinos.', 'käisin', 'käin', 'käis'], ['Eile ta … mulle kingituse.', 'tõi', 'tõid', 'toob'], ['Eile me … liiga palju kooki.', 'sõime', 'sõid', 'sööme'],
+        ['Eile nad … koju hilja.', 'jäid', 'jääsid', 'jäi'], ['Kas sa eile … teda?', 'nägid', 'nägi', 'näed'], ['Eile ma ei … festivalile.', 'läinud', 'läksin', 'lähe'], ['Eile ta … meile suure koogi.', 'tegi', 'teeb', 'tegid'], ['Eile me … festivalil kaua.', 'jäime', 'jääme', 'jäid']], 'full', 'g_use'),
+      B.cloze('023_p_cloze', 'Vali lünka sobiv sõna.', 'Loe teksti ja vali igasse lünka õige vorm.', 'Laupäev turul', [
+        'Laupäeval {*läksin|läks|minin} ma vara hommikul turule. Seal {*nägin|nägi|nägisin} oma vana naabrit.',
+        '',
+        'Ta {*tuli|tulis|tulin} turule koos lapselapsega. Me {*jõime|jõisime|joome} koos kohvi ja rääkisime kaua.',
+        '',
+        'Naaber {*tõi|toob|toois} mulle oma aiast õunu. Mina {*tegin|tegesin|teeb} õhtul nendest õunakoogi.',
+        '',
+        'Õhtul {*sõime|söösime|söön} kogu perega kooki. Lapsed {*said|saasid|saab} ka natuke vahukoort.',
+      ], 'g_vocab'),
+      B.formtext('023_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', 'Sünnipäevapidu', [
+        'Laupäeval [oli] (olema) minu sõbra Mardi sünnipäev. Me [läksime] (minema) tema juurde kella kuueks.',
+        '',
+        'Mart [tegi] (tegema) ise suure pitsa. Külalised [tõid] (tooma) kaasa kooke ja mahla.',
+        '',
+        'Me [sõime] (sööma) ja [jõime] (jooma) ning laulsime. Mart [sai] (saama) kingituseks uue jalgratta.',
+        '',
+        'Mõned külalised [jäid] (jääma) peole keskööni.',
+      ]),
+      B.errorfix('023_p_fix', 'Paranda vorm.', 'Kirjuta lause õigesti.', [['Õde tulis Tallinnast.', 'Õde tuli Tallinnast.'], ['Isa minis poodi.', 'Isa läks poodi.'], ['Me jõisime kohvi.', 'Me jõime kohvi.'], ['Ema saas kingituseks raamatu.', 'Ema sai kingituseks raamatu.'], ['Õde jääs meie juurde ööseks.', 'Õde jäi meie juurde ööseks.'], ['Vanavanemad ei läksid koju.', 'Vanavanemad ei läinud koju.'], ['Vend tegesin palju pilte.', 'Vend tegi palju pilte.'], ['Me nägisime vanu fotosid.', 'Me nägime vanu fotosid.']]),
+      B.translation('023_p_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['Сестра приехала из Таллинна.', 'Папа купил цветы.', 'Мама получила в подарок книгу.', 'Бабушка и дедушка пришли в два.', 'Мы смотрели старые фотографии.', 'На следующий день родители пошли в театр.', 'Вечером мы ели торт и пили чай.', 'Бабушка осталась у нас до воскресенья.']),
+      B.dictation('023_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Eile tuli mu vend külla.', 'Ta tõi kaasa suure koogi.', 'Me sõime kooki ja jõime teed.', 'Film oli väga põnev.', 'Pärast seda jäi ta ööseks.', 'Hommikul viis ta lapsed kooli.']),
+      B.speaking('023_p_game', 'Kaks tõde, üks vale.', 'Ütle kolm lauset oma eelmisest nädalast erandvormidega. Üks on vale. Paariline arvab. Siis vahetage.', ['Kus sa käisid?', 'Mida sa nägid või sõid?', 'Kes sulle külla tuli?'], [60, 120], ['Ma läksin…', 'Ma nägin…', 'Mulle tuli külla…']),
+      B.writing('023_p_write', 'Pere pidu.', 'Kirjuta 8–10 lauset ühest pere peost. Kasuta 6 erandvormi.', [8, 10], ['tuli', 'tõi', 'sõime', 'jõime', 'sai', 'jäi'], 3),
+    ],
+    transfer: [
+      B.text('023_t_sit', 'Ajaleht kogub muljeid', 'Sinu linnas oli eelmisel laupäeval suur festival. Kohalik ajaleht kogub inimeste muljeid. Loe uudist ja anna oma mulje.'),
+      B.dictation('023_t_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Eile läksin ma sõbraga festivalile.', 'Seal nägime palju tuttavaid.', 'Ma sõin kalasuppi ja jõin mahla.', 'Õhtul hakkas kergelt sadama.', 'Me jäime kontserdile lõpuni.', 'Koju jõudsime alles keskööl.']),
+      B.reading('023_t_news', 'Loe uudist.', 'Loe ja vasta küsimustele.', 'Festivalil käisid tuhanded',
+        'Eelmisel laupäeval oli Tartus toidufestival. Hommikul tuli kesklinna palju inimesi. Marta läks festivalile koos lastega. „Lapsed nägid esimest korda tänavakunstnikke ja said näomaalingud,” rääkis ta. Joonas tegi festivalil vabatahtlikuna tööd. Ta tõi müüjatele vett ja viis prügi ära. „Ma sõin kolm erinevat suppi ja jõin kohalikku õunamahla,” naeris ta. Õhtul tuli kerge vihm, aga keegi ei läinud koju. Kontsert algas kell kaheksa ja lõppes alles keskööl. Kokku käis festivalil umbes kakskümmend tuhat inimest. Kõige pikem järjekord oli Kihnu kalasupi juures. Mõned külastajad ootasid seal peaaegu tund aega. Pühapäeva hommikul koristasid vabatahtlikud kesklinna ja kella kümneks oli kõik jälle puhas. Korraldajad ütlesid, et festival oli edukam kui eelmisel aastal. Järgmine festival toimub järgmise aasta mais. Marta ütles, et tuleb kindlasti jälle, sest lastele meeldis väga.',
+        [['Mis näitab, et Kihnu kalasupp oli populaarne?', 'seal oli kõige pikem järjekord|inimesed ootasid peaaegu tund aega|pikk järjekord'], ['Mida said Marta lapsed?', 'näomaalingud'], ['Mida Joonas tegi?', 'oli vabatahtlik|tõi vett ja viis prügi ära'], ['Kui kaua kestis kontsert?', 'kella kaheksast keskööni|keskööni'], ['Kas inimesed läksid vihma tõttu koju?', 'ei']]),
+      B.errorfix('023_t_fix', 'Mulje vead.', 'Paranda laused ajalehe jaoks.', [['Festivalil olid palju inimesi.', 'Festivalil oli palju inimesi.'], ['Ma söösin kolm suppi.', 'Ma sõin kolm suppi.'], ['Lapsed saasid näomaalingud.', 'Lapsed said näomaalingud.'], ['Keegi ei läks koju.', 'Keegi ei läinud koju.'], ['Kontsert lõppes alles keskööl ja me tulis koju hilja.', 'Kontsert lõppes alles keskööl ja me tulime koju hilja.'], ['Joonas viisis prügi ära.', 'Joonas viis prügi ära.'], ['Peeter nägis kontserdil vana sõpra.', 'Peeter nägi kontserdil vana sõpra.'], ['Me jõisime õunamahla.', 'Me jõime õunamahla.']]),
+      B.transformation('023_t_neg', 'Ütle eitavalt.', 'Kirjuta lause eitavas vormis.', [['Ma läksin koju.', 'eitus', 'Ma ei läinud koju.'], ['Lapsed said kingituse.', 'eitus', 'Lapsed ei saanud kingitust.'], ['Joonas sõi suppi.', 'eitus', 'Joonas ei söönud suppi.'], ['Me nägime kontserti.', 'eitus', 'Me ei näinud kontserti.'], ['Ta tõi vett.', 'eitus', 'Ta ei toonud vett.'], ['Nad jäid lõpuni.', 'eitus', 'Nad ei jäänud lõpuni.'], ['Peeter läks vihma tõttu koju.', 'eitus', 'Peeter ei läinud vihma tõttu koju.'], ['Me tegime palju pilte.', 'eitus', 'Me ei teinud palju pilte.']]),
+      B.rolecards('023_t_roles', 'Reporter tänaval.', 'Rääkige 2 minutit, siis vahetage.',
+        'Oled reporter. Küsi, kus inimene käis, mida nägi, sõi ja tegi.', 'Käisid nädalavahetusel üritusel. Vasta ja lisa üks üllatav detail.',
+        ['Kus te käisite?', 'Mida te seal nägite?', 'Mis teile kõige rohkem meeldis?'], ['Ma läksin…', 'Ma nägin…', 'Kõige rohkem meeldis…']),
+      B.speaking('023_t_speech', 'Minu mulje.', 'Räägi rühmale 1–2 minutit ühest üritusest, kus sa käisid. Kasuta erandvorme.', ['Kus ja millal see oli?', 'Kellega sa läksid?', 'Mida sa nägid, sõid ja jõid?', 'Mis oli kõige huvitavam?'], [90, 120], ['Ma läksin…', 'Seal ma nägin…', 'Ma sõin…', 'Kõige huvitavam oli…']),
+      B.letter('023_t_letter', 'Sinu mulje ajalehele.', 'Kirjuta ajalehele ühest üritusest, kus käisid: kus, kellega, mida nägid, sõid ja tegid.', 'Lugupeetud toimetus!', 'Lugupidamisega', [60, 80]),
+      B.rubric('023_t_rubric', 'Kas mulje sobib ajalehte?', 'Paariline loeb muljet.', ['On selge, kus ja millal üritus oli.', 'Kasutatud on vähemalt 5 erandvormi: läksin, nägin, sõin, jõin, oli.', 'On üks huvitav detail.', 'Eitus on õige: ei läinud, ei näinud.']),
+    ],
+  },
+
+  'a2b1-024': {
+    title: 'Lugu piltide järgi',
+    canDo: 'Ma jutustan 2–3 minutit järjestatud sündmustest ja kasutan lihtminevikku ning vähemalt nelja siduvat ajamarkerit.',
+    template: 'v3',
+    discover: [
+      B.reading('024_d_read', 'Loe lugu.', 'Loe lugu kaks korda: kõigepealt mõte, siis detailid. Vasta küsimustele.', 'Üks ootamatu hommik',
+        'Eelmisel teisipäeval ärkasin tavalisest varem, sest mul oli tööl tähtis koosolek. Alguses läks kõik hästi: sõin hommikust, jõin kohvi ja kontrollisin veel kord dokumente. Kell kaheksa panin jope selga ja läksin bussipeatusse. Äkki märkasin, et mu rahakott ei olnud kotis. Otsisin seda mitu minutit, aga ei leidnud. Kahjuks sõitis buss ära. Seejärel helistasin kodus olevale vennale ja palusin tal köögilauale ja riiulile vaadata. Õnneks leidis vend rahakoti köögilaualt ajalehe alt. Ta tõi selle mulle kümne minutiga. Ma jõudsin tööle kakskümmend minutit hiljem. Helistasin kolleegile ja selgitasin olukorda. Koosolek algas õnneks veidi hiljem, nii et ma ei jäänud millestki tähtsast ilma. Päeva lõpus otsustasin, et edaspidi kontrollin oma kotti juba kodus. See kogemus õpetas mulle, et tähtsad asjad tasub enne lahkumist üle vaadata.',
+        [['Miks jutustaja varem ärkas?', 'tal oli tähtis koosolek|koosolek'], ['Mida ta bussipeatuses märkas?', 'rahakott ei olnud kotis|rahakott puudus'], ['Miks ta bussist maha jäi?', 'ta otsis rahakotti'], ['Kust vend rahakoti leidis?', 'köögilaualt|köögilaualt ajalehe alt|ajalehe alt'], ['Mida ta otsustas edaspidi teha?', 'kontrollida kotti kodus']]),
+      B.notice('024_d_notice', 'Märka: kuidas lugu kokku seotakse', ['Algus: **Alguses** …, **Eelmisel teisipäeval** …', 'Järjekord: **kõigepealt**, **siis**, **seejärel**, **pärast seda**', 'Ootamatu sündmus: **äkki**', 'Hea või halb: **õnneks** / **kahjuks**', 'Lõpp: **lõpuks**, **päeva lõpus** — ja tegusõna on teisel kohal: Õnneks **leidis** vend…'], 'full'),
+      B.vocab('024_d_vocab', 'Tunni sõnad.', ['alguses — в начале', 'äkki — вдруг', 'õnneks — к счастью', 'kahjuks — к сожалению', 'seejärel — затем', 'lõpuks — в конце концов', 'märkama — заметить', 'otsima — искать', 'leidma — найти', 'jõudma — добраться', 'kogemus — опыт', 'juhtuma — случиться']),
+      B.choice('024_d_mc', 'Mis loos juhtus?', 'Vali õige vastus.', [
+        ['Miks jutustaja ärkas varem?', 'Tal oli tähtis koosolek.', 'Tal oli varahommikul lend.', 'Ta tahtis enne tööd joosta.'], ['Mida ta märkas bussipeatuses?', 'Rahakott ei olnud kotis.', 'Telefon ei töötanud enam.', 'Buss oli täiesti katki.'],
+        ['Kellele ta helistas?', 'vennale', 'emale', 'ülemusele'], ['Kust leiti rahakott?', 'köögilaualt ajalehe alt', 'bussipeatuse pingilt', 'oma jope taskust'],
+        ['Kui palju hiljem jõudis ta tööle?', 'kakskümmend minutit', 'tund aega', 'viis minutit'], ['Mida ta otsustas?', 'kontrollida kotti kodus', 'sõita tööle autoga', 'ärgata veel varem'], ['Kuidas jutustaja tundis, kui rahakott oli kadunud?', 'Ta oli mures ja närviline.', 'Ta oli rõõmus ja rahulik.', 'Ta oli väsinud ja unine.'], ['Mida jutustaja vennale ütles?', 'Palun vaata, kas rahakott on köögis.', 'Palun too mulle kohvi.', 'Palun helista mu ülemusele.']], 'full', 'g_read'),
+      B.transformation('024_d_v2', 'Alusta sidesõnaga.', 'Kirjuta lause antud sõnaga. Tegusõna jääb teisele kohale.', [
+        ['Buss sõitis ära.', 'kahjuks', 'Kahjuks sõitis buss ära.'], ['Vend leidis rahakoti.', 'õnneks', 'Õnneks leidis vend rahakoti.'], ['Hakkas sadama.', 'äkki', 'Äkki hakkas sadama.'],
+        ['Ma jõudsin koju.', 'lõpuks', 'Lõpuks jõudsin ma koju.|Lõpuks jõudsin koju.'], ['Ma otsisin võtmeid.', 'kõigepealt', 'Kõigepealt otsisin ma võtmeid.|Kõigepealt otsisin võtmeid.'], ['Ma helistasin tööle.', 'seejärel', 'Seejärel helistasin ma tööle.|Seejärel helistasin tööle.'], ['Rahakott oli kadunud.', 'äkki', 'Äkki oli rahakott kadunud.'], ['Koosolek algas hiljem.', 'õnneks', 'Õnneks algas koosolek hiljem.']]),
+      B.errorfix('024_d_fix', 'Leia vale vorm.', 'Kirjuta lause õigesti.', [
+        ['Eile ma kaotan rahakoti.', 'Eile ma kaotasin rahakoti.|Eile kaotasin ma rahakoti.'], ['Kahjuks ta ei helistas mulle.', 'Kahjuks ta ei helistanud mulle.|Kahjuks ei helistanud ta mulle.'], ['Seejärel me leidis pileti.', 'Seejärel me leidsime pileti.|Seejärel leidsime me pileti.'],
+        ['Lõpuks ma jõudis tööle.', 'Lõpuks ma jõudsin tööle.|Lõpuks jõudsin ma tööle.'], ['Pärast seda nad otsustasin koju minna.', 'Pärast seda nad otsustasid koju minna.|Pärast seda otsustasid nad koju minna.'], ['Äkki ma märkan, et rahakott puudub.', 'Äkki märkasin ma, et rahakott puudub.|Äkki ma märkasin, et rahakott puudub.'], ['Õnneks vend leidis rahakoti.', 'Õnneks leidis vend rahakoti.'], ['Äkki ma märkan, et rahakott on kadunud.', 'Äkki märkasin ma, et rahakott on kadunud.|Äkki märkasin, et rahakott on kadunud.']]),
+      B.translation('024_d_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['Сначала всё было хорошо.', 'Вдруг я заметил, что сумки нет.', 'К счастью, друг нашёл её.', 'В конце концов я пришёл домой.', 'Это был странный день.', 'Мой брат нашёл кошелёк.', 'Сначала я позвонил брату.', 'В конце концов я опоздал на двадцать минут.']),
+      B.speaking('024_d_tell', 'Jutusta piltide järgi.', 'Õpetaja näitab pildiseeriat (või kasuta skeemi). Jutusta paarilisele 2 minutit.', ['Kes on loo tegelane?', 'Mis juhtus alguses?', 'Mis oli probleem?', 'Kuidas lugu lõppes?'], [90, 120], ['Alguses…', 'Äkki…', 'Õnneks…', 'Lõpuks…']),
+      B.writing('024_d_write', 'Venna lugu.', 'Kirjuta sama lugu venna nimel 8–10 lausega: mida sina (vend) tegid ja tundsid?', [8, 10], ['alguses', 'siis', 'õnneks', 'lõpuks'], 3),
+    ],
+    practice: [
+      B.choice('024_p_link', 'Vali sidesõna.', 'Vali lause algusesse sobiv sõna.', [
+        ['… oli ilm ilus. (loo algus)', 'Alguses', 'Lõpuks', 'Kahjuks'], ['… hakkas sadama. (ootamatu)', 'Äkki', 'Alguses', 'Õnneks'], ['… oli mul vihmavari. (hea)', 'Õnneks', 'Kahjuks', 'Äkki'],
+        ['… jäin bussist maha. (halb)', 'Kahjuks', 'Õnneks', 'Alguses'], ['… helistasin vennale. (järgmine samm)', 'Seejärel', 'Alguses', 'Homme'], ['… jõudsin koju. (lõpp)', 'Lõpuks', 'Kõigepealt', 'Äkki'], ['… otsustasin ma midagi muuta. (loo lõpp)', 'Päeva lõpus', 'Alguses', 'Äkki'], ['… leidis vend rahakoti. (hea uudis)', 'Õnneks', 'Kahjuks', 'Alguses']], 'full', 'g_notice'),
+      B.reading('024_p_read', 'Loe kadunud võtmetest.', 'Loe lugu ja vasta.', 'Võtmed külmkapis',
+        'Möödunud reedel juhtus minuga midagi naljakat. Alguses oli kõik tavaline: ärkasin, sõin hommikust ja hakkasin tööle minema. Siis märkasin, et minu võtmed on kadunud. Kõigepealt otsisin neid jope taskust, aga seal neid ei olnud. Seejärel vaatasin koti läbi ja kontrollisin isegi diivani alt. Pool tundi otsisin ja olin juba väga närviline. Lõpuks helistasin tööle ja ütlesin, et jään hiljaks. Natuke hiljem tahtsin juua piima. Avasin külmkapi ja nägin, et võtmed olid seal piima kõrval! Ilmselt panin need sinna, kui eile õhtul toidu ära panin. Naersin kõva häälega ja läksin lõpuks tööle. Kolleegid naersid ka, kui ma neile lugu rääkisin. Nüüd panen võtmed alati ukse kõrval olevasse kaussi. Mu naine ostis selle kausi juba ammu, aga alles nüüd hakkasin seda kasutama.',
+        [['Mis juhtus reedel?', 'võtmed kadusid|kaotas võtmed'], ['Kust otsis jutustaja kõigepealt?', 'jope taskust'], ['Kui kaua ta otsis?', 'pool tundi'], ['Kellele ta helistas?', 'tööle'], ['Kust võtmed leiti?', 'külmkapist|külmkapist piima kõrvalt'], ['Mida jutustaja nüüd teisiti teeb?', 'paneb võtmed ukse kõrval olevasse kaussi|paneb võtmed kaussi|paneb võtmed ukse kõrvale kaussi']]),
+      B.cloze('024_p_cloze', 'Vali lünka sobiv sõna.', 'Loe lugu ja vali igasse lünka õige sõna.', 'Kadunud kass', [
+        '{*Eelmisel|Järgmisel|Homsel} laupäeval juhtus meie peres midagi hirmsat. {*Alguses|Lõpuks|Õnneks} oli kõik tavaline: lapsed mängisid ja kass magas diivanil.',
+        '',
+        '{*Äkki|Õnneks|Lõpuks} märkasime, et kassi ei ole enam toas. Uks oli lahti. {*Kõigepealt|Lõpuks|Õnneks} otsisime teda aiast, siis naabrite juurest.',
+        '',
+        '{*Kahjuks|Õnneks|Kõigepealt} kassi ei olnud kusagil. Lapsed nutsid. {*Seejärel|Alguses|Eile} kirjutasime teate küla Facebooki gruppi.',
+        '',
+        '{*Õnneks|Kahjuks|Äkki} helistas tunni aja pärast naabrimees. Kass magas tema saunas! {*Lõpuks|Alguses|Kõigepealt} olid kõik jälle õnnelikud.',
+      ], 'g_notice'),
+      B.formtext('024_p_formtext', 'Pane sõnad õigesse vormi.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', 'Ootamatu külaline', [
+        'Eile õhtul [istusin] (istuma) ma rahulikult diivanil. Äkki [helises] (helisema) uksekell.',
+        '',
+        'Ma [avasin] (avama) ukse ja [nägin] (nägema) oma vana klassivenda. Ta [tuli] (tulema) Soomest ja tahtis mind üllatada.',
+        '',
+        'Õnneks [oli] (olema) mul külmkapis süüa. Me [rääkisime] (rääkima) keskööni ja naersime palju.',
+        '',
+        'Lõpuks [jäi] (jääma) ta minu juurde ööseks.',
+      ]),
+      B.errorfix('024_p_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
+        ['Alguses on kõik tavaline.', 'Alguses oli kõik tavaline.'], ['Kõigepealt ma otsin neid jope taskust.', 'Kõigepealt otsisin ma neid jope taskust.|Kõigepealt ma otsisin neid jope taskust.'], ['Avasin külmkapi ja nägisin võtmeid.', 'Avasin külmkapi ja nägin võtmeid.'],
+        ['Ma naeris kõva häälega.', 'Ma naersin kõva häälega.'], ['Kolleegid naeravad ka, kui ma neile rääkisin.', 'Kolleegid naersid ka, kui ma neile rääkisin.'], ['Nüüd ma panin võtmed alati kaussi.', 'Nüüd panen ma võtmed alati kaussi.|Nüüd panen võtmed alati kaussi.'], ['Äkki ma nägin, et võtmed on külmkapis.', 'Äkki nägin ma, et võtmed on külmkapis.|Äkki nägin, et võtmed on külmkapis.'], ['Õnneks kolleeg avas mulle ukse.', 'Õnneks avas kolleeg mulle ukse.']]),
+      B.wordorder('024_p_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Möödunud reedel juhtus minuga midagi naljakat.', 'Seejärel vaatasin koti hoolikalt läbi.', 'Natuke hiljem tahtsin ma piima juua.', 'Ilmselt panin võtmed eile õhtul külmkappi.', 'Mu naine ostis selle kausi juba ammu.', 'Nüüd kasutan ma seda kaussi iga päev.', 'Alguses otsisin võtmeid jope taskust.', 'Lõpuks naersime kõik koos kolleegidega.']),
+      B.dictation('024_p_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Alguses oli hommik täiesti tavaline.', 'Siis märkasin, et võtmeid pole.', 'Pool tundi otsisin ma igalt poolt.', 'Lõpuks leidsin need külmkapist.', 'Kolleegid naersid mu loo üle.', 'Nüüd on võtmetel oma koht.']),
+      B.speaking('024_p_tell', 'Minu naljakas lugu.', 'Jutusta paarilisele 2 minutit loost, mis sinuga juhtus. Paariline küsib kaks küsimust.', ['Millal ja kus see juhtus?', 'Mis läks valesti?', 'Mida sa tegid?', 'Kuidas lugu lõppes?'], [90, 120], ['Alguses…', 'Äkki…', 'Õnneks…', 'Lõpuks…']),
+      B.writing('024_p_write', 'Minu naljakas lugu.', 'Kirjuta 8–10 lauset loost, mis juhtus sinuga. Kasuta 5 sidesõna.', [8, 10], ['alguses', 'siis', 'äkki', 'õnneks', 'lõpuks'], 3),
+    ],
+    transfer: [
+      B.text('024_t_sit', 'Konkurss', 'Ajakiri korraldab konkurssi „Minu kõige ootamatum päev”. Parim lugu avaldatakse. Mõtle kõigepealt oma lugu läbi.'),
+      B.planning('024_t_plan', 'Loo plaan.', 'Mõtle oma (või väljamõeldud) lugu läbi.', ['Alguses: kus, millal, kes?', 'Probleem: mis juhtus äkki?', 'Lahendus: kes aitas, mida tegid?', 'Lõpp: mida sa õppisid?']),
+      B.reading('024_t_model', 'Eelmise aasta võidulugu.', 'Loe ja vasta.', 'Rong keset metsa',
+        'Möödunud talvel sõitsin rongiga Tartust Tallinnasse. Alguses oli kõik tavaline: lugesin raamatut, jõin kohvi ja vaatasin aknast lumist metsa. Äkki peatus rong keset metsa. Konduktor ütles, et teel on puu ja me peame ootama. Ta tõi kõigile reisijatele tasuta teed ja kõik olid rahulikud. Kahjuks oli mul Tallinnas tähtis tööintervjuu kell kaksteist. Kõigepealt helistasin firmasse ja selgitasin olukorda. Siis hakkasin rääkima kõrval istuva mehega. Selgus, et ta töötab samas firmas ja tunneb hästi minu tulevast tööd! Me rääkisime terve tunni tööst ja elust. Lõpuks sõitis rong edasi ja me jõudsime Tallinnasse kaks tundi hiljem. Õnneks oli intervjuu juba teisele ajale tõstetud. Ja kes istus intervjuul laua taga? Sama mees rongist. Nüüd oleme kolleegid ja head sõbrad. Ja rongiga sõidan ma siiani hea meelega.',
+        [['Miks rong peatus?', 'teel oli puu|puu oli teel'], ['Miks oli jutustajal kiire?', 'tal oli tööintervjuu|tööintervjuu kell kaksteist'], ['Mida ta tegi kõigepealt?', 'helistas firmasse'], ['Kes oli mees rongis?', 'firma töötaja|ta töötas samas firmas|intervjueerija'], ['Kui palju hiljem jõudis rong Tallinnasse?', 'kaks tundi hiljem|kaks tundi']]),
+      B.errorfix('024_t_fix', 'Loo vead.', 'Paranda konkursiloo laused.', [
+        ['Eelmine talvel sõitsin ma rongiga.', 'Eelmisel talvel sõitsin ma rongiga.'], ['Äkki rong peatub keset metsa.', 'Äkki peatus rong keset metsa.|Äkki rong peatus keset metsa.'], ['Õnneks intervjuu oli teisele ajale tõstetud.', 'Õnneks oli intervjuu teisele ajale tõstetud.'],
+        ['Konduktor ütlesid, et teel on puu.', 'Konduktor ütles, et teel on puu.'], ['Kahjuks mul oli tähtis intervjuu.', 'Kahjuks oli mul tähtis intervjuu.'], ['Nüüd me oleme kolleegid ja hea sõbrad.', 'Nüüd oleme me kolleegid ja head sõbrad.|Nüüd me oleme kolleegid ja head sõbrad.'], ['Seejärel ma helistan firmasse.', 'Seejärel helistasin ma firmasse.|Seejärel helistasin firmasse.'], ['Lõpuks rong sõitis edasi.', 'Lõpuks sõitis rong edasi.']]),
+      B.translation('024_t_tr', 'Tõlgi.', 'Kirjuta lause eesti keeles.', ['Вдруг пошёл дождь.', 'К сожалению, автобус уехал.', 'К счастью, друг меня подвёз.', 'Я опоздал на двадцать минут.', 'Этот опыт научил меня многому.', 'Вдруг поезд остановился.', 'Сначала я позвонил в фирму.', 'В конце концов поезд поехал дальше.']),
+      B.rolecards('024_t_roles', 'Žürii valib loo.', 'Kumbki loeb oma loo ette. Siis arutlege 3 minutit: kumb lugu sobib ajakirja paremini?',
+        'Sinu arvates on paarilise lugu parem. Ütle kaks põhjust ja üks soovitus.', 'Sinu arvates on mõlemad lood head. Ütle, mis on kummaski hea ja mis võiks olla parem.',
+        ['Mulle meeldis, et…', 'Kõige huvitavam oli…', 'Ma soovitan…'], ['Sinu loos on hea…', 'Minu loos võiks olla…', 'Ma arvan, et…']),
+      B.speaking('024_t_tell', 'Jutusta lugu.', 'Jutusta oma lugu 2–3 minutit ilma tekstita. Kuulajad esitavad 2 küsimust.', ['Mis juhtus?', 'Mida sa tundsid?', 'Kuidas probleem lahenes?', 'Mida sa õppisid?'], [90, 120], ['Alguses…', 'Äkki…', 'Õnneks…', 'Lõpuks…']),
+      B.writing('024_t_story', 'Kirjuta lugu konkursile.', 'Kirjuta 8–10 lauset. Lool on algus, probleem ja lõpp. Kasuta sidesõnu ja tundeid.', [8, 10], ['alguses', 'äkki', 'õnneks', 'lõpuks'], 3),
+      B.rubric('024_t_rubric', 'Kas lugu on konkursiks valmis?', 'Paariline loeb lugu.', ['Lool on algus, probleem ja lõpp.', 'Kasutatud on vähemalt 4 sidesõna: alguses, äkki, õnneks, lõpuks.', 'Tegusõnad on lihtminevikus ja õiges vormis.', 'Pärast sidesõna on tegusõna teisel kohal.']),
+    ],
+  },
+
+  'a2b1-025': {
+    title: 'Eksam 5 — lihtminevik',
+    assessment: true,
+    canDo: 'Ma sooritan mooduli eksami Harno A2 vormis: lugemine, kuulamine, kirjutamine ja rääkimine (eesmärk vähemalt 60% igas osas).',
+    discover: [
+      B.text('025_d_intro', 'Korda ja valmistu', 'Kordame mooduli 5 teemasid: lihtminevik, erandid, ajamarkerid ja lugu. Järgmistel lehtedel on eksam Harno A2 vormis. Eesmärk: vähemalt 60% igas osas.'),
+      B.tip('025_d_format', 'Mis on eksamil?', ['Harjuta: lugemine (5 ülesannet) ja kuulamine (4 ülesannet), iga kuulamist kuulad kaks korda.', 'Kasuta: kirjutamine (visiitkaart ja lugu) ja rääkimine paaris (tutvumine, pilt, ideekaart).', 'Eesmärk: vähemalt 60% igas osas.']),
+      B.cloze('025_d_letter', 'Kiri sõbrannale.', 'Loe kirja ja vali õige vorm.', 'Tere, Kadri!', [
+        'Eelmisel nädalal {*olin|olen|oli} ma väga hõivatud. Esmaspäeval {*alustasin|alustan|alustas} uue töökohaga ja kolleegid {*tulid|tuli|tulevad} mulle kohe appi. Esimene päev oli raske, aga huvitav.',
+        'Kolmapäeval {*läksime|läheme|läks} sõpradega kontserdile. Seal {*nägin|näen|nägi} ma meie vana õpetajat! Ta ei {*tundnud|tunne|tundis} mind kohe ära. Pärast kontserti rääkisime temaga pool tundi.',
+        'Laupäeval {*sõitsin|sõidan|sõitis} vanematele külla. Ema {*tegi|teeb|tegid} pannkooke ja me rääkisime kaua. Õhtul vaatasime koos vanu pilte. Pühapäeval puhkasin kodus, lugesin raamatut ja käisin pargis jalutamas. Ilm oli külm, aga päikseline. Kuidas sinu nädal läks? Kirjuta mulle! Sinu Liina',
+      ].join('\n\n')),
+      B.crossword('025_d_cross', 'Ristsõna: minevik.', 'Kirjuta tema-vorm lihtminevikus.', [['пришёл (tema)', 'tuli'], ['пошёл (tema)', 'läks'], ['увидел (tema)', 'nägi'], ['съел (tema)', 'sõi'], ['выпил (tema)', 'jõi'], ['принёс (tema)', 'tõi'], ['работал (tema)', 'töötas'], ['позвонил (tema)', 'helistas']]),
+      B.table('025_d_table', '11 vormi.', 'Kirjuta ma-vorm lihtminevikus.', 'tegusõna, minevik (ma), tegusõna, minevik (ma)', [
+        'tulema | [tulin] | töötama | [töötasin]', 'minema | [läksin] | helistama | [helistasin]', 'tegema | [tegin] | leidma | [leidsin]', 'nägema | [nägin] | jõudma | [jõudsin]', 'sööma | [sõin] | ostma | [ostsin]', 'olema | [olin] | | ',
+      ], 'g_notice'),
+      B.transformation('025_d_past', 'Muuda minevikku.', 'Kirjuta lause lihtminevikus.', [
+        ['Ma lähen tööle.', 'eile', 'Eile läksin ma tööle.|Eile ma läksin tööle.'], ['Ta ei tule.', 'eile', 'Eile ta ei tulnud.|Eile ei tulnud ta.'], ['Me sööme kala.', 'eile', 'Eile sõime me kala.|Eile me sõime kala.'],
+        ['Nad näevad filmi.', 'eile', 'Eile nägid nad filmi.|Eile nad nägid filmi.'], ['Sa teed süüa.', 'eile', 'Eile tegid sa süüa.|Eile sa tegid süüa.'], ['Ma jään koju.', 'eile', 'Eile jäin ma koju.|Eile ma jäin koju.'],
+      ]),
+      B.errorfix('025_d_fix', 'Paranda viga.', 'Igas lauses on üks vale vorm. Kirjuta lause õigesti.', [
+        ['Eile jooksis linnas kolm tuhat inimest ja ilm on jahe.', 'Eile jooksis linnas kolm tuhat inimest ja ilm oli jahe.'], ['Marko ja isa käisid kalal ja sai kolm haugi.', 'Marko ja isa käisid kalal ja said kolm haugi.'],
+        ['Liis ei magas pühapäeval hommikul.', 'Liis ei maganud pühapäeval hommikul.'], ['Me sõitisime praamiga Saaremaale.', 'Me sõitsime praamiga Saaremaale.'], ['Lapsed sõisid kohvikus pannkooke.', 'Lapsed sõid kohvikus pannkooke.'], ['Eile ma ei läksin tööle.', 'Eile ma ei läinud tööle.|Eile ei läinud ma tööle.'],
+      ]),
+      B.wordorder('025_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Eelmisel suvel käisime perega Saaremaal.', 'Kõigepealt sõitsime praamiga Kuressaarde.', 'Kuressaare linnus oli väga huvitav.', 'Lapsed sõid kalasuppi ja pannkooke.', 'Teisel päeval sadas hommikust õhtuni vihma.', 'Hilisõhtul olime juba kodus.']),
+      B.translation('025_d_tr', 'Tõlgi.', 'Kirjuta eesti keeles.', ['Вчера я ходил в театр.', 'Мы ели пиццу и пили сок.', 'Он не пришёл на вечеринку.', 'Сначала я позвонил маме.', 'Прошлым летом мы были в Пярну.', 'Неделю назад я нашёл ключи.']),
+      B.gaps('025_d_gaps', 'Kirjuta õige vorm.', 'Kirjuta sulgudes olev tegusõna lihtminevikus.', ['Eelmisel nädalal [käisin] (käima) ma teatris.', 'Sõber [tõi] (tooma) mulle lilli.', 'Me [jõime] (jooma) pärast etendust teed.', 'Lapsed [jäid] (jääma) vanaema juurde.', 'Ma [nägin] (nägema) seal vana tuttavat.', 'Kontsert [lõppes] (lõppema) kell kümme.']),
+      B.writing('025_d_write', 'Minu eelmine nädal.', 'Kirjuta 6–8 lauset oma eelmisest nädalast. Kasuta erandvorme ja sidesõnu.', [6, 8], ['kõigepealt', 'siis', 'läksin', 'lõpuks'], 2),
+      B.vocab('025_d_vocab', 'Mooduli võtmesõnad.', ['eile — вчера', 'eelmisel nädalal — на прошлой неделе', 'kõigepealt — сначала', 'äkki — вдруг', 'õnneks — к счастью', 'kahjuks — к сожалению', 'lõpuks — наконец', 'tuli — пришёл', 'läks — пошёл', 'nägi — увидел', 'tegi — сделал', 'oli — был']),
+      B.speaking('025_d_warm', 'Soojendus.', 'Vasta paarilise küsimustele. Siis vahetage.', ['Mida sa eile tegid?', 'Kus sa eelmisel suvel käisid?', 'Mis oli sinu viimane ootamatu päev?'], [60, 90], ['Eile ma…', 'Eelmisel suvel…', 'Äkki…']),
+      B.selfcheck('025_d_self', ['Ma moodustan lihtmineviku ja erandvormid.', 'Ma kasutan ajamarkereid ja sidesõnu.', 'Ma tean, mis on eksamil.', 'Minu eesmärk: vähemalt 60% igas osas.'], 'Valmis eksamiks'),
+    ],
+    practice: [
+      B.tip('025_p_how', 'Lugemine ja kuulamine (eksami vormis)', 'See leht on nagu Harno A2 eksam: viis lugemisülesannet ja neli kuulamisülesannet. Tee kõik ilma abita. Iga kuulamist kuulad kaks korda. Punktid: lugemine 8 + 6 + 12 + 8 + 8 = 42, kuulamine 8 + 8 + 7 + 8 = 31. Eesmärk: vähemalt 60% kummaski osas (lugemine 26, kuulamine 19).', 'full'),
+      // reading 1: everyday phrases and politeness
+      B.choice('025_p_polite', 'Lugemine 1. Mida öelda?', 'Vali igasse olukorda sobiv lause.', [
+        ['Sõber tuli puhkuselt tagasi. Mida küsid?', 'Kuidas puhkus läks?', 'Kuhu sa homme lähed?', 'Kas sa oled haige?'],
+        ['Sa jäid tööle hiljaks. Mida ütled ülemusele?', 'Vabandust, buss jäi hiljaks.', 'Palju õnne, ma olen kohal!', 'Head isu kõigile kolleegidele!'],
+        ['Kolleeg ütleb: „Mul oli eile sünnipäev.” Mida ütled?', 'Palju õnne tagantjärele!', 'Head reisi ja ilusat ilma!', 'Jõudu ja jaksu tööle!'],
+        ['Sa ei kuulnud, mida sõber ütles. Mida küsid?', 'Vabandust, mida sa ütlesid?', 'Kas sa eile kuulsid muusikat?', 'Kus sa eile õhtul käisid?'],
+        ['Sõber kaotas eile oma telefoni. Mida ütled?', 'Oi, kahju! Kas leidsid selle üles?', 'Tore, palju õnne sulle uue puhul!', 'Head isu, võta veel üks tükk!'],
+        ['Naaber aitas sul eile kaste tassida. Mida ütled täna?', 'Suur aitäh eilse abi eest!', 'Head ööd ja magusaid unenägusid!', 'Vabandust, ma ei tunne teid.'],
+        ['Sõber küsib: „Kuidas film oli?” Film oli igav. Mida ütled?', 'Ausalt öeldes natuke igav.', 'Väga hästi, aitäh küsimast!', 'Ma lähen homme kinno.'],
+        ['Kohtud tänaval vana tuttavaga. Mida ütled?', 'Tere! Pole ammu näinud!', 'Head aega, kohtumiseni!', 'Head teed ja kõike head!'],
+      ]),
+      // reading 2: notices matched to situations
+      B.match('025_p_notices', 'Lugemine 2. Teated.', 'Loe teateid. Ühenda olukord ja sobiv teade.', [
+        ['Sa kaotasid eile bussis vihmavarju.', 'Leitud asjad: bussijaama kassa, iga päev 8–20.'],
+        ['Sa tahad laupäeva õhtul kontserdile minna.', 'Laupäeval kell 19 kontsert Jaani kirikus. Pilet 10 €.'],
+        ['Sinu laps tahab pühapäeval ujuma minna.', 'Veekeskus: pühapäeviti kell 10–12 lastele tasuta.'],
+        ['Sa tahad näha eilse festivali fotosid.', 'Festivali pildid on kodulehel alates esmaspäevast.'],
+        ['Sa ostsid eile katkise veekeetja.', 'Kauba saab tagastada 14 päeva jooksul. Võta tšekk kaasa!'],
+        ['Sa jäid öösel viimasest bussist maha.', 'Takso ööpäev läbi: helista 1200, auto tuleb 10 minutiga.'],
+      ], 'full', 'g_read'),
+      // reading 3: three short stories, who? and true / false
+      B.reading('025_p_three', 'Lugemine 3. Kolm lugu.', 'Loe kolme lugu. Kelle kohta lause käib? Kirjuta nimi.', 'Minu eelmine suvi',
+        'Anu: Eelmisel suvel olin kaks nädalat Itaalias. Me sõitsime perega autoga läbi Poola ja Austria. Roomas oli väga palav, aga linn oli ilus. Kõige rohkem meeldis mulle Itaalia jäätis. Sõin seda iga päev! Kahjuks läks meil teel auto katki ja pidime ühe päeva Viinis ootama. Koju tulime väsinud, aga õnnelikud.\n\nRein: Mina ei käinud suvel kuskil. Ma töötasin, sest ostsime kevadel uue korteri. Õhtuti remontisin kööki ja vannituba. Ka mu vend tuli nädalavahetustel appi. Augustis oli köök lõpuks valmis. Nüüd teeme seal perega koos süüa ja oleme väga rahul.\n\nHelen: Juulis olin kolm nädalat vanaema juures Võrumaal. Ma aitasin tal aias töötada ja korjasime koos marju. Õhtuti ujusin järves. Ühel hommikul nägin metsas põtra. See oli minu elu esimene põder! Kahjuks ei olnud mul telefoni kaasas ja pilti ma ei teinud.',
+        [['Kes käis suvel välismaal?', 'Anu'], ['Kes töötas terve suve?', 'Rein'], ['Kes nägi metsas looma?', 'Helen'], ['Kes sõi iga päev midagi magusat?', 'Anu'], ['Kes tegi kodus remonti?', 'Rein'], ['Kes käis õhtuti ujumas?', 'Helen']]),
+      B.truefalse('025_p_three_tf', 'Lugemine 3. Õige või vale?', 'Loe lugusid uuesti. Märgi õige või vale.', [['Anu sõitis Itaaliasse rongiga.', false], ['Anu pere pidi ühe päeva Viinis ootama.', true], ['Rein remontis suvel kööki.', true], ['Reinu vend ei aidanud teda.', false], ['Helen töötas vanaema aias.', true], ['Helen tegi põdrast pildi.', false]], 'full'),
+      // reading 4: a longer text with short answers and choices
+      B.reading('025_p_read', 'Lugemine 4. Pikem tekst.', 'Loe tekst. Vasta lühidalt.', 'Esimene tööpäev',
+        'Eelmisel esmaspäeval oli minu esimene tööpäev uues firmas. Ma ärkasin juba kell kuus, sest olin väga närviline. Kõigepealt jõin kohvi ja sõin võileiva. Siis panin selga uue ülikonna ja läksin bussipeatusse. Buss tuli õigel ajal ja ma jõudsin kontorisse kell pool üheksa. Juhataja tutvustas mind kolleegidele ja näitas mulle kogu kontorit. Minu laud oli suure akna all. Lõuna ajal sõime kolleegidega koos firma sööklas. Üks kolleeg, Kaido, rääkis mulle firma ajaloost. Pärastlõunal sain esimese ülesande ja tegin selle kiiresti ära. Juhataja kontrollis tööd ja ütles, et kõik on korras. Kella viie ajal läksin koju väsinud, aga õnnelik. Õhtul helistasin emale ja rääkisin talle kõigest. Nüüd töötan seal juba kuu aega ja töö meeldib mulle väga. Esimesel päeval ei teadnud ma veel, et Kaidost saab minu hea sõber.',
+        [['Miks jutustaja ärkas kell kuus?', 'ta oli närviline|ta oli väga närviline|närvis'], ['Kus oli jutustaja laud?', 'suure akna all|akna all'], ['Kellele helistas jutustaja õhtul?', 'emale']]),
+      B.choice('025_p_mc', 'Lugemine 4. Vali õige vastus.', 'Loe teksti „Esimene tööpäev” uuesti. Vali õige vastus.', [
+        ['Kuidas jutustaja tööle sõitis?', 'bussiga', 'jalgrattaga', 'autoga'], ['Mida tegi juhataja hommikul?', 'tutvustas teda kolleegidele', 'andis talle kohe ülesande', 'viis ta lõunale sööklasse'],
+        ['Kus jutustaja lõunat sõi?', 'firma sööklas', 'kohvikus kontori lähedal', 'oma laua taga'], ['Mida ütles juhataja esimese ülesande kohta?', 'et kõik on korras', 'et töö oli liiga aeglane', 'et seda peab parandama'],
+        ['Kes on Kaido praegu jutustajale?', 'hea sõber', 'uus juhataja', 'vana klassivend'],
+      ]),
+      // reading 5: a personal letter with 8 option gaps
+      B.cloze('025_p_cloze', 'Lugemine 5. Kiri sõbrale.', 'Loe kirja. Vali igasse lünka üks sobiv sõna.', 'Tere, Liina!',
+        'Eelmisel nädalavahetusel {*käisime|käime|käis} perega Saaremaal. Me {*sõitsime|sõidame|sõitis} sinna laupäeva hommikul praamiga. Ilm oli ilus ja päike paistis. Kuressaares {*nägime|näeme|nägi} vana linnust. Seal oli väga huvitav muuseum ja lastele meeldisid vanad relvad. Lõunat sõime väikeses kohvikus sadama lähedal. Lapsed {*tellisid|tellis|tellivad} kalasuppi ja pannkooke. Õhtul {*läksime|läheme|läks} randa jalutama.\n\nPühapäeval sadas terve päeva vihma. Seepärast {*jäime|jääme|jäi} hotelli ja mängisime lauamänge. Õhtul sõitsime praamiga tagasi mandrile. Koju {*jõudsime|jõuame|jõudis} alles hilja õhtul. Kas sina oled kunagi Saaremaal käinud? Me tahame järgmisel suvel uuesti minna. Kirjuta mulle!\n\nSinu Kadri'),
+      // listening 1 of the A2 exam: eight short messages, one fact each
+      B.listening('025_p_clips', 'Kuulamine 1. Lühikesed sõnumid.', 'Kuula kaheksat lühikest sõnumit kaks korda. Kirjuta lünka üks sõna.', [
+        '1. Tere! Teie pakk saabus eile. Saate selle kätte postkontorist kella kuueni.',
+        '2. Hei, Anna! Ma unustasin eile sinu juurde oma salli. Kas see on seal?',
+        '3. Head kuulajad! Eilne kontsert oli nii populaarne, et korraldame selle uuesti laupäeval.',
+        '4. Tere, siin on kool. Teie poeg ei tulnud täna tundi. Palun helistage meile.',
+        '5. Kallis, ma ostsin juba leiba ja piima. Sa ei pea poodi minema.',
+        '6. Tere! Eile õhtul leidsime bussist musta kindapaari. Kelle need on?',
+        '7. Tähelepanu! Eilse vihma tõttu on pargitee täna suletud.',
+        '8. Ema siin. Vanaema helistas ja ütles, et jõudis hästi koju.',
+      ], ['1. Pakk saabus [eile].', '2. Sõber unustas Anna juurde oma [salli].', '3. Kontsert toimub uuesti [laupäeval].', '4. Poeg ei tulnud täna [tundi|kooli].', '5. Leib ja [piim] on juba ostetud.', '6. Bussist leiti [kindad|kindapaar].', '7. Pargitee on täna [suletud|kinni].', '8. Vanaema jõudis hästi [koju].']),
+      // listening 2: a radio news item, played twice, answers of 1–2 words
+      B.listening('025_p_listen', 'Kuulamine 2. Raadiouudis.', 'Kuula uudist kaks korda. Vasta 1–2 sõnaga.', [
+        'Tere õhtust! Kuulate Tartu raadiot.', 'Eile, pühapäeval, toimus Tartus juba kahekümnes linnajooks.', 'Jooks algas kell üksteist Raekoja platsil.', 'Kokku jooksis umbes kolm tuhat inimest.',
+        'Pikim distants oli kümme kilomeetrit, lastele oli kahekilomeetrine rada.', 'Naistest oli kõige kiirem Anna Põld. Ta jooksis kümme kilomeetrit kolmekümne kaheksa minutiga.', 'Meestest võitis Peeter Laur.',
+        'Ilm oli jahe, aga päike paistis.', 'Pärast finišit pakuti jooksjatele vett, banaane ja sooja suppi.', 'Paljud pered tulid jooksule koos lastega ja isegi koeraga.', 'Kõige vanem jooksja oli kaheksakümne kahe aastane. Ta jooksis viis kilomeetrit ja oli väga rõõmus.',
+        'Korraldajad olid väga rahul. Inimesi oli rohkem kui eelmisel aastal.', 'Jooksu ajal oli kesklinnas liiklus suletud kella kaheni ja bussid sõitsid teist teed.', 'Järgmine linnajooks toimub mais. Registreerida saab juba praegu kodulehel. Head õhtut!',
+      ], ['Mis päeval jooks toimus? [pühapäeval|eile]', 'Kus jooks algas? [Raekoja platsil|Raekoja plats|platsil]', 'Mitu inimest jooksis? Umbes [kolm tuhat|3000].', 'Kui pikk oli laste rada? [kaks kilomeetrit|2 km|kaks km]', 'Kes oli naistest kõige kiirem? [Anna Põld|Anna]', 'Mida pakuti pärast finišit vee ja banaanide kõrvale? [suppi|sooja suppi]', 'Kuni mis kellani oli liiklus suletud? Kella [kaheni].', 'Millal toimub järgmine jooks? [mais]']),
+      // listening 3 and 4: a conversation, gaps and true / false
+      B.listening('025_p_dialog', 'Kuulamine 3. Kaks sõpra.', 'Kuula vestlust kaks korda. Täida lüngad.', [
+        'Liis: Tere, Marko! Kuidas su nädalavahetus läks?', 'Marko: Tere! Väga hästi. Laupäeval käisin isaga kalal.', 'Liis: Tõesti? Kas te saite ka kala?',
+        'Marko: Jah, isa sai kolm haugi, aga mina ainult ühe väikese ahvena.', 'Liis: Ja mida te pühapäeval tegite?', 'Marko: Pühapäeval olin kodus. Koristasin korterit ja tegin süüa. Õhtul vaatasin jalgpalli.',
+        'Liis: Mina käisin laupäeval sõbranna pulmas. Pidu oli maal, vanas mõisas.', 'Marko: Oi, kui tore! Kas oli palju külalisi?', 'Liis: Umbes sada. Me tantsisime hommikuni ja pühapäeval magasin kuni lõunani.',
+        'Marko: Kas sa homme tööle lähed?', 'Liis: Jah, aga alles kell kümme. Kas lähme pärast tööd kohvikusse?', 'Marko: Hea mõte. Mul on homme vaba päev, sest ma töötasin laupäeval.', 'Marko: Kohtume kell kuus kohvikus Kaneel. See on raamatukogu kõrval.', 'Liis: Sobib. Näeme!',
+      ], ['Laupäeval käis Marko isaga [kalal].', 'Isa sai kolm [haugi].', 'Pühapäeval koristas Marko [korterit].', 'Liis käis laupäeval sõbranna [pulmas].', 'Pulmas oli umbes [sada|100] külalist.', 'Homme läheb Liis tööle kell [kümme|10].', 'Sõbrad kohtuvad kell kuus [kohvikus|kohvikus Kaneel].']),
+      B.truefalse('025_p_tf', 'Kuulamine 4. Õige või vale?', 'Kuula vestlust veel kord. Märgi õige või vale.', [
+        ['Marko käis laupäeval isaga kalal.', true], ['Marko sai kolm haugi.', false], ['Pühapäeval koristas Marko korterit.', true], ['Liis käis sõbranna pulmas.', true],
+        ['Pulm oli linnas restoranis.', false], ['Liis magas pühapäeval lõunani.', true], ['Liis läheb homme tööle kell üheksa.', false], ['Kohvik Kaneel on raamatukogu kõrval.', true],
+      ], 'full'),
+      B.rubric('025_p_points', 'Minu punktid.', 'Arvuta punktid ja kirjuta, mida kordad.', ['Lugemine 1–5: … / 42 (eesmärk 26)', 'Kuulamine 1–4: … / 31 (eesmärk 19)', 'Kõige raskem oli: …', 'Kordan: …']),
+    ],
+    transfer: [
+      B.text('025_t_situation', 'Kirjutamine ja rääkimine (eksami vormis)', 'See leht on nagu Harno A2 eksami kirjutamise ja rääkimise osa. Kirjuta ilma sõnaraamatuta. Rääkimine on paaris, nagu eksamil.'),
+      B.notice('025_t_card', 'Visiitkaart', ['Tiiu Mets — giid', 'Tartu Linnamuuseum, Narva mnt 23', 'Ekskursioonid teisipäevast laupäevani kell 11 ja 15', 'Telefon: 5123 4567'], 'full', 'g_read'),
+      // writing 1: information transfer (who, where, when, contact), at least 40 words
+      B.letter('025_t_info', 'Kirjutamine 1. Soovita giidi.', 'Eile oli sul hea ekskursioon. Kirjuta sõbrale giidist: kes, kus, millal, kontakt.', 'Tere, Andres!', 'Kohtumiseni!', [40, 55]),
+      B.reading('025_t_read', 'Loe postitusi.', 'Loe kahte postitust ja vasta. Kirjutamine 2 on sinu kommentaar.', 'Päev, mida ma ei unusta',
+        'Ann: Minu meeldejäävaim päev oli siis, kui ma esimest korda lennukiga lendasin. Olin kaheksa-aastane ja sõitsime perega Kreekasse. Lennuk oli suur ja stjuardess andis mulle mahla. Alguses kartsin väga, aga siis vaatasin aknast pilvi ja unustasin hirmu. Nüüd lendan igal aastal ja ei karda üldse. Jaan: Mina ei unusta kunagi päeva, kui sain juhiload. Eksami ajal sadas lund ja tee oli libe. Ma sõitsin väga ettevaatlikult ja eksamineerija ütles lõpus: „Palju õnne!” Õhtul tähistasime seda kogu perega restoranis. Nüüd sõidan iga päev autoga tööle. Mõlemad päevad olid alguses rasked, aga lõppesid hästi. Kirjuta ka sina oma lugu kommentaari ja räägi, mis päeva sa ei unusta! Parimad lood avaldame järgmisel kuul meie ajakirjas. Ootame sinu lugu, olgu see naljakas, hirmus või ilus!',
+        [['Kuhu Anni pere sõitis?', 'Kreekasse'], ['Mida Ann alguses tundis?', 'hirmu|kartis'], ['Mille sai Jaan?', 'juhiload'], ['Milline oli ilm Jaani eksamil?', 'sadas lund, tee oli libe|sadas lund'], ['Mis on Anni ja Jaani lugudes ühist?', 'mõlemad päevad algasid raskelt, aga lõppesid hästi|alguses oli raske, aga lõppes hästi']]),
+      // writing 2: a personal story as a comment, 50–70 words
+      B.letter('025_t_post', 'Kirjutamine 2. Päev, mida ma ei unusta.', 'Kirjuta kommentaar lihtminevikus: millal ja kus see oli, mis juhtus, kuidas lõppes.', 'Minu päev, mida ma ei unusta:', 'Aitäh lugemast!', [50, 70]),
+      B.table('025_t_form', 'Registreeru ekskursioonile.', 'Täida registreerimisleht. Andmeid võid välja mõelda.', 'Andmed, Sinu vastus', ['Ees- ja perekonnanimi | ', 'Telefon või e-post | ', 'Ekskursiooni kuupäev ja kellaaeg | ', 'Mitu inimest tuleb? | ', 'Kas oled varem muuseumis käinud? | ']),
+      B.rubric('025_t_rubric', 'Punktid (Harno A2): kirjutamine 20, rääkimine 20.', 'Õpetaja annab punktid. Eesmärk: vähemalt 12 kummaski.', ['Kirjutamine 1 (0–8): kes, kus, millal, kontakt; vähemalt 40 sõna.', 'Kirjutamine 2 (0–12): algus, mis juhtus, lõpp; 50–70 sõna; lihtminevik ja sidesõnad.', 'Rääkimine 1 (0–10): kirjeldab pilti 1 minut, vastab küsimustele.', 'Rääkimine 2 (0–10): küsib ja vastab ideekaardi järgi 2–3 lausega.']),
+      // speaking: getting to know, picture description (task 1), idea card (task 2)
+      B.speaking('025_t_intro', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele lühidalt, 2–3 lausega.', ['Kuidas sa ennast tutvustad?', 'Mida sa eile õhtul tegid?', 'Kus sa käisid eelmisel suvel?'], [45, 60]),
+      B.speaking('025_t_mono', 'Rääkimine 1. Pildi kirjeldus.', 'Õpetaja annab pildi. Kirjelda seda 1 minut, siis vasta küsimustele.', ['Kes on pildil ja kus nad on?', 'Mida nad teevad?', 'Mis juhtus enne seda?', 'Kas sina oled sarnases kohas käinud?'], [60, 90], ['Pildil on…', 'Enne seda nad…', 'Mina käisin…']),
+      B.rolecards('025_t_roles', 'Rääkimine 2. Ideekaart „Reis”.', 'A küsib ideekaardi järgi, B vastab. Siis vahetage rollid.',
+        'Ideekaart „Reis”: kuhu? millal? kellega? millega? mida nägid? mis meeldis? Küsi 6 küsimust minevikus.', 'Räägi oma viimasest reisist. Vasta täislausega ja lisa igale vastusele üks detail.',
+        ['Kuhu sa sõitsid?', 'Kellega sa käisid?', 'Mida sa seal nägid?'], ['Ma sõitsin…', 'Me käisime…', 'Kõige rohkem meeldis mulle…']),
+    ],
+  },
+};

@@ -1,3 +1,87 @@
+## 2026-10-23 · agent/b1-v4-course — courses in template v4: B1 2–18, B2 1–18, A2 1–4 (merge and publish)
+
+- Owner: „подгони курсы до финального вида…”, then „закончить цель, то что готово выложить”.
+- This branch contains PRs #740, #745, #746, #750 and the standard from #744, merged with main 16593cc.
+- Rewritten in template v4 (old files in `archive/v3/`): B1 modules 2–18 (B1 grammar plan complete), B2 modules 1–18
+  (B2 grammar plan complete), A2 modules 1–4. Exams (assessment lessons) unchanged. Lesson goals of B1 and B2 updated.
+- Not done: A2 modules 5–20, C1 modules 1–10, a v4 pass of the exam lessons, new art briefs (many pictures show the
+  wrong characters). Remaining gaps are listed in `grammarPlan.test.js` and `methodGaps.test.js`; per-lesson ideas in
+  `docs/COURSE_REVIEW_LOG.md`; cast in `docs/COURSE_CAST.md`.
+- Checks: full crm-v2 vitest 2305 passed, 3 skipped; build OK; language check (EstNLTK) on rewritten modules.
+
+## 2026-10-23 · agent/b1-v4-course — B1 modules 3, 4, 6–11 in template v4
+
+- Stacked on agent/b1-m2-v4 (PR #750). Owner goal: „подгони курсы до финального вида и после каждого урока продумай,
+  что можно улучшить”. Modules rewritten (exams unchanged, old files in `archive/v3/b1/`): 03 (adjective suffixes),
+  04 (particle verbs), 06 (total / partial object), 07 (translative of change), 08 (verb government), 09 (ma-forms with
+  case endings), 10 (pluperfect), 11 (participles as attributes). Each: one storyline with the cast
+  (`docs/COURSE_CAST.md`), a module goal and final project, review at every lesson start, one-to-one notes, ≥ 2
+  listening tasks, almost no errorfix / translation / dictation.
+- `grammarPlan.js`: 7 more B1 items taught (B1 gaps left: quotative → module 13, completion → 14, jussive → 15).
+  `methodGaps.test.js`: listening gaps left in B1 12, 14, 15; no recycling gap.
+- Audio: new listening blocks recorded (TartuNLP, free), 11 stale recordings removed; voices know the new characters.
+- `docs/COURSE_REVIEW_LOG.md`: per-lesson improvement notes (pictures, real documents, real voices, cast clashes);
+  `docs/METHODOLOGY_STANDARD.md` copied from PR #744 so agents can read it.
+- Checks: worksheet-generator + worksheet-studio — 1079 passed, 3 skipped. Not published.
+- Open: `b1/lessonGoals.js` sub-goals of the rewritten lessons are still the old ones; B1 modules 12–18; exams' v4 pass.
+
+## 2026-10-22 · agent/b1-m2-v4 — B1 module 2 in template v4 with kes/mis relative clauses
+
+- Stacked on agent/method-gates-2 (PR #746). Owner: build the missing B1 grammar into the existing modules.
+- `b1/module02.js` (a2b1-006…009; exam 010 unchanged): Jaan's family storyline, goal = a surprise party for Helgi's
+  60th (009 Kasuta). New B1 grammar: kes/kellel/keda/kellega clauses (007), mis/mida/mille clauses for things (008).
+  Every Avasta opens with „Mäletad?”, every pair / group task has a one-to-one note. Errorfix, translation and dictation:
+  0 (v3 file: many). Old file in `archive/v3/b1/module02.js`.
+- `grammarPlan.js`: b1 relative → a2b1-007, a2b1-008 (one gap less). `methodGaps.test.js`: a2b1-module-03 now in the
+  recycling gaps (it uses < 30 % of the new module 2 words) — fixed when module 3 is rewritten.
+- Audio: 4 new MP3 (TartuNLP, free), 2 old removed; `tools/listening-audio/plan.mjs` knows the voices of Mia, Helgi,
+  Maie, Kertu, Oskar, a teadustaja and a turvatöötaja.
+- Checks: worksheet-generator + worksheet-studio — 1079 passed, 3 skipped. Not published.
+
+## 2026-10-22 · agent/method-gates-2 — methodology gates: listening, recycling, exam formats, v4 time rates
+
+- Stacked on agent/method-gates (PR #745).
+- `admin/course/methodGaps.js` (+ test): per course — listening ≥ 2 a module, vocabulary blocks, recycling of the
+  previous module's vocabulary (word stems, ≥ 30 %), Harno exam formats trained at least once (rough block tests).
+  A v4 module must have no gap; older modules' gaps are listed in the test (listening: 15 modules; recycling:
+  a2b1-module-04; A2 and C1 have no vocabulary blocks). All exam formats are met somewhere in every course.
+- `timeEstimate.js`: v4 sheets count meaning items as reading + deciding (choice .4, true/false .3, match .35,
+  categorize .25, crossword .45, scheme gap .5, card gap .5 min); `depth.js` and `quality.js` pass the template.
+  Older templates unchanged.
+- Checks: worksheet-generator + worksheet-studio tests all pass. Not published.
+
+## 2026-10-22 · agent/method-gates — methodology gates: review, one-to-one, grammar plan
+
+- Stacked on agent/b1-m5-v4 (PR #740); standard in PR #744 (docs/METHODOLOGY_STANDARD.md §7.1).
+- v4 gates (`quality.js`): `v4-review` (Avasta begins with „Mäletad?”, `B.review`, not counted as a task),
+  `v4-one-to-one` (a pair / group task or a role play has a teacher note `teach(block, …)`).
+- Teacher's key (`engine/answerKey.js`, `AnswerKeyView.jsx`, css `.ws-key-note`): open tasks with a note are listed
+  under „Õpetajale”, tasks numbered as on the sheet.
+- `admin/course/grammarPlan.js` (+ test): the grammar inventory of A2 / B1 / B2 / C1 (handbooks) mapped to lessons;
+  23 known gaps listed in the test (B1: 11, planned into modules 02–15).
+- B1 module 5: four „Mäletad?” reviews, 16 one-to-one notes.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` — all pass (after the update
+  of the v4 tests). Not published.
+- Still planned (§7.1): word recycling across modules, time-estimate recalibration, listening ≥ 2 for every template,
+  exam-format coverage per level.
+
+## 2026-10-22 · agent/b1-m5-v4 — sample module in lesson template v4 (variety and situations)
+
+- Owner: „много заданий типа диктант, исправление ошибок… разнообразия не хватает, ситуаций не хватает”; „сделаем образец
+  одного модуля”. Checked `main` efd80db (2026-10-22).
+- B1 module 5 (a2b1-021…024) rewritten as the v4 sample; 025 (exam) unchanged. One storyline (Markus, Anna, Jaan,
+  Sofia, Liis, Viktor), goal on the first sheet, final Kasuta = story for a contest. New task kinds in use: detective
+  cards + interview, information gap, timeline, find-someone-who, predict from the picture then listen, doctor's
+  appointment, radio interview. Errorfix 1, translation 0, dictation 0 in the module (v3: 11 / 9 / 5).
+- Files: `admin/course/b1/module05.js`, `archive/v3/b1/module05.js` (old file), `quality.js` (+test: `fullerTemplate`,
+  `v4Problems`, `v4ModuleProblems`), `worksheet-studio/didactics/depth.js` (v4 = v3 sizes), `listeningAudio.json` +
+  5 new MP3 in `public/audio/a2b1-02x/` (TartuNLP, free), removed `022_d_voice.mp3`, `docs/COURSE_DESIGN_COMMUNICATIVE.md` §12.
+- Checks: `npx vitest run src/features/worksheet-generator src/features/worksheet-studio` — 113 files, 1064 passed,
+  3 skipped; module 5 stays in `strictModules.json` and passes every gate. Other modules unchanged (v4 rules only for
+  `template: 'v4'`).
+- Not published to Õppevara (production). Screenshots were sent to the owner.
+- Next safe step: owner reviews the sample; on „да” merge, publish module 5 with the publish script, then rewrite the
+  other B1 modules in v4.
 ## 2026-10-23 · agent/last-seen-list — „sees eile” in the students list and the last visit in „Riskis õpilased”
 
 - Owner 2026-10-23 („давай”) after #762.

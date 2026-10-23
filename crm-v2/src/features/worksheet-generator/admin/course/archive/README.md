@@ -1,4 +1,4 @@
-# Archive: course modules before design v2
+# Archive: course modules before a rewrite (design v2, template v4)
 
 The owner (2026-10-16): „старые версии тоже можно было бы сохранить на всякий случай”. When a module is rewritten in
 design v2 (`docs/COURSE_DESIGN_COMMUNICATIVE.md`), its previous file is copied here unchanged, e.g.

@@ -11,6 +11,10 @@ const join = (v) => (Array.isArray(v) ? v.join('\n') : String(v || ''));
 // (engine/answerKey.js); students never see it
 export const why = (block, lines) => ({ ...block, data: { ...block.data, explain: lines.join('\n') } });
 
+// how the teacher runs an open task (owner 2026-10-22, docs/METHODOLOGY_STANDARD.md §3): above all the one-to-one variant
+// of a pair or group task — the teacher is the partner. Shown in the teacher's key only.
+export const teach = (block, note) => ({ ...block, data: { ...block.data, teacher: note } });
+
 export const B = {
   text: (id, heading, text, width = 'full') => block(id, 'text', 'white', '', { heading, text }, width),
   tip: (id, title, text, width = 'half') => block(id, 'tip', 'white', '', { title, text: join(text) }, width),
@@ -76,5 +80,8 @@ export const B = {
   }),
   letter: (id, title, instruction, opening, closing, [minWords, maxWords], goal = 'g_use') => block(id, 'guidedletter', 'cream', goal, { title, instruction, opening, closing, minWords, maxWords, lines: Math.ceil(maxWords / 9) }),
   rubric: (id, title, instruction, items) => block(id, 'rubric', 'white', '', { title, instruction, items: join(items) }),
+  // „Mäletad?” — 2–3 minutes of review of the previous lesson at the start of Avasta (spaced recycling, METHODOLOGY_STANDARD
+  // §3); not counted among the sheet's tasks
+  review: (id, lines) => block(id, 'tip', 'white', '', { title: 'Mäletad?', text: join(lines), review: true }, 'full'),
   selfcheck: (id, items, stamp, titleMore = 'Kas ma oskan?') => block(id, 'selfcheck', 'sky', '', { title: 'Kontrolli end.', titleMore, instruction: 'Märgi, mida juba oskad.', items: join(items), stamp }),
 };

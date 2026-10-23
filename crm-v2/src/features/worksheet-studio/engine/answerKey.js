@@ -3,7 +3,7 @@
 // the block as data.explain, one line per item in the order the key lists them (course files: B.why(block, lines)).
 // Pure: doc → [{ id, title, instruction, items: [{ n, prompt, answer, why }] }]. Shown to teachers only (studio
 // „Õpetaja võti”); the student's player never renders it.
-import { BLOCKS } from './registry.js';
+import { BLOCKS, numberTasks } from './registry.js';
 import { groupItems } from './schema.js';
 
 const lines = (v) => String(v || '').split('\n').map((x) => x.trim()).filter(Boolean);
@@ -51,12 +51,16 @@ function itemsOf(block) {
   }
 }
 
+// data.teacher: how to run an open task (role play, speaking, a game) — also with one learner, when the teacher is the
+// partner (docs/METHODOLOGY_STANDARD.md §3); course files: teach(block, note)
 export function answerKeyOf(doc) {
-  return (doc?.blocks || []).filter((b) => BLOCKS[b.type]?.task).map((b) => {
+  const blocks = doc?.blocks || [];
+  const nums = numberTasks(blocks);
+  return blocks.filter((b) => BLOCKS[b.type]?.task).map((b) => {
     const why = lines(b.data?.explain);
     const items = itemsOf(b).filter((it) => it.answer || it.prompt).map((it, i) => ({ n: i + 1, ...it, why: why[i] || '' }));
-    return { id: b.id, type: b.type, title: b.data?.title || BLOCKS[b.type]?.label || b.type, instruction: b.data?.instruction || '', items };
-  }).filter((t) => t.items.length);
+    return { id: b.id, num: nums[b.id], type: b.type, title: b.data?.title || BLOCKS[b.type]?.label || b.type, instruction: b.data?.instruction || '', note: String(b.data?.teacher || '').trim(), items };
+  }).filter((t) => t.items.length || t.note);
 }
 
 // how many items of a task have an explanation (quality check for course files)

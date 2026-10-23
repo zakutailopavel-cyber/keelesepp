@@ -697,3 +697,4 @@ textarea.ed-input { resize: vertical; }
 /* a book sheet not drawn yet: an empty page frame of its height (BookPage BookItem) */
 .ws-book-placeholder { width: 270mm; background: repeating-linear-gradient(#fff 0 381.86mm, transparent 381.86mm 392mm); opacity: .55; }
 @media print { .ws-book-placeholder { display: none; } }
+.ws-key-note { margin: 1mm 0 2mm; padding: 2mm 3mm; background: #f4f7fb; border-left: 3px solid #3559c7; font-size: 10pt; }

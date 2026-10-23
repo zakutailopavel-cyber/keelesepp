@@ -1,5 +1,5 @@
 // „Õpetaja võti”: the teacher's answer key of the sheet — every task, the right answer of each item and, when the sheet
-// has it, why that answer is right (engine/answerKey.js). Teachers only: the studio is not a student page.
+// has it, why that answer is right (engine/answerKey.js), and how to run an open task (also one-to-one). Teachers only: the studio is not a student page.
 import { answerKeyOf } from './engine/answerKey.js';
 
 export default function AnswerKeyView({ doc }) {
@@ -14,11 +14,12 @@ export default function AnswerKeyView({ doc }) {
         {doc?.meta?.displayLabel ? <p>{doc.meta.displayLabel}{doc.meta.level ? ` · ${doc.meta.level}` : ''}</p> : null}
         <small>{total} vastust{total ? ` · selgitusega ${explained}` : ''}</small>
       </header>
-      {tasks.length ? tasks.map((task, ti) => (
+      {tasks.length ? tasks.map((task) => (
         <section key={task.id} className="ws-key-task">
-          <h3><b>{ti + 1}</b> {task.title}</h3>
+          <h3><b>{task.num}</b> {task.title}</h3>
           {task.instruction ? <p className="ws-key-instr">{task.instruction}</p> : null}
-          <ol>
+          {task.note ? <p className="ws-key-note"><b>Õpetajale:</b> {task.note}</p> : null}
+          {task.items.length ? <ol>
             {task.items.map((it) => (
               <li key={it.n}>
                 {it.prompt ? <span className="ws-key-prompt">{it.prompt}</span> : null}
@@ -26,7 +27,7 @@ export default function AnswerKeyView({ doc }) {
                 {it.why ? <span className="ws-key-why">{it.why}</span> : null}
               </li>
             ))}
-          </ol>
+          </ol> : null}
         </section>
       )) : <p className="ws-key-empty">Sellel lehel pole kontrollitavaid ülesandeid.</p>}
     </article>

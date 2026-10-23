@@ -163,3 +163,28 @@ on paper, a select per gap on screen. Builders `B.formtext`, `B.insertion` (cour
 Gate changes: gates.js speaking length B2 180 s, C1 210 s (was 240 / 300 — above the didactic norm, every B2 sheet
 with a monologue failed one of the two checks). depth.js v3: Avasta exercises ≥ 12 min, Kasuta ≥ 6 min (the sheet is
 speaking and writing), no sentence-writing rule (the exam text tasks replace it).
+
+## 12. Lesson template v4 (owner 2026-10-22: „много диктантов и исправления ошибок, разнообразия и ситуаций не хватает”)
+
+v3 fixed the task list of each phase (Avasta: text + notice + language task + talk; Harjuta: cloze + formtext + an
+exam text + a monologue; Kasuta: role cards + speech + letter). Together with the depth rule „two whole-sentence tasks a
+sheet” it pushed every lesson to the same drills (error correction, translation, dictation). v4 keeps v3's sizes
+(5–9 tasks, 40–55 min, the level's item counts) and replaces the fixed list with variety rules (`quality.js`
+`v4Problems`, `v4ModuleProblems`):
+
+- **Module:** one storyline with the course's characters and a goal said on the first sheet (B1 module 5: a story for the
+  town paper's contest, written and judged in the last Kasuta). At least 2 listening tasks; error correction ≤ 2,
+  translation ≤ 1, dictation ≤ 2 a module (exam lessons not counted); a form or sentence drill once a lesson.
+- **Avasta:** an input to think about (reading, listening, chat, character cards, picture) → notice → find the rule
+  (table, categorize, timeline) → talk. No error correction, translation or dictation before the form is met.
+- **Harjuta:** a ladder of different tasks, a type at most once a sheet, at most two form / sentence drills; ends in use
+  (role play, information gap, monologue, writing).
+- **Kasuta:** a real situation with someone to talk to and a result (doctor's appointment, radio interview, a story for
+  a contest); no form or sentence drills at all.
+
+Added 2026-10-22 (docs/METHODOLOGY_STANDARD.md): Avasta starts with „Mäletad?” — 2–3 min of review of the previous
+lesson (`B.review`, not counted among the tasks; gate `v4-review`); a pair or group task and every role play carries a
+one-to-one note for the teacher (`teach(block, 'Üks-ühele: …')`, shown in the teacher's key „Õpetajale”; gate
+`v4-one-to-one`). The level's grammar and where it is taught: `admin/course/grammarPlan.js` (test lists the gaps).
+
+Sample: `admin/course/b1/module05.js` (the v3 file is in `archive/v3/b1/module05.js`). Set `template: 'v4'` in MODULE.

@@ -88,7 +88,8 @@ export function depthProblems(doc) {
   const examParts = doc?.meta?.assessment && doc?.meta?.phase === 'practice';
   // design v2: several shorter, different operations instead of one long drill (docs/COURSE_DESIGN_COMMUNICATIVE.md §6)
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11): fewer, fuller tasks — the level's full item count again
-  const v3 = doc?.meta?.template === 'v3' && !doc?.meta?.assessment;
+  // v4 (docs/COURSE_DESIGN_COMMUNICATIVE.md §12) keeps v3's sizes and drops its fixed task list
+  const v3 = ['v3', 'v4'].includes(doc?.meta?.template) && !doc?.meta?.assessment;
   const minItems = doc?.meta?.design === 'v2' && !v3 ? V2_ITEMS : norm.items;
   // a sentence-insertion text has the exam's 5–8 gaps
   const short = examParts ? [] : closed.filter((b) => b.type !== 'dictation' && b.type !== 'insertion' && ITEMS[b.type](b.data || {}) < minItems);
@@ -99,7 +100,7 @@ export function depthProblems(doc) {
   // v3 Avasta: the text and its discussion are the lesson's input; one full language task follows it
   const exerciseMin = transfer ? (v3 ? V3_TRANSFER : TRANSFER).exerciseMin : v3 && doc?.meta?.phase === 'discover' ? V3_DISCOVER.exerciseMin : norm.exerciseMin;
   const liveMin = transfer ? (v3 ? V3_TRANSFER : TRANSFER).liveMin : v3 && doc?.meta?.phase === 'discover' ? V3_DISCOVER.liveMin : norm.liveMin;
-  const exercise = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level), 0);
+  const exercise = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template), 0);
   if (exercise < exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${exerciseMin}; rääkimine ja kirjutamine ei loe)` });
 
   // aloud with the teacher: a recognised item goes in ~9 s, a whole sentence written or rebuilt in ~25 s; a text is
@@ -107,7 +108,7 @@ export function depthProblems(doc) {
   const liveRate = (type) => (SENTENCE_WRITING.includes(type) || type === 'wordorder' ? 0.4 : 0.15);
   // a text task (forms or sentences in a text) is read at the learner's pace like any text
   const TEXT_TASKS = ['formtext', 'insertion'];
-  const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] && !TEXT_TASKS.includes(b.type) ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level)), 0);
+  const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] && !TEXT_TASKS.includes(b.type) ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template)), 0);
   if (live < liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${liveMin})` });
 
   const sentences = blocks.flatMap(taskSentences).filter(Boolean);

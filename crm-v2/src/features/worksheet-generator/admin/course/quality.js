@@ -17,6 +17,9 @@ const SITUATION = ['text', 'tip', 'image', 'reading', 'listening', 'dialogue'];
 const tasks = (doc) => (doc.blocks || []).filter((b) => BLOCKS[b.type]?.task);
 const typeSet = (doc) => new Set(tasks(doc).map((b) => b.type));
 const has = (doc, list) => tasks(doc).some((b) => list.includes(b.type));
+// templates v3 and v4 share the shape „fewer, fuller tasks” (5–9 a sheet); v4 replaces v3's fixed task list with
+// variety rules (docs/COURSE_DESIGN_COMMUNICATIVE.md §12)
+export const fullerTemplate = (meta) => ['v3', 'v4'].includes(meta?.template);
 const overlap = (a, b) => { const A = typeSet(a); const Bs = typeSet(b); const inter = [...A].filter((t) => Bs.has(t)).length; return inter / Math.max(1, new Set([...A, ...Bs]).size); };
 
 // one sheet: [{ code, text }]
@@ -32,8 +35,8 @@ export function sheetProblems(doc) {
   const n = doc.blocks.length;
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
   // tasks a sheet; the textbook picture added to the sheet is not counted
-  const v3 = doc.meta?.template === 'v3' && !doc.meta?.assessment;
-  const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId).length;
+  const v3 = fullerTemplate(doc.meta) && !doc.meta?.assessment;
+  const own = (doc.blocks || []).filter((b) => !b.data?.artFor && !b.data?.artId && !b.data?.review).length;
   // a sheet is a whole lesson (owner 2026-10-10: 60 min lesson, 40–55 min of work on the sheet)
   if (v3 ? own < V3.blocks[0] || own > V3.blocks[1] : n < 6 || n > 18) out.push({ code: 'length', text: v3 ? `${own} plokki (v3: ${V3.blocks[0]}–${V3.blocks[1]})` : `${n} plokki (lubatud 6–18)` });
   const minutes = sheetMinutes(doc);
@@ -49,7 +52,8 @@ export function sheetProblems(doc) {
   if (!endsWell) out.push({ code: 'end', text: v2 ? 'leht lõpeb ülesande, rubriigi või enesehinnanguga' : 'leht lõpeb enesehinnangu või rubriigiga' });
   const phase = doc.meta?.phase;
   // v2: the Harjuta sheet of an exam lesson is the exam's reading and listening part — exam formats, not practice jobs
-  if (v3 && !doc.meta?.assessment) out.push(...v3Problems(doc, phase));
+  if (v3 && doc.meta?.template === 'v4') out.push(...v4Problems(doc, phase));
+  else if (v3) out.push(...v3Problems(doc, phase));
   else if (phase === 'practice' && !(v2 && doc.meta?.assessment)) {
     if (!has(doc, FORM)) out.push({ code: 'practice-form', text: 'Harjuta: puudub vormiülesanne' });
     if (!has(doc, MEANING)) out.push({ code: 'practice-meaning', text: 'Harjuta: puudub tähendusülesanne' });
@@ -71,9 +75,8 @@ export function sheetProblems(doc) {
 // arguments, a speech, a letter or an essay, a rubric.
 export const V3 = { blocks: [5, 9], types: 4, moduleTypes: 12, neighbour: 0.85, drillShare: 0.4, useShare: 0.25 };
 const V3_EXAM_TEXT = ['insertion', 'listening', 'choice', 'manymatch', 'truefalse'];
-function v3Problems(doc, phase) {
+function fullerProblems(doc) {
   const out = [];
-  const any = (list) => (doc.blocks || []).some((b) => list.includes(b.type));
   const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
   // the picture's questions are about this picture (its brief's `prompts`), not the generic set
   need(!(doc.blocks || []).some((b) => b.data?.artFor && b.data?.generic), 'v3-art-prompts', 'pildi kõrval on üldküsimused — pildi lähteülesandes on vaja oma küsimusi (prompts)');
@@ -82,6 +85,12 @@ function v3Problems(doc, phase) {
     const text = String(b.data?.passage || '');
     if (text.split(/\s+/).length > 180 && !/\n\s*\n/.test(text)) out.push({ code: 'v3-paragraphs', text: `${b.id}: pikk tekst ühe lõiguna — jaga lõikudeks` });
   });
+  return out;
+}
+function v3Problems(doc, phase) {
+  const out = fullerProblems(doc);
+  const any = (list) => (doc.blocks || []).some((b) => list.includes(b.type));
+  const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
   if (phase === 'discover') {
     need(any(['reading', 'listening']), 'v3-text', 'Avasta: tekst, mille üle mõelda (lugemine või kuulamine)');
     need(any(['notice']), 'v3-notice', 'Avasta: keele märkamine tekstist (notice)');
@@ -102,6 +111,68 @@ function v3Problems(doc, phase) {
   return out;
 }
 
+// Lesson template v4 (owner 2026-10-22: „много диктантов и исправления ошибок, разнообразия и ситуаций не хватает”;
+// docs/COURSE_DESIGN_COMMUNICATIVE.md §12): no fixed task list — each phase does its job in its own way.
+// Avasta: an input to think about (text, listening, chat, cards), the language noticed in it, a talk; no drills that
+// test before the learner has met the form (error correction, translation, dictation).
+// Harjuta: a ladder of different tasks — a task type at most once a sheet, at most two form / sentence drills, it
+// ends in use. Kasuta: a situation with someone to talk to and a result; no form or sentence drills at all.
+export const V4 = { practiceDrills: 2, moduleListening: 2, moduleCaps: { errorfix: 2, translation: 1, dictation: 2 } };
+const DRILLS = [...new Set([...FORM, ...SENTENCE])];
+const V4_NOT_DISCOVER = ['errorfix', 'translation', 'dictation'];
+// a task that needs other learners („paariline”, „rühm”, „klass”, „käi ringi”) says how it runs one-to-one (teach())
+const GROUP_WORK = /paarili|paaris|\brühma(?:s|le|ga|töö)|\brühmas|\bgrupis|\bklassis|käi ringi|kursusekaaslas|vahetage|teised küsivad/i;
+const PAIR_TASKS = ['rolecards'];
+const studentText = (b) => Object.entries(b.data || {}).filter(([k, v]) => typeof v === 'string' && !['explain', 'teacher', 'transcript'].includes(k)).map(([, v]) => v).join(' ');
+function v4Problems(doc, phase) {
+  const out = fullerProblems(doc);
+  const blocks = doc.blocks || [];
+  const any = (list) => blocks.some((b) => list.includes(b.type));
+  const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
+  const drills = tasks(doc).filter((b) => DRILLS.includes(b.type));
+  const solo = tasks(doc).filter((b) => (PAIR_TASKS.includes(b.type) || GROUP_WORK.test(studentText(b))) && !String(b.data?.teacher || '').trim());
+  need(!solo.length, 'v4-one-to-one', `paaris- või rühmatöö ilma üks-ühele variandita (${solo.map((b) => b.id).join(', ')}): lisa teach(block, '…')`);
+  if (phase === 'discover') {
+    need(blocks.some((b) => b.data?.review), 'v4-review', 'Avasta: algab kordamisega „Mäletad?” (B.review)');
+    need(any(['reading', 'listening', 'dialogue', 'profiles']) || blocks.some((b) => b.data?.artId), 'v4-input', 'Avasta: sisend, mille üle mõelda (tekst, kuulamine, vestlus, pilt)');
+    need(any(['notice']), 'v4-notice', 'Avasta: keele märkamine (notice)');
+    need(any(['speaking', 'dialogue', 'rolecards']), 'v4-talk', 'Avasta: vestlus teemal');
+    const early = blocks.filter((b) => V4_NOT_DISCOVER.includes(b.type)).map((b) => b.type);
+    need(!early.length, 'v4-early-drill', `Avasta: ${[...new Set(early)].join(', ')} kontrollib enne, kui õpilane on vormi kohanud`);
+  }
+  if (phase === 'practice') {
+    const seen = tasks(doc).map((b) => b.type).filter((t, i, list) => list.indexOf(t) !== i);
+    need(!seen.length, 'v4-repeat', `Harjuta: sama ülesandetüüp kaks korda (${[...new Set(seen)].join(', ')})`);
+    need(drills.length <= V4.practiceDrills, 'v4-drills', `Harjuta: ${drills.length} vormi- / lauseharjutust (v4: kuni ${V4.practiceDrills})`);
+    need(any(['speaking', 'writing', 'rolecards', 'dialogue']), 'v4-use', 'Harjuta: lõpus kasutus (räägi, kirjuta, rollimäng)');
+  }
+  if (phase === 'transfer') {
+    need(!drills.length, 'v4-transfer-drill', `Kasuta: vormiharjutus (${drills.map((b) => b.type).join(', ')}) — siin on olukord ja tulemus`);
+    need(any(['rolecards', 'dialogue']), 'v4-partner', 'Kasuta: olukord, kus on kellega rääkida (rollikaardid või vestlus)');
+  }
+  return out;
+}
+
+// v4, per lesson and per module: a drill type once a lesson; listening in the module; error correction, translation and
+// dictation are spice, not the staple (exam lessons are not counted)
+export function v4ModuleProblems(sheets) {
+  const out = [];
+  const lessons = Object.entries(sheets).filter(([, phases]) => Object.values(phases).some((d) => d.meta?.template === 'v4' && !d.meta?.assessment));
+  if (!lessons.length) return out;
+  const count = {};
+  for (const [lessonId, phases] of lessons) {
+    const types = Object.values(phases).flatMap((d) => tasks(d).map((b) => b.type));
+    types.forEach((t) => { count[t] = (count[t] || 0) + 1; });
+    const twice = [...new Set(types.filter((t, i) => DRILLS.includes(t) && types.indexOf(t) !== i))];
+    if (twice.length) out.push({ lessonId, phase: '*', code: 'v4-lesson-repeat', text: `sama harjutus tunni mitmes etapis (${twice.join(', ')})` });
+  }
+  if ((count.listening || 0) < V4.moduleListening) out.push({ lessonId: '*', phase: '*', code: 'v4-listening', text: `moodulis ${count.listening || 0} kuulamist (v4: vähemalt ${V4.moduleListening})` });
+  Object.entries(V4.moduleCaps).forEach(([type, max]) => {
+    if ((count[type] || 0) > max) out.push({ lessonId: '*', phase: '*', code: 'v4-cap', text: `moodulis ${count[type]} × ${type} (v4: kuni ${max})` });
+  });
+  return out;
+}
+
 // a module: { [lessonId]: { practice: doc, transfer: doc, … } } → [{ lessonId, phase, code, text }]
 export function moduleProblems(sheets) {
   const out = [];
@@ -117,11 +188,12 @@ export function moduleProblems(sheets) {
     if (new Set(seqs).size !== seqs.length) out.push({ lessonId: '*', phase, code: 'module-same', text: 'mooduli kahel lehel on sama ülesannete jada' });
     for (let i = 1; i < list.length; i += 1) {
       const o = overlap(list[i - 1][1], list[i][1]);
-      if (o > (list[i][1].meta?.template === 'v3' ? V3.neighbour : 0.75)) out.push({ lessonId: list[i][0], phase, code: 'neighbour', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe)` });
+      if (o > (fullerTemplate(list[i][1].meta) ? V3.neighbour : 0.75)) out.push({ lessonId: list[i][0], phase, code: 'neighbour', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe)` });
     }
   }
   out.push(...harnoProblems(sheets));
   out.push(...varietyProblems(sheets));
+  out.push(...v4ModuleProblems(sheets));
   return out;
 }
 
@@ -138,9 +210,9 @@ export function varietyProblems(sheets) {
   const out = [];
   const docs = ids.flatMap((id) => Object.values(sheets[id]));
   const types = new Set(docs.flatMap((d) => (d.blocks || []).map((b) => b.type)));
-  const v3 = first?.meta?.template === 'v3';
+  const v3 = fullerTemplate(first?.meta);
   const minTypes = v3 ? V3.moduleTypes : 16;
-  if (types.size < minTypes) out.push({ lessonId: '*', phase: '*', code: 'module-variety', text: `moodulis on ${types.size} plokitüüpi (${v3 ? 'v3' : 'v2'}: vähemalt ${minTypes})` });
+  if (types.size < minTypes) out.push({ lessonId: '*', phase: '*', code: 'module-variety', text: `moodulis on ${types.size} plokitüüpi (${v3 ? first.meta.template : 'v2'}: vähemalt ${minTypes})` });
   out.push(...balanceProblems(sheets));
   for (const id of ids) {
     const checks = Object.values(sheets[id]).filter((d) => (d.blocks || []).some((b) => b.type === 'selfcheck')).length;
@@ -166,8 +238,8 @@ export function balanceProblems(sheets) {
   const out = [];
   for (const [lessonId, phases] of Object.entries(sheets)) {
     const docs = Object.values(phases);
-    if (docs.some((d) => d.meta?.assessment) || !docs.some((d) => d.meta?.template === 'v3')) continue;
-    const minutes = (pick) => docs.reduce((n, d) => n + (d.blocks || []).filter(pick).reduce((m, b) => m + blockMinutes(b, d.meta?.level, d.meta?.design), 0), 0);
+    if (docs.some((d) => d.meta?.assessment) || !docs.some((d) => fullerTemplate(d.meta))) continue;
+    const minutes = (pick) => docs.reduce((n, d) => n + (d.blocks || []).filter(pick).reduce((m, b) => m + blockMinutes(b, d.meta?.level, d.meta?.design, d.meta?.template), 0), 0);
     const all = minutes(() => true) || 1;
     const drill = minutes((b) => DRILL.includes(b.type)) / all;
     const use = minutes((b) => PRODUCTIVE.includes(b.type)) / all;
