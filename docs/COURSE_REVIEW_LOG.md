@@ -375,6 +375,18 @@ family.
 - **009** — the family-photo evening (Harno A2 picture description). → learners bring their own family photo.
 - The A2 art briefs still show the B1 cast (Anna, Liis, Markus) whom Sofia does not know yet. → redo the A2 briefs.
 
+## B2 module 16 „B2 grammatika integratsioon” (b1b2-076…079)
+
+Sofia edits the six-month pilot-warehouse report (trainee Laura's choppy draft), Jaan prepares Kohvik Mets before the
+April opening (a tasting evening, recipe cards), Helgi edits Oskar's school-paper story; goal: edit a real document
+with its author and write the final version.
+- **076** — connectors and verb position; Markus's Tartu offer (debate, letter). → —
+- **077** — word order, existential partial subject, -ki / -gi; the library language café. → new art brief (the
+  picture shows Anna and Igor).
+- **078** — participles, des-form, -mine / -ja; Viktor's recipe cards. → a real recipe card photo; new art brief.
+- **079** — mood by function; editor and author agree changes. → Laura's draft as a document with margin comments.
+- Fixed for consistency: the café is Kohvik Mets (not „Muki”, the dog), opening 18 April.
+
 ## B2 module 17 „B2 kirjutamine” (b1b2-081…084)
 
 Sofia trains the B2 writing part with Maret; the café needs real texts; goal: a timed mock writing part (two texts for
