@@ -170,3 +170,43 @@ test("corrections while the period is open: a manual entry is edited, an automat
   assert.equal(isLocked("2026-10-01", "2026-09-30"), false);
   assert.equal(isLocked("2026-10-01", ""), false);
 });
+
+test("„Asenda konto”: the lines of one account move to another; an undo moves back exactly those lines", () => {
+  const { correctedEntry, replaceAccountValues } = require("./accounting-core");
+  const accounts = DEFAULT_ACCOUNTS.map((a) => ({ ...a, active: true }));
+  const entry = { id: "auto_invoice_1", number: "2026-0001", origin: "auto", date: "2026-02-01", description: "Müügiarve KS-1", documentRef: "KS-1",
+    lines: [{ account: "1200", debitCents: 8000, creditCents: 0 }, { account: "3060", debitCents: 0, creditCents: 5000 }, { account: "3000", debitCents: 0, creditCents: 3000 }] };
+  const moved = replaceAccountValues(entry, "3060", "3000");
+  assert.deepEqual(moved.lineIndexes, [1]);
+  assert.deepEqual(moved.values.lines.map((l) => l.account), ["1200", "3000", "3000"]);
+  assert.equal(moved.values.documentRef, "KS-1");
+  // the same correction logic as a single edit: D = K, the document stays, before / after for the history
+  const corrected = correctedEntry(entry, moved.values, accounts);
+  assert.equal(corrected.before.lines[1].account, "3060");
+  assert.equal(corrected.after.lines[1].account, "3000");
+  assert.equal(corrected.totalCents, 8000);
+  // already moved: nothing to do (a repeated request changes nothing)
+  assert.equal(replaceAccountValues({ ...entry, lines: moved.values.lines }, "3060", "3000"), null);
+  // undo: only line 1 goes back to 3060, line 2 (3000 from the start) stays
+  const undo = replaceAccountValues({ ...entry, lines: moved.values.lines }, "3000", "3060", moved.lineIndexes);
+  assert.deepEqual(undo.values.lines.map((l) => l.account), ["1200", "3060", "3000"]);
+  assert.throws(() => replaceAccountValues(entry, "3060", "3060"), /samad/);
+  assert.throws(() => replaceAccountValues(entry, "", "3000"), /mõlemad/);
+  // a closed or unknown target account is refused by the same validation as an edit
+  assert.throws(() => correctedEntry(entry, replaceAccountValues(entry, "3060", "9999").values, accounts), /9999/);
+  // a storno is never corrected
+  assert.throws(() => correctedEntry({ ...entry, origin: "reversal" }, moved.values, accounts), /Storno/);
+});
+
+test("batch targets: unique ids, limits and chunks that fit one transaction", () => {
+  const { batchTargets, chunked, BATCH_CHUNK, BATCH_MAX } = require("./accounting-core");
+  assert.deepEqual(batchTargets({ entryIds: ["a", "b", "a", " "] }).map((t) => t.entryId), ["a", "b"]);
+  assert.deepEqual(batchTargets({ targets: [{ entryId: "a", lineIndexes: [1, "2", "x"] }] }), [{ entryId: "a", lineIndexes: [1, 2] }]);
+  assert.throws(() => batchTargets({ entryIds: [] }), /Vali kanded/);
+  assert.throws(() => batchTargets({ entryIds: Array.from({ length: BATCH_MAX + 1 }, (_, i) => `e${i}`) }), /Korraga/);
+  const ids = Array.from({ length: 115 }, (_, i) => i);
+  const parts = chunked(ids);
+  assert.deepEqual(parts.map((p) => p.length), [BATCH_CHUNK, 15]);
+  // each entry is one update and one audit record: a chunk stays within Firestore's 500 writes
+  assert.ok(BATCH_CHUNK * 2 <= 500);
+});

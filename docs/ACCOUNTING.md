@@ -39,9 +39,10 @@ Purchase entries are written by financeApi in the same transaction as the invoic
 ids `auto_purchase-invoice_<id>` and `auto_purchase-payment_<invoiceId>_<paymentId>`.
 
 Sales revenue account: **3000** since 2026-10-23 (the accountant). Until then automatic sales entries used 3060
-Maksuvaba müügitulu; entries already written keep 3060 (nothing rewrites them automatically). Moving them needs an
-owner decision: one reclassification entry 3060 → 3000 (manual entry, debit 3060 / credit 3000 for the balance),
-„Muuda” on each entry while its period is open (with history, see „Parandamine”), or nothing (both accounts are on the report line „Müügitulu”, so the kasumiaruanne is the same). The chart name of 3000
+Maksuvaba müügitulu; entries already written keep 3060 (nothing rewrites them automatically). The accountant moves
+them herself with „Asenda konto” 3060 → 3000 in the päevaraamat (see „Päevaraamat kui tabel”): each entry is corrected
+in place with history and audit while its period is open. Alternatives: one reclassification entry 3060 → 3000, or
+nothing (both accounts are on the report line „Müügitulu”, so the kasumiaruanne is the same). The chart name of 3000
 is „Kauba, teenuse müük Eestis 20%” (Merit), although the company is not VAT registered — to be confirmed.
 
 The sales document and the money are always separate entries: an invoice books 1200 / 3000 only; the payment is its
@@ -106,6 +107,56 @@ Maksuvaba müügitulu; 3070 Kasutatud kauba müük soetusmaksumuses; 3075 / 3076
 kasum; 3080 Metallijäätmete, kinnisasja, väärismetallide müük; 3099 Ümardused. Which to close is the owner's decision
 (the accountant: the goods accounts do not apply to a training company); nothing is closed yet.
 
+## Päevaraamat kui tabel (the accountant 2026-10-23: „функциональность и свобода действий как в Excel”)
+
+`JournalGrid.jsx` + pure helpers `journalGrid.js`. The päevaraamat grid is the editor; there is no separate „Muuda”
+mode. The legal guarantees stay on the server (financeApi): history + `financialAudit` of every change, the period
+lock, D = K per entry, immutable entry numbers, no client writes.
+
+- **Cells.** Click, Enter, F2 or typing opens a cell of an entry in an open period: Konto (autocomplete from the
+  chart), Kirjeldus (on the entry row: the entry content; on a line: the line note), Deebet, Kreedit; for a manual
+  (PR) entry also Kuupäev („31.01.2026” or ISO) and Dokument. An automatic entry keeps its date and document (the link
+  to the source document). Arrows, Tab / Shift+Tab, Enter / Shift+Enter, Home / End move like Excel; Esc cancels the
+  cell (on the grid: drops the unsaved changes of the entry); Delete clears a cell. Tab in the last cell of an entry
+  adds a line. Insert or Ctrl/Cmd+Shift++ inserts a line, Ctrl/Cmd+− deletes it; „+ / ×” on the row do the same.
+- **Saving.** An entry is saved (`/accounting/entries/update`, the same correctedEntry logic) when the cursor leaves
+  it or the focus leaves the grid, and only when it is valid: D = K, at least one debit and one credit line, open
+  accounts, a date in the same year and after the lock. Otherwise the entry turns red with the problem and
+  „D − K = …”, and nothing is sent until it is fixed („Salvesta” / „Tühista (Esc)” under it, „Salvesta muudatused
+  (n)” above the grid).
+- **„Paranduse põhjus”** above the grid: asked once per session (sessionStorage), sent with every correction; an
+  automatic entry is not saved without it.
+- **Undo.** Ctrl/Cmd+Z on the grid (or „Võta tagasi”) reverses the last saved change of this session through the same
+  route (the entry's previous content, reason „Tagasivõtmine (Ctrl+Z): …”); the history keeps both changes.
+- **Filter and sort.** Filters above the grid: Konto (prefix), Tekst (content, notes, kande nr), Dokument, Summa (a
+  line amount or the entry total). A header click sorts the entry blocks by that column (Kande kood, Kuupäev,
+  Dokument, Kirjeldus, Summa); a second click turns the order. Excel export follows the chosen order.
+- **Copy and paste.** Shift+click or Shift+arrows select cells; Ctrl/Cmd+C copies them as tab separated text (for
+  Excel). Ctrl/Cmd+V of rows from Excel: into an entry at the active cell over the grid columns (missing lines are
+  added); into a new manual entry („Lisa kanne”): Konto | Kirjeldus | Deebet | Kreedit, optionally Kuupäev |
+  Dokument first, or a copy of the päevaraamat itself; into ostuarve lines: Konto | Kirjeldus | Summa | KM. Amounts
+  „1 234,50”, „1.234,50”, „1234.5”, „12,00 €” are read (`parseEuro`).
+- **„Asenda konto”** (find & replace an account in the entries in view — period, kande kood and filters): the preview
+  shows the number of entries and lines and the debit / credit sum, and which entries are skipped (locked period,
+  storno / reversed). „Asenda N kandes” needs the „Paranduse põhjus” and sends one request
+  `/accounting/entries/replace-account` { fromAccount, toAccount, entryIds | targets: [{ entryId, lineIndexes }],
+  reason, requestId }. The server (accounting-core `replaceAccountValues`, `batchTargets`, `chunked`) checks every
+  entry before writing anything — one entry in a locked period or a closed month refuses the whole request — then
+  corrects each entry with `correctedEntry` in transactions of 100 entries (an update and an audit record each), one
+  history item and one `financialAudit/<requestId>_<entryId>` per entry. A repeated request changes nothing; an
+  entry that no longer has the account is left as it is. At most 2000 entries per request. Ctrl+Z moves back exactly
+  the moved lines (`targets`).
+- **Deleting** stays as before: only a manual entry („Kustuta”, with a reason, a tombstone). An automatic entry shows
+  „ei kustutata” with a tooltip: fix its lines in the grid or fix the source document (credit the invoice, „Muuda” or
+  „Tühista” on Ostuarved).
+- **Read-only** for a user without the admin role, on a phone (≤ 760 px) and for entries in a locked period or
+  stornos / deleted entries: cells can be selected and copied, not edited.
+
+**How the accountant moves the old sales entries 3060 → 3000:** Päevaraamat → period from 01.01.2026 → Kande kood
+„MA Müügiarve kanne” (or Kõik) → „Paranduse põhjus”: „Müügitulu konto 3000 (raamatupidaja otsus)” → „Asenda konto”
+→ 3060 → 3000 → check the preview (number of entries, sum, skipped) → „Asenda N kandes”. Entries in a closed period
+are not changed (a reclassification entry after the lock date instead). Ctrl+Z right after it moves them back.
+
 ## Tarnijad ja ostuarved (crm-v2/src/features/purchases, functions/purchases-core.js)
 
 The accountant 2026-10-23: „Сделай таблицу поставщики и так же путь ей сделай дальше”. Route `/finance/ostuarved`
@@ -147,8 +198,8 @@ Raamatupidamise seadus § 6–12: an entry must stay traceable to its source doc
 when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12). In the CRM:
 
 - **Open period** (the date is after „Suletud kuni …” and not in a closed finance month): in the päevaraamat every entry
-  that is not deleted, not reversed and not a storno has „Muuda”: its rows become editable in the grid
-  (JournalDraft). A manual (PR) entry may change everything except the year (its number is per year); an automatic
+  that is not deleted, not reversed and not a storno is edited in the grid cell by cell (see „Päevaraamat kui
+  tabel”; until 2026-10-23 a „Muuda” button opened JournalDraft). A manual (PR) entry may change everything except the year (its number is per year); an automatic
   entry (MA, LK, OA, VM, …) keeps its date and document reference — only the lines and the description change, saved as
   `override` with `original` (the document's own lines), and a reason is required. „Kustuta” only for a manual entry,
   with a reason; the entry becomes a tombstone (`deleted`, hidden from the registers, „Näita kustutatud” shows it, its
@@ -181,6 +232,7 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
 - `meta/accountingCounter_<year>.next`: the next number of a year.
 - financeApi (admin only): `/invoices/credit-full`, `/invoices/correct` (documents above), `/accounting/sync`,
   `/accounting/entries`, `/accounting/entries/reverse`, `/accounting/entries/update`, `/accounting/entries/delete`,
+  `/accounting/entries/replace-account`,
   `/accounting/lock`, `/accounting/opening`, `/accounting/accounts`, `/suppliers`, `/purchase-invoices` (create, or
   update with `purchaseInvoiceId`), `/purchase-invoices/pay`, `/purchase-invoices/payment/remove`,
   `/purchase-invoices/void`, `/purchase-invoices/documents`. All bookings and corrections respect the accounting lock

@@ -244,9 +244,12 @@ export function balanceSheet(entries = [], accounts = [], { to = '' } = {}) {
 
 export const euro = (value) => (Number(value || 0) / 100).toLocaleString('et-EE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-// "1 234,56" / "1234.56" / "1234,5" → cents; empty → 0; invalid → NaN
+// "1 234,56" / "1234.56" / "1234,5" / "1.234,56" / "1,234.56" / "12,00 €" → cents; empty → 0; invalid → NaN
+// (amounts pasted from Excel carry thin or no-break spaces and a euro sign)
 export function parseEuro(text) {
-  const clean = String(text ?? '').replace(/\s/g, '').replace(',', '.');
+  let clean = String(text ?? '').replace(/[\s€]/g, ''); // \s covers no-break and thin spaces
+  if (clean.includes(',') && clean.includes('.')) clean = clean.lastIndexOf(',') > clean.lastIndexOf('.') ? clean.replace(/\./g, '') : clean.replace(/,/g, '');
+  clean = clean.replace(',', '.');
   if (!clean) return 0;
   if (!/^\d+(\.\d{1,2})?$/.test(clean)) return Number.NaN;
   return Math.round(Number(clean) * 100);

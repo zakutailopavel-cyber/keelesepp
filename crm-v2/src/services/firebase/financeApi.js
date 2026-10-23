@@ -134,6 +134,10 @@ export const financeApi = {
   deleteAccountingEntry(entryId, reason) {
     return post("/accounting/entries/delete", { entryId, reason, requestId: financeRequestId("accounting_delete") });
   },
+  // „Asenda konto” in many entries (targets: [{ entryId, lineIndexes }] moves back exactly those lines — the undo)
+  replaceAccountingAccount({ fromAccount, toAccount, entryIds, targets, reason }) {
+    return post("/accounting/entries/replace-account", { fromAccount, toAccount, entryIds, targets, reason, requestId: financeRequestId("accounting_replace") });
+  },
   setAccountingLock(lockedThrough, reason) {
     return post("/accounting/lock", { lockedThrough, reason });
   },

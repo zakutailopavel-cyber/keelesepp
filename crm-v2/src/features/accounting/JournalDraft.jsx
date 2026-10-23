@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { amount, blankEntryLine, dmy, entryLineTotals, parseEuro } from './accountingReports.js';
+import { pastedEntryLines } from './journalGrid.js';
 
 // A manual entry typed straight into the päevaraamat grid (the accountant 2026-10-23: like Excel, no separate form).
 // The header row takes the date, the source document and the content; each line row the account, its note, debit or
 // credit. Tab moves cell to cell; Tab in the last cell adds a row. „Salvesta kanne” is enabled only when debit = credit.
 // The same rows correct an existing entry (mode „edit”): an automatic entry keeps its date and document (fixedHeader),
-// and the reason of the correction goes to the entry's history.
+// and the reason of the correction goes to the entry's history. Rows copied from Excel can be pasted (Ctrl/Cmd+V).
 export default function JournalDraft({ draft, setDraft, lines, setLines, accounts, busy, error, onSave, onCancel, label = 'PR (uus kanne)', fixedHeader = false, reason, setReason, reasonRequired = false, saveLabel = 'Salvesta kanne' }) {
   const dateRef = useRef(null);
   const focusAccount = useRef(-1);
@@ -22,6 +23,17 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
   const update = (index, patch) => setLines(lines.map((l, i) => (i === index ? { ...l, ...patch } : l)));
   const addRow = () => { focusAccount.current = lines.length; setLines([...lines, blankEntryLine()]); };
   const accountName = (code) => accounts.find((a) => a.code === code && a.active !== false)?.name;
+  // Ctrl/Cmd+V of rows copied from Excel (Konto | Kirjeldus | Deebet | Kreedit, optionally Kuupäev | Dokument first):
+  // the rows replace the empty lines; the first date and document fill the entry when they are still empty
+  const onPaste = (event) => {
+    const text = event.clipboardData?.getData('text/plain') || '';
+    if (!/[\t\n]/.test(text.trim())) return;
+    const pasted = pastedEntryLines(text);
+    if (!pasted.lines.length) return;
+    event.preventDefault();
+    setLines([...lines.filter((l) => l.account || l.debit || l.credit || l.note), ...pasted.lines]);
+    if (!fixedHeader && (pasted.date || pasted.documentRef)) setDraft({ ...draft, date: draft.date && !pasted.date ? draft.date : pasted.date || draft.date, documentRef: draft.documentRef.trim() ? draft.documentRef : pasted.documentRef });
+  };
   const totals = entryLineTotals(lines);
   const badAmount = lines.some((l) => Number.isNaN(parseEuro(l.debit)) || Number.isNaN(parseEuro(l.credit)));
   const filled = lines.filter((l) => l.account && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
@@ -29,7 +41,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
   const knownAccounts = lines.every((l) => !l.account || accountName(l.account));
   const ready = balanced && knownAccounts && draft.date && draft.documentRef.trim() && draft.description.trim() && (!reasonRequired || String(reason || '').trim());
 
-  return <tbody className="accounting-draft">
+  return <tbody className="accounting-draft" onPaste={onPaste}>
     <tr className="accounting-grid__entry">
       <td>{label}</td>
       <td>{fixedHeader ? dmy(draft.date) : <input ref={dateRef} aria-label="Kuupäev" type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} />}</td>

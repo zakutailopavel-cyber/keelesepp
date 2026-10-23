@@ -9034,6 +9034,25 @@ async function assertAccountingDatesOpen(transaction, dates, lockedThrough) {
 
 const historyItem = ({ action, reason, before, after, nowIso, actorData }) => ({ at: nowIso, by: actorData, action, reason: reason || "", before: before || null, after: after || null });
 
+// the update of a corrected entry: its new content, a history item and, for an automatic entry, the override (the
+// source document's own lines stay in `original`)
+function correctionPatch(entry, corrected, { reason, nowIso, actorData }) {
+  const action = entry.origin === "manual" ? "edit" : "override";
+  const patch = {
+    ...corrected.after,
+    totalCents: corrected.totalCents,
+    history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action, reason, before: corrected.before, after: corrected.after, nowIso, actorData })],
+    updatedAt: nowIso,
+    updatedBy: actorData,
+  };
+  if (entry.origin !== "manual") {
+    // the source document stays linked; its own lines are kept in `original`, the override is what is booked
+    patch.original = entry.original || { description: corrected.before.description, lines: corrected.before.lines };
+    patch.override = { description: corrected.after.description, lines: corrected.after.lines, reason, at: nowIso, by: actorData };
+  }
+  return { action, patch };
+}
+
 async function updateAccountingEntry({ actor, entryId, values, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const accounts = await accountingAccounts();
@@ -9055,23 +9074,108 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
     }
     if (entry.origin !== "manual" && !cleanReason) throw httpError(400, "Automaatkande parandusel on põhjus kohustuslik.");
     await assertAccountingDatesOpen(transaction, [entry.date, corrected.after.date], lockedThrough);
-    const action = entry.origin === "manual" ? "edit" : "override";
-    const patch = {
-      ...corrected.after,
-      totalCents: corrected.totalCents,
-      history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action, reason: cleanReason, before: corrected.before, after: corrected.after, nowIso, actorData })],
-      updatedAt: nowIso,
-      updatedBy: actorData,
-    };
-    if (entry.origin !== "manual") {
-      // the source document stays linked; its own lines are kept in `original`, the override is what is booked
-      patch.original = entry.original || { description: corrected.before.description, lines: corrected.before.lines };
-      patch.override = { description: corrected.after.description, lines: corrected.after.lines, reason: cleanReason, at: nowIso, by: actorData };
-    }
+    const { action, patch } = correctionPatch(entry, corrected, { reason: cleanReason, nowIso, actorData });
     transaction.update(ref, patch);
     transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: `accounting.entry.${action}`, number: entry.number, reason: cleanReason, before: corrected.before, after: corrected.after, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
     return { entry: { ...entry, ...patch } };
   });
+}
+
+// „Asenda konto” (the accountant 2026-10-23, docs/ACCOUNTING.md „Päevaraamat kui tabel”): the lines of one account in
+// the chosen entries move to another account. Each entry gets the same correction as /accounting/entries/update
+// (correctedEntry: D = K, open accounts, its number and document stay) with a history item and one financialAudit
+// record `<requestId>_<entryId>`, so a repeated request changes nothing twice. Before anything is written every entry
+// is checked: one entry in a locked period or a closed month refuses the whole request. The entries are written in
+// transactions of BATCH_CHUNK entries (an update and an audit record each, within Firestore's 500 writes).
+async function replaceAccountInEntries({ actor, fromAccount, toAccount, entryIds, targets, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Konto asendamise põhjus on kohustuslik.");
+  const from = String(fromAccount || "").trim();
+  const to = String(toAccount || "").trim();
+  if (!from || !to) throw httpError(400, "Sisesta mõlemad kontod.");
+  if (from === to) throw httpError(400, "Kontod on samad.");
+  let list;
+  try {
+    list = accountingCore.batchTargets({ entryIds, targets });
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  const accounts = await accountingAccounts();
+  const target = accounts.find(account => String(account.code) === to);
+  if (!target) throw httpError(400, `Kontot ${to} pole kontoplaanis.`);
+  if (target.active === false) throw httpError(400, `Konto ${to} on suletud.`);
+  const auditRefOf = (entryId) => db.collection("financialAudit").doc(`${mutationId}_${entryId}`.slice(0, 700));
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+
+  // the check before any write: every entry exists and can be corrected, and its date is open
+  const lockedThrough = await readAccountingLock();
+  const snaps = [];
+  for (const part of accountingCore.chunked(list, 300)) snaps.push(...await db.getAll(...part.map(t => accountingEntryRef(t.entryId))));
+  const problems = [];
+  const dates = new Set();
+  snaps.forEach((snap, index) => {
+    if (!snap.exists) { problems.push(`${list[index].entryId} (ei leitud)`); return; }
+    const entry = { id: snap.id, ...snap.data() };
+    if (!accountingCore.replaceAccountValues(entry, from, to, list[index].lineIndexes)) return;
+    if (entry.deleted || entry.reversedBy || entry.origin === "reversal") problems.push(`${entry.number} (kustutatud, storno või tühistatud)`);
+    else if (accountingCore.isLocked(entry.date, lockedThrough)) problems.push(`${entry.number} (periood suletud kuni ${lockedThrough.split("-").reverse().join(".")})`);
+    else dates.add(String(entry.date).slice(0, 10));
+  });
+  const closedDays = [...dates].length ? (await db.getAll(...[...dates].map(date => db.collection("financialLockedDates").doc(date)))).filter(snap => snap.exists).map(snap => snap.id) : [];
+  snaps.forEach(snap => {
+    if (snap.exists && closedDays.includes(String(snap.get("date")).slice(0, 10)) && accountingCore.replaceAccountValues({ id: snap.id, ...snap.data() }, from, to)) problems.push(`${snap.get("number")} (kuu on suletud)`);
+  });
+  if (problems.length) throw httpError(409, `Asendust ei tehtud. Neid kandeid ei saa muuta: ${problems.slice(0, 10).join(", ")}${problems.length > 10 ? ` ja veel ${problems.length - 10}` : ""}.`);
+
+  const changed = [];
+  const unchanged = [];
+  let idempotent = 0;
+  for (const part of accountingCore.chunked(list)) {
+    const result = await db.runTransaction(async transaction => {
+      const done = { changed: [], unchanged: [], idempotent: 0 };
+      const lockedNow = await readAccountingLock(transaction);
+      const entrySnaps = await Promise.all(part.map(t => transaction.get(accountingEntryRef(t.entryId))));
+      const auditSnaps = await Promise.all(part.map(t => transaction.get(auditRefOf(t.entryId))));
+      const planned = [];
+      part.forEach((t, index) => {
+        const snap = entrySnaps[index];
+        if (auditSnaps[index].exists) {
+          done.idempotent += 1;
+          done.changed.push({ entryId: t.entryId, number: snap.get("number"), lineIndexes: auditSnaps[index].get("lineIndexes") || [] });
+          return;
+        }
+        if (!snap.exists) throw httpError(404, `Kannet ${t.entryId} ei leitud.`);
+        const entry = { id: snap.id, ...snap.data() };
+        const replaced = accountingCore.replaceAccountValues(entry, from, to, t.lineIndexes);
+        if (!replaced) { done.unchanged.push(t.entryId); return; }
+        let corrected;
+        try {
+          corrected = accountingCore.correctedEntry(entry, replaced.values, accounts);
+        } catch (error) {
+          throw httpError(error.status || 400, `Kanne ${entry.number}: ${error.message}`);
+        }
+        planned.push({ t, entry, corrected, lineIndexes: replaced.lineIndexes });
+      });
+      await assertAccountingDatesOpen(transaction, planned.map(p => p.entry.date), lockedNow);
+      planned.forEach(({ t, entry, corrected, lineIndexes }) => {
+        const { action, patch } = correctionPatch(entry, corrected, { reason: cleanReason, nowIso, actorData });
+        transaction.update(accountingEntryRef(t.entryId), patch);
+        transaction.create(auditRefOf(t.entryId), {
+          entityType: "accountingEntry", entityId: entry.id, action: `accounting.entry.${action}`, batch: "replace-account",
+          fromAccount: from, toAccount: to, lineIndexes, number: entry.number, reason: cleanReason,
+          before: corrected.before, after: corrected.after, createdAt: nowIso, createdBy: actorData, requestId: mutationId,
+        });
+        done.changed.push({ entryId: entry.id, number: entry.number, lineIndexes });
+      });
+      return done;
+    });
+    changed.push(...result.changed);
+    unchanged.push(...result.unchanged);
+    idempotent += result.idempotent;
+  }
+  return { changed, unchanged, idempotent: idempotent > 0 && idempotent === changed.length, fromAccount: from, toAccount: to };
 }
 
 async function deleteAccountingEntry({ actor, entryId, reason, requestId }) {
@@ -9770,6 +9874,11 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     if (req.path === "/accounting/entries/update") {
       const result = await updateAccountingEntry({ actor, entryId: req.body?.entryId, values: req.body?.entry, reason: req.body?.reason, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/entries/replace-account") {
+      const result = await replaceAccountInEntries({ actor, fromAccount: req.body?.fromAccount, toAccount: req.body?.toAccount, entryIds: req.body?.entryIds, targets: req.body?.targets, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.changed.length && !result.idempotent ? 201 : 200).json(result);
       return;
     }
     if (req.path === "/accounting/entries/delete") {
