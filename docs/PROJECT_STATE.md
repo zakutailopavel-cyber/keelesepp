@@ -1,3 +1,10 @@
+## 2026-10-23 · agent/lhv-request-v2 — LHV LinkPay production request (refresh of PR #554)
+
+- `docs/LHV_PRODUCTION_REQUEST.md` from #554 on current main, now with the invoice volume (read-only count from
+  production `invoices`: about 20 invoices a month, average about 100 €). Letter not sent — the owner sends it and
+  chooses the contact phone (+372 5374 0753 personal or +372 5434 4155 public). LinkPay code stays in test mode
+  until live keys exist and the owner allows the switch.
+
 ## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
 
 - Owner 2026-10-23 (screenshot): the ⋯ button next to the open page did nothing. The menu (rename, give to the
