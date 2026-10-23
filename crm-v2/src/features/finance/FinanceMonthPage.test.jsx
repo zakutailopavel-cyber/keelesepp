@@ -193,4 +193,28 @@ describe('FinanceMonthPage', () => {
     expect(screen.getByRole('button', { name: 'Tühista arve AR-31' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Tühista arve AR-32' })).not.toBeInTheDocument();
   });
+
+  it('opens the same audited cancel dialog for a sent prior-month debt and wires the due-date correction', async () => {
+    const value = props();
+    value.financeRepository.correctInvoiceDueDate = vi.fn().mockResolvedValue({});
+    value.invoiceRepository.list.mockResolvedValue([
+      { id: 'old-1', planMonth: '2031-09', billingMode: 'monthly_plan_v1', status: 'Ootel', emailStatus: 'sent', studentName: 'Mari Maasikas', num: 'AR-30', amountCents: 10000, due: '2031-09-10' },
+    ]);
+    renderPage(value, '/finance?view=unpaid');
+    const debtTable = await screen.findByRole('table', { name: 'Võlgnevused' });
+    fireEvent.click(within(debtTable).getByRole('button', { name: 'Tühista arve AR-30' }));
+    let dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Tühistamise põhjus'), { target: { value: 'Arve koostati ekslikult' } });
+    expect(within(dialog).getByRole('button', { name: 'Tühista arve' })).toBeDisabled();
+    fireEvent.click(within(dialog).getByRole('checkbox'));
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Tühista arve' })); });
+    expect(value.manualInvoiceRepository.cancel).toHaveBeenCalledWith('old-1', 'Arve koostati ekslikult', { afterSending: true });
+
+    fireEvent.click(within(await screen.findByRole('table', { name: 'Võlgnevused' })).getByRole('button', { name: 'Muuda arvet AR-30' }));
+    dialog = screen.getByRole('dialog');
+    fireEvent.change(within(dialog).getByLabelText('Uus maksetähtaeg'), { target: { value: '2031-10-20' } });
+    fireEvent.change(within(dialog).getByLabelText('Paranduse põhjus'), { target: { value: 'Kokkulepitud uus maksetähtaeg' } });
+    await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta tähtaeg' })); });
+    expect(value.financeRepository.correctInvoiceDueDate).toHaveBeenCalledWith('old-1', '2031-10-20', 'Kokkulepitud uus maksetähtaeg');
+  });
 });

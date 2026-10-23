@@ -1,7 +1,7 @@
 /* global setTimeout, clearTimeout */
 import { useEffect, useRef, useState } from 'react';
 import { petSvg } from './petArt.js';
-import { GAMES, GAME_SIZE, gameRounds, sameSentence } from './petGames.js';
+import { GAMES, GAME_SIZE, LETTERS, gameRounds, gameSize, sameSentence, sortRound } from './petGames.js';
 import './pet.css';
 
 const TRUTH_SECONDS = 7;
@@ -145,6 +145,83 @@ function TruthGame({ rounds, kind, onEnd }) {
   );
 }
 
+// „Sorteeri”: one word at a time; the learner drops it into a basket, the pet in the middle reacts
+function SortGame({ round, kind, onEnd }) {
+  const [i, setI] = useState(0);
+  const [right, setRight] = useState(0);
+  const [placed, setPlaced] = useState(null); // { basket, ok }
+  const [counts, setCounts] = useState({});
+  const item = round.words[i];
+  const drop = (basket) => {
+    if (placed) return;
+    const ok = basket === item.basket;
+    setPlaced({ basket, ok });
+    if (ok) setCounts((c) => ({ ...c, [basket]: (c[basket] || 0) + 1 }));
+    const total = right + (ok ? 1 : 0);
+    setRight(total);
+    setTimeout(() => { setPlaced(null); if (i + 1 >= round.words.length) onEnd(total); else setI(i + 1); }, ok ? 700 : 1600);
+  };
+  return (
+    <div className="pg-game" aria-label="Sorteeri">
+      <small className="vw-muted">{i + 1} / {round.words.length} · Mis korvi see sõna läheb?</small>
+      <div className="pg-sort">
+        <p className={`pg-word ${placed ? (placed.ok ? 'is-right' : 'is-wrong') : ''}`} key={i}>{item.word}</p>
+        <Pet kind={kind} mood={placed ? (placed.ok ? 'happy' : 'sad') : 'calm'} />
+      </div>
+      <div className="pg-baskets">
+        {round.baskets.map((basket) => (
+          <button type="button" key={basket} className={`pg-basket ${placed?.basket === basket ? (placed.ok ? 'is-right' : 'is-wrong') : ''} ${placed && !placed.ok && basket === item.basket ? 'is-answer' : ''}`}
+            disabled={Boolean(placed)} onClick={() => drop(basket)}>
+            <b>{basket}</b><small>{counts[basket] || 0}</small>
+          </button>
+        ))}
+      </div>
+      {placed ? <p role="status" className={placed.ok ? 'vw-right' : 'vw-wrong'}>{placed.ok ? 'Õige korv!' : `See läheb korvi „${item.basket}”.`}</p> : null}
+    </div>
+  );
+}
+
+// „Arva sõna”: a kind hangman — every wrong letter makes the pet a bit sadder; 6 misses and the word is shown
+const MISSES = 6;
+function GuessGame({ rounds, kind, onEnd }) {
+  const [i, setI] = useState(0);
+  const [right, setRight] = useState(0);
+  const [tried, setTried] = useState([]);
+  const [over, setOver] = useState(null); // 'won' | 'lost'
+  const round = rounds[i];
+  const misses = tried.filter((ch) => !round.letters.includes(ch)).length;
+  const finish = (won) => {
+    setOver(won ? 'won' : 'lost');
+    const total = right + (won ? 1 : 0);
+    setRight(total);
+    setTimeout(() => { setOver(null); setTried([]); if (i + 1 >= rounds.length) onEnd(total); else setI(i + 1); }, won ? 1100 : 2200);
+  };
+  const press = (ch) => {
+    if (over || tried.includes(ch)) return;
+    const now = [...tried, ch];
+    setTried(now);
+    if (round.letters.every((l) => now.includes(l))) finish(true);
+    else if (now.filter((x) => !round.letters.includes(x)).length >= MISSES) finish(false);
+  };
+  const mood = over === 'won' ? 'happy' : over === 'lost' || misses >= MISSES - 2 ? 'sad' : 'calm';
+  return (
+    <div className="pg-game" aria-label="Arva sõna">
+      <small className="vw-muted">{i + 1} / {rounds.length} · Vihje: <b>{round.clue}</b></small>
+      <div className="pg-guess">
+        <Pet kind={kind} mood={mood} />
+        <p className="pg-letters" aria-label="Sõna">{round.letters.map((l, k) => <span key={k} className="pg-slot">{tried.includes(l) || over ? l : '\u00a0'}</span>)}</p>
+        <small className="vw-muted" aria-label="Vigu">Vigu: {misses} / {MISSES}</small>
+      </div>
+      <div className="pg-keys">
+        {LETTERS.map((ch) => (
+          <button type="button" key={ch} className={`pg-key ${tried.includes(ch) ? (round.letters.includes(ch) ? 'is-right' : 'is-wrong') : ''}`} disabled={Boolean(over) || tried.includes(ch)} aria-label={`Täht ${ch}`} onClick={() => press(ch)}>{ch}</button>
+        ))}
+      </div>
+      {over ? <p role="status" className={over === 'won' ? 'vw-right' : 'vw-wrong'}>{over === 'won' ? 'Arvasid ära!' : `Sõna oli: ${round.word}`}</p> : null}
+    </div>
+  );
+}
+
 /** Topic games: choose one of the learner's topics and a game; `onDone(score)` when a game is finished. */
 export default function PetGames({ topics = [], kind = 'siil', onDone, onClose }) {
   const [topicId, setTopicId] = useState(topics[0]?.id || '');
@@ -153,17 +230,18 @@ export default function PetGames({ topics = [], kind = 'siil', onDone, onClose }
   const [result, setResult] = useState(null);
   const [run, setRun] = useState(0);
   const topic = topics.find((t) => t.id === topicId) || topics[0];
-  const start = (key) => { setGame(key); setRounds(gameRounds(topic, key)); setResult(null); setRun((n) => n + 1); };
-  const end = (score, moves = 0) => { const total = game === 'pairs' ? rounds.length / 2 : rounds.length; setResult({ right: score, total, moves }); onDone?.(score); };
+  const start = (key) => { setGame(key); setRounds(key === 'sort' ? sortRound(topic) : gameRounds(topic, key)); setResult(null); setRun((n) => n + 1); };
+  const end = (score, moves = 0) => { const total = game === 'pairs' ? rounds.length / 2 : game === 'sort' ? rounds.words.length : rounds.length; setResult({ right: score, total, moves }); onDone?.(score); };
 
   if (!topic) return <div className="vw-practice"><p>Teemamängude jaoks pole veel töölehti. Kui õpetaja annab töölehe, saame mängida!</p><button type="button" className="vw-btn" onClick={onClose}>Sulge</button></div>;
   if (game && result) return <div className="vw-practice pet-games"><Finish kind={kind} {...result} onAgain={() => start(game)} onClose={() => { setGame(''); setResult(null); }} /></div>;
   if (game) {
-    const props = { key: run, rounds, kind, onEnd: end };
+    const props = { rounds, kind, onEnd: end };
     return (
       <div className="vw-practice pet-games">
         <div className="pg-head"><b>{GAMES.find((g) => g.key === game).label}</b><small>{topic.title}</small><button type="button" className="pet-link" onClick={() => setGame('')}>Tagasi</button></div>
-        {game === 'catch' ? <CatchGame {...props} /> : game === 'pairs' ? <PairsGame key={run} cards={rounds} onEnd={end} /> : game === 'order' ? <OrderGame {...props} /> : <TruthGame {...props} />}
+        {game === 'catch' ? <CatchGame key={run} {...props} /> : game === 'pairs' ? <PairsGame key={run} cards={rounds} onEnd={end} /> : game === 'order' ? <OrderGame key={run} {...props} />
+          : game === 'sort' ? <SortGame key={run} round={rounds} kind={kind} onEnd={end} /> : game === 'guess' ? <GuessGame key={run} {...props} /> : <TruthGame key={run} {...props} />}
       </div>
     );
   }
@@ -171,12 +249,12 @@ export default function PetGames({ topics = [], kind = 'siil', onDone, onClose }
     <div className="vw-practice pet-games" aria-label="Teemamängud">
       <p className="pg-intro">Mängime sinu teemadega! <small lang="ru">Играем по твоим темам из листов.</small></p>
       {topics.length > 1 ? <div className="pg-topics" role="radiogroup" aria-label="Teema">
-        {topics.map((t) => <button type="button" role="radio" aria-checked={t.id === topic.id} key={t.id} className={`pg-topic ${t.id === topic.id ? 'is-on' : ''}`} onClick={() => setTopicId(t.id)}>{t.title}{t.level ? <small> · {t.level}</small> : null}</button>)}
+        {topics.map((t) => <button type="button" role="radio" aria-checked={t.id === topic.id} key={t.id} className={`pg-topic ${t.id === topic.id ? 'is-on' : ''}`} onClick={() => setTopicId(t.id)}>{t.title}{t.level ? <small> · {t.level}</small> : null}{t.source === 'course' ? <small> · tunnist</small> : null}</button>)}
       </div> : <p className="pg-one-topic">Teema: <b>{topic.title}</b></p>}
       <div className="pg-menu">
         {GAMES.filter((g) => topic.games.includes(g.key)).map((g) => (
           <button type="button" key={g.key} className={`pg-choice is-${g.key}`} onClick={() => start(g.key)}>
-            <b>{g.label}</b><small lang="ru">{g.ru}</small><span className="vw-muted">{Math.min(GAME_SIZE[g.key], topic.items[g.key].length)} {g.key === 'pairs' ? 'paari' : 'ülesannet'}</span>
+            <b>{g.label}</b><small lang="ru">{g.ru}</small><span className="vw-muted">{Math.min(GAME_SIZE[g.key], gameSize(topic.items, g.key))} {g.key === 'pairs' ? 'paari' : g.key === 'sort' ? 'sõna' : g.key === 'guess' ? 'sõna' : 'ülesannet'}</span>
           </button>
         ))}
       </div>

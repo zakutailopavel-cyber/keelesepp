@@ -4,6 +4,72 @@
   production `invoices`: about 20 invoices a month, average about 100 €). Letter not sent — the owner sends it and
   chooses the contact phone (+372 5374 0753 personal or +372 5434 4155 public). LinkPay code stays in test mode
   until live keys exist and the owner allows the switch.
+## 2026-10-23 · agent/pet-course-games-v2 — lemmiku mängud kursuse töölehtedest (PR #518 uuesti main'il)
+
+- Base: `main` 5f1c015 (2026-10-23). Branch `agent/pet-course-games-v2`, draft PR (supersedes #518, which stays open).
+- #518 cherry-picked (pet.css: Sorteeri/Arva sõna styles + the pet reactions of main kept). Topic games also use the
+  published course sheets of the last 4 attended lessons (`lessons.topicLessonId`, `courseTopics()`); `transformation`
+  → „Lauseehitus”, `dialogue` gaps → „Püüa sõna”; new games „Sorteeri” (`categorize`) and „Arva sõna” (crossword,
+  vocab, match clues; Estonian keyboard).
+- New on top of #518 (`pet/petGames.js`): the „Õpik” sheet (`TEXTBOOK_SHEET_ID`, by record id or `meta.phase`) is never
+  game material (licensed content); `cloze` option gaps → „Püüa sõna” with the gap's own options, sentence by sentence;
+  „Sorteeri” cards ≤ 3 words, a group made mostly of longer items is dropped; „Arva sõna” only on Estonian sheets
+  (`meta.language`, else lesson id `en-…` = English).
+- Guard test `pet/petGamesCourse.test.js`: every non-assessment lesson of the Estonian courses (A2, B1, B2, C1, ek9;
+  312 lessons from `COURSE_MODULES` / `moduleSheets`) gives ≥ 2 games. Coverage: 786 of 936 sheets playable; lessons
+  per game catch 311, order 308, truth 232, guess 186, pairs 127, sort 50; 101 lessons with 5–6 games; 1834 cloze rounds.
+- Unchanged: games only fill the pet's joy (`playedAt`), no XP, nothing written; no rules/functions changed.
+- Checks: vitest pet 54/54; whole vitest 2321 passed, 3 skipped, 0 failed; eslint `src/features/pet` clean; `npm run build` OK.
+  Not checked in a browser in this round.
+- Next step: owner tries the games with a test student who has an attended lesson with an Õppevara topic, then merges.
+## 2026-10-23 · agent/finance-debt-actions-v2 — „Muuda” and „Tühista” in the debts list (replaces PR #368)
+
+- Base: main 5f1c015 (2026-10-23). Draft PR to main; supersedes the old PR #368 (left open for the owner to close).
+- Võlgnevused (FinanceDebtsPanel, Finance → Laekumata): each past-month debt has „Muuda” — with a reason of 10+ chars
+  the admin (a) corrects the due date (financeApi.correctInvoiceDueDate → staffOperationsApi `/data-quality/invoice-due`,
+  server keeps dueDateHistory + audit) or (b) credits ONE lesson line as a separate credit note (existing
+  `/invoices/credit-lesson-line`). (b) is disabled with an explanation for invoices without lesson lines (monthly
+  multi-subject invoices) and hides already credited lines (`correctedLessonIds`). Invoice amounts are never overwritten.
+- „Tühista” in the debts list uses main's rule and dialog (PR #640: sent unpaid invoices with a confirmation, lesson
+  tokens); canCancelInvoice + invoiceWasSent moved unchanged from FinanceMonthPage.jsx to finance/invoiceActions.js.
+- financeRows.js: `due` (what the server corrects) now wins over the legacy `dueDate` snapshot (state + sorting).
+- financeDebts.css: at ≤680 px each debt is a card (no sideways scroll at 375 px).
+- Checks: vitest src/features/finance 29 files / 159 passed; full vitest 338 files passed (2330 tests, 3 skipped);
+  eslint on changed files 0 errors (1 old warning); npm run build ok. Mocks only — no production, no deploy.
+- Owner decisions 2026-10-23 (both YES) built in the same PR — an issued invoice is never overwritten:
+  - „Krediteeri kogu arve”: financeApi `/invoices/credit-full` (admins; `creditInvoiceInFull` in functions/index.js) →
+    one credit note (`creditNotes/{requestId}`, `kind: full_credit`, KN number) for the open amount (original −
+    earlier lesson-line credits); invoice keeps `amount`/`amountCents`, gets `creditedAmountCents = original`,
+    `effectiveAmountCents/balanceDueCents 0`, `status: Krediteeritud`, `correctionStatus: fully_credited`,
+    `fullCreditNoteId`; still-billed lessons → `billingStatus: credited`; pending package invoice → `tokenStatus:
+    voided` (`creditBlocker` now refuses voided/credited invoices). Audit `invoice.fully_credited`.
+  - „Paranda summa või maksja”: `/invoices/correct` (`correctIssuedInvoice`) in ONE transaction: the same full
+    credit note (`kind: correction`) + new invoice `invoices/correction_{requestId}` with the next KS number, same
+    lines/subject/student, corrected payer (`payerName/Email/RegCode/Address`) and/or amount (an extra
+    `amount_correction` line with the difference), fresh payment/e-mail state, due = given date or today;
+    `correctionOf` on the new invoice, `correctedBy` + `correctionStatus: corrected` on the old one; lessons move
+    to the new invoice (`previousInvoiceIds`). Audits `invoice.corrected_credit` + `invoice.created_correction`.
+  - Refusals (409): cancelled, already fully credited or corrected, any active payment (void/refund first), package
+    lessons already on the card; amount change of a lesson-linked invoice (credit the line instead). Reason ≥ 10
+    chars (400). Idempotent by requestId (same payload → 200 `idempotent: true`, other payload → 409).
+  - Works for old debts that „Tühista” cannot close (no `billingMode`, euros only, `lessonIds` without lesson lines,
+    partially credited, failed e-mail — e.g. KS-2026-004/-030/-049/-050); old lessons without `billingStatus`
+    are credited too. Only today's date must be in an open period (the credit note is dated today).
+  - Pure rules: functions/invoice-correction-core.js (+ test). Bookkeeping needs no new code: the next
+    `/accounting/sync` books the credit note (3060 → 1200) and the new invoice (1200 → 3060).
+  - UI: „Muuda” dialog of Võlgnevused → section „Kogu arve parandamine” with both buttons (or the reason why not)
+    → InvoiceCorrectionDialog.jsx (shows what will be created, reason, confirmation checkbox); the same two buttons
+    in the old invoice detail (FinancePage, /finance/vana). financeApi: `creditInvoiceInFull`, `correctIssuedInvoice`.
+    No Firestore rules change (server-only writes, admin check in financeApi).
+- Checks (2026-10-23, after the corrections): functions `npm test` 341/341; emulator `npm run test:emulator`
+  (auth+firestore+functions, demo project, Java 21) 92/92 incl. the new route test; crm-v2 vitest 338 files /
+  2339 passed, 3 skipped; eslint on changed crm-v2 files 0 errors (1 old warning); `npm run build` ok.
+- Deploy needed: A and B work only after `firebase deploy --only functions:financeApi` (owner's decision); the
+  UI shows the buttons before that but the calls would fail with 404. No production data was touched.
+- Open: which old debts to clear is the owner's call in the UI after deploy (nothing changed in data); a monthly
+  invoice credited in full (A) still counts as that month's invoice for „Koosta kuuarve” — use B to reissue.
+- Next safe step: owner reviews the PR preview (Finance → Laekumata → Muuda), merges, deploys financeApi; then
+  credits the old debts one by one with a reason; close #368.
 ## 2026-10-23 · agent/library-subject-tabs — Õppevara: subject tabs above the levels
 
 - Owner: „надо добавить вкладку предмета”. Õppevara shows „Kõik ained · Eesti keel · Emakeel · Inglise keel” tabs

@@ -26,6 +26,8 @@ test('credited only when paid, never twice', () => {
   assert.equal(invoicePaid({ ...invoice, status: 'Tühistatud', paymentStatus: 'paid' }), false);
   assert.equal(creditBlocker({ ...invoice, status: 'Makstud' }), '');
   assert.equal(creditBlocker({ billingMode: 'manual_charge_v1' }), 'See ei ole tunnipaketi arve.');
+  assert.match(creditBlocker({ ...invoice, tokenStatus: 'voided' }), /krediteeritud/, 'a credited or corrected package invoice gives no lessons');
+  assert.match(creditBlocker({ ...invoice, status: 'Krediteeritud' }), /krediteeritud/);
   assert.equal(tokenPackageId('abc/def'), 'tokens_abc_def');
 });
 

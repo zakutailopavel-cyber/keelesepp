@@ -187,12 +187,41 @@ export const financeApi = {
       requestId: financeRequestId("lesson_billing"),
     });
   },
+  // due date correction with a reason (audited on the server: dueDateHistory + finance audit); staffOperationsApi route
+  correctInvoiceDueDate(invoiceId, due, reason) {
+    return postStaff("/data-quality/invoice-due", {
+      invoiceId,
+      due,
+      reason,
+      requestId: financeRequestId("invoice_due"),
+    });
+  },
   creditInvoiceLessonLine(invoiceId, lessonId, reason) {
     return post("/invoices/credit-lesson-line", {
       invoiceId,
       lessonId,
       reason,
       requestId: financeRequestId("credit_note"),
+    });
+  },
+  // „Krediteeri kogu arve” (owner 2026-10-23): one credit note for the whole open amount; the issued invoice stays as it is
+  creditInvoiceInFull(invoiceId, reason, requestId) {
+    return post("/invoices/credit-full", {
+      invoiceId,
+      reason,
+      requestId: requestId || financeRequestId("credit_full"),
+    });
+  },
+  // „Paranda summa või maksja”: a full credit note + a new invoice with the corrected amount and/or payer
+  // (correction = { amount?, payer?: { payerName, payerEmail, payerRegCode, payerAddress }, due?, reason })
+  correctIssuedInvoice(invoiceId, correction = {}) {
+    return post("/invoices/correct", {
+      invoiceId,
+      ...(correction.amount !== undefined && correction.amount !== "" ? { amount: correction.amount } : {}),
+      ...(correction.payer ? { payer: correction.payer } : {}),
+      ...(correction.due ? { due: correction.due } : {}),
+      reason: correction.reason,
+      requestId: correction.requestId || financeRequestId("invoice_correction"),
     });
   },
   // lesson tokens: a paid package invoice → the card gets its lesson credits (once; the server checks the payment)
