@@ -1,3 +1,15 @@
+## 2026-10-23 · agent/course-official-only — „Minu kursus” shows only the course; a flaky pet test fixed
+
+- Production check (read-only, 2026-10-23): Liudmila's card is active, self-study, level B2. Her B2 course map showed
+  18 course modules plus 4 old hand-made library modules (11 B2 lessons without `roadmapManaged`, some named after
+  other students — „Konstantin”, „Nika”, „Veronika” — and 7 without sheets). The 90 course lessons have all 270 sheets
+  published.
+- self-study/StudentCoursePage.jsx: `courseLessons` keeps only `roadmapManaged` lessons (falls back to all when the
+  library has none).
+- pet/companion.test.jsx: the invitation mock re-delivered an empty list when the companion re-subscribed (after the
+  pet loaded), wiping the invitation pushed by the test — CI failed „announces a lesson invitation by itself”. The
+  mock now re-delivers the current list, as Firestore does.
+- Checks: verify (eslint errors 0, vitest 2274 passed, 0 failed); pet tests 3 runs in a row green.
 ## 2026-10-23 · agent/daily-reminder — „Tuleta mulle iga päev meelde”: a daily reminder for „Päeva 5 minutit”
 
 - Owner 2026-10-23 („делай дальше”): students forget to practise between lessons.

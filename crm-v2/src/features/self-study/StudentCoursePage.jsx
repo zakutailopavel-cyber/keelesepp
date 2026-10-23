@@ -18,6 +18,9 @@ const api = {
   start: (input) => homeworkService.createSelfStudy(input),
 };
 const ICON = { done: CheckCircle2, started: CircleDot, none: Circle };
+// only the course itself (roadmapManaged lessons): old hand-made library lessons — some named after a student — and
+// their modules without sheets stay out of a student's course map
+export const courseLessons = (lessons = []) => (lessons.some((lesson) => lesson.roadmapManaged) ? lessons.filter((lesson) => lesson.roadmapManaged) : lessons);
 
 // „Minu kursus” (owner 2026-10-23: самостоятельный курс нужен, сертификат нет): the course of the student's level module
 // by module, each lesson's three sheets with his progress. A self-study card (isSelfStudent) opens the sheets itself
@@ -28,7 +31,7 @@ export default function StudentCoursePage({ repository = api }) {
   const state = useAsyncData(async () => {
     const students = await repository.students(user.uid);
     const [curriculum, assignments] = await Promise.all([repository.curriculum().catch(() => []), repository.assignments(students.map((s) => s.id)).catch(() => [])]);
-    return { students, catalog: buildTopicCatalog(curriculum?.curriculumLessons || curriculum || []), assignments };
+    return { students, catalog: buildTopicCatalog(courseLessons(curriculum?.curriculumLessons || curriculum || [])), assignments };
   }, [repository, user.uid]);
   const [level, setLevel] = useState('');
   const [openModule, setOpenModule] = useState('');

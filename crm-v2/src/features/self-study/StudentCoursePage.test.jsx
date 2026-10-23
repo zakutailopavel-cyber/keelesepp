@@ -7,7 +7,7 @@ vi.mock('../homework/WorksheetPlayer.jsx', () => ({ default: ({ assignment }) =>
 vi.mock('../calendar/lessonTopic.js', () => ({
   buildTopicCatalog: () => ({ byId: new Map(), levels: [{ key: 'B2', label: 'B2', modules: [{ key: 'm1', label: 'Moodul 1', lessons: [{ id: 'b1b2-001', title: 'Tervitus', number: 1 }, { id: 'b1b2-002', title: 'Pere', number: 2 }] }] }] }),
 }));
-const { default: StudentCoursePage } = await import('./StudentCoursePage.jsx');
+const { default: StudentCoursePage, courseLessons } = await import('./StudentCoursePage.jsx');
 
 const repo = (student, assignments = []) => ({
   students: vi.fn().mockResolvedValue([student]),
@@ -35,5 +35,13 @@ describe('Minu kursus (owner 2026-10-23)', () => {
     expect(await screen.findByText('Seda tundi teed koos õpetajaga.')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Alusta/ })).toBeNull();
     screen.getAllByRole('button', { name: /Avasta/ }).forEach((button) => expect(button).toBeDisabled());
+  });
+});
+
+describe('courseLessons', () => {
+  it('keeps only the course lessons when the library has them, so old personal lessons stay out', () => {
+    const lessons = [{ id: 'b1b2-001', roadmapManaged: true }, { id: 'old', title: 'Konstantin' }];
+    expect(courseLessons(lessons).map((lesson) => lesson.id)).toEqual(['b1b2-001']);
+    expect(courseLessons([{ id: 'old' }]).map((lesson) => lesson.id)).toEqual(['old']);
   });
 });
