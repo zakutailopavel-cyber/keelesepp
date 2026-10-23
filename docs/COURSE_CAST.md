@@ -54,3 +54,8 @@ Keep facts consistent; add new facts here when a module adds them.
 - **B2 module 4:** Riga furniture firm **Silva** (contact **Ilze Berg**, warehouse head **Inese**); new colleague **Taavi**
   (26); Jaan's kitchen helper **Pille**, cook **Vaike**; coach **Signe Lepp**; Liis volunteers (food bank, library,
   clean-up days).
+- **B2 modules 6–10:** builder **Andres Kivi** (Emajõe Ehitus); Mia's teacher **Elina Rand**, robotics leader
+  **Kuldar**; Ruslan grew up in Narva, IT developer; Olena from Harkiv (was an accountant), Daria 11 (folk dance,
+  wants to be a translator); magazine „Linnaelu” (editor **Tuuli Rand**); booking-agent **Laine**; nutritionist **Piia
+  Remmel**; Mia vegetarian from September; Kase kool kitchen: no nuts, plant-based Thursday; Vahtra 5 neighbour
+  **Valdur Ploom** (71) and **Kai Lill**; mediator **Helve Sild**; psychologist **Elo Vällik**.

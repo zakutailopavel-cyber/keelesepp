@@ -250,6 +250,55 @@ goal: brief a new colleague (Taavi) and write his work instructions.
 - **019** — briefing Taavi. → a real PPA page on lost documents; a work-instruction template.
 - Two Harjuta sheets sit at 25.2–25.3 exercise minutes (floor 25). The art briefs of 017–018 no longer match.
 
+## B2 module 6 „Tööelu” (b1b2-026…029)
+
+Sofia is acting project manager in Tartu; goal: a 1-minute presentation at the management meeting and a semi-formal
+letter to a partner (Harno B2 speaking 1 and writing 1).
+- **026** — essive vs translative (projektijuhina / sai projektijuhiks); the first team meeting. → a real job
+  description as a document.
+- **027** — Laura's three job offers; the 1-minute monologue. → designed ad cards; a career-fair photo.
+- **028** — the overtime conflict, a written agreement. → chat screenshots; voice messages with real emotion.
+- **029** — the late roof (Andres Kivi, Emajõe Ehitus): presentation, decision, letter. → an agenda and letterhead
+  layout; a timed model 1-minute presentation.
+
+## B2 module 7 „Haridus ja õppimine” (b1b2-031…034)
+
+Mia's first written school report, Oskar's choice football vs robotics, Sofia's B2 prep; goal: a school-board debate on
+written comments instead of marks and a ~180-word summary with a comment.
+- **031** — verb and adjective government in a progress talk. → a real school report with written comments.
+- **032** — -mine / -ja preview; Sofia mentors Laura. → the picture brief should show the question cards.
+- **033** — reporting research (uuringu järgi, -vat); Helen Rebane's lecture. → real lecture audio; the slide figures
+  are invented sample data (labelled).
+- **034** — the board debate and summary. → a board-meeting picture (the brief shows a library corner).
+
+## B2 module 8 „Reisimine ja kultuur” (b1b2-036…039)
+
+The Kase kool family club; identity between two cultures (Sofia, Olena, Daria, Ruslan), Setomaa, jaanipäev, laulupidu;
+goal: a talk „Kaks kodu” and a travel story for „Linnaelu”. Identity topic added (was missing in B2).
+- **036** — relative clauses; Setomaa or Saaremaa (decision). → a Setomaa map / bus timetable.
+- **037** — quotative; a Rome flat that went wrong, complaint to a booking portal. → the art brief names the agent
+  „Liis” — renamed Laine in the text; fix the brief.
+- **038** — essive vs translative; Olena's first jaanipäev; a 509-word Harno B2 article. → a leelo / jaanituli photo.
+- **039** — the talk and the magazine story (sentence-bank text). → a laulupidu photo; model learner stories.
+
+## B2 module 9 „Tervis ja eluviis” (b1b2-041…044)
+
+Jaan reforms the school menu after a lunch survey; goal: present it to the board and write to all families. Food and
+nutrition topic added (was missing in B2).
+- **041** — change of state + translative (harjumus muutus loomulikuks). → real canteen audio; a real survey sheet.
+- **042** — soft advice with the conditional; Viktor tired and eating poorly. → a culture-house poster.
+- **043** — past conditional (oleks pidanud); sugar-tax debate played once. → fact-check the sugar-tax data.
+- **044** — the board meeting. → a picture of Jaan at the board; a printed menu-plan handout.
+
+## B2 module 10 „Suhted ja konfliktid” (b1b2-046…049)
+
+Jaan's early café tests vs a neighbour's sleep (Vahtra 5), a night-shift schedule conflict, Oskar and Rasmus fall out;
+goal: a mediated agreement meeting and an apology / agreement letter.
+- **046** — choosing a night-shift leader; radio interview T/F. → a real local-paper survey layout.
+- **047** — -ki / -gi and keegi, kunagi, isegi. → the mails as an e-mail thread design.
+- **048** — reported speech after the class-chat video. → a class-chat screenshot.
+- **049** — the house meeting with a mediator. → a house-meeting picture; a printed agreement form.
+
 ## Shared themes
 
 - Pictures: one illustration per lesson is not enough for picture tasks (sequence, labels, faces). → a picture budget

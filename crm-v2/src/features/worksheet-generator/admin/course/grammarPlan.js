@@ -67,10 +67,10 @@ export const GRAMMAR_PLAN = {
     { id: 'nonfinite', label: 'kesksõnad, des-vorm, lauselühendid', lessons: ['b1b2-078'], partial: true },
     { id: 'moods', label: 'vorm funktsiooni järgi (tingiv, umbisikuline, kaudne)', lessons: ['b1b2-079'] },
     { id: 'nominalisation', label: '-mine / -ja nimisõnad', lessons: [] },
-    { id: 'change', label: 'hakkama, muutuma, jääma + saav kääne', lessons: [] },
-    { id: 'essive', label: 'olev kääne', lessons: [] },
+    { id: 'change', label: 'hakkama, muutuma, jääma + saav kääne', lessons: ['b1b2-041', 'b1b2-044'] },
+    { id: 'essive', label: 'olev kääne', lessons: ['b1b2-026', 'b1b2-028'] },
     { id: 'subject', label: 'täis- ja osaalus', lessons: ['b1b2-006', 'b1b2-008'] },
-    { id: 'clitics', label: '-ki / -gi', lessons: [] },
+    { id: 'clitics', label: '-ki / -gi', lessons: ['b1b2-047', 'b1b2-049'] },
   ],
   c1: [
     { id: 'object', label: 'sihitise valik', lessons: ['est-c1-008'] },

@@ -32,7 +32,7 @@ const TR = (id, rows) => B.translation(id, 'Tõlgi eesti keelde.', 'Kirjuta loom
 export const LESSONS = {
   'b1b2-006': {
     title: 'Kus? Kuhu? Kust?',
-    canDo: 'Ma valin linnas liikumisest rääkides õige kohakäände (kuhu, kus, kust) vähemalt 8 juhul 10-st ja juhatan teed.',
+    canDo: 'Ma võrdlen üürimist ja ostmist, kirjeldan, mis korteris on ja mida ei ole, ning juhatan teed uude koju õigete kohakäänetega.',
     discover: [
       B.review('006_d_review', ['Moodul 1: kirjelda oma tavalist tööpäeva — mida teed kõigepealt ja mida seejärel?', 'Kuidas erineb sinu argipäev nädalavahetusest?', 'Mis on sinu selle aasta kõige tähtsam eesmärk?']),
       B.text('006_d_goal', 'Moodul 2: uus kodu ja palju asjaajamist', 'Pildil on Anna laupäev Tartus: rongijaamast läheb ta turule, sealt pagariärisse ja raamatukokku. Kodu ümbrus teeb igapäevase elu lihtsaks või raskeks. Selles moodulis otsivad Jaan ja Kadri suuremat kodu. Nad ajavad asju pangas ja linnaosa valitsuses ning lahendavad probleeme majaga. Mooduli eesmärk: lõpus kirjutad linnale ametliku pöördumise ja räägid ametnikuga. Täna loed Kadri postitust ja kuulad, kuidas Jaan teed küsib.'),
