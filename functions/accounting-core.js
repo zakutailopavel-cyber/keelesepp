@@ -18,14 +18,15 @@
 
 const ACCOUNTING_START_DATE = "2026-01-01";
 
-// automatic posting accounts (Merit Aktiva codes); the school sells VAT-free training, so sales go to 3060 and an
-// expense is booked with its VAT (the VAT is not deductible without a VAT registration)
+// automatic posting accounts (Merit Aktiva codes); sales revenue goes to 3000 (the accountant 2026-10-23; until then
+// 3060 Maksuvaba müügitulu — entries already written keep 3060, docs/ACCOUNTING.md) and an expense is booked with its
+// VAT (the VAT is not deductible without a VAT registration)
 const POSTING_ACCOUNTS = Object.freeze({
   cash: "1000",
   bank: "1010",
   receivables: "1200",
   prepayments: "2500",
-  sales: "3060",
+  sales: "3000",
   otherPayables: "2450",
 });
 

@@ -3744,7 +3744,7 @@ test("bookkeeping: documents become numbered entries once, manual entries balanc
   assert.equal(synced.status, 200, JSON.stringify(synced.body));
   const invoiceEntry = (await db.collection("accountingEntries").doc("auto_invoice_acc-invoice-1").get()).data();
   assert.match(invoiceEntry.number, /^2026-\d{4}$/);
-  assert.deepEqual(invoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 10000, 0], ["3060", 0, 10000]]);
+  assert.deepEqual(invoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 10000, 0], ["3000", 0, 10000]]);
   assert.equal(invoiceEntry.documentRef, "KS-2026-901");
   assert.ok((await db.collection("accountingEntries").doc("auto_payment_acc-payment-1").get()).exists);
   assert.ok((await db.collection("accountingAccounts").doc("3060").get()).exists, "the chart is seeded");

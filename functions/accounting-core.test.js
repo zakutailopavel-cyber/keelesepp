@@ -12,7 +12,7 @@ const byAccount = (entries) => {
 
 test("the chart has the accounts the automatic entries use, each with a type and a report line", () => {
   const codes = new Set(DEFAULT_ACCOUNTS.map((a) => a.code));
-  ["1000", "1010", "1200", "2450", "2500", "3060", "4210", "4300", "4320", "4050", "4340", "4360", "4330", "4510", "4398", "2970", "2980"].forEach((code) => assert.ok(codes.has(code), code));
+  ["1000", "1010", "1200", "2450", "2500", "3000", "4210", "4300", "4320", "4050", "4340", "4360", "4330", "4510", "4398", "2970", "2980"].forEach((code) => assert.ok(codes.has(code), code));
   assert.equal(codes.size, DEFAULT_ACCOUNTS.length, "codes are unique");
   DEFAULT_ACCOUNTS.forEach((a) => {
     assert.match(a.type, /^(asset|liability|equity|income|expense)$/);
@@ -30,7 +30,7 @@ test("an invoice, its payment by bank and a cash payment become balanced entries
   });
   assert.deepEqual(entries.map((e) => e.sourceKey), ["invoice:i1", "payment:p1", "payment:p2"]);
   assert.ok(balance(entries));
-  assert.deepEqual(byAccount(entries), { 1200: 0, 3060: -8000, 1010: 5000, 1000: 3000 });
+  assert.deepEqual(byAccount(entries), { 1200: 0, 3000: -8000, 1010: 5000, 1000: 3000 });
   assert.equal(entries[0].documentRef, "KS-2026-001");
   assert.match(entries[0].description, /Müügiarve KS-2026-001 · Kati Tamm/);
 });
@@ -63,7 +63,7 @@ test("a cancelled invoice, a credit note and a voided payment are reversed on th
   // the cancellation reverses only what the credit note left open: 100 − 25 = 75
   assert.equal(entries.find((e) => e.sourceKey === "invoice-cancel:i1").totalCents ?? entries.find((e) => e.sourceKey === "invoice-cancel:i1").lines[0].debitCents, 7500);
   const totals = byAccount(entries);
-  assert.equal(totals["3060"], -(9000 - 3000));
+  assert.equal(totals["3000"], -(9000 - 3000));
   assert.equal(totals["1200"], 9000 - 3000);
   assert.equal(totals["1010"], 0);
   assert.ok(balance(entries));
