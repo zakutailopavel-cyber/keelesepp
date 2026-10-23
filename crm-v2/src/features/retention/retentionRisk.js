@@ -37,7 +37,7 @@ export function recentlyScheduled(events = [], today, days = 21) {
  * (calendar/unplannedStudents.js); invoices: with studentId and an `overdue` test; words: studentWords.
  * Returns { risky: [{ student, score, level, reasons }], renewals: [{ student, left }] } — the riskiest first.
  */
-export function retentionRisk({ students = [], lessons = [], unplannedIds = [], scheduledIds = [], overdueInvoices = [], words = [], now = Date.now() } = {}) {
+export function retentionRisk({ students = [], lessons = [], unplannedIds = [], scheduledIds = [], overdueInvoices = [], words = [], seen = new Map(), now = Date.now() } = {}) {
   const byStudent = new Map();
   lessons.forEach((lesson) => {
     if (!lesson.studentId || !lesson.date || lesson.status === 'Planeeritud') return;
@@ -74,11 +74,22 @@ export function retentionRisk({ students = [], lessons = [], unplannedIds = [], 
     // all for a self-study card (it has no teacher's calendar)
     const recent = scheduled.has(student.id) || (held && now - time(held.date) <= 21 * DAY);
     if (unplanned.has(student.id) && !student.isSelfStudent) { score += recent ? 1 : RISK_WEIGHTS.noLessonAhead; reasons.push('järgmist tundi pole kalendris'); }
-    const own = practice.get(student.id);
-    if (own?.words && (!own.last || now - own.last > 14 * DAY)) { score += RISK_WEIGHTS.noPractice; reasons.push(own.last ? 'pole 2 nädalat ise harjutanud' : 'pole kordagi ise harjutanud'); }
+    // own practice: word reviews and „Minu vead” days; the last visit (presence.js) only once it is recorded
+    const account = seen.get(student.id) || null;
+    const practiceDays = Array.isArray(account?.practice?.days) ? account.practice.days : [];
+    const own = practice.get(student.id) || { words: 0, last: 0 };
+    const lastPractice = Math.max(own.last, ...practiceDays.map((day) => time(`${day}T12:00:00`)));
+    const lastVisit = Math.max(account?.lastSeenAt || 0, lastPractice);
+    if ((own.words || practiceDays.length) && (!lastPractice || now - lastPractice > 14 * DAY)) {
+      score += RISK_WEIGHTS.noPractice;
+      reasons.push(!lastPractice ? 'pole kordagi ise harjutanud' : account?.lastSeenAt && now - lastVisit > 14 * DAY ? `pole ${Math.floor((now - lastVisit) / DAY)} päeva sisse loginud` : 'pole 2 nädalat ise harjutanud');
+    } else if (account?.lastSeenAt && now - lastVisit > 21 * DAY) {
+      score += RISK_WEIGHTS.noPractice;
+      reasons.push(`pole ${Math.floor((now - lastVisit) / DAY)} päeva sisse loginud`);
+    }
     if (unpaid.has(student.id)) { score += RISK_WEIGHTS.unpaid; reasons.push('tasumata arve'); }
     // a student who has never had a lesson yet is new, not leaving: only the calendar gap counts for him
-    if (!journal.length && score === RISK_WEIGHTS.noLessonAhead) score = 1;
+    if (!journal.length && reasons.length === 1 && reasons[0] === 'järgmist tundi pole kalendris') score = 1;
     if (score >= SOME_RISK) risky.push({ student, score, level: score >= HIGH_RISK ? 'high' : 'some', reasons });
 
     const total = Number(student.packageTotal) || 0;

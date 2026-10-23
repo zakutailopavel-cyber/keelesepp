@@ -5,6 +5,8 @@ import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { enrollmentKey, groupStudentPeople, studentsService } from '../../services/firebase/students.js';
 import { financeApi } from '../../services/firebase/financeApi.js';
+import { lastSeenOf, presenceService } from '../../services/firebase/presence.js';
+import { agoLabel } from '../learner/learnerSnapshot.js';
 import { ROLES } from '../../utils/roles.js';
 import { canonicalTeacherName } from '../../utils/teachers.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
@@ -90,7 +92,7 @@ function EnrollmentManager({ student, teachers, service, onClose, onChanged }) {
   </Modal>;
 }
 
-export default function StudentsPage({ service = studentsService, mergeApi = financeApi, teacherApi, actor }) {
+export default function StudentsPage({ service = studentsService, mergeApi = financeApi, teacherApi, actor, presenceApi = presenceService }) {
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
@@ -146,6 +148,15 @@ export default function StudentsPage({ service = studentsService, mergeApi = fin
   useEffect(() => { load(); }, [filters, service]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const people = useMemo(() => groupStudentPeople(state.items), [state.items]);
+  // „sees eile”: the student's last visit or „Minu vead” day (presence.js); loads after the list, a failure shows nothing
+  const [seen, setSeen] = useState(() => new Map());
+  useEffect(() => {
+    let alive = true;
+    if (!people.length) return undefined;
+    Promise.resolve().then(() => presenceApi.forStudents(people)).then((map) => { if (alive) setSeen(map); }).catch(() => {});
+    return () => { alive = false; };
+  }, [people, presenceApi]);
+  const seenText = (student) => { const at = lastSeenOf(seen.get(student.id)); return at ? ` · sees ${agoLabel(at)}` : ''; };
   // every single card (the list above groups cards of one child together), for the manual duplicate merge
   const cardOptions = useMemo(() => [...state.items].sort((left, right) => String(left.name || '').localeCompare(String(right.name || ''), 'et')), [state.items]);
 
@@ -246,10 +257,10 @@ export default function StudentsPage({ service = studentsService, mergeApi = fin
         <Card className="students-card">
           <div className="students-table-wrap">
             <table className="students-table students-table--people"><thead><tr><th>Õpilane</th><th>Õppesuunad</th><th>Staatus</th><th><span className="sr-only">Toimingud</span></th></tr></thead>
-              <tbody>{people.map((student) => <tr key={student.personKey || student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}{canAssignTeacher && student.recordIds?.length > 1 ? ` · ${student.recordIds.length} seotud kirjet` : ''}</small></span></Link></td><td><EnrollmentStack student={student} compact /></td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : <IconButton label={`Taasta ${student.name}`} onClick={() => setArchiveTarget(student)}><RotateCcw size={17} /></IconButton>}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
+              <tbody>{people.map((student) => <tr key={student.personKey || student.id}><td><Link className="student-identity" {...profileLinkProps(student.id)}><i>{initials(student.name)}</i><span><strong>{student.name || 'Nimetu õpilane'}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}{canAssignTeacher && student.recordIds?.length > 1 ? ` · ${student.recordIds.length} seotud kirjet` : ''}{seenText(student)}</small></span></Link></td><td><EnrollmentStack student={student} compact /></td><td><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge></td><td><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<IconButton label={`Muuda ${student.name}`} onClick={() => openEdit(student)}><Pencil size={17} /></IconButton>{student.active ? <IconButton label={`Arhiveeri ${student.name}`} onClick={() => setArchiveTarget(student)}><Archive size={17} /></IconButton> : <IconButton label={`Taasta ${student.name}`} onClick={() => setArchiveTarget(student)}><RotateCcw size={17} /></IconButton>}<Link className="icon-button" aria-label={`Ava ${student.name} profiil`} {...profileLinkProps(student.id)}><ChevronRight size={18} /></Link></div></td></tr>)}</tbody>
             </table>
           </div>
-          <div className="students-mobile-list">{people.map((student) => <article className="student-mobile-card" key={student.personKey || student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</span></div><ChevronRight size={18} /></Link><EnrollmentStack student={student} /><div className="student-mobile-meta"><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge>{canAssignTeacher && student.recordIds?.length > 1 ? <span>{student.recordIds.length} seotud kirjet</span> : null}</div><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : <Button variant="secondary" onClick={() => setArchiveTarget(student)}>Taasta</Button>}</div></article>)}</div>
+          <div className="students-mobile-list">{people.map((student) => <article className="student-mobile-card" key={student.personKey || student.id}><Link {...profileLinkProps(student.id)}><i className="student-avatar">{initials(student.name)}</i><div><strong>{student.name || 'Nimetu õpilane'}</strong><span>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}{seenText(student)}</span></div><ChevronRight size={18} /></Link><EnrollmentStack student={student} /><div className="student-mobile-meta"><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne' : 'Arhiveeritud'}</Badge>{canAssignTeacher && student.recordIds?.length > 1 ? <span>{student.recordIds.length} seotud kirjet</span> : null}</div><div className="row-actions">{canAssignTeacher ? <Button variant="secondary" onClick={() => setEnrollmentStudent(student)}>Õppesuunad</Button> : null}<Button variant="secondary" onClick={() => openEdit(student)}>Muuda</Button>{student.active ? <Button variant="danger" onClick={() => setArchiveTarget(student)}>Arhiveeri</Button> : <Button variant="secondary" onClick={() => setArchiveTarget(student)}>Taasta</Button>}</div></article>)}</div>
           {state.hasMore ? <div className="load-more"><Button variant="secondary" loading={state.loading} onClick={() => load({ append: true })}>Laadi veel</Button></div> : null}
         </Card>
       ) : null}

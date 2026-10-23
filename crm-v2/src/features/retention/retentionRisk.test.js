@@ -47,3 +47,16 @@ describe('retention risk (owner 2026-10-23)', () => {
     expect(renewals.map((item) => [item.student.id, item.left])).toEqual([['p2', 0], ['p1', 1]]);
   });
 });
+
+describe('retentionRisk and the last visit', () => {
+  const now = Date.parse('2026-10-23T12:00:00Z');
+  const ago = (days) => now - days * 86400000;
+  const base = { students: [{ id: 's1', name: 'Mia' }], scheduledIds: ['s1'], now };
+  it('names a long absence from the CRM once the visit is recorded, and counts „Minu vead” days as practice', () => {
+    const away = retentionRisk({ ...base, overdueInvoices: [{ studentId: 's1' }], seen: new Map([['s1', { lastSeenAt: ago(25), practice: null }]]) });
+    expect(away.risky[0].reasons).toEqual(['pole 25 päeva sisse loginud', 'tasumata arve']);
+    const practising = retentionRisk({ ...base, overdueInvoices: [{ studentId: 's1' }], words: [{ studentId: 's1', reviewedAt: new Date(ago(30)).toISOString() }], seen: new Map([['s1', { lastSeenAt: ago(1), practice: { days: ['2026-10-22'] } }]]) });
+    expect(practising.risky).toHaveLength(0); // only the unpaid invoice: one weak signal
+    expect(retentionRisk(base).risky).toHaveLength(0);
+  });
+});
