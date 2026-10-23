@@ -1,0 +1,110 @@
+/* Ostuarved and Tarnijad (docs/ACCOUNTING.md): the ruled grid of accounting.css, a few additions */
+.purchases-grid .c-status {
+  width: 17%;
+}
+
+.purchases-grid td.is-late {
+  color: #b42318;
+}
+
+.purchases-status {
+  font-weight: 700;
+}
+
+.purchases-status--paid {
+  color: #067647 !important;
+}
+
+.purchases-status--unpaid {
+  color: #b54708 !important;
+}
+
+.purchases-status--voided {
+  color: #667085 !important;
+}
+
+.purchases-files {
+  font-weight: 400;
+}
+
+.purchases-files .link-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 3px;
+  margin-right: 8px;
+}
+
+.purchases-files > span {
+  margin-right: 8px;
+}
+
+.purchases-upload {
+  cursor: pointer;
+}
+
+.purchases-upload input {
+  display: none;
+}
+
+.purchases-payment td {
+  color: #475467;
+  font-style: italic;
+}
+
+.purchases-totals,
+.purchases-lock {
+  color: #475467;
+  font-size: 0.82rem;
+  margin: 0 0 6px;
+}
+
+.purchases-lock {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.purchases-paid-now {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.purchases-paid-now select,
+.purchases-pay-row select {
+  font: inherit;
+}
+
+.accounting-draft input[type="checkbox"] {
+  margin: 0;
+  min-height: 0;
+  width: auto;
+}
+
+.purchases-vat-check {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.purchases-suppliers small,
+.purchases-grid small {
+  color: #667085;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
+.purchases-suppliers .is-off,
+.purchases-grid .is-off {
+  color: #b42318;
+}
+
+.purchases-suppliers tr.is-inactive td {
+  color: #667085;
+}
+
+.purchases-new-row td {
+  background: #f6fbf6;
+}

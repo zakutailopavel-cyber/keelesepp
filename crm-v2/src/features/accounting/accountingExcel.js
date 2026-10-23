@@ -102,6 +102,40 @@ export function statementsWorkbook({ sheet, result }, { company, period }) {
   ]);
 }
 
+// Ostuarved: one row per invoice line, like the accountant's Excel (Tarnija | Reg-kood | Arve nr | Kuupäev | Tähtaeg |
+// Konto | Kirjeldus | Summa | KM | KM maha | Arve kokku | Tasutud | Olek)
+export function purchaseInvoicesWorkbook(invoices, { company, period, accounts = [], statusLabels = {} }) {
+  const names = new Map(accounts.map((a) => [String(a.code), a.name]));
+  const head = ['Tarnija', 'Reg-kood', 'Arve nr', 'Kuupäev', 'Tähtaeg', 'Konto', 'Kirjeldus', 'Summa', 'KM', 'KM maha', 'Arve kokku', 'Tasutud', 'Olek'];
+  const out = [
+    row([text('Ostuarved', 'title')]),
+    row([text('Periood'), text(`${dmy(period.from) || '…'} kuni ${dmy(period.to) || '…'}`)]),
+    row([text('Ettevõte'), text(`${company.name}, Rg-kood ${company.regCode}`)]),
+    row(head.map((h, i) => gText(h, i >= 7 && i !== 9 && i < 12 ? 'gHeadNum' : 'gHead'))),
+  ];
+  invoices.forEach((invoice) => {
+    (invoice.lines || []).forEach((l, index) => out.push(row([
+      gText(invoice.supplierName), gText(invoice.supplierRegCode || ''), gText(invoice.documentNumber), gText(dmy(invoice.date)), gText(dmy(invoice.dueDate)),
+      gText(`${l.account} ${names.get(String(l.account)) || ''}`.trim()), gText(l.description), gNum(l.amountCents), gNum(l.vatCents || 0), gText(l.vatDeductible ? 'jah' : ''),
+      index === 0 ? gNum(invoice.totalCents) : gText(''), index === 0 ? gNum(invoice.paidCents || 0) : gText(''), gText(index === 0 ? statusLabels[invoice.status] || invoice.status : ''),
+    ])));
+  });
+  const live = invoices.filter((i) => i.status !== 'voided');
+  out.push(row([gText('Kokku', 'gBold', 9), gNum(live.reduce((n, i) => n + (i.totalCents || 0), 0), 'gTotal'), gNum(live.reduce((n, i) => n + (i.paidCents || 0), 0), 'gTotal'), gText('', 'gBold')]));
+  return workbook([{ name: 'Ostuarved', columns: [150, 70, 70, 70, 70, 170, 220, 70, 60, 50, 80, 80, 70], rows: out }]);
+}
+
+export function suppliersWorkbook(suppliers, { company }) {
+  const head = ['Nimi', 'Registrikood', 'KMKR nr', 'Aadress', 'E-post', 'IBAN', 'Vaikekonto', 'Aktiivne'];
+  const out = [
+    row([text('Tarnijad', 'title')]),
+    row([text('Ettevõte'), text(`${company.name}, Rg-kood ${company.regCode}`)]),
+    row(head.map((h) => gText(h, 'gHead'))),
+    ...suppliers.map((s) => row([gText(s.name), gText(s.regCode), gText(s.vatNumber), gText(s.address), gText(s.email), gText(s.iban), gText(s.defaultAccount), gText(s.active === false ? 'ei' : 'jah')])),
+  ];
+  return workbook([{ name: 'Tarnijad', columns: [170, 80, 90, 220, 150, 160, 70, 50], rows: out }]);
+}
+
 export function downloadWorkbook(xml, fileName) {
   const blob = new globalThis.Blob([xml], { type: 'application/vnd.ms-excel' });
   const url = URL.createObjectURL(blob);

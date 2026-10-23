@@ -99,6 +99,78 @@ describe('AccountingPage', () => {
     await waitFor(() => expect(repository.reverse).toHaveBeenCalledWith('manual_m1', expect.any(String), 'vale summa'));
   });
 
+  it('a manual entry is corrected in place while the period is open; the history shows before and after', async () => {
+    const history = [{ at: `${year}-02-01T10:00:00.000Z`, by: { name: 'Raamatupidaja' }, action: 'edit', reason: 'summa', before: { date: `${year}-01-31`, description: 'Jaanuari palk', documentRef: 'Palgaleht 01', lines: [{ account: '4710', debitCents: 2000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 2000 }] }, after: { date: `${year}-01-31`, description: 'Jaanuari palk', documentRef: 'Palgaleht 01', lines: [{ account: '4710', debitCents: 3000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 3000 }] } }];
+    const repository = repo({ load: vi.fn().mockResolvedValue({ entries: [entries[0], { ...entries[1], history }], accounts }), updateEntry: vi.fn().mockResolvedValue({}) });
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('PR 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Ajalugu (1)' }));
+    expect(screen.getByText(/enne: .*4710 D 20,00/)).toBeInTheDocument();
+    expect(screen.getByText(/pärast: .*4710 D 30,00/)).toBeInTheDocument();
+    expect(screen.getByText(/Raamatupidaja · „summa”/)).toBeInTheDocument();
+    // both entries can be corrected, only the manual one deleted
+    expect(screen.getAllByRole('button', { name: 'Muuda' })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(1);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Muuda' })[1]);
+    expect(screen.getByText('PR 1 (parandus)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Rida 1 deebet')).toHaveValue('30,00');
+    fireEvent.change(screen.getByLabelText('Rida 1 deebet'), { target: { value: '35' } });
+    fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '35' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta parandus' }));
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('manual_m1', expect.objectContaining({
+      date: `${year}-01-31`, documentRef: 'Palgaleht 01',
+      lines: [{ account: '4710', debitCents: 3500, creditCents: 0, note: '' }, { account: '2210', debitCents: 0, creditCents: 3500, note: '' }],
+    }), ''));
+  });
+
+  it('an automatic entry keeps its date and document and needs a reason; a delete needs a reason', async () => {
+    const repository = repo({ updateEntry: vi.fn().mockResolvedValue({}), deleteEntry: vi.fn().mockResolvedValue({}) });
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Muuda' })[0]);
+    expect(screen.queryByLabelText('Kuupäev')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Algdokument (nr / nimetus)')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '3060' } });
+    fireEvent.change(screen.getByLabelText('Sisu'), { target: { value: 'Müügiarve KS-1 (parandatud)' } });
+    expect(screen.getByRole('button', { name: 'Salvesta parandus' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Paranduse põhjus'), { target: { value: 'vale tekst' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta parandus' }));
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.objectContaining({ description: 'Müügiarve KS-1 (parandatud)' }), 'vale tekst'));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Kustuta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kustuta kanne' }));
+    expect(await screen.findByText('Lisa kustutamise põhjus.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Kustutamise põhjus'), { target: { value: 'topelt' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kustuta kanne' }));
+    await waitFor(() => expect(repository.deleteEntry).toHaveBeenCalledWith('manual_m1', 'topelt'));
+  });
+
+  it('a deleted entry leaves the registers (shown on request, its number kept); a locked period allows only a storno', async () => {
+    const deleted = { id: 'manual_m0', number: `${year}-0000`, date: `${year}-01-20`, origin: 'manual', description: 'Vale', documentRef: 'X', deleted: true, lines: [{ account: '4710', debitCents: 999, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 999 }], history: [{ action: 'delete', reason: 'topelt', by: { email: 'a@b.ee' } }] };
+    const repository = repo({ load: vi.fn().mockResolvedValue({ entries: [...entries, deleted], accounts, lockedThrough: `${year}-01-31` }), setLock: vi.fn().mockResolvedValue({}) });
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    expect(screen.queryByText('Vale')).not.toBeInTheDocument();
+    expect(screen.getByText('Kokku 2 kannet')).toBeInTheDocument();
+    // the deleted entry kept its running number: the live manual entry is PR 2
+    expect(screen.getByText('PR 2')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/Näita kustutatud/));
+    expect(screen.getByText('kustutatud')).toBeInTheDocument();
+    expect(screen.getByText('Kokku 2 kannet')).toBeInTheDocument();
+    // locked through 31.01: no edit or delete, the storno stays
+    expect(screen.queryByRole('button', { name: 'Muuda' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Kustuta' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Storno' })).toHaveLength(1);
+    // reopening needs a reason
+    fireEvent.click(screen.getByRole('button', { name: `Suletud kuni 31.01.${year}` }));
+    fireEvent.change(screen.getByLabelText('Periood suletud kuni'), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    expect(await screen.findByText('Perioodi uuesti avamiseks lisa põhjus.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Perioodi põhjus'), { target: { value: 'parandus' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(repository.setLock).toHaveBeenCalledWith('', 'parandus'));
+  });
+
   it('käibeandmik shows the turnover per account with totals', async () => {
     render(<MemoryRouter><AccountingPage repository={repo()} /></MemoryRouter>);
     await screen.findByText('MA 1');

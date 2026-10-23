@@ -1206,13 +1206,28 @@ service cloud.firestore {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
-    // bookkeeping (functions/accounting-core.js, RPS §§ 6–12): written only by financeApi; entries are never edited or
-    // deleted, a correction is a storno entry
+    // bookkeeping (functions/accounting-core.js, RPS §§ 6–12): written only by financeApi; a correction while the
+    // period is open keeps its history on the entry (a deleted manual entry stays as a tombstone), after the lock it is
+    // a storno / correcting entry
     match /accountingEntries/{entryId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }
     match /accountingAccounts/{code} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    // „Sulge periood kuni …” (accountingSettings/lock), suppliers and purchase invoices (functions/purchases-core.js):
+    // admin read, written only by financeApi
+    match /accountingSettings/{settingId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /suppliers/{supplierId} {
+      allow read: if isAdmin();
+      allow create, update, delete: if false;
+    }
+    match /purchaseInvoices/{purchaseInvoiceId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
     }

@@ -44,7 +44,6 @@ export default function ExpensesPage({ repository = expensesService }) {
   const visible = useMemo(() => filterExpenses(state.data || [], month, query), [state.data, month, query]);
   const totals = useMemo(() => expenseTotals(visible), [visible]);
 
-  const openCreate = () => { setEditor({ mode: 'create' }); setForm(blankForm()); setReason(''); setError(''); };
   const openCorrection = (expense) => {
     setEditor({ mode: 'correct', expense });
     setForm({
@@ -112,7 +111,8 @@ export default function ExpensesPage({ repository = expensesService }) {
 
   return <div className="page-content expenses-page">
     <Link className="back-link" to="/finance"><ArrowLeft size={17} /> Tagasi finantsidesse</Link>
-    <PageHeader eyebrow="Kulud" title="Kulude register" description="Keeleõppega seotud kulud, käibemaks ja kuludokumendid ühes kontrollitavas vaates." actions={<Button onClick={openCreate}><Plus size={17} /> Lisa uus kulu</Button>} />
+    <PageHeader eyebrow="Kulud" title="Kulude register (arhiiv)" description="Kuni 23.10.2026 sisestatud kulud. Uued kulud sisestatakse ostuarvena tarnija kaudu (Ostuarved): sealt tekib OA ostuarve kanne ja eraldi tasumise kanne." actions={<Link className="button" to="/finance/ostuarved"><Plus size={17} /> Uus ostuarve</Link>} />
+    <p className="form-hint expenses-moved">Siin saab vanu kulusid parandada või tühistada ja neile faile lisada; nende kanded jäävad raamatupidamisse muutmata.</p>
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {error && !editor && !voidTarget ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
     <section className="metric-grid">

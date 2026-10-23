@@ -128,6 +128,34 @@ export const financeApi = {
   saveAccountingAccount(account) {
     return post("/accounting/accounts", { account });
   },
+  updateAccountingEntry(entryId, entry, reason) {
+    return post("/accounting/entries/update", { entryId, entry, reason, requestId: financeRequestId("accounting_update") });
+  },
+  deleteAccountingEntry(entryId, reason) {
+    return post("/accounting/entries/delete", { entryId, reason, requestId: financeRequestId("accounting_delete") });
+  },
+  setAccountingLock(lockedThrough, reason) {
+    return post("/accounting/lock", { lockedThrough, reason });
+  },
+  // tarnijad and ostuarved (functions/purchases-core.js, docs/ACCOUNTING.md)
+  saveSupplier(supplierId, supplier) {
+    return post("/suppliers", { supplierId: supplierId || "", supplier, requestId: financeRequestId("supplier") });
+  },
+  savePurchaseInvoice(purchaseInvoiceId, purchaseInvoice, { paidNow = null, reason = "" } = {}) {
+    return post("/purchase-invoices", { purchaseInvoiceId: purchaseInvoiceId || "", purchaseInvoice, paidNow, reason, requestId: financeRequestId("purchase_invoice") });
+  },
+  payPurchaseInvoice(purchaseInvoiceId, payment) {
+    return post("/purchase-invoices/pay", { purchaseInvoiceId, payment, requestId: financeRequestId("purchase_payment") });
+  },
+  removePurchasePayment(purchaseInvoiceId, paymentId, reason) {
+    return post("/purchase-invoices/payment/remove", { purchaseInvoiceId, paymentId, reason, requestId: financeRequestId("purchase_unpay") });
+  },
+  voidPurchaseInvoice(purchaseInvoiceId, reason) {
+    return post("/purchase-invoices/void", { purchaseInvoiceId, reason, requestId: financeRequestId("purchase_void") });
+  },
+  attachPurchaseDocument(purchaseInvoiceId, document) {
+    return post("/purchase-invoices/documents", { purchaseInvoiceId, ...document });
+  },
   // INF 3 (functions/inf3-core.js, docs/INF3.md)
   saveTaxIdentity(studentId, identity) {
     return post("/tax/identity", { studentId, identity });

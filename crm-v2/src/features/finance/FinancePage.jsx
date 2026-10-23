@@ -616,8 +616,8 @@ export default function FinancePage({
               <Link className="button button--secondary" to="/finance/payroll">
                 <Landmark size={17} /> Palgaarvestus
               </Link>
-              <Link className="button button--secondary" to="/finance/expenses">
-                <ReceiptText size={17} /> Kulud
+              <Link className="button button--secondary" to="/finance/ostuarved">
+                <ReceiptText size={17} /> Ostuarved
               </Link>
               <Link className="button button--secondary" to="/finance/raamatupidamine">
                 <BookOpen size={17} /> Raamatupidamine

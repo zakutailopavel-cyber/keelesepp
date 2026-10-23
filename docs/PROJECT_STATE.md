@@ -23,6 +23,40 @@
   list in docs/ACCOUNTING.md).
 - Next safe step: owner/accountant reviews the Excel files from the draft PR; decide the 3060 → 3000 migration.
 
+### Same PR (#777), part 2 · tarnijad, ostuarved and corrections (the accountant 2026-10-23)
+
+- Checked `origin/main` b8df2c2 (2026-10-23); this branch is based on 5f1c015 (not merged with main yet).
+- Asked: (1) „таблица поставщики и путь дальше” — suppliers, purchase invoices row by row like Excel, each booked as
+  „OA Ostuarve kanne”, payment as a separate bank entry; (2) „почему проводки нельзя исправлять и удалять” — corrections.
+- Built (docs/ACCOUNTING.md „Tarnijad ja ostuarved”, „Parandamine”):
+  - functions/purchases-core.js (new): supplierRecord (IBAN mod 97), purchaseInvoiceRecord, purchaseInvoiceEntry (OA:
+    D line account „<tarnija> <kirjeldus>”, D 2311 only for `vatDeductible` lines — default off, the company is not
+    VAT registered; K 2110 „Arve <nr>”), paymentRecord / supplierPaymentEntry (VM: D 2110, K 1010 or 1000),
+    purchaseDocumentRecord.
+  - functions/accounting-core.js: correctedEntry, assertDeletable, isLocked, snapshotOf.
+  - functions/index.js (financeApi, admin): `/accounting/entries/update`, `/accounting/entries/delete`,
+    `/accounting/lock`, `/suppliers`, `/purchase-invoices` (+ `/pay`, `/payment/remove`, `/void`, `/documents`);
+    manual entries and stornos now also respect the accounting lock (`accountingSettings/lock`).
+  - UI: /finance/ostuarved (PurchasesPage, SuppliersGrid, PurchaseInvoiceDraft; Excel of invoices and suppliers);
+    päevaraamat: „Muuda” (inline, JournalDraft edit mode), „Kustuta” (manual, tombstone), „Ajalugu (n)”,
+    „Näita kustutatud”, „Sulge periood / Suletud kuni …”; new kande kood VM Väljamakse kanne. The old „Kulud” page is an
+    archive (no new costs; Finantsid button „Kulud” → „Ostuarved”).
+  - Data: new collections `suppliers`, `purchaseInvoices`, `accountingSettings`; entries get `history`, `override`,
+    `original`, `deleted*`. Rules: admin read, no client writes; storage `financial/purchase-invoices/**`.
+- Checks: `node --test` in functions 341/341; emulator (`firebase emulators:exec --project demo-keelesepp-finance`,
+  JDK 21) finance-emulator.integration.js + security-finance-emulator.integration.js 43/43 (new test: suppliers,
+  OA / VM entries, invoice edit with history, payment remove, override needs reason, manual edit / delete with
+  history, lock blocks edit / delete / new invoice, storno after the lock, reopen needs reason, client writes 403);
+  crm-v2 vitest 338 files, 2326 passed, 0 failed; eslint 0 errors; `npm run build` ok. Visual check on a local mock page
+  (not committed).
+- Deploy needed (owner): functions (financeApi), firestore.rules, storage.rules. Nothing was deployed; no production
+  data was read or written.
+- Limits / owner decisions: VAT „maha” only if the company registers for VAT; an override of a purchase entry's
+  amounts in the päevaraamat does not change the invoice (correct on Ostuarved); the sync can still book a sales
+  document dated in a locked period; old `expenses` entries stay as booked (expense / bank, no 2110).
+- Next safe step: deploy functions + rules, then the accountant enters one real supplier invoice (Senty Studio OÜ
+  1575) and checks the OA / VM entries in the päevaraamat Excel.
+
 ## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
 
 - Owner 2026-10-23 (screenshot): the ⋯ button next to the open page did nothing. The menu (rename, give to the

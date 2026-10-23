@@ -29,15 +29,17 @@ export const ENTRY_CODES = [
   ['LK', 'Laekumise kanne'],
   ['TG', 'Tagastuse kanne'],
   ['OA', 'Ostuarve kanne'],
+  ['VM', 'Väljamakse kanne'],
   ['PR', 'Pearaamatu kanne'],
   ['ST', 'Stornokanne'],
   ['AS', 'Algsaldode kanne'],
 ];
 export const entryCodeName = (code) => ENTRY_CODES.find(([value]) => value === code)?.[1] || '';
-const CODE_BY_DOCUMENT = { invoice: 'MA', creditNote: 'KR', payment: 'LK', bankTransaction: 'LK', refund: 'TG', expense: 'OA' };
+const CODE_BY_DOCUMENT = { invoice: 'MA', creditNote: 'KR', payment: 'LK', bankTransaction: 'LK', refund: 'TG', expense: 'OA', purchaseInvoice: 'OA', supplierPayment: 'VM' };
 
 // opening → AS, storno → ST, manual → PR; an automatic entry by its source document (invoice and its cancellation MA,
-// credit note KR, payment, payment void, payer credit LK, refund TG, expense and its correction OA)
+// credit note KR, payment, payment void, payer credit LK, refund TG, expense and its correction and a purchase invoice
+// OA, a payment to a supplier VM)
 export function entryCode(entry = {}) {
   if (entry.origin === 'opening') return 'AS';
   if (entry.origin === 'reversal') return 'ST';
@@ -54,6 +56,7 @@ export function amount(cents) {
 }
 export const dmy = (date) => (/^\d{4}-\d{2}-\d{2}/.test(String(date || '')) ? `${date.slice(8, 10)}.${date.slice(5, 7)}.${date.slice(0, 4)}` : '');
 
+const PURCHASE_TYPES = new Set(['purchaseInvoice', 'supplierPayment']);
 const entryYear = (entry) => String(entry.number || '').match(/^(\d{4})-/)?.[1] || String(entry.date || '').slice(0, 4);
 const entrySequence = (entry) => Number(entry.sequence || String(entry.number || '').match(/-(\d+)$/)?.[1] || 0);
 
@@ -62,7 +65,7 @@ const entrySequence = (entry) => Number(entry.sequence || String(entry.number ||
 // debit and credit, the entry total), „Kokku N kannet” and „M kirjet”. The running number of a code („MA 3”) counts
 // the entries of that code in a year in the order of the CRM entry numbers, so a later entry never renumbers an
 // earlier one. sort: 'code' (kande kood, then its number) or 'date'.
-export function journalReport(entries = [], accounts = [], { from = '', to = '', code = '', sort = 'code' } = {}) {
+export function journalReport(entries = [], accounts = [], { from = '', to = '', code = '', sort = 'code', showDeleted = false } = {}) {
   const names = new Map(accounts.map((a) => [String(a.code), a.name]));
   const counters = new Map();
   const numbered = [...entries]
@@ -75,13 +78,15 @@ export function journalReport(entries = [], accounts = [], { from = '', to = '',
       return { entry, kind, seq };
     });
   const rows = numbered
-    .filter(({ entry, kind }) => inPeriod(entry.date, { from, to }) && (!code || kind === code))
+    .filter(({ entry, kind }) => (showDeleted || !entry.deleted) && inPeriod(entry.date, { from, to }) && (!code || kind === code))
     .map(({ entry, kind, seq }) => {
+      // a purchase entry reads „<tarnija> <kirjeldus>” (the accountant's template), the others „<sisu> · <märkus>”
+      const sep = PURCHASE_TYPES.has(entry.documentType) ? ' ' : ' · ';
       const lines = (entry.lines || []).map((l) => ({
         account: String(l.account),
         name: names.get(String(l.account)) || '',
         documentRef: entry.documentRef || '',
-        description: l.note ? `${entry.description || ''} · ${l.note}` : entry.description || '',
+        description: l.note ? `${entry.description || ''}${sep}${l.note}` : entry.description || '',
         debitCents: l.debitCents || 0,
         creditCents: l.creditCents || 0,
       }));
@@ -97,6 +102,10 @@ export function journalReport(entries = [], accounts = [], { from = '', to = '',
         origin: entry.origin,
         reversed: Boolean(entry.reversedBy),
         reversedByNumber: entry.reversedByNumber || '',
+        deleted: Boolean(entry.deleted),
+        corrected: Boolean(entry.override),
+        history: Array.isArray(entry.history) ? entry.history : [],
+        source: entry,
         lines,
         debitCents: lines.reduce((n, l) => n + l.debitCents, 0),
         creditCents: lines.reduce((n, l) => n + l.creditCents, 0),
@@ -105,13 +114,15 @@ export function journalReport(entries = [], accounts = [], { from = '', to = '',
     .sort(sort === 'date'
       ? (a, b) => String(a.date).localeCompare(String(b.date)) || String(a.number).localeCompare(String(b.number))
       : (a, b) => a.code.localeCompare(b.code) || entryYear(a).localeCompare(entryYear(b)) || a.seq - b.seq);
+  const live = rows.filter((r) => !r.deleted);
   return {
     filters: { from, to, code, codeName: entryCodeName(code), sort, sortLabel: sort === 'date' ? 'Kuupäev' : 'Kande kood' },
     entries: rows,
-    entryCount: rows.length,
-    lineCount: rows.reduce((n, r) => n + r.lines.length, 0),
-    debitCents: rows.reduce((n, r) => n + r.debitCents, 0),
-    creditCents: rows.reduce((n, r) => n + r.creditCents, 0),
+    entryCount: live.length,
+    lineCount: live.reduce((n, r) => n + r.lines.length, 0),
+    debitCents: live.reduce((n, r) => n + r.debitCents, 0),
+    creditCents: live.reduce((n, r) => n + r.creditCents, 0),
+    deletedCount: entries.filter((e) => e.deleted && inPeriod(e.date, { from, to })).length,
   };
 }
 
@@ -244,3 +255,20 @@ export function parseEuro(text) {
 // the rows of an entry being typed (amounts as text): a blank row and the debit / credit sums in cents
 export const blankEntryLine = () => ({ account: '', debit: '', credit: '', note: '' });
 export const entryLineTotals = (lines) => lines.reduce((t, l) => ({ debit: t.debit + (parseEuro(l.debit) || 0), credit: t.credit + (parseEuro(l.credit) || 0) }), { debit: 0, credit: 0 });
+
+// corrections (docs/ACCOUNTING.md „Parandamine”): what can be done with an entry on screen. The server checks again.
+export const isLockedDate = (date, lockedThrough) => Boolean(lockedThrough && date && String(date).slice(0, 10) <= lockedThrough);
+export function entryActions(entry, lockedThrough) {
+  const open = !isLockedDate(entry.date, lockedThrough);
+  const live = !entry.deleted && !entry.reversed && entry.origin !== 'reversal';
+  return {
+    edit: open && live,
+    remove: open && live && entry.origin === 'manual',
+    storno: live && (entry.origin === 'manual' || entry.origin === 'opening'),
+    locked: !open,
+  };
+}
+export const HISTORY_ACTIONS = { edit: 'Muudetud', override: 'Read parandatud', document: 'Dokument parandatud', delete: 'Kustutatud' };
+export const linesText = (lines = []) => lines.map((l) => `${l.account} ${l.debitCents ? `D ${amount(l.debitCents)}` : `K ${amount(l.creditCents)}`}`).join(', ');
+// the lines of a stored entry as editable text rows (JournalDraft)
+export const editableLines = (lines = []) => lines.map((l) => ({ account: String(l.account), debit: l.debitCents ? amount(l.debitCents).replace(/\s/g, '') : '', credit: l.creditCents ? amount(l.creditCents).replace(/\s/g, '') : '', note: l.note || '' }));

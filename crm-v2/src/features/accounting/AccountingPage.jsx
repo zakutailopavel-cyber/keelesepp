@@ -1,11 +1,11 @@
-import { ArrowLeft, BookOpen, Download, FilePlus2, RefreshCw, Scale, Undo2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Download, FilePlus2, History, Lock, Pencil, RefreshCw, Scale, Trash2, Undo2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountingService } from '../../services/firebase/index.js';
 import { downloadWorkbook, journalWorkbook, statementsWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
-import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, HISTORY_ACTIONS, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, editableLines, entryActions, euro, incomeStatement, journalReport, ledger, linesText, parseEuro, trialBalance } from './accountingReports.js';
 import JournalDraft from './JournalDraft.jsx';
 import './accounting.css';
 
@@ -64,16 +64,23 @@ export default function AccountingPage({ repository = accountingService }) {
   const [lines, setLines] = useState([blankLine(), blankLine()]);
   const [draft, setDraft] = useState(null);
   const [draftLines, setDraftLines] = useState([]);
+  const [editing, setEditing] = useState(null);
+  const [showDeleted, setShowDeleted] = useState(false);
+  const [openHistory, setOpenHistory] = useState(() => new Set());
   const synced = useRef(false);
 
-  const entries = useMemo(() => state.data?.entries || [], [state.data]);
+  const allEntries = useMemo(() => state.data?.entries || [], [state.data]);
+  // a deleted manual entry stays in the database as a tombstone (history); the registers leave it out
+  const entries = useMemo(() => allEntries.filter((e) => !e.deleted), [allEntries]);
   const accounts = useMemo(() => state.data?.accounts || [], [state.data]);
-  const journalFull = useMemo(() => journalReport(entries, accounts, { ...period, code: journalCode, sort: journalSort }), [entries, accounts, period, journalCode, journalSort]);
+  const lockedThrough = state.data?.lockedThrough || '';
+  const journalFull = useMemo(() => journalReport(allEntries, accounts, { ...period, code: journalCode, sort: journalSort, showDeleted }), [allEntries, accounts, period, journalCode, journalSort, showDeleted]);
   const journal = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase('et');
     if (!needle) return journalFull;
     const list = journalFull.entries.filter((e) => `${e.label} ${e.number} ${e.description} ${e.documentRef} ${e.lines.map((l) => l.account).join(' ')}`.toLocaleLowerCase('et').includes(needle));
-    return { ...journalFull, entries: list, entryCount: list.length, lineCount: list.reduce((n, e) => n + e.lines.length, 0), debitCents: list.reduce((n, e) => n + e.debitCents, 0), creditCents: list.reduce((n, e) => n + e.creditCents, 0) };
+    const live = list.filter((e) => !e.deleted);
+    return { ...journalFull, entries: list, entryCount: live.length, lineCount: live.reduce((n, e) => n + e.lines.length, 0), debitCents: live.reduce((n, e) => n + e.debitCents, 0), creditCents: live.reduce((n, e) => n + e.creditCents, 0) };
   }, [journalFull, query]);
   const trial = useMemo(() => trialBalance(entries, accounts, period), [entries, accounts, period]);
   const accountLedger = useMemo(() => ledger(entries, ledgerAccount, period, accounts), [entries, ledgerAccount, period, accounts]);
@@ -101,12 +108,27 @@ export default function AccountingPage({ repository = accountingService }) {
   }, [state.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // a manual entry is typed straight into the päevaraamat grid (JournalDraft)
-  const openEntry = () => { setTab('journal'); setDraft({ date: today(), description: '', documentRef: '' }); setDraftLines([blankEntryLine(), blankEntryLine()]); setError(''); };
+  const openEntry = () => { setEditing(null); setTab('journal'); setDraft({ date: today(), description: '', documentRef: '' }); setDraftLines([blankEntryLine(), blankEntryLine()]); setError(''); };
   const cancelDraft = () => { if (!busy) { setDraft(null); setError(''); } };
   const openOpening = () => { setDialog('opening'); setLines([blankLine(), blankLine(), blankLine()]); setError(''); };
   const openStorno = (entry) => { setDialog('storno'); setForm({ entry, date: today(), reason: '' }); setError(''); };
   const openAccount = (account) => { setDialog('account'); setForm(account ? { ...account, existing: true } : { code: '', name: '', type: 'expense', reportLine: '', active: true }); setError(''); };
   const close = () => { if (!busy) { setDialog(null); setError(''); } };
+  // correction while the period is open (docs/ACCOUNTING.md „Parandamine”): the entry's rows become editable in place
+  const openEdit = (row) => {
+    const entry = row.source;
+    setDraft(null); setError('');
+    setEditing({ id: entry.id, label: `${row.label} (parandus)`, origin: entry.origin, draft: { date: entry.date, description: entry.description || '', documentRef: entry.documentRef || '' }, lines: editableLines(entry.lines), reason: '' });
+  };
+  const cancelEdit = () => { if (!busy) { setEditing(null); setError(''); } };
+  const saveEdit = async () => {
+    if (badAmount(editing.lines)) { setError('Summa peab olema kujul 123,45.'); return; }
+    const ok = await run('save', () => repository.updateEntry(editing.id, { ...editing.draft, lines: toLines(editing.lines) }, editing.reason.trim()), 'Parandus salvestati. Enne ja pärast on kande ajaloos.');
+    if (ok) setEditing(null);
+  };
+  const openDelete = (row) => { setDialog('delete'); setForm({ entry: row, reason: '' }); setError(''); };
+  const openLock = () => { setDialog('lock'); setForm({ lockedThrough: lockedThrough || `${today().slice(0, 7)}-01`, reason: '' }); setError(''); };
+  const toggleHistory = (id) => setOpenHistory((current) => { const next = new Set(current); if (next.has(id)) next.delete(id); else next.add(id); return next; });
 
   const saveDraft = async () => {
     if (badAmount(draftLines)) { setError('Summa peab olema kujul 123,45.'); return; }
@@ -122,6 +144,17 @@ export default function AccountingPage({ repository = accountingService }) {
     if (!form.reason?.trim()) { setError('Lisa tühistamise põhjus.'); return; }
     if (await run('save', () => repository.reverse(form.entry.id, form.date, form.reason.trim()), (r) => `Storno ${r.entry.number} salvestati. Algne kanne jäi alles.`)) setDialog(null);
   };
+  const submitDelete = async (event) => {
+    event.preventDefault();
+    if (!form.reason?.trim()) { setError('Lisa kustutamise põhjus.'); return; }
+    if (await run('save', () => repository.deleteEntry(form.entry.id, form.reason.trim()), `Kanne ${form.entry.label} kustutati. Sisu ja põhjus jäid ajalukku.`)) setDialog(null);
+  };
+  const submitLock = async (event) => {
+    event.preventDefault();
+    const reopening = lockedThrough && (!form.lockedThrough || form.lockedThrough < lockedThrough);
+    if (reopening && !form.reason?.trim()) { setError('Perioodi uuesti avamiseks lisa põhjus.'); return; }
+    if (await run('save', () => repository.setLock(form.lockedThrough || '', (form.reason || '').trim()), form.lockedThrough ? `Periood on suletud kuni ${dmy(form.lockedThrough)}.` : 'Kõik perioodid on avatud.')) setDialog(null);
+  };
   const submitAccount = async (event) => {
     event.preventDefault();
     const { existing: _existing, ...account } = form;
@@ -131,7 +164,7 @@ export default function AccountingPage({ repository = accountingService }) {
     const stamp = `${period.from || 'algus'}_${period.to || today()}`;
     if (tab === 'trial') downloadWorkbook(trialBalanceWorkbook(trial, { company: COMPANY, period }), `kaibeandmik_${stamp}.xls`);
     else if (tab === 'statements') downloadWorkbook(statementsWorkbook(statements, { company: COMPANY_LABEL, period }), `bilanss_kasumiaruanne_${stamp}.xls`);
-    else downloadWorkbook(journalWorkbook(journalFull, { company: COMPANY }), `paevaraamat_${stamp}${journalCode ? `_${journalCode}` : ''}.xls`);
+    else downloadWorkbook(journalWorkbook(showDeleted ? journalReport(allEntries, accounts, { ...period, code: journalCode, sort: journalSort }) : journalFull, { company: COMPANY }), `paevaraamat_${stamp}${journalCode ? `_${journalCode}` : ''}.xls`);
   };
 
   if (state.loading && !state.data) return <LoadingState label="Laen raamatupidamist…" />;
@@ -142,15 +175,17 @@ export default function AccountingPage({ repository = accountingService }) {
 
   return <div className="page-content accounting-page">
     <Link className="back-link" to="/finance"><ArrowLeft size={17} /> Tagasi finantsidesse</Link>
-    <PageHeader eyebrow="Finantsid" title="Raamatupidamine" description="Päevaraamat, pearaamat, käibeandmik, bilanss ja kasumiaruanne. Kanded tekivad arvetest, maksetest ja kuludest; käsitsi kanne ja storno jäävad ajalukku."
+    <PageHeader eyebrow="Finantsid" title="Raamatupidamine" description="Päevaraamat, pearaamat, käibeandmik, bilanss ja kasumiaruanne. Kanded tekivad arvetest, maksetest ja ostuarvetest. Avatud perioodis saab kannet parandada (ajalugu jääb alles), suletud perioodis ainult uue kandega."
       actions={<>
         <Button variant="secondary" loading={busy === 'sync'} onClick={() => sync(false)}><RefreshCw size={17} /> Uuenda kanded</Button>
         <Button variant="secondary" onClick={openOpening}><Scale size={17} /> Algsaldod</Button>
+        <Button variant="secondary" onClick={openLock}><Lock size={17} /> {lockedThrough ? `Suletud kuni ${dmy(lockedThrough)}` : 'Sulge periood'}</Button>
+        <Link className="button button--secondary" to="/finance/ostuarved">Ostuarved</Link>
         <Link className="button button--secondary" to="/finance/inf3">INF 3</Link>
         <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button>
       </>} />
     {notice ? <div className="success-notice" role="status">{notice}<button aria-label="Sulge teade" onClick={() => setNotice('')}>×</button></div> : null}
-    {error && !dialog && !draft ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
+    {error && !dialog && !draft && !editing ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
     {!trial.balanced ? <div className="expense-error" role="alert">Käibeandmik ei ole tasakaalus — kontrolli kandeid.</div> : null}
 
     <Card className="accounting-toolbar">
@@ -169,6 +204,7 @@ export default function AccountingPage({ repository = accountingService }) {
         <Select id="journal-code" label="Kande kood" value={journalCode} onChange={(event) => setJournalCode(event.target.value)}><option value="">Kõik</option>{ENTRY_CODES.map(([code, name]) => <option key={code} value={code}>{code} {name}</option>)}</Select>
         <Select id="journal-sort" label="Järjestus" value={journalSort} onChange={(event) => setJournalSort(event.target.value)}><option value="code">Kande kood</option><option value="date">Kuupäev</option></Select>
         <input aria-label="Otsi kannetest" placeholder="Otsi numbri, sisu, dokumendi või konto järgi…" value={query} onChange={(event) => setQuery(event.target.value)} />
+        {journalFull.deletedCount ? <label className="accounting-check"><input type="checkbox" checked={showDeleted} onChange={(event) => setShowDeleted(event.target.checked)} /> Näita kustutatud ({journalFull.deletedCount})</label> : null}
       </div>
       {journal.entries.length || draft ? <div className="accounting-sheet">
         <h2>Päevaraamat</h2>
@@ -185,11 +221,29 @@ export default function AccountingPage({ repository = accountingService }) {
           </thead>
           {draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null}
           {journal.entries.map((entry) => {
-            const canReverse = (entry.origin === 'manual' || entry.origin === 'opening') && !entry.reversed;
-            return <tbody key={entry.id} className={entry.reversed ? 'is-reversed' : ''}>
-              <tr className="accounting-grid__entry"><td title={`CRM kanne ${entry.number}`}>{entry.label}</td><td>{dmy(entry.date)}</td><td>{entry.documentRef}</td><td /><td colSpan="2" className="accounting-grid__actions">{entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}{canReverse ? <button type="button" className="link-button" onClick={() => openStorno(entry)}><Undo2 size={13} /> Storno</button> : null}</td></tr>
+            if (editing?.id === entry.id) {
+              return <JournalDraft key={entry.id} label={editing.label} fixedHeader={editing.origin !== 'manual'} draft={editing.draft} setDraft={(next) => setEditing((current) => ({ ...current, draft: next }))} lines={editing.lines} setLines={(next) => setEditing((current) => ({ ...current, lines: next }))}
+                reason={editing.reason} setReason={(next) => setEditing((current) => ({ ...current, reason: next }))} reasonRequired={editing.origin !== 'manual'} saveLabel="Salvesta parandus"
+                accounts={accounts} busy={busy === 'save'} error={error} onSave={saveEdit} onCancel={cancelEdit} />;
+            }
+            const can = entryActions(entry, lockedThrough);
+            const historyOpen = openHistory.has(entry.id);
+            return <tbody key={entry.id} className={entry.reversed || entry.deleted ? 'is-reversed' : ''}>
+              <tr className="accounting-grid__entry"><td title={`CRM kanne ${entry.number}`}>{entry.label}</td><td>{dmy(entry.date)}</td><td>{entry.documentRef}</td><td>{entry.deleted ? <span className="accounting-tag">kustutatud</span> : null}{entry.corrected ? <span className="accounting-tag">parandatud</span> : null}</td><td colSpan="2" className="accounting-grid__actions">
+                {entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}
+                {can.locked && !entry.deleted ? <span title={`Periood suletud kuni ${dmy(lockedThrough)}`}><Lock size={12} /></span> : null}
+                {can.edit && !draft && !editing ? <button type="button" className="link-button" onClick={() => openEdit(entry)}><Pencil size={13} /> Muuda</button> : null}
+                {can.remove && !draft && !editing ? <button type="button" className="link-button" onClick={() => openDelete(entry)}><Trash2 size={13} /> Kustuta</button> : null}
+                {can.storno ? <button type="button" className="link-button" onClick={() => openStorno(entry)}><Undo2 size={13} /> Storno</button> : null}
+                {entry.history.length ? <button type="button" className="link-button" aria-expanded={historyOpen} onClick={() => toggleHistory(entry.id)}><History size={13} /> Ajalugu ({entry.history.length})</button> : null}
+              </td></tr>
               {entry.lines.map((l, i) => <tr key={i}><td>{l.account} {l.name}</td><td>{dmy(entry.date)}</td><td>{l.documentRef}</td><td>{l.description}</td><td className="num">{amount(l.debitCents)}</td><td className="num">{amount(l.creditCents)}</td></tr>)}
               <tr className="accounting-grid__subtotal"><td colSpan="4" /><td className="num">{amount(entry.debitCents)}</td><td className="num">{amount(entry.creditCents)}</td></tr>
+              {historyOpen ? entry.history.map((h, i) => <tr key={`h${i}`} className="accounting-grid__history"><td colSpan="6">
+                <strong>{HISTORY_ACTIONS[h.action] || h.action}</strong> {h.at ? new Date(h.at).toLocaleString('et-EE') : ''} · {h.by?.name || h.by?.email || '—'}{h.reason ? ` · „${h.reason}”` : ''}
+                {h.before ? <div>enne: {dmy(h.before.date)} {h.before.documentRef} · {h.before.description} · {linesText(h.before.lines)}</div> : null}
+                {h.after ? <div>pärast: {dmy(h.after.date)} {h.after.documentRef} · {h.after.description} · {linesText(h.after.lines)}</div> : null}
+              </td></tr>) : null}
             </tbody>;
           })}
           <tfoot>
@@ -249,6 +303,23 @@ export default function AccountingPage({ repository = accountingService }) {
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <Input id="storno-date" label="Storno kuupäev" type="date" value={form.date || ''} required onChange={(event) => setForm({ ...form, date: event.target.value })} />
         <label className="textarea-field"><span>Põhjus *</span><textarea aria-label="Storno põhjus" rows="3" value={form.reason || ''} onChange={(event) => setForm({ ...form, reason: event.target.value })} /></label>
+      </form>
+    </Modal>
+
+    <Modal open={dialog === 'delete'} title={`Kustuta kanne ${form.entry?.label || ''}`} onClose={close} footer={<><Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button><Button variant="danger" type="submit" form="accounting-delete-form" loading={busy === 'save'}>Kustuta kanne</Button></>}>
+      <form id="accounting-delete-form" className="expense-form" onSubmit={submitDelete}>
+        <p className="form-hint">Kanne kaob registritest, kuid selle sisu, kustutaja, aeg ja põhjus jäävad ajalukku („Näita kustutatud”). Kande numbrit ei kasutata uuesti.</p>
+        {error ? <p className="form-error" role="alert">{error}</p> : null}
+        <label className="textarea-field"><span>Põhjus *</span><textarea aria-label="Kustutamise põhjus" rows="3" value={form.reason || ''} onChange={(event) => setForm({ ...form, reason: event.target.value })} /></label>
+      </form>
+    </Modal>
+
+    <Modal open={dialog === 'lock'} title="Sulge periood" onClose={close} footer={<><Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button><Button type="submit" form="accounting-lock-form" loading={busy === 'save'}>Salvesta</Button></>}>
+      <form id="accounting-lock-form" className="expense-form" onSubmit={submitLock}>
+        <p className="form-hint">Kuni selle kuupäevani (k.a) ei saa kandeid ega ostuarveid lisada, muuta ega kustutada. Pärast seda parandatakse ainult uue kandega (storno või parandav kanne) hilisema kuupäevaga.</p>
+        {error ? <p className="form-error" role="alert">{error}</p> : null}
+        <Input id="lock-date" label="Periood suletud kuni" type="date" value={form.lockedThrough || ''} onChange={(event) => setForm({ ...form, lockedThrough: event.target.value })} />
+        <label className="textarea-field"><span>Põhjus (kohustuslik, kui periood avatakse uuesti)</span><textarea aria-label="Perioodi põhjus" rows="2" value={form.reason || ''} onChange={(event) => setForm({ ...form, reason: event.target.value })} /></label>
       </form>
     </Modal>
 

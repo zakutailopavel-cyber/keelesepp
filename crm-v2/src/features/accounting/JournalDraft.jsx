@@ -5,7 +5,9 @@ import { amount, blankEntryLine, dmy, entryLineTotals, parseEuro } from './accou
 // A manual entry typed straight into the päevaraamat grid (the accountant 2026-10-23: like Excel, no separate form).
 // The header row takes the date, the source document and the content; each line row the account, its note, debit or
 // credit. Tab moves cell to cell; Tab in the last cell adds a row. „Salvesta kanne” is enabled only when debit = credit.
-export default function JournalDraft({ draft, setDraft, lines, setLines, accounts, busy, error, onSave, onCancel }) {
+// The same rows correct an existing entry (mode „edit”): an automatic entry keeps its date and document (fixedHeader),
+// and the reason of the correction goes to the entry's history.
+export default function JournalDraft({ draft, setDraft, lines, setLines, accounts, busy, error, onSave, onCancel, label = 'PR (uus kanne)', fixedHeader = false, reason, setReason, reasonRequired = false, saveLabel = 'Salvesta kanne' }) {
   const dateRef = useRef(null);
   const focusAccount = useRef(-1);
   const rowRefs = useRef([]);
@@ -25,13 +27,13 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
   const filled = lines.filter((l) => l.account && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
   const balanced = !badAmount && totals.debit > 0 && totals.debit === totals.credit && filled.length >= 2;
   const knownAccounts = lines.every((l) => !l.account || accountName(l.account));
-  const ready = balanced && knownAccounts && draft.date && draft.documentRef.trim() && draft.description.trim();
+  const ready = balanced && knownAccounts && draft.date && draft.documentRef.trim() && draft.description.trim() && (!reasonRequired || String(reason || '').trim());
 
   return <tbody className="accounting-draft">
     <tr className="accounting-grid__entry">
-      <td>PR (uus kanne)</td>
-      <td><input ref={dateRef} aria-label="Kuupäev" type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} /></td>
-      <td><input aria-label="Algdokument (nr / nimetus)" value={draft.documentRef} placeholder="dokument" onChange={(event) => setDraft({ ...draft, documentRef: event.target.value })} /></td>
+      <td>{label}</td>
+      <td>{fixedHeader ? dmy(draft.date) : <input ref={dateRef} aria-label="Kuupäev" type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} />}</td>
+      <td>{fixedHeader ? draft.documentRef : <input aria-label="Algdokument (nr / nimetus)" value={draft.documentRef} placeholder="dokument" onChange={(event) => setDraft({ ...draft, documentRef: event.target.value })} />}</td>
       <td colSpan="3"><input aria-label="Sisu" value={draft.description} placeholder="kande sisu" onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></td>
     </tr>
     {lines.map((l, index) => {
@@ -54,10 +56,11 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
           <button type="button" className="link-button" onClick={addRow}>+ rida</button>
           <span className={balanced ? 'is-ok' : 'is-off'}>Deebet {amount(totals.debit)} · Kreedit {amount(totals.credit)}{totals.debit !== totals.credit ? ` · vahe ${amount(Math.abs(totals.debit - totals.credit))}` : ''}</span>
           {badAmount ? <span className="is-off">Summa peab olema kujul 123,45.</span> : null}
+          {setReason ? <input className="accounting-draft__reason" aria-label="Paranduse põhjus" value={reason || ''} placeholder={reasonRequired ? 'paranduse põhjus (kohustuslik)' : 'paranduse põhjus'} onChange={(event) => setReason(event.target.value)} /> : null}
           {error ? <span className="is-off" role="alert">{error}</span> : null}
           <span className="accounting-draft__buttons">
             <Button variant="secondary" disabled={busy} onClick={onCancel}>Loobu</Button>
-            <Button disabled={!ready} loading={busy} onClick={onSave}>Salvesta kanne</Button>
+            <Button disabled={!ready} loading={busy} onClick={onSave}>{saveLabel}</Button>
           </span>
         </div>
       </td>
