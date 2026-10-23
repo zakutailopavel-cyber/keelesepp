@@ -1,4 +1,4 @@
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { collection, doc, documentId, getDoc, getDocs, query, serverTimestamp, setDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 
 // „Viimati sees” and the last „Minu vead” review on the account document (owner 2026-10-23: the teacher sees when the
@@ -23,6 +23,19 @@ export function nextPractice(current = {}, { date, pct }) {
   return { errorsDate: date, errorsPct: Math.max(0, Math.min(100, Math.round(Number(pct) || 0))), days };
 }
 
+// the student's own account on a card (or on any card of a person: StudentsPage groups cards)
+export function accountUid(student) {
+  const cards = Array.isArray(student?.records) && student.records.length ? [student, ...student.records] : [student];
+  for (const card of cards) {
+    const uid = card?.linkedUserId || card?.studentUid || (Array.isArray(card?.linkedUserIds) ? card.linkedUserIds[0] : '');
+    if (uid) return uid;
+  }
+  return '';
+}
+
+// the newest of the visit and the last „Minu vead” day (ms), 0 when unknown
+export const lastSeenOf = (entry) => Math.max(entry?.lastSeenAt || 0, entry?.practice?.errorsDate ? Date.parse(`${entry.practice.errorsDate}T12:00:00`) || 0 : 0);
+
 export const presenceService = {
   async markSeen(user) {
     if (!shouldMarkSeen(user)) return false;
@@ -37,6 +50,23 @@ export const presenceService = {
     const practice = nextPractice(snapshot.exists() ? snapshot.data().practice : {}, entry);
     await setDoc(doc(db, 'users', uid), { practice }, { merge: true });
     return practice;
+  },
+  // many students at once (the students list, the dashboard): Map studentId → { lastSeenAt, practice }
+  async forStudents(students = []) {
+    const byUid = new Map();
+    students.forEach((student) => { const uid = accountUid(student); if (uid && student?.id) byUid.set(uid, [...(byUid.get(uid) || []), student.id]); });
+    const uids = [...byUid.keys()];
+    if (!uids.length) return new Map();
+    const { db } = requireFirebaseClient();
+    const chunks = Array.from({ length: Math.ceil(uids.length / 30) }, (_, index) => uids.slice(index * 30, index * 30 + 30));
+    const snapshots = await Promise.all(chunks.map((chunk) => getDocs(query(collection(db, 'users'), where(documentId(), 'in', chunk)))));
+    const result = new Map();
+    snapshots.forEach((snapshot) => snapshot.docs.forEach((account) => {
+      const data = account.data();
+      const entry = { lastSeenAt: millis(data.lastSeenAt), practice: data.practice || null };
+      (byUid.get(account.id) || []).forEach((studentId) => result.set(studentId, entry));
+    }));
+    return result;
   },
   // what the teacher sees: the student's own account (linkedUserId / studentUid / the first linked account)
   async forStudent(studentId) {

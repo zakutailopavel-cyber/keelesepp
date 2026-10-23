@@ -5,12 +5,14 @@ import { Badge, Card } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { lessonsService } from '../../services/firebase/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { presenceService } from '../../services/firebase/presence.js';
 import { retentionRisk } from './retentionRisk.js';
 import './retention.css';
 
 const api = {
   lessons: (teacherUid) => lessonsService.listForCalendar(teacherUid ? { teacherUid } : {}),
   words: (studentIds) => studentWordsService.listForStudentIds(studentIds),
+  seen: (students) => presenceService.forStudents(students),
 };
 
 // The dashboard's „Riskis õpilased” (retentionRisk.js): the journal and the words load on their own, so the dashboard
@@ -18,13 +20,14 @@ const api = {
 export default function RetentionCard({ students = [], unplanned = [], scheduledIds = [], overdueInvoices = [], teacherUid = '', repository = api, limit = 8 }) {
   const ids = useMemo(() => students.map((student) => student.id), [students]);
   const state = useAsyncData(async () => {
-    const [lessons, words] = await Promise.all([
+    const [lessons, words, seen] = await Promise.all([
       Promise.resolve().then(() => repository.lessons(teacherUid)).catch(() => []),
       Promise.resolve().then(() => repository.words(ids)).catch(() => []),
+      Promise.resolve().then(() => (repository.seen ? repository.seen(students) : new Map())).catch(() => new Map()),
     ]);
-    return { lessons, words };
-  }, [repository, teacherUid, ids]);
-  const result = useMemo(() => (state.data ? retentionRisk({ students, lessons: state.data.lessons, words: state.data.words, unplannedIds: unplanned.map((item) => item.student?.id || item.id), scheduledIds, overdueInvoices }) : null), [state.data, students, unplanned, scheduledIds, overdueInvoices]);
+    return { lessons, words, seen };
+  }, [repository, teacherUid, ids]); // eslint-disable-line react-hooks/exhaustive-deps
+  const result = useMemo(() => (state.data ? retentionRisk({ students, lessons: state.data.lessons, words: state.data.words, seen: state.data.seen, unplannedIds: unplanned.map((item) => item.student?.id || item.id), scheduledIds, overdueInvoices }) : null), [state.data, students, unplanned, scheduledIds, overdueInvoices]);
 
   return <Card className="retention-card">
     <div className="section-heading"><div><span className="eyebrow">Hoia õpilased</span><h2>Riskis õpilased</h2></div>

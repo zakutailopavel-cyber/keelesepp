@@ -57,3 +57,16 @@ test('last visit and the practice result on the own account only', async () => {
   assert.equal(await patch(learner, learner.uid, 'practice', enc({ days: Array.from({ length: 61 }, () => '2026-10-23') })), 403);
   assert.equal(await patch(other, learner.uid, 'practice', enc({ errorsDate: '2026-10-23', errorsPct: 10 })), 403);
 });
+
+test('staff read many accounts at once (the students list), a student cannot', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const teacher = await account('teacher');
+  const a = await account('student');
+  const b = await account('student');
+  const list = (who) => fetch(`${base}:runQuery`, {
+    method: 'POST', headers: { Authorization: `Bearer ${who.token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId: 'users' }], where: { fieldFilter: { field: { fieldPath: '__name__' }, op: 'IN', value: { arrayValue: { values: [a, b].map((x) => ({ referenceValue: `projects/${PROJECT}/databases/(default)/documents/users/${x.uid}` })) } } } } } }),
+  }).then((r) => r.status);
+  assert.equal(await list(teacher), 200);
+  assert.equal(await list(a), 403);
+});

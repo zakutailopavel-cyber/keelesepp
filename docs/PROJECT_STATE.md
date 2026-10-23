@@ -1,3 +1,15 @@
+## 2026-10-23 · agent/last-seen-list — „sees eile” in the students list and the last visit in „Riskis õpilased”
+
+- Owner 2026-10-23 („давай”) after #762.
+- presence.js: `forStudents(students)` reads the own accounts of many students at once (users, documentId in ≤30),
+  `accountUid` (card or any card of a person), `lastSeenOf` (newest of the visit and the last „Minu vead” day).
+- „Õpilased”: „· sees eile” after the student's line (desktop and phone), loaded after the list; failures show nothing.
+- „Riskis õpilased” (retentionRisk `seen`): „Minu vead” days count as own practice; once a visit is recorded, „pole N
+  päeva sisse loginud” (no practice for 14 days, or no visit for 21 days). Fixed: the new-student rule („only the
+  calendar gap counts”) now checks that the gap is the only reason instead of comparing the score.
+- No rules change (staff already read accounts); emulator test added: a teacher lists accounts, a student cannot.
+- Checks: verify (eslint errors 0, vitest 2290 passed, 0 failed); emulator presence tests 2/2.
+
 ## 2026-10-23 · agent/last-seen — „Viimati sees” and „Minu vead” results in the database for the teacher
 
 - Owner 2026-10-23: „Да, делай вход и Kordamine в базу” (yes to the rules change and its deploy).

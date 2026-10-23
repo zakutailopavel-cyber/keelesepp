@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nextPractice, shouldMarkSeen, SEEN_EVERY_MS } from './presence.js';
+import { accountUid, lastSeenOf, nextPractice, shouldMarkSeen, SEEN_EVERY_MS } from './presence.js';
 
 const now = Date.parse('2026-10-23T12:00:00Z');
 const student = (profile = {}) => ({ uid: 'u1', roles: ['student'], approvalStatus: 'approved', profile: { displayName: 'Mari', ...profile } });
@@ -22,5 +22,17 @@ describe('presence', () => {
     const many = Array.from({ length: 70 }, (_, i) => `2026-08-${String((i % 28) + 1).padStart(2, '0')}`.replace('08', i < 28 ? '07' : i < 56 ? '08' : '09'));
     expect(nextPractice({ days: many }, { date: '2026-10-23', pct: 50 }).days).toHaveLength(60);
     expect(nextPractice({ days: many }, { date: '2026-10-23', pct: 50 }).days.at(-1)).toBe('2026-10-23');
+  });
+});
+
+describe('accountUid and lastSeenOf', () => {
+  it('finds the own account on the card or any card of the person', () => {
+    expect(accountUid({ linkedUserId: 'a' })).toBe('a');
+    expect(accountUid({ id: 'p', records: [{ id: 'c1' }, { id: 'c2', linkedUserIds: ['b'] }] })).toBe('b');
+    expect(accountUid({ id: 'x' })).toBe('');
+  });
+  it('takes the newest of the visit and the last review day', () => {
+    expect(lastSeenOf({ lastSeenAt: 5, practice: { errorsDate: '2026-10-23' } })).toBe(Date.parse('2026-10-23T12:00:00'));
+    expect(lastSeenOf(null)).toBe(0);
   });
 });
