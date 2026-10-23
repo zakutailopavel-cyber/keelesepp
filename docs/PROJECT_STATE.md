@@ -1,3 +1,13 @@
+## 2026-10-23 · published: courses in template v4 to Õppevara (production)
+
+- Owner: „то что готово выложить”. PR #764 merged to main (584a92c); Vercel deployed (new audio live on
+  crm.epkoolitus.ee).
+- Published with the publish script (manual CRM edits skipped, old versions kept in `worksheetVersions`): 585 sheets —
+  B1 modules 2–18 (255), B2 modules 1–18 (270), A2 modules 1–4 (60), Avasta / Harjuta / Kasuta incl. the module exams.
+  Result: published 585, skipped 0 (no manual edits, drafts or missing lessons). A second dry run: same 585.
+- Not done (next): A2 modules 5–20, C1 modules 1–10, the v4 pass of the exam lessons, art briefs for the new
+  storylines, lesson goals of A2. See `docs/COURSE_REVIEW_LOG.md`.
+
 ## 2026-10-23 · agent/b1-v4-course — courses in template v4: B1 2–18, B2 1–18, A2 1–4 (merge and publish)
 
 - Owner: „подгони курсы до финального вида…”, then „закончить цель, то что готово выложить”.
