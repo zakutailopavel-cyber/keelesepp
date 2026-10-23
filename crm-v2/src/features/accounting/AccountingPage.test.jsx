@@ -58,17 +58,26 @@ describe('AccountingPage', () => {
     expect(screen.getByText('Kokku 2 kannet')).toBeInTheDocument();
   });
 
-  it('saves a manual entry in cents and refuses an unbalanced one on the server side message', async () => {
+  it('a manual entry is typed into the päevaraamat grid and saved in cents only when it balances', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
     await screen.findByText('MA 1');
     fireEvent.click(screen.getByRole('button', { name: 'Lisa kanne' }));
+    // no dialog: the entry rows open inside the grid
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Rida 1 konto').closest('table')).toHaveClass('accounting-journal');
     fireEvent.change(screen.getByLabelText('Algdokument (nr / nimetus)'), { target: { value: 'Palgaleht 02' } });
     fireEvent.change(screen.getByLabelText('Sisu'), { target: { value: 'Veebruari palk' } });
     fireEvent.change(screen.getByLabelText('Rida 1 konto'), { target: { value: '4710' } });
     fireEvent.change(screen.getByLabelText('Rida 1 deebet'), { target: { value: '1 250,50' } });
     fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '2210' } });
+    fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '1250' } });
+    expect(screen.getByRole('button', { name: 'Salvesta kanne' })).toBeDisabled();
+    expect(screen.getByText(/vahe 0,50/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '1250,50' } });
+    // Tab in the last cell adds a row
+    fireEvent.keyDown(screen.getByLabelText('Rida 2 kreedit'), { key: 'Tab' });
+    expect(screen.getByLabelText('Rida 3 konto')).toHaveFocus();
     expect(screen.getByText(/Deebet 1\s?250,50 · Kreedit 1\s?250,50/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta kanne' }));
     await waitFor(() => expect(repository.createEntry).toHaveBeenCalledWith(expect.objectContaining({

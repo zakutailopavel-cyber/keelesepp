@@ -359,3 +359,63 @@
 .accounting-grid .c-date {
   width: 8%;
 }
+
+/* a manual entry typed into the grid: the inputs fill their cells like spreadsheet cells */
+.accounting-draft td {
+  background: #fffdf2;
+}
+
+.accounting-draft .accounting-grid__entry td {
+  background: #f3efd9;
+}
+
+.accounting-draft input {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  margin: -3px -6px;
+  min-height: 26px;
+  padding: 3px 6px;
+  width: calc(100% + 12px);
+}
+
+.accounting-draft input:focus {
+  background: #fff;
+  outline: 2px solid #12372a;
+  outline-offset: -2px;
+}
+
+.accounting-draft .num input {
+  text-align: right;
+}
+
+.accounting-draft__account {
+  display: grid;
+}
+
+.accounting-draft__account small {
+  color: #667085;
+  font-size: 0.72rem;
+  font-weight: 400;
+}
+
+.accounting-draft__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.accounting-draft__actions .is-ok {
+  color: #067647;
+}
+
+.accounting-draft__actions .is-off {
+  color: #b42318;
+}
+
+.accounting-draft__buttons {
+  display: inline-flex;
+  gap: 8px;
+  margin-left: auto;
+}

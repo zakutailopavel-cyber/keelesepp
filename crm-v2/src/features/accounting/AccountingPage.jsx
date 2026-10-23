@@ -5,7 +5,8 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountingService } from '../../services/firebase/index.js';
 import { downloadWorkbook, journalWorkbook, statementsWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
-import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, dmy, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import JournalDraft from './JournalDraft.jsx';
 import './accounting.css';
 
 // Raamatupidamine (owner 2026-10-22, docs/ACCOUNTING.md): päevaraamat, pearaamat, käibeandmik, bilanss and
@@ -61,6 +62,8 @@ export default function AccountingPage({ repository = accountingService }) {
   const [dialog, setDialog] = useState(null);
   const [form, setForm] = useState({});
   const [lines, setLines] = useState([blankLine(), blankLine()]);
+  const [draft, setDraft] = useState(null);
+  const [draftLines, setDraftLines] = useState([]);
   const synced = useRef(false);
 
   const entries = useMemo(() => state.data?.entries || [], [state.data]);
@@ -97,16 +100,17 @@ export default function AccountingPage({ repository = accountingService }) {
     sync(true);
   }, [state.data]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const openEntry = () => { setDialog('entry'); setForm({ date: today(), description: '', documentRef: '' }); setLines([blankLine(), blankLine()]); setError(''); };
+  // a manual entry is typed straight into the päevaraamat grid (JournalDraft)
+  const openEntry = () => { setTab('journal'); setDraft({ date: today(), description: '', documentRef: '' }); setDraftLines([blankEntryLine(), blankEntryLine()]); setError(''); };
+  const cancelDraft = () => { if (!busy) { setDraft(null); setError(''); } };
   const openOpening = () => { setDialog('opening'); setLines([blankLine(), blankLine(), blankLine()]); setError(''); };
   const openStorno = (entry) => { setDialog('storno'); setForm({ entry, date: today(), reason: '' }); setError(''); };
   const openAccount = (account) => { setDialog('account'); setForm(account ? { ...account, existing: true } : { code: '', name: '', type: 'expense', reportLine: '', active: true }); setError(''); };
   const close = () => { if (!busy) { setDialog(null); setError(''); } };
 
-  const submitEntry = async (event) => {
-    event.preventDefault();
-    if (badAmount(lines)) { setError('Summa peab olema kujul 123,45.'); return; }
-    if (await run('save', () => repository.createEntry({ ...form, lines: toLines(lines) }), (r) => `Kanne ${r.entry.number} salvestati.`)) setDialog(null);
+  const saveDraft = async () => {
+    if (badAmount(draftLines)) { setError('Summa peab olema kujul 123,45.'); return; }
+    if (await run('save', () => repository.createEntry({ ...draft, lines: toLines(draftLines) }), (r) => `Kanne ${r.entry.number} salvestati.`)) setDraft(null);
   };
   const submitOpening = async (event) => {
     event.preventDefault();
@@ -146,7 +150,7 @@ export default function AccountingPage({ repository = accountingService }) {
         <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button>
       </>} />
     {notice ? <div className="success-notice" role="status">{notice}<button aria-label="Sulge teade" onClick={() => setNotice('')}>×</button></div> : null}
-    {error && !dialog ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
+    {error && !dialog && !draft ? <div className="expense-error" role="alert">{error}<button aria-label="Sulge veateade" onClick={() => setError('')}>×</button></div> : null}
     {!trial.balanced ? <div className="expense-error" role="alert">Käibeandmik ei ole tasakaalus — kontrolli kandeid.</div> : null}
 
     <Card className="accounting-toolbar">
@@ -166,7 +170,7 @@ export default function AccountingPage({ repository = accountingService }) {
         <Select id="journal-sort" label="Järjestus" value={journalSort} onChange={(event) => setJournalSort(event.target.value)}><option value="code">Kande kood</option><option value="date">Kuupäev</option></Select>
         <input aria-label="Otsi kannetest" placeholder="Otsi numbri, sisu, dokumendi või konto järgi…" value={query} onChange={(event) => setQuery(event.target.value)} />
       </div>
-      {journal.entries.length ? <div className="accounting-sheet">
+      {journal.entries.length || draft ? <div className="accounting-sheet">
         <h2>Päevaraamat</h2>
         <dl className="accounting-sheet__filters">
           <dt>Periood</dt><dd>{dmy(period.from) || '…'} kuni {dmy(period.to) || '…'}</dd>
@@ -179,6 +183,7 @@ export default function AccountingPage({ repository = accountingService }) {
             <tr><th>Kanne</th><th>Kuupäev</th><th>Dokument</th><th /><th /><th /></tr>
             <tr><th>Konto</th><th>Kuupäev</th><th>Dokument</th><th>Kirjeldus</th><th className="num">Deebet</th><th className="num">Kreedit</th></tr>
           </thead>
+          {draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null}
           {journal.entries.map((entry) => {
             const canReverse = (entry.origin === 'manual' || entry.origin === 'opening') && !entry.reversed;
             return <tbody key={entry.id} className={entry.reversed ? 'is-reversed' : ''}>
@@ -229,19 +234,6 @@ export default function AccountingPage({ repository = accountingService }) {
       <div className="students-table-wrap"><table className="students-table accounting-table"><thead><tr><th>Konto</th><th>Nimetus</th><th>Liik</th><th>Bilansi / kasumiaruande rida</th><th>Olek</th><th /></tr></thead>
         <tbody>{accounts.map((a) => <tr key={a.code} className={a.active === false ? 'is-reversed' : ''}><td><strong>{a.code}</strong></td><td>{a.name}</td><td>{accountTypeLabel(a.type)}</td><td>{a.reportLine}</td><td>{a.active === false ? <Badge tone="neutral">Suletud</Badge> : usedAccounts.has(a.code) ? <Badge tone="success">Kasutusel</Badge> : null}</td><td><Button variant="secondary" onClick={() => openAccount(a)}>Muuda</Button></td></tr>)}</tbody></table></div>
     </Card> : null}
-
-    <Modal open={dialog === 'entry'} title="Lisa kanne" onClose={close} footer={<><Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button><Button type="submit" form="accounting-entry-form" loading={busy === 'save'}>Salvesta kanne</Button></>}>
-      <form id="accounting-entry-form" className="expense-form" onSubmit={submitEntry}>
-        <p className="form-hint">Kannet ei saa hiljem muuta ega kustutada. Vea korral tee storno (RPS § 10).</p>
-        {error ? <p className="form-error" role="alert">{error}</p> : null}
-        <div className="form-grid">
-          <Input id="entry-date" label="Kuupäev" type="date" value={form.date || ''} required onChange={(event) => setForm({ ...form, date: event.target.value })} />
-          <Input id="entry-document" label="Algdokument (nr / nimetus)" value={form.documentRef || ''} required onChange={(event) => setForm({ ...form, documentRef: event.target.value })} />
-          <Input id="entry-description" className="form-grid__wide" label="Sisu" value={form.description || ''} required onChange={(event) => setForm({ ...form, description: event.target.value })} />
-        </div>
-        <LinesEditor lines={lines} setLines={setLines} accounts={accounts} />
-      </form>
-    </Modal>
 
     <Modal open={dialog === 'opening'} title="Algsaldod seisuga 01.01.2026" onClose={close} footer={<><Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button><Button type="submit" form="accounting-opening-form" loading={busy === 'save'}>Salvesta algsaldod</Button></>}>
       <form id="accounting-opening-form" className="expense-form" onSubmit={submitOpening}>

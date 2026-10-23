@@ -240,3 +240,7 @@ export function parseEuro(text) {
   if (!/^\d+(\.\d{1,2})?$/.test(clean)) return Number.NaN;
   return Math.round(Number(clean) * 100);
 }
+
+// the rows of an entry being typed (amounts as text): a blank row and the debit / credit sums in cents
+export const blankEntryLine = () => ({ account: '', debit: '', credit: '', note: '' });
+export const entryLineTotals = (lines) => lines.reduce((t, l) => ({ debit: t.debit + (parseEuro(l.debit) || 0), credit: t.credit + (parseEuro(l.credit) || 0) }), { debit: 0, credit: 0 });
