@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { balanceSheet, incomeStatement, journalRows, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import { amount, balanceSheet, dmy, entryCode, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
 
 const accounts = [
   { code: '1010', name: 'Pangakonto', type: 'asset', reportLine: 'Raha' },
@@ -19,11 +19,47 @@ const entries = [
 ];
 
 describe('bookkeeping registers', () => {
-  it('päevaraamat lists entries in date order with the account names', () => {
-    const rows = journalRows(entries, accounts, { from: '2026-02-01', to: '2026-02-28' });
-    expect(rows.map((r) => r.number)).toEqual(['2026-0003', '2026-0002', '2026-0004']);
-    expect(rows[0].lines[1]).toMatchObject({ account: '3060', name: 'Maksuvaba müügitulu', creditCents: 8000 });
-    expect(rows[0].totalCents).toBe(8000);
+  it('päevaraamat in date order: one block per entry with the account names and the entry totals', () => {
+    const report = journalReport(entries, accounts, { from: '2026-02-01', to: '2026-02-28', sort: 'date' });
+    expect(report.entries.map((r) => r.number)).toEqual(['2026-0003', '2026-0002', '2026-0004']);
+    expect(report.entries[0].lines[1]).toMatchObject({ account: '3060', name: 'Maksuvaba müügitulu', creditCents: 8000, debitCents: 0, documentRef: 'doc', description: 'kanne 2026-0003' });
+    expect(report.entries[0]).toMatchObject({ debitCents: 8000, creditCents: 8000 });
+    expect(report).toMatchObject({ entryCount: 3, lineCount: 6, debitCents: 19000, creditCents: 19000 });
+    expect(report.filters).toMatchObject({ sortLabel: 'Kuupäev', code: '' });
+  });
+
+  it('kande kood: a sales invoice and the money received for it are separate entries with separate codes', () => {
+    const docs = [
+      e('2026-0010', '2026-03-01', [['1200', 8000, 0], ['3060', 0, 8000]], { origin: 'auto', documentType: 'invoice', documentRef: 'KS-7' }),
+      e('2026-0011', '2026-03-04', [['1010', 8000, 0], ['1200', 0, 8000]], { origin: 'auto', documentType: 'payment', documentRef: 'KS-7' }),
+      e('2026-0012', '2026-03-02', [['1200', 6000, 0], ['3060', 0, 6000]], { origin: 'auto', documentType: 'invoice', documentRef: 'KS-8' }),
+      e('2026-0013', '2026-03-05', [['3060', 6000, 0], ['1200', 0, 6000]], { origin: 'auto', documentType: 'creditNote', documentRef: 'KR-1' }),
+      e('2026-0014', '2026-03-06', [['4710', 100, 0], ['1010', 0, 100]], { origin: 'auto', documentType: 'expense' }),
+      e('2026-0015', '2026-03-07', [['1010', 100, 0], ['4710', 0, 100]], { origin: 'reversal' }),
+    ];
+    expect(docs.map(entryCode)).toEqual(['MA', 'LK', 'MA', 'KR', 'OA', 'ST']);
+    expect(entryCode(entries[0])).toBe('AS');
+    expect(entryCode({ origin: 'manual' })).toBe('PR');
+    const byCode = journalReport(docs, accounts, {});
+    // sorted by code and the code's own running number (in the order of the CRM numbers, not the dates)
+    expect(byCode.entries.map((r) => r.label)).toEqual(['KR 1', 'LK 1', 'MA 1', 'MA 2', 'OA 1', 'ST 1']);
+    expect(byCode.entries.find((r) => r.label === 'LK 1').lines.map((l) => l.account)).toEqual(['1010', '1200']);
+    expect(byCode.entries.find((r) => r.label === 'MA 1').lines.map((l) => l.account)).toEqual(['1200', '3060']);
+    // the code filter keeps the running numbers; a period filter does not renumber either
+    const sales = journalReport(docs, accounts, { code: 'MA', from: '2026-03-02' });
+    expect(sales.entries.map((r) => `${r.label} ${r.documentRef}`)).toEqual(['MA 2 KS-8']);
+    expect(sales.filters).toMatchObject({ code: 'MA', codeName: 'Müügiarve kanne', sortLabel: 'Kande kood' });
+    expect(sales).toMatchObject({ entryCount: 1, lineCount: 2, debitCents: 6000, creditCents: 6000 });
+  });
+
+  it('formats amounts as 1 234,56 and dates as 04.01.2026', () => {
+    expect(amount(123456)).toBe('1 234,56');
+    expect(amount(123456789)).toBe('1 234 567,89');
+    expect(amount(0)).toBe('0,00');
+    expect(amount(5)).toBe('0,05');
+    expect(amount(-98878)).toBe('-988,78');
+    expect(dmy('2026-01-04')).toBe('04.01.2026');
+    expect(dmy('')).toBe('');
   });
 
   it('käibeandmik: opening balance, turnover and closing balance per account, balanced', () => {

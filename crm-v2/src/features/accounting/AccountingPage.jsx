@@ -5,12 +5,12 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountingService } from '../../services/firebase/index.js';
 import { downloadWorkbook, journalWorkbook, statementsWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
-import { ACCOUNT_TYPES, accountTypeLabel, balanceSheet, euro, incomeStatement, journalRows, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, dmy, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
 import './accounting.css';
 
 // Raamatupidamine (owner 2026-10-22, docs/ACCOUNTING.md): päevaraamat, pearaamat, käibeandmik, bilanss and
 // kasumiaruanne from the numbered entries; manual entries, stornos, opening balances and the chart of accounts.
-const COMPANY = 'E&P Koolitus OÜ (17270880)';
+const COMPANY_LABEL = `${COMPANY.name} (${COMPANY.regCode})`;
 const TABS = [
   ['journal', 'Päevaraamat'],
   ['ledger', 'Pearaamat'],
@@ -18,7 +18,6 @@ const TABS = [
   ['statements', 'Bilanss ja kasumiaruanne'],
   ['chart', 'Kontoplaan'],
 ];
-const ORIGIN = { auto: ['Automaatne', 'neutral'], manual: ['Käsitsi', 'info'], reversal: ['Storno', 'warning'], opening: ['Algsaldod', 'success'] };
 const today = () => new Date().toISOString().slice(0, 10);
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
@@ -54,6 +53,8 @@ export default function AccountingPage({ repository = accountingService }) {
   const [period, setPeriod] = useState({ from: `${today().slice(0, 4)}-01-01`, to: today() });
   const [ledgerAccount, setLedgerAccount] = useState('1010');
   const [query, setQuery] = useState('');
+  const [journalCode, setJournalCode] = useState('');
+  const [journalSort, setJournalSort] = useState('code');
   const [busy, setBusy] = useState('');
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
@@ -64,7 +65,13 @@ export default function AccountingPage({ repository = accountingService }) {
 
   const entries = useMemo(() => state.data?.entries || [], [state.data]);
   const accounts = useMemo(() => state.data?.accounts || [], [state.data]);
-  const journal = useMemo(() => journalRows(entries, accounts, period).filter((e) => !query || `${e.number} ${e.description} ${e.documentRef} ${e.lines.map((l) => l.account).join(' ')}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))), [entries, accounts, period, query]);
+  const journalFull = useMemo(() => journalReport(entries, accounts, { ...period, code: journalCode, sort: journalSort }), [entries, accounts, period, journalCode, journalSort]);
+  const journal = useMemo(() => {
+    const needle = query.trim().toLocaleLowerCase('et');
+    if (!needle) return journalFull;
+    const list = journalFull.entries.filter((e) => `${e.label} ${e.number} ${e.description} ${e.documentRef} ${e.lines.map((l) => l.account).join(' ')}`.toLocaleLowerCase('et').includes(needle));
+    return { ...journalFull, entries: list, entryCount: list.length, lineCount: list.reduce((n, e) => n + e.lines.length, 0), debitCents: list.reduce((n, e) => n + e.debitCents, 0), creditCents: list.reduce((n, e) => n + e.creditCents, 0) };
+  }, [journalFull, query]);
   const trial = useMemo(() => trialBalance(entries, accounts, period), [entries, accounts, period]);
   const accountLedger = useMemo(() => ledger(entries, ledgerAccount, period, accounts), [entries, ledgerAccount, period, accounts]);
   const statements = useMemo(() => ({ sheet: balanceSheet(entries, accounts, { to: period.to }), result: incomeStatement(entries, accounts, period) }), [entries, accounts, period]);
@@ -119,8 +126,8 @@ export default function AccountingPage({ repository = accountingService }) {
   const exportFile = () => {
     const stamp = `${period.from || 'algus'}_${period.to || today()}`;
     if (tab === 'trial') downloadWorkbook(trialBalanceWorkbook(trial, { company: COMPANY, period }), `kaibeandmik_${stamp}.xls`);
-    else if (tab === 'statements') downloadWorkbook(statementsWorkbook(statements, { company: COMPANY, period }), `bilanss_kasumiaruanne_${stamp}.xls`);
-    else downloadWorkbook(journalWorkbook(journalRows(entries, accounts, period), { company: COMPANY, period }), `paevaraamat_${stamp}.xls`);
+    else if (tab === 'statements') downloadWorkbook(statementsWorkbook(statements, { company: COMPANY_LABEL, period }), `bilanss_kasumiaruanne_${stamp}.xls`);
+    else downloadWorkbook(journalWorkbook(journalFull, { company: COMPANY }), `paevaraamat_${stamp}${journalCode ? `_${journalCode}` : ''}.xls`);
   };
 
   if (state.loading && !state.data) return <LoadingState label="Laen raamatupidamist…" />;
@@ -154,16 +161,39 @@ export default function AccountingPage({ repository = accountingService }) {
     </Card>
 
     {tab === 'journal' ? <Card className="accounting-card">
-      <div className="accounting-card__search"><input aria-label="Otsi kannetest" placeholder="Otsi numbri, sisu, dokumendi või konto järgi…" value={query} onChange={(event) => setQuery(event.target.value)} /><span>{journal.length} kannet</span></div>
-      {journal.length ? <div className="students-table-wrap"><table className="students-table accounting-table"><thead><tr><th>Nr</th><th>Kuupäev</th><th>Konto ja sisu</th><th>Konto</th><th className="num">Deebet</th><th className="num">Kreedit</th><th>Dokument</th><th /></tr></thead>
-        <tbody>{journal.map((entry) => {
-          const origin = ORIGIN[entry.origin] || [entry.origin, 'neutral'];
-          const canReverse = (entry.origin === 'manual' || entry.origin === 'opening') && !entry.reversedBy;
-          return [
-            <tr key={entry.id} className={`accounting-entry${entry.reversedBy ? ' is-reversed' : ''}`}><td><strong>{entry.number}</strong></td><td>{dateLabel(entry.date)}</td><td colSpan="4"><strong>{entry.description}</strong> <Badge tone={origin[1]}>{origin[0]}</Badge>{entry.reversedBy ? <span> · tühistatud kandega {entry.reversedBy}</span> : null}</td><td>{entry.documentRef}</td><td>{canReverse ? <Button variant="secondary" onClick={() => openStorno(entry)}><Undo2 size={15} /> Storno</Button> : null}</td></tr>,
-            ...entry.lines.map((l, i) => <tr key={`${entry.id}-${i}`} className="accounting-line"><td /><td /><td>{l.name}{l.note ? ` · ${l.note}` : ''}</td><td>{l.account}</td><td className="num">{l.debitCents ? euro(l.debitCents) : ''}</td><td className="num">{l.creditCents ? euro(l.creditCents) : ''}</td><td /><td /></tr>),
-          ];
-        })}</tbody></table></div> : <EmptyState title="Perioodis kandeid ei ole" description="Vali teine periood või vajuta „Uuenda kanded”." />}
+      <div className="accounting-card__search accounting-journal-filters">
+        <Select id="journal-code" label="Kande kood" value={journalCode} onChange={(event) => setJournalCode(event.target.value)}><option value="">Kõik</option>{ENTRY_CODES.map(([code, name]) => <option key={code} value={code}>{code} {name}</option>)}</Select>
+        <Select id="journal-sort" label="Järjestus" value={journalSort} onChange={(event) => setJournalSort(event.target.value)}><option value="code">Kande kood</option><option value="date">Kuupäev</option></Select>
+        <input aria-label="Otsi kannetest" placeholder="Otsi numbri, sisu, dokumendi või konto järgi…" value={query} onChange={(event) => setQuery(event.target.value)} />
+      </div>
+      {journal.entries.length ? <div className="accounting-sheet">
+        <h2>Päevaraamat</h2>
+        <dl className="accounting-sheet__filters">
+          <dt>Periood</dt><dd>{dmy(period.from) || '…'} kuni {dmy(period.to) || '…'}</dd>
+          <dt>Kande kood</dt><dd>{journalCode ? `${journalCode} ${journal.filters.codeName}` : 'Kõik'}</dd>
+          <dt>Järjestus</dt><dd>{journal.filters.sortLabel}</dd>
+        </dl>
+        <div className="accounting-grid-wrap"><table className="accounting-grid accounting-journal">
+          <colgroup><col className="c-account" /><col className="c-date" /><col className="c-doc" /><col /><col className="c-num" /><col className="c-num" /></colgroup>
+          <thead>
+            <tr><th>Kanne</th><th>Kuupäev</th><th>Dokument</th><th /><th /><th /></tr>
+            <tr><th>Konto</th><th>Kuupäev</th><th>Dokument</th><th>Kirjeldus</th><th className="num">Deebet</th><th className="num">Kreedit</th></tr>
+          </thead>
+          {journal.entries.map((entry) => {
+            const canReverse = (entry.origin === 'manual' || entry.origin === 'opening') && !entry.reversed;
+            return <tbody key={entry.id} className={entry.reversed ? 'is-reversed' : ''}>
+              <tr className="accounting-grid__entry"><td title={`CRM kanne ${entry.number}`}>{entry.label}</td><td>{dmy(entry.date)}</td><td>{entry.documentRef}</td><td /><td colSpan="2" className="accounting-grid__actions">{entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}{canReverse ? <button type="button" className="link-button" onClick={() => openStorno(entry)}><Undo2 size={13} /> Storno</button> : null}</td></tr>
+              {entry.lines.map((l, i) => <tr key={i}><td>{l.account} {l.name}</td><td>{dmy(entry.date)}</td><td>{l.documentRef}</td><td>{l.description}</td><td className="num">{amount(l.debitCents)}</td><td className="num">{amount(l.creditCents)}</td></tr>)}
+              <tr className="accounting-grid__subtotal"><td colSpan="4" /><td className="num">{amount(entry.debitCents)}</td><td className="num">{amount(entry.creditCents)}</td></tr>
+            </tbody>;
+          })}
+          <tfoot>
+            <tr><td colSpan="4">Kokku {journal.entryCount} {journal.entryCount === 1 ? 'kanne' : 'kannet'}</td><td className="num">{amount(journal.debitCents)}</td><td className="num">{amount(journal.creditCents)}</td></tr>
+            <tr><td colSpan="6">{journal.lineCount} {journal.lineCount === 1 ? 'kirje' : 'kirjet'}</td></tr>
+          </tfoot>
+        </table></div>
+        <p className="accounting-sheet__footer"><span>{COMPANY.name}</span><span>Rg-kood {COMPANY.regCode}</span></p>
+      </div> : <EmptyState title="Perioodis kandeid ei ole" description="Vali teine periood või kande kood või vajuta „Uuenda kanded”." />}
     </Card> : null}
 
     {tab === 'ledger' ? <Card className="accounting-card">
@@ -175,11 +205,11 @@ export default function AccountingPage({ repository = accountingService }) {
     </Card> : null}
 
     {tab === 'trial' ? <Card className="accounting-card">
-      {trial.rows.length ? <div className="students-table-wrap"><table className="students-table accounting-table"><thead>
-        <tr><th rowSpan="2">Konto nr</th><th rowSpan="2">Konto nimetus</th><th colSpan="2" className="num">Algsaldo</th><th colSpan="2" className="num">Käibed</th><th colSpan="2" className="num">Lõppsaldo</th></tr>
+      {trial.rows.length ? <div className="accounting-sheet"><div className="accounting-grid-wrap"><table className="accounting-grid accounting-trial"><thead>
+        <tr><th rowSpan="2">Konto</th><th rowSpan="2">Nimetus</th><th colSpan="2" className="center">Algsaldo</th><th colSpan="2" className="center">Käive</th><th colSpan="2" className="center">Lõppsaldo</th></tr>
         <tr><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th></tr></thead>
-        <tbody>{trial.rows.map((r) => <tr key={r.code}><td><button type="button" className="link-button" onClick={() => { setLedgerAccount(r.code); setTab('ledger'); }}>{r.code}</button></td><td>{r.name}</td>{[r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit].map((v, i) => <td key={i} className="num">{v ? euro(v) : ''}</td>)}</tr>)}
-          <tr className="accounting-entry"><td /><td><strong>Kokku</strong></td>{[trial.total.opening.debit, trial.total.opening.credit, trial.total.turnover.debit, trial.total.turnover.credit, trial.total.closing.debit, trial.total.closing.credit].map((v, i) => <td key={i} className="num"><strong>{euro(v)}</strong></td>)}</tr></tbody></table></div>
+        <tbody>{trial.rows.map((r) => <tr key={r.code}><td><button type="button" className="link-button" onClick={() => { setLedgerAccount(r.code); setTab('ledger'); }}>{r.code}</button></td><td>{r.name}</td>{[r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit].map((v, i) => <td key={i} className="num">{v ? amount(v) : ''}</td>)}</tr>)}</tbody>
+        <tfoot><tr><td colSpan="2">Kokku</td>{[trial.total.opening.debit, trial.total.opening.credit, trial.total.turnover.debit, trial.total.turnover.credit, trial.total.closing.debit, trial.total.closing.credit].map((v, i) => <td key={i} className="num">{amount(v)}</td>)}</tr></tfoot></table></div></div>
         : <EmptyState title="Perioodis liikumisi ei ole" description="Vali teine periood." />}
     </Card> : null}
 

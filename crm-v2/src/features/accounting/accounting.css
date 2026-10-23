@@ -1,5 +1,5 @@
 .accounting-page {
-  max-width: 1500px;
+  max-width: none;
 }
 
 .accounting-page .back-link {
@@ -103,7 +103,8 @@
   color: #98a2b3;
 }
 
-.accounting-table .link-button {
+.accounting-table .link-button,
+.accounting-grid .link-button {
   background: none;
   border: 0;
   color: #0f6b4f;
@@ -237,4 +238,124 @@
     align-items: stretch;
     flex-direction: column;
   }
+}
+
+/* Päevaraamat and käibeandmik: a ruled grid like the Excel export (every cell bordered, compact rows) */
+.accounting-journal-filters .field {
+  min-width: 200px;
+}
+
+.accounting-sheet {
+  padding: 12px 14px 14px;
+}
+
+.accounting-sheet h2 {
+  font-size: 1.15rem;
+  margin: 0 0 6px;
+}
+
+.accounting-sheet__filters {
+  display: grid;
+  font-size: 0.85rem;
+  gap: 2px 14px;
+  grid-template-columns: max-content 1fr;
+  margin: 0 0 10px;
+}
+
+.accounting-sheet__filters dt {
+  color: #475467;
+}
+
+.accounting-sheet__filters dd {
+  margin: 0;
+}
+
+.accounting-grid-wrap {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.accounting-grid {
+  border-collapse: collapse;
+  min-width: 760px;
+  font-size: 0.82rem;
+  width: 100%;
+}
+
+.accounting-grid th,
+.accounting-grid td {
+  border: 1px solid #8c96a3;
+  line-height: 1.3;
+  padding: 3px 6px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.accounting-grid thead th {
+  background: #dce9f7;
+  font-weight: 700;
+}
+
+.accounting-grid .num {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.accounting-grid .center {
+  text-align: center;
+}
+
+.accounting-grid .c-account {
+  width: 20%;
+}
+
+.accounting-grid .c-doc {
+  width: 11%;
+}
+
+.accounting-grid .c-num {
+  width: 10%;
+}
+
+.accounting-grid__entry td {
+  background: #e5e7eb;
+  font-weight: 700;
+}
+
+.accounting-grid__actions {
+  font-weight: 400;
+  text-align: right;
+}
+
+.accounting-grid__actions span {
+  color: #b54708;
+  margin-right: 8px;
+}
+
+.accounting-grid__actions .link-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 3px;
+}
+
+.accounting-grid__subtotal td,
+.accounting-grid tfoot td {
+  font-weight: 700;
+}
+
+.accounting-grid tbody.is-reversed td {
+  color: #667085;
+}
+
+.accounting-sheet__footer {
+  color: #475467;
+  display: flex;
+  font-size: 0.8rem;
+  justify-content: space-between;
+  margin: 8px 0 0;
+}
+
+.accounting-grid .c-date {
+  width: 8%;
 }
