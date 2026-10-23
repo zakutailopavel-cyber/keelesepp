@@ -1,3 +1,18 @@
+## 2026-10-23 · agent/last-seen — „Viimati sees” and „Minu vead” results in the database for the teacher
+
+- Owner 2026-10-23: „Да, делай вход и Kordamine в базу” (yes to the rules change and its deploy).
+- firestore.rules `validPresence` (in safeSelfUserFields): a user may write on his own account `lastSeenAt` only as the
+  server time (serverTimestamp) and `practice` { errorsDate YYYY-MM-DD, errorsPct int 0–100, days list ≤ 60 }.
+  Emulator test functions/student-presence-emulator.integration.js (in the financial-core-emulator workflow).
+- services/firebase/presence.js: `markSeen` after sign-in for approved students and parents, at most every 6 h (errors
+  ignored); `savePractice` after a „Minu vead” drill (MistakesPage; the browser copy stays as before); `forStudent`
+  reads the card's own account for staff.
+- „Õpilase pilt” (LearnerSnapshotCard / learnerSnapshot.js): „Viimati sees” (or „kontot pole” / „andmeid veel pole”)
+  and „Minu vead: täna · 80% · N päeva 30 päevaga”; the reviews count as own study for „Pole iseseisvalt õppinud”.
+  The student's home and „Minu vead” also take today's result from the account (another device).
+- Checks: verify (eslint errors 0, vitest 2285 passed, 0 failed); emulator rules tests presence + pet green.
+- Until the rules are deployed the writes fail silently and the teacher sees „andmeid veel pole”.
+
 ## 2026-10-23 · agent/course-official-only — „Minu kursus” shows only the course; a flaky pet test fixed
 
 - Production check (read-only, 2026-10-23): Liudmila's card is active, self-study, level B2. Her B2 course map showed

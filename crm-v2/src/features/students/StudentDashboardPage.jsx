@@ -100,7 +100,7 @@ export default function StudentDashboardPage({
   const today = toIsoDate();
   const nextDates = useMemo(() => Array.from({ length: 28 }, (_, index) => shiftDate(today, index)), [today]);
   // the whole day's path done → the walking pet shows a flame, once a day
-  const reviewedToday = readDone(user?.uid).errors?.date === today;
+  const reviewedToday = readDone(user?.uid).errors?.date === today || user?.profile?.practice?.errorsDate === today;
   const pathDone = useMemo(() => {
     if (!state.data) return false;
     const day = todayPath({ words, homework: state.data.homework, submissions: state.data.submissions, pet: state.data.pet, assignments: (state.data.progressData?.[1] || []), mistakesDoneToday: reviewedToday, offerPet: !preview, today });

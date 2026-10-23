@@ -13,6 +13,7 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { getFirebaseClient, requireFirebaseClient } from './client.js';
+import { presenceService } from './presence.js';
 import { normalizeRoles } from '../../utils/roles.js';
 
 export class AccountAccessError extends Error {
@@ -141,6 +142,8 @@ export const authService = {
       try {
         const user = await enrichUser(firebaseUser);
         if (activeGeneration === generation) onSession(user);
+        // „Viimati sees” for the teacher: at most every 6 hours, never blocks or breaks the session
+        if (user) Promise.resolve().then(() => presenceService.markSeen(user)).catch(() => {});
       } catch (error) {
         if (activeGeneration === generation) onError(accountAccessError(error));
       }

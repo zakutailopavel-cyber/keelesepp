@@ -39,8 +39,10 @@ export const isForgotten = (word) => (word?.box || 0) === 0 && (word?.reviews ||
 const isDue = (word, now) => !word?.dueAt || time(word.dueAt) <= now;
 
 // the student's own work: the newest moment he practised words, filled in a sheet or finished homework
-function activities({ words, assignments, homework }) {
+function activities({ words, assignments, homework, practice }) {
   const list = [];
+  // „Minu vead” reviews (users/{uid}.practice.days, presence.js): only the day is kept
+  (Array.isArray(practice?.days) ? practice.days : []).forEach((day) => { const at = time(`${day}T12:00:00`); if (at) list.push({ at, kind: 'errors' }); });
   words.forEach((word) => { const at = time(word.reviewedAt); if (at) list.push({ at, kind: 'words' }); });
   assignments.forEach((item) => {
     const at = time(item.completedAt) || (item.status === 'in_progress' ? time(item.updatedAt) : 0);
@@ -49,7 +51,7 @@ function activities({ words, assignments, homework }) {
   homework.forEach((item) => { const at = item.status === 'Tehtud' ? time(item.submittedAt || item.updatedAt) : 0; if (at) list.push({ at, kind: 'homework' }); });
   return list.sort((a, b) => b.at - a.at);
 }
-const KIND_LABEL = { words: 'sõnu', sheet: 'töölehte', homework: 'kodutööd' };
+const KIND_LABEL = { words: 'sõnu', sheet: 'töölehte', homework: 'kodutööd', errors: 'oma vigu' };
 
 // the auto-check's errors of the newest submitted sheets, in the teacher's words
 function sheetErrors(assignments, now, describe) {
@@ -70,8 +72,9 @@ function sheetErrors(assignments, now, describe) {
  * words: studentWords; assignments: worksheetAssignments (normalized); homework: homework records; lessons: the journal
  * (normalizeLesson: date, topic, status); describe(worksheetDoc, errorLog) → readable error lines (engine/errorText.js).
  */
-export function learnerSnapshot({ words = [], assignments = [], homework = [], lessons = [], now = Date.now(), describe = null } = {}) {
-  const done = activities({ words, assignments, homework });
+export function learnerSnapshot({ words = [], assignments = [], homework = [], lessons = [], presence = null, now = Date.now(), describe = null } = {}) {
+  const practice = presence?.practice || null;
+  const done = activities({ words, assignments, homework, practice });
   const last = done[0] || null;
   const week = done.filter((item) => now - item.at <= 7 * DAY);
   const practisedWords = new Set(words.filter((word) => now - time(word.reviewedAt) <= 7 * DAY).map((word) => word.id)).size;
@@ -98,7 +101,15 @@ export function learnerSnapshot({ words = [], assignments = [], homework = [], l
   if (weak.length) signals.push({ tone: 'warning', text: `Tööleht „${weak[0].title}”: ${weak[0].score}% — vaata vead üle.` });
   if (!signals.length && last) signals.push({ tone: 'success', text: 'Õpib järjepidevalt — võib minna uue teemaga edasi.' });
 
+  // presence (presence.forStudent): when the student was last in the CRM and his last „Minu vead” review
+  const seen = !presence ? null : !presence.hasAccount ? { label: 'kontot pole' }
+    : presence.lastSeenAt ? { at: presence.lastSeenAt, label: agoLabel(presence.lastSeenAt, now) } : { label: 'andmeid veel pole' };
+  const practiceDays = (Array.isArray(practice?.days) ? practice.days : []).filter((day) => now - time(`${day}T12:00:00`) <= 30 * DAY).length;
+  const errorsReview = practice?.errorsDate ? { label: agoLabel(time(`${practice.errorsDate}T12:00:00`), now), pct: practice.errorsPct ?? null, days30: practiceDays } : null;
+
   return {
+    seen,
+    errorsReview,
     lastActivity: last ? { at: last.at, label: agoLabel(last.at, now), kind: KIND_LABEL[last.kind] } : null,
     week: { total: week.length, words: practisedWords, sheets: week.filter((item) => item.kind === 'sheet').length, homework: week.filter((item) => item.kind === 'homework').length },
     words: { total: words.length, learned, due, neverPractised, forgotten: forgotten.slice(0, 12).map((word) => ({ id: word.id, word: clean(word.word), translation: clean(word.translation) })) },

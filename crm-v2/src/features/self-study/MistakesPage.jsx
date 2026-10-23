@@ -5,6 +5,7 @@ import { Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { studentsService } from '../../services/firebase/index.js';
 import { studentWordsService } from '../../services/firebase/studentWords.js';
+import { presenceService } from '../../services/firebase/presence.js';
 import { useStudentWords } from '../vocabulary/useStudentWords.js';
 import { buildReview, ownErrors } from './reviewModel.js';
 import { readDone, saveDone } from './reviewStore.js';
@@ -16,7 +17,7 @@ import './selfStudy.css';
  * the student said wrong in lessons (the teacher saves them with „Pärast tundi”, word cards „Sinu lause: …”). A short
  * drill — choose the right sentence, put it together — and the list „you said → right”.
  */
-export default function MistakesPage({ studentRepository = studentsService, wordsService = studentWordsService }) {
+export default function MistakesPage({ studentRepository = studentsService, wordsService = studentWordsService, practiceService = presenceService }) {
   const { user, preview } = useAuth();
   const state = useAsyncData(async () => (preview?.studentId
     ? [await studentRepository.getById(preview.studentId)].filter(Boolean)
@@ -35,12 +36,18 @@ export default function MistakesPage({ studentRepository = studentsService, word
   if (drill) {
     return <div className="page-content">
       <ReviewDrill key={drill.run} title="Minu vead" tasks={drill.tasks}
-        onFinish={(pct) => { if (!preview) setDone(saveDone(user?.uid, 'errors', { date: today, pct })); }}
+        onFinish={(pct) => {
+          if (preview) return;
+          setDone(saveDone(user?.uid, 'errors', { date: today, pct }));
+          // the teacher sees the result too (presence.js); a failed save keeps the result on this device
+          Promise.resolve().then(() => practiceService.savePractice(user?.uid, { date: today, pct })).catch(() => {});
+        }}
         onAgain={start} onClose={() => setDrill(null)} />
     </div>;
   }
 
-  const last = done.errors;
+  const saved = user?.profile?.practice;
+  const last = saved?.errorsDate && saved.errorsDate > (done.errors?.date || '') ? { date: saved.errorsDate, pct: saved.errorsPct } : done.errors;
   return <div className="page-content">
     <PageHeader eyebrow="Minu õpingud" title="Minu vead" description="Laused, mida ütlesid tunnis valesti. Harjuta neid, kuni need tulevad õigesti." />
     {errors.length ? <section className="ss-hero" aria-label="Harjuta vigu">
