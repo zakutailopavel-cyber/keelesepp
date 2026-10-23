@@ -175,3 +175,7 @@
 .word-growth__grid strong { font-size: 1.6rem; line-height: 1.1; color: #101828; }
 .word-growth__grid small { color: #475467; font-size: .8rem; }
 .word-growth__grid small span { display: block; opacity: .8; }
+/* „Tuleta mulle iga päev meelde” (DailyReminder) */
+.vd-reminder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -4px 0 4px; padding: 10px 14px; border: 1px dashed #d0d5dd; border-radius: 14px; color: #475467; font-size: .88rem; }
+.vd-reminder span { flex: 1 1 180px; }
+.vd-reminder select { min-height: 34px; border: 1px solid #d0d5dd; border-radius: 10px; padding: 0 8px; background: #fff; }
