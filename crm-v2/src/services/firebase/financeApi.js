@@ -187,6 +187,15 @@ export const financeApi = {
       requestId: financeRequestId("lesson_billing"),
     });
   },
+  // due date correction with a reason (audited on the server: dueDateHistory + finance audit); staffOperationsApi route
+  correctInvoiceDueDate(invoiceId, due, reason) {
+    return postStaff("/data-quality/invoice-due", {
+      invoiceId,
+      due,
+      reason,
+      requestId: financeRequestId("invoice_due"),
+    });
+  },
   creditInvoiceLessonLine(invoiceId, lessonId, reason) {
     return post("/invoices/credit-lesson-line", {
       invoiceId,

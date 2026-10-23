@@ -44,6 +44,7 @@ import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { currentMonth, defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
+import { canCancelInvoice, invoiceWasSent } from './invoiceActions.js';
 import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
 import PaymentCheckPanel from './PaymentCheckPanel.jsx';
 import DocumentPreviewModal from './DocumentPreviewModal.jsx';
@@ -74,19 +75,6 @@ export function invoiceEmailLine(invoice = {}) {
   if (status === 'queued' && !sentAt) return { text: `Järjekorras ${stamp(invoice.emailQueuedAt || invoice.emailUpdatedAt)}`, tone: 'info' };
   if (sentAt || status === 'sent') return { text: [`Saadetud ${stamp(sentAt || invoice.emailUpdatedAt)}`, reminder].filter(Boolean).join(' · '), tone: 'success', title: invoice.emailRecipient || '' };
   return { text: 'Saatmata', tone: 'neutral' };
-}
-
-const invoiceWasSent = (invoice = {}) => ['sent', 'queued', 'sending'].includes(invoice.emailStatus) || Boolean(invoice.emailSentAt || invoice.invoiceEmailSentAt || invoice.emailQueuedAt);
-
-// an unpaid invoice can be cancelled, also an e-mailed one (wrong address or wrong invoice, owner 2026-10-15) — with a
-// confirmation in the dialog; a credited lesson package is corrected on the package instead
-function canCancelInvoice(invoice) {
-  return ['manual_charge_v1', 'monthly_plan_v1', 'lesson_tokens_v1'].includes(invoice.billingMode) &&
-    !['Tühistatud', 'Makstud'].includes(invoice.status) &&
-    !(invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus === 'credited') &&
-    !invoice.lessonIds?.length && !invoice.lines?.some((line) => line.lessonId) &&
-    !Number(invoice.paidAmountCents || invoice.paidAmount * 100 || 0) &&
-    !Number(invoice.creditedAmountCents || 0);
 }
 
 function CancelInvoiceDialog({ invoice, busy, error, onClose, onSubmit }) {
@@ -324,7 +312,7 @@ export default function FinanceMonthPage({
           </div>; })}
         </div>}
       </Card> : null}
-      {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} /> : null}
+      {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} onCancel={(invoice) => { setError(''); setCancelInvoice(invoice); }} onCorrectDueDate={(invoice, due, reason) => financeRepository.correctInvoiceDueDate(invoice.id, due, reason)} onCreditLessonLine={(invoice, lessonId, reason) => financeRepository.creditInvoiceLessonLine(invoice.id, lessonId, reason)} /> : null}
       </section>
       <PaymentDialog key={paymentInvoice?.id || 'closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
       <CancelInvoiceDialog key={cancelInvoice?.id || 'closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />

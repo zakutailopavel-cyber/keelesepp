@@ -1,3 +1,21 @@
+## 2026-10-23 · agent/finance-debt-actions-v2 — „Muuda” and „Tühista” in the debts list (replaces PR #368)
+
+- Base: main 5f1c015 (2026-10-23). Draft PR to main; supersedes the old PR #368 (left open for the owner to close).
+- Võlgnevused (FinanceDebtsPanel, Finance → Laekumata): each past-month debt has „Muuda” — with a reason of 10+ chars
+  the admin (a) corrects the due date (financeApi.correctInvoiceDueDate → staffOperationsApi `/data-quality/invoice-due`,
+  server keeps dueDateHistory + audit) or (b) credits ONE lesson line as a separate credit note (existing
+  `/invoices/credit-lesson-line`). (b) is disabled with an explanation for invoices without lesson lines (monthly
+  multi-subject invoices) and hides already credited lines (`correctedLessonIds`). Invoice amounts are never overwritten.
+- „Tühista” in the debts list uses main's rule and dialog (PR #640: sent unpaid invoices with a confirmation, lesson
+  tokens); canCancelInvoice + invoiceWasSent moved unchanged from FinanceMonthPage.jsx to finance/invoiceActions.js.
+- financeRows.js: `due` (what the server corrects) now wins over the legacy `dueDate` snapshot (state + sorting).
+- financeDebts.css: at ≤680 px each debt is a card (no sideways scroll at 375 px).
+- Checks: vitest src/features/finance 29 files / 159 passed; full vitest 338 files passed (2330 tests, 3 skipped);
+  eslint on changed files 0 errors (1 old warning); npm run build ok. Mocks only — no production, no deploy.
+- Open owner decisions: full credit of a whole invoice; correcting amount/payer of an issued invoice; which old debts to
+  clear (cancel vs credit) — nothing was changed in data.
+- Next safe step: owner reviews the PR in the preview (Finance → Laekumata) and merges; then close #368.
+
 ## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
 
 - Owner 2026-10-23 (screenshot): the ⋯ button next to the open page did nothing. The menu (rename, give to the
