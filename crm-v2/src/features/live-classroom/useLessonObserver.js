@@ -5,9 +5,10 @@ import { liveTurnService } from '../../services/firebase/liveTurn.js';
 import { callIceServers } from './useLiveCall.js';
 
 // Administrator watching a lesson (owner, 2026-10-14: „именно подключиться”). The 1:1 call between the teacher and
-// the student stays as it is; the observer has one extra receive-only connection to each of them: the observer
-// offers (audio + video, recvonly), the participant answers with their camera and microphone. The observer sends
-// nothing. Both sides see „Administraator vaatab tundi” while the observer's entry is active.
+// the student stays as it is; the observer has one extra connection to each of them: the observer offers, the
+// participant answers with their camera and microphone. Watching, the observer sends nothing (recvonly); „Räägi kaasa”
+// (owner 2026-10-23: „как будто групповой созвон”) offers again with the observer's microphone and camera, and the
+// teacher and the student hear and see the observer. Both sides see „Administraator vaatab tundi”.
 
 const OLD_SIGNAL_MS = 2 * 60 * 1000;
 // the observer page renews its entry; a closed tab stops renewing and the badge goes away by itself
@@ -35,6 +36,8 @@ export function useObserverPeers({
   service = liveLessonObserversService, turnService = liveTurnService, peerFactory = defaultPeerFactory,
 }) {
   const [entries, setEntries] = useState([]);
+  // what a speaking observer sends (uid → MediaStream); nothing while the observer only watches
+  const [observerStreams, setObserverStreams] = useState({});
   const [now, setNow] = useState(() => Date.now());
   const observers = liveObservers(entries, now);
   const peersRef = useRef(new Map());
@@ -48,6 +51,7 @@ export function useObserverPeers({
   const close = useCallback((observerUid) => {
     const entry = peersRef.current.get(observerUid);
     if (entry) { try { entry.pc?.close(); } catch { /* closed */ } peersRef.current.delete(observerUid); }
+    setObserverStreams((current) => { if (!(observerUid in current)) return current; const next = { ...current }; delete next[observerUid]; return next; });
   }, []);
 
   const answer = useCallback(async (signal) => {
@@ -66,6 +70,12 @@ export function useObserverPeers({
     entry.pc = pc;
     const send = (type, payload) => service.sendSignal(invitationId, { type, sessionId: signal.sessionId, observerUid: signal.observerUid, fromUid: me, toUid: signal.observerUid, payload }).catch(() => {});
     pc.onicecandidate = (event) => { if (event.candidate) send('candidate', event.candidate.toJSON ? event.candidate.toJSON() : event.candidate); };
+    // a speaking observer's microphone and camera: kept until this connection closes
+    pc.ontrack = (event) => {
+      if (peersRef.current.get(signal.observerUid) !== entry) return;
+      const stream = event.streams?.[0] || new globalThis.MediaStream([event.track]);
+      setObserverStreams((current) => ({ ...current, [signal.observerUid]: stream }));
+    };
     await pc.setRemoteDescription(parse(signal));
     stream.getTracks().forEach((track) => pc.addTrack(track, stream));
     const local = await pc.createAnswer();
@@ -128,13 +138,15 @@ export function useObserverPeers({
     [...peersRef.current.keys()].filter((uid) => !active.has(uid)).forEach(close);
   }, [activeKey, close]);
 
-  return { observers };
+  return { observers, streams: observerStreams };
 }
 
 // Administrator's side: one receive-only connection to the teacher and one to the student.
 export function useObserveLesson({
-  invitation, user, service = liveLessonObserversService, turnService = liveTurnService, peerFactory = defaultPeerFactory,
+  invitation, user, localStream = null, service = liveLessonObserversService, turnService = liveTurnService, peerFactory = defaultPeerFactory,
 }) {
+  const localRef = useRef(localStream);
+  useEffect(() => { localRef.current = localStream; }, [localStream]);
   const [streams, setStreams] = useState({});
   const [states, setStates] = useState({});
   const [error, setError] = useState('');
@@ -153,8 +165,13 @@ export function useObserveLesson({
     const entry = { pc, sessionId, candidates: [], startedAt: Date.now() };
     peersRef.current.set(target, entry);
     const send = (type, payload) => service.sendSignal(invitationId, { type, sessionId, observerUid: me, fromUid: me, toUid: target, payload });
-    pc.addTransceiver('audio', { direction: 'recvonly' });
-    pc.addTransceiver('video', { direction: 'recvonly' });
+    // watching: receive only; speaking: the observer's own microphone and camera go both ways
+    const own = localRef.current;
+    ['audio', 'video'].forEach((kind) => {
+      const track = own?.getTracks().find((item) => item.kind === kind);
+      if (track) pc.addTransceiver(track, { direction: 'sendrecv', streams: [own] });
+      else pc.addTransceiver(kind, { direction: 'recvonly' });
+    });
     pc.ontrack = (event) => {
       const stream = event.streams?.[0] || new globalThis.MediaStream([event.track]);
       setStreams((current) => ({ ...current, [target]: stream }));
@@ -217,6 +234,20 @@ export function useObserveLesson({
     // once per room and target pair: a new user object or callback must not reconnect the call
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, invitationId, me, targetKey]);
+
+  // „Räägi kaasa” on or off: offer again to both, now with (or without) the observer's microphone and camera
+  const speakingKey = localStream?.id || '';
+  const firstSpeak = useRef(true);
+  useEffect(() => {
+    if (firstSpeak.current) { firstSpeak.current = false; return; }
+    if (!open || !invitationId || !me) return;
+    targetKey.split('|').filter(Boolean).forEach((target) => {
+      const previous = peersRef.current.get(target);
+      if (previous) service.sendSignal(invitationId, { type: 'hangup', sessionId: previous.sessionId, observerUid: me, fromUid: me, toUid: target, payload: {} }).catch(() => {});
+      connect(target).catch((nextError) => setError(nextError?.message || 'Ühendust ei saanud luua.'));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speakingKey]);
 
   return { streams, states, error };
 }

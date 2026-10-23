@@ -17,6 +17,7 @@ import { transcriberLabel, useTranscriberStatus } from '../lesson-recording/tran
 import { timestampMillis } from './invitationModel.js';
 import { useLiveCall } from './useLiveCall.js';
 import { useObserverPeers } from './useLessonObserver.js';
+import ObserverMedia from './ObserverMedia.jsx';
 import { studentBoardService } from '../../services/firebase/studentBoard.js';
 import { homeworkService as firebaseHomework } from '../../services/firebase/homework.js';
 import MaterialsPanel from './MaterialsPanel.jsx';
@@ -418,6 +419,8 @@ export default function LiveRoom({
             {!call.hasLocalMedia ? <span className="lr-tile__avatar" aria-hidden="true">{initial(user.displayName)}</span> : null}
             <figcaption><span>Sina{call.screenSharing ? ' · ekraan' : ''}{call.audioOnly ? ' · ainult heli' : ''}</span></figcaption>
           </figure>
+          {/* a speaking administrator („Räägi kaasa”): heard always, seen while the video is shown */}
+          <ObserverMedia observers={watching.observers} streams={watching.streams || {}} showVideo={!videoHidden} />
 
           {panel === 'chat' ? <Drawer title="Vestlus" onClose={() => setPanel('')}><ChatPanel invitation={invitation} user={user} repository={messagesRepository} messages={messages} error={chatError} /></Drawer> : null}
           {panel === 'people' ? <Drawer title="Osalejad" onClose={() => setPanel('')}>

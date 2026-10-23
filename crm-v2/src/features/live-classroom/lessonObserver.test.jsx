@@ -77,3 +77,67 @@ describe('participant answering an observer', () => {
     await vi.waitFor(() => expect(added).toEqual(['relay-1', 'host-2']));
   });
 });
+
+describe('„Räägi kaasa”: the administrator speaks in the lesson', () => {
+  const track = (kind) => ({ kind, enabled: true, stop: vi.fn() });
+  const ownStream = (kinds) => { const tracks = kinds.map(track); return { id: `own-${kinds.join('')}`, getTracks: () => tracks, getAudioTracks: () => tracks.filter((t) => t.kind === 'audio'), getVideoTracks: () => tracks.filter((t) => t.kind === 'video') }; };
+
+  it('watching offers receive-only; speaking offers again to both with the microphone and camera', async () => {
+    const { renderHook } = await import('@testing-library/react');
+    const { useObserveLesson } = await import('./useLessonObserver.js');
+    const peers = [];
+    const peerFactory = () => { const pc = { transceivers: [], addTransceiver(what, options) { this.transceivers.push([typeof what === 'string' ? what : what.kind, options.direction]); }, async createOffer() { return { type: 'offer', sdp: 'o' }; }, async setLocalDescription() {}, close: vi.fn() }; peers.push(pc); return pc; };
+    const sent = [];
+    const service = { setPresence: vi.fn(async () => {}), subscribeSignals: () => () => {}, sendSignal: vi.fn(async (id, signal) => { sent.push(signal); }) };
+    const invitation = { id: 'inv', status: 'accepted', teacherUid: 't', studentUid: 's' };
+    const { rerender, unmount } = renderHook(({ localStream }) => useObserveLesson({ invitation, user: { uid: 'adm', displayName: 'Pavel' }, localStream, service, turnService: { iceServers: async () => ({ iceServers: [] }) }, peerFactory }), { initialProps: { localStream: null } });
+    await vi.waitFor(() => expect(peers).toHaveLength(2));
+    expect(peers[0].transceivers).toEqual([['audio', 'recvonly'], ['video', 'recvonly']]);
+    rerender({ localStream: ownStream(['audio', 'video']) });
+    await vi.waitFor(() => expect(peers).toHaveLength(4));
+    expect(peers[2].transceivers).toEqual([['audio', 'sendrecv'], ['video', 'sendrecv']]);
+    expect(sent.filter((item) => item.type === 'hangup').map((item) => item.toUid).sort()).toEqual(['s', 't']);
+    rerender({ localStream: ownStream(['audio']) });
+    await vi.waitFor(() => expect(peers).toHaveLength(6));
+    expect(peers[4].transceivers).toEqual([['audio', 'sendrecv'], ['video', 'recvonly']]);
+    unmount();
+  });
+
+  it('the teacher hears the speaking administrator; the stream goes away with the connection', async () => {
+    const { renderHook } = await import('@testing-library/react');
+    const { useObserverPeers } = await import('./useLessonObserver.js');
+    let onSignal = () => {};
+    const service = {
+      subscribeObservers: (id, onChange) => { onChange([{ uid: 'adm', active: true, lastSeenIso: new Date().toISOString() }]); return () => {}; },
+      subscribeSignals: (id, uid, listener) => { onSignal = listener; return () => {}; },
+      sendSignal: vi.fn(async () => {}),
+    };
+    let pc;
+    const peerFactory = () => { pc = { remoteDescription: null, async setRemoteDescription(d) { this.remoteDescription = d; }, addTrack() {}, getSenders: () => [], async createAnswer() { return { type: 'answer', sdp: 'a' }; }, async setLocalDescription() {}, async addIceCandidate() {}, close() {} }; return pc; };
+    const turnService = { iceServers: async () => ({ iceServers: [] }) };
+    const localStream = { getTracks: () => [] };
+    const user = { uid: 'teach' };
+    const { result } = renderHook(() => useObserverPeers({ invitationId: 'inv', user, localStream, service, turnService, peerFactory }));
+    const base = { sessionId: 's1', observerUid: 'adm', fromUid: 'adm', toUid: 'teach', createdAtIso: new Date().toISOString() };
+    await act(async () => { onSignal({ ...base, type: 'offer', payload: JSON.stringify({ type: 'offer', sdp: 'o' }) }); });
+    await vi.waitFor(() => expect(pc?.ontrack).toBeTypeOf('function'));
+    const voice = { id: 'adm-voice' };
+    act(() => { pc.ontrack({ streams: [voice], track: { kind: 'audio' } }); });
+    expect(result.current.streams.adm).toBe(voice);
+    await act(async () => { onSignal({ ...base, type: 'hangup', payload: '{}' }); });
+    expect(result.current.streams.adm).toBeUndefined();
+  });
+
+  it('plays the administrator in the room; a watching administrator adds nothing', async () => {
+    const { default: ObserverMedia } = await import('./ObserverMedia.jsx');
+    const stream = { getVideoTracks: () => [{ kind: 'video' }] };
+    const { container, rerender } = render(<ObserverMedia observers={[{ uid: 'adm', displayName: 'Pavel' }]} streams={{}} />);
+    expect(container.textContent).toBe('');
+    rerender(<ObserverMedia observers={[{ uid: 'adm', displayName: 'Pavel' }]} streams={{ adm: stream }} />);
+    expect(screen.getByTestId('observer-audio')).toBeInTheDocument();
+    expect(screen.getByText('Pavel')).toBeInTheDocument();
+    rerender(<ObserverMedia observers={[{ uid: 'adm', displayName: 'Pavel' }]} streams={{ adm: stream }} showVideo={false} />);
+    expect(screen.queryByText('Pavel')).toBeNull();
+    expect(screen.getByTestId('observer-audio')).toBeInTheDocument();
+  });
+});

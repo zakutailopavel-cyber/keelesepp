@@ -1,3 +1,17 @@
+## 2026-10-23 · agent/observer-speak — „Räägi kaasa”: the administrator joins the lesson call and speaks
+
+- Owner 2026-10-23: „чтобы я мог зайти на урок к учителю и что то говорить тоже, как будто групповой созвон”.
+- The observer („Vaata tundi”) already had one connection to the teacher and one to the student (receive-only). Now
+  LiveObserverPage has „Räägi kaasa”: the admin's microphone (and camera if there is one) is opened and both
+  connections are offered again with sendrecv tracks (useObserveLesson `localStream`); mute button, „Ainult vaatan”
+  goes back to watching. The participant side (useObserverPeers) keeps the observer's tracks (`streams`); LiveRoom plays
+  them (ObserverMedia: audio always, a small tile while the video is shown). Teacher ↔ student stays the 1:1 call.
+- No rules change: observerSignals already carry any SDP.
+- Files: live-classroom/useLessonObserver.js, LiveObserverPage.jsx, ObserverMedia.jsx, LiveRoom.jsx, liveRoom.css,
+  lessonObserver.test.jsx.
+- Checks: verify (eslint errors 0, vitest 2309 passed, 0 failed). Not tested live with three real devices yet.
+- Limit: works only when the lesson runs on the CRM call; a lesson held in Google Meet has no CRM video to join.
+
 ## 2026-10-23 · agent/board-past-sheets — HOTFIX: worksheet pages of earlier lessons were empty
 
 - Owner 2026-10-23 (screenshots, Arseni): every „Tööleht: …” page on the board showed „Tühi tahvel”. Cause: a sheet is
