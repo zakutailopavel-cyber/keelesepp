@@ -1,3 +1,11 @@
+## 2026-10-23 · published: v4 courses in Õppevara (production)
+
+- After #764: 585 sheets published (B1 modules 2–18, B2 modules 1–18, A2 modules 1–4); second dry run: all same.
+- After #766: A2 modules 1–8 — 108 sheets published, 12 already the same; second dry run: all 120 same.
+- Publish script: manual CRM edits are skipped (none found), old versions stay in `worksheetVersions`.
+- Owner stopped the goal („стоп цель”). Not done: A2 modules 9–20, C1 modules 1–10, the v4 pass of the exam lessons,
+  art briefs for the new storylines (`docs/COURSE_REVIEW_LOG.md`).
+
 ## 2026-10-23 · agent/a2-c1-v4 — A2 modules 5–8 in template v4, A2 lesson goals 1–4
 
 - A2 modules 5 (city), 6 (food), 7 (shopping; numbers in cases), 8 (services; impersonal present) rewritten in v4;
