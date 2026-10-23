@@ -131,7 +131,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     return (
       <div className="ws-studio ws-live is-embedded is-board">
         <div className="st-canvas" ref={fitRef}>
-          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks} words={words}>
+          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks} words={words} analysis={{ level: doc?.meta?.level || 'A2' }}>
             <div className="st-zoom" style={{ zoom: scale }}>
               {sheet}
             </div>
@@ -163,7 +163,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
       {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
       <div className="st-body ws-live-body">
         <main className="st-canvas" ref={fitRef}>
-          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks} words={words}>
+          <SheetAnnotations annotations={assignment.annotations || []} editable={!editing} onChange={saveMarks} words={words} analysis={{ level: doc?.meta?.level || 'A2' }}>
             <div className="st-zoom" style={{ zoom: scale }}>
               {sheet}
             </div>

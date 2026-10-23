@@ -238,7 +238,7 @@ export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, anno
   return <div className="ws-studio ws-doc-player">
     {editable ? <p className="sa-hint">Vali ülesandes tekst või klõpsa õpilase vastusel, et lisada viga või märkus.</p> : null}
     <div className="st-canvas" ref={fitRef}>
-      <SheetAnnotations annotations={annotations} editable={editable} onChange={onAnnotationsChange}>
+      <SheetAnnotations annotations={annotations} editable={editable} onChange={onAnnotationsChange} analysis={editable ? { level: worksheetDoc?.meta?.level || 'A2' } : null}>
         <div className="st-zoom" style={{ zoom: scale }}>
           <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} />
         </div>

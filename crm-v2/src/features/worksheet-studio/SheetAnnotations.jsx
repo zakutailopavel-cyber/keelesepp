@@ -3,6 +3,7 @@ import { BookmarkPlus, Check, Loader2, MessageCircleWarning, StickyNote, Trash2,
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { HIGHLIGHT, fieldTextRects, fieldsOf, isSheetAnnotation, offsetsOf, rangeOf } from './sheetAnnotationsModel.js';
 import { singleWord, correctedAnswer } from './annotationWords.js';
+import TextAnalysisPane, { ANALYSIS_MIN_WORDS, wordCount } from './TextAnalysisPane.jsx';
 import './sheetAnnotations.css';
 
 const nextFrame = (fn) => (globalThis.requestAnimationFrame ? globalThis.requestAnimationFrame(fn) : setTimeout(fn, 16));
@@ -18,7 +19,8 @@ const cancelFrame = (id) => (globalThis.cancelAnimationFrame ? globalThis.cancel
 //     parandus, selgitus, createdAt }
 
 // words (optional, Live Classroom): { lookup(word) → { word, translation, forms: [3] }, add(card), addError({ said, corrected }) }
-export default function SheetAnnotations({ annotations = [], editable = false, onChange, words = null, children }) {
+// analysis (optional, Live Classroom): { level } — „Analüüs” checks a selected student text of 5+ words (TextAnalysisPane)
+export default function SheetAnnotations({ annotations = [], editable = false, onChange, words = null, analysis = null, children }) {
   const wrapRef = useRef(null);
   const justPicked = useRef(false);
   const [marks, setMarks] = useState([]);
@@ -28,6 +30,9 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
   const [error, setError] = useState('');
   // stable while the marks are the same (callers often pass a fresh [] each render)
   const listKey = JSON.stringify(annotations.filter(isSheetAnnotation));
+  // several marks from one analysis are added one after another, before the new list comes back from the database
+  const latest = useRef(annotations);
+  useEffect(() => { latest.current = annotations; }, [annotations]);
   const list = useMemo(() => JSON.parse(listKey), [listKey]);
 
   const layout = useCallback(() => {
@@ -125,6 +130,7 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
   // „Sõna”: looked up once per picked word
   const [word, setWord] = useState(null);
   const picked = draft && words ? singleWord(draft.selectedText) : '';
+  const canAnalyse = Boolean(analysis && draft && wordCount(draft.selectedText) >= ANALYSIS_MIN_WORDS);
   useEffect(() => {
     if (!picked || draft?.color !== 'word') return undefined;
     let alive = true;
@@ -154,6 +160,19 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
       setDraft(null);
       globalThis.getSelection?.()?.removeAllRanges();
     } catch (caught) { setError(caught.message || 'Salvestamine ebaõnnestus.'); } finally { setSaving(false); }
+  };
+  // one correction of „Analüüs” → a „Viga” on its own words (the whole selection when they cannot be found)
+  const markCorrection = async (correction) => {
+    const said = String(correction?.said || '');
+    const found = said ? draft.selectedText.indexOf(said) : -1;
+    const start = draft.start + (found >= 0 ? found : 0);
+    const end = found >= 0 ? start + said.length : draft.end;
+    const { at, value, toErrors, ...rest } = draft; // eslint-disable-line no-unused-vars
+    const mark = { ...rest, start, end, selectedText: found >= 0 ? said : draft.selectedText, color: 'error', parandus: String(correction.corrected || ''), selgitus: '', id: `a${Date.now()}${Math.random().toString(36).slice(2, 6)}`, createdAt: new Date().toISOString() };
+    const next = [...latest.current, mark];
+    await onChange(next);
+    latest.current = next;
+    if (words?.addError && draft.toErrors !== false && said && correction.corrected) await words.addError({ said: said.trim(), corrected: String(correction.corrected).trim() });
   };
   const remove = async (id) => {
     setSaving(true);
@@ -189,8 +208,12 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
             <button type="button" aria-pressed={draft.color === 'error'} className={draft.color === 'error' ? 'on is-error' : ''} onClick={() => setDraft({ ...draft, color: 'error' })}>Viga</button>
             <button type="button" aria-pressed={draft.color === 'note'} className={draft.color === 'note' ? 'on is-note' : ''} onClick={() => setDraft({ ...draft, color: 'note' })}>Märkus</button>
             {picked ? <button type="button" aria-pressed={draft.color === 'word'} className={draft.color === 'word' ? 'on is-word' : ''} onClick={() => setDraft({ ...draft, color: 'word' })}>Sõna</button> : null}
+            {canAnalyse ? <button type="button" aria-pressed={draft.color === 'analysis'} className={draft.color === 'analysis' ? 'on is-analysis' : ''} onClick={() => setDraft({ ...draft, color: 'analysis' })}>Analüüs</button> : null}
           </div>
-          {draft.color === 'word' ? <div className="sa-word-card" aria-live="polite">
+          {draft.color === 'analysis' ? <>
+            <TextAnalysisPane text={draft.selectedText} level={analysis?.level || 'A2'} onMark={markCorrection} />
+            {words?.addError ? <label className="sa-check"><input type="checkbox" checked={draft.toErrors !== false} onChange={(e) => setDraft({ ...draft, toErrors: e.target.checked })} /> Lisa vead õpilase „Minu vigadesse”</label> : null}
+          </> : draft.color === 'word' ? <div className="sa-word-card" aria-live="polite">
             {word?.loading ? <p className="sa-muted"><Loader2 size={14} className="spin" aria-hidden="true" /> Otsin vorme ja tõlget…</p> : null}
             {word && !word.loading ? <>
               <p className="sa-headword"><b>{word.word || picked}</b>{word.word && word.word !== picked ? <span> ← {picked}</span> : null}</p>
@@ -204,8 +227,8 @@ export default function SheetAnnotations({ annotations = [], editable = false, o
             {words?.addError && draft.kind === 'field' && draft.color === 'error' ? <label className="sa-check"><input type="checkbox" checked={draft.toErrors !== false} onChange={(e) => setDraft({ ...draft, toErrors: e.target.checked })} /> Lisa õpilase „Minu vigadesse”</label> : null}
           </>}
           {error ? <p className="sa-error" role="alert">{error}</p> : null}
-          <div className="sa-actions"><button type="button" onClick={() => { setDraft(null); setWord(null); }}>{word?.saved ? 'Sulge' : 'Loobu'}</button>
-            {draft.color === 'word'
+          <div className="sa-actions"><button type="button" onClick={() => { setDraft(null); setWord(null); }}>{word?.saved || draft.color === 'analysis' ? 'Sulge' : 'Loobu'}</button>
+            {draft.color === 'analysis' ? null : draft.color === 'word'
               ? <button type="button" className="primary" disabled={saving || !word || word.loading || word.saved} onClick={addWord}>{word?.saved ? <><Check size={14} aria-hidden="true" /> {word.already ? 'Juba sõnavaras' : 'Lisatud'}</> : <><BookmarkPlus size={14} aria-hidden="true" /> Lisa õpilase sõnadesse</>}</button>
               : <button type="button" className="primary" disabled={saving} onClick={save}>Lisa märkus</button>}
           </div>
