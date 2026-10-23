@@ -1,3 +1,11 @@
+## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
+
+- Owner 2026-10-23 (screenshot): the ⋯ button next to the open page did nothing. The menu (rename, give to the
+  student, delete) is rendered into document.body (85a9587, 20.10) with z-index 50, under the full-screen lesson room
+  and workspace (.lr, z-index 1300). board.css: .sb-page-menu z-index 1400 (the word card 1450 and the sentence dialog
+  1500 were already above the room).
+- Checks: verify (eslint errors 0, vitest all passed).
+
 ## 2026-10-23 · agent/sheet-text-analysis — „Analüüs” in the mark composer of a worksheet
 
 - Owner 2026-10-23 (screenshot of the live lesson, a letter selected on the sheet): „тут тоже должна быть функция
