@@ -9,6 +9,20 @@
 - Checks: verify (eslint errors 0, vitest 2276 passed, 0 failed).
 - Not done: the teacher's „last login” needs a `lastSeenAt` self-write allowed in firestore.rules (a rules deploy —
   waits for the owner's yes). Until then the teacher sees „last practised” in „Õpilase pilt”.
+## 2026-10-23 · agent/auto-mark-lesson — „Märkimata tunnid”: past lessons without a journal mark on the dashboard
+
+- Why: progress, retention, month steps and the parent report read the lesson journal; a production read (2026-10-23,
+  read-only) found 71 past calendar lessons of the last 14 days with no journal record (66 events, most of them one
+  teacher's one-off lessons). Live Classroom lessons started from the calendar were already marked via the handoff.
+- calendar/unmarkedLessons.js: individual (not group) calendar lessons of the last 14 days still „Planeeritud” with no
+  journal record (matched by scheduleId+date or studentId+date), teacher-scoped for teachers.
+- calendar/UnmarkedLessonsCard.jsx on the dashboard (above the agenda, hidden when nothing is unmarked): „Toimunud”
+  in one click (lessonsService.completeFromSchedule — the same write as the calendar, with activityLog), „Muu…” opens
+  the lesson in the calendar for absences (their billing choice stays there).
+- Files: calendar/unmarkedLessons.js (+test), calendar/UnmarkedLessonsCard.jsx (+test), retention/retention.css,
+  dashboard/DashboardPage.jsx. No rules, functions or data changes.
+- Checks: verify (eslint errors 0, vitest 2277 passed, 0 failed).
+- Next: a student daily reminder for „Päeva 5 minutit” and the teacher's „last seen”.
 
 ## 2026-10-23 · agent/self-study-course — „Minu kursus” for students (self-study cards open the sheets themselves)
 
