@@ -12,9 +12,40 @@
 - financeDebts.css: at ≤680 px each debt is a card (no sideways scroll at 375 px).
 - Checks: vitest src/features/finance 29 files / 159 passed; full vitest 338 files passed (2330 tests, 3 skipped);
   eslint on changed files 0 errors (1 old warning); npm run build ok. Mocks only — no production, no deploy.
-- Open owner decisions: full credit of a whole invoice; correcting amount/payer of an issued invoice; which old debts to
-  clear (cancel vs credit) — nothing was changed in data.
-- Next safe step: owner reviews the PR in the preview (Finance → Laekumata) and merges; then close #368.
+- Owner decisions 2026-10-23 (both YES) built in the same PR — an issued invoice is never overwritten:
+  - „Krediteeri kogu arve”: financeApi `/invoices/credit-full` (admins; `creditInvoiceInFull` in functions/index.js) →
+    one credit note (`creditNotes/{requestId}`, `kind: full_credit`, KN number) for the open amount (original −
+    earlier lesson-line credits); invoice keeps `amount`/`amountCents`, gets `creditedAmountCents = original`,
+    `effectiveAmountCents/balanceDueCents 0`, `status: Krediteeritud`, `correctionStatus: fully_credited`,
+    `fullCreditNoteId`; still-billed lessons → `billingStatus: credited`; pending package invoice → `tokenStatus:
+    voided` (`creditBlocker` now refuses voided/credited invoices). Audit `invoice.fully_credited`.
+  - „Paranda summa või maksja”: `/invoices/correct` (`correctIssuedInvoice`) in ONE transaction: the same full
+    credit note (`kind: correction`) + new invoice `invoices/correction_{requestId}` with the next KS number, same
+    lines/subject/student, corrected payer (`payerName/Email/RegCode/Address`) and/or amount (an extra
+    `amount_correction` line with the difference), fresh payment/e-mail state, due = given date or today;
+    `correctionOf` on the new invoice, `correctedBy` + `correctionStatus: corrected` on the old one; lessons move
+    to the new invoice (`previousInvoiceIds`). Audits `invoice.corrected_credit` + `invoice.created_correction`.
+  - Refusals (409): cancelled, already fully credited or corrected, any active payment (void/refund first), package
+    lessons already on the card; amount change of a lesson-linked invoice (credit the line instead). Reason ≥ 10
+    chars (400). Idempotent by requestId (same payload → 200 `idempotent: true`, other payload → 409).
+  - Works for old debts that „Tühista” cannot close (no `billingMode`, euros only, `lessonIds` without lesson lines,
+    partially credited, failed e-mail — e.g. KS-2026-004/-030/-049/-050); old lessons without `billingStatus`
+    are credited too. Only today's date must be in an open period (the credit note is dated today).
+  - Pure rules: functions/invoice-correction-core.js (+ test). Bookkeeping needs no new code: the next
+    `/accounting/sync` books the credit note (3060 → 1200) and the new invoice (1200 → 3060).
+  - UI: „Muuda” dialog of Võlgnevused → section „Kogu arve parandamine” with both buttons (or the reason why not)
+    → InvoiceCorrectionDialog.jsx (shows what will be created, reason, confirmation checkbox); the same two buttons
+    in the old invoice detail (FinancePage, /finance/vana). financeApi: `creditInvoiceInFull`, `correctIssuedInvoice`.
+    No Firestore rules change (server-only writes, admin check in financeApi).
+- Checks (2026-10-23, after the corrections): functions `npm test` 341/341; emulator `npm run test:emulator`
+  (auth+firestore+functions, demo project, Java 21) 92/92 incl. the new route test; crm-v2 vitest 338 files /
+  2339 passed, 3 skipped; eslint on changed crm-v2 files 0 errors (1 old warning); `npm run build` ok.
+- Deploy needed: A and B work only after `firebase deploy --only functions:financeApi` (owner's decision); the
+  UI shows the buttons before that but the calls would fail with 404. No production data was touched.
+- Open: which old debts to clear is the owner's call in the UI after deploy (nothing changed in data); a monthly
+  invoice credited in full (A) still counts as that month's invoice for „Koosta kuuarve” — use B to reissue.
+- Next safe step: owner reviews the PR preview (Finance → Laekumata → Muuda), merges, deploys financeApi; then
+  credits the old debts one by one with a reason; close #368.
 
 ## 2026-10-23 · agent/page-menu-fix — the board page ⋯ menu was hidden under the lesson room
 

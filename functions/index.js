@@ -39,6 +39,7 @@ const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const { DEFAULT_ACCOUNTS } = require("./accounting-chart");
 const accountingCore = require("./accounting-core");
+const invoiceCorrectionCore = require("./invoice-correction-core");
 const inf3Core = require("./inf3-core");
 const {
   classifyAccountIntegrity,
@@ -2672,6 +2673,245 @@ async function createInvoiceLessonCreditNote({
         status: isFullyCredited ? "Krediteeritud" : financialPatch.status,
         paymentStatus: isFullyCredited ? "credited" : financialPatch.paymentStatus,
       },
+      idempotent: false,
+    };
+  });
+}
+
+// „Krediteeri kogu arve” and „Paranda summa või maksja” (owner decisions 2026-10-23, functions/invoice-correction-core.js):
+// the issued invoice is never overwritten; one credit note for the whole open amount, and for a correction a new
+// invoice with the corrected amount and/or payer. Both are idempotent by requestId.
+const invoiceCorrectionSignature = (payload) => crypto.createHash("sha256").update(JSON.stringify(payload)).digest("hex");
+
+function correctionIssuer() {
+  return { company: PAYMENT_DETAILS.company, regCode: PAYMENT_DETAILS.regCode, email: PAYMENT_DETAILS.email };
+}
+
+// reads the invoice, its payments and its still invoiced lessons; refuses what cannot be credited in full
+async function readInvoiceForFullCredit(transaction, invoiceId) {
+  const invoiceRef = db.collection("invoices").doc(invoiceId);
+  const [invoiceSnap, payments] = await Promise.all([
+    transaction.get(invoiceRef),
+    activeInvoicePayments(transaction, invoiceId),
+  ]);
+  if (!invoiceSnap.exists) throw httpError(404, "Arvet ei leitud.");
+  const invoice = invoiceSnap.data();
+  const blocked = invoiceCorrectionCore.fullCreditError(invoice, payments);
+  if (blocked) throw httpError(409, blocked);
+  const lessonIds = invoiceCorrectionCore.activeLessonIds(invoice);
+  const lessonSnaps = await Promise.all(lessonIds.map(id => transaction.get(db.collection("lessons").doc(id))));
+  // only lessons that this invoice still bills move (a lesson re-billed elsewhere or already credited is left alone;
+  // an old lesson may have no billingStatus)
+  const lessons = lessonSnaps.filter(snap => snap.exists && snap.data().invoiceId === invoiceId && ["invoiced", ""].includes(String(snap.data().billingStatus || "")));
+  return { invoiceRef, invoice, lessons };
+}
+
+async function creditInvoiceInFull({ actor, invoiceId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanInvoiceId = cleanText(invoiceId, 160);
+  if (!cleanInvoiceId) throw httpError(400, "invoiceId required");
+  let cleanReasonText;
+  try { cleanReasonText = invoiceCorrectionCore.cleanReason(reason); } catch (error) { throw httpError(error.status || 400, error.message); }
+  const signature = invoiceCorrectionSignature({ kind: "full_credit", invoiceId: cleanInvoiceId, reason: cleanReasonText });
+  const creditNoteRef = db.collection("creditNotes").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const counterRef = db.collection("meta").doc("creditNoteCounter");
+  const nowIso = new Date().toISOString();
+  const todayIso = appToday(nowIso);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const existing = await transaction.get(creditNoteRef);
+    if (existing.exists) {
+      if (existing.data().signature !== signature) throw httpError(409, "requestId already used for a different credit note");
+      return { creditNote: { id: existing.id, ...existing.data() }, idempotent: true };
+    }
+    const counterSnap = await transaction.get(counterRef);
+    const { invoiceRef, invoice, lessons } = await readInvoiceForFullCredit(transaction, cleanInvoiceId);
+    // the credit note is dated today: a closed earlier month stays untouched (old debts of closed months can be credited)
+    await assertFinancialDateOpen(transaction, todayIso);
+
+    const nextSequence = (Number(counterSnap.data()?.seq) || 0) + 1;
+    const creditNoteNum = `KN-${todayIso.slice(0, 4)}-${String(nextSequence).padStart(3, "0")}`;
+    const creditNote = invoiceCorrectionCore.fullCreditNoteRecord({
+      invoice, invoiceId: cleanInvoiceId, creditNoteNum, todayIso, nowIso, reason: cleanReasonText,
+      actor: actorData, requestId: mutationId, signature, issuer: correctionIssuer(),
+    });
+    const invoicePatch = invoiceCorrectionCore.invoiceAfterFullCredit(invoice, { creditNoteId: mutationId, creditNoteNum, amountCents: creditNote.amountCents, reason: cleanReasonText, nowIso });
+    const { correction, ...patch } = invoicePatch;
+    transaction.create(creditNoteRef, creditNote);
+    transaction.set(counterRef, { seq: nextSequence, updatedAt: nowIso }, { merge: true });
+    transaction.set(invoiceRef, {
+      ...patch,
+      creditNoteIds: FieldValue.arrayUnion(mutationId),
+      corrections: FieldValue.arrayUnion(correction),
+      paidAt: FieldValue.delete(),
+    }, { merge: true });
+    lessons.forEach(snap => transaction.set(snap.ref, {
+      billingStatus: "credited",
+      creditNoteId: mutationId,
+      creditNoteNum,
+      creditedAt: nowIso,
+      creditReason: cleanReasonText,
+      billingUpdatedAt: nowIso,
+      billingUpdatedBy: actorData,
+    }, { merge: true }));
+    transaction.create(auditRef, {
+      entityType: "creditNote",
+      entityId: mutationId,
+      action: "invoice.fully_credited",
+      creditNoteId: mutationId,
+      creditNoteNum,
+      invoiceId: cleanInvoiceId,
+      invoiceNum: invoice.num || "",
+      amountCents: creditNote.amountCents,
+      amount: creditNote.amount,
+      lessonIds: lessons.map(snap => snap.id),
+      before: { status: invoice.status || "", effectiveAmountCents: invoiceCorrectionCore.openCreditCents(invoice), tokenStatus: invoice.tokenStatus || "" },
+      after: { status: patch.status, effectiveAmountCents: 0, tokenStatus: patch.tokenStatus || invoice.tokenStatus || "" },
+      actor: actorData,
+      reason: cleanReasonText,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { creditNote: { id: mutationId, ...creditNote }, invoice: { id: cleanInvoiceId, ...invoice, ...patch }, idempotent: false };
+  });
+}
+
+async function correctIssuedInvoice({ actor, invoiceId, amount, amountCents, payer, due, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  if (mutationId.length > 100) throw httpError(400, "Valid requestId required");
+  const cleanInvoiceId = cleanText(invoiceId, 160);
+  if (!cleanInvoiceId) throw httpError(400, "invoiceId required");
+  const rawPayer = payer && typeof payer === "object" ? payer : {};
+  const signature = invoiceCorrectionSignature({
+    kind: "correction", invoiceId: cleanInvoiceId, amount: amount ?? null, amountCents: amountCents ?? null,
+    payer: Object.fromEntries(["payerName", "payerEmail", "payerRegCode", "payerAddress"].map(field => [field, rawPayer[field] ?? null])),
+    due: due || "", reason: String(reason || "").replace(/\s+/g, " ").trim(),
+  });
+  const newInvoiceId = `correction_${mutationId}`;
+  const creditNoteRef = db.collection("creditNotes").doc(mutationId);
+  const newInvoiceRef = db.collection("invoices").doc(newInvoiceId);
+  const creditAuditRef = db.collection("financialAudit").doc(mutationId);
+  const invoiceAuditRef = db.collection("financialAudit").doc(newInvoiceId);
+  const creditCounterRef = db.collection("meta").doc("creditNoteCounter");
+  const invoiceCounterRef = db.collection("meta").doc("invoiceCounter");
+  const nowIso = new Date().toISOString();
+  const todayIso = appToday(nowIso);
+  const actorData = actorSnapshot(actor);
+
+  return db.runTransaction(async transaction => {
+    const [existingCredit, existingInvoice] = await Promise.all([transaction.get(creditNoteRef), transaction.get(newInvoiceRef)]);
+    if (existingCredit.exists) {
+      if (existingCredit.data().signature !== signature) throw httpError(409, "requestId already used for a different correction");
+      return {
+        creditNote: { id: existingCredit.id, ...existingCredit.data() },
+        invoice: existingInvoice.exists ? { id: existingInvoice.id, ...existingInvoice.data() } : null,
+        idempotent: true,
+      };
+    }
+    const [creditCounterSnap, invoiceCounterSnap] = await Promise.all([transaction.get(creditCounterRef), transaction.get(invoiceCounterRef)]);
+    const { invoiceRef, invoice, lessons } = await readInvoiceForFullCredit(transaction, cleanInvoiceId);
+    let input;
+    try {
+      input = invoiceCorrectionCore.correctionInput(invoice, { amount, amountCents, payer, due, reason });
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    if (input.due && input.due < todayIso) throw httpError(400, "Uus maksetähtaeg ei saa olla minevikus.");
+    await assertFinancialDateOpen(transaction, todayIso);
+
+    // the next free KS number (the same numbering as every other invoice)
+    let nextInvoiceSequence = (Number(invoiceCounterSnap.data()?.seq) || 0) + 1;
+    let invoiceNum = "";
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const candidate = `KS-${todayIso.slice(0, 4)}-${String(nextInvoiceSequence).padStart(3, "0")}`;
+      const collision = await transaction.get(db.collection("invoices").where("num", "==", candidate).limit(1));
+      if (collision.empty) {
+        invoiceNum = candidate;
+        break;
+      }
+      nextInvoiceSequence += 1;
+    }
+    if (!invoiceNum) throw httpError(409, "Invoice counter requires numbering repair");
+
+    const nextCreditSequence = (Number(creditCounterSnap.data()?.seq) || 0) + 1;
+    const creditNoteNum = `KN-${todayIso.slice(0, 4)}-${String(nextCreditSequence).padStart(3, "0")}`;
+    const creditNote = {
+      ...invoiceCorrectionCore.fullCreditNoteRecord({
+        invoice, invoiceId: cleanInvoiceId, creditNoteNum, todayIso, nowIso, reason: input.reason,
+        actor: actorData, requestId: mutationId, signature, issuer: correctionIssuer(), kind: "correction",
+      }),
+      replacementInvoiceId: newInvoiceId,
+      replacementInvoiceNum: invoiceNum,
+    };
+    const newInvoice = invoiceCorrectionCore.correctedInvoiceRecord({
+      invoice, invoiceId: cleanInvoiceId, input, invoiceNum, todayIso, nowIso,
+      creditNoteId: mutationId, creditNoteNum, actor: actorData, requestId: newInvoiceId, signature,
+    });
+    const { correction, ...patch } = invoiceCorrectionCore.invoiceAfterFullCredit(invoice, { creditNoteId: mutationId, creditNoteNum, amountCents: creditNote.amountCents, reason: input.reason, nowIso });
+    const correctedBy = { invoiceId: newInvoiceId, invoiceNum, creditNoteId: mutationId, creditNoteNum, reason: input.reason, createdAt: nowIso, createdBy: actorData };
+
+    transaction.create(creditNoteRef, creditNote);
+    transaction.create(newInvoiceRef, newInvoice);
+    transaction.set(creditCounterRef, { seq: nextCreditSequence, updatedAt: nowIso }, { merge: true });
+    transaction.set(invoiceCounterRef, { seq: nextInvoiceSequence, updatedAt: nowIso }, { merge: true });
+    transaction.set(invoiceRef, {
+      ...patch,
+      correctionStatus: "corrected",
+      correctedBy,
+      creditNoteIds: FieldValue.arrayUnion(mutationId),
+      corrections: FieldValue.arrayUnion({ ...correction, kind: "correction", replacementInvoiceId: newInvoiceId, replacementInvoiceNum: invoiceNum }),
+      paidAt: FieldValue.delete(),
+    }, { merge: true });
+    // the lessons stay billed — now by the new invoice
+    lessons.forEach(snap => transaction.set(snap.ref, {
+      invoiceId: newInvoiceId,
+      invoiceNum,
+      previousInvoiceIds: FieldValue.arrayUnion(cleanInvoiceId),
+      billingUpdatedAt: nowIso,
+      billingUpdatedBy: actorData,
+    }, { merge: true }));
+    transaction.create(creditAuditRef, {
+      entityType: "creditNote",
+      entityId: mutationId,
+      action: "invoice.corrected_credit",
+      creditNoteId: mutationId,
+      creditNoteNum,
+      invoiceId: cleanInvoiceId,
+      invoiceNum: invoice.num || "",
+      replacementInvoiceId: newInvoiceId,
+      replacementInvoiceNum: invoiceNum,
+      amountCents: creditNote.amountCents,
+      amount: creditNote.amount,
+      actor: actorData,
+      reason: input.reason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    transaction.create(invoiceAuditRef, {
+      entityType: "invoice",
+      entityId: newInvoiceId,
+      action: "invoice.created_correction",
+      invoiceId: newInvoiceId,
+      invoiceNum,
+      correctionOfInvoiceId: cleanInvoiceId,
+      correctionOfInvoiceNum: invoice.num || "",
+      creditNoteId: mutationId,
+      studentId: invoice.studentId || "",
+      before: { amountCents: invoiceCorrectionCore.openCreditCents(invoice), payerName: invoice.payerName || "", payerEmail: invoice.payerEmail || "" },
+      after: { amountCents: input.amountCents, payerName: input.payer.payerName, payerEmail: input.payer.payerEmail },
+      amountCents: input.amountCents,
+      amount: newInvoice.amount,
+      actor: actorData,
+      reason: input.reason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return {
+      creditNote: { id: mutationId, ...creditNote },
+      invoice: { id: newInvoiceId, ...newInvoice },
+      correctedInvoice: { id: cleanInvoiceId, ...invoice, ...patch, correctionStatus: "corrected", correctedBy },
       idempotent: false,
     };
   });
@@ -9317,6 +9557,30 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
         actor,
         invoiceId: req.body?.invoiceId,
         lessonId: req.body?.lessonId,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/invoices/credit-full") {
+      const result = await creditInvoiceInFull({
+        actor,
+        invoiceId: req.body?.invoiceId,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/invoices/correct") {
+      const result = await correctIssuedInvoice({
+        actor,
+        invoiceId: req.body?.invoiceId,
+        amount: req.body?.amount,
+        amountCents: req.body?.amountCents,
+        payer: req.body?.payer,
+        due: req.body?.due,
         reason: req.body?.reason,
         requestId: req.body?.requestId,
       });

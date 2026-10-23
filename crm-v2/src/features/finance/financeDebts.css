@@ -29,3 +29,8 @@
   .finance-debts__row > span[data-label]::before { content: attr(data-label); display: block; margin-bottom: 4px; color: #73817d; font-size: .72rem; font-weight: 800; text-transform: uppercase; }
   .finance-debts__actions .button { flex: 1 1 auto; justify-content: center; }
 }
+.finance-debts__whole-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.invoice-correction__summary { margin: 14px 0; padding: 12px 14px; border-radius: 10px; background: #f5f7f5; }
+.invoice-correction__summary ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
+.invoice-correction__hint { margin: 8px 0 0; color: #9a3b31; font-weight: 700; }
+.invoice-correction__confirm { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0; }
