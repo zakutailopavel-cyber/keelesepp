@@ -10,6 +10,31 @@
   pet loaded), wiping the invitation pushed by the test — CI failed „announces a lesson invitation by itself”. The
   mock now re-delivers the current list, as Firestore does.
 - Checks: verify (eslint errors 0, vitest 2274 passed, 0 failed); pet tests 3 runs in a row green.
+## 2026-10-23 · agent/daily-reminder — „Tuleta mulle iga päev meelde”: a daily reminder for „Päeva 5 minutit”
+
+- Owner 2026-10-23 („делай дальше”): students forget to practise between lessons.
+- On „Minu sõnad” (when the student has words) a small row: choose a time, „Lisa telefoni kalendrisse” downloads a
+  daily repeating calendar event (.ics, floating local time, alarm at the start) whose link opens
+  /student/sonavara?paev=1. The phone reminds; the CRM sends nothing and the file holds no personal data. The chosen
+  time is remembered in the browser only.
+- Files: vocabulary/dailyReminder.js (+test), vocabulary/DailyReminder.jsx (+test), VocabularyPage.jsx, vocabulary.css.
+- Checks: verify (eslint errors 0, vitest 2276 passed, 0 failed).
+- Not done: the teacher's „last login” needs a `lastSeenAt` self-write allowed in firestore.rules (a rules deploy —
+  waits for the owner's yes). Until then the teacher sees „last practised” in „Õpilase pilt”.
+## 2026-10-23 · agent/auto-mark-lesson — „Märkimata tunnid”: past lessons without a journal mark on the dashboard
+
+- Why: progress, retention, month steps and the parent report read the lesson journal; a production read (2026-10-23,
+  read-only) found 71 past calendar lessons of the last 14 days with no journal record (66 events, most of them one
+  teacher's one-off lessons). Live Classroom lessons started from the calendar were already marked via the handoff.
+- calendar/unmarkedLessons.js: individual (not group) calendar lessons of the last 14 days still „Planeeritud” with no
+  journal record (matched by scheduleId+date or studentId+date), teacher-scoped for teachers.
+- calendar/UnmarkedLessonsCard.jsx on the dashboard (above the agenda, hidden when nothing is unmarked): „Toimunud”
+  in one click (lessonsService.completeFromSchedule — the same write as the calendar, with activityLog), „Muu…” opens
+  the lesson in the calendar for absences (their billing choice stays there).
+- Files: calendar/unmarkedLessons.js (+test), calendar/UnmarkedLessonsCard.jsx (+test), retention/retention.css,
+  dashboard/DashboardPage.jsx. No rules, functions or data changes.
+- Checks: verify (eslint errors 0, vitest 2277 passed, 0 failed).
+- Next: a student daily reminder for „Päeva 5 minutit” and the teacher's „last seen”.
 
 ## 2026-10-23 · agent/self-study-course — „Minu kursus” for students (self-study cards open the sheets themselves)
 

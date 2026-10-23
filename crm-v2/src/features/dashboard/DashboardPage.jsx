@@ -13,6 +13,7 @@ import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinanc
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import RetentionCard from '../retention/RetentionCard.jsx';
 import { recentlyScheduled } from '../retention/retentionRisk.js';
+import UnmarkedLessonsCard from '../calendar/UnmarkedLessonsCard.jsx';
 
 const today = () => new Intl.DateTimeFormat('sv-SE').format(new Date());
 const todayLabel = () => new Intl.DateTimeFormat('et-EE', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date());
@@ -76,6 +77,8 @@ async function loadDashboardData(user, repositories) {
 
   return {
     unplanned,
+    schedule,
+    current,
     activeStudents,
     activePeople,
     todayLessons,
@@ -151,6 +154,8 @@ export default function DashboardPage({
           </Link>
         ))}
       </section>
+      {/* „Märkimata tunnid”: past lessons without a journal mark, one click to mark held */}
+      {data.canViewLearning ? <section className="content-grid"><UnmarkedLessonsCard schedule={data.schedule} today={data.current} teacherUid={data.teacherUid} user={user} {...(repositories.unmarked ? { repository: repositories.unmarked } : {})} /></section> : null}
       <section className="content-grid">
         {data.canViewLearning ? (
           <Card>
