@@ -183,6 +183,13 @@ service firebase.storage {
       allow update, delete: if false;
     }
 
+    // a supplier's invoice (PDF or photo), attached to purchaseInvoices/{purchaseInvoiceId} by financeApi
+    match /financial/purchase-invoices/{purchaseInvoiceId}/{documentId} {
+      allow read: if accountingAdmin();
+      allow create: if accountingAdmin() && safePaymentOrder();
+      allow update, delete: if false;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

@@ -3744,7 +3744,7 @@ test("bookkeeping: documents become numbered entries once, manual entries balanc
   assert.equal(synced.status, 200, JSON.stringify(synced.body));
   const invoiceEntry = (await db.collection("accountingEntries").doc("auto_invoice_acc-invoice-1").get()).data();
   assert.match(invoiceEntry.number, /^2026-\d{4}$/);
-  assert.deepEqual(invoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 10000, 0], ["3060", 0, 10000]]);
+  assert.deepEqual(invoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 10000, 0], ["3000", 0, 10000]]);
   assert.equal(invoiceEntry.documentRef, "KS-2026-901");
   assert.ok((await db.collection("accountingEntries").doc("auto_payment_acc-payment-1").get()).exists);
   assert.ok((await db.collection("accountingAccounts").doc("3060").get()).exists, "the chart is seeded");
@@ -3823,6 +3823,131 @@ test("INF 3: personal codes are admin-only, a parent's link fills them, the repo
   assert.equal(sibling.payerCode, "37605030299");
   assert.equal(sibling.payerFromParent, true);
   assert.deepEqual(sibling.problems, ["Õpilase isikukood puudub"]);
+});
+
+test("suppliers and purchase invoices book OA / VM entries; corrections keep a history; the accounting lock stops edits (the accountant 2026-10-23)", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const adminToken = await createAdminToken();
+  const lines = (entry) => entry.lines.map((l) => [l.account, l.debitCents, l.creditCents]);
+
+  const supplier = await financeRequest(adminToken, "/suppliers", { supplier: { name: "Senty Studio OÜ", regCode: "14500001", iban: "EE38 2200 2210 2014 5685", defaultAccount: "4210" }, requestId: "supplier_create_0001" });
+  assert.equal(supplier.status, 201, JSON.stringify(supplier.body));
+  const supplierId = supplier.body.supplier.id;
+  assert.equal(supplier.body.supplier.iban, "EE382200221020145685");
+  const duplicateSupplier = await financeRequest(adminToken, "/suppliers", { supplier: { name: "Senty kaks", regCode: "14500001" }, requestId: "supplier_create_0002" });
+  assert.equal(duplicateSupplier.status, 409, JSON.stringify(duplicateSupplier.body));
+  const renamed = await financeRequest(adminToken, "/suppliers", { supplierId, supplier: { name: "Senty Studio OÜ", regCode: "14500001", email: "arved@senty.test", defaultAccount: "4210" } });
+  assert.equal(renamed.status, 201, JSON.stringify(renamed.body));
+  assert.equal((await db.collection("suppliers").doc(supplierId).get()).data().email, "arved@senty.test");
+
+  const invoiceValues = { supplierId, documentNumber: "1575", date: "2027-03-01", dueDate: "2027-03-15", lines: [{ account: "4210", description: "Ruumide rent märts", amountCents: 30000, vatCents: 5000 }] };
+  const created = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: invoiceValues, requestId: "purchase_create_0001" });
+  assert.equal(created.status, 201, JSON.stringify(created.body));
+  const invoiceId = created.body.purchaseInvoice.id;
+  const oa = (await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).data();
+  assert.deepEqual(lines(oa), [["4210", 30000, 0], ["2110", 0, 30000]], "not VAT registered: no 2311 line");
+  assert.equal(oa.documentType, "purchaseInvoice");
+  assert.equal(oa.documentRef, "1575");
+  assert.match(oa.number, /^2027-\d{4}$/);
+  const again = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: invoiceValues, requestId: "purchase_create_0001" });
+  assert.equal(again.status, 200, "the same request is idempotent");
+  const duplicate = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: invoiceValues, requestId: "purchase_create_0002" });
+  assert.equal(duplicate.status, 409, "the same supplier invoice is not entered twice");
+
+  // the document is corrected while the period is open: the invoice and its OA entry change together, with history
+  const edited = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoiceId: invoiceId, purchaseInvoice: { ...invoiceValues, lines: [...invoiceValues.lines, { account: "4330", description: "Kontoritarbed", amountCents: 1220 }] }, reason: "unustatud rida", requestId: "purchase_edit_0001" });
+  assert.equal(edited.status, 201, JSON.stringify(edited.body));
+  const oaEdited = (await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).data();
+  assert.deepEqual(lines(oaEdited), [["4210", 30000, 0], ["4330", 1220, 0], ["2110", 0, 31220]]);
+  assert.equal(oaEdited.number, oa.number, "the entry keeps its number");
+  assert.equal(oaEdited.history.length, 1);
+  assert.equal(oaEdited.history[0].before.lines.length, 2);
+
+  const paid = await financeRequest(adminToken, "/purchase-invoices/pay", { purchaseInvoiceId: invoiceId, payment: { date: "2027-03-10", amountCents: 31220, method: "bank" }, requestId: "purchase_pay_0001" });
+  assert.equal(paid.status, 201, JSON.stringify(paid.body));
+  assert.equal(paid.body.purchaseInvoice.status, "paid");
+  assert.deepEqual(lines(paid.body.entry), [["2110", 31220, 0], ["1010", 0, 31220]]);
+  assert.equal(paid.body.entry.documentType, "supplierPayment");
+  const overpaid = await financeRequest(adminToken, "/purchase-invoices/pay", { purchaseInvoiceId: invoiceId, payment: { date: "2027-03-11", amountCents: 100 }, requestId: "purchase_pay_0002" });
+  assert.equal(overpaid.status, 409, JSON.stringify(overpaid.body));
+  const cannotVoidPaid = await financeRequest(adminToken, "/purchase-invoices/void", { purchaseInvoiceId: invoiceId, reason: "x", requestId: "purchase_void_0001" });
+  assert.equal(cannotVoidPaid.status, 409);
+  const removed = await financeRequest(adminToken, "/purchase-invoices/payment/remove", { purchaseInvoiceId: invoiceId, paymentId: paid.body.purchaseInvoice.payments[0].id, reason: "vale kuupäev", requestId: "purchase_unpay_0001" });
+  assert.equal(removed.status, 201, JSON.stringify(removed.body));
+  assert.equal(removed.body.purchaseInvoice.status, "unpaid");
+  assert.equal((await db.collection("accountingEntries").doc(paid.body.entry.id).get()).data().deleted, true, "the VM entry stays as a tombstone");
+
+  // paid on the spot (card): the invoice and its payment in one go
+  const card = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: { supplierId, documentNumber: "K-9", date: "2027-03-02", lines: [{ account: "4320", description: "Zoom", amountCents: 1499 }] }, paidNow: { method: "card" }, requestId: "purchase_create_0003" });
+  assert.equal(card.status, 201, JSON.stringify(card.body));
+  assert.equal(card.body.purchaseInvoice.status, "paid");
+  assert.deepEqual(card.body.entries.map((e) => e.documentType), ["purchaseInvoice", "supplierPayment"]);
+
+  // manual entry: edit with history, delete as a tombstone, an automatic entry: override of its lines
+  const manual = await financeRequest(adminToken, "/accounting/entries", { entry: { date: "2027-03-31", description: "Märtsi palk", documentRef: "PL 03", lines: [{ account: "4710", debitCents: 1000 }, { account: "2210", creditCents: 1000 }] }, requestId: "acc_manual_2027_0001" });
+  assert.equal(manual.status, 201, JSON.stringify(manual.body));
+  const manualId = manual.body.entry.id;
+  const fixed = await financeRequest(adminToken, "/accounting/entries/update", { entryId: manualId, entry: { date: "2027-03-31", description: "Märtsi palk", documentRef: "PL 03", lines: [{ account: "4710", debitCents: 1500 }, { account: "2210", creditCents: 1500 }] }, requestId: "acc_update_0001" });
+  assert.equal(fixed.status, 201, JSON.stringify(fixed.body));
+  const fixedEntry = (await db.collection("accountingEntries").doc(manualId).get()).data();
+  assert.equal(fixedEntry.totalCents, 1500);
+  assert.equal(fixedEntry.history[0].before.lines[0].debitCents, 1000);
+  assert.equal(fixedEntry.history[0].by.email, "zakutailo.pavel@gmail.com");
+  assert.ok((await db.collection("financialAudit").doc("acc_update_0001").get()).exists);
+
+  const overrideNoReason = await financeRequest(adminToken, "/accounting/entries/update", { entryId: `auto_purchase-invoice_${invoiceId}`, entry: { description: "Senty Studio OÜ", lines: [{ account: "4220", debitCents: 31220 }, { account: "2110", creditCents: 31220 }] }, requestId: "acc_update_0002" });
+  assert.equal(overrideNoReason.status, 400, JSON.stringify(overrideNoReason.body));
+  const override = await financeRequest(adminToken, "/accounting/entries/update", { entryId: `auto_purchase-invoice_${invoiceId}`, entry: { description: "Senty Studio OÜ", lines: [{ account: "4210", debitCents: 31220 }, { account: "2110", creditCents: 31220 }] }, reason: "kõik on rent", requestId: "acc_update_0003" });
+  assert.equal(override.status, 201, JSON.stringify(override.body));
+  const overridden = (await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).data();
+  assert.equal(overridden.documentRef, "1575", "the source document stays linked");
+  assert.equal(overridden.override.reason, "kõik on rent");
+  assert.equal(overridden.original.lines.length, 3);
+  const autoDelete = await financeRequest(adminToken, "/accounting/entries/delete", { entryId: `auto_purchase-invoice_${invoiceId}`, reason: "x", requestId: "acc_delete_0001" });
+  assert.equal(autoDelete.status, 409, JSON.stringify(autoDelete.body));
+
+  // „Sulge periood kuni 31.03.2027”: no edit, no delete, no new document in March; a correcting entry after it works
+  const locked = await financeRequest(adminToken, "/accounting/lock", { lockedThrough: "2027-03-31" });
+  assert.equal(locked.status, 200, JSON.stringify(locked.body));
+  const lockedEdit = await financeRequest(adminToken, "/accounting/entries/update", { entryId: manualId, entry: { date: "2027-03-31", description: "Märtsi palk", documentRef: "PL 03", lines: [{ account: "4710", debitCents: 1 }, { account: "2210", creditCents: 1 }] }, requestId: "acc_update_0004" });
+  assert.equal(lockedEdit.status, 409, JSON.stringify(lockedEdit.body));
+  const lockedDelete = await financeRequest(adminToken, "/accounting/entries/delete", { entryId: manualId, reason: "x", requestId: "acc_delete_0002" });
+  assert.equal(lockedDelete.status, 409, JSON.stringify(lockedDelete.body));
+  const lockedInvoice = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: { ...invoiceValues, documentNumber: "1576" }, requestId: "purchase_create_0004" });
+  assert.equal(lockedInvoice.status, 409, JSON.stringify(lockedInvoice.body));
+  const correction = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: manualId, date: "2027-04-01", reason: "palk oli vale", requestId: "acc_reverse_2027_0001" });
+  assert.equal(correction.status, 201, JSON.stringify(correction.body));
+  const reopenWithoutReason = await financeRequest(adminToken, "/accounting/lock", { lockedThrough: "" });
+  assert.equal(reopenWithoutReason.status, 400, JSON.stringify(reopenWithoutReason.body));
+  const reopened = await financeRequest(adminToken, "/accounting/lock", { lockedThrough: "", reason: "emulaatori test" });
+  assert.equal(reopened.status, 200, JSON.stringify(reopened.body));
+
+  // a deleted manual entry stays as a tombstone with its history
+  const another = await financeRequest(adminToken, "/accounting/entries", { entry: { date: "2027-04-02", description: "Vale kanne", documentRef: "X", lines: [{ account: "4710", debitCents: 10 }, { account: "2210", creditCents: 10 }] }, requestId: "acc_manual_2027_0002" });
+  const deleted = await financeRequest(adminToken, "/accounting/entries/delete", { entryId: another.body.entry.id, reason: "topelt", requestId: "acc_delete_0003" });
+  assert.equal(deleted.status, 201, JSON.stringify(deleted.body));
+  const tombstone = (await db.collection("accountingEntries").doc(another.body.entry.id).get()).data();
+  assert.equal(tombstone.deleted, true);
+  assert.equal(tombstone.history[0].action, "delete");
+  assert.equal(tombstone.number, another.body.entry.number, "the number is never reused");
+
+  // void an unpaid invoice while open: its OA entry becomes a tombstone
+  const voidable = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: { ...invoiceValues, documentNumber: "1599", date: "2027-04-03", dueDate: "2027-04-10" }, requestId: "purchase_create_0005" });
+  const voided = await financeRequest(adminToken, "/purchase-invoices/void", { purchaseInvoiceId: voidable.body.purchaseInvoice.id, reason: "tarnija saatis kaks korda", requestId: "purchase_void_0002" });
+  assert.equal(voided.status, 201, JSON.stringify(voided.body));
+  assert.equal((await db.collection("accountingEntries").doc(voidable.body.purchaseInvoice.entryId).get()).data().deleted, true);
+
+  // the browser never writes suppliers, purchase invoices, the lock or entries
+  for (const path of [`suppliers/${supplierId}`, `purchaseInvoices/${invoiceId}`, "accountingSettings/lock", `accountingEntries/${manualId}`]) {
+    const direct = await firestoreDocumentRequest(adminToken, "PATCH", path, { fields: { name: { stringValue: "forged" } } });
+    assert.equal(direct.status, 403, `${path} ${JSON.stringify(direct.body)}`);
+  }
+  const teacherToken = await createUserToken("purchase-teacher@example.com");
+  await db.collection("users").doc(tokenUid(teacherToken)).set({ role: "teacher", displayName: "Purchase Teacher" });
+  assert.equal((await firestoreDocumentRequest(teacherToken, "GET", `purchaseInvoices/${invoiceId}`)).status, 403);
+  assert.equal((await financeRequest(teacherToken, "/suppliers", { supplier: { name: "X" }, requestId: "supplier_create_0099" })).status, 403);
 });
 
 test("a whole invoice is credited, or credited and reissued with a corrected amount or payer (owner 2026-10-23)", async () => {
@@ -3974,10 +4099,10 @@ test("a whole invoice is credited, or credited and reissued with a corrected amo
   const synced = await financeRequest(adminToken, "/accounting/sync", {});
   assert.equal(synced.status, 200, JSON.stringify(synced.body));
   const creditEntry = (await db.collection("accountingEntries").doc("auto_credit-note_fix_credit_full_0001").get()).data();
-  assert.deepEqual(creditEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["3060", 16000, 0], ["1200", 0, 16000]]);
+  assert.deepEqual(creditEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["3000", 16000, 0], ["1200", 0, 16000]]);
   const correctionCreditEntry = (await db.collection("accountingEntries").doc("auto_credit-note_fix_correct_00001").get()).data();
   assert.equal(correctionCreditEntry.totalCents, 16000);
   const newInvoiceEntry = (await db.collection("accountingEntries").doc(`auto_invoice_${newId}`).get()).data();
-  assert.deepEqual(newInvoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 14000, 0], ["3060", 0, 14000]]);
+  assert.deepEqual(newInvoiceEntry.lines.map((l) => [l.account, l.debitCents, l.creditCents]), [["1200", 14000, 0], ["3000", 0, 14000]]);
   assert.equal(newInvoiceEntry.documentRef, newInvoice.num);
 });

@@ -109,9 +109,9 @@ test('bookkeeping: the full credit note and the new invoice become their own aut
   const entries = automaticEntries({ invoices: [{ id: 'inv1', ...monthly, ...patch }, { id: 'correction_cn1', ...replacement }], creditNotes: [{ id: 'cn1', ...note }] });
   const view = entries.map((entry) => [entry.sourceKey, entry.date, entry.lines.map((l) => [l.account, l.debitCents, l.creditCents])]);
   assert.deepEqual(view, [
-    ['invoice:inv1', '2026-09-01', [['1200', 16000, 0], ['3060', 0, 16000]]],
-    ['credit-note:cn1', '2026-10-23', [['3060', 16000, 0], ['1200', 0, 16000]]],
-    ['invoice:correction_cn1', '2026-10-23', [['1200', 14000, 0], ['3060', 0, 14000]]],
+    ['invoice:inv1', '2026-09-01', [['1200', 16000, 0], ['3000', 0, 16000]]],
+    ['credit-note:cn1', '2026-10-23', [['3000', 16000, 0], ['1200', 0, 16000]]],
+    ['invoice:correction_cn1', '2026-10-23', [['1200', 14000, 0], ['3000', 0, 14000]]],
   ]);
 });
 

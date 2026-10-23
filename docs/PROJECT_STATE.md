@@ -1,3 +1,62 @@
+## 2026-10-23 · agent/paevaraamat-template — Päevaraamat and käibeandmik like the owner's template; inline entries; sales to 3000
+
+- Base: `main` 5f1c015 (2026-10-23). Draft PR from `agent/paevaraamat-template`.
+- Owner's template (Päevaraamat export, PDF) + the accountant's notes (2026-10-23): a plain ruled grid, Excel is the
+  main format, no PDF, no rate/currency, Kuupäev before Dokument, separate entries for a sales document and the money.
+- Päevaraamat (accountingReports `journalReport`, `entryCode`, `ENTRY_CODES`, `amount`, `dmy`, `COMPANY`): kande kood
+  MA / KR / LK / TG / OA / PR / ST / AS with its own running number per year (counted in the CRM number order, so it
+  never shifts), filters period + kande kood + järjestus (kande kood or kuupäev), entry blocks with totals,
+  „Kokku N kannet”, „M kirjet”, footer company + time + Rg-kood. Screen and Excel (`journalWorkbook`) are the same
+  six-column grid: Konto | Kuupäev | Dokument | Kirjeldus | Deebet | Kreedit, every cell bordered, full page width.
+- Käibeandmik: screen and Excel (`trialBalanceWorkbook`) — Konto | Nimetus | Algsaldo D/K | Käive D/K | Lõppsaldo D/K
+  (two-level header), ruled grid, Kokku.
+- Manual entry (JournalDraft.jsx): „Lisa kanne” opens editable rows inside the grid (no dialog); Tab moves cell to cell,
+  Tab in the last cell adds a row; saving only when D = K and the accounts exist; same route `/accounting/entries`.
+- functions/accounting-core.js: new automatic sales entries credit/debit **3000** instead of 3060. Existing production
+  entries are NOT changed (they keep 3060; credit notes / cancellations of old invoices will now use 3000).
+- Checks: vitest accounting 15/15; whole vitest 337 files, 2316 passed, 0 failed; eslint (accounting) 0 problems;
+  `npm run build` ok; `node --test functions/accounting-core.test.js` 10/10. finance-emulator.integration.js updated
+  (3060 → 3000) but not run (needs the emulator). Visual check on a local mock page (not committed).
+- Open for the owner: (1) migration of existing 3060 lines to 3000 (a storno + new entry per entry, or a single
+  reclassification entry 3060 → 3000 on a date) — not done; (2) 3000's chart name is „Kauba, teenuse müük Eestis 20%”
+  although the company is not VAT registered — rename or confirm; (3) which müügitulu accounts to drop (3000–3099
+  list in docs/ACCOUNTING.md).
+- Next safe step: owner/accountant reviews the Excel files from the draft PR; decide the 3060 → 3000 migration.
+
+### Same PR (#777), part 2 · tarnijad, ostuarved and corrections (the accountant 2026-10-23)
+
+- `origin/main` b8df2c2 (2026-10-23) merged into the branch (conflicts in docs, index.js requires and the emulator
+  file resolved; main's new invoice-correction emulator test now expects sales account 3000, as on this branch).
+- Asked: (1) „таблица поставщики и путь дальше” — suppliers, purchase invoices row by row like Excel, each booked as
+  „OA Ostuarve kanne”, payment as a separate bank entry; (2) „почему проводки нельзя исправлять и удалять” — corrections.
+- Built (docs/ACCOUNTING.md „Tarnijad ja ostuarved”, „Parandamine”):
+  - functions/purchases-core.js (new): supplierRecord (IBAN mod 97), purchaseInvoiceRecord, purchaseInvoiceEntry (OA:
+    D line account „<tarnija> <kirjeldus>”, D 2311 only for `vatDeductible` lines — default off, the company is not
+    VAT registered; K 2110 „Arve <nr>”), paymentRecord / supplierPaymentEntry (VM: D 2110, K 1010 or 1000),
+    purchaseDocumentRecord.
+  - functions/accounting-core.js: correctedEntry, assertDeletable, isLocked, snapshotOf.
+  - functions/index.js (financeApi, admin): `/accounting/entries/update`, `/accounting/entries/delete`,
+    `/accounting/lock`, `/suppliers`, `/purchase-invoices` (+ `/pay`, `/payment/remove`, `/void`, `/documents`);
+    manual entries and stornos now also respect the accounting lock (`accountingSettings/lock`).
+  - UI: /finance/ostuarved (PurchasesPage, SuppliersGrid, PurchaseInvoiceDraft; Excel of invoices and suppliers);
+    päevaraamat: „Muuda” (inline, JournalDraft edit mode), „Kustuta” (manual, tombstone), „Ajalugu (n)”,
+    „Näita kustutatud”, „Sulge periood / Suletud kuni …”; new kande kood VM Väljamakse kanne. The old „Kulud” page is an
+    archive (no new costs; Finantsid button „Kulud” → „Ostuarved”).
+  - Data: new collections `suppliers`, `purchaseInvoices`, `accountingSettings`; entries get `history`, `override`,
+    `original`, `deleted*`. Rules: admin read, no client writes; storage `financial/purchase-invoices/**`.
+- Checks (after merging main): `node --test` in functions 348/348; emulator (`firebase emulators:exec --project
+  demo-keelesepp-finance`, JDK 21) finance-emulator.integration.js + security-finance-emulator.integration.js 44/44 (new test: suppliers,
+  OA / VM entries, invoice edit with history, payment remove, override needs reason, manual edit / delete with
+  history, lock blocks edit / delete / new invoice, storno after the lock, reopen needs reason, client writes 403);
+  crm-v2 vitest 340 files, 2363 passed, 0 failed; eslint 0 errors; `npm run build` ok. Visual check on a local mock page
+  (not committed).
+- Deploy needed (owner): functions (financeApi), firestore.rules, storage.rules. Nothing was deployed; no production
+  data was read or written.
+- Limits / owner decisions: VAT „maha” only if the company registers for VAT; an override of a purchase entry's
+  amounts in the päevaraamat does not change the invoice (correct on Ostuarved); the sync can still book a sales
+  document dated in a locked period; old `expenses` entries stay as booked (expense / bank, no 2110).
+- Next safe step: deploy functions + rules, then the accountant enters one real supplier invoice (Senty Studio OÜ
+  1575) and checks the OA / VM entries in the päevaraamat Excel.
 ## 2026-10-23 · agent/lhv-request-v2 — LHV LinkPay production request (refresh of PR #554)
 
 - `docs/LHV_PRODUCTION_REQUEST.md` from #554 on current main, now with the invoice volume (read-only count from

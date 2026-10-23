@@ -6,8 +6,9 @@
 //   identifier (number), the debited and credited accounts with amounts and a reference to its source document;
 // - § 8: a chart of accounts (accounting-chart.js, the owner's Merit Aktiva chart);
 // - § 9: the registers allow extracts by account in chronological order (päevaraamat, pearaamat, käibeandmik);
-// - § 10: an entry is never edited or deleted silently — it is corrected by a reversing entry (storno) that keeps the
-//   reason, the time and the author;
+// - § 10: an entry is never changed silently — while its period is open it is corrected in place with a history
+//   (who, when, why, before / after; a deleted manual entry stays as a tombstone), after the lock by a storno or a new
+//   correcting entry;
 // - § 12: entries are kept for seven years (nothing here deletes them).
 //
 // Pure functions: the CRM's documents (invoices, credit notes, payments, payer credits, refunds, expenses) → the
@@ -18,14 +19,15 @@
 
 const ACCOUNTING_START_DATE = "2026-01-01";
 
-// automatic posting accounts (Merit Aktiva codes); the school sells VAT-free training, so sales go to 3060 and an
-// expense is booked with its VAT (the VAT is not deductible without a VAT registration)
+// automatic posting accounts (Merit Aktiva codes); sales revenue goes to 3000 (the accountant 2026-10-23; until then
+// 3060 Maksuvaba müügitulu — entries already written keep 3060, docs/ACCOUNTING.md) and an expense is booked with its
+// VAT (the VAT is not deductible without a VAT registration)
 const POSTING_ACCOUNTS = Object.freeze({
   cash: "1000",
   bank: "1010",
   receivables: "1200",
   prepayments: "2500",
-  sales: "3060",
+  sales: "3000",
   otherPayables: "2450",
 });
 
@@ -268,10 +270,61 @@ function openingEntry(balances = [], accounts = [], { startDate = ACCOUNTING_STA
   return validateEntry({ date: startDate, description: `Algsaldod seisuga ${startDate}`, documentRef: "Eelmise perioodi käibeandmik", lines }, accounts);
 }
 
+// ---- corrections while the period is open (the accountant 2026-10-23: „мне нужно исправление сделать”) ----
+// RPS § 10: a correction must stay traceable. While the date is open (not in a closed finance month and after the
+// accounting lock date) a manual entry is edited in place or deleted (a tombstone stays: `deleted`, never removed from
+// the database) and an automatic entry gets an override of its lines and description (its date and source document
+// stay). Every change appends { at, by, action, reason, before, after } to the entry's `history`. After the lock only
+// a storno or a new correcting entry is possible.
+
+const snapshotOf = (entry) => ({
+  date: entry.date || "",
+  description: entry.description || "",
+  documentRef: entry.documentRef || "",
+  lines: (entry.lines || []).map((l) => ({ account: String(l.account), debitCents: l.debitCents || 0, creditCents: l.creditCents || 0, note: l.note || "" })),
+});
+
+const isLocked = (date, lockedThrough) => Boolean(lockedThrough && date && String(date).slice(0, 10) <= lockedThrough);
+
+function assertCorrectable(entry) {
+  if (entry.deleted) throw accountingError("Kanne on kustutatud.", 409);
+  if (entry.reversedBy) throw accountingError(`Kanne ${entry.number} on stornoga tühistatud; tee uus kanne.`, 409);
+  if (entry.origin === "reversal") throw accountingError("Stornokannet ei muudeta; tee uus kanne.", 409);
+}
+
+// the corrected entry: a manual entry may change everything except the year of its number; an automatic or opening
+// entry keeps its date and document reference (the link to the source document)
+function correctedEntry(entry, values, accounts = []) {
+  assertCorrectable(entry);
+  const fixed = entry.origin === "manual" ? {} : { date: entry.date, documentRef: entry.documentRef };
+  const normalized = validateEntry({ ...values, ...fixed }, accounts);
+  if (entry.origin === "opening") {
+    const types = new Map(accounts.map((a) => [String(a.code), a.type]));
+    const result = normalized.lines.find((l) => types.get(l.account) === "income" || types.get(l.account) === "expense");
+    if (result) throw accountingError(`Tulu- ja kulukontodel (${result.account}) algsaldot ei ole.`);
+  }
+  if (entry.origin === "manual" && String(normalized.date).slice(0, 4) !== String(entry.date).slice(0, 4)) {
+    throw accountingError("Aastat ei saa muuta (kande number on aasta kaupa). Kustuta kanne ja tee uus.");
+  }
+  const before = snapshotOf(entry);
+  const after = snapshotOf(normalized);
+  if (JSON.stringify(before) === JSON.stringify(after)) throw accountingError("Muudatusi ei ole.");
+  return { before, after, totalCents: normalized.totalCents };
+}
+
+function assertDeletable(entry) {
+  assertCorrectable(entry);
+  if (entry.origin !== "manual") throw accountingError("Kustutada saab ainult käsitsi kannet. Automaatkannet parandatakse ridade muutmisega või dokumendi kaudu.", 409);
+}
+
 const entryNumber = (year, sequence) => `${year}-${String(sequence).padStart(4, "0")}`;
 
 module.exports = {
   ACCOUNTING_START_DATE,
+  assertDeletable,
+  correctedEntry,
+  isLocked,
+  snapshotOf,
   EXPENSE_ACCOUNTS,
   POSTING_ACCOUNTS,
   automaticEntries,

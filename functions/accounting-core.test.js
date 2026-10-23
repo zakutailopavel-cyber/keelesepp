@@ -12,7 +12,7 @@ const byAccount = (entries) => {
 
 test("the chart has the accounts the automatic entries use, each with a type and a report line", () => {
   const codes = new Set(DEFAULT_ACCOUNTS.map((a) => a.code));
-  ["1000", "1010", "1200", "2450", "2500", "3060", "4210", "4300", "4320", "4050", "4340", "4360", "4330", "4510", "4398", "2970", "2980"].forEach((code) => assert.ok(codes.has(code), code));
+  ["1000", "1010", "1200", "2450", "2500", "3000", "4210", "4300", "4320", "4050", "4340", "4360", "4330", "4510", "4398", "2970", "2980"].forEach((code) => assert.ok(codes.has(code), code));
   assert.equal(codes.size, DEFAULT_ACCOUNTS.length, "codes are unique");
   DEFAULT_ACCOUNTS.forEach((a) => {
     assert.match(a.type, /^(asset|liability|equity|income|expense)$/);
@@ -30,7 +30,7 @@ test("an invoice, its payment by bank and a cash payment become balanced entries
   });
   assert.deepEqual(entries.map((e) => e.sourceKey), ["invoice:i1", "payment:p1", "payment:p2"]);
   assert.ok(balance(entries));
-  assert.deepEqual(byAccount(entries), { 1200: 0, 3060: -8000, 1010: 5000, 1000: 3000 });
+  assert.deepEqual(byAccount(entries), { 1200: 0, 3000: -8000, 1010: 5000, 1000: 3000 });
   assert.equal(entries[0].documentRef, "KS-2026-001");
   assert.match(entries[0].description, /Müügiarve KS-2026-001 · Kati Tamm/);
 });
@@ -63,7 +63,7 @@ test("a cancelled invoice, a credit note and a voided payment are reversed on th
   // the cancellation reverses only what the credit note left open: 100 − 25 = 75
   assert.equal(entries.find((e) => e.sourceKey === "invoice-cancel:i1").totalCents ?? entries.find((e) => e.sourceKey === "invoice-cancel:i1").lines[0].debitCents, 7500);
   const totals = byAccount(entries);
-  assert.equal(totals["3060"], -(9000 - 3000));
+  assert.equal(totals["3000"], -(9000 - 3000));
   assert.equal(totals["1200"], 9000 - 3000);
   assert.equal(totals["1010"], 0);
   assert.ok(balance(entries));
@@ -140,4 +140,33 @@ test("opening balances must balance and have no income or expense accounts", () 
 test("entry numbers are per year and sortable", () => {
   assert.equal(entryNumber(2026, 7), "2026-0007");
   assert.equal(entryNumber(2026, 1234), "2026-1234");
+});
+
+test("corrections while the period is open: a manual entry is edited, an automatic one gets new lines but keeps its date and document", () => {
+  const { correctedEntry, assertDeletable, isLocked, snapshotOf } = require("./accounting-core");
+  const accounts = DEFAULT_ACCOUNTS.map((a) => ({ ...a, active: true }));
+  const manual = { id: "manual_1", number: "2026-0005", origin: "manual", date: "2026-09-30", description: "Palk", documentRef: "PL 09", lines: [{ account: "4710", debitCents: 1000, creditCents: 0 }, { account: "2210", debitCents: 0, creditCents: 1000 }] };
+  const fixed = correctedEntry(manual, { date: "2026-09-29", description: "Septembri palk", documentRef: "PL 09", lines: [{ account: "4710", debitCents: 1200 }, { account: "2210", creditCents: 1200 }] }, accounts);
+  assert.equal(fixed.before.lines[0].debitCents, 1000);
+  assert.equal(fixed.after.lines[0].debitCents, 1200);
+  assert.equal(fixed.after.date, "2026-09-29");
+  assert.throws(() => correctedEntry(manual, { ...snapshotOf(manual) }, accounts), /Muudatusi/);
+  assert.throws(() => correctedEntry(manual, { ...snapshotOf(manual), date: "2027-01-02" }, accounts), /Aastat/);
+  assert.throws(() => correctedEntry(manual, { ...snapshotOf(manual), lines: [{ account: "4710", debitCents: 5 }, { account: "2210", creditCents: 4 }] }, accounts), /võrdsed/);
+
+  const auto = { id: "auto_expense_e1", number: "2026-0006", origin: "auto", documentType: "expense", date: "2026-09-10", description: "Kulu: rent", documentRef: "1575", lines: [{ account: "4398", debitCents: 500, creditCents: 0 }, { account: "1010", debitCents: 0, creditCents: 500 }] };
+  const override = correctedEntry(auto, { date: "2026-01-01", documentRef: "other", description: "Kulu: rent", lines: [{ account: "4210", debitCents: 500 }, { account: "1010", creditCents: 500 }] }, accounts);
+  assert.equal(override.after.date, "2026-09-10", "the date of an automatic entry stays");
+  assert.equal(override.after.documentRef, "1575", "the source document stays");
+  assert.equal(override.after.lines[0].account, "4210");
+
+  assert.throws(() => correctedEntry({ ...manual, reversedBy: "reversal_x" }, snapshotOf(manual), accounts), /storno/);
+  assert.throws(() => correctedEntry({ ...manual, deleted: true }, snapshotOf(manual), accounts), /kustutatud/);
+  assert.throws(() => correctedEntry({ ...manual, origin: "reversal" }, snapshotOf(manual), accounts), /Stornokannet/);
+  assert.throws(() => correctedEntry({ ...manual, origin: "opening", date: "2026-01-01" }, { ...snapshotOf(manual) }, accounts), /algsaldot/);
+  assert.doesNotThrow(() => assertDeletable(manual));
+  assert.throws(() => assertDeletable(auto), /ainult käsitsi/);
+  assert.equal(isLocked("2026-09-30", "2026-09-30"), true);
+  assert.equal(isLocked("2026-10-01", "2026-09-30"), false);
+  assert.equal(isLocked("2026-10-01", ""), false);
 });

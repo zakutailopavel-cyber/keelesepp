@@ -7,7 +7,7 @@
 //   (correctionOf on the new invoice, correctedBy on the old one).
 // Pure functions; the routes are /invoices/credit-full and /invoices/correct in functions/index.js (financeApi, admins).
 // The bookkeeping entries follow from the documents (accounting-core.js automaticEntries): the credit note books
-// 3060 → 1200, the new invoice 1200 → 3060.
+// 3000 → 1200, the new invoice 1200 → 3000 (sales account 3000 since 2026-10-23, docs/ACCOUNTING.md).
 
 const { activePaymentTotalCents, centsToAmount, invoiceOriginalAmountCents } = require("./finance-core");
 

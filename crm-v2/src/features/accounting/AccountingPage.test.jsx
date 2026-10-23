@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import AccountingPage from './AccountingPage.jsx';
 import { journalWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
-import { journalRows, trialBalance } from './accountingReports.js';
+import { COMPANY, journalReport, trialBalance } from './accountingReports.js';
 
 const year = new Date().getFullYear();
 const accounts = [
@@ -14,7 +14,7 @@ const accounts = [
   { code: '4710', name: 'Palgakulu', type: 'expense', reportLine: 'Palgakulu' },
 ];
 const entries = [
-  { id: 'auto_invoice_i1', number: `${year}-0001`, date: `${year}-01-10`, origin: 'auto', description: 'Müügiarve KS-1', documentRef: 'KS-1', lines: [{ account: '1200', debitCents: 8000, creditCents: 0 }, { account: '3060', debitCents: 0, creditCents: 8000 }], totalCents: 8000 },
+  { id: 'auto_invoice_i1', number: `${year}-0001`, date: `${year}-01-10`, origin: 'auto', documentType: 'invoice', description: 'Müügiarve KS-1', documentRef: 'KS-1', lines: [{ account: '1200', debitCents: 8000, creditCents: 0 }, { account: '3060', debitCents: 0, creditCents: 8000 }], totalCents: 8000 },
   { id: 'manual_m1', number: `${year}-0002`, date: `${year}-01-31`, origin: 'manual', description: 'Jaanuari palk', documentRef: 'Palgaleht 01', lines: [{ account: '4710', debitCents: 3000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 3000 }], totalCents: 3000 },
 ];
 const repo = (overrides = {}) => ({
@@ -31,24 +31,53 @@ describe('AccountingPage', () => {
   it('shows the päevaraamat and brings the automatic entries up to date when it opens', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
-    expect(await screen.findByText('Müügiarve KS-1')).toBeInTheDocument();
-    expect(screen.getByText('Jaanuari palk')).toBeInTheDocument();
+    expect(await screen.findByText('MA 1')).toBeInTheDocument();
+    expect(screen.getByText('PR 1')).toBeInTheDocument();
+    expect(screen.getAllByText('Jaanuari palk')).toHaveLength(2);
+    expect(screen.getByText('Kokku 2 kannet')).toBeInTheDocument();
+    expect(screen.getByText('4 kirjet')).toBeInTheDocument();
+    expect(screen.getByText('Rg-kood 17270880')).toBeInTheDocument();
     await waitFor(() => expect(repository.sync).toHaveBeenCalledTimes(1));
     // only a manual entry can be reversed by hand; an automatic one follows its document
     expect(screen.getAllByRole('button', { name: 'Storno' })).toHaveLength(1);
   });
 
-  it('saves a manual entry in cents and refuses an unbalanced one on the server side message', async () => {
+  it('filters the päevaraamat by kande kood and sorts it by date', async () => {
+    const more = [...entries, { id: 'auto_invoice_i0', number: `${year}-0003`, date: `${year}-01-05`, origin: 'auto', documentType: 'invoice', description: 'Müügiarve KS-0', documentRef: 'KS-0', lines: [{ account: '1200', debitCents: 123456, creditCents: 0 }, { account: '3060', debitCents: 0, creditCents: 123456 }], totalCents: 123456 }];
+    render(<MemoryRouter><AccountingPage repository={repo({ load: vi.fn().mockResolvedValue({ entries: more.map((x) => (x.origin === 'auto' ? { ...x, documentType: 'invoice' } : x)), accounts }) })} /></MemoryRouter>);
+    await screen.findByText('MA 2');
+    const labels = () => [...document.querySelectorAll('.accounting-grid__entry td:first-child')].map((td) => td.textContent);
+    expect(labels()).toEqual(['MA 1', 'MA 2', 'PR 1']);
+    fireEvent.change(screen.getByLabelText('Järjestus'), { target: { value: 'date' } });
+    expect(labels()).toEqual(['MA 2', 'MA 1', 'PR 1']);
+    fireEvent.change(screen.getByLabelText('Kande kood'), { target: { value: 'MA' } });
+    expect(labels()).toEqual(['MA 2', 'MA 1']);
+    expect(screen.getByText('MA Müügiarve kanne', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getAllByText('1 234,56').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('1 314,56', { selector: 'tfoot td' })).toHaveLength(2);
+    expect(screen.getByText('Kokku 2 kannet')).toBeInTheDocument();
+  });
+
+  it('a manual entry is typed into the päevaraamat grid and saved in cents only when it balances', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
-    await screen.findByText('Müügiarve KS-1');
+    await screen.findByText('MA 1');
     fireEvent.click(screen.getByRole('button', { name: 'Lisa kanne' }));
+    // no dialog: the entry rows open inside the grid
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Rida 1 konto').closest('table')).toHaveClass('accounting-journal');
     fireEvent.change(screen.getByLabelText('Algdokument (nr / nimetus)'), { target: { value: 'Palgaleht 02' } });
     fireEvent.change(screen.getByLabelText('Sisu'), { target: { value: 'Veebruari palk' } });
     fireEvent.change(screen.getByLabelText('Rida 1 konto'), { target: { value: '4710' } });
     fireEvent.change(screen.getByLabelText('Rida 1 deebet'), { target: { value: '1 250,50' } });
     fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '2210' } });
+    fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '1250' } });
+    expect(screen.getByRole('button', { name: 'Salvesta kanne' })).toBeDisabled();
+    expect(screen.getByText(/vahe 0,50/)).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '1250,50' } });
+    // Tab in the last cell adds a row
+    fireEvent.keyDown(screen.getByLabelText('Rida 2 kreedit'), { key: 'Tab' });
+    expect(screen.getByLabelText('Rida 3 konto')).toHaveFocus();
     expect(screen.getByText(/Deebet 1\s?250,50 · Kreedit 1\s?250,50/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta kanne' }));
     await waitFor(() => expect(repository.createEntry).toHaveBeenCalledWith(expect.objectContaining({
@@ -60,7 +89,7 @@ describe('AccountingPage', () => {
   it('a storno needs a reason', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
-    await screen.findByText('Jaanuari palk');
+    await screen.findByText('PR 1');
     fireEvent.click(screen.getByRole('button', { name: 'Storno' }));
     fireEvent.click(screen.getByRole('button', { name: 'Tee storno' }));
     expect(await screen.findByText('Lisa tühistamise põhjus.')).toBeInTheDocument();
@@ -70,25 +99,130 @@ describe('AccountingPage', () => {
     await waitFor(() => expect(repository.reverse).toHaveBeenCalledWith('manual_m1', expect.any(String), 'vale summa'));
   });
 
+  it('a manual entry is corrected in place while the period is open; the history shows before and after', async () => {
+    const history = [{ at: `${year}-02-01T10:00:00.000Z`, by: { name: 'Raamatupidaja' }, action: 'edit', reason: 'summa', before: { date: `${year}-01-31`, description: 'Jaanuari palk', documentRef: 'Palgaleht 01', lines: [{ account: '4710', debitCents: 2000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 2000 }] }, after: { date: `${year}-01-31`, description: 'Jaanuari palk', documentRef: 'Palgaleht 01', lines: [{ account: '4710', debitCents: 3000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 3000 }] } }];
+    const repository = repo({ load: vi.fn().mockResolvedValue({ entries: [entries[0], { ...entries[1], history }], accounts }), updateEntry: vi.fn().mockResolvedValue({}) });
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('PR 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Ajalugu (1)' }));
+    expect(screen.getByText(/enne: .*4710 D 20,00/)).toBeInTheDocument();
+    expect(screen.getByText(/pärast: .*4710 D 30,00/)).toBeInTheDocument();
+    expect(screen.getByText(/Raamatupidaja · „summa”/)).toBeInTheDocument();
+    // both entries can be corrected, only the manual one deleted
+    expect(screen.getAllByRole('button', { name: 'Muuda' })).toHaveLength(2);
+    expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(1);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Muuda' })[1]);
+    expect(screen.getByText('PR 1 (parandus)')).toBeInTheDocument();
+    expect(screen.getByLabelText('Rida 1 deebet')).toHaveValue('30,00');
+    fireEvent.change(screen.getByLabelText('Rida 1 deebet'), { target: { value: '35' } });
+    fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '35' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta parandus' }));
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('manual_m1', expect.objectContaining({
+      date: `${year}-01-31`, documentRef: 'Palgaleht 01',
+      lines: [{ account: '4710', debitCents: 3500, creditCents: 0, note: '' }, { account: '2210', debitCents: 0, creditCents: 3500, note: '' }],
+    }), ''));
+  });
+
+  it('an automatic entry keeps its date and document and needs a reason; a delete needs a reason', async () => {
+    const repository = repo({ updateEntry: vi.fn().mockResolvedValue({}), deleteEntry: vi.fn().mockResolvedValue({}) });
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Muuda' })[0]);
+    expect(screen.queryByLabelText('Kuupäev')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Algdokument (nr / nimetus)')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '3060' } });
+    fireEvent.change(screen.getByLabelText('Sisu'), { target: { value: 'Müügiarve KS-1 (parandatud)' } });
+    expect(screen.getByRole('button', { name: 'Salvesta parandus' })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Paranduse põhjus'), { target: { value: 'vale tekst' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta parandus' }));
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.objectContaining({ description: 'Müügiarve KS-1 (parandatud)' }), 'vale tekst'));
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Kustuta' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kustuta kanne' }));
+    expect(await screen.findByText('Lisa kustutamise põhjus.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Kustutamise põhjus'), { target: { value: 'topelt' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Kustuta kanne' }));
+    await waitFor(() => expect(repository.deleteEntry).toHaveBeenCalledWith('manual_m1', 'topelt'));
+  });
+
+  it('a deleted entry leaves the registers (shown on request, its number kept); a locked period allows only a storno', async () => {
+    const deleted = { id: 'manual_m0', number: `${year}-0000`, date: `${year}-01-20`, origin: 'manual', description: 'Vale', documentRef: 'X', deleted: true, lines: [{ account: '4710', debitCents: 999, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 999 }], history: [{ action: 'delete', reason: 'topelt', by: { email: 'a@b.ee' } }] };
+    const repository = repo({ load: vi.fn().mockResolvedValue({ entries: [...entries, deleted], accounts, lockedThrough: `${year}-01-31` }), setLock: vi.fn().mockResolvedValue({}) });
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    expect(screen.queryByText('Vale')).not.toBeInTheDocument();
+    expect(screen.getByText('Kokku 2 kannet')).toBeInTheDocument();
+    // the deleted entry kept its running number: the live manual entry is PR 2
+    expect(screen.getByText('PR 2')).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText(/Näita kustutatud/));
+    expect(screen.getByText('kustutatud')).toBeInTheDocument();
+    expect(screen.getByText('Kokku 2 kannet')).toBeInTheDocument();
+    // locked through 31.01: no edit or delete, the storno stays
+    expect(screen.queryByRole('button', { name: 'Muuda' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Kustuta' })).not.toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Storno' })).toHaveLength(1);
+    // reopening needs a reason
+    fireEvent.click(screen.getByRole('button', { name: `Suletud kuni 31.01.${year}` }));
+    fireEvent.change(screen.getByLabelText('Periood suletud kuni'), { target: { value: '' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    expect(await screen.findByText('Perioodi uuesti avamiseks lisa põhjus.')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Perioodi põhjus'), { target: { value: 'parandus' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(repository.setLock).toHaveBeenCalledWith('', 'parandus'));
+  });
+
   it('käibeandmik shows the turnover per account with totals', async () => {
     render(<MemoryRouter><AccountingPage repository={repo()} /></MemoryRouter>);
-    await screen.findByText('Müügiarve KS-1');
+    await screen.findByText('MA 1');
     fireEvent.click(screen.getByRole('button', { name: 'Käibeandmik' }));
     const row = screen.getByRole('button', { name: '3060' }).closest('tr');
     expect(within(row).getByText('Maksuvaba müügitulu')).toBeInTheDocument();
     expect(within(row).getAllByText('80,00')).toHaveLength(2);
+    expect(screen.getByRole('columnheader', { name: 'Algsaldo' })).toHaveAttribute('colspan', '2');
+    expect(screen.getAllByRole('columnheader', { name: 'Kreedit' })).toHaveLength(3);
+    const total = screen.getByText('Kokku').closest('tr');
+    expect(within(total).getAllByText('110,00')).toHaveLength(4);
   });
 });
 
 describe('Excel exports', () => {
-  it('päevaraamat and käibeandmik have the template columns and escape text', () => {
-    const journal = journalWorkbook(journalRows([{ ...entries[0], description: 'Arve <A&B>' }], accounts, {}), { company: 'E&P Koolitus OÜ', period: { from: `${year}-01-01`, to: `${year}-12-31` } });
-    expect(journal).toContain('Järjekorra nr');
-    expect(journal).toContain('Kontode nimetus ja operatsiooni sisu');
-    expect(journal).toContain('Arve &lt;A&amp;B&gt;');
-    expect(journal).toContain('<Data ss:Type="Number">80.00</Data>');
-    const trial = trialBalanceWorkbook(trialBalance(entries, accounts, { from: `${year}-01-01`, to: `${year}-12-31` }), { company: 'E&P Koolitus OÜ', period: {} });
-    expect(trial).toContain('Algsaldo deebet');
-    expect(trial).toContain('Lõppsaldo kreedit');
+  it('päevaraamat: the template grid with filters, entry blocks, totals and the company footer', () => {
+    const report = journalReport([{ ...entries[0], documentType: 'invoice', description: 'Arve <A&B>' }, entries[1]], accounts, { from: `${year}-01-01`, to: `${year}-01-31`, code: '' });
+    const xml = journalWorkbook(report, { company: COMPANY, printedAt: new Date(2026, 9, 23, 9, 5, 7) });
+    expect(xml).toContain('<Data ss:Type="String">Päevaraamat</Data>');
+    expect(xml).toContain(`01.01.${year} kuni 31.01.${year}`);
+    expect(xml).toContain('<Data ss:Type="String">Kõik</Data>');
+    expect(xml).toContain('<Data ss:Type="String">Kande kood</Data>');
+    for (const head of ['Kanne', 'Dokument', 'Kuupäev', 'Konto', 'Kirjeldus', 'Deebet', 'Kreedit']) expect(xml).toContain(`ss:StyleID="gHead${head === 'Deebet' || head === 'Kreedit' ? 'Num' : ''}"><Data ss:Type="String">${head}</Data>`);
+    // Kuupäev, then Dokument (the accountant 2026-10-23), in both header bands
+    expect(xml).toContain('<Data ss:Type="String">Kanne</Data></Cell><Cell ss:StyleID="gHead"><Data ss:Type="String">Kuupäev</Data></Cell><Cell ss:StyleID="gHead"><Data ss:Type="String">Dokument</Data>');
+    expect(xml).toContain('<Data ss:Type="String">Konto</Data></Cell><Cell ss:StyleID="gHead"><Data ss:Type="String">Kuupäev</Data></Cell><Cell ss:StyleID="gHead"><Data ss:Type="String">Dokument</Data></Cell><Cell ss:StyleID="gHead"><Data ss:Type="String">Kirjeldus</Data>');
+    expect(xml).not.toContain('Kurss');
+    expect(xml).not.toContain('Valuuta');
+    expect(xml).toContain('<Data ss:Type="String">MA 1</Data>');
+    expect(xml).toContain(`<Data ss:Type="String">10.01.${year}</Data>`);
+    expect(xml).toContain('<Data ss:Type="String">1200 Ostjatelt laekumata arved</Data>');
+    expect(xml).toContain('Arve &lt;A&amp;B&gt;');
+    expect(xml).toContain('<Data ss:Type="Number">80.00</Data>');
+    expect(xml).toContain('<Data ss:Type="Number">0.00</Data>');
+    expect(xml).toContain('Kokku 2 kannet');
+    expect(xml).toContain('4 kirjet');
+    expect(xml).toContain('<Data ss:Type="Number">110.00</Data>');
+    expect(xml).toContain('<Data ss:Type="String">E&amp;P Koolitus OÜ</Data>');
+    expect(xml).toContain('23.10.2026 09:05:07');
+    expect(xml).toContain('Rg-kood 17270880');
+    // a ruled grid: every grid style has four borders
+    expect(xml.match(/<Style ss:ID="g[A-Za-z]*">/g).length).toBeGreaterThan(5);
+    expect(xml).toMatch(/<Style ss:ID="g"><Borders>(<Border [^>]+\/>){4}<\/Borders>/);
+  });
+
+  it('käibeandmik: two-level header Algsaldo / Käive / Lõppsaldo over Deebet / Kreedit and a Kokku row', () => {
+    const trial = trialBalanceWorkbook(trialBalance(entries, accounts, { from: `${year}-01-01`, to: `${year}-12-31` }), { company: COMPANY, period: { from: `${year}-01-01`, to: `${year}-12-31` } });
+    expect(trial).toContain('ss:MergeDown="1"><Data ss:Type="String">Konto</Data>');
+    for (const group of ['Algsaldo', 'Käive', 'Lõppsaldo']) expect(trial).toContain(`ss:MergeAcross="1"><Data ss:Type="String">${group}</Data>`);
+    expect(trial.match(/<Data ss:Type="String">Deebet<\/Data>/g)).toHaveLength(3);
+    expect(trial.match(/<Data ss:Type="String">Kreedit<\/Data>/g)).toHaveLength(3);
+    expect(trial).toContain('<Data ss:Type="String">Kokku</Data>');
+    expect(trial).toContain('<Data ss:Type="Number">110.00</Data>');
   });
 });

@@ -1,20 +1,16 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import ExpensesPage from './ExpensesPage.jsx';
 
 describe('ExpensesPage', () => {
-  it('creates a simple expense without supplier fields', async () => {
-    const repository = { list: vi.fn().mockResolvedValue([]), create: vi.fn().mockResolvedValue({}) };
+  it('is an archive: new costs are entered as purchase invoices (the accountant 2026-10-23)', async () => {
+    const repository = { list: vi.fn().mockResolvedValue([]), create: vi.fn() };
     render(<MemoryRouter><ExpensesPage repository={repository} /></MemoryRouter>);
     await screen.findByText('Valitud kuul kulusid ei ole');
-    fireEvent.click(screen.getByRole('button', { name: 'Lisa uus kulu' }));
-    expect(screen.queryByLabelText(/tarnija/i)).not.toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Kirjeldus'), { target: { value: 'Videokõne tarkvara' } });
-    fireEvent.change(screen.getByLabelText('Summa koos KM-ga (€)'), { target: { value: '24,40' } });
-    fireEvent.change(screen.getByLabelText('Käibemaks (€)'), { target: { value: '4,40' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Lisa kulu' }));
-    await waitFor(() => expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ description: 'Videokõne tarkvara', amount: '24,40', vatAmount: '4,40' })));
+    expect(screen.queryByRole('button', { name: 'Lisa uus kulu' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Uus ostuarve' })).toHaveAttribute('href', '/finance/ostuarved');
+    expect(repository.create).not.toHaveBeenCalled();
   });
 
   it('requires a reason before correcting an expense', async () => {

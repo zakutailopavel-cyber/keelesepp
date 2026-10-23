@@ -39,6 +39,7 @@ const { invoiceNumberingPlan } = require("./invoice-numbering-core");
 const { expenseDocumentRecord, expenseRecord } = require("./expenses-core");
 const { DEFAULT_ACCOUNTS } = require("./accounting-chart");
 const accountingCore = require("./accounting-core");
+const purchasesCore = require("./purchases-core");
 const invoiceCorrectionCore = require("./invoice-correction-core");
 const inf3Core = require("./inf3-core");
 const {
@@ -8927,7 +8928,7 @@ async function createAccountingEntry({ actor, values, requestId }) {
   return db.runTransaction(async transaction => {
     const existing = await transaction.get(ref);
     if (existing.exists) return { entry: { id: existing.id, ...existing.data() }, idempotent: true };
-    await assertFinancialDateOpen(transaction, normalized.date);
+    await assertAccountingDatesOpen(transaction, [normalized.date], await readAccountingLock(transaction));
     const [entry] = await writeNumberedEntries(transaction, [{ ref, entry: { ...normalized, origin: "manual", documentType: cleanText(values?.documentType, 40) || "other", requestId: mutationId } }], { actorData, nowIso });
     transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "accountingEntry", entityId: ref.id, action: "accounting.entry.created", number: entry.number, date: entry.date, totalCents: entry.totalCents, createdAt: nowIso, createdBy: actorData });
     return { entry };
@@ -8947,7 +8948,8 @@ async function reverseAccountingEntry({ actor, entryId, date, reason, requestId 
     const sourceSnap = await transaction.get(sourceRef);
     if (!sourceSnap.exists) throw httpError(404, "Kannet ei leitud.");
     const source = { id: sourceSnap.id, ...sourceSnap.data() };
-    if (source.origin === "auto") throw httpError(409, "Automaatkannet parandatakse dokumendi kaudu: kreeditarve, arve tühistamine või makse tühistamine.");
+    if (source.deleted) throw httpError(409, "Kanne on kustutatud.");
+    if (source.origin === "auto") throw httpError(409, "Automaatkannet parandatakse ridade muutmisega (Muuda) või dokumendi kaudu: kreeditarve, arve tühistamine või makse tühistamine.");
     if (reversalDate < source.date) throw httpError(400, "Storno kuupäev ei saa olla varasem kui kande kuupäev.");
     let storno;
     try {
@@ -8955,7 +8957,7 @@ async function reverseAccountingEntry({ actor, entryId, date, reason, requestId 
     } catch (error) {
       throw httpError(error.status || 400, error.message);
     }
-    await assertFinancialDateOpen(transaction, reversalDate);
+    await assertAccountingDatesOpen(transaction, [reversalDate], await readAccountingLock(transaction));
     const [entry] = await writeNumberedEntries(transaction, [{ ref, entry: { ...storno, requestId: mutationId } }], { actorData, nowIso });
     transaction.update(sourceRef, { reversedBy: ref.id, reversedByNumber: entry.number, reversedAt: nowIso });
     transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "accountingEntry", entityId: source.id, action: "accounting.entry.reversed", number: source.number, reversalNumber: entry.number, reason: storno.reason, createdAt: nowIso, createdBy: actorData });
@@ -9006,6 +9008,366 @@ async function saveAccountingAccount({ actor, values }) {
     transaction.set(ref, snap.exists ? account : { ...account, createdAt: nowIso, createdBy: actorData }, { merge: true });
     transaction.create(db.collection("financialAudit").doc(), { entityType: "accountingAccount", entityId: code, action: snap.exists ? "accounting.account.updated" : "accounting.account.created", before: snap.exists ? snap.data() : null, after: account, createdAt: nowIso, createdBy: actorData });
     return { account };
+  });
+}
+
+// ---------- corrections and the accounting lock (the accountant 2026-10-23, docs/ACCOUNTING.md „Parandamine”) ----------
+// accountingSettings/lock: { lockedThrough: "YYYY-MM-DD" | "" } — „Sulge periood kuni …”. A date on or before it, or in a
+// closed finance month (financialLockedDates), cannot be booked, edited or deleted; only a storno / correcting entry
+// dated after it.
+const accountingLockRef = () => db.collection("accountingSettings").doc("lock");
+const accountingEntryRef = (id) => db.collection("accountingEntries").doc(String(id || "").trim() || "-");
+
+async function readAccountingLock(transaction) {
+  const snap = transaction ? await transaction.get(accountingLockRef()) : await accountingLockRef().get();
+  return snap.exists ? String(snap.get("lockedThrough") || "") : "";
+}
+
+async function assertAccountingDatesOpen(transaction, dates, lockedThrough) {
+  for (const date of [...new Set(dates.filter(Boolean).map(d => String(d).slice(0, 10)))]) {
+    if (accountingCore.isLocked(date, lockedThrough)) {
+      throw httpError(409, `Periood on suletud kuni ${lockedThrough.split("-").reverse().join(".")}. Paranda uue kandega (storno või parandav kanne).`);
+    }
+    await assertFinancialDateOpen(transaction, date);
+  }
+}
+
+const historyItem = ({ action, reason, before, after, nowIso, actorData }) => ({ at: nowIso, by: actorData, action, reason: reason || "", before: before || null, after: after || null });
+
+async function updateAccountingEntry({ actor, entryId, values, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const accounts = await accountingAccounts();
+  const ref = accountingEntryRef(entryId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const cleanReason = cleanText(reason, 300);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { entry: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (!snap.exists) throw httpError(404, "Kannet ei leitud.");
+    const entry = { id: snap.id, ...snap.data() };
+    let corrected;
+    try {
+      corrected = accountingCore.correctedEntry(entry, values || {}, accounts);
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    if (entry.origin !== "manual" && !cleanReason) throw httpError(400, "Automaatkande parandusel on põhjus kohustuslik.");
+    await assertAccountingDatesOpen(transaction, [entry.date, corrected.after.date], lockedThrough);
+    const action = entry.origin === "manual" ? "edit" : "override";
+    const patch = {
+      ...corrected.after,
+      totalCents: corrected.totalCents,
+      history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action, reason: cleanReason, before: corrected.before, after: corrected.after, nowIso, actorData })],
+      updatedAt: nowIso,
+      updatedBy: actorData,
+    };
+    if (entry.origin !== "manual") {
+      // the source document stays linked; its own lines are kept in `original`, the override is what is booked
+      patch.original = entry.original || { description: corrected.before.description, lines: corrected.before.lines };
+      patch.override = { description: corrected.after.description, lines: corrected.after.lines, reason: cleanReason, at: nowIso, by: actorData };
+    }
+    transaction.update(ref, patch);
+    transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: `accounting.entry.${action}`, number: entry.number, reason: cleanReason, before: corrected.before, after: corrected.after, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { entry: { ...entry, ...patch } };
+  });
+}
+
+async function deleteAccountingEntry({ actor, entryId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Kustutamise põhjus on kohustuslik.");
+  const ref = accountingEntryRef(entryId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { entry: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (!snap.exists) throw httpError(404, "Kannet ei leitud.");
+    const entry = { id: snap.id, ...snap.data() };
+    try {
+      accountingCore.assertDeletable(entry);
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    await assertAccountingDatesOpen(transaction, [entry.date], lockedThrough);
+    const before = accountingCore.snapshotOf(entry);
+    // a tombstone: the number is never reused and the content stays readable in the history (RPS § 10, § 12)
+    const patch = {
+      deleted: true, deletedAt: nowIso, deletedBy: actorData, deleteReason: cleanReason,
+      history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action: "delete", reason: cleanReason, before, nowIso, actorData })],
+      updatedAt: nowIso, updatedBy: actorData,
+    };
+    transaction.update(ref, patch);
+    transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: "accounting.entry.deleted", number: entry.number, reason: cleanReason, before, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { entry: { ...entry, ...patch } };
+  });
+}
+
+async function setAccountingLock({ actor, lockedThrough, reason }) {
+  const date = String(lockedThrough || "").trim();
+  if (date) validIsoDate(date, "lockedThrough");
+  const cleanReason = cleanText(reason, 300);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const previous = await readAccountingLock(transaction);
+    if (previous === date) return { lockedThrough: date };
+    if (previous && (!date || date < previous) && !cleanReason) throw httpError(400, "Perioodi uuesti avamiseks on põhjus kohustuslik.");
+    transaction.set(accountingLockRef(), { lockedThrough: date, updatedAt: nowIso, updatedBy: actorData, reason: cleanReason });
+    transaction.create(db.collection("financialAudit").doc(), { entityType: "accounting", entityId: "lock", action: !previous || (date && date > previous) ? "accounting.period.locked" : "accounting.period.reopened", before: previous, after: date, reason: cleanReason, createdAt: nowIso, createdBy: actorData });
+    return { lockedThrough: date };
+  });
+}
+
+// ---------- Tarnijad and ostuarved (functions/purchases-core.js, docs/ACCOUNTING.md) ----------
+async function saveSupplier({ actor, supplierId, values, requestId }) {
+  const accounts = await accountingAccounts();
+  let record;
+  try {
+    record = purchasesCore.supplierRecord(values || {}, accounts);
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  const existingId = String(supplierId || "").trim();
+  const ref = existingId ? db.collection("suppliers").doc(existingId) : db.collection("suppliers").doc(cleanRequestId(requestId));
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const sameCode = record.regCode ? await db.collection("suppliers").where("regCode", "==", record.regCode).get() : null;
+  if (sameCode && sameCode.docs.some(doc => doc.id !== ref.id)) throw httpError(409, `Tarnija registrikoodiga ${record.regCode} on juba olemas.`);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    if (existingId && !snap.exists) throw httpError(404, "Tarnijat ei leitud.");
+    if (!existingId && snap.exists) return { supplier: { id: snap.id, ...snap.data() }, idempotent: true };
+    const supplier = snap.exists ? { ...record, updatedAt: nowIso, updatedBy: actorData } : { ...record, createdAt: nowIso, createdBy: actorData, updatedAt: nowIso };
+    transaction.set(ref, supplier, { merge: true });
+    transaction.create(db.collection("financialAudit").doc(), { entityType: "supplier", entityId: ref.id, action: snap.exists ? "supplier.updated" : "supplier.created", before: snap.exists ? snap.data() : null, after: record, createdAt: nowIso, createdBy: actorData });
+    return { supplier: { id: ref.id, ...(snap.exists ? snap.data() : {}), ...supplier } };
+  });
+}
+
+const purchaseEntryRef = (sourceKey) => db.collection("accountingEntries").doc(purchasesCore.entryIdOf(sourceKey));
+
+async function savePurchaseInvoice({ actor, purchaseInvoiceId, values, paidNow, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  await seedAccountingAccounts(actor);
+  const accounts = await accountingAccounts();
+  const existingId = String(purchaseInvoiceId || "").trim();
+  const ref = db.collection("purchaseInvoices").doc(existingId || mutationId);
+  const supplierRef = db.collection("suppliers").doc(String(values?.supplierId || "").trim() || "-");
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const cleanReason = cleanText(reason, 300);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, snap, supplierSnap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), transaction.get(supplierRef), readAccountingLock(transaction)]);
+    if (auditSnap.exists || (!existingId && snap.exists)) return { purchaseInvoice: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (existingId && !snap.exists) throw httpError(404, "Ostuarvet ei leitud.");
+    if (!supplierSnap.exists) throw httpError(400, "Vali tarnija.");
+    let record;
+    try {
+      record = purchasesCore.purchaseInvoiceRecord(values || {}, { accounts, supplier: { id: supplierSnap.id, ...supplierSnap.data() } });
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    const duplicates = await transaction.get(db.collection("purchaseInvoices").where("supplierId", "==", record.supplierId).where("documentNumber", "==", record.documentNumber));
+    if (duplicates.docs.some(doc => doc.id !== ref.id && doc.get("status") !== "voided")) throw httpError(409, `Tarnija ${record.supplierName} arve ${record.documentNumber} on juba sisestatud.`);
+    const entrySourceKey = purchasesCore.sourceKeyOfInvoice(ref.id);
+    const entryRef = purchaseEntryRef(entrySourceKey);
+    const newEntry = purchasesCore.purchaseInvoiceEntry(ref.id, record);
+
+    if (existingId) {
+      // a correction of the document while its period is open: the invoice and its OA entry change together
+      const previous = snap.data();
+      if (previous.status === "voided") throw httpError(409, "Tühistatud arvet ei muudeta.");
+      const entrySnap = await transaction.get(entryRef);
+      await assertAccountingDatesOpen(transaction, [previous.date, record.date], lockedThrough);
+      const paidCents = Number(previous.paidCents || 0);
+      if (record.totalCents < paidCents) throw httpError(409, "Arve summa ei saa olla väiksem kui juba tasutud summa.");
+      if (record.date.slice(0, 4) !== String(previous.date).slice(0, 4)) throw httpError(400, "Aastat ei saa muuta. Tühista arve ja sisesta uuesti.");
+      if (record.date > (previous.payments || []).reduce((min, p) => (p.date < min ? p.date : min), "9999-12-31")) throw httpError(400, "Arve kuupäev ei saa olla hilisem kui tasumine.");
+      const invoicePatch = { ...record, status: purchasesCore.statusOf(record.totalCents, paidCents), updatedAt: nowIso, updatedBy: actorData };
+      if (entrySnap.exists && !entrySnap.get("deleted")) {
+        const entry = { id: entrySnap.id, ...entrySnap.data() };
+        const before = accountingCore.snapshotOf(entry);
+        const after = accountingCore.snapshotOf(newEntry);
+        transaction.update(entryRef, {
+          date: newEntry.date, description: newEntry.description, documentRef: newEntry.documentRef, lines: newEntry.lines, totalCents: newEntry.totalCents,
+          override: FieldValue.delete(),
+          history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action: "document", reason: cleanReason || "Ostuarve parandus", before, after, nowIso, actorData })],
+          updatedAt: nowIso, updatedBy: actorData,
+        });
+      }
+      transaction.update(ref, invoicePatch);
+      transaction.create(auditRef, { entityType: "purchaseInvoice", entityId: ref.id, action: "purchase_invoice.updated", reason: cleanReason, before: { supplierId: previous.supplierId, documentNumber: previous.documentNumber, date: previous.date, dueDate: previous.dueDate, lines: previous.lines, totalCents: previous.totalCents }, after: record, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+      return { purchaseInvoice: { id: ref.id, ...previous, ...invoicePatch } };
+    }
+
+    const payments = [];
+    let paymentEntry = null;
+    if (paidNow) {
+      let payment;
+      try {
+        payment = { id: `p_${mutationId}`, ...purchasesCore.paymentRecord({ date: paidNow.date || record.date, method: paidNow.method, reference: paidNow.reference }, { ...record, paidCents: 0 }) };
+      } catch (error) {
+        throw httpError(error.status || 400, error.message);
+      }
+      paymentEntry = purchasesCore.supplierPaymentEntry(ref.id, record, payment);
+      payments.push({ ...payment, entryId: purchaseEntryRef(paymentEntry.sourceKey).id, createdAt: nowIso, createdBy: actorData });
+    }
+    await assertAccountingDatesOpen(transaction, [record.date, ...payments.map(p => p.date)], lockedThrough);
+    const items = [{ ref: entryRef, entry: newEntry }];
+    if (paymentEntry) items.push({ ref: purchaseEntryRef(paymentEntry.sourceKey), entry: paymentEntry });
+    const written = await writeNumberedEntries(transaction, items, { actorData, nowIso });
+    const paidCents = payments.reduce((sum, p) => sum + p.amountCents, 0);
+    const invoice = {
+      ...record, paidCents, payments, status: purchasesCore.statusOf(record.totalCents, paidCents), currency: "EUR",
+      documents: [], documentCount: 0, entryId: entryRef.id, entryNumber: written[0].number,
+      createdAt: nowIso, createdBy: actorData, updatedAt: nowIso, requestId: mutationId,
+    };
+    transaction.create(ref, invoice);
+    transaction.create(auditRef, { entityType: "purchaseInvoice", entityId: ref.id, action: "purchase_invoice.created", after: record, entryNumbers: written.map(e => e.number), createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { purchaseInvoice: { id: ref.id, ...invoice }, entries: written };
+  });
+}
+
+async function payPurchaseInvoice({ actor, purchaseInvoiceId, payment, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const ref = db.collection("purchaseInvoices").doc(String(purchaseInvoiceId || "").trim() || "-");
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const paymentId = `p_${mutationId}`;
+  return db.runTransaction(async transaction => {
+    const [snap, lockedThrough] = await Promise.all([transaction.get(ref), readAccountingLock(transaction)]);
+    if (!snap.exists) throw httpError(404, "Ostuarvet ei leitud.");
+    const invoice = snap.data();
+    if ((invoice.payments || []).some(p => p.id === paymentId)) return { purchaseInvoice: { id: snap.id, ...invoice }, idempotent: true };
+    if (invoice.status === "voided") throw httpError(409, "Tühistatud arvet ei tasuta.");
+    let record;
+    try {
+      record = { id: paymentId, ...purchasesCore.paymentRecord(payment || {}, invoice) };
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    await assertAccountingDatesOpen(transaction, [record.date], lockedThrough);
+    const entry = purchasesCore.supplierPaymentEntry(ref.id, invoice, record);
+    const entryRef = purchaseEntryRef(entry.sourceKey);
+    const [written] = await writeNumberedEntries(transaction, [{ ref: entryRef, entry }], { actorData, nowIso });
+    const payments = [...(invoice.payments || []), { ...record, entryId: entryRef.id, entryNumber: written.number, createdAt: nowIso, createdBy: actorData }];
+    const paidCents = payments.reduce((sum, p) => sum + p.amountCents, 0);
+    const patch = { payments, paidCents, status: purchasesCore.statusOf(invoice.totalCents, paidCents), updatedAt: nowIso, updatedBy: actorData };
+    transaction.update(ref, patch);
+    transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "purchaseInvoice", entityId: ref.id, action: "purchase_invoice.paid", payment: record, entryNumber: written.number, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { purchaseInvoice: { id: ref.id, ...invoice, ...patch }, entry: written };
+  });
+}
+
+// a payment recorded by mistake, while its date is open: the payment leaves the invoice, its VM entry becomes a
+// tombstone with the history
+async function removePurchasePayment({ actor, purchaseInvoiceId, paymentId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Põhjus on kohustuslik.");
+  const ref = db.collection("purchaseInvoices").doc(String(purchaseInvoiceId || "").trim() || "-");
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { purchaseInvoice: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (!snap.exists) throw httpError(404, "Ostuarvet ei leitud.");
+    const invoice = snap.data();
+    const payment = (invoice.payments || []).find(p => p.id === paymentId);
+    if (!payment) throw httpError(404, "Tasumist ei leitud.");
+    const entryRef = accountingEntryRef(payment.entryId);
+    const entrySnap = await transaction.get(entryRef);
+    await assertAccountingDatesOpen(transaction, [payment.date], lockedThrough);
+    if (entrySnap.exists && !entrySnap.get("deleted")) {
+      const entry = { id: entrySnap.id, ...entrySnap.data() };
+      if (entry.reversedBy) throw httpError(409, "Tasumise kanne on stornoga tühistatud.");
+      transaction.update(entryRef, {
+        deleted: true, deletedAt: nowIso, deletedBy: actorData, deleteReason: cleanReason,
+        history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action: "delete", reason: cleanReason, before: accountingCore.snapshotOf(entry), nowIso, actorData })],
+        updatedAt: nowIso, updatedBy: actorData,
+      });
+    }
+    const payments = (invoice.payments || []).filter(p => p.id !== paymentId);
+    const paidCents = payments.reduce((sum, p) => sum + p.amountCents, 0);
+    const patch = { payments, paidCents, status: purchasesCore.statusOf(invoice.totalCents, paidCents), removedPayments: [...(invoice.removedPayments || []), { ...payment, removedAt: nowIso, removedBy: actorData, reason: cleanReason }], updatedAt: nowIso, updatedBy: actorData };
+    transaction.update(ref, patch);
+    transaction.create(auditRef, { entityType: "purchaseInvoice", entityId: ref.id, action: "purchase_invoice.payment_removed", payment, reason: cleanReason, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { purchaseInvoice: { id: ref.id, ...invoice, ...patch } };
+  });
+}
+
+// void an unpaid invoice: while its date is open the OA entry becomes a tombstone, after the lock a storno is booked
+// today
+async function voidPurchaseInvoice({ actor, purchaseInvoiceId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Tühistamise põhjus on kohustuslik.");
+  const ref = db.collection("purchaseInvoices").doc(String(purchaseInvoiceId || "").trim() || "-");
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const today = appToday(nowIso);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { purchaseInvoice: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (!snap.exists) throw httpError(404, "Ostuarvet ei leitud.");
+    const invoice = snap.data();
+    if (invoice.status === "voided") throw httpError(409, "Arve on juba tühistatud.");
+    if (Number(invoice.paidCents || 0) > 0) throw httpError(409, "Arvel on tasumisi. Eemalda enne tasumised.");
+    const entryRef = accountingEntryRef(invoice.entryId);
+    const entrySnap = await transaction.get(entryRef);
+    const entry = entrySnap.exists ? { id: entrySnap.id, ...entrySnap.data() } : null;
+    const open = !accountingCore.isLocked(invoice.date, lockedThrough) && !(await transaction.get(db.collection("financialLockedDates").doc(invoice.date))).exists;
+    let storno = null;
+    if (entry && !entry.deleted && !entry.reversedBy) {
+      if (open) {
+        transaction.update(entryRef, {
+          deleted: true, deletedAt: nowIso, deletedBy: actorData, deleteReason: `Ostuarve tühistatud: ${cleanReason}`,
+          history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action: "delete", reason: `Ostuarve tühistatud: ${cleanReason}`, before: accountingCore.snapshotOf(entry), nowIso, actorData })],
+          updatedAt: nowIso, updatedBy: actorData,
+        });
+      } else {
+        await assertAccountingDatesOpen(transaction, [today], lockedThrough);
+        const reversal = accountingCore.reversalOf(entry, { date: today, reason: `Ostuarve tühistatud: ${cleanReason}` });
+        const stornoRef = db.collection("accountingEntries").doc(`reversal_${mutationId}`);
+        [storno] = await writeNumberedEntries(transaction, [{ ref: stornoRef, entry: { ...reversal, requestId: mutationId } }], { actorData, nowIso });
+        transaction.update(entryRef, { reversedBy: stornoRef.id, reversedByNumber: storno.number, reversedAt: nowIso });
+      }
+    }
+    const patch = { status: "voided", voidedAt: nowIso, voidedBy: actorData, voidReason: cleanReason, updatedAt: nowIso };
+    transaction.update(ref, patch);
+    transaction.create(auditRef, { entityType: "purchaseInvoice", entityId: ref.id, action: "purchase_invoice.voided", reason: cleanReason, stornoNumber: storno?.number || "", createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { purchaseInvoice: { id: ref.id, ...invoice, ...patch }, storno };
+  });
+}
+
+async function attachPurchaseDocument({ actor, purchaseInvoiceId, document, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const nowIso = new Date().toISOString();
+  let normalized;
+  try {
+    normalized = purchasesCore.purchaseDocumentRecord({ purchaseInvoiceId, documentId: mutationId, ...document, uploadedAt: nowIso });
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  const ref = db.collection("purchaseInvoices").doc(normalized.purchaseInvoiceId);
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const snap = await transaction.get(ref);
+    if (!snap.exists) throw httpError(404, "Ostuarvet ei leitud.");
+    const documents = Array.isArray(snap.get("documents")) ? snap.get("documents") : [];
+    if (documents.some(item => item.id === mutationId)) return { purchaseInvoice: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (documents.length >= 20) throw httpError(409, "Arvel on juba 20 faili.");
+    const next = [...documents, { ...normalized, uploadedBy: actorData }];
+    transaction.update(ref, { documents: next, documentCount: next.length, updatedAt: nowIso });
+    transaction.create(db.collection("financialAudit").doc(mutationId), { entityType: "purchaseInvoice", entityId: ref.id, action: "purchase_invoice.document_attached", document: normalized, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { purchaseInvoice: { id: ref.id, ...snap.data(), documents: next, documentCount: next.length }, document: normalized };
   });
 }
 
@@ -9402,6 +9764,50 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     }
     if (req.path === "/accounting/entries/reverse") {
       const result = await reverseAccountingEntry({ actor, entryId: req.body?.entryId, date: req.body?.date, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/entries/update") {
+      const result = await updateAccountingEntry({ actor, entryId: req.body?.entryId, values: req.body?.entry, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/entries/delete") {
+      const result = await deleteAccountingEntry({ actor, entryId: req.body?.entryId, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/lock") {
+      res.json(await setAccountingLock({ actor, lockedThrough: req.body?.lockedThrough, reason: req.body?.reason }));
+      return;
+    }
+    if (req.path === "/suppliers") {
+      const result = await saveSupplier({ actor, supplierId: req.body?.supplierId, values: req.body?.supplier, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/purchase-invoices") {
+      const result = await savePurchaseInvoice({ actor, purchaseInvoiceId: req.body?.purchaseInvoiceId, values: req.body?.purchaseInvoice, paidNow: req.body?.paidNow, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/purchase-invoices/pay") {
+      const result = await payPurchaseInvoice({ actor, purchaseInvoiceId: req.body?.purchaseInvoiceId, payment: req.body?.payment, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/purchase-invoices/payment/remove") {
+      const result = await removePurchasePayment({ actor, purchaseInvoiceId: req.body?.purchaseInvoiceId, paymentId: req.body?.paymentId, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/purchase-invoices/void") {
+      const result = await voidPurchaseInvoice({ actor, purchaseInvoiceId: req.body?.purchaseInvoiceId, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/purchase-invoices/documents") {
+      const result = await attachPurchaseDocument({ actor, purchaseInvoiceId: req.body?.purchaseInvoiceId, document: { storagePath: req.body?.storagePath, fileName: req.body?.fileName, contentType: req.body?.contentType, size: req.body?.size }, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
