@@ -1,3 +1,9 @@
+## 2026-10-23 · agent/lhv-request-v2 — LHV LinkPay production request (refresh of PR #554)
+
+- `docs/LHV_PRODUCTION_REQUEST.md` from #554 on current main, now with the invoice volume (read-only count from
+  production `invoices`: about 20 invoices a month, average about 100 €). Letter not sent — the owner sends it and
+  chooses the contact phone (+372 5374 0753 personal or +372 5434 4155 public). LinkPay code stays in test mode
+  until live keys exist and the owner allows the switch.
 ## 2026-10-23 · agent/pet-course-games-v2 — lemmiku mängud kursuse töölehtedest (PR #518 uuesti main'il)
 
 - Base: `main` 5f1c015 (2026-10-23). Branch `agent/pet-course-games-v2`, draft PR (supersedes #518, which stays open).
