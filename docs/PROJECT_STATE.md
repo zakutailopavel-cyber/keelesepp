@@ -1,3 +1,21 @@
+## 2026-10-23 · agent/pet-course-games-v2 — lemmiku mängud kursuse töölehtedest (PR #518 uuesti main'il)
+
+- Base: `main` 5f1c015 (2026-10-23). Branch `agent/pet-course-games-v2`, draft PR (supersedes #518, which stays open).
+- #518 cherry-picked (pet.css: Sorteeri/Arva sõna styles + the pet reactions of main kept). Topic games also use the
+  published course sheets of the last 4 attended lessons (`lessons.topicLessonId`, `courseTopics()`); `transformation`
+  → „Lauseehitus”, `dialogue` gaps → „Püüa sõna”; new games „Sorteeri” (`categorize`) and „Arva sõna” (crossword,
+  vocab, match clues; Estonian keyboard).
+- New on top of #518 (`pet/petGames.js`): the „Õpik” sheet (`TEXTBOOK_SHEET_ID`, by record id or `meta.phase`) is never
+  game material (licensed content); `cloze` option gaps → „Püüa sõna” with the gap's own options, sentence by sentence;
+  „Sorteeri” cards ≤ 3 words, a group made mostly of longer items is dropped; „Arva sõna” only on Estonian sheets
+  (`meta.language`, else lesson id `en-…` = English).
+- Guard test `pet/petGamesCourse.test.js`: every non-assessment lesson of the Estonian courses (A2, B1, B2, C1, ek9;
+  312 lessons from `COURSE_MODULES` / `moduleSheets`) gives ≥ 2 games. Coverage: 786 of 936 sheets playable; lessons
+  per game catch 311, order 308, truth 232, guess 186, pairs 127, sort 50; 101 lessons with 5–6 games; 1834 cloze rounds.
+- Unchanged: games only fill the pet's joy (`playedAt`), no XP, nothing written; no rules/functions changed.
+- Checks: vitest pet 54/54; whole vitest 2321 passed, 3 skipped, 0 failed; eslint `src/features/pet` clean; `npm run build` OK.
+  Not checked in a browser in this round.
+- Next step: owner tries the games with a test student who has an attended lesson with an Õppevara topic, then merges.
 ## 2026-10-23 · agent/finance-debt-actions-v2 — „Muuda” and „Tühista” in the debts list (replaces PR #368)
 
 - Base: main 5f1c015 (2026-10-23). Draft PR to main; supersedes the old PR #368 (left open for the owner to close).
