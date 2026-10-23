@@ -1,3 +1,15 @@
+## 2026-10-23 · agent/legacy-paid-invoice — an old invoice marked „Makstud” is not a debt
+
+- Base: `main` 5e6bb54 (2026-10-23).
+- Problem: KS-2026-004 (2026-06) has status „Makstud” and paidAt, but no payment records or paid amount (an old
+  invoice marked paid by hand), so `financeRowState` counted 60 € as an overdue debt in „Võlgnevused”. The owner
+  asked to delete it; an issued invoice is not deleted (number order, audit) — it is paid, so only the debt view was wrong.
+- Fix: `crm-v2/src/features/finance/financeRows.js` — status „Makstud” without `payments`, `paidAmountCents` and
+  `paidAmount` counts as paid in full; a recorded paid amount still wins. The server already treats „Makstud” as
+  paid (no reminders). No data changed.
+- Checks: vitest src/features/finance 29 files, 170 passed (+2 new tests in financeRows.test.js).
+- Next safe step: after the Vercel deploy, KS-2026-004 is gone from „Võlgnevused”.
+
 ## 2026-10-23 · agent/paevaraamat-template — Päevaraamat and käibeandmik like the owner's template; inline entries; sales to 3000
 
 - Base: `main` 5f1c015 (2026-10-23). Draft PR from `agent/paevaraamat-template`.
