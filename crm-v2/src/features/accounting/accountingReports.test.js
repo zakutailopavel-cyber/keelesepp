@@ -81,6 +81,22 @@ describe('bookkeeping registers', () => {
     expect(rows.find((r) => r.code === '1200').opening).toEqual({ debit: 1000, credit: 0 });
   });
 
+  it('the algsaldod entry on the first day is the Algsaldo of a period starting that day, not its Käive', () => {
+    const opening = e('2026-0001', '2026-01-01', [['1010', 50000, 0], ['2970', 0, 50000]], { origin: 'opening' });
+    const sale = e('2026-0002', '2026-01-01', [['1010', 2000, 0], ['3060', 0, 2000]], { origin: 'auto' });
+    const { rows } = trialBalance([opening, sale], accounts, { from: '2026-01-01', to: '2026-12-31' });
+    const bank = rows.find((r) => r.code === '1010');
+    expect(bank.opening).toEqual({ debit: 50000, credit: 0 });
+    expect(bank.turnover).toEqual({ debit: 2000, credit: 0 });
+    expect(bank.closing).toEqual({ debit: 52000, credit: 0 });
+    expect(rows.find((r) => r.code === '2970').opening).toEqual({ debit: 0, credit: 50000 });
+    const book = ledger([opening, sale], '1010', { from: '2026-01-01', to: '2026-12-31' }, accounts);
+    expect(book.opening).toBe(50000);
+    expect(book.rows).toHaveLength(1);
+    // a period that starts before the books keeps it as a movement
+    expect(trialBalance([opening], accounts, { from: '2025-12-01', to: '2026-12-31' }).rows.find((r) => r.code === '1010').turnover.debit).toBe(50000);
+  });
+
   it('pearaamat: one account with a running balance', () => {
     const { opening, rows, closing } = ledger(entries, '1200', { from: '2026-02-01', to: '2026-03-31' }, accounts);
     expect(opening).toBe(0);

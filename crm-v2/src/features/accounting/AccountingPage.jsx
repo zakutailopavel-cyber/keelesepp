@@ -124,7 +124,16 @@ export default function AccountingPage({ repository = accountingService, canEdit
   // a manual entry is typed straight into the päevaraamat grid (JournalDraft)
   const openEntry = () => { setTab('journal'); setDraft({ date: today(), description: '', documentRef: '' }); setDraftLines([blankEntryLine(), blankEntryLine()]); setError(''); };
   const cancelDraft = () => { if (!busy) { setDraft(null); setError(''); } };
-  const openOpening = () => { setDialog('opening'); setLines([blankLine(), blankLine(), blankLine()]); setError(''); };
+  // „Algsaldod” shows the balances already entered (the accountant 2026-10-24: the button and the Algsaldo column of the
+  // käibeandmik are the same numbers); saving changes them in the same entry, with its history
+  const openingEntry = allEntries.find((e) => e.origin === 'opening' && !e.reversedBy && !e.deleted) || null;
+  const centsText = (cents) => (cents ? amount(cents) : '');
+  const openOpening = () => {
+    setDialog('opening');
+    const current = (openingEntry?.lines || []).map((l) => ({ ...blankLine(), account: String(l.account), debit: centsText(l.debitCents), credit: centsText(l.creditCents) }));
+    setLines([...current, blankLine(), ...(current.length ? [] : [blankLine(), blankLine()])]);
+    setError('');
+  };
   const openStorno = (entry) => { setDialog('storno'); setForm({ entry, date: today(), reason: '' }); setError(''); };
   const openAccount = (account) => { setDialog('account'); setForm(account ? { ...account, existing: true } : { code: '', name: '', type: 'expense', reportLine: '', active: true }); setError(''); };
   const close = () => { if (!busy) { setDialog(null); setError(''); } };
@@ -138,7 +147,10 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const submitOpening = async (event) => {
     event.preventDefault();
     if (badAmount(lines)) { setError('Summa peab olema kujul 123,45.'); return; }
-    if (await run('save', () => repository.setOpening(toLines(lines)), (r) => `Algsaldod salvestati (kanne ${r.entry.number}).`)) setDialog(null);
+    const save = openingEntry
+      ? () => repository.updateEntry(openingEntry.id, { date: openingEntry.date, description: openingEntry.description, documentRef: openingEntry.documentRef, lines: toLines(lines) }, 'Algsaldode parandus')
+      : () => repository.setOpening(toLines(lines));
+    if (await run('save', save, (r) => `Algsaldod salvestati (kanne ${r.entry?.number || openingEntry?.number || ''}).`)) setDialog(null);
   };
   const submitStorno = async (event) => {
     event.preventDefault();
@@ -234,7 +246,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
 
     {tab === 'trial' ? <Card className="accounting-card">
       {trial.rows.length ? <div className="accounting-sheet"><div className="accounting-grid-wrap"><table className="accounting-grid accounting-trial"><thead>
-        <tr><th rowSpan="2">Konto</th><th rowSpan="2">Nimetus</th><th colSpan="2" className="center">Algsaldo</th><th colSpan="2" className="center">Käive</th><th colSpan="2" className="center">Lõppsaldo</th></tr>
+        <tr><th rowSpan="2">Konto</th><th rowSpan="2">Nimetus</th><th colSpan="2" className="center">Algsaldo{!readOnly ? <> <button type="button" className="link-button" onClick={openOpening}>muuda</button></> : null}</th><th colSpan="2" className="center">Käive</th><th colSpan="2" className="center">Lõppsaldo</th></tr>
         <tr><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th></tr></thead>
         <tbody>{trial.rows.map((r) => <tr key={r.code}><td><button type="button" className="link-button" onClick={() => { setLedgerAccount(r.code); setTab('ledger'); }}>{r.code}</button></td><td>{r.name}</td>{[r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit].map((v, i) => <td key={i} className="num">{v ? amount(v) : ''}</td>)}</tr>)}</tbody>
         <tfoot><tr><td colSpan="2">Kokku</td>{[trial.total.opening.debit, trial.total.opening.credit, trial.total.turnover.debit, trial.total.turnover.credit, trial.total.closing.debit, trial.total.closing.credit].map((v, i) => <td key={i} className="num">{amount(v)}</td>)}</tr></tfoot></table></div></div>
