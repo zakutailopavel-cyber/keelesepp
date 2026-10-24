@@ -13,6 +13,7 @@ import { studentsService } from '../../services/firebase/students.js';
 import PetSettingsCard from '../pet/PetSettingsCard.jsx';
 import GoogleCalendarCard from '../google-calendar/GoogleCalendarCard.jsx';
 import DataCleanupPanel from './DataCleanupPanel.jsx';
+import StudyDirectionsCard from './StudyDirectionsCard.jsx';
 import './dataCleanup.css';
 import '../common/finalReadiness.css';
 
@@ -23,7 +24,7 @@ function initialProfile(user) {
   };
 }
 
-export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository }) {
+export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository, directionsRepository }) {
   const { user, preview, configured, updateProfile, sendPasswordReset, startPreview } = useAuth();
   const [form, setForm] = useState(() => initialProfile(user));
   const [saving, setSaving] = useState(false);
@@ -182,6 +183,8 @@ export default function SettingsPage({ parentRepository = parentsService, studen
       <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card>
 
       {isAdmin ? <Card><div className="settings-icon"><Eye /></div><h2>Vanema / õpilase vaade</h2><p className="settings-copy">Ava valitud lapsevanema või õpilase kabinet ilma tema parooli ja Firebase Auth seanssi muutmata. Tugivaade on vaikimisi ainult lugemiseks.</p>{!supportData ? <Button variant="secondary" loading={supportLoading} onClick={loadSupportUsers}>Laadi kasutajad</Button> : <div className="settings-profile-form"><Select label="Vaate tüüp" value={supportType} onChange={(event) => { setSupportType(event.target.value); setSupportTarget(''); }}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></Select><Select label={supportType === 'parent' ? 'Lapsevanem' : 'Õpilane'} value={supportTarget} onChange={(event) => setSupportTarget(event.target.value)}><option value="">Vali kasutaja</option>{(supportType === 'parent' ? supportData.parents : supportData.students).map((item) => <option value={item.id} key={item.id}>{supportType === 'parent' ? (item.displayName || item.email || 'Nimetu lapsevanem') : (item.name || 'Nimetu õpilane')}</option>)}</Select><Button disabled={!supportTarget} onClick={openSupportView}><Eye size={17} /> Ava read-only vaade</Button></div>}{supportError ? <p className="form-hint" role="alert">{supportError}</p> : null}</Card> : null}
+
+      {isAdmin && !preview ? <StudyDirectionsCard user={user} studentService={studentRepository} {...(directionsRepository ? { service: directionsRepository } : {})} /> : null}
 
       {isAdmin && !preview ? <TestStudentCard /> : null}
 

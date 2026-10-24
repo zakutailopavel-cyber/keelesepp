@@ -4,7 +4,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, IconButton, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { groupStudentPeople, studentsService } from '../../services/firebase/students.js';
-import { financeApi } from '../../services/firebase/financeApi.js';
 import { lastSeenOf, presenceService } from '../../services/firebase/presence.js';
 import { agoLabel } from '../learner/learnerSnapshot.js';
 import { ROLES } from '../../utils/roles.js';
@@ -12,6 +11,8 @@ import { canonicalTeacherName } from '../../utils/teachers.js';
 import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 import StudentForm from './StudentForm.jsx';
 import EnrollmentManager from './EnrollmentManager.jsx';
+import DuplicateCandidatesModal from './DuplicateCandidatesModal.jsx';
+import { duplicateCandidates } from './duplicateCandidates.js';
 import { STUDENT_LEVELS } from './studentOptions.js';
 import { teacherChoices, useTeacherNames } from './useTeacherNames.js';
 import { DEFAULT_STUDENT_FILTERS, studentFiltersFromParams, studentFiltersToParams, studentListHref } from './studentFilterParams.js';
@@ -30,7 +31,7 @@ function EnrollmentStack({ student, compact = false }) {
 }
 
 
-export default function StudentsPage({ service = studentsService, mergeApi = financeApi, teacherApi, actor, presenceApi = presenceService }) {
+export default function StudentsPage({ service = studentsService, mergeService, teacherApi, actor, presenceApi = presenceService }) {
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
@@ -48,10 +49,8 @@ export default function StudentsPage({ service = studentsService, mergeApi = fin
   const [archiving, setArchiving] = useState(false);
   const [notice, setNotice] = useState('');
   const [actionError, setActionError] = useState('');
-  const [duplicateReview, setDuplicateReview] = useState({ open: false, loading: false, groups: [], selected: null, primaryId: '', preview: null, error: '' });
-  const [manualPick, setManualPick] = useState({ a: '', b: '' });
-  const [mergeConfirm, setMergeConfirm] = useState({ permanent: true, name: '' });
-  const [archived, setArchived] = useState({ items: [], ready: 0, typed: '', busy: false, message: '' });
+  // „Võimalikud duplikaadid” (owner 2026-10-24): pairs + „Liida” with the server preview; cards are never deleted
+  const [duplicatesOpen, setDuplicatesOpen] = useState(false);
   const requestId = useRef(0);
 
   useEffect(() => {
@@ -95,8 +94,7 @@ export default function StudentsPage({ service = studentsService, mergeApi = fin
     return () => { alive = false; };
   }, [people, presenceApi]);
   const seenText = (student) => { const at = lastSeenOf(seen.get(student.id)); return at ? ` · sees ${agoLabel(at)}` : ''; };
-  // every single card (the list above groups cards of one child together), for the manual duplicate merge
-  const cardOptions = useMemo(() => [...state.items].sort((left, right) => String(left.name || '').localeCompare(String(right.name || ''), 'et')), [state.items]);
+  const duplicateCount = useMemo(() => (canAssignTeacher ? duplicateCandidates(state.items).length : 0), [canAssignTeacher, state.items]);
 
   const options = useMemo(() => ({
     teachers: teacherChoices(staffTeachers, state.items.map((student) => student.teacher)),
@@ -137,45 +135,9 @@ export default function StudentsPage({ service = studentsService, mergeApi = fin
     catch (error) { setArchiveTarget(null); setActionError(firebaseErrorMessage(error)); }
     finally { setArchiving(false); }
   };
-  const openDuplicateReview = async () => {
-    setDuplicateReview({ open: true, loading: true, groups: [], selected: null, primaryId: '', preview: null, error: '' });
-    try {
-      mergeApi.previewArchivedDuplicates?.().then((result) => setArchived((current) => ({ ...current, items: result.items || [], ready: result.ready || 0 }))).catch(() => {});
-      const report = await mergeApi.previewDataQuality();
-      setDuplicateReview((current) => ({ ...current, loading: false, groups: report.duplicateGroups || [] }));
-    } catch (error) { setDuplicateReview((current) => ({ ...current, loading: false, error: firebaseErrorMessage(error) })); }
-  };
-  const previewMerge = async () => {
-    const duplicateIds = duplicateReview.selected.students.map((student) => student.id).filter((id) => id !== duplicateReview.primaryId);
-    setDuplicateReview((current) => ({ ...current, loading: true, error: '' }));
-    try {
-      const preview = await mergeApi.previewStudentMerge(duplicateReview.primaryId, duplicateIds);
-      setDuplicateReview((current) => ({ ...current, loading: false, preview }));
-    } catch (error) { setDuplicateReview((current) => ({ ...current, loading: false, error: firebaseErrorMessage(error) })); }
-  };
-  const purgeArchived = async () => {
-    setArchived((current) => ({ ...current, busy: true }));
-    try {
-      const result = await mergeApi.purgeArchivedDuplicates();
-      setArchived({ items: [], ready: 0, typed: '', busy: false, message: `Kustutatud ${result.deleted} varem arhiveeritud duplikaati.` });
-      await load();
-    } catch (error) { setArchived((current) => ({ ...current, busy: false, message: firebaseErrorMessage(error) })); }
-  };
-  const mergeDuplicates = async () => {
-    const duplicateIds = duplicateReview.preview.duplicates.map((student) => student.id);
-    setDuplicateReview((current) => ({ ...current, loading: true, error: '' }));
-    try {
-      await mergeApi.mergeStudents(duplicateReview.primaryId, duplicateIds, mergeConfirm.permanent ? { permanent: true, confirmName: mergeConfirm.name } : {});
-      setMergeConfirm({ permanent: true, name: '' });
-      setDuplicateReview({ open: false, loading: false, groups: [], selected: null, primaryId: '', preview: null, error: '' });
-      setNotice('Duplikaadid on ühendatud ja seotud ajalugu säilitatud.');
-      await load();
-    } catch (error) { setDuplicateReview((current) => ({ ...current, loading: false, error: firebaseErrorMessage(error) })); }
-  };
-
   return (
     <div className="page-content">
-      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<>{canAssignTeacher ? <Button variant="secondary" onClick={openDuplicateReview}><UsersRound size={18} /> Kontrolli duplikaate</Button> : null}<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button></>} />
+      <PageHeader eyebrow="CRM" title="Õpilased" description={state.loading ? 'Laen Firebase andmeid…' : `${people.length} õpilast`} actions={<>{canAssignTeacher ? <Button variant="secondary" onClick={() => setDuplicatesOpen(true)}><UsersRound size={18} /> Võimalikud duplikaadid{duplicateCount ? <Badge tone="warning">{duplicateCount}</Badge> : null}</Button> : null}<Button onClick={openCreate}><Plus size={18} /> Lisa õpilane</Button></>} />
       {notice ? <div className="success-notice" role="status">{notice}<button onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {actionError ? <div className="action-error" role="alert">{actionError}<button onClick={() => setActionError('')} aria-label="Sulge veateade">×</button></div> : null}
       {state.items.length ? <section className="student-directory-summary" aria-label="Õpilaste kokkuvõte"><div><span>Leitud</span><strong>{people.length}</strong></div><div><span>Aktiivsed</span><strong>{activeCount}</strong></div><div><span>Tasemeid</span><strong>{new Set(people.flatMap((student) => (student.enrollments || []).map((enrollment) => enrollment.level)).filter(Boolean)).size}</strong></div>{canAssignTeacher ? <div className={unassignedCount ? 'needs-attention' : ''}><span>Õpetajata</span><strong>{unassignedCount}</strong></div> : null}</section> : null}
@@ -206,17 +168,7 @@ export default function StudentsPage({ service = studentsService, mergeApi = fin
       {enrollmentStudent ? <EnrollmentManager student={enrollmentStudent} teachers={options.teachers} service={service} onClose={() => setEnrollmentStudent(null)} onChanged={async () => { await load(); const fresh = groupStudentPeople((await service.list({ ...filters, scopeTeacher: teacherScope, scopeTeacherUid: canAssignTeacher ? '' : currentUser.uid, pageSize: 500, exhaustive: true })).items).find((item) => item.personKey === enrollmentStudent.personKey); if (fresh) setEnrollmentStudent(fresh); }} /> : null}
       <StudentForm open={formOpen} student={formStudent} teachers={options.teachers} canAssignTeacher={canAssignTeacher} existingStudents={state.items} defaultTeacher={teacherScope} onClose={() => setFormOpen(false)} onSubmit={save} />
       <Modal open={Boolean(archiveTarget)} title={archiveTarget?.active ? 'Arhiveeri õpilane' : 'Taasta õpilane'} onClose={() => !archiving && setArchiveTarget(null)} footer={<><Button variant="secondary" onClick={() => setArchiveTarget(null)} disabled={archiving}>Loobu</Button><Button variant={archiveTarget?.active ? 'danger' : 'primary'} loading={archiving} onClick={() => setActive(!archiveTarget?.active)}>{archiveTarget?.active ? 'Arhiveeri' : 'Taasta'}</Button></>}><p>Kas {archiveTarget?.active ? 'arhiveerida' : 'taastada'} <strong>{archiveTarget?.name}</strong>? Toiming rakendub kõigile {archiveTarget?.recordIds?.length || 1} seotud kirjele. Õpilase ID-d, õppesuunad ja ajalugu säilivad.</p></Modal>
-      <Modal open={duplicateReview.open} title="Õpilaste duplikaadid" onClose={() => !duplicateReview.loading && setDuplicateReview((current) => ({ ...current, open: false }))} className="modal--enrollments" footer={<Button variant="secondary" disabled={duplicateReview.loading} onClick={() => setDuplicateReview((current) => ({ ...current, open: false }))}>Sulge</Button>}>
-        {duplicateReview.loading ? <LoadingState label="Kontrollin seotud andmeid…" /> : null}
-        {duplicateReview.error ? <p className="form-error" role="alert">{duplicateReview.error}</p> : null}
-        {!duplicateReview.loading && !duplicateReview.selected && !duplicateReview.groups.length ? <EmptyState title="Automaatselt duplikaate ei leitud" description="Aktiivsete õpilaste andmed ei viita duplikaatidele. Vajadusel ühenda kaardid käsitsi." /> : null}
-        {archived.message ? <p className="form-hint" role="status">{archived.message}</p> : null}
-        {!duplicateReview.selected && archived.ready ? <section className="enrollment-editor duplicate-archived"><div className="enrollment-editor__title"><strong>Varem arhiveeritud duplikaadid: {archived.ready}</strong></div><p className="form-hint">Need kaardid ühendati varem, kuid jäid andmebaasi: {archived.items.filter((item) => item.mainExists).map((item) => `${item.name || item.id} → ${item.mainName || item.mainId}`).join(', ')}. Kustutamisel viiakse allesjäänud viited põhikaardile.</p><Input label="Kinnitamiseks kirjuta KUSTUTA" value={archived.typed} onChange={(event) => setArchived((current) => ({ ...current, typed: event.target.value }))} /><div className="enrollment-editor__actions"><Button variant="danger" loading={archived.busy} disabled={archived.typed.trim() !== 'KUSTUTA'} onClick={purgeArchived}>Kustuta jäädavalt</Button></div></section> : null}
-        {!duplicateReview.selected && !duplicateReview.loading ? <section className="enrollment-editor duplicate-manual"><div className="enrollment-editor__title"><strong>Ühenda käsitsi</strong></div><p className="form-hint">Kui süsteem duplikaati ei leidnud, vali kaks sama lapse kaarti ise.</p><div className="duplicate-manual__row"><Select label="Kaart 1" value={manualPick.a} onChange={(event) => setManualPick((current) => ({ ...current, a: event.target.value }))}><option value="">Vali õpilane</option>{cardOptions.map((student) => <option key={student.id} value={student.id}>{student.name || student.id} · {student.parentEmail || student.email || student.teacher || student.id}</option>)}</Select><Select label="Kaart 2" value={manualPick.b} onChange={(event) => setManualPick((current) => ({ ...current, b: event.target.value }))}><option value="">Vali õpilane</option>{cardOptions.filter((student) => student.id !== manualPick.a).map((student) => <option key={student.id} value={student.id}>{student.name || student.id} · {student.parentEmail || student.email || student.teacher || student.id}</option>)}</Select></div><div className="enrollment-editor__actions"><Button variant="secondary" disabled={!manualPick.a || !manualPick.b || manualPick.a === manualPick.b} onClick={() => { const students = [manualPick.a, manualPick.b].map((id) => cardOptions.find((student) => student.id === id)).filter(Boolean); setDuplicateReview((current) => ({ ...current, selected: { key: 'manual', students, reasons: [] }, primaryId: students[0]?.id || '', preview: null, error: '' })); }}>Vaata ja ühenda</Button></div></section> : null}
-        {!duplicateReview.selected ? <div className="enrollment-manager__list">{duplicateReview.groups.map((group) => <section className="enrollment-editor" key={group.key}><div className="enrollment-editor__title"><strong>{group.students.map((student) => student.name || student.id).join(' / ')}</strong><Badge tone={group.confidence === 'high' ? 'danger' : 'warning'}>{group.confidence}</Badge></div><p className="form-hint">{group.reasons.map((reason) => reason.label).join(' · ')}</p><Button variant="secondary" onClick={() => setDuplicateReview((current) => ({ ...current, selected: group, primaryId: group.students[0]?.id || '', preview: null, error: '' }))}>Vaata ja ühenda</Button></section>)}</div> : null}
-        {duplicateReview.selected && !duplicateReview.preview ? <section className="enrollment-editor"><p className="form-hint">Vali põhikaart, mille ID jääb alles. Kõik tunnid, kodutööd, arved ja kontod viiakse põhikaardile; enne näed serveri eelvaadet.</p><Select label="Põhikaart" value={duplicateReview.primaryId} onChange={(event) => setDuplicateReview((current) => ({ ...current, primaryId: event.target.value }))}>{duplicateReview.selected.students.map((student) => <option key={student.id} value={student.id}>{student.name || student.id} · {student.email || student.parentEmail || student.id}</option>)}</Select><div className="enrollment-editor__actions"><Button variant="secondary" onClick={() => setDuplicateReview((current) => ({ ...current, selected: null, primaryId: '' }))}>Tagasi</Button><Button onClick={previewMerge}>Koosta eelvaade</Button></div></section> : null}
-        {duplicateReview.preview ? <section className="enrollment-editor"><p><strong>{duplicateReview.preview.primary.name}</strong> jääb põhikaardiks; {duplicateReview.preview.duplicates.length} duplikaati ({duplicateReview.preview.duplicates.map((student) => student.name || student.id).join(', ')}) {mergeConfirm.permanent ? 'kustutatakse jäädavalt' : 'arhiveeritakse'}.</p><p className="form-hint">Server seob ümber {duplicateReview.preview.totalReferenceCount} viidet, {duplicateReview.preview.groupCount} gruppi ja säilitab {duplicateReview.preview.preservedProfileCount} profiili hetkepilti. Konflikte: {duplicateReview.preview.profileConflictCount + duplicateReview.preview.profileConflicts.length}.</p><label className="duplicate-permanent"><input type="checkbox" checked={mergeConfirm.permanent} onChange={(event) => setMergeConfirm((current) => ({ ...current, permanent: event.target.checked }))} /> Kustuta duplikaat jäädavalt (seda ei saa tagasi võtta; logisse jääb lühike märge)</label>{mergeConfirm.permanent ? <Input label={`Kinnitamiseks kirjuta: ${duplicateReview.preview.primary.name}`} value={mergeConfirm.name} onChange={(event) => setMergeConfirm((current) => ({ ...current, name: event.target.value }))} /> : null}<div className="enrollment-editor__actions"><Button variant="secondary" onClick={() => setDuplicateReview((current) => ({ ...current, preview: null }))}>Muuda valikut</Button><Button variant="danger" disabled={mergeConfirm.permanent && mergeConfirm.name.trim().toLocaleLowerCase('et') !== String(duplicateReview.preview.primary.name || '').trim().toLocaleLowerCase('et')} onClick={mergeDuplicates}>{mergeConfirm.permanent ? 'Ühenda ja kustuta duplikaat' : 'Kinnita ühendamine'}</Button></div></section> : null}
-      </Modal>
+      {canAssignTeacher && duplicatesOpen ? <DuplicateCandidatesModal open service={service} {...(mergeService ? { mergeService } : {})} onClose={() => setDuplicatesOpen(false)} onMerged={() => { setNotice('Kaardid on liidetud. Teine kaart on arhiveeritud ja viitab alles jäänud kaardile.'); load(); }} /> : null}
     </div>
   );
 }

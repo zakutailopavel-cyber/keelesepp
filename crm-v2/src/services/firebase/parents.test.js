@@ -6,12 +6,14 @@ const firestore = vi.hoisted(() => ({
   getDocs: vi.fn(),
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
+  arrayUnion: vi.fn((...values) => ({ union: values })),
+  arrayRemove: vi.fn((...values) => ({ remove: values })),
 }));
 
 vi.mock('firebase/firestore', () => firestore);
 vi.mock('./client.js', () => ({ requireFirebaseClient: () => ({ db: 'firebase-db' }) }));
 
-import { normalizeParent, parentReviewKey, parentsService, splitChildNames } from './parents.js';
+import { normalizeParent, parentContactsOf, parentIdsOf, parentReviewKey, parentsService, splitChildNames } from './parents.js';
 
 const admin = { uid: 'admin-1', displayName: 'Admin', roles: ['admin'] };
 
@@ -55,9 +57,40 @@ describe('parentsService', () => {
     expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'parent.student_assigned', meta: expect.objectContaining({ studentId: 'student-1' }) });
   });
 
-  it('does not overwrite an existing explicit parent link', async () => {
-    await expect(parentsService.linkStudent({ id: 'parent-1' }, { id: 'student-1', linkedParentId: 'parent-2' }, admin)).rejects.toThrow('teise lapsevanema');
-    expect(firestore.batch.commit).not.toHaveBeenCalled();
+  it('adds a second parent and keeps the first one as the main parent (several parents per child)', async () => {
+    await parentsService.linkStudent({ id: 'parent-1', displayName: 'Isa', email: 'isa@example.com' }, { id: 'student-1', name: 'Mari', linkedParentId: 'parent-2', parentName: 'Ema', parentEmail: 'ema@example.com' }, admin);
+    const [, card] = firestore.batch.set.mock.calls[0];
+    expect(card.linkedParentIds).toEqual(['parent-1']);
+    expect(card).not.toHaveProperty('linkedParentId');
+    expect(card).not.toHaveProperty('parentName');
+    expect(firestore.batch.set.mock.calls[1][1].linkedStudentIds).toEqual({ union: ['student-1'] });
+    vi.clearAllMocks(); firestore.writeBatch.mockReturnValue(firestore.batch);
+    await parentsService.linkStudent({ id: 'parent-1', displayName: 'Isa' }, { id: 'student-1', name: 'Mari', linkedParentId: 'parent-2', linkedParentIds: ['parent-2'] }, admin, { force: true });
+    expect(firestore.batch.set.mock.calls[0][1]).toMatchObject({ linkedParentIds: ['parent-2', 'parent-1'], linkedParentId: 'parent-1', parentUid: 'parent-1' });
+  });
+
+  it('unlinks one parent: the others stay, the main parent moves to the next one', async () => {
+    const student = { id: 'student-1', name: 'Mari', linkedParentId: 'parent-1', parentUid: 'parent-1', linkedParentIds: ['parent-1', 'parent-2'] };
+    expect(parentIdsOf(student)).toEqual(['parent-1', 'parent-2']);
+    await expect(parentsService.unlinkStudent('parent-1', student, admin)).resolves.toEqual({ linkedParentIds: ['parent-2'] });
+    expect(firestore.batch.set.mock.calls[0]).toEqual(['firebase-db:students:student-1', expect.objectContaining({ linkedParentIds: ['parent-2'], linkedParentId: 'parent-2', parentUid: 'parent-2' }), { merge: true }]);
+    expect(firestore.batch.set.mock.calls[1]).toEqual(['firebase-db:users:parent-1', { linkedStudentIds: { remove: ['student-1'] } }, { merge: true }]);
+    expect(firestore.batch.set.mock.calls[2][1]).toMatchObject({ type: 'parent.student_unlinked' });
+    await expect(parentsService.unlinkStudent('parent-1', student, { roles: ['teacher'] })).rejects.toThrow('administraator');
+  });
+
+  it('keeps parents without an account as contacts; the first one fills the parent fields', async () => {
+    const student = { id: 'student-1', name: 'Mari', parentName: 'Ema', parentEmail: 'ema@example.com' };
+    expect(parentContactsOf({ ...student, parentContacts: [{ name: 'Ema', email: 'EMA@example.com', phone: '555' }] })).toEqual([{ name: 'Ema', email: 'ema@example.com', phone: '555' }]);
+    const patch = await parentsService.addContact(student, { name: 'Isa', email: ' Isa@Example.com ', phone: '5551' }, admin);
+    expect(patch.parentContacts).toEqual([{ name: 'Ema', email: 'ema@example.com', phone: '' }, { name: 'Isa', email: 'isa@example.com', phone: '5551' }]);
+    expect(patch).not.toHaveProperty('parentName');
+    expect(patch.parentPhone).toBe('5551');
+    await expect(parentsService.addContact(student, { email: 'ema@example.com' }, admin)).rejects.toThrow('juba olemas');
+    await expect(parentsService.addContact(student, { email: 'not-an-email' }, admin)).rejects.toThrow('E-posti');
+    await expect(parentsService.addContact(student, {}, admin)).rejects.toThrow('Sisesta');
+    const removed = await parentsService.removeContact({ ...student, parentContacts: patch.parentContacts }, { name: 'Ema', email: 'ema@example.com', phone: '' }, admin);
+    expect(removed).toMatchObject({ parentContacts: [{ name: 'Isa', email: 'isa@example.com', phone: '5551' }], parentName: 'Isa', parentEmail: 'isa@example.com' });
   });
 
   it('creates a requested missing child only with an explicit teacher and parent link', async () => {

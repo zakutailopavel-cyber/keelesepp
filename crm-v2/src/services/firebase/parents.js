@@ -1,4 +1,4 @@
-import { collection, doc, getDocs, writeBatch } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, doc, getDocs, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { enrollmentKey, studentPersonKey } from './students.js';
 
@@ -21,6 +21,30 @@ export function parentReviewKey(value) {
 
 export function normalizedParentEmail(value) {
   return clean(value).toLocaleLowerCase('et');
+}
+
+const linkedParentIdsOf = (student = {}) => (Array.isArray(student.linkedParentIds) ? student.linkedParentIds : []).map(clean).filter(Boolean);
+// every parent account of the card (the same list as parentModel.parentCardIds)
+export function parentIdsOf(student = {}) {
+  return [...new Set([student.linkedParentId, student.parentUid, student.guardianUid, ...linkedParentIdsOf(student)].map(clean).filter(Boolean))];
+}
+
+// parents without an account: the old single fields and the list parentContacts (functions/student-card-merge-core.js)
+export function parentContactsOf(student = {}) {
+  const list = Array.isArray(student.parentContacts) ? student.parentContacts : [];
+  const legacy = clean(student.parentName) || clean(student.parentEmail) || clean(student.parentPhone)
+    ? [{ name: student.parentName, email: student.parentEmail || student.guardianEmail, phone: student.parentPhone || student.guardianPhone }]
+    : [];
+  const seen = new Map();
+  for (const item of [...legacy, ...list]) {
+    const contact = { name: clean(item?.name), email: normalizedParentEmail(item?.email), phone: clean(item?.phone), ...(item?.relation ? { relation: clean(item.relation) } : {}) };
+    if (!contact.name && !contact.email && !contact.phone) continue;
+    const key = contact.email || contact.phone.replace(/\D/g, '').slice(-8) || contact.name.toLocaleLowerCase('et');
+    const twin = seen.get(key);
+    if (twin) { ['name', 'email', 'phone', 'relation'].forEach((field) => { if (!twin[field] && contact[field]) twin[field] = contact[field]; }); continue; }
+    seen.set(key, contact);
+  }
+  return [...seen.values()];
 }
 
 export function normalizeParent(id, data = {}) {
@@ -118,12 +142,14 @@ export const parentsService = {
     return payload;
   },
 
+  // a child may have several parents and a parent several children (owner 2026-10-24): linking adds the parent to
+  // the card's linkedParentIds (the rules give every listed account the parent's access). The first parent stays the
+  // main one (linkedParentId / parentUid) unless `force` makes this parent the main one; nobody is unlinked here.
   async linkStudent(parent, student, user, options = {}) {
     requireAdmin(user);
     if (!parent?.id || !student?.id) throw new Error('Lapsevanemat või õpilast ei leitud.');
     const existingParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
     const force = Boolean(options.force);
-    if (existingParentId && existingParentId !== parent.id && !force) throw new Error('Õpilane on juba seotud teise lapsevanema kontoga.');
     const relatedStudents = Array.isArray(options.relatedStudents) ? options.relatedStudents : [];
     const selectedKey = studentPersonKey(student);
     const samePerson = relatedStudents.filter((item) => item?.id && studentPersonKey(item) === selectedKey);
@@ -134,15 +160,20 @@ export const parentsService = {
     const linkedAt = new Date().toISOString();
     const { db } = requireFirebaseClient();
     const batch = writeBatch(db);
-    targets.forEach((target) => batch.set(doc(db, 'students', target.id), {
-      linkedParentId: parent.id,
-      parentUid: parent.id,
-      parentName: parent.displayName || '',
-      parentEmail: parent.email || '',
-      updatedAt: linkedAt,
-    }, { merge: true }));
+    targets.forEach((target) => {
+      const main = target.linkedParentId || target.parentUid || target.guardianUid || '';
+      const makeMain = force || !main || main === parent.id;
+      batch.set(doc(db, 'students', target.id), {
+        linkedParentIds: [...new Set([...linkedParentIdsOf(target), parent.id])],
+        ...(makeMain ? { linkedParentId: parent.id, parentUid: parent.id } : {}),
+        ...(makeMain || !clean(target.parentName) ? { parentName: parent.displayName || '' } : {}),
+        ...(makeMain || !clean(target.parentEmail) ? { parentEmail: parent.email || '' } : {}),
+        updatedAt: linkedAt,
+      }, { merge: true });
+    });
     batch.set(doc(db, 'users', parent.id), {
       childName,
+      linkedStudentIds: arrayUnion(...targets.map((target) => target.id)),
       parentReviewStatus: 'checked',
       parentReviewKey: parentReviewKey(childName),
       parentReviewedAt: linkedAt,
@@ -151,6 +182,74 @@ export const parentsService = {
     writeActivity(batch, db, force ? 'parent.student_force_assigned' : 'parent.student_assigned', `${student.name || 'Õpilane'} seoti lapsevanemaga`, parent, user, { studentId: student.id, studentName: student.name || '', linkedRecordCount: targets.length, previousParentId: existingParentId || '' });
     await batch.commit();
     return { childName, linkedRecordCount: targets.length };
+  },
+
+  // removes one parent account from the child's card (the other parents stay); the parent loses access to the child
+  async unlinkStudent(parentId, student, user) {
+    requireAdmin(user);
+    const id = clean(parentId);
+    if (!id || !student?.id) throw new Error('Lapsevanemat või õpilast ei leitud.');
+    const rest = parentIdsOf(student).filter((item) => item !== id);
+    const now = new Date().toISOString();
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'students', student.id), {
+      linkedParentIds: rest,
+      ...(clean(student.linkedParentId) === id || !clean(student.linkedParentId) ? { linkedParentId: rest[0] || '' } : {}),
+      ...(clean(student.parentUid) === id ? { parentUid: rest[0] || '' } : {}),
+      ...(clean(student.guardianUid) === id ? { guardianUid: '' } : {}),
+      updatedAt: now,
+    }, { merge: true });
+    batch.set(doc(db, 'users', id), { linkedStudentIds: arrayRemove(student.id) }, { merge: true });
+    writeActivity(batch, db, 'parent.student_unlinked', `${student.name || 'Õpilane'}: lapsevanema seos eemaldati`, { id }, user, { studentId: student.id, studentName: student.name || '' });
+    await batch.commit();
+    return { linkedParentIds: rest };
+  },
+
+  // a parent without a KeeleSepp account (name / e-mail / phone): kept on the card in parentContacts; the first one
+  // also fills parentName / parentEmail, so the parent's later registration with that e-mail links the child itself
+  async addContact(student, contact, user) {
+    requireAdmin(user);
+    if (!student?.id) throw new Error('Õpilast ei leitud.');
+    const next = { name: clean(contact?.name).slice(0, 120), email: normalizedParentEmail(contact?.email).slice(0, 200), phone: clean(contact?.phone).slice(0, 40), ...(clean(contact?.relation) ? { relation: clean(contact.relation).slice(0, 40) } : {}) };
+    if (!next.name && !next.email && !next.phone) throw new Error('Sisesta lapsevanema nimi, e-post või telefon.');
+    if (next.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next.email)) throw new Error('E-posti aadress ei ole korrektne.');
+    const contacts = parentContactsOf(student);
+    if (contacts.some((item) => (next.email && item.email === next.email) || (next.phone && item.phone === next.phone))) throw new Error('See kontakt on kaardil juba olemas.');
+    const parentContacts = [...contacts, next].slice(0, 10);
+    const now = new Date().toISOString();
+    const patch = {
+      parentContacts,
+      ...(!clean(student.parentName) && next.name ? { parentName: next.name } : {}),
+      ...(!clean(student.parentEmail) && next.email ? { parentEmail: next.email } : {}),
+      ...(!clean(student.parentPhone) && next.phone ? { parentPhone: next.phone } : {}),
+      updatedAt: now,
+    };
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'students', student.id), patch, { merge: true });
+    writeActivity(batch, db, 'parent.contact_added', `${student.name || 'Õpilane'}: lisati lapsevanema kontakt`, { displayName: next.name }, user, { studentId: student.id });
+    await batch.commit();
+    return patch;
+  },
+
+  async removeContact(student, contact, user) {
+    requireAdmin(user);
+    if (!student?.id) throw new Error('Õpilast ei leitud.');
+    const same = (item) => item.name === contact.name && item.email === contact.email && item.phone === contact.phone;
+    const parentContacts = parentContactsOf(student).filter((item) => !same(item));
+    const legacy = (clean(student.parentEmail).toLocaleLowerCase('et') || '') === (contact.email || '') && clean(student.parentName) === (contact.name || '');
+    const patch = {
+      parentContacts,
+      ...(legacy ? { parentName: parentContacts[0]?.name || '', parentEmail: parentContacts[0]?.email || '', parentPhone: parentContacts[0]?.phone || '' } : {}),
+      updatedAt: new Date().toISOString(),
+    };
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'students', student.id), patch, { merge: true });
+    writeActivity(batch, db, 'parent.contact_removed', `${student.name || 'Õpilane'}: lapsevanema kontakt eemaldati`, { displayName: contact.name }, user, { studentId: student.id });
+    await batch.commit();
+    return patch;
   },
 
   async createMissingStudent(parent, values, existingStudents, user) {

@@ -316,7 +316,7 @@ describe('student profile tabs and role access', () => {
     fireEvent.click(screen.getByRole('button', { name: '+ Lisa aine teise õpetajaga' }));
     const dialog = screen.getByRole('dialog', { name: 'Õppesuunad: Milan' });
     const fresh = within(dialog).getByText('Lisa uus õppesuund').closest('section');
-    fireEvent.change(within(fresh).getByLabelText('Õppeaine'), { target: { value: 'inglise keel' } });
+    fireEvent.change(within(fresh).getByLabelText('Õppeaine'), { target: { value: 'Inglise keel' } });
     fireEvent.change(within(fresh).getByLabelText('Õpetaja'), { target: { value: 'Elena Zakutailo' } });
     fireEvent.change(within(fresh).getByLabelText('Praegune tase'), { target: { value: 'A2' } });
     apis.studentApi.getById.mockResolvedValue(withEnglish);

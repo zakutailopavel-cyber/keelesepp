@@ -43,8 +43,9 @@ export const accountApprovalsService = {
     return Array.isArray(data.reviews) ? data.reviews : [];
   },
   // two cards of one learner (the teacher's card and the self-registration card): preview, then merge into keepId
-  mergeStudents({ keepId, sourceId, apply = false, includeFinance = false, includeSchedule = false }) {
-    return staffPost('/students/merge-cards', { keepId, sourceId, apply, includeFinance, includeSchedule });
+  // „Liida kaardid”: preview (apply false), then apply with confirmed; everything of the other card moves (2026-10-24)
+  mergeStudents({ keepId, sourceId, keepName = '', apply = false, confirmed = false }) {
+    return staffPost('/students/merge-cards', { keepId, sourceId, keepName, apply, confirmed });
   },
   // „See on õpilane”: a parent account that is really the learner becomes the learner's own login on that card
   convertParentToStudent({ uid, studentId }) {

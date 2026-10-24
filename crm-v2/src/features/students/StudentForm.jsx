@@ -7,6 +7,7 @@ import { STUDENT_LEVELS } from './studentOptions.js';
 import { facebookContact, instagramContact } from '../../utils/socialLinks.js';
 import { similarStudents } from './similarStudents.js';
 import { mainSubject, tracksOf } from './subjects.js';
+import SubjectSelect from './SubjectSelect.jsx';
 
 const emptyForm = { name: '', parentName: '', parentEmail: '', email: '', phone: '', facebook: '', instagram: '', level: 'A1', targetLevel: 'B1', subject: 'Eesti keel', grade: '', group: '', teacher: '', active: true };
 
@@ -78,7 +79,7 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
         {canAssignTeacher ? <Input label="Instagram (@kasutajanimi või link)" name="instagram" value={values.instagram || ''} onChange={change} error={errors.instagram} /> : null}
         <Select label="Praegune tase" name="level" value={values.level} onChange={change}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
         <Select label="Sihttase" name="targetLevel" value={values.targetLevel} onChange={change}>{STUDENT_LEVELS.map((level) => <option key={level} value={level}>{level || 'Määramata'}</option>)}</Select>
-        <Input label={otherTracks.length ? 'Õppeaine (põhiaine)' : 'Õppeaine'} name="subject" value={values.subject} onChange={change} />
+        <SubjectSelect label={otherTracks.length ? 'Õppeaine (põhiaine)' : 'Õppeaine'} name="subject" value={values.subject} onChange={change} />
         {otherTracks.length ? <p className="form-hint form-grid__wide">Siin on põhiaine andmed (aine, tase, õpetaja). Teised ained: {otherTracks.map((track) => [track.subject, track.teacher].filter(Boolean).join(' – ')).join(', ')} — neid muudab nupp „Õppesuunad”.</p> : null}
         <Input label="Klass / vanuserühm" name="grade" value={values.grade} onChange={change} />
         <Input label="Rühm" name="group" value={values.group} onChange={change} />

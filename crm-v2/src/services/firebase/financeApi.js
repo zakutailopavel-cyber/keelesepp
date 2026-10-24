@@ -91,27 +91,10 @@ export const financeApi = {
   applyPricePrivacy() {
     return post("/students/price-privacy/apply", {});
   },
-  previewArchivedDuplicates() {
-    return postStaff("/students/merged/purge/preview", {});
-  },
-  purgeArchivedDuplicates() {
-    return postStaff("/students/merged/purge", {});
-  },
   previewDataQuality() {
     return postStaff("/data-quality/preview", {});
   },
-  previewStudentMerge(primaryStudentId, duplicateStudentIds) {
-    return postStaff("/students/merge/preview", { primaryStudentId, duplicateStudentIds });
-  },
-  // options.permanent: delete the duplicate cards after the move (confirmName = main card's name)
-  mergeStudents(primaryStudentId, duplicateStudentIds, options = {}) {
-    return postStaff("/students/merge", {
-      primaryStudentId,
-      duplicateStudentIds,
-      ...(options.permanent ? { permanent: true, confirmName: options.confirmName || "" } : {}),
-      requestId: financeRequestId("student_merge"),
-    });
-  },
+  // the student card merge is accountApprovalsService.mergeStudents (/students/merge-cards); cards are never deleted
   // bookkeeping (functions/accounting-core.js, docs/ACCOUNTING.md)
   syncAccounting() {
     return post("/accounting/sync", {});
