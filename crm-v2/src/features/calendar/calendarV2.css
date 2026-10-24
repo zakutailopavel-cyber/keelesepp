@@ -279,3 +279,53 @@
 
 /* the half-hour cell under the pointer */
 .tg-hover { position: absolute; left: 1px; right: 1px; z-index: 1; border: 1.5px solid rgba(20, 36, 58, .55); border-radius: 4px; pointer-events: none; }
+
+/* „Sobivad ajad” over the grid (owner 2026-10-24): the chosen students' suitable time, ★ stronger */
+.tg-fit { position: absolute; left: 0; width: 34%; z-index: 0; pointer-events: none; border-right: 3px solid transparent; }
+.tg-fit.is-ok { background: rgba(79, 70, 229, .12); border-right-color: rgba(79, 70, 229, .45); }
+.tg-fit.is-best { background: rgba(79, 70, 229, .26); border-right-color: #4f46e5; }
+.tg-fit.is-some { background: repeating-linear-gradient(45deg, rgba(79, 70, 229, .08), rgba(79, 70, 229, .08) 4px, transparent 4px, transparent 8px); border-right-color: rgba(79, 70, 229, .3); }
+.tg-fit.is-taken { left: auto; right: 0; width: 18%; background: repeating-linear-gradient(135deg, rgba(71, 84, 103, .22), rgba(71, 84, 103, .22) 3px, transparent 3px, transparent 6px); border-right: 0; border-left: 2px solid #475467; }
+.cal2-dot.is-fit-ok { background: rgba(79, 70, 229, .18); border: 1px solid rgba(79, 70, 229, .5); }
+.cal2-dot.is-fit-best { background: rgba(79, 70, 229, .4); border: 1px solid #4f46e5; }
+.cal2-dot.is-fit-some { background: repeating-linear-gradient(45deg, rgba(79, 70, 229, .2), rgba(79, 70, 229, .2) 2px, transparent 2px, transparent 4px); border: 1px solid rgba(79, 70, 229, .4); }
+.cal2-dot.is-fit-taken { background: repeating-linear-gradient(135deg, rgba(71, 84, 103, .35), rgba(71, 84, 103, .35) 2px, transparent 2px, transparent 4px); border: 1px solid #475467; }
+.cal2-fit { margin: 0 0 12px; padding: 12px 14px; border: 1px solid #d9d6fe; border-radius: 14px; background: #f8f7ff; display: grid; gap: 10px; }
+.cal2-fit__head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.cal2-fit__head > strong { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; }
+.cal2-fit__search { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 10px; border: 1px solid #dfe5ec; border-radius: 999px; background: #fff; }
+.cal2-fit__search input { border: 0; outline: 0; font: inherit; min-width: 160px; background: transparent; }
+.cal2-fit ul { list-style: none; margin: 0; padding: 0; }
+.cal2-fit__matches { display: grid; gap: 4px; max-height: 240px; overflow: auto; }
+.cal2-fit__matches button { width: 100%; display: grid; text-align: left; gap: 2px; padding: 6px 10px; border: 1px solid #e4e7ec; border-radius: 10px; background: #fff; font: inherit; cursor: pointer; }
+.cal2-fit__matches small, .cal2-fit__picked small, .cal2-fit__unplanned small, .cal2-unplanned__times { color: #627087; font-size: .8rem; }
+.cal2-fit__picked { display: flex; flex-wrap: wrap; gap: 6px; }
+.cal2-fit__picked li { display: inline-flex; align-items: flex-start; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 12px; background: #fff; border: 1px solid #d9d6fe; }
+.cal2-fit__picked li > span { display: grid; gap: 2px; }
+.cal2-fit__picked li > button { border: 0; background: transparent; cursor: pointer; color: #627087; padding: 2px; }
+.cal2-fit__missing { color: #9a5b00; font-size: .8rem; }
+.cal2-fit__missing .link-button { display: inline-flex; align-items: center; gap: 3px; font-size: .8rem; }
+.cal2-fit__legend { flex-wrap: wrap; margin: 0; }
+.cal2-fit__legend .cal2-dot { margin-left: 6px; }
+.cal2-fit__candidates { display: grid; gap: 8px; padding: 10px; border-radius: 12px; background: #fff; border: 1px solid #e4e7ec; }
+.cal2-fit__options { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: .86rem; }
+.cal2-fit__options > strong { margin-right: auto; }
+.cal2-fit__options select { height: 30px; border: 1px solid #dfe5ec; border-radius: 8px; font: inherit; margin-left: 4px; }
+.cal2-fit__options label { display: inline-flex; align-items: center; gap: 4px; }
+.cal2-fit__candidates ul { display: grid; gap: 6px; }
+.cal2-fit__candidates li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cal2-fit__candidates li > b { min-width: 86px; font-size: .86rem; text-transform: capitalize; }
+.cal2-fit__slot { border: 1px solid #c7d7fe; background: #f5f8ff; border-radius: 999px; padding: 4px 10px; font: inherit; font-size: .84rem; cursor: pointer; }
+.cal2-fit__slot.is-best { background: #ebe9fe; border-color: #8b84f0; font-weight: 700; }
+.cal2-fit__slot.is-teacher-free { box-shadow: inset 0 -3px 0 rgba(8, 126, 107, .55); }
+.cal2-fit__slot.is-teacher-online { box-shadow: inset 0 -3px 0 rgba(217, 138, 28, .6); }
+.cal2-fit__slot:hover { background: #e0e7ff; }
+.cal2-fit .form-hint { margin: 0; }
+.cal2-fit__unplanned summary { cursor: pointer; font-weight: 700; font-size: .88rem; }
+.cal2-fit__unplanned ul { display: grid; gap: 4px; margin-top: 6px; max-height: 260px; overflow: auto; }
+.cal2-fit__unplanned li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 4px 0; border-bottom: 1px solid #eceaff; }
+.cal2-fit__unplanned li > button { border: 0; background: transparent; padding: 0; font: inherit; color: #3538cd; cursor: pointer; }
+.cal2-fit__unplanned li > button:disabled { color: #98a2b3; cursor: default; }
+.cal2-warnings { margin: 0; padding: 8px 10px 8px 26px; border-radius: 10px; background: #fff6e5; border: 1px solid #f1d9a8; color: #7a5311; font-size: .86rem; display: grid; gap: 2px; }
+.cal2-unplanned li { grid-template-columns: minmax(0, 1fr) auto auto auto; }
+@media (max-width: 640px) { .cal2-unplanned li { grid-template-columns: 1fr; } .cal2-fit__search input { min-width: 0; width: 100%; } .cal2-fit__search { flex: 1 1 100%; } }

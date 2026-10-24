@@ -73,3 +73,38 @@ Context: about 240 lessons per week, several teachers, mostly weekly recurring i
 4. Topic is picked as **level → theme (module) → lesson** from Õppevara, with the next lesson pre-selected, so parents
    see what was done with their child. Left empty, the lesson shows as **"Individuaalne tund"** (e.g. the student
    needed help with school work); an optional free-text note can say what.
+
+## „Sobivad ajad” in the calendar (owner 2026-10-24)
+
+Goal: plan teachers' lessons with the times the students marked („Sobivad ajad”, `studentAvailability/{studentId}`,
+half hours „Mon-16:00”, `preferred` = ★), without overlaps. Pure logic: `features/calendar/studentTimesModel.js`
+(tests `studentTimesModel.test.js`); UI: `StudentTimesPanel.jsx`, `TimeGrid` prop `marks`, `CalendarPage.jsx`.
+
+- Button „Sobivad ajad” (admin and teacher) opens the panel: add students by name (several = a group: „sobib” where all
+  can, hatched „sobib osadele” where only some can), or from „Planeerimata õpilased” (same list as the chip, now with
+  each student's times; the chip list also has a „Sobivad ajad” button). Their half hours are shaded on the week / day
+  grid in violet (★ stronger), next to the teacher's free / online / busy windows and lessons; the chosen students'
+  lessons that the view does not show (another teacher or subject, a group) are a grey hatched strip on the right.
+  `?times=<studentId>` (or `?times=1`) opens the panel.
+- Teacher: an administrator's „Kõik õpetajad” filter; picking a student with an assigned teacher sets it when none is
+  chosen. A teacher always sees their own windows and only their own students (rules unchanged).
+- „Vabad tunniajad” (one student + a teacher): every full / half hour of the shown week where the whole lesson lies in
+  the student's times, the teacher has no red window (yellow only for „Veebitund”), neither the teacher nor the
+  student has another lesson (any teacher, groups too; „Kordub igal nädalal” = also the next 3 weeks), and an on-site
+  lesson has a free room (when rooms exist). Order: ★ first, then the teacher's green time, then the time. Length =
+  the student's most common lesson length (with this teacher first), else 60; format = the newest lesson's online
+  flag; both can be changed. A click opens the normal „Uus tund” form prefilled (date, time, student, teacher, length,
+  online, weekly) — nothing is saved before „Salvesta tund”. Past times are skipped.
+- Warnings (never block; the teacher's red window and the room rule stay as before): the form shows them live —
+  outside / partly outside the student's times, the student's other lesson, the teacher's busy / online-only window,
+  outside the teacher's green time (only when the teacher marked green time); the teacher's own parallel lessons stay
+  in „Samal ajal on ka”. A drag that has a warning asks „Tõsta tund?” with the list (a weekly lesson's „Korduv tund”
+  dialog lists them too); accepting a „Ei saa tulla?” request asks with `confirm`.
+- A student with no saved times: „Sobivad ajad puuduvad” + „ava kaart” (`/students/<id>#sobivad-ajad`) + „kopeeri
+  /ajad link” (clipboard only, nothing is sent).
+- Weekdays are read at local noon and times are wall-clock minutes: a DST week does not shift anything (tested for
+  2026-03-29 and 2026-10-25 and under several `TZ`).
+- Limits: a teacher cannot see another teacher's lessons of the same student (schedule rules), so for a teacher the
+  student clash check covers only the teacher's own lessons and groups. A lead from the public /ajad page
+  (Päringud, source `availability`) is not linked to a student card when marked „Õppijaks”: its times must be entered
+  on the card („Sobivad ajad” → „Märgi ajad”) to be used in the calendar.
