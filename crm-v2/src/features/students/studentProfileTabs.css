@@ -95,3 +95,19 @@
   font-weight: 600;
   margin-top: 2px;
 }
+
+/* „+ Lisa aine teise õpetajaga” under the teacher / study tracks (Oleksiy 2026-10-24) */
+.profile-track-add {
+  display: block;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0f6b4f;
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+}
+.profile-track-add:hover { text-decoration: underline; }

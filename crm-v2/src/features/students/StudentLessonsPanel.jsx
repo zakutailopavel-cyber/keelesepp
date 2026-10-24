@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Badge, Card, EmptyState } from '../../components/ui/index.js';
 import LessonDetailModal from './LessonDetailModal.jsx';
 import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
+import { itemSubject, subjectsOf } from './subjects.js';
 
 // Student card „Tunnid”: the timetable (planned lessons) and the lesson journal (held / absent) in one place.
 // Admins change the mark of a held lesson here, including „Toimunud ja kontrollitud”.
@@ -41,6 +42,8 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
   const markedIds = new Set(lessons.map((lesson) => lesson.scheduleId).filter(Boolean));
   const unmarked = schedule.filter((item) => item.date && item.date < now && !item.recurring && (item.status || 'Planeeritud') === 'Planeeritud' && !markedIds.has(item.id));
   const shownLessons = showAll ? lessons : lessons.slice(0, 15);
+  // a card with several subjects: each next lesson says which subject it is (Oleksiy 2026-10-24)
+  const manySubjects = subjectsOf(student).length > 1;
 
   const change = async (lesson, next) => {
     const current = markOf(lesson);
@@ -77,7 +80,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
           <div className="simple-list">
             {upcoming.slice(0, 12).map((item) => (
               <div key={item.occurrenceId || item.id}>
-                <div><strong>{item.occurrenceDate || item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{item.teacher || student.teacher || 'Õpetaja määramata'}</span></div>
+                <div><strong>{item.occurrenceDate || item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{[manySubjects ? itemSubject(item, student) : '', item.teacher || student.teacher || 'Õpetaja määramata'].filter(Boolean).join(' · ')}</span></div>
                 <Badge tone="info">{item.status || 'Planeeritud'}</Badge>
               </div>
             ))}

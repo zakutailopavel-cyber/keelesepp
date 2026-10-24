@@ -307,5 +307,51 @@ describe('student profile tabs and role access', () => {
     await waitFor(() => expect(screen.queryByRole('region', { name: 'Määratud, veel esitamata' })).toBeNull());
     confirm.mockRestore();
   });
-});
 
+  it('the admin adds a second subject with its own teacher on the same card (Oleksiy 2026-10-24)', async () => {
+    const apis = renderProfile({ student: { id: 's1', name: 'Milan', teacher: 'Pavel', subject: 'Eesti keel', active: true, skillMap: {}, enrollments: [{ id: 'et', subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' }] } });
+    const withEnglish = { id: 's1', name: 'Milan', teacher: 'Pavel', subject: 'Eesti keel', active: true, skillMap: {}, enrollments: [{ id: 'et', subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' }, { id: 'en', subject: 'Inglise keel', teacher: 'Elena Zakutailo', teacherUid: 'j1', level: 'A2' }] };
+    apis.studentApi.addEnrollment = vi.fn().mockResolvedValue(withEnglish);
+    await screen.findByRole('heading', { name: 'Milan' }, { timeout: 4000 });
+    fireEvent.click(screen.getByRole('button', { name: '+ Lisa aine teise õpetajaga' }));
+    const dialog = screen.getByRole('dialog', { name: 'Õppesuunad: Milan' });
+    const fresh = within(dialog).getByText('Lisa uus õppesuund').closest('section');
+    fireEvent.change(within(fresh).getByLabelText('Õppeaine'), { target: { value: 'inglise keel' } });
+    fireEvent.change(within(fresh).getByLabelText('Õpetaja'), { target: { value: 'Elena Zakutailo' } });
+    fireEvent.change(within(fresh).getByLabelText('Praegune tase'), { target: { value: 'A2' } });
+    apis.studentApi.getById.mockResolvedValue(withEnglish);
+    fireEvent.click(within(fresh).getByRole('button', { name: /Lisa õppesuund/ }));
+    await waitFor(() => expect(apis.studentApi.addEnrollment).toHaveBeenCalledWith('s1', expect.objectContaining({ subject: 'Inglise keel', teacher: 'Elena Zakutailo', level: 'A2' })));
+    expect(await screen.findByText(/Õppesuund lisatud: Inglise keel · Elena Zakutailo/)).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Õppesuunad: Milan' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Valmis' }));
+    expect(await screen.findByText(/Inglise keel — Elena Zakutailo · A2/)).toBeInTheDocument();
+    expect(screen.getByRole('tablist', { name: 'Õpilase õppeained' })).toBeInTheDocument();
+  });
+
+  it('the same subject with the same teacher is not added twice', async () => {
+    const apis = renderProfile({ student: { id: 's1', name: 'Milan', teacher: 'Pavel', subject: 'Eesti keel', active: true, skillMap: {}, enrollments: [{ id: 'et', subject: 'Eesti keel', teacher: 'Pavel', teacherUid: 'p1' }] } });
+    apis.studentApi.addEnrollment = vi.fn();
+    await screen.findByRole('heading', { name: 'Milan' }, { timeout: 4000 });
+    fireEvent.click(screen.getByRole('button', { name: /Õppesuunad/ }));
+    const fresh = within(screen.getByRole('dialog')).getByText('Lisa uus õppesuund').closest('section');
+    fireEvent.change(within(fresh).getByLabelText('Õppeaine'), { target: { value: 'Eesti keel' } });
+    fireEvent.change(within(fresh).getByLabelText('Õpetaja'), { target: { value: 'Pavel Zakutailo' } });
+    fireEvent.click(within(fresh).getByRole('button', { name: /Lisa õppesuund/ }));
+    expect(await screen.findByText(/on sellel kaardil juba olemas/)).toBeInTheDocument();
+    expect(apis.studentApi.addEnrollment).not.toHaveBeenCalled();
+  });
+
+  it('a teacher does not get the study-track editor', async () => {
+    renderProfile({ actor: { uid: 'p1', roles: ['teacher'], displayName: 'Pavel' } });
+    await screen.findByRole('heading', { name: 'Mari Maas' }, { timeout: 4000 });
+    expect(screen.queryByRole('button', { name: /Õppesuunad/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: '+ Lisa aine teise õpetajaga' })).toBeNull();
+  });
+
+  it('a card linked to its parent only by e-mail still has „Ava lapsevanema kaart”', async () => {
+    renderProfile({ student: { id: 's1', name: 'Karl', teacher: 'Pavel', active: true, skillMap: {}, parentName: 'Teine Vanem', parentEmail: 'teine@example.com' } });
+    const link = await screen.findByRole('link', { name: 'Ava lapsevanema kaart' }, { timeout: 4000 });
+    expect(link).toHaveAttribute('href', '/parents?student=s1');
+  });
+});
