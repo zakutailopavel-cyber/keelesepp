@@ -36,7 +36,7 @@ function crowdedClusters(laid, columnCount) {
 // bands(column) → [{ id, kind: 'free' | 'busy', start, end }] in minutes: a teacher's green/red windows behind the lessons.
 // paint: { kind } turns on painting windows: drag in a column → onPaint(column, startMinutes, endMinutes); a click on a
 // window → onBandClick(column, band).
-export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true, bands = null, paint = null, onPaint, onBandClick }) {
+export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true, bands = null, marks = null, paint = null, onPaint, onBandClick }) {
   const bodyRef = useRef(null);
   const columnRefs = useRef(new Map());
   const [drag, setDrag] = useState(null);
@@ -191,6 +191,12 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                   const top = Math.max(band.start, GRID_START) - GRID_START;
                   const bottom = Math.min(band.end, GRID_END) - GRID_START;
                   return <div key={band.id} data-band={band.id} className={`tg-band is-${band.kind}${band.date ? ' is-dated' : ''}`} style={{ top: top * PX_PER_MIN, height: (bottom - top) * PX_PER_MIN }} title={`${band.kind === 'busy' ? 'Hõivatud' : band.kind === 'online' ? 'Ainult veebitunnid' : 'Vaba'} ${toClock(band.start)}–${toClock(band.end)}${band.date ? ' (ainult see päev)' : ' (iga nädal)'}`} />;
+                })}
+                {(marks?.(column) || []).filter((mark) => mark.end > GRID_START && mark.start < GRID_END).map((mark) => {
+                  // „Sobivad ajad”: the chosen students' suitable time (★ stronger) and their lessons elsewhere
+                  const top = Math.max(mark.start, GRID_START) - GRID_START;
+                  const bottom = Math.min(mark.end, GRID_END) - GRID_START;
+                  return <i key={`fit-${mark.kind}-${mark.start}`} className={`tg-fit is-${mark.kind}`} aria-hidden="true" style={{ top: top * PX_PER_MIN, height: (bottom - top) * PX_PER_MIN }} title={mark.title || ''} />;
                 })}
                 {painting && painting.column.key === column.key ? <div className={`tg-band is-${paint.kind} is-preview`} style={{ top: (Math.min(painting.from, painting.to) - GRID_START) * PX_PER_MIN, height: Math.abs(painting.to - painting.from) * PX_PER_MIN }} /> : null}
                 {hover && hover.column === column.key && !drag && !paint ? <i className="tg-hover" aria-hidden="true" style={{ top: (hover.minutes - GRID_START) * PX_PER_MIN, height: 30 * PX_PER_MIN }} /> : null}
