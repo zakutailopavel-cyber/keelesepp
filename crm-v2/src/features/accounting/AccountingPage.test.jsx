@@ -121,6 +121,26 @@ describe('AccountingPage', () => {
     expect(repository.setOpening).not.toHaveBeenCalled();
   });
 
+  it('the account cell of a new entry suggests accounts by number or name', async () => {
+    const repository = repo();
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa kanne' }));
+    const cell = screen.getByLabelText('Rida 1 konto');
+    fireEvent.focus(cell);
+    fireEvent.change(cell, { target: { value: 'palga' } });
+    const list = screen.getByRole('listbox', { name: 'Sobivad kontod' });
+    expect(within(list).getAllByRole('option').map((o) => o.textContent)).toEqual(['2210 Palgavõlg', '4710 Palgakulu']);
+    fireEvent.keyDown(cell, { key: 'ArrowDown' });
+    fireEvent.keyDown(cell, { key: 'Enter' });
+    expect(cell).toHaveValue('4710');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '22' } });
+    fireEvent.focus(screen.getByLabelText('Rida 2 konto'));
+    fireEvent.mouseDown(screen.getByRole('option', { name: /2210 Palgavõlg/ }));
+    expect(screen.getByLabelText('Rida 2 konto')).toHaveValue('2210');
+  });
+
   it('a storno needs a reason', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);

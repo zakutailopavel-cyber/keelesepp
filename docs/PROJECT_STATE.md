@@ -1,3 +1,10 @@
+## 2026-10-24 · agent/draft-account-suggest — a new entry suggests accounts by number or name
+
+- Base: `main` acd13f9. The accountant (2026-10-24): in a new entry the account cell „не считывает номера
+  счетов” — she typed „so” and had to remember the number.
+- `AccountInput.jsx` (new): under the account cell of a typed entry a list of open accounts matching the text (number
+  from its start, name anywhere, max 8); arrows + Enter / Tab or a click picks one; `JournalDraft.jsx` uses it.
+- Checks: vitest src/features/accounting 42/42 (+1 test); eslint clean; `npm run build` ok. UI only.
 ## 2026-10-24 · agent/kaanded-practice — B2 „Käänete kordamine”: three extra Harjuta sheets on noun cases
 
 - Base: `main` acd13f9 (2026-10-24). Draft PR #783. Content + a small course-gate rule.
