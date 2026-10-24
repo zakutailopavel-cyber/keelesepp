@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import StudentForm from './StudentForm.jsx';
 
 const baseProps = { open: true, onClose: () => {}, onSubmit: async () => {} };
@@ -69,4 +70,21 @@ describe('student form business options', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Salvestamine ebaõnnestus');
     expect(submit).toBeEnabled();
   });
+
+  it('warns before a second card for a child who already has one (Oleksiy 2026-10-24)', () => {
+    const existing = [{ id: 'm1', name: 'Milan Grozovski', active: true, subject: 'Eesti keel', teacher: 'Pavel Zakutailo' }];
+    render(<MemoryRouter><StudentForm {...baseProps} canAssignTeacher existingStudents={existing} /></MemoryRouter>);
+    expect(screen.queryByText(/Sama nimega õpilane on juba olemas/)).toBeNull();
+    fireEvent.change(screen.getByLabelText('Õpilase nimi *'), { target: { value: 'Milan' } });
+    expect(screen.getByText(/Sama nimega õpilane on juba olemas/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Milan Grozovski' })).toHaveAttribute('href', '/students/m1?enrollments=1');
+  });
+
+  it('on a card with two subjects it says the form edits the main subject only', () => {
+    const student = { id: 's1', name: 'Milan', subject: 'Eesti keel', teacher: 'Pavel Zakutailo', enrollments: [{ subject: 'Eesti keel', teacher: 'Pavel Zakutailo' }, { subject: 'Inglise keel', teacher: 'Anhelina Korotka' }] };
+    render(<MemoryRouter><StudentForm {...baseProps} canAssignTeacher student={student} existingStudents={[{ id: 'x', name: 'Milan', active: true }]} /></MemoryRouter>);
+    expect(screen.getByText(/Teised ained: Inglise keel – Anhelina Korotka/)).toBeInTheDocument();
+    expect(screen.queryByText(/Sama nimega õpilane/)).toBeNull();
+  });
 });
+
