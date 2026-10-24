@@ -3,6 +3,9 @@ import '../board/board.css';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import MergeCardsModal from './MergeCardsModal.jsx';
 import EnrollmentManager from './EnrollmentManager.jsx';
+import StudentDirectionsCard from './StudentDirectionsCard.jsx';
+import StudentParentsCard from './StudentParentsCard.jsx';
+import { useStudyDirections } from './useStudyDirections.js';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { parentCardIds } from '../parents/parentModel.js';
 import { AuthContext } from '../../app/AuthContext.jsx';
@@ -60,7 +63,7 @@ const PROFILE_TABS = [
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -71,6 +74,7 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   // /students/<id>?enrollments=1 (from the duplicate warning of „Lisa õpilane”) opens it at once
   const [tracksOpen, setTracksOpen] = useState(() => searchParams.get('enrollments') === '1');
   const staffTeachers = useTeacherNames(canAssignTeacher, teacherApi);
+  const directions = useStudyDirections(directionsApi);
   const canViewFinance = currentUser.roles?.some((role) => [ROLES.ADMIN, ROLES.FINANCE].includes(role));
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
   const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], plan: null });
@@ -138,6 +142,8 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
   // a teacher of one subject of a shared child: only the works they gave or of their subject
   const ownSubjects = ownTracks?.length && subjectsOf(student).length > 1 ? new Set(ownTracks.map((track) => track.subject)) : null;
   const keepWork = ownSubjects ? (item) => { const by = item.assignedBy || item.teacherUid || ''; if (by) return by === currentUser.uid; const own = subjectName(item.subject); return !own || ownSubjects.has(own); } : null;
+  // a teacher sees only the directions they teach
+  const directionStudent = ownTracks?.length ? { ...student, enrollments: (student.enrollments || []).filter((track) => ownTracks.some((own) => own.subject === subjectName(track.subject))) } : student;
   const tabPanelId = `student-profile-panel-${activeTab}`;
   const initials = String(student.name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 
@@ -149,11 +155,11 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1>{tracks.length > 1 || (ownTracks?.length && subjectsOf(student).length > 1) ? <p className="subject-tracks">{tracks.map((track) => <span key={track.id || track.subject}>{track.subject} · {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>)}</p> : <p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p>}</span></div>
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
         <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
-        {canAssignTeacher && tracksOpen ? <EnrollmentManager student={student} teachers={teacherChoices(staffTeachers, [student.teacher])} service={studentApi}
+        {canAssignTeacher && tracksOpen ? <EnrollmentManager student={student} directions={directions} teachers={teacherChoices(staffTeachers, [student.teacher])} service={studentApi}
           onClose={() => { setTracksOpen(false); if (searchParams.get('enrollments')) setSearchParams((current) => { current.delete('enrollments'); return current; }, { replace: true }); }}
           onChanged={refreshStudent}
           onAdded={(track) => setNotice(`Õppesuund lisatud: ${track.subject}${track.teacher ? ` · ${canonicalTeacherName(track.teacher)}` : ''}.${canViewFinance ? ' Tunnihinna saab määrata Finantsid → Arveldus (tühi = sama hind).' : ''}`)} /> : null}
-        {merging ? <MergeCardsModal open student={student} onClose={() => setMerging(false)} onMerged={() => { setMerging(false); window.location.reload(); }} /> : null}
+        {merging ? <MergeCardsModal open student={student} onClose={() => setMerging(false)} onMerged={(result) => { setMerging(false); if (result?.keepId && result.keepId !== student.id) window.location.assign(`/students/${encodeURIComponent(result.keepId)}`); else window.location.reload(); }} /> : null}
         <Modal open={archiveAsk} title={student.active ? 'Arhiveeri õpilane' : 'Taasta õpilane'} onClose={() => !archiving && setArchiveAsk(false)} footer={<><Button variant="secondary" disabled={archiving} onClick={() => setArchiveAsk(false)}>Loobu</Button><Button variant={student.active ? 'danger' : 'primary'} loading={archiving} onClick={async () => {
           setArchiving(true); setArchiveError('');
           try {
@@ -189,6 +195,9 @@ export default function StudentProfilePage({ studentApi = studentsService, lesso
         {activeTab === 'overview' ? (
           <div className="profile-grid">
             <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}{parentCardIds(student).map((id, index, ids) => <Link key={id} className="profile-parent-link" to={`/parents?parent=${encodeURIComponent(id)}`}>{ids.length > 1 ? `Ava lapsevanema kaart ${index + 1}` : 'Ava lapsevanema kaart'}</Link>)}{!parentCardIds(student).length && (student.parentEmail || student.parentName) ? <Link className="profile-parent-link" to={`/parents?student=${encodeURIComponent(student.id)}`}>Ava lapsevanema kaart</Link> : null}</dd></div><div><dt>Makseviis</dt><dd>{student.payerMethod === 'cash' ? <>Sularaha · <Link to={`/kassa?student=${encodeURIComponent(student.id)}`}>märgi saadud raha</Link></> : 'Pangaülekanne'}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>{tracks.length > 1 ? 'Õppesuunad' : 'Õpetaja'}</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : tracks.length > 1 ? tracks.map((track) => <span className="profile-track" key={track.id || track.subject}>{track.subject} — {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>) : canonicalTeacherName(student.teacher) || 'Määramata'}{canAssignTeacher ? <button type="button" className="profile-track-add" onClick={() => setTracksOpen(true)}>+ Lisa aine teise õpetajaga</button> : null}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
+            {/* „Õppesuunad” (owner 2026-10-24): which directions the learner attends, teacher, level, price, lessons ahead */}
+            <StudentDirectionsCard student={directionStudent} schedule={state.schedule} lessons={state.lessons} plan={state.plan} directions={directions} canEdit={canAssignTeacher} canViewFinance={canViewFinance} service={studentApi} onEdit={() => setTracksOpen(true)} onChanged={refreshStudent} />
+            {canAssignTeacher ? <StudentParentsCard student={student} user={currentUser} {...(parentApi ? { service: parentApi } : {})} onChanged={refreshStudent} /> : null}
             {/* „Õpilase pilt” (owner 2026-10-23): practice, forgotten words, sheet errors, open homework */}
             {/* „Kuu aruanne vanemale” (owner 2026-10-23): the admin checks and sends it */}
             {currentUser?.roles?.includes(ROLES.ADMIN) ? <MonthlyReportCard student={student} user={currentUser} {...(reportApi ? { repository: reportApi } : {})} /> : null}

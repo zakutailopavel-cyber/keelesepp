@@ -5,8 +5,8 @@ import { groupStudentPeople } from '../../services/firebase/students.js';
 const normalize = (value) => String(value || '').trim().toLocaleLowerCase('et');
 
 export function parentMatchesStudent(parent, student) {
-  const linkedParentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
-  if (linkedParentId && linkedParentId === parent.id) return true;
+  // every linked parent account counts (several parents per child, owner 2026-10-24)
+  if (parentCardIds(student).includes(parent.id)) return true;
   // a learner who pays for themselves: their own card
   if (parent.selfPayer && (student.linkedUserId === parent.id || student.studentUid === parent.id || (student.linkedUserIds || []).includes(parent.id))) return true;
   const parentEmail = normalize(parent.email);
@@ -66,8 +66,7 @@ export function exactParentDuplicateClusters(parents = [], students = []) {
   });
   const explicitLinks = new Map();
   students.forEach((student) => {
-    const parentId = student.linkedParentId || student.parentUid || student.guardianUid || '';
-    if (parentId) explicitLinks.set(parentId, (explicitLinks.get(parentId) || 0) + 1);
+    parentCardIds(student).forEach((parentId) => explicitLinks.set(parentId, (explicitLinks.get(parentId) || 0) + 1));
   });
   const score = (parent) => (
     (explicitLinks.get(parent.id) || 0) * 100

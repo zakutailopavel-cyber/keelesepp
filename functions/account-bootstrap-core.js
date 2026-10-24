@@ -32,8 +32,10 @@ function studentEmails(student = {}) {
   return unique([student.email, student.contactEmail, student.studentEmail]).map(normalizeEmail).filter(Boolean);
 }
 
+// parents without an account are also kept in parentContacts (student card „Lapsevanemad”, 2026-10-24)
 function parentEmails(student = {}) {
-  return unique([student.parentEmail, student.guardianEmail]).map(normalizeEmail).filter(Boolean);
+  const contacts = Array.isArray(student.parentContacts) ? student.parentContacts.map(contact => contact?.email) : [];
+  return unique([student.parentEmail, student.guardianEmail, ...contacts]).map(normalizeEmail).filter(Boolean);
 }
 
 function activeStudents(students = []) {

@@ -31,6 +31,8 @@ function enrollmentOf(value = {}, fallback = {}) {
     level,
     targetLevel,
     active: value.active !== false,
+    // „Paus” / „Lõpetanud” set by the administrator (2026-10-24); a paused track stays active, an ended one does not
+    ...(["paused", "ended"].includes(clean(value.status)) ? { status: clean(value.status) } : {}),
   };
 }
 

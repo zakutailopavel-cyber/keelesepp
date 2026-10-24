@@ -1,5 +1,6 @@
 import {
   addDoc,
+  arrayUnion,
   collection,
   doc,
   getDoc,
@@ -38,7 +39,9 @@ function normalizedEnrollment(value = {}, fallback = {}) {
     teacherUid,
     level,
     targetLevel,
-    active: value.active !== false,
+    // „Paus” keeps the track (and the teacher's access); „Lõpetanud” closes it (owner 2026-10-24)
+    active: value.active !== false && value.status !== 'ended',
+    ...(['paused', 'ended'].includes(value.status) ? { status: value.status } : {}),
   };
 }
 
@@ -405,7 +408,11 @@ export const studentsService = {
     const index = (current.enrollments || []).findIndex((item) => item.id === enrollmentId || enrollmentKey(item) === enrollmentId);
     if (index < 0) throw new Error('Õppesuunda ei leitud.');
     const { db } = requireFirebaseClient();
-    const teacherUid = await resolveTeacherUid(db, patch.teacher ?? current.enrollments[index].teacher);
+    // the same teacher keeps the stored account id (a pause or a level change must not fail on a name lookup)
+    const before = current.enrollments[index];
+    const teacherUid = before.teacherUid && (patch.teacher === undefined || isSameTeacher(patch.teacher, before.teacher))
+      ? before.teacherUid
+      : await resolveTeacherUid(db, patch.teacher ?? before.teacher);
     const updated = normalizedEnrollment({ ...current.enrollments[index], ...patch, teacherUid }, current);
     const enrollments = [...current.enrollments];
     enrollments[index] = updated;
@@ -422,6 +429,19 @@ export const studentsService = {
     }
     await updateDoc(doc(db, 'students', recordId), payload);
     return this.getById(recordId);
+  },
+  // „Ei ole duplikaat” (owner 2026-10-24): the pair is not proposed again (two children with the same name)
+  async markNotDuplicate(leftId, rightId) {
+    const left = cleanText(leftId);
+    const right = cleanText(rightId);
+    if (!left || !right || left === right) throw new Error('Vali kaks erinevat kaarti.');
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    const now = new Date().toISOString();
+    batch.update(doc(db, 'students', left), { notDuplicateOf: arrayUnion(right), updatedAt: now.slice(0, 10) });
+    batch.update(doc(db, 'students', right), { notDuplicateOf: arrayUnion(left), updatedAt: now.slice(0, 10) });
+    await batch.commit();
+    return { leftId: left, rightId: right };
   },
   async setPersonActive(recordIds, active) {
     const ids = [...new Set((Array.isArray(recordIds) ? recordIds : [recordIds]).map(cleanText).filter(Boolean))];

@@ -292,12 +292,48 @@ historical references. Parent and student cabinets exclude inactive and converte
 or reassign an existing student from the parent directory; that workflow updates the existing records and does not
 create a replacement identity.
 
-Potential duplicates are detected by the Financial Core data-quality preview using student account, student contact,
-normalized name and parent identity signals. Sharing only a parent is not enough to classify siblings as duplicates.
-An administrator must choose the surviving primary ID, inspect the server merge preview and explicitly confirm. The
-server then rewrites supported references, preserves profile snapshots and aliases, archives secondary profiles with
-`mergedIntoStudentId`, and writes an idempotent merge operation and audit trail. The browser never performs a partial
-client-side merge.
+Possible duplicates (2026-10-24) are listed for the administrator in Õpilased → „Võimalikud duplikaadid”
+(`features/students/duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): the same name (after Cyrillic → Latin
+transliteration), or the same first name plus the same parent (account, e-mail, phone, name) or the same learner
+account / e-mail / phone. A shared surname or a shared parent alone (siblings) is not a pair. „Ei ole duplikaat”
+stores `students.notDuplicateOf` on both cards. Each pair has „Liida”.
+
+„Liida kaardid” (`MergeCardsModal.jsx` → `staffOperationsApi /students/merge-cards` → `functions/student-merge.js`,
+rules in `functions/student-card-merge-core.js`; admin only) is the one merge. The administrator picks the other card,
+which card stays and which name; the server preview lists what moves per kind (learner / schedule / finance), the
+per-card documents, the price, the subjects, the parents and the conflicts (two names, two parents, two prices or
+teachers for one subject, two student accounts, a document both cards have). Apply needs `confirmed: true`. Then:
+every root collection is searched for `studentId`, `studentIds[]` and `students[]` (groups, with `studentLessonMap`);
+records move to the kept card (lessons and schedule get the other card's subject when they have none and the kept
+name in `studentName`; finance records change only the card id — never an amount, number or the issued name);
+`studentRevenuePlans`, `studentAvailability`, `studentInitialAssessments`, `taxIdentities`, `whiteboards` (with
+subcollections) are copied when the kept card has none, else the kept one stays; the other card's price becomes
+`subjectPrices[its subject]` when the kept plan has no price for that subject (same subject, other price = conflict,
+nothing changes); accounts listing the old id (`users.linkedStudentIds`) get the kept id; learner and parent accounts
+and parent contacts are united; enrollments and `teacherUids` are united; empty profile fields are filled, notes
+joined. History (`activityLog`, `financialAudit`, …) keeps the old id. The old card is never deleted: it stays
+`active: false`, `mergedInto` + `mergedIntoStudentId`, without account links, as a tombstone; the old per-card
+documents are marked `mergedInto` too. `studentCardMerges/{oldCardId}` records the run (idempotent: a repeat returns
+the stored result; a failed run continues where it stopped); `activityLog/student-card-merge-{oldCardId}` is the
+audit entry. The older `/students/merge` with `permanent` and `/students/merged/purge` answer 410 (no deletes).
+
+Parents (2026-10-24): a child may have several parent accounts (`linkedParentIds`; `linkedParentId` / `parentUid` is
+the main one) and parents without an account (`parentContacts: [{ name, email, phone }]`, plus the old
+`parentName` / `parentEmail`). The student card „Lapsevanemad” (`StudentParentsCard.jsx`, admin) links an existing
+parent account, adds a contact or removes a link (`parentsService.linkStudent` / `unlinkStudent` / `addContact` /
+`removeContact`, admin client writes the rules already allow). Linking adds, never replaces. A contact's e-mail
+links the child when that parent registers (`account-bootstrap-core.js parentEmails`). Rules unchanged.
+
+Study directions (2026-10-24): `studyDirections/{id}` `{ name, shortLabel, color, levels[], aliases[], status:
+active|archived, order }` — admin writes (validated keys, no delete), staff and finance read. Seaded → „Õppesuunad”
+(`features/settings/StudyDirectionsCard.jsx`). Until saved, the built-in list (`studyDirections.js
+DEFAULT_DIRECTIONS`) is used. Every subject choice uses `SubjectSelect.jsx` (student form, „Õppesuunad”, new child of
+a parent, group); a card's value the list does not know stays selectable; aliases map old spellings
+(`canonicalSubject`). A track has `status: 'paused' | 'ended'` (ended = `active: false`, the teacher loses access).
+The student card „Õppesuunad” (`StudentDirectionsCard.jsx`, `studentDirectionsModel.js`) shows per track the
+teacher, level, price (finance roles) and „Käib” (lessons in the next 8 weeks) / „Tunde pole plaanis” / „Paus” /
+„Lõpetanud”, derived from the schedule, never stored. Calendar and Õppevara subject tabs are unchanged (the
+calendar picks a track of the card; Õppevara's tabs come from the material's level labels).
 
 The existing Lesson Builder is the canonical authoring surface. Worksheet visual blocks will converge into
 it through the Normalized Activity Contract. A future A4 canvas stores presentation-only grid placement on
@@ -422,6 +458,8 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 ## Firestore ownership
 
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
+- `studyDirections` — the school's study directions; admin writes (no delete), staff and finance read.
+- `studentCardMerges` — server-only run records of „Liida kaardid” (one per merged card); `students.mergedInto` marks the tombstone.
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
 - `liveClassrooms` — one teacher and one student per current room.
 - `liveClassrooms.lessonSummary` — immutable teacher outcome attached when a room is completed.

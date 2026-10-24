@@ -8370,6 +8370,9 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       return;
     }
     if (req.path === "/students/merge") {
+      // cards are never deleted any more (owner 2026-10-24): „Liida kaardid” (/students/merge-cards) archives the
+      // other card as a tombstone. The old permanent merge is refused.
+      if (req.body?.permanent === true) throw httpError(410, "Kaarte ei kustutata. Kasuta „Liida kaardid” (teine kaart arhiveeritakse).");
       const result = await applyStudentMerge({
         actor,
         primaryStudentId: req.body?.primaryStudentId,
@@ -8381,7 +8384,8 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
-    if (req.path === "/students/merged/purge/preview" || req.path === "/students/merged/purge") {
+    if (req.path === "/students/merged/purge") throw httpError(410, "Arhiveeritud kaarte ei kustutata (2026-10-24).");
+    if (req.path === "/students/merged/purge/preview") {
       res.json(await purgeArchivedDuplicates({ actor, apply: req.path.endsWith("/purge") }));
       return;
     }
@@ -8485,8 +8489,9 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       const { mergeStudentCards } = require("./student-merge");
       try {
         res.json(await mergeStudentCards(db, {
-          FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), actor: actorSnapshot(actor),
-          apply: req.body?.apply === true, includeFinance: req.body?.includeFinance === true, includeSchedule: req.body?.includeSchedule === true,
+          FieldValue, keepId: cleanText(req.body?.keepId, 180), sourceId: cleanText(req.body?.sourceId, 180), keepName: cleanText(req.body?.keepName, 200), actor: actorSnapshot(actor),
+          // everything moves (owner 2026-10-24); finance / schedule can still be left out explicitly
+          apply: req.body?.apply === true, confirmed: req.body?.confirmed === true, includeFinance: req.body?.includeFinance !== false, includeSchedule: req.body?.includeSchedule !== false,
         }));
       } catch (error) { throw error.status ? httpError(error.status, error.message) : error; }
       return;

@@ -2423,6 +2423,26 @@ service cloud.firestore {
       allow read, write: if isStaff();
     }
 
+    // „Õppesuunad” (owner 2026-10-24: „самому ставить учебные направления”): the school's list of study directions,
+    // kept by the administrator in Seaded; staff and finance read it to choose a subject. Never deleted, only archived.
+    function studyDirectionValid(data) {
+      return data.keys().hasOnly(['name', 'shortLabel', 'color', 'levels', 'aliases', 'status', 'order', 'createdAt',
+          'updatedAt', 'updatedByUid', 'updatedByName'])
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 80
+        && data.get('shortLabel', '') is string && data.get('shortLabel', '').size() <= 6
+        && data.get('color', '') is string && (data.get('color', '') == '' || data.get('color', '').matches('^#[0-9a-fA-F]{6}$'))
+        && data.get('levels', []) is list && data.get('levels', []).size() <= 30
+        && data.get('aliases', []) is list && data.get('aliases', []).size() <= 20
+        && data.status in ['active', 'archived']
+        && data.get('order', 0) is int && data.get('order', 0) >= 0 && data.get('order', 0) <= 999
+        && data.updatedByUid == uid();
+    }
+    match /studyDirections/{directionId} {
+      allow read: if isStaff() || isFinance();
+      allow create, update: if isAdmin() && studyDirectionValid(request.resource.data);
+      allow delete: if false;
+    }
+
     match /groups/{groupId} {
       allow read, write: if isStaff();
     }

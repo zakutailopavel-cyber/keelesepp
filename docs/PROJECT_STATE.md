@@ -1,3 +1,65 @@
+## 2026-10-24 · agent/student-merge-subjects — „Liida kaardid” done properly, parents on the card, own study directions
+
+- Base: `main` 7bfa20f (2026-10-24, after #787 / #788). Draft PR #789 from `agent/student-merge-subjects`. Students / parents /
+  settings UI, the merge function, one rules block. Calendar and finance invoicing logic not touched.
+- Asked (owner 2026-10-24): „нормальное объединение и связывание их с родителями … нормально сделать предметы … самому
+  ставить учебные направления”.
+- (1) Merge. Audit found two merges: „Liida kaardid” on the card (`/students/merge-cards`) moved only `studentId` /
+  `studentIds` (not group members in `groups.students`, not per-card documents such as the price plan, „Sobivad ajad”,
+  board; finance and schedule only on request; no audit of conflicts) and the list's „Kontrolli duplikaate”
+  (`/students/merge`) deleted the other card by default. Now one merge (ARCHITECTURE.md „Student identity”):
+  `functions/student-card-merge-core.js` (pure) + `functions/student-merge.js`: admin picks the kept card and the name;
+  preview lists per kind what moves, documents, price, subjects, parents and conflicts; apply needs `confirmed: true`;
+  everything moves (lessons, schedule incl. series, groups + `studentLessonMap`, homework / worksheets / results,
+  notes, change requests, recordings, invitations, invoices / payments / credits / packages — only the card id, never
+  an amount or number); per-card docs copied when the kept card has none; the other price becomes
+  `subjectPrices[its subject]`; `users.linkedStudentIds` re-pointed; accounts, parents, contacts, enrollments,
+  `teacherUids` united; old card = tombstone (`active: false`, `mergedInto`, `mergedIntoStudentId`), never deleted;
+  `studentCardMerges/{oldId}` (idempotent, resumable) + `activityLog/student-card-merge-{oldId}`. `/students/merge`
+  with `permanent` and `/students/merged/purge` now answer 410. Õpilased → „Võimalikud duplikaadid”
+  (`duplicateCandidates.js`, `DuplicateCandidatesModal.jsx`): same name, or same first name + same parent / phone /
+  e-mail / account; „Liida” per pair, „Ei ole duplikaat” (`students.notDuplicateOf`).
+- (2) Parents. Card „Lapsevanemad” (`StudentParentsCard.jsx`, admin): link an existing parent account (search), add a
+  parent without an account (`students.parentContacts`), remove a link / contact. `parentsService.linkStudent` now
+  adds (several parents per child; the first stays main), new `unlinkStudent` / `addContact` / `removeContact`;
+  ParentsPage „Määra siia” (overwrite) → „Lisa ka sellele vanemale”; `parentMatchesStudent` counts every linked
+  account. Access model unchanged (rules read `linkedParentIds`); a contact's e-mail links the child at the parent's
+  registration (`account-bootstrap-core.js parentEmails` + test). No rules change for parents.
+- (3) Study directions. `studyDirections/{id}` (rules: admin writes validated keys, no delete; staff + finance read).
+  Seaded → „Õppesuunad” (`StudyDirectionsCard.jsx`): name, short label, colour, levels, other spellings, archive;
+  shows cards per direction and values on cards that are not in the list. Built-in list until saved (Eesti keel,
+  Inglise keel, Matemaatika, Emakeel, Vene keel). `SubjectSelect.jsx` everywhere a subject is chosen (student form,
+  „Õppesuunad”, new child of a parent, group form); levels follow the direction. Track status „Käib / Paus /
+  Lõpetanud” (`enrollments[].status`; ended = inactive). Card „Õppesuunad” (`StudentDirectionsCard.jsx`,
+  `studentDirectionsModel.js`): per direction teacher, level → target, price (finance roles), „Käib” / „Tunde pole
+  plaanis” / „Paus” / „Lõpetanud” + next lesson, derived from the schedule; admin „Paus / Jätka / Lõpeta”. Teachers
+  see only their own directions. Calendar and Õppevara subject tabs unchanged (calendar reads the card's tracks;
+  Õppevara tabs come from the material's level labels). No backfill needed (reads fall back).
+- Read-only production check (2026-10-24, 97 open cards, 0 stored directions): subjects on cards Eesti keel 90,
+  Inglise keel 6 + „Inglise Keel” 1 (same direction), Matemaatika 7; 5 cards already have >1 direction; schedule
+  has 414 entries without a subject (lessons 12). Duplicate candidates 3: Milan / Milan Grozovski (high: same parent
+  account, e-mail, name), Maria / Maria and Mykyta / Mykyta (same name). Children (grade set) 32, of them 19 without a
+  parent account link (9 have their own student account; 10 have no parent contact at all). Parent accounts 39, 3 with
+  no child at all (Anton Kortšomkin, Анна Пищик, Денис Лазарєв).
+- Checks: crm-v2 whole vitest 357 files (356 passed, 1 skipped), 2493 tests: 2490 passed, 3 skipped, 0 failed (new:
+  duplicateCandidates 5, studyDirections 5, studentDirectionsModel 3, StudentDirectionsCard 3, StudentParentsCard 3,
+  StudyDirectionsCard 2, parents service +2, merge modal / list rewritten); eslint 0 errors (16 warnings, before 18);
+  `npm run build` ok; functions `npm test` 367/367 (+6 merge core, +1 bootstrap); emulator (`firebase
+  emulators:exec --only auth,firestore,functions --project demo-keelesepp-finance`, JDK 21):
+  student-merge-emulator 3/3, study-directions-rules-emulator 1/1 (new, in `test:emulator`), finance-emulator 40/40
+  (merge over HTTP: admin only / preview / confirm; „never deleted” replaces the two delete tests). Local stand with
+  made-up data (card, list + merge dialog, settings; desktop + 375 px), not committed.
+- Deploy needed (owner): `firebase deploy --only firestore:rules` (studyDirections) and
+  `firebase deploy --only functions:staffOperationsApi` (merge, 410 for deletes, account bootstrap reads
+  parentContacts e-mails). Until the rules are
+  deployed the settings card cannot save and the built-in list is used; until functions are deployed the new merge
+  dialog gets the old server answer (preview works, apply ignores `confirmed`, finance / schedule stay behind).
+- Owner decisions: merge Milan + Milan Grozovski? Maria / Maria and Mykyta / Mykyta: two children each („Ei ole
+  duplikaat”) or one? Save the direction list (add levels for Matemaatika / Emakeel as wanted). Link parents for the
+  10 children without any parent contact; check the 3 parent accounts without children.
+- Next safe step: owner merges, deploys rules + `staffOperationsApi`, then saves Seaded → Õppesuunad and runs „Liida”
+  on Milan / Milan Grozovski.
+
 ## 2026-10-24 · agent/calendar-admin-fixes — rooms after „Tühista”, red hour = warning, teacher week grid
 
 - Base: `main` f69a872 (2026-10-24). Draft PR #788 from `agent/calendar-admin-fixes`. Calendar only (+ a functions core

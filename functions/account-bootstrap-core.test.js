@@ -171,3 +171,14 @@ test("a parent's inactive child card is reviewed instead of duplicated", () => {
   assert.equal(plans[0].status, "review");
   assert.equal(plans[0].reason, "possible_existing_card");
 });
+
+test("a second parent kept as a contact on the card is linked by e-mail at registration", () => {
+  const result = planParentChildBootstrap({
+    uid: "dad-1",
+    email: "dad@example.com",
+    emailVerified: true,
+    childNames: ["Maksim Smirnov"],
+    students: [{ id: "maksim", name: "Maksim Smirnov", parentEmail: "mum@example.com", linkedParentIds: ["mum-1"], parentContacts: [{ name: "Isa", email: "Dad@Example.com" }] }],
+  });
+  assert.deepEqual(result.map(item => [item.status, item.studentId]), [["link", "maksim"]]);
+});
