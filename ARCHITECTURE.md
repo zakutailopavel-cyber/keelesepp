@@ -324,6 +324,30 @@ The scheduled `refreshSchoolAssistant` function derives owner-only alerts from i
 work sessions and sanitized Google Calendar status. It runs without an external AI provider, so
 school and payroll records remain inside the Firebase project.
 
+### „Teated” — announcements that gate the learner portal (2026-10-24)
+
+The administrator writes announcements in Suhtlus → Teated (`/messages/teated`,
+`crm-v2/src/features/announcements/`). A student or parent account (not staff, not the administrator's read-only
+user preview) sees every active, not yet answered announcement addressed to it full screen right after login, oldest
+first, before the CRM shell renders (`AnnouncementGate` in `AppShell`); logout stays possible. If the server cannot
+be reached within 8 s, the CRM opens as usual — an announcement never locks anyone out.
+
+- `announcements/{id}` — `title`, `body` (plain text; only http(s) addresses become links, never HTML), `audience`
+  (`students` | `parents` | `both`), optional `subjects`, `levels` (both on one active enrollment) and `studentIds`,
+  `activeFrom` / `activeTo` (Tallinn days), `responseType` (`read` | `question` | `availability`), `question`
+  (`mode` text | single | multiple, `options`, `allowOther`), `allowChange`, `status` (draft | published | archived),
+  `publishedAt`. Firestore rules: administrator only (validated shape, never deleted — archived).
+- `announcementResponses/{announcementId}__{targetKey}` — written only by the server; administrator reads. Target
+  keys: `u_<uid>` (a student, once), `p_<uid>` (a parent's „Loetud”, once for all children), `c_<studentId>`
+  (a parent's question / suitable times per child; either parent answers for the child). A second answer is refused
+  (409) unless `allowChange`; then the previous answers stay in `history`.
+- Learners never read these collections: `staffOperationsApi` `POST /announcements/mine` returns only the caller's
+  announcements without the audience lists, `POST /announcements/respond` matches the audience again, validates the
+  answer and writes once in a transaction; for „Sobivad ajad” the gate first saves `studentAvailability/{studentId}`
+  (existing rules) and the server requires times saved after `publishedAt`, keeping a snapshot. `POST
+  /announcements/report` (administrator) lists every account that must answer with its answer (CSV export in the
+  browser). Pure rules: `functions/announcements-core.js`; loading / writing: `functions/announcements-service.js`.
+
 ### Calendar
 
 `calendar-core.js` owns migration-safe schedule calculations:
@@ -421,6 +445,8 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
   student ownership.
 - `calendarConnections` — server-only Google OAuth credentials and sync status; browser access is denied.
 - `calendarSyncOutbox` — server-only deferred Google event deletions; browser access is denied.
+- `announcements` (administrator) and `announcementResponses` (server-written) — „Teated”, see above; learners
+  reach them only through `staffOperationsApi /announcements/*`.
 - financial collections — governed by the financial core and its immutable audit model.
 
 Assignment records copy display metadata for historical readability and also store stable

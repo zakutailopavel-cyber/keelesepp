@@ -1,4 +1,5 @@
-import { CheckCheck, Inbox, MessageCircle, Search, Send } from 'lucide-react';
+import { CheckCheck, Inbox, Megaphone, MessageCircle, Search, Send } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
@@ -111,7 +112,7 @@ export default function MessagesPage({ repository = messagesService, studentRepo
       eyebrow="Suhtlus"
       title="Kommunikatsioon"
       description="KeeleSepa sisemised vestlused, Facebook ja Instagram ühes töövoos."
-      actions={totalUnread ? <Badge tone="info">{totalUnread} lugemata</Badge> : null}
+      actions={totalUnread || admin ? <>{totalUnread ? <Badge tone="info">{totalUnread} lugemata</Badge> : null}{admin ? <Link className="button button--secondary" to="/messages/teated"><Megaphone size={16} /> Teated</Link> : null}</> : null}
       compact
     />
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}

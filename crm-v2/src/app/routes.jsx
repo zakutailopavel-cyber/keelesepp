@@ -61,6 +61,7 @@ const TeachersPage = lazy(() => import('../features/teachers/TeachersPage.jsx'))
 const AccountsPage = lazy(() => import('../features/accounts/AccountsPage.jsx'));
 const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
 const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
+const AnnouncementsAdminPage = lazy(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
 const LiveObserverPage = lazy(() => import('../features/live-classroom/LiveObserverPage.jsx'));
 const staffPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen…" />}>{element}</Suspense></PageErrorBoundary>;
 const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
@@ -119,6 +120,8 @@ export default function AppRoutes() {
             <Route path="teachers" element={staffPage(<TeachersPage />)} />
             <Route path="accounts" element={staffPage(<AccountsPage />)} />
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
+            {/* „Teated” (owner 2026-10-24): announcements a student / parent answers before using the CRM */}
+            <Route path="messages/teated" element={staffPage(<AnnouncementsAdminPage />)} />
           </Route>
           <Route path="settings" element={<SettingsPage />} />
           <Route path="homework" element={<HomeworkPage />} />

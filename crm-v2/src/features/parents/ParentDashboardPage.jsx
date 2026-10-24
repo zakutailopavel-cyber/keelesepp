@@ -23,6 +23,7 @@ import PetOverview from '../pet/PetOverview.jsx';
 import { isHomeworkOpen } from '../homework/homeworkStatus.js';
 import SubjectSwitcher from '../students/SubjectSwitcher.jsx';
 import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
+import LearnerAnnouncementsCard from '../announcements/LearnerAnnouncementsCard.jsx';
 import { itemSubject, onlySubject, subjectsOf } from '../students/subjects.js';
 
 function unique(items) {
@@ -33,7 +34,7 @@ function money(cents) {
   return (Number(cents || 0) / 100).toLocaleString('et-EE', { style: 'currency', currency: 'EUR' });
 }
 
-export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, petRepository, tokensApi }) {
+export default function ParentDashboardPage({ studentRepository = studentsService, homeworkRepository = homeworkService, scheduleRepository = scheduleService, invoiceRepository = invoicesService, lessonRepository = lessonsService, changeRequests = lessonChangeRequestsService, consentService, wordsService, summaryService, petRepository, tokensApi, announcementService }) {
   const { user } = useAuth();
   const [rescheduling, setRescheduling] = useState(null);
   // one child with several subjects (owner 2026-10-20): the lessons and homework of one subject, or all
@@ -85,6 +86,8 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       <Card><div className="section-heading"><div><span className="eyebrow">Pere</span><h2>Minu õpilased</h2></div></div><div className="parent-home-students">{students.map((student) => <article className="parent-child-card" key={student.personKey || student.id}><div className="parent-child-card__head"><div className="student-mini-avatar">{student.name.split(/\s+/).map((part) => part[0]).join('').slice(0, 2)}</div><div><strong>{student.name}</strong><small>{student.enrollments?.length || 0} õppesuun{student.enrollments?.length === 1 ? 'd' : 'da'}</small></div></div><div className="parent-child-enrollments">{(student.enrollments || []).filter((enrollment) => !subject || itemSubject({ subject: enrollment.subject }) === subject).map((enrollment) => <div key={enrollment.id}><strong>{enrollment.subject || 'Õppeaine puudub'}</strong><span>{enrollment.level || 'tase puudub'}{enrollment.targetLevel ? ` → ${enrollment.targetLevel}` : ''}</span><small>{enrollment.teacher || 'õpetaja määramata'}</small></div>)}</div></article>)}</div></Card>
       <Card><div className="section-heading"><div><span className="eyebrow">Õppetöö</span><h2>Mida tunnis tehti</h2></div></div>{doneLessons.length ? <div className="simple-list parent-home-done">{doneLessons.map((lesson) => <div key={lesson.id}><div><strong>{lesson.topic || INDIVIDUAL_TOPIC}</strong><span>{[new Date(`${lesson.date}T12:00:00`).toLocaleDateString('et-EE', { day: 'numeric', month: 'short' }), subjectTag(lesson), studentMap.get(lesson.studentId)?.name || lesson.studentName, [lesson.topicLevel, lesson.topicModule].filter(Boolean).join(' · ')].filter(Boolean).join(' · ')}</span>{lesson.billingStatus === 'school_covered' ? <Badge tone="success">Tasuta (kooli kulul)</Badge> : null}{lesson.notes ? <small className="parent-home-note">{lesson.notes}</small> : null}</div><Badge tone="success">Toimus</Badge></div>)}</div> : <EmptyState title="Läbitud tunde veel ei ole" />}</Card>
       <PetOverview studentIds={studentRecords.map((student) => student.id)} lessons={lessons} homework={homework} names={Object.fromEntries(studentRecords.map((student) => [student.id, student.name]))} {...(petRepository ? { repository: petRepository } : {})} {...(wordsService ? { wordsService } : {})} />
+      {/* „Teated”: the school's announcements already answered, to read again (owner 2026-10-24) */}
+      <LearnerAnnouncementsCard user={user} {...(announcementService ? { service: announcementService } : {})} />
       {/* „Millal sobib tund?” for each child (owner 2026-10-21) */}
       {students.map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} studentName={student.name} user={user} mode="own" compact />)}
       {/* words learned, new this month, mistakes fixed per child (owner 2026-10-23) */}

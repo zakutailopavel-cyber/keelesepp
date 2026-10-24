@@ -1,3 +1,36 @@
+## 2026-10-24 · agent/learner-announcements — „Teated”: the school's announcements before the learner portal opens
+
+- Base: `main` 03f8b6e (2026-10-24), merged with `main` 12e179d. Draft PR from `agent/learner-announcements`.
+- Asked (owner 2026-10-24): a news card for parents and students — on login first a message from the administrator
+  that must be answered before anything else.
+- Built (ARCHITECTURE.md „Teated”):
+  - Admin: Suhtlus → „Teated” (`/messages/teated`, admin only; `features/announcements/AnnouncementsAdminPage.jsx`,
+    `AnnouncementForm.jsx`): new / edit / publish / archive / restore as draft; title, text (line breaks, https links),
+    audience students / parents / both + optional subject, level and chosen students (count of matching cards shown),
+    from–to dates, response „Loetud” / „Küsimus” (free text, one or several choices, optional „Muu”) / „Sobivad ajad”,
+    „Luba vastust muuta”. „Vastused”: who must answer, who answered (time, who, answer; times as „T 18–20”), who not
+    yet; CSV for Excel (`;`, UTF-8 BOM).
+  - Learner / parent: `AnnouncementGate` in `AppShell` — full-screen card before the CRM, one after another (oldest
+    first, „Teade 2 / 3”), logout kept, Estonian + Russian labels; „Sobivad ajad” uses PollGrid + the saved
+    `studentAvailability` (a parent per child); fails open if the server is unreachable (8 s). „Teated koolilt” card on
+    the student and parent home lists answered / ended ones; the answer can be changed only if allowed.
+  - Server: `functions/announcements-core.js` (pure), `functions/announcements-service.js`, routes in
+    `staffOperationsApi`: `/announcements/mine`, `/announcements/respond`, `/announcements/report` (admin).
+  - Rules: `announcements` admin read / validated write, no delete; `announcementResponses` admin read, no client write.
+- Checks: crm-v2 whole vitest 346 files (345 passed, 1 skipped), 2418 tests: 2415 passed, 3 skipped, 0 failed (new:
+  announcements 4 files 18 tests, MessagesPage +1); eslint 0 errors (18 old warnings); `npm run build` ok; functions
+  `npm test` 359/359 (new announcements-core.test.js 9); emulator (`firebase emulators:exec --only
+  auth,firestore,functions --project demo-keelesepp-finance`, JDK 21) announcements-emulator.integration.js 1/1 (rules
+  allow / deny, audience, once, change only when allowed, parent per child, report admin-only) and
+  teacher-availability 1/1. Visual check on a local stand page (student, parent at 375 px, home card, admin list /
+  form / report); stand not committed.
+- Deploy needed (owner): `firebase deploy --only firestore:rules` and functions (`staffOperationsApi`). Until then the
+  learner app opens as before (the gate fails open) and the admin page cannot save (rules deny).
+- Limits: no e-mail / SMS; a learner without a KeeleSepp account is not in the „Vastused” list; while an announcement
+  is open the lesson-invitation pop-up is hidden too (answer first); a student with several cards answers once (the
+  first matching card by name is used for „Sobivad ajad”).
+- Next safe step: deploy rules + functions, then the administrator publishes a test announcement to a test student.
+
 ## 2026-10-24 · agent/draft-account-suggest — a new entry suggests accounts by number or name
 
 - Base: `main` acd13f9. The accountant (2026-10-24): in a new entry the account cell „не считывает номера
