@@ -21,8 +21,9 @@ const curriculum = [
   { id: 'b1-2', title: 'Sagedus', level: 'B1', roadmapModuleTitle: 'Igapäevaelu', roadmapModuleNumber: 1, roadmapLessonNumber: 2 },
 ];
 
-function repositories({ events = [], records = [], groups = [], windows = [], notes = [], roomList = [], roomBookings = [] } = {}) {
+function repositories({ events = [], records = [], groups = [], windows = [], notes = [], roomList = [], roomBookings = [], studentTimes = [] } = {}) {
   return {
+    studentTimesRepository: { list: vi.fn().mockResolvedValue(studentTimes) },
     noteRepository: { list: vi.fn().mockResolvedValue(notes), save: vi.fn().mockResolvedValue({}) },
     roomRepository: { list: vi.fn().mockResolvedValue(roomList), bookings: vi.fn().mockResolvedValue(roomBookings), save: vi.fn().mockResolvedValue({}) },
     availabilityRepository: { list: vi.fn().mockResolvedValue(windows), save: vi.fn().mockResolvedValue({}) },
@@ -245,12 +246,16 @@ describe('calendar v2', () => {
     expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ date: today, time: '10:30', recurring: false, movedFromSeriesId: 'schedule-1' }));
   });
 
-  it('allows moving a lesson onto another lesson of the same teacher (parallel lessons)', async () => {
+  it('allows moving a lesson onto another lesson of the same teacher (parallel lessons) after a warning', async () => {
     const props = renderCalendar({ events: [lesson(), lesson({ id: 'schedule-2', studentId: 's2', studentName: 'Jaan Tamm', time: '11:00' })] });
     const block = await screen.findByRole('button', { name: /10:00 Mari Maas/ });
     fireEvent.pointerDown(block, { button: 0, clientX: 5000, clientY: 100, pointerId: 1 });
     fireEvent.pointerMove(block, { clientX: 5000, clientY: 166, pointerId: 1 });
     fireEvent.pointerUp(block, { clientX: 5000, clientY: 166, pointerId: 1 });
+    const dialog = await screen.findByRole('dialog', { name: 'Tõsta tund?' });
+    expect(within(dialog).getByText('Pavel: samal ajal on juba tund — 11:00 Jaan Tamm.')).toBeInTheDocument();
+    expect(props.scheduleRepository.patch).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tõsta ikkagi' }));
     await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalled());
     expect(screen.queryByText(/juba teine tund/)).toBeNull();
   });
@@ -595,5 +600,59 @@ describe('calendar v2', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Järgmine periood' }));
     fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
     expect(within(screen.getByRole('dialog', { name: 'Tund: Mari Maas' })).queryByRole('button', { name: /Alusta tundi/ })).toBeNull();
+  });
+
+  describe('„Sobivad ajad” in the calendar', () => {
+    const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const half = (day, from, to) => Array.from({ length: (to - from) * 2 }, (_, index) => `${day}-${String(from + Math.floor(index / 2)).padStart(2, '0')}:${index % 2 ? '30' : '00'}`);
+    const mariTimes = { id: 's1', studentId: 's1', slots: DAYS.flatMap((day) => half(day, 16, 19)), preferred: DAYS.flatMap((day) => half(day, 17, 18)) };
+
+    it('shades a student\'s times, lists free lesson times with the teacher and opens a prefilled new lesson', async () => {
+      const props = renderCalendar({ studentTimes: [mariTimes], windows: [{ teacherUid: 't1', teacherName: 'Pavel', slots: DAYS.map((day) => ({ id: `b${day}`, kind: 'busy', day, start: '18:00', end: '19:00' })) }] });
+      fireEvent.click(await screen.findByRole('button', { name: /Järgmine periood/ }));
+      fireEvent.click(screen.getByRole('button', { name: /Sobivad ajad/ }));
+      const panel = screen.getByRole('region', { name: 'Sobivad ajad' });
+      // the unplanned students with their times; a student without times gets the card / link way
+      expect(within(panel).getByText('Planeerimata õpilased (2)')).toBeInTheDocument();
+      expect(within(panel).getAllByText(/E 16–19 \(★ 17–18\)/).length).toBeGreaterThan(0);
+      expect(within(panel).getByText(/Sobivad ajad puuduvad/)).toBeInTheDocument();
+      expect(within(panel).getByRole('link', { name: 'ava kaart' })).toHaveAttribute('href', '/students/s2#sobivad-ajad');
+      fireEvent.click(within(panel).getByRole('button', { name: 'Mari Maas' }));
+      // her teacher is chosen; the week grid is shaded
+      expect(screen.getByRole('combobox', { name: 'Filtreeri õpetaja järgi' })).toHaveValue('t1');
+      expect(document.querySelectorAll('.tg-fit.is-best').length).toBe(7);
+      const times = within(panel).getByRole('list', { name: 'Vabad tunniajad' });
+      // 60 min: 16:00, 16:30, ★17:00 — the teacher's red 18–19 removes 17:30 and 18:00
+      const firstDay = within(times).getAllByRole('listitem')[0];
+      expect(within(firstDay).getAllByRole('button').map((button) => button.textContent)).toEqual(['16:00', '16:30', '★ 17:00']);
+      fireEvent.click(within(firstDay).getByRole('button', { name: '★ 17:00' }));
+      const dialog = await screen.findByRole('dialog', { name: /Uus tund/ });
+      expect(within(dialog).getByLabelText('Kellaaeg')).toHaveValue('17:00');
+      expect(within(dialog).getByLabelText('Kordub igal nädalal')).toBeChecked();
+      expect(within(dialog).queryByRole('list', { name: 'Hoiatused' })).toBeNull();
+      expect(props.scheduleRepository.create).not.toHaveBeenCalled();
+    });
+
+    it('warns (does not block) when a new lesson is outside the student\'s times', async () => {
+      const props = renderCalendar({ studentTimes: [mariTimes] });
+      fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+      fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+      fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
+      const dialog = screen.getByRole('dialog', { name: /Uus tund/ });
+      expect(await within(dialog).findByText('Mari Maas: see aeg ei ole õpilase sobivate aegade hulgas.')).toBeInTheDocument();
+      fireEvent.change(within(dialog).getByLabelText('Kellaaeg'), { target: { value: '16:00' } });
+      expect(within(dialog).queryByRole('list', { name: 'Hoiatused' })).toBeNull();
+      fireEvent.change(within(dialog).getByLabelText('Kellaaeg'), { target: { value: '09:00' } });
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta tund' }));
+      await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ time: '09:00', studentId: 's1' })));
+    });
+
+    it('a student without saved times: the form says so', async () => {
+      renderCalendar({ studentTimes: [] });
+      fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+      fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+      fireEvent.click(await screen.findByRole('option', { name: /Jaan Tamm/ }));
+      expect(await screen.findByText(/Jaan Tamm: sobivad ajad puuduvad/)).toBeInTheDocument();
+    });
   });
 });

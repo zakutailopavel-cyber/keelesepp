@@ -1,12 +1,12 @@
-import { CalendarRange, ChevronLeft, ChevronRight, DoorOpen, Plus, Search, StickyNote, Undo2, UserRoundX, X, XCircle } from 'lucide-react';
+import { CalendarClock, CalendarRange, ChevronLeft, ChevronRight, DoorOpen, Plus, Search, StickyNote, Undo2, UserRoundX, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { isSameTeacher } from '../../utils/teachers.js';
 import { financeApi } from '../../services/firebase/financeApi.js';
-import { classroomsService, groupsService, lessonChangeRequestsService, lessonNotesService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
+import { classroomsService, groupsService, lessonChangeRequestsService, lessonNotesService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentAvailabilityService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
 import ChangeRequestsPanel from './ChangeRequestsPanel.jsx';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, looseLessonKey, parseHeld, rememberLessonLink } from '../live-classroom/lessonLink.js';
@@ -32,6 +32,8 @@ import { isGoogleOwned } from '../google-calendar/googleCalendarModel.js';
 import './calendarUx.css';
 import './calendarV2.css';
 import SubjectTag from './SubjectTag.jsx';
+import StudentTimesPanel from './StudentTimesPanel.jsx';
+import { lessonsOn, overlayBandsOn, planningWarnings, timesLine } from './studentTimesModel.js';
 
 const blankLesson = () => ({ studentId: '', teacherUid: '', subject: '', date: toIsoDate(), time: '09:00', duration: 60, recurring: false, online: false, roomId: '', status: 'Planeeritud' });
 const viewLabels = { day: 'Päev', week: 'Nädal', month: 'Kuu' };
@@ -117,7 +119,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi, studentTimesRepository = studentAvailabilityService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -159,6 +161,9 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   // students with no lesson ahead (`?unplanned=1` opens the list, e.g. from Ülevaade)
   const [showUnplanned, setShowUnplanned] = useState(() => searchParams.get('unplanned') === '1');
   const [pausing, setPausing] = useState('');
+  // „Sobivad ajad” over the grid (owner 2026-10-24): the chosen students' suitable times; `?times=<id>` opens it
+  const [fitOpen, setFitOpen] = useState(() => Boolean(searchParams.get('times')));
+  const [fitIds, setFitIds] = useState(() => (searchParams.get('times') && searchParams.get('times') !== '1' ? [searchParams.get('times')] : []));
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   useEffect(() => {
     if (!changeRequests?.subscribePending || !user?.uid) return undefined;
@@ -172,6 +177,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     groupRepository.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}),
     lessonRepository.listForCalendar(teacherOnly ? { teacherUid: user.uid } : {}),
   ]), [groupRepository, lessonRepository, scheduleRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
+  // the students' „Sobivad ajad” (studentAvailability): an administrator reads all, a teacher their own students' cards
+  const scopedStudentIds = teacherOnly && state.data ? state.data[1].items.map((student) => student.id).join(',') : '';
+  const studentTimesState = useAsyncData(async () => {
+    if (!studentTimesRepository?.list || (teacherOnly && !scopedStudentIds)) return [];
+    try { return await studentTimesRepository.list(teacherOnly ? scopedStudentIds.split(',') : null); } catch { return []; }
+  }, [studentTimesRepository, teacherOnly, scopedStudentIds]);
   // Admin can give a lesson to another teacher (substitution); teachers always plan their own lessons.
   const teacherState = useAsyncData(() => (isAdmin && teacherRepository?.list ? teacherRepository.list() : Promise.resolve([])), [isAdmin, teacherRepository]);
   const availabilityState = useAsyncData(() => (availabilityRepository?.list ? availabilityRepository.list().catch(() => []) : Promise.resolve([])), [availabilityRepository]);
@@ -372,6 +383,39 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     ? scheduleOverlaps(occurrencesForDates(events, [form.date]).map((item) => ({ ...item, date: item.occurrenceDate })), { ...form, ...formTeacher }, editing?.id)
     : [];
 
+  // ── „Sobivad ajad” ───────────────────────────────────────────
+  const studentTimes = new Map((studentTimesState.data || []).map((entry) => [entry.studentId || entry.id, entry]));
+  const fitTeacher = teacherOnly ? { uid: user.uid, name: user.displayName } : filters.teacher ? { uid: filters.teacher, name: teachers.find((teacher) => teacher.id === filters.teacher)?.name || '' } : null;
+  const fitStudents = fitOpen ? fitIds.map((id) => studentMap.get(id)).filter(Boolean) : [];
+  const FIT_TITLES = { best: '★ sobib kõige paremini', ok: 'sobib', some: 'sobib osadele' };
+  const marksFor = (column) => {
+    const shaded = overlayBandsOn(fitStudents.map((student) => ({ name: student.name, availability: studentTimes.get(student.id) })), column.date)
+      .map((band) => ({ ...band, title: `${FIT_TITLES[band.kind]} ${toClock(band.start)}–${toClock(band.end)}: ${band.names.join(', ')}` }));
+    // the chosen students' lessons that this column does not show (another teacher, another subject, a group)
+    const shown = new Set(column.items.map((item) => item.id));
+    const taken = lessonsOn(events, column.date, { studentIds: fitStudents.map((student) => student.id) }).filter(({ event, student }) => student && !shown.has(event.id))
+      .map(({ event }) => ({ kind: 'taken', start: toMinutes(event.time), end: toMinutes(event.time) + (Number(event.duration) || 60), title: `Õpilasel on tund ${event.time}: ${event.studentName || ''}${event.teacher ? ` (${event.teacher})` : ''}` }));
+    return [...shaded, ...taken];
+  };
+  const warningsFor = ({ lesson, student, teacherUid, teacherName, includeTeacherLessons = true }) => planningWarnings({
+    lesson, student, studentAvailability: student ? studentTimes.get(student.id) : null, teacherUid, teacherName,
+    teacherAvailability: availabilityFor(teacherUid) || availabilityFor(teacherName), events, includeTeacherLessons,
+  }).map((warning) => warning.text);
+  // the new / edited lesson: the teacher's parallel lessons are listed below already („Samal ajal on ka”)
+  const formWarnings = modal && formStudent && form.date && form.time
+    ? warningsFor({ lesson: { ...form, id: editing?.id || '' }, student: formStudent, teacherUid: formTeacher.teacherUid, teacherName: formTeacher.teacher, includeTeacherLessons: false })
+    : [];
+  const formNoTimes = Boolean(modal && formStudent && !studentTimesState.loading && !studentTimes.get(formStudent.id)?.slots?.length);
+  const openFit = (student) => {
+    setFitOpen(true);
+    setFitIds((current) => (current.includes(student.id) ? current : [...current, student.id]));
+    if (isAdmin && !filters.teacher && student.teacherUid) setFilters((current) => ({ ...current, teacher: student.teacherUid }));
+  };
+  const pickCandidate = ({ date, time, duration, online, recurring, studentId, teacherUid }) => {
+    openCreate(date, time, studentId);
+    setForm((current) => ({ ...current, duration, online, recurring, ...(isAdmin && (teacherState.data || []).some((teacher) => teacher.id === teacherUid) ? { teacherUid } : {}) }));
+  };
+
   const submit = async (event) => {
     event.preventDefault(); setSaving(true); setActionError('');
     try {
@@ -433,6 +477,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         const item = occurrencesForDates(events, [request.occurrenceDate]).find((entry) => entry.id === request.scheduleId);
         if (!item) throw new Error('Seda tundi ei leitud kalendris: see võib olla juba liigutatud. Liiguta tund ise ja vajuta „Liigutasin ise”.');
         assertTeacherWindow({ date: slot.date, time: slot.time, duration: item.duration, teacher: item.teacher, teacherUid: item.teacherUid, online: Boolean(item.online) });
+        const warnings = warningsFor({ lesson: { date: slot.date, time: slot.time, duration: item.duration, online: Boolean(item.online), id: item.id }, student: studentMap.get(item.studentId) || null, teacherUid: item.teacherUid, teacherName: item.teacher });
+        if (warnings.length && !globalThis.confirm(`${warnings.join('\n')}\n\nTõstan tunni ikkagi?`)) return;
         await runOps(planMove(item, { toDate: slot.date, toTime: slot.time, duration: item.duration, scope: 'single' }).apply, item);
       }
       await changeRequests.decide(request.id, { accepted: true, chosen: slot, user });
@@ -471,8 +517,10 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       setActionError(`${item.roomName || 'Kabinet'} on sel ajal hõivatud. Ava tund, vali teine kabinet või märgi see veebitunniks.`);
       return;
     }
-    const move = { item, toDate, time, duration };
-    if (item.recurring) setMoveAsk(move);
+    // warn (never block): outside the student's times, the teacher's or the student's other lesson, the teacher's windows
+    const warnings = warningsFor({ lesson: { date: toDate, time, duration, online: Boolean(item.online), id: item.id }, student: item.isGroup ? null : studentMap.get(item.studentId) || null, teacherUid: item.teacherUid, teacherName: item.teacher });
+    const move = { item, toDate, time, duration, warnings };
+    if (item.recurring || warnings.length) setMoveAsk(move);
     else executeMove(move, 'single');
   };
 
@@ -667,6 +715,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <label className="cal2-search"><Search size={16} /><input aria-label="Otsi kalendrist" placeholder="Otsi õpilast või õpetajat" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></label>
         {teacherOnly ? null : <select className="cal2-select" aria-label="Filtreeri õpetaja järgi" value={filters.teacher} onChange={(event) => setFilters({ ...filters, teacher: event.target.value })}><option value="">Kõik õpetajad</option>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</select>}
         {isAdmin ? <Button variant="secondary" onClick={() => setRoomsOpen(true)}><DoorOpen size={17} /> Kabinetid{activeRooms.length ? ` (${activeRooms.length})` : ''}</Button> : null}
+        {teacherOnly || isAdmin ? <Button variant={fitOpen ? 'primary' : 'secondary'} aria-pressed={fitOpen} onClick={() => setFitOpen((value) => !value)}><CalendarClock size={17} /> Sobivad ajad</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={paint ? 'primary' : 'secondary'} onClick={() => { if (paint) { setPaint(null); return; } if (!paintTeacher) { setActionError('Vali enne õpetaja, kelle aegu soovid märkida.'); return; } setPaint({ kind: 'free', weekly: true }); }}><CalendarRange size={17} /> {teacherOnly ? 'Minu ajad' : 'Õpetaja ajad'}</Button> : null}
         <CalendarGoogleChip user={user} onSynced={state.reload} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} />
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
@@ -702,13 +751,32 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <Button variant="secondary" onClick={() => setPaint(null)}>Valmis</Button>
       </div>
     ) : bandTeacher && availabilityFor(bandTeacher)?.slots?.length ? <p className="cal2-legend"><i className="cal2-dot is-free" /> vaba aeg <i className="cal2-dot is-online" /> ainult veebitunnid <i className="cal2-dot is-busy" /> hõivatud — sinna tundi panna ei saa</p> : null}
+    {fitOpen ? <StudentTimesPanel
+      students={students.items}
+      availabilityById={studentTimes}
+      loading={studentTimesState.loading}
+      unplanned={unplanned}
+      selected={fitIds}
+      onSelect={(ids, added) => { if (added) openFit(added); else setFitIds(ids); }}
+      teacher={fitTeacher}
+      teachers={teacherOnly ? null : teachers}
+      onTeacher={(uid) => setFilters((current) => ({ ...current, teacher: uid }))}
+      teacherAvailability={fitTeacher ? availabilityFor(fitTeacher.uid) : null}
+      events={events}
+      dates={datesForView(anchor, 'week')}
+      rooms={rooms}
+      bookings={bookings}
+      onPick={pickCandidate}
+      onClose={() => setFitOpen(false)}
+    /> : null}
     {showUnplanned && unplanned.length ? (
       <section className="cal2-unplanned" aria-label="Õpilased ilma tulevase tunnita">
         <div className="cal2-unplanned__head"><strong>Neil õpilastel ei ole kalendris ühtegi tulevast tundi</strong><button type="button" className="link-button" onClick={() => setShowUnplanned(false)}>Peida</button></div>
         <ul>
           {unplanned.map(({ student, lastLesson }) => (
             <li key={student.id}>
-              <span><strong>{student.name}</strong><small>{[isAdmin && !teacherOnly ? (student.teacher || 'õpetaja määramata') : '', student.level, lastLesson ? `viimane tund ${lastLesson}` : 'tunde pole olnud'].filter(Boolean).join(' · ')}</small></span>
+              <span><strong>{student.name}</strong><small>{[isAdmin && !teacherOnly ? (student.teacher || 'õpetaja määramata') : '', student.level, lastLesson ? `viimane tund ${lastLesson}` : 'tunde pole olnud'].filter(Boolean).join(' · ')}</small><small className="cal2-unplanned__times">{studentTimes.get(student.id)?.slots?.length ? `Sobivad ajad: ${timesLine(studentTimes.get(student.id))}` : studentTimesState.loading ? '' : 'Sobivad ajad puuduvad'}</small></span>
+              <Button variant="secondary" onClick={() => openFit(student)}><CalendarClock size={15} /> Sobivad ajad</Button>
               <Button onClick={() => openCreate(anchor, '09:00', student.id)}><Plus size={15} /> Lisa tund</Button>
               <select aria-label={`Paus: ${student.name}`} value="" disabled={pausing === student.id} onChange={(event) => { if (event.target.value) pauseStudent(student, Number(event.target.value)); }}>
                 <option value="">Paus…</option>
@@ -739,6 +807,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
                 onQuickDone={quickDone}
                 onMove={onMove}
                 bands={bandsFor}
+                marks={fitStudents.length ? marksFor : null}
                 paint={paint && paintTeacher ? paint : null}
                 onPaint={onPaint}
                 onBandClick={onBandClick}
@@ -798,8 +867,11 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
 
     {undo ? <div className="cal2-toast" role="status"><span>{undo.label}</span><button type="button" onClick={undoMove}><Undo2 size={15} /> Tühista</button><button type="button" aria-label="Sulge" onClick={() => setUndo(null)}><X size={15} /></button></div> : null}
 
-    <Modal open={Boolean(moveAsk)} title="Korduv tund" onClose={() => setMoveAsk(null)} footer={<><Button variant="secondary" onClick={() => setMoveAsk(null)}>Loobu</Button><Button variant="secondary" onClick={() => executeMove(moveAsk, 'series')}>See ja kõik järgmised</Button><Button onClick={() => executeMove(moveAsk, 'single')}>Ainult see tund</Button></>}>
+    <Modal open={Boolean(moveAsk)} title={moveAsk?.item.recurring ? 'Korduv tund' : 'Tõsta tund?'} onClose={() => setMoveAsk(null)} footer={moveAsk?.item.recurring
+      ? <><Button variant="secondary" onClick={() => setMoveAsk(null)}>Loobu</Button><Button variant="secondary" onClick={() => executeMove(moveAsk, 'series')}>See ja kõik järgmised</Button><Button onClick={() => executeMove(moveAsk, 'single')}>Ainult see tund</Button></>
+      : <><Button variant="secondary" onClick={() => setMoveAsk(null)}>Loobu</Button><Button onClick={() => executeMove(moveAsk, 'single')}>Tõsta ikkagi</Button></>}>
       {moveAsk ? <p>Tõsta <b>{moveAsk.item.studentName}</b> tund ({moveAsk.item.occurrenceDate} {moveAsk.item.time}) uuele ajale <b>{moveAsk.toDate} {moveAsk.time}</b>?</p> : null}
+      {moveAsk?.warnings?.length ? <ul className="cal2-warnings" aria-label="Hoiatused">{moveAsk.warnings.map((text) => <li key={text}>{text}</li>)}</ul> : null}
     </Modal>
 
     <Modal open={Boolean(deleteAsk)} title="Kustuta tund" onClose={() => setDeleteAsk(null)} footer={deleteAsk?.recurring
@@ -808,6 +880,6 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {deleteAsk ? <p>Kustutada <b>{deleteAsk.studentName || 'õpilase'}</b> tund {new Date(`${deleteAsk.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })} kell {deleteAsk.time}? Tund kaob kalendrist ja Google Calendarist; kohe pärast saad selle tagasi võtta.{deleteAsk.recurring ? ' Tund kordub igal nädalal: vali, kas kustutada ainult see kuupäev või ka kõik järgmised.' : ''}</p> : null}
     </Modal>
 
-    <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing && !editing.recurring ? <Button variant="danger" disabled={saving || Boolean(editing.lessonRecordId)} onClick={async () => { if (!globalThis.confirm('Kas tühistada see tund?')) return; setSaving(true); try { await scheduleRepository.cancel(editing.id, editing); setUndo({ label: `${editing.studentName} tühistatud ${editing.occurrenceDate || editing.date}`, plan: { undo: [{ op: 'patch', id: editing.id, fields: { status: editing.status || 'Planeeritud' } }] }, created: {}, item: editing }); setModal(false); setEditing(null); setPanelKey(''); await state.reload(); } catch (error) { setActionError(error.message); } finally { setSaving(false); } }}><XCircle size={17} /> Tühista tund</Button> : null}{editing?.recurring && editing.occurrenceDate ? <Button variant="danger" disabled={saving} onClick={() => { setModal(false); setDeleteAsk(editing); }}><XCircle size={17} /> Lõpeta või kustuta…</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}>{actionError && modal ? <p className="form-error form-grid__wide" role="alert">{actionError}</p> : null}<StudentCombobox students={students.items} value={form.studentId} onChange={(studentId) => setForm({ ...form, studentId, subject: '' })} />{formTracks.length > 1 ? <div className="field form-grid__wide"><label className="field__label" htmlFor="lesson-track">Õppesuund</label><select id="lesson-track" className="cal2-select" value={lessonSubject(formStudent, formTeacher.teacherUid)} onChange={(event) => { const track = formTracks.find((item) => item.subject === event.target.value); setForm({ ...form, subject: event.target.value, ...(isAdmin && track?.teacherUid ? { teacherUid: track.teacherUid } : {}) }); }}>{formTracks.map((track) => <option value={track.subject} key={track.id || track.subject}>{track.subject}{track.teacher ? ` · ${track.teacher}` : ''}</option>)}</select></div> : null}{isAdmin && (teacherState.data || []).length ? <div className="field form-grid__wide"><label className="field__label" htmlFor="lesson-teacher">Õpetaja</label><select id="lesson-teacher" className="cal2-select" value={form.teacherUid} onChange={(event) => setForm({ ...form, teacherUid: event.target.value })}><option value="">{studentMap.get(form.studentId)?.teacher ? `Õpilase õpetaja (${studentMap.get(form.studentId).teacher})` : 'Õpilase õpetaja'}</option>{teacherState.data.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</select></div> : null}<Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? null : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}<label className="checkbox-field"><input type="checkbox" checked={Boolean(form.online)} onChange={(event) => setForm({ ...form, online: event.target.checked })} /><span>Veebitund (online)</span></label>{formRoomChoices.length ? <div className="field form-grid__wide"><label className="field__label" htmlFor="lesson-room">Kabinet</label><select id="lesson-room" className="cal2-select" value={form.roomId || ''} onChange={(event) => setForm({ ...form, roomId: event.target.value })}><option value="">{formRoomChoices.some((room) => !room.takenOn) ? 'Vaba kabinet automaatselt' : 'Kõik kabinetid on hõivatud'}</option>{formRoomChoices.map((room) => <option key={room.id} value={room.id} disabled={Boolean(room.takenOn)}>{room.name}{room.takenOn ? ` — hõivatud${form.recurring ? ` (${room.takenOn})` : ''}` : ''}</option>)}</select>{formRoomChoices.every((room) => room.takenOn) ? <p className="form-error" role="alert">Kõik kabinetid on sel ajal hõivatud: märgi tund veebitunniks või vali teine aeg.</p> : null}</div> : null}{parallel.length ? <p className="form-grid__wide form-hint cal2-parallel" role="status">Samal ajal on ka: {parallel.map((item) => `${item.time} ${item.studentName || 'tund'}`).join(', ')}. Tunnid toimuvad paralleelselt.</p> : null}{editing?.recurring ? <p className="form-grid__wide form-hint">Siin muudetud aeg kehtib kogu sarjale. Ühe tunni muutmiseks lohista see kalendris.</p> : null}</form></Modal>
+    <Modal open={modal} title={editing ? 'Muuda tundi' : 'Uus tund'} onClose={closeModal} footer={<>{editing && !editing.recurring ? <Button variant="danger" disabled={saving || Boolean(editing.lessonRecordId)} onClick={async () => { if (!globalThis.confirm('Kas tühistada see tund?')) return; setSaving(true); try { await scheduleRepository.cancel(editing.id, editing); setUndo({ label: `${editing.studentName} tühistatud ${editing.occurrenceDate || editing.date}`, plan: { undo: [{ op: 'patch', id: editing.id, fields: { status: editing.status || 'Planeeritud' } }] }, created: {}, item: editing }); setModal(false); setEditing(null); setPanelKey(''); await state.reload(); } catch (error) { setActionError(error.message); } finally { setSaving(false); } }}><XCircle size={17} /> Tühista tund</Button> : null}{editing?.recurring && editing.occurrenceDate ? <Button variant="danger" disabled={saving} onClick={() => { setModal(false); setDeleteAsk(editing); }}><XCircle size={17} /> Lõpeta või kustuta…</Button> : null}<span className="modal__footer-spacer" /><Button variant="secondary" onClick={closeModal}>Loobu</Button><Button loading={saving} type="submit" form="lesson-form">{editing ? 'Salvesta muudatused' : 'Salvesta tund'}</Button></>}><form id="lesson-form" className="form-grid" onSubmit={submit}>{actionError && modal ? <p className="form-error form-grid__wide" role="alert">{actionError}</p> : null}<StudentCombobox students={students.items} value={form.studentId} onChange={(studentId) => setForm({ ...form, studentId, subject: '' })} />{formTracks.length > 1 ? <div className="field form-grid__wide"><label className="field__label" htmlFor="lesson-track">Õppesuund</label><select id="lesson-track" className="cal2-select" value={lessonSubject(formStudent, formTeacher.teacherUid)} onChange={(event) => { const track = formTracks.find((item) => item.subject === event.target.value); setForm({ ...form, subject: event.target.value, ...(isAdmin && track?.teacherUid ? { teacherUid: track.teacherUid } : {}) }); }}>{formTracks.map((track) => <option value={track.subject} key={track.id || track.subject}>{track.subject}{track.teacher ? ` · ${track.teacher}` : ''}</option>)}</select></div> : null}{isAdmin && (teacherState.data || []).length ? <div className="field form-grid__wide"><label className="field__label" htmlFor="lesson-teacher">Õpetaja</label><select id="lesson-teacher" className="cal2-select" value={form.teacherUid} onChange={(event) => setForm({ ...form, teacherUid: event.target.value })}><option value="">{studentMap.get(form.studentId)?.teacher ? `Õpilase õpetaja (${studentMap.get(form.studentId).teacher})` : 'Õpilase õpetaja'}</option>{teacherState.data.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</select></div> : null}<Input label="Kuupäev" type="date" value={form.date} onChange={(event) => setForm({ ...form, date: event.target.value })} required /><Input label="Kellaaeg" type="time" value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} required /><Input label="Kestus minutites" type="number" min="5" step="5" value={form.duration} onChange={(event) => setForm({ ...form, duration: event.target.value })} required />{editing ? null : <label className="checkbox-field"><input type="checkbox" checked={form.recurring} onChange={(event) => setForm({ ...form, recurring: event.target.checked })} /><span>Kordub igal nädalal</span></label>}<label className="checkbox-field"><input type="checkbox" checked={Boolean(form.online)} onChange={(event) => setForm({ ...form, online: event.target.checked })} /><span>Veebitund (online)</span></label>{formRoomChoices.length ? <div className="field form-grid__wide"><label className="field__label" htmlFor="lesson-room">Kabinet</label><select id="lesson-room" className="cal2-select" value={form.roomId || ''} onChange={(event) => setForm({ ...form, roomId: event.target.value })}><option value="">{formRoomChoices.some((room) => !room.takenOn) ? 'Vaba kabinet automaatselt' : 'Kõik kabinetid on hõivatud'}</option>{formRoomChoices.map((room) => <option key={room.id} value={room.id} disabled={Boolean(room.takenOn)}>{room.name}{room.takenOn ? ` — hõivatud${form.recurring ? ` (${room.takenOn})` : ''}` : ''}</option>)}</select>{formRoomChoices.every((room) => room.takenOn) ? <p className="form-error" role="alert">Kõik kabinetid on sel ajal hõivatud: märgi tund veebitunniks või vali teine aeg.</p> : null}</div> : null}{formWarnings.length ? <ul className="form-grid__wide cal2-warnings" role="status" aria-label="Hoiatused">{formWarnings.map((text) => <li key={text}>{text}</li>)}</ul> : null}{formNoTimes ? <p className="form-grid__wide form-hint">{formStudent.name}: sobivad ajad puuduvad — <Link to={`/students/${formStudent.id}#sobivad-ajad`}>ava kaart</Link> või saada õpilasele link /ajad.</p> : null}{parallel.length ? <p className="form-grid__wide form-hint cal2-parallel" role="status">Samal ajal on ka: {parallel.map((item) => `${item.time} ${item.studentName || 'tund'}`).join(', ')}. Tunnid toimuvad paralleelselt.</p> : null}{editing?.recurring ? <p className="form-grid__wide form-hint">Siin muudetud aeg kehtib kogu sarjale. Ühe tunni muutmiseks lohista see kalendris.</p> : null}</form></Modal>
   </div>;
 }

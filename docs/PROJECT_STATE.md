@@ -1,3 +1,23 @@
+## 2026-10-24 · agent/calendar-student-times — „Sobivad ajad” in the calendar: overlay, free lesson times, warnings
+
+- Base: `main` 03f8b6e (2026-10-24). Draft PR from `agent/calendar-student-times`. Calendar only (no finance, no content,
+  no rules, no functions).
+- Asked (owner 2026-10-24): use the students' „Sobivad ajad” when planning teachers' lessons, without overlaps.
+- Built (docs/specs/CALENDAR_V2_SPEC.md „Sobivad ajad in the calendar”): `studentTimesModel.js` (pure: student half
+  hours × teacher windows × lessons incl. groups × rooms, weekly check 4 weeks, warnings), `StudentTimesPanel.jsx`
+  (pick students / Planeerimata õpilased, legend, „Vabad tunniajad” → prefilled „Uus tund”), `TimeGrid` `marks`
+  (violet shading, ★ stronger, grey = the student's lesson elsewhere), `CalendarPage.jsx` (loads studentAvailability:
+  admin all, teacher own students; warnings in the form, on drag „Tõsta tund?”, on accepting „Ei saa tulla?”),
+  `calendarV2.css`.
+- Checks: vitest src/features/calendar 18 files / 124 tests passed (+9 model, +3 page tests, 1 test updated: a drag onto
+  the teacher's other lesson now asks first); full crm-v2 vitest 344 files: 2411 tests, 2408 passed / 3 skipped /
+  0 failed; model tests also under TZ Europe/Tallinn, America/Los_Angeles, Pacific/Kiritimati, UTC; eslint 0 errors
+  (18 old warnings); `npm run build` ok. Checked on a local stand page with made-up data (desktop + 375 px), not committed.
+- Limits: a teacher does not see another teacher's lessons of the same student (rules unchanged); an /ajad lead is not
+  linked to a card on „Õppijaks” (times must be entered on the card).
+- Deploy: only the usual Vercel front-end deploy after merge; no rules / functions / data changes.
+- Next safe step: the owner tries „Sobivad ajad” in the calendar after merge (pick an unplanned student with times).
+
 ## 2026-10-24 · agent/draft-account-suggest — a new entry suggests accounts by number or name
 
 - Base: `main` acd13f9. The accountant (2026-10-24): in a new entry the account cell „не считывает номера
