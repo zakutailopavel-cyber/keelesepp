@@ -86,3 +86,42 @@ test("the invoice PDF goes to its own storage folder", () => {
   assert.throws(() => purchaseDocumentRecord({ purchaseInvoiceId: "pi1", documentId: "purchase_doc_0001", storagePath: "financial/expenses/pi1/purchase_doc_0001", fileName: "a.pdf", contentType: "application/pdf", size: 1 }), /asukoht/);
   assert.throws(() => purchaseDocumentRecord({ purchaseInvoiceId: "pi1", documentId: "purchase_doc_0001", storagePath: "financial/purchase-invoices/pi1/purchase_doc_0001", fileName: "a.exe", contentType: "application/x-msdownload", size: 1 }), /PDF/);
 });
+
+// ---- Tarnijad: duplicates, import, partner on the entries (the accountant 2026-10-24) ----
+const purchases = require("./purchases-core");
+
+test("OA and VM entries carry the supplier as the partner of every line", () => {
+  const invoice = purchaseInvoiceRecord({ documentNumber: "1575", date: "2026-10-01", lines: [{ account: "4210", description: "Rent", amountCents: 30000, vatCents: 5000, vatDeductible: true }] }, { accounts, supplier: senty });
+  const oa = purchaseInvoiceEntry("pi1", invoice);
+  assert.deepEqual(oa.lines.map((l) => [l.account, l.partner]), [["4210", { type: "supplier", id: "s1", name: "Senty Studio OÜ" }], ["2311", { type: "supplier", id: "s1", name: "Senty Studio OÜ" }], ["2110", { type: "supplier", id: "s1", name: "Senty Studio OÜ" }]]);
+  const vm = supplierPaymentEntry("pi1", invoice, { id: "p1", date: "2026-10-02", amountCents: 30000, method: "bank" });
+  assert.deepEqual(vm.lines.map((l) => [l.account, l.partner.id]), [["2110", "s1"], ["1010", "s1"]]);
+});
+
+test("supplier duplicates: the same registry code, or the same name (legal form, case, quotes ignored) without a different code", () => {
+  const existing = [{ id: "a", name: "Kirsi Residents OÜ", regCode: "12345678" }, { id: "b", name: "Zone Media OÜ", regCode: "" }];
+  assert.equal(purchases.supplierDuplicate({ name: "Anything", regCode: "12345678" }, existing).id, "a");
+  assert.equal(purchases.supplierDuplicate({ name: "„kirsi residents” ou", regCode: "" }, existing).id, "a");
+  assert.equal(purchases.supplierDuplicate({ name: "Kirsi Residents", regCode: "99999999" }, existing), null, "same name, another registry code → another company");
+  assert.equal(purchases.supplierDuplicate({ name: "ZONE MEDIA", regCode: "11111111" }, existing).id, "b", "the saved one has no code");
+  assert.equal(purchases.supplierDuplicate({ name: "Kirsi Residents OÜ", regCode: "12345678" }, existing, "a"), null, "itself is not a duplicate");
+  assert.match(purchases.duplicateMessage({ name: "X", regCode: "12345678" }, existing[0]), /registrikoodiga 12345678/);
+  assert.match(purchases.duplicateMessage({ name: "zone media", regCode: "" }, existing[1]), /nimega „Zone Media OÜ”/);
+});
+
+test("import from Excel: every row checked, duplicates of saved suppliers and of earlier rows refused with the row number", () => {
+  const plan = purchases.supplierImportPlan([
+    { name: "Euronics AS", regCode: "10883455", iban: "EE382200221020145685", defaultAccount: "4330" },
+    { name: "Charlot OÜ", regCode: "" },
+    { name: "euronics", regCode: "" },
+    { name: "Kirsi Residents OÜ" },
+    { name: "", regCode: "1" },
+    { name: "Bad IBAN", iban: "EE382200221020145686" },
+  ], [{ id: "a", name: "Kirsi Residents OÜ", regCode: "12345678" }], accounts);
+  assert.deepEqual(plan.records.map((r) => r.name), ["Euronics AS", "Charlot OÜ"]);
+  assert.deepEqual(plan.problems.map((p) => p.row), [3, 4, 5, 6]);
+  assert.match(plan.problems[0].message, /real 1/);
+  assert.match(plan.problems[1].message, /Kirsi Residents OÜ/);
+  assert.throws(() => purchases.supplierImportPlan([], [], accounts), /ridu ei ole/);
+  assert.throws(() => purchases.supplierImportPlan(Array.from({ length: purchases.IMPORT_MAX + 1 }, (_, i) => ({ name: `S${i}` })), [], accounts), /Korraga/);
+});

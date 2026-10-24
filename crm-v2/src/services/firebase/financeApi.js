@@ -128,6 +128,10 @@ export const financeApi = {
   saveSupplier(supplierId, supplier) {
     return post("/suppliers", { supplierId: supplierId || "", supplier, requestId: financeRequestId("supplier") });
   },
+  // Tarnijad pasted from Excel: all rows or none (functions/purchases-core.js supplierImportPlan)
+  importSuppliers(rows) {
+    return post("/suppliers/import", { rows, requestId: financeRequestId("supplier_import") });
+  },
   savePurchaseInvoice(purchaseInvoiceId, purchaseInvoice, { paidNow = null, reason = "" } = {}) {
     return post("/purchase-invoices", { purchaseInvoiceId: purchaseInvoiceId || "", purchaseInvoice, paidNow, reason, requestId: financeRequestId("purchase_invoice") });
   },

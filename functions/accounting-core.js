@@ -47,6 +47,30 @@ function accountingError(message, status = 400) {
   return Object.assign(new Error(message), { status });
 }
 
+// ---- partners (the accountant 2026-10-24: „Поставщиков сначала, и привяжи их к проводкам”) ----
+// Like Merit Aktiva: a line on a partner account carries the partner — { type: "supplier" | "customer", id, name }.
+// A supplier is a suppliers/{id} card; a customer is the student / payer card of a sales document. Lines on the
+// supplier accounts below need a supplier in a new manual entry; the partner report (Partnerid) groups by it.
+const PARTNER_TYPES = Object.freeze(["supplier", "customer"]);
+const SUPPLIER_ACCOUNTS = Object.freeze(["2110", "1350"]);
+const CUSTOMER_ACCOUNTS = Object.freeze(["1200", "2500"]);
+
+const cleanText = (value, max) => String(value ?? "").replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+
+// a line's partner, normalised; null when the line has none
+function cleanPartner(value) {
+  if (!value || typeof value !== "object") return null;
+  const id = cleanText(value.id, 160);
+  const name = cleanText(value.name, 160);
+  if (!id && !name) return null;
+  const type = String(value.type || "").trim();
+  if (!PARTNER_TYPES.includes(type)) throw accountingError(`Partner „${name || id}”: vali tarnija nimekirjast (Tarnijad).`);
+  if (!name) throw accountingError("Partneri nimi on kohustuslik.");
+  return { type, id, name };
+}
+
+const partnerOf = (line) => (line?.partner && (line.partner.id || line.partner.name) ? { type: String(line.partner.type || ""), id: String(line.partner.id || ""), name: String(line.partner.name || "") } : null);
+
 const isoDate = (value) => {
   if (!value) return "";
   if (typeof value === "string") return (value.match(/^\d{4}-\d{2}-\d{2}/) || [""])[0];
@@ -73,6 +97,17 @@ function simple(account1, account2, amountCents) {
   return [line(account1, amountCents, 0), line(account2, 0, amountCents)];
 }
 
+// the customer of a sales document: the student card it belongs to and the payer's name (the 1200 / 2500 lines)
+function customerOf(record = {}, invoice = {}) {
+  const id = cleanText(record.studentId || invoice?.studentId, 160);
+  const name = cleanText(record.payerName || invoice?.payerName || invoice?.parentName || record.studentName || invoice?.studentName, 160);
+  if (!id && !name) return null;
+  return { type: "customer", id, name: name || id };
+}
+// the partner on the lines of the given accounts
+const withPartner = (lines, accounts, partner) => (partner ? lines.map((l) => (accounts.includes(l.account) ? { ...l, partner } : l)) : lines);
+const CUSTOMER_LINES = [POSTING_ACCOUNTS.receivables, POSTING_ACCOUNTS.prepayments];
+
 const paymentAccount = (method) => (method === "cash" ? POSTING_ACCOUNTS.cash : method === "credit" ? POSTING_ACCOUNTS.prepayments : POSTING_ACCOUNTS.bank);
 const methodLabel = { bank: "pangaülekanne", cash: "sularaha", credit: "ettemaksu arvelt", card: "kaardimakse", other: "muu" };
 
@@ -86,6 +121,7 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
     if (!lines.length) return;
     out.push({ ...entry, lines, origin: "auto" });
   };
+  const invoiceById = new Map(invoices.map((invoice) => [invoice.id, invoice]));
   const creditedByInvoice = new Map();
   creditNotes.forEach((note) => {
     const amount = Math.abs(cents(note));
@@ -95,11 +131,12 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
   invoices.forEach((invoice) => {
     const amount = cents(invoice);
     const num = String(invoice.num || invoice.id);
+    const customer = customerOf(invoice);
     if (amount > 0) {
       add({
         sourceKey: `invoice:${invoice.id}`, date: isoDate(invoice.date), documentType: "invoice", documentRef: num,
         description: `Müügiarve ${num}${invoice.payerName || invoice.studentName ? ` · ${invoice.payerName || invoice.studentName}` : ""}`,
-        lines: simple(POSTING_ACCOUNTS.receivables, POSTING_ACCOUNTS.sales, amount),
+        lines: withPartner(simple(POSTING_ACCOUNTS.receivables, POSTING_ACCOUNTS.sales, amount), CUSTOMER_LINES, customer),
       });
     }
     if (invoice.status === "Tühistatud" && invoice.cancelledAt) {
@@ -108,7 +145,7 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
         add({
           sourceKey: `invoice-cancel:${invoice.id}`, date: isoDate(invoice.cancelledAt), documentType: "invoice", documentRef: num,
           description: `Arve ${num} tühistamine${invoice.cancellationReason ? ` · ${String(invoice.cancellationReason).slice(0, 80)}` : ""}`,
-          lines: simple(POSTING_ACCOUNTS.sales, POSTING_ACCOUNTS.receivables, open),
+          lines: withPartner(simple(POSTING_ACCOUNTS.sales, POSTING_ACCOUNTS.receivables, open), CUSTOMER_LINES, customer),
         });
       }
     }
@@ -120,7 +157,7 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
     add({
       sourceKey: `credit-note:${note.id}`, date: isoDate(note.date || note.createdAt), documentType: "creditNote", documentRef: num,
       description: `Kreeditarve ${num}${note.invoiceNum ? ` (arve ${note.invoiceNum})` : ""}`,
-      lines: simple(POSTING_ACCOUNTS.sales, POSTING_ACCOUNTS.receivables, amount),
+      lines: withPartner(simple(POSTING_ACCOUNTS.sales, POSTING_ACCOUNTS.receivables, amount), CUSTOMER_LINES, customerOf(note, invoiceById.get(note.invoiceId))),
     });
   });
 
@@ -129,16 +166,17 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
     if (amount <= 0) return;
     const ref = payment.invoiceNum || payment.invoiceId || payment.id;
     const account = paymentAccount(payment.method);
+    const customer = customerOf(payment, invoiceById.get(payment.invoiceId));
     add({
       sourceKey: `payment:${payment.id}`, date: isoDate(payment.paidAt), documentType: "payment", documentRef: String(payment.reference || ref),
       description: `Laekumine arvele ${ref} (${methodLabel[payment.method] || payment.method || "pangaülekanne"})${payment.payerName ? ` · ${payment.payerName}` : ""}`,
-      lines: simple(account, POSTING_ACCOUNTS.receivables, amount),
+      lines: withPartner(simple(account, POSTING_ACCOUNTS.receivables, amount), CUSTOMER_LINES, customer),
     });
     if (payment.status === "void" && payment.voidedAt) {
       add({
         sourceKey: `payment-void:${payment.id}`, date: isoDate(payment.voidedAt), documentType: "payment", documentRef: String(payment.reference || ref),
         description: `Laekumise tühistamine (arve ${ref})${payment.voidReason ? ` · ${String(payment.voidReason).slice(0, 80)}` : ""}`,
-        lines: simple(POSTING_ACCOUNTS.receivables, account, amount),
+        lines: withPartner(simple(POSTING_ACCOUNTS.receivables, account, amount), CUSTOMER_LINES, customer),
       });
     }
   });
@@ -152,7 +190,7 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
       add({
         sourceKey: `credit:${credit.id}`, date: isoDate(credit.createdAt || credit.updatedAt), documentType: "payment", documentRef: String(credit.sourceInvoiceNum || credit.sourcePaymentId),
         description: `Ettemaks (enammakse)${credit.payerName ? ` · ${credit.payerName}` : ""}`,
-        lines: simple(POSTING_ACCOUNTS.receivables, POSTING_ACCOUNTS.prepayments, amount),
+        lines: withPartner(simple(POSTING_ACCOUNTS.receivables, POSTING_ACCOUNTS.prepayments, amount), CUSTOMER_LINES, customerOf(credit)),
       });
       return;
     }
@@ -160,7 +198,7 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
     add({
       sourceKey: `credit:${credit.id}`, date: isoDate(tx?.paidAt || credit.receivedAt || credit.createdAt), documentType: "bankTransaction", documentRef: String(tx?.externalId || credit.bankTransactionId || credit.id),
       description: `Ettemaks pangast${credit.payerName ? ` · ${credit.payerName}` : ""}`,
-      lines: simple(POSTING_ACCOUNTS.bank, POSTING_ACCOUNTS.prepayments, amount),
+      lines: withPartner(simple(POSTING_ACCOUNTS.bank, POSTING_ACCOUNTS.prepayments, amount), CUSTOMER_LINES, customerOf(credit)),
     });
   });
 
@@ -170,7 +208,7 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
     add({
       sourceKey: `refund:${refund.id}`, date: isoDate(refund.refundedAt), documentType: "refund", documentRef: String(refund.reference || refund.id),
       description: `Ettemaksu tagastus${refund.payerName ? ` · ${refund.payerName}` : ""}`,
-      lines: simple(POSTING_ACCOUNTS.prepayments, refund.method === "cash" ? POSTING_ACCOUNTS.cash : POSTING_ACCOUNTS.bank, amount),
+      lines: withPartner(simple(POSTING_ACCOUNTS.prepayments, refund.method === "cash" ? POSTING_ACCOUNTS.cash : POSTING_ACCOUNTS.bank, amount), CUSTOMER_LINES, customerOf(refund)),
     });
   });
 
@@ -204,8 +242,10 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
   return out.sort((a, b) => a.date.localeCompare(b.date) || a.sourceKey.localeCompare(b.sourceKey));
 }
 
-// a manual, opening or reversal entry must balance and use known, active accounts
-function validateEntry(entry, accounts = []) {
+// a manual, opening or reversal entry must balance and use known, active accounts. options.suppliers (a Map of
+// supplier id → card) checks that a supplier partner exists; options.requirePartner refuses a line on a supplier
+// account (2110, 1350) without a supplier (a new manual entry).
+function validateEntry(entry, accounts = [], { suppliers = null, requirePartner = false } = {}) {
   const byCode = new Map(accounts.map((account) => [String(account.code), account]));
   const date = isoDate(entry?.date);
   const parsed = new Date(`${date}T12:00:00.000Z`);
@@ -214,12 +254,22 @@ function validateEntry(entry, accounts = []) {
   if (!description) throw accountingError("Kande sisu (kirjeldus) on kohustuslik.");
   const documentRef = String(entry?.documentRef || "").replace(/\s+/g, " ").trim();
   if (!documentRef) throw accountingError("Viide algdokumendile on kohustuslik (RPS § 6).");
-  const lines = (Array.isArray(entry?.lines) ? entry.lines : []).map((l) => ({
-    account: String(l?.account || "").trim(),
-    debitCents: Math.round(Number(l?.debitCents || 0)),
-    creditCents: Math.round(Number(l?.creditCents || 0)),
-    note: String(l?.note || "").replace(/\s+/g, " ").trim().slice(0, 200),
-  })).filter((l) => l.debitCents || l.creditCents);
+  const lines = (Array.isArray(entry?.lines) ? entry.lines : []).map((l) => {
+    const out = {
+      account: String(l?.account || "").trim(),
+      debitCents: Math.round(Number(l?.debitCents || 0)),
+      creditCents: Math.round(Number(l?.creditCents || 0)),
+      note: String(l?.note || "").replace(/\s+/g, " ").trim().slice(0, 200),
+    };
+    const partner = cleanPartner(l?.partner);
+    if (partner && partner.type === "supplier" && partner.id && suppliers) {
+      const card = suppliers.get(partner.id);
+      if (!card) throw accountingError(`Tarnijat „${partner.name}” ei leitud (Tarnijad).`);
+      partner.name = cleanText(card.name, 160) || partner.name;
+    }
+    if (partner) out.partner = partner;
+    return out;
+  }).filter((l) => l.debitCents || l.creditCents);
   if (lines.length < 2) throw accountingError("Kandes peab olema vähemalt üks deebet- ja üks kreeditrida.");
   lines.forEach((l) => {
     const account = byCode.get(l.account);
@@ -227,6 +277,7 @@ function validateEntry(entry, accounts = []) {
     if (account.active === false) throw accountingError(`Konto ${l.account} on suletud.`);
     if (l.debitCents < 0 || l.creditCents < 0 || !Number.isInteger(l.debitCents) || !Number.isInteger(l.creditCents)) throw accountingError("Summad peavad olema positiivsed.");
     if (l.debitCents && l.creditCents) throw accountingError("Ühel real on kas deebet või kreedit, mitte mõlemad.");
+    if (requirePartner && SUPPLIER_ACCOUNTS.includes(l.account) && l.partner?.type !== "supplier") throw accountingError(`Konto ${l.account} real on partner (tarnija) kohustuslik.`);
   });
   const debit = lines.reduce((n, l) => n + l.debitCents, 0);
   const credit = lines.reduce((n, l) => n + l.creditCents, 0);
@@ -249,7 +300,7 @@ function reversalOf(entry, { date, reason }) {
     origin: "reversal",
     reversalOf: entry.id,
     reason: cleanReason.slice(0, 300),
-    lines: entry.lines.map((l) => ({ account: l.account, debitCents: l.creditCents, creditCents: l.debitCents, note: l.note || "" })),
+    lines: entry.lines.map((l) => ({ account: l.account, debitCents: l.creditCents, creditCents: l.debitCents, note: l.note || "", ...(partnerOf(l) ? { partner: partnerOf(l) } : {}) })),
     totalCents: entry.totalCents,
   };
 }
@@ -281,7 +332,7 @@ const snapshotOf = (entry) => ({
   date: entry.date || "",
   description: entry.description || "",
   documentRef: entry.documentRef || "",
-  lines: (entry.lines || []).map((l) => ({ account: String(l.account), debitCents: l.debitCents || 0, creditCents: l.creditCents || 0, note: l.note || "" })),
+  lines: (entry.lines || []).map((l) => ({ account: String(l.account), debitCents: l.debitCents || 0, creditCents: l.creditCents || 0, note: l.note || "", ...(partnerOf(l) ? { partner: partnerOf(l) } : {}) })),
 });
 
 const isLocked = (date, lockedThrough) => Boolean(lockedThrough && date && String(date).slice(0, 10) <= lockedThrough);
@@ -294,10 +345,10 @@ function assertCorrectable(entry) {
 
 // the corrected entry: a manual entry may change everything except the year of its number; an automatic or opening
 // entry keeps its date and document reference (the link to the source document)
-function correctedEntry(entry, values, accounts = []) {
+function correctedEntry(entry, values, accounts = [], options = {}) {
   assertCorrectable(entry);
   const fixed = entry.origin === "manual" ? {} : { date: entry.date, documentRef: entry.documentRef };
-  const normalized = validateEntry({ ...values, ...fixed }, accounts);
+  const normalized = validateEntry({ ...values, ...fixed }, accounts, options);
   if (entry.origin === "opening") {
     const types = new Map(accounts.map((a) => [String(a.code), a.type]));
     const result = normalized.lines.find((l) => types.get(l.account) === "income" || types.get(l.account) === "expense");
@@ -361,6 +412,12 @@ const entryNumber = (year, sequence) => `${year}-${String(sequence).padStart(4, 
 
 module.exports = {
   ACCOUNTING_START_DATE,
+  CUSTOMER_ACCOUNTS,
+  PARTNER_TYPES,
+  SUPPLIER_ACCOUNTS,
+  cleanPartner,
+  customerOf,
+  partnerOf,
   BATCH_CHUNK,
   BATCH_MAX,
   batchTargets,

@@ -8943,10 +8943,26 @@ async function syncAccountingEntries({ actor }) {
   return { created, total: desired.length };
 }
 
+// the supplier cards named as partners on the lines of an entry (accounting-core validateEntry checks they exist)
+async function partnerSuppliers(lines) {
+  const ids = [...new Set((Array.isArray(lines) ? lines : [])
+    .map(line => (line?.partner?.type === "supplier" ? String(line.partner.id || "").trim() : ""))
+    .filter(id => /^[A-Za-z0-9_-]{1,160}$/.test(id)))].slice(0, 200);
+  if (!ids.length) return new Map();
+  const snaps = await db.getAll(...ids.map(id => db.collection("suppliers").doc(id)));
+  return new Map(snaps.filter(snap => snap.exists).map(snap => [snap.id, { id: snap.id, ...snap.data() }]));
+}
+
 async function createAccountingEntry({ actor, values, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const accounts = await accountingAccounts();
-  const normalized = accountingCore.validateEntry(values, accounts);
+  let normalized;
+  try {
+    // a new manual entry: a line on a supplier account (2110, 1350) needs its supplier (the accountant 2026-10-24)
+    normalized = accountingCore.validateEntry(values, accounts, { suppliers: await partnerSuppliers(values?.lines), requirePartner: true });
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
   const ref = db.collection("accountingEntries").doc(`manual_${mutationId}`);
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
@@ -9086,6 +9102,7 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
   const cleanReason = cleanText(reason, 300);
+  const suppliers = await partnerSuppliers(values?.lines);
   return db.runTransaction(async transaction => {
     const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
     if (auditSnap.exists) return { entry: { id: snap.id, ...snap.data() }, idempotent: true };
@@ -9093,7 +9110,7 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
     const entry = { id: snap.id, ...snap.data() };
     let corrected;
     try {
-      corrected = accountingCore.correctedEntry(entry, values || {}, accounts);
+      corrected = accountingCore.correctedEntry(entry, values || {}, accounts, { suppliers });
     } catch (error) {
       throw httpError(error.status || 400, error.message);
     }
@@ -9264,8 +9281,10 @@ async function saveSupplier({ actor, supplierId, values, requestId }) {
   const ref = existingId ? db.collection("suppliers").doc(existingId) : db.collection("suppliers").doc(cleanRequestId(requestId));
   const nowIso = new Date().toISOString();
   const actorData = actorSnapshot(actor);
-  const sameCode = record.regCode ? await db.collection("suppliers").where("regCode", "==", record.regCode).get() : null;
-  if (sameCode && sameCode.docs.some(doc => doc.id !== ref.id)) throw httpError(409, `Tarnija registrikoodiga ${record.regCode} on juba olemas.`);
+  // the same registry code, or the same name without a different code, is a duplicate (purchases-core supplierDuplicate)
+  const all = await db.collection("suppliers").get();
+  const duplicate = purchasesCore.supplierDuplicate(record, all.docs.map(doc => ({ id: doc.id, ...doc.data() })), ref.id);
+  if (duplicate) throw httpError(409, purchasesCore.duplicateMessage(record, duplicate));
   return db.runTransaction(async transaction => {
     const snap = await transaction.get(ref);
     if (existingId && !snap.exists) throw httpError(404, "Tarnijat ei leitud.");
@@ -9275,6 +9294,37 @@ async function saveSupplier({ actor, supplierId, values, requestId }) {
     transaction.create(db.collection("financialAudit").doc(), { entityType: "supplier", entityId: ref.id, action: snap.exists ? "supplier.updated" : "supplier.created", before: snap.exists ? snap.data() : null, after: record, createdAt: nowIso, createdBy: actorData });
     return { supplier: { id: ref.id, ...(snap.exists ? snap.data() : {}), ...supplier } };
   });
+}
+
+// Tarnijad from Excel (the accountant 2026-10-24): all rows or none — an invalid row or a duplicate (of a saved
+// supplier or of another row) refuses the import with the row numbers. One write per supplier and one audit record.
+async function importSuppliers({ actor, rows, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const accounts = await accountingAccounts();
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const done = await auditRef.get();
+  if (done.exists) return { created: done.get("supplierIds") || [], idempotent: true };
+  const all = await db.collection("suppliers").get();
+  let plan;
+  try {
+    plan = purchasesCore.supplierImportPlan(rows, all.docs.map(doc => ({ id: doc.id, ...doc.data() })), accounts);
+  } catch (error) {
+    throw httpError(error.status || 400, error.message);
+  }
+  if (plan.problems.length) {
+    throw httpError(409, `Importi ei tehtud. ${plan.problems.slice(0, 10).map(p => `Rida ${p.row}: ${p.message}`).join(" ")}${plan.problems.length > 10 ? ` Ja veel ${plan.problems.length - 10} rida.` : ""}`);
+  }
+  const batch = db.batch();
+  const ids = plan.records.map((record, index) => {
+    const ref = db.collection("suppliers").doc(`${mutationId}_${index + 1}`.slice(0, 160));
+    batch.create(ref, { ...record, createdAt: nowIso, createdBy: actorData, updatedAt: nowIso, importId: mutationId });
+    return ref.id;
+  });
+  batch.create(auditRef, { entityType: "supplier", action: "supplier.imported", count: ids.length, supplierIds: ids, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+  await batch.commit();
+  return { created: ids };
 }
 
 const purchaseEntryRef = (sourceKey) => db.collection("accountingEntries").doc(purchasesCore.entryIdOf(sourceKey));
@@ -9917,6 +9967,11 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     }
     if (req.path === "/suppliers") {
       const result = await saveSupplier({ actor, supplierId: req.body?.supplierId, values: req.body?.supplier, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/suppliers/import") {
+      const result = await importSuppliers({ actor, rows: req.body?.rows, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
