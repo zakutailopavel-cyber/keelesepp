@@ -105,6 +105,20 @@ describe('AccountingPage', () => {
     await waitFor(() => expect(repository.createEntry).toHaveBeenCalledWith(expect.objectContaining({ description: 'müügiarve Dalia', documentRef: 'Arve 12' })));
   });
 
+  it('„Algsaldod” shows the entered balances and corrects the same entry', async () => {
+    const opening = { id: 'opening_1', number: `${year}-0000`, date: `${year}-01-01`, origin: 'opening', description: 'Algsaldod', documentRef: 'Eelmise perioodi käibeandmik', lines: [{ account: '1010', debitCents: 50000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 50000 }], totalCents: 50000 };
+    const repository = repo({ load: vi.fn().mockResolvedValue({ entries: [opening, ...entries], accounts }), updateEntry: vi.fn().mockResolvedValue({ entry: { number: opening.number } }) });
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    fireEvent.click(screen.getByRole('button', { name: /Algsaldod/ }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByDisplayValue('1010')).toBeInTheDocument();
+    expect(within(dialog).getAllByDisplayValue('500,00')).toHaveLength(2);
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta algsaldod' }));
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('opening_1', expect.objectContaining({ date: opening.date, lines: [expect.objectContaining({ account: '1010', debitCents: 50000 }), expect.objectContaining({ account: '2210', creditCents: 50000 })] }), 'Algsaldode parandus'));
+    expect(repository.setOpening).not.toHaveBeenCalled();
+  });
+
   it('a storno needs a reason', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
@@ -172,7 +186,7 @@ describe('AccountingPage', () => {
     const row = screen.getByRole('button', { name: '3060' }).closest('tr');
     expect(within(row).getByText('Maksuvaba müügitulu')).toBeInTheDocument();
     expect(within(row).getAllByText('80,00')).toHaveLength(2);
-    expect(screen.getByRole('columnheader', { name: 'Algsaldo' })).toHaveAttribute('colspan', '2');
+    expect(screen.getByRole('columnheader', { name: /^Algsaldo/ })).toHaveAttribute('colspan', '2');
     expect(screen.getAllByRole('columnheader', { name: 'Kreedit' })).toHaveLength(3);
     const total = screen.getByText('Kokku').closest('tr');
     expect(within(total).getAllByText('110,00')).toHaveLength(4);

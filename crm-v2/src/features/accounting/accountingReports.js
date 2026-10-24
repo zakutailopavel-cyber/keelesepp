@@ -126,10 +126,15 @@ export function journalReport(entries = [], accounts = [], { from = '', to = '',
   };
 }
 
+// the algsaldod entry (origin „opening”, dated on the first day of the books) is the balance at the start of a period
+// that begins on or after its date — not a turnover of that period (the accountant 2026-10-24: „algsaldo привяжи к
+// algsaldo”; käibeandmik 01.01–… showed the algsaldod under Käive)
+const startsPeriod = (entry, from) => Boolean(from) && entry.origin === 'opening' && entry.date <= from;
+
 function sums(entries, filter) {
   const out = new Map();
   entries.forEach((entry) => {
-    if (!filter(entry.date)) return;
+    if (!filter(entry.date, entry)) return;
     (entry.lines || []).forEach((l) => {
       const row = out.get(String(l.account)) || { debit: 0, credit: 0 };
       row.debit += l.debitCents || 0;
@@ -146,9 +151,9 @@ const split = (balance) => (balance >= 0 ? { debit: balance, credit: 0 } : { deb
 // and its balance at the end. Income and expense accounts start each financial year from zero.
 export function trialBalance(entries = [], accounts = [], { from = '', to = '' } = {}) {
   const yearStart = from ? `${from.slice(0, 4)}-01-01` : '';
-  const before = sums(entries, (date) => from && date < from);
+  const before = sums(entries, (date, entry) => (from && date < from) || startsPeriod(entry, from));
   const beforeYear = sums(entries, (date) => yearStart && date < yearStart);
-  const during = sums(entries, (date) => inPeriod(date, { from, to }));
+  const during = sums(entries, (date, entry) => inPeriod(date, { from, to }) && !startsPeriod(entry, from));
   const byCode = new Map(accounts.map((a) => [String(a.code), a]));
   const codes = [...new Set([...before.keys(), ...during.keys()])].sort((a, b) => a.localeCompare(b, 'et', { numeric: true }));
   const rows = codes.map((code) => {
@@ -181,13 +186,13 @@ export function ledger(entries = [], account, { from = '', to = '' } = {}, accou
   const result = type === 'income' || type === 'expense';
   let balance = 0;
   sortedEntries(entries).forEach((e) => {
-    if (!from || e.date >= from) return;
+    if (!from || (e.date >= from && !startsPeriod(e, from))) return;
     if (result && e.date < yearStart) return;
     (e.lines || []).filter((l) => String(l.account) === code).forEach((l) => { balance += (l.debitCents || 0) - (l.creditCents || 0); });
   });
   const opening = balance;
   const rows = [];
-  sortedEntries(entries).filter((e) => inPeriod(e.date, { from, to })).forEach((e) => {
+  sortedEntries(entries).filter((e) => inPeriod(e.date, { from, to }) && !startsPeriod(e, from)).forEach((e) => {
     (e.lines || []).filter((l) => String(l.account) === code).forEach((l) => {
       balance += (l.debitCents || 0) - (l.creditCents || 0);
       rows.push({ entryId: e.id, number: e.number, date: e.date, description: e.description, documentRef: e.documentRef, debitCents: l.debitCents || 0, creditCents: l.creditCents || 0, balance });

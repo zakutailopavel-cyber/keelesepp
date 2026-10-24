@@ -1,3 +1,16 @@
+## 2026-10-24 · agent/algsaldo-trial-balance — Algsaldod = the Algsaldo column of the käibeandmik
+
+- Base: `main` 65149a7. The accountant (2026-10-24): „algsaldo привяжи к algsaldo” — the balances entered with
+  „Algsaldod” (entry origin `opening`, dated 2026-01-01) showed in the käibeandmik 01.01–… under Käive, the Algsaldo
+  column was empty.
+- `accountingReports.js` (`startsPeriod`): in `trialBalance` and `ledger` the opening entry is the start balance of a
+  period that begins on or after its date (Algsaldo, not Käive); the Excel export follows (same function).
+- `AccountingPage.jsx`: „Algsaldod” opens with the balances already entered; when an algsaldod entry exists, saving
+  corrects that entry through `/accounting/entries/update` (reason „Algsaldode parandus”, history kept) instead of
+  the create route that refused a second one. The käibeandmik Algsaldo header has „muuda” → the same dialog.
+- Checks: vitest src/features/accounting 41/41 (+2 tests); eslint accounting clean; `npm run build` ok. UI only.
+- Next safe step: the accountant checks käibeandmik 01.01.2026–… after the Vercel deploy.
+
 ## 2026-10-24 · agent/journal-columns — Päevaraamat: column widths; a typed entry that did not save
 
 - Base: `main` 24f7625. The accountant (2026-10-24, screenshots): Dokument column far wider than Kirjeldus
