@@ -5,6 +5,23 @@
 - `AccountInput.jsx` (new): under the account cell of a typed entry a list of open accounts matching the text (number
   from its start, name anywhere, max 8); arrows + Enter / Tab or a click picks one; `JournalDraft.jsx` uses it.
 - Checks: vitest src/features/accounting 42/42 (+1 test); eslint clean; `npm run build` ok. UI only.
+## 2026-10-24 · agent/kaanded-practice — B2 „Käänete kordamine”: three extra Harjuta sheets on noun cases
+
+- Base: `main` acd13f9 (2026-10-24). Draft PR #783. Content + a small course-gate rule.
+- Asked (owner 2026-10-24): homework on noun cases for a B1→B2 learner; „дай все на падежи, а чего нет — сделай”.
+- Existing B2 case practice (published): b1b2-006 Harjuta (kohakäänded, täis-/osaalus), 016 (sihitis), 018 (rektsioon),
+  026 (olev + saav), 041 (saav). Missing as a sheet at B1+: base cases with plurals, plural locatives + short illative,
+  -ni / -ta / -ga.
+- Built: `admin/course/b2/kaanded.js` (MODULE `b1b2-kaanded-01`, `supplement: true`, template v4, strict), lessons
+  b1b2-k01 (nimetav / omastav / osastav, sg + pl), k02 (kus / kuhu / kust, lühike sisseütlev), k03 (-ni, -ta, -ga);
+  Harjuta only. Goals in `b2/lessonGoals.js`. Supplement rule: sheet gates apply; `harnoProblems`, v4 module listening
+  and `methodGaps.courseModules` skip a supplement; badge = supplement name (`registry.js`, `quality.js`,
+  `methodGaps.js`, tests; docs/B1_B2_COURSE_PRODUCTION.md §6 „Lisaharjutused”).
+- Checks: vitest worksheet-generator + worksheet-studio 1195 passed / 0 failed; full crm-v2 2395 passed / 0 failed;
+  module report 3/3 READY; EstNLTK: only the suffix „sid” unknown.
+- Production (owner's permission): created `curriculumLessons/b1b2-k01…k03` and published their `worksheets/practice`
+  v1 (+ worksheetVersions); read back equal to the code. No homework assigned, no deploy.
+- Next safe step: review the three sheets in Õppevara (B2 → Käänete kordamine) and merge #783.
 
 ## 2026-10-24 · agent/journal-draft-typing — a new entry: Dokument can be typed on any line
 
