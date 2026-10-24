@@ -8229,6 +8229,26 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       }
       return;
     }
+    // „Teated” (functions/announcements-service.js): a learner / parent gets only their own announcements and answers
+    // once; the administrator sees who answered. Announcements are never readable by learners in Firestore.
+    if (req.path === "/announcements/mine" || req.path === "/announcements/respond") {
+      const decoded = await requireFirebaseUser(req);
+      const snap = await db.collection("users").doc(decoded.uid).get();
+      const profile = snap.exists ? snap.data() : {};
+      if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+      const actor = { decoded, profile, roles: collectTrustedRoles(profile, decoded) };
+      const announcements = require("./announcements-service");
+      res.set("Cache-Control", "no-store");
+      if (req.path === "/announcements/mine") res.json(await announcements.mine(db, actor));
+      else res.json(await announcements.respond(db, actor, req.body || {}, { FieldValue }));
+      return;
+    }
+    if (req.path === "/announcements/report") {
+      await requireAdminUser(req);
+      res.set("Cache-Control", "no-store");
+      res.json(await require("./announcements-service").report(db, req.body || {}));
+      return;
+    }
     if (req.path === "/accounts/test-student-session") {
       const actor = await requireAdminUser(req);
       res.json(await testStudentSession({ actor, studentId: req.body?.studentId }));

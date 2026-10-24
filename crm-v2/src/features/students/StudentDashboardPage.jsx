@@ -43,6 +43,7 @@ function dateLabel(value) {
 
 import SubjectSwitcher from './SubjectSwitcher.jsx';
 import AvailabilityCard from '../availability-poll/AvailabilityCard.jsx';
+import LearnerAnnouncementsCard from '../announcements/LearnerAnnouncementsCard.jsx';
 import { itemSubject, onlySubject, subjectsOf } from './subjects.js';
 
 export default function StudentDashboardPage({
@@ -57,6 +58,7 @@ export default function StudentDashboardPage({
   consentService,
   wordsService,
   summaryService,
+  announcementService,
 }) {
   const { user, preview } = useAuth();
   const [rescheduling, setRescheduling] = useState(false);
@@ -195,6 +197,9 @@ export default function StudentDashboardPage({
       onClose={() => setRescheduling(false)} onSent={() => { setRescheduling(false); state.reload(); }} /> : null}
     {!students.length ? <Card><EmptyState title="Õpilase profiil ei ole kontoga seotud" description="Palu administraatoril lisada sinu õpilase kaardile konto UID. Nime või e-posti põhjal profiili automaatselt ei seostata." /></Card> : <div className="student-home-grid">
       <OpenInvoicesCard invoices={invoices} readOnly={Boolean(preview)} />
+
+      {/* „Teated”: the school's announcements already answered, to read again (owner 2026-10-24) */}
+      {!preview ? <LearnerAnnouncementsCard user={user} {...(announcementService ? { service: announcementService } : {})} /> : null}
 
       {/* „Millal sulle tund sobib?” — the student keeps the times that suit up to date (owner 2026-10-21) */}
       {students.slice(0, 1).map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} user={user} mode={preview ? 'view' : 'own'} compact />)}

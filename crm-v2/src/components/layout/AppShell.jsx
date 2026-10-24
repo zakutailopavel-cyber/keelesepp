@@ -13,13 +13,15 @@ import { accountApprovalsService } from '../../services/firebase/accountApproval
 import { messagesService } from '../../services/firebase/messages.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
 import GuideBanner from '../../features/guide/GuideBanner.jsx';
+import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx';
+import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import './appShell.css';
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export default function AppShell({ approvals = accountApprovalsService, messages = messagesService }) {
+export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, announcements }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, signOut, preview, stopPreview } = useAuth();
@@ -51,7 +53,11 @@ export default function AppShell({ approvals = accountApprovalsService, messages
     }
   };
 
+  // „Teated”: a student / parent answers the school's open announcements before the CRM opens (not in the admin's preview)
+  const gated = isLearnerAccount(user.roles) && !preview;
+
   return (
+    <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />
       <aside className={`sidebar ${menuOpen ? 'is-open' : ''}`}>
@@ -94,5 +100,6 @@ export default function AppShell({ approvals = accountApprovalsService, messages
         <PetCompanion />
       </main>
     </div>
+    </AnnouncementGate>
   );
 }

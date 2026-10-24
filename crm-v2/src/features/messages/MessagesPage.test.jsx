@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import MessagesPage from './MessagesPage.jsx';
 import { buildConversations, conversationIdentity } from './messagesModel.js';
@@ -24,7 +25,7 @@ function repositories(messages = [incoming]) {
 }
 
 function renderPage(user, data) {
-  render(<AuthContext.Provider value={{ user }}><MessagesPage {...data} /></AuthContext.Provider>);
+  render(<AuthContext.Provider value={{ user }}><MemoryRouter><MessagesPage {...data} /></MemoryRouter></AuthContext.Provider>);
 }
 
 describe('MessagesPage', () => {
@@ -111,6 +112,12 @@ describe('MessagesPage', () => {
       text: 'Tere Facebookis!',
     }));
     expect(data.repository.send).not.toHaveBeenCalled();
+  });
+
+  it('administrators find „Teated” from Suhtlus', async () => {
+    const data = repositories();
+    renderPage({ uid: 'admin-1', displayName: 'Admin', roles: ['admin'] }, data);
+    expect(await screen.findByRole('link', { name: /Teated/ })).toHaveAttribute('href', '/messages/teated');
   });
 
   it('uses the full message list only for administrators', async () => {
