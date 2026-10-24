@@ -17,7 +17,8 @@
   - Server: `functions/announcements-core.js` (pure), `functions/announcements-service.js`, routes in
     `staffOperationsApi`: `/announcements/mine`, `/announcements/respond`, `/announcements/report` (admin).
   - Rules: `announcements` admin read / validated write, no delete; `announcementResponses` admin read, no client write.
-- Checks: crm-v2 whole vitest 346 files (345 passed, 1 skipped), 2418 tests: 2415 passed, 3 skipped, 0 failed (new:
+- Checks (after merging main 12e179d): crm-v2 whole vitest 347 files (346 passed, 1 skipped), 2430 tests: 2427 passed,
+  3 skipped, 0 failed (new:
   announcements 4 files 18 tests, MessagesPage +1); eslint 0 errors (18 old warnings); `npm run build` ok; functions
   `npm test` 359/359 (new announcements-core.test.js 9); emulator (`firebase emulators:exec --only
   auth,firestore,functions --project demo-keelesepp-finance`, JDK 21) announcements-emulator.integration.js 1/1 (rules
