@@ -329,3 +329,57 @@
 .cal2-warnings { margin: 0; padding: 8px 10px 8px 26px; border-radius: 10px; background: #fff6e5; border: 1px solid #f1d9a8; color: #7a5311; font-size: .86rem; display: grid; gap: 2px; }
 .cal2-unplanned li { grid-template-columns: minmax(0, 1fr) auto auto auto; }
 @media (max-width: 640px) { .cal2-unplanned li { grid-template-columns: 1fr; } .cal2-fit__search input { min-width: 0; width: 100%; } .cal2-fit__search { flex: 1 1 100%; } }
+/* a red / yellow teacher window: a warning with „Salvesta ikkagi” (Oleksiy 2026-10-23), not a ban */
+.cal2-window-ask { margin: 0; padding: 9px 12px; border-radius: 10px; background: #fef3f2; border: 1px solid #fecdca; color: #912018; font-weight: 600; font-size: .9rem; }
+
+/* „Minu ajad”: the teacher's week as the students' poll grid (Oleksiy 2026-10-24) */
+.modal.modal--teacher-week { width: min(860px, 96vw); }
+.tw { display: grid; gap: 10px; }
+.tw-intro { margin: 0; color: #475467; font-size: .92rem; }
+.tw-brushes { display: flex; flex-wrap: wrap; gap: 6px; }
+.tw-brush { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #d0d5dd; background: #fff; border-radius: 12px; padding: 7px 12px; cursor: pointer; text-align: left; color: #101828; }
+.tw-brush span { display: grid; line-height: 1.15; }
+.tw-brush small { color: #667085; font-size: .74rem; }
+.tw-brush.is-on { border-color: #101828; box-shadow: 0 0 0 2px #101828 inset; background: #f9fafb; }
+.tw-swatch { display: inline-block; width: 16px; height: 16px; border-radius: 5px; vertical-align: -3px; border: 1px solid transparent; flex: none; }
+.tw-swatch.is-free { background: #7fcfb1; border-color: #3fae86; }
+.tw-swatch.is-online { background: #f6d27a; border-color: #d98a1c; }
+.tw-swatch.is-busy { background: #f4a19a; border-color: #b42318; }
+.tw-swatch.is-none { background: #fff; border: 1.5px dashed #98a2b3; }
+.tw-swatch.is-lesson { background: #1d2939; }
+.tw-swatch.is-student { background: #fff; box-shadow: inset 0 0 0 3px #4f46e5; }
+.tw-legend { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin: 0; font-size: .82rem; color: #475467; }
+.tw-legend .tw-swatch { margin-left: 4px; }
+.tw-tools { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; font-size: .88rem; }
+.tw-week { display: inline-flex; align-items: center; gap: 4px; }
+.tw-week button { border: 1px solid #d0d5dd; background: #fff; border-radius: 8px; width: 28px; height: 28px; display: grid; place-items: center; cursor: pointer; }
+.tw-compare { display: inline-flex; gap: 6px; align-items: center; }
+.tw-clash-note { margin: 0; padding: 7px 10px; border-radius: 10px; background: #fef3f2; border: 1px solid #fecdca; color: #912018; font-size: .86rem; }
+.tw-grid { margin-top: 14px; display: grid; grid-template-columns: 44px repeat(7, minmax(0, 1fr)); gap: 2px 3px; user-select: none; -webkit-user-select: none; touch-action: pan-y; }
+.tw-grid__corner, .tw-grid__day { position: sticky; top: -22px; z-index: 3; }
+.tw-grid__corner { background: #fff; align-self: stretch; }
+.tw-grid__day { box-shadow: 0 -24px 0 #fff, 0 3px 0 #fff; }
+.tw-grid__day { border: 0; background: #1d2939; color: #fff; border-radius: 8px; padding: 6px 0; font-weight: 800; cursor: pointer; display: grid; line-height: 1.1; }
+.tw-grid__day small { font-weight: 600; font-size: .68rem; opacity: .75; }
+.tw-grid__time { font-size: .72rem; color: #667085; text-align: right; padding-right: 4px; line-height: 22px; white-space: nowrap; }
+.tw-grid__cell { position: relative; height: 22px; padding: 0; border: 1px solid #e4e7ec; border-radius: 5px; background: #fafbfc; cursor: pointer; touch-action: none; overflow: visible; }
+.tw-grid__cell:hover { border-color: #98a2b3; }
+.tw-grid__cell:focus-visible { outline: 3px solid #f2c94c; outline-offset: 1px; }
+.tw-grid__cell.is-free { background: #a6e0c9; border-color: #6cc3a3; }
+.tw-grid__cell.is-online { background: #f9df9c; border-color: #e7b54b; }
+.tw-grid__cell.is-busy { background: #f6b4ae; border-color: #e0786e; }
+.tw-grid__cell.is-student-ok { box-shadow: inset 0 0 0 2px rgba(79, 70, 229, .55); }
+.tw-grid__cell.is-student-best { box-shadow: inset 0 0 0 3px #4f46e5; }
+.tw-grid__cell.has-lesson::after { content: ''; position: absolute; left: 3px; top: -2px; bottom: -2px; width: 4px; border-radius: 2px; background: #1d2939; }
+.tw-grid__cell.is-clash { outline: 2px solid #d92d20; outline-offset: -1px; z-index: 1; }
+.tw-grid__lesson { position: absolute; left: 9px; right: 2px; top: 2px; z-index: 1; font-size: .64rem; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; pointer-events: none; }
+.tw-dated h3 { margin: 4px 0 6px; font-size: .95rem; }
+.tw-dated ul { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 4px; font-size: .88rem; }
+.tw-dated li { display: flex; gap: 8px; align-items: center; }
+@media (max-width: 640px) {
+  .tw-grid { grid-template-columns: 34px repeat(7, minmax(0, 1fr)); gap: 2px; }
+  .tw-grid__cell { height: 26px; }
+  .tw-grid__time { line-height: 26px; font-size: .64rem; }
+  .tw-grid__lesson { display: none; }
+  .tw-brush small { display: none; }
+}

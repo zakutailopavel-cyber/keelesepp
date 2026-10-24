@@ -110,4 +110,16 @@ describe('student times × teacher windows × lessons', () => {
     expect(timesLine(mari)).toBe('E 16–19 (★ 17–18) · K 10–12');
     expect(timesLine(null)).toBe('');
   });
+  it('a red or yellow window is tagged for „Salvesta ikkagi”; a weekly lesson names the red dates', () => {
+    // 2026-11-02 is a Monday; red only on the 16th (a date window), so the weekly lesson's third week
+    const availability = { slots: [{ id: 'g', kind: 'free', day: 'Mon', start: '08:00', end: '20:00' }, { id: 'r', kind: 'busy', date: '2026-11-16', start: '10:00', end: '12:00' }] };
+    const warn = (lesson) => planningWarnings({ lesson: { time: '10:00', duration: 60, ...lesson }, teacherName: 'Pavel', teacherAvailability: availability, includeTeacherLessons: false });
+    expect(warn({ date: '2026-11-02' })).toEqual([]);
+    const weekly = warn({ date: '2026-11-02', recurring: true });
+    expect(weekly).toEqual([expect.objectContaining({ kind: 'teacher-window', window: 'busy' })]);
+    expect(weekly[0].text).toMatch(/^Pavel on sel ajal hõivatud \(punane aeg\) \(.*16.*\)\.$/);
+    const yellow = { slots: [{ id: 'y', kind: 'online', day: 'Mon', start: '08:00', end: '20:00' }] };
+    expect(planningWarnings({ lesson: { date: '2026-11-02', time: '10:00' }, teacherAvailability: yellow })[0].window).toBe('online');
+    expect(planningWarnings({ lesson: { date: '2026-11-02', time: '10:00', online: true }, teacherAvailability: yellow })).toEqual([]);
+  });
 });

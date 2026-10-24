@@ -17,11 +17,14 @@ export function candidateDates(candidate) {
     .filter((date) => !(candidate.excludedDates || []).includes(date));
 }
 
+// a booking that holds its room: a cancelled or online lesson never does (also when an old booking says so)
+const holdsRoom = (booking) => Boolean(booking?.roomId) && booking.status !== 'Tühistatud' && booking.online !== true;
+
 // the first date the room is taken by another lesson at the candidate's time, or ''
 export function roomConflict(bookings = [], candidate, roomId, ignoreScheduleId = '') {
   const span = { start: toMinutes(candidate.time), end: toMinutes(candidate.time) + (Number(candidate.duration) || 60) };
   for (const date of candidateDates(candidate)) {
-    const taken = bookings.some((booking) => booking.roomId === roomId && booking.scheduleId !== ignoreScheduleId
+    const taken = bookings.some((booking) => holdsRoom(booking) && booking.roomId === roomId && booking.scheduleId !== ignoreScheduleId
       && eventOccursOn(booking, date)
       && overlaps(span, { start: toMinutes(booking.time), end: toMinutes(booking.time) + (Number(booking.duration) || 60) }));
     if (taken) return date;
