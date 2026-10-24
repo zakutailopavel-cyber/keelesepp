@@ -96,7 +96,9 @@ describe('AccountingPage', () => {
     fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '25' } });
     expect(screen.getByRole('button', { name: 'Salvesta kanne' })).toBeDisabled();
     expect(screen.getByText(/Puudub: dokument, kande sisu, konto summaga real/)).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Algdokument (nr / nimetus)'), { target: { value: 'Arve 12' } });
+    // the Dokument cell of a line is the entry's document too
+    fireEvent.change(screen.getByLabelText('Rida 2 dokument'), { target: { value: 'Arve 12' } });
+    expect(screen.getByLabelText('Algdokument (nr / nimetus)')).toHaveValue('Arve 12');
     fireEvent.change(screen.getByLabelText('Rida 1 konto'), { target: { value: '4710' } });
     fireEvent.change(screen.getByLabelText('Rida 1 märkus'), { target: { value: 'müügiarve Dalia' } });
     fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '2210' } });

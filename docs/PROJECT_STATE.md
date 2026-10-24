@@ -1,3 +1,13 @@
+## 2026-10-24 · agent/journal-draft-typing — a new entry: Dokument can be typed on any line
+
+- Base: `main` 9a54715. The accountant (2026-10-24, „Документ не ввести”): she clicked the Dokument cell of a
+  line in a new entry; it was plain text (only the header row had the input).
+- `JournalDraft.jsx`: the Dokument cell of every line is an input bound to the entry's document (typing in any of
+  them sets it for the whole entry); a click on a line's Kuupäev focuses the header date.
+- Checks: vitest src/features/accounting 41/41 (test extended); eslint clean; typed into header and line cells in a
+  local stand page (not committed). UI only.
+- Next safe step: the accountant retries after the Vercel deploy.
+
 ## 2026-10-24 · agent/algsaldo-trial-balance — Algsaldod = the Algsaldo column of the käibeandmik
 
 - Base: `main` 65149a7. The accountant (2026-10-24): „algsaldo привяжи к algsaldo” — the balances entered with
