@@ -1,5 +1,5 @@
 import { COURSE_MODULES } from './registry.js';
-import { courseMethodGaps, examFormatGaps, recyclingShare, vocabStems } from './methodGaps.js';
+import { courseMethodGaps, courseModules, examFormatGaps, recyclingShare, vocabStems } from './methodGaps.js';
 
 const COURSES = ['a2', 'b1', 'b2', 'c1'];
 const gaps = COURSES.flatMap((c) => courseMethodGaps(COURSE_MODULES, c));
@@ -23,6 +23,12 @@ describe('methodology across a course (docs/METHODOLOGY_STANDARD.md §2)', () =>
 
   it('every course trains every Harno exam format at least once', () => {
     expect(COURSES.flatMap((c) => examFormatGaps(COURSE_MODULES, c).map((g) => `${c} ${g.id}`))).toEqual([]);
+  });
+
+  it('leaves supplements (extra homework sheets) out of the course sequence', () => {
+    const b2 = courseModules(COURSE_MODULES, 'b2').map((m) => m.MODULE.id);
+    expect(b2).toHaveLength(18);
+    expect(b2).not.toContain('b1b2-kaanded-01');
   });
 
   it('measures recycling by word stems', () => {

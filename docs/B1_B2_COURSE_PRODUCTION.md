@@ -101,6 +101,19 @@ Leht avaldatakse ainult siis, kui:
    - Olemasolev leht asendatakse ainult eraldi kinnitusega.
 5. Pärast avaldamist kontrolli Õpilase vaates lehe murdumist.
 
+### Lisaharjutused (supplement)
+
+Kui õpetaja vajab ühe grammatikateema kohta lisa-kodutööd, mida kursuse tunnid vormiharjutusena ei paku, tuleb see
+eraldi failina `admin/course/<kursus>/<teema>.js`, `MODULE.supplement: true` (näidis: `b2/kaanded.js`, B2 „Käänete
+kordamine”, tunnid `b1b2-k01…k03`, ainult Harjuta). Lisaharjutus ei ole õpitee moodul:
+
+- lehed läbivad kõik lehe reeglid (v4, sügavus, tase, võtmed) ja moodul on `strictModules.json`-is;
+- mooduli eksamikatte (kuulamine, eksamipikkune tekst; `harnoProblems`, `v4ModuleProblems`) ja kursuse kordamise
+  reegel (`methodGaps.courseModules`) teda ei puuduta — need on õpitee moodulite töö;
+- lehe märk on mooduli nimi, mitte number (`meta.supplement`);
+- Õppevaras on tunnil oma `curriculumLessons/<id>` kirje (sama õppekava, `roadmapModuleTitle` = lisaharjutuse nimi,
+  ilma `roadmapModuleNumber`-ita → taseme lõpus), nii et õpetaja saab lehe määrata nagu iga teise tunni lehe.
+
 ## 7. Järjekord
 
 1. **B1 Harjuta + Kasuta**, moodul haaval:

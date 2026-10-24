@@ -4,7 +4,8 @@
 const PHASES = ['discover', 'practice', 'transfer'];
 const lessonBlocks = (mod) => Object.values(mod.LESSONS).filter((l) => !l.assessment).flatMap((l) => PHASES.flatMap((p) => l[p] || []));
 export const moduleNo = (mod) => Number(String(mod.MODULE.id).match(/(\d+)$/)?.[1] || 0);
-export const courseModules = (modules, course) => modules.filter((m) => m.MODULE.course === course).sort((a, b) => moduleNo(a) - moduleNo(b));
+// a supplement (extra homework sheets, MODULE.supplement) is not a roadmap module: no listening or recycling rule
+export const courseModules = (modules, course) => modules.filter((m) => m.MODULE.course === course && !m.MODULE.supplement).sort((a, b) => moduleNo(a) - moduleNo(b));
 
 // listening: at least METHOD.listening tasks a module outside the exam lessons (H: a quarter of every exam is listening)
 export const METHOD = { listening: 2, recycling: 0.3 };
