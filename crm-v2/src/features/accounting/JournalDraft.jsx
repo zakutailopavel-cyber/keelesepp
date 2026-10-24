@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/index.js';
-import { amount, blankEntryLine, dmy, entryLineTotals, parseEuro } from './accountingReports.js';
+import { amount, blankEntryLine, dmy, draftDescription, entryLineTotals, parseEuro } from './accountingReports.js';
 import { pastedEntryLines } from './journalGrid.js';
 
 // A manual entry typed straight into the päevaraamat grid (the accountant 2026-10-23: like Excel, no separate form).
@@ -39,7 +39,19 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
   const filled = lines.filter((l) => l.account && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
   const balanced = !badAmount && totals.debit > 0 && totals.debit === totals.credit && filled.length >= 2;
   const knownAccounts = lines.every((l) => !l.account || accountName(l.account));
-  const ready = balanced && knownAccounts && draft.date && draft.documentRef.trim() && draft.description.trim() && (!reasonRequired || String(reason || '').trim());
+  const noAccount = lines.some((l) => !l.account && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
+  // what still blocks „Salvesta kanne”, said next to the button (a silent grey button told her nothing)
+  const missing = [
+    !draft.date && 'kuupäev',
+    !draft.documentRef.trim() && 'dokument',
+    !draftDescription(draft, lines) && 'kande sisu',
+    noAccount && 'konto summaga real',
+    !knownAccounts && 'konto, mida kontoplaanis pole',
+    !badAmount && totals.debit !== totals.credit && 'deebet = kreedit',
+    !badAmount && totals.debit === totals.credit && filled.length < 2 && 'vähemalt üks deebet- ja üks kreeditrida',
+    reasonRequired && !String(reason || '').trim() && 'paranduse põhjus',
+  ].filter(Boolean);
+  const ready = balanced && !noAccount && !missing.length;
 
   return <tbody className="accounting-draft" onPaste={onPaste}>
     <tr className="accounting-grid__entry">
@@ -69,6 +81,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
           <span className={balanced ? 'is-ok' : 'is-off'}>Deebet {amount(totals.debit)} · Kreedit {amount(totals.credit)}{totals.debit !== totals.credit ? ` · vahe ${amount(Math.abs(totals.debit - totals.credit))}` : ''}</span>
           {badAmount ? <span className="is-off">Summa peab olema kujul 123,45.</span> : null}
           {setReason ? <input className="accounting-draft__reason" aria-label="Paranduse põhjus" value={reason || ''} placeholder={reasonRequired ? 'paranduse põhjus (kohustuslik)' : 'paranduse põhjus'} onChange={(event) => setReason(event.target.value)} /> : null}
+          {missing.length && !badAmount ? <span className="is-off">Puudub: {missing.join(', ')}</span> : null}
           {error ? <span className="is-off" role="alert">{error}</span> : null}
           <span className="accounting-draft__buttons">
             <Button variant="secondary" disabled={busy} onClick={onCancel}>Loobu</Button>

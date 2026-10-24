@@ -1,3 +1,15 @@
+## 2026-10-24 · agent/journal-columns — Päevaraamat: column widths; a typed entry that did not save
+
+- Base: `main` 24f7625. The accountant (2026-10-24, screenshots): Dokument column far wider than Kirjeldus
+  („Kirjeldus важнее”); a new entry with D = K 25,00 did not save — the button was grey without a reason.
+- `accounting.css`: the päevaraamat grid has fixed column widths (Konto 18 %, Kuupäev 9 %, Dokument 14 %,
+  Kirjeldus the rest ≈ 39 %, Deebet/Kreedit 10 %), long text wraps.
+- `JournalDraft.jsx` + `accountingReports.js` `draftDescription`: an empty „kande sisu” takes the first line note
+  (she typed the text on the line); next to the button „Puudub: …” lists what blocks saving (kuupäev, dokument,
+  kande sisu, konto summaga real, unknown konto, deebet = kreedit, paranduse põhjus). Server rules unchanged.
+- Checks: vitest src/features/accounting 39/39 (+1 test); eslint accounting clean; `npm run build` ok.
+- Next safe step: the accountant retries the entry after the Vercel deploy.
+
 ## 2026-10-23 · agent/accounting-excel-mode — päevaraamat like Excel (cells, keyboard, paste, „Asenda konto”, undo)
 
 - Base: `main` 7271b5f (2026-10-23). Draft PR #779 from `agent/accounting-excel-mode`. Accounting only.

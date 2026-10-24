@@ -275,3 +275,7 @@ export const HISTORY_ACTIONS = { edit: 'Muudetud', override: 'Read parandatud', 
 export const linesText = (lines = []) => lines.map((l) => `${l.account} ${l.debitCents ? `D ${amount(l.debitCents)}` : `K ${amount(l.creditCents)}`}`).join(', ');
 // the lines of a stored entry as editable text rows (JournalDraft)
 export const editableLines = (lines = []) => lines.map((l) => ({ account: String(l.account), debit: l.debitCents ? amount(l.debitCents).replace(/\s/g, '') : '', credit: l.creditCents ? amount(l.creditCents).replace(/\s/g, '') : '', note: l.note || '' }));
+
+// the content of the entry: the header „kande sisu”, or — when it was left empty — the first line's note (the accountant
+// typed „müügiarve …” on the line and the entry did not save, 2026-10-24)
+export const draftDescription = (draft, lines = []) => String(draft?.description || '').trim() || String(lines.find((l) => String(l.note || '').trim())?.note || '').trim();

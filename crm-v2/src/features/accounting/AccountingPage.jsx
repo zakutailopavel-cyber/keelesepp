@@ -5,7 +5,7 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountingService } from '../../services/firebase/index.js';
 import { downloadWorkbook, journalWorkbook, statementsWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
-import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, draftDescription, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
 import { useOptionalAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import JournalDraft from './JournalDraft.jsx';
@@ -133,7 +133,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
 
   const saveDraft = async () => {
     if (badAmount(draftLines)) { setError('Summa peab olema kujul 123,45.'); return; }
-    if (await run('save', () => repository.createEntry({ ...draft, lines: toLines(draftLines) }), (r) => `Kanne ${r.entry.number} salvestati.`)) setDraft(null);
+    if (await run('save', () => repository.createEntry({ ...draft, description: draftDescription(draft, draftLines), lines: toLines(draftLines) }), (r) => `Kanne ${r.entry.number} salvestati.`)) setDraft(null);
   };
   const submitOpening = async (event) => {
     event.preventDefault();

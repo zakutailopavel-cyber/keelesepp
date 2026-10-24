@@ -691,3 +691,25 @@
 .accounting-grid tr:hover .accounting-cell__account {
   padding-right: 40px;
 }
+
+/* the accountant 2026-10-24: Kirjeldus is the widest column, Dokument no wider than it — fixed widths, so a long
+   document number or an input in a typed entry does not stretch its column */
+.accounting-grid.accounting-journal {
+  table-layout: fixed;
+}
+
+.accounting-grid.accounting-journal .c-account {
+  width: 18%;
+}
+
+.accounting-grid.accounting-journal .c-date {
+  width: 9%;
+}
+
+.accounting-grid.accounting-journal .c-doc {
+  width: 14%;
+}
+
+.accounting-grid.accounting-journal td {
+  overflow-wrap: anywhere;
+}

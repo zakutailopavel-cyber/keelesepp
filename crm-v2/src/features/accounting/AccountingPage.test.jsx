@@ -87,6 +87,24 @@ describe('AccountingPage', () => {
     })));
   });
 
+  it('saves an entry with an empty „kande sisu” using the first line note, and says what is missing', async () => {
+    const repository = repo();
+    render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
+    await screen.findByText('MA 1');
+    fireEvent.click(screen.getByRole('button', { name: 'Lisa kanne' }));
+    fireEvent.change(screen.getByLabelText('Rida 1 deebet'), { target: { value: '25' } });
+    fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '25' } });
+    expect(screen.getByRole('button', { name: 'Salvesta kanne' })).toBeDisabled();
+    expect(screen.getByText(/Puudub: dokument, kande sisu, konto summaga real/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Algdokument (nr / nimetus)'), { target: { value: 'Arve 12' } });
+    fireEvent.change(screen.getByLabelText('Rida 1 konto'), { target: { value: '4710' } });
+    fireEvent.change(screen.getByLabelText('Rida 1 märkus'), { target: { value: 'müügiarve Dalia' } });
+    fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '2210' } });
+    expect(screen.queryByText(/Puudub:/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta kanne' }));
+    await waitFor(() => expect(repository.createEntry).toHaveBeenCalledWith(expect.objectContaining({ description: 'müügiarve Dalia', documentRef: 'Arve 12' })));
+  });
+
   it('a storno needs a reason', async () => {
     const repository = repo();
     render(<MemoryRouter><AccountingPage repository={repository} /></MemoryRouter>);
