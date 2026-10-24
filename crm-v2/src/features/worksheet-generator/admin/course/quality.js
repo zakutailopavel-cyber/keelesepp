@@ -166,12 +166,17 @@ export function v4ModuleProblems(sheets) {
     const twice = [...new Set(types.filter((t, i) => DRILLS.includes(t) && types.indexOf(t) !== i))];
     if (twice.length) out.push({ lessonId, phase: '*', code: 'v4-lesson-repeat', text: `sama harjutus tunni mitmes etapis (${twice.join(', ')})` });
   }
-  if ((count.listening || 0) < V4.moduleListening) out.push({ lessonId: '*', phase: '*', code: 'v4-listening', text: `moodulis ${count.listening || 0} kuulamist (v4: vähemalt ${V4.moduleListening})` });
+  if (!isSupplement(sheets) && (count.listening || 0) < V4.moduleListening) out.push({ lessonId: '*', phase: '*', code: 'v4-listening', text: `moodulis ${count.listening || 0} kuulamist (v4: vähemalt ${V4.moduleListening})` });
   Object.entries(V4.moduleCaps).forEach(([type, max]) => {
     if ((count[type] || 0) > max) out.push({ lessonId: '*', phase: '*', code: 'v4-cap', text: `moodulis ${count[type]} × ${type} (v4: kuni ${max})` });
   });
   return out;
 }
+
+// A supplement (MODULE.supplement, e.g. b2/kaanded.js): extra homework sheets for a grammar topic, not a module of the
+// roadmap. Its sheets keep every sheet rule; the module's exam coverage (listening, an exam-length text) stays the job of
+// the roadmap modules.
+export const isSupplement = (sheets) => Object.values(sheets).some((lesson) => Object.values(lesson).some((d) => d.meta?.supplement));
 
 // a module: { [lessonId]: { practice: doc, transfer: doc, … } } → [{ lessonId, phase, code, text }]
 export function moduleProblems(sheets) {
@@ -254,7 +259,7 @@ export function balanceProblems(sheets) {
 export function harnoProblems(sheets) {
   const docs = Object.values(sheets).flatMap((lesson) => Object.values(lesson));
   const harno = harnoFor(docs[0]?.meta?.level);
-  if (!harno) return [];
+  if (!harno || isSupplement(sheets)) return [];
   const out = [];
   const blocks = docs.flatMap((d) => d.blocks || []);
   if (harno.listening && !blocks.some((b) => b.type === 'listening')) out.push({ lessonId: '*', phase: '*', code: 'harno-listening', text: `moodulis pole ühtki kuulamisülesannet (Harno ${harno.level} eksamil on kuulamine veerand punktidest)` });

@@ -13,6 +13,14 @@ describe('Harno coverage of a module', () => {
   });
 });
 
+describe('a supplement (extra homework sheets, MODULE.supplement)', () => {
+  it('keeps the sheet rules but not the module exam coverage', () => {
+    const supplement = { l1: { practice: { meta: { level: 'B1+', supplement: true }, blocks: [reading(100)] } } };
+    expect(harnoProblems(supplement)).toEqual([]);
+    expect(harnoProblems({ l1: { practice: doc('B1+', [reading(100)]) } }).map((p) => p.code)).toEqual(['harno-listening', 'harno-reading']);
+  });
+});
+
 describe('quality baseline', () => {
   it('locks only problems that are not known; a fixed problem is reported', () => {
     const known = { lessonId: 'x-1', phase: 'practice', code: 'norm', check: 'did-choice-length-c1', text: '' };
