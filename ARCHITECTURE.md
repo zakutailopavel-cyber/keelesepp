@@ -283,7 +283,8 @@ sections. It does not introduce a student summary collection or copy financial a
 CRM v2 treats a displayed child as a person projection over one or more legacy `students` documents. Stable
 `personId` is preferred; parent account, parent email or parent name plus the child's normalized name are migration
 fallbacks. Separate subject-teacher combinations are enrollments, not new people. Adding or editing an enrollment
-updates the existing student document and never creates another student card.
+updates the existing student document and never creates another student card. The administrator edits enrollments from the list „Õpilased” and from the student card („Õppesuunad”,
+`EnrollmentManager.jsx`); „Lisa õpilane” warns about a card with the same name (`similarStudents.js`) before a new card is made.
 
 Archive and restore apply atomically to every physical student document represented by the person projection. They
 only change lifecycle metadata (`active`, `archivedAt` or `restoredAt`) and preserve document IDs, enrollments and all

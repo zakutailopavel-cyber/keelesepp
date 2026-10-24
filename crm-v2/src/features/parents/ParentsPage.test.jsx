@@ -174,4 +174,19 @@ describe('ParentsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Näita kõiki' }));
     await waitFor(() => expect(document.querySelectorAll('.parent-card').length).toBe(2));
   });
+
+  it('opened from a card linked only by the parent\'s e-mail (/parents?student=<id>) it shows that child\'s parent (Oleksiy 2026-10-24)', async () => {
+    const data = repositories();
+    data.studentRepository.list.mockResolvedValue({ items: [...students, { id: 'student-3', name: 'Karl', parentEmail: 'TEINE@example.com', level: 'A2', subject: 'Matemaatika', teacher: 'Õpetaja', active: true }] });
+    render(<MemoryRouter initialEntries={['/parents?student=student-3']}><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><ParentsPage {...data} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByText(/Näitan selle õpilase lapsevanemat/)).toBeInTheDocument();
+    expect([...document.querySelectorAll('.parent-card h2')].map((h) => h.textContent)).toEqual(['Teine Vanem']);
+  });
+
+  it('a card with no parent account: the page says so instead of an empty list', async () => {
+    const data = repositories();
+    render(<MemoryRouter initialEntries={['/parents?student=student-2']}><AuthContext.Provider value={{ user: { uid: 'a', roles: ['admin'] } }}><ParentsPage {...data} /></AuthContext.Provider></MemoryRouter>);
+    expect(await screen.findByText(/pole ühtegi lapsevanema kontot seotud/)).toBeInTheDocument();
+    expect(document.querySelectorAll('.parent-card').length).toBe(0);
+  });
 });

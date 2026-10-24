@@ -55,3 +55,6 @@ export function mainSubject(student = {}) {
   const own = subjectName(student.subject);
   return subjects.includes(own) ? own : subjects[0] || own || 'Eesti keel';
 }
+
+// the subjects the school teaches (suggestions when a subject is added to a card; any other name is allowed)
+export const SUBJECT_CHOICES = ['Eesti keel', 'Inglise keel', 'Matemaatika', 'Vene keel'];

@@ -36,6 +36,48 @@
   by the tool). The resync tool needs the owner's permission and a service account to run.
 - Next safe step: owner merges; Oleksiy cancels a test lesson as a teacher and re-books its room, then opens
   „Minu ajad”.
+## 2026-10-24 · agent/student-card-fixes — student card: lessons after a rename, parent link, second subject on one card
+
+- Base: `main` f69a872 (2026-10-24). Draft PR from `agent/student-card-fixes`. Students / parents UI only (no calendar,
+  no finance logic, no rules, no functions, no production writes).
+- Asked (Oleksiy, „Баги в системе” 2026-10-17…24): (1) future lessons missing on a renamed card; (2) a button from the
+  student's card to the parent's card; (3) several courses with different teachers on ONE card.
+- (1) Already fixed by #663 (2026-10-18): the card reads `schedule` / `lessons` by `studentId`, and the cause was a
+  weekly series with a past start date, not the name. Read-only production check today: 141 live schedule entries,
+  all with a valid `studentId` (0 missing, 0 unknown); 8 of them carry an old name of 4 renamed cards and all 4 cards
+  show their next lessons with the current code. No data fix needed (180 entries without `studentId` are all from
+  2026-06-15…08-19, none live; 12 `lessons` point to card ids that no longer exist). This PR: regression test
+  (renamed card keeps its lessons) and the subject of each next lesson on a card with several subjects.
+- (2) „Ava lapsevanema kaart” existed (2026-10-22, linked parent account ids). Gap: a card linked to its parent only
+  by the parent's e-mail/name had no link (2 active cards in production). Now it gets „Ava lapsevanema kaart” →
+  `/parents?student=<card id>`: ParentsPage shows the parents whose children include that card (same matching as the
+  page: id, e-mail, name), or says no parent account is linked. Parent → child links already existed.
+- (3) Already built: enrollments (`students.enrollments`, `addEnrollment` / `updateEnrollment`), subject switcher, a
+  teacher sees only their subject, price per subject in Finantsid → Arveldus (`studentRevenuePlans.subjectPrices`),
+  one invoice with lines per subject. Missing glue: the track editor was only in the list „Õpilased”. Now:
+  - `EnrollmentManager.jsx` (moved out of StudentsPage) opens on the card: hero button „Õppesuunad” and „+ Lisa aine
+    teise õpetajaga” under Õpetaja/Õppesuunad (admin only); `/students/<id>?enrollments=1` opens it at once. Subject
+    suggestions (`SUBJECT_CHOICES` in subjects.js), the name is normalised (`subjectName`), the same subject with the
+    same teacher is refused. After adding: notice „… Tunnihinna saab määrata Finantsid → Arveldus”; the price field
+    of the new subject appears there by itself. Only the card is re-read (the window stays open).
+  - „Lisa õpilane”: `similarStudents.js` warns when a card with the same name (or name + surname, any order) exists
+    and links to that card with the track editor open — the main source of duplicate cards.
+  - „Muuda andmeid” on a card with several subjects says it edits the main subject and lists the others.
+  - Invoicing untouched.
+- Duplicates (read-only, 97 active cards): exact same name — 2 pairs, both one subject (the two „Maria” are two
+  children per the owner; two „Mykyta” cards, one from a parent account, one from the learner's own registration).
+  Same parent + similar name + different subjects — 1 pair („Milan” English / „Milan Grozovski” Estonian, same
+  grade): very likely one child on two cards. Not merged (owner decides; „Liida kaardid” keeps both subjects).
+- Files: crm-v2/src/features/students/{EnrollmentManager.jsx (new), similarStudents.js (+test, new),
+  StudentProfilePage.jsx, StudentsPage.jsx, StudentForm.jsx, StudentLessonsPanel.jsx, subjects.js,
+  studentProfileTabs.css} + tests; features/parents/ParentsPage.jsx (+test); styles/index.css.
+- Checks: crm-v2 whole vitest 347 files passed + 1 skipped, 2441 tests: 2438 passed, 3 skipped, 0 failed (students +
+  parents 118 → +12 new); eslint 0 errors (18 old warnings); `npm run build` ok. Visual check on a local stand
+  (card: add „inglise keel” → „Inglise keel · Anhelina Korotka”, notice, Tunnid with subjects, Arveldus price field;
+  „Lisa õpilane” warning and its link; `/parents?student=`); stand not committed.
+- Deploy: frontend only (goes with main). No rules / functions.
+- Owner decisions: merge „Milan” + „Milan Grozovski” (and the two „Mykyta”) with „Liida kaardid”?
+- Next safe step: merge; the administrator adds a second subject on a card and sets its price in Arveldus.
 
 ## 2026-10-24 · agent/learner-announcements — „Teated”: the school's announcements before the learner portal opens
 
