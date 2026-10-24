@@ -33,4 +33,28 @@ function roomBookingFor(scheduleId, data) {
   };
 }
 
-module.exports = { roomBookingFor };
+// the fields that decide whether a room is free (updatedAt and the like are not compared)
+const DECIDING = ["roomId", "recurring", "date", "day", "startDate", "endDate", "time", "duration", "status"];
+const sameBooking = (a, b) => DECIDING.every((key) => String(a?.[key] ?? "") === String(b?.[key] ?? ""))
+  && JSON.stringify([...(a?.excludedDates || [])].sort()) === JSON.stringify([...(b?.excludedDates || [])].sort());
+
+// Stale roomBookings (tools/room-bookings-resync.js, dry run first): what the trigger would write for every schedule
+// entry now, compared with what is stored. → { write: [{ scheduleId, booking, reason }], remove: [{ scheduleId, reason }] }
+function roomBookingResyncPlan(schedules = [], bookings = []) {
+  const stored = new Map(bookings.map((booking) => [String(booking.scheduleId || booking.id), booking]));
+  const seen = new Set();
+  const write = [];
+  const remove = [];
+  for (const { id, data } of schedules) {
+    seen.add(String(id));
+    const want = roomBookingFor(id, data);
+    const have = stored.get(String(id));
+    if (want && !have) write.push({ scheduleId: String(id), booking: want, reason: "missing" });
+    else if (want && !sameBooking(want, have)) write.push({ scheduleId: String(id), booking: want, reason: "changed" });
+    else if (!want && have) remove.push({ scheduleId: String(id), reason: data?.status === "Tühistatud" ? "cancelled" : data?.online === true ? "online" : "no room" });
+  }
+  for (const [scheduleId] of stored) if (!seen.has(scheduleId)) remove.push({ scheduleId, reason: "lesson deleted" });
+  return { write, remove };
+}
+
+module.exports = { roomBookingFor, roomBookingResyncPlan };

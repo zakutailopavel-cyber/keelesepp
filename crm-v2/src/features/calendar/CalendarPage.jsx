@@ -189,7 +189,11 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   // admin notes on lessons (Oleksiy 2026-10-15): all for an administrator, the own lessons' notes for a teacher
   // rooms and every lesson's room booking (Oleksiy 2026-10-15); bookings saved in this session count at once (the
   // server's booking follows a moment later)
-  const roomsState = useAsyncData(() => (roomRepository?.list ? Promise.all([roomRepository.list(), roomRepository.bookings()]).catch(() => [[], []]) : Promise.resolve([[], []])), [roomRepository]);
+  const roomsState = useAsyncData(() => (roomRepository?.list ? roomRepository.list().catch(() => []) : Promise.resolve([])), [roomRepository]);
+  // the server's bookings are read again on every calendar reload (Oleksiy 2026-10-22, „Tühista” did not free the
+  // room): a teacher sees other teachers' lessons only through them, so a lesson cancelled elsewhere frees its room
+  const hasRooms = (roomsState.data || []).some((room) => room.active !== false);
+  const bookingsState = useAsyncData(() => (hasRooms && roomRepository?.bookings ? roomRepository.bookings().catch(() => []) : Promise.resolve([])), [roomRepository, hasRooms, state.data]);
   const [localBookings, setLocalBookings] = useState({});
   const [roomsOpen, setRoomsOpen] = useState(false);
   const notesState = useAsyncData(() => (noteRepository?.list ? noteRepository.list(teacherOnly ? { teacherUid: user.uid } : {}).catch(() => []) : Promise.resolve([])), [noteRepository, teacherOnly, user.uid]);
@@ -372,8 +376,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       || student?.subject || '';
   };
   const formStudent = studentMap.get(form.studentId);
-  const rooms = roomsState.data?.[0] || [];
-  const bookings = mergedBookings(roomsState.data?.[1] || [], scheduleEvents, localBookings);
+  const rooms = roomsState.data || [];
+  const bookings = mergedBookings(bookingsState.data || [], scheduleEvents, localBookings);
   const activeRooms = rooms.filter((room) => room.active !== false);
   const formRoomChoices = modal && !form.online && activeRooms.length ? roomChoices(rooms, bookings, { ...form, startDate: form.date, excludedDates: editing?.excludedDates || [] }, editing?.id || '') : [];
   const formTracks = tracksOf(formStudent);

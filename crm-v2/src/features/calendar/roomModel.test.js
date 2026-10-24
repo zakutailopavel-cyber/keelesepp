@@ -64,4 +64,12 @@ describe('room bookings follow the lessons on the calendar (Oleksiy 2026-10-22)'
   it('online lessons take no room', () => {
     expect(mergedBookings([], [{ ...lesson, online: true }])).toEqual([]);
   });
+
+  it('a cancelled or online booking never holds the room (an old server booking included)', () => {
+    const candidate = { date: '2026-10-15', time: '10:00', duration: 60 };
+    expect(roomConflict([booking({ status: 'Tühistatud' })], candidate, 'r1')).toBe('');
+    expect(roomConflict([booking({ online: true })], candidate, 'r1')).toBe('');
+    expect(roomConflict([booking({ recurring: true, startDate: '2026-10-01', excludedDates: ['2026-10-15'] })], candidate, 'r1')).toBe('');
+    expect(roomConflict([booking()], candidate, 'r1')).toBe('2026-10-15');
+  });
 });
