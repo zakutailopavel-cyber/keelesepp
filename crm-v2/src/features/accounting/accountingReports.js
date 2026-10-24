@@ -11,6 +11,15 @@ export const ACCOUNT_TYPES = [
 ];
 export const accountTypeLabel = (type) => ACCOUNT_TYPES.find(([value]) => value === type)?.[1] || type;
 
+// ---- partners (the accountant 2026-10-24, docs/ACCOUNTING.md „Partnerid”): a line may carry { type, id, name } ----
+// lines on the supplier accounts need a supplier in a manual entry (functions/accounting-core.js SUPPLIER_ACCOUNTS)
+export const SUPPLIER_ACCOUNTS = ['2110', '1350'];
+export const CUSTOMER_ACCOUNTS = ['1200', '2500'];
+export const PARTNER_TYPE_LABELS = { supplier: 'Tarnija', customer: 'Klient' };
+export const partnerLabel = (partner) => String(partner?.name || '');
+// one key per partner: a card id when there is one, else the name; lines without a partner → 'none'
+export const partnerKey = (partner) => (partner && (partner.id || partner.name) ? `${partner.type || ''}:${partner.id || String(partner.name).trim().toLocaleLowerCase('et')}` : 'none');
+
 const byNumber = (a, b) => String(a.date).localeCompare(String(b.date)) || String(a.number).localeCompare(String(b.number));
 const inPeriod = (date, { from = '', to = '' } = {}) => (!from || date >= from) && (!to || date <= to);
 
@@ -87,6 +96,7 @@ export function journalReport(entries = [], accounts = [], { from = '', to = '',
         name: names.get(String(l.account)) || '',
         documentRef: entry.documentRef || '',
         description: l.note ? `${entry.description || ''}${sep}${l.note}` : entry.description || '',
+        partner: l.partner && (l.partner.id || l.partner.name) ? l.partner : null,
         debitCents: l.debitCents || 0,
         creditCents: l.creditCents || 0,
       }));
@@ -178,9 +188,11 @@ export function trialBalance(entries = [], accounts = [], { from = '', to = '' }
   return { rows, total, balanced: total.turnover.debit === total.turnover.credit && total.closing.debit === total.closing.credit };
 }
 
-// pearaamat: the lines of one account in date order with a running balance
-export function ledger(entries = [], account, { from = '', to = '' } = {}, accounts = []) {
+// pearaamat: the lines of one account in date order with a running balance; `partner` (a partnerKey) keeps only
+// that partner's lines (the accountant 2026-10-24: pearaamat by partner)
+export function ledger(entries = [], account, { from = '', to = '', partner = '' } = {}, accounts = []) {
   const code = String(account);
+  const mine = (l) => String(l.account) === code && (!partner || partnerKey(l.partner) === partner);
   const type = accounts.find((a) => String(a.code) === code)?.type;
   const yearStart = from ? `${from.slice(0, 4)}-01-01` : '';
   const result = type === 'income' || type === 'expense';
@@ -188,17 +200,73 @@ export function ledger(entries = [], account, { from = '', to = '' } = {}, accou
   sortedEntries(entries).forEach((e) => {
     if (!from || (e.date >= from && !startsPeriod(e, from))) return;
     if (result && e.date < yearStart) return;
-    (e.lines || []).filter((l) => String(l.account) === code).forEach((l) => { balance += (l.debitCents || 0) - (l.creditCents || 0); });
+    (e.lines || []).filter(mine).forEach((l) => { balance += (l.debitCents || 0) - (l.creditCents || 0); });
   });
   const opening = balance;
   const rows = [];
   sortedEntries(entries).filter((e) => inPeriod(e.date, { from, to }) && !startsPeriod(e, from)).forEach((e) => {
-    (e.lines || []).filter((l) => String(l.account) === code).forEach((l) => {
+    (e.lines || []).filter(mine).forEach((l) => {
       balance += (l.debitCents || 0) - (l.creditCents || 0);
-      rows.push({ entryId: e.id, number: e.number, date: e.date, description: e.description, documentRef: e.documentRef, debitCents: l.debitCents || 0, creditCents: l.creditCents || 0, balance });
+      rows.push({ entryId: e.id, number: e.number, date: e.date, description: e.description, documentRef: e.documentRef, partner: l.partner || null, debitCents: l.debitCents || 0, creditCents: l.creditCents || 0, balance });
     });
   });
   return { opening, rows, closing: balance };
+}
+
+// Partnerid (the accountant 2026-10-24, like Merit's partner report): per partner on one account (default 2110 Võlad
+// tarnijatele; '' = every account) its balance before the period, debit and credit turnover and closing balance,
+// with the lines for the drill-down. Lines without a partner are one row „Partner puudub”. Income / expense accounts
+// start each year from zero, like the käibeandmik. `suppliers` give the registry code; `labels` (entry id → „OA 3”)
+// the kande kood of a line.
+export function partnerReport(entries = [], accounts = [], { from = '', to = '', account = '2110', type = '' } = {}, { suppliers = [], labels = new Map() } = {}) {
+  const types = new Map(accounts.map((a) => [String(a.code), a.type]));
+  const codes = new Map(suppliers.map((s) => [String(s.id), s.regCode || '']));
+  const yearStart = from ? `${from.slice(0, 4)}-01-01` : '';
+  const rows = new Map();
+  const rowOf = (partner) => {
+    const key = partnerKey(partner);
+    if (!rows.has(key)) {
+      rows.set(key, {
+        key, type: partner?.type || '', id: partner?.id || '', name: partner ? partnerLabel(partner) : 'Partner puudub',
+        regCode: partner?.type === 'supplier' ? codes.get(String(partner.id)) || '' : '',
+        openingBalance: 0, turnover: { debit: 0, credit: 0 }, lines: [],
+      });
+    }
+    return rows.get(key);
+  };
+  sortedEntries(entries).forEach((e) => {
+    if (e.deleted) return;
+    (e.lines || []).forEach((l) => {
+      const code = String(l.account);
+      if (account && code !== String(account)) return;
+      if (type && (l.partner?.type || '') !== type) return;
+      const result = types.get(code) === 'income' || types.get(code) === 'expense';
+      const net = (l.debitCents || 0) - (l.creditCents || 0);
+      const before = (from && e.date < from) || startsPeriod(e, from);
+      if (before) {
+        if (result && e.date < yearStart) return;
+        rowOf(l.partner).openingBalance += net;
+        return;
+      }
+      if (!inPeriod(e.date, { from, to })) return;
+      const row = rowOf(l.partner);
+      row.turnover.debit += l.debitCents || 0;
+      row.turnover.credit += l.creditCents || 0;
+      row.lines.push({ entryId: e.id, label: labels.get(e.id) || '', number: e.number, date: e.date, documentRef: e.documentRef || '', description: l.note ? `${e.description || ''} · ${l.note}` : e.description || '', account: code, debitCents: l.debitCents || 0, creditCents: l.creditCents || 0 });
+    });
+  });
+  const list = [...rows.values()].map((r) => {
+    let balance = r.openingBalance;
+    const lines = r.lines.map((l) => { balance += l.debitCents - l.creditCents; return { ...l, balance }; });
+    return { ...r, lines, opening: split(r.openingBalance), closing: split(balance), closingBalance: balance };
+  }).filter((r) => r.openingBalance || r.turnover.debit || r.turnover.credit)
+    .sort((a, b) => (a.key === 'none') - (b.key === 'none') || a.name.localeCompare(b.name, 'et'));
+  const total = list.reduce((t, r) => ({
+    opening: { debit: t.opening.debit + r.opening.debit, credit: t.opening.credit + r.opening.credit },
+    turnover: { debit: t.turnover.debit + r.turnover.debit, credit: t.turnover.credit + r.turnover.credit },
+    closing: { debit: t.closing.debit + r.closing.debit, credit: t.closing.credit + r.closing.credit },
+  }), { opening: { debit: 0, credit: 0 }, turnover: { debit: 0, credit: 0 }, closing: { debit: 0, credit: 0 } });
+  return { rows: list, total, missing: list.find((r) => r.key === 'none') || null };
 }
 
 // kasumiaruanne for the period: income and expense by report line
@@ -261,7 +329,7 @@ export function parseEuro(text) {
 }
 
 // the rows of an entry being typed (amounts as text): a blank row and the debit / credit sums in cents
-export const blankEntryLine = () => ({ account: '', debit: '', credit: '', note: '' });
+export const blankEntryLine = () => ({ account: '', debit: '', credit: '', note: '', partner: null });
 export const entryLineTotals = (lines) => lines.reduce((t, l) => ({ debit: t.debit + (parseEuro(l.debit) || 0), credit: t.credit + (parseEuro(l.credit) || 0) }), { debit: 0, credit: 0 });
 
 // corrections (docs/ACCOUNTING.md „Parandamine”): what can be done with an entry on screen. The server checks again.
@@ -276,10 +344,10 @@ export function entryActions(entry, lockedThrough) {
     locked: !open,
   };
 }
-export const HISTORY_ACTIONS = { edit: 'Muudetud', override: 'Read parandatud', document: 'Dokument parandatud', delete: 'Kustutatud' };
-export const linesText = (lines = []) => lines.map((l) => `${l.account} ${l.debitCents ? `D ${amount(l.debitCents)}` : `K ${amount(l.creditCents)}`}`).join(', ');
+export const HISTORY_ACTIONS = { edit: 'Muudetud', override: 'Read parandatud', document: 'Dokument parandatud', delete: 'Kustutatud', partner: 'Partner lisatud' };
+export const linesText = (lines = []) => lines.map((l) => `${l.account} ${l.debitCents ? `D ${amount(l.debitCents)}` : `K ${amount(l.creditCents)}`}${l.partner?.name ? ` (${l.partner.name})` : ''}`).join(', ');
 // the lines of a stored entry as editable text rows (JournalDraft)
-export const editableLines = (lines = []) => lines.map((l) => ({ account: String(l.account), debit: l.debitCents ? amount(l.debitCents).replace(/\s/g, '') : '', credit: l.creditCents ? amount(l.creditCents).replace(/\s/g, '') : '', note: l.note || '' }));
+export const editableLines = (lines = []) => lines.map((l) => ({ account: String(l.account), debit: l.debitCents ? amount(l.debitCents).replace(/\s/g, '') : '', credit: l.creditCents ? amount(l.creditCents).replace(/\s/g, '') : '', note: l.note || '', partner: l.partner && (l.partner.id || l.partner.name) ? { type: l.partner.type || '', id: l.partner.id || '', name: l.partner.name || '' } : null }));
 
 // the content of the entry: the header „kande sisu”, or — when it was left empty — the first line's note (the accountant
 // typed „müügiarve …” on the line and the entry did not save, 2026-10-24)

@@ -42,8 +42,8 @@ const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const pad = (n) => String(n).padStart(2, '0');
 export const stamp = (d) => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
-// Päevaraamat (journalReport) as the template's ruled grid, six columns (Konto | Kuupäev | Dokument | Kirjeldus |
-// Deebet | Kreedit; no rate or currency, the accountant 2026-10-23), every cell bordered, no blank rows
+// Päevaraamat (journalReport) as the template's ruled grid (Konto | Kuupäev | Dokument | Kirjeldus | Partner | Deebet |
+// Kreedit; no rate or currency, the accountant 2026-10-23; Partner since 2026-10-24), every cell bordered, no blank rows
 export function journalWorkbook(report, { company, printedAt = new Date() }) {
   const { filters } = report;
   const out = [
@@ -51,18 +51,18 @@ export function journalWorkbook(report, { company, printedAt = new Date() }) {
     row([text('Periood'), text(`${dmy(filters.from) || '…'} kuni ${dmy(filters.to) || '…'}`)]),
     row([text('Kande kood'), text(filters.code ? `${filters.code} ${filters.codeName}` : 'Kõik')]),
     row([text('Järjestus'), text(filters.sortLabel)]),
-    row([gText('Kanne', 'gHead'), gText('Kuupäev', 'gHead'), gText('Dokument', 'gHead'), gText('', 'gHead'), gText('', 'gHead'), gText('', 'gHead')]),
-    row([gText('Konto', 'gHead'), gText('Kuupäev', 'gHead'), gText('Dokument', 'gHead'), gText('Kirjeldus', 'gHead'), gText('Deebet', 'gHeadNum'), gText('Kreedit', 'gHeadNum')]),
+    row([gText('Kanne', 'gHead'), gText('Kuupäev', 'gHead'), gText('Dokument', 'gHead'), gText('', 'gHead'), gText('', 'gHead'), gText('', 'gHead'), gText('', 'gHead')]),
+    row([gText('Konto', 'gHead'), gText('Kuupäev', 'gHead'), gText('Dokument', 'gHead'), gText('Kirjeldus', 'gHead'), gText('Partner', 'gHead'), gText('Deebet', 'gHeadNum'), gText('Kreedit', 'gHeadNum')]),
   ];
   report.entries.forEach((entry) => {
-    out.push(row([gText(entry.label, 'gEntry'), gText(dmy(entry.date), 'gEntry'), gText(entry.documentRef, 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry')]));
-    entry.lines.forEach((l) => out.push(row([gText(`${l.account} ${l.name}`.trim()), gText(dmy(entry.date)), gText(l.documentRef), gText(l.description), gNum(l.debitCents), gNum(l.creditCents)])));
-    out.push(row([gText('', 'g', 3), gNum(entry.debitCents, 'gTotal'), gNum(entry.creditCents, 'gTotal')]));
+    out.push(row([gText(entry.label, 'gEntry'), gText(dmy(entry.date), 'gEntry'), gText(entry.documentRef, 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry')]));
+    entry.lines.forEach((l) => out.push(row([gText(`${l.account} ${l.name}`.trim()), gText(dmy(entry.date)), gText(l.documentRef), gText(l.description), gText(l.partner?.name || ''), gNum(l.debitCents), gNum(l.creditCents)])));
+    out.push(row([gText('', 'g', 4), gNum(entry.debitCents, 'gTotal'), gNum(entry.creditCents, 'gTotal')]));
   });
-  out.push(row([gText(`Kokku ${plural(report.entryCount, 'kanne', 'kannet')}`, 'gBold', 3), gNum(report.debitCents, 'gTotal'), gNum(report.creditCents, 'gTotal')]));
-  out.push(row([gText(plural(report.lineCount, 'kirje', 'kirjet'), 'gBold', 5)]));
-  out.push(row([text(company.name), text(stamp(printedAt)), text(''), text(''), text(`Rg-kood ${company.regCode}`)]));
-  return workbook([{ name: 'Päevaraamat', columns: [190, 70, 90, 300, 80, 80], rows: out }]);
+  out.push(row([gText(`Kokku ${plural(report.entryCount, 'kanne', 'kannet')}`, 'gBold', 4), gNum(report.debitCents, 'gTotal'), gNum(report.creditCents, 'gTotal')]));
+  out.push(row([gText(plural(report.lineCount, 'kirje', 'kirjet'), 'gBold', 6)]));
+  out.push(row([text(company.name), text(stamp(printedAt)), text(''), text(''), text(''), text(`Rg-kood ${company.regCode}`)]));
+  return workbook([{ name: 'Päevaraamat', columns: [190, 70, 90, 260, 130, 80, 80], rows: out }]);
 }
 
 // Käibeandmik as a ruled grid: Konto | Nimetus | Algsaldo D/K | Käive D/K | Lõppsaldo D/K (two-level header), Kokku
@@ -79,6 +79,38 @@ export function trialBalanceWorkbook(balance, { company, period }) {
     row([gText('Kokku', 'gBold', 1), ...six(balance.total).map((v) => gNum(v, 'gTotal'))]),
   ];
   return workbook([{ name: 'Käibeandmik', columns: [60, 260, 85, 85, 85, 85, 85, 85], rows: out }]);
+}
+
+// Partnerid (partnerReport): sheet „Partnerid” — Partner | Reg-kood | Algsaldo D/K | Käive D/K | Lõppsaldo D/K, Kokku;
+// sheet „Read” — every line of the period with its partner (the drill-down), ruled like the other registers
+export function partnersWorkbook(report, { company, period, accountLabel }) {
+  const cell = (cents) => (cents ? gNum(cents) : gText(''));
+  const six = (r) => [r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit];
+  const head = [
+    row([text('Partnerid', 'title')]),
+    row([text('Periood'), text(`${dmy(period.from) || '…'} kuni ${dmy(period.to) || '…'}`)]),
+    row([text('Konto'), text(accountLabel)]),
+    row([text('Ettevõte'), text(`${company.name}, Rg-kood ${company.regCode}`)]),
+  ];
+  const summary = [
+    ...head,
+    `<Row><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Partner</Data></Cell><Cell ss:StyleID="gHead" ss:MergeDown="1"><Data ss:Type="String">Reg-kood</Data></Cell>${['Algsaldo', 'Käive', 'Lõppsaldo'].map((t) => gText(t, 'gHeadCenter', 1)).join('')}</Row>`,
+    `<Row><Cell ss:Index="3" ss:StyleID="gHeadNum"><Data ss:Type="String">Deebet</Data></Cell>${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}${gText('Deebet', 'gHeadNum')}${gText('Kreedit', 'gHeadNum')}</Row>`,
+    ...report.rows.map((r) => row([gText(r.name), gText(r.regCode), ...six(r).map(cell)])),
+    row([gText('Kokku', 'gBold', 1), ...six(report.total).map((v) => gNum(v, 'gTotal'))]),
+  ];
+  const lines = [
+    ...head,
+    row(['Partner', 'Kuupäev', 'Kanne', 'Dokument', 'Konto', 'Kirjeldus'].map((h) => gText(h, 'gHead')).concat(['Deebet', 'Kreedit', 'Saldo'].map((h) => gText(h, 'gHeadNum')))),
+    ...report.rows.flatMap((r) => [
+      row([gText(r.name, 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gText('Algsaldo', 'gEntry'), gText('', 'gEntry'), gText('', 'gEntry'), gNum(r.openingBalance, 'gTotal')]),
+      ...r.lines.map((l) => row([gText(r.name), gText(dmy(l.date)), gText(l.label || l.number), gText(l.documentRef), gText(l.account), gText(l.description), gNum(l.debitCents), gNum(l.creditCents), gNum(l.balance)])),
+    ]),
+  ];
+  return workbook([
+    { name: 'Partnerid', columns: [200, 80, 85, 85, 85, 85, 85, 85], rows: summary },
+    { name: 'Read', columns: [170, 70, 60, 100, 50, 280, 80, 80, 80], rows: lines },
+  ]);
 }
 
 export function statementsWorkbook({ sheet, result }, { company, period }) {

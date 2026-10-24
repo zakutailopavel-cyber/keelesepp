@@ -2,14 +2,49 @@
 // docs/ACCOUNTING.md „Päevaraamat kui tabel”). Pure helpers of JournalGrid.jsx: the cell model, the working copy of
 // an entry being edited, D = K checks, filters, sorting, copy as TSV, paste from Excel and the „Asenda konto”
 // preview. Nothing here talks to the server; every change still goes through financeApi.
-import { amount, dmy, editableLines, entryActions, parseEuro } from './accountingReports.js';
+import { SUPPLIER_ACCOUNTS, amount, dmy, editableLines, entryActions, parseEuro, partnerLabel } from './accountingReports.js';
 
-// the six columns of the grid (the owner's template): Konto | Kuupäev | Dokument | Kirjeldus | Deebet | Kreedit
-export const COLUMNS = ['account', 'date', 'doc', 'text', 'debit', 'credit'];
-export const COLUMN_LABELS = ['Konto', 'Kuupäev', 'Dokument', 'Kirjeldus', 'Deebet', 'Kreedit'];
+// the columns of the grid (the owner's template + the partner, the accountant 2026-10-24: like Merit, each line on a
+// partner account carries its partner): Konto | Kuupäev | Dokument | Kirjeldus | Partner | Deebet | Kreedit
+export const COLUMNS = ['account', 'date', 'doc', 'text', 'partner', 'debit', 'credit'];
+export const COLUMN_LABELS = ['Konto', 'Kuupäev', 'Dokument', 'Kirjeldus', 'Partner', 'Deebet', 'Kreedit'];
+export const COL = Object.freeze({ account: 0, date: 1, doc: 2, text: 3, partner: 4, debit: 5, credit: 6 });
 // header click sorts the entry blocks by that column
-export const SORT_KEYS = { account: 'code', date: 'date', doc: 'doc', text: 'text', debit: 'amount', credit: 'amount' };
-export const SORT_LABELS = { code: 'Kande kood', date: 'Kuupäev', doc: 'Dokument', text: 'Kirjeldus', amount: 'Summa' };
+export const SORT_KEYS = { account: 'code', date: 'date', doc: 'doc', text: 'text', partner: 'partner', debit: 'amount', credit: 'amount' };
+export const SORT_LABELS = { code: 'Kande kood', date: 'Kuupäev', doc: 'Dokument', text: 'Kirjeldus', partner: 'Partner', amount: 'Summa' };
+
+// ---- partners (Tarnijad) ----
+const lower = (value) => String(value || '').trim().toLocaleLowerCase('et');
+// suppliers matching what is typed: a registry code from its start, a name anywhere; active ones only
+export function partnerMatches(suppliers = [], text = '', limit = 8) {
+  const query = lower(text);
+  if (!query) return [];
+  const open = suppliers.filter((s) => s.active !== false);
+  const byName = open.filter((s) => lower(s.name).startsWith(query));
+  const rest = open.filter((s) => !byName.includes(s) && (lower(s.name).includes(query) || String(s.regCode || '').startsWith(query)));
+  return [...byName, ...rest].slice(0, limit);
+}
+export const supplierPartner = (supplier) => ({ type: 'supplier', id: String(supplier.id), name: String(supplier.name || '') });
+// typed partner text → a supplier partner (exact name or registry code), the current partner when unchanged, an
+// unresolved partner ({ type: '' }) otherwise — which blocks saving until a supplier is picked; '' → null
+export function resolvePartner(text, suppliers = [], current = null) {
+  const value = String(text || '').trim();
+  if (!value) return null;
+  if (current && value === current.name) return current;
+  const hit = suppliers.find((s) => String(s.regCode || '').trim() === value)
+    || suppliers.find((s) => s.active !== false && lower(s.name) === lower(value))
+    || suppliers.find((s) => lower(s.name) === lower(value));
+  return hit ? supplierPartner(hit) : { type: '', id: '', name: value };
+}
+const partnerSnapshot = (p) => (p && (p.id || p.name) ? `${p.type || ''}:${p.id || ''}:${String(p.name || '').trim()}` : '');
+// the partner problem of lines (an unresolved name; a supplier account without a supplier when required), '' if none
+export function partnerProblem(lines = [], { required = false } = {}) {
+  const unresolved = lines.find((l) => l.partner && !l.partner.type && l.partner.name);
+  if (unresolved) return `Partner „${unresolved.partner.name}” — vali tarnija nimekirjast (Tarnijad).`;
+  if (!required) return '';
+  const missing = lines.find((l) => SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0) || l.debitCents || l.creditCents));
+  return missing ? `Real ${String(missing.account).trim()} puudub partner (tarnija).` : '';
+}
 
 // ---- the working copy of an entry (amounts as typed text) ----
 export const toWorking = (entry) => ({
@@ -19,7 +54,7 @@ export const toWorking = (entry) => ({
   lines: editableLines(entry.lines || []),
 });
 
-export const blankWorkingLine = () => ({ account: '', debit: '', credit: '', note: '' });
+export const blankWorkingLine = () => ({ account: '', debit: '', credit: '', note: '', partner: null });
 
 // cents of the working lines; blank lines are left out (the server drops them too)
 export function workingValues(working) {
@@ -28,7 +63,7 @@ export function workingValues(working) {
     description: working.description,
     documentRef: working.documentRef,
     lines: working.lines
-      .map((l) => ({ account: String(l.account || '').trim(), debitCents: parseEuro(l.debit) || 0, creditCents: parseEuro(l.credit) || 0, note: l.note || '' }))
+      .map((l) => ({ account: String(l.account || '').trim(), debitCents: parseEuro(l.debit) || 0, creditCents: parseEuro(l.credit) || 0, note: l.note || '', ...(l.partner && (l.partner.id || l.partner.name) ? { partner: l.partner } : {}) }))
       .filter((l) => l.account || l.debitCents || l.creditCents),
   };
 }
@@ -37,12 +72,13 @@ const snapshot = (values) => JSON.stringify({
   date: values.date || '',
   description: String(values.description || '').trim(),
   documentRef: String(values.documentRef || '').trim(),
-  lines: (values.lines || []).map((l) => [String(l.account), l.debitCents || 0, l.creditCents || 0, String(l.note || '').trim()]),
+  lines: (values.lines || []).map((l) => [String(l.account), l.debitCents || 0, l.creditCents || 0, String(l.note || '').trim(), partnerSnapshot(l.partner)]),
 });
 // true when the working copy is what the entry already holds (nothing to save)
 export const sameAsEntry = (working, entry) => snapshot(workingValues(working)) === snapshot(entry);
 
-// what blocks saving the working copy, '' when it can be saved. D ≠ K gives the difference (shown in red).
+// what blocks saving the working copy, '' when it can be saved. D ≠ K gives the difference (shown in red). A manual
+// entry needs a supplier on its 2110 / 1350 lines (the accountant 2026-10-24); an automatic entry only shows the hint.
 export function workingProblem(working, { origin = 'manual', accounts = [], reason = '', lockedThrough = '', originalDate = '' } = {}) {
   const totals = working.lines.reduce((t, l) => ({ debit: t.debit + (parseEuro(l.debit) || 0), credit: t.credit + (parseEuro(l.credit) || 0) }), { debit: 0, credit: 0 });
   const result = { ...totals, difference: totals.debit - totals.credit, problem: '' };
@@ -60,6 +96,7 @@ export function workingProblem(working, { origin = 'manual', accounts = [], reas
   else if (empty) result.problem = `Real ${empty.account} puudub summa.`;
   else if (values.lines.length < 2 || !values.lines.some((l) => l.debitCents) || !values.lines.some((l) => l.creditCents)) result.problem = 'Kandes peab olema vähemalt üks deebet- ja üks kreeditrida.';
   else if (totals.debit !== totals.credit) result.problem = `Deebet ja kreedit ei ole võrdsed: vahe ${amount(Math.abs(totals.debit - totals.credit))}.`;
+  else if (partnerProblem(working.lines, { required: origin === 'manual' })) result.problem = partnerProblem(working.lines, { required: origin === 'manual' });
   else if (!String(working.description || '').trim()) result.problem = 'Kande sisu (kirjeldus) on kohustuslik.';
   else if (!String(working.documentRef || '').trim()) result.problem = 'Viide algdokumendile on kohustuslik.';
   else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(working.date || ''))) result.problem = 'Kande kuupäev on vigane.';
@@ -73,11 +110,11 @@ export function workingProblem(working, { origin = 'manual', accounts = [], reas
 // a cell of a row: header row (line -1) or a line row; which columns can be typed into
 export function editableColumn(row, col, origin) {
   if (row.line < 0) {
-    if (col === 3) return true; // the entry's content
-    return origin === 'manual' && (col === 1 || col === 2);
+    if (col === COL.text) return true; // the entry's content
+    return origin === 'manual' && (col === COL.date || col === COL.doc);
   }
-  if (col === 0 || col === 3 || col === 4 || col === 5) return true;
-  return origin === 'manual' && (col === 1 || col === 2);
+  if (col === COL.account || col === COL.text || col === COL.partner || col === COL.debit || col === COL.credit) return true;
+  return origin === 'manual' && (col === COL.date || col === COL.doc);
 }
 
 // the text shown in a cell (copy as TSV uses the same)
@@ -86,36 +123,38 @@ export function cellText(entry, working, line, col) {
   const date = w ? w.date : entry.date;
   const doc = w ? w.documentRef : entry.documentRef;
   if (line < 0) {
-    return [entry.label, dmy(date), doc, w ? w.description : entry.description, '', ''][col];
+    return [entry.label, dmy(date), doc, w ? w.description : entry.description, '', '', ''][col];
   }
   if (w) {
     const l = w.lines[line] || {};
     const text = l.note ? `${w.description} · ${l.note}` : w.description;
     const num = (value) => { const cents = parseEuro(value); return Number.isNaN(cents) ? String(value) : amount(cents); };
-    return [l.account, dmy(date), doc, text, num(l.debit), num(l.credit)][col];
+    return [l.account, dmy(date), doc, text, partnerLabel(l.partner), num(l.debit), num(l.credit)][col];
   }
   const l = entry.lines[line] || {};
-  return [`${l.account} ${l.name || ''}`.trim(), dmy(date), doc, l.description, amount(l.debitCents), amount(l.creditCents)][col];
+  return [`${l.account} ${l.name || ''}`.trim(), dmy(date), doc, l.description, partnerLabel(l.partner), amount(l.debitCents), amount(l.creditCents)][col];
 }
 
 // the raw value a cell editor starts with
 export function cellValue(working, line, col) {
   if (line < 0) return [null, working.date, working.documentRef, working.description][col] ?? '';
   const l = working.lines[line] || {};
-  return [l.account, working.date, working.documentRef, l.note, l.debit, l.credit][col] ?? '';
+  return [l.account, working.date, working.documentRef, l.note, l.partner?.name || '', l.debit, l.credit][col] ?? '';
 }
 
-// a typed value written into the working copy; typing a debit clears the credit of the line and the other way round
-export function setCell(working, line, col, value) {
-  if (col === 1) return { ...working, date: parseDate(value) || value };
-  if (col === 2) return { ...working, documentRef: value };
-  if (line < 0) return col === 3 ? { ...working, description: value } : working;
+// a typed value written into the working copy; typing a debit clears the credit of the line and the other way round.
+// The partner cell takes a supplier picked from the list (`picked`) or resolves the typed name / registry code.
+export function setCell(working, line, col, value, { suppliers = [], picked = null } = {}) {
+  if (col === COL.date) return { ...working, date: parseDate(value) || value };
+  if (col === COL.doc) return { ...working, documentRef: value };
+  if (line < 0) return col === COL.text ? { ...working, description: value } : working;
   const lines = working.lines.map((l, i) => {
     if (i !== line) return l;
-    if (col === 0) return { ...l, account: accountOf(value) };
-    if (col === 3) return { ...l, note: value };
-    if (col === 4) return { ...l, debit: value, credit: value.trim() ? '' : l.credit };
-    if (col === 5) return { ...l, credit: value, debit: value.trim() ? '' : l.debit };
+    if (col === COL.account) return { ...l, account: accountOf(value) };
+    if (col === COL.text) return { ...l, note: value };
+    if (col === COL.partner) return { ...l, partner: picked && picked.name === String(value).trim() ? supplierPartner(picked) : resolvePartner(value, suppliers, l.partner || null) };
+    if (col === COL.debit) return { ...l, debit: value, credit: value.trim() ? '' : l.credit };
+    if (col === COL.credit) return { ...l, credit: value, debit: value.trim() ? '' : l.debit };
     return l;
   });
   return { ...working, lines };
@@ -164,8 +203,9 @@ export function rangeTsv(rows, anchor, focus, textOf) {
 export const inRange = (anchor, focus, row, col) => Boolean(anchor) && row >= Math.min(anchor.row, focus.row) && row <= Math.max(anchor.row, focus.row) && col >= Math.min(anchor.col, focus.col) && col <= Math.max(anchor.col, focus.col);
 
 // ---- filters and sorting (the line above the grid) ----
-export function filterEntries(entries, { account = '', text = '', doc = '', sum = '' } = {}) {
+export function filterEntries(entries, { account = '', text = '', doc = '', sum = '', partner = '' } = {}) {
   const acc = account.trim();
+  const partnerNeedle = lower(partner);
   const needle = text.trim().toLocaleLowerCase('et');
   const docNeedle = doc.trim().toLocaleLowerCase('et');
   const cents = sum.trim() ? parseEuro(sum) : null;
@@ -173,17 +213,20 @@ export function filterEntries(entries, { account = '', text = '', doc = '', sum 
     if (acc && !e.lines.some((l) => String(l.account).startsWith(acc))) return false;
     if (needle && !`${e.label} ${e.number} ${e.description} ${e.lines.map((l) => l.description).join(' ')}`.toLocaleLowerCase('et').includes(needle)) return false;
     if (docNeedle && !String(e.documentRef || '').toLocaleLowerCase('et').includes(docNeedle)) return false;
+    if (partnerNeedle && !e.lines.some((l) => lower(l.partner?.name).includes(partnerNeedle))) return false;
     if (cents !== null && !Number.isNaN(cents) && !(e.debitCents === cents || e.lines.some((l) => l.debitCents === cents || l.creditCents === cents))) return false;
     return true;
   });
 }
 
+const firstPartner = (entry) => String(entry.lines.find((l) => l.partner?.name)?.partner.name || '\uffff');
 const sorters = {
   code: (a, b) => a.code.localeCompare(b.code) || String(a.number).slice(0, 4).localeCompare(String(b.number).slice(0, 4)) || a.seq - b.seq,
   date: (a, b) => String(a.date).localeCompare(String(b.date)) || String(a.number).localeCompare(String(b.number)),
   doc: (a, b) => String(a.documentRef).localeCompare(String(b.documentRef), 'et', { numeric: true }) || String(a.date).localeCompare(String(b.date)),
   text: (a, b) => String(a.description).localeCompare(String(b.description), 'et') || String(a.date).localeCompare(String(b.date)),
   amount: (a, b) => a.debitCents - b.debitCents || String(a.date).localeCompare(String(b.date)),
+  partner: (a, b) => firstPartner(a).localeCompare(firstPartner(b), 'et') || String(a.date).localeCompare(String(b.date)),
 };
 export function sortEntries(entries, { key = 'code', dir = 'asc' } = {}) {
   const sorter = sorters[key] || sorters.code;
@@ -224,25 +267,27 @@ const isAmount = (text) => !text || !Number.isNaN(parseEuro(text));
 // a typed amount as the grid shows it ("1 234,5" → "1234,50"), invalid text kept so the cell shows the error
 const normAmount = (text) => { const cents = parseEuro(text); return !text ? '' : Number.isNaN(cents) ? text : cents ? amount(cents).replace(/\s/g, '') : ''; };
 
-// rows for a journal entry: Konto | Kirjeldus | Deebet | Kreedit, optionally Kuupäev | Dokument first; a copy of
-// the päevaraamat itself (Konto | Kuupäev | Dokument | Kirjeldus | Deebet | Kreedit) is read too. Header rows and
-// rows without an account are skipped.
+// rows for a journal entry: Konto | Kirjeldus | Deebet | Kreedit | Partner (the partner is optional), optionally
+// Kuupäev | Dokument first; a copy of the päevaraamat itself (Konto | Kuupäev | Dokument | Kirjeldus | Partner |
+// Deebet | Kreedit, or the older six columns without Partner) is read too. Header rows and rows without an account
+// are skipped. The partner comes back as text (`partnerText`); the caller resolves it against Tarnijad.
 export function pastedEntryLines(text) {
   let date = '';
   let documentRef = '';
   const lines = [];
   clipboardRows(text).forEach((cells) => {
-    let account; let note; let debit; let credit; let rowDate = ''; let rowDoc = '';
-    if (cells.length >= 6 && parseDate(cells[0])) [rowDate, rowDoc, account, note, debit, credit] = cells;
+    let account; let note; let debit; let credit; let rowDate = ''; let rowDoc = ''; let partner = '';
+    if (cells.length >= 6 && parseDate(cells[0])) [rowDate, rowDoc, account, note, debit, credit, partner = ''] = cells;
+    else if (cells.length >= 7 && parseDate(cells[1])) [account, rowDate, rowDoc, note, partner, debit, credit] = cells;
     else if (cells.length >= 6 && parseDate(cells[1])) [account, rowDate, rowDoc, note, debit, credit] = cells;
-    else if (cells.length >= 4) [account, note, debit, credit] = cells;
+    else if (cells.length >= 4) [account, note, debit, credit, partner = ''] = cells;
     else if (cells.length === 3) [account, debit, credit] = cells;
     else return;
     const code = accountOf(account);
     if (!/^\d+$/.test(code) || !isAmount(debit) || !isAmount(credit)) return;
     if (!date && rowDate) date = parseDate(rowDate);
     if (!documentRef && rowDoc) documentRef = rowDoc;
-    lines.push({ account: code, note: note || '', debit: normAmount(debit || ''), credit: normAmount(credit || '') });
+    lines.push({ account: code, note: note || '', debit: normAmount(debit || ''), credit: normAmount(credit || ''), partnerText: String(partner || '').trim() });
   });
   return { date, documentRef, lines };
 }
@@ -259,7 +304,7 @@ export function pastedPurchaseLines(text) {
 
 // paste into a working entry at a cell: the pasted rectangle goes over the grid's columns from that cell; missing
 // lines are added to the entry
-export function pasteIntoWorking(working, line, col, text, origin) {
+export function pasteIntoWorking(working, line, col, text, origin, suppliers = []) {
   const rows = clipboardRows(text);
   let next = { ...working, lines: [...working.lines] };
   const start = Math.max(0, line);
@@ -269,8 +314,8 @@ export function pasteIntoWorking(working, line, col, text, origin) {
     cells.forEach((value, c) => {
       const column = col + c;
       // an empty pasted cell keeps what is there (a typed amount on the other side clears it anyway)
-      if (column > 5 || value === '' || !editableColumn({ line: target }, column, origin)) return;
-      next = setCell(next, target, column, column === 4 || column === 5 ? normAmount(value) : value);
+      if (column > COL.credit || value === '' || !editableColumn({ line: target }, column, origin)) return;
+      next = setCell(next, target, column, column === COL.debit || column === COL.credit ? normAmount(value) : value, { suppliers });
     });
   });
   return next;

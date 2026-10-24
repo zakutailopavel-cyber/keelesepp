@@ -38,6 +38,10 @@ the accountant's Merit. INF 3 is a separate document (`docs/INF3.md`, next PR).
 Purchase entries are written by financeApi in the same transaction as the invoice or the payment (not by the sync),
 ids `auto_purchase-invoice_<id>` and `auto_purchase-payment_<invoiceId>_<paymentId>`.
 
+Partners (since 2026-10-24, see „Partnerid”): every line of an OA / VM entry carries the supplier; the 1200 / 2500
+lines of new sales entries (invoice, cancellation, credit note, payment, payment void, payer credit, refund) carry the
+customer `{ type: "customer", id: <student card id>, name: <payer name or student name> }` when the document has one.
+
 Sales revenue account: **3000** since 2026-10-23 (the accountant). Until then automatic sales entries used 3060
 Maksuvaba müügitulu; entries already written keep 3060 (nothing rewrites them automatically). The accountant moves
 them herself with „Asenda konto” 3060 → 3000 in the päevaraamat (see „Päevaraamat kui tabel”): each entry is corrected
@@ -69,8 +73,8 @@ screen shows the same grid. No PDF.
 Päevaraamat (`journalReport`, `journalWorkbook`):
 
 - Title, then the filters: Periood (from kuni to), Kande kood (one code or „Kõik”), Järjestus (Kande kood or Kuupäev).
-- Two header bands: Kanne | Kuupäev | Dokument and Konto | Kuupäev | Dokument | Kirjeldus | Deebet | Kreedit. No
-  rate or currency (all EUR).
+- Two header bands: Kanne | Kuupäev | Dokument and Konto | Kuupäev | Dokument | Kirjeldus | Partner | Deebet |
+  Kreedit (Partner since 2026-10-24, narrower than Kirjeldus). No rate or currency (all EUR).
 - Per entry a grey row (code + running number, date, document), its lines (account number and name, date, document,
   the entry content + line note, debit, credit as 1 234,56; a zero side shows 0,00) and a bold total row.
 - „Kokku N kannet” with the grand totals, „M kirjet”, footer: company, export time, „Rg-kood 17270880” (`COMPANY`, the
@@ -131,10 +135,16 @@ lock, D = K per entry, immutable entry numbers, no client writes.
 - **Filter and sort.** Filters above the grid: Konto (prefix), Tekst (content, notes, kande nr), Dokument, Summa (a
   line amount or the entry total). A header click sorts the entry blocks by that column (Kande kood, Kuupäev,
   Dokument, Kirjeldus, Summa); a second click turns the order. Excel export follows the chosen order.
+- **Partner** (2026-10-24): the Partner cell of a line takes a supplier — typing shows Tarnijad matching the name (from
+  its start or anywhere) or the registry code; arrows + Enter / Tab or a click pick one. A name that is not in Tarnijad
+  stays red („pole tarnijate seas”) and the entry is not saved. A line on 2110 / 1350 without a supplier shows
+  „Puudub: partner”; a manual (PR) entry is not saved without it, an automatic entry only shows the hint. Filter
+  „Partner” above the grid; the header „Partner” sorts by it.
 - **Copy and paste.** Shift+click or Shift+arrows select cells; Ctrl/Cmd+C copies them as tab separated text (for
   Excel). Ctrl/Cmd+V of rows from Excel: into an entry at the active cell over the grid columns (missing lines are
-  added); into a new manual entry („Lisa kanne”): Konto | Kirjeldus | Deebet | Kreedit, optionally Kuupäev |
-  Dokument first, or a copy of the päevaraamat itself; into ostuarve lines: Konto | Kirjeldus | Summa | KM. Amounts
+  added); into a new manual entry („Lisa kanne”): Konto | Kirjeldus | Deebet | Kreedit | Partner (optional; a
+  supplier name or registry code), optionally Kuupäev | Dokument first, or a copy of the päevaraamat itself (with or
+  without the Partner column); into ostuarve lines: Konto | Kirjeldus | Summa | KM. Amounts
   „1 234,50”, „1.234,50”, „1234.5”, „12,00 €” are read (`parseEuro`).
 - **„Asenda konto”** (find & replace an account in the entries in view — period, kande kood and filters): the preview
   shows the number of entries and lines and the debit / credit sum, and which entries are skipped (locked period,
@@ -162,9 +172,18 @@ are not changed (a reclassification entry after the lock date instead). Ctrl+Z r
 The accountant 2026-10-23: „Сделай таблицу поставщики и так же путь ей сделай дальше”. Route `/finance/ostuarved`
 (Finantsid → „Ostuarved”, Raamatupidamine → „Ostuarved”), two tabs:
 
-- **Tarnijad**: a ruled grid like Excel — Nimi | Registrikood | KMKR nr | Aadress | E-post | IBAN | Vaikekonto |
-  Aktiivne. Every cell is typed in place; a changed row shows „Salvesta” (Enter saves); the last row adds a supplier.
-  IBAN is checked (mod 97), the default account must be open, a registry code is unique. Nothing is deleted
+- **Tarnijad** (also on Raamatupidamine: tab and button „Tarnijad”, the same component `SuppliersPanel.jsx`): a ruled
+  grid like Excel — Nimi | Registrikood | KMKR nr | Aadress | E-post | IBAN | Vaikekonto | Aktiivne. Every cell is
+  typed in place; a changed row shows „Salvesta” (Enter saves); the last row adds a supplier. Search over every
+  field, „Näita mitteaktiivseid”, a header click sorts. IBAN is checked (mod 97), the default account must be open.
+  **Duplicates** (2026-10-24, `purchases-core supplierDuplicate`): the same registry code, or the same name (case,
+  quotes, punctuation and the legal form OÜ / AS / MTÜ / FIE … ignored) unless both have different registry codes —
+  shown as „Võimalik duplikaat: …” under the row and refused by the server (409). **„Impordi Excelist”**: rows copied
+  from Excel are pasted into a box; a first row of column names maps the columns in any order (Nimi, Registrikood,
+  KMKR nr, Aadress, E-post, IBAN, Vaikekonto / Konto, Aktiivne), without it the order is the Tarnijad Excel export.
+  The preview shows per row „Imporditakse” or why it is skipped (duplicate of a saved supplier or of an earlier row,
+  invalid IBAN / e-mail / account); only the new rows are sent to `/suppliers/import`, which checks them again and
+  writes all or nothing (max 400, one `financialAudit/<requestId>` „supplier.imported”). Nothing is deleted
   (inactive instead).
 - **Ostuarved**: „Lisa ostuarve” opens rows inside the grid (no dialog). First row: Tarnija (typed, list of
   suppliers; picking one fills its default account into the lines), Arve nr, Kuupäev, Maksetähtaeg, Märkus, Olek
@@ -191,6 +210,42 @@ archive: no new costs there („Uus ostuarve” instead); its records can still 
 their entries stay as they were (RPS § 10). The `/expenses` routes stay for the archive. New costs go only through
 suppliers and purchase invoices, so a cost and its payment are always two entries (OA and VM), like the sales side
 (MA and LK).
+
+## Partnerid (the accountant 2026-10-24: „Поставщиков сначала, и привяжи их к проводкам”)
+
+Like Merit Aktiva / her Excel: each journal line on a partner account carries the partner.
+
+- **Line field** `partner: { type: "supplier" | "customer", id, name }` (optional; only on lines that have one).
+  `accounting-core.cleanPartner` normalises it; `validateEntry(entry, accounts, { suppliers, requirePartner })` keeps
+  it, checks that a supplier with an id exists (`suppliers/{id}`, loaded by financeApi `partnerSuppliers`) and takes
+  the supplier's current name; a typed name without a type is refused („vali tarnija nimekirjast”).
+- **Required**: a new manual entry (`/accounting/entries`) refuses a line on a supplier account (`SUPPLIER_ACCOUNTS`
+  2110 Võlad tarnijatele, 1350 Ettemaksed tarnijatele) without a supplier. Corrections (`/accounting/entries/update`)
+  keep and check partners but do not require them on the server (old entries stay correctable); the päevaraamat
+  blocks saving a manual entry without one. Customer accounts (1200, 2500) never require a partner.
+- **Automatic**: OA / VM entries — the supplier on every line (`purchases-core supplierPartner`); new sales entries —
+  the customer on 1200 / 2500 (`accounting-core customerOf`). Entries written before 2026-10-24 are not changed by the
+  sync (see the backfill below).
+- **History and audit**: `snapshotOf` includes the partner, so a partner change is a correction like any other (before
+  / after in `history` and `financialAudit`); the history line shows „2110 K 300,00 (Kirsi …)”. Storno
+  (`reversalOf`) and „Asenda konto” keep the partners.
+- **Report „Partnerid”** (Raamatupidamine tab, `accountingReports.partnerReport`): per partner on one account (2110 by
+  default; any used account or „Kõik kontod”) Partner | Reg-kood | Algsaldo D/K | Käive D/K | Lõppsaldo D/K, Kokku;
+  lines without a partner are the row „Partner puudub” (with a notice). A click on a partner opens its lines (date,
+  kande kood, document, description, D, K, running saldo); „Pearaamat” opens the pearaamat of that account filtered
+  by the partner. Excel (`partnersWorkbook`): sheet „Partnerid” (the summary) and sheet „Read” (every line with its
+  partner and running saldo), ruled like the other registers.
+- **Pearaamat**: filter „Partner” (the partners on that account + „Partner puudub”) and a Partner column.
+  Käibeandmik unchanged.
+- **Päevaraamat Excel** has the Partner column.
+
+**Backfill of existing entries** (`functions/accounting-partner-core.js`, `functions/tools/accounting-partner-backfill.js`):
+dry run by default (reads only). `--apply` sets the supplier of the purchase invoice on every line of existing OA /
+VM entries and their stornos; `--apply-manual` sets the supplier on the 2110 / 1350 lines of manual / opening entries
+whose text (content, document, line notes) names exactly one supplier (name without the legal form, or the registry
+code). A line that already has a partner is never changed (a different one is reported as a conflict); deleted
+entries are left alone; entries in a locked period or a closed month are skipped. Each written entry gets a history
+item (action „partner”) and `financialAudit/partner-backfill-<time>_<entryId>`. Only with the owner's permission.
 
 ## Parandamine (corrections, the accountant 2026-10-23: „мне нужно исправление сделать”)
 
@@ -220,11 +275,11 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
 - `accountingEntries/{id}`: `auto_<sourceKey>`, `manual_<requestId>`, `reversal_<requestId>`, `opening_<requestId>`.
   Fields: `number`, `year`, `sequence`, `date`, `description`, `documentType` (also `purchaseInvoice`,
   `supplierPayment`), `documentRef`, `sourceKey`, `origin` (`auto` | `manual` | `reversal` | `opening`),
-  `lines[{ account, debitCents, creditCents, note }]`, `totalCents`, `reversalOf` / `reversedBy`, `reason`,
+  `lines[{ account, debitCents, creditCents, note, partner? { type: supplier | customer, id, name } }]`, `totalCents`, `reversalOf` / `reversedBy`, `reason`,
   `createdAt`, `createdBy`; corrections: `history[]`, `override`, `original`, `deleted`, `deletedAt`, `deletedBy`,
   `deleteReason`, `updatedAt`, `updatedBy`; purchase entries: `purchaseInvoiceId`.
 - `accountingSettings/lock`: `{ lockedThrough, reason, updatedAt, updatedBy }`.
-- `suppliers/{id}`: `name`, `regCode`, `vatNumber`, `address`, `email`, `iban`, `defaultAccount`, `active`.
+- `suppliers/{id}`: `name`, `regCode`, `vatNumber`, `address`, `email`, `iban`, `defaultAccount`, `active`; imported ones also `importId` (id `<requestId>_<row>`).
 - `purchaseInvoices/{id}`: `supplierId`, `supplierName`, `supplierRegCode`, `documentNumber`, `date`, `dueDate`,
   `lines[{ account, description, amountCents, vatCents, vatDeductible }]`, `totalCents`, `deductibleVatCents`, `note`,
   `paidCents`, `payments[{ id, date, amountCents, method, reference, entryId, entryNumber }]`, `removedPayments[]`,
@@ -233,7 +288,8 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
 - financeApi (admin only): `/invoices/credit-full`, `/invoices/correct` (documents above), `/accounting/sync`,
   `/accounting/entries`, `/accounting/entries/reverse`, `/accounting/entries/update`, `/accounting/entries/delete`,
   `/accounting/entries/replace-account`,
-  `/accounting/lock`, `/accounting/opening`, `/accounting/accounts`, `/suppliers`, `/purchase-invoices` (create, or
+  `/accounting/lock`, `/accounting/opening`, `/accounting/accounts`, `/suppliers`, `/suppliers/import` (rows, all or
+  nothing), `/purchase-invoices` (create, or
   update with `purchaseInvoiceId`), `/purchase-invoices/pay`, `/purchase-invoices/payment/remove`,
   `/purchase-invoices/void`, `/purchase-invoices/documents`. All bookings and corrections respect the accounting lock
   and closed months

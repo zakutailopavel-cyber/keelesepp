@@ -1,9 +1,10 @@
 import { ArrowDown, ArrowUp, History, Info, Lock, Replace, Trash2, Undo2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '../../components/ui/index.js';
-import { HISTORY_ACTIONS, amount, dmy, entryActions, linesText, parseEuro } from './accountingReports.js';
+import { HISTORY_ACTIONS, SUPPLIER_ACCOUNTS, amount, dmy, entryActions, linesText, parseEuro } from './accountingReports.js';
+import PartnerInput from './PartnerInput.jsx';
 import {
-  COLUMNS, COLUMN_LABELS, SORT_KEYS, blankWorkingLine, cellText, cellValue, editableColumn, filterEntries, flatRows, inRange,
+  COL, COLUMNS, COLUMN_LABELS, SORT_KEYS, blankWorkingLine, cellText, cellValue, editableColumn, filterEntries, flatRows, inRange,
   moveCell, pasteIntoWorking, rangeTsv, replacementPreview, sameAsEntry, setCell, sortEntries, toWorking, workingProblem, workingValues,
 } from './journalGrid.js';
 
@@ -18,8 +19,10 @@ const writeReason = (value) => { try { globalThis.sessionStorage?.setItem(REASON
 const NO_DELETE_HINT = 'Automaatkannet ei kustutata: see on seotud dokumendiga (arve, makse, ostuarve). Paranda read otse tabelis (konto, summa, kirjeldus) või paranda algdokumenti: arve krediteerimine Finantsides, ostuarve „Muuda” või „Tühista” Ostuarvete lehel.';
 const isMac = () => /Mac|iPhone|iPad/.test(globalThis.navigator?.platform || '');
 
-export default function JournalGrid({ entries, accounts, lockedThrough, readOnly, repository, onChanged, onNotice, sort, onSort, onDelete, onStorno, draftSlot, blocked = false }) {
-  const [filters, setFilters] = useState({ account: '', text: '', doc: '', sum: '' });
+const NO_FILTERS = { account: '', text: '', doc: '', sum: '', partner: '' };
+
+export default function JournalGrid({ entries, accounts, suppliers = [], lockedThrough, readOnly, repository, onChanged, onNotice, sort, onSort, onDelete, onStorno, draftSlot, blocked = false }) {
+  const [filters, setFilters] = useState(NO_FILTERS);
   const [active, setActive] = useState(null);
   const [anchor, setAnchor] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -119,7 +122,7 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
     const entry = row && byId.get(row.entryId);
     if (!entry || !canEditEntry(entry) || !editableColumn(row, pos.col, entry.origin)) return false;
     const working = workingOf(entry);
-    const value = initial ?? (pos.col === 1 ? dmy(working.date) : cellValue(working, row.line, pos.col));
+    const value = initial ?? (pos.col === COL.date ? dmy(working.date) : cellValue(working, row.line, pos.col));
     setEditing({ entryId: entry.id, line: row.line, col: pos.col, value: String(value ?? ''), select: initial === undefined, key: `${entry.id}|${row.line}|${pos.col}` });
     return true;
   };
@@ -127,7 +130,7 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
     if (!edit) return;
     editingRef.current = null; // the editor's blur (focus back to the grid) must not write it twice
     const entry = byId.get(edit.entryId);
-    if (entry) updateWorking(entry, (w) => setCell(w, edit.line, edit.col, edit.value));
+    if (entry) updateWorking(entry, (w) => setCell(w, edit.line, edit.col, edit.value, { suppliers, picked: edit.picked || null }));
     setEditing(null);
   };
   const focusGrid = () => gridRef.current?.focus({ preventScroll: true });
@@ -199,26 +202,35 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
   };
 
   // ---- keyboard inside a cell editor ----
+  const finishEdit = (key, shift, edit = editingRef.current) => {
+    const pos = active;
+    commit(edit);
+    const row = rows[pos.row];
+    const entry = byId.get(row.entryId);
+    const working = workingsRef.current[entry.id] || toWorking(entry.source);
+    // Tab in the last cell of an entry's last line adds a line (like the manual entry rows)
+    if (key === 'Tab' && !shift && pos.col === COLUMNS.length - 1 && row.line === working.lines.length - 1) {
+      insertLine(entry, row.line);
+      go({ row: pos.row + 1, col: 0 });
+    } else {
+      go(moveCell(pos, key, rows.length, { shift }));
+    }
+    focusGrid();
+  };
   const onEditorKeyDown = (event) => {
     event.stopPropagation();
-    const pos = active;
     if (event.key === 'Escape') { event.preventDefault(); editingRef.current = null; setEditing(null); focusGrid(); return; }
     if (['Enter', 'Tab', 'ArrowUp', 'ArrowDown'].includes(event.key)) {
       event.preventDefault();
-      const edit = editingRef.current;
-      commit(edit);
-      const row = rows[pos.row];
-      const entry = byId.get(row.entryId);
-      const working = workingsRef.current[entry.id] || toWorking(entry.source);
-      // Tab in the last cell of an entry's last line adds a line (like the manual entry rows)
-      if (event.key === 'Tab' && !event.shiftKey && pos.col === COLUMNS.length - 1 && row.line === working.lines.length - 1) {
-        insertLine(entry, row.line);
-        go({ row: pos.row + 1, col: 0 });
-      } else {
-        go(moveCell(pos, event.key, rows.length, { shift: event.shiftKey }));
-      }
-      focusGrid();
+      finishEdit(event.key, event.shiftKey);
     }
+  };
+  // a supplier picked from the partner list is written at once (Enter moves down, Tab right, a click stays)
+  const onPartnerPick = (supplier, key) => {
+    const edit = { ...editingRef.current, value: supplier.name, picked: supplier };
+    if (key) { finishEdit(key, false, edit); return; }
+    commit(edit);
+    focusGrid();
   };
 
   // ---- mouse ----
@@ -252,7 +264,7 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
     if (!canEditEntry(entry)) { setMessage('Siia ei saa kleepida: kanne on suletud perioodis, storno või kustutatud.'); return; }
     event.preventDefault();
     const text = event.clipboardData.getData('text/plain');
-    updateWorking(entry, (w) => pasteIntoWorking(w, row.line, active.col, text, entry.origin));
+    updateWorking(entry, (w) => pasteIntoWorking(w, row.line, active.col, text, entry.origin, suppliers));
   };
   // focus leaving the grid (another field, another part of the page) also leaves the entry: save it after the last
   // cell edit has been written into the working copy
@@ -298,7 +310,13 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
     return classes.filter(Boolean).join(' ');
   };
   const editorFor = (r, c, label, extra = {}) => (editing && active && active.row === r && active.col === c
-    ? <input autoFocus className="accounting-cell__editor" aria-label={`${label} (muuda)`} value={editing.value} data-grid-editor="1" {...extra}
+    ? c === COL.partner
+      ? <PartnerInput suppliers={suppliers} label={`${label} (muuda)`} value={editing.value}
+        onChange={(value) => setEditing({ ...editing, value, picked: null, select: false })} onPick={onPartnerPick} onKeyDown={onEditorKeyDown}
+        inputProps={{ autoFocus: true, className: 'accounting-cell__editor', 'data-grid-editor': '1',
+          onFocus: (event) => { if (editing.select) event.target.select(); },
+          onBlur: () => { if (editingRef.current?.key === editing.key) commit(editingRef.current); } }} />
+      : <input autoFocus className="accounting-cell__editor" aria-label={`${label} (muuda)`} value={editing.value} data-grid-editor="1" {...extra}
       onFocus={(event) => { if (editing.select) event.target.select(); else { const end = event.target.value.length; event.target.setSelectionRange?.(end, end); } }}
       onChange={(event) => setEditing({ ...editing, value: event.target.value, select: false })} onKeyDown={onEditorKeyDown}
       onBlur={() => { if (editingRef.current?.key === editing.key) commit(editingRef.current); }} />
@@ -306,7 +324,7 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
   const td = (r, c, content, { className = '', editable = false, title, colSpan, bad = false } = {}) => <td key={c} colSpan={colSpan} title={title}
     ref={(node) => { cellRefs.current[`${r}-${c}`] = node; }} data-cell={`${r}-${c}`} aria-selected={active?.row === r && active?.col === c}
     className={cellClass(r, c, `${className}${editable ? ' is-editable' : ''}${bad ? ' is-bad' : ''}`)} onMouseDown={(event) => onCellMouseDown(event, { row: r, col: c })}>
-    {editorFor(r, c, COLUMN_LABELS[c], c === 0 ? { list: 'journal-account-list' } : c >= 4 ? { inputMode: 'decimal' } : {}) ?? content}
+    {editorFor(r, c, COLUMN_LABELS[c], c === COL.account ? { list: 'journal-account-list' } : c >= COL.debit ? { inputMode: 'decimal' } : {}) ?? content}
   </td>;
 
   const modKey = isMac() ? 'Cmd' : 'Ctrl';
@@ -319,8 +337,9 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
         <input aria-label="Filter: konto" placeholder="Konto" value={filters.account} onChange={(event) => setFilters({ ...filters, account: event.target.value })} />
         <input aria-label="Filter: tekst" placeholder="Tekst (sisu, kanne)" value={filters.text} onChange={(event) => setFilters({ ...filters, text: event.target.value })} />
         <input aria-label="Filter: dokument" placeholder="Dokument" value={filters.doc} onChange={(event) => setFilters({ ...filters, doc: event.target.value })} />
+        <input aria-label="Filter: partner" placeholder="Partner" value={filters.partner} onChange={(event) => setFilters({ ...filters, partner: event.target.value })} />
         <input aria-label="Filter: summa" placeholder="Summa" inputMode="decimal" value={filters.sum} onChange={(event) => setFilters({ ...filters, sum: event.target.value })} />
-        {filters.account || filters.text || filters.doc || filters.sum ? <button type="button" className="link-button" onClick={() => setFilters({ account: '', text: '', doc: '', sum: '' })}>Tühjenda</button> : null}
+        {Object.values(filters).some(Boolean) ? <button type="button" className="link-button" onClick={() => setFilters(NO_FILTERS)}>Tühjenda</button> : null}
       </div>
       {!readOnly ? <div className="accounting-grid-tools__edit">
         <label className="accounting-grid-tools__reason"><span>Paranduse põhjus</span><input aria-label="Paranduse põhjus" placeholder="automaatkande parandusel kohustuslik; kehtib kogu seansi" value={reason} onChange={(event) => setReason(event.target.value)} /></label>
@@ -341,10 +360,10 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
     <div className="accounting-grid-wrap" ref={gridRef} tabIndex={0} role="grid" aria-label="Päevaraamat" aria-readonly={readOnly}
       onKeyDown={onGridKeyDown} onCopy={onCopy} onPaste={onPaste} onBlur={onGridBlur}>
       <table className={`accounting-grid accounting-journal${readOnly ? '' : ' is-sheet'}`}>
-        <colgroup><col className="c-account" /><col className="c-date" /><col className="c-doc" /><col /><col className="c-num" /><col className="c-num" /></colgroup>
+        <colgroup><col className="c-account" /><col className="c-date" /><col className="c-doc" /><col /><col className="c-partner" /><col className="c-num" /><col className="c-num" /></colgroup>
         <thead>
-          <tr><th>Kanne</th><th>Kuupäev</th><th>Dokument</th><th /><th /><th /></tr>
-          <tr>{COLUMN_LABELS.map((label, c) => <th key={label} className={c >= 4 ? 'num' : ''} aria-sort={SORT_KEYS[COLUMNS[c]] === sort.key ? (sort.dir === 'desc' ? 'descending' : 'ascending') : 'none'}>
+          <tr><th>Kanne</th><th>Kuupäev</th><th>Dokument</th><th /><th /><th /><th /></tr>
+          <tr>{COLUMN_LABELS.map((label, c) => <th key={label} className={c >= COL.debit ? 'num' : ''} aria-sort={SORT_KEYS[COLUMNS[c]] === sort.key ? (sort.dir === 'desc' ? 'descending' : 'ascending') : 'none'}>
             <button type="button" className="accounting-sort" title="Sorteeri" onClick={() => onSort(SORT_KEYS[COLUMNS[c]])}>{label} {sortArrow(c)}</button></th>)}</tr>
         </thead>
         {draftSlot}
@@ -367,6 +386,10 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
             const known = !w || !l.account || accounts.some((a) => String(a.code) === String(l.account) && a.active !== false);
             const badD = w && Number.isNaN(parseEuro(l.debit));
             const badK = w && Number.isNaN(parseEuro(l.credit));
+            const amountSet = w ? (parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0) : l.debitCents || l.creditCents;
+            // a line on 2110 / 1350 without its supplier: „puudub” (blocks saving a manual entry, a hint on the others)
+            const partnerMissing = SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' && amountSet;
+            const unresolved = Boolean(l.partner && !l.partner.type && l.partner.name);
             lineRows.push(<tr key={i} className={active?.row === r ? 'is-active-row' : ''}>
               {td(r, 0, <span className="accounting-cell__account">
                 {editable ? <span className="accounting-cell__rowtools">
@@ -375,11 +398,12 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
                 </span> : null}
                 {textOf({ entryId: entry.id, line: i }, 0)}{w && l.account && !known ? <small> konto puudub</small> : null}
               </span>, { editable, bad: !known })}
-              {td(r, 1, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
-              {td(r, 2, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
-              {td(r, 3, cellText(entry, w, i, 3), { editable })}
-              {td(r, 4, cellText(entry, w, i, 4), { className: 'num', editable, bad: badD })}
-              {td(r, 5, cellText(entry, w, i, 5), { className: 'num', editable, bad: badK })}
+              {td(r, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
+              {td(r, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
+              {td(r, COL.text, cellText(entry, w, i, COL.text), { editable })}
+              {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole tarnijate seas</small> : partnerMissing ? <small className="accounting-cell__missing">Puudub: partner</small> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved || Boolean(partnerMissing && w && entry.origin === 'manual'), title: l.partner?.type === 'customer' ? 'Klient (õpilase / maksja kaart)' : l.partner?.type === 'supplier' ? 'Tarnija' : undefined })}
+              {td(r, COL.debit, cellText(entry, w, i, COL.debit), { className: 'num', editable, bad: badD })}
+              {td(r, COL.credit, cellText(entry, w, i, COL.credit), { className: 'num', editable, bad: badK })}
             </tr>);
           }
           const sumD = w ? check.debit : entry.debitCents;
@@ -387,10 +411,10 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
           return <tbody key={entry.id} className={[entry.reversed || entry.deleted ? 'is-reversed' : '', w ? 'is-dirty' : '', red ? 'is-invalid' : ''].filter(Boolean).join(' ')}>
             <tr className={`accounting-grid__entry${active?.row === head ? ' is-active-row' : ''}`}>
               {td(head, 0, entry.label, { title: `CRM kanne ${entry.number}` })}
-              {td(head, 1, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
-              {td(head, 2, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
-              {td(head, 3, <>{entry.deleted ? <span className="accounting-tag">kustutatud</span> : null}{entry.corrected ? <span className="accounting-tag">parandatud</span> : null}<span className="accounting-cell__description">{w ? w.description : entry.description}</span></>, { editable })}
-              <td colSpan="2" className={`${cellClass(head, 4, 'accounting-grid__actions')}${active?.row === head && active?.col === 5 ? ' is-active' : ''}`} data-cell={`${head}-4`} ref={(node) => { cellRefs.current[`${head}-4`] = node; cellRefs.current[`${head}-5`] = node; }} onMouseDown={(event) => onCellMouseDown(event, { row: head, col: 4 })}>
+              {td(head, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
+              {td(head, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
+              {td(head, COL.text, <>{entry.deleted ? <span className="accounting-tag">kustutatud</span> : null}{entry.corrected ? <span className="accounting-tag">parandatud</span> : null}<span className="accounting-cell__description">{w ? w.description : entry.description}</span></>, { editable })}
+              <td colSpan="3" className={`${cellClass(head, COL.partner, 'accounting-grid__actions')}${active?.row === head && active?.col > COL.partner ? ' is-active' : ''}`} data-cell={`${head}-${COL.partner}`} ref={(node) => { [COL.partner, COL.debit, COL.credit].forEach((c) => { cellRefs.current[`${head}-${c}`] = node; }); }} onMouseDown={(event) => onCellMouseDown(event, { row: head, col: COL.partner })}>
                 {entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}
                 {can.locked && !entry.deleted ? <span title={`Periood suletud kuni ${dmy(lockedThrough)} — paranda uue kandega (storno või parandav kanne)`}><Lock size={12} /></span> : null}
                 {saving.has(entry.id) ? <span>salvestan…</span> : null}
@@ -401,12 +425,12 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
               </td>
             </tr>
             {lineRows}
-            <tr className="accounting-grid__subtotal"><td colSpan="4">{w ? <span className={red ? 'is-off' : 'accounting-grid__pending'} role={red ? 'alert' : undefined}>
+            <tr className="accounting-grid__subtotal"><td colSpan="5">{w ? <span className={red ? 'is-off' : 'accounting-grid__pending'} role={red ? 'alert' : undefined}>
               {serverErrors[entry.id] || check.problem || 'Muudetud — salvestub, kui liigud teise kandesse.'}{check.difference ? ` (D − K = ${amount(check.difference)})` : ''}
               {' '}<button type="button" className="link-button" onClick={() => save(entry.id)}>Salvesta</button>
               <button type="button" className="link-button" onClick={() => drop(entry.id)}>Tühista (Esc)</button>
             </span> : null}</td><td className="num">{amount(sumD)}</td><td className="num">{amount(sumK)}</td></tr>
-            {historyOpen ? entry.history.map((h, i) => <tr key={`h${i}`} className="accounting-grid__history"><td colSpan="6">
+            {historyOpen ? entry.history.map((h, i) => <tr key={`h${i}`} className="accounting-grid__history"><td colSpan="7">
               <strong>{HISTORY_ACTIONS[h.action] || h.action}</strong> {h.at ? new Date(h.at).toLocaleString('et-EE') : ''} · {h.by?.name || h.by?.email || '—'}{h.reason ? ` · „${h.reason}”` : ''}
               {h.before ? <div>enne: {dmy(h.before.date)} {h.before.documentRef} · {h.before.description} · {linesText(h.before.lines)}</div> : null}
               {h.after ? <div>pärast: {dmy(h.after.date)} {h.after.documentRef} · {h.after.description} · {linesText(h.after.lines)}</div> : null}
@@ -414,8 +438,8 @@ export default function JournalGrid({ entries, accounts, lockedThrough, readOnly
           </tbody>;
         })}
         <tfoot>
-          <tr><td colSpan="4">Kokku {totals.entries} {totals.entries === 1 ? 'kanne' : 'kannet'}</td><td className="num">{amount(totals.debit)}</td><td className="num">{amount(totals.credit)}</td></tr>
-          <tr><td colSpan="6">{totals.lines} {totals.lines === 1 ? 'kirje' : 'kirjet'}</td></tr>
+          <tr><td colSpan="5">Kokku {totals.entries} {totals.entries === 1 ? 'kanne' : 'kannet'}</td><td className="num">{amount(totals.debit)}</td><td className="num">{amount(totals.credit)}</td></tr>
+          <tr><td colSpan="7">{totals.lines} {totals.lines === 1 ? 'kirje' : 'kirjet'}</td></tr>
         </tfoot>
       </table>
     </div>
