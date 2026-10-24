@@ -1,6 +1,6 @@
 ## 2026-10-24 · agent/student-merge-subjects — „Liida kaardid” done properly, parents on the card, own study directions
 
-- Base: `main` 7bfa20f (2026-10-24, after #787 / #788). Draft PR from `agent/student-merge-subjects`. Students / parents /
+- Base: `main` 7bfa20f (2026-10-24, after #787 / #788). Draft PR #789 from `agent/student-merge-subjects`. Students / parents /
   settings UI, the merge function, one rules block. Calendar and finance invoicing logic not touched.
 - Asked (owner 2026-10-24): „нормальное объединение и связывание их с родителями … нормально сделать предметы … самому
   ставить учебные направления”.
