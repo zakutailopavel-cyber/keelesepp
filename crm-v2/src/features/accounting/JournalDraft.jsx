@@ -65,8 +65,10 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
       const name = accountName(l.account);
       return <tr key={index}>
         <td><div className="accounting-draft__account"><input ref={(node) => { rowRefs.current[index] = node; }} aria-label={`Rida ${index + 1} konto`} value={l.account} placeholder="konto" onChange={(event) => update(index, { account: event.target.value.trim() })} /><small>{name || (l.account ? 'konto puudub või on suletud' : '')}</small></div></td>
-        <td>{dmy(draft.date)}</td>
-        <td>{draft.documentRef}</td>
+        <td className="accounting-draft__mirror" onClick={() => dateRef.current?.focus()} title="Kuupäev on kogu kandel ühine">{dmy(draft.date)}</td>
+        {/* the accountant 2026-10-24 clicked the Dokument cell of a line and could not type: every line has the entry's
+            document, typing in any of them sets it for the whole entry */}
+        <td>{fixedHeader ? draft.documentRef : <input aria-label={`Rida ${index + 1} dokument`} value={draft.documentRef} placeholder="dokument" onChange={(event) => setDraft({ ...draft, documentRef: event.target.value })} />}</td>
         <td><input aria-label={`Rida ${index + 1} märkus`} value={l.note} placeholder={draft.description} onChange={(event) => update(index, { note: event.target.value })} /></td>
         <td className="num"><input aria-label={`Rida ${index + 1} deebet`} inputMode="decimal" value={l.debit} onChange={(event) => update(index, { debit: event.target.value, credit: event.target.value ? '' : l.credit })} /></td>
         <td className="num"><input aria-label={`Rida ${index + 1} kreedit`} inputMode="decimal" value={l.credit}
