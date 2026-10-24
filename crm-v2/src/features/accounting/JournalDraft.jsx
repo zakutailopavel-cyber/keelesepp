@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/index.js';
 import { amount, blankEntryLine, dmy, draftDescription, entryLineTotals, parseEuro } from './accountingReports.js';
 import { pastedEntryLines } from './journalGrid.js';
+import AccountInput from './AccountInput.jsx';
 
 // A manual entry typed straight into the päevaraamat grid (the accountant 2026-10-23: like Excel, no separate form).
 // The header row takes the date, the source document and the content; each line row the account, its note, debit or
@@ -64,7 +65,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
       const last = index === lines.length - 1;
       const name = accountName(l.account);
       return <tr key={index}>
-        <td><div className="accounting-draft__account"><input ref={(node) => { rowRefs.current[index] = node; }} aria-label={`Rida ${index + 1} konto`} value={l.account} placeholder="konto" onChange={(event) => update(index, { account: event.target.value.trim() })} /><small>{name || (l.account ? 'konto puudub või on suletud' : '')}</small></div></td>
+        <td><div className="accounting-draft__account"><AccountInput ref={(node) => { rowRefs.current[index] = node; }} label={`Rida ${index + 1} konto`} accounts={accounts} value={l.account} onChange={(account) => update(index, { account: account.trim() })} /><small>{name || (l.account ? 'konto puudub või on suletud' : '')}</small></div></td>
         <td className="accounting-draft__mirror" onClick={() => dateRef.current?.focus()} title="Kuupäev on kogu kandel ühine">{dmy(draft.date)}</td>
         {/* the accountant 2026-10-24 clicked the Dokument cell of a line and could not type: every line has the entry's
             document, typing in any of them sets it for the whole entry */}
