@@ -498,11 +498,36 @@ describe('calendar v2', () => {
     expect(within(menu).getByText(/vali ülevalt õpetaja/)).toBeInTheDocument();
   });
 
-  it('the admin marks a teacher\'s green window by dragging in the week grid', async () => {
+  it('the admin opens „Õpetaja ajad”: the week grid saves the teacher\'s weekly windows', async () => {
+    const props = renderCalendar({ events: [lesson()], windows: [{ teacherUid: 't1', teacherName: 'Pavel', slots: [{ id: 'd1', kind: 'busy', date: '2099-01-05', start: '10:00', end: '11:00' }] }] });
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    fireEvent.change(screen.getByLabelText('Filtreeri õpetaja järgi'), { target: { value: 't1' } });
+    fireEvent.click(screen.getByRole('button', { name: /Õpetaja ajad/ }));
+    const editor = await screen.findByRole('dialog', { name: 'Pavel — ajad' });
+    // the lesson of this week lies on the grid; the date window is listed apart
+    expect(within(editor).getAllByText(/10:00 Mari Maas/).length).toBeGreaterThan(0);
+    expect(within(editor).getByText(/Ei saa/, { selector: '.tw-dated span' })).toBeInTheDocument();
+    fireEvent.pointerDown(within(editor).getByRole('button', { name: /^Esmaspäev 09:00/ }));
+    fireEvent.pointerUp(within(editor).getByRole('grid'));
+    fireEvent.pointerDown(within(editor).getByRole('button', { name: /^Esmaspäev 09:30/ }));
+    fireEvent.pointerUp(within(editor).getByRole('grid'));
+    fireEvent.click(within(editor).getByRole('button', { name: 'Salvesta ajad' }));
+    await waitFor(() => expect(props.availabilityRepository.save).toHaveBeenCalledTimes(1));
+    const saved = props.availabilityRepository.save.mock.calls[0][0];
+    expect(saved).toMatchObject({ teacherUid: 't1', teacherName: 'Pavel' });
+    expect(saved.slots).toEqual([
+      { id: 'd1', kind: 'busy', date: '2099-01-05', start: '10:00', end: '11:00' },
+      expect.objectContaining({ kind: 'free', day: 'Mon', start: '09:00', end: '10:00' }),
+    ]);
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Pavel — ajad' })).toBeNull());
+  });
+
+  it('a one-day window is still painted in the calendar (from the editor\'s link)', async () => {
     const props = renderCalendar({ events: [lesson()] });
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });
     fireEvent.change(screen.getByLabelText('Filtreeri õpetaja järgi'), { target: { value: 't1' } });
     fireEvent.click(screen.getByRole('button', { name: /Õpetaja ajad/ }));
+    fireEvent.click(within(await screen.findByRole('dialog', { name: 'Pavel — ajad' })).getByRole('button', { name: 'märgi kalendris lohistades' }));
     expect(screen.getByRole('region', { name: 'Õpetaja ajad' })).toBeInTheDocument();
     const column = document.querySelector('.tg-col');
     const body = document.querySelector('.tg-body');
@@ -510,9 +535,7 @@ describe('calendar v2', () => {
     fireEvent.pointerMove(body, { clientY: 240 });
     fireEvent.pointerUp(body);
     await waitFor(() => expect(props.availabilityRepository.save).toHaveBeenCalledTimes(1));
-    const saved = props.availabilityRepository.save.mock.calls[0][0];
-    expect(saved).toMatchObject({ teacherUid: 't1', teacherName: 'Pavel' });
-    expect(saved.slots).toEqual([expect.objectContaining({ kind: 'free', day: expect.any(String) })]);
+    expect(props.availabilityRepository.save.mock.calls[0][0].slots).toEqual([expect.objectContaining({ kind: 'busy', date: expect.any(String) })]);
   });
 
   it('lists students without a lesson ahead; Lisa tund opens the form for them, Paus hides them for a while', async () => {

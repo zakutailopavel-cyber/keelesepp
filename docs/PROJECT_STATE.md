@@ -1,3 +1,42 @@
+## 2026-10-24 · agent/calendar-admin-fixes — rooms after „Tühista”, red hour = warning, teacher week grid
+
+- Base: `main` f69a872 (2026-10-24). Draft PR from `agent/calendar-admin-fixes`. Calendar only (+ a functions core
+  helper and a dry-run tool); no rules, no data, no deploy.
+- Asked (Oleksiy, chat „Баги в системе” 2026-10-22…24, docs/specs/CALENDAR_V2_SPEC.md „Administrator fixes”):
+  1. „При отмене занятия через Tühista не освобождается кабинет”. The 2026-10-22 fix (#730) covered the
+     administrator; left: `roomBookings` were read once per page, and a teacher sees other teachers' lessons only
+     through them → a lesson cancelled elsewhere held its room until a full reload. Now the bookings reload with the
+     calendar (`CalendarPage` `bookingsState`), `roomModel.roomConflict` ignores cancelled / online bookings (stale ones
+     too). `functions/room-booking-core.js` `roomBookingResyncPlan` + `functions/tools/room-bookings-resync.js`: finds
+     stale bookings, dry run by default (`--apply` only with the owner's word; writes `roomBookings` + an `activityLog`
+     entry). Not run. `syncRoomBooking` is deployed (checked with `firebase functions:list`).
+  2. A red (busy) or yellow (online only, on-site lesson) teacher window is a warning, not a ban: form „Salvesta
+     ikkagi” (second click), drag „Tõsta tund?” → „Tõsta ikkagi” / the weekly choice, „Ei saa tulla?” accept → confirm.
+     `planningWarnings` tags `window: 'busy' | 'online'`. The old rule (only a teacher could override their own time,
+     owner 2026-10-10) is replaced by this. Room rule unchanged.
+  3. „Minu ajad” / „Õpetaja ajad” opens `TeacherWeekEditor.jsx` (+ `teacherWeekModel.js`): Mon–Sun × half hours
+     08–22, „Saadaval” / „Ainult veebis” / „Ei saa” / „Kustuta”, tap / drag / whole day; the week's lessons on top
+     (clashes framed red), „Võrdle õpilasega” overlays a student's „Sobivad ajad”, date windows listed with
+     „Eemalda”. Saves the same `teacherAvailability/{uid}` (rules unchanged: admin any, staff own) — only changed
+     weekdays are rebuilt, everything else kept with its id. One-day windows: cell menu or the old painting mode
+     („märgi kalendris lohistades”). `?ajad=1` opens it.
+- Files: crm-v2/src/features/calendar/{CalendarPage.jsx, roomModel.js, studentTimesModel.js, CellStatusMenu.jsx
+  (wording), calendarV2.css, TeacherWeekEditor.jsx (new), teacherWeekModel.js (new)} + tests (CalendarPage.test.jsx,
+  CalendarPage.rooms.test.jsx (new), roomModel.test.js, studentTimesModel.test.js, TeacherWeekEditor.test.jsx (new),
+  teacherWeekModel.test.js (new)); functions/room-booking-core.js (+test), functions/tools/room-bookings-resync.js
+  (new); docs/specs/CALENDAR_V2_SPEC.md.
+- Checks: vitest src/features/calendar 21 files / 155 tests passed (new: rooms page 4, roomModel 1, red window page 5
+  replacing 2, planningWarnings 1, week grid model 12, editor 9, editor page 2 replacing 1); grid / editor / rooms /
+  warnings models also under TZ Europe/Tallinn, America/Los_Angeles, Pacific/Kiritimati, UTC (39/39 each); whole crm-v2
+  vitest 350 files (349 passed, 1 skipped), 2461 tests: 2458 passed, 3 skipped, 0 failed; eslint 0 errors (18 old
+  warnings); `npm run build` ok; functions `npm test` 360/360. Emulator not run (rules not touched). Checked on a local
+  stand page with made-up data (desktop + 375 px: editor, compare, drag-paint + save, red drag warning, „Salvesta
+  ikkagi”); stand not committed.
+- Deploy: the usual Vercel front-end deploy after merge. Functions: nothing to deploy (the core helper is used only
+  by the tool). The resync tool needs the owner's permission and a service account to run.
+- Next safe step: owner merges; Oleksiy cancels a test lesson as a teacher and re-books its room, then opens
+  „Minu ajad”.
+
 ## 2026-10-24 · agent/learner-announcements — „Teated”: the school's announcements before the learner portal opens
 
 - Base: `main` 03f8b6e (2026-10-24), merged with `main` 12e179d. Draft PR from `agent/learner-announcements`.

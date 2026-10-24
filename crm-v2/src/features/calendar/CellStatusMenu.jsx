@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 const KINDS = [
   ['free', 'Vaba', 'tunde võib panna'],
   ['online', 'Ainult veebitunnid', 'kohapeal tunde ei saa'],
-  ['busy', 'Hõivatud', 'tunde ei saa panna'],
+  ['busy', 'Hõivatud', 'tund ainult hoiatusega'],
 ];
 
 // A click on an empty half-hour cell (Oleksiy 2026-10-15): the teacher's status for that cell — free / online only /
