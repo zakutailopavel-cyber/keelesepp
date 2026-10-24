@@ -329,3 +329,5 @@
 .cal2-warnings { margin: 0; padding: 8px 10px 8px 26px; border-radius: 10px; background: #fff6e5; border: 1px solid #f1d9a8; color: #7a5311; font-size: .86rem; display: grid; gap: 2px; }
 .cal2-unplanned li { grid-template-columns: minmax(0, 1fr) auto auto auto; }
 @media (max-width: 640px) { .cal2-unplanned li { grid-template-columns: 1fr; } .cal2-fit__search input { min-width: 0; width: 100%; } .cal2-fit__search { flex: 1 1 100%; } }
+/* a red / yellow teacher window: a warning with „Salvesta ikkagi” (Oleksiy 2026-10-23), not a ban */
+.cal2-window-ask { margin: 0; padding: 9px 12px; border-radius: 10px; background: #fef3f2; border: 1px solid #fecdca; color: #912018; font-weight: 600; font-size: .9rem; }

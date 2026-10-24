@@ -166,9 +166,11 @@ const teacherHasFree = (availability, dates) => dates.some((date) => effectiveSl
 const dateLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
 /**
- * Warnings for a lesson about to be created or moved (they never block; the teacher's red window is blocked elsewhere).
+ * Warnings for a lesson about to be created or moved. They never block (Oleksiy 2026-10-23: a red hour is a warning,
+ * not a ban); the calendar asks „Salvesta ikkagi” / „Tõsta ikkagi” for a red or yellow window (`window` 'busy' /
+ * 'online'), the rest are shown.
  * lesson: { date, time, duration, recurring, online, id (ignored as its own clash) }
- * → [{ kind, text }]: kind 'student-time' | 'student-lesson' | 'teacher-lesson' | 'teacher-window'
+ * → [{ kind, text, window? }]: kind 'student-time' | 'student-lesson' | 'teacher-lesson' | 'teacher-window'
  */
 export function planningWarnings({ lesson, student = null, studentAvailability = null, teacherUid = '', teacherName = '', teacherAvailability = null, events = [], includeTeacherLessons = true, weeks = 4 }) {
   if (!lesson?.date || !lesson?.time) return [];
@@ -188,9 +190,10 @@ export function planningWarnings({ lesson, student = null, studentAvailability =
   if (includeTeacherLessons && teacherClashes.length) out.push({ kind: 'teacher-lesson', text: `${teacherName || 'Õpetaja'}: samal ajal on juba tund — ${teacherClashes.slice(0, 3).map(describe).join(', ')}.` });
   const days = checkDates(lesson.date, Boolean(lesson.recurring), weeks);
   const windows = days.map((date) => availabilityAt(teacherAvailability, { date, time: lesson.time, duration }));
-  if (windows.includes('busy')) out.push({ kind: 'teacher-window', text: `${teacherName || 'Õpetaja'} on sel ajal hõivatud (punane aeg).` });
-  else if (windows.includes('online') && !lesson.online) out.push({ kind: 'teacher-window', text: `${teacherName || 'Õpetaja'} annab sel ajal ainult veebitunde (kollane aeg).` });
-  else if (windows.includes('open') && teacherHasFree(teacherAvailability, days)) out.push({ kind: 'teacher-window', text: `${teacherName || 'Õpetaja'}: aeg on väljaspool õpetaja vaba (rohelist) aega.` });
+  const on = (state) => (lesson.recurring && days.length > 1 ? ` (${days.filter((_, index) => windows[index] === state).map(dateLabel).slice(0, 3).join(', ')})` : '');
+  if (windows.includes('busy')) out.push({ kind: 'teacher-window', window: 'busy', text: `${teacherName || 'Õpetaja'} on sel ajal hõivatud (punane aeg)${on('busy')}.` });
+  else if (windows.includes('online') && !lesson.online) out.push({ kind: 'teacher-window', window: 'online', text: `${teacherName || 'Õpetaja'} annab sel ajal ainult veebitunde (kollane aeg)${on('online')}.` });
+  else if (windows.includes('open') && teacherHasFree(teacherAvailability, days)) out.push({ kind: 'teacher-window', window: 'outside', text: `${teacherName || 'Õpetaja'}: aeg on väljaspool õpetaja vaba (rohelist) aega.` });
   return out;
 }
 

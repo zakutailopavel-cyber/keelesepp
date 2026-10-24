@@ -387,28 +387,73 @@ describe('calendar v2', () => {
     });
   });
 
-  it('a lesson cannot be planned into a teacher\'s red window', async () => {
+  // Oleksiy 2026-10-23: „Нужно предупреждение … на час, отмеченный красным, а не запрет”
+  it('a teacher\'s red window is a warning: „Salvesta ikkagi” saves the lesson', async () => {
     const props = renderCalendar({ windows: [{ teacherUid: 't2', teacherName: 'Jelena', slots: [{ id: 'x', kind: 'busy', day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()], start: '08:00', end: '12:00' }] }] });
     fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
     fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
     fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
     fireEvent.change(await screen.findByLabelText('Õpetaja'), { target: { value: 't2' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
-    expect((await screen.findAllByText(/Jelena ei ole .* saadaval \(punane aeg\)/)).length).toBeGreaterThan(0);
+    expect(await screen.findByRole('alert')).toHaveTextContent(/Jelena on sel ajal hõivatud \(punane aeg\)\. Kas salvestan tunni ikkagi/);
     expect(props.scheduleRepository.create).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta ikkagi' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ teacherUid: 't2', time: '09:00' })));
   });
 
-  it('a yellow window takes only an online lesson', async () => {
+  it('the „Salvesta ikkagi” step starts again when the time changes', async () => {
+    const props = renderCalendar({ windows: [{ teacherUid: 't1', teacherName: 'Pavel', slots: [{ id: 'x', kind: 'busy', day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()], start: '08:00', end: '12:00' }] }] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
+    fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    expect(await screen.findByRole('button', { name: 'Salvesta ikkagi' })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Kellaaeg'), { target: { value: '10:00' } });
+    expect(screen.queryByRole('button', { name: 'Salvesta ikkagi' })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Salvesta ikkagi' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ time: '10:00' })));
+  });
+
+  it('a yellow window: an on-site lesson asks first, an online lesson saves at once', async () => {
     const props = renderCalendar({ windows: [{ teacherUid: 't1', teacherName: 'Pavel', slots: [{ id: 'y', kind: 'online', day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()], start: '08:00', end: '12:00' }] }] });
     fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
     fireEvent.focus(screen.getByRole('combobox', { name: /Õpilane/ }));
     fireEvent.click(await screen.findByRole('option', { name: /Mari Maas/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
     expect((await screen.findAllByText(/ainult veebitunde \(kollane aeg\)/)).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'Salvesta ikkagi' })).toBeInTheDocument();
     expect(props.scheduleRepository.create).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('checkbox', { name: 'Veebitund (online)' }));
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ online: true, time: '09:00' })));
+  });
+
+  it('dragging a lesson into a red window asks „Tõsta ikkagi” and then moves it', async () => {
+    const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()];
+    const props = renderCalendar({ events: [lesson()], windows: [{ teacherUid: 't1', teacherName: 'Pavel', slots: [{ id: 'x', kind: 'busy', day, start: '11:00', end: '12:00' }] }] });
+    const block = await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    fireEvent.pointerDown(block, { button: 0, clientX: 5000, clientY: 100, pointerId: 1 });
+    fireEvent.pointerMove(block, { clientX: 5000, clientY: 166, pointerId: 1 }); // +60 min
+    fireEvent.pointerUp(block, { clientX: 5000, clientY: 166, pointerId: 1 });
+    const dialog = await screen.findByRole('dialog', { name: 'Tõsta tund?' });
+    expect(within(dialog).getByText('Pavel on sel ajal hõivatud (punane aeg).')).toBeInTheDocument();
+    expect(props.scheduleRepository.patch).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Tõsta ikkagi' }));
+    await waitFor(() => expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', expect.objectContaining({ time: '11:00' })));
+  });
+
+  it('accepting „Ei saa tulla?” into a red window asks and then moves the lesson', async () => {
+    const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()];
+    const props = repositories({ events: [lesson()], windows: [{ teacherUid: 't1', teacherName: 'Pavel', slots: [{ id: 'x', kind: 'busy', day, start: '14:00', end: '16:00' }] }] });
+    const request = { id: 'req-1', scheduleId: 'schedule-1', occurrenceDate: today, studentName: 'Mari Maas', teacherUid: 't1', lessonTime: '10:00', proposals: [{ date: today, time: '14:00' }], status: 'pending' };
+    props.changeRequests = { subscribePending: (_, next) => { next([request]); return () => {}; }, decide: vi.fn().mockResolvedValue({}) };
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    globalThis.confirm = vi.fn(() => true);
+    fireEvent.click(await screen.findByRole('button', { name: /Kinnita/ }));
+    await waitFor(() => expect(props.changeRequests.decide).toHaveBeenCalledWith('req-1', expect.objectContaining({ accepted: true })));
+    expect(globalThis.confirm).toHaveBeenCalledWith(expect.stringMatching(/Pavel on sel ajal hõivatud \(punane aeg\)[\s\S]*Tõstan tunni ikkagi/));
+    expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', expect.objectContaining({ time: '14:00' }));
   });
 
   it('the admin can choose a new teacher who has no lessons yet', async () => {
