@@ -1,6 +1,6 @@
 ## 2026-10-24 · agent/calendar-admin-fixes — rooms after „Tühista”, red hour = warning, teacher week grid
 
-- Base: `main` f69a872 (2026-10-24). Draft PR from `agent/calendar-admin-fixes`. Calendar only (+ a functions core
+- Base: `main` f69a872 (2026-10-24). Draft PR #788 from `agent/calendar-admin-fixes`. Calendar only (+ a functions core
   helper and a dry-run tool); no rules, no data, no deploy.
 - Asked (Oleksiy, chat „Баги в системе” 2026-10-22…24, docs/specs/CALENDAR_V2_SPEC.md „Administrator fixes”):
   1. „При отмене занятия через Tühista не освобождается кабинет”. The 2026-10-22 fix (#730) covered the
