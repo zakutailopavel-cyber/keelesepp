@@ -1,6 +1,6 @@
 ## 2026-10-24 · agent/accounting-partners — Tarnijad first, partners on journal lines, „Partnerid” report
 
-- Base: `main` 3f31fcb (2026-10-24, after #789). Draft PR from `agent/accounting-partners`. Accounting only (no calendar,
+- Base: `main` 3f31fcb (2026-10-24, after #789). Draft PR #790 from `agent/accounting-partners`. Accounting only (no calendar,
   student, Live Classroom or content changes; no rules change).
 - Asked (the accountant via the owner 2026-10-24): „Поставщиков сначала, и привяжи их к проводкам” — like Merit Aktiva /
   Excel, each journal line on a partner account carries the partner.
