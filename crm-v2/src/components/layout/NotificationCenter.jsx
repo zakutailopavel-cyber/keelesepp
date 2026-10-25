@@ -1,16 +1,18 @@
-import { Bell, BookOpenCheck, CalendarClock, CircleAlert, ListTodo, MessageSquareText, ReceiptText, RefreshCw } from 'lucide-react';
+import { Bell, BookOpenCheck, CalendarClock, CircleAlert, ListTodo, MessageSquareText, ReceiptText, RefreshCw, UserRound } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonChangeRequestsService, messagesService, studentsService } from '../../services/firebase/index.js';
 import { tasksService } from '../../services/firebase/tasks.js';
 import { studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
+import { missingDataService } from '../../services/firebase/missingData.js';
 import {
   CATEGORY_LABEL,
   homeworkNotifications,
   invoiceNotifications,
   availabilityNotifications,
   lessonChangeNotifications,
+  missingDataNotifications,
   messageNotifications,
   sortNotifications,
   taskNotifications,
@@ -19,8 +21,8 @@ import { useTasks } from '../../features/tasks/useTasks.js';
 import IconButton from '../ui/IconButton.jsx';
 import '../../features/notifications/notifications.css';
 
-const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService };
-const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, invoice: ReceiptText };
+const defaultRepositories = { students: studentsService, messages: messagesService, homework: homeworkService, invoices: invoicesService, tasks: tasksService, changeRequests: lessonChangeRequestsService, availability: studentAvailabilityService, missingData: missingDataService };
+const ICONS = { task: ListTodo, message: MessageSquareText, homework: BookOpenCheck, lesson: CalendarClock, student: UserRound, invoice: ReceiptText };
 const quiet = (promise) => Promise.resolve(promise).catch(() => []);
 
 async function loadSources(user, repositories) {
@@ -33,12 +35,13 @@ async function loadSources(user, repositories) {
     : { items: [] };
   const ids = studentResult.items.map((student) => student.id);
   const names = new Map(studentResult.items.map((student) => [student.id, student.name]));
-  const [messages, submissions, invoices, lessonRequests, availability] = await Promise.all([
+  const [messages, submissions, invoices, lessonRequests, availability, missingData] = await Promise.all([
     staff ? quiet(admin ? repositories.messages.list() : repositories.messages.listByStudentIds(ids)) : [],
     staff ? quiet(repositories.homework.listSubmissionsByStudentIds(ids)) : [],
     admin || finance ? quiet(repositories.invoices.list()) : [],
     staff && repositories.changeRequests?.listPending ? quiet(repositories.changeRequests.listPending({ teacherUid: user.uid, all: admin })) : [],
     admin && repositories.availability?.list ? quiet(repositories.availability.list()) : [],
+    admin && repositories.missingData?.listUnreviewed ? quiet(repositories.missingData.listUnreviewed()) : [],
   ]);
   return {
     messages,
@@ -46,6 +49,7 @@ async function loadSources(user, repositories) {
     invoices,
     lessonRequests,
     availability: availabilityNotifications(availability, names),
+    missingData: missingDataNotifications(missingData),
   };
 }
 
@@ -65,6 +69,7 @@ export default function NotificationCenter({ user, repositories = defaultReposit
     ...homeworkNotifications(sources.data?.submissions || []),
     ...lessonChangeNotifications(sources.data?.lessonRequests || []),
     ...(sources.data?.availability || []),
+    ...(sources.data?.missingData || []),
     ...invoiceNotifications(sources.data?.invoices || []),
   ]), [sources.data, staff, tasks, user]);
   // the bell counts only what is new since the panel was last opened (remembered per user in this browser);

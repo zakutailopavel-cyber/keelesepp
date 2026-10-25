@@ -1518,6 +1518,38 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // „Puuduvad andmed” (owner 2026-10-25): which items a student / parent is asked after login and which of them
+    // block the CRM. Only the administrator reads and writes the setting; learners get their questions and send their
+    // answers through staffOperationsApi /missing-data/* (functions/missing-data-service.js), which writes only the
+    // missing fields of the caller's own cards and an audit record here — no learner writes these collections.
+    function missingDataModeValid(items, key) {
+      return !(key in items) || items[key] in ['required', 'optional', 'off'];
+    }
+    match /missingDataSettings/{settingId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && settingId == 'current'
+        && request.resource.data.keys().hasOnly(['items', 'updatedAt', 'updatedByUid'])
+        && request.resource.data.items is map
+        && request.resource.data.items.keys().hasOnly(['availability', 'email', 'phone', 'parentName', 'language', 'grade'])
+        && missingDataModeValid(request.resource.data.items, 'availability')
+        && missingDataModeValid(request.resource.data.items, 'email')
+        && missingDataModeValid(request.resource.data.items, 'phone')
+        && missingDataModeValid(request.resource.data.items, 'parentName')
+        && missingDataModeValid(request.resource.data.items, 'language')
+        && missingDataModeValid(request.resource.data.items, 'grade')
+        && request.resource.data.updatedByUid == uid();
+      allow delete: if false;
+    }
+    match /missingDataSubmissions/{submissionId} {
+      allow read: if isAdmin();
+      // the administrator only marks a submission as seen; the record itself is written by the server
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reviewedAt', 'reviewedByUid', 'reviewedByName'])
+        && request.resource.data.reviewedByUid == uid()
+        && request.resource.data.reviewedAt is string && request.resource.data.reviewedAt.size() > 0;
+      allow create, delete: if false;
+    }
+
     match /websiteLeads/{leadId} {
       allow read: if isStaff();
       allow update: if isStaff()

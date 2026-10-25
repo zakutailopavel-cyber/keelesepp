@@ -15,13 +15,14 @@ import { clearTestSession, testSessionName } from '../../services/firebase/auth.
 import GuideBanner from '../../features/guide/GuideBanner.jsx';
 import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx';
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
+import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
 }
 
-export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, announcements }) {
+export default function AppShell({ approvals = accountApprovalsService, messages = messagesService, announcements, missingData }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user, signOut, preview, stopPreview } = useAuth();
@@ -53,11 +54,13 @@ export default function AppShell({ approvals = accountApprovalsService, messages
     }
   };
 
-  // „Teated”: a student / parent answers the school's open announcements before the CRM opens (not in the admin's preview)
+  // „Teated”: a student / parent answers the school's open announcements before the CRM opens (not in the admin's preview);
+  // then „Puuduvad andmed”: what is missing on their card(s) (MissingDataGate mounts only after the last announcement)
   const gated = isLearnerAccount(user.roles) && !preview;
 
   return (
     <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
+    <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />
       <aside className={`sidebar ${menuOpen ? 'is-open' : ''}`}>
@@ -100,6 +103,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
         <PetCompanion />
       </main>
     </div>
+    </MissingDataGate>
     </AnnouncementGate>
   );
 }
