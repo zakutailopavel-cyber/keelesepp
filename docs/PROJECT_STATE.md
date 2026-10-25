@@ -1,3 +1,55 @@
+## 2026-10-25 · agent/missing-data-gate — „Puuduvad andmed”: after login a learner fills what is missing on the card
+
+- Base: `main` 3102bb8 (2026-10-25, after #791), merged with `main` d0fa498 (after #792 learner-emails). Draft PR
+  #PRNUM from `agent/missing-data-gate`. Learner gate + Õpilased list + Seaded card + one server route group + two
+  rules blocks. No calendar, finance, Live Classroom or content changes; no data written, no deploy.
+- Asked (owner 2026-10-25): „Сделать форму для заполнения недостающих данных во время входа.”
+- Built (ARCHITECTURE.md „Puuduvad andmed”):
+  - Learner: `MissingDataGate` right after the „Teated” gate (Teated first, then this; one blocking flow, logout
+    always, fail-open after 8 s, „Jätka praegu ilma” when saving fails). Opens only when a REQUIRED item is missing;
+    optional ones are in the same form. Items: Sobivad ajad (PollGrid + quick choices), contact e-mail and phone (an
+    adult's own; a child's parent's), parent's name (child), message language et / ru / en, class 1.–12. or birth
+    year (child; an unknown-age student picks „Täiskasvanu” or a class first, then gets the adult or the child
+    questions; the account e-mail is prefilled for an adult). A parent fills per child in one form and gives their
+    own phone and language once. ET + RU labels, checks in the browser and again on the server.
+  - Server (`functions/missing-data-core.js` pure, `functions/missing-data-service.js`, routes in
+    `staffOperationsApi`): `/missing-data/mine`, `/missing-data/save`, `/missing-data/report` (admin). Writes only
+    the missing fields of the caller's own cards (and only while still empty), never other fields or cards (403),
+    `studentAvailability` only when empty, parent's `phone` / `preferredLanguage` on their own `users` profile, and an
+    audit record `missingDataSubmissions/{id}` (who, when, before → after).
+  - **`preferredLanguage` ('et' | 'ru' | 'en')** on the student card and on the parent's user profile — the contract
+    agent/learner-emails (#792) already reads (docs/EMAIL_NOTIFICATIONS.md).
+  - Admin: Seaded → „Puuduvad andmed” (`missingDataSettings/current`: per item Kohustuslik / Soovi korral / Ei küsi;
+    default Sobivad ajad, e-post, keel, klass required; telefon, lapsevanema nimi optional). Õpilased → „Puuduvad
+    andmed” (`?puuduvad=1`): per card missing items, kind, teacher, account, „küsitakse sisselogimisel”, filters,
+    counts, „Ava kaart”, „Kopeeri /ajad link” for cards without an account, „Uued täitmised” with before → after and
+    „Vaadatud”. Bell: „<name> täitis puuduvad andmed” (category Õpilased) until „Vaadatud”.
+  - Rules: `missingDataSettings` admin read / validated write; `missingDataSubmissions` admin read, admin may only set
+    the review mark, no create / delete from the browser. Students / users rules unchanged (not loosened).
+- Read-only production counts (2026-10-25, default settings, `functions/tools/missing-data-counts.js`): 96 active
+  cards — kind: 53 child, 3 adult, 40 unknown age (own account, no class, no parent data); accounts: 42 student only,
+  12 parent only, 15 both, 27 none. Every card misses at least one required item (language is new: 96). Would see the
+  form at login: 69; without any account (school sends /ajad or calls): 27. Per item (with account / without):
+  Sobivad ajad 95 (68 / 27), e-post 35 (9 / 26), telefon 86 (59 / 27), lapsevanema nimi 10 (7 / 3), keel 96
+  (69 / 27), klass või sünniaasta 62 (46 / 16).
+- Checks: crm-v2 whole vitest 367 files (366 passed, 1 skipped), 2563 tests: 2560 passed, 3 skipped, 0 failed (new:
+  MissingDataGate 12, MissingDataPanel 5, MissingDataSettingsCard 3); eslint 0 errors (16 old warnings);
+  `npm run build` ok; functions `npm test` 402/402 (new missing-data-core 8); emulator (`firebase emulators:exec
+  --only auth,firestore,functions --project demo-keelesepp-finance`, JDK 21) missing-data-emulator (new, in
+  `test:emulator`) + announcements + learner-email + security-access: 13/13. Local stand with made-up data (student of
+  unknown age → Täiskasvanu, parent with 2 children, admin list, settings; 375 px, no horizontal scroll, + desktop),
+  not committed.
+- Deploy needed (owner): `firebase deploy --only firestore:rules` and `firebase deploy --only
+  functions:staffOperationsApi`. Front end with main (Vercel). Until functions are deployed the gate gets 404 and
+  fails open (the CRM opens as before); until rules are deployed Seaded cannot save (defaults apply on the server).
+- Limits: optional items alone never open the form; values already on the card cannot be changed through it (staff
+  edit the card); a child's own e-mail is not asked (only the parent's); the parent's name / e-mail come from the
+  parent account when one is linked; unknown-age cards are counted with the adult questions in the admin list.
+- Owner decision: with defaults 69 learners will be asked at the next login (language is missing everywhere) — keep,
+  or set some items to „Soovi korral” first.
+- Next safe step: owner deploys rules + `staffOperationsApi`, checks Seaded → „Puuduvad andmed”, then logs in as the
+  test student to see the form.
+
 ## 2026-10-25 · agent/learner-emails — e-mails to students and parents (7 types, all off by default)
 
 - Base: `main` 914a417 (2026-10-25, after #790). Draft PR #792 from `agent/learner-emails`. Functions + Seaded + one public
