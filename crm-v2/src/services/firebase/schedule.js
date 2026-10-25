@@ -10,7 +10,7 @@ function sort(items) {
   return items.sort((a, b) => `${a.date || a.startDate || '9999'} ${a.time || ''}`.localeCompare(`${b.date || b.startDate || '9999'} ${b.time || ''}`, 'et'));
 }
 
-function payload(data, current = {}) {
+export function payload(data, current = {}) {
   const now = new Date().toISOString();
   const date = String(data.date || current.date || '').trim();
   const recurring = Boolean(data.recurring ?? current.recurring);
@@ -24,7 +24,8 @@ function payload(data, current = {}) {
     duration: Math.max(5, Number(data.duration || current.duration || 60)),
     recurring,
     status: data.status || current.status || 'Planeeritud',
-    source: current.source || 'keelesepp-crm-v2',
+    // an existing entry keeps its source; a new one may name it (the planner: 'planner'), else the CRM
+    source: current.source || data.source || 'keelesepp-crm-v2',
     scheduleVersion: 2,
     updatedAtIso: now,
     ...(recurring ? { startDate: date } : {}),
