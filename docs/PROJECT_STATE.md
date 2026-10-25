@@ -1,7 +1,7 @@
 ## 2026-10-25 · agent/missing-data-gate — „Puuduvad andmed”: after login a learner fills what is missing on the card
 
 - Base: `main` 3102bb8 (2026-10-25, after #791), merged with `main` d0fa498 (after #792 learner-emails). Draft PR
-  #PRNUM from `agent/missing-data-gate`. Learner gate + Õpilased list + Seaded card + one server route group + two
+  #793 from `agent/missing-data-gate`. Learner gate + Õpilased list + Seaded card + one server route group + two
   rules blocks. No calendar, finance, Live Classroom or content changes; no data written, no deploy.
 - Asked (owner 2026-10-25): „Сделать форму для заполнения недостающих данных во время входа.”
 - Built (ARCHITECTURE.md „Puuduvad andmed”):
