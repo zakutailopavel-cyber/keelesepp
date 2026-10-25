@@ -34,7 +34,7 @@ export function fieldLabel(item, kind) {
     parentName: 'Lapsevanema ees- ja perekonnanimi · Имя и фамилия родителя',
     language: 'Mis keeles sulle kirjutada? · На каком языке вам писать?',
     grade: 'Klass või sünniaasta · Класс или год рождения',
-    availability: 'Sobivad tunniajad · Удобное время для уроков',
+    availability: 'Vali sobivad ajad · Выберите удобное время',
   }[item];
 }
 
