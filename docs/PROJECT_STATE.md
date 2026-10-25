@@ -1,3 +1,22 @@
+## 2026-10-26 · agent/course-final-shape — B1 course final shape (research doc, no code)
+
+- Base: `main` a67789f (2026-10-26, after #794). Draft PR from `agent/course-final-shape`. Docs only.
+- Asked (owner): lessons must not repeat one template, tasks must not repeat, each lesson leads to its goal, after the
+  B1 course a learner passes Harno B1 with ≥ 80 %.
+- Done: `docs/COURSE_FINAL_SHAPE_B1.md` — sources with URLs (Harno B1 page re-read 2026-10-26, sample tasks,
+  consultation booklet, performance samples, handbooks; Keeleklikk/Keeletee, Tere jälle!, E nagu Eesti, Naljaga
+  pooleks, INSA, EKI PSV/Sõnaveeb/käsiraamat; Nation, Willis, Ellis, Harmer, spacing/retrieval/interleaving, Bloom/SOLO,
+  CEFR CV, CoE test manual, washback); Harno B1 exam map with ids W1a…S2 and the 80 % target per part (16/20, 24/30,
+  27/33, 16/20); catalogue of 61 task types (R/L/W/S/G) with exam link, level and per-module min–max; 8 teaching
+  archetypes + exam/mock with rotation rules and a default plan for modules 2–18 (checked by script: no archetype twice
+  in a row, 4 distinct per module, L→S/L→W/R→S/R→W once per module); module arc; course arc with mocks 060, 080, 089
+  and final 090, format introduction schedule and practice counts; 15 testable rules V1–V15.
+- Checks: no tests needed (docs only); the §6.2 matrix verified with a local script against rules 1–5.
+- Limits: Harno does not publish the B1 per-criterion raw split for writing/speaking — our rubrics are marked [INF].
+- Not done: code (tags, `finalShapeProblems` gate, exam-scale rubrics), module 1, content rewrite.
+- Next safe step: owner reviews §6.2 plan and §10 questions; then one PR adding block tags + gates V1–V5, V7–V9 into
+  the quality baseline.
+
 ## 2026-10-25 · agent/missing-data-gate — „Puuduvad andmed”: after login a learner fills what is missing on the card
 
 - Base: `main` 3102bb8 (2026-10-25, after #791), merged with `main` d0fa498 (after #792 learner-emails). Draft PR
