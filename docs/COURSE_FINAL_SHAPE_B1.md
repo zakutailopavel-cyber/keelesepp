@@ -530,7 +530,9 @@ Original list:
 
 - **Decided 2026-10-26:** the course certificate (lesson 090) requires **≥ 80 % in every exam part** (the strict rule);
   the exam blocks show this target (`PASS_SHARE` in `engine/blocks/harnoScales.js`).
-- **Decided 2026-10-26:** module 1 (001–005) = entry diagnostic + A2 consolidation; its content comes later from the
-  content agents (no file in code yet; the gates start at module 2).
+- **Decided 2026-10-26:** module 1 (001–005) = entry diagnostic + A2 consolidation. Built in `b1/module01.js`
+  (`agent/b1-m01-diagnostic`): 001 EKS entry test (A2 short form + one B1 preview task per skill, timed, profile by
+  skill and grammar area), 002 AVAS R→W, 003 RÄÄK L→S, 004 PROB R→S, 005 EKS module check (A2). Module 1 has three
+  teaching lessons, so V5 asks for three archetypes and three lead pairs there.
 - Exact Harno raw-point split for B1 writing and speaking criteria is not public; our rubrics in §2.4 are an inference
   and can be adjusted after the owner's or a Harno-trained rater's review.
