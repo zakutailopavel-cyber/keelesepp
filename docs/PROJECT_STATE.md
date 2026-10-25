@@ -1,6 +1,6 @@
 ## 2026-10-25 · agent/learner-emails — e-mails to students and parents (7 types, all off by default)
 
-- Base: `main` 914a417 (2026-10-25, after #790). Draft PR from `agent/learner-emails`. Functions + Seaded + one public
+- Base: `main` 914a417 (2026-10-25, after #790). Draft PR #792 from `agent/learner-emails`. Functions + Seaded + one public
   learner page + rules. Calendar UI (`features/calendar`, the planner's branch) not touched.
 - Asked (owner 2026-10-25): lesson reminder the day before, lesson moved / cancelled only when the teacher confirmed,
   new schedule from the planner, homework due tomorrow, work checked, „Teated” by e-mail; admin switches each on,
