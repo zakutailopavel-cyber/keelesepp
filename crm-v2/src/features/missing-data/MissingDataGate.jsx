@@ -24,8 +24,8 @@ function TimesField({ id, cells = {}, onChange, optional, error }) {
   return (
     <fieldset className="missing-data__field missing-data__times" aria-describedby={error ? `${id}-error` : undefined}>
       <legend>{fieldLabel('availability')}{optional ? OPTIONAL : ''}</legend>
-      <p className="poll-important">Märgi KÕIK ajad, mil saad tunnis tegelikult olla. Puuduta tundi: sobib; uuesti: ★ sobib kõige paremini.<br />
-        <span lang="ru">Отметьте ВСЕ часы, когда реально можете быть на уроке. Нажмите: подходит; ещё раз: ★ лучше всего.</span></p>
+      <p className="poll-important">Vajuta tunnile, mis sobib. Vajuta uuesti — ★ sobib kõige paremini.<br />
+        <span lang="ru">Нажмите на час, который подходит. Ещё раз — ★ самое удобное.</span></p>
       <div className="poll-quick"><span>Kiirvalik:</span>{Object.entries(PRESETS).map(([key, preset]) => <button type="button" key={key} onClick={() => onChange(withPreset(cells, preset))}>{PRESET_LABELS[key]}</button>)}<button type="button" className="is-clear" onClick={() => onChange({})}>Tühjenda</button></div>
       <PollGrid cells={cells} onChange={onChange} dayNames={DAYS} partNames={{ morning: 'Hommik', day: 'Päev', evening: 'Õhtu' }} label={`Märgi sobivad ajad ${id}`} />
       <FieldError code={error} id={`${id}-error`} />
