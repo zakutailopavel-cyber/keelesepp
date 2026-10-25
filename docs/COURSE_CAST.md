@@ -18,6 +18,10 @@ Keep facts consistent; add new facts here when a module adds them.
 - **Sofia's flat** (module 3): moved from a rented room in Mustamäe to a wooden house in Kalamaja; neighbour **Tiina** (72,
   head of the housing association); housewarming (soolaleivapidu) for the family.
 - **Anna's dog** is **Bruno** (module 4); **Tõnu** is the father of Oskar's friend Rasmus (gives lifts).
+- **Module 1:** Sofia starts the B1 evening course at „Keelekool Sõna” (teacher **Maret**, administrator **Krista**,
+  colleague-teacher **Kadi** runs the Monday online group); Anna (Saue, dog Bruno) takes bus 17 at 7.15 and once
+  overslept; Sofia and Anna swim at ujula Kalev; Viktor's bicycle workshop is in a Mustamäe courtyard (Sõpruse stop,
+  green door), closed on Mondays; radio host **Ülle** interviews Maret (also modules 14, 16); friend **Kati** (Anna's).
 - **Module 7:** Viktor hurt his knee cycling; new colleague **Kristjan** at Sofia's office; family doctor **dr Kask**,
   nurse **Kati** (advice line), **dr Tamm** (radio sleep expert).
 - **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher

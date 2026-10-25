@@ -12,6 +12,7 @@ export default [
     learningJob: "järjestada tuttavad argipäevategevused ning kirjeldada Anna tavapärast päeva olevikuvormis",
     alt: "Anna ärkab, sööb hommikusööki ja valmistub bussiga tööle minema.",
     caption: "Pilt 1. Anna tavalise tööpäeva hommik.",
+    prompts: ["Mida Anna enne tööd teeb? Nimeta kolm tegevust.", "Mis kell Anna sinu arvates kodust lahkub?", "Loe teksti „Anna hommik” ja kontrolli oma vastust."],
   },
   {
     id: "a2b1-002-kasuta-1",
@@ -24,6 +25,7 @@ export default [
     learningJob: "lugeda kellaaegu, järjestada tegevused ning põhjendada realistlikku päevaplaani",
     alt: "Anna vaatab kolme kellaga päevaplaani ja seab tegevused õigesse järjekorda.",
     caption: "Pilt 1. Anna koostab tavalisest erineva päeva plaani.",
+    prompts: ["Mis kell on Annal homme tähtis kohtumine?", "Mida Anna teeb, et ta homme hiljaks ei jääks?", "Mis sinu eilses päevas läks teisiti kui plaanis?"],
   },
   {
     id: "a2b1-003-kasuta-1",
@@ -36,6 +38,7 @@ export default [
     learningJob: "tõlgendada harjumuste sagedust, võrrelda vastuseid ja teha uuringust järeldusi",
     alt: "Anna küsitleb Markust tema harjumuste kohta ja näitab täidetud sagedusskaalat.",
     caption: "Pilt 1. Harjumuste väike uuring kontori puhkenurgas.",
+    prompts: ["Mida Anna Markuselt küsib?", "Kui tihti Markus sinu arvates kohvi joob?", "Milline uus harjumus sobiks sinu töö- või koolikaaslastele?"],
   },
   {
     id: "a2b1-004-kasuta-1",
@@ -48,6 +51,7 @@ export default [
     learningJob: "võrrelda nädala kiireid ja vabu päevi, paigutada uus kohustus ning selgitada muudatuse põhjust",
     alt: "Anna muudab nädalaplaanis trenniaega ja Sofia osutab uuele vabale kohale.",
     caption: "Pilt 1. Uue kohustuse tõttu muudetud nädalaplaan.",
+    prompts: ["Millise päeva Anna trenni jaoks valib?", "Kuhu Sofia näitab ja miks?", "Kuhu sina sel nädalal lähed ja kust tuled?"],
   },
   {
     id: "a2b1-005-kasuta-1",
@@ -60,5 +64,6 @@ export default [
     learningJob: "kirjeldada tavapärast nädalat, põhjendada ebasobivaid aegu ja leppida kokku kohtumine",
     alt: "Anna pakub kalendris kohtumisaega ja Viktor kontrollib oma käekella.",
     caption: "Pilt 1. Sobiva kohtumisaja kokkuleppimine.",
+    prompts: ["Millise aja Anna pakub?", "Miks Viktor kella vaatab?", "Millal sina järgmisel nädalal vaba oled?"],
   },
 ];
