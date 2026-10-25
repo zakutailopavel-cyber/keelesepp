@@ -125,6 +125,10 @@ export function measureBlock(block) {
     case 'formtext': sentencesIn(String(d.passage || '').replace(/\[([^\]]*)\]\s*\([^)]*\)/g, (_, a) => a.split('|')[0].trim())).forEach((x) => s.push(x)); items = (String(d.passage || '').match(/\]\s*\(/g) || []).length; break;
     // „Lünka sobiv lause”: the whole text, one answer per taken-out sentence
     case 'insertion': sentencesIn(String(d.passage || '').replace(/\[\[|\]\]/g, '')).forEach((x) => s.push(x)); items = (String(d.passage || '').match(/\[\[/g) || []).length; break;
+    // Harno R1: the situations are the items (the ads are short notices, not task sentences)
+    case 'adsmatch': (d.situations || []).forEach((x) => s.push(x.text)); items = (d.situations || []).length; break;
+    // exam listening: like its choice / true-false / matching items
+    case 'examlisten': (d.questions || []).forEach((q) => s.push(q.q)); (d.statements || []).forEach((st) => s.push(st.text)); items = (d.questions || []).length + (d.statements || []).length + (d.pairs || []).length; break;
     default: break;
   }
   return { sentences: s.filter((x) => wordsIn(x) >= 2), items };

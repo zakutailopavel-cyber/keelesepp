@@ -7,10 +7,11 @@ import { diagram } from './blocks/diagram.jsx';
 import { pictureBlocks } from './blocks/picture.jsx';
 import { examBlocks } from './blocks/exam.jsx';
 import { chart } from './blocks/chart.jsx';
+import { harnoBlocks } from './blocks/harno.jsx';
 import { newId } from './schema.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...examBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart };
+export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart };
 
 export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Kujundus'];
 

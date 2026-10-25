@@ -142,13 +142,16 @@ export function withLessonGoals(blocks = [], entry = null) {
 
 export function moduleNumber(mod) { return Number(String(mod.MODULE.id).split('-').pop()); }
 
-// controlled work first, free use after it, the self-check last (didactic norm „kontrollitud → vaba”); an opening
-// situation (text / tip) stays on top. Stable: the author's order holds inside each group.
-const RANK = { planning: 2, speaking: 3, writing: 3, rolecards: 3, guidedletter: 3, rubric: 4, selfcheck: 5 };
+// The author's order is the lesson's order (docs/COURSE_FINAL_SHAPE_B1.md §9, audit 2026-10-26 problem 1: the old rank
+// pushed planning → speaking / writing / role cards to the end of every sheet, so every lesson ended „speak → write”).
+// Only what is pedagogically required is still moved, stable inside each group:
+// - the rubric (the checklist or the exam-scale rubric) judges the product of the sheet, so it comes after every task;
+// - the self-check („Kontrolli end”) closes the sheet, after the rubric.
+// Everything else — an opening text, input before its questions, a plan before the speech, the final task — is where
+// the author put it; the gates (finalShape.js V1/V2) check that consecutive lessons do not repeat one rhythm.
+const RANK = { rubric: 4, examrubric: 4, selfcheck: 5 };
 export function lessonOrder(blocks = []) {
-  const head = ['text', 'tip'].includes(blocks[0]?.type) ? [blocks[0]] : [];
-  const rest = blocks.slice(head.length).map((b, i) => ({ b, i, r: RANK[b.type] || 1 }));
-  return [...head, ...rest.sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b)];
+  return blocks.map((b, i) => ({ b, i, r: RANK[b.type] || 1 })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b);
 }
 
 // the mother-tongue course (9. / 12. klass) checks commas, capitals and letters: its gap, fix and rewrite tasks are
@@ -194,6 +197,10 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(mod.MODULE.language ? { language: mod.MODULE.language } : {}),
       // lesson template v3 (owner 2026-10-18, §11): 5–9 full tasks a sheet in a fixed lesson shape
       ...(lesson.template || mod.MODULE.template ? { template: lesson.template || mod.MODULE.template } : {}),
+      // the lesson's archetype and lead skills (docs/COURSE_FINAL_SHAPE_B1.md §4; blocks.js shape / withShapes): the
+      // final-shape gates read them from the sheets
+      ...(lesson.archetype ? { archetype: lesson.archetype } : {}),
+      ...(lesson.lead ? { lead: lesson.lead } : {}),
       // a supplement (extra homework sheets, not a roadmap module) is named, not numbered
       ...(mod.MODULE.supplement ? { supplement: true } : {}),
       badge: `${course.badge} · ${mod.MODULE.supplement ? mod.MODULE.title : `moodul ${moduleNumber(mod)}`}`,

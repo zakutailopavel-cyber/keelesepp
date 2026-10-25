@@ -37,6 +37,16 @@ export function blockMinutes(block, level = 'A2', design = '', template = '') {
     case 'formtext': return (words(String(d.passage || '').replace(/\[[^\]]*\]\s*\([^)]*\)/g, 'x')) / wpm) * 1.5 + (String(d.passage || '').match(/\]\s*\(/g) || []).length * 0.4;
     // a text with sentence gaps: read the text and the sentences, then about 40 s per gap
     case 'insertion': return (words(String(d.passage || '').replace(/\[\[|\]\]/g, '') + ' ' + (d.extra || '')) / wpm) * 1.5 + (String(d.passage || '').match(/\[\[/g) || []).length * 0.7;
+    // Harno R1: read the ads, then match each situation (≈ 30 s)
+    case 'adsmatch': return (words((d.ads || []).map((a) => `${a.title || ''} ${a.text || ''}`).join(' ')) / wpm) * 1.5 + (d.situations || []).length * 0.5;
+    // exam listening: the recording (played `plays` times) and about 25 s per item
+    case 'examlisten': return (words(d.transcript) / 110) * (Number(d.plays) || 2) + ((d.questions || []).length + (d.statements || []).length + (d.pairs || []).length) * 0.4;
+    // the Harno writing card: a questionnaire ≈ 50 s an answer; a text ≈ 1 min per 10 words + reading and planning the card
+    case 'examwriting': return lines(d.questions).length ? lines(d.questions).length * 0.8 + 1 : ((Number(d.minWords) || 50) + (Number(d.maxWords) || 70)) / 2 / 10 + 3;
+    // an agreement or a phone call in pairs: preparation, the talk, roles swapped
+    case 'speakcard': return 8;
+    case 'examrubric': return 1;
+    case 'exampart': return 0.3;
     case 'truefalse': return (d.statements || []).length * (v4?.truefalse || 0.2);
     case 'match': return (d.pairs || []).length * (v4?.match || 0.2);
     case 'manymatch': return lines(d.left).length * 0.3;

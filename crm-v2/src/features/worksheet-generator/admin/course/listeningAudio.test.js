@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { COURSE_MODULES, buildCourseSheet, PHASES } from './registry.js';
-import { LISTENING_AUDIO, TEACHER_READS, listenInstruction } from './listeningAudio.js';
+import { AUDIO_TYPES, LISTENING_AUDIO, TEACHER_READS, listenInstruction } from './listeningAudio.js';
 
 // every listening block of the course, read from the module files (run from crm-v2)
 // the TTS is Estonian (TartuNLP): an English module's transcripts are read by the teacher until it has its own voices
 const blocks = COURSE_MODULES.filter((mod) => (mod.MODULE.language || 'et') === 'et').flatMap((mod) => Object.entries(mod.LESSONS).flatMap(([lessonId, lesson]) => Object.keys(PHASES)
-  .flatMap((phase) => (lesson[phase] || []).filter((b) => b.type === 'listening').map((block) => ({ mod, lessonId, phase, block })))));
+  .flatMap((phase) => (lesson[phase] || []).filter((b) => AUDIO_TYPES.has(b.type)).map((block) => ({ mod, lessonId, phase, block })))));
 
 describe('listening audio of the course (tools/listening-audio/build.mjs)', () => {
   it('has a current recording for every listening block', () => {

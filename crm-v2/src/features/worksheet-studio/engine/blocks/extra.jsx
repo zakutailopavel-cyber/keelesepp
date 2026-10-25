@@ -102,7 +102,7 @@ export const reading = {
 };
 
 // ---------- listening ----------
-function AudioPick({ value, onChange }) {
+export function AudioPick({ value, onChange }) {
   const input = useRef(null);
   const assets = useAssets();
   const [busy, setBusy] = useState(false);

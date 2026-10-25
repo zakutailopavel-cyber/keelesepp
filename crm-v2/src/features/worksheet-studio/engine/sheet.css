@@ -672,6 +672,51 @@
 .ws-insertion-options li { break-inside: avoid; margin-bottom: 1.2mm; }
 .ws-cloze-options .ws-dot { display: inline-block; width: 3mm; height: 3mm; border: .3mm solid var(--ks-line); border-radius: 50%; vertical-align: -.3mm; }
 
+/* ── Harno B1 formats (blocks/harno.jsx, docs/COURSE_FINAL_SHAPE_B1.md §2.2) ── */
+/* R1: the ads in cards (lettered), the situations under them with a letter box each */
+.ws-ads { display: grid; gap: 3mm; }
+.ws-ads-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2.5mm; }
+.ws-ad { position: relative; border: .35mm solid var(--ks-line); border-radius: 2.5mm; padding: 2.5mm 3mm 2.5mm 9mm; background: rgba(255,255,255,.75); break-inside: avoid; }
+.ws-ad h4 { margin: 0 0 1mm; font: 800 10.5pt var(--font-head); color: var(--ks-navy); }
+.ws-ad p { margin: 0; font-size: 10pt; line-height: 1.35; }
+.ws-ad-letter { position: absolute; left: 2.5mm; top: 2.2mm; font: 900 13pt var(--font-head); color: var(--ks-green); }
+.ws-ads-sit { margin: 0; padding-left: 6mm; display: grid; gap: 1.6mm; }
+.ws-ads-sit li { display: flex; align-items: flex-end; gap: 3mm; break-inside: avoid; }
+.ws-ads-text { flex: 1; }
+/* listening (exam): the note on how many times the text is heard */
+.ws-examlisten { display: grid; gap: 2mm; }
+/* writing: the Harno task card above the answer */
+.ws-examwrite { display: grid; gap: 3mm; }
+.ws-taskcard { border: .45mm dashed var(--ks-navy-2); border-radius: 2.5mm; padding: 3mm 4mm; background: rgba(255,255,255,.8); }
+.ws-taskcard p { margin: 1mm 0; }
+.ws-taskcard .ws-bullets { margin: 1mm 0 0; }
+.ws-taskcard-kind { font: 800 9.5pt var(--font-head); text-transform: uppercase; letter-spacing: .5pt; color: var(--ks-navy-2); }
+.ws-questionnaire li { break-inside: avoid; }
+/* speaking: idea card and the two cards of the phone call */
+.ws-speakcard { display: grid; gap: 3mm; }
+.ws-speakcard-sit { margin: 0; font-weight: 600; }
+.ws-ideas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.5mm; }
+.ws-idea { margin: 0; border: .35mm solid var(--ks-line); border-radius: 2.5mm; padding: 2mm; text-align: center; background: rgba(255,255,255,.8); }
+.ws-idea figcaption { margin-top: 1mm; font-weight: 700; }
+.ws-speakcard-goal { margin: 0; }
+.ws-speakcard .ws-rolecards ol { margin: 0; padding-left: 5mm; display: grid; gap: 1mm; }
+/* the exam-scale rubric: criteria rows, points to circle */
+.ws-examrubric table { width: 100%; border-collapse: collapse; }
+.ws-examrubric th, .ws-examrubric td { border: .2mm solid var(--ks-line); padding: 2mm 2.5mm; vertical-align: top; text-align: left; }
+.ws-examrubric th small { display: block; font-weight: 400; color: var(--ks-muted); font-size: 9.5pt; }
+.ws-examrubric td { white-space: nowrap; width: 1%; }
+.ws-pt { display: inline-grid; place-items: center; width: 6.5mm; height: 6.5mm; margin-right: 1mm; border: .3mm solid var(--ks-line); border-radius: 50%; background: #fff; font: 700 10pt var(--font-body); color: var(--ks-ink); padding: 0; }
+button.ws-pt { cursor: pointer; }
+.ws-pt.on { background: var(--ks-green-2); border-color: var(--ks-green-2); color: #fff; }
+.ws-examrubric-total { margin: 2mm 0 0; text-align: right; }
+/* the header of an exam part */
+.ws-exampart { display: grid; gap: 1.5mm; }
+.ws-exampart h4 { margin: 0; font: 900 15pt var(--font-head); color: var(--ks-navy); }
+.ws-exampart-facts { display: flex; flex-wrap: wrap; gap: 2mm 5mm; }
+.ws-exampart p { margin: 0; }
+.ws-exampart-time { color: var(--ks-muted); }
+.ws-exampart .ws-recbtn { justify-self: start; width: auto; }
+
 /* Skeem v2 (owner 2026-10-13: the curved maps were not understandable): rows and cards across the width, every blank
    next to the word, question or step it belongs to */
 .ws-dg2 { display: grid; gap: 3mm; }
@@ -727,7 +772,9 @@
 .ws-narrow .ws-slogan, .ws-narrow .ws-ftr, .ws-narrow .ws-page-tail { display: none; }
 .ws-narrow .ws-match, .ws-narrow .ws-many, .ws-narrow .ws-reading, .ws-narrow .ws-rolecards, .ws-narrow .ws-planning,
 .ws-narrow .ws-phrasebank, .ws-narrow .ws-rubric, .ws-narrow .ws-self, .ws-narrow .ws-self-items, .ws-narrow .ws-speak.has-img,
-.ws-narrow .ws-dg-compare, .ws-narrow .ws-formrow, .ws-narrow .ws-card[data-cols] .ws-tf { grid-template-columns: minmax(0, 1fr); }
+.ws-narrow .ws-dg-compare, .ws-narrow .ws-formrow, .ws-narrow .ws-card[data-cols] .ws-tf, .ws-narrow .ws-ads-grid { grid-template-columns: minmax(0, 1fr); }
+.ws-narrow .ws-ideas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ws-narrow .ws-examrubric td { white-space: normal; }
 .ws-narrow .ws-crossword li { grid-template-columns: minmax(0, 1fr); }
 .ws-narrow .ws-cw-clues { grid-template-columns: minmax(0, 1fr); }
 .ws-narrow img, .ws-narrow svg { max-width: 100%; height: auto; }
