@@ -1,10 +1,11 @@
 import { invoiceBalanceCents, isInvoiceOverdue } from '../students/studentFinance.js';
+import { FIELD_NAMES } from '../missing-data/missingDataModel.js';
 import { formatDue, hasUnreadReply, isAssignedTo, isNewForMe, isOverdue, scopeTasks, todayIso } from '../tasks/taskModel.js';
 
 // The notification centre does not store notifications: every item is derived from its source record and disappears
 // when the source is handled (task done or opened, message read, work reviewed, invoice paid) — as in CRM v1.
 
-export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', lesson: 'Tunnid', invoice: 'Arved' };
+export const CATEGORY_LABEL = { task: 'Ülesanded', message: 'Sõnumid', homework: 'Kodutööd', lesson: 'Tunnid', student: 'Õpilased', invoice: 'Arved' };
 const SEVERITY_ORDER = { danger: 0, warning: 1, info: 2, success: 3 };
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(cents / 100);
 
@@ -94,6 +95,20 @@ export function availabilityNotifications(items = [], names = new Map()) {
     detail: item.changedByName ? `Muutis ${item.changedByName}${item.changedByRole === 'parent' ? ' (lapsevanem)' : ''}` : 'Paku vajadusel uus tunniaeg',
     meta: 'sobivad ajad',
     to: `/students/${encodeURIComponent(item.studentId)}#sobivad-ajad`,
+  }));
+}
+
+// „Puuduvad andmed” (owner 2026-10-25): a student / parent filled missing data after login; until the administrator
+// marks it „Vaadatud” in Õpilased → Puuduvad andmed
+export function missingDataNotifications(submissions = []) {
+  return submissions.filter((item) => !item.reviewedAt).map((item) => ({
+    id: `missing-data:${item.id}`,
+    category: 'student',
+    severity: 'info',
+    title: `${item.studentNames.filter(Boolean).join(', ') || item.byName || 'Õpilane'} täitis puuduvad andmed`,
+    detail: [...new Set(item.changes.map((change) => FIELD_NAMES[change.field] || change.field))].join(', '),
+    meta: item.byName ? `${item.byName}${item.byRole === 'parent' ? ' (lapsevanem)' : ''}` : 'puuduvad andmed',
+    to: `/students?puuduvad=1&taidetud=${encodeURIComponent(item.id)}`,
   }));
 }
 

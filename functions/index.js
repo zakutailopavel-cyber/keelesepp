@@ -8277,6 +8277,26 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
       res.json(await require("./announcements-service").report(db, req.body || {}));
       return;
     }
+    // „Puuduvad andmed” (functions/missing-data-service.js): after „Teated” a student / parent fills only what is
+    // missing on their own card(s); only missing fields are written, with an audit record. The admin gets the list.
+    if (req.path === "/missing-data/mine" || req.path === "/missing-data/save") {
+      const decoded = await requireFirebaseUser(req);
+      const snap = await db.collection("users").doc(decoded.uid).get();
+      const profile = snap.exists ? snap.data() : {};
+      if (isDisabledProfile(profile)) throw httpError(403, "Account disabled");
+      const actor = { decoded, profile, roles: collectTrustedRoles(profile, decoded) };
+      const missingData = require("./missing-data-service");
+      res.set("Cache-Control", "no-store");
+      if (req.path === "/missing-data/mine") res.json(await missingData.mine(db, actor));
+      else res.json(await missingData.save(db, actor, req.body || {}, { FieldValue }));
+      return;
+    }
+    if (req.path === "/missing-data/report") {
+      await requireAdminUser(req);
+      res.set("Cache-Control", "no-store");
+      res.json(await require("./missing-data-service").report(db));
+      return;
+    }
     if (req.path === "/accounts/test-student-session") {
       const actor = await requireAdminUser(req);
       res.json(await testStudentSession({ actor, studentId: req.body?.studentId }));

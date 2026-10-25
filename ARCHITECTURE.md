@@ -385,6 +385,45 @@ be reached within 8 s, the CRM opens as usual — an announcement never locks an
   /announcements/report` (administrator) lists every account that must answer with its answer (CSV export in the
   browser). Pure rules: `functions/announcements-core.js`; loading / writing: `functions/announcements-service.js`.
 
+### „Puuduvad andmed” — missing card data after login (2026-10-25)
+
+Right after „Teated” (the `MissingDataGate` is a child of `AnnouncementGate` in `AppShell`, so it mounts only after
+the last announcement is answered) a student or parent account fills what is missing on its OWN cards
+(`crm-v2/src/features/missing-data/`). The form opens only when a REQUIRED item is missing; optional missing items are
+shown in the same form. Logout stays possible; if the server cannot be reached within 8 s the CRM opens (fail-open),
+and a failed save offers „Jätka praegu ilma”. Not shown to staff or in the administrator's read-only preview. Cards
+with no student / parent account never see it — the administrator's list shows them (copy the /ajad link or call).
+
+- Items (`functions/missing-data-core.js` `ITEMS`): `availability` (`studentAvailability/{id}` has no slots),
+  `email` and `phone` (an adult's own `email` / `phone`; a child's parent: `parentEmail` / `parentPhone`, the
+  `parentContacts` list or a linked parent account's profile), `parentName` (child only), `language`
+  (`preferredLanguage` 'et' | 'ru' | 'en' — on the student card, and for parents on their `users/{uid}` profile; a
+  child counts as known when the card or a linked parent's profile has it), `grade` (child or unknown age: `grade`
+  „N. klass” 1–12 or `birthYear`; „Täiskasvanu” marks an adult).
+- Kind of a card: `grade` „Täiskasvanu” / `birthYear` ≥ 18 years ago / `adult: true` → adult; a class, a younger
+  birth year, a parent account link or a parent contact → child; otherwise unknown: the form asks the class first
+  (with „Täiskasvanu”) and then the adult or the child questions.
+- A parent answers per child (times, class, …) and ONCE for themself: own phone (children's parent phone) and own
+  language go to the parent's `users/{uid}` profile (`phone`, `preferredLanguage`).
+- `missingDataSettings/current` — `{ items: { <item>: 'required' | 'optional' | 'off' } }`; default availability,
+  email, language, grade required, phone and parentName optional. Rules: administrator read / write, fixed keys and
+  values. Seaded → „Puuduvad andmed” (`MissingDataSettingsCard`).
+- Server: `staffOperationsApi` `POST /missing-data/mine` (the caller's questions; cards found as for „Teated” —
+  `announcements-service.callerContext`), `POST /missing-data/save` (403 for a card that is not the caller's; values
+  validated — e-mail, Estonian `+372…` or international phone, class 1–12 or birth year, language; required ones
+  enforced, 400 with per-field `details`), `POST /missing-data/report` (administrator). The save writes ONLY the
+  missing fields (`CARD_FIELDS`: email, phone, parentName, parentEmail, parentPhone, grade, birthYear,
+  preferredLanguage; profile: phone, preferredLanguage) and only while they are still empty (re-read in the
+  transaction), `studentAvailability/{id}` only when it has no slots (same shape as the client writes, so the
+  „muutis sobivaid aegu” bell works), plus `missingDataSubmissions/{auto}` — the audit: `byUid`, `byName`, `byRole`,
+  `at`, `studentIds`, `changes[{ target, id, field, before, after }]`, `reviewedAt`. Rules: administrator read and
+  may only set `reviewedAt` / `reviewedByUid` / `reviewedByName`; nobody creates or deletes from the browser.
+- Administrator: Õpilased → „Puuduvad andmed” (`MissingDataPanel`; `?puuduvad=1`, `&taidetud=<id>`): per active card
+  the missing items (required orange, optional grey), kind, teacher, account (student / parent / both / none) and
+  „küsitakse sisselogimisel”; filters by item, account and name; „Ava kaart”, „Kopeeri /ajad link” for cards without
+  an account; „Uued täitmised” with before → after and „Vaadatud”. The bell shows „<name> täitis puuduvad andmed”
+  (category Õpilased) until marked seen. Read-only counts: `functions/tools/missing-data-counts.js`.
+
 ### E-mails to students and parents (2026-10-25)
 
 Seven notification types (lesson reminder the day before, lesson moved, lesson cancelled, new schedule from the
@@ -498,6 +537,9 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `calendarSyncOutbox` — server-only deferred Google event deletions; browser access is denied.
 - `announcements` (administrator) and `announcementResponses` (server-written) — „Teated”, see above; learners
   reach them only through `staffOperationsApi /announcements/*`.
+- `missingDataSettings` (administrator) and `missingDataSubmissions` (server-written audit, administrator marks seen) —
+  „Puuduvad andmed”, see above; learners reach them only through `staffOperationsApi /missing-data/*`.
+
 - `emailSettings/learner` (administrator), `emailLog` (administrator reads, server writes), `learnerEmailJobs`,
   `learnerEmailRuns`, `emailPreferences`, `serverConfig` (server only) — e-mails to students and parents, see above.
 - financial collections — governed by the financial core and its immutable audit model.
