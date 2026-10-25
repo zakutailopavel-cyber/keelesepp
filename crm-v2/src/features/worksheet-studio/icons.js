@@ -88,6 +88,10 @@ import {
   UsersRound,
   WandSparkles,
   X,
+  ClipboardCheck,
+  Newspaper,
+  Phone,
+  Timer,
 } from 'lucide-react';
 
 export const Icons = {
@@ -177,4 +181,8 @@ export const Icons = {
   UsersRound,
   WandSparkles,
   X,
+  ClipboardCheck,
+  Newspaper,
+  Phone,
+  Timer,
 };

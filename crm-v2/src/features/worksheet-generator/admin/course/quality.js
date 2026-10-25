@@ -9,10 +9,15 @@ import BASELINE from './qualityBaseline.json';
 
 export const MIN_DIDACTIC_SCORE = 85;
 const FORM = ['gaps', 'wordforms', 'table', 'transformation', 'dictation', 'translation'];
-const MEANING = ['choice', 'truefalse', 'match', 'manymatch', 'categorize', 'crossword', 'reading', 'listening'];
+const MEANING = ['choice', 'truefalse', 'match', 'manymatch', 'categorize', 'crossword', 'reading', 'listening', 'adsmatch', 'examlisten'];
 const SENTENCE = ['errorfix', 'wordorder', 'transformation'];
-const PRODUCTIVE = ['speaking', 'writing', 'dialogue', 'rolecards', 'guidedletter', 'planning'];
-const SITUATION = ['text', 'tip', 'image', 'reading', 'listening', 'dialogue'];
+const PRODUCTIVE = ['speaking', 'writing', 'dialogue', 'rolecards', 'guidedletter', 'planning', 'examwriting', 'speakcard'];
+// an exam sheet may open with its part header (exampart) or the exam listening
+const SITUATION = ['text', 'tip', 'image', 'reading', 'listening', 'dialogue', 'exampart', 'examlisten'];
+// the rubric of a product: the checklist or the exam-scale rubric (§2.4 of COURSE_FINAL_SHAPE_B1.md)
+const RUBRICS = ['rubric', 'examrubric'];
+// the listening tasks a module's Harno coverage counts
+const LISTENING = ['listening', 'examlisten'];
 
 const tasks = (doc) => (doc.blocks || []).filter((b) => BLOCKS[b.type]?.task);
 const typeSet = (doc) => new Set(tasks(doc).map((b) => b.type));
@@ -48,7 +53,10 @@ export function sheetProblems(doc) {
   const last = doc.blocks[n - 1]?.type;
   // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): a sheet may end with the task itself; a self-check only once a lesson
   const v2 = doc.meta?.design === 'v2';
-  const endsWell = last === 'selfcheck' || last === 'rubric' || (v2 && PRODUCTIVE.includes(last));
+  // an exam lesson's sheet is the exam part itself: it ends with its last exam task, in the author's order (registry.js
+  // lessonOrder no longer moves speaking and writing to the end, docs/COURSE_FINAL_SHAPE_B1.md §9)
+  const examEnd = Boolean(doc.meta?.assessment) && Boolean(BLOCKS[last]?.task);
+  const endsWell = last === 'selfcheck' || RUBRICS.includes(last) || (v2 && PRODUCTIVE.includes(last)) || examEnd;
   if (!endsWell) out.push({ code: 'end', text: v2 ? 'leht lõpeb ülesande, rubriigi või enesehinnanguga' : 'leht lõpeb enesehinnangu või rubriigiga' });
   const phase = doc.meta?.phase;
   // v2: the Harjuta sheet of an exam lesson is the exam's reading and listening part — exam formats, not practice jobs
@@ -65,7 +73,7 @@ export function sheetProblems(doc) {
     const productive = new Set(tasks(doc).filter((b) => PRODUCTIVE.includes(b.type)).map((b) => b.type));
     if (productive.size < 2) out.push({ code: 'transfer-use', text: 'Kasuta: vähemalt kaks eri tüüpi suulist / kirjalikku ülesannet' });
     // v2: the use task has one assessed result
-    if (v2 && !(doc.blocks || []).some((b) => b.type === 'rubric')) out.push({ code: 'transfer-rubric', text: 'Kasuta: ülesande tulemust hindab rubriik' });
+    if (v2 && !(doc.blocks || []).some((b) => RUBRICS.includes(b.type))) out.push({ code: 'transfer-rubric', text: 'Kasuta: ülesande tulemust hindab rubriik' });
   }
   return out;
 }
@@ -92,10 +100,10 @@ function v3Problems(doc, phase) {
   const any = (list) => (doc.blocks || []).some((b) => list.includes(b.type));
   const need = (ok, code, text) => { if (!ok) out.push({ code, text }); };
   if (phase === 'discover') {
-    need(any(['reading', 'listening']), 'v3-text', 'Avasta: tekst, mille üle mõelda (lugemine või kuulamine)');
+    need(any(['reading', ...LISTENING]), 'v3-text', 'Avasta: tekst, mille üle mõelda (lugemine või kuulamine)');
     need(any(['notice']), 'v3-notice', 'Avasta: keele märkamine tekstist (notice)');
     need(tasks(doc).some((b) => FORM.includes(b.type) || SENTENCE.includes(b.type) || ['cloze', 'formtext'].includes(b.type)), 'v3-language', 'Avasta: üks täis keeleülesanne');
-    need(any(['speaking', 'dialogue', 'rolecards']), 'v3-talk', 'Avasta: vestlus teksti teemal');
+    need(any(['speaking', 'dialogue', 'rolecards', 'speakcard']), 'v3-talk', 'Avasta: vestlus teksti teemal');
   }
   if (phase === 'practice') {
     need(any(['cloze']), 'v3-cloze', 'Harjuta: valiklünktekst (Harno lugemise 3. ülesanne)');
@@ -104,9 +112,9 @@ function v3Problems(doc, phase) {
     need(any(['speaking']), 'v3-monologue', 'Harjuta: monoloog plaani järgi');
   }
   if (phase === 'transfer') {
-    need(any(['rolecards']), 'v3-situation', 'Kasuta: olukord poolt- ja vastuargumentidega (rollikaardid)');
+    need(any(['rolecards', 'speakcard']), 'v3-situation', 'Kasuta: olukord poolt- ja vastuargumentidega (rollikaardid)');
     need(any(['speaking']), 'v3-speech', 'Kasuta: sõnavõtt');
-    need(any(['guidedletter', 'writing']), 'v3-writing', 'Kasuta: kiri või arutlus');
+    need(any(['guidedletter', 'writing', 'examwriting']), 'v3-writing', 'Kasuta: kiri või arutlus');
   }
   return out;
 }
@@ -122,7 +130,7 @@ const DRILLS = [...new Set([...FORM, ...SENTENCE])];
 const V4_NOT_DISCOVER = ['errorfix', 'translation', 'dictation'];
 // a task that needs other learners („paariline”, „rühm”, „klass”, „käi ringi”) says how it runs one-to-one (teach())
 const GROUP_WORK = /paarili|paaris|\brühma(?:s|le|ga|töö)|\brühmas|\bgrupis|\bklassis|käi ringi|kursusekaaslas|vahetage|teised küsivad/i;
-const PAIR_TASKS = ['rolecards'];
+const PAIR_TASKS = ['rolecards', 'speakcard'];
 const studentText = (b) => Object.entries(b.data || {}).filter(([k, v]) => typeof v === 'string' && !['explain', 'teacher', 'transcript'].includes(k)).map(([, v]) => v).join(' ');
 function v4Problems(doc, phase) {
   const out = fullerProblems(doc);
@@ -134,9 +142,9 @@ function v4Problems(doc, phase) {
   need(!solo.length, 'v4-one-to-one', `paaris- või rühmatöö ilma üks-ühele variandita (${solo.map((b) => b.id).join(', ')}): lisa teach(block, '…')`);
   if (phase === 'discover') {
     need(blocks.some((b) => b.data?.review), 'v4-review', 'Avasta: algab kordamisega „Mäletad?” (B.review)');
-    need(any(['reading', 'listening', 'dialogue', 'profiles']) || blocks.some((b) => b.data?.artId), 'v4-input', 'Avasta: sisend, mille üle mõelda (tekst, kuulamine, vestlus, pilt)');
+    need(any(['reading', 'dialogue', 'profiles', 'adsmatch', ...LISTENING]) || blocks.some((b) => b.data?.artId), 'v4-input', 'Avasta: sisend, mille üle mõelda (tekst, kuulamine, vestlus, pilt)');
     need(any(['notice']), 'v4-notice', 'Avasta: keele märkamine (notice)');
-    need(any(['speaking', 'dialogue', 'rolecards']), 'v4-talk', 'Avasta: vestlus teemal');
+    need(any(['speaking', 'dialogue', 'rolecards', 'speakcard']), 'v4-talk', 'Avasta: vestlus teemal');
     const early = blocks.filter((b) => V4_NOT_DISCOVER.includes(b.type)).map((b) => b.type);
     need(!early.length, 'v4-early-drill', `Avasta: ${[...new Set(early)].join(', ')} kontrollib enne, kui õpilane on vormi kohanud`);
   }
@@ -144,11 +152,11 @@ function v4Problems(doc, phase) {
     const seen = tasks(doc).map((b) => b.type).filter((t, i, list) => list.indexOf(t) !== i);
     need(!seen.length, 'v4-repeat', `Harjuta: sama ülesandetüüp kaks korda (${[...new Set(seen)].join(', ')})`);
     need(drills.length <= V4.practiceDrills, 'v4-drills', `Harjuta: ${drills.length} vormi- / lauseharjutust (v4: kuni ${V4.practiceDrills})`);
-    need(any(['speaking', 'writing', 'rolecards', 'dialogue']), 'v4-use', 'Harjuta: lõpus kasutus (räägi, kirjuta, rollimäng)');
+    need(any(['speaking', 'writing', 'rolecards', 'dialogue', 'examwriting', 'speakcard']), 'v4-use', 'Harjuta: lõpus kasutus (räägi, kirjuta, rollimäng)');
   }
   if (phase === 'transfer') {
     need(!drills.length, 'v4-transfer-drill', `Kasuta: vormiharjutus (${drills.map((b) => b.type).join(', ')}) — siin on olukord ja tulemus`);
-    need(any(['rolecards', 'dialogue']), 'v4-partner', 'Kasuta: olukord, kus on kellega rääkida (rollikaardid või vestlus)');
+    need(any(['rolecards', 'dialogue', 'speakcard']), 'v4-partner', 'Kasuta: olukord, kus on kellega rääkida (rollikaardid või vestlus)');
   }
   return out;
 }
@@ -166,7 +174,8 @@ export function v4ModuleProblems(sheets) {
     const twice = [...new Set(types.filter((t, i) => DRILLS.includes(t) && types.indexOf(t) !== i))];
     if (twice.length) out.push({ lessonId, phase: '*', code: 'v4-lesson-repeat', text: `sama harjutus tunni mitmes etapis (${twice.join(', ')})` });
   }
-  if (!isSupplement(sheets) && (count.listening || 0) < V4.moduleListening) out.push({ lessonId: '*', phase: '*', code: 'v4-listening', text: `moodulis ${count.listening || 0} kuulamist (v4: vähemalt ${V4.moduleListening})` });
+  const heard = LISTENING.reduce((n, t) => n + (count[t] || 0), 0);
+  if (!isSupplement(sheets) && heard < V4.moduleListening) out.push({ lessonId: '*', phase: '*', code: 'v4-listening', text: `moodulis ${heard} kuulamist (v4: vähemalt ${V4.moduleListening})` });
   Object.entries(V4.moduleCaps).forEach(([type, max]) => {
     if ((count[type] || 0) > max) out.push({ lessonId: '*', phase: '*', code: 'v4-cap', text: `moodulis ${count[type]} × ${type} (v4: kuni ${max})` });
   });
@@ -262,7 +271,7 @@ export function harnoProblems(sheets) {
   if (!harno || isSupplement(sheets)) return [];
   const out = [];
   const blocks = docs.flatMap((d) => d.blocks || []);
-  if (harno.listening && !blocks.some((b) => b.type === 'listening')) out.push({ lessonId: '*', phase: '*', code: 'harno-listening', text: `moodulis pole ühtki kuulamisülesannet (Harno ${harno.level} eksamil on kuulamine veerand punktidest)` });
+  if (harno.listening && !blocks.some((b) => LISTENING.includes(b.type))) out.push({ lessonId: '*', phase: '*', code: 'harno-listening', text: `moodulis pole ühtki kuulamisülesannet (Harno ${harno.level} eksamil on kuulamine veerand punktidest)` });
   const longest = Math.max(0, ...blocks.filter((b) => b.type === 'reading').map((b) => String(b.data?.passage || '').split(/\s+/).filter(Boolean).length));
   const want = Math.round(harno.longestText * 0.8);
   if (longest < want) out.push({ lessonId: '*', phase: '*', code: 'harno-reading', text: `pikim lugemistekst on ${longest} sõna — Harno ${harno.level} eksami pikim tekst on ~${harno.longestText} sõna; vähemalt üks tekst moodulis ≥ ${want} sõna` });

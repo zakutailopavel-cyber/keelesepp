@@ -23,12 +23,14 @@ const ITEMS = {
   dictation: (d) => lines(d.sentences).length,
   formtext: (d) => (String(d.passage || '').match(/\]\s*\(/g) || []).length,
   insertion: (d) => (String(d.passage || '').match(/\[\[/g) || []).length,
+  adsmatch: (d) => (d.situations || []).length,
+  examlisten: (d) => (d.questions || []).length + (d.statements || []).length + (d.pairs || []).length,
   categorize: (d) => (d.groups || []).reduce((n, g) => n + (Array.isArray(g?.words) ? g.words.length : groupItems(g || {}).length), 0),
 };
 // the learner writes a whole sentence
 const SENTENCE_WRITING = ['errorfix', 'transformation', 'translation', 'dictation'];
 // speaking / writing / reflection: they matter, but they cannot stand in for the exercises
-const OPEN = new Set(['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'selfcheck', 'rubric', 'phrasebank', 'vocab', 'text', 'tip', 'notice', 'image', 'heading']);
+const OPEN = new Set(['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'selfcheck', 'rubric', 'examwriting', 'speakcard', 'examrubric', 'exampart', 'phrasebank', 'vocab', 'text', 'tip', 'notice', 'image', 'heading']);
 
 const band = (level) => {
   const native = nativeStage(level);

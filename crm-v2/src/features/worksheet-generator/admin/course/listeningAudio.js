@@ -52,10 +52,12 @@ export const TEACHER_READS = /õpetaja loeb|loeb õpetaja/i;
 
 // listening blocks with recorded audio get it attached; the teacher no longer has to read the text aloud — the
 // instructions of the sheet's other tasks on that recording („Õpetaja loeb intervjuu veel kord”) say „Kuula …” too
+// the blocks that carry a recording: the gap-sentence listening and the exam listening (Harno L1, L2, L4)
+export const AUDIO_TYPES = new Set(['listening', 'examlisten']);
 export function withListeningAudio(blocks, lessonId) {
   let heard = false;
   const withAudio = blocks.map((block) => {
-    if (block.type !== 'listening') return block;
+    if (!AUDIO_TYPES.has(block.type)) return block;
     if (block.data?.audio?.src) { heard = true; return block; }
     const entry = listeningAudioFor(lessonId, block.id);
     if (!entry) return block;
@@ -65,7 +67,7 @@ export function withListeningAudio(blocks, lessonId) {
   if (!heard) return withAudio;
   // the instruction of other tasks and the sheet's notes („Kuulamistekstid loeb õpetaja kaks korda”) too
   return withAudio.map((block) => {
-    if (block.type === 'listening' || block.type === 'dictation') return block;
+    if (AUDIO_TYPES.has(block.type) || block.type === 'dictation') return block;
     const data = { ...block.data };
     let changed = false;
     for (const key of ['instruction', 'text']) {

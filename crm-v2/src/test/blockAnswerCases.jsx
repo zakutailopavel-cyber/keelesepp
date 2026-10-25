@@ -16,6 +16,7 @@ export const EXPECTED = [
   'gaps', 'choice', 'truefalse', 'match', 'pictures', 'clock', 'cloze', 'formtext', 'insertion', 'picmatch', 'scenelabel', 'profiles', 'picrows',
   'dialogue', 'reading', 'listening', 'table', 'categorize', 'wordorder', 'writing', 'wordforms', 'errorfix',
   'transformation', 'dictation', 'translation', 'crossword', 'planning', 'guidedletter', 'rubric', 'diagram',
+  'adsmatch', 'examlisten', 'examwriting', 'examrubric',
 ];
 
 export const doc = (blocks) => ({ ...sampleDocument(), blocks });
@@ -203,6 +204,34 @@ export const CASES = {
   rubric: {
     drive: (card) => [...card().querySelectorAll('.ws-rubric input[type="checkbox"]')].forEach((_, i) => fireEvent.click(card().querySelectorAll('.ws-rubric input[type="checkbox"]')[i])),
     review: (card) => expect([...card.querySelectorAll('.ws-rubric input')].every((x) => x.checked)).toBe(true),
+  },
+  // Harno R1: a letter for every situation (the ads are lettered in their order)
+  adsmatch: {
+    data: { situations: [{ text: 'Su poeg tahab ujuma õppida.', answer: 'A' }, { text: 'Sa tahad nädalavahetusel linnas sõita.', answer: 'C' }, { text: 'Sa otsid uut ajakirja.', answer: 'B' }, { text: 'Sa tahad laupäeval ujuma minna.', answer: 'A' }] },
+    drive: (card, block, { start = 0, wrong = false } = {}) => {
+      [...card().querySelectorAll('.ws-ads-sit select')].forEach((sel, i) => {
+        if (wrong && i > 0) return;
+        const right = block.data.situations[start + i].answer;
+        fireEvent.change(sel, { target: { value: wrong ? (right === 'A' ? 'B' : 'A') : right } });
+      });
+    },
+    review: (card, block) => expect([...card.querySelectorAll('.ws-ads-sit .ws-letterbox')].map((x) => x.textContent)).toEqual(block.data.situations.map((s) => s.answer)),
+  },
+  // exam listening in its default form (3-option choice) is answered like the choice task
+  examlisten: {
+    data: { questions: [{ q: 'Mis avatakse laupäeval?', options: '*raamatukogu\nmuuseum\nujula' }, { q: 'Mis kellani on see avatud?', options: '*kuueni\nkümneni\nkaheksani' }, { q: 'Kes avab?', options: 'minister\n*linnapea\nõpetaja' }] },
+    drive: (card, block, opts) => CASES.choice.drive(card, block, opts),
+    review: (card, block) => CASES.choice.review(card, block),
+  },
+  examwriting: { right: () => ({ text: 'Tere, Kati! Ma ei saa homme tulla, sest olen haige. Kas reedel sobib? Kohtume kohvikus. Võtan raamatu kaasa. Mari' }) },
+  // the exam-scale rubric: the points of every criterion
+  examrubric: {
+    drive: (card) => [...card().querySelectorAll('.ws-examrubric tr')].forEach((_, i) => {
+      const row = card().querySelectorAll('.ws-examrubric tr')[i];
+      const buttons = row.querySelectorAll('button.ws-pt');
+      fireEvent.click(buttons[buttons.length - 1]);
+    }),
+    review: (card, block) => expect(card.querySelectorAll('.ws-examrubric .ws-pt.on')).toHaveLength(block.data.criteria.length),
   },
   diagram: { right: (b) => (key) => { const hit = BLOCKS.diagram.answers(b.data).find((a) => a.key === key); return hit ? hit.accept[hit.accept.length - 1] : undefined; } },
 };

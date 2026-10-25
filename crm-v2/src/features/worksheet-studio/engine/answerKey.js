@@ -45,6 +45,13 @@ function itemsOf(block) {
         const cells = row.split('|').map((c) => c.trim());
         return { prompt: cells[0], answer: cells.slice(1).map((c) => variants(answerOf(c) || c.replace(/^\[|\]$/g, ''))).filter(Boolean).join(' · ') };
       });
+    // R1: the situation and the ad's letter with its title
+    case 'adsmatch':
+      return (d.situations || []).map((s) => ({ prompt: s.text, answer: String(s.answer || '').split(/[|,/]/).map((x) => x.trim().toUpperCase()).filter(Boolean)
+        .map((l) => { const ad = (d.ads || [])['ABCDEFGHIJKLMN'.indexOf(l)]; return ad?.title ? `${l} (${ad.title})` : l; }).join(' / ') }));
+    // exam listening: the items of its choice / true-false / matching task
+    case 'examlisten':
+      return itemsOf({ ...block, type: ['choice', 'truefalse', 'match'].includes(d.mode) ? d.mode : 'choice' });
     default:
       if (typeof def?.answers !== 'function') return [];
       return (def.answers(d, block) || []).map(({ key, accept }) => ({ prompt: `${key}`, answer: (accept || []).map(variants).join(' / ') }));

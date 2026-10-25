@@ -95,7 +95,8 @@ export async function listeningPlan() {
     for (const [lessonId, lesson] of Object.entries(mod.LESSONS)) {
       for (const phase of ['discover', 'practice', 'transfer']) {
         for (const block of lesson[phase] || []) {
-          if (block.type !== 'listening' || !String(block.data?.transcript || '').trim()) continue;
+          // the gap-sentence listening and the exam listening (Harno L1, L2, L4) carry a recording
+          if (!['listening', 'examlisten'].includes(block.type) || !String(block.data?.transcript || '').trim()) continue;
           const transcript = block.data.transcript;
           const hash = sha1(transcript);
           const level = lesson.level || mod.MODULE.level;

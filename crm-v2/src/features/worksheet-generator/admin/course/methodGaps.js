@@ -53,10 +53,10 @@ export function courseMethodGaps(modules, course) {
 // it shows a format that is never trained, not how well it is trained.
 const words = (v) => String(v || '').split(/\s+/).filter((w) => /\p{L}/u.test(w)).length;
 const text = (b) => Object.values(b.data || {}).filter((v) => typeof v === 'string').join(' ').toLowerCase();
-const writingWords = (b) => (b.type === 'guidedletter' ? Number(b.data?.maxWords) || 0 : b.type === 'writing' ? (Number(b.data?.maxSent) || 0) * 10 : 0);
+const writingWords = (b) => (['guidedletter', 'examwriting'].includes(b.type) ? Number(b.data?.maxWords) || 0 : b.type === 'writing' ? (Number(b.data?.maxSent) || 0) * 10 : 0);
 export const EXAM_FORMATS = {
   a2: [
-    ['listening', 'kuulamine', (b) => b.type === 'listening'],
+    ['listening', 'kuulamine', (b) => ['listening', 'examlisten'].includes(b.type)],
     ['reading-150', 'tekst ~150 sõna + küsimused', (b) => b.type === 'reading' && words(b.data?.passage) >= 120],
     ['letter-gaps', 'kirja lünktekst valikutega', (b) => b.type === 'cloze'],
     ['signs', 'sildid ja teated: sobitamine', (b) => ['match', 'manymatch'].includes(b.type)],
@@ -64,16 +64,16 @@ export const EXAM_FORMATS = {
     ['picture', 'pildi kirjeldamine suuliselt', (b) => b.type === 'speaking' && /pilt/.test(text(b))],
   ],
   b1: [
-    ['listening', 'kuulamine', (b) => b.type === 'listening'],
+    ['listening', 'kuulamine', (b) => ['listening', 'examlisten'].includes(b.type)],
     ['reading-200', 'tekst 200–300 sõna + valikud', (b) => b.type === 'reading' && words(b.data?.passage) >= 180],
     ['gap-10', 'lünktekst 10 valikuga', (b) => b.type === 'cloze'],
     ['phrase-bank', 'fraaside / lausete lünktekst', (b) => b.type === 'insertion'],
     ['letter-100', 'isiklik kiri või jutt ~100 sõna', (b) => writingWords(b) >= 90],
-    ['agreement', 'paaristöö kokkuleppega', (b) => ['rolecards', 'speaking'].includes(b.type) && /kokku lepp|kokkulepe|otsusta/.test(text(b))],
-    ['phone', 'telefonikõne asutusse (rollimäng)', (b) => ['rolecards', 'speaking'].includes(b.type) && /helista|telefon/.test(text(b))],
+    ['agreement', 'paaristöö kokkuleppega', (b) => (b.type === 'speakcard' && b.data?.mode !== 'phone') || (['rolecards', 'speaking'].includes(b.type) && /kokku lepp|kokkulepe|otsusta/.test(text(b)))],
+    ['phone', 'telefonikõne asutusse (rollimäng)', (b) => (b.type === 'speakcard' && b.data?.mode === 'phone') || (['rolecards', 'speaking'].includes(b.type) && /helista|telefon/.test(text(b)))],
   ],
   b2: [
-    ['listening', 'kuulamine', (b) => b.type === 'listening'],
+    ['listening', 'kuulamine', (b) => ['listening', 'examlisten'].includes(b.type)],
     ['reading-500', 'artikkel 500–600 sõna', (b) => b.type === 'reading' && words(b.data?.passage) >= 450],
     ['letter-140', 'poolametlik kiri ~140 sõna', (b) => writingWords(b) >= 130],
     ['essay-180', 'arutlev tekst või kokkuvõte ~180 sõna', (b) => writingWords(b) >= 170],
@@ -81,7 +81,7 @@ export const EXAM_FORMATS = {
     ['debate', 'arutelu poolt- ja vastuargumentidega', (b) => b.type === 'rolecards' && /poolt|vastu/.test(text(b))],
   ],
   c1: [
-    ['listening', 'kuulamine', (b) => b.type === 'listening'],
+    ['listening', 'kuulamine', (b) => ['listening', 'examlisten'].includes(b.type)],
     ['lecture-notes', 'loengu märkmed → peamõtted', (b) => b.type === 'listening' && /loeng|märkm|peamõt/.test(text(b))],
     ['reading-600', 'pikk tekst ~600 sõna', (b) => b.type === 'reading' && words(b.data?.passage) >= 500],
     ['data-summary', 'andmete kokkuvõte diagrammist', (b) => b.type === 'chart'],
