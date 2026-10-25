@@ -385,6 +385,17 @@ be reached within 8 s, the CRM opens as usual — an announcement never locks an
   /announcements/report` (administrator) lists every account that must answer with its answer (CSV export in the
   browser). Pure rules: `functions/announcements-core.js`; loading / writing: `functions/announcements-service.js`.
 
+### E-mails to students and parents (2026-10-25)
+
+Seven notification types (lesson reminder the day before, lesson moved, lesson cancelled, new schedule from the
+planner, homework due tomorrow, work checked, „Teated”) — all off until the administrator switches them on in Seaded →
+E-kirjad (`emailSettings/learner`). Triggers only queue deterministic jobs in the server-only `learnerEmailJobs`; the
+5-minute `learnerEmailsTick` creates the daily jobs and sends at most 40 messages a tick through `deliverEmail`. Lesson
+changes are e-mailed only when staff changed `schedule` (learners can only ask) and only after a 10-minute settle window
+(the calendar's undo sends nothing). Every e-mail links to the public `/e-kirjad/<token>` page (HMAC-signed address,
+no login) for opt-out and language; `emailLog` keeps counts without addresses. Contract for the planner
+(`plannerBatchId`) and all details: `docs/EMAIL_NOTIFICATIONS.md`.
+
 ### Calendar
 
 `calendar-core.js` owns migration-safe schedule calculations:
@@ -487,6 +498,8 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 - `calendarSyncOutbox` — server-only deferred Google event deletions; browser access is denied.
 - `announcements` (administrator) and `announcementResponses` (server-written) — „Teated”, see above; learners
   reach them only through `staffOperationsApi /announcements/*`.
+- `emailSettings/learner` (administrator), `emailLog` (administrator reads, server writes), `learnerEmailJobs`,
+  `learnerEmailRuns`, `emailPreferences`, `serverConfig` (server only) — e-mails to students and parents, see above.
 - financial collections — governed by the financial core and its immutable audit model.
 
 Assignment records copy display metadata for historical readability and also store stable

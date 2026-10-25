@@ -5320,6 +5320,8 @@ async function deliverEmail(message, context = {}) {
         subject: message.subject,
         html: message.html,
         text: message.text,
+        // learner e-mails carry List-Unsubscribe (one click in Gmail / Outlook); invoices have none
+        ...(message.headers && typeof message.headers === "object" ? { headers: message.headers } : {}),
         attachments: attachments.map(attachment => ({
           filename: attachment.filename,
           content: attachment.content,
@@ -8227,6 +8229,32 @@ exports.staffOperationsApi = functions.runWith({ secrets: ["SMTP_PASS"], timeout
         if (String(error?.code || "").includes("insufficient-permission")) throw httpError(503, "Serveril puudub õigus sisselogimisvõtit luua: anna teenusekontole keelesepp-5136b@appspot.gserviceaccount.com roll „Service Account Token Creator” (Google Cloud → IAM).");
         throw error;
       }
+      return;
+    }
+    // E-mails to students and parents (functions/learner-email-service.js, docs/EMAIL_NOTIFICATIONS.md). The recipient's
+    // own page /e-kirjad/<token> (no login: the signed link is the permission, one address only) and the one-click
+    // unsubscribe that mail programs POST to (List-Unsubscribe-Post). Invoices and payment reminders are not affected.
+    if (req.path === "/email-preferences/status" || req.path === "/email-preferences/save" || req.path === "/email-preferences/one-click") {
+      res.set("Cache-Control", "no-store");
+      const service = learnerEmails();
+      if (req.path === "/email-preferences/one-click") {
+        await service.savePreferences(String(req.query?.t || req.body?.t || ""), { optOut: true }, "one-click");
+        res.json({ ok: true });
+      } else if (req.path === "/email-preferences/status") {
+        res.json(await service.preferenceStatus(String(req.body?.token || "")));
+      } else {
+        res.json(await service.savePreferences(String(req.body?.token || ""), { optOut: req.body?.optOut === true, language: req.body?.language }, "page"));
+      }
+      return;
+    }
+    // Seaded → E-kirjad: preview with sample data (unsaved texts included) and one test e-mail to the administrator
+    if (req.path === "/learner-emails/preview" || req.path === "/learner-emails/test") {
+      const actor = await requireAdminUser(req);
+      res.set("Cache-Control", "no-store");
+      const type = String(req.body?.type || "");
+      const options = { language: req.body?.language, overrides: req.body?.settings && typeof req.body.settings === "object" ? req.body.settings : null };
+      if (req.path === "/learner-emails/preview") res.json(await learnerEmails().preview(type, options));
+      else res.json(await learnerEmails().sendTest(type, actor.decoded.email || actor.profile.email || "", options));
       return;
     }
     // „Teated” (functions/announcements-service.js): a learner / parent gets only their own announcements and answers
@@ -11539,6 +11567,64 @@ async function backfillScheduleToGoogle(uid, connection, { force = false, retryE
   return { synced, skipped, failed };
 }
 
+// ── E-mails to students and parents (owner 2026-10-25; docs/EMAIL_NOTIFICATIONS.md) ──────────────────────────────
+// Triggers only queue a job (learnerEmailJobs); the 5-minute tick sends. Every type is off until the administrator
+// switches it on in Seaded → E-kirjad (emailSettings/learner).
+let learnerEmailService = null;
+function learnerEmails() {
+  if (!learnerEmailService) learnerEmailService = require("./learner-email-service").createLearnerEmailService({ db, deliver: deliverEmail });
+  return learnerEmailService;
+}
+
+exports.learnerEmailsTick = functions
+  .runWith({ secrets: ["SMTP_PASS"], timeoutSeconds: 300, memory: "512MB" })
+  .pubsub
+  .schedule("every 5 minutes")
+  .timeZone(APP_TIME_ZONE)
+  .onRun(async () => {
+    const result = await learnerEmails().tick();
+    if (!result.off) console.log("Learner e-mails", JSON.stringify(result));
+    return null;
+  });
+
+// a lesson moved / cancelled by staff, or written by the planner („Kinnita ajakava”, plannerBatchId)
+exports.queueLearnerScheduleEmail = functions
+  .firestore
+  .document("schedule/{scheduleId}")
+  .onWrite(async (change, context) => {
+    try {
+      await learnerEmails().onScheduleWrite(context.params.scheduleId, change.before.exists ? change.before.data() : null, change.after.exists ? change.after.data() : null);
+    } catch (error) {
+      console.error("learner e-mail queue (schedule) failed", context.params.scheduleId, error);
+    }
+    return null;
+  });
+
+// a handed-in worksheet / exercise reviewed by the teacher for the first time („Töö on kontrollitud”)
+exports.queueLearnerWorksheetReviewEmail = functions
+  .firestore
+  .document("worksheetAssignments/{docId}")
+  .onUpdate(async (change, context) => {
+    try {
+      await learnerEmails().onReviewWrite("worksheetAssignments", context.params.docId, change.before.data(), change.after.data());
+    } catch (error) {
+      console.error("learner e-mail queue (worksheet review) failed", context.params.docId, error);
+    }
+    return null;
+  });
+
+exports.queueLearnerExerciseReviewEmail = functions
+  .firestore
+  .document("exerciseResults/{docId}")
+  .onUpdate(async (change, context) => {
+    try {
+      await learnerEmails().onReviewWrite("exerciseResults", context.params.docId, change.before.data(), change.after.data());
+    } catch (error) {
+      console.error("learner e-mail queue (exercise review) failed", context.params.docId, error);
+    }
+    return null;
+  });
+
 // A parent or student registered themselves: tell the school so an administrator can approve the account.
 exports.notifyPendingAccount = functions
   .runWith({ secrets: ["SMTP_PASS"] })
@@ -11573,10 +11659,16 @@ exports.notifyHomeworkCreated = functions
       const accountEmails = async (ids) => (await Promise.all([...new Set(ids.filter(Boolean).map(String))].slice(0, 10)
         .map(async (uid) => { const user = await db.collection("users").doc(uid).get(); return user.exists ? user.data().email || "" : ""; })))
         .filter(Boolean);
-      const recipients = homeworkRecipients(student, {
+      const listed = homeworkRecipients(student, {
         studentAccountEmails: await accountEmails(studentAccountIds(student)),
         parentAccountEmails: await accountEmails(parentAccountIds(student)),
       });
+      // an address that turned learner e-mails off on /e-kirjad/<token> gets no homework e-mail either
+      const { emailHash } = require("./learner-email-core");
+      const all = [...listed.student, ...listed.parents];
+      const prefs = all.length ? await db.getAll(...all.map((email) => db.collection("emailPreferences").doc(emailHash(email)))) : [];
+      const optedOut = new Set(all.filter((email, index) => prefs[index]?.exists && prefs[index].data().optOut === true));
+      const recipients = { student: listed.student.filter((email) => !optedOut.has(email)), parents: listed.parents.filter((email) => !optedOut.has(email)) };
       let sent = 0;
       if (recipients.student.length) {
         await deliverEmail(composeHomeworkEmail({ homework, student, to: recipients.student, audience: "student" }), { kind: "homework-student", homeworkId: context.params.homeworkId });
