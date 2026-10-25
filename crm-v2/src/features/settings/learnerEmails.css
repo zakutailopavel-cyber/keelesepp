@@ -1,0 +1,22 @@
+.learner-emails-card { grid-column: 1 / -1; }
+.learner-emails-card__general { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin: 12px 0; }
+.learner-emails-card__types { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 8px; }
+.learner-emails-card__types > li { display: grid; gap: 8px; padding: 10px 12px; border: 1px solid var(--border, #e5e7eb); border-radius: 12px; background: #fff; }
+.learner-emails-card__types > li.is-on { border-color: #86c5a4; background: #f6fbf8; }
+.learner-emails-card__toggle { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.learner-emails-card__toggle input { margin-top: 4px; width: 18px; height: 18px; flex: 0 0 auto; }
+.learner-emails-card__toggle > span { display: grid; gap: 2px; min-width: 0; }
+.learner-emails-card__title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.learner-emails-card__toggle small { color: var(--muted, #667085); font-size: 13px; overflow-wrap: anywhere; }
+.learner-emails-card__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.learner-emails-card__texts { display: grid; gap: 8px; padding: 10px; border-radius: 10px; background: #f8fafc; }
+.learner-emails-card__texts code { margin: 0 4px; padding: 1px 5px; border-radius: 6px; background: #eef2f6; font-size: 12px; }
+.learner-emails-card__texts textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--border, #d0d5dd); border-radius: 10px; resize: vertical; }
+.learner-emails-card__log { margin-top: 14px; }
+.learner-emails-card__log summary { cursor: pointer; font-weight: 600; }
+.learner-emails-card__log ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; }
+.learner-emails-card__log li span { color: var(--muted, #667085); }
+.learner-emails-preview .modal__body { display: grid; gap: 8px; }
+.learner-emails-preview__subject { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.learner-emails-preview__subject span { color: var(--muted, #667085); font-weight: 400; }
+.learner-emails-preview__frame { width: 100%; min-height: 420px; border: 1px solid var(--border, #e5e7eb); border-radius: 10px; background: #fff; }

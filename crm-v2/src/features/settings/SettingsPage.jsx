@@ -15,6 +15,7 @@ import GoogleCalendarCard from '../google-calendar/GoogleCalendarCard.jsx';
 import DataCleanupPanel from './DataCleanupPanel.jsx';
 import StudyDirectionsCard from './StudyDirectionsCard.jsx';
 import MissingDataSettingsCard from './MissingDataSettingsCard.jsx';
+import LearnerEmailsCard from './LearnerEmailsCard.jsx';
 import './dataCleanup.css';
 import '../common/finalReadiness.css';
 
@@ -25,7 +26,7 @@ function initialProfile(user) {
   };
 }
 
-export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository, directionsRepository, missingDataRepository }) {
+export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository, directionsRepository, missingDataRepository, learnerEmailsRepository }) {
   const { user, preview, configured, updateProfile, sendPasswordReset, startPreview } = useAuth();
   const [form, setForm] = useState(() => initialProfile(user));
   const [saving, setSaving] = useState(false);
@@ -188,6 +189,8 @@ export default function SettingsPage({ parentRepository = parentsService, studen
       {isAdmin && !preview ? <MissingDataSettingsCard user={user} {...(missingDataRepository ? { service: missingDataRepository } : {})} /> : null}
 
       {isAdmin && !preview ? <StudyDirectionsCard user={user} studentService={studentRepository} {...(directionsRepository ? { service: directionsRepository } : {})} /> : null}
+
+      {isAdmin && !preview ? <LearnerEmailsCard user={user} {...(learnerEmailsRepository ? { service: learnerEmailsRepository } : {})} /> : null}
 
       {isAdmin && !preview ? <TestStudentCard /> : null}
 

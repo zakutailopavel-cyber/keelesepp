@@ -42,6 +42,8 @@ const FinanceSettingsPage = lazy(() => import('../features/finance/FinanceSettin
 const AccountingPage = lazy(() => import('../features/accounting/AccountingPage.jsx'));
 const PurchasesPage = lazy(() => import('../features/purchases/PurchasesPage.jsx'));
 const Inf3Page = lazy(() => import('../features/tax/Inf3Page.jsx'));
+// the recipient's own e-mail settings: the link at the bottom of every e-mail to students and parents (no login)
+const EmailPreferencesPage = lazy(() => import('../features/learner/EmailPreferencesPage.jsx'));
 const TaxFormPage = lazy(() => import('../features/tax/TaxFormPage.jsx'));
 const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage.jsx'));
 const GroupsPage = lazy(() => import('../features/groups/GroupsPage.jsx'));
@@ -81,6 +83,8 @@ export default function AppRoutes() {
       <Route path="/ajad" element={<Suspense fallback={null}><AvailabilityPollPage /></Suspense>} />
       {/* parents' INF 3 form (docs/INF3.md): no login, a one-time link from the school */}
       <Route path="/maksuandmed/:token" element={<Suspense fallback={null}><TaxFormPage /></Suspense>} />
+      {/* e-mails to students and parents: turn them off or choose the language (docs/EMAIL_NOTIFICATIONS.md) */}
+      <Route path="/e-kirjad/:token" element={<Suspense fallback={null}><EmailPreferencesPage /></Suspense>} />
       <Route element={<ProtectedRoute roles={ACCESS.ALL_AUTHENTICATED} />}>
         <Route element={<AppShell />}>
           {/* HomePage itself sends students to /student and parents to /parent; staff see the dashboard */}
