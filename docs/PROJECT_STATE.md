@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/final-shape-gates — B1 final shape: tags, archetypes, gates V1–V15, Harno exam blocks
 
-- Base: `main` 6442af2 (2026-10-26, after #795). Draft PR from `agent/final-shape-gates`. Code + docs; no lesson
+- Base: `main` 6442af2 (2026-10-26, after #795). Draft PR #796 from `agent/final-shape-gates`. Code + docs; no lesson
   content rewritten, no production data, no deploy.
 - Asked (owner): §9 items 1–4 of `docs/COURSE_FINAL_SHAPE_B1.md` — infrastructure only. Owner decisions recorded in §10:
   certificate needs ≥ 80 % in every exam part; module 1 (001–005) = entry diagnostic + A2 consolidation (content later).
