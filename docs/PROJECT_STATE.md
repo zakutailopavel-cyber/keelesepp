@@ -1,3 +1,30 @@
+## 2026-10-26 · agent/b1-m01-diagnostic — B1 module 1: entry test, A2 consolidation, module check
+
+- Base: `main` 6a63532 (2026-10-26, after #796). Draft PR from `agent/b1-m01-diagnostic`. Content only; no production
+  data, no deploy. Parallel: `agent/b1-m02-final` rewrites module 2 (not touched here).
+- Asked (owner): module 1 (a2b1-001…005) = entry diagnostic + A2 consolidation in the final shape.
+- Done: `admin/course/b1/module01.js` (registered in `registry.js`, added to `strictModules.json`), goals 001–005
+  rewritten in `b1/lessonGoals.js`, picture questions (`prompts`) for the 5 existing module-1 pictures
+  (`art/visuals/b1-module-01.js`), cast facts in `docs/COURSE_CAST.md`, status lines in `COURSE_FINAL_SHAPE_B1.md` §10
+  and `METHODOLOGY_STANDARD.md` §6.4.
+  - 001 EKS entry test, timed (`B.examPart` R/L/W/S, target 60 %): A2 short form + one B1 preview per skill (R1 ads,
+    L4 interview, W2a story, S2 phone call); closed parts scored; W/S with exam rubrics; every language item names its
+    grammar area in the teacher's key (`why`), profile table → lessons 002/003/004.
+  - 002 AVAS R→W lihtminevik (write first → Anna's diary → rule → letter W04, main); 003 RÄÄK L→S partitive object +
+    ma/da (radio survey → 4-3-2 → agreement S03, main); 004 PROB R→S kus/kuhu/kust + conditional (problem → first try →
+    rule → phone call S04, main). Reviews name `a2b1-00N` and A2 lessons (`a2-0NN`). 005 EKS module check in A2 form,
+    compared with 001, leads to module 2.
+  - `module03.js`: four review items got `from` (a2b1-002 / a2b1-004) so V13-spaced does not appear in module 3 now
+    that module 1 exists.
+- Audio: 16 new recordings (TartuNLP, free) in `public/audio/a2b1-00[1-5]`, manifest updated.
+- Checks: `course:final-shape --module 1` 0 problems; course total 1360 (was 1359): +1 baseline entry
+  `a2b1-006|discover|V13-previous` (module 2) — 006 now has a previous lesson (005) and its review does not name it; to be
+  fixed in the module 2 rewrite (review item with `from: 'a2b1-005'`). Older quality gate and strict gate for module 1:
+  0 problems. `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed,
+  4 skipped; didactics 51/51; eslint on changed files 0.
+- Limits: diagnostic sheets are ≥ 40 min each (gate), so the full test is ~2 h 15 min; rubric splits are ours (§2.4).
+- Next safe step: module 2 agent adds a review item `['…', 'a2b1-005']` in 006 and removes that baseline entry.
+
 ## 2026-10-26 · agent/final-shape-gates — B1 final shape: tags, archetypes, gates V1–V15, Harno exam blocks
 
 - Base: `main` 6442af2 (2026-10-26, after #795). Draft PR #796 from `agent/final-shape-gates`. Code + docs; no lesson

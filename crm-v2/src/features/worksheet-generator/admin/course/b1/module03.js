@@ -25,7 +25,7 @@ export const LESSONS = {
     title: 'Minu kodu',
     canDo: 'Ma kirjeldan oma tuba 6–8 seotud lausega ja ütlen, kus mis asub.',
     discover: [
-      B.review('011_d_review', ['Moodul 2: kes on Viktor Sofiale ja Jaanile?', 'Milline on sinu parima sõbra iseloom?', 'Mida sa oled kunagi kaotanud ja kas sa leidsid selle üles?']),
+      B.review('011_d_review', ['Moodul 2: kes on Viktor Sofiale ja Jaanile?', 'Milline on sinu parima sõbra iseloom?', 'Mida sa oled kunagi kaotanud ja kas sa leidsid selle üles?', ['Mida sa eile pärast tööd tegid?', 'a2b1-002']]),
       B.text('011_d_goal', 'Moodul 3: uus kodu', 'Sofia elab praegu väikeses üüritoas Mustamäel. Tuba on kitsas ja tööst kaugel. Nüüd otsib ta Tallinnas oma korterit. Selles moodulis kirjeldad kodu, räägid linnast ja juhatad teed. Mooduli lõpus kutsud koos Sofiaga tema pere uude koju soolaleivapeole. Vaata pilti: millised toad selles korteris on?'),
       B.reading('011_d_msg', 'Loe Sofia sõnumit.', 'Sofia käis Kalamajas korterit vaatamas. Ta kirjutab oma vennale Jaanile. Loe ja vasta.', 'Esimene korter',
         'Tere, Jaan! Täna käisin Kalamajas korterit vaatamas. Anna, Markus ja Liis tulid ka kaasa. Korter on vanas puumajas teisel korrusel.\n\nEsikus on kivine põrand ja ukse kõrval suur peegel. Elutuba on ruumikas ja valgusküllane, sest aknad on suured. Akna juures on vana tugitool. Sealt näeb isegi merd! See on kindlasti minu lemmikkoht.\n\nKöök on kahjuks väike ja ebamugav. Pliit on ukse taga ja külmkapp ei mahu kööki, see seisab esikus. Magamistuba on rahulik, sest aken on hoovi poole. Voodi kohal on riiul ja voodi kõrval on väike laud.\n\nOmanik on sõbralik vanem naine. Ta ütles, et naabrid on vaiksed. Aga hoovis on lasteaed ja päeval on seal lärmakas. Markus naeris: „Siis sa ei jää kunagi hommikul magama!”\n\nKorteris on kodune tunne ja ma olin seal väga õnnelik. Aga üür on 650 eurot kuus. Kas see ei ole liiga palju? Mida sina arvad? Sofia',
@@ -95,7 +95,7 @@ export const LESSONS = {
     title: 'Kus? Kuhu? Kust?',
     canDo: 'Ma valin õige küsimuse ja kohavormi ning ütlen, kus ma olen, kuhu lähen ja kust tulen.',
     discover: [
-      B.review('012_d_review', ['Milline on Kalamaja korteri elutuba? Ütle kaks omadussõna.', 'Ütle vastand: mugav, ohtlik, maitsekas.', 'Kumba korterit sina valiksid ja miks?']),
+      B.review('012_d_review', ['Milline on Kalamaja korteri elutuba? Ütle kaks omadussõna.', 'Ütle vastand: mugav, ohtlik, maitsekas.', ['Kumba korterit sina valiksid ja miks?', 'a2b1-004']]),
       B.text('012_d_hook', 'Kolimispäev', 'Sofia ja omanik leppisid kokku: Sofia võtab Kalamaja korteri. Laupäeval on kolimispäev. Hommikul peab Sofia veel tööl olema. Jaan ja Markus viivad asjad vanast toast uude koju. Sofia saadab vennale häälsõnumi.'),
       B.listening('012_d_voice', 'Sofia häälsõnum.', 'Kuula kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Sofia: Tere, Jaan! Siin Sofia. Ma olen veel tööl ja tulen alles kella kahe paiku.',
@@ -197,7 +197,7 @@ export const LESSONS = {
     title: 'Kohad linnas',
     canDo: 'Ma nimetan vähemalt 12 linnakohta, ütlen, mida seal tehakse, ja soovitan tuttavale, kuhu minna.',
     discover: [
-      B.review('013_d_review', ['Kust tõi Viktor Sofia diivani?', 'Kuhu tuleb viia tühjad kastid?', 'Ütle kolm lauset oma kodust: kus? kuhu? kust?']),
+      B.review('013_d_review', ['Kust tõi Viktor Sofia diivani?', 'Kuhu tuleb viia tühjad kastid?', ['Ütle kolm lauset oma kodust: kus? kuhu? kust?', 'a2b1-004']]),
       B.text('013_d_hook', 'Uus linnaosa', 'Sofia elab nüüd Kalamajas. Tal on palju asju ajada, aga ta ei tunne veel linnaosa. Liis elab lähedal ja joonistas talle kaardi. Ta näitab kaarti ka Annale. Vaata pilti: mis kohad kaardil on?'),
       B.profiles('013_d_cards', 'Kolm naabrit.', 'Sofia uued naabrid räägivad oma lemmikkohtadest. Loe kaarte ja täienda laused.', [
         ['Tiina', ['72 aastat, pensionär', 'ostab turult kala ja köögivilju', 'loeb ajalehti raamatukogus', 'raamatukogu on tema meelest rahulik'], ['Tiina ostab [turult] värsket kala.', 'Ajalehti loeb ta [raamatukogus].', 'Raamatukogu on vaikne ja [rahulik].']],
@@ -280,7 +280,7 @@ export const LESSONS = {
     title: 'Tee küsimine ja juhatamine',
     canDo: 'Ma küsin teed viisakalt ja annan vähemalt nelja järjestatud juhise abil arusaadava teekirjelduse.',
     discover: [
-      B.review('014_d_review', ['Kuhu sa lähed, kui sul on peavalu?', 'Milline on sinu linnaosa: rahulik, lärmakas või ohutu?', 'Kuhu Sofia ja Helgi laupäeva hommikul lähevad?']),
+      B.review('014_d_review', [['Kuhu sa lähed, kui sul on peavalu?', 'a2b1-004'], 'Milline on sinu linnaosa: rahulik, lärmakas või ohutu?', 'Kuhu Sofia ja Helgi laupäeva hommikul lähevad?']),
       B.text('014_d_hook', 'Kuidas sinna saab?', 'Esmaspäeval peab Sofia minema tervisekeskusesse uue perearsti juurde. Ta seisab valgusfoori juures ja ei tea, kuhu edasi minna. Anna on juhuslikult samas kohas. Vaata pilti: kuhu Sofia peab pöörama?'),
       B.listening('014_d_way', 'Anna juhatab teed.', 'Kuula kaks korda. Kirjuta lünka 1–2 sõna.', [
         'Sofia: Anna! Kui hea, et sa siin oled. Ma otsin tervisekeskust, aga ma olen eksinud.',

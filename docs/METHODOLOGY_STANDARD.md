@@ -137,7 +137,7 @@ covered at every level.
 
 ### 6.4 Structure
 
-- B1 module 1 (a2b1-001…005) has no file in code (the course starts at `b1/module02.js`).
+- B1 module 1 (a2b1-001…005): `b1/module01.js` since 2026-10-26 (entry test, A2 consolidation, module check).
 - C1 modules 9–10 (est-c1-081…100) have no design / template; their check lessons (090, 099, 100) are not marked
   `assessment`.
 - B1 modules 15–18 have design v2 but no template; B1 module 5 is the v4 sample (PR #740).
