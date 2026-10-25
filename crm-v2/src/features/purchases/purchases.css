@@ -108,3 +108,69 @@
 .purchases-new-row td {
   background: #f6fbf6;
 }
+
+/* Tarnijad (2026-10-24): search, count, import from Excel */
+.suppliers-panel__tools {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.suppliers-panel__search {
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  display: flex;
+  flex: 1 1 260px;
+  gap: 6px;
+  max-width: 420px;
+  padding: 0 10px;
+}
+
+.suppliers-panel__search input {
+  border: 0;
+  flex: 1;
+  min-height: 38px;
+  outline: none;
+}
+
+.suppliers-panel__count {
+  color: #667085;
+  font-size: 0.85rem;
+}
+
+.suppliers-import {
+  background: #f9fafb;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px;
+}
+
+.suppliers-import textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.82rem;
+  width: 100%;
+}
+
+.suppliers-import__actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.suppliers-import__preview td.is-ok {
+  color: #067647;
+}
+
+.suppliers-import__preview td.is-off {
+  color: #b42318;
+}
+
+.purchases-suppliers th .accounting-sort {
+  white-space: nowrap;
+}

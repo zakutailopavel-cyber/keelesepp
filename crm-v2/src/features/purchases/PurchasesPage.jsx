@@ -7,7 +7,7 @@ import { purchasesService } from '../../services/firebase/index.js';
 import { downloadWorkbook, purchaseInvoicesWorkbook, suppliersWorkbook } from '../accounting/accountingExcel.js';
 import { COMPANY, amount, dmy, isLockedDate, parseEuro } from '../accounting/accountingReports.js';
 import PurchaseInvoiceDraft from './PurchaseInvoiceDraft.jsx';
-import SuppliersGrid from './SuppliersGrid.jsx';
+import SuppliersPanel from './SuppliersPanel.jsx';
 import { PAYMENT_METHODS, STATUS_LABELS, blankPurchaseDraft, blankPurchaseLine, draftFromInvoice, draftPayload, filterInvoices, invoiceTotals, methodLabel, overdue } from './purchases.js';
 import '../accounting/accounting.css';
 import './purchases.css';
@@ -90,6 +90,11 @@ export default function PurchasesPage({ repository = purchasesService }) {
       return nextError.message || 'Salvestamine ebaõnnestus.';
     } finally { setBusy(''); }
   };
+  const importSuppliers = async (rows) => {
+    const result = await repository.importSuppliers(rows);
+    setNotice(`Imporditi ${result?.created?.length ?? rows.length} tarnijat.`);
+    await state.reload();
+  };
   const exportFile = () => {
     if (tab === 'suppliers') downloadWorkbook(suppliersWorkbook(data.suppliers, { company: COMPANY }), 'tarnijad.xls');
     else downloadWorkbook(purchaseInvoicesWorkbook(visible, { company: COMPANY, period, accounts, statusLabels: STATUS_LABELS }), `ostuarved_${period.from || 'algus'}_${period.to || today()}.xls`);
@@ -121,7 +126,7 @@ export default function PurchasesPage({ repository = purchasesService }) {
     </Card>
 
     {tab === 'suppliers' ? <Card className="accounting-card">
-      <SuppliersGrid suppliers={data.suppliers} accounts={accounts} onSave={saveSupplier} busy={busy === 'supplier'} />
+      <SuppliersPanel suppliers={data.suppliers} accounts={accounts} onSave={saveSupplier} onImport={repository.importSuppliers ? importSuppliers : null} busy={busy === 'supplier'} />
     </Card> : null}
 
     {tab === 'invoices' ? <Card className="accounting-card">

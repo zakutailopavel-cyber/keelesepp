@@ -23,6 +23,7 @@ export const purchasesService = {
     };
   },
   saveSupplier: (supplierId, supplier) => financeApi.saveSupplier(supplierId, supplier),
+  importSuppliers: (rows) => financeApi.importSuppliers(rows),
   saveInvoice: (purchaseInvoiceId, invoice, options) => financeApi.savePurchaseInvoice(purchaseInvoiceId, invoice, options),
   pay: (purchaseInvoiceId, payment) => financeApi.payPurchaseInvoice(purchaseInvoiceId, payment),
   removePayment: (purchaseInvoiceId, paymentId, reason) => financeApi.removePurchasePayment(purchaseInvoiceId, paymentId, reason),

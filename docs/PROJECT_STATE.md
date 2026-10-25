@@ -1,3 +1,56 @@
+## 2026-10-24 · agent/accounting-partners — Tarnijad first, partners on journal lines, „Partnerid” report
+
+- Base: `main` 3f31fcb (2026-10-24, after #789). Draft PR #790 from `agent/accounting-partners`. Accounting only (no calendar,
+  student, Live Classroom or content changes; no rules change).
+- Asked (the accountant via the owner 2026-10-24): „Поставщиков сначала, и привяжи их к проводкам” — like Merit Aktiva /
+  Excel, each journal line on a partner account carries the partner.
+- Built (docs/ACCOUNTING.md „Tarnijad ja ostuarved”, „Partnerid”, „Päevaraamat kui tabel”):
+  1. Tarnijad: `SuppliersPanel.jsx` (search, „Näita mitteaktiivseid”, header sort, „Impordi Excelist” with a per-row
+     preview, Excel) on Ostuarved and on Raamatupidamine (tab + button „Tarnijad”). Duplicates by registry code or
+     by name (case, quotes, legal form ignored) — warning under the row, server 409 (`purchases-core supplierDuplicate`,
+     now also on `/suppliers`). New route `/suppliers/import` (`supplierImportPlan`, all or nothing, max 400,
+     idempotent by requestId, one `financialAudit` record).
+  2. Partner on entry lines: `lines[].partner { type: supplier | customer, id, name }`. accounting-core `cleanPartner`,
+     `validateEntry(…, { suppliers, requirePartner })` (keeps it, checks the supplier exists, takes its current
+     name), `correctedEntry` passes the options, `snapshotOf` / `reversalOf` keep the partner (history + audit show
+     partner changes; storno and „Asenda konto” keep partners). `/accounting/entries` (new manual entry) requires a
+     supplier on 2110 / 1350 lines; `/accounting/entries/update` checks but does not require. OA / VM entries carry the
+     supplier on every line; new sales entries the customer (student card id + payer name) on 1200 / 2500.
+     Päevaraamat grid: column „Partner” (12 %, Kirjeldus ≈ 34 % stays the widest), type-ahead from Tarnijad by name or
+     registry code (`PartnerInput.jsx`), „Puudub: partner” on 2110 / 1350 lines (blocks a manual entry), unresolved
+     names red, filter + sort by partner, paste with a Partner column (JournalDraft and grid), Excel with Partner.
+  3. Reports: tab „Partnerid” (`partnerReport`, 2110 by default, any account or all): algsaldo, käive D/K, lõppsaldo
+     per partner, „Partner puudub” row, drill-down to the lines, „Pearaamat” → ledger filtered by that partner;
+     Excel `partnersWorkbook` (sheets Partnerid + Read). Pearaamat: Partner filter + column. Käibeandmik unchanged.
+  4. Backfill: `functions/accounting-partner-core.js` (`partnerBackfillPlan`, `manualPartnerSuggestions`,
+     `partnerBackfillPatch`) + `functions/tools/accounting-partner-backfill.js` (dry run by default; `--apply` OA / VM,
+     `--apply-manual` text matches; history item „partner” + financialAudit; locked / closed skipped). NOT applied.
+- Dry run on production (read-only, 2026-10-24): 382 entries, 0 purchase invoices, 0 suppliers → 0 OA / VM entries to
+  update. 50 lines on 2110 (49 in 48 manual PR entries typed as „ostuarve …” / „PA-ülekanne …”, 1 in the algsaldod
+  entry 168,00); 221 lines on 1200 / 2500 without a customer (old sales entries, not touched). Simulation in memory
+  with the supplier names found in those texts (Kirsi Residents, Zone Media, Senty Studio, Apple, Euronics, Charlot,
+  Hea Vesi, Julianus Inkasso, Google, …): 43 entries / 44 lines would get a supplier by `--apply-manual`, 2 match two
+  suppliers (Kirsi Residents + Julianus Inkasso), 3 none (FB reklaam, grossi ostuarve, algsaldod).
+- Checks: crm-v2 whole vitest 359 files (358 passed, 1 skipped), 2511 tests: 2508 passed, 3 skipped, 0 failed (new:
+  partners.test.jsx 7, suppliers.test.jsx 6, journalGrid partners 5; JournalGrid / journalGrid tests moved to the
+  7 columns); eslint 0 errors (16 old warnings); `npm run build` ok; functions `npm test` 378/378 (+11: core partner 4,
+  purchases 3, backfill 4); emulator (`firebase emulators:exec --only auth,firestore,functions --project
+  demo-keelesepp-finance`, JDK 21) finance-emulator + security-finance-emulator 46/46 (new: partners — import all or
+  nothing / idempotent / teacher 403, name duplicate 409, OA / VM partners, manual 2110 needs an existing supplier,
+  partner change in history + audit, replace-account and storno keep partners). Local stand with made-up data
+  (grid type-ahead + save, draft „Puudub: partner (2110)”, Partnerid drill-down → Pearaamat, Tarnijad import; desktop
+  + 375 px), not committed.
+- Deploy needed (owner): functions (`financeApi`: partner validation, `/suppliers/import`, name duplicates). No rules
+  change (suppliers already admin-read). Front end with main (Vercel). Until functions are deployed the import button
+  gets 404 and partners typed in the grid are saved by the old server without the supplier check (the old
+  validateEntry drops unknown fields — partners would be lost), so deploy functions before the accountant starts.
+- Limits: a manual-entry correction is not partner-required on the server (only the UI blocks it); the customer
+  partner exists only on sales entries written after the deploy; a supplier rename does not rename partners already
+  on lines (the report groups by id and shows the stored name).
+- Next safe step: owner deploys functions; the accountant imports Tarnijad from Excel (Raamatupidamine → Tarnijad →
+  „Impordi Excelist”), then the owner runs the backfill dry run and, with permission, `--apply-manual`; the rest
+  (2 ambiguous, 3 without a match, the algsaldod 168,00) she sets in the päevaraamat column „Partner”.
+
 ## 2026-10-24 · agent/student-merge-subjects — „Liida kaardid” done properly, parents on the card, own study directions
 
 - Base: `main` 7bfa20f (2026-10-24, after #787 / #788). Draft PR #789 from `agent/student-merge-subjects`. Students / parents /

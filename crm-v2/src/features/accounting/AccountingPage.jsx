@@ -1,11 +1,12 @@
-import { ArrowLeft, BookOpen, Download, FilePlus2, Lock, RefreshCw, Scale } from 'lucide-react';
+import { ArrowLeft, BookOpen, ChevronDown, ChevronRight, Download, FilePlus2, Lock, RefreshCw, Scale, Truck } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, Modal, PageHeader, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { accountingService } from '../../services/firebase/index.js';
-import { downloadWorkbook, journalWorkbook, statementsWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
-import { ACCOUNT_TYPES, COMPANY, ENTRY_CODES, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, draftDescription, euro, incomeStatement, journalReport, ledger, parseEuro, trialBalance } from './accountingReports.js';
+import { downloadWorkbook, journalWorkbook, partnersWorkbook, statementsWorkbook, suppliersWorkbook, trialBalanceWorkbook } from './accountingExcel.js';
+import { ACCOUNT_TYPES, COMPANY, CUSTOMER_ACCOUNTS, ENTRY_CODES, PARTNER_TYPE_LABELS, SUPPLIER_ACCOUNTS, accountTypeLabel, amount, balanceSheet, blankEntryLine, dmy, draftDescription, euro, incomeStatement, journalReport, ledger, parseEuro, partnerKey, partnerReport, trialBalance } from './accountingReports.js';
+import SuppliersPanel from '../purchases/SuppliersPanel.jsx';
 import { useOptionalAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import JournalDraft from './JournalDraft.jsx';
@@ -20,9 +21,12 @@ const TABS = [
   ['journal', 'Päevaraamat'],
   ['ledger', 'Pearaamat'],
   ['trial', 'Käibeandmik'],
+  ['partners', 'Partnerid'],
   ['statements', 'Bilanss ja kasumiaruanne'],
   ['chart', 'Kontoplaan'],
+  ['suppliers', 'Tarnijad'],
 ];
+const NO_PERIOD_TABS = new Set(['chart', 'suppliers']);
 const today = () => new Date().toISOString().slice(0, 10);
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
@@ -63,7 +67,7 @@ function LinesEditor({ lines, setLines, accounts }) {
   </div>;
 }
 
-const toLines = (lines) => lines.map((l) => ({ account: l.account, debitCents: parseEuro(l.debit) || 0, creditCents: parseEuro(l.credit) || 0, note: l.note })).filter((l) => l.account && (l.debitCents || l.creditCents));
+const toLines = (lines) => lines.map((l) => ({ account: l.account, debitCents: parseEuro(l.debit) || 0, creditCents: parseEuro(l.credit) || 0, note: l.note, ...(l.partner?.type ? { partner: l.partner } : {}) })).filter((l) => l.account && (l.debitCents || l.creditCents));
 const badAmount = (lines) => lines.some((l) => Number.isNaN(parseEuro(l.debit)) || Number.isNaN(parseEuro(l.credit)));
 
 export default function AccountingPage({ repository = accountingService, canEdit }) {
@@ -86,6 +90,9 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const [draft, setDraft] = useState(null);
   const [draftLines, setDraftLines] = useState([]);
   const [showDeleted, setShowDeleted] = useState(false);
+  const [ledgerPartner, setLedgerPartner] = useState('');
+  const [partnerAccount, setPartnerAccount] = useState('2110');
+  const [openPartners, setOpenPartners] = useState(() => new Set());
   const synced = useRef(false);
 
   const allEntries = useMemo(() => state.data?.entries || [], [state.data]);
@@ -93,11 +100,21 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const entries = useMemo(() => allEntries.filter((e) => !e.deleted), [allEntries]);
   const accounts = useMemo(() => state.data?.accounts || [], [state.data]);
   const lockedThrough = state.data?.lockedThrough || '';
+  const suppliers = useMemo(() => state.data?.suppliers || [], [state.data]);
+  // „OA 3” of every entry (the partner drill-down shows the kande kood)
+  const labels = useMemo(() => new Map(journalReport(allEntries, accounts, { showDeleted: true }).entries.map((e) => [e.id, e.label])), [allEntries, accounts]);
+  const partners = useMemo(() => partnerReport(entries, accounts, { ...period, account: partnerAccount }, { suppliers, labels }), [entries, accounts, period, partnerAccount, suppliers, labels]);
+  // the partners on the lines of the pearaamat account (its partner filter)
+  const ledgerPartners = useMemo(() => {
+    const found = new Map();
+    entries.forEach((e) => (e.lines || []).forEach((l) => { if (String(l.account) === String(ledgerAccount)) found.set(partnerKey(l.partner), l.partner?.name || 'Partner puudub'); }));
+    return [...found.entries()].sort((a, b) => (a[0] === 'none') - (b[0] === 'none') || a[1].localeCompare(b[1], 'et'));
+  }, [entries, ledgerAccount]);
   const journalFull = useMemo(() => journalReport(allEntries, accounts, { ...period, code: journalCode, sort: journalSort.key === 'date' ? 'date' : 'code', showDeleted }), [allEntries, accounts, period, journalCode, journalSort, showDeleted]);
   // a header click sorts by that column; a second click turns the order
   const sortBy = (key) => setJournalSort((current) => ({ key, dir: current.key === key && current.dir === 'asc' ? 'desc' : 'asc' }));
   const trial = useMemo(() => trialBalance(entries, accounts, period), [entries, accounts, period]);
-  const accountLedger = useMemo(() => ledger(entries, ledgerAccount, period, accounts), [entries, ledgerAccount, period, accounts]);
+  const accountLedger = useMemo(() => ledger(entries, ledgerAccount, { ...period, partner: ledgerPartner }, accounts), [entries, ledgerAccount, period, ledgerPartner, accounts]);
   const statements = useMemo(() => ({ sheet: balanceSheet(entries, accounts, { to: period.to }), result: incomeStatement(entries, accounts, period) }), [entries, accounts, period]);
   const usedAccounts = useMemo(() => new Set(entries.flatMap((e) => (e.lines || []).map((l) => String(l.account)))), [entries]);
 
@@ -130,7 +147,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const centsText = (cents) => (cents ? amount(cents) : '');
   const openOpening = () => {
     setDialog('opening');
-    const current = (openingEntry?.lines || []).map((l) => ({ ...blankLine(), account: String(l.account), debit: centsText(l.debitCents), credit: centsText(l.creditCents) }));
+    const current = (openingEntry?.lines || []).map((l) => ({ ...blankLine(), account: String(l.account), debit: centsText(l.debitCents), credit: centsText(l.creditCents), partner: l.partner || null }));
     setLines([...current, blankLine(), ...(current.length ? [] : [blankLine(), blankLine()])]);
     setError('');
   };
@@ -173,9 +190,29 @@ export default function AccountingPage({ repository = accountingService, canEdit
     const { existing: _existing, ...account } = form;
     if (await run('save', () => repository.saveAccount(account), `Konto ${account.code} salvestati.`)) setDialog(null);
   };
+  const saveSupplier = async (supplierId, values) => {
+    setBusy('supplier'); setError('');
+    try {
+      await repository.saveSupplier(supplierId, values);
+      setNotice(`Tarnija ${values.name} salvestati.`);
+      await state.reload();
+      return '';
+    } catch (nextError) {
+      return nextError.message || 'Salvestamine ebaõnnestus.';
+    } finally { setBusy(''); }
+  };
+  const importSuppliers = async (rows) => {
+    const result = await repository.importSuppliers(rows);
+    setNotice(`Imporditi ${result?.created?.length ?? rows.length} tarnijat.`);
+    await state.reload();
+  };
+  const accountLabel = (code) => (code ? `${code} ${accounts.find((a) => a.code === code)?.name || ''}`.trim() : 'Kõik kontod');
+  const openLedgerFor = (row) => { setLedgerAccount(partnerAccount || '2110'); setLedgerPartner(row.key); setTab('ledger'); };
+  const togglePartner = (key) => setOpenPartners((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; });
   const exportFile = () => {
     const stamp = `${period.from || 'algus'}_${period.to || today()}`;
-    if (tab === 'trial') downloadWorkbook(trialBalanceWorkbook(trial, { company: COMPANY, period }), `kaibeandmik_${stamp}.xls`);
+    if (tab === 'partners') downloadWorkbook(partnersWorkbook(partners, { company: COMPANY, period, accountLabel: accountLabel(partnerAccount) }), `partnerid_${partnerAccount || 'koik'}_${stamp}.xls`);
+    else if (tab === 'trial') downloadWorkbook(trialBalanceWorkbook(trial, { company: COMPANY, period }), `kaibeandmik_${stamp}.xls`);
     else if (tab === 'statements') downloadWorkbook(statementsWorkbook(statements, { company: COMPANY_LABEL, period }), `bilanss_kasumiaruanne_${stamp}.xls`);
     else {
       const report = showDeleted ? journalReport(allEntries, accounts, { ...period, code: journalCode }) : journalFull;
@@ -197,6 +234,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
         <Button variant="secondary" loading={busy === 'sync'} onClick={() => sync(false)}><RefreshCw size={17} /> Uuenda kanded</Button>
         <Button variant="secondary" onClick={openOpening}><Scale size={17} /> Algsaldod</Button>
         <Button variant="secondary" onClick={openLock}><Lock size={17} /> {lockedThrough ? `Suletud kuni ${dmy(lockedThrough)}` : 'Sulge periood'}</Button>
+        <Button variant="secondary" onClick={() => setTab('suppliers')}><Truck size={17} /> Tarnijad</Button>
         <Link className="button button--secondary" to="/finance/ostuarved">Ostuarved</Link>
         <Link className="button button--secondary" to="/finance/inf3">INF 3</Link>
         {!readOnly ? <Button onClick={openEntry}><FilePlus2 size={17} /> Lisa kanne</Button> : null}
@@ -207,7 +245,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
 
     <Card className="accounting-toolbar">
       <nav className="accounting-tabs" aria-label="Raamatupidamise registrid">{TABS.map(([id, label]) => <button key={id} type="button" className={tab === id ? 'is-active' : ''} aria-pressed={tab === id} onClick={() => setTab(id)}>{label}</button>)}</nav>
-      {tab !== 'chart' ? <div className="accounting-period">
+      {!NO_PERIOD_TABS.has(tab) ? <div className="accounting-period">
         <Input id="accounting-from" label="Alates" type="date" value={period.from} onChange={(event) => setPeriod({ ...period, from: event.target.value })} />
         <Input id="accounting-to" label="Kuni" type="date" value={period.to} onChange={(event) => setPeriod({ ...period, to: event.target.value })} />
         <Button variant="secondary" onClick={setMonth}>Jooksev kuu</Button>
@@ -229,19 +267,22 @@ export default function AccountingPage({ repository = accountingService, canEdit
           <dt>Kande kood</dt><dd>{journalCode ? `${journalCode} ${journalFull.filters.codeName}` : 'Kõik'}</dd>
           <dt>Järjestus</dt><dd>{sortLabel}</dd>
         </dl>
-        <JournalGrid entries={journalFull.entries} accounts={accounts} lockedThrough={lockedThrough} readOnly={readOnly} repository={repository}
+        <JournalGrid entries={journalFull.entries} accounts={accounts} suppliers={suppliers} lockedThrough={lockedThrough} readOnly={readOnly} repository={repository}
           onChanged={state.reload} onNotice={setNotice} sort={journalSort} onSort={sortBy} onDelete={openDelete} onStorno={openStorno}
-          draftSlot={draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null} />
+          draftSlot={draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} suppliers={suppliers} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null} />
         <p className="accounting-sheet__footer"><span>{COMPANY.name}</span><span>Rg-kood {COMPANY.regCode}</span></p>
       </div> : <EmptyState title="Perioodis kandeid ei ole" description="Vali teine periood või kande kood või vajuta „Uuenda kanded”." />}
     </Card> : null}
 
     {tab === 'ledger' ? <Card className="accounting-card">
-      <div className="accounting-card__search"><Select id="ledger-account" label="Konto" value={ledgerAccount} onChange={(event) => setLedgerAccount(event.target.value)}>{accounts.filter((a) => usedAccounts.has(a.code)).map((a) => <option key={a.code} value={a.code}>{a.code} {a.name}</option>)}</Select></div>
-      <div className="students-table-wrap"><table className="students-table accounting-table"><thead><tr><th>Kuupäev</th><th>Nr</th><th>Sisu</th><th>Dokument</th><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Saldo</th></tr></thead>
-        <tbody><tr className="accounting-entry"><td colSpan="6"><strong>Algsaldo</strong></td><td className="num">{euro(accountLedger.opening)}</td></tr>
-          {accountLedger.rows.map((r, i) => <tr key={`${r.entryId}-${i}`}><td>{dateLabel(r.date)}</td><td>{r.number}</td><td>{r.description}</td><td>{r.documentRef}</td><td className="num">{r.debitCents ? euro(r.debitCents) : ''}</td><td className="num">{r.creditCents ? euro(r.creditCents) : ''}</td><td className="num">{euro(r.balance)}</td></tr>)}
-          <tr className="accounting-entry"><td colSpan="6"><strong>Lõppsaldo</strong></td><td className="num"><strong>{euro(accountLedger.closing)}</strong></td></tr></tbody></table></div>
+      <div className="accounting-card__search">
+        <Select id="ledger-account" label="Konto" value={ledgerAccount} onChange={(event) => { setLedgerAccount(event.target.value); setLedgerPartner(''); }}>{accounts.filter((a) => usedAccounts.has(a.code)).map((a) => <option key={a.code} value={a.code}>{a.code} {a.name}</option>)}</Select>
+        <Select id="ledger-partner" label="Partner" value={ledgerPartner} onChange={(event) => setLedgerPartner(event.target.value)}><option value="">Kõik partnerid</option>{ledgerPartners.map(([key, name]) => <option key={key} value={key}>{name}</option>)}{ledgerPartner && !ledgerPartners.some(([key]) => key === ledgerPartner) ? <option value={ledgerPartner}>(sellel kontol ei ole)</option> : null}</Select>
+      </div>
+      <div className="students-table-wrap"><table className="students-table accounting-table"><thead><tr><th>Kuupäev</th><th>Nr</th><th>Sisu</th><th>Dokument</th><th>Partner</th><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Saldo</th></tr></thead>
+        <tbody><tr className="accounting-entry"><td colSpan="7"><strong>Algsaldo</strong></td><td className="num">{euro(accountLedger.opening)}</td></tr>
+          {accountLedger.rows.map((r, i) => <tr key={`${r.entryId}-${i}`}><td>{dateLabel(r.date)}</td><td>{r.number}</td><td>{r.description}</td><td>{r.documentRef}</td><td>{r.partner?.name || ''}</td><td className="num">{r.debitCents ? euro(r.debitCents) : ''}</td><td className="num">{r.creditCents ? euro(r.creditCents) : ''}</td><td className="num">{euro(r.balance)}</td></tr>)}
+          <tr className="accounting-entry"><td colSpan="7"><strong>Lõppsaldo</strong></td><td className="num"><strong>{euro(accountLedger.closing)}</strong></td></tr></tbody></table></div>
     </Card> : null}
 
     {tab === 'trial' ? <Card className="accounting-card">
@@ -251,6 +292,47 @@ export default function AccountingPage({ repository = accountingService, canEdit
         <tbody>{trial.rows.map((r) => <tr key={r.code}><td><button type="button" className="link-button" onClick={() => { setLedgerAccount(r.code); setTab('ledger'); }}>{r.code}</button></td><td>{r.name}</td>{[r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit].map((v, i) => <td key={i} className="num">{v ? amount(v) : ''}</td>)}</tr>)}</tbody>
         <tfoot><tr><td colSpan="2">Kokku</td>{[trial.total.opening.debit, trial.total.opening.credit, trial.total.turnover.debit, trial.total.turnover.credit, trial.total.closing.debit, trial.total.closing.credit].map((v, i) => <td key={i} className="num">{amount(v)}</td>)}</tr></tfoot></table></div></div>
         : <EmptyState title="Perioodis liikumisi ei ole" description="Vali teine periood." />}
+    </Card> : null}
+
+    {tab === 'partners' ? <Card className="accounting-card">
+      <div className="accounting-card__search accounting-journal-filters">
+        <Select id="partner-account" label="Konto" value={partnerAccount} onChange={(event) => { setPartnerAccount(event.target.value); setOpenPartners(new Set()); }}>
+          {[...new Set([...SUPPLIER_ACCOUNTS, ...CUSTOMER_ACCOUNTS, ...accounts.filter((a) => usedAccounts.has(a.code)).map((a) => a.code)])].map((code) => <option key={code} value={code}>{accountLabel(code)}</option>)}
+          <option value="">Kõik kontod</option>
+        </Select>
+        <span className="accounting-partners__hint">Klõps partneril näitab tema read; „Pearaamat” avab sama konto selle partneri filtriga.</span>
+      </div>
+      {partners.rows.length ? <div className="accounting-sheet">
+        <h2>Partnerid · {accountLabel(partnerAccount)}</h2>
+        {partners.missing ? <p className="accounting-partners__missing" role="status">Partner puudub {partners.missing.lines.length + (partners.missing.openingBalance ? 1 : 0)} real — lisa see päevaraamatus (veerg Partner; filter „Konto” {partnerAccount || '…'}).</p> : null}
+        <div className="accounting-grid-wrap"><table className="accounting-grid accounting-trial accounting-partners"><colgroup><col className="c-partner-name" /><col className="c-partner-code" /><col /><col /><col /><col /><col /><col /></colgroup><thead>
+          <tr><th rowSpan="2">Partner</th><th rowSpan="2">Reg-kood</th><th colSpan="2" className="center">Algsaldo</th><th colSpan="2" className="center">Käive</th><th colSpan="2" className="center">Lõppsaldo</th></tr>
+          <tr><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th><th className="num">Deebet</th><th className="num">Kreedit</th></tr></thead>
+          {partners.rows.map((r) => {
+            const open = openPartners.has(r.key);
+            return <tbody key={r.key} className={r.key === 'none' ? 'is-missing' : ''}>
+              <tr className={open ? 'accounting-grid__entry' : ''}>
+                <td><button type="button" className="link-button" aria-expanded={open} onClick={() => togglePartner(r.key)}>{open ? <ChevronDown size={13} /> : <ChevronRight size={13} />} {r.name}</button>{r.type ? <small> {PARTNER_TYPE_LABELS[r.type] || ''}</small> : null}</td>
+                <td>{r.regCode}</td>
+                {[r.opening.debit, r.opening.credit, r.turnover.debit, r.turnover.credit, r.closing.debit, r.closing.credit].map((v, i) => <td key={i} className="num">{v ? amount(v) : ''}</td>)}
+              </tr>
+              {open ? <>
+                <tr className="accounting-partners__lines-head"><td>Kuupäev · Kanne</td><td>Dokument</td><td colSpan="2">Kirjeldus</td><td className="num">Deebet</td><td className="num">Kreedit</td><td className="num">Saldo</td><td><button type="button" className="link-button" onClick={() => openLedgerFor(r)}>Pearaamat</button></td></tr>
+                {r.lines.map((l, i) => <tr key={`${l.entryId}-${i}`} className="accounting-partners__line"><td>{dmy(l.date)} · <span title={`CRM kanne ${l.number}`}>{l.label || l.number}</span>{partnerAccount ? '' : ` · ${l.account}`}</td><td>{l.documentRef}</td><td colSpan="2">{l.description}</td><td className="num">{l.debitCents ? amount(l.debitCents) : ''}</td><td className="num">{l.creditCents ? amount(l.creditCents) : ''}</td><td className="num">{amount(l.balance)}</td><td /></tr>)}
+                {!r.lines.length ? <tr className="accounting-partners__line"><td colSpan="8">Perioodis liikumisi ei ole (ainult algsaldo).</td></tr> : null}
+              </> : null}
+            </tbody>;
+          })}
+          <tfoot><tr><td colSpan="2">Kokku</td>{[partners.total.opening.debit, partners.total.opening.credit, partners.total.turnover.debit, partners.total.turnover.credit, partners.total.closing.debit, partners.total.closing.credit].map((v, i) => <td key={i} className="num">{amount(v)}</td>)}</tr></tfoot>
+        </table></div>
+        <p className="accounting-sheet__footer"><span>{COMPANY.name}</span><span>Rg-kood {COMPANY.regCode}</span></p>
+      </div> : <EmptyState title="Sellel kontol perioodis liikumisi ei ole" description="Vali teine konto või periood." />}
+    </Card> : null}
+
+    {tab === 'suppliers' ? <Card className="accounting-card">
+      <p className="form-hint">Tarnijad on kannete partnerid: ostuarve (OA) ja tasumise (VM) kanded saavad tarnija igale reale ise; käsitsi kandes vali 2110 / 1350 real partner päevaraamatu veerus „Partner”. Ostuarved sisestatakse lehel <Link to="/finance/ostuarved">Ostuarved</Link>.</p>
+      <SuppliersPanel suppliers={suppliers} accounts={accounts} onSave={saveSupplier} onImport={repository.importSuppliers ? importSuppliers : null}
+        onExport={() => downloadWorkbook(suppliersWorkbook(suppliers, { company: COMPANY }), 'tarnijad.xls')} busy={busy === 'supplier'} />
     </Card> : null}
 
     {tab === 'statements' ? <div className="accounting-statements">

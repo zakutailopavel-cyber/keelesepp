@@ -1,15 +1,17 @@
 import { useEffect, useRef } from 'react';
 import { Button } from '../../components/ui/index.js';
-import { amount, blankEntryLine, dmy, draftDescription, entryLineTotals, parseEuro } from './accountingReports.js';
-import { pastedEntryLines } from './journalGrid.js';
+import { SUPPLIER_ACCOUNTS, amount, blankEntryLine, dmy, draftDescription, entryLineTotals, parseEuro } from './accountingReports.js';
+import { partnerProblem, pastedEntryLines, resolvePartner, supplierPartner } from './journalGrid.js';
 import AccountInput from './AccountInput.jsx';
+import PartnerInput from './PartnerInput.jsx';
 
 // A manual entry typed straight into the päevaraamat grid (the accountant 2026-10-23: like Excel, no separate form).
 // The header row takes the date, the source document and the content; each line row the account, its note, debit or
 // credit. Tab moves cell to cell; Tab in the last cell adds a row. „Salvesta kanne” is enabled only when debit = credit.
 // The same rows correct an existing entry (mode „edit”): an automatic entry keeps its date and document (fixedHeader),
 // and the reason of the correction goes to the entry's history. Rows copied from Excel can be pasted (Ctrl/Cmd+V).
-export default function JournalDraft({ draft, setDraft, lines, setLines, accounts, busy, error, onSave, onCancel, label = 'PR (uus kanne)', fixedHeader = false, reason, setReason, reasonRequired = false, saveLabel = 'Salvesta kanne' }) {
+// Partner (the accountant 2026-10-24): a supplier from Tarnijad on each line; required on 2110 / 1350 lines.
+export default function JournalDraft({ draft, setDraft, lines, setLines, accounts, suppliers = [], busy, error, onSave, onCancel, label = 'PR (uus kanne)', fixedHeader = false, reason, setReason, reasonRequired = false, saveLabel = 'Salvesta kanne' }) {
   const dateRef = useRef(null);
   const focusAccount = useRef(-1);
   const rowRefs = useRef([]);
@@ -32,7 +34,8 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
     const pasted = pastedEntryLines(text);
     if (!pasted.lines.length) return;
     event.preventDefault();
-    setLines([...lines.filter((l) => l.account || l.debit || l.credit || l.note), ...pasted.lines]);
+    const resolved = pasted.lines.map(({ partnerText, ...l }) => ({ ...l, partner: resolvePartner(partnerText, suppliers) }));
+    setLines([...lines.filter((l) => l.account || l.debit || l.credit || l.note || l.partner), ...resolved]);
     if (!fixedHeader && (pasted.date || pasted.documentRef)) setDraft({ ...draft, date: draft.date && !pasted.date ? draft.date : pasted.date || draft.date, documentRef: draft.documentRef.trim() ? draft.documentRef : pasted.documentRef });
   };
   const totals = entryLineTotals(lines);
@@ -41,6 +44,8 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
   const balanced = !badAmount && totals.debit > 0 && totals.debit === totals.credit && filled.length >= 2;
   const knownAccounts = lines.every((l) => !l.account || accountName(l.account));
   const noAccount = lines.some((l) => !l.account && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
+  const partnerIssue = partnerProblem(lines, { required: true });
+  const partnerMissing = lines.filter((l) => SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
   // what still blocks „Salvesta kanne”, said next to the button (a silent grey button told her nothing)
   const missing = [
     !draft.date && 'kuupäev',
@@ -50,6 +55,8 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
     !knownAccounts && 'konto, mida kontoplaanis pole',
     !badAmount && totals.debit !== totals.credit && 'deebet = kreedit',
     !badAmount && totals.debit === totals.credit && filled.length < 2 && 'vähemalt üks deebet- ja üks kreeditrida',
+    partnerMissing.length > 0 && `partner (${[...new Set(partnerMissing.map((l) => String(l.account).trim()))].join(', ')})`,
+    partnerIssue && !partnerMissing.length && 'tarnija nimekirjast',
     reasonRequired && !String(reason || '').trim() && 'paranduse põhjus',
   ].filter(Boolean);
   const ready = balanced && !noAccount && !missing.length;
@@ -59,7 +66,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
       <td>{label}</td>
       <td>{fixedHeader ? dmy(draft.date) : <input ref={dateRef} aria-label="Kuupäev" type="date" value={draft.date} onChange={(event) => setDraft({ ...draft, date: event.target.value })} />}</td>
       <td>{fixedHeader ? draft.documentRef : <input aria-label="Algdokument (nr / nimetus)" value={draft.documentRef} placeholder="dokument" onChange={(event) => setDraft({ ...draft, documentRef: event.target.value })} />}</td>
-      <td colSpan="3"><input aria-label="Sisu" value={draft.description} placeholder="kande sisu" onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></td>
+      <td colSpan="4"><input aria-label="Sisu" value={draft.description} placeholder="kande sisu" onChange={(event) => setDraft({ ...draft, description: event.target.value })} /></td>
     </tr>
     {lines.map((l, index) => {
       const last = index === lines.length - 1;
@@ -71,6 +78,9 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
             document, typing in any of them sets it for the whole entry */}
         <td>{fixedHeader ? draft.documentRef : <input aria-label={`Rida ${index + 1} dokument`} value={draft.documentRef} placeholder="dokument" onChange={(event) => setDraft({ ...draft, documentRef: event.target.value })} />}</td>
         <td><input aria-label={`Rida ${index + 1} märkus`} value={l.note} placeholder={draft.description} onChange={(event) => update(index, { note: event.target.value })} /></td>
+        <td><div className="accounting-draft__account"><PartnerInput tabMoves suppliers={suppliers} label={`Rida ${index + 1} partner`} value={l.partner?.name || ''}
+          onChange={(text) => update(index, { partner: resolvePartner(text, suppliers, l.partner) })} onPick={(supplier) => update(index, { partner: supplierPartner(supplier) })} />
+          {l.partner && !l.partner.type ? <small className="is-off">pole tarnijate seas</small> : SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' ? <small className="is-off">kohustuslik</small> : null}</div></td>
         <td className="num"><input aria-label={`Rida ${index + 1} deebet`} inputMode="decimal" value={l.debit} onChange={(event) => update(index, { debit: event.target.value, credit: event.target.value ? '' : l.credit })} /></td>
         <td className="num"><input aria-label={`Rida ${index + 1} kreedit`} inputMode="decimal" value={l.credit}
           onChange={(event) => update(index, { credit: event.target.value, debit: event.target.value ? '' : l.debit })}
@@ -78,7 +88,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
       </tr>;
     })}
     <tr className="accounting-grid__subtotal">
-      <td colSpan="4">
+      <td colSpan="5">
         <div className="accounting-draft__actions">
           <button type="button" className="link-button" onClick={addRow}>+ rida</button>
           <span className={balanced ? 'is-ok' : 'is-off'}>Deebet {amount(totals.debit)} · Kreedit {amount(totals.credit)}{totals.debit !== totals.credit ? ` · vahe ${amount(Math.abs(totals.debit - totals.credit))}` : ''}</span>

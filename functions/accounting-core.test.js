@@ -210,3 +210,62 @@ test("batch targets: unique ids, limits and chunks that fit one transaction", ()
   // each entry is one update and one audit record: a chunk stays within Firestore's 500 writes
   assert.ok(BATCH_CHUNK * 2 <= 500);
 });
+
+// ---- partners (the accountant 2026-10-24: „привяжи их к проводкам”) ----
+const core = require("./accounting-core");
+const chart = DEFAULT_ACCOUNTS.map((a) => ({ ...a, active: true }));
+const kirsi = { type: "supplier", id: "sup1", name: "Kirsi Residents OÜ" };
+
+test("validateEntry keeps a line's partner, checks a supplier exists and takes its current name", () => {
+  const suppliers = new Map([["sup1", { id: "sup1", name: "Kirsi Residents OÜ" }]]);
+  const entry = validateEntry({ date: "2026-03-01", description: "Üür", documentRef: "OA-2026/48", lines: [
+    { account: "4210", debitCents: 31859 },
+    { account: "2110", creditCents: 31859, partner: { ...kirsi, name: "  kirsi (vana nimi) " } },
+  ] }, chart, { suppliers });
+  assert.equal(entry.lines[0].partner, undefined, "no partner key on a line without one");
+  assert.deepEqual(entry.lines[1].partner, kirsi);
+  assert.throws(() => validateEntry({ date: "2026-03-01", description: "x", documentRef: "d", lines: [{ account: "4210", debitCents: 1 }, { account: "2110", creditCents: 1, partner: { type: "supplier", id: "nope", name: "Keegi" } }] }, chart, { suppliers }), /Tarnijat „Keegi” ei leitud/);
+  assert.throws(() => validateEntry({ date: "2026-03-01", description: "x", documentRef: "d", lines: [{ account: "4210", debitCents: 1 }, { account: "2110", creditCents: 1, partner: { name: "Vaba tekst" } }] }, chart), /vali tarnija nimekirjast/);
+  // without the suppliers map (Asenda konto, storno) the partner is kept as it is
+  assert.equal(validateEntry({ date: "2026-03-01", description: "x", documentRef: "d", lines: [{ account: "4210", debitCents: 1 }, { account: "2110", creditCents: 1, partner: { type: "supplier", id: "gone", name: "Old" } }] }, chart).lines[1].partner.id, "gone");
+});
+
+test("a new manual entry needs a supplier on 2110 / 1350 lines (requirePartner); other lines do not", () => {
+  const values = { date: "2026-03-01", description: "Üür", documentRef: "OA-1", lines: [{ account: "4210", debitCents: 100 }, { account: "2110", creditCents: 100 }] };
+  assert.throws(() => validateEntry(values, chart, { requirePartner: true }), /2110 real on partner \(tarnija\) kohustuslik/);
+  assert.throws(() => validateEntry({ ...values, lines: [{ account: "1350", debitCents: 100 }, { account: "1010", creditCents: 100 }] }, chart, { requirePartner: true }), /1350/);
+  assert.throws(() => validateEntry({ ...values, lines: [values.lines[0], { ...values.lines[1], partner: { type: "customer", id: "st1", name: "Mari" } }] }, chart, { requirePartner: true }), /kohustuslik/);
+  assert.ok(validateEntry({ ...values, lines: [values.lines[0], { ...values.lines[1], partner: kirsi }] }, chart, { requirePartner: true, suppliers: new Map([["sup1", { name: "Kirsi Residents OÜ" }]]) }));
+  assert.ok(validateEntry(values, chart), "an old entry without partners still validates (corrections)");
+});
+
+test("history: a partner change is a change; storno and „Asenda konto” keep the partners", () => {
+  const entry = { id: "e1", number: "2026-0001", origin: "manual", date: "2026-03-01", description: "Üür", documentRef: "OA-1", lines: [{ account: "4210", debitCents: 100, creditCents: 0, note: "" }, { account: "2110", debitCents: 0, creditCents: 100, note: "" }] };
+  const corrected = core.correctedEntry(entry, { ...entry, lines: [entry.lines[0], { ...entry.lines[1], partner: kirsi }] }, chart, { suppliers: new Map([["sup1", { name: "Kirsi Residents OÜ" }]]) });
+  assert.equal(corrected.before.lines[1].partner, undefined);
+  assert.deepEqual(corrected.after.lines[1].partner, kirsi);
+  const withPartner = { ...entry, lines: corrected.after.lines };
+  assert.throws(() => core.correctedEntry(withPartner, { ...withPartner }, chart), /Muudatusi ei ole/);
+  const storno = reversalOf({ ...withPartner, origin: "manual" }, { date: "2026-03-02", reason: "viga" });
+  assert.deepEqual(storno.lines[1].partner, kirsi);
+  assert.equal(storno.lines[1].debitCents, 100);
+  assert.equal(storno.lines[0].partner, undefined);
+  const moved = core.replaceAccountValues(withPartner, "4210", "4330");
+  const fixed = core.correctedEntry(withPartner, moved.values, chart);
+  assert.deepEqual(fixed.after.lines.map((l) => [l.account, l.partner?.id || ""]), [["4330", ""], ["2110", "sup1"]]);
+});
+
+test("sales entries carry the customer (student card, payer name) on 1200 / 2500 lines", () => {
+  const entries = automaticEntries({
+    invoices: [{ id: "i1", num: "KS-1", date: "2026-02-01", amountCents: 6000, studentId: "st1", studentName: "Mari", payerName: "Ema Tamm" }],
+    creditNotes: [{ id: "c1", num: "KR-1", invoiceId: "i1", date: "2026-02-03", amountCents: -1000 }],
+    payments: [{ id: "p1", invoiceId: "i1", paidAt: "2026-02-05", amountCents: 5000, method: "bank" }],
+  });
+  const lines = entries.flatMap((e) => e.lines.map((l) => [e.sourceKey, l.account, l.partner ? `${l.partner.type}:${l.partner.id}:${l.partner.name}` : ""]));
+  assert.deepEqual(lines, [
+    ["invoice:i1", "1200", "customer:st1:Ema Tamm"], ["invoice:i1", "3000", ""],
+    ["credit-note:c1", "3000", ""], ["credit-note:c1", "1200", "customer:st1:Ema Tamm"],
+    ["payment:p1", "1010", ""], ["payment:p1", "1200", "customer:st1:Ema Tamm"],
+  ]);
+  assert.equal(automaticEntries({ invoices: [{ id: "i2", num: "KS-2", date: "2026-02-01", amountCents: 100 }] })[0].lines[0].partner, undefined, "no customer known → no partner");
+});

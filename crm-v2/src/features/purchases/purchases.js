@@ -97,3 +97,93 @@ export const SUPPLIER_FIELDS = [
   ['defaultAccount', 'Vaikekonto'],
 ];
 export const supplierChanged = (a, b) => SUPPLIER_FIELDS.some(([key]) => String(a[key] || '') !== String(b[key] || '')) || (a.active !== false) !== (b.active !== false);
+
+// ---- Tarnijad: search, sort, duplicates, import from Excel (the accountant 2026-10-24: „Поставщиков сначала”) ----
+// The server (functions/purchases-core.js supplierDuplicate / supplierImportPlan) checks the same again.
+const LEGAL_FORMS = new Set(['oü', 'ou', 'as', 'mtü', 'mtu', 'fie', 'uü', 'tü', 'sa', 'ltd', 'llc', 'gmbh', 'oy', 'ab', 'sia', 'uab']);
+export const supplierNameKey = (name) => String(name || '').toLowerCase().normalize('NFC').replace(/["'„”“«»().,]/g, ' ').split(/\s+/).filter((word) => word && !LEGAL_FORMS.has(word)).join(' ');
+
+// the existing supplier a card would duplicate: the same registry code, or the same name without a different code
+export function supplierDuplicate(record, suppliers = [], selfId = '') {
+  const code = String(record.regCode || '').trim();
+  const key = supplierNameKey(record.name);
+  return suppliers.find((s) => s.id !== selfId && code && String(s.regCode || '').trim() === code)
+    || suppliers.find((s) => s.id !== selfId && key && supplierNameKey(s.name) === key && (!code || !s.regCode || String(s.regCode).trim() === code))
+    || null;
+}
+
+export function ibanProblem(value) {
+  const iban = String(value || '').replace(/\s+/g, '').toUpperCase();
+  if (!iban) return '';
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban)) return 'IBAN on vigane.';
+  const digits = `${iban.slice(4)}${iban.slice(0, 4)}`.replace(/[A-Z]/g, (ch) => String(ch.charCodeAt(0) - 55));
+  let rest = 0;
+  for (const digit of digits) rest = (rest * 10 + Number(digit)) % 97;
+  return rest === 1 ? '' : 'IBAN-i kontrollsumma ei klapi.';
+}
+
+export function filterSuppliers(suppliers = [], { query = '', showInactive = true } = {}) {
+  const needle = String(query || '').trim().toLocaleLowerCase('et');
+  return suppliers.filter((s) => (showInactive || s.active !== false)
+    && (!needle || SUPPLIER_FIELDS.some(([key]) => String(s[key] || '').toLocaleLowerCase('et').includes(needle))));
+}
+export function sortSuppliers(suppliers = [], { key = 'name', dir = 'asc' } = {}) {
+  const value = (s) => (key === 'active' ? (s.active === false ? '1' : '0') : String(s[key] || ''));
+  const list = [...suppliers].sort((a, b) => (value(a) === '' && value(b) !== '' ? 1 : value(b) === '' && value(a) !== '' ? -1 : 0)
+    || value(a).localeCompare(value(b), 'et', { numeric: true }) || String(a.name).localeCompare(String(b.name), 'et'));
+  return dir === 'desc' ? list.reverse() : list;
+}
+
+// header names in a pasted Excel table → the supplier field (Tarnijad Excel export has the same order)
+const HEADER_FIELDS = [
+  [/^(nimi|nimetus|tarnija|name|partner)$/, 'name'],
+  [/^(registrikood|reg\.?\s*-?\s*kood|reg\.?\s*nr|regcode|registry code|kood)$/, 'regCode'],
+  [/^(kmkr|kmkr nr|km nr|km-nr|kmkr number|vat|vat number|käibemaksukohustuslase number)$/, 'vatNumber'],
+  [/^(aadress|address)$/, 'address'],
+  [/^(e-post|epost|e-mail|email|meil)$/, 'email'],
+  [/^(iban|arveldusarve|pangakonto|konto nr)$/, 'iban'],
+  [/^(vaikekonto|kulukonto|konto|default account)$/, 'defaultAccount'],
+  [/^(aktiivne|active)$/, 'active'],
+];
+const DEFAULT_ORDER = [...SUPPLIER_FIELDS.map(([key]) => key), 'active'];
+const headerField = (cell) => HEADER_FIELDS.find(([pattern]) => pattern.test(String(cell || '').trim().toLowerCase().replace(/[:*]/g, '')))?.[1] || '';
+
+// rows pasted from Excel (tab separated) → supplier values. A first row of column names maps the columns (any order);
+// without it the columns are Nimi | Registrikood | KMKR nr | Aadress | E-post | IBAN | Vaikekonto | Aktiivne.
+export function parseSupplierPaste(text, rowsOf) {
+  const rows = rowsOf(text);
+  if (!rows.length) return [];
+  const mapped = rows[0].map(headerField);
+  const hasHeader = mapped.filter(Boolean).length >= 2 || (mapped[0] === 'name' && rows.length > 1 && rows[0].length > 1);
+  const order = hasHeader ? mapped : DEFAULT_ORDER;
+  return (hasHeader ? rows.slice(1) : rows).map((cells) => {
+    const values = blankSupplier();
+    order.forEach((key, index) => {
+      if (!key || cells[index] === undefined) return;
+      if (key === 'active') values.active = !/^(ei|no|false|0|mitteaktiivne)$/i.test(String(cells[index]).trim());
+      else values[key] = String(cells[index]).trim();
+    });
+    if (values.defaultAccount) values.defaultAccount = (values.defaultAccount.match(/^\d+/) || [values.defaultAccount])[0];
+    return values;
+  }).filter((values) => SUPPLIER_FIELDS.some(([key]) => values[key]));
+}
+
+// what happens to each pasted row: „uus” (imported), or skipped with the reason (an error or a duplicate of a saved
+// supplier or of an earlier row)
+export function supplierImportPreview(rows = [], existing = [], accounts = []) {
+  const seen = [...existing];
+  return rows.map((values, index) => {
+    const row = index + 1;
+    const email = String(values.email || '').trim();
+    const account = String(values.defaultAccount || '').trim();
+    const error = !String(values.name || '').trim() ? 'nimi puudub'
+      : ibanProblem(values.iban)
+      || (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'e-post on vigane' : '')
+      || (account && !accounts.some((a) => String(a.code) === account && a.active !== false) ? `kontot ${account} pole või see on suletud` : '');
+    if (error) return { row, values, status: 'error', message: error };
+    const dup = supplierDuplicate(values, seen);
+    if (dup) return { row, values, status: 'duplicate', message: dup.importRow ? `sama mis rida ${dup.importRow}` : `juba olemas: ${dup.name}${dup.regCode ? ` (${dup.regCode})` : ''}` };
+    seen.push({ ...values, id: `row-${row}`, importRow: row });
+    return { row, values, status: 'new', message: 'uus' };
+  });
+}

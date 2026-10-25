@@ -79,6 +79,53 @@ function supplierRecord(values = {}, accounts = []) {
   };
 }
 
+// duplicates (the accountant 2026-10-24: Tarnijad must be quick to fill and clean): the same registry code, or the
+// same name (case, punctuation and the legal form ignored) when one of the two has no registry code or the codes match
+const LEGAL_FORMS = new Set(["oü", "ou", "as", "mtü", "mtu", "fie", "uü", "tü", "sa", "ltd", "llc", "gmbh", "oy", "ab", "sia", "uab"]);
+function supplierNameKey(name) {
+  return String(name || "").toLowerCase().normalize("NFC").replace(/["'„”“«»().,]/g, " ").split(/\s+/).filter((word) => word && !LEGAL_FORMS.has(word)).join(" ");
+}
+// the first existing supplier that the record would duplicate, or null
+function supplierDuplicate(record, suppliers = [], selfId = "") {
+  const code = String(record.regCode || "").trim();
+  const key = supplierNameKey(record.name);
+  return suppliers.find((s) => s.id !== selfId && code && String(s.regCode || "").trim() === code)
+    || suppliers.find((s) => s.id !== selfId && key && supplierNameKey(s.name) === key && (!code || !s.regCode || String(s.regCode).trim() === code))
+    || null;
+}
+const duplicateMessage = (record, dup) => (record.regCode && String(dup.regCode || "").trim() === record.regCode
+  ? `Tarnija registrikoodiga ${record.regCode} on juba olemas (${dup.name}).`
+  : `Tarnija nimega „${dup.name}” on juba olemas${dup.regCode ? ` (registrikood ${dup.regCode})` : ""}.`);
+
+// import of rows pasted from Excel: every row a supplier card; a row that is invalid or a duplicate (of an existing
+// supplier or of an earlier row) is a problem — the import is all or nothing
+const IMPORT_MAX = 400;
+function supplierImportPlan(rows = [], existing = [], accounts = []) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (!list.length) throw purchaseError("Imporditavaid ridu ei ole.");
+  if (list.length > IMPORT_MAX) throw purchaseError(`Korraga kuni ${IMPORT_MAX} tarnijat.`);
+  const records = [];
+  const problems = [];
+  const seen = [...existing];
+  list.forEach((values, index) => {
+    let record;
+    try {
+      record = supplierRecord(values || {}, accounts);
+    } catch (error) {
+      problems.push({ row: index + 1, message: error.message });
+      return;
+    }
+    const dup = supplierDuplicate(record, seen);
+    if (dup) { problems.push({ row: index + 1, message: dup.importRow ? `sama tarnija on real ${dup.importRow}.` : duplicateMessage(record, dup) }); return; }
+    records.push(record);
+    seen.push({ ...record, id: `row-${index + 1}`, importRow: index + 1 });
+  });
+  return { records, problems };
+}
+
+// the supplier as the partner of an entry line (accounting-core cleanPartner)
+const supplierPartner = (invoice) => ({ type: "supplier", id: String(invoice.supplierId || ""), name: String(invoice.supplierName || "") });
+
 // a purchase invoice as typed in the grid; amounts are integer cents, a line amount includes its VAT
 function purchaseInvoiceRecord(values = {}, { accounts = [], supplier } = {}) {
   if (!supplier?.id) throw purchaseError("Vali tarnija.");
@@ -121,14 +168,16 @@ const entryIdOf = (sourceKey) => `auto_${sourceKey.replace(/[^A-Za-z0-9_-]/g, "_
 
 // OA Ostuarve kanne: the line text is „<tarnija> <kirjeldus>” (the journal joins the entry description and the line
 // note with a space for purchase entries); without a deductible VAT the whole amount goes to the cost account
+// every line carries the supplier as its partner (the accountant 2026-10-24: „привяжи их к проводкам”)
 function purchaseInvoiceEntry(id, invoice) {
+  const partner = supplierPartner(invoice);
   const lines = [];
   invoice.lines.forEach((line) => {
     const vat = line.vatDeductible ? line.vatCents : 0;
-    lines.push({ account: line.account, debitCents: line.amountCents - vat, creditCents: 0, note: line.description });
-    if (vat) lines.push({ account: PURCHASE_ACCOUNTS.inputVat, debitCents: vat, creditCents: 0, note: `Sisendkäibemaks · ${line.description}` });
+    lines.push({ account: line.account, debitCents: line.amountCents - vat, creditCents: 0, note: line.description, partner });
+    if (vat) lines.push({ account: PURCHASE_ACCOUNTS.inputVat, debitCents: vat, creditCents: 0, note: `Sisendkäibemaks · ${line.description}`, partner });
   });
-  lines.push({ account: PURCHASE_ACCOUNTS.payables, debitCents: 0, creditCents: invoice.totalCents, note: `Arve ${invoice.documentNumber}` });
+  lines.push({ account: PURCHASE_ACCOUNTS.payables, debitCents: 0, creditCents: invoice.totalCents, note: `Arve ${invoice.documentNumber}`, partner });
   return {
     sourceKey: sourceKeyOfInvoice(id),
     origin: "auto",
@@ -157,6 +206,7 @@ function paymentRecord(values = {}, invoice) {
 function supplierPaymentEntry(invoiceId, invoice, payment) {
   const account = payment.method === "cash" ? PURCHASE_ACCOUNTS.cash : PURCHASE_ACCOUNTS.bank;
   const note = `Arve ${invoice.documentNumber} tasumine`;
+  const partner = supplierPartner(invoice);
   return {
     sourceKey: sourceKeyOfPayment(invoiceId, payment.id),
     origin: "auto",
@@ -166,8 +216,8 @@ function supplierPaymentEntry(invoiceId, invoice, payment) {
     description: invoice.supplierName,
     purchaseInvoiceId: invoiceId,
     lines: [
-      { account: PURCHASE_ACCOUNTS.payables, debitCents: payment.amountCents, creditCents: 0, note },
-      { account, debitCents: 0, creditCents: payment.amountCents, note },
+      { account: PURCHASE_ACCOUNTS.payables, debitCents: payment.amountCents, creditCents: 0, note, partner },
+      { account, debitCents: 0, creditCents: payment.amountCents, note, partner },
     ],
     totalCents: payment.amountCents,
   };
@@ -192,7 +242,13 @@ function purchaseDocumentRecord({ purchaseInvoiceId, documentId, storagePath, fi
 const statusOf = (totalCents, paidCents) => (paidCents >= totalCents ? "paid" : "unpaid");
 
 module.exports = {
+  IMPORT_MAX,
   PURCHASE_ACCOUNTS,
+  duplicateMessage,
+  supplierDuplicate,
+  supplierImportPlan,
+  supplierNameKey,
+  supplierPartner,
   cleanIban,
   entryIdOf,
   paymentRecord,
