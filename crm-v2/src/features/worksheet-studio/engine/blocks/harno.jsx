@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- block definitions are plain objects that carry View/Editor components */
 /* global clearInterval, setInterval */
 import { useEffect, useRef, useState } from 'react';
+import { Headphones } from 'lucide-react';
 import { AudioBar, Line, Md, Photo } from '../ui.jsx';
 import { Area, ImagePick, Num, Rows, Select, Text } from '../../editor/fields.jsx';
 import { choice, match, truefalse } from './tasks.jsx';
@@ -114,7 +115,7 @@ export const examlisten = {
     return (
       <div className="ws-examlisten">
         {data.audio?.src ? <AudioBar audio={data.audio} interactive={ctx.interactive || ctx.review} label="Kuula" />
-          : <div className="ws-hint ws-listen-note">Kuulad teksti {plays === 1 ? 'üks kord' : `${plays} korda`}{ctx.interactive ? ' — õpetaja mängib salvestuse või loeb teksti ette.' : '.'}</div>}
+          : <div className="ws-audio is-print ws-listen-note"><Headphones aria-hidden="true" /><span>Kuulad teksti {plays === 1 ? 'üks kord' : `${plays} korda`}{ctx.interactive ? ' — õpetaja mängib salvestuse või loeb teksti ette.' : '.'}</span></div>}
         <Inner data={data} ctx={ctx} id={id} />
       </div>
     );

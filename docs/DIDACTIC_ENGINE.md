@@ -149,6 +149,11 @@ Põhjus: taseme audit (`docs/level-audit-2026-10-12/`) — ükski kursus ei vii 
 - Kvaliteedi baas (`admin/course/qualityBaseline.json`): kursuse probleemid, mis olid olemas kontrolli lisamisel.
   „Kursuse tootmine” näitab neid „teadaolevate puudustena” ega lukusta avaldamist; uus probleem lukustab. Parandatud
   probleem tuleb baasist eemaldada: `UPDATE_QUALITY_BASELINE=1 npx vitest run src/features/worksheet-generator/admin/course`.
+- B1 lõppkuju väravad V1–V15 (2026-10-26, `docs/COURSE_FINAL_SHAPE_B1.md` §8, `worksheet-studio/didactics/finalShape.js`,
+  ülesandetüüpide kataloog `didactics/taskCatalogue.js`): oma baas `admin/course/finalShapeBaseline.json` (uus probleem
+  kukutab testi, parandatu tuleb baasist eemaldada: `UPDATE_FINAL_SHAPE_BASELINE=1 npx vitest run
+  src/features/worksheet-generator/admin/course/finalShape.test.js`); kokkuvõte reeglite ja moodulite kaupa
+  `npm run course:final-shape`. Sisuagendi juhend: `docs/FINAL_SHAPE_AUTHORING.md`.
 - Teadlikult muutmata: A2 `items` jääb 4–8 (5 muudaks A2 generaatori väljundit — sisutöö); `GRAMMAR` järjestus
   (Harno A2 käsiraamat lubab paljusid vorme juba A2-l vigadega — pedagoogiline otsus omanikule); B1 `inference`
   jääb (tunni kvaliteedileping nõuab Avastas järeldavat küsimust, Harno alles B2-st).

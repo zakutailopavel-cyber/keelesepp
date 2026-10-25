@@ -1,3 +1,51 @@
+## 2026-10-26 · agent/final-shape-gates — B1 final shape: tags, archetypes, gates V1–V15, Harno exam blocks
+
+- Base: `main` 6442af2 (2026-10-26, after #795). Draft PR from `agent/final-shape-gates`. Code + docs; no lesson
+  content rewritten, no production data, no deploy.
+- Asked (owner): §9 items 1–4 of `docs/COURSE_FINAL_SHAPE_B1.md` — infrastructure only. Owner decisions recorded in §10:
+  certificate needs ≥ 80 % in every exam part; module 1 (001–005) = entry diagnostic + A2 consolidation (content later).
+- Built:
+  - **Author's order kept** (`registry.js lessonOrder`): only rubric / examrubric and self-check go to the end; planning,
+    speaking, writing, role cards stay where the author put them (audit problem 1). Measured: the built order changes
+    on 41 of 255 B1 sheets (A2 27, B2 46, C1 39, EK9 3, EN 3); the other „speak → write” endings are in the content
+    itself. Exam sheets may end on any task (`quality.js` `end`).
+  - **Task catalogue** `worksheet-studio/didactics/taskCatalogue.js`: §3 (61 ids R/L/W/S/G, level, exam link, per-module
+    min/max), default id per block type, Harno format ids, archetypes, §6.3 introduction and §6.4 practice numbers.
+  - **Tags and lesson shape** (`admin/course/blocks.js`): `tag(block, { task, harno, level, fluency, main, topic })` on
+    `block.tag` (validated); `shape('LUGU', 'R→W')`, `withShapes(LESSONS, map)` → `archetype`, `lead` in sheet meta;
+    `B.review` items `[text, fromLessonId]` → `data.from`.
+  - **Harno exam blocks** (`engine/blocks/harno.jsx`, data in `harnoScales.js`; player, teacher review, studio editor,
+    print, answer keys, CSS incl. phone width): `adsmatch` (R1, scored), `examlisten` (L1/L2/L4 choice / true-false /
+    matching with audio, scored; audio tool builds it too), `examwriting` (Harno task card, W1a questionnaire or text
+    with live word count), `speakcard` (S1b idea card, S2 question/answer cards, recording), `examrubric` (W1 /8,
+    W2 /12, speaking /20, 80 % target), `exampart` (minutes, tasks, points, 80 % target, timer on screen). Builders
+    `B.adsmatch`, `B.bankText`, `B.examListen`, `B.examWriting`, `B.ideaCard`, `B.phoneCards`, `B.rubricW1`,
+    `B.rubricW2`, `B.rubricSpeaking`, `B.examPart`. Time estimate, depth, didactic check, quality lists, method gaps
+    know the new types.
+  - **Gates V1–V15** `worksheet-studio/didactics/finalShape.js` (pure, node-importable); course test
+    `admin/course/finalShape.test.js` with baseline `admin/course/finalShapeBaseline.json` (known problems shown, new
+    ones fail, fixed ones must leave); summary `npm run course:final-shape` (= `tools/course-audit/final-shape.mjs`,
+    counts per rule / check / module + ported audit measurements). V14 uses EKI etLex A1–B1 forms (CC BY, in repo) +
+    earlier modules' vocab, because PSV is not available offline.
+  - Example lesson `admin/course/finalShapeExample.js` (not a course module) passing every lesson rule; guide
+    `docs/FINAL_SHAPE_AUTHORING.md`; §9 status in `COURSE_FINAL_SHAPE_B1.md`; note in `DIDACTIC_ENGINE.md`.
+- **Baseline (how far B1 is from the spec, 85 lessons, 67 teaching): 1359 problems** — V1 2, V2 17, V3 68, V4 254,
+  V5 75 (no archetypes yet), V6 62, V7 392 (repeated instructions), V8 0, V9 124, V10 77, V11 71 (fluency strand
+  missing in 67 lessons), V12 51 (no exam corner), V13 125 (review items without `from`), V14 26, V15 15. Tags in use:
+  0 of 1211 tasks; catalogue ids in use 23 of 61; sheet endings „speak → write” 178; exam lessons with 4 listening
+  tasks 3 of 18, with part timing 0.
+- Checks: crm-v2 whole vitest 372 files (370 passed, 1 failed, 1 skipped), 2629 tests: 2624 passed, 4 skipped,
+  1 failed — `LearnerSnapshotCard` „täna”, fails on clean `main` 6442af2 too (local time just after midnight, not
+  touched here). New tests: `finalShape.test.js` 22, `harno.test.jsx` 12, `blocks.test.js` 7, `finalShapeExample.test.js`
+  2, course `finalShape.test.js` 18 groups; block round trip covers the 4 new answerable blocks. eslint 0 errors
+  (16 old warnings); `npm run build` ok. Local stand (student + print) of all new blocks, not committed.
+- Limits / risks: Harno's per-criterion split for B1 writing/speaking is ours (§2.4 [INF]); per-skill raw scores into
+  „Minu areng” not done; V7 baseline is per lesson + phase (a swap of one repeated instruction for another in the same
+  phase is not caught); published sheets change block order only when republished.
+- Not done: content (modules 1–18), per-skill score in progress, mocks 060/080/089/090 in full Harno form.
+- Next safe step: a content agent rewrites one B1 module (e.g. 7) with tags, `withShapes`, review `from` and one exam
+  corner per lesson, and shrinks `finalShapeBaseline.json` for that module.
+
 ## 2026-10-26 · agent/course-final-shape — B1 course final shape (research doc, no code)
 
 - Base: `main` a67789f (2026-10-26, after #794). Draft PR from `agent/course-final-shape`. Docs only.

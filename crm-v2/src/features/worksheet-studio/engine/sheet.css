@@ -685,7 +685,6 @@
 .ws-ads-text { flex: 1; }
 /* listening (exam): the note on how many times the text is heard */
 .ws-examlisten { display: grid; gap: 2mm; }
-.ws-listen-note::before { content: '🎧 '; }
 /* writing: the Harno task card above the answer */
 .ws-examwrite { display: grid; gap: 3mm; }
 .ws-taskcard { border: .45mm dashed var(--ks-navy-2); border-radius: 2.5mm; padding: 3mm 4mm; background: rgba(255,255,255,.8); }
@@ -716,6 +715,7 @@ button.ws-pt { cursor: pointer; }
 .ws-exampart-facts { display: flex; flex-wrap: wrap; gap: 2mm 5mm; }
 .ws-exampart p { margin: 0; }
 .ws-exampart-time { color: var(--ks-muted); }
+.ws-exampart .ws-recbtn { justify-self: start; width: auto; }
 
 /* Skeem v2 (owner 2026-10-13: the curved maps were not understandable): rows and cards across the width, every blank
    next to the word, question or step it belongs to */

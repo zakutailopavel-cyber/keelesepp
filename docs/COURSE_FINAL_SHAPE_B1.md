@@ -12,7 +12,9 @@ This document is the target („final shape”) for the B1 course. It builds on,
 Labels: **[H]** confirmed on harno.ee on 2026-10-26; **[HB]** Harno level handbook; **[R]** research source;
 **[INF]** our design decision or inference, not stated by any source. No source text is copied; all is paraphrased.
 
-Status: research and design only. No code or content changed in this PR. §9 lists the code steps that follow.
+Status: research and design merged in PR #795. **§9 items 1–4 (infrastructure) are built** on `agent/final-shape-gates`
+(2026-10-26): tags, archetypes, the gates V1–V15 with a baseline, the Harno exam blocks and rubrics. The content of
+modules 1–18 is not rewritten yet. How to write a lesson that passes the gates: `docs/FINAL_SHAPE_AUTHORING.md`.
 
 ---
 
@@ -471,7 +473,7 @@ Inputs: `MODULE` and `LESSONS` from `admin/course/b1/moduleNN.js` (each lesson: 
 | **V3** | Each module uses many task types | the 4 teaching lessons of a module use ≥ 20 distinct catalogue ids, with ≥ 3 from each of R, L, W, S and ≥ 4 from G | module |
 | **V4** | Nothing dominates | no catalogue id > 12 % of a module's tasks; no block type > 20 % | module |
 | **V5** | Archetype rotation | §4.1 rules 1–4 (consecutive differ; 4 distinct a module; the 4 input→output pairs once a module, module 18 relaxed; course counts per §6.2) | module, course |
-| **V6** | Harno format coverage | per §6.4: totals, variant minimums, max gap; formats counted from exam lessons (by `data.harno` tag) and corners | course |
+| **V6** | Harno format coverage | per §6.4: totals, variant minimums, max gap; formats counted from exam lessons (by the block's `tag.harno`) and corners; exam lessons from module 9 time every part (`exampart`), mocks have all four parts | course |
 | **V7** | No instruction text repeated | normalise `data.instruction` (lowercase, collapse spaces, strip digits, quoted words and text in brackets); no normalised instruction appears in two different lessons. **Exempt:** the official Harno instruction of an exam task in exam lessons (one fixed wording per format, kept in a whitelist) | course |
 | **V8** | No exercise item repeated | no item sentence (choice question, gap sentence, T/F statement, transformation row) appears verbatim in two lessons, except inside `review` blocks (planned retrieval) | course |
 | **V9** | Tasks map to the lesson's can-do | every task has `goal` ∈ the lesson's `goals`; every goal has ≥ 2 tasks; the main Kasuta task's goal is the can-do goal; the can-do's verb matches the main Kasuta task's skill (verb map: *räägin, lepin kokku, küsin, selgitan suuliselt* → S; *kirjutan, vastan kirjale, täidan* → W; *saan aru (kuuldust)* → L; *loen, leian tekstist* → R) | lesson |
@@ -479,15 +481,37 @@ Inputs: `MODULE` and `LESSONS` from `admin/course/b1/moduleNN.js` (each lesson: 
 | **V11** | Four strands | §7.1 minute shares | lesson |
 | **V12** | Exam corner and washback | §7.2 and §7.4 | lesson (modules 6–18) |
 | **V13** | Spaced retrieval | `review` present in Avasta; ≥ 1 review item from the previous lesson and ≥ 1 from a module 2–4 back (tag `from: 'a2b1-0NN'`) | lesson |
-| **V14** | Vocabulary level | ≥ 90 % of a module's vocab-box words are in EKI's põhisõnavara (PSV) list or in an earlier module's list; others are marked as topic words | module |
+| **V14** | Vocabulary level | ≥ 90 % of a module's vocab-box words are in EKI's põhisõnavara (PSV) list or in an earlier module's list; others are marked as topic words. *Built against the EKI etLex A1–B1 lists (CC BY, already in the repo) — PSV is not available as an offline list* | module |
 | **V15** | Caps (existing v4) | errorfix ≤ 2, translation ≤ 1, dictation ≤ 2 a module; a form/sentence drill at most once a lesson in Kasuta = 0 | module |
 
-V1–V5, V7–V9, V13, V15 can be checked from data alone. V6, V10–V12 need the new tags (§9). V14 needs the PSV word list
-as a fixture (`fixtures/`), loaded once.
+V1–V5, V7–V9, V13, V15 can be checked from data alone. V6, V10–V12 need the new tags (§9). V14 uses the EKI etLex A1–B1
+word forms (`worksheet-studio/didactics/levelForms.{A1,A2,B1}.json`, CC BY) as the stand-in for PSV, plus the
+course's own cumulative vocab boxes.
+
+As built (`worksheet-studio/didactics/finalShape.js`): every rule is split into named checks (`V5-pairs`, `V12-corner`,
+`V13-spaced` …) so the baseline and the summary show what exactly is missing. Choices made where §8 was open: the can-do
+goal is `g_use` unless a lesson sets `canDoGoal`; the main Kasuta task is the one tagged `main`, else the last S/W task of
+Kasuta; „exam-shaped” time for washback (V12) counts only `harno`-tagged tasks; V10 also checks §7.3 (Avasta level 1 and
+3, Kasuta main task level 4); V15 counts any G task in Kasuta as a drill; §4.1 rule 6 (AVAS where the module's grammar
+comes in) is not automated.
 
 ---
 
-## 9. What has to change in code (next PRs, not this one)
+## 9. What has to change in code
+
+Status 2026-10-26 (`agent/final-shape-gates`): items 1–4 built, 5–6 open.
+
+| Item | Status | Where |
+|---|---|---|
+| 1 Tags | built: `tag(block, { task, harno, level, fluency, main, topic })` on `block.tag`; review items `[text, from]` | `admin/course/blocks.js`, catalogue `worksheet-studio/didactics/taskCatalogue.js` |
+| 2 Lesson fields | built: `archetype`, `lead`; `shape()`, `withShapes()`; carried into sheet meta | `blocks.js`, `registry.js` |
+| 3 Gates | built: V1–V15 in `didactics/finalShape.js`; baseline `admin/course/finalShapeBaseline.json` (1359 known problems, new ones fail); `admin/course/finalShape.test.js`; summary `npm run course:final-shape` | |
+| 4 Rubrics and exam formats | built: `B.rubricW1/W2/Speaking` (8/12/20, 80 % target), `B.examPart` (minutes per part, timer), `B.adsmatch` (R1), `B.examListen` (L1/L2/L4), `B.bankText` (R3b/R4), `B.examWriting` (W1a/W1b/W2a/W2b card), `B.ideaCard` (S1b), `B.phoneCards` (S2) — blocks in `engine/blocks/harno.jsx`. Per-skill raw scores into the learner's progress: **not yet** | |
+| — | the author's block order is kept: `registry.js lessonOrder` moves only the rubric and the self-check to the end (audit problem 1; measured: the built order changes on 41 of 255 B1 sheets, so most of the „speak → write” endings are in the content itself) | `registry.js` |
+| 5 Content | open | content agents, module by module |
+| 6 Audio | the audio tool now also builds `examlisten` recordings | `tools/listening-audio/plan.mjs` |
+
+Original list:
 
 1. **Tags on blocks** (builders in `admin/course/blocks.js`): `task: 'R03'` (catalogue id; a default per block type
    when missing), `harno: 'R3a'` on exam-format tasks, `level: 1–4` (default per catalogue id), `fluency: true`,
@@ -502,10 +526,11 @@ as a fixture (`fixtures/`), loaded once.
 6. **Audio:** every listening exam task needs a recording of the right length (L2 2–3 min, L3 3–3.5 min, L4
    2.5–3 min) via `tools/listening-audio/build.mjs`.
 
-## 10. Open questions for the owner
+## 10. Owner decisions and open questions
 
-- Should the course certificate (lesson 090) require ≥ 80 % in every skill, or ≥ 80 % total with ≥ 70 % per skill?
-  This file assumes the stricter rule.
-- Module 1 (001–005) does not exist in code; this file plans it as entry diagnostic + A2 consolidation.
+- **Decided 2026-10-26:** the course certificate (lesson 090) requires **≥ 80 % in every exam part** (the strict rule);
+  the exam blocks show this target (`PASS_SHARE` in `engine/blocks/harnoScales.js`).
+- **Decided 2026-10-26:** module 1 (001–005) = entry diagnostic + A2 consolidation; its content comes later from the
+  content agents (no file in code yet; the gates start at module 2).
 - Exact Harno raw-point split for B1 writing and speaking criteria is not public; our rubrics in §2.4 are an inference
   and can be adjusted after the owner's or a Harno-trained rater's review.
