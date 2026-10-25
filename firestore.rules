@@ -3020,6 +3020,47 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // E-mails to students and parents (docs/EMAIL_NOTIFICATIONS.md): Seaded → E-kirjad. Only the administrator reads
+    // and writes the settings (every type off until switched on); the log (no addresses) is read by the administrator
+    // and written only by the server. Jobs, preferences and the link key (learnerEmailJobs, learnerEmailRuns,
+    // emailPreferences, serverConfig) stay server-only (the closing match below).
+    function learnerEmailTypeOk(entry) {
+      return entry is map
+        && entry.keys().hasOnly(['enabled', 'enabledAt', 'subjectEt', 'subjectRu', 'introEt', 'introRu'])
+        && entry.keys().hasAll(['enabled', 'enabledAt', 'subjectEt', 'subjectRu', 'introEt', 'introRu'])
+        && entry.enabled is bool
+        && entry.enabledAt is string && entry.enabledAt.size() <= 40
+        && entry.subjectEt is string && entry.subjectEt.size() <= 200
+        && entry.subjectRu is string && entry.subjectRu.size() <= 200
+        && entry.introEt is string && entry.introEt.size() <= 1000
+        && entry.introRu is string && entry.introRu.size() <= 1000;
+    }
+    function learnerEmailSettingsOk(d) {
+      return d.keys().hasOnly(['dailyHour', 'siteAddress', 'types', 'updatedAt', 'updatedBy', 'updatedByName'])
+        && d.dailyHour is int && d.dailyHour >= 6 && d.dailyHour <= 21
+        && d.get('siteAddress', '') is string && d.get('siteAddress', '').size() <= 200
+        && d.types is map
+        && d.types.keys().hasOnly(['lessonReminder', 'lessonMoved', 'lessonCancelled', 'newSchedule', 'homeworkDue', 'homeworkChecked', 'announcement'])
+        && d.types.keys().hasAll(['lessonReminder', 'lessonMoved', 'lessonCancelled', 'newSchedule', 'homeworkDue', 'homeworkChecked', 'announcement'])
+        && learnerEmailTypeOk(d.types.lessonReminder)
+        && learnerEmailTypeOk(d.types.lessonMoved)
+        && learnerEmailTypeOk(d.types.lessonCancelled)
+        && learnerEmailTypeOk(d.types.newSchedule)
+        && learnerEmailTypeOk(d.types.homeworkDue)
+        && learnerEmailTypeOk(d.types.homeworkChecked)
+        && learnerEmailTypeOk(d.types.announcement)
+        && d.get('updatedBy', '') == uid();
+    }
+    match /emailSettings/{settingsId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && settingsId == 'learner' && learnerEmailSettingsOk(request.resource.data);
+      allow delete: if false;
+    }
+    match /emailLog/{entryId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
     match /emailQueue/{entryId} {
       // invoice and reminder e-mails (amounts, payers): administrator and bookkeeper only
       allow read: if isAdmin() || isFinance();

@@ -1,3 +1,48 @@
+## 2026-10-25 · agent/learner-emails — e-mails to students and parents (7 types, all off by default)
+
+- Base: `main` 914a417 (2026-10-25, after #790). Draft PR from `agent/learner-emails`. Functions + Seaded + one public
+  learner page + rules. Calendar UI (`features/calendar`, the planner's branch) not touched.
+- Asked (owner 2026-10-25): lesson reminder the day before, lesson moved / cancelled only when the teacher confirmed,
+  new schedule from the planner, homework due tomorrow, work checked, „Teated” by e-mail; admin switches each on,
+  texts editable, ET + RU, unsubscribe link, log without addresses, no SMTP flood.
+- Built (full contract: docs/EMAIL_NOTIFICATIONS.md, ARCHITECTURE.md „E-mails to students and parents”):
+  `functions/learner-email-core.js` (pure: occurrences like calendarView, change detection + resolution, planner batch
+  summary, recipients, language, HMAC preference token, ET/RU texts with placeholders, DST-safe Tallinn time),
+  `functions/learner-email-service.js` (jobs `learnerEmailJobs`, daily runs, lease, 40 messages / 5-min tick, retry,
+  stale drop, `emailLog`, preferences, preview / test), index.js: `learnerEmailsTick` (every 5 min),
+  `queueLearnerScheduleEmail`, `queueLearnerWorksheetReviewEmail`, `queueLearnerExerciseReviewEmail`,
+  staffOperationsApi `/email-preferences/{status,save,one-click}` (no login) and `/learner-emails/{preview,test}`
+  (admin), `deliverEmail` passes `headers` (List-Unsubscribe), `notifyHomeworkCreated` respects the opt-out.
+  CRM: Seaded → „E-kirjad õpilastele ja vanematele” (`LearnerEmailsCard.jsx`: toggles, daily hour, school address,
+  texts per type with placeholders, preview, „Saada proov mulle”, last 30 log rows), public `/e-kirjad/:token`
+  (`EmailPreferencesPage.jsx`: off / on, language). Rules: `emailSettings` (admin, full validated shape),
+  `emailLog` (admin read); everything else server-only.
+- Teacher confirmation: only staff can write `schedule`; learners only ask (`lessonChangeRequests`); the teacher's
+  „Kinnita” moves the lesson → that move is what is e-mailed, after a 10-min settle window (undo = nothing sent).
+- Planner contract (for `agent/calendar-planner`): `plannerBatchId` on every confirmed lesson (+ `source: 'planner'`),
+  one e-mail per student 3 min after the batch's last write; optional `plannerBatches/{id}` `{ status, notify }`.
+- Language: `preferredLanguage` (`et|ru|en`, added by `agent/missing-data-gate`) on the student card / parent profile
+  (coordinator 2026-10-25), else ET + RU; the recipient's own choice on `/e-kirjad` wins.
+- Reach (read-only production check 2026-10-25, counts only): 96 live cards; 71 with at least one address (60 with a
+  student address, 31 with a parent address; 63 distinct student and 25 distinct parent addresses); 25 cards get
+  nothing; users 66 students / 39 parents; schedule 710 docs (68 active weekly series, 67 future one-off lessons, 100
+  online); 0 groups; 16 open homework with a future due date.
+- Checks: functions `npm test` 394/394 (+16 learner-email-core); emulator (`firebase emulators:exec --only
+  auth,firestore,functions --project demo-keelesepp-finance`, JDK 21) `npm run test:emulator` 100/100 (+3
+  learner-email-emulator: rules; whole queue with a mock mailer — reminders on the DST day, undo, occurrence move /
+  cancel, planner batch, review, announcement, opt-out, idempotency, retry, stale, lease; routes + the real trigger);
+  crm-v2 whole vitest 362 files (361 passed, 1 skipped), 2520 tests: 2517 passed, 3 skipped, 0 failed (new: model 4,
+  card 2, preferences page 3); eslint 0 errors (16 old warnings); `npm run build` ok. All 7 types rendered to HTML in
+  the scratch dir and checked visually; Seaded card + `/e-kirjad` checked at desktop and 375 px (harness not committed).
+  No e-mail was sent; no production write.
+- Deploy needed (owner): functions (4 new + staffOperationsApi + notifyHomeworkCreated; index.js changed), rules
+  (`emailSettings`, `emailLog`), front end with main. After deploy nothing is sent until types are switched on.
+- Limits: group lesson moves / cancels are not e-mailed (0 groups); deleting a one-off lesson and ending a series are
+  silent; `emailQueue` still stores each message with the address (existing pattern, admin + bookkeeper read);
+  `plannerBatches` has no browser rules (the planner PR adds them if it writes that doc).
+- Next safe step: owner deploys rules + functions, opens Seaded → E-kirjad, sends „Saada proov mulle” for each type,
+  then switches on one type (e.g. „Tunni meeldetuletus”) and checks `Viimased kirjad` the next evening.
+
 ## 2026-10-24 · agent/accounting-partners — Tarnijad first, partners on journal lines, „Partnerid” report
 
 - Base: `main` 3f31fcb (2026-10-24, after #789). Draft PR #790 from `agent/accounting-partners`. Accounting only (no calendar,
