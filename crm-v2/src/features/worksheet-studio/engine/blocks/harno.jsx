@@ -6,6 +6,9 @@ import { Area, ImagePick, Num, Rows, Select, Text } from '../../editor/fields.js
 import { choice, match, truefalse } from './tasks.jsx';
 import { AudioPick } from './extra.jsx';
 import { Recorder } from './productive.jsx';
+import { EXAM_PART_DEFAULTS as EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES } from './harnoScales.js';
+
+export { EXAM_PARTS, PASS_SHARE, RUBRIC_SCALES, WRITING_GENRES };
 
 // Harno B1 exam formats that the older blocks could not show (docs/COURSE_FINAL_SHAPE_B1.md §2.2, §9 item 4).
 // Each renders in every host from the one registry: the student's player (interactive), the teacher's check (review),
@@ -134,9 +137,6 @@ export const examlisten = {
 };
 
 // ---------- W1, W2: the Harno writing task card ----------
-export const WRITING_GENRES = {
-  kusimustik: 'Küsimustik', teade: 'Teade / sõnum', kutse: 'Kutse või kaart', kiri: 'Isiklik kiri', jutt: 'Jutt etteantud pealkirjaga', vastus: 'Vastus kirjale',
-};
 const target = (data) => `${data.minWords}–${data.maxWords} sõna`;
 export const examwriting = {
   type: 'examwriting', label: 'Kirjutamisülesanne (eksam)', group: 'Kõne ja kirjutamine', icon: 'FilePenLine', task: true, width: 'full', tone: 'cream',
@@ -253,27 +253,6 @@ export const speakcard = {
 };
 
 // ---------- the exam-scale rubrics (§2.4): W1 /8, W2 /12, speaking /20 ----------
-// Harno does not publish its internal per-criterion split for B1; these criteria are our inference (documented in
-// COURSE_FINAL_SHAPE_B1.md §2.4) and keep a module exam on the same raw scale as the real exam.
-export const PASS_SHARE = 0.8; // owner 2026-10-26: the course certificate needs ≥ 80 % in every exam part
-export const RUBRIC_SCALES = {
-  W1: { label: 'Kirjutamine, 1. ülesanne', criteria: [
-    { name: 'Sisupunkt 1 on kirjas', max: 1 }, { name: 'Sisupunkt 2 on kirjas', max: 1 }, { name: 'Sisupunkt 3 on kirjas', max: 1 }, { name: 'Sisupunkt 4 on kirjas', max: 1 },
-    { name: 'Keel ja vorm', max: 4, hint: 'pöördumine ja lõpetus sobivad adressaadile; vead ei sega mõistmist; pikkus ±20 %' },
-  ] },
-  W2: { label: 'Kirjutamine, 2. ülesanne', criteria: [
-    { name: 'Ülesande täitmine ja sisu', max: 3, hint: 'kõik punktid, teemas, sõnum on arusaadav' },
-    { name: 'Ülesehitus ja sidusus', max: 3, hint: 'algus ja lõpp, lõigud, sidesõnad (sest, kuna, et, siis, pärast seda)' },
-    { name: 'Sõnavara', max: 3, hint: 'piisav ja täpne, vähe kordusi' },
-    { name: 'Grammatika ja õigekiri', max: 3, hint: 'vead ei sega mõistmist' },
-  ] },
-  S: { label: 'Rääkimine', criteria: [
-    { name: 'Ülesande täitmine ja suhtlus', max: 5, hint: 'vastused on arendatud, kokkulepe on tehtud, kaardi info on küsitud ja antud' },
-    { name: 'Sujuvus ja sidusus', max: 5, hint: 'räägib pausideta, mõtted on seotud' },
-    { name: 'Sõnavara', max: 5, hint: 'sõnad sobivad teemaga ja olukorraga' },
-    { name: 'Grammatika ja hääldus', max: 5, hint: 'vead ei sega mõistmist, hääldus on arusaadav' },
-  ] },
-};
 export const rubricTotal = (criteria = []) => criteria.reduce((n, c) => n + (Number(c.max) || 0), 0);
 export const examrubric = {
   type: 'examrubric', label: 'Hindamisjuhend (eksami skaala)', group: 'Kõne ja kirjutamine', icon: 'ClipboardCheck', task: true, width: 'full', tone: 'white',
@@ -315,12 +294,6 @@ export const examrubric = {
 };
 
 // ---------- the header of an exam part: time, tasks, points, the 80 % target ----------
-export const EXAM_PARTS = {
-  W: { part: 'Kirjutamine', minutes: 35, points: 20, tasks: 2 },
-  L: { part: 'Kuulamine', minutes: 35, points: 30, tasks: 4 },
-  R: { part: 'Lugemine', minutes: 50, points: 33, tasks: 4 },
-  S: { part: 'Rääkimine', minutes: 15, points: 20, tasks: 3 },
-};
 function PartTimer({ minutes }) {
   const [left, setLeft] = useState(null);
   const timer = useRef(null);

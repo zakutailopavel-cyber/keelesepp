@@ -145,11 +145,11 @@ export function moduleNumber(mod) { return Number(String(mod.MODULE.id).split('-
 // The author's order is the lesson's order (docs/COURSE_FINAL_SHAPE_B1.md §9, audit 2026-10-26 problem 1: the old rank
 // pushed planning → speaking / writing / role cards to the end of every sheet, so every lesson ended „speak → write”).
 // Only what is pedagogically required is still moved, stable inside each group:
-// - the rubric judges the product of the sheet, so it comes after every task (it is never a task to do first);
+// - the rubric (the checklist or the exam-scale rubric) judges the product of the sheet, so it comes after every task;
 // - the self-check („Kontrolli end”) closes the sheet, after the rubric.
 // Everything else — an opening text, input before its questions, a plan before the speech, the final task — is where
 // the author put it; the gates (finalShape.js V1/V2) check that consecutive lessons do not repeat one rhythm.
-const RANK = { rubric: 4, selfcheck: 5 };
+const RANK = { rubric: 4, examrubric: 4, selfcheck: 5 };
 export function lessonOrder(blocks = []) {
   return blocks.map((b, i) => ({ b, i, r: RANK[b.type] || 1 })).sort((x, y) => x.r - y.r || x.i - y.i).map((x) => x.b);
 }
@@ -197,6 +197,10 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(mod.MODULE.language ? { language: mod.MODULE.language } : {}),
       // lesson template v3 (owner 2026-10-18, §11): 5–9 full tasks a sheet in a fixed lesson shape
       ...(lesson.template || mod.MODULE.template ? { template: lesson.template || mod.MODULE.template } : {}),
+      // the lesson's archetype and lead skills (docs/COURSE_FINAL_SHAPE_B1.md §4; blocks.js shape / withShapes): the
+      // final-shape gates read them from the sheets
+      ...(lesson.archetype ? { archetype: lesson.archetype } : {}),
+      ...(lesson.lead ? { lead: lesson.lead } : {}),
       // a supplement (extra homework sheets, not a roadmap module) is named, not numbered
       ...(mod.MODULE.supplement ? { supplement: true } : {}),
       badge: `${course.badge} · ${mod.MODULE.supplement ? mod.MODULE.title : `moodul ${moduleNumber(mod)}`}`,
