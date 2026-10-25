@@ -383,3 +383,81 @@
   .tw-grid__lesson { display: none; }
   .tw-brush small { display: none; }
 }
+
+/* „Planeerija” (owner 2026-10-25): the weekly timetable of all students at once — draft lessons dashed, the cells
+   coloured for the lesson being dragged (green ★ / yellow possible / red agree with the student) */
+.cal2-main.is-hidden { display: none; }
+.cal2-plan { display: grid; gap: 10px; margin: 0 0 12px; }
+.cal2-plan__head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 12px 14px; border: 1px solid #d5e7e1; border-radius: 14px; background: #f5fbf9; }
+.cal2-plan__head > strong { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; font-size: 1.02rem; }
+.cal2-plan__field { display: inline-flex; align-items: center; gap: 6px; font-size: .86rem; color: #475467; }
+.cal2-plan__field input, .cal2-plan__field select, .cal2-plan__edit select, .cal2-plan__requests select { height: 34px; border: 1px solid #dfe5ec; border-radius: 8px; padding: 0 8px; font: inherit; background: #fff; color: #14243a; }
+.cal2-plan__check { font-size: .86rem; }
+.cal2-plan__view { justify-self: start; }
+.cal2-plan__summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.cal2-plan__summary > span { display: inline-flex; align-items: baseline; gap: 4px; padding: 4px 10px; border-radius: 999px; border: 1px solid #e4e7ec; background: #fff; font-size: .86rem; }
+.cal2-plan__summary > span.is-best { border-color: #9fd6c6; background: #ecf8f4; }
+.cal2-plan__summary > span.is-ok { border-color: #f3d48a; background: #fff8e6; }
+.cal2-plan__summary > span.is-agree { border-color: #f5b5ad; background: #fff1ef; }
+.cal2-plan__summary > span.is-overlap { border-color: #d92d20; background: #fde8e6; color: #8a1c13; }
+.cal2-plan__summary > span.is-unplaced { border-color: #c4cdd8; background: #f2f4f7; }
+.cal2-plan__summary small { color: #627087; font-size: .8rem; }
+.cal2-plan__legend { flex-wrap: wrap; margin: 0; }
+.cal2-plan__legend { gap: 4px 14px; }
+.cal2-plan__legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.cal2-plan__legend .cal2-dot { margin-left: 0; flex: none; }
+.cal2-dot.is-plan-green { background: rgba(18, 140, 90, .35); border: 1px solid #128c5a; }
+.cal2-dot.is-plan-yellow { background: rgba(234, 170, 8, .35); border: 1px solid #c58a00; }
+.cal2-dot.is-plan-red { background: rgba(217, 45, 32, .28); border: 1px solid #d92d20; }
+.cal2-dot.is-plan-draft { background: #fff; border: 1.5px dashed #344054; }
+.cal2-plan__stale { margin: 0; color: #9a5b00; }
+.cal2-plan__notice { display: flex; align-items: center; gap: 8px; margin: 0; padding: 8px 12px; border-radius: 10px; background: #eef6ff; color: #1d4f91; font-size: .88rem; }
+.cal2-plan__notice button { margin-left: auto; border: 0; background: transparent; cursor: pointer; color: inherit; }
+.cal2-plan__unplaced, .cal2-plan__selected, .cal2-plan__requests { padding: 10px 12px; border: 1px solid #e4e7ec; border-radius: 12px; background: #fff; display: grid; gap: 8px; }
+.cal2-plan__unplaced ul, .cal2-plan__requests ul, .cal2-plan__reasons, .cal2-plan__confirm ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cal2-plan__unplaced li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.cal2-plan__unplaced li.is-picked .cal2-plan__chip { border-color: #087e6b; box-shadow: 0 0 0 2px rgba(8, 126, 107, .2); }
+.cal2-plan__chip { display: grid; gap: 1px; text-align: left; padding: 5px 10px; border: 1.5px dashed #667085; border-radius: 10px; background: #fff; font: inherit; cursor: grab; min-width: 180px; }
+.cal2-plan__chip small, .cal2-plan__requests small, .cal2-plan__selected small { color: #627087; font-size: .8rem; }
+.cal2-plan__why { color: #9a5b00; font-size: .82rem; }
+.cal2-plan__why .link-button { display: inline-flex; align-items: center; gap: 3px; font-size: .82rem; }
+.cal2-plan__edit { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .86rem; }
+.cal2-plan__edit label { display: inline-flex; align-items: center; gap: 6px; }
+.cal2-plan__status { padding: 2px 8px; border-radius: 999px; font-size: .8rem; font-weight: 700; }
+.cal2-plan__status.is-best { background: #ecf8f4; color: #0b6b4b; }
+.cal2-plan__status.is-ok { background: #fff8e6; color: #8a5a00; }
+.cal2-plan__status.is-agree, .cal2-plan__status.is-overlap { background: #fde8e6; color: #8a1c13; }
+.cal2-plan__reasons li { font-size: .86rem; color: #344054; }
+.cal2-plan__reasons li::before { content: '· '; }
+.cal2-plan__agree { margin: 0; padding: 6px 10px; border-radius: 8px; background: #fff1ef; color: #8a1c13; font-size: .86rem; }
+.cal2-plan__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.cal2-plan__requests summary { cursor: pointer; font-weight: 700; }
+.cal2-plan__requests li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: .86rem; }
+.cal2-plan__requests li > span { display: grid; min-width: 200px; margin-right: auto; }
+.cal2-plan__requests label { display: inline-flex; align-items: center; gap: 4px; }
+.cal2-plan__list section { display: grid; gap: 6px; margin-bottom: 10px; }
+.cal2-plan__list h3 { margin: 4px 0; font-size: .95rem; text-transform: capitalize; }
+.cal2-plan__row { display: grid; gap: 6px; padding: 8px 10px; border: 1.5px dashed #98a2b3; border-radius: 10px; background: #fff; }
+.cal2-plan__row > span { display: grid; }
+.cal2-plan__row.is-plan-agree, .cal2-plan__row.is-plan-overlap { border-color: #d92d20; background: #fff8f7; }
+.cal2-plan__confirm { display: grid; gap: 10px; }
+.cal2-plan__confirm ul { max-height: 50vh; overflow: auto; }
+.cal2-plan__confirm li.is-plan-agree em, .cal2-plan__confirm li.is-plan-overlap em { color: #b42318; font-style: normal; font-weight: 600; }
+.cal2-plan__confirm-tools { margin: 0; font-size: .86rem; }
+.tg-block.is-fixed { opacity: .5; filter: grayscale(.4); }
+.tg-block.is-draft, .tg-cluster-item.is-draft { border: 1.5px dashed #344054; background: #fff; color: #14243a; box-shadow: none; }
+.tg-block.is-draft.is-plan-best { border-color: #128c5a; background: #f1fbf6; }
+.tg-block.is-draft.is-plan-ok { border-color: #c58a00; background: #fffbef; }
+.tg-block.is-draft.is-plan-agree { border-color: #d92d20; background: #fff6f5; }
+.tg-block.is-draft.is-plan-overlap { border-color: #d92d20; border-width: 2px; background: repeating-linear-gradient(135deg, #fde8e6 0 6px, #fff 6px 12px); }
+.tg-block.is-draft.is-selected { box-shadow: 0 0 0 3px rgba(8, 126, 107, .35); z-index: 5; }
+.tg-fit.is-plan-green, .tg-fit.is-plan-yellow, .tg-fit.is-plan-red { width: 100%; border-right: 0; }
+.tg-fit.is-plan-green { background: rgba(18, 140, 90, .18); }
+.tg-fit.is-plan-yellow { background: rgba(234, 170, 8, .2); }
+.tg-fit.is-plan-red { background: rgba(217, 45, 32, .1); }
+@media (max-width: 760px) {
+  .cal2-plan__head > strong { width: 100%; }
+  .cal2-plan__head .btn, .cal2-plan__head button { flex: 1 1 auto; }
+  .cal2-plan__chip { min-width: 0; width: 100%; }
+  .cal2-plan__requests li > span { min-width: 0; width: 100%; }
+}

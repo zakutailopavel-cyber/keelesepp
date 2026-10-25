@@ -1,4 +1,4 @@
-import { CalendarClock, CalendarRange, ChevronLeft, ChevronRight, DoorOpen, Plus, Search, StickyNote, Undo2, UserRoundX, X, XCircle } from 'lucide-react';
+import { CalendarClock, CalendarRange, ChevronLeft, ChevronRight, DoorOpen, Plus, Search, StickyNote, Undo2, UserRoundX, UsersRound, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -34,6 +34,7 @@ import './calendarV2.css';
 import SubjectTag from './SubjectTag.jsx';
 import StudentTimesPanel from './StudentTimesPanel.jsx';
 import TeacherWeekEditor from './TeacherWeekEditor.jsx';
+import PlannerView from './PlannerView.jsx';
 import { lessonsOn, overlayBandsOn, planningWarnings, timesLine } from './studentTimesModel.js';
 
 const blankLesson = () => ({ studentId: '', teacherUid: '', subject: '', date: toIsoDate(), time: '09:00', duration: 60, recurring: false, online: false, roomId: '', status: 'Planeeritud' });
@@ -169,6 +170,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   // „Sobivad ajad” over the grid (owner 2026-10-24): the chosen students' suitable times; `?times=<id>` opens it
   const [fitOpen, setFitOpen] = useState(() => Boolean(searchParams.get('times')));
   const [fitIds, setFitIds] = useState(() => (searchParams.get('times') && searchParams.get('times') !== '1' ? [searchParams.get('times')] : []));
+  // „Planeerija” (owner 2026-10-25): the whole weekly timetable at once; `?planeerija=1` opens it
+  const [plannerOpen, setPlannerOpen] = useState(() => searchParams.get('planeerija') === '1');
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   useEffect(() => {
     if (!changeRequests?.subscribePending || !user?.uid) return undefined;
@@ -720,6 +723,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <label className="cal2-search"><Search size={16} /><input aria-label="Otsi kalendrist" placeholder="Otsi õpilast või õpetajat" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></label>
         {teacherOnly ? null : <select className="cal2-select" aria-label="Filtreeri õpetaja järgi" value={filters.teacher} onChange={(event) => setFilters({ ...filters, teacher: event.target.value })}><option value="">Kõik õpetajad</option>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</select>}
         {isAdmin ? <Button variant="secondary" onClick={() => setRoomsOpen(true)}><DoorOpen size={17} /> Kabinetid{activeRooms.length ? ` (${activeRooms.length})` : ''}</Button> : null}
+        {teacherOnly || isAdmin ? <Button variant={plannerOpen ? 'primary' : 'secondary'} aria-pressed={plannerOpen} onClick={() => { setPlannerOpen((value) => !value); setPanelKey(''); }}><UsersRound size={17} /> Planeerija</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={fitOpen ? 'primary' : 'secondary'} aria-pressed={fitOpen} onClick={() => setFitOpen((value) => !value)}><CalendarClock size={17} /> Sobivad ajad</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={paint || (weekEditor && paintTeacher) ? 'primary' : 'secondary'} aria-pressed={Boolean(weekEditor && paintTeacher)} onClick={() => { setPaint(null); if (!paintTeacher) { setActionError('Vali enne õpetaja, kelle aegu soovid märkida.'); return; } setActionError(''); setWeekEditor(true); }}><CalendarRange size={17} /> {teacherOnly ? 'Minu ajad' : 'Õpetaja ajad'}</Button> : null}
         <CalendarGoogleChip user={user} onSynced={state.reload} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} />
@@ -797,7 +801,24 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     ) : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge" onClick={() => setActionError('')}>×</button></div> : null}
 
-    <div className={`cal2-main ${panelItem ? 'has-panel' : ''}`}>
+    {plannerOpen ? <PlannerView
+      user={user}
+      teacherOnly={teacherOnly}
+      students={students.items}
+      events={events}
+      teachers={teacherOnly ? [{ id: user.uid, name: user.displayName || '' }] : teachers}
+      studentTimes={studentTimes}
+      teacherAvailability={(who) => availabilityFor(who.teacherUid) || availabilityFor(who.teacher)}
+      rooms={rooms}
+      bookings={bookings}
+      scheduleRepository={scheduleRepository}
+      today={today}
+      narrow={narrow}
+      initialTeacher={isAdmin ? filters.teacher : ''}
+      onClose={() => setPlannerOpen(false)}
+      onSaved={state.reload}
+    /> : null}
+    <div className={`cal2-main ${panelItem ? 'has-panel' : ''} ${plannerOpen ? 'is-hidden' : ''}`}>
       <div className="cal2-view">
         {view === 'month' ? <div className="month-grid">{dates.map((date) => { const daily = occurrences.filter((item) => item.occurrenceDate === date); const inMonth = date.slice(0, 7) === anchor.slice(0, 7); return <section className={`${date === today ? 'is-today ' : ''}${inMonth ? '' : 'is-outside'}`} key={date}><button className="month-day" onClick={() => { setAnchor(date); setView('day'); }}>{date.slice(-2)}</button><div>{daily.slice(0, 3).map((item) => <LessonButton compact item={item} onClick={openPanel} onComplete={quickDone} completing={false} key={item.occurrenceId} />)}{daily.length > 3 ? <button className="more-lessons" onClick={() => { setAnchor(date); setView('day'); }}>+{daily.length - 3} veel</button> : null}</div></section>; })}</div>
           : narrow ? agenda(view === 'day' ? occurrences.filter((item) => item.occurrenceDate === anchor) : occurrences)

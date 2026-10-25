@@ -2437,6 +2437,24 @@ service cloud.firestore {
         && data.get('order', 0) is int && data.get('order', 0) >= 0 && data.get('order', 0) <= 999
         && data.updatedByUid == uid();
     }
+    // „Planeerija” (owner 2026-10-25): one record per „Kinnita ajakava” — which weekly lessons it created for which
+    // students (the schedule e-mail reads it on the server). The administrator creates it once, with fixed keys;
+    // nobody changes or deletes it from the app (the server updates its status with the admin SDK).
+    match /plannerBatches/{batchId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['createdAt', 'createdBy', 'lessonIds', 'studentIds', 'status'])
+        && request.resource.data.createdBy == uid()
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.lessonIds is list
+        && request.resource.data.lessonIds.size() > 0
+        && request.resource.data.lessonIds.size() <= 500
+        && request.resource.data.studentIds is list
+        && request.resource.data.studentIds.size() <= 500
+        && request.resource.data.status == 'confirmed';
+      allow update, delete: if false;
+    }
+
     match /studyDirections/{directionId} {
       allow read: if isStaff() || isFinance();
       allow create, update: if isAdmin() && studyDirectionValid(request.resource.data);

@@ -1,3 +1,44 @@
+## 2026-10-25 · agent/calendar-planner — „Planeerija”: the whole weekly timetable at once
+
+- Base: `main` 914a417 (2026-10-25, after #790). Draft PR #791 from `agent/calendar-planner`. Calendar only (+ one
+  small rules block for `plannerBatches`); no finance, content, Live Classroom; no data written, no deploy.
+- Asked (owner 2026-10-25): all students into the calendar with one button and distributed; students who do not fit may
+  share a time; while moving, green = wants, yellow = can, red = cannot (still allowed, agree with the student).
+  Coordinator addition: lessons of one „Kinnita” carry `source: 'planner'` + `plannerBatchId`, and
+  `plannerBatches/{id}` is written after them for the schedule e-mail of agent/learner-emails (no e-mail here).
+- Built (docs/specs/CALENDAR_V2_SPEC.md „Planeerija”): `features/calendar/plannerModel.js` (pure: `planningRequests`,
+  `plannerContext`, `judgeSlot`, `distribute` — hardest first, ★ first, a student's lessons on different days, one
+  backtracking step, least-bad fallback with allowed overlap, unplaced reasons — `judgeAll`, `planSummary`, `dragMarks`,
+  `lessonPayload`, `moveDraft`, `placeRequest`), `PlannerView.jsx` (toolbar Algus / Õpilased / „Ka need, kel on korduv
+  tund”, „Lisa kõik õpilased”, „Jaota”, „Kinnita ajakava…”, summary, legend, „Aega ei leitud” chips with „ava kaart” /
+  „kopeeri /ajad link” / „Paku aeg”, selected-lesson box with reasons, phone list, „Õppesuunad plaanis” editor, confirm
+  dialog with ticks), button „Planeerija” + `?planeerija=1` in `CalendarPage.jsx`, `TimeGrid` `onDragChange` /
+  `onDropItem` / `item.blockClass`, CSS in calendarV2.css. Draft in `localStorage` `keelesepp.planner.v1.<uid>`.
+  `services/firebase/plannerBatches.js` (new), `schedule.js` `payload` exported and a new entry may name its `source`
+  (an existing one keeps its own; default unchanged). Rules: `plannerBatches/{id}` admin create (fixed keys, own uid,
+  server time, ≥1 lesson, status confirmed) + admin read, no update / delete. ARCHITECTURE.md „Firestore ownership”.
+- Read-only production dry run (2026-10-25, start 2026-10-26, all teachers): 96 active cards → 49 directions without a
+  weekly lesson ahead (60 lessons a week: 39 × 1, 9 × 2, 1 × 3; 10 online; 5 teachers). Only 1 `studentAvailability`
+  document exists and none of these 49 has times → placed ★ 0, suitable 0, needs agreement 0, overlap 0; not placed
+  49 (44 „Sobivad ajad puuduvad”, 5 without a teacher). Of the 49, 7 have a one-off lesson ahead, 32 had a lesson in
+  the last 60 days, 4 have Google-imported lessons ahead. With „uus plaan”: 98 directions (128 lessons), 2 with times →
+  1 ★, 1 needs agreement, 1 overlap; 91 no times, 5 no teacher. Speed with made-up times for all 98: 0.54 s.
+- Checks: crm-v2 whole vitest 361 files (360 passed, 1 skipped), 2534 tests: 2531 passed, 3 skipped, 0 failed (new:
+  plannerModel 15, PlannerView 5, TimeGrid planner 1, CalendarPage planner 1, schedule payload 1); planner tests also
+  under TZ Europe/Tallinn, America/New_York, Pacific/Auckland, UTC (19/19 each); eslint 0 errors (16 old warnings);
+  `npm run build` ok; functions `npm test` 378/378; emulator (`firebase emulators:exec --only auth,firestore --project
+  demo-keelesepp-finance`, JDK 21) planner-batches-rules-emulator 1/1 (new, in `test:emulator`) +
+  study-directions-rules-emulator 1/1. Local stand with made-up data (add all → Jaota → drag with colours, click-to-place
+  an unplaced student, confirm dialog; desktop + 375 px, no horizontal scroll), not committed.
+- Deploy needed (owner): `firebase deploy --only firestore:rules` (plannerBatches) before the first „Kinnita” whose
+  e-mail should go out; until then the lessons are created and the planner shows that the batch record failed.
+  Front end with main (Vercel). No functions change.
+- Limits: the draft is per browser; a teacher's „Kinnita” writes no batch record (admin-only rules) — lessons still
+  carry the batch id; a teacher sees only their own lessons; greedy + one backtracking step, not an optimum; one-off
+  lessons in the next 3 weeks block a weekly time.
+- Next safe step: owner deploys the rules, collects „Sobivad ajad” (/ajad link) from the 44 students without times and
+  sets a teacher on the 5 tracks without one, then opens Kalender → Planeerija → „Lisa kõik õpilased” → „Jaota”.
+
 ## 2026-10-24 · agent/accounting-partners — Tarnijad first, partners on journal lines, „Partnerid” report
 
 - Base: `main` 3f31fcb (2026-10-24, after #789). Draft PR #790 from `agent/accounting-partners`. Accounting only (no calendar,
