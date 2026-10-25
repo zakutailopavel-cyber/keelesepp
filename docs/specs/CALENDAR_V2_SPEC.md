@@ -152,3 +152,53 @@ half hours „Mon-16:00”, `preferred` = ★), without overlaps. Pure logic: `f
   päev”, or „märgi kalendris lohistades”, the old painting mode with „Kordub iga nädal” off).
 - Cell keys are the poll's format (`Mon-16:00`), all times wall-clock text: no DST effect (tested under several `TZ`).
 
+
+## „Planeerija”: the whole weekly timetable at once (owner 2026-10-25)
+
+Owner: „Планировщик внутри календаря, где можно внести сразу всех учеников одной кнопкой, и они распределяются …
+ученик или более могут попасть на одно и то же время … зелёным — когда хочет, жёлтым — которые может, красным — которые
+не может, но туда тоже можно поставить, но надо договориться с учеником.” No breaks between lessons are needed.
+Pure logic `features/calendar/plannerModel.js` (tests `plannerModel.test.js`), UI `PlannerView.jsx` (tests
+`PlannerView.test.jsx`), toolbar button „Planeerija” in `CalendarPage.jsx` (`?planeerija=1` opens it), `TimeGrid` props
+`onDragChange`, `onDropItem`, `item.blockClass`.
+
+- Who: an administrator (all teachers or one teacher: „Õpilased”); a teacher opens it for their own students only
+  (their schedule rules show only their own lessons, so another teacher's lessons of the same student are not seen).
+- Draft = one weekly pattern from a start date („Algus”, default next Monday): each weekday is its first date on or
+  after the start (that is the new weekly lesson's start date). Kept in this browser (`localStorage`
+  `keelesepp.planner.v1.<uid>`), nothing is written to the database before „Kinnita ajakava”.
+- „Lisa kõik õpilased” (`planningRequests`): every active track (student × subject × teacher; „Paus” / „Lõpetanud”
+  tracks, archived cards and cards with „Paus kuni …” are left out) without a weekly series ahead (a group lesson of the
+  same teacher also counts as planned). Teacher = the track's account (found by name when only the name is stored).
+  Length = the direction's most common length, else 60; online = the direction's newest lesson, else the student's,
+  else on site; lessons per week = the weekly series ahead, else the most lessons in one of the last 8 weeks (1–5).
+  All can be changed in „Õppesuunad plaanis”. „Ka need, kel on korduv tund (uus plaan)” (default off) also takes the
+  directions with a weekly series: their series are ignored while planning and ended the day before the start at
+  „Kinnita” (only when a new lesson of that direction is created, with its own tick; done lessons stay).
+- „Jaota” (`distribute`, deterministic): fixed = every lesson that stays (any teacher, groups, one-off lessons) on the
+  pattern dates and the next 3 weeks; rooms over 12 weeks. Hardest first (fewest good times), then more lessons a
+  week, then by name. A lesson takes the cheapest good time: ★ before suitable, the teacher's green before „outside the
+  green time”, a student's lessons on different days. When none is left, one backtracking step moves one or two draft
+  lessons of the same teacher that are in the way to another good time of their own. Else the least bad time: in the
+  student's times first, an overlap with another student of the same teacher allowed (marked „Kattub: X”), the
+  student's own clash avoided. Not placed (`Aega ei leitud`): no teacher, or no „Sobivad ajad” at all (with „ava
+  kaart” and „kopeeri /ajad link”). Lessons moved by hand are pinned: a new „Jaota” keeps them.
+- Colours (`judgeSlot`, `dragMarks`) while dragging a draft lesson, after clicking it, or after picking an unplaced
+  student: per half hour where the lesson would start — green „sobib õpilasele (★ eelistatud)” and the teacher free (or
+  the teacher marked no green time); yellow „võimalik”: suitable but not ★, the teacher gives only online lessons there
+  (online lesson), or outside the teacher's green time; red: the student cannot (not / partly in their times, no times),
+  the teacher cannot (red window, yellow for a lesson on site), it overlaps a lesson of the teacher or the student, or
+  no room is free. Red can still be chosen: the lesson is flagged „Lepi õpilasega kokku” (or „Kattub”). Draft lessons
+  are dashed (green / yellow / red frame, ★ / ! / ⚠ before the name), kept lessons faded; the legend is always shown.
+  Moving: drag (15-minute snap), or click the lesson and then a cell, or the Päev / Kell selects (phone list).
+  Unplaced students: drag the chip onto the grid, click it then a cell, or „Paku aeg”.
+- Summary: ★ eelistatud / sobib / lepi kokku / kattub / aega ei leitud (a lesson that overlaps and needs agreement
+  counts as „kattub”).
+- „Kinnita ajakava”: a list with a tick per draft lesson; overlapping and agree-first lessons start unticked. Each ticked
+  one is created with `scheduleRepository.create` like the „Uus tund” form (weekly, date = its first date, room assigned
+  again with `assignRoom`; a lesson whose room is gone is reported, not created) plus `source: 'planner'` and one
+  `plannerBatchId` per click; after all lessons (administrator only — the rules) `plannerBatches/{plannerBatchId}`
+  `{ createdAt, createdBy, lessonIds, studentIds, status: 'confirmed' }` is written for the schedule e-mail of
+  agent/learner-emails. Nothing is sent from the calendar.
+- Limits: a one-off lesson in the next 3 weeks blocks that weekly time (like „Vabad tunniajad”); „Jaota” is greedy
+  with one backtracking step, not an optimum; the draft is per browser (another device starts empty).

@@ -724,3 +724,20 @@ describe('calendar v2', () => {
     });
   });
 });
+
+describe('calendar: Planeerija', () => {
+  it('opens the planner from the toolbar; „Lisa kõik õpilased” takes the calendar\'s students without a weekly lesson', async () => {
+    const memory = new Map();
+    vi.stubGlobal('localStorage', { getItem: (k) => memory.get(k) ?? null, setItem: (k, v) => memory.set(k, String(v)), removeItem: (k) => memory.delete(k) });
+    const props = renderCalendar({ events: [lesson({ recurring: true, day: 'Mon' })] });
+    fireEvent.click(await screen.findByRole('button', { name: /Planeerija/ }));
+    const planner = screen.getByRole('region', { name: 'Planeerija' });
+    fireEvent.click(within(planner).getByRole('button', { name: /Lisa kõik õpilased/ }));
+    // Mari has a weekly lesson ahead; Jaan has none
+    expect(within(planner).getByRole('status')).toHaveTextContent('Lisatud 1 õppesuunda');
+    fireEvent.click(within(planner).getByRole('button', { name: /Jaota/ }));
+    expect(within(planner).getByLabelText('Aega ei leitud')).toHaveTextContent('Jaan Tamm');
+    expect(props.scheduleRepository.create).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+});

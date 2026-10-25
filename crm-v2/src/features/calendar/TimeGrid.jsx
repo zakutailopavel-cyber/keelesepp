@@ -36,7 +36,10 @@ function crowdedClusters(laid, columnCount) {
 // bands(column) → [{ id, kind: 'free' | 'busy', start, end }] in minutes: a teacher's green/red windows behind the lessons.
 // paint: { kind } turns on painting windows: drag in a column → onPaint(column, startMinutes, endMinutes); a click on a
 // window → onBandClick(column, band).
-export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true, bands = null, marks = null, paint = null, onPaint, onBandClick }) {
+// Planner (2026-10-25): `item.blockClass` adds classes to a block (draft / flags); onDragChange(item | null) tells which
+// lesson is being dragged (the planner colours the cells for it); onDropItem(column, time) takes a dragged chip from
+// outside the grid (HTML drag and drop, half-hour snap).
+export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true, bands = null, marks = null, paint = null, onPaint, onBandClick, onDragChange, onDropItem }) {
   const bodyRef = useRef(null);
   const columnRefs = useRef(new Map());
   const [drag, setDrag] = useState(null);
@@ -81,6 +84,8 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
     if (!drag) return;
     const delta = snapMinutes((event.clientY - drag.y) / PX_PER_MIN);
     const moved = drag.moved || Math.abs(event.clientY - drag.y) > 4 || Math.abs(event.clientX - drag.x) > 4;
+    // the planner colours the cells for the lesson being dragged (once the pointer really moved)
+    if (moved && !drag.moved) onDragChange?.(drag.item);
     if (drag.mode === 'resize') {
       setDrag({ ...drag, moved, duration: Math.max(SNAP, Math.min(GRID_END - drag.origStart, drag.origDuration + delta)) });
       return;
@@ -95,6 +100,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
     const current = drag;
     setDrag(null);
     if (!current.moved) { onOpen(current.item); return; }
+    onDragChange?.(null);
     const changed = current.start !== current.origStart || current.duration !== current.origDuration || current.column !== current.fromColumn;
     if (changed) {
       const column = columns.find((entry) => entry.key === current.column);
@@ -104,10 +110,10 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
 
   useEffect(() => {
     if (!drag) return undefined;
-    const onKey = (event) => { if (event.key === 'Escape') setDrag(null); };
+    const onKey = (event) => { if (event.key === 'Escape') { setDrag(null); onDragChange?.(null); } };
     globalThis.addEventListener('keydown', onKey);
     return () => globalThis.removeEventListener('keydown', onKey);
-  }, [drag]);
+  }, [drag, onDragChange]);
 
   const minutesAt = (element, clientY) => {
     const rect = element.getBoundingClientRect();
@@ -145,7 +151,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
   const hoverSlot = (event, column) => {
     if (!onSlot || paint || drag || event.target.closest?.('.tg-block, .tg-cluster')) { if (hover) setHover(null); return; }
     const rect = event.currentTarget.getBoundingClientRect();
-    const minutes = Math.min(GRID_START + Math.floor((event.clientY - rect.top) / PX_PER_MIN / 30) * 30, GRID_END - 30);
+    const minutes = Math.min(GRID_START + Math.floor(((Number.isFinite(event.clientY) ? event.clientY : rect.top) - rect.top) / PX_PER_MIN / 30) * 30, GRID_END - 30);
     if (hover?.column !== column.key || hover.minutes !== minutes) setHover({ column: column.key, minutes });
   };
 
@@ -167,7 +173,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
           </div>
         ))}
       </div>
-      <div className="tg-body" ref={bodyRef} onPointerMove={(event) => { moveDrag(event); movePaint(event); }} onPointerUp={() => { endDrag(); endPaint(); }} onPointerCancel={() => { setDrag(null); setPainting(null); }}>
+      <div className="tg-body" ref={bodyRef} onPointerMove={(event) => { moveDrag(event); movePaint(event); }} onPointerUp={() => { endDrag(); endPaint(); }} onPointerCancel={() => { if (drag?.moved) onDragChange?.(null); setDrag(null); setPainting(null); }}>
         <div className="tg-inner" style={{ height }}>
           <div className="tg-hours" aria-hidden="true">
             {HOURS.map((hour) => <span key={hour} style={{ top: (hour * 60 - GRID_START) * PX_PER_MIN }}>{String(hour).padStart(2, '0')}:00</span>)}
@@ -184,6 +190,8 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                 onPointerDown={(event) => startPaint(event, column)}
                 onPointerMove={(event) => hoverSlot(event, column)}
                 onPointerLeave={() => setHover(null)}
+                onDragOver={onDropItem ? (event) => event.preventDefault() : undefined}
+                onDrop={onDropItem ? (event) => { event.preventDefault(); const rect = event.currentTarget.getBoundingClientRect(); onDropItem(column, toClock(Math.max(GRID_START, Math.min(GRID_START + Math.floor(((Number.isFinite(event.clientY) ? event.clientY : rect.top) - rect.top) / PX_PER_MIN / 30) * 30, GRID_END - 30)))); } : undefined}
                 role="group"
                 aria-label={`${column.subtitle} ${column.title}`}
               >
@@ -208,7 +216,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                     {group.items.map(({ item }) => {
                       const status = statusOf(item);
                       return (
-                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.online ? 'is-online' : 'is-onsite'}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
+                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.online ? 'is-online' : 'is-onsite'}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
                           <span>{item.online ? <Video className="tg-online-icon" size={11} aria-hidden="true" /> : null}{item.time}</span><strong><SubjectTag subject={item.subject} />{item.studentName || 'Õpilane'}{item.adminNote ? <StickyNote className="tg-note" size={11} aria-label="Admini märkus" /> : null}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
                         </button>
                       );
@@ -221,7 +229,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                   return (
                     <div
                       key={item.occurrenceId}
-                      className={`tg-block tone-${toneOf(item)} is-${status} ${item.isGroup ? 'is-group' : ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
+                      className={`tg-block tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.isGroup ? 'is-group' : ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
                       style={{ top: top * PX_PER_MIN, height: Math.max(22, blockHeight * PX_PER_MIN - 2), left: `calc(${(lane / lanes) * 100}% + 2px)`, width: `calc(${100 / lanes}% - 4px)` }}
                       onPointerDown={(event) => startDrag(event, item, column, 'move')}
                       title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`}

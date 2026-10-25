@@ -470,6 +470,7 @@ Google eTag preconditions and incremental sync tokens remain separate releases.
 
 - `curriculumLessons`, `exercises` — staff-authored learning sources.
 - `studyDirections` — the school's study directions; admin writes (no delete), staff and finance read.
+- `plannerBatches` — one record per „Kinnita ajakava” of the calendar's Planeerija `{ createdAt (server time), createdBy, lessonIds[], studentIds[], status: 'confirmed' }`; admin creates once and reads, nobody updates or deletes from the app (the server's schedule e-mail reads it). The created `schedule` entries carry `source: 'planner'` and `plannerBatchId`.
 - `studentCardMerges` — server-only run records of „Liida kaardid” (one per merged card); `students.mergedInto` marks the tombstone.
 - `worksheetAssignments`, `homework`, `exerciseResults` — student-specific learning activity.
 - `liveClassrooms` — one teacher and one student per current room.
