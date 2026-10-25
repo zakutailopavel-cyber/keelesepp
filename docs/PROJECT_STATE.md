@@ -1,6 +1,6 @@
 ## 2026-10-25 · agent/calendar-planner — „Planeerija”: the whole weekly timetable at once
 
-- Base: `main` 914a417 (2026-10-25, after #790). Draft PR #PRNUM from `agent/calendar-planner`. Calendar only (+ one
+- Base: `main` 914a417 (2026-10-25, after #790). Draft PR #791 from `agent/calendar-planner`. Calendar only (+ one
   small rules block for `plannerBatches`); no finance, content, Live Classroom; no data written, no deploy.
 - Asked (owner 2026-10-25): all students into the calendar with one button and distributed; students who do not fit may
   share a time; while moving, green = wants, yellow = can, red = cannot (still allowed, agree with the student).
