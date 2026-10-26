@@ -252,3 +252,30 @@ Module 3 (`b1/module03.js`, a2b1-011…015) went 54 → 0 problems. New pitfalls
 - **Exam points:** the `examPart` points must equal the items you give (our listening first had 26 items for 25 points).
 - Keeping the art: the module's existing picture briefs (011 flat, 012 moving boxes in Kasuta, 013 map, 014 directions,
   015 route) fit the new storyline, so no new images were needed — write the story around the pictures you have.
+### 8.1 Module 5 (2026-10-26, `b1/module05.js`, a2b1-021…025)
+
+Module 5 reached 0 problems on every gate with the same loop. New pitfalls on top of the pilot's:
+
+- **Plan the speaking and writing ids first.** S01–S13 (+ S02, S03, S04 twice) and W01–W12 give ~28 productive slots a
+  module; 4 Avasta talks + 4 Harjuta uses + 3 Kasuta tasks × 4 + the fluency tasks need ~26. We ran out in lesson 4 on the
+  first draft. An idea card tagged `{ task: 'S12' }` (ranking) frees a `speaking` block where Harjuta already has one
+  (two speaking blocks on one Harjuta sheet = `v4-repeat`).
+- **Word counts are lower than they look** (again): texts written as „~180 words” counted 91–146. Count with a 10-line
+  node script over `LESSONS` (words with a letter or digit, gaps removed) before running the gates.
+- **Vocab boxes:** a comma inside the Russian gloss („приз, награда”) splits the entry into two headwords — use „/”.
+  The recycling gate (`gates.js`) looks for the headword minus its last two letters on ≥ 3 sheets: irregular-past heads
+  (*tulema* ↔ *tuli*) and phrases (*tagasi saama* ↔ *sain tagasi*) never match — choose heads whose stem recurs.
+- **`B.bankText` is an `insertion` block** — without `tag({ task: 'R04' })` it counts as R05 and its level 3 breaks the
+  Harjuta ladder. Give the bank's extra words both cases (a capitalised extra), else capital letters show which words
+  start a sentence.
+- **`same-opening` counts the block type**, so two Avasta sheets that open with any `examlisten` collide; an AVAS lesson
+  can open with its „try first” choice test instead. An Avasta sheet must still end with a speaking/writing task,
+  a rubric or a self-check (`end`) — moving a listening to the end fails.
+- **A transformation prompt „Eile …”** fixes the word order, so the key needs no alternatives (alternatives are measured
+  as one long sentence).
+- **Swapping AVAS and RÄÄK** (§6.2 allows it) kept the grammar placement: the irregular past (023) is the AVAS lesson,
+  as §4.1 rule 6 wants.
+- **Exam headers:** `B.examPart` points must equal the items of that part — recount after every edit.
+- A „try first” test with over-generalised forms (*tulis, sõis*) is reported by the Vabamorf speller; that is expected.
+- Keep one timeline for the module in a scratch note (who did what on which day): with 15 sheets the same event is told
+  in a story, a diary, a call and a letter, and a weekday slips easily.

@@ -8,7 +8,7 @@ Keep facts consistent; add new facts here when a module adds them.
   loves drawing, the dog, penguins) and **Oskar** (9, football); dog **Muki**. Lives in Tallinn, apartment block with an
   online residents' group (module 2).
 - **Sofia** (28) — Jaan's sister, learns Estonian, new office job (boss **Liis**, colleagues **Markus** and **Anna**);
-  has a sister in Tartu (module 5).
+  visits her mother Helgi in Tartu at weekends (module 5).
 - **Viktor** (63) — uncle of Jaan and Sofia (their mother's brother), pensioner, repairs bicycles, farm (talu) in
   Kõrvemaa with a sauna; grandchildren visit on Sundays.
 - **Helgi** (59 → 60 in module 2) — mother of Jaan and Sofia, teacher in Tartu, makes the best pancakes.
@@ -39,6 +39,14 @@ Keep facts consistent; add new facts here when a module adds them.
   cake). Babysitter candidates **Kertu** (22), **Siim** (30, coach), **Aino** (58, retired teacher), **Margit** (35,
   nurse); radio guest **Marika Põld** (babysitters' association); Viktor left his backpack with Helgi's present (a
   wooden box he made, with the old photo) on the Aegviidu train; lost-property clerk **Urve Tamm** (radio).
+- **Module 5:** the town paper **Linnaleht** runs the story contest „Minu kõige ootamatum päev” (80–100 words, deadline
+  Friday; editor **Kaja Lepp**; winners read on Raadio Linnahääl, host **Ülle**): 1st Markus „Külm telefon” (his phone
+  was in the fridge; Anna and Bruno came at 21.00), 2nd **Tiina** (the cat Miisu travelled in her suitcase to her sister
+  in Tartu), readers' prize Sofia (her first flight). Liis was ill from Tuesday to the weekend; Anna's „do nothing”
+  weekend; Viktor's chain broke, the spare part came to the farm (a neighbour's cat slept on the parcel); Oskar's match
+  in Rakvere. Tartu food festival (organiser **Merike Rand**, cook **Aili** from Võrumaa, mushroom soup prize; Jaan a
+  volunteer; Viktor's apple juice sold out at 13.00); Sofia's cooking course „Kala lõkkel” was cancelled (the cook's car
+  broke down). Anna lost her green bag with her sister's wedding invitation at the market and got it back in the café.
 - **Module 7:** Viktor hurt his knee cycling; new colleague **Kristjan** at Sofia's office; family doctor **dr Kask**,
   nurse **Kati** (advice line), **dr Tamm** (radio sleep expert).
 - **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher
