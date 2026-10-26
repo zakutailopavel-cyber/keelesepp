@@ -6,7 +6,7 @@
   supplier card. accounting-core keeps the option.
 - crm-v2 accounting: JournalDraft (no „kohustlik”, no „partner (2110)” blocker), JournalGrid (no red „Puudub: partner”),
   journalGrid.workingProblem (no partner requirement). „pole tarnijate seas” for a typed unknown name stays.
-- Tests updated (journalGrid.test.js, partners.test.jsx). Checks: verify (eslint 0, vitest 2660 passed); functions npm
+- Tests updated (journalGrid.test.js, partners.test.jsx, functions/finance-emulator.integration.js — the finance emulator suite: 102 passed). Checks: verify (eslint 0, vitest 2660 passed); functions npm
   test 407 passed.
 - Deploy: functions:invoiceApi (the accounting endpoints).
 
