@@ -23,6 +23,17 @@ export function staleHomework(items = [], today = new Date().toISOString().slice
   return items.filter((item) => isHomeworkOpen(item) && item.due && dayMs(item.due) < limit);
 }
 
+// the due date in words: „täna”, „homme”, „3 p hiljaks”, else „28. okt”
+export function dueLabel(due, today = new Date().toISOString().slice(0, 10)) {
+  if (!due) return 'Tähtajata';
+  const days = Math.round((dayMs(due) - dayMs(today)) / DAY);
+  if (Number.isNaN(days)) return `Tähtaeg ${due}`;
+  if (days === 0) return 'Täna';
+  if (days === 1) return 'Homme';
+  if (days < 0) return `${-days} p hiljaks`;
+  return new Date(dayMs(due)).toLocaleDateString('et-EE', { day: 'numeric', month: 'short' });
+}
+
 // a task the student finishes themselves (no interactive exercise that closes itself)
 export const selfCompleted = (item) => !(item?.isExercise && item?.exerciseId);
 

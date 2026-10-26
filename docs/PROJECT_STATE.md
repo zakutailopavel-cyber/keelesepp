@@ -1,3 +1,22 @@
+## 2026-10-26 · agent/teacher-homework — Kodutööd: teachers' access re-checked, the page tidied
+
+- Owner 2026-10-26: „у учителей в kodutood кому-то нельзя было зайти, там внешний вид тоже поправить”.
+- Access: fixed on 2026-10-21 (5fd8f69, 5 cards per query). Re-checked tonight: a copy of production users, students,
+  homework, worksheetAssignments, exerciseResults (read only) was loaded into the local emulator, and the page's own
+  queries ran as each of the 5 teachers. Result: all OK, no permission errors. Nothing to change in the rules.
+- Look:
+  - search and filter in one slim row (no big empty card);
+  - each task shows the student's name first (teachers scan by student);
+  - the due date in words: „Täna”, „Homme”, „3 p hiljaks”, „28. okt” (homeworkFlow.dueLabel);
+  - „Ootab hinnet” instead of the long „Automaatselt kontrollitud”; work titles wrap to two lines;
+  - phones: the due date is shown again (index.css hid it under 560 px); „Kinnita N” goes under the work.
+- Bug fixed: `Button` dropped its own classes when given a `className`, so „Kinnita N” looked like a bare grey button.
+  The only user was this button.
+- Files: crm-v2/src/components/ui/Button.jsx, features/homework/HomeworkPage.jsx, homeworkFlow.js (+ test),
+  homeworkPage.css (new).
+- Checks: verify (eslint 0, vitest 2666 passed); local visual check at 1400 px and 375 px.
+- Next safe step: the owner approves the PR.
+
 ## 2026-10-26 · agent/finance-lesson-revenue — Finantsid „Ülevaade” counts the calendar's lessons, not the invoices
 
 - Owner 2026-10-26: „прогноз … не привязывать к бухгалтерии, он берётся из количества уроков в календаре, проведённых
