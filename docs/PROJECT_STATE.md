@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m08-final — B1 module 8 „Õppimine” in the final shape
 
-- Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR from `agent/b1-m08-final` (link in the PR list).
+- Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR #803 from `agent/b1-m08-final`.
   Content only; no production data, no deploy. Parallel agents rewrite modules 7, 9, 10 (not touched here).
 - Asked (owner): module 8 (a2b1-036…040) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 8, §6.3 R2 + L2,
   §7, §8), Vahehindamine 2 with a skills profile against 001 and 020.
