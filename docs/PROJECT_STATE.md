@@ -1,3 +1,11 @@
+## 2026-10-26 · agent/ledger-sign — pearaamat shows a liability's balance as a positive number
+
+- Base: `main` e78c9d3. Owner: 2110 Võlad tarnijatele showed −168,00 for a debt (the ledger always counted
+  debit − credit). `accountingReports.js` `ledger`: liabilities, equity and income count credit − debit (`side:
+  'credit'`), so a normal balance is positive and a minus now really means the wrong side. Käibeandmik and bilanss
+  unchanged. Also merged/deployed today: PR #808 (voided receipts reversed; 1200 no longer negative after the sync).
+- Checks: vitest src/features/accounting 55/55 (+1); eslint clean. UI only.
+
 ## 2026-10-26 · agent/accounting-voided-payments — voided receipts are reversed in the books
 
 - Base: `main` 5c8ab1a. The accountant: the balance sheet shows a minus. Read-only check: 1200 Ostjatelt
