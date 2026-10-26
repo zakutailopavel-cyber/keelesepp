@@ -13,8 +13,10 @@
   can be hidden (remembered per browser):
   - KPIs: invoiced this month (vs last), „Kalendri järgi” with what is not invoiced yet, received (12 months, average),
     outstanding / overdue, next month's forecast, 3 months' forecast;
-  - an SVG chart: 12 months invoiced / received, 3 months of forecast; the current month has a gold dashed „calendar”
-    line; click or Enter on a month shows its detail.
+  - an SVG chart of smooth curves (owner: „кривая, а не столбцы”; monotone cubic, never below zero): invoiced (dark
+    green, filled), received (light green), forecast (gold dashed, from this month's calendar amount, over a light gold
+    zone); a guide line and a card follow the pointer; the month buttons stay for the keyboard and screen readers;
+    a narrow screen scrolls the chart and opens it at this month.
 - Production read (2026-10-26): invoiced Jun–Oct 492 / 1780 / 1524 / 1894 / 2231 €. The calendar owes 5958 € for
   October; 4107 € (41 students, mostly „current” billing) has no October invoice yet. Forecast Nov–Jan ≈ 6.1–6.2 k €.
 - Checks: verify (eslint 0, vitest 2666 passed); local visual check (desktop and 375 px, no horizontal scroll).

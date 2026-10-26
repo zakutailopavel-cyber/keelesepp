@@ -1,8 +1,8 @@
 import { ChevronDown, ChevronUp, LineChart, TrendingDown, TrendingUp } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService, paymentsService, scheduleService } from '../../services/firebase/index.js';
-import { dashboardSummary, FORECAST_MONTHS, HISTORY_MONTHS, monthRange, niceMax, revenueForecast, revenueHistory } from './financeDashboard.js';
+import { dashboardSummary, FORECAST_MONTHS, HISTORY_MONTHS, monthRange, niceMax, revenueForecast, revenueHistory, smoothPath } from './financeDashboard.js';
 import { currentMonth, shiftMonth } from './monthlyBilling.js';
 import './financeDashboard.css';
 
@@ -13,36 +13,74 @@ const api = { payments: () => paymentsService.listAll(), schedule: () => schedul
 const STORE = 'keelesepp.financeDashboard.hidden';
 const hiddenAtStart = () => { try { return globalThis.localStorage?.getItem(STORE) === '1'; } catch { return false; } };
 
-// Chart: 12 months of invoiced (dark green) and received (light green) money and 3 months of forecast (gold, dashed).
+// Chart: smooth curves of invoiced (dark green, filled) and received (light green) money, the forecast as a gold dashed
+// curve going on from this month; a guide line and a card with the numbers follow the pointer or the chosen month.
 function RevenueChart({ columns, selected, onSelect }) {
-  const width = 760; const height = 250; const left = 46; const bottom = 28; const top = 12;
+  const width = 760; const height = 270; const left = 48; const right = 16; const bottom = 30; const top = 16;
   const max = niceMax(Math.max(...columns.map((column) => Math.max(column.invoicedCents || 0, column.receivedCents || 0, column.forecastCents || 0, column.calendarCents || 0)), 1));
   const plotH = height - bottom - top;
-  const slot = (width - left - 8) / columns.length;
-  const bar = Math.min(18, slot / 3);
+  const step = columns.length > 1 ? (width - left - right) / (columns.length - 1) : 0;
+  const x = (index) => left + index * step;
   const y = (cents) => top + plotH - (cents / max) * plotH;
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((k) => k * max);
-  return <svg className="fd-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Tulu kuude kaupa: arveldatud, laekunud ja prognoos">
-    {ticks.map((tick) => <g key={tick}><line x1={left} x2={width - 8} y1={y(tick)} y2={y(tick)} className="fd-grid" /><text x={left - 6} y={y(tick) + 4} className="fd-axis" textAnchor="end">{short(tick)}</text></g>)}
-    {columns.map((column, index) => {
-      const x = left + index * slot + slot / 2;
-      const active = selected === column.month;
-      return <g key={column.month} className={`fd-col ${active ? 'is-active' : ''} ${column.future ? 'is-future' : ''}`} tabIndex={0} role="button"
-        aria-label={`${monthName(column.month, 'long')}: ${column.future ? `prognoos ${money(column.forecastCents)}` : `arveldatud ${money(column.invoicedCents)}, laekunud ${money(column.receivedCents)}`}`}
-        onClick={() => onSelect(column.month)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(column.month); } }}>
-        <rect x={x - slot / 2} y={top} width={slot} height={plotH} className="fd-hit" />
-        {column.future
-          ? <rect x={x - bar / 2} y={y(column.forecastCents)} width={bar} height={Math.max(0, top + plotH - y(column.forecastCents))} rx="4" className="fd-bar fd-bar--forecast" />
-          : <>
-            <rect x={x - bar - 1} y={y(column.invoicedCents)} width={bar} height={Math.max(0, top + plotH - y(column.invoicedCents))} rx="4" className="fd-bar fd-bar--invoiced" />
-            <rect x={x + 1} y={y(column.receivedCents)} width={bar} height={Math.max(0, top + plotH - y(column.receivedCents))} rx="4" className="fd-bar fd-bar--received" />
-          </>}
-        {/* the current month: what the calendar owes (gold dashed) above what is invoiced */}
-        {column.calendarCents ? <line x1={x - slot / 2 + 6} x2={x + slot / 2 - 6} y1={y(column.calendarCents)} y2={y(column.calendarCents)} className="fd-calendar" /> : null}
-        <text x={x} y={height - 9} textAnchor="middle" className={`fd-axis ${column.current ? 'is-current' : ''}`}>{monthName(column.month)}</text>
-      </g>;
-    })}
-  </svg>;
+  const past = columns.map((column, index) => ({ column, index })).filter(({ column }) => !column.future);
+  const nowIndex = columns.findIndex((column) => column.current);
+  const invoiced = past.map(({ column, index }) => [x(index), y(column.invoicedCents)]);
+  const received = past.map(({ column, index }) => [x(index), y(column.receivedCents)]);
+  // the forecast starts from this month's calendar amount (or what is invoiced) so the curve goes on without a jump
+  const startCents = nowIndex >= 0 ? (columns[nowIndex].calendarCents || columns[nowIndex].invoicedCents) : 0;
+  const forecast = [...(nowIndex >= 0 ? [[x(nowIndex), y(startCents)]] : []), ...columns.map((column, index) => ({ column, index })).filter(({ column }) => column.future).map(({ column, index }) => [x(index), y(column.forecastCents)])];
+  const base = top + plotH;
+  const area = (points) => (points.length ? `${smoothPath(points)} L${points[points.length - 1][0]},${base} L${points[0][0]},${base} Z` : '');
+  const [hover, setHover] = useState(null);
+  // a narrow screen scrolls the chart: it opens at the right end (this month and the forecast)
+  const scroller = useRef(null);
+  useEffect(() => { const node = scroller.current; if (node && node.scrollWidth > node.clientWidth) node.scrollLeft = node.scrollWidth; }, [columns.length]);
+  const shown = hover ?? columns.findIndex((column) => column.month === selected);
+  const pick = (event) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    const px = ((event.clientX - box.left) / box.width) * width;
+    setHover(Math.max(0, Math.min(columns.length - 1, Math.round((px - left) / (step || 1)))));
+  };
+  // the card follows the pointer only; the chosen month is described under the chart
+  const card = hover !== null ? columns[hover] : null;
+  return <div className="fd-chart-scroll" ref={scroller}><div className="fd-chart-wrap">
+    <svg className="fd-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Tulu kuude kaupa: arveldatud, laekunud ja prognoos"
+      onPointerMove={pick} onPointerLeave={() => setHover(null)} onClick={() => { if (hover !== null) onSelect(columns[hover].month); }}>
+      <defs>
+        <linearGradient id="fd-fill-invoiced" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#176553" stopOpacity=".28" /><stop offset="100%" stopColor="#176553" stopOpacity="0" /></linearGradient>
+        <linearGradient id="fd-fill-received" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#7cc4a6" stopOpacity=".3" /><stop offset="100%" stopColor="#7cc4a6" stopOpacity="0" /></linearGradient>
+        <linearGradient id="fd-fill-forecast" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#e3a857" stopOpacity=".25" /><stop offset="100%" stopColor="#e3a857" stopOpacity="0" /></linearGradient>
+      </defs>
+      {ticks.map((tick) => <g key={tick}><line x1={left} x2={width - right} y1={y(tick)} y2={y(tick)} className="fd-grid" /><text x={left - 8} y={y(tick) + 4} className="fd-axis" textAnchor="end">{short(tick)}</text></g>)}
+      {nowIndex >= 0 && forecast.length > 1 ? <rect x={x(nowIndex)} y={top} width={width - right - x(nowIndex)} height={plotH} className="fd-future-zone" /> : null}
+      <path d={area(forecast)} fill="url(#fd-fill-forecast)" />
+      <path d={area(received)} fill="url(#fd-fill-received)" />
+      <path d={area(invoiced)} fill="url(#fd-fill-invoiced)" />
+      <path d={smoothPath(received)} className="fd-line fd-line--received" pathLength="1" />
+      <path d={smoothPath(invoiced)} className="fd-line fd-line--invoiced" pathLength="1" />
+      <path d={smoothPath(forecast)} className="fd-line fd-line--forecast" />
+      {shown >= 0 ? <line x1={x(shown)} x2={x(shown)} y1={top} y2={base} className="fd-guide" /> : null}
+      {past.map(({ column, index }) => <g key={column.month}>
+        <circle cx={x(index)} cy={y(column.invoicedCents)} r={index === shown ? 5.5 : 3.5} className="fd-dot fd-dot--invoiced" />
+        <circle cx={x(index)} cy={y(column.receivedCents)} r={index === shown ? 5 : 3} className="fd-dot fd-dot--received" />
+      </g>)}
+      {nowIndex >= 0 && columns[nowIndex].calendarCents ? <circle cx={x(nowIndex)} cy={y(columns[nowIndex].calendarCents)} r="4.5" className="fd-dot fd-dot--calendar" /> : null}
+      {columns.map((column, index) => column.future ? <circle key={column.month} cx={x(index)} cy={y(column.forecastCents)} r={index === shown ? 5.5 : 4} className="fd-dot fd-dot--forecast" /> : null)}
+      {columns.map((column, index) => <text key={column.month} x={x(index)} y={height - 9} textAnchor="middle" className={`fd-axis ${column.current ? 'is-current' : ''} ${column.future ? 'is-future' : ''}`}>{monthName(column.month)}</text>)}
+    </svg>
+    {card ? <div className={`fd-tip ${hover > columns.length / 2 ? 'is-left' : ''}`} style={{ left: `${(x(hover) / width) * 100}%` }} aria-hidden="true">
+      <b>{monthName(card.month, 'long')}</b>
+      {card.future ? <span className="is-forecast">Prognoos <strong>{money(card.forecastCents)}</strong></span> : <>
+        <span className="is-invoiced">Arveldatud <strong>{money(card.invoicedCents)}</strong></span>
+        <span className="is-received">Laekunud <strong>{money(card.receivedCents)}</strong></span>
+        {card.calendarCents ? <span className="is-calendar">Kalendri järgi <strong>{money(card.calendarCents)}</strong></span> : null}
+      </>}
+    </div> : null}
+    <div className="fd-months" role="group" aria-label="Vali kuu">{columns.map((column) => <button key={column.month} type="button" aria-pressed={column.month === selected}
+      aria-label={`${monthName(column.month, 'long')}: ${column.future ? `prognoos ${money(column.forecastCents)}` : `arveldatud ${money(column.invoicedCents)}, laekunud ${money(column.receivedCents)}`}`}
+      onClick={() => onSelect(column.month)} />)}</div>
+  </div></div>;
 }
 
 export default function FinanceDashboard({ invoices = [], students = [], plans = [], lessons = [], repository = api, today = new Date() }) {

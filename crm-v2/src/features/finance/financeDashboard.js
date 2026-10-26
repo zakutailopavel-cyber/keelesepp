@@ -98,4 +98,22 @@ export function niceMax(cents) {
   return [1, 2, 2.5, 5, 10].map((k) => k * step).find((top) => top >= value) || 10 * step;
 }
 
+// a smooth line through the points that never overshoots (monotone cubic, Fritsch–Carlson): money never dips below 0
+export function smoothPath(points) {
+  if (!points.length) return '';
+  if (points.length === 1) return `M${points[0][0]},${points[0][1]}`;
+  const n = points.length;
+  const dx = []; const slope = [];
+  for (let i = 0; i < n - 1; i += 1) { dx[i] = points[i + 1][0] - points[i][0]; slope[i] = (points[i + 1][1] - points[i][1]) / dx[i]; }
+  const tangent = [slope[0]];
+  for (let i = 1; i < n - 1; i += 1) tangent[i] = slope[i - 1] * slope[i] <= 0 ? 0 : (3 * (dx[i - 1] + dx[i])) / ((2 * dx[i] + dx[i - 1]) / slope[i - 1] + (dx[i] + 2 * dx[i - 1]) / slope[i]);
+  tangent[n - 1] = slope[n - 2];
+  let d = `M${points[0][0]},${points[0][1]}`;
+  for (let i = 0; i < n - 1; i += 1) {
+    const h = dx[i] / 3;
+    d += ` C${points[i][0] + h},${points[i][1] + h * tangent[i]} ${points[i + 1][0] - h},${points[i + 1][1] - h * tangent[i + 1]} ${points[i + 1][0]},${points[i + 1][1]}`;
+  }
+  return d;
+}
+
 export { isMonth };

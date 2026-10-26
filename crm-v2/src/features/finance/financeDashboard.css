@@ -23,17 +23,47 @@
 .fd-grid { stroke: #eef1ee; stroke-width: 1; }
 .fd-axis { font-size: 11px; fill: #8a9893; }
 .fd-axis.is-current { fill: #123f37; font-weight: 800; }
-.fd-hit { fill: transparent; }
-.fd-col { cursor: pointer; outline: none; }
-.fd-col:hover .fd-hit, .fd-col:focus-visible .fd-hit { fill: rgba(21,116,94,.05); }
-.fd-col.is-active .fd-hit { fill: rgba(21,116,94,.09); }
-.fd-bar--invoiced { fill: #176553; }
-.fd-bar--received { fill: #7cc4a6; }
-.fd-bar--forecast { fill: #f4cf91; stroke: #c98c45; stroke-width: 1.2; stroke-dasharray: 4 3; }
 .fd-detail { margin: 0; font-size: .86rem; color: #344054; }
 @media (max-width: 1180px) { .fd-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .fd { padding: 16px; } .fd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fd-kpi strong { font-size: 1.1rem; } }
 .fd-kpi--alert { background: #fef6ee; }
-.fd-calendar { stroke: #c98c45; stroke-width: 2; stroke-dasharray: 5 4; }
 .fd-legend .is-calendar::before { height: 0; width: 14px; border-top: 2px dashed #c98c45; border-radius: 0; background: none; vertical-align: 3px; }
 .fd-legend { flex-wrap: wrap; }
+
+/* the curves (RevenueChart) */
+.fd-chart-wrap { position: relative; }
+.fd-chart { touch-action: pan-y; cursor: crosshair; }
+.fd-future-zone { fill: #fdf8ef; }
+.fd-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fd-line--invoiced { stroke: #176553; stroke-width: 3; stroke-dasharray: 1; stroke-dashoffset: 1; animation: fd-draw 1.1s ease-out forwards; }
+.fd-line--received { stroke: #5fb592; stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; animation: fd-draw 1.1s .15s ease-out forwards; }
+.fd-line--forecast { stroke: #c98c45; stroke-width: 2.5; stroke-dasharray: 7 6; }
+@keyframes fd-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .fd-line--invoiced, .fd-line--received { animation: none; stroke-dashoffset: 0; } }
+.fd-dot { stroke: #fff; stroke-width: 2; transition: r .15s; }
+.fd-dot--invoiced { fill: #176553; }
+.fd-dot--received { fill: #5fb592; }
+.fd-dot--forecast { fill: #f4cf91; stroke: #c98c45; stroke-width: 2; }
+.fd-dot--calendar { fill: #fff; stroke: #c98c45; stroke-width: 2.5; }
+.fd-guide { stroke: #93c6b2; stroke-width: 1; stroke-dasharray: 3 3; }
+.fd-axis.is-future { fill: #b08550; }
+.fd-tip { position: absolute; top: 4px; transform: translateX(12px); display: grid; gap: 3px; min-width: 150px; padding: 10px 12px; border: 1px solid #e5e9e5; border-radius: 12px; background: rgba(255,255,255,.96); box-shadow: 0 10px 24px rgba(23,57,49,.12); font-size: .78rem; color: #4b665e; pointer-events: none; }
+.fd-tip.is-left { transform: translateX(calc(-100% - 12px)); }
+.fd-tip b { color: #123f37; font-size: .82rem; }
+.fd-tip span { display: flex; justify-content: space-between; gap: 12px; }
+.fd-tip strong { color: #123f37; }
+.fd-tip .is-invoiced::before, .fd-tip .is-received::before, .fd-tip .is-forecast::before, .fd-tip .is-calendar::before { content: ''; width: 8px; height: 8px; border-radius: 50%; margin: auto 6px auto 0; }
+.fd-tip span::before { flex: none; }
+.fd-tip .is-invoiced::before { background: #176553; }
+.fd-tip .is-received::before { background: #5fb592; }
+.fd-tip .is-forecast::before { background: #f4cf91; }
+.fd-tip .is-calendar::before { background: #fff; border: 2px solid #c98c45; }
+.fd-tip span { justify-content: flex-start; }
+.fd-tip strong { margin-left: auto; padding-left: 10px; }
+.fd-months { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.fd-legend .is-received::before { background: #5fb592; }
+.fd-legend .is-invoiced::before, .fd-legend .is-received::before { height: 3px; width: 16px; border-radius: 2px; vertical-align: 3px; }
+.fd-legend .is-forecast::before { height: 0; width: 16px; border: 0; border-top: 2.5px dashed #c98c45; background: none; border-radius: 0; vertical-align: 3px; }
+.fd-legend .is-calendar::before { width: 8px; height: 8px; border: 2px solid #c98c45; border-radius: 50%; background: #fff; vertical-align: 0; }
+.fd-chart-scroll { overflow-x: auto; overflow-y: hidden; margin: 0 -4px; padding: 0 4px; }
+@media (max-width: 640px) { .fd-chart-wrap { min-width: 600px; } }
