@@ -26,3 +26,9 @@ lõputest
 lõpptest
 nõbul
 nõbule
+# B1 module 3: the adjective suffixes named in the grammar notes (-ne, -line, -lik, -tu, eba-)
+eba
+lik
+line
+ne
+tu

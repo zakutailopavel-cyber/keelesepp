@@ -225,6 +225,33 @@ with less time (S07), describe the picture to three partners in turn (S06), ask 
 - Work loop: a temporary vitest file that prints per sheet the minutes, own blocks, didactic score, each block's id /
   level / strand and every gate problem (module + „new elsewhere”) — one run instead of four tools. Do not commit it.
 
+## 9. Lessons from module 3 (B1 module 3, 2026-10-26)
+
+Module 3 (`b1/module03.js`, a2b1-011…015) went 54 → 0 problems. New pitfalls, in addition to §8:
+
+- **§6.2 row 3 is not valid as written:** „RÄÄK L→W*” fails V5-lead, because §4 and `ARCHETYPES` allow RÄÄK (and PROB)
+  only with a speaking outcome; the `*` only relaxes the input. With KUUL, LUGE, RÄÄK, PROB in one module the four lead
+  pairs force **KUUL L→W** and RÄÄK/PROB to take L→S and R→S. Module 3 uses KUUL L→W · LUGE R→W · RÄÄK L→S · PROB R→S.
+  Check your row against `ARCHETYPES` before planning.
+- **A2+ didactic norms (score ≥ 85):** a closed task has **exactly 8 items** (depth wants ≥ 8, the didactic check calls
+  > 8 tiring); a listening block ≤ 8 gaps; an instruction ≤ ~16 words; a sentence of a reading text ≤ 16 words (a quote
+  ending in „…!” glued to the next sentence counts as one sentence); speaking 60–120 s (a 4-3-2 block with 180 s fails).
+  Shortening the instructions was the biggest single fix (25 instructions).
+- **`examlisten` is not an input for the level gate** (Avasta/Kasuta need one reading, listening, dialogue, profiles,
+  cloze, formtext or insertion of ≥ 80 words) and counts only ~9 s per item in the „live” depth check. An Avasta with
+  two `examlisten` and speaking fails text-short, live-fast and the 4-task-types rule: put a gap `listening` there.
+- **V14 is a share, not a list:** topic tags do not raise it. ≥ 90 % of the module's vocab-box headwords must be in the
+  EKI A1–B1 forms (`levelForms.*.json`) or earlier boxes — so at most 4–5 topic words a module. Check candidate words
+  against the forms before writing the boxes (`ruumikas`, `lärmakas`, `kaubik`, `hoov`, `puumaja` are not in them).
+- **Vocab box entries:** no comma inside a translation (`moduleGates` splits the box on commas and counts „соседи” as a
+  word), and every box word must appear on ≥ 3 sheets of the module (stem match) or the lesson gets
+  `vocabulary-not-recycled`.
+- **`table` rows:** `[a|b]` alternatives break the row — the pipe is the column separator. One answer per table cell.
+- **Harjuta must end in use:** a `B.letter` (guidedletter) is not counted as „use” by v4; end with speaking, writing,
+  role cards, dialogue, `examWriting` or a speak card (we turned the W12 register-shift note into `examWriting` 'teade').
+- **Exam points:** the `examPart` points must equal the items you give (our listening first had 26 items for 25 points).
+- Keeping the art: the module's existing picture briefs (011 flat, 012 moving boxes in Kasuta, 013 map, 014 directions,
+  015 route) fit the new storyline, so no new images were needed — write the story around the pictures you have.
 ### 8.1 Module 5 (2026-10-26, `b1/module05.js`, a2b1-021…025)
 
 Module 5 reached 0 problems on every gate with the same loop. New pitfalls on top of the pilot's:
