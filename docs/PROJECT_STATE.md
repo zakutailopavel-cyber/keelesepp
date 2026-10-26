@@ -1,3 +1,21 @@
+## 2026-10-26 · agent/fake-parent-email — made-up e-mails are refused and never mailed; a child's parent e-mail is optional
+
+- Owner 2026-10-26: a homework e-mail to 123@123.com bounced (Aleksei Merzin's card, parentEmail typed in the
+  „Puuduvad andmed” form to get past it). „Да, сделай пункт 2 и сделай это не обязательным пунктом”.
+- Made-up addresses (numeric or test/example/asd… domains, a@a.com, noemail@…): crm-v2/src/utils/placeholderEmail.js
+  = functions/email-address-core.js (keep in step).
+- functions deliverEmail drops made-up recipients; only made-up → nothing sent, `{ status: "skipped" }`.
+- „Puuduvad andmed” (missing-data-core.js + missingDataModel.js / MissingDataGate.jsx): a child's parent e-mail is never
+  required (the adult's own e-mail still follows the setting); a made-up address is refused with
+  „Kirjuta päris e-posti aadress või jäta tühjaks”.
+- Student card form refuses made-up e-mail / parent e-mail; the student page warns when the card has one.
+- Tests updated from example.com fixtures (account-approval-response.test.js, missing-data-emulator).
+- Checks: verify (eslint 0 errors, vitest 2645 passed after a rerun of the flaky WorksheetStudioPage test); functions npm
+  test 407 passed; the CI emulator suite passed (exit 0).
+- Deploy: firebase deploy --only functions:notifyHomeworkCreated,functions:staffOperationsApi (owner's yes 2026-10-26).
+  Other functions (invoice e-mails) get the recipient filter with the next functions deploy.
+- Open: Aleksei Merzin's card still has 123@123.com — the admin fixes or clears it (the card now warns).
+
 ## 2026-10-26 · agent/works-order — given worksheets in the order to do them, numbered
 
 - Base: `main` 476827d. Owner: in „Tööd” it was hard to see which sheet comes first (sheets of one lesson were

@@ -87,7 +87,7 @@ test('deliverEmail configures bounded SMTP timeouts and persists failures', asyn
     nodemailer: { createTransport(value) { options.push(value); return { sendMail: async () => { throw new Error('socket timeout'); } }; } },
   });
   t.after(restore);
-  await assert.rejects(api.__get__('deliverEmail')({ to: 'student@example.com', subject: 'Approved', html: 'Hi', text: 'Hi' }), /Email provider error/);
+  await assert.rejects(api.__get__('deliverEmail')({ to: 'student@mail.ee', subject: 'Approved', html: 'Hi', text: 'Hi' }), /Email provider error/);
   assert.equal(options[0].connectionTimeout, 10000);
   assert.equal(options[0].greetingTimeout, 10000);
   assert.equal(options[0].socketTimeout, 20000);

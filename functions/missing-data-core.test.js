@@ -16,7 +16,9 @@ test("settings: defaults, unknown values fall back", () => {
 });
 
 test("values: e-mail, Estonian and international phones, class or birth year", () => {
-  assert.equal(core.validEmail("mari@example.ee"), true);
+  assert.equal(core.validEmail("mari@mail.ee"), true);
+  assert.equal(core.validEmail("mari@example.ee"), false, "a made-up address (email-address-core.js)");
+  assert.equal(core.validEmail("123@123.com"), false);
   assert.equal(core.validEmail("mari@example"), false);
   assert.equal(core.normalizePhone("5123 4567"), "+37251234567");
   assert.equal(core.normalizePhone("+372 512-3456"), "+3725123456");
@@ -137,4 +139,16 @@ test("report: who misses what, who has an account and would see the form", () =>
   assert.equal(totals.wouldSee, 1);
   assert.equal(totals.missingWithoutAccount, 2);
   assert.deepEqual(totals.items.availability, { cards: 3, withAccount: 1, withoutAccount: 2 });
+});
+
+test("a child's parent e-mail is never required; the adult's own e-mail follows the settings", () => {
+  const all = { availability: "off", email: "required", phone: "off", parentName: "off", language: "off", grade: "off" };
+  const child = core.cardStatus({ card: { grade: "5. klass" }, availability: null, parents: [] }, all, YEAR);
+  assert.deepEqual([child.kind, child.missing, child.required], ["child", ["email"], []]);
+  const adult = core.cardStatus({ card: { grade: "Täiskasvanu" }, availability: null, parents: [] }, all, YEAR);
+  assert.deepEqual(adult.required, ["email"]);
+  const unknownQ = { kind: "unknown", ask: ["grade", "email"], required: ["grade", "email"], variants: { adult: ["email"], child: ["email"] } };
+  assert.deepEqual(core.cardPatch(unknownQ, { grade: "5. klass" }, YEAR).errors, {});
+  assert.equal(core.cardPatch(unknownQ, { grade: "5. klass", email: "123@123.com" }, YEAR).errors.email, "email");
+  assert.equal(core.cardPatch(unknownQ, { grade: "Täiskasvanu" }, YEAR).errors.email, "required");
 });
