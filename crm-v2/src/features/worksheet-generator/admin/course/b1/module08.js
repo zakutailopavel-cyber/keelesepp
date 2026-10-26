@@ -236,7 +236,15 @@ export const LESSONS = withShapes({
       'Üks-ühele: õpetaja on Olena ja vastab ainult küsimustele, mida õpilane esitab; õpilane peab kõik ajad välja küsima. Siis vahetage kaardid. Lõpus ütleb õpilane kokkuleppe ühe lausega.'),
     ],
     transfer: [
-      B.text('036_t_sit', 'Daria ringid', 'Huviringidesse registreerimine lõpeb reedel. Olena tahab, et Daria osaleks kahes ringis, aga ta ei tea veel, millised sobivad. Daria huvitub matemaatikast, joonistamisest ja tantsust. Loe ringide kaarte, leppige Olenaga kokku ja helista huvijuhile. Lõpuks kirjuta klassijuhatajale lühike sõnum.'),
+      B.text('036_t_sit', 'Daria ringid', 'Huviringidesse registreerimine lõpeb reedel. Olena tahab, et Daria osaleks kahes ringis, aga ta ei tea veel, millised sobivad. Daria huvitub matemaatikast, joonistamisest ja tantsust. Kõigepealt kohtub Olena lastevanemate õhtul Oskari ema Kadriga. Siis loed ringide kaarte, lepid Olenaga kokku ja helistad huvijuhile. Lõpuks kirjutad klassijuhatajale lühikese sõnumi.'),
+      teach(tag(B.speaking('036_t_meet', 'Lastevanemate õhtul.', 'Lastevanemate õhtul kohtuvad Olena ja Oskari ema Kadri esimest korda. Tutvustage end ja oma last ning küsige teineteiselt.', [
+        'Kes sa oled ja kus sa töötad?',
+        'Kui vana su laps on ja millest ta huvitub?',
+        'Milles su laps koolis või pärast kooli osaleb?',
+        'Millega oli sinu lapsel raske harjuda?',
+        'Küsi teiselt kaks küsimust tema lapse kohta.',
+      ], [90, 150], ['Meeldiv tutvuda! Mina olen…', 'Minu tütar huvitub…', 'Ta osaleb…']), { task: 'S01' }),
+      'Üks-ühele: õpetaja on Kadri, õpilane Olena; teises ringis räägivad mõlemad enda nimel ja tutvustavad oma last või lapsepõlve huviringi.'),
       B.profiles('036_t_clubs', 'Neli huviringi.', 'Loe Kase kooli nelja huviringi kaarti. Täienda laused: millal, kellele ja mis tingimustel ring toimub.', [
         ['Robootika', ['juhendaja Kuldar', 'esmaspäeval ja kolmapäeval 15.00–16.30', '2.–6. klassi õpilastele, tasuta', 'vaja on aru saada lihtsatest juhistest', 'vabu kohti on kaks'],
           ['Robootikaring toimub esmaspäeval ja [kolmapäeval].', 'Ring on mõeldud teise kuni kuuenda [klassi] õpilastele.', 'Robootikaringis osalemise eest ei pea [maksma].', 'Lapsed peavad saama aru lihtsatest [juhistest].', 'Ringis on veel ainult kaks vaba [kohta].', 'Robootikaringi juhendab [Kuldar].']],
@@ -268,14 +276,6 @@ export const LESSONS = withShapes({
         points: ['millistes ringides Daria osaleb ja miks', 'mis päevadel ja kellani ta koolis on', 'kellelt Daria abi palub, kui ta millestki aru ei saa', 'üks küsimus õpetajale'],
         words: [50, 70], opening: 'Lugupeetud õpetaja Kristel Saar!', closing: 'Lugupidamisega, Olena',
       }),
-      teach(tag(B.speaking('036_t_meet', 'Lastevanemate õhtul.', 'Lastevanemate õhtul kohtuvad Olena ja Oskari ema Kadri esimest korda. Tutvustage end ja oma last ning küsige teineteiselt.', [
-        'Kes sa oled ja kus sa töötad?',
-        'Kui vana su laps on ja millest ta huvitub?',
-        'Milles su laps koolis või pärast kooli osaleb?',
-        'Millega oli sinu lapsel raske harjuda?',
-        'Küsi teiselt kaks küsimust tema lapse kohta.',
-      ], [90, 150], ['Meeldiv tutvuda! Mina olen…', 'Minu tütar huvitub…', 'Ta osaleb…']), { task: 'S01' }),
-      'Üks-ühele: õpetaja on Kadri, õpilane Olena; teises ringis räägivad mõlemad enda nimel ja tutvustavad oma last või lapsepõlve huviringi.'),
       B.rubricSpeaking('036_t_rubric', 'Hindamine: kõne huvijuhile (20 punkti).'),
       B.selfcheck('036_t_self', ['Ma tean, mis käänet tegusõna nõuab: huvitub millest, osaleb milles, harjub millega.', 'Ma saan aru koolilehe loost ja klassijuhataja kirjast.', 'Ma helistan kooli ja küsin huviringide kohta.', 'Ma kirjutan õpetajale lühikese sõnumi.'], 'Tegusõna ja kääne'),
     ],

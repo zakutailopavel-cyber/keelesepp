@@ -9,7 +9,8 @@
   - 036 AVAS R→S (rektsioon introduced) — try first (G13) → class teacher's letter (R13) → Olena at the course break
     (L04) → rule (G02) → picture 3× (S06) + 8-min writing (W06); again (G08), corner **R2** (school paper, format
     introduced), Olena's letter (R03), club radio (L10), sort (G04), chat (R12), info gap (S05); Kasuta: four club cards
-    (R11), agreement (S03), main **S04** call to the activities leader, W02 note, S01 parents meet.
+    (R11), agreement (S03), main **S04** call to the activities leader, W02 note. After merging module 7 (034 Kasuta
+    opens with R11, V2) the parents' meeting S01 opens 036 Kasuta, before the club cards.
   - 037 KUUL L→W (ma/da) — corner **L2** (Maret on Raadio Linnahääl, format introduced), Anna and Liis at lunch (L03),
     rule (G02), rewrite (G05), 4-3-2 (S08); crossword, gaps, notice board (R07) + T/F (R06), dictation, W03
     invitation, opinion 3× (S11); Kasuta: voicemail → notes (L07), Liis is told (S13), plan (W11), main **W04** letter
