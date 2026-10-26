@@ -1,3 +1,19 @@
+## 2026-10-27 · agent/preschool-plan — the preschool (5–7) group course: plan and child lesson format (proposal)
+
+- Owner 2026-10-26: plans for preschoolers, organising groups for group lessons, a plan for 5–7-year-old groups;
+  „нашего генератора явно не хватит, нужен детский формат”.
+- New docs/PRESCHOOL_GROUP_COURSE.md:
+  - group size 4–6 and 45 min;
+  - an 8-part lesson (greeting circle → review → new words → movement → song → table task → picture story →
+    goodbye);
+  - a 32-week plan in 8 themed blocks;
+  - what the generator can and cannot do;
+  - progress as observation ticks (Oskab / Harjutame / Veel mitte);
+  - how to organise the groups (uses „Täida grupp”, #829);
+  - the CRM parts to build next: „Lastetund” card type, „Pildileht”, observation ticks, take-home card.
+- No code. Content (32 cards, picture sheets) goes to the content agent after the owner approves.
+- Next safe step: the owner approves or edits the plan and chooses which CRM part comes first.
+
 ## 2026-10-26 · agent/finance-lesson-revenue — Finantsid „Ülevaade” counts the calendar's lessons, not the invoices
 
 - Owner 2026-10-26: „прогноз … не привязывать к бухгалтерии, он берётся из количества уроков в календаре, проведённых
