@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/teacher-answer-key — click a task: the teacher sees its answers and can show them to the student
 
-- Base: `main` 2aec0f9 (2026-10-26). Draft PR from `agent/teacher-answer-key`. UI + one service method; no rules change.
+- Base: `main` 2aec0f9 (2026-10-26). Draft PR #813 from `agent/teacher-answer-key`. UI + one service method; no rules change.
 - Asked (owner): „Когда нажимаешь на задание, у учителя должны показываться ответы, которыми он может поделиться с учеником.”
 - Done: `BlockKeyPanel.jsx` — under the clicked task on the TEACHER's sheet: right answers per item (gaps, choice, true/false,
   matching, word order, dictation, listening, dialogue, tables, exam blocks…), the course explanation (`explain`), the
