@@ -1,3 +1,25 @@
+## 2026-10-27 · agent/group-fill — „Täida grupp”: who fits a group (seats, age group, level, time)
+
+- Owner 2026-10-26: „заполнение групп”, „организация групп для групповых уроков” (also preschool 5–7). Stacked on
+  agent/planner-history (#826, learned times).
+- A group may carry `audience` ('' | adult | school | preschool), `capacity` (default 8, preschool 6), `ageFrom` /
+  `ageTo` (children's groups): `groupsService.groupSettings` / `updateSettings` (admin, activity log). The rules for
+  `groups` are already staff read/write: no rules change.
+- Grupid: each card shows „n/8 kohta” and the age group, and an admin has the button „Täida”. GroupFillDialog lets the
+  admin set the age group, seats and ages. It lists students and website enquiries that fit, best first, with reasons.
+  The pure model is `groups/groupFill.js` (`groupCandidates`, `ageOf`, `audienceOf`, `capacityOf`, `freeSeats`):
+  - same subject;
+  - the age group from the birth year / „N. klass” / „Täiskasvanu” / „lasteaed”;
+  - level the same or next to it (none for preschool);
+  - the group's weekly times against „Sobivad ajad”, else the times of past lessons;
+  - clashes with own lessons and other groups.
+  „Lisa” is the normal add-to-group action; enquiries link to Päringud and are not contacted automatically.
+- New group form: Sihtrühm + Kohti.
+- Checks: groups tests 7 passed (new groupFill 4); eslint 0; whole vitest: all passed except the known night-time
+  LearnerSnapshotCard (fixed in #827). Local check on the emulator copy (read-only export of production): a test group
+  „A2 noored” → 76 candidates listed with reasons.
+- Next safe step: owner approves #826 and this PR; creates the first group with its time, opens „Täida”.
+
 ## 2026-10-27 · agent/planner-history — Planeerija places students without „Sobivad ajad” at their usual times
 
 - Owner 2026-10-26: „доделать планировщик уроков автоматический”. The planner (#791) placed almost nobody: 38 of 50

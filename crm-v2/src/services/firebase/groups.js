@@ -48,6 +48,19 @@ export function normalizeGroup(id, data = {}) {
   };
 }
 
+// „Täida grupp”: the age group, seats and ages of a group (owner 2026-10-26)
+const AUDIENCE_VALUES = new Set(['', 'adult', 'school', 'preschool']);
+export function groupSettings(data = {}) {
+  const number = (value, min, max) => { const n = Math.round(Number(value)); return Number.isFinite(n) && n >= min && n <= max ? n : null; };
+  const audience = AUDIENCE_VALUES.has(clean(data.audience)) ? clean(data.audience) : '';
+  return {
+    audience,
+    capacity: number(data.capacity, 1, 30),
+    ageFrom: audience && audience !== 'adult' ? number(data.ageFrom, 3, 18) : null,
+    ageTo: audience && audience !== 'adult' ? number(data.ageTo, 3, 18) : null,
+  };
+}
+
 function requireAdmin(user) {
   if (!user?.roles?.includes('admin')) throw new Error('Ainult administraator saab gruppe muuta.');
 }
@@ -101,6 +114,7 @@ export const groupsService = {
       teacherUid: clean(data.teacherUid),
       subject: clean(data.subject) || 'Eesti keel',
       level: clean(data.level) || 'A1',
+      ...groupSettings(data),
       students: [],
       lessons: [],
       studentLessonMap: {},
@@ -128,6 +142,19 @@ export const groupsService = {
     batch.delete(doc(db, 'groups', group.id));
     activity(batch, db, 'group.deleted', `${group.name || 'Grupp'} kustutatud`, group, user, { studentIds: group.students || [] });
     await batch.commit();
+  },
+
+  async updateSettings(group, data, user) {
+    requireAdmin(user);
+    if (!group?.id) throw new Error('Gruppi ei leitud.');
+    const value = groupSettings(data);
+    if (value.ageFrom && value.ageTo && value.ageFrom > value.ageTo) throw new Error('Vanus „alates” on suurem kui „kuni”.');
+    const { db } = requireFirebaseClient();
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'groups', group.id), { ...value, updatedAt: new Date().toISOString() }, { merge: true });
+    activity(batch, db, 'group.settings', `${group.name || 'Grupp'}: sihtrühm ja kohad`, group, user, value);
+    await batch.commit();
+    return value;
   },
 
   async setStudent(group, student, shouldAdd, user) {

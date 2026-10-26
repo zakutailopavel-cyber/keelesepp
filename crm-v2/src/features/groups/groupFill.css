@@ -1,0 +1,13 @@
+/* „Täida grupp”: seats on the card and the candidate list */
+.group-card__seats { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 4px; }
+.group-card__seats .button { margin-left: auto; min-height: 34px; padding: 0 12px; }
+.modal--group-fill { width: min(760px, 100%); }
+.group-fill__settings { align-items: end; margin-bottom: 8px; }
+.group-fill__heading { font: 800 .9rem Manrope, sans-serif; margin: 18px 0 8px; }
+.group-fill__list { display: grid; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.group-fill__row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
+.group-fill__row:last-child { border-bottom: 0; }
+.group-fill__row > span { display: grid; gap: 3px; min-width: 0; }
+.group-fill__row small { color: var(--muted); font-size: .76rem; }
+.group-fill__row .button { min-height: 34px; padding: 0 12px; white-space: nowrap; }
+@media (max-width: 560px) { .group-fill__row { grid-template-columns: minmax(0, 1fr) auto; } .group-fill__row > .button, .group-fill__row > a { grid-column: 1 / -1; justify-self: start; } }
