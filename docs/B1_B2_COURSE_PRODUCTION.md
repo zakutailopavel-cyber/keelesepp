@@ -117,6 +117,13 @@ kordamine”, tunnid `b1b2-k01…k03`, ainult Harjuta). Lisaharjutus ei ole õpi
   `shortSheet: true` (kõik etapid) või etappide loend (`['transfer']`) annab lehele `meta.shortSheet`. Sellisel lehel ei
   kehti terve tunni 40–55 min ega sügavuse minutinormid (`depth.js` thin / live-fast); punktide arv ülesandes, lause
   pikkus ja kõik teised reeglid kehtivad. Mõeldud hajutatud kordamiseks (sama teema mõne päeva tagant).
+- Diagnostiline kontroll (näidis: A2 `a2/kohakaanded.js`, tunnid `a2-k01` / `a2-k02`, „Kus? Kuhu? Kust? — kontroll A / B”):
+  tunni `diagnostic: true` annab lehele `meta.diagnostic` + `meta.shortSheet`. Leht on mõõtmine, mitte tund: ainult
+  suletud, automaatselt kontrollitavad ülesanded (rääkimine / kirjutamine → viga `diagnostic-open`); tunni kuju reeglid
+  (5–9 plokki, ülesandetüüpide vaheldus, lõpus kasutus, naabertunnid erinevad, mooduli tasakaal, sõnavaraplokk) ei kehti,
+  konstruktori vead, taseme normid ja vastused kehtivad. Paralleelvariandid (A = algmõõtmine, B = kordusmõõtmine) on sama
+  ülesehitusega. Iga ülesanne kannab oma eesmärki (`g_kus`, `g_koht`, `g_lopp` tunni `lessonGoals.js`-is) — mängija
+  tulemus „Tulemus tunni eesmärkide kaupa” näitab iga osaoskuse punktid eraldi.
 
 ## 7. Järjekord
 
