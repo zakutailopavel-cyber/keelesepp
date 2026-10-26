@@ -33,3 +33,6 @@ lik
 line
 ne
 tu
+# B1 module 9: the ma-infinitive case endings in the phrase tips (… -mas, … -mast)
+mas
+mast

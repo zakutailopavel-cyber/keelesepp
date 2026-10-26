@@ -69,6 +69,16 @@ Keep facts consistent; add new facts here when a module adds them.
   Viktor has sold at Nõmme market for five years; Anna's grandmother's chicken salad.
 - **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
   from shop customer service); new administrator **Jelena**.
+  Module 9 final shape (2026-10-26, November): café **Kaneel** is open on Friday and Saturday evenings till 23 from
+  November; Jaan works there from 6.00, missed Oskar's football final (Oskar scored), applied to **Kase kool** (director
+  Aivar Mänd; ~420 pupils; cook **Maire Kuusk**, 20 years in the school kitchen, retires next summer; job 7.00–15.30,
+  1500 €/month, three-month trial; letters by 20 November, interviews 26 November); his interview was by phone on
+  Thursday 26 November at 16.00; he starts on 1 December and helps Kaneel on two December Saturdays (Merike agreed).
+  Kadri has worked eight years at the children's hospital, night shifts twice a month. Tuul Logistika: head of
+  personnel **Eha Org** (also module 15); Anna applied a year ago from the department store Kaubahall (was there five
+  years); Sofia covered reception until **Jelena** started on a Thursday; partner **Mart Lepp** (firm Puit); Kase kool's
+  **Helen** orders from Tuul Logistika; warehouse at Peterburi tee (Rein). Career adviser **Piret Vaher** (radio
+  „Tööelu”). Exam 045: bike rental worker **Kaidi** (Pirita), baker **Annika** (changed career at 45).
 - **Module 14:** Helgi born 1966 in Kõrvemaa, studied in Tartu 1984–89, village-school teacher, family moved to Tartu
   in 2000; the father of Jaan and Sofia was a maths teacher; Viktor built his sauna in 1988, repairs bikes since losing
   his job in 1993; Kristel Saar grew up on Saaremaa; the school story evening is on 12 December.
