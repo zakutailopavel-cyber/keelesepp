@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/a2-kohakaanded-check — A2 „Kus? Kuhu? Kust? — kontroll A / B”, published
 
-- Base: `main` 2aec0f9 (2026-10-26). Draft PR from `agent/a2-kohakaanded-check`. Content + a small gate rule (diagnostic).
+- Base: `main` 2aec0f9 (2026-10-26). Draft PR #812 from `agent/a2-kohakaanded-check`. Content + a small gate rule (diagnostic).
 - Asked (owner): a short (~10 min) diagnostic of the place cases for a weak 6th-grade A1–A2 learner — a baseline now and
   the same check in a month, measurable per sub-skill, with a parallel version B; Harjuta only, all items closed.
 - Built: `admin/course/a2/kohakaanded.js` (MODULE `a2-kohakaanded-01`, `supplement: true`, A2, strict): a2-k01 „Kus? Kuhu?
