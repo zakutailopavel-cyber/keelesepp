@@ -1,3 +1,13 @@
+## 2026-10-26 · agent/direction-level-sync — „Muuda andmeid” level reaches the main study track
+
+- Base: `main` a9d4444. Owner: on Svetlana Pitkevichus's card „Muuda andmeid” set B1 → B2, but „Õppesuunad”
+  still showed A1 → B1 (the main track only followed a teacher change).
+- `services/firebase/students.js`: `withMainTrack(stored, current, patch)` (teacher, level, target level);
+  `withMainTrackTeacher` kept as a wrapper; `update()` sends the card's teacher / level / target level to the main
+  track. Read-only check: 15 active cards have a main track level different from the card (tracks show the default
+  A1 → B1) — not changed by this PR.
+- Checks: vitest services/firebase/students + features/students 26 files, 123 passed (+1 test); eslint clean.
+
 ## 2026-10-26 · agent/b1-m07-final — B1 module 7 „Tervis ja enesetunne” in the final shape
 
 - Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR #804 from `agent/b1-m07-final`. Content only; no
