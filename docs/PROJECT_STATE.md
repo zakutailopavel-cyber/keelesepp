@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m10-final — B1 module 10 „Reisimine” in the final shape
 
-- Base: `main` b519e36, merged with `main` a9d4444 (2026-10-26, after #804, module 7). Draft PR from
+- Base: `main` b519e36, merged with `main` a9d4444 (2026-10-26, after #804, module 7). Draft PR #805 from
   `agent/b1-m10-final`. Content only; no production data, no deploy. Parallel agents rewrite modules 8 and 9 (not touched).
 - Asked (owner): module 10 (a2b1-046…050) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 10, §6.3 formats of
   module 10: R4, L4, W2b), Eksaminurk in every teaching lesson, new texts, unique instructions, 80 % target per exam part.
