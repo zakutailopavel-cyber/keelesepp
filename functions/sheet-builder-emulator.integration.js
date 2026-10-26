@@ -81,7 +81,10 @@ test('ChatGPT connector: keys, guide, lessons, check and draft', async () => {
   assert.equal(sheet.publishedWorksheetDoc.meta.title, 'Avaldatud', 'students still see the published sheet');
   assert.equal(sheet.createdBy, 'human');
   assert.equal(sheet.contentOrigin.kind, 'gpt-connector');
-  assert.equal((await db.doc(`worksheetVersions/${lessonId}_practice_studio_v5`).get()).data().note, 'õpik lk 38');
+  assert.equal(sheet.contentOrigin.author, 'KeeleSepp AI');
+  const v5 = (await db.doc(`worksheetVersions/${lessonId}_practice_studio_v5`).get()).data();
+  assert.equal(v5.note, 'õpik lk 38');
+  assert.equal(v5.createdByName, 'KeeleSepp AI (Pavel GPT)');
   assert.equal((await db.doc(`curriculumLessons/${lessonId}`).get()).data().worksheetPhases.practice.publishedVersion, 4);
 
   assert.equal((await call('/keys/revoke', { token: boss.token, method: 'POST', body: { id: made.body.id } })).status, 200);
