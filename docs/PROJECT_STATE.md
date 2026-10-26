@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m07-final — B1 module 7 „Tervis ja enesetunne” in the final shape
 
-- Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR from `agent/b1-m07-final`. Content only; no
+- Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR #804 from `agent/b1-m07-final`. Content only; no
   production data, no deploy. Parallel agents rewrite modules 8, 9, 10 (not touched here).
 - Asked (owner): module 7 (a2b1-031…035) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 7, §6.3 formats L3a and
   W1a, Eksaminurk in every teaching lesson, ≥ 80 % target per exam part).
