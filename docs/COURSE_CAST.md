@@ -60,6 +60,14 @@ Keep facts consistent; add new facts here when a module adds them.
 - **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher
   **Maret**; Anna learns Finnish (Helsinki office); Markus's English course; Liis studied in Helsinki, learns French;
   Ukrainian girl **Daria** and her mother **Olena** (new at Oskar's school).
+  Module 8 final shape (2026-10-26): Daria (from Harkiv) loves maths, drawing and dance, joins the art club (Fridays) at
+  Kase kool; Olena is in Sofia's evening group at Keelekool Sõna. Kase kool activities leader **Triin Saks**; club
+  leaders **Kuldar** (robotics, as in B2), **Kaie** (dance), **Anu** (art), **Arvo** (chess, the Kalamaja pensioner);
+  Keelekool Sõna head **Mihkel**, administrator **Krista**, Markus's English teacher **Hanna**; Maret learns Italian
+  and was on Raadio Linnahääl („Päevateema”, host Ülle). Anna must pass a Finnish exam (B1) in spring for the Helsinki
+  office clients; Liis speaks Finnish with her at the office lunch club „Keel ja kohv” (Tue, Thu 12.30); Anna moved
+  her studying to the mornings (Bruno's walk, bus 17) and starts work at nine on Tue and Thu; personnel head **Eha Org**
+  (room 214). Markus missed three English lessons (trips to Riga) and chose morning one-to-one lessons.
 - **Module 6:** Markus has a milk allergy, Oskar a nut allergy, Mia does not eat fish; Viktor sells apples, eggs and
   honey at Nõmme market.
   Module 6 final shape (2026-10-26): Helgi (surname Mets) spends a week at Sofia's in Kalamaja; neighbour **Tiina** is a

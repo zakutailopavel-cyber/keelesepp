@@ -1,3 +1,47 @@
+## 2026-10-26 · agent/b1-m08-final — B1 module 8 „Õppimine” in the final shape
+
+- Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR from `agent/b1-m08-final` (link in the PR list).
+  Content only; no production data, no deploy. Parallel agents rewrite modules 7, 9, 10 (not touched here).
+- Asked (owner): module 8 (a2b1-036…040) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 8, §6.3 R2 + L2,
+  §7, §8), Vahehindamine 2 with a skills profile against 001 and 020.
+- Done: `b1/module08.js` rewritten (storyline: everybody learns — Daria from Harkiv joins Oskar's 3.b, her mother Olena
+  is in Sofia's evening group; Anna's Finnish exam and her new mornings; Markus fell behind in English):
+  - 036 AVAS R→S (rektsioon introduced) — try first (G13) → class teacher's letter (R13) → Olena at the course break
+    (L04) → rule (G02) → picture 3× (S06) + 8-min writing (W06); again (G08), corner **R2** (school paper, format
+    introduced), Olena's letter (R03), club radio (L10), sort (G04), chat (R12), info gap (S05); Kasuta: four club cards
+    (R11), agreement (S03), main **S04** call to the activities leader, W02 note, S01 parents meet.
+  - 037 KUUL L→W (ma/da) — corner **L2** (Maret on Raadio Linnahääl, format introduced), Anna and Liis at lunch (L03),
+    rule (G02), rewrite (G05), 4-3-2 (S08); crossword, gaps, notice board (R07) + T/F (R06), dictation, W03
+    invitation, opinion 3× (S11); Kasuta: voicemail → notes (L07), Liis is told (S13), plan (W11), main **W04** letter
+    to Kati 80–100 words, S02 topic questions.
+  - 038 LUGE R→W (sest/kuna/seepärast) — article with headings (R09), survey chart, coffee-machine talk (L05), word
+    order (G07), -mine nouns (G09), survey (S09); linkers (G13), newsletter bank (R04), joining (W09), director's
+    voicemail (L09), errors (G06), corner **W1a** questionnaire; Kasuta: Anna's blog (R05), working hours with Liis
+    (S10, twice), main **W05** story „Miks ma õpin” 90–110 words, W10 rewrite.
+  - 039 RÄÄK L→S (rektsioon again + polite requests) — 10 voice messages (L01), teacher Hanna's voicemail (L06), cases
+    (G08), polite requests (G05), retelling (S07), message rewritten for the teacher (W12); course ads (R01), letter
+    forms (G03), translation (G10), sort (G04), corner **S2** call to the language school, own problem 3× (S02);
+    Kasuta: course table + notes (R08 `level: 3`), main **S03** agreement on Markus's plan, ranking (S12), W08 reply.
+  - 040 EKS Vahehindamine 2 — Avasta review + language items with areas (`why`/`areas`); R part (R1, A2 profiles, R2,
+    R3a; 38 p, target 31), L part (L1, L2, L3a, A2 gaps; 31 p, target 25), W part (W1b, W2a; 20), S part (S0, S1a,
+    S2; 20); `B.examPart` per part; profile table lessons 1 / 20 / 40 + „Mida tulemus tähendab?”.
+  - §6.2 row 8 used as written (all leads fit §4); a note added under the table. Goals 036–040 in `b1/lessonGoals.js`;
+    cast facts in `COURSE_CAST.md`; module-8 pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.2.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-036…040` (L2 corner 145 s, exam L2 110 s), 9 old
+  manifest entries and 8 old files removed, 038_d_coffee re-recorded; „krista” added to `FEMALE` in
+  `tools/listening-audio/plan.mjs`; proovitest forms and „vahetestist” to `language-allow.txt`.
+- Checks: `course:final-shape --module 8` 78 → 0; baseline 979 → 890 (only shrank: module 8 −78, modules 9/12/15 −6 V2/V7
+  that pointed at old module-8 sheets, course −5 V6). Strict + older quality gate for module 8: 0.
+  `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed, 4 skipped. eslint on changed files: 0. Vabamorf
+  speller: 0 unknown words except names and the technical value `kusimustik`. All 15 sheets rendered on a local stand
+  (print mode, not committed), no layout problems.
+- Limits: sheets are 40–52 min (exam sheets 48–58); 037/038 Avasta and 038 Harjuta stay at 40 because every catalogue
+  id is used (all 16 speaking slots). The R2 corner in 036 is a `reading` with open paraphrase questions (a `choice`
+  would be 4 min, below the corner's 8). V2 and the recycling share were checked against today's `main` only (modules
+  7 and 9 are being rewritten): 036 opens Avasta with G13, Harjuta with G08, Kasuta with R11; 039 corner is S2.
+- Next safe step: owner reviews module 8 in „Kursuse tootmine” and publishes it; the module 9 author starts 041 with
+  a corner other than S2 and re-checks V2 against 039.
+
 ## 2026-10-26 · agent/b1-m06-final — B1 module 6 „Toit ja teenindus” in the final shape
 
 - Base: `main` 092f898 (2026-10-26, after #798, module 2). Draft PR #800 from `agent/b1-m06-final`. Content only; no

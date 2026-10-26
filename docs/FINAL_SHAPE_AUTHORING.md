@@ -328,3 +328,32 @@ Module 5 reached 0 problems on every gate with the same loop. New pitfalls on to
 - A „try first” test with over-generalised forms (*tulis, sõis*) is reported by the Vabamorf speller; that is expected.
 - Keep one timeline for the module in a scratch note (who did what on which day): with 15 sheets the same event is told
   in a story, a diary, a call and a letter, and a weekday slips easily.
+
+### 8.2 Module 8 (2026-10-26, `b1/module08.js`, a2b1-036…040, 78 → 0 problems)
+
+§6.2 row 8 (AVAS R→S · KUUL L→W · LUGE R→W · RÄÄK L→S) is valid as written: no swap. New pitfalls:
+
+- **Corners in R2 and L2 (introduced in module 8).** Only the `harno`-tagged block counts for the 8–12 corner minutes,
+  and a `choice` is n × 0.4 min (4 min for 10 questions). A teaching-lesson R2 corner is therefore the `reading` itself,
+  tagged `{ harno: 'R2' }`: ≈ 230–260 words + 7–8 paraphrase questions ≈ 9–10 min (the teacher note says that the exam
+  has three options). An L2 corner is `B.examListen(…, 'choice', …)` with a ~330-word radio transcript and 10 questions
+  ≈ 10 min. The same reading is also the module's ≥ 240-word text for `harno-reading`.
+- **The speaking ids run out first.** S01–S13 with S02/S03/S04 twice are 16 slots; module 8 used all 16. Plan the
+  fluency tasks on S06, S07, S08, S09, S11 and a second S02, and tag role cards with the id they really are (S10 a
+  request to the boss, S13 relaying a voicemail) — an untagged second `rolecards` is S05 again (`V4-max-S05`).
+- **`dialogue` items are counted by `[` in the JSON** of its lines (`didacticCheck`), so the array's own bracket adds
+  one: 10 gaps measure as 11 (> 10 at B1-). Write 9 gaps.
+- **One-to-one regex:** `\bklassis` also matches „klassist” (a passage title „Uudised 3.b klassist”) and a gap sentence
+  „samas [klassis]”; an `examPart` note „paaris” counts too. Reword („Uudised: 3.b”, „kahekesi”).
+- **Exam lesson goals:** `lessonGoals.test.js` wants exactly g_read, g_notice and g_use for an assessment lesson — no
+  g_vocab, even when its Avasta has a vocab box.
+- **Speller:** bold inside a word („tege**ma** → teh**a**”) splits it into „tege”, „teh” for Vabamorf. Bold whole words.
+- **Names:** check `COURSE_CAST.md` before naming a new person: Tiina (Sofia's neighbour) and Aivar (Kase kool's
+  director) were almost reused for a language teacher and a language-school head (now Hanna, Mihkel).
+- **Minutes at the cap:** with 9 own blocks and every catalogue id used, a sheet stays at 40 min; longer texts add
+  little (+100 words ≈ +1.9 min of reading). An Avasta with a free slot can take a W12 register-shift letter
+  (`tag(B.letter(…), { task: 'W12' })`, ≈ 10 min) — 039 used it for Markus's message rewritten for the teacher.
+- **Vahehindamine 2 (040)** follows 030's shape (Avasta = review and language with `why(…, areas(…))`, Harjuta = R and L
+  parts, Kasuta = W and S parts) plus 020's profile table with three columns (lessons 1, 20, 40). The Harjuta of an exam
+  lesson is exempt from the item norm, but its `choice` questions still count for the sheet's average sentence length
+  (≥ 5 words): write 6–9-word questions.
