@@ -6,6 +6,7 @@ import LiveWorksheetView from '../worksheet-studio/LiveWorksheetView.jsx';
 import { answerProgress } from '../worksheet-studio/engine/registry.js';
 import '../homework/reviewLayout.css';
 import SubmissionReviewModal from '../homework/SubmissionReviewModal.jsx';
+import { sortWorks } from '../homework/workOrder.js';
 import { formatDate } from '../homework/submissionFormat.js';
 import { studentWorksheetsService } from '../../services/firebase/studentWorksheets.js';
 
@@ -43,7 +44,7 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
         .then((items) => ({ items, error: '' }))
         .catch((error) => ({ items: [], error: error.message || 'Isiklikke mustandeid ei saanud laadida.' })),
     ]))
-      .then(([items, assignments, drafts]) => { if (alive) setState({ loading: false, error: '', items: items || [], open: (assignments || []).filter((item) => item.status !== 'done' && item.reviewStatus !== 'reviewed'), drafts: drafts.items || [], draftError: drafts.error }); })
+      .then(([items, assignments, drafts]) => { if (alive) setState({ loading: false, error: '', items: items || [], open: sortWorks((assignments || []).filter((item) => item.status !== 'done' && item.reviewStatus !== 'reviewed')), drafts: drafts.items || [], draftError: drafts.error }); })
       .catch((error) => { if (alive) setState({ loading: false, error: error.message || 'Töid ei saanud laadida.', items: [], open: [], drafts: [], draftError: '' }); });
     return () => { alive = false; };
   }, [homeworkApi, privateWorksheetApi, student.id, version]);
@@ -87,12 +88,12 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
         <section className="student-works__open" aria-label="Määratud, veel esitamata">
           <h3>Määratud, veel esitamata ({open.length})</h3>
           <div className="submission-list">
-            {open.map((assignment) => {
+            {open.map((assignment, index) => {
               const info = openState(assignment);
               return (
                 <button type="button" className="submission-row" key={assignment.id} onClick={() => setWatching(assignment)}>
                   <i><FileText size={20} /></i>
-                  <span className="submission-row__main"><strong>{assignment.title}</strong><small>{[assignment.assignedAt ? `määratud ${formatDate(assignment.assignedAt)}` : '', assignment.dueDate ? `tähtaeg ${assignment.dueDate}` : ''].filter(Boolean).join(' · ')}</small></span>
+                  <span className="submission-row__main"><strong><span className="work-step" aria-label={`${index + 1}. samm`}>{index + 1}.</span> {assignment.title}</strong><small>{[assignment.assignedAt ? `määratud ${formatDate(assignment.assignedAt)}` : '', assignment.dueDate ? `tähtaeg ${assignment.dueDate}` : ''].filter(Boolean).join(' · ')}</small></span>
                   <Badge tone={info.tone}>{info.overdue ? `${info.label} · hilinenud` : info.label}</Badge>
                   <Eye size={18} aria-hidden="true" />
                 </button>
