@@ -113,6 +113,10 @@ kordamine”, tunnid `b1b2-k01…k03`, ainult Harjuta). Lisaharjutus ei ole õpi
 - lehe märk on mooduli nimi, mitte number (`meta.supplement`);
 - Õppevaras on tunnil oma `curriculumLessons/<id>` kirje (sama õppekava, `roadmapModuleTitle` = lisaharjutuse nimi,
   ilma `roadmapModuleNumber`-ita → taseme lõpus), nii et õpetaja saab lehe määrata nagu iga teise tunni lehe.
+- Lühike kordamisleht (näidis: A2 `a2/lihtminevik.js`, tunnid `a2-l01…l04`, „Lihtminevik: si- ja i-minevik”): tunni
+  `shortSheet: true` (kõik etapid) või etappide loend (`['transfer']`) annab lehele `meta.shortSheet`. Sellisel lehel ei
+  kehti terve tunni 40–55 min ega sügavuse minutinormid (`depth.js` thin / live-fast); punktide arv ülesandes, lause
+  pikkus ja kõik teised reeglid kehtivad. Mõeldud hajutatud kordamiseks (sama teema mõne päeva tagant).
 
 ## 7. Järjekord
 
