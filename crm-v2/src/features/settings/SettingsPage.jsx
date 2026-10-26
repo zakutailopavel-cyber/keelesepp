@@ -1,6 +1,6 @@
-import { CheckCircle2, Compass, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
+import { CalendarClock, CheckCircle2, Compass, Database, Eye, KeyRound, Save, ShieldAlert, ShieldCheck, UserRound } from 'lucide-react';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, Input, PageHeader, Select } from '../../components/ui/index.js';
 import PeopleOverview from '../../components/PeopleOverview.jsx';
@@ -49,6 +49,16 @@ export default function SettingsPage({ parentRepository = parentsService, studen
   const [supportLoading, setSupportLoading] = useState(false);
   const [supportError, setSupportError] = useState('');
   const isAdmin = hasAnyRole(user.roles, [ROLES.ADMIN]);
+  // owner 2026-10-26: „настройки для учителей … собрать в кучу, а то там много разных блоков” — four tabs instead of
+  // one long wall of cards: my account; my work (staff); the school and technical tools (admin)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabs = [
+    { id: 'konto', label: 'Minu konto' },
+    ...(hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]) ? [{ id: 'too', label: 'Minu töö' }] : []),
+    ...(isAdmin ? [{ id: 'kool', label: 'Kool' }, { id: 'tehniline', label: 'Tehniline' }] : []),
+  ];
+  const tab = tabs.some((item) => item.id === searchParams.get('tab')) ? searchParams.get('tab') : 'konto';
+  const chooseTab = (id) => setSearchParams(id === 'konto' ? {} : { tab: id }, { replace: true });
   const isStaff = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]);
 
   const loadSupportUsers = async () => {
@@ -173,33 +183,31 @@ export default function SettingsPage({ parentRepository = parentsService, studen
     ]} />
     {success ? <div className="success-notice" role="status">{success}<button aria-label="Sulge teade" onClick={() => setSuccess('')}>×</button></div> : null}
     {actionError ? <div className="action-error" role="alert">{actionError}<button aria-label="Sulge veateade" onClick={() => setActionError('')}>×</button></div> : null}
-    <section className="settings-grid">
-      {isStaff ? <Card><div className="settings-icon"><Compass /></div><h2>Juhend</h2><p className="settings-copy">Süsteemi tutvustus õpetajale: esimesed sammud ja kõik KeeleSepa võimalused ühes kohas · Все возможности системы для учителя.</p><Link className="button button--secondary" to="/guide"><Compass size={17} /> Ava juhend</Link></Card> : null}
+    {tabs.length > 1 ? <nav className="settings-tabs" role="tablist" aria-label="Seadete osad">{tabs.map((item) => <button type="button" role="tab" key={item.id} aria-selected={tab === item.id} className={tab === item.id ? 'is-active' : ''} onClick={() => chooseTab(item.id)}>{item.label}</button>)}</nav> : null}
+    {tab === 'konto' ? <section className="settings-grid">
       <Card className="settings-profile-card"><div className="settings-icon"><UserRound /></div><h2>Minu andmed</h2><form className="settings-profile-form" onSubmit={save}><Input id="settings-name" label="Nimi" autoComplete="name" required maxLength="160" value={form.displayName} onChange={(event) => setForm({ ...form, displayName: event.target.value })} /><Input id="settings-phone" label="Telefon" type="tel" autoComplete="tel" maxLength="40" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} /><Input id="settings-email" label="E-post" type="email" value={user.email} disabled /><p className="form-hint">E-posti või rolli muutmiseks pöördu administraatori poole.</p><Button type="submit" loading={saving}><Save size={17} /> Salvesta andmed</Button></form></Card>
-
       {hasAnyRole(user.roles, [ROLES.STUDENT]) && !preview ? <PetSettingsCard user={user} /> : null}
-      {hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]) && !preview ? <GoogleCalendarCard user={user} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} /> : null}
       <Card><div className="settings-icon"><ShieldCheck /></div><h2>Ligipääs</h2><div className="detail-list"><div><dt>Kasutaja</dt><dd>{user.displayName}</dd></div><div><dt>E-post</dt><dd>{user.email}</dd></div><div><dt>Rollid</dt><dd>{user.roles.join(', ')}</dd></div><div><dt>Konto UID</dt><dd className="mono">{user.uid}</dd></div></div></Card>
-
       <Card><div className="settings-icon"><KeyRound /></div><h2>Turvalisus</h2><p className="settings-copy">Parooli ei kuvata ega muudeta CRM-is otse. Firebase saadab turvalise taastamislingi ainult sinu praeguse konto e-posti aadressile.</p><Button variant="secondary" loading={resetting} onClick={resetPassword}>Saada parooli taastamise link</Button></Card>
-
-      <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card>
-
-      {isAdmin ? <Card><div className="settings-icon"><Eye /></div><h2>Vanema / õpilase vaade</h2><p className="settings-copy">Ava valitud lapsevanema või õpilase kabinet ilma tema parooli ja Firebase Auth seanssi muutmata. Tugivaade on vaikimisi ainult lugemiseks.</p>{!supportData ? <Button variant="secondary" loading={supportLoading} onClick={loadSupportUsers}>Laadi kasutajad</Button> : <div className="settings-profile-form"><Select label="Vaate tüüp" value={supportType} onChange={(event) => { setSupportType(event.target.value); setSupportTarget(''); }}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></Select><Select label={supportType === 'parent' ? 'Lapsevanem' : 'Õpilane'} value={supportTarget} onChange={(event) => setSupportTarget(event.target.value)}><option value="">Vali kasutaja</option>{(supportType === 'parent' ? supportData.parents : supportData.students).map((item) => <option value={item.id} key={item.id}>{supportType === 'parent' ? (item.displayName || item.email || 'Nimetu lapsevanem') : (item.name || 'Nimetu õpilane')}</option>)}</Select><Button disabled={!supportTarget} onClick={openSupportView}><Eye size={17} /> Ava read-only vaade</Button></div>}{supportError ? <p className="form-hint" role="alert">{supportError}</p> : null}</Card> : null}
-
+    </section> : null}
+    {tab === 'too' ? <section className="settings-grid">
+      {isStaff ? <Card><div className="settings-icon"><Compass /></div><h2>Juhend</h2><p className="settings-copy">Süsteemi tutvustus õpetajale: esimesed sammud ja kõik KeeleSepa võimalused ühes kohas · Все возможности системы для учителя.</p><Link className="button button--secondary" to="/guide"><Compass size={17} /> Ava juhend</Link></Card> : null}
+      <Card><div className="settings-icon"><CalendarClock /></div><h2>Minu vabad ajad</h2><p className="settings-copy">Märgi nädala ajad, mil saad tunde anda (roheline), ainult veebis (kollane) või ei saa (punane). Neid kasutavad Planeerija, „Ei saa tulla?” ja tundide lisamine.</p><Link className="button button--secondary" to="/calendar?ajad=1">Ava minu ajad kalendris</Link></Card>
+      {hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]) && !preview ? <GoogleCalendarCard user={user} {...(googleCalendarRepository ? { repository: googleCalendarRepository } : {})} /> : null}
+    </section> : null}
+    {tab === 'kool' ? <section className="settings-grid">
       {isAdmin && !preview ? <SheetBuilderCard {...(sheetBuilderRepository ? { service: sheetBuilderRepository } : {})} /> : null}
       {isAdmin && !preview ? <MissingDataSettingsCard user={user} {...(missingDataRepository ? { service: missingDataRepository } : {})} /> : null}
-
       {isAdmin && !preview ? <StudyDirectionsCard user={user} studentService={studentRepository} {...(directionsRepository ? { service: directionsRepository } : {})} /> : null}
-
       {isAdmin && !preview ? <LearnerEmailsCard user={user} {...(learnerEmailsRepository ? { service: learnerEmailsRepository } : {})} /> : null}
-
+      {isAdmin ? <Card><div className="settings-icon"><Eye /></div><h2>Vanema / õpilase vaade</h2><p className="settings-copy">Ava valitud lapsevanema või õpilase kabinet ilma tema parooli ja Firebase Auth seanssi muutmata. Tugivaade on vaikimisi ainult lugemiseks.</p>{!supportData ? <Button variant="secondary" loading={supportLoading} onClick={loadSupportUsers}>Laadi kasutajad</Button> : <div className="settings-profile-form"><Select label="Vaate tüüp" value={supportType} onChange={(event) => { setSupportType(event.target.value); setSupportTarget(''); }}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></Select><Select label={supportType === 'parent' ? 'Lapsevanem' : 'Õpilane'} value={supportTarget} onChange={(event) => setSupportTarget(event.target.value)}><option value="">Vali kasutaja</option>{(supportType === 'parent' ? supportData.parents : supportData.students).map((item) => <option value={item.id} key={item.id}>{supportType === 'parent' ? (item.displayName || item.email || 'Nimetu lapsevanem') : (item.name || 'Nimetu õpilane')}</option>)}</Select><Button disabled={!supportTarget} onClick={openSupportView}><Eye size={17} /> Ava read-only vaade</Button></div>}{supportError ? <p className="form-hint" role="alert">{supportError}</p> : null}</Card> : null}
+    </section> : null}
+    {tab === 'tehniline' ? <section className="settings-grid">
+      <Card><div className="settings-icon"><Database /></div><h2>Firebase</h2><div className="integration-row"><div><strong>Andmebaasi ühendus</strong><span>Autentimine ja Firestore</span></div><Badge tone={configured ? 'success' : 'danger'}>{configured ? 'Ühendatud' : 'Seadistamata'}</Badge></div><div className="integration-row"><div><strong>Ligipääsureeglid</strong><span>Rollipõhine kaitse</span></div><CheckCircle2 size={20} color="#067647" /></div></Card>
       {isAdmin && !preview ? <TestStudentCard /> : null}
-
       {isAdmin ? <DataCleanupPanel user={user} /> : null}
-
       {isAdmin ? <Card><div className="settings-icon"><ShieldAlert /></div><h2>Teacher-scope migratsioon (diagnostika)</h2><p className="settings-copy">Ajutine admin-tööriist: kontrollib, kas õpetajate andmed on valmis range teacherUid-põhise ligipääsu jaoks, käivitab backfilli ja lülitab range kontrolli sisse. Iga toiming nõuab kaht klõpsu (kinnitus ilma brauseri hüpikaknata). Rollback on olemas serveris.</p><div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}><Button variant="secondary" loading={migrationLoading} onClick={previewTeacherScopeMigration}>Preview</Button><Button variant={migrationApplyArmed ? 'primary' : 'secondary'} loading={migrationApplyLoading} onClick={applyTeacherScopeMigration}>{migrationApplyArmed ? 'Kinnita: rakenda backfill' : 'Rakenda (apply)'}</Button><Button variant={migrationEnforceArmed ? 'primary' : 'secondary'} loading={migrationEnforceLoading} onClick={enforceTeacherScopeMigration}>{migrationEnforceArmed ? 'Kinnita: luba range piirang' : 'Luba range piirang (enforce)'}</Button></div>{migrationError ? <p className="form-hint" role="alert">{migrationError}</p> : null}{migrationPreview ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationPreview, null, 2)}</pre> : null}{migrationApplyResult ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationApplyResult, null, 2)}</pre> : null}{migrationEnforceResult ? <pre className="mono" style={{ whiteSpace: 'pre-wrap', fontSize: '12px', marginTop: '12px' }}>{JSON.stringify(migrationEnforceResult, null, 2)}</pre> : null}</Card> : null}
-    </section>
+    </section> : null}
   </div>;
 
 }
