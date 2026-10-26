@@ -273,8 +273,8 @@ export default function FinanceMonthPage({
         <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link>{canManage ? <Link className="button button--secondary" to="/finance/raamatupidamine"><BookOpen size={17} /> Raamatupidamine</Link> : null}{canManage ? <Link className="button button--secondary" to="/finance/inf3">INF 3</Link> : null}<Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog studentCards={state.data.students} onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}{canManage ? <TokenInvoiceDialog studentCards={state.data.students} plans={state.data.plans} onCreated={async (invoice, { sent }) => { announce(`Tunnipaketi arve ${invoice.num || ''} loodi${sent ? ' ja saadeti' : ''}. Tunnid lisatakse pärast makset.`); await state.reload(); }} /> : null}</div>
       </header>
 
-      {/* „Ülevaade” (owner 2026-10-26): revenue by month and the calendar's forecast — administrators */}
-      {canManage ? <FinanceDashboard invoices={invoices} students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
+      {/* „Ülevaade” (owner 2026-10-26): what the calendar's lessons earn — held and planned, not the invoices — administrators */}
+      {canManage ? <FinanceDashboard plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
 
       <div className="finance-month-switcher">
         <Button variant="secondary" aria-label="Eelmine kuu" onClick={() => setMonth(shiftMonth(month, -1))}><ArrowLeft size={17} /></Button>
