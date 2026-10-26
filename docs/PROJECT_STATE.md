@@ -1,3 +1,25 @@
+## 2026-10-26 · agent/b1-m05-final — B1 module 5 in the final shape
+
+- Base: `main` 092f898 (after #798, B1 module 2). Draft PR from `agent/b1-m05-final`. Content only; no production data,
+  no deploy. Parallel agents rewrite modules 3, 4 and 6 (not touched here).
+- Asked (owner): module 5 „Lihtminevik ja kogemused” (a2b1-021…025) to the final shape (`COURSE_FINAL_SHAPE_B1.md`
+  §6.2–6.4, §7–8); fix the audit's can-do/time mismatch (024 promised 2–3 min speaking).
+- Done: `b1/module05.js` rewritten with new texts and items, one storyline (Linnaleht story contest „Minu kõige
+  ootamatum päev”). 021 LUGU R→W (regular past -si-/-s- and negation; main W04 letter to the sick colleague, 80–100
+  words); 022 RÄÄK R→S (time words, verb second; main S03 agreement on the team outing; 4-3-2); 023 AVAS L→S (irregular
+  past; test → rule → test; Harno L1 clips introduced, tagged `L1`; main S10 problem with the festival organiser);
+  024 KIRJ L→W (process writing; main W05 story 80–100 words, Harno W2a introduced, tagged `W2a`; the can-do now promises
+  writing, matching the main task); 025 EKS (Harno A2 form + B1 tasks R2, R3a, L1, L4, L3a, W1b, W2a, S0, S2; timed
+  parts, 80 % target per part). §6.2 swap: 022 RÄÄK / 023 AVAS (allowed), so AVAS introduces the irregular past
+  (grammarPlan 021/023 unchanged). Goals 021–025 in `b1/lessonGoals.js`; cast in `docs/COURSE_CAST.md`; pitfalls in
+  `docs/FINAL_SHAPE_AUTHORING.md` §8.1.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-021…025`; 9 old files and 8 manifest entries removed.
+- Checks: see the PR (final-shape module 5, older and strict gates, vitest, eslint, speller, every sheet rendered).
+- Limits: sheets 40–43 min (gate 40–55; 45+ would need more tasks than the id caps allow); one Kasuta reading has
+  `level: 3` (024 contest rules, application questions); the „try first” test uses over-generalised non-words as wrong
+  options on purpose.
+- Next safe step: owner reviews module 5 in „Kursuse tootmine”; then the next module with the S/W id plan of §8.1.
+
 ## 2026-10-26 · agent/b1-m02-final — B1 module 2 in the final shape (pilot module)
 
 - Base: `main` 6a63532, merged with `main` 14f9af9 (after #797, B1 module 1). Draft PR #798 from `agent/b1-m02-final`. Content
