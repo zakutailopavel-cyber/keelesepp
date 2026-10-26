@@ -329,7 +329,40 @@ Module 5 reached 0 problems on every gate with the same loop. New pitfalls on to
 - Keep one timeline for the module in a scratch note (who did what on which day): with 15 sheets the same event is told
   in a story, a diary, a call and a letter, and a weekday slips easily.
 
-### 8.2 Module 10 (2026-10-26, `b1/module10.js`, a2b1-046…050)
+### 8.2 Module 7 (2026-10-26, `b1/module07.js`, a2b1-031…035)
+
+Module 7 („Tervis”, KUUL L→W · LUGU R→S · AVAS L→S · KIRJ R→W, §6.2 row as written) went 57 → 0 problems. New pitfalls:
+
+- **Minutes are in the transcripts.** `timeEstimate.js` counts a listening as words/110 × 2 + 0.4 a gap and has no length
+  gate: +100 words of transcript ≈ +1.8 min, the cheapest honest way to 40+ min. An `examWriting` card counts
+  (min + max words)/20 + 3, so a letter of 90–110 words is 13 min (80–100: 12).
+- **Avasta can carry two speaking blocks.** `own` blocks (5–9) do not count the review and the picture; with the input,
+  the notice, one rule task and two fluency talks (S06 + S11, or S07 + S02 to two listeners) an Avasta is 43–45 min and
+  the lesson's fluency strand is done in one sheet.
+- **Harjuta „live” depth (≥ 15 min at B1-):** `cloze`, `choice`, `adsmatch`, `examlisten` count ~9 s an item; only
+  `listening`, `reading`, `formtext` and `insertion` count their full minutes. A Harjuta of closed tasks needs one of those
+  (032 got a medicine-leaflet `reading` tagged `{ task: 'R07', level: 2 }`).
+- **Two `listening` blocks on one Harjuta = `v4-repeat`.** When the corner is L3a (a `listening`), the L10 numbers task
+  goes to another lesson.
+- **The exam corner is counted to the minute:** an `adsmatch` with ~120 words of ads and 10 situations is 7.7 min and
+  fails V12 (8–12); ~150 words of ads are needed.
+- **`didacticCheck` texts:** a quote ending in „…” glued to the next sentence makes one 24-word sentence (> 18) — use
+  reported speech in readings. A diary in telegraphic style („Kohv: 4 tassi. Uni: 1.00.”) pulls the sheet's average
+  sentence length to 6 (B1- wants ~11): write full sentences. An R2 article followed by `choice` needs one
+  „miks / mida arvab” question in the choice block, or the reading is reported as „all factual”.
+- **Exam lesson goals:** `lessonGoals.test.js` lists 035 (not 030) among the assessments, so 035's goals are exactly
+  `g_notice`, `g_read`, `g_use` — no `g_vocab`.
+- **Vocabulary recycling:** headwords that do not come back (tõstma, keelama) are easier to swap for ones that do
+  (trepp, kepp) than to force into three sheets. The stem is the headword minus two letters, so short words pass easily.
+- **One-to-one regex reads readings too:** „Päikese rühmas” in a column text triggered `v4-one-to-one`.
+- **Self-check the sorting columns:** „Anna sai tööle tulla” is saama + infinitive, not the translative — the gates do not
+  see that. Read every categorize column against its heading.
+- Speller: the endings „-ge / -ke” in the imperative notice are reported (not in `GRAMMAR`); „pilates” is unknown
+  (replaced by „venitus”).
+- Timeline: keep the month of every episode in a note — „jõuluks” in a January letter and a new colleague who already
+  appears in November were caught only on re-reading.
+
+### 8.3 Module 10 (2026-10-26, `b1/module10.js`, a2b1-046…050)
 
 Module 10 went 80 → 0 problems (final shape, older quality gate, strict gate) with the same loop. New pitfalls:
 
