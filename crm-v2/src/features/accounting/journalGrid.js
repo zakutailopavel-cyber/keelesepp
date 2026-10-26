@@ -96,7 +96,8 @@ export function workingProblem(working, { origin = 'manual', accounts = [], reas
   else if (empty) result.problem = `Real ${empty.account} puudub summa.`;
   else if (values.lines.length < 2 || !values.lines.some((l) => l.debitCents) || !values.lines.some((l) => l.creditCents)) result.problem = 'Kandes peab olema vähemalt üks deebet- ja üks kreeditrida.';
   else if (totals.debit !== totals.credit) result.problem = `Deebet ja kreedit ei ole võrdsed: vahe ${amount(Math.abs(totals.debit - totals.credit))}.`;
-  else if (partnerProblem(working.lines, { required: origin === 'manual' })) result.problem = partnerProblem(working.lines, { required: origin === 'manual' });
+  // a partner on 2110 / 1350 is optional (owner 2026-10-26); a typed name must still be a supplier
+  else if (partnerProblem(working.lines)) result.problem = partnerProblem(working.lines);
   else if (!String(working.description || '').trim()) result.problem = 'Kande sisu (kirjeldus) on kohustuslik.';
   else if (!String(working.documentRef || '').trim()) result.problem = 'Viide algdokumendile on kohustuslik.';
   else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(working.date || ''))) result.problem = 'Kande kuupäev on vigane.';
