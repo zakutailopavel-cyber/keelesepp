@@ -350,7 +350,7 @@ content author may swap two lessons inside a module if the grammar needs it, as 
 | 3 | Kodu ja linn | KUUL L→S | LUGE R→W | RÄÄK L→W* | PROB R→S | EKS A2 |
 | 4 | Aeg ja plaanid | AVAS R→S | KUUL L→W | LUGE R→W* | PROB L→S | Vahehindamine 1 (A2) |
 | 5 | Lihtminevik | LUGU R→W | AVAS L→S | RÄÄK R→S* | KIRJ L→W* | EKS A2 + B1 tasks |
-| 6 | Toit ja teenindus | LUGE R→W | KUUL L→S | AVAS R→S | PROB L→W | EKS A2 + B1 tasks |
+| 6 | Toit ja teenindus | LUGE R→W | KUUL L→S | AVAS L→W** | PROB R→S** | EKS A2 + B1 tasks |
 | 7 | Tervis | KUUL L→W | LUGU R→S | AVAS L→S | KIRJ R→W | EKS A2 + B1 tasks |
 | 8 | Õppimine | AVAS R→S | KUUL L→W | LUGE R→W | RÄÄK L→S | Vahehindamine 2 (A2 + B1 R/L) |
 | 9 | Töö | LUGU R→W | AVAS L→S | KIRJ L→W* | PROB R→S | EKS B1 (reduced) |
@@ -364,6 +364,8 @@ content author may swap two lessons inside a module if the grammar needs it, as 
 | 17 | Lugemine ja kirjutamine | KUUL L→S | LUGE R→W | AVAS R→S | KIRJ L→W | Kontroll (B1 R + W, timed) |
 | 18 | Monoloog ja dialoog | PROB L→S | KIRJ R→W | RÄÄK R→S | — | Mock 3 (089) + Final (090) |
 
+`**` Module 6 (2026-10-26): the first plan had PROB L→W, which §4 (PROB → S) and the V5-lead gate do not allow; the
+leads moved to AVAS L→W and PROB R→S, so the four pairs stay once each (`b1/module06.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 

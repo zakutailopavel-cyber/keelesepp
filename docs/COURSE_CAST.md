@@ -62,6 +62,11 @@ Keep facts consistent; add new facts here when a module adds them.
   Ukrainian girl **Daria** and her mother **Olena** (new at Oskar's school).
 - **Module 6:** Markus has a milk allergy, Oskar a nut allergy, Mia does not eat fish; Viktor sells apples, eggs and
   honey at Nõmme market.
+  Module 6 final shape (2026-10-26): Helgi (surname Mets) spends a week at Sofia's in Kalamaja; neighbour **Tiina** is a
+  vegetarian; café **Kaneel** (owner **Merike Lõhmus**, cook **Ott**; Jaan cooks there and serves this week); restaurant
+  **Aed** (**Marta** takes bookings); delivery firm **„Kiire Kõht”** (order 4471, 23 € refunded + a gift card); food bank
+  worker **Kaja Raud**; Kalamaja society head **Tõnis Rebane** (sharing fridge); catering firm **„Pidulaud”** (**Liina**);
+  Viktor has sold at Nõmme market for five years; Anna's grandmother's chicken salad.
 - **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
   from shop customer service); new administrator **Jelena**.
 - **Module 14:** Helgi born 1966 in Kõrvemaa, studied in Tartu 1984–89, village-school teacher, family moved to Tartu
