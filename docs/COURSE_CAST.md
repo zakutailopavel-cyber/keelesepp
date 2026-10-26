@@ -57,6 +57,17 @@ Keep facts consistent; add new facts here when a module adds them.
   broke down). Anna lost her green bag with her sister's wedding invitation at the market and got it back in the café.
 - **Module 7:** Viktor hurt his knee cycling; new colleague **Kristjan** at Sofia's office; family doctor **dr Kask**,
   nurse **Kati** (advice line), **dr Tamm** (radio sleep expert).
+  Module 7 final shape (2026-10-26): November flu wave — Anna falls ill at the office (Monday) and stays home in Saue
+  for a week (voicemail, calls by phone); client **Lepik** from Pärnu; family doctor **dr Kersti Kask** (Kalamaja
+  perearstikeskus, Vabriku 12, phone 640 2211) — Markus has bronchitis after two weeks of cough (no pneumonia), sick
+  note until Friday, loses his voice on Thursday so Sofia calls the centre for him; pharmacist **Piret** (Kalamaja
+  apteek); Viktor falls off his bike on a slippery road on Saturday — trauma doctor **Tarmo Kivi** (Mustamäe
+  traumapunkt): sprained knee, no bike for three weeks; Kadri writes a paediatrician's column for Mia's kindergarten;
+  Markus's sleep diary (coffee, phone) and the two-week sleep plan with Anna; Liis's December challenge „30 päeva
+  tervemalt” (results: Jaan walks to work 27/30 days, Liis no sweets at work 25/30, Markus phone out of the bedroom
+  20/30, Anna water + lunch walk 30/30); office newsletter **„Meie nädal”**; Kristjan (31, from Tartu) starts in
+  January, after the challenge; radio sleep doctor **Toomas Tamm** and nurse **Kati** (1220) on Ülle's „Päevateema”; the
+  office weekend in Võrumaa (Viktor as hike guide, Sofia gets a fever).
 - **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher
   **Maret**; Anna learns Finnish (Helsinki office); Markus's English course; Liis studied in Helsinki, learns French;
   Ukrainian girl **Daria** and her mother **Olena** (new at Oskar's school).
