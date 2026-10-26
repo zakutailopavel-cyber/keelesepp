@@ -1,0 +1,39 @@
+/* „Ülevaade” — revenue and forecast (FinanceDashboard.jsx), in the Finantsid colours */
+.fd { display: grid; gap: 16px; padding: 22px 24px; border: 1px solid #e5e9e5; border-radius: 22px; background: #fff; box-shadow: 0 8px 26px rgba(23,57,49,.06); }
+.fd-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.fd-head h2 { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 1.25rem; color: #123f37; }
+.fd-toggle { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e5e9e5; border-radius: 999px; background: #fff; padding: 6px 12px; font: inherit; font-size: .82rem; font-weight: 700; color: #176553; cursor: pointer; }
+.fd-toggle:hover { border-color: #93c6b2; }
+.fd-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.fd-kpi { display: grid; gap: 4px; padding: 14px 16px; border-radius: 16px; background: #f5faf7; min-width: 0; }
+.fd-kpi span { font-size: .76rem; font-weight: 700; color: #4b665e; text-transform: none; }
+.fd-kpi strong { font-size: 1.35rem; color: #123f37; white-space: nowrap; }
+.fd-kpi small { display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; color: #667085; }
+.fd-kpi small.is-up { color: #067647; }
+.fd-kpi small.is-down { color: #b42318; }
+.fd-kpi--forecast { background: #fdf6ea; }
+.fd-kpi--forecast strong { color: #8a5a1c; }
+.fd-chart-card { display: grid; gap: 8px; }
+.fd-legend { display: flex; gap: 16px; font-size: .78rem; font-weight: 700; color: #4b665e; }
+.fd-legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
+.fd-legend .is-invoiced::before { background: #176553; }
+.fd-legend .is-received::before { background: #7cc4a6; }
+.fd-legend .is-forecast::before { background: #f4cf91; border: 1px dashed #c98c45; }
+.fd-chart { width: 100%; height: auto; overflow: visible; }
+.fd-grid { stroke: #eef1ee; stroke-width: 1; }
+.fd-axis { font-size: 11px; fill: #8a9893; }
+.fd-axis.is-current { fill: #123f37; font-weight: 800; }
+.fd-hit { fill: transparent; }
+.fd-col { cursor: pointer; outline: none; }
+.fd-col:hover .fd-hit, .fd-col:focus-visible .fd-hit { fill: rgba(21,116,94,.05); }
+.fd-col.is-active .fd-hit { fill: rgba(21,116,94,.09); }
+.fd-bar--invoiced { fill: #176553; }
+.fd-bar--received { fill: #7cc4a6; }
+.fd-bar--forecast { fill: #f4cf91; stroke: #c98c45; stroke-width: 1.2; stroke-dasharray: 4 3; }
+.fd-detail { margin: 0; font-size: .86rem; color: #344054; }
+@media (max-width: 1180px) { .fd-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .fd { padding: 16px; } .fd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fd-kpi strong { font-size: 1.1rem; } }
+.fd-kpi--alert { background: #fef6ee; }
+.fd-calendar { stroke: #c98c45; stroke-width: 2; stroke-dasharray: 5 4; }
+.fd-legend .is-calendar::before { height: 0; width: 14px; border-top: 2px dashed #c98c45; border-radius: 0; background: none; vertical-align: 3px; }
+.fd-legend { flex-wrap: wrap; }
