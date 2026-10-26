@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/a2-lihtminevik-extra — A2 „Lihtminevik: si- ja i-minevik (lisaharjutused)”, published
 
-- Base: `main` cfc59f6 (2026-10-26). Draft PR from `agent/a2-lihtminevik-extra`. Content + a small sheet-gate rule.
+- Base: `main` cfc59f6 (2026-10-26). Draft PR #811 from `agent/a2-lihtminevik-extra`. Content + a small sheet-gate rule.
 - Asked (owner): an 8th-grade A1→A2 learner did a2-076 Harjuta at 19 % (*tulesin, *minesin, *saamasin, *jõisin; negative
   past 0/8: *ei läksin, *ei sõin); a lesson on si-/i-past to assign often. a2-076 lists the i-forms only to memorise
   (no rule, no conjugation); a2b1-023 teaches the i-past at B1. A handout the owner was shown put käima, õppima, võima
