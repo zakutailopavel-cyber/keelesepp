@@ -17,6 +17,16 @@ Keep facts consistent; add new facts here when a module adds them.
 - **Anna** — glasses, long curly hair, quiet, trusted; has a dog; her sister marries (module 5: the lost bag).
 - **Sofia's flat** (module 3): moved from a rented room in Mustamäe to a wooden house in Kalamaja; neighbour **Tiina** (72,
   head of the housing association); housewarming (soolaleivapidu) for the family.
+- **Module 3 (final shape, 2026-10-26):** Malle's grandson **Kaarel** comes back from Finland, so Sofia must leave by
+  20 December; agent **Kaja Mänd** (Pelgulinn flat, 640 €); ex-flatmate **Grete**; owner **Heino Sild** (lives in Tartu) —
+  **Valgevase 7**, flat 4, 2nd floor of a wooden house over 100 years old, 590 € + ~100 € heating in winter, deposit
+  590 €, free from 10 December, contract signed at Tiina's (flat 1); moving day Saturday 12 December (Viktor's friend's
+  van, Jaan, Markus, Anna; the box of pots left in Malle's pantry); radio guest **Priit Tamm** (tenants' association);
+  Kalamaja Selts (society) and its paper, journalist **Kaur**; residents **Leida** (50 years in Kalamaja), **Joosep**
+  (student, dog Muri), **Merilin** (two children, Valgevase 3), **Kalle** (driver, port), **Arvo** (pensioner);
+  maintenance firm „Soe Kodu”, café „Kilu”; soolaleivapidu Saturday 19 December at 15 (street closed, cold radiator
+  fixed at 10.30): Helgi brings bread and salt, Viktor a wooden bench he made, grandmother's wardrobe from Viktor's
+  farm stands in the flat.
 - **Anna's dog** is **Bruno** (module 4); **Tõnu** is the father of Oskar's friend Rasmus (gives lifts).
 - **Module 1:** Sofia starts the B1 evening course at „Keelekool Sõna” (teacher **Maret**, administrator **Krista**,
   colleague-teacher **Kadi** runs the Monday online group); Anna (Saue, dog Bruno) takes bus 17 at 7.15 and once
