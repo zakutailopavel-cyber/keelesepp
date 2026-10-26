@@ -56,7 +56,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
       <div className="review-layout">
         <div className="review-layout__work">
           {worksheetDoc?.blocks?.length
-            ? <DocWorksheetSubmissionPreview worksheetDoc={worksheetDoc} answers={current.answers || {}} annotations={current.annotations || []} editable={staff} onAnnotationsChange={saveAnnotations} />
+            ? <DocWorksheetSubmissionPreview worksheetDoc={worksheetDoc} answers={current.answers || {}} annotations={current.annotations || []} editable={staff} answerKey={staff} onAnnotationsChange={saveAnnotations} />
             : <>
               {current.submissionKind === 'worksheet' ? <section><h3>Tööleht vastustega</h3><VisualWorksheetSubmissionPreview files={current.source?.files || []} answers={current.answers || {}} /></section> : null}
               <section><h3>Õpilase vastused</h3><AnswerList answers={current.answers} /></section>

@@ -630,6 +630,15 @@ whose ID includes both the lesson and child worksheet. A draft keeps the last pu
 users may read child sheets; only staff may create, update or delete them. Published child sheets continue through the
 existing immutable `worksheetAssignments` snapshot. Real-time teacher guidance reuses `LiveWorksheetView`,
 `liveFocus.blockId` and the same assignment document inside Live Classroom.
+Teacher answer key per task (2026-10-26): in the teacher's live view („Otse tunnis”, the room board, „praegune seis”),
+the homework review and a teacher's read-only player, a click on a task opens `BlockKeyPanel` under it
+(`engine/answerKey.js` `blockAnswerKey`: answers, explanations, teacher note, listening script). In the live view
+„Näita õpilasele” / „Peida” (and „Näita kõik vastused”) write staff-only fields of the assignment in one transaction:
+`liveShown` (the learner's player lists the right answers under those tasks, own answers kept), `liveShownBy[blockId]`
+(last show / hide: byUid, byName, at) and `liveShownLog` (last 200 actions). Scores and answers are not touched; rules
+unchanged (only staff may write these keys). Known exposure, unchanged: the assignment's `worksheetDoc` snapshot that the
+learner reads holds the answer keys (gap brackets, `*` options, `explain`, `transcript`); the UI never shows them before a
+reveal, but a learner reading the raw document could. Moving keys server-side would be a separate change.
 
 The teacher opens a lesson worksheet set at `/library/lessons/:lessonId/worksheets`; supported profiles
 generate the three stable core drafts in parallel. Child routes adapt the same `WorksheetStudioPage` to
