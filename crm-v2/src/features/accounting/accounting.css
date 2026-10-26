@@ -824,3 +824,25 @@
   color: #667085;
   font-size: 0.82rem;
 }
+
+/* pearaamat fits the card without sideways scrolling (owner 2026-10-26): fixed column widths, tighter cells, long
+   text wraps */
+.accounting-ledger {
+  table-layout: fixed;
+}
+
+.accounting-ledger th,
+.accounting-ledger td {
+  overflow-wrap: anywhere;
+  padding: 9px 10px;
+}
+
+.accounting-ledger .c-date { width: 10%; }
+.accounting-ledger .c-nr { width: 10%; }
+.accounting-ledger .c-doc { width: 15%; }
+.accounting-ledger .c-partner { width: 12%; }
+.accounting-ledger .c-num { width: 9%; }
+
+.accounting-ledger td.num {
+  overflow-wrap: normal;
+}

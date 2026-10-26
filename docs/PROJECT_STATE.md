@@ -7,6 +7,12 @@
   „Uuenda kanded” adds the `payment-void:` storno entries on the void dates. 2110 Võlad tarnijatele −81,30 € is from
   manual entries (supplier payments larger than the booked purchase invoices / opening balance) — for the accountant.
 - Checks: functions npm test all passed (+1 test in accounting-core.test.js). Deploy: functions:financeApi.
+## 2026-10-26 · agent/ledger-width — Pearaamat fits without sideways scrolling
+
+- Base: `main` 5c8ab1a. Owner: the pearaamat table needed horizontal scrolling. `AccountingPage.jsx` ledger
+  table gets `accounting-ledger` + a colgroup; `accounting.css`: fixed layout, column widths (date 10 %, nr 10 %,
+  document 15 %, partner 12 %, sums 9 % each, Sisu the rest), tighter cells, long text wraps. UI only.
+- Checks: vitest src/features/accounting 54/54; eslint clean.
 
 ## 2026-10-26 · agent/direction-level-sync — „Muuda andmeid” level reaches the main study track
 
