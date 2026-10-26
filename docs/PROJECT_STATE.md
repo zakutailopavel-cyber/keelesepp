@@ -1,3 +1,10 @@
+## 2026-10-26 · agent/ledger-width — Pearaamat fits without sideways scrolling
+
+- Base: `main` 5c8ab1a. Owner: the pearaamat table needed horizontal scrolling. `AccountingPage.jsx` ledger
+  table gets `accounting-ledger` + a colgroup; `accounting.css`: fixed layout, column widths (date 10 %, nr 10 %,
+  document 15 %, partner 12 %, sums 9 % each, Sisu the rest), tighter cells, long text wraps. UI only.
+- Checks: vitest src/features/accounting 54/54; eslint clean.
+
 ## 2026-10-26 · agent/direction-level-sync — „Muuda andmeid” level reaches the main study track
 
 - Base: `main` a9d4444. Owner: on Svetlana Pitkevichus's card „Muuda andmeid” set B1 → B2, but „Õppesuunad”
