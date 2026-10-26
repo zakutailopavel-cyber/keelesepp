@@ -11,6 +11,7 @@ import { buildReview, ownErrors } from './reviewModel.js';
 import { readDone, saveDone } from './reviewStore.js';
 import ReviewDrill from './ReviewDrill.jsx';
 import './selfStudy.css';
+import { localDate } from '../../utils/localDate.js';
 
 /**
  * „Minu vead” (owner 2026-10-12: a student has four things to do — tasks, words, my mistakes, the pet): the sentences
@@ -30,7 +31,7 @@ export default function MistakesPage({ studentRepository = studentsService, word
 
   if (state.loading) return <div className="page-content"><LoadingState label="Laen sinu vigu…" /></div>;
   if (state.error) return <div className="page-content"><ErrorState message={state.error.message || String(state.error)} onRetry={state.reload} /></div>;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDate();
   const start = () => setDrill({ run: Date.now(), tasks: buildReview({ errors, seed: Date.now() % 100000, size: 10 }) });
 
   if (drill) {

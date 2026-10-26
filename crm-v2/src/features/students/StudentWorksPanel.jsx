@@ -9,11 +9,12 @@ import SubmissionReviewModal from '../homework/SubmissionReviewModal.jsx';
 import { sortWorks } from '../homework/workOrder.js';
 import { formatDate } from '../homework/submissionFormat.js';
 import { studentWorksheetsService } from '../../services/firebase/studentWorksheets.js';
+import { localDate } from '../../utils/localDate.js';
 
 // Student card „Tööd”: worksheets given but not handed in yet (open live: the teacher sees the answers as they are now,
 // autosaved by the student's player) and every worksheet and exercise the student handed in, opened in the large
 // check window where the teacher grades it and grades the skills it showed (that moves the skill map in „Areng”).
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDate();
 function openState(assignment) {
   const doc = assignment.worksheetDoc;
   const progress = doc?.blocks?.length ? answerProgress(doc, assignment.answers || {}) : null;

@@ -3,8 +3,9 @@ import { useEffect, useState } from 'react';
 import { Button, Modal } from '../../components/ui/index.js';
 import { lessonChangeRequestsService, teacherAvailabilityService } from '../../services/firebase/index.js';
 import { buildRequest, isLate, proposalSlots, slotLabel } from '../calendar/rescheduleModel.js';
+import { localDate } from '../../utils/localDate.js';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDate();
 
 /**
  * „Ei saa tulla?” — the student (or parent) picks up to three new times from the teacher's free windows or writes one,
