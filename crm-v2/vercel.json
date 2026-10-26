@@ -41,6 +41,34 @@
   ],
   "rewrites": [
     {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "https://us-central1-keelesepp-5136b.cloudfunctions.net/sheetBuilderApi/oauth/protected-resource"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource/:path*",
+      "destination": "https://us-central1-keelesepp-5136b.cloudfunctions.net/sheetBuilderApi/oauth/protected-resource"
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server",
+      "destination": "https://us-central1-keelesepp-5136b.cloudfunctions.net/sheetBuilderApi/oauth/authorization-server"
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server/:path*",
+      "destination": "https://us-central1-keelesepp-5136b.cloudfunctions.net/sheetBuilderApi/oauth/authorization-server"
+    },
+    {
+      "source": "/.well-known/openid-configuration",
+      "destination": "https://us-central1-keelesepp-5136b.cloudfunctions.net/sheetBuilderApi/oauth/authorization-server"
+    },
+    {
+      "source": "/ai/mcp",
+      "destination": "https://us-central1-keelesepp-5136b.cloudfunctions.net/sheetBuilderApi/mcp"
+    },
+    {
+      "source": "/ai/oauth/:path*",
+      "destination": "https://us-central1-keelesepp-5136b.cloudfunctions.net/sheetBuilderApi/oauth/:path*"
+    },
+    {
       "source": "/ajad",
       "destination": "/ajad.html"
     },

@@ -94,3 +94,58 @@ test('ChatGPT connector: keys, guide, lessons, check and draft', async () => {
   assert.equal((await call('/guide', { token: key })).status, 401, 'a revoked key stops working');
   assert.equal((await call('/openapi.json')).body.paths['/drafts'].post.operationId, 'saveDraft');
 });
+
+test('KeeleSepp AI plugin: OAuth (register → admin consent → PKCE token) and MCP tools', async () => {
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT });
+  const crypto = require('crypto');
+  const boss = await account('admin');
+  const teacher = await account('teacher');
+  const redirect = 'https://chatgpt.com/connector_platform_oauth_redirect';
+  assert.equal((await call('/oauth/protected-resource')).body.authorization_servers[0], 'https://crm.epkoolitus.ee');
+  assert.equal((await call('/oauth/authorization-server')).body.code_challenge_methods_supported[0], 'S256');
+  assert.equal((await call('/oauth/register', { method: 'POST', body: { redirect_uris: ['https://evil.example/cb'] } })).status, 400, 'only ChatGPT callbacks');
+  const reg = await call('/oauth/register', { method: 'POST', body: { client_name: 'ChatGPT', redirect_uris: [redirect] } });
+  assert.equal(reg.status, 201);
+  const clientId = reg.body.client_id;
+  const verifier = crypto.randomBytes(40).toString('base64url');
+  const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
+  const ask = { response_type: 'code', client_id: clientId, redirect_uri: redirect, state: 'st-1', code_challenge: challenge, code_challenge_method: 'S256', scope: 'sheets' };
+  assert.equal((await call('/oauth/approve', { token: teacher.token, method: 'POST', body: ask })).status, 403, 'only an administrator consents');
+  assert.equal((await call(`/oauth/describe?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirect)}`, { token: boss.token })).body.clientName, 'ChatGPT');
+  const approved = await call('/oauth/approve', { token: boss.token, method: 'POST', body: ask });
+  assert.equal(approved.status, 200, JSON.stringify(approved.body));
+  const back = new URL(approved.body.redirect);
+  assert.equal(back.origin + back.pathname, redirect);
+  assert.equal(back.searchParams.get('state'), 'st-1');
+  const code = back.searchParams.get('code');
+  const tokenCall = (body) => fetch(`${fnBase}/oauth/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams(body).toString() }).then(async (r) => ({ status: r.status, body: await r.json() }));
+  assert.equal((await tokenCall({ grant_type: 'authorization_code', code, client_id: clientId, redirect_uri: redirect, code_verifier: 'wrong-verifier-wrong-verifier-wrong-verifier' })).status, 400, 'PKCE');
+  // the failed try used the code up: get a fresh one
+  const again = new URL((await call('/oauth/approve', { token: boss.token, method: 'POST', body: ask })).body.redirect).searchParams.get('code');
+  const issued = await tokenCall({ grant_type: 'authorization_code', code: again, client_id: clientId, redirect_uri: redirect, code_verifier: verifier });
+  assert.equal(issued.status, 200, JSON.stringify(issued.body));
+  assert.equal(issued.body.token_type, 'Bearer');
+  assert.equal((await tokenCall({ grant_type: 'authorization_code', code: again, client_id: clientId, redirect_uri: redirect, code_verifier: verifier })).status, 400, 'a code works once');
+  const access = issued.body.access_token;
+
+  const mcp = async (message, token = access) => {
+    const r = await fetch(`${fnBase}/mcp`, { method: 'POST', headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' }, body: JSON.stringify(message) });
+    return { status: r.status, header: r.headers.get('www-authenticate'), body: r.status === 202 ? null : await r.json() };
+  };
+  const anon = await mcp({ jsonrpc: '2.0', id: 1, method: 'initialize', params: {} }, '');
+  assert.equal(anon.status, 401);
+  assert.match(anon.header, /resource_metadata="https:\/\/crm\.epkoolitus\.ee\/\.well-known\/oauth-protected-resource\/ai\/mcp"/);
+  const init = await mcp({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test' } } });
+  assert.equal(init.body.result.serverInfo.name, 'KeeleSepp AI');
+  assert.equal((await mcp({ jsonrpc: '2.0', method: 'notifications/initialized' })).status, 202);
+  const tools = await mcp({ jsonrpc: '2.0', id: 2, method: 'tools/list' });
+  assert.ok(tools.body.result.tools.some((t) => t.name === 'save_draft'));
+  const g = await mcp({ jsonrpc: '2.0', id: 3, method: 'tools/call', params: { name: 'get_guide', arguments: {} } });
+  assert.ok(g.body.result.structuredContent.blocks.length > 10);
+  const bad = await mcp({ jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'save_draft', arguments: { lessonId: 'nope', phase: 'practice', worksheetDoc: { meta: { title: 'x' }, blocks: [{ type: 'foo' }] } } } });
+  assert.equal(bad.body.result.isError, true);
+  const keys = (await admin.firestore().collection('sheetBuilderKeys').where('clientId', '==', clientId).get()).docs;
+  assert.equal(keys.length, 1);
+  assert.equal(keys[0].data().kind, 'oauth');
+  assert.equal(keys[0].data().createdByUid, boss.uid);
+});

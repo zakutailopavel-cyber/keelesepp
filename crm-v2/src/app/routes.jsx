@@ -50,6 +50,7 @@ const GroupsPage = lazy(() => import('../features/groups/GroupsPage.jsx'));
 const LibraryPage = lazy(() => import('../features/library/LibraryPage.jsx'));
 const AvailabilityPollPage = lazy(() => import('../features/availability-poll/AvailabilityPollPage.jsx'));
 const RaamatukoguPage = lazy(() => import('../features/library/raamatukogu/RaamatukoguPage.jsx'));
+const AiConnectPage = lazy(() => import('../features/settings/AiConnectPage.jsx'));
 const ConversionQueuePage = lazy(() => import('../features/worksheet-studio/ConversionQueuePage.jsx'));
 const BookPage = lazy(() => import('../features/worksheet-studio/BookPage.jsx'));
 const LiveWorksheetPage = lazy(() => import('../features/worksheet-studio/LiveWorksheetPage.jsx'));
@@ -126,6 +127,8 @@ export default function AppRoutes() {
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
             {/* „Teated” (owner 2026-10-24): announcements a student / parent answers before using the CRM */}
             <Route path="messages/teated" element={staffPage(<AnnouncementsAdminPage />)} />
+            {/* the ChatGPT plugin „KeeleSepp AI” asks the administrator for access (OAuth, functions/keelesepp-ai-mcp.js) */}
+            <Route path="ai/connect" element={staffPage(<AiConnectPage />)} />
           </Route>
           <Route path="settings" element={<SettingsPage />} />
           <Route path="homework" element={<HomeworkPage />} />

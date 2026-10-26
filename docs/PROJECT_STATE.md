@@ -1,3 +1,25 @@
+## 2026-10-26 · agent/keelesepp-ai-mcp — KeeleSepp AI as a ChatGPT plugin (MCP + OAuth)
+
+- In the owner's ChatGPT workspace new GPTs can no longer be made ("plugins replace GPTs", the old ones work until
+  11.12); plugins connect only through MCP, and only OAuth (with dynamic client registration) can be entered there.
+- functions/keelesepp-ai-mcp.js (inside sheetBuilderApi):
+  - MCP Streamable HTTP (JSON-RPC, JSON answers) with the 8 tools of the Actions API: get_guide, get_block,
+    get_textbooks, get_textbook, list_lessons, get_lesson, check_sheet, save_draft;
+  - the server's `instructions` = the KeeleSepp AI workflow;
+  - OAuth 2.1: protected-resource + authorization-server metadata, DCR (/oauth/register — only https callbacks on
+    chatgpt.com / chat.openai.com / platform.openai.com), consent (/oauth/describe, /oauth/approve — admin Firebase
+    token), token (PKCE S256, one-time 5-min codes in sheetBuilderCodes);
+  - the token is a sheetBuilderKeys entry (`kind: "oauth"`, `clientId`), revoked in Seaded like any key.
+- Public addresses on the CRM domain (crm-v2/vercel.json rewrites to the function):
+  - https://crm.epkoolitus.ee/ai/mcp, /ai/oauth/*;
+  - /.well-known/oauth-protected-resource[/…], /.well-known/oauth-authorization-server[/…], /.well-known/openid-configuration.
+- CRM: /ai/connect (AiConnectPage, admins) — „Luba” / „Keela”.
+- LoginPage now returns to the page with its query (the OAuth parameters survive a login).
+- Checks: verify (eslint 0, vitest 2660 passed); functions npm test 407 passed; emulator sheet-builder tests 2/2
+  (Actions; OAuth register → consent → PKCE token → MCP initialize/tools/list/tools/call).
+- Deploy: functions:sheetBuilderApi; the rewrites go live with the Vercel deploy of main.
+- Next: in ChatGPT, Plugin Creator → MCP server https://crm.epkoolitus.ee/ai/mcp, auth OAuth; the owner presses „Luba”.
+
 ## 2026-10-26 · agent/textbook-map — the owner's textbooks in the KeeleSepp AI connector
 
 - Owner 2026-10-26: photos of „E nagu Eesti” (contents, pp. 7, 10–20) — „подключи все”.
