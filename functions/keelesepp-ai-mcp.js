@@ -179,6 +179,17 @@ async function mcp(req, res, { db, api }) {
   res.json(Array.isArray(body) ? answers : answers[0]);
 }
 
+// ChatGPT discovers, registers and calls from its own pages (chatgpt.com): these addresses answer any origin. Safe:
+// no cookies are used, every call carries its own bearer token.
+const isPublic = (path) => path === "/mcp" || path.startsWith("/oauth/");
+function cors(res) {
+  res.set("Access-Control-Allow-Origin", "*");
+  res.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Mcp-Protocol-Version, Mcp-Session-Id, Last-Event-ID");
+  res.set("Access-Control-Expose-Headers", "WWW-Authenticate, Mcp-Session-Id");
+  res.set("Access-Control-Max-Age", "600");
+}
+
 // routes under the function (vercel.json maps the public addresses here); returns true when handled
 async function handle(req, res, path, { db, api, requireAdminUser, actorSnapshot }) {
   try {
@@ -197,4 +208,4 @@ async function handle(req, res, path, { db, api, requireAdminUser, actorSnapshot
   return false;
 }
 
-module.exports = { handle, register, approve, token, rpc, TOOLS, INSTRUCTIONS, protectedResource, authorizationServer, allowedRedirect, MCP_URL, PRM_URL };
+module.exports = { handle, isPublic, cors, register, approve, token, rpc, TOOLS, INSTRUCTIONS, protectedResource, authorizationServer, allowedRedirect, MCP_URL, PRM_URL };

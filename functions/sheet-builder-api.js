@@ -262,9 +262,10 @@ const API = { guide, blockDetail, textbooks: (id) => textbooks(id), listLessons,
 // ---------- the HTTP handler ----------
 function createHandler({ db, requireAdminUser, actorSnapshot, applyCors }) {
   return async (req, res) => {
-    applyCors(req, res);
-    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     const path = String(req.path || "/").replace(/\/+$/, "") || "/";
+    const plugin = require("./keelesepp-ai-mcp");
+    if (plugin.isPublic(path)) plugin.cors(res); else applyCors(req, res);
+    if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     try {
       // the ChatGPT plugin: MCP + OAuth (keelesepp-ai-mcp.js)
       if (await require("./keelesepp-ai-mcp").handle(req, res, path, { db, api: API, requireAdminUser, actorSnapshot })) return;
