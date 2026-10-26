@@ -25,7 +25,8 @@
 - Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-026…030`, 7 old ones removed from the manifest and disk.
 - Checks: `course:final-shape --module 6` 72 → 0; baseline 1282 → 1202 (only shrank: module 6 −72, 8 V7/V2 entries in
   modules 7, 10, 11 left because the old module-6 instructions are gone). Older quality gate + strict gate for module 6:
-  0. `npx vitest run src/features/worksheet-generator`: see the PR for the run after the merge. eslint on changed files:
+  0. `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed, 4
+  skipped (`origin/main` was still 092f898 at the end, nothing to merge). eslint on changed files:
   0. Vabamorf speller: 0 unknown words except names, „PÄ” (allergen letter) and the technical genre value
   `kusimustik`. All 15 sheets rendered locally (print mode), no layout problems.
 - Limits: sheets are 40–50 min by the estimator; 029 Kasuta reading carries `level: 3` (application questions on the
