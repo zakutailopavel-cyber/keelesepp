@@ -14,7 +14,12 @@
   (grammarPlan 021/023 unchanged). Goals 021–025 in `b1/lessonGoals.js`; cast in `docs/COURSE_CAST.md`; pitfalls in
   `docs/FINAL_SHAPE_AUTHORING.md` §8.1.
 - Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-021…025`; 9 old files and 8 manifest entries removed.
-- Checks: see the PR (final-shape module 5, older and strict gates, vitest, eslint, speller, every sheet rendered).
+- Checks: `course:final-shape --module 5` 59 → 0 problems; course 1282 → 1210 (baseline only shrank: module 5 −59, 12
+  V7/V6 problems in modules 6–14 and course disappeared with the old module-5 instructions). Older quality gate and strict
+  gate for module 5: 0. `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed,
+  4 skipped; vocabulary + library tests 112 passed. eslint on changed files: 0. Vabamorf speller: no unknown words except
+  names, notice morphemes (-sin, -sid) and the deliberate wrong options of the „try first” test. All 15 sheets rendered
+  locally (print mode), no broken markup.
 - Limits: sheets 40–43 min (gate 40–55; 45+ would need more tasks than the id caps allow); one Kasuta reading has
   `level: 3` (024 contest rules, application questions); the „try first” test uses over-generalised non-words as wrong
   options on purpose.
