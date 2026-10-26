@@ -1,3 +1,44 @@
+## 2026-10-26 · agent/b1-m10-final — B1 module 10 „Reisimine” in the final shape
+
+- Base: `main` b519e36, merged with `main` a9d4444 (2026-10-26, after #804, module 7). Draft PR from
+  `agent/b1-m10-final`. Content only; no production data, no deploy. Parallel agents rewrite modules 8 and 9 (not touched).
+- Asked (owner): module 10 (a2b1-046…050) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 10, §6.3 formats of
+  module 10: R4, L4, W2b), Eksaminurk in every teaching lesson, new texts, unique instructions, 80 % target per exam part.
+- Done: `b1/module10.js` rewritten (three journeys: the family's train to Tartu, Anna and Markus at the Riga fair, Lena's
+  first trip to Estonia; Anna and Sofia's Helsinki weekend as the story lesson):
+  - 046 KUUL L→S — the train choice by phone (L10), corner **L4** (conductor on the radio, introduced here), kust/kus/kuhu;
+    signs (R07), announcements (L06), Viktor's route (G03), the railway's FAQ (R04), info gap (S05), W01 survey; Kasuta:
+    Viktor's voicemail (L07), main **S04** call to the info line, seats taken (S10), the way explained twice (S13), W02.
+  - 047 LUGE R→W — blog (R13 predict), ads (R01), choosing with reasons (G13, G04, S11); hotel call (L04), match, polite
+    questions (G07), fair info (R06), booking form (W07), S01 at the fair, W12 formal note; Kasuta: Liis's e-mail = corner
+    **R4** (introduced), S03 plan, S02 defended twice, main **W08** reply to Liis 80–100 words (`level: 4`, free decision).
+  - 048 RÄÄK R→S — enneminevik: Anna's blog (R09 headings), voice messages (L01), rule (G02), 4-3-2 (S08), W06 nonstop
+    writing; Sofia's e-mail (R03), radio story (L02), transformation (G05), dictation, corner **S1a** „Reisimine”, W03
+    postcard; Kasuta: four listeners' stories (R11), main **S12** jury agreement (idea card), own story on air (S07), W05.
+  - 049 PROJ L→W — brief: Lena's voicemail (L03), Markus's missed bus in Viljandi (L09), enneminevik in reasons and
+    warnings, word family (G09), city guide (R02), survey (S09); tense choice, chat (R12), Markus's tips (G03), joining
+    (W09), Lena's mistakes (G06), wishes sorted, S04 call to a guesthouse, W11 plan; Kasuta: timetable and prices (R08,
+    `level: 3`), S03 video call, main = corner **W2b** letter to Lena 80–100 words (introduced), W10 rewrite.
+  - 050 EKS — Harno B1 form, reduced: R1, R2, R3a, R4 (28 p, 40 min) · L1, L2, L3a, L4 (23 p, 25 min) · W1a, W2b (20 p) ·
+    S0, S1a, S1b, S2 (20 p); `B.examPart` per part, target 80 %; warm-up sheet with Sofia's late train.
+  - §6.2 row 10 kept as written (note added); goals 046–050 in `b1/lessonGoals.js` (047's can-do no longer promises
+    „2–3 minutes”); cast facts in `docs/COURSE_CAST.md`; module-10 pitfalls in `docs/FINAL_SHAPE_AUTHORING.md` §8.3.
+- Audio: 13 recordings (TartuNLP, free) in `public/audio/a2b1-046…050`, 5 old files and manifest entries removed; „Lena”
+  added to the female names in `tools/listening-audio/plan.mjs`.
+- Checks: `course:final-shape --module 10` 80 → 0. Baseline after merging main 885 → 796: module 10 −80, 4 V2/V7 lines
+  of modules 11, 14, 17 gone with the old module-10 texts, course V6 lines for S1a/S2/W2/W1a/W2b exam counts gone; it
+  gained two course lines, `V6-gap-S1a` and `V6-gap-S2` (module 7 → 10 is 3 modules; they close when modules 8–9 tag
+  S1a/S2). Older quality gate and strict gate for module 10: 0. `npx vitest run src/features/worksheet-generator`:
+  61 files passed (1 skipped), 923 tests passed, 4 skipped. eslint on the changed files: 0 errors. Vabamorf speller:
+  0 unknown words except names and the technical value `kusimustik`. All 15 sheets rendered on a local stand (not
+  committed).
+- Limits: teaching sheets are 40–47 min (id caps leave no room for more tasks); 047's main W08 carries `level: 4` and
+  049's R08 `level: 3` (application questions); the exam's R4 is a `gaps` text with a phrase bank and the exam sheet has
+  two strategy rubrics, so that the B1- recognition share stays ≤ 50 %; V2/V12 against 044 and 051 were checked on
+  today's `main` only (modules 9 and 11 may change); no new pictures (the 5 existing briefs fit the storyline).
+- Next safe step: owner reviews module 10 in „Kursuse tootmine” and publishes it; the module 11 author starts 051 with a
+  corner other than W2b (049's corner) and re-checks V2 against 049.
+
 ## 2026-10-26 · agent/b1-m07-final — B1 module 7 „Tervis ja enesetunne” in the final shape
 
 - Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR #804 from `agent/b1-m07-final`. Content only; no
