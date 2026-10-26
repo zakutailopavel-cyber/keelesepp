@@ -1,3 +1,39 @@
+## 2026-10-26 · agent/b1-m06-final — B1 module 6 „Toit ja teenindus” in the final shape
+
+- Base: `main` 092f898 (2026-10-26, after #798, module 2). Draft PR from `agent/b1-m06-final`. Content only; no
+  production data, no deploy. Parallel agents rewrite modules 3, 4, 5 (not touched here).
+- Asked (owner): module 6 (a2b1-026…030) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2–§8), Eksaminurk from
+  module 6, new texts, unique instructions, ≥ 80 % target per exam part.
+- Done: `b1/module06.js` rewritten (storyline: Helgi's week at Sofia's — market, café Kaneel, restaurant Aed, Anna's
+  dinner, the office fridge, the late delivery from „Kiire Kõht”):
+  - 026 LUGE R→W — Liis's blog (R13 predict), market listening (L03), kogus + osastav; corner **R1** (ads, format
+    introduced); Kasuta: guests' cards (R11), menu agreed (S03 idea card), main **W04** letter to Jaan 80–100 words.
+  - 027 KUUL L→S — corner **L1** (10 clips), lunch at Kaneel (L04), chat (R12), the owner on the radio (L05), ordering
+    with an allergy (S05); Kasuta: restaurant voicemail (L07), main **S04** booking call, S12 ranking, S01, W02 message.
+  - 028 AVAS L→W — test first (G13) → diary (R06) → rule (G02) → Anna's recipe by phone (L09) → test again (G05), 4-3-2;
+    Viktor's letter (R03), food-bank radio (L02), dictation, W01 questionnaire, corner **S1a** (format introduced);
+    Kasuta: Markus's message (R05), retelling (S07), kitchen meeting (S03), main **W05** story 8–10 sentences.
+  - 029 PROB R→S — the wrong burger heard (L06), first try (S10), four steps, notices (R07), angry message rewritten
+    (W12); choice, word bank (R04), translation, joining (W09), reviews (R09), explain to Helgi (S13); Kasuta: order and
+    terms (R08, `level: 3`), main = corner **S2** call to customer service, W08 reply, W10 rewrite.
+  - 030 EKS — Harno A2 frame with B1 tasks R1, R2, R3a, L1, L3a, L4, W1b, W2a, S0, S1a, S2; `B.examPart` per part,
+    target 80 %; Helgi's letter closes the story.
+  - Leads: §6.2 had 028 AVAS R→S and 029 PROB L→W, but PROB → W fails V5-lead (§4: PROB output S). Moved to 028 AVAS
+    L→W, 029 PROB R→S (all four pairs once); §6.2 row annotated.
+  - Goals of 026–030 in `b1/lessonGoals.js`; cast facts in `docs/COURSE_CAST.md`; module-6 pitfalls in
+    `docs/FINAL_SHAPE_AUTHORING.md` §8.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-026…030`, 7 old ones removed from the manifest and disk.
+- Checks: `course:final-shape --module 6` 72 → 0; baseline 1282 → 1202 (only shrank: module 6 −72, 8 V7/V2 entries in
+  modules 7, 10, 11 left because the old module-6 instructions are gone). Older quality gate + strict gate for module 6:
+  0. `npx vitest run src/features/worksheet-generator`: see the PR for the run after the merge. eslint on changed files:
+  0. Vabamorf speller: 0 unknown words except names, „PÄ” (allergen letter) and the technical genre value
+  `kusimustik`. All 15 sheets rendered locally (print mode), no layout problems.
+- Limits: sheets are 40–50 min by the estimator; 029 Kasuta reading carries `level: 3` (application questions on the
+  order terms); 028 is declared L-led although its inputs are half reading, half listening; V1/V2 against 024 and 031 were
+  checked on today's `main` only (modules 5 and 7 may change); no new pictures (the 5 existing briefs still fit).
+- Next safe step: owner reviews module 6 in „Kursuse tootmine” and publishes it; module 7 author starts 031 with a
+  corner other than S2 (029's corner) and checks V2 against 029.
+
 ## 2026-10-26 · agent/b1-m02-final — B1 module 2 in the final shape (pilot module)
 
 - Base: `main` 6a63532, merged with `main` 14f9af9 (after #797, B1 module 1). Draft PR #798 from `agent/b1-m02-final`. Content

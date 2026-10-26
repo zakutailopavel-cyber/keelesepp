@@ -208,6 +208,28 @@ with less time (S07), describe the picture to three partners in turn (S06), ask 
   not know *nõbul / nõbule* (added to `language-allow.txt`); the `examwriting` genre value `kusimustik` is reported
   too (technical value, ignore).
 
+**Module 6 (B1-, 2026-10-26): what changes from module 6 on.**
+- B1- is a B1 band for the gates: every closed task has **exactly 10 items** (`depth.js` wants ≥ 10, `didacticCheck`
+  allows ≤ 10 at B1-) — choice, true/false, gaps, match, error, transformation, word forms, word order, translation,
+  formtext, adsmatch, examlisten. Readings 150–320 words with a „Miks …?” question; an Avasta and a Kasuta input of
+  ≥ 140 words; speaking 68–225 s with one block ≥ 120 s a sheet; writing blocks 7–14 sentences; a `guidedletter` ≥ 70
+  words. Harjuta needs ≥ 25 min of exercises without speaking/writing (`depth.js`), so a long reading and a long
+  listening there are the cheap way.
+- Average task-sentence length must stay ≥ 6 words a sheet (`didacticCheck` B1- „liiga lihtsad”) and ≥ 5 (`depth.js`):
+  short gap sentences, error rows and transformation sources pull it down — write 6–9-word items.
+- The Eksaminurk is counted to the minute (8–12): an `adsmatch` with 10 situations needs ~160 words of ads, a
+  10-clip `examListen` ~260 words of transcript.
+- `guidedletter` does not count as „use” at the end of Harjuta (`v4-use`); end Harjuta with speaking, writing, role
+  cards or an `examWriting` card (genre `kutse` gives W03 without a tag).
+- §6.2's „PROB L→W” for module 6 fails V5-lead (§4: PROB → S). Leads were moved (AVAS L→W, PROB R→S) and the main
+  tasks with them; check the row of your module against the §4 lead table before writing.
+- V14 counts the share of known headwords, not only the tagged ones: tagging `topic` silences V14-topic, but ≥ 90 % of a
+  module's vocab-box words must still be in EKI A1–B1 or earlier boxes — keep at most ~4 topic words in ~50.
+- A text with two `[[…]]`/`{…}` alternatives (`a|b`) is one sentence for `sentence-max`: keep one answer when it is
+  longer than 9 words.
+- Exam lessons from module 6: keep the reading part's recognition share ≤ 50 % (B1-), e.g. A2 „three people” as
+  `profiles` (not recognition) instead of a `reading` with letter answers (letters are counted as copied answers).
+
 **Patterns that worked.**
 - One storyline with stakes across the module (Helgi's 60th; the lost cousin from the old photo comes back in the
   voicemail, the gift is in the lost backpack, the exam reading closes the story). It makes every input new but
