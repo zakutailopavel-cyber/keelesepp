@@ -6,11 +6,11 @@ import { firebaseErrorMessage } from '../../utils/firebaseErrors.js';
 
 const when = (iso) => (iso ? new Intl.DateTimeFormat('et-EE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '—');
 
-// Seaded → „ChatGPT töölehed” (owner 2026-10-26): the keys of the Custom GPT that builds worksheets with the constructor
+// Seaded → „KeeleSepp AI töölehed” (owner 2026-10-26): the keys of the Custom GPT that builds worksheets with the constructor
 // (docs/GPT_SHEET_BUILDER.md). A key is shown once; the GPT saves only drafts, a person publishes them.
 export default function SheetBuilderCard({ service = sheetBuilderKeysService }) {
   const [keys, setKeys] = useState(null);
-  const [label, setLabel] = useState('ChatGPT');
+  const [label, setLabel] = useState('KeeleSepp AI');
   const [fresh, setFresh] = useState(null);
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -37,8 +37,8 @@ export default function SheetBuilderCard({ service = sheetBuilderKeysService }) 
 
   return <Card>
     <div className="settings-icon"><Bot /></div>
-    <h2>ChatGPT töölehed</h2>
-    <p className="settings-copy">ChatGPT koostab töölehti meie konstruktoriga ja salvestab need tunni mustandiks. Õpilased ei näe midagi enne, kui vajutad konstruktoris „Avalda”. Seadistus: docs/GPT_SHEET_BUILDER.md.</p>
+    <h2>KeeleSepp AI töölehed</h2>
+    <p className="settings-copy">KeeleSepp AI (meie GPT ChatGPT-s) koostab töölehti meie konstruktoriga ja salvestab need tunni mustandiks märkega „KeeleSepp AI”. Õpilased ei näe midagi enne, kui vajutad konstruktoris „Avalda”. Seadistus: docs/GPT_SHEET_BUILDER.md.</p>
     <div className="integration-row"><div><strong>Schema URL (Actions → Import from URL)</strong><span className="mono">{SHEET_BUILDER_URL}/openapi.json</span></div><Button variant="secondary" onClick={() => copy(`${SHEET_BUILDER_URL}/openapi.json`, 'url')}><Copy size={15} /> {copied === 'url' ? 'Kopeeritud' : 'Kopeeri'}</Button></div>
     {fresh ? <div className="integration-row" role="status"><div><strong>Uus võti „{fresh.label}” — kopeeri see kohe, teist korda seda ei näidata</strong><span className="mono">{fresh.key}</span><span>GPT-s: Authentication → API Key → Bearer.</span></div><Button onClick={() => copy(fresh.key, 'key')}><Copy size={15} /> {copied === 'key' ? 'Kopeeritud' : 'Kopeeri võti'}</Button></div> : null}
     <div className="settings-profile-form">

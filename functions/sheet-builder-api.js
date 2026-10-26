@@ -4,10 +4,11 @@
 // checks a sheet with the constructor's own checks (generated/sheet-kit.cjs, built from crm-v2) and saves it as the
 // lesson sheet's DRAFT. The published sheet the students see never changes here: a person opens the draft in the
 // constructor and presses „Avalda”. Keys: sheetBuilderKeys/{sha256} (no client access, firestore.rules catch-all);
-// an administrator creates and revokes them (CRM „Seaded” → ChatGPT, Firebase token).
+// an administrator creates and revokes them (CRM „Seaded” → „KeeleSepp AI”, Firebase token). Drafts are marked „KeeleSepp AI”.
 const crypto = require("crypto");
 
 const KEY_PREFIX = "kss_";
+const AI_NAME = "KeeleSepp AI";
 const CRM_URL = "https://crm.epkoolitus.ee";
 const PHASES = ["discover", "practice", "transfer", "opik"];
 const PHASE_LABEL = { discover: "Avasta", practice: "Harjuta", transfer: "Kasuta", opik: "Õpik" };
@@ -77,13 +78,13 @@ async function keyFrom(db, req) {
   const snap = await ref.get();
   if (!snap.exists || snap.data().revokedAt) throw apiError(401, "Võti ei kehti.");
   ref.set({ lastUsedAt: new Date().toISOString() }, { merge: true }).catch(() => {});
-  return { id: snap.id, label: snap.data().label || "ChatGPT" };
+  return { id: snap.id, label: snap.data().label || AI_NAME };
 }
 
 async function createKey(db, actor, body = {}) {
   const key = newKey();
   const id = hashKey(key);
-  const record = { label: text(body.label, 60) || "ChatGPT", createdAt: new Date().toISOString(), createdByUid: actor.uid, createdByName: actor.name || "", hint: `${key.slice(0, 8)}…${key.slice(-4)}`, revokedAt: "" };
+  const record = { label: text(body.label, 60) || AI_NAME, createdAt: new Date().toISOString(), createdByUid: actor.uid, createdByName: actor.name || "", hint: `${key.slice(0, 8)}…${key.slice(-4)}`, revokedAt: "" };
   await db.collection("sheetBuilderKeys").doc(id).set(record);
   return { id, key, ...record };
 }
@@ -166,7 +167,8 @@ async function saveDraft(db, key, body = {}) {
   const sheetRef = lessonRef.collection("worksheets").doc(phase);
   const now = new Date().toISOString();
   const by = `gpt:${key.id.slice(0, 12)}`;
-  const byName = `ChatGPT (${key.label})`;
+  // the author mark everywhere a person sees it (owner 2026-10-26: „с пометкой KeeleSepp AI”)
+  const byName = key.label && key.label !== AI_NAME ? `${AI_NAME} (${key.label})` : AI_NAME;
   const note = text(body.note, 300);
   const saved = await db.runTransaction(async (tx) => {
     const [lessonSnap, sheetSnap] = await Promise.all([tx.get(lessonRef), tx.get(sheetRef)]);
@@ -184,7 +186,7 @@ async function saveDraft(db, key, body = {}) {
       title: String(storedDoc.meta?.title || "").trim(),
       source: "manual",
       ...(current?.generation ? { generation: current.generation } : {}),
-      contentOrigin: { kind: "gpt-connector", keyLabel: key.label, note, savedAt: now },
+      contentOrigin: { kind: "gpt-connector", author: AI_NAME, keyLabel: key.label, note, savedAt: now },
       worksheetDoc: storedDoc,
       worksheetDocStatus: "draft",
       worksheetDocVersion: version,
@@ -227,7 +229,7 @@ function openapi(serverUrl) {
   const docBody = { required: true, content: { "application/json": { schema: { type: "object", properties: { worksheetDoc: { type: "object", description: "keelesepp.worksheet/2 dokument (vaata /guide)" } }, required: ["worksheetDoc"] } } } };
   return {
     openapi: "3.1.0",
-    info: { title: "KeeleSepp töölehtede konstruktor", version: "1.0.0", description: "Loe reeglid ja plokid, leia tund, kontrolli lehte ja salvesta see tunni mustandiks. Avaldab inimene." },
+    info: { title: "KeeleSepp AI — töölehtede konstruktor", version: "1.0.0", description: "Loe reeglid ja plokid, leia tund, kontrolli lehte ja salvesta see tunni mustandiks. Avaldab inimene." },
     servers: [{ url: serverUrl }],
     components: { securitySchemes: { key: { type: "http", scheme: "bearer" } }, schemas: {} },
     security: [{ key: [] }],
@@ -273,4 +275,4 @@ function createHandler({ db, requireAdminUser, actorSnapshot, applyCors }) {
   };
 }
 
-module.exports = { createHandler, hashKey, guide, openapi, PHASES, KEY_PREFIX, lessonSummary };
+module.exports = { AI_NAME, createHandler, hashKey, guide, openapi, PHASES, KEY_PREFIX, lessonSummary };

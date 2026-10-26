@@ -1,4 +1,4 @@
-# ChatGPT worksheet connector („ChatGPT töölehed”)
+# KeeleSepp AI — the ChatGPT worksheet connector („KeeleSepp AI töölehed”)
 
 Owner 2026-10-26: the owner photographs the textbooks; worksheets are built by ChatGPT with **our constructor**.
 Claude keeps the platform; ChatGPT fills sheets.
@@ -18,7 +18,9 @@ Claude keeps the platform; ChatGPT fills sheets.
 - Saving a draft (`POST /drafts`) works like the constructor's `persist`:
   - writes a new version: `worksheetDoc` + `worksheetVersions/<lesson>_<phase>_studio_v<N>` + `worksheetPhases` summary;
   - `publishedWorksheetDoc` is kept, so students keep seeing the published sheet;
-  - `contentOrigin: { kind: 'gpt-connector', keyLabel, note }` and `updatedBy: gpt:<key>` mark the author.
+  - `contentOrigin: { kind: 'gpt-connector', author: 'KeeleSepp AI', keyLabel, note }`, `updatedBy: gpt:<key>` and the
+    version's `createdByName: "KeeleSepp AI"` mark the author (owner 2026-10-26: „с пометкой KeeleSepp AI”). The lesson
+    constructor shows a „KeeleSepp AI” banner on such a draft until it is published.
   - A person opens the editor link from the answer and presses „Avalda”.
 - Phases: `discover` (Avasta), `practice` (Harjuta), `transfer` (Kasuta), `opik` (the textbook sheet, 1:1 with the
   book, see the Õpik decision).
@@ -29,24 +31,24 @@ Claude keeps the platform; ChatGPT fills sheets.
   - Then deploy `functions:sheetBuilderApi`.
 - Keys:
   - stored in `sheetBuilderKeys/{sha256}` (no client access: firestore.rules catch-all);
-  - CRM „Seaded → ChatGPT töölehed” (administrators) creates a key (shown once), lists and revokes keys;
+  - CRM „Seaded → KeeleSepp AI töölehed” (administrators) creates a key (shown once), lists and revokes keys;
   - a revoked key stops at once.
 - A key can read the course lessons and their sheets and write sheet drafts — nothing else: no students, finance,
   publishing or deleting.
 
 ## Setting up the GPT (owner, once)
 
-1. ChatGPT → Explore GPTs → Create → Configure. Name: „KeeleSepp töölehed”.
+1. ChatGPT → Explore GPTs → Create → Configure. Name: **„KeeleSepp AI”**.
 2. Instructions: paste the text below.
 3. Actions → Create new action → Import from URL: the `openapi.json` address above.
-4. Authentication → API Key → Auth type **Bearer** → paste the key from CRM „Seaded → ChatGPT töölehed → Loo uus võti”.
+4. Authentication → API Key → Auth type **Bearer** → paste the key from CRM „Seaded → KeeleSepp AI töölehed → Loo uus võti”.
 5. Privacy policy (needed only to publish the GPT publicly): `https://www.epkoolitus.ee/privaatsus.html`. Keep the GPT
    **private** (Only me), since the key writes into the CRM.
 
 ### Instructions text for the GPT
 
 ```
-Sa oled KeeleSepa töölehtede koostaja. Räägi omanikuga vene keeles; õppijale nähtav tekst töölehel on eesti keeles.
+Sa oled KeeleSepp AI — KeeleSepa töölehtede koostaja. Räägi omanikuga vene keeles; õppijale nähtav tekst töölehel on eesti keeles.
 
 Töö käik:
 1. Kutsu alguses getGuide ja järgi selle reegleid (rules) ja dokumendi kuju (documentShape). Iga ploki täpse kuju ja

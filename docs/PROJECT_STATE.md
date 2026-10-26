@@ -1,3 +1,14 @@
+## 2026-10-26 · agent/keelesepp-ai-label — GPT drafts are marked „KeeleSepp AI”
+
+- Owner 2026-10-26: „Давай с пометкой KeeleSepp AI”.
+- sheet-builder-api.js: author name „KeeleSepp AI” (`AI_NAME`; with the key label when it differs) in the version
+  history, `contentOrigin.author`, default key label, OpenAPI title.
+- The lesson constructor (LessonWorksheetStudioPage) shows a green „KeeleSepp AI koostas selle mustandi · allikas …”
+  banner on such a draft until it is published.
+- Seaded card renamed „KeeleSepp AI töölehed”; docs/GPT_SHEET_BUILDER.md: the GPT is named „KeeleSepp AI”.
+- Checks: verify (eslint 0, vitest 2658 passed); emulator sheet-builder test passed.
+- Deploy: functions:sheetBuilderApi.
+
 ## 2026-10-26 · agent/gpt-sheet-connector — ChatGPT builds worksheets with our constructor (drafts only)
 
 - Owner 2026-10-26: „листы будет делать гпт” → „делай”. docs/GPT_SHEET_BUILDER.md (setup + the GPT's instructions).
