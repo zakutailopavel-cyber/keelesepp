@@ -1,3 +1,31 @@
+## 2026-10-26 · agent/a2-kohakaanded-check — A2 „Kus? Kuhu? Kust? — kontroll A / B”, published
+
+- Base: `main` 2aec0f9 (2026-10-26). Draft PR #812 from `agent/a2-kohakaanded-check`. Content + a small gate rule (diagnostic).
+- Asked (owner): a short (~10 min) diagnostic of the place cases for a weak 6th-grade A1–A2 learner — a baseline now and
+  the same check in a month, measurable per sub-skill, with a parallel version B; Harjuta only, all items closed.
+- Built: `admin/course/a2/kohakaanded.js` (MODULE `a2-kohakaanded-01`, `supplement: true`, A2, strict): a2-k01 „Kus? Kuhu?
+  Kust? — kontroll A” and a2-k02 „… — kontroll B”, one Harjuta sheet each, 10 min, 24 items: task 1 choice Kus/Kuhu/Kust
+  (8, goal `g_kus`), task 2 inner vs outer form, 2 options (8, `g_koht`), task 3 typed form of a given word with the
+  question given (8, `g_lopp`; short illative expected, long form accepted: kooli|koolisse, poodi|poesse, tuppa|toasse …;
+  koju only). Same item plan in A and B (task 1: Kus 3 / Kuhu 3 / Kust 2; task 2: inner 4 / outer 4; task 3: Kuhu 4,
+  Kust 2, Kus 2), teen topics, the notebook words kodus/koju/kodust, tööl/tööle/töölt, peal, sisse/seest, juurde/juurest.
+  Goals = sub-skills in `a2/lessonGoals.js`, so the player's „Tulemus tunni eesmärkide kaupa” gives N / 8 per sub-skill.
+  Scoring: 7–8 / 8 known, 5–6 shaky, ≤ 4 not known; task 2 has 2 options (chance 4 / 8) → known only at ≥ 6 / 8.
+  Teacher key (`EXPLAIN`) names the sub-skill and reason of each item.
+- New rule: a lesson's `diagnostic: true` → `meta.diagnostic` + `meta.shortSheet` (`registry.js`); `quality.js` skips the
+  lesson-shape rules for it (length, variety, end, v4 phase jobs, neighbour / same-opening / module-same, balance) and
+  instead requires every task to be auto-scored (`diagnostic-open`); `gates.js` skips the vocabulary-box rule. +2 tests.
+  Docs: B1_B2_COURSE_PRODUCTION.md §6.
+- Checks: full crm-v2 vitest 372 files, 2643 passed / 0 failed; `src/features/worksheet-generator` 933 passed / 0 failed;
+  module report 2/2 lessons READY; quality and final-shape baselines unchanged; eslint clean; Vabamorf speller 0 unknown;
+  forms checked with Vabamorf synthesize (sg ill / adt / in / el / all / ad / abl); typed answers scored on a test run.
+  Sheets looked at in a local preview (render OK).
+- Production (owner's permission): created `curriculumLessons/a2-k01`, `a2-k02` (est-a2-curriculum-v1, order 111–112,
+  module „Kus? Kuhu? Kust? (kontroll)”) and published their practice sheets v1 (+ worksheetVersions); read back equal to
+  the code. Not assigned, no deploy.
+- Next safe step: the teacher assigns a2-k01 to the learner now, writes down the three goal results, and assigns a2-k02 in
+  a month; compare per goal (g_kus, g_koht, g_lopp).
+
 ## 2026-10-26 · agent/a2-lihtminevik-extra — A2 „Lihtminevik: si- ja i-minevik (lisaharjutused)”, published
 
 - Base: `main` cfc59f6 (2026-10-26). Draft PR #811 from `agent/a2-lihtminevik-extra`. Content + a small sheet-gate rule.
