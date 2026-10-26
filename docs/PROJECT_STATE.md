@@ -1,3 +1,24 @@
+## 2026-10-26 · agent/finance-lesson-revenue — Finantsid „Ülevaade” counts the calendar's lessons, not the invoices
+
+- Owner 2026-10-26: „прогноз … не привязывать к бухгалтерии, он берётся из количества уроков в календаре, проведённых
+  и вынесенных; в бухгалтерии бухгалтер сама всё сделает”.
+- financeDashboard.js now:
+  - lessonRevenue — per month, the calendar's occurrences (individual + group, every card incl. archived);
+  - before today a lesson counts as held when it is marked Toimunud, is a charged Puudus_eta, or is still unmarked
+    (not cancelled; counted apart as „märkimata”); Puudus_p and Tühistatud count nothing; from today it is planned;
+  - journal-only lessons count as held; a card without a price is counted apart;
+  - lessonPriceCents — the plan price by length, the subject's own price;
+  - lessonSummary.
+  - The invoice / payment model (revenueHistory, revenueForecast, dashboardSummary) is removed.
+- FinanceDashboard.jsx loads all student cards, the schedule and the groups itself (plans and the lesson journal come
+  from the finance page).
+  - KPIs: held this month, still planned this month, month total (vs last month), next month, 3 months, monthly average
+    (+ unmarked count).
+  - Curves: held (green), planned (gold dashed, from this month's total); the month card under the chart.
+- Production read (2026-10-26): Jun 652 €, Jul 780 €, Aug 1077 €, Sep 2628 €, Oct 5105 € held + 1069 € planned;
+  Nov–Jan ≈ 6.1–6.2 k € planned.
+- Checks: verify (eslint 0, vitest all passed); local visual check.
+
 ## 2026-10-26 · agent/accounting-partner-optional — Raamatupidamine: the partner on 2110 / 1350 is optional
 
 - The bookkeeper 2026-10-26 (via the owner): „Подвязку kohustlik убери … я сама их буду привязывать”. A manual entry

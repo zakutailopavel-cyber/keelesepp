@@ -1,94 +1,19 @@
-// „Ülevaade” in Finantsid (owner 2026-10-26: „дашборд с графиком дохода, прогнозируемый доход и т.д.”). Pure numbers for
-// FinanceDashboard.jsx: what was invoiced and what came in month by month, and what the calendar says the next months
-// will bring — the same calculation as „Koosta arved” (monthlyBillingRows: scheduled lessons × each card's price).
-import { financeRowState } from './financeRows.js';
-import { monthlyBillingRows, shiftMonth } from './monthlyBilling.js';
+// „Ülevaade” in Finantsid (owner 2026-10-26: „дашборд с графиком дохода, прогнозируемый доход и т.д.”; then: „не
+// привязывать к бухгалтерии — из количества уроков в календаре, проведённых и вынесенных”). Pure numbers for
+// FinanceDashboard.jsx: the calendar's lessons month by month — held (past) and planned (from today) — at each
+// student's price. Invoices and payments are not used; the bookkeeping stays with the accountant.
+import { monthDates, shiftMonth } from './monthlyBilling.js';
+import { groupCalendarEvents, occurrencesForDates } from '../calendar/calendarView.js';
+import { itemSubject, mainSubject } from '../students/subjects.js';
 
 export const HISTORY_MONTHS = 12;
 export const FORECAST_MONTHS = 3;
-const VOID_PAYMENT = new Set(['void', 'cancelled', 'canceled', 'reversed', 'Tühistatud']);
 
-const monthOf = (value) => String(value || '').slice(0, 7);
 const isMonth = (value) => /^\d{4}-\d{2}$/.test(value);
 
 // the months on the chart, oldest first: `count` months ending with `last`
 export function monthRange(last, count) {
   return Array.from({ length: count }, (_, index) => shiftMonth(last, index - count + 1));
-}
-
-// invoiced by the invoice's date (cancelled and credited ones count nothing); received by the payment's date — payment
-// records first, an old invoice marked paid by hand (no payment record) by its own paidAt
-export function revenueHistory({ invoices = [], payments = [], months = [] } = {}) {
-  const byMonth = new Map(months.map((month) => [month, { month, invoicedCents: 0, receivedCents: 0, invoiceCount: 0 }]));
-  const recorded = new Set();
-  payments.forEach((payment) => {
-    if (VOID_PAYMENT.has(payment.status)) return;
-    if (payment.invoiceId) recorded.add(payment.invoiceId);
-    const slot = byMonth.get(monthOf(payment.paidAt || payment.createdAt));
-    if (slot) slot.receivedCents += Math.max(0, Math.round(Number(payment.amountCents ?? Number(payment.amount || 0) * 100) || 0));
-  });
-  invoices.forEach((invoice) => {
-    const state = financeRowState(invoice);
-    if (state.status === 'cancelled' || state.status === 'credit') return;
-    const slot = byMonth.get(monthOf(invoice.date || invoice.issueDate || invoice.createdAt));
-    if (slot) { slot.invoicedCents += state.amountCents; slot.invoiceCount += 1; }
-    // paid by hand long ago: financeRowState shows no paid amount, only a zero balance
-    const paid = state.paidCents || (state.status === 'paid' ? state.amountCents : 0);
-    if (!recorded.has(invoice.id) && paid > 0) {
-      const paidSlot = byMonth.get(monthOf(invoice.paidAt || invoice.date));
-      if (paidSlot) paidSlot.receivedCents += paid;
-    }
-  });
-  return months.map((month) => byMonth.get(month));
-}
-
-// the coming months from the calendar: each card's scheduled lessons × its price (lesson packages and cards without a
-// price are not in it, they are counted separately)
-export function revenueForecast({ months = [], students = [], plans = [], schedule = [], groups = [], lessons = [], invoices = [] } = {}) {
-  return months.map((month) => {
-    // most invoices carry no planMonth: an invoice dated in the month also counts as that month's invoice
-    const dated = new Set(invoices.filter((invoice) => invoice.status !== 'Tühistatud' && (invoice.planMonth ? invoice.planMonth === month : monthOf(invoice.date) === month))
-      .flatMap((invoice) => [invoice.studentId, ...(Array.isArray(invoice.studentIds) ? invoice.studentIds : [])]).filter(Boolean));
-    const rows = monthlyBillingRows({ month, students, plans, schedule, groups, lessons, invoices })
-      .map((row) => (row.status === 'ready' && dated.has(row.student.id) ? { ...row, status: 'invoiced' } : row));
-    // „ready” = still to invoice; „invoiced” = already on an invoice of that month (the current month)
-    const expected = rows.filter((row) => row.status === 'ready' || row.status === 'invoiced');
-    return {
-      month,
-      forecastCents: expected.reduce((sum, row) => sum + Math.max(0, row.totalCents), 0),
-      notInvoicedCents: rows.filter((row) => row.status === 'ready').reduce((sum, row) => sum + Math.max(0, row.totalCents), 0),
-      notInvoicedStudents: rows.filter((row) => row.status === 'ready').length,
-      students: expected.length,
-      lessons: expected.reduce((sum, row) => sum + row.lessonCount, 0),
-      packageStudents: rows.filter((row) => row.status === 'package').length,
-      noPrice: rows.filter((row) => row.status === 'no-price').length,
-    };
-  });
-}
-
-// the headline numbers next to the chart
-// thisMonth: the calendar's view of the current month (revenueForecast for it): what is owed by the lessons
-export function dashboardSummary({ history = [], forecast = [], invoices = [], current, thisMonth = null } = {}) {
-  const now = history.find((item) => item.month === current) || { invoicedCents: 0, receivedCents: 0, invoiceCount: 0 };
-  const previous = history.find((item) => item.month === shiftMonth(current, -1)) || { invoicedCents: 0, receivedCents: 0 };
-  const states = invoices.map((invoice) => financeRowState(invoice));
-  const received12 = history.reduce((sum, item) => sum + item.receivedCents, 0);
-  const activeMonths = history.filter((item) => item.receivedCents > 0 || item.invoicedCents > 0).length;
-  return {
-    invoicedCents: now.invoicedCents,
-    receivedCents: now.receivedCents,
-    changePercent: previous.invoicedCents ? Math.round(((now.invoicedCents - previous.invoicedCents) / previous.invoicedCents) * 100) : null,
-    outstandingCents: states.reduce((sum, state) => sum + state.balanceCents, 0),
-    overdueCents: states.filter((state) => state.overdue).reduce((sum, state) => sum + state.balanceCents, 0),
-    received12Cents: received12,
-    averageMonthCents: activeMonths ? Math.round(received12 / activeMonths) : 0,
-    averageInvoiceCents: now.invoiceCount ? Math.round(now.invoicedCents / now.invoiceCount) : 0,
-    nextMonth: forecast[0] || null,
-    calendarCents: thisMonth?.forecastCents || 0,
-    notInvoicedCents: thisMonth?.notInvoicedCents || 0,
-    notInvoicedStudents: thisMonth?.notInvoicedStudents || 0,
-    forecastTotalCents: forecast.reduce((sum, item) => sum + item.forecastCents, 0),
-  };
 }
 
 // a round top for the chart's scale (e.g. 3 870 € → 4 000 €)
@@ -114,6 +39,92 @@ export function smoothPath(points) {
     d += ` C${points[i][0] + h},${points[i][1] + h * tangent[i]} ${points[i + 1][0] - h},${points[i + 1][1] - h * tangent[i + 1]} ${points[i + 1][0]},${points[i + 1][1]}`;
   }
   return d;
+}
+
+// ---------- lesson revenue (owner 2026-10-26: the dashboard is not the bookkeeping — it counts the calendar's lessons,
+// held and planned, at each student's price; the accountant does the books herself) ----------
+
+const NOT_HELD = new Set(['Tühistatud', 'Puudus_p']);
+
+// a lesson's price for a student: the subject's own price when it has one, the length in the plan's units
+export function lessonPriceCents(item, student, plan) {
+  if (!plan) return 0;
+  const main = mainSubject(student);
+  const subject = itemSubject(item, student) || main;
+  const own = subject !== main ? plan.subjectPrices?.[subject] : null;
+  const price = own?.lessonPriceCents || plan.lessonPriceCents || 0;
+  const minutes = own?.lessonMinutes || plan.lessonMinutes || 60;
+  return Math.round(((Number(item.duration) || minutes) / minutes) * price);
+}
+
+// month by month: held lessons (past dates — marked „Toimunud” or a charged no-show, or still unmarked and not
+// cancelled) and planned lessons (from today on), each at its student's price; journal lessons that are not in the
+// calendar count as held
+export function lessonRevenue({ months = [], today, students = [], plans = [], schedule = [], groups = [], lessons = [] } = {}) {
+  const studentById = new Map(students.map((student) => [student.id, student]));
+  const planById = new Map(plans.map((plan) => [plan.studentId || plan.id, plan]));
+  const events = [...schedule, ...groupCalendarEvents(groups)];
+  const journal = new Map();
+  lessons.forEach((lesson) => {
+    const date = lesson.occurrenceDate || lesson.date;
+    if (lesson.scheduleId && date) journal.set(`${lesson.scheduleId}:${date}`, lesson);
+    if (lesson.studentId && lesson.date) journal.set(`${lesson.studentId}@${lesson.date}`, lesson);
+  });
+  const charged = (status, plan, record) => status === 'Toimunud' ? record?.billingStatus !== 'school_covered' : status === 'Puudus_eta' ? plan.chargeNoShow !== false && !record?.billingWaived : false;
+  return months.map((month) => {
+    const row = { month, heldCents: 0, heldLessons: 0, unmarkedLessons: 0, plannedCents: 0, plannedLessons: 0, noPrice: 0 };
+    const seen = new Set();
+    occurrencesForDates(events, monthDates(month)).forEach((item) => {
+      const ids = item.isGroup ? item.studentIds || [] : [item.studentId];
+      ids.forEach((studentId) => {
+        const student = studentById.get(studentId);
+        const plan = planById.get(studentId);
+        if (!student) return;
+        const record = journal.get(`${item.id}:${item.occurrenceDate}`) || journal.get(`${studentId}@${item.occurrenceDate}`);
+        if (record) seen.add(record.id || `${studentId}@${item.occurrenceDate}`);
+        const cents = lessonPriceCents(item, student, plan);
+        if (!cents) { row.noPrice += 1; return; }
+        const status = record?.status || item.status || 'Planeeritud';
+        if (item.occurrenceDate >= today) {
+          if (!NOT_HELD.has(status)) { row.plannedCents += cents; row.plannedLessons += 1; }
+          return;
+        }
+        if (status === 'Planeeritud' && !record) { row.heldCents += cents; row.heldLessons += 1; row.unmarkedLessons += 1; return; }
+        if (plan && charged(status, plan, record)) { row.heldCents += cents; row.heldLessons += 1; }
+      });
+    });
+    // a lesson written in the journal only (not in the calendar)
+    lessons.filter((lesson) => String(lesson.date || '').startsWith(`${month}-`) && lesson.date < today && !seen.has(lesson.id || `${lesson.studentId}@${lesson.date}`))
+      .forEach((lesson) => {
+        const student = studentById.get(lesson.studentId);
+        const plan = planById.get(lesson.studentId);
+        if (!student || !plan || !charged(lesson.status, plan, lesson)) return;
+        const cents = lessonPriceCents(lesson, student, plan);
+        if (cents) { row.heldCents += cents; row.heldLessons += 1; }
+      });
+    return row;
+  });
+}
+
+// the headline numbers of the lesson dashboard
+export function lessonSummary({ rows = [], current } = {}) {
+  const now = rows.find((row) => row.month === current) || { heldCents: 0, plannedCents: 0, heldLessons: 0, plannedLessons: 0 };
+  const previous = rows.find((row) => row.month === shiftMonth(current, -1));
+  const past = rows.filter((row) => row.month < current && row.heldCents > 0);
+  const future = rows.filter((row) => row.month > current);
+  return {
+    heldCents: now.heldCents,
+    heldLessons: now.heldLessons,
+    plannedCents: now.plannedCents,
+    plannedLessons: now.plannedLessons,
+    monthTotalCents: now.heldCents + now.plannedCents,
+    changePercent: previous?.heldCents ? Math.round(((now.heldCents + now.plannedCents - previous.heldCents) / previous.heldCents) * 100) : null,
+    averageMonthCents: past.length ? Math.round(past.reduce((sum, row) => sum + row.heldCents, 0) / past.length) : 0,
+    unmarkedLessons: rows.filter((row) => row.month <= current).reduce((sum, row) => sum + row.unmarkedLessons, 0),
+    nextMonth: future[0] || null,
+    forecastCents: future.reduce((sum, row) => sum + row.plannedCents, 0),
+    noPrice: now.noPrice || 0,
+  };
 }
 
 export { isMonth };
