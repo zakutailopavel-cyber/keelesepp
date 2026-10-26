@@ -172,7 +172,9 @@ function automaticEntries({ invoices = [], creditNotes = [], payments = [], paye
       description: `Laekumine arvele ${ref} (${methodLabel[payment.method] || payment.method || "pangaülekanne"})${payment.payerName ? ` · ${payment.payerName}` : ""}`,
       lines: withPartner(simple(account, POSTING_ACCOUNTS.receivables, amount), CUSTOMER_LINES, customer),
     });
-    if (payment.status === "void" && payment.voidedAt) {
+    // the CRM marks a cancelled receipt „voided” (index.js); „void” is the old spelling (2026-10-26: the balance showed
+    // 1200 at −711 € — five receipts entered twice and voided once stayed booked)
+    if ((payment.status === "voided" || payment.status === "void") && payment.voidedAt) {
       add({
         sourceKey: `payment-void:${payment.id}`, date: isoDate(payment.voidedAt), documentType: "payment", documentRef: String(payment.reference || ref),
         description: `Laekumise tühistamine (arve ${ref})${payment.voidReason ? ` · ${String(payment.voidReason).slice(0, 80)}` : ""}`,

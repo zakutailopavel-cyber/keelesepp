@@ -1,3 +1,12 @@
+## 2026-10-26 · agent/accounting-voided-payments — voided receipts are reversed in the books
+
+- Base: `main` 5c8ab1a. The accountant: the balance sheet shows a minus. Read-only check: 1200 Ostjatelt
+  laekumata arved −261 € — five invoices (KS-2026-036, -058, -063, -066, -076) had a receipt entered twice and voided
+  once (+ a voided 1 € LinkPay test, KS-2026-093): 711 € of voided receipts stayed booked. Cause:
+  `accounting-core.js` reversed only `status: "void"`, the CRM writes `"voided"`. Fixed (both spellings); the next
+  „Uuenda kanded” adds the `payment-void:` storno entries on the void dates. 2110 Võlad tarnijatele −81,30 € is from
+  manual entries (supplier payments larger than the booked purchase invoices / opening balance) — for the accountant.
+- Checks: functions npm test all passed (+1 test in accounting-core.test.js). Deploy: functions:financeApi.
 ## 2026-10-26 · agent/ledger-width — Pearaamat fits without sideways scrolling
 
 - Base: `main` 5c8ab1a. Owner: the pearaamat table needed horizontal scrolling. `AccountingPage.jsx` ledger
