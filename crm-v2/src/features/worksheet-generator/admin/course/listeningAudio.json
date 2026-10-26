@@ -1019,6 +1019,36 @@
     "seconds": 33.1,
     "hash": "ef5aa71b1864acbaa4e16d5d6522143ef62ed343"
   },
+  "a2-l01:l01_d_voice": {
+    "src": "/audio/a2-l01/l01_d_voice.mp3",
+    "seconds": 66.9,
+    "hash": "346be14490794147dbc3394f001907bcc623abcb"
+  },
+  "a2-l01:l01_p_coach": {
+    "src": "/audio/a2-l01/l01_p_coach.mp3",
+    "seconds": 65.5,
+    "hash": "5571c72c73537f2f44ee09391c5e09eb979e15ed"
+  },
+  "a2-l02:l02_d_class": {
+    "src": "/audio/a2-l02/l02_d_class.mp3",
+    "seconds": 75.9,
+    "hash": "a28b6658ad32598abf3cbdb8a7dcd79ed9bc4f0e"
+  },
+  "a2-l02:l02_p_call": {
+    "src": "/audio/a2-l02/l02_p_call.mp3",
+    "seconds": 64.2,
+    "hash": "dd6ae9d7ff7f776006a78579b4c9c543825253fb"
+  },
+  "a2-l02:l02_t_coach": {
+    "src": "/audio/a2-l02/l02_t_coach.mp3",
+    "seconds": 52.5,
+    "hash": "9a8e467f8f29b45abc31c408fbcb7d7a08a7fde7"
+  },
+  "a2-l03:l03_p_listen": {
+    "src": "/audio/a2-l03/l03_p_listen.mp3",
+    "seconds": 42.2,
+    "hash": "73939f85dccc68acba21d6a3a1de4d7f206445f7"
+  },
   "a2b1-001:001_p_clips": {
     "src": "/audio/a2b1-001/001_p_clips.mp3",
     "seconds": 94.4,

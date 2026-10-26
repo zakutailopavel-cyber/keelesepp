@@ -1,3 +1,26 @@
+## 2026-10-26 · agent/a2-lihtminevik-extra — A2 „Lihtminevik: si- ja i-minevik (lisaharjutused)”, published
+
+- Base: `main` cfc59f6 (2026-10-26). Draft PR from `agent/a2-lihtminevik-extra`. Content + a small sheet-gate rule.
+- Asked (owner): an 8th-grade A1→A2 learner did a2-076 Harjuta at 19 % (*tulesin, *minesin, *saamasin, *jõisin; negative
+  past 0/8: *ei läksin, *ei sõin); a lesson on si-/i-past to assign often. a2-076 lists the i-forms only to memorise
+  (no rule, no conjugation); a2b1-023 teaches the i-past at B1. A handout the owner was shown put käima, õppima, võima
+  in the i-past — they are si-past (käisin, õppisin, võisin; also viisin, müüsin, lugesin); checked with Vabamorf.
+- Built: `admin/course/a2/lihtminevik.js` (MODULE `a2-lihtminevik-01`, `supplement: true`, A2, template v4, strict):
+  a2-l01 „Si- või i-minevik?” (Avasta + Harjuta 40–41 min, Kasuta short), a2-l02 „Ei läinud, ei söönud” (same shape),
+  a2-l03 / a2-l04 „Lihtminevik: kordamine 1 / 2” (Harjuta only, 17–18 min, spaced review; l03 has a listening).
+  Goals in `a2/lessonGoals.js`. New: a lesson's `shortSheet` (true or phases) → `meta.shortSheet` (`registry.js`);
+  `depth.js` skips the minute norms (thin, live-fast) on such a sheet, item and sentence norms stay (+1 test). Audio:
+  6 recordings (TartuNLP, `public/audio/a2-l01…l03`, `listeningAudio.json`). Docs: B1_B2_COURSE_PRODUCTION.md §6.
+- Checks: full crm-v2 vitest 371 files, 2637 passed / 0 failed; module report 4/4 lessons READY (0 problems, didactic
+  score 100 on all 8 sheets); quality and final-shape baselines unchanged; eslint clean; Vabamorf speller: only the
+  deliberate wrong options and ending fragments (one real slip *videosid → videoid fixed). Sheets looked at in a local
+  preview (render, cloze line breaks fixed).
+- Production (owner's permission): created `curriculumLessons/a2-l01…l04` (est-a2-curriculum-v1, order 101–104) and
+  published their sheets v1 (+ worksheetVersions); read back equal to the code. No homework assigned, no deploy.
+- Risk: the audio files are served from the app (`/audio/a2-l0x/…`) — until this PR is merged and deployed the
+  listening blocks of these sheets have no sound (6 blocks; a2-l03 is the one short sheet with listening).
+- Next safe step: merge the PR and deploy hosting, so the audio of the published sheets plays; then assign.
+
 ## 2026-10-26 · agent/ledger-sign — pearaamat shows a liability's balance as a positive number
 
 - Base: `main` e78c9d3. Owner: 2110 Võlad tarnijatele showed −168,00 for a debt (the ledger always counted
