@@ -29,6 +29,14 @@ Keep facts consistent; add new facts here when a module adds them.
   cake). Babysitter candidates **Kertu** (22), **Siim** (30, coach), **Aino** (58, retired teacher), **Margit** (35,
   nurse); radio guest **Marika Põld** (babysitters' association); Viktor left his backpack with Helgi's present (a
   wooden box he made, with the old photo) on the Aegviidu train; lost-property clerk **Urve Tamm** (radio).
+- **Module 4 (first week of December):** Kase kool winter camp (Sat–Sun 5–6 Dec, a hiking centre in Kõrvemaa), leader
+  **Kaie** (teacher); Sofia and Anna volunteer, Markus leads singing, Viktor the hike, Kadri Christmas cards, Jaan cooks;
+  Oskar goes (Mia stays home, she is in kindergarten — Päikese rühm, teacher **Merike**). Inventory at the firm's
+  warehouse (Rein drives the forklift; second warehouse at Peterburi tee 18); Sofia's friend **Kati** comes back from
+  Finland and works there two days; Anna goes to her sister's wedding in Tartu, Sofia does her work (Bruno stays with a
+  neighbour). Hambakliinik **Naeratus** (dr Rebane, registrar **Reelika**); bus company „Kõrve Reisid” (also module 18);
+  Viktor's car breaks down; Oskar's coach **Raivo**; Kase kool director **Aivar Mänd**; time coach **Katrin Sild** (radio
+  „Päevateema”, host Ülle); Tartu software firm head **Ott Lepp**.
 - **Module 7:** Viktor hurt his knee cycling; new colleague **Kristjan** at Sofia's office; family doctor **dr Kask**,
   nurse **Kati** (advice line), **dr Tamm** (radio sleep expert).
 - **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher
