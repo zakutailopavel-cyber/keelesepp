@@ -3,7 +3,7 @@
 // Helgi, the mother of Jaan and Sofia, turns 60 and the family plans a surprise party at uncle Viktor's farm. The goal,
 // said on the first sheet: at the end the learner writes the invitation letter to the relatives (009 Kasuta).
 //   006 LUGU R→W  „Vana foto” — Sofia finds a photo of Helgi and her lost cousin Maie (story → listening → kelle?-rule →
-//                 retelling); Mia's… Oskar's composition, Sofia's chat with Maie's daughter, an info-gap family tree;
+//                 retelling); Oskar's composition, Sofia's chat with Maie's daughter, an info-gap family tree;
 //                 Maie's voice message, relatives meet at the party, the learner's own photo story (60–80 words).
 //   007 KUUL L→S  „Inimene, kes…” — Sofia's new colleagues in short voice notes, a lost child at the shopping centre
 //                 (kes/kellel/keda/kellega); a radio interview about a good babysitter, Liis's team mail, Kadri's ad;
@@ -24,7 +24,7 @@ export const MODULE = { id: 'a2b1-module-02', course: 'b1', title: 'Mina, pere j
 
 export const LESSONS = withShapes({
   'a2b1-006': {
-    title: 'Pere ja sugulased',
+    title: 'Pere ja lähedased',
     canDo: 'Ma kirjutan 60–80-sõnalise loo ühest pildist oma perealbumist: kes on pildil, kes nad mulle on ja mis siis juhtus.',
     discover: [
       B.review('006_d_review', [['Kirjelda oma tavalist tööpäeva kolme lausega: millal, kus, kellega?', 'a2b1-005'], ['Mis päev on sinu nädalas kõige toredam ja miks?', 'a2b1-004'], ['Kelle telefon see on? Vasta: See on minu … telefon.', 'a2-007']]),
@@ -558,7 +558,7 @@ export const LESSONS = withShapes({
         ['Pagariäri Mesimumm', 'Küpsetame torte ja kooke igaks peoks. Tort valmib kolme päevaga. Toome tordi tasuta koju, kui elate Tallinnas või Tartus.'],
         ['Ansambel Vanad Sõbrad', 'Mängime vanu Eesti laule ja tantsumuusikat. Sobime sünnipäevadele ja pulmadesse. Kaks tundi muusikat maksab 250 eurot.'],
         ['Reisibussid OÜ', 'Minibussid 8–20 inimesele. Viime teie külalised peole ja toome tagasi. Hind sõltub teekonnast, Tartu–Kõrvemaa ja tagasi 120 eurot.'],
-        ['Fotograaf Kristjan', 'Pildistan perepidusid ja teen perepildi kõigi sugulastega. Pildid saate nädala pärast albumina või arvutisse. Tulen ka maale, sõidu eest maksate eraldi.'],
+        ['Fotograaf Tarvo', 'Pildistan perepidusid ja teen perepildi kõigi sugulastega. Pildid saate nädala pärast albumina või arvutisse. Tulen ka maale, sõidu eest maksate eraldi.'],
         ['Peoruumide rent', 'Saal 40 külalisele Tallinna kesklinnas. Köök ja nõud on olemas. Sobib, kui peol on palju külalisi ja ilm on halb. Saali saab rentida ka ainult üheks õhtuks.'],
       ], [
         ['Pere tahab, et Tartu sugulased ei peaks ise autoga sõitma.', 'D'],

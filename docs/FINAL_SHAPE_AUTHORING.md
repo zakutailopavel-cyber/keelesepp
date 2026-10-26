@@ -156,3 +156,71 @@ the fluency strand (V11); the review names 030 and 021 (V13).
   (R2), `B.cloze` (R3a), `B.bankText` (R3b, R4), `B.examListen` (L1, L2, L4), `B.listening` (L3a, L3b),
   `B.examWriting` (W1, W2) with `B.rubricW1` / `B.rubricW2`, `B.ideaCard` (S1b), `B.phoneCards` (S2), `B.rubricSpeaking`.
 - Full mocks (060, 080, 089) and the final (090): all four parts, Harno item counts and minutes (§2.1).
+
+## 8. Lessons from the pilot module (B1 module 2, 2026-10-26)
+
+Module 2 (`b1/module02.js`, a2b1-006…010) was the first module rewritten to the final shape: 47 → 0 problems, the older
+quality gate and the strict gate 0. What took the time and what worked:
+
+**The budget is the real constraint — plan it before you write a sentence.**
+- Every sheet must be 40–55 min (`quality.js`, `timeEstimate.js`) and have 5–9 own blocks with ≥ 4 task types, while most
+  catalogue ids may appear **once a module** (V4). With 12 teaching sheets that means ~55–65 tasks and ~50 different ids:
+  in practice the module uses almost the whole catalogue. Make a table first: one row per id (R01…G13), one column per
+  lesson/phase, and fill it before writing. Ids with max 2 (S02, S03, S04, G02–G06, G08, G13, L08) are the only doubles.
+- The estimator decides the minutes, not your feeling. Our first draft was 35–39 min on 6 sheets. Cheap ways up, without
+  more production: longer input texts (a reading of 230 words + 7–8 questions ≈ 9–10 min; a listening of 250 words +
+  8 gaps ≈ 8 min), more items in `categorize`, a few more words in `writing` / `examWriting`. A speaking block is capped at
+  10 min, role cards are 9, an idea card or phone card 8. Our sheets ended at 40–43 min; reaching 45+ everywhere would
+  need more tasks, which the id caps do not leave room for.
+- The didactic word count is lower than you think (`didacticCheck` reading 120–250 words): our „~180-word” texts
+  counted 103–118. Count with the tool, not by eye.
+
+**Kasuta is the hardest sheet.** It needs: a ≥ 80-word input of type reading / listening / dialogue / profiles /
+insertion (level gate), ≥ 6 min of non-speaking/writing exercise (depth), no task of level ≤ 2 (V10), no G task (V15),
+no drill block (v4), a partner task (role cards, dialogue or speak card), ≥ 2 kinds of production and a rubric. Only
+**R05 insertion, R11 profiles and L07 phone message → notes** meet all of that by default — three ids for four lessons.
+We used them in 006 (L07), 007 (R11), 008 (R05) and, in 009, a reading whose questions apply the plan's numbers to a
+decision, tagged `{ task: 'R08', level: 3 }`. Write the level tag only when the questions really are application
+(„Kas raha jätkub? Miks?”), and say so in the PR.
+
+**Fluency ≥ 10 % per lesson needs two fluency tasks.** A lesson has ~115–120 task minutes, one speaking block is ≤ 10.
+S08 (4-3-2) is allowed once a module, so the other lessons need honest repetition formats: retell the same story twice
+with less time (S07), describe the picture to three partners in turn (S06), ask three people the same questions (S09),
+8-minute non-stop writing (W06), a phone call or meeting done a second time with a new partner and less time. Tag them
+`{ fluency: true }` — fluency minutes do not count as output, so keep ≥ 25 % output too.
+
+**Gate pitfalls we hit.**
+- `canDo` and the goals come from `b1/lessonGoals.js`, not from the module file — edit both, or V9 keeps failing.
+- V9 verb map: the can-do must contain *kirjutan / räägin / lepin kokku / helistan / küsin …* matching the main
+  Kasuta task's skill („kirjeldan” is not in the map).
+- `quality.js` same-opening: consecutive Avasta sheets may not start with the same block type — a `vocab` box first
+  counts as the opening. Put the vocab box after the first input in every second lesson.
+- The one-to-one check (v4) reads the learner's text: „klassis”, „grupis”, „paarilisega”, „vahetage” in a reading or a
+  self-check line demand a `teach()` note. Reword (we had „käin kolmandas klassis”, „maja grupis”).
+- A transformation answer with alternatives (`a|b`) is measured as one sentence: two long alternatives exceed 16 words.
+- V2 also looks at the previous module's last teaching lesson (006 vs 004) and the next module's first (009 vs 011);
+  `npm run course:final-shape` shows it, our temporary report printed „NEW outside module” to catch it.
+- Renaming a lesson title can break `ui/CourseProductionPage.test.jsx` (it looks for „a2b1-006 · Pere ja lähedased”).
+- Audio: `build.mjs` adds recordings but never removes old ones — delete the manifest entries and `public/audio` files
+  of removed blocks yourself (`listeningAudio.test.js` fails otherwise). An unknown speaker name gets a random voice
+  gender; add female names to `FEMALE` in `tools/listening-audio/plan.mjs` (we added „Marika”).
+- The Vabamorf speller (`tools/course-audit/language.py`, venv in the main checkout) caught *bürosse*, *saatet*; it does
+  not know *nõbul / nõbule* (added to `language-allow.txt`); the `examwriting` genre value `kusimustik` is reported
+  too (technical value, ignore).
+
+**Patterns that worked.**
+- One storyline with stakes across the module (Helgi's 60th; the lost cousin from the old photo comes back in the
+  voicemail, the gift is in the lost backpack, the exam reading closes the story). It makes every input new but
+  connected, and V8 (no repeated sentences) is easy.
+- Archetype = route, not decoration: LUGU story → listening continuation → rule → timed retelling; KUUL two genres of
+  listening → act on what was heard (explain the radio advice); AVAS „proovi kõigepealt” choice test → rule → „proovi
+  uuesti” transformation, Kasuta repeats the situation (phone call to lost property); PROJ brief (voicemail with
+  numbers) → offers (R1 ads) → booking call → plan & budget → letter → rewrite with the rubric (W10).
+- Instructions: write each one for its task (who, what, how much); the „Kuula …/Loe …/Kirjuta …” templates collide with
+  V7 across the course. Exam lessons in teie-form („Lugege…, valige…”) sound official and do not collide.
+- A2 exam lesson: tag only tasks whose shape is the B1 format (R2 text + MC, R3a cloze, L1 clips MC, L4 T/F, L3a short
+  answers, W1b message with points, S0) — the A2-only formats (phrases MC, sentences ↔ 3 texts, signs, business card,
+  picture, idea-card Q&A) stay untagged. Keep the reading part's recognition share ≤ 60 % (`didacticCheck`): we made
+  A2 reading 2 and 3 `reading` blocks with letter answers.
+- Work loop: a temporary vitest file that prints per sheet the minutes, own blocks, didactic score, each block's id /
+  level / strand and every gate problem (module + „new elsewhere”) — one run instead of four tools. Do not commit it.
