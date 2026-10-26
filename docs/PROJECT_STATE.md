@@ -1,3 +1,14 @@
+## 2026-10-26 · agent/accounting-partner-optional — Raamatupidamine: the partner on 2110 / 1350 is optional
+
+- The bookkeeper 2026-10-26 (via the owner): „Подвязку kohustlik убери … я сама их буду привязывать”. A manual entry
+  with a line on 2110 (Võlad tarnijatele) or 1350 could not be saved without a supplier partner.
+- functions/index.js (manual entry save): validateEntry without `requirePartner`. A named partner must still be a
+  supplier card. accounting-core keeps the option.
+- crm-v2 accounting: JournalDraft (no „kohustlik”, no „partner (2110)” blocker), JournalGrid (no red „Puudub: partner”),
+  journalGrid.workingProblem (no partner requirement). „pole tarnijate seas” for a typed unknown name stays.
+- Tests updated (journalGrid.test.js, partners.test.jsx, functions/finance-emulator.integration.js — the finance emulator suite: 102 passed). Checks: verify (eslint 0, vitest 2660 passed); functions npm
+  test 407 passed.
+- Deploy: functions:invoiceApi (the accounting endpoints).
 ## 2026-10-26 · agent/finance-dashboard — Finantsid „Ülevaade”: revenue chart and forecast
 
 - Owner 2026-10-26: „в финансах дашборд с графиком дохода, прогнозируемый доход и т.д.” → „сделай как будет лучше в

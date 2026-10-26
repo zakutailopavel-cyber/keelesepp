@@ -9015,7 +9015,8 @@ async function createAccountingEntry({ actor, values, requestId }) {
   let normalized;
   try {
     // a new manual entry: a line on a supplier account (2110, 1350) needs its supplier (the accountant 2026-10-24)
-    normalized = accountingCore.validateEntry(values, accounts, { suppliers: await partnerSuppliers(values?.lines), requirePartner: true });
+    // a supplier account line may stay without a partner: the bookkeeper links partners herself later (owner 2026-10-26)
+    normalized = accountingCore.validateEntry(values, accounts, { suppliers: await partnerSuppliers(values?.lines) });
   } catch (error) {
     throw httpError(error.status || 400, error.message);
   }
