@@ -5247,6 +5247,14 @@ async function postJson(url, headers, body) {
 }
 
 async function deliverEmail(message, context = {}) {
+  // made-up addresses (123@123.com …) are never mailed: they only bounce (email-address-core.js, owner 2026-10-26)
+  const { realRecipients } = require("./email-address-core");
+  const to = realRecipients(message.to);
+  if (!(Array.isArray(to) ? to.length : to)) {
+    console.log("email skipped: only made-up recipients", context.kind || "");
+    return { status: "skipped", reason: "placeholder-recipient" };
+  }
+  message = { ...message, to };
   const resendKey = process.env.RESEND_API_KEY;
   const sendgridKey = process.env.SENDGRID_API_KEY;
   const smtpHost = configValue(process.env.SMTP_HOST, SMTP_DEFAULTS.host);

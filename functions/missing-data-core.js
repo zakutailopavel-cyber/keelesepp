@@ -38,7 +38,10 @@ function normalizeSettings(data = {}) {
 
 // ---------- values ----------
 
-const validEmail = (value) => EMAIL.test(clean(value, 200));
+const { isPlaceholderEmail } = require("./email-address-core");
+const validEmail = (value) => EMAIL.test(clean(value, 200)) && !isPlaceholderEmail(value);
+// a child's parent e-mail is never required (owner 2026-10-26: students typed made-up addresses to get past the form)
+const requiredFor = (kind, items, settings) => items.filter((item) => settings[item] === "required" && !(item === "email" && kind === "child"));
 
 // Estonian numbers without the country code (7–8 digits, 3…8 first) become +372…; international numbers keep their
 // code (00 → +). Spaces, dashes, dots and brackets are dropped. Returns "" when it is not a phone number.
@@ -133,7 +136,7 @@ function cardStatus(facts, settings = DEFAULT_SETTINGS, year = new Date().getFul
     return { kind, missing, required: missing.filter((item) => settings[item] === "required"), variants: { adult, child } };
   }
   const missing = pick(missingFor(kind, facts));
-  return { kind, missing, required: missing.filter((item) => settings[item] === "required") };
+  return { kind, missing, required: requiredFor(kind, missing, settings) };
 }
 
 // ---------- the gate: what the caller is asked ----------
@@ -208,6 +211,7 @@ function cardPatch(question, answer = {}, year = new Date().getFullYear()) {
     asked = [...new Set(["grade", ...(question.variants[kind] || [])])];
   }
   const required = new Set(question.required);
+  if (kind === "child") required.delete("email");
   const need = (item, has) => { if (!has && required.has(item) && !errors[item]) errors[item] = "required"; };
 
   if (asked.includes("availability")) {
