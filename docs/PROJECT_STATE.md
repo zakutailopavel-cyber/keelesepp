@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m05-final — B1 module 5 in the final shape
 
-- Base: `main` 092f898 (after #798, B1 module 2). Draft PR from `agent/b1-m05-final`. Content only; no production data,
+- Base: `main` 092f898 (after #798, B1 module 2). Draft PR #799 from `agent/b1-m05-final`. Content only; no production data,
   no deploy. Parallel agents rewrite modules 3, 4 and 6 (not touched here).
 - Asked (owner): module 5 „Lihtminevik ja kogemused” (a2b1-021…025) to the final shape (`COURSE_FINAL_SHAPE_B1.md`
   §6.2–6.4, §7–8); fix the audit's can-do/time mismatch (024 promised 2–3 min speaking).
