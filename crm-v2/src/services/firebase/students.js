@@ -47,12 +47,19 @@ function normalizedEnrollment(value = {}, fallback = {}) {
 
 // the stored study tracks with the main one moved to the new teacher (the only track, or the one matching the card's
 // main subject and teacher); null when the card stores no tracks or none is the main one
-export function withMainTrackTeacher(stored, current, teacher, teacherUid) {
-  if (!Array.isArray(stored) || !stored.length) return null;
+// the card's main study track takes the patch (teacher, level, target level) — the only track, or the one that matches
+// the card's main subject and teacher before the change (2026-10-26: „Muuda andmeid” set B1 → B2 on the card, the
+// „Õppesuunad” block still showed A1 → B1)
+export function withMainTrack(stored, current, patch) {
+  if (!Array.isArray(stored) || !stored.length || !patch || !Object.keys(patch).length) return null;
   const mainKey = enrollmentKey(normalizedEnrollment(current, current));
   const index = stored.length === 1 ? 0 : stored.findIndex((item) => enrollmentKey(normalizedEnrollment(item, current)) === mainKey);
   if (index < 0) return null;
-  return stored.map((item, at) => (at === index ? { ...item, teacher, teacherUid: teacherUid || '' } : item));
+  return stored.map((item, at) => (at === index ? { ...item, ...patch } : item));
+}
+
+export function withMainTrackTeacher(stored, current, teacher, teacherUid) {
+  return withMainTrack(stored, current, { teacher, teacherUid: teacherUid || '' });
 }
 
 export function enrollmentKey(value = {}) {
@@ -336,10 +343,21 @@ export const studentsService = {
       // the card's main study track follows the new teacher (owner 2026-10-15: the student list shows the tracks, the
       // teacher pages the main teacher — changing only one made them disagree): the only track, or the track that was
       // the main one
+    }
+    // the main track follows the card's teacher, level and target level (the student list and „Õppesuunad” read the
+    // tracks, the teacher pages and the course the card)
+    const trackPatch = {
+      ...('teacher' in payload ? { teacher: payload.teacher, teacherUid: payload.teacherUid || '' } : {}),
+      ...('level' in payload ? { level: payload.level } : {}),
+      ...('targetLevel' in payload ? { targetLevel: payload.targetLevel } : {}),
+    };
+    if (Object.keys(trackPatch).length) {
       const raw = await getDoc(doc(db, 'students', id));
       const stored = raw.exists() && Array.isArray(raw.data().enrollments) ? raw.data().enrollments : null;
-      const synced = withMainTrackTeacher(stored, current, payload.teacher, payload.teacherUid);
+      const synced = withMainTrack(stored, current, trackPatch);
       if (synced) payload.enrollments = synced;
+    }
+    if ('teacher' in payload) {
       // the previous teacher loses access: only the new teacher and the teachers of active enrollments stay
       const tracks = payload.enrollments || current?.enrollments || [];
       const enrollmentUids = tracks.filter((item) => item?.active !== false).map((item) => item.teacherUid).filter(Boolean);
