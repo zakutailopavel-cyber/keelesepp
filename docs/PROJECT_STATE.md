@@ -16,6 +16,42 @@
   Other functions (invoice e-mails) get the recipient filter with the next functions deploy.
 - Open: Aleksei Merzin's card still has 123@123.com — the admin fixes or clears it (the card now warns).
 
+## 2026-10-26 · agent/works-order — given worksheets in the order to do them, numbered
+
+- Base: `main` 476827d. Owner: in „Tööd” it was hard to see which sheet comes first (sheets of one lesson were
+  given at the same minute, the list was newest first). `features/homework/workOrder.js` `compareWorks` / `sortWorks`:
+  earliest deadline, then the lesson given first, then Avasta → Harjuta → Kasuta. Used in the student's „Määratud
+  töölehed” (HomeworkPage) and the teacher's student card „Tööd” (StudentWorksPanel); each row shows its step „1.”, „2.” …
+- Checks: vitest homework + students 39 files, 164 passed (+1 test file); eslint 0 errors. UI only.
+
+## 2026-10-26 · agent/teacher-answer-key — click a task: the teacher sees its answers and can show them to the student
+
+- Base: `main` 2aec0f9 (2026-10-26). Draft PR #813 from `agent/teacher-answer-key`. UI + one service method; no rules change.
+- Asked (owner): „Когда нажимаешь на задание, у учителя должны показываться ответы, которыми он может поделиться с учеником.”
+- Done: `BlockKeyPanel.jsx` — under the clicked task on the TEACHER's sheet: right answers per item (gaps, choice, true/false,
+  matching, word order, dictation, listening, dialogue, tables, exam blocks…), the course explanation (`explain`), the
+  teacher note (`teacher`), the listening script; an open task says „hinda ise”. Where: `LiveWorksheetView` (room board,
+  /library/worksheets/live/:id, „praegune seis” in the student card), `DocWorksheetSubmissionPreview` (homework review,
+  staff only via `answerKey`) and the read-only `DocWorksheetPlayer` a teacher opens. Live view only: „Näita õpilasele” /
+  „Peida” per task and „Näita kõik vastused” / „Peida kõik vastused” in the task list (not after the sheet is submitted).
+  `engine/answerKey.js`: `blockAnswerKey(doc, blockId)`, listening/dialogue items get the line as prompt (one item per gap
+  kept — course explanation counts unchanged), bare item numbers are no longer shown as prompts.
+- Data: `homeworkService.setWorksheetShown({ assignmentId, shown, change: { blockIds, on }, user })` — one transaction from
+  the stored list: `liveShown`, `liveShownBy[blockId] = { on, byUid, byName, at }`, `liveShownLog` (last 200). Without
+  `change` the old plain write remains. Answers and score untouched; the learner's player is unchanged (it already lists the
+  right answers of `liveShown` tasks under them, own answers kept and marked). Rules: staff may update the assignment; the
+  learner's update list stays answers/status/score/… so the learner cannot write these fields. No emulator test (no rule change).
+- Security note: answer keys already live in `worksheetAssignments.worksheetDoc`, which the learner reads (gap brackets,
+  `*` options, `explain`, `transcript`). Not changed, no new exposure; moving keys server-side would be its own task.
+- Checks: full crm-v2 vitest 372 files passed (1 skipped), 2644 tests passed / 4 skipped, 0 failed (+1 file
+  `BlockKeyPanel.test.jsx` 6 tests, +1 in `homework.test.js`); eslint 0 errors (16 old warnings, none in touched files);
+  `npm run build` ok. Local stand (teacher live view + student player on one in-memory assignment, b1b2-007 Kasuta
+  „Kõne infotelefonile”): click → panel with 8 answers and script; „Näita õpilasele” → student sees „Õiged vastused 1)…8)”
+  under the task with own red-marked answer kept; panel shows „näidatud 14:52, Aleksei Merzin”. Stand not committed.
+- Limits: the panel is in the sheet flow, so while it is open the teacher's sheet below that task is longer than the
+  student's copy (as with the dictation note). Showing answers lets the learner fix answers before „Esita” (score is then
+  computed as usual; `liveShownLog` shows what was shown when).
+- Deploy: hosting only (no functions, no rules). Next safe step: owner review of the draft PR, then merge and deploy hosting.
 ## 2026-10-26 · agent/a2-kohakaanded-check — A2 „Kus? Kuhu? Kust? — kontroll A / B”, published
 
 - Base: `main` 2aec0f9 (2026-10-26). Draft PR #812 from `agent/a2-kohakaanded-check`. Content + a small gate rule (diagnostic).

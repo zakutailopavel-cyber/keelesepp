@@ -69,3 +69,5 @@
 .voice-answer__time.is-on { color: #d92d20; }
 .voice-answer audio, .task-answer audio { width: 100%; max-width: 420px; }
 .homework-voice-toggle { display: flex; align-items: flex-start; gap: 8px; font-size: .9rem; }
+
+.work-step{color:var(--green);font-variant-numeric:tabular-nums;margin-right:2px}
