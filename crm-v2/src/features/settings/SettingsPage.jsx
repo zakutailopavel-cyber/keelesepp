@@ -16,6 +16,7 @@ import DataCleanupPanel from './DataCleanupPanel.jsx';
 import StudyDirectionsCard from './StudyDirectionsCard.jsx';
 import MissingDataSettingsCard from './MissingDataSettingsCard.jsx';
 import LearnerEmailsCard from './LearnerEmailsCard.jsx';
+import SheetBuilderCard from './SheetBuilderCard.jsx';
 import './dataCleanup.css';
 import '../common/finalReadiness.css';
 
@@ -26,7 +27,7 @@ function initialProfile(user) {
   };
 }
 
-export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository, directionsRepository, missingDataRepository, learnerEmailsRepository }) {
+export default function SettingsPage({ parentRepository = parentsService, studentRepository = studentsService, googleCalendarRepository, directionsRepository, missingDataRepository, learnerEmailsRepository, sheetBuilderRepository }) {
   const { user, preview, configured, updateProfile, sendPasswordReset, startPreview } = useAuth();
   const [form, setForm] = useState(() => initialProfile(user));
   const [saving, setSaving] = useState(false);
@@ -186,6 +187,7 @@ export default function SettingsPage({ parentRepository = parentsService, studen
 
       {isAdmin ? <Card><div className="settings-icon"><Eye /></div><h2>Vanema / õpilase vaade</h2><p className="settings-copy">Ava valitud lapsevanema või õpilase kabinet ilma tema parooli ja Firebase Auth seanssi muutmata. Tugivaade on vaikimisi ainult lugemiseks.</p>{!supportData ? <Button variant="secondary" loading={supportLoading} onClick={loadSupportUsers}>Laadi kasutajad</Button> : <div className="settings-profile-form"><Select label="Vaate tüüp" value={supportType} onChange={(event) => { setSupportType(event.target.value); setSupportTarget(''); }}><option value="parent">Lapsevanem</option><option value="student">Õpilane</option></Select><Select label={supportType === 'parent' ? 'Lapsevanem' : 'Õpilane'} value={supportTarget} onChange={(event) => setSupportTarget(event.target.value)}><option value="">Vali kasutaja</option>{(supportType === 'parent' ? supportData.parents : supportData.students).map((item) => <option value={item.id} key={item.id}>{supportType === 'parent' ? (item.displayName || item.email || 'Nimetu lapsevanem') : (item.name || 'Nimetu õpilane')}</option>)}</Select><Button disabled={!supportTarget} onClick={openSupportView}><Eye size={17} /> Ava read-only vaade</Button></div>}{supportError ? <p className="form-hint" role="alert">{supportError}</p> : null}</Card> : null}
 
+      {isAdmin && !preview ? <SheetBuilderCard {...(sheetBuilderRepository ? { service: sheetBuilderRepository } : {})} /> : null}
       {isAdmin && !preview ? <MissingDataSettingsCard user={user} {...(missingDataRepository ? { service: missingDataRepository } : {})} /> : null}
 
       {isAdmin && !preview ? <StudyDirectionsCard user={user} studentService={studentRepository} {...(directionsRepository ? { service: directionsRepository } : {})} /> : null}

@@ -1,3 +1,21 @@
+## 2026-10-26 · agent/gpt-sheet-connector — ChatGPT builds worksheets with our constructor (drafts only)
+
+- Owner 2026-10-26: „листы будет делать гпт” → „делай”. docs/GPT_SHEET_BUILDER.md (setup + the GPT's instructions).
+- functions/sheet-builder-api.js → Cloud Function `sheetBuilderApi`, OpenAPI /openapi.json for a Custom GPT (Actions,
+  Bearer key):
+  - /guide, /blocks/{type}, /lessons, /lessons/{id}?phase=;
+  - /check (the constructor's own checks);
+  - /drafts — a new draft version of the lesson sheet; publishedWorksheetDoc kept, version history + summary like the
+    constructor; contentOrigin gpt-connector.
+- Keys: sheetBuilderKeys/{sha256} (rules catch-all: no client access); CRM Seaded → „ChatGPT töölehed” (admins:
+  create — shown once, list, revoke).
+- Checks: functions/generated/sheet-kit.cjs bundled from crm-v2/src/features/worksheet-studio/sheetKit.js
+  (`npm run build:sheet-kit`; sheetKit.test.js fails when stale).
+- Tests: functions/sheet-builder-emulator.integration.js (in financial-core-emulator); sheetKit.test.js; SheetBuilderCard.test.jsx.
+- Checks run: verify (eslint 0, vitest 2656 passed); functions npm test 407 passed; the CI emulator suite exit 0.
+- Deploy: functions:sheetBuilderApi only (new function).
+- Next: the owner makes a key in Seaded and sets up the GPT; first real sheet reviewed in the constructor.
+
 ## 2026-10-26 · agent/fake-parent-email — made-up e-mails are refused and never mailed; a child's parent e-mail is optional
 
 - Owner 2026-10-26: a homework e-mail to 123@123.com bounced (Aleksei Merzin's card, parentEmail typed in the

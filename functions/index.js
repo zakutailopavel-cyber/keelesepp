@@ -12307,3 +12307,9 @@ exports.refreshSchoolAssistant = functions
     console.log("School assistant refreshed", result);
     return null;
   });
+
+// ChatGPT worksheet connector (functions/sheet-builder-api.js, docs/GPT_SHEET_BUILDER.md): a Custom GPT with its own key
+// reads the rules and blocks, checks a sheet and saves it as a lesson sheet's draft; an administrator manages the keys.
+exports.sheetBuilderApi = functions.runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest(
+  require("./sheet-builder-api").createHandler({ db, requireAdminUser, actorSnapshot, applyCors }),
+);
