@@ -1,3 +1,16 @@
+## 2026-10-26 · agent/textbook-map — the owner's textbooks in the KeeleSepp AI connector
+
+- Owner 2026-10-26: photos of „E nagu Eesti” (contents, pp. 7, 10–20) — „подключи все”.
+- Photos saved by page on the owner's Mac: ~/KeeleSepp-opikud/E nagu Eesti/ (never committed).
+- functions/textbooks.json:
+  - „E nagu Eesti”: 41 parts of the contents — chapter, grammar, pages, nearest A2 course lessons; `license: "unconfirmed"`;
+  - „Minu Eesti”: `license: "granted"`.
+- Connector: GET /textbooks, /textbooks/{id}. Rule: Õpik 1:1 only for a book with `license: "granted"`; otherwise
+  topics and ideas only; handwritten answers in photos are not copied.
+- docs/TEXTBOOKS.md (E nagu Eesti section), docs/GPT_SHEET_BUILDER.md updated.
+- Checks: emulator connector test passed (textbooks included); functions npm test 407 passed.
+- Open: the owner confirms whether the publisher's permission covers „E nagu Eesti”.
+
 ## 2026-10-26 · agent/keelesepp-ai-label — GPT drafts are marked „KeeleSepp AI”
 
 - Owner 2026-10-26: „Давай с пометкой KeeleSepp AI”.

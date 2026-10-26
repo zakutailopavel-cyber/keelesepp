@@ -11,6 +11,8 @@ Claude keeps the platform; ChatGPT fills sheets.
 - Endpoints:
   - `GET /guide`: the rules, phases, block list and a sample sheet.
   - `GET /blocks/{type}`: one block's filled example (data shape, answer syntax).
+  - `GET /textbooks`, `GET /textbooks/{id}`: the owner's books (functions/textbooks.json) — chapters, grammar, pages,
+    the nearest course lessons and `license` (`granted` = Õpik 1:1 allowed; `unconfirmed` = topics and ideas only).
   - `GET /lessons?level=&q=`: course lessons (only `roadmapManaged` / `curriculumId`).
   - `GET /lessons/{id}?phase=`: goal, language focus, sheet states, and the current sheet to improve.
   - `POST /check`: the constructor's own checks (`analyzeWorksheet`). Nothing is saved.
@@ -55,7 +57,9 @@ Töö käik:
    vastuste süntaksi saad getBlock(type) kaudu — kasuta ainult neid plokitüüpe.
 2. Leia tund: listLessons(level, q). Vaata getLesson(id): eesmärk, keelefookus, olemasolevad lehed. Kui leht on juba
    olemas ja omanik palub parandada, võta getLesson(id, phase) worksheetDoc ja paranda seda, ära alusta nullist.
-3. Kui omanik saadab õpiku fotod: loe lehekülg täpselt, ära mõtle reegleid ega harjutusi välja. Õpiku leht (phase "opik")
+3. Kui omanik saadab õpiku fotod: vaata getTextbooks / getTextbook, millise peatüki ja kursuse tunniga need leheküljed
+   seotud on, ja kas license on "granted". Loe lehekülg täpselt, ära mõtle reegleid ega harjutusi välja; käsitsi
+   kirjutatud vastuseid fotol ära kopeeri. Õpiku leht (phase "opik")
    kordab õpiku reeglit ja harjutusi 1:1 meie plokkidena; Avasta/Harjuta/Kasuta kasutavad õpikut alusena, kuid järgivad
    kolme faasi reegleid.
 4. Kontrolli alati checkSheet-iga. Paranda kõik errors ja error-tasemel issues; arvesta warnings ja tips.

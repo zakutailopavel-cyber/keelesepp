@@ -29,6 +29,21 @@ lesson that teaches the same grammar, next to Avasta / Harjuta / Kasuta. Those t
 
 ## Books
 
+The KeeleSepp AI connector reads the book list from `functions/textbooks.json` (`GET /textbooks`). Keep that file and
+this page in step. The owner's page photos stay on his Mac: `~/KeeleSepp-opikud/<book>/<page>.jpg`; they are never
+committed.
+
+### „E nagu Eesti” — Mall Pesti, Helve Ahi (A1–A2)
+
+- Owner's photos 2026-10-26: the contents, pp. 7, 10–20 (chapters 1–3). Some exercises in the photos are filled in by
+  hand; those answers are not copied.
+- **Publisher's permission: not recorded.** Until the owner confirms it (`license: "unconfirmed"`), the book is a
+  source of topics and ideas only, with our own texts and tasks. Õpik sheets 1:1 come only after it is confirmed.
+- The chapter → page → course lesson map is in `functions/textbooks.json`.
+  - The contents photo prints each page number one row low; the pages were checked against the photos (ch. 1 = p. 10,
+    ch. 2 = p. 14, ch. 3 = p. 18).
+  - Chapter 25's first page (196) is a guess.
+
 ### „Minu Eesti” — Inga Mangus, Merge Simmul
 
 | Pages | Lesson | Sheet |
