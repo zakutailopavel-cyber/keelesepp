@@ -56,7 +56,7 @@ export const LESSONS = withShapes({
         ['Mida ei tohi Pelgulinna korteris teha?', 'pidada lemmikloomi', 'kutsuda külalisi', 'kuulata muusikat'],
         ['Mida soovitab Jaan küsida?', 'kas majas on koht jalgrattale', 'kas majas on lift', 'kas majas on saun'],
       ]), { task: 'L01' }),
-      tag(B.vocab('011_d_vocab', 'Tunni sõnad.', ['üürima — снимать (жильё)', 'üürnik — жилец', 'üür — арендная плата', 'leping — договор', 'maakler — маклер', 'korrus — этаж', 'niiske — сырой', 'ruumikas — просторный', 'ebameeldiv — неприятный', 'ohutu — безопасный']), { topic: ['ruumikas'] }),
+      tag(B.vocab('011_d_vocab', 'Tunni sõnad.', ['üürima — снимать (жильё)', 'üürnik — жилец', 'üür — арендная плата', 'leping — договор', 'omanik — владелец', 'korrus — этаж', 'niiske — сырой', 'ruumikas — просторный', 'ebameeldiv — неприятный', 'ohutu — безопасный']), { topic: ['ruumikas'] }),
       tag(B.listening('011_d_view', 'Korteri vaatamine Valgevase tänaval.', 'Kuula, kuidas Sofia Heinoga korterit vaatab. Kirjuta igasse lünka üks või kaks sõna.', [
         'Heino: Tere õhtust! Teie olete vist Sofia. Mina olen Heino. Tulge sisse, palun.',
         'Sofia: Tere! Oi, siin on trepp väga järsk. Kui vana see maja on?',
@@ -263,7 +263,7 @@ export const LESSONS = withShapes({
         ['Kes viis kasti uude koju?', 'Sofia ise|Sofia'],
         ['Kas sinu arvamus pealkirja kohta oli õige? Mis tegelikult juhtus?', 'Anna pani kasti sahvrisse ja unustas selle|kast jäi Malle juurde'],
       ]), { task: 'R13' }),
-      tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kolima — переезжать', 'pakkima — упаковывать', 'kast — коробка', 'kandma — нести', 'trepikoda — подъезд', 'kelder — подвал', 'aknalaud — подоконник', 'riiul — полка', 'kapp — шкаф', 'sahver — кладовка']), { topic: ['sahver'] }),
+      tag(B.vocab('012_d_vocab', 'Tunni sõnad.', ['kolima — переезжать', 'pakkima — упаковывать', 'kast — коробка', 'kandma — нести', 'trepikoda — подъезд', 'kelder — подвал', 'aknalaud — подоконник', 'reegel — правило', 'kapp — шкаф', 'sahver — кладовка']), { topic: ['sahver'] }),
       B.notice('012_d_notice', 'Märka: kus? kuhu? kust?', [
         'Blogist: kastid seisid **toas** · panid need **kaubikusse** · otsisime **köögist** · kast on **sahvris**',
         '**Kus?** (olen, seisab, on) — kasti**s**, kuuri**s**, riiuli**l**, Malle **juures**',
@@ -593,7 +593,7 @@ export const LESSONS = withShapes({
         ['Sofia vajab peoks ka taldrikuid ja klaase.', 'C'],
         ['Tiina ütleb, et maja hoovis ei ole autodele kohta.', 'E'],
       ], 'g_vocab'),
-      tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['rike — поломка', 'katki — сломанный', 'radiaator — батарея отопления', 'meister — мастер', 'suletud — закрытый', 'ristmik — перекрёсток', 'otse — прямо', 'pöörama — поворачивать', 'eksima — заблудиться', 'ümbersõit — объезд']), { topic: ['ümbersõit'] }),
+      tag(B.vocab('014_d_vocab', 'Tunni sõnad.', ['rike — поломка', 'katki — сломанный', 'radiaator — батарея отопления', 'remont — ремонт', 'suletud — закрытый', 'ristmik — перекрёсток', 'otse — прямо', 'pöörama — поворачивать', 'eksima — заблудиться', 'ümbersõit — объезд']), { topic: ['ümbersõit'] }),
       tag(B.listening('014_d_radio', 'Linna teadaanne raadios.', 'Kuula linna teadaannet kaks korda. Kirjuta, mida inimesed peavad laupäeval teisiti tegema.', [
         'Diktor: Tallinna linn teatab. Laupäeval, üheksateistkümnendal detsembril, parandatakse Kalamajas veetorusid.',
         'Diktor: Kella üheksast kuni seitsmeteistkümneni on Valgevase tänav ja osa Kalaranna tänavast autodele suletud.',
