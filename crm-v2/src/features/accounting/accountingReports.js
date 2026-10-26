@@ -210,7 +210,11 @@ export function ledger(entries = [], account, { from = '', to = '', partner = ''
       rows.push({ entryId: e.id, number: e.number, date: e.date, description: e.description, documentRef: e.documentRef, partner: l.partner || null, debitCents: l.debitCents || 0, creditCents: l.creditCents || 0, balance });
     });
   });
-  return { opening, rows, closing: balance };
+  // the balance on the account's own side (2026-10-26: 2110 Võlad tarnijatele showed −168,00 for a debt of 168,00):
+  // liabilities, equity and income count credit minus debit, so a normal balance is positive and a minus means the
+  // account is on the wrong side
+  const sign = type === 'liability' || type === 'equity' || type === 'income' ? -1 : 1;
+  return { opening: sign * opening, rows: rows.map((r) => ({ ...r, balance: sign * r.balance })), closing: sign * balance, side: sign < 0 ? 'credit' : 'debit' };
 }
 
 // Partnerid (the accountant 2026-10-24, like Merit's partner report): per partner on one account (default 2110 Võlad
