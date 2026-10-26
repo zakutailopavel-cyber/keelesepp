@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m09-final — B1 module 9 „Töö ja ametid” in the final shape
 
-- Base: `main` a9d4444 (2026-10-26, after #804, module 7; merged into the branch). Draft PR from `agent/b1-m09-final`.
+- Base: `main` a9d4444 (2026-10-26, after #804, module 7; merged into the branch). Draft PR #806 from `agent/b1-m09-final`.
   Content only; no production data, no deploy. Parallel agents rewrite modules 8 and 10 (not touched here).
 - Asked (owner): module 9 (a2b1-041…045) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 9, §6.3, §7, §8), the
   first exam in Harno B1 form at reduced length, fix the 042 can-do/time mismatch from the audit.
