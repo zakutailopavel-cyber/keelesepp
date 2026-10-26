@@ -44,6 +44,7 @@ import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { currentMonth, defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
+import FinanceDashboard from './FinanceDashboard.jsx';
 import { canCancelInvoice, invoiceWasSent } from './invoiceActions.js';
 import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
 import PaymentCheckPanel from './PaymentCheckPanel.jsx';
@@ -145,6 +146,7 @@ export default function FinanceMonthPage({
   creditRepository = payerCreditsService,
   creditNoteRepository = creditNotesService,
   auditRepository = financialAuditService,
+  dashboardRepository,
   paymentRepository,
   monthlyInvoiceProps,
   showPrivacyBanner = true,
@@ -270,6 +272,9 @@ export default function FinanceMonthPage({
         <div><span className="eyebrow">Finantsid</span><h1>Kuu arveldus</h1><p>Koosta arved, jälgi laekumisi ja lahenda erandid ühes vaates.</p></div>
         <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link>{canManage ? <Link className="button button--secondary" to="/finance/raamatupidamine"><BookOpen size={17} /> Raamatupidamine</Link> : null}{canManage ? <Link className="button button--secondary" to="/finance/inf3">INF 3</Link> : null}<Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog studentCards={state.data.students} onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}{canManage ? <TokenInvoiceDialog studentCards={state.data.students} plans={state.data.plans} onCreated={async (invoice, { sent }) => { announce(`Tunnipaketi arve ${invoice.num || ''} loodi${sent ? ' ja saadeti' : ''}. Tunnid lisatakse pärast makset.`); await state.reload(); }} /> : null}</div>
       </header>
+
+      {/* „Ülevaade” (owner 2026-10-26): revenue by month and the calendar's forecast — administrators */}
+      {canManage ? <FinanceDashboard invoices={invoices} students={state.data.students} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
 
       <div className="finance-month-switcher">
         <Button variant="secondary" aria-label="Eelmine kuu" onClick={() => setMonth(shiftMonth(month, -1))}><ArrowLeft size={17} /></Button>

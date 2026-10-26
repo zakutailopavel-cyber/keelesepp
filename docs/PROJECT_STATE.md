@@ -9,6 +9,29 @@
 - Tests updated (journalGrid.test.js, partners.test.jsx, functions/finance-emulator.integration.js — the finance emulator suite: 102 passed). Checks: verify (eslint 0, vitest 2660 passed); functions npm
   test 407 passed.
 - Deploy: functions:invoiceApi (the accounting endpoints).
+## 2026-10-26 · agent/finance-dashboard — Finantsid „Ülevaade”: revenue chart and forecast
+
+- Owner 2026-10-26: „в финансах дашборд с графиком дохода, прогнозируемый доход и т.д.” → „сделай как будет лучше в
+  нашем стиле”.
+- finance/financeDashboard.js (pure, tested):
+  - revenueHistory — invoiced by the invoice date (cancelled and credited ones count nothing); received by the date of
+    the payment records; an old invoice marked paid by hand counts at its own paidAt;
+  - revenueForecast — monthlyBillingRows (the „Koosta arved” calculation: scheduled lessons × each card's price) per
+    month. An invoice dated in the month counts as that month's invoice, because almost no invoice carries planMonth.
+    Lesson packages and cards without a price are reported apart;
+  - dashboardSummary, niceMax.
+- finance/FinanceDashboard.jsx (+ financeDashboard.css, the Finantsid greens / gold), on top of /finance for admins,
+  can be hidden (remembered per browser):
+  - KPIs: invoiced this month (vs last), „Kalendri järgi” with what is not invoiced yet, received (12 months, average),
+    outstanding / overdue, next month's forecast, 3 months' forecast;
+  - an SVG chart of smooth curves (owner: „кривая, а не столбцы”; monotone cubic, never below zero): invoiced (dark
+    green, filled), received (light green), forecast (gold dashed, from this month's calendar amount, over a light gold
+    zone); a guide line and a card follow the pointer; the month buttons stay for the keyboard and screen readers;
+    a narrow screen scrolls the chart and opens it at this month.
+- Production read (2026-10-26): invoiced Jun–Oct 492 / 1780 / 1524 / 1894 / 2231 €. The calendar owes 5958 € for
+  October; 4107 € (41 students, mostly „current” billing) has no October invoice yet. Forecast Nov–Jan ≈ 6.1–6.2 k €.
+- Checks: verify (eslint 0, vitest 2666 passed); local visual check (desktop and 375 px, no horizontal scroll).
+- Not in it: expenses / profit (the expenses collection is empty).
 
 ## 2026-10-26 · agent/keelesepp-ai-cors — the ChatGPT plugin install was blocked by CORS
 
