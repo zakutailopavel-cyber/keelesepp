@@ -1,3 +1,29 @@
+## 2026-10-26 · agent/b1-m04-final — B1 module 4 in the final shape
+
+- Base: `main` 092f898 (2026-10-26, after #798). Draft PR #802 from `agent/b1-m04-final`. Content only; no production data,
+  no deploy. Parallel: modules 3, 5, 6 are rewritten by other agents (not touched here).
+- Asked (owner): module 4 „Aeg ja plaanid” (a2b1-016…020) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 4).
+- Done: `b1/module04.js` rewritten, one storyline (first week of December: camp, inventory, Anna's wedding, the dentist,
+  Viktor's car): 016 AVAS R→S (time expressions; test → Kaie's programme → rule → test again; main S03 day plan), 017
+  KUUL L→W (peab/võib/saab/ei tohi; 5 listenings; W1b note taught with an exam tip; main W04 letter to Kati 80–100 words,
+  W12 formal reply), 018 LUGE R→W (particle verbs; Markus's Thursday, article, Anna's handover; main W05 story 80–100
+  words + W10 rewrite), 019 PROB L→S (first try at the call → polite forms → second call; S2 phone call taught in Kasuta,
+  main; family council; invitation W03), 020 EKS Vahehindamine 1 (A2 form + B1 tasks R1, R2, R3a, L1, L3a, L4, W1b, S0,
+  S1a, S2; timed parts, 80 % per part; language items name their area; profile table vs a2b1-001). All tasks tagged,
+  reviews name 014/016–018 and module 1–2 lessons, 2 fluency tasks a lesson. Goals 016–020 in `b1/lessonGoals.js`;
+  cast facts in `COURSE_CAST.md`; new pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-016…020`, 9 old files and 8 manifest entries removed;
+  „Kaie” added to the female names of `tools/listening-audio/plan.mjs`; `sisenemistestiga` to `language-allow.txt`.
+- Checks: `course:final-shape --module 4` 69 → 0; course 1282 → 1202 (baseline only shrank: module 4 −69, 11 V7 problems
+  in modules 5–15 disappeared with the old module-4 instructions). Strict + older quality gate for module 4: 0.
+  `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed, 4 skipped. eslint on changed
+  files: 0 errors. Vabamorf speller: 0 unknown words except names and the technical value `kusimustik`. All 15 sheets
+  rendered on a local stand (not committed).
+- Limits: sheets are 40–44 min (exam sheets 40–55), not 45+ — the V4 id caps leave no room for more tasks; 019 Kasuta
+  listening carries `level: 3` (consequence questions); particle verbs are introduced in 018 (LUGE), not in an AVAS
+  lesson (§4.1 rule 6 is not automated; the plan row puts AVAS on 016 = time expressions); V2/recycling checks against
+  modules 3 and 5 must be re-run after their rewrites merge.
+- Next safe step: owner reviews module 4 in „Kursuse tootmine” and publishes it.
 ## 2026-10-26 · agent/b1-m03-final — B1 module 3 in the final shape
 
 - Base: `main` 092f898 (after #798, B1 module 2). Draft PR from `agent/b1-m03-final`. Content only; no production data,

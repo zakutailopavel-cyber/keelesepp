@@ -225,6 +225,33 @@ with less time (S07), describe the picture to three partners in turn (S06), ask 
 - Work loop: a temporary vitest file that prints per sheet the minutes, own blocks, didactic score, each block's id /
   level / strand and every gate problem (module + „new elsewhere”) — one run instead of four tools. Do not commit it.
 
+**Added after module 4 (2026-10-26, `b1/module04.js`, 69 → 0 problems).**
+- The estimator counts fewer words than you think in transcripts too: our first draft was 37–39 min on 9 of 15 sheets.
+  The cheapest honest fix is longer listening transcripts (+100 words ≈ +1.8 min, no length gate) and readings up to
+  ~240 words (A2+ `didacticCheck` stops at 250). Plan the minutes with the report, not by eye.
+- Harjuta „live” depth (≥ 12 min): closed items count only 0.15 min each (sentence tasks 0.4), while a `listening` or
+  `reading` counts with its full minutes — a longer listening fixes it, more items do not.
+- The vocabulary-recycling gate (`gates.js moduleGates`) splits a vocab box at **every comma**: „kiire — срочный,
+  быстрый” makes „быстрый” a word of its own that is never recycled. Write translations with „/”.
+- That gate needs the stem of the **dictionary form** in the text of 3 sheets: „ära jääma” needs „jääma”, not „jäi ära”.
+  Particle verbs therefore appear in their base form in a notice, a self-check or a role card on three sheets.
+- `methodGaps.test.js` wants ≥ 30 % of the **previous** module's vocab stems in your module (`recyclingShare`); module 3
+  words (ristmik, valgusfoor, pöörama, tervisekeskus, linnaosa, omanik …) went into directions, ads and role cards.
+  Re-check after merging the neighbour's rewrite.
+- One drill block type once a lesson (`v4-lesson-repeat`) is counted by **block type**, not by tag: a `transformation`
+  in Avasta and a W09-tagged `transformation` in Harjuta collide. We made the Avasta one a `wordforms` tagged `G05`.
+- V14: 9 of 50 vocab words outside EKI A1–B1 was too many (82 %). Keep ≤ 5 topic words a module (`tag(vocab, { topic })`)
+  and replace the rest with known words.
+- V8 and the module's `unique` gate also catch the exam lesson copying a teaching-lesson sentence (and module 1's
+  errorfix rows). Write the exam items fresh.
+- `paarilisega` in a self-check line and `rühmas` / `rühmaga` in gap sentences trigger the one-to-one check (v4); the
+  transcript is not checked.
+- A PROB L→S Kasuta can take its ≥ 80-word input as a `listening` tagged `{ task: 'L06', level: 3 }` when the gap
+  sentences ask for consequences („…, seepärast sõidab pere kontserdile [bussiga]”), not facts.
+- Speaker names of new characters must be in `FEMALE` / `MALE` of `tools/listening-audio/plan.mjs` (we added „Kaie”);
+  „Mees:” / „Naine:” are not known — use first names. `preview_start` allows 5 dev servers per folder; we started the
+  local stand with Vite on a free port instead.
+
 ## 9. Lessons from module 3 (B1 module 3, 2026-10-26)
 
 Module 3 (`b1/module03.js`, a2b1-011…015) went 54 → 0 problems. New pitfalls, in addition to §8:
