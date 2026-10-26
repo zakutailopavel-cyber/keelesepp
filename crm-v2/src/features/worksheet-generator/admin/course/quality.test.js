@@ -1,4 +1,4 @@
-import { harnoProblems, problemKey, sheetProblems, splitByBaseline, v4ModuleProblems } from './quality.js';
+import { harnoProblems, moduleProblems, problemKey, sheetProblems, splitByBaseline, v4ModuleProblems } from './quality.js';
 
 const doc = (level, blocks) => ({ meta: { level }, blocks });
 const reading = (words) => ({ id: 'r', type: 'reading', data: { passage: Array.from({ length: words }, () => 'sõna').join(' ') } });
@@ -18,6 +18,20 @@ describe('a supplement (extra homework sheets, MODULE.supplement)', () => {
     const supplement = { l1: { practice: { meta: { level: 'B1+', supplement: true }, blocks: [reading(100)] } } };
     expect(harnoProblems(supplement)).toEqual([]);
     expect(harnoProblems({ l1: { practice: doc('B1+', [reading(100)]) } }).map((p) => p.code)).toEqual(['harno-listening', 'harno-reading']);
+  });
+});
+
+describe('a diagnostic check (meta.diagnostic: closed scored tasks, parallel versions)', () => {
+  const choice = (id) => ({ id, type: 'choice', data: { questions: [{ q: 'Kus sa oled?', options: '*kodus\nkoju' }] } });
+  const check = (blocks) => ({ meta: { level: 'A2', phase: 'practice', template: 'v4', design: 'v2', diagnostic: true, shortSheet: true }, blocks });
+  it('skips the lesson-shape rules but asks that every task is scored', () => {
+    expect(sheetProblems(check([choice('a')])).map((p) => p.code)).not.toContain('length');
+    expect(sheetProblems(check([choice('a'), { id: 'w', type: 'writing', data: { prompt: 'Kirjuta.' } }])).map((p) => p.code)).toContain('diagnostic-open');
+  });
+  it('lets the two versions have the same structure', () => {
+    const codes = moduleProblems({ k1: { practice: check([choice('a')]) }, k2: { practice: check([choice('b')]) } }).map((p) => p.code);
+    expect(codes).not.toContain('neighbour');
+    expect(codes).not.toContain('module-same');
   });
 });
 
