@@ -1,3 +1,4 @@
+import { compareWorks } from './workOrder.js';
 import { Archive, CheckCircle2, ChevronRight, ClipboardCheck, Clock3, Eye, FileText, MessageSquare, Mic, Paperclip, PlayCircle, Plus, RotateCcw, Search, Star, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -129,7 +130,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
   const assignments = useMemo(() => (state.data?.assignments || []).filter((item) => (
     item.status !== 'done' && `${item.studentName} ${item.title}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'))
   // the nearest deadline first; sheets without a deadline after them (owner 2026-10-12: 15 → 21 → 18)
-  )).sort((a, b) => String(a.dueDate || '9999').localeCompare(String(b.dueDate || '9999')) || String(a.assignedAt || '').localeCompare(String(b.assignedAt || ''))), [state.data, query]);
+  )).sort(compareWorks), [state.data, query]);
 
   // A reload after saving or submitting keeps the page (and an open worksheet) on screen: unmounting the
   // player would reopen it from the old copy and hide the result.
@@ -267,9 +268,9 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
 
     {!staff ? <Card className="list-card assigned-worksheet-card">
       <div className="homework-card-heading"><div><span className="eyebrow">Töölehed</span><h2>Määratud töölehed</h2></div><Badge tone={assignments.length ? 'info' : 'neutral'}>{assignments.length}</Badge></div>
-      {assignments.length ? <div className="assigned-worksheet-list">{assignments.map((assignment) => {
+      {assignments.length ? <div className="assigned-worksheet-list">{assignments.map((assignment, index) => {
         const overdue = assignment.dueDate && assignment.dueDate < new Date().toISOString().slice(0, 10);
-        return <button key={assignment.id} onClick={() => setPlaying(assignment)}><i><FileText size={20} /></i><span><strong>{assignment.title}</strong><small>{assignment.subject || 'Õppetöö'}{assignment.level ? ` · ${assignment.level}` : ''}{assignment.dueDate ? ` · Tähtaeg ${assignment.dueDate}` : ''}</small></span><Badge tone={overdue ? 'danger' : 'info'}>{overdue ? 'Hilinenud' : Object.keys(assignment.answers || {}).length ? 'Pooleli' : 'Alustamata'}</Badge><Eye size={18} /></button>;
+        return <button key={assignment.id} onClick={() => setPlaying(assignment)}><i><FileText size={20} /></i><span><strong><span className="work-step" aria-label={`${index + 1}. samm`}>{index + 1}.</span> {assignment.title}</strong><small>{assignment.subject || 'Õppetöö'}{assignment.level ? ` · ${assignment.level}` : ''}{assignment.dueDate ? ` · Tähtaeg ${assignment.dueDate}` : ''}</small></span><Badge tone={overdue ? 'danger' : 'info'}>{overdue ? 'Hilinenud' : Object.keys(assignment.answers || {}).length ? 'Pooleli' : 'Alustamata'}</Badge><Eye size={18} /></button>;
       })}</div> : <EmptyState title="Kõik töölehed on tehtud" description="Uued õpetaja määratud töölehed ilmuvad siia." />}
     </Card> : null}
 

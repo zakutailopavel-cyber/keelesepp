@@ -1,3 +1,11 @@
+## 2026-10-26 · agent/works-order — given worksheets in the order to do them, numbered
+
+- Base: `main` 476827d. Owner: in „Tööd” it was hard to see which sheet comes first (sheets of one lesson were
+  given at the same minute, the list was newest first). `features/homework/workOrder.js` `compareWorks` / `sortWorks`:
+  earliest deadline, then the lesson given first, then Avasta → Harjuta → Kasuta. Used in the student's „Määratud
+  töölehed” (HomeworkPage) and the teacher's student card „Tööd” (StudentWorksPanel); each row shows its step „1.”, „2.” …
+- Checks: vitest homework + students 39 files, 164 passed (+1 test file); eslint 0 errors. UI only.
+
 ## 2026-10-26 · agent/teacher-answer-key — click a task: the teacher sees its answers and can show them to the student
 
 - Base: `main` 2aec0f9 (2026-10-26). Draft PR #813 from `agent/teacher-answer-key`. UI + one service method; no rules change.
