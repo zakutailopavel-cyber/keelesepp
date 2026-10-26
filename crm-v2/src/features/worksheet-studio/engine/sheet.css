@@ -790,3 +790,21 @@ button.ws-pt { cursor: pointer; }
 .ws-narrow .ws-passage { padding: 8px !important; }
 .ws-narrow .ws-runhead { display: none; }
 .ws-narrow .ws-root { gap: 10px; }
+
+/* the teacher's answers of one task (BlockKeyPanel), under the task the teacher clicked; never on a learner's sheet */
+.ws-block-key { display: grid; gap: 2mm; margin-top: 1mm; padding: 3mm 3.5mm; border-radius: 2.5mm; background: #f4f7fb; border: .45mm solid #3559c7; color: #1d2330; font-size: 10.5pt; cursor: default; }
+.ws-block-key-head { display: flex; align-items: center; gap: 1.8mm; color: #233f99; }
+.ws-block-key-head b { font-size: 11pt; }
+.ws-block-key-only { padding: .4mm 2mm; border-radius: 99px; background: #233f99; color: #fff; font-size: 8.5pt; font-weight: 700; }
+.ws-block-key-x { margin-left: auto; display: inline-grid; place-items: center; width: 7mm; height: 7mm; border: 0; border-radius: 99px; background: transparent; color: #233f99; cursor: pointer; }
+.ws-block-key-x:hover { background: #dfe7f7; }
+.ws-block-key-items { margin: 0; padding-left: 6mm; display: grid; gap: 1.2mm; }
+.ws-block-key-items .ws-key-prompt { display: block; color: #4a5568; }
+.ws-block-key-items .ws-key-answer { display: block; font-weight: 700; color: #14532d; }
+.ws-block-key-items .ws-key-why { display: block; margin-top: .4mm; padding-left: 2.5mm; border-left: .5mm solid #c7d7a6; color: #2d3748; font-size: 9.5pt; }
+.ws-block-key-note { margin: 0; font-size: 10pt; }
+.ws-block-key-script summary { cursor: pointer; font-weight: 700; }
+.ws-block-key-script p { margin: 1mm 0 0; white-space: pre-line; }
+.ws-block-key-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 2mm 3mm; }
+.ws-block-key-state { color: #4a5568; font-size: 9.5pt; }
+@media print { .ws-block-key { display: none; } }

@@ -5,6 +5,8 @@ import { expectedAnswer } from './errorText.js';
 // task when the class has done it, and sees per task how it went. State lives on the assignment (staff-written):
 //   liveStep  { on, open: [blockId], at }   — step mode: the learner sees only the opened tasks
 //   liveShown [blockId]                      — tasks whose right answers the learner sees
+//   liveShownBy { blockId: { on, byUid, byName, at } } — the last show / hide per task (who, when)
+//   liveShownLog [{ on, blockIds, byUid, byName, at }]   — every show / hide (last 200); scores never change
 
 const isTask = (block) => Boolean(BLOCKS[block?.type]?.task);
 const filled = (value) => value !== undefined && value !== null && String(value).trim() !== '' && !(Array.isArray(value) && !value.length);
