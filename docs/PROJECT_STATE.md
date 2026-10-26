@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m02-final — B1 module 2 in the final shape (pilot module)
 
-- Base: `main` 6a63532, merged with `main` 14f9af9 (after #797, B1 module 1). Draft PR from `agent/b1-m02-final`. Content
+- Base: `main` 6a63532, merged with `main` 14f9af9 (after #797, B1 module 1). Draft PR #798 from `agent/b1-m02-final`. Content
   only; no production data, no deploy.
 - Asked (owner): module 2 „Pere ja suhted” (a2b1-006…010) to the final shape (`COURSE_FINAL_SHAPE_B1.md`) as the pilot
   for modules 3–18; notes for the next agents.
