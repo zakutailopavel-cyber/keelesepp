@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m06-final — B1 module 6 „Toit ja teenindus” in the final shape
 
-- Base: `main` 092f898 (2026-10-26, after #798, module 2). Draft PR from `agent/b1-m06-final`. Content only; no
+- Base: `main` 092f898 (2026-10-26, after #798, module 2). Draft PR #800 from `agent/b1-m06-final`. Content only; no
   production data, no deploy. Parallel agents rewrite modules 3, 4, 5 (not touched here).
 - Asked (owner): module 6 (a2b1-026…030) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2–§8), Eksaminurk from
   module 6, new texts, unique instructions, ≥ 80 % target per exam part.
