@@ -1,3 +1,12 @@
+## 2026-10-26 · agent/keelesepp-ai-cors — the ChatGPT plugin install was blocked by CORS
+
+- First „Установить” in ChatGPT failed at once: ChatGPT discovers / registers from chatgpt.com in the browser, and the
+  OAuth / MCP addresses answered without Access-Control-Allow-Origin (applyCors allows only the CRM origins).
+- keelesepp-ai-mcp.js `isPublic` / `cors`: /mcp and /oauth/* answer any origin (no cookies; bearer tokens), allow the
+  MCP headers and expose WWW-Authenticate; preflight answered before the generic OPTIONS.
+- Checks: emulator sheet-builder tests 2/2 (preflight from chatgpt.com asserted); functions npm test 407 passed.
+- Deploy: functions:sheetBuilderApi.
+
 ## 2026-10-26 · agent/keelesepp-ai-mcp — KeeleSepp AI as a ChatGPT plugin (MCP + OAuth)
 
 - In the owner's ChatGPT workspace new GPTs can no longer be made ("plugins replace GPTs", the old ones work until

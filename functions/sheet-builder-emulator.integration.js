@@ -103,6 +103,9 @@ test('KeeleSepp AI plugin: OAuth (register → admin consent → PKCE token) and
   const redirect = 'https://chatgpt.com/connector_platform_oauth_redirect';
   assert.equal((await call('/oauth/protected-resource')).body.authorization_servers[0], 'https://crm.epkoolitus.ee');
   assert.equal((await call('/oauth/authorization-server')).body.code_challenge_methods_supported[0], 'S256');
+  const pre = await fetch(`${fnBase}/oauth/register`, { method: 'OPTIONS', headers: { Origin: 'https://chatgpt.com', 'Access-Control-Request-Method': 'POST' } });
+  assert.equal(pre.headers.get('access-control-allow-origin'), '*', 'ChatGPT calls these from its own page');
+  assert.match(pre.headers.get('access-control-allow-headers'), /Mcp-Protocol-Version/);
   assert.equal((await call('/oauth/register', { method: 'POST', body: { redirect_uris: ['https://evil.example/cb'] } })).status, 400, 'only ChatGPT callbacks');
   const reg = await call('/oauth/register', { method: 'POST', body: { client_name: 'ChatGPT', redirect_uris: [redirect] } });
   assert.equal(reg.status, 201);
