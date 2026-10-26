@@ -1,6 +1,6 @@
 ## 2026-10-26 · agent/b1-m04-final — B1 module 4 in the final shape
 
-- Base: `main` 092f898 (2026-10-26, after #798). Draft PR from `agent/b1-m04-final`. Content only; no production data,
+- Base: `main` 092f898 (2026-10-26, after #798). Draft PR #802 from `agent/b1-m04-final`. Content only; no production data,
   no deploy. Parallel: modules 3, 5, 6 are rewritten by other agents (not touched here).
 - Asked (owner): module 4 „Aeg ja plaanid” (a2b1-016…020) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 4).
 - Done: `b1/module04.js` rewritten, one storyline (first week of December: camp, inventory, Anna's wedding, the dentist,
