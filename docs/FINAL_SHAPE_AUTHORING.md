@@ -328,3 +328,33 @@ Module 5 reached 0 problems on every gate with the same loop. New pitfalls on to
 - A „try first” test with over-generalised forms (*tulis, sõis*) is reported by the Vabamorf speller; that is expected.
 - Keep one timeline for the module in a scratch note (who did what on which day): with 15 sheets the same event is told
   in a story, a diary, a call and a letter, and a weekday slips easily.
+
+### 8.2 Module 10 (2026-10-26, `b1/module10.js`, a2b1-046…050)
+
+Module 10 went 80 → 0 problems (final shape, older quality gate, strict gate) with the same loop. New pitfalls:
+
+- **The first B1-form exam sheet with reading and listening fails `did-closed-share`.** Every Harno reading format and
+  L1, L2, L4 are recognition block types (`adsmatch`, `choice`, `cloze`, `insertion`, `examlisten`); with 8 of them on
+  one sheet the B1- limit (≤ 50 % recognition) is broken and the didactic score drops under 85. What worked: R4 as a
+  `B.gaps` text with a phrase bank (one gap a line, the bank shuffled, two extra phrases — the learner writes the phrase,
+  the format stays „removed clause parts + bank”) and two „Mis aitas?” strategy rubrics after the parts (a `rubric` is a
+  task for that count).
+- **`registry.js lessonOrder` moves every `rubric` to the end of the sheet.** A „before reading” checklist built as a
+  rubric lands after the listening part — word such rubrics as reflections („Märgi pärast lugemisosa …”). A `planning`
+  block as a „before” step triggers the didactic `progression` tip instead.
+- **V6-gap is counted from the format's introduction module to the next module that tags it.** Tagging R1, L1, W1, W2,
+  S1a and S2 in module 10 while modules 7–9 were not yet rewritten made six new `course` problems („4 modules between
+  two practices”). They disappear when the modules in between tag their corners and exams; until then the baseline
+  lists them (the only lines the baseline gained).
+- **Budget the S ids before writing:** 13 ids + S02/S03/S04 twice = 16 slots for 4 Avasta talks, the Harjuta uses, the
+  S1a corner and the Kasuta partners. A `dialogue` (R12) is a valid Avasta talk, but R12 is once a module — two
+  chat blocks (047 and 049) gave `V4-max-R12`; one became a `choice` on the notice's forms.
+- **The corner can be the Kasuta input:** an R4 phrase-bank letter (`B.bankText`, R05, level 3) is one of the few
+  level-3 inputs; in 047 the boss's e-mail is both the Eksaminurk and the text the plan is built on. A W2b letter
+  `examWriting('kiri', { words: [80, 100] })` is exactly 12 minutes — the corner's maximum; [90, 110] is 13 and fails V12.
+- **Word counts again:** a blog written as „~240 words” counted 187, an ads set 146. Readings of `reading` blocks need
+  ≥ 150 words (B1-) — count the notices of a „signs” reading too (106 → added two notices).
+- **Option sets with linking words:** check the right option keeps V2 order in the sentence („…, seepärast **on** see …”),
+  and that no wrong option is also correct („lume **pärast**” = „lume tõttu”).
+- **Parallel agents share one scratchpad folder** (same session): use your own sub-folder and file names for reports
+  and dumps, or another agent's run overwrites them.

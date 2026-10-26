@@ -366,6 +366,9 @@ content author may swap two lessons inside a module if the grammar needs it, as 
 
 `**` Module 6 (2026-10-26): the first plan had PROB L→W, which §4 (PROB → S) and the V5-lead gate do not allow; the
 leads moved to AVAS L→W and PROB R→S, so the four pairs stay once each (`b1/module06.js`).
+Module 10 (2026-10-26): the row is valid as written (RÄÄK R→S ends in speaking, PROJ L→W in a letter) and
+was kept. It has no AVAS or LUGU lesson, so the module's grammar (enneminevik, §4.1 rule 6) comes in the RÄÄK lesson 048
+through travel stories and is used again in the PROJ lesson 049 (`b1/module10.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 
