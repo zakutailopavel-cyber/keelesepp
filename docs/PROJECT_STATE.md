@@ -1,3 +1,43 @@
+## 2026-10-26 · agent/b1-m07-final — B1 module 7 „Tervis ja enesetunne” in the final shape
+
+- Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR #804 from `agent/b1-m07-final`. Content only; no
+  production data, no deploy. Parallel agents rewrite modules 8, 9, 10 (not touched here).
+- Asked (owner): module 7 (a2b1-031…035) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 7, §6.3 formats L3a and
+  W1a, Eksaminurk in every teaching lesson, ≥ 80 % target per exam part).
+- Done: `b1/module07.js` rewritten (storyline: November flu wave in Sofia's office, Markus's cough, Viktor's bicycle fall,
+  Liis's December challenge „30 päeva tervemalt”, Kristjan in January, the office weekend in Võrumaa):
+  - 031 KUUL L→W — office dialogue (L04), Kadri's column (R06 õige/vale/ei selgu), first look at the translative
+    (table G02), two fluency talks (S06, S11); corner **L3a** (radio, short answers, format introduced); formtext,
+    chat, translation, crossword, W02 message to Liis; Kasuta: Anna's voicemail (L07), call back (S05), tasks shared
+    (S03), main **W04** letter 90–110 words.
+  - 032 LUGU R→S — Markus's story in three episodes: reading with a cliffhanger (R02), doctor's visit (L05), rule (G02),
+    retelling (S07) and talk to two listeners (fluency); choice, word forms, transformation, medicine leaflet (R07),
+    pharmacy (L09), formal mail to the Riga client (W12); corner **R1** (where to turn); Kasuta: his message (R05),
+    plan (W11), main **S04** call to the health centre for him, ranking of his tasks (S12), get-well card (W03).
+  - 033 AVAS L→S — test first (G13), Viktor at the trauma clinic (L06), imperative rule (G04 sort), match, 10 clips (L01),
+    4-3-2 (S08); word order, sina → teie (G05), phone menu numbers (L10), physio leaflet bank (R04), pharmacy problem
+    (S10), corner **S1a**; Kasuta: Markus's sleep diary (R08, `level: 3`), explain it (S13, fluency), main **S03**
+    sleep plan, W08 reply with advice.
+  - 034 KIRJ R→W — Liis's invitation (R13 predict), Jaan's model story with headings (R09), story parts (G04), radio on
+    habits (L02), survey (S09, fluency); editing (G06), Anna's diary cloze (R03), joining (W09), Liis's message (G03),
+    8-minute free writing (W06, fluency), corner **W1a** (questionnaire, format introduced); Kasuta: results cards (R11),
+    Kristjan's first day (S01), main **W05** newsletter story 80–100 words, rewrite with the rubric (W10).
+  - 035 EKS — Harno A2 frame with B1 tasks R1, R2, R3a, L1, L3a, L4, W1a, W2a, S0, S1a, S2; `B.examPart` per part
+    (R 38, L 31, W 20, S 20 points), target 80 %; Sofia's letter from Võrumaa closes the story.
+  - §6.2 row 7 used as written (all four pairs, no swap needed). Goals 031–035 in `b1/lessonGoals.js` (035 without
+    `g_vocab`, as the test wants); cast facts in `COURSE_CAST.md`; the 032 picture brief now names the family doctor,
+    not Liis (`art/visuals/b1-module-07.js`); pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.2.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-031…035`, 6 old files and 7 manifest entries removed.
+- Checks: `course:final-shape --module 7` 57 → 0; course 979 → 885 (baseline only shrank: module 7 −57, modules 8, 9, 11,
+  13, 15, 16 and course −37 because the old module-7 instructions and sequences are gone). Strict + older quality gate
+  for module 7: 0. `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed, 4
+  skipped (`origin/main` still b519e36 at the end). eslint on changed files: 0. Vabamorf speller: 0 unknown words except
+  names (EMO, Ozols), the grammar endings „ge / ke” of the imperative notice and the technical value `kusimustik`. All 15
+  sheets rendered on a local stand (print mode, not committed), no console errors.
+- Limits: sheets are 40–48 min by the estimator (exam 47–51); 033 Kasuta reading carries `level: 3` (decisions from the
+  diary); V1/V2 against 036 checked on today's `main` only (module 8 is being rewritten).
+- Next safe step: owner reviews module 7 in „Kursuse tootmine” and publishes it; the module 8 author checks V2 against 034
+  (Avasta opens R13, Harjuta G06, Kasuta R11) and the 30 % recycling of module 7's vocab boxes.
 ## 2026-10-26 · agent/b1-m06-final — B1 module 6 „Toit ja teenindus” in the final shape
 
 - Base: `main` 092f898 (2026-10-26, after #798, module 2). Draft PR #800 from `agent/b1-m06-final`. Content only; no
