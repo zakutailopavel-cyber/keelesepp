@@ -361,7 +361,7 @@ Module 7 („Tervis”, KUUL L→W · LUGU R→S · AVAS L→S · KIRJ R→W, §
   (replaced by „venitus”).
 - Timeline: keep the month of every episode in a note — „jõuluks” in a January letter and a new colleague who already
   appears in November were caught only on re-reading.
-### 8.2 Module 9 (2026-10-26, `b1/module09.js`, a2b1-041…045): the first B1 exam in reduced form
+### 8.3 Module 9 (2026-10-26, `b1/module09.js`, a2b1-041…045): the first B1 exam in reduced form
 
 Module 9 went 80 → 0 problems (`course:final-shape --module 9`) and passes the strict gate. New pitfalls:
 

@@ -1,3 +1,42 @@
+## 2026-10-26 · agent/b1-m09-final — B1 module 9 „Töö ja ametid” in the final shape
+
+- Base: `main` a9d4444 (2026-10-26, after #804, module 7; merged into the branch). Draft PR from `agent/b1-m09-final`.
+  Content only; no production data, no deploy. Parallel agents rewrite modules 8 and 10 (not touched here).
+- Asked (owner): module 9 (a2b1-041…045) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 9, §6.3, §7, §8), the
+  first exam in Harno B1 form at reduced length, fix the 042 can-do/time mismatch from the audit.
+- Done: `b1/module09.js` rewritten (storyline in November: Jaan leaves café Kaneel for the Kase kool kitchen; Sofia at
+  Tuul Logistika reception until Jelena starts):
+  - 041 LUGU R→W — story episode with prediction (R13), Kadri on the radio (L03), kellena / vastutab … eest / tegeleb …-ga;
+    corner **R3a** (option cloze, introduced); Kasuta: Kadri's letter (R05), pros and cons (S11), ranking (S12), main
+    **W05** continuation „Jaani otsus” 90–110 words.
+  - 042 AVAS L→S — test first (G13) → five calls (L04) → rule (G02) → try again (formtext) — ma-vorm käändes (-ma, -mas,
+    -mast, -mata); corner **L2** (radio column); office board (R08), info gap (S05), invitation (W03); Kasuta: voicemails
+    → notes (L07), main **S04** call at reception 2–3 min (can-do now says 2–3 min and the card is 120–180 s), S01, W02.
+  - 043 KIRJ L→W — radio ad numbers (L10), Anna's letter as model (R09), ma or da, 4-3-2; register (G13), joining (W09),
+    adviser's article (R06), Jaan's draft (formtext), plan (W11), corner **W1a** (application questionnaire); Kasuta: four
+    ads (R11), agreement (S03), main **W08** application letter 90–110 words, rewrite (W10).
+  - 044 PROB R→S — invitation + Merike's problem (R12), first try (S02), Anna's interview (L05), claim + example + link,
+    ma-forms, polite request (W12); errors, ads (R01), translation, word bank (R04), three strengths (fluency), corner
+    **S1b** (idea card, introduced); Kasuta: Maire's call (L06, `level: 3`), main **S04** phone interview, Merike (S10),
+    telling Kadri (S13).
+  - 045 EKS — Harno B1 reduced form: all tasks of every part with fewer items (R1 7, R2 5, R3a 8, R4 6 = 26 p, 40 min;
+    L1 5, L2 5, L3a 6, L4 7 = 23 p, ~30 min; W1b + W2a 20 p, 35 min; S0, S1a, S1b, S2 20 p), `B.examPart` per part, target
+    80 %. Avasta „Enne eksamit” (story end, quiz, ma-forms, dictation); Harjuta = writing + reading; Kasuta = listening +
+    speaking (why: `FINAL_SHAPE_AUTHORING.md` §8.3).
+  - Goals of 041–045 in `b1/lessonGoals.js`; picture questions of 042/043 in `art/visuals/b1-module-09.js`; cast facts in
+    `COURSE_CAST.md`; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.3; „mas/mast” in `language-allow.txt`.
+- Audio: 12 recordings (TartuNLP, free) in `public/audio/a2b1-041…045`, 8 old files and manifest entries removed. Exam
+  lengths: L1 5 clips ≈ 20 s each, L2 122 s, L3a 184 s, L4 156 s.
+- Checks: `course:final-shape --module 9` 80 → 0; baseline 885 → 790 after merging main (only shrank: module 9 −77, V7
+  entries of modules 10, 12, 14 left with the old module-9 instructions). Strict + older quality gate for module 9: 0.
+  `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed, 4 skipped. eslint on
+  changed files: 0. Vabamorf speller: 0 unknown words except names and the technical value `kusimustik`. All 15 sheets
+  rendered on a local stand (not committed).
+- Limits: teaching sheets are 40–48 min by the estimator (45+ everywhere would need more tasks than the V4 id caps allow);
+  044 Kasuta listening carries `level: 3`; V2/recycling against modules 8 and 10 checked on today's `main` only (both are
+  being rewritten); the reduced exam form is our definition (§6.1 does not give item counts).
+- Next safe step: owner reviews module 9 in „Kursuse tootmine”; module 8 and 10 authors re-run
+  `npm run course:final-shape` after merging this PR (V1/V2 against 041 and 044, corner families R3a / S1b).
 ## 2026-10-26 · agent/b1-m07-final — B1 module 7 „Tervis ja enesetunne” in the final shape
 
 - Base: `main` b519e36 (2026-10-26, after #800, module 6). Draft PR #804 from `agent/b1-m07-final`. Content only; no
