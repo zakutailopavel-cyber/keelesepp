@@ -873,7 +873,7 @@ export const LESSONS = withShapes({
         ['Daniel, 19', ['üliõpilane, elab ühiselamus', 'teeb süüa koos toakaaslastega', 'toidule kulub 40 eurot nädalas', 'ostab õhtul poest soodsat saia', 'ei söö liha'],
           ['Daniel elab [ühiselamus].', 'Ta teeb süüa koos [toakaaslastega].', 'Toidule kulub tal nädalas [40|nelikümmend] eurot.', 'Daniel ei söö [liha].']],
       ], '3'),
-      B.reading('030_p_r3text', 'Lugemine 3. Artikkel.', 'Lugege artiklit. Seejärel vastake järgmise ülesande küsimustele.', 'Kalamaja jagamiskapp: toit ei lähe raisku', [
+      B.reading('030_p_r3text', 'Lugemine 3. Artikkel.', 'Lugege artikkel läbi. Küsimused on järgmises ülesandes.', 'Kalamaja jagamiskapp: toit ei lähe raisku', [
         'Pool aastat tagasi pani Kalamaja selts raamatukogu ukse kõrvale vana külmkapi. Sellest sai jagamiskapp: sinna võib igaüks tuua toitu, mida ta ise ära ei söö, ja võtta, mida tal vaja on. Raha ei küsi keegi.',
         '',
         'Idee tuli seltsi esimehelt Tõnis Rebaselt. „Nägin, kui palju toitu meie majade prügikastidesse jõuab. Iga päev visati ära leiba, piima ja köögivilju, mis olid veel täiesti head,” räägib ta.',
