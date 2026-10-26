@@ -41,6 +41,7 @@ const RULES = [
   "Igal ülesandel on title ja instruction. Vastused kirjuta blokkide süntaksiga: lünk [vastus], valikvastuse õige variant *tärniga*, ridade vastused answer-väljal — vaata iga ploki näidet (GET /blocks).",
   "meta.goals = 2–4 eesmärki „Ma oskan…” stiilis (võti g_*), ja iga ülesande block.goal viitab ühele neist.",
   "Pilte ja heli ei saa lisada: jäta image-väljad tühjaks; õpetaja lisab pildi konstruktoris.",
+  "Õpikud: getTextbooks näitab raamatud, peatükid, leheküljed ja lähimad kursuse tunnid. Õpiku lehekülje fotod saadab omanik vestlusesse. Õpik-leht (phase \"opik\") 1:1 ainult raamatule, mille license on \"granted\"; raamatut \"unconfirmed\" kasuta ainult teemade ja ideede allikana (oma tekstid ja ülesanded), kuni omanik loa kinnitab. Fotol käsitsi kirjutatud vastuseid ei kopeeri.",
   "Ära kasuta toorest Markdowni (**, _, #) õppijale nähtavas tekstis.",
   "Enne salvestamist kutsu POST /check ja paranda kõik errors; salvesta POST /drafts. Leht jääb mustandiks, avaldab inimene.",
 ];
@@ -61,6 +62,15 @@ function guide() {
     blocks: k.blockCatalog().map(({ type, label, group, task, width, variants }) => ({ type, label, group, task, width, ...(variants ? { variants: variants.map((v) => v.variant) } : {}) })),
     sample: k.sampleSheet(),
   };
+}
+
+// the textbooks the owner has (functions/textbooks.json): chapters, pages and the nearest course lessons
+function textbooks(id = "") {
+  const books = require("./textbooks.json").books;
+  if (!id) return { books: books.map(({ chapters, ...book }) => ({ ...book, chapters: chapters.length })) };
+  const book = books.find((item) => item.id === id);
+  if (!book) throw apiError(404, `Tundmatu raamat: ${id}`);
+  return book;
 }
 
 function blockDetail(type) {
@@ -236,6 +246,8 @@ function openapi(serverUrl) {
     paths: {
       "/guide": { get: { operationId: "getGuide", summary: "Reeglid, faasid, plokkide nimekiri ja näidisleht", responses: { 200: { description: "ok", content: json } } } },
       "/blocks/{type}": { get: { operationId: "getBlock", summary: "Ühe ploki täidetud näide (data kuju ja vastuste süntaks)", parameters: [{ name: "type", in: "path", required: true, schema: { type: "string" } }], responses: { 200: { description: "ok", content: json } } } },
+      "/textbooks": { get: { operationId: "getTextbooks", summary: "Omaniku õpikud: raamatud, litsents ja peatükkide arv", responses: { 200: { description: "ok", content: json } } } },
+      "/textbooks/{bookId}": { get: { operationId: "getTextbook", summary: "Ühe õpiku peatükid: teema, grammatika, leheküljed, lähimad kursuse tunnid", parameters: [{ name: "bookId", in: "path", required: true, schema: { type: "string" } }], responses: { 200: { description: "ok", content: json } } } },
       "/lessons": { get: { operationId: "listLessons", summary: "Kursuse tunnid (tase, otsing)", parameters: [{ name: "level", in: "query", schema: { type: "string" } }, { name: "q", in: "query", schema: { type: "string" } }, { name: "limit", in: "query", schema: { type: "integer" } }], responses: { 200: { description: "ok", content: json } } } },
       "/lessons/{lessonId}": { get: { operationId: "getLesson", summary: "Tunni eesmärk, keelefookus ja lehtede olek; phase=… annab praeguse lehe", parameters: [{ name: "lessonId", in: "path", required: true, schema: { type: "string" } }, { name: "phase", in: "query", schema: { type: "string", enum: PHASES } }], responses: { 200: { description: "ok", content: json } } } },
       "/check": { post: { operationId: "checkSheet", summary: "Kontrolli lehte konstruktori kontrollidega (ei salvesta)", requestBody: docBody, responses: { 200: { description: "ok", content: json } } } },
@@ -262,6 +274,8 @@ function createHandler({ db, requireAdminUser, actorSnapshot, applyCors }) {
       const key = await keyFrom(db, req);
       if (path === "/guide" && req.method === "GET") { res.json(guide()); return; }
       if (path.startsWith("/blocks/") && req.method === "GET") { res.json(blockDetail(decodeURIComponent(path.slice(8)))); return; }
+      if (path === "/textbooks" && req.method === "GET") { res.json(textbooks()); return; }
+      if (path.startsWith("/textbooks/") && req.method === "GET") { res.json(textbooks(decodeURIComponent(path.slice(11)))); return; }
       if (path === "/lessons" && req.method === "GET") { res.json(await listLessons(db, req.query || {})); return; }
       if (path.startsWith("/lessons/") && req.method === "GET") { res.json(await lessonDetail(db, decodeURIComponent(path.slice(9)), req.query || {})); return; }
       if (path === "/check" && req.method === "POST") { const { doc, result } = checkBody(req.body || {}); res.json({ ...result, worksheetDoc: doc }); return; }
@@ -275,4 +289,4 @@ function createHandler({ db, requireAdminUser, actorSnapshot, applyCors }) {
   };
 }
 
-module.exports = { AI_NAME, createHandler, hashKey, guide, openapi, PHASES, KEY_PREFIX, lessonSummary };
+module.exports = { AI_NAME, createHandler, textbooks, hashKey, guide, openapi, PHASES, KEY_PREFIX, lessonSummary };

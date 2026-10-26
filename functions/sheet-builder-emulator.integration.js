@@ -60,6 +60,9 @@ test('ChatGPT connector: keys, guide, lessons, check and draft', async () => {
   assert.equal(g.status, 200);
   assert.ok(g.body.blocks.some((b) => b.type === 'gaps'));
   assert.equal((await call('/blocks/gaps', { token: key })).body.example.sentences.includes('['), true);
+  const books = await call('/textbooks', { token: key });
+  assert.ok(books.body.books.some((b) => b.id === 'e-nagu-eesti' && b.license === 'unconfirmed'));
+  assert.equal((await call('/textbooks/e-nagu-eesti', { token: key })).body.chapters.find((c) => c.n === 1).pages[0], 10);
   const lessons = await call(`/lessons?level=A2&q=${encodeURIComponent('Minu nädal')}`, { token: key });
   assert.ok(lessons.body.lessons.some((l) => l.id === lessonId));
   const detail = await call(`/lessons/${lessonId}?phase=practice`, { token: key });
