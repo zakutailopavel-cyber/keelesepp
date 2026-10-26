@@ -91,10 +91,10 @@ async function keyFrom(db, req) {
   return { id: snap.id, label: snap.data().label || AI_NAME };
 }
 
-async function createKey(db, actor, body = {}) {
+async function createKey(db, actor, body = {}, extra = {}) {
   const key = newKey();
   const id = hashKey(key);
-  const record = { label: text(body.label, 60) || AI_NAME, createdAt: new Date().toISOString(), createdByUid: actor.uid, createdByName: actor.name || "", hint: `${key.slice(0, 8)}…${key.slice(-4)}`, revokedAt: "" };
+  const record = { ...extra, label: text(body.label, 60) || AI_NAME, createdAt: new Date().toISOString(), createdByUid: actor.uid, createdByName: actor.name || "", hint: `${key.slice(0, 8)}…${key.slice(-4)}`, revokedAt: "" };
   await db.collection("sheetBuilderKeys").doc(id).set(record);
   return { id, key, ...record };
 }
@@ -256,6 +256,9 @@ function openapi(serverUrl) {
   };
 }
 
+// what the MCP plugin (keelesepp-ai-mcp.js) uses
+const API = { guide, blockDetail, textbooks: (id) => textbooks(id), listLessons, lessonDetail, checkBody, saveDraft, keyFrom, createKey };
+
 // ---------- the HTTP handler ----------
 function createHandler({ db, requireAdminUser, actorSnapshot, applyCors }) {
   return async (req, res) => {
@@ -263,6 +266,8 @@ function createHandler({ db, requireAdminUser, actorSnapshot, applyCors }) {
     if (req.method === "OPTIONS") { res.status(204).send(""); return; }
     const path = String(req.path || "/").replace(/\/+$/, "") || "/";
     try {
+      // the ChatGPT plugin: MCP + OAuth (keelesepp-ai-mcp.js)
+      if (await require("./keelesepp-ai-mcp").handle(req, res, path, { db, api: API, requireAdminUser, actorSnapshot })) return;
       if (path === "/openapi.json") { res.json(openapi(`https://${req.get("host")}/sheetBuilderApi`)); return; }
       if (path.startsWith("/keys")) {
         const actor = actorSnapshot(await requireAdminUser(req));
@@ -289,4 +294,4 @@ function createHandler({ db, requireAdminUser, actorSnapshot, applyCors }) {
   };
 }
 
-module.exports = { AI_NAME, createHandler, textbooks, hashKey, guide, openapi, PHASES, KEY_PREFIX, lessonSummary };
+module.exports = { AI_NAME, API, createHandler, textbooks, hashKey, guide, openapi, PHASES, KEY_PREFIX, lessonSummary };

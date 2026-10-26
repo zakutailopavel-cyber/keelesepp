@@ -45,7 +45,7 @@ export default function LoginPage({ initialMode }) {
 
   const set = (key) => (event) => setForm({ ...form, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value });
   const switchMode = (next) => { setMode(next); setError(''); setInfo(''); setForm((current) => ({ ...EMPTY, email: current.email })); };
-  const done = () => { if (mounted.current) navigate(location.state?.from?.pathname || '/', { replace: true }); };
+  const done = () => { if (mounted.current) navigate(location.state?.from?.pathname ? `${location.state.from.pathname}${location.state.from.search || ''}` : '/', { replace: true }); };
 
   const run = async (action) => {
     setSubmitting(true); setError(''); setInfo('');

@@ -18,4 +18,7 @@ export const sheetBuilderKeysService = {
   list: () => call('/keys').then((data) => data.keys || []),
   create: (label) => call('/keys', { method: 'POST', body: { label } }),
   revoke: (id) => call('/keys/revoke', { method: 'POST', body: { id } }),
+  // the ChatGPT plugin's OAuth consent (/ai/connect, functions/keelesepp-ai-mcp.js)
+  describeClient: (params) => call(`/oauth/describe?${new globalThis.URLSearchParams(params).toString()}`),
+  approveClient: (params) => call('/oauth/approve', { method: 'POST', body: params }),
 };
