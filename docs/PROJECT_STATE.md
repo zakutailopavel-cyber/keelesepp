@@ -1,3 +1,29 @@
+## 2026-10-26 · agent/b1-m02-final — B1 module 2 in the final shape (pilot module)
+
+- Base: `main` 6a63532, merged with `main` 14f9af9 (after #797, B1 module 1). Draft PR #798 from `agent/b1-m02-final`. Content
+  only; no production data, no deploy.
+- Asked (owner): module 2 „Pere ja suhted” (a2b1-006…010) to the final shape (`COURSE_FINAL_SHAPE_B1.md`) as the pilot
+  for modules 3–18; notes for the next agents.
+- Done: `b1/module02.js` rewritten — 006 LUGU R→W (old photo, lost cousin Maie; main W05 story 60–80 words), 007 KUUL
+  L→S (kes-clauses; voice notes, announcement, radio interview; main S03 agreement on a babysitter), 008 AVAS R→S
+  (oma/tema, mis/mida/mille; test → rule → test; main S04 phone call to lost property), 009 PROJ L→W (sest/kuna,
+  proposals; voicemail with numbers, R1 ads, booking call, plan & budget; main W04 invitation letter 80–100 words +
+  rewrite), 010 EKS (Harno A2 form, timed `B.examPart` per part, target 80 % per part, teie-form instructions; B1-shaped
+  tasks tagged R2, R3a, L1, L4, L3a, W1b, S0). Goals of 006–010 in `b1/lessonGoals.js`; cast facts in
+  `docs/COURSE_CAST.md`; „Lessons from the pilot module” in `docs/FINAL_SHAPE_AUTHORING.md` §8.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-006…010`, 7 old ones removed; „Marika” added to the
+  female names of `tools/listening-audio/plan.mjs`; `nõbul`, `nõbule` added to `tools/course-audit/language-allow.txt`.
+- Checks: `course:final-shape --module 2` 47 → 0 problems; course 1360 → 1282 (baseline only shrank: module 2 −47,
+  31 V7/V2/V6 problems in modules 3–7 and course disappeared because the old module-2 instructions are gone). Strict and
+  older quality gates for module 2: 0. `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped),
+  923 tests passed, 4 skipped. eslint on changed files: 0 errors. Vabamorf speller: 0 unknown words except names and the
+  technical genre value. All 15 sheets rendered locally (print and student mode), no layout problems.
+- Limits: sheets are 40–43 min by the estimator (gate 40–55), not 45+; one Kasuta reading carries `level: 3` (009,
+  application questions) because only R05/R11/L07 meet the Kasuta rules by default; no picture for 009 (no brief added,
+  as every brief needs its image file); A2 rubric split reuses the B1 scales (8 + 12, 20).
+- Next safe step: owner reviews module 2 in „Kursuse tootmine” and publishes it; then module 3 with the plan table of
+  `FINAL_SHAPE_AUTHORING.md` §8.
+
 ## 2026-10-26 · agent/b1-m01-diagnostic — B1 module 1: entry test, A2 consolidation, module check
 
 - Base: `main` 6a63532 (2026-10-26, after #796). Draft PR from `agent/b1-m01-diagnostic`. Content only; no production

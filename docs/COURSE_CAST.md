@@ -22,6 +22,13 @@ Keep facts consistent; add new facts here when a module adds them.
   colleague-teacher **Kadi** runs the Monday online group); Anna (Saue, dog Bruno) takes bus 17 at 7.15 and once
   overslept; Sofia and Anna swim at ujula Kalev; Viktor's bicycle workshop is in a Mustamäe courtyard (Sõpruse stop,
   green door), closed on Mondays; radio host **Ülle** interviews Maret (also modules 14, 16); friend **Kati** (Anna's).
+- **Module 2:** Helgi's cousin **Maie Lepik** (daughter of Helgi's uncle **Aksel**; brother **Rein**; husband **Toomas**;
+  daughter **Kristi**, grandchildren **Mart** 7 and **Lotta** 3) lives in Pärnu, Kuuse tänav, plays the guitar; the girls
+  spent their summers at grandmother's farm in Kõrvemaa (now Viktor's farm); they lost touch 30 years ago and meet again
+  at Helgi's 60th (Saturday 14 November, Viktor's farm, ~30 guests, food from „Kõrve Köök”, minibus from Tartu, Kadri's
+  cake). Babysitter candidates **Kertu** (22), **Siim** (30, coach), **Aino** (58, retired teacher), **Margit** (35,
+  nurse); radio guest **Marika Põld** (babysitters' association); Viktor left his backpack with Helgi's present (a
+  wooden box he made, with the old photo) on the Aegviidu train; lost-property clerk **Urve Tamm** (radio).
 - **Module 7:** Viktor hurt his knee cycling; new colleague **Kristjan** at Sofia's office; family doctor **dr Kask**,
   nurse **Kati** (advice line), **dr Tamm** (radio sleep expert).
 - **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher

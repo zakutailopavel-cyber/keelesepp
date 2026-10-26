@@ -24,3 +24,5 @@ nägemis
 ksi
 lõputest
 lõpptest
+nõbul
+nõbule
