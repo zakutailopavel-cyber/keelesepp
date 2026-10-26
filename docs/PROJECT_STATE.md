@@ -34,6 +34,88 @@
   checked on today's `main` only (modules 5 and 7 may change); no new pictures (the 5 existing briefs still fit).
 - Next safe step: owner reviews module 6 in „Kursuse tootmine” and publishes it; module 7 author starts 031 with a
   corner other than S2 (029's corner) and checks V2 against 029.
+## 2026-10-26 · agent/b1-m04-final — B1 module 4 in the final shape
+
+- Base: `main` 092f898 (2026-10-26, after #798). Draft PR #802 from `agent/b1-m04-final`. Content only; no production data,
+  no deploy. Parallel: modules 3, 5, 6 are rewritten by other agents (not touched here).
+- Asked (owner): module 4 „Aeg ja plaanid” (a2b1-016…020) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 4).
+- Done: `b1/module04.js` rewritten, one storyline (first week of December: camp, inventory, Anna's wedding, the dentist,
+  Viktor's car): 016 AVAS R→S (time expressions; test → Kaie's programme → rule → test again; main S03 day plan), 017
+  KUUL L→W (peab/võib/saab/ei tohi; 5 listenings; W1b note taught with an exam tip; main W04 letter to Kati 80–100 words,
+  W12 formal reply), 018 LUGE R→W (particle verbs; Markus's Thursday, article, Anna's handover; main W05 story 80–100
+  words + W10 rewrite), 019 PROB L→S (first try at the call → polite forms → second call; S2 phone call taught in Kasuta,
+  main; family council; invitation W03), 020 EKS Vahehindamine 1 (A2 form + B1 tasks R1, R2, R3a, L1, L3a, L4, W1b, S0,
+  S1a, S2; timed parts, 80 % per part; language items name their area; profile table vs a2b1-001). All tasks tagged,
+  reviews name 014/016–018 and module 1–2 lessons, 2 fluency tasks a lesson. Goals 016–020 in `b1/lessonGoals.js`;
+  cast facts in `COURSE_CAST.md`; new pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-016…020`, 9 old files and 8 manifest entries removed;
+  „Kaie” added to the female names of `tools/listening-audio/plan.mjs`; `sisenemistestiga` to `language-allow.txt`.
+- Checks: `course:final-shape --module 4` 69 → 0; course 1282 → 1202 (baseline only shrank: module 4 −69, 11 V7 problems
+  in modules 5–15 disappeared with the old module-4 instructions). Strict + older quality gate for module 4: 0.
+  `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed, 4 skipped. eslint on changed
+  files: 0 errors. Vabamorf speller: 0 unknown words except names and the technical value `kusimustik`. All 15 sheets
+  rendered on a local stand (not committed).
+- Limits: sheets are 40–44 min (exam sheets 40–55), not 45+ — the V4 id caps leave no room for more tasks; 019 Kasuta
+  listening carries `level: 3` (consequence questions); particle verbs are introduced in 018 (LUGE), not in an AVAS
+  lesson (§4.1 rule 6 is not automated; the plan row puts AVAS on 016 = time expressions); V2/recycling checks against
+  modules 3 and 5 must be re-run after their rewrites merge.
+- Next safe step: owner reviews module 4 in „Kursuse tootmine” and publishes it.
+## 2026-10-26 · agent/b1-m03-final — B1 module 3 in the final shape
+
+- Base: `main` 092f898 (after #798, B1 module 2). Draft PR from `agent/b1-m03-final`. Content only; no production data,
+  no deploy. Modules 4, 5, 6 are rewritten by other agents in parallel — only module 3 and its lines in shared files here.
+- Asked (owner): module 3 „Kodu ja linn” (a2b1-011…015) to the final shape (`COURSE_FINAL_SHAPE_B1.md` §6.2–6.4, §7–8),
+  grammar per `grammarPlan.js`, storyline continuing module 2, Harno-like A2 module exam with an 80 % target per part.
+- Done: `b1/module03.js` rewritten with new texts and items — 011 KUUL L→W „Kodu otsingul” (adjective suffixes; eight
+  voice messages, the viewing at Valgevase 7, radio on renting, house notices; owner's voicemail → explain to Jaan →
+  phone the owner → main W04 letter to Helgi 80–100 words), 012 LUGE R→W „Kolimispäev” (kus/kuhu/kust; blog with
+  prediction, cloze, word-bank list, house rules õige/vale/ei selgu, polite notice; Helgi's letter → idea card on the
+  furniture → main W05 story 80–100 words + invitation card), 013 RÄÄK L→S „Minu uus linnaosa” (suffixes again,
+  sest/kuna; vox pop, Tiina's walk with numbers, survey, questionnaire, 4-3-2, interview T/F; five proposals → main S03
+  residents' meeting → summary letter), 014 PROB R→S „Pidu on ohus” (directions mine/minge, -ni; decide first, R1 ads,
+  city announcement, Viktor's story, Helgi phones from the station; maintenance terms and day plan → main S10 call to the
+  firm → rewritten way description → meeting Tiina), 015 EKS (Harno A2 form, `B.examPart` per part, R2, R3a, L1, L4,
+  L3a, W1b, S0 tagged; reading 30 / listening 25 / writing 20 / speaking 20 points, target 80 %). Leads differ from the
+  §6.2 row („RÄÄK L→W*” fails V5-lead: RÄÄK must end in speaking, so KUUL became L→W and RÄÄK L→S) — see
+  `FINAL_SHAPE_AUTHORING.md` §9. Goals of 011–015 in `b1/lessonGoals.js`; cast facts in `docs/COURSE_CAST.md`.
+- Audio: 13 new recordings (TartuNLP, free, `--only a2b1-011` … `a2b1-015`), 10 old files and 8 manifest entries removed.
+  Speller: suffix labels `eba`, `lik`, `line`, `ne`, `tu` added to `tools/course-audit/language-allow.txt`.
+- Checks: `course:final-shape --module 3` 54 → 0; course 1282 → 1206 (baseline only shrank: module 3 −54, modules 4, 5,
+  7, 8, 13, 14 −22 V7/V2 problems that came from the old module-3 texts). Strict and older quality gates for module 3:
+  0 problems. `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed,
+  4 skipped. eslint on changed files: 0 errors. Vabamorf speller: 0 unknown words except names and the technical value
+  `kusimustik`. All 15 sheets rendered once on a local stand (not committed).
+- Limits: sheets are 40–45 min by the estimator (gate 40–55), not 45+ everywhere (the id caps leave no more tasks);
+  Kasuta of 014 uses a reading tagged `level: 3` (R08, questions that apply times and prices); module 4's recycling of
+  module-3 words is 35 % (gate 30 %) against the current module 4 — re-check after module 4 is merged.
+- Next safe step: owner reviews module 3 in „Kursuse tootmine” and publishes it; whoever merges second among modules
+  3–6 re-runs `UPDATE_FINAL_SHAPE_BASELINE=1` and the worksheet-generator tests.
+## 2026-10-26 · agent/b1-m05-final — B1 module 5 in the final shape
+
+- Base: `main` 092f898 (after #798, B1 module 2). Draft PR #799 from `agent/b1-m05-final`. Content only; no production data,
+  no deploy. Parallel agents rewrite modules 3, 4 and 6 (not touched here).
+- Asked (owner): module 5 „Lihtminevik ja kogemused” (a2b1-021…025) to the final shape (`COURSE_FINAL_SHAPE_B1.md`
+  §6.2–6.4, §7–8); fix the audit's can-do/time mismatch (024 promised 2–3 min speaking).
+- Done: `b1/module05.js` rewritten with new texts and items, one storyline (Linnaleht story contest „Minu kõige
+  ootamatum päev”). 021 LUGU R→W (regular past -si-/-s- and negation; main W04 letter to the sick colleague, 80–100
+  words); 022 RÄÄK R→S (time words, verb second; main S03 agreement on the team outing; 4-3-2); 023 AVAS L→S (irregular
+  past; test → rule → test; Harno L1 clips introduced, tagged `L1`; main S10 problem with the festival organiser);
+  024 KIRJ L→W (process writing; main W05 story 80–100 words, Harno W2a introduced, tagged `W2a`; the can-do now promises
+  writing, matching the main task); 025 EKS (Harno A2 form + B1 tasks R2, R3a, L1, L4, L3a, W1b, W2a, S0, S2; timed
+  parts, 80 % target per part). §6.2 swap: 022 RÄÄK / 023 AVAS (allowed), so AVAS introduces the irregular past
+  (grammarPlan 021/023 unchanged). Goals 021–025 in `b1/lessonGoals.js`; cast in `docs/COURSE_CAST.md`; pitfalls in
+  `docs/FINAL_SHAPE_AUTHORING.md` §8.1.
+- Audio: 13 new recordings (TartuNLP, free) in `public/audio/a2b1-021…025`; 9 old files and 8 manifest entries removed.
+- Checks: `course:final-shape --module 5` 59 → 0 problems; course 1282 → 1210 (baseline only shrank: module 5 −59, 12
+  V7/V6 problems in modules 6–14 and course disappeared with the old module-5 instructions). Older quality gate and strict
+  gate for module 5: 0. `npx vitest run src/features/worksheet-generator`: 61 files passed (1 skipped), 923 tests passed,
+  4 skipped; vocabulary + library tests 112 passed. eslint on changed files: 0. Vabamorf speller: no unknown words except
+  names, notice morphemes (-sin, -sid) and the deliberate wrong options of the „try first” test. All 15 sheets rendered
+  locally (print mode), no broken markup.
+- Limits: sheets 40–43 min (gate 40–55; 45+ would need more tasks than the id caps allow); one Kasuta reading has
+  `level: 3` (024 contest rules, application questions); the „try first” test uses over-generalised non-words as wrong
+  options on purpose.
+- Next safe step: owner reviews module 5 in „Kursuse tootmine”; then the next module with the S/W id plan of §8.1.
 
 ## 2026-10-26 · agent/b1-m02-final — B1 module 2 in the final shape (pilot module)
 
