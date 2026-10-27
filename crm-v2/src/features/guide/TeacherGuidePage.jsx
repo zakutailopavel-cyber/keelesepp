@@ -24,7 +24,7 @@ export default function TeacherGuidePage() {
   const count = FIRST_STEPS.filter((step) => done[step.id]).length;
 
   return <div className="page-content guide-page">
-    <PageHeader eyebrow="Juhend" title="Süsteemi tutvustus" description="Kõik KeeleSepa võimalused õpetajale ühes kohas · Все возможности системы для учителя в одном месте." />
+    <PageHeader eyebrow="Juhend" title="Süsteemi tutvustus" description="Kõik KeeleSepa võimalused õpetajale ühes kohas · Все возможности системы для учителя в одном месте." actions={<Link className="button button--secondary" to="/uuendused">Uuendused · что нового</Link>} />
 
     <Card className="guide-steps">
       <div className="guide-steps__head"><h2>Esimesed sammud</h2><span className="guide-steps__count">{count}/{FIRST_STEPS.length}</span></div>
