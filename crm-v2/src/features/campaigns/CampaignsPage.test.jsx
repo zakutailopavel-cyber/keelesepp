@@ -18,9 +18,9 @@ describe('CampaignsPage', () => {
     expect(repository.update.mock.calls[0][1].posts[0].posted).toBe(true);
     expect(screen.queryByRole('region', { name: 'Täna postitada' })).toBeNull();
 
-    fireEvent.click(screen.getByRole('button', { name: /Eelkool — pühapäevarühm/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Eelkool 5–6 a/ }));
     expect(screen.getByLabelText('Nimi *')).toHaveValue('Eelkool pühapäeviti (5–6-aastased)');
-    expect(screen.getByLabelText('Postituse 2 tekst').value).toMatch(/Подготовка к школе/);
+    expect(screen.getByLabelText('Postituse 2 tekst').value).toMatch(/Подготовишка по воскресеньям/);
     fireEvent.change(screen.getByLabelText('Grupp'), { target: { value: 'g1' } });
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
     expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ title: 'Eelkool pühapäeviti (5–6-aastased)', groupId: 'g1', targetSignups: 5 }), expect.objectContaining({ uid: 'admin-1' }));

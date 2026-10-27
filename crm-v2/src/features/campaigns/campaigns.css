@@ -34,3 +34,6 @@
 .cp-item { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
 .cp-actions { display: flex; gap: 8px; }
 @media (max-width: 640px) { .cp-views { margin-left: 0; } }
+.cp-cover { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+.cp-cover img { width: 180px; max-width: 100%; border-radius: 12px; border: 1px solid #e4ece8; }
+.cp-card__cover { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid #eef2f0; }

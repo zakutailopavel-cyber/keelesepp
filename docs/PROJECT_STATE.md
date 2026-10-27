@@ -3605,3 +3605,11 @@
 - New collection `campaigns/{id}`: admin read/create/update (`campaignValid`, author + createdAt kept), never deleted — `firestore.rules`, test `functions/campaigns-rules-emulator.integration.js` (in `test:emulator`).
 - Nothing is published from the CRM: texts are copied and posted by hand, then „Postitatud”.
 - Needs: deploy `firestore:rules`.
+
+### 2026-10-28 — Kampaaniad: three Sunday children's groups (agent/kids-campaigns)
+
+- Owner: 3 campaigns for 5–6, 6–7, 8–9 years with the study description, covers, texts „и всё остальное” for the meeting with the admin.
+- `features/campaigns/kidsCampaigns.js` (templates kids56 / kids67 / kids89: offer proposals — Sunday 10.00 / 11.00 / 12.15, 12 €/45 min and 15 €/60 min, trial free, start 15.11.2026, place `[koht]`; notes = programme (12 lessons), lesson structure, outcomes, questions for the meeting, economics; 8 posts each FB/IG/WhatsApp/website ET+RU with dates and covers; 10-step checklist). The old „Eelkool — pühapäevarühm” template is replaced by kids56.
+- Posts may carry `imageUrl` (`/campaign-art/*.png|jpg|webp` or https); editor shows the cover with „Laadi pilt alla”, the card a thumbnail.
+- Covers: `crm-v2/public/campaign-art/kids-{56,67,89}-{square,story}-{et,ru}.png` built by `crm-v2/scripts/campaign-covers.mjs` (Chrome headless, textbook art palette).
+- Production (after merge): campaign w9B5cVWoOHezcmifVQJ3 updated to kids56, kids67 and kids89 created (status „Ettevalmistus”).

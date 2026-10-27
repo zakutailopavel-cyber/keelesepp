@@ -1,4 +1,4 @@
-import { Check, ClipboardCopy, Megaphone, Plus, Trash2 } from 'lucide-react';
+import { Check, ClipboardCopy, Download, Megaphone, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
@@ -36,6 +36,10 @@ function PostEditor({ post, index, onChange, onRemove }) {
     <label className="cp-text"><span>Tekst ({post.text.length}/3000)</span>
       <textarea aria-label={`Postituse ${index + 1} tekst`} rows={8} maxLength={3000} value={post.text} onChange={(event) => set({ text: event.target.value })} />
     </label>
+    {post.imageUrl ? <div className="cp-cover">
+      <img src={post.imageUrl} alt={`Postituse ${index + 1} pilt`} loading="lazy" />
+      <a className="button button--secondary" href={post.imageUrl} download><Download size={15} /> Laadi pilt alla</a>
+    </div> : null}
     <Input label="Pilt / video (mida näidata)" id={`cp-post-${index}-image`} value={post.imageNote} maxLength={500} onChange={(event) => set({ imageNote: event.target.value })} />
     <div className="cp-post__actions">
       <CopyButton text={post.text} />
@@ -106,6 +110,7 @@ function CampaignCard({ campaign, groups, onOpen }) {
   const group = groups.find((item) => item.id === campaign.groupId);
   return <button type="button" className="cp-card" onClick={() => onOpen(campaign)}>
     <span className="cp-card__top"><Badge tone={TONE[campaign.status]}>{STATUSES[campaign.status]}</Badge><small>{KINDS[campaign.kind]}</small></span>
+    {campaign.posts.find((post) => post.imageUrl) ? <img className="cp-card__cover" src={campaign.posts.find((post) => post.imageUrl).imageUrl} alt="" loading="lazy" /> : null}
     <strong>{campaign.title}</strong>
     <small>{[campaign.startDate ? `${date(campaign.startDate)}${campaign.endDate ? ` – ${date(campaign.endDate)}` : ''}` : 'kuupäev määramata', group ? `grupp: ${group.name}` : '', campaign.channels.map((channel) => CHANNELS[channel]).join(', ')].filter(Boolean).join(' · ')}</small>
     <span className="cp-card__stats">
@@ -170,6 +175,7 @@ export default function CampaignsPage({ repository = campaignsService, groupsRep
           {due.map((item) => <div className="cp-due__row" key={`${item.campaign.id}-${item.index}`}>
             <span><strong>{item.campaign.title}</strong><small>{CHANNELS[item.post.channel]} · {LANGS[item.post.lang]} · {date(item.post.postDate)}</small></span>
             <CopyButton text={item.post.text} />
+            {item.post.imageUrl ? <a className="button button--secondary" href={item.post.imageUrl} download><Download size={15} /> Pilt</a> : null}
             <Button variant="secondary" onClick={() => markPosted(item)}><Check size={15} /> Postitatud</Button>
           </div>)}
         </Card> : null}
