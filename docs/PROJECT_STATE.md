@@ -3613,3 +3613,11 @@
 - Posts may carry `imageUrl` (`/campaign-art/*.png|jpg|webp` or https); editor shows the cover with „Laadi pilt alla”, the card a thumbnail.
 - Covers: `crm-v2/public/campaign-art/kids-{56,67,89}-{square,story}-{et,ru}.png` built by `crm-v2/scripts/campaign-covers.mjs` (Chrome headless, textbook art palette).
 - Production (after merge): campaign w9B5cVWoOHezcmifVQJ3 updated to kids56, kids67 and kids89 created (status „Ettevalmistus”).
+
+### 2026-10-28 — Worksheet blocks for children (agent/kids-blocks)
+
+- Owner: „раскраски … если не хватает блоков в конструкторе — добавляем, надо прописи — делаем”; and „сравни, чтобы всё по дизайну на сайте тоже работало”.
+- Design check in the owner's Chrome (crm.epkoolitus.ee): Finantsid/Ärinäitajad, Ülesanded, menu fine; Kampaaniad had no page padding (`page` → `page-content`) and no back button in the editor (added „Tagasi”); campaigns with the same start sort by creation.
+- New blocks (`engine/blocks/kids.jsx`, group „Lastele”): `coloring` (pictures in `kidsPictures.js`, 15 line-art pictures with regions; mode key = scored by colour per region, free = not scored; palette on screen), `tracing` (school 4-line ruling, solid model + dotted copies; pointer ink stored per row `ink{n}`, ≤15 000 chars, not scored), `counting` (emoji × count, accepts digit or Estonian number word 0–20), `letterhunt` (tap to circle; target cells scored).
+- Tests: blockAnswerCases + roundtrip for coloring/counting/letterhunt; engine registry count 52; `functions/generated/sheet-kit.cjs` rebuilt. Full verify: 2726 passed.
+- Next safe step: the children's courses (5–6, 6–7, 8–9) with lesson plans and sheets using these blocks.

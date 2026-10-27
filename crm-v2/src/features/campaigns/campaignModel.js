@@ -92,7 +92,7 @@ export function duePosts(campaigns, today) {
 
 const ORDER = ['live', 'ready', 'preparing', 'idea', 'done', 'archived'];
 export function sortCampaigns(list) {
-  return [...list].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status) || (a.startDate || '9999').localeCompare(b.startDate || '9999') || a.title.localeCompare(b.title, 'et'));
+  return [...list].sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status) || (a.startDate || '9999').localeCompare(b.startDate || '9999') || (a.createdAt || '').localeCompare(b.createdAt || '') || a.title.localeCompare(b.title, 'et'));
 }
 
 // a ready-made start: the three Sunday children's groups (kidsCampaigns.js), then blank ones

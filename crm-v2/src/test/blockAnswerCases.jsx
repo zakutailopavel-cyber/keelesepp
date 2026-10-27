@@ -1,3 +1,4 @@
+import { coloringKey, huntGrid } from '../features/worksheet-studio/engine/blocks/kids.jsx';
 import { useState } from 'react';
 import { expect } from 'vitest';
 import { fireEvent, render } from '@testing-library/react';
@@ -16,7 +17,7 @@ export const EXPECTED = [
   'gaps', 'choice', 'truefalse', 'match', 'pictures', 'clock', 'cloze', 'formtext', 'insertion', 'picmatch', 'scenelabel', 'profiles', 'picrows',
   'dialogue', 'reading', 'listening', 'table', 'categorize', 'wordorder', 'writing', 'wordforms', 'errorfix',
   'transformation', 'dictation', 'translation', 'crossword', 'planning', 'guidedletter', 'rubric', 'diagram',
-  'adsmatch', 'examlisten', 'examwriting', 'examrubric',
+  'adsmatch', 'examlisten', 'examwriting', 'examrubric', 'coloring', 'counting', 'letterhunt',
 ];
 
 export const doc = (blocks) => ({ ...sampleDocument(), blocks });
@@ -232,6 +233,33 @@ export const CASES = {
       fireEvent.click(buttons[buttons.length - 1]);
     }),
     review: (card, block) => expect(card.querySelectorAll('.ws-examrubric .ws-pt.on')).toHaveLength(block.data.criteria.length),
+  },
+  // children's blocks: pick a colour, tap the region; count and write; tap every letter to circle it
+  coloring: {
+    drive: (card, block, { wrong = false } = {}) => {
+      coloringKey(block.data).forEach((color, i) => {
+        if (!color || (wrong && i > 0)) return;
+        const use = wrong ? (color === 'sinine' ? 'kollane' : 'sinine') : color;
+        fireEvent.click(card().querySelector(`[aria-label="Värv: ${use}"]`));
+        fireEvent.click(card().querySelector(`[aria-label="Ala ${i + 1}"]`));
+      });
+    },
+    review: (card, block) => expect([...card.querySelectorAll('.ws-coloring-region')].map((g) => g.getAttribute('data-color'))).toEqual(coloringKey(block.data)),
+  },
+  counting: { right: (b) => (key) => String(b.data.items[Number(key)]?.count) },
+  letterhunt: {
+    drive: (card, block, { wrong = false } = {}) => {
+      const grid = huntGrid(block.data);
+      const target = String(block.data.target).toLowerCase();
+      let first = true;
+      grid.forEach((row, r) => row.forEach((cell, c) => {
+        if (cell.toLowerCase() !== target) return;
+        if (wrong && !first) return;
+        first = false;
+        fireEvent.click(card().querySelector(`[aria-label="Täht ${cell}, rida ${r + 1}, veerg ${c + 1}"]`));
+      }));
+    },
+    review: (card, block) => expect(card.querySelectorAll('.ws-hunt-cell.circled')).toHaveLength(BLOCKS.letterhunt.answers(block.data).length),
   },
   diagram: { right: (b) => (key) => { const hit = BLOCKS.diagram.answers(b.data).find((a) => a.key === key); return hit ? hit.accept[hit.accept.length - 1] : undefined; } },
 };

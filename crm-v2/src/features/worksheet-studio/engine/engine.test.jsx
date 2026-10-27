@@ -13,7 +13,7 @@ const answer = (b, map) => Object.fromEntries(Object.entries(map).map(([k, v]) =
 
 describe('block registry', () => {
   it('every block type can be created and rendered in edit, interactive and print modes', () => {
-    expect(Object.keys(BLOCKS)).toHaveLength(48);
+    expect(Object.keys(BLOCKS)).toHaveLength(52);
     for (const type of Object.keys(BLOCKS)) {
       const b = createBlock(type);
       for (const mode of ['edit', 'interactive', 'print']) {
