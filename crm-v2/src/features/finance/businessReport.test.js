@@ -68,3 +68,19 @@ describe('teacher names in the report', () => {
     expect([of('Mari'), of('Jüri'), of('Kati'), of('')]).toEqual(['Mari Tamm', 'Jüri', 'Kati', '—']);
   });
 });
+
+describe('teacher pay („доход с каждого учителя”)', () => {
+  it('hours given × the hourly rate, a group lesson once; what stays with the school', () => {
+    const team = [{ id: 's1', name: 'Mia' }, { id: 's2', name: 'Ott' }];
+    const prices = [{ studentId: 's1', lessonPriceCents: 2500 }, { studentId: 's2', lessonPriceCents: 2500 }];
+    const report = businessReport({
+      current: '2026-10', months: 1, today: '2026-10-20', students: team, plans: prices,
+      schedule: [{ id: 'g', isGroup: true, studentIds: ['s1', 's2'], teacher: 'Liza', date: '2026-10-05', duration: 90 }, { id: 'o', studentId: 's1', teacher: 'Pavel', date: '2026-10-06', duration: 60 }],
+      teachers: [{ id: 't1', name: 'Liza Lukiianchuk', workHourlyRateCents: 1200 }, { id: 't2', name: 'Pavel Zakutailo' }],
+    });
+    const liza = report.byTeacher.find((row) => row.name === 'Liza Lukiianchuk');
+    expect(liza).toMatchObject({ tookPlace: 2, hours: 1.5, rateCents: 1200, payCents: 1800, earnedCents: 7500, schoolCents: 5700 });
+    expect(report.byTeacher.find((row) => row.name === 'Pavel Zakutailo')).toMatchObject({ payCents: null, schoolCents: 2500 });
+    expect(report.pay).toEqual({ payCents: 1800, schoolCents: 10000 - 1800, unrated: ['Pavel Zakutailo'] });
+  });
+});

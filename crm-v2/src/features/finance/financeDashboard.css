@@ -95,3 +95,4 @@
 .br-table th, .br-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #eef2f0; white-space: nowrap; }
 .br-table th[scope="row"], .br-table thead th:first-child { text-align: left; }
 .br-table thead th { font-size: .74rem; color: #667085; font-weight: 700; }
+.br-muted { color: #98a2b3; font-weight: 400; }

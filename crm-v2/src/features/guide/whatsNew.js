@@ -46,7 +46,7 @@ export const RELEASES = [
         title: 'Финансы',
         items: [
           { audience: 'admin', where: 'Finantsid → «Tulu ja prognoos»', text: 'Доход и прогноз по урокам календаря; период: месяц, 3, 6 месяцев, год.', to: '/finance' },
-          { audience: 'admin', where: 'Finantsid → «Ärinäitajad»', text: 'Под графиком: сколько уроков прошло и пропущено, посещаемость, новые и ушедшие ученики, средняя цена урока, ученики без цены, разбивка по учителям и предметам — в сравнении с прошлым периодом.', to: '/finance' },
+          { audience: 'admin', where: 'Finantsid → «Ärinäitajad»', text: 'Под графиком: сколько уроков прошло и пропущено, посещаемость, новые и ушедшие ученики, средняя цена урока, ученики без цены, разбивка по учителям (часы, ставка, зарплата учителя, сколько остаётся школе) и предметам — в сравнении с прошлым периодом.', to: '/finance' },
           { audience: 'admin', where: 'Finantsid → счёт', text: '«Meeldetuletus» есть у любого неоплаченного счёта, и до срока тоже.', to: '/finance' },
           { audience: 'admin', where: 'Raamatupidamine', text: 'Партнёр на 2110 / 1350 необязателен; поставщики и отчёт «Partnerid»; удобнее Päevaraamat и Pearaamat.', to: '/finance/raamatupidamine' },
         ],

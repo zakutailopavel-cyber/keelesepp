@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, LineChart, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { groupsService, scheduleService, studentsService } from '../../services/firebase/index.js';
+import { groupsService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
 import { PERIODS, lessonRevenue, monthRange, niceMax, periodSummary, smoothPath } from './financeDashboard.js';
 import { currentMonth, shiftMonth } from './monthlyBilling.js';
 import BusinessReport from './BusinessReport.jsx';
@@ -12,7 +12,7 @@ const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', cur
 const short = (cents) => { const euros = Math.round(Number(cents || 0) / 100); return euros >= 1000 ? `${(euros / 1000).toFixed(euros >= 10000 ? 0 : 1).replace('.', ',')}k` : `${euros}`; };
 const monthName = (month, style = 'short') => new Intl.DateTimeFormat('et-EE', { month: style, ...(style === 'long' ? { year: 'numeric' } : {}) }).format(new Date(`${month}-15T12:00:00`));
 // every card (archived ones too: their past lessons are part of the past months)
-const api = { students: () => studentsService.list({ pageSize: 500, exhaustive: true }).then((result) => result.items || []), schedule: () => scheduleService.list(), groups: () => groupsService.list().catch(() => []) };
+const api = { students: () => studentsService.list({ pageSize: 500, exhaustive: true }).then((result) => result.items || []), schedule: () => scheduleService.list(), groups: () => groupsService.list().catch(() => []), teachers: () => teachersService.list() };
 const STORE = 'keelesepp.financeDashboard.hidden';
 const hiddenAtStart = () => { try { return globalThis.localStorage?.getItem(STORE) === '1'; } catch { return false; } };
 const PERIOD_STORE = 'keelesepp.financeDashboard.period';
@@ -90,8 +90,8 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
   const choosePeriod = (months) => { setPeriod(months); try { globalThis.localStorage?.setItem(PERIOD_STORE, String(months)); } catch { /* private mode */ } };
   const state = useAsyncData(async () => {
     const settle = (load) => Promise.resolve().then(load).catch(() => []);
-    const [students, schedule, groups] = await Promise.all([settle(repository.students), settle(repository.schedule), settle(repository.groups)]);
-    return { students, schedule, groups };
+    const [students, schedule, groups, teachers] = await Promise.all([settle(repository.students), settle(repository.schedule), settle(repository.groups), settle(repository.teachers || (() => []))]);
+    return { students, schedule, groups, teachers };
   }, [repository]);
 
   const model = useMemo(() => {
@@ -107,7 +107,7 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
     const first = window.findIndex((row) => row.heldCents || row.plannedCents);
     const shown = window.slice(first < 0 ? shownBack - 1 : Math.min(first, shownBack - 6));
     const columns = shown.map((row) => ({ ...row, current: row.month === current, future: row.month > current }));
-    const report = businessReport({ current, months: period, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons });
+    const report = businessReport({ current, months: period, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons, teachers: state.data.teachers });
     return { columns, summary: periodSummary({ rows, current, months: period }), report };
   }, [state.data, plans, lessons, current, todayIso, period]);
 
