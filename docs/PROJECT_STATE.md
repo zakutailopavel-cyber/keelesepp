@@ -1,3 +1,14 @@
+## 2026-10-27 · agent/finance-periods — Finantsid „Tulu ja prognoos”: periods from a month to a year
+
+- Owner 2026-10-27: „сделай периоды от месяца до года”. A switch Kuu / 3 kuud / 6 kuud / Aasta (remembered per browser):
+  - the KPIs sum the period that ends with this month (held, still planned, total vs the period before, monthly
+    average, unmarked lessons);
+  - the forecast is the same number of months ahead;
+  - the chart shows at least 6 months back (12 for the year) and as many months ahead.
+  - `financeDashboard.periodSummary`; `lessonSummary` stays for compatibility.
+- Checks: finance tests 177 passed (+ periodSummary, + the switch); eslint src 0; whole vitest passed; local look
+  (year view, 24 months on the chart).
+
 ## 2026-10-27 · agent/ajad-to-cards — „Sobivad ajad” sent through /ajad now show on the student cards
 
 - Owner 2026-10-27: „почему-то половину ответов не вижу”. Production read: 15 answers in `studentAvailability`
