@@ -43,7 +43,8 @@ test('lesson change requests obey the real rules', async () => {
   const otherTeacher = await account('teacher');
   const learner = await account('student');
   const stranger = await account('student');
-  await db.doc('students/lc-card').set({ name: 'Polina', linkedUserId: learner.uid, teacherUid: teacher.uid, active: true });
+  const parent = await account('parent');
+  await db.doc('students/lc-card').set({ name: 'Polina', linkedUserId: learner.uid, linkedParentId: parent.uid, teacherUid: teacher.uid, active: true });
   await db.doc('students/lc-other').set({ name: 'Other', linkedUserId: stranger.uid, active: true });
   await db.doc('schedule/lc-lesson').set({ studentId: 'lc-card', teacherUid: teacher.uid, teacher: 'Pavel', date: '2030-01-10', time: '16:00', duration: 60, recurring: false });
   const request = (extra = {}) => ({
@@ -67,6 +68,11 @@ test('lesson change requests obey the real rules', async () => {
   assert.equal(await patch(otherTeacher, 'lc-1', { status: 'accepted', decidedByUid: otherTeacher.uid }), 403, 'not another teacher');
   assert.equal(await patch(teacher, 'lc-1', { status: 'accepted', chosen: { date: '2030-01-11', time: '15:00' }, decidedAt: '2030-01-02T10:00:00Z', decidedByUid: teacher.uid }), 200, 'teacher confirms');
   assert.equal(await patch(teacher, 'lc-1', { status: 'declined' }), 403, 'answered once');
+
+  // „Ma ei tule” (owner 2026-10-26): a parent only reports the absence, no new time
+  assert.equal(await create(parent, 'lc-7', request({ requestedByUid: parent.uid, requestedByRole: 'parent', proposals: [], other: '', reason: 'haige' })), 200, 'a parent reports an absence');
+  assert.equal(await read(parent, 'lc-7'), 200);
+  assert.equal(await patch(teacher, 'lc-7', { status: 'accepted', chosen: null, teacherNote: 'Puudumine märgitud.', decidedAt: '2030-01-02T10:00:00Z', decidedByUid: teacher.uid }), 200, 'the teacher answers the notice');
 
   assert.equal(await create(learner, 'lc-6', request()), 200);
   assert.equal(await patch(learner, 'lc-6', { status: 'cancelled', cancelledAt: '2030-01-02T10:00:00Z' }), 200, 'the asker withdraws');

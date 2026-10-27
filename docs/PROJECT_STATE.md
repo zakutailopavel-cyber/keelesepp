@@ -15,6 +15,43 @@
 - Next safe step: the owner approves; then opens Kalender → Planeerija → „Lisa kõik õpilased” → „Jaota” and checks the
   red ones with the students.
 
+## 2026-10-26 · agent/teacher-homework — Kodutööd: teachers' access re-checked, the page tidied
+
+- Owner 2026-10-26: „у учителей в kodutood кому-то нельзя было зайти, там внешний вид тоже поправить”.
+- Access: fixed on 2026-10-21 (5fd8f69, 5 cards per query). Re-checked tonight: a copy of production users, students,
+  homework, worksheetAssignments, exerciseResults (read only) was loaded into the local emulator, and the page's own
+  queries ran as each of the 5 teachers. Result: all OK, no permission errors. Nothing to change in the rules.
+- Look:
+  - search and filter in one slim row (no big empty card);
+  - each task shows the student's name first (teachers scan by student);
+  - the due date in words: „Täna”, „Homme”, „3 p hiljaks”, „28. okt” (homeworkFlow.dueLabel);
+  - „Ootab hinnet” instead of the long „Automaatselt kontrollitud”; work titles wrap to two lines;
+  - phones: the due date is shown again (index.css hid it under 560 px); „Kinnita N” goes under the work.
+- Bug fixed: `Button` dropped its own classes when given a `className`, so „Kinnita N” looked like a bare grey button.
+  The only user was this button.
+- Files: crm-v2/src/components/ui/Button.jsx, features/homework/HomeworkPage.jsx, homeworkFlow.js (+ test),
+  homeworkPage.css (new).
+- Checks: verify (eslint 0, vitest 2666 passed); local visual check at 1400 px and 375 px.
+- Next safe step: the owner approves the PR.
+
+## 2026-10-26 · agent/night-fixes — „Ei saa tulla?”: a plain „Ma ei tule” (parents' complaint)
+
+- Owner 2026-10-26: „родители жаловались что у них отметка не приду на урок не работала”. Cause: the dialog demanded a
+  new time or a written one („Vali uus aeg või kirjuta …”), so a plain absence could not be sent. Production had
+  0 lessonChangeRequests ever. Rules were fine: the emulator shows a linked parent can create the request.
+- RescheduleDialog: two choices on top — „Ma ei tule · uut aega pole vaja” (button „Saada teade”) / „Soovin uut aega”.
+- rescheduleModel: buildRequest({ absent }) stores proposals [] and other '' (same document keys, no rules change);
+  isAbsenceOnly(request).
+- Teacher (ChangeRequestsPanel + CalendarPage): „Märgi puudumine” marks the lesson Puudus_p („teatas ette”) through
+  lessonRepository.completeFromSchedule (the reason goes into the note) and answers the notice (accepted, chosen null).
+  The heading is „Ei saa tulla (N)”; the bell says „… ei tule tunnile”.
+- Student page / parent page: „Teade saadetud”, then „Ei tule · märgitud”.
+- Production read (2026-10-26): 40 parent accounts, 37 linked to a card, 3 not linked (they see no lessons at all);
+  every schedule doc has teacherUid.
+- Checks: verify (eslint 0, vitest 2668 passed); lesson-change-emulator.integration.js on the emulator (pass, a parent
+  case added).
+- Next safe step: the owner approves the PR; links the 3 unlinked parent accounts in Kasutajad.
+
 ## 2026-10-26 · agent/finance-lesson-revenue — Finantsid „Ülevaade” counts the calendar's lessons, not the invoices
 
 - Owner 2026-10-26: „прогноз … не привязывать к бухгалтерии, он берётся из количества уроков в календаре, проведённых
