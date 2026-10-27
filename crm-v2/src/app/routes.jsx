@@ -66,6 +66,7 @@ const AccountsPage = lazy(() => import('../features/accounts/AccountsPage.jsx'))
 const LeadsPage = lazy(() => import('../features/leads/LeadsPage.jsx'));
 const TeacherProfilePage = lazy(() => import('../features/teachers/TeacherProfilePage.jsx'));
 const AnnouncementsAdminPage = lazy(() => import('../features/announcements/AnnouncementsAdminPage.jsx'));
+const CampaignsPage = lazy(() => import('../features/campaigns/CampaignsPage.jsx'));
 const LiveObserverPage = lazy(() => import('../features/live-classroom/LiveObserverPage.jsx'));
 const staffPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen…" />}>{element}</Suspense></PageErrorBoundary>;
 const generatorPage = (element) => <PageErrorBoundary><Suspense fallback={<LoadingState label="Laen generaatorit…" />}>{element}</Suspense></PageErrorBoundary>;
@@ -129,6 +130,8 @@ export default function AppRoutes() {
             <Route path="teachers/:teacherId" element={staffPage(<TeacherProfilePage />)} />
             {/* „Teated” (owner 2026-10-24): announcements a student / parent answers before using the CRM */}
             <Route path="messages/teated" element={staffPage(<AnnouncementsAdminPage />)} />
+            {/* „Kampaaniad” (owner 2026-10-27): offers, ad campaigns and events prepared here, posted by hand */}
+            <Route path="kampaaniad" element={staffPage(<CampaignsPage />)} />
             {/* the ChatGPT plugin „KeeleSepp AI” asks the administrator for access (OAuth, functions/keelesepp-ai-mcp.js) */}
             <Route path="ai/connect" element={staffPage(<AiConnectPage />)} />
           </Route>

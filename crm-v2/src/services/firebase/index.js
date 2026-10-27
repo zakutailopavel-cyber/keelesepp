@@ -49,3 +49,4 @@ export { classroomsService } from './classrooms.js';
 export { studentAvailabilityService } from './studentAvailability.js';
 export { announcementsService } from './announcements.js';
 export { businessSettingsService } from './businessSettings.js';
+export { campaignsService } from './campaigns.js';

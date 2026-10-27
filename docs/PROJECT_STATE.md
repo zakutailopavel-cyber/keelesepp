@@ -3597,3 +3597,11 @@
 - UI `BusinessReport.jsx`: „Kasum ja kahjum” block, „Kuude kaupa”, student table, „Püsikulud ja omanik” editor (FinanceMonthPage passes `user`).
 - Checks: finance vitest + full verify VERIFIED (2717 passed); rules emulator test passed locally.
 - Needs: deploy `firestore:rules`; then the owner's values (Ruum/ülalpidamine 400 €, Administraator 750 €, owner Pavel Zakutailo) in businessSettings/current.
+
+### 2026-10-27 — Kampaaniad (agent/campaigns)
+
+- Owner: Sunday pre-school group of 5; „в кабинете сделать будущие кампании или акции, рекламные кампании и мероприятия, чтобы готовить прямо в кабинете админа и потом уже готовый формат постить”.
+- New admin page `/kampaaniad` (nav „Suhtlus ja raha”, ACCESS.ADMIN): `features/campaigns/CampaignsPage.jsx`, `campaignModel.js` (KINDS offer/ad/event, STATUSES idea→archived, CHANNELS, posts ≤30 {channel, lang et/ru, text ≤3000, imageNote, postDate, posted}, checklist ≤40, signups/target, budget/spent, groupId; `duePosts`, `progressOf`, TEMPLATES incl. „Eelkool — pühapäevarühm” with ET/RU texts), `services/firebase/campaigns.js`.
+- New collection `campaigns/{id}`: admin read/create/update (`campaignValid`, author + createdAt kept), never deleted — `firestore.rules`, test `functions/campaigns-rules-emulator.integration.js` (in `test:emulator`).
+- Nothing is published from the CRM: texts are copied and posted by hand, then „Postitatud”.
+- Needs: deploy `firestore:rules`.
