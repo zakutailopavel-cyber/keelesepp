@@ -5,6 +5,7 @@ import { Badge, Button, EmptyState, Input, LoadingState, Modal, Select } from '.
 import { lessonsService, scheduleService, studentAvailabilityService, websiteLeadsService } from '../../services/firebase/index.js';
 import { groupCalendarEvents, toIsoDate } from '../calendar/calendarView.js';
 import { learnedTimes, withLearnedTimes } from '../calendar/studentTimesModel.js';
+import { leadStudentIds, timesFromLeads, withLeadTimes } from '../calendar/leadTimes.js';
 import { AUDIENCES, capacityOf, freeSeats, groupCandidates } from './groupFill.js';
 
 const FIT = { good: ['success', 'sobib hästi'], ok: ['info', 'sobib'], weak: ['warning', 'lepi kokku'] };
@@ -29,11 +30,13 @@ export default function GroupFillDialog({ group, groups = [], students = [], sav
     ]).then(([events, journal, own, enquiries]) => {
       if (!live) return;
       const today = toIsoDate();
-      const ownTimes = new Map(own.map((entry) => [entry.studentId || entry.id, entry]));
-      setData({ events: [...events, ...groupCalendarEvents(groups)], studentTimes: withLearnedTimes(ownTimes, learnedTimes({ events, lessons: journal, today })), leads: enquiries, today });
+      const ownTimes = withLeadTimes(new Map(own.map((entry) => [entry.studentId || entry.id, entry])), timesFromLeads(enquiries, students));
+      // an /ajad answer of a student who already has a card is shown on the card, not again as an enquiry
+      const newPeople = enquiries.filter((lead) => lead.source !== 'availability' || !leadStudentIds(lead, students).length);
+      setData({ events: [...events, ...groupCalendarEvents(groups)], studentTimes: withLearnedTimes(ownTimes, learnedTimes({ events, lessons: journal, today })), leads: newPeople, today });
     }).catch((loadError) => live && setError(loadError.message || 'Andmeid ei saanud laadida.'));
     return () => { live = false; };
-  }, [schedule, lessons, times, leads, groups]);
+  }, [schedule, lessons, times, leads, groups, students]);
 
   const shown = { ...group, ...settings, capacity: Number(settings.capacity) || undefined };
   const result = data ? groupCandidates({ group: shown, students, leads: data.leads, studentTimes: data.studentTimes, events: data.events, today: data.today }) : null;

@@ -1,3 +1,18 @@
+## 2026-10-27 · agent/ajad-to-cards — „Sobivad ajad” sent through /ajad now show on the student cards
+
+- Owner 2026-10-27: „почему-то половину ответов не вижу”. Production read: 15 answers in `studentAvailability`
+  (sent from the learner's account) and 21 sent through the public /ajad link, stored only as website enquiries
+  (`websiteLeads`, source availability) and never joined to a card → not in the calendar, the planner or „Täida grupp”.
+  16 of the 21 match exactly one person, 4 match one person with several cards (subjects), 1 matches no card.
+- New `features/calendar/leadTimes.js`: `leadStudentIds` (the learner's name first; e-mail / phone only when it points
+  to one person — two children of one parent share the contacts), `timesFromLeads` (the newest answer per card),
+  `withLeadTimes` (the card's own times unless the /ajad answer is newer).
+- CalendarPage (overlay, „Sobivad ajad” in the lists, warnings, the planner), GroupFillDialog (and an /ajad answer of a
+  known student is no longer listed again as an enquiry), LeadsPage („Õpilase kaart: … · ajad on kalendris”).
+- No data written; nothing changes in the rules.
+- Checks: eslint src 0; whole vitest 383 files passed (+ leadTimes 2).
+- Next safe step: none; a later step could save a matched answer on the card for good.
+
 ## 2026-10-27 · agent/untrack-node-modules — a worktree symlink `functions/node_modules` left the repository
 
 - Found while deploying #828: commit 21ce049 (#820) had committed `functions/node_modules` as a symlink to a local
