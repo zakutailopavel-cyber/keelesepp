@@ -1,3 +1,20 @@
+## 2026-10-27 · agent/planner-history — Planeerija places students without „Sobivad ajad” at their usual times
+
+- Owner 2026-10-26: „доделать планировщик уроков автоматический”. The planner (#791) placed almost nobody: 38 of 50
+  directions had no „Sobivad ajad”.
+- Now a student without own times gets the times of their past individual lessons (12 weeks, not cancelled or missed;
+  calendar + journal): `studentTimesModel.learnedTimes` / `withLearnedTimes`. Never ★ → yellow „õpilane käis varem sel
+  ajal”; another time is „unknown” (red, agree), not „cannot”. The selected-lesson box says „varasemad tunnid: …”.
+- CalendarPage computes the learned times only while the planner is open (useMemo).
+- Production dry run (read only, 2026-10-27, start 2026-11-02): placed directions 7 → 33 (45 lessons: 2 green, 24
+  yellow, 19 red of which 16 overlap and 3 to agree); unplaced 43 → 17 (12 no history, 5 no teacher). 29 ms.
+- Files: crm-v2/src/features/calendar/studentTimesModel.js, plannerModel.js, PlannerView.jsx, CalendarPage.jsx (+ tests);
+  docs/specs/CALENDAR_V2_SPEC.md.
+- Checks: calendar tests 179 passed; eslint src 0; whole vitest: all passed except LearnerSnapshotCard (fails only
+  between 00:00 and 03:00 local time: UTC „today”; fixed in its own PR agent/local-today).
+- Next safe step: the owner approves; then opens Kalender → Planeerija → „Lisa kõik õpilased” → „Jaota” and checks the
+  red ones with the students.
+
 ## 2026-10-26 · agent/teacher-homework — Kodutööd: teachers' access re-checked, the page tidied
 
 - Owner 2026-10-26: „у учителей в kodutood кому-то нельзя было зайти, там внешний вид тоже поправить”.
