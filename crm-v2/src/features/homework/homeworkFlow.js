@@ -25,7 +25,7 @@ export function staleHomework(items = [], today = localDate(), days = STALE_DAYS
 }
 
 // the due date in words: „täna”, „homme”, „3 p hiljaks”, else „28. okt”
-export function dueLabel(due, today = new Date().toISOString().slice(0, 10)) {
+export function dueLabel(due, today = localDate()) {
   if (!due) return 'Tähtajata';
   const days = Math.round((dayMs(due) - dayMs(today)) / DAY);
   if (Number.isNaN(days)) return `Tähtaeg ${due}`;
