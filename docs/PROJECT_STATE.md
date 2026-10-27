@@ -1,3 +1,20 @@
+## 2026-10-27 · agent/plan-pace — the study plan's pace on the card and in the planner
+
+- Owner 2026-10-27: „продолжаем работу над учебными планами и планировщиком занятий”.
+- `studyPlanModel.planPace({ plan, doneIds, today, weeklyNow })` gives:
+  - lessons left (not skipped, not done);
+  - weeks to `targetDate`;
+  - lessons a week needed (≤ 5);
+  - the weekly series in the calendar now;
+  - status ok / behind / done.
+  Helpers: `planDoneIds(results)`, `weeklyLessonsNow(schedule, today)`.
+- Õppeplaan card: a line „Jäänud N tundi · W nädalat → vaja K tundi nädalas · tunniplaanis praegu M”; it is orange
+  when the timetable does not keep up. StudentProfilePage passes the schedule.
+- Planner: `planningRequests({ lessons })` (CalendarPage → PlannerView `journal`) gives a direction at least the lessons
+  a week its student's plan needs. The plan applies to the only track, or to the Estonian one. Held plan lessons
+  count as done.
+- Checks: students + calendar 304 passed (+2); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/student-study-plan (2) — „Minu areng” counts Live Classroom lessons right
 
 - Owner 2026-10-27, Aleksandr Dikovitš's „Minu areng”: „он и так делает уроки в Live Classroom, проанализируй эти уроки

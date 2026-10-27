@@ -13,3 +13,5 @@
 .study-plan__actions { display: inline-flex; align-items: center; gap: 4px; }
 .study-plan__list .button { min-height: 32px; padding: 0 10px; }
 @media (max-width: 560px) { .study-plan__list li { grid-template-columns: minmax(0, 1fr) auto; } .study-plan__list li > :last-child { grid-column: 1 / -1; } }
+.study-plan__pace { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; font-size: .86rem; background: #f1f8f5; color: #176553; }
+.study-plan__pace.is-behind { background: #fff4e5; color: #8a5300; }

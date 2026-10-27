@@ -4,7 +4,8 @@ import { Badge, Button, Card, EmptyState, Input, LoadingState, Select } from '..
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, libraryService, studentsService } from '../../services/firebase/index.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
-import { autoPlan, lessonResults, movePlanLesson, planRows, recommendLessons } from './studyPlanModel.js';
+import { autoPlan, lessonResults, movePlanLesson, planDoneIds, planPace, planRows, recommendLessons, weeklyLessonsNow } from './studyPlanModel.js';
+import { toIsoDate } from '../calendar/calendarView.js';
 import './studyPlan.css';
 
 const STATE = {
@@ -21,7 +22,7 @@ const EMPTY = { level: '', goal: '', targetDate: '', lessons: [] };
  * Recommendations come from the student's own results: weak lessons to repeat first, then the next new lessons of
  * the course; lessons learned well are left out. The calendar suggests the first open lesson of the plan as the topic.
  */
-export default function StudyPlanCard({ student, lessons = [], user, canEdit = false, library = libraryService, homework = homeworkService, students = studentsService, onSaved }) {
+export default function StudyPlanCard({ student, lessons = [], schedule = [], user, canEdit = false, library = libraryService, homework = homeworkService, students = studentsService, onSaved }) {
   const libraryState = useAsyncData(() => library.list(), [library]);
   const worksState = useAsyncData(() => homework.listWorksheetAssignmentsByStudentIds([student.id]).catch(() => []), [homework, student.id]);
   const catalog = useMemo(() => (libraryState.data ? buildTopicCatalog(libraryState.data.curriculumLessons) : null), [libraryState.data]);
@@ -46,6 +47,8 @@ export default function StudyPlanCard({ student, lessons = [], user, canEdit = f
   const rows = planRows({ plan, catalog, results });
   const recommended = recommendLessons({ catalog, level: plan.level, plan, results });
   const done = rows.filter((row) => ['mastered', 'done'].includes(row.state)).length;
+  const today = toIsoDate();
+  const pace = planPace({ plan, doneIds: planDoneIds(results), today, weeklyNow: weeklyLessonsNow(schedule, today) });
   const save = async () => {
     setSaving(true); setMessage('');
     try {
@@ -66,6 +69,8 @@ export default function StudyPlanCard({ student, lessons = [], user, canEdit = f
         <Input id="study-plan-target" label="Siht kuupäev" type="date" value={plan.targetDate} disabled={!canEdit} onChange={(event) => change({ targetDate: event.target.value })} />
         <Input id="study-plan-goal" className="form-grid__wide" label="Eesmärk" placeholder="Nt: põhikooli lõpueksam B1, mai 2027" value={plan.goal} disabled={!canEdit} onChange={(event) => change({ goal: event.target.value })} />
       </div>
+
+      {pace ? <p className={`study-plan__pace is-${pace.status}`} role="status">{pace.status === 'done' ? 'Kõik plaani tunnid on tehtud.' : <>Jäänud <b>{pace.remaining}</b> tundi · <b>{pace.weeks}</b> nädalat sihtkuupäevani → vaja <b>{pace.needed}</b> tundi nädalas · tunniplaanis praegu <b>{pace.weeklyNow}</b>{pace.status === 'behind' ? ' — ei jõua: lisa tunde kalendris või Planeerijas (Planeerija arvestab plaani tempot).' : ' — jõuab.'}</>}</p> : null}
 
       {plan.level ? <section className="study-plan__section" aria-label="Soovitused">
         <div className="study-plan__bar"><h3><Sparkles size={16} aria-hidden="true" /> Soovitame järgmiseks</h3>
