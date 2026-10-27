@@ -34,10 +34,13 @@ async function factsFor(db, cards) {
   const parentUids = [...new Set(cards.flatMap((card) => core.parentUidsOf(card)))];
   const profiles = parentUids.length ? await getAll(db, parentUids.map((uid) => db.collection("users").doc(uid))) : [];
   const users = new Map(profiles.filter((snap) => snap.exists).map((snap) => [snap.id, snap.data()]));
+  const ownById = new Map(cards.map((card, index) => [card.id, availability[index]?.exists ? availability[index].data() : null]));
+  // an /ajad answer or another card of the same person counts: the learner is not asked for times twice
+  const leads = cards.length ? (await db.collection("websiteLeads").where("source", "==", "availability").get().catch(() => ({ docs: [] }))).docs.map((doc) => doc.data()) : [];
   const facts = new Map();
-  cards.forEach((card, index) => facts.set(card.id, {
+  cards.forEach((card) => facts.set(card.id, {
     card,
-    availability: availability[index]?.exists ? availability[index].data() : null,
+    availability: core.knownTimes(card, { own: ownById.get(card.id), cards, ownById, leads }),
     parents: core.parentUidsOf(card).map((uid) => ({ uid, ...(users.get(uid) || {}) })).filter((profile) => core.accountOk(profile, "parent")),
   }));
   return facts;
@@ -154,11 +157,13 @@ async function report(db, now = new Date()) {
   const settings = await loadSettings(db);
   const [studentsSnap, availabilitySnap] = await Promise.all([db.collection("students").get(), db.collection("studentAvailability").get()]);
   const students = studentsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-  const availability = new Map(availabilitySnap.docs.map((doc) => [doc.id, doc.data()]));
+  const own = new Map(availabilitySnap.docs.map((doc) => [doc.id, doc.data()]));
   const live = students.filter(core.isLiveCard);
   const uids = [...new Set(live.flatMap((card) => [...core.studentUidsOf(card), ...core.parentUidsOf(card)]))];
   const snaps = uids.length ? await getAll(db, uids.map((uid) => db.collection("users").doc(uid))) : [];
   const users = new Map(snaps.filter((snap) => snap.exists).map((snap) => [snap.id, snap.data()]));
+  const leads = (await db.collection("websiteLeads").where("source", "==", "availability").get().catch(() => ({ docs: [] }))).docs.map((doc) => doc.data());
+  const availability = new Map(live.map((card) => [card.id, core.knownTimes(card, { own: own.get(card.id) || null, cards: live, ownById: own, leads })]));
   const rows = core.reportRows(live, availability, users, settings, now.getFullYear());
   return { settings, totals: core.reportTotals(rows), rows };
 }

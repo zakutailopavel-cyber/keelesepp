@@ -1,3 +1,16 @@
+## 2026-10-27 · agent/missing-times-once — „Puuduvad andmed” never asks for times we already know
+
+- Owner 2026-10-27: „проверь, чтобы ученик при каждом входе на сайт не заполнял подходящие времена”.
+- Production read: 20 missing-data answers from 20 accounts (nobody was asked twice after answering). But 5 learners
+  with an account who answered through /ajad would be asked again (the /ajad answer is a website enquiry), and 2
+  accounts with two cards (two subjects) were asked once per card.
+- `missing-data-core.knownTimes(card, { own, cards, ownById, leads })`: the card's own `studentAvailability`, else
+  another card of the same person (same name), else the person's /ajad enquiry. The enquiry is matched by the
+  learner's name, or by this card's e-mail / phone when no other child shares them; closed enquiries do not count.
+  Used by the gate (`factsFor`, so the „Vali sobivad ajad” step is skipped) and by the admin report.
+- Checks: functions npm test 409/409 (+1); missing-data emulator test passes (auth + firestore + functions).
+- Deploy: functions:staffOperationsApi (serves /missing-data).
+
 ## 2026-10-27 · agent/students-no-times — Õpilased: „Ilma ajata”
 
 - Owner 2026-10-27: „сделай кнопку «Без времени» на странице учеников”.
