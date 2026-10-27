@@ -1,5 +1,5 @@
 import { CheckCheck, Inbox, Megaphone, MessageCircle, Search, Send } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
@@ -29,7 +29,8 @@ export default function MessagesPage({ repository = messagesService, studentRepo
   const admin = hasAnyRole(user.roles, [ROLES.ADMIN]);
   const staff = hasAnyRole(user.roles, [ROLES.ADMIN, ROLES.TEACHER]);
   const teacherOnly = hasAnyRole(user.roles, [ROLES.TEACHER]) && !admin;
-  const [selected, setSelected] = useState('');
+  const [searchParams] = useSearchParams();
+  const [selected, setSelected] = useState(() => searchParams.get('student') || ''); // the student menu „Kirjuta”
   const [query, setQuery] = useState('');
   const [channel, setChannel] = useState('all');
   const [text, setText] = useState('');

@@ -405,6 +405,28 @@ export const studentsService = {
     await updateDoc(doc(db, 'students', studentId), { groupInterest: value });
     return value;
   },
+  // „Nimeta ümber” (the student menu, owner 2026-10-27): the card and the name copied onto the student's lessons,
+  // homework and sheets, so the new name shows everywhere. A collection the user may not change is skipped.
+  async rename(studentId, name) {
+    const clean = cleanText(name).slice(0, 160);
+    if (!studentId || clean.length < 2) throw new Error('Sisesta nimi.');
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'students', studentId), { name: clean, updatedAt: new Date().toISOString().slice(0, 10) });
+    const copies = { schedule: 0, homework: 0, worksheetAssignments: 0 };
+    for (const name of Object.keys(copies)) {
+      try {
+        const snapshot = await getDocs(query(collection(db, name), where('studentId', '==', studentId)));
+        const stale = snapshot.docs.filter((item) => item.data().studentName !== clean);
+        for (let i = 0; i < stale.length; i += 400) {
+          const batch = writeBatch(db);
+          stale.slice(i, i + 400).forEach((item) => batch.update(item.ref, { studentName: clean }));
+          await batch.commit();
+        }
+        copies[name] = stale.length;
+      } catch { copies[name] = null; }
+    }
+    return { name: clean, copies };
+  },
   async linkTeacher(recordIds = [], { teacherUid, teacherName } = {}) {
     if (!teacherUid || !canonicalTeacherName(teacherName)) throw new Error('Õpetaja konto puudub.');
     const { db } = requireFirebaseClient();
