@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import RescheduleDialog from './RescheduleDialog.jsx';
 
@@ -12,8 +12,8 @@ describe('Ei saa tulla?', () => {
     const requests = { create: vi.fn(async (value) => ({ id: 'r1', ...value })) };
     const onSent = vi.fn();
     render(<RescheduleDialog lesson={lesson} student={{ id: 's1', name: 'Полина' }} user={{ uid: 'u1', displayName: 'Полина' }} availabilityRepository={availabilityRepository} requests={requests} onClose={vi.fn()} onSent={onSent} />);
-    const slot = await screen.findAllByRole('button', { pressed: false });
-    fireEvent.click(slot[0]);
+    const times = await screen.findByRole('group', { name: 'Uued ajad' });
+    fireEvent.click(within(times).getAllByRole('button')[0]);
     fireEvent.change(screen.getByLabelText('Põhjus (soovi korral)'), { target: { value: 'kunstikool' } });
     fireEvent.click(screen.getByRole('button', { name: 'Saada palve' }));
     await waitFor(() => expect(onSent).toHaveBeenCalled());
@@ -27,5 +27,17 @@ describe('Ei saa tulla?', () => {
     render(<RescheduleDialog lesson={lesson} student={{ id: 's1' }} user={{ uid: 'u1' }} availabilityRepository={{ get: vi.fn().mockResolvedValue(null) }} requests={{ create: vi.fn() }} onClose={vi.fn()} />);
     fireEvent.click(await screen.findByRole('button', { name: 'Saada palve' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Vali uus aeg');
+  });
+
+  it('reports a plain absence without a new time (parents could not before)', async () => {
+    const lesson = { id: 'sch-1', occurrenceDate: '2030-01-10', time: '16:00', teacherUid: 't1' };
+    const requests = { create: vi.fn(async (value) => ({ id: 'r1', ...value })) };
+    const onSent = vi.fn();
+    render(<RescheduleDialog lesson={lesson} student={{ id: 's1', name: 'Mia' }} user={{ uid: 'p1', displayName: 'Ema' }} role="parent" availabilityRepository={{ get: vi.fn().mockResolvedValue(null) }} requests={requests} onClose={vi.fn()} onSent={onSent} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ma ei tule · uut aega pole vaja' }));
+    fireEvent.change(screen.getByLabelText('Põhjus (soovi korral)'), { target: { value: 'haige' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Saada teade' }));
+    await waitFor(() => expect(onSent).toHaveBeenCalled());
+    expect(requests.create.mock.calls[0][0]).toMatchObject({ requestedByRole: 'parent', proposals: [], other: '', reason: 'haige', status: 'pending' });
   });
 });

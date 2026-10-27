@@ -78,7 +78,7 @@ export function lessonChangeNotifications(requests = []) {
     id: `lesson-change:${item.id}`,
     category: 'lesson',
     severity: item.late ? 'danger' : 'warning',
-    title: `${item.studentName || 'Õpilane'} palub tundi üle viia`,
+    title: `${item.studentName || 'Õpilane'} ${!(item.proposals || []).length && !String(item.other || '').trim() ? 'ei tule tunnile' : 'palub tundi üle viia'}`,
     detail: `${formatDue(item.occurrenceDate)} kell ${item.occurrenceTime}${item.reason ? ` · ${item.reason}` : ''}`,
     meta: item.late ? 'vähem kui 24 h' : '',
     to: `/calendar?request=${encodeURIComponent(item.id)}`,
