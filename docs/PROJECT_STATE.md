@@ -1,3 +1,10 @@
+## 2026-10-27 · agent/remind-before-due — „Meeldetuletus” before the due date too
+
+- Owner 2026-10-27: „сделай напоминание до срока”. Finantsid → month table: the reminder button is shown for every
+  unpaid, not cancelled invoice (before: only overdue). The server already allowed it (`/remind`, reminder text
+  „Tuletame meelde, et arve on veel tasumata” + Tähtaeg); no functions change, no deploy.
+- Checks: finance tests passed (+1); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/finance-periods — Finantsid „Tulu ja prognoos”: periods from a month to a year
 
 - Owner 2026-10-27: „сделай периоды от месяца до года”. A switch Kuu / 3 kuud / 6 kuud / Aasta (remembered per browser):
