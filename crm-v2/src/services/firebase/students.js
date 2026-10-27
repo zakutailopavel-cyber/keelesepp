@@ -400,7 +400,7 @@ export const studentsService = {
   // „Kellele pakkuda grupitunde” (owner 2026-10-27): whether the family was offered a group lesson and the answer
   async saveGroupInterest(studentId, { status = '', note = '' } = {}, user = {}) {
     if (!studentId) throw new Error('Õpilast ei leitud.');
-    const value = { status: ['offered', 'interested', 'declined'].includes(status) ? status : '', note: String(note || '').trim().slice(0, 300), at: new Date().toISOString(), by: String(user.displayName || user.email || '').slice(0, 120) };
+    const value = { status: ['contact', 'offered', 'interested', 'declined'].includes(status) ? status : '', note: String(note || '').trim().slice(0, 300), at: new Date().toISOString(), by: String(user.displayName || user.email || '').slice(0, 120) };
     const { db } = requireFirebaseClient();
     await updateDoc(doc(db, 'students', studentId), { groupInterest: value });
     return value;
