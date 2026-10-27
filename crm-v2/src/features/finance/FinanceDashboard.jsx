@@ -4,6 +4,8 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService, scheduleService, studentsService } from '../../services/firebase/index.js';
 import { PERIODS, lessonRevenue, monthRange, niceMax, periodSummary, smoothPath } from './financeDashboard.js';
 import { currentMonth, shiftMonth } from './monthlyBilling.js';
+import BusinessReport from './BusinessReport.jsx';
+import { businessReport } from './businessReport.js';
 import './financeDashboard.css';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(Math.round(Number(cents || 0) / 100));
@@ -105,7 +107,8 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
     const first = window.findIndex((row) => row.heldCents || row.plannedCents);
     const shown = window.slice(first < 0 ? shownBack - 1 : Math.min(first, shownBack - 6));
     const columns = shown.map((row) => ({ ...row, current: row.month === current, future: row.month > current }));
-    return { columns, summary: periodSummary({ rows, current, months: period }) };
+    const report = businessReport({ current, months: period, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons });
+    return { columns, summary: periodSummary({ rows, current, months: period }), report };
   }, [state.data, plans, lessons, current, todayIso, period]);
 
   const toggle = () => { const next = !hidden; setHidden(next); try { globalThis.localStorage?.setItem(STORE, next ? '1' : '0'); } catch { /* private mode */ } };
@@ -135,6 +138,7 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
           : ` · toimunud ${money(column.heldCents)} (${column.heldLessons} tundi${column.unmarkedLessons ? `, neist ${column.unmarkedLessons} märkimata` : ''})${column.plannedCents ? ` · kalendris veel ${money(column.plannedCents)} (${column.plannedLessons} tundi)` : ''}`}{column.noPrice ? ` · ${column.noPrice} tundi ilma hinnata` : ''}</p> : null}
         <p className="form-hint">Arvestus käib kalendri tundide järgi, mitte arvete järgi (raamatupidamine on eraldi): toimunud = märgitud „Toimunud” või tasuline puudumine, ka märkimata möödunud tund; ära jäetud ja ette teatatud puudumised ei lähe arvesse. Hind = õpilase tunnihind tunni pikkuse järgi.</p>
       </div>
+      <BusinessReport report={model.report} />
     </>}
   </section>;
 }

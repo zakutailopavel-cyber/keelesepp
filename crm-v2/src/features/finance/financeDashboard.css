@@ -71,3 +71,27 @@
 .fd-periods { display: flex; width: fit-content; max-width: 100%; flex-wrap: wrap; gap: 4px; padding: 4px; margin: 0 0 14px; border: 1px solid #e5e9e5; border-radius: 12px; background: #fff; }
 .fd-periods button { border: 0; background: transparent; padding: 7px 14px; border-radius: 9px; font: inherit; font-size: .85rem; font-weight: 700; color: #5b6b66; cursor: pointer; }
 .fd-periods button.is-active { background: #176553; color: #fff; }
+.br { display: grid; gap: 12px; padding-top: 6px; border-top: 1px solid #e4ece8; }
+.br h3 { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 1.05rem; color: #123f37; }
+.br-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.br-card { display: grid; gap: 3px; padding: 12px 14px; border-radius: 14px; background: #f5faf7; min-width: 0; }
+.br-card span { font-size: .74rem; font-weight: 700; color: #4b665e; }
+.br-card strong { font-size: 1.2rem; color: #123f37; }
+.br-card small { font-size: .72rem; color: #667085; }
+.br-card em { font-style: normal; }
+.br-card--forecast { background: #fdf6ea; }
+.br-card--forecast strong { color: #8a5a1c; }
+.br .is-up { color: #067647; }
+.br .is-down { color: #b42318; }
+.br-states { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: .8rem; color: #344054; }
+.br-states li { padding: 4px 10px; border-radius: 999px; background: #f2f4f7; }
+.br-states li.is-warn { background: #fef6ee; color: #93370d; }
+.br-people { display: grid; gap: 4px; font-size: .84rem; color: #344054; }
+.br-people p { margin: 0; }
+.br-people .is-warn { color: #93370d; }
+.br-table-wrap { overflow-x: auto; }
+.br-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.br-table caption { text-align: left; font-weight: 700; color: #4b665e; padding-bottom: 4px; }
+.br-table th, .br-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #eef2f0; white-space: nowrap; }
+.br-table th[scope="row"], .br-table thead th:first-child { text-align: left; }
+.br-table thead th { font-size: .74rem; color: #667085; font-weight: 700; }
