@@ -152,3 +152,20 @@ test("a child's parent e-mail is never required; the adult's own e-mail follows 
   assert.equal(core.cardPatch(unknownQ, { grade: "5. klass", email: "123@123.com" }, YEAR).errors.email, "email");
   assert.equal(core.cardPatch(unknownQ, { grade: "Täiskasvanu" }, YEAR).errors.email, "required");
 });
+
+test("times known from the card, another card of the same person or the /ajad answer are not asked again", () => {
+  const { knownTimes } = require("./missing-data-core");
+  const card = { id: "a", name: "Mia Tamm", parentEmail: "ema@kool.test" };
+  const sibling = { id: "a2", name: "Tamm Mia" };
+  const brother = { id: "b", name: "Boris Tamm", parentEmail: "ema@kool.test" };
+  const slots = { slots: ["Mon-16:00"], preferred: [] };
+  assert.deepEqual(knownTimes(card, { own: slots }), slots);
+  assert.deepEqual(knownTimes(card, { cards: [card, sibling], ownById: new Map([["a2", slots]]) }), slots);
+  const lead = { source: "availability", name: "Mia Tamm", slots: ["Tue-10:00"], status: "new" };
+  assert.deepEqual(knownTimes(card, { cards: [card], leads: [lead] }).slots, ["Tue-10:00"]);
+  // the parent's e-mail is shared by two children: an enquiry for another child does not count for Mia
+  const other = { source: "availability", name: "Keegi", email: "ema@kool.test", slots: ["Wed-10:00"] };
+  assert.equal(knownTimes(card, { cards: [card, brother], leads: [other] }), null);
+  assert.deepEqual(knownTimes(card, { cards: [card], leads: [other] }).slots, ["Wed-10:00"]);
+  assert.equal(knownTimes(card, { leads: [{ ...lead, status: "closed" }] }), null);
+});
