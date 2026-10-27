@@ -1,3 +1,15 @@
+## 2026-10-27 · agent/night-proposals — the night's summary and proposals (docs/NIGHT_2026-10-27_PROPOSALS.md)
+
+- Owner 2026-10-26 overnight plan: bugs, auto planner, client communication, group filling, parents' „не приду”,
+  preschool plans and groups, the 5–7 format, process optimisations, flexible teacher settings, Kodutööd, platform
+  proposals, a level test. Nothing merged or deployed; the owner approves in the morning.
+- docs/NIGHT_2026-10-27_PROPOSALS.md (Russian, for the owner) lists:
+  - the 9 open PRs (#824–#832) with their deploy needs and order (#826 before #829);
+  - the read-only findings (0 change requests, 3 unlinked parents, 44 students without times, e-mail types off, no
+    Meta message ever, level test never submitted, 0 groups);
+  - proposals for processes, the level test, teacher settings and the platform.
+- Next safe step: the owner goes through the PR table; merge order #826 → #829.
+
 ## 2026-10-27 · agent/settings-tabs — Seaded in four tabs; „Minu vabad ajad” for teachers
 
 - Owner 2026-10-26: „настройки для учителей более гибкие и собрать как-то их в кучу, а то там много разных блоков”.
