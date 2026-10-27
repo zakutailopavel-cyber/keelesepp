@@ -22,6 +22,21 @@ describe('TimeGrid in the week view', () => {
     expect(screen.getByRole('button', { name: '16:00 Martin' })).toBeInTheDocument();
   });
 
+  it('a lesson in the crowded card can be dragged to another time (owner 2026-10-27)', () => {
+    const onMove = vi.fn();
+    const onOpen = vi.fn();
+    const crowded = [lesson('a', '16:00', 'Maria'), lesson('b', '16:00', 'Arseni'), lesson('c', '16:00', 'Emilia')];
+    const { container } = render(<TimeGrid columns={[column('2026-10-05', crowded), column('2026-10-06', [])]} onOpen={onOpen} onMove={onMove} canDrag={() => true} />);
+    const row = within(screen.getByRole('list', { name: '3 tundi korraga' })).getByRole('listitem', { name: /Maria/ });
+    fireEvent.pointerDown(row, { button: 0, clientX: 10, clientY: 100 });
+    fireEvent.pointerMove(container.querySelector('.tg-body'), { clientX: 10, clientY: 166 });
+    fireEvent.pointerUp(container.querySelector('.tg-body'));
+    return Promise.resolve().then(() => {
+      expect(onMove).toHaveBeenCalledWith(expect.objectContaining({ item: expect.objectContaining({ id: 'a' }), time: expect.stringMatching(/^1[67]:/) }));
+      expect(onOpen).not.toHaveBeenCalled();
+    });
+  });
+
   it('keeps side-by-side blocks in the day view', () => {
     const crowded = [lesson('a', '16:00', 'Maria'), lesson('b', '16:00', 'Arseni'), lesson('c', '16:00', 'Emilia')];
     render(<TimeGrid columns={[column('2026-10-05', crowded)]} onOpen={() => {}} canDrag={() => false} />);

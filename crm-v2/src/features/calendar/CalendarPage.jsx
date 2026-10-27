@@ -36,7 +36,7 @@ import SubjectTag from './SubjectTag.jsx';
 import StudentTimesPanel from './StudentTimesPanel.jsx';
 import TeacherWeekEditor from './TeacherWeekEditor.jsx';
 import PlannerView from './PlannerView.jsx';
-import { candidateTimes, learnedTimes, lessonsOn, overlayBandsOn, planningWarnings, timesLine, withLearnedTimes } from './studentTimesModel.js';
+import { candidateTimes, learnedTimes, lessonsOn, overlayBandsOn, studentBandsOn, planningWarnings, timesLine, withLearnedTimes } from './studentTimesModel.js';
 
 const blankLesson = () => ({ studentId: '', teacherUid: '', subject: '', date: toIsoDate(), time: '09:00', duration: 60, recurring: false, online: false, roomId: '', status: 'Planeeritud' });
 const viewLabels = { day: 'Päev', week: 'Nädal', month: 'Kuu' };
@@ -172,6 +172,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const [fitOpen, setFitOpen] = useState(() => Boolean(searchParams.get('times')));
   const [fitIds, setFitIds] = useState(() => (searchParams.get('times') && searchParams.get('times') !== '1' ? [searchParams.get('times')] : []));
   // „Planeerija” (owner 2026-10-25): the whole weekly timetable at once; `?planeerija=1` opens it
+  const [dragging, setDragging] = useState(null); // the lesson being dragged in the grid (its student's times show)
   const [plannerOpen, setPlannerOpen] = useState(() => searchParams.get('planeerija') === '1');
   const isAdmin = user.roles.includes(ROLES.ADMIN);
   useEffect(() => {
@@ -416,6 +417,12 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       .map(({ event }) => ({ kind: 'taken', start: toMinutes(event.time), end: toMinutes(event.time) + (Number(event.duration) || 60), title: `Õpilasel on tund ${event.time}: ${event.studentName || ''}${event.teacher ? ` (${event.teacher})` : ''}` }));
     return [...shaded, ...taken];
   };
+  // while a lesson is dragged: that student's suitable times light up in every column (owner 2026-10-27)
+  const dragMarksFor = (column) => {
+    const availability = dragging && !dragging.isGroup ? studentTimes.get(dragging.studentId) : null;
+    return studentBandsOn(availability, column.date).map((band) => ({ kind: band.kind === 'best' ? 'best' : 'ok', start: band.start, end: band.end, title: `${dragging.studentName || 'Õpilane'}: ${band.kind === 'best' ? '★ eelistatud' : 'sobib'} ${toClock(band.start)}–${toClock(band.end)}` }));
+  };
+  const gridMarks = dragging && !dragging.isGroup && studentTimes.get(dragging.studentId)?.slots?.length ? dragMarksFor : fitStudents.length ? marksFor : null;
   const warningsFor = ({ lesson, student, teacherUid, teacherName, includeTeacherLessons = true }) => planningWarnings({
     lesson, student, studentAvailability: student ? studentTimes.get(student.id) : null, teacherUid, teacherName,
     teacherAvailability: availabilityFor(teacherUid) || availabilityFor(teacherName), events, includeTeacherLessons,
@@ -864,7 +871,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
                 onQuickDone={quickDone}
                 onMove={onMove}
                 bands={bandsFor}
-                marks={fitStudents.length ? marksFor : null}
+                marks={gridMarks}
+                onDragChange={setDragging}
                 paint={paint && paintTeacher ? paint : null}
                 onPaint={onPaint}
                 onBandClick={onBandClick}
