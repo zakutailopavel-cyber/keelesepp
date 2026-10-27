@@ -237,7 +237,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         ) : null}
 
         {/* „Õppeplaan” (owner 2026-10-27): the course and the lessons chosen for this student */}
-        {activeTab === 'plan' ? <StudyPlanCard student={student} lessons={state.lessons} user={currentUser} canEdit={currentUser.roles?.some((role) => role === ROLES.ADMIN || role === ROLES.TEACHER)}
+        {activeTab === 'plan' ? <StudyPlanCard student={student} lessons={state.lessons} schedule={state.schedule} user={currentUser} canEdit={currentUser.roles?.some((role) => role === ROLES.ADMIN || role === ROLES.TEACHER)}
           {...(homeworkApi ? { homework: homeworkApi } : {})} {...(studyPlanApi || {})}
           onSaved={(studyPlan) => setState((current) => ({ ...current, student: { ...current.student, studyPlan } }))} /> : null}
 

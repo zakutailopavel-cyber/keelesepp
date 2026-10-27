@@ -90,3 +90,28 @@ export const movePlanLesson = (lessons = [], id, delta) => {
   [copy[index], copy[target]] = [copy[target], copy[index]];
   return copy;
 };
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MAX_WEEKLY = 5;
+
+// lessons of the plan the student has done (sheets with a result or a held lesson)
+export const planDoneIds = (results = new Map()) => new Set([...results].filter(([, result]) => ['mastered', 'done', 'repeat'].includes(lessonState(result)) && (result.held || result.pct !== null)).map(([id]) => id));
+
+// the weekly lessons a student has ahead now: his active weekly series in the calendar
+export function weeklyLessonsNow(schedule = [], today) {
+  return schedule.filter((event) => event.recurring && event.status !== 'Tühistatud' && (!event.endDate || event.endDate >= today) && !event.isGroup).length;
+}
+
+/**
+ * The plan's pace (owner 2026-10-27: plans and the planner together): lessons left, weeks to the target date, the
+ * lessons a week needed and whether the timetable keeps up.
+ * → null without a plan or a target date, else { remaining, weeks, needed, weeklyNow, status: 'ok' | 'behind' | 'done' }
+ */
+export function planPace({ plan = null, doneIds = new Set(), today, weeklyNow = 0 } = {}) {
+  if (!plan?.lessons?.length || !/^\d{4}-\d{2}-\d{2}$/.test(plan.targetDate || '')) return null;
+  const remaining = plan.lessons.filter((item) => item.status !== 'skipped' && !doneIds.has(item.id)).length;
+  const days = (Date.parse(`${plan.targetDate}T12:00:00`) - Date.parse(`${today}T12:00:00`)) / DAY_MS;
+  const weeks = Math.max(1, Math.ceil(days / 7));
+  const needed = remaining ? Math.min(MAX_WEEKLY, Math.ceil(remaining / weeks)) : 0;
+  return { remaining, weeks, needed, weeklyNow, status: !remaining ? 'done' : weeklyNow >= needed ? 'ok' : 'behind' };
+}

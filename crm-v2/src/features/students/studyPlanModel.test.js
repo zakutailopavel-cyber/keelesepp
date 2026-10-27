@@ -44,3 +44,25 @@ describe('Õppeplaan', () => {
     expect(suggestTopic(catalog, { studentLevel: 'B1', history: [] }).id).toBe('l1');
   });
 });
+
+describe('plan pace', () => {
+  it('lessons left, weeks to the target, lessons a week needed and the timetable now', async () => {
+    const { planPace, weeklyLessonsNow } = await import('./studyPlanModel.js');
+    const plan = { targetDate: '2026-12-31', lessons: Array.from({ length: 20 }, (_, i) => ({ id: `x${i}`, status: i === 0 ? 'skipped' : 'planned' })) };
+    const schedule = [{ recurring: true, status: 'Planeeritud' }, { recurring: true, status: 'Planeeritud', endDate: '2026-10-01' }, { recurring: false }];
+    const today = '2026-10-27';
+    expect(weeklyLessonsNow(schedule, today)).toBe(1);
+    expect(planPace({ plan, doneIds: new Set(['x1', 'x2']), today, weeklyNow: 1 })).toEqual({ remaining: 17, weeks: 10, needed: 2, weeklyNow: 1, status: 'behind' });
+    expect(planPace({ plan, today, weeklyNow: 2 }).status).toBe('ok');
+    expect(planPace({ plan: { ...plan, targetDate: '' }, today })).toBeNull();
+  });
+
+  it('the planner gives a student at least the lessons a week the plan needs', async () => {
+    const { planningRequests } = await import('../calendar/plannerModel.js');
+    const student = { id: 's1', name: 'Mia', teacher: 'Pavel', teacherUid: 't1', subject: 'Eesti keel', studyPlan: { targetDate: '2026-12-31', lessons: Array.from({ length: 30 }, (_, i) => ({ id: `x${i}`, status: 'planned' })) } };
+    const [request] = planningRequests({ students: [student], today: '2026-10-27', lessons: [{ studentId: 's1', topicLessonId: 'x0', status: 'Toimunud' }] });
+    expect(request.perWeek).toBe(3); // 29 lessons in 10 weeks
+    const [plain] = planningRequests({ students: [{ ...student, studyPlan: null }], today: '2026-10-27' });
+    expect(plain.perWeek).toBe(1);
+  });
+});
