@@ -8,8 +8,9 @@ import { localDate } from '../../utils/localDate.js';
 const today = () => localDate();
 
 /**
- * „Ei saa tulla?” — the student (or parent) picks up to three new times from the teacher's free windows or writes one,
- * adds a reason if they want, and sends the request. The lesson stays where it is until the teacher confirms.
+ * „Ei saa tulla?” — the student (or parent) either only reports the absence („Ma ei tule”) or picks up to three new
+ * times from the teacher's free windows or writes one; a reason is optional. The lesson stays where it is until the
+ * teacher answers (an absence is marked „Puudus (teatas ette)”).
  */
 export default function RescheduleDialog({ lesson, student, user, role = 'student', busy = [], onClose, onSent, availabilityRepository = teacherAvailabilityService, requests = lessonChangeRequestsService }) {
   const [busyAtOpen] = useState(busy); // the student's own lessons when the dialog opened
@@ -17,6 +18,7 @@ export default function RescheduleDialog({ lesson, student, user, role = 'studen
   const [picked, setPicked] = useState([]);
   const [other, setOther] = useState('');
   const [reason, setReason] = useState('');
+  const [absent, setAbsent] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -35,7 +37,7 @@ export default function RescheduleDialog({ lesson, student, user, role = 'studen
   const send = async () => {
     setError('');
     try {
-      const request = buildRequest({ lesson, student, user, role, proposals: picked, other, reason });
+      const request = buildRequest({ lesson, student, user, role, proposals: picked, other, reason, absent });
       setSaving(true);
       onSent?.(await requests.create(request));
     } catch (sendError) {
@@ -46,9 +48,15 @@ export default function RescheduleDialog({ lesson, student, user, role = 'studen
   const when = `${new Date(`${lesson.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })} kell ${lesson.time}`;
   return <Modal open title="Ei saa tunnile tulla?" onClose={onClose} footer={<>
     <Button variant="secondary" onClick={onClose} disabled={saving}>Jätan tunni alles</Button>
-    <Button onClick={send} loading={saving}>Saada palve</Button>
+    <Button onClick={send} loading={saving}>{absent ? 'Saada teade' : 'Saada palve'}</Button>
   </>}>
-    <p>Tund: <strong>{when}</strong>{lesson.teacher ? ` · ${lesson.teacher}` : ''}. Vali kuni kolm uut aega õpetaja vabadest aegadest. Õpetaja kinnitab ühe neist.</p>
+    <p>Tund: <strong>{when}</strong>{lesson.teacher ? ` · ${lesson.teacher}` : ''}.</p>
+    <div className="form-actions" role="group" aria-label="Mida soovid?">
+      <Button variant={absent ? 'primary' : 'secondary'} aria-pressed={absent} onClick={() => setAbsent(true)}>Ma ei tule · uut aega pole vaja</Button>
+      <Button variant={absent ? 'secondary' : 'primary'} aria-pressed={!absent} onClick={() => setAbsent(false)}>Soovin uut aega</Button>
+    </div>
+    {absent ? <p className="form-hint">Õpetaja saab teate, et sa sellesse tundi ei tule.</p> : <>
+    <p className="form-hint">Vali kuni kolm uut aega õpetaja vabadest aegadest. Õpetaja kinnitab ühe neist.</p>
     {slots === null ? <p className="form-hint">Laen vabu aegu…</p> : slots.length ? <div className="form-actions" role="group" aria-label="Uued ajad">
       {slots.map((slot) => {
         const on = picked.some((item) => item.date === slot.date && item.time === slot.time);
@@ -57,6 +65,7 @@ export default function RescheduleDialog({ lesson, student, user, role = 'studen
     </div> : <p className="form-hint">Õpetaja ei ole järgmiseks kaheks nädalaks vabu aegu märkinud. Kirjuta allpool, millal sulle sobiks.</p>}
     <div className="field"><label className="field__label" htmlFor="reschedule-other">Muu aeg (soovi korral)</label>
       <textarea id="reschedule-other" className="field__textarea" rows="2" value={other} onChange={(event) => setOther(event.target.value)} placeholder="Näiteks: reedel pärast kella 15" /></div>
+    </>}
     <div className="field"><label className="field__label" htmlFor="reschedule-reason">Põhjus (soovi korral)</label>
       <textarea id="reschedule-reason" className="field__textarea" rows="2" value={reason} onChange={(event) => setReason(event.target.value)} placeholder="Näiteks: mul on kunstikool" /></div>
     {isLate(lesson) ? <p className="form-hint" role="note"><AlertTriangle size={15} aria-hidden="true" /> Tunnini on vähem kui 24 tundi: õpetaja võib selle tunni lugeda toimunuks.</p> : null}

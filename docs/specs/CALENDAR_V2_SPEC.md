@@ -202,3 +202,10 @@ Pure logic `features/calendar/plannerModel.js` (tests `plannerModel.test.js`), U
   agent/learner-emails. Nothing is sent from the calendar.
 - Limits: a one-off lesson in the next 3 weeks blocks that weekly time (like „Vabad tunniajad”); „Jaota” is greedy
   with one backtracking step, not an optimum; the draft is per browser (another device starts empty).
+
+**Learned times (owner 2026-10-26 „доделать планировщик”).** A student without „Sobivad ajad” gets the half hours of
+their own individual lessons of the last 12 weeks (calendar occurrences not cancelled / missed + journal lessons):
+`studentTimesModel.learnedTimes`, merged by `withLearnedTimes` (own times win). Such a time is never ★ (yellow:
+„õpilane käis varem sel ajal”); any other time is „unknown” (red, agree with the student), not „cannot”. Production dry
+run 2026-10-27: 50 directions → placed 7 before, 33 after; 12 new students without history and 5 without a teacher stay
+unplaced.

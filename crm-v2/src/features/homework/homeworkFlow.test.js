@@ -1,4 +1,4 @@
-import { selfCompleted, sortHomework, staleHomework } from './homeworkFlow.js';
+import { dueLabel, selfCompleted, sortHomework, staleHomework } from './homeworkFlow.js';
 
 describe('homework order and housekeeping', () => {
   const today = '2026-10-09';
@@ -19,5 +19,13 @@ describe('homework order and housekeeping', () => {
   it('an interactive exercise closes itself; other tasks the student finishes', () => {
     expect(selfCompleted({ isExercise: true, exerciseId: 'e1' })).toBe(false);
     expect(selfCompleted({ task: 'Kirjuta' })).toBe(true);
+  });
+
+  it('says the due date in words', () => {
+    expect(dueLabel('2026-10-26', '2026-10-26')).toBe('Täna');
+    expect(dueLabel('2026-10-27', '2026-10-26')).toBe('Homme');
+    expect(dueLabel('2026-10-23', '2026-10-26')).toBe('3 p hiljaks');
+    expect(dueLabel('2026-11-04', '2026-10-26')).toMatch(/^4\. nov/);
+    expect(dueLabel('', '2026-10-26')).toBe('Tähtajata');
   });
 });
