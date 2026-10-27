@@ -3,13 +3,13 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Button, Card, EmptyState, Input, LoadingState, Select } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { lessonsService, scheduleService, studentAvailabilityService, studentsService, websiteLeadsService } from '../../services/firebase/index.js';
+import { lessonsService, scheduleService, studentAvailabilityService, studentsService, tasksService, teachersService, websiteLeadsService } from '../../services/firebase/index.js';
 import { toIsoDate } from '../calendar/calendarView.js';
 import { timesFromLeads, withLeadTimes } from '../calendar/leadTimes.js';
 import { AUDIENCES } from './groupFill.js';
-import { INTEREST, contactRows, filterContacts } from './groupContacts.js';
+import { INTEREST, contactRows, contactTaskTitle, filterContacts } from './groupContacts.js';
 
-const TONE = { '': 'neutral', offered: 'info', interested: 'success', declined: 'warning' };
+const TONE = { '': 'neutral', contact: 'warning', offered: 'info', interested: 'success', declined: 'neutral' };
 const WHO = [['all', 'Kõik'], ['active', 'Praegused õpilased'], ['noLessons', 'Ilma tundide ja grupita'], ['former', 'Endised õpilased'], ['leads', 'Veebipäringud']];
 
 /**
@@ -18,7 +18,7 @@ const WHO = [['all', 'Kõik'], ['active', 'Praegused õpilased'], ['noLessons', 
  * Selected student cards go into a group with the normal add-to-group action. Nobody is contacted automatically.
  */
 export default function GroupContactsPanel({ groups = [], user, saving = '', onAddToGroup, repositories = {} }) {
-  const { students = studentsService, leads = websiteLeadsService, schedule = scheduleService, lessons = lessonsService, times = studentAvailabilityService } = repositories;
+  const { students = studentsService, leads = websiteLeadsService, schedule = scheduleService, lessons = lessonsService, times = studentAvailabilityService, tasks = tasksService, staff = teachersService } = repositories;
   const state = useAsyncData(async () => {
     const settle = (load) => Promise.resolve().then(load).catch(() => []);
     const [active, archived, enquiries, events, journal, own] = await Promise.all([
@@ -28,11 +28,13 @@ export default function GroupContactsPanel({ groups = [], user, saving = '', onA
     ]);
     const cards = [...new Map([...active, ...archived].map((student) => [student.id, student])).values()];
     const studentTimes = withLeadTimes(new Map(own.map((entry) => [entry.studentId || entry.id, entry])), timesFromLeads(enquiries, active));
-    return { cards, enquiries, events, journal, studentTimes };
-  }, [students, leads, schedule, lessons, times]);
+    const people = await settle(() => staff.list());
+    return { cards, enquiries, events, journal, studentTimes, people: people.filter((person) => !person.disabled) };
+  }, [students, leads, schedule, lessons, times, staff]);
   const [filters, setFilters] = useState({ query: '', who: 'noLessons', audience: '', subject: '', level: '', interest: 'all' });
   const [picked, setPicked] = useState([]);
   const [target, setTarget] = useState('');
+  const [assignee, setAssignee] = useState('');
   const [interest, setInterest] = useState({});
   const [busy, setBusy] = useState('');
   const [message, setMessage] = useState('');
@@ -51,6 +53,26 @@ export default function GroupContactsPanel({ groups = [], user, saving = '', onA
     setBusy(`interest:${row.id}`); setMessage('');
     try { await students.saveGroupInterest(row.id, next, user); } catch (error) { setMessage(error.message || 'Ei saanud salvestada.'); } finally { setBusy(''); }
   };
+  // „Anna ühendust võtmiseks”: one task per family for the chosen colleague (Ülesanded), the card marked „Võtta ühendust”
+  const handOver = async () => {
+    const person = state.data.people.find((item) => item.id === assignee);
+    if (!person) return;
+    const chosen = withInterest.filter((row) => picked.includes(row.id));
+    setBusy('handover'); setMessage('');
+    try {
+      const due = new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10);
+      for (const row of chosen) {
+        await tasks.create({ title: contactTaskTitle(row), assignedTo: person.name, assignedToUid: person.id, category: 'parent', priority: 'normal', dueDate: due }, user);
+        if (row.kind === 'student') {
+          const next = { ...(row.interest || {}), status: 'contact', note: row.interest?.note || '' };
+          setInterest((current) => ({ ...current, [row.id]: next }));
+          await students.saveGroupInterest(row.id, next, user);
+        }
+      }
+      setMessage(`${chosen.length} ülesannet loodi: ${person.name} võtab ühendust (Ülesanded).`);
+      setPicked([]);
+    } catch (error) { setMessage(error.message || 'Ülesandeid ei saanud luua.'); } finally { setBusy(''); }
+  };
   const addPicked = async () => {
     const group = groups.find((item) => item.id === target);
     if (!group) return;
@@ -66,7 +88,7 @@ export default function GroupContactsPanel({ groups = [], user, saving = '', onA
   return (
     <Card className="group-contacts" role="region" aria-label="Kellele pakkuda grupitunde">
       <div className="section-heading"><div><span className="eyebrow">Grupi komplekteerimine</span><h2>Kellele pakkuda grupitunde</h2></div><UsersRound size={20} aria-hidden="true" /></div>
-      <p className="form-hint">Kõik õpilased (ka endised) ja veebipäringud koos vanema kontaktidega. Märgi, kellele grupitundi pakuti ja mida vastati; vali õpilased ja lisa gruppi.</p>
+      <p className="form-hint">Kõik õpilased (ka endised) ja veebipäringud koos vanema kontaktidega. Vali inimesed ja anna nad kolleegile ühendust võtmiseks (tekib ülesanne „Ülesanded” all) või lisa õpilased otse gruppi. Märgi, mida vastati.</p>
       <div className="group-contacts__filters">
         <Input id="gc-query" label="Otsi" placeholder="Nimi, vanem, telefon, e-post" value={filters.query} onChange={(event) => set({ query: event.target.value })} />
         <Select id="gc-who" label="Kes" value={filters.who} onChange={(event) => set({ who: event.target.value })}>{WHO.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select>
@@ -77,15 +99,19 @@ export default function GroupContactsPanel({ groups = [], user, saving = '', onA
       </div>
       <div className="group-contacts__bar">
         <strong>{shown.length} inimest</strong>
+        {picked.length ? <span className="group-contacts__add">
+          <Select id="gc-assignee" label="" aria-label="Kes võtab ühendust" value={assignee} onChange={(event) => setAssignee(event.target.value)}><option value="">Kes võtab ühendust?</option>{(state.data.people || []).map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</Select>
+          <Button disabled={!assignee || busy === 'handover'} loading={busy === 'handover'} onClick={handOver}>Anna ühendust võtmiseks ({picked.length})</Button>
+        </span> : null}
         {pickedCards.length ? <span className="group-contacts__add">
           <Select id="gc-target" label="" aria-label="Grupp" value={target} onChange={(event) => setTarget(event.target.value)}><option value="">Vali grupp</option>{groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}</Select>
-          <Button disabled={!target || Boolean(saving)} onClick={addPicked}>Lisa {pickedCards.length} valitut gruppi</Button>
+          <Button variant="secondary" disabled={!target || Boolean(saving)} onClick={addPicked}>Lisa {pickedCards.length} valitut gruppi</Button>
         </span> : null}
       </div>
       {message ? <p className="form-hint" role="status">{message}</p> : null}
       {shown.length ? <div className="group-contacts__list">{shown.slice(0, 200).map((row) => (
         <div className="group-contacts__row" key={`${row.kind}:${row.id}`}>
-          {row.kind === 'student' ? <input type="checkbox" aria-label={`Vali ${row.name}`} checked={picked.includes(row.id)} onChange={() => toggle(row.id)} /> : <span />}
+          <input type="checkbox" aria-label={`Vali ${row.name}`} checked={picked.includes(row.id)} onChange={() => toggle(row.id)} />
           <span className="group-contacts__who">
             <strong>{row.kind === 'student' ? <Link to={`/students/${row.id}`}>{row.name}</Link> : row.name}</strong>
             <small>{[row.age !== null ? `~${row.age} a` : row.audience === 'child' ? 'laps' : '', row.subjects.join(', '), row.level, row.kind === 'lead' ? `veebipäring ${row.createdAt || ''}` : row.active ? (row.lessonsAhead ? 'tunnid käivad' : 'tunde ees pole') : `endine${row.lastLesson ? ` · viimane tund ${row.lastLesson}` : ''}`, row.group ? `grupp: ${row.group}` : '', row.hasTimes ? 'ajad teada' : ''].filter(Boolean).join(' · ')}</small>

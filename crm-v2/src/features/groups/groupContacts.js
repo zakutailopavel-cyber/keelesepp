@@ -5,7 +5,10 @@
 import { eventOccursOn, shiftDate } from '../calendar/calendarView.js';
 import { ageOf, audienceOf } from './groupFill.js';
 
-export const INTEREST = { '': 'Pakkumata', offered: 'Pakutud', interested: 'Huvitatud', declined: 'Ei soovi' };
+export const INTEREST = { '': 'Pakkumata', contact: 'Võtta ühendust', offered: 'Pakutud', interested: 'Huvitatud', declined: 'Ei soovi' };
+
+// the task the admin gets for one family (owner 2026-10-27: „выбрал, чтобы админ с ними связался”)
+export const contactTaskTitle = (row) => ['Võta ühendust', row.name, row.parentName ? `vanem ${row.parentName}` : '', row.phone, row.email, 'paku grupitundi'].filter(Boolean).join(' · ');
 const clean = (value) => String(value ?? '').trim();
 const lower = (value) => clean(value).toLocaleLowerCase('et');
 

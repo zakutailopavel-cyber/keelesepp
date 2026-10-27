@@ -1,3 +1,14 @@
+## 2026-10-27 · agent/contact-queue — Grupid: selected families go to a colleague as call tasks
+
+- Owner 2026-10-27: „я их выбрал, чтобы админ с ними связался, а мне он их в группу предлагает”.
+- „Kellele pakkuda grupitunde”: every row (cards and website enquiries) has a tick. „Kes võtab ühendust?” (staff list)
+  + „Anna ühendust võtmiseks (N)” creates one Ülesanded task per family:
+  - title „Võta ühendust · name · vanem … · phone · e-mail · paku grupitundi”;
+  - category parent, due in 2 days, assigned to the colleague by name + uid.
+  A card's offer becomes the new status „Võtta ühendust” (`groupInterest.status: 'contact'`). „Lisa N valitut gruppi”
+  stays as a second, separate action (student cards only).
+- Checks: groups 11 passed (+1); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/teacher-sees-all — the teacher sees what the student sees and does
 
 - Owner 2026-10-27: „надо, чтобы учитель видел всё, что и ученик, а не чтобы какие-то действия ученика оставались
