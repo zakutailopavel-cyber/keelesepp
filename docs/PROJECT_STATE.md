@@ -1,3 +1,22 @@
+## 2026-10-27 · agent/group-contacts — Grupid: „Kellele pakkuda grupitunde” (all families in one list)
+
+- Owner 2026-10-27: „интегрировать базу данных родителей, с кем связаться и предложить групповые занятия, чтобы админ
+  видел все имеющиеся данные и мог формировать группы”.
+- Grupid (admin): `GroupContactsPanel` lists every learner. Sources: current and archived student cards, and open
+  website enquiries. Each row shows:
+  - age (birth year / class / words), subjects, level;
+  - parent and phone / e-mail (tel: / mailto:);
+  - lessons in the next 4 weeks or the last held lesson;
+  - suitable times known (own or /ajad);
+  - group.
+  Filters: who (all / current / without lessons and group (default) / former / enquiries), age group, subject, level,
+  offer status, text.
+- The group offer per card: `students/{id}.groupInterest = { status: '' | offered | interested | declined, note, at,
+  by }` (`studentsService.saveGroupInterest`; admin, existing rules). Selected cards → „Lisa N valitut gruppi” (the
+  normal `groupsService.setStudent`). Nobody is contacted automatically.
+- Model: `groups/groupContacts.js` (`contactRows`, `filterContacts`, `INTEREST`).
+- Checks: groups 10 passed (+2 model, +1 panel); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/plan-pace — the study plan's pace on the card and in the planner
 
 - Owner 2026-10-27: „продолжаем работу над учебными планами и планировщиком занятий”.
