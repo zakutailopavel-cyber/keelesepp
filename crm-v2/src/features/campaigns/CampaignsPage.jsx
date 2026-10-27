@@ -1,4 +1,4 @@
-import { Check, ClipboardCopy, Download, Megaphone, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, ClipboardCopy, Download, Megaphone, Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, Input, LoadingState, PageHeader, Select } from '../../components/ui/index.js';
@@ -66,7 +66,7 @@ function CampaignEditor({ initial, groups, onSave, onCancel }) {
   };
   return <Card className="cp-editor">
     <form onSubmit={save} aria-label="Kampaania">
-      <div className="section-heading"><h2>{initial.id ? form.title || 'Kampaania' : 'Uus kampaania'}</h2></div>
+      <div className="section-heading cp-editor__head"><Button variant="secondary" disabled={saving} onClick={onCancel}><ArrowLeft size={15} /> Tagasi</Button><h2>{initial.id ? form.title || 'Kampaania' : 'Uus kampaania'}</h2></div>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       <div className="cp-grid">
         <Input label="Nimi *" id="cp-title" value={form.title} maxLength={120} onChange={(event) => set({ title: event.target.value })} />
@@ -160,7 +160,7 @@ export default function CampaignsPage({ repository = campaignsService, groupsRep
     try { const result = await repository.update(campaign, values, user); setSaved((current) => ({ ...current, [result.id]: result })); } catch (error) { setMessage(error.message || 'Ei saanud salvestada.'); }
   };
 
-  return <div className="page cp-page">
+  return <div className="page-content cp-page">
     <PageHeader eyebrow="Turundus" title="Kampaaniad" description="Aktsioonid, reklaamikampaaniad ja üritused: valmista siin ette pakkumine, postitused (ET + RU) ja sammud. Postitad ise — CRM ei avalda midagi." />
     {state.loading ? <LoadingState label="Laen kampaaniaid…" /> : state.error ? <ErrorState title="Kampaaniaid ei saanud laadida" description={state.error.message} /> : <>
       {editing ? <CampaignEditor key={editing.id || 'new'} initial={editing} groups={groups} onSave={save} onCancel={() => setEditing(null)} /> : <>

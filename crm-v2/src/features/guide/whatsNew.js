@@ -66,6 +66,12 @@ export const RELEASES = [
         ],
       },
       {
+        title: 'Конструктор листов: блоки для детей',
+        items: [
+          { audience: 'staff', where: 'Конструктор → «Lastele»', text: 'Новые блоки: «Värvi pilt» (раскраска по номерам или свободно, 15 картинок, красить можно на экране), «Kirjuta järele» (прописи на школьной разлиновке, писать пальцем или стилусом), «Loenda ja kirjuta» (посчитай и напиши), «Leia ja märgi täht» (найди букву). Всё работает на экране, в Live Classroom и при печати.' },
+        ],
+      },
+      {
         title: 'Настройки и исправления',
         items: [
           { audience: 'staff', where: 'Seaded', text: 'Вкладки: Minu konto, Minu töö (свои свободные часы, Google Calendar), Kool и Tehniline (админ).', to: '/settings' },

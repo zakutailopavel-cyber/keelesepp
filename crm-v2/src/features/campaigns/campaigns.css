@@ -37,3 +37,5 @@
 .cp-cover { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
 .cp-cover img { width: 180px; max-width: 100%; border-radius: 12px; border: 1px solid #e4ece8; }
 .cp-card__cover { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid #eef2f0; }
+.cp-editor__head { display: flex; align-items: center; gap: 12px; }
+.cp-editor__head h2 { margin: 0; }

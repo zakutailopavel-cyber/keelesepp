@@ -8,12 +8,13 @@ import { pictureBlocks } from './blocks/picture.jsx';
 import { examBlocks } from './blocks/exam.jsx';
 import { chart } from './blocks/chart.jsx';
 import { harnoBlocks } from './blocks/harno.jsx';
+import { kidsBlocks } from './blocks/kids.jsx';
 import { newId } from './schema.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart };
+export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks };
 
-export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Kujundus'];
+export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Lastele', 'Kujundus'];
 
 // A palette key is a block type, or `type:variant` for a block that offers ready variants (the scheme kinds).
 const splitKey = (key) => String(key || '').split(':');
