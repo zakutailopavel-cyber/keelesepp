@@ -5,8 +5,9 @@ import { studentWordsService } from '../../services/firebase/studentWords.js';
 import { saveLessonHandoff, unfinishedSheets } from './lessonHandoff.js';
 import { localDay, lessonLinkFor, looseLessonKey } from './lessonLink.js';
 import '../vocabulary/vocabulary.css';
+import { localDate } from '../../utils/localDate.js';
 
-const inWeek = () => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const inWeek = () => localDate(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
 
 /**
  * Live Classroom „Lõpeta tund” (teacher): the lesson summary the student and parents get — the board pages used in the

@@ -49,20 +49,25 @@ export function proposalSlots({ availability, lesson, from, days = 14, limit = 6
 const dayLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' });
 export const slotLabel = ({ date, time }) => `${dayLabel(date)} · ${time}`;
 
-// the request document (validated again by the Firestore rules)
-export function buildRequest({ lesson, student, user, role, proposals = [], other = '', reason = '', now = new Date() }) {
+// the request document (validated again by the Firestore rules). absent: „Ma ei tule” — only a notice, no new time
+// (parents could not report a plain absence, owner 2026-10-26); it is stored with no proposals and no other time.
+export function buildRequest({ lesson, student, user, role, proposals = [], other = '', reason = '', absent = false, now = new Date() }) {
   const clean = (value, max) => String(value || '').trim().slice(0, max);
-  const picked = proposals.slice(0, 3).map(({ date, time }) => ({ date, time }));
-  if (!picked.length && !clean(other, 300)) throw new Error('Vali uus aeg või kirjuta, millal sobiks.');
+  const picked = absent ? [] : proposals.slice(0, 3).map(({ date, time }) => ({ date, time }));
+  const otherTime = absent ? '' : clean(other, 300);
+  if (!absent && !picked.length && !otherTime) throw new Error('Vali uus aeg, kirjuta, millal sobiks, või vali „Ma ei tule”.');
   return {
     scheduleId: lesson.id, occurrenceDate: lesson.occurrenceDate || lesson.date, occurrenceTime: lesson.time,
     duration: Number(lesson.duration) || 60, studentId: student.id, studentName: clean(student.name, 120),
     teacherUid: lesson.teacherUid || '', teacherName: clean(lesson.teacher, 120),
     requestedByUid: user.uid, requestedByName: clean(user.displayName || user.email, 120), requestedByRole: role,
-    proposals: picked, other: clean(other, 300), reason: clean(reason, 300), late: isLate(lesson, now),
+    proposals: picked, other: otherTime, reason: clean(reason, 300), late: isLate(lesson, now),
     status: STATUS.PENDING, createdAt: now.toISOString(),
   };
 }
+
+// a notice of absence: the asker wants no new time
+export const isAbsenceOnly = (request) => Boolean(request) && !(request.proposals || []).length && !String(request.other || '').trim();
 
 // the newest request per lesson occurrence, so the card shows its state
 export const requestFor = (requests = [], lesson) => requests

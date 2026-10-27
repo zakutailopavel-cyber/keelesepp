@@ -8,6 +8,7 @@ const {
   replyMatchesConversation,
   verifyMetaSignature,
   webhookMessages,
+  webhookSummary,
 } = require("./meta-messaging-core");
 
 test("validates Meta sha256 signatures against the raw request body", () => {
@@ -95,4 +96,16 @@ test("builds channel-specific Meta send requests", () => {
   assert.equal(instagram.tokenEnv, "META_INSTAGRAM_ACCESS_TOKEN");
   assert.equal(instagram.body.messaging_type, undefined);
   assert.deepEqual(instagram.body.recipient, { id: "igsid-1" });
+});
+
+test("a photo or voice message without text is kept as a placeholder; the log summary has no content", () => {
+  const body = { object: "page", entry: [{ messaging: [
+    { sender: { id: "s1" }, timestamp: 1, message: { mid: "m1", attachments: [{ type: "image" }, { type: "audio" }] } },
+    { sender: { id: "s1" }, read: { watermark: 1 } },
+    { sender: { id: "s1" }, message: { mid: "m2", text: "Tere", is_echo: true } },
+  ] }] };
+  const [message] = webhookMessages(body);
+  assert.equal(message.text, "[pilt] [helisõnum]");
+  assert.deepEqual(webhookSummary(body), { object: "page", entries: 1, events: { message: 1, read: 1, echo: 1 }, changes: 0 });
+  assert.equal(JSON.stringify(webhookSummary(body)).includes("Tere"), false);
 });

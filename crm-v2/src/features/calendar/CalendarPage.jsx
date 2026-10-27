@@ -35,7 +35,7 @@ import SubjectTag from './SubjectTag.jsx';
 import StudentTimesPanel from './StudentTimesPanel.jsx';
 import TeacherWeekEditor from './TeacherWeekEditor.jsx';
 import PlannerView from './PlannerView.jsx';
-import { lessonsOn, overlayBandsOn, planningWarnings, timesLine } from './studentTimesModel.js';
+import { learnedTimes, lessonsOn, overlayBandsOn, planningWarnings, timesLine, withLearnedTimes } from './studentTimesModel.js';
 
 const blankLesson = () => ({ studentId: '', teacherUid: '', subject: '', date: toIsoDate(), time: '09:00', duration: 60, recurring: false, online: false, roomId: '', status: 'Planeeritud' });
 const viewLabels = { day: 'Päev', week: 'Nädal', month: 'Kuu' };
@@ -215,6 +215,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     return () => globalThis.clearTimeout(timer);
   }, [undo]);
 
+  // the planner: students without „Sobivad ajad” get the times of their past lessons (computed when it opens)
+  const learned = useMemo(() => (plannerOpen && state.data ? learnedTimes({ events: state.data[0] || [], lessons: state.data[3] || [], today: toIsoDate() }) : new Map()), [plannerOpen, state.data]);
   if (state.loading) return <LoadingState label="Laen kalendrit…" />;
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const [scheduleEvents, students, groups, lessonRecords] = state.data;
@@ -396,6 +398,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
 
   // ── „Sobivad ajad” ───────────────────────────────────────────
   const studentTimes = new Map((studentTimesState.data || []).map((entry) => [entry.studentId || entry.id, entry]));
+  const plannerTimes = withLearnedTimes(studentTimes, learned);
   const fitTeacher = teacherOnly ? { uid: user.uid, name: user.displayName } : filters.teacher ? { uid: filters.teacher, name: teachers.find((teacher) => teacher.id === filters.teacher)?.name || '' } : null;
   const fitStudents = fitOpen ? fitIds.map((id) => studentMap.get(id)).filter(Boolean) : [];
   const FIT_TITLES = { best: '★ sobib kõige paremini', ok: 'sobib', some: 'sobib osadele' };
@@ -495,6 +498,20 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       await state.reload();
     } catch (error) {
       setActionError(error.message || 'Tundi ei saanud üle viia.');
+    } finally { setRequestBusy(''); }
+  };
+  // a notice of absence: the lesson is marked „Puudus (teatas ette)” and the notice answered
+  const absentChangeRequest = async (request) => {
+    setActionError('');
+    setRequestBusy(`${request.id}|absent`);
+    try {
+      const item = occurrencesForDates(events, [request.occurrenceDate]).find((entry) => entry.id === request.scheduleId);
+      if (!item) throw new Error('Seda tundi ei leitud kalendris: see võib olla juba liigutatud või tühistatud.');
+      await lessonRepository.completeFromSchedule(item, user, { status: 'Puudus_p', notes: request.reason || '' });
+      await changeRequests.decide(request.id, { accepted: true, chosen: null, note: 'Puudumine märgitud.', user });
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || 'Puudumist ei saanud märkida.');
     } finally { setRequestBusy(''); }
   };
   const declineChangeRequest = async (request, note) => {
@@ -730,7 +747,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
       </div>
     </div>
-    <ChangeRequestsPanel requests={changeRequestList} focusId={searchParams.get('request') || ''} busy={requestBusy} onAccept={acceptChangeRequest} onDecline={declineChangeRequest} />
+    <ChangeRequestsPanel requests={changeRequestList} focusId={searchParams.get('request') || ''} busy={requestBusy} onAccept={acceptChangeRequest} onDecline={declineChangeRequest} onAbsent={absentChangeRequest} />
     <div className="calendar-filter-summary cal2-summary" aria-live="polite">
       <span><strong>{occurrences.length}</strong> tundi valitud perioodil</span>
       {filters.student ? <button type="button" className="cal2-chip" onClick={() => setFilters({ ...filters, student: '' })}>Õpilane: {studentMap.get(filters.student)?.name || filters.student} <X size={13} /></button> : null}
@@ -807,7 +824,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       students={students.items}
       events={events}
       teachers={teacherOnly ? [{ id: user.uid, name: user.displayName || '' }] : teachers}
-      studentTimes={studentTimes}
+      studentTimes={plannerTimes}
       teacherAvailability={(who) => availabilityFor(who.teacherUid) || availabilityFor(who.teacher)}
       rooms={rooms}
       bookings={bookings}

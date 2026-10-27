@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { vi } from 'vitest';
 import LearnerSnapshotCard from './LearnerSnapshotCard.jsx';
+import { localDate } from '../../utils/localDate.js';
 
 const repo = (overrides = {}) => ({
   words: vi.fn(async () => [{ id: 'w1', word: 'eelarve', translation: 'бюджет', box: 0, reviews: 2, reviewedAt: new Date().toISOString() }]),
@@ -30,7 +31,7 @@ describe('LearnerSnapshotCard', () => {
   });
 
   it('shows when the student was last in and his „Minu vead” review', async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDate();
     render(<LearnerSnapshotCard studentId="s1" repository={repo({ presence: vi.fn(async () => ({ hasAccount: true, lastSeenAt: Date.now(), practice: { errorsDate: today, errorsPct: 70, days: [today] } })) })} />);
     expect(await screen.findByText('Viimati sees')).toBeInTheDocument();
     expect(screen.getByText('täna · 70% · 1 päeva 30 päevaga')).toBeInTheDocument();
