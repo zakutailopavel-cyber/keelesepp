@@ -50,6 +50,7 @@ export const norm = (s) =>
     .replace(/\bcan't\b|\bcan not\b/g, 'cannot').replace(/\bwon't\b/g, 'will not').replace(/n't\b/g, ' not')
     .replace(/'m\b/g, ' am').replace(/'re\b/g, ' are').replace(/'ve\b/g, ' have')
     .replace(/[.,!?;:]/g, ' ')
+    .replace(/(\p{L})-(?=\p{L})/gu, '$1 ') // ID-kaardiga = ID kaardiga
     .replace(/\s+/g, ' ')
     .trim();
 

@@ -54,41 +54,53 @@ export function numberTasks(blocks) {
 }
 
 // Score every scorable block; returns per-block and per-goal summaries (evidence for the learner profile).
-export function scoreDocument(doc, answers) {
+// A block with no answer at all was done in the lesson (orally, on paper) or left for the teacher: it is not scored,
+// so it does not pull the result down (owner 2026-10-27: „там, где нет ответов, мы делали — не должно портить
+// картину”). `block.ungraded` (Inspector „Ei hinnata”) keeps a block out of the score always.
+const filled = (value) => value !== undefined && value !== null && String(value).trim() !== '';
+export const blockAnswered = (block, answers = {}) => Object.keys(answers).some((key) => key.startsWith(`${block.id}:`) && filled(answers[key]));
+
+export function scoreDocument(doc, answers = {}) {
   const perBlock = {};
   const perGoal = {};
+  const skipped = [];
   for (const b of doc.blocks) {
     const def = BLOCKS[b.type];
     if (!def?.score) continue;
+    if (b.ungraded) skipped.push({ id: b.id, reason: 'ungraded' });
+    else if (!blockAnswered(b, answers)) skipped.push({ id: b.id, reason: 'unanswered' });
     const get = (k) => answers[`${b.id}:${k}`];
     const example = exampleAnswers(b);
     // the block itself is the third argument (a picture match mixes its pictures by the block id)
     const items = def.score(b.data, get, b).filter((item) => !(item.key in example));
     perBlock[b.id] = items;
+    if (skipped.some((item) => item.id === b.id)) continue;
     const goal = b.goal || '_none';
     perGoal[goal] = perGoal[goal] || { ok: 0, total: 0 };
     perGoal[goal].ok += items.filter((i) => i.ok).length;
     perGoal[goal].total += items.length;
   }
-  return { perBlock, perGoal };
+  return { perBlock, perGoal, skipped };
 }
 
 // Everything a check produces, in one place: per-field marks for the sheet, per-goal evidence,
 // the overall score for the assignment record and the open (teacher-judged) work.
 export function checkDocument(doc, answers = {}) {
-  const { perBlock, perGoal } = scoreDocument(doc, answers);
+  const { perBlock, perGoal, skipped } = scoreDocument(doc, answers);
   const results = {};
   let correct = 0;
   let total = 0;
+  const left = new Set(skipped.map((item) => item.id));
   Object.entries(perBlock).forEach(([bid, items]) => items.forEach((it) => {
     results[`${bid}:${it.key}`] = it.ok ? 'ok' : 'bad';
+    if (left.has(bid)) return; // marks still shown; the result counts only answered, graded blocks
     total += 1;
     if (it.ok) correct += 1;
   }));
   const speak = doc.blocks.filter((b) => b.type === 'speaking')
     .map((b) => ({ id: b.id, goal: b.goal, recorded: !!answers[`${b.id}:audioUrl`], seconds: answers[`${b.id}:seconds`] || 0 }));
-  const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal };
-  return { results, perGoal, speak, score };
+  const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal, ...(skipped.length ? { skippedBlocks: skipped.map((item) => item.id) } : {}) };
+  return { results, perGoal, speak, score, skipped };
 }
 
 // How many answerable fields have an answer (scorable fields plus voice recordings).

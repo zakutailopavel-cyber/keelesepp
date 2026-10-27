@@ -1,3 +1,24 @@
+## 2026-10-27 · agent/ungraded-blocks — sheet results count only answered, graded tasks
+
+- Owner 2026-10-27, looking at Aleksandr Dikovitš's results: „там, где нет ответов — мы делали, значит; надо внедрить
+  не оцениваемые блоки, чтобы это не портило картину”.
+- His answers showed four kinds of false zeros:
+  - blocks done in the lesson had no answers but counted 0 (reading 0/6 on 17.10, dictation 0/5 on 12.10);
+  - reading answers right in meaning but written otherwise („ID kaardiga” vs „ID-kaardiga”);
+  - an errorfix block without right answers in the sheet (0/9 on 03.10);
+  - his own real mistakes (gaps 3/10) — these stay.
+- `checkDocument`:
+  - the score (correct / total / perGoal) leaves out a block with no answer at all, and a block marked
+    `ungraded`;
+  - `score.skippedBlocks` lists them; `skipped` has the reasons; the ✓ / ✗ marks on the sheet are unchanged.
+- `scoreDocument` perGoal: the same. Inspector: „Ei hinnata (teeme tunnis; tulemus ei lähe hindesse)” on every
+  scored task.
+- `scoreSentences` (errorfix, transformation): a row without a right answer is not scored (teacher judges).
+- `norm`: a hyphen between letters equals a space.
+- Old stored results are not recomputed here (production write; separate decision).
+- Checks: worksheet-studio, homework, live-classroom, learner tests 515 passed (+ registry.scoring 2); eslint src 0;
+  whole vitest passed.
+
 ## 2026-10-27 · agent/lesson-form-times — „Uus tund” offers the student's times; the planner places more sensibly
 
 - Owner 2026-10-27: „чтобы в календаре, когда я выбираю ученика, мне предлагались сразу времена, которые он выбрал …

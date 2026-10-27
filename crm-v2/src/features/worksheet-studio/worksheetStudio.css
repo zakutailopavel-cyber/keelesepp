@@ -700,3 +700,6 @@ textarea.ed-input { resize: vertical; }
 .ws-key-note { margin: 1mm 0 2mm; padding: 2mm 3mm; background: #f4f7fb; border-left: 3px solid #3559c7; font-size: 10pt; }
 .ws-live-showall { width: 100%; justify-content: center; }
 .ws-studio .st-banner.st-banner--ai { margin: 0; background: #ecfccb; color: #3f6212; } .ws-studio .st-banner.st-banner--ai b { margin-right: 4px; }
+
+/* „Ei hinnata”: a task done in the lesson does not count in the result (owner 2026-10-27) */
+.ed-check { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: .85rem; font-weight: 600; }
