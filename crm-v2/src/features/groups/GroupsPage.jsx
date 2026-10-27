@@ -9,6 +9,7 @@ import { groupsService, studentsService, teachersService } from '../../services/
 import { ROLES } from '../../utils/roles.js';
 import SubjectSelect from '../students/SubjectSelect.jsx';
 import GroupFillDialog from './GroupFillDialog.jsx';
+import GroupContactsPanel from './GroupContactsPanel.jsx';
 import { AUDIENCES, capacityOf, freeSeats } from './groupFill.js';
 import './groupFill.css';
 import { localDate } from '../../utils/localDate.js';
@@ -23,7 +24,7 @@ function assignedLessonIds(group, studentId) {
   return Array.isArray(saved) ? saved : group.lessons.map((lesson) => lesson.id);
 }
 
-export default function GroupsPage({ repository = groupsService, studentRepository = studentsService, teacherRepository = teachersService }) {
+export default function GroupsPage({ repository = groupsService, studentRepository = studentsService, teacherRepository = teachersService, contactsRepositories }) {
   const { user } = useAuth();
   const admin = user.roles.includes(ROLES.ADMIN);
   const teacherOnly = user.roles.includes(ROLES.TEACHER) && !admin;
@@ -206,6 +207,9 @@ export default function GroupsPage({ repository = groupsService, studentReposito
     <Modal open={Boolean(lessonGroup)} title={`Lisa tunniaeg: ${lessonGroup?.name || ''}`} onClose={() => !saving && setLessonGroupId('')} footer={<><Button variant="secondary" disabled={Boolean(saving)} onClick={() => setLessonGroupId('')}>Loobu</Button><Button type="submit" form="group-lesson-form" loading={saving === 'lesson'}>Lisa tunniaeg</Button></>}>
       <form id="group-lesson-form" className="form-grid" onSubmit={addLesson}><Select id="group-lesson-day" label="Nädalapäev" value={lessonForm.day} onChange={(event) => setLessonForm({ ...lessonForm, day: event.target.value })}>{Object.entries(dayLabels).map(([day, label]) => <option value={day} key={day}>{label}</option>)}</Select><Input id="group-lesson-time" label="Kellaaeg" type="time" value={lessonForm.time} onChange={(event) => setLessonForm({ ...lessonForm, time: event.target.value })} required /><Input id="group-lesson-start" className="form-grid__wide" label="Alguskuupäev" type="date" value={lessonForm.startDate} onChange={(event) => setLessonForm({ ...lessonForm, startDate: event.target.value })} required /></form>
     </Modal>
+
+    {admin ? <GroupContactsPanel groups={state.data.groups} user={user} saving={saving} {...(contactsRepositories ? { repositories: contactsRepositories } : {})}
+      onAddToGroup={async (group, student) => { await repository.setStudent(group, student, true, user); await state.reload(); }} /> : null}
 
     {fillGroup ? <GroupFillDialog group={fillGroup} groups={state.data.groups} students={state.data.students} saving={saving}
       onAdd={(studentId) => { const student = studentMap.get(studentId); if (student) changeMember(fillGroup, student, true); }}
