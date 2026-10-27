@@ -1,3 +1,31 @@
+## 2026-10-27 · agent/site-bugs — night site check: results and two fixes
+
+- Owner 2026-10-26: „проверить сайт на наличие багов”. How it was checked (no production writes):
+  - production error logs, 7 days: clean except 2 deploy hiccups (2026-10-23);
+  - all 5 teachers' Kodutööd queries replayed on the emulator with a read-only copy of production: OK;
+  - a read-only copy of production Firestore (without tokens, keys, tax data) loaded into the local emulators, and the
+    site run against it with every API pointed nowhere. Visited:
+    - as admin: 32 pages + 25 student cards + 7 teacher pages + 3 boards;
+    - as a teacher: 14 pages;
+    - as a student: 10 pages;
+    - as a parent: 5 pages.
+  - Result: no Firestore permission errors and no crash. „Failed to fetch” only where the page needs a server
+    function (offline here).
+- Fixed here:
+  1. Sign-in landed on „Ligipääs puudub” when the previous user of the same browser had been on a page the new
+     account may not open (e.g. the child logs out from /student, the parent logs in). `loginMode.landingPath` keeps
+     the wanted page only if the new account's roles allow it (`ROUTE_ACCESS`); AuthContext `signIn` /
+     `signInWithGoogle` return the user.
+  2. Finantsid: PaymentDialog and CancelInvoiceDialog had the same React key „closed” (console error); keys are now
+     „pay-…” / „cancel-…”.
+- Found and fixed in their own PRs: UTC „today” (#827), Kodutööd look and `Button` className (#825).
+- Noted, not changed:
+  - teachers see „Päringud” (website enquiries) and „Kassa” — by design (ACCESS.LEADS / STAFF), owner to confirm;
+  - crm-v2/scripts/build-sheet-kit.mjs has an eslint error (`URL` no-undef) outside src (CI lints src only).
+- Checks: auth + app tests 31 passed (new landingPath test); eslint src 0; whole vitest: all passed except the known
+  night-time LearnerSnapshotCard (fixed in #827).
+- Next safe step: owner approves.
+
 ## 2026-10-27 · agent/preschool-plan — the preschool (5–7) group course: plan and child lesson format (proposal)
 
 - Owner 2026-10-26: plans for preschoolers, organising groups for group lessons, a plan for 5–7-year-old groups;

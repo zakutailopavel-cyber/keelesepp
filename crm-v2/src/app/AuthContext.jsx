@@ -28,6 +28,7 @@ export function AuthProvider({ children, service = authService }) {
       try {
         const user = await service.signIn(email, password);
         setState({ loading: false, user, error: null });
+        return user;
       } catch (error) {
         setState({ loading: false, user: null, error });
         throw error;
@@ -38,6 +39,7 @@ export function AuthProvider({ children, service = authService }) {
       try {
         const user = await service.signInWithGoogle(registration);
         setState({ loading: false, user, error: null });
+        return user;
       } catch (error) {
         setState({ loading: false, user: null, error });
         throw error;
