@@ -158,6 +158,7 @@ export function plannerContext({ startDate, events = [], replacedIds = [], stude
   };
 }
 
+const LEARNED_TEXT = { ok: 'õpilane käis varem sel ajal (sobivaid aegu pole märgitud)', unknown: 'õpilane pole sel ajal käinud (sobivaid aegu pole märgitud)' };
 const STUDENT_TEXT = { ok: 'sobib õpilasele (pole ★)', partial: 'osaliselt väljaspool õpilase sobivaid aegu', none: 'õpilasele see aeg ei sobi', unknown: 'õpilase sobivad ajad puuduvad' };
 
 /**
@@ -173,7 +174,11 @@ const STUDENT_TEXT = { ok: 'sobib õpilasele (pole ★)', partial: 'osaliselt v�
 export function judgeSlot(ctx, lesson, { date, time }, draft = []) {
   const duration = Number(lesson.duration) || 60;
   const span = spanOf(time, duration);
-  const student = studentStateAt(ctx.studentTimes(lesson.studentId), { date, time, duration });
+  const own = ctx.studentTimes(lesson.studentId);
+  const learned = Boolean(own?.learned);
+  // a learned time (from past lessons) only says when the student did come: another time is unknown, not „cannot”
+  const marked = studentStateAt(own, { date, time, duration });
+  const student = learned && (marked === 'none' || marked === 'partial') ? 'unknown' : marked;
   const { availability, hasGreen } = ctx.teacherTimes(lesson);
   const windows = Array.from({ length: ctx.weeks }, (_, week) => availabilityAt(availability, { date: shiftDate(date, week * 7), time, duration }));
   const teacher = windows.includes('busy') ? 'busy' : windows.includes('online') ? 'online' : windows.every((state) => state === 'free') ? 'free' : 'open';
@@ -207,7 +212,7 @@ export function judgeSlot(ctx, lesson, { date, time }, draft = []) {
   const colour = needsAgreement || list.length || noRoom ? 'red' : student === 'best' && teacherGreen ? 'green' : 'yellow';
   const reasons = [];
   if (student === 'best') reasons.push('★ õpilase eelistatud aeg');
-  else reasons.push(STUDENT_TEXT[student]);
+  else reasons.push(learned ? LEARNED_TEXT[student] : STUDENT_TEXT[student]);
   if (teacher === 'busy') reasons.push('õpetaja ei saa (punane aeg)');
   else if (teacher === 'online') reasons.push(lesson.online ? 'õpetajal ainult veebitunnid (veebitund sobib)' : 'õpetajal ainult veebitunnid, tund on kohapeal');
   else if (teacher === 'open' && hasGreen) reasons.push('väljaspool õpetaja vaba aega');

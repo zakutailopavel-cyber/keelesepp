@@ -4,6 +4,7 @@ import { requireFirebaseClient } from './client.js';
 import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
+import { localDate } from '../../utils/localDate.js';
 
 // Student-scoped reads (homework, worksheetAssignments, exerciseResults) are checked per student card by the rules
 // (staffCanAccessStudent: one get() per card + the teacher's profile + securityMigrations). Firestore allows at most 10
@@ -210,7 +211,7 @@ export const homeworkService = {
   },
   async create(data) {
     const { db } = requireFirebaseClient();
-    const value = { ...data, task: String(data.task || '').trim(), status: 'Ootel', date: new Date().toISOString().slice(0, 10), fileUrl: '', fileName: '', attachments: [] };
+    const value = { ...data, task: String(data.task || '').trim(), status: 'Ootel', date: localDate(), fileUrl: '', fileName: '', attachments: [] };
     const reference = await addDoc(collection(db, 'homework'), value);
     return { id: reference.id, ...value };
   },

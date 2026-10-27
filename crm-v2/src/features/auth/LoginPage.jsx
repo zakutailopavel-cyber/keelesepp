@@ -4,7 +4,7 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Button, Card, ErrorState, Input, Select } from '../../components/ui/index.js';
 import { useAuth } from '../../app/AuthContext.jsx';
 import { REGISTRATION_TEACHERS, validatePassword } from '../../services/firebase/auth.js';
-import { modeFromLocation } from './loginMode.js';
+import { landingPath, modeFromLocation } from './loginMode.js';
 
 const TERMS_URL = 'https://www.epkoolitus.ee/tingimused';
 const PRIVACY_URL = 'https://www.epkoolitus.ee/privaatsus';
@@ -45,7 +45,7 @@ export default function LoginPage({ initialMode }) {
 
   const set = (key) => (event) => setForm({ ...form, [key]: event.target.type === 'checkbox' ? event.target.checked : event.target.value });
   const switchMode = (next) => { setMode(next); setError(''); setInfo(''); setForm((current) => ({ ...EMPTY, email: current.email })); };
-  const done = () => { if (mounted.current) navigate(location.state?.from?.pathname ? `${location.state.from.pathname}${location.state.from.search || ''}` : '/', { replace: true }); };
+  const done = (signedIn) => { if (mounted.current) navigate(landingPath(location.state?.from, signedIn?.roles), { replace: true }); };
 
   const run = async (action) => {
     setSubmitting(true); setError(''); setInfo('');
@@ -59,17 +59,17 @@ export default function LoginPage({ initialMode }) {
 
   const submit = (event) => {
     event.preventDefault();
-    if (mode === 'login') return run(async () => { await signIn(form.email, form.password); done(); });
+    if (mode === 'login') return run(async () => { done(await signIn(form.email, form.password)); });
     if (mode === 'forgot') return run(async () => { const email = await resetPasswordFor(form.email); setInfo(`Taastamislink on saadetud aadressile ${email}.`); });
     const passwordError = validatePassword(form.password, form.passwordRepeat);
     if (passwordError) { setError(passwordError); return undefined; }
     if (!form.acceptedTerms) { setError('Konto loomiseks nõustu kasutustingimustega.'); return undefined; }
-    return run(async () => { await register({ ...registration(), displayName: form.displayName, email: form.email, password: form.password, passwordRepeat: form.passwordRepeat }); done(); });
+    return run(async () => { done(await register({ ...registration(), displayName: form.displayName, email: form.email, password: form.password, passwordRepeat: form.passwordRepeat })); });
   };
 
   const google = () => {
     if (mode === 'register' && !form.acceptedTerms) { setError('Konto loomiseks nõustu kasutustingimustega.'); return; }
-    run(async () => { await signInWithGoogle(mode === 'register' ? registration() : null); done(); });
+    run(async () => { done(await signInWithGoogle(mode === 'register' ? registration() : null)); });
   };
 
   const titles = {
