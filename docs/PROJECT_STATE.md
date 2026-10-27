@@ -1,3 +1,22 @@
+## 2026-10-27 · agent/student-study-plan — „Õppeplaan” on the student card
+
+- Owner 2026-10-27: „учебный план в карточке ученика: выбирать для каждого индивидуально и подбирать те уроки,
+  которые будут максимально эффективны”.
+- Student card → new tab „Õppeplaan” (`StudyPlanCard`):
+  - course (an Õppevara level), goal, target date;
+  - „Soovitame järgmiseks”: course lessons below 60 % to repeat (weakest first, at most 2 on top), then the
+    course's new lessons in order; lessons ≥ 85 % or already in the plan are left out; each with its reason;
+  - „Koosta plaan automaatselt”; the plan rows show the result (selge / tehtud / korda / plaanis); up / down /
+    „Jäta vahele” / remove; „Salvesta plaan”.
+- Stored on the card: `students/{id}.studyPlan = { level, goal, targetDate, lessons: [{ id, status }], updatedAt,
+  updatedByName }` via `studentsService.saveStudyPlan`. The existing rules already let the admin and the student's
+  teacher change the card: no rules change.
+- `students/studyPlanModel.js` (pure): `lessonResults` (worksheetAssignments done + held journal lessons by
+  topicLessonId), `lessonState`, `recommendLessons`, `autoPlan`, `planRows`, `nextPlannedLesson`, `movePlanLesson`.
+- Calendar: `suggestTopic(..., { plan })` takes the first planned lesson not held since the plan was saved
+  (CalendarPage auto-mark, the held-lesson flow, LessonPanel), so marking a lesson proposes the plan's next topic.
+- Checks: new studyPlanModel 3 + StudyPlanCard 1; eslint src 0; whole vitest 2691 passed; local look with test data.
+
 ## 2026-10-27 · agent/ungraded-blocks — sheet results count only answered, graded tasks
 
 - Owner 2026-10-27, looking at Aleksandr Dikovitš's results: „там, где нет ответов — мы делали, значит; надо внедрить
