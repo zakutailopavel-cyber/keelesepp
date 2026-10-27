@@ -1,3 +1,18 @@
+## 2026-10-27 · agent/settings-tabs — Seaded in four tabs; „Minu vabad ajad” for teachers
+
+- Owner 2026-10-26: „настройки для учителей более гибкие и собрать как-то их в кучу, а то там много разных блоков”.
+- SettingsPage: the cards (unchanged) are grouped into tabs (`?tab=`):
+  - **Minu konto** — everyone: Minu andmed, Lemmik (student), Ligipääs, Turvalisus;
+  - **Minu töö** — staff: Juhend, the new „Minu vabad ajad” → /calendar?ajad=1, Google Calendar;
+  - **Kool** — admin: KeeleSepp AI, Puuduvad andmed, Õppesuunad, E-kirjad, Vanema / õpilase vaade;
+  - **Tehniline** — admin: Firebase, Testõpilane, Andmete puhastus, Teacher-scope migratsioon.
+  A student or parent sees no tab bar.
+- More flexible per-teacher settings (default lesson length, who may move lessons, reminders) are proposals in
+  docs/NIGHT_2026-10-27_PROPOSALS.md (they need new user fields + rules).
+- Checks: settings tests 20 passed (+1 admin tabs); eslint 0; local look on the emulator copy as a teacher.
+- Next safe step: owner approves.
+
+
 ## 2026-10-27 · agent/site-bugs — night site check: results and two fixes
 
 - Owner 2026-10-26: „проверить сайт на наличие багов”. How it was checked (no production writes):
