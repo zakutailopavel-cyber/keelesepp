@@ -500,6 +500,20 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       setActionError(error.message || 'Tundi ei saanud üle viia.');
     } finally { setRequestBusy(''); }
   };
+  // a notice of absence: the lesson is marked „Puudus (teatas ette)” and the notice answered
+  const absentChangeRequest = async (request) => {
+    setActionError('');
+    setRequestBusy(`${request.id}|absent`);
+    try {
+      const item = occurrencesForDates(events, [request.occurrenceDate]).find((entry) => entry.id === request.scheduleId);
+      if (!item) throw new Error('Seda tundi ei leitud kalendris: see võib olla juba liigutatud või tühistatud.');
+      await lessonRepository.completeFromSchedule(item, user, { status: 'Puudus_p', notes: request.reason || '' });
+      await changeRequests.decide(request.id, { accepted: true, chosen: null, note: 'Puudumine märgitud.', user });
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || 'Puudumist ei saanud märkida.');
+    } finally { setRequestBusy(''); }
+  };
   const declineChangeRequest = async (request, note) => {
     setActionError('');
     setRequestBusy(`${request.id}|decline`);
@@ -733,7 +747,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <Button onClick={() => openCreate()}><Plus size={17} /> Lisa tund</Button>
       </div>
     </div>
-    <ChangeRequestsPanel requests={changeRequestList} focusId={searchParams.get('request') || ''} busy={requestBusy} onAccept={acceptChangeRequest} onDecline={declineChangeRequest} />
+    <ChangeRequestsPanel requests={changeRequestList} focusId={searchParams.get('request') || ''} busy={requestBusy} onAccept={acceptChangeRequest} onDecline={declineChangeRequest} onAbsent={absentChangeRequest} />
     <div className="calendar-filter-summary cal2-summary" aria-live="polite">
       <span><strong>{occurrences.length}</strong> tundi valitud perioodil</span>
       {filters.student ? <button type="button" className="cal2-chip" onClick={() => setFilters({ ...filters, student: '' })}>Õpilane: {studentMap.get(filters.student)?.name || filters.student} <X size={13} /></button> : null}

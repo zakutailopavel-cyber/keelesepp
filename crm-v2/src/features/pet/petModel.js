@@ -1,5 +1,6 @@
 // What the pet looks like and says, derived only from data the CRM already has (lessons, submitted work,
 // results per lesson goal). Nothing here can be "farmed": the student cannot write any of these inputs.
+import { localDate } from '../../utils/localDate.js';
 
 export const PET_KINDS = ['siil', 'rebane', 'kakk', 'draakon'];
 // speech: per recorded lesson up to 5 XP, one per 20% of what the learner said in the lesson language (petLessonStats)
@@ -29,7 +30,7 @@ function goalsReached(submission) {
   return Object.entries(perGoal).filter(([id, g]) => id !== '_none' && g?.total > 0 && g.ok === g.total).length;
 }
 
-const dayKey = (t) => new Date(t).toISOString().slice(0, 10);
+const dayKey = (t) => localDate(new Date(t));
 
 // Days in a row with any learning (attended lesson, submitted work, homework marked done, word practice), ending
 // today or yesterday (a streak is not lost before the day is over).

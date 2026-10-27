@@ -19,6 +19,25 @@ function verifyMetaSignature({ rawBody, signature, appSecret }) {
   return crypto.timingSafeEqual(Buffer.from(expected, "hex"), Buffer.from(actual, "hex"));
 }
 
+// a message with only a photo, voice note or file was dropped (no text): keep it as a short placeholder so the admin
+// sees that someone wrote and opens the chat in Meta
+const ATTACHMENT_TEXT = { image: "[pilt]", video: "[video]", audio: "[helisõnum]", file: "[fail]", sticker: "[kleebis]" };
+function attachmentText(attachments) {
+  if (!Array.isArray(attachments) || !attachments.length) return "";
+  return attachments.map(item => ATTACHMENT_TEXT[item?.type] || "[manus]").join(" ");
+}
+
+// what one webhook call carried, without any content (for the function log: did Meta deliver anything at all?)
+function webhookSummary(body = {}) {
+  const events = {};
+  (Array.isArray(body.entry) ? body.entry : []).forEach(entry => (entry.messaging || []).forEach(event => {
+    const kind = event.message ? (event.message.is_echo ? "echo" : "message") : event.read ? "read" : event.delivery ? "delivery" : event.postback ? "postback" : event.reaction ? "reaction" : "other";
+    events[kind] = (events[kind] || 0) + 1;
+  }));
+  const changes = (Array.isArray(body.entry) ? body.entry : []).reduce((sum, entry) => sum + (Array.isArray(entry.changes) ? entry.changes.length : 0), 0);
+  return { object: clean(body.object, 32), entries: Array.isArray(body.entry) ? body.entry.length : 0, events, changes };
+}
+
 function webhookMessages(body = {}) {
   const channel = body.object === "instagram" ? "instagram" : body.object === "page" ? "facebook" : "";
   if (!CHANNELS.has(channel) || !Array.isArray(body.entry)) return [];
@@ -26,7 +45,7 @@ function webhookMessages(body = {}) {
   body.entry.forEach(entry => {
     (entry.messaging || []).forEach(event => {
       const externalMessageId = clean(event.message?.mid, 500);
-      const text = clean(event.message?.text);
+      const text = clean(event.message?.text) || attachmentText(event.message?.attachments);
       const externalSenderId = clean(event.sender?.id, 300);
       if (!externalMessageId || !externalSenderId || !text || event.message?.is_echo) return;
       const createdAt = new Date(Number(event.timestamp) || Date.now()).toISOString();
@@ -123,4 +142,5 @@ module.exports = {
   replyMatchesConversation,
   verifyMetaSignature,
   webhookMessages,
+  webhookSummary,
 };

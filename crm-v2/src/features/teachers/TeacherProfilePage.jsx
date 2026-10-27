@@ -8,6 +8,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { scheduleService, studentsService, teachersService, workTimeService } from '../../services/firebase/index.js';
 import { isSameTeacher, teachesStudent, tracksTaughtBy } from '../../utils/teachers.js';
 import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
+import { localDate } from '../../utils/localDate.js';
 
 const monthNow = () => new Date().toISOString().slice(0, 7);
 const dateLabel = (value) => { const date = value?.toDate?.() || (value ? new Date(value) : null); return date && !Number.isNaN(date.getTime()) ? date.toLocaleString('et-EE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'; };
@@ -56,7 +57,7 @@ export default function TeacherProfilePage({ teacherRepository = teachersService
       await state.reload();
     } catch (error) { setActionError(error.message); } finally { setLinking(false); }
   };
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDate();
   const upcomingDates = Array.from({ length: 30 }, (_, index) => shiftDate(today, index));
   const allUpcoming = occurrencesForDates(schedule, upcomingDates);
   const upcoming = allUpcoming.slice(0, 8);
