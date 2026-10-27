@@ -2,7 +2,7 @@ import { ChevronDown, ChevronUp, LineChart, TrendingDown, TrendingUp } from 'luc
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService, scheduleService, studentsService } from '../../services/firebase/index.js';
-import { FORECAST_MONTHS, HISTORY_MONTHS, lessonRevenue, lessonSummary, monthRange, niceMax, smoothPath } from './financeDashboard.js';
+import { PERIODS, lessonRevenue, monthRange, niceMax, periodSummary, smoothPath } from './financeDashboard.js';
 import { currentMonth, shiftMonth } from './monthlyBilling.js';
 import './financeDashboard.css';
 
@@ -13,6 +13,9 @@ const monthName = (month, style = 'short') => new Intl.DateTimeFormat('et-EE', {
 const api = { students: () => studentsService.list({ pageSize: 500, exhaustive: true }).then((result) => result.items || []), schedule: () => scheduleService.list(), groups: () => groupsService.list().catch(() => []) };
 const STORE = 'keelesepp.financeDashboard.hidden';
 const hiddenAtStart = () => { try { return globalThis.localStorage?.getItem(STORE) === '1'; } catch { return false; } };
+const PERIOD_STORE = 'keelesepp.financeDashboard.period';
+const periodAtStart = () => { try { const value = Number(globalThis.localStorage?.getItem(PERIOD_STORE)); return PERIODS.some((item) => item.months === value) ? value : 1; } catch { return 1; } };
+const periodName = (months) => ({ 1: 'kuu', 3: '3 kuud', 6: '6 kuud', 12: 'aasta' })[months];
 
 // Chart: smooth curves of invoiced (dark green, filled) and received (light green) money, the forecast as a gold dashed
 // curve going on from this month; a guide line and a card with the numbers follow the pointer or the chosen month.
@@ -81,6 +84,8 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
   const current = currentMonth(today);
   const todayIso = new Intl.DateTimeFormat('sv-SE').format(today);
   const [selected, setSelected] = useState(current);
+  const [period, setPeriod] = useState(periodAtStart);
+  const choosePeriod = (months) => { setPeriod(months); try { globalThis.localStorage?.setItem(PERIOD_STORE, String(months)); } catch { /* private mode */ } };
   const state = useAsyncData(async () => {
     const settle = (load) => Promise.resolve().then(load).catch(() => []);
     const [students, schedule, groups] = await Promise.all([settle(repository.students), settle(repository.schedule), settle(repository.groups)]);
@@ -89,14 +94,19 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
 
   const model = useMemo(() => {
     if (!state.data) return null;
-    const months = [...monthRange(current, HISTORY_MONTHS), ...Array.from({ length: FORECAST_MONTHS }, (_, index) => shiftMonth(current, index + 1))];
+    // the period and the one before it (for the change), and as many months ahead; the chart shows at least half a year back
+    const back = Math.max(period * 2, 12);
+    const ahead = Math.max(period, 3);
+    const months = [...monthRange(current, back), ...Array.from({ length: ahead }, (_, index) => shiftMonth(current, index + 1))];
     const rows = lessonRevenue({ months, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons });
+    const shownBack = Math.max(period, 6);
+    const window = rows.slice(back - shownBack);
     // the chart starts at the first month with lessons (a young school has no empty year on it)
-    const first = rows.findIndex((row) => row.heldCents || row.plannedCents);
-    const shown = rows.slice(first < 0 ? HISTORY_MONTHS - 1 : Math.min(first, HISTORY_MONTHS - 6));
+    const first = window.findIndex((row) => row.heldCents || row.plannedCents);
+    const shown = window.slice(first < 0 ? shownBack - 1 : Math.min(first, shownBack - 6));
     const columns = shown.map((row) => ({ ...row, current: row.month === current, future: row.month > current }));
-    return { columns, summary: lessonSummary({ rows, current }) };
-  }, [state.data, plans, lessons, current, todayIso]);
+    return { columns, summary: periodSummary({ rows, current, months: period }) };
+  }, [state.data, plans, lessons, current, todayIso, period]);
 
   const toggle = () => { const next = !hidden; setHidden(next); try { globalThis.localStorage?.setItem(STORE, next ? '1' : '0'); } catch { /* private mode */ } };
   const column = model?.columns.find((item) => item.month === selected);
@@ -108,13 +118,13 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
       <button type="button" className="fd-toggle" aria-expanded={!hidden} onClick={toggle}>{hidden ? <><ChevronDown size={16} /> Näita</> : <><ChevronUp size={16} /> Peida</>}</button>
     </header>
     {hidden ? null : !model ? <p className="form-hint">Arvutan…</p> : <>
+      <div className="fd-periods" role="group" aria-label="Periood">{PERIODS.map((item) => <button key={item.months} type="button" aria-pressed={period === item.months} className={period === item.months ? 'is-active' : ''} onClick={() => choosePeriod(item.months)}>{item.label}</button>)}</div>
       <div className="fd-kpis">
-        <div className="fd-kpi"><span>Toimunud {monthName(current, 'long')}</span><strong>{money(s.heldCents)}</strong><small>{s.heldLessons} tundi</small></div>
+        <div className="fd-kpi"><span>Toimunud · {period === 1 ? monthName(current, 'long') : (s.from.slice(0, 4) === current.slice(0, 4) ? `${monthName(s.from)} – ${monthName(current)}` : `${monthName(s.from)} ${s.from.slice(0, 4)} – ${monthName(current)} ${current.slice(0, 4)}`)}</span><strong>{money(s.heldCents)}</strong><small>{s.heldLessons} tundi</small></div>
         <div className="fd-kpi fd-kpi--forecast"><span>Kalendris veel sel kuul</span><strong>{money(s.plannedCents)}</strong><small>{s.plannedLessons} tundi</small></div>
-        <div className="fd-kpi"><span>Kuu kokku</span><strong>{money(s.monthTotalCents)}</strong>
-          {s.changePercent !== null ? <small className={s.changePercent >= 0 ? 'is-up' : 'is-down'}>{s.changePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} {s.changePercent > 0 ? '+' : ''}{s.changePercent}% eelmise kuuga</small> : <small>eelmise kuuga võrrelda pole</small>}</div>
-        <div className="fd-kpi fd-kpi--forecast"><span>Prognoos {s.nextMonth ? monthName(s.nextMonth.month, 'long') : ''}</span><strong>{money(s.nextMonth?.plannedCents)}</strong><small>{s.nextMonth?.plannedLessons || 0} tundi kalendris</small></div>
-        <div className="fd-kpi fd-kpi--forecast"><span>Järgmise {FORECAST_MONTHS} kuu prognoos</span><strong>{money(s.forecastCents)}</strong><small>kalendri tunnid × õpilase hind</small></div>
+        <div className="fd-kpi"><span>{period === 1 ? 'Kuu kokku' : `Kokku · ${periodName(period)}`}</span><strong>{money(s.totalCents)}</strong>
+          {s.changePercent !== null ? <small className={s.changePercent >= 0 ? 'is-up' : 'is-down'}>{s.changePercent >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />} {s.changePercent > 0 ? '+' : ''}{s.changePercent}% {period === 1 ? 'eelmise kuuga' : 'eelmise perioodiga'}</small> : <small>{period === 1 ? 'eelmise kuuga' : 'eelmise perioodiga'} võrrelda pole</small>}</div>
+        <div className="fd-kpi fd-kpi--forecast"><span>Prognoos · järgmised {period === 1 ? 'kuu' : `${s.aheadMonths} kuud`}</span><strong>{money(s.aheadCents)}</strong><small>{s.aheadLessons} tundi kalendris</small></div>
         <div className="fd-kpi"><span>Keskmiselt kuus</span><strong>{money(s.averageMonthCents)}</strong><small>{s.unmarkedLessons ? `${s.unmarkedLessons} märkimata tundi loetud toimunuks` : 'kõik tunnid märgitud'}</small></div>
       </div>
       <div className="fd-chart-card">

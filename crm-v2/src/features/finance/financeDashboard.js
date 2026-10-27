@@ -8,6 +8,8 @@ import { itemSubject, mainSubject } from '../students/subjects.js';
 
 export const HISTORY_MONTHS = 12;
 export const FORECAST_MONTHS = 3;
+// the period switch (owner 2026-10-27: „сделай периоды от месяца до года”)
+export const PERIODS = [{ months: 1, label: 'Kuu' }, { months: 3, label: '3 kuud' }, { months: 6, label: '6 kuud' }, { months: 12, label: 'Aasta' }];
 
 const isMonth = (value) => /^\d{4}-\d{2}$/.test(value);
 
@@ -124,6 +126,32 @@ export function lessonSummary({ rows = [], current } = {}) {
     nextMonth: future[0] || null,
     forecastCents: future.reduce((sum, row) => sum + row.plannedCents, 0),
     noPrice: now.noPrice || 0,
+  };
+}
+
+// the headline numbers of a period of `months` months that ends with the current month (held + still planned in it),
+// compared with the period before it, and the calendar's lessons in the same number of months ahead
+export function periodSummary({ rows = [], current, months = 1 } = {}) {
+  const n = Math.max(1, Number(months) || 1);
+  const inWindow = (row, from, to) => row.month >= from && row.month <= to;
+  const from = shiftMonth(current, -(n - 1));
+  const window = rows.filter((row) => inWindow(row, from, current));
+  const before = rows.filter((row) => inWindow(row, shiftMonth(from, -n), shiftMonth(from, -1)));
+  const ahead = rows.filter((row) => inWindow(row, shiftMonth(current, 1), shiftMonth(current, n)));
+  const sum = (list, key) => list.reduce((total, row) => total + (row[key] || 0), 0);
+  const heldCents = sum(window, 'heldCents');
+  const plannedCents = sum(window, 'plannedCents');
+  const beforeCents = sum(before, 'heldCents') + sum(before, 'plannedCents');
+  return {
+    months: n, from,
+    heldCents, heldLessons: sum(window, 'heldLessons'),
+    plannedCents, plannedLessons: sum(window, 'plannedLessons'),
+    totalCents: heldCents + plannedCents,
+    changePercent: beforeCents && before.length === n ? Math.round(((heldCents + plannedCents - beforeCents) / beforeCents) * 100) : null,
+    averageMonthCents: Math.round((heldCents + plannedCents) / n),
+    unmarkedLessons: sum(window, 'unmarkedLessons'),
+    aheadCents: sum(ahead, 'plannedCents'), aheadLessons: sum(ahead, 'plannedLessons'), aheadMonths: ahead.length,
+    noPrice: sum(window, 'noPrice'),
   };
 }
 

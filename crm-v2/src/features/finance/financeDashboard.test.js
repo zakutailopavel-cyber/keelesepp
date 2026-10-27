@@ -48,3 +48,14 @@ describe('finance dashboard: lesson revenue (not the bookkeeping)', () => {
     expect(lessonSummary({ rows, current: '2026-10' })).toMatchObject({ heldCents: 80000, plannedCents: 40000, monthTotalCents: 120000, changePercent: 20, averageMonthCents: 100000, unmarkedLessons: 5, forecastCents: 250000 });
   });
 });
+
+describe('periodSummary', () => {
+  it('sums a period ending this month, compares with the one before, and the months ahead', async () => {
+    const { periodSummary } = await import('./financeDashboard.js');
+    const row = (month, held, planned = 0) => ({ month, heldCents: held, plannedCents: planned, heldLessons: held / 100, plannedLessons: planned / 100, unmarkedLessons: 0 });
+    const rows = [row('2026-05', 100), row('2026-06', 100), row('2026-07', 100), row('2026-08', 200), row('2026-09', 200), row('2026-10', 100, 100), row('2026-11', 0, 300), row('2026-12', 0, 300), row('2027-01', 0, 300)];
+    const q = periodSummary({ rows, current: '2026-10', months: 3 });
+    expect(q).toMatchObject({ from: '2026-08', heldCents: 500, plannedCents: 100, totalCents: 600, changePercent: 100, averageMonthCents: 200, aheadCents: 900, aheadMonths: 3 });
+    expect(periodSummary({ rows, current: '2026-10', months: 12 }).changePercent).toBeNull();
+  });
+});

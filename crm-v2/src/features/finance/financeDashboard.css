@@ -67,3 +67,7 @@
 .fd-legend .is-calendar::before { width: 8px; height: 8px; border: 2px solid #c98c45; border-radius: 50%; background: #fff; vertical-align: 0; }
 .fd-chart-scroll { overflow-x: auto; overflow-y: hidden; margin: 0 -4px; padding: 0 4px; }
 @media (max-width: 640px) { .fd-chart-wrap { min-width: 600px; } }
+/* the period switch: Kuu / 3 kuud / 6 kuud / Aasta (owner 2026-10-27) */
+.fd-periods { display: flex; width: fit-content; max-width: 100%; flex-wrap: wrap; gap: 4px; padding: 4px; margin: 0 0 14px; border: 1px solid #e5e9e5; border-radius: 12px; background: #fff; }
+.fd-periods button { border: 0; background: transparent; padding: 7px 14px; border-radius: 9px; font: inherit; font-size: .85rem; font-weight: 700; color: #5b6b66; cursor: pointer; }
+.fd-periods button.is-active { background: #176553; color: #fff; }
