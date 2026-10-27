@@ -2,7 +2,9 @@ import { useMemo, useState } from 'react';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { useAuth } from '../../app/AuthContext.jsx';
-import { websiteLeadsService } from '../../services/firebase/index.js';
+import { Link } from 'react-router-dom';
+import { studentsService, websiteLeadsService } from '../../services/firebase/index.js';
+import { leadStudentIds } from '../calendar/leadTimes.js';
 import './leads.css';
 import PollGrid from '../availability-poll/PollGrid.jsx';
 import { cellsOf, summaryOf } from '../availability-poll/pollModel.js';
@@ -13,11 +15,14 @@ const POLL_DAY_NAMES = { Mon: 'Esmaspäev', Tue: 'Teisipäev', Wed: 'Kolmapäev'
 
 const STATUS = { new: 'Uus', contacted: 'Ühendust võetud', converted: 'Õppijaks saanud', closed: 'Suletud' };
 
-export default function LeadsPage({ service = websiteLeadsService }) {
+export default function LeadsPage({ service = websiteLeadsService, studentRepository = studentsService }) {
   const { user } = useAuth();
   const [filter, setFilter] = useState('open');
   const [busy, setBusy] = useState('');
   const state = useAsyncData(() => service.list(), [service]);
+  // an /ajad answer from a student who already has a card: show the card (its times are used in the calendar)
+  const studentsState = useAsyncData(() => studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true }).then((result) => result.items).catch(() => []), [studentRepository]);
+  const cardsOf = (lead) => (lead.source === 'availability' ? leadStudentIds(lead, studentsState.data || []).map((id) => (studentsState.data || []).find((student) => student.id === id)).filter(Boolean) : []);
   const leads = useMemo(() => (state.data || []).filter(lead => filter === 'all' || (filter === 'open' ? !['converted', 'closed'].includes(lead.status) : lead.status === filter)), [state.data, filter]);
   const changeStatus = async (lead, status) => {
     setBusy(lead.id);
@@ -33,7 +38,7 @@ export default function LeadsPage({ service = websiteLeadsService }) {
         <div className="lead-row__main">
           <div className="lead-row__head"><strong>{lead.name}</strong><Badge>{STATUS[lead.status] || lead.status}</Badge><Badge>{lead.source === 'level-test' ? 'Tasemetest' : lead.source === 'availability' ? 'Sobivad ajad' : 'Veebivorm'}</Badge></div>
           <div className="lead-row__contact">{lead.email ? <a href={`mailto:${lead.email}`}>{lead.email}</a> : null}{lead.phone ? <a href={`tel:${lead.phone}`}>{lead.phone}</a> : null}</div>
-          <dl>{lead.parentName ? <><dt>Lapsevanem</dt><dd>{lead.parentName}</dd></> : lead.adult ? <><dt>Lapsevanem</dt><dd>— täiskasvanud õpilane</dd></> : null}{lead.source === 'availability' ? (lead.language ? <><dt>Õppeaine</dt><dd>{lead.language}</dd></> : null) : <><dt>Keel ja tase</dt><dd>{lead.language} · {lead.level}</dd></>}<dt>Saabus</dt><dd>{lead.createdAt || '—'}</dd>{lead.assessment ? <><dt>Test</dt><dd>{lead.assessment.score}/100 · {lead.assessment.answered} vastust · {lead.assessment.diagnosticId}</dd></> : null}{lead.message ? <><dt>{lead.source === 'availability' ? 'Kommentaar' : 'Eesmärk'}</dt><dd>{lead.message}</dd></> : null}{lead.source === 'availability' && lead.lessonsPerWeek ? <><dt>Tunde nädalas</dt><dd>{lead.lessonsPerWeek || 1} · {lead.format === 'online' ? 'veebis' : lead.format === 'kohapeal' ? 'kohapeal' : 'veebis või kohapeal'}</dd></> : null}</dl>
+          <dl>{lead.parentName ? <><dt>Lapsevanem</dt><dd>{lead.parentName}</dd></> : lead.adult ? <><dt>Lapsevanem</dt><dd>— täiskasvanud õpilane</dd></> : null}{lead.source === 'availability' ? (lead.language ? <><dt>Õppeaine</dt><dd>{lead.language}</dd></> : null) : <><dt>Keel ja tase</dt><dd>{lead.language} · {lead.level}</dd></>}<dt>Saabus</dt><dd>{lead.createdAt || '—'}</dd>{cardsOf(lead).length ? <><dt>Õpilase kaart</dt><dd>{cardsOf(lead).map((student) => <Link key={student.id} to={`/students/${student.id}`}>{student.name}{student.subject ? ` (${student.subject})` : ''}</Link>).reduce((list, item, index) => (index ? [...list, ', ', item] : [item]), [])} · ajad on kalendris</dd></> : null}{lead.assessment ? <><dt>Test</dt><dd>{lead.assessment.score}/100 · {lead.assessment.answered} vastust · {lead.assessment.diagnosticId}</dd></> : null}{lead.message ? <><dt>{lead.source === 'availability' ? 'Kommentaar' : 'Eesmärk'}</dt><dd>{lead.message}</dd></> : null}{lead.source === 'availability' && lead.lessonsPerWeek ? <><dt>Tunde nädalas</dt><dd>{lead.lessonsPerWeek || 1} · {lead.format === 'online' ? 'veebis' : lead.format === 'kohapeal' ? 'kohapeal' : 'veebis või kohapeal'}</dd></> : null}</dl>
           {lead.source === 'availability' && lead.slots?.length ? (() => {
             const cells = cellsOf(lead.slots, lead.preferred);
             return <div className="lead-row__poll">

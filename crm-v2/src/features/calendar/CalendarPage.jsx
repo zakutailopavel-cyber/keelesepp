@@ -6,7 +6,8 @@ import { Badge, Button, EmptyState, ErrorState, Input, LoadingState, Modal } fro
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { isSameTeacher } from '../../utils/teachers.js';
 import { financeApi } from '../../services/firebase/financeApi.js';
-import { classroomsService, groupsService, lessonChangeRequestsService, lessonNotesService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentAvailabilityService, studentsService, teacherAvailabilityService, teachersService } from '../../services/firebase/index.js';
+import { classroomsService, groupsService, lessonChangeRequestsService, lessonNotesService, lessonsService, libraryService, liveLessonInvitationsService, scheduleService, studentAvailabilityService, studentsService, teacherAvailabilityService, teachersService, websiteLeadsService } from '../../services/firebase/index.js';
+import { timesFromLeads, withLeadTimes } from './leadTimes.js';
 import ChangeRequestsPanel from './ChangeRequestsPanel.jsx';
 import { studentAccountUid } from '../live-classroom/invitationModel.js';
 import { isLessonKey, looseLessonKey, parseHeld, rememberLessonLink } from '../live-classroom/lessonLink.js';
@@ -121,7 +122,7 @@ function RunOnce({ run }) {
   return null;
 }
 
-export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi, studentTimesRepository = studentAvailabilityService }) {
+export default function CalendarPage({ scheduleRepository = scheduleService, studentRepository = studentsService, groupRepository = groupsService, lessonRepository = lessonsService, libraryRepository = libraryService, googleCalendarRepository, teacherRepository = teachersService, liveRepository = liveLessonInvitationsService, availabilityRepository = teacherAvailabilityService, changeRequests = lessonChangeRequestsService, takeHandoff = takeLessonHandoff, noteRepository = lessonNotesService, roomRepository = classroomsService, financeRepository = financeApi, studentTimesRepository = studentAvailabilityService, leadsRepository = websiteLeadsService }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -191,6 +192,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (!studentTimesRepository?.list || (teacherOnly && !scopedStudentIds)) return [];
     try { return await studentTimesRepository.list(teacherOnly ? scopedStudentIds.split(',') : null); } catch { return []; }
   }, [studentTimesRepository, teacherOnly, scopedStudentIds]);
+  // answers sent through the public /ajad link (enquiries), joined to the cards they belong to
+  const leadTimesState = useAsyncData(() => (leadsRepository?.list ? leadsRepository.list().catch(() => []) : Promise.resolve([])), [leadsRepository]);
   // Admin can give a lesson to another teacher (substitution); teachers always plan their own lessons.
   const teacherState = useAsyncData(() => (isAdmin && teacherRepository?.list ? teacherRepository.list() : Promise.resolve([])), [isAdmin, teacherRepository]);
   const availabilityState = useAsyncData(() => (availabilityRepository?.list ? availabilityRepository.list().catch(() => []) : Promise.resolve([])), [availabilityRepository]);
@@ -397,7 +400,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     : [];
 
   // ── „Sobivad ajad” ───────────────────────────────────────────
-  const studentTimes = new Map((studentTimesState.data || []).map((entry) => [entry.studentId || entry.id, entry]));
+  const studentTimes = withLeadTimes(new Map((studentTimesState.data || []).map((entry) => [entry.studentId || entry.id, entry])), timesFromLeads(leadTimesState.data || [], students.items));
   const plannerTimes = withLearnedTimes(studentTimes, learned);
   const fitTeacher = teacherOnly ? { uid: user.uid, name: user.displayName } : filters.teacher ? { uid: filters.teacher, name: teachers.find((teacher) => teacher.id === filters.teacher)?.name || '' } : null;
   const fitStudents = fitOpen ? fitIds.map((id) => studentMap.get(id)).filter(Boolean) : [];
