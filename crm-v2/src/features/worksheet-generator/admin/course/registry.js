@@ -112,6 +112,8 @@ export const COURSES = {
   ek12: { label: '12. klass emakeel · eesti keel emakeelena', badge: 'KeeleSepp · 12. klass emakeel' },
   // English (docs/ENGLISH_COURSE_PLAN.md): A1 → B1 by CEFR level, the B1 aim of the Estonian basic school exam
   en: { label: 'English · A1 → B1', badge: 'KeeleSepp English' },
+  // the Sunday children's groups 5–6, 6–7, 8–9 (kids/sheets.js; not in COURSE_MODULES: adult level gates do not apply)
+  kids: { label: 'Lasterühmad 5–9 a', badge: 'KeeleSepp lastele' },
 };
 
 export const PHASES = {
@@ -182,13 +184,13 @@ export function buildCourseSheet(mod, lessonId, phase) {
     id: `ws_${lessonId}_${phase}`,
     meta: {
       title: lesson.title,
-      subtitle: PHASES[phase].subtitle,
+      subtitle: (mod.MODULE.phases?.[phase] || PHASES[phase]).subtitle,
       level: lesson.level || mod.MODULE.level,
       module: mod.MODULE.title,
       canDo: LESSON_GOALS[lessonId]?.canDo || lesson.canDo,
-      goals: LESSON_GOALS[lessonId]?.goals || GOALS,
+      goals: LESSON_GOALS[lessonId]?.goals || lesson.goals || GOALS,
       phase,
-      displayLabel: PHASES[phase].label,
+      displayLabel: (mod.MODULE.phases?.[phase] || PHASES[phase]).label,
       // modules written before the 40–55 min rule are marked until they are expanded (docs/B1_B2_COURSE_PRODUCTION.md)
       // a lesson may mark its own short sheets: `shortSheet: true` (every phase) or a list of phases — a spaced-review sheet
       // or a short use task of a supplement (a2/lihtminevik.js), 10–30 min by design

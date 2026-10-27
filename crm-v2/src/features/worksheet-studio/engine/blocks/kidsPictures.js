@@ -4,6 +4,8 @@
 // shape: ['c', cx, cy, r] circle · ['e', cx, cy, rx, ry] ellipse · ['r', x, y, w, h, rx] rect · ['p', d] path
 // lines: outlines that are not coloured (strings, rays, faces).
 
+import { VOCAB_PICTURES } from './kidsVocabPictures.js';
+
 const P = (d) => ['p', d];
 
 export const COLORING_PICTURES = {
@@ -142,7 +144,7 @@ export const COLORING_PICTURES = {
   christmastree: {
     label: 'Kuusk', words: ['kuusk', 'täht', 'kuul', 'kingitus'],
     regions: [
-      { name: 'kuusk', at: [150, 200], shapes: [P('M150 40 L210 120 L180 120 L235 190 L200 190 L255 255 L45 255 L100 190 L65 190 L120 120 L90 120 Z')] },
+      { name: 'kuusk', at: [150, 176], shapes: [P('M150 40 L210 120 L180 120 L235 190 L200 190 L255 255 L45 255 L100 190 L65 190 L120 120 L90 120 Z')] },
       { name: 'täht', at: [150, 24], shapes: [P('M150 8 L156 22 L171 22 L159 31 L164 45 L150 37 L136 45 L141 31 L129 22 L144 22 Z')] },
       { name: 'kuulid', at: [122, 160], shapes: [['c', 122, 160, 9], ['c', 178, 150, 9], ['c', 150, 205, 9], ['c', 98, 228, 9], ['c', 205, 226, 9]] },
       { name: 'kingitus', at: [236, 272], shapes: [['r', 214, 255, 44, 34, 3]] },
@@ -150,6 +152,8 @@ export const COLORING_PICTURES = {
     lines: ['M138 255 L138 285 L162 285 L162 255', 'M236 255 L236 289', 'M214 270 L258 270'],
   },
 };
+
+Object.assign(COLORING_PICTURES, VOCAB_PICTURES);
 
 export const PICTURE_OPTIONS = Object.entries(COLORING_PICTURES).map(([value, pic]) => [value, pic.label]);
 
