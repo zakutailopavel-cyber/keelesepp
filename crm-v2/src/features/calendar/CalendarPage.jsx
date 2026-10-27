@@ -836,6 +836,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       teacherOnly={teacherOnly}
       students={students.items}
       events={events}
+      journal={lessonRecords}
       teachers={teacherOnly ? [{ id: user.uid, name: user.displayName || '' }] : teachers}
       studentTimes={plannerTimes}
       teacherAvailability={(who) => availabilityFor(who.teacherUid) || availabilityFor(who.teacher)}

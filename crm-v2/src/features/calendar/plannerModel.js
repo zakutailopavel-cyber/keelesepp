@@ -55,6 +55,16 @@ function perWeekOf(own, today, series) {
   return Math.max(1, Math.min(MAX_PER_WEEK, most));
 }
 
+// lessons a week the student's plan needs (its first track, or the Estonian one); held plan lessons are done
+function planNeeded(student, subject, tracks, lessons, today) {
+  const plan = student.studyPlan;
+  if (!plan?.lessons?.length || !plan.targetDate || (tracks > 1 && subjectName(subject) !== 'Eesti keel')) return 0;
+  const held = new Set(lessons.filter((lesson) => lesson.studentId === student.id && lesson.topicLessonId && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.topicLessonId));
+  const remaining = plan.lessons.filter((item) => item.status !== 'skipped' && !held.has(item.id)).length;
+  const weeks = Math.max(1, Math.ceil((Date.parse(`${plan.targetDate}T12:00:00`) - Date.parse(`${today}T12:00:00`)) / (7 * 24 * 60 * 60 * 1000)));
+  return remaining ? Math.min(MAX_PER_WEEK, Math.ceil(remaining / weeks)) : 0;
+}
+
 /**
  * The study directions to plan: one per active track (student × subject × teacher) of an active card that has no
  * weekly lesson ahead (a group lesson of the same teacher counts as planned too). `includePlanned` also takes the
@@ -62,7 +72,7 @@ function perWeekOf(own, today, series) {
  * teacherUid: only this teacher's directions. teachers: [{ id, name }] to find the account of a track named by name.
  * → [{ key, studentId, studentName, subject, level, teacherUid, teacher, duration, online, perWeek, planned, replaces }]
  */
-export function planningRequests({ students = [], events = [], today, teacherUid = '', teachers = [], includePlanned = false }) {
+export function planningRequests({ students = [], events = [], today, teacherUid = '', teachers = [], includePlanned = false, lessons = [] }) {
   const out = [];
   for (const student of students) {
     if (!student?.id || student.active === false || student.convertedToParent) continue;
@@ -94,7 +104,8 @@ export function planningRequests({ students = [], events = [], today, teacherUid
         teacher,
         duration: usualDuration(own, student.id, uid),
         online: usualOnline(own, student.id) ?? usualOnline(events, student.id) ?? false,
-        perWeek: perWeekOf(own, today, series),
+        // a student with an „Õppeplaan” and a target date gets at least the lessons a week the plan needs
+        perWeek: Math.max(perWeekOf(own, today, series), planNeeded(student, subject, list.length, lessons, today)),
         planned: series.length > 0,
         replaces: series.map((event) => event.id),
       });
