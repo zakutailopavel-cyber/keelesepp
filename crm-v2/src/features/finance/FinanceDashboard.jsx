@@ -1,7 +1,7 @@
 import { ChevronDown, ChevronUp, LineChart, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
-import { groupsService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
+import { businessSettingsService, groupsService, scheduleService, studentsService, teachersService } from '../../services/firebase/index.js';
 import { PERIODS, lessonRevenue, monthRange, niceMax, periodSummary, smoothPath } from './financeDashboard.js';
 import { currentMonth, shiftMonth } from './monthlyBilling.js';
 import BusinessReport from './BusinessReport.jsx';
@@ -12,7 +12,7 @@ const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', cur
 const short = (cents) => { const euros = Math.round(Number(cents || 0) / 100); return euros >= 1000 ? `${(euros / 1000).toFixed(euros >= 10000 ? 0 : 1).replace('.', ',')}k` : `${euros}`; };
 const monthName = (month, style = 'short') => new Intl.DateTimeFormat('et-EE', { month: style, ...(style === 'long' ? { year: 'numeric' } : {}) }).format(new Date(`${month}-15T12:00:00`));
 // every card (archived ones too: their past lessons are part of the past months)
-const api = { students: () => studentsService.list({ pageSize: 500, exhaustive: true }).then((result) => result.items || []), schedule: () => scheduleService.list(), groups: () => groupsService.list().catch(() => []), teachers: () => teachersService.list() };
+const api = { students: () => studentsService.list({ pageSize: 500, exhaustive: true }).then((result) => result.items || []), schedule: () => scheduleService.list(), groups: () => groupsService.list().catch(() => []), teachers: () => teachersService.list(), settings: () => businessSettingsService.get(), saveSettings: (values, user) => businessSettingsService.save(values, user) };
 const STORE = 'keelesepp.financeDashboard.hidden';
 const hiddenAtStart = () => { try { return globalThis.localStorage?.getItem(STORE) === '1'; } catch { return false; } };
 const PERIOD_STORE = 'keelesepp.financeDashboard.period';
@@ -81,7 +81,8 @@ function RevenueChart({ columns, selected, onSelect }) {
   </div></div>;
 }
 
-export default function FinanceDashboard({ plans = [], lessons = [], repository = api, today = new Date() }) {
+export default function FinanceDashboard({ plans = [], lessons = [], repository = api, today = new Date(), user = null }) {
+  const [savedSettings, setSavedSettings] = useState(null);
   const [hidden, setHidden] = useState(hiddenAtStart);
   const current = currentMonth(today);
   const todayIso = new Intl.DateTimeFormat('sv-SE').format(today);
@@ -91,7 +92,8 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
   const state = useAsyncData(async () => {
     const settle = (load) => Promise.resolve().then(load).catch(() => []);
     const [students, schedule, groups, teachers] = await Promise.all([settle(repository.students), settle(repository.schedule), settle(repository.groups), settle(repository.teachers || (() => []))]);
-    return { students, schedule, groups, teachers };
+    const settings = await Promise.resolve().then(repository.settings || (() => ({}))).catch(() => ({}));
+    return { students, schedule, groups, teachers, settings };
   }, [repository]);
 
   const model = useMemo(() => {
@@ -107,9 +109,9 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
     const first = window.findIndex((row) => row.heldCents || row.plannedCents);
     const shown = window.slice(first < 0 ? shownBack - 1 : Math.min(first, shownBack - 6));
     const columns = shown.map((row) => ({ ...row, current: row.month === current, future: row.month > current }));
-    const report = businessReport({ current, months: period, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons, teachers: state.data.teachers });
+    const report = businessReport({ current, months: period, today: todayIso, students: state.data.students, plans, schedule: state.data.schedule, groups: state.data.groups, lessons, teachers: state.data.teachers, settings: savedSettings || state.data.settings });
     return { columns, summary: periodSummary({ rows, current, months: period }), report };
-  }, [state.data, plans, lessons, current, todayIso, period]);
+  }, [state.data, plans, lessons, current, todayIso, period, savedSettings]);
 
   const toggle = () => { const next = !hidden; setHidden(next); try { globalThis.localStorage?.setItem(STORE, next ? '1' : '0'); } catch { /* private mode */ } };
   const column = model?.columns.find((item) => item.month === selected);
@@ -138,7 +140,7 @@ export default function FinanceDashboard({ plans = [], lessons = [], repository 
           : ` · toimunud ${money(column.heldCents)} (${column.heldLessons} tundi${column.unmarkedLessons ? `, neist ${column.unmarkedLessons} märkimata` : ''})${column.plannedCents ? ` · kalendris veel ${money(column.plannedCents)} (${column.plannedLessons} tundi)` : ''}`}{column.noPrice ? ` · ${column.noPrice} tundi ilma hinnata` : ''}</p> : null}
         <p className="form-hint">Arvestus käib kalendri tundide järgi, mitte arvete järgi (raamatupidamine on eraldi): toimunud = märgitud „Toimunud” või tasuline puudumine, ka märkimata möödunud tund; ära jäetud ja ette teatatud puudumised ei lähe arvesse. Hind = õpilase tunnihind tunni pikkuse järgi.</p>
       </div>
-      <BusinessReport report={model.report} />
+      <BusinessReport report={model.report} settings={savedSettings || state.data.settings} teachers={state.data.teachers} onSaveSettings={repository.saveSettings && user ? async (values) => setSavedSettings(await repository.saveSettings(values, user)) : null} />
     </>}
   </section>;
 }

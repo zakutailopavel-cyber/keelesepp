@@ -274,7 +274,7 @@ export default function FinanceMonthPage({
       </header>
 
       {/* „Ülevaade” (owner 2026-10-26): what the calendar's lessons earn — held and planned, not the invoices — administrators */}
-      {canManage ? <FinanceDashboard plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
+      {canManage ? <FinanceDashboard user={user} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
 
       <div className="finance-month-switcher">
         <Button variant="secondary" aria-label="Eelmine kuu" onClick={() => setMonth(shiftMonth(month, -1))}><ArrowLeft size={17} /></Button>

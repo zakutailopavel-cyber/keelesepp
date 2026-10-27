@@ -34,4 +34,20 @@ describe('FinanceDashboard (calendar lessons)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Aasta' }));
     expect(screen.getByText('Prognoos · järgmised 12 kuud')).toBeInTheDocument();
   });
+
+  it('profit with the fixed costs; the administrator edits the costs', async () => {
+    ['keelesepp.financeDashboard.period', 'keelesepp.financeDashboard.hidden'].forEach((key) => globalThis.localStorage?.removeItem?.(key));
+    const saveSettings = vi.fn(async (values) => values);
+    const repository = { students: vi.fn(async () => [{ id: 's1', name: 'Mia', active: true }]), schedule: vi.fn(async () => [{ id: 'w1', studentId: 's1', teacher: 'Liza', recurring: true, day: 'Mon', startDate: '2026-09-01', duration: 60 }]), groups: vi.fn(async () => []),
+      teachers: vi.fn(async () => [{ id: 't', name: 'Liza', role: 'teacher', workHourlyRateCents: 1000 }]), settings: vi.fn(async () => ({ fixedCosts: [{ label: 'Ruum', cents: 2000 }], ownerTeacher: '', ownerRateCents: 0 })), saveSettings };
+    render(<FinanceDashboard today={new Date('2026-10-20T12:00:00')} repository={repository} user={{ uid: 'u', roles: ['admin'] }} plans={[{ studentId: 's1', lessonPriceCents: 2500 }]} lessons={[]} />);
+    const pnl = await screen.findByRole('region', { name: 'Kasum' });
+    // 3 lessons held (5, 12, 19): 75 € − 30 € teacher − 20 € fixed = 25 €
+    expect(pnl).toHaveTextContent('= Kasum25 €');
+    fireEvent.click(screen.getByText('Püsikulud ja omanik'));
+    fireEvent.change(screen.getByLabelText('Kulu 1 summa eurodes'), { target: { value: '400' } });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta' })); });
+    expect(saveSettings).toHaveBeenCalledWith({ fixedCosts: [{ label: 'Ruum', cents: 40000 }], ownerTeacher: '', ownerRateCents: 0 }, { uid: 'u', roles: ['admin'] });
+    expect(screen.getByRole('region', { name: 'Kasum' })).toHaveTextContent('= Kasum−355 €');
+  });
 });

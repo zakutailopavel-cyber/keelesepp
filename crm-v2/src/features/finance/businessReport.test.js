@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { businessReport, lessonFacts } from './businessReport.js';
+import { businessReport, lessonFacts, normalizeBusinessSettings } from './businessReport.js';
 
 const students = [
   { id: 's1', name: 'Mia', teacher: 'Anna', subject: 'Eesti keel' },
@@ -82,5 +82,41 @@ describe('teacher pay („доход с каждого учителя”)', () =
     expect(liza).toMatchObject({ tookPlace: 2, hours: 1.5, rateCents: 1200, payCents: 1800, earnedCents: 7500, schoolCents: 5700 });
     expect(report.byTeacher.find((row) => row.name === 'Pavel Zakutailo')).toMatchObject({ payCents: null, schoolCents: 2500 });
     expect(report.pay).toEqual({ payCents: 1800, schoolCents: 10000 - 1800, unrated: ['Pavel Zakutailo'] });
+  });
+});
+
+describe('the school economy (profit, owner, break-even, next month)', () => {
+  const team = [{ id: 's1', name: 'Mia', active: true }, { id: 's2', name: 'Ott', active: true }];
+  const prices = [{ studentId: 's1', lessonPriceCents: 2000 }, { studentId: 's2', lessonPriceCents: 2000 }];
+  // Liza (12 €/h) teaches Mia on Mondays, the owner Pavel teaches Ott on Tuesdays; October 2026, today the 20th
+  const schedule = [
+    { id: 'm', studentId: 's1', teacher: 'Liza Lukiianchuk', recurring: true, day: 'Mon', startDate: '2026-10-01', duration: 60 },
+    { id: 't', studentId: 's2', teacher: 'Pavel', recurring: true, day: 'Tue', startDate: '2026-10-01', endDate: '2026-10-31', duration: 60 },
+  ];
+  const teachers = [{ id: 'a', name: 'Liza Lukiianchuk', workHourlyRateCents: 1200 }, { id: 'b', name: 'Pavel Zakutailo' }];
+  const settings = { fixedCosts: [{ label: 'Ruum', cents: 4000 }, { label: 'Admin', cents: 2000 }, { label: '', cents: 5 }], ownerTeacher: 'Pavel Zakutailo', ownerRateCents: 1000 };
+  const report = businessReport({ current: '2026-10', months: 1, today: '2026-10-20', students: team, plans: prices, schedule, teachers, settings });
+
+  it('settings are cleaned', () => {
+    expect(normalizeBusinessSettings(settings).fixedCosts).toEqual([{ label: 'Ruum', cents: 4000 }, { label: 'Admin', cents: 2000 }]);
+    expect(normalizeBusinessSettings(null)).toEqual({ fixedCosts: [], ownerTeacher: '', ownerRateCents: 0 });
+  });
+
+  it('profit = revenue − teacher pay − fixed costs; the owner’s lessons apart', () => {
+    // held: Mia 5, 12, 19 (3 × 20 €), Ott 6, 13 (2 × 20 €); Liza paid 3 h × 12 €
+    expect(report.pnl).toMatchObject({ revenueCents: 10000, teacherPayCents: 3600, fixedCents: 6000, profitCents: 400, marginPercent: 4, hours: 5, revenuePerHourCents: 2000 });
+    expect(report.pnl.owner).toMatchObject({ name: 'Pavel Zakutailo', earnedCents: 4000, hours: 2, share: 40, payAtRateCents: 2000, profitAfterOwnerPayCents: -1600, withoutOwnerCents: -3600 });
+    // Liza's hour leaves 8 € to the school: 60 € of fixed costs need 8 hours a month; 3 given
+    expect(report.pnl.breakEven).toEqual({ marginPerHourCents: 800, hoursNeededPerMonth: 8, hoursPerMonthNow: 3 });
+  });
+
+  it('this month to the end by the calendar, the next month, students', () => {
+    // still planned: Mia 26, Ott 20 and 27
+    expect(report.monthly[0]).toMatchObject({ month: '2026-10', profitCents: 400, expectedCents: 16000, expectedProfitCents: 16000 - 4 * 1200 - 6000 });
+    // November: Mia's Mondays 2, 9, 16, 23, 30; Ott's series ended
+    expect(report.forecast).toEqual({ month: '2026-11', lessons: 5, revenueCents: 10000, teacherPayCents: 6000, fixedCents: 6000, profitCents: -2000 });
+    expect(report.kinds.individual).toEqual({ lessons: 5, earnedCents: 10000 });
+    expect(report.studentRows.map((row) => [row.name, row.tookPlace, row.lastLesson, row.planned])).toEqual([['Mia', 3, '2026-10-19', true], ['Ott', 2, '2026-10-13', true]]);
+    expect(report.nothingAhead).toEqual([]);
   });
 });
