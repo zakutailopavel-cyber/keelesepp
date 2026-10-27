@@ -456,6 +456,17 @@ describe('calendar v2', () => {
     expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', expect.objectContaining({ time: '14:00' }));
   });
 
+  it('a notice of absence („Ma ei tule”) marks the lesson „Puudus (teatas ette)” and answers it', async () => {
+    const props = repositories({ events: [lesson()] });
+    const request = { id: 'req-2', scheduleId: 'schedule-1', occurrenceDate: today, occurrenceTime: '10:00', studentName: 'Mari Maas', teacherUid: 't1', proposals: [], other: '', reason: 'haige', status: 'pending' };
+    props.changeRequests = { subscribePending: (_, next) => { next([request]); return () => {}; }, decide: vi.fn().mockResolvedValue({}) };
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText(/Ei tule, uut aega ei soovi/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Märgi puudumine' }));
+    await waitFor(() => expect(props.changeRequests.decide).toHaveBeenCalledWith('req-2', expect.objectContaining({ accepted: true, chosen: null })));
+    expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ status: 'Puudus_p', notes: 'haige' }));
+  });
+
   it('the admin can choose a new teacher who has no lessons yet', async () => {
     const props = repositories({ events: [lesson()] });
     props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't9', name: 'Jegor' }, { id: 't8', name: 'Vana', disabled: true }]) };

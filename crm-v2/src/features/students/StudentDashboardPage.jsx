@@ -5,7 +5,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonChangeRequestsService, lessonsService, libraryService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
-import { requestFor } from '../calendar/rescheduleModel.js';
+import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
@@ -187,7 +187,8 @@ export default function StudentDashboardPage({
         </div> : null}
       </div>
       {nextLesson && !preview ? <div className="student-path__reschedule">
-        {nextRequest?.status === 'pending' ? <p className="form-hint" role="status">Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab. <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
+        {nextRequest?.status === 'pending' ? <p className="form-hint" role="status">{isAbsenceOnly(nextRequest) ? 'Teade, et sa ei tule, on õpetajale saadetud.' : 'Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab.'} <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
+          : nextRequest?.status === 'accepted' && isAbsenceOnly(nextRequest) ? <p className="form-hint" role="status">Õpetaja märkis, et sa sellesse tundi ei tule.</p>
           : nextRequest?.status === 'declined' ? <p className="form-hint" role="status">Õpetaja ei saanud tundi üle viia{nextRequest.teacherNote ? `: ${nextRequest.teacherNote}` : ''}. Tund jääb samale ajale. <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Küsi uuesti</button></p>
             : <Button variant="secondary" onClick={() => setRescheduling(true)}>Ei saa tulla?</Button>}
       </div> : null}

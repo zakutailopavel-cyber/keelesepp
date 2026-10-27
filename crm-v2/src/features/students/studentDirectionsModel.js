@@ -3,6 +3,7 @@
 import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
 import { findDirection } from './studyDirections.js';
 import { itemSubject, mainSubject, subjectName } from './subjects.js';
+import { localDate } from '../../utils/localDate.js';
 
 const clean = (value) => String(value ?? '').trim();
 const AHEAD_DAYS = 56;
@@ -43,7 +44,7 @@ export function priceLabel(price) {
   return `${euro(price.cents)} / ${price.minutes} min`;
 }
 
-export function directionRows({ student = {}, schedule = [], lessons = [], plan = null, directions = [], today = new Date().toISOString().slice(0, 10) } = {}) {
+export function directionRows({ student = {}, schedule = [], lessons = [], plan = null, directions = [], today = localDate() } = {}) {
   const tracks = Array.isArray(student.enrollments) && student.enrollments.length ? student.enrollments : [student];
   const dates = Array.from({ length: AHEAD_DAYS }, (_, index) => shiftDate(today, index));
   const ahead = [

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { homeworkService } from '../../services/firebase/homework.js';
 import '../vocabulary/vocabulary.css';
+import { localDate } from '../../utils/localDate.js';
 
 const QUICK = ['Korda tunni sõnu („Minu sõnad” → „Harjuta”)', 'Lõpeta tööleht', 'Vaata tahvlileht üle ja kirjuta 5 lauset'];
 
 function inDays(days, from = new Date()) {
   const date = new Date(from.getTime() + days * 24 * 60 * 60 * 1000);
-  return date.toISOString().slice(0, 10);
+  return localDate(date);
 }
 
 /**

@@ -14,6 +14,129 @@
 - No code. Content (32 cards, picture sheets) goes to the content agent after the owner approves.
 - Next safe step: the owner approves or edits the plan and chooses which CRM part comes first.
 
+## 2026-10-27 · agent/group-fill — „Täida grupp”: who fits a group (seats, age group, level, time)
+
+- Owner 2026-10-26: „заполнение групп”, „организация групп для групповых уроков” (also preschool 5–7). Stacked on
+  agent/planner-history (#826, learned times).
+- A group may carry `audience` ('' | adult | school | preschool), `capacity` (default 8, preschool 6), `ageFrom` /
+  `ageTo` (children's groups): `groupsService.groupSettings` / `updateSettings` (admin, activity log). The rules for
+  `groups` are already staff read/write: no rules change.
+- Grupid: each card shows „n/8 kohta” and the age group, and an admin has the button „Täida”. GroupFillDialog lets the
+  admin set the age group, seats and ages. It lists students and website enquiries that fit, best first, with reasons.
+  The pure model is `groups/groupFill.js` (`groupCandidates`, `ageOf`, `audienceOf`, `capacityOf`, `freeSeats`):
+  - same subject;
+  - the age group from the birth year / „N. klass” / „Täiskasvanu” / „lasteaed”;
+  - level the same or next to it (none for preschool);
+  - the group's weekly times against „Sobivad ajad”, else the times of past lessons;
+  - clashes with own lessons and other groups.
+  „Lisa” is the normal add-to-group action; enquiries link to Päringud and are not contacted automatically.
+- New group form: Sihtrühm + Kohti.
+- Checks: groups tests 7 passed (new groupFill 4); eslint 0; whole vitest: all passed except the known night-time
+  LearnerSnapshotCard (fixed in #827). Local check on the emulator copy (read-only export of production): a test group
+  „A2 noored” → 76 candidates listed with reasons.
+- Next safe step: owner approves #826 and this PR; creates the first group with its time, opens „Täida”.
+
+## 2026-10-27 · agent/meta-inbox — Facebook / Instagram inbox: nothing lost, and a log that shows whether Meta calls at all
+
+- Owner 2026-10-26: „доделать общение с клиентами”. Production read (2026-10-27, read only):
+  - `messages` has 27 internal messages and **no Facebook / Instagram message ever**, although `metaMessagingApi` is
+    deployed and its 4 secrets exist; 17 calls in 60 days, all 200.
+  - E-mails to students and parents (#792) are deployed, but no type is switched on (`emailSettings` missing,
+    `emailLog` 0).
+  - Old `emailQueue` failures („535 Authentication failed”, 2026-07-11…10-07) stopped on 10-07.
+- This PR (functions only):
+  - a Meta message with only a photo / voice / file / sticker was dropped (no text); it is now stored as „[pilt]”,
+    „[helisõnum]”, „[fail]” …;
+  - every webhook call logs a content-free summary (`meta webhook`: object, entries, event kinds, stored count).
+- Files: functions/meta-messaging-core.js (+ test), functions/index.js.
+- Checks: functions `npm test` 408/408; index.js loads.
+- Deploy needed (owner): `firebase deploy --only functions:metaMessagingApi`.
+- Owner's side (Meta, not code): in the Meta app → Messenger / Instagram → Webhooks the page (and the IG account) must
+  be subscribed to `messages`, with the callback `…/metaMessagingApi/webhook`, and the app must be Live. After a test
+  message the log shows `meta webhook` with `message: 1`.
+- Next safe step: owner approves + deploys, sends a test message to the Facebook page, checks Sõnumid.
+
+## 2026-10-27 · agent/local-today — „today” is the local day, not the UTC one (site bug check)
+
+- Found in the night bug check (owner 2026-10-26 „проверить сайт на наличие багов”): 43 places took „today” as
+  `new Date().toISOString().slice(0, 10)`, the UTC day. In Estonia between 00:00 and 02:00 / 03:00 that is yesterday:
+  - deadlines looked a day off;
+  - a „Minu vead” practice after midnight counted for the day before;
+  - the pet's streak day was off;
+  - the default homework due date was yesterday.
+  The test suite failed at night for the same reason.
+- New `crm-v2/src/utils/localDate.js` (`localDate(value = now)`, the browser's own day). Used in:
+  - homework: page, flow, service date;
+  - vocabulary: daily plan, reminder;
+  - pet streak;
+  - Minu vead;
+  - live classroom: homework and lesson-end due dates;
+  - after-lesson homework;
+  - students: lessons and works panels, directions, Ei saa tulla;
+  - teacher profile; parents; groups (+ service default start date).
+  Three tests compute today the same way now.
+- Not touched on purpose (finance / accounting, own PR with the accountant if wanted): AccountingPage,
+  accountingReports, PurchasesPage, ExpensesPage, FinanceMonthPage, FinancePage, lessonAccounting, FinancialPeriodPanel,
+  ManualInvoiceDialog, AdvanceManagementPanel, studentFinance. Also kept: stored createdAt / updatedAt day stamps
+  in students.js / groups.js and settings/cleanupModel.
+- Checks: eslint src 0; whole vitest 380 files passed (00:30 local, the hour that failed before); the touched areas also
+  under TZ=UTC (324 passed).
+- Next safe step: owner approves; later the same fix for the finance pages together with the accountant.
+
+## 2026-10-27 · agent/planner-history — Planeerija places students without „Sobivad ajad” at their usual times
+
+- Owner 2026-10-26: „доделать планировщик уроков автоматический”. The planner (#791) placed almost nobody: 38 of 50
+  directions had no „Sobivad ajad”.
+- Now a student without own times gets the times of their past individual lessons (12 weeks, not cancelled or missed;
+  calendar + journal): `studentTimesModel.learnedTimes` / `withLearnedTimes`. Never ★ → yellow „õpilane käis varem sel
+  ajal”; another time is „unknown” (red, agree), not „cannot”. The selected-lesson box says „varasemad tunnid: …”.
+- CalendarPage computes the learned times only while the planner is open (useMemo).
+- Production dry run (read only, 2026-10-27, start 2026-11-02): placed directions 7 → 33 (45 lessons: 2 green, 24
+  yellow, 19 red of which 16 overlap and 3 to agree); unplaced 43 → 17 (12 no history, 5 no teacher). 29 ms.
+- Files: crm-v2/src/features/calendar/studentTimesModel.js, plannerModel.js, PlannerView.jsx, CalendarPage.jsx (+ tests);
+  docs/specs/CALENDAR_V2_SPEC.md.
+- Checks: calendar tests 179 passed; eslint src 0; whole vitest: all passed except LearnerSnapshotCard (fails only
+  between 00:00 and 03:00 local time: UTC „today”; fixed in its own PR agent/local-today).
+- Next safe step: the owner approves; then opens Kalender → Planeerija → „Lisa kõik õpilased” → „Jaota” and checks the
+  red ones with the students.
+
+## 2026-10-26 · agent/teacher-homework — Kodutööd: teachers' access re-checked, the page tidied
+
+- Owner 2026-10-26: „у учителей в kodutood кому-то нельзя было зайти, там внешний вид тоже поправить”.
+- Access: fixed on 2026-10-21 (5fd8f69, 5 cards per query). Re-checked tonight: a copy of production users, students,
+  homework, worksheetAssignments, exerciseResults (read only) was loaded into the local emulator, and the page's own
+  queries ran as each of the 5 teachers. Result: all OK, no permission errors. Nothing to change in the rules.
+- Look:
+  - search and filter in one slim row (no big empty card);
+  - each task shows the student's name first (teachers scan by student);
+  - the due date in words: „Täna”, „Homme”, „3 p hiljaks”, „28. okt” (homeworkFlow.dueLabel);
+  - „Ootab hinnet” instead of the long „Automaatselt kontrollitud”; work titles wrap to two lines;
+  - phones: the due date is shown again (index.css hid it under 560 px); „Kinnita N” goes under the work.
+- Bug fixed: `Button` dropped its own classes when given a `className`, so „Kinnita N” looked like a bare grey button.
+  The only user was this button.
+- Files: crm-v2/src/components/ui/Button.jsx, features/homework/HomeworkPage.jsx, homeworkFlow.js (+ test),
+  homeworkPage.css (new).
+- Checks: verify (eslint 0, vitest 2666 passed); local visual check at 1400 px and 375 px.
+- Next safe step: the owner approves the PR.
+
+## 2026-10-26 · agent/night-fixes — „Ei saa tulla?”: a plain „Ma ei tule” (parents' complaint)
+
+- Owner 2026-10-26: „родители жаловались что у них отметка не приду на урок не работала”. Cause: the dialog demanded a
+  new time or a written one („Vali uus aeg või kirjuta …”), so a plain absence could not be sent. Production had
+  0 lessonChangeRequests ever. Rules were fine: the emulator shows a linked parent can create the request.
+- RescheduleDialog: two choices on top — „Ma ei tule · uut aega pole vaja” (button „Saada teade”) / „Soovin uut aega”.
+- rescheduleModel: buildRequest({ absent }) stores proposals [] and other '' (same document keys, no rules change);
+  isAbsenceOnly(request).
+- Teacher (ChangeRequestsPanel + CalendarPage): „Märgi puudumine” marks the lesson Puudus_p („teatas ette”) through
+  lessonRepository.completeFromSchedule (the reason goes into the note) and answers the notice (accepted, chosen null).
+  The heading is „Ei saa tulla (N)”; the bell says „… ei tule tunnile”.
+- Student page / parent page: „Teade saadetud”, then „Ei tule · märgitud”.
+- Production read (2026-10-26): 40 parent accounts, 37 linked to a card, 3 not linked (they see no lessons at all);
+  every schedule doc has teacherUid.
+- Checks: verify (eslint 0, vitest 2668 passed); lesson-change-emulator.integration.js on the emulator (pass, a parent
+  case added).
+- Next safe step: the owner approves the PR; links the 3 unlinked parent accounts in Kasutajad.
+
 ## 2026-10-26 · agent/finance-lesson-revenue — Finantsid „Ülevaade” counts the calendar's lessons, not the invoices
 
 - Owner 2026-10-26: „прогноз … не привязывать к бухгалтерии, он берётся из количества уроков в календаре, проведённых
