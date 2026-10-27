@@ -152,6 +152,7 @@ const {
   replyMatchesConversation,
   verifyMetaSignature,
   webhookMessages,
+  webhookSummary,
 } = require("./meta-messaging-core");
 
 admin.initializeApp();
@@ -10467,6 +10468,7 @@ exports.metaMessagingApi = functions
         return;
       }
       const messages = webhookMessages(req.body);
+      functions.logger.info("meta webhook", { ...webhookSummary(req.body), stored: messages.length });
       let created = 0;
       for (const message of messages) {
         try {

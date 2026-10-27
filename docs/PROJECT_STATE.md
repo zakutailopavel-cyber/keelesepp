@@ -1,3 +1,23 @@
+## 2026-10-27 · agent/meta-inbox — Facebook / Instagram inbox: nothing lost, and a log that shows whether Meta calls at all
+
+- Owner 2026-10-26: „доделать общение с клиентами”. Production read (2026-10-27, read only):
+  - `messages` has 27 internal messages and **no Facebook / Instagram message ever**, although `metaMessagingApi` is
+    deployed and its 4 secrets exist; 17 calls in 60 days, all 200.
+  - E-mails to students and parents (#792) are deployed, but no type is switched on (`emailSettings` missing,
+    `emailLog` 0).
+  - Old `emailQueue` failures („535 Authentication failed”, 2026-07-11…10-07) stopped on 10-07.
+- This PR (functions only):
+  - a Meta message with only a photo / voice / file / sticker was dropped (no text); it is now stored as „[pilt]”,
+    „[helisõnum]”, „[fail]” …;
+  - every webhook call logs a content-free summary (`meta webhook`: object, entries, event kinds, stored count).
+- Files: functions/meta-messaging-core.js (+ test), functions/index.js.
+- Checks: functions `npm test` 408/408; index.js loads.
+- Deploy needed (owner): `firebase deploy --only functions:metaMessagingApi`.
+- Owner's side (Meta, not code): in the Meta app → Messenger / Instagram → Webhooks the page (and the IG account) must
+  be subscribed to `messages`, with the callback `…/metaMessagingApi/webhook`, and the app must be Live. After a test
+  message the log shows `meta webhook` with `message: 1`.
+- Next safe step: owner approves + deploys, sends a test message to the Facebook page, checks Sõnumid.
+
 ## 2026-10-27 · agent/local-today — „today” is the local day, not the UTC one (site bug check)
 
 - Found in the night bug check (owner 2026-10-26 „проверить сайт на наличие багов”): 43 places took „today” as
