@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, vi } from 'vitest';
 import CalendarPage from './CalendarPage.jsx';
-import { toIsoDate } from './calendarView.js';
+import { shiftDate, toIsoDate } from './calendarView.js';
 
 // jsdom's PointerEvent drops clientX/clientY: without them a drag looks like a click
 globalThis.PointerEvent = class PointerEvent extends globalThis.MouseEvent {
@@ -83,6 +83,20 @@ describe('calendar v2', () => {
     fireEvent.click(await within(dialog).findByRole('option', { name: /Mari Maas/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ roomId: 'r2', roomName: 'Kabinet 2', online: false })));
+  });
+
+  it('„Uus tund”: choosing a student offers the student\'s free suitable times; a click fills date and time', async () => {
+    const tomorrow = shiftDate(today, 1);
+    const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${tomorrow}T12:00:00`).getDay()];
+    renderCalendar({ studentTimes: [{ studentId: 's1', slots: [`${day}-16:00`, `${day}-16:30`, `${day}-17:00`, `${day}-17:30`], preferred: [`${day}-16:00`, `${day}-16:30`] }] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    const dialog = await screen.findByRole('dialog', { name: /Uus tund/ });
+    fireEvent.change(within(dialog).getByRole('combobox', { name: /Õpilane/ }), { target: { value: 'Mari' } });
+    fireEvent.click(await within(dialog).findByRole('option', { name: /Mari Maas/ }));
+    const times = await within(dialog).findByRole('group', { name: 'Õpilase sobivad vabad ajad' });
+    fireEvent.click(within(times).getAllByRole('button', { name: /16:00 ★/ })[0]);
+    expect(within(dialog).getByLabelText('Kellaaeg')).toHaveValue('16:00');
+    expect(within(dialog).getByLabelText('Kuupäev')).toHaveValue(tomorrow);
   });
 
   it('rooms: all taken → the form says so and saving fails until it is an online lesson', async () => {

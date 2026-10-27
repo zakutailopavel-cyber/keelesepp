@@ -220,7 +220,7 @@ export function judgeSlot(ctx, lesson, { date, time }, draft = []) {
   if (noRoom) reasons.push('vaba kabinetti pole');
   const penalty = ({ best: 0, ok: 10, partial: 100, none: 200, unknown: 150 })[student]
     + (teacher === 'busy' ? 150 : teacher === 'online' ? (lesson.online ? 3 : 120) : teacher === 'open' && hasGreen ? 5 : 0)
-    + list.reduce((sum, entry) => sum + (entry.kind === 'student' ? 1000 : entry.kind === 'teacher' ? 300 : 80), 0)
+    + list.reduce((sum, entry) => sum + (entry.kind === 'student' ? 1000 : entry.kind === 'teacher' || learned ? 300 : 80), 0)
     + (noRoom ? 90 : 0);
   return { colour, student, teacher, needsAgreement, overlaps: list, noRoom, roomId, reasons, penalty };
 }
@@ -320,7 +320,9 @@ function fallback(ctx, lesson, draft) {
     if (!best || cost < best.cost) best = { date, time, judged, cost };
   };
   ctx.dates.forEach((date) => studentStarts(availability, date, duration).forEach((time) => tryAt(date, time)));
-  if (!best || best.judged.overlaps.some((entry) => entry.kind === 'student')) ctx.dates.forEach((date) => startsOn(duration).forEach((time) => tryAt(date, time, 50)));
+  // any time of the day: usual lesson hours first — not 7:00, not late evening, weekdays before the weekend
+  const unusual = (date, time) => { const hour = Number(time.slice(0, 2)); return (hour < 9 ? 60 : hour < 12 ? 15 : hour >= 20 ? 30 : 0) + (['Sat', 'Sun'].includes(dayOfDate(date)) ? 30 : 0); };
+  if (!best || best.judged.overlaps.length) ctx.dates.forEach((date) => startsOn(duration).forEach((time) => tryAt(date, time, 50 + unusual(date, time))));
   return best;
 }
 
