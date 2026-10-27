@@ -3579,3 +3579,12 @@
 - Checks: `businessReport.test.js`, FinanceDashboard UI test; full eslint + vitest VERIFIED (2712 passed). Read-only production run: Oct 2026 — 277 lessons took place, attendance 95%, 84 students, 37 new, 5 lost, 25 cards without a price.
 - Limits: calendar prices, not bookkeeping; unmarked past lessons count as held.
 - Next safe step: owner sets prices for the cards listed „Ilma hinnata”.
+
+### 2026-10-27 — Ärinäitajad: teacher pay per teacher (agent/finance-teacher-pay)
+
+- Owner: „доход с каждого учителя, у Ангелины час стоит 10 евро, у Егора 10 и у Лизы 12”.
+- Production write on owner request: `users/{uid}.workHourlyRateCents` Anhelina Korotka 1000, Jegor Fjodorov 1000, Yelyzaveta Lukiianchuk 1200, each with a `workTimeAudit` `rate_updated` entry (same shape as the Palk ja kulud rate button).
+- `businessReport.js`: facts carry `occurrence` + `minutes`; `withTeacherPay` — hours given (held, unmarked, covered, charged no-show; a group lesson once) × rate → `payCents`, `schoolCents`; `report.pay { payCents, schoolCents, unrated }`. FinanceDashboard loads `teachersService.list()`.
+- UI: teacher table columns Tunde, Tunnitasu, Õpetaja tasu, Koolile jääb; cards „Õpetajate tasu”, „Koolile jääb”.
+- Checks: finance vitest 183 passed; full verify below in the PR. Read-only run Oct 2026: teacher pay 1 094,83 €, school keeps 4 070,51 €; Pavel and Elena have no rate.
+- Next safe step: prices for unpriced students (Jegor's revenue looks low because of them).

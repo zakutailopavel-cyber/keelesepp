@@ -33,7 +33,7 @@ export function lessonFacts({ from, to, today, students = [], plans = [], schedu
       if (record) seen.add(record.id || `${studentId}@${item.occurrenceDate}`);
       const status = record?.status || item.status || 'Planeeritud';
       const cents = lessonPriceCents(item, student, plan);
-      const base = { date: item.occurrenceDate, studentId, studentName: student.name || item.studentName || '', teacher: item.teacher || student.teacher || '', subject: itemSubject(item, student) || 'Eesti keel', group: Boolean(item.isGroup), cents, priced: cents > 0 };
+      const base = { occurrence: `${item.id}:${item.occurrenceDate}`, minutes: Number(item.duration) || 60, date: item.occurrenceDate, studentId, studentName: student.name || item.studentName || '', teacher: item.teacher || student.teacher || '', subject: itemSubject(item, student) || 'Eesti keel', group: Boolean(item.isGroup), cents, priced: cents > 0 };
       let state;
       if (status === 'Tühistatud') state = 'cancelled';
       else if (item.occurrenceDate >= today) state = status === 'Puudus_p' ? 'absentNotified' : 'planned';
@@ -46,13 +46,13 @@ export function lessonFacts({ from, to, today, students = [], plans = [], schedu
   });
   // a one-off lesson cancelled as a whole is not an occurrence any more
   schedule.filter((event) => !event.recurring && event.status === 'Tühistatud' && event.date >= from && event.date <= to && studentById.has(event.studentId))
-    .forEach((event) => out.push({ date: event.date, studentId: event.studentId, studentName: studentById.get(event.studentId).name || '', teacher: event.teacher || '', subject: itemSubject(event, studentById.get(event.studentId)) || 'Eesti keel', group: false, cents: 0, priced: true, state: 'cancelled' }));
+    .forEach((event) => out.push({ occurrence: event.id, minutes: Number(event.duration) || 60, date: event.date, studentId: event.studentId, studentName: studentById.get(event.studentId).name || '', teacher: event.teacher || '', subject: itemSubject(event, studentById.get(event.studentId)) || 'Eesti keel', group: false, cents: 0, priced: true, state: 'cancelled' }));
   // journal lessons not in the calendar
   lessons.filter((lesson) => lesson.date >= from && lesson.date <= to && lesson.date < today && !seen.has(lesson.id || `${lesson.studentId}@${lesson.date}`) && studentById.has(lesson.studentId)).forEach((lesson) => {
     const student = studentById.get(lesson.studentId);
     const cents = lessonPriceCents(lesson, student, planById.get(lesson.studentId));
     const state = lesson.status === 'Puudus_p' ? 'absentNotified' : lesson.status === 'Puudus_eta' ? 'absentCharged' : lesson.billingStatus === 'school_covered' ? 'covered' : 'held';
-    out.push({ date: lesson.date, studentId: lesson.studentId, studentName: student.name || '', teacher: lesson.teacher || student.teacher || '', subject: itemSubject(lesson, student) || 'Eesti keel', group: false, cents, priced: cents > 0, state });
+    out.push({ occurrence: lesson.id || `${lesson.studentId}@${lesson.date}`, minutes: Number(lesson.duration) || 60, date: lesson.date, studentId: lesson.studentId, studentName: student.name || '', teacher: lesson.teacher || student.teacher || '', subject: itemSubject(lesson, student) || 'Eesti keel', group: false, cents, priced: cents > 0, state });
   });
   return out;
 }
@@ -99,14 +99,33 @@ export function teacherNames(names) {
   };
 }
 
+// the teacher is paid for every lesson given (also a charged no-show: the hour was kept), a group lesson once
+const TEACHER_PAID = new Set(['held', 'unmarked', 'covered', 'absentCharged']);
+
+/**
+ * Teacher pay and what stays with the school, per teacher (owner 2026-10-27: „доход с каждого учителя, у Ангелины час
+ * стоит 10 евро, у Егора 10, у Лизы 12”). The rate is the staff account's `workHourlyRateCents` (Palk ja kulud);
+ * a teacher without a rate has `payCents: null`.
+ */
+export function withTeacherPay(rows, facts, rateOf) {
+  return rows.map((row) => {
+    const given = new Map();
+    facts.filter((fact) => fact.teacher === row.name && TEACHER_PAID.has(fact.state)).forEach((fact) => given.set(fact.occurrence, fact.minutes));
+    const minutes = [...given.values()].reduce((sum, value) => sum + value, 0);
+    const rate = rateOf(row.name);
+    const payCents = rate ? Math.round((minutes / 60) * rate) : null;
+    return { ...row, hours: Math.round((minutes / 60) * 10) / 10, rateCents: rate || null, payCents, schoolCents: row.earnedCents - (payCents || 0) };
+  });
+}
+
 const change = (now, before) => (before ? Math.round(((now - before) / before) * 100) : null);
 
 /**
  * The business report of a period of `months` months ending with the current month, compared with the months before.
  * → { from, to, now: sums, before: sums, change: { tookPlace, earned, students }, newStudents, lostStudents,
- *     unpriced, byTeacher, bySubject }
+ *     unpriced, byTeacher (+ hours, rateCents, payCents, schoolCents), pay: { payCents, schoolCents, unrated }, bySubject }
  */
-export function businessReport({ current, months = 1, today, students = [], plans = [], schedule = [], groups = [], lessons = [] } = {}) {
+export function businessReport({ current, months = 1, today, students = [], plans = [], schedule = [], groups = [], lessons = [], teachers = [] } = {}) {
   const fromMonth = shiftMonth(current, -(months - 1));
   const from = `${fromMonth}-01`;
   const to = monthDates(current).pop();
@@ -124,7 +143,11 @@ export function businessReport({ current, months = 1, today, students = [], plan
   const beforeStudents = came(previous);
   const ahead = new Set(facts.filter((fact) => fact.state === 'planned').map((fact) => fact.studentId));
   const nameOf = (id) => students.find((student) => student.id === id)?.name || 'Õpilane';
-  const teacherOf = teacherNames(facts.map((fact) => fact.teacher));
+  const teacherOf = teacherNames([...facts.map((fact) => fact.teacher), ...teachers.map((teacher) => teacher.name)]);
+  const rates = new Map(teachers.filter((teacher) => Number(teacher.workHourlyRateCents) > 0).map((teacher) => [teacherOf(teacher.name), Number(teacher.workHourlyRateCents)]));
+  const byTeacherFacts = facts.map((fact) => ({ ...fact, teacher: teacherOf(fact.teacher) }));
+  const byTeacher = withTeacherPay(groupBy(byTeacherFacts, 'teacher'), byTeacherFacts, (name) => rates.get(name));
+  const payCents = byTeacher.reduce((sum, row) => sum + (row.payCents || 0), 0);
   const unpriced = [...new Set(facts.filter((fact) => !fact.priced && fact.state !== 'cancelled').map((fact) => fact.studentId))];
   return {
     from, to, now, before,
@@ -132,7 +155,8 @@ export function businessReport({ current, months = 1, today, students = [], plan
     newStudents: [...nowStudents].filter((id) => !everBefore.has(id)).map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
     lostStudents: [...beforeStudents].filter((id) => !nowStudents.has(id) && !ahead.has(id)).map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
     unpriced: unpriced.map(nameOf).sort((a, b) => a.localeCompare(b, 'et')),
-    byTeacher: groupBy(facts.map((fact) => ({ ...fact, teacher: teacherOf(fact.teacher) })), 'teacher'),
+    byTeacher,
+    pay: { payCents, schoolCents: now.earnedCents - payCents, unrated: byTeacher.filter((row) => !row.rateCents && row.tookPlace).map((row) => row.name) },
     bySubject: groupBy(facts, 'subject'),
   };
 }
