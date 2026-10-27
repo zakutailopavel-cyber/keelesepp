@@ -45,7 +45,7 @@ describe('GroupsPage', () => {
     fireEvent.change(within(dialog).getByLabelText('Tase'), { target: { value: 'B1' } });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta grupp' }));
 
-    await waitFor(() => expect(data.repository.create).toHaveBeenCalledWith({ name: 'B1 hommikurühm', teacherUid: 'teacher-1', teacher: 'Õpetaja', subject: 'Eesti keel', level: 'B1' }, user));
+    await waitFor(() => expect(data.repository.create).toHaveBeenCalledWith({ name: 'B1 hommikurühm', teacherUid: 'teacher-1', teacher: 'Õpetaja', subject: 'Eesti keel', level: 'B1', audience: '', capacity: '' }, user));
     expect(await screen.findByRole('status')).toHaveTextContent('Grupp lisati');
   });
 

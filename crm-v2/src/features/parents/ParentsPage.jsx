@@ -13,6 +13,7 @@ import ParentInviteDialog from './ParentInviteDialog.jsx';
 import { nameLikeness } from '../students/duplicateCandidates.js';
 import SubjectSelect from '../students/SubjectSelect.jsx';
 import { buildParentRows, exactParentDuplicateClusters, filterParentRows } from './parentModel.js';
+import { localDate } from '../../utils/localDate.js';
 
 const statuses = {
   new: { label: 'Uus', tone: 'info' },
@@ -231,7 +232,7 @@ export default function ParentsPage({ repository = parentsService, studentReposi
 
   const linkedCount = scopedRows.filter((row) => row.children.length).length;
   const needsReview = scopedRows.filter((row) => row.needsReview || row.missingNames.length);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDate();
   const todayContacts = scopedRows.filter((row) => row.parent.parentNextContactAt === today).length;
   const balance = admin ? scopedRows.reduce((sum, row) => sum + row.balanceCents, 0) : 0;
 

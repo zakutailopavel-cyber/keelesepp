@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { learnedTimes } from './studentTimesModel.js';
 import { distribute, dragMarks, judgeAll, judgeSlot, lessonPayload, moveDraft, nextMonday, openRequests, patternDates, placeRequest, planningRequests, planSummary, plannerContext } from './plannerModel.js';
 
 const START = '2026-11-02'; // a Monday
@@ -179,5 +180,21 @@ describe('planner: colours while dragging', () => {
     expect(at('08:00')).toBe('plan-red');
     expect(marks.find((mark) => mark.start === 14 * 60).title).toMatch(/Kattub: b/);
     expect(dragMarks(context({ studentTimes, teacherTimes }), request('a', { online: false }), START, []).find((mark) => mark.start === 12 * 60).kind).toBe('plan-red');
+  });
+});
+
+describe('planner: students without „Sobivad ajad” (learned times)', () => {
+  it('places a student at the time of the past lessons, yellow, and calls another time unknown, not „cannot”', () => {
+    const learned = learnedTimes({ today: '2026-10-26', events: [{ id: 'old', studentId: 'a', date: '2026-09-07', time: '16:00', duration: 60, recurring: true, day: 'Mon', endDate: '2026-10-12' }] });
+    const ctx = context({ studentTimes: Object.fromEntries(learned) });
+    const { lessons, unplaced } = distribute(ctx, [request('a')]);
+    expect(unplaced).toEqual([]);
+    expect(lessons[0]).toMatchObject({ day: 'Mon', time: '16:00' });
+    const there = judgeSlot(ctx, lessons[0], { date: lessons[0].date, time: '16:00' });
+    expect(there.colour).toBe('yellow');
+    expect(there.reasons[0]).toMatch(/käis varem sel ajal/);
+    const elsewhere = judgeSlot(ctx, lessons[0], { date: '2026-11-04', time: '10:00' });
+    expect(elsewhere.student).toBe('unknown');
+    expect(elsewhere.reasons[0]).toMatch(/pole sel ajal käinud/);
   });
 });

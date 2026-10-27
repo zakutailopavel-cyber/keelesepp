@@ -233,7 +233,7 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
         <span className="is-unplaced"><b>{summary.unplaced}</b> aega ei leitud</span>
         <small>{requests.length} õppesuunda · mustand salvestub selles brauseris · kalendrisse kirjutatakse alles „Kinnita ajakava” järel</small>
       </div>
-      <p className="cal2-legend cal2-plan__legend" aria-label="Värvid"><span><i className="cal2-dot is-plan-green" /> sobib õpilasele (★ eelistatud), õpetaja vaba</span><span><i className="cal2-dot is-plan-yellow" /> võimalik (sobib, aga pole ★; õpetajal ainult veeb; väljaspool õpetaja vaba aega)</span><span><i className="cal2-dot is-plan-red" /> õpilasele ei sobi / õpetaja ei saa / kattub — saab panna, lepi õpilasega kokku</span><span><i className="cal2-dot is-plan-draft" /> mustand</span></p>
+      <p className="cal2-legend cal2-plan__legend" aria-label="Värvid"><span><i className="cal2-dot is-plan-green" /> sobib õpilasele (★ eelistatud), õpetaja vaba</span><span><i className="cal2-dot is-plan-yellow" /> võimalik (sobib, aga pole ★; õpilane käis varem sel ajal; õpetajal ainult veeb; väljaspool õpetaja vaba aega)</span><span><i className="cal2-dot is-plan-red" /> õpilasele ei sobi / õpetaja ei saa / kattub — saab panna, lepi õpilasega kokku</span><span><i className="cal2-dot is-plan-draft" /> mustand</span></p>
       {draft.stale ? <p className="form-hint cal2-plan__stale">Plaan on muutunud: vajuta „Jaota”, et õpilased uuesti jaotada (käsitsi tõstetud tunnid jäävad paigale).</p> : null}
       {notice ? <p className="cal2-plan__notice" role="status">{notice}<button type="button" aria-label="Sulge teade" onClick={() => setNotice('')}><X size={13} /></button></p> : null}
       {error ? <p className="action-error" role="alert">{error}<button type="button" aria-label="Sulge" onClick={() => setError('')}>×</button></p> : null}
@@ -321,6 +321,8 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
 }
 
 function hasTimesLine(studentTimes, studentId) {
-  const line = timesLine(studentTimes.get?.(studentId));
+  const times = studentTimes.get?.(studentId);
+  const line = timesLine(times);
+  if (line && times?.learned) return `Sobivaid aegu pole märgitud; varasemad tunnid: ${line}.`;
   return line ? `Õpilase sobivad ajad: ${line}.` : 'Õpilase sobivad ajad puuduvad.';
 }
