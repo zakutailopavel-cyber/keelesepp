@@ -50,7 +50,7 @@ function SubmissionList({ items, staff, onOpen, onConfirm, confirming = '' }) {
     const suggested = staff && !reviewed && onConfirm ? suggestedGrade(item.percentage) : null;
     const grade = suggested && suggested >= QUICK_MIN_GRADE ? suggested : null;
     const key = `${item.submissionKind}-${item.id}`;
-    const row = <button className="submission-row" key={grade ? undefined : key} onClick={() => onOpen(item)}>
+    const row = <button className="submission-row" data-student-id={staff ? item.studentId || undefined : undefined} key={grade ? undefined : key} onClick={() => onOpen(item)}>
       <i>{item.submissionKind === 'worksheet' ? <FileText size={20} /> : <ClipboardCheck size={20} />}</i>
       <span className="submission-row__main"><strong>{item.title}</strong><small>{item.studentName || 'Õpilane'} · {formatDate(item.completedAt)}</small></span>
       <span className="submission-row__score">{item.percentage != null ? <b>{item.percentage}%</b> : null}{item.teacherGrade ? <small>Hinne {item.teacherGrade}</small> : null}</span>
@@ -291,7 +291,7 @@ export default function HomeworkPage({ repository = homeworkService, studentRepo
           const studentCanFinish = studentRole && !done && !closed && selfCompleted(item);
           const exerciseTask = Boolean(item.isExercise && item.exerciseId);
           const materialTask = Boolean(!exerciseTask && (item.sourceId || item.attachments?.length || item.fileUrl));
-          return <article className={done || closed ? 'task-row is-done' : 'task-row'} key={item.id}>
+          return <article className={done || closed ? 'task-row is-done' : 'task-row'} key={item.id} data-student-id={staff ? item.studentId || undefined : undefined}>
             {exerciseTask && !staff ? studentRole && !done ? <button className="task-check exercise-launch" aria-label={`Alusta harjutust ${item.exerciseTitle || item.task}`} disabled={loadingExercise === item.id} onClick={() => openExercise(item)}>{loadingExercise === item.id ? <span className="button__spinner" /> : <PlayCircle />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <PlayCircle />}</span> : canMarkHomework ? <button className="task-check" aria-label={done ? 'Märgi pooleliolevaks' : 'Märgi tehtuks'} onClick={async () => { await repository.setStatus(item.id, done ? 'Ootel' : 'Tehtud'); await state.reload(); }}>{done ? <CheckCircle2 /> : <Clock3 />}</button> : <span className="task-check">{done ? <CheckCircle2 /> : <Clock3 />}</span>}
             <div>{staff ? <b className="task-student">{item.studentName || 'Õpilane'}</b> : null}<strong className="task-text">{item.task}</strong>{staff ? (exerciseTask || item.source === 'live-classroom' ? <span>{[exerciseTask ? 'Interaktiivne harjutus' : '', item.source === 'live-classroom' ? 'Tunnist' : ''].filter(Boolean).join(' · ')}</span> : null) : <span>{item.studentName || 'Õpilane'}{exerciseTask ? ' · Interaktiivne harjutus' : ''}{item.source === 'live-classroom' ? ' · Tunnist' : ''}</span>}
               {item.boardPageId ? <Link className="task-link" to={staff ? `/board/${item.studentId}?page=${item.boardPageId}` : `/board?page=${item.boardPageId}`}>Ava tahvlileht „{item.boardPageTitle || 'Tahvlileht'}”</Link> : null}

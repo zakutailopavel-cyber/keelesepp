@@ -1,3 +1,24 @@
+## 2026-10-27 · agent/group-detail-menu — the group for the admin, and the student menu on right-click
+
+- Owner 2026-10-27: „админ открывает группу и видит, кого я добавил и чего не хватает” (a group showed „21 õpilast”
+  but listed one: the members taken from former students are archived cards, GroupsPage loaded active ones only) and
+  „правой кнопкой на ученика — фиксированный набор инструментов … переименовать, изменить, архивировать, написать”.
+- Grupid: archived cards are loaded too, so every member shows. The group title (and „+N õpilast · ava grupp”) opens
+  `GroupDetailDialog`:
+  - „Mis puudub” (`groupCheck.groupGaps`): teacher, lesson times, seats vs capacity, how many agreed (interested),
+    former (archived) members, ages outside the range, members without suitable times, members without contacts —
+    the open points first;
+  - every member with age, level, parent, phone / e-mail, the offer status and note, „Eemalda grupist”;
+    „Täida grupp”.
+- `components/StudentContextMenu` (AppShell, staff, not in a preview) opens on a right-click on a link to a
+  student card or an element with `data-student-id` (calendar blocks, Kodutööd rows marked). Shift + right-click keeps
+  the browser menu. Actions:
+  - Ava kaart; Nimeta ümber (`studentsService.rename`: card + `studentName` on the student's schedule, homework,
+    worksheetAssignments);
+  - Muuda andmeid (`/students/:id?edit=1`); Kirjuta (`/messages?student=`); Kalender (`/calendar?student=`);
+  - Koosta tööleht; Ava tahvel; copy phone / e-mail; Arhiveeri / Taasta (no deleting).
+- Checks: +3 tests (groupCheck, menu ×2); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/contact-queue — Grupid: selected families go to a colleague as call tasks
 
 - Owner 2026-10-27: „я их выбрал, чтобы админ с ними связался, а мне он их в группу предлагает”.

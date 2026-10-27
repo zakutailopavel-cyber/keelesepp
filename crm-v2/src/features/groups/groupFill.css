@@ -25,3 +25,16 @@
 .group-contacts__contact a { font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
 .group-contacts__interest { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 6px; align-items: center; }
 @media (max-width: 900px) { .group-contacts__filters { grid-template-columns: 1fr 1fr; } .group-contacts__row { grid-template-columns: auto minmax(0, 1fr); } .group-contacts__contact, .group-contacts__interest { grid-column: 2; } }
+
+/* the group for the admin: members and what is missing (owner 2026-10-27) */
+.modal--group-detail { width: min(900px, 100%); }
+.group-detail__gaps ul { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 6px; }
+.group-detail__gaps li { display: flex; align-items: center; gap: 8px; font-size: .88rem; padding: 7px 10px; border-radius: 9px; }
+.group-detail__gaps li.is-open { background: #fff4e5; color: #8a5300; }
+.group-detail__gaps li.is-ok { background: #f1f8f5; color: #176553; }
+.group-detail__row { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
+.group-detail__row:last-child { border-bottom: 0; }
+.group-detail__note { display: block; color: var(--muted); font-size: .74rem; margin-top: 2px; }
+.group-card__open { border: 0; background: transparent; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+.group-card__open:hover h2 { text-decoration: underline; }
+@media (max-width: 700px) { .group-detail__row { grid-template-columns: minmax(0, 1fr) auto; } }

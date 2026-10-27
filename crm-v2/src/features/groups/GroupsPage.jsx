@@ -10,6 +10,7 @@ import { ROLES } from '../../utils/roles.js';
 import SubjectSelect from '../students/SubjectSelect.jsx';
 import GroupFillDialog from './GroupFillDialog.jsx';
 import GroupContactsPanel from './GroupContactsPanel.jsx';
+import GroupDetailDialog from './GroupDetailDialog.jsx';
 import { AUDIENCES, capacityOf, freeSeats } from './groupFill.js';
 import './groupFill.css';
 import { localDate } from '../../utils/localDate.js';
@@ -33,6 +34,7 @@ export default function GroupsPage({ repository = groupsService, studentReposito
   const [groupForm, setGroupForm] = useState(blankGroup);
   const [memberGroupId, setMemberGroupId] = useState('');
   const [fillGroupId, setFillGroupId] = useState('');
+  const [openGroupId, setOpenGroupId] = useState('');
   const [memberQuery, setMemberQuery] = useState('');
   const [lessonGroupId, setLessonGroupId] = useState('');
   const [lessonForm, setLessonForm] = useState(blankLesson());
@@ -46,10 +48,12 @@ export default function GroupsPage({ repository = groupsService, studentReposito
       studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
       admin ? teacherRepository.list() : Promise.resolve([]),
     ]);
-    return { groups, students: students.items.filter((student) => student.active && !student.convertedToParent), teachers: teachers.filter((teacher) => !teacher.disabled) };
+    // members taken from the former students (the group offer list) are archived cards: they must show in the group too
+    const archived = await studentRepository.list({ status: 'archived', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }).then((result) => result.items || []).catch(() => []);
+    return { groups, students: students.items.filter((student) => student.active && !student.convertedToParent), archived: archived.filter((student) => student.active === false), teachers: teachers.filter((teacher) => !teacher.disabled) };
   }, [admin, repository, studentRepository, teacherOnly, teacherRepository, user.displayName, user.uid]);
 
-  const studentMap = useMemo(() => new Map((state.data?.students || []).map((student) => [student.id, student])), [state.data]);
+  const studentMap = useMemo(() => new Map([...(state.data?.archived || []), ...(state.data?.students || [])].map((student) => [student.id, student])), [state.data]);
   const visibleGroups = useMemo(() => (state.data?.groups || []).filter((group) => {
     const memberNames = group.students.map((id) => studentMap.get(id)?.name || '').join(' ');
     return `${group.name} ${group.teacher} ${group.subject} ${group.level} ${memberNames}`.toLocaleLowerCase('et').includes(query.toLocaleLowerCase('et'));
@@ -57,6 +61,7 @@ export default function GroupsPage({ repository = groupsService, studentReposito
   const memberGroup = state.data?.groups.find((group) => group.id === memberGroupId) || null;
   const lessonGroup = state.data?.groups.find((group) => group.id === lessonGroupId) || null;
   const fillGroup = state.data?.groups.find((group) => group.id === fillGroupId) || null;
+  const openGroup = state.data?.groups.find((group) => group.id === openGroupId) || null;
   const memberStudents = (state.data?.students || []).filter((student) => `${student.name} ${student.email || ''} ${student.level || ''}`.toLocaleLowerCase('et').includes(memberQuery.toLocaleLowerCase('et')));
 
   if (state.loading) return <LoadingState label="Laen gruppe…" />;
@@ -191,12 +196,12 @@ export default function GroupsPage({ repository = groupsService, studentReposito
     {visibleGroups.length ? <div className="group-grid">{visibleGroups.map((group) => {
       const members = group.students.map((id) => studentMap.get(id)).filter(Boolean);
       return <Card className="group-card" key={group.id}>
-        <header><i><Layers3 size={22} /></i><div><h2>{group.name}</h2><span>{group.subject} · {group.level}</span></div>{admin ? <button className="text-button danger" aria-label={`Kustuta ${group.name}`} disabled={saving === `group:${group.id}`} onClick={() => removeGroup(group)}><Trash2 size={18} /></button> : null}</header>
+        <header><i><Layers3 size={22} /></i><button type="button" className="group-card__open" onClick={() => setOpenGroupId(group.id)} aria-label={`Ava grupp ${group.name}`}><h2>{group.name}</h2><span>{group.subject} · {group.level}</span></button>{admin ? <button className="text-button danger" aria-label={`Kustuta ${group.name}`} disabled={saving === `group:${group.id}`} onClick={() => removeGroup(group)}><Trash2 size={18} /></button> : null}</header>
         <div className="group-card__stats"><div><UsersRound size={18} /><strong>{group.students.length}</strong><span>õpilast</span></div><div><CalendarClock size={18} /><strong>{group.lessons.length}</strong><span>tunniaega</span></div></div>
         <div className="group-card__seats"><Badge tone={freeSeats(group) ? 'info' : 'success'}>{group.students.length}/{capacityOf(group)} kohta</Badge>{group.audience ? <Badge tone="neutral">{AUDIENCES[group.audience]}{group.ageFrom || group.ageTo ? ` · ${group.ageFrom || '…'}–${group.ageTo || '…'} a` : ''}</Badge> : null}{admin ? <Button variant="secondary" onClick={() => setFillGroupId(group.id)}><UserPlus size={15} /> Täida</Button> : null}</div>
         <dl><div><dt>Õpetaja</dt><dd>{group.teacher || 'Määramata'}</dd></div><div><dt>Aine ja tase</dt><dd>{group.subject} · {group.level}</dd></div></dl>
         <section className="group-lessons"><div className="group-section-head"><strong>Tunniajad</strong>{admin ? <button onClick={() => { setLessonGroupId(group.id); setLessonForm(blankLesson()); }}><Plus size={15} /> Lisa aeg</button> : null}</div>{group.lessons.length ? group.lessons.map((lesson) => <div key={lesson.id}><span><b>{dayLabels[lesson.day] || lesson.day}</b><small>alates {lesson.startDate}</small></span><strong>{lesson.time}</strong>{admin ? <button aria-label={`Eemalda ${group.name} tunniaeg`} disabled={saving === `lesson:${lesson.id}`} onClick={() => removeLesson(group, lesson)}>×</button> : null}</div>) : <p>Tunniajad puuduvad.</p>}</section>
-        <section className="group-members"><div className="group-section-head"><strong>Õpilased</strong>{admin ? <button onClick={() => { setMemberGroupId(group.id); setMemberQuery(''); }}><UserPlus size={15} /> Halda</button> : null}</div>{members.length ? <div>{members.slice(0, 6).map((student) => <Link to={`/students/${student.id}`} key={student.id}><span>{student.name}</span><Badge tone="info">{student.level || '—'}</Badge></Link>)}{members.length > 6 ? <small>+{members.length - 6} õpilast</small> : null}</div> : <p>Õpilasi pole veel lisatud.</p>}</section>
+        <section className="group-members"><div className="group-section-head"><strong>Õpilased</strong>{admin ? <button onClick={() => { setMemberGroupId(group.id); setMemberQuery(''); }}><UserPlus size={15} /> Halda</button> : null}</div>{members.length ? <div>{members.slice(0, 6).map((student) => <Link to={`/students/${student.id}`} key={student.id}><span>{student.name}</span><Badge tone="info">{student.level || '—'}</Badge></Link>)}{members.length > 6 ? <button type="button" className="link-button" onClick={() => setOpenGroupId(group.id)}>+{members.length - 6} õpilast · ava grupp</button> : null}</div> : <p>Õpilasi pole veel lisatud.</p>}</section>
       </Card>;
     })}</div> : <Card><EmptyState title="Gruppe ei leitud" description={query ? 'Muuda otsingut.' : admin ? 'Lisa esimene grupp, tunniajad ja õpilased.' : 'Sinu õpetajakontoga seotud gruppe ei ole.'} /></Card>}
 
@@ -210,6 +215,9 @@ export default function GroupsPage({ repository = groupsService, studentReposito
 
     {admin ? <GroupContactsPanel groups={state.data.groups} user={user} saving={saving} {...(contactsRepositories ? { repositories: contactsRepositories } : {})}
       onAddToGroup={async (group, student) => { await repository.setStudent(group, student, true, user); await state.reload(); }} /> : null}
+
+    {openGroup ? <GroupDetailDialog group={openGroup} members={openGroup.students.map((id) => studentMap.get(id)).filter(Boolean)} saving={saving} canEdit={admin}
+      onRemove={(student) => changeMember(openGroup, student, false)} onFill={() => { setOpenGroupId(''); setFillGroupId(openGroup.id); }} onClose={() => setOpenGroupId('')} /> : null}
 
     {fillGroup ? <GroupFillDialog group={fillGroup} groups={state.data.groups} students={state.data.students} saving={saving}
       onAdd={(studentId) => { const student = studentMap.get(studentId); if (student) changeMember(fillGroup, student, true); }}

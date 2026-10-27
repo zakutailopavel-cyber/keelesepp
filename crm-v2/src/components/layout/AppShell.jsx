@@ -17,6 +17,7 @@ import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx'
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
+import StudentContextMenu from '../StudentContextMenu.jsx';
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
@@ -60,6 +61,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
 
   return (
     <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
+      {isStaff ? <StudentContextMenu /> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />

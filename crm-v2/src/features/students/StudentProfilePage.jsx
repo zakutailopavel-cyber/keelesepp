@@ -82,7 +82,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
   const canViewFinance = currentUser.roles?.some((role) => [ROLES.ADMIN, ROLES.FINANCE].includes(role));
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
   const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], plan: null });
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(() => searchParams.get('edit') === '1'); // the student menu „Muuda andmeid”
   // admin: archive (or restore) the student right from the card; the same action as in the list „Õpilased”
   const [archiveAsk, setArchiveAsk] = useState(false);
   const [archiving, setArchiving] = useState(false);
