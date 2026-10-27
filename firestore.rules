@@ -2488,6 +2488,37 @@ service cloud.firestore {
         && request.resource.data.updatedByUid == uid();
       allow delete: if false;
     }
+    // „Kampaaniad” (owner 2026-10-27): offers, ad campaigns and events prepared by the administrator; archived, never deleted
+    function campaignValid(data) {
+      return data.keys().hasOnly(['title', 'kind', 'status', 'startDate', 'endDate', 'audience', 'offer', 'goal', 'targetSignups', 'signups',
+          'budgetCents', 'spentCents', 'groupId', 'channels', 'posts', 'checklist', 'notes', 'createdAt', 'createdByUid', 'createdByName', 'updatedAt'])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 120
+        && data.kind in ['offer', 'ad', 'event']
+        && data.status in ['idea', 'preparing', 'ready', 'live', 'done', 'archived']
+        && data.startDate is string && data.startDate.size() <= 10
+        && data.endDate is string && data.endDate.size() <= 10
+        && data.audience is string && data.audience.size() <= 300
+        && data.offer is string && data.offer.size() <= 1000
+        && data.goal is string && data.goal.size() <= 300
+        && data.notes is string && data.notes.size() <= 3000
+        && data.targetSignups is int && data.targetSignups >= 0
+        && data.signups is int && data.signups >= 0
+        && data.budgetCents is int && data.budgetCents >= 0
+        && data.spentCents is int && data.spentCents >= 0
+        && data.groupId is string && data.groupId.size() <= 128
+        && data.channels is list && data.channels.size() <= 6
+        && data.posts is list && data.posts.size() <= 30
+        && data.checklist is list && data.checklist.size() <= 40
+        && data.createdAt is string && data.createdByUid is string && data.createdByName is string && data.updatedAt is string;
+    }
+    match /campaigns/{campaignId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && campaignValid(request.resource.data) && request.resource.data.createdByUid == uid();
+      allow update: if isAdmin() && campaignValid(request.resource.data)
+        && request.resource.data.createdByUid == resource.data.createdByUid
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+    }
     match /plannerBatches/{batchId} {
       allow read: if isAdmin();
       allow create: if isAdmin()
