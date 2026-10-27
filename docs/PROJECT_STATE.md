@@ -3571,3 +3571,11 @@
 - `admin/course/courseTools.test.js` (skipped normally): `COURSE_REPORT=<module>` prints the gates per lesson,
   `COURSE_DUMP=<file>` writes built sheets for `tools/course-audit/language.py`.
 
+### 2026-10-27 — Finantsid: „Ärinäitajad” (agent/finance-business)
+
+- Owner: „больше информации по кол-ву проведённых уроков и отчётности, которая может следить за состоянием бизнеса в целом”.
+- `crm-v2/src/features/finance/businessReport.js` (pure): `lessonFacts` — every calendar/journal lesson of a period with its state (held, unmarked, covered, absentNotified, absentCharged, absentFree, cancelled, planned) by the same rules as `lessonRevenue`; `businessReport({current, months, …})` — sums for the period and the period before (lessons, attendance %, earned, per lesson, per student, planned), new / lost students, cards without a price, by teacher (`teacherNames` joins „Pavel” → „Pavel Zakutailo”) and by subject.
+- `BusinessReport.jsx` under the chart in `FinanceDashboard.jsx`, driven by the period switch; css in `financeDashboard.css`; „Mis uut” item.
+- Checks: `businessReport.test.js`, FinanceDashboard UI test; full eslint + vitest VERIFIED (2712 passed). Read-only production run: Oct 2026 — 277 lessons took place, attendance 95%, 84 students, 37 new, 5 lost, 25 cards without a price.
+- Limits: calendar prices, not bookkeeping; unmarked past lessons count as held.
+- Next safe step: owner sets prices for the cards listed „Ilma hinnata”.

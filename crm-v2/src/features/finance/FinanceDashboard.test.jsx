@@ -11,6 +11,12 @@ describe('FinanceDashboard (calendar lessons)', () => {
     expect(screen.getByTestId('fd-detail')).toHaveTextContent('oktoober 2026 · toimunud 75 € (3 tundi, neist 2 märkimata) · kalendris veel 25 € (1 tundi)');
     fireEvent.click(screen.getByRole('button', { name: /november 2026: kalendris/ }));
     expect(screen.getByTestId('fd-detail')).toHaveTextContent('kalendris 125 € · 5 tundi');
+    // „Ärinäitajad”: lessons that took place, attendance, students, by teacher
+    const report = screen.getByRole('region', { name: 'Ärinäitajad' });
+    expect(report).toHaveTextContent('Toimunud tunde3');
+    expect(report).toHaveTextContent('1 märgitud toimunuks');
+    expect(report).toHaveTextContent('2 märkimata (loetud toimunuks)');
+    expect(report).toHaveTextContent('Kalendris veel1tundi · 25 €');
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Peida/ })); });
     expect(screen.queryByText('Toimunud · oktoober 2026')).toBeNull();
   });
