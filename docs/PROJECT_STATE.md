@@ -5,6 +5,77 @@
 - Removed from the index; `.gitignore` also ignores a plain `node_modules` entry.
 - Next safe step: none.
 
+## 2026-10-27 · agent/night-proposals — the night's summary and proposals (docs/NIGHT_2026-10-27_PROPOSALS.md)
+
+- Owner 2026-10-26 overnight plan: bugs, auto planner, client communication, group filling, parents' „не приду”,
+  preschool plans and groups, the 5–7 format, process optimisations, flexible teacher settings, Kodutööd, platform
+  proposals, a level test. Nothing merged or deployed; the owner approves in the morning.
+- docs/NIGHT_2026-10-27_PROPOSALS.md (Russian, for the owner) lists:
+  - the 9 open PRs (#824–#832) with their deploy needs and order (#826 before #829);
+  - the read-only findings (0 change requests, 3 unlinked parents, 44 students without times, e-mail types off, no
+    Meta message ever, level test never submitted, 0 groups);
+  - proposals for processes, the level test, teacher settings and the platform.
+- Next safe step: the owner goes through the PR table; merge order #826 → #829.
+
+## 2026-10-27 · agent/settings-tabs — Seaded in four tabs; „Minu vabad ajad” for teachers
+
+- Owner 2026-10-26: „настройки для учителей более гибкие и собрать как-то их в кучу, а то там много разных блоков”.
+- SettingsPage: the cards (unchanged) are grouped into tabs (`?tab=`):
+  - **Minu konto** — everyone: Minu andmed, Lemmik (student), Ligipääs, Turvalisus;
+  - **Minu töö** — staff: Juhend, the new „Minu vabad ajad” → /calendar?ajad=1, Google Calendar;
+  - **Kool** — admin: KeeleSepp AI, Puuduvad andmed, Õppesuunad, E-kirjad, Vanema / õpilase vaade;
+  - **Tehniline** — admin: Firebase, Testõpilane, Andmete puhastus, Teacher-scope migratsioon.
+  A student or parent sees no tab bar.
+- More flexible per-teacher settings (default lesson length, who may move lessons, reminders) are proposals in
+  docs/NIGHT_2026-10-27_PROPOSALS.md (they need new user fields + rules).
+- Checks: settings tests 20 passed (+1 admin tabs); eslint 0; local look on the emulator copy as a teacher.
+- Next safe step: owner approves.
+
+
+## 2026-10-27 · agent/site-bugs — night site check: results and two fixes
+
+- Owner 2026-10-26: „проверить сайт на наличие багов”. How it was checked (no production writes):
+  - production error logs, 7 days: clean except 2 deploy hiccups (2026-10-23);
+  - all 5 teachers' Kodutööd queries replayed on the emulator with a read-only copy of production: OK;
+  - a read-only copy of production Firestore (without tokens, keys, tax data) loaded into the local emulators, and the
+    site run against it with every API pointed nowhere. Visited:
+    - as admin: 32 pages + 25 student cards + 7 teacher pages + 3 boards;
+    - as a teacher: 14 pages;
+    - as a student: 10 pages;
+    - as a parent: 5 pages.
+  - Result: no Firestore permission errors and no crash. „Failed to fetch” only where the page needs a server
+    function (offline here).
+- Fixed here:
+  1. Sign-in landed on „Ligipääs puudub” when the previous user of the same browser had been on a page the new
+     account may not open (e.g. the child logs out from /student, the parent logs in). `loginMode.landingPath` keeps
+     the wanted page only if the new account's roles allow it (`ROUTE_ACCESS`); AuthContext `signIn` /
+     `signInWithGoogle` return the user.
+  2. Finantsid: PaymentDialog and CancelInvoiceDialog had the same React key „closed” (console error); keys are now
+     „pay-…” / „cancel-…”.
+- Found and fixed in their own PRs: UTC „today” (#827), Kodutööd look and `Button` className (#825).
+- Noted, not changed:
+  - teachers see „Päringud” (website enquiries) and „Kassa” — by design (ACCESS.LEADS / STAFF), owner to confirm;
+  - crm-v2/scripts/build-sheet-kit.mjs has an eslint error (`URL` no-undef) outside src (CI lints src only).
+- Checks: auth + app tests 31 passed (new landingPath test); eslint src 0; whole vitest: all passed except the known
+  night-time LearnerSnapshotCard (fixed in #827).
+- Next safe step: owner approves.
+
+## 2026-10-27 · agent/preschool-plan — the preschool (5–7) group course: plan and child lesson format (proposal)
+
+- Owner 2026-10-26: plans for preschoolers, organising groups for group lessons, a plan for 5–7-year-old groups;
+  „нашего генератора явно не хватит, нужен детский формат”.
+- New docs/PRESCHOOL_GROUP_COURSE.md:
+  - group size 4–6 and 45 min;
+  - an 8-part lesson (greeting circle → review → new words → movement → song → table task → picture story →
+    goodbye);
+  - a 32-week plan in 8 themed blocks;
+  - what the generator can and cannot do;
+  - progress as observation ticks (Oskab / Harjutame / Veel mitte);
+  - how to organise the groups (uses „Täida grupp”, #829);
+  - the CRM parts to build next: „Lastetund” card type, „Pildileht”, observation ticks, take-home card.
+- No code. Content (32 cards, picture sheets) goes to the content agent after the owner approves.
+- Next safe step: the owner approves or edits the plan and chooses which CRM part comes first.
+
 ## 2026-10-27 · agent/group-fill — „Täida grupp”: who fits a group (seats, age group, level, time)
 
 - Owner 2026-10-26: „заполнение групп”, „организация групп для групповых уроков” (also preschool 5–7). Stacked on

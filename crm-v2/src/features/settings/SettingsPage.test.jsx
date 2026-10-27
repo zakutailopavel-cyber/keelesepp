@@ -8,7 +8,8 @@ describe('SettingsPage', () => {
     const user = { uid: 'user-1', displayName: 'Mari', email: 'mari@example.com', roles: ['student'], profile: { phone: '555' } };
     const updateProfile = vi.fn().mockResolvedValue({ ...user, displayName: 'Mari Tamm', profile: { phone: '556' } });
     const sendPasswordReset = vi.fn().mockResolvedValue('mari@example.com');
-    render(<AuthContext.Provider value={{ user, configured: true, updateProfile, sendPasswordReset }}><SettingsPage /></AuthContext.Provider>);
+    render(<MemoryRouter><AuthContext.Provider value={{ user, configured: true, updateProfile, sendPasswordReset }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);
+    expect(screen.queryByRole('tablist')).toBeNull();
 
     expect(screen.getByRole('region', { name: 'Konto kokkuvõte' })).toHaveTextContent('FirebaseÜhendatud');
     fireEvent.change(screen.getByLabelText('Nimi'), { target: { value: ' Mari Tamm ' } });
@@ -26,6 +27,9 @@ describe('SettingsPage', () => {
     const teacher = { uid: 'teacher-1', displayName: 'Pavel', email: 'pavel@example.com', roles: ['teacher'], profile: {} };
     const googleCalendarRepository = { status: vi.fn().mockResolvedValue({ connected: false }) };
     render(<MemoryRouter><AuthContext.Provider value={{ user: teacher, configured: true }}><SettingsPage googleCalendarRepository={googleCalendarRepository} /></AuthContext.Provider></MemoryRouter>);
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Minu konto', 'Minu töö']);
+    fireEvent.click(screen.getByRole('tab', { name: 'Minu töö' }));
+    expect(screen.getByRole('link', { name: /Ava minu ajad kalendris/ })).toHaveAttribute('href', '/calendar?ajad=1');
     expect(await screen.findByRole('button', { name: /Ühenda Google Calendar/ })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Ava juhend/ })).toHaveAttribute('href', '/guide');
     expect(googleCalendarRepository.status).toHaveBeenCalledWith('teacher-1');
@@ -33,8 +37,17 @@ describe('SettingsPage', () => {
 
   it('does not show the Google Calendar card to a student', () => {
     const student = { uid: 'student-1', displayName: 'Mari', email: 'mari@example.com', roles: ['student'], profile: {} };
-    render(<AuthContext.Provider value={{ user: student, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider>);
+    render(<MemoryRouter><AuthContext.Provider value={{ user: student, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);
     expect(screen.queryByRole('heading', { name: 'Google Calendar' })).toBeNull();
     expect(screen.queryByRole('link', { name: /Ava juhend/ })).toBeNull();
+  });
+
+  it('gives an admin the school and technical tabs, opened from the address', () => {
+    const admin = { uid: 'admin-1', displayName: 'Oleksiy', email: 'o@keelesepp.test', roles: ['admin'], profile: {} };
+    render(<MemoryRouter initialEntries={['/settings?tab=tehniline']}><AuthContext.Provider value={{ user: admin, configured: true, preview: true }}><SettingsPage /></AuthContext.Provider></MemoryRouter>);
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual(['Minu konto', 'Minu töö', 'Kool', 'Tehniline']);
+    expect(screen.getByRole('tab', { name: 'Tehniline' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: 'Firebase' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Minu andmed' })).toBeNull();
   });
 });
