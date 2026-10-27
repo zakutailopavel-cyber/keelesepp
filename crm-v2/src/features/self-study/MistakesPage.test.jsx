@@ -3,6 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 import { AuthContext } from '../../app/AuthContext.jsx';
 import MistakesPage from './MistakesPage.jsx';
+import { localDate } from '../../utils/localDate.js';
 
 const page = (words, profile = {}) => render(<MemoryRouter><AuthContext.Provider value={{ user: { uid: 'u1', profile } }}>
   <MistakesPage studentRepository={{ listSelf: vi.fn().mockResolvedValue([{ id: 's1', name: 'Mari' }]) }}
@@ -25,7 +26,7 @@ describe('Minu vead', () => {
   });
 
   it('shows today\'s result saved on the account (another device)', async () => {
-    page([{ id: 'e1', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }], { practice: { errorsDate: new Date().toISOString().slice(0, 10), errorsPct: 90 } });
+    page([{ id: 'e1', word: 'Ma läksin panka', translation: 'Sinu lause: Mina läksin pank' }], { practice: { errorsDate: localDate(), errorsPct: 90 } });
     expect(await screen.findByText('Täna tehtud · 90%')).toBeInTheDocument();
   });
 });

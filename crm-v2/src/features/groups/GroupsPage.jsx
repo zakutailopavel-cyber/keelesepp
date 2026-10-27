@@ -8,11 +8,12 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService, studentsService, teachersService } from '../../services/firebase/index.js';
 import { ROLES } from '../../utils/roles.js';
 import SubjectSelect from '../students/SubjectSelect.jsx';
+import { localDate } from '../../utils/localDate.js';
 
 const dayLabels = { Mon: 'Esmaspäev', Tue: 'Teisipäev', Wed: 'Kolmapäev', Thu: 'Neljapäev', Fri: 'Reede', Sat: 'Laupäev', Sun: 'Pühapäev' };
 const dayShort = { Mon: 'E', Tue: 'T', Wed: 'K', Thu: 'N', Fri: 'R', Sat: 'L', Sun: 'P' };
 const blankGroup = { name: '', teacherUid: '', subject: 'Eesti keel', level: 'A1' };
-const blankLesson = () => ({ day: 'Mon', time: '16:00', startDate: new Date().toISOString().slice(0, 10) });
+const blankLesson = () => ({ day: 'Mon', time: '16:00', startDate: localDate() });
 
 function assignedLessonIds(group, studentId) {
   const saved = group.studentLessonMap?.[studentId];
