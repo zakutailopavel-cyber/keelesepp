@@ -134,6 +134,19 @@ describe('FinanceMonthPage', () => {
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('Maksemeeldetuletus saadeti'));
   });
 
+  it('offers a payment reminder before the due date too (owner 2026-10-27), not for a paid invoice', async () => {
+    const value = props();
+    value.invoiceRepository.list.mockResolvedValue([
+      { id: 'i9', planMonth: '2031-10', studentName: 'Ana Lepp', num: 'AR-39', amountCents: 10000, paidCents: 0, due: '2099-11-10' },
+      { id: 'i8', planMonth: '2031-10', studentName: 'Mari Maasikas', num: 'AR-38', amountCents: 10000, paidAmountCents: 10000, due: '2099-11-10' },
+    ]);
+    renderPage(value, '/finance?status=all');
+    const table = await screen.findByRole('table', { name: 'Arved 2031-10' });
+    expect(within(table).getAllByRole('button', { name: /Meeldetuletus/ })).toHaveLength(1);
+    await act(async () => { fireEvent.click(within(table).getByRole('button', { name: /Meeldetuletus/ })); });
+    expect(value.deliveryRepository.remind).toHaveBeenCalledWith('i9');
+  });
+
   it('opens all issued invoices for the selected month from the hero', async () => {
     const value = props();
     value.invoiceRepository.list.mockResolvedValue([
