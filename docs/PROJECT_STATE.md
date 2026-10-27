@@ -1,3 +1,15 @@
+## 2026-10-27 · agent/hide-archived-lessons — the calendar hides the future lessons of archived students
+
+- Owner 2026-10-27: „Martin, Людмила и Роберт постоянно появляются в календаре, убери их пока”. Production read:
+  - their cards are archived (`active: false`), but Google-imported one-off lessons stayed in `schedule`: Martin
+    (Wednesdays, to 2026-12-02) and Ljudmila (Tue / Thu, to 2026-12-01); Robert has none ahead.
+- `calendarView.withoutArchivedFuture`: from today on, lessons of archived cards are not shown. One-off lessons are
+  hidden; a weekly series ends yesterday. Past lessons stay. CalendarPage loads the archived cards (own scope for a
+  teacher).
+- Nothing deleted: a change to a Google-sourced lesson is written to Google Calendar. Taking the card out of the
+  archive shows the lessons again.
+- Checks: calendar tests 184 passed (+1); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/remind-before-due — „Meeldetuletus” before the due date too
 
 - Owner 2026-10-27: „сделай напоминание до срока”. Finantsid → month table: the reminder button is shown for every

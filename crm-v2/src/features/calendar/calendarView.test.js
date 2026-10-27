@@ -54,3 +54,24 @@ it('finds the subject of a lesson and its short code', async () => {
   expect(lesson.subject).toBe('Eesti keel');
   expect(group.subject).toBeUndefined();
 });
+
+describe('archived students in the calendar', () => {
+  it('drops their lessons from today on and keeps the past', async () => {
+    const { withoutArchivedFuture, eventOccursOn } = await import('./calendarView.js');
+    const archived = new Set(['a']);
+    const events = [
+      { id: 'past', studentId: 'a', date: '2026-10-20', time: '16:00' },
+      { id: 'future', studentId: 'a', date: '2026-10-28', time: '16:00' },
+      { id: 'weekly', studentId: 'a', recurring: true, day: 'Wed', startDate: '2026-09-02', time: '16:00' },
+      { id: 'later', studentId: 'a', recurring: true, day: 'Wed', startDate: '2026-11-04', time: '16:00' },
+      { id: 'other', studentId: 'b', date: '2026-10-28', time: '16:00' },
+      { id: 'group', isGroup: true, studentIds: ['a'], date: '2026-10-28' },
+    ];
+    const shown = withoutArchivedFuture(events, archived, '2026-10-27');
+    expect(shown.map((event) => event.id)).toEqual(['past', 'weekly', 'other', 'group']);
+    const weekly = shown.find((event) => event.id === 'weekly');
+    expect(eventOccursOn(weekly, '2026-10-21')).toBe(true);
+    expect(eventOccursOn(weekly, '2026-10-28')).toBe(false);
+    expect(withoutArchivedFuture(events, new Set(), '2026-10-27')).toBe(events);
+  });
+});

@@ -15,7 +15,7 @@ import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff
 import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
-import { datesForView, filterCalendarEvents, groupCalendarEvents, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
+import { datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
 import { canMove, planDelete, planMove, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
@@ -185,6 +185,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     studentRepository.list({ status: 'active', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }),
     groupRepository.list(teacherOnly ? { teacherUid: user.uid, teacherName: user.displayName } : {}),
     lessonRepository.listForCalendar(teacherOnly ? { teacherUid: user.uid } : {}),
+    studentRepository.list({ status: 'archived', pageSize: 500, exhaustive: true, ...(teacherOnly ? { scopeTeacherUid: user.uid } : {}) }).then((result) => result.items || []).catch(() => []),
   ]), [groupRepository, lessonRepository, scheduleRepository, studentRepository, teacherOnly, user.displayName, user.uid]);
   // the students' „Sobivad ajad” (studentAvailability): an administrator reads all, a teacher their own students' cards
   const scopedStudentIds = teacherOnly && state.data ? state.data[1].items.map((student) => student.id).join(',') : '';
@@ -224,7 +225,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   if (state.error) return <ErrorState message={state.error.message} onRetry={state.reload} />;
   const [scheduleEvents, students, groups, lessonRecords] = state.data;
   const studentMap = new Map(students.items.map((student) => [student.id, student]));
-  const events = [...withLessonSubjects(withCurrentStudentNames(scheduleEvents, studentMap), studentMap), ...groupCalendarEvents(groups)];
+  const archivedIds = new Set((state.data[4] || []).filter((student) => student.active === false).map((student) => student.id));
+  const events = [...withLessonSubjects(withCurrentStudentNames(withoutArchivedFuture(scheduleEvents, archivedIds, toIsoDate()), studentMap), studentMap), ...groupCalendarEvents(groups)];
   const filteredEvents = filterCalendarEvents(events, filters);
   const withRecord = (item) => {
     const resolved = resolveOccurrenceRecord(item, lessonRecords);

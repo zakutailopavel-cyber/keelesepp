@@ -66,6 +66,21 @@ export function resolveOccurrenceRecord(item, records = []) {
 
 // a lesson keeps the student's name from the day it was planned; the calendar shows the name on the student's card
 // now, so a renamed student is shown with the new name (the stored name stays as a fallback for a deleted card)
+// A student moved to the archive keeps the lessons imported from Google Calendar (owner 2026-10-27: „Martin, Людмила и
+// Роберт постоянно появляются в календаре, убери их пока”): from today on their lessons are not shown. Nothing is
+// deleted (a change would also go to Google Calendar); taking the card out of the archive shows them again.
+export function withoutArchivedFuture(events = [], archivedIds = new Set(), today) {
+  if (!archivedIds.size) return events;
+  const yesterday = shiftDate(today, -1);
+  return events.flatMap((event) => {
+    if (event.isGroup || !archivedIds.has(event.studentId)) return [event];
+    if (!event.recurring) return (event.date || '') < today ? [event] : [];
+    const start = event.startDate || event.date || '';
+    if (start >= today) return [];
+    return [{ ...event, endDate: event.endDate && event.endDate < yesterday ? event.endDate : yesterday }];
+  });
+}
+
 export function withCurrentStudentNames(events, studentMap) {
   return events.map((event) => {
     const name = event.studentId && !event.isGroup ? String(studentMap.get(event.studentId)?.name || '').trim() : '';
