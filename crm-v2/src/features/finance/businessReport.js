@@ -125,7 +125,7 @@ const change = (now, before) => (before ? Math.round(((now - before) / before) *
  * → { from, to, now: sums, before: sums, change: { tookPlace, earned, students }, newStudents, lostStudents,
  *     unpriced, byTeacher (+ hours, rateCents, payCents, schoolCents), pay: { payCents, schoolCents, unrated }, bySubject }
  */
-export function businessReport({ current, months = 1, today, students = [], plans = [], schedule = [], groups = [], lessons = [], teachers = [] } = {}) {
+export function businessReport({ current, months = 1, today, students = [], plans = [], schedule = [], groups = [], lessons = [], teachers = [], settings = {} } = {}) {
   const fromMonth = shiftMonth(current, -(months - 1));
   const from = `${fromMonth}-01`;
   const to = monthDates(current).pop();
@@ -158,5 +158,134 @@ export function businessReport({ current, months = 1, today, students = [], plan
     byTeacher,
     pay: { payCents, schoolCents: now.earnedCents - payCents, unrated: byTeacher.filter((row) => !row.rateCents && row.tookPlace).map((row) => row.name) },
     bySubject: groupBy(facts, 'subject'),
+    ...economics({ current, fromMonth, facts, args, teacherOf, rates, settings, students }),
+  };
+}
+
+// ---------- the school's economy (owner 2026-10-27: „содержание школы около 400 € в месяц и зп админу 750 € …
+// максимально подробная информация о доходах и всему прочему, чтобы я понимал состояние дел школы”) ----------
+
+// businessSettings/current: the school's monthly fixed costs and whose lessons are the owner's own
+export function normalizeBusinessSettings(data = {}) {
+  const fixedCosts = (Array.isArray(data?.fixedCosts) ? data.fixedCosts : [])
+    .map((item) => ({ label: String(item?.label || '').trim().slice(0, 60), cents: Math.max(0, Math.round(Number(item?.cents) || 0)) }))
+    .filter((item) => item.label && item.cents > 0).slice(0, 20);
+  return {
+    fixedCosts,
+    ownerTeacher: String(data?.ownerTeacher || '').trim().slice(0, 80),
+    ownerRateCents: Math.max(0, Math.round(Number(data?.ownerRateCents) || 0)),
+  };
+}
+
+const monthOf = (date) => date.slice(0, 7);
+const percent = (part, whole) => (whole ? Math.round((part / whole) * 100) : null);
+
+function economics({ current, fromMonth, facts, args, teacherOf, rates, settings, students }) {
+  const config = normalizeBusinessSettings(settings);
+  const fixedMonthCents = config.fixedCosts.reduce((sum, item) => sum + item.cents, 0);
+  const owner = config.ownerTeacher ? teacherOf(config.ownerTeacher) : '';
+  const named = (list) => list.map((fact) => ({ ...fact, teacher: teacherOf(fact.teacher) }));
+  // teacher pay of a set of lessons (planned ones too when asked: the forecast)
+  const payOf = (list, { planned = false } = {}) => {
+    const given = new Map();
+    list.filter((fact) => TEACHER_PAID.has(fact.state) || (planned && fact.state === 'planned')).forEach((fact) => given.set(`${fact.teacher}|${fact.occurrence}`, fact));
+    let payCents = 0; let minutes = 0; let ownerMinutes = 0;
+    given.forEach((fact) => {
+      minutes += fact.minutes;
+      if (fact.teacher === owner) ownerMinutes += fact.minutes;
+      const rate = rates.get(fact.teacher);
+      if (rate) payCents += (fact.minutes / 60) * rate;
+    });
+    return { payCents: Math.round(payCents), hours: minutes / 60, ownerHours: ownerMinutes / 60 };
+  };
+  const all = named(facts);
+  const monthsList = [];
+  for (let month = fromMonth; month <= current; month = shiftMonth(month, 1)) monthsList.push(month);
+
+  const monthly = monthsList.map((month) => {
+    const list = all.filter((fact) => monthOf(fact.date) === month);
+    const total = sums(list);
+    const pay = payOf(list);
+    const row = { month, ...total, payCents: pay.payCents, hours: Math.round(pay.hours * 10) / 10, fixedCents: fixedMonthCents, profitCents: total.earnedCents - pay.payCents - fixedMonthCents };
+    if (month === current && total.planned) {
+      const expected = payOf(list, { planned: true });
+      row.expectedCents = total.earnedCents + total.plannedCents;
+      row.expectedProfitCents = row.expectedCents - expected.payCents - fixedMonthCents;
+    }
+    return row;
+  });
+
+  // the period's profit and loss
+  const total = sums(all);
+  const pay = payOf(all);
+  const fixedCents = fixedMonthCents * monthsList.length;
+  const profitCents = total.earnedCents - pay.payCents - fixedCents;
+  const ownerFacts = owner ? all.filter((fact) => fact.teacher === owner) : [];
+  const ownerEarned = sums(ownerFacts).earnedCents;
+  const ownerPayCents = Math.round(pay.ownerHours * config.ownerRateCents);
+  const hiredFacts = all.filter((fact) => fact.teacher !== owner && rates.get(fact.teacher));
+  const hired = payOf(hiredFacts);
+  const hiredEarned = sums(hiredFacts).earnedCents;
+  const marginPerHiredHour = hired.hours ? (hiredEarned - hired.payCents) / hired.hours : 0;
+  const pnl = {
+    revenueCents: total.earnedCents,
+    teacherPayCents: pay.payCents,
+    fixedCents,
+    fixedMonthCents,
+    fixedCosts: config.fixedCosts,
+    profitCents,
+    marginPercent: percent(profitCents, total.earnedCents),
+    hours: Math.round(pay.hours * 10) / 10,
+    revenuePerHourCents: pay.hours ? Math.round(total.earnedCents / pay.hours) : 0,
+    owner: owner ? {
+      name: owner,
+      earnedCents: ownerEarned,
+      hours: Math.round(pay.ownerHours * 10) / 10,
+      share: percent(ownerEarned, total.earnedCents),
+      rateCents: config.ownerRateCents,
+      payAtRateCents: ownerPayCents,
+      profitAfterOwnerPayCents: config.ownerRateCents ? profitCents - ownerPayCents : null,
+      // what the school earns without the owner's own lessons
+      withoutOwnerCents: total.earnedCents - ownerEarned - pay.payCents - fixedCents,
+    } : null,
+    breakEven: marginPerHiredHour > 0 && fixedMonthCents ? {
+      marginPerHourCents: Math.round(marginPerHiredHour),
+      hoursNeededPerMonth: Math.ceil(fixedMonthCents / marginPerHiredHour),
+      hoursPerMonthNow: Math.round((hired.hours / monthsList.length) * 10) / 10,
+    } : null,
+  };
+
+  // next month from the calendar
+  const nextMonth = shiftMonth(current, 1);
+  const nextFacts = named(lessonFacts({ ...args, from: `${nextMonth}-01`, to: monthDates(nextMonth).pop() }));
+  const nextTotal = sums(nextFacts);
+  const nextPay = payOf(nextFacts, { planned: true });
+  const forecast = { month: nextMonth, lessons: nextTotal.planned, revenueCents: nextTotal.plannedCents, teacherPayCents: nextPay.payCents, fixedCents: fixedMonthCents, profitCents: nextTotal.plannedCents - nextPay.payCents - fixedMonthCents };
+
+  // individual and group lessons (a group lesson once)
+  const kinds = { individual: { lessons: 0, earnedCents: 0 }, group: { lessons: 0, earnedCents: 0 } };
+  const seenLesson = new Set();
+  all.filter((fact) => PAID.has(fact.state) || fact.state === 'covered').forEach((fact) => {
+    const kind = fact.group ? kinds.group : kinds.individual;
+    if (PAID.has(fact.state)) kind.earnedCents += fact.cents;
+    if (!seenLesson.has(fact.occurrence)) { seenLesson.add(fact.occurrence); kind.lessons += 1; }
+  });
+
+  // every student of the period
+  const byStudent = new Map();
+  all.forEach((fact) => { if (!byStudent.has(fact.studentId)) byStudent.set(fact.studentId, []); byStudent.get(fact.studentId).push(fact); });
+  const futureIds = new Set([...all, ...nextFacts].filter((fact) => fact.state === 'planned').map((fact) => fact.studentId));
+  const studentRows = [...byStudent].map(([id, list]) => {
+    const row = sums(list);
+    const took = list.filter((fact) => TOOK_PLACE.has(fact.state)).map((fact) => fact.date).sort();
+    return { id, name: list[0].studentName || 'Õpilane', teachers: [...new Set(list.map((fact) => fact.teacher))].join(', '), subjects: [...new Set(list.map((fact) => fact.subject))].join(', '), tookPlace: row.tookPlace, missed: row.missed, attendance: row.attendance, earnedCents: row.earnedCents, perLessonCents: row.perLessonCents, lastLesson: took[took.length - 1] || '', planned: futureIds.has(id) };
+  }).filter((row) => row.tookPlace || row.missed || row.planned).sort((a, b) => b.earnedCents - a.earnedCents || a.name.localeCompare(b.name, 'et'));
+  const top = studentRows.slice(0, 10).reduce((sum, row) => sum + row.earnedCents, 0);
+  const active = new Set(students.filter((student) => student.active !== false).map((student) => student.id));
+  return {
+    monthly, pnl, forecast, kinds,
+    studentRows,
+    topTenShare: percent(top, total.earnedCents),
+    nothingAhead: studentRows.filter((row) => !row.planned && row.tookPlace && active.has(row.id)).map((row) => row.name),
   };
 }

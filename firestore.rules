@@ -2472,6 +2472,22 @@ service cloud.firestore {
     // „Planeerija” (owner 2026-10-25): one record per „Kinnita ajakava” — which weekly lessons it created for which
     // students (the schedule e-mail reads it on the server). The administrator creates it once, with fixed keys;
     // nobody changes or deletes it from the app (the server updates its status with the admin SDK).
+    // „Ärinäitajad”: the school's monthly fixed costs and the owner's own lessons (admin only)
+    match /businessSettings/{settingId} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin() && settingId == 'current'
+        && request.resource.data.keys().hasOnly(['fixedCosts', 'ownerTeacher', 'ownerRateCents', 'updatedAt', 'updatedByUid'])
+        && request.resource.data.fixedCosts is list
+        && request.resource.data.fixedCosts.size() <= 20
+        && request.resource.data.ownerTeacher is string
+        && request.resource.data.ownerTeacher.size() <= 80
+        && request.resource.data.ownerRateCents is int
+        && request.resource.data.ownerRateCents >= 0
+        && request.resource.data.ownerRateCents <= 100000
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedByUid == uid();
+      allow delete: if false;
+    }
     match /plannerBatches/{batchId} {
       allow read: if isAdmin();
       allow create: if isAdmin()

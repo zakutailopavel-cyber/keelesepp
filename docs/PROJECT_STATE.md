@@ -3588,3 +3588,12 @@
 - UI: teacher table columns Tunde, Tunnitasu, Õpetaja tasu, Koolile jääb; cards „Õpetajate tasu”, „Koolile jääb”.
 - Checks: finance vitest 183 passed; full verify below in the PR. Read-only run Oct 2026: teacher pay 1 094,83 €, school keeps 4 070,51 €; Pavel and Elena have no rate.
 - Next safe step: prices for unpriced students (Jegor's revenue looks low because of them).
+
+### 2026-10-27 — Ärinäitajad: profit and loss (agent/finance-pnl)
+
+- Owner: fixed costs ~400 €/month upkeep + 750 € admin salary; „максимально подробная информация о доходах и всему прочему, чтобы я понимал состояние дел школы”.
+- New data: `businessSettings/current` `{ fixedCosts:[{label,cents}] ≤20, ownerTeacher, ownerRateCents, updatedAt, updatedByUid }` — admin read/write only, never deleted (`firestore.rules`, test `functions/business-settings-rules-emulator.integration.js`, in `test:emulator`). Service `services/firebase/businessSettings.js`.
+- `businessReport.js`: `normalizeBusinessSettings`; `economics` → `monthly` (per month: lessons, students, revenue, teacher pay, fixed, profit; current month expected to the end by the calendar), `pnl` (revenue − teacher pay − fixed = profit, margin, revenue per hour, owner's lessons share / without them / after a reference owner rate, break-even hours of hired teachers), `forecast` (next month from the calendar), `kinds` (individual / group), `studentRows`, `topTenShare`, `nothingAhead`.
+- UI `BusinessReport.jsx`: „Kasum ja kahjum” block, „Kuude kaupa”, student table, „Püsikulud ja omanik” editor (FinanceMonthPage passes `user`).
+- Checks: finance vitest + full verify VERIFIED (2717 passed); rules emulator test passed locally.
+- Needs: deploy `firestore:rules`; then the owner's values (Ruum/ülalpidamine 400 €, Administraator 750 €, owner Pavel Zakutailo) in businessSettings/current.
