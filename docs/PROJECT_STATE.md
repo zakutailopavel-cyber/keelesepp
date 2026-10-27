@@ -3621,3 +3621,14 @@
 - New blocks (`engine/blocks/kids.jsx`, group „Lastele”): `coloring` (pictures in `kidsPictures.js`, 15 line-art pictures with regions; mode key = scored by colour per region, free = not scored; palette on screen), `tracing` (school 4-line ruling, solid model + dotted copies; pointer ink stored per row `ink{n}`, ≤15 000 chars, not scored), `counting` (emoji × count, accepts digit or Estonian number word 0–20), `letterhunt` (tap to circle; target cells scored).
 - Tests: blockAnswerCases + roundtrip for coloring/counting/letterhunt; engine registry count 52; `functions/generated/sheet-kit.cjs` rebuilt. Full verify: 2726 passed.
 - Next safe step: the children's courses (5–6, 6–7, 8–9) with lesson plans and sheets using these blocks.
+
+### 2026-10-28 — Children's courses 5–6, 6–7, 8–9 (agent/kids-courses)
+
+- Owner: „займись учебными планами для групп, с раскрасками, полным учебным планом что на каком уроке делать … если не хватает блоков — добавляем, прописи — делаем”.
+- Content: `admin/course/kids/program56.js`, `program67.js`, `program89.js` (12 lessons each); `kids/sheets.js` → `KIDS_MODULES` (3 sheets a lesson, own phase names via `MODULE.phases`; not in COURSE_MODULES, adult gates do not apply); `registry.js` COURSES.kids, `lesson.goals` and `MODULE.phases` honoured by `buildCourseSheet`.
+- Pictures: `engine/blocks/kidsVocabPictures.js` (48 word pictures, colourable) merged into the colouring library (63); `scripts/kids-art.mjs` → `public/kids-art/*.svg`.
+- New block `readcard` (big syllables/words); letter hunt in Verdana (l ≠ I); sheet-kit rebuilt.
+- Õppevara: `curriculum/kidsCurriculum.js` records (k56/k67/k89-001…012, teacher's plan minute by minute in Russian); library subject tab „Lastele” (levels „… 5–6 a”).
+- Doc: `docs/KIDS_GROUPS_PROGRAM.md`.
+- Checks: kids.test.js (108 sheets valid, keys, pictures, colour keys), kidsCurriculum.test.js, libraryModel test; full verify below.
+- After merge: create the 36 records (create-only) and publish the 108 sheets.

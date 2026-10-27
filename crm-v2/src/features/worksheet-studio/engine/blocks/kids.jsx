@@ -237,4 +237,16 @@ export const letterhunt = {
   ),
 };
 
-export const kidsBlocks = { coloring, tracing, counting, letterhunt };
+// ---------- a reading card: big syllables and words to read aloud ----------
+export const readcard = {
+  type: 'readcard', label: 'Lugemiskaart (suured tähed)', group: 'Lastele', icon: 'BookOpen', task: false, width: 'full', tone: 'cream',
+  create: () => ({ title: 'Loe valjusti.', instruction: 'Loe rida haaval. Näita sõrmega, mida loed.', lines: 'MA  ME  MI  MO  MU\nMA-JA   E-MA   I-SA' }),
+  View: ({ data }) => <div className="ws-readcard">{lines(data.lines).map((line, i) => <p key={i}>{line}</p>)}</div>,
+  Editor: ({ data, set }) => (
+    <label className="ed-field"><span className="ed-label">Read (iga rida eraldi)</span>
+      <textarea className="ed-input" rows={5} value={data.lines} onChange={(e) => set({ lines: e.target.value })} />
+    </label>
+  ),
+};
+
+export const kidsBlocks = { coloring, tracing, counting, letterhunt, readcard };
