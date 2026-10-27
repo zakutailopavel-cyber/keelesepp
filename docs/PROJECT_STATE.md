@@ -1,3 +1,30 @@
+## 2026-10-27 · agent/local-today — „today” is the local day, not the UTC one (site bug check)
+
+- Found in the night bug check (owner 2026-10-26 „проверить сайт на наличие багов”): 43 places took „today” as
+  `new Date().toISOString().slice(0, 10)`, the UTC day. In Estonia between 00:00 and 02:00 / 03:00 that is yesterday:
+  - deadlines looked a day off;
+  - a „Minu vead” practice after midnight counted for the day before;
+  - the pet's streak day was off;
+  - the default homework due date was yesterday.
+  The test suite failed at night for the same reason.
+- New `crm-v2/src/utils/localDate.js` (`localDate(value = now)`, the browser's own day). Used in:
+  - homework: page, flow, service date;
+  - vocabulary: daily plan, reminder;
+  - pet streak;
+  - Minu vead;
+  - live classroom: homework and lesson-end due dates;
+  - after-lesson homework;
+  - students: lessons and works panels, directions, Ei saa tulla;
+  - teacher profile; parents; groups (+ service default start date).
+  Three tests compute today the same way now.
+- Not touched on purpose (finance / accounting, own PR with the accountant if wanted): AccountingPage,
+  accountingReports, PurchasesPage, ExpensesPage, FinanceMonthPage, FinancePage, lessonAccounting, FinancialPeriodPanel,
+  ManualInvoiceDialog, AdvanceManagementPanel, studentFinance. Also kept: stored createdAt / updatedAt day stamps
+  in students.js / groups.js and settings/cleanupModel.
+- Checks: eslint src 0; whole vitest 380 files passed (00:30 local, the hour that failed before); the touched areas also
+  under TZ=UTC (324 passed).
+- Next safe step: owner approves; later the same fix for the finance pages together with the accountant.
+
 ## 2026-10-27 · agent/planner-history — Planeerija places students without „Sobivad ajad” at their usual times
 
 - Owner 2026-10-26: „доделать планировщик уроков автоматический”. The planner (#791) placed almost nobody: 38 of 50

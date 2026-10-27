@@ -1,6 +1,7 @@
 import { collection, doc, getDocs, runTransaction, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
 import { canonicalTeacherName, isSameTeacher } from '../../utils/teachers.js';
+import { localDate } from '../../utils/localDate.js';
 
 const DAYS = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']);
 
@@ -19,7 +20,7 @@ function lessonValue(lesson = {}) {
     day: DAYS.has(lesson.day) ? lesson.day : 'Mon',
     time: /^\d{2}:\d{2}$/.test(lesson.time || '') ? lesson.time : '16:00',
     duration: Math.max(5, Number(lesson.duration) || 60),
-    startDate: clean(lesson.startDate) || new Date().toISOString().slice(0, 10),
+    startDate: clean(lesson.startDate) || localDate(),
     recurring: lesson.recurring !== false,
     status: lesson.status || 'Planeeritud',
     attendance: lesson.attendance && typeof lesson.attendance === 'object' ? lesson.attendance : {},
