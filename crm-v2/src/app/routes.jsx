@@ -6,6 +6,7 @@ import AppShell from '../components/layout/AppShell.jsx';
 import ForbiddenPage from '../features/auth/ForbiddenPage.jsx';
 import LoginPage from '../features/auth/LoginPage.jsx';
 import HomeworkPage from '../features/homework/HomeworkPage.jsx';
+import WhatsNewPage from '../features/guide/WhatsNew.jsx';
 import GuestLessonPage from '../features/live-classroom/GuestLessonPage.jsx';
 import PayInvoicePage from '../features/payments/PayInvoicePage.jsx';
 import LiveClassroomPage from '../features/live-classroom/LiveClassroomPage.jsx';
@@ -92,6 +93,7 @@ export default function AppRoutes() {
           <Route index element={<HomePage />} />
           <Route element={<ProtectedRoute roles={ACCESS.STAFF} />}>
             <Route path="guide" element={<TeacherGuidePage />} />
+            <Route path="uuendused" element={<WhatsNewPage />} />
             <Route path="students" element={staffPage(<StudentsPage />)} />
             <Route path="students/:studentId" element={staffPage(<StudentProfilePage />)} />
             <Route path="students/:studentId/worksheets/:lessonId" element={generatorPage(<StudentWorksheetStudioPage />)} />

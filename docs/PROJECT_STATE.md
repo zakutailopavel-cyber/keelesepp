@@ -1,3 +1,17 @@
+## 2026-10-27 · agent/whats-new — „Mis uut” once after signing in, /uuendused for later
+
+- Owner 2026-10-27: a report of what appeared on the site for the admin, „при входе в систему, чтобы не беспокоить
+  человека”.
+- `features/guide/whatsNew.js`: `RELEASES` (newest first; id, date, the admin's to-dos, sections of items with
+  `audience` admin / staff and a link). `releaseFor(release, roles)` hides admin-only items from a teacher.
+- `WhatsNewDialog` (AppShell): a staff member sees the newest release once after signing in, until „Selge” /
+  „Ava lehel”. Remembered per account in this browser (`keelesepp.whatsNew.seen.<uid>`). Not shown in a preview,
+  in Live Classroom or on /uuendused.
+- `/uuendused` (STAFF) keeps every release; a link from Juhend.
+- First release 2026-10-27: the changes of 24–27.10, Russian text with the CRM's Estonian names.
+- Next releases: add an entry on top of `RELEASES` with a new id.
+- Checks: +2 tests; eslint src 0; whole vitest 2705 passed.
+
 ## 2026-10-27 · agent/missing-times-once — „Puuduvad andmed” never asks for times we already know
 
 - Owner 2026-10-27: „проверь, чтобы ученик при каждом входе на сайт не заполнял подходящие времена”.
