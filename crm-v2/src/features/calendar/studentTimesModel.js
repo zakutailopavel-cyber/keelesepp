@@ -202,14 +202,18 @@ export function planningWarnings({ lesson, student = null, studentAvailability =
 // (calendar occurrences not cancelled or missed, and lessons in the journal) become suitable half hours — never ★, so a
 // learned time is yellow, not green. → Map studentId → { slots, preferred: [], learned: true }
 const MISSED = new Set(['Tühistatud', 'Puudus_eta', 'Puudus_p']);
-export function learnedTimes({ events = [], lessons = [], today, weeks = 12 } = {}) {
+export function learnedTimes({ events = [], lessons = [], today, weeks = 12, minTimes = 2 } = {}) {
   const dates = Array.from({ length: weeks * 7 }, (_, index) => shiftDate(today, index - weeks * 7));
+  // a weekday + start time counts only when the student came then at least `minTimes` times: a one-off make-up
+  // lesson (a Sunday morning) is not the student's usual time (owner 2026-10-27: „планировщик странно ставит уроки”)
   const seen = new Map();
   const add = (studentId, date, time, duration) => {
     if (!studentId || !/^\d{1,2}:\d{2}$/.test(String(time || ''))) return;
-    const day = dayOfDate(date);
-    if (!seen.has(studentId)) seen.set(studentId, new Set());
-    halvesOf(time, duration).forEach((minutes) => seen.get(studentId).add(`${day}-${half(minutes)}`));
+    const key = `${dayOfDate(date)}-${time}`;
+    if (!seen.has(studentId)) seen.set(studentId, new Map());
+    const own = seen.get(studentId);
+    if (!own.has(key)) own.set(key, { day: dayOfDate(date), time, duration, dates: new Set() });
+    own.get(key).dates.add(date);
   };
   occurrencesForDates(events.filter((event) => !event.isGroup), dates)
     .filter((item) => !MISSED.has(item.status))
@@ -217,7 +221,13 @@ export function learnedTimes({ events = [], lessons = [], today, weeks = 12 } = 
   const first = dates[0];
   lessons.filter((lesson) => lesson.date >= first && lesson.date < today && !MISSED.has(lesson.status))
     .forEach((lesson) => add(lesson.studentId, lesson.date, lesson.time, lesson.duration));
-  return new Map([...seen].map(([studentId, slots]) => [studentId, { studentId, slots: [...slots].sort(), preferred: [], learned: true }]));
+  const out = new Map();
+  seen.forEach((starts, studentId) => {
+    const slots = new Set();
+    starts.forEach((entry) => { if (entry.dates.size >= minTimes) halvesOf(entry.time, entry.duration).forEach((minutes) => slots.add(`${entry.day}-${half(minutes)}`)); });
+    if (slots.size) out.set(studentId, { studentId, slots: [...slots].sort(), preferred: [], learned: true });
+  });
+  return out;
 }
 
 // the student's own „Sobivad ajad” first; a student without them gets the learned times

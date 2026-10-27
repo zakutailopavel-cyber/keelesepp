@@ -461,3 +461,10 @@
   .cal2-plan__chip { min-width: 0; width: 100%; }
   .cal2-plan__requests li > span { min-width: 0; width: 100%; }
 }
+
+/* „Uus tund”: the chosen student's free suitable times as one-click buttons (owner 2026-10-27) */
+.cal2-form-times { display: grid; gap: 6px; }
+.cal2-form-times__list { display: flex; flex-wrap: wrap; gap: 6px; }
+.cal2-form-time { border: 1px solid #c7dfd8; background: #f1f8f5; color: #176553; border-radius: 9px; padding: 6px 10px; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.cal2-form-time.is-best { border-color: #e7c76a; background: #fff8e1; color: #7a5a00; }
+.cal2-form-time.is-on { background: #176553; border-color: #176553; color: #fff; }

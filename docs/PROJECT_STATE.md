@@ -1,3 +1,20 @@
+## 2026-10-27 · agent/lesson-form-times — „Uus tund” offers the student's times; the planner places more sensibly
+
+- Owner 2026-10-27: „чтобы в календаре, когда я выбираю ученика, мне предлагались сразу времена, которые он выбрал …
+  не бегая по вкладкам” and „планировщик как-то странно ставит уроки”.
+- „Uus tund” / „Muuda tundi”: after choosing a student, up to 10 buttons show the student's suitable times
+  (own „Sobivad ajad” or the /ajad answer) in the next 14 days. Only times free for the teacher and the student
+  (`candidateTimes`: teacher's red / online windows, other lessons, rooms) are offered; ★ first in colour. A click fills
+  the date and time.
+- Planner (production dry run 2026-10-27 showed lessons at 7:00, two of a teacher's students at one time on a time only
+  „learned”, and Sunday make-up lessons taken as usual times):
+  - learned times count a weekday + start only after ≥ 2 lessons then (`learnedTimes({ minTimes: 2 })`);
+  - overlapping another draft lesson of the same teacher costs as much as a fixed lesson (300) unless the student
+    marked the time themselves (the owner's „may share a time” rule stays for own times);
+  - the any-time fallback ranks usual hours first (before 9:00 +60, 9–12 +15, from 20:00 +30, weekend +30).
+  - Dry run after: no 7:00 lessons; 1 teacher overlap (was 7); unplaced 26 (22 without own or regular times).
+- Checks: calendar tests 185 passed (+1 form times, learned test updated); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/hide-archived-lessons — the calendar hides the future lessons of archived students
 
 - Owner 2026-10-27: „Martin, Людмила и Роберт постоянно появляются в календаре, убери их пока”. Production read:
