@@ -4,6 +4,10 @@ import { isFirebaseConfigured } from '../services/firebase/client.js';
 
 const AuthContext = createContext(null);
 
+// who may open a read-only view of another user: an admin anyone's, a teacher a student card's (the rules still limit
+// what the teacher reads to his own students)
+export const mayPreview = (roles = [], target = {}) => (roles || []).includes('admin') || ((roles || []).includes('teacher') && Boolean(target?.studentId));
+
 export function AuthProvider({ children, service = authService }) {
   const configured = isFirebaseConfigured();
   const [state, setState] = useState({ loading: configured, user: null, error: null });
@@ -58,7 +62,9 @@ export function AuthProvider({ children, service = authService }) {
     },
     signOut: () => { setPreview(null); return service.signOut(); },
     startPreview: (target) => {
-      if (!state.user?.roles?.includes('admin')) throw new Error('Ainult administraator saab kasutajavaadet avada.');
+      // an admin opens anyone's view; a teacher his own student's (owner 2026-10-27: „учитель видит всё, что и ученик”) —
+      // read only, and the teacher's own data rights stay (Firestore rules)
+      if (!mayPreview(state.user?.roles, target)) throw new Error('Ainult administraator või õpilase õpetaja saab vaadet avada.');
       if (!target?.user) throw new Error('Vali kasutaja.');
       setPreview({ ...target, readOnly: true });
     },

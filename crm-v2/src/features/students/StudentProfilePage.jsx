@@ -1,5 +1,5 @@
 import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
-import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
+import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
 import '../board/board.css';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import MergeCardsModal from './MergeCardsModal.jsx';
@@ -43,6 +43,7 @@ import { lessonRecordingsService } from '../../services/firebase/lessonRecording
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
 import PlacementCard from '../placement/PlacementCard.jsx';
 import StudyPlanCard from './StudyPlanCard.jsx';
+import ActivityFeedCard from '../learner/ActivityFeedCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
 
@@ -157,7 +158,12 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
       <header className="student-profile-hero">
         <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1>{tracks.length > 1 || (ownTracks?.length && subjectsOf(student).length > 1) ? <p className="subject-tracks">{tracks.map((track) => <span key={track.id || track.subject}>{track.subject} · {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>)}</p> : <p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p>}</span></div>
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
-        <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
+        <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link>{auth?.startPreview && !auth?.preview ? <Button variant="secondary" onClick={() => {
+          // the student's own cabinet, read only: what he sees is what the teacher sees (owner 2026-10-27)
+          auth.startPreview({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' });
+          window.history.pushState({}, '', '/student');
+          window.dispatchEvent(new window.Event('popstate'));
+        }}><Eye size={17} /> Vaata õpilase silmadega</Button> : null}<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
         {canAssignTeacher && tracksOpen ? <EnrollmentManager student={student} directions={directions} teachers={teacherChoices(staffTeachers, [student.teacher])} service={studentApi}
           onClose={() => { setTracksOpen(false); if (searchParams.get('enrollments')) setSearchParams((current) => { current.delete('enrollments'); return current; }, { replace: true }); }}
           onChanged={refreshStudent}
@@ -232,6 +238,8 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         {activeTab === 'works' ? (
           <div className="profile-grid">
             {studentAccess(student) === 'none' ? <p className="action-error" role="alert">Selle kaardiga pole seotud ühtegi kontot: õpilane ei näe siia määratud töid. Seo õpilase konto (Muuda → konto) või kontrolli, kas tal on teine sama nimega kaart.</p> : null}
+            {/* „Õpilase tegevused” (owner 2026-10-27): everything the student did, so nothing stays unknown to the teacher */}
+            <ActivityFeedCard studentId={student.id} {...(learnerRepository ? { repository: learnerRepository } : {})} />
             <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
           </div>
         ) : null}

@@ -1,3 +1,18 @@
+## 2026-10-27 · agent/teacher-sees-all — the teacher sees what the student sees and does
+
+- Owner 2026-10-27: „надо, чтобы учитель видел всё, что и ученик, а не чтобы какие-то действия ученика оставались
+  неизвестными”.
+- Student card header: „Vaata õpilase silmadega” opens the student's own cabinet read-only (Minu kursus, Ülesanded,
+  Sõnad, Minu vead, Lemmik…) for the admin and for a teacher. `AuthContext.startPreview` / `mayPreview`: an admin any
+  view, a teacher a student card's. The Firestore rules still limit a teacher to his own students' data. The banner
+  „Lõpeta vaade” returns.
+- Tööd tab: new „Õpilase tegevused” (`learner/ActivityFeedCard`, model `activityFeed` / `feedByDay`) lists the last
+  60 days by day:
+  - signed in; opened a course sheet on his own (self_study); filled a sheet (answers count); handed in (%);
+  - got a sheet from the teacher; words added / practised; „Minu vead” (%); homework marked done; lessons /
+    absences.
+- Checks: +2 tests (activityFeed, mayPreview); eslint src 0; whole vitest 2699 passed.
+
 ## 2026-10-27 · agent/group-contacts — Grupid: „Kellele pakkuda grupitunde” (all families in one list)
 
 - Owner 2026-10-27: „интегрировать базу данных родителей, с кем связаться и предложить групповые занятия, чтобы админ
