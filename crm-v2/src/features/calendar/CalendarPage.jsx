@@ -256,7 +256,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     setHandoff(null);
     setPanelSaving(true); setPanelError('');
     try {
-      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId) }) : null;
+      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId), plan: studentMap.get(item.studentId)?.studyPlan }) : null;
       await lessonRepository.completeFromSchedule(item, user, topicFields(handoffTopic(catalog, from, suggestion), from.notes));
       setAutoMarked(item.occurrenceId);
       await state.reload();
@@ -280,7 +280,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         const created = await scheduleRepository.create(candidate);
         item = { ...candidate, id: created.id, occurrenceDate: held.date, occurrenceId: `${created.id}:${held.date}` };
       }
-      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: heldStudent.level || '', history: historyOf(heldStudent.id) }) : null;
+      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: heldStudent.level || '', history: historyOf(heldStudent.id), plan: heldStudent.studyPlan }) : null;
       await lessonRepository.completeFromSchedule(item, user, topicFields(handoffTopic(catalog, heldHandoff, suggestion), heldHandoff?.notes || ''));
       setHeldState('done');
       await state.reload();
@@ -603,7 +603,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     if (quickCompleting) return;
     setQuickCompleting(item.occurrenceId); setActionError('');
     try {
-      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId) }) : null;
+      const suggestion = catalog ? suggestTopic(catalog, { studentLevel: studentMap.get(item.studentId)?.level || '', history: historyOf(item.studentId), plan: studentMap.get(item.studentId)?.studyPlan }) : null;
       await lessonRepository.completeFromSchedule(item, user, topicFields(suggestion));
       await state.reload();
     } catch (error) { setActionError(error.message || 'Tunni arvestamine ebaõnnestus.'); } finally { setQuickCompleting(''); }

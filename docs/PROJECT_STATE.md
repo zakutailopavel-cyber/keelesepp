@@ -1,3 +1,41 @@
+## 2026-10-27 · agent/student-study-plan (2) — „Minu areng” counts Live Classroom lessons right
+
+- Owner 2026-10-27, Aleksandr Dikovitš's „Minu areng”: „он и так делает уроки в Live Classroom, проанализируй эти уроки
+  и скорректируй результат”.
+- Live data: 4 recorded lessons with transcripts (10, 11, 17, 18.10). Estonian share of his speech: 27 → 26 → 36 →
+  62 %. Longest Estonian sentence on 18.10: 32 words; he self-corrects case forms. 3 held lessons have a course topic.
+- Fixes:
+  1. Student page in the admin's read-only view loaded the lesson stats of the admin's uid → „Rääkimine: andmeid veel
+     ei ole”. `petsService.lessonStatsForStudents(studentIds)` is used in the preview.
+  2. `autoSkills` left in tasks done in the lesson (no answers) → Kuulamine 0 %. It now skips `scoreDocument().skipped`.
+  3. The course bar counted a lesson only with all 3 sheets done → „0/91”. A course lesson held with the teacher
+     (journal `topicLessonId`, Toimunud) counts as done; the next lesson skips held ones.
+  4. Reading questions: an answer with every word (≥ 4 letters) of the right answer in the same stem counts
+     (`sameMeaningWords`, reading block only). His 12.10 reading: 0/6 → 5/6.
+- Data (owner's „скорректируй”): the 18.10 recording had status failed (transcript complete), so no lesson stat.
+  `petLessonStats/a7QQmX8jWnmI8zbRNl9O_1792311178698` was recounted from the transcript (share 62 %, 1318 words,
+  `source: transcript-recount-2026-10-27`).
+- Checks: worksheet-studio / homework / students 526 passed; eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/student-study-plan — „Õppeplaan” on the student card
+
+- Owner 2026-10-27: „учебный план в карточке ученика: выбирать для каждого индивидуально и подбирать те уроки,
+  которые будут максимально эффективны”.
+- Student card → new tab „Õppeplaan” (`StudyPlanCard`):
+  - course (an Õppevara level), goal, target date;
+  - „Soovitame järgmiseks”: course lessons below 60 % to repeat (weakest first, at most 2 on top), then the
+    course's new lessons in order; lessons ≥ 85 % or already in the plan are left out; each with its reason;
+  - „Koosta plaan automaatselt”; the plan rows show the result (selge / tehtud / korda / plaanis); up / down /
+    „Jäta vahele” / remove; „Salvesta plaan”.
+- Stored on the card: `students/{id}.studyPlan = { level, goal, targetDate, lessons: [{ id, status }], updatedAt,
+  updatedByName }` via `studentsService.saveStudyPlan`. The existing rules already let the admin and the student's
+  teacher change the card: no rules change.
+- `students/studyPlanModel.js` (pure): `lessonResults` (worksheetAssignments done + held journal lessons by
+  topicLessonId), `lessonState`, `recommendLessons`, `autoPlan`, `planRows`, `nextPlannedLesson`, `movePlanLesson`.
+- Calendar: `suggestTopic(..., { plan })` takes the first planned lesson not held since the plan was saved
+  (CalendarPage auto-mark, the held-lesson flow, LessonPanel), so marking a lesson proposes the plan's next topic.
+- Checks: new studyPlanModel 3 + StudyPlanCard 1; eslint src 0; whole vitest 2691 passed; local look with test data.
+
 ## 2026-10-27 · agent/ungraded-blocks — sheet results count only answered, graded tasks
 
 - Owner 2026-10-27, looking at Aleksandr Dikovitš's results: „там, где нет ответов — мы делали, значит; надо внедрить

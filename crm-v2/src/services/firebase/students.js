@@ -383,6 +383,20 @@ export const studentsService = {
   // Cards that name the teacher but miss the teacher's account id (older cards): the id goes into teacherUids (and
   // into teacherUid / the matching enrollments when they are empty), so the teacher can read the card — firestore.rules
   // teacherCanRead → Live Classroom, Õpilased. Admin action from the teacher's page; nothing else on the card changes.
+  // „Õppeplaan” (owner 2026-10-27): the course, goal and ordered lessons chosen for this student; staff only
+  async saveStudyPlan(studentId, plan = {}, user = {}) {
+    if (!studentId) throw new Error('Õpilast ei leitud.');
+    const clean = (value, max) => String(value || '').trim().slice(0, max);
+    const lessons = (Array.isArray(plan.lessons) ? plan.lessons : []).slice(0, 80)
+      .filter((item) => item?.id).map((item) => ({ id: clean(item.id, 120), status: item.status === 'skipped' ? 'skipped' : 'planned' }));
+    const value = {
+      level: clean(plan.level, 40), goal: clean(plan.goal, 300), targetDate: /^\d{4}-\d{2}-\d{2}$/.test(plan.targetDate || '') ? plan.targetDate : '',
+      lessons, updatedAt: new Date().toISOString(), updatedByName: clean(user.displayName || user.email, 120),
+    };
+    const { db } = requireFirebaseClient();
+    await updateDoc(doc(db, 'students', studentId), { studyPlan: value });
+    return value;
+  },
   async linkTeacher(recordIds = [], { teacherUid, teacherName } = {}) {
     if (!teacherUid || !canonicalTeacherName(teacherName)) throw new Error('Õpetaja konto puudub.');
     const { db } = requireFirebaseClient();

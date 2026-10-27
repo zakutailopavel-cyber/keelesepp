@@ -15,7 +15,8 @@ describe('autoSkills', () => {
     const grammar = rows.find((r) => r.skill === 'Grammatika');
     expect(grammar.pct).toBe(50);
     expect(grammar.basis).toBe('1 tööleht · 2 vastust');
-    expect(rows.find((r) => r.skill === 'Lugemine').pct).toBe(0);
+    // the true/false task was not answered (done in the lesson): no evidence for reading, not 0 % (owner 2026-10-27)
+    expect(rows.find((r) => r.skill === 'Lugemine')).toBeUndefined();
   });
 
   it('speaking comes from recorded lessons: share in Estonian and sentences without errors', () => {

@@ -42,6 +42,7 @@ import StudentTopicsCard from '../vocabulary/StudentTopicsCard.jsx';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
 import PlacementCard from '../placement/PlacementCard.jsx';
+import StudyPlanCard from './StudyPlanCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
 
@@ -59,12 +60,13 @@ const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
   { id: 'lessons', label: 'Tunnid' },
   { id: 'works', label: 'Tööd' },
+  { id: 'plan', label: 'Õppeplaan' },
   { id: 'learning', label: 'Areng' },
   { id: 'assessment', label: 'Esmane hindamine' },
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -233,6 +235,11 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
             <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
           </div>
         ) : null}
+
+        {/* „Õppeplaan” (owner 2026-10-27): the course and the lessons chosen for this student */}
+        {activeTab === 'plan' ? <StudyPlanCard student={student} lessons={state.lessons} user={currentUser} canEdit={currentUser.roles?.some((role) => role === ROLES.ADMIN || role === ROLES.TEACHER)}
+          {...(homeworkApi ? { homework: homeworkApi } : {})} {...(studyPlanApi || {})}
+          onSaved={(studyPlan) => setState((current) => ({ ...current, student: { ...current.student, studyPlan } }))} /> : null}
 
         {activeTab === 'learning' ? (
           <div className="profile-grid">

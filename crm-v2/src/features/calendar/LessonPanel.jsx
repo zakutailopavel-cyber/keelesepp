@@ -65,7 +65,7 @@ function readDraft(item) {
 
 export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
   const done = Boolean(item?.recordProblem || item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
-  const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
+  const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history, plan: student?.studyPlan }) : null), [catalog, history, item, student?.level, student?.studyPlan]);
   const [draft] = useState(() => readDraft(item));
   const [picked, setPicked] = useState(draft?.picked || null);
   const [notes, setNotes] = useState(draft?.notes || '');
