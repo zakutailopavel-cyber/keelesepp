@@ -73,7 +73,7 @@ export default function StudentDashboardPage({
     const [progressData] = await Promise.all([Promise.all([
       Promise.resolve().then(() => catalogRepository.listCurriculum?.() || []).catch(() => []),
       Promise.resolve().then(() => homeworkRepository.listWorksheetAssignmentsByStudentIds?.(studentIds) || []).catch(() => []),
-      preview ? [] : Promise.resolve().then(() => petRepository.lessonStats?.(user.uid) || []).catch(() => []),
+      Promise.resolve().then(() => (preview ? petRepository.lessonStatsForStudents?.(studentIds) : petRepository.lessonStats?.(user.uid)) || []).catch(() => []),
     ])]);
     const [pet, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
       preview ? null : Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
@@ -138,10 +138,12 @@ export default function StudentDashboardPage({
     if (!student) return null;
     const catalog = buildTopicCatalog(curriculum);
     const map = progressMap(allSheets);
+    // a course lesson held with the teacher (Live Classroom, the calendar topic) counts as done like its three sheets
+    const held = new Set(lessons.filter((lesson) => lesson.topicLessonId && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.topicLessonId));
     const courseByLevel = Object.fromEntries(catalog.levels.map((entry) => {
       const list = entry.modules.flatMap((module) => module.lessons);
-      const next = nextCourseLesson(list, map);
-      return [entry.key, { done: list.filter((lesson) => lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
+      const next = nextCourseLesson(list.filter((lesson) => !held.has(lesson.id)), map);
+      return [entry.key, { done: list.filter((lesson) => held.has(lesson.id) || lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
     }));
     const computed = [...autoSkills({ assignments: allSheets }), ...[speakingFromStats(stats)].filter(Boolean)];
     return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });

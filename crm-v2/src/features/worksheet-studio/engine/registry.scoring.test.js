@@ -24,3 +24,13 @@ describe('the result counts only what was really answered and graded (owner 2026
     expect(norm('ID-kaardiga')).toBe(norm('ID kaardiga'));
   });
 });
+
+describe('reading checks understanding, not the ending (owner 2026-10-27)', () => {
+  it('accepts a full sentence with the right words in another form; a wrong answer stays wrong', async () => {
+    const { sameMeaningWords } = await import('./blocks/extra.jsx');
+    expect(sameMeaningWords(norm('teisipäeval kell kümme'), norm('Õde pakkus teisipäeva kella kümmet.'))).toBe(true);
+    expect(sameMeaningWords(norm('see oleks liiga palju'), norm('Ta ei võtnud kooki, sest seda oleks liiga palju.'))).toBe(true);
+    expect(sameMeaningWords(norm('kohvi'), norm('Ta joob teed.'))).toBe(false);
+    expect(sameMeaningWords(norm('avada uue konto'), norm('Ta soovis uut kontot.'))).toBe(false);
+  });
+});
