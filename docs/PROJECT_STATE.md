@@ -1,3 +1,13 @@
+## 2026-10-27 · agent/calendar-drag — dragging a lesson shows the student's times; crowded lessons move too
+
+- Owner 2026-10-27: „при перетаскивании должны подсвечиваться времена, которые ученик выбирал … если на одно время
+  больше 1 ученика, перетаскивание не работает”.
+- TimeGrid: in the week view 3+ lessons at one time form one card (`tg-cluster`); its rows only opened the lesson.
+  They now start a drag like a block (`startDrag`); a plain click still opens.
+- CalendarPage: `onDragChange` → `dragging`. While a lesson is dragged, every column shows that student's „Sobivad
+  ajad” (`studentBandsOn`: ★ stronger, the same `tg-fit` marks as „Sobivad ajad”); own times or the /ajad answer.
+- Checks: calendar 186 passed (+1 crowded drag); eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/whats-new — „Mis uut” once after signing in, /uuendused for later
 
 - Owner 2026-10-27: a report of what appeared on the site for the admin, „при входе в систему, чтобы не беспокоить
