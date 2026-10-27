@@ -8,11 +8,14 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { groupsService, studentsService, teachersService } from '../../services/firebase/index.js';
 import { ROLES } from '../../utils/roles.js';
 import SubjectSelect from '../students/SubjectSelect.jsx';
+import GroupFillDialog from './GroupFillDialog.jsx';
+import { AUDIENCES, capacityOf, freeSeats } from './groupFill.js';
+import './groupFill.css';
 import { localDate } from '../../utils/localDate.js';
 
 const dayLabels = { Mon: 'Esmaspäev', Tue: 'Teisipäev', Wed: 'Kolmapäev', Thu: 'Neljapäev', Fri: 'Reede', Sat: 'Laupäev', Sun: 'Pühapäev' };
 const dayShort = { Mon: 'E', Tue: 'T', Wed: 'K', Thu: 'N', Fri: 'R', Sat: 'L', Sun: 'P' };
-const blankGroup = { name: '', teacherUid: '', subject: 'Eesti keel', level: 'A1' };
+const blankGroup = { name: '', teacherUid: '', subject: 'Eesti keel', level: 'A1', audience: '', capacity: '' };
 const blankLesson = () => ({ day: 'Mon', time: '16:00', startDate: localDate() });
 
 function assignedLessonIds(group, studentId) {
@@ -28,6 +31,7 @@ export default function GroupsPage({ repository = groupsService, studentReposito
   const [creating, setCreating] = useState(false);
   const [groupForm, setGroupForm] = useState(blankGroup);
   const [memberGroupId, setMemberGroupId] = useState('');
+  const [fillGroupId, setFillGroupId] = useState('');
   const [memberQuery, setMemberQuery] = useState('');
   const [lessonGroupId, setLessonGroupId] = useState('');
   const [lessonForm, setLessonForm] = useState(blankLesson());
@@ -51,6 +55,7 @@ export default function GroupsPage({ repository = groupsService, studentReposito
   }), [query, state.data, studentMap]);
   const memberGroup = state.data?.groups.find((group) => group.id === memberGroupId) || null;
   const lessonGroup = state.data?.groups.find((group) => group.id === lessonGroupId) || null;
+  const fillGroup = state.data?.groups.find((group) => group.id === fillGroupId) || null;
   const memberStudents = (state.data?.students || []).filter((student) => `${student.name} ${student.email || ''} ${student.level || ''}`.toLocaleLowerCase('et').includes(memberQuery.toLocaleLowerCase('et')));
 
   if (state.loading) return <LoadingState label="Laen gruppe…" />;
@@ -94,6 +99,20 @@ export default function GroupsPage({ repository = groupsService, studentReposito
       await state.reload();
     } catch (error) {
       setActionError(error.message || 'Grupi koosseisu muutmine ebaõnnestus.');
+    } finally {
+      setSaving('');
+    }
+  };
+
+  const saveSettings = async (group, settings) => {
+    setSaving('settings');
+    setActionError('');
+    try {
+      await repository.updateSettings(group, settings, user);
+      setSuccess('Grupi sihtrühm ja kohad salvestati.');
+      await state.reload();
+    } catch (error) {
+      setActionError(error.message || 'Salvestamine ebaõnnestus.');
     } finally {
       setSaving('');
     }
@@ -173,6 +192,7 @@ export default function GroupsPage({ repository = groupsService, studentReposito
       return <Card className="group-card" key={group.id}>
         <header><i><Layers3 size={22} /></i><div><h2>{group.name}</h2><span>{group.subject} · {group.level}</span></div>{admin ? <button className="text-button danger" aria-label={`Kustuta ${group.name}`} disabled={saving === `group:${group.id}`} onClick={() => removeGroup(group)}><Trash2 size={18} /></button> : null}</header>
         <div className="group-card__stats"><div><UsersRound size={18} /><strong>{group.students.length}</strong><span>õpilast</span></div><div><CalendarClock size={18} /><strong>{group.lessons.length}</strong><span>tunniaega</span></div></div>
+        <div className="group-card__seats"><Badge tone={freeSeats(group) ? 'info' : 'success'}>{group.students.length}/{capacityOf(group)} kohta</Badge>{group.audience ? <Badge tone="neutral">{AUDIENCES[group.audience]}{group.ageFrom || group.ageTo ? ` · ${group.ageFrom || '…'}–${group.ageTo || '…'} a` : ''}</Badge> : null}{admin ? <Button variant="secondary" onClick={() => setFillGroupId(group.id)}><UserPlus size={15} /> Täida</Button> : null}</div>
         <dl><div><dt>Õpetaja</dt><dd>{group.teacher || 'Määramata'}</dd></div><div><dt>Aine ja tase</dt><dd>{group.subject} · {group.level}</dd></div></dl>
         <section className="group-lessons"><div className="group-section-head"><strong>Tunniajad</strong>{admin ? <button onClick={() => { setLessonGroupId(group.id); setLessonForm(blankLesson()); }}><Plus size={15} /> Lisa aeg</button> : null}</div>{group.lessons.length ? group.lessons.map((lesson) => <div key={lesson.id}><span><b>{dayLabels[lesson.day] || lesson.day}</b><small>alates {lesson.startDate}</small></span><strong>{lesson.time}</strong>{admin ? <button aria-label={`Eemalda ${group.name} tunniaeg`} disabled={saving === `lesson:${lesson.id}`} onClick={() => removeLesson(group, lesson)}>×</button> : null}</div>) : <p>Tunniajad puuduvad.</p>}</section>
         <section className="group-members"><div className="group-section-head"><strong>Õpilased</strong>{admin ? <button onClick={() => { setMemberGroupId(group.id); setMemberQuery(''); }}><UserPlus size={15} /> Halda</button> : null}</div>{members.length ? <div>{members.slice(0, 6).map((student) => <Link to={`/students/${student.id}`} key={student.id}><span>{student.name}</span><Badge tone="info">{student.level || '—'}</Badge></Link>)}{members.length > 6 ? <small>+{members.length - 6} õpilast</small> : null}</div> : <p>Õpilasi pole veel lisatud.</p>}</section>
@@ -180,12 +200,16 @@ export default function GroupsPage({ repository = groupsService, studentReposito
     })}</div> : <Card><EmptyState title="Gruppe ei leitud" description={query ? 'Muuda otsingut.' : admin ? 'Lisa esimene grupp, tunniajad ja õpilased.' : 'Sinu õpetajakontoga seotud gruppe ei ole.'} /></Card>}
 
     <Modal open={creating} title="Uus grupp" onClose={() => !saving && setCreating(false)} footer={<><Button variant="secondary" disabled={Boolean(saving)} onClick={() => setCreating(false)}>Loobu</Button><Button type="submit" form="group-form" loading={saving === 'create'}>Salvesta grupp</Button></>}>
-      <form id="group-form" className="form-grid" onSubmit={createGroup}><Input id="group-name" className="form-grid__wide" label="Grupi nimi" value={groupForm.name} onChange={(event) => setGroupForm({ ...groupForm, name: event.target.value })} required /><Select id="group-teacher" label="Õpetaja" value={groupForm.teacherUid} onChange={(event) => setGroupForm({ ...groupForm, teacherUid: event.target.value })} required><option value="">Vali õpetaja</option>{state.data.teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</Select><SubjectSelect id="group-subject" label="Õppeaine" value={groupForm.subject} onChange={(event) => setGroupForm({ ...groupForm, subject: event.target.value })} required /><Select id="group-level" label="Tase" value={groupForm.level} onChange={(event) => setGroupForm({ ...groupForm, level: event.target.value })}>{['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => <option key={level}>{level}</option>)}</Select></form>
+      <form id="group-form" className="form-grid" onSubmit={createGroup}><Input id="group-name" className="form-grid__wide" label="Grupi nimi" value={groupForm.name} onChange={(event) => setGroupForm({ ...groupForm, name: event.target.value })} required /><Select id="group-teacher" label="Õpetaja" value={groupForm.teacherUid} onChange={(event) => setGroupForm({ ...groupForm, teacherUid: event.target.value })} required><option value="">Vali õpetaja</option>{state.data.teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</Select><SubjectSelect id="group-subject" label="Õppeaine" value={groupForm.subject} onChange={(event) => setGroupForm({ ...groupForm, subject: event.target.value })} required /><Select id="group-level" label="Tase" value={groupForm.level} onChange={(event) => setGroupForm({ ...groupForm, level: event.target.value })}>{['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => <option key={level}>{level}</option>)}</Select><Select id="group-audience" label="Sihtrühm" value={groupForm.audience} onChange={(event) => setGroupForm({ ...groupForm, audience: event.target.value, ...(event.target.value === 'preschool' ? { ageFrom: 5, ageTo: 7, capacity: groupForm.capacity || 6 } : {}) })}><option value="">Kõik</option>{Object.entries(AUDIENCES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</Select><Input id="group-capacity" label="Kohti" type="number" min="1" max="30" placeholder="8" value={groupForm.capacity} onChange={(event) => setGroupForm({ ...groupForm, capacity: event.target.value })} /></form>
     </Modal>
 
     <Modal open={Boolean(lessonGroup)} title={`Lisa tunniaeg: ${lessonGroup?.name || ''}`} onClose={() => !saving && setLessonGroupId('')} footer={<><Button variant="secondary" disabled={Boolean(saving)} onClick={() => setLessonGroupId('')}>Loobu</Button><Button type="submit" form="group-lesson-form" loading={saving === 'lesson'}>Lisa tunniaeg</Button></>}>
       <form id="group-lesson-form" className="form-grid" onSubmit={addLesson}><Select id="group-lesson-day" label="Nädalapäev" value={lessonForm.day} onChange={(event) => setLessonForm({ ...lessonForm, day: event.target.value })}>{Object.entries(dayLabels).map(([day, label]) => <option value={day} key={day}>{label}</option>)}</Select><Input id="group-lesson-time" label="Kellaaeg" type="time" value={lessonForm.time} onChange={(event) => setLessonForm({ ...lessonForm, time: event.target.value })} required /><Input id="group-lesson-start" className="form-grid__wide" label="Alguskuupäev" type="date" value={lessonForm.startDate} onChange={(event) => setLessonForm({ ...lessonForm, startDate: event.target.value })} required /></form>
     </Modal>
+
+    {fillGroup ? <GroupFillDialog group={fillGroup} groups={state.data.groups} students={state.data.students} saving={saving}
+      onAdd={(studentId) => { const student = studentMap.get(studentId); if (student) changeMember(fillGroup, student, true); }}
+      onSaveSettings={(settings) => saveSettings(fillGroup, settings)} onClose={() => setFillGroupId('')} /> : null}
 
     <Modal open={Boolean(memberGroup)} title={`Grupi õpilased: ${memberGroup?.name || ''}`} onClose={() => !saving && setMemberGroupId('')} className="modal--group-members" footer={<Button variant="secondary" disabled={Boolean(saving)} onClick={() => setMemberGroupId('')}>Valmis</Button>}>
       {memberGroup ? <div className="group-member-manager"><div className="search-field"><Search size={17} /><input aria-label="Otsi õpilast gruppi" placeholder="Otsi õpilast" value={memberQuery} onChange={(event) => setMemberQuery(event.target.value)} /></div><div>{memberStudents.map((student) => {
