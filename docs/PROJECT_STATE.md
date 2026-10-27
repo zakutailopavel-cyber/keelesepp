@@ -1,3 +1,13 @@
+## 2026-10-27 · agent/students-no-times — Õpilased: „Ilma ajata”
+
+- Owner 2026-10-27: „сделай кнопку «Без времени» на странице учеников”.
+- Õpilased → button „Ilma ajata” (also `?ajad=1`) opens `NoTimesPanel` (model `students/noTimes.js`). It lists active
+  students with neither own „Sobivad ajad” nor a joined /ajad answer (`withLeadTimes`); a teacher sees only his
+  students. Each row: teacher, level, last lesson, parent, phone / e-mail (tel: / mailto:).
+- Buttons: copy the /ajad link; copy a ready ET + RU message with the link; copy the list with contacts. Nothing is
+  sent by the CRM: the school sends it.
+- Checks: +2 tests; eslint src 0; whole vitest passed.
+
 ## 2026-10-27 · agent/group-detail-menu — the group for the admin, and the student menu on right-click
 
 - Owner 2026-10-27: „админ открывает группу и видит, кого я добавил и чего не хватает” (a group showed „21 õpilast”

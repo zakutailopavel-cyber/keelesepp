@@ -32,7 +32,10 @@ function EnrollmentStack({ student, compact = false }) {
 }
 
 
-export default function StudentsPage({ service = studentsService, mergeService, teacherApi, actor, presenceApi = presenceService, missingDataApi }) {
+import NoTimesPanel from './NoTimesPanel.jsx';
+import './noTimes.css';
+
+export default function StudentsPage({ service = studentsService, mergeService, teacherApi, actor, presenceApi = presenceService, missingDataApi, noTimesApi }) {
   const auth = useContext(AuthContext);
   const currentUser = actor || auth?.user || { roles: [ROLES.ADMIN], displayName: '' };
   const canAssignTeacher = currentUser.roles?.includes(ROLES.ADMIN);
@@ -49,6 +52,7 @@ export default function StudentsPage({ service = studentsService, mergeService, 
   const [enrollmentStudent, setEnrollmentStudent] = useState(null);
   const [archiving, setArchiving] = useState(false);
   const [notice, setNotice] = useState('');
+  const [noTimesOpen, setNoTimesOpen] = useState(() => searchParams.get('ajad') === '1'); // „Ilma ajata” (owner 2026-10-27)
   const [actionError, setActionError] = useState('');
   // „Võimalikud duplikaadid” (owner 2026-10-24): pairs + „Liida” with the server preview; cards are never deleted
   const [duplicatesOpen, setDuplicatesOpen] = useState(false);
@@ -154,7 +158,9 @@ export default function StudentsPage({ service = studentsService, mergeService, 
         {canAssignTeacher ? <Select aria-label="Õpetaja" name="teacher" value={filters.teacher} onChange={setFilter}><option value="">Kõik õpetajad</option>{options.teachers.map((teacher) => <option key={teacher}>{teacher}</option>)}</Select> : null}
         <Select aria-label="Sortimine" name="sort" value={filters.sort} onChange={setFilter}><option value="name-asc">Nimi A–Z</option><option value="name-desc">Nimi Z–A</option><option value="level">Tase</option><option value="teacher">Õpetaja</option></Select>
         {(search || filters.status !== 'active' || filters.level || filters.teacher || filters.sort !== 'name-asc') ? <Button variant="secondary" onClick={resetFilters}>Lähtesta filtrid</Button> : null}
+        <Button variant={noTimesOpen ? 'primary' : 'secondary'} aria-pressed={noTimesOpen} onClick={() => setNoTimesOpen(!noTimesOpen)}>Ilma ajata</Button>
       </Card>
+      {noTimesOpen ? <NoTimesPanel teacherUid={canAssignTeacher ? '' : currentUser.uid} {...(noTimesApi ? { repositories: noTimesApi } : {})} onClose={() => setNoTimesOpen(false)} /> : null}
 
       {state.loading && !state.items.length ? <Card><LoadingState label="Laen õpilasi…" /></Card> : null}
       {state.error ? <Card><ErrorState message={state.error.message} onRetry={() => load()} /></Card> : null}
