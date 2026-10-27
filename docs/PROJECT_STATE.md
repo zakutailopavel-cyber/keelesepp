@@ -1,3 +1,10 @@
+## 2026-10-27 · agent/untrack-node-modules — a worktree symlink `functions/node_modules` left the repository
+
+- Found while deploying #828: commit 21ce049 (#820) had committed `functions/node_modules` as a symlink to a local
+  path on the agent's laptop (`.gitignore` had `node_modules/`, which matches a directory, not a symlink file).
+- Removed from the index; `.gitignore` also ignores a plain `node_modules` entry.
+- Next safe step: none.
+
 ## 2026-10-27 · agent/night-proposals — the night's summary and proposals (docs/NIGHT_2026-10-27_PROPOSALS.md)
 
 - Owner 2026-10-26 overnight plan: bugs, auto planner, client communication, group filling, parents' „не приду”,
