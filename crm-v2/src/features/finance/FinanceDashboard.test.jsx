@@ -50,4 +50,26 @@ describe('FinanceDashboard (calendar lessons)', () => {
     expect(saveSettings).toHaveBeenCalledWith({ fixedCosts: [{ label: 'Ruum', cents: 40000 }], ownerTeacher: '', ownerRateCents: 0 }, { uid: 'u', roles: ['admin'] });
     expect(screen.getByRole('region', { name: 'Kasum' })).toHaveTextContent('= Kasum−355 €');
   });
+
+  it('chooses a past month: its numbers, no forecast; back to this month', async () => {
+    ['keelesepp.financeDashboard.period', 'keelesepp.financeDashboard.hidden'].forEach((key) => globalThis.localStorage?.removeItem?.(key));
+    const repository = { students: vi.fn(async () => [{ id: 's1', name: 'Mia', active: true }]), schedule: vi.fn(async () => [{ id: 'w1', studentId: 's1', recurring: true, day: 'Mon', startDate: '2026-09-01', time: '17:00', duration: 60, status: 'Planeeritud' }]), groups: vi.fn(async () => []) };
+    render(<FinanceDashboard today={new Date('2026-10-20T12:00:00')} repository={repository} plans={[{ studentId: 's1', lessonPriceCents: 2500 }]} lessons={[]} />);
+    await screen.findByText('Toimunud · oktoober 2026');
+    expect(screen.getByText('Prognoos · järgmised kuu')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Aruande kuu'), { target: { value: '2026-09' } });
+    // September: Mondays 7, 14, 21, 28 → 4 lessons × 25 €
+    const kpi = screen.getByText('Toimunud · september 2026').closest('.fd-kpi');
+    expect(kpi).toHaveTextContent('100 €');
+    expect(kpi).toHaveTextContent('4 tundi');
+    expect(screen.queryByText('Prognoos · järgmised kuu')).toBeNull();
+    expect(screen.queryByText('Kalendris veel sel kuul')).toBeNull();
+    expect(screen.getByText('Keskmine tund').closest('.fd-kpi')).toHaveTextContent('25 €');
+    expect(screen.getByRole('region', { name: 'Kasum' })).toHaveTextContent('Kasum ja kahjum · september');
+    fireEvent.click(screen.getByRole('button', { name: 'Järgmine kuu' }));
+    expect(screen.getByText('Toimunud · oktoober 2026')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Eelmine kuu' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Praegune kuu' }));
+    expect(screen.getByText('Prognoos · järgmised kuu')).toBeInTheDocument();
+  });
 });

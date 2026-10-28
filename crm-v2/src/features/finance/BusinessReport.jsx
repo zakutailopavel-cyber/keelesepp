@@ -45,7 +45,7 @@ function ProfitAndLoss({ report }) {
       <b>Tasuvuspunkt:</b> palgaliste õpetajate tund jätab koolile keskmiselt {money(pnl.breakEven.marginPerHourCents)}. Püsikulude ({money(pnl.fixedMonthCents)} kuus) katmiseks on vaja <b>{pnl.breakEven.hoursNeededPerMonth} h</b> nende tunde kuus; praegu antakse <b className={pnl.breakEven.hoursPerMonthNow >= pnl.breakEven.hoursNeededPerMonth ? 'is-up' : 'is-down'}>{hours(pnl.breakEven.hoursPerMonthNow)} h</b> kuus.
     </p> : null}
     <p className="br-note"><b>Keskmiselt:</b> tulu {money(pnl.revenuePerHourCents)} tunnis (kõik õpetajad).</p>
-    <p className="br-note br-forecast"><b>Järgmine kuu ({monthName(forecast.month)}) kalendri järgi:</b> {forecast.lessons} tundi, tulu {money(forecast.revenueCents)}, õpetajad −{money(forecast.teacherPayCents)}, püsikulud −{money(forecast.fixedCents)} → kasum <b className={tone(forecast.profitCents)}>{signed(forecast.profitCents)}</b>. <span className="br-muted">Kalender ei pruugi olla veel täis.</span></p>
+    {forecast ? <p className="br-note br-forecast"><b>Järgmine kuu ({monthName(forecast.month)}) kalendri järgi:</b> {forecast.lessons} tundi, tulu {money(forecast.revenueCents)}, õpetajad −{money(forecast.teacherPayCents)}, püsikulud −{money(forecast.fixedCents)} → kasum <b className={tone(forecast.profitCents)}>{signed(forecast.profitCents)}</b>. <span className="br-muted">Kalender ei pruugi olla veel täis.</span></p> : null}
   </div>;
 }
 

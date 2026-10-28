@@ -121,7 +121,7 @@ export function withTeacherPay(rows, facts, rateOf) {
 const change = (now, before) => (before ? Math.round(((now - before) / before) * 100) : null);
 
 /**
- * The business report of a period of `months` months ending with the current month, compared with the months before.
+ * The business report of a period of `months` months ending with `current` (this month or a chosen past one), compared with the months before.
  * → { from, to, now: sums, before: sums, change: { tookPlace, earned, students }, newStudents, lostStudents,
  *     unpriced, byTeacher (+ hours, rateCents, payCents, schoolCents), pay: { payCents, schoolCents, unrated }, bySubject }
  */
@@ -260,7 +260,8 @@ function economics({ current, fromMonth, facts, args, teacherOf, rates, settings
   const nextFacts = named(lessonFacts({ ...args, from: `${nextMonth}-01`, to: monthDates(nextMonth).pop() }));
   const nextTotal = sums(nextFacts);
   const nextPay = payOf(nextFacts, { planned: true });
-  const forecast = { month: nextMonth, lessons: nextTotal.planned, revenueCents: nextTotal.plannedCents, teacherPayCents: nextPay.payCents, fixedCents: fixedMonthCents, profitCents: nextTotal.plannedCents - nextPay.payCents - fixedMonthCents };
+  // a past month chosen: no forecast (its next month is history, not a calendar)
+  const forecast = current < String(args.today || '').slice(0, 7) ? null : { month: nextMonth, lessons: nextTotal.planned, revenueCents: nextTotal.plannedCents, teacherPayCents: nextPay.payCents, fixedCents: fixedMonthCents, profitCents: nextTotal.plannedCents - nextPay.payCents - fixedMonthCents };
 
   // individual and group lessons (a group lesson once)
   const kinds = { individual: { lessons: 0, earnedCents: 0 }, group: { lessons: 0, earnedCents: 0 } };
