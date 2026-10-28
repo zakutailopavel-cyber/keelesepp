@@ -855,3 +855,6 @@ button.ws-pt { cursor: pointer; }
 .ws-readcard { display: grid; gap: 2.5mm; }
 .ws-readcard p { margin: 0; font: 700 2em/1.25 Verdana, 'Avenir Next', Arial, sans-serif; letter-spacing: .06em; color: #1e1e1e; }
 .ws-hunt-cell { font-family: Verdana, 'Avenir Next', Arial, sans-serif; }
+
+/* a pair task done in the lesson with the teacher (engine/inLesson.js) */
+.ws-inlesson{display:inline-block;margin:4px 0 0;padding:2px 9px;border-radius:999px;background:#eef6ff;color:#1d4f91;font-size:.78em;font-weight:600}

@@ -1,3 +1,21 @@
+## 2026-10-28 · agent/speaking-place — V16: pair speaking in the lesson, a recorded monologue at home
+
+- Owner 2026-10-28: „катастрофически не хватает разговорных заданий … сверить с дидактикой, куда их лучше интегрировать”;
+  „надо сделать, чтобы всё соответствовало, независимо от того, правил ли человек что-то”.
+- Finding: the A2→B1 code has 3–5 speaking blocks a lesson, but the sheets go home and the pair tasks (role cards, exam
+  speaking cards, „räägi paarilisega”) cannot be done there; modules 8–18 also miss the final shape (S03/S04, corners,
+  fluency — already in finalShapeBaseline.json).
+- `worksheet-studio/engine/inLesson.js` `isInLesson(block)`: rolecards, speakcard, speaking with task S03/S04/S05/S10/S12 or
+  a partner in the instruction; `block.inLesson` (Inspector checkbox) wins. The sheet shows „👥 Teeme tunnis koos
+  õpetajaga”; `scoreDocument` skips it (reason inLesson), `answerProgress` and the recorded-speaking list leave it out.
+- `didactics/finalShape.js` V16: V16-home-voice (Kasuta has a solo speaking block), V16-in-lesson, V16-conditional
+  (tingiv kõneviis before module 13). Catalogue S14 „Mida sa teeksid?”, S15 „Kodune monoloog (salvestus)” (63 types).
+- A2→B1 content: 17 home monologues (`*_t_rec`, S15), 006_t_mine and 028_t_retell made solo, 16 conditional questions
+  before module 13 rewritten („Mida sina teed, kui …?”), 034_t_rec 3 prompts, 084_t_plan dropped (9-block cap).
+  V16 has no baseline entries; 5 old entries left the final-shape baseline.
+- Not yet: republishing the changed sheets to the DB; A2 / B2 / C1 / English courses are not under finalShape (B1 only).
+- Next safe step: republish A2→B1 sheets, then rebuild module 8 to the full final shape (no baseline left for it).
+
 ## 2026-10-28 · agent/paper-work — „Lisa paberil töö”: paper and exam works move the skill map by their points
 
 - main checked: 745d3b2 (2026-10-28). Also #861 (Õppevara: one subject, its first level, „Filtrid” for the rest) merged.

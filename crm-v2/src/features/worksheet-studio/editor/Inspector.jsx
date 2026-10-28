@@ -1,3 +1,4 @@
+import { isInLesson } from '../engine/inLesson.js';
 import { BLOCKS, COLUMN_BLOCKS, SHUFFLE_BLOCKS } from '../engine/registry.js';
 import { goalEntries } from '../engine/goals.js';
 import { TONES } from '../engine/schema.js';
@@ -52,6 +53,7 @@ export function BlockInspector({ block, doc, update }) {
               options={[['', '— pole seotud —'], ...goals.map(([id, g]) => [id, g.length > 60 ? g.slice(0, 58) + '…' : g])]} />
           )}
           {def.score ? <label className="ed-check"><input type="checkbox" checked={Boolean(block.ungraded)} onChange={(e) => update({ ...block, ungraded: e.target.checked || undefined })} /> Ei hinnata (teeme tunnis; tulemus ei lähe hindesse)</label> : null}
+          {def.task ? <label className="ed-check"><input type="checkbox" checked={isInLesson(block)} onChange={(e) => update({ ...block, inLesson: e.target.checked })} /> Tunnis koos õpetajaga (paaris- või rollitöö; kodus ei küsita)</label> : null}
         </div>
       )}
 

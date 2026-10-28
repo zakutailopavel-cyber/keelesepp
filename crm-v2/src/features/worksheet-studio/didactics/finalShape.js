@@ -1,4 +1,4 @@
-// The final-shape gates of the B1 course (docs/COURSE_FINAL_SHAPE_B1.md §8, rules V1–V15). Pure and node-importable:
+// The final-shape gates of the B1 course (docs/COURSE_FINAL_SHAPE_B1.md §8, rules V1–V16). Pure and node-importable:
 // the course test (admin/course/finalShape.test.js), the summary tool (tools/course-audit/final-shape.mjs) and the unit
 // tests (finalShape.test.js) call the same functions.
 //
@@ -7,6 +7,7 @@
 // built sheets. Output: problems [{ rule, check, moduleId, lessonId, phase, text }]; `moduleId` 'course' for a rule of the
 // whole course. The tags (block.tag: task, harno, level, fluency, main, topic) come from admin/course/blocks.js tag().
 import { blockMinutes } from './timeEstimate.js';
+import { isInLesson } from '../engine/inLesson.js';
 import {
   ARCHETYPES, FORMAT_INTRO, FORMAT_PRACTICE, LEAD_PAIRS, TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS,
   harnoFamily, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
@@ -22,6 +23,7 @@ export const FINAL_SHAPE = Object.freeze({
   v5: { maxPerArchetype: 12, minPerArchetype: 7, minProj: 3, relaxedModule: 18 },
   v11: { input: 0.2, output: 0.25, language: 0.4, fluency: 0.1 },
   v12: { fromModule: 6, washback: 0.25, cornerMinutes: [8, 12] },
+  v16: { conditionalFrom: 13 },
   v13: { back: [2, 4] },
   v14: { known: 0.9 },
   v15: { errorfix: 2, translation: 1, dictation: 2 },
@@ -407,6 +409,25 @@ export const RULES = {
   V8: 'Harjutuslaused ei kordu', V9: 'Ülesanded teenivad tunni oskust', V10: 'Sujuv tee eesmärgini (redel)', V11: 'Neli haru (Nation)',
   V12: 'Eksaminurk ja tagasimõju', V13: 'Hajutatud kordamine', V14: 'Sõnavara tase', V15: 'Piirid (vead, tõlge, etteütlus)',
 };
+// ---------- V16: where the speaking happens (owner 2026-10-28) ----------
+// every teaching lesson has a pair / role task done in the lesson (the teacher is the partner) and, in Kasuta, a
+// monologue the learner records at home; „Mida sa teeksid?” (tingiv kõneviis) only from module 13, where the form is taught
+const CONDITIONAL = /\b(tee|ole|lähe|ütle|vali|ost|aita|soovita|küsi|ela|sõida|kasuta)(ksi[dn]?|ksite|ksime)\b/i;
+const speakText = (b) => [b.data?.title, b.data?.instruction, b.data?.questions, b.data?.roleA, b.data?.roleB, b.data?.situation].filter(Boolean).join(' ');
+function speakingPlaceProblems(lessons, out) {
+  teaching(lessons).forEach((l) => {
+    const all = PHASES.flatMap((p) => blocksOf(l.sheets[p]).map((b) => ({ b, phase: p })));
+    if (l.sheets.transfer && !blocksOf(l.sheets.transfer).some((b) => b.type === 'speaking' && !isInLesson(b))) {
+      out.push({ rule: 'V16', check: 'V16-home-voice', lesson: l, phase: 'transfer', text: 'Kasuta: kodus salvestatav monoloog puudub (speaking-plokk, mis ei ole paaristöö)' });
+    }
+    if (!all.some(({ b }) => isInLesson(b))) out.push({ rule: 'V16', check: 'V16-in-lesson', lesson: l, phase: '*', text: 'tunnis ei ole ühtki paaris- või rolliülesannet (õpetaja on partner)' });
+    if (l.module < FINAL_SHAPE.v16.conditionalFrom) {
+      all.filter(({ b }) => ['speaking', 'rolecards', 'speakcard'].includes(b.type) && CONDITIONAL.test(plain(speakText(b))))
+        .forEach(({ b, phase }) => out.push({ rule: 'V16', check: 'V16-conditional', lesson: l, phase, text: `${b.id}: tingiv kõneviis enne moodulit ${FINAL_SHAPE.v16.conditionalFrom} (kasuta „Mida sa teed, kui …?”)` }));
+    }
+  });
+}
+
 export function finalShapeProblems(lessons, { forms = null } = {}) {
   const raw = [];
   sequenceProblems(lessons, raw);
@@ -420,6 +441,7 @@ export function finalShapeProblems(lessons, { forms = null } = {}) {
   reviewProblems(lessons, raw);
   vocabProblems(lessons, raw, forms);
   capProblems(lessons, raw);
+  speakingPlaceProblems(lessons, raw);
   return raw.map(({ lesson, course, moduleOnly, ...p }) => ({
     ...p,
     moduleId: course ? 'course' : lesson.moduleId,
