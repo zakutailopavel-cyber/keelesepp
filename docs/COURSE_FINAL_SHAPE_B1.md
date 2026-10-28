@@ -373,6 +373,9 @@ every lead fits §4 and the four pairs are once each, so no swap was needed (`b1
 Module 10 (2026-10-26): the row is valid as written (RÄÄK R→S ends in speaking, PROJ L→W in a letter) and
 was kept. It has no AVAS or LUGU lesson, so the module's grammar (enneminevik, §4.1 rule 6) comes in the RÄÄK lesson 048
 through travel stories and is used again in the PROJ lesson 049 (`b1/module10.js`).
+Module 11 (2026-10-28): lessons 2 and 3 are swapped as allowed — 052 KIRJ R→W (comparison consolidated in a writing
+workshop), 053 AVAS L→W (participles as attributes introduced: try first → rule → try again), so the AVAS lesson brings in
+the module's B1 grammar (§4.1 rule 6); 051 LUGE R→S and 054 PROB L→S as in the row (`b1/module11.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 

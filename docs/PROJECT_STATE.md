@@ -1,3 +1,50 @@
+## 2026-10-28 · agent/b1-m11-final — B1 module 11 „Raha, ostlemine ja teenused” in the final shape
+
+- Base: `main` 560ca9a (2026-10-28, after #805 module 10 and #806 module 9). Draft PR from `agent/b1-m11-final`. Content
+  only; no production data, no publishing, no deploy.
+- Asked (owner): module 11 (a2b1-051…055) to the final shape like modules 2–10 (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 11,
+  §6.3 formats of module 11: R3b, L3b; V16: in-lesson pair task + home recording, no tingiv kõneviis before module 13).
+- Done: `b1/module11.js` rewritten (April–May storyline: Sofia's new phone from „Nutikas” breaks twice; Oskar's boots;
+  the family's used car; Kadri's wrong parcel from „Lasteriie”). Lessons 2 and 3 of the row are swapped (allowed by
+  §6.2) so that the AVAS lesson introduces the module's B1 grammar (participles as attributes):
+  - 051 LUGE R→S — Nutikas offers (R13 predict), how the phone was lost (L09), notice (prices, %), Q↔A (G08), best buy
+    told three times (S07), 8-min writing (W06); mall announcements (L01), sales article (R02), corner **R3b** (word-bank
+    cloze, introduced), forms (G03), polite questions (G07), info gap (S05); Kasuta: three pairs of boots (R11,
+    `level: 3`), main **S03** agreement with Oskar within 60 €, home voice message (S15), W02 note to Kadri.
+  - 052 KIRJ R→W — Kadri's letter as the model (R09 paragraph functions), comparison notice + rule (G02), linking words
+    (G04), which car three times (S11), Kadri's draft made formal (W12); forms (G13), the seller call (L10), ads ↔ buyers
+    (R01), letter to Viktor (R03, vocabulary), joining (W09), Kadri's draft errors (G06), corner **W1a** (car portal
+    questionnaire); Kasuta: Karin's e-mail (R05), bargaining twice (S03), home summary (S15), main **W04** letter to
+    Helgi 80–100 words, rewrite (W10).
+  - 053 AVAS L→W — try first (G13), service desk (L03), participle notice, rule (G02), try again (G05), 4-3-2 (S08),
+    relay to Anna (S13); word forms (G09), shop terms true/false/not stated (R06), shop reply (G03), corner **L3b**
+    (radio „Tarbija tund”, introduced), dictation (L08), headphones at the desk (S10); Kasuta: the same situation again —
+    Lasteriie's answer (L06, `level: 3`), the call (S04), home advice (S15), plan (W11), main **W08** complaint
+    80–100 words (`level: 4`).
+  - 054 PROB L→S — the workshop's voicemail (L07), Sofia–Anna chat (R12), notice (participles, teie-imperative), crossword
+    (G11), words (G08), first attempt: rank the next steps (S12), service survey (S09); shop notices (R07), consumer
+    adviser on the radio (L02), polite and firm (G05), Sofia's draft errors (G06), e-service form (W07), topic questions
+    twice (S02); Kasuta: repair reports + terms (R08, `level: 3`), main = corner **S2** call to the manager, home
+    recording (S15), review (W05).
+  - 055 EKS — Harno B1 form at full length: R1 (9), R2 (6), R3b (10), R4 (8) = 33 p, 50 min · L1 (7), L2 (6), L3b (8),
+    L4 (9) = 30 p · W1b + W2a = 20 p · S0, S1a, S1b, S2 = 20 p; `B.examPart` per part, target 80 %; warm-up sheet with the
+    end of the phone story. Harjuta = reading + listening, Kasuta = writing + speaking (see FINAL_SHAPE_AUTHORING §8.4).
+- Also: goals and can-do 051–055 in `b1/lessonGoals.js`; cast facts in `docs/COURSE_CAST.md`; module-11 note in
+  `COURSE_FINAL_SHAPE_B1.md` §6.2; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.4. No picture briefs existed for module 11
+  (no `art/visuals/b1-module-11.js`), none added.
+- Audio: 12 new recordings (TartuNLP, free) in `public/audio/a2b1-051…055`; the 8 old files and their manifest entries
+  removed; all speaker names were already in `tools/listening-audio/plan.mjs`.
+- Checks: `course:final-shape --module 11` 59 → 0. `finalShapeBaseline.json` 628 → 546 lines (module 11 −59, 22 V2/V7
+  lines of modules 12–17 gone with the old module-11 texts, course `V6-total-R1` −1); no line added. Older quality gate
+  and strict gate for module 11: 0 (module 11 had no quality-baseline lines). `npx eslint src`: 0 errors (17 old
+  warnings). Full `npx vitest run`: 402 files passed (1 skipped), 2744 tests passed, 4 skipped. Vabamorf speller: 0 unknown words except names and the technical value `kusimustik`.
+- Limits: teaching sheets are 40–50 min; R11/L06/R08 in Kasuta and W08 carry level tags (application questions, a free
+  complaint); the exam's R3b and R4 are `gaps` texts with a bank (keeps the B1 recognition share ≤ 45 %) and its R2 text
+  has one unscored opinion question; the consumer-law facts in 053/054 (14-day e-shop return, 2-year claim, 15-day answer,
+  free consumer disputes committee) are simplified for B1; V2 against 056 was checked on today's module 12.
+- Next safe step: owner reviews module 11 in „Kursuse tootmine” and publishes it; the module 12 author starts 056 with a
+  corner other than S2 (054's corner) and re-checks V1/V2 against 054.
+
 ## 2026-10-26 · agent/b1-m10-final — B1 module 10 „Reisimine” in the final shape
 
 - Base: `main` b519e36, merged with `main` a9d4444 (2026-10-26, after #804, module 7). Draft PR #805 from
