@@ -44,7 +44,7 @@ function repositories({ events = [], records = [], groups = [], windows = [], no
     },
     groupRepository: { list: vi.fn().mockResolvedValue(groups), setAttendance: vi.fn(), patchLesson: vi.fn().mockResolvedValue({}) },
     liveRepository: { create: vi.fn().mockResolvedValue({ id: 'inv-1' }) },
-    teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't2', name: 'Jelena' }]) },
+    teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't2', name: 'Jelena', role: 'teacher' }]) },
     lessonRepository: {
       listForCalendar: vi.fn().mockResolvedValue(records),
       completeFromSchedule: vi.fn().mockResolvedValue({ id: 'lesson-1' }),
@@ -373,7 +373,7 @@ describe('calendar v2', () => {
     const setup = () => {
       const props = repositories();
       props.studentRepository.list.mockResolvedValue({ items: [milan] });
-      props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't9', name: 'Jegor' }]) };
+      props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't9', name: 'Jegor', role: 'teacher' }]) };
       render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
       return props;
     };
@@ -483,13 +483,31 @@ describe('calendar v2', () => {
 
   it('the admin can choose a new teacher who has no lessons yet', async () => {
     const props = repositories({ events: [lesson()] });
-    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't9', name: 'Jegor' }, { id: 't8', name: 'Vana', disabled: true }]) };
+    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't9', name: 'Jegor', role: 'teacher' }, { id: 't8', name: 'Vana', role: 'teacher', disabled: true }, { id: 'a1', name: 'Nelli', role: 'admin', roles: ['admin', 'finance'] }]) };
     render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });
     const filter = screen.getByLabelText('Filtreeri õpetaja järgi');
     await waitFor(() => expect(within(filter).getByRole('option', { name: 'Jegor' })).toHaveValue('t9'));
     expect(within(filter).queryByRole('option', { name: 'Vana' })).not.toBeInTheDocument();
+    expect(within(filter).queryByRole('option', { name: 'Nelli' })).not.toBeInTheDocument();
     expect(within(filter).getAllByRole('option', { name: 'Pavel' })).toHaveLength(1);
+  });
+
+  it('„Asendab”: the admin gives one lesson of a series to another teacher', async () => {
+    const props = repositories({ events: [lesson({ recurring: true, day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()] })] });
+    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't9', name: 'Jegor', role: 'teacher' }, { id: 'a1', name: 'Nelli', role: 'admin' }]) };
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    fireEvent.click(within(panel).getByRole('button', { name: /Asendab/ }));
+    const select = within(panel).getByLabelText('Asendav õpetaja');
+    await waitFor(() => expect(within(select).getByRole('option', { name: 'Jegor' })).toBeInTheDocument());
+    expect(within(select).queryByRole('option', { name: 'Nelli' })).toBeNull();
+    expect(within(select).queryByRole('option', { name: 'Pavel' })).toBeNull();
+    fireEvent.change(select, { target: { value: 't9' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Kinnita asendus' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ teacher: 'Jegor', teacherUid: 't9', substituteFor: { teacher: 'Pavel', teacherUid: 't1' }, date: today, time: '10:00', recurring: false, movedFromSeriesId: 'schedule-1' })));
+    expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] });
   });
 
   it('a teacher clicks an empty cell: busy for this day only, then a new lesson from the same menu', async () => {
