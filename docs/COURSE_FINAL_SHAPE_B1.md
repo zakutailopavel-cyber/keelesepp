@@ -368,6 +368,8 @@ content author may swap two lessons inside a module if the grammar needs it, as 
 
 `**` Module 6 (2026-10-26): the first plan had PROB L→W, which §4 (PROB → S) and the V5-lead gate do not allow; the
 leads moved to AVAS L→W and PROB R→S, so the four pairs stay once each (`b1/module06.js`).
+Module 8 (2026-10-26) is built as written: AVAS R→S (036, rektsioon introduced), KUUL L→W, LUGE R→W, RÄÄK L→S —
+every lead fits §4 and the four pairs are once each, so no swap was needed (`b1/module08.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 

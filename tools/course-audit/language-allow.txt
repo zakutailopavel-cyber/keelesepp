@@ -33,3 +33,8 @@ lik
 line
 ne
 tu
+proovitesti
+proovitestil
+proovitestile
+proovitestis
+vahetestist
