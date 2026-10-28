@@ -86,6 +86,15 @@ Keep facts consistent; add new facts here when a module adds them.
   **Aed** (**Marta** takes bookings); delivery firm **„Kiire Kõht”** (order 4471, 23 € refunded + a gift card); food bank
   worker **Kaja Raud**; Kalamaja society head **Tõnis Rebane** (sharing fridge); catering firm **„Pidulaud”** (**Liina**);
   Viktor has sold at Nõmme market for five years; Anna's grandmother's chicken salad.
+- **Module 10 (final shape, 2026-10-26):** school-holiday train to Tartu: Mia (6) travels free, Oskar at half price, the
+  dog Muki is big (ticket 3 €, leash and muzzle); seats moved to the 19.40 train (car 3, seats 11–15) because Kadri works
+  until 18; Viktor comes on Saturday via Tapa. Conductor **Riho Mägi** (radio, host Ülle). Riga fair for Tuul Logistika:
+  Anna and Markus take the bus „Balti Ekspress” (17 € a week ahead), guesthouse „Lilla Uks” (receptionist **Liene**),
+  budget 400 € for two; the Helsinki weekend of Anna and Sofia (last autumn: missed ship, room given away, closed museum).
+  Raadio Linnahääl „Teel juhtunud”: listeners **Tarvo** (58, Tartu), **Kaidi** (34), **Joosep** (21), **Merit** (45, Narva).
+  Sofia's friend **Lena** lives in Berlin (first visit to Estonia, 12–16 March, stays at Helgi's in Tartu, Viljandi
+  guesthouse „Kase”); Markus and Liis missed the Viljandi → Tartu bus on the way from a Pärnu client. Exam: Sofia and Liis
+  take the bus to a Tartu client when the train breaks down; lost-property clerk **Kaia** of „Kõrve Reisid”.
 - **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
   from shop customer service); new administrator **Jelena**.
   Module 9 final shape (2026-10-26, November): café **Kaneel** is open on Friday and Saturday evenings till 23 from
