@@ -3,6 +3,7 @@ import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
+import { paperMeasured, paperWorkPayload } from '../../features/homework/paperWork.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
 import { localDate } from '../../utils/localDate.js';
 
@@ -353,7 +354,7 @@ export const homeworkService = {
         if (!student.exists()) throw new Error('Õpilase kaarti ei leitud.');
         const before = current.exists() ? current.data() : {};
         const skillMap = { ...(student.data().skillMap || {}) };
-        const result = applySkillGrades(skillMap, grades, { deltas: before.skillDeltas || {}, created: before.skillCreated || [] });
+        const result = applySkillGrades(skillMap, grades, { deltas: before.skillDeltas || {}, created: before.skillCreated || [] }, paperMeasured(submission));
         for (const [skill, value] of Object.entries(result.values)) {
           if (value === null) delete skillMap[skill]; else skillMap[skill] = value;
         }
@@ -621,6 +622,13 @@ export const homeworkService = {
 
     if (files.length) return assignmentFallback(homework, files);
     throw new Error('Õppematerjali sisu ei leitud.');
+  },
+  // a work done on paper, entered by the teacher with its points (homework/paperWork.js); checked like any other work
+  async addPaperWork(input) {
+    const payload = paperWorkPayload(input);
+    const { db } = requireFirebaseClient();
+    const reference = await addDoc(collection(db, 'exerciseResults'), payload);
+    return normalizeSubmission(reference.id, payload, 'exercise');
   },
   async submitExerciseResult({ exercise, homework, result, user }) {
     if (!exercise?.id || !homework?.studentId) throw new Error('Harjutuse seos õpilasega puudub.');

@@ -1,3 +1,18 @@
+## 2026-10-28 · agent/paper-work — „Lisa paberil töö”: paper and exam works move the skill map by their points
+
+- main checked: 745d3b2 (2026-10-28). Also #861 (Õppevara: one subject, its first level, „Filtrid” for the rest) merged.
+- Owner 2026-10-28 (a pupil's handwritten exam writing): „это нужно как-то внедрять и корректировать её оценку в профиле”.
+- `features/homework/paperWork.js`: templates (`pk-b1-writing` = Põhikooli lõpueksam, eesti keel teise keelena,
+  kirjutamine: 2 tasks × ülesande täitmine 0–5 + keelekasutus 0–5 = 20 p; `free`), `paperWorkPayload()` → an
+  `exerciseResults` record with `exerciseType: 'paper'`, `paperParts [{label, points, max}]`, `paperSkills`, `score`, `pct`.
+  Staff may already create exerciseResults under the rules — no rules change.
+- `homeworkService.addPaperWork()`; `PaperWorkModal.jsx` from the student card „Tööd” → „Lisa paberil töö” → opens the
+  usual SubmissionReviewModal (points table, grade, skills, comment).
+- `skillGrades.applySkillGrades(..., measured)`: a skill measured by points moves half way to the measured percent
+  (delta stored, a re-check undoes it as before); other skills keep the +5/+3/+1/0/−3 step.
+- Checks: eslint + full vitest 2742 passed. Not checked visually in the browser.
+- Next safe step: enter the first paper work (Polina, self_DuTpgnifLQWnxdA9sOQyMzzmfPE3, 9/20) and see „Areng”.
+
 ## 2026-10-28 · #858 + #859 — finance month picker; calendar „Asendab” and teacher-only lists
 
 - main checked: 342db63 (2026-10-28). Both PRs merged after CI (eslint + full vitest 2734 passed, security-regression, Vercel).
