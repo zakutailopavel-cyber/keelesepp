@@ -477,3 +477,29 @@ Module 11 went 59 → 0 final-shape problems (`--module 11`), strict gate 0, wit
 - **Swapping AVAS and KIRJ** inside the row moved the grammar to the AVAS lesson; `grammarPlan.js` only asks for a
   `notice` in 052 (comparison) and in 053 and 054 (participles), so both lessons keep a notice.
 
+
+### 8.5 Module 12 (2026-10-29, `b1/module12.js`, a2b1-056…060): Mock 1
+
+Module 12 went 60 → 0 final-shape problems (`--module 12`), strict gate 0, no baseline line left; it also closed
+`V6-variant-L3b` and `V6-variant-R3b` (the mock's R3b and L3b are the third practice of each). New pitfalls:
+
+- **V16 from the start.** Every teaching lesson has an in-lesson pair task (role cards, an idea card or phone cards are
+  enough — `engine/inLesson.js`) and an S15 home recording in Kasuta (`tag(B.speaking(…), { task: 'S15', level: 3 })`,
+  no pair words such as „kuulajale”, „paarilisega” in its title or instruction). No conditional in any speaking text
+  before module 13: „Mida sa teed, kui …?”; the reading questions were kept conditional-free too („Kuidas vald inimesi
+  veega aitas?” instead of „…, et inimesed saaksid vett?”).
+- **Word counts once more:** the didactic check counts whitespace words of the passage; drafted „~230-word” texts
+  counted 157–195 and failed the B1 200–400 norm. Count with a 10-line node script before running the gates.
+- **A `cloze` corner needs ~270 words:** at B1 (90 wpm) 10 gaps are 3.5 min and the text 1.5 × words / 90 — a 220-word
+  R3a cloze is 7.1 min and fails V12 (8–12).
+- **v4-drills counts `gaps` as a drill:** a Harjuta with `transformation`, `errorfix` and a `gaps` word-bank text has three
+  drills (max 2). The R04 word bank became `B.bankText` (an `insertion`, tagged `R04`): not a drill, full minutes for
+  depth, but recognition — keep the sheet ≤ 45 %.
+- **A chat thread at B1 is a `reading`, not a `dialogue`:** the RÄÄK Avasta needs a ≥ 140-word input and ≥ 6 live minutes;
+  `dialogue` gives ≤ 2.7 min with 9 gaps and is not a text. A 200-word thread tagged `R12` with 7 questions fixed both.
+  Put an empty line between the messages (`v3-paragraphs`: a long text in one paragraph is reported).
+- **`listening` without a tag is L04:** two untagged gap listenings in a module break `V4-max-L04`; tag the short-answer
+  one `{ task: 'L03' }`.
+- **Mock 1 shape:** the same sheet split as exam 055 (Avasta warm-up with the story's end, Harjuta R1/R2/R3b/R4 + L1–L4
+  with R3b and R4 as `gaps` texts with a bank and three strategy/points rubrics, Kasuta W1a + W2b + S0/S1a/S1b/S2). The
+  `examPart` notes and the points rubrics name both the §6.5 checkpoint (R 20, L 18, W 12, S 12) and the 80 % target.
