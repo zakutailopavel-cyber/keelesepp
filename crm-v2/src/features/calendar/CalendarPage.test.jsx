@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, vi } from 'vitest';
 import CalendarPage from './CalendarPage.jsx';
-import { toIsoDate } from './calendarView.js';
+import { shiftDate, toIsoDate } from './calendarView.js';
 
 // jsdom's PointerEvent drops clientX/clientY: without them a drag looks like a click
 globalThis.PointerEvent = class PointerEvent extends globalThis.MouseEvent {
@@ -44,7 +44,7 @@ function repositories({ events = [], records = [], groups = [], windows = [], no
     },
     groupRepository: { list: vi.fn().mockResolvedValue(groups), setAttendance: vi.fn(), patchLesson: vi.fn().mockResolvedValue({}) },
     liveRepository: { create: vi.fn().mockResolvedValue({ id: 'inv-1' }) },
-    teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't2', name: 'Jelena' }]) },
+    teacherRepository: { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't2', name: 'Jelena', role: 'teacher' }]) },
     lessonRepository: {
       listForCalendar: vi.fn().mockResolvedValue(records),
       completeFromSchedule: vi.fn().mockResolvedValue({ id: 'lesson-1' }),
@@ -83,6 +83,20 @@ describe('calendar v2', () => {
     fireEvent.click(await within(dialog).findByRole('option', { name: /Mari Maas/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta tund' }));
     await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ roomId: 'r2', roomName: 'Kabinet 2', online: false })));
+  });
+
+  it('„Uus tund”: choosing a student offers the student\'s free suitable times; a click fills date and time', async () => {
+    const tomorrow = shiftDate(today, 1);
+    const day = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${tomorrow}T12:00:00`).getDay()];
+    renderCalendar({ studentTimes: [{ studentId: 's1', slots: [`${day}-16:00`, `${day}-16:30`, `${day}-17:00`, `${day}-17:30`], preferred: [`${day}-16:00`, `${day}-16:30`] }] });
+    fireEvent.click(await screen.findByRole('button', { name: /Lisa tund/ }));
+    const dialog = await screen.findByRole('dialog', { name: /Uus tund/ });
+    fireEvent.change(within(dialog).getByRole('combobox', { name: /Õpilane/ }), { target: { value: 'Mari' } });
+    fireEvent.click(await within(dialog).findByRole('option', { name: /Mari Maas/ }));
+    const times = await within(dialog).findByRole('group', { name: 'Õpilase sobivad vabad ajad' });
+    fireEvent.click(within(times).getAllByRole('button', { name: /16:00 ★/ })[0]);
+    expect(within(dialog).getByLabelText('Kellaaeg')).toHaveValue('16:00');
+    expect(within(dialog).getByLabelText('Kuupäev')).toHaveValue(tomorrow);
   });
 
   it('rooms: all taken → the form says so and saving fails until it is an online lesson', async () => {
@@ -359,7 +373,7 @@ describe('calendar v2', () => {
     const setup = () => {
       const props = repositories();
       props.studentRepository.list.mockResolvedValue({ items: [milan] });
-      props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't9', name: 'Jegor' }]) };
+      props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't9', name: 'Jegor', role: 'teacher' }]) };
       render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
       return props;
     };
@@ -456,15 +470,44 @@ describe('calendar v2', () => {
     expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', expect.objectContaining({ time: '14:00' }));
   });
 
+  it('a notice of absence („Ma ei tule”) marks the lesson „Puudus (teatas ette)” and answers it', async () => {
+    const props = repositories({ events: [lesson()] });
+    const request = { id: 'req-2', scheduleId: 'schedule-1', occurrenceDate: today, occurrenceTime: '10:00', studentName: 'Mari Maas', teacherUid: 't1', proposals: [], other: '', reason: 'haige', status: 'pending' };
+    props.changeRequests = { subscribePending: (_, next) => { next([request]); return () => {}; }, decide: vi.fn().mockResolvedValue({}) };
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText(/Ei tule, uut aega ei soovi/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Märgi puudumine' }));
+    await waitFor(() => expect(props.changeRequests.decide).toHaveBeenCalledWith('req-2', expect.objectContaining({ accepted: true, chosen: null })));
+    expect(props.lessonRepository.completeFromSchedule).toHaveBeenCalledWith(expect.objectContaining({ id: 'schedule-1' }), expect.anything(), expect.objectContaining({ status: 'Puudus_p', notes: 'haige' }));
+  });
+
   it('the admin can choose a new teacher who has no lessons yet', async () => {
     const props = repositories({ events: [lesson()] });
-    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel' }, { id: 't9', name: 'Jegor' }, { id: 't8', name: 'Vana', disabled: true }]) };
+    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't9', name: 'Jegor', role: 'teacher' }, { id: 't8', name: 'Vana', role: 'teacher', disabled: true }, { id: 'a1', name: 'Nelli', role: 'admin', roles: ['admin', 'finance'] }]) };
     render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
     await screen.findByRole('button', { name: /10:00 Mari Maas/ });
     const filter = screen.getByLabelText('Filtreeri õpetaja järgi');
     await waitFor(() => expect(within(filter).getByRole('option', { name: 'Jegor' })).toHaveValue('t9'));
     expect(within(filter).queryByRole('option', { name: 'Vana' })).not.toBeInTheDocument();
+    expect(within(filter).queryByRole('option', { name: 'Nelli' })).not.toBeInTheDocument();
     expect(within(filter).getAllByRole('option', { name: 'Pavel' })).toHaveLength(1);
+  });
+
+  it('„Asendab”: the admin gives one lesson of a series to another teacher', async () => {
+    const props = repositories({ events: [lesson({ recurring: true, day: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(`${today}T12:00:00`).getDay()] })] });
+    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher' }, { id: 't9', name: 'Jegor', role: 'teacher' }, { id: 'a1', name: 'Nelli', role: 'admin' }]) };
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: /10:00 Mari Maas/ }));
+    const panel = screen.getByRole('dialog', { name: 'Tund: Mari Maas' });
+    fireEvent.click(within(panel).getByRole('button', { name: /Asendab/ }));
+    const select = within(panel).getByLabelText('Asendav õpetaja');
+    await waitFor(() => expect(within(select).getByRole('option', { name: 'Jegor' })).toBeInTheDocument());
+    expect(within(select).queryByRole('option', { name: 'Nelli' })).toBeNull();
+    expect(within(select).queryByRole('option', { name: 'Pavel' })).toBeNull();
+    fireEvent.change(select, { target: { value: 't9' } });
+    fireEvent.click(within(panel).getByRole('button', { name: 'Kinnita asendus' }));
+    await waitFor(() => expect(props.scheduleRepository.create).toHaveBeenCalledWith(expect.objectContaining({ teacher: 'Jegor', teacherUid: 't9', substituteFor: { teacher: 'Pavel', teacherUid: 't1' }, date: today, time: '10:00', recurring: false, movedFromSeriesId: 'schedule-1' })));
+    expect(props.scheduleRepository.patch).toHaveBeenCalledWith('schedule-1', { excludedDates: [today] });
   });
 
   it('a teacher clicks an empty cell: busy for this day only, then a new lesson from the same menu', async () => {

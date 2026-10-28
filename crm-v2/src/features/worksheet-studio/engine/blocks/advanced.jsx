@@ -15,7 +15,8 @@ const scoreRows = (rows, get, answerKey = 'answer') => (rows || []).map((row, i)
 export const sentenceVariants = (answer) => String(answer || '').split(/[|;\n]/).map((x) => x.trim()).filter(Boolean);
 const scoreSentences = (rows, get, data) => {
   const cmp = normFor(data);
-  return (rows || []).map((row, i) => ({ key: String(i), ok: sentenceVariants(row.answer).map(cmp).includes(cmp(get(String(i)))) }));
+  // a row without a right answer is the teacher's to judge, never an automatic mistake
+  return (rows || []).map((row, i) => (sentenceVariants(row.answer).length ? { key: String(i), ok: sentenceVariants(row.answer).map(cmp).includes(cmp(get(String(i)))) } : null)).filter(Boolean);
 };
 
 export const wordforms = {

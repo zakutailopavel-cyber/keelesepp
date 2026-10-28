@@ -237,14 +237,14 @@ export const LESSONS = withShapes({
     ],
     transfer: [
       B.text('036_t_sit', 'Daria ringid', 'Huviringidesse registreerimine lõpeb reedel. Olena tahab, et Daria osaleks kahes ringis, aga ta ei tea veel, millised sobivad. Daria huvitub matemaatikast, joonistamisest ja tantsust. Kõigepealt kohtub Olena lastevanemate õhtul Oskari ema Kadriga. Siis loed ringide kaarte, lepid Olenaga kokku ja helistad huvijuhile. Lõpuks kirjutad klassijuhatajale lühikese sõnumi.'),
-      teach(tag(B.speaking('036_t_meet', 'Lastevanemate õhtul.', 'Lastevanemate õhtul kohtuvad Olena ja Oskari ema Kadri esimest korda. Tutvustage end ja oma last ning küsige teineteiselt.', [
+      teach(tag(B.speaking('036_t_meet', 'Lastevanemate õhtul.', 'Oled Olena lastevanemate õhtul. Tutvusta ennast ja oma last. Räägi 1–2 minutit ja salvesta.', [
         'Kes sa oled ja kus sa töötad?',
         'Kui vana su laps on ja millest ta huvitub?',
         'Milles su laps koolis või pärast kooli osaleb?',
         'Millega oli sinu lapsel raske harjuda?',
-        'Küsi teiselt kaks küsimust tema lapse kohta.',
+        'Mida sa tahad klassijuhatajalt küsida?',
       ], [90, 150], ['Meeldiv tutvuda! Mina olen…', 'Minu tütar huvitub…', 'Ta osaleb…']), { task: 'S01' }),
-      'Üks-ühele: õpetaja on Kadri, õpilane Olena; teises ringis räägivad mõlemad enda nimel ja tutvustavad oma last või lapsepõlve huviringi.'),
+      'Kodus salvestab õpilane Olena tutvustuse. Tunnis on õpetaja Kadri: kuulab, küsib kaks küsimust ja tutvustab siis oma last — nüüd küsib õpilane.'),
       B.profiles('036_t_clubs', 'Neli huviringi.', 'Loe Kase kooli nelja huviringi kaarti. Täienda laused: millal, kellele ja mis tingimustel ring toimub.', [
         ['Robootika', ['juhendaja Kuldar', 'esmaspäeval ja kolmapäeval 15.00–16.30', '2.–6. klassi õpilastele, tasuta', 'vaja on aru saada lihtsatest juhistest', 'vabu kohti on kaks'],
           ['Robootikaring toimub esmaspäeval ja [kolmapäeval].', 'Ring on mõeldud teise kuni kuuenda [klassi] õpilastele.', 'Robootikaringis osalemise eest ei pea [maksma].', 'Lapsed peavad saama aru lihtsatest [juhistest].', 'Ringis on veel ainult kaks vaba [kohta].', 'Robootikaringi juhendab [Kuldar].']],
@@ -689,6 +689,8 @@ export const LESSONS = withShapes({
         'Oled Liis. Sa tahad Annat aidata, aga kell kaheksa on igal teisipäeval meeskonna koosolek. Küsi põhjust, ütle oma mure ja leidke kompromiss.',
         ['Ma tahaksin…, sest…', 'Kuna hommikul…', 'Ma võiksin selle eest…'], ['Miks just…?', 'Probleem on selles, et…', 'Lepime kokku, et…']), { task: 'S10', fluency: true }),
       'Üks-ühele: õpetaja on Liis ja ei ole alguses nõus (koosolek on kell kaheksa); õpilane põhjendab ja pakub lahenduse. Teisel korral teete vestluse kiiremini, õpetaja on uus juht, kes küsib teisi küsimusi.'),
+      teach(tag(B.speaking('038_t_rec', 'Kodus: miks ma õpin eesti keelt?', 'Räägi 1–2 minutit ja salvesta: miks sa õpid eesti keelt ja mis aitab sul kõige rohkem. Kasuta sest ja kuna.', ['Miks sa õpid eesti keelt?', 'Mis on õppimisel kõige raskem?', 'Mis aitab sind kõige rohkem?', 'Mida sa tahad aasta pärast osata?'], [60, 120], ['Ma õpin eesti keelt, sest…', 'Kuna mul on…, siis…', 'Kõige rohkem aitab…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis loendab õpetaja sest- ja kuna-lauseid ja küsib ühe miks-küsimuse.'),
       tag(B.examWriting('038_t_story', 'Jutt „Miks ma õpin”.', 'Kirjuta jutt umbes 100 sõnaga. Kirjuta kõigist punktidest ja põhjenda sõnadega sest, kuna ja seepärast.', 'jutt', {
         situation: 'Keelekool Sõna kogub õppijate lugusid oma kodulehele. Pealkiri on „Miks ma õpin”.',
         points: ['mida sa õpid ja millal sa alustasid', 'miks sa õpid: vähemalt kaks põhjust', 'mis on õppimisel raske ja miks', 'mida sa muutsid või tahad muuta', 'mida sa tahad aasta pärast osata'],
@@ -791,7 +793,7 @@ export const LESSONS = withShapes({
         'Millest ta nüüd aru ei saa ja mida ta tahab teha?',
         'Mida soovitas õpetaja Hanna?',
         'Kuidas aitab Liis töö kolmeks osaks jagada?',
-        'Mida sina Markuse asemel teeksid?',
+        'Mida sina teed, kui sul on sama probleem?',
       ], [90, 120], ['Markus puudus…, sest…', 'Ta jäi maha…', 'Liis soovitas…']), { task: 'S07', fluency: true }),
       'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega. Teisel korral on aega 90 sekundit — lugu peab tulema sujuvamalt, mitte lühemate lausetega.'),
       tag(B.letter('039_d_formal', 'Sama mure õpetajale.', 'Loe uuesti Markuse sõnumit Liisile. Kirjuta sama mure õpetaja Hannale: viisakalt, teie-vormis ja ühe palvega.', 'Tere, õpetaja Hanna!', 'Lugupidamisega, Markus', [70, 90]), { task: 'W12' }),
@@ -890,7 +892,7 @@ export const LESSONS = withShapes({
         ['Kas firma raha jätkub viie tunni paketiks? Miks?', 'ei, pakett maksab 150 eurot, firma maksab kuni 100|ei'],
         ['Miks ei aita keelekohvik Markust praegu kõige rohkem?', 'seal ei õpetata grammatikat|ainult räägitakse'],
         ['Mida võiks Markus teha enne teisipäevast testi?', 'esmaspäeval Liisiga harjutada ja hommikul individuaaltund|veebikursus ja Liis'],
-        ['Mida sina Markusele soovitaksid ja miks?', ''],
+        ['Mida sina Markusele soovitad ja miks?', ''],
       ]), { task: 'R08', level: 3 }),
       B.phrasebank('039_t_phrases', [['Ettepanek ja põhjus', ['Minu arvates sobiks…, sest…', 'Mis sa arvad, kui…?', 'Kuna Markus on…, võiks ta…']], ['Kokkulepe', ['Olen nõus, aga…', 'Kas me võiksime…?', 'Lepime siis kokku, et…']]]),
       teach(tag(B.ideaCard('039_t_agree', 'Leppige kokku: Markuse plaan.', 'Arutage Liisiga tabelit ja Markuse märkmeid. Leppige kokku, mida Markus järgmisel kahel nädalal teeb.', 'Markus jäi inglise keele kursusel maha. Tal on firma raha 100 eurot kuus, vaba aeg hommikuti kell 7–8, järgmisel nädalal kolm päeva Riias ja teisipäeval test.', ['individuaaltunnid hommikul', 'neljapäevane konsultatsioon', 'veebikursus', 'keelekohvik reedel', 'Liisiga harjutamine esmaspäeval', 'testi tegemine hiljem'], 'Mida Markus valib ja millal? Kui palju see maksab ja kas firma raha jätkub?'), { main: true }),
@@ -905,6 +907,8 @@ export const LESSONS = withShapes({
         'Mis on esimene ja miks? Mis jääb viimaseks?',
       ], [120, 180], ['Esimesele kohale paneme…, sest…', 'See aitab vähem, kuna…', 'Lepime kokku, et…']), { task: 'S12' }),
       'Üks-ühele: õpetaja ja õpilane järjestavad koos; õpetaja kaitseb nõuannet „Ära võrdle end teistega” kui kõige tähtsamat, õpilane peab vastu vaidlema ja kompromissi leidma.'),
+      teach(tag(B.speaking('039_t_rec', 'Kodus: minu õppimise probleem.', 'Räägi 1–2 minutit ja salvesta: üks probleem, mis sul õppimisel on, ja kuidas sa seda lahendad.', ['Mis on sinu õppimise suurim probleem?', 'Millal see probleem tekib?', 'Mida sa juba proovisid?', 'Mida sa nüüd teed teisiti?'], [60, 120], ['Minu probleem on see, et…', 'Ma proovisin…', 'Nüüd ma…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis pakub õpetaja ühe lisalahenduse ja õpilane ütleb, kas see sobib.'),
       B.examWriting('039_t_reply', 'Vastus õpetajale.', 'Õpetaja Hanna küsis, kas Markus jätkab kursust. Kirjuta Markuse nimel vastus 80–100 sõnaga ja vasta kõigile küsimustele.', 'vastus', {
         situation: 'Hanna kirjutas: „Kas te jätkate kursust? Mida te järele jõudmiseks teete? Kas tulete testile teisipäeval või teete selle hiljem?”',
         points: ['kas jätkad kursust ja miks', 'mida sa järgmisel kahel nädalal teed', 'kas teed testi teisipäeval või hiljem', 'üks viisakas palve õpetajale'],

@@ -40,8 +40,776 @@
   id is used (all 16 speaking slots). The R2 corner in 036 is a `reading` with open paraphrase questions (a `choice`
   would be 4 min, below the corner's 8). V2 and the recycling share were checked against today's `main` only (modules
   7 and 9 are being rewritten): 036 opens Avasta with G13, Harjuta with G08, Kasuta with R11; 039 corner is S2.
+- 2026-10-28 (Claude): merged with main after #863 (V16): 036_t_meet is now the home recording (Olena introduces herself, teacher is Kadri in the lesson), 038_t_rec and 039_t_rec added (S15), 039 conditional questions rewritten (module < 13). Module 8: 0 final-shape problems, strict gate 0; full vitest 2744 passed.
 - Next safe step: owner reviews module 8 in „Kursuse tootmine” and publishes it; the module 9 author starts 041 with
   a corner other than S2 and re-checks V2 against 039.
+
+## 2026-10-28 · agent/speaking-place — V16: pair speaking in the lesson, a recorded monologue at home
+
+- Owner 2026-10-28: „катастрофически не хватает разговорных заданий … сверить с дидактикой, куда их лучше интегрировать”;
+  „надо сделать, чтобы всё соответствовало, независимо от того, правил ли человек что-то”.
+- Finding: the A2→B1 code has 3–5 speaking blocks a lesson, but the sheets go home and the pair tasks (role cards, exam
+  speaking cards, „räägi paarilisega”) cannot be done there; modules 8–18 also miss the final shape (S03/S04, corners,
+  fluency — already in finalShapeBaseline.json).
+- `worksheet-studio/engine/inLesson.js` `isInLesson(block)`: rolecards, speakcard, speaking with task S03/S04/S05/S10/S12 or
+  a partner in the instruction; `block.inLesson` (Inspector checkbox) wins. The sheet shows „👥 Teeme tunnis koos
+  õpetajaga”; `scoreDocument` skips it (reason inLesson), `answerProgress` and the recorded-speaking list leave it out.
+- `didactics/finalShape.js` V16: V16-home-voice (Kasuta has a solo speaking block), V16-in-lesson, V16-conditional
+  (tingiv kõneviis before module 13). Catalogue S14 „Mida sa teeksid?”, S15 „Kodune monoloog (salvestus)” (63 types).
+- A2→B1 content: 17 home monologues (`*_t_rec`, S15), 006_t_mine and 028_t_retell made solo, 16 conditional questions
+  before module 13 rewritten („Mida sina teed, kui …?”), 034_t_rec 3 prompts, 084_t_plan dropped (9-block cap).
+  V16 has no baseline entries; 5 old entries left the final-shape baseline.
+- Not yet: republishing the changed sheets to the DB; A2 / B2 / C1 / English courses are not under finalShape (B1 only).
+- Next safe step: republish A2→B1 sheets, then rebuild module 8 to the full final shape (no baseline left for it).
+
+## 2026-10-28 · agent/paper-work — „Lisa paberil töö”: paper and exam works move the skill map by their points
+
+- main checked: 745d3b2 (2026-10-28). Also #861 (Õppevara: one subject, its first level, „Filtrid” for the rest) merged.
+- Owner 2026-10-28 (a pupil's handwritten exam writing): „это нужно как-то внедрять и корректировать её оценку в профиле”.
+- `features/homework/paperWork.js`: templates (`pk-b1-writing` = Põhikooli lõpueksam, eesti keel teise keelena,
+  kirjutamine: 2 tasks × ülesande täitmine 0–5 + keelekasutus 0–5 = 20 p; `free`), `paperWorkPayload()` → an
+  `exerciseResults` record with `exerciseType: 'paper'`, `paperParts [{label, points, max}]`, `paperSkills`, `score`, `pct`.
+  Staff may already create exerciseResults under the rules — no rules change.
+- `homeworkService.addPaperWork()`; `PaperWorkModal.jsx` from the student card „Tööd” → „Lisa paberil töö” → opens the
+  usual SubmissionReviewModal (points table, grade, skills, comment).
+- `skillGrades.applySkillGrades(..., measured)`: a skill measured by points moves half way to the measured percent
+  (delta stored, a re-check undoes it as before); other skills keep the +5/+3/+1/0/−3 step.
+- Checks: eslint + full vitest 2742 passed. Not checked visually in the browser.
+- Next safe step: enter the first paper work (Polina, self_DuTpgnifLQWnxdA9sOQyMzzmfPE3, 9/20) and see „Areng”.
+
+## 2026-10-28 · #858 + #859 — finance month picker; calendar „Asendab” and teacher-only lists
+
+- main checked: 342db63 (2026-10-28). Both PRs merged after CI (eslint + full vitest 2734 passed, security-regression, Vercel).
+- #858 `features/finance/FinanceDashboard.jsx`, `financeDashboard.js`, `businessReport.js`, `BusinessReport.jsx`: a month picker
+  (‹ month ›, „Praegune kuu”) next to Kuu / 3 kuud / 6 kuud / Aasta; KPI cards and Ärinäitajad end at the chosen month
+  (a click on a past chart month too). A past month hides the calendar and forecast cards; `businessReport().forecast`
+  is null for a past month. One month shows „Keskmine tund” instead of „Keskmiselt kuus”; the previous month/period sum is a card.
+- #859 `features/calendar/*`: teacher lists keep only accounts with role teacher (Nelli/Oleksiy were listed).
+  `planSubstitute()` in calendarGrid.js: „Asendab” in the lesson panel (admin, unmarked, individual) gives one lesson to
+  another teacher; a series lesson becomes a one-off copy (`movedFromSeriesId`), the original teacher is in the new
+  schedule field `substituteFor {teacher, teacherUid}` (null when given back). Pay follows `teacherUid`.
+- Limits: a marked lesson cannot be substituted (change the journal); group lessons have no „Asendab” yet.
+- Next safe step: the owner tries „Asendab” on one lesson and checks it in the substitute's calendar.
+
+## 2026-10-27 · agent/calendar-drag — dragging a lesson shows the student's times; crowded lessons move too
+
+- Owner 2026-10-27: „при перетаскивании должны подсвечиваться времена, которые ученик выбирал … если на одно время
+  больше 1 ученика, перетаскивание не работает”.
+- TimeGrid: in the week view 3+ lessons at one time form one card (`tg-cluster`); its rows only opened the lesson.
+  They now start a drag like a block (`startDrag`); a plain click still opens.
+- CalendarPage: `onDragChange` → `dragging`. While a lesson is dragged, every column shows that student's „Sobivad
+  ajad” (`studentBandsOn`: ★ stronger, the same `tg-fit` marks as „Sobivad ajad”); own times or the /ajad answer.
+- Checks: calendar 186 passed (+1 crowded drag); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/whats-new — „Mis uut” once after signing in, /uuendused for later
+
+- Owner 2026-10-27: a report of what appeared on the site for the admin, „при входе в систему, чтобы не беспокоить
+  человека”.
+- `features/guide/whatsNew.js`: `RELEASES` (newest first; id, date, the admin's to-dos, sections of items with
+  `audience` admin / staff and a link). `releaseFor(release, roles)` hides admin-only items from a teacher.
+- `WhatsNewDialog` (AppShell): a staff member sees the newest release once after signing in, until „Selge” /
+  „Ava lehel”. Remembered per account in this browser (`keelesepp.whatsNew.seen.<uid>`). Not shown in a preview,
+  in Live Classroom or on /uuendused.
+- `/uuendused` (STAFF) keeps every release; a link from Juhend.
+- First release 2026-10-27: the changes of 24–27.10, Russian text with the CRM's Estonian names.
+- Next releases: add an entry on top of `RELEASES` with a new id.
+- Checks: +2 tests; eslint src 0; whole vitest 2705 passed.
+
+## 2026-10-27 · agent/missing-times-once — „Puuduvad andmed” never asks for times we already know
+
+- Owner 2026-10-27: „проверь, чтобы ученик при каждом входе на сайт не заполнял подходящие времена”.
+- Production read: 20 missing-data answers from 20 accounts (nobody was asked twice after answering). But 5 learners
+  with an account who answered through /ajad would be asked again (the /ajad answer is a website enquiry), and 2
+  accounts with two cards (two subjects) were asked once per card.
+- `missing-data-core.knownTimes(card, { own, cards, ownById, leads })`: the card's own `studentAvailability`, else
+  another card of the same person (same name), else the person's /ajad enquiry. The enquiry is matched by the
+  learner's name, or by this card's e-mail / phone when no other child shares them; closed enquiries do not count.
+  Used by the gate (`factsFor`, so the „Vali sobivad ajad” step is skipped) and by the admin report.
+- Checks: functions npm test 409/409 (+1); missing-data emulator test passes (auth + firestore + functions).
+- Deploy: functions:staffOperationsApi (serves /missing-data).
+
+## 2026-10-27 · agent/students-no-times — Õpilased: „Ilma ajata”
+
+- Owner 2026-10-27: „сделай кнопку «Без времени» на странице учеников”.
+- Õpilased → button „Ilma ajata” (also `?ajad=1`) opens `NoTimesPanel` (model `students/noTimes.js`). It lists active
+  students with neither own „Sobivad ajad” nor a joined /ajad answer (`withLeadTimes`); a teacher sees only his
+  students. Each row: teacher, level, last lesson, parent, phone / e-mail (tel: / mailto:).
+- Buttons: copy the /ajad link; copy a ready ET + RU message with the link; copy the list with contacts. Nothing is
+  sent by the CRM: the school sends it.
+- Checks: +2 tests; eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/group-detail-menu — the group for the admin, and the student menu on right-click
+
+- Owner 2026-10-27: „админ открывает группу и видит, кого я добавил и чего не хватает” (a group showed „21 õpilast”
+  but listed one: the members taken from former students are archived cards, GroupsPage loaded active ones only) and
+  „правой кнопкой на ученика — фиксированный набор инструментов … переименовать, изменить, архивировать, написать”.
+- Grupid: archived cards are loaded too, so every member shows. The group title (and „+N õpilast · ava grupp”) opens
+  `GroupDetailDialog`:
+  - „Mis puudub” (`groupCheck.groupGaps`): teacher, lesson times, seats vs capacity, how many agreed (interested),
+    former (archived) members, ages outside the range, members without suitable times, members without contacts —
+    the open points first;
+  - every member with age, level, parent, phone / e-mail, the offer status and note, „Eemalda grupist”;
+    „Täida grupp”.
+- `components/StudentContextMenu` (AppShell, staff, not in a preview) opens on a right-click on a link to a
+  student card or an element with `data-student-id` (calendar blocks, Kodutööd rows marked). Shift + right-click keeps
+  the browser menu. Actions:
+  - Ava kaart; Nimeta ümber (`studentsService.rename`: card + `studentName` on the student's schedule, homework,
+    worksheetAssignments);
+  - Muuda andmeid (`/students/:id?edit=1`); Kirjuta (`/messages?student=`); Kalender (`/calendar?student=`);
+  - Koosta tööleht; Ava tahvel; copy phone / e-mail; Arhiveeri / Taasta (no deleting).
+- Checks: +3 tests (groupCheck, menu ×2); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/contact-queue — Grupid: selected families go to a colleague as call tasks
+
+- Owner 2026-10-27: „я их выбрал, чтобы админ с ними связался, а мне он их в группу предлагает”.
+- „Kellele pakkuda grupitunde”: every row (cards and website enquiries) has a tick. „Kes võtab ühendust?” (staff list)
+  + „Anna ühendust võtmiseks (N)” creates one Ülesanded task per family:
+  - title „Võta ühendust · name · vanem … · phone · e-mail · paku grupitundi”;
+  - category parent, due in 2 days, assigned to the colleague by name + uid.
+  A card's offer becomes the new status „Võtta ühendust” (`groupInterest.status: 'contact'`). „Lisa N valitut gruppi”
+  stays as a second, separate action (student cards only).
+- Checks: groups 11 passed (+1); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/teacher-sees-all — the teacher sees what the student sees and does
+
+- Owner 2026-10-27: „надо, чтобы учитель видел всё, что и ученик, а не чтобы какие-то действия ученика оставались
+  неизвестными”.
+- Student card header: „Vaata õpilase silmadega” opens the student's own cabinet read-only (Minu kursus, Ülesanded,
+  Sõnad, Minu vead, Lemmik…) for the admin and for a teacher. `AuthContext.startPreview` / `mayPreview`: an admin any
+  view, a teacher a student card's. The Firestore rules still limit a teacher to his own students' data. The banner
+  „Lõpeta vaade” returns.
+- Tööd tab: new „Õpilase tegevused” (`learner/ActivityFeedCard`, model `activityFeed` / `feedByDay`) lists the last
+  60 days by day:
+  - signed in; opened a course sheet on his own (self_study); filled a sheet (answers count); handed in (%);
+  - got a sheet from the teacher; words added / practised; „Minu vead” (%); homework marked done; lessons /
+    absences.
+- Checks: +2 tests (activityFeed, mayPreview); eslint src 0; whole vitest 2699 passed.
+
+## 2026-10-27 · agent/group-contacts — Grupid: „Kellele pakkuda grupitunde” (all families in one list)
+
+- Owner 2026-10-27: „интегрировать базу данных родителей, с кем связаться и предложить групповые занятия, чтобы админ
+  видел все имеющиеся данные и мог формировать группы”.
+- Grupid (admin): `GroupContactsPanel` lists every learner. Sources: current and archived student cards, and open
+  website enquiries. Each row shows:
+  - age (birth year / class / words), subjects, level;
+  - parent and phone / e-mail (tel: / mailto:);
+  - lessons in the next 4 weeks or the last held lesson;
+  - suitable times known (own or /ajad);
+  - group.
+  Filters: who (all / current / without lessons and group (default) / former / enquiries), age group, subject, level,
+  offer status, text.
+- The group offer per card: `students/{id}.groupInterest = { status: '' | offered | interested | declined, note, at,
+  by }` (`studentsService.saveGroupInterest`; admin, existing rules). Selected cards → „Lisa N valitut gruppi” (the
+  normal `groupsService.setStudent`). Nobody is contacted automatically.
+- Model: `groups/groupContacts.js` (`contactRows`, `filterContacts`, `INTEREST`).
+- Checks: groups 10 passed (+2 model, +1 panel); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/plan-pace — the study plan's pace on the card and in the planner
+
+- Owner 2026-10-27: „продолжаем работу над учебными планами и планировщиком занятий”.
+- `studyPlanModel.planPace({ plan, doneIds, today, weeklyNow })` gives:
+  - lessons left (not skipped, not done);
+  - weeks to `targetDate`;
+  - lessons a week needed (≤ 5);
+  - the weekly series in the calendar now;
+  - status ok / behind / done.
+  Helpers: `planDoneIds(results)`, `weeklyLessonsNow(schedule, today)`.
+- Õppeplaan card: a line „Jäänud N tundi · W nädalat → vaja K tundi nädalas · tunniplaanis praegu M”; it is orange
+  when the timetable does not keep up. StudentProfilePage passes the schedule.
+- Planner: `planningRequests({ lessons })` (CalendarPage → PlannerView `journal`) gives a direction at least the lessons
+  a week its student's plan needs. The plan applies to the only track, or to the Estonian one. Held plan lessons
+  count as done.
+- Checks: students + calendar 304 passed (+2); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/student-study-plan (2) — „Minu areng” counts Live Classroom lessons right
+
+- Owner 2026-10-27, Aleksandr Dikovitš's „Minu areng”: „он и так делает уроки в Live Classroom, проанализируй эти уроки
+  и скорректируй результат”.
+- Live data: 4 recorded lessons with transcripts (10, 11, 17, 18.10). Estonian share of his speech: 27 → 26 → 36 →
+  62 %. Longest Estonian sentence on 18.10: 32 words; he self-corrects case forms. 3 held lessons have a course topic.
+- Fixes:
+  1. Student page in the admin's read-only view loaded the lesson stats of the admin's uid → „Rääkimine: andmeid veel
+     ei ole”. `petsService.lessonStatsForStudents(studentIds)` is used in the preview.
+  2. `autoSkills` left in tasks done in the lesson (no answers) → Kuulamine 0 %. It now skips `scoreDocument().skipped`.
+  3. The course bar counted a lesson only with all 3 sheets done → „0/91”. A course lesson held with the teacher
+     (journal `topicLessonId`, Toimunud) counts as done; the next lesson skips held ones.
+  4. Reading questions: an answer with every word (≥ 4 letters) of the right answer in the same stem counts
+     (`sameMeaningWords`, reading block only). His 12.10 reading: 0/6 → 5/6.
+- Data (owner's „скорректируй”): the 18.10 recording had status failed (transcript complete), so no lesson stat.
+  `petLessonStats/a7QQmX8jWnmI8zbRNl9O_1792311178698` was recounted from the transcript (share 62 %, 1318 words,
+  `source: transcript-recount-2026-10-27`).
+- Checks: worksheet-studio / homework / students 526 passed; eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/student-study-plan — „Õppeplaan” on the student card
+
+- Owner 2026-10-27: „учебный план в карточке ученика: выбирать для каждого индивидуально и подбирать те уроки,
+  которые будут максимально эффективны”.
+- Student card → new tab „Õppeplaan” (`StudyPlanCard`):
+  - course (an Õppevara level), goal, target date;
+  - „Soovitame järgmiseks”: course lessons below 60 % to repeat (weakest first, at most 2 on top), then the
+    course's new lessons in order; lessons ≥ 85 % or already in the plan are left out; each with its reason;
+  - „Koosta plaan automaatselt”; the plan rows show the result (selge / tehtud / korda / plaanis); up / down /
+    „Jäta vahele” / remove; „Salvesta plaan”.
+- Stored on the card: `students/{id}.studyPlan = { level, goal, targetDate, lessons: [{ id, status }], updatedAt,
+  updatedByName }` via `studentsService.saveStudyPlan`. The existing rules already let the admin and the student's
+  teacher change the card: no rules change.
+- `students/studyPlanModel.js` (pure): `lessonResults` (worksheetAssignments done + held journal lessons by
+  topicLessonId), `lessonState`, `recommendLessons`, `autoPlan`, `planRows`, `nextPlannedLesson`, `movePlanLesson`.
+- Calendar: `suggestTopic(..., { plan })` takes the first planned lesson not held since the plan was saved
+  (CalendarPage auto-mark, the held-lesson flow, LessonPanel), so marking a lesson proposes the plan's next topic.
+- Checks: new studyPlanModel 3 + StudyPlanCard 1; eslint src 0; whole vitest 2691 passed; local look with test data.
+
+## 2026-10-27 · agent/ungraded-blocks — sheet results count only answered, graded tasks
+
+- Owner 2026-10-27, looking at Aleksandr Dikovitš's results: „там, где нет ответов — мы делали, значит; надо внедрить
+  не оцениваемые блоки, чтобы это не портило картину”.
+- His answers showed four kinds of false zeros:
+  - blocks done in the lesson had no answers but counted 0 (reading 0/6 on 17.10, dictation 0/5 on 12.10);
+  - reading answers right in meaning but written otherwise („ID kaardiga” vs „ID-kaardiga”);
+  - an errorfix block without right answers in the sheet (0/9 on 03.10);
+  - his own real mistakes (gaps 3/10) — these stay.
+- `checkDocument`:
+  - the score (correct / total / perGoal) leaves out a block with no answer at all, and a block marked
+    `ungraded`;
+  - `score.skippedBlocks` lists them; `skipped` has the reasons; the ✓ / ✗ marks on the sheet are unchanged.
+- `scoreDocument` perGoal: the same. Inspector: „Ei hinnata (teeme tunnis; tulemus ei lähe hindesse)” on every
+  scored task.
+- `scoreSentences` (errorfix, transformation): a row without a right answer is not scored (teacher judges).
+- `norm`: a hyphen between letters equals a space.
+- Old stored results are not recomputed here (production write; separate decision).
+- Checks: worksheet-studio, homework, live-classroom, learner tests 515 passed (+ registry.scoring 2); eslint src 0;
+  whole vitest passed.
+
+## 2026-10-27 · agent/lesson-form-times — „Uus tund” offers the student's times; the planner places more sensibly
+
+- Owner 2026-10-27: „чтобы в календаре, когда я выбираю ученика, мне предлагались сразу времена, которые он выбрал …
+  не бегая по вкладкам” and „планировщик как-то странно ставит уроки”.
+- „Uus tund” / „Muuda tundi”: after choosing a student, up to 10 buttons show the student's suitable times
+  (own „Sobivad ajad” or the /ajad answer) in the next 14 days. Only times free for the teacher and the student
+  (`candidateTimes`: teacher's red / online windows, other lessons, rooms) are offered; ★ first in colour. A click fills
+  the date and time.
+- Planner (production dry run 2026-10-27 showed lessons at 7:00, two of a teacher's students at one time on a time only
+  „learned”, and Sunday make-up lessons taken as usual times):
+  - learned times count a weekday + start only after ≥ 2 lessons then (`learnedTimes({ minTimes: 2 })`);
+  - overlapping another draft lesson of the same teacher costs as much as a fixed lesson (300) unless the student
+    marked the time themselves (the owner's „may share a time” rule stays for own times);
+  - the any-time fallback ranks usual hours first (before 9:00 +60, 9–12 +15, from 20:00 +30, weekend +30).
+  - Dry run after: no 7:00 lessons; 1 teacher overlap (was 7); unplaced 26 (22 without own or regular times).
+- Checks: calendar tests 185 passed (+1 form times, learned test updated); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/hide-archived-lessons — the calendar hides the future lessons of archived students
+
+- Owner 2026-10-27: „Martin, Людмила и Роберт постоянно появляются в календаре, убери их пока”. Production read:
+  - their cards are archived (`active: false`), but Google-imported one-off lessons stayed in `schedule`: Martin
+    (Wednesdays, to 2026-12-02) and Ljudmila (Tue / Thu, to 2026-12-01); Robert has none ahead.
+- `calendarView.withoutArchivedFuture`: from today on, lessons of archived cards are not shown. One-off lessons are
+  hidden; a weekly series ends yesterday. Past lessons stay. CalendarPage loads the archived cards (own scope for a
+  teacher).
+- Nothing deleted: a change to a Google-sourced lesson is written to Google Calendar. Taking the card out of the
+  archive shows the lessons again.
+- Checks: calendar tests 184 passed (+1); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/remind-before-due — „Meeldetuletus” before the due date too
+
+- Owner 2026-10-27: „сделай напоминание до срока”. Finantsid → month table: the reminder button is shown for every
+  unpaid, not cancelled invoice (before: only overdue). The server already allowed it (`/remind`, reminder text
+  „Tuletame meelde, et arve on veel tasumata” + Tähtaeg); no functions change, no deploy.
+- Checks: finance tests passed (+1); eslint src 0; whole vitest passed.
+
+## 2026-10-27 · agent/finance-periods — Finantsid „Tulu ja prognoos”: periods from a month to a year
+
+- Owner 2026-10-27: „сделай периоды от месяца до года”. A switch Kuu / 3 kuud / 6 kuud / Aasta (remembered per browser):
+  - the KPIs sum the period that ends with this month (held, still planned, total vs the period before, monthly
+    average, unmarked lessons);
+  - the forecast is the same number of months ahead;
+  - the chart shows at least 6 months back (12 for the year) and as many months ahead.
+  - `financeDashboard.periodSummary`; `lessonSummary` stays for compatibility.
+- Checks: finance tests 177 passed (+ periodSummary, + the switch); eslint src 0; whole vitest passed; local look
+  (year view, 24 months on the chart).
+
+## 2026-10-27 · agent/ajad-to-cards — „Sobivad ajad” sent through /ajad now show on the student cards
+
+- Owner 2026-10-27: „почему-то половину ответов не вижу”. Production read: 15 answers in `studentAvailability`
+  (sent from the learner's account) and 21 sent through the public /ajad link, stored only as website enquiries
+  (`websiteLeads`, source availability) and never joined to a card → not in the calendar, the planner or „Täida grupp”.
+  16 of the 21 match exactly one person, 4 match one person with several cards (subjects), 1 matches no card.
+- New `features/calendar/leadTimes.js`: `leadStudentIds` (the learner's name first; e-mail / phone only when it points
+  to one person — two children of one parent share the contacts), `timesFromLeads` (the newest answer per card),
+  `withLeadTimes` (the card's own times unless the /ajad answer is newer).
+- CalendarPage (overlay, „Sobivad ajad” in the lists, warnings, the planner), GroupFillDialog (and an /ajad answer of a
+  known student is no longer listed again as an enquiry), LeadsPage („Õpilase kaart: … · ajad on kalendris”).
+- No data written; nothing changes in the rules.
+- Checks: eslint src 0; whole vitest 383 files passed (+ leadTimes 2).
+- Next safe step: none; a later step could save a matched answer on the card for good.
+
+## 2026-10-27 · agent/untrack-node-modules — a worktree symlink `functions/node_modules` left the repository
+
+- Found while deploying #828: commit 21ce049 (#820) had committed `functions/node_modules` as a symlink to a local
+  path on the agent's laptop (`.gitignore` had `node_modules/`, which matches a directory, not a symlink file).
+- Removed from the index; `.gitignore` also ignores a plain `node_modules` entry.
+- Next safe step: none.
+
+## 2026-10-27 · agent/night-proposals — the night's summary and proposals (docs/NIGHT_2026-10-27_PROPOSALS.md)
+
+- Owner 2026-10-26 overnight plan: bugs, auto planner, client communication, group filling, parents' „не приду”,
+  preschool plans and groups, the 5–7 format, process optimisations, flexible teacher settings, Kodutööd, platform
+  proposals, a level test. Nothing merged or deployed; the owner approves in the morning.
+- docs/NIGHT_2026-10-27_PROPOSALS.md (Russian, for the owner) lists:
+  - the 9 open PRs (#824–#832) with their deploy needs and order (#826 before #829);
+  - the read-only findings (0 change requests, 3 unlinked parents, 44 students without times, e-mail types off, no
+    Meta message ever, level test never submitted, 0 groups);
+  - proposals for processes, the level test, teacher settings and the platform.
+- Next safe step: the owner goes through the PR table; merge order #826 → #829.
+
+## 2026-10-27 · agent/settings-tabs — Seaded in four tabs; „Minu vabad ajad” for teachers
+
+- Owner 2026-10-26: „настройки для учителей более гибкие и собрать как-то их в кучу, а то там много разных блоков”.
+- SettingsPage: the cards (unchanged) are grouped into tabs (`?tab=`):
+  - **Minu konto** — everyone: Minu andmed, Lemmik (student), Ligipääs, Turvalisus;
+  - **Minu töö** — staff: Juhend, the new „Minu vabad ajad” → /calendar?ajad=1, Google Calendar;
+  - **Kool** — admin: KeeleSepp AI, Puuduvad andmed, Õppesuunad, E-kirjad, Vanema / õpilase vaade;
+  - **Tehniline** — admin: Firebase, Testõpilane, Andmete puhastus, Teacher-scope migratsioon.
+  A student or parent sees no tab bar.
+- More flexible per-teacher settings (default lesson length, who may move lessons, reminders) are proposals in
+  docs/NIGHT_2026-10-27_PROPOSALS.md (they need new user fields + rules).
+- Checks: settings tests 20 passed (+1 admin tabs); eslint 0; local look on the emulator copy as a teacher.
+- Next safe step: owner approves.
+
+
+## 2026-10-27 · agent/site-bugs — night site check: results and two fixes
+
+- Owner 2026-10-26: „проверить сайт на наличие багов”. How it was checked (no production writes):
+  - production error logs, 7 days: clean except 2 deploy hiccups (2026-10-23);
+  - all 5 teachers' Kodutööd queries replayed on the emulator with a read-only copy of production: OK;
+  - a read-only copy of production Firestore (without tokens, keys, tax data) loaded into the local emulators, and the
+    site run against it with every API pointed nowhere. Visited:
+    - as admin: 32 pages + 25 student cards + 7 teacher pages + 3 boards;
+    - as a teacher: 14 pages;
+    - as a student: 10 pages;
+    - as a parent: 5 pages.
+  - Result: no Firestore permission errors and no crash. „Failed to fetch” only where the page needs a server
+    function (offline here).
+- Fixed here:
+  1. Sign-in landed on „Ligipääs puudub” when the previous user of the same browser had been on a page the new
+     account may not open (e.g. the child logs out from /student, the parent logs in). `loginMode.landingPath` keeps
+     the wanted page only if the new account's roles allow it (`ROUTE_ACCESS`); AuthContext `signIn` /
+     `signInWithGoogle` return the user.
+  2. Finantsid: PaymentDialog and CancelInvoiceDialog had the same React key „closed” (console error); keys are now
+     „pay-…” / „cancel-…”.
+- Found and fixed in their own PRs: UTC „today” (#827), Kodutööd look and `Button` className (#825).
+- Noted, not changed:
+  - teachers see „Päringud” (website enquiries) and „Kassa” — by design (ACCESS.LEADS / STAFF), owner to confirm;
+  - crm-v2/scripts/build-sheet-kit.mjs has an eslint error (`URL` no-undef) outside src (CI lints src only).
+- Checks: auth + app tests 31 passed (new landingPath test); eslint src 0; whole vitest: all passed except the known
+  night-time LearnerSnapshotCard (fixed in #827).
+- Next safe step: owner approves.
+
+## 2026-10-27 · agent/preschool-plan — the preschool (5–7) group course: plan and child lesson format (proposal)
+
+- Owner 2026-10-26: plans for preschoolers, organising groups for group lessons, a plan for 5–7-year-old groups;
+  „нашего генератора явно не хватит, нужен детский формат”.
+- New docs/PRESCHOOL_GROUP_COURSE.md:
+  - group size 4–6 and 45 min;
+  - an 8-part lesson (greeting circle → review → new words → movement → song → table task → picture story →
+    goodbye);
+  - a 32-week plan in 8 themed blocks;
+  - what the generator can and cannot do;
+  - progress as observation ticks (Oskab / Harjutame / Veel mitte);
+  - how to organise the groups (uses „Täida grupp”, #829);
+  - the CRM parts to build next: „Lastetund” card type, „Pildileht”, observation ticks, take-home card.
+- No code. Content (32 cards, picture sheets) goes to the content agent after the owner approves.
+- Next safe step: the owner approves or edits the plan and chooses which CRM part comes first.
+
+## 2026-10-27 · agent/group-fill — „Täida grupp”: who fits a group (seats, age group, level, time)
+
+- Owner 2026-10-26: „заполнение групп”, „организация групп для групповых уроков” (also preschool 5–7). Stacked on
+  agent/planner-history (#826, learned times).
+- A group may carry `audience` ('' | adult | school | preschool), `capacity` (default 8, preschool 6), `ageFrom` /
+  `ageTo` (children's groups): `groupsService.groupSettings` / `updateSettings` (admin, activity log). The rules for
+  `groups` are already staff read/write: no rules change.
+- Grupid: each card shows „n/8 kohta” and the age group, and an admin has the button „Täida”. GroupFillDialog lets the
+  admin set the age group, seats and ages. It lists students and website enquiries that fit, best first, with reasons.
+  The pure model is `groups/groupFill.js` (`groupCandidates`, `ageOf`, `audienceOf`, `capacityOf`, `freeSeats`):
+  - same subject;
+  - the age group from the birth year / „N. klass” / „Täiskasvanu” / „lasteaed”;
+  - level the same or next to it (none for preschool);
+  - the group's weekly times against „Sobivad ajad”, else the times of past lessons;
+  - clashes with own lessons and other groups.
+  „Lisa” is the normal add-to-group action; enquiries link to Päringud and are not contacted automatically.
+- New group form: Sihtrühm + Kohti.
+- Checks: groups tests 7 passed (new groupFill 4); eslint 0; whole vitest: all passed except the known night-time
+  LearnerSnapshotCard (fixed in #827). Local check on the emulator copy (read-only export of production): a test group
+  „A2 noored” → 76 candidates listed with reasons.
+- Next safe step: owner approves #826 and this PR; creates the first group with its time, opens „Täida”.
+
+## 2026-10-27 · agent/meta-inbox — Facebook / Instagram inbox: nothing lost, and a log that shows whether Meta calls at all
+
+- Owner 2026-10-26: „доделать общение с клиентами”. Production read (2026-10-27, read only):
+  - `messages` has 27 internal messages and **no Facebook / Instagram message ever**, although `metaMessagingApi` is
+    deployed and its 4 secrets exist; 17 calls in 60 days, all 200.
+  - E-mails to students and parents (#792) are deployed, but no type is switched on (`emailSettings` missing,
+    `emailLog` 0).
+  - Old `emailQueue` failures („535 Authentication failed”, 2026-07-11…10-07) stopped on 10-07.
+- This PR (functions only):
+  - a Meta message with only a photo / voice / file / sticker was dropped (no text); it is now stored as „[pilt]”,
+    „[helisõnum]”, „[fail]” …;
+  - every webhook call logs a content-free summary (`meta webhook`: object, entries, event kinds, stored count).
+- Files: functions/meta-messaging-core.js (+ test), functions/index.js.
+- Checks: functions `npm test` 408/408; index.js loads.
+- Deploy needed (owner): `firebase deploy --only functions:metaMessagingApi`.
+- Owner's side (Meta, not code): in the Meta app → Messenger / Instagram → Webhooks the page (and the IG account) must
+  be subscribed to `messages`, with the callback `…/metaMessagingApi/webhook`, and the app must be Live. After a test
+  message the log shows `meta webhook` with `message: 1`.
+- Next safe step: owner approves + deploys, sends a test message to the Facebook page, checks Sõnumid.
+
+## 2026-10-27 · agent/local-today — „today” is the local day, not the UTC one (site bug check)
+
+- Found in the night bug check (owner 2026-10-26 „проверить сайт на наличие багов”): 43 places took „today” as
+  `new Date().toISOString().slice(0, 10)`, the UTC day. In Estonia between 00:00 and 02:00 / 03:00 that is yesterday:
+  - deadlines looked a day off;
+  - a „Minu vead” practice after midnight counted for the day before;
+  - the pet's streak day was off;
+  - the default homework due date was yesterday.
+  The test suite failed at night for the same reason.
+- New `crm-v2/src/utils/localDate.js` (`localDate(value = now)`, the browser's own day). Used in:
+  - homework: page, flow, service date;
+  - vocabulary: daily plan, reminder;
+  - pet streak;
+  - Minu vead;
+  - live classroom: homework and lesson-end due dates;
+  - after-lesson homework;
+  - students: lessons and works panels, directions, Ei saa tulla;
+  - teacher profile; parents; groups (+ service default start date).
+  Three tests compute today the same way now.
+- Not touched on purpose (finance / accounting, own PR with the accountant if wanted): AccountingPage,
+  accountingReports, PurchasesPage, ExpensesPage, FinanceMonthPage, FinancePage, lessonAccounting, FinancialPeriodPanel,
+  ManualInvoiceDialog, AdvanceManagementPanel, studentFinance. Also kept: stored createdAt / updatedAt day stamps
+  in students.js / groups.js and settings/cleanupModel.
+- Checks: eslint src 0; whole vitest 380 files passed (00:30 local, the hour that failed before); the touched areas also
+  under TZ=UTC (324 passed).
+- Next safe step: owner approves; later the same fix for the finance pages together with the accountant.
+
+## 2026-10-27 · agent/planner-history — Planeerija places students without „Sobivad ajad” at their usual times
+
+- Owner 2026-10-26: „доделать планировщик уроков автоматический”. The planner (#791) placed almost nobody: 38 of 50
+  directions had no „Sobivad ajad”.
+- Now a student without own times gets the times of their past individual lessons (12 weeks, not cancelled or missed;
+  calendar + journal): `studentTimesModel.learnedTimes` / `withLearnedTimes`. Never ★ → yellow „õpilane käis varem sel
+  ajal”; another time is „unknown” (red, agree), not „cannot”. The selected-lesson box says „varasemad tunnid: …”.
+- CalendarPage computes the learned times only while the planner is open (useMemo).
+- Production dry run (read only, 2026-10-27, start 2026-11-02): placed directions 7 → 33 (45 lessons: 2 green, 24
+  yellow, 19 red of which 16 overlap and 3 to agree); unplaced 43 → 17 (12 no history, 5 no teacher). 29 ms.
+- Files: crm-v2/src/features/calendar/studentTimesModel.js, plannerModel.js, PlannerView.jsx, CalendarPage.jsx (+ tests);
+  docs/specs/CALENDAR_V2_SPEC.md.
+- Checks: calendar tests 179 passed; eslint src 0; whole vitest: all passed except LearnerSnapshotCard (fails only
+  between 00:00 and 03:00 local time: UTC „today”; fixed in its own PR agent/local-today).
+- Next safe step: the owner approves; then opens Kalender → Planeerija → „Lisa kõik õpilased” → „Jaota” and checks the
+  red ones with the students.
+
+## 2026-10-26 · agent/teacher-homework — Kodutööd: teachers' access re-checked, the page tidied
+
+- Owner 2026-10-26: „у учителей в kodutood кому-то нельзя было зайти, там внешний вид тоже поправить”.
+- Access: fixed on 2026-10-21 (5fd8f69, 5 cards per query). Re-checked tonight: a copy of production users, students,
+  homework, worksheetAssignments, exerciseResults (read only) was loaded into the local emulator, and the page's own
+  queries ran as each of the 5 teachers. Result: all OK, no permission errors. Nothing to change in the rules.
+- Look:
+  - search and filter in one slim row (no big empty card);
+  - each task shows the student's name first (teachers scan by student);
+  - the due date in words: „Täna”, „Homme”, „3 p hiljaks”, „28. okt” (homeworkFlow.dueLabel);
+  - „Ootab hinnet” instead of the long „Automaatselt kontrollitud”; work titles wrap to two lines;
+  - phones: the due date is shown again (index.css hid it under 560 px); „Kinnita N” goes under the work.
+- Bug fixed: `Button` dropped its own classes when given a `className`, so „Kinnita N” looked like a bare grey button.
+  The only user was this button.
+- Files: crm-v2/src/components/ui/Button.jsx, features/homework/HomeworkPage.jsx, homeworkFlow.js (+ test),
+  homeworkPage.css (new).
+- Checks: verify (eslint 0, vitest 2666 passed); local visual check at 1400 px and 375 px.
+- Next safe step: the owner approves the PR.
+
+## 2026-10-26 · agent/night-fixes — „Ei saa tulla?”: a plain „Ma ei tule” (parents' complaint)
+
+- Owner 2026-10-26: „родители жаловались что у них отметка не приду на урок не работала”. Cause: the dialog demanded a
+  new time or a written one („Vali uus aeg või kirjuta …”), so a plain absence could not be sent. Production had
+  0 lessonChangeRequests ever. Rules were fine: the emulator shows a linked parent can create the request.
+- RescheduleDialog: two choices on top — „Ma ei tule · uut aega pole vaja” (button „Saada teade”) / „Soovin uut aega”.
+- rescheduleModel: buildRequest({ absent }) stores proposals [] and other '' (same document keys, no rules change);
+  isAbsenceOnly(request).
+- Teacher (ChangeRequestsPanel + CalendarPage): „Märgi puudumine” marks the lesson Puudus_p („teatas ette”) through
+  lessonRepository.completeFromSchedule (the reason goes into the note) and answers the notice (accepted, chosen null).
+  The heading is „Ei saa tulla (N)”; the bell says „… ei tule tunnile”.
+- Student page / parent page: „Teade saadetud”, then „Ei tule · märgitud”.
+- Production read (2026-10-26): 40 parent accounts, 37 linked to a card, 3 not linked (they see no lessons at all);
+  every schedule doc has teacherUid.
+- Checks: verify (eslint 0, vitest 2668 passed); lesson-change-emulator.integration.js on the emulator (pass, a parent
+  case added).
+- Next safe step: the owner approves the PR; links the 3 unlinked parent accounts in Kasutajad.
+
+## 2026-10-26 · agent/finance-lesson-revenue — Finantsid „Ülevaade” counts the calendar's lessons, not the invoices
+
+- Owner 2026-10-26: „прогноз … не привязывать к бухгалтерии, он берётся из количества уроков в календаре, проведённых
+  и вынесенных; в бухгалтерии бухгалтер сама всё сделает”.
+- financeDashboard.js now:
+  - lessonRevenue — per month, the calendar's occurrences (individual + group, every card incl. archived);
+  - before today a lesson counts as held when it is marked Toimunud, is a charged Puudus_eta, or is still unmarked
+    (not cancelled; counted apart as „märkimata”); Puudus_p and Tühistatud count nothing; from today it is planned;
+  - journal-only lessons count as held; a card without a price is counted apart;
+  - lessonPriceCents — the plan price by length, the subject's own price;
+  - lessonSummary.
+  - The invoice / payment model (revenueHistory, revenueForecast, dashboardSummary) is removed.
+- FinanceDashboard.jsx loads all student cards, the schedule and the groups itself (plans and the lesson journal come
+  from the finance page).
+  - KPIs: held this month, still planned this month, month total (vs last month), next month, 3 months, monthly average
+    (+ unmarked count).
+  - Curves: held (green), planned (gold dashed, from this month's total); the month card under the chart.
+- Production read (2026-10-26): Jun 652 €, Jul 780 €, Aug 1077 €, Sep 2628 €, Oct 5105 € held + 1069 € planned;
+  Nov–Jan ≈ 6.1–6.2 k € planned.
+- Checks: verify (eslint 0, vitest all passed); local visual check.
+
+## 2026-10-26 · agent/accounting-partner-optional — Raamatupidamine: the partner on 2110 / 1350 is optional
+
+- The bookkeeper 2026-10-26 (via the owner): „Подвязку kohustlik убери … я сама их буду привязывать”. A manual entry
+  with a line on 2110 (Võlad tarnijatele) or 1350 could not be saved without a supplier partner.
+- functions/index.js (manual entry save): validateEntry without `requirePartner`. A named partner must still be a
+  supplier card. accounting-core keeps the option.
+- crm-v2 accounting: JournalDraft (no „kohustlik”, no „partner (2110)” blocker), JournalGrid (no red „Puudub: partner”),
+  journalGrid.workingProblem (no partner requirement). „pole tarnijate seas” for a typed unknown name stays.
+- Tests updated (journalGrid.test.js, partners.test.jsx, functions/finance-emulator.integration.js — the finance emulator suite: 102 passed). Checks: verify (eslint 0, vitest 2660 passed); functions npm
+  test 407 passed.
+- Deploy: functions:invoiceApi (the accounting endpoints).
+## 2026-10-26 · agent/finance-dashboard — Finantsid „Ülevaade”: revenue chart and forecast
+
+- Owner 2026-10-26: „в финансах дашборд с графиком дохода, прогнозируемый доход и т.д.” → „сделай как будет лучше в
+  нашем стиле”.
+- finance/financeDashboard.js (pure, tested):
+  - revenueHistory — invoiced by the invoice date (cancelled and credited ones count nothing); received by the date of
+    the payment records; an old invoice marked paid by hand counts at its own paidAt;
+  - revenueForecast — monthlyBillingRows (the „Koosta arved” calculation: scheduled lessons × each card's price) per
+    month. An invoice dated in the month counts as that month's invoice, because almost no invoice carries planMonth.
+    Lesson packages and cards without a price are reported apart;
+  - dashboardSummary, niceMax.
+- finance/FinanceDashboard.jsx (+ financeDashboard.css, the Finantsid greens / gold), on top of /finance for admins,
+  can be hidden (remembered per browser):
+  - KPIs: invoiced this month (vs last), „Kalendri järgi” with what is not invoiced yet, received (12 months, average),
+    outstanding / overdue, next month's forecast, 3 months' forecast;
+  - an SVG chart of smooth curves (owner: „кривая, а не столбцы”; monotone cubic, never below zero): invoiced (dark
+    green, filled), received (light green), forecast (gold dashed, from this month's calendar amount, over a light gold
+    zone); a guide line and a card follow the pointer; the month buttons stay for the keyboard and screen readers;
+    a narrow screen scrolls the chart and opens it at this month.
+- Production read (2026-10-26): invoiced Jun–Oct 492 / 1780 / 1524 / 1894 / 2231 €. The calendar owes 5958 € for
+  October; 4107 € (41 students, mostly „current” billing) has no October invoice yet. Forecast Nov–Jan ≈ 6.1–6.2 k €.
+- Checks: verify (eslint 0, vitest 2666 passed); local visual check (desktop and 375 px, no horizontal scroll).
+- Not in it: expenses / profit (the expenses collection is empty).
+
+## 2026-10-26 · agent/keelesepp-ai-cors — the ChatGPT plugin install was blocked by CORS
+
+- First „Установить” in ChatGPT failed at once: ChatGPT discovers / registers from chatgpt.com in the browser, and the
+  OAuth / MCP addresses answered without Access-Control-Allow-Origin (applyCors allows only the CRM origins).
+- keelesepp-ai-mcp.js `isPublic` / `cors`: /mcp and /oauth/* answer any origin (no cookies; bearer tokens), allow the
+  MCP headers and expose WWW-Authenticate; preflight answered before the generic OPTIONS.
+- Checks: emulator sheet-builder tests 2/2 (preflight from chatgpt.com asserted); functions npm test 407 passed.
+- Deploy: functions:sheetBuilderApi.
+
+## 2026-10-26 · agent/keelesepp-ai-mcp — KeeleSepp AI as a ChatGPT plugin (MCP + OAuth)
+
+- In the owner's ChatGPT workspace new GPTs can no longer be made ("plugins replace GPTs", the old ones work until
+  11.12); plugins connect only through MCP, and only OAuth (with dynamic client registration) can be entered there.
+- functions/keelesepp-ai-mcp.js (inside sheetBuilderApi):
+  - MCP Streamable HTTP (JSON-RPC, JSON answers) with the 8 tools of the Actions API: get_guide, get_block,
+    get_textbooks, get_textbook, list_lessons, get_lesson, check_sheet, save_draft;
+  - the server's `instructions` = the KeeleSepp AI workflow;
+  - OAuth 2.1: protected-resource + authorization-server metadata, DCR (/oauth/register — only https callbacks on
+    chatgpt.com / chat.openai.com / platform.openai.com), consent (/oauth/describe, /oauth/approve — admin Firebase
+    token), token (PKCE S256, one-time 5-min codes in sheetBuilderCodes);
+  - the token is a sheetBuilderKeys entry (`kind: "oauth"`, `clientId`), revoked in Seaded like any key.
+- Public addresses on the CRM domain (crm-v2/vercel.json rewrites to the function):
+  - https://crm.epkoolitus.ee/ai/mcp, /ai/oauth/*;
+  - /.well-known/oauth-protected-resource[/…], /.well-known/oauth-authorization-server[/…], /.well-known/openid-configuration.
+- CRM: /ai/connect (AiConnectPage, admins) — „Luba” / „Keela”.
+- LoginPage now returns to the page with its query (the OAuth parameters survive a login).
+- Checks: verify (eslint 0, vitest 2660 passed); functions npm test 407 passed; emulator sheet-builder tests 2/2
+  (Actions; OAuth register → consent → PKCE token → MCP initialize/tools/list/tools/call).
+- Deploy: functions:sheetBuilderApi; the rewrites go live with the Vercel deploy of main.
+- Next: in ChatGPT, Plugin Creator → MCP server https://crm.epkoolitus.ee/ai/mcp, auth OAuth; the owner presses „Luba”.
+
+## 2026-10-26 · agent/textbook-map — the owner's textbooks in the KeeleSepp AI connector
+
+- Owner 2026-10-26: photos of „E nagu Eesti” (contents, pp. 7, 10–20) — „подключи все”.
+- Photos saved by page on the owner's Mac: ~/KeeleSepp-opikud/E nagu Eesti/ (never committed).
+- functions/textbooks.json:
+  - „E nagu Eesti”: 41 parts of the contents — chapter, grammar, pages, nearest A2 course lessons; `license: "unconfirmed"`;
+  - „Minu Eesti”: `license: "granted"`.
+- Connector: GET /textbooks, /textbooks/{id}. Rule: Õpik 1:1 only for a book with `license: "granted"`; otherwise
+  topics and ideas only; handwritten answers in photos are not copied.
+- docs/TEXTBOOKS.md (E nagu Eesti section), docs/GPT_SHEET_BUILDER.md updated.
+- Checks: emulator connector test passed (textbooks included); functions npm test 407 passed.
+- Open: the owner confirms whether the publisher's permission covers „E nagu Eesti”.
+
+## 2026-10-26 · agent/keelesepp-ai-label — GPT drafts are marked „KeeleSepp AI”
+
+- Owner 2026-10-26: „Давай с пометкой KeeleSepp AI”.
+- sheet-builder-api.js: author name „KeeleSepp AI” (`AI_NAME`; with the key label when it differs) in the version
+  history, `contentOrigin.author`, default key label, OpenAPI title.
+- The lesson constructor (LessonWorksheetStudioPage) shows a green „KeeleSepp AI koostas selle mustandi · allikas …”
+  banner on such a draft until it is published.
+- Seaded card renamed „KeeleSepp AI töölehed”; docs/GPT_SHEET_BUILDER.md: the GPT is named „KeeleSepp AI”.
+- Checks: verify (eslint 0, vitest 2658 passed); emulator sheet-builder test passed.
+- Deploy: functions:sheetBuilderApi.
+
+## 2026-10-26 · agent/gpt-sheet-connector — ChatGPT builds worksheets with our constructor (drafts only)
+
+- Owner 2026-10-26: „листы будет делать гпт” → „делай”. docs/GPT_SHEET_BUILDER.md (setup + the GPT's instructions).
+- functions/sheet-builder-api.js → Cloud Function `sheetBuilderApi`, OpenAPI /openapi.json for a Custom GPT (Actions,
+  Bearer key):
+  - /guide, /blocks/{type}, /lessons, /lessons/{id}?phase=;
+  - /check (the constructor's own checks);
+  - /drafts — a new draft version of the lesson sheet; publishedWorksheetDoc kept, version history + summary like the
+    constructor; contentOrigin gpt-connector.
+- Keys: sheetBuilderKeys/{sha256} (rules catch-all: no client access); CRM Seaded → „ChatGPT töölehed” (admins:
+  create — shown once, list, revoke).
+- Checks: functions/generated/sheet-kit.cjs bundled from crm-v2/src/features/worksheet-studio/sheetKit.js
+  (`npm run build:sheet-kit`; sheetKit.test.js fails when stale).
+- Tests: functions/sheet-builder-emulator.integration.js (in financial-core-emulator); sheetKit.test.js; SheetBuilderCard.test.jsx.
+- Checks run: verify (eslint 0, vitest 2656 passed); functions npm test 407 passed; the CI emulator suite exit 0.
+- Deploy: functions:sheetBuilderApi only (new function).
+- Next: the owner makes a key in Seaded and sets up the GPT; first real sheet reviewed in the constructor.
+
+## 2026-10-26 · agent/fake-parent-email — made-up e-mails are refused and never mailed; a child's parent e-mail is optional
+
+- Owner 2026-10-26: a homework e-mail to 123@123.com bounced (Aleksei Merzin's card, parentEmail typed in the
+  „Puuduvad andmed” form to get past it). „Да, сделай пункт 2 и сделай это не обязательным пунктом”.
+- Made-up addresses (numeric or test/example/asd… domains, a@a.com, noemail@…): crm-v2/src/utils/placeholderEmail.js
+  = functions/email-address-core.js (keep in step).
+- functions deliverEmail drops made-up recipients; only made-up → nothing sent, `{ status: "skipped" }`.
+- „Puuduvad andmed” (missing-data-core.js + missingDataModel.js / MissingDataGate.jsx): a child's parent e-mail is never
+  required (the adult's own e-mail still follows the setting); a made-up address is refused with
+  „Kirjuta päris e-posti aadress või jäta tühjaks”.
+- Student card form refuses made-up e-mail / parent e-mail; the student page warns when the card has one.
+- Tests updated from example.com fixtures (account-approval-response.test.js, missing-data-emulator).
+- Checks: verify (eslint 0 errors, vitest 2645 passed after a rerun of the flaky WorksheetStudioPage test); functions npm
+  test 407 passed; the CI emulator suite passed (exit 0).
+- Deploy: firebase deploy --only functions:notifyHomeworkCreated,functions:staffOperationsApi (owner's yes 2026-10-26).
+  Other functions (invoice e-mails) get the recipient filter with the next functions deploy.
+- Open: Aleksei Merzin's card still has 123@123.com — the admin fixes or clears it (the card now warns).
+
+## 2026-10-26 · agent/works-order — given worksheets in the order to do them, numbered
+
+- Base: `main` 476827d. Owner: in „Tööd” it was hard to see which sheet comes first (sheets of one lesson were
+  given at the same minute, the list was newest first). `features/homework/workOrder.js` `compareWorks` / `sortWorks`:
+  earliest deadline, then the lesson given first, then Avasta → Harjuta → Kasuta. Used in the student's „Määratud
+  töölehed” (HomeworkPage) and the teacher's student card „Tööd” (StudentWorksPanel); each row shows its step „1.”, „2.” …
+- Checks: vitest homework + students 39 files, 164 passed (+1 test file); eslint 0 errors. UI only.
+
+## 2026-10-26 · agent/teacher-answer-key — click a task: the teacher sees its answers and can show them to the student
+
+- Base: `main` 2aec0f9 (2026-10-26). Draft PR #813 from `agent/teacher-answer-key`. UI + one service method; no rules change.
+- Asked (owner): „Когда нажимаешь на задание, у учителя должны показываться ответы, которыми он может поделиться с учеником.”
+- Done: `BlockKeyPanel.jsx` — under the clicked task on the TEACHER's sheet: right answers per item (gaps, choice, true/false,
+  matching, word order, dictation, listening, dialogue, tables, exam blocks…), the course explanation (`explain`), the
+  teacher note (`teacher`), the listening script; an open task says „hinda ise”. Where: `LiveWorksheetView` (room board,
+  /library/worksheets/live/:id, „praegune seis” in the student card), `DocWorksheetSubmissionPreview` (homework review,
+  staff only via `answerKey`) and the read-only `DocWorksheetPlayer` a teacher opens. Live view only: „Näita õpilasele” /
+  „Peida” per task and „Näita kõik vastused” / „Peida kõik vastused” in the task list (not after the sheet is submitted).
+  `engine/answerKey.js`: `blockAnswerKey(doc, blockId)`, listening/dialogue items get the line as prompt (one item per gap
+  kept — course explanation counts unchanged), bare item numbers are no longer shown as prompts.
+- Data: `homeworkService.setWorksheetShown({ assignmentId, shown, change: { blockIds, on }, user })` — one transaction from
+  the stored list: `liveShown`, `liveShownBy[blockId] = { on, byUid, byName, at }`, `liveShownLog` (last 200). Without
+  `change` the old plain write remains. Answers and score untouched; the learner's player is unchanged (it already lists the
+  right answers of `liveShown` tasks under them, own answers kept and marked). Rules: staff may update the assignment; the
+  learner's update list stays answers/status/score/… so the learner cannot write these fields. No emulator test (no rule change).
+- Security note: answer keys already live in `worksheetAssignments.worksheetDoc`, which the learner reads (gap brackets,
+  `*` options, `explain`, `transcript`). Not changed, no new exposure; moving keys server-side would be its own task.
+- Checks: full crm-v2 vitest 372 files passed (1 skipped), 2644 tests passed / 4 skipped, 0 failed (+1 file
+  `BlockKeyPanel.test.jsx` 6 tests, +1 in `homework.test.js`); eslint 0 errors (16 old warnings, none in touched files);
+  `npm run build` ok. Local stand (teacher live view + student player on one in-memory assignment, b1b2-007 Kasuta
+  „Kõne infotelefonile”): click → panel with 8 answers and script; „Näita õpilasele” → student sees „Õiged vastused 1)…8)”
+  under the task with own red-marked answer kept; panel shows „näidatud 14:52, Aleksei Merzin”. Stand not committed.
+- Limits: the panel is in the sheet flow, so while it is open the teacher's sheet below that task is longer than the
+  student's copy (as with the dictation note). Showing answers lets the learner fix answers before „Esita” (score is then
+  computed as usual; `liveShownLog` shows what was shown when).
+- Deploy: hosting only (no functions, no rules). Next safe step: owner review of the draft PR, then merge and deploy hosting.
+## 2026-10-26 · agent/a2-kohakaanded-check — A2 „Kus? Kuhu? Kust? — kontroll A / B”, published
+
+- Base: `main` 2aec0f9 (2026-10-26). Draft PR #812 from `agent/a2-kohakaanded-check`. Content + a small gate rule (diagnostic).
+- Asked (owner): a short (~10 min) diagnostic of the place cases for a weak 6th-grade A1–A2 learner — a baseline now and
+  the same check in a month, measurable per sub-skill, with a parallel version B; Harjuta only, all items closed.
+- Built: `admin/course/a2/kohakaanded.js` (MODULE `a2-kohakaanded-01`, `supplement: true`, A2, strict): a2-k01 „Kus? Kuhu?
+  Kust? — kontroll A” and a2-k02 „… — kontroll B”, one Harjuta sheet each, 10 min, 24 items: task 1 choice Kus/Kuhu/Kust
+  (8, goal `g_kus`), task 2 inner vs outer form, 2 options (8, `g_koht`), task 3 typed form of a given word with the
+  question given (8, `g_lopp`; short illative expected, long form accepted: kooli|koolisse, poodi|poesse, tuppa|toasse …;
+  koju only). Same item plan in A and B (task 1: Kus 3 / Kuhu 3 / Kust 2; task 2: inner 4 / outer 4; task 3: Kuhu 4,
+  Kust 2, Kus 2), teen topics, the notebook words kodus/koju/kodust, tööl/tööle/töölt, peal, sisse/seest, juurde/juurest.
+  Goals = sub-skills in `a2/lessonGoals.js`, so the player's „Tulemus tunni eesmärkide kaupa” gives N / 8 per sub-skill.
+  Scoring: 7–8 / 8 known, 5–6 shaky, ≤ 4 not known; task 2 has 2 options (chance 4 / 8) → known only at ≥ 6 / 8.
+  Teacher key (`EXPLAIN`) names the sub-skill and reason of each item.
+- New rule: a lesson's `diagnostic: true` → `meta.diagnostic` + `meta.shortSheet` (`registry.js`); `quality.js` skips the
+  lesson-shape rules for it (length, variety, end, v4 phase jobs, neighbour / same-opening / module-same, balance) and
+  instead requires every task to be auto-scored (`diagnostic-open`); `gates.js` skips the vocabulary-box rule. +2 tests.
+  Docs: B1_B2_COURSE_PRODUCTION.md §6.
+- Checks: full crm-v2 vitest 372 files, 2643 passed / 0 failed; `src/features/worksheet-generator` 933 passed / 0 failed;
+  module report 2/2 lessons READY; quality and final-shape baselines unchanged; eslint clean; Vabamorf speller 0 unknown;
+  forms checked with Vabamorf synthesize (sg ill / adt / in / el / all / ad / abl); typed answers scored on a test run.
+  Sheets looked at in a local preview (render OK).
+- Production (owner's permission): created `curriculumLessons/a2-k01`, `a2-k02` (est-a2-curriculum-v1, order 111–112,
+  module „Kus? Kuhu? Kust? (kontroll)”) and published their practice sheets v1 (+ worksheetVersions); read back equal to
+  the code. Not assigned, no deploy.
+- Next safe step: the teacher assigns a2-k01 to the learner now, writes down the three goal results, and assigns a2-k02 in
+  a month; compare per goal (g_kus, g_koht, g_lopp).
+
+## 2026-10-26 · agent/a2-lihtminevik-extra — A2 „Lihtminevik: si- ja i-minevik (lisaharjutused)”, published
+
+- Base: `main` cfc59f6 (2026-10-26). Draft PR #811 from `agent/a2-lihtminevik-extra`. Content + a small sheet-gate rule.
+- Asked (owner): an 8th-grade A1→A2 learner did a2-076 Harjuta at 19 % (*tulesin, *minesin, *saamasin, *jõisin; negative
+  past 0/8: *ei läksin, *ei sõin); a lesson on si-/i-past to assign often. a2-076 lists the i-forms only to memorise
+  (no rule, no conjugation); a2b1-023 teaches the i-past at B1. A handout the owner was shown put käima, õppima, võima
+  in the i-past — they are si-past (käisin, õppisin, võisin; also viisin, müüsin, lugesin); checked with Vabamorf.
+- Built: `admin/course/a2/lihtminevik.js` (MODULE `a2-lihtminevik-01`, `supplement: true`, A2, template v4, strict):
+  a2-l01 „Si- või i-minevik?” (Avasta + Harjuta 40–41 min, Kasuta short), a2-l02 „Ei läinud, ei söönud” (same shape),
+  a2-l03 / a2-l04 „Lihtminevik: kordamine 1 / 2” (Harjuta only, 17–18 min, spaced review; l03 has a listening).
+  Goals in `a2/lessonGoals.js`. New: a lesson's `shortSheet` (true or phases) → `meta.shortSheet` (`registry.js`);
+  `depth.js` skips the minute norms (thin, live-fast) on such a sheet, item and sentence norms stay (+1 test). Audio:
+  6 recordings (TartuNLP, `public/audio/a2-l01…l03`, `listeningAudio.json`). Docs: B1_B2_COURSE_PRODUCTION.md §6.
+- Checks: full crm-v2 vitest 371 files, 2637 passed / 0 failed; module report 4/4 lessons READY (0 problems, didactic
+  score 100 on all 8 sheets); quality and final-shape baselines unchanged; eslint clean; Vabamorf speller: only the
+  deliberate wrong options and ending fragments (one real slip *videosid → videoid fixed). Sheets looked at in a local
+  preview (render, cloze line breaks fixed).
+- Production (owner's permission): created `curriculumLessons/a2-l01…l04` (est-a2-curriculum-v1, order 101–104) and
+  published their sheets v1 (+ worksheetVersions); read back equal to the code. No homework assigned, no deploy.
+- Risk: the audio files are served from the app (`/audio/a2-l0x/…`) — until this PR is merged and deployed the
+  listening blocks of these sheets have no sound (6 blocks; a2-l03 is the one short sheet with listening).
+- Next safe step: merge the PR and deploy hosting, so the audio of the published sheets plays; then assign.
+
+## 2026-10-26 · agent/ledger-sign — pearaamat shows a liability's balance as a positive number
+
+- Base: `main` e78c9d3. Owner: 2110 Võlad tarnijatele showed −168,00 for a debt (the ledger always counted
+  debit − credit). `accountingReports.js` `ledger`: liabilities, equity and income count credit − debit (`side:
+  'credit'`), so a normal balance is positive and a minus now really means the wrong side. Käibeandmik and bilanss
+  unchanged. Also merged/deployed today: PR #808 (voided receipts reversed; 1200 no longer negative after the sync).
+- Checks: vitest src/features/accounting 55/55 (+1); eslint clean. UI only.
+
+## 2026-10-26 · agent/accounting-voided-payments — voided receipts are reversed in the books
+
+- Base: `main` 5c8ab1a. The accountant: the balance sheet shows a minus. Read-only check: 1200 Ostjatelt
+  laekumata arved −261 € — five invoices (KS-2026-036, -058, -063, -066, -076) had a receipt entered twice and voided
+  once (+ a voided 1 € LinkPay test, KS-2026-093): 711 € of voided receipts stayed booked. Cause:
+  `accounting-core.js` reversed only `status: "void"`, the CRM writes `"voided"`. Fixed (both spellings); the next
+  „Uuenda kanded” adds the `payment-void:` storno entries on the void dates. 2110 Võlad tarnijatele −81,30 € is from
+  manual entries (supplier payments larger than the booked purchase invoices / opening balance) — for the accountant.
+- Checks: functions npm test all passed (+1 test in accounting-core.test.js). Deploy: functions:financeApi.
+## 2026-10-26 · agent/ledger-width — Pearaamat fits without sideways scrolling
+
+- Base: `main` 5c8ab1a. Owner: the pearaamat table needed horizontal scrolling. `AccountingPage.jsx` ledger
+  table gets `accounting-ledger` + a colgroup; `accounting.css`: fixed layout, column widths (date 10 %, nr 10 %,
+  document 15 %, partner 12 %, sums 9 % each, Sisu the rest), tighter cells, long text wraps. UI only.
+- Checks: vitest src/features/accounting 54/54; eslint clean.
+
+## 2026-10-26 · agent/direction-level-sync — „Muuda andmeid” level reaches the main study track
+
+- Base: `main` a9d4444. Owner: on Svetlana Pitkevichus's card „Muuda andmeid” set B1 → B2, but „Õppesuunad”
+  still showed A1 → B1 (the main track only followed a teacher change).
+- `services/firebase/students.js`: `withMainTrack(stored, current, patch)` (teacher, level, target level);
+  `withMainTrackTeacher` kept as a wrapper; `update()` sends the card's teacher / level / target level to the main
+  track. Read-only check: 15 active cards have a main track level different from the card (tracks show the default
+  A1 → B1) — not changed by this PR.
+- Checks: vitest services/firebase/students + features/students 26 files, 123 passed (+1 test); eslint clean.
 
 ## 2026-10-26 · agent/b1-m07-final — B1 module 7 „Tervis ja enesetunne” in the final shape
 
@@ -2896,3 +3664,64 @@
 - `admin/course/courseTools.test.js` (skipped normally): `COURSE_REPORT=<module>` prints the gates per lesson,
   `COURSE_DUMP=<file>` writes built sheets for `tools/course-audit/language.py`.
 
+### 2026-10-27 — Finantsid: „Ärinäitajad” (agent/finance-business)
+
+- Owner: „больше информации по кол-ву проведённых уроков и отчётности, которая может следить за состоянием бизнеса в целом”.
+- `crm-v2/src/features/finance/businessReport.js` (pure): `lessonFacts` — every calendar/journal lesson of a period with its state (held, unmarked, covered, absentNotified, absentCharged, absentFree, cancelled, planned) by the same rules as `lessonRevenue`; `businessReport({current, months, …})` — sums for the period and the period before (lessons, attendance %, earned, per lesson, per student, planned), new / lost students, cards without a price, by teacher (`teacherNames` joins „Pavel” → „Pavel Zakutailo”) and by subject.
+- `BusinessReport.jsx` under the chart in `FinanceDashboard.jsx`, driven by the period switch; css in `financeDashboard.css`; „Mis uut” item.
+- Checks: `businessReport.test.js`, FinanceDashboard UI test; full eslint + vitest VERIFIED (2712 passed). Read-only production run: Oct 2026 — 277 lessons took place, attendance 95%, 84 students, 37 new, 5 lost, 25 cards without a price.
+- Limits: calendar prices, not bookkeeping; unmarked past lessons count as held.
+- Next safe step: owner sets prices for the cards listed „Ilma hinnata”.
+
+### 2026-10-27 — Ärinäitajad: teacher pay per teacher (agent/finance-teacher-pay)
+
+- Owner: „доход с каждого учителя, у Ангелины час стоит 10 евро, у Егора 10 и у Лизы 12”.
+- Production write on owner request: `users/{uid}.workHourlyRateCents` Anhelina Korotka 1000, Jegor Fjodorov 1000, Yelyzaveta Lukiianchuk 1200, each with a `workTimeAudit` `rate_updated` entry (same shape as the Palk ja kulud rate button).
+- `businessReport.js`: facts carry `occurrence` + `minutes`; `withTeacherPay` — hours given (held, unmarked, covered, charged no-show; a group lesson once) × rate → `payCents`, `schoolCents`; `report.pay { payCents, schoolCents, unrated }`. FinanceDashboard loads `teachersService.list()`.
+- UI: teacher table columns Tunde, Tunnitasu, Õpetaja tasu, Koolile jääb; cards „Õpetajate tasu”, „Koolile jääb”.
+- Checks: finance vitest 183 passed; full verify below in the PR. Read-only run Oct 2026: teacher pay 1 094,83 €, school keeps 4 070,51 €; Pavel and Elena have no rate.
+- Next safe step: prices for unpriced students (Jegor's revenue looks low because of them).
+
+### 2026-10-27 — Ärinäitajad: profit and loss (agent/finance-pnl)
+
+- Owner: fixed costs ~400 €/month upkeep + 750 € admin salary; „максимально подробная информация о доходах и всему прочему, чтобы я понимал состояние дел школы”.
+- New data: `businessSettings/current` `{ fixedCosts:[{label,cents}] ≤20, ownerTeacher, ownerRateCents, updatedAt, updatedByUid }` — admin read/write only, never deleted (`firestore.rules`, test `functions/business-settings-rules-emulator.integration.js`, in `test:emulator`). Service `services/firebase/businessSettings.js`.
+- `businessReport.js`: `normalizeBusinessSettings`; `economics` → `monthly` (per month: lessons, students, revenue, teacher pay, fixed, profit; current month expected to the end by the calendar), `pnl` (revenue − teacher pay − fixed = profit, margin, revenue per hour, owner's lessons share / without them / after a reference owner rate, break-even hours of hired teachers), `forecast` (next month from the calendar), `kinds` (individual / group), `studentRows`, `topTenShare`, `nothingAhead`.
+- UI `BusinessReport.jsx`: „Kasum ja kahjum” block, „Kuude kaupa”, student table, „Püsikulud ja omanik” editor (FinanceMonthPage passes `user`).
+- Checks: finance vitest + full verify VERIFIED (2717 passed); rules emulator test passed locally.
+- Needs: deploy `firestore:rules`; then the owner's values (Ruum/ülalpidamine 400 €, Administraator 750 €, owner Pavel Zakutailo) in businessSettings/current.
+
+### 2026-10-27 — Kampaaniad (agent/campaigns)
+
+- Owner: Sunday pre-school group of 5; „в кабинете сделать будущие кампании или акции, рекламные кампании и мероприятия, чтобы готовить прямо в кабинете админа и потом уже готовый формат постить”.
+- New admin page `/kampaaniad` (nav „Suhtlus ja raha”, ACCESS.ADMIN): `features/campaigns/CampaignsPage.jsx`, `campaignModel.js` (KINDS offer/ad/event, STATUSES idea→archived, CHANNELS, posts ≤30 {channel, lang et/ru, text ≤3000, imageNote, postDate, posted}, checklist ≤40, signups/target, budget/spent, groupId; `duePosts`, `progressOf`, TEMPLATES incl. „Eelkool — pühapäevarühm” with ET/RU texts), `services/firebase/campaigns.js`.
+- New collection `campaigns/{id}`: admin read/create/update (`campaignValid`, author + createdAt kept), never deleted — `firestore.rules`, test `functions/campaigns-rules-emulator.integration.js` (in `test:emulator`).
+- Nothing is published from the CRM: texts are copied and posted by hand, then „Postitatud”.
+- Needs: deploy `firestore:rules`.
+
+### 2026-10-28 — Kampaaniad: three Sunday children's groups (agent/kids-campaigns)
+
+- Owner: 3 campaigns for 5–6, 6–7, 8–9 years with the study description, covers, texts „и всё остальное” for the meeting with the admin.
+- `features/campaigns/kidsCampaigns.js` (templates kids56 / kids67 / kids89: offer proposals — Sunday 10.00 / 11.00 / 12.15, 12 €/45 min and 15 €/60 min, trial free, start 15.11.2026, place `[koht]`; notes = programme (12 lessons), lesson structure, outcomes, questions for the meeting, economics; 8 posts each FB/IG/WhatsApp/website ET+RU with dates and covers; 10-step checklist). The old „Eelkool — pühapäevarühm” template is replaced by kids56.
+- Posts may carry `imageUrl` (`/campaign-art/*.png|jpg|webp` or https); editor shows the cover with „Laadi pilt alla”, the card a thumbnail.
+- Covers: `crm-v2/public/campaign-art/kids-{56,67,89}-{square,story}-{et,ru}.png` built by `crm-v2/scripts/campaign-covers.mjs` (Chrome headless, textbook art palette).
+- Production (after merge): campaign w9B5cVWoOHezcmifVQJ3 updated to kids56, kids67 and kids89 created (status „Ettevalmistus”).
+
+### 2026-10-28 — Worksheet blocks for children (agent/kids-blocks)
+
+- Owner: „раскраски … если не хватает блоков в конструкторе — добавляем, надо прописи — делаем”; and „сравни, чтобы всё по дизайну на сайте тоже работало”.
+- Design check in the owner's Chrome (crm.epkoolitus.ee): Finantsid/Ärinäitajad, Ülesanded, menu fine; Kampaaniad had no page padding (`page` → `page-content`) and no back button in the editor (added „Tagasi”); campaigns with the same start sort by creation.
+- New blocks (`engine/blocks/kids.jsx`, group „Lastele”): `coloring` (pictures in `kidsPictures.js`, 15 line-art pictures with regions; mode key = scored by colour per region, free = not scored; palette on screen), `tracing` (school 4-line ruling, solid model + dotted copies; pointer ink stored per row `ink{n}`, ≤15 000 chars, not scored), `counting` (emoji × count, accepts digit or Estonian number word 0–20), `letterhunt` (tap to circle; target cells scored).
+- Tests: blockAnswerCases + roundtrip for coloring/counting/letterhunt; engine registry count 52; `functions/generated/sheet-kit.cjs` rebuilt. Full verify: 2726 passed.
+- Next safe step: the children's courses (5–6, 6–7, 8–9) with lesson plans and sheets using these blocks.
+
+### 2026-10-28 — Children's courses 5–6, 6–7, 8–9 (agent/kids-courses)
+
+- Owner: „займись учебными планами для групп, с раскрасками, полным учебным планом что на каком уроке делать … если не хватает блоков — добавляем, прописи — делаем”.
+- Content: `admin/course/kids/program56.js`, `program67.js`, `program89.js` (12 lessons each); `kids/sheets.js` → `KIDS_MODULES` (3 sheets a lesson, own phase names via `MODULE.phases`; not in COURSE_MODULES, adult gates do not apply); `registry.js` COURSES.kids, `lesson.goals` and `MODULE.phases` honoured by `buildCourseSheet`.
+- Pictures: `engine/blocks/kidsVocabPictures.js` (48 word pictures, colourable) merged into the colouring library (63); `scripts/kids-art.mjs` → `public/kids-art/*.svg`.
+- New block `readcard` (big syllables/words); letter hunt in Verdana (l ≠ I); sheet-kit rebuilt.
+- Õppevara: `curriculum/kidsCurriculum.js` records (k56/k67/k89-001…012, teacher's plan minute by minute in Russian); library subject tab „Lastele” (levels „… 5–6 a”).
+- Doc: `docs/KIDS_GROUPS_PROGRAM.md`.
+- Checks: kids.test.js (108 sheets valid, keys, pictures, colour keys), kidsCurriculum.test.js, libraryModel test; full verify below.
+- After merge: create the 36 records (create-only) and publish the 108 sheets.

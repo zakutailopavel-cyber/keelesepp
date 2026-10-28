@@ -64,6 +64,10 @@ export const TASK_CATALOGUE = Object.freeze({
   S11: t('Arvamus ja põhjendus', 3, ['S1a', 'S1b'], 0, 1),
   S12: t('Järjesta ja vali', 4, ['S1b'], 0, 1),
   S13: t('Seleta sõbrale', 3, ['S2'], 0, 1),
+  // „Mida sa teeksid?” — a dilemma or problem situation answered with tingiv kõneviis (from module 13, finalShape V16)
+  S14: t('Mida sa teeksid?', 4, ['S1a', 'S1b'], 0, 1),
+  // the learner records it at home, one in every teaching lesson's Kasuta (finalShape V16); the pair tasks stay in the lesson
+  S15: t('Kodune monoloog (salvestus)', 3, ['S1a'], 0, 4),
   // 3.5 Language
   G01: t('Märka', 1, [], 2, 4),
   G02: t('Leia reegel', 2, ['R3'], 1, 2),

@@ -97,6 +97,15 @@ describe('bookkeeping registers', () => {
     expect(trialBalance([opening], accounts, { from: '2025-12-01', to: '2026-12-31' }).rows.find((r) => r.code === '1010').turnover.debit).toBe(50000);
   });
 
+  it('pearaamat: a liability shows its normal (credit) balance as a positive number', () => {
+    const debt = e('2026-0001', '2026-01-01', [['1010', 16800, 0], ['2210', 0, 16800]], { origin: 'manual' });
+    const pay = e('2026-0002', '2026-01-05', [['2210', 8000, 0], ['1010', 0, 8000]], { origin: 'manual' });
+    const book = ledger([debt, pay], '2210', { from: '2026-01-01', to: '2026-12-31' }, accounts);
+    expect(book.rows.map((r) => r.balance)).toEqual([16800, 8800]);
+    expect(book.closing).toBe(8800);
+    expect(book.side).toBe('credit');
+  });
+
   it('pearaamat: one account with a running balance', () => {
     const { opening, rows, closing } = ledger(entries, '1200', { from: '2026-02-01', to: '2026-03-31' }, accounts);
     expect(opening).toBe(0);

@@ -5,6 +5,7 @@ import { Badge, Card, EmptyState } from '../../components/ui/index.js';
 import LessonDetailModal from './LessonDetailModal.jsx';
 import { occurrencesForDates, shiftDate } from '../calendar/calendarView.js';
 import { itemSubject, subjectsOf } from './subjects.js';
+import { localDate } from '../../utils/localDate.js';
 
 // Student card „Tunnid”: the timetable (planned lessons) and the lesson journal (held / absent) in one place.
 // Admins change the mark of a held lesson here, including „Toimunud ja kontrollitud”.
@@ -20,7 +21,7 @@ const LESSON_MARKS = [
 const markOf = (lesson) => (lesson.status === 'Toimunud' || !lesson.status ? (lesson.verified ? 'verified' : 'Toimunud') : lesson.status);
 const markLabel = (lesson) => LESSON_MARKS.find((mark) => mark.value === markOf(lesson))?.label || lesson.status || 'Toimunud';
 const markTone = (mark) => (mark === 'verified' ? 'success' : mark === 'Toimunud' ? 'info' : mark === 'Tühistatud' ? 'neutral' : 'warning');
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDate();
 const UPCOMING_DAYS = 56;
 const CLOSED = new Set(['Tühistatud', 'Toimunud', 'Puudus_eta', 'Puudus_p']);
 

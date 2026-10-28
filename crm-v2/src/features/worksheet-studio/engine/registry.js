@@ -1,3 +1,4 @@
+import { isInLesson } from './inLesson.js';
 import { text, notice, tip, image, vocab } from './blocks/content.jsx';
 import { taskBlocks } from './blocks/tasks.jsx';
 import { productiveBlocks } from './blocks/productive.jsx';
@@ -8,12 +9,13 @@ import { pictureBlocks } from './blocks/picture.jsx';
 import { examBlocks } from './blocks/exam.jsx';
 import { chart } from './blocks/chart.jsx';
 import { harnoBlocks } from './blocks/harno.jsx';
+import { kidsBlocks } from './blocks/kids.jsx';
 import { newId } from './schema.js';
 
 // One registry = one source of truth for every host (Õppevara builder, homework player, Live Classroom, print).
-export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart };
+export const BLOCKS = { text, notice, tip, image, vocab, ...taskBlocks, ...examBlocks, ...harnoBlocks, ...pictureBlocks, ...extraBlocks, ...productiveBlocks, ...advancedBlocks, diagram, chart, ...kidsBlocks };
 
-export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Kujundus'];
+export const GROUPS = ['Grammatika ja sõnavara', 'Skeemid', 'Teemad', 'Tekst ja heli', 'Pildid', 'Kõne ja kirjutamine', 'Lastele', 'Kujundus'];
 
 // A palette key is a block type, or `type:variant` for a block that offers ready variants (the scheme kinds).
 const splitKey = (key) => String(key || '').split(':');
@@ -54,54 +56,70 @@ export function numberTasks(blocks) {
 }
 
 // Score every scorable block; returns per-block and per-goal summaries (evidence for the learner profile).
-export function scoreDocument(doc, answers) {
+// A block with no answer at all was done in the lesson (orally, on paper) or left for the teacher: it is not scored,
+// so it does not pull the result down (owner 2026-10-27: „там, где нет ответов, мы делали — не должно портить
+// картину”). `block.ungraded` (Inspector „Ei hinnata”) keeps a block out of the score always, and so does a pair task
+// done in the lesson (engine/inLesson.js).
+const filled = (value) => value !== undefined && value !== null && String(value).trim() !== '';
+export const blockAnswered = (block, answers = {}) => Object.keys(answers).some((key) => key.startsWith(`${block.id}:`) && filled(answers[key]));
+
+export function scoreDocument(doc, answers = {}) {
   const perBlock = {};
   const perGoal = {};
+  const skipped = [];
   for (const b of doc.blocks) {
     const def = BLOCKS[b.type];
     if (!def?.score) continue;
+    if (b.ungraded) skipped.push({ id: b.id, reason: 'ungraded' });
+    else if (isInLesson(b)) skipped.push({ id: b.id, reason: 'inLesson' });
+    else if (!blockAnswered(b, answers)) skipped.push({ id: b.id, reason: 'unanswered' });
     const get = (k) => answers[`${b.id}:${k}`];
     const example = exampleAnswers(b);
     // the block itself is the third argument (a picture match mixes its pictures by the block id)
     const items = def.score(b.data, get, b).filter((item) => !(item.key in example));
     perBlock[b.id] = items;
+    if (skipped.some((item) => item.id === b.id)) continue;
     const goal = b.goal || '_none';
     perGoal[goal] = perGoal[goal] || { ok: 0, total: 0 };
     perGoal[goal].ok += items.filter((i) => i.ok).length;
     perGoal[goal].total += items.length;
   }
-  return { perBlock, perGoal };
+  return { perBlock, perGoal, skipped };
 }
 
 // Everything a check produces, in one place: per-field marks for the sheet, per-goal evidence,
 // the overall score for the assignment record and the open (teacher-judged) work.
 export function checkDocument(doc, answers = {}) {
-  const { perBlock, perGoal } = scoreDocument(doc, answers);
+  const { perBlock, perGoal, skipped } = scoreDocument(doc, answers);
   const results = {};
   let correct = 0;
   let total = 0;
+  const left = new Set(skipped.map((item) => item.id));
   Object.entries(perBlock).forEach(([bid, items]) => items.forEach((it) => {
     results[`${bid}:${it.key}`] = it.ok ? 'ok' : 'bad';
+    if (left.has(bid)) return; // marks still shown; the result counts only answered, graded blocks
     total += 1;
     if (it.ok) correct += 1;
   }));
-  const speak = doc.blocks.filter((b) => b.type === 'speaking')
+  const speak = doc.blocks.filter((b) => b.type === 'speaking' && !isInLesson(b))
     .map((b) => ({ id: b.id, goal: b.goal, recorded: !!answers[`${b.id}:audioUrl`], seconds: answers[`${b.id}:seconds`] || 0 }));
-  const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal };
-  return { results, perGoal, speak, score };
+  const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal, ...(skipped.length ? { skippedBlocks: skipped.map((item) => item.id) } : {}) };
+  return { results, perGoal, speak, score, skipped };
 }
 
 // How many answerable fields have an answer (scorable fields plus voice recordings).
 export function answerProgress(doc, answers = {}) {
   const { results, speak } = checkDocument(doc, answers);
-  const openKeys = doc.blocks.flatMap((block) => {
+  // a pair task is done in the lesson: the learner at home is not asked for it
+  const home = new Set(doc.blocks.filter((block) => isInLesson(block)).map((block) => block.id));
+  const openKeys = doc.blocks.filter((block) => !home.has(block.id)).flatMap((block) => {
     const def = BLOCKS[block.type];
     return typeof def?.answerKeys === 'function' ? def.answerKeys(block.data || {}).map((key) => `${block.id}:${key}`) : [];
   });
   // a block with its own answer fields (answerKeys) is answered in those; its scored items may be counters on the
   // text (writing: sentences, keywords) that no one fills in and that kept the counter below N/N
   const own = new Set(doc.blocks.filter((block) => typeof BLOCKS[block.type]?.answerKeys === 'function').map((block) => block.id));
-  const scored = Object.keys(results).filter((k) => !own.has(k.slice(0, k.indexOf(':'))));
+  const scored = Object.keys(results).filter((k) => !own.has(k.slice(0, k.indexOf(':'))) && !home.has(k.slice(0, k.indexOf(':'))));
   const keys = [...new Set([...scored, ...openKeys])];
   const answered = keys.filter((k) => {
     const v = answers[k];

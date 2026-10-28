@@ -26,7 +26,7 @@ function db() {
 }
 
 const run = `${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
-const mail = (role, name) => `miss-${role}-${name.replace(/\s+/g, "")}-${run}@example.com`.toLowerCase();
+const mail = (role, name) => `miss-${role}-${name.replace(/\s+/g, "")}-${run}@mail.ee`.toLowerCase();
 async function account(role, name) {
   const response = await fetch(`http://${AUTH_EMULATOR}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-key`, {
     method: "POST", headers: { "Content-Type": "application/json" },
@@ -84,7 +84,7 @@ test("Puuduvad andmed: rules, own cards only, only missing fields, parent per ch
   await db().collection("students").doc(sk).set({ name: "Kai", active: true, linkedUserId: kai.uid });
   await db().collection("students").doc(s1).set({ name: "Mari", active: true, grade: "4. klass", linkedParentId: parent.uid, teacher: "Opetaja" });
   await db().collection("students").doc(s2).set({ name: "Jüri", active: true, linkedParentIds: [parent.uid], email: "" });
-  await db().collection("students").doc(so).set({ name: "Teine", active: true, grade: "Täiskasvanu", linkedUserId: other.uid, email: "teine@example.com" });
+  await db().collection("students").doc(so).set({ name: "Teine", active: true, grade: "Täiskasvanu", linkedUserId: other.uid, email: "teine@mail.ee" });
   await db().collection("studentAvailability").doc(s1).set({ studentId: s1, slots: ["Mon-17:00", "Mon-17:30"], preferred: [] });
 
   // what is asked: own cards only
@@ -99,26 +99,26 @@ test("Puuduvad andmed: rules, own cards only, only missing fields, parent per ch
   assert.deepEqual((await api(teacher, "/mine")).body.cards, [], "staff are never asked");
 
   // writes: never another card, never a field that is not missing, required ones enforced, values checked
-  assert.equal((await api(kai, "/save", { cards: { [so]: { email: "x@example.com" } } })).status, 403, "not her card");
+  assert.equal((await api(kai, "/save", { cards: { [so]: { email: "x@mail.ee" } } })).status, 403, "not her card");
   const missingRequired = await api(kai, "/save", { cards: { [sk]: { grade: "Täiskasvanu" } } });
   assert.equal(missingRequired.status, 400);
   assert.equal(missingRequired.body.details[sk].availability, "required");
   assert.equal((await api(kai, "/save", { cards: { [sk]: { grade: "Täiskasvanu", email: "nope", language: "et", availability: { slots: ["Tue-18:00"] } } } })).status, 400, "bad e-mail");
-  const saved = await api(kai, "/save", { cards: { [sk]: { grade: "Täiskasvanu", email: "Kai@Example.com", phone: "5123 4567", language: "ru", availability: { slots: ["Tue-18:00", "Tue-18:30"], preferred: ["Tue-18:00"] }, name: "Hacked", teacher: "Keegi", linkedUserId: "x" } } });
+  const saved = await api(kai, "/save", { cards: { [sk]: { grade: "Täiskasvanu", email: "Kai@Mail.ee", phone: "5123 4567", language: "ru", availability: { slots: ["Tue-18:00", "Tue-18:30"], preferred: ["Tue-18:00"] }, name: "Hacked", teacher: "Keegi", linkedUserId: "x" } } });
   assert.equal(saved.status, 200, JSON.stringify(saved.body));
   const kaiCard = (await db().collection("students").doc(sk).get()).data();
   assert.equal(kaiCard.name, "Kai", "other fields untouched");
   assert.equal(kaiCard.linkedUserId, kai.uid);
   assert.equal(kaiCard.teacher, undefined);
-  assert.deepEqual([kaiCard.grade, kaiCard.email, kaiCard.phone, kaiCard.preferredLanguage], ["Täiskasvanu", "kai@example.com", "+37251234567", "ru"]);
+  assert.deepEqual([kaiCard.grade, kaiCard.email, kaiCard.phone, kaiCard.preferredLanguage], ["Täiskasvanu", "kai@mail.ee", "+37251234567", "ru"]);
   const kaiTimes = (await db().collection("studentAvailability").doc(sk).get()).data();
   assert.deepEqual([kaiTimes.slots, kaiTimes.preferred, kaiTimes.changedByUid, kaiTimes.changedByRole], [["Tue-18:00", "Tue-18:30"], ["Tue-18:00"], kai.uid, "student"]);
   assert.deepEqual((await api(kai, "/mine")).body.cards, [], "nothing missing any more");
   // filled values are never overwritten through this route
   await db().collection("students").doc(sk).update({ email: "" });
-  await api(kai, "/save", { cards: { [sk]: { email: "new@example.com", phone: "+3725999999" } } });
+  await api(kai, "/save", { cards: { [sk]: { email: "new@mail.ee", phone: "+3725999999" } } });
   const again = (await db().collection("students").doc(sk).get()).data();
-  assert.equal(again.email, "new@example.com");
+  assert.equal(again.email, "new@mail.ee");
   assert.equal(again.phone, "+37251234567", "phone stayed");
 
   // parent: per child + own profile; Mari's existing times untouched

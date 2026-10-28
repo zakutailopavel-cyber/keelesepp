@@ -6,13 +6,16 @@ import LiveWorksheetView from '../worksheet-studio/LiveWorksheetView.jsx';
 import { answerProgress } from '../worksheet-studio/engine/registry.js';
 import '../homework/reviewLayout.css';
 import SubmissionReviewModal from '../homework/SubmissionReviewModal.jsx';
+import PaperWorkModal from '../homework/PaperWorkModal.jsx';
+import { sortWorks } from '../homework/workOrder.js';
 import { formatDate } from '../homework/submissionFormat.js';
 import { studentWorksheetsService } from '../../services/firebase/studentWorksheets.js';
+import { localDate } from '../../utils/localDate.js';
 
 // Student card „Tööd”: worksheets given but not handed in yet (open live: the teacher sees the answers as they are now,
 // autosaved by the student's player) and every worksheet and exercise the student handed in, opened in the large
 // check window where the teacher grades it and grades the skills it showed (that moves the skill map in „Areng”).
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => localDate();
 function openState(assignment) {
   const doc = assignment.worksheetDoc;
   const progress = doc?.blocks?.length ? answerProgress(doc, assignment.answers || {}) : null;
@@ -32,6 +35,7 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
   const [notice, setNotice] = useState('');
   const [removing, setRemoving] = useState(false);
   const [removeError, setRemoveError] = useState('');
+  const [addingPaper, setAddingPaper] = useState(false);
 
   const [version, setVersion] = useState(0);
   useEffect(() => {
@@ -43,7 +47,7 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
         .then((items) => ({ items, error: '' }))
         .catch((error) => ({ items: [], error: error.message || 'Isiklikke mustandeid ei saanud laadida.' })),
     ]))
-      .then(([items, assignments, drafts]) => { if (alive) setState({ loading: false, error: '', items: items || [], open: (assignments || []).filter((item) => item.status !== 'done' && item.reviewStatus !== 'reviewed'), drafts: drafts.items || [], draftError: drafts.error }); })
+      .then(([items, assignments, drafts]) => { if (alive) setState({ loading: false, error: '', items: items || [], open: sortWorks((assignments || []).filter((item) => item.status !== 'done' && item.reviewStatus !== 'reviewed')), drafts: drafts.items || [], draftError: drafts.error }); })
       .catch((error) => { if (alive) setState({ loading: false, error: error.message || 'Töid ei saanud laadida.', items: [], open: [], drafts: [], draftError: '' }); });
     return () => { alive = false; };
   }, [homeworkApi, privateWorksheetApi, student.id, version]);
@@ -74,7 +78,7 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
 
   return (
     <Card className="profile-wide student-works">
-      <div className="section-heading"><div><span className="eyebrow">Õpilase tööd</span><h2>Töölehed ja harjutused</h2></div><div className="student-works__actions">{pending ? <Badge tone="info">{pending} ootab kontrolli</Badge> : null}<Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}>Koosta isiklik tööleht</Link></div></div>
+      <div className="section-heading"><div><span className="eyebrow">Õpilase tööd</span><h2>Töölehed ja harjutused</h2></div><div className="student-works__actions">{pending ? <Badge tone="info">{pending} ootab kontrolli</Badge> : null}{homeworkApi.addPaperWork ? <Button variant="secondary" onClick={() => setAddingPaper(true)}>Lisa paberil töö</Button> : null}<Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}>Koosta isiklik tööleht</Link></div></div>
       {notice ? <div className="success-notice" role="status">{notice}<button type="button" onClick={() => setNotice('')} aria-label="Sulge teade">×</button></div> : null}
       {state.draftError ? <p className="form-hint" role="alert">{state.draftError}</p> : null}
       {!state.loading && !state.error && state.drafts.length ? (
@@ -87,12 +91,12 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
         <section className="student-works__open" aria-label="Määratud, veel esitamata">
           <h3>Määratud, veel esitamata ({open.length})</h3>
           <div className="submission-list">
-            {open.map((assignment) => {
+            {open.map((assignment, index) => {
               const info = openState(assignment);
               return (
                 <button type="button" className="submission-row" key={assignment.id} onClick={() => setWatching(assignment)}>
                   <i><FileText size={20} /></i>
-                  <span className="submission-row__main"><strong>{assignment.title}</strong><small>{[assignment.assignedAt ? `määratud ${formatDate(assignment.assignedAt)}` : '', assignment.dueDate ? `tähtaeg ${assignment.dueDate}` : ''].filter(Boolean).join(' · ')}</small></span>
+                  <span className="submission-row__main"><strong><span className="work-step" aria-label={`${index + 1}. samm`}>{index + 1}.</span> {assignment.title}</strong><small>{[assignment.assignedAt ? `määratud ${formatDate(assignment.assignedAt)}` : '', assignment.dueDate ? `tähtaeg ${assignment.dueDate}` : ''].filter(Boolean).join(' · ')}</small></span>
                   <Badge tone={info.tone}>{info.overdue ? `${info.label} · hilinenud` : info.label}</Badge>
                   <Eye size={18} aria-hidden="true" />
                 </button>
@@ -129,6 +133,10 @@ export default function StudentWorksPanel({ student, user, homeworkApi, privateW
             </div>
           </div>
         </Modal>
+      ) : null}
+      {addingPaper ? (
+        <PaperWorkModal student={student} user={user} repository={homeworkApi} onClose={() => setAddingPaper(false)}
+          onCreated={(created) => { setAddingPaper(false); setOpened(created); load(); }} />
       ) : null}
       {opened ? (
         <SubmissionReviewModal

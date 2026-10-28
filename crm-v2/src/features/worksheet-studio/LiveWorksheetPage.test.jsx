@@ -83,7 +83,7 @@ describe('live worksheet lesson', () => {
     await waitFor(() => expect(repository.setWorksheetLiveStep).toHaveBeenLastCalledWith({ assignmentId: 'as-1', on: true, open: ['tf'] }));
     expect(repository.setWorksheetLiveFocus).toHaveBeenCalledWith({ assignmentId: 'as-1', blockId: 'tf' });
     fireEvent.click(screen.getByRole('button', { name: 'Näita vastust: ülesanne 2' }));
-    await waitFor(() => expect(repository.setWorksheetShown).toHaveBeenCalledWith({ assignmentId: 'as-1', shown: ['g'] }));
+    await waitFor(() => expect(repository.setWorksheetShown).toHaveBeenCalledWith(expect.objectContaining({ assignmentId: 'as-1', shown: ['g'], change: { blockIds: ['g'], on: true } })));
   });
 
   it('the learner sees only the opened tasks and the right answers the teacher shows', async () => {

@@ -160,9 +160,9 @@ describe('partners (Tarnijad) on the lines', () => {
     expect(workingValues(picked).lines[0].partner).toBeUndefined();
   });
 
-  it('a manual entry needs a supplier on 2110 / 1350 lines („Puudub”); an automatic entry only shows it', () => {
+  it('a partner on 2110 / 1350 is optional (owner 2026-10-26: the bookkeeper links them herself)', () => {
     const w = setCell(toWorking(manual), 0, COL.text, 'rent');
-    expect(workingProblem(w, { origin: 'manual', accounts: acc }).problem).toBe('Real 2110 puudub partner (tarnija).');
+    expect(workingProblem(w, { origin: 'manual', accounts: acc }).problem).toBe('');
     expect(workingProblem(w, { origin: 'auto', accounts: acc, reason: 'x' }).problem).toBe('');
     const fixed = setCell(w, 1, COL.partner, '12345678', { suppliers });
     expect(workingProblem(fixed, { origin: 'manual', accounts: acc }).problem).toBe('');

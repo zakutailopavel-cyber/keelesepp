@@ -269,3 +269,16 @@ test("sales entries carry the customer (student card, payer name) on 1200 / 2500
   ]);
   assert.equal(automaticEntries({ invoices: [{ id: "i2", num: "KS-2", date: "2026-02-01", amountCents: 100 }] })[0].lines[0].partner, undefined, "no customer known → no partner");
 });
+
+test("a receipt the CRM marked „voided” is reversed too (1200 must not stay credited)", () => {
+  const entries = core.automaticEntries({
+    invoices: [{ id: "i9", number: "KS-9", date: "2026-08-10", amountCents: 7700, status: "Makstud" }],
+    payments: [
+      { id: "p1", invoiceId: "i9", invoiceNum: "KS-9", paidAt: "2026-09-03", amountCents: 7700, method: "bank", status: "active" },
+      { id: "p2", invoiceId: "i9", invoiceNum: "KS-9", paidAt: "2026-09-03", amountCents: 7000, method: "bank", status: "voided", voidedAt: "2026-09-03T08:30:00.000Z" },
+    ],
+  });
+  const receivables = entries.flatMap((e) => e.lines).filter((l) => l.account === "1200").reduce((n, l) => n + l.debitCents - l.creditCents, 0);
+  assert.equal(receivables, 0);
+  assert.ok(entries.some((e) => e.sourceKey === "payment-void:p2"));
+});

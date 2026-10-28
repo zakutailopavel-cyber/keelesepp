@@ -74,7 +74,6 @@
   "*|*|V3-min-S03",
   "*|*|V3-min-S04",
   "*|*|V3-skill-L",
-  "*|*|V3-skill-S",
   "*|*|V4-id-S02",
   "*|*|V4-max-G02",
   "*|*|V4-max-G03",
@@ -156,7 +155,6 @@
   "*|*|V3-min-S03",
   "*|*|V3-min-S04",
   "*|*|V3-skill-L",
-  "*|*|V3-skill-S",
   "*|*|V4-id-W05",
   "*|*|V4-max-G02",
   "*|*|V4-max-G03",
@@ -644,7 +642,6 @@
   "*|*|V3-min-S03",
   "*|*|V3-min-S04",
   "*|*|V3-skill-L",
-  "*|*|V3-skill-S",
   "*|*|V4-id-S02",
   "*|*|V4-id-W05",
   "*|*|V4-max-G02",
@@ -718,7 +715,6 @@
   "a2b1-085|practice|V7",
   "a2b1-085|practice|V7",
   "a2b1-085|practice|V7",
-  "a2b1-085|transfer|V7",
   "a2b1-085|transfer|V7"
  ],
  "a2b1-module-18": [

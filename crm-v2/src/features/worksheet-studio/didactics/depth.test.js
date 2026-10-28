@@ -14,6 +14,14 @@ describe('worksheet depth', () => {
     expect(depthScore(depthProblems(doc))).toBeLessThan(60);
   });
 
+  it('a short sheet (spaced review) keeps the item norm but not the lesson minutes', () => {
+    const doc = { meta: { level: 'A2', shortSheet: true }, blocks: [gaps(8), fix(8), writing] };
+    expect(codes(doc)).not.toContain('thin');
+    expect(codes(doc)).not.toContain('live-fast');
+    expect(codes({ ...doc, blocks: [gaps(5), writing] })).toContain('short-tasks');
+    expect(codes({ ...doc, meta: { level: 'A2' } })).toContain('thin');
+  });
+
   it('a full B1 sheet passes', () => {
     const doc = { meta: { level: 'B1' }, blocks: [gaps(12), fix(12), tr(12), gaps(12), fix(12), tr(12), speaking] };
     expect(depthProblems(doc)).toEqual([]);

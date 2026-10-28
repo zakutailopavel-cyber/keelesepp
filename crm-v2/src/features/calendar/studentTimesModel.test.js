@@ -123,3 +123,25 @@ describe('student times × teacher windows × lessons', () => {
     expect(planningWarnings({ lesson: { date: '2026-11-02', time: '10:00', online: true }, teacherAvailability: yellow })).toEqual([]);
   });
 });
+
+describe('learned times (past lessons instead of „Sobivad ajad”)', () => {
+  it('takes held individual lessons of the last weeks and the journal; not cancelled, missed, group or future ones', async () => {
+    const { learnedTimes, withLearnedTimes } = await import('./studentTimesModel.js');
+    const events = [
+      { id: 'w', studentId: 'a', date: '2026-10-05', time: '16:15', duration: 45, recurring: true, day: 'Mon' },
+      { id: 'x', studentId: 'a', date: '2026-10-07', time: '10:00', duration: 60, status: 'Tühistatud' },
+      { id: 'g', isGroup: true, studentIds: ['a'], date: '2026-10-08', time: '12:00', duration: 60 },
+      { id: 'f', studentId: 'a', date: '2026-10-30', time: '18:00', duration: 60 },
+    ];
+    const lessons = [{ studentId: 'b', date: '2026-10-09', time: '15:00', duration: 60, status: 'Toimunud' }, { studentId: 'b', date: '2026-10-16', time: '15:00', duration: 60, status: 'Toimunud' },
+      { studentId: 'b', date: '2026-10-10', time: '09:00', status: 'Puudus_p' }, { studentId: 'c', date: '2026-10-11', time: '09:00', duration: 60, status: 'Toimunud' }];
+    const learned = learnedTimes({ events, lessons, today: '2026-10-26' });
+    expect(learned.get('a')).toMatchObject({ slots: ['Mon-16:00', 'Mon-16:30'], preferred: [], learned: true });
+    expect(learned.get('b').slots).toEqual(['Fri-15:00', 'Fri-15:30']);
+    expect(learned.has('c')).toBe(false); // one Sunday make-up lesson is not a usual time
+    const own = new Map([['a', { slots: ['Tue-10:00'] }], ['c', { slots: [] }]]);
+    const merged = withLearnedTimes(own, learned);
+    expect(merged.get('a').slots).toEqual(['Tue-10:00']);
+    expect(merged.get('b').learned).toBe(true);
+  });
+});

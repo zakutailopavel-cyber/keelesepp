@@ -149,3 +149,19 @@ describe('LessonWorksheetStudioPage student view', () => {
     expect(screen.queryByRole('button', { name: /Muuda lehte/ })).not.toBeInTheDocument();
   });
 });
+
+describe('LessonWorksheetStudioPage: a „KeeleSepp AI” draft', () => {
+  it('marks a draft made by KeeleSepp AI until it is published', async () => {
+    const record = { ...generatedPracticeRecord(), contentOrigin: { kind: 'gpt-connector', author: 'KeeleSepp AI', note: 'Minu Eesti lk 38', savedAt: '2026-10-26T12:00:00.000Z' } };
+    renderPage({ load: vi.fn().mockResolvedValue(record), listVersions: vi.fn().mockResolvedValue([]) });
+    const note = await screen.findByRole('note');
+    expect(note).toHaveTextContent('KeeleSepp AI koostas selle mustandi · allikas: Minu Eesti lk 38');
+  });
+
+  it('shows no mark on a published sheet', async () => {
+    const record = { ...generatedPracticeRecord(), worksheetDocStatus: 'published', contentOrigin: { kind: 'gpt-connector' } };
+    renderPage({ load: vi.fn().mockResolvedValue(record), listVersions: vi.fn().mockResolvedValue([]) });
+    await waitFor(() => expect(screen.queryByText(/Laen|Laadin/)).toBeNull());
+    expect(screen.queryByText(/KeeleSepp AI koostas/)).toBeNull();
+  });
+});

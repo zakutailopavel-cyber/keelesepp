@@ -44,6 +44,7 @@ import PricePrivacyBanner from './PricePrivacyBanner.jsx';
 import { currentMonth, defaultBillingMonth, shiftMonth } from './monthlyBilling.js';
 import { useFinanceData } from './useFinanceData.js';
 import FinanceDebtsPanel from './FinanceDebtsPanel.jsx';
+import FinanceDashboard from './FinanceDashboard.jsx';
 import { canCancelInvoice, invoiceWasSent } from './invoiceActions.js';
 import AdvanceManagementPanel from './AdvanceManagementPanel.jsx';
 import PaymentCheckPanel from './PaymentCheckPanel.jsx';
@@ -145,6 +146,7 @@ export default function FinanceMonthPage({
   creditRepository = payerCreditsService,
   creditNoteRepository = creditNotesService,
   auditRepository = financialAuditService,
+  dashboardRepository,
   paymentRepository,
   monthlyInvoiceProps,
   showPrivacyBanner = true,
@@ -271,6 +273,9 @@ export default function FinanceMonthPage({
         <div className="finance-month-hero__actions"><Button variant="secondary" onClick={showIssuedInvoices}><ReceiptText size={17} /> Väljastatud arved <span className="finance-month-hero__count">{summary.count}</span></Button><Link className="button button--secondary" to="/finance/seaded"><Settings2 size={17} /> Seaded</Link>{canManage ? <Link className="button button--secondary" to="/finance/raamatupidamine"><BookOpen size={17} /> Raamatupidamine</Link> : null}{canManage ? <Link className="button button--secondary" to="/finance/inf3">INF 3</Link> : null}<Link className="button button--secondary" to="/finance/vana">Vana vaade</Link>{canManage ? <ManualInvoiceDialog studentCards={state.data.students} onCreated={async () => { announce('Arve loodi.'); await state.reload(); }} /> : null}{canManage ? <TokenInvoiceDialog studentCards={state.data.students} plans={state.data.plans} onCreated={async (invoice, { sent }) => { announce(`Tunnipaketi arve ${invoice.num || ''} loodi${sent ? ' ja saadeti' : ''}. Tunnid lisatakse pärast makset.`); await state.reload(); }} /> : null}</div>
       </header>
 
+      {/* „Ülevaade” (owner 2026-10-26): what the calendar's lessons earn — held and planned, not the invoices — administrators */}
+      {canManage ? <FinanceDashboard user={user} plans={state.data.plans} lessons={state.data.lessons} {...(dashboardRepository ? { repository: dashboardRepository } : {})} /> : null}
+
       <div className="finance-month-switcher">
         <Button variant="secondary" aria-label="Eelmine kuu" onClick={() => setMonth(shiftMonth(month, -1))}><ArrowLeft size={17} /></Button>
         <Input label="Arvelduskuu" type="month" value={month} onChange={(event) => setMonth(event.target.value)} />
@@ -308,14 +313,14 @@ export default function FinanceMonthPage({
           {rows.map((invoice) => { const row = financeRowState(invoice); const [label, tone] = STATUS[row.status]; return <div className="finance-month-table__row" role="row" key={invoice.id}>
             <span><strong>{invoice.studentName || invoice.payerName || '—'}</strong><small>{[invoice.subject, invoice.payerEmail].filter(Boolean).join(' · ')}</small>{invoice.billingMode === 'lesson_tokens_v1' ? <small className="finance-tokens">Tunnipakett · {invoice.tokenCredits} tundi{invoice.tokenStatus === 'credited' ? ' · ✓ lisatud õpilasele' : ''}</small> : null}</span>
             <span>{invoice.num || invoice.number || invoice.invoiceNumber || '—'}</span><span>{displayDate(invoice.due || invoice.dueDate)}</span><span>{money(row.amountCents)}</span><span><strong>{money(row.balanceCents)}</strong></span><span className="finance-month-table__state"><Badge tone={tone}>{label}</Badge>{(() => { const mail = invoiceEmailLine(invoice); return <small className={`finance-mail finance-mail--${mail.tone}`} title={mail.title || undefined}>✉ {mail.text}</small>; })()}</span>
-            <span className="finance-month-table__actions">{canManage && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus !== 'credited' && !row.balanceCents && row.status !== 'cancelled' ? <Button loading={actionBusy === `tokens-${invoice.id}`} onClick={() => creditTokens(invoice)}>Lisa tunnid ({invoice.tokenCredits})</Button> : null}{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.status === 'overdue' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
+            <span className="finance-month-table__actions">{canManage && invoice.billingMode === 'lesson_tokens_v1' && invoice.tokenStatus !== 'credited' && !row.balanceCents && row.status !== 'cancelled' ? <Button loading={actionBusy === `tokens-${invoice.id}`} onClick={() => creditTokens(invoice)}>Lisa tunnid ({invoice.tokenCredits})</Button> : null}{canManage && row.balanceCents ? <Button variant="secondary" onClick={() => { setError(''); setPaymentInvoice(invoice); }}>Makse</Button> : null}<Button variant="secondary" loading={printBusy === invoice.id} onClick={() => openInvoiceForPrint(invoice)} aria-label={`Prindi arve ${invoice.num || invoice.number || ''}`}><Printer size={15} /><span>Prindi</span></Button><Button variant="secondary" loading={actionBusy === `send-${invoice.id}`} onClick={() => deliver(invoice, 'send')}><Send size={15} /><span>Saada</span></Button>{row.balanceCents > 0 && row.status !== 'cancelled' ? <Button variant="secondary" loading={actionBusy === `remind-${invoice.id}`} onClick={() => deliver(invoice, 'remind')}><Mail size={15} /><span>Meeldetuletus</span></Button> : null}{canManage && canCancelInvoice(invoice) ? <Button variant="secondary" onClick={() => { setError(''); setCancelInvoice(invoice); }} aria-label={`Tühista arve ${invoice.num || invoice.number || ''}`}><Trash2 size={15} /><span>Tühista</span></Button> : null}</span>
           </div>; })}
         </div>}
       </Card> : null}
       {activeView === 'unpaid' && canManage ? <FinanceDebtsPanel month={month} invoices={invoices} students={state.data.students} transactions={state.data.bankTransactions} onAllocate={(transaction) => financeRepository.allocateBankTransaction(transaction)} onReload={state.reload} onRemind={(invoice) => deliver(invoice, 'remind')} onCancel={(invoice) => { setError(''); setCancelInvoice(invoice); }} onCorrectDueDate={(invoice, due, reason) => financeRepository.correctInvoiceDueDate(invoice.id, due, reason)} onCreditLessonLine={(invoice, lessonId, reason) => financeRepository.creditInvoiceLessonLine(invoice.id, lessonId, reason)} onCreditInFull={(invoice, reason, requestId) => financeRepository.creditInvoiceInFull(invoice.id, reason, requestId)} onCorrectInvoice={(invoice, correction) => financeRepository.correctIssuedInvoice(invoice.id, correction)} /> : null}
       </section>
-      <PaymentDialog key={paymentInvoice?.id || 'closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
-      <CancelInvoiceDialog key={cancelInvoice?.id || 'closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
+      <PaymentDialog key={paymentInvoice?.id ? `pay-${paymentInvoice.id}` : 'pay-closed'} invoice={paymentInvoice} busy={paymentBusy} error={paymentInvoice ? error : ''} onClose={() => { if (!paymentBusy) { setPaymentInvoice(null); setError(''); } }} onSubmit={recordPayment} />
+      <CancelInvoiceDialog key={cancelInvoice?.id ? `cancel-${cancelInvoice.id}` : 'cancel-closed'} invoice={cancelInvoice} busy={cancelBusy} error={cancelInvoice ? error : ''} onClose={() => { if (!cancelBusy) { setCancelInvoice(null); setError(''); } }} onSubmit={confirmCancellation} />
       <DocumentPreviewModal document={documentPreview} printable onClose={() => setDocumentPreview(null)} />
     </div>
   );

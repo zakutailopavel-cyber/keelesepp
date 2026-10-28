@@ -5,7 +5,7 @@ import { missingDataService } from '../../services/firebase/missingData.js';
 import PollGrid from '../availability-poll/PollGrid.jsx';
 import { PRESETS, pollPayload, withPreset } from '../availability-poll/pollModel.js';
 import {
-  ADULT_GRADE, CLASS_OPTIONS, ERROR_TEXT, LANGUAGE_OPTIONS, cardErrors, cardQuestions, fieldLabel, kindOfGrade, payloadOf, profileErrors,
+  ADULT_GRADE, CLASS_OPTIONS, ERROR_TEXT, LANGUAGE_OPTIONS, cardErrors, cardQuestions, fieldLabel, isRequired, kindOfGrade, payloadOf, profileErrors,
 } from './missingDataModel.js';
 import '../announcements/announcements.css';
 import '../availability-poll/availabilityPoll.css';
@@ -80,7 +80,7 @@ function GradeField({ id, answer, update, withAdult, optional, error }) {
 
 function CardSection({ card, answer, errors, update, single }) {
   const { kind, items } = cardQuestions(card, answer);
-  const optional = (item) => !card.required.includes(item);
+  const optional = (item) => !isRequired(card, item, kind);
   const id = `md-${card.studentId}`;
   const title = card.role === 'parent' ? `Laps · Ребёнок: ${card.studentName}` : single ? 'Sinu andmed · Ваши данные' : card.studentName;
   return (

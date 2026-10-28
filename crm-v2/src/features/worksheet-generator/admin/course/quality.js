@@ -14,6 +14,8 @@ const SENTENCE = ['errorfix', 'wordorder', 'transformation'];
 const PRODUCTIVE = ['speaking', 'writing', 'dialogue', 'rolecards', 'guidedletter', 'planning', 'examwriting', 'speakcard'];
 // an exam sheet may open with its part header (exampart) or the exam listening
 const SITUATION = ['text', 'tip', 'image', 'reading', 'listening', 'dialogue', 'exampart', 'examlisten'];
+// tasks a teacher judges, not the player (a diagnostic check has none)
+const OPEN_TASKS = ['speaking', 'writing', 'guidedletter', 'rolecards', 'planning', 'examwriting', 'speakcard', 'translation'];
 // the rubric of a product: the checklist or the exam-scale rubric (§2.4 of COURSE_FINAL_SHAPE_B1.md)
 const RUBRICS = ['rubric', 'examrubric'];
 // the listening tasks a module's Harno coverage counts
@@ -25,6 +27,12 @@ const has = (doc, list) => tasks(doc).some((b) => list.includes(b.type));
 // templates v3 and v4 share the shape „fewer, fuller tasks” (5–9 a sheet); v4 replaces v3's fixed task list with
 // variety rules (docs/COURSE_DESIGN_COMMUNICATIVE.md §12)
 export const fullerTemplate = (meta) => ['v3', 'v4'].includes(meta?.template);
+// a diagnostic check (meta.diagnostic, e.g. a2/kohakaanded.js): a short sheet of closed, scored tasks given as a baseline
+// and again later in a parallel version with the same structure. It is a measurement, not a lesson: the lesson-shape rules
+// (5–9 blocks, task variety, use at the end, neighbours differ, the module's balance) do not apply; the constructor's
+// errors, the level norms and the keys still do, and every task must be scored by the player.
+export const isDiagnostic = (doc) => Boolean(doc?.meta?.diagnostic);
+const lessonDiagnostic = (phases) => Object.values(phases || {}).some(isDiagnostic);
 const overlap = (a, b) => { const A = typeSet(a); const Bs = typeSet(b); const inter = [...A].filter((t) => Bs.has(t)).length; return inter / Math.max(1, new Set([...A, ...Bs]).size); };
 
 // one sheet: [{ code, text }]
@@ -37,6 +45,13 @@ export function sheetProblems(doc) {
   if ((didactics?.score ?? 100) < MIN_DIDACTIC_SCORE) out.push({ code: 'didactic', text: `didaktiline skoor ${didactics.score} < ${MIN_DIDACTIC_SCORE}: ${didactics.issues.map((i) => i.text).join(' · ')}` });
   const ids = (doc.blocks || []).map((b) => b.id);
   if (new Set(ids).size !== ids.length) out.push({ code: 'ids', text: 'korduvad ploki id-d' });
+  if (isDiagnostic(doc)) {
+    // speaking and writing are judged by the teacher (a writing task's score only counts sentences and keywords)
+    const open = (doc.blocks || []).filter((b) => BLOCKS[b.type]?.task && (!BLOCKS[b.type]?.score || OPEN_TASKS.includes(b.type)));
+    if (open.length) out.push({ code: 'diagnostic-open', text: `kontroll: ülesanne, mida ei kontrollita automaatselt (${open.map((b) => b.id).join(', ')})` });
+    if (!tasks(doc).length) out.push({ code: 'diagnostic-empty', text: 'kontroll: lehel pole ülesandeid' });
+    return out;
+  }
   const n = doc.blocks.length;
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
   // tasks a sheet; the textbook picture added to the sheet is not counted
@@ -165,7 +180,7 @@ function v4Problems(doc, phase) {
 // dictation are spice, not the staple (exam lessons are not counted)
 export function v4ModuleProblems(sheets) {
   const out = [];
-  const lessons = Object.entries(sheets).filter(([, phases]) => Object.values(phases).some((d) => d.meta?.template === 'v4' && !d.meta?.assessment));
+  const lessons = Object.entries(sheets).filter(([, phases]) => !lessonDiagnostic(phases) && Object.values(phases).some((d) => d.meta?.template === 'v4' && !d.meta?.assessment));
   if (!lessons.length) return out;
   const count = {};
   for (const [lessonId, phases] of lessons) {
@@ -190,9 +205,12 @@ export const isSupplement = (sheets) => Object.values(sheets).some((lesson) => O
 // a module: { [lessonId]: { practice: doc, transfer: doc, … } } → [{ lessonId, phase, code, text }]
 export function moduleProblems(sheets) {
   const out = [];
-  const lessonIds = Object.keys(sheets);
-  for (const lessonId of lessonIds) {
+  for (const lessonId of Object.keys(sheets)) {
     for (const [phase, doc] of Object.entries(sheets[lessonId])) sheetProblems(doc).forEach((p) => out.push({ lessonId, phase, ...p }));
+  }
+  // the parallel versions of a diagnostic check have the same structure on purpose: the module rules skip them
+  const lessonIds = Object.keys(sheets).filter((id) => !lessonDiagnostic(sheets[id]));
+  for (const lessonId of lessonIds) {
     const docs = Object.values(sheets[lessonId]);
     if (new Set(docs.map((d) => tasks(d).map((b) => b.type).join('|'))).size !== docs.length) out.push({ lessonId, phase: '*', code: 'phases-same', text: 'tunni etappidel on sama ülesannete jada' });
   }
@@ -205,8 +223,9 @@ export function moduleProblems(sheets) {
       if (o > (fullerTemplate(list[i][1].meta) ? V3.neighbour : 0.75)) out.push({ lessonId: list[i][0], phase, code: 'neighbour', text: `liiga sarnane eelmise tunniga (${Math.round(o * 100)}% samu ülesandetüüpe)` });
     }
   }
+  const taught = Object.fromEntries(lessonIds.map((id) => [id, sheets[id]]));
   out.push(...harnoProblems(sheets));
-  out.push(...varietyProblems(sheets));
+  if (lessonIds.length) out.push(...varietyProblems(taught));
   out.push(...v4ModuleProblems(sheets));
   return out;
 }
@@ -252,7 +271,7 @@ export function balanceProblems(sheets) {
   const out = [];
   for (const [lessonId, phases] of Object.entries(sheets)) {
     const docs = Object.values(phases);
-    if (docs.some((d) => d.meta?.assessment) || !docs.some((d) => fullerTemplate(d.meta))) continue;
+    if (docs.some((d) => d.meta?.assessment || isDiagnostic(d)) || !docs.some((d) => fullerTemplate(d.meta))) continue;
     const minutes = (pick) => docs.reduce((n, d) => n + (d.blocks || []).filter(pick).reduce((m, b) => m + blockMinutes(b, d.meta?.level, d.meta?.design, d.meta?.template), 0), 0);
     const all = minutes(() => true) || 1;
     const drill = minutes((b) => DRILL.includes(b.type)) / all;

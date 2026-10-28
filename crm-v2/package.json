@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "course:final-shape": "node ../tools/course-audit/final-shape.mjs"
+    "course:final-shape": "node ../tools/course-audit/final-shape.mjs",
+    "build:sheet-kit": "node scripts/build-sheet-kit.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "6.3.1",

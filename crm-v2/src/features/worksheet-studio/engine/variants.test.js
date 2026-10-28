@@ -1,5 +1,8 @@
 import { makeVariant } from './variants.js';
-import { checkDocument } from './registry.js';
+import { scoreDocument } from './registry.js';
+
+// how many items of a sheet are checked automatically (an empty sheet scores nothing: unanswered blocks are left out)
+const scorable = (doc) => Object.values(scoreDocument(doc, {}).perBlock).flat().length;
 
 const doc = () => ({
   schema: 'keelesepp.worksheet/2', id: 'ws1',
@@ -27,7 +30,7 @@ describe('easier / harder copies of a sheet', () => {
     expect(table.data.instruction).toBe('Abisõnad: auto, maja.');
     expect(changes).toEqual(expect.arrayContaining(['sõnapank', 'vähem valikvastuseid']));
     // the copy is still a valid, scorable sheet
-    expect(checkDocument(easy, {}).score.total).toBeGreaterThan(0);
+    expect(scorable(easy)).toBeGreaterThan(0);
   });
 
   it('the harder copy hides banks and examples, shuffles options and makes more gaps', () => {
@@ -46,7 +49,7 @@ describe('easier / harder copies of a sheet', () => {
     expect(diagram.data.nodes).toBe('hommikul\n- ärkan\n- [pesen]\npäeval\n- [töötan]\nõhtul');
     expect(makeVariant({ ...start, blocks: [{ ...start.blocks[2], data: { ...start.blocks[2].data, kind: 'cycle', nodes: 'kevad\nsuvi\nsügis\ntalv' } }] }, 'challenge').doc.blocks[0].data.nodes).toBe('kevad\n[suvi]\nsügis\n[talv]');
     expect(table.data.rows.split('\n')[1]).toBe('kool | [kooli] | [kooli]');
-    expect(checkDocument(hard, {}).score.total).toBeGreaterThan(checkDocument(start, {}).score.total);
+    expect(scorable(hard)).toBeGreaterThan(scorable(start));
   });
 
   it('a variant of a variant keeps one suffix; unknown level is refused', () => {

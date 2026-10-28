@@ -13,3 +13,6 @@ functions/.env.*
 
 # listening audio TTS cache (tools/listening-audio/build.mjs)
 tools/listening-audio/.cache/
+
+# a symlinked node_modules (worktrees) is a file to git: ignore it too
+node_modules

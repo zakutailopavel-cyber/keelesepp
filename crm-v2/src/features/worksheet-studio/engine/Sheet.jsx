@@ -1,4 +1,5 @@
 /* global ResizeObserver */
+import { IN_LESSON_LABEL, isInLesson } from './inLesson.js';
 import { Suspense, lazy, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { dragId, dropId, lastBlockOf } from './dragIds.js';
@@ -98,6 +99,7 @@ function Card({ block, num, mode, ctx, theme = '', selected, hovered = false, on
           <div>
             <h3>{LookIcon ? <LookIcon className="ws-look-icon" aria-hidden="true" /> : null}{d.title}{d.titleMore ? <span> {d.titleMore}</span> : null}{continued ? <span className="ws-cont"> (järg)</span> : null}</h3>
             {d.instruction && !continued && <p><Md text={d.instruction} /></p>}
+            {isInLesson(block) && !continued ? <p className="ws-inlesson">👥 {IN_LESSON_LABEL}</p> : null}
           </div>
         </div>
       )}

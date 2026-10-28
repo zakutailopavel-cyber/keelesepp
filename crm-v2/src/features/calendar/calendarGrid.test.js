@@ -83,3 +83,21 @@ describe('moving lessons', () => {
     expect(late[0].outside).toBe(false);
   });
 });
+
+describe('planSubstitute', () => {
+  it('a one-off lesson changes its teacher and keeps the main teacher; giving it back clears that', async () => {
+    const { planSubstitute } = await import('./calendarGrid.js');
+    const item = { id: 'a', teacher: 'Pavel', teacherUid: 'p', recurring: false, date: '2026-10-30', time: '12:00', duration: 60 };
+    const plan = planSubstitute(item, { teacher: 'Liza', teacherUid: 'l' });
+    expect(plan.apply).toEqual([{ op: 'patch', id: 'a', fields: { teacher: 'Liza', teacherUid: 'l', substituteFor: { teacher: 'Pavel', teacherUid: 'p' } } }]);
+    const back = planSubstitute({ ...item, teacher: 'Liza', teacherUid: 'l', substituteFor: { teacher: 'Pavel', teacherUid: 'p' } }, { teacher: 'Pavel', teacherUid: 'p' });
+    expect(back.apply[0].fields).toEqual({ teacher: 'Pavel', teacherUid: 'p', substituteFor: null });
+  });
+  it('a lesson of a series becomes a one-off copy with the substitute on the same time', async () => {
+    const { planSubstitute } = await import('./calendarGrid.js');
+    const item = { id: 's', studentId: 'x', studentName: 'Mia', teacher: 'Pavel', teacherUid: 'p', recurring: true, startDate: '2026-09-01', day: 'Fri', occurrenceDate: '2026-10-30', time: '12:00', duration: 45, online: true, excludedDates: ['2026-10-02'] };
+    const plan = planSubstitute(item, { teacher: 'Jegor', teacherUid: 'j' });
+    expect(plan.apply[0]).toEqual({ op: 'patch', id: 's', fields: { excludedDates: ['2026-10-02', '2026-10-30'] } });
+    expect(plan.apply[1].data).toMatchObject({ studentId: 'x', teacher: 'Jegor', teacherUid: 'j', substituteFor: { teacher: 'Pavel', teacherUid: 'p' }, date: '2026-10-30', time: '12:00', duration: 45, online: true, recurring: false, movedFromSeriesId: 's' });
+  });
+});

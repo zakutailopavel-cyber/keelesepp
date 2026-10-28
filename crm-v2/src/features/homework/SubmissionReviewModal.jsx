@@ -11,11 +11,24 @@ import { describeAutoErrors } from '../worksheet-studio/engine/errorText.js';
 import { addLine, feedbackTemplates, suggestedGrade } from './reviewTemplates.js';
 import './reviewLayout.css';
 import LearnerTextAnalysis, { learnerTexts } from './LearnerTextAnalysis.jsx';
+import { paperMeasured, paperStartGrades } from './paperWork.js';
 
 function AnswerList({ answers }) {
   const entries = answers && typeof answers === 'object' ? Object.entries(answers) : [];
   if (!entries.length) return <p className="submission-empty-answer">Vastuseid ei ole salvestatud.</p>;
   return <div className="submission-answers">{entries.map(([key, value], index) => <div key={key}><span>{index + 1}. vastus</span><strong>{readableValue(value)}</strong></div>)}</div>;
+}
+
+// a work done on paper: its points per criterion (homework/paperWork.js)
+function PaperParts({ data }) {
+  return (
+    <section className="paper-parts">
+      <h3>Punktid paberil töö eest</h3>
+      {data.paperNote ? <p className="form-hint">{data.paperNote}</p> : null}
+      <table><tbody>{(data.paperParts || []).map((part, index) => <tr key={index}><td>{part.label}</td><td><b>{part.points}</b> / {part.max}</td></tr>)}</tbody>
+        <tfoot><tr><td>Kokku</td><td><b>{data.score?.correct}</b> / {data.score?.total}</td></tr></tfoot></table>
+    </section>
+  );
 }
 
 // A submitted work, checked in one large window: the student's sheet with answers on the left, everything the teacher
@@ -27,9 +40,11 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
   const autoGrade = submission.reviewStatus === 'reviewed' ? null : suggestedGrade(submission.percentage);
   const [review, setReview] = useState({ teacherGrade: submission.teacherGrade ?? autoGrade ?? '', teacherFeedback: submission.teacherFeedback || '' });
   const worksheetDoc = current.submissionKind === 'worksheet' ? current.source?.worksheetDoc : null;
-  const suggested = suggestedSkills(worksheetDoc);
+  const paper = current.source?.exerciseType === 'paper';
+  const measured = paperMeasured(current);
+  const suggested = [...new Set([...Object.keys(measured), ...suggestedSkills(worksheetDoc)])];
   const skills = skillList(skillMap || {});
-  const [grades, setGrades] = useState(() => ({ ...(submission.skillGrades || {}) }));
+  const [grades, setGrades] = useState(() => (submission.reviewStatus === 'reviewed' ? { ...(submission.skillGrades || {}) } : { ...paperStartGrades(submission), ...(submission.skillGrades || {}) }));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -55,8 +70,8 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
     <Modal open title={current.title || 'Esitatud töö'} onClose={onClose} className="modal--review" footer={staff ? <>{error ? <span className="form-error review-error" role="alert">{error}</span> : null}<Button variant="secondary" onClick={onClose}>Sulge</Button>{onSavedNext ? <Button variant="secondary" disabled={saving} onClick={() => save(true)}>Saada ja järgmine</Button> : null}<Button loading={saving} onClick={() => save()}><MessageSquare size={17} /> Saada tagasiside</Button></> : <Button variant="secondary" onClick={onClose}>Sulge</Button>}>
       <div className="review-layout">
         <div className="review-layout__work">
-          {worksheetDoc?.blocks?.length
-            ? <DocWorksheetSubmissionPreview worksheetDoc={worksheetDoc} answers={current.answers || {}} annotations={current.annotations || []} editable={staff} onAnnotationsChange={saveAnnotations} />
+          {paper ? <PaperParts data={current.source} /> : worksheetDoc?.blocks?.length
+            ? <DocWorksheetSubmissionPreview worksheetDoc={worksheetDoc} answers={current.answers || {}} annotations={current.annotations || []} editable={staff} answerKey={staff} onAnnotationsChange={saveAnnotations} />
             : <>
               {current.submissionKind === 'worksheet' ? <section><h3>Tööleht vastustega</h3><VisualWorksheetSubmissionPreview files={current.source?.files || []} answers={current.answers || {}} /></section> : null}
               <section><h3>Õpilase vastused</h3><AnswerList answers={current.answers} /></section>
@@ -64,7 +79,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
           <TextAnnotationEditor fields={submissionWritingFields(current)} annotations={current.annotations || []} editable={staff} onChange={saveAnnotations} />
         </div>
         <aside className="review-layout__side">
-          <div className="submission-review__hero"><div><span className="eyebrow">{current.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{current.studentName}</strong><small>Esitatud {formatDate(current.completedAt)}</small></div><div>{current.percentage != null ? <b>{current.percentage}%</b> : <ClipboardCheck size={28} />}{current.score?.total ? <small>{current.score.correct}/{current.score.total} õiget</small> : null}</div></div>
+          <div className="submission-review__hero"><div><span className="eyebrow">{paper ? 'Paberil töö' : current.submissionKind === 'worksheet' ? 'Tööleht' : 'Interaktiivne harjutus'}</span><strong>{current.studentName}</strong><small>{paper ? 'Tehtud' : 'Esitatud'} {formatDate(current.completedAt)}</small></div><div>{current.percentage != null ? <b>{current.percentage}%</b> : <ClipboardCheck size={28} />}{current.score?.total ? <small>{current.score.correct}/{current.score.total} {paper ? 'punkti' : 'õiget'}</small> : null}</div></div>
           {staff ? <LearnerTextAnalysis texts={learnerTexts({ worksheetDoc, answers: current.answers || {}, fields: submissionWritingFields(current) })} level={worksheetDoc?.meta?.level || 'A2'} onFeedback={(lines) => setReview((r) => ({ ...r, teacherFeedback: lines.reduce((text, line) => addLine(text, line), r.teacherFeedback || '') }))} /> : null}
           {current.selfAssessment ? <section className="submission-self"><strong>Õpilase enesehinnang</strong><p>{current.selfAssessment.difficulty ? `Raskus: ${current.selfAssessment.difficulty}. ` : ''}{current.selfAssessment.comment || 'Kommentaari ei lisatud.'}</p></section> : null}
           {Array.isArray(current.errorLog) && current.errorLog.length ? (
@@ -88,7 +103,7 @@ export default function SubmissionReviewModal({ submission, staff, repository, u
                   <p className="form-hint">Hinda oskusi, mida see töö näitas. Hinnang muudab õpilase arengukaarti („Areng”); kordushindamine asendab eelmise.</p>
                   {ordered.map((skill) => (
                     <label key={skill} className={`review-skill ${suggested.includes(skill) ? 'is-suggested' : ''}`}>
-                      <span>{skill}{skill in (skillMap || {}) ? <small>{skillMap[skill]}%</small> : <small>uus</small>}</span>
+                      <span>{skill}{skill in (skillMap || {}) ? <small>{skillMap[skill]}%</small> : <small>uus</small>}{skill in measured && grades[skill] ? <small className="review-skill__measured">punktid: {measured[skill]}% → poolel teel</small> : null}</span>
                       <select aria-label={`Oskus ${skill}`} value={grades[skill] || ''} onChange={(event) => setGrades((value) => { const next = { ...value }; if (event.target.value) next[skill] = Number(event.target.value); else delete next[skill]; return next; })}>
                         <option value="">ei hinda</option>
                         {[5, 4, 3, 2, 1].map((grade) => <option key={grade} value={grade}>{GRADE_LABEL[grade]}</option>)}

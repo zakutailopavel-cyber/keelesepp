@@ -13,3 +13,8 @@
 .cleanup-list select { height: 32px; border: 1px solid var(--border); border-radius: 999px; padding: 0 10px; font: inherit; font-size: .84rem; background: #fff; max-width: 220px; }
 .cleanup-section > .button { justify-self: start; }
 .cleanup-ok { margin: 0; color: var(--green-dark); font-weight: 700; }
+
+/* Seaded: the four tabs (owner 2026-10-26) */
+.settings-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; padding: 4px; border: 1px solid var(--border); border-radius: 12px; background: #fff; width: fit-content; max-width: 100%; }
+.settings-tabs button { border: 0; background: transparent; padding: 8px 14px; border-radius: 9px; font-weight: 700; color: var(--muted); cursor: pointer; }
+.settings-tabs button.is-active { background: var(--green); color: #fff; }

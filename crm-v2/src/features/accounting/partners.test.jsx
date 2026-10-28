@@ -41,13 +41,12 @@ const open = async (repository, props = {}) => {
 };
 
 describe('Partner column in the päevaraamat', () => {
-  it('shows the partner, „Puudub: partner” on a 2110 line without one; type-ahead by name or registry code saves the supplier', async () => {
+  it('shows the partner; a 2110 line without one is not marked (optional); type-ahead by name or registry code saves the supplier', async () => {
     const repository = repo();
     await open(repository);
     expect(screen.getByRole('button', { name: /^Partner\s*$/ })).toBeInTheDocument();
     expect(cell(1, 4)).toHaveTextContent('Kirsi Residents OÜ');
-    expect(cell(4, 4)).toHaveTextContent('Puudub: partner');
-    expect(cell(5, 4)).not.toHaveTextContent('Puudub');
+    expect(cell(4, 4)).not.toHaveTextContent('Puudub');
     fireEvent.mouseDown(cell(4, 4));
     const editor = screen.getByLabelText('Partner (muuda)');
     fireEvent.change(editor, { target: { value: '1122' } });
@@ -62,24 +61,24 @@ describe('Partner column in the päevaraamat', () => {
     }), ''));
   });
 
-  it('a manual entry does not save with a 2110 line without a supplier or with a name that is not in Tarnijad', async () => {
+  it('a manual entry saves with a 2110 line without a supplier, but not with a name that is not in Tarnijad', async () => {
     const repository = repo();
     await open(repository);
     fireEvent.mouseDown(cell(3, 3));
     fireEvent.change(screen.getByLabelText('Kirjeldus (muuda)'), { target: { value: 'Zone Media OÜ tasumine' } });
     fireEvent.keyDown(screen.getByLabelText('Kirjeldus (muuda)'), { key: 'Enter' });
     fireEvent.mouseDown(cell(1, 3));
-    expect(await screen.findByText(/Real 2110 puudub partner \(tarnija\)/)).toBeInTheDocument();
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledTimes(1));
     fireEvent.mouseDown(cell(4, 4));
     fireEvent.change(screen.getByLabelText('Partner (muuda)'), { target: { value: 'Keegi Muu' } });
     fireEvent.keyDown(screen.getByLabelText('Partner (muuda)'), { key: 'Enter' });
     expect(cell(4, 4)).toHaveTextContent('pole tarnijate seas');
     fireEvent.mouseDown(cell(1, 3));
     expect(await screen.findByText(/Partner „Keegi Muu” — vali tarnija nimekirjast/)).toBeInTheDocument();
-    expect(repository.updateEntry).not.toHaveBeenCalled();
+    expect(repository.updateEntry).toHaveBeenCalledTimes(1);
   });
 
-  it('filter by partner; the new manual entry needs the partner on 2110 and pastes a Partner column from Excel', async () => {
+  it('filter by partner; the new manual entry may leave 2110 without a partner and pastes a Partner column from Excel', async () => {
     const repository = repo();
     await open(repository);
     fireEvent.change(screen.getByLabelText('Filter: partner'), { target: { value: 'kirsi' } });
@@ -92,8 +91,8 @@ describe('Partner column in the päevaraamat', () => {
     fireEvent.change(screen.getByLabelText('Rida 1 deebet'), { target: { value: '248,40' } });
     fireEvent.change(screen.getByLabelText('Rida 2 konto'), { target: { value: '2110' } });
     fireEvent.change(screen.getByLabelText('Rida 2 kreedit'), { target: { value: '248,40' } });
-    expect(screen.getByText(/Puudub: partner \(2110\)/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Salvesta kanne' })).toBeDisabled();
+    expect(screen.queryByText(/partner \(2110\)/)).toBeNull();
+    expect(screen.getByRole('button', { name: 'Salvesta kanne' })).toBeEnabled();
     fireEvent.change(screen.getByLabelText('Rida 2 partner'), { target: { value: 'kir' } });
     fireEvent.mouseDown(screen.getByRole('option', { name: /Kirsi Residents OÜ/ }));
     expect(screen.getByLabelText('Rida 2 partner')).toHaveValue('Kirsi Residents OÜ');

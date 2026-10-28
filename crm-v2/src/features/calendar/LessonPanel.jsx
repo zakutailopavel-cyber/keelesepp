@@ -1,4 +1,4 @@
-import { CalendarClock, Check, HandCoins, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
+import { CalendarClock, Check, Repeat2, HandCoins, History, Pencil, RotateCcw, Search, Trash2, UserRoundX, Video, X, XCircle } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { Badge, Button, EmptyState } from '../../components/ui/index.js';
 import { buildLibraryItems, searchLibrary, sortLibrary } from '../library/libraryModel.js';
@@ -63,9 +63,9 @@ function readDraft(item) {
   try { return JSON.parse(window.localStorage.getItem(draftKey(item)) || 'null'); } catch { return null; }
 }
 
-export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onStartLive, liveBlocked = '', startingLive = false, children }) {
+export default function LessonPanel({ item, notice = '', history = [], catalog, library, loadingLibrary = false, student, saving = false, error = '', today = '', onClose, onDone, onUpdateDetails, onEdit, onCancelLesson, onDeleteLesson, onChangeMark, onRemoveMark, onSchoolCovered, onCancelGroupLesson, onSubstitute, teachers = [], onStartLive, liveBlocked = '', startingLive = false, children }) {
   const done = Boolean(item?.recordProblem || item?.lessonRecordId || ['Toimunud', 'Puudus_eta', 'Puudus_p'].includes(item?.status));
-  const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history }) : null), [catalog, history, item, student?.level]);
+  const suggestion = useMemo(() => (catalog && item && !item.isGroup ? suggestTopic(catalog, { studentLevel: student?.level || '', history, plan: student?.studyPlan }) : null), [catalog, history, item, student?.level, student?.studyPlan]);
   const [draft] = useState(() => readDraft(item));
   const [picked, setPicked] = useState(draft?.picked || null);
   const [notes, setNotes] = useState(draft?.notes || '');
@@ -73,6 +73,8 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
   const [fixing, setFixing] = useState(false);
   // „Kooli kulul”: the reason the admin is typing, or null when the form is closed
   const [covering, setCovering] = useState(null);
+  // „Asendab”: the chosen substitute teacher's id, or null when the form is closed
+  const [substitute, setSubstitute] = useState(null);
   // editing the topic and the note of a marked lesson: { pick, notes } or null
   const [editing, setEditing] = useState(null);
   useEffect(() => {
@@ -113,6 +115,7 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
           <span className="eyebrow">{new Date(`${item.occurrenceDate}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })} · {item.time} · {item.duration} min</span>
           <h2>{!item.isGroup && student?.id ? <a className="lp-student-link" href={`/students/${encodeURIComponent(student.id)}`} title="Ava õpilase kaart">{item.studentName || student.name || 'Õpilane'}</a> : item.studentName || 'Õpilane'}{item.isGroup ? <Badge tone="success">Grupp</Badge> : null}</h2>
           <p>{item.subject && !item.isGroup ? <span className="lp-subject"><SubjectTag subject={item.subject} />{item.subject}</span> : null}{[item.teacher, student?.level].filter(Boolean).join(' · ')}</p>
+          {item.substituteFor ? <p className="lp-substitute"><Repeat2 size={14} aria-hidden="true" /> Asendus: <b>{item.teacher}</b> asendab õpetajat {item.substituteFor.teacher || '—'}</p> : null}
         </div>
         <button type="button" className="lp-close" aria-label="Sulge" onClick={onClose}><X size={18} /></button>
       </header>
@@ -217,6 +220,19 @@ export default function LessonPanel({ item, notice = '', history = [], catalog, 
       {(!done || orphanMark) && !item.isGroup && !googleOwned ? (
         <footer className="lp-foot">
           {!done ? <Button variant="secondary" disabled={saving} onClick={onEdit}><Pencil size={15} /> Muuda aega</Button> : null}
+          {!done && onSubstitute ? <Button variant="secondary" disabled={saving} aria-expanded={substitute !== null} onClick={() => setSubstitute(substitute === null ? '' : null)}><Repeat2 size={15} /> Asendab</Button> : null}
+          {!done && onSubstitute && substitute !== null ? (
+            <div className="lp-notes-edit lp-substitute-form" role="group" aria-label="Asendab">
+              <label className="lp-notes"><span>Kes annab selle tunni?</span>
+                <select aria-label="Asendav õpetaja" value={substitute} onChange={(event) => setSubstitute(event.target.value)}>
+                  <option value="">Vali õpetaja…</option>
+                  {teachers.filter((teacher) => teacher.id !== item.teacherUid).map((teacher) => <option key={teacher.id} value={teacher.id}>{teacher.name}{item.substituteFor && teacher.id === item.substituteFor.teacherUid ? ' (põhiõpetaja)' : ''}</option>)}
+                </select>
+              </label>
+              <p className="lp-hint">Muutub ainult see tund{item.recurring ? ' — järgmised jäävad õpetajale ' + (item.substituteFor?.teacher || item.teacher || '') : ''}. Tund läheb asendaja kalendrisse ja tasu arvestatakse talle.</p>
+              <div className="lp-actions"><Button loading={saving} disabled={!substitute} onClick={async () => { const chosen = teachers.find((teacher) => teacher.id === substitute); if (chosen && await onSubstitute(chosen)) setSubstitute(null); }}>Kinnita asendus</Button><Button variant="secondary" disabled={saving} onClick={() => setSubstitute(null)}>Loobu</Button></div>
+            </div>
+          ) : null}
           <Button variant="danger" disabled={saving} onClick={onCancelLesson}><XCircle size={15} /> Tühista tund</Button>
           {onDeleteLesson ? <Button variant="danger" disabled={saving} onClick={onDeleteLesson}><Trash2 size={15} /> Kustuta</Button> : null}
           {onDeleteLesson ? <p className="lp-hint">„Tühista” — tund jääb ära. „Kustuta” — tund lisati kogemata (vale õpilane või päev).</p> : null}

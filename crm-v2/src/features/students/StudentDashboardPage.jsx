@@ -5,7 +5,7 @@ import { useAuth } from '../../app/AuthContext.jsx';
 import { Badge, Button, Card, EmptyState, ErrorState, LoadingState, PageHeader } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, invoicesService, lessonChangeRequestsService, lessonsService, libraryService, petsService, scheduleService, studentsService } from '../../services/firebase/index.js';
-import { requestFor } from '../calendar/rescheduleModel.js';
+import { isAbsenceOnly, requestFor } from '../calendar/rescheduleModel.js';
 import RescheduleDialog from './RescheduleDialog.jsx';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { lessonProgress, nextLesson as nextCourseLesson, progressMap } from '../self-study/selfStudyModel.js';
@@ -73,7 +73,7 @@ export default function StudentDashboardPage({
     const [progressData] = await Promise.all([Promise.all([
       Promise.resolve().then(() => catalogRepository.listCurriculum?.() || []).catch(() => []),
       Promise.resolve().then(() => homeworkRepository.listWorksheetAssignmentsByStudentIds?.(studentIds) || []).catch(() => []),
-      preview ? [] : Promise.resolve().then(() => petRepository.lessonStats?.(user.uid) || []).catch(() => []),
+      Promise.resolve().then(() => (preview ? petRepository.lessonStatsForStudents?.(studentIds) : petRepository.lessonStats?.(user.uid)) || []).catch(() => []),
     ])]);
     const [pet, homework, submissions, scheduleLists, invoiceLists, lessonLists] = await Promise.all([
       preview ? null : Promise.resolve().then(() => petRepository.get?.(user.uid)).catch(() => null),
@@ -138,10 +138,12 @@ export default function StudentDashboardPage({
     if (!student) return null;
     const catalog = buildTopicCatalog(curriculum);
     const map = progressMap(allSheets);
+    // a course lesson held with the teacher (Live Classroom, the calendar topic) counts as done like its three sheets
+    const held = new Set(lessons.filter((lesson) => lesson.topicLessonId && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.topicLessonId));
     const courseByLevel = Object.fromEntries(catalog.levels.map((entry) => {
       const list = entry.modules.flatMap((module) => module.lessons);
-      const next = nextCourseLesson(list, map);
-      return [entry.key, { done: list.filter((lesson) => lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
+      const next = nextCourseLesson(list.filter((lesson) => !held.has(lesson.id)), map);
+      return [entry.key, { done: list.filter((lesson) => held.has(lesson.id) || lessonProgress(lesson.id, map).done === 3).length, total: list.length, next: next ? `${next.number ? `${next.number}. ` : ''}${next.title}` : null }];
     }));
     const computed = [...autoSkills({ assignments: allSheets }), ...[speakingFromStats(stats)].filter(Boolean)];
     return levelProgress({ level: student.level, target: student.targetLevel, computed, skillMap: student.skillMap, courseByLevel });
@@ -187,7 +189,8 @@ export default function StudentDashboardPage({
         </div> : null}
       </div>
       {nextLesson && !preview ? <div className="student-path__reschedule">
-        {nextRequest?.status === 'pending' ? <p className="form-hint" role="status">Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab. <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
+        {nextRequest?.status === 'pending' ? <p className="form-hint" role="status">{isAbsenceOnly(nextRequest) ? 'Teade, et sa ei tule, on õpetajale saadetud.' : 'Palve tund üle viia on saadetud. Tund jääb oma kohale, kuni õpetaja vastab.'} <button type="button" className="link-button" onClick={cancelRequest}>Võta palve tagasi</button></p>
+          : nextRequest?.status === 'accepted' && isAbsenceOnly(nextRequest) ? <p className="form-hint" role="status">Õpetaja märkis, et sa sellesse tundi ei tule.</p>
           : nextRequest?.status === 'declined' ? <p className="form-hint" role="status">Õpetaja ei saanud tundi üle viia{nextRequest.teacherNote ? `: ${nextRequest.teacherNote}` : ''}. Tund jääb samale ajale. <button type="button" className="link-button" onClick={() => setRescheduling(true)}>Küsi uuesti</button></p>
             : <Button variant="secondary" onClick={() => setRescheduling(true)}>Ei saa tulla?</Button>}
       </div> : null}

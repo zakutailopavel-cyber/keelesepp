@@ -1,0 +1,12 @@
+/* „Mis uut” after signing in and /uuendused (owner 2026-10-27) */
+.modal--whats-new { width: min(760px, 100%); }
+.whats-new__todo { background: #fff4e5; border-radius: 12px; padding: 12px 14px; margin-bottom: 14px; }
+.whats-new__todo h3, .whats-new__section h3 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font: 800 .95rem Manrope, sans-serif; }
+.whats-new__todo ol { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.whats-new__todo a { color: inherit; }
+.whats-new__section { margin-bottom: 14px; }
+.whats-new__section ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.whats-new__section li { display: grid; gap: 2px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; }
+.whats-new__where { font-size: .8rem; font-weight: 700; color: var(--green); }
+.whats-new__where a { color: inherit; }
+.whats-new .card { margin-bottom: 16px; }

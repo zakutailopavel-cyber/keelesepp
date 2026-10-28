@@ -64,6 +64,14 @@ export const petsService = {
     const snapshot = await getDocs(query(collection(db, 'petLessonStats'), where('studentUid', '==', uid)));
     return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 20);
   },
+  // the same stats by student card (staff: the admin's read-only view of a student, where the uid is the admin's)
+  async lessonStatsForStudents(studentIds = []) {
+    const ids = [...new Set(studentIds.filter(Boolean))].slice(0, 10);
+    if (!ids.length) return [];
+    const { db } = requireFirebaseClient();
+    const snapshot = await getDocs(query(collection(db, 'petLessonStats'), where('studentId', 'in', ids)));
+    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 20);
+  },
   async update({ uid, current = null, ...flags }) {
     if (!uid) throw new Error('Konto puudub.');
     const { db } = requireFirebaseClient();

@@ -1,3 +1,4 @@
+import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
 // „Puuduvad andmed” (owner 2026-10-25): labels and the browser-side checks of the form. The server
 // (functions/missing-data-core.js) decides what is asked and checks every value again; these checks only tell the
 // learner at once what to fix. Keep the e-mail / phone / class rules the same as there.
@@ -39,7 +40,9 @@ export function fieldLabel(item, kind) {
 }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-export const validEmail = (value) => EMAIL.test(String(value ?? '').trim());
+export const validEmail = (value) => EMAIL.test(String(value ?? '').trim()) && !isPlaceholderEmail(value);
+// a child's parent e-mail is never required (owner 2026-10-26: students typed made-up addresses to get past the form)
+export const isRequired = (card, item, kind) => (card.required || []).includes(item) && !(item === 'email' && kind === 'child');
 
 export function normalizePhone(value) {
   let text = String(value ?? '').trim().replace(/[\s().-]/g, '');
@@ -78,7 +81,7 @@ export function cardQuestions(card, answer = {}, year = new Date().getFullYear()
 
 export const ERROR_TEXT = {
   required: 'Palun täida · Пожалуйста, заполните',
-  email: 'E-posti aadress ei ole korrektne · Неверный e-mail',
+  email: 'Kirjuta päris e-posti aadress või jäta tühjaks · Укажите настоящий e-mail или оставьте пустым',
   phone: 'Telefoninumber ei ole korrektne (nt 5123 4567 või +358 …) · Неверный номер',
   name: 'Kirjuta ees- ja perekonnanimi · Укажите имя и фамилию',
   grade: 'Vali klass või kirjuta sünniaasta · Выберите класс или год рождения',
@@ -87,10 +90,10 @@ export const ERROR_TEXT = {
 
 // errors of one card's answer: { item: code }
 export function cardErrors(card, answer = {}, year = new Date().getFullYear()) {
-  const { items } = cardQuestions(card, answer, year);
+  const { kind, items } = cardQuestions(card, answer, year);
   const required = new Set(card.required || []);
   const errors = {};
-  const need = (item, has) => { if (!has && required.has(item)) errors[item] = 'required'; };
+  const need = (item, has) => { if (!has && isRequired(card, item, kind)) errors[item] = 'required'; };
   items.forEach((item) => {
     const value = String(answer[item] ?? '').trim();
     if (item === 'availability') need(item, Boolean(answer.availability?.slots?.length));
