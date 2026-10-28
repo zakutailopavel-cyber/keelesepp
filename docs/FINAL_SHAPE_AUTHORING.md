@@ -389,3 +389,38 @@ Module 7 („Tervis”, KUUL L→W · LUGU R→S · AVAS L→S · KIRJ R→W, §
   (replaced by „venitus”).
 - Timeline: keep the month of every episode in a note — „jõuluks” in a January letter and a new colleague who already
   appears in November were caught only on re-reading.
+### 8.3 Module 9 (2026-10-26, `b1/module09.js`, a2b1-041…045): the first B1 exam in reduced form
+
+Module 9 went 80 → 0 problems (`course:final-shape --module 9`) and passes the strict gate. New pitfalls:
+
+- **„Reduced B1 form” (§6.1, lessons 045 and 050) as built here:** every Harno task of every part, fewer items —
+  reading R1 6 ads ↔ 7 situations, R2 article (~280 words) + 5 MC, R3a 8 gaps, R4 6 phrases + 2 extra (26 points,
+  40 min); listening L1 5 clips, L2 radio + 5 MC, L3a dialogue + 6 short answers, L4 interview + 7 T/F (23 points,
+  ~30 min); writing W1b + W2a at full length (20 points, 35 min); speaking S0, S1a, S1b, S2 (20 points, ~12 min).
+  Recordings at Harno lengths, not reduced. `B.examPart` points = the items of the part.
+- **The gates decide which parts share a sheet.** On an exam lesson's Harjuta sheet the depth „live” check counts an
+  `examlisten` at 0.15 min per item, so the four listening tasks alone give ~13 min (< 15, `live-fast`); the reading part
+  plus the two writing cards is 4 of 7 recognition tasks (> 50 % at B1-). We put **writing + reading on Harjuta** (with
+  a `planning` „mustand” before W2a: 4 of 8 = 50 %) and **listening + speaking on Kasuta** (depth is not checked there;
+  a `planning` before S1b gives the 5th task type). The exam's Avasta sheet is depth-checked like a normal sheet
+  (closed tasks ≥ 6 items, ≥ 25 min of exercises, two whole-sentence tasks): we used it for „Enne eksamit” — the story's
+  last episode, a module quiz, a ma-form transformation, a dictation, a word sort and a warm-up talk.
+- **Same wording for the same format:** the R1, R2, S0 and S1a instructions are copied verbatim from 030; V7 exempts a
+  wording used only on `harno`-tagged tasks of one format in exam lessons. The untagged R2 article block needs its own.
+- **V6 gap appears when a format comes back:** the gap is measured between practices, so S1a/S2 in module 9 after
+  module 6 made two new course problems (`V6-gap-S1a`, `V6-gap-S2`: 3 modules > 2) while modules 7–8 had no S1a/S2.
+  They disappear when module 7 or 8 practises S1a and S2 (corner or exam); until then they stay in the baseline.
+- **Kasuta inputs of level ≥ 3 run out by lesson 4:** R05 (041), L07 (042) and R11 (043) were used, so 044 took a phone
+  conversation as `listening` tagged `{ task: 'L06', level: 3 }` with consequence gaps („Algust ei saa edasi lükata,
+  sest …”).
+- **Recognition share in Harjuta (≤ 50 %):** `match`, `cloze`, `examlisten`, `crossword`, `choice`, `insertion` are
+  recognition, `categorize` is not. A government task (verb → case) written as a `categorize` tagged `G08` kept the
+  041 sheet at 3 of 7.
+- **„Try again” as `formtext` (a short text with 10 gaps) instead of `gaps`** adds ~3 min for the same items and is not a
+  v4 drill type (no `v4-lesson-repeat` with a `gaps` elsewhere in the lesson).
+- **V2 against the next module:** 044 Avasta opened with a `reading` (R02) like 046; the two letters are a message
+  exchange, so the block is tagged `R12`. Check `NEW a2b1-module-10` in your report, not only your own module.
+- **Word counts, once more:** texts drafted as „~250 words” counted 150–230; readings under 150 words give a B1-
+  `reading-len` warning (= a quality problem). Count with a 10-line node script before running the gates.
+- The Vabamorf speller reports the ending „-mas” in phrase tips („Ta on … -mas.”); added to `language-allow.txt`.
+- §6.2 row 9 (LUGU R→W, AVAS L→S, KIRJ L→W, PROB R→S) passes V5 as written — no lead swap was needed.
