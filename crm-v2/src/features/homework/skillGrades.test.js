@@ -18,6 +18,13 @@ describe('skill grades from a checked work', () => {
     expect(third.values).toEqual({ Grammatika: 50, Sõnavara: null });
   });
 
+  it('a work scored in points moves the skill half way to the measured percent, and a re-check undoes it', () => {
+    const first = applySkillGrades({ Kirjutamine: 60, Grammatika: 62 }, { Kirjutamine: 2, Grammatika: 2 }, {}, { Kirjutamine: 45 });
+    expect(first.values).toEqual({ Kirjutamine: 53, Grammatika: 62 });
+    expect(applySkillGrades({}, { Kirjutamine: 2 }, {}, { Kirjutamine: 45 }).values).toEqual({ Kirjutamine: 45 });
+    expect(applySkillGrades({ Kirjutamine: 53, Grammatika: 62 }, {}, first).values).toEqual({ Kirjutamine: 60, Grammatika: 62 });
+  });
+
   it('lists core skills plus existing ones and suggests skills from block types', () => {
     expect(skillList({ Hääldus: 40 })).toContain('Hääldus');
     expect(suggestedSkills({ blocks: [{ type: 'gaps' }, { type: 'match' }, { type: 'image' }] })).toEqual(['Grammatika', 'Sõnavara']);

@@ -41,8 +41,10 @@ export function suggestedSkills(worksheetDoc) {
 }
 
 // grades: { skill: 1..5 }; previous: { deltas, created } stored by the last check of the same work.
+// measured: { skill: percent } — a work scored in points (a paper test or exam task, homework/paperWork.js) is stronger
+// evidence than a grade: it moves the skill half way to the measured percent instead of the small step.
 // Returns the skill values to write (null = remove a skill that only this work had created), and what to store.
-export function applySkillGrades(skillMap = {}, grades = {}, previous = {}) {
+export function applySkillGrades(skillMap = {}, grades = {}, previous = {}, measured = {}) {
   const base = { ...skillMap };
   const before = previous?.deltas || {};
   const createdBefore = new Set(previous?.created || []);
@@ -55,10 +57,11 @@ export function applySkillGrades(skillMap = {}, grades = {}, previous = {}) {
   const deltas = {};
   const created = [];
   for (const [skill, grade] of Object.entries(grades || {})) {
-    const pct = GRADE_PERCENT[Number(grade)];
-    if (!pct) continue;
+    const exact = Number.isFinite(Number(measured?.[skill])) && measured[skill] !== null && measured[skill] !== '' ? clamp(Number(measured[skill])) : null;
+    const pct = exact ?? GRADE_PERCENT[Number(grade)];
+    if (!pct && pct !== 0) continue;
     if (skill in base) {
-      deltas[skill] = scoreToDelta(pct);
+      deltas[skill] = exact === null ? scoreToDelta(pct) : Math.round((exact - Number(base[skill])) / 2);
       values[skill] = clamp(Number(base[skill]) + deltas[skill]);
     } else {
       deltas[skill] = 0;
