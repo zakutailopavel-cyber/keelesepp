@@ -379,6 +379,11 @@ the module's B1 grammar (§4.1 rule 6); 051 LUGE R→S and 054 PROB L→S as in 
 Module 12 (2026-10-29): the row is used as written — 056 KUUL L→W, 057 LUGU R→W, 058 AVAS R→S (cause and result, the
 `cause` item of grammarPlan.js, spiralled from 038), 059 RÄÄK L→S; 060 is Mock 1, the first full timed B1 mock with the
 §6.5 checkpoint (60 % per part → catch-up plan for modules 13–15) shown next to the 80 % target (`b1/module12.js`).
+Module 13 (2026-10-29): lessons 1 and 3 of the row are swapped — 061 LUGE R→S, 062 KUUL L→S, 063 AVAS R→W, 064 KIRJ
+L→W. The module's B1 grammar item (quotative mood and reported speech, METHODOLOGY_STANDARD §7) comes in 063, so the AVAS
+lesson introduces it (§4.1 rule 6); an AVAS opener in 061 would have had no grammar item to introduce, and a KUUL opener
+is not allowed after 056 (rule 5). Tingiv kõneviis is taught in 062 (notice, rule, practice) and the first S14 „Mida sa
+teeksid?” task ends 062's Harjuta (`b1/module13.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 

@@ -503,3 +503,25 @@ Module 12 went 60 → 0 final-shape problems (`--module 12`), strict gate 0, no 
 - **Mock 1 shape:** the same sheet split as exam 055 (Avasta warm-up with the story's end, Harjuta R1/R2/R3b/R4 + L1–L4
   with R3b and R4 as `gaps` texts with a bank and three strategy/points rubrics, Kasuta W1a + W2b + S0/S1a/S1b/S2). The
   `examPart` notes and the points rubrics name both the §6.5 checkpoint (R 20, L 18, W 12, S 12) and the 80 % target.
+
+### 8.6 Module 13 (2026-10-29, `b1/module13.js`, a2b1-061…065): tingiv kõneviis and the quotative
+
+Module 13 went 57 → 0 final-shape problems (`--module 13`), strict gate 0, no baseline line left; the rewrite also took
+20 V2/V7 lines of modules 14–17 and three course lines (`V5-course-LUGE`, `V6-exam-L2`, `V6-exam-S1b`) out of the
+baseline. New pitfalls:
+
+- **Check the §6.2 row against the grammar plan first.** Row 13 opens with AVAS, but `grammarPlan.js` puts the
+  conditional in 062 and the module's new item (quotative) in 063/064. Swapping lessons 1 and 3 (LUGE R→S ↔ AVAS R→W)
+  put AVAS on the quotative; a swap of 1 and 2 was impossible because 056 already opened with KUUL (V5-opener).
+- **S14 „Mida sa teeksid?”** is level 4 and not a pair task: placed at the end of 062's Harjuta (after the notice and the
+  rule), tagged `{ task: 'S14', fluency: true }` with a timed second round, it gave the lesson its second fluency task.
+- **`didacticCheck` sentence average counts only some items:** translation sources, `profiles`, `match` pairs and
+  `examlisten` match pairs give no sentences, so a Harjuta of those plus an `errorfix` is measured on the errorfix answers
+  alone — 7-word rows failed „liiga lihtsad” at B1; 9–11-word rows passed.
+- **Corner minutes by formula:** `adsmatch` = ads words / 90 × 1.5 + 0.5 a situation, so an R1 corner with 10 situations
+  needs ≥ 180 words of ads; an R4 `bankText` of ~150 words is 8.3 min. An R4 corner in Kasuta is also its ≥ 140-word input
+  (`text-short`), so write it near Harno's upper length.
+- **Letter answers are copyable answers:** a model-text `reading` with „Milline lõik …? → A” questions was reported as
+  „6 of 7 answers can be copied”; questions on the paragraph's function („Mis on lõigu D ülesanne?”) passed.
+- **V7 strips digits:** „… mooduli 13 sõna ristsõnasse” collided with 055's crossword instruction.
+

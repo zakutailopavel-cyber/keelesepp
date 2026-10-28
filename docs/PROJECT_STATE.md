@@ -1,3 +1,55 @@
+## 2026-10-29 · agent/b1-m13-final — B1 module 13 „Suhtlemine ja probleemilahendus” in the final shape
+
+- Base: `main` fee721f (2026-10-29, after #865 module 12). Draft PR from `agent/b1-m13-final`. Content only; no production
+  data, no publishing, no deploy.
+- Asked (owner): module 13 (a2b1-061…065, the old design-v2 sample) to the final shape like modules 2–12
+  (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 13; V16: in-lesson pair task + home recording; tingiv kõneviis taught here, the
+  first S14 „Mida sa teeksid?” task; 065 = module exam in full B1 form).
+- Done: `b1/module13.js` rewritten (July – August 2027 storyline: the renovation of Jaan's block Männi 8, the family's four
+  nights on Saaremaa with a hotel problem, a rumour about the new tenant Karl, a quarrel about the window in the hot Tuul
+  Logistika office while Liis is on holiday). Lessons 1 and 3 of the row are swapped (allowed by §6.2) so that the AVAS
+  lesson introduces the module's B1 grammar item (quotative), and 061 does not open with KUUL after 056:
+  - 061 LUGE R→S — the association's letter (R13 predict), requests / proposals / refusals sorted (G04), paluma + da and
+    nõus olema + ma in order (G07), new neighbours three times (S01), 8-min writing (W06); Urmas's words passed on (G05),
+    corner **R1** (services during the renovation), the meeting with the foreman (L03), verbs and government (G08), the
+    local paper's advice (R06), info gap on the schedule (S05); Kasuta: schedule and decisions (R08, `level: 3`), main
+    **S03** agreement on Karl's sleep, home message to Karl (S15), W02 note to the house chat.
+  - 062 KUUL L→S — tingiv kõneviis: announcements on the way to Saaremaa (L01), Kadri's call to the hotel (L04), notice +
+    rule (G02), holiday photo three times (S06), Oskar's rude message made polite (W12); the manager's e-mail (G03), corner
+    **L4** (communication trainer Evelin Lill on the radio), dictation (L08), command → request (G05), hotel notices (R07),
+    **S14** „Mida sa teeksid?” (fluency, two rounds); Kasuta: the manager's voicemail (L06, `level: 3`), main **S04** call
+    to the hotel manager, home message to Helgi (S15), hotel questionnaire (W01).
+  - 063 AVAS R→W — kaudne kõneviis: try first (G13), the house chat (R12), notice + rule (G02), try again (G03), 4-3-2
+    (S08), a rumour of your own told twice (S07); translation (G10), three witnesses (R11), Karl's day (L09), verbs of
+    speaking (G08), neighbours' errors (G06), relaying to Sofia (S13); Kasuta: corner **R4** = Urmas's notice on what really
+    happened, the talk with the hurt Karl (S10), home story (S15), main **W05** „Kuidas kuulujutt sündis”.
+  - 064 KIRJ L→W — Markus's and Kristjan's voicemails (L02), Anna's model letter (R09, paragraph functions), notice, parts
+    of a letter (G04), opinions three times (S11), survey of three (S09); forms in the letter (G13), Liis's voicemail from
+    her holiday (L10), Sofia's draft errors (G06), joining (W09), work in the heat (R03 cloze), topic questions (S02);
+    Kasuta: two voicemails → notes (L07), the meeting Sofia leads (S03), home summary for Liis (S15), plan (W11), main =
+    corner **W2b** letter to Liis 80–100 words, rewrite (W10).
+  - 065 EKS — full Harno B1 form: R1 (9), R2 (6), R3b (10), R4 (8) = 33 p · L1 (7), L2 (6), L3a (8), L4 (9) = 30 p · W1b +
+    W2a = 20 p · S0, S1a, S1b, S2 = 20 p; warm-up sheet with the neighbours' evening of 28 August; sheet split as in 055.
+- Also: goals and can-do 061–065 in `b1/lessonGoals.js`; cast facts in `docs/COURSE_CAST.md` (module 13 entry rewritten);
+  module-13 note in `COURSE_FINAL_SHAPE_B1.md` §6.2; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.6. No picture briefs exist
+  for module 13 (no `art/visuals/b1-module-13.js`), none added.
+- Audio: 13 recordings (TartuNLP, free) in `public/audio/a2b1-061…065` (062_d_call re-recorded, 12 new); 8 old files
+  and their manifest entries removed; all speaker names were already in `tools/listening-audio/plan.mjs`.
+- Checks: `course:final-shape --module 13` 57 → 0. `finalShapeBaseline.json` 462 → 382 problems (module 13 −57, 20
+  V2/V7 lines of modules 14–17 gone with the old module-13 texts, course `V5-course-LUGE`, `V6-exam-L2`, `V6-exam-S1b`
+  closed); no line added. Older quality gate and strict gate for module 13: 0. `npx eslint src`: 0 errors (17 old
+  warnings). Full `npx vitest run`: 402 files passed (1 skipped), 2744 tests passed, 4 skipped. Vabamorf speller: 0 unknown words except names (Karlit, Rokit, Reini,
+  Kätlin, Kerli, Olena, Harno) and the technical value `kusimustik`.
+- Limits: teaching sheets are 40–52 min; R08 (061) and L06 (062) in Kasuta carry `level: 3` (application questions,
+  consequence gaps); the exam's R3b and R4 are `gaps` texts with a bank and its R2 text has one unscored opinion question
+  (as in 055 and 060); recordings are shorter than Harno's (L2 64 s, L3a 81 s, L4 83 s against 2–3.5 min).
+  Real facts kept simple: the Virtsu–Kuivastu ferry, Kuressaare castle, Kaali crater, Otepää; a trader answers a written
+  complaint within 15 days and the consumer disputes committee is free of charge. Männi 8, „Kindel Katus”, hotel
+  „Merekivi”, the radio guests and all prices are fictional. V1/V2 against 059 and 066 (module 14 not rewritten yet) were
+  checked on today's `main`.
+- Next safe step: owner reviews module 13 in „Kursuse tootmine” and publishes it; the module 14 author starts 066 with a
+  corner other than W2b (064's corner) and re-checks V1/V2 against 064.
+
 ## 2026-10-29 · agent/b1-m12-final — B1 module 12 „Ilm, loodus ja keskkond” in the final shape + Mock 1
 
 - Base: `main` a012664 (2026-10-28, after #864 module 11). Draft PR from `agent/b1-m12-final`. Content only; no production
