@@ -95,6 +95,18 @@ Keep facts consistent; add new facts here when a module adds them.
   Sofia's friend **Lena** lives in Berlin (first visit to Estonia, 12–16 March, stays at Helgi's in Tartu, Viljandi
   guesthouse „Kase”); Markus and Liis missed the Viljandi → Tartu bus on the way from a Pärnu client. Exam: Sofia and Liis
   take the bus to a Tartu client when the train breaks down; lost-property clerk **Kaia** of „Kõrve Reisid”.
+- **Module 11 (final shape, 2026-10-28, April–May):** Sofia's old phone stayed on the Tartu train (end of March); she buys
+  a green Nova 5 at **Nutikas** (Ülemiste keskus; seller **Kaspar**) for 256 € (320 € −20 %) + case and screen glass 15 € =
+  271 €, two-year warranty; after three weeks it stops charging — service desk **Ellen**, replacement phone, the charging
+  port is changed (back on 8 May); on 20–21 May it stops again and the workshop (**Rene**) claims moisture, 89 € (battery
+  65 € + work 24 €, check 15 €); manager **Kristo Aru** checks it himself, the battery was faulty, Sofia gets a new phone
+  and writes a four-star review. Anna buys „Heli” headphones (Nutikas 79 € −30 % vs Telemaailm 69 €) and later has a
+  one-sided pair at the desk. Oskar's football boots at sports shop **Värav** (size 34, budget 60 €: Sprint 44 €, Tiiger
+  65 €, Välk 39 €). Jaan's old car broke down in March; ads Toyota Yaris 2015 (6500 €, seller **Raul**, Mustamäe) and Škoda
+  Octavia 2018 (8200 €, seller **Karin**, Rae vald, Kaasiku tee 4, family moving to Finland) — the family buys the Škoda
+  (Karin's floor 7800 € + winter tyres). Kadri's e-shop **Lasteriie** (agent **Martin**, order 48 215: spring jacket 140,
+  got 128). Consumer adviser **Heli Paju** on Ülle's radio („Tarbija tund”, „Päevateema”); **Kodupank** (**Pirjo**):
+  Viktor's bike buyer paid to his closed old account. Surnames: Sofia and Kadri are **Mets**.
 - **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
   from shop customer service); new administrator **Jelena**.
   Module 9 final shape (2026-10-26, November): café **Kaneel** is open on Friday and Saturday evenings till 23 from

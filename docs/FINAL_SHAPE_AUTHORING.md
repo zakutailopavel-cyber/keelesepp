@@ -454,3 +454,26 @@ Module 10 went 80 → 0 problems (final shape, older quality gate, strict gate) 
   and that no wrong option is also correct („lume **pärast**” = „lume tõttu”).
 - **Parallel agents share one scratchpad folder** (same session): use your own sub-folder and file names for reports
   and dumps, or another agent's run overwrites them.
+
+### 8.4 Module 11 (2026-10-28, `b1/module11.js`, a2b1-051…055): the first module at level B1
+
+Module 11 went 59 → 0 final-shape problems (`--module 11`), strict gate 0, with no baseline line left. New pitfalls:
+
+- **Level B1 is stricter than B1-** (`levels.js`): readings 200–400 words, average task sentence ≥ ~7.2 words (13 × 0.55),
+  speaking 120–240 s, recognition share ≤ 45 %. A telegraphic repair report („Probleem: telefon ei lae.”) pulls a Kasuta
+  sheet under the sentence average — write documents in full sentences. Short gap questions („Mitu laadijat Sofia
+  proovis?”) do the same: write 8–10-word items.
+- **Full-length B1 exam sheet split:** with R1–R4 + L1–L4 on one sheet the B1 recognition limit fails (6 of 9 tasks);
+  with R + W on Harjuta the depth gate fails (≈ 20 min of exercises, „live” 12 min). What passed: Harjuta = reading +
+  listening with **R3b as a `B.gaps` text with a word bank** (not recognition) next to the R4 `gaps` text and three
+  strategy/points rubrics (5 of 12 recognition); Kasuta = writing + speaking. Exam sheets are not checked for
+  `v4-repeat` (two `gaps`, three `examlisten`) and not for the 55-minute maximum.
+- **A `reading` without questions (the R2 text before its `choice`) still needs one „miks / mida arvad” question** at B1
+  (`reading-inf`): an unscored reflection question with an empty key keeps the didactic score ≥ 85.
+- **V14 at B1:** 7 of 48 box words outside EKI A1–B1 was 85 %; four topic words (tšekk, pagasiruum, proovisõit, niiskus)
+  and known replacements (soodne, võrdlema, karp) gave ≥ 90 %.
+- **Speller and bold inside words** again: „odav**am**”, „paranda**ge**” are split into „am”, „ge” — bold whole words.
+  Wrong options of a `choice` are spell-checked („heam”) — use real forms as distractors („kõige hea”).
+- **Swapping AVAS and KIRJ** inside the row moved the grammar to the AVAS lesson; `grammarPlan.js` only asks for a
+  `notice` in 052 (comparison) and in 053 and 054 (participles), so both lessons keep a notice.
+
