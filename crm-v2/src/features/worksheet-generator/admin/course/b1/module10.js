@@ -20,7 +20,7 @@
 // kolleeg, ülemus, vahetus, koosolek, klient, aruanne, töölähetus, käima …-mas, töövestlus). Lesson 5 (050) is the
 // module exam in Harno B1 form (unchanged). The v3 file is in archive/v3/b1/module10.js, the v1 file in
 // archive/v1/b1/module10.js.
-import { B, teach } from '../blocks.js';
+import { B, tag, teach } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-10', course: 'b1', title: 'Reisimine ja transport', level: 'B1-', design: 'v2', template: 'v4' };
 
@@ -96,7 +96,7 @@ export const LESSONS = {
         'bussipeatus | [bussipeatusest] | [bussipeatuses] | [bussipeatusesse|bussipeatusse]',
       ], 'g_notice'),
       B.vocab('046_d_vocab', 'Tunni sõnad.', ['väljuma — отправляться', 'saabuma — прибывать', 'ümber istuma — пересаживаться', 'otserong — прямой поезд', 'perroon — перрон', 'vagun — вагон', 'istekoht — место', 'edasi-tagasi — туда и обратно', 'tasuta — бесплатно', 'sõiduplaan — расписание']),
-      teach(B.speaking('046_d_talk', 'Kumb rong?', 'Räägi paarilisega: millise rongi sa valiksid ja miks? Siis räägi oma sõitudest.', ['Kumb rong sobib Jaani perele paremini ja miks?', 'Millal on ümberistumine hea ja millal halb?', 'Millega sa tavaliselt teise linna sõidad?', 'Kust sa pileti ostad: internetist, kassast või rongist?', 'Mis on sinu jaoks reisil kõige tähtsam: hind, aeg või mugavus?'], [90, 120], ['Ma valiksin…, sest…', 'Rong väljub … ja saabub …', 'Tapal tuleb ümber istuda.']), 'Üks-ühele: õpetaja valib teise rongi ja põhjendab; õpilane vaidleb vastu. Siis küsib õpetaja õpilase enda sõitude kohta.'),
+      teach(B.speaking('046_d_talk', 'Kumb rong?', 'Räägi paarilisega: millise rongi sa valid ja miks? Siis räägi oma sõitudest.', ['Kumb rong sobib Jaani perele paremini ja miks?', 'Millal on ümberistumine hea ja millal halb?', 'Millega sa tavaliselt teise linna sõidad?', 'Kust sa pileti ostad: internetist, kassast või rongist?', 'Mis on sinu jaoks reisil kõige tähtsam: hind, aeg või mugavus?'], [90, 120], ['Ma valiksin…, sest…', 'Rong väljub … ja saabub …', 'Tapal tuleb ümber istuda.']), 'Üks-ühele: õpetaja valib teise rongi ja põhjendab; õpilane vaidleb vastu. Siis küsib õpetaja õpilase enda sõitude kohta.'),
       B.writing('046_d_write', 'Sõnum Helgile.', 'Kirjuta Sofia nimel Helgile 10–12 lauset: mis rongiga tulete, millal saabute ja kes tuleb.', [10, 12], ['väljub', 'saabub', 'vagunis', 'edasi-tagasi'], 3),
     ],
     practice: [
@@ -287,7 +287,7 @@ export const LESSONS = {
         ['Lennuki miinus', ['pilet on palju kallim', 'lennujaama tuleb eraldi sõita', 'kahe lennuga läheb eelarve üle', 'lennujaama peab tulema varakult']],
       ], 'full', 'g_read'),
       B.vocab('047_d_vocab', 'Tunni sõnad.', ['töölähetus — командировка', 'mess — выставка', 'planeerima — планировать', 'võrdlema — сравнивать', 'eelarve — бюджет', 'lend — рейс', 'broneerima — бронировать', 'majutus — жильё', 'soodne — выгодный', 'mugav — удобный']),
-      teach(B.speaking('047_d_talk', 'Mida sina valiksid?', 'Arutage paarilisega: buss või lennuk, vanalinn või messikeskus? Põhjendage.', ['Kumb on sinu arvates parem Riiga sõiduks: buss või lennuk?', 'Miks on õhtune buss rahulikum kui hommikune?', 'Kumb hotell sobib meeskonnale paremini ja miks?', 'Mida sa võrdled, kui ise reisi planeerid?', 'Mis oli sinu kõige odavam või kõige mugavam reis?'], [90, 120], ['… on odavam kui …', 'Ma valiksin…, sest…', 'Kõige tähtsam on…']), 'Üks-ühele: õpetaja eelistab alati teist võimalust ja küsib „Miks?”; õpilane põhjendab vähemalt kahe argumendiga.'),
+      teach(B.speaking('047_d_talk', 'Mida sina valid?', 'Arutage paarilisega: buss või lennuk, vanalinn või messikeskus? Põhjendage.', ['Kumb on sinu arvates parem Riiga sõiduks: buss või lennuk?', 'Miks on õhtune buss rahulikum kui hommikune?', 'Kumb hotell sobib meeskonnale paremini ja miks?', 'Mida sa võrdled, kui ise reisi planeerid?', 'Mis oli sinu kõige odavam või kõige mugavam reis?'], [90, 120], ['… on odavam kui …', 'Ma valiksin…, sest…', 'Kõige tähtsam on…']), 'Üks-ühele: õpetaja eelistab alati teist võimalust ja küsib „Miks?”; õpilane põhjendab vähemalt kahe argumendiga.'),
       B.writing('047_d_write', 'Minu reisiplaan.', 'Planeeri kahepäevane reis. Kirjuta 10–12 lauset: kuhu, millega, kus ööbid. Võrdle kaht võimalust.', [10, 12], ['odavam', 'mugavam', 'sest', 'seepärast'], 3),
     ],
     practice: [
@@ -363,7 +363,7 @@ export const LESSONS = {
         ['Me broneerime hotelli kohe. Hiljem võivad toad otsas olla.', 'sest', 'Me broneerime hotelli kohe, sest hiljem võivad toad otsas olla.'],
         ['Plaan C mahub eelarvesse. Liis kiidab selle heaks.', 'seepärast', 'Plaan C mahub eelarvesse, seepärast kiidab Liis selle heaks.'],
       ]),
-      B.speaking('047_p_mono', 'Kaks reisi.', 'Võrdle 2 minutit kaht oma reisi. Räägi plaani järgi.', ['Kuhu ja millega sa need kaks korda sõitsid?', 'Kumb sõit oli kiirem ja kumb odavam?', 'Kus oli majutus parem ja miks?', 'Mis oli kummalgi reisil kõige toredam?', 'Kumma reisi teeksid uuesti ja miks?'], [90, 120], ['Esimene reis oli … kui teine.', 'Kõige toredam oli…', 'Ma teeksin uuesti…, sest…']),
+      B.speaking('047_p_mono', 'Kaks reisi.', 'Võrdle 2 minutit kaht oma reisi. Räägi plaani järgi.', ['Kuhu ja millega sa need kaks korda sõitsid?', 'Kumb sõit oli kiirem ja kumb odavam?', 'Kus oli majutus parem ja miks?', 'Mis oli kummalgi reisil kõige toredam?', 'Kumma reisi tahad uuesti teha ja miks?'], [90, 120], ['Esimene reis oli … kui teine.', 'Kõige toredam oli…', 'Ma tahan uuesti minna…, sest…']),
       B.letter('047_p_book', 'Kiri hotellile.', 'Kirjuta Anna nimel hotellile: broneeri kolm tuba, küsi kahte asja ja ütle, millal jõuate.', 'Tere, hotell Vanalinn!', 'Lugupidamisega, Anna', [70, 90]),
     ],
     transfer: [
@@ -585,6 +585,8 @@ export const LESSONS = {
         ['Kuhu te sõitsite?', 'Mis siis juhtus?', 'Kuidas lugu lõppes?'], ['Me olime juba…', 'Kui me … jõudsime, oli…', 'Lõpuks…']), 'Üks-ühele: õpetaja on saatejuht ja küsib otse-eetris; siis vahetage — õpilane intervjueerib õpetajat tema reisiloo kohta.'),
       B.planning('048_t_plan', 'Loo plaan.', 'Kirjuta igale reale märksõnad.', ['Kes, kuhu ja millal?', 'Mis oli plaan ja mida olite juba teinud?', 'Mis läks valesti?', 'Mida te tegite?', 'Kuidas lugu lõppes ja mida sa sellest õppisid?'], 2),
       teach(B.speaking('048_t_vote', 'Kelle lugu võidab?', 'Kuulake teiste lugusid. Arutage rühmas ja valige parim lugu.', ['Milline lugu oli kõige naljakam?', 'Milline lugu oli kõige ootamatum?', 'Kus oli kõige rohkem probleeme ja kuidas need lahendati?', 'Kelle lugu võidab ja miks?', 'Mida sa oma loos veel muudaksid?'], [90, 120], ['Minu arvates võidab…, sest…', 'Kõige ootamatum oli see, et…', 'Ma olen nõus, aga…']), 'Üks-ühele: õpetaja ja õpilane räägivad kumbki oma loo ning võrdlevad neid Ülle looga; koos valite võitja ja põhjendate.'),
+      teach(tag(B.speaking('048_t_rec', 'Kodus: minu reisilugu raadiosse.', 'Jutusta oma reisilugu 1–2 minutit ja salvesta: mis oli plaan, mis läks valesti ja kuidas see lõppes.', ['Kuhu ja millega sa sõitsid?', 'Mis oli plaan?', 'Mis läks valesti?', 'Mida sa siis tegid?', 'Mida sa sellest reisist õppisid?'], [60, 120], ['Eelmisel suvel ma sõitsin…', 'Aga siis…', 'Lõpuks…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis on õpetaja saatejuht ja küsib kaks küsimust.'),
       B.letter('048_t_story', 'Lugu saate kodulehele.', 'Kirjuta oma reisilugu: mis oli plaan, mis läks valesti ja kuidas see lõppes.', 'Tere, saade „Teel juhtunud”!', 'Parimate soovidega', [70, 90]),
       B.rubric('048_t_rubric', 'Kas lugu võib võita?', 'Loe oma lugu veel kord ja märgi.', ['Lool on algus, probleem ja lõpp.', 'Sündmused on õiges järjekorras.', 'Vähemalt kolm korda on enneminevik (oli läinud, olime ostnud).', 'Lihtminevik on õige (sõitsime, jõudsime).', 'Lugu on 70–90 sõna.']),
     ],

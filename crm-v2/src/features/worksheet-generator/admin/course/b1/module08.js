@@ -18,7 +18,7 @@
 //       letter; the module project: three courses, Helgi's advice, a talk with an adviser, the application.
 // Lesson 5 (040) is the module's mini Harno A2 exam and the second mid-term check (unchanged). The v3 file is in
 // archive/v3/b1/module08.js, the v1 file (Harjuta + Kasuta only) in archive/v1/b1/module08.js.
-import { B, teach } from '../blocks.js';
+import { B, tag, teach } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-08', course: 'b1', title: 'Õppimine ja kool', level: 'B1-', design: 'v2', template: 'v4' };
 
@@ -380,6 +380,8 @@ export const LESSONS = {
         'Oled Mart Lepp. Küsi oma viis küsimust. Iga vastuse järel küsi: „Miks?” Lõpus paku üks lahendus.', 'Oled õppija. Ütle kaks plussi ja kaks soovi. Põhjenda iga vastust.',
         ['Mis teile kõige rohkem meeldib?', 'Miks te nii arvate?', 'Kas sobiks, kui…?'], ['Mulle meeldib…, sest…', 'Kuna…, tahaksin…', '…, seepärast…']), 'Üks-ühele: õpetaja on koolijuht ja küsib; õpilane räägib oma päris kursusest (ka sellest tunnist).'),
       teach(B.speaking('038_t_top', 'Kolm muudatust.', 'Arutage rühmas: mida peaks keelekool kõigepealt muutma? Valige kolm muudatust ja põhjendage.', ['Mis on teie kursusel kõige parem ja miks?', 'Mis segab õppimist kõige rohkem?', 'Kas laupäevane või veebigrupp oleks hea mõte? Miks?', 'Millised kodutööd aitavad kõige rohkem?', 'Milline muudatus on kõige tähtsam ja miks?'], [90, 150], ['Ma arvan, et…, sest…', 'Kuna…, peaks kool…', 'Kõige tähtsam on…, seepärast…']), 'Üks-ühele: õpetaja ja õpilane valivad koos kolm muudatust; õpetaja vaidleb vastu ja õpilane põhjendab.'),
+      teach(tag(B.speaking('038_t_rec', 'Kodus: miks ma õpin eesti keelt?', 'Räägi 1–2 minutit ja salvesta: miks sa õpid eesti keelt ja mis aitab sul kõige rohkem. Kasuta sest ja kuna.', ['Miks sa õpid eesti keelt?', 'Mis on õppimisel kõige raskem?', 'Mis aitab sind kõige rohkem?', 'Kuna sul on vähe aega, kuidas sa õpid?', 'Mida sa tahad aasta pärast osata?'], [60, 120], ['Ma õpin eesti keelt, sest…', 'Kuna mul on…, siis…', 'Kõige rohkem aitab…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis loendab õpetaja salvestusest sest- ja kuna-lauseid ja küsib ühe miks-küsimuse.'),
       B.letter('038_t_form', 'Tagasisidevorm.', 'Kirjuta koolile tagasiside: kaks plussi ja kaks soovi. Iga mõtte juurde lisa põhjus.', 'Tere, Mart!', 'Lugupidamisega', [70, 90]),
       teach(B.rubric('038_t_rubric', 'Kas tagasiside on kasulik?', 'Paariline loeb kirja ja märgib.', ['Kirjas on kaks plussi ja kaks soovi.', 'Igal mõttel on põhjus: sest, kuna, sellepärast et.', 'Pärast kuna-lauset ja seepärast on tegusõna kohe.', 'Toon on viisakas ja soovid on konkreetsed.']), 'Üks-ühele: õpetaja loeb kirja kui koolijuht ja ütleb, millise soovi kool täidaks ja miks.'),
     ],

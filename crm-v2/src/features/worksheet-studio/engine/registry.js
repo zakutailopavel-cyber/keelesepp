@@ -1,3 +1,4 @@
+import { isInLesson } from './inLesson.js';
 import { text, notice, tip, image, vocab } from './blocks/content.jsx';
 import { taskBlocks } from './blocks/tasks.jsx';
 import { productiveBlocks } from './blocks/productive.jsx';
@@ -57,7 +58,8 @@ export function numberTasks(blocks) {
 // Score every scorable block; returns per-block and per-goal summaries (evidence for the learner profile).
 // A block with no answer at all was done in the lesson (orally, on paper) or left for the teacher: it is not scored,
 // so it does not pull the result down (owner 2026-10-27: „там, где нет ответов, мы делали — не должно портить
-// картину”). `block.ungraded` (Inspector „Ei hinnata”) keeps a block out of the score always.
+// картину”). `block.ungraded` (Inspector „Ei hinnata”) keeps a block out of the score always, and so does a pair task
+// done in the lesson (engine/inLesson.js).
 const filled = (value) => value !== undefined && value !== null && String(value).trim() !== '';
 export const blockAnswered = (block, answers = {}) => Object.keys(answers).some((key) => key.startsWith(`${block.id}:`) && filled(answers[key]));
 
@@ -69,6 +71,7 @@ export function scoreDocument(doc, answers = {}) {
     const def = BLOCKS[b.type];
     if (!def?.score) continue;
     if (b.ungraded) skipped.push({ id: b.id, reason: 'ungraded' });
+    else if (isInLesson(b)) skipped.push({ id: b.id, reason: 'inLesson' });
     else if (!blockAnswered(b, answers)) skipped.push({ id: b.id, reason: 'unanswered' });
     const get = (k) => answers[`${b.id}:${k}`];
     const example = exampleAnswers(b);
@@ -98,7 +101,7 @@ export function checkDocument(doc, answers = {}) {
     total += 1;
     if (it.ok) correct += 1;
   }));
-  const speak = doc.blocks.filter((b) => b.type === 'speaking')
+  const speak = doc.blocks.filter((b) => b.type === 'speaking' && !isInLesson(b))
     .map((b) => ({ id: b.id, goal: b.goal, recorded: !!answers[`${b.id}:audioUrl`], seconds: answers[`${b.id}:seconds`] || 0 }));
   const score = { correct, total, pct: total ? Math.round((correct / total) * 100) : 0, perGoal, ...(skipped.length ? { skippedBlocks: skipped.map((item) => item.id) } : {}) };
   return { results, perGoal, speak, score, skipped };
@@ -107,14 +110,16 @@ export function checkDocument(doc, answers = {}) {
 // How many answerable fields have an answer (scorable fields plus voice recordings).
 export function answerProgress(doc, answers = {}) {
   const { results, speak } = checkDocument(doc, answers);
-  const openKeys = doc.blocks.flatMap((block) => {
+  // a pair task is done in the lesson: the learner at home is not asked for it
+  const home = new Set(doc.blocks.filter((block) => isInLesson(block)).map((block) => block.id));
+  const openKeys = doc.blocks.filter((block) => !home.has(block.id)).flatMap((block) => {
     const def = BLOCKS[block.type];
     return typeof def?.answerKeys === 'function' ? def.answerKeys(block.data || {}).map((key) => `${block.id}:${key}`) : [];
   });
   // a block with its own answer fields (answerKeys) is answered in those; its scored items may be counters on the
   // text (writing: sentences, keywords) that no one fills in and that kept the counter below N/N
   const own = new Set(doc.blocks.filter((block) => typeof BLOCKS[block.type]?.answerKeys === 'function').map((block) => block.id));
-  const scored = Object.keys(results).filter((k) => !own.has(k.slice(0, k.indexOf(':'))));
+  const scored = Object.keys(results).filter((k) => !own.has(k.slice(0, k.indexOf(':'))) && !home.has(k.slice(0, k.indexOf(':'))));
   const keys = [...new Set([...scored, ...openKeys])];
   const answered = keys.filter((k) => {
     const v = answers[k];

@@ -23,7 +23,7 @@
 // enamik / pooled in data (084). Module 16's words (arvamus, põhjus, eelis, puudus, võrdlema, nõus, vastu, ettepanek,
 // kompromiss, kokkulepe, koosolek, hääletama, järeldus, seega …) return throughout. Lesson 5 (085) is the module's check
 // in Harno B1 form (unchanged). The v3 file is in archive/v3/b1/module17.js, the v1 file in archive/v1/b1/module17.js.
-import { B, teach } from '../blocks.js';
+import { B, tag, teach } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-17', course: 'b1', title: 'B1 lugemine ja kirjutamine', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -709,7 +709,8 @@ export const LESSONS = {
         'Oled Tiina. Tahad pikka teadet: kogu koosoleku lugu, kõik arvud ja tänu Jaanile. Nõustu lühema teatega, kui Sofia põhjendab.',
         'Oled Sofia. Teade peab olema umbes 50 sõna. Vali neli kõige tähtsamat punkti, põhjenda ja leppige kokku.',
         ['Minu arvates peaks teates olema ka…', 'Kas me ei peaks mainima…?', 'Hea küll, olen nõus, kui…'], ['Ma teeksin ettepaneku…', 'Lühikest teadet loetakse rohkem, sest…', 'Kas lepime kokku, et…?']), 'Üks-ühele: õpetaja on Tiina ja tahab teatesse kõike; õpilane põhjendab ja jõuab kokkuleppele neljas punktis. Siis vahetage: õpilane on Tiina.'),
-      B.planning('084_t_plan', 'Plaan: kaks teksti.', 'Kirjuta enne kirjutamist märksõnad.', ['Teade: mis otsustati?', 'Teade: millal tööd tehakse ja kuidas saab võtme?', 'Kiri: proovieksami tulemused ja kaks võrdlust', 'Kiri: mis on raske ja mida teen edasi?', 'Kiri: vastus ema küsimustele ja küsimus emale'], 2),
+      teach(tag(B.speaking('084_t_rec', 'Kodus: seleta naabrile.', 'Seleta naabrile häälsõnumis (umbes 1 minut), mis majas juhtub: tööde aeg, mida elanikud peavad tegema ja kellele helistada. Salvesta.', ['Mis majas juhtub?', 'Millal tööd algavad ja lõpevad?', 'Mida elanikud peavad tegema?', 'Kus on võtmed?', 'Kellele helistada?'], [60, 120], ['Tere! Tahan sulle öelda, et…', 'Tööd algavad…', 'Kui on küsimusi, helista…']), { task: 'S15', level: 3 }),
+        'Kodune häälsõnum. Tunnis on õpetaja naaber ja küsib kaks täpsustavat küsimust.'),
       B.writing('084_t_notice', 'Kirjutamine 1: teade majale (umbes 50 sõna).', 'Kirjuta trepikotta teade: otsus, tööde aeg, võtmed ja kontakt.', [6, 8], ['otsustati', 'tehakse', 'tuleb', 'palume'], 3),
       B.letter('084_t_letter', 'Kirjutamine 2: kiri emale (umbes 100 sõna).', 'Vasta Helgile: proovieksami tulemused, kaks võrdlust, mis on raske, plaan ja küsimus.', 'Kallis ema!', 'Kallistusega', [90, 110]),
       teach(B.rubric('084_t_rubric', 'Proovieksami hindamine.', 'Paariline märgib iga rea: 2 = täidetud, 1 = osaliselt, 0 = ei ole.', ['Teade: kõik neli punkti, umbes 50 sõna, umbisikuline vorm (otsustati, tehakse).', 'Kiri: pöördumine, sissejuhatus, viisakas lõpp ja küsimus Helgile.', 'Kiri: tulemused arvudega ja kaks võrdlust (rohkem kui, kõige, võrreldes).', 'Mõlemad: laused on seotud (sest, kuigi, seega) ja vead ei sega mõistmist.', 'Mõlemad: sobiv pikkus, umbes 50 ja umbes 100 sõna.']), 'Üks-ühele: õpetaja hindab mõlemat teksti Harno kriteeriumide järgi ja näitab kohta, kus õpilane kaotaks eksamil kõige rohkem punkte.'),
