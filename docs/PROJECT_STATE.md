@@ -1,3 +1,17 @@
+## 2026-10-28 · #858 + #859 — finance month picker; calendar „Asendab” and teacher-only lists
+
+- main checked: 342db63 (2026-10-28). Both PRs merged after CI (eslint + full vitest 2734 passed, security-regression, Vercel).
+- #858 `features/finance/FinanceDashboard.jsx`, `financeDashboard.js`, `businessReport.js`, `BusinessReport.jsx`: a month picker
+  (‹ month ›, „Praegune kuu”) next to Kuu / 3 kuud / 6 kuud / Aasta; KPI cards and Ärinäitajad end at the chosen month
+  (a click on a past chart month too). A past month hides the calendar and forecast cards; `businessReport().forecast`
+  is null for a past month. One month shows „Keskmine tund” instead of „Keskmiselt kuus”; the previous month/period sum is a card.
+- #859 `features/calendar/*`: teacher lists keep only accounts with role teacher (Nelli/Oleksiy were listed).
+  `planSubstitute()` in calendarGrid.js: „Asendab” in the lesson panel (admin, unmarked, individual) gives one lesson to
+  another teacher; a series lesson becomes a one-off copy (`movedFromSeriesId`), the original teacher is in the new
+  schedule field `substituteFor {teacher, teacherUid}` (null when given back). Pay follows `teacherUid`.
+- Limits: a marked lesson cannot be substituted (change the journal); group lessons have no „Asendab” yet.
+- Next safe step: the owner tries „Asendab” on one lesson and checks it in the substitute's calendar.
+
 ## 2026-10-27 · agent/calendar-drag — dragging a lesson shows the student's times; crowded lessons move too
 
 - Owner 2026-10-27: „при перетаскивании должны подсвечиваться времена, которые ученик выбирал … если на одно время
