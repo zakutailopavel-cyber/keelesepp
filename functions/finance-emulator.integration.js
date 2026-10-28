@@ -3943,7 +3943,7 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal((await financeRequest(teacherToken, "/suppliers", { supplier: { name: "X" }, requestId: "supplier_create_0099" })).status, 403);
 });
 
-test("partners on entry lines: OA / VM carry the supplier, a manual 2110 line needs one, suppliers import and duplicates (the accountant 2026-10-24)", async () => {
+test("partners on entry lines: OA / VM carry the supplier, a manual 2110 line may go without one, suppliers import and duplicates (the accountant 2026-10-24)", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
   const db = admin.firestore();
@@ -3977,10 +3977,12 @@ test("partners on entry lines: OA / VM carry the supplier, a manual 2110 line ne
   const vm = (await db.collection("accountingEntries").doc(invoice.body.purchaseInvoice.payments[0].entryId).get()).data();
   assert.deepEqual(vm.lines.map((l) => l.partner.id), [kirsiId, kirsiId]);
 
-  // a new manual entry: a 2110 line needs a supplier that exists; its name is taken from the card
+  // a new manual entry: a 2110 line may stay without a partner (the bookkeeper 2026-10-26: she links them herself);
+  // a named partner must be a supplier that exists, and its name is taken from the card
   const base = { date: "2028-02-10", description: "Zone tasumine", documentRef: "PA-1", lines: [{ account: "2110", debitCents: 1482 }, { account: "1010", creditCents: 1482 }] };
-  const noPartner = await financeRequest(adminToken, "/accounting/entries", { entry: base, requestId: "acc_manual_2028_0001" });
-  assert.equal(noPartner.status, 400, JSON.stringify(noPartner.body));
+  const noPartner = await financeRequest(adminToken, "/accounting/entries", { entry: { ...base, date: "2028-02-11", documentRef: "PA-0" }, requestId: "acc_manual_2028_0001" });
+  assert.equal(noPartner.status, 201, JSON.stringify(noPartner.body));
+  assert.equal((await db.collection("accountingEntries").doc(noPartner.body.entry.id).get()).data().lines[0].partner, undefined);
   const unknown = await financeRequest(adminToken, "/accounting/entries", { entry: { ...base, lines: [{ ...base.lines[0], partner: { type: "supplier", id: "nope", name: "Keegi" } }, base.lines[1]] }, requestId: "acc_manual_2028_0002" });
   assert.equal(unknown.status, 400, JSON.stringify(unknown.body));
   const manual = await financeRequest(adminToken, "/accounting/entries", { entry: { ...base, lines: [{ ...base.lines[0], partner: { type: "supplier", id: zoneId, name: "vana nimi" } }, base.lines[1]] }, requestId: "acc_manual_2028_0003" });

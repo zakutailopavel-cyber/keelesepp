@@ -137,8 +137,8 @@ describe('LibraryPage', () => {
     expect(screen.getByRole('button', { name: /^Pere tööleht/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^Family match/ })).toBeInTheDocument();
     expect(screen.getByText(/^3 materjali/)).toBeInTheDocument();
-
-    fireEvent.click(within(screen.getByRole('group', { name: 'Tase' })).getByRole('button', { name: /^A1/ }));
+    // one subject with one level: no subject tabs and no level row (owner 2026-10-28: less on the page)
+    expect(screen.queryByRole('group', { name: 'Tase' })).toBeNull();
     const toc = within(screen.getByRole('complementary', { name: 'Moodulid' }));
     fireEvent.click(toc.getByRole('button', { name: /Minu pere/ }));
     expect(screen.getByText(/^2 materjali/)).toBeInTheDocument();
@@ -342,6 +342,7 @@ describe('LibraryPage', () => {
     ], exercises: [] }) };
     render(<MemoryRouter initialEntries={['/library']}><AuthContext.Provider value={{ user: { uid: 't', displayName: 'Õpetaja', roles: ['teacher'] } }}><LibraryPage repository={repository} studentRepository={{ list: vi.fn() }} groupRepository={{ list: vi.fn() }} /></AuthContext.Provider></MemoryRouter>);
     expect(await screen.findByText('Avasta 1/2 · Harjuta 0/2 · Kasuta 0/2')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Filtrid/ }));
     fireEvent.change(screen.getByRole('combobox', { name: 'Töölehtede olek' }), { target: { value: 'none' } });
     expect(screen.queryByRole('button', { name: 'Vaata: A2 lähtediagnostika' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Vaata: Minu päev ja kellaaeg' })).toBeInTheDocument();
@@ -441,5 +442,23 @@ describe('assigning to a card without an account', () => {
     expect(studentAccess({ linkedUserIds: ['u'] })).toBe('student');
     expect(studentAccess({ linkedParentId: 'p' })).toBe('parent');
     expect(studentAccess({})).toBe('none');
+  });
+
+  it('opens one subject and its first level; „Kõik tasemed” and the subject tabs switch', async () => {
+    globalThis.localStorage?.removeItem?.('keelesepp.library.subject');
+    const lessons = { curriculumLessons: [
+      { id: 'x1', title: 'Esimene A2', subject: 'Eesti keel', level: 'A2', topic: 'Moodul A' },
+      { id: 'x2', title: 'Teine B1', subject: 'Eesti keel', level: 'B1', topic: 'Moodul B' },
+      { id: 'x3', title: 'Lapsed', subject: 'Eesti keel', level: 'Eelkool 5–6 a', topic: 'Moodul K' },
+    ], exercises: [] };
+    renderPage(lessons);
+    expect(await screen.findByRole('button', { name: /^Esimene A2/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Teine B1/ })).toBeNull();
+    expect(screen.queryByRole('tab', { name: /Kõik ained/ })).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: 'Kõik tasemed' }));
+    expect(screen.getByRole('button', { name: /^Teine B1/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('tab', { name: /Lastele/ }));
+    expect(screen.getByRole('button', { name: /^Lapsed/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Esimene A2/ })).toBeNull();
   });
 });

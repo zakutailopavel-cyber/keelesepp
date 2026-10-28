@@ -13,6 +13,7 @@ const firestore = vi.hoisted(() => ({
   where: vi.fn((field, operator, value) => ({ field, operator, value })),
   batch: { set: vi.fn(), commit: vi.fn().mockResolvedValue(undefined) },
   writeBatch: vi.fn(),
+  runTransaction: vi.fn(),
 }));
 
 const storageApi = vi.hoisted(() => ({
@@ -245,6 +246,25 @@ describe('homeworkService submissions', () => {
     await homeworkService.setWorksheetShown({ assignmentId: 'as-1', shown: ['b'] });
     expect(firestore.updateDoc).toHaveBeenLastCalledWith(expect.anything(), { liveShown: ['b'] });
     await expect(homeworkService.setWorksheetShown({ shown: [] })).rejects.toThrow();
+  });
+
+  it('records who showed / hid the answers of a task, from the stored list, without touching answers or score', async () => {
+    const stored = { liveShown: ['a'], liveShownLog: [{ on: true, blockIds: ['a'], byUid: 't0', byName: 'X', at: '2026-10-26T09:00:00Z' }], answers: { 'b:0': 'x' }, score: { pct: 50 } };
+    const transaction = { get: vi.fn().mockResolvedValue({ data: () => stored }), update: vi.fn() };
+    firestore.runTransaction.mockImplementation((_db, fn) => fn(transaction));
+    const user = { uid: 't1', displayName: 'Aleksei Merzin' };
+    // the caller's copy is stale (no 'a'): the stored list is kept
+    const shown = await homeworkService.setWorksheetShown({ assignmentId: 'as-1', shown: ['b'], change: { blockIds: ['b'], on: true }, user });
+    expect(shown).toEqual(['a', 'b']);
+    const [, written] = transaction.update.mock.calls[0];
+    expect(Object.keys(written).sort()).toEqual(['liveShown', 'liveShownBy', 'liveShownLog']);
+    expect(written.liveShownBy.b).toEqual({ on: true, byUid: 't1', byName: 'Aleksei Merzin', at: expect.any(String) });
+    expect(written.liveShownLog).toHaveLength(2);
+    expect(written.liveShownLog[1]).toMatchObject({ on: true, blockIds: ['b'], byUid: 't1' });
+    stored.liveShown = ['a', 'b'];
+    await homeworkService.setWorksheetShown({ assignmentId: 'as-1', shown: [], change: { blockIds: ['a', 'b'], on: false }, user });
+    expect(transaction.update.mock.calls[1][1].liveShown).toEqual([]);
+    expect(transaction.update.mock.calls[1][1].liveShownBy.a.on).toBe(false);
   });
 
   it('opens a worksheet in a live room and streams the room worksheets for one student', async () => {

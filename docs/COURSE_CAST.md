@@ -71,6 +71,14 @@ Keep facts consistent; add new facts here when a module adds them.
 - **Module 8:** Oskar in class 3.b, class teacher **Kristel Saar**; Sofia's evening course „Keelekool Sõna”, teacher
   **Maret**; Anna learns Finnish (Helsinki office); Markus's English course; Liis studied in Helsinki, learns French;
   Ukrainian girl **Daria** and her mother **Olena** (new at Oskar's school).
+  Module 8 final shape (2026-10-26): Daria (from Harkiv) loves maths, drawing and dance, joins the art club (Fridays) at
+  Kase kool; Olena is in Sofia's evening group at Keelekool Sõna. Kase kool activities leader **Triin Saks**; club
+  leaders **Kuldar** (robotics, as in B2), **Kaie** (dance), **Anu** (art), **Arvo** (chess, the Kalamaja pensioner);
+  Keelekool Sõna head **Mihkel**, administrator **Krista**, Markus's English teacher **Hanna**; Maret learns Italian
+  and was on Raadio Linnahääl („Päevateema”, host Ülle). Anna must pass a Finnish exam (B1) in spring for the Helsinki
+  office clients; Liis speaks Finnish with her at the office lunch club „Keel ja kohv” (Tue, Thu 12.30); Anna moved
+  her studying to the mornings (Bruno's walk, bus 17) and starts work at nine on Tue and Thu; personnel head **Eha Org**
+  (room 214). Markus missed three English lessons (trips to Riga) and chose morning one-to-one lessons.
 - **Module 6:** Markus has a milk allergy, Oskar a nut allergy, Mia does not eat fish; Viktor sells apples, eggs and
   honey at Nõmme market.
   Module 6 final shape (2026-10-26): Helgi (surname Mets) spends a week at Sofia's in Kalamaja; neighbour **Tiina** is a
@@ -89,6 +97,16 @@ Keep facts consistent; add new facts here when a module adds them.
   take the bus to a Tartu client when the train breaks down; lost-property clerk **Kaia** of „Kõrve Reisid”.
 - **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
   from shop customer service); new administrator **Jelena**.
+  Module 9 final shape (2026-10-26, November): café **Kaneel** is open on Friday and Saturday evenings till 23 from
+  November; Jaan works there from 6.00, missed Oskar's football final (Oskar scored), applied to **Kase kool** (director
+  Aivar Mänd; ~420 pupils; cook **Maire Kuusk**, 20 years in the school kitchen, retires next summer; job 7.00–15.30,
+  1500 €/month, three-month trial; letters by 20 November, interviews 26 November); his interview was by phone on
+  Thursday 26 November at 16.00; he starts on 1 December and helps Kaneel on two December Saturdays (Merike agreed).
+  Kadri has worked eight years at the children's hospital, night shifts twice a month. Tuul Logistika: head of
+  personnel **Eha Org** (also module 15); Anna applied a year ago from the department store Kaubahall (was there five
+  years); Sofia covered reception until **Jelena** started on a Thursday; partner **Mart Lepp** (firm Puit); Kase kool's
+  **Helen** orders from Tuul Logistika; warehouse at Peterburi tee (Rein). Career adviser **Piret Vaher** (radio
+  „Tööelu”). Exam 045: bike rental worker **Kaidi** (Pirita), baker **Annika** (changed career at 45).
 - **Module 14:** Helgi born 1966 in Kõrvemaa, studied in Tartu 1984–89, village-school teacher, family moved to Tartu
   in 2000; the father of Jaan and Sofia was a maths teacher; Viktor built his sauna in 1988, repairs bikes since losing
   his job in 1993; Kristel Saar grew up on Saaremaa; the school story evening is on 12 December.

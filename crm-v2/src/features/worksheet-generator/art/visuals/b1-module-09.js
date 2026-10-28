@@ -27,7 +27,7 @@ export default [
     alt: "Anna korrastab projektikoordinaatori kiire tööpäeva ülesanded prioriteeditahvlil.",
     caption: "Pilt 1. Anna tööpäeva järjestus ja prioriteedid.",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida inimene pildil teeb ja kus ta varem töötas?", "Mis on tema tööpäeva järjekord?", "Kus sina varem töötasid?"],
+    prompts: ["Kus Anna igal pildil on ja mida ta seal teeb?", "Kuhu ta pärast läheb ja kust ta tuleb?", "Mis jäi sul eile tööl või koolis tegemata?"],
   },
   {
     id: "a2b1-043-avasta-1",
@@ -41,7 +41,7 @@ export default [
     alt: "Anna ja Liis uurivad administraatori töökuulutuse ülesandeid, nõudeid ja CV saatmist.",
     caption: "Pilt 1. Administraatori töökuulutus ja kandideerimine.",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida uus töötaja pildil peab tegema?", "Mida ta juba oskab ja mida tahab õppida?", "Mida sina oskad tööl hästi?"],
+    prompts: ["Mida töökuulutus uuelt töötajalt nõuab?", "Mida peab kandidaat kirjas oma oskuste kohta kirjutama?", "Millisele kohale sina kandideeriksid ja miks?"],
   },
   {
     id: "a2b1-044-avasta-1",

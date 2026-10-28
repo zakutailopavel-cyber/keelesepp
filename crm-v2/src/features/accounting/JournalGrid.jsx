@@ -386,9 +386,6 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
             const known = !w || !l.account || accounts.some((a) => String(a.code) === String(l.account) && a.active !== false);
             const badD = w && Number.isNaN(parseEuro(l.debit));
             const badK = w && Number.isNaN(parseEuro(l.credit));
-            const amountSet = w ? (parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0) : l.debitCents || l.creditCents;
-            // a line on 2110 / 1350 without its supplier: „puudub” (blocks saving a manual entry, a hint on the others)
-            const partnerMissing = SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' && amountSet;
             const unresolved = Boolean(l.partner && !l.partner.type && l.partner.name);
             lineRows.push(<tr key={i} className={active?.row === r ? 'is-active-row' : ''}>
               {td(r, 0, <span className="accounting-cell__account">
@@ -401,7 +398,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
               {td(r, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
               {td(r, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
               {td(r, COL.text, cellText(entry, w, i, COL.text), { editable })}
-              {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole tarnijate seas</small> : partnerMissing ? <small className="accounting-cell__missing">Puudub: partner</small> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved || Boolean(partnerMissing && w && entry.origin === 'manual'), title: l.partner?.type === 'customer' ? 'Klient (õpilase / maksja kaart)' : l.partner?.type === 'supplier' ? 'Tarnija' : undefined })}
+              {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole tarnijate seas</small> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved, title: l.partner?.type === 'customer' ? 'Klient (õpilase / maksja kaart)' : l.partner?.type === 'supplier' ? 'Tarnija' : undefined })}
               {td(r, COL.debit, cellText(entry, w, i, COL.debit), { className: 'num', editable, bad: badD })}
               {td(r, COL.credit, cellText(entry, w, i, COL.credit), { className: 'num', editable, bad: badK })}
             </tr>);

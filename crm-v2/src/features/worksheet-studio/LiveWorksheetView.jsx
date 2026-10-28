@@ -6,6 +6,8 @@ import Sheet from './engine/Sheet.jsx';
 import { answerProgress, checkDocument } from './engine/registry.js';
 import GoalEvidence from './GoalEvidence.jsx';
 import LiveTaskPanel from './LiveTaskPanel.jsx';
+import BlockKeyPanel from './BlockKeyPanel.jsx';
+import { blockAnswerKey } from './engine/answerKey.js';
 import { taskStats } from './engine/liveLesson.js';
 import SheetAnnotations from './SheetAnnotations.jsx';
 import { liveWordTools } from './liveWordTools.js';
@@ -57,6 +59,8 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     try { await action(); } catch (err) { setFocusError(err.message || 'Muudatust ei saanud salvestada.'); } finally { setBusy(false); }
   };
   const canStep = typeof repository.setWorksheetLiveStep === 'function';
+  const canShow = typeof repository.setWorksheetShown === 'function';
+  const done = assignment?.status === 'done';
   const toggleStep = (on) => live(() => repository.setWorksheetLiveStep({ assignmentId, on, open: step?.open || [] }));
   const openTask = (blockId, open) => live(async () => {
     const list = new Set(step?.open || []);
@@ -64,7 +68,20 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
     await repository.setWorksheetLiveStep({ assignmentId, on: true, open: [...list] });
     if (open) await repository.setWorksheetLiveFocus({ assignmentId, blockId });
   });
-  const showTask = (blockId, show) => live(() => repository.setWorksheetShown({ assignmentId, shown: show ? [...shown, blockId] : shown.filter((id) => id !== blockId) }));
+  // recorded on the assignment (who / when, liveShownBy + liveShownLog); scores and the learner's answers stay
+  const setShown = (blockIds, show) => live(() => repository.setWorksheetShown({
+    assignmentId,
+    shown: show ? [...new Set([...shown, ...blockIds])] : shown.filter((id) => !blockIds.includes(id)),
+    change: { blockIds, on: show },
+    user,
+  }));
+  const showTask = (blockId, show) => setShown([blockId], show);
+  const shownBy = assignment?.liveShownBy || null;
+  // „Näita kõik vastused”: every task that has right answers
+  const keyedIds = useMemo(() => stats.filter((s) => s.total).map((s) => s.id), [stats]);
+  const showAll = (show) => setShown(show ? keyedIds.filter((id) => !shown.includes(id)) : shown.filter((id) => keyedIds.includes(id)), show);
+  // the answers of the task the teacher clicked, under that task on the teacher's sheet only
+  const [keyId, setKeyId] = useState('');
   // on the teacher's sheet: tasks the learner does not see yet are dimmed, shown answers are labelled
   const blockClasses = useMemo(() => (step?.on ? Object.fromEntries(stats.filter((s) => !(step.open || []).includes(s.id)).map((s) => [s.id, 'is-live-closed'])) : null), [step, stats]);
   // the teacher's notes under the blocks: answers shown to the learner, and the dictation text to read aloud (the
@@ -78,12 +95,20 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
         {sentences.length ? <ol>{sentences.map((line, i) => <li key={i}>{line}</li>)}</ol> : <p>Etteütluse lauseid pole lisatud: lisa need lehe muutmises.</p>}
       </div>;
     });
-    shown.forEach((id) => { notes[id] = <>{notes[id] || null}<span key={id} className="ws-live-shown"><Icons.Eye size={14} aria-hidden="true" /> Õiged vastused on õpilasele näha</span></>; });
+    shown.filter((id) => id !== keyId).forEach((id) => { notes[id] = <>{notes[id] || null}<span key={id} className="ws-live-shown"><Icons.Eye size={14} aria-hidden="true" /> Õiged vastused on õpilasele näha</span></>; });
+    const task = keyId ? blockAnswerKey(doc, keyId) : null;
+    if (task) {
+      notes[keyId] = <>{notes[keyId] || null}<BlockKeyPanel key={`${keyId}-key`} task={task} shown={shown.includes(keyId)} shownBy={shownBy?.[keyId] || null} busy={busy}
+        onShow={done || !canShow ? null : (on) => showTask(keyId, on)} onClose={() => setKeyId('')} /></>;
+    }
     return notes;
-  }, [doc, shown]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- showTask is rebuilt every render; its inputs are listed
+  }, [doc, shown, keyId, shownBy, busy, done, canShow, user]);
 
   const point = async (blockId) => {
     setFocusError('');
+    // the click also opens (or closes) the answers of that task for the teacher
+    setKeyId((current) => (current === blockId ? '' : blockId));
     try { await repository.setWorksheetLiveFocus({ assignmentId, blockId: blockId === focusId ? '' : blockId }); }
     catch (err) { setFocusError(err.message || 'Ülesannet ei saanud märkida.'); }
   };
@@ -119,7 +144,6 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
   if (!assignment) return <p className="ws-studio-loading">Ühendan tunniga…</p>;
   if (!doc) return <div className="ws-studio-error" role="alert">See ülesanne ei ole uues vormingus tööleht.</div>;
 
-  const done = assignment.status === 'done';
   const liveStats = <div className="st-actions ws-live-stats" aria-live="polite">
     <span className={`ws-live-dot ${done ? 'done' : ''}`} />
     <span>{done ? 'Esitatud' : assignment.status === 'in_progress' ? 'Täidab' : 'Pole alustanud'}</span>
@@ -141,7 +165,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
         {editBanner}
         {focusError && <div className="st-banner error" role="alert">{focusError}</div>}
         <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
-        {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} /> : null}
+        {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} onShowAll={keyedIds.length ? showAll : null} /> : null}
       </div>
     );
   }
@@ -170,7 +194,7 @@ export default function LiveWorksheetView({ assignmentId, repository = homeworkS
           </SheetAnnotations>
           <GoalEvidence doc={doc} evidence={checked} title="Tunni eesmärgid praegu" />
         </main>
-        {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} /> : null}
+        {canStep ? <LiveTaskPanel stats={stats} step={step} shown={shown} busy={busy} done={done} onStep={toggleStep} onOpen={openTask} onShow={showTask} onShowAll={keyedIds.length ? showAll : null} /> : null}
       </div>
     </div>
   );

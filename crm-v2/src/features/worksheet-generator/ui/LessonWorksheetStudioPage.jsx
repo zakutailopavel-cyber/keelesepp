@@ -18,6 +18,9 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
   // „?vaade=opilane” from Õppevara: a published sheet opens in the student view
   const [searchParams] = useSearchParams();
   const [reloadKey, setReloadKey] = useState(0);
+  // „KeeleSepp AI” (owner 2026-10-26): a draft made by the GPT connector (functions/sheet-builder-api.js) is marked
+  // until a person publishes it
+  const [aiDraft, setAiDraft] = useState(null);
   const exists = useRef(true);
   const adapter = useMemo(() => ({
     async load() {
@@ -32,6 +35,7 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
         return { document: { ...document, meta: { ...document.meta, title: meta.label.replace(/^\d\s*/, '') } }, source: 'lesson-new', lesson: {}, baseUpdatedAt: '', version: 0, status: 'draft', generation: null };
       }
       exists.current = true;
+      setAiDraft(record.contentOrigin?.kind === 'gpt-connector' && record.worksheetDocStatus !== 'published' ? record.contentOrigin : null);
       // pictures added before they had their own row get ⅔ width and the „Vaata pilti” card (saved with the next save)
       return { document: withArtLayout(record.worksheetDoc), source: 'worksheetDoc', lesson: {}, baseUpdatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, generation: record.generation || null };
     },
@@ -49,6 +53,7 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
         ...(fresh && meta ? { role: meta.id, slot: meta.slot, displayLabel: meta.label, source: 'manual' } : {}),
       });
       exists.current = true;
+      if (record.worksheetDocStatus === 'published') setAiDraft(null);
       return { id: worksheetId, title: record.title, updatedAt: record.worksheetDocUpdatedAt, version: record.worksheetDocVersion, status: record.worksheetDocStatus, created: false };
     },
     regenerateBlock({ document, blockId, generation }) {
@@ -79,7 +84,8 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
       allowCopy={false}
       initialMode={searchParams.get('vaade') === 'opilane' ? 'interactive' : 'edit'}
       draftId={`${lessonId}:${worksheetId}`}
-      renderTop={({ dirty, doc, replaceDocument, insertBlocks }) => (
+      renderTop={({ dirty, doc, replaceDocument, insertBlocks }) => (<>
+        {aiDraft ? <p className="st-banner st-banner--ai" role="note"><b>KeeleSepp AI</b> koostas selle mustandi{aiDraft.note ? ` · allikas: ${aiDraft.note}` : ''}{aiDraft.savedAt ? ` · ${new Date(aiDraft.savedAt).toLocaleString('et-EE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : ''}. Vaata üle ja vajuta „Avalda” — enne seda õpilased seda ei näe.</p> : null}
         <LessonGeneratorBar
           doc={doc}
           lessonId={lessonId}
@@ -91,7 +97,7 @@ export default function LessonWorksheetStudioPage({ repository = lessonWorksheet
           repository={repository}
           {...(vocabularyRepository ? { vocabularyRepository } : {})}
         />
-      )}
+      </>)}
     />
   );
 }

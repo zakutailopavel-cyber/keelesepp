@@ -1,4 +1,5 @@
-import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
+import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
+import { Archive, ArrowLeft, BookOpenCheck, CalendarDays, Combine, Eye, Layers, Pencil, ReceiptText, PenLine, Plus, RotateCcw } from 'lucide-react';
 import '../board/board.css';
 import { useCallback, useContext, useEffect, useState } from 'react';
 import MergeCardsModal from './MergeCardsModal.jsx';
@@ -41,6 +42,8 @@ import StudentTopicsCard from '../vocabulary/StudentTopicsCard.jsx';
 import { lessonRecordingsService } from '../../services/firebase/lessonRecordings.js';
 import InitialAssessmentPanel from '../initial-assessment/InitialAssessmentPanel.jsx';
 import PlacementCard from '../placement/PlacementCard.jsx';
+import StudyPlanCard from './StudyPlanCard.jsx';
+import ActivityFeedCard from '../learner/ActivityFeedCard.jsx';
 import PetOverview from '../pet/PetOverview.jsx';
 import { initialAssessmentsService } from '../../services/firebase/initialAssessments.js';
 
@@ -58,12 +61,13 @@ const PROFILE_TABS = [
   { id: 'overview', label: 'Ülevaade' },
   { id: 'lessons', label: 'Tunnid' },
   { id: 'works', label: 'Tööd' },
+  { id: 'plan', label: 'Õppeplaan' },
   { id: 'learning', label: 'Areng' },
   { id: 'assessment', label: 'Esmane hindamine' },
   { id: 'finance', label: 'Finantsid', financeOnly: true },
 ];
 
-export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
+export default function StudentProfilePage({ parentApi, directionsApi, studentApi = studentsService, lessonApi = lessonsService, invoiceApi = invoicesService, scheduleApi = scheduleService, planApi = revenuePlansService, assessmentApi = initialAssessmentsService, homeworkApi = homeworkService, recordingApi = lessonRecordingsService, studyPlanApi, accountApi, tokensApi, petApi, teacherApi, topicsApi, actor, learnerRepository, placementApi, reportApi }) {
   const { studentId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const auth = useContext(AuthContext);
@@ -78,7 +82,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
   const canViewFinance = currentUser.roles?.some((role) => [ROLES.ADMIN, ROLES.FINANCE].includes(role));
   const teacherScope = canAssignTeacher ? '' : canonicalTeacherName(currentUser.displayName);
   const [state, setState] = useState({ loading: true, error: null, forbidden: false, student: null, lessons: [], invoices: [], schedule: [], plan: null });
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(() => searchParams.get('edit') === '1'); // the student menu „Muuda andmeid”
   // admin: archive (or restore) the student right from the card; the same action as in the list „Õpilased”
   const [archiveAsk, setArchiveAsk] = useState(false);
   const [archiving, setArchiving] = useState(false);
@@ -154,7 +158,12 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
       <header className="student-profile-hero">
         <div className="student-profile-hero__identity"><i>{initials}</i><span><Badge tone={student.active ? 'success' : 'neutral'}>{student.active ? 'Aktiivne õpilane' : 'Arhiveeritud'}</Badge><h1>{student.name}</h1>{tracks.length > 1 || (ownTracks?.length && subjectsOf(student).length > 1) ? <p className="subject-tracks">{tracks.map((track) => <span key={track.id || track.subject}>{track.subject} · {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>)}</p> : <p>{student.subject || 'Õppeaine määramata'} · {student.level || 'tase määramata'} → {student.targetLevel || 'sihttase määramata'}</p>}</span></div>
         <div className="student-profile-hero__stats"><div><BookOpenCheck size={17} /><span><strong>{state.lessons.length}</strong><small>tundi</small></span></div><div><CalendarDays size={17} /><span><strong>{state.schedule.length}</strong><small>graafikus</small></span></div>{canViewFinance ? <div><ReceiptText size={17} /><span><strong>{state.invoices.length}</strong><small>arvet</small></span></div> : null}</div>
-        <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link><Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
+        <div className="student-profile-hero__actions"><Link className="button button--primary" to={`/students/${encodeURIComponent(student.id)}/worksheets/new`}><Plus size={17} /> Koosta tööleht</Link><Link className="button button--secondary" to={`/board/${student.id}`}><PenLine size={17} /> Ava tahvel</Link>{auth?.startPreview && !auth?.preview ? <Button variant="secondary" onClick={() => {
+          // the student's own cabinet, read only: what he sees is what the teacher sees (owner 2026-10-27)
+          auth.startPreview({ user: { uid: student.studentUid || student.linkedUserId || `preview-student:${student.id}`, email: student.email || '', displayName: student.name || 'Õpilane', profile: student, roles: [ROLES.STUDENT] }, studentId: student.id, label: student.name || 'Õpilane' });
+          window.history.pushState({}, '', '/student');
+          window.dispatchEvent(new window.Event('popstate'));
+        }}><Eye size={17} /> Vaata õpilase silmadega</Button> : null}<Button variant="secondary" onClick={() => setEditing(true)}><Pencil size={17} /> Muuda andmeid</Button>{canAssignTeacher ? <Button variant="secondary" onClick={() => setTracksOpen(true)}><Layers size={17} /> Õppesuunad</Button> : null}{canAssignTeacher ? <Button variant="secondary" onClick={() => setMerging(true)}><Combine size={17} /> Liida kaardid</Button> : null}{canAssignTeacher ? <Button variant={student.active ? 'secondary' : 'primary'} onClick={() => { setArchiveError(''); setArchiveAsk(true); }}>{student.active ? <><Archive size={17} /> Arhiveeri</> : <><RotateCcw size={17} /> Taasta</>}</Button> : null}</div>
         {canAssignTeacher && tracksOpen ? <EnrollmentManager student={student} directions={directions} teachers={teacherChoices(staffTeachers, [student.teacher])} service={studentApi}
           onClose={() => { setTracksOpen(false); if (searchParams.get('enrollments')) setSearchParams((current) => { current.delete('enrollments'); return current; }, { replace: true }); }}
           onChanged={refreshStudent}
@@ -194,6 +203,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
       <div id={tabPanelId} role="tabpanel" aria-labelledby={`student-profile-tab-${activeTab}`} className="student-profile-tab-panel">
         {activeTab === 'overview' ? (
           <div className="profile-grid">
+            {[student.parentEmail, student.email].some(isPlaceholderEmail) ? <p className="form-error profile-fake-email" role="note">E-post {[student.parentEmail, student.email].filter(isPlaceholderEmail).join(', ')} on välja mõeldud — sinna kirju ei saadeta. Paranda kaardil („Muuda”) või jäta tühjaks.</p> : null}
             <Card><h2>Põhiandmed</h2><dl className="detail-list"><div><dt>Lapsevanem</dt><dd>{studentValueLabel(student, 'parentName')}{parentCardIds(student).map((id, index, ids) => <Link key={id} className="profile-parent-link" to={`/parents?parent=${encodeURIComponent(id)}`}>{ids.length > 1 ? `Ava lapsevanema kaart ${index + 1}` : 'Ava lapsevanema kaart'}</Link>)}{!parentCardIds(student).length && (student.parentEmail || student.parentName) ? <Link className="profile-parent-link" to={`/parents?student=${encodeURIComponent(student.id)}`}>Ava lapsevanema kaart</Link> : null}</dd></div><div><dt>Makseviis</dt><dd>{student.payerMethod === 'cash' ? <>Sularaha · <Link to={`/kassa?student=${encodeURIComponent(student.id)}`}>märgi saadud raha</Link></> : 'Pangaülekanne'}</dd></div><div><dt>E-post</dt><dd>{studentValueLabel(student, 'email')}</dd></div><div><dt>Telefon</dt><dd>{studentValueLabel(student, 'phone')}</dd></div><div><dt>{tracks.length > 1 ? 'Õppesuunad' : 'Õpetaja'}</dt><dd>{student.hiddenFields?.teacher ? 'Peidetud' : tracks.length > 1 ? tracks.map((track) => <span className="profile-track" key={track.id || track.subject}>{track.subject} — {canonicalTeacherName(track.teacher) || 'õpetaja määramata'}{track.level ? ` · ${track.level}` : ''}</span>) : canonicalTeacherName(student.teacher) || 'Määramata'}{canAssignTeacher ? <button type="button" className="profile-track-add" onClick={() => setTracksOpen(true)}>+ Lisa aine teise õpetajaga</button> : null}</dd></div><div><dt>Rühm</dt><dd>{student.group || '—'}</dd></div><div><dt>Klass</dt><dd>{student.grade || '—'}</dd></div>{canAssignTeacher ? <SocialRow label="Facebook" contact={facebookContact(student.facebook)} /> : null}{canAssignTeacher ? <SocialRow label="Instagram" contact={instagramContact(student.instagram)} /> : null}</dl></Card>
             {/* „Õppesuunad” (owner 2026-10-24): which directions the learner attends, teacher, level, price, lessons ahead */}
             <StudentDirectionsCard student={directionStudent} schedule={state.schedule} lessons={state.lessons} plan={state.plan} directions={directions} canEdit={canAssignTeacher} canViewFinance={canViewFinance} service={studentApi} onEdit={() => setTracksOpen(true)} onChanged={refreshStudent} />
@@ -228,9 +238,16 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
         {activeTab === 'works' ? (
           <div className="profile-grid">
             {studentAccess(student) === 'none' ? <p className="action-error" role="alert">Selle kaardiga pole seotud ühtegi kontot: õpilane ei näe siia määratud töid. Seo õpilase konto (Muuda → konto) või kontrolli, kas tal on teine sama nimega kaart.</p> : null}
+            {/* „Õpilase tegevused” (owner 2026-10-27): everything the student did, so nothing stays unknown to the teacher */}
+            <ActivityFeedCard studentId={student.id} {...(learnerRepository ? { repository: learnerRepository } : {})} />
             <StudentWorksPanel student={student} user={currentUser} homeworkApi={homeworkApi} keep={keepWork} onSkillMap={(skillMap) => setState((current) => ({ ...current, student: { ...current.student, skillMap } }))} />
           </div>
         ) : null}
+
+        {/* „Õppeplaan” (owner 2026-10-27): the course and the lessons chosen for this student */}
+        {activeTab === 'plan' ? <StudyPlanCard student={student} lessons={state.lessons} schedule={state.schedule} user={currentUser} canEdit={currentUser.roles?.some((role) => role === ROLES.ADMIN || role === ROLES.TEACHER)}
+          {...(homeworkApi ? { homework: homeworkApi } : {})} {...(studyPlanApi || {})}
+          onSaved={(studyPlan) => setState((current) => ({ ...current, student: { ...current.student, studyPlan } }))} /> : null}
 
         {activeTab === 'learning' ? (
           <div className="profile-grid">

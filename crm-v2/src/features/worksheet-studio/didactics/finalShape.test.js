@@ -17,8 +17,8 @@ const lesson = (num, { module = Math.ceil(num / 5), assessment = false, archetyp
 const checks = (problems, prefix) => problems.filter((x) => x.check.startsWith(prefix));
 
 describe('task catalogue', () => {
-  it('has the 61 types of §3 with a skill, a level 1–4 and per-module bounds', () => {
-    expect(Object.keys(TASK_CATALOGUE)).toHaveLength(61);
+  it('has the 63 types of §3 with a skill, a level 1–4 and per-module bounds', () => {
+    expect(Object.keys(TASK_CATALOGUE)).toHaveLength(63);
     Object.entries(TASK_CATALOGUE).forEach(([id, x]) => {
       expect('RLWSG').toContain(id[0]);
       expect([1, 2, 3, 4]).toContain(x.level);

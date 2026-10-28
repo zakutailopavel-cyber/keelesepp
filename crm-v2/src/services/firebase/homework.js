@@ -3,7 +3,9 @@ import { getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { requireFirebaseClient } from './client.js';
 import { studentsService } from './students.js';
 import { applySkillGrades } from '../../features/homework/skillGrades.js';
+import { paperMeasured, paperWorkPayload } from '../../features/homework/paperWork.js';
 import { fileToJpegBlob } from '../../features/worksheet-studio/engine/image.js';
+import { localDate } from '../../utils/localDate.js';
 
 // Student-scoped reads (homework, worksheetAssignments, exerciseResults) are checked per student card by the rules
 // (staffCanAccessStudent: one get() per card + the teacher's profile + securityMigrations). Firestore allows at most 10
@@ -210,7 +212,7 @@ export const homeworkService = {
   },
   async create(data) {
     const { db } = requireFirebaseClient();
-    const value = { ...data, task: String(data.task || '').trim(), status: 'Ootel', date: new Date().toISOString().slice(0, 10), fileUrl: '', fileName: '', attachments: [] };
+    const value = { ...data, task: String(data.task || '').trim(), status: 'Ootel', date: localDate(), fileUrl: '', fileName: '', attachments: [] };
     const reference = await addDoc(collection(db, 'homework'), value);
     return { id: reference.id, ...value };
   },
@@ -352,7 +354,7 @@ export const homeworkService = {
         if (!student.exists()) throw new Error('Õpilase kaarti ei leitud.');
         const before = current.exists() ? current.data() : {};
         const skillMap = { ...(student.data().skillMap || {}) };
-        const result = applySkillGrades(skillMap, grades, { deltas: before.skillDeltas || {}, created: before.skillCreated || [] });
+        const result = applySkillGrades(skillMap, grades, { deltas: before.skillDeltas || {}, created: before.skillCreated || [] }, paperMeasured(submission));
         for (const [skill, value] of Object.entries(result.values)) {
           if (value === null) delete skillMap[skill]; else skillMap[skill] = value;
         }
@@ -511,12 +513,32 @@ export const homeworkService = {
     await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveStep });
     return liveStep;
   },
-  async setWorksheetShown({ assignmentId, shown }) {
+  // The teacher shows / hides the right answers of tasks to the learner. With `change` ({ blockIds, on }) and `user` the
+  // action is recorded: liveShownBy[blockId] = the last show / hide (who, when) and one entry in liveShownLog. Scores
+  // and the learner's answers are not touched. Staff-only fields (the learner may write only answers / status).
+  async setWorksheetShown({ assignmentId, shown, change = null, user = null }) {
     if (!assignmentId) throw new Error('Töölehte ei leitud.');
     const { db } = requireFirebaseClient();
     const liveShown = [...new Set((shown || []).map(String))].slice(0, 200);
-    await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveShown });
-    return liveShown;
+    const ids = [...new Set((change?.blockIds || []).map(String))].slice(0, 200);
+    if (!ids.length || !user) {
+      await updateDoc(doc(db, 'worksheetAssignments', assignmentId), { liveShown });
+      return liveShown;
+    }
+    const entry = { on: Boolean(change.on), byUid: user.uid || '', byName: String(user.displayName || user.email || 'Õpetaja').slice(0, 160), at: new Date().toISOString() };
+    const ref = doc(db, 'worksheetAssignments', assignmentId);
+    // the stored list is the base (not the caller's copy), so two quick clicks never undo each other
+    return runTransaction(db, async (transaction) => {
+      const current = (await transaction.get(ref)).data() || {};
+      const set = new Set((Array.isArray(current.liveShown) ? current.liveShown : []).map(String));
+      ids.forEach((id) => (entry.on ? set.add(id) : set.delete(id)));
+      const next = [...set].slice(0, 200);
+      const liveShownBy = { ...(current.liveShownBy || {}) };
+      ids.forEach((id) => { liveShownBy[id] = entry; });
+      const liveShownLog = [...(Array.isArray(current.liveShownLog) ? current.liveShownLog : []), { ...entry, blockIds: ids }].slice(-200);
+      transaction.update(ref, { liveShown: next, liveShownBy, liveShownLog });
+      return next;
+    });
   },
   // Live lesson: the teacher corrects a task on the student's copy of the sheet; the student's player is subscribed.
   // Only this assignment changes, not the library sheet (staff may update worksheetAssignments, no rule change).
@@ -600,6 +622,13 @@ export const homeworkService = {
 
     if (files.length) return assignmentFallback(homework, files);
     throw new Error('Õppematerjali sisu ei leitud.');
+  },
+  // a work done on paper, entered by the teacher with its points (homework/paperWork.js); checked like any other work
+  async addPaperWork(input) {
+    const payload = paperWorkPayload(input);
+    const { db } = requireFirebaseClient();
+    const reference = await addDoc(collection(db, 'exerciseResults'), payload);
+    return normalizeSubmission(reference.id, payload, 'exercise');
   },
   async submitExerciseResult({ exercise, homework, result, user }) {
     if (!exercise?.id || !homework?.studentId) throw new Error('Harjutuse seos õpilasega puudub.');

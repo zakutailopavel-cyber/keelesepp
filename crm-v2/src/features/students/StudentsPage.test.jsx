@@ -196,3 +196,18 @@ describe('students list: last visit', () => {
     expect(presenceApi.forStudents).toHaveBeenCalledWith([expect.objectContaining({ id: 's1' })]);
   });
 });
+
+describe('„Ilma ajata” (owner 2026-10-27)', () => {
+  it('the button opens the students without suitable times, with the parent contact', async () => {
+    const service = { list: vi.fn().mockResolvedValue({ items: [], cursor: null, hasMore: false }) };
+    const noTimesApi = {
+      students: { list: vi.fn(async () => ({ items: [{ id: 's1', name: 'Mia', active: true, parentName: 'Ema', parentPhone: '5551 111', teacher: 'Pavel' }] })) },
+      times: { list: vi.fn(async () => []) }, leads: { list: vi.fn(async () => []) }, lessons: { listForCalendar: vi.fn(async () => []) },
+    };
+    render(<MemoryRouter><StudentsPage service={service} actor={{ uid: 'a1', roles: ['admin'], displayName: 'Admin' }} noTimesApi={noTimesApi} /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole('button', { name: 'Ilma ajata' }));
+    const panel = await screen.findByRole('region', { name: 'Ilma ajata' });
+    expect(await within(panel).findByText('Vanem: Ema')).toBeInTheDocument();
+    expect(within(panel).getByRole('heading', { name: 'Ilma ajata (1)' })).toBeInTheDocument();
+  });
+});

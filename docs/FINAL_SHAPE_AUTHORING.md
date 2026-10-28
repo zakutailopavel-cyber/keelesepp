@@ -329,6 +329,34 @@ Module 5 reached 0 problems on every gate with the same loop. New pitfalls on to
 - Keep one timeline for the module in a scratch note (who did what on which day): with 15 sheets the same event is told
   in a story, a diary, a call and a letter, and a weekday slips easily.
 
+### 8.2 Module 8 (2026-10-26, `b1/module08.js`, a2b1-036…040, 78 → 0 problems)
+
+§6.2 row 8 (AVAS R→S · KUUL L→W · LUGE R→W · RÄÄK L→S) is valid as written: no swap. New pitfalls:
+
+- **Corners in R2 and L2 (introduced in module 8).** Only the `harno`-tagged block counts for the 8–12 corner minutes,
+  and a `choice` is n × 0.4 min (4 min for 10 questions). A teaching-lesson R2 corner is therefore the `reading` itself,
+  tagged `{ harno: 'R2' }`: ≈ 230–260 words + 7–8 paraphrase questions ≈ 9–10 min (the teacher note says that the exam
+  has three options). An L2 corner is `B.examListen(…, 'choice', …)` with a ~330-word radio transcript and 10 questions
+  ≈ 10 min. The same reading is also the module's ≥ 240-word text for `harno-reading`.
+- **The speaking ids run out first.** S01–S13 with S02/S03/S04 twice are 16 slots; module 8 used all 16. Plan the
+  fluency tasks on S06, S07, S08, S09, S11 and a second S02, and tag role cards with the id they really are (S10 a
+  request to the boss, S13 relaying a voicemail) — an untagged second `rolecards` is S05 again (`V4-max-S05`).
+- **`dialogue` items are counted by `[` in the JSON** of its lines (`didacticCheck`), so the array's own bracket adds
+  one: 10 gaps measure as 11 (> 10 at B1-). Write 9 gaps.
+- **One-to-one regex:** `\bklassis` also matches „klassist” (a passage title „Uudised 3.b klassist”) and a gap sentence
+  „samas [klassis]”; an `examPart` note „paaris” counts too. Reword („Uudised: 3.b”, „kahekesi”).
+- **Exam lesson goals:** `lessonGoals.test.js` wants exactly g_read, g_notice and g_use for an assessment lesson — no
+  g_vocab, even when its Avasta has a vocab box.
+- **Speller:** bold inside a word („tege**ma** → teh**a**”) splits it into „tege”, „teh” for Vabamorf. Bold whole words.
+- **Names:** check `COURSE_CAST.md` before naming a new person: Tiina (Sofia's neighbour) and Aivar (Kase kool's
+  director) were almost reused for a language teacher and a language-school head (now Hanna, Mihkel).
+- **Minutes at the cap:** with 9 own blocks and every catalogue id used, a sheet stays at 40 min; longer texts add
+  little (+100 words ≈ +1.9 min of reading). An Avasta with a free slot can take a W12 register-shift letter
+  (`tag(B.letter(…), { task: 'W12' })`, ≈ 10 min) — 039 used it for Markus's message rewritten for the teacher.
+- **Vahehindamine 2 (040)** follows 030's shape (Avasta = review and language with `why(…, areas(…))`, Harjuta = R and L
+  parts, Kasuta = W and S parts) plus 020's profile table with three columns (lessons 1, 20, 40). The Harjuta of an exam
+  lesson is exempt from the item norm, but its `choice` questions still count for the sheet's average sentence length
+  (≥ 5 words): write 6–9-word questions.
 ### 8.2 Module 7 (2026-10-26, `b1/module07.js`, a2b1-031…035)
 
 Module 7 („Tervis”, KUUL L→W · LUGU R→S · AVAS L→S · KIRJ R→W, §6.2 row as written) went 57 → 0 problems. New pitfalls:
@@ -361,6 +389,41 @@ Module 7 („Tervis”, KUUL L→W · LUGU R→S · AVAS L→S · KIRJ R→W, §
   (replaced by „venitus”).
 - Timeline: keep the month of every episode in a note — „jõuluks” in a January letter and a new colleague who already
   appears in November were caught only on re-reading.
+### 8.3 Module 9 (2026-10-26, `b1/module09.js`, a2b1-041…045): the first B1 exam in reduced form
+
+Module 9 went 80 → 0 problems (`course:final-shape --module 9`) and passes the strict gate. New pitfalls:
+
+- **„Reduced B1 form” (§6.1, lessons 045 and 050) as built here:** every Harno task of every part, fewer items —
+  reading R1 6 ads ↔ 7 situations, R2 article (~280 words) + 5 MC, R3a 8 gaps, R4 6 phrases + 2 extra (26 points,
+  40 min); listening L1 5 clips, L2 radio + 5 MC, L3a dialogue + 6 short answers, L4 interview + 7 T/F (23 points,
+  ~30 min); writing W1b + W2a at full length (20 points, 35 min); speaking S0, S1a, S1b, S2 (20 points, ~12 min).
+  Recordings at Harno lengths, not reduced. `B.examPart` points = the items of the part.
+- **The gates decide which parts share a sheet.** On an exam lesson's Harjuta sheet the depth „live” check counts an
+  `examlisten` at 0.15 min per item, so the four listening tasks alone give ~13 min (< 15, `live-fast`); the reading part
+  plus the two writing cards is 4 of 7 recognition tasks (> 50 % at B1-). We put **writing + reading on Harjuta** (with
+  a `planning` „mustand” before W2a: 4 of 8 = 50 %) and **listening + speaking on Kasuta** (depth is not checked there;
+  a `planning` before S1b gives the 5th task type). The exam's Avasta sheet is depth-checked like a normal sheet
+  (closed tasks ≥ 6 items, ≥ 25 min of exercises, two whole-sentence tasks): we used it for „Enne eksamit” — the story's
+  last episode, a module quiz, a ma-form transformation, a dictation, a word sort and a warm-up talk.
+- **Same wording for the same format:** the R1, R2, S0 and S1a instructions are copied verbatim from 030; V7 exempts a
+  wording used only on `harno`-tagged tasks of one format in exam lessons. The untagged R2 article block needs its own.
+- **V6 gap appears when a format comes back:** the gap is measured between practices, so S1a/S2 in module 9 after
+  module 6 made two new course problems (`V6-gap-S1a`, `V6-gap-S2`: 3 modules > 2) while modules 7–8 had no S1a/S2.
+  They disappear when module 7 or 8 practises S1a and S2 (corner or exam); until then they stay in the baseline.
+- **Kasuta inputs of level ≥ 3 run out by lesson 4:** R05 (041), L07 (042) and R11 (043) were used, so 044 took a phone
+  conversation as `listening` tagged `{ task: 'L06', level: 3 }` with consequence gaps („Algust ei saa edasi lükata,
+  sest …”).
+- **Recognition share in Harjuta (≤ 50 %):** `match`, `cloze`, `examlisten`, `crossword`, `choice`, `insertion` are
+  recognition, `categorize` is not. A government task (verb → case) written as a `categorize` tagged `G08` kept the
+  041 sheet at 3 of 7.
+- **„Try again” as `formtext` (a short text with 10 gaps) instead of `gaps`** adds ~3 min for the same items and is not a
+  v4 drill type (no `v4-lesson-repeat` with a `gaps` elsewhere in the lesson).
+- **V2 against the next module:** 044 Avasta opened with a `reading` (R02) like 046; the two letters are a message
+  exchange, so the block is tagged `R12`. Check `NEW a2b1-module-10` in your report, not only your own module.
+- **Word counts, once more:** texts drafted as „~250 words” counted 150–230; readings under 150 words give a B1-
+  `reading-len` warning (= a quality problem). Count with a 10-line node script before running the gates.
+- The Vabamorf speller reports the ending „-mas” in phrase tips („Ta on … -mas.”); added to `language-allow.txt`.
+- §6.2 row 9 (LUGU R→W, AVAS L→S, KIRJ L→W, PROB R→S) passes V5 as written — no lead swap was needed.
 
 ### 8.3 Module 10 (2026-10-26, `b1/module10.js`, a2b1-046…050)
 

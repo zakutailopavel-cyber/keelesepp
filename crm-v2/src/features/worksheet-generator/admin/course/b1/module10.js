@@ -130,7 +130,7 @@ export const LESSONS = withShapes({
         ['Seal seisad, kui rong tuleb.', 'perroon'], ['Inimene, kes sõidab rongis.', 'reisija'], ['Suur kott ratastega reisiks.', 'kohver'], ['Ta kontrollib rongis pileteid.', 'rongisaatja'],
         ['Rihm ja … — need peavad suurel koeral olema.', 'suukorv'], ['Selles on kirjas kõik rongide ajad.', 'sõiduplaan'],
       ], 'half', 'g_vocab'),
-      teach(tag(B.speaking('046_d_pic', 'Kaks rongi.', 'Vaata pilti ja kirjelda kahte rongi kolm korda järjest. Iga kord räägi umbes minut ja lisa üks uus detail.', ['Mis kell kumbki rong väljub ja saabub?', 'Kumma rongiga peab ümber istuma ja kus?', 'Kumb rong sobib lastega perele ja miks?', 'Kumma rongi sina valiksid?', 'Millega sa ise kõige meelsamini reisid?'], [70, 120], ['Esimene rong väljub…', 'Teisega ei pea ümber istuma, sest…', 'Mina valiksin…']), { task: 'S06', fluency: true }),
+      teach(tag(B.speaking('046_d_pic', 'Kaks rongi.', 'Vaata pilti ja kirjelda kahte rongi kolm korda järjest. Iga kord räägi umbes minut ja lisa üks uus detail.', ['Mis kell kumbki rong väljub ja saabub?', 'Kumma rongiga peab ümber istuma ja kus?', 'Kumb rong sobib lastega perele ja miks?', 'Kumma rongi sina valid ja miks?', 'Millega sa ise kõige meelsamini reisid?'], [70, 120], ['Esimene rong väljub…', 'Teisega ei pea ümber istuma, sest…', 'Mina valin…']), { task: 'S06', fluency: true }),
         'Üks-ühele: õpilane kirjeldab pilti kolm korda, iga kord umbes minut; õpetaja on iga kord uus kuulaja ja küsib ühe täpsustava küsimuse („Mis kell…?”, „Kus…?”).'),
     ],
     practice: [
@@ -816,6 +816,8 @@ export const LESSONS = withShapes({
         words: [80, 100], opening: 'Kallis Lena!', closing: 'Kohtumiseni! Sofia',
       }), { harno: 'W2b', main: true }),
       'Eksaminurk (Harno B1 kirjutamine 2, isiklik kiri, ~12 min), formaati tutvustatakse siin. Strateegia: 1) loe ülesanne ja märgi iga punkt maha, kui see on kirjas; 2) kirja raam: pöördumine, sissejuhatav lause, iga punkti kohta paar lauset, küsimus lugejale, lõputervitus; 3) seo laused (kõigepealt, siis, pärast seda, sest, kui); 4) loe sõnad üle: 80–100. Üks-ühele: õpetaja hindab kirja B1 hindamisjuhendiga (12 punkti) ja näitab, mis punkt jäi katmata.'),
+      teach(tag(B.speaking('049_t_rec', 'Kodus: minu reisiplaan.', 'Räägi 1–2 minutit ja salvesta: kuhu sa tahad sõita, millega ja mida sa seal igal päeval teed.', ['Kuhu ja millal sa tahad sõita?', 'Millega sa sõidad ja miks?', 'Kus sa ööbid?', 'Mida sa igal päeval teed?'], [60, 120], ['Ma tahan sõita…', 'Esimesel päeval…', 'Ma valin…, sest…']), { task: 'S15', level: 3 }),
+        'Kodune monoloog. Tunnis küsib õpetaja kaks küsimust plaani kohta ja pakub ühe muudatuse.'),
       B.rubricW2('049_t_rubric', 'Hindamine: kiri Lenale (12 punkti).'),
       tag(B.writing('049_t_edit', 'Parem kiri.', 'Loe oma kirja Lena silmadega. Märgi hindamisjuhendi järgi kaks puudust ja kirjuta parem versioon.', [9, 11], ['kõigepealt', 'pärast seda', 'sest', 'oli'], 3), { task: 'W10' }),
       B.selfcheck('049_t_self', ['Ma saan aru sõbra häälsõnumist ja kolleegi reisiloost.', 'Ma leian sõiduplaanist ja hinnakirjast sobiva sõidu ning arvutan kulud.', 'Ma kasutan enneminevikku põhjuses ja hoiatuses.', 'Ma kirjutan sõbrale isikliku kirja reisiplaaniga.'], 'Reisiplaan sõbrale'),

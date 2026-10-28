@@ -102,8 +102,11 @@ export function depthProblems(doc) {
   // v3 Avasta: the text and its discussion are the lesson's input; one full language task follows it
   const exerciseMin = transfer ? (v3 ? V3_TRANSFER : TRANSFER).exerciseMin : v3 && doc?.meta?.phase === 'discover' ? V3_DISCOVER.exerciseMin : norm.exerciseMin;
   const liveMin = transfer ? (v3 ? V3_TRANSFER : TRANSFER).liveMin : v3 && doc?.meta?.phase === 'discover' ? V3_DISCOVER.liveMin : norm.liveMin;
+  // a short sheet (meta.shortSheet: a 10–20 min spaced-review sheet or a short use task, admin/course registry.js) is
+  // short on purpose: its minutes are not a lesson's; item counts and sentence lengths still apply
+  const shortSheet = Boolean(doc?.meta?.shortSheet);
   const exercise = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template), 0);
-  if (exercise < exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${exerciseMin}; rääkimine ja kirjutamine ei loe)` });
+  if (!shortSheet && exercise < exerciseMin) out.push({ code: 'thin', level: 'error', text: `harjutusi ≈ ${Math.round(exercise)} min (vähemalt ${exerciseMin}; rääkimine ja kirjutamine ei loe)` });
 
   // aloud with the teacher: a recognised item goes in ~9 s, a whole sentence written or rebuilt in ~25 s; a text is
   // still read at the learner's pace
@@ -111,7 +114,7 @@ export function depthProblems(doc) {
   // a text task (forms or sentences in a text) is read at the learner's pace like any text
   const TEXT_TASKS = ['formtext', 'insertion'];
   const live = blocks.filter((b) => !OPEN.has(b.type)).reduce((n, b) => n + (ITEMS[b.type] && !TEXT_TASKS.includes(b.type) ? ITEMS[b.type](b.data || {}) * liveRate(b.type) : blockMinutes(b, doc?.meta?.level || level, '', doc?.meta?.template)), 0);
-  if (live < liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${liveMin})` });
+  if (!shortSheet && live < liveMin) out.push({ code: 'live-fast', level: 'warning', text: `tunnis koos õpetajaga ≈ ${Math.round(live)} min harjutusi (vähemalt ${liveMin})` });
 
   const sentences = blocks.flatMap(taskSentences).filter(Boolean);
   if (sentences.length >= 4) {

@@ -1,27 +1,4 @@
-import {
-  ChevronDown,
-  Plus,
-  BookCopy,
-  BookOpen,
-  ClipboardCheck,
-  ClipboardList,
-  Dumbbell,
-  Eye,
-  FilePenLine,
-  House,
-  Library,
-  LayoutTemplate,
-  Paperclip,
-  Presentation,
-  Replace,
-  Search,
-  Send,
-  Sparkles,
-  Star,
-  Wrench,
-  X,
-  BarChart3,
-} from 'lucide-react';
+import { BarChart3, BookCopy, BookOpen, ChevronDown, ClipboardCheck, ClipboardList, Dumbbell, Eye, FilePenLine, House, LayoutTemplate, Library, Paperclip, Plus, Presentation, Replace, Search, Send, SlidersHorizontal, Sparkles, Star, Wrench, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../app/AuthContext.jsx';
@@ -64,6 +41,9 @@ const typeIcons = {
   material: BookOpen,
 };
 
+const SUBJECT_STORE = 'keelesepp.library.subject';
+const storedSubject = () => { try { return globalThis.localStorage?.getItem(SUBJECT_STORE) || ''; } catch { return ''; } };
+const rememberSubject = (key) => { try { globalThis.localStorage?.setItem(SUBJECT_STORE, key); } catch { /* private mode */ } };
 const defaultRepository = libraryService;
 const defaultStudentRepository = studentsService;
 const defaultGroupRepository = groupsService;
@@ -209,6 +189,8 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState(null);
+  // Tüüp, Töölehed and Järjestus are used seldom: behind „Filtrid” (open when one of them is set)
+  const [moreFilters, setMoreFilters] = useState(() => Boolean(searchParams.get('tyyp') || searchParams.get('lehed') || searchParams.get('jarjestus')));
   const [assigning, setAssigning] = useState(null);
   const [previewing, setPreviewing] = useState(null);
   const [editing, setEditing] = useState(undefined);
@@ -227,8 +209,10 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const a2Complete = a2Count >= A2_LESSON_COUNT;
 
   const q = searchParams.get('q') || '';
-  const level = searchParams.get('tase') || '';
-  const subject = searchParams.get('aine') || '';
+  // a subject and a level are always chosen (owner 2026-10-28: „слишком много всего”): no params = the last subject
+  // (or Eesti keel) and its first level; „Kõik” is tase=all; a search with no subject looks through every subject
+  const levelParam = searchParams.get('tase') || '';
+  const subjectParam = searchParams.get('aine') || '';
   const module = searchParams.get('moodul') || '';
   const type = searchParams.get('tyyp') || '';
   const onlyFav = searchParams.get('lemmikud') === '1';
@@ -290,8 +274,10 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const mineUid = onlyMine ? user?.uid || '' : '';
   // the subject tab narrows everything below it (levels, modules, types, results)
   const subjects = useMemo(() => subjectFacets(searchLibrary(items, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [items, q, type, favFilter, mineUid]);
+  const subject = subjectParam || (q.trim() ? '' : (subjects.find((facet) => facet.key === storedSubject())?.key || subjects[0]?.key || ''));
   const subjectItems = useMemo(() => (subject ? items.filter((item) => subjectOfLevel(item.level) === subject) : items), [items, subject]);
   const levels = useMemo(() => levelFacets(searchLibrary(subjectItems, { query: q, type, favorites: favFilter, mineUid }).map((r) => r.item)), [subjectItems, q, type, favFilter, mineUid]);
+  const level = levelParam === 'all' ? '' : levelParam || (subject && !q.trim() && levels.length > 1 ? levels[0].key : '');
   const modules = useMemo(() => moduleFacets(searchLibrary(subjectItems, { query: q, level, type, favorites: favFilter, mineUid }).map((r) => r.item)), [subjectItems, q, level, type, favFilter, mineUid]);
   const types = useMemo(() => typeFacets(searchLibrary(subjectItems, { query: q, level, module, favorites: favFilter, mineUid }).map((r) => r.item)), [subjectItems, q, level, module, favFilter, mineUid]);
   const results = useMemo(() => sortLibrary(searchLibrary(subjectItems, { query: q, level, module, type, favorites: favFilter, mineUid })
@@ -398,7 +384,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
   const openPhase = (item, phaseId) => navigate(`/library/lessons/${encodeURIComponent(item.sourceId)}/worksheets/${phaseId}`);
   const shown = results.slice(0, limit);
   const sections = sort === 'toc' ? sectionsByModule(shown) : [{ key: 'all', label: '', results: shown }];
-  const filtersOn = Boolean(q || subject || level || module || type || onlyFav || onlyMine || phaseFilter);
+  const filtersOn = Boolean(q || module || module || type || onlyFav || onlyMine || phaseFilter);
   // „Grammatika” first in a level (owner 2026-10-21): the level's grammar topics with their lessons and Õpik sheets
   const grammar = level && !q && !module && !onlyFav && !onlyMine && !phaseFilter ? grammarTopics(level, items) : [];
 
@@ -470,14 +456,15 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
       {subjects.length > 1 ? (
         <div className="lib2-subjects" role="tablist" aria-label="Aine">
-          <button type="button" role="tab" aria-selected={!subject} className={!subject ? 'is-active' : ''} onClick={() => setParam({ aine: '', tase: '', moodul: '' })}>Kõik ained <span>{subjects.reduce((sum, facet) => sum + facet.count, 0)}</span></button>
-          {subjects.map((facet) => <button type="button" role="tab" key={facet.key} aria-selected={subject === facet.key} className={subject === facet.key ? 'is-active' : ''} onClick={() => setParam({ aine: facet.key, tase: '', moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
+          {subjects.map((facet) => <button type="button" role="tab" key={facet.key} aria-selected={subject === facet.key} className={subject === facet.key ? 'is-active' : ''} onClick={() => { rememberSubject(facet.key); setParam({ aine: facet.key, tase: '', moodul: '' }); }}>{facet.label} <span>{facet.count}</span></button>)}
         </div>
       ) : null}
-      <div className="lib2-levels" role="group" aria-label="Tase">
-        <button type="button" className={!level ? 'is-active' : ''} aria-pressed={!level} onClick={() => setParam({ tase: '', moodul: '' })}>Kõik <span>{levels.reduce((sum, facet) => sum + facet.count, 0)}</span></button>
-        {levels.map((facet) => <button type="button" key={facet.key} className={level === facet.key ? 'is-active' : ''} aria-pressed={level === facet.key} onClick={() => setParam({ tase: level === facet.key ? '' : facet.key, moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
-      </div>
+      {levels.length > 1 ? (
+        <div className="lib2-levels" role="group" aria-label="Tase">
+          {levels.map((facet) => <button type="button" key={facet.key} className={level === facet.key ? 'is-active' : ''} aria-pressed={level === facet.key} onClick={() => setParam({ tase: facet.key, moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
+          <button type="button" className={!level ? 'is-active' : ''} aria-pressed={!level} onClick={() => setParam({ tase: 'all', moodul: '' })}>Kõik tasemed</button>
+        </div>
+      ) : null}
 
       <div className="lib2-body">
         <aside className="lib2-toc" aria-label="Moodulid">
@@ -495,16 +482,18 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
 
         <section className="lib2-results" aria-label="Õppematerjalid">
           <div className="lib2-filters">
+            <div className="lib2-chips" role="group" aria-label="Minu valik">
+              <button type="button" className={onlyFav ? 'is-active' : ''} aria-pressed={onlyFav} onClick={() => setParam({ lemmikud: onlyFav ? '' : '1' })}><Star size={14} /> Lemmikud</button>
+              <button type="button" className={onlyMine ? 'is-active' : ''} aria-pressed={onlyMine} onClick={() => setParam({ minu: onlyMine ? '' : '1' })}>Minu loodud</button>
+              <button type="button" className={moreFilters ? 'is-active' : ''} aria-expanded={moreFilters} onClick={() => setMoreFilters(!moreFilters)}><SlidersHorizontal size={14} /> Filtrid{type || phaseFilter ? ' •' : ''}</button>
+            </div>
+            {moreFilters ? <>
             <label className="lib2-sort"><span>Tüüp</span>
               <select aria-label="Materjali tüüp" value={type} onChange={(event) => setParam({ tyyp: event.target.value })}>
                 <option value="">Kõik tüübid</option>
                 {types.map((facet) => <option value={facet.key} key={facet.key}>{facet.label} ({facet.count})</option>)}
               </select>
             </label>
-            <div className="lib2-chips" role="group" aria-label="Minu valik">
-              <button type="button" className={onlyFav ? 'is-active' : ''} aria-pressed={onlyFav} onClick={() => setParam({ lemmikud: onlyFav ? '' : '1' })}><Star size={14} /> Lemmikud</button>
-              <button type="button" className={onlyMine ? 'is-active' : ''} aria-pressed={onlyMine} onClick={() => setParam({ minu: onlyMine ? '' : '1' })}>Minu loodud</button>
-            </div>
             <label className="lib2-sort"><span>Töölehed</span>
               <select aria-label="Töölehtede olek" value={phaseFilter} onChange={(event) => setParam({ lehed: event.target.value })}>
                 <option value="">Kõik</option>
@@ -516,6 +505,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
                 {Object.entries(SORTS).filter(([key]) => key !== 'relevance' || q.trim()).map(([key, label]) => <option value={key} key={key}>{label}</option>)}
               </select>
             </label>
+            </> : null}
           </div>
           <p className="lib2-count" aria-live="polite">{results.length} materjali{filtersOn ? <> · <button type="button" onClick={() => setSearchParams(new globalThis.URLSearchParams())}>Tühjenda filtrid</button></> : null}</p>
 

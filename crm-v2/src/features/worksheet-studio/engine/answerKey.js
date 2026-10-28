@@ -11,6 +11,8 @@ const blank = (text) => String(text || '').replace(/\[[^\]]*\]/g, '___').replace
 const answerOf = (text) => String(text || '').match(/\[([^\]]*)\]\s*$/)?.[1] || '';
 const variants = (v) => String(v || '').split('|').map((x) => x.trim()).filter(Boolean).join(' / ');
 
+const perGap = (answers, source) => answers.map(({ key, accept }) => ({ prompt: blank(source[Number(String(key).split('.')[0])]), answer: (accept || []).map(variants).join(' / ') }));
+
 // one item per numbered line of the task as the learner sees it
 function itemsOf(block) {
   const d = block.data || {};
@@ -24,6 +26,11 @@ function itemsOf(block) {
       });
       return lines(d.sentences).map((sentence, i) => ({ prompt: blank(sentence), answer: (byLine.get(i) || []).join(' · ') }));
     }
+    // one item per gap (the course explanations count gaps here), the line with blanks as its prompt
+    case 'listening':
+      return perGap(def.answers(d) || [], lines(d.sentences));
+    case 'dialogue':
+      return perGap(def.answers(d) || [], (d.lines || []).map((l) => [l.who === 'B' ? d.speakerB : d.speakerA, l.text].filter(Boolean).join(': ')));
     case 'choice':
       return (d.questions || []).map((q) => ({ prompt: q.q, answer: lines(q.options).find((o) => o.startsWith('*'))?.slice(1).trim() || '' }));
     case 'truefalse':
@@ -54,20 +61,37 @@ function itemsOf(block) {
       return itemsOf({ ...block, type: ['choice', 'truefalse', 'match'].includes(d.mode) ? d.mode : 'choice' });
     default:
       if (typeof def?.answers !== 'function') return [];
-      return (def.answers(d, block) || []).map(({ key, accept }) => ({ prompt: `${key}`, answer: (accept || []).map(variants).join(' / ') }));
+      // a bare item number is no prompt: the key numbers the items itself (dictation, word order)
+      return (def.answers(d, block) || []).map(({ key, accept }) => {
+        const answer = (accept || []).map(variants).join(' / ');
+        return { prompt: answer && /^[\d.]+$/.test(String(key)) ? '' : `${key}`, answer };
+      });
   }
 }
 
 // data.teacher: how to run an open task (role play, speaking, a game) — also with one learner, when the teacher is the
 // partner (docs/METHODOLOGY_STANDARD.md §3); course files: teach(block, note)
+function taskKey(b, num) {
+  const why = lines(b.data?.explain);
+  const items = itemsOf(b).filter((it) => it.answer || it.prompt).map((it, i) => ({ n: i + 1, ...it, why: why[i] || '' }));
+  // the listening script is for the teacher only (the editor says „õpilane ei näe”)
+  const transcript = String(b.data?.transcript || '').trim();
+  return { id: b.id, num, type: b.type, title: b.data?.title || BLOCKS[b.type]?.label || b.type, instruction: b.data?.instruction || '', note: String(b.data?.teacher || '').trim(), transcript, items };
+}
+
 export function answerKeyOf(doc) {
   const blocks = doc?.blocks || [];
   const nums = numberTasks(blocks);
-  return blocks.filter((b) => BLOCKS[b.type]?.task).map((b) => {
-    const why = lines(b.data?.explain);
-    const items = itemsOf(b).filter((it) => it.answer || it.prompt).map((it, i) => ({ n: i + 1, ...it, why: why[i] || '' }));
-    return { id: b.id, num: nums[b.id], type: b.type, title: b.data?.title || BLOCKS[b.type]?.label || b.type, instruction: b.data?.instruction || '', note: String(b.data?.teacher || '').trim(), items };
-  }).filter((t) => t.items.length || t.note);
+  return blocks.filter((b) => BLOCKS[b.type]?.task).map((b) => taskKey(b, nums[b.id])).filter((t) => t.items.length || t.note);
+}
+
+// the key of one task, numbered as on the sheet (the teacher clicks a task in a live or review view); null for a
+// block that is no task. An open task without answers still returns its note / script, or an empty item list.
+export function blockAnswerKey(doc, blockId) {
+  const blocks = doc?.blocks || [];
+  const block = blocks.find((b) => b.id === blockId);
+  if (!block || !BLOCKS[block.type]?.task) return null;
+  return taskKey(block, numberTasks(blocks)[block.id]);
 }
 
 // how many items of a task have an explanation (quality check for course files)

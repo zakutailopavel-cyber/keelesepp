@@ -28,8 +28,11 @@ function worksheetEvidence(assignments, now) {
     if (a.status !== 'done' || !a.worksheetDoc?.blocks?.length) continue;
     const w = weightAt(time(a.completedAt), now);
     let perBlock = {};
-    try { perBlock = scoreDocument(a.worksheetDoc, a.answers || {}).perBlock; } catch { continue; }
+    let left = new Set();
+    try { const scored = scoreDocument(a.worksheetDoc, a.answers || {}); perBlock = scored.perBlock; left = new Set((scored.skipped || []).map((item) => item.id)); } catch { continue; }
     for (const block of a.worksheetDoc.blocks) {
+      // a task done in the lesson (no answers in the sheet) or marked „Ei hinnata” is no evidence (owner 2026-10-27)
+      if (left.has(block.id)) continue;
       const skill = TASK_SKILL[block.type];
       const items = perBlock[block.id];
       if (!skill || !items?.length) continue;

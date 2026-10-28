@@ -446,8 +446,8 @@ export const LESSONS = withShapes({
         ['trepp lifti asemel', 'vesi kohvi asemel', 'lõunajalutuskäik', 'puuvili magusa asemel', 'telefonita koosolek', 'varem magama'], 'Millised kolm harjumust meeskond valib ja miks need sobivad kõigile?'), { main: true }),
       'Üks-ühele: õpetaja on Markus, kes ei taha trepist käia; õpilane põhjendab ja pakub kompromissi. Lõpus lepivad nad kokku kolm harjumust.'),
       teach(tag(B.speaking('003_t_photo', 'Pilt kontorist.', 'Vaata pilti Anna küsitlusest. Kirjelda pilti ja võrdle seda oma töö või kooliga.', [
-        'Kes on pildil ja mida nad teevad?', 'Mida Anna sinu arvates küsib?', 'Kas sinu töökohas on samasuguseid harjumusi?', 'Mida sinu kolleegid või kursusekaaslased tavaliselt joovad ja söövad?', 'Millise harjumuse sa ise valiksid?',
-      ], [60, 120], ['Pildil on…', 'Minu töökohas…', 'Ma valiksin…, sest…']), { task: 'S06', fluency: true }), 'Üks-ühele: õpilane kirjeldab pilti õpetajale ilma pausideta; õpetaja küsib kaks lisaküsimust.'),
+        'Kes on pildil ja mida nad teevad?', 'Mida Anna sinu arvates küsib?', 'Kas sinu töökohas on samasuguseid harjumusi?', 'Mida sinu kolleegid või kursusekaaslased tavaliselt joovad ja söövad?', 'Millise harjumuse sa ise valid ja miks?',
+      ], [60, 120], ['Pildil on…', 'Minu töökohas…', 'Ma valin…, sest…']), { task: 'S06', fluency: true }), 'Üks-ühele: õpilane kirjeldab pilti õpetajale ilma pausideta; õpetaja küsib kaks lisaküsimust.'),
       tag(B.examWriting('003_t_note', 'Teade meeskonnale.', 'Kirjuta kolleegidele umbes 50 sõna. Kirjuta kõigist neljast punktist.', 'teade', {
         situation: 'Liis palus sul kirjutada meeskonnale, mida te kokku leppisite.', points: ['millised kolm harjumust te valisite', 'millal nädal algab', 'mida igaüks peab kaasa võtma', 'kus te kokku saate'], words: [40, 60], opening: 'Head kolleegid!',
       }), { level: 3 }),
@@ -474,7 +474,7 @@ export const LESSONS = withShapes({
         ['B', 'Siis peame plaani muutma. Mõtleme õhtul edasi!'],
       ], 'g_read'),
       teach(tag(B.speaking('004_d_try', 'Proovi ise.', 'Seleta õpetajale või paarilisele Sofia probleemi ja paku üks lahendus.', [
-        'Mis muutus Sofia nädalas?', 'Miks ei sobi neljapäev ega reede?', 'Mida Sofia võiks teha?', 'Mida sina teeksid Sofia asemel?', 'Kuidas sa Annale oma plaani pakuksid?',
+        'Mis muutus Sofia nädalas?', 'Miks ei sobi neljapäev ega reede?', 'Mida Sofia võiks teha?', 'Mida sina teed, kui sul on samasugune nädal?', 'Kuidas sa pakud Annale oma plaani?',
       ], [60, 120]), { task: 'S13' }), 'Üks-ühele: õpilane seletab õpetajale probleemi oma sõnadega; õpetaja ei paranda, vaid märgib kohavormid ja palved, mis tulid raskelt.'),
       tag(B.listening('004_d_voice', 'Sofia häälsõnum Annale.', 'Kuula Sofia häälsõnumit Annale. Vasta igale küsimusele ühe-kahe sõnaga.', [
         'Tere, Anna! Ma mõtlesin meie probleemi üle ja mul on idee.',

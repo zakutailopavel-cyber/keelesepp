@@ -133,6 +133,36 @@ export function planMove(item, { toDate, toTime, duration, scope = 'single' }) {
   };
 }
 
+// „Asendab” (owner 2026-10-28): another teacher gives this one lesson. A one-off lesson changes its teacher; a lesson
+// of a series becomes a one-off copy on the same date and time (the series skips that date), like a single move. The
+// main teacher is kept in substituteFor; giving the lesson back to them clears it. Pay and the teacher's calendar
+// follow teacherUid.
+export function planSubstitute(item, { teacher, teacherUid }) {
+  const main = item.substituteFor || { teacher: item.teacher || '', teacherUid: item.teacherUid || '' };
+  const back = (teacherUid && teacherUid === main.teacherUid) || (!teacherUid && teacher === main.teacher);
+  const fields = { teacher, teacherUid, substituteFor: back ? null : main };
+  if (!item.recurring) {
+    return {
+      apply: [{ op: 'patch', id: item.id, fields }],
+      undo: [{ op: 'patch', id: item.id, fields: { teacher: item.teacher || '', teacherUid: item.teacherUid || '', substituteFor: item.substituteFor || null } }],
+    };
+  }
+  const from = item.occurrenceDate || item.date;
+  const base = Object.fromEntries(COPY_FIELDS.filter((key) => item[key] !== undefined && item[key] !== '').map((key) => [key, item[key]]));
+  const excluded = item.excludedDates || [];
+  const extra = Object.fromEntries(['online', 'roomId', 'roomName'].filter((key) => item[key] !== undefined && item[key] !== '').map((key) => [key, item[key]]));
+  return {
+    apply: [
+      { op: 'patch', id: item.id, fields: { excludedDates: [...new Set([...excluded, from])] } },
+      { op: 'create', key: 'single', data: { ...base, ...extra, ...fields, date: from, day: dayId(from), time: item.time, duration: Number(item.duration) || 60, recurring: false, status: 'Planeeritud', movedFromSeriesId: item.id, movedFromDate: from } },
+    ],
+    undo: [
+      { op: 'remove', key: 'single' },
+      { op: 'patch', id: item.id, fields: { excludedDates: excluded } },
+    ],
+  };
+}
+
 // Fields that belong to one displayed occurrence, not to the stored schedule record.
 const OCCURRENCE_FIELDS = ['occurrenceDate', 'occurrenceId', 'lessonRecordId', 'record', 'recordTopic'];
 // The old Google event is deleted with the record; a restored record must get a fresh one.

@@ -13,10 +13,12 @@ import { accountApprovalsService } from '../../services/firebase/accountApproval
 import { messagesService } from '../../services/firebase/messages.js';
 import { clearTestSession, testSessionName } from '../../services/firebase/auth.js';
 import GuideBanner from '../../features/guide/GuideBanner.jsx';
+import { WhatsNewDialog } from '../../features/guide/WhatsNew.jsx';
 import AnnouncementGate from '../../features/announcements/AnnouncementGate.jsx';
 import { isLearnerAccount } from '../../features/announcements/announcementModel.js';
 import MissingDataGate from '../../features/missing-data/MissingDataGate.jsx';
 import './appShell.css';
+import StudentContextMenu from '../StudentContextMenu.jsx';
 
 function initials(name) {
   return String(name || '?').split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
@@ -60,6 +62,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
 
   return (
     <AnnouncementGate enabled={gated} user={user} onSignOut={signOut} {...(announcements ? { service: announcements } : {})}>
+      {isStaff ? <StudentContextMenu /> : null}
     <MissingDataGate enabled={gated} user={user} onSignOut={signOut} {...(missingData ? { service: missingData } : {})}>
     <div className="app-shell">
       <button className={`backdrop ${menuOpen ? 'is-open' : ''}`} onClick={() => setMenuOpen(false)} aria-label="Sulge menüü" />
@@ -92,6 +95,7 @@ export default function AppShell({ approvals = accountApprovalsService, messages
       <main className="main-area">
         <LessonInvitationOverlay />
         <GuideBanner user={user} preview={preview} />
+        <WhatsNewDialog user={user} preview={preview} />
         {testSessionName() && !preview ? <div className="preview-banner" role="status"><span><strong>Testõpilase seanss: {testSessionName()}</strong><small>Sa oled sisse logitud testõpilasena · administraatoriks naasmiseks logi uuesti sisse</small></span><button onClick={() => { clearTestSession(); signOut(); }}>Lõpeta testseanss</button></div> : null}
         {preview ? <div className="preview-banner" role="status"><span><strong>Vaatad süsteemi kasutajana: {user.displayName || user.email}</strong><small>Read-only tugivaade · administraatori seanss jääb aktiivseks</small></span><button onClick={exitPreview}>Lõpeta vaade</button></div> : null}
         <header className="topbar">

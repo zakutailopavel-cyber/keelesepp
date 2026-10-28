@@ -16,7 +16,7 @@
 //       again — a call to the manager, a warranty claim and a review. Participles come back in 054.
 // Lesson 5 (055) is the module exam in Harno B1 form (unchanged). The v3 file is in archive/v3/b1/module11.js, the v1
 // file in archive/v1/b1/module11.js.
-import { B, teach } from '../blocks.js';
+import { B, tag, teach } from '../blocks.js';
 
 export const MODULE = { id: 'a2b1-module-11', course: 'b1', title: 'Raha, ostlemine ja teenused', level: 'B1', design: 'v2', template: 'v4' };
 
@@ -137,7 +137,7 @@ export const LESSONS = {
         'väike | [väiksem] | [kõige väiksem]', 'hea | [parem] | [kõige parem]', 'mugav | [mugavam] | [kõige mugavam]', 'lihtne | [lihtsam] | [kõige lihtsam]', 'pikk | [pikem] | [kõige pikem]',
       ], 'g_notice'),
       B.vocab('052_d_vocab', 'Tunni sõnad.', ['kasutatud — подержанный', 'kuulutus — объявление', 'odavam — дешевле', 'uuem — новее', 'parem — лучше', 'kõige — самый', 'kütus — топливо', 'pagasiruum — багажник', 'proovisõit — тест-драйв', 'otsustama — решать']),
-      teach(B.speaking('052_d_cars', 'Kumb auto sobib?', 'Arutage paarilisega 2–3 minutit. Kasutage vähemalt viis võrdlust.', ['Kumb auto on odavam, uuem ja suurem?', 'Kumb sobib paremini linna ja kumb pikale reisile?', 'Mis on Jaani perele kõige tähtsam?', 'Kumma auto teie valiksite? Miks?', 'Mis on sulle autot või ratast valides kõige tähtsam?'], [120, 180], ['… on odavam kui …', 'Kõige tähtsam on…', 'Ma valiksin…, sest…']), 'Üks-ühele: õpetaja kaitseb Toyotat, õpilane Škodat; siis vahetage pooled.'),
+      teach(B.speaking('052_d_cars', 'Kumb auto sobib?', 'Arutage paarilisega 2–3 minutit. Kasutage vähemalt viis võrdlust.', ['Kumb auto on odavam, uuem ja suurem?', 'Kumb sobib paremini linna ja kumb pikale reisile?', 'Mis on Jaani perele kõige tähtsam?', 'Kumma auto teie valite? Miks?', 'Mis on sulle autot või ratast valides kõige tähtsam?'], [120, 180], ['… on odavam kui …', 'Kõige tähtsam on…', 'Ma valiksin…, sest…']), 'Üks-ühele: õpetaja kaitseb Toyotat, õpilane Škodat; siis vahetage pooled.'),
       B.writing('052_d_write', 'Kaks asja minu elust.', 'Võrdle 10–12 lausega kaht asja oma elust: kaht linna, poodi, telefoni või korterit.', [10, 12], ['odavam', 'parem', 'kui', 'kõige'], 3),
     ],
     practice: [
@@ -435,6 +435,8 @@ export const LESSONS = {
       teach(B.rolecards('054_t_call', 'Kõne poe juhatajale.', 'A on klient, B on poe juhataja. Rääkige 3–4 minutit. Siis vahetage.',
         'Oled Sofia. Selgita probleemi sammhaaval. Ütle, miks garantii kehtib. Nõua tasuta remonti, uut telefoni või raha tagasi.', 'Oled poe juhataja. Esialgu ütle, et telefon on märg. Küsi tõendeid. Lõpuks paku üht lahendust ja selgita järgmisi samme.',
         ['Garantii kehtib kuni…', 'Parandatud telefon läks jälle…', 'Ma sooviksin…'], ['Kas teil on remondiakt alles?', 'Me saame pakkuda…', 'Täitke palun e-teeninduses vorm.']), 'Üks-ühele: õpetaja on juhataja ja ei nõustu kohe; õpilane põhjendab vähemalt kolm korda. Siis vahetage.'),
+      teach(tag(B.speaking('054_t_rec', 'Kodus: seleta vanaemale.', 'Vanaema tahab e-poest osta. Seleta talle häälsõnumis (1–2 minutit), kuidas tellida ja maksta. Salvesta.', ['Kuidas leida õige e-pood?', 'Kuidas tellida?', 'Kuidas maksta turvaliselt?', 'Mida teha, kui asi ei sobi?', 'Millele peab tähelepanu panema?'], [60, 120], ['Kõigepealt ava…', 'Siis vajuta…', 'Ole ettevaatlik, kui…']), { task: 'S15', level: 3 }),
+        'Kodune häälsõnum. Tunnis on õpetaja vanaema ja küsib kaks küsimust.'),
       B.letter('054_t_claim', 'Garantiinõue e-teenindusse.', 'Kirjuta e-teenindusse garantiinõue: mida, millal ja kus ostsid, mis juhtus, mida pood tegi, mida nõuad. Siis vajuta „Saada”.', 'Tere, klienditeenindus!', 'Lugupidamisega', [80, 100]),
       B.writing('054_t_review', 'Arvustus teeninduse kohta.', 'Kirjuta poe kodulehele arvustus 9–11 lausega: mis oli hea, mis halb ja kas soovitad seda poodi.', [9, 11], ['teenindaja', 'parandatud', 'soovitan', 'kahjuks'], 3),
       teach(B.rubric('054_t_rubric', 'Kas nõue ja arvustus on selged?', 'Paariline loeb ja märgib.', ['Nõudes on ost, kuupäev, probleem ja soov.', 'Nõue on põhjendatud: garantii kehtib, viga tuli tagasi.', 'Kasutatud on kesksõnu: ostetud, makstud, parandatud, kehtiv.', 'Arvustuses on hea, halb ja soovitus.', 'Toon on viisakas ka siis, kui oled pahane.']), 'Üks-ühele: õpetaja loeb nõuet poe juhataja silmadega ja arvustust tavalise kliendi silmadega; koos märgitakse rubriik.'),

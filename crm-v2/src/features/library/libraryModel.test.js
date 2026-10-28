@@ -129,6 +129,7 @@ describe('subjects', () => {
   it('reads the subject from the level label and counts it', async () => {
     const { subjectOfLevel, subjectFacets } = await import('./libraryModel.js');
     expect(['A2', 'B1', 'C1', '9. klass emakeel', 'English A2', '—', ''].map(subjectOfLevel)).toEqual(['et', 'et', 'et', 'ek', 'en', '', '']);
+    expect(['Eelkool 5–6 a', 'Kooliks valmis 6–7 a', '2.–3. klass 8–9 a'].map(subjectOfLevel)).toEqual(['kids', 'kids', 'kids']);
     expect(subjectFacets([{ level: 'A2' }, { level: 'B2' }, { level: 'English B1' }]).map((f) => [f.key, f.count])).toEqual([['et', 2], ['en', 1]]);
   });
 });

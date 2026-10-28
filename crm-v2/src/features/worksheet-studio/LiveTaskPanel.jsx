@@ -5,7 +5,7 @@ const TONE_LABEL = { good: 'Kõik õige', mixed: 'Osaliselt', hard: 'Raske', idl
 
 // The teacher's task list in a live worksheet lesson: how each task goes (right / answered / all), step mode (open
 // tasks one by one) and „Näita vastust” per task. After the lesson the same list says which tasks were hard.
-export default function LiveTaskPanel({ stats, step, shown, busy = false, done = false, onStep, onOpen, onShow }) {
+export default function LiveTaskPanel({ stats, step, shown, busy = false, done = false, onStep, onOpen, onShow, onShowAll = null }) {
   const open = new Set(step?.open || []);
   const visible = new Set(shown || []);
   const stepOn = Boolean(step?.on);
@@ -21,6 +21,15 @@ export default function LiveTaskPanel({ stats, step, shown, busy = false, done =
           </button>
         ) : null}
       </div>
+      {onShowAll && !done ? (() => {
+        const keyed = stats.filter((s) => s.total);
+        const allShown = keyed.length > 0 && keyed.every((s) => visible.has(s.id));
+        return (
+          <button type="button" className={`st-btn ws-live-showall ${allShown ? 'is-on' : ''}`} aria-pressed={allShown} disabled={busy} onClick={() => onShowAll(!allShown)}>
+            {allShown ? <><EyeOff size={15} aria-hidden="true" /> Peida kõik vastused</> : <><Eye size={15} aria-hidden="true" /> Näita kõik vastused</>}
+          </button>
+        );
+      })() : null}
       {stepOn && !done ? (
         <div className="ws-live-step">
           <span>Avatud {stats.filter((s) => open.has(s.id)).length}/{stats.length}</span>
