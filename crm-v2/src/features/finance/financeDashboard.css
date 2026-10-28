@@ -68,7 +68,14 @@
 .fd-chart-scroll { overflow-x: auto; overflow-y: hidden; margin: 0 -4px; padding: 0 4px; }
 @media (max-width: 640px) { .fd-chart-wrap { min-width: 600px; } }
 /* the period switch: Kuu / 3 kuud / 6 kuud / Aasta (owner 2026-10-27) */
-.fd-periods { display: flex; width: fit-content; max-width: 100%; flex-wrap: wrap; gap: 4px; padding: 4px; margin: 0 0 14px; border: 1px solid #e5e9e5; border-radius: 12px; background: #fff; }
+.fd-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 14px; }
+.fd-month { display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid #e5e9e5; border-radius: 12px; background: #fff; }
+.fd-month button { display: inline-grid; place-items: center; min-width: 32px; height: 32px; border: 0; border-radius: 9px; background: transparent; color: #176553; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.fd-month button:disabled { color: #c3ccc8; cursor: default; }
+.fd-month button:not(:disabled):hover { background: #eef6f2; }
+.fd-month select { border: 0; background: transparent; font: inherit; font-size: .9rem; font-weight: 700; color: #123f37; padding: 6px 4px; cursor: pointer; }
+.fd-month .fd-month-now { padding: 0 10px; background: #eef6f2; }
+.fd-periods { display: flex; width: fit-content; max-width: 100%; flex-wrap: wrap; gap: 4px; padding: 4px; margin: 0; border: 1px solid #e5e9e5; border-radius: 12px; background: #fff; }
 .fd-periods button { border: 0; background: transparent; padding: 7px 14px; border-radius: 9px; font: inherit; font-size: .85rem; font-weight: 700; color: #5b6b66; cursor: pointer; }
 .fd-periods button.is-active { background: #176553; color: #fff; }
 .br { display: grid; gap: 12px; padding-top: 6px; border-top: 1px solid #e4ece8; }
