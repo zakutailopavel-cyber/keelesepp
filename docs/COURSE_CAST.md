@@ -138,8 +138,30 @@ Keep facts consistent; add new facts here when a module adds them.
 - **Module 14:** Helgi born 1966 in Kõrvemaa, studied in Tartu 1984–89, village-school teacher, family moved to Tartu
   in 2000; the father of Jaan and Sofia was a maths teacher; Viktor built his sauna in 1988, repairs bikes since losing
   his job in 1993; Kristel Saar grew up on Saaremaa; the school story evening is on 12 December.
-- **Module 13:** Jaan's block is **Männi 8**; tenant **Karl** (night shifts at the airport, a dog); housing association
-  head **Urmas**; maintenance company worker **Kerli**.
+- **Module 13 (final shape, 2026-10-29, July – August 2027):** Jaan's block **Männi 8** (fictional; Jaan's family in
+  flat 9, 3rd floor) is renovated 12 July – 27 August by the firm **„Kindel Katus”** (foreman **Andres**): roof 12–30
+  July (loudest 12–16 and 19–23 July, quiet work only 8–10), stairwell painted 2–13 August, balconies 16–27 August
+  (empty by 15 August); bikes out of the basement by Sunday 11 July. Housing association head **Urmas** (answers 17–19
+  on weekdays); tenant **Karl** (flat 12, 4th floor under the roof, three months in the house, night shifts at Tallinn
+  airport 22–7, sleeps 8–15, dog **Roki**, 3, sister **Laura**); pensioner **Helju** (flat 2, ground floor, heavy
+  flower pots, grey cat **Nurr**, daughter **Kai**); **Taavi** (flat 7, works from home, garage behind the house for
+  five bikes, a trampoline); **Merike** (flat 5); maintenance company worker **Kerli** (exam S2). The association's
+  meeting room on the ground floor (sofa, blackout curtains) is where night workers may sleep in July. The rumour (the
+  house chat on a Tuesday in early August, about Monday): Karl's dog on the fresh stairs, music at 3 a.m., a quarrel
+  with the builders — in truth Nurr's paw prints (the back door was left open for the paint to dry), a car radio in
+  the car park, and Karl did complain at 7.40 because work began at 7.30 (Andres apologised). Neighbours' evening
+  Saturday 28 August at 17 (Karl's apple pie from Helju's recipe). Saaremaa: Wednesday 21 – Sunday 25 July (four
+  nights), Virtsu–Kuivastu ferry, hotel **„Merekivi”** in Kuressaare (fictional; receptionist **Kätlin**, manager
+  **Hannes**): the family room had a burst pipe, two rooms side by side on the 2nd floor, free breakfast, family room
+  from Saturday noon or 20 % off 480 €, the castle courtyard concert on Saturday at 19, late check-out at 12 free.
+  Radio: communication trainer **Evelin Lill** (host Ülle), mediator **Mari Kuusk** (exam L4), consumer adviser **Heli
+  Paju** (exam L2). Tuul Logistika in early August: 29–30 °C, no air conditioning, Liis on holiday near Otepää until
+  23 August; Markus (south window, wants it open and a fan) vs Kristjan (desk under the window, dust allergy from road
+  works, hurt by „you can work from home”); Sofia leads the Wednesday 10.00 meeting: window open 8–10, fan to the
+  wall, Kristjan at Anna's desk while Anna is on holiday, a mobile air conditioner up to 400 € (bought for 390 €),
+  curtains ~60 €; Sofia's letter to Liis; Liis offers Sofia a communication course in Tartu in October. Anna's model
+  letter: last January's door quarrel in the warehouse between **Rein** and **Kati** (a radiator, an air curtain ~600
+  € for Liis to decide).
 - **Module 15:** Sofia aims at the B1 exam in May; Jaan becomes kitchen head at Kase kool from August, dreams of a
   small family café; Viktor rides along Lake Peipsi (Vasknarva → Värska); Oskar turns 10 in April (football camp in
   Pärnu, coach **Raivo**); Mia starts school in September; Kadri wants fewer night shifts; mentor **Eha Org** (head of
