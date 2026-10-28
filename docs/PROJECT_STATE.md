@@ -1,3 +1,57 @@
+## 2026-10-29 · agent/b1-m12-final — B1 module 12 „Ilm, loodus ja keskkond” in the final shape + Mock 1
+
+- Base: `main` a012664 (2026-10-28, after #864 module 11). Draft PR from `agent/b1-m12-final`. Content only; no production
+  data, no publishing, no deploy.
+- Asked (owner): module 12 (a2b1-056…060) to the final shape like modules 2–11 (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 12,
+  V16: in-lesson pair task + home recording, no tingiv kõneviis before module 13); 060 = Mock 1 (§6.1, §6.5 checkpoint).
+- Done: `b1/module12.js` rewritten (June – early July storyline: a hot week, jaanipäev at Viktor's farm, the thunderstorm
+  on the bog boardwalk and the lost Muki, the storm of the night after jaanipäev and the insurance, the shared Kalamaja
+  courtyard after the storm). §6.2 row 12 used as written:
+  - 056 KUUL L→W — five radio forecasts (L10, numbers), läheb jahedamaks / muutub tuuliseks (notice, rule G02), what to
+    wear (G04), weather photo to three listeners (S06) and 8-min writing (W06); forms (G13), corner **L2** (radio
+    „Päevateema”, meteorologist Ragnar Vaher), weather page true / false / not stated (R06), dictation (L08), forecast
+    language (G05), info gap (S05); Kasuta: Viktor's voicemail (L07), call to the village hall (S04), home voice message
+    (S15), main **W04** letter to Lena 80–100 words.
+  - 057 LUGU R→W — the story „Äike tuleb kaks tundi varem” (R13 predict), Oskar's jaanilaupäev (L09), kui / enne kui /
+    pärast seda, kui, past and pluperfect (G02), word order (G07), retold twice (S07); collocations (G08), corner **R2**
+    (article on thunderstorms in nature), radio notices (L01), hiker's checklist with a word bank (R04, `bankText`),
+    joining (G05), Oskar's errors (G06), topic questions twice (S02); Kasuta: Oskar's diary (R05), where to look for Muki
+    (S12 ranking), Mia's version recorded at home (S15), main **W05** end of the story ~100 words, rewrite (W10).
+  - 058 AVAS R→S — try first (G13), the parish news (R09), cause and result (notice, G04), try again (G03), 4-3-2 (S08),
+    relaying to Sofia (S13); Jaan's call (L04), notices after the storm (R07), corner **R3a** (parish paper cloze),
+    joining with cause / result (W09), word formation (G09), the neighbour's spruce (S10); Kasuta: the same situation
+    again — insurance terms and Viktor's list (R08, `level: 3`), main **S04** call to the insurer, home message to Helgi
+    (S15), written answer to the insurer (W08).
+  - 059 RÄÄK L→S — radio interview on waste (L05 true / false), opinion + reason + example (notice), verb government
+    (G08), the house chat (R12 reading), survey of three people (S09), five opinions (S11), Tiina's draft made polite
+    (W12); services for old things (R01), neighbours' voicemails (L03), crossword (G11), the sorting rules (G03),
+    Joosep's draft (G06), topic questions twice (S02); Kasuta: three proposals (R11, `level: 3`), main = corner **S1b**
+    agreement at the meeting within 300 €, home summary (S15), invitation to the clean-up day (W03).
+  - 060 PROOV — Mock 1, full Harno B1 form and timing: R1 (9), R2 (6), R3b (10), R4 (8) = 33 p, 50 min · L1 (7), L2 (6),
+    L3b (8), L4 (9) = 30 p · W1a + W2b = 20 p · S0, S1a, S1b, S2 = 20 p; every `examPart` and the points rubrics show the
+    §6.5 checkpoint (R 20, L 18, W 12, S 12; below it → catch-up plan for that skill in modules 13–15) and the 80 % target;
+    warm-up sheet with the end of the summer story. Sheet split as in 055 (Harjuta R + L, Kasuta W + S).
+- Also: goals and can-do 056–060 in `b1/lessonGoals.js` (060 keeps a g_vocab goal like 055, `lessonGoals.test.js` lists
+  only 5, 10, 20, … as assessments); cast facts in `docs/COURSE_CAST.md`; module-12 note in `COURSE_FINAL_SHAPE_B1.md`
+  §6.2; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.5. No picture briefs existed for module 12 (no
+  `art/visuals/b1-module-12.js`), none added.
+- Audio: 12 new recordings (TartuNLP, free) in `public/audio/a2b1-056…060`; 7 old files and their manifest entries
+  removed (058_p_call re-recorded); all speaker names were already in `tools/listening-audio/plan.mjs`. The mock's
+  recordings are shorter than Harno's (L2 74 s, L3b 93 s, L4 99 s against 2–3.5 min).
+- Checks: `course:final-shape --module 12` 60 → 0. `finalShapeBaseline.json` 546 → 462 problems (module 12 −60, 24
+  V1/V2/V7 lines of modules 13–15 gone with the old module-12 texts, course `V6-variant-L3b` and `V6-variant-R3b`
+  closed by the mock); no line added. Older quality gate and strict gate for module 12: 0 (no quality-baseline lines).
+  `npx eslint src`: 0 errors (17 old warnings). Full `npx vitest run`: 402 files passed (1 skipped), 2744 tests passed,
+  4 skipped. Vabamorf speller: 0 unknown words except names and the technical value `kusimustik`.
+- Limits: teaching sheets are 40–52 min; R08 and R11 in Kasuta carry `level: 3` (application questions); 057's R04 word
+  bank is a `bankText` (insertion) so that Harjuta has ≤ 2 drills; the mock's R3b and R4 are `gaps` texts with a bank
+  and its R2 text has one unscored opinion question (as in 055); real-world facts are simplified for B1 (lightning 3 s ≈
+  1 km, 30 s / 30 min rule, a full freezer keeps cold ~2 days, storm ≥ 17 m/s in home insurance, ticks and the TBE
+  vaccine); places like Kõrve järv / Kõrve raba and the firms are fictional. V1/V2 against 054 and 061 (module 13 is
+  not rewritten yet) were checked on today's `main`.
+- Next safe step: owner reviews module 12 in „Kursuse tootmine” and publishes it; the module 13 author starts 061 with a
+  corner other than S1b (059's corner) and re-checks V1/V2 against 059.
+
 ## 2026-10-28 · agent/b1-m11-final — B1 module 11 „Raha, ostlemine ja teenused” in the final shape
 
 - Base: `main` 560ca9a (2026-10-28, after #805 module 10 and #806 module 9). Draft PR from `agent/b1-m11-final`. Content

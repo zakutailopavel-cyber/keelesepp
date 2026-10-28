@@ -107,6 +107,22 @@ Keep facts consistent; add new facts here when a module adds them.
   (Karin's floor 7800 € + winter tyres). Kadri's e-shop **Lasteriie** (agent **Martin**, order 48 215: spring jacket 140,
   got 128). Consumer adviser **Heli Paju** on Ülle's radio („Tarbija tund”, „Päevateema”); **Kodupank** (**Pirjo**):
   Viktor's bike buyer paid to his closed old account. Surnames: Sofia and Kadri are **Mets**.
+- **Module 12 (final shape, 2026-10-29, June – early July):** a hot week in Tallinn (28 °C, Võru 31 °C); radio
+  meteorologist **Ragnar Vaher** (host Ülle, „Päevateema”). Jaanipäev at Viktor's farm in Kõrvemaa: the family drives in
+  the Škoda, Sofia and Helgi (staying at Sofia's) take the train to Aegviidu (arrives 12.20, Jaan picks them up); thunder
+  at ~15.00 on jaanilaupäev, 15 °C in the evening; the village bonfire at **Kõrve järv** beach at 22.00, run by the village
+  hall head **Ants**; Viktor's neighbour **Ülo** (saw, two sons); Oskar's friend **Rasmus** (Tõnu's son) on the phone.
+  Jaanipäev: bog walk on the **Kõrve raba** boardwalk (2 km from the farm, tower); the storm comes two hours early, Mia's
+  red boot sinks into the moss, Muki runs away (a noise in the sauna at night — the learner writes the ending). The night after
+  jaanipäev: storm, a birch falls on Viktor's sauna roof (2 m hole), 30 hours without power (well pump, freezer: meat and
+  fish for ~120 €), Ülo's spruce breaks 10 m of Viktor's fence; insurer **Kodukaitse** (agent **Egle**, contract 55 210,
+  storm ≥ 17 m/s, deductible 100 € per event, gardens and fences not covered → 1420 € paid); the village shop wrote debts
+  in a notebook. Kalamaja: Valgevase 7 and 3 share a courtyard; association fund 300 € for a summer project; proposals —
+  **Leida** compost box (40 €), **Joosep** sharing shelf in the stairwell (30 €), **Merilin** (Valgevase 3) flower beds,
+  rain barrel and benches (330 €); **Arvo** has a cart and rake, **Kalle** works at the port and has a car; meeting
+  Thursday 19.00, clean-up day on the first Saturday of July (22 neighbours). Waste adviser **Mailis Raudsepp** (radio).
+  Mock 1 (060) texts: beekeeper **Ain**, holiday house „Kännu” (**Kerttu**), forest ranger **Kalju** (25 years in
+  Kõrvemaa), Olena's friend **Irina**, Olena and Daria's jaanipäev on Saaremaa, friend **Marko** (W2b).
 - **Module 9:** Sofia's firm is **Tuul Logistika** (Liis boss, Markus logistician, Anna project leader — came a year ago
   from shop customer service); new administrator **Jelena**.
   Module 9 final shape (2026-10-26, November): café **Kaneel** is open on Friday and Saturday evenings till 23 from
