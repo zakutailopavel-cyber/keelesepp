@@ -16,7 +16,7 @@ import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
-import { canMove, planDelete, planMove, teacherTone, toClock, toMinutes } from './calendarGrid.js';
+import { canMove, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
@@ -40,6 +40,7 @@ import { candidateTimes, learnedTimes, lessonsOn, overlayBandsOn, studentBandsOn
 
 const blankLesson = () => ({ studentId: '', teacherUid: '', subject: '', date: toIsoDate(), time: '09:00', duration: 60, recurring: false, online: false, roomId: '', status: 'Planeeritud' });
 const viewLabels = { day: 'Päev', week: 'Nädal', month: 'Kuu' };
+const isTeacherAccount = (staff) => staff.role === 'teacher' || (Array.isArray(staff.roles) && staff.roles.includes('teacher'));
 const emptyFilters = () => ({ search: '', teacher: '', student: '' });
 
 function useNarrow(query = '(max-width: 760px)') {
@@ -240,12 +241,15 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     await notesState.reload();
   };
   const occurrences = occurrencesForDates(filteredEvents, dates).map(withRecord);
-  // teachers of the lessons plus (admin) every active staff account, so a new teacher without lessons can be chosen
+  // teachers of the lessons plus (admin) every active teacher account, so a new teacher without lessons can be chosen;
+  // administrators and the accountant without the teacher role are not teachers (owner 2026-10-28)
   const lessonTeachers = [...new Map(events.filter((item) => item.teacher).map((item) => [item.teacherUid || item.teacher, { id: item.teacherUid || item.teacher, name: item.teacher }])).values()];
   const teachers = [
     ...lessonTeachers,
-    ...(teacherState.data || []).filter((staff) => !staff.disabled && !lessonTeachers.some((teacher) => teacher.id === staff.id || isSameTeacher(teacher.name, staff.name))).map((staff) => ({ id: staff.id, name: staff.name })),
+    ...(teacherState.data || []).filter((staff) => !staff.disabled && isTeacherAccount(staff) && !lessonTeachers.some((teacher) => teacher.id === staff.id || isSameTeacher(teacher.name, staff.name))).map((staff) => ({ id: staff.id, name: staff.name })),
   ].sort((a, b) => a.name.localeCompare(b.name, 'et'));
+  // the teachers who can take over a lesson („Asendab”): active teacher accounts
+  const substitutes = (teacherState.data || []).filter((staff) => !staff.disabled && isTeacherAccount(staff)).map((staff) => ({ id: staff.id, name: staff.name }));
   const hasActiveFilters = Boolean(filters.search || filters.teacher || filters.student);
   const today = toIsoDate();
   const historyOf = (studentId) => lessonRecords.filter((lesson) => lesson.studentId === studentId && ['Toimunud', undefined, ''].includes(lesson.status)).sort((a, b) => `${b.date} ${b.time || ''}`.localeCompare(`${a.date} ${a.time || ''}`));
@@ -615,6 +619,20 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       await state.reload();
     } catch (error) { setActionError(error.message || 'Tunni arvestamine ebaõnnestus.'); } finally { setQuickCompleting(''); }
   };
+  const substituteOccurrence = async (teacher) => {
+    const item = panelItem;
+    if (!item) return false;
+    setPanelSaving(true); setPanelError('');
+    try {
+      const plan = planSubstitute(item, { teacher: teacher.name, teacherUid: teacher.id });
+      const created = await runOps(plan.apply, item);
+      setUndo({ label: `${item.studentName} ${item.occurrenceDate}: annab ${teacher.name}`, plan, created, item });
+      // the panel follows the lesson: a lesson of a series is now its own one-off lesson
+      if (created.single) setPanelKey(`${created.single}:${item.occurrenceDate}|${item.occurrenceDate}`);
+      await state.reload();
+      return true;
+    } catch (error) { setPanelError(error.message || 'Asendust ei saanud salvestada.'); return false; } finally { setPanelSaving(false); }
+  };
   const cancelOccurrence = async () => {
     const item = panelItem;
     if (!item || !globalThis.confirm(item.recurring ? 'Tühistada ainult see tund? Järgmised jäävad alles.' : 'Kas tühistada see tund?')) return;
@@ -927,6 +945,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           onRemoveMark={() => fixMark('remove')}
           onSchoolCovered={isAdmin && !panelItem.isGroup ? setSchoolCovered : undefined}
           onCancelGroupLesson={isAdmin && panelItem.isGroup ? cancelGroupOccurrence : undefined}
+          onSubstitute={isAdmin && !panelItem.isGroup ? substituteOccurrence : undefined}
+          teachers={substitutes}
           onStartLive={startLive}
           startingLive={startingLive}
           liveBlocked={panelItem.isGroup ? '' : !studentMap.get(panelItem.studentId) ? 'Õpilase kaarti ei leitud.' : studentAccountUid(studentMap.get(panelItem.studentId)) ? '' : 'Õpilasel pole veel sisselogimiskontot: seo konto õpilase kaardil, siis saab tunni alustada.'}
