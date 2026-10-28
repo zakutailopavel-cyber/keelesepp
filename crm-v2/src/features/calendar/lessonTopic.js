@@ -31,8 +31,15 @@ function flatten(catalog, level) {
   return (catalog.levels.find((entry) => entry.key === level)?.modules || []).flatMap((module) => module.lessons);
 }
 
-// Next lesson after the student's last lesson with a catalogue topic; otherwise the first lesson of their level.
-export function suggestTopic(catalog, { studentLevel = '', history = [] } = {}) {
+// The next lesson of the student's plan; else the lesson after the last one with a catalogue topic; else the first
+// lesson of their level.
+export function suggestTopic(catalog, { studentLevel = '', history = [], plan = null } = {}) {
+  // the student's own „Õppeplaan” first: its first planned lesson that has not been held yet
+  // (a lesson held before the plan was made may be in it on purpose, to repeat)
+  const since = String(plan?.updatedAt || '').slice(0, 10);
+  const held = new Set(history.filter((lesson) => !since || String(lesson.date || '') >= since).map((lesson) => lesson.topicLessonId).filter(Boolean));
+  const planned = (plan?.lessons || []).find((item) => item.status !== 'skipped' && catalog.byId.has(item.id) && !held.has(item.id));
+  if (planned) return catalog.byId.get(planned.id);
   const last = history.find((lesson) => lesson.topicLessonId && catalog.byId.has(lesson.topicLessonId));
   if (last) {
     const current = catalog.byId.get(last.topicLessonId);

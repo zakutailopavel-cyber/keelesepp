@@ -4,6 +4,7 @@
 // The cards move in their boxes as in any session (wordsModel.review), so tomorrow's set follows today's answers.
 import { deckFromWords } from './deckModel.js';
 import { isDue } from './wordsModel.js';
+import { localDate } from '../../utils/localDate.js';
 
 export const DAILY_SIZE = 10;
 export const DAILY_NEW = 3;
@@ -30,7 +31,7 @@ export function dailyWords(words = [], { now = Date.now(), size = DAILY_SIZE } =
 }
 
 // what the student sees before he starts, and whether today's five minutes are done
-export function dailyPlan(words = [], { now = Date.now(), today = new Date(now).toISOString().slice(0, 10) } = {}) {
+export function dailyPlan(words = [], { now = Date.now(), today = localDate(new Date(now)) } = {}) {
   const picked = dailyWords(words, { now });
   const forgotten = picked.filter((word) => (word.box || 0) === 0 && word.reviews > 0 && !isSentence(word)).length;
   const fresh = picked.filter((word) => !(word.reviews > 0)).length;

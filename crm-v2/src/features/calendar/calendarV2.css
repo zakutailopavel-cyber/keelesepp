@@ -109,6 +109,9 @@
 .lp-actions .button:first-child { min-height: 44px; }
 .lp-foot { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid #eef1f4; }
 .lp-foot .button { min-height: 36px; font-size: .85rem; }
+.lp-substitute-form { flex-basis: 100%; padding: 10px; border-radius: 12px; background: #f5faf7; }
+.lp-notes select { border: 1.5px solid #d6dde5; border-radius: 10px; padding: 8px 10px; font: inherit; font-weight: 400; color: #14243a; background: #fff; }
+.lp-head .lp-substitute { display: flex; align-items: center; gap: 5px; margin-top: 4px; color: #8a5a1c; }
 .lp-done { display: grid; gap: 6px; }
 .lp-done p { margin: 0; color: #475467; }
 .lp-series { display: flex; align-items: center; gap: 6px; }
@@ -461,3 +464,10 @@
   .cal2-plan__chip { min-width: 0; width: 100%; }
   .cal2-plan__requests li > span { min-width: 0; width: 100%; }
 }
+
+/* „Uus tund”: the chosen student's free suitable times as one-click buttons (owner 2026-10-27) */
+.cal2-form-times { display: grid; gap: 6px; }
+.cal2-form-times__list { display: flex; flex-wrap: wrap; gap: 6px; }
+.cal2-form-time { border: 1px solid #c7dfd8; background: #f1f8f5; color: #176553; border-radius: 9px; padding: 6px 10px; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
+.cal2-form-time.is-best { border-color: #e7c76a; background: #fff8e1; color: #7a5a00; }
+.cal2-form-time.is-on { background: #176553; border-color: #176553; color: #fff; }

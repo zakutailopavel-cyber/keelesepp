@@ -21,7 +21,10 @@ describe('„Puuduvad andmed” model', () => {
     expect(normalizePhone('+358 40 123 4567')).toBe('+358401234567');
     expect(normalizePhone('123')).toBe('');
     const card = { studentId: 's', kind: 'child', ask: ['email', 'phone', 'parentName', 'grade'], required: ['email', 'grade'] };
-    expect(cardErrors(card, {})).toEqual({ email: 'required', grade: 'required' });
+    // a child's parent e-mail is never required (owner 2026-10-26); a made-up one is refused
+    expect(cardErrors(card, {})).toEqual({ grade: 'required' });
+    expect(cardErrors(card, { email: '123@123.com', grade: '2014' })).toEqual({ email: 'email' });
+    expect(cardErrors({ ...card, kind: 'adult' }, {})).toEqual({ email: 'required', grade: 'required' });
     expect(cardErrors(card, { email: 'x@', phone: '12', parentName: 'Ema', grade: '1999x' })).toEqual({ email: 'email', phone: 'phone', parentName: 'name', grade: 'grade' });
     expect(cardErrors(card, { email: 'ema@x.ee', grade: '2014' })).toEqual({});
   });
@@ -140,7 +143,7 @@ describe('„Puuduvad andmed” gate', () => {
     render(<MissingDataGate enabled user={student} service={serviceWith({ blocks: true, cards: [card], profile: noProfile }, save)}>{app}</MissingDataGate>);
     fireEvent.change(await screen.findByLabelText(/Sinu e-post/), { target: { value: 'kai@x.ee' } });
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Salvesta ja jätka/ })); });
-    expect(screen.getByText(/E-posti aadress ei ole korrektne/)).toBeInTheDocument();
+    expect(screen.getByText(/Kirjuta päris e-posti aadress/)).toBeInTheDocument();
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Salvesta ja jätka/ })); });
     expect(screen.getByText(/Internal error/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Jätka praegu ilma/ }));

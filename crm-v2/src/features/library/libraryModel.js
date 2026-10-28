@@ -259,11 +259,14 @@ export const SUBJECTS = [
   { key: 'et', label: 'Eesti keel' },
   { key: 'ek', label: 'Emakeel' },
   { key: 'en', label: 'Inglise keel' },
+  // the Sunday children's groups (curriculum/kidsCurriculum.js): „Eelkool 5–6 a”, „2.–3. klass 8–9 a” …
+  { key: 'kids', label: 'Lastele' },
 ];
 export function subjectOfLevel(level = '') {
   const value = String(level || '').toLowerCase();
   if (!value || value === '—') return '';
   if (value.startsWith('english') || value.startsWith('en ')) return 'en';
+  if (/\d[–-]\d a$/.test(value)) return 'kids';
   if (value.includes('emakeel') || value.includes('klass')) return 'ek';
   return 'et';
 }

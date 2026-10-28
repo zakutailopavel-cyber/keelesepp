@@ -1,5 +1,6 @@
 // „Pärast tundi” (owner 2026-10-12): from the lesson analysis to the next steps in two clicks — homework on the
 // learner's error topics and word cards from the corrected sentences (the learner writes his own sentence right).
+import { localDate } from '../../utils/localDate.js';
 const DAY = 24 * 60 * 60 * 1000;
 const short = (value, max) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, max);
 
@@ -24,7 +25,7 @@ export function homeworkFromAnalysis({ analysis, recording, now = Date.now() }) 
   return {
     studentId: recording?.studentId || '', studentName: recording?.studentName || '',
     task: short(task, 500), note: short(note, 2000),
-    due: new Date(now + 3 * DAY).toISOString().slice(0, 10),
+    due: localDate(new Date(now + 3 * DAY)),
     invitationId: recording?.invitationId || '', source: 'lesson-analysis',
   };
 }

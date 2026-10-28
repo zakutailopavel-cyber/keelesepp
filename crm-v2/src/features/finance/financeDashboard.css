@@ -1,0 +1,125 @@
+/* „Ülevaade” — revenue and forecast (FinanceDashboard.jsx), in the Finantsid colours */
+.fd { display: grid; gap: 16px; padding: 22px 24px; border: 1px solid #e5e9e5; border-radius: 22px; background: #fff; box-shadow: 0 8px 26px rgba(23,57,49,.06); }
+.fd-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.fd-head h2 { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 1.25rem; color: #123f37; }
+.fd-toggle { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #e5e9e5; border-radius: 999px; background: #fff; padding: 6px 12px; font: inherit; font-size: .82rem; font-weight: 700; color: #176553; cursor: pointer; }
+.fd-toggle:hover { border-color: #93c6b2; }
+.fd-kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.fd-kpi { display: grid; gap: 4px; padding: 14px 16px; border-radius: 16px; background: #f5faf7; min-width: 0; }
+.fd-kpi span { font-size: .76rem; font-weight: 700; color: #4b665e; text-transform: none; }
+.fd-kpi strong { font-size: 1.35rem; color: #123f37; white-space: nowrap; }
+.fd-kpi small { display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; color: #667085; }
+.fd-kpi small.is-up { color: #067647; }
+.fd-kpi small.is-down { color: #b42318; }
+.fd-kpi--forecast { background: #fdf6ea; }
+.fd-kpi--forecast strong { color: #8a5a1c; }
+.fd-chart-card { display: grid; gap: 8px; }
+.fd-legend { display: flex; gap: 16px; font-size: .78rem; font-weight: 700; color: #4b665e; }
+.fd-legend span::before { content: ''; display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
+.fd-legend .is-invoiced::before { background: #176553; }
+.fd-legend .is-received::before { background: #7cc4a6; }
+.fd-legend .is-forecast::before { background: #f4cf91; border: 1px dashed #c98c45; }
+.fd-chart { width: 100%; height: auto; overflow: visible; }
+.fd-grid { stroke: #eef1ee; stroke-width: 1; }
+.fd-axis { font-size: 11px; fill: #8a9893; }
+.fd-axis.is-current { fill: #123f37; font-weight: 800; }
+.fd-detail { margin: 0; font-size: .86rem; color: #344054; }
+@media (max-width: 1180px) { .fd-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .fd { padding: 16px; } .fd-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .fd-kpi strong { font-size: 1.1rem; } }
+.fd-kpi--alert { background: #fef6ee; }
+.fd-legend .is-calendar::before { height: 0; width: 14px; border-top: 2px dashed #c98c45; border-radius: 0; background: none; vertical-align: 3px; }
+.fd-legend { flex-wrap: wrap; }
+
+/* the curves (RevenueChart) */
+.fd-chart-wrap { position: relative; }
+.fd-chart { touch-action: pan-y; cursor: crosshair; }
+.fd-future-zone { fill: #fdf8ef; }
+.fd-line { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fd-line--invoiced { stroke: #176553; stroke-width: 3; stroke-dasharray: 1; stroke-dashoffset: 1; animation: fd-draw 1.1s ease-out forwards; }
+.fd-line--received { stroke: #5fb592; stroke-width: 2.5; stroke-dasharray: 1; stroke-dashoffset: 1; animation: fd-draw 1.1s .15s ease-out forwards; }
+.fd-line--forecast { stroke: #c98c45; stroke-width: 2.5; stroke-dasharray: 7 6; }
+@keyframes fd-draw { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .fd-line--invoiced, .fd-line--received { animation: none; stroke-dashoffset: 0; } }
+.fd-dot { stroke: #fff; stroke-width: 2; transition: r .15s; }
+.fd-dot--invoiced { fill: #176553; }
+.fd-dot--received { fill: #5fb592; }
+.fd-dot--forecast { fill: #f4cf91; stroke: #c98c45; stroke-width: 2; }
+.fd-dot--calendar { fill: #fff; stroke: #c98c45; stroke-width: 2.5; }
+.fd-guide { stroke: #93c6b2; stroke-width: 1; stroke-dasharray: 3 3; }
+.fd-axis.is-future { fill: #b08550; }
+.fd-tip { position: absolute; top: 4px; transform: translateX(12px); display: grid; gap: 3px; min-width: 150px; padding: 10px 12px; border: 1px solid #e5e9e5; border-radius: 12px; background: rgba(255,255,255,.96); box-shadow: 0 10px 24px rgba(23,57,49,.12); font-size: .78rem; color: #4b665e; pointer-events: none; }
+.fd-tip.is-left { transform: translateX(calc(-100% - 12px)); }
+.fd-tip b { color: #123f37; font-size: .82rem; }
+.fd-tip span { display: flex; justify-content: space-between; gap: 12px; }
+.fd-tip strong { color: #123f37; }
+.fd-tip .is-invoiced::before, .fd-tip .is-received::before, .fd-tip .is-forecast::before, .fd-tip .is-calendar::before { content: ''; width: 8px; height: 8px; border-radius: 50%; margin: auto 6px auto 0; }
+.fd-tip span::before { flex: none; }
+.fd-tip .is-invoiced::before { background: #176553; }
+.fd-tip .is-received::before { background: #5fb592; }
+.fd-tip .is-forecast::before { background: #f4cf91; }
+.fd-tip .is-calendar::before { background: #fff; border: 2px solid #c98c45; }
+.fd-tip span { justify-content: flex-start; }
+.fd-tip strong { margin-left: auto; padding-left: 10px; }
+.fd-months { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.fd-legend .is-received::before { background: #5fb592; }
+.fd-legend .is-invoiced::before, .fd-legend .is-received::before { height: 3px; width: 16px; border-radius: 2px; vertical-align: 3px; }
+.fd-legend .is-forecast::before { height: 0; width: 16px; border: 0; border-top: 2.5px dashed #c98c45; background: none; border-radius: 0; vertical-align: 3px; }
+.fd-legend .is-calendar::before { width: 8px; height: 8px; border: 2px solid #c98c45; border-radius: 50%; background: #fff; vertical-align: 0; }
+.fd-chart-scroll { overflow-x: auto; overflow-y: hidden; margin: 0 -4px; padding: 0 4px; }
+@media (max-width: 640px) { .fd-chart-wrap { min-width: 600px; } }
+/* the period switch: Kuu / 3 kuud / 6 kuud / Aasta (owner 2026-10-27) */
+.fd-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 0 0 14px; }
+.fd-month { display: flex; align-items: center; gap: 4px; padding: 4px; border: 1px solid #e5e9e5; border-radius: 12px; background: #fff; }
+.fd-month button { display: inline-grid; place-items: center; min-width: 32px; height: 32px; border: 0; border-radius: 9px; background: transparent; color: #176553; font: inherit; font-size: .85rem; font-weight: 700; cursor: pointer; }
+.fd-month button:disabled { color: #c3ccc8; cursor: default; }
+.fd-month button:not(:disabled):hover { background: #eef6f2; }
+.fd-month select { border: 0; background: transparent; font: inherit; font-size: .9rem; font-weight: 700; color: #123f37; padding: 6px 4px; cursor: pointer; }
+.fd-month .fd-month-now { padding: 0 10px; background: #eef6f2; }
+.fd-periods { display: flex; width: fit-content; max-width: 100%; flex-wrap: wrap; gap: 4px; padding: 4px; margin: 0; border: 1px solid #e5e9e5; border-radius: 12px; background: #fff; }
+.fd-periods button { border: 0; background: transparent; padding: 7px 14px; border-radius: 9px; font: inherit; font-size: .85rem; font-weight: 700; color: #5b6b66; cursor: pointer; }
+.fd-periods button.is-active { background: #176553; color: #fff; }
+.br { display: grid; gap: 12px; padding-top: 6px; border-top: 1px solid #e4ece8; }
+.br h3 { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; font-size: 1.05rem; color: #123f37; }
+.br-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.br-card { display: grid; gap: 3px; padding: 12px 14px; border-radius: 14px; background: #f5faf7; min-width: 0; }
+.br-card span { font-size: .74rem; font-weight: 700; color: #4b665e; }
+.br-card strong { font-size: 1.2rem; color: #123f37; }
+.br-card small { font-size: .72rem; color: #667085; }
+.br-card em { font-style: normal; }
+.br-card--forecast { background: #fdf6ea; }
+.br-card--forecast strong { color: #8a5a1c; }
+.br .is-up { color: #067647; }
+.br .is-down { color: #b42318; }
+.br-states { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; font-size: .8rem; color: #344054; }
+.br-states li { padding: 4px 10px; border-radius: 999px; background: #f2f4f7; }
+.br-states li.is-warn { background: #fef6ee; color: #93370d; }
+.br-people { display: grid; gap: 4px; font-size: .84rem; color: #344054; }
+.br-people p { margin: 0; }
+.br-people .is-warn { color: #93370d; }
+.br-table-wrap { overflow-x: auto; }
+.br-table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.br-table caption { text-align: left; font-weight: 700; color: #4b665e; padding-bottom: 4px; }
+.br-table th, .br-table td { padding: 6px 8px; text-align: right; border-bottom: 1px solid #eef2f0; white-space: nowrap; }
+.br-table th[scope="row"], .br-table thead th:first-child { text-align: left; }
+.br-table thead th { font-size: .74rem; color: #667085; font-weight: 700; }
+.br-muted { color: #98a2b3; font-weight: 400; }
+.br-pnl { display: grid; gap: 8px; padding: 14px 16px; border-radius: 16px; background: #f8faf9; border: 1px solid #e4ece8; }
+.br-pnl h4 { margin: 0; font-size: .95rem; color: #123f37; }
+.br-lines { display: grid; gap: 2px; margin: 0; }
+.br-lines div { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-bottom: 1px dashed #e4ece8; font-size: .88rem; }
+.br-lines dt { color: #344054; }
+.br-lines dt small { color: #667085; }
+.br-lines dd { margin: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.br-lines .br-total { border-bottom: 0; font-weight: 700; font-size: 1rem; }
+.br-note { margin: 0; font-size: .84rem; color: #344054; line-height: 1.45; }
+.br-note.is-warn, .br-warn-text { color: #93370d; }
+.br-forecast { padding-top: 6px; border-top: 1px solid #e4ece8; }
+.br-details { border: 1px solid #e4ece8; border-radius: 12px; padding: 8px 12px; }
+.br-details summary { cursor: pointer; font-weight: 700; color: #123f37; font-size: .9rem; }
+.br-settings { display: grid; gap: 8px; padding-top: 8px; max-width: 520px; }
+.br-cost { display: grid; grid-template-columns: 1fr 110px auto; gap: 6px; align-items: center; }
+.br-icon, .br-add, .br-save { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #d0d5dd; background: #fff; border-radius: 10px; padding: 6px 10px; cursor: pointer; font: inherit; font-size: .84rem; }
+.br-save { background: #176553; color: #fff; border-color: #176553; justify-self: start; }
+.br-field { display: grid; gap: 4px; font-size: .8rem; font-weight: 700; color: #4b665e; }
+.br-table td.is-up, .br-table td.is-down { font-variant-numeric: tabular-nums; }
+.br-table a { color: inherit; }

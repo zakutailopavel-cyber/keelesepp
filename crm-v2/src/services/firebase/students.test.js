@@ -72,4 +72,12 @@ describe('teacher change keeps the study track in step', () => {
     expect(withMainTrackTeacher(two, { subject: 'Matemaatika', teacher: 'X', teacherUid: 'x' }, 'Jegor Fjodorov', 'jeg')).toBeNull();
     expect(withMainTrackTeacher([], current, 'Jegor Fjodorov', 'jeg')).toBeNull();
   });
+
+  it('moves the card level and target level to the main track (Muuda andmeid B1 → B2)', async () => {
+    const { withMainTrack } = await import('./students.js');
+    const current = { subject: 'Eesti keel', teacher: 'Pavel Zakutailo', teacherUid: 'pav', level: 'A1', targetLevel: 'B1' };
+    const two = [{ subject: 'Eesti keel', teacher: 'Pavel Zakutailo', teacherUid: 'pav', level: 'A1', targetLevel: 'B1' }, { subject: 'Inglise keel', teacher: 'Elena Zakutailo', teacherUid: 'ele', level: 'A2', targetLevel: 'B1' }];
+    expect(withMainTrack(two, current, { level: 'B1', targetLevel: 'B2' })).toEqual([{ ...two[0], level: 'B1', targetLevel: 'B2' }, two[1]]);
+    expect(withMainTrack(two, current, {})).toBeNull();
+  });
 });

@@ -4,7 +4,7 @@
 // All times are the school's wall clock: a date's weekday is read at local noon, so a DST change never moves a day.
 import { availabilityAt, effectiveSlots } from './availabilityModel.js';
 import { toClock, toMinutes } from './calendarGrid.js';
-import { eventOccursOn, shiftDate } from './calendarView.js';
+import { eventOccursOn, occurrencesForDates, shiftDate } from './calendarView.js';
 import { roomChoices } from './roomModel.js';
 
 const DAY_IDS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -194,6 +194,46 @@ export function planningWarnings({ lesson, student = null, studentAvailability =
   if (windows.includes('busy')) out.push({ kind: 'teacher-window', window: 'busy', text: `${teacherName || 'Õpetaja'} on sel ajal hõivatud (punane aeg)${on('busy')}.` });
   else if (windows.includes('online') && !lesson.online) out.push({ kind: 'teacher-window', window: 'online', text: `${teacherName || 'Õpetaja'} annab sel ajal ainult veebitunde (kollane aeg)${on('online')}.` });
   else if (windows.includes('open') && teacherHasFree(teacherAvailability, days)) out.push({ kind: 'teacher-window', window: 'outside', text: `${teacherName || 'Õpetaja'}: aeg on väljaspool õpetaja vaba (rohelist) aega.` });
+  return out;
+}
+
+// Times learned from the lessons a student actually had (owner 2026-10-26: „доделать планировщик”): most students
+// never filled in „Sobivad ajad”, so the planner placed nobody. Their individual lessons of the last `weeks` weeks
+// (calendar occurrences not cancelled or missed, and lessons in the journal) become suitable half hours — never ★, so a
+// learned time is yellow, not green. → Map studentId → { slots, preferred: [], learned: true }
+const MISSED = new Set(['Tühistatud', 'Puudus_eta', 'Puudus_p']);
+export function learnedTimes({ events = [], lessons = [], today, weeks = 12, minTimes = 2 } = {}) {
+  const dates = Array.from({ length: weeks * 7 }, (_, index) => shiftDate(today, index - weeks * 7));
+  // a weekday + start time counts only when the student came then at least `minTimes` times: a one-off make-up
+  // lesson (a Sunday morning) is not the student's usual time (owner 2026-10-27: „планировщик странно ставит уроки”)
+  const seen = new Map();
+  const add = (studentId, date, time, duration) => {
+    if (!studentId || !/^\d{1,2}:\d{2}$/.test(String(time || ''))) return;
+    const key = `${dayOfDate(date)}-${time}`;
+    if (!seen.has(studentId)) seen.set(studentId, new Map());
+    const own = seen.get(studentId);
+    if (!own.has(key)) own.set(key, { day: dayOfDate(date), time, duration, dates: new Set() });
+    own.get(key).dates.add(date);
+  };
+  occurrencesForDates(events.filter((event) => !event.isGroup), dates)
+    .filter((item) => !MISSED.has(item.status))
+    .forEach((item) => add(item.studentId, item.occurrenceDate, item.time, item.duration));
+  const first = dates[0];
+  lessons.filter((lesson) => lesson.date >= first && lesson.date < today && !MISSED.has(lesson.status))
+    .forEach((lesson) => add(lesson.studentId, lesson.date, lesson.time, lesson.duration));
+  const out = new Map();
+  seen.forEach((starts, studentId) => {
+    const slots = new Set();
+    starts.forEach((entry) => { if (entry.dates.size >= minTimes) halvesOf(entry.time, entry.duration).forEach((minutes) => slots.add(`${entry.day}-${half(minutes)}`)); });
+    if (slots.size) out.set(studentId, { studentId, slots: [...slots].sort(), preferred: [], learned: true });
+  });
+  return out;
+}
+
+// the student's own „Sobivad ajad” first; a student without them gets the learned times
+export function withLearnedTimes(studentTimes = new Map(), learned = new Map()) {
+  const out = new Map(learned);
+  studentTimes.forEach((value, key) => { if (hasTimes(value)) out.set(key, value); });
   return out;
 }
 

@@ -16,6 +16,19 @@ import './worksheetStudio.css';
 import SheetAnnotations from './SheetAnnotations.jsx';
 import { useWordLookup } from './WordLookup.jsx';
 import { rightAnswers, shownResults, stepView } from './engine/liveLesson.js';
+import { blockAnswerKey } from './engine/answerKey.js';
+import BlockKeyPanel from './BlockKeyPanel.jsx';
+
+// A teacher's read-only look at a sheet: a click on a task opens its answers under it (never for a learner).
+function useTeacherKey(doc, enabled) {
+  const [keyId, setKeyId] = useState('');
+  const notes = useMemo(() => {
+    const task = enabled && keyId ? blockAnswerKey(doc, keyId) : null;
+    return task ? { [keyId]: <BlockKeyPanel task={task} onClose={() => setKeyId('')} /> } : null;
+  }, [doc, keyId, enabled]);
+  const onPick = enabled ? (blockId) => setKeyId((current) => (current === blockId ? '' : blockId)) : undefined;
+  return { notes, onPick };
+}
 
 // Local recordings (blob: URLs) must be uploaded before the answers are stored.
 async function persistRecordings({ doc, answers, assignment, repository }) {
@@ -59,6 +72,8 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
   const setCanvas = useCallback((node) => { canvasRef.current = node; fitRef(node); }, [fitRef]);
 
   const review = submitted || readOnly;
+  // a teacher opening the learner's sheet read-only clicks a task to see its answers
+  const teacherKey = useTeacherKey(doc, readOnly && !isStudent);
   const checked = useMemo(() => (submitted ? checkDocument(doc, answers) : null), [doc, answers, submitted]);
   const progress = useMemo(() => answerProgress(doc, answers), [doc, answers]);
 
@@ -195,7 +210,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
+          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -213,7 +228,7 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
       <div className="st-canvas" ref={setCanvas} onDoubleClick={words.onDoubleClick} onPointerUp={words.onPointerUp}>
         <SheetAnnotations annotations={teacherMarks}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes} />
+          <Sheet doc={stepped.doc} mode={review ? 'review' : 'interactive'} answers={answers} setAnswer={review ? undefined : setAnswer} results={checked?.results || shownMarks} focusId={review ? '' : focusId} blockNotes={answerNotes || teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
         </SheetAnnotations>
       </div>
@@ -232,15 +247,17 @@ export default function DocWorksheetPlayer({ assignment, repository, readOnly = 
 
 // Teacher review inside the homework submission dialog: the sheet with the learner's answers and marks.
 // annotations: teacher marks on the sheet (SheetAnnotations); editable for staff.
-export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, annotations = [], editable = false, onAnnotationsChange }) {
+// answerKey: staff only — a click on a task shows its answers under it.
+export function DocWorksheetSubmissionPreview({ worksheetDoc, answers = {}, annotations = [], editable = false, onAnnotationsChange, answerKey = false }) {
   const [fitRef, scale] = useFitScale();
+  const teacherKey = useTeacherKey(worksheetDoc, answerKey);
   const checked = useMemo(() => checkDocument(worksheetDoc, answers), [worksheetDoc, answers]);
   return <div className="ws-studio ws-doc-player">
-    {editable ? <p className="sa-hint">Vali ülesandes tekst või klõpsa õpilase vastusel, et lisada viga või märkus.</p> : null}
+    {editable ? <p className="sa-hint">Vali ülesandes tekst või klõpsa õpilase vastusel, et lisada viga või märkus.{answerKey ? ' Klõps ülesandel näitab selle õigeid vastuseid (ainult sulle).' : ''}</p> : null}
     <div className="st-canvas" ref={fitRef}>
       <SheetAnnotations annotations={annotations} editable={editable} onChange={onAnnotationsChange} analysis={editable ? { level: worksheetDoc?.meta?.level || 'A2' } : null}>
         <div className="st-zoom" style={{ zoom: scale }}>
-          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} />
+          <Sheet doc={worksheetDoc} mode="review" answers={answers} results={checked.results} blockNotes={teacherKey.notes} onPick={teacherKey.onPick} />
         </div>
       </SheetAnnotations>
     </div>

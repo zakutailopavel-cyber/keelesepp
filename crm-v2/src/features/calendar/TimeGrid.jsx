@@ -215,8 +215,11 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                   <div key={`cluster-${group.id}`} className="tg-cluster" style={{ top: group.top * PX_PER_MIN, height: Math.max(44, group.height * PX_PER_MIN - 2) }} role="list" aria-label={`${group.items.length} tundi korraga`}>
                     {group.items.map(({ item }) => {
                       const status = statusOf(item);
+                      const movable = canDrag(item);
+                      // a lesson in a crowded slot moves like any other (owner 2026-10-27: „если на одно время больше 1
+                      // ученика, перетаскивание не работает”); a plain click still opens it
                       return (
-                        <button key={item.occurrenceId} type="button" role="listitem" className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.online ? 'is-online' : 'is-onsite'}`} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); onOpen(item); }}>
+                        <button key={item.occurrenceId} type="button" role="listitem" data-student-id={item.isGroup ? undefined : item.studentId || undefined} className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`} onPointerDown={(event) => startDrag(event, item, column, 'move')} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}>
                           <span>{item.online ? <Video className="tg-online-icon" size={11} aria-hidden="true" /> : null}{item.time}</span><strong><SubjectTag subject={item.subject} />{item.studentName || 'Õpilane'}{item.adminNote ? <StickyNote className="tg-note" size={11} aria-label="Admini märkus" /> : null}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
                         </button>
                       );
@@ -229,6 +232,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
                   return (
                     <div
                       key={item.occurrenceId}
+                      data-student-id={item.isGroup ? undefined : item.studentId || undefined}
                       className={`tg-block tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.isGroup ? 'is-group' : ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${blockHeight < 40 ? 'is-short' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`}
                       style={{ top: top * PX_PER_MIN, height: Math.max(22, blockHeight * PX_PER_MIN - 2), left: `calc(${(lane / lanes) * 100}% + 2px)`, width: `calc(${100 / lanes}% - 4px)` }}
                       onPointerDown={(event) => startDrag(event, item, column, 'move')}

@@ -59,6 +59,16 @@ export const dialogue = {
 };
 
 // ---------- reading ----------
+// reading checks understanding, not the case ending (owner 2026-10-27: a full right sentence was marked wrong):
+// every word of the right answer is in the learner's answer with the same stem („teisipäeval kell kümme” ≈
+// „Õde pakkus teisipäeva kella kümmet”)
+const stemOf = (word) => word.slice(0, Math.max(3, Math.ceil(word.length * 0.7)));
+export function sameMeaningWords(right, answer) {
+  const words = String(right).split(' ').filter((word) => word.length >= 4); // short words (see, ja, uue) say little
+  const given = String(answer).split(' ');
+  return words.length > 0 && words.every((word) => given.some((other) => other.startsWith(stemOf(word)) || word.startsWith(stemOf(other)) && other.length >= 3));
+}
+
 export const reading = {
   type: 'reading', label: 'Lugemine + küsimused', group: 'Tekst ja heli', icon: 'BookOpenText', task: true, width: 'full', tone: 'cream',
   create: () => ({ title: 'Loe teksti.', instruction: 'Vasta küsimustele.', passageTitle: 'Mari päev', passage: 'Mari ärkab tavaliselt kell seitse. Hommikul ta joob kohvi ja läheb tööle.', questions: 'Mis kell Mari ärkab? [kell seitse|seitse|7]\nMida Mari hommikul joob? [kohvi]', lineWidth: 'wide' }),
@@ -88,7 +98,7 @@ export const reading = {
     if (!m) return null; // open question: teacher reviews
     const acc = m[1].split('|').map(norm);
     const v = norm(get(`${i}`));
-    return { key: `${i}`, ok: !!v && acc.some((a) => v === a || v.includes(a)) };
+    return { key: `${i}`, ok: !!v && acc.some((a) => v === a || v.includes(a) || sameMeaningWords(a, v)) };
   }).filter(Boolean),
   Editor: ({ data, set }) => (
     <>

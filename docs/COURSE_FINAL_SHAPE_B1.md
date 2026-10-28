@@ -148,7 +148,7 @@ module 9 on, so that our module scores are on the same scale as Harno raw points
 
 ## 3. Task-type catalogue
 
-61 task types in 5 groups. Columns: **id** · **name (ET)** · **block** (current builder in `admin/course/blocks.js`;
+63 task types in 5 groups. Columns: **id** · **name (ET)** · **block** (current builder in `admin/course/blocks.js`;
 „+” = needs a variant or a new builder) · **trains** · **exam link** (§2.2 ids) · **lvl** (cognitive level 1–4: 1
 recognise, 2 controlled reproduction, 3 guided production / apply, 4 free production / negotiate — BL, SOLO) ·
 **per module** min–max (over the 4 teaching lessons; exam lessons are counted separately in §6).
@@ -220,6 +220,8 @@ recognise, 2 controlled reproduction, 3 guided production / apply, 4 free produc
 | S11 | Arvamus ja põhjendus | speaking | stating and supporting an opinion | S1a, S1b | 3 | 0–1 |
 | S12 | Järjesta ja vali | categorize + speaking | ranking options together (Willis „ordering”) | S1b | 4 | 0–1 |
 | S13 | Seleta sõbrale | speaking (mediation) | relaying a notice/table in own words | S2, CEFR mediation | 3 | 0–1 |
+| S14 | Mida sa teeksid? | speaking | a dilemma or problem situation answered with tingiv kõneviis — only from module 13 (V16) | S1a, S1b | 4 | 0–1 |
+| S15 | Kodune monoloog (salvestus) | speaking (recorded) | the learner records 1–2 min at home on the lesson topic; the teacher listens and asks a follow-up in the next lesson | S1a | 3 | 0–4 |
 
 ### 3.5 Language: grammar and vocabulary (G)
 
@@ -366,6 +368,8 @@ content author may swap two lessons inside a module if the grammar needs it, as 
 
 `**` Module 6 (2026-10-26): the first plan had PROB L→W, which §4 (PROB → S) and the V5-lead gate do not allow; the
 leads moved to AVAS L→W and PROB R→S, so the four pairs stay once each (`b1/module06.js`).
+Module 8 (2026-10-26) is built as written: AVAS R→S (036, rektsioon introduced), KUUL L→W, LUGE R→W, RÄÄK L→S —
+every lead fits §4 and the four pairs are once each, so no swap was needed (`b1/module08.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 
@@ -485,6 +489,7 @@ Inputs: `MODULE` and `LESSONS` from `admin/course/b1/moduleNN.js` (each lesson: 
 | **V13** | Spaced retrieval | `review` present in Avasta; ≥ 1 review item from the previous lesson and ≥ 1 from a module 2–4 back (tag `from: 'a2b1-0NN'`) | lesson |
 | **V14** | Vocabulary level | ≥ 90 % of a module's vocab-box words are in EKI's põhisõnavara (PSV) list or in an earlier module's list; others are marked as topic words. *Built against the EKI etLex A1–B1 lists (CC BY, already in the repo) — PSV is not available as an offline list* | module |
 | **V15** | Caps (existing v4) | errorfix ≤ 2, translation ≤ 1, dictation ≤ 2 a module; a form/sentence drill at most once a lesson in Kasuta = 0 | module |
+| **V16** | Where the speaking happens (owner 2026-10-28) | every teaching lesson has a pair / role task done **in the lesson** (role cards, exam speaking card, talk with a partner — the teacher is the partner; `engine/inLesson.js`, marked „Teeme tunnis koos õpetajaga”, not asked or scored at home) **and** a monologue in Kasuta the learner records **at home** (a speaking block that is not a pair task, S15); tingiv kõneviis („Mida sa teeksid?”, S14) only from module 13, before it „Mida sa teed, kui …?” | lesson |
 
 V1–V5, V7–V9, V13, V15 can be checked from data alone. V6, V10–V12 need the new tags (§9). V14 uses the EKI etLex A1–B1
 word forms (`worksheet-studio/didactics/levelForms.{A1,A2,B1}.json`, CC BY) as the stand-in for PSV, plus the

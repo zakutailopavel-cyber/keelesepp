@@ -55,6 +55,16 @@ function perWeekOf(own, today, series) {
   return Math.max(1, Math.min(MAX_PER_WEEK, most));
 }
 
+// lessons a week the student's plan needs (its first track, or the Estonian one); held plan lessons are done
+function planNeeded(student, subject, tracks, lessons, today) {
+  const plan = student.studyPlan;
+  if (!plan?.lessons?.length || !plan.targetDate || (tracks > 1 && subjectName(subject) !== 'Eesti keel')) return 0;
+  const held = new Set(lessons.filter((lesson) => lesson.studentId === student.id && lesson.topicLessonId && (!lesson.status || lesson.status === 'Toimunud')).map((lesson) => lesson.topicLessonId));
+  const remaining = plan.lessons.filter((item) => item.status !== 'skipped' && !held.has(item.id)).length;
+  const weeks = Math.max(1, Math.ceil((Date.parse(`${plan.targetDate}T12:00:00`) - Date.parse(`${today}T12:00:00`)) / (7 * 24 * 60 * 60 * 1000)));
+  return remaining ? Math.min(MAX_PER_WEEK, Math.ceil(remaining / weeks)) : 0;
+}
+
 /**
  * The study directions to plan: one per active track (student × subject × teacher) of an active card that has no
  * weekly lesson ahead (a group lesson of the same teacher counts as planned too). `includePlanned` also takes the
@@ -62,7 +72,7 @@ function perWeekOf(own, today, series) {
  * teacherUid: only this teacher's directions. teachers: [{ id, name }] to find the account of a track named by name.
  * → [{ key, studentId, studentName, subject, level, teacherUid, teacher, duration, online, perWeek, planned, replaces }]
  */
-export function planningRequests({ students = [], events = [], today, teacherUid = '', teachers = [], includePlanned = false }) {
+export function planningRequests({ students = [], events = [], today, teacherUid = '', teachers = [], includePlanned = false, lessons = [] }) {
   const out = [];
   for (const student of students) {
     if (!student?.id || student.active === false || student.convertedToParent) continue;
@@ -94,7 +104,8 @@ export function planningRequests({ students = [], events = [], today, teacherUid
         teacher,
         duration: usualDuration(own, student.id, uid),
         online: usualOnline(own, student.id) ?? usualOnline(events, student.id) ?? false,
-        perWeek: perWeekOf(own, today, series),
+        // a student with an „Õppeplaan” and a target date gets at least the lessons a week the plan needs
+        perWeek: Math.max(perWeekOf(own, today, series), planNeeded(student, subject, list.length, lessons, today)),
         planned: series.length > 0,
         replaces: series.map((event) => event.id),
       });
@@ -158,6 +169,7 @@ export function plannerContext({ startDate, events = [], replacedIds = [], stude
   };
 }
 
+const LEARNED_TEXT = { ok: 'õpilane käis varem sel ajal (sobivaid aegu pole märgitud)', unknown: 'õpilane pole sel ajal käinud (sobivaid aegu pole märgitud)' };
 const STUDENT_TEXT = { ok: 'sobib õpilasele (pole ★)', partial: 'osaliselt väljaspool õpilase sobivaid aegu', none: 'õpilasele see aeg ei sobi', unknown: 'õpilase sobivad ajad puuduvad' };
 
 /**
@@ -173,7 +185,11 @@ const STUDENT_TEXT = { ok: 'sobib õpilasele (pole ★)', partial: 'osaliselt v�
 export function judgeSlot(ctx, lesson, { date, time }, draft = []) {
   const duration = Number(lesson.duration) || 60;
   const span = spanOf(time, duration);
-  const student = studentStateAt(ctx.studentTimes(lesson.studentId), { date, time, duration });
+  const own = ctx.studentTimes(lesson.studentId);
+  const learned = Boolean(own?.learned);
+  // a learned time (from past lessons) only says when the student did come: another time is unknown, not „cannot”
+  const marked = studentStateAt(own, { date, time, duration });
+  const student = learned && (marked === 'none' || marked === 'partial') ? 'unknown' : marked;
   const { availability, hasGreen } = ctx.teacherTimes(lesson);
   const windows = Array.from({ length: ctx.weeks }, (_, week) => availabilityAt(availability, { date: shiftDate(date, week * 7), time, duration }));
   const teacher = windows.includes('busy') ? 'busy' : windows.includes('online') ? 'online' : windows.every((state) => state === 'free') ? 'free' : 'open';
@@ -207,7 +223,7 @@ export function judgeSlot(ctx, lesson, { date, time }, draft = []) {
   const colour = needsAgreement || list.length || noRoom ? 'red' : student === 'best' && teacherGreen ? 'green' : 'yellow';
   const reasons = [];
   if (student === 'best') reasons.push('★ õpilase eelistatud aeg');
-  else reasons.push(STUDENT_TEXT[student]);
+  else reasons.push(learned ? LEARNED_TEXT[student] : STUDENT_TEXT[student]);
   if (teacher === 'busy') reasons.push('õpetaja ei saa (punane aeg)');
   else if (teacher === 'online') reasons.push(lesson.online ? 'õpetajal ainult veebitunnid (veebitund sobib)' : 'õpetajal ainult veebitunnid, tund on kohapeal');
   else if (teacher === 'open' && hasGreen) reasons.push('väljaspool õpetaja vaba aega');
@@ -215,7 +231,7 @@ export function judgeSlot(ctx, lesson, { date, time }, draft = []) {
   if (noRoom) reasons.push('vaba kabinetti pole');
   const penalty = ({ best: 0, ok: 10, partial: 100, none: 200, unknown: 150 })[student]
     + (teacher === 'busy' ? 150 : teacher === 'online' ? (lesson.online ? 3 : 120) : teacher === 'open' && hasGreen ? 5 : 0)
-    + list.reduce((sum, entry) => sum + (entry.kind === 'student' ? 1000 : entry.kind === 'teacher' ? 300 : 80), 0)
+    + list.reduce((sum, entry) => sum + (entry.kind === 'student' ? 1000 : entry.kind === 'teacher' || learned ? 300 : 80), 0)
     + (noRoom ? 90 : 0);
   return { colour, student, teacher, needsAgreement, overlaps: list, noRoom, roomId, reasons, penalty };
 }
@@ -315,7 +331,9 @@ function fallback(ctx, lesson, draft) {
     if (!best || cost < best.cost) best = { date, time, judged, cost };
   };
   ctx.dates.forEach((date) => studentStarts(availability, date, duration).forEach((time) => tryAt(date, time)));
-  if (!best || best.judged.overlaps.some((entry) => entry.kind === 'student')) ctx.dates.forEach((date) => startsOn(duration).forEach((time) => tryAt(date, time, 50)));
+  // any time of the day: usual lesson hours first — not 7:00, not late evening, weekdays before the weekend
+  const unusual = (date, time) => { const hour = Number(time.slice(0, 2)); return (hour < 9 ? 60 : hour < 12 ? 15 : hour >= 20 ? 30 : 0) + (['Sat', 'Sun'].includes(dayOfDate(date)) ? 30 : 0); };
+  if (!best || best.judged.overlaps.length) ctx.dates.forEach((date) => startsOn(duration).forEach((time) => tryAt(date, time, 50 + unusual(date, time))));
   return best;
 }
 

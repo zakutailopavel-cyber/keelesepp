@@ -1,3 +1,4 @@
+import { isPlaceholderEmail } from '../../utils/placeholderEmail.js';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
@@ -15,6 +16,9 @@ function validate(values) {
   const errors = {};
   if (!values.name.trim()) errors.name = 'Nimi on kohustuslik.';
   if (values.email && !/^\S+@\S+\.\S+$/.test(values.email)) errors.email = 'Kontrolli e-posti aadressi.';
+  else if (isPlaceholderEmail(values.email)) errors.email = 'See aadress on välja mõeldud — kirjuta päris e-post või jäta tühjaks.';
+  if (values.parentEmail && !/^\S+@\S+\.\S+$/.test(values.parentEmail)) errors.parentEmail = 'Kontrolli e-posti aadressi.';
+  else if (isPlaceholderEmail(values.parentEmail)) errors.parentEmail = 'See aadress on välja mõeldud — kirjuta päris e-post või jäta tühjaks.';
   if (values.phone && values.phone.replace(/\D/g, '').length < 5) errors.phone = 'Kontrolli telefoninumbrit.';
   if (values.facebook && !facebookContact(values.facebook)) errors.facebook = 'Sisesta Facebooki kasutajanimi või profiili link.';
   if (values.instagram && !instagramContact(values.instagram)) errors.instagram = 'Sisesta Instagrami kasutajanimi (@nimi) või profiili link.';
@@ -72,7 +76,7 @@ export default function StudentForm({ open, student, teachers = [], canAssignTea
         {similar.length ? <div className="form-grid__wide student-form__similar" role="status"><strong>Sama nimega õpilane on juba olemas.</strong> Kui see on sama laps ja ta alustab uut ainet, ära loo uut kaarti: ava tema kaart ja lisa „Õppesuunad” alla uus aine oma õpetaja ja tasemega.<ul>{similar.slice(0, 3).map((card) => <li key={card.id}><Link to={`/students/${encodeURIComponent(card.id)}?enrollments=1`} onClick={onClose}>{card.name}</Link> · {tracksOf(card).map((track) => [track.subject, track.teacher].filter(Boolean).join(' – ')).join(', ')}</li>)}</ul></div> : null}
         <Input label="Lapsevanema nimi" name="parentName" value={values.parentName} onChange={change} />
         {/* new invoices go here (functions index.js: parentEmail → payerEmail); issued invoices keep their address */}
-        <Input label="Lapsevanema e-post (arved)" name="parentEmail" type="email" value={values.parentEmail || ''} onChange={change} />
+        <Input label="Lapsevanema e-post (arved)" name="parentEmail" type="email" value={values.parentEmail || ''} onChange={change} error={errors.parentEmail} />
         <Input label="E-post" name="email" type="email" value={values.email} onChange={change} error={errors.email} />
         <Input label="Telefon" name="phone" value={values.phone} onChange={change} error={errors.phone} />
         {canAssignTeacher ? <Input label="Facebook (kasutajanimi või link)" name="facebook" value={values.facebook || ''} onChange={change} error={errors.facebook} /> : null}

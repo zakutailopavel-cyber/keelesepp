@@ -38,7 +38,10 @@ function normalizeSettings(data = {}) {
 
 // ---------- values ----------
 
-const validEmail = (value) => EMAIL.test(clean(value, 200));
+const { isPlaceholderEmail } = require("./email-address-core");
+const validEmail = (value) => EMAIL.test(clean(value, 200)) && !isPlaceholderEmail(value);
+// a child's parent e-mail is never required (owner 2026-10-26: students typed made-up addresses to get past the form)
+const requiredFor = (kind, items, settings) => items.filter((item) => settings[item] === "required" && !(item === "email" && kind === "child"));
 
 // Estonian numbers without the country code (7–8 digits, 3…8 first) become +372…; international numbers keep their
 // code (00 → +). Spaces, dashes, dots and brackets are dropped. Returns "" when it is not a phone number.
@@ -133,7 +136,7 @@ function cardStatus(facts, settings = DEFAULT_SETTINGS, year = new Date().getFul
     return { kind, missing, required: missing.filter((item) => settings[item] === "required"), variants: { adult, child } };
   }
   const missing = pick(missingFor(kind, facts));
-  return { kind, missing, required: missing.filter((item) => settings[item] === "required") };
+  return { kind, missing, required: requiredFor(kind, missing, settings) };
 }
 
 // ---------- the gate: what the caller is asked ----------
@@ -208,6 +211,7 @@ function cardPatch(question, answer = {}, year = new Date().getFullYear()) {
     asked = [...new Set(["grade", ...(question.variants[kind] || [])])];
   }
   const required = new Set(question.required);
+  if (kind === "child") required.delete("email");
   const need = (item, has) => { if (!has && required.has(item) && !errors[item]) errors[item] = "required"; };
 
   if (asked.includes("availability")) {
@@ -253,7 +257,28 @@ function changes(target, id, before = {}, patch = {}) {
   return Object.entries(patch).map(([field, after]) => ({ target, id, field, before: before[field] ?? "", after }));
 }
 
+// The times we already know for a card (owner 2026-10-27: „проверь, чтобы ученик при каждом входе не заполнял
+// подходящие времена”): its own „Sobivad ajad”, else another card of the same person (a second subject), else the
+// /ajad answer of that person (website enquiry: the learner's name, or the e-mail / phone of this card only).
+const personKey = (value) => String(value || "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}]/gu, " ").split(" ").filter((word) => word.length > 1).sort().join(" ");
+const phoneKey = (value) => { const digits = String(value || "").replace(/\D/g, "").replace(/^372/, ""); return digits.length >= 7 ? digits.slice(-8) : ""; };
+function knownTimes(card, { own = null, cards = [], ownById = new Map(), leads = [] } = {}) {
+  if (hasSlots(own)) return own;
+  const name = personKey(card.name);
+  const sibling = cards.find((other) => other.id !== card.id && name && personKey(other.name) === name && hasSlots(ownById.get(other.id)));
+  if (sibling) return ownById.get(sibling.id);
+  const email = String(card.email || card.parentEmail || "").trim().toLowerCase();
+  const phone = phoneKey(card.phone || card.parentPhone);
+  const shared = (field, value) => cards.filter((other) => other.id !== card.id && personKey(other.name) !== name && value && (field === "email" ? String(other.email || other.parentEmail || "").trim().toLowerCase() === value : phoneKey(other.phone || other.parentPhone) === value)).length > 0;
+  const lead = leads.filter((item) => item && item.source === "availability" && item.status !== "closed" && Array.isArray(item.slots) && item.slots.length)
+    .find((item) => (name && personKey(item.name) === name)
+      || (email && !shared("email", email) && String(item.email || "").trim().toLowerCase() === email)
+      || (phone && !shared("phone", phone) && phoneKey(item.phone) === phone));
+  return lead ? { slots: lead.slots, preferred: Array.isArray(lead.preferred) ? lead.preferred : [], source: "website-lead" } : own;
+}
+
 module.exports = {
+  knownTimes,
   ITEMS, MODES, DEFAULT_SETTINGS, LANGUAGES, ADULT_GRADE,
   statusError, normalizeSettings, validEmail, normalizePhone, gradeValue, hasSlots, cleanSlots,
   cardKind, missingFor, cardStatus, questionsFor, blocks, cardPatch, changes, parentContacts,

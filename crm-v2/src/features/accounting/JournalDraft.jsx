@@ -44,8 +44,8 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
   const balanced = !badAmount && totals.debit > 0 && totals.debit === totals.credit && filled.length >= 2;
   const knownAccounts = lines.every((l) => !l.account || accountName(l.account));
   const noAccount = lines.some((l) => !l.account && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
-  const partnerIssue = partnerProblem(lines, { required: true });
-  const partnerMissing = lines.filter((l) => SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' && ((parseEuro(l.debit) || 0) || (parseEuro(l.credit) || 0)));
+  // a partner is optional (owner 2026-10-26: the bookkeeper links partners herself); only a typed name must be a supplier
+  const partnerIssue = partnerProblem(lines);
   // what still blocks „Salvesta kanne”, said next to the button (a silent grey button told her nothing)
   const missing = [
     !draft.date && 'kuupäev',
@@ -55,8 +55,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
     !knownAccounts && 'konto, mida kontoplaanis pole',
     !badAmount && totals.debit !== totals.credit && 'deebet = kreedit',
     !badAmount && totals.debit === totals.credit && filled.length < 2 && 'vähemalt üks deebet- ja üks kreeditrida',
-    partnerMissing.length > 0 && `partner (${[...new Set(partnerMissing.map((l) => String(l.account).trim()))].join(', ')})`,
-    partnerIssue && !partnerMissing.length && 'tarnija nimekirjast',
+    partnerIssue && 'tarnija nimekirjast',
     reasonRequired && !String(reason || '').trim() && 'paranduse põhjus',
   ].filter(Boolean);
   const ready = balanced && !noAccount && !missing.length;
@@ -80,7 +79,7 @@ export default function JournalDraft({ draft, setDraft, lines, setLines, account
         <td><input aria-label={`Rida ${index + 1} märkus`} value={l.note} placeholder={draft.description} onChange={(event) => update(index, { note: event.target.value })} /></td>
         <td><div className="accounting-draft__account"><PartnerInput tabMoves suppliers={suppliers} label={`Rida ${index + 1} partner`} value={l.partner?.name || ''}
           onChange={(text) => update(index, { partner: resolvePartner(text, suppliers, l.partner) })} onPick={(supplier) => update(index, { partner: supplierPartner(supplier) })} />
-          {l.partner && !l.partner.type ? <small className="is-off">pole tarnijate seas</small> : SUPPLIER_ACCOUNTS.includes(String(l.account || '').trim()) && l.partner?.type !== 'supplier' ? <small className="is-off">kohustuslik</small> : null}</div></td>
+          {l.partner && !l.partner.type ? <small className="is-off">pole tarnijate seas</small> : null}</div></td>
         <td className="num"><input aria-label={`Rida ${index + 1} deebet`} inputMode="decimal" value={l.debit} onChange={(event) => update(index, { debit: event.target.value, credit: event.target.value ? '' : l.credit })} /></td>
         <td className="num"><input aria-label={`Rida ${index + 1} kreedit`} inputMode="decimal" value={l.credit}
           onChange={(event) => update(index, { credit: event.target.value, debit: event.target.value ? '' : l.debit })}

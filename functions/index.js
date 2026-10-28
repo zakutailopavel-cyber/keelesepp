@@ -152,6 +152,7 @@ const {
   replyMatchesConversation,
   verifyMetaSignature,
   webhookMessages,
+  webhookSummary,
 } = require("./meta-messaging-core");
 
 admin.initializeApp();
@@ -5247,6 +5248,14 @@ async function postJson(url, headers, body) {
 }
 
 async function deliverEmail(message, context = {}) {
+  // made-up addresses (123@123.com …) are never mailed: they only bounce (email-address-core.js, owner 2026-10-26)
+  const { realRecipients } = require("./email-address-core");
+  const to = realRecipients(message.to);
+  if (!(Array.isArray(to) ? to.length : to)) {
+    console.log("email skipped: only made-up recipients", context.kind || "");
+    return { status: "skipped", reason: "placeholder-recipient" };
+  }
+  message = { ...message, to };
   const resendKey = process.env.RESEND_API_KEY;
   const sendgridKey = process.env.SENDGRID_API_KEY;
   const smtpHost = configValue(process.env.SMTP_HOST, SMTP_DEFAULTS.host);
@@ -9007,7 +9016,8 @@ async function createAccountingEntry({ actor, values, requestId }) {
   let normalized;
   try {
     // a new manual entry: a line on a supplier account (2110, 1350) needs its supplier (the accountant 2026-10-24)
-    normalized = accountingCore.validateEntry(values, accounts, { suppliers: await partnerSuppliers(values?.lines), requirePartner: true });
+    // a supplier account line may stay without a partner: the bookkeeper links partners herself later (owner 2026-10-26)
+    normalized = accountingCore.validateEntry(values, accounts, { suppliers: await partnerSuppliers(values?.lines) });
   } catch (error) {
     throw httpError(error.status || 400, error.message);
   }
@@ -10458,6 +10468,7 @@ exports.metaMessagingApi = functions
         return;
       }
       const messages = webhookMessages(req.body);
+      functions.logger.info("meta webhook", { ...webhookSummary(req.body), stored: messages.length });
       let created = 0;
       for (const message of messages) {
         try {
@@ -12299,3 +12310,9 @@ exports.refreshSchoolAssistant = functions
     console.log("School assistant refreshed", result);
     return null;
   });
+
+// ChatGPT worksheet connector (functions/sheet-builder-api.js, docs/GPT_SHEET_BUILDER.md): a Custom GPT with its own key
+// reads the rules and blocks, checks a sheet and saves it as a lesson sheet's draft; an administrator manages the keys.
+exports.sheetBuilderApi = functions.runWith({ timeoutSeconds: 60, memory: "512MB" }).https.onRequest(
+  require("./sheet-builder-api").createHandler({ db, requireAdminUser, actorSnapshot, applyCors }),
+);

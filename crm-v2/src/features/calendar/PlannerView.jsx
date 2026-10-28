@@ -21,7 +21,7 @@ function readDraft(storage, uid) {
   try { return JSON.parse(storage?.getItem(STORE(uid)) || 'null'); } catch { return null; }
 }
 
-export default function PlannerView({ user, teacherOnly = false, students = [], events = [], teachers = [], studentTimes = new Map(), teacherAvailability = () => null, rooms = [], bookings = [], scheduleRepository, batchRepository = plannerBatchesService, today, narrow = false, initialTeacher = '', onClose, onSaved, storage = globalThis.localStorage }) {
+export default function PlannerView({ user, teacherOnly = false, students = [], events = [], journal = [], teachers = [], studentTimes = new Map(), teacherAvailability = () => null, rooms = [], bookings = [], scheduleRepository, batchRepository = plannerBatchesService, today, narrow = false, initialTeacher = '', onClose, onSaved, storage = globalThis.localStorage }) {
   const [draft, setDraft] = useState(() => {
     const saved = readDraft(storage, user.uid);
     const base = { startDate: nextMonday(today), scope: teacherOnly ? user.uid : initialTeacher, includePlanned: false, requests: [], lessons: [], unplaced: [], viewTeacher: teacherOnly ? user.uid : initialTeacher, stale: false };
@@ -57,7 +57,7 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
 
   // ── actions (nothing is written to the database here) ──────────
   const addAll = () => {
-    const found = planningRequests({ students, events, today, teacherUid: scope, teachers, includePlanned });
+    const found = planningRequests({ students, events, today, teacherUid: scope, teachers, includePlanned, lessons: journal });
     const known = new Set(requests.map((request) => request.key));
     const added = found.filter((request) => !known.has(request.key));
     update({ requests: [...requests, ...added], stale: requests.length > 0 || draft.stale });
@@ -233,7 +233,7 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
         <span className="is-unplaced"><b>{summary.unplaced}</b> aega ei leitud</span>
         <small>{requests.length} õppesuunda · mustand salvestub selles brauseris · kalendrisse kirjutatakse alles „Kinnita ajakava” järel</small>
       </div>
-      <p className="cal2-legend cal2-plan__legend" aria-label="Värvid"><span><i className="cal2-dot is-plan-green" /> sobib õpilasele (★ eelistatud), õpetaja vaba</span><span><i className="cal2-dot is-plan-yellow" /> võimalik (sobib, aga pole ★; õpetajal ainult veeb; väljaspool õpetaja vaba aega)</span><span><i className="cal2-dot is-plan-red" /> õpilasele ei sobi / õpetaja ei saa / kattub — saab panna, lepi õpilasega kokku</span><span><i className="cal2-dot is-plan-draft" /> mustand</span></p>
+      <p className="cal2-legend cal2-plan__legend" aria-label="Värvid"><span><i className="cal2-dot is-plan-green" /> sobib õpilasele (★ eelistatud), õpetaja vaba</span><span><i className="cal2-dot is-plan-yellow" /> võimalik (sobib, aga pole ★; õpilane käis varem sel ajal; õpetajal ainult veeb; väljaspool õpetaja vaba aega)</span><span><i className="cal2-dot is-plan-red" /> õpilasele ei sobi / õpetaja ei saa / kattub — saab panna, lepi õpilasega kokku</span><span><i className="cal2-dot is-plan-draft" /> mustand</span></p>
       {draft.stale ? <p className="form-hint cal2-plan__stale">Plaan on muutunud: vajuta „Jaota”, et õpilased uuesti jaotada (käsitsi tõstetud tunnid jäävad paigale).</p> : null}
       {notice ? <p className="cal2-plan__notice" role="status">{notice}<button type="button" aria-label="Sulge teade" onClick={() => setNotice('')}><X size={13} /></button></p> : null}
       {error ? <p className="action-error" role="alert">{error}<button type="button" aria-label="Sulge" onClick={() => setError('')}>×</button></p> : null}
@@ -321,6 +321,8 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
 }
 
 function hasTimesLine(studentTimes, studentId) {
-  const line = timesLine(studentTimes.get?.(studentId));
+  const times = studentTimes.get?.(studentId);
+  const line = timesLine(times);
+  if (line && times?.learned) return `Sobivaid aegu pole märgitud; varasemad tunnid: ${line}.`;
   return line ? `Õpilase sobivad ajad: ${line}.` : 'Õpilase sobivad ajad puuduvad.';
 }

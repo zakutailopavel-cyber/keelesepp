@@ -50,3 +50,10 @@
 .ms-lesson li.is-practise em { color: #b54708; }
 .ms-lesson li.is-review em { color: #b42318; }
 .ms-lesson li.is-todo em { color: #667085; }
+
+/* „Õpilase tegevused” (owner 2026-10-27) */
+.activity-feed__days { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.activity-feed__days > li > strong { display: block; font: 800 .82rem Manrope, sans-serif; color: var(--muted); text-transform: capitalize; margin-bottom: 4px; }
+.activity-feed__days ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.activity-feed__days ul li { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: .88rem; }
+.activity-feed__days ul li small { color: var(--muted); font-size: .74rem; }
