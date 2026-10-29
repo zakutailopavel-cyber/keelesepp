@@ -70,7 +70,7 @@ export default function CourseHealthPage({ repository = lessonWorksheetsService,
       <PageHeader eyebrow="Õppevara · kursused" title="Kursuste tervis" description="Kas kursus on terviklik: kas iga tunni lehed läbivad kvaliteedikontrolli ja kas Õppevaras on avaldatud samad lehed, mis koodis. Leht ainult loeb — midagi ei muudeta." />
       <Card>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} role="radiogroup" aria-label="Kursus">
-          {courses.map((key) => <Button key={key} variant={key === course ? 'primary' : 'secondary'} role="radio" aria-checked={key === course} onClick={() => setCourse(key)}>{COURSES[key].label.split(' ·')[0]}</Button>)}
+          {courses.map((key) => <Button key={key} variant={key === course ? 'primary' : 'secondary'} role="radio" aria-checked={key === course} onClick={() => setCourse(key)}>{COURSES[key].name}</Button>)}
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 14, alignItems: 'center' }}>
           <span><b>{allLessons.length}</b> tundi · <b>{allLessons.reduce((n, l) => n + Object.keys(l.sheets).length, 0)}</b> lehte koodis</span>
@@ -95,7 +95,7 @@ export default function CourseHealthPage({ repository = lessonWorksheetsService,
         if (!rows.length) return null;
         return (
           <Card key={mod.MODULE.id}>
-            <h3 style={{ marginTop: 0 }}>{COURSES[course].label.split(' ·')[0]} · moodul {moduleNumber(mod)} · {mod.MODULE.title}</h3>
+            <h3 style={{ marginTop: 0 }}>{COURSES[course].name} · moodul {moduleNumber(mod)} · {mod.MODULE.title}</h3>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
               {rows.map(({ lesson, sheets, gates }) => (
                 <li key={lesson.lessonId} style={{ display: 'grid', gridTemplateColumns: 'minmax(220px, 1fr) auto', gap: 10, alignItems: 'center', borderTop: '1px solid var(--border, #eef1f4)', paddingTop: 6 }}>

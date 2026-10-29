@@ -69,7 +69,7 @@ export const GUIDE_SECTIONS = [
   {
     id: 'library', title: 'Õppevara ja töölehed', ru: 'Учебные материалы и листы',
     items: [
-      { title: 'Kursused ja tunnid', video: ['oppevara'], to: '/library', et: 'Valmis õpiteed: A2 → B1, B1 → B2 ja B2 → C1. Igal tunnil on kolm töölehte: Avasta, Harjuta ja Kasuta (40–55 minutit).', ru: 'Готовые курсы A2→B1, B1→B2, B2→C1. У каждого урока три листа: Avasta, Harjuta, Kasuta (40–55 мин).' },
+      { title: 'Kursused ja tunnid', video: ['oppevara'], to: '/library', et: 'Valmis kursused: Eesti keel A2, Eesti keel B1, Eesti keel B2 ja C1 süvakursus (nimi = sihttase). Igal tunnil on kolm töölehte: Avasta, Harjuta ja Kasuta (40–55 minutit).', ru: 'Готовые курсы: Eesti keel A2, Eesti keel B1, Eesti keel B2 и C1 süvakursus (название = целевой уровень). У каждого урока три листа: Avasta, Harjuta, Kasuta (40–55 мин).' },
       { title: 'Töölehe konstruktor', video: ['konstruktor'], et: 'Lehte saab muuta: „✎ Muuda lehte”, siis topeltklõps tekstil. Lisa ülesandeid, pilte ja kuulamise heli (eesti hääled). „Hinda EKI-ga” näitab teksti taset.', ru: 'Лист можно менять: «✎ Muuda lehte», двойной клик по тексту. Добавляй задания, картинки и аудио (эстонские голоса). «Hinda EKI-ga» показывает уровень текста.' },
       { title: 'Õpiku vaade ja PDF', video: ['opilase-vaade'], et: 'Töölehed saab välja printida või salvestada PDF-ina.', ru: 'Листы можно распечатать или сохранить в PDF.' },
     ],

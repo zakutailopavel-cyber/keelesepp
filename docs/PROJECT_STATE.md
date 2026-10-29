@@ -27,6 +27,68 @@
 - Next safe step: after A2 module 3 lands, rerun `final-shape.mjs --course a2 --module 4` for the 014 → 016 boundary,
   then A2 module 5.
 
+## 2026-10-29 · agent/a2-m03-final — A2 module 3 „Päev, kell ja harjumused” in the final shape
+
+- Base: `main` 3f9abb9 (after #910 A2 module 1, #911 A2 module 2, #912), checked 2026-10-29. Content only; no production
+  data, no publishing, no deploy. module01.js / module02.js not touched; the 009→011 boundary was rechecked after #911
+  (011 Kasuta now opens with the interview, not with R10 like 009).
+- Done: `a2/module03.js` (a2-011…015) passes every final-shape gate under the A2 profile: **75 → 0 problems**
+  (`final-shape.mjs --course a2 --module 3`); quality gate clean; the teaching sheets also pass the strict gate (40–43 min).
+  Course 2018 → 1943 (`finalShapeBaselineA2.json` only shrank: module 3's 72 lines and one line each of modules 4, 9, 18).
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, row m3, no swap): 011 KUUL L→W (main `011_t_letter` W05 story for the school paper), 012 PROB R→S
+  (the hotel moves Sofia's interview to her babysitting Tuesday; main `012_t_call` S04 phone call to the hotel), 013 LUGU
+  R→W (Sofia at the family nurse; main `013_t_letter` W04 letter to the nurse), 014 AVAS L→S („proovi kõigepealt” table →
+  rule → „proovi uuesti” error fix; main `014_t_agree` S03 idea card for the flat's weekly plan), 015 EKS (V7 wording,
+  vocab box, two repeated rows fixed). S06 picture = 014 home recording (Anna's week picture), S05 info gap = 011
+  Harjuta; a pair task in every lesson, a home recording in every Kasuta, two fluency tasks a lesson (S07, S08, S02 ×2 +
+  recordings); reviews name the previous lesson and one of module 1; no tingiv kõneviis. Almost every catalogue id once
+  (R01–R13, R15, R16, L01–L10, W01–W12 except W06, S01–S13 except S14).
+- Vocab: topic words pärastlõunal, veerand, kolmveerand, harjumus (V14 ≥ 90 %); päevakava, kodutöö, kellaaeg, oode,
+  tihe, esmaspäeviti, argipäev, õhtusöök left the boxes. canDo and goals of 011–014 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): rebuilt `014_t_malle` (longer transcript); removed `011_t_ene` (file + manifest). `011_p_morning`,
+  `012_p_calls`, `013_d_survey`, `014_d_jaan` became `examlisten` with unchanged transcripts.
+- Checks: `eslint --quiet src` 0; course tests (`admin/course`) 16 files / 517 tests pass; full vitest 403–405 of 410 files
+  pass — the failures are UI timeouts under machine load 160–290 (WorksheetStudioPage, studentWorksheetFlow, LiveRoom,
+  VocabularyPage, CourseProductionPage, LessonWorksheetStudioPage, LessonGeneratorBar.art), all green when rerun alone;
+  language check: 0 unknown lower-case words except `kusimustik`.
+- Left: 015's strict-gate note (3 short tasks in Avasta) as before — the check lesson was not rewritten.
+- Next safe step: A2 module 4 (`a2/module04.js`, row m4 KIRJ PROJ LUGE RÄÄK); recheck V1/V2 at the 014→016 boundary.
+## 2026-10-29 · agent/board-audio-any-tool — the worksheet's audio plays on the board with any tool
+
+- Owner: „учитель должен мочь открыть аудиозапись прям сразу во время урока”. On the lesson board the sheet lies under
+  the drawing layer; only „Täida töölehte” let clicks through, so with the pointer / pen tool the player could not be
+  pressed. Now (board/StudentBoard.jsx) a hover over a `.ws-audio` player lets the click through whatever tool is on,
+  and a tap without hover (tablet) plays / pauses it. Test in board.test.jsx.
+## 2026-10-29 · agent/course-names — course names by the target level (display only)
+
+- Base: `main` c4bfda5, checked 2026-10-29. UI/display only; no production writes, no publishing, no deploy.
+- Owner decision: courses are named by the TARGET level (Harno / Töötukassa style): **Eesti keel A2** (algajale · Harno
+  A2 eksamini), **Eesti keel B1** (A2 tasemelt · Harno B1 eksamini), **Eesti keel B2** (B1 tasemelt · Harno B2 eksamini),
+  **C1 süvakursus** (B2+ · 240 ak h), **English A2 / English B1** (whole course „English A1–B1”). Ids, course keys,
+  roadmap ids and lesson ids unchanged.
+- Done: new `curriculum/courseNames.js` (names, subtitles, `courseNameForLevel`, `courseNameForCurriculum`,
+  `courseBadge`); `admin/course/registry.js` `COURSES` (label = name · subtitle, new `name`, badge „KeeleSepp · Eesti keel
+  B1 · moodul N”, English badge by the module's level); CourseHealth / CourseProduction pages use `name`;
+  `engine/Sheet.jsx` shows old stored badges („KeeleSepp A2 → B1 · moodul 3”, „KeeleSepp English · …”) under the new
+  name, so published sheets need no republishing; Õppevara groups by `curriculumId` → new name (stored
+  `curriculumTitle` only a fallback), level tab C1 = „C1 süvakursus”, hint with the subtitle; „Minu kursus” title
+  = course name; textbook (BookPage) default title; guide text; Module1ThreePhase eyebrow + badge; roadmap JSON titles
+  (`data/keelesepp-a2-roadmap.json`, `a2Roadmap.json`, `-a2-b1-`, `-b1-b2-`, `c1-curriculum` + its 10 parts: version
+  → 2026-10-29.1), `scripts/extract-c1-curriculum.py`; ARCHITECTURE „Course names”; CEFR standard scope line.
+- Production Firestore (read-only scan 2026-10-29) still holds the old names — owner may update, the UI no longer
+  depends on them: `curriculumLessons.curriculumTitle` 389 docs (106 „KeeleSepp A2 õppekava · A1 → A2 õpitee”, 100
+  „KeeleSepp C1 õppekava”, 93 „B2 õppekava · B1→B2 õpitee”, 90 „B1 õppekava · A2→B1 õpitee”);
+  `worksheetAssignments.curriculumTitle` 98, `homework.curriculumTitle` 9, `worksheetAssignmentsArchive` 3;
+  `meta.badge` inside `worksheetDoc` / `publishedWorksheetDoc` of `curriculumLessons/*/worksheets` 1453 docs,
+  `worksheetVersions` 9823, `worksheetAssignments` 207 (history snapshots — shown mapped). The A2 installer in
+  Õppevara writes `curriculumTitle` from `a2Roadmap.json` (now „Eesti keel A2”); no installer writes B1/B2/C1 titles.
+- Checks: eslint clean; full vitest 409 files passed, 1 failed (`CourseProductionPage.test.jsx`: its regex now also
+  matched „English B1 · moodul 2”) — fixed and rerun green; new `curriculum/courseNames.test.js` (3 tests).
+- Not changed on purpose: lesson content inside sheets (e.g. „Minu A2 → B1 plaan”), student level → target level
+  displays (`A2 → B1` on cards, parent view, initial assessment), archive folders, English installer titles
+  („KeeleSepp English A2/B1” — already the target level).
+- Next safe step: owner reviews and merges the PR; optionally updates the stored `curriculumTitle` fields.
 ## 2026-10-29 · agent/a2-m02-final — A2 module 2 „Pere, inimesed ja kirjeldamine” in the final shape
 
 - Base: `agent/a2-final-shape-gates` (#908), then `origin/main` c4bfda5 merged (clean). Module 1 (`a2/module01.js`) is

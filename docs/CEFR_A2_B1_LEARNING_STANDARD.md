@@ -1,7 +1,7 @@
 # KeeleSepp CEFR-aligned A2 → B1 learning standard
 
 Status: internal normative document  
-Scope: Eesti keel · B1 õppekava · A2 → B1 õpitee  
+Scope: course „Eesti keel B1” (A2 tasemelt · Harno B1 eksamini; roadmap `est-a2-b1-roadmap-v1`)  
 Roadmap: 18 modules / 90 lessons  
 Core lesson phases: **1 Avasta → 2 Harjuta → 3 Kasuta**
 

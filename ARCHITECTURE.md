@@ -49,6 +49,16 @@ Before rendering, curriculum records are deduplicated by stable source identity 
 subject/level/topic/title identity. If equivalent records exist, the published or otherwise richer, newer worksheet
 record wins. This is a presentation and save-safety boundary, not a destructive data migration.
 
+#### Course names (owner 2026-10-29)
+
+Courses are named by the TARGET level, like Harno / Töötukassa: **Eesti keel A2** (algajale · Harno A2 eksamini),
+**Eesti keel B1** (A2 tasemelt · Harno B1 eksamini), **Eesti keel B2** (B1 tasemelt · Harno B2 eksamini),
+**C1 süvakursus** (B2+ · 240 ak h), **English A2 / English B1** (the English course as a whole: „English A1–B1”).
+The one source is `crm-v2/src/features/curriculum/courseNames.js`; the course registry, the worksheet badge
+(„KeeleSepp · Eesti keel B1 · moodul N”), Õppevara groups (by `curriculumId`, the stored `curriculumTitle` is only a
+fallback), „Minu kursus” and the textbook cover read it. Old badges stored in Firestore are shown under the new name
+by `courseBadge()` in `Sheet.jsx`. Display only: ids (`est-a2-b1-roadmap-v1`, `a2b1-…`, course keys) never change.
+
 ### Didactics library
 
 Teacher reference books and reusable methodical resources live in the separate `didacticLibrary` collection and

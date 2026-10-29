@@ -65,6 +65,7 @@ function pageCounter(setCounts) {
 }
 import { useFitScale } from './useFitScale.js';
 import { applyPrintA4 } from './printPage.js';
+import { courseNameForLevel } from '../curriculum/courseNames.js';
 import './engine/sheet.css';
 import './worksheetStudio.css';
 
@@ -162,8 +163,8 @@ export default function BookPage({ repository = libraryService, worksheetReposit
       const result = assembleProgramBook(scope, Object.fromEntries(records), program.phases);
       setBuilt({ loading: false, error: '', ...result, key });
       // the default title follows the level; a title the teacher typed is kept
-      setBook((current) => (!current.title || /^Eesti keel (A1|A2|B1|B2|C1|C2)$/.test(current.title)
-        ? { ...current, title: `Eesti keel ${level}`, level, subtitle: chosenModule ? chosenModule.label : '' }
+      setBook((current) => (!current.title || /^(Eesti keel (A1|A2|B1|B2|C1|C2)|C1 süvakursus)$/.test(current.title)
+        ? { ...current, title: courseNameForLevel(level) || `Eesti keel ${level}`, level, subtitle: chosenModule ? chosenModule.label : '' }
         : current));
     } catch (error) {
       if (latestBuild.current === key) setBuilt({ loading: false, error: error.message || 'Õpikut ei saanud koostada.', sheets: [], missing: [], key });

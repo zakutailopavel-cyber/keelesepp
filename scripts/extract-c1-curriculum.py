@@ -122,8 +122,8 @@ def extract(source: Path) -> dict:
 
     return {
         "id": "est-c1-curriculum-240-v1",
-        "version": "2026-09-21.1",
-        "title": "KeeleSepp C1 õppekava",
+        "version": "2026-10-29.1",
+        "title": "C1 süvakursus",
         "subject": "Eesti keel",
         "level": "C1",
         "totalHours": 240,
