@@ -1,3 +1,9 @@
+## 2026-10-29 · agent/a2-intro-schedule — A2 exam formats come in from module 5
+
+- The A2 profile introduced S1/W1 in module 2 although corners start in module 6, so the gap rule (≤3 modules) fired
+  for every A2 module 6 corner choice. FORMAT_INTRO_A2 now: S1, W1, L1, R3 → 5 (the module 5 exam tags them); S2, W2a,
+  L2, R1 → 6; R2, L3 → 7; R4, W2b → 8; L4, R5 → 9. Doc COURSE_FINAL_SHAPE_A2.md §3. A2 baseline regenerated.
+
 ## 2026-10-29 · agent/a2-m04-final — A2 module 4 „Kodu ja ümbrus” in the final shape
 
 - Base: `main` c4bfda5 (A2 profile), then `origin/main` 8c9b996 merged (modules 1 #910 and 2 #911, rechecked). Module 3 is rewritten
