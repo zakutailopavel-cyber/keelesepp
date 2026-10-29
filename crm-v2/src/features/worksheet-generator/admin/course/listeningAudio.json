@@ -2274,6 +2274,11 @@
     "seconds": 62.3,
     "hash": "2bacf96ec2ff1f53d7c132e74179733cc2291918"
   },
+  "b1b2-011:011_p_clips": {
+    "src": "/audio/b1b2-011/011_p_clips.mp3",
+    "seconds": 232.7,
+    "hash": "87f391b16569c04da0b21a1d7a2e990d42fe5496"
+  },
   "b1b2-012:012_d_anna": {
     "src": "/audio/b1b2-012/012_d_anna.mp3",
     "seconds": 64.7,
@@ -2301,8 +2306,8 @@
   },
   "b1b2-015:015_p_news": {
     "src": "/audio/b1b2-015/015_p_news.mp3",
-    "seconds": 40.3,
-    "hash": "b2dbbe1b5f44400b4523fa61a453e2ac95233f24"
+    "seconds": 86.8,
+    "hash": "7da5894c816810d656b00f2d5f7f5adc4d049d05"
   },
   "b1b2-016:016_d_lunch": {
     "src": "/audio/b1b2-016/016_d_lunch.mp3",

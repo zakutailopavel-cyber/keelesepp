@@ -25,6 +25,64 @@
   (2767 tests, 5 skipped); Vabamorf language check of module 4: 0 unknown lower-case words.
 - Next safe step: B1→B2 module 5 (`b2/module05.js`, b1b2-021…025, §4.1 row 5: AVAS L→S · LUGU R→W · PROB R→S · KUUL L→W);
   021's corner must not be L3 (019's corner).
+## 2026-10-29 · agent/b2-m03-final — B1→B2 module 3 „Minevik ja kogemused” in the final shape
+
+- Base: `main` 21c7f0b (2026-10-29, after #875 module 2). Content only; no production data, no publishing, no deploy.
+- Done: `b2/module03.js` (b1b2-011…015) passes every final-shape gate under the B2 profile: **69 → 0 problems**
+  (`final-shape.mjs --course b2 --module 3`); seven lines of other groups left the baseline too (016 discover V1/V2,
+  016 transfer V2/V7, 025 and 038 practice V7, course `V6-variant-R2a`). B2 baseline 1071 → 995, nothing added. Strict
+  quality gate: all 15 sheets READY (teaching sheets 44–55 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`): 011 KUUL L→W (corner L1 = `011_p_clips`, ten short announcements heard once, MC; main W08 claim to
+  the bus company, level 4), 012 PROB R→S (corner R2a = `012_p_ad`, the job ad in paragraphs A–F + 8 statements, R14;
+  main S17 argument cards Artur vs Maarja), 013 LUGU R→W (corner R4 = `013_p_insert`, Merle's summary with 8 sentences + 1
+  extra, R16; main W13 explanation to Merle), 014 AVAS L→S (corner S1 = `014_p_mono`, S16; main S16 retrospective recorded
+  at home; W15 report with a plan-vs-actual chart), 015 EKS (R1, R2a, R3, R4, L1, L3, L4, W1, W2b, S1, S2 tagged; four timed
+  `PART`s; new W2b essay `015_t_essay`, the news part as a once-played L1 `examListen`). Every teaching lesson: review naming
+  the previous lesson and a module-1 lesson, a pair task in the lesson, a home recording, two fluency tasks; S16 ×2, S17 ×1.
+- Changed blocks: removed `011_p_neg`, `011_p_fix`, `011_p_cross`, `011_t_cases` (cases folded into `011_t_rules`, R07 L3),
+  `012_p_interview`, `012_p_forms`, `012_p_match`, `013_t_plan`, `014_p_should`, `014_p_order`, `014_t_plan`; new
+  `011_p_clips`, `011_p_tr` (G10), `012_t_voice` (S15), `014_p_join` (W09 sentence joining), `014_t_numbers` (chart),
+  `015_t_essay`, PART headers; `012_t_ad` moved to Harjuta as `012_p_ad`; `013_t_mail` is now a phrase bank (R05),
+  `014_d_story` has shuffled paragraphs (R10), `014_p_retro` asks for paragraph headings (R09), `014_d_interview` and
+  `012_d_anna` keep their transcripts (MC / short answers, audio unchanged). Vocab: hilinema, kolima, juhtum instead of
+  asendusbuss, kolimine, e-teenus; topic words töösõit, tagasivaade, õppetund (V14 ≥ 90 %). `b2/lessonGoals.js`: canDo and
+  goals of 011–014 follow the main tasks.
+- Audio (TartuNLP, free): new `b1b2-011/011_p_clips.mp3` (233 s, ten clips of ~23 s — shorter than Harno's 35–45 s),
+  rebuilt `b1b2-015/015_p_news.mp3` (87 s, five news items).
+- Checks: `final-shape.mjs --course b2 --module 3` 0; `npx eslint --quiet src` 0; `npx vitest run` 402 files passed
+  (2767 tests, 5 skipped); language check of module 3: 0 unknown lower-case words.
+- Limits: the R2a corner is a `reading` with letter answers plus three open questions (the reading-copy check counts a
+  one-letter answer as copied); the L1 corner is 8.1 min by the estimator — shorter clips would drop it under 8.
+- Next safe step: B1→B2 module 4 (`b2/module04.js`, b1b2-016…020, §4.1 row 4: KIRJ L→W · PROJ R→W · LUGE R→S · RÄÄK L→S),
+  branch `agent/b2-m04-final`; 016's corner must not be S1 (014's corner).
+## 2026-10-29 · agent/teacher-calendar-color — a teacher's colour in the calendar can be chosen
+
+- Owner: „поставь Егору розовый цвет в календаре”. Colours were a hash of the teacher uid (6 tones, Jegor shared blue
+  with Anhelina). Now `users/{uid}.calendarTone` (0–5: Sinine, Roheline, Oranž, Lilla, Roosa, Helesinine) wins
+  (`calendarGrid.tonesOf` / `teacherTone(key, tones)`); the admin picks it on the teacher's page („Värv kalendris”).
+  Only the administrator's calendar loads the staff list, so a teacher's own view still uses the hash colour.
+- Data: Jegor Fjodorov's `calendarTone` = 4 (Roosa), set on the owner's request.
+- Checks: eslint 0 errors; vitest 2768 passed.
+## 2026-10-29 · agent/availability-weeks — „Sobivad ajad” week by week
+
+- Owner: „ученик должен иметь возможность заполнять свой график и наперёд, чтобы работающие тоже могли удобно выбирать времена”.
+- Done: the card „Millal sulle tund sobib?” / „Sobivad ajad” has chips „Tavaline nädal” + this week and the next three.
+  A dated week may get its own times (`studentAvailability.weeks = { Monday: { slots, preferred } }`, at most 8, past
+  weeks dropped on save); „Kasuta tavalist nädalat” removes it. The calendar (studentTimesModel) reads the week of the
+  date. Save is one write with `mergeFields` (the weeks map is replaced whole; the admin's reviewedAt stays).
+- Rules: `firestore.rules` availabilityValid allows `weeks` (map, ≤ 8); emulator test in security-access. **The rules
+  must be deployed before the UI is live** (otherwise saving a dated week is refused).
+- Files: availability-poll/{pollModel,AvailabilityCard,availabilityPoll.css}, services/firebase/studentAvailability.js,
+  calendar/studentTimesModel.js, firestore.rules, tests.
+- Checks: eslint 0 errors; vitest 2771 passed.
+- Not changed: the announcement answer (availability snapshot) still stores the usual week.
+- Next safe step: deploy firestore rules (owner's OK), then merge.
+
+## 2026-10-29 · agent/student-board-menu — „Tahvel” in the student's menu
+
+- Owner: „добавь ученикам их доску”. The board outside lessons (/board, BoardPage) existed, but a pure student's short
+  menu (navigation.js studentNavigation) had no link. Added „Tahvel” after „Ülesanded”; parents had it already.
+- Checks: eslint 0 errors; vitest 2767 passed. Next safe step: none needed.
 
 ## 2026-10-29 · agent/b2-m02-final — B1→B2 module 2 „Linn, teenused ja asjaajamine” in the final shape
 

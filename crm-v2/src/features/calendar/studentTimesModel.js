@@ -6,12 +6,14 @@ import { availabilityAt, effectiveSlots } from './availabilityModel.js';
 import { toClock, toMinutes } from './calendarGrid.js';
 import { eventOccursOn, occurrencesForDates, shiftDate } from './calendarView.js';
 import { roomChoices } from './roomModel.js';
+import { timesOnDate } from '../availability-poll/pollModel.js';
 
 const DAY_IDS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export const dayOfDate = (date) => DAY_IDS[new Date(`${date}T12:00:00`).getDay()];
 const half = (minutes) => `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${minutes % 60 ? '30' : '00'}`;
 const overlaps = (a, b) => a.start < b.end && b.start < a.end;
-export const hasTimes = (availability) => Boolean(availability?.slots?.length);
+// a dated week of its own (studentAvailability.weeks, owner 2026-10-29) counts too; a date reads its own week
+export const hasTimes = (availability) => Boolean(availability?.slots?.length || Object.values(availability?.weeks || {}).some((week) => week?.slots?.length));
 
 // the half hours a lesson touches (16:15–17:00 → 16:00, 16:30)
 function halvesOf(time, duration) {
@@ -24,10 +26,11 @@ function halvesOf(time, duration) {
 
 // 'best' (every half hour ★), 'ok' (every half hour suits), 'partial' (some do), 'none', 'unknown' (no times saved)
 export function studentStateAt(availability, { date, time, duration = 60 }) {
-  if (!hasTimes(availability)) return 'unknown';
+  const times = timesOnDate(availability, date);
+  if (!times.slots.length) return 'unknown';
   const day = dayOfDate(date);
-  const slots = new Set(availability.slots);
-  const best = new Set(availability.preferred || []);
+  const slots = new Set(times.slots);
+  const best = new Set(times.preferred);
   const keys = halvesOf(time, duration).map((minutes) => `${day}-${half(minutes)}`);
   const hits = keys.filter((key) => slots.has(key)).length;
   if (!hits) return 'none';
@@ -37,10 +40,11 @@ export function studentStateAt(availability, { date, time, duration = 60 }) {
 
 // the suitable time of one date as ranges in minutes: [{ start, end, kind: 'best' | 'ok' }]
 export function studentBandsOn(availability, date) {
-  if (!hasTimes(availability)) return [];
+  const times = timesOnDate(availability, date);
+  if (!times.slots.length) return [];
   const day = dayOfDate(date);
-  const best = new Set(availability.preferred || []);
-  const cells = [...new Set(availability.slots)].filter((slot) => slot.startsWith(`${day}-`))
+  const best = new Set(times.preferred);
+  const cells = [...new Set(times.slots)].filter((slot) => slot.startsWith(`${day}-`))
     .map((slot) => ({ start: toMinutes(slot.slice(4)), kind: best.has(slot) ? 'best' : 'ok' }))
     .sort((a, b) => a.start - b.start);
   return cells.reduce((list, cell) => {

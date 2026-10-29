@@ -7,8 +7,23 @@ export const SNAP = 15;
 export const PX_PER_MIN = 1.1;
 const TONES = 6;
 
-// stable colour per teacher
-export function teacherTone(key = '') {
+// the colours a teacher can have (calendarV2.css .tone-0 … .tone-5)
+export const TONE_NAMES = ['Sinine', 'Roheline', 'Oranž', 'Lilla', 'Roosa', 'Helesinine'];
+// the colours the administrator chose (users/{uid}.calendarTone, owner 2026-10-29: „поставь Егору розовый цвет”):
+// staff → Map uid / name → tone; a teacher without a choice keeps the colour of the hash below
+export function tonesOf(staff = []) {
+  const out = new Map();
+  (staff || []).forEach((person) => {
+    const tone = Number(person?.calendarTone);
+    if (person?.calendarTone === '' || person?.calendarTone == null || !Number.isInteger(tone) || tone < 0 || tone >= TONES) return;
+    if (person.id) out.set(person.id, tone);
+    if (person.name) out.set(person.name, tone);
+  });
+  return out;
+}
+// stable colour per teacher (the chosen one first)
+export function teacherTone(key = '', tones = null) {
+  if (tones?.has(key)) return tones.get(key);
   let hash = 0;
   for (const char of String(key)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   return hash % TONES;
