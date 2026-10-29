@@ -12,7 +12,7 @@ describe('tag(): didactic tags on a block', () => {
   });
   it('refuses unknown ids, formats, levels and keys at once', () => {
     expect(() => tag(reading, { task: 'R99' })).toThrow(/R99/);
-    expect(() => tag(reading, { harno: 'R5' })).toThrow(/R5/);
+    expect(() => tag(reading, { harno: 'R9' })).toThrow(/R9/);
     expect(() => tag(reading, { level: 5 })).toThrow(/1–4/);
     expect(() => tag(reading, { harnoo: 'R1' })).toThrow(/harnoo/);
     expect(() => tag(reading, { topic: ['sõna'] })).toThrow(/sõnavarakasti/);
