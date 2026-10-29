@@ -31,6 +31,46 @@
 - Next safe step: B1→B2 module 11 (`b2/module11.js`, b1b2-051…055, §4.1 row 11: KUUL L→W · PROB L→S · LUGU R→W · AVAS R→S);
   051's corner must not be S2 (049's corner).
 
+## 2026-10-29 · agent/invite-parent-default — „Saada kutse” goes to the parent's e-mail by default
+
+- Team (Oleksiy, #bug): „кнопка saada kutse по умолчанию отправляла запрос на почту родителя, а не ученика”.
+- One e-mail is one account (student-invite-core refuses a parent's e-mail for a student login), so: when the card has
+  a parent e-mail, „Saada kutse” opens the parent invite (a parent login linked to the card, or a new password link when
+  it exists) prefilled with that e-mail; „Õpilasele oma konto” keeps the student's own login. Without a parent e-mail
+  nothing changes. File: students/StudentAccountCard.jsx (+ test).
+- Checks: eslint 0, full vitest (see PR).
+## 2026-10-29 · agent/b2-m09-final — B1→B2 module 9 „Tervis ja eluviis” in the final shape
+
+- Base: `main` 377856e, then `origin/main` 38ecb2b merged (after #884, module 7). Module 8 (#886) was not on `main` yet
+  when the PR was opened: the 039 (LUGE, corner R4) → 041 (LUGU, corner W2a) boundary has no family repeat, but V1/V2 at
+  039→041 must be rechecked after #886. Content only; no production data, no publishing, no deploy.
+- Done: `b2/module09.js` (b1b2-041…045) passes every final-shape gate under the B2 profile: **60 → 0 problems**
+  (`final-shape.mjs --course b2 --module 9`); also left the baseline: 046 practice/transfer V2, 057 discover V7, course
+  `V6-total-R2`, `V6-total-R4`, `V6-variant-W2a`. No line added. Strict quality gate: all 15 sheets READY (teaching sheets
+  40–54 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 9): 041 LUGU R→W (corner W2a = `041_p_write` W15 summary of the new chart `041_p_data`,
+  8–10 sentences; main `041_t_post` W13 semi-formal post), 042 KUUL L→W (corner L2 = new `042_p_work` radio interview
+  „Toit tööpäeval”, 10 MC; main `042_t_letter` W04 letter to Viktor), 043 AVAS R→S (corner R2b = new `043_p_info`
+  burnout page, ≈ 360 words, 8 short answers + 1 reflection question, in Avasta; main `043_t_talk` S12 rank and agree on
+  three changes), 044 PROB L→S (corner L4 = `044_p_show` talk show Piia + Jaan, 12 T/F, replaces the lecture; main
+  `044_t_qa` S17 board meeting with cards A/B). 045 EKS: L3, L4, R1, R2a, R3, R4, W1, W2a, S1, S2 tagged, four timed
+  `PART`s; new W2a `045_t_summary` after chart `045_t_data` instead of `045_t_tr`. Every teaching lesson: review naming
+  the previous lesson and a module 5–7 lesson (040/028, 041/031, 042/034, 043/024), an in-lesson pair task, a home
+  recording (S15 ×3, S16 in 044), two fluency tasks; S16 ×2 (043_p_mono, 044_t_present), S17 ×2 (043_p_cards, 044_t_qa).
+- Changed blocks: tags on nearly every task; removed `042_p_order`, `043_t_plan` (W11 now `044_d_flow`), `044_p_lecture`;
+  `041_p_canteen` gaps are short-answer questions (L03, transcript unchanged); `043_p_debate` tagged L06; `044_p_tf` is
+  about Jaan's plan; `044_p_summary` is a W02 notice card; `042_p_reply` W10 (rewrite the intern's commands);
+  `043_t_mail` W12 (the plan for Liis); topic words võõrustaja, läbipõlemine, toidujäätmed. canDo/goals of 041–044 in
+  `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `b1b2-042/042_p_work.mp3` (132 s), `b1b2-044/044_p_show.mp3` (144 s); `044_p_lecture.mp3` and
+  its manifest entry deleted.
+- Checks: `final-shape.mjs --course b2 --module 9` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2772 tests, 5 skipped; a first full run had 4 UI timeouts in LiveRoom/WorksheetStudioPage, they pass alone and on
+  rerun); Vabamorf language check of module 9: 0 unknown lower-case words.
+- Limits: the R2b corner text is ≈ 360 words (Harno 200–300) because the B2 didactic check wants readings of 350+ words;
+  it sits in Avasta (two readings in Harjuta are `v4-repeat`). The L2 corner has 10 questions (Harno 5).
+- Next safe step: B1→B2 module 10 (`b2/module10.js`, b1b2-046…050, §4.1 row 10: LUGE R→W · RÄÄK R→S · KIRJ L→W · PROJ L→S);
+  046's corner must not be L4 (044's corner).
 ## 2026-10-29 · agent/undo-storno — „Tühista ekslik storno” in the accounting journal
 
 - Owner: „да, сделай кнопку отмены сторно”. The accountant made storno ST1 (2026-0534, 05.01.2026, of 2026-0222
