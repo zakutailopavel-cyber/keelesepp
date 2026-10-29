@@ -26,8 +26,8 @@ const UPCOMING_DAYS = 56;
 const CLOSED = new Set(['Tühistatud', 'Toimunud', 'Puudus_eta', 'Puudus_p']);
 
 // how long a lesson is (team 2026-10-29: „не видно, сколько идёт урок … будем пропускать двойные уроки”): the time as a
-// range and the minutes; a lesson of 90 minutes or more is marked „Topelttund”
-const DOUBLE_FROM = 90;
+// range and the minutes; a lesson of 120 minutes or more is marked „Topelttund” (owner: a double lesson is 120 min)
+const DOUBLE_FROM = 120;
 const minutesOf = (item) => Number(item?.duration) || 0;
 function timeRange(item) {
   const [h, m] = String(item?.time || '').split(':').map(Number);
