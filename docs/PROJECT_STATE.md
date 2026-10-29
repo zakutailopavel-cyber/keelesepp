@@ -1,4 +1,4 @@
-## 2026-10-29 · agent/student-discount — student card: „Üldtingimused” / „Soodustus” price switch
+## 2026-10-29 · agent/student-discount (PR #891) — student card: „Üldtingimused” / „Soodustus” price switch
 
 - Team request 2026-10-29 (#finance): general terms bill the standard 25 €/h automatically; a discount needs an hourly
   rate and a reason (several courses, several children, …). Base: `main` 9c971f0 (2026-10-29), rebased on 7d0e0a9.
