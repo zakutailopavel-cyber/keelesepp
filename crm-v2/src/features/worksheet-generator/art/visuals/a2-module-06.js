@@ -69,6 +69,6 @@ export default [
     alt: "Sofia ja Jaan koostavad kohvikule lihtsat menüüd.",
     caption: "Pilt 1. Lihtsa menüü koostamine.",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mida Sofia menüüsse kirjutab?", "Mida Jaan võrdleb?", "Mis kolm rooga oleksid sinu menüüs?"],
+    prompts: ["Mida Sofia menüüsse kirjutab?", "Mida Jaan võrdleb?", "Mis kolm rooga sina oma menüüsse paned?"],
   },
 ];

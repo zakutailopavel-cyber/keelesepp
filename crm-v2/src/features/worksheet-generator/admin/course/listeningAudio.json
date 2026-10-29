@@ -349,25 +349,15 @@
     "seconds": 60.3,
     "hash": "71f4490ceb6f0d92584219af3d717c818586e996"
   },
-  "a2-028:028_t_jaan": {
-    "src": "/audio/a2-028/028_t_jaan.mp3",
-    "seconds": 59.2,
-    "hash": "6745882755796016b8c4cfcfc033b432c7ec8dc8"
-  },
   "a2-029:029_d_prices": {
     "src": "/audio/a2-029/029_d_prices.mp3",
-    "seconds": 57.7,
-    "hash": "0eefa7feb8e1b91571757619e4785257054380c8"
+    "seconds": 73.4,
+    "hash": "54bc3994597cf28ffd85e6fe8883556d8d044e56"
   },
   "a2-029:029_p_change": {
     "src": "/audio/a2-029/029_p_change.mp3",
-    "seconds": 62.3,
-    "hash": "0dd0ffc1415fc407bccf571b3deed6ab8b426138"
-  },
-  "a2-029:029_t_maret": {
-    "src": "/audio/a2-029/029_t_maret.mp3",
-    "seconds": 51.6,
-    "hash": "755f7a9d225d76165f6b9b90841dbbbcfffa77b0"
+    "seconds": 168.6,
+    "hash": "3ed67a177662ab890e8aabe4c0eade92b5dbdf45"
   },
   "a2-030:030_p_listen": {
     "src": "/audio/a2-030/030_p_listen.mp3",
