@@ -1,11 +1,11 @@
 ## 2026-10-29 · agent/a2-m04-final — A2 module 4 „Kodu ja ümbrus” in the final shape
 
-- Base: `main` c4bfda5 (A2 profile), then `origin/main` 8c9b996 merged (modules 1 #910 and 2 #911). Module 3 is rewritten
+- Base: `main` c4bfda5 (A2 profile), then `origin/main` 8c9b996 merged (modules 1 #910 and 2 #911, rechecked). Module 3 is rewritten
   in parallel and was not on `main`: the 014 → 016 boundary (V1/V2) must be rechecked after it lands. Content only; no
   production data, no publishing, no deploy.
 - Done: `a2/module04.js` (a2-016…020) passes every final-shape gate under the A2 profile: **75 → 0 problems**
   (`final-shape.mjs --course a2 --module 4`); `finalShapeBaselineA2.json` only shrinks (module 4 gone, plus `a2-021`
-  transfer V2 and V7 lines of 021–024, 039, 079, 086 that cited old module-4 wordings); course lines unchanged.
+  transfer V2 and V7 lines of 021–024, 039, 059, 079, 086 that cited old module-4 wordings); course lines unchanged.
   `qualityBaseline.json` unchanged (`{}`); readiness: all teaching sheets 0, 020 keeps its two older depth notes.
 - Shape (`withShapes`, A2 §4 row 4): 016 KIRJ L→W (model: video call L03 + diary R13 → plan W11, tenant card W07 →
   main `016_t_letter` examWriting `kiri` 60–80 words to Helgi, W04; edit W10), 017 PROJ R→W (house chat R12, Arvo's
@@ -24,6 +24,56 @@
 - Next safe step: after A2 module 3 lands, rerun `final-shape.mjs --course a2 --module 4` for the 014 → 016 boundary,
   then A2 module 5.
 
+## 2026-10-29 · agent/a2-m02-final — A2 module 2 „Pere, inimesed ja kirjeldamine” in the final shape
+
+- Base: `agent/a2-final-shape-gates` (#908), then `origin/main` c4bfda5 merged (clean). Module 1 (`a2/module01.js`) is
+  rewritten in parallel and was not on `main`: the 004 → 006 boundary (V1/V2) must be rechecked after it lands. Content
+  only; no production data, no publishing, no deploy.
+- Done: `a2/module02.js` (a2-006…010) passes every final-shape gate under the A2 profile: **63 → 0 problems**
+  (`final-shape.mjs --course a2 --module 2`); `finalShapeBaselineA2.json` 2139 → 2067 lines (module 2 gone, plus
+  `a2-011` V2 ×2 and five V7 lines of 016/026/027 that cited old module-2 wordings); course lines unchanged. Strict
+  gates (readiness) 0 for all 15 sheets (before: 1), `qualityBaseline.json` unchanged (`{}`).
+- Shape (`withShapes`, A2 §4 row 2): 006 LUGE R→S (main `006_t_sunday` idea card S03: the family Sunday when Helgi
+  comes), 007 RÄÄK L→S (main `007_t_phone` phone cards S04 to the language school's office), 008 KIRJ L→W (main
+  `008_t_desc` examWriting `jutt` 40–60 words, W05), 009 PROJ R→W (main `009_t_letter` examWriting `kiri` 60–80 words
+  to Kati, W04). Every teaching lesson: „Mäletad?” naming the previous lesson (005/004, 006, 007, 008), an in-lesson pair
+  task, an S15 home recording in Kasuta, two fluency tasks (S09+S07, S02+S10, S08+S11, S01+W06). S06 = `008_t_roles`
+  (picture at the bus station), S05 = `009_p_roles` (keyword card, one asks, one answers). All catalogue ids at most at
+  their caps (R01–R13, L01–L10 once each, W01–W12 once each). `lessonGoals.js` 006–009: new can-dos (008, 009 now
+  „kirjutan”) and goals that name the new tasks. 010: only reworded instructions (V7) and three tasks to 6 items.
+- Audio (TartuNLP): new `007_p_hours`, `008_p_clips`; re-recorded `007_t_call`, `008_t_call`; `009_p_radio` moved to
+  Avasta as `009_d_radio` (same transcript, file renamed); removed `006_t_tree`, `008_p_coach`, `009_d_maret`,
+  `009_t_photo`.
+- Checks after the merge: `npx eslint --quiet src` clean; `npx vitest run` 409 files passed (1 skipped), 2837 tests
+  passed (6 skipped). Language check (Vabamorf):
+  1 unknown lower-case word, `kusimustik` = the examWriting genre value (technical, as in B1).
+- Next safe step: after A2 module 1 lands, rerun `final-shape.mjs --course a2 --module 2` for the 004 → 006 boundary,
+  then A2 module 3.
+
+## 2026-10-29 · agent/a2-m01-final — A2 module 1 „A2 lähtepunkt ja eneseinfo” in the final shape
+
+- Base: `main` c4bfda5 (after #908, the A2 profile). Content only; no production data, no publishing, no deploy. A2 module 2 is
+  rewritten in parallel by another agent (module02.js not touched).
+- Done: `a2/module01.js` (a2-001…005) passes every final-shape gate under the A2 profile: **48 → 0 problems**
+  (`final-shape.mjs --course a2 --module 1`); quality gate clean, the teaching sheets also pass the strict gate (40–48 min).
+  Course 2139 → 2087 (`finalShapeBaselineA2.json` only shrank: module 1's 48 lines and 4 V7/V8 lines of 008, 016, 043, 054
+  whose first copy was in module 1). `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, COURSE_FINAL_SHAPE_A2.md §4 row 1, no swap): 001 LUGU R→W (main `001_t_letter` W08 reply to the
+  language school, level 4), 002 KUUL L→W (main `002_t_write` W04 letter to Malle in teie-form), 003 AVAS L→S („proovi
+  kõigepealt” choice → rule → again; main `003_t_agree` S12 idea card for Oskar's poster), 004 PROB R→S (main `004_t_fix`
+  S10: the learner gets his data corrected by the secretary), 005 EKS (only V7/V8 wording fixed). S06 picture in 002
+  Harjuta, S05 info gap in 003 Harjuta; pair task and S15 home recording (40–60 s) in every lesson; two fluency tasks a
+  lesson; reviews name the previous lesson; no tingiv kõneviis. No corners / exam tags (corners from module 6).
+- Vocab: tutvustama → tutvuma, ülikool → õppima; topic words of 004: sünniaeg, postiindeks, ankeet, tähthaaval (V14 90 %).
+  E-mail addresses shortened (s.mets@post.ee, g.kuusik@post.ee, koor@laul.ee) so the speller sees no lower-case names.
+  canDo and goals of 001–004 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): rebuilt `002_p_listen`, `002_t_voice`, `004_t_listen`; removed `001_t_voice` (file + manifest).
+  `001_p_listen`, `002_d_family`, `003_d_house`, `003_p_listen` became `examlisten` with unchanged transcripts.
+- Checks: eslint 0; vitest 409 files / 2837 tests pass; language check: 0 unknown lower-case words except the technical
+  genre value `kusimustik` (FINAL_SHAPE_AUTHORING §8).
+- Left: 005's strict-gate notes as before (short tasks, a repeated row, no vocab box) — the check lesson was not rewritten.
+- Next safe step: A2 module 3 (`a2/module03.js`, row m3 KUUL PROB LUGU AVAS) after module 2 is merged; re-run the module 1
+  report against module 2's new 006 (V1/V2 at the 004→006 boundary).
 ## 2026-10-29 · agent/b2-course-close — B1→B2: the last course lines closed (L1, L2 gaps); B2 baseline `{}`
 
 - Base: `main` bacad76 (modules 1–18 merged), checked 2026-10-29. Content only; no production data, no publishing, no deploy.
