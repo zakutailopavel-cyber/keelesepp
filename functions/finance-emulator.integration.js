@@ -3926,6 +3926,25 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal(tombstone.history[0].action, "delete");
   assert.equal(tombstone.number, another.body.entry.number, "the number is never reused");
 
+  // a storno made by mistake is undone: the storno becomes a tombstone, the original is live again (owner 2026-10-29)
+  const mistaken = await financeRequest(adminToken, "/accounting/entries", { entry: { date: "2027-04-02", description: "ChatGPT", documentRef: "Y", lines: [{ account: "4710", debitCents: 2299 }, { account: "2210", creditCents: 2299 }] }, requestId: "acc_manual_2027_0003" });
+  const wrongStorno = await financeRequest(adminToken, "/accounting/entries/reverse", { entryId: mistaken.body.entry.id, date: "2027-04-02", reason: "parandus", requestId: "acc_reverse_0009" });
+  assert.equal(wrongStorno.status, 201, JSON.stringify(wrongStorno.body));
+  const noWhy = await financeRequest(adminToken, "/accounting/entries/undo-storno", { entryId: wrongStorno.body.entry.id, reason: "", requestId: "acc_undo_storno_0001" });
+  assert.equal(noWhy.status, 400, JSON.stringify(noWhy.body));
+  const notStorno = await financeRequest(adminToken, "/accounting/entries/undo-storno", { entryId: mistaken.body.entry.id, reason: "x", requestId: "acc_undo_storno_0002" });
+  assert.equal(notStorno.status, 409, JSON.stringify(notStorno.body));
+  const undone = await financeRequest(adminToken, "/accounting/entries/undo-storno", { entryId: wrongStorno.body.entry.id, reason: "storno tehti ekslikult", requestId: "acc_undo_storno_0003" });
+  assert.equal(undone.status, 201, JSON.stringify(undone.body));
+  const stornoAfter = (await db.collection("accountingEntries").doc(wrongStorno.body.entry.id).get()).data();
+  const originalAfter = (await db.collection("accountingEntries").doc(mistaken.body.entry.id).get()).data();
+  assert.equal(stornoAfter.deleted, true);
+  assert.equal(stornoAfter.history.at(-1).action, "undo-storno");
+  assert.equal(originalAfter.reversedBy, undefined, "the original is live again");
+  assert.equal(originalAfter.history.at(-1).action, "storno-undone");
+  const again = await financeRequest(adminToken, "/accounting/entries/undo-storno", { entryId: wrongStorno.body.entry.id, reason: "uuesti", requestId: "acc_undo_storno_0004" });
+  assert.equal(again.status, 409, JSON.stringify(again.body));
+
   // void an unpaid invoice while open: its OA entry becomes a tombstone
   const voidable = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: { ...invoiceValues, documentNumber: "1599", date: "2027-04-03", dueDate: "2027-04-10" }, requestId: "purchase_create_0005" });
   const voided = await financeRequest(adminToken, "/purchase-invoices/void", { purchaseInvoiceId: voidable.body.purchaseInvoice.id, reason: "tarnija saatis kaks korda", requestId: "purchase_void_0002" });

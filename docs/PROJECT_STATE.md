@@ -1,3 +1,15 @@
+## 2026-10-29 · agent/undo-storno — „Tühista ekslik storno” in the accounting journal
+
+- Owner: „да, сделай кнопку отмены сторно”. The accountant made storno ST1 (2026-0534, 05.01.2026, of 2026-0222
+  „invoice ChatGPT tellimus” 22,99 €) by mistake; a storno could not be changed or deleted.
+- Done: core `assertStornoUndoable`; financeApi `POST /accounting/entries/undo-storno` (transaction: the storno becomes a
+  tombstone, the original loses reversedBy and is live again, history on both, one financialAudit record; both dates
+  must be open); client `accountingService.undoStorno`; journal button „Tühista ekslik storno” on a live storno in an
+  open period, dialog with a reason. Docs: ACCOUNTING.md „Parandamine”.
+- Tests: accounting-core 19 pass; vitest accounting 56 pass; emulator test added (runs in CI).
+- **Needs a functions deploy** (`financeApi`) before the button works; the owner's OK is required.
+- Not done: ST1 itself is not undone — the accountant (or the owner) presses the button with a reason.
+
 ## 2026-10-29 · agent/b2-m07-final — B1→B2 module 7 „Haridus ja õppimine” in the final shape
 
 - Base: `main` 377856e (2026-10-29, after #881 module 5 and #882 module 6). Content only; no production data, no

@@ -9310,6 +9310,47 @@ async function deleteAccountingEntry({ actor, entryId, reason, requestId }) {
   });
 }
 
+// „Tühista ekslik storno”: the storno becomes a tombstone, its original entry is live again (accounting-core.js
+// assertStornoUndoable); both get a history item and the audit keeps one record
+async function undoAccountingStorno({ actor, entryId, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanReason = cleanText(reason, 300);
+  if (!cleanReason) throw httpError(400, "Tühistamise põhjus on kohustuslik.");
+  const ref = accountingEntryRef(entryId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { entry: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (!snap.exists) throw httpError(404, "Kannet ei leitud.");
+    const storno = { id: snap.id, ...snap.data() };
+    const originalRef = storno.reversalOf ? accountingEntryRef(storno.reversalOf) : null;
+    const originalSnap = originalRef ? await transaction.get(originalRef) : null;
+    const original = originalSnap?.exists ? { id: originalSnap.id, ...originalSnap.data() } : null;
+    try {
+      accountingCore.assertStornoUndoable(storno, original);
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    await assertAccountingDatesOpen(transaction, [storno.date, original.date], lockedThrough);
+    const before = accountingCore.snapshotOf(storno);
+    const patch = {
+      deleted: true, deletedAt: nowIso, deletedBy: actorData, deleteReason: cleanReason,
+      history: [...(Array.isArray(storno.history) ? storno.history : []), historyItem({ action: "undo-storno", reason: cleanReason, before, nowIso, actorData })],
+      updatedAt: nowIso, updatedBy: actorData,
+    };
+    transaction.update(ref, patch);
+    transaction.update(originalRef, {
+      reversedBy: FieldValue.delete(), reversedByNumber: FieldValue.delete(), reversedAt: FieldValue.delete(),
+      history: [...(Array.isArray(original.history) ? original.history : []), historyItem({ action: "storno-undone", reason: `Storno ${storno.number} tühistati: ${cleanReason}`, nowIso, actorData })],
+      updatedAt: nowIso, updatedBy: actorData,
+    });
+    transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: "accounting.entry.storno-undone", number: storno.number, originalId: original.id, originalNumber: original.number, reason: cleanReason, before, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { entry: { ...storno, ...patch }, original: { id: original.id, number: original.number } };
+  });
+}
+
 async function setAccountingLock({ actor, lockedThrough, reason }) {
   const date = String(lockedThrough || "").trim();
   if (date) validIsoDate(date, "lockedThrough");
@@ -10016,6 +10057,11 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     }
     if (req.path === "/accounting/entries/delete") {
       const result = await deleteAccountingEntry({ actor, entryId: req.body?.entryId, reason: req.body?.reason, requestId: req.body?.requestId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/entries/undo-storno") {
+      const result = await undoAccountingStorno({ actor, entryId: req.body?.entryId, reason: req.body?.reason, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }
