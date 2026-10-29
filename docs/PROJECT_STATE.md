@@ -1,3 +1,37 @@
+## 2026-10-29 · agent/b2-m14-final — B1→B2 module 14 „Ühiskond ja avalikud teenused” in the final shape
+
+- Base: `main` 7ea2006, then `origin/main` merged. Modules 11 (#895), 12 (#898) and 13 (#900) were not on `main` yet: the
+  064 (KUUL, corner L1) → 066 (RÄÄK, corner W1) boundary has no family repeat by design; recheck V1/V2/V12 at 064→066 and
+  `methodGaps.test.js` (module 13 → 14 vocabulary recycling) after they land. Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module14.js` (b1b2-066…070) passes every final-shape gate under the B2 profile: **64 → 0 problems**
+  (`final-shape.mjs --course b2 --module 14`); also left the baseline: `b1b2-085` practice/transfer V7 ×3, `b1b2-089`
+  discover V7. Nine course lines were added: `V6-gap-L1/L3/L4/R1/R2/W1/W2/S1/S2` — measured from module 10 to module 14
+  because modules 11–13 on `main` still have no `harno` tags; they disappear when #895/#898/#900 land (rebaseline then).
+  Strict quality gate: all 15 sheets READY (teaching sheets 41–51 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 14): 066 RÄÄK R→S (corner W1 = `066_t_letter` examWriting 80–100 words to the social
+  worker, W08; main `066_t_meet` S10 role play), 067 LUGE R→W (corner R1 = `067_p_article` ≈ 500 words; main `067_t_post`
+  W14 post with a counter-argument), 068 PROJ L→S (corner L1 = new `068_p_clips`, ten announcements played once, L01;
+  main `068_t_say` S16 talk at the general meeting, recorded at home), 069 KIRJ L→W (corner W2a = new chart `069_p_data`
+  + `069_p_write` W15; main `069_t_letter` W13 application). 070 EKS: L3 (10 gaps), L4, R1, R2a, R2b, W1, W2a (new
+  chart `070_t_data` + `070_t_summary`), S1, S2 tagged, four timed `PART`s. Every teaching lesson: review naming the
+  previous lesson and a module 10–12 lesson (065/058, 066/053, 067/049, 068/059), an in-lesson pair task, a home
+  recording (S15 ×3, S16), two fluency tasks; S16 ×1 (068), S17 ×2 (068_t_meeting, 069_p_debate).
+- Changed blocks: real ids on nearly every task; removed `067_p_gaps`, `067_d_match` (→ crossword
+  `067_d_cross`, G11), `068_p_match`, `069_d_sort`; `069_d_rule` table → `choice` G13 (4 options); new `067_p_order`
+  (G07), `069_d_write` → W01 questionnaire; `067_d_radio` items are short-answer questions (L03, transcript unchanged);
+  `069_d_debate` L10; `069_t_voice` L06 level 3 (action gaps); `069_p_sample` paragraphs shuffled (R10); `068_t_proposals`
+  R15 level 3; `068_t_letter` → W10 rewrite of Igor's draft; `068_p_bank` one extra sentence (R16). Vocab: e-teenus →
+  teenindus, üldkoosolek → koosolek; topic words sotsiaaltöötaja, toidupank, öörahu, peatumisala. Bold inside words
+  removed (speller). canDo and goals of 066–070 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `b1b2-068/068_p_clips.mp3`. No other transcript changed.
+- Checks: see the PR (final-shape 0, eslint, full vitest); Vabamorf language check of module 14: 1 unknown lower-case
+  word, the genre value `kusimustik`.
+- Limits: the W1 corner is 80–100 words (exam ≈ 140); the R1 corner has open questions (exam: three options); the L1
+  clips are ≈ 25 s each (Harno 35–45 s, five clips) and the corner is 8.0 min, at the floor.
+- Next safe step: B1→B2 module 15 (`b2/module15.js`, b1b2-071…075, §4.1 row 15: PROB L→S · AVAS R→S · KUUL L→W · LUGU R→W);
+  071's corner must not be W2 (069's corner W2a).
+
 ## 2026-10-29 · agent/b2-m10-final — B1→B2 module 10 „Suhted ja konfliktid” in the final shape
 
 - Base: `main` 38ecb2b, then `origin/main` 7d0e0a9 merged (after #886, module 8). Module 9 (#888) was still open: with its
