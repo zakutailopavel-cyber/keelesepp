@@ -16,7 +16,7 @@ import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
-import { canMove, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
+import { canMove, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes, tonesOf } from './calendarGrid.js';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
@@ -248,6 +248,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     ...lessonTeachers,
     ...(teacherState.data || []).filter((staff) => !staff.disabled && isTeacherAccount(staff) && !lessonTeachers.some((teacher) => teacher.id === staff.id || isSameTeacher(teacher.name, staff.name))).map((staff) => ({ id: staff.id, name: staff.name })),
   ].sort((a, b) => a.name.localeCompare(b.name, 'et'));
+  const tones = tonesOf(teacherState.data);
   // the teachers who can take over a lesson („Asendab”): active teacher accounts
   const substitutes = (teacherState.data || []).filter((staff) => !staff.disabled && isTeacherAccount(staff)).map((staff) => ({ id: staff.id, name: staff.name }));
   const hasActiveFilters = Boolean(filters.search || filters.teacher || filters.student);
@@ -756,7 +757,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     <section key={date}>
       <h3 className={date === today ? 'is-today' : ''}>{new Date(`${date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
       {list.filter((item) => item.occurrenceDate === date).map((item) => (
-        <button type="button" className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher)}`} key={item.occurrenceId} onClick={() => openPanel(item)}>
+        <button type="button" className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}`} key={item.occurrenceId} onClick={() => openPanel(item)}>
           <time>{item.time}</time>
           <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} <SubjectTag subject={item.subject} />{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
           {item.lessonRecordId || item.status === 'Toimunud' ? <Badge tone="success">✓</Badge> : null}
@@ -880,6 +881,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
           : narrow ? agenda(view === 'day' ? occurrences.filter((item) => item.occurrenceDate === anchor) : occurrences)
             : <>
               <TimeGrid
+                tones={tones}
                 columns={view === 'day' ? dayColumns : weekColumns}
                 allowColumnChange={view === 'week'}
                 showTeacher={!filters.teacher && !teacherOnly && view === 'week'}

@@ -101,3 +101,14 @@ describe('planSubstitute', () => {
     expect(plan.apply[1].data).toMatchObject({ studentId: 'x', teacher: 'Jegor', teacherUid: 'j', substituteFor: { teacher: 'Pavel', teacherUid: 'p' }, date: '2026-10-30', time: '12:00', duration: 45, online: true, recurring: false, movedFromSeriesId: 's' });
   });
 });
+
+describe('chosen teacher colours (owner 2026-10-29)', () => {
+  it('a chosen colour wins over the hash, by uid and by name; no choice keeps the hash', async () => {
+    const { teacherTone, tonesOf } = await import('./calendarGrid.js');
+    const tones = tonesOf([{ id: 'u1', name: 'Jegor', calendarTone: 4 }, { id: 'u2', name: 'Anna', calendarTone: '' }, { id: 'u3', name: 'X', calendarTone: 9 }]);
+    expect(teacherTone('u1', tones)).toBe(4);
+    expect(teacherTone('Jegor', tones)).toBe(4);
+    expect(teacherTone('u2', tones)).toBe(teacherTone('u2'));
+    expect(tones.has('u3')).toBe(false);
+  });
+});

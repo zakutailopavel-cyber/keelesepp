@@ -19,7 +19,7 @@ export const teachersService = {
   },
   async update(id, data) {
     const { db } = requireFirebaseClient();
-    const allowed = ['displayName', 'email', 'role', 'disabled', 'staffNotes'];
+    const allowed = ['displayName', 'email', 'role', 'disabled', 'staffNotes', 'calendarTone'];
     const value = Object.fromEntries(allowed.filter((key) => key in data).map((key) => [key, typeof data[key] === 'string' ? data[key].trim() : data[key]]));
     value.updatedAt = new Date().toISOString();
     await updateDoc(doc(db, 'users', id), value);

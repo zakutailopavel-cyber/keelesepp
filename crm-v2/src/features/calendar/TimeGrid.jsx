@@ -39,7 +39,7 @@ function crowdedClusters(laid, columnCount) {
 // Planner (2026-10-25): `item.blockClass` adds classes to a block (draft / flags); onDragChange(item | null) tells which
 // lesson is being dragged (the planner colours the cells for it); onDropItem(column, time) takes a dragged chip from
 // outside the grid (HTML drag and drop, half-hour snap).
-export default function TimeGrid({ columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true, bands = null, marks = null, paint = null, onPaint, onBandClick, onDragChange, onDropItem }) {
+export default function TimeGrid({ tones = null, columns, allowColumnChange = true, canDrag = canMove, onSlot, onOpen, onQuickDone, onMove, showTeacher = true, bands = null, marks = null, paint = null, onPaint, onBandClick, onDragChange, onDropItem }) {
   const bodyRef = useRef(null);
   const columnRefs = useRef(new Map());
   const [drag, setDrag] = useState(null);
@@ -49,7 +49,7 @@ export default function TimeGrid({ columns, allowColumnChange = true, canDrag = 
   const [now, setNow] = useState(nowMinutes);
   const { start: GRID_START, end: GRID_END } = gridRange(columns.flatMap((column) => column.items));
   // colour: always by teacher, one colour per teacher (owner, 2026-10-11); the legend is about free slots only
-  const toneOf = (item) => teacherTone(item.teacherUid || item.teacher);
+  const toneOf = (item) => teacherTone(item.teacherUid || item.teacher, tones);
   const manyTeachers = new Set(columns.flatMap((column) => column.items).map((item) => item.teacherUid || item.teacher || '')).size > 1;
   const HOURS = Array.from({ length: (GRID_END - GRID_START) / 60 + 1 }, (_, index) => GRID_START / 60 + index);
   const firstRange = useRef({ start: GRID_START, end: GRID_END });

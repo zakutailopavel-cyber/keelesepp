@@ -260,6 +260,12 @@ test("a student writes their own available times; only the administrator marks t
   const fields = (extra = {}) => ({ fields: { studentId: str("sec-avail-card"), slots: list(["Mon-17:00", "Mon-17:30"]), preferred: list([]), changedAt: str("2026-10-21T10:00:00.000Z"), changedByUid: str(learnerUid), changedByName: str("Avail Student"), changedByRole: str("student"), ...extra } });
   assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields())).status, 200);
   assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ reviewedAt: str("2026-10-21T11:00:00.000Z") }))).status, 403);
+  // dated weeks (owner 2026-10-29): a map of up to 8 weeks
+  const week = { mapValue: { fields: { slots: list(["Tue-18:00"]), preferred: list([]) } } };
+  const weeks = (n) => ({ mapValue: { fields: Object.fromEntries(Array.from({ length: n }, (_, i) => [`2026-11-${String(2 + i).padStart(2, "0")}`, week])) } });
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ weeks: weeks(2) }))).status, 200);
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ weeks: weeks(9) }))).status, 403);
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ weeks: str("x") }))).status, 403);
   assert.equal((await documentRequest(learner, "GET", "studentAvailability/sec-avail-card")).status, 200);
   assert.equal((await documentRequest(other, "GET", "studentAvailability/sec-avail-card")).status, 403);
   assert.equal((await documentRequest(other, "PATCH", "studentAvailability/sec-avail-card", fields())).status, 403);
