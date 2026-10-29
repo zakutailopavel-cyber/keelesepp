@@ -135,9 +135,31 @@ Keep facts consistent; add new facts here when a module adds them.
   years); Sofia covered reception until **Jelena** started on a Thursday; partner **Mart Lepp** (firm Puit); Kase kool's
   **Helen** orders from Tuul Logistika; warehouse at Peterburi tee (Rein). Career adviser **Piret Vaher** (radio
   „Tööelu”). Exam 045: bike rental worker **Kaidi** (Pirita), baker **Annika** (changed career at 45).
-- **Module 14:** Helgi born 1966 in Kõrvemaa, studied in Tartu 1984–89, village-school teacher, family moved to Tartu
-  in 2000; the father of Jaan and Sofia was a maths teacher; Viktor built his sauna in 1988, repairs bikes since losing
-  his job in 1993; Kristel Saar grew up on Saaremaa; the school story evening is on 12 December.
+- **Module 14 (final shape, 2026-10-29, September – October 2027):** Oskar's class at Kase kool (class teacher **Kristel
+  Saar**, grew up on Saaremaa, has lived in Tallinn 12 years, her grandfather told stories on winter evenings) makes the
+  class book „Meie pere lood” and the school's third story evening (lugude õhtu) on **Thursday 14 October 2027**: 18.00
+  exhibition „Meie perede ajajooned” in the hall (22 posters, A2, 6–8 events, posters due Monday 11 October, open 12–22
+  October; the Kivide family's poster wins, Oskar's family is second), 18.30 living library in the school library
+  (librarian **Triin**; eight books, 15 minutes a reading, three readings each; books: Viktor on bicycles, Helgi on getting
+  lost in the forest with her class in autumn 1990, Sofia on her first months at Tuul Logistika, Rasmus's father **Tõnu**
+  on a pike, Kadri if she is not on shift), 19.30 family stories on stage (11 families wanted ~69 minutes, 60 available;
+  two stories moved to the Christmas party, Viktor's sauna story first, Tõnu's pike last); 640 € collected for library
+  books; Jaan bakes 100 pies; teaching assistant **Maarja** looks after small children. **Helgi:** born November 1966 in
+  Kõrvemaa on the farm where Viktor lives now (Viktor is three years older); four years at the village school, then bus
+  to school in Tapa; Tartu university 1984–89 (teacher training, a hostel with three friends); village-school teacher in
+  Kõrvemaa from 1989 (42 pupils), married Jaan's father (a maths teacher at the same school) in 1990; Jaan born 1991,
+  Sofia 1998; the family moved to Tartu in 2000 when the village school was closed; 27 years at the same Tartu school;
+  first flight 1996 (Helsinki, a teachers' conference); won a poem-reading contest in 1982; has never sailed. **Viktor:**
+  born 1963; 1981–1993 at a farm-machinery factory near Tapa (closed in spring 1993); built the sauna with his father in
+  summer 1988 for the father's 50th birthday on 20 August (walls by end of June, roof in July, the stove finished overnight
+  19–20 August with neighbour **Ülo**, whose father was a stove maker); started mending bicycles in his shed in 1993 (paid
+  in eggs, potatoes and jam until 1995), Mustamäe workshop since 2005 (green door, closed on Mondays), more than 10 000
+  bikes. **Kadri:** grew up in Nõmme, studied medicine in Tartu, at the children's hospital since 2018 (Oskar born 2018, Mia
+  2021). **Sofia's story:** in her first month at Tuul Logistika she left „ära” out of „koosolek jääb ära”, so everybody came
+  to a cancelled meeting. Radio „Minu lugu” (Raadio Linnahääl, host Ülle): **Leili Kask** (life stories; the Estonian
+  Literary Museum in Tartu really collects them); listener **Kalju** at the Baltic Way (exam L2). The living books of 067
+  (Leili, Ants, Merit, Riho, Kärt, Tiit, Marju, Joel, Ella, Henri) and the families of 069 (Ivanovid, Tammed, Kivid, Saared,
+  Pärnad, Ojad, Seppad, Liivad, Kallased) are minor characters.
 - **Module 13 (final shape, 2026-10-29, July – August 2027):** Jaan's block **Männi 8** (fictional; Jaan's family in
   flat 9, 3rd floor) is renovated 12 July – 27 August by the firm **„Kindel Katus”** (foreman **Andres**): roof 12–30
   July (loudest 12–16 and 19–23 July, quiet work only 8–10), stairwell painted 2–13 August, balconies 16–27 August

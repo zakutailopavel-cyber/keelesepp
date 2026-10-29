@@ -525,3 +525,23 @@ baseline. New pitfalls:
   „6 of 7 answers can be copied”; questions on the paragraph's function („Mis on lõigu D ülesanne?”) passed.
 - **V7 strips digits:** „… mooduli 13 sõna ristsõnasse” collided with 055's crossword instruction.
 
+### 8.7 Module 14 (2026-10-29, `b1/module14.js`, a2b1-066…070): completion and the three pasts
+
+Module 14 went 56 → 0 final-shape problems (`--module 14`), strict gate 0, no baseline line left; the rewrite also took
+16 V2/V7 lines of module 15 and four course lines (`V5-course-RÄÄK`, `V6-corner-S2`, `V6-exam-R4`, `V6-total-L2`) out of the
+baseline. New pitfalls:
+
+- **An untagged `examListen(…, 'choice')` is L02.** Ten short self-introductions („living books”) with one question each
+  are L1-shaped; without `tag({ task: 'L01' })` they collided with the radio show (`V4-max-L02`).
+- **Fluency minutes are not output minutes.** An AVAS lesson with S08 (4-3-2, fluency by default), a survey tagged
+  `fluency` and S14 tagged `fluency` had 22 % output (V11 wants 25 %); dropping the fluency tag from the survey fixed it.
+- **The recycling gate needs ≥ 30 % of the previous module's box stems** (`methodGaps.test.js`): a new storyline (school,
+  family history) reused only 25 % of module 13's words (renovation, hotel, rumour). Natural additions — *ehitaja*,
+  *uskuma*, *tegelikult*, *arusaamatus*, *palve*, *vabandama*, *kompromiss*, *pilet* — raised it to 42 %. Check with
+  `recyclingShare` before the full run.
+- **Sheet minutes at 36–39:** an Avasta with one reading, a sort, two fluency tasks needed a fifth task (`formtext` G03,
+  Helgi's letter with total / partial object gaps); a KUUL Avasta took a W09 sentence-joining task; a Harjuta that was
+  thin on non-production minutes swapped its W02 note for an R01 `adsmatch` (services for the evening).
+- **Speller:** distractor forms must be real words (*lennan* → *lendan*); *pagariäri* is the nominative (not *pagariär*);
+  the plural genitive of the surname Sepp is *Seppade*.
+

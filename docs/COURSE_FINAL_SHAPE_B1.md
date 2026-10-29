@@ -384,6 +384,10 @@ L→W. The module's B1 grammar item (quotative mood and reported speech, METHODO
 lesson introduces it (§4.1 rule 6); an AVAS opener in 061 would have had no grammar item to introduce, and a KUUL opener
 is not allowed after 056 (rule 5). Tingiv kõneviis is taught in 062 (notice, rule, practice) and the first S14 „Mida sa
 teeksid?” task ends 062's Harjuta (`b1/module13.js`).
+Module 14 (2026-10-29): the row is used as written — 066 LUGU R→W (ära / läbi / valmis introduced through Viktor's sauna
+story, §4.1 rule 6), 067 AVAS L→S (täisminevik for experience, spiral of grammarPlan 'perfect'), 068 KUUL L→W (time words
+with the verb second, the three pasts, completion again), 069 RÄÄK R→S (a story in four parts; S1b agreement on the story
+evening's programme); 070 is the module exam in full B1 form (`b1/module14.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 
