@@ -64,6 +64,10 @@ its VAT (input VAT is not deductible).
 Not automatic yet: salaries and their taxes (manual entries until the payroll posting is built), cash received but not
 yet linked to an invoice (it is booked when the receipt is linked).
 
+Lesson package invoices („Tunnipakett”, `billingMode: lesson_tokens_v1`) are booked like any invoice (1200 / 3000 on the
+invoice date). The lessons bought, held, left and owed are not bookkeeping entries: they live in `studentPackages`,
+`packageLedger` and `lessonPackageStates` (docs/LESSON_TOKENS.md). The package never changes the invoice.
+
 ## Päevaraamat and käibeandmik (crm-v2/src/features/accounting)
 
 Layout of the owner's template (a Päevaraamat export of the accounting software) with the accountant's notes

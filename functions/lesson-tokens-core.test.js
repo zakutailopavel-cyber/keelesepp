@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { tokenInvoiceInput, tokenInvoiceLines, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken } = require('./lesson-tokens-core');
+const { tokenInvoiceInput, tokenInvoiceLines, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken, packageForOwedLesson, tokenBacklogLessonIds, TOKENS_PER_LESSON, OWED_LESSONS_TAKE_NEXT_PACKAGE } = require('./lesson-tokens-core');
 
 test('an invoice for 1–100 lessons with a due date', () => {
   assert.deepEqual(tokenInvoiceInput({ studentId: ' k1 ', lessons: '9', due: '2026-11-10' }), { studentId: 'k1', lessons: 9, due: '2026-11-10', note: '' });
@@ -51,4 +51,24 @@ test('a held lesson and a charged no-show take a credit; a notified absence or a
 test('„Kooli kulul”: a held lesson the school pays takes no credit', () => {
   assert.equal(lessonTakesToken({ status: 'Toimunud', billingStatus: 'school_covered' }), false);
   assert.equal(lessonTakesToken({ status: 'Toimunud', billingStatus: 'free' }), true);
+});
+
+test('an owed lesson is paid by the oldest paid token package with credits (FIFO), whatever its date', () => {
+  const token = (id, issuedAt, balanceCredits, extra = {}) => ({ id, studentId: 'k1', productType: 'lesson_package', sourceType: 'invoice_payment', status: balanceCredits ? 'active' : 'depleted', issuedAt, createdAt: `${issuedAt}T10:00:00Z`, balanceCredits, ...extra });
+  const packages = [token('tokens_b', '2026-11-01', 8), token('tokens_a', '2026-10-01', 0), token('tokens_c', '2026-12-01', 4)];
+  assert.equal(packageForOwedLesson(packages).id, 'tokens_b');
+  // a catalogue package (not bought with a token invoice) is never used for an owed lesson
+  assert.equal(packageForOwedLesson([{ ...token('cat', '2026-11-01', 5), sourceType: 'package_issue' }]), null);
+  assert.equal(packageForOwedLesson([]), null);
+  assert.equal(packageForOwedLesson(packages, { enabled: false }), null);
+  assert.equal(OWED_LESSONS_TAKE_NEXT_PACKAGE, true);
+  assert.equal(TOKENS_PER_LESSON, 1);
+});
+
+test('a credited package takes the owed lessons first, then the lessons since its invoice date, oldest first', () => {
+  const lessons = [
+    { id: 'l4', date: '2026-11-03' }, { id: 'l1', date: '2026-10-20' }, { id: 'l2', date: '2026-10-27' }, { id: 'l0', date: '2026-10-13' }, { id: 'l3', date: '2026-11-01' },
+  ];
+  assert.deepEqual(tokenBacklogLessonIds({ lessons, issuedAt: '2026-11-01', owedLessonIds: ['l2', 'l1'] }), ['l1', 'l2', 'l3', 'l4']);
+  assert.deepEqual(tokenBacklogLessonIds({ lessons, issuedAt: '2026-11-01', owedLessonIds: ['l2'], owedFirst: false }), ['l3', 'l4']);
 });

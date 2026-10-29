@@ -22,7 +22,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
-const { lessonTakesToken, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice } = require("./lesson-tokens-core");
+const { lessonTakesToken, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -1004,19 +1004,23 @@ async function creditInvoiceTokens({ actor, invoiceId }) {
 
 // lessons marked since the invoice date, before the package existed (the trigger skips a card without a package):
 // they take their credits now, oldest first
+// and lessons owed from before (held when no package had credits, lesson-tokens-core OWED_LESSONS_TAKE_NEXT_PACKAGE)
 async function consumeTokenBacklog(studentPackage) {
-  const lessons = (await db.collection("lessons").where("studentId", "==", studentPackage.studentId).get()).docs
-    .filter(doc => String(doc.data().date || "") >= studentPackage.issuedAt)
-    .sort((a, b) => String(a.data().date).localeCompare(String(b.data().date)));
+  const [lessonsSnap, statesSnap] = await Promise.all([
+    db.collection("lessons").where("studentId", "==", studentPackage.studentId).get(),
+    db.collection("lessonPackageStates").where("studentId", "==", studentPackage.studentId).get(),
+  ]);
+  const states = new Map(statesSnap.docs.map(doc => [doc.id, doc.data()]));
+  const owedLessonIds = statesSnap.docs.filter(doc => doc.data().status === "needs_attention").map(doc => doc.id);
+  const lessonIds = tokenBacklogLessonIds({ lessons: lessonsSnap.docs.map(doc => ({ id: doc.id, date: doc.data().date })), issuedAt: studentPackage.issuedAt, owedLessonIds });
   let consumed = 0;
-  for (const doc of lessons) {
-    const state = await db.collection("lessonPackageStates").doc(doc.id).get();
-    if (state.exists && state.data().status === "consumed") continue;
+  for (const lessonId of lessonIds) {
+    if (states.get(lessonId)?.status === "consumed") continue;
     try {
-      const outcome = await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId: doc.id, requestId: `tokens-backlog-${studentPackage.id}-${doc.id}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
+      const outcome = await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `tokens-backlog-${studentPackage.id}-${lessonId}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
       if (outcome.status === "consumed" && outcome.changed) consumed += 1;
     } catch (error) {
-      console.error(`Lesson tokens backlog failed for ${doc.id}:`, error.message);
+      console.error(`Lesson tokens backlog failed for ${lessonId}:`, error.message);
     }
   }
   return { consumed };
@@ -1059,10 +1063,18 @@ async function syncLessonPackageConsumption({
       }
       return { ...(existingRequest.data().result || {}), idempotent: true };
     }
-    if (lessonDeleted && priorState.status !== "consumed") throw httpError(404, "Lesson not found");
+    // an owed lesson that is removed is no longer owed (its state is cleared below)
+    if (lessonDeleted && !["consumed", "needs_attention"].includes(priorState.status)) throw httpError(404, "Lesson not found");
     const lesson = lessonDeleted
       ? { studentId: priorState.studentId || "", date: priorState.lessonDate || "", status: "deleted", teacherUid: priorState.teacherUid || "" }
       : lessonSnap.data();
+    // a removed owed lesson: nothing moves, it is simply no longer owed (no financial date check — no money moves)
+    if (lessonDeleted && priorState.status === "needs_attention") {
+      const result = { changed: false, status: "cleared", lessonId: cleanLessonId };
+      transaction.set(stateRef, { status: "cleared", lastError: "", updatedAt: nowIso, updatedBy: actorData }, { merge: true });
+      transaction.create(requestRef, { lessonId: cleanLessonId, creationSignature: signature, result, actor: actorData, createdAt: nowIso, requestId: mutationId });
+      return { ...result, idempotent: false };
+    }
     // the card's plan decides whether a no-show without notice is charged (lesson tokens, functions/lesson-tokens-core.js)
     const planSnap = lesson.studentId ? await transaction.get(db.collection("studentRevenuePlans").doc(String(lesson.studentId))) : null;
     const plan = planSnap?.exists ? planSnap.data() : {};
@@ -1071,6 +1083,10 @@ async function syncLessonPackageConsumption({
     }
     const state = stateSnap.exists ? stateSnap.data() : {};
     const completed = !lessonDeleted && lessonTakesToken(lesson, plan);
+    // a lesson that was owed (no credits when it was held) and now takes none is no longer owed
+    const clearOwed = () => {
+      if (state.status === "needs_attention") transaction.set(stateRef, { status: "cleared", lastError: "", updatedAt: nowIso, updatedBy: actorData }, { merge: true });
+    };
     const lessonDate = validIsoDate(lesson.date, "lesson date");
     await assertFinancialDateOpen(transaction, lessonDate);
     const requestRecord = result => ({
@@ -1108,6 +1124,7 @@ async function syncLessonPackageConsumption({
         lessonId: cleanLessonId,
         reason: "Lesson is already invoiced or excluded from billing",
       };
+      clearOwed();
       transaction.create(requestRef, requestRecord(result));
       return { ...result, idempotent: false };
     }
@@ -1139,6 +1156,8 @@ async function syncLessonPackageConsumption({
       } catch (error) {
         selectionError = error.message;
       }
+      // owed: no package dated on or before the lesson has credits → the next paid token package pays it
+      if (!selectedPackage && !selectionError) selectedPackage = packageForOwedLesson(packages);
       if (!selectedPackage) {
         const reason = selectionError
           || (packages.length
@@ -1162,6 +1181,7 @@ async function syncLessonPackageConsumption({
           lessonId: cleanLessonId,
           studentId: cleanStudentId,
           status: "needs_attention",
+          lessonDate,
           cycle: Number(state.cycle) || 0,
           lastError: reason,
           updatedAt: nowIso,
@@ -1299,6 +1319,7 @@ async function syncLessonPackageConsumption({
         },
       };
       if (!lessonDeleted) transaction.set(lessonRef, lessonFields, { merge: true });
+      clearOwed();
       transaction.create(requestRef, requestRecord(result));
       return { ...result, idempotent: false };
     }
@@ -12216,7 +12237,8 @@ exports.syncLessonTokens = functions.firestore
     try {
       const stateSnap = await db.collection("lessonPackageStates").doc(lessonId).get();
       const consumed = stateSnap.exists && stateSnap.data().status === "consumed";
-      if (!consumed) {
+      const owed = stateSnap.exists && stateSnap.data().status === "needs_attention";
+      if (!consumed && !owed) {
         const studentId = String(after?.studentId || "").trim();
         if (!after || !studentId) return null;
         const packages = await db.collection("studentPackages").where("studentId", "==", studentId).limit(1).get();

@@ -101,4 +101,35 @@ function lessonTakesToken(lesson = {}, plan = {}) {
   return false;
 }
 
-module.exports = { tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };
+// One held lesson takes one credit, whatever its length (a 90-min lesson on a 60-min plan is still one credit). The
+// package invoice prices N × the plan's lesson length, so a longer lesson is the owner's question (docs/LESSON_TOKENS.md
+// „Lahtised küsimused”); the ledger movement itself is ±1 (finance-core packageBalanceAfterLessonMovement).
+const TOKENS_PER_LESSON = 1;
+
+// A lesson held while no package had credits is owed („võlg”, lessonPackageStates status needs_attention). The next
+// paid package pays it first (oldest owed lesson first), even though that package is dated after the lesson.
+const OWED_LESSONS_TAKE_NEXT_PACKAGE = true;
+
+const isTokenPackage = (item = {}) => item.sourceType === 'invoice_payment' && item.productType === 'lesson_package';
+const fifoKey = (item = {}) => `${item.issuedAt || ''}:${item.createdAt || ''}:${item.id || ''}`;
+
+// the package that pays an owed lesson when no package dated on or before the lesson has credits: the oldest paid token
+// package with credits left (FIFO); null when there is none or the rule is off
+function packageForOwedLesson(packages = [], { enabled = OWED_LESSONS_TAKE_NEXT_PACKAGE } = {}) {
+  if (!enabled) return null;
+  return (Array.isArray(packages) ? packages : [])
+    .filter((item) => item && item.id && isTokenPackage(item) && item.status === 'active' && Number.isInteger(item.balanceCredits) && item.balanceCredits > 0)
+    .sort((a, b) => fifoKey(a).localeCompare(fifoKey(b)))[0] || null;
+}
+
+// the lessons a newly credited package takes, oldest first: every lesson since the invoice date (held while the payment
+// was on its way) and every owed lesson of the card, whatever its date. lessons: [{ id, date }]; owedLessonIds: ids.
+function tokenBacklogLessonIds({ lessons = [], issuedAt = '', owedLessonIds = [], owedFirst = OWED_LESSONS_TAKE_NEXT_PACKAGE } = {}) {
+  const owed = new Set(owedFirst ? owedLessonIds : []);
+  return lessons
+    .filter((lesson) => lesson && lesson.id && (owed.has(lesson.id) || String(lesson.date || '') >= String(issuedAt || '')))
+    .sort((a, b) => `${a.date || ''}:${a.id}`.localeCompare(`${b.date || ''}:${b.id}`))
+    .map((lesson) => lesson.id);
+}
+
+module.exports = { TOKENS_PER_LESSON, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };
