@@ -9,7 +9,7 @@ describe('student account card', () => {
     const onInvited = vi.fn();
     render(<StudentAccountCard student={childCard} service={service} onInvited={onInvited} />);
     expect(screen.getByText(/lapsevanema kontoga/)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Saada kutse/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Õpilasele oma konto/ }));
     const input = screen.getByLabelText('Õpilase e-post');
     expect(input).toHaveValue('');
     fireEvent.change(input, { target: { value: 'misha@example.ee' } });
@@ -32,7 +32,7 @@ describe('student account card', () => {
   it('shows the server refusal', async () => {
     const service = { inviteStudent: vi.fn().mockRejectedValue(new Error('Sellel e-postil on juba konto.')) };
     render(<StudentAccountCard student={childCard} service={service} />);
-    fireEvent.click(screen.getByRole('button', { name: /Saada kutse/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Õpilasele oma konto/ }));
     fireEvent.change(screen.getByLabelText('Õpilase e-post'), { target: { value: 'taken@example.ee' } });
     fireEvent.click(screen.getByRole('button', { name: /^Saada$/ }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Sellel e-postil on juba konto.');
@@ -44,7 +44,10 @@ describe('student account card: parent login', () => {
     const service = { inviteParent: vi.fn().mockResolvedValue({ uid: 'p1', email: 'olga@example.ee', created: true, mailed: true, link: 'l' }) };
     const onParentInvited = vi.fn();
     render(<StudentAccountCard student={{ id: 'misha', name: 'Misha', parentName: 'Olga', parentEmail: 'olga@example.ee' }} service={service} onParentInvited={onParentInvited} />);
-    fireEvent.click(screen.getByRole('button', { name: /Loo lapsevanema konto/ }));
+    // „Saada kutse” goes to the parent's e-mail by default (team 2026-10-29)
+    expect(screen.getByText(/lapsevanema e-postile \(olga@example.ee\)/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Saada kutse/ }));
+    expect(screen.getByLabelText(/E-post/i)).toHaveValue('olga@example.ee');
     expect(screen.getByLabelText('Lapsevanema nimi')).toHaveValue('Olga');
     fireEvent.click(screen.getByRole('button', { name: /Loo ja saada kutse/ }));
     await waitFor(() => expect(service.inviteParent).toHaveBeenCalledWith(expect.objectContaining({ email: 'olga@example.ee', studentIds: ['misha'] })));
@@ -55,5 +58,14 @@ describe('student account card: parent login', () => {
     render(<StudentAccountCard student={childCard} service={{}} />);
     expect(screen.queryByRole('button', { name: /Loo lapsevanema konto/ })).not.toBeInTheDocument();
     expect(screen.getByText(/Lapsevanema konto on kaardiga seotud/)).toBeInTheDocument();
+  });
+});
+
+describe('student account card: no parent e-mail', () => {
+  it('invites the student directly and offers a parent login', () => {
+    render(<StudentAccountCard student={{ id: 'anna', name: 'Anna', email: 'anna@example.ee' }} service={{}} />);
+    fireEvent.click(screen.getByRole('button', { name: /Saada kutse/ }));
+    expect(screen.getByLabelText('Õpilase e-post')).toHaveValue('anna@example.ee');
+    expect(screen.getByRole('button', { name: /Loo lapsevanema konto/ })).toBeInTheDocument();
   });
 });
