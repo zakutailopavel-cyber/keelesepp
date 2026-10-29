@@ -27,6 +27,32 @@
   displays (`A2 → B1` on cards, parent view, initial assessment), archive folders, English installer titles
   („KeeleSepp English A2/B1” — already the target level).
 - Next safe step: owner reviews and merges the PR; optionally updates the stored `curriculumTitle` fields.
+## 2026-10-29 · agent/a2-m02-final — A2 module 2 „Pere, inimesed ja kirjeldamine” in the final shape
+
+- Base: `agent/a2-final-shape-gates` (#908), then `origin/main` c4bfda5 merged (clean). Module 1 (`a2/module01.js`) is
+  rewritten in parallel and was not on `main`: the 004 → 006 boundary (V1/V2) must be rechecked after it lands. Content
+  only; no production data, no publishing, no deploy.
+- Done: `a2/module02.js` (a2-006…010) passes every final-shape gate under the A2 profile: **63 → 0 problems**
+  (`final-shape.mjs --course a2 --module 2`); `finalShapeBaselineA2.json` 2139 → 2067 lines (module 2 gone, plus
+  `a2-011` V2 ×2 and five V7 lines of 016/026/027 that cited old module-2 wordings); course lines unchanged. Strict
+  gates (readiness) 0 for all 15 sheets (before: 1), `qualityBaseline.json` unchanged (`{}`).
+- Shape (`withShapes`, A2 §4 row 2): 006 LUGE R→S (main `006_t_sunday` idea card S03: the family Sunday when Helgi
+  comes), 007 RÄÄK L→S (main `007_t_phone` phone cards S04 to the language school's office), 008 KIRJ L→W (main
+  `008_t_desc` examWriting `jutt` 40–60 words, W05), 009 PROJ R→W (main `009_t_letter` examWriting `kiri` 60–80 words
+  to Kati, W04). Every teaching lesson: „Mäletad?” naming the previous lesson (005/004, 006, 007, 008), an in-lesson pair
+  task, an S15 home recording in Kasuta, two fluency tasks (S09+S07, S02+S10, S08+S11, S01+W06). S06 = `008_t_roles`
+  (picture at the bus station), S05 = `009_p_roles` (keyword card, one asks, one answers). All catalogue ids at most at
+  their caps (R01–R13, L01–L10 once each, W01–W12 once each). `lessonGoals.js` 006–009: new can-dos (008, 009 now
+  „kirjutan”) and goals that name the new tasks. 010: only reworded instructions (V7) and three tasks to 6 items.
+- Audio (TartuNLP): new `007_p_hours`, `008_p_clips`; re-recorded `007_t_call`, `008_t_call`; `009_p_radio` moved to
+  Avasta as `009_d_radio` (same transcript, file renamed); removed `006_t_tree`, `008_p_coach`, `009_d_maret`,
+  `009_t_photo`.
+- Checks after the merge: `npx eslint --quiet src` clean; `npx vitest run` 409 files passed (1 skipped), 2837 tests
+  passed (6 skipped). Language check (Vabamorf):
+  1 unknown lower-case word, `kusimustik` = the examWriting genre value (technical, as in B1).
+- Next safe step: after A2 module 1 lands, rerun `final-shape.mjs --course a2 --module 2` for the 004 → 006 boundary,
+  then A2 module 3.
+
 ## 2026-10-29 · agent/a2-m01-final — A2 module 1 „A2 lähtepunkt ja eneseinfo” in the final shape
 
 - Base: `main` c4bfda5 (after #908, the A2 profile). Content only; no production data, no publishing, no deploy. A2 module 2 is
