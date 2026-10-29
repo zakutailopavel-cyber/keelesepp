@@ -3,16 +3,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Card, Input, Select } from '../../components/ui/index.js';
 import { BILLING_MODES, LESSON_MINUTES, validateRevenuePlan } from '../../services/firebase/revenuePlans.js';
 import {
-  DISCOUNT_HOURLY_RATES_CENTS, DISCOUNT_REASON_MAX, LEGACY_RATE, LEGACY_REASON_PLACEHOLDER, PRICE_TERMS, SAME_RATE,
-  STANDARD_HOURLY_RATE_CENTS, discountChoiceOf, hourlyCentsFromLesson, lessonPricesFromTerms, priceTermsOf, rateLabel,
-  validatePriceTerms,
+  CUSTOM_RATE, DISCOUNT_HOURLY_RATES_CENTS, DISCOUNT_REASON_MAX, GENERAL_RATE, LEGACY_REASON_PLACEHOLDER, PRICE_TERMS,
+  SAME_RATE, STANDARD_HOURLY_RATE_CENTS, lessonPricesFromTerms, priceTermsOf, rateChoiceOf, rateLabel, validatePriceTerms,
 } from '../finance/priceTerms.js';
 import { mainSubject, subjectsOf } from './subjects.js';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format(Number(cents || 0) / 100);
 const today = () => new Date().toLocaleDateString('sv-SE');
 const STANDARD_TEXT = rateLabel(STANDARD_HOURLY_RATE_CENTS);
-const legacyLabel = (hourlyCents) => `Varasem kokkulepe ${rateLabel(hourlyCents)}`;
+const NO_CHOICE = { hourlyRate: '', customRate: '', stored: false };
 
 // the stored plan, or the old card field (before the price moved to the private plan) read as a 60-minute price
 function pricedPlan(plan, student) {
@@ -26,25 +25,27 @@ function formOf(plan, student) {
   const terms = priceTermsOf(priced);
   const discount = terms.priceTerms === 'discount';
   const minutes = String(priced?.lessonMinutes || 60);
+  const extra = subjectsOf(student || {}).filter((subject) => subject !== mainSubject(student || {}));
+  // with further subjects the card's own subject may stay at the standard rate while another is discounted
+  const allowGeneral = extra.length > 0;
   return {
     priceTerms: terms.priceTerms,
     legacy: terms.legacy,
-    // a fixed discount rate, or LEGACY_RATE for an old price that is none of them (kept until another is picked)
-    hourlyRate: discount && priced?.lessonPriceCents ? discountChoiceOf(priced.lessonPriceCents, minutes) : '',
-    legacyHourlyCents: priced?.lessonPriceCents ? hourlyCentsFromLesson(priced.lessonPriceCents, minutes) : 0,
+    allowGeneral,
+    // a fixed rate, or „Muu” prefilled with a stored rate that is none of them (kept to the cent until edited)
+    ...(discount && priced?.lessonPriceCents ? rateChoiceOf(priced.lessonPriceCents, minutes, { allowGeneral }) : NO_CHOICE),
     discountReason: terms.discountReason,
     lessonMinutes: minutes,
     weeklyLessons: String(plan?.weeklyLessons || student?.weeklyLessons || 1).replace('.', ','),
     billingMode: plan?.billingMode || 'advance',
     chargeNoShow: plan ? plan.chargeNoShow !== false : true,
     validFrom: today(),
-    // further subjects of the card (owner 2026-10-20): own rate from the same choices (SAME_RATE = the card's) and length
-    subjects: Object.fromEntries(subjectsOf(student || {}).filter((subject) => subject !== mainSubject(student || {})).map((subject) => {
+    // further subjects of the card (owner 2026-10-20): the same choices plus „sama kui kaardil” and the standard rate
+    subjects: Object.fromEntries(extra.map((subject) => {
       const own = priced?.subjectPrices?.[subject];
       const ownMinutes = own?.lessonMinutes || minutes;
       return [subject, {
-        hourlyRate: discount && own?.lessonPriceCents ? discountChoiceOf(own.lessonPriceCents, ownMinutes) : SAME_RATE,
-        legacyHourlyCents: own?.lessonPriceCents ? hourlyCentsFromLesson(own.lessonPriceCents, ownMinutes) : 0,
+        ...(discount && own?.lessonPriceCents ? rateChoiceOf(own.lessonPriceCents, ownMinutes, { allowGeneral: true }) : { ...NO_CHOICE, hourlyRate: SAME_RATE }),
         lessonMinutes: String(ownMinutes),
       }];
     })),
@@ -54,7 +55,8 @@ function formOf(plan, student) {
 // Finance v2 §1: the lesson price and billing settings of one student. Admin edits, finance role reads;
 // teachers and parents never get this card (the price is stored only in studentRevenuePlans).
 // Price terms (2026-10-29): „Üldtingimused” bills the standard hourly rate, „Soodustus” one of the fixed discount
-// rates (20 / 15 / 12 €) with a reason; an old price off these rates stays as it is until the admin picks one.
+// rates (20 / 15 / 12 €) or an own rate („Muu”), always with a reason; a stored price off these rates shows as „Muu”
+// and stays as it is until the admin edits it.
 export default function BillingSettingsCard({ student, plan, canEdit, onSave }) {
   const initial = useMemo(() => formOf(plan, student), [plan, student]);
   const [form, setForm] = useState(initial);
@@ -64,7 +66,7 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
   useEffect(() => { setForm(initial); setErrors({}); }, [initial]);
 
   const priced = pricedPlan(plan, student);
-  const prices = lessonPricesFromTerms(form, priced);
+  const prices = lessonPricesFromTerms(form, initial, priced);
   const general = form.priceTerms === 'general';
   const set = (patch) => { setForm((current) => ({ ...current, ...patch })); setMessage(''); };
   const setSubject = (subject, patch) => set({ subjects: { ...form.subjects, [subject]: { ...form.subjects[subject], ...patch } } });
@@ -95,9 +97,11 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
   const extraSubjects = Object.keys(form.subjects || {});
   const savedTerms = plan?.lessonPriceCents ? priceTermsOf(plan) : null;
   const priceLine = (cents, minutes) => `${money(cents)} / ${minutes} min`;
-  // the old price is offered only where it was stored (it cannot be picked anew)
-  const mainChoices = [...DISCOUNT_HOURLY_RATES_CENTS.map((cents) => ({ id: String(cents), label: rateLabel(cents) })),
-    ...(initial.hourlyRate === LEGACY_RATE ? [{ id: LEGACY_RATE, label: legacyLabel(initial.legacyHourlyCents) }] : [])];
+  const mainChoices = [
+    ...(form.allowGeneral ? [{ id: GENERAL_RATE, label: `Üldtingimused ${STANDARD_TEXT}` }] : []),
+    ...DISCOUNT_HOURLY_RATES_CENTS.map((cents) => ({ id: String(cents), label: rateLabel(cents) })),
+    { id: CUSTOM_RATE, label: 'Muu' },
+  ];
 
   return (
     <Card className="profile-wide billing-settings">
@@ -129,8 +133,9 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
                 {item.label}
               </label>)}
             </div>
-            {errors.hourlyRate ? <span className="field__error" role="alert">{errors.hourlyRate}</span> : null}
+            {form.hourlyRate === CUSTOM_RATE ? null : errors.hourlyRate ? <span className="field__error" role="alert">{errors.hourlyRate}</span> : null}
           </fieldset>
+          {form.hourlyRate === CUSTOM_RATE ? <Input label="Oma tunnitasu (€ / h)" inputMode="decimal" placeholder="nt 18,50" value={form.customRate} error={errors.hourlyRate} disabled={!canEdit} onChange={(e) => set({ customRate: e.target.value })} /> : null}
           <div className="field billing-settings__reason">
             <label className="field__label" htmlFor="billing-discount-reason">Soodustuse põhjus</label>
             <textarea id="billing-discount-reason" rows={2} className={errors.discountReason ? 'is-invalid' : ''} maxLength={DISCOUNT_REASON_MAX} value={form.discountReason} disabled={!canEdit}
@@ -149,11 +154,13 @@ export default function BillingSettingsCard({ student, plan, canEdit, onSave }) 
           const row = form.subjects[subject] || {};
           const was = initial.subjects[subject] || {};
           return <div className="billing-settings__subject" key={subject}>
-            {general ? null : <Select label={`Tunnitasu · ${subject}`} value={row.hourlyRate ?? SAME_RATE} error={errors[`subject:${subject}`]} disabled={!canEdit} onChange={(e) => setSubject(subject, { hourlyRate: e.target.value })}>
+            {general ? null : <Select label={`Tunnitasu · ${subject}`} value={row.hourlyRate ?? SAME_RATE} error={row.hourlyRate === CUSTOM_RATE ? undefined : errors[`subject:${subject}`]} disabled={!canEdit} onChange={(e) => setSubject(subject, { hourlyRate: e.target.value })}>
               <option value={SAME_RATE}>sama kui kaardil</option>
+              <option value={GENERAL_RATE}>Üldtingimused {STANDARD_TEXT}</option>
               {DISCOUNT_HOURLY_RATES_CENTS.map((cents) => <option key={cents} value={String(cents)}>{rateLabel(cents)}</option>)}
-              {was.hourlyRate === LEGACY_RATE ? <option value={LEGACY_RATE}>{legacyLabel(was.legacyHourlyCents)}</option> : null}
+              <option value={CUSTOM_RATE}>Muu</option>
             </Select>}
+            {!general && row.hourlyRate === CUSTOM_RATE ? <Input label={`Oma tunnitasu (€ / h) · ${subject}`} inputMode="decimal" placeholder={was.customRate || 'nt 18,50'} value={row.customRate || ''} error={errors[`subject:${subject}`]} disabled={!canEdit} onChange={(e) => setSubject(subject, { customRate: e.target.value })} /> : null}
             <Select label={`Tunni pikkus · ${subject}`} value={row.lessonMinutes || '60'} disabled={!canEdit} onChange={(e) => setSubject(subject, { lessonMinutes: e.target.value })}>
               {LESSON_MINUTES.map((minutes) => <option key={minutes} value={minutes}>{minutes} min</option>)}
             </Select>

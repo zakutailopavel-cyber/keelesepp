@@ -1,3 +1,19 @@
+## 2026-10-29 · agent/student-discount-custom — „Soodustus”: own rate „Muu”, a subject may stay at 25 €/h
+
+- Owner 2026-10-29: „льгота … для брата/сестры или по нашей доброй воле будет 20, 15 или 12 или свой вариант, который
+  пропишет админ”; default for every new learner (from grade 4) 25 €/h. Base: `main` 4579037 (after #891).
+- Done (`crm-v2/src/features/finance/priceTerms.js`, `BillingSettingsCard.jsx`): „Soodustus” = 20 / 15 / 12 €/h or
+  „Muu” with an own hourly rate (cents, > 0 and < 25 €), always with the required reason. Each further subject picks
+  from „sama kui kaardil”, „Üldtingimused 25 €/h”, 20 / 15 / 12, „Muu”; on a card with further subjects its own subject
+  can also be „Üldtingimused 25 €/h” (one subject at 25, another discounted). New helpers `rateChoiceOf`,
+  `parseRateCents`; `CUSTOM_RATE`, `GENERAL_RATE`, `SAME_RATE`; the „Varasem kokkulepe X €/h” choice is gone.
+- Existing prices: a stored price that is none of 25/20/15/12 €/h shows as „Muu” prefilled with its rate (e.g. 22,67)
+  and is saved unchanged to the cent (even ≥ 25 €/h) until the admin edits the rate or the lesson length; nothing is
+  migrated or written.
+- Rules / server: no change (`hourlyRateCents` stays any positive int, the reason rule from #891 still applies); no
+  deploy beyond the `firestore:rules` already owed for #891.
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 407 files passed (2805 tests, 5 skipped).
+- Next safe step: owner reviews the PR; deploy `firestore:rules` (from #891) if not yet done.
 ## 2026-10-29 · agent/b2-m14-final — B1→B2 module 14 „Ühiskond ja avalikud teenused” in the final shape
 
 - Base: `main` 7ea2006, then `origin/main` 8c7eb3d merged. Modules 11 (#895), 12 (#898) and 13 (#900) were not on `main` yet: the

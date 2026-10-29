@@ -226,9 +226,11 @@ A student's price lives only in `studentRevenuePlans/{studentId}` (admin writes,
 keep reading exactly these fields; nothing on the server changed. The student card's „Arveldus” (Finantsid tab) sets
 them through a switch: „Üldtingimused” prices every subject at `STANDARD_HOURLY_RATE_CENTS` (2500 = 25 € / 60 min,
 `crm-v2/src/features/finance/priceTerms.js`, the one place to change it) by its own lesson length; „Soodustus” is one of
-`DISCOUNT_HOURLY_RATES_CENTS` (20 / 15 / 12 €/h; a further subject may pick its own from the same list) and a
-required `discountReason` (≤ 300 characters). A stored price that is none of the school's rates is shown as a read-only
-„Varasem kokkulepe X €/h” choice and kept to the cent until the admin picks a school rate. The plan
+`DISCOUNT_HOURLY_RATES_CENTS` (20 / 15 / 12 €/h) or „Muu” (an own rate the admin types, > 0 and < 25 €/h), always with a
+required `discountReason` (≤ 300 characters). A further subject picks from the same list plus „sama kui kaardil” and
+„Üldtingimused 25 €/h” (the card's own subject gets the 25 €/h choice too when the card has further subjects), so one
+subject can stay at 25 while another is discounted. A stored price that is none of the school's rates is shown as „Muu”
+prefilled with its rate and kept to the cent (even ≥ 25 €/h) until the admin edits it or the lesson length. The plan
 stores `priceTerms`, `hourlyRateCents`, `discountReason` and `priceTermsChangedAt/By/ByUid`; firestore.rules check them
 (discount needs a non-blank reason, general carries none). A plan without `priceTerms` is shown by its price only
 (all at the standard rate → general, otherwise a discount with an empty reason) and is never re-priced: an untouched
