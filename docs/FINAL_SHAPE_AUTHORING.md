@@ -545,3 +545,24 @@ baseline. New pitfalls:
 - **Speller:** distractor forms must be real words (*lennan* → *lendan*); *pagariäri* is the nominative (not *pagariär*);
   the plural genitive of the surname Sepp is *Seppade*.
 
+### 8.8 Module 15 (2026-10-29, `b1/module15.js`, a2b1-071…075): the future, the jussive, kui-clauses
+
+Module 15 went 65 → 0 final-shape problems (`--module 15`), strict gate 0, no baseline line left; the rewrite also took
+17 V2/V7 lines of modules 16–18 and six course lines (`V5-course-LUGU`, `V5-course-PROJ`, `V6-corner-L2`, `V6-corner-W2`,
+`V6-total-R4`, `V6-total-S1b`) out of the baseline. New pitfalls:
+
+- **Swap for the jussive.** grammarPlan puts the module's B1 item (möönev kõneviis) in 072, which row 15 makes KUUL; swapping
+  lessons 2 and 3 made 072 the LUGU lesson (§4.1 rule 6) — the four pairs and the openers stay valid.
+- **`translation`, `errorfix` and `dictation` are not allowed in Avasta** (`v4-early-drill`), and `table` is a drill too
+  (`DRILLS` in `quality.js`): a Harjuta with `wordorder` + `errorfix` + `wordforms` has three drills. A `match` (jussive
+  sentence ↔ meaning) is recognition, not a drill.
+- **An untagged `speaking` is S02:** an opinion talk next to an S1a corner and a fluency S02 gave `V4-max-S02`; tag it S11.
+- **`examlisten` is no Avasta input** for `text-short` (B1: ≥ 140 words): a PROJ Avasta that opens with a podcast
+  (true / false) needs its `formtext` (Sofia's e-mail) at ≥ 140 words.
+- **Notices whose answers can be copied:** an R07 notice board with „Mis kell…? → kell 12” questions was 5 of 6 copyable;
+  questions that ask for a consequence or a paraphrase („Mida saab teha töötaja, kes on tööreisil?”) passed.
+- **vocabulary-not-recycled counts the box words in the whole sheet text:** five of twelve words of 074's box (mõõtma, toetama,
+  edu, arenema, vastutama) appeared on fewer than three sheets until the guide and Sofia's draft used them.
+- Speller: the endings „-gu / -ku” in the jussive notice are reported (not in `GRAMMAR`), as „-ge / -ke” were in module 7;
+  „ajacoach” is not Estonian — the radio guest is now „ajaplaneerimise koolitaja”.
+

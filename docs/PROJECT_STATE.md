@@ -1,3 +1,58 @@
+## 2026-10-29 · agent/b1-m15-final — B1 module 15 „Tulevik, plaanid ja eesmärgid” in the final shape
+
+- Base: `main` a694195 (2026-10-29, after #867 module 14). Draft PR from `agent/b1-m15-final`. Content only; no production
+  data, no publishing, no deploy.
+- Asked (owner): module 15 (a2b1-071…075) to the final shape like modules 2–14 (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 15,
+  stage 4 „exam-ready” from here; V16: in-lesson pair task + home recording; 071 needs a corner other than S1b; V1/V2
+  against 069 and 076).
+- Done: `b1/module15.js` rewritten (November – December 2027 storyline, ending on New Year's Eve: Tuul Logistika's mentor
+  programme „Järgmine samm”, Sofia's B1 exam plan for May 2028, Viktor's 65th-birthday ride along Lake Peipsi with Ülo,
+  Oskar's football camp in Pärnu). Lessons 2 and 3 of the row are swapped (allowed by §6.2) so that the LUGU lesson brings in
+  the module's B1 grammar item, the jussive (grammarPlan 072, §4.1 rule 6):
+  - 071 LUGE R→S — the office newsletter (R02), future forms (notice, G04 sort, G05 rewrite), survey of three (S09, fluency),
+    4-3-2 (S08); meaning of future sentences (G13), Sofia's e-mail (R03), the consultation at Keelekool Sõna (L04), verbs and
+    cases (G08), notice boards (R07), info gap on Sofia's spring (S05); Kasuta: corner **R4** = Keelekool Sõna's letter,
+    main **S03** group and weekly plan agreed with Olena, home goal (S15), reply to the school (W08).
+  - 072 LUGU R→W — Viktor's plan at Sunday lunch (R13, cliffhanger), möönev kõneviis for recognition (notice, G02 table),
+    Viktor's invitation (W03), retold twice (S07), 8-min writing (W06); the companion and the route by ear (L09), the family
+    chat (R12), word order with las / olgu (G07), „пусть …” translated (G10), jussive sentence ↔ meaning (G08), opinion
+    (S11); Kasuta: three plans (R11), the plan chosen (S12), home story (S15), main = corner **W2a** „Olgu peale!”.
+  - 073 KUUL L→W — coach Raivo's numbers (L10), corner **L2** = radio talk on plan B (if–then plans), kui-clauses (notice,
+    W09 joining, G04 real / unreal), Raivo's message made polite (W12), topic questions twice (S02, fluency); Raivo's letter
+    (G03), Oskar and Jaan (L03), summer offers (R01), form choice (G13), relaying to Kadri (S13), the module's one **S14**
+    (fluency); Kasuta: Raivo's voicemail (L07), call to the club (S04), home plan A / B (S15), plan (W11), main **W04** letter.
+  - 074 PROJ L→S — the firm's podcast (L05), Sofia's e-mail (G03), the programme's rules in plain words (G05, the jussive
+    again), the questionnaire (W01), introducing oneself to a mentor three times (S01, fluency); crossword (G11), Eha's voice
+    message (L06), the guide (R06), Markus's errors (G06), note to the mentor (W02), corner **S1a** (fluency); Kasuta: Sofia's
+    draft plan (R08, `level: 3`, application), main **S03** first steps agreed with the mentor, home plan (S15), the plan
+    written and edited (W10).
+  - 075 EKS — full Harno B1 form: R1 (9), R2 (6), R3b (10), R4 (8) = 33 p · L1 (7), L2 (6), L3b (8), L4 (9) = 30 p · W1b +
+    W2b = 20 p · S0, S1a, S1b, S2 = 20 p; warm-up sheet with New Year's Eve at Viktor's farm; sheet split as in 070.
+- Also: goals and can-do 071–075 in `b1/lessonGoals.js`; module-15 entry of `docs/COURSE_CAST.md` rewritten; module-15 note
+  in `COURSE_FINAL_SHAPE_B1.md` §6.2; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.8. No picture briefs exist for module 15
+  (no `art/visuals/b1-module-15.js`), none added.
+- Audio: 12 recordings (TartuNLP, free) in `public/audio/a2b1-071…075`; the 6 old files and their manifest entries removed;
+  all speaker names were already in `tools/listening-audio/plan.mjs`.
+- Checks: `course:final-shape --module 15` 65 → 0. `finalShapeBaseline.json` 296 → 208 problems (module 15 −65, 17 V2/V7
+  lines of modules 16–18 gone with the old module-15 texts, course `V5-course-LUGU`, `V5-course-PROJ`, `V6-corner-L2`,
+  `V6-corner-W2`, `V6-total-R4`, `V6-total-S1b` closed); no line added. Older quality gate and strict gate for module 15: 0;
+  recycling of module 14 words 50 % (≥ 30 %), module 16 reuses 50 % of module 15's. `npx eslint src`: 0 errors (17 old
+  warnings). Full `npx vitest run`: 402 files passed (1 skipped), 2744 tests passed, 4 skipped. Vabamorf speller: 0 unknown
+  words except names (Gollwitzer, Kauksi, Kolkja, Pontu, Tarvo, Olena, Lena, Daria, Harno), the endings „-gu / -ku” of the
+  jussive notice and the technical value `kusimustik`.
+- Limits: teaching sheets are 40–47 min (071 Practice / Kasuta, 072 Kasuta at the 40-min floor); R08 (074) in Kasuta carries
+  `level: 3` (application: hours, costs, what happens at 65 %); the exam's R3b and R4 are `gaps` texts with a bank and its R2
+  text has one unscored opinion question (as in 060, 065, 070); recordings are shorter than Harno's. Real facts kept simple:
+  Lake Peipsi is Estonia's largest lake, the Narva river leaves it at Vasknarva, the Onion Route (Sibulatee) and its Old
+  Believers' villages, the red sandstone bank at Kallaste, Värska in Setomaa, Peter Gollwitzer's research on if–then plans,
+  the old New Year's Eve customs (eating seven, nine or twelve times, tin casting) and the president's New Year speech,
+  the Tallinn marathon. The mentor programme, club Kotkas and its camp, Viktor's birthday (2 July), all prices and dates are
+  fictional. V1/V2 against 069 and 076 (module 16 not rewritten yet) were checked on today's `main`. Open: the cast (module
+  18) still says „Jaan is kitchen head from August”; module 15 does not repeat it, because module 9 already made Jaan the
+  Kase kool cook in December 2026 — the module 18 author should decide.
+- Next safe step: owner reviews module 15 in „Kursuse tootmine” and publishes it; the module 16 author starts 076 (RÄÄK L→S)
+  with a corner other than S1a (074's corner) and re-checks V1/V2 against 074.
+
 ## 2026-10-29 · agent/b1-m14-final — B1 module 14 „Minevik, kogemused ja jutustamine” in the final shape
 
 - Base: `main` 1b7be18 (2026-10-29, after #866 module 13). Draft PR from `agent/b1-m14-final`. Content only; no production

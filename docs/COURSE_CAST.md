@@ -184,10 +184,32 @@ Keep facts consistent; add new facts here when a module adds them.
   curtains ~60 €; Sofia's letter to Liis; Liis offers Sofia a communication course in Tartu in October. Anna's model
   letter: last January's door quarrel in the warehouse between **Rein** and **Kati** (a radiator, an air curtain ~600
   € for Liis to decide).
-- **Module 15:** Sofia aims at the B1 exam in May; Jaan becomes kitchen head at Kase kool from August, dreams of a
-  small family café; Viktor rides along Lake Peipsi (Vasknarva → Värska); Oskar turns 10 in April (football camp in
-  Pärnu, coach **Raivo**); Mia starts school in September; Kadri wants fewer night shifts; mentor **Eha Org** (head of
-  personnel at Tuul Logistika); former learner **Tatjana**. (Module 14's radio host is **Ülle**.)
+- **Module 15 (final shape, 2026-10-29, November – December 2027 → New Year's Eve):** everybody plans 2028. Tuul
+  Logistika's mentor programme **„Järgmine samm”** (run by personnel head **Eha Org**): one goal a person, a mentor from
+  the firm or the partner firm Puit, one hour a month January – June, info hour Wednesday 1 December at 12, questionnaire by
+  Friday 10 December, mentors announced on 17 December, first meetings in the second week of January, room on the 4th
+  floor; Eha's own goal is her first half marathon (her mentor Liis ran the Tallinn marathon last year); Markus wants to
+  lead the Riga client's project in English; Liis mentors two young colleagues; Eha is Sofia's mentor (first meeting
+  Tuesday 21 December). **Sofia** takes the B1 exam in May 2028: Keelekool Sõna's spring exam course (administrator
+  **Krista**, teacher **Maret**) — Saturday group 10–12 at the school or Tuesday online group 18–20, ten Saturdays 8 January
+  – 11 March (mock exam on 11 March), 190 € (171 € if paid by 15 December, 5 € less each for two friends), language café
+  once a month on Thursdays (13 January); she studies with **Olena** (works in a shop also on Saturday mornings; Daria has
+  dance on Tuesdays); her plan: radio on the bus 15 min a working day, a letter to Maret every Sunday, extra lessons
+  25 € each in April if the mock is under 70 %. **Viktor** turns 65 on 2 July 2028 and rides along the western shore of
+  Lake Peipsi, Vasknarva → Kauksi → Mustvee → Kallaste → Sibulatee (Kolkja) → Mehikoorma → Räpina → Värska, about 200 km,
+  with neighbour **Ülo** (e-bike, ten summers round Peipsi; one of his sons drives the bags in plan C); trauma doctor
+  dr Kivi allows ≤ 50 km a day; three plans (A tent, 5 days, ~120 €; B guesthouses, 4 days, ~440 €; C 6 days with the
+  bags by car, ~560 €) — they chose B; Jaan and Oskar take the bus to Räpina and ride the last day; Kadri brings Mia by
+  car; the party at a Värska guesthouse on 6 July at 15 (Helgi bakes a kringel, ~12 guests, Muki stays with neighbour
+  Taavi). **Oskar** (10 in April) goes to football club **Kotkas**'s camp in Pärnu, 10–16 July 2028 (coach **Raivo**,
+  administrator **Eva**, 9–12-year-olds, 40 places, 290 €, deposit 90 € by mid-January, a family doctor's note by 1 June,
+  four children a room, phones handed in at 21, calls home at 20, Haapsalu if fewer than 20 children, parents' evening
+  20 January); his conditions: training twice a week, half of his birthday / Christmas money (he gave 40 €), no grade
+  under 3. **Kadri** has one night shift a month from February 2028; **Mia** is registered for Kase kool by the end of
+  March. Radio: time-planning trainer **Katrin Sild** on if–then plans (host Ülle), Maret on exam preparation; listener
+  **Tarvo** (58, Tartu, dog **Pontu**) ran the Tallinn marathon at 55. New Year's Eve 2027 at Viktor's farm: seven meals,
+  tin casting, the president's speech, Muki under the bed. The club, the camp, the mentor programme, the prices and all
+  dates are fictional.
 - **Module 16:** radio host **Ülle** („Päevateema”, Raadio Linnahääl; also module 14); pensioner neighbour **Rein**
   (no car); city planner **Siret**; e-services adviser **Eneli**; taxi driver **Kalev**; Anna lives in Saue.
 - **Module 18:** examiner **Reet Kallas**; Sofia's exam partner **Aleksei**, classmate **Inga**; parent **Kristiina**

@@ -388,6 +388,11 @@ Module 14 (2026-10-29): the row is used as written — 066 LUGU R→W (ära / l�
 story, §4.1 rule 6), 067 AVAS L→S (täisminevik for experience, spiral of grammarPlan 'perfect'), 068 KUUL L→W (time words
 with the verb second, the three pasts, completion again), 069 RÄÄK R→S (a story in four parts; S1b agreement on the story
 evening's programme); 070 is the module exam in full B1 form (`b1/module14.js`).
+Module 15 (2026-10-29): lessons 2 and 3 of the row are swapped — 071 LUGE R→S (ways to express the future, grammarPlan
+'future'), 072 LUGU R→W (the module's B1 item, möönev kõneviis for recognition, comes through Viktor's story, §4.1 rule 6),
+073 KUUL L→W (kui-clauses, grammarPlan 'if-clauses'; the module's one S14 task), 074 PROJ L→S (the action plan agreed with
+a mentor; the jussive again in the programme's rules); 075 is the module exam in full B1 form, the first of stage 4
+(`b1/module15.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 
