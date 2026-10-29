@@ -15,7 +15,7 @@ import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff
 import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
-import { datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
+import { LESSON_STATE_LABELS, datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, lessonState, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
 import { calendarTones, canMove, cleanPersonalColors, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import CalendarColors from './CalendarColors.jsx';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
@@ -794,7 +794,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
         <button type="button" className={`cal-agenda__row tone-${teacherTone(item.teacherUid || item.teacher, tones)}`} key={item.occurrenceId} onClick={() => openPanel(item)}>
           <time>{item.time}</time>
           <span><strong>{item.online ? <Badge tone="info">veeb</Badge> : null} <SubjectTag subject={item.subject} />{item.studentName}{item.adminNote ? <StickyNote className="cal-note-icon" size={14} aria-label="Admini märkus" /> : null}</strong><small>{item.recordTopic || [item.isGroup ? 'Grupp' : '', item.teacher, `${item.duration} min`].filter(Boolean).join(' · ')}</small></span>
-          {item.lessonRecordId || item.status === 'Toimunud' ? <Badge tone="success">✓</Badge> : null}
+          {lessonState(item) === 'planned' ? null : <Badge tone={{ done: 'success', absent: 'warning', cancelled: 'danger' }[lessonState(item)]}>{LESSON_STATE_LABELS[lessonState(item)]}</Badge>}
         </button>
       ))}
     </section>

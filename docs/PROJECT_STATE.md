@@ -1,3 +1,10 @@
+## 2026-10-29 · agent/calendar-status-ribbon — traffic light on calendar lessons
+
+- Team (#high_priority): held and cancelled lessons looked the same. `calendarView.lessonState(item)`: green „done”
+  (Toimunud / a lesson record), yellow „absent” (Puudus_p / Puudus_eta), red „cancelled” (Tühistatud — before, any
+  record, also a cancelled one, counted as held). A ribbon in the top right corner of every lesson block and crowded
+  list item (calendarV2.css .tg-ribbon), cancelled blocks striped and struck through, agenda rows show the state badge.
+- Checks: calendar vitest 191 pass; full run in the PR.
 ## 2026-10-29 · agent/calendar-personal-colors — own teacher colours in the calendar, distinct by default
 
 - Base: `main` c2b4947. Owner: „сделай так, чтобы у себя можно было настраивать как угодно, и по умолчанию какой-то
