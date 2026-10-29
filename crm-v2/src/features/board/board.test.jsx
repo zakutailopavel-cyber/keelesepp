@@ -584,3 +584,29 @@ describe('worksheet pages of earlier lessons', () => {
     expect(service.addWorksheetPage || service.addPage).not.toHaveBeenCalled();
   });
 });
+
+describe('the worksheet player with any board tool (owner 2026-10-29)', () => {
+  it('a hover over the player lets the click through, a tap without hover plays it', async () => {
+    const service = fakeService({ pages: [{ id: 'pg-a', title: 'Tööleht: Avasta' }] });
+    const teacher = { uid: 't1', displayName: 'Õpetaja', roles: ['teacher'] };
+    const worksheets = [{ id: 'as-1', title: 'Avasta', content: <div className="ws-audio"><audio data-testid="player" /></div> }];
+    const { container } = render(<StudentBoard studentId="s1" user={teacher} staff variant="room" service={service} worksheets={worksheets} />);
+    const player = await screen.findByTestId('player');
+    fireEvent.click(screen.getByRole('button', { name: 'Pliiats' }));
+    const svg = container.querySelector('svg[aria-label="Õpilase tahvel"]');
+    expect(svg.style.pointerEvents).toBe('');
+    const before = document.elementsFromPoint;
+    document.elementsFromPoint = () => [svg, player.parentElement, player];
+    try {
+      fireEvent.pointerMove(svg, { clientX: 10, clientY: 10 });
+      expect(svg.style.pointerEvents).toBe('none');
+      player.play = vi.fn(() => Promise.resolve());
+      Object.defineProperty(player, 'paused', { value: true, configurable: true });
+      document.elementsFromPoint = () => [svg, player.parentElement, player];
+      fireEvent.pointerDown(svg, { clientX: 10, clientY: 10, pointerType: 'touch' });
+      expect(player.play).toHaveBeenCalled();
+    } finally {
+      document.elementsFromPoint = before;
+    }
+  });
+});
