@@ -1,3 +1,15 @@
+## 2026-10-29 · agent/b1-l1-corner — the A2→B1 course has no final-shape problem left (baseline `{}`)
+
+- Owner 2026-10-28: every lesson must pass every gate. After modules 8–18 (#803, #806, #805, #864–#871) one course line
+  was left: `V6-corner-L1` (3 of 4 L1 Eksaminurk practices).
+- Swap with no new problem: 088's corner is now the L1 clips task `088_p_clips` (10 short messages); its S1b agreement
+  moved to 038 (`038_t_hours` role play „leidke lahendus”, S1b), whose W1a questionnaire is no longer a corner. Corner
+  counts: L1 4/4, S1b 5/5, W1 4/3.
+- `finalShapeBaseline.json` is `{}`: the whole A2→B1 course (a2b1-001…090) passes V1–V16. All 270 sheets are published
+  and equal to the code (checked with the publish script: 270 same, 0 differ).
+- Checks: eslint 0 errors; full vitest 2744 passed.
+- Next safe step: put A2 (a2-*), B1→B2, C1 and English under the same gates (finalShape runs on the b1 course only).
+
 ## 2026-10-29 · agent/b1-m18-final — B1 module 18 „B1 rääkimine ja lõpphindamine” in the final shape + Mock 3 + Final
 
 **Course summary: the A2→B1 course (a2b1-001…090) is in the final shape.** All 18 modules pass V1–V16 and the strict
