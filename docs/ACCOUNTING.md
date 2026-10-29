@@ -64,6 +64,10 @@ its VAT (input VAT is not deductible).
 Not automatic yet: salaries and their taxes (manual entries until the payroll posting is built), cash received but not
 yet linked to an invoice (it is booked when the receipt is linked).
 
+Lesson package invoices („Tunnipakett”, `billingMode: lesson_tokens_v1`) are booked like any invoice (1200 / 3000 on the
+invoice date). The lessons bought, held, left and owed are not bookkeeping entries: they live in `studentPackages`,
+`packageLedger` and `lessonPackageStates` (docs/LESSON_TOKENS.md). The package never changes the invoice.
+
 ## Päevaraamat and käibeandmik (crm-v2/src/features/accounting)
 
 Layout of the owner's template (a Päevaraamat export of the accounting software) with the accountant's notes
@@ -274,6 +278,24 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
 - Limit: the sync still books automatic entries of sales documents on their own date even in a locked period (the
   document exists; the finance month close prevents such documents). An override of a purchase entry's amounts in the
   päevaraamat does not change the purchase invoice — correct amounts on the Ostuarved page.
+
+## Sisemine märkus (invoice internal note, team 2026-10-29)
+
+„Создать внутреннюю заметку к выставляемым счетам”: the administrator or the bookkeeper writes what exactly an invoice
+was for. Staff only — never printed (PDF), never e-mailed, never shown to the student or the parent.
+
+- Stored apart from the invoice in `invoiceNotes/{invoiceId}` `{ invoiceId, text (≤ 1000), updatedAt, updatedByUid,
+  updatedByName }` — the invoice document is readable by its owner (`ownsInvoice`), this collection is not. Written
+  from the client (`crm-v2/src/services/firebase/invoiceNotes.js`); rules: read and write for `admin` and `finance`,
+  fixed keys, `updatedByUid` = writer, only for an existing invoice, never deleted (an empty text clears it). It does
+  not touch the invoice's money, so it is editable on issued, paid and closed-period invoices; the last writer and time
+  stay on the document (no history of earlier texts).
+- Finantsid → Kuu arveldus: a note icon by the invoice number (filled with the text as tooltip, faint „Lisa sisemine
+  märkus” when empty), one clipped line „Märkus: …” under the student, the full text and „Viimati muutis …” in the
+  dialog; the search („Otsi”) also matches the note.
+- „Lisa arve” and „Tunnipakett”: the field „Sisemine märkus” saves into `invoiceNotes` right after the invoice is
+  made. Until 2026-10-29 the „Märkus” field went to the invoice's own `note` (readable by the owner through the rules,
+  though not printed); new invoices send `note: ''`. Old `note` values are shown read-only in the note dialog.
 
 ## Data and API
 

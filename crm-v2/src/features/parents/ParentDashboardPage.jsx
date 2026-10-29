@@ -89,7 +89,7 @@ export default function ParentDashboardPage({ studentRepository = studentsServic
       {/* „Teated”: the school's announcements already answered, to read again (owner 2026-10-24) */}
       <LearnerAnnouncementsCard user={user} {...(announcementService ? { service: announcementService } : {})} />
       {/* „Millal sobib tund?” for each child (owner 2026-10-21) */}
-      {students.map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} studentName={student.name} user={user} mode="own" compact />)}
+      {students.map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} studentName={student.name} user={user} mode="own" compact subjects={subjectsOf(student)} />)}
       {/* words learned, new this month, mistakes fixed per child (owner 2026-10-23) */}
       <ChildrenWordGrowth students={studentRecords} {...(wordsService ? { service: wordsService } : {})} />
       <ChildrenMonthSteps students={studentRecords} repository={homeworkRepository} />

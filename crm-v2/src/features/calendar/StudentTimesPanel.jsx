@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/ui/index.js';
 import { candidateTimes, hasTimes, timesLine, usualDuration, usualOnline } from './studentTimesModel.js';
+import { perWeekText } from '../availability-poll/pollModel.js';
+import { subjectsOf } from '../students/subjects.js';
 
 const dayLabel = (date) => new Date(`${date}T12:00:00`).toLocaleDateString('et-EE', { weekday: 'short', day: 'numeric', month: 'numeric' });
 
@@ -15,6 +17,8 @@ export default function StudentTimesPanel({ students = [], availabilityById = ne
   const picked = selected.map((id) => students.find((student) => student.id === id)).filter(Boolean);
   const single = picked.length === 1 ? picked[0] : null;
   const timesOf = (id) => availabilityById.get(id) || null;
+  // how often the learner wants lessons (team 2026-10-29): „2× nädalas” next to the name
+  const perWeekOf = (student) => { const text = perWeekText(timesOf(student.id)?.perWeek, subjectsOf(student)); return text ? <em className="cal2-fit__per-week"> · {text}</em> : null; };
   const normalized = query.trim().toLocaleLowerCase('et');
   const matches = normalized ? students.filter((student) => !selected.includes(student.id) && String(student.name || '').toLocaleLowerCase('et').includes(normalized)).slice(0, 8) : [];
   const add = (student) => { onSelect([...selected, student.id], student); setQuery(''); setOptions({}); };
@@ -48,7 +52,7 @@ export default function StudentTimesPanel({ students = [], availabilityById = ne
 
       {picked.length ? <ul className="cal2-fit__picked" aria-label="Valitud õpilased">{picked.map((student) => (
         <li key={student.id}>
-          <span><strong>{student.name}</strong>{hasTimes(timesOf(student.id)) ? <small>{timesLine(timesOf(student.id))}</small> : loading ? <small>Laen…</small> : missing(student)}</span>
+          <span><strong>{student.name}</strong>{perWeekOf(student)}{hasTimes(timesOf(student.id)) ? <small>{timesLine(timesOf(student.id))}</small> : loading ? <small>Laen…</small> : missing(student)}</span>
           <button type="button" aria-label={`Eemalda ${student.name}`} onClick={() => remove(student.id)}><X size={14} /></button>
         </li>
       ))}</ul> : <p className="form-hint">Vali õpilane (või mitu, nt grupi jaoks): tema sobivad ajad värvitakse kalendris. Õpetaja ajad ja tunnid on näha samal ajal.</p>}
@@ -76,7 +80,7 @@ export default function StudentTimesPanel({ students = [], availabilityById = ne
         <summary>Planeerimata õpilased ({unplanned.length})</summary>
         <ul>{unplanned.map(({ student }) => (
           <li key={student.id}>
-            <button type="button" disabled={selected.includes(student.id)} onClick={() => add(student)}><strong>{student.name}</strong></button>
+            <button type="button" disabled={selected.includes(student.id)} onClick={() => add(student)}><strong>{student.name}</strong>{perWeekOf(student)}</button>
             {hasTimes(timesOf(student.id)) ? <small>{timesLine(timesOf(student.id))}</small> : loading ? <small>Laen…</small> : missing(student)}
           </li>
         ))}</ul>

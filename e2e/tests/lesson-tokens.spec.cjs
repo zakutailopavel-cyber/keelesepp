@@ -42,7 +42,8 @@ test('a package invoice → payment → „Lisa tunnid” → a held lesson take
   await expect(adminPage.getByText('Makse registreeriti.')).toBeVisible();
   await row.getByRole('button', { name: 'Lisa tunnid (9)' }).click();
   await expect(adminPage.getByText('Kaarel Laps: lisati 9 tundi.')).toBeVisible();
-  await expect(row).toContainText('✓ lisatud õpilasele');
+  // the row now reads the package: bought / held / left
+  await expect(row).toContainText(/alles 9|lisatud õpilasele/);
 
   const balance = async () => (await db.collection('studentPackages').where('studentId', '==', KAAREL).get()).docs[0]?.data().balanceCredits;
   expect(await balance()).toBe(9);
@@ -58,5 +59,6 @@ test('a package invoice → payment → „Lisa tunnid” → a held lesson take
   await parentPage.goto('/parent');
   await expect(parentPage.getByText('Tunnipakett · Kaarel Laps')).toBeVisible();
   await expect(parentPage.getByText('8 tundi alles')).toBeVisible();
+  await expect(parentPage.getByText('Paketist alles 8 tundi')).toBeVisible();
   expect(problems).toEqual([]);
 });

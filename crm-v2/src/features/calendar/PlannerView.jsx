@@ -57,7 +57,7 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
 
   // ── actions (nothing is written to the database here) ──────────
   const addAll = () => {
-    const found = planningRequests({ students, events, today, teacherUid: scope, teachers, includePlanned, lessons: journal });
+    const found = planningRequests({ students, events, today, teacherUid: scope, teachers, includePlanned, lessons: journal, studentTimes });
     const known = new Set(requests.map((request) => request.key));
     const added = found.filter((request) => !known.has(request.key));
     update({ requests: [...requests, ...added], stale: requests.length > 0 || draft.stale });
@@ -296,7 +296,7 @@ export default function PlannerView({ user, teacherOnly = false, students = [], 
         <summary>Õppesuunad plaanis ({requests.length}) — tunde nädalas, kestus, veeb</summary>
         <ul>{requests.map((request) => (
           <li key={request.key}>
-            <span><strong>{request.studentName}</strong><small>{[request.subject, request.teacher || 'õpetaja määramata', request.planned ? 'uus plaan (vana sari lõpeb)' : ''].filter(Boolean).join(' · ')}</small></span>
+            <span><strong>{request.studentName}</strong><small>{[request.subject, request.teacher || 'õpetaja määramata', request.planned ? 'uus plaan (vana sari lõpeb)' : '', request.wanted ? `soovib ${request.wanted}× nädalas` : ''].filter(Boolean).join(' · ')}</small></span>
             <label>Nädalas <select aria-label={`Tunde nädalas: ${request.studentName} ${request.subject}`} value={request.perWeek} onChange={(event) => changeRequest(request.key, { perWeek: Number(event.target.value) })}>{[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>
             <label>Kestus <select aria-label={`Kestus: ${request.studentName} ${request.subject}`} value={request.duration} onChange={(event) => changeRequest(request.key, { duration: Number(event.target.value) })}>{[...new Set([...DURATIONS, request.duration])].sort((a, b) => a - b).map((value) => <option key={value} value={value}>{value} min</option>)}</select></label>
             <label><input type="checkbox" checked={Boolean(request.online)} onChange={(event) => changeRequest(request.key, { online: event.target.checked })} /> veeb</label>
