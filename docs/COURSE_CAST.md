@@ -210,8 +210,35 @@ Keep facts consistent; add new facts here when a module adds them.
   **Tarvo** (58, Tartu, dog **Pontu**) ran the Tallinn marathon at 55. New Year's Eve 2027 at Viktor's farm: seven meals,
   tin casting, the president's speech, Muki under the bed. The club, the camp, the mentor programme, the prices and all
   dates are fictional.
-- **Module 16:** radio host **Ülle** („Päevateema”, Raadio Linnahääl; also module 14); pensioner neighbour **Rein**
-  (no car); city planner **Siret**; e-services adviser **Eneli**; taxi driver **Kalev**; Anna lives in Saue.
+- **Module 16 (final shape, 2026-10-29, January – February 2028):** three arguments. **Kase kool** (director Aivar Mänd)
+  plans a phone-free school day for grades 1–6 from 1 March 2028: phones in a locked classroom locker 8.15 – 14.30 at the
+  latest, the key with the teacher, parents call the school office (kantselei), teachers may allow phones for learning,
+  trial to the end of the school year, a survey in June; parents' meeting Thursday 27 January 2028 at 18 in the school hall
+  (one vote per class, opinions in writing by Monday 31 January, teaching assistant **Maarja** minds small children in the
+  library). Oskar (3rd class, class teacher **Kristel Saar**) has an old button phone and wants a smartphone for his 10th
+  birthday in April; coach Raivo sends training news only to an app; Oskar writes his own phone plan (phone sleeps in the
+  kitchen from 20, games only at weekends) and is promised a smartphone for the birthday; the 3rd class supported the plan
+  on condition that the children are asked in June. Parents' forum: **Tõnu** (Rasmus got a phone at 8, charges in the kitchen
+  from 20), **Liina**, **Marko**, teacher **Aili**. **Tuul Logistika:** Liis's survey (24 of 28 answered, 15 want more home
+  days; one home day a week until now), variant A (Monday and Friday at home for all), variant B (up to 8 home days a
+  month, Tuesday in the office), Sofia's variant C (Tuesday and Thursday together, up to 6 home days, Thursday coffee in
+  Estonian, Jelena one home day a month) — Liis chose C from March; Anna lives in Saue (40 min by bus each way), Kristjan has
+  a dust allergy; proposals due Friday 11 February. **Männi 8** (Jaan's house): 10 cars, 6 parking places, 12 bikes,
+  5 bike places in the cellar, 11 children; association head **Urmas**; 9000 € for the courtyard (A big playground 7500 €,
+  B four parking places 6000 €, C smaller playground 4800 € + bike shed for 12 bikes 2500 € + two benches 400 €, parking in
+  **Männi 10**'s car park 15 € a month); meeting Wednesday 16 February 2028 at 18.30 in the association's room — C won 9 : 3,
+  children play in the courtyard 15–20, Karl may sleep in the association's room during the three weeks of building,
+  Merike rents a place at Männi 10; playground firm **„Hüppa”** (**Kaarel**: start in the second week of May, three weeks,
+  noisy work 15–18, five-year guarantee). **Helju** is 78 and walks with a stick. District radio: participatory budget
+  (kaasav eelarve) 60 000 €, ideas by 28 February (also on paper), up to 30 000 € an idea, voting the first two weeks of
+  April from age 16, three votes; info evening Wednesday 9 February; 30 km/h near schools from April. Radio „Päevateema”
+  (host **Ülle**): e-services adviser **Eneli** (home on Wednesdays and Fridays), city planner **Siret** (cycles to work) on
+  30 km/h, mediator **Mari Kuusk** (module 13) on agreeing with neighbours; street poll and listeners' comments (taxi driver
+  **Kalev**, **Merilin**, **Ants**, Helju). Mock 2 (080): listener **Heino** (Pärnu, 42, a month without a smartphone),
+  teacher **Reelika Mägi** (a Tartu school with phone lockers for two years). Independence Day 24 February: the family
+  watched the president's reception on TV; Mia's drawing of her dream courtyard hangs in the stairwell. The school's rule,
+  the variants, the amounts, the district's rules and all dates are fictional; Brussels and Paris have had 30 km/h since
+  2021 (real).
 - **Module 18:** examiner **Reet Kallas**; Sofia's exam partner **Aleksei**, classmate **Inga**; parent **Kristiina**
   (daughter with a gluten allergy); supplier **Priit** („Värske Toit”); bus company „Kõrve Reisid”. Sofia passes B1 in
   May; Jaan is kitchen head from August.

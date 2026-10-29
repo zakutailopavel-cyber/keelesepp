@@ -393,6 +393,13 @@ Module 15 (2026-10-29): lessons 2 and 3 of the row are swapped — 071 LUGE R→
 073 KUUL L→W (kui-clauses, grammarPlan 'if-clauses'; the module's one S14 task), 074 PROJ L→S (the action plan agreed with
 a mentor; the jussive again in the programme's rules); 075 is the module exam in full B1 form, the first of stage 4
 (`b1/module15.js`).
+Module 16 (2026-10-29): the row is used as written — 076 RÄÄK L→S (opinion phrases, the verb second after „minu arvates”
+and a front kuna-clause; corner S1b = the class parents' position), 077 LUGE R→W (comparison, spiral of grammarPlan
+'comparison'; corner R2), 078 KIRJ L→W (the argument in four parts with seepärast / seega and kes- / mis-clauses, the model
+texts heard and read; corner L4), 079 PROB R→S (the conditional for a polite opinion, partial agreement, the residents'
+meeting; corner R3a; the module's one S14). grammarPlan.js has no new item for 076–079, so no swap was needed (§4.1 rule 6
+does not apply). 080 is Mock 2, the second full timed B1 mock with the §6.5 checkpoint (75 %: R 25, L 23, W 15, S 15 → a
+teacher review before module 17) next to the 80 % target (`b1/module16.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 

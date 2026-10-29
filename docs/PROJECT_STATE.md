@@ -1,3 +1,61 @@
+## 2026-10-29 · agent/b1-m16-final — B1 module 16 „Arvamus, võrdlemine ja põhjendamine” in the final shape + Mock 2
+
+- Base: `main` 30de061 (2026-10-29, after #868 module 15). Draft PR from `agent/b1-m16-final`. Content only; no production
+  data, no publishing, no deploy.
+- Asked (owner): module 16 (a2b1-076…080) to the final shape like modules 2–15 (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 16;
+  080 = Mock 2, the second full timed Harno B1 mock with the §6.5 checkpoint; V16: in-lesson pair task + home recording;
+  076 needs a corner other than S1a (074's corner); V1/V2 against 074 and 081).
+- Done: `b1/module16.js` rewritten (January – February 2028 storyline after New Year's Eve: Kase kool's phone-free school
+  day and Oskar's smartphone, Tuul Logistika's remote-work variants, the Männi 8 courtyard budget, the district's
+  participatory budget and 30 km/h on the radio). §6.2 row 16 used as written (no grammar item in grammarPlan for
+  076–079, so no swap):
+  - 076 RÄÄK L→S — the Mets family at dinner (L04), opinion phrases by certainty, the verb second after „minu arvates” and a
+    front kuna-clause (notice, G02 table, G04 sort), survey of three (S09, fluency), 4-3-2 (S08); phrase choice (G13), the
+    parents' forum (R12), word order (G07), kuna-clauses (W09), street poll by ear (L01), topic questions (S02); Kasuta: the
+    class teacher's voicemail → notes (L07), corner **S1b** = the class parents agree on one position (main, S03), home
+    opinion (S15), reply to the class teacher (W08).
+  - 077 LUGE R→W — corner **R2** = the office newsletter article on the survey; comparison (notice, G02 table),
+    colleagues' voice messages (L09), two workplaces compared three times (S06, fluency), 8-min writing (W06, fluency);
+    collocations (G08), the radio talk on e-Estonia (L03), two facts → one comparison (G05), places to work (R01), Markus's
+    errors (G06), info gap on variants A / B (S05); Kasuta: three variants (R11), ranked with the team (S12), home
+    comparison (S15), main **W04** proposal to Liis.
+  - 078 KIRJ L→W — district radio news with numbers (L10), the argument in four parts with seepärast / seega and kes- /
+    mis-clauses (notice, G04 sort, G05 joining), the news retold twice (S07, fluency), relayed to Helju twice (S13,
+    fluency); corner **L4** = city planner Siret on 30 km/h, kes or mis (G03), listeners' comments as model texts (R09),
+    linking words (G13), Karl's errors (G06), Karl's post made polite (W12); Kasuta: Urmas's article (R05), the call to the
+    district office (S04), home radio comment (S15), plan (W11), main **W10** opinion piece written and edited (level 4).
+  - 079 PROB R→S — Urmas's letter (R06), the mediator on the radio (L02), the polite conditional (notice, G03 Kadri's
+    message), the neighbours' talk on the stairs twice (S10, fluency), the house questionnaire (W01); corner **R3a** = the
+    invitation to the meeting, sharp line ↔ polite answer (G08), Urmas's voicemail → what to do (L06), conditional forms
+    (G09), „вежливо” translated (G10), the module's one **S14** (fluency); Kasuta: three proposals with costs (R08,
+    `level: 3`, application), main **S03** the residents' meeting reaches a compromise, home summary (S15), the decision
+    posted in the house chat (W02).
+  - 080 PROOV (Mock 2) — full Harno B1 form: R1 (9), R2 (6), R3b (10), R4 (8) = 33 p · L1 (7), L2 (6), L3a (8), L4 (9) =
+    30 p · W1b + W2a = 20 p · S0, S1a, S1b, S2 = 20 p; `examPart` notes and the points rubrics show the §6.5 checkpoint
+    (R 25, L 23, W 15, S 15 → below that a teacher review before module 17) next to the 80 % target; warm-up sheet with how
+    the three arguments ended (Independence Day, 24 February). Sheet split as in 060 / 075.
+- Also: goals and can-do 076–080 in `b1/lessonGoals.js`; module-16 entry of `docs/COURSE_CAST.md` rewritten (the old
+  „pensioner neighbour Rein” is dropped — Rein is already the warehouse worker); module-16 note in `COURSE_FINAL_SHAPE_B1.md`
+  §6.2; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.9; speaker name `jelena` added to `tools/listening-audio/plan.mjs`. No
+  picture briefs exist for module 16 (no `art/visuals/b1-module-16.js`), none added.
+- Audio: 13 recordings (TartuNLP, free) in `public/audio/a2b1-076…080` (2 rebuilt, 11 new); the 5 old files and 4 old manifest
+  entries removed. Mock 2 lengths: L1 123 s (7 clips), L2 133 s, L3a 181 s, L4 134 s — longer than Mock 1 / exam 075 but
+  still under Harno's L2 2–3 min, L3 3–3.5 min, L4 2.5–3 min (the free voices read fast).
+- Checks: `course:final-shape --module 16` 62 → 0. `finalShapeBaseline.json` 208 → 128 problems (module 16 −62, 15 V7 lines
+  of modules 17–18 gone with the old module-16 texts, course `V5-course-PROB`, `V6-corner-R2`, `V6-corner-R3` closed); no
+  line added. Older quality gate and strict gate for module 16: 0; module 16 reuses 50 % of module 15's box stems, module
+  17 reuses 77 % of module 16's (≥ 30 %). `npx eslint src`: 0 errors (17 old warnings). Full `npx vitest run`: 402 files passed (1 skipped), 2744 tests passed, 4 skipped. Vabamorf speller: 0 unknown words except names
+  (Eneli, Lena, Merilin, Rainer, Reelika, Siret, Harno, IT-firmas) and the technical value `kusimustik`.
+- Limits: teaching sheets are 40–46 min (several at the 40-min floor); R08 (079) in Kasuta carries `level: 3`
+  (application: totals, a year of parking, what each proposal means for Karl); W10 (078) carries `level: 4` (a full opinion
+  piece written and edited); the mock's R3b and R4 are `gaps` texts with a bank and its R2 text has one unscored opinion
+  question (as in 060, 065, 070, 075). Real facts kept simple: Tallinn's districts run participatory budgets; the ID card
+  since 2002 and digital signatures; Brussels and Paris set 30 km/h city-wide in 2021; 24 February is Independence Day with
+  the president's reception. The school's phone rule, Liis's variants, the courtyard budget and prices, the district's rules
+  and amounts, the interviews and all dates are fictional.
+- Next safe step: owner reviews module 16 in „Kursuse tootmine” and publishes it; the module 17 author starts 081 (KUUL L→S
+  per §6.2) with a corner other than R3 (079's corner) and re-checks V1/V2 against 079.
+
 ## 2026-10-29 · agent/b1-m15-final — B1 module 15 „Tulevik, plaanid ja eesmärgid” in the final shape
 
 - Base: `main` a694195 (2026-10-29, after #867 module 14). Draft PR from `agent/b1-m15-final`. Content only; no production

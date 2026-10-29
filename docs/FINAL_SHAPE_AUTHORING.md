@@ -566,3 +566,23 @@ Module 15 went 65 → 0 final-shape problems (`--module 15`), strict gate 0, no 
 - Speller: the endings „-gu / -ku” in the jussive notice are reported (not in `GRAMMAR`), as „-ge / -ke” were in module 7;
   „ajacoach” is not Estonian — the radio guest is now „ajaplaneerimise koolitaja”.
 
+
+### 8.9 Module 16 (2026-10-29, `b1/module16.js`, a2b1-076…080): opinion, comparison, argument; Mock 2
+
+Module 16 went 62 → 0 final-shape problems (`--module 16`), strict gate 0, no baseline line left; the rewrite also took
+15 V7 lines of modules 17–18 and three course lines (`V5-course-PROB`, `V6-corner-R2`, `V6-corner-R3`) out of the
+baseline. New pitfalls:
+
+- **A `listening` you meant as L07 needs the tag.** An untagged voicemail → notes is L04 (level 2): it gave `V4-max-L04`
+  and `V10-kasuta` at once. Tag Kasuta listenings `{ task: 'L07' }` (or `L06` with `level: 3`).
+- **`neighbour` (quality.js) compares a mock's Kasuta with the module's last teaching Kasuta.** Writing + speaking cards
+  share most block types with a PROB Kasuta; one extra `rubric` on 079 pushed the overlap from 83 % to 86 % (> 85 %).
+- **The B1 didactic check wants exercises before free use on an Avasta sheet:** a PROB „try first” role play before the
+  form task cost 3 points (82 < 85). The first try moved after the notice and the form task; the problem still opens the
+  lesson as a text (R06 letter) and a radio talk.
+- **`examlisten` in a teaching sheet needs 10 items at B1** (`depth/short-tasks`), the same as any closed task.
+- **Speller:** endings shown in bold inside a word (`arva**ksin**`, `pike**m**`) are split into „ksin”, „pike”; write the
+  whole form in bold. The conditional of *haukuma* is *hauguks*. New speaker names go into `plan.mjs` (`jelena` added).
+- **Mock listening at exam length:** with the free TartuNLP voices the Mock 2 texts are L2 ≈ 300, L3a ≈ 360, L4 ≈ 280
+  words (133, 181 and 134 s — still below Harno's lengths); exam sheets have no 55-minute cap, so longer transcripts
+  do not break a gate.
