@@ -282,3 +282,14 @@ test("a receipt the CRM marked „voided” is reversed too (1200 must not stay 
   assert.equal(receivables, 0);
   assert.ok(entries.some((e) => e.sourceKey === "payment-void:p2"));
 });
+
+test("a storno made by mistake can be undone: only a live storno whose original points to it", () => {
+  const { assertStornoUndoable } = require("./accounting-core");
+  const original = { id: "manual_9", number: "2026-0222", origin: "manual", reversedBy: "rev_1" };
+  const storno = { id: "rev_1", number: "2026-0534", origin: "reversal", reversalOf: "manual_9" };
+  assert.doesNotThrow(() => assertStornoUndoable(storno, original));
+  assert.throws(() => assertStornoUndoable({ ...storno, origin: "manual" }, original), /ei ole stornokanne/);
+  assert.throws(() => assertStornoUndoable({ ...storno, deleted: true }, original), /juba tühistatud/);
+  assert.throws(() => assertStornoUndoable(storno, null), /ei leitud/);
+  assert.throws(() => assertStornoUndoable(storno, { ...original, reversedBy: "other" }), /ei ole selle stornoga/);
+});

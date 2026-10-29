@@ -22,6 +22,7 @@ export const accountingService = {
   saveAccount: (account) => financeApi.saveAccountingAccount(account),
   updateEntry: (entryId, entry, reason) => financeApi.updateAccountingEntry(entryId, entry, reason),
   deleteEntry: (entryId, reason) => financeApi.deleteAccountingEntry(entryId, reason),
+  undoStorno: (entryId, reason) => financeApi.undoAccountingStorno(entryId, reason),
   replaceAccount: (request) => financeApi.replaceAccountingAccount(request),
   setLock: (lockedThrough, reason) => financeApi.setAccountingLock(lockedThrough, reason),
   saveSupplier: (supplierId, supplier) => financeApi.saveSupplier(supplierId, supplier),

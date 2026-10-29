@@ -259,6 +259,11 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
   `override` with `original` (the document's own lines), and a reason is required. „Kustuta” only for a manual entry,
   with a reason; the entry becomes a tombstone (`deleted`, hidden from the registers, „Näita kustutatud” shows it, its
   PR number is never reused).
+- **„Tühista ekslik storno”** (the owner 2026-10-29: the accountant made a storno by mistake): while both dates are open,
+  a storno whose original still points to it becomes a tombstone (`deleted`, history action `undo-storno`, number never
+  reused) and its original entry loses `reversedBy` / `reversedByNumber` / `reversedAt` and is live again (history
+  action `storno-undone`); one `financialAudit` record „accounting.entry.storno-undone”. `POST
+  /accounting/entries/undo-storno { entryId, reason, requestId }`; core check `assertStornoUndoable`.
 - **Every change** appends `{ at, by, action: edit | override | document | delete, reason, before, after }` to the
   entry's `history` („Ajalugu (n)” under the entry) and writes a `financialAudit` document.
 - **„Sulge periood kuni …”** (button on Raamatupidamine, `accountingSettings/lock.lockedThrough`): on and before that date
@@ -269,6 +274,24 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
 - Limit: the sync still books automatic entries of sales documents on their own date even in a locked period (the
   document exists; the finance month close prevents such documents). An override of a purchase entry's amounts in the
   päevaraamat does not change the purchase invoice — correct amounts on the Ostuarved page.
+
+## Sisemine märkus (invoice internal note, team 2026-10-29)
+
+„Создать внутреннюю заметку к выставляемым счетам”: the administrator or the bookkeeper writes what exactly an invoice
+was for. Staff only — never printed (PDF), never e-mailed, never shown to the student or the parent.
+
+- Stored apart from the invoice in `invoiceNotes/{invoiceId}` `{ invoiceId, text (≤ 1000), updatedAt, updatedByUid,
+  updatedByName }` — the invoice document is readable by its owner (`ownsInvoice`), this collection is not. Written
+  from the client (`crm-v2/src/services/firebase/invoiceNotes.js`); rules: read and write for `admin` and `finance`,
+  fixed keys, `updatedByUid` = writer, only for an existing invoice, never deleted (an empty text clears it). It does
+  not touch the invoice's money, so it is editable on issued, paid and closed-period invoices; the last writer and time
+  stay on the document (no history of earlier texts).
+- Finantsid → Kuu arveldus: a note icon by the invoice number (filled with the text as tooltip, faint „Lisa sisemine
+  märkus” when empty), one clipped line „Märkus: …” under the student, the full text and „Viimati muutis …” in the
+  dialog; the search („Otsi”) also matches the note.
+- „Lisa arve” and „Tunnipakett”: the field „Sisemine märkus” saves into `invoiceNotes` right after the invoice is
+  made. Until 2026-10-29 the „Märkus” field went to the invoice's own `note` (readable by the owner through the rules,
+  though not printed); new invoices send `note: ''`. Old `note` values are shown read-only in the note dialog.
 
 ## Data and API
 
