@@ -1,3 +1,12 @@
+## 2026-10-29 · agent/invite-parent-default — „Saada kutse” goes to the parent's e-mail by default
+
+- Team (Oleksiy, #bug): „кнопка saada kutse по умолчанию отправляла запрос на почту родителя, а не ученика”.
+- One e-mail is one account (student-invite-core refuses a parent's e-mail for a student login), so: when the card has
+  a parent e-mail, „Saada kutse” opens the parent invite (a parent login linked to the card, or a new password link when
+  it exists) prefilled with that e-mail; „Õpilasele oma konto” keeps the student's own login. Without a parent e-mail
+  nothing changes. File: students/StudentAccountCard.jsx (+ test).
+- Checks: eslint 0, full vitest (see PR).
+
 ## 2026-10-29 · agent/b2-m07-final — B1→B2 module 7 „Haridus ja õppimine” in the final shape
 
 - Base: `main` 377856e (2026-10-29, after #881 module 5 and #882 module 6). Content only; no production data, no
