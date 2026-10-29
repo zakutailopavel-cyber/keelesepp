@@ -106,7 +106,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
         <div role="table" aria-label="Kursuse valmidus" style={{ display: 'grid', gap: 6 }}>
           {Object.values(readiness).map((c) => (
             <div role="row" key={c.course} style={{ display: 'grid', gridTemplateColumns: '160px 120px 1fr', gap: 12, alignItems: 'center' }}>
-              <b role="cell">{COURSES[c.course]?.label.split(' ·')[0] || c.course}</b>
+              <b role="cell">{COURSES[c.course]?.name || c.course}</b>
               <span role="cell"><strong>{c.ready}</strong> / {c.total} tundi</span>
               <span role="cell" className="form-hint">{Object.entries(c.gates).sort((a, b) => b[1] - a[1]).map(([gate, n]) => `${GATE_LABEL[gate] || gate} ${n}`).join(' · ') || '✓ kõik väravad läbitud'}</span>
             </div>
@@ -138,7 +138,7 @@ export default function CourseProductionPage({ repository = lessonWorksheetsServ
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }} role="radiogroup" aria-label="Moodul">
           {modules.map((m) => (
             <Button key={m.MODULE.id} variant={m.MODULE.id === mod.MODULE.id ? 'primary' : 'secondary'} role="radio" aria-checked={m.MODULE.id === mod.MODULE.id} onClick={() => setModuleId(m.MODULE.id)}>
-              {COURSES[m.MODULE.course].label.split(' ·')[0]} · moodul {moduleNumber(m)} · {m.MODULE.title}{(() => { const r = readiness[m.MODULE.course]?.modules.find((x) => x.id === m.MODULE.id); return r ? ` · ${r.ready}/${r.total}` : ''; })()}
+              {COURSES[m.MODULE.course].name} · moodul {moduleNumber(m)} · {m.MODULE.title}{(() => { const r = readiness[m.MODULE.course]?.modules.find((x) => x.id === m.MODULE.id); return r ? ` · ${r.ready}/${r.total}` : ''; })()}
             </Button>
           ))}
         </div>

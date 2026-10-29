@@ -416,7 +416,7 @@ export function buildModule1Worksheet(lessonId, phase) {
       canDo: lesson.canDo,
       phase,
       displayLabel: phaseMeta[phase].label,
-      badge: 'KeeleSepp A2 → B1 · moodul 1',
+      badge: 'KeeleSepp · Eesti keel B1 · moodul 1',
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
