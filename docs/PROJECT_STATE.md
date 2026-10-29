@@ -1,3 +1,31 @@
+## 2026-10-29 · agent/b2-m07-final — B1→B2 module 7 „Haridus ja õppimine” in the final shape
+
+- Base: `main` 377856e (2026-10-29, after #881 module 5 and #882 module 6). Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module07.js` (b1b2-031…035) passes every final-shape gate under the B2 profile: **56 → 0 problems**
+  (`final-shape.mjs --course b2 --module 7`); two module-8 lines (036 discover/transfer V2) and two course lines
+  (`V6-total-L3`, `V6-total-S2`) left the baseline too. B2 baseline 776 → 716 lines, none added. Strict quality gate: all
+  15 sheets READY (teaching sheets 40–53 min), `qualityBaseline.json` unchanged. Boundary 029 (KIRJ, corner L2) → 031
+  (PROB, corner R4) clean.
+- Shape (`withShapes`, §4.1 row 7): 031 PROB R→S (corner R4 = `031_p_bank`, Helgi's 35 years, 8 sentences + 1 extra, R16,
+  moved from 033; main `031_t_talk` S17 arenguvestlus with argument cards A/B), 032 AVAS L→S (corner S1 = `032_p_mono` S16
+  done twice; main `032_t_report` S16 talk at the team meeting, recorded at home), 033 KUUL L→W (corner L3 =
+  `033_p_lecture`; main `033_t_post` W13 examWriting card to the 4.b parents, 140–160 words), 034 LUGU R→W (corner S2 =
+  `034_t_debate` S17; main `034_t_summary` W15 summary of a new class-by-class survey chart `034_t_data` + own comment,
+  ≈ 180 words). 035 EKS: L3, L4, R1, R2a, R3, R4, W1, W2a, S1, S2 tagged, four timed `PART`s; new W2a task
+  `035_t_summary` after chart `035_t_data` (company training survey by age group) instead of `035_t_tr`.
+- Changed blocks: tags on nearly every task (R02 R03 R05 R09 R10 R11 R12 R13 R15 R16; L03 L04 L05 L07 L08;
+  W01 W04–W15 once each; S01 S02×2 S05 S07 S08 S11 S12 S13 S15×3 S16×2 S17×2). New: `031_p_talk` items as short-answer
+  questions (L03), `032_d_quest` (W01 questionnaire), `033_p_tf`, `033_p_dict`, `034_d_cross` (G11), `034_t_invite` (R05
+  phrase bank, Marje Lepp's invitation) instead of the profiles, `034_p_robot` with shuffled paragraphs (R10), `034_p_proposal`
+  W09; `033_d_talk` → role cards (S13); removed `031_p_sort`, `033_p_bank` (moved), `032_t_plan`, `034_t_plan`,
+  `034_d_map`. Vocab: topic words õpihimu, enesekontroll (V14 ≥ 90 %). canDo and goals of 031–035 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): `032_d_call` rebuilt (six new lines on music, phone and a timed mock exam).
+- Checks: `final-shape.mjs --course b2 --module 7` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2772 tests, 5 skipped); Vabamorf language check: 1 unknown lower-case word, the technical examwriting genre value
+  `kusimustik` (`032_d_quest`, documented in FINAL_SHAPE_AUTHORING.md as expected).
+- Next safe step: B1→B2 module 8 (`b2/module08.js`, b1b2-036…040, §4.1 row 8: PROJ R→W · KIRJ L→W · RÄÄK L→S · LUGE R→S);
+  036's corner must not be S2 (034's corner).
 ## 2026-10-29 · agent/b2-m06-final — B1→B2 module 6 „Tööelu” in the final shape
 
 - Base: `main` b70802c (2026-10-29, after #880 module 4 and #881 module 5); merged before the PR, corner and V1/V2
