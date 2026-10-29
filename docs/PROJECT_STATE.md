@@ -6,6 +6,35 @@
   ? möödunud ja märkimata (grey). A tag in the top right corner of each lesson (TimeGrid, crowded lists) and a legend
   under the calendar toolbar. Replaces the plain triangle of agent/calendar-status-ribbon.
 - Checks: calendar vitest 200 pass; full run in the PR.
+## 2026-10-29 · agent/b2-m18-final — B1→B2 module 18 „B2 rääkimine ja lõpphindamine” in the final shape (the last module)
+
+- Base: `main` (after #895 module 11; modules 12–16 queued as #898, #900, #901, #903, #904, module 17 as #905). The course
+  lines were measured in a scratch copy with all module branches 12–17. Content only; no production data, no publishing,
+  no deploy.
+- Done: `b2/module18.js` (b1b2-086…090) passes every final-shape gate under the B2 profile: **73 → 0 problems**
+  (`final-shape.mjs --course b2 --module 18`); strict quality gate: all 15 sheets READY (teaching sheets 40–55 min).
+- Shape (`withShapes`, §4.1 row 18): 086 RÄÄK L→S (corner **S1** = `086_p_examiner`, card talk + partner's question,
+  S16; main `086_t_panel` S14 internal-competition panel; new radio feature `086_p_radio` L01 and `086_p_draft` G03),
+  087 KIRJ R→W (corner **R4** = new `087_p_model`, Jaan's letter to the café landlord with a sentence bank, R16; main
+  `087_t_letter` W15 proposal from the three cards' data), 088 LUGE R→S (corner **L2** = new `088_p_radio`, Maret in
+  „Keeletund”, 10 MC; main `088_t_meeting` S17; new `088_p_fix` G06; `088_t_reflect` is now a W04 letter to Maret).
+  Reviews name 084/076, 086/078, 087/074; pair task in every lesson; home recordings S15 ×3; two fluency tasks a lesson.
+  089 and 090 PROOV: four timed `PART`s each, tags L1, L2, L3, L4, R1, R2a (089) / R2b (090), R3, R4 (the „sentence”
+  clozes became sentence banks with one extra; broken options `full` / `g_read` removed), W1 + new W2b (089) / W2a (090),
+  S1, S2; every mock instruction made unique (V7).
+- Cast: the café landlord is now **Raivo Laur** (Toivo Allik stays Sofia's Tartu landlord, `COURSE_CAST.md`); supplier
+  Priit („Värske Toit”) kept in 087. Vocab: nõudmine, järeleandmine, peamõte, kirjutamine, rääkimine, lõpphindamine,
+  osaoskus → nõue, järele andma, sisu, kiri, kõne, hinne, oskus (V14). canDo and goals of 086–088 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `086_p_radio`, `088_p_radio`, rebuilt `087_p_interview` (landlord renamed); removed
+  `086_p_clips`, `088_p_lecture` (files and manifest entries).
+- Course lines (all-branches copy 12–17 + this branch): 7 → 2. Closed `V6-total-L2`, `V6-exam-L2` (089 L2 + 088 L2 corner,
+  with 082/085 of module 17). Left: `V6-gap-L1` (L1 practised in modules 3 and 11 only → a module 4–10 needs an L1 corner or
+  exam tag) and `V6-gap-L2` (modules 9 → 15 → needs L2 in a module 10–14). Both are outside module 18.
+- Baseline note: on this branch alone (main without modules 12–17) the B2 baseline gains course `V6-gap-*` lines for the
+  formats module 18 now tags; they disappear when 12–17 are merged — regenerate `finalShapeBaselineB2.json` after each merge.
+- Checks: see the PR. Language check (Vabamorf) of module 18: 0 unknown lower-case words.
+- Next safe step: after #898–#905 are merged, merge this PR's branch with `main`, regenerate the B2 baseline, and decide
+  (owner) whether to add an L1 corner in modules 4–10 and an L2 corner in modules 10–14 to empty the baseline.
 ## 2026-10-29 · agent/b2-m17-final — B1→B2 module 17 „B2 kirjutamine” in the final shape
 
 - Base: `main` d61f34c, then `origin/main` 399bdf9 merged (module 11 is on `main`). Modules 12–16 (#898, #900, #901,
