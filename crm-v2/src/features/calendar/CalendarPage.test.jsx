@@ -783,4 +783,23 @@ describe('calendar: Planeerija', () => {
     expect(props.scheduleRepository.create).not.toHaveBeenCalled();
     vi.unstubAllGlobals();
   });
+  it('„Värvid”: a teacher sees the school colour, overrides it in the own calendar and the choice is saved on the own account', async () => {
+    auth.user = { uid: 't1', displayName: 'Pavel', roles: ['teacher'], profile: { calendarColors: { t1: 6 } } };
+    const props = repositories({ events: [lesson()] });
+    props.teacherRepository = { list: vi.fn().mockResolvedValue([{ id: 't1', name: 'Pavel', role: 'teacher', calendarTone: 4 }, { id: 't2', name: 'Jelena', role: 'teacher' }]), saveCalendarColors: vi.fn().mockImplementation(async (_uid, value) => value) };
+    render(<MemoryRouter initialEntries={['/calendar']}><Routes><Route path="/calendar" element={<CalendarPage {...props} />} /></Routes></MemoryRouter>);
+    const toned = () => screen.getByRole('button', { name: /10:00 Mari Maas/ }).closest('[class*="tone-"]').className;
+    await screen.findByRole('button', { name: /10:00 Mari Maas/ });
+    await waitFor(() => expect(props.teacherRepository.list).toHaveBeenCalled());
+    expect(toned()).toContain('tone-6');
+    fireEvent.click(screen.getByRole('button', { name: /Värvid/ }));
+    fireEvent.click(screen.getByRole('button', { name: /Taasta vaikimisi/ }));
+    await waitFor(() => expect(props.teacherRepository.saveCalendarColors).toHaveBeenLastCalledWith('t1', {}));
+    await waitFor(() => expect(toned()).toContain('tone-4'));
+    fireEvent.click(screen.getByRole('button', { name: /Pavel/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Kollane' }));
+    await waitFor(() => expect(props.teacherRepository.saveCalendarColors).toHaveBeenLastCalledWith('t1', { t1: 10 }));
+    await waitFor(() => expect(toned()).toContain('tone-10'));
+    auth.user = null;
+  });
 });
