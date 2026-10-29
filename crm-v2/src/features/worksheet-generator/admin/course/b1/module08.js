@@ -663,10 +663,10 @@ export const LESSONS = withShapes({
         ['Kuna ma puudusin, ma ei saanud uuest teemast aru.', 'Kuna ma puudusin, ei saanud ma uuest teemast aru.'],
         ['Mulle meeldib see kool, sellepärast et õpetajad on lahke.', 'Mulle meeldib see kool, sellepärast et õpetajad on lahked.'],
       ]),
-      teach(tag(B.examWriting('038_p_survey', 'Eksaminurk: keelekooli küsimustik (Harno B1 kirjutamine 1)', 'Täida Keelekool Sõna küsimustik. Vasta lühidalt; miks-küsimustele vasta täislausega ja põhjusega.', 'kusimustik', {
+      teach(tag(B.examWriting('038_p_survey', 'Keelekooli küsimustik.', 'Täida Keelekool Sõna küsimustik. Vasta lühidalt; miks-küsimustele vasta täislausega ja põhjusega.', 'kusimustik', {
         situation: 'Keelekool Sõna tahab teada, miks ja kuidas õppijad õpivad. Täida küsimustik.',
         questions: ['Mis keelt te õpite ja mis tasemel?', 'Miks te seda keelt õpite?', 'Millal nädalas teil on kõige parem aeg õppida? Miks?', 'Kui palju aega te iga päev õppimisele kulutate?', 'Mis on teile kõige raskem: lugemine, kuulamine, kirjutamine või rääkimine? Miks?', 'Kus te kõige meelsamini õpite?', 'Kas te eelistate hommikust või õhtust rühma? Miks?', 'Mida te teete, kui jääte tunnist puudu?', 'Kes teid õppimisel aitab?', 'Mida peaks keelekool muutma? Miks?'],
-      }), { harno: 'W1a' }),
+      }), {}),
       'Eksaminurk (Harno B1 kirjutamine 1, küsimustik, ~9 min). Eksamil on 10 küsimust, osa küsib „Miks?”: seal tuleb vastata täislausega ja põhjusega (sest…, kuna…), muidu jääb punkt saamata. Üks-ühele: õpilane täidab küsimustiku 9 minutiga; õpetaja märgib, mitu miks-vastust on põhjusega (eesmärk 4/4), ja õpilane parandab ühe vastuse.'),
     ],
     transfer: [
@@ -684,10 +684,10 @@ export const LESSONS = withShapes({
         '',
         '[[Kas teil on ka mõni hea õppimisharjumus?]] Kirjutage kommentaaridesse!',
       ], ['Seepärast õpin ma nüüd ainult nädalavahetusel.', 'Bruno ei taha hommikul kunagi õue minna.']),
-      teach(tag(B.rolecards('038_t_hours', 'Anna ja Liis: tööaeg.', 'A on Anna ja palub muuta oma tööaega, B on Liis. Leidke lahendus; siis tehke vestlus uue paarilisega kiiremini.',
+      teach(tag(B.rolecards('038_t_hours', 'Eksaminurk: Anna ja Liis leiavad lahenduse (Harno B1 rääkimine 1, kokkulepe)', 'A on Anna ja palub muuta oma tööaega, B on Liis. Leidke lahendus; siis tehke vestlus uue paarilisega kiiremini.',
         'Oled Anna. Sa tahad teisipäeval ja neljapäeval tulla tööle kell üheksa, mitte kaheksa, sest hommikul on sul parim aeg õppida. Selgita põhjust ja paku, kuidas töö ikka tehtud saab.',
         'Oled Liis. Sa tahad Annat aidata, aga kell kaheksa on igal teisipäeval meeskonna koosolek. Küsi põhjust, ütle oma mure ja leidke kompromiss.',
-        ['Ma tahaksin…, sest…', 'Kuna hommikul…', 'Ma võiksin selle eest…'], ['Miks just…?', 'Probleem on selles, et…', 'Lepime kokku, et…']), { task: 'S10', fluency: true }),
+        ['Ma tahaksin…, sest…', 'Kuna hommikul…', 'Ma võiksin selle eest…'], ['Miks just…?', 'Probleem on selles, et…', 'Lepime kokku, et…']), { task: 'S10', harno: 'S1b', fluency: true }),
       'Üks-ühele: õpetaja on Liis ja ei ole alguses nõus (koosolek on kell kaheksa); õpilane põhjendab ja pakub lahenduse. Teisel korral teete vestluse kiiremini, õpetaja on uus juht, kes küsib teisi küsimusi.'),
       teach(tag(B.speaking('038_t_rec', 'Kodus: miks ma õpin eesti keelt?', 'Räägi 1–2 minutit ja salvesta: miks sa õpid eesti keelt ja mis aitab sul kõige rohkem. Kasuta sest ja kuna.', ['Miks sa õpid eesti keelt?', 'Mis on õppimisel kõige raskem?', 'Mis aitab sind kõige rohkem?', 'Mida sa tahad aasta pärast osata?'], [60, 120], ['Ma õpin eesti keelt, sest…', 'Kuna mul on…, siis…', 'Kõige rohkem aitab…']), { task: 'S15', level: 3 }),
         'Kodune monoloog. Tunnis loendab õpetaja sest- ja kuna-lauseid ja küsib ühe miks-küsimuse.'),
