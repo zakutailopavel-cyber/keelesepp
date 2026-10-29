@@ -1199,6 +1199,27 @@ service cloud.firestore {
         );
     }
 
+    // „Sisemine märkus” (team 2026-10-29): what the invoice was for, staff only. Kept OUT of the invoice document on
+    // purpose — the student and the parent read their invoices (ownsInvoice), never this collection; it is not printed
+    // and not e-mailed. One document per invoice (id = invoice id), the writer's uid and the time stay on it; it does
+    // not touch the invoice's money, so it is editable on issued, paid and closed-period invoices; never deleted
+    // (an empty text clears it).
+    match /invoiceNotes/{invoiceId} {
+      allow read: if isAdmin() || isFinance();
+      allow create, update: if (isAdmin() || isFinance())
+        && exists(/databases/$(database)/documents/invoices/$(invoiceId))
+        && request.resource.data.keys().hasOnly(['invoiceId', 'text', 'updatedAt', 'updatedByUid', 'updatedByName'])
+        && request.resource.data.invoiceId == invoiceId
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedAt.size() <= 40
+        && request.resource.data.updatedByUid == uid()
+        && request.resource.data.updatedByName is string
+        && request.resource.data.updatedByName.size() <= 160;
+      allow delete: if false;
+    }
+
     match /payments/{paymentId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;
@@ -1355,8 +1376,29 @@ service cloud.firestore {
           'chargeNoShow',
           'validFrom',
           'priceHistory',
-          'subjectPrices'
+          'subjectPrices',
+          'priceTerms',
+          'hourlyRateCents',
+          'discountReason',
+          'priceTermsChangedAt',
+          'priceTermsChangedBy',
+          'priceTermsChangedByUid'
         ])
+        // price terms (2026-10-29): „Üldtingimused” (standard hourly rate) or „Soodustus” (own rate + a reason, ≤ 300)
+        && (!('priceTerms' in request.resource.data) || (
+          request.resource.data.priceTerms in ['general', 'discount']
+          && request.resource.data.hourlyRateCents is int
+          && request.resource.data.hourlyRateCents > 0
+          && request.resource.data.hourlyRateCents <= 1000000
+          && request.resource.data.discountReason is string
+          && request.resource.data.discountReason.size() <= 300
+          && (request.resource.data.priceTerms == 'general'
+            ? request.resource.data.discountReason.size() == 0
+            : request.resource.data.discountReason.trim().size() > 0)
+          && request.resource.data.priceTermsChangedAt is string
+          && request.resource.data.priceTermsChangedBy is string
+          && request.resource.data.priceTermsChangedBy.size() <= 160
+          && request.resource.data.priceTermsChangedByUid is string))
         // the price of a second subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } }
         && (!('subjectPrices' in request.resource.data) || (request.resource.data.subjectPrices is map && request.resource.data.subjectPrices.size() <= 8))
         && request.resource.data.keys().hasAll([
@@ -1385,7 +1427,7 @@ service cloud.firestore {
         && request.resource.data.updatedByUid == uid()
         // billing settings (Finance v2): lesson length, advance / current-month billing, no-show charge, price history
         && (!('lessonMinutes' in request.resource.data) || request.resource.data.lessonMinutes in [30, 45, 60, 75, 90, 120])
-        && (!('billingMode' in request.resource.data) || request.resource.data.billingMode in ['advance', 'current', 'actual'])
+        && (!('billingMode' in request.resource.data) || request.resource.data.billingMode in ['advance', 'current', 'actual', 'package'])
         && (!('chargeNoShow' in request.resource.data) || request.resource.data.chargeNoShow is bool)
         && (!('validFrom' in request.resource.data) || (request.resource.data.validFrom is string && request.resource.data.validFrom.size() == 10))
         && (!('priceHistory' in request.resource.data) || (request.resource.data.priceHistory is list && request.resource.data.priceHistory.size() <= 60));
@@ -1444,8 +1486,10 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // finance and the card's own student / parent read it too: a lesson held with no credits left is owed (status
+    // needs_attention) and the package views count it (docs/LESSON_TOKENS.md)
     match /lessonPackageStates/{lessonId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isFinance() || ownsStudent(resource.data.studentId);
       allow create, update, delete: if false;
     }
 
@@ -1474,8 +1518,10 @@ service cloud.firestore {
     // administrator writes any and marks it reviewed; the student's teacher reads it
     function availabilityValid(data, studentId) {
       return data.keys().hasOnly(['studentId', 'slots', 'preferred', 'message', 'changedAt', 'changedByUid', 'changedByName',
-          'changedByRole', 'previousSlots', 'previousPreferred', 'updatedAt', 'reviewedAt', 'reviewedByName', 'weeks'])
+          'changedByRole', 'previousSlots', 'previousPreferred', 'updatedAt', 'reviewedAt', 'reviewedByName', 'weeks', 'perWeek'])
         && data.studentId == studentId
+        // lessons a week the learner wants, per course (owner 2026-10-29): { 'eesti-keel': 2 }, at most 10 courses
+        && (!('perWeek' in data) || (data.perWeek is map && data.perWeek.size() <= 10))
         // dated weeks that differ from the usual one (owner 2026-10-29), at most 8: { 'YYYY-MM-DD': { slots, preferred } }
         && (!('weeks' in data) || (data.weeks is map && data.weeks.size() <= 8))
         && data.slots is list && data.slots.size() <= 336

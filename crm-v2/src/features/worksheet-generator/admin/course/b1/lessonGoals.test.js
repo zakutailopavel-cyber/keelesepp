@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { B1_LESSON_GOALS } from './lessonGoals.js';
-import { buildCourseSheet, COURSE_MODULES } from '../registry.js';
+import { buildCourseSheet, COURSE_MODULES, moduleSheets } from '../registry.js';
 
-const ASSESSMENTS = new Set([5, 10, 20, 25, 35, 40, 45, 50, 89, 90]);
+// the lessons as built: is it a check / mock exam, and does any sheet practise vocabulary (a g_vocab block)? The list of
+// exams was hard-coded before and missed 055, 060 … (owner 2026-10-29: „править”); now it comes from the course itself
+const BUILT = new Map(COURSE_MODULES.filter((m) => m.MODULE.course === 'b1').flatMap((m) => Object.entries(moduleSheets(m)).map(([id, sheets]) => {
+  const docs = Object.values(sheets);
+  return [id, { assessment: Boolean(docs[0]?.meta?.assessment), vocab: docs.some((d) => d.blocks.some((b) => b.goal === 'g_vocab')) }];
+})));
 const GENERIC = ['mooduli põhivara', 'kasutab sihtkeelt', 'tuttava igapäevateksti', 'mõistab teksti põhiideed ja detaile', 'märkab ja selgitab tunni keelemustrit', 'kasutab õpitut suulises ja kirjalikus suhtluses', 'kasutab mooduli põhisõnavara uutes lausetes'];
 
 describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
@@ -12,8 +17,12 @@ describe('B1 lesson goals (lesson quality contract A1–A3)', () => {
       const entry = B1_LESSON_GOALS[id];
       expect(entry, id).toBeTruthy();
       expect(entry.canDo, id).not.toMatch(/[А-Яа-я]/);
-      // checks and mock exams test the module without new vocabulary: form, reading, use (contract D)
-      expect(Object.keys(entry.goals).sort(), id).toEqual(ASSESSMENTS.has(n) ? ['g_notice', 'g_read', 'g_use'] : ['g_notice', 'g_read', 'g_use', 'g_vocab']);
+      // checks and mock exams test the module without new vocabulary: form, reading, use (contract D) — a vocabulary
+      // goal only when the exam lesson's review sheet (Korda) really practises the module words
+      const built = BUILT.get(id);
+      expect(built, id).toBeTruthy();
+      const vocab = !built.assessment || built.vocab;
+      expect(Object.keys(entry.goals).sort(), id).toEqual(vocab ? ['g_notice', 'g_read', 'g_use', 'g_vocab'] : ['g_notice', 'g_read', 'g_use']);
       for (const text of Object.values(entry.goals)) expect(GENERIC.some((g) => text.includes(g)), `${id}: ${text}`).toBe(false);
     }
   });

@@ -11,7 +11,8 @@ describe('ManualInvoiceDialog', () => {
     api.listStudents.mockResolvedValue([{ id: 's2', name: 'Milan' }, { id: 's1', name: 'Anna' }]);
     api.create.mockResolvedValue({ invoice: { id: 'inv-1' } });
     const onCreated = vi.fn();
-    render(<ManualInvoiceDialog onCreated={onCreated} />);
+    const notesRepository = { save: vi.fn().mockResolvedValue({ id: 'inv-1', text: 'sisemine' }) };
+    render(<ManualInvoiceDialog onCreated={onCreated} notesRepository={notesRepository} />);
     fireEvent.click(screen.getByRole('button', { name: /Lisa arve/ }));
     const select = await screen.findByLabelText('Õpilane');
     await waitFor(() => expect(screen.getByRole('option', { name: 'Milan' })).toBeInTheDocument());
@@ -26,10 +27,12 @@ describe('ManualInvoiceDialog', () => {
     expect(within(preview).getByText('Milan')).toBeInTheDocument();
     expect(within(preview).getByText('Õpik')).toBeInTheDocument();
     expect(within(preview).getAllByText(/12,50/)).toHaveLength(2);
-    fireEvent.change(screen.getByLabelText('Märkus'), { target: { value: 'sisemine' } });
+    fireEvent.change(screen.getByLabelText('Sisemine märkus'), { target: { value: 'sisemine' } });
     fireEvent.click(screen.getByRole('button', { name: 'Loo arve' }));
-    await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's2', description: 'Õpik', amount: '12.50', note: 'sisemine' })));
-    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv-1' }));
+    // the internal note never travels with the invoice (the payer can read the invoice): it goes to invoiceNotes
+    await waitFor(() => expect(api.create).toHaveBeenCalledWith(expect.objectContaining({ studentId: 's2', description: 'Õpik', amount: '12.50', note: '' })));
+    await waitFor(() => expect(notesRepository.save).toHaveBeenCalledWith('inv-1', 'sisemine'));
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv-1' }, { note: { id: 'inv-1', text: 'sisemine' } }));
   });
 
   it('creates the invoice and downloads the real generated PDF', async () => {
@@ -115,6 +118,6 @@ describe('ManualInvoiceDialog', () => {
     await waitFor(() => expect(api.createCombined).toHaveBeenCalledTimes(1));
     expect(api.createCombined.mock.calls[0][0].items).toEqual([{ studentId: 'a-et', amount: '80' }, { studentId: 'a-en', amount: '95' }]);
     expect(api.create).not.toHaveBeenCalled();
-    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv-combined' }));
+    await waitFor(() => expect(onCreated).toHaveBeenCalledWith({ id: 'inv-combined' }, {}));
   });
 });

@@ -167,3 +167,31 @@ test("two records of the same calendar lesson are not billed", async () => {
   assert.equal(result.status, 409, JSON.stringify(result.body));
   assert.match(result.body.error, /duplicates another record/);
 });
+
+test("lesson tokens: the plan saves „Tunnipakett”; owed lessons are read by finance and the card's parent only", async () => {
+  requireSafeEmulatorEnvironment();
+  const adminUid = tokenUid(await adminToken());
+  const plan = (billingMode) => ({ fields: {
+    studentId: str("sec-tokens-student"), studentName: str("Paketi Laps"), lessonPriceCents: { integerValue: "2000" }, weeklyLessons: { integerValue: "2" },
+    currency: str("EUR"), active: { booleanValue: true }, updatedAt: str("2026-10-29T10:00:00.000Z"), updatedByUid: str(adminUid), lessonMinutes: { integerValue: "60" }, billingMode: str(billingMode),
+  } });
+  const saved = await documentRequest(await adminToken(), "PATCH", "studentRevenuePlans/sec-tokens-student", plan("package"));
+  assert.equal(saved.status, 200, JSON.stringify(saved.body));
+  const unknown = await documentRequest(await adminToken(), "PATCH", "studentRevenuePlans/sec-tokens-student", plan("tokens"));
+  assert.equal(unknown.status, 403, JSON.stringify(unknown.body));
+
+  const parent = await account("sec-tokens-parent@example.com", { role: "parent", roles: ["parent"] });
+  const other = await account("sec-tokens-other@example.com", { role: "parent", roles: ["parent"] });
+  const finance = await account("sec-tokens-finance@example.com", { role: "finance", roles: ["finance"] });
+  const teacher = await account("sec-tokens-teacher@example.com", { role: "teacher", roles: ["teacher"] });
+  await Promise.all([
+    db().collection("students").doc("sec-tokens-student").set({ name: "Paketi Laps", parentUid: tokenUid(parent), active: true }),
+    db().collection("lessonPackageStates").doc("sec-tokens-lesson").set({ lessonId: "sec-tokens-lesson", studentId: "sec-tokens-student", status: "needs_attention", lessonDate: "2026-10-28" }),
+  ]);
+  for (const [who, token, expected] of [["parent", parent, 200], ["finance", finance, 200], ["other parent", other, 403], ["teacher", teacher, 403]]) {
+    const read = await documentRequest(token, "GET", "lessonPackageStates/sec-tokens-lesson");
+    assert.equal(read.status, expected, `${who}: ${JSON.stringify(read.body)}`);
+  }
+  const write = await documentRequest(parent, "PATCH", "lessonPackageStates/sec-tokens-lesson", { fields: { status: str("cleared") } });
+  assert.equal(write.status, 403, JSON.stringify(write.body));
+});

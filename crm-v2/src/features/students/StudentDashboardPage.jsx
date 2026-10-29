@@ -205,7 +205,7 @@ export default function StudentDashboardPage({
       {!preview ? <LearnerAnnouncementsCard user={user} {...(announcementService ? { service: announcementService } : {})} /> : null}
 
       {/* „Millal sulle tund sobib?” — the student keeps the times that suit up to date (owner 2026-10-21) */}
-      {students.slice(0, 1).map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} user={user} mode={preview ? 'view' : 'own'} compact />)}
+      {students.slice(0, 1).map((student) => <AvailabilityCard key={`ajad-${student.id}`} studentId={student.id} user={user} mode={preview ? 'view' : 'own'} compact subjects={subjectsOf(student)} />)}
 
       <LessonSummariesCard studentIds={students.map((student) => student.id)} {...(summaryService ? { summaryService } : {})} {...(wordsService ? { wordsService } : {})} homeworkService={homeworkRepository} />
 
