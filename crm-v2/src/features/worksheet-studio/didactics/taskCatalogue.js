@@ -113,11 +113,22 @@ export const HARNO_FORMATS_B2 = Object.freeze({
   S0: 'S', S1: 'S', S2: 'S',
 });
 // a tag may name a format of either exam; which exam a course prepares for is its profile (examProfiles.js)
-export const isHarnoFormat = (id) => Object.prototype.hasOwnProperty.call(HARNO_FORMATS, id) || Object.prototype.hasOwnProperty.call(HARNO_FORMATS_B2, id);
+// Harno A2 task ids (docs/COURSE_FINAL_SHAPE_A2.md §2): writing T1 business-card text, T2 message or description;
+// listening T1 clips → pictures, T2 true/false, T3 short answers, T4 matching; reading T1 phrases, T2 short texts, T3
+// signs and notices, T4 a 150-word text, T5 a letter cloze; speaking intro, T1 picture + questions, T2 idea card
+export const HARNO_FORMATS_A2 = Object.freeze({
+  W1: 'W', W2a: 'W', W2b: 'W',
+  L1: 'L', L2: 'L', L3: 'L', L4: 'L',
+  R1: 'R', R2: 'R', R3: 'R', R4: 'R', R5: 'R',
+  S0: 'S', S1: 'S', S2: 'S',
+});
+export const isHarnoFormat = (id) => [HARNO_FORMATS, HARNO_FORMATS_B2, HARNO_FORMATS_A2].some((map) => Object.prototype.hasOwnProperty.call(map, id));
 // W1a / W1b → W1, L3a / L3b → L3, R3a / R3b → R3; S1a, S1b, S2 stay apart (§6.4 counts them apart)
 export const harnoFamily = (id) => (/^(W1|W2|L3|R3)[ab]$/.test(id) ? id.slice(0, -1) : id);
 // B2: W2a / W2b → W2, R2a / R2b → R2
 export const harnoFamilyB2 = (id) => (/^(W2|R2)[ab]$/.test(id) ? id.slice(0, -1) : id);
+// A2: W2a / W2b → W2
+export const harnoFamilyA2 = (id) => (/^W2[ab]$/.test(id) ? 'W2' : id);
 
 // the block types that are not tasks for the variety rules (§8: text, tip, vocab, phrase bank, review, rubric, self-check,
 // notice; notice counts as G01 only for V3) — plus pictures, charts and the exam part header
@@ -193,3 +204,13 @@ export const FORMAT_PRACTICE_B2 = Object.freeze({
   S1: p(4, 5, 10, 2), S2: p(4, 5, 10, 2),
 });
 export const VARIANTS_B2 = ['W2a', 'W2b', 'R2a', 'R2b'];
+
+// A2 (docs/COURSE_FINAL_SHAPE_A2.md §5): 20 modules, first taught in module …, practised …
+export const FORMAT_INTRO_A2 = Object.freeze({ S1: 2, W1: 2, L1: 3, R3: 3, S2: 4, W2a: 4, L2: 5, R1: 5, R2: 6, L3: 6, R4: 7, W2b: 7, L4: 8, R5: 8 });
+export const FORMAT_PRACTICE_A2 = Object.freeze({
+  R1: p(4, 4, 9, 3), R2: p(4, 4, 9, 3), R3: p(4, 4, 9, 3), R4: p(4, 4, 9, 3), R5: p(4, 4, 9, 3),
+  L1: p(4, 4, 9, 3), L2: p(4, 4, 9, 3), L3: p(4, 4, 9, 3), L4: p(4, 4, 9, 3),
+  W1: p(4, 4, 9, 3), W2: p(4, 4, 9, 3),
+  S1: p(4, 5, 10, 2), S2: p(4, 5, 10, 2),
+});
+export const VARIANTS_A2 = ['W2a', 'W2b'];

@@ -16,6 +16,7 @@ const formsOf = (levels) => new Set(levels.flatMap((level) => String(JSON.parse(
 const COURSES = [
   { course: 'b1', file: `${DIR}/finalShapeBaseline.json`, forms: ['A1', 'A2', 'B1'] },
   { course: 'b2', file: `${DIR}/finalShapeBaselineB2.json`, forms: ['A1', 'A2', 'B1', 'B2'] },
+  { course: 'a2', file: `${DIR}/finalShapeBaselineA2.json`, forms: ['A1', 'A2'] },
 ].map((c) => {
   const modules = COURSE_MODULES.filter((mod) => mod.MODULE.course === c.course && !mod.MODULE.supplement);
   const problems = finalShapeProblems(lessonsFromModules(modules, moduleSheets), { forms: formsOf(c.forms), profile: c.course });

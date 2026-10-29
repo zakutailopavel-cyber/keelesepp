@@ -17,6 +17,23 @@
   under load that pass when rerun alone (studentWorksheetFlow, LiveRoom, WorksheetStudioPage); language check of modules
   06/09/12: only the known `kusimustik`.
 - Next safe step: owner reviews and merges the PR; the B1→B2 course is then at 0 final-shape problems.
+## 2026-10-29 · agent/a2-final-shape-gates — the A2 course under the final-shape gates (A2 profile)
+
+- Owner: „продолжай с курсами, потом A2” (order after B1→B2: A2 → C1 → English). Gates only, no content.
+- `PROFILES.a2`: Harno A2 formats (`HARNO_FORMATS_A2`: W1, W2a/b, L1–L4, R1–R5, S0–S2), intro schedule and practice
+  counts, S06 picture + S05 idea card required instead of S03/S04, corners from module 6, timed exam parts from module 9,
+  mocks 060/080/099/100 (practice up to 099), no tingiv kõneviis, V14 against EKI A1–A2, V5 relaxed module 20.
+  `archetypeProblems` now reads V5 numbers from the profile. Course test checks a2 too (`finalShapeBaselineA2.json`,
+  2139 problems); `final-shape.mjs --course a2`. Doc: `docs/COURSE_FINAL_SHAPE_A2.md` (exam map, schedule, archetype plan).
+- B1 and B2 baselines unchanged. Next safe step: A2 module 1 (`a2/module01.js`) in the final shape.
+## 2026-10-29 · agent/calendar-status-symbols — a symbol per lesson state in the calendar corner
+
+- Owner: „справа вверху по символу или ленточке отличать проведённый, проведённый за счёт школы и т.д., чтобы админу не
+  открывать каждый урок”. `calendarView.lessonMark(item, today)` + `LESSON_MARKS`: ✓ Toimunud (green), ✓✓ kontrollitud
+  (dark green), K kooli kulul (blue), T puudus, teatas ette (yellow), ! puudus, ei teatanud (orange), ✕ tühistatud (red),
+  ? möödunud ja märkimata (grey). A tag in the top right corner of each lesson (TimeGrid, crowded lists) and a legend
+  under the calendar toolbar. Replaces the plain triangle of agent/calendar-status-ribbon.
+- Checks: calendar vitest 200 pass; full run in the PR.
 ## 2026-10-29 · agent/b2-m18-final — B1→B2 module 18 „B2 rääkimine ja lõpphindamine” in the final shape (the last module)
 
 - Base: `main` (after #895 module 11; modules 12–16 queued as #898, #900, #901, #903, #904, module 17 as #905). The course
