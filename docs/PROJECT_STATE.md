@@ -1,3 +1,45 @@
+## 2026-10-29 · agent/b2-m15-final — B1→B2 module 15 „Meedia, info ja kriitiline lugemine” in the final shape
+
+- Base: `main` b7fc373, then `origin/main` d61f34c merged. Modules 11–14 (#895, #898, #900, #901) were not on `main` yet:
+  with their branches put in place in a scratch tree, module 15 still shows 0 problems, 069 (KIRJ, corner W2a) → 071 (PROB,
+  corner L1) has no family repeat and no V1/V2 line, `methodGaps.test.js` (module 14 → 15 recycling) and `quality.test.js`
+  pass, and the course lines change by `+V6-gap-L2`, `−V6-corner-L4` only. Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module15.js` (b1b2-071…075) passes every final-shape gate under the B2 profile: **59 → 0 problems**
+  (`final-shape.mjs --course b2 --module 15`); `b1b2-076` discover/transfer V2 left the baseline too. Strict quality gate:
+  all 15 sheets without a problem (teaching sheets 40–48 min, didactic 100), `qualityBaseline.json` unchanged.
+- Course line added: **`V6-gap-L2`** (L2 last practised in module 9; 075's L2 is the first since — whoever practises L2
+  next adds this line, and 075 must have it: `V6-exam-L2` needs 4 exam practices and only 075, 080, 085, 089 are left, so
+  **080, 085 and 089 must all tag L2** and two more L2 corners are needed in modules 16–18). On `main` alone the
+  regenerated baseline also lists `V6-gap-L1/L4/R1/R2/R3/S1/S2/W1/W2` because modules 11–14 are untagged there; they leave
+  when #895–#901 land (rebaseline then).
+- Shape (`withShapes`, §4.1 row 15): 071 PROB L→S (corner L1 = `071_p_clips`, five radio clips ≈ 33 s, played once, 10 MC
+  with 3 options; main `071_t_say` S16 talk for Liis and Markus, recorded at home), 072 AVAS R→S (corner W1 =
+  `072_p_letter`, examWriting 80–100 words to the Nõmme Teataja editor-in-chief, W08; main `072_t_say` S16 call to
+  „Päevateema”, recorded at home), 073 KUUL L→W (corner L4 = new `073_p_show`, talk show with Ülle, Hannes and Jaan, 12
+  true / false; main `073_t_letter` W14 opinion to the city council), 074 LUGU R→W (corner W2a = new chart `074_p_data` +
+  `074_p_summary` W15; main `074_t_letter` W13 correction request, 140–160 words). 075 EKS: L2 (new `075_p_lc` examListen
+  on Kaia Mägi's interview, `KAIA_INTERVIEW`), R1, R2b (new `075_p_short`, a paper's correction guide, 8 short answers +
+  1 reflection), R3, W1, W2b (new `075_t_essay`), S1, S2 tagged, four timed `PART`s. Every teaching lesson: review naming
+  the previous lesson and a module 11–13 lesson (069/059, 071/052, 072/063, 073/058), an in-lesson pair task, a home
+  recording (S16 ×2, S15 ×2), two fluency tasks; S16 ×2, S17 ×2 (072_t_debate, 073_t_debate).
+- Changed blocks: real ids on every task; removed `071_p_mc`, `072_p_tf`, `072_p_write`, `073_p_mc`, `073_p_write`,
+  `074_p_verbs`, `074_p_write`; new `071_p_post` formtext (hedging adverbs, -vat/-tavat), `073_d_chat` dialogue →
+  listening (L04), `073_p_rank` idea card (S12), `073_t_plan` (W11), `074_d_tf` true/false → choice on accurate vs
+  distorted summary lines (G13), `074_d_write` W01 parents' questionnaire, `071_p_write` W02 message; `073_p_article`
+  short answers (R15), `074_t_dossier` sources shuffled and dated (R10), `071_t_press` + numeric question (R08 level 3);
+  sales manager renamed Tarmo Kangur → Ergo Rätsep (Tarmo Kangur is module 13's planning head). Vocab: koondamine →
+  koondama; topic words arvamuslugu, sõnavalik, moonutama, faktikontroll. canDo and goals of 071–075 in
+  `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `073_d_chat`, `073_p_show`, `075_p_lc`; rebuilt `071_p_clips`, `072_p_radio` (one more
+  exchange), `075_p_listen` (host is now Ülle).
+- Checks: `final-shape.mjs --course b2 --module 15` 0; `npx eslint --quiet src` 0; `npx vitest run` 407 files passed
+  (2804 tests, 5 skipped); Vabamorf language check of module 15: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the L1 clips are ≈ 33 s (Harno 35–45 s) with two questions each; the W1 and W2a corners are shorter than the
+  exam (80–100 words, 8–10 sentences); the R2b text is ≈ 360 words (Harno 200–300; the B2 reading norm wants ≥ 350).
+- Next safe step: B1→B2 module 16 (`b2/module16.js`, b1b2-076…080, §4.1 row 16: PROJ L→S · KIRJ L→W · RÄÄK R→S · LUGE R→W
+  · PROOV 080); 076's corner must not be W2 (074's corner), and the mock 080 must tag L2.
+
 ## 2026-10-29 · agent/lesson-duration-card — the student card's „Tunnid” shows how long each lesson is
 
 - Team (#student_card): „не видно, сколько идёт урок … будем пропускать двойные уроки”. Upcoming and held lessons show
