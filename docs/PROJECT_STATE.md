@@ -1,3 +1,9 @@
+## 2026-10-29 · agent/b1-exam-goals — B1 goals test reads exam lessons from the course
+
+- Owner: „править” (the test hard-coded exam lessons 5…50, 89, 90 and missed 055, 060 …). Now `b1/lessonGoals.test.js`
+  builds the course: an exam lesson has g_vocab exactly when a sheet has a g_vocab block (the Korda review of module
+  words, e.g. 055, 060, 065 …); teaching lessons always have it. No content change.
+
 ## 2026-10-29 · agent/invite-parent-default — „Saada kutse” goes to the parent's e-mail by default
 
 - Team (Oleksiy, #bug): „кнопка saada kutse по умолчанию отправляла запрос на почту родителя, а не ученика”.
