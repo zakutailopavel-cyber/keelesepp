@@ -1,3 +1,9 @@
+## 2026-10-29 · agent/student-board-menu — „Tahvel” in the student's menu
+
+- Owner: „добавь ученикам их доску”. The board outside lessons (/board, BoardPage) existed, but a pure student's short
+  menu (navigation.js studentNavigation) had no link. Added „Tahvel” after „Ülesanded”; parents had it already.
+- Checks: eslint 0 errors; vitest 2767 passed. Next safe step: none needed.
+
 ## 2026-10-29 · agent/b2-m02-final — B1→B2 module 2 „Linn, teenused ja asjaajamine” in the final shape
 
 - Base: `main` 822c0d8 (2026-10-29, after #873). Content only; no production data, no publishing, no deploy. Module 1 is
