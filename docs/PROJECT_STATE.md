@@ -1,28 +1,33 @@
 ## 2026-10-29 · agent/student-discount (PR #891) — student card: „Üldtingimused” / „Soodustus” price switch
 
 - Team request 2026-10-29 (#finance): general terms bill the standard 25 €/h automatically; a discount needs an hourly
-  rate and a reason (several courses, several children, …). Base: `main` 9c971f0 (2026-10-29), rebased on 7d0e0a9.
+  rate and a reason (several courses, several children, …). Owner 2026-10-29: the discount is a choice of 20 / 15 /
+  12 €/h, not a free number (`DISCOUNT_HOURLY_RATES_CENTS` next to `STANDARD_HOURLY_RATE_CENTS`). Base: `main` 9c971f0 (2026-10-29), rebased on 7d0e0a9.
 - Done (no new price model): the switch writes the existing `studentRevenuePlans` price (`lessonPriceCents` +
   `lessonMinutes`, `subjectPrices`), which monthly / per-lesson invoices already read — no functions change.
   `crm-v2/src/features/finance/priceTerms.js` (new): `STANDARD_HOURLY_RATE_CENTS = 2500`, `priceTermsOf(plan)`,
   `lessonPricesFromTerms`, `validatePriceTerms`. „Arveldus” card (`BillingSettingsCard.jsx`): switch, hourly rate,
-  reason (≤ 300), lesson price preview, per further subject an own hourly rate (empty = card rate) and length;
+  buttons 20 / 15 / 12 €/h, reason (≤ 300), lesson price preview; per further subject the same choices
+  („sama kui kaardil” = card rate) and length;
   „Hinnatingimused muudetud <date> · <who>”. Terms are per card (one reason for the family/client), prices per subject.
 - Data: plan gets `priceTerms` ('general' | 'discount'), `hourlyRateCents`, `discountReason`,
   `priceTermsChangedAt/By/ByUid` (`revenuePlans.js` `priceTermsRecord`); price history entries remember the previous
   terms; `activityLog` gets only `priceTerms` (staff-readable, so no reason). firestore.rules: the six fields allowed,
   discount needs a non-blank reason, general none.
 - Existing prices: nothing is migrated or written. A plan without terms is shown as general when every price equals
-  25 €/h by length, else as „Soodustus” with an empty reason and the placeholder „Varasem kokkulepe — põhjus lisamata”
-  (UI only). Saving an untouched rate keeps the stored cents (e.g. 17 € / 45 min stays 1700, not 22,67 €/h × 0,75).
-  To save such a card the admin must type a reason.
-- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2784 tests, 5 skipped); emulator
+  25 €/h by length, else as „Soodustus” with an empty reason (placeholder „Varasem kokkulepe — põhjus lisamata”, UI only). A price
+  that is none of 25/20/15/12 €/h is shown as a read-only extra choice „Varasem kokkulepe X €/h” (card and subject)
+  and saved unchanged to the cent (17 € / 45 min stays 1700) until the admin picks a school rate; changing the lesson
+  length of such a row requires picking a rate. To save such a card the admin must type a reason.
+- Checks (after the fixed rates, origin/main merged): see the line below; first round: emulator
   `finance-emulator.integration.js` 41/41 (new price-terms rule assertions; JDK 21 needed for firebase-tools).
 - Deploy after merge (owner permission): `firestore:rules` (the frontend goes with main). Until the rules are deployed,
   saving the „Arveldus” card fails (unknown fields) — deploy rules first or together.
 - Limits / open: 25 € for a 45-min lesson counts as 33,33 €/h → shown as „Soodustus”; the Finantsid forecast form still
   edits the lesson price without terms; rules allow `billingMode` advance/current/actual only, the UI also offers
   `package` (pre-existing).
+- Fixed-rate round: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2786 tests, 5 skipped). Rules unchanged by this round
+  (`hourlyRateCents` stays any positive int because an old rate is kept).
 - Next safe step: owner reviews the PR, then deploy `firestore:rules` together with the merge.
 
 ## 2026-10-29 · agent/b2-m09-final — B1→B2 module 9 „Tervis ja eluviis” in the final shape
