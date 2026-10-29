@@ -1,3 +1,24 @@
+## 2026-10-29 · agent/lessons-per-week — „Mitu korda nädalas?” per course in „Sobivad ajad”
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request: „поле, сколько раз в неделю хотят заниматься; если
+  несколько курсов — отдельно на каждый курс”. No production data, no deploy.
+- Done: the editor of „Millal sulle tund sobib?” / „Sobivad ajad” (AvailabilityCard) has „Mitu korda nädalas soovid
+  õppida? · Сколько раз в неделю?” — one select (—, 1–7× nädalas) per active course of the card (`subjects` =
+  subjects.js subjectsOf; one course → one field). Read view (learner, parent, admin, teacher): „Soovib õppida: Eesti
+  keel 2× · Matemaatika 1× nädalas”; a teacher sees only their own courses. Calendar „Sobivad ajad” panel shows it next
+  to the name; the planner („Lisa kõik õpilased”) takes the learner's number as „Nädalas” (capped at 5, an Õppeplaan's
+  minimum still applies) and shows „soovib N× nädalas”.
+- Data: `studentAvailability.perWeek = { 'eesti-keel': 2, 'matemaatika': 1 }` — key = studyDirections.js
+  `directionId(subject)` (slug), `'default'` for a card without a subject; values whole 1–7. It belongs to the card, not
+  to a dated week; a save without `perWeek` (e.g. „Kasuta tavalist nädalat”) keeps it (not in mergeFields). Helpers in
+  availability-poll/pollModel.js (perWeekKey/Fields/Rows/Text/Draft, cleanPerWeek); planner `wantedPerWeek`.
+- Rules: `availabilityValid` allows `perWeek` (map, ≤ 10). **Rules must be deployed before merge** (otherwise every save
+  with the new field is refused). Emulator: security-access „available times” 1/1 (perWeek 2 → 200, 11 → 403, string → 403).
+- Announcements (`responseType 'availability'`) and the public /ajad page unchanged.
+- Checks: eslint 0 errors; vitest 404 passed + 1 file (WorksheetStudioPage, 2 timeouts under full load) passed 23/23
+  alone; new tests pollPerWeek 3, AvailabilityCard +2, plannerModel +1, StudentTimesPanel 1.
+- Next safe step: deploy firestore rules (owner's OK), then merge.
+
 ## 2026-10-29 · agent/b2-m08-final — B1→B2 module 8 „Reisimine ja kultuur” in the final shape
 
 - Base: `main` 377856e (after #882, module 6), then `origin/main` 38ecb2b merged (after #884, module 7); corner and

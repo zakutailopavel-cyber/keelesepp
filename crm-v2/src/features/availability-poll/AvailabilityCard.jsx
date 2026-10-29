@@ -4,7 +4,7 @@ import { Badge, Button, Card } from '../../components/ui/index.js';
 import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { needsReview, studentAvailabilityService } from '../../services/firebase/studentAvailability.js';
 import PollGrid from './PollGrid.jsx';
-import { PRESETS, cellsOf, pollPayload, summaryOf, timesForWeek, upcomingWeeks, withPreset } from './pollModel.js';
+import { PER_WEEK_MAX, PRESETS, cellsOf, cleanPerWeek, perWeekDraft, perWeekFields, perWeekText, pollPayload, summaryOf, timesForWeek, upcomingWeeks, withPreset } from './pollModel.js';
 import './availabilityPoll.css';
 
 const DAYS = { Mon: 'E', Tue: 'T', Wed: 'K', Thu: 'N', Fri: 'R', Sat: 'L', Sun: 'P' };
@@ -20,7 +20,9 @@ const summaryText = (cells) => summaryOf(cells).map((row) => `${DAY_NAMES[row.da
 // `mode`: 'own' (the student or parent edits), 'admin' (edits and marks a change reviewed), 'view' (a teacher reads).
 // Week by week (owner 2026-10-29): „Tavaline nädal” plus this week and the next three; a dated week may get its own
 // times (a shift worker), otherwise the usual week holds (pollModel.js timesForWeek).
-export default function AvailabilityCard({ studentId, studentName = '', user, mode = 'own', service = studentAvailabilityService, compact = false, today = localToday() }) {
+// Lessons a week (team 2026-10-29): one „Mitu korda nädalas?” field per course of the card (`subjects`, subjects.js
+// subjectsOf), stored as studentAvailability.perWeek; it belongs to the card, not to a week.
+export default function AvailabilityCard({ studentId, studentName = '', user, mode = 'own', service = studentAvailabilityService, compact = false, today = localToday(), subjects = [], onlySubjects = false }) {
   const state = useAsyncData(() => service.get(studentId), [service, studentId]);
   const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -36,12 +38,14 @@ export default function AvailabilityCard({ studentId, studentName = '', user, mo
   const lines = summaryText(cells);
   const changed = mode === 'admin' && needsReview(saved);
   const canEdit = mode !== 'view';
+  const perWeekLine = perWeekText(saved?.perWeek, subjects, { only: onlySubjects });
+  const countFields = perWeekFields(subjects);
   const title = mode === 'own' ? 'Millal sulle tund sobib?' : 'Sobivad ajad';
 
   const save = async () => {
     setBusy(true); setError(''); setNotice('');
     try {
-      await service.save(studentId, { ...pollPayload(editing.cells), message: editing.message, week }, user, saved);
+      await service.save(studentId, { ...pollPayload(editing.cells), message: editing.message, week, perWeek: cleanPerWeek(editing.perWeek) }, user, saved);
       setEditing(null); setNotice(mode === 'own' ? 'Salvestatud. Kool näeb sinu aegu ja pakub vajadusel uue tunniaja.' : 'Salvestatud.');
       await state.reload();
     } catch (caught) { setError(caught.message || 'Salvestamine ebaõnnestus.'); } finally { setBusy(false); }
@@ -64,7 +68,7 @@ export default function AvailabilityCard({ studentId, studentName = '', user, mo
       <div className="section-heading">
         <div><span className="eyebrow"><CalendarClock size={13} /> {studentName || 'Tunniplaan'}</span><h2>{title}</h2></div>
         {changed ? <Badge tone="warning">Muutunud {when(saved.changedAt)}</Badge> : null}
-        {canEdit && !editing ? <Button variant="secondary" onClick={() => { setNotice(''); setEditing({ cells, message: saved?.message || '' }); }}><Pencil size={15} /> {saved ? 'Muuda' : 'Märgi ajad'}{chosen ? ` (${short(chosen.monday)}–${short(chosen.sunday)})` : ''}</Button> : null}
+        {canEdit && !editing ? <Button variant="secondary" onClick={() => { setNotice(''); setEditing({ cells, message: saved?.message || '', perWeek: perWeekDraft(saved?.perWeek, subjects) }); }}><Pencil size={15} /> {saved ? 'Muuda' : 'Märgi ajad'}{chosen ? ` (${short(chosen.monday)}–${short(chosen.sunday)})` : ''}</Button> : null}
       </div>
       {state.loading ? <p className="form-hint">Laen…</p> : null}
       {!state.loading && (saved || canEdit) ? <div className="availability-weeks" role="group" aria-label="Milline nädal">
@@ -79,6 +83,7 @@ export default function AvailabilityCard({ studentId, studentName = '', user, mo
       {!state.loading && !editing && !chosen && ownWeeks.length ? <p className="form-hint">Eraldi ajad: {ownWeeks.map((item) => `${short(item.monday)}–${short(item.sunday)}`).join(', ')}.</p> : null}
       {!state.loading && !saved && !editing ? <p className="form-hint">{mode === 'own' ? 'Märgi kõik ajad, mil saad tunnis tegelikult osaleda — nii saab kool pakkuda sulle sobiva tunniaja ka siis, kui tunniplaan muutub.' : 'Õpilane ei ole veel sobivaid aegu märkinud.'}</p> : null}
 
+      {!editing && perWeekLine ? <p className="availability-card__per-week"><strong>{mode === 'own' ? 'Soovid õppida' : 'Soovib õppida'}:</strong> {perWeekLine}</p> : null}
       {!editing && saved ? <>
         <ul className="availability-card__lines">{lines.map((line) => <li key={line}>{line}</li>)}</ul>
         {saved.message ? <p className="availability-card__note">„{saved.message}”</p> : null}
@@ -93,6 +98,17 @@ export default function AvailabilityCard({ studentId, studentName = '', user, mo
         <p className="poll-important">Märgi KÕIK ajad, mil saad tunnis tegelikult olla — mitte ainult kõige meelepärasemad. Puuduta tundi: sobib; uuesti: ★ sobib kõige paremini.</p>
         <div className="poll-quick"><span>Kiirvalik:</span>{Object.entries(PRESETS).map(([key, preset]) => <button type="button" key={key} onClick={() => setEditing((current) => ({ ...current, cells: withPreset(current.cells, preset) }))}>{PRESET_LABELS[key]}</button>)}<button type="button" className="is-clear" onClick={() => setEditing((current) => ({ ...current, cells: {} }))}>Tühjenda</button></div>
         <PollGrid cells={editing.cells} onChange={(next) => setEditing((current) => ({ ...current, cells: next }))} dayNames={DAYS} partNames={{ morning: 'Hommik', day: 'Päev', evening: 'Õhtu' }} label="Märgi sobivad ajad" />
+        <fieldset className="availability-card__per-week-edit">
+          <legend>Mitu korda nädalas soovid õppida? · Сколько раз в неделю?</legend>
+          {countFields.map((field) => (
+            <label key={field.key}><span>{countFields.length > 1 || field.subject ? field.subject : 'Tunde nädalas'}</span>
+              <select aria-label={`Mitu korda nädalas${field.subject ? `: ${field.subject}` : ''}`} value={editing.perWeek?.[field.key] ?? ''} onChange={(event) => setEditing((current) => ({ ...current, perWeek: { ...current.perWeek, [field.key]: event.target.value } }))}>
+                <option value="">—</option>
+                {Array.from({ length: PER_WEEK_MAX }, (_, index) => index + 1).map((count) => <option key={count} value={String(count)}>{count}× nädalas</option>)}
+              </select>
+            </label>
+          ))}
+        </fieldset>
         <label className="availability-card__comment"><span>Kommentaar (valikuline)</span><textarea rows={2} maxLength={1000} placeholder="Nt alates millal uus aeg sobib" value={editing.message} onChange={(event) => setEditing((current) => ({ ...current, message: event.target.value }))} /></label>
         <div className="availability-card__actions"><Button loading={busy} disabled={!Object.values(editing.cells).some(Boolean)} onClick={save}>Salvesta ajad</Button><Button variant="secondary" disabled={busy} onClick={() => setEditing(null)}>Loobu</Button>{chosen && times.own ? <Button variant="secondary" disabled={busy} onClick={reset}>Kasuta tavalist nädalat</Button> : null}</div>
       </div> : null}
