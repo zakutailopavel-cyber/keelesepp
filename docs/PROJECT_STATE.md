@@ -1,3 +1,32 @@
+## 2026-10-29 · agent/course-names — course names by the target level (display only)
+
+- Base: `main` c4bfda5, checked 2026-10-29. UI/display only; no production writes, no publishing, no deploy.
+- Owner decision: courses are named by the TARGET level (Harno / Töötukassa style): **Eesti keel A2** (algajale · Harno
+  A2 eksamini), **Eesti keel B1** (A2 tasemelt · Harno B1 eksamini), **Eesti keel B2** (B1 tasemelt · Harno B2 eksamini),
+  **C1 süvakursus** (B2+ · 240 ak h), **English A2 / English B1** (whole course „English A1–B1”). Ids, course keys,
+  roadmap ids and lesson ids unchanged.
+- Done: new `curriculum/courseNames.js` (names, subtitles, `courseNameForLevel`, `courseNameForCurriculum`,
+  `courseBadge`); `admin/course/registry.js` `COURSES` (label = name · subtitle, new `name`, badge „KeeleSepp · Eesti keel
+  B1 · moodul N”, English badge by the module's level); CourseHealth / CourseProduction pages use `name`;
+  `engine/Sheet.jsx` shows old stored badges („KeeleSepp A2 → B1 · moodul 3”, „KeeleSepp English · …”) under the new
+  name, so published sheets need no republishing; Õppevara groups by `curriculumId` → new name (stored
+  `curriculumTitle` only a fallback), level tab C1 = „C1 süvakursus”, hint with the subtitle; „Minu kursus” title
+  = course name; textbook (BookPage) default title; guide text; Module1ThreePhase eyebrow + badge; roadmap JSON titles
+  (`data/keelesepp-a2-roadmap.json`, `a2Roadmap.json`, `-a2-b1-`, `-b1-b2-`, `c1-curriculum` + its 10 parts: version
+  → 2026-10-29.1), `scripts/extract-c1-curriculum.py`; ARCHITECTURE „Course names”; CEFR standard scope line.
+- Production Firestore (read-only scan 2026-10-29) still holds the old names — owner may update, the UI no longer
+  depends on them: `curriculumLessons.curriculumTitle` 389 docs (106 „KeeleSepp A2 õppekava · A1 → A2 õpitee”, 100
+  „KeeleSepp C1 õppekava”, 93 „B2 õppekava · B1→B2 õpitee”, 90 „B1 õppekava · A2→B1 õpitee”);
+  `worksheetAssignments.curriculumTitle` 98, `homework.curriculumTitle` 9, `worksheetAssignmentsArchive` 3;
+  `meta.badge` inside `worksheetDoc` / `publishedWorksheetDoc` of `curriculumLessons/*/worksheets` 1453 docs,
+  `worksheetVersions` 9823, `worksheetAssignments` 207 (history snapshots — shown mapped). The A2 installer in
+  Õppevara writes `curriculumTitle` from `a2Roadmap.json` (now „Eesti keel A2”); no installer writes B1/B2/C1 titles.
+- Checks: eslint clean; full vitest 409 files passed, 1 failed (`CourseProductionPage.test.jsx`: its regex now also
+  matched „English B1 · moodul 2”) — fixed and rerun green; new `curriculum/courseNames.test.js` (3 tests).
+- Not changed on purpose: lesson content inside sheets (e.g. „Minu A2 → B1 plaan”), student level → target level
+  displays (`A2 → B1` on cards, parent view, initial assessment), archive folders, English installer titles
+  („KeeleSepp English A2/B1” — already the target level).
+- Next safe step: owner reviews and merges the PR; optionally updates the stored `curriculumTitle` fields.
 ## 2026-10-29 · agent/a2-m02-final — A2 module 2 „Pere, inimesed ja kirjeldamine” in the final shape
 
 - Base: `agent/a2-final-shape-gates` (#908), then `origin/main` c4bfda5 merged (clean). Module 1 (`a2/module01.js`) is

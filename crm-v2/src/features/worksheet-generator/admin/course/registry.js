@@ -99,21 +99,26 @@ import * as ena2m07 from './en/a2/module07.js';
 import * as ena2m08 from './en/a2/module08.js';
 import * as ena2m09 from './en/a2/module09.js';
 import * as ena2m10 from './en/a2/module10.js';
+import { COURSE_NAMES, ENGLISH_COURSE_NAME } from '../../../curriculum/courseNames.js';
 
 export const COURSE_MODULES = [a2m01, a2m02, a2m03, a2m04, a2m05, a2m06, a2m07, a2m08, a2m09, a2m10, a2m11, a2m12, a2m13, a2m14, a2m15, a2m16, a2m17, a2m18, a2m19, a2m20, a2lihtminevik, a2kohakaanded, b1m01, b1m02, b1m03, b1m04, b1m05, b1m06, b1m07, b1m08, b1m09, b1m10, b1m11, b1m12, b1m13, b1m14, b1m15, b1m16, b1m17, b1m18, b2m01, b2m02, b2m03, b2m04, b2m05, b2m06, b2m07, b2m08, b2m09, b2m10, b2m11, b2m12, b2m13, b2m14, b2m15, b2m16, b2m17, b2m18, b2kaanded, c1m01, c1m02, c1m03, c1m04, c1m05, c1m06, c1m07, c1m08, c1m09, c1m10, ek9m01, ena2m01, ena2m02, enb1m01, enb1m02, enb1m03, enb1m04, enb1m05, enb1m06, enb1m07, enb1m08, enb1m09, enb1m10, ena2m03, ena2m04, ena2m05, ena2m06, ena2m07, ena2m08, ena2m09, ena2m10];
 
+// display names by the target level (curriculum/courseNames.js, owner 2026-10-29): `label` = name · subtitle (admin
+// pages show the part before „ ·”), `badge` is printed on every course sheet as „KeeleSepp · Eesti keel B1 · moodul N”
+const named = (key) => ({ label: [COURSE_NAMES[key].name, COURSE_NAMES[key].subtitle].filter(Boolean).join(' · '), name: COURSE_NAMES[key].name, badge: `KeeleSepp · ${COURSE_NAMES[key].name}` });
 export const COURSES = {
-  a2: { label: 'A2 · A1 → A2 õpitee', badge: 'KeeleSepp A1 → A2' },
-  b1: { label: 'B1 · A2 → B1 õpitee', badge: 'KeeleSepp A2 → B1' },
-  b2: { label: 'B2 · B1 → B2 õpitee', badge: 'KeeleSepp B1 → B2' },
-  c1: { label: 'C1 · B2 → C1 õpitee', badge: 'KeeleSepp B2 → C1' },
+  a2: named('a2'),
+  b1: named('b1'),
+  b2: named('b2'),
+  c1: named('c1'),
   // Estonian as a mother tongue (docs/NATIVE_ESTONIAN_9_12_PLAN.md): exam preparation for grades 9 and 12
-  ek9: { label: '9. klass emakeel · eesti keel emakeelena', badge: 'KeeleSepp · 9. klass emakeel' },
-  ek12: { label: '12. klass emakeel · eesti keel emakeelena', badge: 'KeeleSepp · 12. klass emakeel' },
-  // English (docs/ENGLISH_COURSE_PLAN.md): A1 → B1 by CEFR level, the B1 aim of the Estonian basic school exam
-  en: { label: 'English · A1 → B1', badge: 'KeeleSepp English' },
+  ek9: { label: '9. klass emakeel · eesti keel emakeelena', name: '9. klass emakeel', badge: 'KeeleSepp · 9. klass emakeel' },
+  ek12: { label: '12. klass emakeel · eesti keel emakeelena', name: '12. klass emakeel', badge: 'KeeleSepp · 12. klass emakeel' },
+  // English (docs/ENGLISH_COURSE_PLAN.md): A1 → B1 by CEFR level, the B1 aim of the Estonian basic school exam; the badge
+  // names the module's own level (MODULE.level „English A2” / „English B1”)
+  en: { label: ENGLISH_COURSE_NAME, name: ENGLISH_COURSE_NAME, badge: 'KeeleSepp · English', badgeByLevel: true },
   // the Sunday children's groups 5–6, 6–7, 8–9 (kids/sheets.js; not in COURSE_MODULES: adult level gates do not apply)
-  kids: { label: 'Lasterühmad 5–9 a', badge: 'KeeleSepp lastele' },
+  kids: { label: 'Lasterühmad 5–9 a', name: 'Lasterühmad 5–9 a', badge: 'KeeleSepp lastele' },
 };
 
 export const PHASES = {
@@ -212,7 +217,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       ...(lesson.lead ? { lead: lesson.lead } : {}),
       // a supplement (extra homework sheets, not a roadmap module) is named, not numbered
       ...(mod.MODULE.supplement ? { supplement: true } : {}),
-      badge: `${course.badge} · ${mod.MODULE.supplement ? mod.MODULE.title : `moodul ${moduleNumber(mod)}`}`,
+      badge: `${course.badgeByLevel && mod.MODULE.level ? `KeeleSepp · ${mod.MODULE.level}` : course.badge} · ${mod.MODULE.supplement ? mod.MODULE.title : `moodul ${moduleNumber(mod)}`}`,
       slogan: 'Rohkem kui lihtsalt keel!',
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },

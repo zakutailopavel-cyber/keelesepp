@@ -6,6 +6,7 @@ import { useAsyncData } from '../../hooks/useAsyncData.js';
 import { homeworkService, libraryService, lessonWorksheetsService, studentsService } from '../../services/firebase/index.js';
 import { buildTopicCatalog } from '../calendar/lessonTopic.js';
 import { publishedWorksheetDoc } from '../library/libraryModel.js';
+import { courseNameForLevel } from '../curriculum/courseNames.js';
 import WorksheetPlayer from '../homework/WorksheetPlayer.jsx';
 import { PHASES, lessonProgress, nextLesson, progressMap } from './selfStudyModel.js';
 import './selfStudy.css';
@@ -65,7 +66,7 @@ export default function StudentCoursePage({ repository = api }) {
   };
 
   return <div className="page-content course-page">
-    <PageHeader eyebrow="Minu kursus" title={`Kursus · ${shown.label}`} description={selfStudy ? 'Mine tund tunni haaval: Avasta, Harjuta, Kasuta. Iga päev ka „Päeva 5 minutit”.' : 'Sinu kursuse kaart ja edenemine. Töölehti teed koos õpetajaga tunnis.'} />
+    <PageHeader eyebrow="Minu kursus" title={courseNameForLevel(shown.key) || `Kursus · ${shown.label}`} description={selfStudy ? 'Mine tund tunni haaval: Avasta, Harjuta, Kasuta. Iga päev ka „Päeva 5 minutit”.' : 'Sinu kursuse kaart ja edenemine. Töölehti teed koos õpetajaga tunnis.'} />
     {levels.length > 1 ? <div className="course-levels" role="group" aria-label="Tase">{levels.map((entry) => <button type="button" key={entry.key} className={entry.key === shown.key ? 'is-active' : ''} aria-pressed={entry.key === shown.key} onClick={() => setLevel(entry.key)}>{entry.label}</button>)}</div> : null}
     {error ? <p className="form-error" role="alert">{error}</p> : null}
     {next ? <Card className="course-next"><span className="eyebrow">Järgmine tund</span><h2>{next.number ? `${next.number}. ` : ''}{next.title}</h2>
