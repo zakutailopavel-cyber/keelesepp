@@ -31,6 +31,85 @@
   clips are ≈ 25 s each (Harno 35–45 s, five clips) and the corner is 8.0 min, at the floor.
 - Next safe step: B1→B2 module 15 (`b2/module15.js`, b1b2-071…075, §4.1 row 15: PROB L→S · AVAS R→S · KUUL L→W · LUGU R→W);
   071's corner must not be W2 (069's corner W2a).
+## 2026-10-29 · agent/tokens-invoices — lesson packages: bought / held / left / owed per invoice; „Tunnipakett” plan saves
+
+- Base: `main` c2b4947 (checked 2026-10-29; `origin/main` 7ea2006 later touches none of these files). Owner: „систему
+  списывающихся токенов довести до идеала и потом привязать их к счетам … сколько осталось провести, сколько уже
+  проведено или уже должны оплатить”. No production data, no deploy, nothing merged.
+- Found: (1) `firestore.rules` `studentRevenuePlans.billingMode` allowed only advance / current / actual — saving the
+  price form with „Tunnipakett” (`package`) was refused (confirmed with the emulator: 403 on the old rules); (2) a used-up
+  package (`status: depleted`) dropped out of the card totals („Lisatud kokku 0 · kasutatud 0”); (3) lessons held when no
+  credits were left were marked `needs_attention` but shown nowhere, never paid by the next package (it is dated after
+  them) and stayed marked even when the mark was corrected or the lesson removed; (4) the card and the finance month
+  showed totals only, not per package invoice. The package ↔ invoice link itself already existed both ways
+  (`studentPackages/tokens_<invoiceId>.sourceInvoiceId`, `invoices.tokenPackageId`).
+- Done: rules allow `package`; `lessonPackageStates` readable by finance and the card's own student / parent. Server:
+  `lesson-tokens-core.js` `TOKENS_PER_LESSON = 1`, `OWED_LESSONS_TAKE_NEXT_PACKAGE = true`, `packageForOwedLesson`,
+  `tokenBacklogLessonIds`; `index.js` syncLessonPackageConsumption pays an owed lesson from the oldest token package with
+  credits, clears an owed state when the lesson stops charging or is removed (trigger now runs for owed lessons), stores
+  `lessonDate` on the owed state; the credit backlog takes owed lessons first. Client: `lessonTokens.js` `tokenAccount`,
+  `tokenLine`, `tokenInvoiceUsage`, `owedByStudent`, `packagesForInvoices`; `LessonTokensCard` table per package invoice
+  + owed lessons, parent line „Paketist alles N tundi” / „Pakett on läbi · N tundi ootab tasumist”; FinanceMonthPage line
+  under a token invoice „peetud M · alles L” and „võlg N tundi (uus arve)”. Docs: LESSON_TOKENS.md, ACCOUNTING.md pointer.
+- Checks: `node --test lesson-tokens-core.test.js finance-core.test.js` 57 pass; emulator (JDK 21, firebase-tools
+  15.22.3) „lesson tokens” 3/3 pass in finance-emulator + security-finance-emulator; `npx eslint --quiet src` 0;
+  `npx vitest run` 403 files passed (2777 tests, 5 skipped). e2e `lesson-tokens.spec.cjs` updated, not run locally.
+- **Deploy needed** (owner's OK): `firestore:rules` and functions `syncLessonTokens`, `financeApi` (credit backlog and
+  the lesson journal call syncLessonPackageConsumption). Existing invoices and packages are not
+  rewritten; old owed states without `lessonDate` clear on removal without a date.
+- Owner 2026-10-29 (follow-up, same branch, after merging `origin/main`): credits per lesson =
+  `lessonTokenCost` = max(1, floor(duration / 60)) (45/60/90 = 1, 120 = 2, 180 = 3) in `lesson-tokens-core.js` and
+  `lessonTokens.js`; finance-core `selectStudentPackageForLesson` / `packageBalanceAfterLessonMovement` take `credits`
+  (default 1); the state and the lesson keep `credits` / `packageCredits`, a corrected / removed mark gives back the same
+  number, a changed length is restored and taken again (trigger + lesson journal); owed counts sum credits. Checks
+  after it: node 60 pass; emulator „lesson tokens” 3/3 pass (double lesson 2 → 60 min 1 → removed; owed 2-credit
+  lesson); full vitest 403 files passed (2778 tests, 5 skipped), eslint 0. Defaults kept: no expiry, debt paid by the next
+  package, one pool per card. A single leftover credit is not split across packages. Catalogue packages (`package_issue`) have no invoice and
+  show as „arveta pakett”.
+- Next safe step: after review and the owner's OK, deploy rules + functions and check one package card on production.
+## 2026-10-29 · agent/lessons-per-week — „Mitu korda nädalas?” per course in „Sobivad ajad”
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request: „поле, сколько раз в неделю хотят заниматься; если
+  несколько курсов — отдельно на каждый курс”. No production data, no deploy.
+- Done: the editor of „Millal sulle tund sobib?” / „Sobivad ajad” (AvailabilityCard) has „Mitu korda nädalas soovid
+  õppida? · Сколько раз в неделю?” — one select (—, 1–7× nädalas) per active course of the card (`subjects` =
+  subjects.js subjectsOf; one course → one field). Read view (learner, parent, admin, teacher): „Soovib õppida: Eesti
+  keel 2× · Matemaatika 1× nädalas”; a teacher sees only their own courses. Calendar „Sobivad ajad” panel shows it next
+  to the name; the planner („Lisa kõik õpilased”) takes the learner's number as „Nädalas” (capped at 5, an Õppeplaan's
+  minimum still applies) and shows „soovib N× nädalas”.
+- Data: `studentAvailability.perWeek = { 'eesti-keel': 2, 'matemaatika': 1 }` — key = studyDirections.js
+  `directionId(subject)` (slug), `'default'` for a card without a subject; values whole 1–7. It belongs to the card, not
+  to a dated week; a save without `perWeek` (e.g. „Kasuta tavalist nädalat”) keeps it (not in mergeFields). Helpers in
+  availability-poll/pollModel.js (perWeekKey/Fields/Rows/Text/Draft, cleanPerWeek); planner `wantedPerWeek`.
+- Rules: `availabilityValid` allows `perWeek` (map, ≤ 10). **Rules must be deployed before merge** (otherwise every save
+  with the new field is refused). Emulator: security-access „available times” 1/1 (perWeek 2 → 200, 11 → 403, string → 403).
+- Announcements (`responseType 'availability'`) and the public /ajad page unchanged.
+- Checks: eslint 0 errors; vitest 404 passed + 1 file (WorksheetStudioPage, 2 timeouts under full load) passed 23/23
+  alone; new tests pollPerWeek 3, AvailabilityCard +2, plannerModel +1, StudentTimesPanel 1.
+- Next safe step: deploy firestore rules (owner's OK), then merge.
+
+## 2026-10-29 · agent/invoice-internal-note — invoice „Sisemine märkus” (staff-only note)
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request #improvement #finance: an internal note on an issued
+  invoice saying what it was for. No production data, no deploy.
+- Done: new collection `invoiceNotes/{invoiceId}` (`text` ≤ 1000, `updatedAt`, `updatedByUid`, `updatedByName`) —
+  kept off the invoice document because students and parents read their invoices. Rules: `admin` and `finance` read
+  and write (fixed keys, own uid, existing invoice only, never deleted). Kuu arveldus: note icon by the invoice number
+  (tooltip), clipped line under the student, dialog with full text and last editor, search by note; editable on any
+  invoice (issued, paid). „Lisa arve” / „Tunnipakett” save their note field there (server `note` now sent empty).
+  Details in `docs/ACCOUNTING.md` „Sisemine märkus”.
+- Files: `firestore.rules`, `crm-v2/src/services/firebase/invoiceNotes.js` (+test, export in `index.js`),
+  `crm-v2/src/features/finance/InvoiceNoteDialog.jsx`, `FinanceMonthPage.jsx` (+test), `ManualInvoiceDialog.jsx`
+  (+test), `TokenInvoiceDialog.jsx`, `financeRows.js` (+test), `financeMonth.css`,
+  `functions/invoice-notes-rules-emulator.integration.js` (in `test:emulator`).
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2777 tests, 5 skipped); Firestore emulator
+  (JDK 21, auth+firestore) invoice-notes + business-settings + campaigns rules tests 3/3.
+- Manual gate: **`firestore.rules` must be deployed** (`firebase deploy --only firestore:rules`) before the feature
+  works; until then the list loads without notes and saving a note shows an error (the invoice is still created).
+  No functions change.
+- Limits: only the latest text is kept (who/when of the last edit, no earlier versions); not shown yet on the student
+  card's invoice list or the old view (`/finance/vana`).
+- Next safe step: owner deploys `firestore.rules`, then writes a test note on one invoice and checks it in Kuu arveldus.
 
 ## 2026-10-29 · agent/b2-m10-final — B1→B2 module 10 „Suhted ja konfliktid” in the final shape
 

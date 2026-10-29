@@ -4,6 +4,7 @@ import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
 import { lessonTokensService, tokenSummary } from '../../services/firebase/lessonTokens.js';
+import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
 import { defaultBillingMonth } from './monthlyBilling.js';
 
 const money = (cents) => new Intl.NumberFormat('et-EE', { style: 'currency', currency: 'EUR' }).format((Number(cents) || 0) / 100);
@@ -12,7 +13,7 @@ const dueDefault = () => `${defaultBillingMonth()}-10`;
 
 // „Tunnipakett” (owner 2026-10-14): an invoice for N lessons at the card's price. The parent pays; the administrator
 // then presses „Lisa tunnid” on the paid invoice and the card gets N lessons; every held lesson takes one.
-export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCreated, api = manualInvoiceApi, deliveryApi = invoiceDeliveryApi, tokensApi = lessonTokensService }) {
+export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCreated, api = manualInvoiceApi, deliveryApi = invoiceDeliveryApi, tokensApi = lessonTokensService, notesRepository = invoiceNotesService }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [studentId, setStudentId] = useState('');
@@ -61,11 +62,13 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     const id = requestId || `lesson_tokens_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     setRequestId(id);
     try {
-      const { invoice } = await api.createTokens({ studentId, lessons: count, due, note, requestId: id });
+      // the note is internal: it goes to invoiceNotes, never onto the invoice the payer can read
+      const { invoice } = await api.createTokens({ studentId, lessons: count, due, note: '', requestId: id });
+      const noted = await saveCreationNote(notesRepository, invoice, note);
       if (send) await deliveryApi.send(invoice.id);
       setBusy('');
       close();
-      await onCreated?.(invoice, { sent: send });
+      await onCreated?.(invoice, { sent: send, ...noted });
     } catch (caught) {
       setError(caught.message || 'Arvet ei saanud luua.');
       setBusy('');
@@ -98,7 +101,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
           </div>
         </div>
         <Input label="Maksetähtaeg" type="date" value={due} onChange={(event) => setDue(event.target.value)} />
-        <Input label="Märkus (valikuline)" value={note} onChange={(event) => setNote(event.target.value)} />
+        <Input label="Sisemine märkus (ainult töötajatele)" maxLength={INVOICE_NOTE_MAX} placeholder="Mille eest arve on — ei ilmu arvele ega e-kirja" value={note} onChange={(event) => setNote(event.target.value)} />
         <p className="form-grid__wide" role="status"><strong>Kokku: {priceCents && count ? `${count} × ${money(priceCents)} = ${money(count * priceCents)}` : '—'}</strong><br />
           <span className="form-hint">Tunnid lisatakse õpilasele pärast makse laekumist nupuga „Lisa tunnid” arvete nimekirjas. Iga toimunud tund (ja ette teatamata puudumine) võtab ühe tunni.</span></p>
         {error ? <p className="action-error form-grid__wide" role="alert">{error}</p> : null}
