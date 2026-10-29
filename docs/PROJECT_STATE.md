@@ -30,6 +30,162 @@
   ≈ 430 words (Harno 200–300).
 - Next safe step: B1→B2 module 12 (`b2/module12.js`, b1b2-056…060, §4.1 row 12: KIRJ L→W · PROJ L→S · LUGE R→W · RÄÄK R→S
   · PROOV 060); 056's corner must not be W2 (054's corner).
+## 2026-10-29 · agent/b1-exam-goals — B1 goals test reads exam lessons from the course
+
+- Owner: „править” (the test hard-coded exam lessons 5…50, 89, 90 and missed 055, 060 …). Now `b1/lessonGoals.test.js`
+  builds the course: an exam lesson has g_vocab exactly when a sheet has a g_vocab block (the Korda review of module
+  words, e.g. 055, 060, 065 …); teaching lessons always have it. No content change.
+## 2026-10-29 · agent/lesson-duration-card — the student card's „Tunnid” shows how long each lesson is
+
+- Team (#student_card): „не видно, сколько идёт урок … будем пропускать двойные уроки”. Upcoming and held lessons show
+  the time as a range (16:00–17:30) and a chip „N min”; 120 min or more (owner: a double lesson is 120 min) is „N min · Topelttund” (orange). The held list
+  heading shows „N tundi · X h · topelttunde M”. File: students/StudentLessonsPanel.jsx (+ css, test).
+- Checks: eslint 0, vitest students 122 pass (full run in the PR).
+
+## 2026-10-29 · agent/student-discount (PR #891) — student card: „Üldtingimused” / „Soodustus” price switch
+
+- Team request 2026-10-29 (#finance): general terms bill the standard 25 €/h automatically; a discount needs an hourly
+  rate and a reason (several courses, several children, …). Owner 2026-10-29: the discount is a choice of 20 / 15 /
+  12 €/h, not a free number (`DISCOUNT_HOURLY_RATES_CENTS` next to `STANDARD_HOURLY_RATE_CENTS`). Base: `main` 9c971f0 (2026-10-29), rebased on 7d0e0a9.
+- Done (no new price model): the switch writes the existing `studentRevenuePlans` price (`lessonPriceCents` +
+  `lessonMinutes`, `subjectPrices`), which monthly / per-lesson invoices already read — no functions change.
+  `crm-v2/src/features/finance/priceTerms.js` (new): `STANDARD_HOURLY_RATE_CENTS = 2500`, `priceTermsOf(plan)`,
+  `lessonPricesFromTerms`, `validatePriceTerms`. „Arveldus” card (`BillingSettingsCard.jsx`): switch, hourly rate,
+  buttons 20 / 15 / 12 €/h, reason (≤ 300), lesson price preview; per further subject the same choices
+  („sama kui kaardil” = card rate) and length;
+  „Hinnatingimused muudetud <date> · <who>”. Terms are per card (one reason for the family/client), prices per subject.
+- Data: plan gets `priceTerms` ('general' | 'discount'), `hourlyRateCents`, `discountReason`,
+  `priceTermsChangedAt/By/ByUid` (`revenuePlans.js` `priceTermsRecord`); price history entries remember the previous
+  terms; `activityLog` gets only `priceTerms` (staff-readable, so no reason). firestore.rules: the six fields allowed,
+  discount needs a non-blank reason, general none.
+- Existing prices: nothing is migrated or written. A plan without terms is shown as general when every price equals
+  25 €/h by length, else as „Soodustus” with an empty reason (placeholder „Varasem kokkulepe — põhjus lisamata”, UI only). A price
+  that is none of 25/20/15/12 €/h is shown as a read-only extra choice „Varasem kokkulepe X €/h” (card and subject)
+  and saved unchanged to the cent (17 € / 45 min stays 1700) until the admin picks a school rate; changing the lesson
+  length of such a row requires picking a rate. To save such a card the admin must type a reason.
+- Checks (after the fixed rates, origin/main merged): see the line below; first round: emulator
+  `finance-emulator.integration.js` 41/41 (new price-terms rule assertions; JDK 21 needed for firebase-tools).
+- Deploy after merge (owner permission): `firestore:rules` (the frontend goes with main). Until the rules are deployed,
+  saving the „Arveldus” card fails (unknown fields) — deploy rules first or together.
+- Limits / open: 25 € for a 45-min lesson counts as 33,33 €/h → shown as „Soodustus”; the Finantsid forecast form still
+  edits the lesson price without terms; rules allow `billingMode` advance/current/actual only, the UI also offers
+  `package` (pre-existing).
+- Fixed-rate round: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2786 tests, 5 skipped). Rules unchanged by this round
+  (`hourlyRateCents` stays any positive int because an old rate is kept).
+- Next safe step: owner reviews the PR, then deploy `firestore:rules` together with the merge.
+
+## 2026-10-29 · agent/tokens-invoices — lesson packages: bought / held / left / owed per invoice; „Tunnipakett” plan saves
+
+- Base: `main` c2b4947 (checked 2026-10-29; `origin/main` 7ea2006 later touches none of these files). Owner: „систему
+  списывающихся токенов довести до идеала и потом привязать их к счетам … сколько осталось провести, сколько уже
+  проведено или уже должны оплатить”. No production data, no deploy, nothing merged.
+- Found: (1) `firestore.rules` `studentRevenuePlans.billingMode` allowed only advance / current / actual — saving the
+  price form with „Tunnipakett” (`package`) was refused (confirmed with the emulator: 403 on the old rules); (2) a used-up
+  package (`status: depleted`) dropped out of the card totals („Lisatud kokku 0 · kasutatud 0”); (3) lessons held when no
+  credits were left were marked `needs_attention` but shown nowhere, never paid by the next package (it is dated after
+  them) and stayed marked even when the mark was corrected or the lesson removed; (4) the card and the finance month
+  showed totals only, not per package invoice. The package ↔ invoice link itself already existed both ways
+  (`studentPackages/tokens_<invoiceId>.sourceInvoiceId`, `invoices.tokenPackageId`).
+- Done: rules allow `package`; `lessonPackageStates` readable by finance and the card's own student / parent. Server:
+  `lesson-tokens-core.js` `TOKENS_PER_LESSON = 1`, `OWED_LESSONS_TAKE_NEXT_PACKAGE = true`, `packageForOwedLesson`,
+  `tokenBacklogLessonIds`; `index.js` syncLessonPackageConsumption pays an owed lesson from the oldest token package with
+  credits, clears an owed state when the lesson stops charging or is removed (trigger now runs for owed lessons), stores
+  `lessonDate` on the owed state; the credit backlog takes owed lessons first. Client: `lessonTokens.js` `tokenAccount`,
+  `tokenLine`, `tokenInvoiceUsage`, `owedByStudent`, `packagesForInvoices`; `LessonTokensCard` table per package invoice
+  + owed lessons, parent line „Paketist alles N tundi” / „Pakett on läbi · N tundi ootab tasumist”; FinanceMonthPage line
+  under a token invoice „peetud M · alles L” and „võlg N tundi (uus arve)”. Docs: LESSON_TOKENS.md, ACCOUNTING.md pointer.
+- Checks: `node --test lesson-tokens-core.test.js finance-core.test.js` 57 pass; emulator (JDK 21, firebase-tools
+  15.22.3) „lesson tokens” 3/3 pass in finance-emulator + security-finance-emulator; `npx eslint --quiet src` 0;
+  `npx vitest run` 403 files passed (2777 tests, 5 skipped). e2e `lesson-tokens.spec.cjs` updated, not run locally.
+- **Deploy needed** (owner's OK): `firestore:rules` and functions `syncLessonTokens`, `financeApi` (credit backlog and
+  the lesson journal call syncLessonPackageConsumption). Existing invoices and packages are not
+  rewritten; old owed states without `lessonDate` clear on removal without a date.
+- Owner 2026-10-29 (follow-up, same branch, after merging `origin/main`): credits per lesson =
+  `lessonTokenCost` = max(1, floor(duration / 60)) (45/60/90 = 1, 120 = 2, 180 = 3) in `lesson-tokens-core.js` and
+  `lessonTokens.js`; finance-core `selectStudentPackageForLesson` / `packageBalanceAfterLessonMovement` take `credits`
+  (default 1); the state and the lesson keep `credits` / `packageCredits`, a corrected / removed mark gives back the same
+  number, a changed length is restored and taken again (trigger + lesson journal); owed counts sum credits. Checks
+  after it: node 60 pass; emulator „lesson tokens” 3/3 pass (double lesson 2 → 60 min 1 → removed; owed 2-credit
+  lesson); full vitest 403 files passed (2778 tests, 5 skipped), eslint 0. Defaults kept: no expiry, debt paid by the next
+  package, one pool per card. A single leftover credit is not split across packages. Catalogue packages (`package_issue`) have no invoice and
+  show as „arveta pakett”.
+- Next safe step: after review and the owner's OK, deploy rules + functions and check one package card on production.
+## 2026-10-29 · agent/lessons-per-week — „Mitu korda nädalas?” per course in „Sobivad ajad”
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request: „поле, сколько раз в неделю хотят заниматься; если
+  несколько курсов — отдельно на каждый курс”. No production data, no deploy.
+- Done: the editor of „Millal sulle tund sobib?” / „Sobivad ajad” (AvailabilityCard) has „Mitu korda nädalas soovid
+  õppida? · Сколько раз в неделю?” — one select (—, 1–7× nädalas) per active course of the card (`subjects` =
+  subjects.js subjectsOf; one course → one field). Read view (learner, parent, admin, teacher): „Soovib õppida: Eesti
+  keel 2× · Matemaatika 1× nädalas”; a teacher sees only their own courses. Calendar „Sobivad ajad” panel shows it next
+  to the name; the planner („Lisa kõik õpilased”) takes the learner's number as „Nädalas” (capped at 5, an Õppeplaan's
+  minimum still applies) and shows „soovib N× nädalas”.
+- Data: `studentAvailability.perWeek = { 'eesti-keel': 2, 'matemaatika': 1 }` — key = studyDirections.js
+  `directionId(subject)` (slug), `'default'` for a card without a subject; values whole 1–7. It belongs to the card, not
+  to a dated week; a save without `perWeek` (e.g. „Kasuta tavalist nädalat”) keeps it (not in mergeFields). Helpers in
+  availability-poll/pollModel.js (perWeekKey/Fields/Rows/Text/Draft, cleanPerWeek); planner `wantedPerWeek`.
+- Rules: `availabilityValid` allows `perWeek` (map, ≤ 10). **Rules must be deployed before merge** (otherwise every save
+  with the new field is refused). Emulator: security-access „available times” 1/1 (perWeek 2 → 200, 11 → 403, string → 403).
+- Announcements (`responseType 'availability'`) and the public /ajad page unchanged.
+- Checks: eslint 0 errors; vitest 404 passed + 1 file (WorksheetStudioPage, 2 timeouts under full load) passed 23/23
+  alone; new tests pollPerWeek 3, AvailabilityCard +2, plannerModel +1, StudentTimesPanel 1.
+- Next safe step: deploy firestore rules (owner's OK), then merge.
+
+## 2026-10-29 · agent/invoice-internal-note — invoice „Sisemine märkus” (staff-only note)
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request #improvement #finance: an internal note on an issued
+  invoice saying what it was for. No production data, no deploy.
+- Done: new collection `invoiceNotes/{invoiceId}` (`text` ≤ 1000, `updatedAt`, `updatedByUid`, `updatedByName`) —
+  kept off the invoice document because students and parents read their invoices. Rules: `admin` and `finance` read
+  and write (fixed keys, own uid, existing invoice only, never deleted). Kuu arveldus: note icon by the invoice number
+  (tooltip), clipped line under the student, dialog with full text and last editor, search by note; editable on any
+  invoice (issued, paid). „Lisa arve” / „Tunnipakett” save their note field there (server `note` now sent empty).
+  Details in `docs/ACCOUNTING.md` „Sisemine märkus”.
+- Files: `firestore.rules`, `crm-v2/src/services/firebase/invoiceNotes.js` (+test, export in `index.js`),
+  `crm-v2/src/features/finance/InvoiceNoteDialog.jsx`, `FinanceMonthPage.jsx` (+test), `ManualInvoiceDialog.jsx`
+  (+test), `TokenInvoiceDialog.jsx`, `financeRows.js` (+test), `financeMonth.css`,
+  `functions/invoice-notes-rules-emulator.integration.js` (in `test:emulator`).
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2777 tests, 5 skipped); Firestore emulator
+  (JDK 21, auth+firestore) invoice-notes + business-settings + campaigns rules tests 3/3.
+- Manual gate: **`firestore.rules` must be deployed** (`firebase deploy --only firestore:rules`) before the feature
+  works; until then the list loads without notes and saving a note shows an error (the invoice is still created).
+  No functions change.
+- Limits: only the latest text is kept (who/when of the last edit, no earlier versions); not shown yet on the student
+  card's invoice list or the old view (`/finance/vana`).
+- Next safe step: owner deploys `firestore.rules`, then writes a test note on one invoice and checks it in Kuu arveldus.
+
+## 2026-10-29 · agent/b2-m10-final — B1→B2 module 10 „Suhted ja konfliktid” in the final shape
+
+- Base: `main` 38ecb2b, then `origin/main` 7d0e0a9 merged (after #886, module 8). Module 9 (#888) was still open: with its
+  `module09.js` put in place locally, module 10 still shows 0 problems (044 corner L4 → 046 corner R1; V1/V2 clean). Content
+  only; no production data, no publishing, no deploy.
+- Done: `b2/module10.js` (b1b2-046…050) passes every final-shape gate under the B2 profile: **66 → 0 problems**
+  (`final-shape.mjs --course b2 --module 10`); the module-10 block, `b1b2-054 practice V7` and the course lines
+  `V6-corner-S2`, `V6-total-L4`, `V6-total-R1`, `V6-total-W1`, `V6-variant-R2b` left the B2 baseline, none added. Strict
+  quality gate: all 15 sheets READY (teaching sheets 41–55 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 10): 046 LUGE R→W (corner R1 = `046_d_survey`, the reader survey lengthened to ≈ 510 words,
+  predict and check R13; main `046_t_letter` W14 recommendation to Gert ≈ 180 words), 047 RÄÄK R→S (corner W1 =
+  `047_p_note`, Gert's angry mail rewritten as an 80–100-word note to Liis, W12; main `047_t_meeting` S16 talk at Hendrik's
+  meeting, recorded at home), 048 KIRJ L→W (corner R2b = `048_t_mail`, the class teacher's letter, 8 answers of 1–3 words,
+  R15 level 3; main `048_t_letter` W13), 049 PROJ L→S (corner S2 = `049_p_debate`, quiet-hours argument cards; main
+  `049_t_meeting` S03 mediated agreement). 050 EKS: L3, L4, R1, R2a, R2b, R3, R4, W1, W2b, S1, S2 tagged, four timed `PART`s;
+  L3 10 gaps, L4 12 statements, R3 12 gaps, R4 8 sentences, new W2b essay `050_t_essay`, R2b questions on the HR letter.
+  Every teaching lesson: review naming the previous lesson and a module 6–8 lesson (045/026, 046/032, 047/037, 048/028), a
+  pair task in the lesson, a home recording (S15/S16), two fluency tasks (14–15 %); S16 ×2 (046, 047), S17 ×2 (046, 049).
+- Changed blocks: real ids on nearly every task; new `046_d_cross` (G11, replaces the sort), `049_p_data` chart + W15
+  `049_p_write`, `049_d_write` W01 questionnaire, `049_t_cards` → Helve's summary with a phrase bank (R05 level 3),
+  `049_d_deal` → reading with shuffled parts (R10), `048_p_dialog` → word-bank text (R04), `047_d_feel` → phrase bank,
+  `047_p_voice` gaps ask for days, times and numbers (L10), `048_d_voices` gaps ask for requests and plans (L06);
+  removed `046_p_match`, `049_d_sort`, `049_t_plan`, `047_p_write`. Fixed „Rainer kõige tähtsam” → „Raineri”. Vocab:
+  esmamulje → mulje, vahendaja → vahendama, järeleandmine → seisukoht; topic words otsekohene, vastutasuks, lepitaja.
+  canDo and goals of 046–050 in `b2/lessonGoals.js`. `language-allow.txt`: the clitic notation „ki”, „gi”.
+- Audio: no transcript changed, no new recordings.
+- Checks: `final-shape.mjs --course b2 --module 10` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2773 tests, 5 skipped); Vabamorf language check of module 10: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the R1 corner is a reading with open questions (exam: three options); the R2b letter is ≈ 350 words (Harno
+  200–300); the W1 corner is 80–100 words (exam ≈ 140).
+- Next safe step: B1→B2 module 11 (`b2/module11.js`, b1b2-051…055, §4.1 row 11: KUUL L→W · PROB L→S · LUGU R→W · AVAS R→S);
+  051's corner must not be S2 (049's corner).
 
 ## 2026-10-29 · agent/invite-parent-default — „Saada kutse” goes to the parent's e-mail by default
 
@@ -82,6 +238,7 @@
 - Tests: accounting-core 19 pass; vitest accounting 56 pass; emulator test added (runs in CI).
 - **Needs a functions deploy** (`financeApi`) before the button works; the owner's OK is required.
 - Not done: ST1 itself is not undone — the accountant (or the owner) presses the button with a reason.
+
 ## 2026-10-29 · agent/b2-m08-final — B1→B2 module 8 „Reisimine ja kultuur” in the final shape
 
 - Base: `main` 377856e (after #882, module 6), then `origin/main` 38ecb2b merged (after #884, module 7); corner and

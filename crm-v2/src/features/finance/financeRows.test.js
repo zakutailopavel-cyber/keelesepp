@@ -33,6 +33,8 @@ describe('finance row summaries, filters, and sorting', () => {
     const rows = [row({ id: 'a', studentId: 's1', planMonth: '2026-10', payerEmail: 'mari@example.ee' }), row({ id: 'b', studentId: 's2', planMonth: '2026-09', dueDate: '2026-10-01', studentName: 'Kati' })];
     expect(filterFinanceRows(rows, { status: 'unpaid', month: '2026-10', studentId: 's1', query: 'MARI@' }, today).map((item) => item.id)).toEqual(['a']);
     expect(filterFinanceRows(rows, { status: 'overdue' }, today).map((item) => item.id)).toEqual(['b']);
+    // the staff-only note (merged in by the finance page, never stored on the invoice) is searchable
+    expect(filterFinanceRows([{ id: 'n', internalNote: 'Õpik Tere!' }, { id: 'm' }], { query: 'õpik' }, today).map((item) => item.id)).toEqual(['n']);
   });
   it('sorts by due date, amount, status, and student, without mutating input', () => {
     const rows = [row({ id: 'b', studentName: 'Õie', dueDate: '2026-10-09', amountCents: 300 }), row({ id: 'a', studentName: 'Aino', dueDate: '2026-10-08', amountCents: 1000 }), row({ id: 'c', studentName: 'Mari', dueDate: '2026-10-11', amountCents: 500 })];
