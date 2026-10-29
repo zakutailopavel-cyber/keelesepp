@@ -365,6 +365,18 @@ function correctedEntry(entry, values, accounts = [], options = {}) {
   return { before, after, totalCents: normalized.totalCents };
 }
 
+// „Tühista ekslik storno” (the owner 2026-10-29: the accountant made a storno by mistake and wants it gone): a storno
+// made in error becomes a tombstone (`deleted`, like a deleted manual entry: number never reused, content in history)
+// and its original entry is live again. Only a live storno whose original still points to it; the service checks that
+// both dates are open (after the lock only a new correcting entry is possible).
+function assertStornoUndoable(storno, original) {
+  if (storno.origin !== "reversal") throw accountingError("See ei ole stornokanne.", 409);
+  if (storno.deleted) throw accountingError("Storno on juba tühistatud.", 409);
+  if (!original) throw accountingError("Storno algset kannet ei leitud.", 409);
+  if (original.reversedBy !== storno.id) throw accountingError(`Kanne ${original.number || ""} ei ole selle stornoga tühistatud.`, 409);
+  if (original.deleted) throw accountingError(`Algne kanne ${original.number || ""} on kustutatud.`, 409);
+}
+
 function assertDeletable(entry) {
   assertCorrectable(entry);
   if (entry.origin !== "manual") throw accountingError("Kustutada saab ainult käsitsi kannet. Automaatkannet parandatakse ridade muutmisega või dokumendi kaudu.", 409);
@@ -426,6 +438,7 @@ module.exports = {
   chunked,
   replaceAccountValues,
   assertDeletable,
+  assertStornoUndoable,
   correctedEntry,
   isLocked,
   snapshotOf,
