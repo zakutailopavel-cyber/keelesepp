@@ -52,3 +52,31 @@ export function summaryOf(cells = {}) {
     best: ranges(HOURS.filter((hour) => cells[cellKey(day, hour)] === 'best')),
   })).filter((row) => row.ranges.length);
 }
+
+// Week by week (owner 2026-10-29: „ученик должен иметь возможность заполнять свой график и наперёд, чтобы работающие
+// тоже могли удобно выбирать времена”): besides the usual week (slots / preferred) a learner may mark a dated week that
+// differs — a shift worker's next weeks. studentAvailability.weeks = { 'YYYY-MM-DD' (its Monday): { slots, preferred } }.
+// A week without its own entry is the usual week. Dates are the school's wall clock, read at local noon.
+export const WEEKS_AHEAD = 4; // this week + 3 next
+const iso = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+export function mondayOf(date) {
+  const day = new Date(`${String(date).slice(0, 10)}T12:00:00`);
+  day.setDate(day.getDate() - ((day.getDay() + 6) % 7));
+  return iso(day);
+}
+const addDays = (date, days) => { const day = new Date(`${date}T12:00:00`); day.setDate(day.getDate() + days); return iso(day); };
+// this week and the next ones: [{ monday, sunday }]
+export function upcomingWeeks(today, count = WEEKS_AHEAD) {
+  const first = mondayOf(today);
+  return Array.from({ length: count }, (_, index) => { const monday = addDays(first, index * 7); return { monday, sunday: addDays(monday, 6) }; });
+}
+// the times of one week: its own entry, else the usual week; `own` says which
+export function timesForWeek(item, monday) {
+  const own = monday ? item?.weeks?.[monday] : null;
+  if (own) return { slots: own.slots || [], preferred: own.preferred || [], own: true };
+  return { slots: item?.slots || [], preferred: item?.preferred || [], own: false };
+}
+// the times on a date (the calendar): that date's week
+export const timesOnDate = (item, date) => timesForWeek(item, date ? mondayOf(date) : '');
+// the dated weeks still to come (older ones are dropped when saving)
+export const futureWeeks = (weeks = {}, today) => Object.fromEntries(Object.entries(weeks || {}).filter(([monday]) => monday >= mondayOf(today)).sort(([a], [b]) => a.localeCompare(b)));
