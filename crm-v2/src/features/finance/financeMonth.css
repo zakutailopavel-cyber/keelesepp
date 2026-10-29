@@ -83,3 +83,13 @@
 .finance-mail--success { color: #067647; }
 .finance-mail--danger { color: #b42318; font-weight: 700; }
 .finance-mail--info { color: #175cd3; }
+
+/* „Sisemine märkus” (team 2026-10-29): staff-only note of an invoice — icon by the number, one clipped line under the
+   student, full text in the dialog */
+.finance-month-table__num { display: inline-flex; align-items: center; gap: 6px; }
+.finance-note-button { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 1px solid transparent; border-radius: 6px; background: transparent; color: #98a2b3; cursor: pointer; }
+.finance-note-button:hover, .finance-note-button:focus-visible { border-color: #d0d5dd; color: #475467; }
+.finance-note-button--set { color: #b54708; background: #fffaeb; border-color: #fedf89; }
+.finance-month-table__row .finance-note-line { display: block; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .72rem; color: #93370d; }
+.invoice-note-form { display: grid; gap: 10px; }
+.invoice-note-meta { margin: 0; font-size: .8rem; color: #667085; }
