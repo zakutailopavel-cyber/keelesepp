@@ -21,25 +21,34 @@
 //   009 the renovation: three unexpected messages (the builder Rando, Ingrid, Eda of the Vahtra 5 association), the
 //       district's letter on the milieu area; the builder's call, an article on Nõmme's old houses, the window debate;
 //       street works all summer — the module's final task: an official request and a meeting with Ingrid.
-// Lesson 5 (010) is the module's check in Harno form (unchanged). The v3 file is in archive/v3/b2/module02.js.
-import { B, teach } from '../blocks.js';
+// Final shape (docs/COURSE_FINAL_SHAPE_B2.md, 2026-10-29): 006 LUGE R→S (corner R3 = the flat ad cloze; main = S17
+// argument cards rent vs buy), 007 RÄÄK L→S (corner W1 = the letter to the builders, W12; main = S10 at Ingrid's desk),
+// 008 KIRJ L→W (corner S1 = S16 1-minute talk at the housing association meeting; main = W13 formal complaint), 009 PROJ
+// R→W (corner S2 = S17 argument cards on the windows; main = the request to the district, W08 as a reply to the city's
+// announcement). Every Kasuta has a pair task in the lesson and an S15 recording at home; two fluency tasks a lesson.
+// Lesson 5 (010) is the module's check in Harno B2 form: R1, R2a, R3, R4, L3, L4, W1, W2b, S1, S2 tagged, every part
+// timed with B.examPart. The v3 file is in archive/v3/b2/module02.js.
+import { B, tag, teach, withShapes } from '../blocks.js';
 
 export const MODULE = { id: 'b1b2-module-02', course: 'b2', title: 'Linn, teenused ja asjaajamine', level: 'B1+', design: 'v2', template: 'v4' };
 
 // used by the check lesson 010 (kept as it was)
-const TR = (id, rows) => B.translation(id, 'Tõlgi eesti keelde.', 'Kirjuta loomulik eestikeelne lause.', rows);
+// an exam part header carries the goal of its part: b2/lessonGoals.test.js asks every non-text block of a B2 sheet for one
+// of the lesson's goals, and the header has none of its own (B.examPart: goal '')
+const PART = (id, skill, o) => ({ ...B.examPart(id, skill, o), goal: ['R', 'L'].includes(skill) ? 'g_read' : 'g_use' });
+const TR = (id, rows) => B.translation(id, 'Tõlgi eesti keelde.', 'Tõlgi mõte loomulikku eesti keelde, mitte sõna-sõnalt.', rows);
 
-export const LESSONS = {
+export const LESSONS = withShapes({
   'b1b2-006': {
     title: 'Kus? Kuhu? Kust?',
-    canDo: 'Ma võrdlen üürimist ja ostmist, kirjeldan, mis korteris on ja mida ei ole, ning juhatan teed uude koju õigete kohakäänetega.',
+    canDo: 'Ma loen korterikuulutusi, kodukorda ja märkmeid, võrdlen üürimist ja ostmist ning arutlen perega ühise otsuse üle: kirjeldan, mis majas on ja mida ei ole.',
     discover: [
-      B.review('006_d_review', ['Moodul 1: kirjelda oma tavalist tööpäeva — mida teed kõigepealt ja mida seejärel?', 'Kuidas erineb sinu argipäev nädalavahetusest?', 'Mis on sinu selle aasta kõige tähtsam eesmärk?']),
+      B.review('006_d_review', [['Moodul 1: võrdle oma tööpäeva ja puhkepäeva kolmes punktis — kumb sulle rohkem meeldib ja miks?', 'b1b2-004'], 'Mida sa teed kõigepealt ja mida seejärel, kui jõuad õhtul koju?', 'Mis on sinu selle aasta kõige tähtsam eesmärk?']),
       B.text('006_d_goal', 'Moodul 2: uus kodu ja palju asjaajamist', 'Pildil on Anna laupäev Tartus: rongijaamast läheb ta turule, sealt pagariärisse ja raamatukokku. Kodu ümbrus teeb igapäevase elu lihtsaks või raskeks. Selles moodulis otsivad Jaan ja Kadri suuremat kodu. Nad ajavad asju pangas ja linnaosa valitsuses ning lahendavad probleeme majaga. Mooduli eesmärk: lõpus kirjutad linnale ametliku pöördumise ja räägid ametnikuga. Täna loed Kadri postitust ja kuulad, kuidas Jaan teed küsib.'),
-      B.reading('006_d_post', 'Loe Kadri postitust.', 'Kadri kirjutas sõprade grupivestlusesse. Loe ja vasta lühidalt.', 'Üürida või osta?',
+      tag(B.reading('006_d_post', 'Ennusta ja kontrolli: Kadri postitus.', 'Vaata kõigepealt ainult pealkirja ja vasta esimesele küsimusele. Siis loe Kadri postitust sõpradele ja kontrolli, kas arvasid õigesti.', 'Üürida või osta?',
         'Kallid sõbrad, meil on vaja teie nõu, sest peame tegema ühe oma elu suurima otsuse! Meie kolmetoaline korter Männi tänaval on neljaliikmelisele perele ammu väikeseks jäänud. Mia ja Oskar elavad ühes toas ning tülitsevad peaaegu iga päev selle pärast, kelle asjad on laual. Jaan kirjutab õhtuti oma kohviku plaani köögilaua taga, sest muud vaikset kohta tal kodus ei ole. Seetõttu otsime suuremat kodu ja praegu on meil kaks varianti.\n\nEsimene variant on üürikorter Kristiines, uues majas neljandal korrusel. Majas on lift ja maa-aluses garaažis on igal korteril oma parkimiskoht. Korteris on neli tuba ja suur rõdu, kust paistab peaaegu terve linn. Lähedal on kaubanduskeskus, kaks kooli ja palju kohvikuid, nii et igapäevaseid asju saab ajada jalgsi. Üür on aga kõrge: 1100 eurot kuus, millele lisanduvad veel kommunaalmaksed. Omanik Tamara ütles kohe alguses, et lemmikloomad ei ole tema korteris lubatud.\n\nTeine variant on vanas majas Nõmmel, Vahtra tänaval, kus müüakse neljatoalist korterit kolmandal korrusel. Majas ei ole lifti, köögis on vana pliit ja vannitoas on kindlasti vaja remonti teha. Samas on hoovis suur aed ja kohe maja taga algab mets, kus saab Mukiga jalutada. Kase kooli, kus Jaan töötab, on sealt jala ainult kümme minutit. Suuri poode lähedal ei ole, aga jaama juures on turg ja väike pagariäri.\n\nKorter maksab 189 000 eurot, seega peame pangast suure laenu võtma. Pank küsib ka sissemakset, mis on vähemalt kümme protsenti korteri hinnast. Laenumakse oleks umbes 850 eurot kuus, mis on vähem kui üür, kuid lisaks tuleb maksta remondi eest. Maja korteriühistu kogub praegu raha ka uue katuse jaoks.\n\nJaan tahab osta, sest siis oleks kodu päriselt meie oma. Mina kardan suurt laenu ja pikka remonti, mis võib kesta mitu kuud. Laupäeval läheme mõlemat korterit vaatama: kõigepealt Kristiinesse ja seejärel Nõmmele. Mida teie teeksite: kas üüriksite või ostaksite?',
-        [['Miks otsib Metsade pere suuremat kodu?', 'korter on jäänud väikeseks|lastel on üks tuba ja Jaanil pole töökohta|lapsed elavad ühes toas'], ['Mis on Kristiine korteris ja majas head?', 'lift, parkimiskoht, neli tuba ja suur rõdu|majas on lift ja korteris on rõdu|poed ja koolid on lähedal'], ['Miks võib Kristiine korter Mukile probleem olla?', 'omanik ei luba lemmikloomi|lemmikloomi seal pidada ei tohi'], ['Mida tuleb Nõmme korteris kohe teha?', 'vannitoa remonti|vannituba remontida|remonti teha'], ['Kumb on kuus odavam: üür või laenumakse? Kui palju?', 'laenumakse, umbes 250 eurot|laenumakse on 250 eurot väiksem'], ['Miks kardab Kadri korterit osta?', 'laen on suur ja remont pikk|ta kardab suurt laenu ja pikka remonti'], ['Mida sina Metsade perele soovitaksid? Miks?']]),
-      B.listening('006_d_call', 'Jaan helistab maaklerile.', 'Kuula kaks korda. Kirjuta lünka üks või kaks sõna.', [
+        [['Enne lugemist: pealkiri on „Üürida või osta?”. Mida sina arvad, mis on Kadri suurim mure?'], ['Miks otsib Metsade pere suuremat kodu?', 'korter on jäänud väikeseks|lastel on üks tuba ja Jaanil pole töökohta|lapsed elavad ühes toas'], ['Mis on Kristiine korteris ja majas head?', 'lift, parkimiskoht, neli tuba ja suur rõdu|majas on lift ja korteris on rõdu|poed ja koolid on lähedal'], ['Miks võib Kristiine korter Mukile probleem olla?', 'omanik ei luba lemmikloomi|lemmikloomi seal pidada ei tohi'], ['Mida tuleb Nõmme korteris kohe teha?', 'vannitoa remonti|vannituba remontida|remonti teha'], ['Kumb on kuus odavam: üür või laenumakse? Kui palju?', 'laenumakse, umbes 250 eurot|laenumakse on 250 eurot väiksem'], ['Miks kardab Kadri korterit osta?', 'laen on suur ja remont pikk|ta kardab suurt laenu ja pikka remonti'], ['Mida sina Metsade perele soovitaksid? Miks?']]), { task: 'R13' }),
+      B.listening('006_d_call', 'Jaan helistab maaklerile.', 'Kuula Jaani kõnet maakler Evelinile kaks korda. Kirjuta igasse lünka üks-kaks sõna teekonnast või majast.', [
         'Evelin: Tere, Evelin kinnisvarabüroost kuuleb.',
         'Jaan: Tere! Jaan Mets siin. Me tuleme laupäeval Vahtra tänava korterit vaatama. Kuidas me sinna kõige paremini jõuame?',
         'Evelin: Kas te tulete autoga või rongiga?',
@@ -85,25 +94,25 @@ export const LESSONS = {
         'Vannitoas on aken. | Vannitoas on kaks [akent]. | Vannitoas ei ole [akent].',
         'Aias on puu. | Aias on palju [puid]. | Aias ei ole ühtegi [puud].',
       ], 'g_notice'),
-      B.vocab('006_d_vocab', 'Tunni sõnad.', ['üürima — снимать (жильё)', 'üür — арендная плата', 'omanik — владелец', 'laen — кредит', 'remont — ремонт', 'korteriühistu — товарищество собственников', 'kommunaalmaksed — коммунальные платежи', 'rõdu — балкон', 'lähedal — поблизости', 'panipaik — кладовка']),
-      teach(B.speaking('006_d_talk', 'Üürida või osta?', 'Arutage paaris. Põhjenda oma arvamust ja kasuta lauseid „kus on mis”.', ['Kas sina üüriksid või ostaksid kodu? Miks?', 'Mis peab olema sinu kodu lähedal? Mida sul vaja ei ole?', 'Kirjelda oma maja: mis seal on ja mida seal ei ole?', 'Kumba korterit soovitad Metsade perele ja miks?', 'Kuidas sa iga päev kodust tööle jõuad?'], [120, 180], ['Meie maja lähedal on…', 'Meie majas ei ole…', 'Minu arvates on parem üürida, sest…']), 'Üks-ühele: õpetaja on paariline ja vastab kordamööda; ta kaitseb meelega teist varianti (üürimine või ostmine) ja küsib „Miks?”.'),
-      B.writing('006_d_write', 'Vastus Kadrile.', 'Vasta Kadri postitusele 10–12 lausega: mida sa soovitad, kus on hea elada ja miks.', [10, 12], ['lähedal on', 'ei ole', 'üürida', 'osta'], 3),
+      tag(B.vocab('006_d_vocab', 'Tunni sõnad.', ['üürima — снимать (жильё)', 'üür — арендная плата', 'omanik — владелец', 'üürnik — арендатор / квартиросъёмщик', 'laen — кредит', 'remont — ремонт', 'korteriühistu — товарищество собственников', 'rõdu — балкон', 'lähedal — поблизости', 'panipaik — кладовка']), { topic: ['korteriühistu'] }),
+      teach(tag(B.speaking('006_d_talk', 'Üürida või osta?', 'Arutage paaris. Põhjenda oma arvamust ja kasuta lauseid „kus on mis”.', ['Kas sina üüriksid või ostaksid kodu? Miks?', 'Mis peab olema sinu kodu lähedal? Mida sul vaja ei ole?', 'Kirjelda oma maja: mis seal on ja mida seal ei ole?', 'Kumba korterit soovitad Metsade perele ja miks?', 'Kuidas sa iga päev kodust tööle jõuad?'], [120, 180], ['Meie maja lähedal on…', 'Meie majas ei ole…', 'Minu arvates on parem üürida, sest…']), { task: 'S11' }), 'Üks-ühele: õpetaja on paariline ja vastab kordamööda; ta kaitseb meelega teist varianti (üürimine või ostmine) ja küsib „Miks?”.'),
+      tag(B.writing('006_d_write', 'Vastus Kadrile: poolt ja vastu.', 'Vasta Kadri postitusele 12–14 lausega: kaks üürimise ja kaks ostmise plussi, üks näide oma elust ning sinu järeldus.', [12, 14], ['ühelt poolt', 'teiselt poolt', 'näiteks', 'kokkuvõttes'], 3), { task: 'W14' }),
     ],
     practice: [
-      B.reading('006_p_rules', 'Loe maja kodukorda.', 'Tamara saatis Kristiine maja kodukorra. Loe ja vasta lühidalt.', 'Linnu tee 12 kodukord',
+      tag(B.reading('006_p_rules', 'Loe maja kodukorda.', 'Tamara saatis Kristiine maja kodukorra. Loe ja vasta lühidalt.', 'Linnu tee 12 kodukord',
         'Head elanikud! Meie majas elab üle saja inimese, seega on oluline, et kõik järgiksid samu reegleid. Nii on igaühel siin hea ja rahulik elada. Kodukord kehtib nii omanikele kui ka üürnikele ja nende külalistele. Uued elanikud saavad kodukorra paberil ka juhatuselt, kui nad sellest palun kirjutavad.\n\nTrepikojas ja koridorides ei tohi hoida jalgrattaid ega lapsevankreid, sest need takistavad tulekahju korral väljapääsu. Jalgrataste ja vankrite jaoks on esimesel korrusel eraldi lukustatud ruum. Igal korteril on keldris ka oma panipaik, kuid seal ei tohi hoida bensiini ega muid ohtlikke aineid.\n\nHoovis on laste mänguväljak ja kaks pinki, mille juures ei ole lubatud suitsetada. Koeri ei tohi hoovis lahti hoida ja koera järelt tuleb alati koristada. Üürikorterites ei tohi lemmikloomi pidada ilma omaniku kirjaliku loata.\n\nMaa-aluses garaažis on nelikümmend parkimiskohta, kuid kõigile korteritele kohti ei jätku. Seetõttu tuleb parkimiskoht korteriühistult eraldi üürida. Külalistele on maja ees viis kohta, kus võib parkida kuni kolm tundi järjest.\n\nPrügikonteinerid asuvad maja taga ning pakendid, paber ja toidujäätmed tuleb panna eri konteineritesse. Suuri asju, näiteks vana mööblit või katkist elektroonikat, ei tohi konteinerite kõrvale jätta.\n\nRemonti võib teha tööpäeviti kella üheksast kuueni, aga nädalavahetusel ei tohi majas müra teha. Kui korteris on vaja suuremat remonti teha, teatage sellest korteriühistule vähemalt nädal ette.\n\nKui majas on mõni rike, näiteks liftis ei põle tuli või keldris on vett, helistage kohe haldusfirmale. Haldusfirma telefoninumber on trepikojas teadetetahvlil ja öösel aitab avariitelefon.\n\nKommunaalmaksed tuleb tasuda iga kuu kahekümnendaks kuupäevaks ning arve saadetakse teile e-postiga.\n\nKui teil on kodukorra kohta küsimusi või ettepanekuid, kirjutage julgelt juhatusele või tulge korteriühistu üldkoosolekule.\n\nTäname teid koostöö eest!\nKorteriühistu juhatus',
-        [['Kus tuleb hoida jalgrattaid ja miks?', 'esimesel korrusel eraldi ruumis, sest trepikojas takistavad need väljapääsu|eraldi ruumis esimesel korrusel'], ['Miks tuleb parkimiskoht eraldi üürida?', 'kohti ei jätku kõigile korteritele|kõigile ei jätku kohti'], ['Kui kauaks võivad külalised maja ette parkida?', 'kõige rohkem kolmeks tunniks|kuni kolm tundi'], ['Mida ei tohi prügikonteinerite kõrvale jätta?', 'suuri asju, näiteks vana mööblit|vana mööblit ja katkist elektroonikat'], ['Millal ei tohi remonti teha?', 'nädalavahetusel ja õhtul pärast kuut|nädalavahetusel'], ['Kuidas peab elanik tegutsema, kui keldris on vett?', 'helistama haldusfirmale|helistama haldusfirmale või öösel avariitelefonile'], ['Milline reegel oleks Metsade perele kõige raskem? Miks?']]),
-      B.cloze('006_p_ad', 'Vali lünka sobiv sõna.', 'Loe Evelini kuulutust ja vali igasse lünka üks variant (A–D).', 'Müüa neljatoaline korter Nõmmel', [
-        'Müüa valgusküllane neljatoaline korter rahulikus Nõmmes. Korter asub kolmandal korrusel ja selle aknad avanevad {*aeda|aias|aiast|aiale}. Majas ei ole {*lifti|lift|liftid|liftis}, kuid trepid on laiad ja korras.',
+        [['Kus tuleb hoida jalgrattaid ja miks?', 'esimesel korrusel eraldi ruumis, sest trepikojas takistavad need väljapääsu|eraldi ruumis esimesel korrusel'], ['Miks tuleb parkimiskoht eraldi üürida?', 'kohti ei jätku kõigile korteritele|kõigile ei jätku kohti'], ['Kui kauaks võivad külalised maja ette parkida?', 'kõige rohkem kolmeks tunniks|kuni kolm tundi'], ['Mida ei tohi prügikonteinerite kõrvale jätta?', 'suuri asju, näiteks vana mööblit|vana mööblit ja katkist elektroonikat'], ['Millal ei tohi remonti teha?', 'nädalavahetusel ja õhtul pärast kuut|nädalavahetusel'], ['Kuidas peab elanik tegutsema, kui keldris on vett?', 'helistama haldusfirmale|helistama haldusfirmale või öösel avariitelefonile'], ['Milline reegel oleks Metsade perele kõige raskem? Miks?']]), { task: 'R07' }),
+      tag(B.cloze('006_p_ad', 'Eksaminurk: korterikuulutus (Harno B2 lugemine 3)', 'Loe Evelini kuulutust. Igas lüngas on neli varianti: vali see, mis sobib lausesse nii vormi kui ka tähenduse poolest.', 'Müüa neljatoaline korter Nõmmel', [
+        'Müüa valgusküllane neljatoaline korter rahulikus Nõmmes, Vahtra tänaval. Korter asub vana puumaja kolmandal korrusel ja selle aknad avanevad {*aeda|aias|aiast|aiale}. Majas ei ole {*lifti|lift|liftid|liftis}, kuid puidust trepp on lai ja korras. Maja on ehitatud 1930. aastal ja seda on hästi hoitud: trepikoda värviti alles kevadel ja välisuksel on uus lukk.',
         '',
-        'Korteris on neli {*tuba|tuppa|toad|toas}, köök ja vannituba. Elutoas on suur ahi, mis soojendab kogu korterit. Vannitoas on vaja teha {*remonti|remont|remondi|remondis}. Keldris on igal korteril oma {*panipaik|panipaika|panipaigad|panipaigas}.',
+        'Korteris on neli {*tuba|tuppa|toad|toas}, köök ja vannituba. Elutoas on suur ahi, mis soojendab talvel kogu korterit. Kõik toad on kõrgete lagedega. Magamistoad on vaiksed, sest nende aknad avanevad hoovi poole. Rõdu korteril ei ole, kuid aias on elanike jaoks pingid ja suur laud. Vannitoas on vaja teha {*remonti|remont|remondi|remondis}, köök on aga kolm aastat tagasi uuendatud. Keldris on igal korteril oma {*panipaik|panipaika|panipaigad|panipaigas}.',
         '',
-        'Hoovis kasvab palju vanu {*puid|puud|puu|puudes} ja suvel on seal mõnus vari. Maja lähedal on {*mitu|mitmed|mitme|mitmes} bussipeatust, rongijaamani on kümme minutit. {*Jaamast|Jaama|Jaamas|Jaamal} sõidab rong kesklinna veerand tunniga.',
+        'Hoovis kasvab palju vanu {*puid|puud|puu|puudes} ja suvel on seal mõnus vari. Lapsed saavad aias rahulikult mängida, sest {*autosid|autod|auto|autodega} hoovi ei lubata. Maja lähedal on {*mitu|mitmed|mitme|mitmes} bussipeatust ja rongijaamani on kümme minutit. {*Jaamast|Jaama|Jaamas|Jaamal} sõidab rong kesklinna veerand tunniga. Jaama kõrval on turg, kus laupäeviti müüakse värsket kala, köögivilju ja talutooteid.',
         '',
-        'Piirkonnas on kaks kooli ja lasteaed. Suuri kaubanduskeskusi lähedal ei ole, kuid turul ja väikestes poodides leiab kõike vajalikku. Nõmmel {*elab|elavad|elama|elanud} palju lastega peresid, sest siin on rahulik ja roheline.',
+        'Piirkonnas on kaks kooli ja lasteaed. Suuri kaubanduskeskusi lähedal ei ole, kuid turul ja väikestes poodides leiab kõike vajalikku. Lähim apteek ja pagariäri on jala viie minuti kaugusel. Naabrid on sõbralikud: suviti peetakse hoovis ühiseid grillipidusid ja talvel lükatakse koos lund. Nõmmel {*elab|elavad|elama|elanud} palju lastega peresid, sest siin on rahulik ja roheline.',
         '',
-        'Korteriühistu on aktiivne: eelmisel aastal vahetati {*majas|majja|majast|maja} küttesüsteem. Kommunaalmaksed on talvel umbes 250 eurot kuus. Korterit saab vaadata kokkuleppel maakleriga, kes vastab meelsasti ka kõigile küsimustele.',
-      ]),
+        'Korteriühistu on aktiivne: eelmisel aastal vahetati {*majas|majja|majast|maja} küttesüsteem ja järgmisel suvel {*ehitatakse|ehitab|ehitama|ehitatud} majale uus katus. Kommunaalmaksed on talvel umbes 250 eurot kuus. Korteri hind on 189 000 eurot ja kõik dokumendid on korras. Korterit saab vaadata kokkuleppel maakleriga, kes vastab meelsasti kõigile küsimustele.',
+      ]), { harno: 'R3' }),
       B.formtext('006_p_route', 'Pane sõnad õigesse vormi.', 'Jaan kirjutab Kadrile, kuidas Nõmmele jõuda. Kirjuta sulgudes olev sõna sobivas vormis.', 'Sõnum Kadrile', [
         'Kadri, ma lähen juba [Kristiinest] (Kristiine) ära, sest nägin seal kõik, mida tahtsin. Korter oli ilus, aga [majas] (maja) on tänava tõttu liiga palju müra.',
         '',
@@ -125,20 +134,20 @@ export const LESSONS = {
         ['Rongid sõidavad Nõmmelt kesklinna.', 'Nõmmelt … kesklinna iga tund kaks …', 'Nõmmelt sõidab kesklinna iga tund kaks rongi.'],
         ['Õhtul jalutas hoovis palju naabreid.', 'Naabrid … (tuttavad inimesed lause alguses)', 'Naabrid jalutasid õhtul hoovis.'],
       ]),
-      B.speaking('006_p_mono', 'Minu kodukoht.', 'Räägi 2–3 minutit oma kodu ümbrusest. Kasuta lauseid „kus on mis” ja kohakäändeid.', ['Kus sa elad ja mis on sinu maja lähedal?', 'Mida sinu kodukohas ei ole, kuigi sul oleks seda vaja?', 'Kuidas sa kodust tööle või kooli jõuad?', 'Kuhu sa viiksid külalise, kes tuleb sinu linna esimest korda?', 'Kas sa elad üürikorteris või oma kodus? Miks?'], [120, 180], ['Meie maja lähedal on palju…', 'Kahjuks ei ole meil…', 'Kodust lähen kõigepealt…, seejärel…']),
-      teach(B.rolecards('006_p_way', 'Teejuhatus telefonis.', 'A juhatab teed, B on võõras kohas. B joonistab teekonna ja kordab selle lõpus.',
+      tag(B.speaking('006_p_mono', 'Minu kodukoht kolm korda.', 'Räägi oma kodu ümbrusest kolm korda järjest: esimest korda 3, siis 2 ja lõpuks 1,5 minutit. Ütle iga kord sama sisu kiiremini.', ['Kus sa elad ja mis on sinu maja lähedal?', 'Mida sinu kodukohas ei ole, kuigi sul oleks seda vaja?', 'Kuidas sa kodust tööle või kooli jõuad?', 'Kuhu sa viiksid külalise, kes tuleb sinu linna esimest korda?', 'Kas sa elad üürikorteris või oma kodus? Miks?'], [120, 180], ['Meie maja lähedal on palju…', 'Kahjuks ei ole meil…', 'Kodust lähen kõigepealt…, seejärel…']), { task: 'S08' }),
+      teach(tag(B.rolecards('006_p_way', 'Teejuhatus telefonis.', 'A juhatab teed, B on võõras kohas. B joonistab teekonna ja kordab selle lõpus.',
         'Oled Jaan. Juhata Viktor Nõmme turult Vahtra 5 juurde: turult otse apteegini, apteegi juures vasakule, maja on pargi vastas. Ütle, kus parkida.', 'Oled Viktor. Sa oled autoga Nõmme turu juures ega leia Vahtra tänavat. Küsi üle, täpsusta ja korda lõpus kogu teekond.',
-        ['Sõida kõigepealt…', 'Apteegi juures keera…', 'Maja asub … vastas.', 'Hoovis ei ole vabu kohti, seetõttu…'], ['Kas ma pean sõitma…?', 'Kus see apteek asub?', 'Kordan: kõigepealt…, seejärel…']), 'Üks-ühele: õpetaja on Viktor ja eksib meelega (sõidab vales suunas); õpilane juhatab ta õigesse kohta. Siis vahetage rollid: õpetaja juhatab teed õpilase kodu juurde.'),
+        ['Sõida kõigepealt…', 'Apteegi juures keera…', 'Maja asub … vastas.', 'Hoovis ei ole vabu kohti, seetõttu…'], ['Kas ma pean sõitma…?', 'Kus see apteek asub?', 'Kordan: kõigepealt…, seejärel…']), { task: 'S13' }), 'Üks-ühele: õpetaja on Viktor ja eksib meelega (sõidab vales suunas); õpilane juhatab ta õigesse kohta. Siis vahetage rollid: õpetaja juhatab teed õpilase kodu juurde.'),
     ],
     transfer: [
       B.text('006_t_sit', 'Otsus pühapäeval', 'Laupäeval vaatasid Jaan ja Kadri mõlemat korterit. Nüüd peab pere otsustama: kas üürida Kristiine korter või osta Nõmme korter. Pühapäeval tuleb Helgi Tartust rongiga korterit vaatama ja nõu andma. Jaan ja Kadri arutavad plusse ja miinuseid. Seejärel kirjutab Jaan Helgile, kuidas jaamast korteri juurde jõuda.'),
-      B.reading('006_t_notes', 'Loe Kadri märkmeid.', 'Kadri kirjutas pärast korterite vaatamist märkmed. Loe ja vasta lühidalt.', 'Mida me laupäeval nägime',
+      tag(B.reading('006_t_notes', 'Kumb korter kellele?', 'Loe Kadri märkmeid kahe korteri kohta. Otsusta iga küsimuse juures, kumb korter sobib paremini, ja põhjenda oma sõnadega.', 'Mida me laupäeval nägime',
         'Kristiine. Maja on uus ja kõik on korras, trepikojas on puhas ning liftis on suur peegel. Korteris on suured aknad, aga need avanevad tiheda liiklusega tänava poole. Isegi suletud akendega oli toas kuulda autosid ja trammi. Rõdult on näha kaubanduskeskuse parkla, mitte linn, nagu ma lootsin. Lastetoad on ühesuurused, seega selle üle tüli ei tule. Mänguväljakul oli palju lapsi ja Oskar leidis seal kohe uue sõbra. Tamara oli sõbralik, kuid koera ta oma korterisse kindlasti ei luba. Lepingu võiksime sõlmida juba järgmisel nädalal ja kolida kuu lõpus.\n\nNõmme. Maja on vana, kuid sellel on ilus puidust trepp ja kõrged aknad. Trepikojas oli tunda värske värvi lõhna, sest seda remonditi alles kevadel. Korteris on kõrged laed ja elutoas on vana ahi. Köögis on vähe kappe ja vannitoas ei ole akent, mis mulle üldse ei meeldinud. Vannitoa remont maksaks Evelini sõnul umbes kümme tuhat eurot. Aias kasvavad õunapuud ja Mia hakkas kohe ühele neist ronima. Hoovis ei olnud ühtegi autot, ainult mõned jalgrattad. Keldris on igal korteril panipaik ja meie oma on päris suur. Naaber ütles, et talvel on majas soe, sest uus küttesüsteem töötab hästi.\n\nMinu järeldus: Kristiine on mugavam, Nõmme on hubasem. Kuigi Kristiine üür on kõrge, ei pea me seal midagi remontima. Nõmmel peame aga võtma suure laenu ja mõne kuu remonti tegema. Samas jääks Nõmme korter meile, mitte võõrale omanikule. Homme küsime nõu ka Helgilt, sest ta on alati olnud väga praktiline inimene. Pühapäeval näitame talle Nõmme korterit ja kuulame, mida ta arvab, enne kui lõpliku otsuse teeme. Jaan on juba ette elevil, aga mina tahan veel kord kõik plussid ja miinused paberile kirjutada.',
-        [['Mis segas Kadrit Kristiine korteris?', 'tänava müra|autode ja trammi müra|toas oli kuulda autosid'], ['Miks ei tule Kristiines laste vahel tüli?', 'lastetoad on ühesuurused|toad on sama suured'], ['Mis ei meeldinud Kadrile Nõmme vannitoas?', 'seal ei ole akent|vannitoas puudub aken'], ['Miks on Nõmme majas talvel soe?', 'uus küttesüsteem töötab hästi|tänu uuele küttesüsteemile'], ['Mis on Kadri arvates Nõmme korteri suurim pluss?', 'korter jääks perele, mitte omanikule|see oleks nende oma'], ['Kuidas Kadri kahte korterit kokkuvõttes võrdleb?', 'Kristiine on mugavam, Nõmme hubasem|Kristiine on mugavam ja Nõmme on hubasem']]),
-      teach(B.rolecards('006_t_debate', 'Üürida või osta? Pere otsus.', 'A toetab ostmist, B üürimist. Arutage 5 minutit ja jõudke ühise otsuseni.',
-        'Oled Jaan. Sa tahad osta Nõmme korteri. Poolt: kodu jääb perele, hoovis on aed, kool on lähedal, laenumakse on väiksem kui üür, Muki saab kaasa tulla.', 'Oled Kadri. Sa eelistad üürida Kristiine korteri. Poolt: remonti ei ole vaja, majas on lift ja parkimiskoht, poed on lähedal, suur laen on risk, kolida saab kohe.',
-        ['Ostmise poolt räägib see, et…', 'Nõmmel on…, aga Kristiines ei ole…', 'Ma pakun, et…'], ['Teisalt…', 'Kristiines on…, kuid Nõmmel ei ole…', 'Kas me võiksime kokku leppida, et…?']), 'Üks-ühele: õpetaja on Kadri ja toob vastuargumente; õpilane kaitseb ostmist. Lõpus sõnastage koos üks otsus ja selle põhjus.'),
-      B.speaking('006_t_present', 'Korteri tutvustus.', 'Pühapäeval tuleb Helgi. Räägi talle 2–3 minutit, milline on Nõmme korter ja selle ümbrus.', ['Kus maja asub ja kuidas sinna jõuab?', 'Mis on korteris ja mida seal ei ole?', 'Mis on hoovis ja maja ümber?', 'Mida tuleb enne kolimist remontida?', 'Miks see korter perele sobib?'], [120, 180], ['Korteris on…, aga … ei ole.', 'Jaamast lähed kõigepealt…', 'Maja taga…']),
+        [['Kumb korter sobib paremini, kui pere tahab öösel vaikselt magada? Miks?', 'Nõmme, sest Kristiines on kuulda autosid ja trammi|Nõmme korter, sest seal ei ole liiklusmüra'], ['Kumb korter aitaks lõpetada Mia ja Oskari tülid toa pärast? Miks?', 'Kristiine, sest lastetoad on ühesuurused|Kristiine korter, sest toad on sama suured'], ['Kus peaks pere enne kolimist rohkem raha kulutama ja milleks?', 'Nõmmel vannitoa remondiks|Nõmmel, vannitoa remont maksab umbes kümme tuhat eurot'], ['Kumb korter sobib Mukile ja miks?', 'Nõmme, sest Tamara ei luba koera|Nõmme korter, sest Kristiinesse koera ei lubata'], ['Kumb korter on parem, kui pere tahab kolida juba kuu lõpus?', 'Kristiine, sest lepingu saab sõlmida kohe ja remonti pole vaja|Kristiine korter'], ['Miks tahab Kadri enne otsust Helgilt nõu küsida?', 'Helgi on väga praktiline inimene|sest ta on praktiline'], ['Kumma korteri sina Metsade perele valiksid? Põhjenda kahe argumendiga.']]), { task: 'R11' }),
+      teach(tag(B.rolecards('006_t_debate', 'Üürida või osta? Argumendikaardid.', 'Kaart A on Nõmme korteri ostmise poolt, kaart B ostmise vastu. Öelge kõigepealt oma arvamus, siis arutage 5 minutit, lisage oma näide ja leppige kokku ühine seisukoht.',
+        'Kaart A (poolt). Oled Jaan ja tahad osta Nõmme korteri. Argumendid: kodu jääb perele; hoovis on aed ja maja taga mets; kool on jala kümne minuti kaugusel; laenumakse on väiksem kui üür; Muki saab kaasa tulla. Lisa oma näide.', 'Kaart B (vastu). Oled Kadri ja eelistad üürida Kristiine korteri. Argumendid: remonti ei ole vaja; majas on lift ja parkimiskoht; poed on lähedal; suur laen on risk; kolida saab kohe. Lisa oma näide.',
+        ['Ostmise poolt räägib see, et…', 'Nõmmel on…, aga Kristiines ei ole…', 'Näiteks…'], ['Teisalt…', 'Kristiines on…, kuid Nõmmel ei ole…', 'Kas me võiksime kokku leppida, et…?']), { task: 'S17', main: true }), 'Üks-ühele: õpetaja võtab kaardi B ja toob vastuargumente; õpilane kaitseb kaarti A. Lõpus sõnastage koos ühine seisukoht ja selle põhjus.'),
+      tag(B.speaking('006_t_present', 'Kodus: korteri tutvustus Helgile.', 'Pühapäeval tuleb Helgi. Salvesta talle häälsõnum, milline on Nõmme korter ja selle ümbrus. Salvesta kaks korda: esimest korda 3, teist korda 2 minutiga.', ['Kus maja asub ja kuidas sinna jõuab?', 'Mis on korteris ja mida seal ei ole?', 'Mis on hoovis ja maja ümber?', 'Mida tuleb enne kolimist remontida?', 'Miks see korter perele sobib?'], [120, 180], ['Korteris on…, aga … ei ole.', 'Jaamast lähed kõigepealt…', 'Maja taga…']), { task: 'S15', fluency: true }),
       B.letter('006_t_letter', 'Kiri Helgile.', 'Kirjuta Helgile kiri: kuidas jõuda Nõmme jaamast Vahtra 5 juurde ja mis on maja ümber. Kasuta kohakäändeid ja lauseid „kus on mis”.', 'Kallis ema!', 'Kohtumiseni pühapäeval!', [120, 150]),
       B.rubric('006_t_rubric', 'Kontrolli kirja.', 'Loe kiri läbi ja märgi, mis on olemas.', ['Teejuhatus on selge: kust, kuhu ja kus (vähemalt 8 kohakäänet).', 'Kirjas on vähemalt kolm lauset „kus on mis” (Hoovis on…, Majas ei ole…).', 'Eituse ja hulga järel on osastav: ei ole lifti, palju puid.', 'Kirjas on kohtumise aeg ja koht.', 'Kiri on 120–150 sõna pikk ja sõbralik.']),
     ],
@@ -146,9 +155,9 @@ export const LESSONS = {
 
   'b1b2-007': {
     title: 'Teeninduses ja ametiasutuses',
-    canDo: 'Ma alustan teenindusdialoogi ise, küsin vähemalt kaks täpsustust ja lõpetan kokkuleppega viisakalt.',
+    canDo: 'Ma alustan teenindusdialoogi ise, küsin vähemalt kaks täpsustust ja lepin ametnikuga viisakalt kokku.',
     discover: [
-      B.review('007_d_review', ['Kumma korteri kasuks otsustasid Jaan ja Kadri? Miks?', 'Kirjelda oma maja kolme lausega: mis seal on ja mida seal ei ole?', 'Kuidas jõuda sinu kodust lähimasse poodi?']),
+      B.review('007_d_review', [['Kumma korteri kasuks otsustasid Jaan ja Kadri? Miks?', 'b1b2-006'], 'Kirjelda oma maja kolme lausega: mis seal on ja mida seal ei ole?', 'Kuidas jõuda sinu kodust lähimasse poodi?']),
       B.text('007_d_hook', 'Kohtumine pangas', 'Pere otsustas: nad ostavad Nõmme korteri. Pildil ajab Liis asju perearstikeskuses, pangas ja linnavalitsuses. Just sellised päevad ootavad nüüd ka Jaani ja Kadrit. Esimene samm on pank, sest ilma laenuta korterit ei osta. Hiljem on vaja linnalt ka parkimisluba remondi ajaks. Loe, kuidas kohtumine laenuhalduriga läheb. Märka, kuidas Kadri viisakalt küsib ja täpsustab.'),
       B.dialogue('007_d_bank', 'Pangas laenuhalduri juures.', 'Loe vestlust. Kirjuta lünka sulgudes oleva tegusõna viisakas vorm.', 'Allan', 'Kadri', [
         ['A', 'Tere tulemast! Mina olen Allan ja tegelen kodulaenudega. Millega saan teid täna aidata?'],
@@ -173,9 +182,9 @@ export const LESSONS = {
         ['B', 'Aitäh! Lepime siis kokku nii: täna saadate nimekirja ja meie esitame taotluse reedeks.'],
         ['A', 'Kokkulepe! Kui teil tekib küsimusi, helistage mulle julgelt.'],
       ], 'g_notice'),
-      B.reading('007_d_info', 'Loe panga infolehte.', 'Loe, mida pank kodulaenu taotlejalt ootab. Vasta lühidalt.', 'Kodulaen samm-sammult',
+      tag(B.reading('007_d_info', 'Loe panga infolehte.', 'Loe, mida pank kodulaenu taotlejalt ootab. Vasta igale küsimusele ühe kuni kolme sõnaga.', 'Kodulaen samm-sammult',
         'Kas plaanite osta oma kodu? Kodulaenu taotlemine võtab tavaliselt kaks kuni neli nädalat, kuid hea ettevalmistus teeb asja kiiremaks. Seetõttu tasub kõik vajalikud dokumendid enne valmis panna.\n\n1. Arvutage oma võimalused. Internetipangas on laenukalkulaator, kus näete, kui suur võiks olla teie laen ja igakuine makse. Pidage meeles, et laenumakse ei tohiks olla üle poole teie pere sissetulekust. Kui makse on liiga suur, jääb igapäevaseks eluks liiga vähe raha.\n\n2. Koguge sissemakse. Pank annab laenu tavaliselt kuni 90 protsenti kodu hinnast ja ülejäänud kümme protsenti peate maksma ise. Noored pered ja mõne ameti esindajad võivad saada riigi garantii, mille korral piisab väiksemast sissemaksest.\n\n3. Esitage laenutaotlus internetipangas või pangakontoris. Lisage taotlusele tõend oma sissetulekute kohta viimase kuue kuu jooksul. Kui teil on teisi laene või liisinguid, märkige ka need, sest pank kontrollib neid nagunii.\n\n4. Kohtuge laenuhalduriga, kellega saab aja broneerida panga kodulehel. Laenuhaldur räägib teiega läbi intressi, laenu pikkuse ja muud tingimused. Küsige julgelt, kui midagi jääb segaseks, sest hea laenuhaldur selgitab kõike lihtsas keeles.\n\n5. Laske kinnisvara hinnata. Hindaja vaatab korteri üle ja kirjutab hindamisakti, mis maksab umbes 200 eurot ja mille eest maksab ostja.\n\n6. Allkirjastage leping notari juures. Notar loeb lepingu ette ja vastab teie küsimustele. Pärast seda kannab pank raha müüjale ja uus omanik saab lõpuks võtmed.\n\nLisaks soovitame sõlmida kodukindlustuse. Kui korteris juhtub õnnetus, näiteks veeavarii või tulekahju, katab kindlustus kahju ja teie eelarve jääb kaitstuks. Kindlustuse hind sõltub korteri suurusest ja asukohast, kuid on tavaliselt vaid mõni euro kuus. Pangakontoris aitab laenuhaldur teil ka kindlustuse valida ja selgitab, mida erinevad paketid katavad.',
-        [['Kui suure osa kodu hinnast peab ostja ise maksma?', 'kümme protsenti|vähemalt kümnendiku'], ['Miks piisab mõnel perel väiksemast sissemaksest?', 'nad saavad riigi garantii|riik annab neile garantii'], ['Mis tõendi tuleb taotlusele lisada?', 'tõend sissetulekute kohta viimase kuue kuu jooksul|sissetulekute tõend'], ['Miks ei tohiks laenumakse olla üle poole sissetulekust?', 'siis jääb igapäevaseks eluks liiga vähe raha|muidu ei jätku raha eluks'], ['Kes maksab kinnisvara hindamise eest?', 'ostja ise|korteri ostja'], ['Mida teeb notar?', 'loeb lepingu ette ja vastab küsimustele'], ['Miks soovitab pank kodukindlustust?', 'õnnetuse korral katab kindlustus kahju|kui juhtub veeavarii, maksab kindlustus kahju kinni']]),
+        [['Kui kaua võtab kodulaenu taotlemine tavaliselt aega?', '2–4 nädalat|kaks-neli nädalat'], ['Kui korter maksab 200 000 eurot, kui suur on väikseim sissemakse?', '20 000 eurot|20000 eurot|kakskümmend tuhat eurot'], ['Kes võivad saada riigi garantii?', 'noored pered|noored pered ja mõne ameti esindajad'], ['Mille kohta peab taotlusele tõendi lisama?', 'sissetulekute kohta|sissetuleku kohta'], ['Kes maksab kinnisvara hindamise eest?', 'ostja|korteri ostja'], ['Kelle juures allkirjastatakse leping?', 'notari juures|notari'], ['Miks tasub sõlmida kodukindlustus?', 'kindlustus katab kahju|kahju korral']]), { task: 'R15' }),
       B.notice('007_d_notice', 'Märka: viisakas palve ja täpsustus.', [
         'Tingiv kõneviis teeb palve pehmemaks: soovime → **sooviksime**, saate → **saaksite**, on → **oleks**.',
         'Vorm: tegusõna tüvi + **-ksi-** + lõpp: saa**ksi**te, või**ksi**me, taha**ksi**n, tea**ksi**te.',
@@ -196,12 +205,13 @@ export const LESSONS = {
         'saatma | [saadaksin] | [saadaksime] | [saadaksite]',
         'aitama | [aitaksin] | [aitaksime] | [aitaksite]',
       ], 'g_notice'),
-      B.vocab('007_d_vocab', 'Tunni sõnad.', ['taotlus — заявка, ходатайство', 'tõend — справка', 'sissetulek — доход', 'sissemakse — первоначальный взнос', 'intress — процент (по кредиту)', 'leping — договор', 'broneerima — бронировать', 'täpsustama — уточнять', 'kokkulepe — договорённость', 'parkimisluba — разрешение на парковку']),
-      teach(B.speaking('007_d_talk', 'Asjaajamine.', 'Arutage paaris. Räägi oma kogemustest ja kasuta viisakaid palveid.', ['Millises asutuses oli sul viimati vaja asju ajada? Kuidas läks?', 'Kas sa eelistad asju ajada internetis või kohapeal? Miks?', 'Mida sa teed, kui teenindaja räägib liiga kiiresti?', 'Kas sinu kodumaal käib laenu taotlemine teisiti kui Eestis?', 'Mis teeb teeninduse sinu arvates heaks?'], [120, 180], ['Kas te saaksite…?', 'Ma eelistan…, sest…', 'Võrreldes … on Eestis…']), 'Üks-ühele: õpetaja on paariline; pärast iga vastust küsib ta ühe täpsustava küsimuse ja ootab, et õpilane küsiks ka temalt.'),
-      B.writing('007_d_write', 'E-kiri laenuhaldurile.', 'Kirjuta Allanile 10–12 lauset: täna kohtumise eest, palu dokumentide nimekirja ja küsi kaks täpsustavat küsimust.', [10, 12], ['sooviksime', 'kas te saaksite', 'kas oleks võimalik', 'täpsustada'], 3),
+      B.vocab('007_d_vocab', 'Tunni sõnad.', ['taotlus — заявка, ходатайство', 'tõend — справка', 'sissetulek — доход', 'sissemakse — первоначальный взнос', 'intress — процент (по кредиту)', 'leping — договор', 'broneerima — бронировать', 'täpsustama — уточнять', 'kokkulepe — договорённость', 'nõusolek — согласие']),
+      teach(tag(B.speaking('007_d_talk', 'Küsitlus: asjaajamine.', 'Küsi samu viit küsimust kahelt-kolmelt inimeselt. Iga uue vastajaga küsi kiiremini ja lõpus anna minutiga ülevaade, mida kuulsid.', ['Millises asutuses oli sul viimati vaja asju ajada? Kuidas läks?', 'Kas sa eelistad asju ajada internetis või kohapeal? Miks?', 'Mida sa teed, kui teenindaja räägib liiga kiiresti?', 'Kas sinu kodumaal käib laenu taotlemine teisiti kui Eestis?', 'Mis teeb teeninduse sinu arvates heaks?'], [120, 180], ['Kas te saaksite…?', 'Ma eelistan…, sest…', 'Võrreldes … on Eestis…']), { task: 'S09', fluency: true }), 'Üks-ühele: õpetaja on esimene vastaja; teise ja kolmanda vastaja (pensionär Leida, üliõpilane Karl) rolli mängib ka tema. Iga kord küsib õpilane kiiremini ja lõpus teeb ülevaate.'),
+      B.chart('007_d_offers', 'Allani kolm laenupakkumist: laen 170 000 eurot', { kind: 'bar', unit: '', series: 'Kuumakse (eurot), Intress kokku (tuhat eurot)', rows: ['20 aastat | 1030 | 77', '25 aastat | 900 | 100', '30 aastat | 810 | 122'], source: 'Panga pakkumine Metsade perele, intress umbes 4 % (näidisandmed)' }),
+      tag(B.writing('007_d_write', 'Kokkuvõte Kadrile.', 'Vaata Allani kolme pakkumist. Kirjuta Kadrile 10–12 lauset: mida arvud näitavad, mis on iga variandi pluss ja miinus ning mida sina soovitad.', [10, 12], ['võrreldes', 'kõige', 'seega', 'minu arvates'], 3), { task: 'W15' }),
     ],
     practice: [
-      B.listening('007_p_lecture', 'Infotund raamatukogus: e-teenused.', 'Kuula kaks korda. Kirjuta lünka üks või kaks sõna.', [
+      tag(B.listening('007_p_lecture', 'Infotund raamatukogus: e-teenused.', 'Kuula Eneli infotundi kaks korda ja vasta küsimustele lühidalt: üks-kaks sõna või arv.', [
         'Eneli: Tere õhtust! Täna räägime, kuidas ajada linnaga asju internetis. Te ei pea enam järjekorras ootama.',
         'Eneli: Kõigepealt on vaja ID-kaarti või mobiil-ID-d. Ilma nendeta e-teenustesse sisse ei saa.',
         'Eneli: Kõige sagedasem teenus on elukoha registreerimine. Kui kolite, tuleb uus aadress registreerida kolmekümne päeva jooksul.',
@@ -215,17 +225,17 @@ export const LESSONS = {
         'Jaan: Vabandust, kas ma sain õigesti aru, et ajutist luba ei saa taotleda samal päeval?',
         'Eneli: Just nii. Kõige parem on taotleda nädal ette. Kas on veel küsimusi?',
       ], [
-        'Linna e-teenustesse sisenemiseks on vaja ID-kaarti või [mobiil-ID-d|mobiil-ID].',
-        'Eneli sõnul on kõige sagedasem e-teenus [elukoha registreerimine].',
-        'Pärast kolimist tuleb uus aadress registreerida [kolmekümne päeva|30 päeva] jooksul.',
-        'Kui sa ei ole korteri omanik, on aadressi registreerimiseks vaja omaniku [nõusolekut].',
-        'Elanik saab parkimisloa taotleda linna [e-teenuste] keskkonnas, ilma et peaks kuhugi minema.',
-        'Ajutist parkimisluba remondi ajaks tuleb taotleda vähemalt [viis tööpäeva|5 tööpäeva] ette.',
-        'Taotlusele lisatakse auto registreerimisnumber ja loa [periood].',
-        'Ajutine parkimisluba maksab [kaks eurot|2 eurot] päevas.',
-        'Kui sobivat e-teenust ei ole, kirjutatakse linnaosa valitsusele [pöördumine].',
-        'Jaan küsib üle, kas ajutist luba tõesti ei saa taotleda [samal päeval].',
-      ]),
+        'Mida on vaja, et linna e-teenustesse sisse saada? [ID-kaarti või mobiil-ID-d|ID-kaarti|mobiil-ID-d]',
+        'Milline e-teenus on Eneli sõnul kõige sagedasem? [elukoha registreerimine]',
+        'Mitme päeva jooksul tuleb pärast kolimist uus aadress registreerida? [kolmekümne|30]',
+        'Kelle nõusolekut on vaja, kui sa ei ole korteri omanik? [omaniku]',
+        'Kus saab elanik parkimisloa taotleda, ilma et peaks kuhugi minema? [e-teenuste keskkonnas|internetis]',
+        'Mitu tööpäeva enne remonti tuleb ajutist parkimisluba taotleda? [viis|5]',
+        'Mida tuleb lisaks loa perioodile taotlusele kirjutada? [auto registreerimisnumber|registreerimisnumber|auto number]',
+        'Kui palju maksab ajutine parkimisluba ühe päeva eest? [kaks eurot|2 eurot]',
+        'Mitme päeva jooksul peab linn pöördumisele vastama? [kolmekümne|30]',
+        'Millal on Eneli sõnul kõige parem ajutist luba taotleda? [nädal ette|nädal varem]',
+      ]), { task: 'L03' }),
       B.match('007_p_where', 'Kuhu pöörduda?', 'Ühenda mure ja koht, kus seda lahendatakse.', [
         ['Tahad võtta kodulaenu.', 'pank'],
         ['Kolisid ja pead uue aadressi registreerima.', 'riigiportaal eesti.ee'],
@@ -251,18 +261,18 @@ export const LESSONS = {
         '',
         'Kui teie plaan muutub, saate perioodi muuta kuni loa alguseni. [[Pärast seda raha enam tagasi ei maksta.]] Küsimuste korral helistage linna infotelefonile, kus teid aidatakse tööpäeviti hommikust õhtuni.',
       ], ['Elukoha registreerimiseks on vaja omaniku nõusolekut.', 'Notar loeb lepingu ette ja vastab ostja küsimustele.']),
-      B.gaps('007_p_polite', 'Ütle viisakamalt.', 'Kirjuta sulgudes oleva tegusõna vorm tingivas kõneviisis.', [
-        'Kas te [saaksite] (saama) mulle dokumentide nimekirja saata?',
-        'Me [sooviksime] (soovima) broneerida aja järgmiseks nädalaks.',
-        'Kas [oleks] (olema) võimalik vastuvõtule tulla pärast tööd?',
-        'Kas te [võiksite] (võima) intressi veel kord selgitada?',
-        'Ma [tahaksin] (tahtma) teada, kui kaua otsus aega võtab.',
-        'Kas te [aitaksite] (aitama) mul seda vormi täita?',
-        'Mul [läheks] (minema) vaja ka tõendit sissetuleku kohta.',
-        'Kas me [saaksime] (saama) kohtumise reedele viia?',
-        'Kas ma [tohiksin] (tohtima) küsida veel ühe küsimuse?',
-        'Kas teile [sobiks] (sobima) kohtumine kell kolm?',
-      ]),
+      B.translation('007_p_tr', 'Tõlgi viisakalt.', 'Kirjuta iga palve eesti keeles viisakalt: kasuta tingivat kõneviisi (saaksite, sooviksime, oleks).', [
+        'Не могли бы вы сегодня прислать мне список документов?',
+        'Мы хотели бы записаться на приём на следующей неделе.',
+        'Можно ли было бы прийти на приём после работы?',
+        'Не могли бы вы ещё раз объяснить, как меняется процент?',
+        'Я хотел бы узнать, сколько времени займёт решение банка.',
+        'Не помогли бы вы мне заполнить эту форму?',
+        'Нам понадобится ещё справка о доходах за полгода.',
+        'Нельзя ли перенести нашу встречу на пятницу?',
+        'Можно мне задать вам ещё один вопрос?',
+        'Вам подошла бы встреча в три часа дня?',
+      ], 'full', 'g_notice'),
       B.wordorder('007_p_order', 'Pane küsimus kokku.', 'Pane sõnad õigesse järjekorda. Kirjuta viisakas küsimus.', [
         'Kas te saaksite seda veel kord natuke aeglasemalt korrata?',
         'Kas ma sain õigesti aru, et luba maksab kaks eurot päevas?',
@@ -275,14 +285,14 @@ export const LESSONS = {
         'Kas ma võiksin sissetuleku tõendi tuua ka homme hommikul?',
         'Kas lepime kokku, et helistan teile reedel pärast lõunat?',
       ], 'full'),
-      B.speaking('007_p_mono', 'Minu töö.', 'Laenuhaldur palub sul oma tööd tutvustada. Räägi umbes poolteist minutit.', ['Kus ja kellena sa töötad?', 'Mida sa tavaliselt tööpäeval teed?', 'Mis on sinu töös kõige pingelisem ja mis kõige toredam?', 'Milline on sinu eesmärk tööl järgmisel aastal?'], [90, 120], ['Ma töötan … firmas / koolis…', 'Tööpäeviti…', 'Minu eesmärk on…']),
-      teach(B.rolecards('007_p_bank', 'Pangas.', 'A on klient, B laenuhaldur. A alustab, küsib kaks täpsustust ja lõpetab kokkuleppega.',
-        'Oled klient. Tahad laenu 25 000 eurot remondi ja auto jaoks. Küsi intressi, laenu pikkust ja vajalikke dokumente. Täpsusta vähemalt kaks korda.', 'Oled laenuhaldur Allan. Küsi sissetuleku ja teiste laenude kohta. Intress on 6 protsenti, laenu saab kuni seitsmeks aastaks. Paku uut kohtumist.',
-        ['Ma sooviksin…', 'Kas te võiksite täpsustada, …?', 'Lepime kokku, et…'], ['Kas teil on…?', 'Me saaksime pakkuda…', 'Kas teile sobiks…?']), 'Üks-ühele: õpetaja on laenuhaldur ja räägib meelega kiiresti; õpilane peab kaks korda täpsustama. Siis vahetage rollid.'),
+      tag(B.speaking('007_p_mono', 'Tutvusta ennast ja oma tööd.', 'Laenuhaldur palub sul enne pakkumist end ja oma tööd tutvustada. Räägi umbes kaks minutit.', ['Kus ja kellena sa töötad?', 'Mida sa tavaliselt tööpäeval teed?', 'Mis on sinu töös kõige pingelisem ja mis kõige toredam?', 'Milline on sinu eesmärk tööl järgmisel aastal?'], [90, 120], ['Ma töötan … firmas / koolis…', 'Tööpäeviti…', 'Minu eesmärk on…']), { task: 'S01' }),
+      teach(tag(B.rolecards('007_p_bank', 'Telefonikõne panka.', 'A helistab panka, B on laenuhaldur Allan. A alustab, küsib kaks täpsustust ja lõpetab kokkuleppega.',
+        'Oled klient ja helistad panka. Tahad laenu 25 000 eurot remondi ja auto jaoks. Küsi intressi, laenu pikkust ja vajalikke dokumente. Täpsusta vähemalt kaks korda.', 'Oled laenuhaldur Allan ja vastad telefonile. Küsi sissetuleku ja teiste laenude kohta. Intress on 6 protsenti, laenu saab kuni seitsmeks aastaks. Paku kohtumist pangakontoris.',
+        ['Ma sooviksin…', 'Kas te võiksite täpsustada, …?', 'Lepime kokku, et…'], ['Kas teil on…?', 'Me saaksime pakkuda…', 'Kas teile sobiks…?']), { task: 'S04' }), 'Üks-ühele: õpetaja on laenuhaldur ja räägib meelega kiiresti; õpilane peab kaks korda täpsustama. Siis vahetage rollid.'),
     ],
     transfer: [
       B.text('007_t_sit', 'Linnaosa valitsuses', 'Laen on saadud ja leping notari juures allkirjastatud. Võtmed saab pere aprilli lõpus ja remont algab mai alguses. Vahtra tänaval võivad parkida aga ainult elanikud ja ehitajate bussil pole kohta. Jaan proovis taotleda e-teenuses ajutist parkimisluba, kuid süsteem andis vea. Ta helistas linna infotelefonile. Nüüd läheb ta Nõmme linnaosa valitsusse, kus teda võtab vastu ametnik Ingrid.'),
-      B.listening('007_t_call', 'Kõne infotelefonile.', 'Kuula kaks korda. Kirjuta lünka üks või kaks sõna.', [
+      tag(B.listening('007_t_call', 'Kõne infotelefonile: märkmed.', 'Kuula Jaani kõnet infotelefonile kaks korda ja tee talle märkmed: kirjuta igasse lünka üks-kaks sõna.', [
         'Teenindaja: Linna infotelefon, tere! Kuidas saan teid aidata?',
         'Jaan: Tere! Ma sooviksin taotleda ajutist parkimisluba, aga e-teenus annab iga kord vea.',
         'Teenindaja: Millise aadressi kohta te luba sooviksite?',
@@ -308,47 +318,54 @@ export const LESSONS = {
         'Kaasa on vaja võtta dokument, auto number ja ehitusfirmaga sõlmitud [leping|lepingu].',
         'Teenindaja soovitab aja broneerida, sest vabu aegu on veel ainult [neljapäeval].',
         'Neljapäeva hommikul võtab vastu [ehitusspetsialist] Ingrid.',
-      ], 'g_vocab'),
-      teach(B.rolecards('007_t_desk', 'Ametniku vastuvõtul.', 'A on Jaan, B ametnik Ingrid. Jaan alustab, küsib kaks täpsustust ja lõpetab kokkuleppega.',
+        'Esmaspäeviti on linnaosa valitsus avatud kella [seitsmeni|19-ni].',
+        'Jaan valib neljapäeva hommiku, sest päeval töötab ta [koolis].',
+      ], 'g_vocab'), { task: 'L07' }),
+      teach(tag(B.rolecards('007_t_desk', 'Ametniku vastuvõtul.', 'A on Jaan, B ametnik Ingrid. Jaan alustab, küsib kaks täpsustust ja lõpetab kokkuleppega.',
         'Oled Jaan. Vajad ajutist parkimisluba Vahtra 5 ette kaheks nädalaks remondi ajaks. Dokumendid on kaasas. Küsi, mis luba maksab ja millal see kehtima hakkab.', 'Oled Ingrid. Teetööde tõttu saab luba anda ainult maja taga olevale Kuuse tänavale. Luba kehtib alates esmaspäevast ja maksab kaks eurot päevas. Küsi ehitusfirma lepingut.',
-        ['Tere! Ma sooviksin…', 'Kas te võiksite täpsustada, …?', 'Kas ma sain õigesti aru, et…?', 'Lepime siis kokku, et…'], ['Kas teil on … kaasas?', 'Kahjuks ei saa me…, aga…', 'Kas teile sobiks…?']), 'Üks-ühele: õpetaja on Ingrid ja ütleb esimese vastusena „ei”; õpilane peab täpsustama ja leidma kokkuleppe. Siis vahetage rollid.'),
-      B.speaking('007_t_report', 'Õhtul Kadrile.', 'Õhtul räägib Jaan Kadrile, kuidas asjaajamine läks. Räägi 2–3 minutit.', ['Miks ei saanud luba internetis taotleda?', 'Mida sa infotelefonist teada said?', 'Mida ametnik ütles ja mida sa küsisid?', 'Milles te kokku leppisite?', 'Mis jäi veel teha?'], [120, 180], ['Kõigepealt helistasin…', 'Ametnik ütles, et…', 'Lõpuks leppisime kokku, et…']),
-      B.letter('007_t_mail', 'Kiri ehitusfirmale.', 'Kirjuta ehitusfirmale: kus ja millal võib buss parkida, mis luba maksab ja mida sa neilt palud. Ole viisakas.', 'Lugupeetud Kodumeistri meeskond!', 'Lugupidamisega', [120, 150]),
-      B.rubric('007_t_rubric', 'Kas asjaajamine õnnestus?', 'Märgi, mis rollimängus ja kirjas on olemas.', ['Alustasin vestlust ise ja ütlesin oma soovi selgelt.', 'Küsisin vähemalt kaks täpsustust (Kas te võiksite…? Kas ma sain õigesti aru…?).', 'Vestlus lõppes kokkuleppega: koht, aeg ja hind.', 'Kirjas on viisakad palved tingivas kõneviisis.', 'Kiri on 120–150 sõna pikk ja ütleb ehitajatele täpselt, mida teha.']),
+        ['Tere! Ma sooviksin…', 'Kas te võiksite täpsustada, …?', 'Kas ma sain õigesti aru, et…?', 'Lepime siis kokku, et…'], ['Kas teil on … kaasas?', 'Kahjuks ei saa me…, aga…', 'Kas teile sobiks…?']), { task: 'S10', main: true }), 'Üks-ühele: õpetaja on Ingrid ja ütleb esimese vastusena „ei”; õpilane peab täpsustama ja leidma kokkuleppe. Siis vahetage rollid.'),
+      tag(B.speaking('007_t_report', 'Kodus: häälsõnum Kadrile.', 'Jaan on veel linnas. Salvesta tema nimel Kadrile häälsõnum, kuidas asjaajamine läks. Räägi see kaks korda: teisel korral lühemalt ja sujuvamalt.', ['Miks ei saanud luba internetis taotleda?', 'Mida sa infotelefonist teada said?', 'Mida ametnik ütles ja mida sa küsisid?', 'Milles te kokku leppisite?', 'Mis jäi veel teha?'], [120, 180], ['Kõigepealt helistasin…', 'Ametnik ütles, et…', 'Lõpuks leppisime kokku, et…']), { task: 'S15', fluency: true }),
+      B.phrasebank('007_t_phrases', [['Kirja algus', ['Pöördun teie poole seoses remondiga Vahtra 5 korteris.', 'Kirjutan, et anda teada linnaosa valitsuse otsusest.']], ['Info ja palve', ['Luba kehtib alates…', 'Palun arvestage, et…', 'Oleksin tänulik, kui…']], ['Lõpp', ['Vastan meelsasti teie küsimustele.', 'Minuga saab ühendust…']]]),
+      tag(B.examWriting('007_t_note', 'Eksaminurk: kiri ehitusfirmale (Harno B2 kirjutamine 1)', 'Kirjuta Ingridiga kokkulepitu ehitusfirmale ümber: umbes 90 sõna, viisakalt teie-vormis ja kõigist neljast punktist.', 'kiri', {
+        situation: 'Ingrid andis remondi ajaks ajutise parkimisloa. Ehitusfirma Kodumeister ei tea veel, kus ja millal nende buss võib seista.',
+        points: ['kus buss võib parkida ja alates millal luba kehtib', 'mis luba maksab ja kes selle eest maksab', 'mida sa ehitajatelt palud', 'kuidas ja millal sinuga ühendust võtta'],
+        words: [80, 100], opening: 'Lugupeetud Kodumeistri meeskond!', closing: 'Lugupidamisega',
+      }), { task: 'W12', harno: 'W1' }),
+      B.rubric('007_t_rubric', 'Kas asjaajamine õnnestus?', 'Märgi, mis rollimängus ja kirjas on olemas.', ['Alustasin vestlust ise ja ütlesin oma soovi selgelt.', 'Küsisin vähemalt kaks täpsustust (Kas te võiksite…? Kas ma sain õigesti aru…?).', 'Vestlus lõppes kokkuleppega: koht, aeg ja hind.', 'Kirjas on kõik neli punkti ja viisakad palved tingivas kõneviisis.', 'Kiri on umbes 90 sõna pikk ja ütleb ehitajatele täpselt, mida teha.']),
     ],
   },
 
   'b1b2-008': {
     title: 'Kaebus ja probleem',
-    canDo: 'Ma kirjeldan probleemi neljas sammus (mis juhtus → miks see on tähtis → mida juba tegin → millist lahendust soovin) ja nõuan lahendust viisakalt.',
+    canDo: 'Ma kirjutan ametliku kaebuse neljas sammus (mis juhtus → miks see on tähtis → mida juba tegin → millist lahendust soovin) ja nõuan lahendust viisakalt.',
     discover: [
-      B.review('008_d_review', ['Kuidas palud ametnikult midagi viisakalt? Too kaks näidet.', 'Mida teed, kui sa ametnikust aru ei saa?', 'Milles leppisid Jaan ja Ingrid kokku?']),
+      B.review('008_d_review', ['Kuidas palud ametnikult midagi viisakalt? Too kaks näidet.', 'Mida teed, kui sa ametnikust aru ei saa?', ['Milles leppisid Jaan ja Ingrid kokku?', 'b1b2-007']]),
       B.text('008_d_hook', 'Liiga suur küttearve', 'Pildil kaebab Markus katkise jalgratta pärast ja teeb seda neljas sammus. Ka Metsade perel on mure. Enne kolimist tuli Männi tänava korterisse jaanuari küttearve: 286 eurot. Eelmisel aastal oli sama kuu arve poole väiksem. Samal ajal on lastetoas külm. Jaan kirjutas korteriühistu esimehele Urmasele kaebuse. Loe tema kirja ja Urmase vastust.'),
       B.reading('008_d_letters', 'Loe kirju.', 'Loe Jaani kaebust ja Urmase vastust. Vasta lühidalt.', 'Küttearve on kaks korda suurem',
         'Tere, Urmas!\n\nKirjutan meie jaanuari küttearve pärast, mis tuli eile e-postiga. Arve on 286 eurot, kuigi eelmise aasta jaanuaris maksime sama kuu eest 141 eurot. Talv ei ole külmem olnud ja me ei ole kodus midagi muutnud. Seetõttu ei saa ma aru, miks arve on peaaegu kaks korda suurem.\n\nLisaks on lastetoas juba kaks nädalat külm. Radiaator on ülevalt soe, aga alt täiesti külm. Toas on hommikuti ainult 17 kraadi, mistõttu Mia magab villaste sokkidega. Lapsed on sel talvel sageli haiged olnud ja see teeb meid väga murelikuks.\n\nHelistasin eelmisel nädalal haldusfirmale ja kirjeldasin probleemi. Mulle lubati saata töömees, kuid keegi ei tulnud. Sel nädalal ei vastanud haldusfirmas keegi telefonile.\n\nPalun kontrollige meie korteri soojusmõõtjat ja lastetoa radiaatorit. Sooviksin ka teada, kuidas meie arve arvutati. Kui viga on mõõtjas, ootame arve parandamist hiljemalt järgmise kuu arvel.\n\nTervitades\nJaan Mets, korter 14\n\nTere, Jaan!\n\nAitäh, et kirjutasid ja probleemi nii täpselt kirjeldasid. Sinu kiri ei ole ainus, sest arve kasvas sel kuul kogu majas. Soojuse hind tõusis jaanuarist peaaegu kolmekümne protsendi võrra ja seda otsustas soojusfirma, mitte korteriühistu.\n\nKaks korda suurem arve on aga tõesti imelik, seega võib teie mõõtja olla rikkis. Radiaatoris on tõenäoliselt õhku, mistõttu see alt ei soojene. Sellised probleemid on meie vanas majas kahjuks tavalised.\n\nRääkisin täna haldusfirma töötaja Kerliga, kes tuleb neljapäeval kella kümne ja kaheteistkümne vahel. Ta laseb radiaatorist õhu välja ja kontrollib mõõtjat. Kui mõõtja on rikkis, arvutatakse arve uuesti ja vahe arvestatakse järgmise kuu arvest maha.\n\nPalun kirjuta, kas neljapäev teile sobib. Vabandan ühistu nimel, et haldusfirma ei tulnud lubatud ajal.\n\nUrmas',
         [['Miks on Jaanil raske arvest aru saada?', 'talv ei ole külmem ja nad ei muutnud midagi|arve on kaks korda suurem ilma põhjuseta'], ['Mis on lastetoas valesti?', 'radiaator on alt külm ja toas on ainult 17 kraadi|toas on külm'], ['Mida Jaan enne kirja juba tegi?', 'helistas haldusfirmale, aga keegi ei tulnud|ta helistas haldusfirmale'], ['Millist lahendust Jaan soovib?', 'mõõtja kontrolli ja arve parandamist|et mõõtjat kontrollitaks ja arve parandataks'], ['Miks kasvasid arved kogu majas?', 'soojuse hind tõusis|soojusfirma tõstis hinda'], ['Kuidas lahendab Kerli radiaatori probleemi?', 'laseb radiaatorist õhu välja|ta laseb õhu välja'], ['Kas Urmase vastus on sinu arvates hea? Miks?']]),
-      B.listening('008_d_voice', 'Kerli häälsõnum.', 'Kuula kaks korda. Kirjuta lünka üks või kaks sõna.', [
-        'Kerli: Tere, Jaan! Kerli haldusfirmast Kodu Hooldus. Käisin täna teie korteris, Kadri lasi mind sisse.',
+      tag(B.listening('008_d_voice', 'Kerli häälsõnum: ajad ja summad.', 'Kuula Kerli häälsõnumit kaks korda. Kirjuta igasse lünka kellaaeg, päev, arv või summa.', [
+        'Kerli: Tere, Jaan! Kerli haldusfirmast Kodu Hooldus. Käisin täna kell üksteist teie korteris, Kadri lasi mind sisse.',
         'Kerli: Lastetoa radiaatoris oli tõesti palju õhku. Lasin selle välja ja nüüd on radiaator üleni soe.',
-        'Kerli: Elutoa radiaatoriga on kõik korras, sinna ei olnud vaja midagi teha.',
+        'Kerli: Kui ma tulin, oli toas ainult seitseteist kraadi. Kaks tundi hiljem oli juba kakskümmend üks.',
         'Kerli: Soojusmõõtjaga on aga probleem. Mõõtja ekraanil ei ole numbreid, see on rikkis.',
         'Kerli: Seetõttu näitas mõõtja jaanuaris valesti ja teie arve on liiga suur.',
-        'Kerli: Uue mõõtja paigaldame järgmisel teisipäeval. See on teile tasuta, sest mõõtja kuulub majale.',
-        'Kerli: Jaanuari arve arvutame uuesti eelmise aasta keskmise järgi.',
-        'Kerli: Vahe arvestame maha veebruari arvest. Raha ei pea te tagasi küsima.',
+        'Kerli: Uue mõõtja paigaldame järgmisel teisipäeval kella üheksa ja kümne vahel. See on teile tasuta, sest mõõtja kuulub majale.',
+        'Kerli: Jaanuari arve arvutame uuesti eelmise aasta keskmise järgi. Uus summa on umbes sada viiskümmend eurot.',
+        'Kerli: Vahe, umbes sada kolmkümmend kuus eurot, arvestame maha veebruari arvest. Raha ei pea te tagasi küsima.',
         'Kerli: Veel üks asi: keldris on teie panipaiga ees vett. Toru tilgub, aga see ei ole ohtlik.',
-        'Kerli: Parandame toru samal päeval. Kui teil on küsimusi, helistage mulle.',
+        'Kerli: Parandame toru homme pärastlõunal, hiljemalt kella kolmeks. Kui teil on küsimusi, helistage mulle.',
       ], [
-        'Kerli käis täna korteris ja [Kadri] lasi ta sisse, sest Jaan oli tööl.',
-        'Lastetoa radiaatoris oli palju [õhku], mistõttu see ei soojenenud.',
-        'Elutoa radiaatoriga on kõik [korras] ja sinna ei olnud vaja midagi teha.',
-        'Soojusmõõtja on [rikkis|katki], sest selle ekraanil ei ole numbreid.',
-        'Uus mõõtja paigaldatakse korterisse järgmisel [teisipäeval].',
-        'Mõõtja vahetamine on perele [tasuta], sest mõõtja kuulub majale.',
-        'Jaanuari arve arvutatakse uuesti eelmise aasta [keskmise] järgi.',
-        'Arvete vahe arvestatakse maha [veebruari] arvest.',
-        'Keldris on Metsade panipaiga ees [vett], sest toru tilgub.',
-      ]),
+        'Kerli käis Metsade korteris täna kell [üksteist|11].',
+        'Kui Kerli tuli, oli lastetoas ainult [seitseteist|17] kraadi.',
+        'Kaks tundi pärast Kerli tööd oli toas juba [kakskümmend üks|21] kraadi.',
+        'Uus soojusmõõtja paigaldatakse korterisse järgmisel [teisipäeval].',
+        'Töömees tuleb mõõtjat vahetama kella üheksa ja [kümne|10] vahel.',
+        'Mõõtja vahetamine on Metsade perele [tasuta], sest mõõtja kuulub majale.',
+        'Jaanuari arve uus summa on umbes [sada viiskümmend|150] eurot.',
+        'Veebruari arvest arvestatakse maha umbes [sada kolmkümmend kuus|136] eurot.',
+        'Keldri tilkuv toru parandatakse homme hiljemalt kella [kolmeks|15-ks].',
+      ]), { task: 'L10' }),
       B.notice('008_d_notice', 'Märka: kaebus neljas sammus.', [
         '1. **Mis juhtus?** Arve on 286 eurot, **kuigi** eelmisel aastal maksime 141 eurot.',
         '2. **Miks see on tähtis?** Lastetoas on külm, **mistõttu** lapsed on sageli haiged.',
@@ -357,10 +374,15 @@ export const LESSONS = {
         'Põhjus: **sest / kuna**. Tagajärg: **seetõttu** alustab uut lauset ja tegusõna tuleb kohe: Seetõttu **ei saa** ma aru. **Mistõttu** jätkab sama lauset pärast koma.',
         'Probleem „kus on mis”: Radiaatoris **on õhku**. Keldris **on vett**. Mõõtjal **ei ole numbreid**.',
       ], 'full'),
-      B.diagram('008_d_steps', 'flow', { title: 'Kaebuse neli sammu.', instruction: 'Loe Jaani kirja uuesti. Kirjuta igasse sammu puuduv sõna.', nodes: 'Mis juhtus? Arve on [kaks korda] suurem kui eelmisel aastal.\nMiks see on tähtis? Lastetoas on [külm], mistõttu lapsed on sageli haiged.\nMida ma juba tegin? [Helistasin] haldusfirmale, kuid keegi ei [tulnud].\nMillist lahendust soovin? Palun [kontrollige] soojusmõõtjat ja radiaatorit.\nKuidas lõpetada? Ootame arve [parandamist] ja teie vastust.\nKes kirjutab? Kiri lõpeb [nime] ja korteri [numbriga].' }, 'full', 'g_notice'),
-      B.vocab('008_d_vocab', 'Tunni sõnad.', ['kaebus — жалоба', 'küttearve — счёт за отопление', 'haldusfirma — управляющая компания', 'rikkis — сломанный', 'mõõtja — счётчик', 'radiaator — батарея', 'hüvitis — компенсация', 'lahendus — решение', 'mistõttu — из-за чего', 'nõudma — требовать']),
+      B.categorize('008_d_sort', 'Kaebuse neli sammu.', 'Loe Jaani kirja uuesti. Sorteeri tema laused: millisesse kaebuse sammu iga lause kuulub?', [
+        ['Mis juhtus?', ['Jaanuari arve on 286 eurot.', 'Lastetoa radiaator on alt külm.', 'Toas on hommikuti ainult 17 kraadi.']],
+        ['Miks see on tähtis?', ['Mia magab villaste sokkidega.', 'Lapsed on sel talvel sageli haiged olnud.', 'See teeb meid väga murelikuks.']],
+        ['Mida ma juba tegin?', ['Helistasin eelmisel nädalal haldusfirmale.', 'Kirjeldasin probleemi telefonis.', 'Ootasin töömeest, kuid keegi ei tulnud.']],
+        ['Millist lahendust soovin?', ['Palun kontrollige meie soojusmõõtjat.', 'Sooviksin teada, kuidas arve arvutati.', 'Ootame arve parandamist järgmisel kuul.']],
+      ], 'full', 'g_notice'),
+      tag(B.vocab('008_d_vocab', 'Tunni sõnad.', ['kaebus — жалоба', 'arve — счёт', 'haldusfirma — управляющая компания', 'rikkis — сломанный', 'mõõtja — счётчик', 'radiaator — батарея', 'hüvitis — компенсация', 'lahendus — решение', 'mistõttu — из-за чего', 'nõudma — требовать']), { topic: ['haldusfirma', 'mõõtja'] }),
       teach(B.speaking('008_d_talk', 'Kas sina kaebad?', 'Arutage paaris. Räägi oma kogemusest ja põhjenda.', ['Kas sa oled kunagi saanud liiga suure arve? Mida sa tegid?', 'Kas kaebust on parem esitada kirjas või telefonis? Miks?', 'Kas Urmas vastas hästi? Mida oleksid sina tema asemel kirjutanud?', 'Mis on sinu kodus või majas praegu valesti?', 'Millal on parem mitte kaevata, vaid lahendus ise leida?'], [120, 180], ['Mul oli kord…, mistõttu…', 'Seetõttu…', 'Minu arvates on parem…']), 'Üks-ühele: õpetaja jutustab enne oma kogemuse ühest kaebusest; õpilane küsib temalt kaks küsimust ja räägib siis oma loo.'),
-      B.writing('008_d_write', 'Minu probleem neljas sammus.', 'Kirjuta 10–12 lauset ühest probleemist oma kodus või töö juures. Kasuta nelja sammu ja sõnu „seetõttu” ja „mistõttu”.', [10, 12], ['seetõttu', 'mistõttu', 'sooviksin', 'lahendus'], 3),
+      tag(B.writing('008_d_write', 'Kaheksa minutit: minu probleem.', 'Vaata pilti: Markus kaebab neljas sammus. Kirjuta kaheksa minutit järjest ilma peatumata ühest probleemist oma kodus või tööl, samuti neljas sammus.', [10, 12], ['seetõttu', 'mistõttu', 'sooviksin', 'lahendus'], 3), { task: 'W06', fluency: true }),
     ],
     practice: [
       B.categorize('008_p_who', 'Kelle poole pöörduda?', 'Sorteeri probleemid: kes peab neid lahendama?', [
@@ -368,7 +390,7 @@ export const LESSONS = {
         ['Korteriühistu üldkoosolek', ['Majale on vaja uut katust.', 'Hoovi tahetakse ehitada mänguväljak.', 'Majahoolduse kuumakse tahetakse tõsta.', 'Maja tahetakse renoveerida laenu abil.', 'Elanikud tahavad valida uue haldusfirma.', 'Rõdude klaasimiseks on vaja kõigi nõusolekut.', 'Ühistu peab otsustama, kas võtta pangalaenu.']],
         ['Kauplus (garantii)', ['Uus pesumasin ei tööta juba teisel nädalal.', 'Ostetud lambil puudub üks osa.', 'Uued saapad läksid nädalaga katki.', 'Telefoni aku ei pea vastu isegi päeva.', 'Külmkapp teeb öösel kõva müra.', 'Internetist tellitud tool saabus katkisena.', 'Uue arvuti klaviatuur ei tööta.']],
       ], 'full', 'g_vocab'),
-      B.cloze('008_p_advice', 'Vali lünka sobiv sõna.', 'Loe tarbijanõuannet ja vali igasse lünka üks variant (A–D).', 'Kuidas kaevata nii, et sind kuulatakse', [
+      tag(B.cloze('008_p_advice', 'Vali lünka sobiv sõna.', 'Loe tarbijanõuannet ja vali igasse lünka üks variant (A–D).', 'Kuidas kaevata nii, et sind kuulatakse', [
         'Igaüks saab vahel teenuse või kauba, mis ei vasta lubatule. Paljud inimesed jätavad asja sinnapaika, {*sest|seetõttu|mistõttu|siis} kaebamine tundub tülikas. Tarbijakaitse spetsialistide sõnul tasub aga oma õiguste eest seista.',
         '',
         'Kõigepealt kirjeldage probleemi täpselt. Kirjutage, mis juhtus ja millal. Emotsioone ei ole vaja, {*kuid|sest|kuna|seega} fakte peab olema piisavalt. Lisage kirjale ka arve, foto või ostutšeki koopia.',
@@ -382,11 +404,11 @@ export const LESSONS = {
         'Kauplus peab kaebusele vastama {*viieteistkümne|viisteist|viieteistkümnes|viieteistkümnest} päeva jooksul. Kui vastust ei tule või see ei rahulda teid, {*võite|võivad|võime|võib} pöörduda tarbijavaidluste komisjoni poole.',
         '',
         'Komisjonis on asja arutamine tasuta. {*Seetõttu|Sest|Kuna|Mistõttu} tasub seda võimalust kasutada ka väikeste summade puhul. Eelmisel aastal sai komisjonist abi {*üle|ümber|vastu|pärast} kahe tuhande inimese.',
-      ], 'g_vocab'),
-      B.reading('008_p_chat', 'Loe maja grupivestlust.', 'Männi 8 elanikud arutavad arveid. Loe ja vasta lühidalt.', 'Männi 8 elanike grupp',
+      ], 'g_vocab'), { task: 'G13' }),
+      tag(B.reading('008_p_chat', 'Loe maja vestlust: õige, vale või ei selgu?', 'Männi 8 elanikud arutavad arveid. Otsusta iga väite kohta: õige, vale või ei selgu. Kirjuta juurde lühike põhjendus.', 'Männi 8 elanike vestlus',
         'Karl: Kas teid ka jaanuari küttearve šokeeris? Minule tuli 190 eurot, kuigi olin pool kuud öövahetustes ja kodus peaaegu ei kütnud. Olen üürnik, aga omanik ütles, et kommunaalarved maksan lepingu järgi mina.\n\nLeida: Minul on täpselt sama mure. Olen pensionär ja minu pension on 780 eurot kuus. Kui arve on üle kahesaja euro, ei jää mulle toiduks ja ravimiteks kuigi palju raha. Kas keegi teab, kust sellisel juhul abi saab?\n\nKadri: Leida, linnaosa valitsuses saab taotleda toetust, kui arved on sissetulekuga võrreldes liiga suured. Avalduse saab esitada internetis, aga ma võin tulla ja sind sellega aidata.\n\nUrmas: Tere, naabrid! Mõistan teie muret väga hästi. Soojuse hind tõusis jaanuaris peaaegu kolmandiku võrra, seetõttu kasvasid arved kõigil. Mõnel korteril oli aga ka rikkis mõõtja, mis näitas valesti. Kerli kontrollib sel nädalal kõik mõõtjad üle.\n\nJaan: Aitäh, Urmas. Meie mõõtja oli tõesti rikkis ja arve parandatakse järgmisel kuul. Aga haldusfirma tuli alles kolme nädala pärast, kuigi helistasin mitu korda. Minu arvates peaks ühistu nõudma haldusfirmalt kiiremat tööd.\n\nKarl: Olen nõus. Ka meie trepikojas ei põle juba kuu aega tuli. Õhtul on seal nii pime, et minu koer kardab trepist üles minna.\n\nUrmas: Panen trepikoja lambi kohe homseks tööde nimekirja. Aga tegelik probleem on meie vana maja. Seinad on õhukesed ja katus laseb soojust välja, nii et osa rahast läheb sõna otseses mõttes tuulde. Kui maja renoveerida, väheneksid arved umbes poole võrra.\n\nLeida: Renoveerimine maksab aga palju raha. Kas igakuine makse ei kasva siis liiga suureks?\n\nUrmas: Riik maksab toetusena osa tööde hinnast ja ülejäänu jaoks võtaks ühistu pangalaenu. Arutame seda kõike märtsis üldkoosolekul, nii et tulge kindlasti kohale! Küsimusi võite saata ka juba varem, siis valmistan vastused ette.',
-        [['Miks on Karli arve tema arvates liiga suur?', 'ta oli öövahetustes ega kütnud|ta ei olnud pool kuud kodus'], ['Kes maksab Karli korteri küttearve?', 'Karl ise, mitte omanik|üürnik ise'], ['Miks on suur arve Leidale eriti raske?', 'tal on väike pension|pension on ainult 780 eurot'], ['Kuidas Kadri Leidat aitab?', 'räägib toetusest ja pakub abi avaldusega|soovitab taotleda toetust'], ['Mida tahab Jaan, et ühistu haldusfirmalt nõuaks?', 'kiiremat tööd|et haldusfirma töötaks kiiremini'], ['Miks kardab Karli koer trepikojas?', 'seal on pime, sest tuli ei põle|trepikojas ei põle tuli'], ['Kuidas saaks Urmase arvates arveid vähendada? Kas oled nõus?', 'maja renoveerimisega|kui maja renoveerida']]),
-      B.errorfix('008_p_fix', 'Paranda kaebuse laused.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [
+        [['Õige, vale või ei selgu: Karl kütab oma korterit talvel väga palju.', 'vale, ta oli pool kuud öövahetustes|vale'], ['Õige, vale või ei selgu: Karli küttearve maksab korteri omanik.', 'vale, üürnik maksab ise|vale'], ['Õige, vale või ei selgu: Leida elab oma korteris üksi.', 'ei selgu'], ['Õige, vale või ei selgu: Kadri on valmis Leidat toetuse avaldusega aitama.', 'õige'], ['Õige, vale või ei selgu: Soojuse hind tõusis jaanuaris umbes kolmandiku võrra.', 'õige'], ['Õige, vale või ei selgu: Jaan on haldusfirma tööga rahul.', 'vale, firma tuli alles kolme nädala pärast|vale'], ['Õige, vale või ei selgu: Karli koer on juba vana ja haige.', 'ei selgu'], ['Õige, vale või ei selgu: Pärast renoveerimist väheneksid arved umbes poole võrra.', 'õige'], ['Miks kardab Leida renoveerimist? Kas sa oled temaga nõus?']]), { task: 'R06' }),
+      B.errorfix('008_p_fix', 'Paranda kaebuse laused.', 'Need laused on Jaani kaebuse mustandist. Igas lauses on üks viga: kirjuta lause õigesti.', [
         ['Keldris on vesi ja panipaigas on niiske.', 'Keldris on vett ja panipaigas on niiske.'],
         ['Majas ei ole soe vesi juba kaks päeva.', 'Majas ei ole sooja vett juba kaks päeva.'],
         ['Trepikojas on palju prügi ja hoovis on palju klaasikillud.', 'Trepikojas on palju prügi ja hoovis on palju klaasikilde.'],
@@ -398,33 +420,33 @@ export const LESSONS = {
         ['Palun kontrollige meie mõõtja võimalikult kiiresti.', 'Palun kontrollige meie mõõtjat võimalikult kiiresti.'],
         ['Ma ootan teie vastus nädala jooksul.', 'Ma ootan teie vastust nädala jooksul.'],
       ]),
-      B.speaking('008_p_mono', 'Probleem neljas sammus.', 'Vali üks probleem. Räägi 2–3 minutit nelja sammu järgi, nagu räägiksid teenindajaga.', ['Probleem 1: pesumasin läks nädal pärast ostu katki.', 'Probleem 2: internet ei tööta juba kolm päeva.', 'Probleem 3: naaber teeb igal õhtul kella kümneni remonti.', 'Räägi: mis juhtus, miks see on tähtis, mida sa juba tegid ja millist lahendust soovid.'], [120, 180], ['Helistan, sest…', 'See on mulle tähtis, sest…', 'Seetõttu palun…']),
-      teach(B.rolecards('008_p_call', 'Kõne haldusfirmasse.', 'A helistab haldusfirmasse, B on dispetšer. A kirjeldab probleemi neljas sammus, B pakub lahendust.',
+      teach(tag(B.speaking('008_p_talk', 'Eksaminurk: sõnavõtt koosolekul (Harno B2 rääkimine 1)', 'Teemakaart: mõtle 2 minutit ja tee märkmeid. Räägi ühistu koosolekul üks minut, siis vasta paarilise ühele küsimusele.', ['Teema: kas Männi 8 maja vajab uut haldusfirmat?', 'Mis on praegu probleem?', 'Miks see puudutab kõiki elanikke?', 'Mida sa ühistule soovitad ja miks?'], [90, 120], ['Head naabrid!', 'Probleem on selles, et…', 'Seetõttu teen ettepaneku…', 'Kokkuvõttes…']), { task: 'S16', harno: 'S1' }), 'Üks-ühele: õpetaja on koosoleku juhataja: ta mõõdab aega (2 minutit ettevalmistust, 1 minut kõnet) ja küsib lõpus ühe küsimuse. Siis vahetage: õpetaja räägib, õpilane küsib.'),
+      teach(tag(B.rolecards('008_p_call', 'Kõne haldusfirmasse.', 'A helistab haldusfirmasse, B on dispetšer. A kirjeldab probleemi neljas sammus, B pakub lahendust.',
         'Oled Kadri. Pärast Kerli käiku on lastetoa radiaator jälle külm ja keldris on rohkem vett kui enne. Nõua kiiret lahendust ja hüvitist vale arve eest.', 'Oled haldusfirma dispetšer. Töömees saab tulla alles reedel. Küsi täpselt, kus vesi on ja kui palju seda on. Hüvitise üle otsustab juhataja.',
-        ['Helistan, sest…', 'See on meile tähtis, sest…', 'Me juba…, kuid…', 'Ma nõuan, et…'], ['Kas ma sain õigesti aru, et…?', 'Kahjuks saame tulla alles…', 'Sel juhul…']), 'Üks-ühele: õpetaja on dispetšer ja pakub alguses liiga hilist aega; õpilane nõuab viisakalt kiiremat lahendust. Siis vahetage rollid.'),
+        ['Helistan, sest…', 'See on meile tähtis, sest…', 'Me juba…, kuid…', 'Ma nõuan, et…'], ['Kas ma sain õigesti aru, et…?', 'Kahjuks saame tulla alles…', 'Sel juhul…']), { task: 'S04' }), 'Üks-ühele: õpetaja on dispetšer ja pakub alguses liiga hilist aega; õpilane nõuab viisakalt kiiremat lahendust. Siis vahetage rollid.'),
     ],
     transfer: [
       B.text('008_t_sit', 'Üldkoosolek', 'Märtsis on Männi 8 korteriühistu üldkoosolek. Päevakorras on küttearved ja maja renoveerimine. Paljud naabrid on arvete pärast mures. Jaan tahab koosolekul rääkida ka haldusfirma tööst, sest probleemid lahendati alles kolme nädala pärast. Pärast koosolekut kirjutab ta haldusfirmale ametliku kaebuse ja küsib hüvitist.'),
-      B.reading('008_t_invite', 'Loe koosoleku kutset.', 'Urmas saatis elanikele koosoleku kutse. Loe ja vasta lühidalt.', 'Kutse üldkoosolekule',
+      tag(B.reading('008_t_invite', 'Mida kutse Metsadele tähendab?', 'Loe Urmase kutset. Vasta küsimustele: mida see info Metsade perele tähendab? Mõnes küsimuses tuleb arvutada.', 'Kutse üldkoosolekule',
         'Head Männi 8 korteriomanikud!\n\nKutsun teid korteriühistu korralisele üldkoosolekule, mis toimub 14. märtsil kell 18.30 Kase kooli aulas. Registreerimine algab pool tundi varem, kell 18.00.\n\nKoosoleku alguses tutvustab juhatus eelmise aasta majandusaasta aruannet. Seejärel selgitab soojusfirma esindaja, miks soojuse hind jaanuaris nii palju tõusis ja mida see meie majale tähendab.\n\nKolmas teema on haldusfirma töö. Elanikud on viimase kuu jooksul saatnud juhatusele kaheksa kaebust, peamiselt hilinenud remonditööde pärast. Arutame, kas jätkame Kodu Hooldusega või otsime uue haldusfirma.\n\nNeljas ja kõige tähtsam teema on maja renoveerimine. Meie majas on vana küttesüsteem, õhukesed seinad ja lekkiv katus. Pärast renoveerimist väheneksid küttearved ekspertide hinnangul umbes poole võrra. Riik maksab toetusena kuni 30 protsenti tööde hinnast ja ülejäänud osa jaoks võtaks ühistu pangalaenu. Iga korteri igakuine makse kasvaks seetõttu umbes ühe euro võrra ruutmeetri kohta. Tööd kestaksid umbes aasta ja elanikud saaksid kogu selle aja kodus elada.\n\nOtsuseid saab teha ainult siis, kui koosolekul osaleb üle poole korteriomanikest. Kui te ei saa ise tulla, võite anda volikirja naabrile või pereliikmele. Volikirja vorm on trepikoja teadetetahvlil ja ühistu kodulehel.\n\nPalun saatke oma küsimused ja ettepanekud kuni 10. märtsini minu e-postile. Nii jõuame vastused koosolekuks ette valmistada ja koosolek ei veni liiga pikaks.\n\nKoosoleku lõpus pakume teed ja kooki. Lastele on samal ajal kooli raamatukogus järelevalve, nii et tulge julgelt kogu perega.\n\nKui teil on vaja koosolekule jõudmiseks abi, näiteks transpordi või lapsehoiu osas, andke sellest julgelt teada. Iga omaniku arvamus on meile tähtis, sest otsused puudutavad kõiki maja elanikke. Pärast koosolekut saadame kõigile protokolli, kus on kirjas tehtud otsused ja hääletuse tulemused.\n\nKohtumiseni!\nUrmas, korteriühistu juhatuse esimees',
-        [['Kus ja millal koosolek toimub?', '14. märtsil kell 18.30 Kase kooli aulas'], ['Miks arutatakse haldusfirma tööd?', 'elanikud on saatnud palju kaebusi|kaheksa kaebuse pärast hilinenud tööde kohta'], ['Kuidas muutuksid küttearved pärast renoveerimist?', 'väheneksid umbes poole võrra|jääksid poole väiksemaks'], ['Kust tuleks raha renoveerimiseks?', 'riigi toetusest ja pangalaenust|toetus kuni 30% ja ühistu laen'], ['Mida saab teha omanik, kes koosolekule ei tule?', 'anda volikirja naabrile või pereliikmele|anda volikiri'], ['Miks tuleb küsimused saata enne 10. märtsi?', 'et jõuaks vastused ette valmistada|et koosolek ei veniks pikaks']]),
-      teach(B.rolecards('008_t_meeting', 'Koosolekul.', 'A on Jaan, B Urmas. Jaan kaebab haldusfirma töö üle, Urmas kaitseb firmat. Leidke koos lahendus.',
+        [['Mis kell peab Jaan kooli jõudma, kui ta tahab end enne algust registreerida?', 'kell kuus|kell 18|kell 18.00'], ['Metsade korter on 70 ruutmeetrit. Kui palju kasvaks nende kuumakse pärast renoveerimist?', 'umbes 70 eurot|70 eurot'], ['Kui renoveerimine maksaks 600 000 eurot, kui suure osa sellest võiks riik maksta?', 'kuni 180 000 eurot|180 000 eurot'], ['Jaan ei saa koosolekule tulla. Mida ta peaks tegema, et tema arvamus siiski loeks?', 'andma naabrile või pereliikmele volikirja|andma volikirja'], ['Mis kuupäevaks peab Jaan saatma oma küsimuse haldusfirma kohta?', '10. märtsiks|kümnendaks märtsiks'], ['Miks võivad Metsad tulla koosolekule koos lastega?', 'raamatukogus on lastele järelevalve|lastele on järelevalve'], ['Kas renoveerimine tasub sinu arvates elanikele ära? Miks?']]), { task: 'R08', level: 3 }),
+      teach(tag(B.rolecards('008_t_meeting', 'Koosolekul: järjestage lahendused.', 'A on Jaan, B Urmas. Pange kolm lahendust tähtsuse järjekorda ja valige koos üks: uus haldusfirma, hüvitis kahju saanutele või lepingusse kindlad tähtajad.',
         'Oled Jaan. Haldusfirma tuli alles kolme nädala pärast, mõõtja oli rikkis ja keldris oli vett. Tee ettepanek: uus haldusfirma või hüvitis kõigile kahju saanud korteritele.', 'Oled Urmas. Haldusfirma on odav ja Kerli töötab hästi. Uue firma leidmine võtab kolm kuud ja maksab rohkem. Paku kompromissi.',
-        ['Minu ettepanek on…', 'Probleem on selles, et…, mistõttu…', 'Me nõuame…'], ['Ma saan aru, aga…', 'Teisalt…', 'Pakun kompromissi: …']), 'Üks-ühele: õpetaja on Urmas ja kaitseb haldusfirmat; õpilane esitab kaebuse ja nõuab lahendust. Lõpus sõnastage koos kokkulepe.'),
+        ['Minu ettepanek on…', 'Probleem on selles, et…, mistõttu…', 'Me nõuame…'], ['Ma saan aru, aga…', 'Teisalt…', 'Pakun kompromissi: …']), { task: 'S12' }), 'Üks-ühele: õpetaja on Urmas ja kaitseb haldusfirmat; õpilane esitab kaebuse ja nõuab lahendust. Lõpus sõnastage koos järjekord ja valitud lahendus.'),
       B.planning('008_t_plan', 'Kaebuse plaan.', 'Kirjuta igale sammule märksõnad.', ['Mis juhtus? (kuupäevad, arve, rike)', 'Miks see on tähtis?', 'Mida ma juba tegin?', 'Millist lahendust ja hüvitist ma nõuan?', 'Mis on vastamise tähtaeg?'], 2),
-      B.speaking('008_t_speech', 'Sõnavõtt üldkoosolekul.', 'Räägi koosolekul 2–3 minutit haldusfirma tööst. Kasuta kaebuse nelja sammu.', ['Ütle, kes sa oled ja mis korteris elad.', 'Mis juhtus sinu korteris ja millal?', 'Miks on see kõigi elanike jaoks tähtis?', 'Mida sa juba tegid?', 'Mis on sinu ettepanek ühistule?'], [120, 180], ['Head naabrid!', 'Probleem on selles, et…', 'Seetõttu teen ettepaneku…']),
-      B.letter('008_t_complaint', 'Ametlik kaebus haldusfirmale.', 'Kirjuta haldusfirmale Kodu Hooldus ametlik kaebus nelja sammu järgi. Nõua viisakalt hüvitist.', 'Lugupeetud Kodu Hoolduse juhataja!', 'Lugupidamisega', [130, 160]),
-      B.rubric('008_t_rubric', 'Kas kaebus on selge?', 'Märgi, mis kaebuses ja sõnavõtus on olemas.', ['Kaebuses on kõik neli sammu: mis juhtus, miks see on tähtis, mida tegin ja millist lahendust soovin.', 'Põhjus ja tagajärg on selged: sest, kuna, seetõttu, mistõttu.', 'Probleemid on kirjeldatud õigete vormidega: keldris on vett, mõõtjal ei ole numbreid.', 'Nõudmine on viisakas: Palun…, Ootame…, Sooviksime…', 'Kiri on 130–160 sõna pikk ja selle lõpus on nimi ja korteri number.']),
+      tag(B.speaking('008_t_speech', 'Kodus: häälsõnum naabritele.', 'Salvesta häälsõnum naabritele, kes koosolekule ei tulnud: mis otsustati ja mida sa haldusfirmale kirjutad. Salvesta kaks korda, teisel korral kiiremini.', ['Kes sa oled ja miks sa sõnumi jätad?', 'Mis koosolekul otsustati?', 'Mis juhtus sinu korteris ja millal?', 'Mida sa haldusfirmalt nõuad?', 'Mida saavad naabrid ise teha?'], [120, 180], ['Head naabrid!', 'Koosolekul otsustati, et…', 'Seetõttu kirjutan…']), { task: 'S15', fluency: true }),
+      tag(B.letter('008_t_complaint', 'Ametlik kaebus haldusfirmale.', 'Kirjuta haldusfirmale Kodu Hooldus ametlik kaebus nelja sammu järgi. Nõua viisakalt hüvitist.', 'Lugupeetud Kodu Hoolduse juhataja!', 'Lugupidamisega', [130, 160]), { task: 'W13', main: true }),
+      B.rubric('008_t_rubric', 'Kas kaebus on selge?', 'Märgi, mis kaebuses ja häälsõnumis on olemas.', ['Kaebuses on kõik neli sammu: mis juhtus, miks see on tähtis, mida tegin ja millist lahendust soovin.', 'Põhjus ja tagajärg on selged: sest, kuna, seetõttu, mistõttu.', 'Probleemid on kirjeldatud õigete vormidega: keldris on vett, mõõtjal ei ole numbreid.', 'Nõudmine on viisakas: Palun…, Ootame…, Sooviksime…', 'Kiri on 130–160 sõna pikk ja selle lõpus on nimi ja korteri number.']),
     ],
   },
 
   'b1b2-009': {
     title: 'Ootamatu olukord linnas',
-    canDo: 'Ma reageerin ootamatusele ilma ettevalmistuseta: küsin üle, täpsustan, palun abi, pakun alternatiivi ja muudan otsust uue info põhjal.',
+    canDo: 'Ma reageerin ootamatusele: küsin üle, pakun alternatiivi ja kirjutan uue info põhjal linnale ametliku pöördumise.',
     discover: [
-      B.review('009_d_review', ['Millised on kaebuse neli sammu?', 'Ütle üks lause sõnaga „seetõttu” ja üks sõnaga „mistõttu”.', 'Mida nõudis Jaan haldusfirmalt?']),
+      B.review('009_d_review', ['Millised on kaebuse neli sammu?', 'Ütle üks lause sõnaga „seetõttu” ja üks sõnaga „mistõttu”.', ['Mida nõudis Jaan haldusfirmalt?', 'b1b2-008']]),
       B.text('009_d_hook', 'Remont ei lähe plaanipäraselt', 'Aprilli lõpus said Jaan ja Kadri Vahtra tänava korteri võtmed ja mai alguses algas remont. Plaan oli lihtne: köögi ja väikese toa vaheline sein maha, uued aknad ja kuu aega remonti. Esimesel nädalal tuli aga kolm ootamatut uudist. Kuula sõnumeid ja loe linnaosa valitsuse kirja. Kuidas reageerida, kui plaan muutub?'),
-      B.listening('009_d_news', 'Kolm ootamatut sõnumit.', 'Kuula sõnumeid üks kord, nagu eksamil. Kirjuta lünka üks või kaks sõna.', [
+      tag(B.listening('009_d_news', 'Kolm ootamatut sõnumit.', 'Kuula sõnumeid üks kord, nagu eksamil. Kirjuta lünka üks või kaks sõna.', [
         'Rando: Tere, Jaan! Rando ehitusfirmast. Halb uudis: köögi ja toa vaheline sein on kandev.',
         'Rando: Seda ei saa lihtsalt maha võtta. Selleks on vaja ehitusprojekti ja linna luba.',
         'Rando: Projekt maksab umbes tuhat eurot ja võtab kolm nädalat. Helista, kui oled otsustanud.',
@@ -443,10 +465,10 @@ export const LESSONS = {
         'Ingrid saatis perele lisaks ka [e-kirja|kirja], mille nad peavad läbi lugema.',
         'Eda sõnul ei ole hoovis konteineri jaoks [ruumi].',
         'Naabrite palvel tuleb konteiner juba homseks viia [tänavale].',
-      ]),
-      B.reading('009_d_letter', 'Loe linnaosa valitsuse kirja.', 'Ingrid saatis kirja e-postiga. Loe ja vasta lühidalt.', 'Teie teatis aknavahetuse kohta',
+      ]), { task: 'L01' }),
+      tag(B.reading('009_d_letter', 'Ingridi kiri: pealkiri igale lõigule.', 'Loe Ingridi kirja. Kirjuta igale lõigule lühike pealkiri oma sõnadega, siis vasta kahele küsimusele.', 'Teie teatis aknavahetuse kohta',
         'Lugupeetud Jaan Mets!\n\nTäname teid teatise eest, mille esitasite 6. mail. Teatisest selgub, et soovite vahetada Vahtra 5 korteri 7 kõik aknad plastakende vastu.\n\nTeie maja asub Nõmme miljööväärtuslikul hoonestusalal. Sellel alal on palju vanu puitmaju, mille välimust linn soovib säilitada ka järgmistele põlvkondadele. Seetõttu kehtivad siin erireeglid, mis on kirjas linnaosa üldplaneeringus. Akende vahetamisel peavad uued aknad olema puidust. Raamide jaotus ja värv peavad jääma samaks, nagu need olid maja ehitamise ajal. Plastaknad ei ole lubatud ka juhul, kui need on puidu värvi ja näevad kaugelt sarnased välja.\n\nMõistame, et puitaknad on plastakendest oluliselt kallimad. Seetõttu on linnal miljööalade majade jaoks eraldi toetus. Toetus katab kuni poole akende hinnast, kuid mitte üle 3000 euro ühe korteri kohta. Taotlusi võetakse vastu igal aastal 1. märtsist 30. aprillini. Sel aastal on tähtaeg kahjuks juba möödas.\n\nTeil on praegu kaks võimalust. Esiteks võite esitada uue teatise puitakende kohta ja vahetada aknad juba sel suvel. Teiseks võite aknavahetuse edasi lükata ja taotleda toetust järgmisel kevadel. Vanu aknaid saab vahepeal ka parandada, mida soovitame mõlemal juhul kaaluda.\n\nKui teil on küsimusi, saate broneerida aja minu vastuvõtule. Vastuvõtt toimub teisipäeviti ja neljapäeviti kella üheksast kaheteistkümneni. Võtke vastuvõtule kaasa akende pakkumine ja võimaluse korral fotod praegustest akendest. Nii saame koos leida lahenduse, mis sobib nii teile kui ka linnale. Paljud omanikud on varem leidnud lahenduse just vastuvõtul, kui nad on oma plaani ametnikuga läbi arutanud.\n\nPalun andke oma otsusest teada kahe nädala jooksul. Kui me selle aja jooksul vastust ei saa, loeme teatise tagasivõetuks.\n\nLugupidamisega\nIngrid\nNõmme linnaosa valitsus, ehitusspetsialist',
-        [['Mida Jaan oma teatises soovis?', 'vahetada kõik aknad plastakende vastu|panna korterisse plastaknad'], ['Miks kehtivad Nõmmel erireeglid?', 'linn tahab säilitada vanade puitmajade välimust|maja on miljööväärtuslikul alal'], ['Kas puidu värvi plastaknad sobiksid? Miks?', 'ei sobiks, sest plastaknad ei ole lubatud|ei, aknad peavad olema puidust'], ['Kui suur võib toetus kõige rohkem olla?', 'pool akende hinnast, kuni 3000 eurot|kuni 3000 eurot korteri kohta'], ['Miks ei saa pere toetust sel aastal?', 'tähtaeg on möödas|taotlusi võeti vastu ainult märtsis ja aprillis'], ['Mis juhtub, kui pere kahe nädala jooksul ei vasta?', 'teatis loetakse tagasivõetuks|teatis võetakse tagasi'], ['Kumma võimaluse sina valiksid? Miks?']]),
+        [['Lõik 1 („Täname teid…”): kirjuta lõigule lühike pealkiri.', 'Jaani soov vahetada aknad|plastakende teatis'], ['Lõik 2 („Teie maja asub…”): kirjuta lõigule lühike pealkiri.', 'miljööala reeglid|aknad peavad olema puidust'], ['Lõik 3 („Mõistame…”): kirjuta lõigule lühike pealkiri.', 'linna toetus puitakendele|toetus ja selle tähtaeg'], ['Lõik 4 („Teil on praegu…”): kirjuta lõigule lühike pealkiri.', 'pere kaks võimalust|kaks valikut'], ['Lõik 5 („Kui teil on küsimusi…”): kirjuta lõigule lühike pealkiri.', 'aeg ametniku juures|Ingridi vastuvõtt'], ['Lõik 6 („Palun andke…”): kirjuta lõigule lühike pealkiri.', 'vastamise tähtaeg|kahe nädala tähtaeg'], ['Miks soovitab Ingrid vastuvõtule kaasa võtta fotod praegustest akendest?'], ['Kumma võimaluse sina valiksid? Miks?']]), { task: 'R09' }),
       B.notice('009_d_notice', 'Märka: kuidas ootamatusele reageerida?', [
         'Küsi üle: **Kas ma sain õigesti aru, et** sein on kandev? **Kas see tähendab, et** me ei saa seina maha võtta?',
         'Pärast sõna „et” jääb lause tavaliseks: Sein on kandev. → Kas ma sain õigesti aru, **et sein on kandev?**',
@@ -467,12 +489,12 @@ export const LESSONS = {
         ['Te võite toetust taotleda järgmisel kevadel.', 'Kas see tähendab, et me …?', 'Kas see tähendab, et me võime toetust taotleda järgmisel kevadel?'],
         ['Ingridi vastuvõtt on ainult teisipäeviti ja neljapäeviti.', 'Kas see tähendab, et …?', 'Kas see tähendab, et Ingridi vastuvõtt on ainult teisipäeviti ja neljapäeviti?'],
       ], 'full', 'g_notice'),
-      B.vocab('009_d_vocab', 'Tunni sõnad.', ['luba — разрешение', 'ametnik — чиновник', 'teatis — уведомление', 'tähtaeg — срок', 'ootamatu — неожиданный', 'kandev sein — несущая стена', 'toetus — пособие, субсидия', 'pöördumine — обращение', 'alternatiiv — альтернатива', 'sel juhul — в таком случае']),
+      tag(B.vocab('009_d_vocab', 'Tunni sõnad.', ['luba — разрешение', 'ametnik — чиновник', 'teatis — уведомление', 'tähtaeg — срок', 'ootamatu — неожиданный', 'kandev sein — несущая стена', 'toetus — пособие, субсидия', 'pöördumine — обращение', 'alternatiiv — альтернатива', 'sel juhul — в таком случае']), { topic: ['pöördumine'] }),
       teach(B.speaking('009_d_talk', 'Mis sa teeksid?', 'Arutage paaris. Reageeri igale uudisele: küsi üle, palu nõu ja paku alternatiivi.', ['Ehitaja ütleb: „Sein on kandev.” Mida sa küsid ja mida teed?', 'Ametnik ütleb: „Plastaknad ei ole lubatud.” Kas ootaksid toetust või paneksid kohe puitaknad? Miks?', 'Naaber on konteineri pärast pahane. Mida sa talle ütled?', 'Milline ootamatu olukord on sinuga linnas või kodus juhtunud?', 'Kas sa muudad plaani kergesti või hoiad sellest kinni?'], [120, 180], ['Kas ma sain õigesti aru, et…?', 'Sel juhul…', 'Selle asemel võiksime…']), 'Üks-ühele: õpetaja loeb ette ootamatu uudise ja õpilane reageerib kohe; siis vahetage — õpilane toob uudise ja õpetaja reageerib.'),
-      B.writing('009_d_write', 'Vastus Edale.', 'Kirjuta Edale 10–12 lauset: vabanda, selgita olukorda ja paku konteinerile lahendus.', [10, 12], ['vabandust', 'sel juhul', 'selle asemel', 'kas oleks võimalik'], 3),
+      tag(B.writing('009_d_write', 'Lühike sõnum Edale.', 'Kirjuta Edale lühike sõnum (8–10 lauset): vabanda, selgita olukorda, paku konteinerile lahendus ja täna kannatlikkuse eest.', [8, 10], ['vabandust', 'sel juhul', 'selle asemel', 'kas oleks võimalik'], 3), { task: 'W02' }),
     ],
     practice: [
-      B.dialogue('009_p_builder', 'Telefonikõne ehitajaga.', 'Loe vestlust. Kirjuta lünka üks sobiv sõna.', 'Rando', 'Jaan', [
+      tag(B.dialogue('009_p_builder', 'Telefonikõne ehitajaga.', 'Loe vestlust. Kirjuta lünka üks sobiv sõna.', 'Rando', 'Jaan', [
         ['A', 'Tere, Jaan! Kas said minu sõnumi seina kohta kätte?'],
         ['B', 'Sain küll. Kas ma sain õigesti [aru], et seina ei saa üldse maha võtta?'],
         ['A', 'Päris nii see ei ole. Kandvat seina saab avada, aga selleks on vaja inseneri projekti.'],
@@ -489,10 +511,22 @@ export const LESSONS = {
         ['B', 'Jah, palun. Ja veel: kas konteineri saaks viia hoovist tänavale, sest naabrid on pahased?'],
         ['A', 'Saab, aga tänaval on konteineri jaoks vaja [luba|parkimisluba]. Kas teil see on olemas?'],
         ['B', 'On küll, Ingrid andis meile ajutise loa Kuuse tänavale. Seega [lepime] kokku: homme tuleb insener ja konteiner läheb Kuuse tänavale.'],
-      ], 'g_vocab'),
-      B.reading('009_p_article', 'Loe artiklit.', 'Loe kohalikust lehest artiklit Nõmme vanadest majadest. Vasta lühidalt.', 'Miks Nõmme oma vanu maju kaitseb',
-        'Nõmme on Tallinna kõige rohelisem linnaosa, kus on palju männimetsa, aedu ja vanu puumaju. Paljud majad ehitati sada aastat tagasi, kui Nõmme oli veel eraldi linn ja populaarne suvituskoht. Seetõttu on Nõmmel eriline õhkkond, mida linn tahab säilitada.\n\nJuba üle kümne aasta on suur osa Nõmmest miljööväärtuslik ala. See tähendab, et omanik ei tohi maja välimust muuta nii, nagu ise tahab. Uued aknad, uksed ja katused peavad sobima maja algse stiiliga. Ka aiad peavad jääma madalaks, et tänavalt oleks maju näha.\n\nPaljud elanikud on reeglitega rahul. „Kui ma kolisin Nõmmele, armusin just nendesse vanadesse majadesse,” ütleb kohalik elanik ja arhitekt. „Kui igaüks paneks plastaknad ja kõrge plekkaia, kaoks Nõmme võlu kiiresti.”\n\nTeised peavad reegleid liiga rangeks. Puitaknad maksavad kaks kuni kolm korda rohkem kui plastaknad ja vajavad ka rohkem hoolt. Noortel peredel, kes on just võtnud suure kodulaenu, ei ole selleks sageli raha. Mõni omanik ootab seetõttu aastaid ja vana maja laguneb vahepeal veelgi.\n\nLinn on probleemist teadlik ja on loonud toetuse, mis katab kuni poole tööde hinnast. Toetust jagatakse kord aastas ja raha ei jätku kahjuks kõigile. Eelmisel aastal sai toetust umbes iga teine taotleja, ülejäänud pidid ootama järgmist aastat.\n\nArhitektide sõnul tasub enne remonti alati linnaosa valitsusega nõu pidada. Ametnikud oskavad sageli pakkuda lahendusi, mida omanik ise ei tea. Näiteks saab vana akna tihti parandada, mitte välja vahetada. See on odavam ja säilitab maja ajaloo, sest vanad aknad on tehtud väga heast puidust.\n\nKokkuvõttes on miljööala nii kingitus kui ka kohustus. Kes ostab Nõmmel vana maja, ostab ka tükikese linna ajalugu ja peab selle eest hoolt kandma.',
-        [['Miks on Nõmmel palju vanu puumaju?', 'Nõmme oli sada aastat tagasi eraldi linn ja suvituskoht|majad ehitati ajal, kui Nõmme oli suvituskoht'], ['Mida tähendab miljööväärtuslik ala majaomaniku jaoks?', 'maja välimust ei tohi muuta nii, nagu ise tahad|aknad, uksed ja katused peavad sobima maja stiiliga'], ['Miks on reeglid noortele peredele rasked?', 'puitaknad on kallid ja neil on suur laen|neil ei ole raha'], ['Mis juhtub, kui omanik ootab aastaid?', 'vana maja laguneb|maja läheb halvemaks'], ['Kas kõik taotlejad saavad toetust? Selgita.', 'ei, umbes iga teine|ei, raha ei jätku kõigile'], ['Mida soovitavad arhitektid enne remonti teha?', 'pidada nõu linnaosa valitsusega|küsida nõu ametnikult'], ['Miks on vana akna parandamine hea mõte?', 'see on odavam ja säilitab maja ajaloo']]),
+      ], 'g_vocab'), { task: 'G08' }),
+      tag(B.bankText('009_p_article', 'Lünka sobiv lause: Nõmme vanad majad.', 'Kohalikust lehest on välja võetud kaheksa lauset. Kirjuta iga lünga kohale sobiv lause pangast; üks lause jääb üle.', 'Miks Nõmme oma vanu maju kaitseb', [
+        'Nõmme on Tallinna kõige rohelisem linnaosa, kus on palju männimetsa, aedu ja vanu puumaju. [[Paljud majad ehitati sada aastat tagasi, kui Nõmme oli veel eraldi linn ja populaarne suvituskoht.]] Seetõttu on Nõmmel eriline õhkkond, mida linn tahab säilitada.',
+        '',
+        'Juba üle kümne aasta on suur osa Nõmmest miljööväärtuslik ala. [[See tähendab, et omanik ei tohi maja välimust muuta nii, nagu ise tahab.]] Uued aknad, uksed ja katused peavad sobima maja algse stiiliga. [[Ka aiad peavad jääma madalaks, et tänavalt oleks maju näha.]]',
+        '',
+        'Paljud elanikud on reeglitega rahul. Üks kohalik arhitekt ütleb, et armus Nõmmesse just nende vanade majade pärast. [[Tema sõnul kaoks Nõmme võlu kiiresti, kui igaüks paneks plastaknad ja kõrge plekkaia.]]',
+        '',
+        'Teised peavad reegleid liiga rangeks. [[Puitaknad maksavad kaks kuni kolm korda rohkem kui plastaknad ja vajavad ka rohkem hoolt.]] Noortel peredel, kes on just võtnud suure kodulaenu, ei ole selleks sageli raha. [[Mõni omanik ootab seetõttu aastaid ja vana maja laguneb vahepeal veelgi.]]',
+        '',
+        'Linn on probleemist teadlik ja on loonud toetuse, mis katab kuni poole tööde hinnast. Toetust jagatakse kord aastas ja raha ei jätku kahjuks kõigile. [[Eelmisel aastal sai toetust umbes iga teine taotleja, ülejäänud pidid ootama järgmist aastat.]]',
+        '',
+        'Arhitektide sõnul tasub enne remonti alati linnaosa valitsusega nõu pidada. Ametnikud oskavad sageli pakkuda lahendusi, mida omanik ise ei tea. [[Näiteks saab vana akna tihti parandada, mitte välja vahetada.]] See on odavam ja säilitab maja ajaloo, sest vanad aknad on tehtud väga heast puidust.',
+        '',
+        'Kokkuvõttes on miljööala nii kingitus kui ka kohustus. Kes ostab Nõmmel vana maja, ostab ka tükikese linna ajalugu ja peab selle eest hoolt kandma.',
+      ], ['Uute majade ehitamine on Nõmmel juba kümme aastat keelatud.'], 'g_read'), { task: 'R16' }),
       B.choice('009_p_react', 'Mida sa ütled?', 'Vali kõige sobivam reaktsioon.', [
         ['Ametnik ütleb sulle vastuvõtul: „Teie taotlus on kahjuks puudulik.”', 'Kas te võiksite täpsustada, mis sellest puudub?', 'Miks te minu taotlust üldse ei lugenud?', 'Selge, siis ma enam taotlust ei esita.'],
         ['Ehitaja helistab ja ütleb, et remont hilineb kaks nädalat.', 'Kas see tähendab, et kolimine lükkub ka edasi?', 'Hilinemine ei ole üldse minu probleem.', 'Kaks nädalat on ju väga lühike aeg.'],
@@ -505,18 +539,18 @@ export const LESSONS = {
         ['Kuuled linnaosa valitsusest, et toetuse tähtaeg on möödas.', 'Sel juhul taotleme toetust järgmisel kevadel.', 'Tähtaeg ei ole minu jaoks üldse tähtis.', 'Esitan taotluse ikkagi kohe täna õhtul.'],
         ['Saad teada, et puitaknad on plastakendest kaks korda kallimad.', 'Uue info põhjal vahetame esialgu ainult kaks akent.', 'Ostan ikkagi plastaknad, keegi ju ei näe.', 'Ma ei usu seda, see on kindlasti vale info.'],
       ], 'full', 'g_vocab'),
-      B.wordorder('009_p_order', 'Pane lause kokku.', 'Pane sõnad õigesse järjekorda.', [
-        'Sel juhul jätame seina alles ja teeme laia ukseava.',
-        'Selle asemel võiksime vana akna lasta parandada.',
-        'Uue info põhjal otsustasime remondi kaks nädalat edasi lükata.',
-        'Kas see tähendab, et peame uue teatise esitama?',
-        'Nõmmel on palju vanu puumaju ja suuri aedu.',
-        'Meie majas ei ole veel ühtegi plastakent.',
-        'Kas oleks võimalik vastuvõtule tulla juba homme?',
-        'Kuna tähtaeg on möödas, taotleme toetust järgmisel kevadel.',
-        'Hoovis ei ole konteineri jaoks piisavalt ruumi.',
-        'Kas ma sain õigesti aru, et luba kehtib kuu aega?',
-      ], 'full'),
+      B.errorfix('009_p_fix', 'Paranda Jaani kiirustades kirjutatud laused.', 'Jaan kirjutas need laused kiiruga. Igas lauses on üks tüüpiline viga (sõnajärg, vorm või kääne): kirjuta lause õigesti.', [
+        ['Kas ma sain õigesti aru, et on sein kandev ja seda ei saa eemaldada?', 'Kas ma sain õigesti aru, et sein on kandev ja seda ei saa eemaldada?'],
+        ['Kas see tähendab, et peab konteiner homme hommikuks tänaval olema?', 'Kas see tähendab, et konteiner peab homme hommikuks tänaval olema?'],
+        ['Uue info põhjal pere otsustas remondi kaks nädalat edasi lükata.', 'Uue info põhjal otsustas pere remondi kaks nädalat edasi lükata.'],
+        ['Sel juhul ehitajad teevad seina asemel laia ukseava.', 'Sel juhul teevad ehitajad seina asemel laia ukseava.'],
+        ['Kas oleks võimalik teie vastuvõtule tulema juba neljapäeval?', 'Kas oleks võimalik teie vastuvõtule tulla juba neljapäeval?'],
+        ['Me peame ehitusprojekti valmimist veel kolm nädalat ootada.', 'Me peame ehitusprojekti valmimist veel kolm nädalat ootama.'],
+        ['Hoovis ei ole ehitajate konteineri jaoks piisavalt ruum.', 'Hoovis ei ole ehitajate konteineri jaoks piisavalt ruumi.'],
+        ['Meie vanas puumajas ei ole veel ühtegi plastaken.', 'Meie vanas puumajas ei ole veel ühtegi plastakent.'],
+        ['Linn ei luba miljööalal panna plastaknad ega kõrget plekkaeda.', 'Linn ei luba miljööalal panna plastaknaid ega kõrget plekkaeda.'],
+        ['Ingridi vastuvõtt on teisipäeviti ja neljapäeviti kell üheksa kuni kaksteist.', 'Ingridi vastuvõtt on teisipäeviti ja neljapäeviti kella üheksast kaheteistkümneni.'],
+      ]),
       B.formtext('009_p_letter', 'Pane sõnad õigesse vormi.', 'Kadri kirjutab Helgile, mis remondiga juhtus. Kirjuta sulgudes olev sõna sobivas vormis.', 'Kiri Helgile', [
         'Kallis Helgi! Remondiga on palju [muresid|muret] (mure). Köögi [seinas] (sein) on vanad torud ja sein on ka kandev. Seetõttu teeme seina asemel laia ukseava.',
         '',
@@ -526,14 +560,14 @@ export const LESSONS = {
         '',
         'Kõige parem uudis: majas elab palju toredaid [naabreid] (naaber)! Üks naaber tõi meile isegi [kooki] (kook). Tule meid suvel vaatama!',
       ]),
-      teach(B.rolecards('009_p_debate', 'Oodata või muuta plaani?', 'A ja B arutavad, mida akendega teha. Kasutage kaarte ja jõudke 5 minutiga otsuseni.',
-        'Oled Jaan. Ootamise poolt: aasta pärast saame toetust kuni 3000 eurot; vanu aknaid saab talveks parandada; laen on niigi suur.', 'Oled Kadri. Ootamise vastu: vanad aknad lasevad külma läbi; toetust ei saa kindlasti; kaks akent saame vahetada juba praegu.',
-        ['Ootamise poolt räägib see, et…', 'Kui me ootame, siis…', 'Uue info põhjal…'], ['Teisalt…', 'Kas see tähendab, et…?', 'Pakun kompromissi: …']), 'Üks-ühele: õpetaja võtab Kadri kaardi ja vaidleb vastu; õpilane kaitseb ootamist. Lõpus sõnastage koos otsus ja üks põhjus.'),
-      B.speaking('009_p_mono', 'Ootamatu päev.', 'Räägi 2–3 minutit päevast, mil sinu plaan ootamatult muutus.', ['Mis oli sinu plaan ja mis juhtus?', 'Mida sa küsisid või kellelt abi palusid?', 'Mis oli sinu alternatiiv?', 'Mida sa sellest päevast õppisid?'], [120, 180], ['Plaan oli…, aga äkki…', 'Sel juhul…', 'Uue info põhjal otsustasin…']),
+      tag(B.speaking('009_p_mono', 'Ootamatu päev kaks korda.', 'Jutusta päevast, mil sinu plaan ootamatult muutus. Räägi kaks korda: esimest korda kolme, teist korda kahe minutiga.', ['Mis oli sinu plaan ja mis juhtus?', 'Mida sa küsisid või kellelt abi palusid?', 'Mis oli sinu alternatiiv?', 'Mida sa sellest päevast õppisid?'], [120, 180], ['Plaan oli…, aga äkki…', 'Sel juhul…', 'Uue info põhjal otsustasin…']), { task: 'S07', fluency: true }),
+      teach(tag(B.rolecards('009_p_debate', 'Eksaminurk: argumendikaardid (Harno B2 rääkimine 2)', 'Teema: kas aknad vahetada kohe või oodata toetust? Kaart A on ootamise poolt, kaart B vastu. Öelge oma arvamus, arutage 5 minutit ja jõudke ühise seisukohani.',
+        'Kaart A (ootamise poolt). Oled Jaan. Argumendid: aasta pärast saame toetust kuni 3000 eurot; vanu aknaid saab talveks parandada; laen on niigi suur. Lisa oma näide.', 'Kaart B (ootamise vastu). Oled Kadri. Argumendid: vanad aknad lasevad külma läbi; toetust ei pruugi saada; kaks akent saame vahetada juba praegu. Lisa oma näide.',
+        ['Ootamise poolt räägib see, et…', 'Kui me ootame, siis…', 'Näiteks…'], ['Teisalt…', 'Kas see tähendab, et…?', 'Pakun kompromissi: …']), { task: 'S17', harno: 'S2' }), 'Üks-ühele: õpetaja võtab kaardi B ja vaidleb vastu; õpilane kaitseb ootamist. Lõpus sõnastage koos ühine seisukoht ja üks põhjus.'),
     ],
     transfer: [
       B.text('009_t_sit', 'Mooduli lõpuülesanne: pöördumine linnale', 'Juuni alguses tuli uus üllatus. Linn teatas, et Vahtra tänavat remonditakse terve suve. Maja ette ei saa parkida ja konteiner peab Kuuse tänavalt kaduma. Ehitajad ei pääse majja ning remont võib seisma jääda. Ka Eda ja teised naabrid on mures. Nagu pildil Anna, peab ka Jaan oma plaani kiiresti ümber tegema. Ta kirjutab Nõmme linnaosa valitsusele ametliku pöördumise ja läheb ametniku vastuvõtule.'),
-      B.listening('009_t_news', 'Raadiouudis.', 'Kuula kaks korda. Kirjuta lünka üks või kaks sõna.', [
+      tag(B.listening('009_t_news', 'Raadiouudis: mida see meile tähendab?', 'Kuula raadiouudist kaks korda. Kirjuta lünka, mida uudis Metsade perele tähendab: üks-kaks sõna.', [
         'Ülle: Raadio Linnahääl, kohalikud uudised. Nõmmel algavad suured teetööd, mis puudutavad sadu elanikke.',
         'Ülle: Esmaspäevast remonditakse Vahtra ja Kuuse tänavat. Tööd kestavad augusti lõpuni.',
         'Ülle: Tänavale paigaldatakse uued veetorud ja kõnniteed. Autoliiklus on tööde ajal mõlemal tänaval suletud.',
@@ -546,23 +580,22 @@ export const LESSONS = {
         'Ülle: Elanike küsimustele vastab ka ehitusspetsialist Ingrid, kes tunneb Nõmme teetöid hästi. Tema vastuvõtt toimub teisipäeviti ja neljapäeviti.',
         'Ülle: Lisainfot saab linna infotelefonilt ja linnaosa valitsuse kodulehelt, kus on ka tööde kaart.',
       ], [
-        'Vahtra ja Kuuse tänaval kestavad teetööd [augusti lõpuni].',
-        'Tööde ajal paigaldatakse tänavale uued veetorud ja [kõnniteed].',
-        'Autode jaoks on ajutine parkla [Jaama tänaval], turu taga.',
-        'Tööde ajal pääsevad majade juurde ka [prügiveo] autod ja kiirabi.',
-        'Ajutised parkimisload kaotavad esmaspäevast [kehtivuse].',
-        'Kellel on majas remont, saab taotleda [erandit].',
-        'Pöördumises tuleb põhjendada, miks erand on [vajalik].',
-        'Nendele pöördumistele vastab linnaosa valitsus [kümne tööpäeva|10 tööpäeva] jooksul.',
-        'Elanike küsimustele vastab vastuvõtul ehitusspetsialist [Ingrid], kes tunneb Nõmme teetöid hästi.',
-        'Lisainfot saab linna infotelefonilt ja linnaosa valitsuse [kodulehelt], kus on ka tööde kaart.',
-      ]),
-      teach(B.rolecards('009_t_meeting', 'Ametniku vastuvõtul.', 'A on Jaan, B ametnik Ingrid. Vestluse keskel saab Ingrid uue info. Reageerige ja leidke lahendus.',
+        'Kuna tööd kestavad augusti lõpuni, ei saa ehitajad terve [suve] maja ette sõita.',
+        'Jaan ei saa tööde ajal autoga Vahtra tänavale, sest autoliiklus on seal [suletud].',
+        'Oma auto peab Jaan nüüd jätma ajutisse parklasse, mis asub [Jaama tänaval] turu taga.',
+        'Kui Metsade majja on vaja kiirabi, pääseb see majani ka [tööde ajal].',
+        'Ingridi antud ajutine luba Kuuse tänavale [kaotab kehtivuse|ei kehti] juba esmaspäevast.',
+        'Kuna Metsadel on majas remont, võivad nad taotleda [erandit].',
+        'Erandi saamiseks peab Jaan kirjutama linnaosa valitsusele [pöördumise].',
+        'Pöördumises peab Jaan põhjendama, miks erand on perele [vajalik].',
+        'Vastuse saab Jaan tavalisest kiiremini, [kümne tööpäeva|10 tööpäeva] jooksul.',
+        'Kui Jaan tahab ametnikuga rääkida, saab ta minna vastuvõtule teisipäeval või [neljapäeval].',
+      ]), { task: 'L06', level: 3 }),
+      teach(tag(B.rolecards('009_t_meeting', 'Ametniku vastuvõtul: kummalgi oma info.', 'A on Jaan, B ametnik Ingrid; kummalgi on infot, mida teine ei tea. Vestluse keskel saab Ingrid uue info. Reageerige ja leidke lahendus.',
         'Oled Jaan. Palu erandit: ehitajate buss peab kolm korda nädalas maja ette sõitma ja konteiner peab jääma veel kaheks nädalaks. Küsi üle, täpsusta ja paku alternatiivi.', 'Oled Ingrid. Alguses: erandi saab ainult buss, konteiner mitte. Vestluse keskel helistab tööde juht: kõnnitee Vahtra 5 ees saab valmis juba 20. juunil. Paku uus lahendus.',
-        ['Ma sooviksin taotleda erandit, sest…', 'Kas ma sain õigesti aru, et…?', 'Sel juhul pakun…', 'Uue info põhjal…'], ['Kahjuks ei saa me…', 'Mulle just helistati: …', 'Selle asemel võiksime…', 'Kas see sobib teile?']), 'Üks-ühele: õpetaja on Ingrid ja toob vestluse keskel uue info („Mulle just helistati…”); õpilane reageerib. Siis vahetage rollid ja õpetaja on Jaan.'),
-      B.planning('009_t_plan', 'Pöördumise plaan.', 'Kirjuta igale reale märksõnad.', ['Kellele ja miks ma kirjutan?', 'Mis juhtus ja millal?', 'Miks on erand meile vajalik? (kaks põhjust)', 'Mida ma juba tegin?', 'Mida täpselt ma palun ja mis tähtajaks?', 'Mida pakun vastu? (alternatiiv)'], 2),
-      B.letter('009_t_letter', 'Pöördumine linnaosa valitsusele.', 'Kirjuta ametlik pöördumine: kirjelda probleemi, põhjenda erandi vajadust, palu viisakalt ja paku alternatiivi.', 'Lugupeetud Nõmme linnaosa valitsus!', 'Lugupidamisega', [140, 160]),
-      B.speaking('009_t_story', 'Lõpuettekanne: meie uue kodu lugu.', 'Räägi 2–3 minutit, kuidas Metsade pere uue kodu leidis ja mida linnas ajas.', ['Miks pere uut kodu otsis ja mille nad valisid?', 'Kuidas läks asjaajamine pangas ja linnaosa valitsuses?', 'Millised probleemid tulid ootamatult?', 'Kuidas nad probleemid lahendasid?', 'Mida sina sellest loost õppisid?'], [120, 180], ['Kõigepealt…, seejärel…', 'Kuigi…, …', 'Uue info põhjal…']),
+        ['Ma sooviksin taotleda erandit, sest…', 'Kas ma sain õigesti aru, et…?', 'Sel juhul pakun…', 'Uue info põhjal…'], ['Kahjuks ei saa me…', 'Mulle just helistati: …', 'Selle asemel võiksime…', 'Kas see sobib teile?']), { task: 'S05' }), 'Üks-ühele: õpetaja on Ingrid ja toob vestluse keskel uue info („Mulle just helistati…”); õpilane reageerib. Siis vahetage rollid ja õpetaja on Jaan.'),
+      tag(B.letter('009_t_letter', 'Pöördumine linnaosa valitsusele.', 'Vasta raadios kuuldud teatele: kirjuta ametlik pöördumine, kirjelda probleemi, põhjenda erandi vajadust, palu viisakalt ja paku alternatiivi.', 'Lugupeetud Nõmme linnaosa valitsus!', 'Lugupidamisega', [140, 160]), { task: 'W08', level: 4, main: true }),
+      tag(B.speaking('009_t_story', 'Kodus: meie uue kodu lugu.', 'Salvesta 2–3-minutiline lõpuettekanne: kuidas Metsade pere uue kodu leidis ja mida linnas ajas. Salvesta see kaks korda, teisel korral vabamalt.', ['Miks pere uut kodu otsis ja mille nad valisid?', 'Kuidas läks asjaajamine pangas ja linnaosa valitsuses?', 'Millised probleemid tulid ootamatult?', 'Kuidas nad probleemid lahendasid?', 'Mida sina sellest loost õppisid?'], [120, 180], ['Kõigepealt…, seejärel…', 'Kuigi…, …', 'Uue info põhjal…']), { task: 'S15', fluency: true }),
       B.rubric('009_t_rubric', 'Mooduli lõpuülesanne.', 'Märgi, mis pöördumises ja vestluses on olemas.', ['Pöördumises on probleem, põhjendus, tehtud sammud ja selge palve.', 'Palve on viisakas: sooviksin, kas oleks võimalik, palun.', 'Pakkusin alternatiivi: Selle asemel…, Sel juhul…', 'Vestluses küsisin üle ja reageerisin uuele infole.', 'Olukord on kirjeldatud õigete vormidega: tänaval ei ole parkimiskohti, maja ees on konteiner.', 'Pöördumine on 140–160 sõna pikk.']),
       B.selfcheck('009_t_self', ['Ma võrdlen üürimist ja ostmist ning kirjeldan kodu ümbrust.', 'Ma valin õige vormi: majas on lift / majas ei ole lifti / lähedal on kohvikuid.', 'Ma ajan asju pangas ja ametiasutuses viisakalt.', 'Ma kirjutan kaebuse neljas sammus.', 'Ma reageerin ootamatusele ja kirjutan linnale pöördumise.'], 'Uus kodu'),
     ],
@@ -574,16 +607,16 @@ export const LESSONS = {
     canDo: 'Ma lahendan eksami vormis lugemis- ja kuulamisülesandeid linna ja teenuste teemal, kirjutan umbes 140-sõnalise tagasiside ja 180-sõnalise arutluse ning esinen fookusgrupis 1 minuti.',
     discover: [
       B.text('010_d_intro', 'Kordamine enne kontrolli', 'See leht kordab tunde 6–9: kuhu-kus-kust, viisakas dialoog, kaebus nelja sammuga ja reageerimine ootamatusele. Tee ülesanded ilma abita ja märgi kahtlased kohad.'),
-      B.vocab('010_d_vocab', 'Teenuste sõnad', ['teenindusbüroo — бюро обслуживания', 'teenuskeskus — сервисный центр', 'ettepanek — предложение', 'arvamus — мнение', 'tagasiside — отзыв', 'internet — интернет', 'riik — государство', 'elanik — житель', 'teenus — услуга', 'pöörduma — обращаться'], '2'),
+      B.vocab('010_d_vocab', 'Teenuste sõnad', ['järjekord — очередь', 'külastus — посещение / визит', 'ettepanek — предложение', 'arvamus — мнение', 'tagasiside — отзыв', 'internet — интернет', 'riik — государство', 'elanik — житель', 'teenus — услуга', 'pöörduma — обращаться'], '2'),
       B.diagram('010_d_map', 'flow', { title: 'Kaart: Liisi laupäev.', instruction: 'Kirjuta kohakäändes vorm.', nodes: 'Liisi väljub [kodust] (kodu) kell 9.\nTa läheb [turule] (turg) ja ostab marju.\n[Turult] (turg) läheb ta [apteeki|apteegisse] (apteek).\n[Apteegis] (apteek) on pikk järjekord.\nLõunat sööb ta [kohvikus] (kohvik) jõe ääres.\nÕhtul läheb ta [kontserdile] (kontsert).' }, 'full', 'g_use'),
-      B.reading('010_d_read', 'Lugemisosa.', 'Loe tekst ja vasta. Mõned küsimused nõuavad järeldust.', 'Linn, mis teenib inimesi',
+      B.reading('010_d_read', 'Lugemisosa.', 'Loe artiklit Pärnu teenuskeskusest ja vasta oma sõnadega; osa vastuseid tuleb tekstist järeldada.', 'Linn, mis teenib inimesi',
         'Paljud Eesti linnad on viimastel aastatel püüdnud muuta oma teenused elanikele mugavamaks. Pärnu linnavalitsus avas eelmisel aastal teenuskeskuse, kus saab ühe külastusega ajada mitut asja: registreerida elukoha, taotleda lasteaiakohta, küsida toetust ja broneerida aega sotsiaaltöötaja juurde. Varem pidi selleks käima neljas eri majas. Teenuskeskuse juhataja sõnul oli kõige suurem probleem see, et inimesed ei teadnud, kuhu pöörduda. „Mõni käis kolm korda valel uksel ja läks pahasena koju,” räägib ta. Nüüd võtab kõiki vastu üks infolett, kus töötaja selgitab, kas asja saab ajada kohe või tuleb aeg broneerida.\n\nTeenindajad on läbinud koolituse, kuidas suhelda klientidega, kelle emakeel ei ole eesti keel. Neil paluti rääkida aeglasemalt, kasutada lihtsamaid sõnu ja kontrollida lõpus, kas klient sai aru. Samas ei vahetata kohe teise keele peale, sest paljud kliendid tahavad just eesti keelt harjutada. Uuest süsteemist on ka puudusi. Teenuskeskus asub kesklinnast väljas ja ühistranspordiga sõites tuleb ümber istuda. Eakad elanikud on kurtnud, et neil on sinna raske jõuda.\n\nSeetõttu otsustas linn alustada kord nädalas mobiilse teenindusega: teenindaja sõidab bussiga linnaosadesse ja võtab inimesi vastu raamatukogudes. Esimese kuu jooksul kasutas seda võimalust üle kahesaja inimese. Linn kogub ka tagasisidet: iga külastuse järel saab klient anda hinnangu ühest viieni. Keskmine hinne on praegu 4,6. Kõige sagedamini kiidetakse teenindajate sõbralikkust, kõige sagedamini kurdetakse pikkade ootejärjekordade üle esmaspäeva hommikuti.\n\nTeenuskeskuse esimese poolaasta tulemused on julgustavad. Külastajate küsitluse järgi on rahul üle kaheksakümne protsendi inimestest ja keskmine ooteaeg on vähenenud pooleteise tunnilt kahekümnele minutile. Linnavalitsus kaalub nüüd, kas avada sarnane keskus ka teises linnaosas, kus elab palju eakaid ja noori peresid.',
         [['Mis on teenuskeskuse eelis võrreldes varasemaga?', 'kõik asjad saab ajada ühes kohas|ei pea käima neljas eri majas'], ['Mis oli varem suurim probleem?', 'inimesed ei teadnud, kuhu pöörduda'], ['Mida õpetati teenindajatele?', 'rääkima aeglasemalt, lihtsamalt ja kontrollima mõistmist'], ['Miks ei vahetata kohe keelt?', 'paljud tahavad eesti keelt harjutada'], ['Miks on eakatel keskusesse raske jõuda?', 'see on kesklinnast väljas ja tuleb ümber istuda'], ['Kuidas linn probleemi lahendas?', 'mobiilne teenindus raamatukogudes kord nädalas'], ['Mille üle kurdetakse kõige sagedamini?', 'pikad järjekorrad esmaspäeva hommikuti']]),
-      B.gaps('010_d_gram', 'Kümme grammatikapunkti.', 'Kirjuta sulgudes olev sõna õiges vormis.', ['Ta töötab [linnavalitsuses] (linnavalitsus).', 'Me tulime just [turult] (turg).', 'Kas sa tuled õhtul [kinno] (kino)?', 'Laps on [arsti juures] (arst).', '[Sooviksin] (soovima) aega broneerida.', 'Kas te [saaksite] (saama) seda korrata?', 'Kas [oleks] (olema) võimalik homme tulla?', 'Ma [oleksin] (olema) tänulik vastuse eest.', 'Kas sul juhtumisi [prille] (prillid) kaasas ei ole?', 'Pakk tuli [pakiautomaati] (pakiautomaat).']),
-      B.errorfix('010_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [['Ma lähen raamatukogus.', 'Ma lähen raamatukokku. | Ma lähen raamatukogusse.'], ['Ta on tööle.', 'Ta on tööl.'], ['Paluksin raha tagastama.', 'Paluksin raha tagastada.'], ['Kas te saaks aidata?', 'Kas te saaksite aidata?'], ['Kuna pakk jäi hiljaks, sest olin pahane.', 'Kuna pakk jäi hiljaks, olin pahane.'], ['Kas teil juhtumisi vaba tool ei ole?', 'Kas teil juhtumisi vaba tooli ei ole?']]),
+      B.gaps('010_d_gram', 'Kümme grammatikapunkti.', 'Kirjuta sulgudes olev sõna sellesse lausesse sobivas vormis: kohakääne või tingiv kõneviis.', ['Ta töötab [linnavalitsuses] (linnavalitsus).', 'Me tulime just [turult] (turg).', 'Kas sa tuled õhtul [kinno] (kino)?', 'Laps on [arsti juures] (arst).', '[Sooviksin] (soovima) aega broneerida.', 'Kas te [saaksite] (saama) seda korrata?', 'Kas [oleks] (olema) võimalik homme tulla?', 'Ma [oleksin] (olema) tänulik vastuse eest.', 'Kas sul juhtumisi [prille] (prillid) kaasas ei ole?', 'Pakk tuli [pakiautomaati] (pakiautomaat).']),
+      B.errorfix('010_d_fix', 'Paranda viga.', 'Igas lauses on üks mooduli tüüpviga. Leia see ja kirjuta lause õigesti.', [['Ma lähen raamatukogus.', 'Ma lähen raamatukokku. | Ma lähen raamatukogusse.'], ['Ta on tööle.', 'Ta on tööl.'], ['Paluksin raha tagastama.', 'Paluksin raha tagastada.'], ['Kas te saaks aidata?', 'Kas te saaksite aidata?'], ['Kuna pakk jäi hiljaks, sest olin pahane.', 'Kuna pakk jäi hiljaks, olin pahane.'], ['Kas teil juhtumisi vaba tool ei ole?', 'Kas teil juhtumisi vaba tooli ei ole?']]),
       B.speaking('010_d_mono', 'Monoloog 2 minutit.', 'Räägi oma linnast: kuhu sa tavaliselt asju ajama lähed, kus on hea teenindus ja mis vajaks parandamist.', ['Kuhu lähed, kui pead asju ajama?', 'Kus on sinu arvates hea teenindus ja miks?', 'Mis ei toimi hästi?', 'Mida soovitaksid linnale?'], [120, 150]),
       B.letter('010_d_letter', 'Kordamise kiri (100–120 sõna).', 'Kirjuta linnavalitsusele ettepanek: mida võiks teeninduses paremaks teha ja miks.', 'Lugupeetud linnavalitsus!', 'Lugupidamisega', [100, 120]),
-      B.dictation('010_d_dict', 'Etteütlus.', 'Kuula ja kirjuta laused.', ['Teenuskeskuses saab ajada mitut asja.', 'Inimesed ei teadnud, kuhu pöörduda.', 'Kas te saaksite seda aeglasemalt korrata?', 'Paluksin probleemi kiiresti lahendada.', 'Sel juhul tulen hoopis homme.', 'Teenindaja sõidab bussiga linnaosadesse.']),
+      B.dictation('010_d_dict', 'Etteütlus.', 'Õpetaja loeb iga lause kaks korda. Kirjuta laused õigesti üles.', ['Teenuskeskuses saab ajada mitut asja.', 'Inimesed ei teadnud, kuhu pöörduda.', 'Kas te saaksite seda aeglasemalt korrata?', 'Paluksin probleemi kiiresti lahendada.', 'Sel juhul tulen hoopis homme.', 'Teenindaja sõidab bussiga linnaosadesse.']),
       TR('010_d_tr', ['Я иду в банк, а потом в библиотеку.', 'Не могли бы вы говорить чуть медленнее?', 'Прошу исправить ошибку в счёте до пятницы.', 'Правильно ли я понял, что автобус не останавливается в центре?', 'В таком случае я приду завтра утром.', 'Документы можно отправить по электронной почте.']),
 
     ],
@@ -592,7 +625,8 @@ export const LESSONS = {
     // one extra, short notices and a radio interview
     practice: [
       B.tip('010_p_how', 'Kontrolltöö: lugemine ja kuulamine (eksami vormis)', 'See leht on nagu Harno eksami lugemise ja kuulamise osa. Teateid loeb õpetaja üks kord, intervjuud kaks korda. Lõpus lahendad ühe suulise olukorra. Tee kõik ilma sõnaraamatuta.', 'full'),
-      B.reading('010_p_read', 'Lugemine 1: artikkel.', 'Loe artiklit. Vasta kahele küsimusele, siis tee osad 1 ja 2.', 'E-riik ja teenindusbüroo', [
+      PART('010_p_rpart', 'R', { minutes: 45, points: 29, tasks: 4, note: 'Lugemisosa on Harno B2 vormis, lühemana: neli ülesannet, 29 punkti. Mooduli kontrolli eesmärk on vähemalt 24 punkti (80 %).' }),
+      B.reading('010_p_read', 'Lugemine 1: artikkel.', 'Lugege artiklit. Vastake kõigepealt kahele küsimusele, seejärel lahendage osad 1 ja 2.', 'E-riik ja teenindusbüroo', [
         '(A) Eestit nimetatakse sageli e-riigiks. Peaaegu kõiki riigiteenuseid saab kasutada internetis. Maksudeklaratsiooni esitamine võtab paar minutit, retsepti saab apteegist ID-kaardiga ja elukoha saab registreerida kodust lahkumata. Ka arsti juurde saab aja panna internetis. Paljudele välismaalastele tundub see esimestel kuudel lausa uskumatu.',
         '(B) Ometi on teenindusbüroodes endiselt järjekorrad. Ametnike sõnul käib büroodes igal aastal väga palju inimesi. Osa tuleb dokumendi järele, mida saab kätte ainult isiklikult, näiteks esimese passi. Teised tulevad aga lihtsalt sellepärast, et nad ei julge internetis ise asju ajada. Mõnikord tullakse ka selleks, et üle küsida, kas kõik on õigesti tehtud.',
         '(C) Teenindaja Marina Kuusk on töötanud Narva büroos kaheksa aastat. Tema sõnul on klientide seas palju eakaid, kuid mitte ainult. „Ka noored tulevad, kui teema on keeruline või kui nad kardavad viga teha,” räägib ta. Kõige sagedamini küsitakse abi taotluse täitmisel ja foto üleslaadimisel.',
@@ -600,15 +634,15 @@ export const LESSONS = {
         '(E) Järgmisel aastal plaanitakse mitmes väiksemas linnas avada uued teenuspunktid. Seal saab ühes kohas ajada nii riigi kui ka kohaliku omavalitsuse asju. Lisaks hakkab mööda maakonda sõitma teenindusbuss, kus saab esitada dokumenditaotlusi ja küsida nõu. Bussi graafik avaldatakse valla kodulehel ja kohalikus lehes.',
         '(F) Marina Kuusk peab seda heaks mõtteks, kuid lisab, et ükski tehnika ei asenda inimest. „Kui klient lahkub ja ütleb, et järgmine kord proovib ise kodus, siis tean, et tegin oma tööd hästi,” ütleb ta naeratades. Ta loodab, et ka uutes teenuspunktides jätkub inimesi, kes oskavad kannatlikult selgitada.',
       ].join('\n\n'), [['Miks ei piisa kriitikute arvates ainult e-teenustest?', 'osa inimesi jääb kõrvale|kõik ei saa digimaailmas hakkama|eakad ei saa hakkama'], ['Kuidas plaanitakse aidata väiksemate linnade elanikke?', 'teenuspunktid|teenindusbuss|teenuspunktide ja bussiga'], ['Mida sina arvad: kas ajad asju pigem internetis või büroos? Miks?']]),
-      B.choice('010_p_mc', 'Osa 1: vali õige vastus (6 punkti).', 'Vali artikli põhjal õige vastus.', [
+      tag(B.choice('010_p_mc', 'Osa 1: vali õige vastus (6 punkti).', 'Valige artikli põhjal igale küsimusele neljast vastusest üks õige.', [
         ['Mis tundub paljudele välismaalastele uskumatu?', 'et peaaegu kõik riigiteenused on internetis', 'et teenindusbüroodes ei ole järjekordi', 'et retsepti saab ainult arsti käest', 'et elukoha registreerimine võtab mitu päeva'],
         ['Miks käiakse teenindusbüroos, kuigi teenus on internetis?', 'Mõni dokument antakse kätte isiklikult ja mõni kardab ise asju ajada.', 'Internetis on teenused tasulised, büroos aga tasuta.', 'Teenindusbüroo on avatud kauem kui e-teenus.', 'Internetis ei saa ühtegi dokumenti taotleda.'],
         ['Kes on Marina Kuuse sõnul büroo kliendid?', 'peamiselt eakad, aga ka noored', 'ainult eakad inimesed', 'peamiselt välismaalased', 'need, kes ei oska eesti keelt'],
         ['Mis on kriitikute peamine mure?', 'Digimaailmas abituks jäävad inimesed võivad jääda kõrvale.', 'Arvutikursused raamatukogudes on liiga kallid.', 'E-teenused ei ole piisavalt turvalised.', 'Teenindusbüroodes töötab liiga vähe inimesi.'],
         ['Mida saab teha teenindusbussis?', 'esitada dokumenditaotluse ja küsida nõu', 'saada kohe kätte uue passi', 'osaleda tasuta arvutikursusel', 'maksta kohaliku omavalitsuse arveid'],
         ['Millal on Marina Kuuse arvates tema töö hästi tehtud?', 'kui klient julgeb järgmine kord ise proovida', 'kui klient ei pea järjekorras ootama', 'kui klient saab dokumendi samal päeval', 'kui klient tuleb järgmine kord uuesti büroosse'],
-      ], 'full', 'g_read'),
-      B.table('010_p_para', 'Osa 2: väide ja lõik (8 punkti).', 'Loe väiteid 1–8. Kirjuta, millises artikli lõigus (A–F) see mõte on. Ühte lõiku võib sobida kaks väidet.', 'Väide, Lõik', [
+      ], 'full', 'g_read'), { harno: 'R1' }),
+      tag(B.table('010_p_para', 'Osa 2: väide ja lõik (8 punkti).', 'Lugege väiteid 1–8 ja leidke, millises artikli lõigus (A–F) on sama mõte. Ühte lõiku võib sobida kaks väidet.', 'Väide, Lõik', [
         '1. Mõnda dokumenti ei saa internetis kätte. | [B]',
         '2. Ka noored vajavad mõnikord abi. | [C]',
         '3. Uutes punktides saab ajada riigi ja valla asju koos. | [E]',
@@ -617,23 +651,23 @@ export const LESSONS = {
         '6. Tehnika ei saa inimest täielikult asendada. | [F]',
         '7. Kõige rohkem küsitakse abi taotluse täitmisel. | [C]',
         '8. Teenindus hakkab ise inimeste juurde sõitma. | [E]',
-      ], 'g_read'),
-      B.cloze('010_p_cloze', 'Osa 3: vali lünka sobiv vorm (9 punkti).', 'Igas lüngas on neli valikut. Vali õige.', 'Kiri linnavalitsusele', [
+      ], 'g_read'), { task: 'R14', harno: 'R2a' }),
+      tag(B.cloze('010_p_cloze', 'Osa 3: vali lünka sobiv vorm (9 punkti).', 'Lugege Olga kirja. Valige iga lünga jaoks neljast variandist see, mis sobib vormi ja tähenduse poolest.', 'Kiri linnavalitsusele', [
         'Lugupeetud linnavalitsuse esindaja!',
         'Pöördun {*teie poole|teie juurde|teile poole|teid poole} seoses meie linnaosa teenuskeskusega. Keskus asub praegu {*linna serval|linna servale|linna servalt|linna serv}, kuhu on ühistranspordiga raske jõuda. Eriti {*puudutab|puudutavad|puudutama|puudutatud} see probleem eakaid ja lapsevanemaid.',
         'Ma tean, et linn on uue asukoha üle juba {*arutanud|arutama|arutada|arutab}. Väike teeninduspunkt võiks asuda {*raamatukogus|raamatukokku|raamatukogust|raamatukoguga}, mis on kõigile tuttav koht. Raamatukogu juhataja on valmis {*koostööks|koostööd|koostöös|koostööle}.',
         'Palun {*arvestage|arvestate|arvestama|arvestanud} ka sellega, et paljud elanikud vajavad abi vene keeles. Oleksin tänulik, kui saaksin vastuse {*kahe nädala jooksul|kaks nädalat jooksul|kahe nädalat|kaks nädalaga}.',
         'Lugupidamisega\nOlga Smirnova',
-      ].join('\n\n')),
-      B.gaps('010_p_bank', 'Osa 4: vali lause (6 punkti).', 'Loe juhendit „Uus ID-kaart”. Vali igasse lünka sobiv lause. Üks lause jääb üle.', [
+      ].join('\n\n')), { harno: 'R3' }),
+      tag(B.gaps('010_p_bank', 'Osa 4: vali lause (6 punkti).', 'Loe juhendit „Uus ID-kaart”. Vali igasse lünka sobiv lause. Üks lause jääb üle.', [
         'ID-kaart kehtib viis aastat. [Uue kaardi taotlemist tasub alustada vähemalt kuu enne tähtaega.]',
         'Kõige lihtsam on esitada taotlus iseteeninduses. [Selleks on vaja kehtivat ID-kaarti ja PIN-koode.]',
         'Taotlusele tuleb lisada foto. [Fotot saab teha ka teenindusbüroo fotokabiinis.]',
         'Pärast taotluse esitamist tuleb maksta riigilõiv. [Ilma makseta taotlust menetlema ei hakata.]',
         'Valmis kaardi järele tuleb minna isiklikult. [Kaasa tuleb võtta isikut tõendav dokument.]',
         'Kaardi kättesaamisel antakse uued PIN-koodid. [Neid ei tohi hoida koos kaardiga.]',
-      ], ['Uue kaardi taotlemist tasub alustada vähemalt kuu enne tähtaega.', 'Selleks on vaja kehtivat ID-kaarti ja PIN-koode.', 'Fotot saab teha ka teenindusbüroo fotokabiinis.', 'Ilma makseta taotlust menetlema ei hakata.', 'Kaasa tuleb võtta isikut tõendav dokument.', 'Neid ei tohi hoida koos kaardiga.', 'Valmis kaardi saadetakse postiga koju.'], 'full', 'g_read'),
-      B.transformation('010_p_trans', 'Teisenda.', 'Kirjuta lause antud sõnaga.', [['Ma olen pangas.', 'kust? (tulen)', 'Ma tulen pangast.'], ['Andke mulle blankett.', 'kas te saaksite', 'Kas te saaksite mulle blanketi anda?'], ['Internet ei tööta. Ma ei saa töötada.', 'seetõttu', 'Internet ei tööta, seetõttu ma ei saa töötada. | Internet ei tööta, seetõttu ei saa ma töötada.'], ['Rong jäi ära. Ma võtan bussi.', 'sel juhul', 'Rong jäi ära, sel juhul võtan ma bussi. | Rong jäi ära, sel juhul ma võtan bussi. | Rong jäi ära, sel juhul võtan bussi.'], ['Rong ei sõida?', 'kas ma sain õigesti aru', 'Kas ma sain õigesti aru, et rong ei sõida?'], ['Pakk saadeti valele aadressile. Ma olen pahane.', 'kuna', 'Kuna pakk saadeti valele aadressile, olen ma pahane.|Kuna pakk saadeti valele aadressile, olen pahane.']]),
+      ], ['Uue kaardi taotlemist tasub alustada vähemalt kuu enne tähtaega.', 'Selleks on vaja kehtivat ID-kaarti ja PIN-koode.', 'Fotot saab teha ka teenindusbüroo fotokabiinis.', 'Ilma makseta taotlust menetlema ei hakata.', 'Kaasa tuleb võtta isikut tõendav dokument.', 'Neid ei tohi hoida koos kaardiga.', 'Valmis kaardi saadetakse postiga koju.'], 'full', 'g_read'), { task: 'R16', harno: 'R4' }),
+      B.transformation('010_p_trans', 'Teisenda.', 'Muuda iga lause vihje järgi: koht, viisakas palve või sidesõna.', [['Ma olen pangas.', 'kust? (tulen)', 'Ma tulen pangast.'], ['Andke mulle blankett.', 'kas te saaksite', 'Kas te saaksite mulle blanketi anda?'], ['Internet ei tööta. Ma ei saa töötada.', 'seetõttu', 'Internet ei tööta, seetõttu ma ei saa töötada. | Internet ei tööta, seetõttu ei saa ma töötada.'], ['Rong jäi ära. Ma võtan bussi.', 'sel juhul', 'Rong jäi ära, sel juhul võtan ma bussi. | Rong jäi ära, sel juhul ma võtan bussi. | Rong jäi ära, sel juhul võtan bussi.'], ['Rong ei sõida?', 'kas ma sain õigesti aru', 'Kas ma sain õigesti aru, et rong ei sõida?'], ['Pakk saadeti valele aadressile. Ma olen pahane.', 'kuna', 'Kuna pakk saadeti valele aadressile, olen ma pahane.|Kuna pakk saadeti valele aadressile, olen pahane.']]),
       B.choice('010_p_choice', 'Mida öelda?', 'Vali sobivaim lause.', [
         ['Sa tahad postipunktis pakki kätte saada.', 'Tere! Mul on vaja pakk välja võtta.', 'Tere! Mul on vaja pakk ära saata.', 'Tere! Andke mulle kohe minu pakk.'],
         ['Arvel on vale summa.', 'Kahjuks on arvel vale summa, paluksin selle parandada.', 'Arvel on vale summa, parandage see kohe ära!', 'Kahjuks on arvel õige summa, paluksin selle parandada.'],
@@ -641,7 +675,8 @@ export const LESSONS = {
         ['Teenindaja pakub sobimatut aega.', 'Kahjuks ei sobi. Kas oleks võimalik hiljem?', 'Jah, see aeg sobib mulle hästi.', 'See aeg ei sobi, andke teine.'],
         ['Tahad kontrollida kokkulepet.', 'Kas ma sain õigesti aru, et dokument on reedel valmis?', 'Kas dokument oli reedel valmis?', 'Kas te saite õigesti aru, et dokument on reedel valmis?'], ['Tahad teada, kui kaua dokumendi valmimine võtab.', 'Kui kaua dokumendi valmimine aega võtab?', 'Kui palju dokumendi valmimine maksab?', 'Millal te dokumendi valmis tegite?']], 'full', 'g_use'),
       TR('010_p_tr', ['Сервисный центр открыт по субботам до трёх часов.', 'Новую ID-карту можно заказать через интернет.', 'Если вам нужна помощь, обратитесь к консультанту.', 'Документ будет готов через тридцать дней.', 'Чиновник приезжает в район на автобусе.', 'Пожилым людям часто нужна помощь с компьютером.']),
-      B.listening('010_p_notes', 'Kuulamine 1: lühikesed teated (6 punkti).', 'Õpetaja loeb iga teate üks kord. Kirjuta lünka 1–2 sõna.', [
+      PART('010_p_lpart', 'L', { minutes: 30, points: 25, tasks: 3, note: 'Kuulamisosa on Harno B2 vormis, lühemana: kolm ülesannet, 25 punkti. Mooduli kontrolli eesmärk on vähemalt 20 punkti (80 %).' }),
+      B.listening('010_p_notes', 'Kuulamine 1: lühikesed teated (6 punkti).', 'Kuulake nelja lühikest teadet. Iga teadet kuulete ainult üks kord; kirjutage lünka üks-kaks sõna.', [
         '1. Lugupeetud kliendid! Teenindusbüroo on homme koolituse tõttu avatud alles kella kaheteistkümnest.',
         '2. Tere, siin teie internetipakkuja klienditeenindus. Teie piirkonnas on ühenduses rike, mis parandatakse eeldatavasti õhtuks.',
         '3. Head ostjad! Kaubanduskeskuse parkla teisel korrusel tehakse remonti. Palun kasutage maa-alust parklat.',
@@ -654,7 +689,7 @@ export const LESSONS = {
         'Autod tuleks jätta [maa-alusesse] parklasse.',
         'Neljapäeval saab vett võtta paagist, mis on [hoovis].',
       ]),
-      B.listening('010_p_listen', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Õpetaja loeb intervjuu kaks korda. Kirjuta lünka 1–2 sõna.', [
+      tag(B.listening('010_p_listen', 'Kuulamine 2: raadiointervjuu (9 punkti).', 'Kuulake raadiointervjuud linna bussidest kaks korda ja kirjutage igasse lünka üks-kaks sõna.', [
         'Saatejuht: Tere hommikust! Alates järgmisest kuust muutub meie linnas ühistransport. Stuudios on linna transpordiosakonna juhataja Toomas Lill. Toomas, mis täpselt muutub?',
         'Toomas: Kõige suurem muudatus on see, et piletit ei pea enam ette ostma. Bussis saab maksta otse pangakaardiga. Sõit maksab endiselt ühe euro, aga kui sõidad päevas rohkem kui kolm korda, on iga järgmine sõit tasuta. Telefoniga saab samuti maksta.',
         'Saatejuht: Kas see tähendab, et ka bussid liiguvad kiiremini?',
@@ -678,14 +713,14 @@ export const LESSONS = {
         'Liin number viis sõidab tipptunnil iga [kümne minuti|10 minuti] järel.',
         'Bussijuhilt ei saa enam osta piletit [sularahas|sularahaga].',
         'Infotelefon töötab kella seitsmest [üheksani|21-ni].',
-      ]),
-      B.truefalse('010_p_tf', 'Kuulamine 3: õige või vale? (10 punkti)', 'Õpetaja loeb intervjuu veel kord. Märgi, kas väide on õige või vale.', [
+      ]), { harno: 'L3' }),
+      tag(B.truefalse('010_p_tf', 'Kuulamine 3: õige või vale? (10 punkti)', 'Kuulake intervjuud kolmandat korda. Otsustage iga väite kohta, kas see on õige või vale.', [
         ['Uus süsteem hakkab kehtima järgmisest kuust.', true], ['Sõidu hind tõuseb kahe euroni.', false],
         ['Kuukaarti enam ei müüda.', false], ['Pensionärid sõidavad ka edaspidi tasuta.', true],
         ['Uue liini number on viis.', false], ['Ööbussid sõidavad nädalavahetustel.', true],
         ['Paberpileteid saab osta kioskitest.', true], ['Infovoldikud on ainult eesti keeles.', false],
         ['Bussis saab maksta ka telefoniga.', true], ['Esimesel kuul küsitakse sõitjatelt tagasisidet.', true],
-      ], 'full'),
+      ], 'full'), { task: 'L05', harno: 'L4' }),
       B.rolecards('010_p_role1', 'Suuline olukord 1: teenindusbüroos.', 'Rääkige 3 minutit. Klient alustab, täpsustab kaks korda ja lõpetab kokkuleppega.',
         'Vajad uut ID-kaarti, sest vana kaotasid. Küsi, kui kaua see võtab, palju maksab ja kas saad vahepeal mingi dokumendi.', 'Oled teenindaja. ID-kaart valmib 30 päevaga, maksab 35 €. Vahepeal saab kasutada passi või digi-ID-d.',
         ['Sooviksin…', 'Kas oleks võimalik…?', 'Kas ma sain õigesti aru…?'], ['Kuidas ma saan aidata?', 'See võtab…', 'Kas veel midagi?']),
@@ -694,12 +729,13 @@ export const LESSONS = {
     // Harno format check, writing and speaking: feedback of ~140 words in a semi-formal register, an argument of
     // ~180 words, a 1-minute speech in a focus group after 2 minutes' preparation, a discussion with argument cards
     transfer: [
-      B.text('010_t_situation', 'Lõpuülesanne (eksami vormis)', 'See leht on nagu Harno eksami kirjutamise ja rääkimise osa. Linn kogub elanike arvamusi uue teenuskeskuse kohta. Sa kirjutad tagasiside, arutled ja esined fookusgrupis.'),
+      B.text('010_t_situation', 'Lõpuülesanne (eksami vormis)', 'See leht on nagu Harno eksami kirjutamise ja rääkimise osa. Linn kogub elanike arvamusi uue teenuskeskuse kohta. Sa kirjutad tagasiside ja arutluse ning esined fookusgrupis.'),
+      PART('010_t_wpart', 'W', { minutes: 70, points: 25, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Tagasiside eest saab 10 ja arutluse eest 15 punkti; mooduli kontrolli eesmärk on vähemalt 20 punkti (80 %).' }),
       B.reading('010_t_read', 'Loe kutset.', 'Loe ja vasta küsimustele.', 'Kutse fookusgruppi',
         'Hea linnaelanik! Meie linna teenuskeskus on olnud avatud pool aastat ja nüüd soovime teada, kuidas see teie arvates toimib. Kutsume teid osalema fookusgrupis, kus arutame koos teenuskeskuse häid ja halbu külgi. Kohtumine toimub järgmise kuu teisel teisipäeval kell kuus õhtul linnaraamatukogu saalis. Kohtumine kestab poolteist tundi ja selle juhib sõltumatu uuringufirma. Osalejaid on kokku kaksteist: noored, lapsevanemad, eakad ja teise emakeelega elanikud. Arutelu toimub eesti keeles, kuid vajadusel aitab tõlk. Enne kohtumist palume teil kirjutada lühike tagasiside, umbes sada kakskümmend sõna.\n\nKirjutage, kui tihti olete teenuskeskust külastanud, mis teile meeldis, mis tekitas probleeme ja mida soovitaksite muuta. Kohtumisel palume igal osalejal teha kahe-kolmeminutilise sõnavõtu ühe kõige olulisema ettepanekuga. Pärast sõnavõtte arutame ettepanekuid väikestes gruppides ja valime välja kolm, mis esitatakse linnavalitsusele. Kohtumisel pakutakse kohvi ja võileibu. Tänutäheks saab iga osaleja kahekümne euro väärtuses kinkekaardi kohalikku raamatupoodi. Lapsevanematele on kohtumise ajaks korraldatud lastehoid raamatukogu lastesaalis.\n\nPalume osalemisest teada anda hiljemalt kümme päeva enne kohtumist e-posti teel või helistades linna infotelefonile. Kohtade arv on piiratud, seetõttu arvestame registreerimise järjekorda. Kui te ei saa kohtumisele tulla, võite saata oma tagasiside ka kirjalikult. Oleme teie arvamuse eest väga tänulikud, sest just elanike kogemused näitavad, mida tuleks muuta. Eelmise fookusgrupi ettepanekute põhjal pikendati juba teenindussaali lahtiolekuaegu neljapäeviti kella seitsmeni ning lisati ooteruumi lastenurk.\n\nOsalejatele makstakse tänutäheks kakskümmend eurot ja pakutakse kohvi ning suupisteid. Kui te ei saa kohtumisele tulla, kuid soovite oma arvamust jagada, võite täita ka veebiküsitluse. Kõik vastused on anonüümsed ja neid kasutatakse ainult teenuskeskuse töö parandamiseks. Täname teid juba ette ja ootame teid raamatukogus!',
         [['Miks on linn elanike arvamuse eest tänulik?', 'elanike kogemused näitavad, mida muuta'], ['Kus ja millal kohtumine toimub?', 'linnaraamatukogu saalis järgmise kuu teisel teisipäeval kell 18'], ['Kes kohtumise juhib?', 'sõltumatu uuringufirma'], ['Mida tuleb kirjutada enne kohtumist?', 'tagasiside umbes 120 sõna'], ['Mida peab iga osaleja kohtumisel tegema?', 'kahe-kolmeminutilise sõnavõtu ettepanekuga'], ['Mis saab ettepanekutest pärast sõnavõtte?', 'neid arutatakse gruppides ja kolm esitatakse linnavalitsusele|valitakse kolm ja esitatakse linnavalitsusele'], ['Mida saavad osalejad tänutäheks?', '20-eurose kinkekaardi raamatupoodi'], ['Mida pakutakse lapsevanematele?', 'lastehoidu']]),
-      B.letter('010_t_feedback', 'Kirjutamine 1: tagasiside (umbes 140 sõna).', 'Kirjuta uuringumeeskonnale: kui tihti oled keskust külastanud, mis meeldis, mis tekitas probleeme ja mida soovitad.', 'Hea uuringumeeskond!', 'Lugupidamisega', [125, 144]),
-      B.errorfix('010_t_fix', 'Tagasiside tüüpvead.', 'Igas lauses on üks viga. Kirjuta lause õigesti.', [
+      tag(B.letter('010_t_feedback', 'Kirjutamine 1: tagasiside (umbes 140 sõna).', 'Kirjuta uuringumeeskonnale: kui tihti oled keskust külastanud, mis meeldis, mis tekitas probleeme ja mida soovitad.', 'Hea uuringumeeskond!', 'Lugupidamisega', [125, 144]), { task: 'W13', harno: 'W1' }),
+      B.errorfix('010_t_fix', 'Tagasiside tüüpvead.', 'Need laused on elanike tagasisidest. Igas lauses on üks viga; kirjuta lause õigesti.', [
         ['Ma käisin teenuskeskusesse kolm korda.', 'Ma käisin teenuskeskuses kolm korda.|Käisin teenuskeskuses kolm korda.'],
         ['Teenindaja aitas mulle uue ID-kaardi taotlust täita.', 'Teenindaja aitas mul uue ID-kaardi taotlust täita.|Teenindaja aitas mind uue ID-kaardi taotlust täita.'],
         ['Probleem oli selles, et ma pidin ootama üle tund.', 'Probleem oli selles, et ma pidin ootama üle tunni.|Probleem oli selles, et pidin ootama üle tunni.'],
@@ -715,13 +751,16 @@ export const LESSONS = {
         ['Teenindusbuss sõidab linnaosadesse. Eakad ei pea kesklinna sõitma.', 'tänu sellele', 'Teenindusbuss sõidab linnaosadesse, tänu sellele ei pea eakad kesklinna sõitma.|Teenindusbuss sõidab linnaosadesse. Tänu sellele ei pea eakad kesklinna sõitma.'],
         ['Ma soovitan lahtiolekuaegu pikendada.', 'minu ettepanek on', 'Minu ettepanek on lahtiolekuaegu pikendada.|Minu ettepanek on pikendada lahtiolekuaegu.'],
       ]),
-
-      B.speaking('010_t_speech', 'Rääkimine 1: sõnavõtt fookusgrupis (1 minut).', 'Teemakaart: tutvusta üht ettepanekut teenuskeskuse kohta. Mõtle 2 minutit, räägi 1 minut, siis vasta paarilise küsimusele.', ['Mis on probleem?', 'Miks see on oluline?', 'Mida ma soovitan?', 'Kes sellest võidab?'], [90, 120], ['Minu ettepanek on…', 'Probleem on selles, et…', 'Seetõttu soovitan…', 'Kokkuvõttes…']),
-      B.rolecards('010_t_group', 'Rääkimine 2: arutelu argumendikaartidega.', 'Öelge kõigepealt oma arvamus. Siis arutage 4 minutit ja leppige kokku ühine seisukoht.',
+      tag(B.writing('010_t_essay', 'Kirjutamine 2: arutlus (umbes 180 sõna).', 'Teema: kas linna teenused peaksid olema ainult internetis? Kirjutage arutlus: poolt- ja vastuargumendid, näited ja järeldus.', [14, 18], ['ühelt poolt', 'teiselt poolt', 'näiteks', 'kokkuvõttes'], 3), { task: 'W14', harno: 'W2b' }),
+      PART('010_t_spart', 'S', { minutes: 15, points: 25, tasks: 2, note: 'Sõnavõtu eest saab 10 ja arutelu eest 15 punkti; mooduli kontrolli eesmärk on vähemalt 20 punkti (80 %).' }),
+      tag(B.speaking('010_t_speech', 'Rääkimine 1: sõnavõtt fookusgrupis (1 minut).', 'Teemakaart: tutvusta üht ettepanekut teenuskeskuse kohta. Mõtle 2 minutit, räägi 1 minut, siis vasta paarilise küsimusele.', ['Mis on probleem?', 'Miks see on oluline?', 'Mida ma soovitan?', 'Kes sellest võidab?'], [90, 120], ['Minu ettepanek on…', 'Probleem on selles, et…', 'Seetõttu soovitan…', 'Kokkuvõttes…']), { task: 'S16', harno: 'S1' }),
+      tag(B.rolecards('010_t_group', 'Rääkimine 2: arutelu argumendikaartidega.', 'Teema on kaardil. Öelge kumbki kõigepealt oma arvamus, siis arutage neli minutit kaartide abil ja sõnastage ühine seisukoht.',
         'Kaart A (poolt). Teema: kas teenuskeskus peaks olema avatud ka laupäeviti? Argumendid: paljud töötavad tööpäeviti; järjekorrad lühenevad; pered saavad tulla koos. Lisa oma näide.', 'Kaart B (vastu). Teema: kas teenuskeskus peaks olema avatud ka laupäeviti? Argumendid: lisatöötajad maksavad palju; enamik teenuseid on internetis; parem oleks teenindusbuss eakatele. Lisa oma näide.',
-        ['Minu arvates…', 'Esiteks…', 'Ma saan aru, aga…'], ['Samas…', 'Kas oleks võimalik ühendada…?', 'Lepime kokku, et…']),
-      B.rubric('010_t_rubric', 'Hindamine (Harno B2 vorm).', 'Märgi, mis on täidetud.', ['Tagasiside: kõik neli osa, viisakas toon, umbes 140 sõna (10 punkti).', 'Keeleosa: tüüpvead ja arutluse laused, 12 lauset (15 punkti).', 'Sõnavõtt: probleem, lahendus ja kasu 1 minutiga, vastus küsimusele (10 punkti).', 'Arutelu: põhjendasin, reageerisin paarilisele, jõudsime ühise seisukohani (15 punkti).']),
-      B.selfcheck('010_t_self', ['Kirjutamine: … / 25 punkti (tagasiside 10, keeleosa 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60% (30 / 50) ja üheski osas mitte 0 punkti.', 'Ma tean, mida järgmises moodulis harjutada.'], 'Moodul 2 tehtud'),
+        ['Minu arvates…', 'Esiteks…', 'Ma saan aru, aga…'], ['Samas…', 'Kas oleks võimalik ühendada…?', 'Lepime kokku, et…']), { task: 'S17', harno: 'S2' }),
+      B.rubric('010_t_rubric', 'Hindamine (Harno B2 vorm).', 'Märgi, mis on täidetud.', ['Tagasiside: kõik neli osa, viisakas toon, umbes 140 sõna (10 punkti).', 'Arutlus: poolt- ja vastuargumendid, näited ja järeldus, umbes 180 sõna (15 punkti).', 'Sõnavõtt: probleem, lahendus ja kasu 1 minutiga, vastus küsimusele (10 punkti).', 'Arutelu: põhjendasin, reageerisin paarilisele, jõudsime ühise seisukohani (15 punkti).']),
+      B.selfcheck('010_t_self', ['Kirjutamine: … / 25 punkti (tagasiside 10, arutlus 15).', 'Rääkimine: … / 25 punkti (sõnavõtt 10, arutelu 15).', 'Läbitud: kokku vähemalt 60% (30 / 50) ja üheski osas mitte 0 punkti.', 'Ma tean, mida järgmises moodulis harjutada.'], 'Moodul 2 tehtud'),
     ],
   },
-};
+}, {
+  'b1b2-006': 'LUGE R→S', 'b1b2-007': 'RÄÄK L→S', 'b1b2-008': 'KIRJ L→W', 'b1b2-009': 'PROJ R→W', 'b1b2-010': 'EKS',
+});

@@ -1,3 +1,28 @@
+## 2026-10-29 · agent/b2-m02-final — B1→B2 module 2 „Linn, teenused ja asjaajamine” in the final shape
+
+- Base: `main` 822c0d8 (2026-10-29, after #873). Content only; no production data, no publishing, no deploy. Module 1 is
+  done in parallel on another branch (not touched here).
+- Done: `b2/module02.js` (b1b2-006…010) passes every final-shape gate under the B2 profile: **68 → 0 problems**
+  (`final-shape.mjs --course b2 --module 2`); two lines of other modules left the baseline too (011 discover V2, 019
+  practice V7). B2 baseline 1182 → 1112, the `course` lines unchanged. Strict quality gate: all 15 sheets READY
+  (40–55 min, didactic score ≥ 94), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`): 006 LUGE R→S (corner R3 = 12-gap flat ad; main S17 argument cards rent vs buy), 007 RÄÄK L→S
+  (corner W1 = 90-word letter to the builders, W12; main S10 at Ingrid's desk), 008 KIRJ L→W (corner S1 = S16 1-minute
+  talk at the association meeting; main W13 formal complaint), 009 PROJ R→W (corner S2 = S17 argument cards on the
+  windows; main the request to the district, W08 level 4 as a reply to the city's announcement), 010 EKS (R1, R2a, R3,
+  R4, L3, L4, W1, W2b, S1, S2 tagged; four timed `examPart`s; a new 180-word W2b essay `010_t_essay`, as its g_use said).
+  Every teaching lesson: review naming the previous lesson, a pair task in the lesson, an S15 recording at home, two
+  fluency tasks (S08, S09, W06, S07 and S15 recorded twice), every task id within the catalogue caps (50 distinct ids).
+- Changed blocks: new/replaced `007_d_offers` (chart) + W15 summary, `007_p_tr` (translation instead of `007_p_polite`),
+  `007_t_note` + `007_t_phrases` (instead of `007_t_mail`), `008_d_sort` (instead of the diagram), `008_p_talk` (S1
+  corner), `009_p_article` as an R16 sentence bank, `009_p_fix` (instead of `009_p_order`); `009_t_plan` removed (W11
+  once a module). 008_d_voice got times and sums (L10): audio rebuilt (TartuNLP), other transcripts unchanged. Vocab:
+  topic words korteriühistu, haldusfirma, mõõtja, pöördumine (V14 92 %). `b2/lessonGoals.js`: canDo/g_use of 006–009.
+- Note: `b2/lessonGoals.test.js` asks every non-text block for a lesson goal and does not skip `exampart`; the module
+  gives its part headers the part's goal (`PART` helper). Better fix later: add `exampart` to that test's NOT_TASKS.
+- Checks: `final-shape.mjs --course b2 --module 2` 0; `npx eslint --quiet src` 0; `npx vitest run` 402 files passed
+  (2767 tests); language check 0 unknown lower-case words.
+- Next safe step: B1→B2 module 3 (`b2/module03.js`, b1b2-011…015) in the final shape, branch `agent/b2-m03-final`.
 ## 2026-10-29 · agent/b2-m01-final — B1→B2 module 1 in the final shape
 
 - Base: `main` 822c0d8 (2026-10-29, after #873 B2 final-shape gates). Draft PR from `agent/b2-m01-final`. Content only;
