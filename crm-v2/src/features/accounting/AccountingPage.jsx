@@ -155,6 +155,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const openAccount = (account) => { setDialog('account'); setForm(account ? { ...account, existing: true } : { code: '', name: '', type: 'expense', reportLine: '', active: true }); setError(''); };
   const close = () => { if (!busy) { setDialog(null); setError(''); } };
   const openDelete = (row) => { setDialog('delete'); setForm({ entry: row, reason: '' }); setError(''); };
+  const openUndoStorno = (row) => { setDialog('undoStorno'); setForm({ entry: row, reason: '' }); setError(''); };
   const openLock = () => { setDialog('lock'); setForm({ lockedThrough: lockedThrough || `${today().slice(0, 7)}-01`, reason: '' }); setError(''); };
 
   const saveDraft = async () => {
@@ -178,6 +179,11 @@ export default function AccountingPage({ repository = accountingService, canEdit
     event.preventDefault();
     if (!form.reason?.trim()) { setError('Lisa kustutamise põhjus.'); return; }
     if (await run('save', () => repository.deleteEntry(form.entry.id, form.reason.trim()), `Kanne ${form.entry.label} kustutati. Sisu ja põhjus jäid ajalukku.`)) setDialog(null);
+  };
+  const submitUndoStorno = async (event) => {
+    event.preventDefault();
+    if (!form.reason?.trim()) { setError('Lisa põhjus.'); return; }
+    if (await run('save', () => repository.undoStorno(form.entry.id, form.reason.trim()), (r) => `Storno ${form.entry.label} tühistati. Kanne ${r.original?.number || ''} kehtib jälle; mõlema ajalukku jäi põhjus.`)) setDialog(null);
   };
   const submitLock = async (event) => {
     event.preventDefault();
@@ -268,7 +274,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
           <dt>Järjestus</dt><dd>{sortLabel}</dd>
         </dl>
         <JournalGrid entries={journalFull.entries} accounts={accounts} suppliers={suppliers} lockedThrough={lockedThrough} readOnly={readOnly} repository={repository}
-          onChanged={state.reload} onNotice={setNotice} sort={journalSort} onSort={sortBy} onDelete={openDelete} onStorno={openStorno}
+          onChanged={state.reload} onNotice={setNotice} sort={journalSort} onSort={sortBy} onDelete={openDelete} onStorno={openStorno} onUndoStorno={openUndoStorno}
           draftSlot={draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} suppliers={suppliers} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null} />
         <p className="accounting-sheet__footer"><span>{COMPANY.name}</span><span>Rg-kood {COMPANY.regCode}</span></p>
       </div> : <EmptyState title="Perioodis kandeid ei ole" description="Vali teine periood või kande kood või vajuta „Uuenda kanded”." />}
@@ -374,6 +380,14 @@ export default function AccountingPage({ repository = accountingService, canEdit
         <p className="form-hint">Kanne kaob registritest, kuid selle sisu, kustutaja, aeg ja põhjus jäävad ajalukku („Näita kustutatud”). Kande numbrit ei kasutata uuesti.</p>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
         <label className="textarea-field"><span>Põhjus *</span><textarea aria-label="Kustutamise põhjus" rows="3" value={form.reason || ''} onChange={(event) => setForm({ ...form, reason: event.target.value })} /></label>
+      </form>
+    </Modal>
+
+    <Modal open={dialog === 'undoStorno'} title={`Tühista ekslik storno ${form.entry?.label || ''}`} onClose={close} footer={<><Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button><Button variant="danger" type="submit" form="accounting-undo-storno-form" loading={busy === 'save'}>Tühista storno</Button></>}>
+      <form id="accounting-undo-storno-form" className="expense-form" onSubmit={submitUndoStorno}>
+        <p className="form-hint">Storno kaob registritest ja algne kanne kehtib jälle. Storno sisu, tühistaja, aeg ja põhjus jäävad ajalukku („Näita kustutatud”); numbrit ei kasutata uuesti.</p>
+        {error ? <p className="form-error" role="alert">{error}</p> : null}
+        <label className="textarea-field"><span>Põhjus *</span><textarea aria-label="Storno tühistamise põhjus" rows="3" value={form.reason || ''} onChange={(event) => setForm({ ...form, reason: event.target.value })} /></label>
       </form>
     </Modal>
 
