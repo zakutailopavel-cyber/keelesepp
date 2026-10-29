@@ -62,6 +62,32 @@ export function lessonState(item = {}) {
   return 'planned';
 }
 
+// the mark in the corner of a lesson (owner 2026-10-29: „справа вверху по символу или ленточке отличать проведённый,
+// проведённый за счёт школы и т.д., чтобы админу не открывать каждый урок”): one key, a symbol and a label
+export const LESSON_MARKS = Object.freeze({
+  cancelled: { symbol: '✕', label: 'Tühistatud' },
+  absentLate: { symbol: '!', label: 'Puudus, ei teatanud (tasuline)' },
+  absentNotified: { symbol: 'T', label: 'Puudus, teatas ette' },
+  covered: { symbol: 'K', label: 'Toimunud kooli kulul (tasuta)' },
+  verified: { symbol: '✓✓', label: 'Toimunud ja kontrollitud' },
+  done: { symbol: '✓', label: 'Toimunud' },
+  unmarked: { symbol: '?', label: 'Möödunud, märkimata' },
+});
+export function lessonMark(item = {}, today = '') {
+  const record = item.record || {};
+  const status = record.status || item.status || '';
+  if (status === 'Tühistatud') return 'cancelled';
+  if (status === 'Puudus_eta') return 'absentLate';
+  if (status === 'Puudus_p') return 'absentNotified';
+  if (status === 'Toimunud' || item.lessonRecordId) {
+    if (['school_covered', 'covered', 'free'].includes(record.billingStatus || item.billingStatus)) return 'covered';
+    if (record.verified || item.verified) return 'verified';
+    return 'done';
+  }
+  if (!item.isGroup && today && item.occurrenceDate && item.occurrenceDate < today) return 'unmarked';
+  return '';
+}
+
 export function resolveOccurrenceRecord(item, records = []) {
   if (item.isGroup) return item;
   const date = item.occurrenceDate;

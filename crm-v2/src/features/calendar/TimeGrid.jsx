@@ -2,11 +2,15 @@ import { Check, StickyNote, Video, X } from 'lucide-react';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { PX_PER_MIN, SNAP, canMove, gridRange, layoutColumn, snapMinutes, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import SubjectTag from './SubjectTag.jsx';
-import { LESSON_STATE_LABELS, lessonState } from './calendarView.js';
+import { LESSON_MARKS, LESSON_STATE_LABELS, lessonMark, lessonState } from './calendarView.js';
 
 const statusOf = lessonState;
-// the ribbon in the top right corner: green held, yellow absent, red cancelled (calendarV2.css .tg-ribbon)
-const Ribbon = ({ status }) => (status === 'planned' ? null : <i className={`tg-ribbon is-${status}`} title={LESSON_STATE_LABELS[status]} aria-hidden="true" />);
+// the mark in the top right corner: a coloured tag with a symbol per state (calendarView.js LESSON_MARKS, calendarV2.css .tg-mark)
+const Ribbon = ({ item, today }) => {
+  const key = lessonMark(item, today);
+  if (!key) return null;
+  return <i className={`tg-mark is-${key}`} title={LESSON_MARKS[key].label} aria-label={LESSON_MARKS[key].label}>{LESSON_MARKS[key].symbol}</i>;
+};
 
 const nowMinutes = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
 
@@ -219,7 +223,7 @@ export default function TimeGrid({ tones = null, columns, allowColumnChange = tr
                       return (
                         <button key={item.occurrenceId} type="button" role="listitem" data-student-id={item.isGroup ? undefined : item.studentId || undefined} className={`tg-cluster-item tone-${toneOf(item)} is-${status} ${item.blockClass || ''} ${item.online ? 'is-online' : 'is-onsite'} ${movable ? 'is-movable' : ''} ${drag?.moved && drag.item.occurrenceId === item.occurrenceId ? 'is-dragging' : ''}`} onPointerDown={(event) => startDrag(event, item, column, 'move')} title={`${item.time} · ${item.studentName || 'Õpilane'}${item.subject ? ` · ${item.subject}` : ''}${item.online ? ' · veebitund' : ' · kohapeal'}${item.teacher ? ` · ${item.teacher}` : ''}`} aria-label={`${item.time} ${item.studentName || 'Õpilane'}${item.online ? ', veebitund' : ''}`} onClick={(event) => { event.stopPropagation(); if (!movable || event.detail === 0) onOpen(item); }}>
                           <span>{item.online ? <Video className="tg-online-icon" size={11} aria-hidden="true" /> : null}{item.time}</span><strong><SubjectTag subject={item.subject} />{item.studentName || 'Õpilane'}{item.adminNote ? <StickyNote className="tg-note" size={11} aria-label="Admini märkus" /> : null}</strong>{status === 'done' ? <Check size={11} /> : status === 'absent' ? <X size={11} /> : null}
-                          <Ribbon status={status} />
+                          <Ribbon item={item} today={column.today} />
                         </button>
                       );
                     })}
@@ -250,7 +254,7 @@ export default function TimeGrid({ tones = null, columns, allowColumnChange = tr
                       {onQuickDone && status === 'planned' && !item.isGroup && item.occurrenceDate <= column.today ? (
                         <button type="button" className="tg-quick" aria-label={`Märgi toimunuks: ${item.studentName || 'Õpilane'}`} onPointerDown={(event) => event.stopPropagation()} onClick={(event) => { event.stopPropagation(); onQuickDone(item); }}><Check size={14} /></button>
                       ) : null}
-                      <Ribbon status={status} />
+                      <Ribbon item={item} today={column.today} />
                       {movable ? <span className="tg-resize" aria-hidden="true" onPointerDown={(event) => startDrag(event, item, column, 'resize')} /> : null}
                     </div>
                   );

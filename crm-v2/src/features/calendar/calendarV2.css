@@ -505,3 +505,17 @@ button.cal2-colors__swatch { cursor: pointer; }
 .tg-ribbon.is-cancelled { border-right-color: #d92d20; }
 .tg-block.is-cancelled { opacity: .7; background: repeating-linear-gradient(135deg, #fef3f2 0 6px, #fff 6px 12px); }
 .tg-block.is-cancelled strong { text-decoration: line-through; }
+
+/* the mark in the corner of a lesson (owner 2026-10-29): a coloured tag with a symbol per state */
+.tg-mark { position: absolute; top: 0; right: 0; z-index: 2; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 0 7px 0 7px; display: inline-grid; place-items: center; font: 800 .66rem/1 Manrope, system-ui, sans-serif; font-style: normal; color: #fff; pointer-events: none; }
+.tg-cluster-item .tg-mark { min-width: 13px; height: 13px; font-size: .58rem; }
+.tg-mark.is-done { background: #12b76a; }
+.tg-mark.is-verified { background: #067647; }
+.tg-mark.is-covered { background: #2e90fa; }
+.tg-mark.is-absentNotified { background: #f5b301; color: #3d2a00; }
+.tg-mark.is-absentLate { background: #f79009; }
+.tg-mark.is-cancelled { background: #d92d20; }
+.tg-mark.is-unmarked { background: #98a2b3; }
+.cal2-marks { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 4px 0 0; color: #667085; font-size: .76rem; }
+.cal2-marks > span { display: inline-flex; align-items: center; gap: 5px; }
+.cal2-marks .tg-mark { position: static; border-radius: 6px; }

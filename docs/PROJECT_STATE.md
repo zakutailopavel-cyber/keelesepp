@@ -1,3 +1,22 @@
+## 2026-10-29 · agent/b2-course-close — B1→B2: the last course lines closed (L1, L2 gaps); B2 baseline `{}`
+
+- Base: `main` bacad76 (modules 1–18 merged), checked 2026-10-29. Content only; no production data, no publishing, no deploy.
+- Goal: close `V6-gap-L1` (L1 practised in modules 3 → 11) and `V6-gap-L2` (9 → 15) with the smallest change in earlier
+  exam lessons (gap rule: the module numbers of two practices differ by at most 3).
+- Done: **030** (m6): the untagged four one-line notes `030_p_notes` rebuilt as an L1 task (six 25-s work notices, played
+  once, 3-option MC, `L01`/`L1`, 6 points kept). **045** (m9): new `045_t_clips` L1 (six health notices, played once, MC).
+  **060** (m12 mock): new `060_t_show` L2 (talk show „Digiriik”, Merle Kask + Ants Raud on seniors' digital skills, ~3 min,
+  played twice, 6 MC, `L02`/`L2`); L part 28 → 34 points, 40 → 50 min, tip, notes and rubrics updated. L1 now runs
+  3 → 6 → 9 → 11 …, L2 6 → 9 → 12 → 15 ….
+- Why on Kasuta: on the Harjuta sheets a fifth recognition task broke the B2 norm (≤ 4 recognition tasks) — the new
+  listenings sit at the start of the writing sheet, as 060_p_clips already did; L2 has 6 items (didactic check: ≥ 6 at B2).
+- Files: `b2/module06.js`, `b2/module09.js`, `b2/module12.js`, `listeningAudio.json`, audio `b1b2-030/030_p_notes.mp3`
+  (rebuilt), `b1b2-045/045_t_clips.mp3`, `b1b2-060/060_t_show.mp3` (TartuNLP, free), `finalShapeBaselineB2.json` → `{}`.
+- Checks: `final-shape.mjs --course b2` **total 0** (all 18 modules and the course group); finalShape baseline regenerated
+  to `{}`; `course.test.js` modules 06/09/12 green (strict gate too); eslint clean; full vitest green except UI timeouts
+  under load that pass when rerun alone (studentWorksheetFlow, LiveRoom, WorksheetStudioPage); language check of modules
+  06/09/12: only the known `kusimustik`.
+- Next safe step: owner reviews and merges the PR; the B1→B2 course is then at 0 final-shape problems.
 ## 2026-10-29 · agent/a2-final-shape-gates — the A2 course under the final-shape gates (A2 profile)
 
 - Owner: „продолжай с курсами, потом A2” (order after B1→B2: A2 → C1 → English). Gates only, no content.
@@ -7,6 +26,118 @@
   `archetypeProblems` now reads V5 numbers from the profile. Course test checks a2 too (`finalShapeBaselineA2.json`,
   2139 problems); `final-shape.mjs --course a2`. Doc: `docs/COURSE_FINAL_SHAPE_A2.md` (exam map, schedule, archetype plan).
 - B1 and B2 baselines unchanged. Next safe step: A2 module 1 (`a2/module01.js`) in the final shape.
+## 2026-10-29 · agent/calendar-status-symbols — a symbol per lesson state in the calendar corner
+
+- Owner: „справа вверху по символу или ленточке отличать проведённый, проведённый за счёт школы и т.д., чтобы админу не
+  открывать каждый урок”. `calendarView.lessonMark(item, today)` + `LESSON_MARKS`: ✓ Toimunud (green), ✓✓ kontrollitud
+  (dark green), K kooli kulul (blue), T puudus, teatas ette (yellow), ! puudus, ei teatanud (orange), ✕ tühistatud (red),
+  ? möödunud ja märkimata (grey). A tag in the top right corner of each lesson (TimeGrid, crowded lists) and a legend
+  under the calendar toolbar. Replaces the plain triangle of agent/calendar-status-ribbon.
+- Checks: calendar vitest 200 pass; full run in the PR.
+## 2026-10-29 · agent/b2-m18-final — B1→B2 module 18 „B2 rääkimine ja lõpphindamine” in the final shape (the last module)
+
+- Base: `main` (after #895 module 11; modules 12–16 queued as #898, #900, #901, #903, #904, module 17 as #905). The course
+  lines were measured in a scratch copy with all module branches 12–17. Content only; no production data, no publishing,
+  no deploy.
+- Done: `b2/module18.js` (b1b2-086…090) passes every final-shape gate under the B2 profile: **73 → 0 problems**
+  (`final-shape.mjs --course b2 --module 18`); strict quality gate: all 15 sheets READY (teaching sheets 40–55 min).
+- Shape (`withShapes`, §4.1 row 18): 086 RÄÄK L→S (corner **S1** = `086_p_examiner`, card talk + partner's question,
+  S16; main `086_t_panel` S14 internal-competition panel; new radio feature `086_p_radio` L01 and `086_p_draft` G03),
+  087 KIRJ R→W (corner **R4** = new `087_p_model`, Jaan's letter to the café landlord with a sentence bank, R16; main
+  `087_t_letter` W15 proposal from the three cards' data), 088 LUGE R→S (corner **L2** = new `088_p_radio`, Maret in
+  „Keeletund”, 10 MC; main `088_t_meeting` S17; new `088_p_fix` G06; `088_t_reflect` is now a W04 letter to Maret).
+  Reviews name 084/076, 086/078, 087/074; pair task in every lesson; home recordings S15 ×3; two fluency tasks a lesson.
+  089 and 090 PROOV: four timed `PART`s each, tags L1, L2, L3, L4, R1, R2a (089) / R2b (090), R3, R4 (the „sentence”
+  clozes became sentence banks with one extra; broken options `full` / `g_read` removed), W1 + new W2b (089) / W2a (090),
+  S1, S2; every mock instruction made unique (V7).
+- Cast: the café landlord is now **Raivo Laur** (Toivo Allik stays Sofia's Tartu landlord, `COURSE_CAST.md`); supplier
+  Priit („Värske Toit”) kept in 087. Vocab: nõudmine, järeleandmine, peamõte, kirjutamine, rääkimine, lõpphindamine,
+  osaoskus → nõue, järele andma, sisu, kiri, kõne, hinne, oskus (V14). canDo and goals of 086–088 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `086_p_radio`, `088_p_radio`, rebuilt `087_p_interview` (landlord renamed); removed
+  `086_p_clips`, `088_p_lecture` (files and manifest entries).
+- Course lines (all-branches copy 12–17 + this branch): 7 → 2. Closed `V6-total-L2`, `V6-exam-L2` (089 L2 + 088 L2 corner,
+  with 082/085 of module 17). Left: `V6-gap-L1` (L1 practised in modules 3 and 11 only → a module 4–10 needs an L1 corner or
+  exam tag) and `V6-gap-L2` (modules 9 → 15 → needs L2 in a module 10–14). Both are outside module 18.
+- Baseline note: on this branch alone (main without modules 12–17) the B2 baseline gains course `V6-gap-*` lines for the
+  formats module 18 now tags; they disappear when 12–17 are merged — regenerate `finalShapeBaselineB2.json` after each merge.
+- Checks: see the PR. Language check (Vabamorf) of module 18: 0 unknown lower-case words.
+- Next safe step: after #898–#905 are merged, merge this PR's branch with `main`, regenerate the B2 baseline, and decide
+  (owner) whether to add an L1 corner in modules 4–10 and an L2 corner in modules 10–14 to empty the baseline.
+## 2026-10-29 · agent/b2-m17-final — B1→B2 module 17 „B2 kirjutamine” in the final shape
+
+- Base: `main` d61f34c, then `origin/main` 399bdf9 merged (module 11 is on `main`). Modules 12–16 (#898, #900, #901,
+  #903, #904) were not on `main` yet: with their branches put in a scratch tree, module 17 shows 0 problems, 079 (LUGE,
+  corner R3) → 081 (LUGU, corner R4) has no family repeat and no V1/V2 line, and the course lines only shrink
+  (`V6-total-L1`, `V6-exam-L1`, `V6-corner-L2` close; left: `V6-gap-L1`, `V6-gap-L2`, `V6-total-L2`, `V6-exam-L2` — 089
+  must tag L2). On `main` alone the regenerated baseline lists `V6-gap-L2/L3/L4/R1/R2/R4/S1/S2/W1/W2`, because modules
+  12–16 are untagged there; they leave when #898–#904 land (rebaseline then). Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module17.js` (b1b2-081…085) passes every final-shape gate under the B2 profile: **59 → 0 problems**
+  (`final-shape.mjs --course b2 --module 17`); `b1b2-086` discover/transfer V2 left the baseline too. Strict quality gate:
+  all 15 sheets without a problem (teaching sheets 40–51 min, didactic 100), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 17): 081 LUGU R→W (corner R4 = `081_p_bank`, Linnaelu article with eight sentences out
+  and one extra, R16; main `081_t_letter` W14 opinion text), 082 KUUL L→W (corner L2 = new `082_p_lc`, Helen Põld on the
+  radio, 10 MC with 3 options; main `082_t_letter` W13), 083 AVAS R→S (corner W2a = new chart `083_p_data` +
+  `083_p_summary` W15; main `083_t_pitch` S16 talk to the grant committee, recorded at home), 084 PROB L→S (corner L4 = new
+  `084_p_show`, talk show with Reet Kallas and Natalja, 12 true / false; main new `084_t_say` S16 talk at the course
+  meeting, recorded at home). 085 EKS: L1 (new `085_p_clips`, five clips played once, 6 MC), L2 (new `085_p_lc`, Annika
+  Vaht's interview, 6 MC), L3, R1, R2a, W1 (W13), W2a (new chart + `085_t_w2`, W15), S1 (S16), S2 (S17), four timed
+  `PART`s. Every teaching lesson: review naming the previous lesson and a module 13–15 lesson (080/073, 081/069, 082/064,
+  083/074), an in-lesson pair task, a home recording, two fluency tasks; S16 ×2, S17 ×1 (081_t_debate).
+- Changed blocks: real ids on every task; removed `081_p_tf`, `082_p_parts`, `082_p_reg`, `083_p_parts`, `083_p_tf`,
+  `083_p_say`, `083_p_write`, `084_d_sort`, `084_p_mc`, `084_p_why`, `084_p_examiner`, `084_t_w2`; new `081_p_join`
+  (G05), `083_p_rank` idea card (S12), `084_p_case` gaps → formtext, `084_p_bank` phrase bank (R05); `084_t_sources`
+  short applied answers (R15 level 3); error rows that were not errors replaced. Vocab: topic words teemalause, sidend,
+  sihitis. canDo of 081, 083, 084 in the module file, goals of 081–085 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `082_p_lc`, `084_p_show`, `085_p_clips`, `085_p_lc`; rebuilt `082_t_voice` (Annika's
+  machine now in March, not August); removed `084_p_examiner`.
+- Checks: `final-shape.mjs --course b2 --module 17` 0; `npx eslint --quiet src` 0; `npx vitest run` 408 files passed
+  (2810 tests, 5 skipped); Vabamorf language check of module 17: 0 unknown lower-case words.
+- Limits: the R4 corner text is ≈ 250 words (Harno 350–400); the W2a corner is 8–10 sentences, shorter than the exam; the
+  085 L1 clips are ≈ 60–70 words.
+- Next safe step: B1→B2 module 18 (`b2/module18.js`, b1b2-086…090, §4.1 row 18); 086's corner must not be L4 (084's
+  corner), and 089 must tag L2.
+
+## 2026-10-29 · agent/b2-m16-final — B1→B2 module 16 „B2 grammatika integratsioon” in the final shape + Mock (080)
+
+- Base: `main` 8c7eb3d, then `origin/main` e18da53 merged (after #895, module 11). Modules 12–15 (#898, #900, #901, #903)
+  were not on `main` yet: with their `moduleNN.js` put in place in a scratch tree, module 16 still shows 0 problems
+  (074 corner W2a → 076 corner L2; V1/V2/V12 clean at 074→076 and 079→081). On `main` alone the regenerated B2 baseline
+  lists `V6-gap-L2/L3/L4/R1/R2/R3/R4/S1/S2/W1/W2` (modules 12–15 untagged there); they leave when #898–#903 are merged
+  and the baseline is rewritten. Content only; no production data, no publishing, no deploy.
+- Done: `b2/module16.js` (b1b2-076…080) passes every final-shape gate under the B2 profile: **64 → 0 problems**
+  (`final-shape.mjs --course b2 --module 16`). Strict quality gate: all 15 sheets READY (teaching sheets 40–55 min),
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 16): 076 PROJ L→S (corner L2 = new `076_p_radio`, „Päevateema” interview with Sofia and
+  Ilze Berg, 10 MC; main `076_t_say` S16 Sofia's talk at the board meeting, recorded at home), 077 KIRJ L→W (corner L4 =
+  new `077_p_show`, talk show with Jaan and Henri Pärtel, 12 true/false; main `077_t_essay` W14 „Kas keelt saab õppida
+  ilma kursuseta?”), 078 RÄÄK R→S (corner S2 = new `078_p_debate`, bake or buy bread, S17; main `078_t_say` S16 the bread
+  video, recorded at home), 079 LUGE R→W (corner R3 = `079_p_cloze`, the car-park chapter lengthened, 12 gaps; main
+  `079_t_final` W15 summary after the new chart `079_t_data`). 080 PROOV (Vahehindamine 4, full mock): L1 (`080_t_clips`, six
+  clips once), L2 (`080_t_interview`, Ene's radio interview, 6 MC), L3 + L4 (`080_p_bread`, bakery interview, 10 gaps +
+  12 statements), R1, R2a (paragraphs A–G), R2b, R3 (new library cloze), R4 (new editing text, 8 + 1), W1, W2b (new essay),
+  S1, S2 tagged; four timed `PART`s (L 34, R 43, W 25, S 25 points). Every teaching lesson: review naming the previous lesson
+  and a module 12–14 lesson (074/062, 076/058, 077/068, 078/069), an in-lesson pair task, a home recording (S16 ×2, S15 ×2),
+  two fluency tasks; S16 ×2, S17 ×2.
+- Changed blocks: real ids on every task; `076_p_meeting` → Avasta `076_d_meeting` (L04, transcript longer),
+  `076_d_report` removed, `076_p_cloze` → connector bank `076_p_bank` (R04), `076_p_write` W10 (edit Laura's proposals),
+  `076_t_offer` R15 level 3, `076_t_debate` S17 cards, `076_t_letter` W13; `077_d_draft` short answers (L03, transcript
+  unchanged), `077_p_gaps`/`077_p_mc` removed, new `077_p_tr` (G10), `077_t_stories` L06 level 3 (consequence gaps),
+  `077_t_story` → `077_t_essay`; `078_d_sort` G09, `078_p_cloze` → formtext, `078_p_forms` and `078_p_write` removed, new
+  `078_p_match` (G08) and `078_p_mono` (S08); `079_d_cards`/`079_d_sort`/`079_d_tf` → reading `079_d_read` (R07) and
+  rektsioon sort `079_d_gov` (G08), `079_d_write` → W01 questionnaire, `079_p_say` → phone cards `079_p_call` (S04),
+  `079_t_draft` R14 level 3. 080 rewritten in the 060 pattern (old `080_p_listen`, `080_p_lc`, `080_p_gramA/B`, `080_p_fix`
+  removed). Vocab: grammar terms out of the boxes (sidend, sõnajärg, kesksõna, tingiv kõneviis …); topic word juuretis.
+  canDo and goals of 076–080 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `076_d_meeting`, `076_p_radio`, `077_p_show`, `080_p_bread`, `080_t_clips`,
+  `080_t_interview`; removed `076_p_meeting`, `080_p_listen` (mp3 + manifest).
+- Checks: `final-shape.mjs --course b2 --module 16` 0; `npx eslint --quiet src` 0; `npx vitest run` 407 files passed
+  (2804 tests, 5 skipped); Vabamorf language check of module 16: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the L2 corner has 10 questions with three options (exam: 5); the mock's L2 has 6 questions (Harno 5; the
+  didactic check wants ≥ 6) and sits with L1 on the Kasuta sheet (recognition share of the Harjuta sheet); the R2b text is
+  ≈ 350 words (Harno 200–300, the didactic check wants ≥ 350).
+- Next safe step: B1→B2 module 17 (`b2/module17.js`, b1b2-081…085, §4.1 row 17: LUGU R→W · KUUL L→W · AVAS R→S · PROB L→S);
+  081's corner must not be R3 (079's corner); 085 must tag an L2 task (the course needs 4 L2 exam practices).
 
 ## 2026-10-29 · agent/b2-m15-final — B1→B2 module 15 „Meedia, info ja kriitiline lugemine” in the final shape
 
