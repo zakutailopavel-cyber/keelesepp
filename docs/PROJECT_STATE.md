@@ -1,3 +1,78 @@
+## 2026-10-29 · agent/lesson-duration-card — the student card's „Tunnid” shows how long each lesson is
+
+- Team (#student_card): „не видно, сколько идёт урок … будем пропускать двойные уроки”. Upcoming and held lessons show
+  the time as a range (16:00–17:30) and a chip „N min”; 120 min or more (owner: a double lesson is 120 min) is „N min · Topelttund” (orange). The held list
+  heading shows „N tundi · X h · topelttunde M”. File: students/StudentLessonsPanel.jsx (+ css, test).
+- Checks: eslint 0, vitest students 122 pass (full run in the PR).
+
+## 2026-10-29 · agent/student-discount (PR #891) — student card: „Üldtingimused” / „Soodustus” price switch
+
+- Team request 2026-10-29 (#finance): general terms bill the standard 25 €/h automatically; a discount needs an hourly
+  rate and a reason (several courses, several children, …). Owner 2026-10-29: the discount is a choice of 20 / 15 /
+  12 €/h, not a free number (`DISCOUNT_HOURLY_RATES_CENTS` next to `STANDARD_HOURLY_RATE_CENTS`). Base: `main` 9c971f0 (2026-10-29), rebased on 7d0e0a9.
+- Done (no new price model): the switch writes the existing `studentRevenuePlans` price (`lessonPriceCents` +
+  `lessonMinutes`, `subjectPrices`), which monthly / per-lesson invoices already read — no functions change.
+  `crm-v2/src/features/finance/priceTerms.js` (new): `STANDARD_HOURLY_RATE_CENTS = 2500`, `priceTermsOf(plan)`,
+  `lessonPricesFromTerms`, `validatePriceTerms`. „Arveldus” card (`BillingSettingsCard.jsx`): switch, hourly rate,
+  buttons 20 / 15 / 12 €/h, reason (≤ 300), lesson price preview; per further subject the same choices
+  („sama kui kaardil” = card rate) and length;
+  „Hinnatingimused muudetud <date> · <who>”. Terms are per card (one reason for the family/client), prices per subject.
+- Data: plan gets `priceTerms` ('general' | 'discount'), `hourlyRateCents`, `discountReason`,
+  `priceTermsChangedAt/By/ByUid` (`revenuePlans.js` `priceTermsRecord`); price history entries remember the previous
+  terms; `activityLog` gets only `priceTerms` (staff-readable, so no reason). firestore.rules: the six fields allowed,
+  discount needs a non-blank reason, general none.
+- Existing prices: nothing is migrated or written. A plan without terms is shown as general when every price equals
+  25 €/h by length, else as „Soodustus” with an empty reason (placeholder „Varasem kokkulepe — põhjus lisamata”, UI only). A price
+  that is none of 25/20/15/12 €/h is shown as a read-only extra choice „Varasem kokkulepe X €/h” (card and subject)
+  and saved unchanged to the cent (17 € / 45 min stays 1700) until the admin picks a school rate; changing the lesson
+  length of such a row requires picking a rate. To save such a card the admin must type a reason.
+- Checks (after the fixed rates, origin/main merged): see the line below; first round: emulator
+  `finance-emulator.integration.js` 41/41 (new price-terms rule assertions; JDK 21 needed for firebase-tools).
+- Deploy after merge (owner permission): `firestore:rules` (the frontend goes with main). Until the rules are deployed,
+  saving the „Arveldus” card fails (unknown fields) — deploy rules first or together.
+- Limits / open: 25 € for a 45-min lesson counts as 33,33 €/h → shown as „Soodustus”; the Finantsid forecast form still
+  edits the lesson price without terms; rules allow `billingMode` advance/current/actual only, the UI also offers
+  `package` (pre-existing).
+- Fixed-rate round: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2786 tests, 5 skipped). Rules unchanged by this round
+  (`hourlyRateCents` stays any positive int because an old rate is kept).
+- Next safe step: owner reviews the PR, then deploy `firestore:rules` together with the merge.
+
+## 2026-10-29 · agent/tokens-invoices — lesson packages: bought / held / left / owed per invoice; „Tunnipakett” plan saves
+
+- Base: `main` c2b4947 (checked 2026-10-29; `origin/main` 7ea2006 later touches none of these files). Owner: „систему
+  списывающихся токенов довести до идеала и потом привязать их к счетам … сколько осталось провести, сколько уже
+  проведено или уже должны оплатить”. No production data, no deploy, nothing merged.
+- Found: (1) `firestore.rules` `studentRevenuePlans.billingMode` allowed only advance / current / actual — saving the
+  price form with „Tunnipakett” (`package`) was refused (confirmed with the emulator: 403 on the old rules); (2) a used-up
+  package (`status: depleted`) dropped out of the card totals („Lisatud kokku 0 · kasutatud 0”); (3) lessons held when no
+  credits were left were marked `needs_attention` but shown nowhere, never paid by the next package (it is dated after
+  them) and stayed marked even when the mark was corrected or the lesson removed; (4) the card and the finance month
+  showed totals only, not per package invoice. The package ↔ invoice link itself already existed both ways
+  (`studentPackages/tokens_<invoiceId>.sourceInvoiceId`, `invoices.tokenPackageId`).
+- Done: rules allow `package`; `lessonPackageStates` readable by finance and the card's own student / parent. Server:
+  `lesson-tokens-core.js` `TOKENS_PER_LESSON = 1`, `OWED_LESSONS_TAKE_NEXT_PACKAGE = true`, `packageForOwedLesson`,
+  `tokenBacklogLessonIds`; `index.js` syncLessonPackageConsumption pays an owed lesson from the oldest token package with
+  credits, clears an owed state when the lesson stops charging or is removed (trigger now runs for owed lessons), stores
+  `lessonDate` on the owed state; the credit backlog takes owed lessons first. Client: `lessonTokens.js` `tokenAccount`,
+  `tokenLine`, `tokenInvoiceUsage`, `owedByStudent`, `packagesForInvoices`; `LessonTokensCard` table per package invoice
+  + owed lessons, parent line „Paketist alles N tundi” / „Pakett on läbi · N tundi ootab tasumist”; FinanceMonthPage line
+  under a token invoice „peetud M · alles L” and „võlg N tundi (uus arve)”. Docs: LESSON_TOKENS.md, ACCOUNTING.md pointer.
+- Checks: `node --test lesson-tokens-core.test.js finance-core.test.js` 57 pass; emulator (JDK 21, firebase-tools
+  15.22.3) „lesson tokens” 3/3 pass in finance-emulator + security-finance-emulator; `npx eslint --quiet src` 0;
+  `npx vitest run` 403 files passed (2777 tests, 5 skipped). e2e `lesson-tokens.spec.cjs` updated, not run locally.
+- **Deploy needed** (owner's OK): `firestore:rules` and functions `syncLessonTokens`, `financeApi` (credit backlog and
+  the lesson journal call syncLessonPackageConsumption). Existing invoices and packages are not
+  rewritten; old owed states without `lessonDate` clear on removal without a date.
+- Owner 2026-10-29 (follow-up, same branch, after merging `origin/main`): credits per lesson =
+  `lessonTokenCost` = max(1, floor(duration / 60)) (45/60/90 = 1, 120 = 2, 180 = 3) in `lesson-tokens-core.js` and
+  `lessonTokens.js`; finance-core `selectStudentPackageForLesson` / `packageBalanceAfterLessonMovement` take `credits`
+  (default 1); the state and the lesson keep `credits` / `packageCredits`, a corrected / removed mark gives back the same
+  number, a changed length is restored and taken again (trigger + lesson journal); owed counts sum credits. Checks
+  after it: node 60 pass; emulator „lesson tokens” 3/3 pass (double lesson 2 → 60 min 1 → removed; owed 2-credit
+  lesson); full vitest 403 files passed (2778 tests, 5 skipped), eslint 0. Defaults kept: no expiry, debt paid by the next
+  package, one pool per card. A single leftover credit is not split across packages. Catalogue packages (`package_issue`) have no invoice and
+  show as „arveta pakett”.
+- Next safe step: after review and the owner's OK, deploy rules + functions and check one package card on production.
 ## 2026-10-29 · agent/lessons-per-week — „Mitu korda nädalas?” per course in „Sobivad ajad”
 
 - Base: `main` 9c971f0 (2026-10-29, after #886). Team request: „поле, сколько раз в неделю хотят заниматься; если
@@ -126,6 +201,7 @@
 - Tests: accounting-core 19 pass; vitest accounting 56 pass; emulator test added (runs in CI).
 - **Needs a functions deploy** (`financeApi`) before the button works; the owner's OK is required.
 - Not done: ST1 itself is not undone — the accountant (or the owner) presses the button with a reason.
+
 ## 2026-10-29 · agent/b2-m08-final — B1→B2 module 8 „Reisimine ja kultuur” in the final shape
 
 - Base: `main` 377856e (after #882, module 6), then `origin/main` 38ecb2b merged (after #884, module 7); corner and

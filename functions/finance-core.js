@@ -806,9 +806,11 @@ function packageBalanceAfterEntry(packageAccount = {}, creditsDelta, nowIso) {
 
 function selectStudentPackageForLesson(
   studentPackages = [],
-  { lessonDate, requestedPackageId = "", preferredPackageId = "" } = {},
+  { lessonDate, requestedPackageId = "", preferredPackageId = "", credits = 1 } = {},
 ) {
   const date = validIsoDate(lessonDate, "lesson date");
+  // a lesson may take more than one credit (lesson-tokens-core lessonTokenCost): only a package that has them all
+  const needed = Math.max(1, Math.floor(Number(credits)) || 1);
   const packages = (Array.isArray(studentPackages) ? studentPackages : [])
     .filter(studentPackage =>
       studentPackage
@@ -817,7 +819,7 @@ function selectStudentPackageForLesson(
       && studentPackage.productType === "lesson_package"
       && studentPackage.status === "active"
       && Number.isInteger(studentPackage.balanceCredits)
-      && studentPackage.balanceCredits > 0
+      && studentPackage.balanceCredits >= needed
       && (!studentPackage.issuedAt || studentPackage.issuedAt <= date),
     )
     .sort((a, b) =>
@@ -842,8 +844,10 @@ function selectStudentPackageForLesson(
   return packages[0] || null;
 }
 
-function packageBalanceAfterLessonMovement(packageAccount = {}, movement, nowIso) {
+// credits: how many the lesson takes or gives back (1 by default; a 120-min lesson takes 2, lesson-tokens-core.js)
+function packageBalanceAfterLessonMovement(packageAccount = {}, movement, nowIso, credits = 1) {
   const direction = String(movement || "");
+  const amount = Math.max(1, Math.floor(Number(credits)) || 1);
   if (!["consume", "restore"].includes(direction)) {
     const error = new Error("package lesson movement must be consume or restore");
     error.status = 400;
@@ -856,17 +860,17 @@ function packageBalanceAfterLessonMovement(packageAccount = {}, movement, nowIso
     error.status = 409;
     throw error;
   }
-  if (direction === "consume" && balanceBefore <= 0) {
+  if (direction === "consume" && balanceBefore < amount) {
     const error = new Error("package has insufficient lesson credits");
     error.status = 409;
     throw error;
   }
-  if (direction === "restore" && consumedBefore <= 0) {
+  if (direction === "restore" && consumedBefore < amount) {
     const error = new Error("package has no consumed lesson credit to restore");
     error.status = 409;
     throw error;
   }
-  const creditsDelta = direction === "consume" ? -1 : 1;
+  const creditsDelta = direction === "consume" ? -amount : amount;
   const balanceAfter = balanceBefore + creditsDelta;
   const consumedAfter = consumedBefore - creditsDelta;
   return {
