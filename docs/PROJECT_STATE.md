@@ -1,3 +1,10 @@
+## 2026-10-29 · agent/lesson-duration-card — the student card's „Tunnid” shows how long each lesson is
+
+- Team (#student_card): „не видно, сколько идёт урок … будем пропускать двойные уроки”. Upcoming and held lessons show
+  the time as a range (16:00–17:30) and a chip „N min”; 120 min or more (owner: a double lesson is 120 min) is „N min · Topelttund” (orange). The held list
+  heading shows „N tundi · X h · topelttunde M”. File: students/StudentLessonsPanel.jsx (+ css, test).
+- Checks: eslint 0, vitest students 122 pass (full run in the PR).
+
 ## 2026-10-29 · agent/student-discount (PR #891) — student card: „Üldtingimused” / „Soodustus” price switch
 
 - Team request 2026-10-29 (#finance): general terms bill the standard 25 €/h automatically; a discount needs an hourly
