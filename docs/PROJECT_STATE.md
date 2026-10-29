@@ -1,3 +1,11 @@
+## 2026-10-29 · agent/calendar-status-ribbon — traffic light on calendar lessons
+
+- Team (#high_priority): held and cancelled lessons looked the same. `calendarView.lessonState(item)`: green „done”
+  (Toimunud / a lesson record), yellow „absent” (Puudus_p / Puudus_eta), red „cancelled” (Tühistatud — before, any
+  record, also a cancelled one, counted as held). A ribbon in the top right corner of every lesson block and crowded
+  list item (calendarV2.css .tg-ribbon), cancelled blocks striped and struck through, agenda rows show the state badge.
+- Checks: calendar vitest 191 pass; full run in the PR.
+
 ## 2026-10-29 · agent/b2-m10-final — B1→B2 module 10 „Suhted ja konfliktid” in the final shape
 
 - Base: `main` 38ecb2b, then `origin/main` 7d0e0a9 merged (after #886, module 8). Module 9 (#888) was still open: with its
