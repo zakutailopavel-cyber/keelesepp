@@ -28,6 +28,11 @@
   one-letter answer as copied); the L1 corner is 8.1 min by the estimator — shorter clips would drop it under 8.
 - Next safe step: B1→B2 module 4 (`b2/module04.js`, b1b2-016…020, §4.1 row 4: KIRJ L→W · PROJ R→W · LUGE R→S · RÄÄK L→S),
   branch `agent/b2-m04-final`; 016's corner must not be S1 (014's corner).
+## 2026-10-29 · agent/student-board-menu — „Tahvel” in the student's menu
+
+- Owner: „добавь ученикам их доску”. The board outside lessons (/board, BoardPage) existed, but a pure student's short
+  menu (navigation.js studentNavigation) had no link. Added „Tahvel” after „Ülesanded”; parents had it already.
+- Checks: eslint 0 errors; vitest 2767 passed. Next safe step: none needed.
 
 ## 2026-10-29 · agent/b2-m02-final — B1→B2 module 2 „Linn, teenused ja asjaajamine” in the final shape
 

@@ -26,11 +26,13 @@ export const navigation = [
 ];
 
 // A student's own short menu (owner 2026-10-12): exactly four things to do — interactive tasks, words, my mistakes and
-// the pet — plus messages. The lesson invitation pops up on every page, so the lesson room needs no menu item.
+// the pet — plus messages and „Tahvel”, the student's own board outside lessons (owner 2026-10-29: „добавь ученикам их
+// доску”). The lesson invitation pops up on every page, so the lesson room needs no menu item.
 // Parents and staff keep the menu above.
 export const studentNavigation = [
   { to: '/student', label: 'Minu õpingud', icon: GraduationCap, roles: ACCESS.STUDENT, end: true },
   { to: '/homework', label: 'Ülesanded', icon: ListTodo, roles: ACCESS.STUDENT },
+  { to: '/board', label: 'Tahvel', icon: PenLine, roles: ACCESS.STUDENT },
   { to: '/student/kursus', label: 'Kursus', icon: BookOpenCheck, roles: ACCESS.STUDENT },
   { to: '/student/sonavara', label: 'Sõnad', icon: Languages, roles: ACCESS.STUDENT },
   { to: '/student/vead', label: 'Minu vead', icon: SpellCheck, roles: ACCESS.STUDENT },
