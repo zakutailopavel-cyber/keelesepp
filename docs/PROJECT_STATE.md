@@ -1,3 +1,37 @@
+## 2026-10-29 · agent/b2-m13-final — B1→B2 module 13 „Keskkond ja vastutustundlik elu” in the final shape
+
+- Base: `main` c2b4947, then `origin/main` b7fc373 merged (after #892, module 10). Modules 11 (#895) and 12 (#898) were not
+  on `main` yet: with both branches merged in a scratch tree, module 13 still shows 0 problems (059 corner W1 → 061 corner
+  R1, V1/V2 clean), modules 11/12/14 gain no line and the course lines only shrink (`V6-corner-R1` leaves). On `main` alone
+  the regenerated baseline lists `V6-gap-L1`, `V6-gap-S1`, `V6-gap-S2` because modules 11–12 are untagged there; they leave
+  when #895/#898 are merged and the baseline is rewritten. Content only; no production data, no publishing, no deploy.
+- Done: `b2/module13.js` (b1b2-061…065) passes every final-shape gate under the B2 profile: **56 → 0 problems**
+  (`final-shape.mjs --course b2 --module 13`); `b1b2-066 discover V2` and `b1b2-089 practice V7` left the baseline too.
+  Strict quality gate: all 15 sheets READY (teaching sheets 40–54 min, didactic 100), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 13): 061 AVAS R→S (corner R1 = `061_d_read`, Viktor's article ≈ 510 words, predict and
+  check R13; main `061_t_present` S16 overview for the team meeting, recorded at home), 062 LUGU R→W (corner W2a =
+  `062_p_write` W15 summary of the new village survey chart `062_p_data`; main `062_t_reply` W13 reply in the village
+  group), 063 PROB L→S (corner L4 = `063_p_tf` as `examListen` true/false on Ott Kuusik's interview; main `063_t_choice`
+  S17 budget debate with argument cards A/B), 064 KUUL L→W (corner L1 = new `064_p_clips`, ten announcements played once;
+  main `064_t_opinion` W14 opinion text). 065 EKS: L3, L4, R1, R4, W1, W2b, S1, S2 tagged, four timed `PART`s; new
+  `065_p_radio` (L4, reuse-centre interview), `065_p_sentences` as a sentence bank with one extra (R16), new W2b essay
+  `065_t_essay`. Every teaching lesson: review naming the previous lesson and a module 9–11 lesson (059/053, 061/048,
+  062/051, 063/044), an in-lesson pair task, a home recording (S16 ×2, S15 ×2), two fluency tasks; S17 ×2.
+- Changed blocks: real ids on every task; `061_p_radio` short-answer questions (L03), `062_d_news` numbers and times (L10),
+  `062_d_write` W01 questionnaire, `063_d_sort` → true/false on the cards (R06), `063_d_write` W02 message, `063_t_voice`
+  L07, `063_t_letter` W10 (edit Markus's draft), `064_d_parts` removed, `064_p_match` → sentence joining (W09),
+  `064_p_plan`/`064_p_write` → idea card `064_p_ideas` (S03), `064_t_cards` → listening `064_t_hearing` (L06 level 3),
+  `064_t_plan` before the hearing. Vocab: tarbimine, põhjavesi, arendaja, elektrikaubik, laadimine, kütusekulu,
+  kliimamuutus → kliima, kaev, elanik, kaubik, laadija, kütus, taastuv energia; topic words keskkonnamõju, süsiniku
+  jalajälg, sõiduulatus. canDo and goals of 061–064 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `063_p_tf`, `064_p_clips`, `064_t_hearing`, `065_p_radio`.
+- Checks: `final-shape.mjs --course b2 --module 13` 0; `npx eslint --quiet src` 0; `npx vitest run` 406 files passed
+  (2786 tests, 5 skipped); Vabamorf language check of module 13: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the L1 clips are ≈ 25 s each (Harno 35–45 s); the R1 corner has open questions (exam: three options); 063 Harjuta
+  is 54 min (cap 55).
+- Next safe step: after #895/#898 are merged, merge `main` and rewrite the B2 baseline; then module 14 (`b2/module14.js`,
+  b1b2-066…070, §4.1 row 14: RÄÄK R→S · LUGE R→W · PROJ L→S · KIRJ L→W); 066's corner must not be L1 (064's corner).
+
 ## 2026-10-29 · agent/b2-m12-final — B1→B2 module 12 „Tehnoloogia ja sotsiaalmeedia” in the final shape + Mock (060)
 
 - Base: `main` 439a1d0, then `origin/main` 7ea2006 merged (after #892, module 10). Module 11 (#895) was still open: with
