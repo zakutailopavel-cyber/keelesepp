@@ -23,6 +23,7 @@ const props = () => ({
   creditRepository: { list: vi.fn().mockResolvedValue([]), listRefunds: vi.fn().mockResolvedValue([]) },
   creditNoteRepository: emptyList,
   auditRepository: emptyList,
+  noteRepository: { list: vi.fn().mockResolvedValue(new Map()), save: vi.fn() },
 });
 
 const renderPage = (value, route = '/') => render(<MemoryRouter initialEntries={[route]}><AuthContext.Provider value={{ user: { uid: 'a1', roles: ['admin'] } }}><FinanceMonthPage {...value} /></AuthContext.Provider></MemoryRouter>);
@@ -81,6 +82,43 @@ describe('FinanceMonthPage', () => {
     fireEvent.keyDown(unpaid, { key: 'ArrowRight' });
     expect(screen.getByRole('tab', { name: /Ette makstud/ })).toHaveFocus();
     expect(screen.getByRole('heading', { name: 'Õpilaste avansid' })).toBeInTheDocument();
+  });
+
+  it('shows the staff-only invoice note by the number, finds the invoice by it and edits it on an issued invoice', async () => {
+    const value = props();
+    value.invoiceRepository.list.mockResolvedValue([
+      { id: 'i1', planMonth: '2031-10', studentName: 'Mari Maasikas', num: 'AR-31', amountCents: 10000, paidAmountCents: 10000, due: '2031-10-10', emailStatus: 'sent' },
+      { id: 'i2', planMonth: '2031-10', studentName: 'Jaan Tamm', num: 'AR-32', amountCents: 5000, paidCents: 0, due: '2031-10-10' },
+    ]);
+    value.noteRepository.list.mockResolvedValue(new Map([['i1', { id: 'i1', text: 'Oktoobri 8 tundi + õpik', updatedByName: 'Admin', updatedAt: '2031-10-02T09:00:00.000Z' }]]));
+    value.noteRepository.save.mockImplementation(async (id, text) => ({ id, invoiceId: id, text, updatedByName: 'Admin', updatedAt: '2031-10-03T09:00:00.000Z' }));
+    renderPage(value);
+    const noted = await screen.findByRole('button', { name: 'Sisemine märkus arvel AR-31: Oktoobri 8 tundi + õpik' });
+    expect(noted).toHaveAttribute('title', 'Oktoobri 8 tundi + õpik');
+    expect(screen.getByText('Märkus: Oktoobri 8 tundi + õpik')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Lisa sisemine märkus arvele AR-32' })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText('Otsi'), { target: { value: 'õpik' } });
+    const table = screen.getByRole('table', { name: 'Arved 2031-10' });
+    expect(within(table).getByText('Mari Maasikas')).toBeInTheDocument();
+    expect(within(table).queryByText('Jaan Tamm')).not.toBeInTheDocument();
+
+    fireEvent.click(noted);
+    const dialog = await screen.findByRole('dialog', { name: 'Sisemine märkus · AR-31' });
+    expect(within(dialog).getByText(/Viimati muutis Admin/)).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Mille eest arve on (ainult töötajatele)'), { target: { value: 'Oktoobri 8 tundi, õpik eraldi' } });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(value.noteRepository.save).toHaveBeenCalledWith('i1', 'Oktoobri 8 tundi, õpik eraldi', expect.objectContaining({ uid: 'a1' })));
+    expect(await screen.findByText('Märkus: Oktoobri 8 tundi, õpik eraldi')).toBeInTheDocument();
+    expect(value.invoiceRepository.list).toHaveBeenCalledTimes(1);
+  });
+
+  it('a refused note list (rules not deployed) leaves the invoices working', async () => {
+    const value = props();
+    value.noteRepository.list.mockRejectedValue(new Error('Missing or insufficient permissions.'));
+    renderPage(value);
+    expect(await screen.findByRole('button', { name: 'Lisa sisemine märkus arvele AR-31' })).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('opens the existing invoice PDF for printing without creating or sending anything', async () => {

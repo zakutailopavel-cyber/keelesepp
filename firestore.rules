@@ -1187,6 +1187,27 @@ service cloud.firestore {
         );
     }
 
+    // „Sisemine märkus” (team 2026-10-29): what the invoice was for, staff only. Kept OUT of the invoice document on
+    // purpose — the student and the parent read their invoices (ownsInvoice), never this collection; it is not printed
+    // and not e-mailed. One document per invoice (id = invoice id), the writer's uid and the time stay on it; it does
+    // not touch the invoice's money, so it is editable on issued, paid and closed-period invoices; never deleted
+    // (an empty text clears it).
+    match /invoiceNotes/{invoiceId} {
+      allow read: if isAdmin() || isFinance();
+      allow create, update: if (isAdmin() || isFinance())
+        && exists(/databases/$(database)/documents/invoices/$(invoiceId))
+        && request.resource.data.keys().hasOnly(['invoiceId', 'text', 'updatedAt', 'updatedByUid', 'updatedByName'])
+        && request.resource.data.invoiceId == invoiceId
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 1000
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedAt.size() <= 40
+        && request.resource.data.updatedByUid == uid()
+        && request.resource.data.updatedByName is string
+        && request.resource.data.updatedByName.size() <= 160;
+      allow delete: if false;
+    }
+
     match /payments/{paymentId} {
       allow read: if isAdmin();
       allow create, update, delete: if false;

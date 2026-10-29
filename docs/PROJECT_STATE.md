@@ -1,3 +1,26 @@
+## 2026-10-29 · agent/invoice-internal-note — invoice „Sisemine märkus” (staff-only note)
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request #improvement #finance: an internal note on an issued
+  invoice saying what it was for. No production data, no deploy.
+- Done: new collection `invoiceNotes/{invoiceId}` (`text` ≤ 1000, `updatedAt`, `updatedByUid`, `updatedByName`) —
+  kept off the invoice document because students and parents read their invoices. Rules: `admin` and `finance` read
+  and write (fixed keys, own uid, existing invoice only, never deleted). Kuu arveldus: note icon by the invoice number
+  (tooltip), clipped line under the student, dialog with full text and last editor, search by note; editable on any
+  invoice (issued, paid). „Lisa arve” / „Tunnipakett” save their note field there (server `note` now sent empty).
+  Details in `docs/ACCOUNTING.md` „Sisemine märkus”.
+- Files: `firestore.rules`, `crm-v2/src/services/firebase/invoiceNotes.js` (+test, export in `index.js`),
+  `crm-v2/src/features/finance/InvoiceNoteDialog.jsx`, `FinanceMonthPage.jsx` (+test), `ManualInvoiceDialog.jsx`
+  (+test), `TokenInvoiceDialog.jsx`, `financeRows.js` (+test), `financeMonth.css`,
+  `functions/invoice-notes-rules-emulator.integration.js` (in `test:emulator`).
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2777 tests, 5 skipped); Firestore emulator
+  (JDK 21, auth+firestore) invoice-notes + business-settings + campaigns rules tests 3/3.
+- Manual gate: **`firestore.rules` must be deployed** (`firebase deploy --only firestore:rules`) before the feature
+  works; until then the list loads without notes and saving a note shows an error (the invoice is still created).
+  No functions change.
+- Limits: only the latest text is kept (who/when of the last edit, no earlier versions); not shown yet on the student
+  card's invoice list or the old view (`/finance/vana`).
+- Next safe step: owner deploys `firestore.rules`, then writes a test note on one invoice and checks it in Kuu arveldus.
+
 ## 2026-10-29 · agent/b2-m08-final — B1→B2 module 8 „Reisimine ja kultuur” in the final shape
 
 - Base: `main` 377856e (after #882, module 6), then `origin/main` 38ecb2b merged (after #884, module 7); corner and
