@@ -1,5 +1,6 @@
 // The final-shape gates of the B1 course (docs/COURSE_FINAL_SHAPE_B1.md §8, rules V1–V16) and, with the profile 'b2', of
-// the B1→B2 course (docs/COURSE_FINAL_SHAPE_B2.md: the same rules against the Harno B2 exam). Pure and node-importable:
+// the B1→B2 course (docs/COURSE_FINAL_SHAPE_B2.md: the same rules against the Harno B2 exam) and the A2 course
+// (docs/COURSE_FINAL_SHAPE_A2.md: against the Harno A2 exam). Pure and node-importable:
 // the course test (admin/course/finalShape.test.js), the summary tool (tools/course-audit/final-shape.mjs) and the unit
 // tests (finalShape.test.js) call the same functions.
 //
@@ -10,8 +11,8 @@
 import { blockMinutes } from './timeEstimate.js';
 import { isInLesson } from '../engine/inLesson.js';
 import {
-  ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_B2, FORMAT_PRACTICE, FORMAT_PRACTICE_B2, LEAD_PAIRS, TASK_CATALOGUE, TEACHING_ARCHETYPES,
-  VARIANT_MIN, VARIANTS, VARIANTS_B2, harnoFamily, harnoFamilyB2, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
+  ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_A2, FORMAT_INTRO_B2, FORMAT_PRACTICE, FORMAT_PRACTICE_A2, FORMAT_PRACTICE_B2, LEAD_PAIRS,
+  TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS, VARIANTS_A2, VARIANTS_B2, harnoFamily, harnoFamilyA2, harnoFamilyB2, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
 } from './taskCatalogue.js';
 
 export const PHASES = ['discover', 'practice', 'transfer'];
@@ -43,6 +44,15 @@ export const PROFILES = Object.freeze({
   },
   // COURSE_FINAL_SHAPE_B2.md §6–§7: the learners passed B1, so exam corners, timed exam parts and tingiv kõneviis start
   // in module 2; the B2 speaking formats (S16 talk, S17 argument cards) replace the B1 ones (S03 idea card, S04 phone)
+  // COURSE_FINAL_SHAPE_A2.md: 20 modules (a2-001…100), the Harno A2 exam; the A2 speaking formats are a picture with
+  // topic questions (S06) and the idea card where one asks and the other answers (S05); tingiv kõneviis is B1 grammar,
+  // so not in A2 speaking; corners from module 6, timed exam parts from module 9; mocks 060, 080, 099, 100
+  a2: {
+    exam: 'A2', family: harnoFamilyA2, intro: FORMAT_INTRO_A2, practice: FORMAT_PRACTICE_A2, variants: VARIANTS_A2,
+    min: { ...B1_MIN, S03: 0, S04: 0, S05: 1, S06: 1 },
+    formsLabel: 'A1–A2',
+    shape: { ...FINAL_SHAPE, v5: { ...FINAL_SHAPE.v5, relaxedModule: 20 }, v16: { conditionalFrom: 21 }, lastPracticeLesson: 99, mocks: [60, 80, 99, 100] },
+  },
   b2: {
     exam: 'B2', family: harnoFamilyB2, intro: FORMAT_INTRO_B2, practice: FORMAT_PRACTICE_B2, variants: VARIANTS_B2,
     min: { ...B1_MIN, S03: 0, S04: 0, S16: 1, S17: 1 },
@@ -149,7 +159,8 @@ function moduleVarietyProblems(lessons, out, P) {
 
 // ---------- V5: archetype rotation ----------
 const pairOf = (l) => (l.lead ? `${l.lead.input}→${l.lead.output}` : '');
-function archetypeProblems(lessons, out) {
+function archetypeProblems(lessons, out, P) {
+  const v5 = P.shape.v5;
   const list = teaching(lessons);
   list.forEach((l) => {
     if (!TEACHING_ARCHETYPES.includes(l.archetype)) { out.push({ rule: 'V5', check: 'V5-missing', lesson: l, phase: '*', text: 'tunni tüüp (archetype) ja juhtoskused (lead) puuduvad — shape() / withShapes()' }); return; }
@@ -168,7 +179,7 @@ function archetypeProblems(lessons, out) {
     if (shaped.length < mods.length) return; // V5-missing says it
     if (new Set(shaped.map((l) => l.archetype)).size < mods.length) out.push({ rule: 'V5', check: 'V5-module', ...at, text: `mooduli ${mods.length} tunnil on ${new Set(shaped.map((l) => l.archetype)).size} eri tüüpi (iga tund eri tüüpi)` });
     const pairs = new Set(shaped.map(pairOf).filter(Boolean));
-    const need = m === FINAL_SHAPE.v5.relaxedModule ? Math.min(3, mods.length) : Math.min(4, mods.length);
+    const need = m === v5.relaxedModule ? Math.min(3, mods.length) : Math.min(4, mods.length);
     if (LEAD_PAIRS.filter((x) => pairs.has(x)).length < need) out.push({ rule: 'V5', check: 'V5-pairs', ...at, text: `moodulis on juhtoskuste paarid ${[...pairs].join(', ') || '—'}; vaja ${need} eri paari neljast (L→S, L→W, R→S, R→W)` });
     const prev = modules[numbers[k - 1]];
     if (k > 0 && prev?.[0]?.archetype && prev[0].archetype === mods[0].archetype && numbers[k - 1] === m - 1) out.push({ rule: 'V5', check: 'V5-opener', ...at, text: `mooduli 1. tund on sama tüüpi kui eelmise mooduli 1. tund (${mods[0].archetype})` });
@@ -177,8 +188,8 @@ function archetypeProblems(lessons, out) {
   list.forEach((l) => { if (l.archetype) count[l.archetype] = (count[l.archetype] || 0) + 1; });
   TEACHING_ARCHETYPES.forEach((a) => {
     const n = count[a] || 0;
-    const min = a === 'PROJ' ? FINAL_SHAPE.v5.minProj : FINAL_SHAPE.v5.minPerArchetype;
-    if (n > FINAL_SHAPE.v5.maxPerArchetype) out.push({ rule: 'V5', check: `V5-course-${a}`, course: true, phase: '*', text: `${a}: ${n} tundi kursusel (kuni ${FINAL_SHAPE.v5.maxPerArchetype})` });
+    const min = a === 'PROJ' ? v5.minProj : v5.minPerArchetype;
+    if (n > v5.maxPerArchetype) out.push({ rule: 'V5', check: `V5-course-${a}`, course: true, phase: '*', text: `${a}: ${n} tundi kursusel (kuni ${v5.maxPerArchetype})` });
     if (n < min) out.push({ rule: 'V5', check: `V5-course-${a}`, course: true, phase: '*', text: `${a}: ${n} tundi kursusel (vähemalt ${min})` });
   });
 }
@@ -452,14 +463,14 @@ function speakingPlaceProblems(lessons, out, P) {
   });
 }
 
-// `profile`: 'b1' (the A2→B1 course) or 'b2' (the B1→B2 course), see PROFILES
+// `profile`: 'a2' (the A2 course), 'b1' (the A2→B1 course) or 'b2' (the B1→B2 course), see PROFILES
 export function finalShapeProblems(lessons, { forms = null, profile = 'b1' } = {}) {
   const P = PROFILES[profile];
   if (!P) throw new Error(`tundmatu kursuse profiil ${profile} (${Object.keys(PROFILES).join(', ')})`);
   const raw = [];
   sequenceProblems(lessons, raw);
   moduleVarietyProblems(lessons, raw, P);
-  archetypeProblems(lessons, raw);
+  archetypeProblems(lessons, raw, P);
   harnoProblemsCourse(lessons, raw, P);
   instructionProblems(lessons, raw);
   itemProblems(lessons, raw);

@@ -266,3 +266,21 @@ describe('the B2 profile (COURSE_FINAL_SHAPE_B2.md)', () => {
     expect(() => finalShapeProblems([], { profile: 'c1' })).toThrow(/profiil/);
   });
 });
+
+describe('the A2 profile (COURSE_FINAL_SHAPE_A2.md)', () => {
+  const a2 = (num, more = {}) => ({ ...lesson(num, more), moduleId: `a2-module-${String(more.module || Math.ceil(num / 5)).padStart(2, '0')}` });
+  it('asks for the A2 speaking types (picture S06, idea card S05) and forbids tingiv kõneviis in speaking', () => {
+    const say = { id: 's', type: 'speaking', goal: 'g_use', data: { instruction: 'Mida sa teeksid?' }, tag: { task: 'S02' } };
+    const list = [6, 7, 8, 9].map((n) => a2(n, { module: 2, tr: n === 6 ? [say] : [] }));
+    const problems = finalShapeProblems(list, { profile: 'a2' });
+    expect(checks(problems, 'V3-min-S06')).toHaveLength(1);
+    expect(checks(problems, 'V3-min-S05')).toHaveLength(1);
+    expect(checks(problems, 'V3-min-S04')).toHaveLength(0);
+    expect(checks(problems, 'V16-conditional')).toHaveLength(1);
+  });
+  it('counts the A2 formats (R5 the letter cloze, W2a / W2b → W2)', () => {
+    const problems = finalShapeProblems([a2(6, { tr: [t('w', 'W05', { harno: 'W2b' })] })], { profile: 'a2' });
+    expect(problems.find((x) => x.check === 'V6-total-W2').text).toMatch(/^W2: harjutatud 1 korda/);
+    expect(problems.some((x) => x.check === 'V6-total-R5')).toBe(true);
+  });
+});

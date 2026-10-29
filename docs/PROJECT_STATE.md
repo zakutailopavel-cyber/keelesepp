@@ -1,3 +1,12 @@
+## 2026-10-29 · agent/a2-final-shape-gates — the A2 course under the final-shape gates (A2 profile)
+
+- Owner: „продолжай с курсами, потом A2” (order after B1→B2: A2 → C1 → English). Gates only, no content.
+- `PROFILES.a2`: Harno A2 formats (`HARNO_FORMATS_A2`: W1, W2a/b, L1–L4, R1–R5, S0–S2), intro schedule and practice
+  counts, S06 picture + S05 idea card required instead of S03/S04, corners from module 6, timed exam parts from module 9,
+  mocks 060/080/099/100 (practice up to 099), no tingiv kõneviis, V14 against EKI A1–A2, V5 relaxed module 20.
+  `archetypeProblems` now reads V5 numbers from the profile. Course test checks a2 too (`finalShapeBaselineA2.json`,
+  2139 problems); `final-shape.mjs --course a2`. Doc: `docs/COURSE_FINAL_SHAPE_A2.md` (exam map, schedule, archetype plan).
+- B1 and B2 baselines unchanged. Next safe step: A2 module 1 (`a2/module01.js`) in the final shape.
 ## 2026-10-29 · agent/calendar-status-symbols — a symbol per lesson state in the calendar corner
 
 - Owner: „справа вверху по символу или ленточке отличать проведённый, проведённый за счёт школы и т.д., чтобы админу не
