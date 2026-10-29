@@ -11,8 +11,11 @@ const STATUS = {
   none: 'Kaardiga pole seotud ühtegi kontot.',
 };
 
-// Admin: give the student a login of their own („Saada kutse”: an account without a password + an e-mail with the
-// link to set it), or send a new password link to the student's account (owner, 2026-10-14).
+// Admin: give the student a login of their own (an account without a password + an e-mail with the link to set it),
+// or send a new password link to the student's account (owner, 2026-10-14). „Saada kutse” goes to the PARENT's e-mail
+// by default when the card has one (team 2026-10-29: „по умолчанию отправляла запрос на почту родителя, а не
+// ученика”): it opens the parent invite (a parent login linked to this card, or a new password link when that login
+// exists — one e-mail is one account, so the student's own login needs the student's own e-mail: „Õpilasele oma konto”).
 export default function StudentAccountCard({ student, service = accountApprovalsService, onInvited, onParentInvited }) {
   const access = studentAccess(student);
   const own = access === 'student';
@@ -25,6 +28,8 @@ export default function StudentAccountCard({ student, service = accountApprovals
   const [copied, setCopied] = useState(false);
   const [parentOpen, setParentOpen] = useState(false);
   const hasParent = Boolean(student.linkedParentId || student.parentUid || student.guardianUid || (student.linkedParentIds || []).length);
+  const parentFirst = Boolean(student.parentEmail) && !own;
+  const parentDialog = () => setParentOpen(true);
 
   const send = async (event) => {
     event?.preventDefault();
@@ -51,7 +56,10 @@ export default function StudentAccountCard({ student, service = accountApprovals
           <p className="form-hint">Õpilane saab kirja lingiga, kus ta määrab parooli. Lapsevanema konto jääb alles.</p>
           <Button type="submit" loading={sending}><Send size={16} /> Saada</Button> <Button type="button" variant="secondary" onClick={() => setOpen(false)}>Loobu</Button>
         </form>
-        : <Button onClick={() => setOpen(true)}><Send size={16} /> Saada kutse</Button>}
+        : parentFirst
+          ? <div className="form-actions"><Button onClick={parentDialog}><Send size={16} /> Saada kutse</Button><Button variant="secondary" onClick={() => setOpen(true)}>Õpilasele oma konto</Button></div>
+          : <Button onClick={() => setOpen(true)}><Send size={16} /> Saada kutse</Button>}
+    {parentFirst && !open ? <p className="form-hint">Kutse läheb lapsevanema e-postile ({student.parentEmail}).</p> : null}
     {error ? <p className="action-error" role="alert">{error}</p> : null}
     {result ? <div className="success-notice" role="status">
       <span>{result.created ? `Konto loodud: ${result.email}. ` : `Parooli link: ${result.email}. `}
@@ -60,7 +68,7 @@ export default function StudentAccountCard({ student, service = accountApprovals
     </div> : null}
     {/* „Lisa lapsevanem” (owner 2026-10-15): a parent login for this card, prefilled from the card */}
     {hasParent ? <p className="form-hint">Lapsevanema konto on kaardiga seotud.</p>
-      : <Button variant="secondary" onClick={() => setParentOpen(true)}><Send size={16} /> Loo lapsevanema konto</Button>}
+      : parentFirst ? null : <Button variant="secondary" onClick={parentDialog}><Send size={16} /> Loo lapsevanema konto</Button>}
     {parentOpen ? <ParentInviteDialog open onClose={() => setParentOpen(false)} students={[student]} service={service}
       initial={{ displayName: student.parentName || '', email: student.parentEmail || '', phone: '', studentIds: [student.id] }}
       onDone={(data) => onParentInvited?.(data)} /> : null}

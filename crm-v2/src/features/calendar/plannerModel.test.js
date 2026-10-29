@@ -57,6 +57,13 @@ describe('planner: „Lisa kõik õpilased”', () => {
     expect(list[1]).toMatchObject({ teacherUid: 't2', teacher: 'Jelena', duration: 60, perWeek: 1, online: true });
   });
 
+  it('the learner’s own „Mitu korda nädalas” (studentAvailability.perWeek) wins over the history', () => {
+    const studentTimes = new Map([['b', { slots: [], perWeek: { 'eesti-keel': 1, matemaatika: 3 } }]]);
+    const list = planningRequests({ students, events, today, teachers, studentTimes });
+    expect(list[0]).toMatchObject({ key: 'b|Eesti keel|t1', perWeek: 1, wanted: 1 });
+    expect(list[1]).toMatchObject({ key: 'b|Matemaatika|t2', perWeek: 3, wanted: 3 });
+  });
+
   it('a full re-plan also takes the planned directions and names the series it replaces; one teacher only', () => {
     const list = planningRequests({ students, events, today, teachers, includePlanned: true, teacherUid: 't1' });
     expect(list.map((item) => item.key)).toEqual(['a|Eesti keel|t1', 'b|Eesti keel|t1']);

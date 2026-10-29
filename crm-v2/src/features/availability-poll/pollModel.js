@@ -1,6 +1,8 @@
 // „Sobivad ajad” (owner 2026-10-20): a learner marks every hour of the week that really suits a lesson; the school then
 // finds a teacher and a time. Hours 8–21; an hour is stored as its two half hours ("Mon-16:00", "Mon-16:30"), the
 // format of functions/website-lead-core.js.
+import { directionId } from '../students/studyDirections.js';
+
 export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const HOURS = Array.from({ length: 14 }, (_, index) => 8 + index); // 8:00 … 21:00 (the last hour ends at 22)
 export const PARTS = [{ key: 'morning', from: 8, to: 12 }, { key: 'day', from: 12, to: 17 }, { key: 'evening', from: 17, to: 22 }];
@@ -80,3 +82,53 @@ export function timesForWeek(item, monday) {
 export const timesOnDate = (item, date) => timesForWeek(item, date ? mondayOf(date) : '');
 // the dated weeks still to come (older ones are dropped when saving)
 export const futureWeeks = (weeks = {}, today) => Object.fromEntries(Object.entries(weeks || {}).filter(([monday]) => monday >= mondayOf(today)).sort(([a], [b]) => a.localeCompare(b)));
+
+// Lessons a week the learner wants (team 2026-10-29: „сколько раз в неделю они хотят заниматься; если несколько курсов —
+// отдельно на каждый курс”). studentAvailability.perWeek = { 'eesti-keel': 2, 'matemaatika': 1 }: one number 1–7 per
+// active course of the card, keyed by the course's slug (studyDirections.js directionId of the subject, so 'Eesti keel'
+// and 'eesti keel' are one key); a card without a subject has one field, key 'default'.
+export const PER_WEEK_MAX = 7;
+export const PER_WEEK_DEFAULT_KEY = 'default';
+const KEY_PATTERN = /^[a-z0-9-]{1,60}$/;
+export const perWeekKey = (subject) => (String(subject ?? '').trim() ? directionId(subject) : PER_WEEK_DEFAULT_KEY);
+// the fields to show: [{ key, subject }] — one per course of the card, or one without a name
+export function perWeekFields(subjects = []) {
+  const seen = new Set();
+  const list = (subjects || []).filter((subject) => String(subject ?? '').trim()).map((subject) => ({ key: perWeekKey(subject), subject: String(subject).trim() }))
+    .filter((item) => !seen.has(item.key) && seen.add(item.key));
+  return list.length ? list : [{ key: PER_WEEK_DEFAULT_KEY, subject: '' }];
+}
+// a whole number 1–7, else null
+export const perWeekValue = (value) => { const number = Number(value); return Number.isInteger(number) && number >= 1 && number <= PER_WEEK_MAX ? number : null; };
+// only valid keys and numbers, at most 10 courses
+export function cleanPerWeek(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter(([key]) => KEY_PATTERN.test(key)).map(([key, count]) => [key, perWeekValue(count)])
+    .filter(([, count]) => count).slice(0, 10));
+}
+// what is saved, read with the card's courses: [{ key, subject, count }] — a course the card no longer has keeps its
+// stored number (named by its key) so nothing silently disappears
+export function perWeekRows(perWeek = {}, subjects = []) {
+  const stored = cleanPerWeek(perWeek);
+  const fields = perWeekFields(subjects);
+  const rows = Object.entries(stored).map(([key, count]) => ({ key, subject: fields.find((item) => item.key === key)?.subject ?? (key === PER_WEEK_DEFAULT_KEY ? '' : key), count }));
+  // one course on the card and a number saved before it got its subject: it is that course's number
+  if (fields.length === 1 && rows.length === 1 && !fields.some((item) => item.key === rows[0].key) && rows[0].key === PER_WEEK_DEFAULT_KEY) rows[0].subject = fields[0].subject;
+  const order = (row) => { const index = fields.findIndex((item) => item.key === row.key); return index < 0 ? 99 : index; };
+  return rows.sort((a, b) => order(a) - order(b));
+}
+// „2× nädalas” or „Eesti keel 2× · Matemaatika 1× nädalas”; `only`: just the given courses (a teacher sees their own)
+export function perWeekText(perWeek = {}, subjects = [], { only = false } = {}) {
+  const keys = new Set(perWeekFields(subjects).map((item) => item.key));
+  const rows = perWeekRows(perWeek, subjects).filter((row) => !only || keys.has(row.key));
+  if (!rows.length) return '';
+  if (rows.length === 1) return `${rows[0].subject ? `${rows[0].subject} ` : ''}${rows[0].count}× nädalas`;
+  return `${rows.map((row) => `${row.subject || 'Tunnid'} ${row.count}×`).join(' · ')} nädalas`;
+}
+// the editor's starting values: the stored numbers by field ('' = not chosen); a lone 'default' fills a lone course
+export function perWeekDraft(perWeek = {}, subjects = []) {
+  const stored = cleanPerWeek(perWeek);
+  const fields = perWeekFields(subjects);
+  const lone = fields.length === 1 && Object.keys(stored).length === 1 ? Object.values(stored)[0] : null;
+  return Object.fromEntries(fields.map((item) => [item.key, String(stored[item.key] ?? lone ?? '')]));
+}

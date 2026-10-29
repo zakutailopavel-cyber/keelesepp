@@ -1,0 +1,8 @@
+/* „Tunnipakett” on the student card: bought / held / left per package invoice */
+.lesson-tokens-card__packages { width: 100%; border-collapse: collapse; margin: .5rem 0; font-size: .9rem; }
+.lesson-tokens-card__packages th,
+.lesson-tokens-card__packages td { padding: .35rem .5rem; text-align: left; border-bottom: 1px solid var(--border, #e4e7ec); }
+.lesson-tokens-card__packages th { font-size: .75rem; font-weight: 700; color: var(--muted, #667085); }
+.lesson-tokens-card__packages td:nth-child(n+3),
+.lesson-tokens-card__packages th:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
+.lesson-tokens-card__packages small { color: var(--muted, #667085); }
