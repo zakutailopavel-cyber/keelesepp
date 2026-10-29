@@ -86,6 +86,50 @@ B2 emphasis inside the same archetypes [INF]:
 - **LUGE** lessons read 500–600-word problem articles (R1) and the sentence-bank text (R4); **KUUL** lessons use
   3–4-minute interviews and talks (L2–L4) and once-played clips (L1).
 
+### 4.1 Default plan (owner 2026-10-29)
+
+Odd modules 1–7 take the set {LUGU R→W, KUUL L→W, AVAS L→S, PROB R→S}, odd modules 9–17 {LUGU R→W, KUUL L→W, AVAS R→S,
+PROB L→S}; even modules 2–8 {LUGE R→S, KIRJ L→W, RÄÄK L→S, PROJ R→W}, even modules 10–16 {LUGE R→W, KIRJ L→W, RÄÄK R→S,
+PROJ L→S}. The order inside a module rotates with a period of four modules (m1 = m9 = m17, m3 = m11, m5 = m13, m7 = m15;
+m2 = m10, m4 = m12, m6 = m14, m8 = m16). Every fifth lesson is the module exam (EKS); 060 and 080 are mocks (PROOV) inside
+their EKS slot (marked PROOV below). A module may swap the order inside its four when its topic or grammar needs it — the V5 rules must still
+hold (four types, four lead pairs, no type twice in a row, lesson 1 differs from the previous module's lesson 1). Course
+totals of the plan: LUGU, KUUL, AVAS, PROB, LUGE, KIRJ, RÄÄK 9 each, PROJ 8 (V5: 7–12, PROJ ≥ 3).
+
+| Module | Lessons | 1st | 2nd | 3rd | 4th | 5th |
+|---|---|---|---|---|---|---|
+| 1 | 001–005 | LUGU R→W | KUUL L→W | AVAS L→S | PROB R→S | EKS |
+| 2 | 006–010 | LUGE R→S | RÄÄK L→S | KIRJ L→W | PROJ R→W | EKS |
+| 3 | 011–015 | KUUL L→W | PROB R→S | LUGU R→W | AVAS L→S | EKS |
+| 4 | 016–020 | KIRJ L→W | PROJ R→W | LUGE R→S | RÄÄK L→S | EKS |
+| 5 | 021–025 | AVAS L→S | LUGU R→W | PROB R→S | KUUL L→W | EKS |
+| 6 | 026–030 | RÄÄK L→S | LUGE R→S | PROJ R→W | KIRJ L→W | EKS |
+| 7 | 031–035 | PROB R→S | AVAS L→S | KUUL L→W | LUGU R→W | EKS |
+| 8 | 036–040 | PROJ R→W | KIRJ L→W | RÄÄK L→S | LUGE R→S | EKS |
+| 9 | 041–045 | LUGU R→W | KUUL L→W | AVAS R→S | PROB L→S | EKS |
+| 10 | 046–050 | LUGE R→W | RÄÄK R→S | KIRJ L→W | PROJ L→S | EKS |
+| 11 | 051–055 | KUUL L→W | PROB L→S | LUGU R→W | AVAS R→S | EKS |
+| 12 | 056–060 | KIRJ L→W | PROJ L→S | LUGE R→W | RÄÄK R→S | PROOV (060) |
+| 13 | 061–065 | AVAS R→S | LUGU R→W | PROB L→S | KUUL L→W | EKS |
+| 14 | 066–070 | RÄÄK R→S | LUGE R→W | PROJ L→S | KIRJ L→W | EKS |
+| 15 | 071–075 | PROB L→S | AVAS R→S | KUUL L→W | LUGU R→W | EKS |
+| 16 | 076–080 | PROJ L→S | KIRJ L→W | RÄÄK R→S | LUGE R→W | PROOV (080) |
+| 17 | 081–085 | LUGU R→W | KUUL L→W | AVAS R→S | PROB L→S | EKS |
+| 18 | 086–090 | RÄÄK L→S | KIRJ R→W | LUGE R→S | PROOV (089) | PROOV (090) |
+
+**Module 1 as built (2026-10-29, `b2/module01.js`, 41 → 0 problems).** 001 LUGU R→W (main W13 letter to the head of
+personnel), 002 KUUL L→W (main W05 text for the new-employee guide), 003 AVAS L→S (main S17 argument cards, S16 talk
+recorded at home), 004 PROB R→S (main S17 learning-plan talk). Pitfalls on top of the B1 ones (`FINAL_SHAPE_AUTHORING.md`):
+- **Catalogue caps first.** The v4 module had 12 × S02, 8 × W05, 7 × L04, 6 × R02: most of the work was giving every
+  block its real id (13 W, 12 R, 8 L, 13 S ids in 4 lessons). Plan the id table before editing.
+- **Recognition share at B1+ is ≤ 2 of 7 tasks a Harjuta sheet** (`did-closed-share`): `cloze`, `match`, `choice`,
+  `truefalse` and `examlisten` count. Turning a gap listening into `examlisten` also lowers the „live” depth (items ×
+  0.15 min instead of the recording's minutes) — do it in Avasta, where a reading is the input, not in Harjuta.
+- **Speaking at B1+ is 120–240 s** for the didactic check: an S16 „1-minute” talk in Harjuta is done twice (3 min, then
+  2 min) to stay in the band; the S16 in Kasuta (60–120 s) is the home recording.
+- **Kasuta inputs of level 3:** R15 tagged `level: 3` (rules applied to Sofia's case, 1–3-word answers), R16 sentence bank
+  (an `insertion` with one extra), R11 cards, L07 voice message.
+
 ## 5. Introduction schedule and practice counts (`FORMAT_INTRO_B2`, `FORMAT_PRACTICE_B2`)
 
 First taught in module: S1, W1 → 2; L1, R2a → 3; S2, L3, R3 → 4; W2b → 5; R1, L2 → 6; R4, W2a → 7; L4, R2b → 8.

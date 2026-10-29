@@ -23,6 +23,27 @@
 - Checks: `final-shape.mjs --course b2 --module 2` 0; `npx eslint --quiet src` 0; `npx vitest run` 402 files passed
   (2767 tests); language check 0 unknown lower-case words.
 - Next safe step: B1→B2 module 3 (`b2/module03.js`, b1b2-011…015) in the final shape, branch `agent/b2-m03-final`.
+## 2026-10-29 · agent/b2-m01-final — B1→B2 module 1 in the final shape
+
+- Base: `main` 822c0d8 (2026-10-29, after #873 B2 final-shape gates). Draft PR from `agent/b2-m01-final`. Content only;
+  no production data, no publishing, no deploy.
+- Done: `b2/module01.js` (b1b2-001…005) passes V1–V16 under the B2 profile: **41 → 0** module problems; it also closed
+  `b1b2-006|discover|V2` in module 2. B2 baseline 1182 → 1140 lines (course group unchanged, 48). Strict quality gate 0,
+  `qualityBaseline.json` unchanged.
+  - Shapes (`withShapes`): 001 LUGU R→W, 002 KUUL L→W, 003 AVAS L→S, 004 PROB R→S, 005 EKS (§4.1 plan row 1).
+  - Main Kasuta tasks: 001 W13 letter to Eha Org (120–150 words), 002 W05 guide text, 003 S17 argument cards (A pro /
+    B con, joint position), 004 S17 learning-plan talk with Liis. S16: 002 Harjuta talk, 003 Kasuta talk (recorded).
+    Home recordings (S15/S16) in every Kasuta, a pair/role task in every lesson, two fluency tasks a lesson.
+  - Changed blocks: tags on nearly every task (13 W, 12 R, 8 L, 13 S ids); new `002_t_notes` (R16 sentence bank) instead
+    of the dialogue + timeline, `003_t_cards` as R11 cards instead of the reading + compare diagram, `002_d_markus` and
+    `004_p_radio` as `examlisten` (match / choice; same transcripts, audio unchanged), `004_p_check` (true/false) and
+    `004_p_fix` (comparison errors) instead of a sort and a choice; removed `003_d_sort`, `004_t_options`, `004_t_plan`.
+    can-do of 001–004 and goals in `b2/lessonGoals.js` follow the main tasks.
+- Docs: `docs/COURSE_FINAL_SHAPE_B2.md` §4.1 „Default plan” (archetype table for modules 1–18 + module 1 pitfalls).
+- Checks: `final-shape.mjs --course b2 --module 1` 0 problems; eslint 0; full vitest 402 files / 2767 tests passed
+  (5 skipped); Vabamorf language check of module 1: 0 unknown lower-case words.
+- Next safe step: B1→B2 module 2 (b1b2-006…010, §4.1 row 2: LUGE R→S · RÄÄK L→S · KIRJ L→W · PROJ R→W, exam corners from
+  module 2), branch `agent/b2-m02-final`.
 
 ## 2026-10-29 · agent/b2-final-shape-gates — the B1→B2 course under the final-shape gates (B2 profile)
 
