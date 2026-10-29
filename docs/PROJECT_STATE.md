@@ -9,6 +9,39 @@
 - Tests: accounting-core 19 pass; vitest accounting 56 pass; emulator test added (runs in CI).
 - **Needs a functions deploy** (`financeApi`) before the button works; the owner's OK is required.
 - Not done: ST1 itself is not undone — the accountant (or the owner) presses the button with a reason.
+## 2026-10-29 · agent/b2-m08-final — B1→B2 module 8 „Reisimine ja kultuur” in the final shape
+
+- Base: `main` 377856e (after #882, module 6), then `origin/main` 38ecb2b merged (after #884, module 7); corner and
+  V1/V2 boundary to 034 rechecked (034 corner S2 → 036 corner R2b; `036_t_msgs` tagged R12 so Kasuta does not open like
+  034). Content only; no production data, no publishing, no deploy.
+- Done: `b2/module08.js` (b1b2-036…040) passes every final-shape gate under the B2 profile: **60 → 0 problems**
+  (`final-shape.mjs --course b2 --module 8`); three module-9 lines (041 V1-lesson, 041 discover V2, 045 transfer V7) and
+  four course lines (`V6-total-R2`, `V6-total-R4`, `V6-variant-R2b`, `V6-variant-W2a`) left the baseline too. B2 baseline
+  716 → 653 lines, none added. Strict quality gate: all 15 sheets READY (teaching sheets 41–54 min),
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 8): 036 PROJ R→W (corner R2b = `036_d_offers`, the newsletter with 8 answers of 1–3
+  words, R15; main `036_t_letter` W03 letter to the families, level 4), 037 KIRJ L→W (corner R3 = `037_p_cloze`, Sofia's
+  complaint, 12 gaps, lengthened; main `037_t_letter` W13 complaint to Reisikoht), 038 RÄÄK L→S (corner L4 =
+  `038_p_radio` as `examListen` true/false with 12 statements, transcript and audio unchanged; main `038_t_talk` S17
+  argument cards: one joint summer party or two), 039 LUGE R→S (corner R4 = `039_p_bank`, 8 sentence gaps + 1 extra, R16;
+  main `039_t_talk` S16 culture-evening talk recorded at home). 040 EKS: R1, R2a, R2b, R3, R4, L3, L4, W1, W2a, S1, S2
+  tagged, four timed `PART`s; new W2a summary `040_t_summary`, `040_t_read` as R2b (8 short answers), L4 with 12
+  statements, `040_t_tr` removed. Every teaching lesson: review naming the previous lesson and a module 4–6 lesson
+  (034/017, 036/019, 037/026, 038/022), a pair task in the lesson, a home recording, fluency ≥ 14 %; S16 ×2, S17 ×2.
+- Changed blocks: `036_p_cloze` → `036_p_bank` (R04 word bank), `036_t_cards` → `036_t_msgs` (families' messages with a
+  phrase bank, R12 level 3), new chart `036_p_votes` + W15 `036_p_compare`; `037_p_rights` asks for paragraph headings
+  (R09), `037_d_steps` L06, `037_t_docs` R08 level 3; `038_p_article` R13 (predict first), `038_t_talk` new argument
+  cards, `038_t_voice` L07; `039_d_kihnu` paragraphs shuffled (R10), `039_p_cloze` → formtext (G03), `039_p_past` →
+  wordforms (G09), `039_p_mono` 4-3-2 (S08), `039_t_call` R07 level 3. Vocab: ajakava, ümberistumine, pärimuskultuur,
+  reisilugu, videokoosolek → programm, ööbima, pärimus, kirjeldama, pilet; topic words uustulnuk, külalislahke. canDo and
+  goals of 036–039 in `b2/lessonGoals.js`.
+- Audio: no transcript changed, no new recordings.
+- Checks: `final-shape.mjs --course b2 --module 8` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2772 tests, 5 skipped); Vabamorf language check of module 8: 0 unknown lower-case words.
+- Limits: the R3 corner is ≈ 8.1 min (just above the floor); the R2b newsletter is ~360 words (Harno 200–300); the L4
+  corner's recording is 2.4 min (Harno 3–4 min).
+- Next safe step: B1→B2 module 9 (`b2/module09.js`, b1b2-041…045, §4.1 row 9: LUGU R→W · KUUL L→W · AVAS R→S · PROB L→S);
+  041's corner must not be R4 (039's corner).
 
 ## 2026-10-29 · agent/b2-m07-final — B1→B2 module 7 „Haridus ja õppimine” in the final shape
 
