@@ -586,3 +586,32 @@ baseline. New pitfalls:
 - **Mock listening at exam length:** with the free TartuNLP voices the Mock 2 texts are L2 ≈ 300, L3a ≈ 360, L4 ≈ 280
   words (133, 181 and 134 s — still below Harno's lengths); exam sheets have no 55-minute cap, so longer transcripts
   do not break a gate.
+
+### 8.10 Module 17 (2026-10-29, `b1/module17.js`, a2b1-081…085): reading and writing; the R + W check
+
+Module 17 went 56 → 0 final-shape problems (`--module 17`), strict gate 0, no baseline line left; the rewrite also took
+nine V2/V7 lines of module 18 and four course lines (`V5-course-KIRJ`, `V6-corner-L3`, `V6-corner-R1`, `V6-corner-R4`) out of
+the baseline. New pitfalls:
+
+- **Count the archetypes of the whole course before taking a row.** V5 counts module 1 too (AVAS R→W), so the course had
+  12 AVAS lessons before module 17 and row 17's AVAS gave `V5-course-AVAS` (13 > 12). The grammar lesson (impersonal,
+  grammarPlan 081) became LUGU R→S instead (§4.1 rule 6 allows AVAS or LUGU). A one-liner over `COURSE_MODULES` that counts
+  `lesson.archetype` shows the numbers.
+- **An untagged `reading` is R02.** A story reading in Avasta and a notice reading in Harjuta gave R02 twice; tag the notice
+  `{ task: 'R07' }`.
+- **`examlisten` is no Avasta input** (again): a KUUL Avasta that opens with a radio show needs a `formtext` (or a reading /
+  cloze) of ≥ 140 words; a KIRJ Avasta took the model letter as an R03 `cloze`.
+- **`same-opening` skips the review** (a `tip`) and the hook (`text`): the first task decides. A vocab box placed first
+  changes the opening when two neighbours start with the same block type.
+- **`module-same`:** two Kasuta sheets of a module with the same block-type sequence (listening → speakcard → speaking →
+  examwriting) are one problem; changing the order of one sheet fixes it.
+- **`depth/no-sentences`:** only `errorfix`, `transformation`, `translation` and `dictation` count as whole-sentence tasks;
+  `wordorder` does not.
+- **An R + W check (no listening, no speaking) is hard to split.** What passed: Avasta = warm-up (quiz, story, sort,
+  transformation, errorfix, writing, talk); Harjuta = the reading part (R1, R2 text + choice, R3b as a `gaps` text with a
+  bank, R4 as `B.bankText`, two rubrics) plus two untimed after-reading tasks (a `wordorder` and a talk on the R2 topic) to
+  reach 40 minutes, depth ≥ 25 and „live” ≥ 15 with recognition ≤ 45 %; Kasuta = the writing part (W1a, W2b with their
+  rubrics) plus an after-check talk and a rewrite of the letter. A `kusimustik` card is always questions × 0.8 + 1 minutes.
+- **Error tasks need real errors:** an adverb first with a pronoun subject before the verb („Seejärel me istutame …”) is
+  correct Estonian, and „sinule” is a correct form of „sulle” — both were removed from the error rows.
+- **A model draft with a run-on sentence** is still a B1 reading: the run-on must stay ≤ 22 words and the text ≥ 200 words.

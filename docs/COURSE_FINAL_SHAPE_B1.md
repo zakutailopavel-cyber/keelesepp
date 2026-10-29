@@ -400,6 +400,13 @@ texts heard and read; corner L4), 079 PROB R→S (the conditional for a polite o
 meeting; corner R3a; the module's one S14). grammarPlan.js has no new item for 076–079, so no swap was needed (§4.1 rule 6
 does not apply). 080 is Mock 2, the second full timed B1 mock with the §6.5 checkpoint (75 %: R 25, L 23, W 15, S 15 → a
 teacher review before module 17) next to the 80 % target (`b1/module16.js`).
+Module 17 (2026-10-29): the row is changed — 081 LUGU R→S, 082 LUGE R→W, 083 KUUL L→S, 084 KIRJ L→W. grammarPlan.js puts
+the module's B1 item (the impersonal in notices) in 081, so the grammar lesson must open the module (§4.1 rule 6: AVAS or
+LUGU). AVAS was not possible: with module 1's AVAS lesson (outside this table's counts) the course already had 12 AVAS lessons
+(V5 maximum), so the row's AVAS became LUGU (Ruslan's first week with six notices, cliffhanger: the bike) and moved to 081;
+KUUL moved to 083. The four pairs stay once each, no archetype repeats next to 079 / 086 (PROB) and the opener differs from
+076 (RÄÄK). Corners R1, R4, L3a, L1 (after 079's R3); 085 is the module check in Harno B1 form for reading (R1, R2, R3b, R4)
+and writing (W1a, W2b), timed (`b1/module17.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 
