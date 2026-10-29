@@ -176,6 +176,26 @@ test("finance role can read invoices without gaining student or mutation access"
   });
   assert.equal((await planWith("actual")).status, 200, "billingMode actual");
   assert.equal((await planWith("weekly")).status, 403, "unknown billingMode");
+  // price terms (2026-10-29): general = standard rate, no reason; discount = own rate + a reason of 1–300 characters
+  const planWithTerms = (priceTerms, discountReason, hourlyRateCents = 2000) => firestoreDocumentRequest(adminToken, "PATCH", "studentRevenuePlans/admin-forecast-student", {
+    fields: {
+      studentId: { stringValue: "admin-forecast-student" }, studentName: { stringValue: "Admin Forecast Student" },
+      lessonPriceCents: { integerValue: String(hourlyRateCents) }, weeklyLessons: { doubleValue: 1 }, currency: { stringValue: "EUR" },
+      active: { booleanValue: true }, updatedAt: { stringValue: "2026-10-29T12:00:00.000Z" }, updatedBy: { stringValue: "Admin" },
+      updatedByUid: { stringValue: tokenUid(adminToken) }, lessonMinutes: { integerValue: "60" },
+      priceTerms: { stringValue: priceTerms }, hourlyRateCents: { integerValue: String(hourlyRateCents) },
+      discountReason: { stringValue: discountReason }, priceTermsChangedAt: { stringValue: "2026-10-29T12:00:00.000Z" },
+      priceTermsChangedBy: { stringValue: "Admin" }, priceTermsChangedByUid: { stringValue: tokenUid(adminToken) },
+    },
+  });
+  assert.equal((await planWithTerms("discount", "Kaks last peres")).status, 200, "discount with a reason");
+  assert.equal((await planWithTerms("general", "", 2500)).status, 200, "general terms");
+  assert.equal((await planWithTerms("discount", "   ")).status, 403, "discount without a reason");
+  assert.equal((await planWithTerms("discount", "x".repeat(301))).status, 403, "reason over 300 characters");
+  assert.equal((await planWithTerms("general", "leftover reason", 2500)).status, 403, "general terms carry no reason");
+  assert.equal((await planWithTerms("special", "Kaks last")).status, 403, "unknown terms");
+  const financeTermsWrite = await firestoreDocumentRequest(financeToken, "PATCH", "studentRevenuePlans/admin-forecast-student?updateMask.fieldPaths=discountReason", { fields: { discountReason: { stringValue: "Finance edit" } } });
+  assert.equal(financeTermsWrite.status, 403, "the finance role cannot change price terms");
 });
 
 async function firestoreDocumentRequest(token, method, documentPath, body) {

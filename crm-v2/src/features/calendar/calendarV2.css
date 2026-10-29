@@ -65,6 +65,12 @@
 .tone-3 { --tone-soft: #f3ecff; --tone-strong: #7c5cd6; }
 .tone-4 { --tone-soft: #fdecef; --tone-strong: #d0466a; }
 .tone-5 { --tone-soft: #e9f7fb; --tone-strong: #1f93b4; }
+.tone-6 { --tone-soft: #fdeceb; --tone-strong: #c2362b; }
+.tone-7 { --tone-soft: #f2f6e3; --tone-strong: #66801a; }
+.tone-8 { --tone-soft: #f5ede6; --tone-strong: #8a5a2e; }
+.tone-9 { --tone-soft: #eef0f3; --tone-strong: #5b6676; }
+.tone-10 { --tone-soft: #fff8db; --tone-strong: #b08900; }
+.tone-11 { --tone-soft: #fbeaf8; --tone-strong: #a8329c; }
 
 /* month view: same light cards */
 .cal2 .month-grid { background: #fff; border: 1px solid #e4e8ee; border-radius: 16px; overflow: hidden; }
@@ -471,3 +477,31 @@
 .cal2-form-time { border: 1px solid #c7dfd8; background: #f1f8f5; color: #176553; border-radius: 9px; padding: 6px 10px; font: inherit; font-size: .82rem; font-weight: 700; cursor: pointer; }
 .cal2-form-time.is-best { border-color: #e7c76a; background: #fff8e1; color: #7a5a00; }
 .cal2-form-time.is-on { background: #176553; border-color: #176553; color: #fff; }
+
+/* „Värvid”: the viewer's own teacher colours (owner 2026-10-29) */
+.cal2-colors { position: relative; }
+.cal2-colors__panel { position: absolute; z-index: 30; top: calc(100% + 6px); right: 0; width: min(320px, calc(100vw - 32px)); max-height: 70vh; overflow: auto; display: grid; gap: 8px; padding: 12px; border: 1px solid #e4e8ee; border-radius: 14px; background: #fff; box-shadow: 0 12px 32px rgba(16, 35, 57, .16); }
+.cal2-colors__head { display: flex; align-items: center; justify-content: space-between; }
+.cal2-colors__close { border: 0; background: transparent; cursor: pointer; color: #475467; padding: 4px; border-radius: 8px; }
+.cal2-colors__hint { margin: 0; color: #667085; font-size: .8rem; }
+.cal2-colors__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.cal2-colors__row { width: 100%; display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; border: 0; border-radius: 10px; background: transparent; padding: 6px; text-align: left; cursor: pointer; font: inherit; color: #14243a; }
+.cal2-colors__row:hover, .cal2-colors__row[aria-expanded="true"] { background: #f4f6f9; }
+.cal2-colors__row small { color: #667085; }
+.cal2-colors__swatch { display: inline-block; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--tone-soft); background: var(--tone-strong); padding: 0; }
+button.cal2-colors__swatch { cursor: pointer; }
+.cal2-colors__swatch.is-current { outline: 2px solid #14243a; outline-offset: 2px; }
+.cal2-colors__palette { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 6px 6px 10px 36px; }
+.cal2-colors__reset-one { border: 0; background: transparent; color: #087e6b; font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer; }
+.cal2-colors__reset { justify-self: start; }
+@media (max-width: 760px) { .cal2-colors__panel { position: fixed; top: auto; bottom: 8px; left: 16px; right: 16px; width: auto; } }
+
+/* traffic light (team 2026-10-29): a ribbon in the top right corner — green held, yellow absent, red cancelled */
+.tg-cluster-item { position: relative; }
+.tg-ribbon { position: absolute; top: 0; right: 0; width: 0; height: 0; border-style: solid; border-width: 0 16px 16px 0; border-color: transparent; border-top-right-radius: 7px; pointer-events: none; z-index: 2; }
+.tg-cluster-item .tg-ribbon { border-width: 0 11px 11px 0; }
+.tg-ribbon.is-done { border-right-color: #12b76a; }
+.tg-ribbon.is-absent { border-right-color: #f5b301; }
+.tg-ribbon.is-cancelled { border-right-color: #d92d20; }
+.tg-block.is-cancelled { opacity: .7; background: repeating-linear-gradient(135deg, #fef3f2 0 6px, #fff 6px 12px); }
+.tg-block.is-cancelled strong { text-decoration: line-through; }

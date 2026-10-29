@@ -41,3 +41,17 @@ it('a card with two subjects says the subject of each next lesson', () => {
   expect(screen.getByText('Eesti keel · Pavel')).toBeInTheDocument();
   expect(screen.getByText('Inglise keel · Anna')).toBeInTheDocument();
 });
+
+it('shows how long each lesson is and marks double lessons (team 2026-10-29)', () => {
+  const now = localDate();
+  const schedule = [{ id: 'double', recurring: false, date: shiftDate(now, 1), time: '16:00', duration: 120, status: 'Planeeritud', teacher: 'Mari' }];
+  const lessons = [
+    { id: 'l1', date: shiftDate(now, -7), time: '16:00', duration: 120, status: 'Toimunud' },
+    { id: 'l2', date: shiftDate(now, -14), time: '16:00', duration: 45, status: 'Toimunud' },
+  ];
+  render(<MemoryRouter><StudentLessonsPanel student={{ id: 's', name: 'Agata' }} lessons={lessons} schedule={schedule} /></MemoryRouter>);
+  expect(screen.getAllByText('120 min · Topelttund')).toHaveLength(2);
+  expect(screen.getByText('45 min')).toBeInTheDocument();
+  expect(screen.getByText(`${shiftDate(now, 1)} · 16:00–18:00`, { exact: false })).toBeInTheDocument();
+  expect(screen.getByText('2 tundi · 2,8 h · topelttunde 1')).toBeInTheDocument();
+});
