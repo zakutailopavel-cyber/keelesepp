@@ -2584,20 +2584,40 @@
     "seconds": 133.1,
     "hash": "52424d9b88aaabece71fe6d6432f39f28b6664be"
   },
+  "b1b2-063:063_p_tf": {
+    "src": "/audio/b1b2-063/063_p_tf.mp3",
+    "seconds": 133.1,
+    "hash": "52424d9b88aaabece71fe6d6432f39f28b6664be"
+  },
   "b1b2-063:063_t_voice": {
     "src": "/audio/b1b2-063/063_t_voice.mp3",
     "seconds": 118.3,
     "hash": "f0c32306f45abe9acbc5c8adcf95ffd8ccce3255"
+  },
+  "b1b2-064:064_p_clips": {
+    "src": "/audio/b1b2-064/064_p_clips.mp3",
+    "seconds": 248.4,
+    "hash": "23b652afe040ff54794c97687bdf6fdbad4776e9"
   },
   "b1b2-064:064_p_lecture": {
     "src": "/audio/b1b2-064/064_p_lecture.mp3",
     "seconds": 97.3,
     "hash": "d36644a1786ac58ff138a64690d2b62fbff37b35"
   },
+  "b1b2-064:064_t_hearing": {
+    "src": "/audio/b1b2-064/064_t_hearing.mp3",
+    "seconds": 116.3,
+    "hash": "5ba71230469e5653079e5e94130cb58ae07c70a4"
+  },
   "b1b2-065:065_p_listen": {
     "src": "/audio/b1b2-065/065_p_listen.mp3",
     "seconds": 164,
     "hash": "899526de990e86a2d8fea735961ced883abc07b5"
+  },
+  "b1b2-065:065_p_radio": {
+    "src": "/audio/b1b2-065/065_p_radio.mp3",
+    "seconds": 119.7,
+    "hash": "5731b028c0dbb60211e2c33d1ce1a0c802e45266"
   },
   "b1b2-066:066_p_call": {
     "src": "/audio/b1b2-066/066_p_call.mp3",
