@@ -1,6 +1,6 @@
 ## 2026-10-29 · agent/b2-m14-final — B1→B2 module 14 „Ühiskond ja avalikud teenused” in the final shape
 
-- Base: `main` 7ea2006, then `origin/main` merged. Modules 11 (#895), 12 (#898) and 13 (#900) were not on `main` yet: the
+- Base: `main` 7ea2006, then `origin/main` 8c7eb3d merged. Modules 11 (#895), 12 (#898) and 13 (#900) were not on `main` yet: the
   064 (KUUL, corner L1) → 066 (RÄÄK, corner W1) boundary has no family repeat by design; recheck V1/V2/V12 at 064→066 and
   `methodGaps.test.js` (module 13 → 14 vocabulary recycling) after they land. Content only; no production data, no
   publishing, no deploy.
@@ -25,12 +25,14 @@
   teenindus, üldkoosolek → koosolek; topic words sotsiaaltöötaja, toidupank, öörahu, peatumisala. Bold inside words
   removed (speller). canDo and goals of 066–070 in `b2/lessonGoals.js`.
 - Audio (TartuNLP, free): new `b1b2-068/068_p_clips.mp3`. No other transcript changed.
-- Checks: see the PR (final-shape 0, eslint, full vitest); Vabamorf language check of module 14: 1 unknown lower-case
+- Checks: `final-shape.mjs --course b2 --module 14` 0; `npx eslint --quiet src` 0; `npx vitest run` 406 files passed
+  (2790 tests, 5 skipped); Vabamorf language check of module 14: 1 unknown lower-case
   word, the genre value `kusimustik`.
 - Limits: the W1 corner is 80–100 words (exam ≈ 140); the R1 corner has open questions (exam: three options); the L1
   clips are ≈ 25 s each (Harno 35–45 s, five clips) and the corner is 8.0 min, at the floor.
 - Next safe step: B1→B2 module 15 (`b2/module15.js`, b1b2-071…075, §4.1 row 15: PROB L→S · AVAS R→S · KUUL L→W · LUGU R→W);
   071's corner must not be W2 (069's corner W2a).
+
 ## 2026-10-29 · agent/tokens-invoices — lesson packages: bought / held / left / owed per invoice; „Tunnipakett” plan saves
 
 - Base: `main` c2b4947 (checked 2026-10-29; `origin/main` 7ea2006 later touches none of these files). Owner: „систему
