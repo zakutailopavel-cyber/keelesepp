@@ -206,7 +206,9 @@ export const FORMAT_PRACTICE_B2 = Object.freeze({
 export const VARIANTS_B2 = ['W2a', 'W2b', 'R2a', 'R2b'];
 
 // A2 (docs/COURSE_FINAL_SHAPE_A2.md §5): 20 modules, first taught in module …, practised …
-export const FORMAT_INTRO_A2 = Object.freeze({ S1: 2, W1: 2, L1: 3, R3: 3, S2: 4, W2a: 4, L2: 5, R1: 5, R2: 6, L3: 6, R4: 7, W2b: 7, L4: 8, R5: 8 });
+// beginners: the exam formats come in with the module 5 exam and the corners of module 6 (corners start there, so an
+// earlier intro would break the gap rule at once)
+export const FORMAT_INTRO_A2 = Object.freeze({ S1: 5, W1: 5, L1: 5, R3: 5, S2: 6, W2a: 6, L2: 6, R1: 6, R2: 7, L3: 7, R4: 8, W2b: 8, L4: 9, R5: 9 });
 export const FORMAT_PRACTICE_A2 = Object.freeze({
   R1: p(4, 4, 9, 3), R2: p(4, 4, 9, 3), R3: p(4, 4, 9, 3), R4: p(4, 4, 9, 3), R5: p(4, 4, 9, 3),
   L1: p(4, 4, 9, 3), L2: p(4, 4, 9, 3), L3: p(4, 4, 9, 3), L4: p(4, 4, 9, 3),

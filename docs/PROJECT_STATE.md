@@ -25,6 +25,40 @@
 - Known: readiness notes left (not gates): 026 Kasuta depth „thin” (5 min of exercises), 030 short tasks and no vocab box.
 - Next safe step: after A2 module 5 lands, rerun `final-shape.mjs --course a2 --module 6` (025 → 026 boundary); A2 module 7
   must not open with an L2 corner in 031 (029's corner is L2).
+## 2026-10-29 · agent/a2-m05-final — A2 module 5 „Linn, kohad ja tee” in the final shape
+
+- Base: `main` 54324b9 (after #914 A2 module 3, #915 A2 module 4, #917 A2 intro schedule), checked 2026-10-29. Content
+  only; no production data, no publishing, no deploy. module01–04.js and module06.js not touched (module 6 is #916).
+- Done: `a2/module05.js` (a2-021…025) passes every final-shape gate under the A2 profile: **77 → 0 problems**
+  (`final-shape.mjs --course a2 --module 5`); `finalShapeBaselineA2.json` only shrank (module 5's lines and V7 lines of
+  029, 031, 034, 036, 039 … that cited old module-5 wordings); course lines unchanged, no new problem elsewhere
+  (019 → 021 and 024 → 026 boundaries rechecked). Quality gate clean; teaching sheets also pass the strict gate (40–44 min).
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, row m5, no swap): 021 AVAS L→S („proovi kõigepealt” choice → Malle's call L03 → rule → main
+  `021_t_plan` idea card S03: the free Saturday with Jaan), 022 LUGU R→W (Sofia fetches Oskar from Kase kool; story R13,
+  continuation R05; main `022_t_write` examWriting `jutt` 50–70 words, W05), 023 PROB R→S (Helgi comes from Tartu: first
+  attempt S02 → family chat R12, Jaan's ticket-machine guide R04 → imperative rule → second attempt W12; main
+  `023_t_call` phone cards S04), 024 KUUL L→W (centre announcements L01, answering machine L10, Tom's voicemail L07; main
+  `024_t_letter` examWriting `kiri` 50–70 words, W04). S06 = `022_t_picture`, S05 = `021_p_roles`. Every teaching lesson:
+  „Mäletad?” naming the previous lesson (019, 021, 022, 023) and a module 3 lesson (011, 012, 014, 013), an in-lesson
+  pair task, an S15 home recording (45–60 s) in Kasuta, two fluency tasks. No tingiv kõneviis (art prompts checked).
+  canDo and goals of 021–024 in `a2/lessonGoals.js`. Topic words: apteek, laenama, ristmik (V14 ≥ 90 %).
+- 025 (EKS): instructions reworded (V7), a vocab box; per the new intro schedule (#917) the exam-form tasks are tagged:
+  R3 `025_p_signs`, L1 `025_p_listen2` (now `examlisten` choice, same transcript), W1 `025_t_write` (examWriting from a
+  business card, ≥ 25 words), S1 `025_t_voice` (picture + questions, S06).
+- Audio (TartuNLP, free): new `021_d_malle`, `024_d_clips`, `024_p_plan`; rebuilt `023_t_voice`, `024_d_phone`,
+  `024_t_tom`; removed `021_d_kiosk`, `021_p_listen`, `022_t_viktor`, `023_d_lost`, `024_p_listen` (mp3 + manifest).
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 408 of 411 files passed, 2838 tests (2 files — accounting
+  partners, WorksheetStudioPage — timed out under load and pass alone: 30/30); language check (Vabamorf) of module 5:
+  1 unknown lower-case word, `kusimustik` (genre value).
+- Left: 025's older strict-gate notes (short tasks, short sentences) — the check lesson was not rewritten.
+- Next safe step: after #916 (module 6) lands, rerun `final-shape.mjs --course a2 --module 5` for the 024 → 026 boundary.
+
+## 2026-10-29 · agent/a2-intro-schedule — A2 exam formats come in from module 5
+
+- The A2 profile introduced S1/W1 in module 2 although corners start in module 6, so the gap rule (≤3 modules) fired
+  for every A2 module 6 corner choice. FORMAT_INTRO_A2 now: S1, W1, L1, R3 → 5 (the module 5 exam tags them); S2, W2a,
+  L2, R1 → 6; R2, L3 → 7; R4, W2b → 8; L4, R5 → 9. Doc COURSE_FINAL_SHAPE_A2.md §3. A2 baseline regenerated.
 
 ## 2026-10-29 · agent/a2-m04-final — A2 module 4 „Kodu ja ümbrus” in the final shape
 

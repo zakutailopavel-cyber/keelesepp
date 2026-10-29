@@ -49,7 +49,9 @@ Pass: ≥ 60 % (A2: 20 points of 80 per part) and no part at 0. Target, as for B
 
 ## 3. Introduction schedule and practice counts (`FORMAT_INTRO_A2`, `FORMAT_PRACTICE_A2`)
 
-First taught in module: S1, W1 → 2; L1, R3 → 3; S2, W2a → 4; L2, R1 → 5; R2, L3 → 6; R4, W2b → 7; L4, R5 → 8.
+First taught in module (corrected 2026-10-29: corners start in module 6, so the formats come in with the module 5 exam
+and the module 6 corners): S1, W1, L1, R3 → 5 (exam 025 tags them); S2, W2a, L2, R1 → 6; R2, L3 → 7; R4, W2b → 8;
+L4, R5 → 9. Modules 1–4 practise the skills without exam form.
 Up to lesson 099 each family is practised at least: exam lessons 4, corners 4 (S1, S2: 5), total 9 (S1, S2: 10); at most
 3 modules between practices (S1, S2: 2). Variants W2a, W2b ≥ 3 each.
 
