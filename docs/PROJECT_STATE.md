@@ -1,3 +1,56 @@
+## 2026-10-29 · agent/b1-m14-final — B1 module 14 „Minevik, kogemused ja jutustamine” in the final shape
+
+- Base: `main` 1b7be18 (2026-10-29, after #866 module 13). Draft PR from `agent/b1-m14-final`. Content only; no production
+  data, no publishing, no deploy.
+- Asked (owner): module 14 (a2b1-066…070) to the final shape like modules 2–13 (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 14;
+  V16: in-lesson pair task + home recording; 066 needs a corner other than W2b; V1/V2 against 064 and 071).
+- Done: `b1/module14.js` rewritten (September – October 2027 storyline: Oskar's class at Kase kool collects family stories
+  for the class book „Meie pere lood” and prepares the story evening of Thursday 14 October — an exhibition of family
+  timelines, a living library, family stories on stage). §6.2 row 14 is used as written:
+  - 066 LUGU R→W — Viktor's sauna of 1988 (R13 predict, cliffhanger), B1 grammar ära / läbi / valmis + total object (notice,
+    G04 sort, G03 Helgi's letter), retold twice (S07), 8-min writing (W06); process → completed (G05), the end of the story by
+    ear (L09), corner **R2** (article on the sauna in Estonian life), collocations (G08), Oskar's note errors (G06), info gap
+    on 1988 (S05); Kasuta: Oskar's draft with a phrase bank (R05), three stories for the book (S12 ranking), home story
+    (S15), main **W05** „Ühe ööga valmis”.
+  - 067 AVAS L→S — täisminevik for experience: try first (G13), Oskar's video call with Helgi (L04), notice + rule (G02),
+    4-3-2 (S08), survey of three (S09); try again (G03 Sofia's blog), the parents' chat (R12), ten living books (L01),
+    translation (G10), dictation (L08), **S14** „Kui saaksid uuesti proovida…” (fluency); Kasuta: Triin's voicemail →
+    notes (L07), main = corner **S2** call to the librarian, home introduction of the „book” (S15), questionnaire (W01).
+  - 068 KUUL L→W — Helgi's life in years (L10), radio „Minu lugu” on life stories (L02), notice (time word + verb second,
+    pluperfect, completion), word order (G07), joining (W09), an old photo three times (S06); tense choice (G13), corner
+    **L3a** (how Viktor became a bicycle mender), Helgi's biography cloze (R03), word formation (G09), exhibition notices
+    (R07), explaining to Mia (S13 role cards, fluency); Kasuta: three family timelines (R11), the poster agreed (S03), home
+    timeline (S15), plan (W11), main **W04** letter to Helgi 80–100 words.
+  - 069 RÄÄK R→S — the school newsletter (R06), a story in four parts + three pasts (notice, G02), feelings (G08), opinions
+    three times (S11), Kristel's message made formal (W12); Sofia's story „Väike sõna ära” (R09), Kristel's announcement
+    (L06), services for the evening (R01), parents' draft errors (G06), the kringel at the bakery (S10), topic questions
+    twice (S02); Kasuta: programme draft and rules (R08, `level: 3`, application), main = corner **S1b** programme agreed
+    with Rasmus's father, home story in four parts (S15), invitation to Viktor (W03).
+  - 070 EKS — full Harno B1 form: R1 (9), R2 (6), R3b (10), R4 (8) = 33 p · L1 (7), L2 (6, the Baltic Way), L3a (8), L4 (9)
+    = 30 p · W1b + W2a = 20 p · S0, S1a, S1b, S2 = 20 p; warm-up sheet with the story evening itself; sheet split as in 065.
+- Also: goals and can-do 066–070 in `b1/lessonGoals.js`; cast facts in `docs/COURSE_CAST.md` (module 14 entry rewritten);
+  module-14 note in `COURSE_FINAL_SHAPE_B1.md` §6.2; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.7. No picture briefs exist
+  for module 14 (no `art/visuals/b1-module-14.js`), none added.
+- Audio: 12 recordings (TartuNLP, free) in `public/audio/a2b1-066…070` (067_d_call re-recorded, 11 new); 6 old files
+  and their manifest entries removed; all speaker names were already in `tools/listening-audio/plan.mjs`.
+- Checks: `course:final-shape --module 14` 56 → 0. `finalShapeBaseline.json` 382 → 296 problems (module 14 −56, 16 V2/V7
+  lines of module 15 gone with the old module-14 texts, course `V5-course-RÄÄK`, `V6-corner-S2`, `V6-exam-R4`,
+  `V6-total-L2` closed); no line added. Older quality gate and strict gate for module 14: 0; recycling of module 13 words
+  42 % (≥ 30 %), module 15 reuses 45 % of module 14's. `npx eslint src`: 0 errors (17 old warnings). Full `npx vitest run`: 402 files passed (1 skipped),
+  2744 tests passed, 4 skipped. Vabamorf speller: 0 unknown words except names
+  (Harno, Ivanovite, Võromaa) and the technical value `kusimustik`.
+- Limits: teaching sheets are 40–49 min (067 Kasuta, 068 Avasta / Harjuta, 069 Kasuta at the 40-min floor); R08 (069) in
+  Kasuta carries `level: 3` (application questions: does the programme fit in an hour?); the exam's R3b and R4 are `gaps`
+  texts with a bank and its R2 text has one unscored opinion question (as in 055, 060, 065); recordings are shorter than
+  Harno's. Real facts kept simple: the Võro smoke sauna tradition on UNESCO's intangible heritage list (2014), the Estonian
+  Literary Museum in Tartu collects life stories, the Human Library began in Denmark in 2000, the Baltic Way of 23 August
+  1989 (about two million people, over 600 km, Tallinn – Riga – Vilnius). Kase kool's story evening, the factory near Tapa,
+  the radio guest Leili Kask, the living books, the families of 069, the bakery and all prices are fictional. V1/V2 against
+  064 and 071 (module 15 not rewritten yet) were checked on today's `main`. Open: the cast gives Sofia (born 1998, the
+  family in Tartu from 2000) as an Estonian learner — module 14 keeps to her work stories and does not explain this.
+- Next safe step: owner reviews module 14 in „Kursuse tootmine” and publishes it; the module 15 author starts 071 with a
+  corner other than S1b (069's corner) and re-checks V1/V2 against 069.
+
 ## 2026-10-29 · agent/b1-m13-final — B1 module 13 „Suhtlemine ja probleemilahendus” in the final shape
 
 - Base: `main` fee721f (2026-10-29, after #865 module 12). Draft PR from `agent/b1-m13-final`. Content only; no production
