@@ -1,3 +1,59 @@
+## 2026-10-29 · agent/a2-m04-final — A2 module 4 „Kodu ja ümbrus” in the final shape
+
+- Base: `main` c4bfda5 (A2 profile), then `origin/main` 8c9b996 merged (modules 1 #910 and 2 #911, rechecked). Module 3 is rewritten
+  in parallel and was not on `main`: the 014 → 016 boundary (V1/V2) must be rechecked after it lands. Content only; no
+  production data, no publishing, no deploy.
+- Done: `a2/module04.js` (a2-016…020) passes every final-shape gate under the A2 profile: **75 → 0 problems**
+  (`final-shape.mjs --course a2 --module 4`); `finalShapeBaselineA2.json` only shrinks (module 4 gone, plus `a2-021`
+  transfer V2 and V7 lines of 021–024, 039, 059, 079, 086 that cited old module-4 wordings); course lines unchanged.
+  `qualityBaseline.json` unchanged (`{}`); readiness: all teaching sheets 0, 020 keeps its two older depth notes.
+- Shape (`withShapes`, A2 §4 row 4): 016 KIRJ L→W (model: video call L03 + diary R13 → plan W11, tenant card W07 →
+  main `016_t_letter` examWriting `kiri` 60–80 words to Helgi, W04; edit W10), 017 PROJ R→W (house chat R12, Arvo's
+  notice R07, voicemails → notes L07 → main `017_t_memo` „Meie korteri meelespea” W05), 018 LUGE R→S (Viktor's letter R02,
+  timetable R08, station clips L01 → main `018_t_plan` idea card S03), 019 RÄÄK L→S (Malle's walk L02, Mustamäe text
+  R06, ads R01 / flats R11 → main `019_t_call` phone cards S04). S06 = `016_t_picture` (picture, plan, compare), S05 =
+  `019_p_roles`. Every teaching lesson: „Mäletad?” naming the previous lesson (014, 016, 017, 018) and a module 1–2
+  lesson (002, 002, 006, 009), an in-lesson pair task, an S15 home recording (45–60 s) in Kasuta, two fluency tasks.
+  No tingiv kõneviis. canDo and goals of 016–019 in `a2/lessonGoals.js`. 020: only reworded instructions (V7), one
+  duplicate error row replaced, a vocab box added.
+- Audio (TartuNLP, free): rebuilt `016_d_video`, `017_t_messages`, `018_d_tour`, `018_t_kadri`, `019_p_agent`; new
+  `018_p_station`; removed `016_p_shop`, `016_t_sofa`, `019_t_call` (mp3 + manifest).
+- Checks after the merge: `final-shape.mjs --course a2 --module 4` 0 (course 1933, new 0); `npx eslint --quiet src` clean;
+  `npx vitest run` 402 files passed, 7 UI files timed out under load (studentWorksheetFlow, LiveRoom, VocabularyPage,
+  CourseProductionPage, LessonWorksheetStudioPage, WorksheetStudioPage, engine) and pass when run alone. Language check
+  (Vabamorf) of module 4: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: the art prompt of `a2-016-kasuta-1` (`art/visuals/a2-module-04.js`) asks „Kuhu sina paneksid …?” (tingiv) —
+  outside this task's files; V16 does not read art prompts.
+- Next safe step: after A2 module 3 lands, rerun `final-shape.mjs --course a2 --module 4` for the 014 → 016 boundary,
+  then A2 module 5.
+
+## 2026-10-29 · agent/a2-m03-final — A2 module 3 „Päev, kell ja harjumused” in the final shape
+
+- Base: `main` 3f9abb9 (after #910 A2 module 1, #911 A2 module 2, #912), checked 2026-10-29. Content only; no production
+  data, no publishing, no deploy. module01.js / module02.js not touched; the 009→011 boundary was rechecked after #911
+  (011 Kasuta now opens with the interview, not with R10 like 009).
+- Done: `a2/module03.js` (a2-011…015) passes every final-shape gate under the A2 profile: **75 → 0 problems**
+  (`final-shape.mjs --course a2 --module 3`); quality gate clean; the teaching sheets also pass the strict gate (40–43 min).
+  Course 2018 → 1943 (`finalShapeBaselineA2.json` only shrank: module 3's 72 lines and one line each of modules 4, 9, 18).
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, row m3, no swap): 011 KUUL L→W (main `011_t_letter` W05 story for the school paper), 012 PROB R→S
+  (the hotel moves Sofia's interview to her babysitting Tuesday; main `012_t_call` S04 phone call to the hotel), 013 LUGU
+  R→W (Sofia at the family nurse; main `013_t_letter` W04 letter to the nurse), 014 AVAS L→S („proovi kõigepealt” table →
+  rule → „proovi uuesti” error fix; main `014_t_agree` S03 idea card for the flat's weekly plan), 015 EKS (V7 wording,
+  vocab box, two repeated rows fixed). S06 picture = 014 home recording (Anna's week picture), S05 info gap = 011
+  Harjuta; a pair task in every lesson, a home recording in every Kasuta, two fluency tasks a lesson (S07, S08, S02 ×2 +
+  recordings); reviews name the previous lesson and one of module 1; no tingiv kõneviis. Almost every catalogue id once
+  (R01–R13, R15, R16, L01–L10, W01–W12 except W06, S01–S13 except S14).
+- Vocab: topic words pärastlõunal, veerand, kolmveerand, harjumus (V14 ≥ 90 %); päevakava, kodutöö, kellaaeg, oode,
+  tihe, esmaspäeviti, argipäev, õhtusöök left the boxes. canDo and goals of 011–014 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): rebuilt `014_t_malle` (longer transcript); removed `011_t_ene` (file + manifest). `011_p_morning`,
+  `012_p_calls`, `013_d_survey`, `014_d_jaan` became `examlisten` with unchanged transcripts.
+- Checks: `eslint --quiet src` 0; course tests (`admin/course`) 16 files / 517 tests pass; full vitest 403–405 of 410 files
+  pass — the failures are UI timeouts under machine load 160–290 (WorksheetStudioPage, studentWorksheetFlow, LiveRoom,
+  VocabularyPage, CourseProductionPage, LessonWorksheetStudioPage, LessonGeneratorBar.art), all green when rerun alone;
+  language check: 0 unknown lower-case words except `kusimustik`.
+- Left: 015's strict-gate note (3 short tasks in Avasta) as before — the check lesson was not rewritten.
+- Next safe step: A2 module 4 (`a2/module04.js`, row m4 KIRJ PROJ LUGE RÄÄK); recheck V1/V2 at the 014→016 boundary.
 ## 2026-10-29 · agent/board-audio-any-tool — the worksheet's audio plays on the board with any tool
 
 - Owner: „учитель должен мочь открыть аудиозапись прям сразу во время урока”. On the lesson board the sheet lies under
