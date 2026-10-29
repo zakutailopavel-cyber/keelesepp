@@ -69,50 +69,40 @@
     "seconds": 40.1,
     "hash": "6362cad7aa7b40e58553989df773d9888c98c0ff"
   },
-  "a2-006:006_t_tree": {
-    "src": "/audio/a2-006/006_t_tree.mp3",
-    "seconds": 56.7,
-    "hash": "9c86004bcc9607eb254ccedbbe654d9e456d8a8a"
-  },
   "a2-007:007_d_school": {
     "src": "/audio/a2-007/007_d_school.mp3",
     "seconds": 51.9,
     "hash": "c74d4558a40eec539b3d0fda020018b05e3a1d81"
   },
+  "a2-007:007_p_hours": {
+    "src": "/audio/a2-007/007_p_hours.mp3",
+    "seconds": 50.7,
+    "hash": "d8c99fac4cf14836a1cab552da425b87c095f301"
+  },
   "a2-007:007_t_call": {
     "src": "/audio/a2-007/007_t_call.mp3",
-    "seconds": 63.9,
-    "hash": "bc764c4be9588070302417a3464e609470b3d5f5"
+    "seconds": 89.5,
+    "hash": "5c314f3e9df4ead0b5fee9fa61c42fde40e8fd74"
   },
   "a2-008:008_d_photo": {
     "src": "/audio/a2-008/008_d_photo.mp3",
     "seconds": 67.5,
     "hash": "1b4fbf539d3eb0961101bc878405feac7d157ac2"
   },
-  "a2-008:008_p_coach": {
-    "src": "/audio/a2-008/008_p_coach.mp3",
-    "seconds": 56.5,
-    "hash": "2d6782b35768eec186b4eded6c201e4addff171b"
+  "a2-008:008_p_clips": {
+    "src": "/audio/a2-008/008_p_clips.mp3",
+    "seconds": 61.9,
+    "hash": "806297817c47bdf18c64d032930a8265ebd3203c"
   },
   "a2-008:008_t_call": {
     "src": "/audio/a2-008/008_t_call.mp3",
-    "seconds": 54.1,
-    "hash": "a10e5090a5b490618abbae1551d3f5c0da5ebbd3"
+    "seconds": 88.2,
+    "hash": "65b802977bbc202f6644f7e488a7b45e7939ce0c"
   },
-  "a2-009:009_d_maret": {
-    "src": "/audio/a2-009/009_d_maret.mp3",
-    "seconds": 54.5,
-    "hash": "22795926ba2fff530e2380d25f8a42da9d0623b5"
-  },
-  "a2-009:009_p_radio": {
-    "src": "/audio/a2-009/009_p_radio.mp3",
+  "a2-009:009_d_radio": {
+    "src": "/audio/a2-009/009_d_radio.mp3",
     "seconds": 46.5,
     "hash": "da6c76e935a7c347e429401aba74570dfbda7ab1"
-  },
-  "a2-009:009_t_photo": {
-    "src": "/audio/a2-009/009_t_photo.mp3",
-    "seconds": 51.1,
-    "hash": "64c0859c747db243170b9d31771cc3008f9f1f36"
   },
   "a2-010:010_d_listen": {
     "src": "/audio/a2-010/010_d_listen.mp3",
