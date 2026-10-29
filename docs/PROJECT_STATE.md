@@ -1,3 +1,30 @@
+## 2026-10-29 · agent/a2-m03-final — A2 module 3 „Päev, kell ja harjumused” in the final shape
+
+- Base: `main` 3f9abb9 (after #910 A2 module 1, #911 A2 module 2, #912), checked 2026-10-29. Content only; no production
+  data, no publishing, no deploy. module01.js / module02.js not touched; the 009→011 boundary was rechecked after #911
+  (011 Kasuta now opens with the interview, not with R10 like 009).
+- Done: `a2/module03.js` (a2-011…015) passes every final-shape gate under the A2 profile: **75 → 0 problems**
+  (`final-shape.mjs --course a2 --module 3`); quality gate clean; the teaching sheets also pass the strict gate (40–43 min).
+  Course 2018 → 1943 (`finalShapeBaselineA2.json` only shrank: module 3's 72 lines and one line each of modules 4, 9, 18).
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, row m3, no swap): 011 KUUL L→W (main `011_t_letter` W05 story for the school paper), 012 PROB R→S
+  (the hotel moves Sofia's interview to her babysitting Tuesday; main `012_t_call` S04 phone call to the hotel), 013 LUGU
+  R→W (Sofia at the family nurse; main `013_t_letter` W04 letter to the nurse), 014 AVAS L→S („proovi kõigepealt” table →
+  rule → „proovi uuesti” error fix; main `014_t_agree` S03 idea card for the flat's weekly plan), 015 EKS (V7 wording,
+  vocab box, two repeated rows fixed). S06 picture = 014 home recording (Anna's week picture), S05 info gap = 011
+  Harjuta; a pair task in every lesson, a home recording in every Kasuta, two fluency tasks a lesson (S07, S08, S02 ×2 +
+  recordings); reviews name the previous lesson and one of module 1; no tingiv kõneviis. Almost every catalogue id once
+  (R01–R13, R15, R16, L01–L10, W01–W12 except W06, S01–S13 except S14).
+- Vocab: topic words pärastlõunal, veerand, kolmveerand, harjumus (V14 ≥ 90 %); päevakava, kodutöö, kellaaeg, oode,
+  tihe, esmaspäeviti, argipäev, õhtusöök left the boxes. canDo and goals of 011–014 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): rebuilt `014_t_malle` (longer transcript); removed `011_t_ene` (file + manifest). `011_p_morning`,
+  `012_p_calls`, `013_d_survey`, `014_d_jaan` became `examlisten` with unchanged transcripts.
+- Checks: `eslint --quiet src` 0; course tests (`admin/course`) 16 files / 517 tests pass; full vitest 403–405 of 410 files
+  pass — the failures are UI timeouts under machine load 160–290 (WorksheetStudioPage, studentWorksheetFlow, LiveRoom,
+  VocabularyPage, CourseProductionPage, LessonWorksheetStudioPage, LessonGeneratorBar.art), all green when rerun alone;
+  language check: 0 unknown lower-case words except `kusimustik`.
+- Left: 015's strict-gate note (3 short tasks in Avasta) as before — the check lesson was not rewritten.
+- Next safe step: A2 module 4 (`a2/module04.js`, row m4 KIRJ PROJ LUGE RÄÄK); recheck V1/V2 at the 014→016 boundary.
 ## 2026-10-29 · agent/course-names — course names by the target level (display only)
 
 - Base: `main` c4bfda5, checked 2026-10-29. UI/display only; no production writes, no publishing, no deploy.
