@@ -115,3 +115,10 @@
 .availability-weeks__dot { color: #e69500; }
 .availability-weeks__chip.is-active .availability-weeks__dot { color: #ffe68a; }
 .poll-week { margin: 0 0 6px; font-size: .9rem; }
+
+/* lessons a week per course (team 2026-10-29) */
+.availability-card__per-week { margin: 6px 0; }
+.availability-card__per-week-edit { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 10px 0; padding: 8px 12px 10px; border: 1px solid #cdd7df; border-radius: 10px; }
+.availability-card__per-week-edit legend { padding: 0 4px; font-weight: 700; font-size: .9rem; }
+.availability-card__per-week-edit label { display: grid; gap: 4px; font-size: .88rem; }
+.availability-card__per-week-edit select { font: inherit; padding: 6px 8px; border: 1px solid #cdd7df; border-radius: 8px; min-width: 9rem; }

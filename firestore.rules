@@ -1483,8 +1483,10 @@ service cloud.firestore {
     // administrator writes any and marks it reviewed; the student's teacher reads it
     function availabilityValid(data, studentId) {
       return data.keys().hasOnly(['studentId', 'slots', 'preferred', 'message', 'changedAt', 'changedByUid', 'changedByName',
-          'changedByRole', 'previousSlots', 'previousPreferred', 'updatedAt', 'reviewedAt', 'reviewedByName', 'weeks'])
+          'changedByRole', 'previousSlots', 'previousPreferred', 'updatedAt', 'reviewedAt', 'reviewedByName', 'weeks', 'perWeek'])
         && data.studentId == studentId
+        // lessons a week the learner wants, per course (owner 2026-10-29): { 'eesti-keel': 2 }, at most 10 courses
+        && (!('perWeek' in data) || (data.perWeek is map && data.perWeek.size() <= 10))
         // dated weeks that differ from the usual one (owner 2026-10-29), at most 8: { 'YYYY-MM-DD': { slots, preferred } }
         && (!('weeks' in data) || (data.weeks is map && data.weeks.size() <= 8))
         && data.slots is list && data.slots.size() <= 336
