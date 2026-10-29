@@ -309,8 +309,8 @@ export const LESSONS = withShapes({
       B.notice('023_d_notice', 'Märka: käskiv kõneviis', [
         '**Sina** (sõbrale, emale, lapsele): ma vaatan → **vaata!** · ma ootan → **oota!** · ma vajutan → **vajuta!**',
         'Erandid: ma lähen → **mine!** · ma tulen → **tule!** · ma teen → **tee!** · ma söön → **söö!**',
-        '**Teie** (võõrale või mitmele): minna → **minge**, tulla → **tulge** (**-ge**)',
-        'vaadata → **vaadake**, oodata → **oodake**, võtta → **võtke**, osta → **ostke** (**-ke**)',
+        '**Teie** (võõrale või mitmele), lõpus g + e: minna → **minge**, tulla → **tulge**, panna → **pange**',
+        'Teie-vorm, lõpus k + e: vaadata → **vaadake**, oodata → **oodake**, võtta → **võtke**, osta → **ostke**',
         'Eitus: **ära** + sina-vorm: **ära mine, ära oota** · **ärge** + teie-vorm: **ärge minge, ärge oodake**',
         'Kadri emale: **Ära mine liftiga!** · Juht turistile: **Minge üle tee! Ärge oodake!**',
       ], 'full'),
