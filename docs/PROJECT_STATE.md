@@ -18,7 +18,10 @@
   duplicate error row replaced, a vocab box added.
 - Audio (TartuNLP, free): rebuilt `016_d_video`, `017_t_messages`, `018_d_tour`, `018_t_kadri`, `019_p_agent`; new
   `018_p_station`; removed `016_p_shop`, `016_t_sofa`, `019_t_call` (mp3 + manifest).
-- Checks: see the PR. Language check (Vabamorf) of module 4: 1 unknown lower-case word, `kusimustik` (genre value).
+- Checks after the merge: `final-shape.mjs --course a2 --module 4` 0 (course 1933, new 0); `npx eslint --quiet src` clean;
+  `npx vitest run` 402 files passed, 7 UI files timed out under load (studentWorksheetFlow, LiveRoom, VocabularyPage,
+  CourseProductionPage, LessonWorksheetStudioPage, WorksheetStudioPage, engine) and pass when run alone. Language check
+  (Vabamorf) of module 4: 1 unknown lower-case word, `kusimustik` (genre value).
 - Known: the art prompt of `a2-016-kasuta-1` (`art/visuals/a2-module-04.js`) asks „Kuhu sina paneksid …?” (tingiv) —
   outside this task's files; V16 does not read art prompts.
 - Next safe step: after A2 module 3 lands, rerun `final-shape.mjs --course a2 --module 4` for the 014 → 016 boundary,
