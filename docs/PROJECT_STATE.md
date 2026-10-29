@@ -13,7 +13,7 @@
 - Rules: `safeSelfUserFields` allows `calendarColors`, `validCalendarColors` (map, ≤ 80 keys, values 0–11). New emulator
   test `functions/calendar-colors-emulator.integration.js` (in `test:emulator`). **Rules deploy needed** before teachers
   can save (until then saving shows „Värve ei saanud salvestada” and the colour falls back; the admin can save already).
-- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2780 tests, 5 skipped)
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2780 tests, 5 skipped);
   emulator (JDK 21): calendar-colors + student-presence 3/3 pass.
 - Next safe step: owner's OK → `firebase deploy --only firestore:rules`, then merge.
 ## 2026-10-29 · agent/invite-parent-default — „Saada kutse” goes to the parent's e-mail by default
