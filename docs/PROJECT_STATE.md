@@ -1,3 +1,29 @@
+## 2026-10-29 · agent/a2-m04-final — A2 module 4 „Kodu ja ümbrus” in the final shape
+
+- Base: `main` c4bfda5 (A2 profile), then `origin/main` 8c9b996 merged (modules 1 #910 and 2 #911). Module 3 is rewritten
+  in parallel and was not on `main`: the 014 → 016 boundary (V1/V2) must be rechecked after it lands. Content only; no
+  production data, no publishing, no deploy.
+- Done: `a2/module04.js` (a2-016…020) passes every final-shape gate under the A2 profile: **75 → 0 problems**
+  (`final-shape.mjs --course a2 --module 4`); `finalShapeBaselineA2.json` only shrinks (module 4 gone, plus `a2-021`
+  transfer V2 and V7 lines of 021–024, 039, 079, 086 that cited old module-4 wordings); course lines unchanged.
+  `qualityBaseline.json` unchanged (`{}`); readiness: all teaching sheets 0, 020 keeps its two older depth notes.
+- Shape (`withShapes`, A2 §4 row 4): 016 KIRJ L→W (model: video call L03 + diary R13 → plan W11, tenant card W07 →
+  main `016_t_letter` examWriting `kiri` 60–80 words to Helgi, W04; edit W10), 017 PROJ R→W (house chat R12, Arvo's
+  notice R07, voicemails → notes L07 → main `017_t_memo` „Meie korteri meelespea” W05), 018 LUGE R→S (Viktor's letter R02,
+  timetable R08, station clips L01 → main `018_t_plan` idea card S03), 019 RÄÄK L→S (Malle's walk L02, Mustamäe text
+  R06, ads R01 / flats R11 → main `019_t_call` phone cards S04). S06 = `016_t_picture` (picture, plan, compare), S05 =
+  `019_p_roles`. Every teaching lesson: „Mäletad?” naming the previous lesson (014, 016, 017, 018) and a module 1–2
+  lesson (002, 002, 006, 009), an in-lesson pair task, an S15 home recording (45–60 s) in Kasuta, two fluency tasks.
+  No tingiv kõneviis. canDo and goals of 016–019 in `a2/lessonGoals.js`. 020: only reworded instructions (V7), one
+  duplicate error row replaced, a vocab box added.
+- Audio (TartuNLP, free): rebuilt `016_d_video`, `017_t_messages`, `018_d_tour`, `018_t_kadri`, `019_p_agent`; new
+  `018_p_station`; removed `016_p_shop`, `016_t_sofa`, `019_t_call` (mp3 + manifest).
+- Checks: see the PR. Language check (Vabamorf) of module 4: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: the art prompt of `a2-016-kasuta-1` (`art/visuals/a2-module-04.js`) asks „Kuhu sina paneksid …?” (tingiv) —
+  outside this task's files; V16 does not read art prompts.
+- Next safe step: after A2 module 3 lands, rerun `final-shape.mjs --course a2 --module 4` for the 014 → 016 boundary,
+  then A2 module 5.
+
 ## 2026-10-29 · agent/b2-course-close — B1→B2: the last course lines closed (L1, L2 gaps); B2 baseline `{}`
 
 - Base: `main` bacad76 (modules 1–18 merged), checked 2026-10-29. Content only; no production data, no publishing, no deploy.
