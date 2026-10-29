@@ -2564,6 +2564,11 @@
     "seconds": 123.7,
     "hash": "2cb3f3849ede2984cfe2c148738ef23c8487ba5c"
   },
+  "b1b2-060:060_p_clips": {
+    "src": "/audio/b1b2-060/060_p_clips.mp3",
+    "seconds": 147.2,
+    "hash": "da1cdf1988becefd4a0fc86133f4cc1e791be071"
+  },
   "b1b2-060:060_p_listen": {
     "src": "/audio/b1b2-060/060_p_listen.mp3",
     "seconds": 159.7,
