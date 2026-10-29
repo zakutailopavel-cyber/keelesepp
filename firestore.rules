@@ -858,14 +858,26 @@ service cloud.firestore {
         'termsVersion',
         'pet',
         'lastSeenAt',
-        'practice'
+        'practice',
+        'calendarColors'
       ])
         && validTermsAcceptance(request.resource.data)
+        && validCalendarColors(request.resource.data)
         && validPet(request.resource.data)
         && validPresence(request.resource.data)
         // stars spent on outfits never go back down, bought items are never lost
         && request.resource.data.get('pet', {}).get('spentStars', 0) >= resource.data.get('pet', {}).get('spentStars', 0)
         && request.resource.data.get('pet', {}).get('owned', []).hasAll(resource.data.get('pet', {}).get('owned', []));
+    }
+
+    // the viewer's own colour of each teacher in the calendar (owner 2026-10-29): { teacherKey: tone 0–11 }, ≤ 80 keys
+    function validCalendarColors(data) {
+      return !('calendarColors' in data)
+        || (
+          data.calendarColors is map
+          && data.calendarColors.size() <= 80
+          && data.calendarColors.values().hasOnly([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11])
+        );
     }
 
     // Student cabinet pet: the chosen kind and a short name plus three own flags; growth is derived, never stored.

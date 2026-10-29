@@ -1,3 +1,21 @@
+## 2026-10-29 · agent/calendar-personal-colors — own teacher colours in the calendar, distinct by default
+
+- Base: `main` c2b4947. Owner: „сделай так, чтобы у себя можно было настраивать как угодно, и по умолчанию какой-то
+  вариант тоже нужно оставить, но чтобы было отличаемо”.
+- Done: 12 tones (`TONE_NAMES`, calendarV2.css `.tone-0…11`; 0–5 unchanged, new Punane, Oliiv, Pruun, Hall, Kollane,
+  Magenta). `calendarGrid.calendarTones({ people, staff, personal })`: own choice → administrator's `calendarTone`
+  (school default) → the first unused colour, teachers by uid, so two teachers share a colour only after 12. „Värvid” in
+  the calendar toolbar (CalendarColors.jsx): each teacher with a swatch, click → 12 colours, „Vaikimisi” per teacher,
+  „Taasta vaikimisi” for all; „Valik kehtib ainult sinu kalendris”. A teacher's calendar now also reads the staff list
+  (rules already allow `isStaff`) only for colours; the admin sees all teachers, a teacher the teachers of own lessons.
+- Data: `users/{uid}.calendarColors = { teacherUid | old teacher name: 0–11 }`, written by the user on the own account
+  (`teachersService.saveCalendarColors`, whole map replaced). Initial value from `user.profile`.
+- Rules: `safeSelfUserFields` allows `calendarColors`, `validCalendarColors` (map, ≤ 80 keys, values 0–11). New emulator
+  test `functions/calendar-colors-emulator.integration.js` (in `test:emulator`). **Rules deploy needed** before teachers
+  can save (until then saving shows „Värve ei saanud salvestada” and the colour falls back; the admin can save already).
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2780 tests, 5 skipped);
+  emulator (JDK 21): calendar-colors + student-presence 3/3 pass.
+- Next safe step: owner's OK → `firebase deploy --only firestore:rules`, then merge.
 ## 2026-10-29 · agent/b2-m11-final — B1→B2 module 11 „Raha ja tarbimine” in the final shape
 
 - Base: `main` c2b4947 (after #888, module 9). Module 10 (#892) was not on `main` yet; its branch was checked locally:
