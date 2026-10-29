@@ -1,3 +1,11 @@
+## 2026-10-29 · agent/teacher-calendar-color — a teacher's colour in the calendar can be chosen
+
+- Owner: „поставь Егору розовый цвет в календаре”. Colours were a hash of the teacher uid (6 tones, Jegor shared blue
+  with Anhelina). Now `users/{uid}.calendarTone` (0–5: Sinine, Roheline, Oranž, Lilla, Roosa, Helesinine) wins
+  (`calendarGrid.tonesOf` / `teacherTone(key, tones)`); the admin picks it on the teacher's page („Värv kalendris”).
+  Only the administrator's calendar loads the staff list, so a teacher's own view still uses the hash colour.
+- Data: Jegor Fjodorov's `calendarTone` = 4 (Roosa), set on the owner's request.
+- Checks: eslint 0 errors; vitest 2768 passed.
 ## 2026-10-29 · agent/availability-weeks — „Sobivad ajad” week by week
 
 - Owner: „ученик должен иметь возможность заполнять свой график и наперёд, чтобы работающие тоже могли удобно выбирать времена”.
