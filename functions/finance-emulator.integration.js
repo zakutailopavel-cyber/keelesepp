@@ -3561,6 +3561,79 @@ test("lesson tokens: an invoice for N lessons, credited after payment, consumed 
   assert.deepEqual(ledger, ["grant", "lesson_consumption", "lesson_consumption", "lesson_consumption", "lesson_restoration", "lesson_restoration"]);
 });
 
+test("lesson tokens: a lesson held after the package is used up is owed; the next paid package pays it first", async () => {
+  requireSafeEmulatorEnvironment();
+  if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });
+  const db = admin.firestore();
+  const studentId = "tokens-owed-student";
+  await Promise.all([
+    db.collection("students").doc(studentId).set({ name: "Võla Õpilane", subject: "Eesti keel", active: true, parentName: "Võla Ema", parentEmail: "vola@example.com" }),
+    db.collection("studentRevenuePlans").doc(studentId).set({ studentId, studentName: "Võla Õpilane", lessonPriceCents: 2000, lessonMinutes: 60, weeklyLessons: 1, billingMode: "package", currency: "EUR", active: true, updatedAt: "2026-09-01T00:00:00.000Z", updatedByUid: "seed-admin" }),
+  ]);
+  const adminToken = await createAdminToken();
+  await db.collection("users").doc(tokenUid(adminToken)).set({ roles: ["admin"], role: "admin", email: "zakutailo.pavel@gmail.com" }, { merge: true });
+  const post = (fn, path, body) => fetch(`http://${FUNCTIONS_EMULATOR}/${PROJECT_ID}/us-central1/${fn}${path}`, {
+    method: "POST", headers: { Authorization: `Bearer ${adminToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body),
+  }).then(async (response) => ({ status: response.status, body: await response.json() }));
+  const waitFor = async (read, check, label) => {
+    for (let i = 0; i < 60; i += 1) {
+      const value = await read();
+      if (check(value)) return value;
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    throw new Error(`timed out: ${label}`);
+  };
+  const buy = async (requestId, lessons, date) => {
+    const created = await post("manualInvoiceApi", "/create-tokens", { studentId, lessons, due: "2031-12-31", requestId });
+    assert.equal(created.status, 201, JSON.stringify(created.body));
+    await db.collection("invoices").doc(requestId).set({ date, status: "Makstud", paymentStatus: "paid", paidAmountCents: lessons * 2000, balanceDueCents: 0 }, { merge: true });
+    const credited = await post("financeApi", "/invoices/tokens/credit", { invoiceId: requestId });
+    assert.equal(credited.status, 201, JSON.stringify(credited.body));
+    return credited.body;
+  };
+  const stateOf = async (lessonId) => (await db.collection("lessonPackageStates").doc(lessonId).get()).data()?.status;
+  const held = (id, date) => db.collection("lessons").doc(id).set({ studentId, studentName: "Võla Õpilane", date, status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+
+  // a 1-lesson package, used by the first lesson
+  await buy("tokens-owed-invoice-1", 1, "2031-11-01");
+  await held("tokens-owed-lesson-1", "2031-11-03");
+  await waitFor(() => stateOf("tokens-owed-lesson-1"), (s) => s === "consumed", "first lesson consumed");
+  // two more lessons: no credits → owed
+  await held("tokens-owed-lesson-2", "2031-11-10");
+  await held("tokens-owed-lesson-3", "2031-11-17");
+  await waitFor(() => stateOf("tokens-owed-lesson-2"), (s) => s === "needs_attention", "second lesson owed");
+  await waitFor(() => stateOf("tokens-owed-lesson-3"), (s) => s === "needs_attention", "third lesson owed");
+  // a removed owed lesson is no longer owed
+  await db.collection("lessons").doc("tokens-owed-lesson-3").delete();
+  await waitFor(() => stateOf("tokens-owed-lesson-3"), (s) => s === "cleared", "removed owed lesson cleared");
+
+  // the next package, dated after the owed lesson, pays it first
+  const second = await buy("tokens-owed-invoice-2", 4, "2031-11-20");
+  assert.equal(second.backlog.consumed, 1);
+  assert.equal(await stateOf("tokens-owed-lesson-2"), "consumed");
+  const pkg = (await db.collection("studentPackages").doc("tokens_tokens-owed-invoice-2").get()).data();
+  assert.equal(pkg.balanceCredits, 3);
+  assert.equal(pkg.sourceInvoiceId, "tokens-owed-invoice-2");
+  assert.equal((await db.collection("lessons").doc("tokens-owed-lesson-2").get()).data().packageStudentPackageId, "tokens_tokens-owed-invoice-2");
+
+  // a double lesson (120 min) takes 2 credits; made 60 min it gives one back; removed it gives back what it took
+  const balance = async () => (await db.collection("studentPackages").doc("tokens_tokens-owed-invoice-2").get()).data().balanceCredits;
+  const double = db.collection("lessons").doc("tokens-owed-lesson-4");
+  await double.set({ studentId, studentName: "Võla Õpilane", date: "2031-11-24", duration: 120, status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  await waitFor(balance, (b) => b === 1, "double lesson took 2");
+  assert.equal((await db.collection("lessonPackageStates").doc("tokens-owed-lesson-4").get()).data().credits, 2);
+  await double.set({ duration: 60 }, { merge: true });
+  await waitFor(balance, (b) => b === 2, "60 min takes 1");
+  await double.delete();
+  await waitFor(balance, (b) => b === 3, "removed lesson gave its credit back");
+  // with 3 left two double lessons: the second is owed 2 credits (a package with 1 left does not pay it)
+  await db.collection("lessons").doc("tokens-owed-lesson-5").set({ studentId, studentName: "Võla Õpilane", date: "2031-11-25", duration: 120, status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  await waitFor(balance, (b) => b === 1, "second double lesson took 2");
+  await db.collection("lessons").doc("tokens-owed-lesson-6").set({ studentId, studentName: "Võla Õpilane", date: "2031-11-26", duration: 120, status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  await waitFor(() => stateOf("tokens-owed-lesson-6"), (s) => s === "needs_attention", "double lesson owed");
+  assert.equal((await db.collection("lessonPackageStates").doc("tokens-owed-lesson-6").get()).data().credits, 2);
+});
+
 test("cash box: a teacher takes cash, hands it over, an admin links it to the invoice; a voided payment reopens it", async () => {
   requireSafeEmulatorEnvironment();
   if (!admin.apps.length) admin.initializeApp({ projectId: PROJECT_ID });

@@ -1394,7 +1394,7 @@ service cloud.firestore {
         && request.resource.data.updatedByUid == uid()
         // billing settings (Finance v2): lesson length, advance / current-month billing, no-show charge, price history
         && (!('lessonMinutes' in request.resource.data) || request.resource.data.lessonMinutes in [30, 45, 60, 75, 90, 120])
-        && (!('billingMode' in request.resource.data) || request.resource.data.billingMode in ['advance', 'current', 'actual'])
+        && (!('billingMode' in request.resource.data) || request.resource.data.billingMode in ['advance', 'current', 'actual', 'package'])
         && (!('chargeNoShow' in request.resource.data) || request.resource.data.chargeNoShow is bool)
         && (!('validFrom' in request.resource.data) || (request.resource.data.validFrom is string && request.resource.data.validFrom.size() == 10))
         && (!('priceHistory' in request.resource.data) || (request.resource.data.priceHistory is list && request.resource.data.priceHistory.size() <= 60));
@@ -1453,8 +1453,10 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // finance and the card's own student / parent read it too: a lesson held with no credits left is owed (status
+    // needs_attention) and the package views count it (docs/LESSON_TOKENS.md)
     match /lessonPackageStates/{lessonId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin() || isFinance() || ownsStudent(resource.data.studentId);
       allow create, update, delete: if false;
     }
 
