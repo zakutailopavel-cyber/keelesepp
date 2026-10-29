@@ -219,6 +219,20 @@ period depends on dated correction entries, payroll approval, expenses and an ar
 accountant export; enabling a lock before those workflows exist would make legitimate
 corrections unsafe.
 
+#### Student price terms (2026-10-29)
+
+A student's price lives only in `studentRevenuePlans/{studentId}` (admin writes, finance reads): `lessonPriceCents` +
+`lessonMinutes` for the card's main subject and `subjectPrices` for further subjects. Monthly and per-lesson invoices
+keep reading exactly these fields; nothing on the server changed. The student card's „Arveldus” (Finantsid tab) sets
+them through a switch: „Üldtingimused” prices every subject at `STANDARD_HOURLY_RATE_CENTS` (2500 = 25 € / 60 min,
+`crm-v2/src/features/finance/priceTerms.js`, the one place to change it) by its own lesson length; „Soodustus” takes an
+own hourly rate (an optional own rate per further subject) and a required `discountReason` (≤ 300 characters). The plan
+stores `priceTerms`, `hourlyRateCents`, `discountReason` and `priceTermsChangedAt/By/ByUid`; firestore.rules check them
+(discount needs a non-blank reason, general carries none). A plan without `priceTerms` is shown by its price only
+(all at the standard rate → general, otherwise a discount with an empty reason) and is never re-priced: an untouched
+rate keeps its stored per-lesson cents. `activityLog` (readable by all staff) gets the terms, not the reason. The
+Finantsid forecast form still edits the lesson price directly and leaves the terms as they are.
+
 ### Staff operations
 
 Teacher-facing navigation is task-oriented. `haldus.html` is the daily start surface and keeps the common

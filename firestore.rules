@@ -1343,8 +1343,29 @@ service cloud.firestore {
           'chargeNoShow',
           'validFrom',
           'priceHistory',
-          'subjectPrices'
+          'subjectPrices',
+          'priceTerms',
+          'hourlyRateCents',
+          'discountReason',
+          'priceTermsChangedAt',
+          'priceTermsChangedBy',
+          'priceTermsChangedByUid'
         ])
+        // price terms (2026-10-29): „Üldtingimused” (standard hourly rate) or „Soodustus” (own rate + a reason, ≤ 300)
+        && (!('priceTerms' in request.resource.data) || (
+          request.resource.data.priceTerms in ['general', 'discount']
+          && request.resource.data.hourlyRateCents is int
+          && request.resource.data.hourlyRateCents > 0
+          && request.resource.data.hourlyRateCents <= 1000000
+          && request.resource.data.discountReason is string
+          && request.resource.data.discountReason.size() <= 300
+          && (request.resource.data.priceTerms == 'general'
+            ? request.resource.data.discountReason.size() == 0
+            : request.resource.data.discountReason.trim().size() > 0)
+          && request.resource.data.priceTermsChangedAt is string
+          && request.resource.data.priceTermsChangedBy is string
+          && request.resource.data.priceTermsChangedBy.size() <= 160
+          && request.resource.data.priceTermsChangedByUid is string))
         // the price of a second subject of the card (owner 2026-10-20): { "Matemaatika": { lessonPriceCents, lessonMinutes } }
         && (!('subjectPrices' in request.resource.data) || (request.resource.data.subjectPrices is map && request.resource.data.subjectPrices.size() <= 8))
         && request.resource.data.keys().hasAll([

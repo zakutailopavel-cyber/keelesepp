@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { DISCOUNT_REASON_MAX, PRICE_TERMS } from '../../features/finance/priceTerms.js';
 
 function clean(value) {
   return String(value || '').trim();
@@ -60,7 +61,30 @@ export function nextPriceHistory(previous, next) {
   const history = Array.isArray(previous?.priceHistory) ? previous.priceHistory : [];
   const changed = previous?.lessonPriceCents && (previous.lessonPriceCents !== next.lessonPriceCents || (previous.lessonMinutes || 60) !== next.lessonMinutes);
   if (!changed) return history;
-  return [...history, { lessonPriceCents: previous.lessonPriceCents, lessonMinutes: previous.lessonMinutes || 60, validFrom: previous.validFrom || '', validTo: next.validFrom }].slice(-60);
+  const terms = previous.priceTerms ? { priceTerms: previous.priceTerms, ...(previous.discountReason ? { discountReason: previous.discountReason } : {}) } : {};
+  return [...history, { lessonPriceCents: previous.lessonPriceCents, lessonMinutes: previous.lessonMinutes || 60, validFrom: previous.validFrom || '', validTo: next.validFrom, ...terms }].slice(-60);
+}
+
+// „Üldtingimused” / „Soodustus” (2026-10-29): the terms the price was set by, with who and when changed them.
+// values without priceTerms (the forecast form of Finantsid) leave the stored terms as they are.
+export function priceTermsRecord(values = {}, previous = null, actor = {}) {
+  if (!values.priceTerms) return {};
+  if (!PRICE_TERMS.some((item) => item.id === values.priceTerms)) throw new Error('Vali hinnatingimused.');
+  const discountReason = values.priceTerms === 'discount' ? clean(values.discountReason) : '';
+  if (values.priceTerms === 'discount' && !discountReason) throw new Error('Kirjuta soodustuse põhjus.');
+  if (discountReason.length > DISCOUNT_REASON_MAX) throw new Error(`Soodustuse põhjus on kuni ${DISCOUNT_REASON_MAX} märki.`);
+  const hourlyRateCents = Math.round(Number(values.hourlyRateCents) || 0);
+  if (hourlyRateCents <= 0 || hourlyRateCents > 1000000) throw new Error('Sisesta tunnitasu vahemikus 0,01–10 000 eurot tunnis.');
+  const same = previous?.priceTermsChangedAt && previous.priceTerms === values.priceTerms
+    && clean(previous.discountReason) === discountReason && Number(previous.hourlyRateCents) === hourlyRateCents;
+  return {
+    priceTerms: values.priceTerms,
+    hourlyRateCents,
+    discountReason,
+    priceTermsChangedAt: same ? previous.priceTermsChangedAt : actor.at,
+    priceTermsChangedBy: same ? clean(previous.priceTermsChangedBy) : clean(actor.name),
+    priceTermsChangedByUid: same ? clean(previous.priceTermsChangedByUid) : clean(actor.uid),
+  };
 }
 
 export function validateRevenuePlan(values = {}) {
@@ -100,9 +124,10 @@ export const revenuePlansService = {
     if (!validation.valid) throw new Error(Object.values(validation.errors)[0]);
     const subjects = validateSubjectPrices(values.subjectPrices);
     if (!subjects.valid) throw new Error(Object.values(subjects.errors)[0]);
-    const { db } = requireFirebaseClient();
     const updatedAt = new Date().toISOString();
     const updatedBy = user.displayName || user.email || '';
+    const terms = priceTermsRecord(values, previous, { at: updatedAt, name: updatedBy, uid: user.uid });
+    const { db } = requireFirebaseClient();
     const billing = {
       lessonMinutes: LESSON_MINUTES.includes(Number(values.lessonMinutes)) ? Number(values.lessonMinutes) : (previous?.lessonMinutes || 60),
       billingMode: ['advance', 'actual', 'current', 'package'].includes(values.billingMode) ? values.billingMode : (previous?.billingMode || 'advance'),
@@ -122,7 +147,9 @@ export const revenuePlansService = {
       ...billing,
       priceHistory: nextPriceHistory(previous, { lessonPriceCents: validation.lessonPriceCents, ...billing }),
       ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}),
+      ...terms,
     };
+    // activityLog is readable by all staff: it gets the terms only, never the discount reason or the rate.
     // The price lives only here (admin / finance can read it). It is no longer copied to the student card,
     // which teachers and parents can read.
     const batch = writeBatch(db);
@@ -136,7 +163,7 @@ export const revenuePlansService = {
       byRole: 'admin',
       createdAt: updatedAt,
       date: updatedAt.slice(0, 10),
-      meta: { studentId: student.id, studentName: student.name || '', lessonPriceCents: validation.lessonPriceCents, weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}) },
+      meta: { studentId: student.id, studentName: student.name || '', lessonPriceCents: validation.lessonPriceCents, weeklyLessons: validation.weeklyLessons, billingMode: billing.billingMode, ...(values.subjectPrices ? { subjectPrices: subjects.prices } : {}), ...(terms.priceTerms ? { priceTerms: terms.priceTerms } : {}) },
     });
     await batch.commit();
     return normalizeRevenuePlan(student.id, plan);
