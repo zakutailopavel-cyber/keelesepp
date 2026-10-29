@@ -1,3 +1,11 @@
+## 2026-10-29 · agent/invite-parent-default — „Saada kutse” goes to the parent's e-mail by default
+
+- Team (Oleksiy, #bug): „кнопка saada kutse по умолчанию отправляла запрос на почту родителя, а не ученика”.
+- One e-mail is one account (student-invite-core refuses a parent's e-mail for a student login), so: when the card has
+  a parent e-mail, „Saada kutse” opens the parent invite (a parent login linked to the card, or a new password link when
+  it exists) prefilled with that e-mail; „Õpilasele oma konto” keeps the student's own login. Without a parent e-mail
+  nothing changes. File: students/StudentAccountCard.jsx (+ test).
+- Checks: eslint 0, full vitest (see PR).
 ## 2026-10-29 · agent/b2-m09-final — B1→B2 module 9 „Tervis ja eluviis” in the final shape
 
 - Base: `main` 377856e, then `origin/main` 38ecb2b merged (after #884, module 7). Module 8 (#886) was not on `main` yet
