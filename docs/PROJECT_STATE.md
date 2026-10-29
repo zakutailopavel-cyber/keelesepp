@@ -1,3 +1,10 @@
+## 2026-10-29 · agent/board-audio-any-tool — the worksheet's audio plays on the board with any tool
+
+- Owner: „учитель должен мочь открыть аудиозапись прям сразу во время урока”. On the lesson board the sheet lies under
+  the drawing layer; only „Täida töölehte” let clicks through, so with the pointer / pen tool the player could not be
+  pressed. Now (board/StudentBoard.jsx) a hover over a `.ws-audio` player lets the click through whatever tool is on,
+  and a tap without hover (tablet) plays / pauses it. Test in board.test.jsx.
+
 ## 2026-10-29 · agent/a2-m01-final — A2 module 1 „A2 lähtepunkt ja eneseinfo” in the final shape
 
 - Base: `main` c4bfda5 (after #908, the A2 profile). Content only; no production data, no publishing, no deploy. A2 module 2 is
