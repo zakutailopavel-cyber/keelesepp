@@ -556,7 +556,7 @@ export const LESSONS = withShapes({
         ['Mida sina arvad: kas telefon peaks koolis olema keelatud? Miks?'],
       ]),
       tag(B.choice('060_p_choice', 'Lugemine 1: valikvastused (7 punkti).', 'Lugege artiklit nutitelefonist koolis ja valige igale küsimusele artikli põhjal üks õige vastus.', [
-        ['Mida teeb autor artikli esimeses lõigus?', 'tutvustada probleemi ja kahte vastandlikku vaadet', 'kirjeldada ühe kooli tavalist koolipäeva', 'tõestada, et telefonikeeld parandab hindeid', 'selgitada, kus telefone päeval hoitakse'],
+        ['Milleks vajab artikkel lõiku A?', 'tutvustada probleemi ja kahte vastandlikku vaadet', 'kirjeldada ühe kooli tavalist koolipäeva', 'tõestada, et telefonikeeld parandab hindeid', 'selgitada, kus telefone päeval hoitakse'],
         ['Milliseid muutusi on direktori sõnul pärast keeldu märgatud?', 'Õpilased suhtlevad rohkem ja on tunnis aktiivsemad.', 'Õpilaste hinded on kõigis ainetes paranenud.', 'Lapsevanemad on keeluga algusest peale rahul.', 'Õpetajad annavad nüüd vähem kodutöid kui varem.'],
         ['Miks suhtuvad paljud lapsevanemad keelusse kahtlevalt?', 'Nad kardavad, et ei saa lapsega kiiresti ühendust.', 'Nad arvavad, et kool ei hoia telefone turvaliselt.', 'Nad leiavad, et lapsed vajavad telefoni õppimiseks.', 'Nad ei usu, et sekretär vastab telefonile.'],
         ['Mida võib Karli sõnadest järeldada?', 'Ta tunneb, et noortele ei usaldata vastutust.', 'Ta kasutab telefoni peamiselt mängimiseks.', 'Ta hakkas keelu tõttu rohkem raamatuid lugema.', 'Ta tahab, et telefon oleks lubatud tunnis.'],
