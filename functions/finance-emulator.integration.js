@@ -3942,8 +3942,8 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal(stornoAfter.history.at(-1).action, "undo-storno");
   assert.equal(originalAfter.reversedBy, undefined, "the original is live again");
   assert.equal(originalAfter.history.at(-1).action, "storno-undone");
-  const again = await financeRequest(adminToken, "/accounting/entries/undo-storno", { entryId: wrongStorno.body.entry.id, reason: "uuesti", requestId: "acc_undo_storno_0004" });
-  assert.equal(again.status, 409, JSON.stringify(again.body));
+  const undoAgain = await financeRequest(adminToken, "/accounting/entries/undo-storno", { entryId: wrongStorno.body.entry.id, reason: "uuesti", requestId: "acc_undo_storno_0004" });
+  assert.equal(undoAgain.status, 409, JSON.stringify(undoAgain.body));
 
   // void an unpaid invoice while open: its OA entry becomes a tombstone
   const voidable = await financeRequest(adminToken, "/purchase-invoices", { purchaseInvoice: { ...invoiceValues, documentNumber: "1599", date: "2027-04-03", dueDate: "2027-04-10" }, requestId: "purchase_create_0005" });
