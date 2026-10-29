@@ -1,10 +1,10 @@
 ## 2026-10-29 · agent/b2-m04-final — B1→B2 module 4 „Sihitis, ma-/da-infinitiiv ja rektsioon” in the final shape
 
-- Base: `main` 21c7f0b (2026-10-29, after #875 module 2); module 3 (#878) checked on top before the PR. Content only; no
-  production data, no publishing, no deploy.
+- Base: `main` 21c7f0b (2026-10-29, after #875 module 2), then `origin/main` c9f0c68 merged (after #878, module 3).
+  Content only; no production data, no publishing, no deploy.
 - Done: `b2/module04.js` (b1b2-016…020) passes every final-shape gate under the B2 profile: **71 → 0 problems**
-  (`final-shape.mjs --course b2 --module 4`); two module-5 lines left the baseline too (021 discover/transfer V2). No
-  baseline line added. Strict quality gate: all 15 sheets READY (41–49 min teaching sheets), `qualityBaseline.json`
+  (`final-shape.mjs --course b2 --module 4`); two module-5 lines (021 discover/transfer V2) and the course line
+  `V6-variant-W2b` (the new 020 essay) left the baseline too. B2 baseline 995 → 925 lines, none added. Strict quality gate: all 15 sheets READY (41–49 min teaching sheets), `qualityBaseline.json`
   unchanged.
 - Shape (`withShapes`, §4.1 row 4): 016 KIRJ L→W (corner R3 = Jaan's kitchen week, 12-gap 4-option cloze; main W13
   status letter to Ilze), 017 PROJ R→W (corner S2 = S17 argument cards Riga vs video call; main W14 decision letter to
@@ -21,8 +21,8 @@
   `b2/lessonGoals.js` follow the main tasks.
 - Audio (TartuNLP, free): `019_p_listen` rebuilt (longer lecture, 111 s), `016_t_voice` rebuilt (first line changed: the
   voicemail now comes after the call, so Kasuta does not open like 014's); `018_t_voice` mp3 and manifest entry deleted.
-- Checks: `final-shape.mjs --course b2 --module 4` 0; `npx eslint --quiet src` 0; `npx vitest run` 402 files passed
-  (2767 tests, 5 skipped); Vabamorf language check of module 4: 0 unknown lower-case words.
+- Checks: `final-shape.mjs --course b2 --module 4` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2772 tests, 5 skipped) after the merge with module 3; Vabamorf language check of module 4: 0 unknown lower-case words.
 - Next safe step: B1→B2 module 5 (`b2/module05.js`, b1b2-021…025, §4.1 row 5: AVAS L→S · LUGU R→W · PROB R→S · KUUL L→W);
   021's corner must not be L3 (019's corner).
 ## 2026-10-29 · agent/b2-m03-final — B1→B2 module 3 „Minevik ja kogemused” in the final shape
