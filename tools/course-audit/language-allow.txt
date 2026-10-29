@@ -41,3 +41,6 @@ proovitestil
 proovitestile
 proovitestis
 vahetestist
+# the clitic written as „-ki / -gi” in grammar notes and instructions (EKI ÕS: liide -ki, -gi)
+ki
+gi
