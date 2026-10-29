@@ -33,6 +33,217 @@
 - Next safe step: B1→B2 module 18 (`b2/module18.js`, b1b2-086…090, §4.1 row 18); 086's corner must not be L4 (084's
   corner), and 089 must tag L2.
 
+## 2026-10-29 · agent/b2-m16-final — B1→B2 module 16 „B2 grammatika integratsioon” in the final shape + Mock (080)
+
+- Base: `main` 8c7eb3d, then `origin/main` e18da53 merged (after #895, module 11). Modules 12–15 (#898, #900, #901, #903)
+  were not on `main` yet: with their `moduleNN.js` put in place in a scratch tree, module 16 still shows 0 problems
+  (074 corner W2a → 076 corner L2; V1/V2/V12 clean at 074→076 and 079→081). On `main` alone the regenerated B2 baseline
+  lists `V6-gap-L2/L3/L4/R1/R2/R3/R4/S1/S2/W1/W2` (modules 12–15 untagged there); they leave when #898–#903 are merged
+  and the baseline is rewritten. Content only; no production data, no publishing, no deploy.
+- Done: `b2/module16.js` (b1b2-076…080) passes every final-shape gate under the B2 profile: **64 → 0 problems**
+  (`final-shape.mjs --course b2 --module 16`). Strict quality gate: all 15 sheets READY (teaching sheets 40–55 min),
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 16): 076 PROJ L→S (corner L2 = new `076_p_radio`, „Päevateema” interview with Sofia and
+  Ilze Berg, 10 MC; main `076_t_say` S16 Sofia's talk at the board meeting, recorded at home), 077 KIRJ L→W (corner L4 =
+  new `077_p_show`, talk show with Jaan and Henri Pärtel, 12 true/false; main `077_t_essay` W14 „Kas keelt saab õppida
+  ilma kursuseta?”), 078 RÄÄK R→S (corner S2 = new `078_p_debate`, bake or buy bread, S17; main `078_t_say` S16 the bread
+  video, recorded at home), 079 LUGE R→W (corner R3 = `079_p_cloze`, the car-park chapter lengthened, 12 gaps; main
+  `079_t_final` W15 summary after the new chart `079_t_data`). 080 PROOV (Vahehindamine 4, full mock): L1 (`080_t_clips`, six
+  clips once), L2 (`080_t_interview`, Ene's radio interview, 6 MC), L3 + L4 (`080_p_bread`, bakery interview, 10 gaps +
+  12 statements), R1, R2a (paragraphs A–G), R2b, R3 (new library cloze), R4 (new editing text, 8 + 1), W1, W2b (new essay),
+  S1, S2 tagged; four timed `PART`s (L 34, R 43, W 25, S 25 points). Every teaching lesson: review naming the previous lesson
+  and a module 12–14 lesson (074/062, 076/058, 077/068, 078/069), an in-lesson pair task, a home recording (S16 ×2, S15 ×2),
+  two fluency tasks; S16 ×2, S17 ×2.
+- Changed blocks: real ids on every task; `076_p_meeting` → Avasta `076_d_meeting` (L04, transcript longer),
+  `076_d_report` removed, `076_p_cloze` → connector bank `076_p_bank` (R04), `076_p_write` W10 (edit Laura's proposals),
+  `076_t_offer` R15 level 3, `076_t_debate` S17 cards, `076_t_letter` W13; `077_d_draft` short answers (L03, transcript
+  unchanged), `077_p_gaps`/`077_p_mc` removed, new `077_p_tr` (G10), `077_t_stories` L06 level 3 (consequence gaps),
+  `077_t_story` → `077_t_essay`; `078_d_sort` G09, `078_p_cloze` → formtext, `078_p_forms` and `078_p_write` removed, new
+  `078_p_match` (G08) and `078_p_mono` (S08); `079_d_cards`/`079_d_sort`/`079_d_tf` → reading `079_d_read` (R07) and
+  rektsioon sort `079_d_gov` (G08), `079_d_write` → W01 questionnaire, `079_p_say` → phone cards `079_p_call` (S04),
+  `079_t_draft` R14 level 3. 080 rewritten in the 060 pattern (old `080_p_listen`, `080_p_lc`, `080_p_gramA/B`, `080_p_fix`
+  removed). Vocab: grammar terms out of the boxes (sidend, sõnajärg, kesksõna, tingiv kõneviis …); topic word juuretis.
+  canDo and goals of 076–080 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `076_d_meeting`, `076_p_radio`, `077_p_show`, `080_p_bread`, `080_t_clips`,
+  `080_t_interview`; removed `076_p_meeting`, `080_p_listen` (mp3 + manifest).
+- Checks: `final-shape.mjs --course b2 --module 16` 0; `npx eslint --quiet src` 0; `npx vitest run` 407 files passed
+  (2804 tests, 5 skipped); Vabamorf language check of module 16: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the L2 corner has 10 questions with three options (exam: 5); the mock's L2 has 6 questions (Harno 5; the
+  didactic check wants ≥ 6) and sits with L1 on the Kasuta sheet (recognition share of the Harjuta sheet); the R2b text is
+  ≈ 350 words (Harno 200–300, the didactic check wants ≥ 350).
+- Next safe step: B1→B2 module 17 (`b2/module17.js`, b1b2-081…085, §4.1 row 17: LUGU R→W · KUUL L→W · AVAS R→S · PROB L→S);
+  081's corner must not be R3 (079's corner); 085 must tag an L2 task (the course needs 4 L2 exam practices).
+
+## 2026-10-29 · agent/b2-m15-final — B1→B2 module 15 „Meedia, info ja kriitiline lugemine” in the final shape
+
+- Base: `main` b7fc373, then `origin/main` d61f34c merged. Modules 11–14 (#895, #898, #900, #901) were not on `main` yet:
+  with their branches put in place in a scratch tree, module 15 still shows 0 problems, 069 (KIRJ, corner W2a) → 071 (PROB,
+  corner L1) has no family repeat and no V1/V2 line, `methodGaps.test.js` (module 14 → 15 recycling) and `quality.test.js`
+  pass, and the course lines change by `+V6-gap-L2`, `−V6-corner-L4` only. Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module15.js` (b1b2-071…075) passes every final-shape gate under the B2 profile: **59 → 0 problems**
+  (`final-shape.mjs --course b2 --module 15`); `b1b2-076` discover/transfer V2 left the baseline too. Strict quality gate:
+  all 15 sheets without a problem (teaching sheets 40–48 min, didactic 100), `qualityBaseline.json` unchanged.
+- Course line added: **`V6-gap-L2`** (L2 last practised in module 9; 075's L2 is the first since — whoever practises L2
+  next adds this line, and 075 must have it: `V6-exam-L2` needs 4 exam practices and only 075, 080, 085, 089 are left, so
+  **080, 085 and 089 must all tag L2** and two more L2 corners are needed in modules 16–18). On `main` alone the
+  regenerated baseline also lists `V6-gap-L1/L4/R1/R2/R3/S1/S2/W1/W2` because modules 11–14 are untagged there; they leave
+  when #895–#901 land (rebaseline then).
+- Shape (`withShapes`, §4.1 row 15): 071 PROB L→S (corner L1 = `071_p_clips`, five radio clips ≈ 33 s, played once, 10 MC
+  with 3 options; main `071_t_say` S16 talk for Liis and Markus, recorded at home), 072 AVAS R→S (corner W1 =
+  `072_p_letter`, examWriting 80–100 words to the Nõmme Teataja editor-in-chief, W08; main `072_t_say` S16 call to
+  „Päevateema”, recorded at home), 073 KUUL L→W (corner L4 = new `073_p_show`, talk show with Ülle, Hannes and Jaan, 12
+  true / false; main `073_t_letter` W14 opinion to the city council), 074 LUGU R→W (corner W2a = new chart `074_p_data` +
+  `074_p_summary` W15; main `074_t_letter` W13 correction request, 140–160 words). 075 EKS: L2 (new `075_p_lc` examListen
+  on Kaia Mägi's interview, `KAIA_INTERVIEW`), R1, R2b (new `075_p_short`, a paper's correction guide, 8 short answers +
+  1 reflection), R3, W1, W2b (new `075_t_essay`), S1, S2 tagged, four timed `PART`s. Every teaching lesson: review naming
+  the previous lesson and a module 11–13 lesson (069/059, 071/052, 072/063, 073/058), an in-lesson pair task, a home
+  recording (S16 ×2, S15 ×2), two fluency tasks; S16 ×2, S17 ×2 (072_t_debate, 073_t_debate).
+- Changed blocks: real ids on every task; removed `071_p_mc`, `072_p_tf`, `072_p_write`, `073_p_mc`, `073_p_write`,
+  `074_p_verbs`, `074_p_write`; new `071_p_post` formtext (hedging adverbs, -vat/-tavat), `073_d_chat` dialogue →
+  listening (L04), `073_p_rank` idea card (S12), `073_t_plan` (W11), `074_d_tf` true/false → choice on accurate vs
+  distorted summary lines (G13), `074_d_write` W01 parents' questionnaire, `071_p_write` W02 message; `073_p_article`
+  short answers (R15), `074_t_dossier` sources shuffled and dated (R10), `071_t_press` + numeric question (R08 level 3);
+  sales manager renamed Tarmo Kangur → Ergo Rätsep (Tarmo Kangur is module 13's planning head). Vocab: koondamine →
+  koondama; topic words arvamuslugu, sõnavalik, moonutama, faktikontroll. canDo and goals of 071–075 in
+  `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `073_d_chat`, `073_p_show`, `075_p_lc`; rebuilt `071_p_clips`, `072_p_radio` (one more
+  exchange), `075_p_listen` (host is now Ülle).
+- Checks: `final-shape.mjs --course b2 --module 15` 0; `npx eslint --quiet src` 0; `npx vitest run` 407 files passed
+  (2804 tests, 5 skipped); Vabamorf language check of module 15: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the L1 clips are ≈ 33 s (Harno 35–45 s) with two questions each; the W1 and W2a corners are shorter than the
+  exam (80–100 words, 8–10 sentences); the R2b text is ≈ 360 words (Harno 200–300; the B2 reading norm wants ≥ 350).
+- Next safe step: B1→B2 module 16 (`b2/module16.js`, b1b2-076…080, §4.1 row 16: PROJ L→S · KIRJ L→W · RÄÄK R→S · LUGE R→W
+  · PROOV 080); 076's corner must not be W2 (074's corner), and the mock 080 must tag L2.
+
+## 2026-10-29 · agent/student-discount-custom — „Soodustus”: own rate „Muu”, a subject may stay at 25 €/h
+
+- Owner 2026-10-29: „льгота … для брата/сестры или по нашей доброй воле будет 20, 15 или 12 или свой вариант, который
+  пропишет админ”; default for every new learner (from grade 4) 25 €/h. Base: `main` 4579037 (after #891).
+- Done (`crm-v2/src/features/finance/priceTerms.js`, `BillingSettingsCard.jsx`): „Soodustus” = 20 / 15 / 12 €/h or
+  „Muu” with an own hourly rate (cents, > 0 and < 25 €), always with the required reason. Each further subject picks
+  from „sama kui kaardil”, „Üldtingimused 25 €/h”, 20 / 15 / 12, „Muu”; on a card with further subjects its own subject
+  can also be „Üldtingimused 25 €/h” (one subject at 25, another discounted). New helpers `rateChoiceOf`,
+  `parseRateCents`; `CUSTOM_RATE`, `GENERAL_RATE`, `SAME_RATE`; the „Varasem kokkulepe X €/h” choice is gone.
+- Existing prices: a stored price that is none of 25/20/15/12 €/h shows as „Muu” prefilled with its rate (e.g. 22,67)
+  and is saved unchanged to the cent (even ≥ 25 €/h) until the admin edits the rate or the lesson length; nothing is
+  migrated or written.
+- Rules / server: no change (`hourlyRateCents` stays any positive int, the reason rule from #891 still applies); no
+  deploy beyond the `firestore:rules` already owed for #891.
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 407 files passed (2805 tests, 5 skipped).
+- Next safe step: owner reviews the PR; deploy `firestore:rules` (from #891) if not yet done.
+## 2026-10-29 · agent/b2-m14-final — B1→B2 module 14 „Ühiskond ja avalikud teenused” in the final shape
+
+- Base: `main` 7ea2006, then `origin/main` 8c7eb3d merged. Modules 11 (#895), 12 (#898) and 13 (#900) were not on `main` yet: the
+  064 (KUUL, corner L1) → 066 (RÄÄK, corner W1) boundary has no family repeat by design; recheck V1/V2/V12 at 064→066 and
+  `methodGaps.test.js` (module 13 → 14 vocabulary recycling) after they land. Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module14.js` (b1b2-066…070) passes every final-shape gate under the B2 profile: **64 → 0 problems**
+  (`final-shape.mjs --course b2 --module 14`); also left the baseline: `b1b2-085` practice/transfer V7 ×3, `b1b2-089`
+  discover V7. Nine course lines were added: `V6-gap-L1/L3/L4/R1/R2/W1/W2/S1/S2` — measured from module 10 to module 14
+  because modules 11–13 on `main` still have no `harno` tags; they disappear when #895/#898/#900 land (rebaseline then).
+  Strict quality gate: all 15 sheets READY (teaching sheets 41–51 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 14): 066 RÄÄK R→S (corner W1 = `066_t_letter` examWriting 80–100 words to the social
+  worker, W08; main `066_t_meet` S10 role play), 067 LUGE R→W (corner R1 = `067_p_article` ≈ 500 words; main `067_t_post`
+  W14 post with a counter-argument), 068 PROJ L→S (corner L1 = new `068_p_clips`, ten announcements played once, L01;
+  main `068_t_say` S16 talk at the general meeting, recorded at home), 069 KIRJ L→W (corner W2a = new chart `069_p_data`
+  + `069_p_write` W15; main `069_t_letter` W13 application). 070 EKS: L3 (10 gaps), L4, R1, R2a, R2b, W1, W2a (new
+  chart `070_t_data` + `070_t_summary`), S1, S2 tagged, four timed `PART`s. Every teaching lesson: review naming the
+  previous lesson and a module 10–12 lesson (065/058, 066/053, 067/049, 068/059), an in-lesson pair task, a home
+  recording (S15 ×3, S16), two fluency tasks; S16 ×1 (068), S17 ×2 (068_t_meeting, 069_p_debate).
+- Changed blocks: real ids on nearly every task; removed `067_p_gaps`, `067_d_match` (→ crossword
+  `067_d_cross`, G11), `068_p_match`, `069_d_sort`; `069_d_rule` table → `choice` G13 (4 options); new `067_p_order`
+  (G07), `069_d_write` → W01 questionnaire; `067_d_radio` items are short-answer questions (L03, transcript unchanged);
+  `069_d_debate` L10; `069_t_voice` L06 level 3 (action gaps); `069_p_sample` paragraphs shuffled (R10); `068_t_proposals`
+  R15 level 3; `068_t_letter` → W10 rewrite of Igor's draft; `068_p_bank` one extra sentence (R16). Vocab: e-teenus →
+  teenindus, üldkoosolek → koosolek; topic words sotsiaaltöötaja, toidupank, öörahu, peatumisala. Bold inside words
+  removed (speller). canDo and goals of 066–070 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `b1b2-068/068_p_clips.mp3`. No other transcript changed.
+- Checks: `final-shape.mjs --course b2 --module 14` 0; `npx eslint --quiet src` 0; `npx vitest run` 406 files passed
+  (2790 tests, 5 skipped); Vabamorf language check of module 14: 1 unknown lower-case
+  word, the genre value `kusimustik`.
+- Limits: the W1 corner is 80–100 words (exam ≈ 140); the R1 corner has open questions (exam: three options); the L1
+  clips are ≈ 25 s each (Harno 35–45 s, five clips) and the corner is 8.0 min, at the floor.
+- Next safe step: B1→B2 module 15 (`b2/module15.js`, b1b2-071…075, §4.1 row 15: PROB L→S · AVAS R→S · KUUL L→W · LUGU R→W);
+  071's corner must not be W2 (069's corner W2a).
+## 2026-10-29 · agent/b2-m13-final — B1→B2 module 13 „Keskkond ja vastutustundlik elu” in the final shape
+
+- Base: `main` c2b4947, then `origin/main` b7fc373 merged (after #892, module 10). Modules 11 (#895) and 12 (#898) were not
+  on `main` yet: with both branches merged in a scratch tree, module 13 still shows 0 problems (059 corner W1 → 061 corner
+  R1, V1/V2 clean), modules 11/12/14 gain no line and the course lines only shrink (`V6-corner-R1` leaves). On `main` alone
+  the regenerated baseline lists `V6-gap-L1`, `V6-gap-S1`, `V6-gap-S2` because modules 11–12 are untagged there; they leave
+  when #895/#898 are merged and the baseline is rewritten. Content only; no production data, no publishing, no deploy.
+- Done: `b2/module13.js` (b1b2-061…065) passes every final-shape gate under the B2 profile: **56 → 0 problems**
+  (`final-shape.mjs --course b2 --module 13`); `b1b2-066 discover V2` and `b1b2-089 practice V7` left the baseline too.
+  Strict quality gate: all 15 sheets READY (teaching sheets 40–54 min, didactic 100), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 13): 061 AVAS R→S (corner R1 = `061_d_read`, Viktor's article ≈ 510 words, predict and
+  check R13; main `061_t_present` S16 overview for the team meeting, recorded at home), 062 LUGU R→W (corner W2a =
+  `062_p_write` W15 summary of the new village survey chart `062_p_data`; main `062_t_reply` W13 reply in the village
+  group), 063 PROB L→S (corner L4 = `063_p_tf` as `examListen` true/false on Ott Kuusik's interview; main `063_t_choice`
+  S17 budget debate with argument cards A/B), 064 KUUL L→W (corner L1 = new `064_p_clips`, ten announcements played once;
+  main `064_t_opinion` W14 opinion text). 065 EKS: L3, L4, R1, R4, W1, W2b, S1, S2 tagged, four timed `PART`s; new
+  `065_p_radio` (L4, reuse-centre interview), `065_p_sentences` as a sentence bank with one extra (R16), new W2b essay
+  `065_t_essay`. Every teaching lesson: review naming the previous lesson and a module 9–11 lesson (059/053, 061/048,
+  062/051, 063/044), an in-lesson pair task, a home recording (S16 ×2, S15 ×2), two fluency tasks; S17 ×2.
+- Changed blocks: real ids on every task; `061_p_radio` short-answer questions (L03), `062_d_news` numbers and times (L10),
+  `062_d_write` W01 questionnaire, `063_d_sort` → true/false on the cards (R06), `063_d_write` W02 message, `063_t_voice`
+  L07, `063_t_letter` W10 (edit Markus's draft), `064_d_parts` removed, `064_p_match` → sentence joining (W09),
+  `064_p_plan`/`064_p_write` → idea card `064_p_ideas` (S03), `064_t_cards` → listening `064_t_hearing` (L06 level 3),
+  `064_t_plan` before the hearing. Vocab: tarbimine, põhjavesi, arendaja, elektrikaubik, laadimine, kütusekulu,
+  kliimamuutus → kliima, kaev, elanik, kaubik, laadija, kütus, taastuv energia; topic words keskkonnamõju, süsiniku
+  jalajälg, sõiduulatus. canDo and goals of 061–064 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `063_p_tf`, `064_p_clips`, `064_t_hearing`, `065_p_radio`.
+- Checks: `final-shape.mjs --course b2 --module 13` 0; `npx eslint --quiet src` 0; `npx vitest run` 406 files passed
+  (2786 tests, 5 skipped); Vabamorf language check of module 13: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the L1 clips are ≈ 25 s each (Harno 35–45 s); the R1 corner has open questions (exam: three options); 063 Harjuta
+  is 54 min (cap 55).
+- Next safe step: after #895/#898 are merged, merge `main` and rewrite the B2 baseline; then module 14 (`b2/module14.js`,
+  b1b2-066…070, §4.1 row 14: RÄÄK R→S · LUGE R→W · PROJ L→S · KIRJ L→W); 066's corner must not be L1 (064's corner).
+
+## 2026-10-29 · agent/b2-m12-final — B1→B2 module 12 „Tehnoloogia ja sotsiaalmeedia” in the final shape + Mock (060)
+
+- Base: `main` 439a1d0, then `origin/main` 7ea2006 merged (after #892, module 10). Module 11 (#895) was still open: with
+  its `module11.js` put in place locally, module 12 still shows 0 problems (054 corner W2b → 056 corner L3; V1/V2 clean).
+  Content only; no production data, no publishing, no deploy.
+- Done: `b2/module12.js` (b1b2-056…060) passes every final-shape gate under the B2 profile: **65 → 0 problems**
+  (`final-shape.mjs --course b2 --module 12`); the module-12 block and the course lines `V6-corner-L3`, `V6-corner-R4` left
+  the B2 baseline. One course line was added: `V6-gap-L1` (060's L1 is the first L1 practice since module 3; #895 adds
+  the same key with module 11's corner, so after #895 it is not new). Strict quality gate: all 15 sheets READY,
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 12): 056 KIRJ L→W (corner L3 = `056_p_radio`, Kadri's radio talk, 10 gaps; main
+  `056_t_letter` W13 to the class teacher), 057 PROJ L→S (corner R1 = `057_p_article`, ≈ 520 words, predict and check
+  R13; main `057_t_say` S16 talk at the project meeting, recorded at home), 058 LUGE R→W (corner R4 = `058_p_bank`, 8
+  sentences + 1 extra, R16; main `058_t_report` W04 statement to the web constable), 059 RÄÄK R→S (corner W1 = new
+  `059_t_reply`, examWriting 80–100 words to the board chair Marje Lepp, W08; main `059_t_talk` S16 at the parents'
+  evening). 060 PROOV (Vahehindamine 3, full mock): L1 (new `060_p_clips`, six clips played once), L3, L4, R1, R2a, R2b,
+  R3, R4, W1, W2a (new chart `060_t_data` + `060_t_summary`), S1, S2 tagged, four timed `PART`s; L3 10 gaps, L4 12
+  statements, R3 12 gaps, R4 8 sentences, R2b 8 short answers. Every teaching lesson: review naming the previous lesson
+  and a module 9–10 lesson (055/043, 056/047, 057/048, 058/041), a pair task, a home recording (S15/S16), two fluency
+  tasks; S16 ×2 (057, 059), S17 ×2 (057_p_debate, 059_t_debate).
+- Changed blocks: real ids on nearly every task; `056_d_sort` → crossword `056_d_cross` (G11), `056_d_mean` removed,
+  `056_p_exact` → sentence joining (W09), `056_p_write` → chart `056_p_data` + W15 `056_p_summary`, `056_t_leaflet` →
+  phrase bank (R05 level 3); `057_d_lecture` gaps are short-answer questions (L03, transcript unchanged), `057_d_write` →
+  W01 questionnaire, `057_t_mail` → W12 notice in plain verbs; `058_d_guide` short answers (R07), `058_d_forms` removed,
+  `058_d_flow` two more steps; `059_d_check` removed, `059_d_sources` R12, `059_p_article` paragraphs shuffled (R10),
+  `059_t_invite` R15 level 3, `059_t_summary` → `059_t_reply`. Vocab: topic words ekraaniaeg, tehisintellekt,
+  petukõne, valeinfo; other heads replaced by known words (piirang, keskenduma, automaatne, vastutama, koguma, otsustama,
+  jälgima, kahtlane, kiusama, reegel, pettus). Bold inside words removed (speller). canDo and goals of 056–059 in
+  `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `b1b2-060/060_p_clips.mp3` (147 s). No other transcript changed.
+- Checks: `final-shape.mjs --course b2 --module 12` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed (2774 tests, 5 skipped); Vabamorf
+  language check of module 12: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the W1 corner is 80–100 words (exam ≈ 140); the R1 corner has open questions (exam: three options); the mock's
+  L1 has six clips (Harno five; the didactic check wants ≥ 6 items) and sits on the Kasuta sheet (recognition share of
+  the Harjuta sheet).
+- Next safe step: B1→B2 module 13 (`b2/module13.js`, b1b2-061…065, §4.1 row 13: AVAS R→S · LUGU R→W · PROB L→S · KUUL L→W);
+  061's corner must not be W1 (059's corner).
+## 2026-10-29 · agent/calendar-status-ribbon — traffic light on calendar lessons
+
+- Team (#high_priority): held and cancelled lessons looked the same. `calendarView.lessonState(item)`: green „done”
+  (Toimunud / a lesson record), yellow „absent” (Puudus_p / Puudus_eta), red „cancelled” (Tühistatud — before, any
+  record, also a cancelled one, counted as held). A ribbon in the top right corner of every lesson block and crowded
+  list item (calendarV2.css .tg-ribbon), cancelled blocks striped and struck through, agenda rows show the state badge.
+- Checks: calendar vitest 191 pass; full run in the PR.
 ## 2026-10-29 · agent/calendar-personal-colors — own teacher colours in the calendar, distinct by default
 
 - Base: `main` c2b4947. Owner: „сделай так, чтобы у себя можно было настраивать как угодно, и по умолчанию какой-то
