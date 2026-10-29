@@ -1,3 +1,8 @@
+## 2026-10-29 · agent/b1-exam-goals — B1 goals test reads exam lessons from the course
+
+- Owner: „править” (the test hard-coded exam lessons 5…50, 89, 90 and missed 055, 060 …). Now `b1/lessonGoals.test.js`
+  builds the course: an exam lesson has g_vocab exactly when a sheet has a g_vocab block (the Korda review of module
+  words, e.g. 055, 060, 065 …); teaching lessons always have it. No content change.
 ## 2026-10-29 · agent/lesson-duration-card — the student card's „Tunnid” shows how long each lesson is
 
 - Team (#student_card): „не видно, сколько идёт урок … будем пропускать двойные уроки”. Upcoming and held lessons show
