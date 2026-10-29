@@ -18,9 +18,8 @@
 - Audio (TartuNLP): new `007_p_hours`, `008_p_clips`; re-recorded `007_t_call`, `008_t_call`; `009_p_radio` moved to
   Avasta as `009_d_radio` (same transcript, file renamed); removed `006_t_tree`, `008_p_coach`, `009_d_maret`,
   `009_t_photo`.
-- Checks: `npx eslint --quiet src` clean; `npx vitest run` 408 files / 2833 tests passed, 3 failures only in
-  `studentWorksheetFlow.test.jsx` / `WorksheetStudioPage.test.jsx` (timeouts at machine load ~170; both files pass
-  alone), course tests (finalShape, course, listeningAudio, methodGaps) pass after the merge. Language check (Vabamorf):
+- Checks after the merge: `npx eslint --quiet src` clean; `npx vitest run` 409 files passed (1 skipped), 2837 tests
+  passed (6 skipped). Language check (Vabamorf):
   1 unknown lower-case word, `kusimustik` = the examWriting genre value (technical, as in B1).
 - Next safe step: after A2 module 1 lands, rerun `final-shape.mjs --course a2 --module 2` for the 004 → 006 boundary,
   then A2 module 3.
