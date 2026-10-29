@@ -5,28 +5,82 @@ export const GRID_START = 8 * 60;
 export const GRID_END = 21 * 60;
 export const SNAP = 15;
 export const PX_PER_MIN = 1.1;
-const TONES = 6;
+// the colours a teacher can have (calendarV2.css .tone-0 … .tone-11); 0–5 keep their old meaning
+export const TONE_NAMES = ['Sinine', 'Roheline', 'Oranž', 'Lilla', 'Roosa', 'Helesinine', 'Punane', 'Oliiv', 'Pruun', 'Hall', 'Kollane', 'Magenta'];
+const TONES = TONE_NAMES.length;
+const validTone = (value) => value !== '' && value != null && Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) < TONES;
 
-// the colours a teacher can have (calendarV2.css .tone-0 … .tone-5)
-export const TONE_NAMES = ['Sinine', 'Roheline', 'Oranž', 'Lilla', 'Roosa', 'Helesinine'];
 // the colours the administrator chose (users/{uid}.calendarTone, owner 2026-10-29: „поставь Егору розовый цвет”):
-// staff → Map uid / name → tone; a teacher without a choice keeps the colour of the hash below
+// staff → Map uid / name → tone (the school-wide default)
 export function tonesOf(staff = []) {
   const out = new Map();
   (staff || []).forEach((person) => {
-    const tone = Number(person?.calendarTone);
-    if (person?.calendarTone === '' || person?.calendarTone == null || !Number.isInteger(tone) || tone < 0 || tone >= TONES) return;
+    if (!validTone(person?.calendarTone)) return;
+    const tone = Number(person.calendarTone);
     if (person.id) out.set(person.id, tone);
     if (person.name) out.set(person.name, tone);
   });
   return out;
 }
-// stable colour per teacher (the chosen one first)
-export function teacherTone(key = '', tones = null) {
-  if (tones?.has(key)) return tones.get(key);
+
+// a user's own colours (users/{uid}.calendarColors = { teacherKey: tone }), cleaned: only known tones, ≤ 80 keys
+export const MAX_PERSONAL_COLORS = 80;
+export function cleanPersonalColors(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return Object.fromEntries(Object.entries(value)
+    .filter(([key, tone]) => key && key.length <= 200 && validTone(tone))
+    .slice(0, MAX_PERSONAL_COLORS)
+    .map(([key, tone]) => [key, Number(tone)]));
+}
+
+const hashTone = (key) => {
   let hash = 0;
   for (const char of String(key)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   return hash % TONES;
+};
+
+/**
+ * Colour of every teacher in the calendar (owner 2026-10-29: „настраивать как угодно … по умолчанию … отличаемо”):
+ * 1. the viewer's own choice (personal), 2. the administrator's choice (staff calendarTone),
+ * 3. otherwise the first colour no other teacher has, teachers taken in a stable order (by id), so two teachers share a
+ *    colour only when all 12 are used. people: [{ id, name }] (id = uid, or the name of an old lesson without uid).
+ * Returns Map id / name → tone.
+ */
+export function calendarTones({ people = [], staff = [], personal = {} } = {}) {
+  const school = tonesOf(staff);
+  const own = cleanPersonalColors(personal);
+  const unique = [...new Map((people || []).filter((person) => person?.id).map((person) => [person.id, person])).values()]
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  const out = new Map();
+  const chosenOf = (person) => {
+    if (person.id in own) return own[person.id];
+    if (person.name && person.name in own) return own[person.name];
+    if (school.has(person.id)) return school.get(person.id);
+    if (person.name && school.has(person.name)) return school.get(person.name);
+    return null;
+  };
+  const used = new Set();
+  const open = [];
+  unique.forEach((person) => {
+    const tone = chosenOf(person);
+    if (tone == null) { open.push(person); return; }
+    out.set(person.id, tone);
+    used.add(tone);
+  });
+  open.forEach((person) => {
+    let tone = [...Array(TONES).keys()].find((index) => !used.has(index));
+    if (tone === undefined) tone = hashTone(person.id);
+    used.add(tone);
+    out.set(person.id, tone);
+  });
+  unique.forEach((person) => { if (person.name && !out.has(person.name)) out.set(person.name, out.get(person.id)); });
+  return out;
+}
+
+// stable colour per teacher (the resolved one first, a hash for a teacher the calendar does not know)
+export function teacherTone(key = '', tones = null) {
+  if (tones?.has(key)) return tones.get(key);
+  return hashTone(key);
 }
 const DAY_IDS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
