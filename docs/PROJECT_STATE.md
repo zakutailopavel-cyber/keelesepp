@@ -1,3 +1,22 @@
+## 2026-10-29 · agent/b2-course-close — B1→B2: the last course lines closed (L1, L2 gaps); B2 baseline `{}`
+
+- Base: `main` bacad76 (modules 1–18 merged), checked 2026-10-29. Content only; no production data, no publishing, no deploy.
+- Goal: close `V6-gap-L1` (L1 practised in modules 3 → 11) and `V6-gap-L2` (9 → 15) with the smallest change in earlier
+  exam lessons (gap rule: the module numbers of two practices differ by at most 3).
+- Done: **030** (m6): the untagged four one-line notes `030_p_notes` rebuilt as an L1 task (six 25-s work notices, played
+  once, 3-option MC, `L01`/`L1`, 6 points kept). **045** (m9): new `045_t_clips` L1 (six health notices, played once, MC).
+  **060** (m12 mock): new `060_t_show` L2 (talk show „Digiriik”, Merle Kask + Ants Raud on seniors' digital skills, ~3 min,
+  played twice, 6 MC, `L02`/`L2`); L part 28 → 34 points, 40 → 50 min, tip, notes and rubrics updated. L1 now runs
+  3 → 6 → 9 → 11 …, L2 6 → 9 → 12 → 15 ….
+- Why on Kasuta: on the Harjuta sheets a fifth recognition task broke the B2 norm (≤ 4 recognition tasks) — the new
+  listenings sit at the start of the writing sheet, as 060_p_clips already did; L2 has 6 items (didactic check: ≥ 6 at B2).
+- Files: `b2/module06.js`, `b2/module09.js`, `b2/module12.js`, `listeningAudio.json`, audio `b1b2-030/030_p_notes.mp3`
+  (rebuilt), `b1b2-045/045_t_clips.mp3`, `b1b2-060/060_t_show.mp3` (TartuNLP, free), `finalShapeBaselineB2.json` → `{}`.
+- Checks: `final-shape.mjs --course b2` **total 0** (all 18 modules and the course group); finalShape baseline regenerated
+  to `{}`; `course.test.js` modules 06/09/12 green (strict gate too); eslint clean; full vitest green except UI timeouts
+  under load that pass when rerun alone (studentWorksheetFlow, LiveRoom, WorksheetStudioPage); language check of modules
+  06/09/12: only the known `kusimustik`.
+- Next safe step: owner reviews and merges the PR; the B1→B2 course is then at 0 final-shape problems.
 ## 2026-10-29 · agent/b2-m18-final — B1→B2 module 18 „B2 rääkimine ja lõpphindamine” in the final shape (the last module)
 
 - Base: `main` (after #895 module 11; modules 12–16 queued as #898, #900, #901, #903, #904, module 17 as #905). The course
