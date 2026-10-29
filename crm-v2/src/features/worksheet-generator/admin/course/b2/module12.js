@@ -473,7 +473,7 @@ export const LESSONS = withShapes({
   'b1b2-060': {
     title: 'Vahehindamine 3 — tunnid 41–60',
     assessment: true,
-    canDo: 'Ma sooritan proovieksami Harno B2 vormis: kuulamine (lühiteated, lüngad, õige või vale), lugemine (valikvastused, väide ja lõik, lühivastused, valiklüngad, lauselüngad), kaks kirja (umbes 140 ja 180 sõna), sõnavõtt koosolekul ja paarisarutelu; igas osas vähemalt 60 %, eesmärk 80 %.',
+    canDo: 'Ma sooritan proovieksami Harno B2 vormis: kuulamine (lühiteated, intervjuu valikvastustega, lüngad, õige või vale), lugemine (valikvastused, väide ja lõik, lühivastused, valiklüngad, lauselüngad), kaks kirja (umbes 140 ja 180 sõna), sõnavõtt koosolekul ja paarisarutelu; igas osas vähemalt 60 %, eesmärk 80 %.',
     discover: [
       B.text('060_d_intro', 'Kordamine enne vahehindamist', 'Vahehindamine 3 on täielik proovieksam Harno B2 vormis ja kontrollib tunde 41–60: tervis ja eluviis, suhted ja konfliktid, raha ja tarbimine, tehnoloogia ja meedia. Grammatikas: tingiv kõneviis, kaudne kõne, umbisikuline tegumood, nimisõnafraasid. See leht on soojendus enne eksamit.'),
       B.vocab('060_d_vocab', 'Digielu sõnad', ['reegel — правило', 'andmed — данные', 'tehisintellekt — искусственный интеллект', 'ekraaniaeg — экранное время', 'pettus — мошенничество', 'allikas — источник', 'koolitus — обучение', 'parool — пароль', 'kontrollima — проверять', 'turvalisus — безопасность'], '2'),
@@ -497,8 +497,8 @@ export const LESSONS = withShapes({
 
     ],
     practice: [
-      B.tip('060_p_how', 'Kuulamine ja lugemine (Harno B2 vormis)', 'Kuulamine (umbes 40 min): osa 3 — intervjuu ja 10 lünka; osa 4 — sama intervjuu ja 12 väidet; osa 1 (kuus lühiteadet, kuulete üks kord) on kirjutamise lehe alguses. Lugemine (umbes 60 min): osa 1 — 7 valikküsimust, osa 2a — 8 väidet ja lõiku, osa 3 — 12 valiklünka, osa 4 — 8 lauset; osa 2b (lühivastused) on kirjutamise lehel. Lõpus keeleosa ja lühike suuline kokkuvõte. Lävend: igas osas vähemalt 60 %, eesmärk 80 %.', 'full'),
-      PART('060_p_lpart', 'L', { minutes: 40, points: 28, tasks: 3, note: 'Kuulamisosa Harno B2 vormis: intervjuu lünkadega ja 12 väidet siin, kuus lühiteadet (kuulete üks kord) kirjutamise lehe alguses, kokku 28 punkti. Eesmärk on vähemalt 23 punkti (80 %).' }),
+      B.tip('060_p_how', 'Kuulamine ja lugemine (Harno B2 vormis)', 'Kuulamine (umbes 50 min): osa 3 — intervjuu ja 10 lünka; osa 4 — sama intervjuu ja 12 väidet; osa 1 (kuus lühiteadet, kuulete üks kord) ja osa 2 (jutusaade, 6 valikküsimust) on kirjutamise lehe alguses. Lugemine (umbes 60 min): osa 1 — 7 valikküsimust, osa 2a — 8 väidet ja lõiku, osa 3 — 12 valiklünka, osa 4 — 8 lauset; osa 2b (lühivastused) on kirjutamise lehel. Lõpus keeleosa ja lühike suuline kokkuvõte. Lävend: igas osas vähemalt 60 %, eesmärk 80 %.', 'full'),
+      PART('060_p_lpart', 'L', { minutes: 50, points: 34, tasks: 4, note: 'Kuulamisosa Harno B2 vormis: intervjuu lünkadega ja 12 väidet siin, kuus lühiteadet (kuulete üks kord) ja jutusaade valikvastustega kirjutamise lehe alguses, kokku 34 punkti. Eesmärk on vähemalt 28 punkti (80 %).' }),
       tag(B.listening('060_p_listen', 'Kuulamine 3: raadiointervjuu (10 punkti).', 'Kuulake intervjuud teadur Kadri Metsaga kaks korda. Kirjutage igasse lünka üks või kaks sõna.', [
         'Saatejuht: Tere tulemast saatesse „Digielu”. Täna on stuudios Tartu Ülikooli teadur Kadri Mets. Ta uuris, mis juhtub, kui inimesed loobuvad nädalaks nutitelefonist.',
         'Kadri Mets: Tere! Meie katses osales kakssada täiskasvanut vanuses kakskümmend kuni viiskümmend viis aastat. Nädala jooksul tohtisid nad kasutada ainult tavalist nuputelefoni, millega saab helistada ja sõnumeid saata.',
@@ -606,7 +606,7 @@ export const LESSONS = withShapes({
       ]),
       TR('060_p_tr', 'Keeleosa: tõlgi uuringu laused.', 'Tõlgi IT-juhi uuringu laused eesti keelde; kasuta numbreid sõnadega.', ['Среднее экранное время выросло до трёх часов сорока минут.', 'Всё больше людей использует ИИ на работе.', 'Почти половина проверяет источник, прежде чем поделиться.', 'Две трети получили фишинговое письмо.', 'Многие выключают уведомления на ночь.', 'По-моему, цифровая гигиена важна для всех.']),
       B.speaking('060_p_say', 'Räägi loetust.', 'Võta artikkel „Nutitelefon koolis” 2–3 minutiga kokku ja ütle oma arvamus koos ühe näitega.', ['Mis on probleem ja millised on vaated?', 'Kellega oled kõige rohkem nõus ja miks?', 'Mis on sinu näide?'], [150, 180]),
-      B.rubric('060_p_score', 'Punktid osade kaupa.', 'Loe kokku õiged vastused. Igas osas on vaja vähemalt 60 %.', ['Kuulamine 3 (lüngad): … / 10', 'Kuulamine 4 (õige või vale): … / 12', 'Lugemine 1 (valikvastused): … / 7', 'Lugemine 2a (väide ja lõik): … / 8', 'Lugemine 3 (valiklüngad): … / 12', 'Lugemine 4 (laused): … / 8', 'Keeleosa: … / 14', 'Kuulamine kokku (koos osaga 1) … / 28, lugemine kokku (koos osaga 2b) … / 43', 'Lävend: igas osas vähemalt 60 %, eesmärk 80 %']),
+      B.rubric('060_p_score', 'Punktid osade kaupa.', 'Loe kokku õiged vastused. Igas osas on vaja vähemalt 60 %.', ['Kuulamine 3 (lüngad): … / 10', 'Kuulamine 4 (õige või vale): … / 12', 'Lugemine 1 (valikvastused): … / 7', 'Lugemine 2a (väide ja lõik): … / 8', 'Lugemine 3 (valiklüngad): … / 12', 'Lugemine 4 (laused): … / 8', 'Keeleosa: … / 14', 'Kuulamine kokku (koos osadega 1 ja 2) … / 34, lugemine kokku (koos osaga 2b) … / 43', 'Lävend: igas osas vähemalt 60 %, eesmärk 80 %']),
 
     ],
     transfer: [
@@ -643,6 +643,31 @@ export const LESSONS = withShapes({
         ['Milles on mõlemad lapsevanemad saates nõus?', 'vanemate eeskuju on kõige tähtsam', 'konto tuleks keelata', 'laps võib konto teha kohe'],
         ['Mida saab töötaja, kellel ei ole nutitelefoni?', 'koodi näitava seadme', 'loa sisse logida ilma koodita', 'uue firmatelefoni'],
       ], 'g_read', 1), { task: 'L01', harno: 'L1' }),
+      tag(B.examListen('060_t_show', 'Kuulamine 2: jutusaade „Digiriik” (6 punkti).', 'Kuulake jutusaadet eakate digioskustest kaks korda. Enne esimest kuulamist lugege küsimused läbi. Vastake igale küsimusele, valides kolmest vastusest ühe.', 'choice', [
+        'Saatejuht: Tere õhtust ja tere tulemast saatesse „Digiriik”! Eestit nimetatakse sageli e-riigiks, kus peaaegu kõik asjad saab ajada internetis. Aga kuidas tunnevad end need, kes arvutiga üles ei kasvanud? Stuudios on raamatukogu digikoolitaja Merle Kask ja seitsmekümne kahe aastane Ants Raud, kes käis eelmisel talvel Merle kursusel. Merle, kes teie kursustele tulevad?',
+        'Merle: Väga erinevad inimesed. On neid, kes pole kunagi arvutit puudutanud, aga palju rohkem on neid, kes kasutavad nutitelefoni iga päev, ainult et kardavad midagi valesti vajutada. Kõige sagedasem lause, mida ma kuulen, ei ole „ma ei oska”, vaid „ma kardan, et lähen midagi katki”.',
+        'Saatejuht: Ants, miks teie kursusele tulite?',
+        'Ants: Ausalt öeldes tütre pärast. Tema elab Soomes ja ajas mulle kõik asjad internetis korda: retseptid, maksud, pangaülekanded. Ühel päeval mõtlesin, et kui temaga peaks midagi juhtuma, siis ma ei saa ise isegi oma ravimeid kätte. See oli ebameeldiv mõte. Nii ma siis läksin raamatukokku.',
+        'Saatejuht: Mis oli kursusel kõige raskem?',
+        'Ants: Mitte arvuti, vaid paroolid. Igal pool küsitakse uut parooli ja mul oli neid paberil kümme tükki. Merle õpetas mulle, et mobiil-ID-ga ei ole enamikku neist vaja. See oli minu jaoks suur avastus.',
+        'Merle: Jah, ja see on tüüpiline. Inimesed arvavad, et turvalisus tähendab keerulisi paroole. Tegelikult on kõige ohtlikum hetk siis, kui keegi helistab ja palub koodi öelda. Seepärast räägime igas kursuses petukõnedest. Ma ütlen alati: pank ega politsei ei küsi kunagi telefonis teie PIN-koodi.',
+        'Saatejuht: Kas eakad langevad pettuste ohvriks sagedamini kui nooremad?',
+        'Merle: Huvitaval kombel mitte. Uuringud näitavad, et noored kaotavad internetis raha isegi sagedamini, sest nad usaldavad liiga kergesti. Eakad kaotavad küll harvem, aga kui juba kaotavad, siis suurema summa. Ja nad häbenevad sellest rääkida, mis on kõige suurem probleem.',
+        'Saatejuht: Ants, mida te nüüd ise teete?',
+        'Ants: Nüüd vaatan ise oma terviseandmeid ja panen perearsti juurde aja. Pangaülekandeid teen ka ise. Aga ma ei tee kõike internetis. Pensioniga seotud küsimustes lähen ikka kohale, sest mulle meeldib inimesega silmast silma rääkida.',
+        'Saatejuht: Kas see ei ole riigi jaoks kallis?',
+        'Merle: Minu meelest peab riik jätma inimestele valiku. Digiteenused on suurepärased, aga kui ainus võimalus on internet, jääb osa inimesi lihtsalt kõrvale. Raamatukogus näeme iga päev inimesi, kes tulevad abi küsima, sest kontor nende alevis on suletud.',
+        'Saatejuht: Mida soovitate kuulajatele, kelle vanemad ei julge arvutit kasutada?',
+        'Merle: Ärge tehke kõike nende eest. See tundub abivalmis, aga nii ei õpi keegi midagi. Istuge kõrvale, laske neil ise vajutada ja olge kannatlik. Ja öelge julgelt, et kursused raamatukogus on tasuta.',
+        'Saatejuht: Aitäh, Merle ja Ants!',
+      ], [
+        ['Mida ütlevad Merle sõnul kursusele tulijad kõige sagedamini?', 'et nad kardavad midagi katki teha', 'et nad ei ole kunagi nutitelefoni kasutanud', 'et arvutikursus on liiga kallis'],
+        ['Miks otsustas Ants kursusele minna?', 'ta tahtis tütrest sõltumatuks saada', 'tütar soovitas tal kursusele minna', 'ta kolis tütre juurde Soome'],
+        ['Mis oli Antsu jaoks kursusel suur avastus?', 'mobiil-ID-ga ei ole paljusid paroole vaja', 'paroolid tuleb paberile üles kirjutada', 'pank saadab koodi alati telefonile'],
+        ['Mida ütleb Merle eakate ja pettuste kohta?', 'nad kaotavad harvem, kuid suurema summa', 'nad kaotavad raha sagedamini kui noored', 'nad räägivad pettusest kohe politseile'],
+        ['Miks käib Ants pensioniga seotud küsimustes ikka kohapeal?', 'talle meeldib inimesega silmast silma rääkida', 'internetis ei saa pensioni kohta midagi teha', 'tütar ei luba tal neid asju internetis ajada'],
+        ['Mida soovitab Merle kuulajatele, kelle vanemad kardavad arvutit?', 'lasta vanematel endal vajutada ja olla kannatlik', 'teha vanemate eest kõik vajalikud toimingud', 'osta vanematele lihtsam telefon'],
+      ], 'g_read'), { task: 'L02', harno: 'L2' }),
       PART('060_t_wpart', 'W', { minutes: 80, points: 25, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Seletuskirja eest saab 10 ja kokkuvõtte eest 15 punkti; eesmärk on vähemalt 20 punkti (80 %).' }),
       tag(B.letter('060_t_letter', 'Kirjutamine 1: seletuskiri (140–160 sõna).', 'Sa ei läbinud kohustuslikku küberturbe koolitust tähtajaks. Kirjuta juhile: mis oli ülesanne, miks see jäi tegemata ja kuidas edaspidi tähtajast kinni pead. Poolametlik stiil.', 'Lugupeetud Kristi Laur!', 'Lugupidamisega', [140, 160]), { task: 'W13', harno: 'W1' }),
       B.chart('060_t_data', 'Digiharjumused Eestis: kahe aasta võrdlus (% vastajatest)', { kind: 'bar', unit: '%', series: 'Kaks aastat tagasi, Tänavu', rows: ['kasutab tööl tehisintellekti | 18 | 41', 'kontrollib enne jagamist uudise allikat | 31 | 44', 'lülitab öösel teavitused välja | 27 | 39', 'on aasta jooksul saanud petukirja | 52 | 67'], source: 'Digiharjumuste uuring, vastas 1200 inimest' }),
@@ -663,7 +688,7 @@ export const LESSONS = withShapes({
         'Kaart A (poolt): firma võiks lubada tehisintellekti kliendikirjade kirjutamisel. 1) Kliendid saavad vastuse kiiremini. 2) Töötajatel jääb rohkem aega keerulistele juhtumitele. 3) Masin aitab vältida keele- ja kirjavigu.',
         'Kaart B (vastu): firma ei peaks lubama tehisintellekti kliendikirjades. 1) Kliendi andmed võivad sattuda välisele serverile. 2) Masin võib anda vale või ebaviisaka vastuse. 3) Kliendid tahavad suhelda päris inimesega.',
         ['Minu arvates…', 'Sinu mõte on õige, kuid…', 'Kas võiksime kokku leppida, et…?'], ['Ma ei ole päris nõus, sest…', 'Mis saab siis, kui…?', 'Ühine lahendus võiks olla…']), { task: 'S17', harno: 'S2' }),
-      B.rubric('060_t_rubric', 'Hindamine (Harno B2 kriteeriumid).', 'Märgi punktid. Igas osas on vaja vähemalt 60 %.', ['Lugemine 2b: lühivastused … / 8', 'Kuulamine 1: lühiteated … / 6', 'Kiri 1: ülesanne, adressaat ja register, ülesehitus, pikkus … / 10', 'Kiri 2: üldistus andmetest, võrdlus, põhjendatud kommentaar näitega, umbes 180 sõna … / 15', 'Kõne: ülesehitus, olulise esiletõstmine, vastus partneri küsimusele … / 10', 'Arutelu: argumendid ja näited, sõnavõtt, reageerimine partnerile, ühine seisukoht … / 15', 'Keel: sõnavara ulatus ja täpsus, grammatika, lausete mitmekesisus', 'Lävend: igas osas vähemalt 60 %']),
+      B.rubric('060_t_rubric', 'Hindamine (Harno B2 kriteeriumid).', 'Märgi punktid. Igas osas on vaja vähemalt 60 %.', ['Lugemine 2b: lühivastused … / 8', 'Kuulamine 1: lühiteated … / 6', 'Kuulamine 2: jutusaade … / 6', 'Kiri 1: ülesanne, adressaat ja register, ülesehitus, pikkus … / 10', 'Kiri 2: üldistus andmetest, võrdlus, põhjendatud kommentaar näitega, umbes 180 sõna … / 15', 'Kõne: ülesehitus, olulise esiletõstmine, vastus partneri küsimusele … / 10', 'Arutelu: argumendid ja näited, sõnavõtt, reageerimine partnerile, ühine seisukoht … / 15', 'Keel: sõnavara ulatus ja täpsus, grammatika, lausete mitmekesisus', 'Lävend: igas osas vähemalt 60 %']),
       B.selfcheck('060_t_self', ['Kirjutamine: seletuskiri õige pikkuse ja registriga.', 'Kokkuvõttes üldistasin arvud ja lisasin põhjendatud kommentaari.', 'Ma pidasin 1-minutilise kõne ja vastasin küsimusele.', 'Arutelus jõudsime ühise seisukohani.', 'Rääkimine: vähemalt 60 % igas osas.'], 'Vahehindamine 3 tehtud'),
     ],
   },

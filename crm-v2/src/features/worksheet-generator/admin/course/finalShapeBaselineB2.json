@@ -195,11 +195,7 @@
  ],
  "course": [
   "*|*|V6-corner-L2",
-  "*|*|V6-exam-L1",
   "*|*|V6-exam-L2",
-  "*|*|V6-gap-L1",
-  "*|*|V6-gap-L2",
-  "*|*|V6-total-L1",
   "*|*|V6-total-L2"
  ]
 }
