@@ -30,6 +30,91 @@
   (`hourlyRateCents` stays any positive int because an old rate is kept).
 - Next safe step: owner reviews the PR, then deploy `firestore:rules` together with the merge.
 
+## 2026-10-29 · agent/lessons-per-week — „Mitu korda nädalas?” per course in „Sobivad ajad”
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request: „поле, сколько раз в неделю хотят заниматься; если
+  несколько курсов — отдельно на каждый курс”. No production data, no deploy.
+- Done: the editor of „Millal sulle tund sobib?” / „Sobivad ajad” (AvailabilityCard) has „Mitu korda nädalas soovid
+  õppida? · Сколько раз в неделю?” — one select (—, 1–7× nädalas) per active course of the card (`subjects` =
+  subjects.js subjectsOf; one course → one field). Read view (learner, parent, admin, teacher): „Soovib õppida: Eesti
+  keel 2× · Matemaatika 1× nädalas”; a teacher sees only their own courses. Calendar „Sobivad ajad” panel shows it next
+  to the name; the planner („Lisa kõik õpilased”) takes the learner's number as „Nädalas” (capped at 5, an Õppeplaan's
+  minimum still applies) and shows „soovib N× nädalas”.
+- Data: `studentAvailability.perWeek = { 'eesti-keel': 2, 'matemaatika': 1 }` — key = studyDirections.js
+  `directionId(subject)` (slug), `'default'` for a card without a subject; values whole 1–7. It belongs to the card, not
+  to a dated week; a save without `perWeek` (e.g. „Kasuta tavalist nädalat”) keeps it (not in mergeFields). Helpers in
+  availability-poll/pollModel.js (perWeekKey/Fields/Rows/Text/Draft, cleanPerWeek); planner `wantedPerWeek`.
+- Rules: `availabilityValid` allows `perWeek` (map, ≤ 10). **Rules must be deployed before merge** (otherwise every save
+  with the new field is refused). Emulator: security-access „available times” 1/1 (perWeek 2 → 200, 11 → 403, string → 403).
+- Announcements (`responseType 'availability'`) and the public /ajad page unchanged.
+- Checks: eslint 0 errors; vitest 404 passed + 1 file (WorksheetStudioPage, 2 timeouts under full load) passed 23/23
+  alone; new tests pollPerWeek 3, AvailabilityCard +2, plannerModel +1, StudentTimesPanel 1.
+- Next safe step: deploy firestore rules (owner's OK), then merge.
+
+## 2026-10-29 · agent/invoice-internal-note — invoice „Sisemine märkus” (staff-only note)
+
+- Base: `main` 9c971f0 (2026-10-29, after #886). Team request #improvement #finance: an internal note on an issued
+  invoice saying what it was for. No production data, no deploy.
+- Done: new collection `invoiceNotes/{invoiceId}` (`text` ≤ 1000, `updatedAt`, `updatedByUid`, `updatedByName`) —
+  kept off the invoice document because students and parents read their invoices. Rules: `admin` and `finance` read
+  and write (fixed keys, own uid, existing invoice only, never deleted). Kuu arveldus: note icon by the invoice number
+  (tooltip), clipped line under the student, dialog with full text and last editor, search by note; editable on any
+  invoice (issued, paid). „Lisa arve” / „Tunnipakett” save their note field there (server `note` now sent empty).
+  Details in `docs/ACCOUNTING.md` „Sisemine märkus”.
+- Files: `firestore.rules`, `crm-v2/src/services/firebase/invoiceNotes.js` (+test, export in `index.js`),
+  `crm-v2/src/features/finance/InvoiceNoteDialog.jsx`, `FinanceMonthPage.jsx` (+test), `ManualInvoiceDialog.jsx`
+  (+test), `TokenInvoiceDialog.jsx`, `financeRows.js` (+test), `financeMonth.css`,
+  `functions/invoice-notes-rules-emulator.integration.js` (in `test:emulator`).
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2777 tests, 5 skipped); Firestore emulator
+  (JDK 21, auth+firestore) invoice-notes + business-settings + campaigns rules tests 3/3.
+- Manual gate: **`firestore.rules` must be deployed** (`firebase deploy --only firestore:rules`) before the feature
+  works; until then the list loads without notes and saving a note shows an error (the invoice is still created).
+  No functions change.
+- Limits: only the latest text is kept (who/when of the last edit, no earlier versions); not shown yet on the student
+  card's invoice list or the old view (`/finance/vana`).
+- Next safe step: owner deploys `firestore.rules`, then writes a test note on one invoice and checks it in Kuu arveldus.
+
+## 2026-10-29 · agent/b2-m10-final — B1→B2 module 10 „Suhted ja konfliktid” in the final shape
+
+- Base: `main` 38ecb2b, then `origin/main` 7d0e0a9 merged (after #886, module 8). Module 9 (#888) was still open: with its
+  `module09.js` put in place locally, module 10 still shows 0 problems (044 corner L4 → 046 corner R1; V1/V2 clean). Content
+  only; no production data, no publishing, no deploy.
+- Done: `b2/module10.js` (b1b2-046…050) passes every final-shape gate under the B2 profile: **66 → 0 problems**
+  (`final-shape.mjs --course b2 --module 10`); the module-10 block, `b1b2-054 practice V7` and the course lines
+  `V6-corner-S2`, `V6-total-L4`, `V6-total-R1`, `V6-total-W1`, `V6-variant-R2b` left the B2 baseline, none added. Strict
+  quality gate: all 15 sheets READY (teaching sheets 41–55 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 10): 046 LUGE R→W (corner R1 = `046_d_survey`, the reader survey lengthened to ≈ 510 words,
+  predict and check R13; main `046_t_letter` W14 recommendation to Gert ≈ 180 words), 047 RÄÄK R→S (corner W1 =
+  `047_p_note`, Gert's angry mail rewritten as an 80–100-word note to Liis, W12; main `047_t_meeting` S16 talk at Hendrik's
+  meeting, recorded at home), 048 KIRJ L→W (corner R2b = `048_t_mail`, the class teacher's letter, 8 answers of 1–3 words,
+  R15 level 3; main `048_t_letter` W13), 049 PROJ L→S (corner S2 = `049_p_debate`, quiet-hours argument cards; main
+  `049_t_meeting` S03 mediated agreement). 050 EKS: L3, L4, R1, R2a, R2b, R3, R4, W1, W2b, S1, S2 tagged, four timed `PART`s;
+  L3 10 gaps, L4 12 statements, R3 12 gaps, R4 8 sentences, new W2b essay `050_t_essay`, R2b questions on the HR letter.
+  Every teaching lesson: review naming the previous lesson and a module 6–8 lesson (045/026, 046/032, 047/037, 048/028), a
+  pair task in the lesson, a home recording (S15/S16), two fluency tasks (14–15 %); S16 ×2 (046, 047), S17 ×2 (046, 049).
+- Changed blocks: real ids on nearly every task; new `046_d_cross` (G11, replaces the sort), `049_p_data` chart + W15
+  `049_p_write`, `049_d_write` W01 questionnaire, `049_t_cards` → Helve's summary with a phrase bank (R05 level 3),
+  `049_d_deal` → reading with shuffled parts (R10), `048_p_dialog` → word-bank text (R04), `047_d_feel` → phrase bank,
+  `047_p_voice` gaps ask for days, times and numbers (L10), `048_d_voices` gaps ask for requests and plans (L06);
+  removed `046_p_match`, `049_d_sort`, `049_t_plan`, `047_p_write`. Fixed „Rainer kõige tähtsam” → „Raineri”. Vocab:
+  esmamulje → mulje, vahendaja → vahendama, järeleandmine → seisukoht; topic words otsekohene, vastutasuks, lepitaja.
+  canDo and goals of 046–050 in `b2/lessonGoals.js`. `language-allow.txt`: the clitic notation „ki”, „gi”.
+- Audio: no transcript changed, no new recordings.
+- Checks: `final-shape.mjs --course b2 --module 10` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2773 tests, 5 skipped); Vabamorf language check of module 10: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the R1 corner is a reading with open questions (exam: three options); the R2b letter is ≈ 350 words (Harno
+  200–300); the W1 corner is 80–100 words (exam ≈ 140).
+- Next safe step: B1→B2 module 11 (`b2/module11.js`, b1b2-051…055, §4.1 row 11: KUUL L→W · PROB L→S · LUGU R→W · AVAS R→S);
+  051's corner must not be S2 (049's corner).
+
+## 2026-10-29 · agent/invite-parent-default — „Saada kutse” goes to the parent's e-mail by default
+
+- Team (Oleksiy, #bug): „кнопка saada kutse по умолчанию отправляла запрос на почту родителя, а не ученика”.
+- One e-mail is one account (student-invite-core refuses a parent's e-mail for a student login), so: when the card has
+  a parent e-mail, „Saada kutse” opens the parent invite (a parent login linked to the card, or a new password link when
+  it exists) prefilled with that e-mail; „Õpilasele oma konto” keeps the student's own login. Without a parent e-mail
+  nothing changes. File: students/StudentAccountCard.jsx (+ test).
+- Checks: eslint 0, full vitest (see PR).
 ## 2026-10-29 · agent/b2-m09-final — B1→B2 module 9 „Tervis ja eluviis” in the final shape
 
 - Base: `main` 377856e, then `origin/main` 38ecb2b merged (after #884, module 7). Module 8 (#886) was not on `main` yet

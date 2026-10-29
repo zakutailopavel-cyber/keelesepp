@@ -4,6 +4,7 @@ import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
 import { base64DocumentBlob } from '../../services/firebase/paymentDocuments.js';
+import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
 
 function nextDueDate() {
   const now = new Date();
@@ -75,7 +76,7 @@ const cardLabel = (student, cards) => {
   return sameSubject && student.parent ? `${subject} · ${student.parent}` : subject;
 };
 
-export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDeliveryApi, studentCards = null }) {
+export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDeliveryApi, studentCards = null, notesRepository = invoiceNotesService }) {
   const [open, setOpen] = useState(false);
   const [students, setStudents] = useState([]);
   const [loadingStudents, setLoadingStudents] = useState(false);
@@ -162,10 +163,12 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
         // one invoice, a line per subject; the request id stays with the form, so a retry never makes it twice
         const requestId = form.requestId || `manual_combined_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
         setForm((current) => ({ ...current, requestId }));
-        const result = await manualInvoiceApi.createCombined({ ...form, requestId, items: bothLines.map((line) => ({ studentId: line.card.id, amount: line.amount })) });
+        // the note is internal: it goes to invoiceNotes, never onto the invoice the payer can read
+        const result = await manualInvoiceApi.createCombined({ ...form, note: '', requestId, items: bothLines.map((line) => ({ studentId: line.card.id, amount: line.amount })) });
+        const noted = await saveCreationNote(notesRepository, result.invoice, form.note);
         if (downloadPdf) downloadDocument(await deliveryApi.pdf(result.invoice.id));
         resetAndClose();
-        await onCreated?.(result.invoice);
+        await onCreated?.(result.invoice, noted);
       } catch (requestError) {
         setError(requestError.message || 'Arve loomine ebaõnnestus.');
       } finally {
@@ -176,11 +179,12 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
 
     setSaving(true);
     try {
-      const result = await manualInvoiceApi.create(form);
+      const result = await manualInvoiceApi.create({ ...form, note: '' });
       const invoice = result.invoice;
+      const noted = await saveCreationNote(notesRepository, invoice, form.note);
       if (downloadPdf) downloadDocument(await deliveryApi.pdf(invoice.id));
       resetAndClose();
-      await onCreated?.(invoice);
+      await onCreated?.(invoice, noted);
     } catch (requestError) {
       setError(requestError.message || 'Arve loomine ebaõnnestus.');
     } finally {
@@ -297,15 +301,17 @@ export default function ManualInvoiceDialog({ onCreated, deliveryApi = invoiceDe
             required
           />
           <div className="field form-grid__wide">
-            <label className="field__label" htmlFor="manual-invoice-note">Märkus</label>
+            <label className="field__label" htmlFor="manual-invoice-note">Sisemine märkus</label>
             <textarea
               id="manual-invoice-note"
               className="field__textarea"
               rows="3"
+              maxLength={INVOICE_NOTE_MAX}
               value={form.note}
               onChange={(event) => setForm({ ...form, note: event.target.value })}
-              placeholder="Sisemine märkus, soovi korral"
+              placeholder="Mille eest arve on, soovi korral"
             />
+            <small className="field__hint">Ainult töötajatele: ei ilmu arvele ega e-kirja, õpilane ja lapsevanem seda ei näe.</small>
           </div>
           {allSubjects ? (
             <p className="form-hint form-grid__wide">
