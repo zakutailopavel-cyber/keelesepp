@@ -85,6 +85,9 @@ export default function StudentBoard({
   const [resizing, setResizing] = useState(null);
   const [marquee, setMarquee] = useState(null);
   const [spaceHeld, setSpaceHeld] = useState(false);
+  // the pointer is over a player of the worksheet (owner 2026-10-29: „учитель должен мочь открыть аудиозапись прямо во
+  // время урока”): the board lets the click through to the player whatever tool is on, not only in „Täida töölehte”
+  const [overMedia, setOverMedia] = useState(false);
   const [marker, setMarker] = useState(MARKER_COLORS[0]);
   const clipboard = useRef([]);
   // the paper of each page (dots, grid, lines, plain), shared by everyone with the board
@@ -831,16 +834,33 @@ export default function StudentBoard({
   const selectionBounds = tool === 'select' ? unionBounds(shownSelection) : null;
   const selectionBox = selectionBounds && moving ? { x1: selectionBounds.x1 + moving.dx, y1: selectionBounds.y1 + moving.dy, x2: selectionBounds.x2 + moving.dx, y2: selectionBounds.y2 + moving.dy } : selectionBounds;
   const filling = onWorksheet && tool === 'fill';
+  const mediaHover = (event) => {
+    if (!onWorksheet || filling) { if (overMedia) setOverMedia(false); return; }
+    const stack = globalThis.document?.elementsFromPoint?.(event.clientX, event.clientY) || [];
+    const hit = stack.some((node) => node.closest?.('.sb-underlay .ws-audio, .sb-underlay audio, .sb-underlay video'));
+    if (hit !== overMedia) setOverMedia(hit);
+  };
+  // a tap without a hover before it (tablet): the tap on the player plays or pauses it
+  const mediaDown = (event) => {
+    if (!onWorksheet || filling || event.target?.tagName?.toLowerCase?.() === 'audio') return false;
+    const stack = globalThis.document?.elementsFromPoint?.(event.clientX, event.clientY) || [];
+    const bar = stack.map((node) => node.closest?.('.sb-underlay .ws-audio')).find(Boolean);
+    const audio = bar?.querySelector?.('audio');
+    if (!audio) return false;
+    event.preventDefault(); event.stopPropagation();
+    if (audio.paused) audio.play?.()?.catch?.(() => {}); else audio.pause?.();
+    return true;
+  };
   const scrollbar = onWorksheet ? scrollbarFor(view, bounds, stageHeight) : null;
   const readingStage = <div ref={stageRef} className="sb-stage has-worksheet is-reading">
     <div className="sb-reading ws-narrow" data-testid="worksheet-reading">{activeSheet?.content}</div>
     <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(true)}>Tahvlivaade{elements.length ? ' · õpetaja märkmed' : ''}</button>
   </div>;
   const stage = reading ? readingStage : <div ref={stageRef} className={`sb-stage tool-${spaceHeld ? 'hand' : tool} ${onWorksheet ? 'has-worksheet' : ''}`} onWheel={filling ? wheel : undefined}
-    onPointerDownCapture={navDown} onPointerMoveCapture={navMove} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
+    onPointerDownCapture={(event) => { if (!mediaDown(event)) navDown(event); }} onPointerMoveCapture={(event) => { mediaHover(event); navMove(event); }} onPointerUpCapture={navUp} onPointerCancelCapture={navUp} onPointerLeave={push ? () => push('cur', cursorMessage(livePage, null), { now: true }) : undefined}>
     {onWorksheet && narrow ? <button type="button" className="sb-reading-toggle" onClick={() => setBoardView(false)}>Lugemisvaade</button> : null}
     {onWorksheet ? <div ref={setUnderlayNode} id="sb-worksheet" className="sb-underlay" style={{ width: WORKSHEET_WIDTH, transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}>{activeSheet.content}</div> : null}
-    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
+    <svg ref={svgRef} role="img" aria-label="Õpilase tahvel" style={filling || overMedia ? { pointerEvents: 'none' } : undefined} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up} onPointerLeave={tool === 'laser' ? () => onPointer?.(null) : undefined} onWheel={filling ? undefined : wheel} onDoubleClick={(event) => { const hit = textAt(elements, screenToWorld(local(event), view)); if (hit && (staff || !teacherMaterial(hit))) setEditing({ id: hit.id, text: hit.text || '' }); }}>
       <defs>
         <pattern id="sb-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#d0d5dd" /></pattern>
         <pattern id="sb-grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#e4e7ec" strokeWidth="1" /></pattern>

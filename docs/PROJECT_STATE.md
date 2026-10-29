@@ -25,6 +25,12 @@
   language check: 0 unknown lower-case words except `kusimustik`.
 - Left: 015's strict-gate note (3 short tasks in Avasta) as before — the check lesson was not rewritten.
 - Next safe step: A2 module 4 (`a2/module04.js`, row m4 KIRJ PROJ LUGE RÄÄK); recheck V1/V2 at the 014→016 boundary.
+## 2026-10-29 · agent/board-audio-any-tool — the worksheet's audio plays on the board with any tool
+
+- Owner: „учитель должен мочь открыть аудиозапись прям сразу во время урока”. On the lesson board the sheet lies under
+  the drawing layer; only „Täida töölehte” let clicks through, so with the pointer / pen tool the player could not be
+  pressed. Now (board/StudentBoard.jsx) a hover over a `.ws-audio` player lets the click through whatever tool is on,
+  and a tap without hover (tablet) plays / pauses it. Test in board.test.jsx.
 ## 2026-10-29 · agent/course-names — course names by the target level (display only)
 
 - Base: `main` c4bfda5, checked 2026-10-29. UI/display only; no production writes, no publishing, no deploy.
