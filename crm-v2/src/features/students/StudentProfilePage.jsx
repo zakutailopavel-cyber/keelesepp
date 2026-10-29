@@ -217,7 +217,7 @@ export default function StudentProfilePage({ parentApi, directionsApi, studentAp
               onInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, studentUid: data.uid, linkedUserId: data.uid, linkedUserIds: [data.uid], email: current.student.email || data.email } }))}
               onParentInvited={(data) => setState((current) => ({ ...current, student: { ...current.student, linkedParentIds: [...new Set([...(current.student.linkedParentIds || []), data.uid])], linkedParentId: current.student.linkedParentId || data.uid, parentEmail: current.student.parentEmail || data.email } }))} /> : null}
             {/* „Sobivad ajad” the student / parent marked (owner 2026-10-21): the admin edits and marks a change reviewed */}
-            <AvailabilityCard studentId={student.id} user={currentUser} mode={canAssignTeacher ? 'admin' : 'view'} />
+            <AvailabilityCard studentId={student.id} user={currentUser} mode={canAssignTeacher ? 'admin' : 'view'} subjects={subjects} onlySubjects={Boolean(ownTracks?.length)} />
             <PetOverview studentIds={[student.id]} lessons={state.lessons} {...(petApi ? { repository: petApi } : {})} />
           </div>
         ) : null}
