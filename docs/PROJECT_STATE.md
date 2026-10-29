@@ -1,3 +1,79 @@
+## 2026-10-29 · agent/b2-m11-final — B1→B2 module 11 „Raha ja tarbimine” in the final shape
+
+- Base: `main` c2b4947 (after #888, module 9). Module 10 (#892) was not on `main` yet; its branch was checked locally:
+  049 (PROJ, corner S2) → 051 (KUUL, corner L1) has no family repeat and no V1/V2 line, and module 10's vocabulary
+  recycling into module 11 passes `methodGaps.test.js`. Recheck after #892. Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module11.js` (b1b2-051…055) passes every final-shape gate under the B2 profile: **63 → 0 problems**
+  (`final-shape.mjs --course b2 --module 11`); course lines `V6-corner-R2`, `V6-corner-S2` left the baseline. One course
+  line was added: `V6-gap-L1` (L1 now practised in module 11 after module 3; the gap closes only when a module between
+  practises L1). Strict quality gate: all 15 sheets READY (teaching sheets 40–51 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 11): 051 KUUL L→W (corner L1 = new `051_p_clips`, ten announcements played once, 10 MC;
+  main `051_t_letter` W13 letter to the supplier), 052 PROB L→S (corner S2 = `052_p_debate` S17 cards on free trials;
+  main `052_t_deal` S04 phone negotiation with Kaarel Mänd), 053 LUGU R→W (corner R2b = `053_d_rights` with 8 answers of
+  1–3 words + 1 reflection; main `053_t_letter` W08 reply to the shop's letter), 054 AVAS R→S (corner W2b = `054_p_write`
+  W14, 8–10 sentences; main `054_t_pitch` S16 budget talk at the bank). 055 EKS: L3, L4, R1, R2a, R3, R4, W1, W2b, S1, S2
+  tagged, four timed `PART`s; new W2b essay `055_t_essay` instead of `055_t_tr`. Every teaching lesson: review naming
+  the previous lesson and a module 7–9 lesson (049/044, 051/042, 052/037, 053/034), an in-lesson pair task, a home
+  recording (S15 ×3, S16 in 054), two fluency tasks; S16 ×2, S17 ×1.
+- Changed blocks: tags on every task; removed `051_p_match`, `054_d_plan`, `052_t_ad` (the honest ad is now part of the
+  W12 letter `052_t_letter`), `055_t_tr`; new `052_p_data` chart + W15 `052_p_write`, `052_d_write` W01 questionnaire,
+  `052_t_voice` S15, `054_t_budget` as Sofia's budget letter with a sentence bank (R16); `054_p_seminar` items are
+  short-answer questions (L03, transcript unchanged); `054_t_complaint` is an edit of Jaan's angry draft (W10). Vocab:
+  püsikulu, tasuvus, omafinantseering, kuumakse, tarbimine → arve, laenama, sääst, tasuma, tarbija; topic words
+  kasutuskulu, prooviperiood, taganemisõigus, äriplaan. canDo and goals of 051–055 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `b1b2-051/051_p_clips.mp3` (238 s).
+- Checks: `final-shape.mjs --course b2 --module 11` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2774 tests, 5 skipped); Vabamorf language check of module 11: 1 unknown lower-case word, the technical genre value
+  `kusimustik`.
+- Limits: the L1 clips are ≈ 24 s each (Harno 35–45 s); the L1 corner is 8.1 min (just above the floor); the R2b text is
+  ≈ 430 words (Harno 200–300).
+- Next safe step: B1→B2 module 12 (`b2/module12.js`, b1b2-056…060, §4.1 row 12: KIRJ L→W · PROJ L→S · LUGE R→W · RÄÄK R→S
+  · PROOV 060); 056's corner must not be W2 (054's corner).
+## 2026-10-29 · agent/b1-exam-goals — B1 goals test reads exam lessons from the course
+
+- Owner: „править” (the test hard-coded exam lessons 5…50, 89, 90 and missed 055, 060 …). Now `b1/lessonGoals.test.js`
+  builds the course: an exam lesson has g_vocab exactly when a sheet has a g_vocab block (the Korda review of module
+  words, e.g. 055, 060, 065 …); teaching lessons always have it. No content change.
+## 2026-10-29 · agent/lesson-duration-card — the student card's „Tunnid” shows how long each lesson is
+
+- Team (#student_card): „не видно, сколько идёт урок … будем пропускать двойные уроки”. Upcoming and held lessons show
+  the time as a range (16:00–17:30) and a chip „N min”; 120 min or more (owner: a double lesson is 120 min) is „N min · Topelttund” (orange). The held list
+  heading shows „N tundi · X h · topelttunde M”. File: students/StudentLessonsPanel.jsx (+ css, test).
+- Checks: eslint 0, vitest students 122 pass (full run in the PR).
+
+## 2026-10-29 · agent/student-discount (PR #891) — student card: „Üldtingimused” / „Soodustus” price switch
+
+- Team request 2026-10-29 (#finance): general terms bill the standard 25 €/h automatically; a discount needs an hourly
+  rate and a reason (several courses, several children, …). Owner 2026-10-29: the discount is a choice of 20 / 15 /
+  12 €/h, not a free number (`DISCOUNT_HOURLY_RATES_CENTS` next to `STANDARD_HOURLY_RATE_CENTS`). Base: `main` 9c971f0 (2026-10-29), rebased on 7d0e0a9.
+- Done (no new price model): the switch writes the existing `studentRevenuePlans` price (`lessonPriceCents` +
+  `lessonMinutes`, `subjectPrices`), which monthly / per-lesson invoices already read — no functions change.
+  `crm-v2/src/features/finance/priceTerms.js` (new): `STANDARD_HOURLY_RATE_CENTS = 2500`, `priceTermsOf(plan)`,
+  `lessonPricesFromTerms`, `validatePriceTerms`. „Arveldus” card (`BillingSettingsCard.jsx`): switch, hourly rate,
+  buttons 20 / 15 / 12 €/h, reason (≤ 300), lesson price preview; per further subject the same choices
+  („sama kui kaardil” = card rate) and length;
+  „Hinnatingimused muudetud <date> · <who>”. Terms are per card (one reason for the family/client), prices per subject.
+- Data: plan gets `priceTerms` ('general' | 'discount'), `hourlyRateCents`, `discountReason`,
+  `priceTermsChangedAt/By/ByUid` (`revenuePlans.js` `priceTermsRecord`); price history entries remember the previous
+  terms; `activityLog` gets only `priceTerms` (staff-readable, so no reason). firestore.rules: the six fields allowed,
+  discount needs a non-blank reason, general none.
+- Existing prices: nothing is migrated or written. A plan without terms is shown as general when every price equals
+  25 €/h by length, else as „Soodustus” with an empty reason (placeholder „Varasem kokkulepe — põhjus lisamata”, UI only). A price
+  that is none of 25/20/15/12 €/h is shown as a read-only extra choice „Varasem kokkulepe X €/h” (card and subject)
+  and saved unchanged to the cent (17 € / 45 min stays 1700) until the admin picks a school rate; changing the lesson
+  length of such a row requires picking a rate. To save such a card the admin must type a reason.
+- Checks (after the fixed rates, origin/main merged): see the line below; first round: emulator
+  `finance-emulator.integration.js` 41/41 (new price-terms rule assertions; JDK 21 needed for firebase-tools).
+- Deploy after merge (owner permission): `firestore:rules` (the frontend goes with main). Until the rules are deployed,
+  saving the „Arveldus” card fails (unknown fields) — deploy rules first or together.
+- Limits / open: 25 € for a 45-min lesson counts as 33,33 €/h → shown as „Soodustus”; the Finantsid forecast form still
+  edits the lesson price without terms; rules allow `billingMode` advance/current/actual only, the UI also offers
+  `package` (pre-existing).
+- Fixed-rate round: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2786 tests, 5 skipped). Rules unchanged by this round
+  (`hourlyRateCents` stays any positive int because an old rate is kept).
+- Next safe step: owner reviews the PR, then deploy `firestore:rules` together with the merge.
+
 ## 2026-10-29 · agent/tokens-invoices — lesson packages: bought / held / left / owed per invoice; „Tunnipakett” plan saves
 
 - Base: `main` c2b4947 (checked 2026-10-29; `origin/main` 7ea2006 later touches none of these files). Owner: „систему
@@ -162,6 +238,7 @@
 - Tests: accounting-core 19 pass; vitest accounting 56 pass; emulator test added (runs in CI).
 - **Needs a functions deploy** (`financeApi`) before the button works; the owner's OK is required.
 - Not done: ST1 itself is not undone — the accountant (or the owner) presses the button with a reason.
+
 ## 2026-10-29 · agent/b2-m08-final — B1→B2 module 8 „Reisimine ja kultuur” in the final shape
 
 - Base: `main` 377856e (after #882, module 6), then `origin/main` 38ecb2b merged (after #884, module 7); corner and
