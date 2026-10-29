@@ -28,6 +28,68 @@
 - Next safe step: after #898–#905 are merged, merge this PR's branch with `main`, regenerate the B2 baseline, and decide
   (owner) whether to add an L1 corner in modules 4–10 and an L2 corner in modules 10–14 to empty the baseline.
 
+## 2026-10-29 · agent/b2-m12-final — B1→B2 module 12 „Tehnoloogia ja sotsiaalmeedia” in the final shape + Mock (060)
+
+- Base: `main` 439a1d0, then `origin/main` 7ea2006 merged (after #892, module 10). Module 11 (#895) was still open: with
+  its `module11.js` put in place locally, module 12 still shows 0 problems (054 corner W2b → 056 corner L3; V1/V2 clean).
+  Content only; no production data, no publishing, no deploy.
+- Done: `b2/module12.js` (b1b2-056…060) passes every final-shape gate under the B2 profile: **65 → 0 problems**
+  (`final-shape.mjs --course b2 --module 12`); the module-12 block and the course lines `V6-corner-L3`, `V6-corner-R4` left
+  the B2 baseline. One course line was added: `V6-gap-L1` (060's L1 is the first L1 practice since module 3; #895 adds
+  the same key with module 11's corner, so after #895 it is not new). Strict quality gate: all 15 sheets READY,
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 12): 056 KIRJ L→W (corner L3 = `056_p_radio`, Kadri's radio talk, 10 gaps; main
+  `056_t_letter` W13 to the class teacher), 057 PROJ L→S (corner R1 = `057_p_article`, ≈ 520 words, predict and check
+  R13; main `057_t_say` S16 talk at the project meeting, recorded at home), 058 LUGE R→W (corner R4 = `058_p_bank`, 8
+  sentences + 1 extra, R16; main `058_t_report` W04 statement to the web constable), 059 RÄÄK R→S (corner W1 = new
+  `059_t_reply`, examWriting 80–100 words to the board chair Marje Lepp, W08; main `059_t_talk` S16 at the parents'
+  evening). 060 PROOV (Vahehindamine 3, full mock): L1 (new `060_p_clips`, six clips played once), L3, L4, R1, R2a, R2b,
+  R3, R4, W1, W2a (new chart `060_t_data` + `060_t_summary`), S1, S2 tagged, four timed `PART`s; L3 10 gaps, L4 12
+  statements, R3 12 gaps, R4 8 sentences, R2b 8 short answers. Every teaching lesson: review naming the previous lesson
+  and a module 9–10 lesson (055/043, 056/047, 057/048, 058/041), a pair task, a home recording (S15/S16), two fluency
+  tasks; S16 ×2 (057, 059), S17 ×2 (057_p_debate, 059_t_debate).
+- Changed blocks: real ids on nearly every task; `056_d_sort` → crossword `056_d_cross` (G11), `056_d_mean` removed,
+  `056_p_exact` → sentence joining (W09), `056_p_write` → chart `056_p_data` + W15 `056_p_summary`, `056_t_leaflet` →
+  phrase bank (R05 level 3); `057_d_lecture` gaps are short-answer questions (L03, transcript unchanged), `057_d_write` →
+  W01 questionnaire, `057_t_mail` → W12 notice in plain verbs; `058_d_guide` short answers (R07), `058_d_forms` removed,
+  `058_d_flow` two more steps; `059_d_check` removed, `059_d_sources` R12, `059_p_article` paragraphs shuffled (R10),
+  `059_t_invite` R15 level 3, `059_t_summary` → `059_t_reply`. Vocab: topic words ekraaniaeg, tehisintellekt,
+  petukõne, valeinfo; other heads replaced by known words (piirang, keskenduma, automaatne, vastutama, koguma, otsustama,
+  jälgima, kahtlane, kiusama, reegel, pettus). Bold inside words removed (speller). canDo and goals of 056–059 in
+  `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `b1b2-060/060_p_clips.mp3` (147 s). No other transcript changed.
+- Checks: `final-shape.mjs --course b2 --module 12` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed (2774 tests, 5 skipped); Vabamorf
+  language check of module 12: 1 unknown lower-case word, the genre value `kusimustik`.
+- Limits: the W1 corner is 80–100 words (exam ≈ 140); the R1 corner has open questions (exam: three options); the mock's
+  L1 has six clips (Harno five; the didactic check wants ≥ 6 items) and sits on the Kasuta sheet (recognition share of
+  the Harjuta sheet).
+- Next safe step: B1→B2 module 13 (`b2/module13.js`, b1b2-061…065, §4.1 row 13: AVAS R→S · LUGU R→W · PROB L→S · KUUL L→W);
+  061's corner must not be W1 (059's corner).
+## 2026-10-29 · agent/calendar-status-ribbon — traffic light on calendar lessons
+
+- Team (#high_priority): held and cancelled lessons looked the same. `calendarView.lessonState(item)`: green „done”
+  (Toimunud / a lesson record), yellow „absent” (Puudus_p / Puudus_eta), red „cancelled” (Tühistatud — before, any
+  record, also a cancelled one, counted as held). A ribbon in the top right corner of every lesson block and crowded
+  list item (calendarV2.css .tg-ribbon), cancelled blocks striped and struck through, agenda rows show the state badge.
+- Checks: calendar vitest 191 pass; full run in the PR.
+## 2026-10-29 · agent/calendar-personal-colors — own teacher colours in the calendar, distinct by default
+
+- Base: `main` c2b4947. Owner: „сделай так, чтобы у себя можно было настраивать как угодно, и по умолчанию какой-то
+  вариант тоже нужно оставить, но чтобы было отличаемо”.
+- Done: 12 tones (`TONE_NAMES`, calendarV2.css `.tone-0…11`; 0–5 unchanged, new Punane, Oliiv, Pruun, Hall, Kollane,
+  Magenta). `calendarGrid.calendarTones({ people, staff, personal })`: own choice → administrator's `calendarTone`
+  (school default) → the first unused colour, teachers by uid, so two teachers share a colour only after 12. „Värvid” in
+  the calendar toolbar (CalendarColors.jsx): each teacher with a swatch, click → 12 colours, „Vaikimisi” per teacher,
+  „Taasta vaikimisi” for all; „Valik kehtib ainult sinu kalendris”. A teacher's calendar now also reads the staff list
+  (rules already allow `isStaff`) only for colours; the admin sees all teachers, a teacher the teachers of own lessons.
+- Data: `users/{uid}.calendarColors = { teacherUid | old teacher name: 0–11 }`, written by the user on the own account
+  (`teachersService.saveCalendarColors`, whole map replaced). Initial value from `user.profile`.
+- Rules: `safeSelfUserFields` allows `calendarColors`, `validCalendarColors` (map, ≤ 80 keys, values 0–11). New emulator
+  test `functions/calendar-colors-emulator.integration.js` (in `test:emulator`). **Rules deploy needed** before teachers
+  can save (until then saving shows „Värve ei saanud salvestada” and the colour falls back; the admin can save already).
+- Checks: `npx eslint --quiet src` 0; `npx vitest run` 404 files passed (2780 tests, 5 skipped);
+  emulator (JDK 21): calendar-colors + student-presence 3/3 pass.
+- Next safe step: owner's OK → `firebase deploy --only firestore:rules`, then merge.
 ## 2026-10-29 · agent/b2-m11-final — B1→B2 module 11 „Raha ja tarbimine” in the final shape
 
 - Base: `main` c2b4947 (after #888, module 9). Module 10 (#892) was not on `main` yet; its branch was checked locally:
