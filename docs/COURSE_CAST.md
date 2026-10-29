@@ -239,9 +239,6 @@ Keep facts consistent; add new facts here when a module adds them.
   watched the president's reception on TV; Mia's drawing of her dream courtyard hangs in the stairwell. The school's rule,
   the variants, the amounts, the district's rules and all dates are fictional; Brussels and Paris have had 30 km/h since
   2021 (real).
-- **Module 18:** examiner **Reet Kallas**; Sofia's exam partner **Aleksei**, classmate **Inga**; parent **Kristiina**
-  (daughter with a gluten allergy); supplier **Priit** („Värske Toit”); bus company „Kõrve Reisid”. Sofia passes B1 in
-  May; Jaan is kitchen head from August.
 - **Module 17 (final shape, 2026-10-29, March – April 2028):** Sofia's Kalamaja house **Valgevase 7** (8 flats; Tiina
   flat 1 and head of the association, Sofia flat 4, owner **Heino Sild**). New neighbour **Ruslan** (flat 3 from 1 March 2028,
   IT developer from Narva, Estonian still weak, a wife and a small daughter; his friend **Artur** in Narva). March notices:
@@ -262,6 +259,30 @@ Keep facts consistent; add new facts here when a module adds them.
   in February and invites Sofia for 10–17 July. **Helgi** visits on 28–29 April. Maret takes her own Italian exam on 13
   April. Other names: chimney sweep **Kaur**. The house's works, the firm, the amounts, the school's prices and all dates are
   fictional; the old module-17 names Kaire and Ilmar are dropped.
+- **Module 18 (final shape, 2026-10-29, May – June 2028, the end of the B1 course):** Keelekool Sõna's speaking practice
+  day (Saturday 13 May 10–14, 30 €) is cancelled because **Maret** loses her voice (administrator **Krista** offers an
+  online lesson on Thursday 11 May 18–20, two 30-minute lessons on Tuesday 16 May or the money back); Sofia solves it by
+  phone: Saturday 13 May 10–13 with teacher **Hanna**, together with **Olena**, **Aleksei** and **Inga** (both take the exam
+  too), 25 € — 5 € back each. School head **Mihkel** (module 8). Examiner **Reet Kallas** on the radio (host **Ülle**) about
+  the speaking part. Mock results of 6 May (sent 10 May): reading 28, listening 26, speaking 16, writing 14 — Sofia rewrites
+  her story „Päev, mida ma ei unusta” (the thunderstorm at Kõrve raba, last summer) after **Igor**'s model story (his first
+  interview in Tartu three years ago; the man who drove him, **Tiit**). Inga (a café shift leader) tells her story on the
+  radio. **Jaan** (Kase kool's cook since December 2026, module 9) becomes the school's **köögijuhataja** from August 2028:
+  the kitchen is made bigger in summer because the neighbouring kindergarten's children (about 60) eat there from
+  autumn; two new kitchen workers (B2: helper **Pille**, cook **Vaike**); menu council of two children a class, „world
+  kitchen” on Fridays, plant-based Thursday, free morning porridge before 8. **Mia** finishes kindergarten in June and
+  starts Kase kool in September. Family chat „Metsad ja sugulased”; Kadri's night shift on 23 June; the family celebrates
+  on jaanipäev, Saturday 24 June 2028, at **Viktor's farm** (sauna from 17, dinner at 19, bonfire about 22, ten places in
+  the hay barn; Helgi by train to Aegviidu at 11.20, minibus of „Kõrve Reisid”, 30 € a ride; Oskar's friend **Rasmus** one
+  night; Olena and Daria invited) — „pere jaaniõhtu” chosen. Sofia's exam: written part Saturday 20 May, speaking Monday
+  22 May at 14.40 with Aleksei as her partner (by chance); results on 14 June: reading 30, listening 27, writing 17,
+  speaking 18 — passed. **Liis** offers that Sofia leads Estonian client meetings from October (with Liis in September)
+  and the firm pays half of her B2 course (300 € of 600 €, ≥ 80 % attendance); Sofia goes to **Lena** in Berlin 10–17 July
+  and plans B2 at Keelekool Sõna in the autumn. Maret passed her Italian exam (not full points), maybe Spanish next year.
+  Mock 3 / final texts: listener **Vello** (Sillamäe, learned Estonian from 60), **Elvi** (community garden behind a
+  Mustamäe block), librarian **Leida**'s summer conversation circle (Tuesdays at 18), adviser **Merit Kask** (module 17) on
+  life after the exam. The old module-18 names Kristiina and Priit („Värske Toit”) are dropped. All dates, prices, firms,
+  the kitchen and the results are fictional.
 - **B2 module 1 (one year later):** Sofia passed B1; Liis offers her the lead of the new Tartu warehouse project if she
   reaches B2 by March; trainee **Laura**; warehouse shift leader **Gert**; team coach **Hendrik Ilves**; Markus
   photographs weddings at weekends; Jelena has a son.

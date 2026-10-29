@@ -407,6 +407,14 @@ LUGU). AVAS was not possible: with module 1's AVAS lesson (outside this table's 
 KUUL moved to 083. The four pairs stay once each, no archetype repeats next to 079 / 086 (PROB) and the opener differs from
 076 (RÄÄK). Corners R1, R4, L3a, L1 (after 079's R3); 085 is the module check in Harno B1 form for reading (R1, R2, R3b, R4)
 and writing (W1a, W2b), timed (`b1/module17.js`).
+Module 18 (2026-10-29): the row is used as written — 086 PROB L→S (a cancelled practice day solved by phone; corner L4 =
+the examiner on the speaking part), 087 KIRJ R→W (a story on a given title after a model story; corner S1a), 088 RÄÄK R→S
+(the family agrees on a party; corner S1b, the main task). grammarPlan.js has no item for 086–088 (no swap). 089 is Mock 3
+with the §6.5 „exam-ready” checkpoint (80 % in every part), 090 the final (Lõpphindamine, Mock 4: the course certificate
+needs ≥ 80 % in every part, otherwise a repeat plan by skill). With three teaching lessons and one corner a lesson (§7.2,
+V12) only three of the four course corners still missing could be added: L4, S1a and S1b are closed, **L1 stays at 3 of
+4** (`V6-corner-L1`, the only line left in `finalShapeBaseline.json`); closing it needs a fourth L1 corner in an earlier
+teaching lesson (another module) or a changed rule (`b1/module18.js`).
 `*` RÄÄK / KIRJ with the „other” input is allowed (input of RÄÄK can be L or R; KIRJ's model text may be heard). In
 module 18 lesson 089 is a mock, so the module has 3 teaching lessons; rule 3 is relaxed there (3 of 4 pairs).
 

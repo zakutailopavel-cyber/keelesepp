@@ -615,3 +615,29 @@ the baseline. New pitfalls:
 - **Error tasks need real errors:** an adverb first with a pronoun subject before the verb („Seejärel me istutame …”) is
   correct Estonian, and „sinule” is a correct form of „sulle” — both were removed from the error rows.
 - **A model draft with a run-on sentence** is still a B1 reading: the run-on must stay ≤ 22 words and the text ≥ 200 words.
+
+### 8.11 Module 18 (2026-10-29, `b1/module18.js`, a2b1-086…090): the finale, Mock 3 and the final
+
+Module 18 went 55 → 0 final-shape problems (`--module 18`), strict gate 0, no baseline line left; the course lines
+`V6-corner-L4`, `V6-corner-S1a`, `V6-corner-S1b` closed. New pitfalls:
+
+- **Three teaching lessons give three corners.** V12 wants exactly one `harno` task a teaching lesson and V6 counts
+  corners only in teaching lessons, so four missing course corners (L1, L4, S1a, S1b) cannot all be closed in module 18;
+  `V6-corner-L1` stays (3 of 4). Plan the last corners in modules 13–17 if the rules change.
+- **V3 and V4 do not scale to three lessons:** ≥ 20 ids, ≥ 3 per skill, S02/S03/S04 ≥ 1, G01 ≥ 2, G02 ≥ 1 and the block-type
+  share ≤ 20 % still apply. With three S15 recordings, the 4-3-2, S14 and the S1a corner the module had 9 `speaking` blocks
+  of 49 tasks (18 %) — one more would fail `V4-type-speaking`; tag opinion talks S11 so S02 stays ≤ 2.
+- **Two exam lessons in a row:** quality.js `neighbour` compares 089 and 090 phase by phase (task block types, Jaccard
+  ≤ 0.85). Identical mock sheets are 100 %; the final got other block types (a letter card instead of the warm-up writing,
+  an after-listening `wordorder` and an after-reading talk in Harjuta, a points `table` and a `planning` in Kasuta).
+- **V7 in exam lessons:** the fixed wordings of 065–080 for R1, R2, L1 and S0 (and 075's W2b, 065's W2a) were reused on
+  `harno` tasks — exempt. Every other instruction (R3b, R4, L2–L4, S1a, S1b, S2) names its own text and stays unique.
+- **Error rows that are not errors:** „Ma kartsin rääkimise osa” is correct („osa” is also the partitive), and an adverb
+  first with a pronoun subject („Eelmisel suvel me sõitsime …”) is correct Estonian — use a noun subject for V2 errors.
+  A transformation that only removes the quotation marks („Olena küsis: „Kas …?”” → „Olena küsis, kas …”) is reported as
+  „answer same as the source” — change the person too.
+- **Bank extras must not fit:** „tulemused” next to „nägin oma [tulemusi]” is also correct (total object); give extras
+  another case („tulemusega”).
+- **Speller:** *tigu* → plural *teod* (not *tigud*); *harjutusteste* is unknown — „harjutusülesandeid”. Brand names in
+  fictional announcements (Elron, Konsum) were replaced by generic ones.
+

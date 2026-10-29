@@ -1,3 +1,57 @@
+## 2026-10-29 · agent/b1-m18-final — B1 module 18 „B1 rääkimine ja lõpphindamine” in the final shape + Mock 3 + Final
+
+**Course summary: the A2→B1 course (a2b1-001…090) is in the final shape.** All 18 modules pass V1–V16 and the strict
+quality gate; `finalShapeBaseline.json` is down to **1 line** (`course: *|*|V6-corner-L1`, L1 practised in 3 of 4
+required corners — see below why module 18 cannot close it).
+
+- Base: `main` c82c308 (2026-10-29, after #870 module 17). Draft PR from `agent/b1-m18-final`. Content only; no production
+  data, no publishing, no deploy.
+- Asked (owner): module 18 (a2b1-086…090) to the final shape like modules 2–17 (§6.2 row 18: PROB L→S · KIRJ R→W · RÄÄK
+  R→S; 089 = Mock 3 with the §6.5 „exam-ready” checkpoint, 090 = Final / Mock 4; V16 in every teaching lesson; close the
+  four course lines `V6-corner-L1/L4/S1a/S1b` if possible; fix the cast: Jaan is Kase kool's cook since module 9).
+- Done: `b1/module18.js` rewritten (May – June 2028 storyline, the course finale; §6.2 row 18 used as written):
+  - 086 PROB L→S „Plaan läks katki” — Krista's voicemail with dates and prices (L10), polite problem language (notice, G13,
+    G04), first call tried twice (S10, fluency), a broken plan told twice (S07, fluency), angry message made polite (W12);
+    corner **L4** = examiner Reet Kallas on the B1 speaking part, the school's rules (R06), blunt → polite (G05), G08,
+    Sofia's message to Lena (G03), opinion on online lessons (S11); Kasuta: Olena's voicemail (L07), main **S04** call to
+    the school, home recording (S15), confirmation to Krista (W08).
+  - 087 KIRJ R→W „Jutt, mida ma ei unusta” — Igor's model story (R02), story frame and the two pasts (notice, G02), W09,
+    8-min writing (W06, fluency), survey (S09, fluency); story parts (R09), radio story with Inga (L02), G03, G07, Sofia's
+    mock errors (G06), corner **S1a** „Haridus ja keeleõpe”; Kasuta: Hanna's tips (R05), six ideas ranked (S12), the story
+    told at home (S15), plan (W11), main **W05** story „Päev, mida ma ei unusta”.
+  - 088 RÄÄK R→S „Kuidas me tähistame?” — family chat: Jaan becomes kitchen head (R12), opinion → compromise → decision
+    (notice, G13, G08), message to the chat (W02), 4-3-2 (S08), the module's one S14; ten short messages (L01), Viktor's
+    way to the farm (R04), G10, dictation on jaanipäev (L08), Viktor's questionnaire (W01), info gap (S05); Kasuta: three
+    plans (R11), corner **S1b** = the party plan agreed (main, S03), call to the bus firm (S04), „Minu B1 aasta” at home
+    (S15), invitation to Olena (W03).
+  - 089 PROOV „Proovieksam 3 — kas oled valmis?” — full timed Harno B1 mock: R1 (9), R2 (6), R3b (10), R4 (8) = 33 p,
+    50 min; L1 (7), L2 (6), L3a (8), L4 (9) = 30 p; W1b + W2b = 20 p; S0, S1a, S1b, S2 = 20 p; the §6.5 checkpoint (80 % in
+    every part: 27 / 24 / 16 / 16 → register for the next Harno date, otherwise 2–3 more weeks on that part).
+  - 090 PROOV „Lõpphindamine — B1” — the final in the same form (R1, R2, R3b, R4; L1, L2, L3b, L4; W1a + W2a; S0, S1a,
+    S1b, S2); course certificate ≥ 80 % in every part, otherwise a repeat plan by skill; warm-up sheet = the end of
+    Sofia's story (exam 20 / 22 May, results 14 June, jaanipäev at Viktor's farm).
+- Also: goals and can-do 086–090 in `b1/lessonGoals.js`; module-18 entry of `docs/COURSE_CAST.md` rewritten (cast fix:
+  Jaan stays Kase kool's cook from December 2026 and is **promoted to köögijuhataja from August 2028** because the kitchen
+  grows; the old module-18 names Kristiina and Priit dropped); module-18 note in `COURSE_FINAL_SHAPE_B1.md` §6.2; pitfalls in
+  `FINAL_SHAPE_AUTHORING.md` §8.11. No picture briefs exist for module 18 (no `art/visuals/b1-module-18.js`), none added.
+- Audio: 13 recordings (TartuNLP, free) in `public/audio/a2b1-086…090` (1 rebuilt, 12 new: 83–162 s); mock listening L2 107–120 s, L3 121–162 s, L4 126–147 s — still below Harno lengths, the most the free voices give for ~330–430-word transcripts; the 10 old files and 10 manifest entries of removed blocks deleted (plus an orphan `087_p_clips.mp3` without an entry).
+- Checks: `course:final-shape --module 18` 55 → 0. `finalShapeBaseline.json` 59 → 1 problem (module 18 −55, course
+  `V6-corner-L4`, `V6-corner-S1a`, `V6-corner-S1b` closed); no line added. Older quality gate and strict gate for module 18:
+  0; module 18 reuses 61 % of module 17's box stems (≥ 30 %). `npx eslint src`: 0 errors (17 old warnings). Full `npx vitest run`: 402 files passed (1 skipped), 2744 tests passed, 4 skipped. Vabamorf speller: 0 unknown words except names (Daria, Hanna, Harno, Lena, Merit, Olena) and the technical value `kusimustik`.
+- Why `V6-corner-L1` stays: V6 counts corners only in teaching lessons and V12 allows exactly one corner a teaching lesson;
+  module 18 has three teaching lessons (089 is a mock by §6.1) and four corner formats were missing. L4, S1a and S1b were
+  chosen (two speaking corners for the speaking module, the harder listening format); 088 has an L1-shaped ten-clip task
+  but it cannot be tagged without dropping the S1b corner. Closing L1 needs one more L1 corner in an earlier module's
+  teaching lesson (a change outside module 18) or a rule change — owner's choice.
+- Limits: teaching sheets 40–50 min, mock sheets 52–68 min (no cap on exam sheets); R3b in both mocks is a `gaps` text with
+  a bank (recognition share), R2 texts carry one unscored opinion question (as in 060–085). Real facts kept simple: the
+  B1 speaking part is done in pairs, about 15 minutes, recorded and rated by two raters; 23 June is võidupüha, 24 June
+  jaanipäev; Aegviidu is on the Tallinn–Tartu railway. All dates, prices, firms, the school kitchen, results and radio
+  programmes are fictional.
+- Next safe step: owner reviews module 18 (086–090) in „Kursuse tootmine” and publishes it; then decides whether to add an
+  L1 corner in an earlier module to empty the
+  baseline.
+
 ## 2026-10-29 · agent/b1-m17-final — B1 module 17 „B1 lugemine ja kirjutamine” in the final shape + the R + W check
 
 - Base: `main` 3155b36 (2026-10-29, after #869 module 16). Draft PR from `agent/b1-m17-final`. Content only; no production
