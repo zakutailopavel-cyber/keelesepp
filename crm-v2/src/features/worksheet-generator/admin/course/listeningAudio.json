@@ -249,15 +249,10 @@
     "seconds": 24.8,
     "hash": "df557de803ae8af09da9a23b8cd8a0abac9cbb6e"
   },
-  "a2-021:021_d_kiosk": {
-    "src": "/audio/a2-021/021_d_kiosk.mp3",
-    "seconds": 56.5,
-    "hash": "a580c74fae56c2ee9e829534519c8da497a69794"
-  },
-  "a2-021:021_p_listen": {
-    "src": "/audio/a2-021/021_p_listen.mp3",
-    "seconds": 50.5,
-    "hash": "5fffe9d6f1580cc86881fcbd28a3bfa5743f6b88"
+  "a2-021:021_d_malle": {
+    "src": "/audio/a2-021/021_d_malle.mp3",
+    "seconds": 110,
+    "hash": "b03d793f12e7a9031405f2afb798a1f61a048ac8"
   },
   "a2-022:022_d_dmitri": {
     "src": "/audio/a2-022/022_d_dmitri.mp3",
@@ -269,16 +264,6 @@
     "seconds": 43.4,
     "hash": "bfc75f48792bd25a7c59c034cf9db9024b58bf7f"
   },
-  "a2-022:022_t_viktor": {
-    "src": "/audio/a2-022/022_t_viktor.mp3",
-    "seconds": 53.9,
-    "hash": "58cb6a35c8a53f8fc7c2827b2d821a06e75fcc84"
-  },
-  "a2-023:023_d_lost": {
-    "src": "/audio/a2-023/023_d_lost.mp3",
-    "seconds": 54,
-    "hash": "d71729cf68047a5697ebcef14d7651f45a1be411"
-  },
   "a2-023:023_p_guide": {
     "src": "/audio/a2-023/023_p_guide.mp3",
     "seconds": 42.7,
@@ -286,23 +271,28 @@
   },
   "a2-023:023_t_voice": {
     "src": "/audio/a2-023/023_t_voice.mp3",
-    "seconds": 38.2,
-    "hash": "3914d43d2dbd22560126e2190341dec17aa338c3"
+    "seconds": 74.7,
+    "hash": "1f9ea091854bb6765376c4de23d64de17b157168"
+  },
+  "a2-024:024_d_clips": {
+    "src": "/audio/a2-024/024_d_clips.mp3",
+    "seconds": 85.4,
+    "hash": "74af8815f8275f3fb6da7e62d9fc087c5d9dab8c"
   },
   "a2-024:024_d_phone": {
     "src": "/audio/a2-024/024_d_phone.mp3",
-    "seconds": 38.6,
-    "hash": "0c7777221945fad58614d1c39a232dc60e7431ea"
+    "seconds": 55.6,
+    "hash": "76d94468b11b4671025501672787959c04675501"
   },
-  "a2-024:024_p_listen": {
-    "src": "/audio/a2-024/024_p_listen.mp3",
-    "seconds": 40.6,
-    "hash": "cae6f6398c6f4f1041705668c76ca494dce39595"
+  "a2-024:024_p_plan": {
+    "src": "/audio/a2-024/024_p_plan.mp3",
+    "seconds": 64.5,
+    "hash": "a9d22aca44d912fd7acc5ecd65eabd032e8229fb"
   },
   "a2-024:024_t_tom": {
     "src": "/audio/a2-024/024_t_tom.mp3",
-    "seconds": 34.7,
-    "hash": "73f798ee6dd251e59e9379aee3bed0cbd359f7f7"
+    "seconds": 75,
+    "hash": "4b0928d6aed57d4221fdfa6560c29695710f6514"
   },
   "a2-025:025_d_listen": {
     "src": "/audio/a2-025/025_d_listen.mp3",
