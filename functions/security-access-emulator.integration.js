@@ -266,6 +266,11 @@ test("a student writes their own available times; only the administrator marks t
   assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ weeks: weeks(2) }))).status, 200);
   assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ weeks: weeks(9) }))).status, 403);
   assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ weeks: str("x") }))).status, 403);
+  // lessons a week per course (owner 2026-10-29): a map of up to 10 courses
+  const perWeek = (n) => ({ mapValue: { fields: Object.fromEntries(Array.from({ length: n }, (_, i) => [`suund-${i}`, { integerValue: "2" }])) } });
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ perWeek: perWeek(2) }))).status, 200);
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ perWeek: perWeek(11) }))).status, 403);
+  assert.equal((await documentRequest(learner, "PATCH", "studentAvailability/sec-avail-card", fields({ perWeek: str("2") }))).status, 403);
   assert.equal((await documentRequest(learner, "GET", "studentAvailability/sec-avail-card")).status, 200);
   assert.equal((await documentRequest(other, "GET", "studentAvailability/sec-avail-card")).status, 403);
   assert.equal((await documentRequest(other, "PATCH", "studentAvailability/sec-avail-card", fields())).status, 403);

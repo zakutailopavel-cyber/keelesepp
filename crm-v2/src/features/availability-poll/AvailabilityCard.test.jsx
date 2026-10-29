@@ -59,4 +59,30 @@ describe('Sobivad ajad on the card', () => {
     await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Kasuta tavalist nädalat' })); });
     expect(service.save.mock.calls[1][1]).toMatchObject({ week: '2026-11-09', reset: true });
   });
+
+  it('a learner of two courses says how many lessons a week each; the administrator reads it', async () => {
+    const service = { get: vi.fn().mockResolvedValue(null), save: vi.fn().mockResolvedValue({}), markReviewed: vi.fn() };
+    render(<AvailabilityCard studentId="s1" user={student} service={service} subjects={['Eesti keel', 'Matemaatika']} />);
+    fireEvent.click(await screen.findByRole('button', { name: /Märgi ajad/ }));
+    expect(screen.getByText(/Mitu korda nädalas soovid õppida\?/)).toBeInTheDocument();
+    fireEvent.change(screen.getByRole('combobox', { name: 'Mitu korda nädalas: Eesti keel' }), { target: { value: '2' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Mitu korda nädalas: Matemaatika' }), { target: { value: '1' } });
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'L 10:00' }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta ajad' })); });
+    expect(service.save.mock.calls[0][1].perWeek).toEqual({ 'eesti-keel': 2, matemaatika: 1 });
+
+    const saved = { studentId: 's1', slots: ['Tue-18:00'], preferred: [], perWeek: { 'eesti-keel': 2, matemaatika: 1 }, changedAt: '2026-10-21T10:00:00.000Z', changedByRole: 'student', reviewedAt: '2026-10-22T10:00:00.000Z' };
+    const adminService = { get: vi.fn().mockResolvedValue(saved), save: vi.fn(), markReviewed: vi.fn() };
+    render(<AvailabilityCard studentId="s1" user={admin} mode="admin" service={adminService} subjects={['Eesti keel', 'Matemaatika']} />);
+    expect(await screen.findByText('Eesti keel 2× · Matemaatika 1× nädalas')).toBeInTheDocument();
+  });
+
+  it('a card with one course has one field without a course name', async () => {
+    const service = { get: vi.fn().mockResolvedValue({ studentId: 's1', slots: ['Tue-18:00'], preferred: [], perWeek: { 'eesti-keel': 3 }, changedAt: '2026-10-21T10:00:00.000Z', changedByRole: 'student' }), save: vi.fn().mockResolvedValue({}), markReviewed: vi.fn() };
+    render(<AvailabilityCard studentId="s1" user={student} service={service} subjects={['Eesti keel']} />);
+    expect(await screen.findByText('Eesti keel 3× nädalas')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Muuda/ }));
+    expect(screen.getAllByRole('combobox')).toHaveLength(1);
+    expect(screen.getByRole('combobox', { name: 'Mitu korda nädalas: Eesti keel' })).toHaveValue('3');
+  });
 });
