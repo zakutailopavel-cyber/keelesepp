@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { tokenInvoiceInput, tokenInvoiceLines, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken, packageForOwedLesson, tokenBacklogLessonIds, TOKENS_PER_LESSON, OWED_LESSONS_TAKE_NEXT_PACKAGE } = require('./lesson-tokens-core');
+const { tokenInvoiceInput, tokenInvoiceLines, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken, packageForOwedLesson, tokenBacklogLessonIds, lessonTokenCost, TOKENS_PER_LESSON, OWED_LESSONS_TAKE_NEXT_PACKAGE } = require('./lesson-tokens-core');
 
 test('an invoice for 1–100 lessons with a due date', () => {
   assert.deepEqual(tokenInvoiceInput({ studentId: ' k1 ', lessons: '9', due: '2026-11-10' }), { studentId: 'k1', lessons: 9, due: '2026-11-10', note: '' });
@@ -71,4 +71,18 @@ test('a credited package takes the owed lessons first, then the lessons since it
   ];
   assert.deepEqual(tokenBacklogLessonIds({ lessons, issuedAt: '2026-11-01', owedLessonIds: ['l2', 'l1'] }), ['l1', 'l2', 'l3', 'l4']);
   assert.deepEqual(tokenBacklogLessonIds({ lessons, issuedAt: '2026-11-01', owedLessonIds: ['l2'], owedFirst: false }), ['l3', 'l4']);
+});
+
+test('credits per lesson: one per full hour, at least one (owner 2026-10-29)', () => {
+  assert.deepEqual([45, 60, 90, 119, 120, 150, 180].map((duration) => lessonTokenCost({ duration })), [1, 1, 1, 1, 2, 2, 3]);
+  assert.equal(lessonTokenCost({}), 1);
+  assert.equal(lessonTokenCost({ duration: '120' }), 2);
+  assert.equal(lessonTokenCost({ durationMinutes: 180 }), 3);
+  assert.equal(lessonTokenCost({ duration: 30 }), 1);
+});
+
+test('a two-credit owed lesson needs a package with two credits left', () => {
+  const token = (id, issuedAt, balanceCredits) => ({ id, productType: 'lesson_package', sourceType: 'invoice_payment', status: 'active', issuedAt, balanceCredits });
+  assert.equal(packageForOwedLesson([token('a', '2026-10-01', 1), token('b', '2026-11-01', 4)], { credits: 2 }).id, 'b');
+  assert.equal(packageForOwedLesson([token('a', '2026-10-01', 1)], { credits: 2 }), null);
 });

@@ -45,7 +45,7 @@ export default function LessonTokensCard({ student, service = lessonTokensServic
             <td>{row.usedUp ? 'läbi' : row.left}</td>
           </tr>)}</tbody>
         </table>
-        {account.owed ? <p className="form-error" role="status">Pakett on läbi: {tunde(account.owed)} on peetud ilma paketita ({account.owedLessons.map((item) => dateOf(item.lessonDate)).filter(Boolean).join(', ')}). Saada uus tunnipaketi arve — makstud pakett katab need esimesena.</p> : null}
+        {account.owed ? <p className="form-error" role="status">Pakett on läbi: ilma paketita peetud {account.owedLessons.map((item) => `${dateOf(item.lessonDate)}${Number(item.credits) > 1 ? ` (${item.credits} tundi)` : ''}`).join(', ')} — võlg {tunde(account.owed)}. Saada uus tunnipaketi arve — makstud pakett katab need esimesena.</p> : null}
       </>}
       {!compact && state.ledger.length ? <ul className="simple-list lesson-tokens-card__ledger" aria-label="Tunnipaketi liikumised">
         {state.ledger.slice(0, 12).map((entry) => <li key={entry.id}>

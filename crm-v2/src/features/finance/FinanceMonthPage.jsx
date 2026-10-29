@@ -51,7 +51,7 @@ import PaymentCheckPanel from './PaymentCheckPanel.jsx';
 import DocumentPreviewModal from './DocumentPreviewModal.jsx';
 import { legacyFinanceDestination } from './financeSettingsNavigation.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
-import { lessonTokensService, tokenInvoiceUsage } from '../../services/firebase/lessonTokens.js';
+import { lessonTokensService, owedCredits, tokenInvoiceUsage } from '../../services/firebase/lessonTokens.js';
 import './financeMonth.css';
 import './manualInvoice.css';
 
@@ -207,7 +207,7 @@ export default function FinanceMonthPage({
     const studentIds = [...new Set(tokenInvoices.map((invoice) => invoice.studentId).filter(Boolean))];
     Promise.all([
       tokensRepository.packagesForInvoices(tokenInvoices).catch(() => ({})),
-      Promise.all(studentIds.map((id) => (tokensRepository.owedByStudent ? tokensRepository.owedByStudent(id) : Promise.resolve([])).then((owed) => [id, owed.length]).catch(() => [id, 0]))),
+      Promise.all(studentIds.map((id) => (tokensRepository.owedByStudent ? tokensRepository.owedByStudent(id) : Promise.resolve([])).then((owed) => [id, owedCredits(owed)]).catch(() => [id, 0]))),
     ]).then(([packages, owed]) => { if (alive) setTokenUsage({ packages, owed: Object.fromEntries(owed) }); });
     return () => { alive = false; };
   }, [monthInvoices, tokensRepository]);

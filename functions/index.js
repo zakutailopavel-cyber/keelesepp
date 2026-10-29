@@ -22,7 +22,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
-const { lessonTakesToken, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds } = require("./lesson-tokens-core");
+const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -1082,7 +1082,12 @@ async function syncLessonPackageConsumption({
       throw httpError(403, "Lesson belongs to another teacher");
     }
     const state = stateSnap.exists ? stateSnap.data() : {};
-    const completed = !lessonDeleted && lessonTakesToken(lesson, plan);
+    // credits this lesson takes (a 120-min lesson takes 2); a consumed lesson gives back what it took
+    const lessonCredits = lessonTokenCost(lesson);
+    // a held lesson whose length changed after it took its credits (60 → 120 min): this call gives the old number back,
+    // the next call (syncLessonTokens calls again after a restore) takes the new number
+    const recharge = state.status === "consumed" && (Number(state.credits) || 1) !== lessonCredits;
+    const completed = !lessonDeleted && !recharge && lessonTakesToken(lesson, plan);
     // a lesson that was owed (no credits when it was held) and now takes none is no longer owed
     const clearOwed = () => {
       if (state.status === "needs_attention") transaction.set(stateRef, { status: "cleared", lastError: "", updatedAt: nowIso, updatedBy: actorData }, { merge: true });
@@ -1152,12 +1157,13 @@ async function syncLessonPackageConsumption({
           lessonDate,
           requestedPackageId: lesson.requestedStudentPackageId || "",
           preferredPackageId: state.studentPackageId || "",
+          credits: lessonCredits,
         });
       } catch (error) {
         selectionError = error.message;
       }
       // owed: no package dated on or before the lesson has credits → the next paid token package pays it
-      if (!selectedPackage && !selectionError) selectedPackage = packageForOwedLesson(packages);
+      if (!selectedPackage && !selectionError) selectedPackage = packageForOwedLesson(packages, { credits: lessonCredits });
       if (!selectedPackage) {
         const reason = selectionError
           || (packages.length
@@ -1182,6 +1188,7 @@ async function syncLessonPackageConsumption({
           studentId: cleanStudentId,
           status: "needs_attention",
           lessonDate,
+          credits: lessonCredits,
           cycle: Number(state.cycle) || 0,
           lastError: reason,
           updatedAt: nowIso,
@@ -1194,7 +1201,7 @@ async function syncLessonPackageConsumption({
       const cycle = (Number(state.cycle) || 0) + 1;
       let movement;
       try {
-        movement = packageBalanceAfterLessonMovement(selectedPackage, "consume", nowIso);
+        movement = packageBalanceAfterLessonMovement(selectedPackage, "consume", nowIso, lessonCredits);
       } catch (error) {
         throw httpError(error.status || 409, error.message);
       }
@@ -1222,7 +1229,7 @@ async function syncLessonPackageConsumption({
         creditsDelta: movement.creditsDelta,
         balanceBefore: movement.balanceBefore,
         balanceAfter: movement.balanceAfter,
-        reason: "Completed lesson consumed one package credit",
+        reason: lessonCredits === 1 ? "Completed lesson consumed one package credit" : `Completed lesson consumed ${lessonCredits} package credits`,
         actor: actorData,
         createdAt: nowIso,
         requestId: mutationId,
@@ -1236,6 +1243,7 @@ async function syncLessonPackageConsumption({
         packageConsumptionEntryId: ledgerEntryId,
         packageRestorationEntryId: "",
         packageConsumptionCycle: cycle,
+        packageCredits: lessonCredits,
         packageSyncError: FieldValue.delete(),
         packageSyncedAt: nowIso,
       };
@@ -1254,6 +1262,7 @@ async function syncLessonPackageConsumption({
         packageProductName: selectedPackage.packageProductName || "—",
         status: "consumed",
         lessonDate,
+        credits: lessonCredits,
         teacherUid: String(lesson.teacherUid || ""),
         cycle,
         consumptionEntryId: ledgerEntryId,
@@ -1332,7 +1341,8 @@ async function syncLessonPackageConsumption({
     const studentPackage = { id: packageSnap.id, ...packageSnap.data() };
     let movement;
     try {
-      movement = packageBalanceAfterLessonMovement(studentPackage, "restore", nowIso);
+      // the same number of credits the lesson took (states written before 2026-10-29 took one)
+      movement = packageBalanceAfterLessonMovement(studentPackage, "restore", nowIso, Number(state.credits) || 1);
     } catch (error) {
       throw httpError(error.status || 409, error.message);
     }
@@ -1361,7 +1371,7 @@ async function syncLessonPackageConsumption({
       balanceBefore: movement.balanceBefore,
       balanceAfter: movement.balanceAfter,
       restoresLedgerEntryId: state.consumptionEntryId || "",
-      reason: "Lesson completion reversal restored one package credit",
+      reason: movement.creditsDelta === 1 ? "Lesson completion reversal restored one package credit" : `Lesson completion reversal restored ${movement.creditsDelta} package credits`,
       actor: actorData,
       createdAt: nowIso,
       requestId: mutationId,
@@ -1710,11 +1720,15 @@ async function saveLessonJournal({ actor, lessonId, scheduleId, sourceKey, value
   }
   if (saved.ledgerManaged) {
     try {
-      const packageResult = await syncLessonPackageConsumption({
+      let packageResult = await syncLessonPackageConsumption({
         actor,
         lessonId: saved.lessonId,
         requestId: `${mutationId}_package`,
       });
+      // the length changed after the lesson took its credits: the old number came back, take the new one
+      if (packageResult.status === "restored" && packageResult.changed) {
+        packageResult = await syncLessonPackageConsumption({ actor, lessonId: saved.lessonId, requestId: `${String(mutationId).slice(0, 100)}_package_again` });
+      }
       const lessonFields = packageResult.lessonFields || {};
       return {
         ...saved,
@@ -12229,7 +12243,8 @@ exports.syncLessonTokens = functions.firestore
     const before = change.before.exists ? change.before.data() : null;
     const after = change.after.exists ? change.after.data() : null;
     // „Kooli kulul” (billingStatus school_covered) changes whether the lesson takes a credit, so it is part of the mark
-    const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived), lesson.billingStatus === "school_covered"]) : "deleted");
+    // the length decides how many credits it takes (lesson-tokens-core lessonTokenCost)
+    const markOf = (lesson) => (lesson ? JSON.stringify([lesson.status || "", lesson.studentId || "", lesson.date || "", Boolean(lesson.billingWaived), lesson.billingStatus === "school_covered", Number(lesson.duration) || 0]) : "deleted");
     if (markOf(before) === markOf(after)) return null;
     // only CRM v2 marks (calendar / lesson panel); the server lesson journal syncs packages itself
     if ((after || before)?.accountingSource !== "crm_v2") return null;
@@ -12244,7 +12259,11 @@ exports.syncLessonTokens = functions.firestore
         const packages = await db.collection("studentPackages").where("studentId", "==", studentId).limit(1).get();
         if (packages.empty) return null;
       }
-      await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `lesson-tokens-${context.eventId}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
+      const first = await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `lesson-tokens-${context.eventId}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
+      // a restore of a lesson that still exists (its length changed): take the credits again with the new length
+      if (after && first?.status === "restored" && first.changed) {
+        await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `lesson-tokens-${context.eventId}-again`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
+      }
     } catch (error) {
       console.error(`Lesson tokens sync failed for ${lessonId}:`, error.message);
     }

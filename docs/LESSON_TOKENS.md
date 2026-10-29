@@ -53,8 +53,16 @@ linked automatically (no invoice reference is stored).
 - Plan billing mode „Tunnipakett” (`billingMode: 'package'`): the card is not offered a monthly invoice. Until
   2026-10-29 `firestore.rules` (`studentRevenuePlans`) allowed only `advance` / `current` / `actual`, so saving the price
   form with „Tunnipakett” was refused; the rule now allows `package`.
-- One held lesson = one credit, whatever its length (`TOKENS_PER_LESSON = 1`, server and client). The invoice line is
-  „N × plan minutes × price”, so a double lesson still takes one credit (owner question below).
+- **Credits per lesson** (owner 2026-10-29): `lessonTokenCost(lesson) = max(1, floor(duration / 60))` — 45 / 60 / 90
+  min = 1, a double lesson of 120 min = 2, 180 min = 3; no length = 60 min (`TOKEN_MINUTES`, `TOKENS_PER_LESSON` = the
+  minimum; `functions/lesson-tokens-core.js` and the same in `crm-v2/src/services/firebase/lessonTokens.js`). The lesson
+  takes them from one package that has them all (FIFO; `selectStudentPackageForLesson` / `packageForOwedLesson` with
+  `credits`), the ledger entry moves the balance by that number, the state keeps `credits` (also on the lesson:
+  `packageCredits`) and a corrected or removed mark gives back exactly that number (states written before this took 1).
+  A length changed after marking (60 → 120): the old number comes back and the new one is taken (the trigger and the
+  lesson journal call the sync a second time after such a restore). An owed lesson owes its credits; the views count
+  owed credits. A single credit left in an older package is not split with the next package: a 2-credit lesson takes a
+  package with ≥ 2 left, the single credit waits for a 1-credit lesson or a correction.
 - `lessonPackageStates`: read by admin, finance and the card's own student / parent (the owed lessons); written only by
   the server.
 - `studentPackages` / `packageLedger`: read by admin, finance and the card's own student / parent; written only by the server.
@@ -62,12 +70,9 @@ linked automatically (no invoice reference is stored).
 
 ## Open owner questions
 
-- A double / longer lesson: one credit (today) or credits by length (e.g. 90 min on a 45-min plan = 2)? Changing it
-  needs the ledger movement to carry more than ±1.
-- Unused credits: kept forever (today) or do they expire (e.g. 3 months after the invoice)? No expiry exists.
-- Owed lessons: paid by the next package (today) or invoiced separately (a monthly invoice line)?
-- Multi-subject cards: a lesson takes the oldest package of the card, whatever the subject; separate packages per
-  subject would need the lesson's subject matched to the package's.
+Answered 2026-10-29: a double lesson is 120 min = 2 credits (rule above). Kept at the defaults for now: unused credits
+do not expire; owed lessons are paid by the next package; one pool of packages per card (a lesson takes the oldest
+package of the card, whatever the subject).
 
 ## Tests
 

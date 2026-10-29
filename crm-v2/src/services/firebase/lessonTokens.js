@@ -4,8 +4,16 @@ import { requireFirebaseClient } from './client.js';
 // Lesson tokens of a card (functions/lesson-tokens-core.js, docs/LESSON_TOKENS.md): its lesson packages, their ledger
 // and the lessons it owes. The administrator, finance and the card's own student / parent may read them (firestore.rules).
 
-// one held lesson takes one credit, whatever its length (the same rule as functions/lesson-tokens-core.js)
+// credits per lesson (owner 2026-10-29, the same rule as functions/lesson-tokens-core.js lessonTokenCost): one per full
+// hour, at least one — 45 / 60 / 90 min = 1, 120 min = 2, 180 min = 3; a lesson without a length counts as 60 min
+export const TOKEN_MINUTES = 60;
 export const TOKENS_PER_LESSON = 1;
+export function lessonTokenCost(lesson = {}) {
+  const minutes = Number(lesson.duration ?? lesson.durationMinutes) || TOKEN_MINUTES;
+  return Math.max(TOKENS_PER_LESSON, Math.floor(minutes / TOKEN_MINUTES));
+}
+// credits an owed lesson needs (the server stores them on its state; older states took one)
+export const owedCredits = (owed = []) => owed.reduce((n, item) => n + (Number(item?.credits) || TOKENS_PER_LESSON), 0);
 // low balance: time to send the next package invoice
 export const TOKENS_LOW = 2;
 
@@ -50,15 +58,15 @@ export function tokenAccount({ packages = [], owed = [] } = {}) {
     .sort((a, b) => String(a.lessonDate || '').localeCompare(String(b.lessonDate || '')));
   const total = (key) => rows.reduce((n, row) => n + row[key], 0);
   const left = total('left');
-  const owedCredits = owedLessons.length * TOKENS_PER_LESSON;
+  const owedTotal = owedCredits(owedLessons);
   return {
     rows,
     bought: total('bought'),
     held: total('held'),
     left,
-    owed: owedCredits,
+    owed: owedTotal,
     owedLessons,
-    state: owedCredits > 0 ? 'owed' : !rows.length ? 'none' : left <= 0 ? 'empty' : left <= TOKENS_LOW ? 'low' : 'ok',
+    state: owedTotal > 0 ? 'owed' : !rows.length ? 'none' : left <= 0 ? 'empty' : left <= TOKENS_LOW ? 'low' : 'ok',
   };
 }
 

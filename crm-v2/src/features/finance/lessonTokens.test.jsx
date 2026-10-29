@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 import TokenInvoiceDialog from './TokenInvoiceDialog.jsx';
 import LessonTokensCard from '../students/LessonTokensCard.jsx';
 import { monthlyBillingRows } from './monthlyBilling.js';
-import { tokenAccount, tokenInvoiceUsage, tokenLine, tokenSummary } from '../../services/firebase/lessonTokens.js';
+import { lessonTokenCost, tokenAccount, tokenInvoiceUsage, tokenLine, tokenSummary } from '../../services/firebase/lessonTokens.js';
 
 const kaarel = { id: 'k1', name: 'Kaarel Laps', subject: 'Eesti keel', parentName: 'Liis Vanem', parentEmail: 'liis@example.ee', active: true };
 
@@ -95,9 +95,16 @@ describe('lesson tokens', () => {
     const table = screen.getByRole('table', { name: 'Tunnipaketid arvete kaupa' });
     expect(table).toHaveTextContent('KS-a');
     expect(table).toHaveTextContent('läbi');
-    expect(screen.getByRole('status')).toHaveTextContent('1 tund on peetud ilma paketita (08.10.2026)');
+    expect(screen.getByRole('status')).toHaveTextContent('ilma paketita peetud 08.10.2026 — võlg 1 tund');
     unmount();
     render(<LessonTokensCard student={kaarel} service={service} compact />);
     expect(await screen.findByTestId('token-line')).toHaveTextContent('Pakett on läbi · 1 tund ootab tasumist');
+  });
+
+  it('a double lesson (120 min) is 2 credits: the rule and the owed count', () => {
+    expect([45, 60, 90, 120, 180, undefined].map((duration) => lessonTokenCost({ duration }))).toEqual([1, 1, 1, 2, 3, 1]);
+    const account = tokenAccount({ packages: [pkg('a', '2026-09-01', 8, 8, 0)], owed: [{ lessonDate: '2026-10-08', credits: 2, status: 'needs_attention' }, { lessonDate: '2026-10-15', status: 'needs_attention' }] });
+    expect(account.owed).toBe(3);
+    expect(tokenLine(account)).toBe('Pakett on läbi · 3 tundi ootab tasumist');
   });
 });

@@ -3615,6 +3615,23 @@ test("lesson tokens: a lesson held after the package is used up is owed; the nex
   assert.equal(pkg.balanceCredits, 3);
   assert.equal(pkg.sourceInvoiceId, "tokens-owed-invoice-2");
   assert.equal((await db.collection("lessons").doc("tokens-owed-lesson-2").get()).data().packageStudentPackageId, "tokens_tokens-owed-invoice-2");
+
+  // a double lesson (120 min) takes 2 credits; made 60 min it gives one back; removed it gives back what it took
+  const balance = async () => (await db.collection("studentPackages").doc("tokens_tokens-owed-invoice-2").get()).data().balanceCredits;
+  const double = db.collection("lessons").doc("tokens-owed-lesson-4");
+  await double.set({ studentId, studentName: "Võla Õpilane", date: "2031-11-24", duration: 120, status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  await waitFor(balance, (b) => b === 1, "double lesson took 2");
+  assert.equal((await db.collection("lessonPackageStates").doc("tokens-owed-lesson-4").get()).data().credits, 2);
+  await double.set({ duration: 60 }, { merge: true });
+  await waitFor(balance, (b) => b === 2, "60 min takes 1");
+  await double.delete();
+  await waitFor(balance, (b) => b === 3, "removed lesson gave its credit back");
+  // with 3 left two double lessons: the second is owed 2 credits (a package with 1 left does not pay it)
+  await db.collection("lessons").doc("tokens-owed-lesson-5").set({ studentId, studentName: "Võla Õpilane", date: "2031-11-25", duration: 120, status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  await waitFor(balance, (b) => b === 1, "second double lesson took 2");
+  await db.collection("lessons").doc("tokens-owed-lesson-6").set({ studentId, studentName: "Võla Õpilane", date: "2031-11-26", duration: 120, status: "Toimunud", teacherUid: "t1", accountingSource: "crm_v2" });
+  await waitFor(() => stateOf("tokens-owed-lesson-6"), (s) => s === "needs_attention", "double lesson owed");
+  assert.equal((await db.collection("lessonPackageStates").doc("tokens-owed-lesson-6").get()).data().credits, 2);
 });
 
 test("cash box: a teacher takes cash, hands it over, an admin links it to the invoice; a voided payment reopens it", async () => {

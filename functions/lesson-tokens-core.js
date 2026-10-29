@@ -101,10 +101,15 @@ function lessonTakesToken(lesson = {}, plan = {}) {
   return false;
 }
 
-// One held lesson takes one credit, whatever its length (a 90-min lesson on a 60-min plan is still one credit). The
-// package invoice prices N × the plan's lesson length, so a longer lesson is the owner's question (docs/LESSON_TOKENS.md
-// „Lahtised küsimused”); the ledger movement itself is ±1 (finance-core packageBalanceAfterLessonMovement).
-const TOKENS_PER_LESSON = 1;
+// Credits per lesson (owner 2026-10-29): one per full hour, at least one — 45 / 60 / 90 min = 1, a double lesson of
+// 120 min = 2, 180 min = 3. A lesson without a length counts as 60 min. The same number is given back when the mark is
+// corrected or removed (the lesson's package state keeps it). crm-v2 services/firebase/lessonTokens.js has the same rule.
+const TOKEN_MINUTES = 60;
+const TOKENS_PER_LESSON = 1; // the minimum
+function lessonTokenCost(lesson = {}) {
+  const minutes = Number(lesson.duration ?? lesson.durationMinutes) || TOKEN_MINUTES;
+  return Math.max(TOKENS_PER_LESSON, Math.floor(minutes / TOKEN_MINUTES));
+}
 
 // A lesson held while no package had credits is owed („võlg”, lessonPackageStates status needs_attention). The next
 // paid package pays it first (oldest owed lesson first), even though that package is dated after the lesson.
@@ -115,10 +120,11 @@ const fifoKey = (item = {}) => `${item.issuedAt || ''}:${item.createdAt || ''}:$
 
 // the package that pays an owed lesson when no package dated on or before the lesson has credits: the oldest paid token
 // package with credits left (FIFO); null when there is none or the rule is off
-function packageForOwedLesson(packages = [], { enabled = OWED_LESSONS_TAKE_NEXT_PACKAGE } = {}) {
+function packageForOwedLesson(packages = [], { enabled = OWED_LESSONS_TAKE_NEXT_PACKAGE, credits = 1 } = {}) {
   if (!enabled) return null;
+  const needed = Math.max(1, Math.floor(Number(credits)) || 1);
   return (Array.isArray(packages) ? packages : [])
-    .filter((item) => item && item.id && isTokenPackage(item) && item.status === 'active' && Number.isInteger(item.balanceCredits) && item.balanceCredits > 0)
+    .filter((item) => item && item.id && isTokenPackage(item) && item.status === 'active' && Number.isInteger(item.balanceCredits) && item.balanceCredits >= needed)
     .sort((a, b) => fifoKey(a).localeCompare(fifoKey(b)))[0] || null;
 }
 
@@ -132,4 +138,4 @@ function tokenBacklogLessonIds({ lessons = [], issuedAt = '', owedLessonIds = []
     .map((lesson) => lesson.id);
 }
 
-module.exports = { TOKENS_PER_LESSON, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };
+module.exports = { TOKEN_MINUTES, TOKENS_PER_LESSON, lessonTokenCost, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };

@@ -24,8 +24,14 @@
 - **Deploy needed** (owner's OK): `firestore:rules` and functions `syncLessonTokens`, `financeApi` (credit backlog and
   the lesson journal call syncLessonPackageConsumption). Existing invoices and packages are not
   rewritten; old owed states without `lessonDate` clear on removal without a date.
-- Open owner questions: double lesson = 1 or 2 credits; do unused credits expire; owed lessons by the next package or a
-  separate invoice; packages per subject on multi-subject cards. Catalogue packages (`package_issue`) have no invoice and
+- Owner 2026-10-29 (follow-up, same branch, after merging `origin/main`): credits per lesson =
+  `lessonTokenCost` = max(1, floor(duration / 60)) (45/60/90 = 1, 120 = 2, 180 = 3) in `lesson-tokens-core.js` and
+  `lessonTokens.js`; finance-core `selectStudentPackageForLesson` / `packageBalanceAfterLessonMovement` take `credits`
+  (default 1); the state and the lesson keep `credits` / `packageCredits`, a corrected / removed mark gives back the same
+  number, a changed length is restored and taken again (trigger + lesson journal); owed counts sum credits. Checks
+  after it: node 60 pass; emulator „lesson tokens” 3/3 pass (double lesson 2 → 60 min 1 → removed; owed 2-credit
+  lesson); full vitest 403 files passed (2778 tests, 5 skipped), eslint 0. Defaults kept: no expiry, debt paid by the next
+  package, one pool per card. A single leftover credit is not split across packages. Catalogue packages (`package_issue`) have no invoice and
   show as „arveta pakett”.
 - Next safe step: after review and the owner's OK, deploy rules + functions and check one package card on production.
 ## 2026-10-29 · agent/b2-m10-final — B1→B2 module 10 „Suhted ja konfliktid” in the final shape
