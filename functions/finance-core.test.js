@@ -1098,3 +1098,20 @@ test("„Kooli kulul”: a held lesson leaves billing, also when a package credi
   assert.equal(undo.billingStatus, null);
   assert.equal(undo.counterDelta, 1);
 });
+
+test("a lesson that takes two credits needs a package with two and moves the balance by two", () => {
+  const packages = [
+    { id: "one-left", studentId: "s1", productType: "lesson_package", status: "active", balanceCredits: 1, issuedAt: "2026-10-01" },
+    { id: "four-left", studentId: "s1", productType: "lesson_package", status: "active", balanceCredits: 4, issuedAt: "2026-10-02" },
+  ];
+  assert.equal(selectStudentPackageForLesson(packages, { lessonDate: "2026-10-20" }).id, "one-left");
+  assert.equal(selectStudentPackageForLesson(packages, { lessonDate: "2026-10-20", credits: 2 }).id, "four-left");
+  const consumed = packageBalanceAfterLessonMovement({ balanceCredits: 4, consumedCredits: 0 }, "consume", "2026-10-20T10:00:00.000Z", 2);
+  assert.equal(consumed.creditsDelta, -2);
+  assert.equal(consumed.balanceAfter, 2);
+  assert.equal(consumed.consumedAfter, 2);
+  const restored = packageBalanceAfterLessonMovement({ balanceCredits: 2, consumedCredits: 2 }, "restore", "2026-10-21T10:00:00.000Z", 2);
+  assert.equal(restored.creditsDelta, 2);
+  assert.equal(restored.balanceAfter, 4);
+  assert.throws(() => packageBalanceAfterLessonMovement({ balanceCredits: 1, consumedCredits: 0 }, "consume", "2026-10-20T10:00:00.000Z", 2), /insufficient/);
+});

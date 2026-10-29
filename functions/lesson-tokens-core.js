@@ -101,4 +101,41 @@ function lessonTakesToken(lesson = {}, plan = {}) {
   return false;
 }
 
-module.exports = { tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };
+// Credits per lesson (owner 2026-10-29): one per full hour, at least one — 45 / 60 / 90 min = 1, a double lesson of
+// 120 min = 2, 180 min = 3. A lesson without a length counts as 60 min. The same number is given back when the mark is
+// corrected or removed (the lesson's package state keeps it). crm-v2 services/firebase/lessonTokens.js has the same rule.
+const TOKEN_MINUTES = 60;
+const TOKENS_PER_LESSON = 1; // the minimum
+function lessonTokenCost(lesson = {}) {
+  const minutes = Number(lesson.duration ?? lesson.durationMinutes) || TOKEN_MINUTES;
+  return Math.max(TOKENS_PER_LESSON, Math.floor(minutes / TOKEN_MINUTES));
+}
+
+// A lesson held while no package had credits is owed („võlg”, lessonPackageStates status needs_attention). The next
+// paid package pays it first (oldest owed lesson first), even though that package is dated after the lesson.
+const OWED_LESSONS_TAKE_NEXT_PACKAGE = true;
+
+const isTokenPackage = (item = {}) => item.sourceType === 'invoice_payment' && item.productType === 'lesson_package';
+const fifoKey = (item = {}) => `${item.issuedAt || ''}:${item.createdAt || ''}:${item.id || ''}`;
+
+// the package that pays an owed lesson when no package dated on or before the lesson has credits: the oldest paid token
+// package with credits left (FIFO); null when there is none or the rule is off
+function packageForOwedLesson(packages = [], { enabled = OWED_LESSONS_TAKE_NEXT_PACKAGE, credits = 1 } = {}) {
+  if (!enabled) return null;
+  const needed = Math.max(1, Math.floor(Number(credits)) || 1);
+  return (Array.isArray(packages) ? packages : [])
+    .filter((item) => item && item.id && isTokenPackage(item) && item.status === 'active' && Number.isInteger(item.balanceCredits) && item.balanceCredits >= needed)
+    .sort((a, b) => fifoKey(a).localeCompare(fifoKey(b)))[0] || null;
+}
+
+// the lessons a newly credited package takes, oldest first: every lesson since the invoice date (held while the payment
+// was on its way) and every owed lesson of the card, whatever its date. lessons: [{ id, date }]; owedLessonIds: ids.
+function tokenBacklogLessonIds({ lessons = [], issuedAt = '', owedLessonIds = [], owedFirst = OWED_LESSONS_TAKE_NEXT_PACKAGE } = {}) {
+  const owed = new Set(owedFirst ? owedLessonIds : []);
+  return lessons
+    .filter((lesson) => lesson && lesson.id && (owed.has(lesson.id) || String(lesson.date || '') >= String(issuedAt || '')))
+    .sort((a, b) => `${a.date || ''}:${a.id}`.localeCompare(`${b.date || ''}:${b.id}`))
+    .map((lesson) => lesson.id);
+}
+
+module.exports = { TOKEN_MINUTES, TOKENS_PER_LESSON, lessonTokenCost, OWED_LESSONS_TAKE_NEXT_PACKAGE, isTokenPackage, packageForOwedLesson, tokenBacklogLessonIds, tokenInvoiceInput, tokenInvoiceLines, isTokenInvoice, invoicePaid, creditBlocker, tokenPackageId, tokenPackageRecord, lessonTakesToken };

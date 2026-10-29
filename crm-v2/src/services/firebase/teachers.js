@@ -1,5 +1,6 @@
 import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { cleanPersonalColors } from '../../features/calendar/calendarGrid.js';
 
 export const teachersService = {
   async list() {
@@ -24,5 +25,14 @@ export const teachersService = {
     value.updatedAt = new Date().toISOString();
     await updateDoc(doc(db, 'users', id), value);
     return this.getById(id);
+  },
+  // the viewer's own calendar colours (users/{uid}.calendarColors = { teacherKey: tone }); the rules let a user write
+  // this one map on the own account (safeSelfUserFields / validCalendarColors). The whole map is replaced.
+  async saveCalendarColors(uid, colors) {
+    if (!uid) return {};
+    const { db } = requireFirebaseClient();
+    const value = cleanPersonalColors(colors);
+    await updateDoc(doc(db, 'users', uid), { calendarColors: value });
+    return value;
   },
 };

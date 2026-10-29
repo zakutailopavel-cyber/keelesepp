@@ -16,7 +16,8 @@ import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
 import { LESSON_STATE_LABELS, datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, lessonState, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
-import { canMove, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes, tonesOf } from './calendarGrid.js';
+import { calendarTones, canMove, cleanPersonalColors, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
+import CalendarColors from './CalendarColors.jsx';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
 import TimeGrid from './TimeGrid.jsx';
 import { unplannedStudents } from './unplannedStudents.js';
@@ -199,6 +200,11 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
   const leadTimesState = useAsyncData(() => (leadsRepository?.list ? leadsRepository.list().catch(() => []) : Promise.resolve([])), [leadsRepository]);
   // Admin can give a lesson to another teacher (substitution); teachers always plan their own lessons.
   const teacherState = useAsyncData(() => (isAdmin && teacherRepository?.list ? teacherRepository.list() : Promise.resolve([])), [isAdmin, teacherRepository]);
+  // a teacher reads the staff list only for the colours (the administrator's choice and the same automatic order)
+  const colorStaffState = useAsyncData(() => (teacherOnly && teacherRepository?.list ? teacherRepository.list().catch(() => []) : Promise.resolve([])), [teacherOnly, teacherRepository]);
+  // the viewer's own teacher colours (users/{uid}.calendarColors, owner 2026-10-29)
+  const [personalColors, setPersonalColors] = useState(() => cleanPersonalColors(user.profile?.calendarColors));
+  const [colorsSaving, setColorsSaving] = useState(false);
   const availabilityState = useAsyncData(() => (availabilityRepository?.list ? availabilityRepository.list().catch(() => []) : Promise.resolve([])), [availabilityRepository]);
   // admin notes on lessons (Oleksiy 2026-10-15): all for an administrator, the own lessons' notes for a teacher
   // rooms and every lesson's room booking (Oleksiy 2026-10-15); bookings saved in this session count at once (the
@@ -248,7 +254,35 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
     ...lessonTeachers,
     ...(teacherState.data || []).filter((staff) => !staff.disabled && isTeacherAccount(staff) && !lessonTeachers.some((teacher) => teacher.id === staff.id || isSameTeacher(teacher.name, staff.name))).map((staff) => ({ id: staff.id, name: staff.name })),
   ].sort((a, b) => a.name.localeCompare(b.name, 'et'));
-  const tones = tonesOf(teacherState.data);
+  // colours: own choice → administrator's choice → the first free colour (teachers by uid), so defaults do not repeat
+  const colorStaff = (isAdmin ? teacherState.data : colorStaffState.data) || [];
+  const staffTeachers = colorStaff.filter((staff) => !staff.disabled && isTeacherAccount(staff)).map((staff) => ({ id: staff.id, name: staff.name }));
+  const staffOf = (teacher) => staffTeachers.find((staff) => staff.id === teacher.id) || staffTeachers.find((staff) => isSameTeacher(teacher.name, staff.name));
+  const tones = calendarTones({
+    people: [...staffTeachers, ...lessonTeachers.filter((teacher) => !staffOf(teacher))],
+    staff: colorStaff,
+    personal: personalColors,
+  });
+  // an old lesson with only a (slightly different) teacher name gets the colour of the matching account
+  lessonTeachers.forEach((teacher) => {
+    if (teacher.id in personalColors) tones.set(teacher.id, personalColors[teacher.id]);
+    else if (!tones.has(teacher.id) && staffOf(teacher)) tones.set(teacher.id, tones.get(staffOf(teacher).id));
+  });
+  const colorPeople = isAdmin ? teachers : [...lessonTeachers, ...(lessonTeachers.some((teacher) => teacher.id === user.uid) ? [] : [{ id: user.uid, name: user.displayName || 'Mina' }])].sort((a, b) => a.name.localeCompare(b.name, 'et'));
+  const changeColors = async (next) => {
+    const before = personalColors;
+    setPersonalColors(next);
+    if (!teacherRepository?.saveCalendarColors) return;
+    setColorsSaving(true);
+    try {
+      setPersonalColors(await teacherRepository.saveCalendarColors(user.uid, next));
+    } catch {
+      setPersonalColors(before);
+      setActionError('Värve ei saanud salvestada. Proovi uuesti.');
+    } finally {
+      setColorsSaving(false);
+    }
+  };
   // the teachers who can take over a lesson („Asendab”): active teacher accounts
   const substitutes = (teacherState.data || []).filter((staff) => !staff.disabled && isTeacherAccount(staff)).map((staff) => ({ id: staff.id, name: staff.name }));
   const hasActiveFilters = Boolean(filters.search || filters.teacher || filters.student);
@@ -778,6 +812,7 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       <div className="cal2-tools">
         <label className="cal2-search"><Search size={16} /><input aria-label="Otsi kalendrist" placeholder="Otsi õpilast või õpetajat" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} /></label>
         {teacherOnly ? null : <select className="cal2-select" aria-label="Filtreeri õpetaja järgi" value={filters.teacher} onChange={(event) => setFilters({ ...filters, teacher: event.target.value })}><option value="">Kõik õpetajad</option>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.name}</option>)}</select>}
+        {teacherOnly || isAdmin ? <CalendarColors people={colorPeople} tones={tones} personal={personalColors} saving={colorsSaving} onChange={changeColors} /> : null}
         {isAdmin ? <Button variant="secondary" onClick={() => setRoomsOpen(true)}><DoorOpen size={17} /> Kabinetid{activeRooms.length ? ` (${activeRooms.length})` : ''}</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={plannerOpen ? 'primary' : 'secondary'} aria-pressed={plannerOpen} onClick={() => { setPlannerOpen((value) => !value); setPanelKey(''); }}><UsersRound size={17} /> Planeerija</Button> : null}
         {teacherOnly || isAdmin ? <Button variant={fitOpen ? 'primary' : 'secondary'} aria-pressed={fitOpen} onClick={() => setFitOpen((value) => !value)}><CalendarClock size={17} /> Sobivad ajad</Button> : null}

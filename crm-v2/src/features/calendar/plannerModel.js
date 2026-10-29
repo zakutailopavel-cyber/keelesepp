@@ -13,6 +13,7 @@ import { dayOfDate, hasTimes, studentStateAt, usualDuration, usualOnline } from 
 import { hasLessonAhead } from './unplannedStudents.js';
 import { itemSubject, subjectName } from '../students/subjects.js';
 import { isSameTeacher } from '../../utils/teachers.js';
+import { perWeekKey, perWeekRows } from '../availability-poll/pollModel.js';
 
 export const PLAN_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export const DAY_LABELS = { Mon: 'E', Tue: 'T', Wed: 'K', Thu: 'N', Fri: 'R', Sat: 'L', Sun: 'P' };
@@ -55,6 +56,13 @@ function perWeekOf(own, today, series) {
   return Math.max(1, Math.min(MAX_PER_WEEK, most));
 }
 
+// lessons a week the learner asked for in „Sobivad ajad” (studentAvailability.perWeek, team 2026-10-29), 0 = not said
+export function wantedPerWeek(availability, subject, subjects = []) {
+  const rows = perWeekRows(availability?.perWeek, subjects);
+  const row = rows.find((item) => item.key === perWeekKey(subject)) || rows.find((item) => item.subject === subject);
+  return row ? Math.min(MAX_PER_WEEK, row.count) : 0;
+}
+
 // lessons a week the student's plan needs (its first track, or the Estonian one); held plan lessons are done
 function planNeeded(student, subject, tracks, lessons, today) {
   const plan = student.studyPlan;
@@ -70,9 +78,10 @@ function planNeeded(student, subject, tracks, lessons, today) {
  * weekly lesson ahead (a group lesson of the same teacher counts as planned too). `includePlanned` also takes the
  * directions with a weekly series ahead (a full re-plan; their series are listed in `replaces`, groups never).
  * teacherUid: only this teacher's directions. teachers: [{ id, name }] to find the account of a track named by name.
+ * studentTimes: Map studentId → studentAvailability; the learner's own „Mitu korda nädalas” wins over the history.
  * → [{ key, studentId, studentName, subject, level, teacherUid, teacher, duration, online, perWeek, planned, replaces }]
  */
-export function planningRequests({ students = [], events = [], today, teacherUid = '', teachers = [], includePlanned = false, lessons = [] }) {
+export function planningRequests({ students = [], events = [], today, teacherUid = '', teachers = [], includePlanned = false, lessons = [], studentTimes = new Map() }) {
   const out = [];
   for (const student of students) {
     if (!student?.id || student.active === false || student.convertedToParent) continue;
@@ -94,6 +103,7 @@ export function planningRequests({ students = [], events = [], today, teacherUid
       const series = own.filter((event) => event.recurring && hasLessonAhead(event, today));
       const inGroup = events.some((event) => event.isGroup && (event.studentIds || []).includes(student.id) && hasLessonAhead(event, today) && (uid || teacher) && sameTeacher(event, who));
       if (inGroup || (series.length && !includePlanned)) return;
+      const wanted = wantedPerWeek(studentTimes.get?.(student.id), subject, subjects);
       out.push({
         key: `${student.id}|${subject}|${uid || teacher}`,
         studentId: student.id,
@@ -105,7 +115,9 @@ export function planningRequests({ students = [], events = [], today, teacherUid
         duration: usualDuration(own, student.id, uid),
         online: usualOnline(own, student.id) ?? usualOnline(events, student.id) ?? false,
         // a student with an „Õppeplaan” and a target date gets at least the lessons a week the plan needs
-        perWeek: Math.max(perWeekOf(own, today, series), planNeeded(student, subject, list.length, lessons, today)),
+        // the learner's own wish replaces what the history says
+        perWeek: Math.max(wanted || perWeekOf(own, today, series), planNeeded(student, subject, list.length, lessons, today)),
+        wanted,
         planned: series.length > 0,
         replaces: series.map((event) => event.id),
       });

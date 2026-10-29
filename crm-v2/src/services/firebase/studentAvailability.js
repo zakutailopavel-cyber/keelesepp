@@ -1,11 +1,14 @@
 import { collection, deleteField, doc, getDoc, getDocs, serverTimestamp, setDoc } from 'firebase/firestore';
 import { requireFirebaseClient } from './client.js';
+import { cleanPerWeek } from '../../features/availability-poll/pollModel.js';
 
 // „Sobivad ajad” on the student's card (owner 2026-10-21): the student or the parent marks in their own CRM page every
 // hour that really suits a lesson; the administrator sees it on the card and gets a notification when it changes.
 // One document per card: studentAvailability/{studentId}. Half-hour slots „Mon-16:00” as on the public /ajad page.
 // `weeks` (owner 2026-10-29): a dated week that differs from the usual one, { 'YYYY-MM-DD' Monday: { slots, preferred } }
 // (availability-poll/pollModel.js timesForWeek); at most MAX_WEEKS, past weeks are dropped when saving.
+// `perWeek` (team 2026-10-29): lessons a week the learner wants, one number 1–7 per course, { 'eesti-keel': 2 }
+// (pollModel.js perWeekKey); kept as it is when a save does not pass it.
 export const MAX_WEEKS = 8;
 const listOf = (value) => (Array.isArray(value) ? value.filter((slot) => typeof slot === 'string').slice(0, 336) : []);
 function weeksOf(value) {
@@ -25,6 +28,7 @@ export function normalizeAvailability(id, data = {}) {
     slots: Array.isArray(data.slots) ? data.slots : [],
     preferred: Array.isArray(data.preferred) ? data.preferred : [],
     weeks: weeksOf(data.weeks),
+    perWeek: cleanPerWeek(data.perWeek),
     message: clean(data.message, 1000),
     changedAt: clean(data.changedAt, 40),
     changedByName: clean(data.changedByName),
@@ -60,7 +64,7 @@ export const studentAvailabilityService = {
     return snapshot.docs.map((item) => normalizeAvailability(item.id, item.data()));
   },
   // `week`: the Monday of a dated week — its own times (`reset`: back to the usual week); without it the usual week
-  async save(studentId, { slots = [], preferred = [], message = '', week = '', reset = false }, user, previous = null) {
+  async save(studentId, { slots = [], preferred = [], message = '', week = '', reset = false, perWeek }, user, previous = null) {
     if (!studentId) throw new Error('Õpilase kaart puudub.');
     const { db } = requireFirebaseClient();
     const role = roleOf(user);
@@ -77,6 +81,8 @@ export const studentAvailabilityService = {
       preferred: usual.preferred,
       // the whole map is replaced (mergeFields below), so a dropped or past week disappears
       weeks: Object.keys(kept).length ? kept : deleteField(),
+      // the whole map is replaced too; not passed → the stored numbers stay (the field is not listed in mergeFields)
+      ...(perWeek === undefined ? {} : { perWeek: Object.keys(cleanPerWeek(perWeek)).length ? cleanPerWeek(perWeek) : deleteField() }),
       message: clean(message, 1000),
       changedAt: new Date().toISOString(),
       changedByUid: user.uid,
@@ -91,7 +97,7 @@ export const studentAvailabilityService = {
     // mergeFields: the listed fields are replaced whole (merge: true would merge `weeks` key by key and keep a removed
     // week); fields not listed — reviewedAt of the administrator — stay
     await setDoc(doc(db, 'studentAvailability', studentId), value, { mergeFields: Object.keys(value) });
-    return normalizeAvailability(studentId, { ...previous, ...value, weeks: kept, updatedAt: value.changedAt });
+    return normalizeAvailability(studentId, { ...previous, ...value, weeks: kept, perWeek: perWeek === undefined ? previous?.perWeek : cleanPerWeek(perWeek), updatedAt: value.changedAt });
   },
   async markReviewed(studentId, user) {
     const { db } = requireFirebaseClient();
