@@ -26,6 +26,10 @@ export const TASK_CATALOGUE = Object.freeze({
   R11: t('Profiilid ja valik', 3, ['R1', 'S1b'], 0, 1),
   R12: t('Sõnumilõim', 2, ['W1b'], 0, 1),
   R13: t('Ennusta ja kontrolli', 2, ['R2'], 0, 1),
+  // B2 reading
+  R14: t('Väited lõikudele', 2, ['R2a'], 0, 1),
+  R15: t('Lühivastused tekstist (1–3 sõna)', 2, ['R2b'], 0, 1),
+  R16: t('Lausepank lünkadesse (üks üleliigne)', 3, ['R4'], 0, 1),
   // 3.2 Listening
   L01: t('Lühikesed klipid + pilt/sõna', 1, ['L1'], 0, 1),
   L02: t('Raadiolugu + valikvastused', 2, ['L2'], 0, 1),
@@ -50,6 +54,10 @@ export const TASK_CATALOGUE = Object.freeze({
   W10: t('Toimeta oma teksti', 3, ['W2'], 0, 1),
   W11: t('Plaan enne kirjutamist', 3, ['W2'], 0, 1),
   W12: t('Teisele adressaadile ümber', 3, ['W1b'], 0, 1),
+  // B2 writing (docs/COURSE_FINAL_SHAPE_B2.md §3; `exam` = Harno B2 ids)
+  W13: t('Poolametlik kiri (≈ 140 sõna)', 4, ['W1'], 0, 1),
+  W14: t('Arutlus: poolt ja vastu (≈ 180 sõna)', 4, ['W2b'], 0, 1),
+  W15: t('Kokkuvõte andmetest + kommentaar (≈ 180 sõna)', 4, ['W2a'], 0, 1),
   // 3.4 Speaking
   S01: t('Tutvustav vestlus', 3, ['S0'], 0, 1),
   S02: t('Teemaküsimused', 3, ['S1a'], 1, 2),
@@ -68,6 +76,9 @@ export const TASK_CATALOGUE = Object.freeze({
   S14: t('Mida sa teeksid?', 4, ['S1a', 'S1b'], 0, 1),
   // the learner records it at home, one in every teaching lesson's Kasuta (finalShape V16); the pair tasks stay in the lesson
   S15: t('Kodune monoloog (salvestus)', 3, ['S1a'], 0, 4),
+  // B2 speaking: the 1-minute talk at a meeting from a topic card, and the pair's joint position with argument cards A/B
+  S16: t('Sõnavõtt koosolekul (1 min, teemakaart)', 4, ['S1'], 0, 2),
+  S17: t('Arutelu argumendikaartidega (ühine seisukoht)', 4, ['S2'], 0, 2),
   // 3.5 Language
   G01: t('Märka', 1, [], 2, 4),
   G02: t('Leia reegel', 2, ['R3'], 1, 2),
@@ -94,9 +105,19 @@ export const HARNO_FORMATS = Object.freeze({
   R1: 'R', R2: 'R', R3a: 'R', R3b: 'R', R4: 'R',
   S0: 'S', S1a: 'S', S1b: 'S', S2: 'S',
 });
-export const isHarnoFormat = (id) => Object.prototype.hasOwnProperty.call(HARNO_FORMATS, id);
+// Harno B2 task ids (docs/COURSE_FINAL_SHAPE_B2.md §2): the same letters, the B2 exam's own tasks
+export const HARNO_FORMATS_B2 = Object.freeze({
+  W1: 'W', W2a: 'W', W2b: 'W',
+  L1: 'L', L2: 'L', L3: 'L', L4: 'L',
+  R1: 'R', R2a: 'R', R2b: 'R', R3: 'R', R4: 'R',
+  S0: 'S', S1: 'S', S2: 'S',
+});
+// a tag may name a format of either exam; which exam a course prepares for is its profile (examProfiles.js)
+export const isHarnoFormat = (id) => Object.prototype.hasOwnProperty.call(HARNO_FORMATS, id) || Object.prototype.hasOwnProperty.call(HARNO_FORMATS_B2, id);
 // W1a / W1b → W1, L3a / L3b → L3, R3a / R3b → R3; S1a, S1b, S2 stay apart (§6.4 counts them apart)
 export const harnoFamily = (id) => (/^(W1|W2|L3|R3)[ab]$/.test(id) ? id.slice(0, -1) : id);
+// B2: W2a / W2b → W2, R2a / R2b → R2
+export const harnoFamilyB2 = (id) => (/^(W2|R2)[ab]$/.test(id) ? id.slice(0, -1) : id);
 
 // the block types that are not tasks for the variety rules (§8: text, tip, vocab, phrase bank, review, rubric, self-check,
 // notice; notice counts as G01 only for V3) — plus pictures, charts and the exam part header
@@ -162,3 +183,13 @@ export const FORMAT_PRACTICE = Object.freeze({
 });
 export const VARIANT_MIN = 3; // W1a, W1b, W2a, W2b, L3a, L3b, R3a, R3b ≥ 3 each
 export const VARIANTS = ['W1a', 'W1b', 'W2a', 'W2b', 'L3a', 'L3b', 'R3a', 'R3b'];
+
+// B2 (docs/COURSE_FINAL_SHAPE_B2.md §6): the module each B2 format is first taught in, and how often it is practised
+export const FORMAT_INTRO_B2 = Object.freeze({ S1: 2, W1: 2, L1: 3, R2a: 3, S2: 4, L3: 4, R3: 4, W2b: 5, R1: 6, L2: 6, R4: 7, W2a: 7, L4: 8, R2b: 8 });
+export const FORMAT_PRACTICE_B2 = Object.freeze({
+  R1: p(4, 4, 9, 3), R2: p(4, 4, 9, 3), R3: p(4, 4, 9, 3), R4: p(4, 4, 9, 3),
+  L1: p(4, 4, 9, 3), L2: p(4, 4, 9, 3), L3: p(4, 4, 9, 3), L4: p(4, 4, 9, 3),
+  W1: p(4, 4, 9, 3), W2: p(4, 4, 9, 3),
+  S1: p(4, 5, 10, 2), S2: p(4, 5, 10, 2),
+});
+export const VARIANTS_B2 = ['W2a', 'W2b', 'R2a', 'R2b'];

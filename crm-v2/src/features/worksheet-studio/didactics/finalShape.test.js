@@ -17,8 +17,8 @@ const lesson = (num, { module = Math.ceil(num / 5), assessment = false, archetyp
 const checks = (problems, prefix) => problems.filter((x) => x.check.startsWith(prefix));
 
 describe('task catalogue', () => {
-  it('has the 63 types of §3 with a skill, a level 1–4 and per-module bounds', () => {
-    expect(Object.keys(TASK_CATALOGUE)).toHaveLength(63);
+  it('has the 63 types of §3 and the 8 B2 types with a skill, a level 1–4 and per-module bounds', () => {
+    expect(Object.keys(TASK_CATALOGUE)).toHaveLength(71);
     Object.entries(TASK_CATALOGUE).forEach(([id, x]) => {
       expect('RLWSG').toContain(id[0]);
       expect([1, 2, 3, 4]).toContain(x.level);
@@ -234,5 +234,35 @@ describe('V15: caps', () => {
     const problems = finalShapeProblems(lessons);
     expect(checks(problems, 'V15-errorfix')).toHaveLength(1);
     expect(checks(problems, 'V15-kasuta').map((x) => x.lessonId)).toEqual(['a2b1-008']);
+  });
+});
+
+describe('the B2 profile (COURSE_FINAL_SHAPE_B2.md)', () => {
+  const b2 = (num, more = {}) => ({ ...lesson(num, more), moduleId: `b1b2-module-${String(more.module || Math.ceil(num / 5)).padStart(2, '0')}` });
+  it('asks for the B2 speaking types instead of the B1 ones', () => {
+    const list = [6, 7, 8, 9].map((n) => b2(n));
+    expect(checks(finalShapeProblems(list), 'V3-min-S04')).toHaveLength(1);
+    const problems = finalShapeProblems(list, { profile: 'b2' });
+    expect(checks(problems, 'V3-min-S04')).toHaveLength(0);
+    expect(checks(problems, 'V3-min-S16')).toHaveLength(1);
+    expect(checks(problems, 'V3-min-S17')).toHaveLength(1);
+  });
+  it('counts the B2 formats and their families (W2a / W2b → W2, R2a / R2b → R2)', () => {
+    const list = [b2(6, { tr: [t('w', 'W14', { harno: 'W2b' })] })];
+    const problems = finalShapeProblems(list, { profile: 'b2' });
+    expect(problems.find((x) => x.check === 'V6-total-W2').text).toMatch(/^W2: harjutatud 1 korda/);
+    expect(checks(problems, 'V6-variant-W2b')[0].text).toMatch(/1 korda/);
+    expect(checks(problems, 'V6-total-S1b')).toHaveLength(0);
+  });
+  it('wants an exam corner from module 2 and allows tingiv kõneviis from the start', () => {
+    const say = { id: 's', type: 'speaking', goal: 'g_use', data: { instruction: 'Mida sa teeksid?' }, tag: { task: 'S14' } };
+    const list = [b2(6, { module: 2, tr: [say] })];
+    expect(checks(finalShapeProblems(list, { profile: 'b2' }), 'V12-corner')).toHaveLength(1);
+    expect(checks(finalShapeProblems(list, { profile: 'b2' }), 'V16-conditional')).toHaveLength(0);
+    expect(checks(finalShapeProblems(list), 'V12-corner')).toHaveLength(0);
+    expect(checks(finalShapeProblems(list), 'V16-conditional')).toHaveLength(1);
+  });
+  it('refuses an unknown profile', () => {
+    expect(() => finalShapeProblems([], { profile: 'c1' })).toThrow(/profiil/);
   });
 });
