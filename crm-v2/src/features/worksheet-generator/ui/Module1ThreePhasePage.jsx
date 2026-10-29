@@ -93,7 +93,7 @@ export default function Module1ThreePhasePage({ repository = lessonWorksheetsSer
   return (
     <div className="page-stack">
       <PageHeader
-        eyebrow="Õppevara · A2 → B1"
+        eyebrow="Õppevara · Eesti keel B1"
         title="Moodul 1 · Avasta + Harjuta + Kasuta"
         description="001–005 koostatakse uue KeeleSepp standardi järgi: grammatiline selgroog, tsükliline sõnavara, 3 vormi + vene tõlge, vähemalt 5 küsimust küsimusplokis ja eri ülesandetüübid."
       />

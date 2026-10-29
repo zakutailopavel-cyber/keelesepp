@@ -1,3 +1,5 @@
+import { courseForLevel, courseNameForCurriculum } from '../curriculum/courseNames.js';
+
 export const LIBRARY_TYPES = Object.freeze({
   lesson: { label: 'Tunnikava', tone: 'success' },
   worksheet: { label: 'Tööleht', tone: 'info' },
@@ -130,7 +132,8 @@ function libraryItem(kind, source) {
     ageGroup: source.ageGroup || source.ageRange || source.targetAge || source.age || '',
     topic: source.topic || '',
     curriculumId: source.curriculumId || source.programId || source.planId || '',
-    curriculum: source.curriculumTitle || source.curriculumName || source.programName || source.planTitle || '',
+    // the course name by the target level (curriculum/courseNames.js) wins over the title stored when it was installed
+    curriculum: courseNameForCurriculum(source.curriculumId) || source.curriculumTitle || source.curriculumName || source.programName || source.planTitle || '',
     examPart: source.examPart || '',
     source,
   };
@@ -279,7 +282,12 @@ export function subjectFacets(items) {
 export function levelFacets(items) {
   const counts = new Map();
   for (const item of items) counts.set(item.level || '—', (counts.get(item.level || '—') || 0) + 1);
-  return [...counts.entries()].map(([key, count]) => ({ key, label: key === '—' ? 'Tasemeta' : key, count }))
+  // a course level carries its course name as a hint („Eesti keel B1 · A2 tasemelt · Harno B1 eksamini”); C1 is the
+  // „C1 süvakursus”, every other level keeps its short label under the subject tab
+  return [...counts.entries()].map(([key, count]) => {
+    const course = courseForLevel(key);
+    return { key, label: key === '—' ? 'Tasemeta' : (key === 'C1' ? course.name : key), count, ...(course ? { title: [course.name, course.subtitle].filter(Boolean).join(' · ') } : {}) };
+  })
     .sort((a, b) => levelRank(a.key) - levelRank(b.key) || a.label.localeCompare(b.label, 'et'));
 }
 

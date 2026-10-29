@@ -461,7 +461,7 @@ export default function LibraryPage({ repository = defaultRepository, studentRep
       ) : null}
       {levels.length > 1 ? (
         <div className="lib2-levels" role="group" aria-label="Tase">
-          {levels.map((facet) => <button type="button" key={facet.key} className={level === facet.key ? 'is-active' : ''} aria-pressed={level === facet.key} onClick={() => setParam({ tase: facet.key, moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
+          {levels.map((facet) => <button type="button" key={facet.key} title={facet.title} className={level === facet.key ? 'is-active' : ''} aria-pressed={level === facet.key} onClick={() => setParam({ tase: facet.key, moodul: '' })}>{facet.label} <span>{facet.count}</span></button>)}
           <button type="button" className={!level ? 'is-active' : ''} aria-pressed={!level} onClick={() => setParam({ tase: 'all', moodul: '' })}>Kõik tasemed</button>
         </div>
       ) : null}
