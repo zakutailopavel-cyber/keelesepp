@@ -1,3 +1,54 @@
+## 2026-10-29 · agent/b1-m17-final — B1 module 17 „B1 lugemine ja kirjutamine” in the final shape + the R + W check
+
+- Base: `main` 3155b36 (2026-10-29, after #869 module 16). Draft PR from `agent/b1-m17-final`. Content only; no production
+  data, no publishing, no deploy.
+- Asked (owner): module 17 (a2b1-081…085) to the final shape like modules 2–16 (`COURSE_FINAL_SHAPE_B1.md` §6.2 row 17;
+  085 = Kontroll, Harno B1 reading + writing, timed; V16: in-lesson pair task + home recording in every teaching lesson;
+  081 needs a corner other than R3 (079's corner); V1/V2 against 079 and 086).
+- Done: `b1/module17.js` rewritten (March – April 2028 storyline: Valgevase 7's notices and new neighbour Ruslan, Keelekool
+  Sõna's mock results and Maret's extra lessons, the Harno exam registration, the house's talgud, a letter to Lena in
+  Berlin). §6.2 row 17 is changed (documented in §6.2): grammarPlan puts the impersonal in 081, but AVAS was already at the
+  course maximum (12, module 1 included), so 081 is LUGU R→S and KUUL moves to 083:
+  - 081 LUGU R→S — Ruslan's first week with six notices (R02, cliffhanger: the bike), the impersonal (notice, G02 table,
+    G13), the notices relayed twice (S13, fluency), 8-min writing (W06, fluency); personal → impersonal (G05), district radio
+    (L04), corner **R1** = services for the house, Tiina's notice (G03), errors (G06), topic questions (S02); Kasuta: Tiina's
+    voicemail → notes (L07), main **S04** call to the painting firm, home recording (S15), reply to Tiina (W08).
+  - 082 LUGE R→W — city paper on reading strategies (R13), verb government (notice, G08, G04, G05), survey (S09, fluency),
+    the last exam told twice (S07, fluency); Maret's feedback (R06), her voice message step by step (L09), corner **R4** =
+    Sofia's reply to Maret, nouns from verbs (G09), translation (G10), info gap on scores (S05); Kasuta: three ways to study
+    (R11), plan agreed with Olena (S03), home recording (S15), main **W04** letter to Helgi.
+  - 083 KUUL L→S — radio „Päevateema” with adviser Merit Kask (L02), reported speech and the impersonal past (notice, G02,
+    G07, G03 Sofia's message), 4-3-2 (S08), the module's one **S14** (fluency); dictation (L08), corner **L3a** = Sofia and
+    Olena on the phone, the school's mock-day notice (R07), chat with Igor (R12), G13, topic questions (S02); Kasuta:
+    Krista's voicemail → consequences (L06, `level: 3`), questionnaire (W01), main **S04** call to the school, the last week
+    ranked (S12), home recording (S15).
+  - 084 KIRJ L→W — Maret on notices and letters (L05), Lena's letter as a model (R03), frame and linking (notice, G04, W09),
+    winter and spring twice (S06, fluency), paper or screen (S11, fluency); corner **L1** = ten clips, Sofia's draft by
+    paragraph (R09), Tiina's draft with a bank (R04), crossword (G11), errors (G06), Ruslan's message made formal (W12);
+    Kasuta: the house poll (R08, `level: 3`, application), notice agreed with Tiina (S03), voice message to neighbours (S15),
+    plan (W11), notice (W02), main **W10** letter to Lena written and edited (`level: 4`).
+  - 085 EKS (Kontroll 17) — Harno B1 reading R1 (9), R2 (6), R3b (10), R4 (8) = 33 p, 50 min, and writing W1a + W2b = 20 p,
+    35 min, target 80 % (27 / 16); warm-up sheet with how April ended; after-reading and after-check tasks fill the sheets.
+- Also: goals and can-do 081–085 in `b1/lessonGoals.js`; module-17 entry of `docs/COURSE_CAST.md` rewritten (old names
+  Kaire and Ilmar dropped); module-17 note in `COURSE_FINAL_SHAPE_B1.md` §6.2; pitfalls in `FINAL_SHAPE_AUTHORING.md` §8.10.
+  No picture briefs exist for module 17 (no `art/visuals/b1-module-17.js`), none added.
+- Audio: 8 recordings (TartuNLP, free) in `public/audio/a2b1-081…084` (1 rebuilt, 7 new: 93–149 s); the 3 old files and manifest entries of removed blocks deleted. 085 has no listening.
+- Checks: `course:final-shape --module 17` 56 → 0. `finalShapeBaseline.json` 128 → 59 problems (module 17 −56, nine V2/V7
+  lines of module 18 gone with the old module-17 texts, course `V5-course-KIRJ`, `V6-corner-L3`, `V6-corner-R1`,
+  `V6-corner-R4` closed); no line added. Older quality gate and strict gate for module 17: 0; module 17 reuses 66 % of
+  module 16's box stems, module 18 reuses 56 % of module 17's (≥ 30 %). `npx eslint src`: 0 errors (17 old warnings). Full `npx vitest run`: 402 files passed (1 skipped), 2744 tests passed, 4 skipped. Vabamorf speller: 0
+  unknown words except names (Daria, Harkiv, Harno, Lena, Merit, Olena, IT-arendaja) and the technical value `kusimustik`.
+- Limits: teaching sheets are 40–53 min (several at the 40-min floor); R08 (084) and L06 (083) in Kasuta carry `level: 3`
+  (application / consequences); W10 (084) carries `level: 4`; the check's R3b is a `gaps` text with a bank and its R2 text
+  has one unscored opinion question (as in 060–080). Real facts kept simple: Harno runs the proficiency exams, registration
+  is in the exam information system, four parts, 60 % and no part at 0, an identity document; Keeletee is a free B1
+  e-course; Kalamaja is a milieu area of wooden houses; „Teeme ära!” (May 2008, about 50 000 volunteers) grew into World
+  Cleanup Day. The house's works, the firm, the support for windows, the school's prices, the mock day and all dates are
+  fictional. Course corners still short: L1 (3 of 4), L4, S1a, S1b (module 18 has three teaching lessons for them).
+- Next safe step: owner reviews module 17 in „Kursuse tootmine” and publishes it; the module 18 author starts 086 (PROB L→S
+  per §6.2) with a corner other than L1 (084's corner), takes L4 / S1a / S1b corners if possible, and re-checks V1/V2
+  against 084.
+
 ## 2026-10-29 · agent/b1-m16-final — B1 module 16 „Arvamus, võrdlemine ja põhjendamine” in the final shape + Mock 2
 
 - Base: `main` 30de061 (2026-10-29, after #868 module 15). Draft PR from `agent/b1-m16-final`. Content only; no production

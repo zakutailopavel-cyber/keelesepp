@@ -242,8 +242,26 @@ Keep facts consistent; add new facts here when a module adds them.
 - **Module 18:** examiner **Reet Kallas**; Sofia's exam partner **Aleksei**, classmate **Inga**; parent **Kristiina**
   (daughter with a gluten allergy); supplier **Priit** („Värske Toit”); bus company „Kõrve Reisid”. Sofia passes B1 in
   May; Jaan is kitchen head from August.
-- **Module 17:** Sofia lives on **Valgevase tänav**; new neighbour **Ruslan**; school administrator **Kaire**; Helgi's
-  neighbour **Ilmar**.
+- **Module 17 (final shape, 2026-10-29, March – April 2028):** Sofia's Kalamaja house **Valgevase 7** (8 flats; Tiina
+  flat 1 and head of the association, Sofia flat 4, owner **Heino Sild**). New neighbour **Ruslan** (flat 3 from 1 March 2028,
+  IT developer from Narva, Estonian still weak, a wife and a small daughter; his friend **Artur** in Narva). March notices:
+  water off Tuesday 14 March 9–15 (pipes in the cellar), chimney sweep Thursday 16 March 10–14 (no stove that morning), bike
+  room cleaned Saturday 25 March (bikes without a label go to the courtyard shed — Ruslan thinks his bike was stolen),
+  street washing on Tuesday nights in April, a brown biowaste bin. Tiina is in Pärnu with her sister (knee operation) from
+  26 March for two weeks. The façade is painted and the wooden windows repaired 3–21 April by **„Puitmaja Värv”** (project
+  manager **Rene**; scaffolding Monday 3 April from 8, cars out of the courtyard 3–7 April, two attic windows on 10 April,
+  attic empty by 31 March). Talgud Saturday 22 April 10–15 (12 people came; grill at 15; flat 8 gave 20 € for flowers; the
+  fence painted before noon). **Sofia's exam:** Keelekool Sõna mock on 11 March — reading 24/33, listening 25/30, writing
+  13/20, speaking 17/20 (77 %); Maret's four extra lessons in April (25 €, Tuesdays at 19, together with Olena 20 € each);
+  registered for the Harno B1 exam in late March (deadline Friday 31 March): written part Saturday 20 May 2028 (be there at
+  9.30), speaking Monday 22 May at 14.40 (Liis gave her the afternoon off); the school's last mock Saturday 6 May (free for
+  course learners). **Olena** registers too; Daria's dance competition in Tartu on 20 May (she goes with her coach), the
+  family goes to Harkiv in June. **Igor** passed B1 last year (rushed in the reading part). Radio „Päevateema” (host Ülle):
+  language adviser **Merit Kask** on registering and the exam day; Maret on notices and letters. Kalamaja library: librarian
+  **Leida**'s reading circle, a shelf of easy-Estonian books. **Lena** (Berlin) changed jobs to a children's-book publisher
+  in February and invites Sofia for 10–17 July. **Helgi** visits on 28–29 April. Maret takes her own Italian exam on 13
+  April. Other names: chimney sweep **Kaur**. The house's works, the firm, the amounts, the school's prices and all dates are
+  fictional; the old module-17 names Kaire and Ilmar are dropped.
 - **B2 module 1 (one year later):** Sofia passed B1; Liis offers her the lead of the new Tartu warehouse project if she
   reaches B2 by March; trainee **Laura**; warehouse shift leader **Gert**; team coach **Hendrik Ilves**; Markus
   photographs weddings at weekends; Jelena has a son.
