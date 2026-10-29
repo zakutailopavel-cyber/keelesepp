@@ -17,6 +17,10 @@ Context: about 240 lessons per week, several teachers, mostly weekly recurring i
 - White surfaces, thin borders, the same chips, buttons and typography as the new Õppevara.
 - Lesson colour = teacher (soft tint + strong left edge), status shown by an icon, not a new colour:
   planned (no icon), done ✓, absent (student / teacher) ⨯, cancelled (struck through, faded).
+- Teacher colour (2026-10-29, `calendarGrid.calendarTones`): 12 tones (`.tone-0…11`). Order: the viewer's own choice
+  (`users/{uid}.calendarColors = { teacherKey: tone }`, „Värvid” in the toolbar, „Taasta vaikimisi”) → the
+  administrator's school colour (`users/{uid}.calendarTone`, teacher page „Värv kalendris”) → the first colour no other
+  teacher has, teachers taken by uid. Teachers also read the staff list for this, so defaults match the admin's view.
 
 ### 2. Week and day views with a real time grid
 - Rows = time (default 08:00–21:00, scroll to the current hour), columns = days (week) or teachers (day view for admin).

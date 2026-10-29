@@ -105,10 +105,46 @@ describe('planSubstitute', () => {
 describe('chosen teacher colours (owner 2026-10-29)', () => {
   it('a chosen colour wins over the hash, by uid and by name; no choice keeps the hash', async () => {
     const { teacherTone, tonesOf } = await import('./calendarGrid.js');
-    const tones = tonesOf([{ id: 'u1', name: 'Jegor', calendarTone: 4 }, { id: 'u2', name: 'Anna', calendarTone: '' }, { id: 'u3', name: 'X', calendarTone: 9 }]);
+    const tones = tonesOf([{ id: 'u1', name: 'Jegor', calendarTone: 4 }, { id: 'u2', name: 'Anna', calendarTone: '' }, { id: 'u3', name: 'X', calendarTone: 12 }]);
     expect(teacherTone('u1', tones)).toBe(4);
     expect(teacherTone('Jegor', tones)).toBe(4);
     expect(teacherTone('u2', tones)).toBe(teacherTone('u2'));
     expect(tones.has('u3')).toBe(false);
+  });
+});
+
+describe('personal and distinct teacher colours (owner 2026-10-29)', () => {
+  const people = Array.from({ length: 12 }, (_, index) => ({ id: `u${String(index).padStart(2, '0')}`, name: `Õpetaja ${index}` }));
+  it('gives every teacher a different colour while the palette lasts, in a stable order', async () => {
+    const { calendarTones, TONE_NAMES } = await import('./calendarGrid.js');
+    expect(TONE_NAMES).toHaveLength(12);
+    const tones = calendarTones({ people });
+    expect(new Set(people.map((person) => tones.get(person.id))).size).toBe(12);
+    expect(tones.get('Õpetaja 3')).toBe(tones.get('u03'));
+    const shuffled = calendarTones({ people: [...people].reverse() });
+    people.forEach((person) => expect(shuffled.get(person.id)).toBe(tones.get(person.id)));
+    const thirteen = calendarTones({ people: [...people, { id: 'u99', name: 'Lisa' }] });
+    expect(thirteen.get('u99')).toBeGreaterThanOrEqual(0);
+    expect(thirteen.get('u99')).toBeLessThan(12);
+  });
+  it('the administrator\'s colour is the default, a personal one overrides it, and automatic colours avoid both', async () => {
+    const { calendarTones } = await import('./calendarGrid.js');
+    const two = [{ id: 'a', name: 'Anhelina' }, { id: 'j', name: 'Jegor' }, { id: 'k', name: 'Kati' }];
+    const staff = [{ id: 'j', name: 'Jegor', calendarTone: 0 }];
+    const school = calendarTones({ people: two, staff });
+    expect(school.get('j')).toBe(0);
+    expect(school.get('a')).not.toBe(0);
+    expect(new Set(two.map((person) => school.get(person.id))).size).toBe(3);
+    const mine = calendarTones({ people: two, staff, personal: { j: 4, a: 1 } });
+    expect(mine.get('j')).toBe(4);
+    expect(mine.get('a')).toBe(1);
+    expect([1, 4]).not.toContain(mine.get('k'));
+  });
+  it('cleans a personal map: only known colours, at most 80 teachers', async () => {
+    const { cleanPersonalColors } = await import('./calendarGrid.js');
+    expect(cleanPersonalColors({ a: 3, b: '5', c: 12, d: -1, e: 'x', f: null })).toEqual({ a: 3, b: 5 });
+    expect(cleanPersonalColors(null)).toEqual({});
+    expect(cleanPersonalColors(['a'])).toEqual({});
+    expect(Object.keys(cleanPersonalColors(Object.fromEntries(Array.from({ length: 90 }, (_, i) => [`t${i}`, 1]))))).toHaveLength(80);
   });
 });
