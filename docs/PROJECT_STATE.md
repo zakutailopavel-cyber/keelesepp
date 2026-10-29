@@ -1,3 +1,18 @@
+## 2026-10-29 · agent/availability-weeks — „Sobivad ajad” week by week
+
+- Owner: „ученик должен иметь возможность заполнять свой график и наперёд, чтобы работающие тоже могли удобно выбирать времена”.
+- Done: the card „Millal sulle tund sobib?” / „Sobivad ajad” has chips „Tavaline nädal” + this week and the next three.
+  A dated week may get its own times (`studentAvailability.weeks = { Monday: { slots, preferred } }`, at most 8, past
+  weeks dropped on save); „Kasuta tavalist nädalat” removes it. The calendar (studentTimesModel) reads the week of the
+  date. Save is one write with `mergeFields` (the weeks map is replaced whole; the admin's reviewedAt stays).
+- Rules: `firestore.rules` availabilityValid allows `weeks` (map, ≤ 8); emulator test in security-access. **The rules
+  must be deployed before the UI is live** (otherwise saving a dated week is refused).
+- Files: availability-poll/{pollModel,AvailabilityCard,availabilityPoll.css}, services/firebase/studentAvailability.js,
+  calendar/studentTimesModel.js, firestore.rules, tests.
+- Checks: eslint 0 errors; vitest 2771 passed.
+- Not changed: the announcement answer (availability snapshot) still stores the usual week.
+- Next safe step: deploy firestore rules (owner's OK), then merge.
+
 ## 2026-10-29 · agent/student-board-menu — „Tahvel” in the student's menu
 
 - Owner: „добавь ученикам их доску”. The board outside lessons (/board, BoardPage) existed, but a pure student's short

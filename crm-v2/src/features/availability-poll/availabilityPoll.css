@@ -107,3 +107,11 @@
 .availability-card__comment { display: grid; gap: 4px; font-weight: 700; font-size: .9rem; }
 .availability-card__comment textarea { font: inherit; font-weight: 400; padding: 8px 10px; border: 1px solid #cdd7df; border-radius: 10px; }
 .availability-card__actions { display: flex; gap: 8px; }
+/* week by week (owner 2026-10-29) */
+.availability-weeks { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.availability-weeks__chip { border: 1px solid #d0d5dd; background: #fff; border-radius: 999px; padding: 5px 11px; font: inherit; font-size: .86rem; cursor: pointer; color: #344054; }
+.availability-weeks__chip.is-active { background: #2f6f5e; border-color: #2f6f5e; color: #fff; }
+.availability-weeks__chip:disabled { cursor: default; opacity: .7; }
+.availability-weeks__dot { color: #e69500; }
+.availability-weeks__chip.is-active .availability-weeks__dot { color: #ffe68a; }
+.poll-week { margin: 0 0 6px; font-size: .9rem; }
