@@ -1,4 +1,5 @@
-// The final-shape gates of the B1 course (docs/COURSE_FINAL_SHAPE_B1.md §8, rules V1–V16). Pure and node-importable:
+// The final-shape gates of the B1 course (docs/COURSE_FINAL_SHAPE_B1.md §8, rules V1–V16) and, with the profile 'b2', of
+// the B1→B2 course (docs/COURSE_FINAL_SHAPE_B2.md: the same rules against the Harno B2 exam). Pure and node-importable:
 // the course test (admin/course/finalShape.test.js), the summary tool (tools/course-audit/final-shape.mjs) and the unit
 // tests (finalShape.test.js) call the same functions.
 //
@@ -9,8 +10,8 @@
 import { blockMinutes } from './timeEstimate.js';
 import { isInLesson } from '../engine/inLesson.js';
 import {
-  ARCHETYPES, FORMAT_INTRO, FORMAT_PRACTICE, LEAD_PAIRS, TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS,
-  harnoFamily, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
+  ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_B2, FORMAT_PRACTICE, FORMAT_PRACTICE_B2, LEAD_PAIRS, TASK_CATALOGUE, TEACHING_ARCHETYPES,
+  VARIANT_MIN, VARIANTS, VARIANTS_B2, harnoFamily, harnoFamilyB2, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
 } from './taskCatalogue.js';
 
 export const PHASES = ['discover', 'practice', 'transfer'];
@@ -30,6 +31,24 @@ export const FINAL_SHAPE = Object.freeze({
   lastPracticeLesson: 89,
   examTimingFromModule: 9,
   mocks: [60, 80, 89, 90],
+});
+
+// what differs per course (the exam it prepares for): the Harno formats, when each is introduced and how often it is
+// practised, the speaking task types every module needs, and the numbers of FINAL_SHAPE a profile overrides
+const B1_MIN = Object.fromEntries(Object.entries(TASK_CATALOGUE).map(([id, x]) => [id, x.min]));
+export const PROFILES = Object.freeze({
+  b1: {
+    exam: 'B1', family: harnoFamily, intro: FORMAT_INTRO, practice: FORMAT_PRACTICE, variants: VARIANTS, min: B1_MIN,
+    formsLabel: 'A1–B1', shape: FINAL_SHAPE,
+  },
+  // COURSE_FINAL_SHAPE_B2.md §6–§7: the learners passed B1, so exam corners, timed exam parts and tingiv kõneviis start
+  // in module 2; the B2 speaking formats (S16 talk, S17 argument cards) replace the B1 ones (S03 idea card, S04 phone)
+  b2: {
+    exam: 'B2', family: harnoFamilyB2, intro: FORMAT_INTRO_B2, practice: FORMAT_PRACTICE_B2, variants: VARIANTS_B2,
+    min: { ...B1_MIN, S03: 0, S04: 0, S16: 1, S17: 1 },
+    formsLabel: 'A1–B2',
+    shape: { ...FINAL_SHAPE, v12: { ...FINAL_SHAPE.v12, fromModule: 2 }, v16: { conditionalFrom: 1 }, examTimingFromModule: 2 },
+  },
 });
 
 // ---------- input ----------
@@ -95,7 +114,7 @@ function sequenceProblems(lessons, out) {
 }
 
 // ---------- V3, V4: variety inside a module ----------
-function moduleVarietyProblems(lessons, out) {
+function moduleVarietyProblems(lessons, out, P) {
   for (const [, list] of Object.entries(byModule(teaching(lessons)))) {
     const first = list[0];
     const tasks = list.flatMap((l) => lessonTasks(l).map((x) => x.b));
@@ -112,7 +131,8 @@ function moduleVarietyProblems(lessons, out) {
     const g = distinct.filter((id) => skillOf(id) === 'G').length;
     if (g < FINAL_SHAPE.v3.language) out.push({ rule: 'V3', check: 'V3-skill-G', ...at, text: `moodulis ${g} eri keeleülesannet (vähemalt ${FINAL_SHAPE.v3.language})` });
     Object.entries(TASK_CATALOGUE).forEach(([id, t]) => {
-      if (t.min && (count[id] || 0) < t.min) out.push({ rule: 'V3', check: `V3-min-${id}`, ...at, text: `${id} ${t.name}: moodulis ${count[id] || 0} (vähemalt ${t.min})` });
+      const min = P.min[id];
+      if (min && (count[id] || 0) < min) out.push({ rule: 'V3', check: `V3-min-${id}`, ...at, text: `${id} ${t.name}: moodulis ${count[id] || 0} (vähemalt ${min})` });
       if (t.max !== null && (count[id] || 0) > t.max) out.push({ rule: 'V4', check: `V4-max-${id}`, ...at, text: `${id} ${t.name}: moodulis ${count[id]} (kuni ${t.max})` });
     });
     const total = tasks.length || 1;
@@ -165,17 +185,18 @@ function archetypeProblems(lessons, out) {
 
 // ---------- V6: Harno format coverage ----------
 const PARTS = { W: 'Kirjutamine', L: 'Kuulamine', R: 'Lugemine', S: 'Rääkimine' };
-function harnoProblemsCourse(lessons, out) {
-  const practice = lessons.filter((l) => l.num <= FINAL_SHAPE.lastPracticeLesson).flatMap((l) => lessonTasks(l)
-    .filter(({ b }) => harnoOf(b)).map(({ b }) => ({ format: harnoOf(b), family: harnoFamily(harnoOf(b)), module: l.module, exam: l.assessment })));
-  Object.entries(FORMAT_PRACTICE).forEach(([family, need]) => {
+function harnoProblemsCourse(lessons, out, P) {
+  const S = P.shape;
+  const practice = lessons.filter((l) => l.num <= S.lastPracticeLesson).flatMap((l) => lessonTasks(l)
+    .filter(({ b }) => harnoOf(b)).map(({ b }) => ({ format: harnoOf(b), family: P.family(harnoOf(b)), module: l.module, exam: l.assessment })));
+  Object.entries(P.practice).forEach(([family, need]) => {
     const list = practice.filter((x) => x.family === family);
     const exam = list.filter((x) => x.exam).length;
     const corner = list.length - exam;
     if (list.length < need.total) out.push({ rule: 'V6', check: `V6-total-${family}`, course: true, phase: '*', text: `${family}: harjutatud ${list.length} korda (vähemalt ${need.total})` });
     if (exam < need.exam) out.push({ rule: 'V6', check: `V6-exam-${family}`, course: true, phase: '*', text: `${family}: eksamitundides ${exam} korda (vähemalt ${need.exam})` });
     if (corner < need.corner) out.push({ rule: 'V6', check: `V6-corner-${family}`, course: true, phase: '*', text: `${family}: eksaminurkades ${corner} korda (vähemalt ${need.corner})` });
-    const intro = Math.min(...Object.entries(FORMAT_INTRO).filter(([f]) => harnoFamily(f) === family).map(([, m]) => m));
+    const intro = Math.min(...Object.entries(P.intro).filter(([f]) => P.family(f) === family).map(([, m]) => m));
     const modules = [...new Set(list.map((x) => x.module))].sort((a, b) => a - b);
     if (modules.length) {
       const points = [intro, ...modules.filter((m) => m >= intro)];
@@ -183,12 +204,12 @@ function harnoProblemsCourse(lessons, out) {
       if (gap > need.gap) out.push({ rule: 'V6', check: `V6-gap-${family}`, course: true, phase: '*', text: `${family}: kahe harjutuse vahel ${gap} moodulit (kuni ${need.gap}; tutvustatakse moodulis ${intro})` });
     }
   });
-  VARIANTS.forEach((v) => {
+  P.variants.forEach((v) => {
     const n = practice.filter((x) => x.format === v).length;
     if (n < VARIANT_MIN) out.push({ rule: 'V6', check: `V6-variant-${v}`, course: true, phase: '*', text: `${v}: ${n} korda (vähemalt ${VARIANT_MIN})` });
   });
   // exam lessons from module 9: every part has its header with minutes (exampart); mocks have all four parts
-  lessons.filter((l) => l.assessment && l.module >= FINAL_SHAPE.examTimingFromModule).forEach((l) => {
+  lessons.filter((l) => l.assessment && l.module >= S.examTimingFromModule).forEach((l) => {
     const blocks = PHASES.flatMap((p) => blocksOf(l.sheets[p]));
     const tasks = lessonTasks(l).map((x) => x.b);
     const parts = new Set(tasks.map((b) => harnoOf(b)).filter(Boolean).map((f) => f.charAt(0)));
@@ -196,7 +217,7 @@ function harnoProblemsCourse(lessons, out) {
     const untimed = [...parts].filter((s) => !timed.has(s));
     if (!parts.size) out.push({ rule: 'V6', check: 'V6-exam-tags', lesson: l, phase: '*', text: 'eksamitunni ülesannetel pole Harno silte (tag(block, { harno }))' });
     if (untimed.length) out.push({ rule: 'V6', check: 'V6-timing', lesson: l, phase: '*', text: `eksami osadel ${untimed.map((s) => PARTS[s]).join(', ')} pole aega (B.examPart)` });
-    if (FINAL_SHAPE.mocks.includes(l.num)) {
+    if (S.mocks.includes(l.num)) {
       const missing = Object.keys(PARTS).filter((s) => !parts.has(s));
       if (missing.length) out.push({ rule: 'V6', check: 'V6-mock', lesson: l, phase: '*', text: `proovieksamis puudub ${missing.map((s) => PARTS[s]).join(', ')}` });
     }
@@ -314,7 +335,8 @@ export function strandOf(b) {
   const skill = skillOf(id);
   return skill === 'R' || skill === 'L' ? 'input' : skill === 'S' || skill === 'W' ? 'output' : 'language';
 }
-function strandProblems(lessons, out) {
+function strandProblems(lessons, out, P) {
+  const v12 = P.shape.v12;
   const list = teaching(lessons);
   list.forEach((l, i) => {
     const tasks = lessonTasks(l).map(({ b, phase }) => ({ b, min: minutesOf(b, l.sheets[phase]) }));
@@ -329,16 +351,16 @@ function strandProblems(lessons, out) {
     if (s.language > v.language) out.push({ rule: 'V11', check: 'V11-language', lesson: l, phase: '*', text: `keeleõpe ${pct(s.language)} (kuni ${pct(v.language)})` });
     if (s.fluency < v.fluency) out.push({ rule: 'V11', check: 'V11-fluency', lesson: l, phase: '*', text: `sujuvusülesanded ${pct(s.fluency)} (vähemalt ${pct(v.fluency)}; tag(block, { fluency: true }) või S08 4-3-2)` });
     // V12 from module 6
-    if (l.module < FINAL_SHAPE.v12.fromModule) return;
+    if (l.module < v12.fromModule) return;
     const corners = tasks.filter((x) => harnoOf(x.b));
     if (corners.length !== 1) out.push({ rule: 'V12', check: 'V12-corner', lesson: l, phase: '*', text: `eksaminurki ${corners.length} (täpselt 1: üks ülesanne tag(block, { harno }))` });
-    const [lo, hi] = FINAL_SHAPE.v12.cornerMinutes;
+    const [lo, hi] = v12.cornerMinutes;
     corners.filter((x) => x.min < lo || x.min > hi).forEach((x) => out.push({ rule: 'V12', check: 'V12-corner-minutes', lesson: l, phase: '*', text: `eksaminurk ${x.b.id} ≈ ${Math.round(x.min)} min (${lo}–${hi})` }));
     const prev = list[i - 1];
-    const prevCorner = prev && prev.module >= FINAL_SHAPE.v12.fromModule ? lessonTasks(prev).map((x) => harnoOf(x.b)).find(Boolean) : null;
-    if (corners.length && prevCorner && harnoFamily(harnoOf(corners[0].b)) === harnoFamily(prevCorner)) out.push({ rule: 'V12', check: 'V12-corner-repeat', lesson: l, phase: '*', text: `eksaminurk ${harnoOf(corners[0].b)} on sama vorm kui eelmises tunnis (${prev.id})` });
+    const prevCorner = prev && prev.module >= v12.fromModule ? lessonTasks(prev).map((x) => harnoOf(x.b)).find(Boolean) : null;
+    if (corners.length && prevCorner && P.family(harnoOf(corners[0].b)) === P.family(prevCorner)) out.push({ rule: 'V12', check: 'V12-corner-repeat', lesson: l, phase: '*', text: `eksaminurk ${harnoOf(corners[0].b)} on sama vorm kui eelmises tunnis (${prev.id})` });
     const wash = corners.reduce((n, x) => n + x.min, 0) / total;
-    if (wash > FINAL_SHAPE.v12.washback) out.push({ rule: 'V12', check: 'V12-washback', lesson: l, phase: '*', text: `eksamivormis ülesanded ${pct(wash)} tunni ajast (kuni ${pct(FINAL_SHAPE.v12.washback)})` });
+    if (wash > v12.washback) out.push({ rule: 'V12', check: 'V12-washback', lesson: l, phase: '*', text: `eksamivormis ülesanded ${pct(wash)} tunni ajast (kuni ${pct(v12.washback)})` });
   });
 }
 
@@ -364,7 +386,7 @@ function reviewProblems(lessons, out) {
 // `forms`: a Set (or { has }) of known word forms — the EKI etLex A1–B1 lists (levelForms.*.json, CC BY); the EKI
 // „Põhisõnavara sõnastik” is not available as an offline list, so these stand in for it (COURSE_FINAL_SHAPE_B1.md §9)
 export const vocabHeadwords = (b) => String(b.data?.words || '').split(/,\s*(?=[^,]*[—–])|\n/).map((w) => w.split(/[—–]/)[0].trim().toLocaleLowerCase('et')).filter(Boolean);
-function vocabProblems(lessons, out, forms) {
+function vocabProblems(lessons, out, forms, P) {
   const earlier = new Set();
   Object.entries(byModule(lessons)).sort((a, b) => a[0] - b[0]).forEach(([, list]) => {
     const vocab = list.flatMap((l) => PHASES.flatMap((p) => blocksOf(l.sheets[p]).filter((b) => b.type === 'vocab')));
@@ -375,7 +397,7 @@ function vocabProblems(lessons, out, forms) {
     const at = { lesson: list[0], moduleOnly: true, phase: '*' };
     if (heads.length) {
       const share = 1 - unknown.length / heads.length;
-      if (share < FINAL_SHAPE.v14.known) out.push({ rule: 'V14', check: 'V14-known', ...at, text: `${pct(share)} sõnavarakasti sõnadest on EKI A1–B1 loendis või varasemas moodulis (vähemalt ${pct(FINAL_SHAPE.v14.known)}): ${unknown.slice(0, 8).join(', ')}${unknown.length > 8 ? ' …' : ''}` });
+      if (share < FINAL_SHAPE.v14.known) out.push({ rule: 'V14', check: 'V14-known', ...at, text: `${pct(share)} sõnavarakasti sõnadest on EKI ${P.formsLabel} loendis või varasemas moodulis (vähemalt ${pct(FINAL_SHAPE.v14.known)}): ${unknown.slice(0, 8).join(', ')}${unknown.length > 8 ? ' …' : ''}` });
       const unmarked = unknown.filter((w) => !topic.has(w));
       if (unmarked.length) out.push({ rule: 'V14', check: 'V14-topic', ...at, text: `${unmarked.length} sõna pole loendis ega märgitud teemasõnaks (tag(vocab, { topic: […] })): ${unmarked.slice(0, 8).join(', ')}${unmarked.length > 8 ? ' …' : ''}` });
     }
@@ -408,40 +430,45 @@ export const RULES = {
   V4: 'Miski ei domineeri', V5: 'Tunnitüüpide roteerumine', V6: 'Harno vormide katvus ja eksami aeg', V7: 'Juhised ei kordu',
   V8: 'Harjutuslaused ei kordu', V9: 'Ülesanded teenivad tunni oskust', V10: 'Sujuv tee eesmärgini (redel)', V11: 'Neli haru (Nation)',
   V12: 'Eksaminurk ja tagasimõju', V13: 'Hajutatud kordamine', V14: 'Sõnavara tase', V15: 'Piirid (vead, tõlge, etteütlus)',
+  V16: 'Rääkimine: paaris tunnis, monoloog kodus',
 };
 // ---------- V16: where the speaking happens (owner 2026-10-28) ----------
 // every teaching lesson has a pair / role task done in the lesson (the teacher is the partner) and, in Kasuta, a
 // monologue the learner records at home; „Mida sa teeksid?” (tingiv kõneviis) only from module 13, where the form is taught
 const CONDITIONAL = /\b(tee|ole|lähe|ütle|vali|ost|aita|soovita|küsi|ela|sõida|kasuta)(ksi[dn]?|ksite|ksime)\b/i;
 const speakText = (b) => [b.data?.title, b.data?.instruction, b.data?.questions, b.data?.roleA, b.data?.roleB, b.data?.situation].filter(Boolean).join(' ');
-function speakingPlaceProblems(lessons, out) {
+function speakingPlaceProblems(lessons, out, P) {
+  const from = P.shape.v16.conditionalFrom;
   teaching(lessons).forEach((l) => {
     const all = PHASES.flatMap((p) => blocksOf(l.sheets[p]).map((b) => ({ b, phase: p })));
     if (l.sheets.transfer && !blocksOf(l.sheets.transfer).some((b) => b.type === 'speaking' && !isInLesson(b))) {
       out.push({ rule: 'V16', check: 'V16-home-voice', lesson: l, phase: 'transfer', text: 'Kasuta: kodus salvestatav monoloog puudub (speaking-plokk, mis ei ole paaristöö)' });
     }
     if (!all.some(({ b }) => isInLesson(b))) out.push({ rule: 'V16', check: 'V16-in-lesson', lesson: l, phase: '*', text: 'tunnis ei ole ühtki paaris- või rolliülesannet (õpetaja on partner)' });
-    if (l.module < FINAL_SHAPE.v16.conditionalFrom) {
+    if (l.module < from) {
       all.filter(({ b }) => ['speaking', 'rolecards', 'speakcard'].includes(b.type) && CONDITIONAL.test(plain(speakText(b))))
-        .forEach(({ b, phase }) => out.push({ rule: 'V16', check: 'V16-conditional', lesson: l, phase, text: `${b.id}: tingiv kõneviis enne moodulit ${FINAL_SHAPE.v16.conditionalFrom} (kasuta „Mida sa teed, kui …?”)` }));
+        .forEach(({ b, phase }) => out.push({ rule: 'V16', check: 'V16-conditional', lesson: l, phase, text: `${b.id}: tingiv kõneviis enne moodulit ${from} (kasuta „Mida sa teed, kui …?”)` }));
     }
   });
 }
 
-export function finalShapeProblems(lessons, { forms = null } = {}) {
+// `profile`: 'b1' (the A2→B1 course) or 'b2' (the B1→B2 course), see PROFILES
+export function finalShapeProblems(lessons, { forms = null, profile = 'b1' } = {}) {
+  const P = PROFILES[profile];
+  if (!P) throw new Error(`tundmatu kursuse profiil ${profile} (${Object.keys(PROFILES).join(', ')})`);
   const raw = [];
   sequenceProblems(lessons, raw);
-  moduleVarietyProblems(lessons, raw);
+  moduleVarietyProblems(lessons, raw, P);
   archetypeProblems(lessons, raw);
-  harnoProblemsCourse(lessons, raw);
+  harnoProblemsCourse(lessons, raw, P);
   instructionProblems(lessons, raw);
   itemProblems(lessons, raw);
   goalProblems(lessons, raw);
-  strandProblems(lessons, raw);
+  strandProblems(lessons, raw, P);
   reviewProblems(lessons, raw);
-  vocabProblems(lessons, raw, forms);
+  vocabProblems(lessons, raw, forms, P);
   capProblems(lessons, raw);
-  speakingPlaceProblems(lessons, raw);
+  speakingPlaceProblems(lessons, raw, P);
   return raw.map(({ lesson, course, moduleOnly, ...p }) => ({
     ...p,
     moduleId: course ? 'course' : lesson.moduleId,

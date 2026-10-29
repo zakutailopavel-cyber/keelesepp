@@ -1,3 +1,21 @@
+## 2026-10-29 · agent/b2-final-shape-gates — the B1→B2 course under the final-shape gates (B2 profile)
+
+- Base: `main` 0db8252 (2026-10-29, after #872). Owner: „продолжаем с курсами” — next course after A2→B1 is B1→B2
+  (owner 2026-10-14: B1→B2 first).
+- Done (gates and docs only, no content): `finalShapeProblems(lessons, { forms, profile })` with `PROFILES.b1` (unchanged
+  behaviour) and `PROFILES.b2` (Harno B2 formats and families, intro schedule, practice counts, S16/S17 instead of
+  S03/S04 as required speaking types, corners and timed exam parts from module 2, tingiv kõneviis allowed, V14 against
+  EKI A1–B2). Catalogue 63 → 71 types (W13–W15, R14–R16, S16, S17) and `HARNO_FORMATS_B2`; `tag({ harno })` accepts
+  B1 and B2 ids. The course test checks both courses (`finalShapeBaseline.json` = `{}`, new `finalShapeBaselineB2.json`
+  = 1182 problems); `final-shape.mjs --course b2`. Supplement modules (`MODULE.supplement`) are not checked.
+- New doc `docs/COURSE_FINAL_SHAPE_B2.md` (the delta to the B1 file: B2 exam map, new types, schedule, corners).
+- Files: `worksheet-studio/didactics/{taskCatalogue,finalShape,finalShape.test}.js`,
+  `worksheet-generator/admin/course/{finalShape.test.js,finalShapeBaselineB2.json}`, `tools/course-audit/final-shape.mjs`,
+  docs.
+- Checks: see the PR (eslint, full vitest).
+- Not done: the content. B2 has no archetypes, exam corners or Harno tags yet (V5-missing 71, V12-corner 67, V7 260).
+- Next safe step: B1→B2 module 1 (`b2/module01.js`, b1b2-001…005) in the final shape, branch `agent/b2-m01-final`.
+
 ## 2026-10-29 · agent/b1-l1-corner — the A2→B1 course has no final-shape problem left (baseline `{}`)
 
 - Owner 2026-10-28: every lesson must pass every gate. After modules 8–18 (#803, #806, #805, #864–#871) one course line
