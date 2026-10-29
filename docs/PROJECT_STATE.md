@@ -1,3 +1,38 @@
+## 2026-10-29 · agent/b2-m17-final — B1→B2 module 17 „B2 kirjutamine” in the final shape
+
+- Base: `main` d61f34c, then `origin/main` 399bdf9 merged (module 11 is on `main`). Modules 12–16 (#898, #900, #901,
+  #903, #904) were not on `main` yet: with their branches put in a scratch tree, module 17 shows 0 problems, 079 (LUGE,
+  corner R3) → 081 (LUGU, corner R4) has no family repeat and no V1/V2 line, and the course lines only shrink
+  (`V6-total-L1`, `V6-exam-L1`, `V6-corner-L2` close; left: `V6-gap-L1`, `V6-gap-L2`, `V6-total-L2`, `V6-exam-L2` — 089
+  must tag L2). On `main` alone the regenerated baseline lists `V6-gap-L2/L3/L4/R1/R2/R4/S1/S2/W1/W2`, because modules
+  12–16 are untagged there; they leave when #898–#904 land (rebaseline then). Content only; no production data, no
+  publishing, no deploy.
+- Done: `b2/module17.js` (b1b2-081…085) passes every final-shape gate under the B2 profile: **59 → 0 problems**
+  (`final-shape.mjs --course b2 --module 17`); `b1b2-086` discover/transfer V2 left the baseline too. Strict quality gate:
+  all 15 sheets without a problem (teaching sheets 40–51 min, didactic 100), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 17): 081 LUGU R→W (corner R4 = `081_p_bank`, Linnaelu article with eight sentences out
+  and one extra, R16; main `081_t_letter` W14 opinion text), 082 KUUL L→W (corner L2 = new `082_p_lc`, Helen Põld on the
+  radio, 10 MC with 3 options; main `082_t_letter` W13), 083 AVAS R→S (corner W2a = new chart `083_p_data` +
+  `083_p_summary` W15; main `083_t_pitch` S16 talk to the grant committee, recorded at home), 084 PROB L→S (corner L4 = new
+  `084_p_show`, talk show with Reet Kallas and Natalja, 12 true / false; main new `084_t_say` S16 talk at the course
+  meeting, recorded at home). 085 EKS: L1 (new `085_p_clips`, five clips played once, 6 MC), L2 (new `085_p_lc`, Annika
+  Vaht's interview, 6 MC), L3, R1, R2a, W1 (W13), W2a (new chart + `085_t_w2`, W15), S1 (S16), S2 (S17), four timed
+  `PART`s. Every teaching lesson: review naming the previous lesson and a module 13–15 lesson (080/073, 081/069, 082/064,
+  083/074), an in-lesson pair task, a home recording, two fluency tasks; S16 ×2, S17 ×1 (081_t_debate).
+- Changed blocks: real ids on every task; removed `081_p_tf`, `082_p_parts`, `082_p_reg`, `083_p_parts`, `083_p_tf`,
+  `083_p_say`, `083_p_write`, `084_d_sort`, `084_p_mc`, `084_p_why`, `084_p_examiner`, `084_t_w2`; new `081_p_join`
+  (G05), `083_p_rank` idea card (S12), `084_p_case` gaps → formtext, `084_p_bank` phrase bank (R05); `084_t_sources`
+  short applied answers (R15 level 3); error rows that were not errors replaced. Vocab: topic words teemalause, sidend,
+  sihitis. canDo of 081, 083, 084 in the module file, goals of 081–085 in `b2/lessonGoals.js`.
+- Audio (TartuNLP, free): new `082_p_lc`, `084_p_show`, `085_p_clips`, `085_p_lc`; rebuilt `082_t_voice` (Annika's
+  machine now in March, not August); removed `084_p_examiner`.
+- Checks: `final-shape.mjs --course b2 --module 17` 0; `npx eslint --quiet src` 0; `npx vitest run` 408 files passed
+  (2810 tests, 5 skipped); Vabamorf language check of module 17: 0 unknown lower-case words.
+- Limits: the R4 corner text is ≈ 250 words (Harno 350–400); the W2a corner is 8–10 sentences, shorter than the exam; the
+  085 L1 clips are ≈ 60–70 words.
+- Next safe step: B1→B2 module 18 (`b2/module18.js`, b1b2-086…090, §4.1 row 18); 086's corner must not be L4 (084's
+  corner), and 089 must tag L2.
+
 ## 2026-10-29 · agent/calendar-personal-colors — own teacher colours in the calendar, distinct by default
 
 - Base: `main` c2b4947. Owner: „сделай так, чтобы у себя можно было настраивать как угодно, и по умолчанию какой-то
