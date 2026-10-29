@@ -259,6 +259,11 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
   `override` with `original` (the document's own lines), and a reason is required. „Kustuta” only for a manual entry,
   with a reason; the entry becomes a tombstone (`deleted`, hidden from the registers, „Näita kustutatud” shows it, its
   PR number is never reused).
+- **„Tühista ekslik storno”** (the owner 2026-10-29: the accountant made a storno by mistake): while both dates are open,
+  a storno whose original still points to it becomes a tombstone (`deleted`, history action `undo-storno`, number never
+  reused) and its original entry loses `reversedBy` / `reversedByNumber` / `reversedAt` and is live again (history
+  action `storno-undone`); one `financialAudit` record „accounting.entry.storno-undone”. `POST
+  /accounting/entries/undo-storno { entryId, reason, requestId }`; core check `assertStornoUndoable`.
 - **Every change** appends `{ at, by, action: edit | override | document | delete, reason, before, after }` to the
   entry's `history` („Ajalugu (n)” under the entry) and writes a `financialAudit` document.
 - **„Sulge periood kuni …”** (button on Raamatupidamine, `accountingSettings/lock.lockedThrough`): on and before that date
