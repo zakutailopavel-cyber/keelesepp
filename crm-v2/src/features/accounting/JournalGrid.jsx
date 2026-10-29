@@ -21,7 +21,7 @@ const isMac = () => /Mac|iPhone|iPad/.test(globalThis.navigator?.platform || '')
 
 const NO_FILTERS = { account: '', text: '', doc: '', sum: '', partner: '' };
 
-export default function JournalGrid({ entries, accounts, suppliers = [], lockedThrough, readOnly, repository, onChanged, onNotice, sort, onSort, onDelete, onStorno, draftSlot, blocked = false }) {
+export default function JournalGrid({ entries, accounts, suppliers = [], lockedThrough, readOnly, repository, onChanged, onNotice, sort, onSort, onDelete, onStorno, onUndoStorno, draftSlot, blocked = false }) {
   const [filters, setFilters] = useState(NO_FILTERS);
   const [active, setActive] = useState(null);
   const [anchor, setAnchor] = useState(null);
@@ -418,6 +418,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
                 {!readOnly && can.remove && !w ? <button type="button" className="link-button" onClick={() => onDelete(entry)}><Trash2 size={13} /> Kustuta</button> : null}
                 {!readOnly && can.edit && entry.origin !== 'manual' ? <span className="accounting-grid__hint" title={NO_DELETE_HINT} aria-label={NO_DELETE_HINT} tabIndex={0}><Info size={12} /> ei kustutata</span> : null}
                 {!readOnly && can.storno ? <button type="button" className="link-button" onClick={() => onStorno(entry)}><Undo2 size={13} /> Storno</button> : null}
+                {!readOnly && can.undoStorno && onUndoStorno ? <button type="button" className="link-button" onClick={() => onUndoStorno(entry)}><Undo2 size={13} /> Tühista ekslik storno</button> : null}
                 {entry.history.length ? <button type="button" className="link-button" aria-expanded={historyOpen} onClick={() => setOpenHistory((s) => { const next = new Set(s); if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id); return next; })}><History size={13} /> Ajalugu ({entry.history.length})</button> : null}
               </td>
             </tr>

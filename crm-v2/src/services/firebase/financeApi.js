@@ -114,6 +114,10 @@ export const financeApi = {
   updateAccountingEntry(entryId, entry, reason) {
     return post("/accounting/entries/update", { entryId, entry, reason, requestId: financeRequestId("accounting_update") });
   },
+  // „Tühista ekslik storno”: the storno becomes a tombstone, its original entry is live again
+  undoAccountingStorno(entryId, reason) {
+    return post("/accounting/entries/undo-storno", { entryId, reason, requestId: financeRequestId("accounting_undo_storno") });
+  },
   deleteAccountingEntry(entryId, reason) {
     return post("/accounting/entries/delete", { entryId, reason, requestId: financeRequestId("accounting_delete") });
   },

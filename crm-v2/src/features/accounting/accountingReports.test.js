@@ -130,3 +130,13 @@ describe('bookkeeping registers', () => {
     expect(Number.isNaN(parseEuro('12,345'))).toBe(true);
   });
 });
+
+describe('undo a storno made by mistake (owner 2026-10-29)', () => {
+  it('only a live storno in an open period can be undone', async () => {
+    const { entryActions } = await import('./accountingReports.js');
+    expect(entryActions({ origin: 'reversal', date: '2026-01-05' }, '').undoStorno).toBe(true);
+    expect(entryActions({ origin: 'reversal', date: '2026-01-05', deleted: true }, '').undoStorno).toBe(false);
+    expect(entryActions({ origin: 'reversal', date: '2026-01-05' }, '2026-03-31').undoStorno).toBe(false);
+    expect(entryActions({ origin: 'manual', date: '2026-01-05' }, '').undoStorno).toBe(false);
+  });
+});
