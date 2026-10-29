@@ -69,6 +69,6 @@ export default [
     alt: "Viktor lahendab Liisi abiga teenindusbüroos asjaajamise ülesannet.",
     caption: "Pilt 1. Teenuste kontrollülesanne.",
     // the questions beside the picture (owner 2026-10-18)
-    prompts: ["Mis asjad on Viktori ees?", "Mida Liis aitab valida?", "Mida sina teeksid: helistaksid, täidaksid vormi või broneeriksid aja?"],
+    prompts: ["Mis asjad on Viktori ees?", "Mida Liis aitab valida?", "Mida sina teed: helistad, täidad vormi või broneerid aja?"],
   },
 ];
