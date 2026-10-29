@@ -1,3 +1,12 @@
+## 2026-10-29 · agent/calendar-status-symbols — a symbol per lesson state in the calendar corner
+
+- Owner: „справа вверху по символу или ленточке отличать проведённый, проведённый за счёт школы и т.д., чтобы админу не
+  открывать каждый урок”. `calendarView.lessonMark(item, today)` + `LESSON_MARKS`: ✓ Toimunud (green), ✓✓ kontrollitud
+  (dark green), K kooli kulul (blue), T puudus, teatas ette (yellow), ! puudus, ei teatanud (orange), ✕ tühistatud (red),
+  ? möödunud ja märkimata (grey). A tag in the top right corner of each lesson (TimeGrid, crowded lists) and a legend
+  under the calendar toolbar. Replaces the plain triangle of agent/calendar-status-ribbon.
+- Checks: calendar vitest 200 pass; full run in the PR.
+
 ## 2026-10-29 · agent/b2-m15-final — B1→B2 module 15 „Meedia, info ja kriitiline lugemine” in the final shape
 
 - Base: `main` b7fc373, then `origin/main` d61f34c merged. Modules 11–14 (#895, #898, #900, #901) were not on `main` yet:

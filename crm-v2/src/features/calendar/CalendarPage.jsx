@@ -15,7 +15,7 @@ import { handoffTopic, takeLessonHandoff } from '../live-classroom/lessonHandoff
 import { canQuickCompleteLesson } from './quickAttendance.js';
 import { scheduleOverlaps } from '../../services/firebase/schedule.js';
 import { ROLES } from '../../utils/roles.js';
-import { LESSON_STATE_LABELS, datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, lessonState, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
+import { LESSON_MARKS, LESSON_STATE_LABELS, datesForView, filterCalendarEvents, withoutArchivedFuture, groupCalendarEvents, lessonState, occurrencesForDates, withCurrentStudentNames, withLessonSubjects, resolveOccurrenceRecord, shiftDate, startOfWeek, toIsoDate } from './calendarView.js';
 import { calendarTones, canMove, cleanPersonalColors, planDelete, planMove, planSubstitute, teacherTone, toClock, toMinutes } from './calendarGrid.js';
 import CalendarColors from './CalendarColors.jsx';
 import { buildTopicCatalog, suggestTopic, topicFields, topicLine } from './lessonTopic.js';
@@ -828,6 +828,8 @@ export default function CalendarPage({ scheduleRepository = scheduleService, stu
       {hasActiveFilters ? <Button variant="secondary" onClick={() => setFilters(emptyFilters())}>Tühjenda filtrid</Button> : null}
       {unplanned.length ? <button type="button" className={`cal2-unplanned-chip ${showUnplanned ? 'is-open' : ''}`} aria-expanded={showUnplanned} onClick={() => setShowUnplanned((value) => !value)}><UserRoundX size={15} /> {unplanned.length} {unplanned.length === 1 ? 'õpilane' : 'õpilast'} ilma tulevase tunnita</button> : null}
       <span className="cal2-hint">{narrow ? '' : 'Lohista tundi, et muuta aega · tõmba alumisest servast, et muuta kestust'}</span>
+      {/* what the marks in the corner of a lesson mean (owner 2026-10-29) */}
+      <span className="cal2-marks" aria-label="Märgid tunni nurgas">{Object.entries(LESSON_MARKS).map(([key, mark]) => <span key={key}><i className={`tg-mark is-${key}`} aria-hidden="true">{mark.symbol}</i>{mark.label}</span>)}</span>
     </div>
     {heldStudent && (heldState === 'done' || !heldMarked) ? <div className="cal2-held" role="status">
       {heldState === 'done' ? <span>Tund on kalendris ja märgitud toimunuks{heldHandoff?.notes ? ' koos märkusega' : ''}. Kui midagi on valesti, ava tund ja paranda.</span> : <>
