@@ -1,3 +1,10 @@
+## 2026-10-29 · agent/lesson-duration-card — the student card's „Tunnid” shows how long each lesson is
+
+- Team (#student_card): „не видно, сколько идёт урок … будем пропускать двойные уроки”. Upcoming and held lessons show
+  the time as a range (16:00–17:30) and a chip „N min”; 90 min or more is „N min · Topelttund” (orange). The held list
+  heading shows „N tundi · X h · topelttunde M”. File: students/StudentLessonsPanel.jsx (+ css, test).
+- Checks: eslint 0, vitest students 122 pass (full run in the PR).
+
 ## 2026-10-29 · agent/b2-m09-final — B1→B2 module 9 „Tervis ja eluviis” in the final shape
 
 - Base: `main` 377856e, then `origin/main` 38ecb2b merged (after #884, module 7). Module 8 (#886) was not on `main` yet

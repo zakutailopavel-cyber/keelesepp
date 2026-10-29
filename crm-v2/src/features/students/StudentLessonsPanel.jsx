@@ -25,6 +25,25 @@ const today = () => localDate();
 const UPCOMING_DAYS = 56;
 const CLOSED = new Set(['Tühistatud', 'Toimunud', 'Puudus_eta', 'Puudus_p']);
 
+// how long a lesson is (team 2026-10-29: „не видно, сколько идёт урок … будем пропускать двойные уроки”): the time as a
+// range and the minutes; a lesson of 90 minutes or more is marked „Topelttund”
+const DOUBLE_FROM = 90;
+const minutesOf = (item) => Number(item?.duration) || 0;
+function timeRange(item) {
+  const [h, m] = String(item?.time || '').split(':').map(Number);
+  const length = minutesOf(item);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return item?.time || '';
+  if (!length) return item.time;
+  const end = h * 60 + m + length;
+  return `${item.time}–${String(Math.floor(end / 60) % 24).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}`;
+}
+export function DurationTag({ item }) {
+  const length = minutesOf(item);
+  if (!length) return null;
+  return <span className={`student-lessons__length${length >= DOUBLE_FROM ? ' is-double' : ''}`}>{length} min{length >= DOUBLE_FROM ? ' · Topelttund' : ''}</span>;
+}
+const hoursText = (minutes) => `${Math.round((minutes / 60) * 10) / 10}`.replace('.', ',');
+
 export default function StudentLessonsPanel({ student, lessons, schedule, canManage = false, lessonApi, user, onChanged, detailApis = {} }) {
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
@@ -81,7 +100,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
           <div className="simple-list">
             {upcoming.slice(0, 12).map((item) => (
               <div key={item.occurrenceId || item.id}>
-                <div><strong>{item.occurrenceDate || item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {item.time || 'kellaaeg määramata'}</strong><span>{[manySubjects ? itemSubject(item, student) : '', item.teacher || student.teacher || 'Õpetaja määramata'].filter(Boolean).join(' · ')}</span></div>
+                <div><strong>{item.occurrenceDate || item.date || `Iganädalane · ${item.day || 'päev määramata'}`} · {timeRange(item) || 'kellaaeg määramata'} <DurationTag item={item} /></strong><span>{[manySubjects ? itemSubject(item, student) : '', item.teacher || student.teacher || 'Õpetaja määramata'].filter(Boolean).join(' · ')}</span></div>
                 <Badge tone="info">{item.status || 'Planeeritud'}</Badge>
               </div>
             ))}
@@ -91,7 +110,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
       </Card>
 
       <Card className="profile-wide">
-        <div className="section-heading"><h2>Toimunud tunnid</h2>{canManage ? <span className="student-lessons__hint">Staatust muudab admin. Arvel olevat tundi parandatakse Finantsides.</span> : null}</div>
+        <div className="section-heading"><h2>Toimunud tunnid</h2>{lessons.some(minutesOf) ? <span className="student-lessons__total">{lessons.length} tundi · {hoursText(lessons.reduce((sum, lesson) => sum + minutesOf(lesson), 0))} h{lessons.some((lesson) => minutesOf(lesson) >= DOUBLE_FROM) ? ` · topelttunde ${lessons.filter((lesson) => minutesOf(lesson) >= DOUBLE_FROM).length}` : ''}</span> : null}{canManage ? <span className="student-lessons__hint">Staatust muudab admin. Arvel olevat tundi parandatakse Finantsides.</span> : null}</div>
         {error ? <div className="form-error" role="alert">{error}</div> : null}
         {notice ? <div className="success-notice" role="status">{notice}</div> : null}
         {lessons.length ? (
@@ -101,7 +120,7 @@ export default function StudentLessonsPanel({ student, lessons, schedule, canMan
               return (
                 <div key={lesson.id}>
                   <button type="button" className="student-lessons__open" onClick={() => setOpened(lesson)} aria-label={`Ava tund ${lesson.date || ''}`}>
-                    <strong>{lesson.date || 'Kuupäev puudub'}{lesson.time ? ` · ${lesson.time}` : ''}</strong>
+                    <strong>{lesson.date || 'Kuupäev puudub'}{lesson.time ? ` · ${timeRange(lesson)}` : ''} <DurationTag item={lesson} /></strong>
                     <span>{[lesson.subject || student.subject, lesson.topic, lesson.teacher].filter(Boolean).join(' · ')}</span>
                     {lesson.billingStatus === 'school_covered' ? <small>Tasuta (kooli kulul){lesson.billingDispositionReason && canManage ? ` · ${lesson.billingDispositionReason}` : ''}</small> : null}
                     {lesson.verified && lesson.verifiedByName ? <small className="student-lessons__verified"><CheckCheck size={13} aria-hidden="true" /> Kontrollis {lesson.verifiedByName}</small> : null}
