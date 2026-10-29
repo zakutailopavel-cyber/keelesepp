@@ -111,3 +111,7 @@
   text-align: left;
 }
 .profile-track-add:hover { text-decoration: underline; }
+/* lesson length on the card (team 2026-10-29): minutes, double lessons stand out */
+.student-lessons__length { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #eef1f4; color: #42536a; font-size: .74rem; font-weight: 700; vertical-align: middle; }
+.student-lessons__length.is-double { background: #fff1e0; color: #b45309; }
+.student-lessons__total { color: #667085; font-size: .86rem; }

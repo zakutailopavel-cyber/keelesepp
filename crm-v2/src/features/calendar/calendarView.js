@@ -49,6 +49,19 @@ export function occurrenceStatus(event, date) {
   return (event.lessonOccurrenceDate || event.date) === date ? event.status : 'Planeeritud';
 }
 
+// the traffic light of a lesson (team 2026-10-29, #high_priority: „визуально неотличимы проведённые и отменённые
+// уроки — ленточка в углу: зелёная, жёлтая, красная”): 'done' green (held), 'absent' yellow (the student missed it),
+// 'cancelled' red (cancelled), 'planned' no ribbon. A lesson record decides first: before, any record — also a
+// cancelled one — showed as held.
+export const LESSON_STATE_LABELS = { done: 'Toimunud', absent: 'Õpilane puudus', cancelled: 'Tühistatud', planned: '' };
+export function lessonState(item = {}) {
+  const status = item.record?.status || item.status || '';
+  if (status === 'Tühistatud') return 'cancelled';
+  if (status === 'Puudus_eta' || status === 'Puudus_p') return 'absent';
+  if (status === 'Toimunud' || item.lessonRecordId) return 'done';
+  return 'planned';
+}
+
 export function resolveOccurrenceRecord(item, records = []) {
   if (item.isGroup) return item;
   const date = item.occurrenceDate;
