@@ -1,3 +1,34 @@
+## 2026-10-29 · agent/b2-m06-final — B1→B2 module 6 „Tööelu” in the final shape
+
+- Base: `main` b70802c (2026-10-29, after #880 module 4 and #881 module 5); merged before the PR, corner and V1/V2
+  boundary to 024 rechecked. Content only; no production data, no publishing, no deploy.
+- Done: `b2/module06.js` (b1b2-026…030) passes every final-shape gate under the B2 profile: **68 → 0 problems**
+  (`final-shape.mjs --course b2 --module 6`); the course lines `V5-course-PROJ`, `V6-exam-*` (10) and two V7 lines of
+  modules 8 and 10 left the baseline too. Strict quality gate: all 15 sheets READY (teaching sheets 40–52 min),
+  `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 6): 026 RÄÄK L→S (corner S1 = `026_p_mono`, S16 one minute in front of the team; main
+  `026_t_laura` S03 agreement with Laura), 027 LUGE R→S (corner R3 = `027_p_cloze`, 12 gaps, text lengthened; main
+  `027_t_advice` S12), 028 PROJ R→W (corner R1 = `028_p_article`, ≈ 520-word problem article, R1 introduced here; main
+  `028_t_mail` W15 summary of the overtime chart `028_t_data` with two solutions), 029 KIRJ L→W (corner L2 =
+  `029_p_radio` as `examListen` choice, 10 questions, L2 introduced here; main `029_t_letter` W13 reply to Andres Kivi),
+  030 EKS (R1, R2a, R3, R4, L3, L4, W1, W2a, S1, S2 tagged; four timed `PART`s; new W2a summary `030_t_summary`).
+  Every teaching lesson: review naming the previous lesson and a module 3–4 lesson, a pair task in the lesson, a home
+  recording (S15/S16), fluency ≥ 10 %; S16 ×2 (026, 029), S17 ×1 (`029_p_debate`).
+- Changed blocks: new `027_d_write` (W01 questionnaire, `examWriting`), `028_p_write` (W02 message, `examWriting`),
+  `028_t_data` (chart), `029_p_fix` (errorfix instead of the true/false `029_p_tf`), `030_t_summary`, PART headers;
+  `026_t_mail` is now the meeting invitation (W03), `026_t_intro`, `027_t_mono`, `028_t_liis`, `029_t_present` are home
+  recordings; `029_d_listen` gaps ask for numbers and times (L10, transcript unchanged). Vocab: `arenguvõimalus` →
+  `karjäär`; topic words töökoormus, kaugtöö, hübriidtöö, arenguvestlus (V14 ≥ 90 %). `b2/lessonGoals.js`: canDo and
+  g_use/g_read of 026–029.
+- Audio (TartuNLP, free): rebuilt `b1b2-029/029_p_radio.mp3` (two lines added for the 8-minute corner).
+- Checks: `final-shape.mjs --course b2 --module 6` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2772 tests, 5 skipped); language check of module 6: 0 unknown lower-case words (except the technical genre value
+  `kusimustik`).
+- Limits: 030 keeps L3 (gap listening) instead of an L2 exam listening: with an `examlisten` the exam's Harjuta has 5 of 12
+  recognition tasks (B2- limit). The R1 corner is a `reading` with open questions (exam: three options).
+- Next safe step: B1→B2 module 7 (`b2/module07.js`, b1b2-031…035, §4.1 row 7: PROB R→S · AVAS L→S · KUUL L→W · LUGU R→W),
+  branch `agent/b2-m07-final`; 031's corner must not be L2 (029's corner).
+
 ## 2026-10-29 · agent/b2-m05-final — B1→B2 module 5 „Arvamus ja põhjendamine” in the final shape
 
 - Base: `main` c9f0c68 + the module-4 branch, then `origin/main` 15e9222 merged (after #880, module 4). Content only; no
