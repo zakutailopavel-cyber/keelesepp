@@ -1,3 +1,34 @@
+## 2026-10-29 · agent/b2-m05-final — B1→B2 module 5 „Arvamus ja põhjendamine” in the final shape
+
+- Base: `main` c9f0c68 + the module-4 branch, then `origin/main` 15e9222 merged (after #880, module 4). Content only; no
+  production data, no publishing, no deploy. Module 6 is done in parallel on another branch (not touched).
+- Done: `b2/module05.js` (b1b2-021…025) passes every final-shape gate under the B2 profile: **64 → 0 problems**
+  (`final-shape.mjs --course b2 --module 5`); two module-9 V7 lines (042 discover, 043 practice) and ten course lines
+  (`V6-exam-L3, L4, R1, R2, R3, R4, S1, S2, W1, W2`) left the baseline too. B2 baseline 925 → 851 lines, none added. Strict
+  quality gate: all 15 sheets READY (teaching sheets 40–52 min), `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, §4.1 row 5): 021 AVAS L→S (corner S1 = `021_p_mono`, S16 1-minute talk at the board meeting, done
+  twice; main = `021_t_say` S16 speech for the public meeting, recorded at home), 022 LUGU R→W (corner R3 = `022_p_cloze`,
+  Viktor's 12-gap 4-option letter; main = `022_t_letter` W13 letter to the city planner, 140–160 words, replaces the
+  community post), 023 PROB R→S (corner S2 = `023_t_meeting`, S17 argument cards, also the main task), 024 KUUL L→W
+  (corner L3 = `024_d_lecture`, the planner's talk with 10 gapped sentences, now numbers/times/prices = L10; main =
+  `024_t_opinion` W14 opinion piece ≈ 180 words — the module's W2b practice). 025 EKS: R1, R2a, R3, R4, L3, L4, W1, W2b,
+  S1, S2 tagged, four timed `PART`s, new W2b essay `025_t_essay` (paid parking in the city centre). Every teaching lesson:
+  review naming the previous lesson and a module 1–3 lesson (019/012, 021/011, 022/003, 023/006), a pair task in the
+  lesson, a home recording in Kasuta, two fluency tasks (S08 + S16 twice, W06 + S15, S09 + S15, S06 + S15).
+- Changed blocks: tags on almost every task (12 W, 11 R, 4 L, 17 S ids; S16 ×2, S17 ×2); `021_t_survey` R08 level 3
+  (questions apply the survey's prices), `024_t_rules` R15 level 3, `022_t_news` L06 level 3 (consequence gaps; transcript
+  unchanged), `022_d_bridge` as L07 notes, `024_d_venn` qualitative (G04), new chart `024_d_data` + W15 summary
+  `024_d_write`, `022_p_reply` W10 (edit the 8-minute text), `021_p_answer` W01 (the board's web survey), `024_p_comment`
+  W07 (city web form); `022_t_plan` removed (W11 once a module); 024 Harjuta reordered (ladder, same-opening); two
+  paragraphs longer in `023_p_article` and `022_p_cloze` (input share, corner minutes). Topic words katseprojekt,
+  bussirada, trammiliin. canDo and g_use/g_read of 021–024 in `b2/lessonGoals.js` follow the main tasks.
+- Audio: no transcript changed, no new recordings.
+- Checks: `final-shape.mjs --course b2 --module 5` 0; `npx eslint --quiet src` 0; `npx vitest run` 403 files passed
+  (2772 tests, 5 skipped); Vabamorf language check of module 5: 0 unknown lower-case words.
+- Limits: `022_p_cloze` corner is ≈ 8.3 min (just above the 8-minute floor); the L3 corner is a listening with mostly
+  numeric gaps (L10 tag), as Harno's L3 asks for 1–2-word gaps.
+- Next safe step: B1→B2 module 6 (`b2/module06.js`, b1b2-026…030, §4.1 row 6: RÄÄK L→S · LUGE R→S · PROJ R→W · KIRJ L→W);
+  026's corner must not be L3 (024's corner).
 ## 2026-10-29 · agent/b2-m04-final — B1→B2 module 4 „Sihitis, ma-/da-infinitiiv ja rektsioon” in the final shape
 
 - Base: `main` 21c7f0b (2026-10-29, after #875 module 2), then `origin/main` c9f0c68 merged (after #878, module 3).
