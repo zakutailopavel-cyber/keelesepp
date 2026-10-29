@@ -1,3 +1,31 @@
+## 2026-10-29 · agent/b2-m04-final — B1→B2 module 4 „Sihitis, ma-/da-infinitiiv ja rektsioon” in the final shape
+
+- Base: `main` 21c7f0b (2026-10-29, after #875 module 2); module 3 (#878) checked on top before the PR. Content only; no
+  production data, no publishing, no deploy.
+- Done: `b2/module04.js` (b1b2-016…020) passes every final-shape gate under the B2 profile: **71 → 0 problems**
+  (`final-shape.mjs --course b2 --module 4`); two module-5 lines left the baseline too (021 discover/transfer V2). No
+  baseline line added. Strict quality gate: all 15 sheets READY (41–49 min teaching sheets), `qualityBaseline.json`
+  unchanged.
+- Shape (`withShapes`, §4.1 row 4): 016 KIRJ L→W (corner R3 = Jaan's kitchen week, 12-gap 4-option cloze; main W13
+  status letter to Ilze), 017 PROJ R→W (corner S2 = S17 argument cards Riga vs video call; main W14 decision letter to
+  Liis, ≈ 180 words), 018 LUGE R→S (corner S1 = S16 1-minute talk at the team meeting; main S16 presentation recorded at
+  home), 019 RÄÄK L→S (corner L3 = Eha Org's training talk, 10 gapped sentences; main = briefing Taavi, S13 tagged level
+  4). 020 EKS: R1, R2a, R3, R4, L3, L4, W1, W2b, S1, S2 tagged, four timed `examPart`s (`PART` helper as in module 2),
+  a new 180-word W2b essay `020_t_essay`. Every teaching lesson: review naming the previous lesson and a module-2 lesson,
+  a pair task in the lesson, a home recording in Kasuta (S15 / S16), two fluency tasks; every task id within the caps.
+- Changed blocks: `016_d_lunch` → `examlisten` true/false (same transcript and audio), `016_d_letter` as R09 paragraph
+  headings, `017_p_rules` (gaps) and `017_p_match` → `017_p_tr` (RU→ET infinitive translation), `017_p_article` R16 with
+  one extra, `017_t_mail` R11 (which option fits), `018_t_voice` (listening) → `018_t_mail` (R05 phrase bank, Ilze's
+  e-mail), `019_d_write` W15 after a new chart `019_d_data`, `019_p_again` → S14 „Mida sa teeksid?”, `019_t_notes` R15
+  level 3; `016_t_plan`, `017_t_plan`, `018_t_plan` removed (W11 once a module). canDo and goals of 016–019 in
+  `b2/lessonGoals.js` follow the main tasks.
+- Audio (TartuNLP, free): `019_p_listen` rebuilt (longer lecture, 111 s), `016_t_voice` rebuilt (first line changed: the
+  voicemail now comes after the call, so Kasuta does not open like 014's); `018_t_voice` mp3 and manifest entry deleted.
+- Checks: `final-shape.mjs --course b2 --module 4` 0; `npx eslint --quiet src` 0; `npx vitest run` 402 files passed
+  (2767 tests, 5 skipped); Vabamorf language check of module 4: 0 unknown lower-case words.
+- Next safe step: B1→B2 module 5 (`b2/module05.js`, b1b2-021…025, §4.1 row 5: AVAS L→S · LUGU R→W · PROB R→S · KUUL L→W);
+  021's corner must not be L3 (019's corner).
+
 ## 2026-10-29 · agent/b2-m02-final — B1→B2 module 2 „Linn, teenused ja asjaajamine” in the final shape
 
 - Base: `main` 822c0d8 (2026-10-29, after #873). Content only; no production data, no publishing, no deploy. Module 1 is
