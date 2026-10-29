@@ -41,4 +41,22 @@ describe('Sobivad ajad on the card', () => {
     expect(screen.queryByRole('button', { name: /Muuda/ })).toBeNull();
     expect(screen.queryByText(/Muutunud/)).toBeNull();
   });
+
+  it('the student marks the times of one coming week only, and can go back to the usual week', async () => {
+    const saved = { studentId: 's1', slots: ['Mon-17:00', 'Mon-17:30'], preferred: [], weeks: { '2026-11-09': { slots: ['Sat-10:00', 'Sat-10:30'], preferred: [] } }, changedAt: '2026-10-21T10:00:00.000Z', changedByRole: 'student' };
+    const service = { get: vi.fn().mockResolvedValue(saved), save: vi.fn().mockResolvedValue({}), markReviewed: vi.fn() };
+    render(<AvailabilityCard studentId="s1" user={student} service={service} today="2026-10-29" />);
+    fireEvent.click(await screen.findByRole('button', { name: /Järgmine nädal 2\.11–8\.11/ }));
+    expect(screen.getByText(/kehtib tavaline nädal/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Muuda/ }));
+    fireEvent.pointerDown(screen.getByRole('button', { name: 'R 10:00' }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Salvesta ajad' })); });
+    expect(service.save.mock.calls[0][1]).toMatchObject({ week: '2026-11-02' });
+    expect(service.save.mock.calls[0][1].slots).toContain('Fri-10:00');
+    fireEvent.click(screen.getByRole('button', { name: /Nädal 9\.11–15\.11/ }));
+    expect(screen.getByText('Laupäev 10–11')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Muuda/ }));
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Kasuta tavalist nädalat' })); });
+    expect(service.save.mock.calls[1][1]).toMatchObject({ week: '2026-11-09', reset: true });
+  });
 });
