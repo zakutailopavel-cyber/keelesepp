@@ -125,8 +125,22 @@ export function packPages(rows, { firstCap, nextCap, gap = 0 }) {
     used += h + gap;
     if (used - gap > cap()) tall[pages.length - 1] = true;
   };
+  // a word strip belongs to the task below it: when that task (or its first part) would start on the next page, the
+  // strip goes along instead of staying alone at the bottom
+  const firstPart = (row) => {
+    const s = row?.split;
+    if (!s || s.items.length < MIN_ITEMS * 2) return row?.h || 0;
+    return s.head + (s.items[MIN_ITEMS - 1].bottom - s.items[0].top) + s.tail;
+  };
   rows.forEach((row, index) => {
     if (row.breakBefore && pages[pages.length - 1].length) newPage();
+    if (row.keepWithNext && rows[index + 1] && pages[pages.length - 1].length) {
+      const next = rows[index + 1];
+      const room = cap() - used - row.h - gap;
+      const whole = next.h <= room;
+      const part = next.split && firstPart(next) <= room && room >= MIN_FREE_MM && room >= cap() * MIN_FREE_SHARE;
+      if (!whole && !part) newPage();
+    }
     const s = row.split;
     const fits = () => used + row.h <= cap() || (!pages[pages.length - 1].length && row.h <= cap());
     if (!s || s.items.length < MIN_ITEMS * 2 || fits()) {

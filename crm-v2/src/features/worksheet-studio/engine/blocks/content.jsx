@@ -1,7 +1,7 @@
  
 import { Photo, Md, Bulb, Speech } from '../ui.jsx';
 import { splitList } from '../schema.js';
-import { Text, Area, ImagePick, Select } from '../../editor/fields.jsx';
+import { Text, Area, ImagePick, Select, Rows } from '../../editor/fields.jsx';
 
 // Non-task blocks: no number badge, no answers. They carry explanation, examples and pictures.
 
@@ -90,5 +90,32 @@ export const vocab = {
       <Area label="Sõnad (komaga või iga rida eraldi)" rows={5} value={data.words} onChange={(v) => set({ words: v })} />
       <Select label="Veerge" value={data.columns} onChange={(v) => set({ columns: v })} options={[['2', '2'], ['3', '3'], ['4', '4']]} />
     </>
+  ),
+};
+
+// A mini picture dictionary: 3–5 small square pictures with the word under each (art/wordStrips.js puts it before the
+// tasks that use the words). `hidden`: not in the block picker; the sheet builder adds it, a teacher can change or
+// delete it.
+export const wordstrip = {
+  type: 'wordstrip', label: 'Sõnad piltidega', group: 'Pildid', icon: 'Images', task: false, width: 'full', tone: 'white', hidden: true,
+  create: () => ({ artFor: 'words', items: [] }),
+  View: ({ data }) => (
+    <ul className="ws-wordstrip" aria-label="Sõnad piltidega">
+      {(data.items || []).map((item) => (
+        <li key={item.id || item.word}>
+          <Photo img={item.img} aspect="1:1" alt={item.alt || item.word} />
+          <span>{item.word}</span>
+        </li>
+      ))}
+    </ul>
+  ),
+  Editor: ({ data, set }) => (
+    <Rows label="Sõnad" rows={data.items || []} onChange={(items) => set({ items })} make={() => ({ word: '', img: null, alt: '' })} addLabel="Lisa sõna" max={5}
+      render={(row, patch) => (
+        <>
+          <ImagePick label="" value={row.img} aspect="1:1" onChange={(img) => patch({ img })} allowAspect={false} />
+          <input className="ed-input" placeholder="Sõna" value={row.word} onChange={(e) => patch({ word: e.target.value, alt: e.target.value })} />
+        </>
+      )} />
   ),
 };

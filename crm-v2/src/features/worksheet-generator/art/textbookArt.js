@@ -54,6 +54,8 @@ import c1Module08 from './visuals/c1-module-08.js';
 import c1Module09 from './visuals/c1-module-09.js';
 import c1Module10 from './visuals/c1-module-10.js';
 
+import { rowsOf } from '../../worksheet-studio/engine/layout.js';
+
 // Textbook illustrations (docs/TEXTBOOK_ART_BIBLE.md): the content agent adds one visuals file per module under
 // ./visuals and lists it here; the image files live in crm-v2/public/textbook-art/<level>/<lessonId>/<id>.webp.
 const MODULES = [a2Module01, a2Module02, a2Module03, a2Module04, a2Module05, a2Module06, a2Module07, a2Module08, a2Module09, a2Module10, a2Module11, a2Module12, a2Module13, a2Module14, a2Module15, a2Module16, a2Module17, b1Module01, b1Module02, b1Module03, b1Module04, b1Module05, b1Module06, b1Module07, b1Module08, b1Module09, b1Module10, b2Module01, b2Module02, b2Module03, b2Module04, b2Module05, b2Module06, b2Module07, b2Module08, b2Module09, b2Module10, b2Module11, b2Module12, b2Module13, b2Module14, b2Module15, b2Module16, b2Module17, b2Module18, c1Module01, c1Module02, c1Module03, c1Module04, c1Module05, c1Module06, c1Module07, c1Module08, c1Module09, c1Module10];
@@ -122,13 +124,46 @@ export function artBlock(visual) {
 
 const hasArt = (doc, visual) => (doc?.blocks || []).some((block) => block?.data?.artId === visual.id);
 
-// adds the lesson's illustrations for this phase after the opening text of the sheet, once
+// Where a scene picture stands (owner 2026-10-30: „иллюстрации должны … эргономично дополнять рабочие листы на протяжении
+// всего урока”): where it is used. A brief may name the place (`place: '<blockId>'`); otherwise directly before the first
+// speaking or writing task, or earlier when a block before that task talks about the picture; a sheet with no such task
+// keeps it after the opening text. A hint or a text in front of the task stays with the task, and a row is never split.
+const USES_PICTURE = new Set(['speaking', 'rolecards', 'speakcard', 'writing', 'guidedletter']);
+const SCENE_LEAD_INS = new Set(['notice', 'tip', 'text', 'heading', 'phrasebank']);
+const OWN_PICTURES = new Set(['image', 'picmatch', 'pictures', 'scenelabel', 'picrows']);
+const NOT_READ = new Set(['teacher', 'explain', 'transcript', 'audio', 'img', 'alt', 'caption']);
+const added = (block) => Boolean(block?.data?.artId || block?.data?.artFor);
+const isLeadIn = (block) => SCENE_LEAD_INS.has(block?.type) && !block?.data?.review && !added(block);
+const readText = (value) => (typeof value === 'string' ? value : Array.isArray(value) ? value.map(readText).join(' ')
+  : value && typeof value === 'object' ? Object.entries(value).filter(([key]) => !NOT_READ.has(key)).map(([, item]) => readText(item)).join(' ') : '');
+const talksAboutPicture = (block) => !added(block) && !OWN_PICTURES.has(block?.type) && !block?.data?.img && /\bpil(t|di|ti)/i.test(readText(block?.data));
+function toRowStart(blocks, index) {
+  let start = 0;
+  for (const row of rowsOf(blocks)) {
+    if (index < start + row.length) return start;
+    start += row.length;
+  }
+  return index;
+}
+export function scenePlace(blocks, visual) {
+  const named = visual?.place ? blocks.findIndex((block) => block?.id === visual.place) : -1;
+  if (named >= 0) return toRowStart(blocks, named);
+  const top = ['text', 'notice', 'tip'].includes(blocks[0]?.type) ? 1 : 0;
+  const used = blocks.findIndex((block) => USES_PICTURE.has(block?.type) && !block?.data?.artFor);
+  const told = blocks.findIndex(talksAboutPicture);
+  const first = used < 0 ? told : told < 0 ? used : Math.min(used, told);
+  if (first < 0) return top;
+  let at = first;
+  while (at > 0 && isLeadIn(blocks[at - 1])) at -= 1;
+  return Math.max(top, toRowStart(blocks, at));
+}
+
+// adds the lesson's illustrations for this phase where the sheet uses them, once
 export function withLessonArt(doc, lessonId, phase, visuals = ALL_VISUALS) {
   const missing = visualsFor(lessonId, phase, visuals).filter((visual) => !hasArt(doc, visual));
   if (!doc || !missing.length) return doc;
   const blocks = [...(doc.blocks || [])];
-  const at = ['text', 'notice', 'tip'].includes(blocks[0]?.type) ? 1 : 0;
-  blocks.splice(at, 0, ...missing.flatMap((visual) => [artBlock(visual), artPromptBlock(visual)]));
+  missing.forEach((visual) => blocks.splice(scenePlace(blocks, visual), 0, artBlock(visual), artPromptBlock(visual)));
   return { ...doc, blocks };
 }
 
