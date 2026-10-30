@@ -1,3 +1,27 @@
+## 2026-10-30 · agent/a2-m08-final — A2 module 8 „Teenused ja asjaajamine” in the final shape
+
+- Base: `main` 144f8b2 (A2 modules 5 #918 and 6 #916 merged), checked 2026-10-30. Module 7 (#919) was not on `main` yet: the
+  034 → 036 boundary and V6 were checked with `origin/agent/a2-m07-final` in a temporary copy (clean; 034's corner is W1, so 036
+  has R5). Recheck after #919 lands. Content only; no production data, no publishing, no deploy.
+- Done: `a2/module08.js` (a2-036…040) passes every final-shape gate under the A2 profile: **85 → 0 problems** on this `main` (88
+  before modules 5–6; `final-shape.mjs --course a2 --module 8`). `finalShapeBaselineA2.json` only shrank (module 8's 85 lines,
+  module 9 −2, module 13 −1, module 20 −1, course −1). Quality gate clean, `qualityBaseline.json` unchanged.
+- Shape (`withShapes`, A2 §4 row m8, no swap): 036 PROJ R→W (main `036_t_mail` e-mail to Kristi, W04, 50–70 words; corner R5
+  `036_p_cloze`), 037 KIRJ L→W (main and corner W2b `037_t_text`, 40–60-word text on the lounge, W05, planned W11, edited W10),
+  038 RÄÄK L→S (main `038_t_desk` S10 with the registrar; corner S2 `038_p_cards`; home recording S06 `038_t_picture`), 039 LUGE
+  R→S (main `039_t_call` S04 to customer service; corner R4 `039_p_sim`). 040 tags R1, R4, R5, L3, W2a, W2b; its picture task is
+  S06 **without** `harno: 'S1'`. Every teaching lesson: review naming the previous lesson and one of modules 4–6 (034/029, 036/022,
+  037/016, 038/028), a pair task, a home recording (30–60 s), two or three fluency tasks. No tingiv kõneviis (also the 040 picture
+  prompt in `art/visuals/a2-module-08.js`). canDo and goals of 036–039 and one word range of 040 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): rebuilt `036_t_voice`, `037_d_guard`, `037_p_desk`, `039_p_voice`; new `038_p_steps`, `039_d_auto`,
+  `039_t_ott`; removed `037_t_lucia`, `038_t_bank`, `039_d_call`, `039_t_call` (mp3 + manifest).
+- Outside the task's file list, one line: `admin/course/methodGaps.test.js` no longer expects `a2-module-09` among the known recycling
+  gaps, because module 9 now reuses enough of module 8's words (the test's own comment asks for this).
+- Known: the R4 corner is a `reading` with short answers (exam: 5 MC), as the B1 R2 corners; the R5 corner is the bank's e-mail
+  (exam: a personal letter). Readiness notes left (not gates): 040 short tasks in Avasta and no vocab box.
+- Next safe step: after #919 lands, rerun `final-shape.mjs --course a2 --module 8`; A2 module 9 must not open with an R4 corner in
+  041 (039's corner is R4).
+
 ## 2026-10-29 · agent/a2-m06-final — A2 module 6 „Söök, jook ja kohvik” in the final shape
 
 - Base: `main` e6f4db4 (A2 modules 3 #914 and 4 #915 merged), checked 2026-10-29. Module 5 is rewritten in parallel and was
