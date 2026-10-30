@@ -2533,6 +2533,64 @@ service cloud.firestore {
     // students (the schedule e-mail reads it on the server). The administrator creates it once, with fixed keys;
     // nobody changes or deletes it from the app (the server updates its status with the admin SDK).
     // „Ärinäitajad”: the school's monthly fixed costs and the owner's own lessons (admin only)
+    // TSD (docs/ACCOUNTING.md „TSD”): personal ID codes and pay, so only admin and finance read or write; no delete.
+    // tsdPayees = one person (id code, contract type, exemption, pension); tsdMonths/<YYYY-MM> = the lines of a month;
+    // tsdSettings/<year> = rates of a year. The history on a document names the changed fields, never an id code.
+    match /tsdPayees/{payeeId} {
+      allow read: if isAdmin() || isFinance();
+      allow create, update: if (isAdmin() || isFinance())
+        && request.resource.data.keys().hasOnly(['name', 'idCode', 'code', 'exemptionApplied', 'exemptionCents', 'pensionAge', 'pensionRate', 'minimumExempt', 'staffUid', 'active', 'note', 'history', 'updatedAt', 'updatedByUid'])
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() <= 120
+        && request.resource.data.idCode is string
+        && request.resource.data.idCode.size() <= 20
+        && request.resource.data.code is string
+        && request.resource.data.code.size() <= 12
+        && (request.resource.data.exemptionApplied == null || request.resource.data.exemptionApplied is bool)
+        && request.resource.data.exemptionCents is int
+        && request.resource.data.exemptionCents >= 0
+        && request.resource.data.exemptionCents <= 1000000
+        && request.resource.data.pensionAge is bool
+        && (request.resource.data.pensionRate == null || request.resource.data.pensionRate in [0, 2, 4, 6])
+        && request.resource.data.minimumExempt is bool
+        && request.resource.data.active is bool
+        && request.resource.data.history is list
+        && request.resource.data.history.size() <= 200
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedByUid == uid();
+      allow delete: if false;
+    }
+    match /tsdMonths/{month} {
+      allow read: if isAdmin() || isFinance();
+      allow create, update: if (isAdmin() || isFinance())
+        && month.matches('^20[0-9]{2}-(0[1-9]|1[0-2])$')
+        && request.resource.data.keys().hasOnly(['sourceMonth', 'lines', 'history', 'updatedAt', 'updatedByUid'])
+        && request.resource.data.sourceMonth.matches('^20[0-9]{2}-(0[1-9]|1[0-2])$')
+        && request.resource.data.lines is list
+        && request.resource.data.lines.size() <= 300
+        && request.resource.data.history is list
+        && request.resource.data.history.size() <= 200
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedByUid == uid();
+      allow delete: if false;
+    }
+    match /tsdSettings/{year} {
+      allow read: if isAdmin() || isFinance();
+      allow create, update: if (isAdmin() || isFinance())
+        && year.matches('^20[0-9]{2}$')
+        && request.resource.data.keys().hasOnly(['incomeTaxBps', 'socialTaxBps', 'socialMinBaseCents', 'unemploymentEmployeeBps', 'unemploymentEmployerBps', 'exemptionGeneralCents', 'exemptionPensionAgeCents', 'updatedAt', 'updatedByUid'])
+        && request.resource.data.incomeTaxBps is int && request.resource.data.incomeTaxBps >= 0 && request.resource.data.incomeTaxBps <= 10000
+        && request.resource.data.socialTaxBps is int && request.resource.data.socialTaxBps >= 0 && request.resource.data.socialTaxBps <= 10000
+        && request.resource.data.unemploymentEmployeeBps is int && request.resource.data.unemploymentEmployeeBps >= 0 && request.resource.data.unemploymentEmployeeBps <= 10000
+        && request.resource.data.unemploymentEmployerBps is int && request.resource.data.unemploymentEmployerBps >= 0 && request.resource.data.unemploymentEmployerBps <= 10000
+        && request.resource.data.socialMinBaseCents is int && request.resource.data.socialMinBaseCents >= 0
+        && request.resource.data.exemptionGeneralCents is int && request.resource.data.exemptionGeneralCents >= 0
+        && request.resource.data.exemptionPensionAgeCents is int && request.resource.data.exemptionPensionAgeCents >= 0
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedByUid == uid();
+      allow delete: if false;
+    }
     match /businessSettings/{settingId} {
       allow read: if isAdmin();
       allow create, update: if isAdmin() && settingId == 'current'

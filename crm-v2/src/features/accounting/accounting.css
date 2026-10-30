@@ -846,3 +846,37 @@
 .accounting-ledger td.num {
   overflow-wrap: normal;
 }
+
+/* TSD tab */
+.tsd-panel { display: grid; gap: 14px; }
+.tsd-toolbar { align-items: end; display: flex; flex-wrap: wrap; gap: 12px; padding: 14px; }
+.tsd-toolbar .field { margin: 0; }
+.tsd-toolbar__actions { display: flex; flex-wrap: wrap; gap: 8px; margin-left: auto; }
+.tsd-due { margin: 0 0 10px; }
+.tsd-note { color: #475467; font-size: .9rem; margin: 0; padding: 0 14px 12px; }
+.tsd-warning { align-items: center; color: #b54708; display: flex; gap: 6px; margin: 0; padding: 0 14px 12px; }
+.tsd-empty { padding: 16px; }
+.tsd-rates { display: grid; gap: 10px; justify-items: start; padding: 14px; }
+.tsd-rates h2, .tsd-form h2 { font-size: 1rem; margin: 0; padding: 14px 14px 8px; }
+.tsd-rates h2 { padding: 0; }
+.tsd-rates .tsd-note { padding: 0; }
+.tsd-grid { min-width: 1240px; }
+.tsd-grid th { vertical-align: bottom; }
+.tsd-grid th small { color: #667085; display: block; font-weight: 400; }
+.tsd-grid select { max-width: 92px; }
+.tsd-gross { border: 1px solid #dfe5ea; border-radius: 6px; font-variant-numeric: tabular-nums; min-height: 30px; padding: 0 6px; text-align: right; width: 88px; }
+.tsd-grid .num { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.tsd-grid tfoot td { font-weight: 700; }
+.tsd-id { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tsd-edit { margin-left: 6px; vertical-align: middle; }
+.tsd-source { color: #0f6b4f; display: block; }
+.tsd-not-calculated { color: #98a2b3; }
+.tsd-warning-row td { background: #fffaeb; color: #b54708; font-size: .88rem; }
+.tsd-columns { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.tsd-form .accounting-grid, .tsd-rates .accounting-grid { min-width: 0; }
+.tsd-form .accounting-grid { margin: 0 14px 10px; width: calc(100% - 28px); }
+.tsd-form .num { font-variant-numeric: tabular-nums; text-align: right; }
+.tsd-form > .button { margin: 0 14px 14px; }
+.tsd-total td { font-weight: 700; }
+.tsd-entry-title { border-top: 1px solid #eef1f4; margin-top: 6px !important; }
+.tsd-check { align-items: flex-start; display: flex; gap: 8px; }

@@ -11,6 +11,7 @@ import { useOptionalAuth } from '../../app/AuthContext.jsx';
 import { hasAnyRole, ROLES } from '../../utils/roles.js';
 import JournalDraft from './JournalDraft.jsx';
 import JournalGrid from './JournalGrid.jsx';
+import TsdPanel from './tsd/TsdPanel.jsx';
 import { SORT_LABELS, sortEntries } from './journalGrid.js';
 import './accounting.css';
 
@@ -25,8 +26,9 @@ const TABS = [
   ['statements', 'Bilanss ja kasumiaruanne'],
   ['chart', 'Kontoplaan'],
   ['suppliers', 'Tarnijad'],
+  ['tsd', 'TSD'],
 ];
-const NO_PERIOD_TABS = new Set(['chart', 'suppliers']);
+const NO_PERIOD_TABS = new Set(['chart', 'suppliers', 'tsd']);
 const today = () => new Date().toISOString().slice(0, 10);
 const dateLabel = (value) => (value ? new Date(`${value}T12:00:00`).toLocaleDateString('et-EE') : '—');
 const blankLine = () => ({ account: '', debit: '', credit: '', note: '' });
@@ -351,6 +353,8 @@ export default function AccountingPage({ repository = accountingService, canEdit
         <p className="total"><span>Kasum (kahjum)</span><span>{euro(statements.result.profitCents)}</span></p>
       </Card>
     </div> : null}
+
+    {tab === 'tsd' ? <TsdPanel accounts={accounts} entries={state.data?.entries || []} lockedThrough={lockedThrough} canEdit={!readOnly} createEntry={repository.createEntry} onBooked={() => state.reload()} /> : null}
 
     {tab === 'chart' ? <Card className="accounting-card">
       <div className="accounting-card__search"><span>{accounts.length} kontot · Merit Aktiva kontoplaan</span><Button onClick={() => openAccount(null)}>+ Lisa konto</Button></div>
