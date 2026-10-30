@@ -8,6 +8,68 @@
 - Design check: local preview, PNGs in `~/.keelesepp-helpers/art-preview/` (not in the repo). Desktop, phone and print checked; the strip has no frame on any width (the classic theme's page frame, an inset shadow, showed through on a phone: fixed in `sheet.css`). a2-022 practice, 5 pages: strips on pages 1, 2, 4. Print sample of 12 sheets: 4 gain one page (a2-022 practice, a2-041 practice, a2-043 discover, a2-001 transfer), 8 unchanged; tiles reduced to 21 mm to keep that down.
 - Known: **sheets in Õppevara do not change until published again**; „Kursuste tervis” shows them as differing from code. A scene picture can land one page before its task on paper (only strips keep with their task). A strip word may be an answer two or more tasks above it, only when three words cannot be reached otherwise. Pictures to redraw: `pikk` = `luhike` and `peatus` = `bussipeatus` are the same file (`SAME_PICTURE`, a sheet shows one of each pair); weak: `ema` (same age as daughter), `vanem`, `köha`, `teenus`, `liha` (lime steak).
 - Next safe step: the owner looks at the PR and the PNGs; after the merge publish the A2 sheets on „Kursuse tootmine” lesson by lesson.
+## 2026-10-30 · agent/a2-m12-final — A2 module 12 „Reisimine ja transport” in the final shape
+
+- Base: `main` 0a7c4d3 (A2 module 10 #923 merged; module 11 still open), checked 2026-10-30. The 054 → 056 boundary was checked by
+  overlaying module 11's current file: 0 problems, no new line elsewhere. Recheck after module 11 merges. Content only; no production
+  data, no publishing, no deploy. Template v3 → v4 (as modules 6–10).
+- Done: `a2/module12.js` (a2-056…060) passes every final-shape gate under the A2 profile: **117 → 0 problems**
+  (`final-shape.mjs --course a2 --module 12`); `finalShapeBaselineA2.json` 1279 → 1130 (module 12's 117 lines, 29 V7 / V8 lines of
+  modules 13–20, course 39 → 36), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m12, no swap): 056 KIRJ L→W (bussiga, jalgsi, peatuses / peatusesse / peatusest, üks ots; main
+  `056_t_letter` `kiri` 50–70 words W04, plan W11, edit W10), 057 PROJ L→S (väljub Tallinnast, saabub Tartusse, hilineb, teiselt
+  platvormilt, the one-page trip plan; main `057_t_plan` S03), 058 LUGE R→W (Mis kell, Kust, Kui palju, Kas, kaks piletit; main
+  `058_t_reply` `vastus` 60–80 words W08, tagged level 4), 059 RÄÄK R→S (lihtminevik; main `059_t_tell` S07, tagged level 4).
+  **Corners:** 056 W1 (`056_p_card`), 057 L1 (`057_p_clips`, 8 announcements), 058 R1 (`058_p_phrases`, a cloze tagged R12), 059 S2
+  (`059_p_cards`, S05). **061 must not have an S2 corner.** S06 = `059_t_record` (home recording with the picture), S05 = `059_p_cards`.
+  Every teaching lesson: review naming the previous lesson and one of modules 8–10 (054/047, 056/049, 057/048, 058/043), an in-lesson
+  pair task, a home recording (45–60 s), two fluency tasks (S09+W06, S02+S10, S02+R15+S01, S08+S11). No tingiv kõneviis; the picture
+  prompts in `art/visuals/a2-module-12.js` had none (file untouched).
+- 060 (PROOV, title „Proovieksam 1: reisimine”): all four parts timed with `B.examPart` and the 80 % target (W 30 min, 20 points; R 45 min,
+  29; L 30 min, 25; S 15 min, 20); tags W1, W2a, W2b, R1–R5, L1–L4, S0, S1, S2. Writing + reading on Harjuta, listening + speaking on Kasuta.
+- Cast (April, a year before B1; not yet in `docs/COURSE_CAST.md`): Sofia's friend Kati comes from Helsinki by ferry on Friday 16 April
+  (arrives 18.00 after her plan changes); Saturday 17 April 9.15 train to Helgi in Tartu (11.20); Sunday 18 April the 16.00 Teekaaslane bus is
+  cancelled, the 18.00 bus arrives 20.30, Kati catches the 21.30 ferry by taxi. Bus driver Toivo Rand, cashier Urve, Eve Ross (Teekaaslane
+  customer service), guide Reet Kask (business card), Dmitri's aunt Nina in Valga, Anna's friend Tiiu in Viljandi, Viktor's friend Arvo.
+  Tom came to Estonia by bicycle from England (new fact). The old Liis of this module (trip to Valga) is gone; **no renamed character**.
+- Audio (TartuNLP, free): new `056_d_call`, `056_p_radio`, `056_t_voice`, `057_d_maret`, `057_p_clips`, `058_d_desk`, `058_p_order`,
+  `059_d_numbers`, `059_p_radio`, `060_t_l1`–`060_t_l4`; the 7 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under heavy machine load (load average 400+): 390 files passed, 20 UI files
+  failed, 1 skipped (39 tests, timeouts). The 20 files run one at a time with a 180 s timeout: 19 passed, `studentWorksheetFlow` timed out and
+  passed alone (3/3). `admin/course` 16 files passed, 1 skipped. Language check (Vabamorf) of module 12: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: W1 2, L1 2, R1 2, S2 3 of 4–5.
+- Next safe step: when module 11 has merged, rerun `final-shape.mjs --course a2 --module 12`; then A2 module 13 (`a2/module13.js`, first
+  corner not S2).
+## 2026-10-30 · agent/a2-m11-final — A2 module 11 „Ilm, aastaajad ja riided” in the final shape
+
+- Base: `main` checked 2026-10-30 (0a7c4d3: A2 modules 8 #921, 9 #922, 10 #923); the 049 → 051 boundary is rechecked (049's corner is L1, 051's W1).
+  Content only; no production data, no publishing, no deploy.
+- Done: `a2/module11.js` (a2-051…055, moved from template v3 to v4) passes every final-shape gate under the A2 profile: **126 → 0 problems**
+  (`final-shape.mjs --course a2 --module 11`). Quality gate clean. Storyline: March, Keelekool Sõna's spring outing on Saturday 13 March
+  (Viktor's farm or Pärnu; Lucía from Valencia fears the cold); radio weatherman Ragnar Vaher (host Ülle); new classmate Eeva (from Finland).
+- Cast: „Liis” as a listener (picture of 053) and other non-boss uses are gone: renamed Eeva in the module and `art/visuals/a2-module-11.js`. Mia's
+  mother is Kadri again (the old file had „Oksana”).
+- Shape (`withShapes`, A2 §4 row m11 = m3, no swap): 051 KUUL L→W (corner W1 `051_t_card`, main `051_t_letter` W04, 50–70 words), 052 PROB L→S (corner
+  S2 `052_p_cards` S05, main `052_t_decide` S03, call S04), 053 LUGU R→W (corner R4 `053_p_ragnar`, main `053_t_end` W05, 60–80 words), 054 AVAS R→S (corner
+  S1 `054_t_picture` S06, main `054_t_call` S04). 055 tags R1–R5, L1–L4, W1, W2a, S0, S1, S2, every part timed. **056 must not have an S1 corner.**
+  Every teaching lesson: review naming the previous lesson and one of modules 7–9, a pair task, a home recording (45–60 s), two fluency tasks.
+  No tingiv kõneviis. Goals of 051–055 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): 13 recordings new (051_d_radio, 051_d_class, 051_p_clips, 051_t_voice, 052_d_call, 053_d_forecast, 053_p_map, 054_d_family,
+  054_p_morning, 055_t_l1–l4); the old ones of 051–055 removed (mp3 + manifest).
+- Checks on `main` 0a7c4d3: `final-shape.mjs --course a2 --module 11` 0 (course 1152, new 0); baseline only shrank (129 lines), `qualityBaseline.json` unchanged;
+  `npx eslint --quiet src` clean; `npx vitest run` 407 files passed, 3 UI files timed out at load ~40 (studentWorksheetFlow, LiveRoom, WorksheetStudioPage), all pass alone
+  (WorksheetStudioPage 23/23, the other two 19/19). Language check (Vabamorf) of module 11: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: readiness notes left (not gates): 051 and 055 Harjuta „live” ≈ 12 min. R4 corner is a `reading` with short answers (exam: 5 MC), as 039.
+- Next safe step: A2 module 12 (`a2/module12.js`); its first corner must not be S1.
+## 2026-10-30 · agent/c1-course-foundation — course „Eesti keel C1” (B2 → Harno C1): foundation, no lessons
+
+- Base: `main` 0a7c4d3, checked 2026-10-30. No content, no production data, no publishing, no deploy. Paid or external: only reading harno.ee.
+- Goal (owner 2026-10-30): a new course leading to the Harno C1 exam, like B1→B2 leads to B2; the 240-h programme stays separate as „C1 süvakursus” (`c1`, `est-c1-*`, unchanged). Lessons start after the A2 course is finished.
+- Done: `docs/COURSE_FINAL_SHAPE_C1.md` (exam map re-checked on harno.ee, 12 new types, profile, intro schedule, archetype + corner plan per lesson, exam-lesson table, what must be built before module 1, open questions) and `docs/B2_C1_CURRICULUM.md` (18 modules, working title and can-do of all 90 lessons, axis, storyline after the B2 finale, reuse notes).
+- Code: course key **`b2c1`** (proposed instead of `c1x`), `PROFILES.b2c1`; `taskCatalogue.js` 71 → 83 types (R17–R19, L11–L13, W16–W18, S18, S19, G14), `HARNO_FORMATS_C1`, `harnoFamilyC1`, `FORMAT_INTRO_C1`, `FORMAT_PRACTICE_C1`, `VARIANTS_C1`; `courseNames.js` `b2c1` with curriculum id `est-b2-c1-roadmap-v1` and `sharesLevel: true`, so `courseForLevel('C1')` stays the süvakursus; `registry.js` `COURSES.b2c1`; `finalShape.test.js` course list (no groups until modules exist), `finalShapeBaselineB2C1.json` `{}`; `final-shape.mjs --course b2c1`. The baselines of a2, b1, b2 are unchanged.
+- Checks: `npx eslint --quiet src` clean. `npx vitest run`: 402 of 411 files passed, 1 skipped, 8 UI files failed (22 tests, machine load 300–500, mostly timeouts). Those 8 files re-run one at a time with a 120 s timeout: 7 passed, `studentWorksheetFlow` timed out on its own 90 s limit and passed alone (3/3). `final-shape.mjs --course b2c1`: „no modules yet”. The corner and exam plan was checked by a scratch script (not committed) against `FORMAT_INTRO_C1` and `FORMAT_PRACTICE_C1`; no gate has run on real C1 content, as there is none.
+- Known: Õppevara, Minu kursus and the book cover are keyed by level, so two courses on „C1” would mix; there is no block for the L3 lecture notes, no C1 rubric, no `C1-` stage (shape §8). L3 scoring is unclear in Harno's text (0–5 against 27 points, shape §2). The booklet was only sampled.
+- Next safe step: the owner answers shape §10; when A2 is finished, one UI PR for shape §8, then module 1 on `agent/b2c1-m01`.
 
 ## 2026-10-30 · agent/a2-m10-final — A2 module 10 „Vaba aeg ja meelelahutus” in the final shape
 

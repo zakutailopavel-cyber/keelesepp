@@ -30,6 +30,10 @@ export const TASK_CATALOGUE = Object.freeze({
   R14: t('Väited lõikudele', 2, ['R2a'], 0, 1),
   R15: t('Lühivastused tekstist (1–3 sõna)', 2, ['R2b'], 0, 1),
   R16: t('Lausepank lünkadesse (üks üleliigne)', 3, ['R4'], 0, 1),
+  // C1 reading (docs/COURSE_FINAL_SHAPE_C1.md §3; `exam` = Harno C1 ids; up to 2 a module: a teaching task and an exam corner)
+  R17: t('Väited neljale lõigule (12 väidet, ≈ 600 sõna)', 2, ['R1'], 0, 2),
+  R18: t('Lause lünka kolmest valikust (≈ 550 sõna)', 3, ['R2'], 0, 2),
+  R19: t('Teabetekst: lühivastused (1–4 sõna)', 2, ['R3'], 0, 2),
   // 3.2 Listening
   L01: t('Lühikesed klipid + pilt/sõna', 1, ['L1'], 0, 1),
   L02: t('Raadiolugu + valikvastused', 2, ['L2'], 0, 1),
@@ -41,6 +45,10 @@ export const TASK_CATALOGUE = Object.freeze({
   L08: t('Dikteerimine / taastamine', 2, ['L3a'], 0, 2),
   L09: t('Kuula ja järjesta', 2, ['L2'], 0, 1),
   L10: t('Numbrid, ajad, hinnad', 1, ['L1', 'L3b'], 0, 1),
+  // C1 listening: news with short answers (twice), a long debate with inference (once), a lecture written up as 10 ideas (once)
+  L11: t('Uudised: lühivastused (1–3 sõna)', 2, ['L1'], 0, 2),
+  L12: t('Vestlus või väitlus: järeldused (kuuleb üks kord)', 3, ['L2'], 0, 2),
+  L13: t('Loengu konspekt: olulisemad mõtted (kuuleb üks kord)', 3, ['L3'], 0, 2),
   // 3.3 Writing
   W01: t('Küsimustik (10 vastust, osa „Miks?”)', 3, ['W1a'], 0, 1),
   W02: t('Teade / sõnum (≈ 50 sõna, 4 punkti)', 3, ['W1b'], 0, 1),
@@ -58,6 +66,10 @@ export const TASK_CATALOGUE = Object.freeze({
   W13: t('Poolametlik kiri (≈ 140 sõna)', 4, ['W1'], 0, 1),
   W14: t('Arutlus: poolt ja vastu (≈ 180 sõna)', 4, ['W2b'], 0, 1),
   W15: t('Kokkuvõte andmetest + kommentaar (≈ 180 sõna)', 4, ['W2a'], 0, 1),
+  // C1 writing (docs/COURSE_FINAL_SHAPE_C1.md §3): two data sources without an opinion; the two genres of the opinion text
+  W16: t('Üldistav kokkuvõte kahest joonisest (≈ 180 sõna, arvamuseta)', 4, ['W1'], 0, 2),
+  W17: t('Arvamuslugu (220–260 sõna, kaks punkti)', 4, ['W2a'], 0, 2),
+  W18: t('Arvamus asutusele (220–260 sõna, kaks punkti)', 4, ['W2b'], 0, 2),
   // 3.4 Speaking
   S01: t('Tutvustav vestlus', 3, ['S0'], 0, 1),
   S02: t('Teemaküsimused', 3, ['S1a'], 1, 2),
@@ -79,6 +91,10 @@ export const TASK_CATALOGUE = Object.freeze({
   // B2 speaking: the 1-minute talk at a meeting from a topic card, and the pair's joint position with argument cards A/B
   S16: t('Sõnavõtt koosolekul (1 min, teemakaart)', 4, ['S1'], 0, 2),
   S17: t('Arutelu argumendikaartidega (ühine seisukoht)', 4, ['S2'], 0, 2),
+  // C1 speaking: the 2-minute talk from a card of two topics (3 min to prepare, 1–2 questions from the partner) and the
+  // ≈ 7-minute discussion with a topic card, where the turn is taken, kept and given up (no joint position is needed)
+  S18: t('Kaheminutiline ettekanne (teemakaart, küsimused)', 4, ['S1'], 0, 2),
+  S19: t('Diskussioon teemakaardiga (kõnevoor)', 4, ['S2'], 0, 2),
   // 3.5 Language
   G01: t('Märka', 1, [], 2, 4),
   G02: t('Leia reegel', 2, ['R3'], 1, 2),
@@ -94,6 +110,8 @@ export const TASK_CATALOGUE = Object.freeze({
   // G12 „Mäletad?” is in every lesson and is not counted as a task
   G12: t('Mäletad?', 2, [], null, null),
   G13: t('Vali õige vorm', 1, ['R3a'], 0, 2),
+  // C1: the same content in another register or a denser form (nominalisation, lauselühend, hedging)
+  G14: t('Ümbersõnastus: register ja tihedus', 3, ['W1', 'W2a', 'W2b', 'R2'], 0, 2),
 });
 export const skillOf = (id) => String(id || '').charAt(0);
 export const isCatalogueId = (id) => Object.prototype.hasOwnProperty.call(TASK_CATALOGUE, id);
@@ -122,13 +140,24 @@ export const HARNO_FORMATS_A2 = Object.freeze({
   R1: 'R', R2: 'R', R3: 'R', R4: 'R', R5: 'R',
   S0: 'S', S1: 'S', S2: 'S',
 });
-export const isHarnoFormat = (id) => [HARNO_FORMATS, HARNO_FORMATS_B2, HARNO_FORMATS_A2].some((map) => Object.prototype.hasOwnProperty.call(map, id));
+// Harno C1 task ids (docs/COURSE_FINAL_SHAPE_C1.md §2): writing T1 summary of two data sources, T2 opinion text in one of
+// two genres; listening T1 news, T2 debate, T3 lecture notes; reading T1 statements ↔ 4 paragraphs, T2 sentence gaps, T3
+// short answers; speaking intro, T1 talk, T2 discussion
+export const HARNO_FORMATS_C1 = Object.freeze({
+  W1: 'W', W2a: 'W', W2b: 'W',
+  L1: 'L', L2: 'L', L3: 'L',
+  R1: 'R', R2: 'R', R3: 'R',
+  S0: 'S', S1: 'S', S2: 'S',
+});
+export const isHarnoFormat = (id) => [HARNO_FORMATS, HARNO_FORMATS_B2, HARNO_FORMATS_A2, HARNO_FORMATS_C1].some((map) => Object.prototype.hasOwnProperty.call(map, id));
 // W1a / W1b → W1, L3a / L3b → L3, R3a / R3b → R3; S1a, S1b, S2 stay apart (§6.4 counts them apart)
 export const harnoFamily = (id) => (/^(W1|W2|L3|R3)[ab]$/.test(id) ? id.slice(0, -1) : id);
 // B2: W2a / W2b → W2, R2a / R2b → R2
 export const harnoFamilyB2 = (id) => (/^(W2|R2)[ab]$/.test(id) ? id.slice(0, -1) : id);
 // A2: W2a / W2b → W2
 export const harnoFamilyA2 = (id) => (/^W2[ab]$/.test(id) ? 'W2' : id);
+// C1: W2a (arvamuslugu) / W2b (arvamus) → W2
+export const harnoFamilyC1 = (id) => (/^W2[ab]$/.test(id) ? 'W2' : id);
 
 // the block types that are not tasks for the variety rules (§8: text, tip, vocab, phrase bank, review, rubric, self-check,
 // notice; notice counts as G01 only for V3) — plus pictures, charts and the exam part header
@@ -216,3 +245,14 @@ export const FORMAT_PRACTICE_A2 = Object.freeze({
   S1: p(4, 5, 10, 2), S2: p(4, 5, 10, 2),
 });
 export const VARIANTS_A2 = ['W2a', 'W2b'];
+
+// C1 (docs/COURSE_FINAL_SHAPE_C1.md §5): the learners passed B2, so four formats start in module 2 and every format has
+// been met by module 6; ten families and 67 corners allow a little more practice per family than B2
+export const FORMAT_INTRO_C1 = Object.freeze({ S1: 2, W1: 2, L1: 2, R3: 2, S2: 3, R1: 3, W2a: 4, L2: 4, R2: 5, W2b: 5, L3: 6 });
+export const FORMAT_PRACTICE_C1 = Object.freeze({
+  R1: p(5, 5, 11, 3), R2: p(5, 5, 11, 3), R3: p(5, 5, 11, 3),
+  L1: p(5, 5, 11, 3), L2: p(5, 5, 11, 3), L3: p(5, 5, 11, 3),
+  W1: p(5, 5, 11, 3), W2: p(5, 5, 11, 3),
+  S1: p(5, 6, 12, 2), S2: p(5, 6, 12, 2),
+});
+export const VARIANTS_C1 = ['W2a', 'W2b'];
