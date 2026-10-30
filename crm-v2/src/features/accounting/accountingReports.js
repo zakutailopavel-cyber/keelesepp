@@ -343,14 +343,16 @@ export function entryActions(entry, lockedThrough) {
   const live = !entry.deleted && !entry.reversed && entry.origin !== 'reversal';
   return {
     edit: open && live,
-    remove: open && live && entry.origin === 'manual',
+    // a deleted automatic entry stays a tombstone, so the sync does not bring it back; „Taasta” does
+    remove: open && live && entry.origin !== 'opening',
+    restore: open && Boolean(entry.deleted) && entry.origin !== 'reversal',
     storno: live && (entry.origin === 'manual' || entry.origin === 'opening'),
     // a storno made by mistake: undone while its period is open (the original is live again)
     undoStorno: open && !entry.deleted && entry.origin === 'reversal',
     locked: !open,
   };
 }
-export const HISTORY_ACTIONS = { edit: 'Muudetud', override: 'Read parandatud', document: 'Dokument parandatud', delete: 'Kustutatud', partner: 'Partner lisatud', 'undo-storno': 'Ekslik storno tühistatud', 'storno-undone': 'Storno tühistati, kanne kehtib' };
+export const HISTORY_ACTIONS = { restore: 'Taastatud', edit: 'Muudetud', override: 'Read parandatud', document: 'Dokument parandatud', delete: 'Kustutatud', partner: 'Partner lisatud', 'undo-storno': 'Ekslik storno tühistatud', 'storno-undone': 'Storno tühistati, kanne kehtib' };
 export const linesText = (lines = []) => lines.map((l) => `${l.account} ${l.debitCents ? `D ${amount(l.debitCents)}` : `K ${amount(l.creditCents)}`}${l.partner?.name ? ` (${l.partner.name})` : ''}`).join(', ');
 // the lines of a stored entry as editable text rows (JournalDraft)
 export const editableLines = (lines = []) => lines.map((l) => ({ account: String(l.account), debit: l.debitCents ? amount(l.debitCents).replace(/\s/g, '') : '', credit: l.creditCents ? amount(l.creditCents).replace(/\s/g, '') : '', note: l.note || '', partner: l.partner && (l.partner.id || l.partner.name) ? { type: l.partner.type || '', id: l.partner.id || '', name: l.partner.name || '' } : null }));

@@ -98,44 +98,34 @@ describe('JournalGrid', () => {
     await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('manual_m1', expect.objectContaining({ lines: [expect.objectContaining({ debitCents: 4000 }), expect.objectContaining({ creditCents: 4000 })] }), ''));
   });
 
-  it('an automatic entry keeps its date and document and asks the reason once per session; Ctrl+Z undoes the last saved change', async () => {
+  it('an automatic entry is corrected like any other, the reason is optional; Ctrl+Z undoes the last saved change', async () => {
     const repository = repo();
     await open(repository);
-    // the date of an automatic entry is not editable
-    fireEvent.mouseDown(cell(1, 1));
-    expect(cell(1, 1).querySelector('input')).toBeNull();
     typeInto(2, 0, '3000');
     expect(cell(2, 0)).toHaveTextContent('3000 Kauba, teenuse müük');
     fireEvent.mouseDown(cell(4, 3));
     fireEvent.keyDown(screen.getByLabelText('Kirjeldus (muuda)'), { key: 'Escape' });
-    expect(await screen.findByText(/Automaatkande parandusel on põhjus kohustuslik/)).toBeInTheDocument();
-    expect(repository.updateEntry).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText('Paranduse põhjus'), { target: { value: 'müügitulu 3000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta muudatused (1)' }));
     await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.objectContaining({ date: `${year}-01-10`, documentRef: 'KS-1', lines: [expect.objectContaining({ account: '1200' }), expect.objectContaining({ account: '3000' })] }), 'müügitulu 3000'));
     // the reason is remembered for the session
     expect(globalThis.sessionStorage.getItem('keelesepp.accounting.correctionReason')).toBe('müügitulu 3000');
-    // automatic entries are never deleted: a hint explains how to fix them
-    expect(screen.getByLabelText(/Automaatkannet ei kustutata/)).toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(1);
+    // an automatic entry can be deleted too
+    expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(2);
     fireEvent.keyDown(grid(), { key: 'z', ctrlKey: true });
     await waitFor(() => expect(repository.updateEntry).toHaveBeenLastCalledWith('auto_invoice_i1', expect.objectContaining({ lines: [expect.objectContaining({ account: '1200', debitCents: 8000 }), expect.objectContaining({ account: '3060', creditCents: 8000 })] }), 'Tagasivõtmine (Ctrl+Z): müügitulu 3000'));
   });
 
-  it('an automatic entry can be given its reason right beside its save button', async () => {
+  it('an automatic entry saves without a reason, and takes a new date and document', async () => {
     const repository = repo();
     await open(repository);
     typeInto(2, 0, '3000');
     fireEvent.mouseDown(cell(4, 3));
     fireEvent.keyDown(screen.getByLabelText('Kirjeldus (muuda)'), { key: 'Escape' });
-    const box = await screen.findByLabelText('Paranduse põhjus (see kanne)');
-    fireEvent.click(screen.getByRole('button', { name: 'Salvesta' }));
-    await waitFor(() => expect(document.activeElement).toBe(box));
-    expect(repository.updateEntry).not.toHaveBeenCalled();
-    fireEvent.change(box, { target: { value: 'müügitulu 3000' } });
-    expect(screen.getByLabelText('Paranduse põhjus (see kanne)')).toHaveValue('müügitulu 3000');
-    fireEvent.keyDown(box, { key: 'Enter' });
-    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.anything(), 'müügitulu 3000'));
+    fireEvent.click(await screen.findByRole('button', { name: 'Salvesta' }));
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.anything(), ''));
+    fireEvent.mouseDown(cell(1, 1));
+    expect(cell(1, 1).classList.contains('is-editable')).toBe(true);
   });
 
   it('a manual entry changes its date and document in place; lines are inserted and deleted with the keyboard and the row control', async () => {

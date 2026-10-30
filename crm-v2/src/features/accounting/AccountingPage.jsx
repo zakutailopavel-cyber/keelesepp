@@ -155,6 +155,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
   const openAccount = (account) => { setDialog('account'); setForm(account ? { ...account, existing: true } : { code: '', name: '', type: 'expense', reportLine: '', active: true }); setError(''); };
   const close = () => { if (!busy) { setDialog(null); setError(''); } };
   const openDelete = (row) => { setDialog('delete'); setForm({ entry: row, reason: '' }); setError(''); };
+  const restoreEntry = (row) => run('save', () => repository.restoreEntry(row.id), () => `Kanne ${row.label} taastati.`);
   const openUndoStorno = (row) => { setDialog('undoStorno'); setForm({ entry: row, reason: '' }); setError(''); };
   const openLock = () => { setDialog('lock'); setForm({ lockedThrough: lockedThrough || `${today().slice(0, 7)}-01`, reason: '' }); setError(''); };
 
@@ -274,7 +275,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
           <dt>Järjestus</dt><dd>{sortLabel}</dd>
         </dl>
         <JournalGrid entries={journalFull.entries} accounts={accounts} suppliers={suppliers} lockedThrough={lockedThrough} readOnly={readOnly} repository={repository}
-          onChanged={state.reload} onNotice={setNotice} sort={journalSort} onSort={sortBy} onDelete={openDelete} onStorno={openStorno} onUndoStorno={openUndoStorno}
+          onChanged={state.reload} onNotice={setNotice} sort={journalSort} onSort={sortBy} onDelete={openDelete} onRestore={restoreEntry} onStorno={openStorno} onUndoStorno={openUndoStorno}
           draftSlot={draft ? <JournalDraft draft={draft} setDraft={setDraft} lines={draftLines} setLines={setDraftLines} accounts={accounts} suppliers={suppliers} busy={busy === 'save'} error={error} onSave={saveDraft} onCancel={cancelDraft} /> : null} />
         <p className="accounting-sheet__footer"><span>{COMPANY.name}</span><span>Rg-kood {COMPANY.regCode}</span></p>
       </div> : <EmptyState title="Perioodis kandeid ei ole" description="Vali teine periood või kande kood või vajuta „Uuenda kanded”." />}

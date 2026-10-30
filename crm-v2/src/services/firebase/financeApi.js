@@ -115,6 +115,9 @@ export const financeApi = {
     return post("/accounting/entries/update", { entryId, entry, reason, requestId: financeRequestId("accounting_update") });
   },
   // „Tühista ekslik storno”: the storno becomes a tombstone, its original entry is live again
+  restoreAccountingEntry(entryId) {
+    return post("/accounting/entries/restore", { entryId, requestId: financeRequestId("accounting_restore") });
+  },
   undoAccountingStorno(entryId, reason) {
     return post("/accounting/entries/undo-storno", { entryId, reason, requestId: financeRequestId("accounting_undo_storno") });
   },

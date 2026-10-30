@@ -156,8 +156,9 @@ test("corrections while the period is open: a manual entry is edited, an automat
 
   const auto = { id: "auto_expense_e1", number: "2026-0006", origin: "auto", documentType: "expense", date: "2026-09-10", description: "Kulu: rent", documentRef: "1575", lines: [{ account: "4398", debitCents: 500, creditCents: 0 }, { account: "1010", debitCents: 0, creditCents: 500 }] };
   const override = correctedEntry(auto, { date: "2026-01-01", documentRef: "other", description: "Kulu: rent", lines: [{ account: "4210", debitCents: 500 }, { account: "1010", creditCents: 500 }] }, accounts);
-  assert.equal(override.after.date, "2026-09-10", "the date of an automatic entry stays");
-  assert.equal(override.after.documentRef, "1575", "the source document stays");
+  assert.equal(override.after.date, "2026-01-01", "an automatic entry takes a new date");
+  assert.equal(override.after.documentRef, "other", "and a new document");
+  assert.throws(() => correctedEntry(auto, { ...snapshotOf(auto), date: "2027-01-02" }, accounts), /Aastat/);
   assert.equal(override.after.lines[0].account, "4210");
 
   assert.throws(() => correctedEntry({ ...manual, reversedBy: "reversal_x" }, snapshotOf(manual), accounts), /storno/);
@@ -165,7 +166,12 @@ test("corrections while the period is open: a manual entry is edited, an automat
   assert.throws(() => correctedEntry({ ...manual, origin: "reversal" }, snapshotOf(manual), accounts), /Stornokannet/);
   assert.throws(() => correctedEntry({ ...manual, origin: "opening", date: "2026-01-01" }, { ...snapshotOf(manual) }, accounts), /algsaldot/);
   assert.doesNotThrow(() => assertDeletable(manual));
-  assert.throws(() => assertDeletable(auto), /ainult käsitsi/);
+  assert.doesNotThrow(() => assertDeletable(auto));
+  assert.throws(() => assertDeletable({ ...manual, origin: "opening" }), /Algsaldode/);
+  const { assertRestorable } = require("./accounting-core");
+  assert.doesNotThrow(() => assertRestorable({ ...auto, deleted: true }));
+  assert.throws(() => assertRestorable(auto), /ei ole kustutatud/);
+  assert.throws(() => assertRestorable({ ...auto, origin: "reversal", deleted: true }), /stornot/);
   assert.equal(isLocked("2026-09-30", "2026-09-30"), true);
   assert.equal(isLocked("2026-10-01", "2026-09-30"), false);
   assert.equal(isLocked("2026-10-01", ""), false);

@@ -160,9 +160,9 @@ lock, D = K per entry, immutable entry numbers, no client writes.
   history item and one `financialAudit/<requestId>_<entryId>` per entry. A repeated request changes nothing; an
   entry that no longer has the account is left as it is. At most 2000 entries per request. Ctrl+Z moves back exactly
   the moved lines (`targets`).
-- **Deleting** stays as before: only a manual entry („Kustuta”, with a reason, a tombstone). An automatic entry shows
-  „ei kustutata” with a tooltip: fix its lines in the grid or fix the source document (credit the invoice, „Muuda” or
-  „Tühista” on Ostuarved).
+- **Deleting** (the accountant 2026-10-30): a manual or automatic entry („Kustuta”, with a reason, a tombstone). A deleted
+  automatic entry keeps its document id, so the sync does not create it again; „Näita kustutatud” → „Taasta” brings it back.
+  The source document in the CRM does not change. The opening entry is not deleted.
 - **Read-only** for a user without the admin role, on a phone (≤ 760 px) and for entries in a locked period or
   stornos / deleted entries: cells can be selected and copied, not edited.
 
@@ -259,8 +259,8 @@ when, by whom and why (§ 10), and nothing is destroyed for seven years (§ 12).
 - **Open period** (the date is after „Suletud kuni …” and not in a closed finance month): in the päevaraamat every entry
   that is not deleted, not reversed and not a storno is edited in the grid cell by cell (see „Päevaraamat kui
   tabel”; until 2026-10-23 a „Muuda” button opened JournalDraft). A manual (PR) entry may change everything except the year (its number is per year); an automatic
-  entry (MA, LK, OA, VM, …) keeps its date and document reference — only the lines and the description change, saved as
-  `override` with `original` (the document's own lines), and a reason is required. „Kustuta” only for a manual entry,
+  entry (MA, LK, OA, VM, …) too (2026-10-30), saved as `override` with `original` (the document's own lines); the reason is
+  optional. Only the opening entry keeps its date and document. „Kustuta” for a manual or automatic entry,
   with a reason; the entry becomes a tombstone (`deleted`, hidden from the registers, „Näita kustutatud” shows it, its
   PR number is never reused).
 - **„Tühista ekslik storno”** (the owner 2026-10-29: the accountant made a storno by mistake): while both dates are open,

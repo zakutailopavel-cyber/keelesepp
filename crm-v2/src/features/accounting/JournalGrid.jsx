@@ -16,12 +16,11 @@ import {
 const REASON_KEY = 'keelesepp.accounting.correctionReason';
 const readReason = () => { try { return globalThis.sessionStorage?.getItem(REASON_KEY) || ''; } catch { return ''; } };
 const writeReason = (value) => { try { globalThis.sessionStorage?.setItem(REASON_KEY, value); } catch { /* private mode */ } };
-const NO_DELETE_HINT = 'Automaatkannet ei kustutata: see on seotud dokumendiga (arve, makse, ostuarve). Paranda read otse tabelis (konto, summa, kirjeldus) või paranda algdokumenti: arve krediteerimine Finantsides, ostuarve „Muuda” või „Tühista” Ostuarvete lehel.';
 const isMac = () => /Mac|iPhone|iPad/.test(globalThis.navigator?.platform || '');
 
 const NO_FILTERS = { account: '', text: '', doc: '', sum: '', partner: '' };
 
-export default function JournalGrid({ entries, accounts, suppliers = [], lockedThrough, readOnly, repository, onChanged, onNotice, sort, onSort, onDelete, onStorno, onUndoStorno, draftSlot, blocked = false }) {
+export default function JournalGrid({ entries, accounts, suppliers = [], lockedThrough, readOnly, repository, onChanged, onNotice, sort, onSort, onDelete, onRestore, onStorno, onUndoStorno, draftSlot, blocked = false }) {
   const [filters, setFilters] = useState(NO_FILTERS);
   const [active, setActive] = useState(null);
   const [anchor, setAnchor] = useState(null);
@@ -342,7 +341,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
         {Object.values(filters).some(Boolean) ? <button type="button" className="link-button" onClick={() => setFilters(NO_FILTERS)}>Tühjenda</button> : null}
       </div>
       {!readOnly ? <div className="accounting-grid-tools__edit">
-        <label className="accounting-grid-tools__reason"><span>Paranduse põhjus</span><input aria-label="Paranduse põhjus" placeholder="automaatkande parandusel kohustuslik; kehtib kogu seansi" value={reason} onChange={(event) => setReason(event.target.value)} /></label>
+        <label className="accounting-grid-tools__reason"><span>Paranduse põhjus</span><input aria-label="Paranduse põhjus" placeholder="soovi korral; läheb kande ajalukku" value={reason} onChange={(event) => setReason(event.target.value)} /></label>
         {pendingIds.length ? <Button variant="secondary" onClick={saveAll}>Salvesta muudatused ({pendingIds.length})</Button> : null}
         <Button variant="secondary" disabled={!last} title={`${modKey}+Z`} onClick={undo}><Undo2 size={15} /> Võta tagasi{last ? ` (${last.kind === 'entry' ? last.label : `${last.fromAccount} → ${last.toAccount}`})` : ''}</Button>
         <Button variant="secondary" aria-pressed={Boolean(replace)} onClick={() => setReplace(replace ? null : { from: filters.account.trim(), to: '' })}><Replace size={15} /> Asenda konto</Button>
@@ -395,8 +394,8 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
                 </span> : null}
                 {textOf({ entryId: entry.id, line: i }, 0)}{w && l.account && !known ? <small> konto puudub</small> : null}
               </span>, { editable, bad: !known })}
-              {td(r, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
-              {td(r, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
+              {td(r, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin !== 'opening' })}
+              {td(r, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin !== 'opening' })}
               {td(r, COL.text, cellText(entry, w, i, COL.text), { editable })}
               {td(r, COL.partner, <>{cellText(entry, w, i, COL.partner)}{unresolved ? <small> pole tarnijate seas</small> : null}</>, { className: 'accounting-cell__partner', editable, bad: unresolved, title: l.partner?.type === 'customer' ? 'Klient (õpilase / maksja kaart)' : l.partner?.type === 'supplier' ? 'Tarnija' : undefined })}
               {td(r, COL.debit, cellText(entry, w, i, COL.debit), { className: 'num', editable, bad: badD })}
@@ -408,15 +407,15 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
           return <tbody key={entry.id} className={[entry.reversed || entry.deleted ? 'is-reversed' : '', w ? 'is-dirty' : '', red ? 'is-invalid' : ''].filter(Boolean).join(' ')}>
             <tr className={`accounting-grid__entry${active?.row === head ? ' is-active-row' : ''}`}>
               {td(head, 0, entry.label, { title: `CRM kanne ${entry.number}` })}
-              {td(head, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin === 'manual' })}
-              {td(head, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin === 'manual' })}
+              {td(head, COL.date, dmy(w ? w.date : entry.date), { editable: editable && entry.origin !== 'opening' })}
+              {td(head, COL.doc, w ? w.documentRef : entry.documentRef, { editable: editable && entry.origin !== 'opening' })}
               {td(head, COL.text, <>{entry.deleted ? <span className="accounting-tag">kustutatud</span> : null}{entry.corrected ? <span className="accounting-tag">parandatud</span> : null}<span className="accounting-cell__description">{w ? w.description : entry.description}</span></>, { editable })}
               <td colSpan="3" className={`${cellClass(head, COL.partner, 'accounting-grid__actions')}${active?.row === head && active?.col > COL.partner ? ' is-active' : ''}`} data-cell={`${head}-${COL.partner}`} ref={(node) => { [COL.partner, COL.debit, COL.credit].forEach((c) => { cellRefs.current[`${head}-${c}`] = node; }); }} onMouseDown={(event) => onCellMouseDown(event, { row: head, col: COL.partner })}>
                 {entry.reversedByNumber ? <span>tühistatud: {entry.reversedByNumber}</span> : null}
                 {can.locked && !entry.deleted ? <span title={`Periood suletud kuni ${dmy(lockedThrough)} — paranda uue kandega (storno või parandav kanne)`}><Lock size={12} /></span> : null}
                 {saving.has(entry.id) ? <span>salvestan…</span> : null}
                 {!readOnly && can.remove && !w ? <button type="button" className="link-button" onClick={() => onDelete(entry)}><Trash2 size={13} /> Kustuta</button> : null}
-                {!readOnly && can.edit && entry.origin !== 'manual' ? <span className="accounting-grid__hint" title={NO_DELETE_HINT} aria-label={NO_DELETE_HINT} tabIndex={0}><Info size={12} /> ei kustutata</span> : null}
+                {!readOnly && can.restore && onRestore ? <button type="button" className="link-button" onClick={() => onRestore(entry)}><Undo2 size={13} /> Taasta</button> : null}
                 {!readOnly && can.storno ? <button type="button" className="link-button" onClick={() => onStorno(entry)}><Undo2 size={13} /> Storno</button> : null}
                 {!readOnly && can.undoStorno && onUndoStorno ? <button type="button" className="link-button" onClick={() => onUndoStorno(entry)}><Undo2 size={13} /> Tühista ekslik storno</button> : null}
                 {entry.history.length ? <button type="button" className="link-button" aria-expanded={historyOpen} onClick={() => setOpenHistory((s) => { const next = new Set(s); if (next.has(entry.id)) next.delete(entry.id); else next.add(entry.id); return next; })}><History size={13} /> Ajalugu ({entry.history.length})</button> : null}
@@ -425,7 +424,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
             {lineRows}
             <tr className="accounting-grid__subtotal"><td colSpan="5">{w ? <span className={red ? 'is-off' : 'accounting-grid__pending'} role={red ? 'alert' : undefined}>
               {serverErrors[entry.id] || check.problem || 'Muudetud — salvestub, kui liigud teise kandesse.'}{check.difference ? ` (D − K = ${amount(check.difference)})` : ''}
-              {entry.origin !== 'manual' ? <>{' '}<input className="accounting-grid__reason" aria-label="Paranduse põhjus (see kanne)" placeholder="paranduse põhjus" value={reason} onChange={(event) => setReason(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') save(entry.id); }} /></> : null}
+              {entry.origin !== 'manual' ? <>{' '}<input className="accounting-grid__reason" aria-label="Paranduse põhjus (see kanne)" placeholder="põhjus (soovi korral)" value={reason} onChange={(event) => setReason(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') save(entry.id); }} /></> : null}
               {' '}<button type="button" className="link-button" onClick={(event) => { const box = event.currentTarget.parentElement.querySelector('input'); save(entry.id).then((saved) => { if (saved === false) box?.focus(); }); }}>Salvesta</button>
               <button type="button" className="link-button" onClick={() => drop(entry.id)}>Tühista (Esc)</button>
             </span> : null}</td><td className="num">{amount(sumD)}</td><td className="num">{amount(sumK)}</td></tr>

@@ -79,7 +79,7 @@ export const sameAsEntry = (working, entry) => snapshot(workingValues(working)) 
 
 // what blocks saving the working copy, '' when it can be saved. D ≠ K gives the difference (shown in red). A manual
 // entry needs a supplier on its 2110 / 1350 lines (the accountant 2026-10-24); an automatic entry only shows the hint.
-export function workingProblem(working, { origin = 'manual', accounts = [], reason = '', lockedThrough = '', originalDate = '' } = {}) {
+export function workingProblem(working, { origin = 'manual', accounts = [], lockedThrough = '', originalDate = '' } = {}) {
   const totals = working.lines.reduce((t, l) => ({ debit: t.debit + (parseEuro(l.debit) || 0), credit: t.credit + (parseEuro(l.credit) || 0) }), { debit: 0, credit: 0 });
   const result = { ...totals, difference: totals.debit - totals.credit, problem: '' };
   const bad = working.lines.find((l) => Number.isNaN(parseEuro(l.debit)) || Number.isNaN(parseEuro(l.credit)));
@@ -101,9 +101,8 @@ export function workingProblem(working, { origin = 'manual', accounts = [], reas
   else if (!String(working.description || '').trim()) result.problem = 'Kande sisu (kirjeldus) on kohustuslik.';
   else if (!String(working.documentRef || '').trim()) result.problem = 'Viide algdokumendile on kohustuslik.';
   else if (!/^\d{4}-\d{2}-\d{2}$/.test(String(working.date || ''))) result.problem = 'Kande kuupäev on vigane.';
-  else if (origin === 'manual' && originalDate && working.date.slice(0, 4) !== originalDate.slice(0, 4)) result.problem = 'Aastat ei saa muuta (kande number on aasta kaupa).';
+  else if (origin !== 'opening' && originalDate && working.date.slice(0, 4) !== originalDate.slice(0, 4)) result.problem = 'Aastat ei saa muuta (kande number on aasta kaupa).';
   else if (lockedThrough && working.date <= lockedThrough) result.problem = `Periood on suletud kuni ${dmy(lockedThrough)}.`;
-  else if (origin !== 'manual' && !String(reason || '').trim()) result.problem = 'Automaatkande parandusel on põhjus kohustuslik: kirjuta see siia kõrvale.';
   return result;
 }
 
@@ -112,10 +111,10 @@ export function workingProblem(working, { origin = 'manual', accounts = [], reas
 export function editableColumn(row, col, origin) {
   if (row.line < 0) {
     if (col === COL.text) return true; // the entry's content
-    return origin === 'manual' && (col === COL.date || col === COL.doc);
+    return origin !== 'opening' && (col === COL.date || col === COL.doc);
   }
   if (col === COL.account || col === COL.text || col === COL.partner || col === COL.debit || col === COL.credit) return true;
-  return origin === 'manual' && (col === COL.date || col === COL.doc);
+  return origin !== 'opening' && (col === COL.date || col === COL.doc);
 }
 
 // the text shown in a cell (copy as TSV uses the same)

@@ -3984,7 +3984,7 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.ok((await db.collection("financialAudit").doc("acc_update_0001").get()).exists);
 
   const overrideNoReason = await financeRequest(adminToken, "/accounting/entries/update", { entryId: `auto_purchase-invoice_${invoiceId}`, entry: { description: "Senty Studio OÜ", lines: [{ account: "4220", debitCents: 31220 }, { account: "2110", creditCents: 31220 }] }, requestId: "acc_update_0002" });
-  assert.equal(overrideNoReason.status, 400, JSON.stringify(overrideNoReason.body));
+  assert.equal(overrideNoReason.status, 201, JSON.stringify(overrideNoReason.body));
   const override = await financeRequest(adminToken, "/accounting/entries/update", { entryId: `auto_purchase-invoice_${invoiceId}`, entry: { description: "Senty Studio OÜ", lines: [{ account: "4210", debitCents: 31220 }, { account: "2110", creditCents: 31220 }] }, reason: "kõik on rent", requestId: "acc_update_0003" });
   assert.equal(override.status, 201, JSON.stringify(override.body));
   const overridden = (await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).data();
@@ -3992,7 +3992,14 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal(overridden.override.reason, "kõik on rent");
   assert.equal(overridden.original.lines.length, 3);
   const autoDelete = await financeRequest(adminToken, "/accounting/entries/delete", { entryId: `auto_purchase-invoice_${invoiceId}`, reason: "x", requestId: "acc_delete_0001" });
-  assert.equal(autoDelete.status, 409, JSON.stringify(autoDelete.body));
+  assert.equal(autoDelete.status, 201, JSON.stringify(autoDelete.body));
+  assert.equal((await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).get("deleted"), true);
+  const resync = await financeRequest(adminToken, "/accounting/sync", {});
+  assert.equal(resync.status < 300, true, JSON.stringify(resync.body));
+  assert.equal((await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).get("deleted"), true, "the sync does not bring a deleted automatic entry back");
+  const restored = await financeRequest(adminToken, "/accounting/entries/restore", { entryId: `auto_purchase-invoice_${invoiceId}`, requestId: "acc_restore_0001" });
+  assert.equal(restored.status, 201, JSON.stringify(restored.body));
+  assert.equal((await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).get("deleted"), false);
 
   // „Sulge periood kuni 31.03.2027”: no edit, no delete, no new document in March; a correcting entry after it works
   const locked = await financeRequest(adminToken, "/accounting/lock", { lockedThrough: "2027-03-31" });
