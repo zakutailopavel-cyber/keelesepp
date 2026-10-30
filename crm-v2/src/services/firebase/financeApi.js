@@ -125,6 +125,13 @@ export const financeApi = {
   replaceAccountingAccount({ fromAccount, toAccount, entryIds, targets, reason }) {
     return post("/accounting/entries/replace-account", { fromAccount, toAccount, entryIds, targets, reason, requestId: financeRequestId("accounting_replace") });
   },
+  // „Ei kuulu raamatupidamisse”: the invoice stays in Finantsid, its entries become tombstones (admin, finance)
+  excludeInvoiceFromAccounting(invoiceId, reason) {
+    return post("/accounting/invoices/exclude", { invoiceId, reason, requestId: financeRequestId("accounting_exclude") });
+  },
+  includeInvoiceInAccounting(invoiceId, reason) {
+    return post("/accounting/invoices/include", { invoiceId, reason, requestId: financeRequestId("accounting_include") });
+  },
   setAccountingLock(lockedThrough, reason) {
     return post("/accounting/lock", { lockedThrough, reason });
   },

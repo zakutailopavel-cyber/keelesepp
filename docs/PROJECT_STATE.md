@@ -1,3 +1,24 @@
+## 2026-10-30 · agent/accounting-exclude — „Ei kuulu raamatupidamisse”: an invoice can leave the company's books
+
+- Base: `main` 0a7c4d3, checked 2026-10-30. The accountant's request, confirmed by the owner: remove from the books one invoice
+  (KS-2026-004, entry 2026-0012) and the clients who pay to the owner's FIE account („те, чьих оплат нет в выписке”).
+- Done: the mark on an invoice (`accountingExcluded`, reason, who, when; admin and finance; Finantsid row and financeApi
+  `/accounting/invoices/exclude` and `/include` with `financialAudit`). `automaticEntries` skips the invoice, its payments, voids,
+  credit notes and overpayment credit on every sync; existing entries become tombstones (history `excluded`, numbers kept,
+  „Näita kustutatud”); undo brings them back (`included`). Refused in a locked period or closed month and when the money came
+  through the company's bank. Invoices and student balances unchanged. Full contract: `docs/ACCOUNTING.md` „Ei kuulu
+  raamatupidamisse”.
+- Changed: `functions/accounting-core.js`, `functions/index.js`, `firestore.rules` (the mark is not a client write),
+  `crm-v2/.../finance/FinanceMonthPage.jsx`, new `InvoiceAccountingDialog.jsx`, `accounting/AccountingPage.jsx`, `JournalGrid.jsx`,
+  `accountingReports.js`, `services/firebase/financeApi.js`, tests, `docs/ACCOUNTING.md`.
+- Report (read only, nothing applied, not in git, has client data): `/Users/pavel/.keelesepp-helpers/fie-report.md`. Compared
+  against the LHV statement 01.01–24.10.2026; only 7 advance rows are in `bankTransactions` and no payment has
+  `bankTransactionId`, so CRM fields alone cannot answer this.
+- Checks: see the PR. The emulator test needs Java 21 (this machine has Java 8), so it runs in CI only.
+- Known limits: INF 3 still counts the payments of marked invoices (the accountant decides). Manual entries for the same clients are
+  not touched. The reason is readable by the invoice's owner through the document, like `cancellationReason`: write it neutrally.
+- Unfinished: the mark is not applied to anything in production; needs deploy and the owner's confirmation of the list.
+- Next safe step: the owner checks the report; after merge and deploy, mark KS-2026-004 in Finantsid.
 ## 2026-10-30 · agent/c1-course-foundation — course „Eesti keel C1” (B2 → Harno C1): foundation, no lessons
 
 - Base: `main` 0a7c4d3, checked 2026-10-30. No content, no production data, no publishing, no deploy. Paid or external: only reading harno.ee.

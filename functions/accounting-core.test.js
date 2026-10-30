@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { DEFAULT_ACCOUNTS } = require("./accounting-chart");
-const { automaticEntries, entryNumber, openingEntry, reversalOf, validateEntry } = require("./accounting-core");
+const { assertExcludable, autoEntryId, automaticEntries, entryNumber, exclusionBookConflicts, exclusionScope, openingEntry, reversalOf, validateEntry } = require("./accounting-core");
 
 const balance = (entries) => entries.every((e) => e.lines.reduce((n, l) => n + l.debitCents - l.creditCents, 0) === 0);
 const byAccount = (entries) => {
@@ -292,4 +292,75 @@ test("a storno made by mistake can be undone: only a live storno whose original 
   assert.throws(() => assertStornoUndoable({ ...storno, deleted: true }, original), /juba tühistatud/);
   assert.throws(() => assertStornoUndoable(storno, null), /ei leitud/);
   assert.throws(() => assertStornoUndoable(storno, { ...original, reversedBy: "other" }), /ei ole selle stornoga/);
+});
+
+// ---- „Ei kuulu raamatupidamisse” (the accountant, the owner 2026-10-30) ----
+const excludedBooks = () => ({
+  invoices: [
+    { id: "out", num: "KS-1", date: "2026-06-21", amountCents: 6000, status: "Makstud", accountingExcluded: true },
+    { id: "in", num: "KS-2", date: "2026-06-21", amountCents: 5000, status: "Makstud" },
+  ],
+  payments: [
+    { id: "p-out", invoiceId: "out", paidAt: "2026-06-22", amountCents: 7000, method: "bank", status: "active" },
+    { id: "p-void", invoiceId: "out", paidAt: "2026-06-22", amountCents: 6000, method: "bank", status: "voided", voidedAt: "2026-06-23" },
+    { id: "p-in", invoiceId: "in", paidAt: "2026-06-22", amountCents: 5000, method: "bank", status: "active" },
+  ],
+  creditNotes: [{ id: "cn-out", invoiceId: "out", date: "2026-06-24", amountCents: 1000 }],
+  payerCredits: [{ id: "c-out", sourcePaymentId: "p-out", createdAt: "2026-06-22", originalAmountCents: 1000, availableAmountCents: 1000 }],
+});
+
+test("an excluded invoice: no entry for it, its payments, voids, credit notes or overpayment credit; the others stay", () => {
+  const keys = automaticEntries(excludedBooks()).map((e) => e.sourceKey).sort();
+  assert.deepEqual(keys, ["invoice:in", "payment:p-in"]);
+  // the same documents without the mark are booked: the mark is what removes them (an undo brings them back)
+  const books = excludedBooks();
+  delete books.invoices[0].accountingExcluded;
+  const all = automaticEntries(books).map((e) => e.sourceKey);
+  ["invoice:out", "payment:p-out", "payment-void:p-void", "credit-note:cn-out", "credit:c-out"].forEach((key) => assert.ok(all.includes(key), key));
+});
+
+test("only accountingExcluded: true counts, and a cancelled excluded invoice books no cancellation", () => {
+  const books = { invoices: [{ id: "a", date: "2026-07-01", amountCents: 100, accountingExcluded: "true" }, { id: "b", date: "2026-07-01", amountCents: 100, status: "Tühistatud", cancelledAt: "2026-07-02", accountingExcluded: true }] };
+  assert.deepEqual(automaticEntries(books).map((e) => e.sourceKey), ["invoice:a"]);
+});
+
+test("exclusionScope lists every source key of the invoice and nothing of another invoice", () => {
+  const books = excludedBooks();
+  const scope = exclusionScope(books.invoices[0], books);
+  assert.deepEqual(scope.sourceKeys.sort(), ["credit-note:cn-out", "credit:c-out", "invoice-cancel:out", "invoice:out", "payment-void:p-out", "payment-void:p-void", "payment:p-out", "payment:p-void"].sort());
+  assert.deepEqual(scope.conflicts, []);
+  assert.equal(autoEntryId("invoice:N0UKlFTXmKxR3uuTChSo"), "auto_invoice_N0UKlFTXmKxR3uuTChSo");
+});
+
+test("an invoice whose money is in the company's bank cannot leave the books", () => {
+  const invoice = { id: "i" };
+  for (const payment of [{ bankTransactionId: "tx" }, { requestId: "lhv-2026062276712942" }, { method: "linkpay" }]) {
+    const scope = exclusionScope(invoice, { payments: [{ id: "p", invoiceId: "i", status: "active", ...payment }] });
+    assert.equal(scope.conflicts.length, 1);
+    assert.throws(() => assertExcludable(invoice, scope), (error) => error.status === 409);
+  }
+  // a voided bank payment no longer stands in the way
+  const voided = exclusionScope(invoice, { payments: [{ id: "p", invoiceId: "i", status: "voided", bankTransactionId: "tx" }] });
+  assert.deepEqual(voided.conflicts, []);
+  assert.throws(() => assertExcludable({ id: "i", accountingExcluded: true }, voided), /juba/);
+});
+
+test("a prepayment stands in the way: paid from another credit, or this invoice's credit already spent", () => {
+  const invoice = { id: "i" };
+  const fromCredit = exclusionScope(invoice, { payments: [{ id: "p", invoiceId: "i", status: "active", method: "credit", sourceCreditId: "bank-credit" }] });
+  assert.match(fromCredit.conflicts[0], /ettemaksust/);
+  const spent = exclusionScope(invoice, {
+    payments: [{ id: "p", invoiceId: "i", status: "active" }],
+    payerCredits: [{ id: "c", sourcePaymentId: "p", originalAmountCents: 1000, availableAmountCents: 400 }],
+  });
+  assert.match(spent.conflicts[0], /kasutatud/);
+});
+
+test("a bank payment arriving after the mark is reported by the sync, not booked", () => {
+  const books = {
+    invoices: [{ id: "i", num: "KS-9", date: "2026-07-01", amountCents: 100, accountingExcluded: true }],
+    payments: [{ id: "p", invoiceId: "i", paidAt: "2026-07-02", amountCents: 100, status: "active", bankTransactionId: "tx" }, { id: "q", invoiceId: "i", paidAt: "2026-07-02", amountCents: 100, status: "active" }],
+  };
+  assert.deepEqual(automaticEntries(books), []);
+  assert.deepEqual(exclusionBookConflicts(books), [{ invoiceId: "i", invoiceNum: "KS-9", paymentId: "p", amountCents: 100 }]);
 });
