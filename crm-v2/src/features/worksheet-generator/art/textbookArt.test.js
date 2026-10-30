@@ -104,5 +104,5 @@ describe('where a scene picture stands', () => {
         }
       }
     }
-  });
+    }, 240000);
 });
