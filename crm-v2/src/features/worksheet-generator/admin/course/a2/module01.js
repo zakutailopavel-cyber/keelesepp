@@ -58,7 +58,7 @@ export const LESSONS = withShapes({
         'Üks-ühele: õpilane jutustab õpetajale kaks korda, õpetaja hoiab aega. Teisel korral on aega vähem — lugu tuleb sujuvamalt, laused jäävad samaks.'),
       teach(tag(B.speaking('001_d_say', 'Intervjuu.', 'Küsi paariliselt tabeli küsimusi. Siis ütle, mida sa temast teada said.', ['Mis su nimi on ja kui vana sa oled?', 'Kust sa pärit oled?', 'Kus sa praegu elad?', 'Mis keeli sa räägid? Mis on sinu emakeel?', 'Miks sa õpid eesti keelt?'], [60, 120], ['Minu nimi on…', 'Ma olen pärit …-st.', 'Ma elan …-s.', 'Tema nimi on… Ta elab…']), { task: 'S09' }),
         'Üks-ühele: õpetaja küsib tabeli küsimusi, õpilane vastab täislausega. Siis küsib õpilane ja ütleb lõpus kolme lausega, mida ta õpetajast teada sai.'),
-      B.writing('001_d_write', 'Mina.', 'Kirjuta endast 6–9 lauset: nimi, vanus, päritolu, elukoht, keeled.', [6, 9], ['nimi', 'pärit', 'elan', 'räägin', 'õpin'], 3),
+      B.writing('001_d_write', 'Minu kaart.', 'Kirjuta 4–5 lauset, mida õpetaja saab sinust teada: nimi, päritolu, elukoht, keeled ja üks põhjus, miks õpid eesti keelt.', [4, 5], ['Minu nimi on…', 'Ma olen pärit…', 'Ma elan…', 'Ma õpin eesti keelt, sest…'], 3),
     ],
     practice: [
       B.manymatch('001_p_signs', 'Sildid lennujaamas.', 'Kuhu sa lähed? Ühenda olukord ja silt.', [
@@ -516,7 +516,7 @@ export const LESSONS = withShapes({
   },
 
   'a2-005': {
-    title: 'Kontroll 1 — eneseinfo',
+    title: 'Kontroll 1 — minu esimene õhtu keelekoolis',
     assessment: true,
     canDo: 'Ma näitan kontrollis, et oskan rääkida ja kirjutada endast, täita ankeeti ning kasutada olema ja olevikuvorme (vähemalt 70%).',
     discover: [
@@ -541,8 +541,12 @@ export const LESSONS = withShapes({
       B.errorfix('005_d_fix', 'Paranda viga.', 'Kirjuta lause õigesti.', [
         ['Ma olen pärit Tartu.', 'Ma olen pärit Tartust.'], ['Ta ei töötab.', 'Ta ei tööta.'], ['Ma olen sündinud mai.', 'Ma olen sündinud mais.|Ma olen sündinud mail.'], ['Kust te pärit oled?', 'Kust te pärit olete?'],
       ]),
-      B.translation('005_d_tr', 'Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Меня зовут Виктор.', 'Я из Нарвы, но живу в Таллине.', 'Я не говорю по-фински.', 'Повторите, пожалуйста.', 'Приятно познакомиться!', 'Я пенсионер.']),
-      B.crossword('005_d_cross', 'Mooduli sõnad.', 'Kirjuta sõna vihje järgi.', [['Seda ütled, kui ei saa aru: palun …', 'korrake'], ['Paber, kuhu kirjutad oma andmed', 'ankeet'], ['Sinu esimene keel', 'emakeel'], ['Tänav, maja ja linn', 'aadress'], ['Seda ütled tänuks', 'aitäh'], ['Kuupäev, millal oled sündinud', 'sünniaeg']]),
+      B.transformation('005_d_reply', 'Vasta eesti keeles.', 'Loe olukorda ja kirjuta üks sobiv lause.', [
+        ['Õpetaja ei kuulnud sinu nime.', 'Ütle nimi uuesti.', 'Minu nimi on Viktor.|Minu nimi on Anna.|Minu nimi on…'],
+        ['Sa ei kuulnud telefoninumbrit.', 'Palu korrata.', 'Palun korrake telefoninumbrit.|Vabandust, palun korrake telefoninumbrit.'],
+        ['Uus inimene ütleb oma nime.', 'Ütle, et sul on hea meel tutvuda.', 'Meeldiv tutvuda!'],
+        ['Sa saad abi ankeedi täitmisel.', 'Täna.', 'Aitäh abi eest!|Suur aitäh abi eest!'],
+      ]),
       B.gaps('005_d_gaps', 'Kordame vorme.', 'Kirjuta sulgudes olev sõna õiges vormis.', ['Ma [olen] pärit Narvast. (olema)', 'Kati [õpib] ülikoolis. (õppima)', 'Me [ei ela] Tallinnas. (elama, eitus)', 'Kas te [räägite] vene keelt? (rääkima)', 'Ma olen sündinud [augustis]. (august)', 'Nad [töötavad] koos. (töötama)']),
       B.wordorder('005_d_order', 'Pane lause kokku.', 'Kirjuta sõnad õiges järjekorras.', ['Viktor elab Tallinnas juba kakskümmend aastat.', 'Ta nägi kuulutust kaks kuud tagasi.', 'Nüüd laulavad nad koos.', 'Kooris õpin ma eesti keelt.']),
       B.truefalse('005_d_tf', 'Õige või vale?', 'Loe Viktori teksti uuesti.', [['Viktor on pärit Tartust.', false], ['Viktor on pensionär.', true], ['Viktor räägib soome keelt.', false], ['Viktor tutvus proovis Mareti ja Ljubaga.', true], ['Koor laulab igal reedel.', false]]),
@@ -586,7 +590,12 @@ export const LESSONS = withShapes({
         ['Ma ei töötan.', 'Ma ei tööta.'], ['Ta on pärit Narva.', 'Ta on pärit Narvast.'], ['Kust te pärit oled?', 'Kust te pärit olete?'], ['Me elab Tartus.', 'Me elame Tartus.'],
       ]),
       B.writing('005_p_write', 'Kirjutamine. Sõnum.', 'Kirjuta kooriseltsile 4–6 lauset: kes sa oled ja miks tahad laulda.', [4, 6], ['olen', 'elan', 'tahan'], 2),
-      B.translation('005_p_tr', 'Keel. Tõlgi eesti keelde.', 'Kirjuta lause eesti keeles.', ['Меня зовут Анна, я из Пярну.', 'Я не работаю, я учусь.', 'Повторите номер, пожалуйста.', 'Я родилась в марте.']),
+      B.transformation('005_p_reply', 'Keel. Reageeri olukorrale.', 'Kirjuta eesti keeles üks sobiv lause.', [
+        ['Keelekool küsib sinu nime ja päritolukohta.', 'Tutvusta ennast kahe lausega.', 'Minu nimi on… Ma olen pärit…'],
+        ['Sa täidad ankeeti, kuid üks küsimus on raske.', 'Palu õpetajal korrata.', 'Vabandust, palun korrake küsimust.'],
+        ['Õpetaja küsib, mida sa praegu teed.', 'Ütle, et õpid eesti keelt.', 'Ma õpin praegu eesti keelt.'],
+        ['Õpetaja küsib sinu sünnikuud.', 'Vasta ühe lausega.', 'Ma olen sündinud märtsis.|Ma olen sündinud…'],
+      ]),
       B.speaking('005_p_say', 'Rääkimine. Tutvumine.', 'Vasta õpetaja küsimustele, nagu eksami alguses.', ['Mis teie nimi on?', 'Kust te pärit olete ja kus te elate?', 'Mida te teete?', 'Mis keeli te räägite?', 'Mida te vabal ajal teete?'], [45, 75]),
     ],
     transfer: [

@@ -5626,3 +5626,10 @@ required corners — see below why module 18 cannot close it).
 - PR: #883 (draft). Other art PR: cast portraits #569 (draft).
 - Not done: labeled scene set (modules 1–10), situation illustrations, and later-level word images. The first scene preview must be approved before generating the rest of that category; first situation preview likewise. Keep the user's limit of at most 2–3 open batch PRs and do not merge any PR.
 - Next safe step: push this branch and open its draft PR; then generate and show the first M1 scene preview for approval.
+## 2026-10-30 · agent/textbook-a2-pilot — A2 module 1 learner-facing pilot, not published
+
+- Base: `main` ee6fa79c, checked 2026-10-30. Content only; no production data, publishing, deploy or merge.
+- Done: refined `a2/module01.js` as the first textbook-pilot correction. Lesson 001 ends with a short supported personal learner card (4–5 sentences and one reason) instead of a generic 6–9-sentence composition. Assessment lesson 005 is now named `Kontroll 1 — minu esimene õhtu keelekoolis`; two Russian-to-Estonian translation blocks and a crossword were replaced by Estonian-only functional-response tasks: repeat a name/phone number, respond to an introduction, thank for help, introduce oneself, and ask for clarification. This keeps the assessment aligned to the actual communicative target and usable for non-Russian-speaking learners.
+- Checks: `cd crm-v2 && npx vitest run src/features/worksheet-generator/admin/course/a2/module01.test.js src/features/worksheet-generator/admin/course/course.test.js src/features/worksheet-generator/admin/course/finalShape.test.js` — 389 passed, 5 skipped. `git diff --check` clean.
+- Known: this is only the content-source pilot; existing published CRM sheets are unchanged until an owner-approved publication. A module-opener page and the remaining four lesson bundles still need a separate accepted content specification.
+- Next safe step: show the draft diff and learner-facing sample to the owner; after approval, build the A2 module-01 opener and revise the remaining lesson bundles on this branch.
