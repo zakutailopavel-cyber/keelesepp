@@ -132,7 +132,7 @@ export const harnoFamilyA2 = (id) => (/^W2[ab]$/.test(id) ? 'W2' : id);
 
 // the block types that are not tasks for the variety rules (§8: text, tip, vocab, phrase bank, review, rubric, self-check,
 // notice; notice counts as G01 only for V3) — plus pictures, charts and the exam part header
-export const NON_TASK_TYPES = new Set(['text', 'tip', 'vocab', 'phrasebank', 'rubric', 'examrubric', 'selfcheck', 'notice', 'image', 'chart', 'exampart', 'heading']);
+export const NON_TASK_TYPES = new Set(['text', 'tip', 'vocab', 'phrasebank', 'rubric', 'examrubric', 'selfcheck', 'notice', 'image', 'wordstrip', 'chart', 'exampart', 'heading']);
 
 // default catalogue id of a block without a tag (§3 notes: one block type can host several catalogue types; a tag wins)
 const DEFAULT_BY_TYPE = {

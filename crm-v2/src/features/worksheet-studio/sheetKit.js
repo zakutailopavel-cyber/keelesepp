@@ -15,7 +15,7 @@ export const PHASES = ['discover', 'practice', 'transfer', 'opik'];
 const plain = (value) => JSON.parse(JSON.stringify(value ?? null));
 
 export function blockCatalog() {
-  return Object.values(BLOCKS).map((def) => ({
+  return Object.values(BLOCKS).filter((def) => !def.hidden).map((def) => ({
     type: def.type,
     label: def.label,
     group: def.group || '',

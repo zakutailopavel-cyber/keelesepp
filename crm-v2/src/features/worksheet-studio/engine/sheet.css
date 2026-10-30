@@ -72,6 +72,11 @@
 .ws-tip { display: flex; gap: 2.4mm; background: rgba(255,255,255,.75); border-radius: 3.5mm; padding: 2.4mm 3mm; font-size: 11pt; margin-top: 2mm; }
 .ws-tip b { color: var(--ks-navy); }
 .ws-figure { margin: 0; }
+/* word strip: a mini picture dictionary before a task, compact on screen and on paper */
+.ws-wordstrip { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: nowrap; justify-content: center; gap: 4mm; }
+.ws-wordstrip li { flex: 0 1 30mm; min-width: 0; display: flex; flex-direction: column; gap: 1mm; text-align: center; }
+.ws-wordstrip .ws-photo { background: #fff; border: 1px solid #e6e2d8; border-radius: 2mm; }
+.ws-wordstrip span { font: 700 11pt/1.15 var(--font-body); color: var(--ks-navy); overflow-wrap: anywhere; }
 .ws-figure figcaption { font-size: 10.5pt; color: var(--ks-muted); text-align: center; margin-top: 1.2mm; }
 .ws-vocab h4 { margin: 0 0 2mm; font: 900 14pt var(--font-head); color: var(--ks-navy); }
 .ws-vocab-cols { column-gap: 8mm; font-size: 12pt; }
@@ -789,6 +794,8 @@ button.ws-pt { cursor: pointer; }
 .ws-narrow .ws-page, .ws-narrow .ws-page.is-tall { padding: 12px 10px !important; }
 .ws-narrow .ws-passage { padding: 8px !important; }
 .ws-narrow .ws-runhead { display: none; }
+.ws-narrow .ws-wordstrip { gap: 6px; }
+.ws-narrow .ws-wordstrip span { font-size: 12px; }
 .ws-narrow .ws-root { gap: 10px; }
 
 /* the teacher's answers of one task (BlockKeyPanel), under the task the teacher clicked; never on a learner's sheet */

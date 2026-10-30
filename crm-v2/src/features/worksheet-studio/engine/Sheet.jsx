@@ -280,7 +280,7 @@ export default function Sheet({ doc, mode = 'interactive', answers = {}, setAnsw
       // edited by its line number in the whole block
       const measured = rowEls.map((r, i) => {
         const h = r.offsetHeight / mm;
-        const row = { h, breakBefore: Boolean(rows[i]?.[0]?.pageBreakBefore) };
+        const row = { h, breakBefore: Boolean(rows[i]?.[0]?.pageBreakBefore), keepWithNext: rows[i]?.[0]?.type === 'wordstrip' };
         const block = rows[i]?.length === 1 ? rows[i][0] : null;
         if (!block || !canSplit(block, mode)) return row;
         const spec = SPLITTABLE[block.type];

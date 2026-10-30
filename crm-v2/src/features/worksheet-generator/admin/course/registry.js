@@ -3,6 +3,7 @@
 // and publishes them lesson by lesson. Avasta sheets that are already published are not part of these files unless a
 // module says so.
 import { withLessonArt } from '../../art/textbookArt.js';
+import { withWordStrips } from '../../art/wordStrips.js';
 import { withListeningAudio } from './listeningAudio.js';
 import { nativeStage } from '../../../worksheet-studio/didactics/levels.js';
 import { B1_LESSON_GOALS } from './b1/lessonGoals.js';
@@ -178,13 +179,14 @@ function withExplanations(blocks, explain) {
   return blocks.map((b) => (explain[b.id] ? { ...b, data: { ...b.data, explain: explain[b.id].join('\n') } } : b));
 }
 
-// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet after the opening text;
+// the lesson's textbook picture (art/visuals, docs/TEXTBOOK_ART_BIBLE.md) goes on its sheet where the sheet uses it, and
+// word strips (art/words) stand before the tasks that use those words;
 // listening blocks get their recorded audio (listeningAudio.json, tools/listening-audio)
 export function buildCourseSheet(mod, lessonId, phase) {
   const lesson = mod.LESSONS[lessonId];
   if (!lesson?.[phase]) throw new Error(`${lessonId}: etappi ${phase} ei ole.`);
   const course = COURSES[mod.MODULE.course];
-  return withLessonArt({
+  return withWordStrips(withLessonArt({
     schema: 'keelesepp.worksheet/2',
     id: `ws_${lessonId}_${phase}`,
     meta: {
@@ -222,7 +224,7 @@ export function buildCourseSheet(mod, lessonId, phase) {
       footer: { tagline: 'Targem suhtlus. Suurem maailm.', url: 'www.epkoolitus.ee' },
     },
     blocks: withExplanations(strictSpelling(withListeningAudio(lessonOrder(withLessonGoals(lesson[phase], LESSON_GOALS[lessonId])), lessonId), lesson.level || mod.MODULE.level), mod.EXPLAIN),
-  }, lessonId, phase);
+  }, lessonId, phase), lessonId, phase);
 }
 
 // every sheet a module produces: { [lessonId]: { [phase]: doc } }

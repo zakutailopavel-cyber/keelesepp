@@ -99,7 +99,7 @@ Format: {3:2 landscape | 1:1 square | 2:3 portrait}, white background.
 - Size: longest side 1600 px, WebP quality ≈ 80, **≤ 150 KB** (line art compresses well).
 - The briefs of a module go to `crm-v2/src/features/worksheet-generator/art/visuals/<level>-module-<NN>.js`
   (`export default [ …briefs ]`, see `a2-module-01.js`) and the file is added to `MODULES` in `art/textbookArt.js`.
-  Then the generator puts each picture on its sheet automatically (after the opening text, once), the constructor
+  Then the generator puts each picture on its sheet automatically (where the sheet uses it, once: §10), the constructor
   offers „Lisa tunni pilt” on existing sheets, and the test `art/textbookArt.test.js` checks that every brief has
   its file (≤ 150 KB), caption, alt and learning job.
 - When a file cannot be committed (image made in a chat), upload it in the CRM constructor image block instead
@@ -111,3 +111,38 @@ Format: {3:2 landscape | 1:1 square | 2:3 portrait}, white background.
 An image is accepted only if: palette matches §2 exactly (one accent), cast identity matches §4, the brief's text is
 spelled exactly, the learning job is visible, no extra text/watermark/signature, line weight consistent with the
 module's other images, size/path per §8. The owner approves the first image of every module before the rest.
+
+## 10. Pictures through the whole sheet (owner 2026-10-30)
+
+„Иллюстрации должны быть не только в начале листа, а эргономично дополнять рабочие листы на протяжении всего урока.”
+Both rules are automatic when a course sheet is built (`admin/course/registry.js`); no module file changes.
+
+**Scene picture and its „Vaata pilti” card** (`scenePlace` in `art/textbookArt.js`):
+
+1. a brief may name its place: `place: '<blockId>'` — the picture stands directly before that block;
+2. otherwise directly before the first `speaking`, `rolecards`, `speakcard`, `writing` or `guidedletter`, or earlier when a
+   block before it talks about the picture (a task that says „Vaata pilti” always comes after the picture; so a sheet whose
+   opening text says „Vaata pilti” keeps the picture right after that text);
+3. a sheet with no such task keeps it after the opening text. A hint in front of the task stays with the task, a half-width
+   row is never split, and an exam part header stays above the picture. Task blocks are never reordered.
+
+**Word strips** (`art/wordStrips.js`, block type `wordstrip`): a compact row of 3–5 square word pictures (`art/words/<level>.js`:
+`{ id, word, src, alt, lessonIds, forms? }`) with the word under each, full width, no number, no answers, 0 minutes.
+It is not in the block picker; a teacher can edit or delete it. `data.artFor: 'words'` keeps it out of the gates.
+
+- A strip stands directly before a task whose **visible** text uses at least 2 of the lesson's words (`lessonIds`); a strip of
+  two is filled up to three with the lesson's words used elsewhere on the sheet. Max 5 words.
+- Forms: stem + a closed list of Estonian endings, never a bare prefix (`kohv` does not hit `kohvik`). Irregular stems are in
+  `STEMS` / `VERB_STEMS`, or the entry's own `forms`; homonyms need context (`NEEDS_CONTEXT`, `NOT_THIS_WORD`); a capital inside
+  a sentence is a name.
+- A picture never gives an answer away: keys `[answer]`, `{*right|wrong}`, `[[sentence]]`, options, transcripts and teacher notes
+  do not count, and a word that is an answer in the task right above the strip or anywhere below it gets no picture. Meaning
+  tasks (match, crossword, translation, dictation, sort, picture tasks…) get no strip, and all their words count as answers.
+- Each word (and each picture: `SAME_PICTURE`) once a sheet; at least 2 tasks between strips; at most 3, one per equal zone of
+  the sheet; never on exam or diagnostic sheets (`assessment`, `diagnostic`, `exampart`), never as the first block, right under a
+  picture, between a hint and its task, between a plan and its speech, between a text and its comprehension task, or inside a row.
+- Deterministic ids `wordstrip_<lessonId>_<phase>_<n>`. On a page the strip stays with the task below it; in the teacher's
+  step mode it appears together with that task.
+
+A new level: add `art/words/<level>.js` and spread it into `ALL_WORDS`. Sheets already in Õppevara change only when they are
+published again.
