@@ -374,25 +374,15 @@
     "seconds": 26.4,
     "hash": "d1ab2b4722070aaa1816a75a0e44a49f650bbf33"
   },
-  "a2-031:031_d_listen": {
-    "src": "/audio/a2-031/031_d_listen.mp3",
-    "seconds": 53.8,
-    "hash": "11645a72a66530026a6d66bf1695ac55bfb19a8c"
-  },
   "a2-031:031_p_announce": {
     "src": "/audio/a2-031/031_p_announce.mp3",
     "seconds": 37.8,
     "hash": "03e1669ae9624e5c0f4c32914959fadf337a9ff7"
   },
-  "a2-031:031_t_msg": {
-    "src": "/audio/a2-031/031_t_msg.mp3",
-    "seconds": 42.9,
-    "hash": "b31ddbd1f5dc925b4f6f694d1e5b3337a4024cc7"
-  },
   "a2-032:032_d_listen": {
     "src": "/audio/a2-032/032_d_listen.mp3",
-    "seconds": 53.7,
-    "hash": "a164cfad28457d3c59fc22cd3b95192ee1072a10"
+    "seconds": 70.1,
+    "hash": "efcfc4a208a132d1211b6a258ac3b2ebdf18a415"
   },
   "a2-032:032_p_till": {
     "src": "/audio/a2-032/032_p_till.mp3",
@@ -404,20 +394,30 @@
     "seconds": 36.7,
     "hash": "042a18debc12d3daf8870c191bd299387b7c97d2"
   },
+  "a2-033:033_d_fit": {
+    "src": "/audio/a2-033/033_d_fit.mp3",
+    "seconds": 96.5,
+    "hash": "5d7c01083f18b44a15a61a9984d9b42711b5e7c8"
+  },
   "a2-033:033_d_listen": {
     "src": "/audio/a2-033/033_d_listen.mp3",
     "seconds": 42.7,
     "hash": "dec72ba7a0badbe36229478e2e6ad03df4e41011"
   },
+  "a2-033:033_p_radio": {
+    "src": "/audio/a2-033/033_p_radio.mp3",
+    "seconds": 156,
+    "hash": "ce81621286f507795b913aa04fbbf5febdff6566"
+  },
   "a2-034:034_d_listen": {
     "src": "/audio/a2-034/034_d_listen.mp3",
-    "seconds": 51.5,
-    "hash": "cd9823102c4b295714c5006cfaf670b4c0c26c38"
+    "seconds": 73.1,
+    "hash": "d3a0b5e81c7393f114f01d58d1e3bc0035fa0bca"
   },
-  "a2-034:034_t_desk": {
-    "src": "/audio/a2-034/034_t_desk.mp3",
-    "seconds": 51.8,
-    "hash": "c27b1ea48f08888694365a5581890c710dfcda02"
+  "a2-034:034_p_clips": {
+    "src": "/audio/a2-034/034_p_clips.mp3",
+    "seconds": 47.4,
+    "hash": "3e9bd3923e142540824ac2089e3f1d8f40090970"
   },
   "a2-035:035_p_listen": {
     "src": "/audio/a2-035/035_p_listen.mp3",
