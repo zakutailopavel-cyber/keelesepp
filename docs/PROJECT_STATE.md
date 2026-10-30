@@ -1,3 +1,65 @@
+## 2026-10-30 · agent/a2-m14-final — A2 module 14 „Õppimine, kool ja keel” in the final shape
+
+- Base: `main` a58d8c4 (A2 modules 11 #930 and 12 #927 merged; module 13 still open), checked 2026-10-30. The 064 → 066 boundary was checked by
+  overlaying module 13's current working file: 0 problems (the overlay found `V2` at Harjuta, so 066 Harjuta now opens with G04). Recheck after
+  module 13 merges. Content only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–12).
+- Done: `a2/module14.js` (a2-066…070) passes every final-shape gate under the A2 profile: **125 → 0 problems**
+  (`final-shape.mjs --course a2 --module 14`); `finalShapeBaselineA2.json` 1000 → 858 lines (module 14's 123, 18 V7 / V8 lines of modules 15–20 and course
+  lines 29 → 21), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m14 = m6, no swap): 066 RÄÄK R→S (kursusel / kursusele / kursuselt, tunnis / tundi / tunnist, esmaspäeviti, kaks korda nädalas;
+  main `066_t_tell` S02), 067 LUGE R→W (korda / korrake, rääkige aeglasemalt, Mida see sõna tähendab?, Kas te saate …?; main `067_t_reply` `vastus` 50–70
+  words W08, tagged level 4), 068 PROJ L→S (tahan / proovin + da, hakkan / pean + ma, the study card; main `068_t_plan` S03), 069 KIRJ L→W (the two-week plan,
+  iga päev, kaks korda nädalas, ajasõna ees; main `069_t_mainplan` `jutt` 60–80 words W05, plan W11, edit W10). canDo / goals of 066–070 rewritten in `a2/lessonGoals.js`.
+  **Corners:** 066 S2 (`066_p_cards`, S05), 067 R4 (`067_p_maret`), 068 L4 (`068_p_talk`, 8 pairs), 069 W1 (`069_p_card`, Aune's business card). **071 must not have a
+  W1 corner.** S06 = `068_t_record` (home recording with the picture), S05 = `066_p_cards`. Every teaching lesson: review naming the previous lesson and one of
+  modules 11–12 (064/056, 066/058, 067/057, 068/051), an in-lesson pair task, a home recording (45–60 s: the didactic check wants ≥ 45 s at A2), two fluency tasks
+  (S09+S11, S08+W06, S02+S01, R15+S07). No tingiv kõneviis: the old „Kas te saaksite …?” is now „Kas te saate …?”.
+- 070 (EKS, title kept): all four parts timed with `B.examPart` and the 80 % target (R 40 min, 31 points; W 30 min, 20; L 30 min, 25; S 15 min, 20); tags R1–R5, L1–L4,
+  W1, W2b, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta.
+- Cast (May, a year before B1; not yet in `docs/COURSE_CAST.md`): spring course at Keelekool Sõna ends Friday 28 May, last test Friday 21 May; summer courses from 7 June
+  (morning Maret, evening and online Kadi, speaking club Thursdays at 17 in Pann, administrator Ene). Students Sofia, Tom, Lucía, Dmitri, Olga. Maret learns Italian
+  (daughter in Milan). Two-week plan 31 May – 13 June. **Liis renamed:** the old module's teacher Liis (also in both pictures) is now **Aune** (Aune Kuusk, new teacher at
+  Keelekool Sõna; no course used the name; Aune, Aunele, Aunelt, Aune kaart). Changed in `a2/module14.js` and `art/visuals/a2-module-14.js` (cast, scene, alt, prompts);
+  the pictures themselves are not redrawn. Aune is not in `tools/listening-audio/plan.mjs`' `FEMALE` (a tool file, out of scope), so her voice depends on the transcript's hash:
+  `068_d_aune` and `070_t_l2` are worded so that she gets a female voice. If either transcript changes, check the voice or add the name to `FEMALE`.
+- Audio (TartuNLP, free): new `066_p_maret`, `067_d_call`, `067_p_clips`, `068_d_aune`, `068_p_talk`, `068_t_voice`, `069_d_radio`, `069_p_numbers`, `069_t_voice`, `070_t_l1`–`070_t_l4`;
+  the 6 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average 100+): 409 files passed, 4 UI files failed with 12 tests (timeouts: studentWorksheetFlow, VocabularyPage, WorksheetStudioPage, CourseProductionPage), 1 skipped; run alone with a 180 s timeout all four pass (3/3, 8/8, 23/23, 2/2). Language check (Vabamorf) of module 14: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: corner counts after this module: S2, R4, L4 and W1 each rise by one, still under the course minimums (closing pass of later modules).
+- Next safe step: when module 13 has merged, rerun `final-shape.mjs --course a2 --module 14`; then A2 module 15 (`a2/module15.js`, first corner not W1).
+## 2026-10-30 · agent/a2-m13-final — A2 module 13 „Töö ja amet” in the final shape
+
+- Base: `main` a58d8c4 (A2 modules 11 #930 and 12 #927 merged), checked 2026-10-30; the 059 → 061 boundary was checked. Content only; no
+  production data, no publishing, no deploy. Template v3 → v4 (as modules 6–12).
+- Done: `a2/module13.js` (a2-061…065) passes every final-shape gate under the A2 profile: **baseline 104 → 0 problems**
+  (`final-shape.mjs --course a2 --module 13`); `finalShapeBaselineA2.json` 1000 → 869 (module 13's 104 lines, 19 V7 / V8 lines of modules
+  14–20, course 29 → 21), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
+- Shape (`withShapes`, A2 §4 row m13, no swap): 061 AVAS R→S (try first → rule → try again; töötan müüjana, töötan poes, vastutan … eest;
+  main `061_t_stand` S01, tagged level 4), 062 LUGU R→W (the interview, a cliffhanger; pean + ma-vorm, oskan / saan / tahan + da-vorm;
+  main `062_t_end` `jutt` 60–80 words W05), 063 PROB L→S (two offers; kella kaheksast viieni, E–R, vahetus, palk, kogemus; main
+  `063_t_decide` S03), 064 KUUL L→W (the trial day; alusta, too, vii, ära unusta; main `064_t_letter` `kiri` 50–70 words W04), 065 EKS.
+  **Corners:** 061 R3 (`061_p_signs`), 062 W1 (`062_p_card`), 063 L4 (`063_p_talk`), 064 L3 (`064_d_liis`). **066 must not have an L3 corner.**
+  S06 = `062_t_record` (home recording with the picture), S05 = `063_p_cards`. Every teaching lesson: review naming the previous lesson and
+  one of modules 10–11 (059/047, 061/054, 062/053, 063/051), an in-lesson pair task, a home recording (45–60 s), two fluency tasks
+  (S02+S10, S07+S02, S13+S08, S09+W06). No tingiv kõneviis; the picture prompts in `art/visuals/a2-module-13.js` had none (file untouched).
+- 065 (EKS, „Kontroll 13 — töö ja amet”): every part timed with `B.examPart` and the 80 % target (R 40 min, 31; W 30 min, 20; L 30 min, 25;
+  S 15 min, 20); tags R1–R5, W1, W2a, L1–L4, S0, S1, S2. Reading + writing on Harjuta, listening + speaking on Kasuta.
+- Cast (May, a year before B1; not yet in `docs/COURSE_CAST.md`, content agents may not edit it): **Liis stays what she is in B1: head of Tuul
+  Logistika and Sofia's boss. No rename.** The old teacher / official Liis, her son Oskar, Olga, Urmas, Merle, Taras, Peeter and Kaja of this module are
+  gone; the picture of 062 (Liis and Markus in the warehouse) now fits. New facts that later modules must keep: Sofia worked two years in a Tartu bookshop
+  before; job fair at the culture house Sild, Saturday 8 May; Liis's surname **Laan**, firm at Peterburi tee 18, bus 6, 28 staff; interview Tuesday 11 May;
+  offers on Friday 14 May: Tuul Logistika office, Mon–Fri 8.30–17, 1250 €, 3 months' trial, **from 1 September**; Kaubahall through Anna (boss Eha,
+  colleague Mirjam), two shifts, 950 €, **June–August**; Sofia's day lessons (Tue, Fri) become Ene's evening course (Mon, Wed 18–20) in autumn; trial day
+  Friday 28 May; contract Monday 31 May; client Lepik (Pärnu), courier, Rein and Markus in the warehouse; rent 250 €; radio career adviser Piret Vaher
+  (as in B1 module 9); Viktor's neighbour boy Henri learns bike repair. So Sofia is **not yet in the office in June–August** (modules 14–20 may say she works at
+  Kaubahall in summer).
+- Audio (TartuNLP, free): new `061_d_radio`, `061_p_ene`, `062_d_markus`, `063_d_calls`, `063_p_talk`, `064_d_liis`, `064_d_times`, `064_p_clips`,
+  `064_t_voice`, `065_t_l1`–`065_t_l4`; the 10 old recordings removed (mp3 + manifest).
+- Checks after the merge: `npx eslint --quiet src` clean. `npx vitest run` under machine load (load average ~100): 408 files passed, 5 UI files failed, 1 skipped (14 tests of 2889; 2868 passed, 7 skipped). The 5 files run one at a time with a 180 s test timeout all pass: `studentWorksheetFlow` 3/3, `VocabularyPage` 8/8, `CourseProductionPage` 2/2, `LessonWorksheetStudioPage` 6/6, `WorksheetStudioPage` 23/23. `final-shape.mjs --course a2`: 869 problems, new 0. Language check (Vabamorf) of module 13: 1 unknown lower-case word, `kusimustik`
+  (genre value).
+- Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: R3 3, W1 4, L4 2, L3 2 of 4.
+- Next safe step: A2 module 14 (`a2/module14.js`, its first corner not L3); rerun `final-shape.mjs --course a2 --module 14` against this file.
+
 ## 2026-10-30 · agent/worksheet-art-throughout — pictures through the whole worksheet (word strips, scene next to its task)
 
 - Base: `main` 0a7c4d3 (A2 modules up to 10 #923), checked 2026-10-30, with Codex's #883 (156 A2 word pictures) merged in: this PR includes #883. No production data, no publishing, no deploy, no module file touched.
