@@ -22,7 +22,7 @@ const { FieldValue } = require("firebase-admin/firestore");
 let googleModule = null;
 const googleApis = () => (googleModule ||= require("googleapis").google);
 const nodemailer = require("nodemailer");
-const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForOwedLesson, tokenBacklogLessonIds } = require("./lesson-tokens-core");
+const { lessonTakesToken, lessonTokenCost, creditBlocker, tokenPackageId, tokenPackageRecord, isTokenInvoice, packageForLesson, subjectUsesPackages, lessonSubject, tokenSubjectKey, packageSubjectKey, lastLessonDateAfter, lastHeldLessonDate, tokenExpiresOn, tokenExtensionUntil, tokenBacklogLessonIds } = require("./lesson-tokens-core");
 const crypto = require("crypto");
 const {
   buildCreditNotePdf,
@@ -76,7 +76,6 @@ const {
   planInvoiceOverpaymentTransfer,
   positiveInteger,
   selectBillableLessons,
-  selectStudentPackageForLesson,
   tariffAssignmentPlan,
   toCents,
   validIsoDate,
@@ -948,6 +947,78 @@ async function adjustStudentPackage({
   });
 }
 
+// An administrator extends a package past its expiry (owner 2026-10-30: unused lessons expire after 14 days without use),
+// with a reason: no credits move, a ledger entry of 0 and an audit record say who and why; lessons owed since then take
+// their credits from it.
+async function extendStudentPackage({ actor, studentPackageId, until, reason, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const cleanPackageId = String(studentPackageId || "").trim();
+  if (!cleanPackageId) throw httpError(400, "studentPackageId required");
+  const cleanReason = cleanText(reason, 500);
+  if (cleanReason.length < 3) throw httpError(400, "Lisa pikendamise põhjus.");
+  const cleanUntil = String(until || "").trim();
+  const signature = crypto.createHash("sha256").update(JSON.stringify({ studentPackageId: cleanPackageId, until: cleanUntil, reason: cleanReason, command: "extend_package_v1" })).digest("hex");
+  const packageRef = db.collection("studentPackages").doc(cleanPackageId);
+  const ledgerRef = db.collection("packageLedger").doc(mutationId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  const result = await db.runTransaction(async transaction => {
+    const [existingEntry, packageSnap] = await Promise.all([transaction.get(ledgerRef), transaction.get(packageRef)]);
+    if (existingEntry.exists) {
+      if (existingEntry.data().creationSignature !== signature) throw httpError(409, "requestId already used for a different package movement");
+      return { studentPackage: packageSnap.exists ? { id: packageSnap.id, ...packageSnap.data() } : null, extendedUntil: existingEntry.data().extendedUntil, idempotent: true };
+    }
+    if (!packageSnap.exists) throw httpError(404, "Student package not found");
+    const studentPackage = packageSnap.data();
+    let extendedUntil;
+    try {
+      extendedUntil = tokenExtensionUntil(studentPackage, { today: appToday(nowIso), until: cleanUntil });
+    } catch (error) {
+      throw httpError(error.status || 409, error.message);
+    }
+    const previousExpiresOn = tokenExpiresOn(studentPackage);
+    const patch = { extendedUntil, latestLedgerEntryId: ledgerRef.id, ledgerEntryCount: (Number(studentPackage.ledgerEntryCount) || 0) + 1, latestMovementAt: nowIso, latestMovementBy: actorData, updatedAt: nowIso };
+    transaction.set(packageRef, patch, { merge: true });
+    transaction.create(ledgerRef, {
+      studentPackageId: cleanPackageId,
+      studentId: studentPackage.studentId || "",
+      studentName: studentPackage.studentName || "—",
+      packageProductId: studentPackage.packageProductId || "",
+      packageProductName: studentPackage.packageProductName || "—",
+      entryType: "expiry_extension",
+      sourceType: "admin_adjustment",
+      creditsDelta: 0,
+      balanceBefore: studentPackage.balanceCredits,
+      balanceAfter: studentPackage.balanceCredits,
+      previousExpiresOn,
+      extendedUntil,
+      reason: cleanReason,
+      actor: actorData,
+      createdAt: nowIso,
+      requestId: mutationId,
+      creationSignature: signature,
+    });
+    transaction.create(auditRef, {
+      entityType: "student_package",
+      entityId: cleanPackageId,
+      action: "student.package_expiry_extended",
+      studentPackageId: cleanPackageId,
+      studentId: studentPackage.studentId || "",
+      studentName: studentPackage.studentName || "—",
+      previousExpiresOn,
+      extendedUntil,
+      actor: actorData,
+      reason: cleanReason,
+      createdAt: nowIso,
+      requestId: mutationId,
+    });
+    return { studentPackage: { id: cleanPackageId, ...studentPackage, ...patch }, extendedUntil, idempotent: false };
+  });
+  if (!result.idempotent && result.studentPackage) result.backlog = await consumeTokenBacklog(result.studentPackage, { runId: `tokens-ext-${crypto.createHash("sha256").update(mutationId).digest("hex").slice(0, 10)}`, onlyOwed: true });
+  return result;
+}
+
 function lessonPackageLedgerEntryId(lessonId, cycle, movement) {
   const hash = crypto.createHash("sha256")
     .update(`${lessonId}:${cycle}:${movement}`)
@@ -1005,19 +1076,29 @@ async function creditInvoiceTokens({ actor, invoiceId }) {
 // lessons marked since the invoice date, before the package existed (the trigger skips a card without a package):
 // they take their credits now, oldest first
 // and lessons owed from before (held when no package had credits, lesson-tokens-core OWED_LESSONS_TAKE_NEXT_PACKAGE)
-async function consumeTokenBacklog(studentPackage) {
-  const [lessonsSnap, statesSnap] = await Promise.all([
+// A package of one subject takes only that subject's lessons; a shared one (no subject) any. An extension runs this again
+// for the owed lessons only, under its own request ids (runId).
+async function consumeTokenBacklog(studentPackage, { runId = "tokens-backlog", onlyOwed = false } = {}) {
+  const [lessonsSnap, statesSnap, cardSnap] = await Promise.all([
     db.collection("lessons").where("studentId", "==", studentPackage.studentId).get(),
     db.collection("lessonPackageStates").where("studentId", "==", studentPackage.studentId).get(),
+    db.collection("students").doc(String(studentPackage.studentId)).get(),
   ]);
+  const card = cardSnap.exists ? cardSnap.data() : {};
   const states = new Map(statesSnap.docs.map(doc => [doc.id, doc.data()]));
   const owedLessonIds = statesSnap.docs.filter(doc => doc.data().status === "needs_attention").map(doc => doc.id);
-  const lessonIds = tokenBacklogLessonIds({ lessons: lessonsSnap.docs.map(doc => ({ id: doc.id, date: doc.data().date })), issuedAt: studentPackage.issuedAt, owedLessonIds });
+  const lessonIds = tokenBacklogLessonIds({
+    lessons: lessonsSnap.docs.map(doc => ({ id: doc.id, date: doc.data().date, subjectKey: tokenSubjectKey(lessonSubject(doc.data(), card)) })),
+    issuedAt: studentPackage.issuedAt,
+    owedLessonIds,
+    subjectKey: packageSubjectKey(studentPackage, card),
+    onlyOwed,
+  });
   let consumed = 0;
   for (const lessonId of lessonIds) {
     if (states.get(lessonId)?.status === "consumed") continue;
     try {
-      const outcome = await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `tokens-backlog-${studentPackage.id}-${lessonId}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
+      const outcome = await syncLessonPackageConsumption({ actor: LESSON_TOKENS_ACTOR, lessonId, requestId: `${runId}-${studentPackage.id}-${lessonId}`.replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 120) });
       if (outcome.status === "consumed" && outcome.changed) consumed += 1;
     } catch (error) {
       console.error(`Lesson tokens backlog failed for ${lessonId}:`, error.message);
@@ -1148,12 +1229,33 @@ async function syncLessonPackageConsumption({
       }
       const packagesQuery = db.collection("studentPackages")
         .where("studentId", "==", cleanStudentId);
-      const packagesSnap = await transaction.get(packagesQuery);
+      const [packagesSnap, cardSnap] = await Promise.all([
+        transaction.get(packagesQuery),
+        transaction.get(db.collection("students").doc(cleanStudentId)),
+      ]);
       const packages = packagesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const card = cardSnap.exists ? cardSnap.data() : {};
+      // per subject (owner 2026-10-30): the lesson's subject has its own packages, its own debt
+      const subject = lessonSubject(lesson, card);
+      const subjectKey = tokenSubjectKey(subject);
+      if (packages.length && !subjectUsesPackages(packages, subjectKey, card)) {
+        const result = {
+          changed: false,
+          status: "not_applicable",
+          lessonId: cleanLessonId,
+          reason: "The card has no package for this subject",
+        };
+        clearOwed();
+        transaction.create(requestRef, requestRecord(result));
+        return { ...result, idempotent: false };
+      }
       let selectedPackage = null;
       let selectionError = "";
       try {
-        selectedPackage = selectStudentPackageForLesson(packages, {
+        // own subject first, then the shared pool; never an expired package (owed: the next paid package pays it)
+        selectedPackage = packageForLesson(packages, {
+          subjectKey,
+          card,
           lessonDate,
           requestedPackageId: lesson.requestedStudentPackageId || "",
           preferredPackageId: state.studentPackageId || "",
@@ -1162,8 +1264,6 @@ async function syncLessonPackageConsumption({
       } catch (error) {
         selectionError = error.message;
       }
-      // owed: no package dated on or before the lesson has credits → the next paid token package pays it
-      if (!selectedPackage && !selectionError) selectedPackage = packageForOwedLesson(packages, { credits: lessonCredits });
       if (!selectedPackage) {
         const reason = selectionError
           || (packages.length
@@ -1189,6 +1289,7 @@ async function syncLessonPackageConsumption({
           status: "needs_attention",
           lessonDate,
           credits: lessonCredits,
+          subject,
           cycle: Number(state.cycle) || 0,
           lastError: reason,
           updatedAt: nowIso,
@@ -1249,6 +1350,8 @@ async function syncLessonPackageConsumption({
       };
       transaction.set(packageRef, {
         ...movement.accountPatch,
+        // the 14 days without use count from here (lesson-tokens-core tokenExpiryStart)
+        lastLessonDate: lastLessonDateAfter(selectedPackage, lessonDate),
         latestLedgerEntryId: ledgerEntryId,
         latestMovementAt: nowIso,
         latestMovementBy: actorData,
@@ -1339,6 +1442,9 @@ async function syncLessonPackageConsumption({
     const packageSnap = await transaction.get(packageRef);
     if (!packageSnap.exists) throw httpError(409, "Consumed lesson package no longer exists");
     const studentPackage = { id: packageSnap.id, ...packageSnap.data() };
+    // a lesson given back no longer counts as the package's last use
+    const packageLedgerSnap = await transaction.get(db.collection("packageLedger").where("studentPackageId", "==", cleanPackageId));
+    const lastLessonDate = lastHeldLessonDate(packageLedgerSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })), { restoredEntryId: state.consumptionEntryId || "" });
     let movement;
     try {
       // the same number of credits the lesson took (states written before 2026-10-29 took one)
@@ -1389,6 +1495,7 @@ async function syncLessonPackageConsumption({
     };
     transaction.set(packageRef, {
       ...movement.accountPatch,
+      lastLessonDate: lastLessonDate || FieldValue.delete(),
       latestLedgerEntryId: ledgerEntryId,
       latestMovementAt: nowIso,
       latestMovementBy: actorData,
@@ -10248,6 +10355,17 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     }
     if (req.path === "/invoices/tokens/credit") {
       const result = await creditInvoiceTokens({ actor, invoiceId: req.body?.invoiceId });
+      res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/student-packages/extend") {
+      const result = await extendStudentPackage({
+        actor: await requireAdminUser(req),
+        studentPackageId: req.body?.studentPackageId,
+        until: req.body?.until,
+        reason: req.body?.reason,
+        requestId: req.body?.requestId,
+      });
       res.status(result.idempotent ? 200 : 201).json(result);
       return;
     }

@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, Input, Modal, Select } from '../../components/ui/index.js';
 import { manualInvoiceApi } from '../../services/firebase/manualInvoiceApi.js';
 import { invoiceDeliveryApi } from '../../services/firebase/financeApi.js';
-import { lessonTokensService, tokenSummary } from '../../services/firebase/lessonTokens.js';
+import { lessonTokensService, TOKEN_EXPIRY_DAYS, tokenAccount, tokenSubjectKey } from '../../services/firebase/lessonTokens.js';
+import { subjectsOf } from '../students/subjects.js';
 import { INVOICE_NOTE_MAX, invoiceNotesService, saveCreationNote } from '../../services/firebase/invoiceNotes.js';
 import { defaultBillingMonth } from './monthlyBilling.js';
 
@@ -17,12 +18,13 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [studentId, setStudentId] = useState('');
+  const [pickedSubject, setPickedSubject] = useState('');
   const [lessons, setLessons] = useState(8);
   const [due, setDue] = useState(dueDefault);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
-  const [loaded, setLoaded] = useState({ studentId: '', balance: null });
+  const [loaded, setLoaded] = useState({ studentId: '', packages: null });
   const [requestId, setRequestId] = useState('');
 
   const cards = useMemo(() => studentCards.filter((card) => card && card.active !== false && !card.convertedToParent && String(card.name || '').trim())
@@ -33,27 +35,37 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
   }, [cards, query]);
   const card = cards.find((item) => item.id === studentId) || null;
   const plan = plans.find((item) => (item.studentId || item.id) === studentId) || null;
-  const priceCents = Number(plan?.lessonPriceCents) || 0;
+  // one package per subject (owner 2026-10-30): a card with several subjects has to name one; that subject's price
+  const subjects = useMemo(() => (card ? subjectsOf(card) : []), [card]);
+  const subject = subjects.length === 1 ? subjects[0] : subjects.includes(pickedSubject) ? pickedSubject : '';
+  const subjectPrice = subject ? plan?.subjectPrices?.[subject] : null;
+  const priceCents = Number(subjectPrice?.lessonPriceCents ?? plan?.lessonPriceCents) || 0;
+  const minutes = subjectPrice?.lessonMinutes || plan?.lessonMinutes || 60;
   const count = Math.max(0, Math.floor(Number(lessons) || 0));
   const payer = card ? (card.payerName || card.parentName || card.name) : '';
   const payerEmail = card ? (card.payerEmail || card.parentEmail || card.email || '') : '';
 
-  // the chosen card's current package balance (shown only for the card it was read for)
-  const balance = loaded.studentId === studentId ? loaded.balance : null;
+  // the chosen card's current package balance of this subject (shown only for the card it was read for)
+  const balance = useMemo(() => {
+    if (loaded.studentId !== studentId || !loaded.packages || !subject) return null;
+    const account = tokenAccount({ packages: loaded.packages, card });
+    return account.subjects.find((group) => group.key === tokenSubjectKey(subject))?.left ?? 0;
+  }, [card, loaded, studentId, subject]);
   useEffect(() => {
     if (!studentId) return undefined;
     let alive = true;
     tokensApi.listByStudent(studentId)
-      .then((packages) => { if (alive) setLoaded({ studentId, balance: tokenSummary(packages).balance }); })
-      .catch(() => { if (alive) setLoaded({ studentId, balance: null }); });
+      .then((packages) => { if (alive) setLoaded({ studentId, packages }); })
+      .catch(() => { if (alive) setLoaded({ studentId, packages: null }); });
     return () => { alive = false; };
   }, [studentId, tokensApi]);
 
-  const close = () => { if (busy) return; setOpen(false); setQuery(''); setStudentId(''); setLessons(8); setNote(''); setError(''); setRequestId(''); setDue(dueDefault()); };
+  const close = () => { if (busy) return; setOpen(false); setQuery(''); setStudentId(''); setPickedSubject(''); setLessons(8); setNote(''); setError(''); setRequestId(''); setDue(dueDefault()); };
 
   const create = async (send) => {
     setError('');
     if (!card) { setError('Vali õpilane.'); return; }
+    if (!subject) { setError('Vali aine: õpilasel on mitu ainet ja pakett kuulub ühele neist.'); return; }
     if (!priceCents) { setError('Õpilasel puudub tunnihind: määra see õpilase kaardil (Finantsid → Arveldus).'); return; }
     if (count < 1 || count > 100) { setError('Tundide arv peab olema 1–100.'); return; }
     if (send && !payerEmail) { setError('Maksjal puudub e-post: lisa see õpilase kaardile või loo arve ilma saatmata.'); return; }
@@ -63,7 +75,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
     setRequestId(id);
     try {
       // the note is internal: it goes to invoiceNotes, never onto the invoice the payer can read
-      const { invoice } = await api.createTokens({ studentId, lessons: count, due, note: '', requestId: id });
+      const { invoice } = await api.createTokens({ studentId, lessons: count, due, note: '', subject, requestId: id });
       const noted = await saveCreationNote(notesRepository, invoice, note);
       if (send) await deliveryApi.send(invoice.id);
       setBusy('');
@@ -88,9 +100,13 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
           <option value="">{matches.length ? `Vali (${matches.length})` : 'Keegi ei vasta otsingule'}</option>
           {matches.map((item) => <option key={item.id} value={item.id}>{item.name}{item.subject ? ` · ${item.subject}` : ''}{item.parentName ? ` · ${item.parentName}` : ''}</option>)}
         </Select>
+        {subjects.length > 1 ? <Select className="form-grid__wide" label="Aine" value={subject} onChange={(event) => setPickedSubject(event.target.value)}>
+          <option value="">Vali aine ({subjects.length})</option>
+          {subjects.map((item) => <option key={item} value={item}>{item}</option>)}
+        </Select> : null}
         {card ? <p className="form-hint form-grid__wide">
-          Maksja: <strong>{payer}</strong>{payerEmail ? ` · ${payerEmail}` : ' · e-post puudub'} · Tunnihind: <strong>{priceCents ? `${money(priceCents)} / ${plan?.lessonMinutes || 60} min` : 'määramata'}</strong>
-          {balance !== null ? <> · Praegu paketis: <strong>{balance} tundi</strong></> : null}
+          Maksja: <strong>{payer}</strong>{payerEmail ? ` · ${payerEmail}` : ' · e-post puudub'} · Tunnihind: <strong>{priceCents ? `${money(priceCents)} / ${minutes} min` : 'määramata'}</strong>
+          {balance !== null ? <> · Praegu paketis{subjects.length > 1 ? ` (${subject})` : ''}: <strong>{balance} tundi</strong></> : null}
         </p> : null}
         <div className="field form-grid__wide">
           <span className="field__label">Tundide arv</span>
@@ -103,7 +119,7 @@ export default function TokenInvoiceDialog({ studentCards = [], plans = [], onCr
         <Input label="Maksetähtaeg" type="date" value={due} onChange={(event) => setDue(event.target.value)} />
         <Input label="Sisemine märkus (ainult töötajatele)" maxLength={INVOICE_NOTE_MAX} placeholder="Mille eest arve on — ei ilmu arvele ega e-kirja" value={note} onChange={(event) => setNote(event.target.value)} />
         <p className="form-grid__wide" role="status"><strong>Kokku: {priceCents && count ? `${count} × ${money(priceCents)} = ${money(count * priceCents)}` : '—'}</strong><br />
-          <span className="form-hint">Tunnid lisatakse õpilasele pärast makse laekumist nupuga „Lisa tunnid” arvete nimekirjas. Iga toimunud tund (ja ette teatamata puudumine) võtab ühe tunni.</span></p>
+          <span className="form-hint">Tunnid lisatakse õpilasele pärast makse laekumist nupuga „Lisa tunnid” arvete nimekirjas. Iga toimunud tund selles aines (ja ette teatamata puudumine) võtab ühe tunni. Kasutamata tunnid aeguvad, kui {TOKEN_EXPIRY_DAYS} päeva ei toimu ühtegi tundi.</span></p>
         {error ? <p className="action-error form-grid__wide" role="alert">{error}</p> : null}
       </div>
     </Modal>
