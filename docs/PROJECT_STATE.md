@@ -1,3 +1,10 @@
+## 2026-10-30 · agent/textbook-a2-pilot — A2 moodul 1 õpikupeatüki piloot
+
+- **Base:** `ee6fa79c`. Ainult õppesisu; tootmises ei avaldatud ega muudetud CRM-i andmeid.
+- **Tehtud:** Moodul 1 avaneb nüüd peatükina „Uus algus Tallinnas”. Algus ütleb õppijale selgelt, mida ta neljas päris olukorras oskama hakkab; lõpp on sama loo loomulik jätk — Keelekool Sõna esimene õhtu, mitte eraldi kooriseltsi ülesannete plokk. Uus korduskasutatav peatüki brief: `docs/A2_MODULE_01_TEXTBOOK_PILOT.md`.
+- **Visuaal:** kasutatakse olemasolevaid musta kontuuriga, valge ja laimirohelise aktsendiga illustratsioone. Igal pildil on õppimisülesanne ja rääkimisküsimused.
+- **Järgmine turvaline samm:** omaniku ülevaatus renderdatud mustandist; alles siis sama peatüki struktuur moodulitele 2–20. Enne heakskiitu ei merge'i ega avalda.
+
 ## 2026-10-30 · agent/a2-m19-final — A2 module 19 „A2 kirjutamine ja rääkimine” in the final shape
 
 - Base: `main` 64fecee (A2 modules 15–18 merged), checked 2026-10-30. Module 20 is done in parallel on its own branch: recheck V1, V2, V7, V8 when it merges. Content only; no production data, no publishing, no deploy. Template v3 → v4 (as modules 6–18).
