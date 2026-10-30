@@ -9207,8 +9207,8 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
     } catch (error) {
       throw httpError(error.status || 400, error.message);
     }
-    if (entry.origin !== "manual" && !cleanReason) throw httpError(400, "Automaatkande parandusel on põhjus kohustuslik.");
     await assertAccountingDatesOpen(transaction, [entry.date, corrected.after.date], lockedThrough);
+    // no reason needed (owner 2026-10-30): who, when, before and after are in the history
     const { action, patch } = correctionPatch(entry, corrected, { reason: cleanReason, nowIso, actorData });
     transaction.update(ref, patch);
     transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: `accounting.entry.${action}`, number: entry.number, reason: cleanReason, before: corrected.before, after: corrected.after, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
@@ -9225,7 +9225,6 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
 async function replaceAccountInEntries({ actor, fromAccount, toAccount, entryIds, targets, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanReason = cleanText(reason, 300);
-  if (!cleanReason) throw httpError(400, "Konto asendamise põhjus on kohustuslik.");
   const from = String(fromAccount || "").trim();
   const to = String(toAccount || "").trim();
   if (!from || !to) throw httpError(400, "Sisesta mõlemad kontod.");
@@ -9316,7 +9315,6 @@ async function replaceAccountInEntries({ actor, fromAccount, toAccount, entryIds
 async function deleteAccountingEntry({ actor, entryId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanReason = cleanText(reason, 300);
-  if (!cleanReason) throw httpError(400, "Kustutamise põhjus on kohustuslik.");
   const ref = accountingEntryRef(entryId);
   const auditRef = db.collection("financialAudit").doc(mutationId);
   const nowIso = new Date().toISOString();
@@ -9347,6 +9345,34 @@ async function deleteAccountingEntry({ actor, entryId, reason, requestId }) {
 
 // „Tühista ekslik storno”: the storno becomes a tombstone, its original entry is live again (accounting-core.js
 // assertStornoUndoable); both get a history item and the audit keeps one record
+async function restoreAccountingEntry({ actor, entryId, requestId }) {
+  const mutationId = cleanRequestId(requestId);
+  const ref = accountingEntryRef(entryId);
+  const auditRef = db.collection("financialAudit").doc(mutationId);
+  const nowIso = new Date().toISOString();
+  const actorData = actorSnapshot(actor);
+  return db.runTransaction(async transaction => {
+    const [auditSnap, snap, lockedThrough] = await Promise.all([transaction.get(auditRef), transaction.get(ref), readAccountingLock(transaction)]);
+    if (auditSnap.exists) return { entry: { id: snap.id, ...snap.data() }, idempotent: true };
+    if (!snap.exists) throw httpError(404, "Kannet ei leitud.");
+    const entry = { id: snap.id, ...snap.data() };
+    try {
+      accountingCore.assertRestorable(entry);
+    } catch (error) {
+      throw httpError(error.status || 400, error.message);
+    }
+    await assertAccountingDatesOpen(transaction, [entry.date], lockedThrough);
+    const patch = {
+      deleted: false, deletedAt: FieldValue.delete(), deletedBy: FieldValue.delete(), deleteReason: FieldValue.delete(),
+      history: [...(Array.isArray(entry.history) ? entry.history : []), historyItem({ action: "restore", reason: "", nowIso, actorData })],
+      updatedAt: nowIso, updatedBy: actorData,
+    };
+    transaction.update(ref, patch);
+    transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: "accounting.entry.restored", number: entry.number, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
+    return { entry: { ...entry, deleted: false, history: patch.history } };
+  });
+}
+
 async function undoAccountingStorno({ actor, entryId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanReason = cleanText(reason, 300);
@@ -10093,6 +10119,10 @@ exports.financeApi = functions.runWith({ memory: "1GB" }).https.onRequest(async 
     if (req.path === "/accounting/entries/delete") {
       const result = await deleteAccountingEntry({ actor, entryId: req.body?.entryId, reason: req.body?.reason, requestId: req.body?.requestId });
       res.status(result.idempotent ? 200 : 201).json(result);
+      return;
+    }
+    if (req.path === "/accounting/entries/restore") {
+      res.status(201).json(await restoreAccountingEntry({ actor, entryId: req.body?.entryId, requestId: req.body?.requestId }));
       return;
     }
     if (req.path === "/accounting/entries/undo-storno") {

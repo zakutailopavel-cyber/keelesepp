@@ -345,18 +345,21 @@ function assertCorrectable(entry) {
   if (entry.origin === "reversal") throw accountingError("Stornokannet ei muudeta; tee uus kanne.", 409);
 }
 
-// the corrected entry: a manual entry may change everything except the year of its number; an automatic or opening
-// entry keeps its date and document reference (the link to the source document)
+// the corrected entry: a manual or automatic entry may change everything except the year of its number (the accountant
+// 2026-10-30: „не исправить и не удалить” the entries the system made; the source document stays in `sourceKey`, its own
+// lines in `original`); the opening entry keeps its date and document
 function correctedEntry(entry, values, accounts = [], options = {}) {
   assertCorrectable(entry);
-  const fixed = entry.origin === "manual" ? {} : { date: entry.date, documentRef: entry.documentRef };
-  const normalized = validateEntry({ ...values, ...fixed }, accounts, options);
+  const fixed = entry.origin === "opening" ? { date: entry.date, documentRef: entry.documentRef } : {};
+  // an automatic entry sent without a date or document keeps its own
+  const own = entry.origin === "auto" ? { date: entry.date, documentRef: entry.documentRef } : {};
+  const normalized = validateEntry({ ...own, ...values, ...fixed }, accounts, options);
   if (entry.origin === "opening") {
     const types = new Map(accounts.map((a) => [String(a.code), a.type]));
     const result = normalized.lines.find((l) => types.get(l.account) === "income" || types.get(l.account) === "expense");
     if (result) throw accountingError(`Tulu- ja kulukontodel (${result.account}) algsaldot ei ole.`);
   }
-  if (entry.origin === "manual" && String(normalized.date).slice(0, 4) !== String(entry.date).slice(0, 4)) {
+  if (entry.origin !== "opening" && String(normalized.date).slice(0, 4) !== String(entry.date).slice(0, 4)) {
     throw accountingError("Aastat ei saa muuta (kande number on aasta kaupa). Kustuta kanne ja tee uus.");
   }
   const before = snapshotOf(entry);
@@ -379,7 +382,14 @@ function assertStornoUndoable(storno, original) {
 
 function assertDeletable(entry) {
   assertCorrectable(entry);
-  if (entry.origin !== "manual") throw accountingError("Kustutada saab ainult käsitsi kannet. Automaatkannet parandatakse ridade muutmisega või dokumendi kaudu.", 409);
+  if (entry.origin === "opening") throw accountingError("Algsaldode kannet ei kustutata: paranda read või tee storno.", 409);
+}
+
+// a deleted entry back in the books (a tombstone keeps its number and content). A deleted storno comes back only through
+// a new storno: its original entry is live again.
+function assertRestorable(entry) {
+  if (!entry.deleted) throw accountingError("Kanne ei ole kustutatud.", 409);
+  if (entry.origin === "reversal") throw accountingError("Tühistatud stornot ei taastata; tee uus storno.", 409);
 }
 
 // „Asenda konto” (the accountant 2026-10-23: move the old sales entries 3060 → 3000 herself): the entry with the lines
@@ -438,6 +448,7 @@ module.exports = {
   chunked,
   replaceAccountValues,
   assertDeletable,
+  assertRestorable,
   assertStornoUndoable,
   correctedEntry,
   isLocked,

@@ -154,7 +154,7 @@ describe('AccountingPage', () => {
     await waitFor(() => expect(repository.reverse).toHaveBeenCalledWith('manual_m1', expect.any(String), 'vale summa'));
   });
 
-  it('the history of a corrected entry shows before and after; only a manual entry can be deleted, with a reason', async () => {
+  it('the history of a corrected entry shows before and after; an entry is deleted without a reason', async () => {
     const history = [{ at: `${year}-02-01T10:00:00.000Z`, by: { name: 'Raamatupidaja' }, action: 'edit', reason: 'summa', before: { date: `${year}-01-31`, description: 'Jaanuari palk', documentRef: 'Palgaleht 01', lines: [{ account: '4710', debitCents: 2000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 2000 }] }, after: { date: `${year}-01-31`, description: 'Jaanuari palk', documentRef: 'Palgaleht 01', lines: [{ account: '4710', debitCents: 3000, creditCents: 0 }, { account: '2210', debitCents: 0, creditCents: 3000 }] } }];
     const repository = repo({ load: vi.fn().mockResolvedValue({ entries: [entries[0], { ...entries[1], history }], accounts }), deleteEntry: vi.fn().mockResolvedValue({}) });
     render(<MemoryRouter><AccountingPage repository={repository} canEdit /></MemoryRouter>);
@@ -165,13 +165,10 @@ describe('AccountingPage', () => {
     expect(screen.getByText(/Raamatupidaja · „summa”/)).toBeInTheDocument();
     // no separate „Muuda” mode: the cells are edited in place (JournalGrid.test.jsx)
     expect(screen.queryByRole('button', { name: 'Muuda' })).not.toBeInTheDocument();
-    expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(1);
-    fireEvent.click(screen.getByRole('button', { name: 'Kustuta' }));
+    expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(2);
+    fireEvent.click(screen.getAllByRole('button', { name: 'Kustuta' })[1]);
     fireEvent.click(screen.getByRole('button', { name: 'Kustuta kanne' }));
-    expect(await screen.findByText('Lisa kustutamise põhjus.')).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText('Kustutamise põhjus'), { target: { value: 'topelt' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Kustuta kanne' }));
-    await waitFor(() => expect(repository.deleteEntry).toHaveBeenCalledWith('manual_m1', 'topelt'));
+    await waitFor(() => expect(repository.deleteEntry).toHaveBeenCalledWith('manual_m1'));
   });
 
   it('a deleted entry leaves the registers (shown on request, its number kept); a locked period allows only a storno', async () => {
