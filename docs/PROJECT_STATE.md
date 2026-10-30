@@ -1,7 +1,7 @@
 ## 2026-10-30 · agent/journal-edit-free — automatic entries: full correction, delete and restore
 
 - The accountant: she can't correct or delete the entries the system made. Audit: her manual entries were fine; automatic ones had no „Kustuta”, a fixed date and document and a required reason.
-- `accounting-core.js`, `index.js` (`/accounting/entries/restore`), `JournalGrid`, `journalGrid`, `accountingReports`, `AccountingPage`: an automatic entry now edits date, document, lines and text; the reason is optional (history keeps who, when, before, after); „Kustuta” with a reason makes a tombstone the sync does not recreate; „Taasta” under „Näita kustutatud”. The opening entry keeps its limits, a closed period still blocks everything. The source document in the CRM does not change.
+- `accounting-core.js`, `index.js` (`/accounting/entries/restore`), `JournalGrid`, `journalGrid`, `accountingReports`, `AccountingPage`: an automatic entry now edits date, document, lines and text; no reason is asked for a correction, delete or „Asenda konto” (owner; history keeps who, when, before, after); „Kustuta” makes a tombstone the sync does not recreate; „Taasta” under „Näita kustutatud”. The opening entry keeps its limits, a closed period still blocks everything. The source document in the CRM does not change.
 - Deploy: `functions:financeApi`, then the site. Next: the owner asks the accountant whether a prepaid service should be one entry D 2500 / K 3000 (today: D 1200 / K 3000 and D 2500 / K 1200).
 
 ## 2026-10-30 · agent/textbook-a2-pilot — A2 moodul 1 õpikupeatüki piloot

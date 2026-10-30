@@ -178,8 +178,7 @@ export default function AccountingPage({ repository = accountingService, canEdit
   };
   const submitDelete = async (event) => {
     event.preventDefault();
-    if (!form.reason?.trim()) { setError('Lisa kustutamise põhjus.'); return; }
-    if (await run('save', () => repository.deleteEntry(form.entry.id, form.reason.trim()), `Kanne ${form.entry.label} kustutati. Sisu ja põhjus jäid ajalukku.`)) setDialog(null);
+    if (await run('save', () => repository.deleteEntry(form.entry.id), `Kanne ${form.entry.label} kustutati. Sisu jäi ajalukku.`)) setDialog(null);
   };
   const submitUndoStorno = async (event) => {
     event.preventDefault();
@@ -378,9 +377,8 @@ export default function AccountingPage({ repository = accountingService, canEdit
 
     <Modal open={dialog === 'delete'} title={`Kustuta kanne ${form.entry?.label || ''}`} onClose={close} footer={<><Button variant="secondary" disabled={Boolean(busy)} onClick={close}>Loobu</Button><Button variant="danger" type="submit" form="accounting-delete-form" loading={busy === 'save'}>Kustuta kanne</Button></>}>
       <form id="accounting-delete-form" className="expense-form" onSubmit={submitDelete}>
-        <p className="form-hint">Kanne kaob registritest, kuid selle sisu, kustutaja, aeg ja põhjus jäävad ajalukku („Näita kustutatud”). Kande numbrit ei kasutata uuesti.</p>
+        <p className="form-hint">Kanne kaob registritest, kuid selle sisu, kustutaja ja aeg jäävad ajalukku („Näita kustutatud”). Kande numbrit ei kasutata uuesti.</p>
         {error ? <p className="form-error" role="alert">{error}</p> : null}
-        <label className="textarea-field"><span>Põhjus *</span><textarea aria-label="Kustutamise põhjus" rows="3" value={form.reason || ''} onChange={(event) => setForm({ ...form, reason: event.target.value })} /></label>
       </form>
     </Modal>
 

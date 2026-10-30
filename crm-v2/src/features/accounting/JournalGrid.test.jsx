@@ -98,25 +98,22 @@ describe('JournalGrid', () => {
     await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('manual_m1', expect.objectContaining({ lines: [expect.objectContaining({ debitCents: 4000 }), expect.objectContaining({ creditCents: 4000 })] }), ''));
   });
 
-  it('an automatic entry is corrected like any other, the reason is optional; Ctrl+Z undoes the last saved change', async () => {
+  it('an automatic entry is corrected like any other, no reason asked; Ctrl+Z undoes the last saved change', async () => {
     const repository = repo();
     await open(repository);
     typeInto(2, 0, '3000');
     expect(cell(2, 0)).toHaveTextContent('3000 Kauba, teenuse müük');
     fireEvent.mouseDown(cell(4, 3));
     fireEvent.keyDown(screen.getByLabelText('Kirjeldus (muuda)'), { key: 'Escape' });
-    fireEvent.change(screen.getByLabelText('Paranduse põhjus'), { target: { value: 'müügitulu 3000' } });
     fireEvent.click(screen.getByRole('button', { name: 'Salvesta muudatused (1)' }));
-    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.objectContaining({ date: `${year}-01-10`, documentRef: 'KS-1', lines: [expect.objectContaining({ account: '1200' }), expect.objectContaining({ account: '3000' })] }), 'müügitulu 3000'));
-    // the reason is remembered for the session
-    expect(globalThis.sessionStorage.getItem('keelesepp.accounting.correctionReason')).toBe('müügitulu 3000');
+    await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('auto_invoice_i1', expect.objectContaining({ date: `${year}-01-10`, documentRef: 'KS-1', lines: [expect.objectContaining({ account: '1200' }), expect.objectContaining({ account: '3000' })] }), ''));
     // an automatic entry can be deleted too
     expect(screen.getAllByRole('button', { name: 'Kustuta' })).toHaveLength(2);
     fireEvent.keyDown(grid(), { key: 'z', ctrlKey: true });
     await waitFor(() => expect(repository.updateEntry).toHaveBeenLastCalledWith('auto_invoice_i1', expect.objectContaining({ lines: [expect.objectContaining({ account: '1200', debitCents: 8000 }), expect.objectContaining({ account: '3060', creditCents: 8000 })] }), 'Tagasivõtmine (Ctrl+Z): müügitulu 3000'));
   });
 
-  it('an automatic entry saves without a reason, and takes a new date and document', async () => {
+  it('an automatic entry saves and takes a new date and document', async () => {
     const repository = repo();
     await open(repository);
     typeInto(2, 0, '3000');
@@ -164,7 +161,7 @@ describe('JournalGrid', () => {
     await waitFor(() => expect(repository.updateEntry).toHaveBeenCalledWith('manual_m1', expect.objectContaining({ lines: [{ account: '4710', debitCents: 123450, creditCents: 0, note: 'palk' }, { account: '2210', debitCents: 0, creditCents: 123450, note: 'palk' }] }), ''));
   });
 
-  it('„Asenda konto” previews the count and the sum, needs the reason, applies through one batch request and Ctrl+Z moves it back', async () => {
+  it('„Asenda konto” previews the count and the sum, applies through one batch request and Ctrl+Z moves it back', async () => {
     const repository = repo();
     await open(repository);
     fireEvent.click(screen.getByRole('button', { name: /Asenda konto/ }));
@@ -172,10 +169,8 @@ describe('JournalGrid', () => {
     fireEvent.change(screen.getByLabelText('Uus konto'), { target: { value: '3000' } });
     expect(screen.getByText(/Eelvaade: 1 kanne, 1 rida · D 0,00 · K 80,00/)).toBeInTheDocument();
     const apply = screen.getByRole('button', { name: 'Asenda 1 kandes' });
-    expect(apply).toBeDisabled();
-    fireEvent.change(screen.getByLabelText('Paranduse põhjus'), { target: { value: 'müügitulu 3000' } });
     fireEvent.click(apply);
-    await waitFor(() => expect(repository.replaceAccount).toHaveBeenCalledWith({ fromAccount: '3060', toAccount: '3000', entryIds: ['auto_invoice_i1'], reason: 'müügitulu 3000' }));
+    await waitFor(() => expect(repository.replaceAccount).toHaveBeenCalledWith({ fromAccount: '3060', toAccount: '3000', entryIds: ['auto_invoice_i1'] }));
     expect(await screen.findByText(/asendati kontoga 3000 1 kandes/)).toBeInTheDocument();
     await act(async () => { fireEvent.keyDown(grid(), { key: 'z', metaKey: true }); });
     await waitFor(() => expect(repository.replaceAccount).toHaveBeenLastCalledWith({ fromAccount: '3000', toAccount: '3060', targets: [{ entryId: 'auto_invoice_i1', lineIndexes: [1] }], reason: 'Tagasivõtmine (Ctrl+Z): müügitulu 3000' }));

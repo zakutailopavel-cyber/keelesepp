@@ -13,9 +13,6 @@ import {
 // Tab, Enter move like Excel; Esc cancels. An entry is saved through financeApi when the cursor leaves it and D = K;
 // otherwise it stays red with the difference. The legal guarantees stay on the server: history and audit of every
 // change, the period lock, immutable numbers.
-const REASON_KEY = 'keelesepp.accounting.correctionReason';
-const readReason = () => { try { return globalThis.sessionStorage?.getItem(REASON_KEY) || ''; } catch { return ''; } };
-const writeReason = (value) => { try { globalThis.sessionStorage?.setItem(REASON_KEY, value); } catch { /* private mode */ } };
 const isMac = () => /Mac|iPhone|iPad/.test(globalThis.navigator?.platform || '');
 
 const NO_FILTERS = { account: '', text: '', doc: '', sum: '', partner: '' };
@@ -29,7 +26,6 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   const [attempted, setAttempted] = useState(() => new Set());
   const [saving, setSaving] = useState(() => new Set());
   const [serverErrors, setServerErrors] = useState({});
-  const [reason, setReasonState] = useState(readReason);
   const [undoStack, setUndoStack] = useState([]);
   const [replace, setReplace] = useState(null);
   const [openHistory, setOpenHistory] = useState(() => new Set());
@@ -42,7 +38,6 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   workingsRef.current = workings;
   editingRef.current = editing;
 
-  const setReason = (value) => { setReasonState(value); writeReason(value); };
   const accountName = (code) => accounts.find((a) => String(a.code) === String(code))?.name || '';
   const byId = useMemo(() => new Map(entries.map((e) => [e.id, e])), [entries]);
   // an entry being edited stays visible even if the filter no longer matches it
@@ -55,21 +50,21 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   const totals = { entries: live.length, lines: live.reduce((n, e) => n + e.lines.length, 0), debit: live.reduce((n, e) => n + e.debitCents, 0), credit: live.reduce((n, e) => n + e.creditCents, 0) };
   const canEditEntry = (entry) => !readOnly && !blocked && entry && entryActions(entry, lockedThrough).edit && !saving.has(entry.id);
   const workingOf = (entry) => workings[entry.id] || toWorking(entry.source);
-  const problemOf = (entry, working = workings[entry.id], why = reason) => (working ? workingProblem(working, { origin: entry.origin, accounts, reason: why, lockedThrough, originalDate: entry.source.date }) : null);
+  const problemOf = (entry, working = workings[entry.id]) => (working ? workingProblem(working, { origin: entry.origin, accounts, lockedThrough, originalDate: entry.source.date }) : null);
   const pendingIds = Object.keys(workings);
 
   // ---- saving ----
-  const save = async (entryId, { why = reason } = {}) => {
+  const save = async (entryId) => {
     const working = workingsRef.current[entryId];
     const entry = byId.get(entryId);
     if (!working || !entry) return true;
     if (sameAsEntry(working, entry.source)) { drop(entryId); return true; }
-    const check = problemOf(entry, working, why);
+    const check = problemOf(entry, working);
     if (check.problem) { setAttempted((s) => new Set(s).add(entryId)); return false; }
     setSaving((s) => new Set(s).add(entryId));
     try {
       const before = workingValues(toWorking(entry.source));
-      await repository.updateEntry(entryId, workingValues(working), why.trim());
+      await repository.updateEntry(entryId, workingValues(working), '');
       setUndoStack((stack) => [...stack.slice(-49), { kind: 'entry', entryId, label: entry.label, before, origin: entry.origin }]);
       onNotice?.(`Kanne ${entry.label} salvestati. Enne ja pärast on kande ajaloos.`);
       await onChanged();
@@ -149,7 +144,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
     if (!item) return;
     setMessage('');
     try {
-      const why = `Tagasivõtmine (Ctrl+Z)${reason.trim() ? `: ${reason.trim()}` : ''}`;
+      const why = 'Tagasivõtmine (Ctrl+Z)';
       if (item.kind === 'entry') await repository.updateEntry(item.entryId, item.before, why);
       else await repository.replaceAccount({ fromAccount: item.toAccount, toAccount: item.fromAccount, targets: item.targets, reason: why });
       setUndoStack((stack) => stack.slice(0, -1));
@@ -282,15 +277,14 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
   const preview = useMemo(() => (replace ? replacementPreview(visible, { from: replace.from, to: replace.to, lockedThrough }, accounts) : null), [replace, visible, lockedThrough, accounts]);
   const applyReplace = async () => {
     if (!preview || preview.problem || !preview.entries.length) return;
-    if (!reason.trim()) { setMessage('Lisa „Paranduse põhjus” — see läheb iga kande ajalukku.'); return; }
     if (pendingIds.length) { setMessage('Salvesta või tühista (Esc) enne pooleli olevad parandused.'); return; }
     setReplace((r) => ({ ...r, busy: true }));
     setMessage('');
     try {
-      const result = await repository.replaceAccount({ fromAccount: replace.from.trim(), toAccount: replace.to.trim(), entryIds: preview.entries.map((e) => e.id), reason: reason.trim() });
+      const result = await repository.replaceAccount({ fromAccount: replace.from.trim(), toAccount: replace.to.trim(), entryIds: preview.entries.map((e) => e.id) });
       const changed = result?.changed || [];
       if (changed.length) setUndoStack((stack) => [...stack.slice(-49), { kind: 'replace', fromAccount: replace.from.trim(), toAccount: replace.to.trim(), targets: changed.map((c) => ({ entryId: c.entryId, lineIndexes: c.lineIndexes })) }]);
-      onNotice?.(`Konto ${replace.from.trim()} asendati kontoga ${replace.to.trim()} ${changed.length} kandes. Iga kande ajalukku jäi muudatus ja põhjus. Ctrl+Z võtab tagasi.`);
+      onNotice?.(`Konto ${replace.from.trim()} asendati kontoga ${replace.to.trim()} ${changed.length} kandes. Iga kande ajalukku jäi muudatus. Ctrl+Z võtab tagasi.`);
       setReplace(null);
       await onChanged();
     } catch (error) {
@@ -341,7 +335,6 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
         {Object.values(filters).some(Boolean) ? <button type="button" className="link-button" onClick={() => setFilters(NO_FILTERS)}>Tühjenda</button> : null}
       </div>
       {!readOnly ? <div className="accounting-grid-tools__edit">
-        <label className="accounting-grid-tools__reason"><span>Paranduse põhjus</span><input aria-label="Paranduse põhjus" placeholder="soovi korral; läheb kande ajalukku" value={reason} onChange={(event) => setReason(event.target.value)} /></label>
         {pendingIds.length ? <Button variant="secondary" onClick={saveAll}>Salvesta muudatused ({pendingIds.length})</Button> : null}
         <Button variant="secondary" disabled={!last} title={`${modKey}+Z`} onClick={undo}><Undo2 size={15} /> Võta tagasi{last ? ` (${last.kind === 'entry' ? last.label : `${last.fromAccount} → ${last.toAccount}`})` : ''}</Button>
         <Button variant="secondary" aria-pressed={Boolean(replace)} onClick={() => setReplace(replace ? null : { from: filters.account.trim(), to: '' })}><Replace size={15} /> Asenda konto</Button>
@@ -352,7 +345,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
       <span>→</span>
       <input aria-label="Uus konto" list="journal-account-list" placeholder="uus konto, nt 3000" value={replace.to} onChange={(event) => setReplace({ ...replace, to: event.target.value.trim() })} />
       <span className={preview?.problem ? 'is-off' : 'is-ok'} role="status">{preview?.problem || `Eelvaade: ${preview.entries.length} ${preview.entries.length === 1 ? 'kanne' : 'kannet'}, ${preview.lineCount} rida · D ${amount(preview.debitCents)} · K ${amount(preview.creditCents)} (filtri ja perioodi piires)`}{preview?.skipped.length ? ` · vahele jäetakse ${preview.skipped.length} (${[...new Set(preview.skipped.map((s) => s.why))].join(', ')})` : ''}</span>
-      <Button disabled={Boolean(preview?.problem) || replace.busy || !reason.trim()} loading={replace.busy} title={!reason.trim() ? 'Lisa enne „Paranduse põhjus”' : ''} onClick={applyReplace}>Asenda {preview && !preview.problem ? `${preview.entries.length} kandes` : ''}</Button>
+      <Button disabled={Boolean(preview?.problem) || replace.busy} loading={replace.busy} onClick={applyReplace}>Asenda {preview && !preview.problem ? `${preview.entries.length} kandes` : ''}</Button>
       <button type="button" className="link-button" onClick={() => setReplace(null)}>Loobu</button>
     </div> : null}
     {message ? <p className="accounting-grid-tools__message" role="alert">{message}<button type="button" aria-label="Sulge teade" onClick={() => setMessage('')}>×</button></p> : null}
@@ -424,8 +417,7 @@ export default function JournalGrid({ entries, accounts, suppliers = [], lockedT
             {lineRows}
             <tr className="accounting-grid__subtotal"><td colSpan="5">{w ? <span className={red ? 'is-off' : 'accounting-grid__pending'} role={red ? 'alert' : undefined}>
               {serverErrors[entry.id] || check.problem || 'Muudetud — salvestub, kui liigud teise kandesse.'}{check.difference ? ` (D − K = ${amount(check.difference)})` : ''}
-              {entry.origin !== 'manual' ? <>{' '}<input className="accounting-grid__reason" aria-label="Paranduse põhjus (see kanne)" placeholder="põhjus (soovi korral)" value={reason} onChange={(event) => setReason(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') save(entry.id); }} /></> : null}
-              {' '}<button type="button" className="link-button" onClick={(event) => { const box = event.currentTarget.parentElement.querySelector('input'); save(entry.id).then((saved) => { if (saved === false) box?.focus(); }); }}>Salvesta</button>
+              {' '}<button type="button" className="link-button" onClick={() => save(entry.id)}>Salvesta</button>
               <button type="button" className="link-button" onClick={() => drop(entry.id)}>Tühista (Esc)</button>
             </span> : null}</td><td className="num">{amount(sumD)}</td><td className="num">{amount(sumK)}</td></tr>
             {historyOpen ? entry.history.map((h, i) => <tr key={`h${i}`} className="accounting-grid__history"><td colSpan="7">

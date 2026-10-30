@@ -3983,7 +3983,7 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal(fixedEntry.history[0].by.email, "zakutailo.pavel@gmail.com");
   assert.ok((await db.collection("financialAudit").doc("acc_update_0001").get()).exists);
 
-  const overrideNoReason = await financeRequest(adminToken, "/accounting/entries/update", { entryId: `auto_purchase-invoice_${invoiceId}`, entry: { description: "Senty Studio OÜ", lines: [{ account: "4220", debitCents: 31220 }, { account: "2110", creditCents: 31220 }] }, requestId: "acc_update_0002" });
+  const overrideNoReason = await financeRequest(adminToken, "/accounting/entries/update", { entryId: `auto_purchase-invoice_${invoiceId}`, entry: { description: "Senty Studio OÜ / rent", lines: [{ account: "4210", debitCents: 31220 }, { account: "2110", creditCents: 31220 }] }, requestId: "acc_update_0002" });
   assert.equal(overrideNoReason.status, 201, JSON.stringify(overrideNoReason.body));
   const override = await financeRequest(adminToken, "/accounting/entries/update", { entryId: `auto_purchase-invoice_${invoiceId}`, entry: { description: "Senty Studio OÜ", lines: [{ account: "4210", debitCents: 31220 }, { account: "2110", creditCents: 31220 }] }, reason: "kõik on rent", requestId: "acc_update_0003" });
   assert.equal(override.status, 201, JSON.stringify(override.body));
@@ -3991,7 +3991,7 @@ test("suppliers and purchase invoices book OA / VM entries; corrections keep a h
   assert.equal(overridden.documentRef, "1575", "the source document stays linked");
   assert.equal(overridden.override.reason, "kõik on rent");
   assert.equal(overridden.original.lines.length, 3);
-  const autoDelete = await financeRequest(adminToken, "/accounting/entries/delete", { entryId: `auto_purchase-invoice_${invoiceId}`, reason: "x", requestId: "acc_delete_0001" });
+  const autoDelete = await financeRequest(adminToken, "/accounting/entries/delete", { entryId: `auto_purchase-invoice_${invoiceId}`, requestId: "acc_delete_0001" });
   assert.equal(autoDelete.status, 201, JSON.stringify(autoDelete.body));
   assert.equal((await db.collection("accountingEntries").doc(`auto_purchase-invoice_${invoiceId}`).get()).get("deleted"), true);
   const resync = await financeRequest(adminToken, "/accounting/sync", {});
@@ -4141,8 +4141,6 @@ test("„Asenda konto” moves an account in many entries with history and audit
   const feb2 = await make("2028-02-02", 3);
   const accountsOf = async (id) => (await db.collection("accountingEntries").doc(id).get()).data().lines.map((l) => l.account);
 
-  const noReason = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "3000", entryIds: [feb1], requestId: "acc_replace_0000" });
-  assert.equal(noReason.status, 400, JSON.stringify(noReason.body));
   assert.equal((await financeRequest(adminToken, "/accounting/lock", { lockedThrough: "2028-01-31" })).status, 200);
   // one entry in the locked period refuses the whole request: nothing changes
   const refused = await financeRequest(adminToken, "/accounting/entries/replace-account", { fromAccount: "3060", toAccount: "3000", entryIds: [january, feb1, feb2], reason: "müügitulu 3000", requestId: "acc_replace_0001" });

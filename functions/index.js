@@ -9208,7 +9208,7 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
       throw httpError(error.status || 400, error.message);
     }
     await assertAccountingDatesOpen(transaction, [entry.date, corrected.after.date], lockedThrough);
-    // the reason is optional: who, when, before and after are in the history anyway (the accountant 2026-10-30)
+    // no reason needed (owner 2026-10-30): who, when, before and after are in the history
     const { action, patch } = correctionPatch(entry, corrected, { reason: cleanReason, nowIso, actorData });
     transaction.update(ref, patch);
     transaction.create(auditRef, { entityType: "accountingEntry", entityId: ref.id, action: `accounting.entry.${action}`, number: entry.number, reason: cleanReason, before: corrected.before, after: corrected.after, createdAt: nowIso, createdBy: actorData, requestId: mutationId });
@@ -9225,7 +9225,6 @@ async function updateAccountingEntry({ actor, entryId, values, reason, requestId
 async function replaceAccountInEntries({ actor, fromAccount, toAccount, entryIds, targets, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanReason = cleanText(reason, 300);
-  if (!cleanReason) throw httpError(400, "Konto asendamise põhjus on kohustuslik.");
   const from = String(fromAccount || "").trim();
   const to = String(toAccount || "").trim();
   if (!from || !to) throw httpError(400, "Sisesta mõlemad kontod.");
@@ -9316,7 +9315,6 @@ async function replaceAccountInEntries({ actor, fromAccount, toAccount, entryIds
 async function deleteAccountingEntry({ actor, entryId, reason, requestId }) {
   const mutationId = cleanRequestId(requestId);
   const cleanReason = cleanText(reason, 300);
-  if (!cleanReason) throw httpError(400, "Kustutamise põhjus on kohustuslik.");
   const ref = accountingEntryRef(entryId);
   const auditRef = db.collection("financialAudit").doc(mutationId);
   const nowIso = new Date().toISOString();
