@@ -236,7 +236,7 @@ export const LESSONS = withShapes({
       tag(B.profiles('057_t_people', 'Kolm reisijat.', 'Ene saatis info. Loe ja täida laused: mis reis igale inimesele sobib?', [
         ['Lucía, 34', ['ei taha ümber istuda', 'tahab näha merd', 'vaba laupäeval', 'buss sobib'], ['Lucíale sobib [Pärnu], sest seal on [meri].', 'Ta sõidab sinna [bussiga].']],
         ['Tom, 24', ['vähe raha', 'tahab näha vana ülikooli', 'õpilase soodushind', 'rong meeldib'], ['Tomile sobib [Tartu], sest seal on [ülikool].', 'Ta sõidab sinna [rongiga].']],
-        ['Grete, 22', ['tahab näha linna piiri ääres', 'vaba pühapäeval', 'tagasi samal päeval', 'pilet edasi-tagasi'], ['Gretele sobib [Narva], sest see on [Venemaa] piiri ääres.', 'Ta ostab [edasi-tagasi] pileti.']],
+        ['Grete, 23', ['tahab näha linna piiri ääres', 'vaba pühapäeval', 'tagasi samal päeval', 'pilet edasi-tagasi'], ['Gretele sobib [Narva], sest see on [Venemaa] piiri ääres.', 'Ta ostab [edasi-tagasi] pileti.']],
         ['Olga, 41', ['kaks väikest last', 'ei taha kaua sõita', 'tahab olla looduses ja metsas', 'autot ei ole', 'tagasi samal õhtul'], ['Olgale sobib [Haapsalu], sest sõit on [lühike].', 'Ta sõidab sinna ja tagasi [bussiga].']],
       ], '2'), { level: 3 }),
       teach(tag(B.ideaCard('057_t_plan', 'Meie reisiplaan.', 'Leppige kokku üks nädalavahetuse reis. Kasutage sõiduplaani. Kirjutage plaan üles.',
@@ -606,8 +606,8 @@ export const LESSONS = withShapes({
       tag(B.examListen('060_t_l4', 'Kuulamine 4. Vestlus.', 'Sofia ja Anna räägivad suveplaanidest. Kuulake kaks korda ja ühendage inimene ja reis.', 'match', [
         'Anna: Sofia, kas sa oled suveks juba midagi plaaninud? Mul on juulis kaks nädalat puhkust.',
         'Sofia: Jah! Ma sõidan juulis laevaga Helsingisse, Kati juurde. Pilet on juba olemas, ostsin selle internetist. Ja sina?',
-        'Anna: Mina lähen koos Brunoga Viljandisse. Tiiu ootab mind juba. Ta ütles, et koer võib ka tulla, kui ta ei hauku öösel.',
-        'Sofia: Bruno on ju väga vaikne koer. Jaan ütles, et tema pere läheb autoga Saaremaale. Oskar tahab seal mere ääres jalgpalli mängida ja Mia tahab näha tuletorni.',
+        'Anna: Mina lähen koos Brunoga Viljandisse. Tiiu ootab mind juba. Ta ütles, et koer võib ka tulla, kui ta on öösel vaikne.',
+        'Sofia: Bruno on ju väga hea koer. Jaan ütles, et tema pere läheb autoga Saaremaale. Oskar tahab seal mere ääres jalgpalli mängida ja Mia tahab näha tuletorni.',
         'Anna: Tore. Aga Viktor? Kas ta jääb talle?',
         'Sofia: Ei, Viktor sõidab jalgrattaga Leetu. Ta ei ole enam noor, aga teda ei saa keegi peatada. Ema ütleb, et ta on natuke hull.',
         'Anna: Ja Malle? Ta ei armasta ju sõita. Ta ütleb alati, et kodus on kõige parem.',
