@@ -61,7 +61,7 @@ stays as it was (functions/invoice-correction-core.js).
 Documents dated before the start date are in the opening balances. Without a VAT registration an expense is booked with
 its VAT (input VAT is not deductible).
 
-Not automatic yet: salaries and their taxes (manual entries until the payroll posting is built), cash received but not
+Not automatic yet: salaries and their taxes (manual entries; the TSD tab can prepare one, see „TSD”), cash received but not
 yet linked to an invoice (it is booked when the receipt is linked).
 
 Lesson package invoices („Tunnipakett”, `billingMode: lesson_tokens_v1`) are booked like any invoice (1200 / 3000 on the
@@ -324,3 +324,79 @@ was for. Staff only — never printed (PDF), never e-mailed, never shown to the 
 - Firestore rules: admins read `accountingEntries`, `accountingAccounts`, `accountingSettings`, `suppliers`,
   `purchaseInvoices`; nobody writes them from the client. Storage: `financial/purchase-invoices/**` admin read and
   create (PDF / images < 10 MB), no update or delete.
+
+## TSD (owner 2026-10-30: „сделать аналог TSD декларации в бухгалтерии”)
+
+Raamatupidamine → tab **TSD** (`crm-v2/src/features/accounting/tsd/`). It prepares the monthly declaration of income and
+social tax, unemployment insurance and funded pension: Lisa 1 part Ia per person, the totals of the main form, an Excel
+file. **It sends nothing to the tax board. The accountant checks the numbers before she files them.**
+
+### Rates (checked 2026-10-30) and sources
+
+Rates go by the year of the **payment** (taxation is cash-based). They live only in `tsd/tsdRates.js` by year, and can be
+set or corrected per year in the tab (`tsdSettings/<year>`, button „Määrad”). A year with neither stops the calculation.
+
+| 2026 | Value | Source |
+|-|-|-|
+| Income tax | 22 % | [emta.ee Tax rates](https://www.emta.ee/en/business-client/taxes-and-payment/income-and-social-taxes/tax-rates), [TuMS § 4 lg 1](https://www.riigiteataja.ee/akt/TuMS) |
+| Basic exemption | 700 €/month (8400 €/year), a fixed amount, on a written application to one payer only | emta.ee, TuMS § 23 |
+| Exemption at pensionable age | 776 €/month (9312 €/year) | emta.ee, TuMS § 23⁵ |
+| Social tax | 33 % | emta.ee, [SMS § 7](https://www.riigiteataja.ee/akt/SMS) |
+| Monthly base for the minimum | 886 € (292,38 € of tax) | [emta.ee Sotsiaalmaks](https://www.emta.ee/ariklient/maksud-ja-tasumine/tulumaks-ja-sotsiaalmaks/sotsiaalmaks), SMS § 2 lg 2 |
+| Unemployment insurance | employee 1,6 %, employer 0,8 % | emta.ee |
+| Funded pension (II) | 2 %, 4 % or 6 %, the person's choice; per person, not per year | emta.ee |
+| Filing and paying | the 10th of the next month; a weekend moves it (10.10.2026 → 12.10) | [emta.ee TSD](https://emta.ee/ariklient/maksud-ja-tasumine/tulumaks-ja-sotsiaalmaks/deklaratsiooni-tsd-esitamine/deklaratsiooni-tsd-esitamine-muutub-andmepohiseks), form TSD p 4 |
+
+Payment types: [official table](https://ncfailid.emta.ee/s/N2YaQNKweXWH6XS/download/tsd_lisa_1_valjamakseliikide_tabel_01.01.2026.xlsx),
+compared with the data-based TSD matrix (`APA_TSD_valjamakseliikide maatrikstabel_20251118.xlsx` in the
+[technical documentation](https://ncfailid.emta.ee/s/TiG3ajyNdETfLK4)): the codes offered keep their number and attributes.
+**A contract under the law of obligations is 17, not 21; 21 is a board member.** Offered: 10, 15, 16, 17, 21, 24, 33, 54, 55,
+57; plus „FIE / company” and „non-resident (Lisa 2)”, both outside the calculation.
+
+Calculation, as in [Lisa 1 examples](https://emta.ee/ariklient/maksud-ja-tasumine/tulumaks-ja-sotsiaalmaks/deklaratsiooni-tsd-esitamine/lisa-1-osa-1a-taitmise-naited)
+(the tests reproduce examples 1, 2, 3, 14, 15 and the pensioner's example 3 to the cent): pension and employee unemployment
+off the gross → exemption, at most what is left and one per person across types → 22 % of the rest. Social tax on the gross;
+for types 10 and 33 raised to the monthly base (code 1090) unless the person is exempt (SMS § 2 lg 2¹, lg 4) or the increase
+is typed by hand (a part month, SMS § 2 lg 3). At pensionable age: exemption type 650, no employee unemployment, employer's
+stays. Rounding: every amount to the cent.
+
+### Form and format
+
+Columns follow Lisa 1 ([form](https://www.emta.ee/sites/default/files/documents/2025-05/vorm_tsd_lisa_1_2025.pdf)): 1000, 1010,
+1020, 1030, 1150, 1160, 1060, 1090, 1100, 1110, 1120, 1130, 1140, 1170, totals 1200–1250. Main form
+([form](https://www.emta.ee/sites/default/files/documents/2023-01/vorm_tsd_2023.pdf)): 110, 115, 116 = TK + TTK, 117, 118. Not
+computed: 114 (Lisas 3–8), 119, part Ib (refunds), codes 1070 / 1080, Lisa 2, part II.
+
+**Since 01.10.2026 Lisas 1 and 2 are replaced in e-MTA by one payments view** (the October TSD, due 10.11, is the first).
+The old XML is no longer valid; files use the new XBRL GL format, the old CSV is accepted until the end of 2027, manual entry
+stays. So the export is **Excel only**. No XML: the format changed and no upload could be tested. A CSV export can be
+added against the official description if the accountant wants it.
+
+### Data
+
+| Collection | Holds | Who |
+|-|-|-|
+| `tsdPayees/<uid or auto id>` | name, `idCode`, `code` (payment type, `fie`, `nonresident`), `exemptionApplied` (null = not answered), `exemptionCents`, `pensionAge`, `pensionRate` (null = not answered), `minimumExempt`, `staffUid`, `active`, `note`, `history` | read and write: admin, finance |
+| `tsdMonths/<YYYY-MM>` | `sourceMonth`, `lines` (`id`, `payeeId`, `code`, `grossCents` (null = not entered), `minimumIncreaseCents` (null = calculated)), `history` | read and write: admin, finance |
+| `tsdSettings/<year>` | the rates of a year | read and write: admin, finance |
+
+No one deletes. `history` names who changed which fields and when, never a value, so an ID code does not spread. ID codes
+are in no log, URL or file name; the Excel holds them, because the declaration needs them. The page itself is ADMIN only
+(`accessPolicy.js`). Emulator test: `functions/tsd-rules-emulator.integration.js`.
+
+### The month
+
+The TSD month is the month of **payment**. „Töö kuu” (default: the month before) says whose pay it was: the accountant's books
+pay March in April and file it as „TSD 04/2026”. Gross comes from approved work time of that month (`workSessions`) until she
+types her own; typed values are saved and stay. Empty gross = not in the calculation, with a warning; a typed 0 on type 10
+means the monthly base alone. Missing data shows under the person. A person without a contract type stays out of the totals.
+
+**On 2026-10-30 production has no `workSessions` and none of the fields above, so everything is typed by hand at first.**
+
+### Comparison and salary entry
+
+„Võrdlus pearaamatuga” compares TSD gross with account 4710 of the month worked. „Vaata ja loo palgakanne” is a separate, optional
+step: it shows the entry first and warns when the month already has one, then calls the normal `/accounting/entries` (PR, numbered,
+in history and audit, refused in a closed period). It copies the accountant's own monthly entry: last day of the month worked,
+„PL <kuu> <aasta>”, D 4710 gross, D 4720 social tax, D 4730 employer unemployment (4720 if the chart has no 4730), C 2210 net,
+C 2320, C 2330, C 2340 TK + TTK, C 2350.

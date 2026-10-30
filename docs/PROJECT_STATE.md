@@ -1,3 +1,22 @@
+## 2026-10-30 · agent/accounting-tsd — Raamatupidamine: tab „TSD” (the accountant's „табель по зарплате”, owner's request)
+
+- Base: `main` 0a7c4d3, checked 2026-10-30. No deploy, no merge, no production writes (read-only admin SDK reads: `workSessions`,
+  `users`, salary entries). Full contract, rates with sources: `docs/ACCOUNTING.md` „TSD”.
+- Done: Lisa 1 Ia table per person for a payment month, form totals 110–118, due date, warnings, editable person data (ID code, payment
+  type, exemption, pension rate, pensionable age, monthly-base exemption) and gross, rates by year (`tsd/tsdRates.js`, override
+  `tsdSettings/<year>`), Excel, comparison with 4710, optional salary entry through the normal API.
+- Files: `crm-v2/src/features/accounting/tsd/*`, `AccountingPage.jsx` (+ test), `accountingExcel.js`, `accounting.css`,
+  `services/firebase/tsd.js`, `services/firebase/index.js`, `firestore.rules` (`tsdPayees`, `tsdMonths`, `tsdSettings`: admin / finance),
+  `functions/tsd-rules-emulator.integration.js`, `functions/package.json`, `docs/ACCOUNTING.md`.
+- Findings: since 01.10.2026 e-MTA replaces Lisas 1 and 2 with one payments view; old XML invalid, new XBRL GL, old CSV until end 2027:
+  **Excel only**. VÕS = type 17 (21 = board member). Production has no `workSessions`, ID codes, contract types, applications or pension rates: the
+  accountant types them. The calculation reproduces the booked March 2026 (TSD 04/2026, 442,82 €) to the cent.
+- Checks: `npx eslint --quiet src` clean. `npx vitest run --maxWorkers=4 --retry=2 --testTimeout=60000`: 412 files passed, 1 skipped (2870 tests passed, 6 skipped); a first plain run under machine load (average 300+) had 17 failed files, the rerun none. Emulator: `tsd-rules-emulator.integration.js` 2/2 (ports moved by a temporary config, another session held the defaults). Layout checked once in a browser with sample data. Not run against production: no real e-MTA entry, no real login.
+- Deploy (owner's approval): `firestore:rules` and hosting; no functions. Until the rules are live the tab cannot load.
+- Known: the accountant must check the numbers before filing. Not computed: Lisa 2, part Ib, 114, 1070, 1080. Exemption across several payers and
+  pension rate are declared, not checked against Pensionikeskus.
+- Next safe step: after deploy the accountant enters October's people and compares with her own calculation before 10.11.2026.
+
 ## 2026-10-30 · agent/a2-m10-final — A2 module 10 „Vaba aeg ja meelelahutus” in the final shape
 
 - Base: `main` db88120 (A2 modules 8 #921 and 9 #922 merged), checked 2026-10-30; the 044 → 046 boundary was checked. Content
