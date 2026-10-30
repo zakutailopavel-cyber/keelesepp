@@ -77,6 +77,8 @@ export function blockMinutes(block, level = 'A2', design = '', template = '') {
     case 'selfcheck': case 'rubric': return 1;
     case 'text': case 'tip': case 'notice': return 0.5;
     case 'image': return 0.3;
+    // a word strip is looked at while doing the task below it: no time of its own
+    case 'wordstrip': return 0;
     default: return 0.5;
   }
 }

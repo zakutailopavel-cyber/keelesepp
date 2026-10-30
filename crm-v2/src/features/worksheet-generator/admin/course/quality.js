@@ -52,7 +52,8 @@ export function sheetProblems(doc) {
     if (!tasks(doc).length) out.push({ code: 'diagnostic-empty', text: 'kontroll: lehel pole ülesandeid' });
     return out;
   }
-  const n = doc.blocks.length;
+  // a word strip is added to the sheet (art/wordStrips.js), it is not a block of the lesson's shape
+  const n = doc.blocks.filter((b) => b.type !== 'wordstrip').length;
   // lesson template v3 (docs/COURSE_DESIGN_COMMUNICATIVE.md §11, owner 2026-10-18: „столько блоков не надо”): 5–9 full
   // tasks a sheet; the textbook picture added to the sheet is not counted
   const v3 = fullerTemplate(doc.meta) && !doc.meta?.assessment;
@@ -65,7 +66,7 @@ export function sheetProblems(doc) {
   if (!doc.meta?.shortSheet && (minutes < SHEET_MINUTES.min || minutes > maxMinutes)) out.push({ code: 'minutes', text: `tööaeg ≈ ${minutes} min (terve tund ${SHEET_MINUTES.min}–${SHEET_MINUTES.max} min)` });
   const minTypes = v3 ? V3.types : 5;
   if (typeSet(doc).size < minTypes) out.push({ code: 'variety', text: `ainult ${typeSet(doc).size} erinevat ülesandetüüpi (vähemalt ${minTypes})` });
-  const last = doc.blocks[n - 1]?.type;
+  const last = doc.blocks[doc.blocks.length - 1]?.type;
   // design v2 (docs/COURSE_DESIGN_COMMUNICATIVE.md): a sheet may end with the task itself; a self-check only once a lesson
   const v2 = doc.meta?.design === 'v2';
   // an exam lesson's sheet is the exam part itself: it ends with its last exam task, in the author's order (registry.js
@@ -242,7 +243,7 @@ export function varietyProblems(sheets) {
   if (first?.meta?.design !== 'v2') return [];
   const out = [];
   const docs = ids.flatMap((id) => Object.values(sheets[id]));
-  const types = new Set(docs.flatMap((d) => (d.blocks || []).map((b) => b.type)));
+  const types = new Set(docs.flatMap((d) => (d.blocks || []).filter((b) => b.type !== 'wordstrip').map((b) => b.type)));
   const v3 = fullerTemplate(first?.meta);
   const minTypes = v3 ? V3.moduleTypes : 16;
   if (types.size < minTypes) out.push({ lessonId: '*', phase: '*', code: 'module-variety', text: `moodulis on ${types.size} plokitüüpi (${v3 ? first.meta.template : 'v2'}: vähemalt ${minTypes})` });

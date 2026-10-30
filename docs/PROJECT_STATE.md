@@ -1,9 +1,9 @@
 ## 2026-10-30 · agent/a2-m13-final — A2 module 13 „Töö ja amet” in the final shape
 
-- Base: `main` d776bfc (A2 modules 11 #930 and 12 #927 merged), checked 2026-10-30; the 059 → 061 boundary was checked. Content only; no
+- Base: `main` a58d8c4 (A2 modules 11 #930 and 12 #927 merged), checked 2026-10-30; the 059 → 061 boundary was checked. Content only; no
   production data, no publishing, no deploy. Template v3 → v4 (as modules 6–12).
 - Done: `a2/module13.js` (a2-061…065) passes every final-shape gate under the A2 profile: **baseline 104 → 0 problems**
-  (`final-shape.mjs --course a2 --module 13`); `finalShapeBaselineA2.json` 1000 → 870 (module 13's 104 lines, 18 V7 / V8 lines of modules
+  (`final-shape.mjs --course a2 --module 13`); `finalShapeBaselineA2.json` 1000 → 869 (module 13's 104 lines, 19 V7 / V8 lines of modules
   14–20, course 29 → 21), new 0. Quality gate clean, readiness 0 notes, `qualityBaseline.json` and `methodGaps.test.js` unchanged.
 - Shape (`withShapes`, A2 §4 row m13, no swap): 061 AVAS R→S (try first → rule → try again; töötan müüjana, töötan poes, vastutan … eest;
   main `061_t_stand` S01, tagged level 4), 062 LUGU R→W (the interview, a cliffhanger; pean + ma-vorm, oskan / saan / tahan + da-vorm;
@@ -31,6 +31,16 @@
 - Known: `V6-gap-L1` is unchanged in kind (module 5 → 10, closing pass); corner counts after this module: R3 3, W1 4, L4 2, L3 2 of 4.
 - Next safe step: A2 module 14 (`a2/module14.js`, its first corner not L3); rerun `final-shape.mjs --course a2 --module 14` against this file.
 
+## 2026-10-30 · agent/worksheet-art-throughout — pictures through the whole worksheet (word strips, scene next to its task)
+
+- Base: `main` 0a7c4d3 (A2 modules up to 10 #923), checked 2026-10-30, with Codex's #883 (156 A2 word pictures) merged in: this PR includes #883. No production data, no publishing, no deploy, no module file touched.
+- Owner: „посмотри на них и добавь куда надо”, „иллюстрации должны быть не только в начале листа, а эргономично дополнять рабочие листы на протяжении всего урока”.
+- Done: new non-task block `wordstrip` (`engine/blocks/content.jsx`, `hidden` from the picker and the connector catalogue; 3–5 square pictures with words, 0 minutes, `data.artFor: 'words'`, in `NON_TASK_TYPES`, depth `OPEN`; `gates.js` and `quality.js` ignore it). `art/wordStrips.js` `withWordStrips` places strips at build time in `admin/course/registry.js`; `art/textbookArt.js` `scenePlace` moves the scene picture + „Vaata pilti” card before the first speaking or writing task, honours the brief's new optional `place`. `pageSplit.js` `keepWithNext`: a strip goes to the next page with its task. `liveLesson.js` `stepView`: a strip comes with its task. `functions/generated/sheet-kit.cjs` rebuilt (`npm run build:sheet-kit`, required by `sheetKit.test.js`). Contract: `docs/TEXTBOOK_ART_BIBLE.md` §10, a pointer in `docs/LESSON_SCENE_STANDARD.md`.
+- Result a2-001…050 (150 sheets, 120 teaching, 30 exam), after the coordinator's review (too sparse at first): every teaching sheet has strips: 315 strips, 2.63 per sheet (45 sheets with 2, 75 with 3), 3 words each, 153 of 156 words used, none on exam sheets. Filler words need not be in the task below. The 50 lesson scene pictures: 12 moved down, 38 stay at the top, mostly because the opening text says „Vaata pilti”.
+- Checks on the final code: `npx eslint --quiet src` clean; `npx vitest run` 412 files passed, 1 skipped, 1 failed: `WorksheetStudioPage` (1 test, 20 s timeout); run alone the file passes 23/23. `finalShape`, `course`, `quality` green; no baseline file changed; minutes equal with and without strips (test).
+- Design check: local preview, PNGs in `~/.keelesepp-helpers/art-preview/` (not in the repo). Desktop, phone and print checked; the strip has no frame on any width (the classic theme's page frame, an inset shadow, showed through on a phone: fixed in `sheet.css`). a2-022 practice, 5 pages: strips on pages 1, 2, 4. Print sample of 12 sheets: 4 gain one page (a2-022 practice, a2-041 practice, a2-043 discover, a2-001 transfer), 8 unchanged; tiles reduced to 21 mm to keep that down.
+- Known: **sheets in Õppevara do not change until published again**; „Kursuste tervis” shows them as differing from code. A scene picture can land one page before its task on paper (only strips keep with their task). A strip word may be an answer two or more tasks above it, only when three words cannot be reached otherwise. Pictures to redraw: `pikk` = `luhike` and `peatus` = `bussipeatus` are the same file (`SAME_PICTURE`, a sheet shows one of each pair); weak: `ema` (same age as daughter), `vanem`, `köha`, `teenus`, `liha` (lime steak).
+- Next safe step: the owner looks at the PR and the PNGs; after the merge publish the A2 sheets on „Kursuse tootmine” lesson by lesson.
 ## 2026-10-30 · agent/a2-m12-final — A2 module 12 „Reisimine ja transport” in the final shape
 
 - Base: `main` 0a7c4d3 (A2 module 10 #923 merged; module 11 still open), checked 2026-10-30. The 054 → 056 boundary was checked by
@@ -5507,3 +5517,14 @@ required corners — see below why module 18 cannot close it).
 - Doc: `docs/KIDS_GROUPS_PROGRAM.md`.
 - Checks: kids.test.js (108 sheets valid, keys, pictures, colour keys), kidsCurriculum.test.js, libraryModel test; full verify below.
 - After merge: create the 36 records (create-only) and publish the 108 sheets.
+
+### 2026-10-29 — A2 textbook word illustrations, modules 1–10 (agent/art-a2-words-01-10)
+
+- Main checked: `822c0d81dc323b236b8455bd8e8a8c57e86a9e4a` (`origin/main`).
+- Goal: add the drawable core A2 vocabulary for modules 1–10 as reusable, accessible 1:1 textbook illustrations.
+- Complete: 156 unique WebP word illustrations, 800×800, each ≤60 KB, plus a registry with 156 entries and aggregated lesson IDs for repeated vocabulary. Files: `crm-v2/public/textbook-art/words/a2/*.webp`, `crm-v2/src/features/worksheet-generator/art/words/a2.js`, and `crm-v2/src/features/worksheet-generator/art/words.test.js`.
+- Checks: `npx vitest run src/features/worksheet-generator` — 63 files passed, 1 skipped; 958 tests passed, 5 skipped. `sips` verified all images are 800×800; size scan found no files above 60 KB; `git diff --check` passed.
+- No paid image API or production service used. The owner approved the initial A2 word illustration (`õpetaja`) before this word batch continued. Review limitations: some generated illustrations may use colors beyond the fixed art palette and should receive visual review before use in published worksheets.
+- PR: #883 (draft). Other art PR: cast portraits #569 (draft).
+- Not done: labeled scene set (modules 1–10), situation illustrations, and later-level word images. The first scene preview must be approved before generating the rest of that category; first situation preview likewise. Keep the user's limit of at most 2–3 open batch PRs and do not merge any PR.
+- Next safe step: push this branch and open its draft PR; then generate and show the first M1 scene preview for approval.
