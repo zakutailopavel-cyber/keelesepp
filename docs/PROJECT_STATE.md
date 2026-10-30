@@ -1,3 +1,24 @@
+## 2026-10-30 · agent/a2-m11-final — A2 module 11 „Ilm, aastaajad ja riided” in the final shape
+
+- Base: `main` checked 2026-10-30 (0a7c4d3: A2 modules 8 #921, 9 #922, 10 #923); the 049 → 051 boundary is rechecked (049's corner is L1, 051's W1).
+  Content only; no production data, no publishing, no deploy.
+- Done: `a2/module11.js` (a2-051…055, moved from template v3 to v4) passes every final-shape gate under the A2 profile: **126 → 0 problems**
+  (`final-shape.mjs --course a2 --module 11`). Quality gate clean. Storyline: March, Keelekool Sõna's spring outing on Saturday 13 March
+  (Viktor's farm or Pärnu; Lucía from Valencia fears the cold); radio weatherman Ragnar Vaher (host Ülle); new classmate Eeva (from Finland).
+- Cast: „Liis” as a listener (picture of 053) and other non-boss uses are gone: renamed Eeva in the module and `art/visuals/a2-module-11.js`. Mia's
+  mother is Kadri again (the old file had „Oksana”).
+- Shape (`withShapes`, A2 §4 row m11 = m3, no swap): 051 KUUL L→W (corner W1 `051_t_card`, main `051_t_letter` W04, 50–70 words), 052 PROB L→S (corner
+  S2 `052_p_cards` S05, main `052_t_decide` S03, call S04), 053 LUGU R→W (corner R4 `053_p_ragnar`, main `053_t_end` W05, 60–80 words), 054 AVAS R→S (corner
+  S1 `054_t_picture` S06, main `054_t_call` S04). 055 tags R1–R5, L1–L4, W1, W2a, S0, S1, S2, every part timed. **056 must not have an S1 corner.**
+  Every teaching lesson: review naming the previous lesson and one of modules 7–9, a pair task, a home recording (45–60 s), two fluency tasks.
+  No tingiv kõneviis. Goals of 051–055 in `a2/lessonGoals.js`.
+- Audio (TartuNLP, free): 13 recordings new (051_d_radio, 051_d_class, 051_p_clips, 051_t_voice, 052_d_call, 053_d_forecast, 053_p_map, 054_d_family,
+  054_p_morning, 055_t_l1–l4); the old ones of 051–055 removed (mp3 + manifest).
+- Checks on `main` 0a7c4d3: `final-shape.mjs --course a2 --module 11` 0 (course 1152, new 0); baseline only shrank (129 lines), `qualityBaseline.json` unchanged;
+  `npx eslint --quiet src` clean; `npx vitest run` 407 files passed, 3 UI files timed out at load ~40 (studentWorksheetFlow, LiveRoom, WorksheetStudioPage), all pass alone
+  (WorksheetStudioPage 23/23, the other two 19/19). Language check (Vabamorf) of module 11: 1 unknown lower-case word, `kusimustik` (genre value).
+- Known: readiness notes left (not gates): 051 and 055 Harjuta „live” ≈ 12 min. R4 corner is a `reading` with short answers (exam: 5 MC), as 039.
+- Next safe step: A2 module 12 (`a2/module12.js`); its first corner must not be S1.
 ## 2026-10-30 · agent/a2-m10-final — A2 module 10 „Vaba aeg ja meelelahutus” in the final shape
 
 - Base: `main` db88120 (A2 modules 8 #921 and 9 #922 merged), checked 2026-10-30; the 044 → 046 boundary was checked. Content
