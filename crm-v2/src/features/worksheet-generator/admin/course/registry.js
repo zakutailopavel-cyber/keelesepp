@@ -111,6 +111,8 @@ export const COURSES = {
   b1: named('b1'),
   b2: named('b2'),
   c1: named('c1'),
+  // the course to the Harno C1 exam (docs/COURSE_FINAL_SHAPE_C1.md, docs/B2_C1_CURRICULUM.md); no modules yet
+  b2c1: named('b2c1'),
   // Estonian as a mother tongue (docs/NATIVE_ESTONIAN_9_12_PLAN.md): exam preparation for grades 9 and 12
   ek9: { label: '9. klass emakeel · eesti keel emakeelena', name: '9. klass emakeel', badge: 'KeeleSepp · 9. klass emakeel' },
   ek12: { label: '12. klass emakeel · eesti keel emakeelena', name: '12. klass emakeel', badge: 'KeeleSepp · 12. klass emakeel' },

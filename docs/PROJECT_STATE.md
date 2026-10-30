@@ -19,6 +19,16 @@
   (WorksheetStudioPage 23/23, the other two 19/19). Language check (Vabamorf) of module 11: 1 unknown lower-case word, `kusimustik` (genre value).
 - Known: readiness notes left (not gates): 051 and 055 Harjuta „live” ≈ 12 min. R4 corner is a `reading` with short answers (exam: 5 MC), as 039.
 - Next safe step: A2 module 12 (`a2/module12.js`); its first corner must not be S1.
+## 2026-10-30 · agent/c1-course-foundation — course „Eesti keel C1” (B2 → Harno C1): foundation, no lessons
+
+- Base: `main` 0a7c4d3, checked 2026-10-30. No content, no production data, no publishing, no deploy. Paid or external: only reading harno.ee.
+- Goal (owner 2026-10-30): a new course leading to the Harno C1 exam, like B1→B2 leads to B2; the 240-h programme stays separate as „C1 süvakursus” (`c1`, `est-c1-*`, unchanged). Lessons start after the A2 course is finished.
+- Done: `docs/COURSE_FINAL_SHAPE_C1.md` (exam map re-checked on harno.ee, 12 new types, profile, intro schedule, archetype + corner plan per lesson, exam-lesson table, what must be built before module 1, open questions) and `docs/B2_C1_CURRICULUM.md` (18 modules, working title and can-do of all 90 lessons, axis, storyline after the B2 finale, reuse notes).
+- Code: course key **`b2c1`** (proposed instead of `c1x`), `PROFILES.b2c1`; `taskCatalogue.js` 71 → 83 types (R17–R19, L11–L13, W16–W18, S18, S19, G14), `HARNO_FORMATS_C1`, `harnoFamilyC1`, `FORMAT_INTRO_C1`, `FORMAT_PRACTICE_C1`, `VARIANTS_C1`; `courseNames.js` `b2c1` with curriculum id `est-b2-c1-roadmap-v1` and `sharesLevel: true`, so `courseForLevel('C1')` stays the süvakursus; `registry.js` `COURSES.b2c1`; `finalShape.test.js` course list (no groups until modules exist), `finalShapeBaselineB2C1.json` `{}`; `final-shape.mjs --course b2c1`. The baselines of a2, b1, b2 are unchanged.
+- Checks: `npx eslint --quiet src` clean. `npx vitest run`: 402 of 411 files passed, 1 skipped, 8 UI files failed (22 tests, machine load 300–500, mostly timeouts). Those 8 files re-run one at a time with a 120 s timeout: 7 passed, `studentWorksheetFlow` timed out on its own 90 s limit and passed alone (3/3). `final-shape.mjs --course b2c1`: „no modules yet”. The corner and exam plan was checked by a scratch script (not committed) against `FORMAT_INTRO_C1` and `FORMAT_PRACTICE_C1`; no gate has run on real C1 content, as there is none.
+- Known: Õppevara, Minu kursus and the book cover are keyed by level, so two courses on „C1” would mix; there is no block for the L3 lecture notes, no C1 rubric, no `C1-` stage (shape §8). L3 scoring is unclear in Harno's text (0–5 against 27 points, shape §2). The booklet was only sampled.
+- Next safe step: the owner answers shape §10; when A2 is finished, one UI PR for shape §8, then module 1 on `agent/b2c1-m01`.
+
 ## 2026-10-30 · agent/a2-m10-final — A2 module 10 „Vaba aeg ja meelelahutus” in the final shape
 
 - Base: `main` db88120 (A2 modules 8 #921 and 9 #922 merged), checked 2026-10-30; the 044 → 046 boundary was checked. Content

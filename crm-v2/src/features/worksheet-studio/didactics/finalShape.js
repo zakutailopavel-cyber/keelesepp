@@ -1,6 +1,6 @@
 // The final-shape gates of the B1 course (docs/COURSE_FINAL_SHAPE_B1.md §8, rules V1–V16) and, with the profile 'b2', of
 // the B1→B2 course (docs/COURSE_FINAL_SHAPE_B2.md: the same rules against the Harno B2 exam) and the A2 course
-// (docs/COURSE_FINAL_SHAPE_A2.md: against the Harno A2 exam). Pure and node-importable:
+// (docs/COURSE_FINAL_SHAPE_A2.md: against the Harno A2 exam) and the B2→C1 course (docs/COURSE_FINAL_SHAPE_C1.md). Pure and node-importable:
 // the course test (admin/course/finalShape.test.js), the summary tool (tools/course-audit/final-shape.mjs) and the unit
 // tests (finalShape.test.js) call the same functions.
 //
@@ -11,8 +11,8 @@
 import { blockMinutes } from './timeEstimate.js';
 import { isInLesson } from '../engine/inLesson.js';
 import {
-  ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_A2, FORMAT_INTRO_B2, FORMAT_PRACTICE, FORMAT_PRACTICE_A2, FORMAT_PRACTICE_B2, LEAD_PAIRS,
-  TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS, VARIANTS_A2, VARIANTS_B2, harnoFamily, harnoFamilyA2, harnoFamilyB2, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
+  ARCHETYPES, FORMAT_INTRO, FORMAT_INTRO_A2, FORMAT_INTRO_B2, FORMAT_INTRO_C1, FORMAT_PRACTICE, FORMAT_PRACTICE_A2, FORMAT_PRACTICE_B2, FORMAT_PRACTICE_C1, LEAD_PAIRS,
+  TASK_CATALOGUE, TEACHING_ARCHETYPES, VARIANT_MIN, VARIANTS, VARIANTS_A2, VARIANTS_B2, VARIANTS_C1, harnoFamily, harnoFamilyA2, harnoFamilyB2, harnoFamilyC1, harnoOf, isFinalShapeTask, isReview, skillOf, taskIdOf, taskLevelOf,
 } from './taskCatalogue.js';
 
 export const PHASES = ['discover', 'practice', 'transfer'];
@@ -57,6 +57,15 @@ export const PROFILES = Object.freeze({
     exam: 'B2', family: harnoFamilyB2, intro: FORMAT_INTRO_B2, practice: FORMAT_PRACTICE_B2, variants: VARIANTS_B2,
     min: { ...B1_MIN, S03: 0, S04: 0, S16: 1, S17: 1 },
     formsLabel: 'A1–B2',
+    shape: { ...FINAL_SHAPE, v12: { ...FINAL_SHAPE.v12, fromModule: 2 }, v16: { conditionalFrom: 1 }, examTimingFromModule: 2 },
+  },
+  // COURSE_FINAL_SHAPE_C1.md: the B2 → C1 course (b2c1-001…090, course key b2c1), shaped like the B1 → B2 course against
+  // the Harno C1 exam. The C1 speaking formats (S18 talk, S19 discussion) replace the topic questions and the B1 cards;
+  // the C1 süvakursus (course key c1) is a separate programme and has no profile
+  b2c1: {
+    exam: 'C1', family: harnoFamilyC1, intro: FORMAT_INTRO_C1, practice: FORMAT_PRACTICE_C1, variants: VARIANTS_C1,
+    min: { ...B1_MIN, S02: 0, S03: 0, S04: 0, S18: 1, S19: 1 },
+    formsLabel: 'A1–C1',
     shape: { ...FINAL_SHAPE, v12: { ...FINAL_SHAPE.v12, fromModule: 2 }, v16: { conditionalFrom: 1 }, examTimingFromModule: 2 },
   },
 });
@@ -463,7 +472,7 @@ function speakingPlaceProblems(lessons, out, P) {
   });
 }
 
-// `profile`: 'a2' (the A2 course), 'b1' (the A2→B1 course) or 'b2' (the B1→B2 course), see PROFILES
+// `profile`: 'a2' (the A2 course), 'b1' (the A2→B1 course), 'b2' (the B1→B2 course) or 'b2c1' (the B2→C1 course), see PROFILES
 export function finalShapeProblems(lessons, { forms = null, profile = 'b1' } = {}) {
   const P = PROFILES[profile];
   if (!P) throw new Error(`tundmatu kursuse profiil ${profile} (${Object.keys(PROFILES).join(', ')})`);
