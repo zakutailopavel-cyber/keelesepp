@@ -1,7 +1,7 @@
 // A2 course (A1 → A2 roadmap), module 10 „Vaba aeg ja meelelahutus” (a2-046…050), level A2, in the final shape
 // (docs/COURSE_FINAL_SHAPE_A2.md, row m10 = m2: LUGE RÄÄK KIRJ PROJ; gates V1–V16 of docs/COURSE_FINAL_SHAPE_B1.md §8).
 // One storyline, one year before the B1 course (docs/COURSE_CAST.md): January. After Christmas in Tartu Sofia promises herself
-// a hobby; the culture house „Sild” in Mustamäe opens its new clubs in February and has an open day on Saturday 30 January.
+// a hobby; the culture house „Sild” in Mustamäe opens its new clubs in February and has an open weekend on 20–21 February.
 // Minor characters: administrator Lea Tamm, club leaders Ilmar (chess, Viktor's club), Sten (dance), Tamara (knitting), Ella
 // (choir), Joel (Saturday wood workshop); radio „Mustamäe hääl” (host Ülle). The pictures of the Kasuta sheets
 // (art/visuals/a2-module-10.js) show Anna and Sofia choosing, Jaan's herb box and Viktor's chess, the concert invitation and the workshop ticket.
@@ -17,7 +17,7 @@
 //   050 EKS       the module exam, every part timed (B.examPart); tasks tagged R1, R2, R3, R4, R5, L1, L2, L3, L4, W1, W2a, W2b, S0, S1, S2.
 //                 L1's last practice before this module was module 5: V6-gap-L1 stays until module 8's exam gets its L1 tag (closing pass).
 // Every teaching lesson: „Mäletad?” naming the previous lesson and one of modules 6–8, an in-lesson pair task, a home
-// recording in Kasuta, two fluency tasks, one exam corner. No tingiv kõneviis (A2). The v3 file is in archive/v3/a2/module10.js.
+// recording in Kasuta, two fluency tasks, one exam corner. No tingiv kõneviis (A2).
 import { B, tag, teach, withShapes } from '../blocks.js';
 
 export const MODULE = { id: 'a2-module-10', course: 'a2', title: 'Vaba aeg ja meelelahutus', level: 'A2', design: 'v2', template: 'v4' };
@@ -92,7 +92,7 @@ export const LESSONS = withShapes({
         '',
         'Kui ilm on hea, parandan ma jalgrattaid. Ka {*jalgrataste|jalgratas|jalgrattaga} parandamine on hobi. Suvel käin ma {*kalal|kala|kalasse} ja kasvatan õunu.',
         '',
-        'Sina tahad {*proovida|proovima|proovib} midagi uut? See on väga hea mõte. Üks uus hobi teeb elu {*huvitavamaks|huvitav|huvitavalt}. Kas sa tuled kunagi {*malet|male|malele} mängima? Ma õpetan sind tasuta! Sinu onu Viktor',
+        'Sina tahad {*proovida|proovima|proovib} midagi uut? See on väga hea mõte. Uus hobi on alati {*huvitav|huvitavalt|huvitavamaks}. Kas sa tuled kunagi {*malet|male|malele} mängima? Ma õpetan sind tasuta! Sinu onu Viktor',
       ], 'g_vocab'),
       B.truefalse('046_p_tf', 'Õige või vale?', 'Mõtle Grete sõnumile ja Viktori kirjale. Kas lause on õige või vale?', [
         ['Grete mängib võrkpalli kaks korda nädalas.', true], ['Teisipäeva õhtul on Gretel võrkpallitrenn.', false], ['Grete koob vanaema juures salli.', true], ['Viktori maleõpetaja on Sten.', false],
@@ -191,8 +191,8 @@ export const LESSONS = withShapes({
     practice: [
       B.wordorder('047_p_order', 'Pane kokku.', 'Kirjuta Pere eelistused täislausetena. Esimene sõna algab suure tähega.', ['Miale meeldivad suured koerad.', 'Mulle ei meeldi õhtul süüa.', 'Kas sulle meeldib kitarri mängida?', 'Viktorile meeldib eriti metsas käia.', 'Sofiale meeldib uusi inimesi tundma õppida.', 'Oskarile ei meeldi talvel õues olla.', 'Meile meeldivad vanad filmid.', 'Kas teile meeldib rahulik muusika?']),
       B.match('047_p_mean', 'Mida see tähendab?', 'Ühenda lause ja mõte. Mõtle, kui palju inimesele see asi meeldib.', [
-        ['Mulle meeldib see väga.', 'See on tõesti hea.'], ['Mulle eriti meeldib see film.', 'See film on minu lemmik.'], ['See on üldse mitte huvitav.', 'See on väga igav.'], ['Ma eelistan teed.', 'Tee on mulle parem kui kohv.'],
-        ['See mäng on lõbus.', 'Mängides me palju naerame.'], ['Ta on minu lemmikõpetaja.', 'Teda on mul kõige parem kuulata.'], ['Mulle ei meeldi see üldse.', 'Ma ei taha seda kunagi teha.'], ['Mulle on see ükskõik.', 'See võib olla või ka mitte olla.'],
+        ['Mulle meeldib see väga.', 'See on tõesti hea.'], ['Mulle eriti meeldib see film.', 'See film on minu lemmik.'], ['See ei ole üldse huvitav.', 'See on väga igav.'], ['Ma eelistan teed.', 'Tee on mulle parem kui kohv.'],
+        ['See mäng on lõbus.', 'Mängides me palju naerame.'], ['Ta on minu lemmikõpetaja.', 'Tema tunnid meeldivad mulle kõige rohkem.'], ['Mulle ei meeldi see üldse.', 'Ma ei taha seda kunagi teha.'], ['Mulle on see ükskõik.', 'Mul ei ole vahet, mõlemad sobivad.'],
       ], 'full', 'g_vocab'),
       teach(tag(B.examListen('047_p_radio', 'Eksaminurk: raadio „Mustamäe hääl”.', 'Ülle räägib raadios Tamara ja Ilmariga. Kuula kaks korda. Kas lause on õige või vale?', 'truefalse', [
         'Ülle: Tere pärastlõunast! Stuudios on täna kultuurimaja Sild ringide õpetajad, Tamara ja Ilmar. Tamara, miks teile kudumine meeldib?',
@@ -259,7 +259,7 @@ export const LESSONS = withShapes({
         'Kadri: Mulle meeldib kino. Kinos on kell kaks lastefilm, pilet on kuus eurot. Kinos on ka soe.',
         'Kadri: Ainult et Sofiale ei meeldi lastefilmid ja Oskar ütleb, et need on igavad.',
         'Kadri: Muuseumis on pühapäeval tasuta sissepääs. Ja seal on kohvik, kus Viktor saab istuda.',
-        'Kadri: Mõelge ja kirjutage, mis teile sobib. Kell kaks sobib kõigile, sest Jaan tuleb enne seda tööle. Ma ootan teie vastust täna õhtuks. Musi!',
+        'Kadri: Mõelge ja kirjutage, mis teile sobib. Kell kaks sobib kõigile, sest järgmisel pühapäeval on Jaanil vaba päev. Ma ootan teie vastust täna õhtuks. Musi!',
       ], ['Õues ei saa Oskar mängida, sest väljas on väga [külm].', 'Loomaaias peab Viktor liiga palju [kõndima].', 'Kõndida saab Viktor ainult [pool tundi|30 minutit].', 'Lastefilmi pilet maksab [kuus|6] eurot.', 'Lastefilm ei sobi Sofiale ja [Oskarile].', 'Muuseum ei maksa pühapäeval midagi, sest sissepääs on [tasuta].', 'Muuseumis saab Viktor [kohvikus] istuda.', 'Kõigile sobib aeg kell [kaks|2|14].'], 'g_read'), { task: 'L07', level: 3 }),
       teach(tag(B.ideaCard('047_t_sunday', 'Mis teeme pühapäeval?', 'A on Jaan, B on Kadri. Leppige kokku üks plaan kogu perele.',
         'Pühapäeval kell kaks on kõik vabad. Väljas on miinus kümme kraadi. Viktor ei saa kaugele kõndida. Miale meeldivad loomad, Oskarile sport, Sofiale muusika, Kadrile filmid. Jaanile meeldib magada.',
@@ -367,7 +367,7 @@ export const LESSONS = withShapes({
         '',
         'Sofia tuleb ka, aga ainult siis, kui tal on [[aega]]. Tal on palju kodutööd. Me võime enne filmi koos süüa.',
         '',
-        'Kui reede ei [[sobi]], siis mina ei pahanda. Palun helista mulle täna õhtul. [[Kohtume]] neljapäeval tunnis! Tood mulle ka oma õpiku, minu oma jäi Sofia juurde.',
+        'Kui reede ei [[sobi]], siis mina ei pahanda. Palun helista mulle täna õhtul. [[Kohtume]] neljapäeval tunnis! Too mulle ka oma õpik, minu oma jäi Sofia juurde.',
         '',
         'Lucía',
       ], ['Mõte', 'palun']), { task: 'R04' }),
@@ -418,27 +418,27 @@ export const LESSONS = withShapes({
     canDo: 'Ma loen ürituste kuulutusi ja kirjutan uue õpilase vaba aja juhti 60–80-sõnalise soovituse: aeg, koht, hind ja miks minna.',
     discover: [
       B.review('049_d_review', [['Mida Anna ütles, kui ta laupäeval kontserdile ei saanud?', 'a2-048'], ['Mida ei tohi teeninduse ooteruumis teha?', 'a2-037'], 'Mis üritus toimub sel kuul sinu linnas?']),
-      B.text('049_d_brief', 'Meie projekt: vaba aja juht', 'Veebruaris tulevad keelekooli Sõna uued õpilased. Ene palub õpilastel teha väikese „Uue õpilase vaba aja juhi”. Selles on üritused ja kohad Mustamäel: kuhu minna, millal, kui palju see maksab ja miks see on hea. Igaüks kirjutab ühe soovituse. Kõigepealt kogume infot.'),
+      B.text('049_d_brief', 'Meie projekt: vaba aja juht', 'Märtsis tulevad keelekooli Sõna uued õpilased. Ene palub õpilastel teha väikese „Uue õpilase vaba aja juhi”. Selles on üritused ja kohad Mustamäel: kuhu minna, millal, kui palju see maksab ja miks see on hea. Igaüks kirjutab ühe soovituse. Kõigepealt kogume infot.'),
       teach(tag(B.examListen('049_d_clips', 'Eksaminurk: kaheksa teadet.', 'Sofia kuuleb raadiost ja bussis lühikesi teateid. Kuula kaks korda ja vali õige vastus.', 'choice', [
         'Tähelepanu! Kino Täht lõunaseanss algab täna kell üks. Pilet maksab ainult neli eurot. Eesti filmil on ka vene tiitrid. Kassa on avatud pool tundi enne filmi. Tulge ja võtke oma sõbrad kaasa. Hommikul saalis on alati palju vabu kohti.',
         'Head kuulajad! Pühapäeval on Mustamäel suusapäev. Algus on kell kümme spordihalli ees. Kõik võivad tulla, ka need, kes ei ole varem suusatanud. Suusad saab tasuta. Kuum tee maksab ühe euro. Riietuge soojalt, sest ilm on külm.',
-        'Bussi number viis ei sõida sel nädalavahetusel kultuurimaja juurde, sest teel on remont. Palun kasutage bussi number kaheksa. See buss sõidab iga kahekümne minuti tagant ja peatub maja ees. Sõidupilet on tavaline.',
-        'Kultuurimaja teatab: Tamara kudumise tund ei ole laupäeval, vaid pühapäeval kell kaksteist. Tamara laupäeval ei saa. Lõnga saab kultuurimajast, aga oma vardad palun võtke kaasa. Tund kestab kaks tundi ja on kõigile tasuta.',
+        'Bussi number viis ei sõida sel nädalavahetusel kultuurimaja juurde, sest teel on remont. Palun kasutage bussi number kaheksa. See buss sõidab iga kahekümne minuti tagant ja peatub maja ees. Sõidupilet on tavaline, kaks eurot. Vabandame väga.',
+        'Kultuurimaja teatab: Tamara kudumise tund ei ole laupäeval, vaid pühapäeval kell kaksteist. Tamara laupäeval ei saa. Lõnga saab kultuurimajast, aga oma vardad palun võtke kaasa. Tund kestab kaks tundi ja on kõigile tasuta. Uued inimesed on väga oodatud.',
         'Raamatukogu on sel laupäeval avatud kella kümnest kolmeni. Tule ja vali endale raamat! Lastele on kell üksteist lugemistund. Lugejakaarti saad teha kohapeal. Kaasa võta ainult dokument. Tere tulemast, kõik on tasuta.',
         'Täna õhtul kell seitse on ujulas Kalev muusikaõhtu. Ujumine muusikaga kestab kaks tundi ja pilet maksab seitse eurot. Ära unusta oma ujumismütsi kaasa võtta, ilma selleta basseini ei saa!',
         'Mustamäe keskuses on sel nädalal ostjatele üllatus. Kui ostad üle kahekümne euro eest, saad teisel korrusel tasuta kohvi. Näita kohvikus oma kviitungit. Pakkumine kehtib pühapäevani. Kohvik on avatud kella kümnest kuueni.',
-        'Tähelepanu, kontserdi külastajad! Kontsert algab viisteist minutit hiljem. Koor on bussis ja bussil on väike probleem. Palun oodake fuajees. Kohvik on avatud. Vabandame ja täname teid mõistmise eest.',
+        'Tähelepanu, kontserdi külastajad! Kontsert algab viisteist minutit hiljem. Koor on bussis ja bussil on väike probleem. Palun oodake fuajees ja ärge minge koju. Kohvik on avatud. Vabandame ja täname teid mõistmise eest.',
       ], [
         ['Kui palju maksab lõunaseansi pilet?', 'neli eurot', 'kolm eurot', 'kuus eurot'], ['Mida saab suusapäeval tasuta?', 'suusad', 'kuuma tee', 'tasuta bussi'], ['Mis buss sõidab nädalavahetusel kultuurimaja juurde?', 'buss number kaheksa', 'buss number viis', 'buss number kaks'], ['Mis päeval on kudumise tund?', 'pühapäeval', 'laupäeval', 'reedel'],
         ['Mis kellani on raamatukogu laupäeval avatud?', 'kella kolmeni', 'kella kümneni', 'kella viieni'], ['Mida tuleb muusikaõhtule kaasa võtta?', 'ujumismüts', 'kontserdi pilet', 'oma kitarr'], ['Mille eest saab keskuses tasuta kohvi?', 'kui ostad üle 20 euro eest', 'kui tuled hommikul', 'kui sul on kaart'], ['Miks kontsert algab hiljem?', 'koor on bussis', 'saal on kinni', 'pilet ei tööta'],
       ]), { task: 'L01', harno: 'L1' }),
         'Nagu Harno A2 kuulamise 1. osas: lühikesed teated (20–30 s), kolm valikut, iga tekst kõlab kaks korda. Eksamil on 7 teadet. Aeg umbes 8 minutit.'),
       tag(B.reading('049_d_poster', 'Kultuurimaja kava.', 'Loe kultuurimaja Sild nädalavahetuse kava. Vasta küsimustele nii lühidalt kui saad.', 'Avatud uste nädalavahetus',
-        'Kultuurimaja Sild, Mustamäe. Tule ja proovi! Sissepääs on kõigile tasuta, kui ei ole kirjutatud teisiti.\n\nLaupäev, 30. jaanuar\nKell 10–14 Puutöö töötuba lastele ja täiskasvanutele. Õpetaja on Joel. Teeme linnumaja. Pilet 8 eurot, sees on ka puit. Registreerimine: lea@kultuurimajasild.ee.\nKell 12–13 Kudumise tund Tamaraga. Võta kaasa oma varrased.\nKell 15–16.30 Maleturniir. Ilmar õpetab algajaid ja mängib ise kõigiga.\n\nPühapäev, 31. jaanuar\nKell 11–15 Laste joonistusnäitus teisel korrusel.\nKell 13–14 Tantsutund Steniga. Tantsida võivad kõik, partnerit ei ole vaja.\nKell 16 Koorikontsert. Kestus üks tund. Pilet 5 eurot, lastele tasuta.\n\nKohvik on avatud mõlemal päeval kella 10–17. Maja juures saab tasuta parkida. Bussid 5 ja 8 peatuvad maja ees. Lapsed alla seitsme aasta tulevad koos täiskasvanuga.',
+        'Kultuurimaja Sild, Mustamäe. Tule ja proovi! Sissepääs on kõigile tasuta, kui ei ole kirjutatud teisiti.\n\nLaupäev, 20. veebruar\nKell 10–14 Puutöö töötuba lastele ja täiskasvanutele. Õpetaja on Joel. Teeme linnumaja. Pilet 8 eurot, sees on ka puit. Registreerimine: ringid@kultuurimajasild.ee.\nKell 12–13 Kudumise tund Tamaraga. Võta kaasa oma vardad.\nKell 15–16.30 Maleturniir. Ilmar õpetab algajaid ja mängib ise kõigiga.\n\nPühapäev, 21. veebruar\nKell 11–15 Laste joonistusnäitus teisel korrusel.\nKell 13–14 Tantsutund Steniga. Tantsida võivad kõik, partnerit ei ole vaja.\nKell 16 Koorikontsert. Kestus üks tund. Pilet 5 eurot, lastele tasuta.\n\nKohvik on avatud mõlemal päeval kella 10–17. Maja juures saab tasuta parkida. Bussid 5 ja 8 peatuvad maja ees. Lapsed alla seitsme aasta tulevad koos täiskasvanuga.',
         [['Mitu tundi kestab puutöö töötuba?', 'neli tundi|neli|4'], ['Mida töötoas tehakse?', 'linnumaja'], ['Kas kudumise tund maksab?', 'ei|ei maksa|see on tasuta|tasuta'], ['Mis kell algab maleturniir?', 'kell 15|kell kolm|15'], ['Kus näitus on?', 'teisel korrusel'], ['Kui palju maksab kontsert täiskasvanule?', '5 eurot|viis eurot'], ['Mis on vaja puutöö töötoa jaoks enne teha?', 'registreeruda|registreerimine|end registreerida']], 'g_read'), { task: 'R08' }),
       tag(B.reading('049_d_guests', 'Kus nad käisid?', 'Lucía, Dmitri ja Tom kirjutavad keelekooli lehte, kus nad käisid. Vasta lühidalt.', 'Meie nädalavahetus',
         'Lucía: Laupäeval käisin ma Mustamäe raamatukogus. See asub Akadeemia teel, bussipeatuse lähedal. Malle aitas mul leida lihtsa raamatu. Lugejakaart oli tasuta. Pühapäeval on raamatukogu kahjuks kinni.\n\nDmitri: Reede hommikul käisin ma kinos Täht. Hommikune pilet maksab ainult neli eurot. Film kestis kaks tundi ja saal oli peaaegu tühi. Filmil olid eesti tiitrid. Ma õppisin kümme uut sõna!\n\nTom: Mina läksin pühapäeval Nõmme turule. Turg on avatud kella kaheksast kolmeni. Müüjad räägivad meelsasti, nii sain ma eesti keelt harjutada. Viktor müüs mulle mett ja õunu. Sissepääs on tasuta, aga võta sularaha kaasa. Mul ei olnud ja ma pidin automaadi juurde minema.',
-        [['Mis päeval on raamatukogu kinni?', 'pühapäeval'], ['Kui palju oli Lucíal lugejakaardi eest vaja maksta?', 'mitte midagi|see oli tasuta|tasuta'], ['Mis päeval käis Dmitri kinos?', 'reedel|reede hommikul'], ['Kui kaua film kestis?', 'kaks tundi'], ['Mis keeles olid filmi tiitrid?', 'eesti keeles'], ['Kuidas sai Tom turul keelt harjutada?', 'müüjatega rääkides|müüjad räägivad meelsasti|müüjatega'], ['Miks pidi Tom automaadi juurde minema?', 'tal ei olnud sularaha|sularaha ei olnud']]), { task: 'R09' }),
+        [['Mis päeval on raamatukogu kinni?', 'pühapäeval'], ['Kui palju Lucía lugejakaardi eest maksis?', 'mitte midagi|see oli tasuta|tasuta'], ['Mis päeval käis Dmitri kinos?', 'reedel|reede hommikul'], ['Kui kaua film kestis?', 'kaks tundi'], ['Mis keeles olid filmi tiitrid?', 'eesti keeles'], ['Kuidas sai Tom turul keelt harjutada?', 'müüjatega rääkides|müüjad räägivad meelsasti|müüjatega'], ['Miks pidi Tom automaadi juurde minema?', 'tal ei olnud sularaha|sularaha ei olnud']]), { task: 'R09' }),
       tag(B.examListen('049_d_who', 'Kes läheb kuhu?', 'Sofia ja Grete räägivad kavast. Kuula kaks korda. Ühenda inimene ja üritus.', 'match', [
         'Grete: Sofia, kas sa oled kava näinud? Mina lähen pühapäeval Steni tantsutundi.',
         'Sofia: Tore! Mina tahan koorikontserti kuulata. Kas sa tead, kes veel tuleb?',
@@ -455,7 +455,7 @@ export const LESSONS = withShapes({
       ], [['Grete läheb pühapäeval', 'Steni tantsutundi'], ['Sofia tahab kuulata', 'koorikontserti'], ['Viktor mängib', 'maleturniiril'], ['Malle otsib vardaid', 'kudumise tunni jaoks'], ['Anna ja Jaan teevad', 'puutöö töötoas linnumaja'], ['Väike Mia vaatab', 'oma pilti näitusel'], ['Lucía proovib pirukaid', 'kultuurimaja kohvikus'], ['Kadri on koos Miaga', 'teisel korrusel']]), { task: 'L09' }),
       B.notice('049_d_notice', 'Märka: kuulutuse keel', [
         'Aeg: **kell 10–14** = **kella kümnest kaheni** · **alates** kella kümnest',
-        'Päev: **laupäeval**, **30. jaanuaril** · **Kestus:** üks tund, **kaks tundi**, **poolteist tundi**',
+        'Päev: **laupäeval**, **20. veebruaril** · **Kestus:** üks tund, **kaks tundi**, **poolteist tundi**',
         'Hind: Pilet **maksab** viis **eurot**. Sissepääs on **tasuta**. Lastele **tasuta**.',
         'Tegevus: Üritus **toimub** kultuurimajas. **Registreerimine** on e-kirjaga.',
         'Soovitus: **Ma soovitan** minna, sest … · See **sobib** lastele. · See on **hea**, kui sulle meeldib …',
@@ -488,7 +488,7 @@ export const LESSONS = withShapes({
         'Lea: Tere! Hetk, ma vaatan. Jah, kolm kohta on veel vabad. Kas te olete kahekesi?',
         'Jaan: Jah, mina ja minu tuttav. Ja võib-olla ka minu poeg. Ta on kaheksa.',
         'Lea: Väga hea. Lapsed maksavad neli eurot, täiskasvanud kaheksa.',
-        'Anna: Mis kell see algab? Ma olen laupäeviti kella kaheteistkümneni tööl.',
+        'Anna: Mis kell see algab? Sel laupäeval olen ma kella kaheteistkümneni tööl.',
         'Lea: Algus on kell kümme, aga töötuba kestab kella kaheni. Te võite ka hiljem tulla.',
         'Anna: Kas ma saan siis ka linnumaja lõpuni teha?',
         'Lea: Joel ütleb, et linnumaja tegemiseks on vaja umbes kaks tundi. See on täpselt paras.',
@@ -500,7 +500,7 @@ export const LESSONS = withShapes({
         'Anna: Hästi. Aga üks küsimus veel. Kas pärast saame seal ka süüa?',
         'Lea: Jah, kohvik on avatud kella viieni. Pirukad on väga head. Head päeva teile!',
       ], [
-        ['Mitu kohta on töötoas veel vaba?', 'kolm', 'kaks', 'kaheksa'], ['Kui palju maksab Oskari pilet?', 'neli eurot', 'kaheksa eurot', 'kakskümmend eurot'], ['Mis kellani on Anna laupäeval tööl?', 'kella kaheteistkümneni', 'kella kümneni', 'kella kaheni'], ['Kui kaua võtab linnumaja tegemine?', 'umbes kaks tundi', 'umbes neli tundi', 'umbes pool tundi'],
+        ['Mitu kohta on töötoas veel vaba?', 'kolm', 'kaks', 'kaheksa'], ['Kui palju maksab Oskari pilet?', 'neli eurot', 'kaheksa eurot', 'kakskümmend eurot'], ['Mis kellani on Anna sel laupäeval tööl?', 'kella kaheteistkümneni', 'kella kümneni', 'kella kaheni'], ['Kui kaua võtab linnumaja tegemine?', 'umbes kaks tundi', 'umbes neli tundi', 'umbes pool tundi'],
         ['Mida peab töötuppa kaasa võtma?', 'vanad riided', 'puitu', 'tööriistad'], ['Kui palju maksavad kolm piletit kokku?', 'kakskümmend eurot', 'kaheksa eurot', 'kolmkümmend eurot'], ['Mida Anna lõpus küsib?', 'kas seal saab süüa', 'kas seal saab tantsida', 'kas ta võib hiljem maksta'], ['Mis on kohvikus väga head?', 'pirukad', 'koogid', 'võileivad'],
       ]), { task: 'L02' }),
       B.errorfix('049_p_fix', 'Paranda kuulutuse viga.', 'Dmitri tegi kuulutuses vigu. Igas lauses on üks viga. Kirjuta lause õigesti.', [
@@ -522,10 +522,10 @@ export const LESSONS = withShapes({
         ['Kontsert algab kell viis ja lõpeb kell kuus.', 'Kontsert kestab …', 'Kontsert kestab üks tund.'], ['Selle eest ei pea maksma.', 'Üritus on …', 'Üritus on tasuta.'],
         ['Töötuba algab kell kümme ja lõpeb kell kaks.', 'Töötuba on kella …', 'Töötuba on kella kümnest kaheni.'], ['Lapsed ei pea maksma.', 'Lastele on …', 'Lastele on tasuta.'],
         ['Ma arvan, et sa pead sinna minema.', 'Ma soovitan …', 'Ma soovitan sinna minna.|Ma soovitan sul sinna minna.'], ['Näitus on laupäeval.', 'Näitus toimub …', 'Näitus toimub laupäeval.'],
-        ['Üks pilet on viis eurot.', 'Pilet maksab …', 'Pilet maksab viis eurot.'], ['Kuulutus on keelekoolis ja kõik saavad lugeda.', 'Kuulutus …', 'Kuulutus on keelekoolis.'],
+        ['Üks pilet on viis eurot.', 'Pilet maksab …', 'Pilet maksab viis eurot.'], ['Kontsert on pühapäeval kell neli.', 'Pühapäeval kell neli …', 'Pühapäeval kell neli on kontsert.'],
       ]),
       teach(B.examWriting('049_p_card', 'Visiitkaardi järgi.', 'Kirjuta juhi jaoks visiitkaardi järgi 40–60 sõna. Vasta neljale küsimusele.', 'teade', {
-        situation: 'Visiitkaart: Tamara Vaher, kudumisringi õpetaja · Kultuurimaja Sild, Sõpruse puiestee 40, Tallinn · esmaspäeviti kell 17–19 · tel 5551 2040 · tamara@kultuurimajasild.ee',
+        situation: 'Visiitkaart: Tamara Vaher, kudumisringi õpetaja · Kultuurimaja Sild, Sõpruse puiestee 40, Tallinn · esmaspäeviti kell 17–19 · tel 5551 2040 · ringid@kultuurimajasild.ee',
         points: ['Kes on Tamara Vaher?', 'Kus ta töötab?', 'Millal on ring?', 'Kuidas saab temaga ühendust võtta?'],
         words: [40, 60],
       }),
@@ -539,7 +539,7 @@ export const LESSONS = withShapes({
         ['Paula, 60', ['pensionär', 'vaba iga päev', 'meeldib käsitöö', 'tahab sõpru'], ['Paulale sobib [kudumisring], sest talle meeldib [käsitöö].', 'Seal on ka teisi [inimesi].']],
         ['Oleg, 45', ['töötab sadamas', 'vaba pühapäeval', 'meeldib muusika', 'ei oska hästi eesti keelt'], ['Olegile sobib [koorikontsert], sest talle meeldib [muusika].', 'Kontsert on [pühapäeval] kell neli.']],
       ], '2'), { level: 3 }),
-      teach(tag(B.rolecards('049_t_desk', 'Kassas on probleem.', 'A tuli kontserdile, aga piletil on vale päev. B on kassapidaja. Lahendage probleem.', 'Oled A. Sul on pilet laupäevaks, aga täna on pühapäev. Tulid kontserdile. Ütle, mis juhtus. Palu uut piletit. Sul ei ole enam raha.', 'Oled B. Kõik pühapäeva piletid on müüdud. Saalis on ainult kaks seisukohta. Järgmine kontsert on 7. veebruaril. Paku lahendust.', ['Vabandust, mul on probleem …', 'Kas on võimalik …?'], ['Kahjuks täna …', 'Ma pakun, et …']), { task: 'S10' }),
+      teach(tag(B.rolecards('049_t_desk', 'Kassas on probleem.', 'A tuli kontserdile, aga piletil on vale päev. B on kassapidaja. Lahendage probleem.', 'Oled A. Sul on pilet laupäevaks, aga täna on pühapäev. Tulid kontserdile. Ütle, mis juhtus. Palu uut piletit. Sul ei ole enam raha.', 'Oled B. Kõik pühapäeva piletid on müüdud. Saalis on ainult kaks seisukohta. Järgmine kontsert on 7. märtsil. Paku lahendust.', ['Vabandust, mul on probleem …', 'Kas on võimalik …?'], ['Kahjuks täna …', 'Ma pakun, et …']), { task: 'S10' }),
         'Üks-ühele: õpetaja on kassapidaja ja ütleb kõigepealt „Täna on kõik täis”; õpilane selgitab, küsib uut aega ja lepib kokku. Siis vahetage rollid.'),
       tag(B.examWriting('049_t_form', 'Registreerimise vorm.', 'Täida vorm kultuurimaja töötoa jaoks. Vasta iga küsimuse juurde täislausega.', 'kusimustik', {
         situation: 'Laupäeva töötuba Joeli juures. Vormi tuleb täita vähemalt päev enne töötuba.',
@@ -583,14 +583,14 @@ export const LESSONS = withShapes({
       B.gaps('050_d_gaps', 'Kordame lünki.', 'Kirjuta sulgudes olev sõna vormis, mis lausesse sobib.', ['Eile käisin ma metsas [jooksmas]. (jooksma)', 'Mu vend mängib õhtuti [tennist]. (tennis)', 'Oskarile [meeldib] jalgpall väga. (meeldima)', 'Lapsele meeldivad väikesed [koerad]. (koer)', 'Kas sa tuled pühapäeval meiega [teatrisse]? (teater)', 'See kontsert kestab kaks [tundi]. (tund)']),
       B.wordorder('050_d_order', 'Pane lause kokku.', 'Pane mooduli laused kokku. Alusta suure tähega sõnast.', ['Teisipäeviti käib Viktor maleringis.', 'Annale meeldib pärast tööd tantsida.', 'Kas sul on laupäeval aega?', 'Töötuba toimub kultuurimajas.', 'Me kohtume kell viis kino ees.', 'Sulle meeldib kindlasti see laul.']),
       B.dictation('050_d_dict', 'Etteütlus enne eksamit.', 'Õpetaja loeb viis lauset vabast ajast kaks korda. Kirjuta need üles.', ['Sinu lemmikhobi on ujumine.', 'Laupäeval käin ma kooris laulmas.', 'Mulle ei meeldi pikk talv.', 'Kas sa tahad minuga kinno tulla?', 'Üks pilet maksab viis eurot.', 'Kohtume kell kuus kino ees.'], 6),
-      B.errorfix('050_d_fix', 'Leia viga.', 'Igas lauses on üks viga. Kirjuta kogu lause õigesti.', [['Minu poeg käib trenni iga päev.', 'Minu poeg käib trennis iga päev.'], ['Ma mängin eile male.', 'Ma mängisin eile malet.'], ['Minule meeldib kooris laulma.', 'Mulle meeldib kooris laulda.'], ['Pühapäeval me läheme teatris.', 'Pühapäeval me läheme teatrisse.'], ['Kontsert algab kell kuus ja maksab kümme eurod.', 'Kontsert algab kell kuus ja maksab kümme eurot.'], ['Kahjuks ma ei saan tulla.', 'Kahjuks ma ei saa tulla.']]),
+      B.errorfix('050_d_fix', 'Leia viga.', 'Igas lauses on üks viga. Kirjuta kogu lause õigesti.', [['Minu poeg käib trenni iga päev.', 'Minu poeg käib trennis iga päev.'], ['Ma mängisin eile male.', 'Ma mängisin eile malet.'], ['Mulle meeldib kooris laulma.', 'Mulle meeldib kooris laulda.'], ['Pühapäeval me läheme teatris.', 'Pühapäeval me läheme teatrisse.'], ['Kontsert algab kell kuus ja maksab kümme eurod.', 'Kontsert algab kell kuus ja maksab kümme eurot.'], ['Kahjuks ma ei saan tulla.', 'Kahjuks ma ei saa tulla.']]),
       teach(B.speaking('050_d_warm', 'Enne rääkimisosa.', 'Vasta nagu eksami alguses: igale küsimusele kaks-kolm lauset.', ['Kuidas sinu nimi on ja kust sa pärit oled?', 'Mida sa vabal ajal teed?', 'Mis sulle eriti meeldib?', 'Kuhu sa sel nädalal lähed?'], [60, 90]),
         'Õpetaja küsib nagu eksamineerija. Ära paranda, pane tähele ainult vormid käin ujumas ja mulle meeldib.'),
     ],
     practice: [
       PART('050_p_wpart', 'W', { minutes: 30, points: 20, tasks: 2, note: 'Kirjutage ilma sõnaraamatuta. Kirjutage kõigist punktidest. Teises ülesandes valige üks kahest teemast.' }),
       tag(B.examWriting('050_p_w1', 'Kirjutamine 1. Visiitkaart.', 'Kirjutage visiitkaardi järgi tekst vähemalt 25 sõnaga. Vastake neljale küsimusele.', 'teade', {
-        situation: 'Visiitkaart: Ilmar Lepp, male õpetaja · Kultuurimaja Sild, Sõpruse puiestee 40, Tallinn · teisipäeviti kell 18–20 · tel 5560 3311 · ilmar@kultuurimajasild.ee',
+        situation: 'Visiitkaart: Ilmar Lepp, maleõpetaja · Kultuurimaja Sild, Sõpruse puiestee 40, Tallinn · teisipäeviti kell 18–20 · tel 5560 3311 · ringid@kultuurimajasild.ee',
         points: ['Kes on Ilmar Lepp?', 'Kus ta töötab?', 'Millal on tema ring?', 'Kuidas saab temaga ühendust võtta?'],
         words: [25, 40],
       }), { harno: 'W1' }),
@@ -609,7 +609,7 @@ export const LESSONS = withShapes({
       PART('050_p_rpart', 'R', { minutes: 45, points: 29, tasks: 5, note: 'Viis ülesannet nagu eksamil. Lugege iga ülesande juhist hoolikalt.' }),
       tag(B.choice('050_p_r1', 'Lugemine 1. Viisakad väljendid.', 'Lugege olukorda. Valige sobiv vastus.', [
         ['Sõber ütleb: „Mul on täna sünnipäev.” Mida ütled?', 'Palju õnne!', 'Head isu!', 'Pole viga!'], ['Sa astud kogemata teisele inimesele jalale. Mida ütled?', 'Vabandust!', 'Tervist!', 'Head aega!'], ['Sõber kutsub sind kinno. Sa ei saa. Mida ütled?', 'Aitäh, aga kahjuks ei saa.', 'Palun, võta!', 'Tere tulemast!'],
-        ['Õhtul lähed magama. Mida ütled perele?', 'Head ööd!', 'Tere hommikust!', 'Head reisi!'], ['Keegi ütleb sulle aitäh. Mida vastad?', 'Pole tänu väärt.', 'Kahjuks ei saa.', 'Jõudu tööle!'], ['Sõber sõidab homme Soome. Mida ütled?', 'Head reisi!', 'Palju õnne!', 'Head isu!'],
+        ['Õhtul lähed magama. Mida ütled perele?', 'Head ööd!', 'Tere hommikust!', 'Head reisi!'], ['Naaber ütleb sulle abi eest aitäh. Mida vastad?', 'Pole tänu väärt.', 'Kahjuks ei saa.', 'Jõudu tööle!'], ['Sõber sõidab homme Soome. Mida ütled?', 'Head reisi!', 'Palju õnne!', 'Head isu!'],
       ], 'full', 'g_read'), { harno: 'R1' }),
       tag(B.adsmatch('050_p_r2', 'Lugemine 2. Kolm teadet.', 'Lugege kolme teksti. Mis tekstis on see info? Kirjutage täht.', [
         ['Suusapäev Nõmmel', 'Pühapäeval, 14. veebruaril on Nõmmel suusapäev. Algus on kell üksteist. Lapsed sõidavad lühikese raja, täiskasvanud kümme kilomeetrit. Osalemine on tasuta, aga palun registreeruge internetis. Suuski saab rentida. Kuum tee on kõigile. Pärast sõitu kuulutame võitjad välja. Parim suusataja saab väikese auhinna.'],
